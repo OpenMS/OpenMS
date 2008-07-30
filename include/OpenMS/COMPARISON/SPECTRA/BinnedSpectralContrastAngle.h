@@ -49,30 +49,30 @@ namespace OpenMS
 		@see BinnedSpectrumCompareFunctor @see BinnedSpectrum
 
 		@ingroup SpectraComparison
-  */
+	*/
 
-  class BinnedSpectralContrastAngle : public BinnedSpectrumCompareFunctor
-  {
+	class BinnedSpectralContrastAngle : public BinnedSpectrumCompareFunctor
+	{
 
 		public:
 
-    /// default constructor
-    BinnedSpectralContrastAngle();
+		/// default constructor
+		BinnedSpectralContrastAngle();
 
-    /// copy constructor
-    BinnedSpectralContrastAngle(const BinnedSpectralContrastAngle& source);
+		/// copy constructor
+		BinnedSpectralContrastAngle(const BinnedSpectralContrastAngle& source);
 
-    /// destructor
-    virtual ~BinnedSpectralContrastAngle();
+		/// destructor
+		virtual ~BinnedSpectralContrastAngle();
 
-    /// assignment operator
-    BinnedSpectralContrastAngle& operator = (const BinnedSpectralContrastAngle& source);
+		/// assignment operator
+		BinnedSpectralContrastAngle& operator = (const BinnedSpectralContrastAngle& source);
 
-    /** function call operator, calculates the similarity of the given arguments
+		/** function call operator, calculates the similarity of the given arguments
 
-				@param spec1 First spectrum given in a binned representation
-				@param spec2 Second spectrum ginve in a binned representation
-				@throw IncompatibleBinning is thrown if the binnings of the spectra are not the same
+			@param spec1 First spectrum given in a binned representation
+			@param spec2 Second spectrum ginve in a binned representation
+			@throw IncompatibleBinning is thrown if the binnings of the spectra are not the same
 		*/
 		double operator () (const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const;
 
@@ -80,7 +80,7 @@ namespace OpenMS
 		double operator () (const BinnedSpectrum& spec) const;
 
 		///
-    static BinnedSpectrumCompareFunctor* create() { return new BinnedSpectralContrastAngle(); }
+		static BinnedSpectrumCompareFunctor* create() { return new BinnedSpectralContrastAngle(); }
 
 		/// get the identifier for this FactoryProduct
 		static const String getProductName()
@@ -88,7 +88,7 @@ namespace OpenMS
 			return "BinnedSpectralContrastAngle";
 		}
 
-  };
+	};
 
 }
 #endif //OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRALCONTRASTANGLE_H

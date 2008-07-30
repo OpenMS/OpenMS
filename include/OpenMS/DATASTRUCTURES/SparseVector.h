@@ -40,14 +40,12 @@
 namespace OpenMS
 {
 	/**
-		@brief sparse vector implementation, which does not contain a specified type of element e.g. zero (by default)
-		
-		Sparse Vector for allround usage, will work with int, uint, double, float
-		this should use less space than a normal vector (if more than half of the 
-		elements are sparse elements, since the underlying structure is a map) and 
-		functions can just ignore (hop()) sparse elements for faster look over the 
-		elements of the container 
-	
+		@brief SparseVector implementation. The container will not actually store a specified type of element - the sparse element, e.g. zero (by default)
+
+		SparseVector for allround usage, will work with int, uint, double, float. This should use less space than a normal vector
+		(if more than half of the elements are sparse elements, since the underlying structure is a map) and functions can just
+		ignore sparse elements (hop(), @see SparseVectorIterator) for faster look over the elements of the container
+
 		@ingroup Datastructures
 	*/
 	template <typename Value>
@@ -55,20 +53,20 @@ namespace OpenMS
 	{
 
 		public:
-			
+
 			//forward declarations
 			class SparseVectorConstIterator;
 			class SparseVectorIterator;
 			class SparseVectorReverseIterator;
 			class SparseVectorConstReverseIterator;
 			class ValueProxy;
-					
+
 			//made available from this classes
 			typedef SparseVectorConstIterator const_iterator;
 			typedef SparseVectorConstReverseIterator const_reverse_iterator;
 			typedef SparseVectorIterator iterator;
-			typedef SparseVectorReverseIterator reverse_iterator;			
-			
+			typedef SparseVectorReverseIterator reverse_iterator;
+
 			//remapping
 			typedef typename std::map<size_t,Value>::difference_type difference_type; //needed?
 			typedef typename std::map<size_t,Value>::size_type size_type;
@@ -77,7 +75,7 @@ namespace OpenMS
 			typedef Value* pointer; //needed?
 			typedef ValueProxy& reference;
 			typedef const ValueProxy& const_reference;
-				
+
 			//internal use
 			typedef typename std::map<size_t,Value>::const_iterator map_const_iterator;
 			typedef typename std::map<size_t,Value>::iterator map_iterator;
@@ -89,7 +87,7 @@ namespace OpenMS
 			typedef SparseVectorIterator Iterator;
 			typedef SparseVectorReverseIterator ReverseIterator;
 
-				
+
 			void print() const
 			{
 				std::cout << std::endl;
@@ -100,105 +98,105 @@ namespace OpenMS
 			}
 
 		/// default constructor
-		SparseVector():values_(),size_(0),sparseElement_(0)
+		SparseVector():values_(),size_(0),sparse_element_(0)
 		{
 		}
-		
+
 		/// constructor with chosen sparse element
-		SparseVector(Value se):values_(),size_(0),sparseElement_(se)
+		SparseVector(Value se):values_(),size_(0),sparse_element_(se)
 		{
 		}
-		  	
+
 		 /// detailed constructor, use with filling element value is discouraged unless it is the same as sparse element se
-		 SparseVector(size_type size, Value value, Value se=0):values_(),size_(size),sparseElement_(se) 
+		 SparseVector(size_type size, Value value, Value se=0):values_(),size_(size),sparse_element_(se)
 		{
-				if(value != sparseElement_) //change, if sparse element is another
+				if(value != sparse_element_) //change, if sparse element is another
 				{
 					map_iterator i = values_.begin();
 					for(size_type s=0; s<size; ++s)
 					{
 						//makes each insertion in amortized constant time inserted direct after last one
 						i = values_.insert(i,make_pair(s,value));
-					}  	
+					}
 				}
-			}	
+			}
 
 		/// copy constructor
-		SparseVector(const SparseVector& source):values_(source.values_),size_(source.size_),sparseElement_(source.sparseElement_)
+		SparseVector(const SparseVector& source):values_(source.values_),size_(source.size_),sparse_element_(source.sparse_element_)
 		{
 		}
-		
-			/// assignment operator 
+
+			/// assignment operator
 		SparseVector& operator= (const SparseVector& source)
 		{
 				if (this != &source)
 			{
 				values_ = source.values_;
 				size_ = source.size_;
-				sparseElement_ = source.sparseElement_;
+				sparse_element_ = source.sparse_element_;
 			}
 				return *this;
-	  	} 
+			}
 
-   		/// destructor
-	  	~SparseVector()
-	  	{
-	  	}
-		
+			/// destructor
+			~SparseVector()
+			{
+			}
+
 			/// equality operator
 	  	bool operator== (const SparseVector& rhs) const
 	  	{
-				return ((values_ == rhs.values_)&&(size_ == rhs.size_)&&(sparseElement_ == rhs.sparseElement_));
+				return ((values_ == rhs.values_)&&(size_ == rhs.size_)&&(sparse_element_ == rhs.sparse_element_));
 	  	}
 
 			/// less than operator
-	  	bool operator< (const SparseVector& rhs) const
-	  	{
+			bool operator< (const SparseVector& rhs) const
+			{
 				return (values_ < rhs.values_);
-	  	}	
-    
+			}
+
 			/// number of nonzero elements, i.e. the space actually used
-	  	size_type nonzero_size() const
-	  	{
+			size_type nonzero_size() const
+			{
 				return values_.size();
-	  	}
+			}
 
-	  	/// size of the represented vector
-	  	size_type size() const
-	  	{
+			/// size of the represented vector
+			size_type size() const
+			{
 				return size_;
-	  	}
+			}
 
-	  	/// push_back (see stl vector docs)
-	  	void push_back(Value value)
-	  	{
+			/// push_back (see stl vector docs)
+			void push_back(Value value)
+			{
 				operator[](size_++) = value;
-	  	}
-		  	
-	  	/** at (see stl vector docs)
-					
+			}
+
+			/** at (see stl vector docs)
+
 					@param pos index at which the desired element stays
 					@throw OutOfRange is thrown if the index is greater or equal than the size of the vector
 			*/
-	  	Value at(size_type pos) const
+			Value at(size_type pos) const
 			{
 				if (pos >= size_)
 				{
 					throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 				}
-				else 
+				else
 				{
 					return operator[](pos);
 				}
 			}
-			
+
 			/// ValueProxy handles the conversion to int and ,the writing ( if != sparseElement )
-			const Value/*Proxy*/ operator[] (size_type pos) const 
+			const Value/*Proxy*/ operator[] (size_type pos) const
 			{
 				assert(pos < size_);
 				return (Value)ValueProxy(const_cast<SparseVector&>(*this),pos);
 			}
-				
+
 			/// ValueProxy handles the conversion and the writing ( if != sparseElement )
 			ValueProxy operator[] (size_type pos)
 			{
@@ -212,10 +210,10 @@ namespace OpenMS
 				values_.clear();
 				size_ = 0;
 			}
-			
-			/// resizes the the vector to param newsize	
-  		void resize(size_type newsize)
-	  	{
+
+			/// resizes the the vector to param newsize
+			void resize(size_type newsize)
+			{
 				// if the vector is to be smaller
 				// delete all invalid entries
 				if (newsize < size_)
@@ -228,7 +226,7 @@ namespace OpenMS
 						  values_.erase(--mit);
 						  mit = values_.find(nextvalue);
 						}
-						else 
+						else
 						{
 							++mit;
 						}
@@ -236,15 +234,15 @@ namespace OpenMS
 				}
 				size_ = newsize;
 			}
-			
+
 			/** erase indicated element(iterator) and imediately update indices in map
-					
+
 					@param it parameter which specifies the element which should be deleted
 					@throw OutOfRange is thrown if the iterator does not point to an element
 			*/
 			void erase(SparseVectorIterator it)
 			{
-				if (it.position() >= size_) 
+				if (it.position() >= size_)
 				{
 					throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 				}
@@ -252,23 +250,23 @@ namespace OpenMS
 				//erase element
 				bool update = false;
 				map_iterator mit = values_.find(it.position());
-				map_iterator mitNext;
+				map_iterator mit_next;
 				if ( mit != values_.end() ) //element exists => erase it and update indices of elements after it
 				{
-					mitNext = mit;
-					++mitNext;
+					mit_next = mit;
+					++mit_next;
 					values_.erase(mit);
 					update = true;
 				}
 				else  //element does not exists => update indices of elements after it
 				{
-					mitNext = values_.lower_bound(it.position());
+					mit_next = values_.lower_bound(it.position());
 					update = true;
 				}
-				
+
 				//update indices if necessary
-				if (update) update_(mitNext,1);
-				
+				if (update) update_(mit_next,1);
+
 				--size_;
 			}
 
@@ -278,7 +276,7 @@ namespace OpenMS
 			*/
 			void erase(SparseVectorIterator first, SparseVectorIterator last)
 			{
-				if (first.position() >= size_ || last.position() > size_ || last.position() < first.position()) 
+				if (first.position() >= size_ || last.position() > size_ || last.position() < first.position())
 				{
 					throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 				}
@@ -286,7 +284,7 @@ namespace OpenMS
 				size_type amount_deleted = last.position() - first.position();
 				map_iterator mfirst = values_.lower_bound(first.position());
 				map_iterator mlast = values_.lower_bound(last.position());
-				
+
 				if (mfirst==values_.begin())
 				{
 					values_.erase(mfirst,mlast);
@@ -300,7 +298,7 @@ namespace OpenMS
 					++start_it;
 					update_(start_it,amount_deleted);
 				}
-					
+
 				size_ -= amount_deleted;
 			}
 
@@ -309,61 +307,61 @@ namespace OpenMS
 			{
 				switch(size_)
 				{
-					case 0: 	
+					case 0:
 						break;
-					case 1:		
-						return begin(); 
+					case 1:
+						return begin();
 						break;
-					default:	
+					default:
 						if(values_.size()==0)
 						{
 							//only sparse elements left
 							return begin();
 						}
-						bool firstSparseFound = false; 
+						bool first_sparse_found = false;
 						size_type pos = 0;
 						map_iterator lowest = values_.begin();
 						map_iterator second = values_.begin();
 						map_iterator first = second++;
 						map_iterator last = values_.end();
-						
+
 						if(lowest->first>0)
 						{
-							firstSparseFound = true;
+							first_sparse_found = true;
 						}
-						
-				  		while (second!=last)
-				  		{
-				    		if (second->second<lowest->second) //the first element is covered by initial lowest == frst
-				    		{
-				      			lowest=second;
-				  			}
-				  			if (size_ > values_.size() && !firstSparseFound )
-				    		{
-				      			if((second->first)-(first->first) > 1)
-				      			{
-					    			pos = first->first+1;
-					    			firstSparseFound = true;
-					    		}
-				  			}
-				  		++first; ++second;
+
+						while (second!=last)
+						{
+							if (second->second<lowest->second) //the first element is covered by initial lowest == frst
+							{
+								lowest=second;
+							}
+							if (size_ > values_.size() && !first_sparse_found )
+							{
+								if((second->first)-(first->first) > 1)
+								{
+									pos = first->first+1;
+									first_sparse_found = true;
+								}
+							}
+							++first; ++second;
 						}
-						
-						if(size_ == values_.size() || lowest->second < SparseVector::sparseElement_)
+
+						if(size_ == values_.size() || lowest->second < SparseVector::sparse_element_)
 						{
 							return SparseVectorIterator(*this,lowest->first);
 						}
 						else //lowest->second >(=) sparseElement
 						{
-							if(!firstSparseFound)
+							if(!first_sparse_found)
 							{
 								return SparseVectorIterator(*this,first->first+1);
 							}
 							return SparseVectorIterator(*this, pos);
 						}
-						break;					
+						break;
 				}
-				return end();				
+				return end();
 				//map_iterator pos = min_element(values_.begin(), values_.end()); //sorts by map.key :(
 			}
 
@@ -372,60 +370,60 @@ namespace OpenMS
 			{
 				return SparseVectorIterator(*this,0);
 			}
-		
+
 			/// end iterator
 			iterator end()
 			{
 				return SparseVectorIterator(*this,this->size());
 			}
-			
+
 			/// rbegin iterator
 			reverse_iterator rbegin()
 			{
 				return SparseVectorReverseIterator(*this,this->size());
 			}
-		
+
 			/// rend iterator
 			reverse_iterator rend()
 			{
 				return SparseVectorReverseIterator(*this,0);
 			}
-    
-			/// const begin iterator 
+
+			/// const begin iterator
 			const_iterator begin() const
 			{
 				return SparseVectorConstIterator(*this,0);
 			}
-		
+
 			/// const end iterator
-  		const_iterator end() const
-  		{
+			const_iterator end() const
+			{
 				return SparseVectorConstIterator(*this,this->size());
-  		}				
-	  		
-  		/// const begin reverse_iterator 
+			}
+
+			/// const begin reverse_iterator
 			const_reverse_iterator rbegin() const
 			{
 				return SparseVectorConstIterator(*this,this->size());
 			}
-		
-			/// const end reverse_iterator
-  		const_reverse_iterator rend() const
-  		{
-				return SparseVectorConstIterator(*this,0);
-  		}		
 
-		private:	
-			/// underlying map	
+			/// const end reverse_iterator
+			const_reverse_iterator rend() const
+			{
+				return SparseVectorConstIterator(*this,0);
+			}
+
+		private:
+			/// underlying map
 			std::map<size_type, Value> values_;
 
 			/// size including sparse elements
 			size_type size_;
 
 		protected:
-			
+
 			/// sparse element
-			Value sparseElement_;
+			Value sparse_element_;
 
 			///Updates position of @p it and all larger elements
 			void update_(map_iterator it, UInt amount_deleted)
@@ -436,10 +434,10 @@ namespace OpenMS
 					Value tmp_value = it->second;
 					if (it!=values_.begin())
 					{
-						//makes insertion in amortized constant time if really inserted directly after mit				
+						//makes insertion in amortized constant time if really inserted directly after mit
 						map_iterator tmp_it = it;
 						--tmp_it;
-						values_.erase(it);	
+						values_.erase(it);
 						it = values_.insert(tmp_it,make_pair(tmp_index-amount_deleted,tmp_value));
 					}
 					else
@@ -457,12 +455,12 @@ namespace OpenMS
 		/**
 			@brief class ValueProxy allows the SparseVector to differentiate between writing and reading, so zeros can be ignored
 			See "more effective c++" section 30
-		*/	    
+		*/
 		class ValueProxy
-		{	
+		{
 
 			public:
-				
+
 				/// public constructor
 				ValueProxy(SparseVector& vec,size_type index): vec_(vec), index_(index)
 				{
@@ -470,57 +468,57 @@ namespace OpenMS
 
 				// if there is a entry in the map from SparseVector, return that
 				// if not it is a zero, so return sparseElement
-				/// cast operator for implicit casting in case of reading in the vector 
+				/// cast operator for implicit casting in case of reading in the vector
 				operator double() const
 				{
-				  double value = vec_.sparseElement_;
-				  map_const_iterator cmit = vec_.values_.find(index_);
-				  if ( cmit != vec_.values_.end() )
-				  {
-				    value = cmit->second;
-				  }
-				  return value;
+					double value = vec_.sparse_element_;
+					map_const_iterator cmit = vec_.values_.find(index_);
+					if ( cmit != vec_.values_.end() )
+					{
+						value = cmit->second;
+					}
+					return value;
 				}
-				
+
 				/// cast operator for implicit casting in case of reading in the vector
 				operator int() const
-				{
-				  int value = vec_.sparseElement_;
-				  map_const_iterator cmit = vec_.values_.find(index_);
-				  if ( cmit != vec_.values_.end() )
-				  {
-				    value = cmit->second;
-				  }
-				  return value;
+					{
+					int value = vec_.sparse_element_;
+					map_const_iterator cmit = vec_.values_.find(index_);
+					if ( cmit != vec_.values_.end() )
+					{
+						value = cmit->second;
+					}
+				return value;
 				}
-	
+
 				/// cast operator for implicit casting in case of reading in the vector
 				operator float() const
 				{
-				  float value = vec_.sparseElement_;
-				  map_const_iterator cmit = vec_.values_.find(index_);
-				  if ( cmit != vec_.values_.end() )
-				  {
-				    value = cmit->second;
-				  }
-				  return value;
+					float value = vec_.sparse_element_;
+					map_const_iterator cmit = vec_.values_.find(index_);
+					if ( cmit != vec_.values_.end() )
+					{
+						value = cmit->second;
+					}
+					return value;
 				}
-				
+
 				// maybe more cast-operators for other types
-				
+
 				/// assignment operator, ditches the sparse elements
 				ValueProxy& operator= (const ValueProxy& rhs)
 				{
 					if ((this != &rhs) && (vec_ == rhs.vec_))
-					{			
-						//if rhs' value != sparseElement, cmit!=rhs.vec_.values_.end()		
+					{
+						//if rhs' value != sparseElement, cmit!=rhs.vec_.values_.end()
 						map_const_iterator cmit = rhs.vec_.values_.find(rhs.index_);
 						if (cmit != rhs.vec_.values_.end())
 						{
 							vec_.values_[rhs.index_] = cmit->second;
-				  		}
-				  		//instead of setting value to zero erase it
-				  		else
+						}
+						//instead of setting value to zero erase it
+						else
 						{
 							map_iterator mit = vec_.values_.find(rhs.index_);
 							if (mit != vec_.values_.end())
@@ -532,15 +530,15 @@ namespace OpenMS
 					}
 				  	return *this;
 				}
-			
+
 				/// assignment operator, ditches the sparse elements
 				ValueProxy& operator= (Value val)
 				{
-					if (val != vec_.sparseElement_) //if (fabs(val) > 1e-8)
+					if (val != vec_.sparse_element_) //if (fabs(val) > 1e-8)
 					{
 						vec_.values_[index_] = val;
 					}
-					else 
+					else
 					{
 						map_iterator mit = vec_.values_.find(index_);
 						if (mit != vec_.values_.end())
@@ -550,20 +548,20 @@ namespace OpenMS
 					}
 					return *this;
 				}
-				
+
 				/// inequality operator
 				bool operator!= (const ValueProxy& other)
 				{
 
 					return ((index_ != other.index_) || (&vec_ != &other.vec_));
-				}			
+				}
 
 				/// equality operator
 				bool operator== (const ValueProxy& other)
 				{
 					return !(this != other);
 				}
-				
+
 				/// less than operator
 				bool operator< (const ValueProxy& other)
 				{
@@ -581,50 +579,50 @@ namespace OpenMS
 				{
 					return ((Value)*this <= (Value)other);
 				}
-				
+
 				/// greater or equal than operator
 				bool operator>= (const ValueProxy& other)
 				{
 					return ((Value)*this >= (Value)other);
 				}
-				
-			private:             
-				                      
-				/// the referring SparseVector           
+
+			private:
+
+				/// the referring SparseVector
 				SparseVector& vec_;
-					              	
-				/// the reference into the SparseVector                 	
-				size_type index_;  
-					
-		};  //end of class ValueProxy             
-	
+
+				/// the reference into the SparseVector
+				size_type index_;
+
+		};  //end of class ValueProxy
+
 		/**
 			@brief random access iterator for SparseVector
 			including the hop() function to jump to the next non-sparse element
-		*/ 
+		*/
 		class SparseVectorIterator
 		{
 			friend class SparseVector<Value>;
 			friend class SparseVectorConstIterator;
 
- 			public:
+			public:
 
 				/// copy constructor
 				SparseVectorIterator(const SparseVectorIterator& source)
-	    			: position_(source.position_),
-	    				vector_(source.vector_),
-	    				valit_(source.valit_)
-  			{
-  			}
-			
+				: position_(source.position_),
+					vector_(source.vector_),
+					valit_(source.valit_)
+				{
+				}
+
 				/// destructor
 				virtual ~SparseVectorIterator()
 				{
 				}
 
 				/// assignment operator
-		  	SparseVectorIterator& operator= (const SparseVectorIterator& source)
-		  	{
+				SparseVectorIterator& operator= (const SparseVectorIterator& source)
+				{
 					if (this != &source)
 					{
 						position_ = source.position_;
@@ -632,15 +630,15 @@ namespace OpenMS
 						valit_ = source.valit_;
 					}
 					return *this;
-		  	}  				
-				
+				}
+
 				///prefix increment
 				SparseVectorIterator& operator++()
 				{
 					++position_;
 					return *this;
 				}
-				
+
 				///postfix increment
 				SparseVectorIterator operator++(int)
 				{
@@ -648,14 +646,14 @@ namespace OpenMS
 					++position_;
 					return tmp;
 				}
-				
+
 				///prefix decrement
 				SparseVectorIterator& operator--()
 				{
 					--position_;
 					return *this;
 				}
-				
+
 				///postfix decrement
 				SparseVectorIterator operator--(int)
 				{
@@ -663,79 +661,79 @@ namespace OpenMS
 					--position_;
 					return tmp;
 				}
-				
+
 				/// dereference operator
 				ValueProxy operator*()
 				{
 					assert(position_ < vector_.size_);
 					return ValueProxy(this->vector_,position_);
-				}	
-				
+				}
+
 				/// const dereference operator
 				const Value operator*() const
 				{
 					assert(position_ < vector_.size_);
 					return (Value)ValueProxy(this->vector_,position_);
-				}	
-				
-				/// indexing 
-				ValueProxy operator[](size_type n) 
+				}
+
+				/// indexing
+				ValueProxy operator[](size_type n)
 				{
 					position_ += n;
 					assert (position_ < vector_.size_);
 					return ValueProxy(this->vector_,position_);
 				}
-				
+
 				/// compound assignment +
 				SparseVectorIterator& operator+= (const size_type rhs)
 				{
 					position_ += rhs;
 					return *this;
 				}
-				
+
 				/// compound assignment -
-				SparseVectorIterator& operator-= (const size_type rhs) 
+				SparseVectorIterator& operator-= (const size_type rhs)
 				{
 					position_ -= rhs;
 					return *this;
 				}
-				
+
 				/// binary arithmetic +
-				SparseVectorIterator operator+ (const size_type rhs) const 
+				SparseVectorIterator operator+ (const size_type rhs) const
 				{
 					return SparseVectorIterator(vector_, position_+rhs);
 				}
-				
+
 				/// binary arithmetic +
-				difference_type operator+ (const SparseVectorIterator rhs) const 
+				difference_type operator+ (const SparseVectorIterator rhs) const
 				{
 					return (position_+rhs.position());
 				}
 
 				/// binary arithmetic -
-				SparseVectorIterator operator- (const size_type rhs) const 
+				SparseVectorIterator operator- (const size_type rhs) const
 				{
 					return SparseVectorIterator(vector_, position_-rhs);
 				}
-				
+
 				/// binary arithmetic -
-				difference_type operator- (const SparseVectorIterator rhs) const 
+				difference_type operator- (const SparseVectorIterator rhs) const
 				{
 					return (position_-rhs.position());
 				}
-				
+
 				/// inequality operator
 				bool operator!= (const SparseVectorIterator& other)
 				{
 					return (position_ != other.position_ || &vector_ != &other.vector_);
-				}			
+				}
 
 				/// equality operator
 				bool operator== (const SparseVectorIterator& other)
 				{
 					return !(*this != other);
 				}
-				
+
 				/// less than operator
 				bool operator< (const SparseVectorIterator& other)
 				{
@@ -753,13 +751,13 @@ namespace OpenMS
 				{
 					return (position_ <= other.position());
 				}
-				
+
 				/// greater or equal than operator
 				bool operator>= (const SparseVectorIterator& other)
 				{
 					return (position_ >= other.position());
 				}
-							
+
 				/// go to the next nonempty position
 				SparseVectorIterator& hop()
 				{
@@ -784,16 +782,16 @@ namespace OpenMS
 					}
 					return *this;
 				}
-										
+
 				/// find out at what position the iterator is; useful in combination with hop()
 				size_type position() const
 				{
 					return position_;
 				}
-      
+
 			protected:
 
-				/// 
+				///
 				SparseVectorIterator(SparseVector& vector, size_type position)
 					: position_(position),
 						vector_(vector),
@@ -803,47 +801,47 @@ namespace OpenMS
 
 				/// the position in the referred SparseVector
 				size_type position_;
-     
+
 				/// the referred SparseVector
 				SparseVector& vector_;
 
 				/// the position in the underlying map of SparseVector
 				map_const_iterator valit_;
-			
+
 			private:
-				
+
 				/// Not implemented => private
-				SparseVectorIterator();				
-		
-		};//end of class SparseVectorIterator	
-				
+				SparseVectorIterator();
+
+		};//end of class SparseVectorIterator
+
 		/**
 			@brief random access reverse iterator for SparseVector
 			including the hop() function to jump to the next non-sparse element
-		*/  
+		*/
 		class SparseVectorReverseIterator
 		{
 			friend class SparseVector<Value>;
 			friend class SparseVectorConstReverseIterator;
-						
+
 			public:
-				
+
 				/// copy constructor
 				SparseVectorReverseIterator(const SparseVectorReverseIterator& source)
 				: position_(source.position_),
 					vector_(source.vector_),
 					valrit_(source.valrit_)
-  			{
-  			}
-			
+				{
+				}
+
 				/// destructor
 				virtual ~SparseVectorReverseIterator()
 				{
 				}
 
 				/// assignment operator
-		  	SparseVectorReverseIterator& operator = (const SparseVectorReverseIterator& source)
-		  	{
+				SparseVectorReverseIterator& operator = (const SparseVectorReverseIterator& source)
+				{
 					if (this != &source)
 					{
 						position_ = source.position_;
@@ -852,14 +850,14 @@ namespace OpenMS
 					}
 					return *this;
 				}
-				
+
 				/// prefix increment
 				SparseVectorReverseIterator& operator++ ()
 				{
 					--position_;
 					return *this;
 				}
-				
+
 				/// postfix increment
 				SparseVectorReverseIterator operator++ (int)
 				{
@@ -874,15 +872,15 @@ namespace OpenMS
 					++position_;
 					return *this;
 				}
-				
+
 				/// postfix decrement
 				SparseVectorReverseIterator operator-- (int)
 				{
 					SparseVectorReverseIterator tmp(*this);
 					++position_;
 					return tmp;
-				}	
-				
+				}
+
 				/// dereference operator
 				Value operator* ()
 				{
@@ -890,67 +888,67 @@ namespace OpenMS
 					assert(position_ != 0);
 					return ValueProxy(this->vector_,position_-1);
 				}
-				
-				/// indexing 
-				ValueProxy operator[](size_type n) 
+
+				/// indexing
+				ValueProxy operator[](size_type n)
 				{
 					position_ -= n;
 					assert (position_ < vector_.size_);
 					return ValueProxy(this->vector_,position_);
 				}
-				
+
 				/// compound assignment +
-				SparseVectorReverseIterator& operator+= (const size_type rhs) 
+				SparseVectorReverseIterator& operator+= (const size_type rhs)
 				{
 					position_ -= rhs;
 					return *this;
 				}
-				
+
 				/// compound assignment -
-				SparseVectorReverseIterator& operator-= (const size_type rhs) 
+				SparseVectorReverseIterator& operator-= (const size_type rhs)
 				{
 					position_ += rhs;
 					return *this;
 				}
-				
+
 				/// binary arithmetic +
-				SparseVectorReverseIterator operator+ (const size_type rhs) const 
+				SparseVectorReverseIterator operator+ (const size_type rhs) const
 				{
 					return SparseVectorReverseIterator(vector_, position_-rhs);
 				}
-				
+
 				/// binary arithmetic +
-				difference_type operator+ (const SparseVectorReverseIterator rhs) const 
+				difference_type operator+ (const SparseVectorReverseIterator rhs) const
 				{
 					return (position_+rhs.position());
 				}
 
-				
+
 				/// binary arithmetic -
-				SparseVectorReverseIterator operator- (const size_type rhs) const 
+				SparseVectorReverseIterator operator- (const size_type rhs) const
 				{
 					return SparseVectorReverseIterator(vector_, position_+rhs);
-  				}
-				
+				}
+
 				/// binary arithmetic -
-				difference_type operator- (const SparseVectorReverseIterator rhs) const 
+				difference_type operator- (const SparseVectorReverseIterator rhs) const
 				{
 					//what about negatives?
 					return -1*(position_-rhs.position());
-  			}
-				
+				}
+
 				/// inequality operator
 				bool operator!=(const SparseVectorReverseIterator& other)
 				{
 					return (position_ != other.position_ || &vector_ != &other.vector_);
 				}
-				
+
 				/// equality operator
 				bool operator== (const SparseVectorReverseIterator& other)
 				{
 					return !(*this != other);
 				}
-				
+
 				/// less than operator
 				bool operator< (const SparseVectorReverseIterator& other)
 				{
@@ -968,13 +966,13 @@ namespace OpenMS
 				{
 					return !(*this.position <= other.position());
 				}
-				
+
 				/// greater or equal than operator
 				bool operator>= (const SparseVectorReverseIterator& other)
 				{
 					return !(*this.position >= other.position());
-				}			
-			
+				}
+
 				/// go to the next nonempty position
 				SparseVectorReverseIterator& rhop()
 				{
@@ -990,7 +988,7 @@ namespace OpenMS
 					}
 					//check if we are at the end(begin)
 					if ( valrit_ == reverse_map_const_iterator( vector_.values_.rend() ) )
-					{	
+					{
 						position_ = 0;
 					}
 					else
@@ -1005,9 +1003,9 @@ namespace OpenMS
 				{
 					return position_;
 				}
-      
+
 			public:
-				
+
 				/// detailed constructor
 				SparseVectorReverseIterator(SparseVector& vector, size_type position)
 					: position_(position),
@@ -1017,7 +1015,7 @@ namespace OpenMS
 				}
 
 			protected:
-				
+
 				/// the position in the referred SparseVector
 				size_type position_;
 
@@ -1031,26 +1029,26 @@ namespace OpenMS
 				/// Not implemented => private
 				SparseVectorReverseIterator();
 
-		
-				
-		};//end of class SparseVectorReverseIterator	
-	
+
+
+		};//end of class SparseVectorReverseIterator
+
 		/// const_iterator for SparseVector
 		class SparseVectorConstIterator
 		{
 				friend class SparseVector<Value>;
-				friend class SparseVectorIterator;	
+				friend class SparseVectorIterator;
 
 			public:
-	
+
 				/// copy constructor
 				SparseVectorConstIterator(const SparseVectorConstIterator& source)
 				: position_(source.position_),
 					vector_(source.vector_),
 					valit_(source.valit_)
-				{ 
+				{
 				}
-				
+
 				/// copy constructor from SparseVector::SparseVectorIterator
 				SparseVectorConstIterator(const SparseVectorIterator& source)
 				: position_(source.position_),
@@ -1058,7 +1056,7 @@ namespace OpenMS
 					valit_(source.valit_)
 				{
 				}
-			
+
 				/// destructor
 				virtual ~SparseVectorConstIterator()
 				{
@@ -1074,8 +1072,8 @@ namespace OpenMS
 						valit_ = source.valit_;
 					}
 					return *this;
-				}					
-				
+				}
+
 				/// postincrement operator
 				SparseVectorConstIterator& operator++ ()
 				{
@@ -1113,57 +1111,57 @@ namespace OpenMS
 
 				/// derefence operator
 				const Value operator* () const
-			  {
+				{
 					assert(position_ < vector_.size_);
 					return (Value)ValueProxy(const_cast<SparseVector&>(this->vector_),position_);
 				}
-			
-				// indexing 
+
+				// indexing
 				const ValueProxy operator[](size_type n) const
 				{
 					position_ += n;
 					assert (position_ < vector_.size_);
 					return ValueProxy(const_cast<SparseVector&>(this->vector_),position_);
 				}
-	  			
+
 				/// compound assignment +
 				SparseVectorConstIterator& operator+= (const size_type rhs)
 				{
 					position_ += rhs;
 					return *this;
 				}
-				
+
 				/// compound assignment -
 				SparseVectorConstIterator& operator-= (const size_type rhs)
 				{
 					position_ -= rhs;
 					return *this;
 				}
-				
+
 				/// binary arithmetic +
-				SparseVectorConstIterator operator+ (const size_type rhs) const 
- 				{
- 					return SparseVectorConstIterator(const_cast<SparseVector&>(this->vector_), position_+rhs);
- 				}
-  				
+				SparseVectorConstIterator operator+ (const size_type rhs) const
+				{
+					return SparseVectorConstIterator(const_cast<SparseVector&>(this->vector_), position_+rhs);
+				}
+
 				/// binary arithmetic -
- 				SparseVectorConstIterator operator- (const size_type rhs) const 
- 				{
-   				return SparseVectorConstIterator(const_cast<SparseVector&>(this->vector_), position_-rhs);
- 				}
-  				
+				SparseVectorConstIterator operator- (const size_type rhs) const
+				{
+					return SparseVectorConstIterator(const_cast<SparseVector&>(this->vector_), position_-rhs);
+				}
+
 				/// inequality operator
 				bool operator!= (const SparseVectorConstIterator& other)
 				{
 					return (position_ != other.position_ || &vector_ != &other.vector_);
 				}
-				
+
 				/// equality operator
 				bool operator== (const SparseVectorConstIterator& other)
 				{
 					return !(*this != other);
 				}
-				
+
 				/// less than operator
 				bool operator< (const SparseVectorConstIterator& other)
 				{
@@ -1181,14 +1179,14 @@ namespace OpenMS
 				{
 					return (*this.position <= other.position());
 				}
-				
+
 				/// greater or equal than operator
 				bool operator>= (const SparseVectorConstIterator& other)
 				{
 					return (*this.position >= other.position());
 				}
-	  			
-   			/// go to the next nonempty position
+
+				/// go to the next nonempty position
 				SparseVectorConstIterator& hop()
 				{
 					assert(valit_ != vector_.values_.end() );
@@ -1199,20 +1197,20 @@ namespace OpenMS
 					}
 					else
 					{
-					  ++valit_;
+						++valit_;
 					}
 					//check if we are at the end
-				  if ( valit_ == vector_.values_.end() )
-				  {
-				  	position_ = vector_.size_;
-				  }
-				  else
-				  {
-				  	position_ = valit_->first;
+					if ( valit_ == vector_.values_.end() )
+					{
+						position_ = vector_.size_;
+					}
+					else
+					{
+						position_ = valit_->first;
 					}
 					return *this;
 				}
-      
+
 				/// find out at what position the iterator is, useful in combination with hop()
 				size_type position() const
 				{
@@ -1230,34 +1228,34 @@ namespace OpenMS
 						valit_(vector.values_.begin())
 				{
 				}
-			
+
 			private:
 				/// position in reffered SparseVector
 				mutable size_type position_;
-	      
+
 				/// referring to this SparseVector
 				const SparseVector& vector_;
-	      
+
 				/// the position in the underlying map of SparseVector
 				map_const_iterator valit_;
-				
+
 		};	//end of class	SparseVectorConstIterator
-				
+
 		/// const_reverse_iterator for SparseVector
 		class SparseVectorConstReverseIterator
 		{
 			friend class SparseVector<Value>;
 
 			public:
-	
+
 				/// copy constructor
 				SparseVectorConstReverseIterator(const SparseVectorConstIterator& source)
 					: position_(source.position_),
 						vector_(source.vector_),
 						valrit_(source.valrit_)
-				{ 
+				{
 				}
-			
+
 				/// copy constructor from SparseVector::SparseVectorIterator
 				SparseVectorConstReverseIterator(const SparseVectorReverseIterator& source)
 					: position_(source.position_),
@@ -1265,7 +1263,7 @@ namespace OpenMS
 						valrit_(source.valrit_)
 				{
 				}
-			
+
 				/// destructor
 				virtual ~SparseVectorConstReverseIterator()
 				{
@@ -1282,7 +1280,7 @@ namespace OpenMS
 					}
 					return *this;
 				}
-				
+
 				/// postincrement operator
 				SparseVectorConstReverseIterator& operator ++ ()
 				{
@@ -1339,7 +1337,7 @@ namespace OpenMS
 					}
 					//check if we are at the end(begin)
 					if ( valrit_ == reverse_map_const_iterator( vector_.values_.rend() ) )
-					{	
+					{
 						position_ = 0;
 					}
 					else
@@ -1348,7 +1346,7 @@ namespace OpenMS
 					}
 					return *this;
 				}
-      
+
 				/// find out at what position the iterator is, useful in combination with hop()
 				size_type position() const
 				{
@@ -1359,35 +1357,35 @@ namespace OpenMS
 				bool operator!= (const SparseVectorConstReverseIterator& other)
 				{
 					return (position_ != other.position_ || &vector_ != &other.vector_);
-	  		}
-				
-	 		protected:	
-				
+				}
+
+	 		protected:
+
 				/// default constructor
-      	SparseVectorConstReverseIterator();
+				SparseVectorConstReverseIterator();
 
 				/// detailed constructor
-      	SparseVectorConstReverseIterator(const SparseVector& vector, size_type position)
-      			:position_(position),vector_(vector),valrit_(vector.values_.rbegin())
-      	{
-	      }
-	      
+					SparseVectorConstReverseIterator(const SparseVector& vector, size_type position)
+					:position_(position),vector_(vector),valrit_(vector.values_.rbegin())
+				{
+				}
+
 			private:
-				
+
 				// the position in SparseVector
 				mutable size_type position_;
-				
+
 				/// referenc to the vector operating on
 				const SparseVector& vector_;
-				
+
 				// the position in the underlying map of SparseVector
 				reverse_map_const_iterator valrit_;
-      			
-   	};	//end of class	SparseVectorConstReverseIterator
 
-				
-	};//end of class SparseVector	
-					
-}		 
+		};	//end of class	SparseVectorConstReverseIterator
+
+
+	};//end of class SparseVector
+
+}
 #endif //OPENMS_DATASTRUCTURES_SPARSEVECTOR_H
 

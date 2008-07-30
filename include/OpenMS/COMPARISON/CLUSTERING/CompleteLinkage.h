@@ -69,12 +69,12 @@ namespace OpenMS
 
 				@param original_distance DistanceMatrix<double> containing the distances of the elements to be clustered
 				@param actual_distance DistanceMatrix<double> containing the distances of the clusters at current stage
-				@param clusters vector< vector<UInt> >, each vector<UInt> represents a cluster, its elements being the indices according to original_dist. @see ClusterFunctor() Base class.
+				@param clusters vector< vector<UInt> >, each vector<UInt> represents a cluster, its elements being the indices according to original_dist.
 				@param filepath String&, by default empty, when given, a dendrogram will be written in a file created in that path
 				@param threshold double value, the minimal distance from which on cluster merging is considered unrealistic. By default set to 1, i.e. complete clustering until only one cluster remains
 				@throw UnableToCreateFile thrown if for the given filepath no file can be created
 				@throw ClusterFunctor::InsufficientInput thrown if input is <2
-
+				@see ClusterFunctor() Base class.
 				The clustering method is complete linkage, where the updated distances after merging two clusters
 				are each the maximal distance between the elements of their clusters. @see CompleteLinkage::getMaxDist_
 			*/
@@ -100,10 +100,10 @@ namespace OpenMS
 				@param o first UInt index pointing to a cluster
 				@param x second UInt index pointing to a cluster
 				@param clusters the clusters
-				@param original_dist matrix containing the distances between all clustered elements of @p clusters
+				@param original_dist matrix containing the distances between all clustered elements of clusters
 
 				The indices shall point to clusters in the given clustering vector< vector<UInt> > for which the
-				maximal distance between elements from @p o and @p x is to be calculated from the given @p original_dist.
+				maximal distance between elements from o and x is to be calculated from the given original_dist.
 
 				@see ClusterFunctor() Base class.
 			*/
