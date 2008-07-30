@@ -356,6 +356,11 @@ int main (int argc , char** argv)
 	DOCME(MapAlignmentAlgorithmPoseClustering);
 	DOCME(FeatureGroupingAlgorithmLabeled);
 	DOCME(FeatureGroupingAlgorithmUnlabeled);
+	DOCME(BinnedSharedPeakCount.h>
+	DOCME(BinnedSumAgreeingIntensities);
+	DOCME(BinnedSpectralContrastAngle);
+	DOCME(PeakAlignment);
+
 
 	//////////////////////////////////
 	// More complicated cases
