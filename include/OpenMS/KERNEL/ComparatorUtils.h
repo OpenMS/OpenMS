@@ -139,7 +139,8 @@ ptr_vec after sorting with pointerComparator(LessByString())
 
 @endcode
 
-
+Note that pointerComparator can also be used with full-blown iterator classes.
+(It should work with everything that provides an operator*(), but the typedefs will always be pointers.)
 
 */
 
