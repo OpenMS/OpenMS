@@ -148,7 +148,7 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	}
 RESULT
 
-CHECK((void setOffset(double offset)))
+CHECK((void setOffset(CoordinateType offset)))
 	BiGaussModel bgm1;
 	
 	Param tmp;

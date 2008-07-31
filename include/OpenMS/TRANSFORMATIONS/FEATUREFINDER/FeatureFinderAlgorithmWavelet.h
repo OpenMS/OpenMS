@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marcel Grunert $
+// $Maintainer: Marcel Grunert, Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMWAVELET_H
@@ -37,7 +37,12 @@ namespace OpenMS
 	/** 
     @brief FeatureFinderAlgorithm implementation using the IsotopeWavelet and the ModelFitter.
 
-    The algorithm based on a combination of the sweep line paradigm with a novel wavelet function tailored to detect isotopic patterns (seeding and extension). More details are given in Trieglaff et al. ("A fast and accurate algorithm for the quantification of peptides from mass spectrometry data", In "Proceedings of the Eleventh Annual International Conference on Research in Computational Molecular Biology (RECOMB 2007)", pages 473-487, 2007).
+    The algorithm based on a combination of the sweep line paradigm with a novel wavelet function tailored to detect isotopic patterns (seeding and extension). 
+		More details are given in Schulz-Trieglaff and Hussong et al. ("A fast and accurate algorithm for the quantification of peptides from mass spectrometry data", 
+		In "Proceedings of the Eleventh Annual International Conference on Research in Computational Molecular Biology (RECOMB 2007)", pages 473-487, 2007).
+		
+		Note that the wavelet transform is very slow on high-resolution spectra (i.e. FT, Orbitrap). We recommend to use a noise or intensity filter
+		to remove spurious points first and to speed-up the feature detection process.
 
     @ref FeatureFinderAlgorithmWavelet_Parameters are explained on a separate page.
 	

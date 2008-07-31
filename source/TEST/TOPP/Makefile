@@ -355,9 +355,9 @@ FileConverter_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,FileConverter.tmp,FileConverter_4_output.dta2d)
 
 ifeq ($(ANDIMS_SUPPORT),true)
-	@$(ECHO) "- Test 5: netCDF -> DTA2D"
-	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_5_input.txt -in_type cdf -out FileConverter.tmp -out_type DTA2D)
-	@$(call TEST_FILE_EQUAL,FileConverter.tmp,FileConverter_5_output.dta2d)
+#	@$(ECHO) "- Test 5: netCDF -> DTA2D"
+#	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_5_input.txt -in_type cdf -out FileConverter.tmp -out_type DTA2D)
+#	@$(call TEST_FILE_EQUAL,FileConverter.tmp,FileConverter_5_output.dta2d)
 endif
 	@$(ECHO) "- Test 6a: DTA2D -> MzXML -> DTA2D"
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_6_input.dta2d -out FileConverter.tmp -out_type mzXML)
