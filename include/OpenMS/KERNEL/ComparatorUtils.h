@@ -56,7 +56,7 @@ We explain this with a simple example.  First a few prerequisites.
 @until String;
 
 The class IntRealString has three data members.  The class
-IntRealStringVector is a vector of IntRealStringVector.
+IntRealStringVector is a vector of IntRealString.
 We add some print() methods for convenience.
 @until };
 @until };
@@ -141,6 +141,8 @@ ptr_vec after sorting with pointerComparator(LessByString())
 
 Note that pointerComparator can also be used with full-blown iterator classes.
 (It should work with everything that provides an operator*(), but the typedefs will always be pointers.)
+
+Note that these templates can also be used with different types for "left" and "right".
 
 */
 
