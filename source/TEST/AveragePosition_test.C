@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -151,6 +151,7 @@ RESULT
 CHECK((void add(PositionType position, CoordinateType const weight=1)))
 {
 	// already tested above
+	NOT_TESTABLE;
 }
 RESULT
 

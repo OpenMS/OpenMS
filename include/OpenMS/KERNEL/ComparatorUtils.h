@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -30,35 +30,29 @@
 
 #include <functional>
 
-/** @file ComparatorUtils.h
-    @brief A collection of utilities for comparators.
+/**
+@defgroup ComparatorUtils ComparatorUtils
 
-		This file contains some lightweight class templates which simplify the usage of comparators:
-		- PointerComparator (compare pointers like the type they point to)
-		- ReverseComparator (reverse the direction of comparison)
-		- LexicographicComparator (combine comparators lexicographically)
-		.
-		Corresponding make-functions are also provided so that you do not even need
-		to write out the type names in the template instantiation.
+@brief A collection of utilities for comparators.
+
+@ingroup Kernel
+
+@code
+#include <OpenMS/KERNEL/ComparatorUtils.h>
+@endcode
+
+This file contains some lightweight class templates
+which simplify the usage of comparators:
+- PointerComparator (compare pointers like the type they point to)
+- ReverseComparator (reverse the direction of comparison)
+- LexicographicComparator (combine comparators lexicographically)
+.
+Corresponding "make-functions" are also provided so that you do not need
+to write out the type names in the template instantiation.
 */
-
 
 namespace OpenMS
 {
-	/**
-		@defgroup ComparatorUtils ComparatorUtils
-		
-		@brief Auxilary functions for building up comparators.
-		
-		@ingroup Kernel
-		
-		@code
-			Bil bla buff
-		@endcode
-		
-		@todo write comparator utils documentation (Clemens)
-		
-	*/
 
   /**
   	@brief Wrapper that takes a comparator for `something' and makes a

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -247,7 +247,7 @@ RESULT
 
 
 
-CHECK((template < D2> void assign(const DIntervalBase< D2 > rhs)))
+CHECK((template <UInt D2> void assign(const DIntervalBase< D2 > rhs)))
 DIntervalBase<2>::PositionType p1;
 p1[0]=5.0;
 p1[1]=17.5;

@@ -1,5 +1,5 @@
 
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -25,9 +25,9 @@
 // $Maintainer: Vipul Patel $
 // --------------------------------------------------------------------------
 
-#include<OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/ClassTest.h>
 
-#include<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 
 using namespace std;
 using namespace OpenMS;

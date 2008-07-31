@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -27,13 +27,13 @@
 #ifndef OPENMS_MATH_STATISTICS_LINEARREGRESSION_H
 #define OPENMS_MATH_STATISTICS_LINEARREGRESSION_H
 
-#include<OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Types.h>
 
-#include<iostream>
-#include<vector>
-#include<gsl/gsl_fit.h>
-#include<gsl/gsl_statistics.h>
-#include<gsl/gsl_cdf.h>
+#include <iostream>
+#include <vector>
+#include <gsl/gsl_fit.h>
+#include <gsl/gsl_statistics.h>
+#include <gsl/gsl_cdf.h>
 
 namespace OpenMS
 {

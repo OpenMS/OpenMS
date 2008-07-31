@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -26,7 +26,7 @@
 
 #include <OpenMS/METADATA/SourceFile.h>
 
-#include<iostream>
+#include <iostream>
 
 using namespace std;
 

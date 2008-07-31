@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -28,8 +28,10 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
-
 ///////////////////////////
+
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -71,9 +73,15 @@ CHECK((virtual void group(const std::vector< FeatureMap<> > &maps, ConsensusMap 
 	TEST_EQUAL(map.getFileDescriptions()[0].filename, "bla")
 RESULT
 
+CHECK((static void registerChildren()))
+{
+	TEST_STRING_EQUAL(Factory<FeatureGroupingAlgorithm>::registeredProducts()[0],FeatureGroupingAlgorithmLabeled::getProductName());
+	TEST_STRING_EQUAL(Factory<FeatureGroupingAlgorithm>::registeredProducts()[1],FeatureGroupingAlgorithmUnlabeled::getProductName());
+	TEST_EQUAL(Factory<FeatureGroupingAlgorithm>::registeredProducts().size(),2)
+}
+RESULT
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
-

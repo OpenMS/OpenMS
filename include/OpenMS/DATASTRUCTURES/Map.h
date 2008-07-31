@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -27,8 +27,8 @@
 #ifndef OPENMS_DATASTRUCTURES_MAP_H
 #define OPENMS_DATASTRUCTURES_MAP_H
 
-#include<OpenMS/CONCEPT/Types.h>
-#include<OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <map>
 

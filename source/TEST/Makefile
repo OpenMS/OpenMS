@@ -1,4 +1,4 @@
-# -*- Mode: makefile; tab-width: 2; -*-
+# -*- mode: makefile; tab-width: 2; -*-
 # vi: set ts=2:
 #
 # --------------------------------------------------------------------------
@@ -37,6 +37,7 @@ ADD_CXXFLAGS=-D_FILE_OFFSET_BITS=64
 EXECUTABLES_CONCEPT = \
 	ClassTest_test\
 	Exception_Base_test\
+	FactoryBase_test\
 	Factory_test\
 	FactoryProduct_test\
 	PreciseTime_test\

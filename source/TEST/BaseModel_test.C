@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -209,8 +209,7 @@ CHECK([EXTRA] DefaultParmHandler::setParameters(...))
 RESULT
 
 CHECK((static void registerChildren()))
-	// dummy subtest
-	TEST_EQUAL(1,1)
+	// TODO
 RESULT
 
 CHECK( virtual IntensityType getCutOff() const )
@@ -220,19 +219,16 @@ CHECK( virtual IntensityType getCutOff() const )
 RESULT
 
 CHECK( virtual void getSamples(SamplesType &cont) const =0 )
-		// dummy subtest
-		TEST_EQUAL(1,1)
+	// TODO
 RESULT
 
 CHECK( virtual void getSamples(std::ostream &os) )
-		// dummy subtest
-		TEST_EQUAL(1,1)
+	// TODO
 RESULT
 
 CHECK((template <class PeakIterator> void registerChildren()))
 {
-  // dummy subtest
-	TEST_EQUAL(1,1)
+	// TODO
 }
 RESULT
 

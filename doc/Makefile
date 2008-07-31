@@ -1,4 +1,4 @@
-# -*- Mode: makefile; tab-width: 2; -*-
+# -*- mode: makefile; tab-width: 2; -*-
 # vi: set ts=2:
 #
 # --------------------------------------------------------------------------
@@ -171,7 +171,7 @@ TOPP_tutorial: TOPP_tutorial/TOPP_Tutorial.doxygen TOPP_tutorial/TOPPView_Tutori
 #######################################################################
 # cleaning up
 clean:
-	@rm -rf html doxygen/xml_output/ doxygen/doxygen-error.log
+	@rm -rf html html-dot doxygen/xml_output/ doxygen/doxygen-error.log
 	@rm -rf OpenMS_tutorial/latex_output/ OpenMS_tutorial.pdf OpenMS_tutorial/doxygen-error.log
 	@rm -rf TOPP_tutorial/latex_output/ TOPP_tutorial.pdf TOPP_tutorial/doxygen-error.log
 	@rm -rf doxygen/parameters/DefaultParamHandlerDocumenter doxygen/parameters/DefaultParamHandlerDocumenter.o

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -68,7 +68,7 @@
 #include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-#include<vector>
+#include <vector>
 
 
 namespace OpenMS

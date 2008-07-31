@@ -81,6 +81,7 @@ CHECK([EXTRA] typedefs )
 	key = 0;
 	container = 0;
 	containerValue = 0;
+	NOT_TESTABLE;
 }
 RESULT
 
@@ -193,6 +194,7 @@ RESULT
 CHECK(ContainerType const& getData() const)
 {
   // see above,  ContainerType& getData()
+	NOT_TESTABLE;
 }
 RESULT
 
@@ -256,6 +258,7 @@ RESULT
 CHECK(KeyType const& getOffset_0() const)
 {
   // see above,  void setOffset_0( KeyType const & offset )
+	NOT_TESTABLE;
 }
 RESULT
 CHECK(void setScale_0( KeyType const & scale ))
@@ -270,6 +273,7 @@ RESULT
 CHECK(KeyType const& getScale_0() const)
 {
   // see above,  void setScale_0( KeyType const & scale )
+	NOT_TESTABLE;
 }
 RESULT
 
@@ -287,6 +291,7 @@ RESULT
 CHECK(KeyType const& getOutsideReferencePoint_0() const)
 {
   // see above,  getInsideReferencePoint_0()
+	NOT_TESTABLE;
 }
 RESULT
 
@@ -332,6 +337,7 @@ RESULT
 CHECK(KeyType supportMin_0() const)
 {
   // see above,  supportMax_0
+	NOT_TESTABLE;
 }
 RESULT
 
@@ -374,8 +380,10 @@ RESULT
 CHECK(KeyType const& getOffset_1() const)
 {
   // see above,  void setOffset_1( KeyType const & offset )
+	NOT_TESTABLE;
 }
 RESULT
+
 CHECK(void setScale_1( KeyType const & scale ))
 {
 	BIFD bifd;
@@ -388,6 +396,7 @@ RESULT
 CHECK(KeyType const& getScale_1() const)
 {
   // see above,  void setScale_1( KeyType const & scale )
+	NOT_TESTABLE;
 }
 RESULT
 
@@ -405,6 +414,7 @@ RESULT
 CHECK(KeyType const& getOutsideReferencePoint_1() const)
 {
   // see above,  getInsideReferencePoint_1()
+	NOT_TESTABLE;
 }
 RESULT
 
@@ -450,6 +460,7 @@ RESULT
 CHECK(KeyType supportMin_1() const)
 {
   // see above,  supportMax_1
+	NOT_TESTABLE;
 }
 RESULT
 

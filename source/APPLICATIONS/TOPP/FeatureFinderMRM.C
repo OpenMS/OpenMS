@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -28,14 +28,14 @@
 
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
-#include<OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 
-#include<OpenMS/KERNEL/MSExperiment.h>
-#include<OpenMS/KERNEL/Feature.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/Feature.h>
 
 #include <iostream>
 #include <fstream>

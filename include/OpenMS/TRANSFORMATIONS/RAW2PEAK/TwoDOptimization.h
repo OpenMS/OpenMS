@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -32,8 +32,8 @@
 #undef DEBUG_2D
 
 #ifdef DEBUG_2D
-#include<iostream>
-#include<fstream>
+#include <iostream>
+#include <fstream>
 #endif
 
 #include <vector>

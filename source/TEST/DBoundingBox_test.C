@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -291,7 +291,7 @@ CHECK(DBoundingBox(const DBoundingBox &rhs))
 }
 RESULT
 
-CHECK(std::ostream & operator<<(std::ostream &os, const DBoundingBox< D > &bounding_box))
+CHECK((template <UInt D> std::ostream & operator<<(std::ostream &os, const DBoundingBox< D > &bounding_box)))
 {
 	std::ostringstream os;
 	DPosition<1> min(2), max(5);

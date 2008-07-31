@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -30,11 +30,11 @@
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransform.h>
 
-#include<math.h>
+#include <math.h>
 
 #ifdef DEBUG_PEAK_PICKING
-#include<iostream>
-#include<fstream>
+#include <iostream>
+#include <fstream>
 #endif
 
 namespace OpenMS
