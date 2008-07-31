@@ -42,13 +42,105 @@
 @endcode
 
 This file contains some lightweight class templates
-which simplify the usage of comparators:
-- PointerComparator (compare pointers like the type they point to)
+which simplify the (re-)usage and composition of <b>comparator classes</b>:
 - ReverseComparator (reverse the direction of comparison)
 - LexicographicComparator (combine comparators lexicographically)
+- PointerComparator (compare pointers like the type they point to)
 .
-Corresponding "make-functions" are also provided so that you do not need
-to write out the type names in the template instantiation.
+We provide corresponding "make-functions" so that you will not need to write
+out the type names in the template instantiation.
+
+We explain this with a simple example.  First a few prerequisites.
+
+@dontinclude Tutorial_ComparatorUtils.C
+@until String;
+
+The class IntRealString has three data members.  The class
+IntRealStringVector is a vector of IntRealStringVector.
+We add some print() methods for convenience.
+@until };
+@until };
+
+Now we will exercise various ways of sorting such a vector.
+
+Of course, we could use the std::sort algorithm with a comparison function
+like the following.
+@until }
+
+This is straightforward but does not generalize well.  Instead we introduce
+three <b>comparator classes</b>:
+@until };
+@until };
+@until };
+Note how the std::binary_function template provides the necessary type
+information (sometimes this is called "reflection").
+
+Now we show various uses of the reverseComparator and lexicographicComparator
+function templates.
+@until vec.print();
+@until vec.print();
+@until vec.print();
+@until vec.print();
+@until vec.print();
+@until vec.print();
+
+And here is an application of the pointerComparator function template:
+@until main
+
+The output of the example program is:
+@code
+After initialization:
+(1, 4.5, paul)
+(2, 4.5, josie)
+(1, 4.5, john)
+(2, 3.9, kim)
+
+Sorted using lessByInt function:
+(1, 4.5, paul)
+(1, 4.5, john)
+(2, 4.5, josie)
+(2, 3.9, kim)
+
+Sorted using LessByInt comparator class:
+(1, 4.5, paul)
+(1, 4.5, john)
+(2, 4.5, josie)
+(2, 3.9, kim)
+
+Sorted using reversed LessByInt comparator class:
+(2, 4.5, josie)
+(2, 3.9, kim)
+(1, 4.5, paul)
+(1, 4.5, john)
+
+Sorted using lexicographic order: 1. LessByInt, 2. LessByReal
+(1, 4.5, paul)
+(1, 4.5, john)
+(2, 3.9, kim)
+(2, 4.5, josie)
+
+Sorted using lexicographic order: 1. reversed LessByInt, 2. LessByReal, 3. LessByString
+(2, 3.9, kim)
+(2, 4.5, josie)
+(1, 4.5, john)
+(1, 4.5, paul)
+
+ptr_vec before sorting
+(2, 3.9, kim)
+(2, 4.5, josie)
+(1, 4.5, john)
+(1, 4.5, paul)
+
+ptr_vec after sorting with pointerComparator(LessByString())
+(1, 4.5, john)
+(2, 4.5, josie)
+(2, 3.9, kim)
+(1, 4.5, paul)
+
+@endcode
+
+
+
 */
 
 namespace OpenMS
