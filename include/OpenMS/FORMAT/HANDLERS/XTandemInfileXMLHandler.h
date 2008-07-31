@@ -34,7 +34,11 @@ namespace OpenMS
 	class XTandemInfile;
 	namespace Internal
 	{
-	
+
+		/** @brief Note representation of bioml structure used by XTandem
+
+
+		*/
 	  struct XTandemInfileNote
     {
       String note_type;

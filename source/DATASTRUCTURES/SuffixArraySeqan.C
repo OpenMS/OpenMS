@@ -351,7 +351,7 @@ void SuffixArraySeqan::findSpec(vector<vector<pair<pair<int,int>,float> > >& can
   history.push(map<double,int>());
 
   double m = 18.0;
-  goNext(*it_, m, allm, history);
+  goNext_(*it_, m, allm, history);
   //goNextSubTree(*it_);
   int nres = 0;
 	
@@ -398,7 +398,7 @@ void SuffixArraySeqan::findSpec(vector<vector<pair<pair<int,int>,float> > >& can
 	{
 	  allm.push(0);
 	  history.push(map<double,int>());
-	  goNextSubTree(*it_,m,allm,history);
+	  goNextSubTree_(*it_,m,allm,history);
 	  br = true;
 	  break;
 	}
@@ -451,7 +451,7 @@ void SuffixArraySeqan::findSpec(vector<vector<pair<pair<int,int>,float> > >& can
 	  // because of having reached a separator we can skip the sub tree
 	  history.push(map<double,int>());
 	  allm.push(0);
-	  goNextSubTree(*it_,m,allm,history);
+	  goNextSubTree_(*it_,m,allm,history);
 	  br = true;
 	  break;
 	}
@@ -522,7 +522,7 @@ void SuffixArraySeqan::findSpec(vector<vector<pair<pair<int,int>,float> > >& can
 	}
 	history.push(map<double,int>(modification_map));
 	allm.push(subm);
-	goNext(*it_,m,allm,history);
+	goNext_(*it_,m,allm,history);
       }
 				
     } 
@@ -530,7 +530,7 @@ void SuffixArraySeqan::findSpec(vector<vector<pair<pair<int,int>,float> > >& can
     {
       history.push(map<double,int>());
       allm.push(0);
-      goNextSubTree(*it_,m,allm,history);
+      goNextSubTree_(*it_,m,allm,history);
     }
   }
   
@@ -562,8 +562,8 @@ void SuffixArraySeqan::printStatistic ()
   vector<pair<int,int> > edge_length;
   vector<int> leafe_depth;
   //goNext(*it_);
-  goNextSubTree(*it_);
-  parseTree(*it_, out_number, edge_length, leafe_depth);
+  goNextSubTree_(*it_);
+  parseTree_(*it_, out_number, edge_length, leafe_depth);
   for (UInt i = 0; i < leafe_depth.size(); i++)
 	{
     cout << leafe_depth.at(i) << ",";

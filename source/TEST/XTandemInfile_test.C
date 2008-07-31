@@ -223,9 +223,9 @@ RESULT
 CHECK(void write(const String &filename))
 	string filename("XTandemInfile_test.tmp");
 	NEW_TMP_FILE(filename);
-	ptr->write("XTandemInfile_test.tmp");
+	ptr->write(filename);
 	XTandemInfile file;
-	file.load("XTandemInfile_test.tmp");
+	file.load(filename);
 	NOT_TESTABLE
 RESULT
 

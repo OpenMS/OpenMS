@@ -164,8 +164,12 @@ namespace OpenMS
 		*/
 		unsigned int getNumberOfModifications();
 
+		void printStatistic ();
+
+	    protected:
+		
 		/**
-		@brief overwriting goNextSubTree from seqan index_esa_stree.h for mass update during suffix array traversal
+		@brief overwriting goNextSubTree_ from seqan index_esa_stree.h for mass update during suffix array traversal
 
 		the suffix array is treated as a suffix tree. this function skips the subtree under the actual node and goes directly to the next subtree that has not been visited yet. During this traversal the mass will be updated using the stack with edge masses.
 
@@ -176,7 +180,7 @@ namespace OpenMS
 
 		@see goNext
 		*/
-		inline void goNextSubTree(TIter& it, double& m, std::stack<double>& allm, std::stack<std::map<double, int> >& mod_map) 
+		inline void goNextSubTree_(TIter& it, double& m, std::stack<double>& allm, std::stack<std::map<double, int> >& mod_map) 
 		{
 			// preorder dfs
 			if (!goRight(it))
@@ -220,7 +224,7 @@ namespace OpenMS
   	@param it reference to the suffix array iterator
   	@see goNext
 		*/
-		inline void goNextSubTree(TIter& it)
+		inline void goNextSubTree_(TIter& it)
 		{
 			// preorder dfs
 			if (!goRight(it))
@@ -253,20 +257,20 @@ namespace OpenMS
 		@param allm reference to the stack with history of traversal
 		@param mod_map input parameters which specifies the modification masses allowed in the candidates
 
-		@see goNextSubTree
+		@see goNextSubTree_
 		*/
-		inline void goNext(TIter& it, double& m, std::stack<double>& allm, std::stack<std::map<double, int> >& mod_map)
+		inline void goNext_(TIter& it, double& m, std::stack<double>& allm, std::stack<std::map<double, int> >& mod_map)
 		{
 			// preorder dfs
 			if (!goDown(it))
 			{
-				goNextSubTree(it, m, allm, mod_map);
+				goNextSubTree_(it, m, allm, mod_map);
 			}
 		}
 
 
 	
-		inline void parseTree(TIter& it, std::vector<std::pair<int, int> >& out_number, std::vector<std::pair<int, int> >& edge_length, std::vector<int>& leafe_depth)
+		inline void parseTree_(TIter& it, std::vector<std::pair<int, int> >& out_number, std::vector<std::pair<int, int> >& edge_length, std::vector<int>& leafe_depth)
 		{
 			int depth = 1;
 			while (!atEnd(it))
@@ -308,10 +312,6 @@ namespace OpenMS
 		}
 
 	
-		void printStatistic ();
-	
-	 protected:
-
 		TIndex index_; ///< seqan suffix array
 
 		TIter* it_; ///< seqan suffix array iterator
