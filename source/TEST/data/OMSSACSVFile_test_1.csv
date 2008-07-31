@@ -1,0 +1,4 @@
+Spectrum number, Filename/id, Peptide, E-value, Mass, gi, Accession, Start, Stop, Defline, Mods, Charge, Theo Mass, P-value
+0,,MSHHWGYGK,0.000652715,1101.49,0,30718,1,9,P00921|CAH2_BOVIN Carbonic anhydrase 2 - Bos taurus (Bovine),,1,1101.48,1.3086e-08
+0,,MSHHWGYGK,0.000652715,1101.49,0,30723,1,9,P00918|CAH2_HUMAN Carbonic anhydrase 2 - Homo sapiens (Human),,1,1101.48,1.3086e-08
+0,,MSHHWGYGK,0.000652715,1101.49,0,30725,1,9,P00919|CAH2_RABIT Carbonic anhydrase 2 - Oryctolagus cuniculus (Rabbit),,1,1101.48,1.3086e-08
