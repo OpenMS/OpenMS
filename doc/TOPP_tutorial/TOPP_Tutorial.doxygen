@@ -345,6 +345,160 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	For quantitation, the @b FeatureFinder tool is used. It extracts the
 	features from raw or peak maps.  The @b FeatureFinder offers different
 	algorithms:
+
+	<TABLE border=1>
+	
+	<TR>
+		<TD> <b>Algorithm:</b> isotope_wavelet &nbsp;&nbsp; <b>Input data:</b> raw data </TD>
+	</TR>
+	<TR>
+		<TD>
+			@b Description: <br/>
+			
+			This algorithm detects and quantifies peptide signals in a raw LC-MS map. We use
+			the wavelet transform to identify signal candidates. The transform uses a mother
+			wavelet which models the intensity pattern of peptide isotopic peaks. Isotopic
+			pattern of the same peptide ion in adjacent scans are clustered using a sweep-line
+			approach. Finally, we fit a two-dimensional model to the signals and use it to
+			compute a bounding box and to filter for false positives.
+			The (relative) abundance of the peptide is estimated by integration the signal.<br>
+
+			Details of the algorithms can be found in Schulz-Trieglaff and Hussong et al.:
+			"A Fast and Accurate Algorithm for the Quantification of Peptides from Mass Spectrometry Data"
+			Proceedings of RECOMB (2007) and Schulz-Trieglaff and Hussong et al. "Computational
+			Quantification of Peptides from LC-MS data" Journal of Computational Biology 2008.<br>
+
+			Details on the mother wavelet can be found in Hussong et al.: "Efficient Analysis of Mass Spectrometry Data Using the Isotope Wavelet" (2007). <BR>
+
+			The algorithm "isotope_wavelet_nofit" which is described below does not use
+			the two-dimensional model for filtering and is thus particularly well suited
+			for peitde mass fingerpriting (PMF) on MALDI data.
+			
+			
+			<B>Seeding:</B>
+			<BR>Identification of regions of interest using the isotope wavelet. 
+
+			<B>Extension:</B>
+			<BR>
+			Clustering of isotopic signals using the sweep-line paradigm.
+			
+			<B>Modelling:</B>
+			<BR>
+			2D model based on averagine isotope pattern and elution profile.
+
+			See  
+			<a href="./FeatureFinderAlgorithmWavelet_Parameters.html">FeatureFinderAlgorithmWavelet Parameters</a> for a list of parameters.
+		</TD>
+	</TR>
+	</TABLE>
+
+	<TABLE border=1>
+	
+	<TR>
+		<TD> <b>Algorithm:</b> isotope_wavelet_nofit &nbsp;&nbsp; <b>Input data:</b> raw data </TD>
+	</TR>
+	<TR>
+		<TD>
+			@b Description: <br/>
+			
+			This is an @b experimental algorithm for feature detection in raw single MS (not MS/MS) data sets.
+			The method is based on the <I>isotope wavelet</I>, which has been tailored to the
+			detection of isotopic patterns following the averagine model.
+			For more information about the theory behind this technique, please refer to
+			Hussong et al.: "Efficient Analysis of Mass Spectrometry Data Using the Isotope Wavelet" (2007). <BR>
+			Please note that this algorithm features no "modelling stage", since the structure
+			of the isotopic pattern is explicitly coded by the wavelet itself. The method is in particular suited
+			for peptide mass fingerprints (PMFs) of single MS scans. The algorithm also works in 2D (in combination with
+			the so-called <I>sweep-line</I> technique (Schulz-Trieglaff et al.:
+			"A Fast and Accurate Algorithm for the Quantification of Peptides from Mass Spectrometry Data" (2007)), 
+			but currently lacks the ability of separating overlapping features. Thus, the algorithm is still marked 
+			as "experimental". <BR>
+			Please note that the "wavelet" algorithm (described above), which is also based on the isotope wavelet
+			transform, uses an additional fit as a final filtering step.  
+			
+			<B>Seeding:</B>
+			<BR>Identification of regions of interest by convolving the signal with the wavelet function.
+			<BR>A score, measuring the closeness of the transform to a theoretically determined output function, 
+					finally distinguishes potential features from noise.  			
+			
+			<B>Extension:</B>
+			<BR>
+			The extension is based on the sweep-line paradigm and is done on the fly after the wavelet transform.
+			
+			<B>Modelling:</B>
+			<BR>
+			None (explicitely done by the wavelet, in contrast cf.: the "wavelet" algorithm).
+
+			See the 
+			<a href="./FeatureFinderAlgorithmIsotopeWavelet_Parameters.html">FeatureFinderAlgorithmIsotopeWavelet Parameters</a>
+			 page for a documented list of configuration options for this algorithm.
+		</TD>
+	</TR>
+	</TABLE>
+
+	<TABLE border=1>
+	
+	<TR>
+		<TD> <b>Algorithm:</b> picked_peak &nbsp;&nbsp; <b>Input data:</b> peak data </TD>
+	</TR>
+	<TR>
+		<TD>
+			@b Description: <br/>
+			
+			This is an @b experimental algorithm for feature detection based on peak data.
+		  In contrast to the other algorithms, it is based on peak/stick data,
+		  which makes it applicable even if no raw data is available.
+			Another advantage is its speed due to the reduced amount of data after peak picking.
+			
+			<B>Seeding:</B>
+			<BR>It identifies interesting regions by calculating a score for each peak based on 
+			<UL>
+				<LI>the significance of the intensity in the local environment
+				<LI>RT dimension: the quality of the mass trace in a local RT window
+				<LI>m/z dimension: the quality of fit to an averagine isotope model
+			</UL>
+			
+			<B>Extension:</B>
+			<BR>
+			The extension is based on a heuristics -- the average slope of the mass trace for RT dimension, the best fit to averagine model in m/z dimension.
+			
+			<B>Modelling:</B>
+			<BR>
+			In model fitting, the retention time profile (Gaussian) of all mass traces is fitted to the data at the same time. After fitting, the data is truncated in RT and m/z dimension. The reported feature intensity is based on the fitted model, rather than on the (noisy) data.
+			
+			See the 
+			<a href="./FeatureFinderAlgorithmPicked_Parameters.html">FeatureFinderAlgorithmPicked Parameters</a>
+			 page for a documented list of configuration options for this algorithm.
+		</TD>
+	</TR>
+	</TABLE>
+
+	<TABLE border=1>
+	<TR>
+		<TD> <b>Algorithm:</b> simple &nbsp;&nbsp; <b>Input data:</b> raw data </TD>
+	</TR>
+		<TR>
+			<TD>
+				@b Description: <br/>
+				
+				This is another algorithm for feature detection in raw data.
+				It is similar to the "simplest" algorithm, except for the modeling.
+				
+				@b Seeding: see "simplest"
+				
+				@b Extension: see "simplest"
+				
+				@b Modelling: <br/>
+				like in "simplest", but an exponentially modified Gaussian (EMG) is used for the elution profile.
+				The least-squares fitting is done by the Levenberg-Marquardt algorithm.
+				(class EMGFitter1D, class LmaGaussFitter1D)
+				
+				See the 
+				<a href="./FeatureFinderAlgorithmSimple_Parameters.html">FeatureFinderAlgorithmSimple Parameters</a>
+				 page for a documented list of configuration options for this algorithm.
+			</TD>
+		</TR>
+	</TABLE>
 	
 	<TABLE border=1>
 		<TR>
@@ -390,114 +544,6 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		</TR>
 	</TABLE>
 	
-	<TABLE border=1>
-	<TR>
-		<TD> <b>Algorithm:</b> simple &nbsp;&nbsp; <b>Input data:</b> raw data </TD>
-	</TR>
-		<TR>
-			<TD>
-				@b Description: <br/>
-				
-				This is another algorithm for feature detection in raw data.
-				It is similar to the "simplest" algorithm, except for the modeling.
-				
-				@b Seeding: see "simplest"
-				
-				@b Extension: see "simplest"
-				
-				@b Modelling: <br/>
-				like in "simplest", but an exponentially modified Gaussian (EMG) is used for the elution profile.
-				The least-squares fitting is done by the Levenberg-Marquardt algorithm.
-				(class EMGFitter1D, class LmaGaussFitter1D)
-				
-				See the 
-				<a href="./FeatureFinderAlgorithmSimple_Parameters.html">FeatureFinderAlgorithmSimple Parameters</a>
-				 page for a documented list of configuration options for this algorithm.
-			</TD>
-		</TR>
-	</TABLE>
-	
-	<TABLE border=1>
-	
-	<TR>
-		<TD> <b>Algorithm:</b> picked_peak &nbsp;&nbsp; <b>Input data:</b> peak data </TD>
-	</TR>
-	<TR>
-		<TD>
-			@b Description: <br/>
-			
-			This is an @b experimental algorithm for feature detection based on peak data.
-		  In contrast to the other algorithms, it is based on peak/stick data,
-		  which makes it applicable even if no raw data is available.
-			Another advantage is its speed due to the reduced amount of data after peak picking.
-			
-			<B>Seeding:</B>
-			<BR>It identifies interesting regions by calculating a score for each peak based on 
-			<UL>
-				<LI>the significance of the intensity in the local environment
-				<LI>RT dimension: the quality of the mass trace in a local RT window
-				<LI>m/z dimension: the quality of fit to an averagine isotope model
-			</UL>
-			
-			<B>Extension:</B>
-			<BR>
-			The extension is based on a heuristics -- the average slope of the mass trace for RT dimension, the best fit to averagine model in m/z dimension.
-			
-			<B>Modelling:</B>
-			<BR>
-			In model fitting, the retention time profile (Gaussian) of all mass traces is fitted to the data at the same time. After fitting, the data is truncated in RT and m/z dimension. The reported feature intensity is based on the fitted model, rather than on the (noisy) data.
-			
-			See the 
-			<a href="./FeatureFinderAlgorithmPicked_Parameters.html">FeatureFinderAlgorithmPicked Parameters</a>
-			 page for a documented list of configuration options for this algorithm.
-		</TD>
-	</TR>
-	</TABLE>
-
-
-	<TABLE border=1>
-	
-	<TR>
-		<TD> <b>Algorithm:</b> isotope_wavelet_nofit &nbsp;&nbsp; <b>Input data:</b> raw data </TD>
-	</TR>
-	<TR>
-		<TD>
-			@b Description: <br/>
-			
-			This is an @b experimental algorithm for feature detection in raw single MS (not MS/MS) data sets.
-			The method is based on the <I>isotope wavelet</I>, which has been tailored to the
-			detection of isotopic patterns following the averagine model.
-			For more information about the theory behind this technique, please refer to
-			Hussong et al.: "Efficient Analysis of Mass Spectrometry Data Using the Isotope Wavelet" (2007). <BR>
-			Please note that this algorithm features no "modelling stage", since the structure
-			of the isotopic pattern is explicitly coded by the wavelet itself. The method is in particular suited
-			for peptide mass fingerprints (PMFs) of single MS scans. The algorithm also works in 2D (in combination with
-			the so-called <I>sweep-line</I> technique (Schulz-Trieglaff et al.:
-			"A Fast and Accurate Algorithm for the Quantification of Peptides from Mass Spectrometry Data" (2007)), 
-			but currently lacks the ability of separating overlapping features. Thus, the algorithm is still marked 
-			as "experimental". <BR>
-			Please note that the "wavelet" algorithm (described below), which is also based on the isotope wavelet
-			transform, uses an additional fit as a final filtering step.  
-			
-			<B>Seeding:</B>
-			<BR>Identification of regions of interest by convolving the signal with the wavelet function.
-			<BR>A score, measuring the closeness of the transform to a theoretically determined output function, 
-					finally distinguishes potential features from noise.  			
-			
-			<B>Extension:</B>
-			<BR>
-			The extension is based on the sweep-line paradigm and is done on the fly after the wavelet transform.
-			
-			<B>Modelling:</B>
-			<BR>
-			None (explicitely done by the wavelet, in contrast cf.: the "wavelet" algorithm).
-
-			See the 
-			<a href="./FeatureFinderAlgorithmIsotopeWavelet_Parameters.html">FeatureFinderAlgorithmIsotopeWavelet Parameters</a>
-			 page for a documented list of configuration options for this algorithm.
-		</TD>
-	</TR>
-	</TABLE>
 
 */
 //##############################################################################
