@@ -28,6 +28,30 @@
 #include <OpenMS/CHEMISTRY/EdwardsLippertIteratorTryptic.h>
 namespace OpenMS 
 {
+	EdwardsLippertIteratorTryptic::EdwardsLippertIteratorTryptic()
+		: EdwardsLippertIterator()
+	{
+		setName(EdwardsLippertIteratorTryptic::getProductName());
+	}
+
+	EdwardsLippertIteratorTryptic::EdwardsLippertIteratorTryptic(const EdwardsLippertIteratorTryptic& rhs)
+		: EdwardsLippertIterator(rhs)
+	{
+	}
+	
+	EdwardsLippertIteratorTryptic::~EdwardsLippertIteratorTryptic()
+	{
+	}
+	
+	EdwardsLippertIteratorTryptic& EdwardsLippertIteratorTryptic::operator = (const EdwardsLippertIteratorTryptic& rhs)
+	{
+		if (this != &rhs)
+		{
+			this->EdwardsLippertIterator::operator = (rhs);
+		}
+		return *this;
+	}
+	
 	bool EdwardsLippertIteratorTryptic::isDigestingEnd(char aa1, char aa2)
 	{
 		return (aa1 == 'K' || aa1 == 'R') && aa2 != 'P';

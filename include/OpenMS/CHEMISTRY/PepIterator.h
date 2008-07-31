@@ -38,7 +38,7 @@ namespace OpenMS{
 
 @note every derived class has to implement the static functions "PepIterator * create()" and "const String getProductName()" (see FactoryProduct for details)
 */
-class PepIterator : FactoryProduct
+class PepIterator : public FactoryProduct
 	{
  	
 	public:
@@ -136,7 +136,12 @@ class PepIterator : FactoryProduct
 	@see FactoryProduct
 	*/
 	static void registerChildren();
-	
+
+	static String getProductName()
+	{
+		return "PepIterator";
+	}
+
 	};
 }
 #endif // OPENMS_CHEMISTRY_PEPITERATOR_H

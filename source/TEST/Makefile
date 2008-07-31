@@ -301,6 +301,7 @@ EXECUTABLES_CHEMISTRY = \
 	ModifierRep_test\
 	FastaIterator_test\
 	FastaIteratorIntern_test\
+	PepIterator_test\
 	EdwardsLippertIterator_test\
 	EdwardsLippertIteratorTryptic_test\
 	TrypticIterator_test\

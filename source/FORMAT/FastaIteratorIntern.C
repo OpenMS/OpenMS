@@ -37,7 +37,7 @@ namespace OpenMS {
 	FastaIteratorIntern::FastaIteratorIntern() :
 		fasta_file_("")
 	{
-		
+		setName(FastaIteratorIntern::getProductName());
 	}
 	
 	FastaIteratorIntern::~FastaIteratorIntern()

@@ -72,7 +72,9 @@ struct FloatsWithTolLess : public binary_function<float , float, bool>
 	
 	///Constructor to intialize algorithm
 	EdwardsLippertIterator::EdwardsLippertIterator ()
+		: PepIterator()
 	{
+		setName(EdwardsLippertIterator::getProductName());
 		ResidueDB* rdb = ResidueDB::getInstance();
 		
 		char aa[] = "ARNDCEQGHILKMFPSTWYV";

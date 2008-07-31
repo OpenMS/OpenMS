@@ -54,6 +54,39 @@ CHECK(~EdwardsLippertIteratorTryptic())
 	delete ptr;
 RESULT
 
+CHECK(EdwardsLippertIteratorTryptic(const EdwardsLippertIteratorTryptic& rhs))
+  ptr = new EdwardsLippertIteratorTryptic();
+  ptr->setFastaFile("data/EdwardsLippertIterator_test_2.fasta");
+	vector<float> specc;
+	specc.push_back(178.1864);
+	specc.push_back(441.4806);
+  ptr->setSpectrum(specc);
+  ptr->begin();
+  ++*ptr;
+  EdwardsLippertIteratorTryptic copy (*ptr);
+  TEST_EQUAL ((*ptr).getFastaFile(),(copy).getFastaFile());
+  TEST_EQUAL ((*ptr).getTolerance(),(copy).getTolerance());
+  TEST_EQUAL ((**ptr).first,(*copy).first);
+  TEST_EQUAL ((**ptr).second,(*copy).second);
+RESULT
+
+CHECK(EdwardsLippertIteratorTryptic& operator=(const EdwardsLippertIteratorTryptic &rhs))
+	ptr = new EdwardsLippertIteratorTryptic();
+  ptr->setFastaFile("data/EdwardsLippertIterator_test_2.fasta");
+  vector<float> specc;
+  specc.push_back(178.1864);
+  specc.push_back(441.4806);
+  ptr->setSpectrum(specc);
+  ptr->begin();
+  ++*ptr;
+  EdwardsLippertIteratorTryptic copy;
+	copy = *ptr;
+  TEST_EQUAL ((*ptr).getFastaFile(),(copy).getFastaFile());
+  TEST_EQUAL ((*ptr).getTolerance(),(copy).getTolerance());
+  TEST_EQUAL ((**ptr).first,(*copy).first);
+  TEST_EQUAL ((**ptr).second,(*copy).second);				
+RESULT
+
 CHECK (virtual bool isDigestingEnd(char aa1,char aa2))
 	ptr = new EdwardsLippertIteratorTryptic();
 	TEST_EQUAL(ptr->isDigestingEnd('R','S'),1)
@@ -123,7 +156,7 @@ CHECK ([EXTRA] FASTAEntry operator*())
 	}
 RESULT
 
-CHECK(static const std::string getProductName())
+CHECK(static const String getProductName())
 	TEST_STRING_EQUAL(EdwardsLippertIteratorTryptic::getProductName(), "EdwardsLippertIteratorTryptic")
 RESULT
 			

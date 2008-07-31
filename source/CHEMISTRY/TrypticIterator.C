@@ -39,7 +39,9 @@ using namespace OpenMS;
 	
 	///Constructor to intialize algorithm
 	TrypticIterator::TrypticIterator ()
+		: PepIterator()
 	{
+		setName(TrypticIterator::getProductName());
 		b_ = 0;
 		e_ = 0;
 		is_at_end_ = false;

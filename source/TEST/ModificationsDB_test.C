@@ -110,7 +110,8 @@ CHECK(void readFromOBOFile(const String &filename))
 RESULT
 
 CHECK(void readFromUnimodXMLFile(const String &filename))
-	// just provided for convinience at the moment
+	// just provided for convenience at the moment
+	NOT_TESTABLE
 RESULT
 
 /////////////////////////////////////////////////////////////
