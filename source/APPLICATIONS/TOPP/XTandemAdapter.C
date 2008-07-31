@@ -95,8 +95,8 @@ class TOPPXTandemAdapter
 			registerIntOption_("max_precursor_charge", "<charge>", 4, "maximum precursor charge", false);
 			registerIntOption_("threads", "<num>", 1, "number of threads", false);
 			
-			registerStringOption_("fixed_modifications", "<mods>", "", "fixed modifications", false);
-      registerStringOption_("variable_modifications", "<mods>", "", "variable modifications", false);
+			registerStringOption_("fixed_modifications", "<mods>", "", "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048", false);
+      registerStringOption_("variable_modifications", "<mods>", "", "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048", false);
 			registerIntOption_("missed_cleavages", "<num>", 1, "Number of possible cleavage sites missed by the enzyme", false);
 	
 			addEmptyLine_();

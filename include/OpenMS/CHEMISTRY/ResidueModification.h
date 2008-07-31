@@ -41,6 +41,13 @@ namespace OpenMS
 
 	/** @brief Representation of a modification
 
+			This class represents a modification of a residue. A residue modification
+			has several attributes like the diff formula, a terminal specificity 
+			a mass and maybe an origin which means a specific residue which it can
+			be applied to. A residue modification can be represented by its PSI-MOD
+			identifier, e.g. MOD:01214. This is a unique key which only occurs ones in 
+			an OpenMS instance stored in the ModificationsDB. Some residue modifications
+			have also unique synonyms which can be used instead.
 	*/
 	class ResidueModification
 	{
@@ -71,23 +78,6 @@ namespace OpenMS
 			};
 
 			/** @brief Classification of the modification
-
-					the PSI-MOD defined the following classes of modifications
-						AA substitution
-						Artefact
-						Chemical derivative
-						Co-translational
-						Isotopic label
-						Multiple
-						N-linked glycosylation
-						Non-standard residue
-						O-linked glycosylation
-						Other
-						Other glycosylation
-						Post-translational
-						Pre-translational
-						Synth. pep. protect. gp.
-													 
 				
 			*/
 			enum Source_Classification

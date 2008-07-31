@@ -42,6 +42,28 @@ namespace OpenMS
 	/** 
 		@brief Representation of a peptide/protein sequence
 		
+		This class represents amino acid sequences in OpenMS. Basically a AASequence instance
+		consists of a sequence of residues. The residues are represented as instances of 
+		Residue. Each amino acid has only one instance which is accessible using the ResidueDB instance (singleton).
+
+		A critical property of amino acid sequence is that they can be modified. Which means that one or more 
+		amino acids are chemically modified, e.g. oxidized. This is represented via Residue instances which carry
+		a ResidueModification object. This is also handled in the ResidueDB. 
+
+		If one wants to specify a AASequence the easiest way is simply writing the amino acid sequence. For example
+		AASequence seq("DFPIANGER") is sufficient to create a instance of AASequence with DFPIANGER as peptide.
+
+		Modifications are specified using a unique string identifier present in the ModificationsDB in brackets
+		after the modified amino acid. For example AASequence seq("DFPIAM(MOD:01214)GER") creates an instance
+		of the peptide DFPIAMGER with an oxidized methionine. N-terminal modifications are specified by writing
+		the modification as prefix to the sequence. C-terminal modifications are specified by writing the 
+		modification as suffix. C-terminal modifications are distinguished from modifications of the last amino 
+		acid by considering the specificity of the modification as stored in ModificationsDB.
+	
+		If a string cannot be converted into a valid instance of AASequence, the valid flag is false. The flag
+		can be read using the isValid() predicate. However, instances of AASequence which are not valid report 
+		wrong weights, because the weight cannot be calculated then. Also other operations might fail.
+		
 		@ingroup Chemistry
 	*/
 	class AASequence

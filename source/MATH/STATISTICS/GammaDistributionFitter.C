@@ -35,6 +35,15 @@ using namespace std;
 #define GAMMA_DISTRIBUTION_FITTER_VERBOSE
 #undef  GAMMA_DISTRIBUTION_FITTER_VERBOSE
 
+#ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
+	#include <gsl/gsl_rng.h>
+	#include <gsl/gsl_randist.h>
+	#include <gsl/gsl_vector.h>
+	#include <gsl/gsl_blas.h>
+	#include <gsl/gsl_multifit_nlin.h>
+#endif
+
+
 namespace OpenMS
 {
 	GammaDistributionFitter::GammaDistributionFitter()
@@ -196,6 +205,7 @@ namespace OpenMS
 #ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
 		cerr << "Status: " << status << endl;
 #endif
+
 		if (status)
 		{
 			gsl_multifit_fdfsolver_free (s);
@@ -215,6 +225,7 @@ namespace OpenMS
 		stringstream formula;
 		formula << "f(x)=" << "(" << result.b << " ** " << result.p << ") / gamma(" << result.p << ") * x ** (" << result.p << " - 1) * exp(- " << result.b << " * x)";
 		gnuplot_formula_ = formula.str();
+		
 #ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
 		cout << gnuplot_formula_ << endl;
 #endif

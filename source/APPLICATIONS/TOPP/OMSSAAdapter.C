@@ -89,8 +89,8 @@ class TOPPOMSSAAdapter
 			registerIntOption_("min_precursor_charge", "<charge>", 1, "minimum precursor ion charge", false);
       registerIntOption_("max_precursor_charge", "<charge>", 3, "maximum precursor ion charge", false);
       registerIntOption_("threads", "<num>", 1, "number of threads", false);
-      registerStringOption_("fixed_modifications", "<mods>", "", "fixed modifications", false);
-      registerStringOption_("variable_modifications", "<mods>", "", "variable modifications", false);
+      registerStringOption_("fixed_modifications", "<mods>", "", "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048", false);
+      registerStringOption_("variable_modifications", "<mods>", "", "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048", false);
 			
 			addEmptyLine_();
 			addText_("OMSSA specific input options");

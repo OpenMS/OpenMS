@@ -87,7 +87,30 @@ RESULT
 
 CHECK((GammaDistributionFitResult fit(std::vector< DPosition< 2 > > & points)))
 {
-  // TODO
+	/*
+	DPosition<2> pos;
+  pos.setX(0.0);
+  pos.setY(0.01);
+  vector<DPosition<2> > points;
+  points.push_back(pos);
+  pos.setX(0.05); pos.setY(0.2*4); points.push_back(pos);
+	pos.setX(0.08); pos.setY(0.3*4); points.push_back(pos);
+	pos.setX(0.12); pos.setY(0.5*4); points.push_back(pos);
+  pos.setX(0.16); pos.setY(0.63*4); points.push_back(pos);
+  pos.setX(0.28); pos.setY(0.99*4); points.push_back(pos);
+	pos.setX(0.43); pos.setY(0.9*4); points.push_back(pos);
+  pos.setX(0.66); pos.setY(0.83*4); points.push_back(pos);
+  pos.setX(0.78); pos.setY(0.10*4); points.push_back(pos);
+	pos.setX(0.99); pos.setY(0.02*4); points.push_back(pos);
+	
+
+  ptr = new GammaDistributionFitter;
+  GammaDistributionFitter::GammaDistributionFitResult result = ptr->fit(points);
+
+  PRECISION(0.1)
+  TEST_REAL_EQUAL(result.b, 1.0)
+  TEST_REAL_EQUAL(result.p, 0.3)
+	*/
 }
 RESULT
 
@@ -113,9 +136,7 @@ CHECK((void setInitialParameters(const GammaDistributionFitResult & result)))
 RESULT
 
 CHECK((const String& getGnuplotFormula() const ))
-{
 	// TODO
-}
 RESULT
 
 

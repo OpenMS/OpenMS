@@ -36,7 +36,11 @@ namespace OpenMS
 {
 	/** @ingroup Chemistry
 	
-			@brief Representation of an element
+			@brief Representation of modification definition
+
+			This class defines a modification type e.g. a input parameter of a search engine.
+			The modification is defined using an unique name of the modification present 
+			in the modifications DB instance.
 	*/
 	class ModificationDefinition
 	{
