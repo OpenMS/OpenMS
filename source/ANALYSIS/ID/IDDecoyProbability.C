@@ -310,8 +310,8 @@ namespace OpenMS
 					{
 						score = -log10(score);
 					}
-					hit.setScore(getProbability_(result_gamma, rev_trafo, result_gauss, fwd_trafo, score));
 					hit.setMetaValue(score_type, hit.getScore());
+					hit.setScore(getProbability_(result_gamma, rev_trafo, result_gauss, fwd_trafo, score));
 					hits.push_back(hit);
 				}
 				PeptideIdentification id = *it;
