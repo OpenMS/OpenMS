@@ -101,8 +101,8 @@ namespace OpenMS
 		for (UInt i = 0; i != fwd_scores.size(); ++i)
 		{
 			while (j != rev_scores.size() && 
-						 ((fwd_scores[i] < rev_scores[j] && higher_score_better) ||
-						 (fwd_scores[i] > rev_scores[j] && !higher_score_better)))
+						 ((fwd_scores[i] <= rev_scores[j] && higher_score_better) ||
+						 (fwd_scores[i] >= rev_scores[j] && !higher_score_better)))
 			{
 				++j;
 			}
@@ -187,12 +187,12 @@ namespace OpenMS
     for (UInt i = 0; i != fwd_scores.size(); ++i)
     {
       while (j != rev_scores.size() &&
-             ((fwd_scores[i] < rev_scores[j] && higher_score_better) ||
-             (fwd_scores[i] > rev_scores[j] && !higher_score_better)))
+             ((fwd_scores[i] <= rev_scores[j] && higher_score_better) ||
+             (fwd_scores[i] >= rev_scores[j] && !higher_score_better)))
       {
         ++j;
       }
-     double fdr(0);
+     	double fdr(0);
 
       if (j != 0 && i != 0)
       {

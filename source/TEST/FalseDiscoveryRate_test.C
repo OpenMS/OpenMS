@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
@@ -54,13 +55,64 @@ RESULT
 
 CHECK((void apply(std::vector< PeptideIdentification > &fwd_ids, std::vector< PeptideIdentification > &rev_ids)))
 {
-  // TODO
+  ptr = new FalseDiscoveryRate();
+	vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids;
+	vector<PeptideIdentification> fwd_pep_ids, rev_pep_ids;
+	IdXMLFile().load("data/XTandem_fwd_ids.idXML", fwd_prot_ids, fwd_pep_ids);
+	IdXMLFile().load("data/XTandem_rev_ids.idXML", rev_prot_ids, rev_pep_ids);
+	ptr->apply(fwd_pep_ids, rev_pep_ids);
+	PRECISION(0.001)
+	for (vector<PeptideIdentification>::const_iterator it = fwd_pep_ids.begin(); it != fwd_pep_ids.end(); ++it)
+	{
+		if (it->getHits().size() > 0)
+		{
+			PeptideHit hit(*it->getHits().begin());
+			double fdr(hit.getScore());
+			double orig_score((double)hit.getMetaValue("XTandem_score"));
+
+			if (orig_score >= 39.4)
+			{
+				TEST_REAL_EQUAL(fdr, 0)
+			}
+			if (orig_score == 37.9)
+			{
+				TEST_REAL_EQUAL(fdr, 0.0769231)
+			}
+		}
+	}
 }
 RESULT
 
 CHECK((void apply(std::vector< ProteinIdentification > &fwd_ids, std::vector< ProteinIdentification > &rev_ids)))
 {
-  // TODO
+  vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids;
+  vector<PeptideIdentification> fwd_pep_ids, rev_pep_ids;
+  IdXMLFile().load("data/XTandem_fwd_ids.idXML", fwd_prot_ids, fwd_pep_ids);
+  IdXMLFile().load("data/XTandem_rev_ids.idXML", rev_prot_ids, rev_pep_ids);
+  ptr->apply(fwd_prot_ids, rev_prot_ids);
+  PRECISION(0.001)
+	
+	for (vector<ProteinIdentification>::const_iterator prot_it = fwd_prot_ids.begin(); prot_it != fwd_prot_ids.end(); ++prot_it)
+	{
+		if (prot_it->getHits().size() > 0)
+		{
+			for (vector<ProteinHit>::const_iterator it = prot_it->getHits().begin(); it != prot_it->getHits().end(); ++it)
+			{
+				ProteinHit hit(*it);
+				double fdr(hit.getScore());
+				double orig_score((double)hit.getMetaValue("XTandem_score"));
+
+				if (orig_score < -1.8)
+				{
+					TEST_REAL_EQUAL(fdr, 0)
+				}
+				if ((orig_score == -1.7))
+				{
+					TEST_REAL_EQUAL(fdr, 0.0617284)
+				}
+			}
+		}
+	}
 }
 RESULT
 

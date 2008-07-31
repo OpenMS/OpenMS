@@ -50,7 +50,7 @@ using namespace std;
 	During some conversion operations information is lost, e.g. when converting featureXML to mzData.
 	In these cases a warning is shown. 
 
-	@todo Implement support for writing MGF or remove if from the valid output types (Andreas) 
+	@improvement Implement support for writing MGF (Andreas) 
 */
 
 // We do not want this class to show up in the docu:
@@ -213,11 +213,6 @@ class TOPPFileConverter
 			}
 			feature_map.updateRanges();
 			FeatureXMLFile().store(out,feature_map);
-		}
-		else if (out_type == FileHandler::MGF)
-		{
-			MascotInfile f;
-			// TODO (Andreas)
 		}
 		else
 		{
