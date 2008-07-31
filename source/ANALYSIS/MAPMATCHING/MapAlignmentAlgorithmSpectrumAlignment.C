@@ -34,7 +34,7 @@ namespace OpenMS
 	:MapAlignmentAlgorithm(),ProgressLogger()
 	{
 		setName("MapAlignmentAlgorithmSpectrumAlignment");
-		defaults_.setValue("gapcost",2," This Parameter stands for the cost of opining a gap in the Alignment. A Gap means that one Spectrum can not be aligned directly to another Spectrum in the Map. This happens, when the similarity of both spectra a too low or even not present. Imagen as a insert or delete of the spectrum in the map. The gap is necessary for aligning, if we open a gap there is a possibility that an another spectrum can be correct aligned with a higher score as before without gap. But to open a gap is a negative event and has to be punished a bit, so such only in case  it 's a good choice to open a gap, if the score is bad enough. The Parameter is to giving as a positive number, the implementation convert it to a negative number.",false);
+		defaults_.setValue("gapcost",1," This Parameter stands for the cost of opining a gap in the Alignment. A Gap means that one Spectrum can not be aligned directly to another Spectrum in the Map. This happens, when the similarity of both spectra a too low or even not present. Imagen as a insert or delete of the spectrum in the map. The gap is necessary for aligning, if we open a gap there is a possibility that an another spectrum can be correct aligned with a higher score as before without gap. But to open a gap is a negative event and has to be punished a bit, so such only in case  it 's a good choice to open a gap, if the score is bad enough. The Parameter is to giving as a positive number, the implementation convert it to a negative number.",false);
 		defaults_.setValue("affinegapcost", 0.5," This Parameter controls the cost of extension a already open gap. The idea behind the affine gapcost lies under the assumption, that it is better to get a long distance of connected gaps than to have a structure gap match gap match.  There for the punishment for the extension of a gap has to be lower than the normal gapcost. If the the result of the aligmnet show high compression, it is a good idea to lower the affine gapcost or the normal gapcost.",false);
 		defaults_.setValue("cutoffScore",0.70,"The Parameter defines the threshold which filtered Spectra, these Spectra are high potential candidate for deciding the interval of a sub-alignment.  Only those pair of Spectra are selected, which has a score higher or same of the threshold.",true);
 		defaults_.setValue("bucketsize",10,"Defines the numbers of buckets. It is a quantize of the interval of those points, which defines the main alignment(match points). These points have to filtered, to reduce the amount of points for the calculating a smoother spline curve.",true);
@@ -89,7 +89,7 @@ namespace OpenMS
 	The parameters are MSExperiments.
 	@param pattern is the template MSExperiment.
 	@param aligned is the sequence which has to be align(also MSExperiment).
-	@see MapAlignmentAlgorithmSpecturmAlignment()
+	@see MapAlignmentAlgorithmSpectrumAlignment();
 	*/	
 
 	void MapAlignmentAlgorithmSpectrumAlignment::prepareAlign_(const std::vector<MSSpectrum<>* >& pattern, MSExperiment<>& aligned,std::vector<TransformationDescription>& transformation)
@@ -212,25 +212,25 @@ namespace OpenMS
 		eraseMetaDataArrayEntry_(tempalign);
 	}
 	/**
-      @brief affine gap cost Alignment
+		@brief affine gap cost Alignment
 
-	This Alignment based on Needleman Wunsch Algorithm. 
-	To improve the time complexity a banded version was implemented, known as k - alignment. 
-	To save some space, the alignment is going to be calculated by position xbegin to xend of one sequence and ybegin 
-	and yend by another given sequence. The result of the alignment is stored in the second argument. 
-	The first sequence is used to be a template for the alignment.
-	
-	
-   	@param xbegin UInt cordinate for the beginning of the template sequence.
-   	@param ybegin UInt cordinate for the beginning of the aligend sequence .
-   	@param xend UInt cordinate for the end of the template sequence.
-   	@param yend UInt cordinate for the end of the aligend sequence.
-   	@param pattern is the template MSExperiment.
-   	@param aligned is to be align MSExperiment.
-   	@param xcoordinate std::vector<int> save the postion of anchorpoints
-   	@param ycoordinate std::vector<double> save the retentiontimes of an anchorpoints
-   	@param xcoordinatepattern std::vector<int> save the reference position of the anchorpoints from the pattern
-   	@see MapAlignmentAlgorithmSpecturmAlignment()
+		This Alignment based on Needleman Wunsch Algorithm. 
+		To improve the time complexity a banded version was implemented, known as k - alignment. 
+		To save some space, the alignment is going to be calculated by position xbegin to xend of one sequence and ybegin 
+		and yend by another given sequence. The result of the alignment is stored in the second argument. 
+		The first sequence is used to be a template for the alignment.
+
+
+		@param xbegin UInt cordinate for the beginning of the template sequence.
+		@param ybegin UInt cordinate for the beginning of the aligend sequence .
+		@param xend UInt cordinate for the end of the template sequence.
+		@param yend UInt cordinate for the end of the aligend sequence.
+		@param pattern is the template MSExperiment.
+		@param aligned is to be align MSExperiment.
+		@param xcoordinate std::vector<int> save the postion of anchorpoints
+		@param ycoordinate std::vector<double> save the retentiontimes of an anchorpoints
+		@param xcoordinatepattern std::vector<int> save the reference position of the anchorpoints from the pattern
+		@see MapAlignmentAlgorithmSpectrumAlignment();
 	 */
 		void MapAlignmentAlgorithmSpectrumAlignment::affineGapalign_(UInt xbegin, UInt ybegin, UInt xend,UInt yend, const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::vector<int>& xcoordinate, std::vector<double>&ycoordinate, std::vector<int>& xcoordinatepattern)
 		{	
@@ -247,7 +247,7 @@ namespace OpenMS
 		  UInt m= std::min((xend-xbegin),(yend-ybegin))+1; //row
 		 // std::cout<< n << " n " << m << " m " <<  xbegin << " " <<xend<< " " << ybegin << " " << yend <<std::endl;
 		  //log the Progress of the subaligmnet
-			String temp = "subalignment of interval: template sequence " + String(xbegin) + " " + String(xend) + " interval: alignsequence " + String(ybegin) + " " + String(yend);
+			String temp = "sub-alignment of interval: template sequence " + String(xbegin) + " " + String(xend) + " interval: alignsequence " + String(ybegin) + " " + String(yend);
 			startProgress(0,n,temp);
 			Real score_=-999;
 		  Int k_=1;
@@ -316,6 +316,7 @@ namespace OpenMS
 			  							temp.push_back((Real)i+xbegin-1);
 											temp.push_back((Real)j+ybegin-1);
 											temp.push_back(s);
+											temp.push_back(0);
 											debugscorematrix_.push_back(temp);
 										}
 										else
@@ -323,6 +324,7 @@ namespace OpenMS
 											temp.push_back((Real)j+xbegin-1);
 											temp.push_back((Real)i+ybegin-1);
 											temp.push_back(s);
+											temp.push_back(0);
 											debugscorematrix_.push_back(temp);
 										}
 									}
@@ -468,7 +470,7 @@ namespace OpenMS
 						std::cout<< std::endl;
 					}
 					*/
-			  	std::cout << score_ << " current score " << matchmatrix[n][m] << " new score " <<k_ <<" bandsize "<<  n<< " n " << m << " m " << n <<" dimension of matrix "<< (m-(k_+1))*0.90 -2* gap_ - 2*(k_)*e_ -((Int)n-(Int)m) << "nextscore by extension" <<std::endl;
+			  	//std::cout << score_ << " current score " << matchmatrix[n][m] << " new score " <<k_ <<" bandsize "<<  n<< " n " << m << " m " << n <<" dimension of matrix "<< (m-(k_+1))*0.90 -2* gap_ - 2*(k_)*e_ -((Int)n-(Int)m) << "nextscore by extension" <<std::endl;
 			  	// hier abstand berechnen (m-(k_+1))*0.9 -2* gap_ - 2*(k_)*e_ -((Int)n-(Int)m)
 			  	//only do the traceback, if the actual score is not higher as the old one (m-(k_+1))*0.9 -2* gap_ - (2*(k_+1) +((Int)n-(Int)m))*e
 			  	if(score_ >= matchmatrix[n][m] || k_<<1 > (Int)n || matchmatrix[n][m] >= (m-(k_+1))*cutoffScore_ -2* gap_ - (2*(k_) +((Int)m-(Int)n))*e_) //
@@ -646,6 +648,7 @@ namespace OpenMS
    		@param spectrum_pointer_container std::vector<MSSpectrum<>* > output container, where pointers of the MSSpectrum are saved(only with MSLevel 1 type)
 			
 			@exception Exception::IllegalArgument is thrown if no spectra are contained in @p peakmap
+			@see MapAlignmentAlgorithmSpectrumAlignment();
 		*/
 		void MapAlignmentAlgorithmSpectrumAlignment::msFilter_(MSExperiment<>& peakmap,std::vector<MSSpectrum<>* >& spectrum_pointer_container)
 		{
@@ -673,7 +676,7 @@ namespace OpenMS
 			
 		 	Call intern the function transform,only if the comparison score function Fourier is selected.
 			@param spectrum_pointer_container is the sequence which has to be transform
-	   	
+			@see MapAlignmentAlgorithmSpectrumAlignment();
 		*/
 		inline void MapAlignmentAlgorithmSpectrumAlignment::fourierActivation_(std::vector<MSSpectrum<>* >& spectrum_pointer_container)
 		{
@@ -685,6 +688,14 @@ namespace OpenMS
 				}
 			}
 		}
+		/**
+			@brief Delete entries of the MetaDataArray with was made from CompareFouriertransform 
+
+			This function erase the entries with was done by the CompareFouriertransform function.
+
+			@param spectrum_pointer_container std::vector<MSSpectrum<>* > contains MSSpectrums
+			@see MapAlignmentAlgorithmSpecturmAlignment()
+	 */
 		inline void MapAlignmentAlgorithmSpectrumAlignment::eraseMetaDataArrayEntry_(std::vector<MSSpectrum<>* >& spectrum_pointer_container)
 		{
 			
@@ -919,7 +930,7 @@ namespace OpenMS
     		TransformationDescription trans;
 				trans.setName("spline");
 				trans.setPairs(PairVector);
-    		transformation.push_back(trans);
+				transformation.push_back(trans);
     		gsl_interp_accel *acc = gsl_interp_accel_alloc();
     		gsl_spline *spline = gsl_spline_alloc(gsl_interp_cspline, (UInt)x.size());
     		gsl_spline_init(spline,tempx,tempy,(UInt)x.size());
@@ -1156,6 +1167,15 @@ namespace OpenMS
 			ycoordinate.push_back((tempxy[i].first).second);
 		}
 	}
+	/**
+		@brief Creates files for the debugging
+
+		This function is only active if the debugflag ist true. The debugfileCreator creates following files debugtraceback.txt(gnuplotScript), debugscoreheatmap.r and debugRscript. Debugscoreheatmap.r contains the scores of the Spectra to each other from the alignment and also the traceback. DebugRscript is the R script which reads those data. So both files are only working under R. Start R and type main(location of debugscoreheatmap.r). The output will be a heatmap of each sub-alignment. Debugtraceback.txt shows the way of the Traceback by using gnuplot.
+
+		@param pattern MSExperiment template MSExperiment.
+		@param aligned MSExperiment sequence to be align MSExperiment.
+		@see MapAlignmentAlgorithmSpecturmAlignment()
+	*/
 	inline void MapAlignmentAlgorithmSpectrumAlignment::debugFileCreator_(const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned)
 	{
 		
@@ -1177,9 +1197,19 @@ namespace OpenMS
 		myfile.open("debugtraceback.txt",std::ios::trunc);
 		myfile << "set xrange[0:"<< pattern.size()-1<<  "]" << "\n set yrange[0:"<< aligned.size()-1 << "] \n plot \'-\' with lines " << std::endl;
 		std::sort(debugtraceback_.begin(),debugtraceback_.end(),Compare(false));
+		
 		for(UInt i =0; i< debugtraceback_.size(); ++i)
 		{
 			myfile<< debugtraceback_[i].first << " " << debugtraceback_[i].second << std::endl;
+			for(UInt p=0;p<debugscorematrix_.size();++p)
+			{
+				if(debugscorematrix_[p][0] == debugtraceback_[i].first && debugscorematrix_[p][1] == debugtraceback_[i].second)
+				{
+					debugscorematrix_[p][3]=1;
+					break;
+				}
+				
+			}
 		}
 		myfile <<"e" <<std::endl;
 		myfile.close();
@@ -1187,13 +1217,7 @@ namespace OpenMS
 		
 		//R heatplot score of both sequence
 		std::map<UInt,std::map<UInt,Real> >debugbuffermatrix;
-		for(UInt i=0;i <pattern.size();++i)
-		{
-			for(UInt j=0; j<aligned.size();++j)
-			{
-			debugbuffermatrix[i][j]=0;
-			}
-		}
+		
 		Real scoremaximum=-2;
 		//precalculation for the heatmap
 		//getting the maximum score
@@ -1208,11 +1232,7 @@ namespace OpenMS
 		{
 			if(debugscorematrix_[i][2]!=0) debugscorematrix_[i][2]/=scoremaximum;
 		}
-		for(UInt i=0; i < debugscorematrix_.size();++i)
-		{
-			if(debugscorematrix_[i][2] >1)
-			std::cout<< debugscorematrix_[i][2] << std::endl;
-		}
+	
 		
 		//write the score in a file
 		/*
@@ -1232,7 +1252,8 @@ namespace OpenMS
 		}*/
 		for(UInt i=0; i < debugscorematrix_.size();++i)
 		{
-			scorefile<< debugscorematrix_[i][0] << " " << debugscorematrix_[i][1] << " " << debugscorematrix_[i][2] << std::endl;
+			scorefile<< debugscorematrix_[i][0] << " " << debugscorematrix_[i][1] << " " << debugscorematrix_[i][2] << " "<< debugscorematrix_[i][3] << std::endl;
+			
 		}
 		scorefile.close();
 		
@@ -1240,7 +1261,7 @@ namespace OpenMS
 		rscript.open("debugRscript.r",std::ios::trunc);
 		
 		rscript<<"#Name: LoadFile \n #transfer data from file into a matrix \n #Input: Filename \n #Output Matrix \n LoadFile<-function(fname){\n temp<-read.table(fname); \n temp<-as.matrix(temp); \n return(temp); \n } "<< std::endl;
-		rscript<<"#Name: ScoreHeatmapPlot \n #plot the score in a way of a heatmap \n #Input: Scorematrix \n #Output Heatmap \n ScoreHeatmapPlot<-function(matrix) { \n xcord<-matrix[,1]; \n ycord<-matrix[,2]; \n color<-rgb(0,matrix[,3],0);\n  plot(xcord,ycord,col=color,phc=19)\n } \n " <<std::endl;
+		rscript<<"#Name: ScoreHeatmapPlot \n #plot the score in a way of a heatmap \n #Input: Scorematrix \n #Output Heatmap \n ScoreHeatmapPlot<-function(matrix) { \n xcord<-as.vector(matrix[,1]); \n ycord<-as.vector(matrix[,2]); \n color<-rgb(as.vector(matrix[,4]),as.vector(matrix[,3]),0);\n  plot(xcord,ycord,col=color, main =\"Heatplot of scores included the traceback\" , xlab= \" Template-sequence \", ylab=\" Aligned-sequence \", type=\"p\" ,phc=22)\n } \n main<-function(filenamea) { \n a<-Loadfile(filenamea) \n X11() \n ScoreHeatmapPlot(a) \n  " <<std::endl;
 		rscript.close(); 
 		/*
 		Real matchmaximum=-999.0;
