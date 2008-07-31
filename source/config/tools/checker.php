@@ -1,5 +1,4 @@
-<?php
-# -*- Mode: C++; tab-width: 2; -*-
+<?php # -*- mode: php; tab-width: 2; -*-
 # vi: set ts=2:
 #
 # --------------------------------------------------------------------------
@@ -410,6 +409,7 @@
 			"IsotopeCluster.h",
 			"RangeUtils.h",
 			"ComparatorUtils.h",
+			"StatisticFunctions.h",
 			"KernelTraits.h",
 			"StandardTypes.h",
 			"DimensionDescription.h",
