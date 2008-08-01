@@ -11,18 +11,28 @@ New features and improvements of OpenMS:
 - Added meta data arrays to spectra as the new standard way of handing peak meta information
 - Improved interface of SpectrumCanvas and derived classes for easier reuse outside of TOPPView
 - Added (beta) mzML support
-- Added support for arbitrary modifications to peptide/protein modifications
+- Added support for arbitrary modifications to peptide/protein modifications (based on PSI-MOD)
 - Exceptions thrown by member functions are no longer declared in the header files.
   They are however documented in the class documentation.
 - Added *beta* support for the HUPO PSI format mzML
   Currently only reading is supported and some features are not implemented yet
   e.g. chromatograms, zlib compression of base64 data, base64 integer data, base64 16 bit data
 - Added the UTILS package, a bundle of small helper tools.
+- Changed handling of amino acid sequences and modifications. Modifications are taken from
+  PSI-MOD and are fully supported via the class AASequence. 
+- Added new framework for generic clustering
 
 New features and improvements of TOPP:
 - Replaced 'MapAlignment', 'UnlabeledMatcher' and 'LabeledMatcher' tools by 'MapAligner' and 'FeatureLinker' tools
 - Added map alignment algorithm based on spectrum similarity to 'MapAlignment'
 - Added 'PTModel' and 'PTPredict' tool for prediction of proteotypic peptides
+- Added XTandemAdapter with a minimal interface (shared with OMSSAAdapter) all advanced option can be set using a 
+  standard X!Tandem configuration file
+- Changed OMSSAAdapter to same minimal interface as XTandemAdapter, advanced option are additionally available
+- Added IDDecoyProbability which implements the transformation of a forward and reversed search into probability
+  scores (target-decoy approach)
+- Added FalseDiscoveryRate, which implements FDR calculation from forward and reversed searches at peptide
+  and protein levels
 
 New features and improvements of TOPPView:
 - Mayor update to the user interface and functionality
@@ -46,18 +56,103 @@ Changes to the contrib package:
 
 Detailed list of changes to specific OpenMS classes:
 - Renamed and moved classes
-	- Renamed 'Exception::Base' to 'Exception::BaseException'
+  - Renamed 'Exception::Base' to 'Exception::BaseException'
   - Renamed all 'Peak' classes to 'RichPeak'
   - Renamed all 'RawDataPoint' classes to 'Peak'
   - Renamed 'KERNEL/DPeakConstRefArray' to 'DATASTRUCTURES/ConstRefVector'
-  - ...
+
 - Removed classes
   - KERNEL/PickedPeak1D
-  - ...
+  - DATASTRUCTURES/HashMap (replace by Map)
+  - ANALYSIS/MAPMATCHING/BaseAlignment (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/BaseMapMatcher (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/BasePairFinder (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/BasePairFinder_impl (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/BasePairwiseMapMatcher_impl (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/BaseSuperImposer_impl (restructuring of map alignment
+  - ANALYSIS/MAPMATCHING/ElementPair (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/Grid (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/GridCell (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/Group (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/IndexTuple (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/LinearMapping (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/MapDewarper (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/MapMatcherRegression (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/PairMatcher (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/PoseClusteringPairwiseMapMatcher (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/StarAlignment (restructuring of map alignment)
+  - ANALYSIS/CLUSTERING/BinnedRep (reimplemented in BinnedSpectrum)
+  - COMPARISON/SPECTRA/BinnedRepCompareFunctor (reimplemented in BinnedSpectrumCompareFunctor)
+  - COMPARISON/SPECTRA/BinnedRepMutualInformation (reimplemented in BinnedMutualInformation)
+  - COMPARISON/SPECTRA/BinnedRepSharedPeakCount (reimplemented in BinnedSharedPeakCount)
+  - COMPARISON/SPECTRA/BinnedRepSpectrumContrastAngle (reimplemented in BinnedSpectralContrastAngle)
+  - COMPARISON/SPECTRA/BinnedRepSumAgreeingIntensities (reimplemented in BinnedSumAgreeingIntensities)
+  - CONCEPT/Benchmark
+  - CONCEPT/HashFunction
+  - FILTERING/SMOOTHING/SmoothFilter
+  - FORMAT/FeaturePairsXMLFile (restructuring of map alignment)
+  - FORMAT/GridFile (restructuring of map alignment)
+  - FORMAT/HANDLER/FeaturePairsHandler (restructuring of map alignment)
+  - FORMAT/HANDLER/GridHandler (restructuring of map alignment)
+  - FORMAT/HANDLER/OMSAAXMLHandler (replaced by OMSSAXMLFile)
+  - KERNEL/ConsensusPeak (restructuring of map alignment)
+  - KERNEL/FeatureHandle
+  - KERNEL/MSExperimentExtern
+  - KERNEL/PeakIndex
+  - TRANSFORMATIONS/RAW2PEAK/PeakShapeType
+
 - New classes
-  - ...
+  - CHEMISTRY/ModificationsDB which handles the PSI-MOD modifications
+  - CHEMISTRY/ModificationDefinition class, which specifies modification search options
+  - CHEMISTRY/ModificationDefinitionSet class, which specifies modification search options
+  - CHEMISTRY/ResidueModification which represents a PSI-MOD modification
+  - ANALYSIS/ID/FalseDiscoveryRate class, which calculates FDRs on peptide and protein level
+  - ANALYSIS/ID/IDDecoyProbability class, which implements a target decoy probability estimation
+  - DATASTRUCTURES/Map class and replaced HashMap usage with Map
+  - ANALYSIS/MAPMATCHING/BaseGroupFinder (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/LabeledPairFinder (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering (restructuring of map alignment)
+  - ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment (new map alignment type using spectral alignments)
+  - ANALYSIS/MAPMATCHING/TransformationDescription (new map alignment type using spectral alignments)
+  - ANALYSIS/CLUSTERING/AverageLinkage (new framework for clustering)
+  - ANALYSIS/CLUSTERING/ClusterFunctor (new framework for clustering)
+  - ANALYSIS/CLUSTERING/ClusterHierachical (new framework for clustering)
+  - ANALYSIS/CLUSTERING/CompleteLinkage (new framework for clustering)
+  - ANALYSIS/CLUSTERING/SingleLinkage (new framework for clustering)
+  - COMPARISON/SPECTRA/BinnedSpectrum (Binned represenetation of a spectrum)
+  - COMPARISON/SPECTRA/BinnedMutualInformation 
+  - COMPARISON/SPECTRA/BinnedSumAgreeingIntensities
+  - COMPARISON/SPECTRA/BinnedSpectralContrastAngle
+  - COMPARISON/SPECTRA/BinnedSharedPeakCount
+  - COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor
+  - COMPARISON/SPECTRA/CompareFourierTransform
+  - COMPARISON/SPECTRA/PeakAlignment
+  - COMPARISON/SPECTRA/SteinScottImproveScore
+  - DATASTRUCTURE/DistanceMatrix
+  - FORMAT/ControlledVocabulary
+  - FORMAT/HANDLER/MzMLHandler
+  - FORMAT/HANDLER/UnimodXMLHandler
+  - FORMAT/HANDLER/XTandemInFileXMLHandler
+  - FORMAT/MSPFile
+  - FORMAT/MzMLFile
+  - FORMAT/OMSSACSVFile
+  - FORMAT/PepXMLFile (only for Mascot output, not complete implementation of pepXML)
+  - FORMAT/TransformationXMLFile
+  - FORMAT/XTandemInfile
+  - FORMAT/XTandemXMLFile
+  - MATH/STATISTICS/GammaDistributionFitter
+  - MATH/STATISTICS/GaussFitter
+  - TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet
+  - TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWavelet
+
 - Changes to classes
-  - ...
+  - Changed AASequence to support PSI-MOD modifications
+  - Changed Residue to support PSI-MOD modifications
+
 
 
 ------------------------------------------------------------------------------------------

@@ -145,7 +145,7 @@
   
   @b Download:
   
-  The contrib package is contained in the %OpenMS release package.
+  The contrib package is contained in the %OpenMS release package and is available under the path contrib in the %OpenMS directory.
   
   If you are using the developer version of %OpenMS, you must check out the contrib from Sourceforge SVN repository
 	<pre>&gt; svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib</pre> 
@@ -204,10 +204,6 @@
     It contains the header files needed for %OpenMS.</li>
   </ul>
 
-	In order to point the %OpenMS configure to the contrib libraries you can use the
-	configure option '--with-default-path'. The default value of this option is 'OpenMS/contrib/'
-	so you can move the contrib package there to make %OpenMS find it automatically.
-
   @section install_linux_openms Installing OpenMS
   
   If you have not installed the libraries which %OpenMS requires,
@@ -262,7 +258,8 @@
   together with a description of the problem by <a href="http://open-ms.sourceforge.net/team.html" target="_blank">email</a>.
 
 	Add <i>&lt;path_to_OpenMS&gt;/lib/</i> (e.g. <i>~/OpenMS/lib/</i>) to the environment variable <b>LD_LIBRARY_PATH</b> (as suggested by the previous <code>make</code>).
-		
+	
+	On 64bit machines it may be requiered to switch off support for ANDI/MS and netCDF using the switches  --disable-andims and --disable-netcdf, however these data formats will not be supported then.
 
   @section install_linux_testing_openms Testing your OpenMS installation  
   

@@ -1107,7 +1107,7 @@ optional (per default set to 1,0).
   @skip clustering
   @until clusterForVector
 
-This fuction will create a clustering up to the threshold in the @a result vector. See @ref Output.
+This function will create a clustering up to the threshold in the @a result vector. See @ref Output.
 
   @skip clear
   @until end of main
