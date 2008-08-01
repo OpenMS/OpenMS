@@ -205,18 +205,17 @@
   </ul>
 
   @section install_linux_openms Installing OpenMS
-  
-  If you have not installed the libraries which %OpenMS requires,
-  please refer to the section @ref install_linux_required above. Otherwise you might only get parts of the
-  full %OpenMS functionality.
+ 
+ 	You need to get the %OpenMS source code from our website. The latest stable version of %OpenMS can be found in the 
+	<a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">files</a> section.
+	For further (e.g. latest developer version from SVN) info see the <a href="http://open-ms.sourceforge.net/download.php" target="_blank">download instructions</a>.
+
+  If you have not installed the libraries which %OpenMS requires, please refer to the section @ref install_linux_required above. Otherwise you might only get parts of the full %OpenMS functionality.
   <br>
-  Assuming you have successfully installed the dependent libraries, you need to
-  get the %OpenMS source code. The latest stable version of %OpenMS
-  can be found in the <a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">files</a>
-  section. For further (e.g. latest developer version from SVN) info see the <a href="http://open-ms.sourceforge.net/download.php" target="_blank">download instructions</a>.
+  Assuming you have successfully installed the dependent libraries, you can proceed.
   <br>
   <br>
-  After you got the source code go to the <tt>source</tt> directory and type in the following commands (... see 'configure --help' and below for more options during <code>./configure</code>)
+  After you got the source code and prepared the contrib libs go to the <tt>source</tt> directory and type in the following commands (... see 'configure --help' and below for more options during <code>./configure</code>)
 
   <pre>
 &gt; ./configure
