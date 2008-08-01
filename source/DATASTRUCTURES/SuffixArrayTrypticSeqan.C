@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -29,9 +29,9 @@
 
 using namespace OpenMS;
 
-SuffixArrayTrypticSeqan::SuffixArrayTrypticSeqan(const String & st,const String & sa_file_name) throw (Exception::InvalidValue,Exception::FileNotFound):SuffixArraySeqan(st, sa_file_name)
+SuffixArrayTrypticSeqan::SuffixArrayTrypticSeqan(const String& st,const String& filename)
+	: SuffixArraySeqan(st, filename)
 {
-	//super(st,sa_file_name);
 }
 
 bool SuffixArrayTrypticSeqan::isDigestingEnd(const char aa1, const char aa2) const

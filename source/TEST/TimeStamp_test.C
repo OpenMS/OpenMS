@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -29,6 +29,7 @@
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/TimeStamp.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <fstream>
 
 ///////////////////////////
@@ -44,18 +45,18 @@ using namespace OpenMS;
 using namespace std;
 
 TimeStamp* ts = 0;
-CHECK(TimeStamp::TimeStamp())
+CHECK(TimeStamp())
 	ts = new TimeStamp;
 	TEST_NOT_EQUAL(ts, 0)
 RESULT
 
 
-CHECK(TimeStamp::~TimeStamp())
+CHECK(~TimeStamp())
 	delete ts;
 RESULT
 
 
-CHECK(TimeStamp::getTime() const  )
+CHECK(getTime() const  )
   TimeStamp* t1 = new TimeStamp;	
 	t1->stamp();
 	STATUS(*t1)
@@ -70,7 +71,7 @@ CHECK(TimeStamp::getTime() const  )
 	delete t2;
 RESULT
 
-CHECK(TimeStamp::isNewerThan(const Time& time) const  )
+CHECK(isNewerThan(const Time& time) const  )
 	TimeStamp* ts1 = new TimeStamp;
 	ts1->stamp();
 	STATUS(*ts1)
@@ -87,7 +88,7 @@ CHECK(TimeStamp::isNewerThan(const Time& time) const  )
 RESULT
 
 
-CHECK(TimeStamp::isOlderThan(const Time& time) const  )
+CHECK(isOlderThan(const Time& time) const  )
 	TimeStamp* ts1 = new TimeStamp;
 	ts1->stamp();
 	STATUS(*ts1)
@@ -104,7 +105,7 @@ CHECK(TimeStamp::isOlderThan(const Time& time) const  )
 RESULT
 
 
-CHECK(TimeStamp::isNewerThan(const TimeStamp& stamp) const  )
+CHECK(isNewerThan(const TimeStamp& stamp) const  )
 	TimeStamp* ts1 = new TimeStamp;
 	ts1->stamp();
 	STATUS(*ts1)
@@ -121,7 +122,7 @@ CHECK(TimeStamp::isNewerThan(const TimeStamp& stamp) const  )
 RESULT
 
 
-CHECK(TimeStamp::isOlderThan(const TimeStamp& stamp) const  )
+CHECK(isOlderThan(const TimeStamp& stamp) const  )
 	TimeStamp* ts1 = new TimeStamp;
 	ts1->stamp();
 	STATUS(*ts1)
@@ -138,7 +139,7 @@ CHECK(TimeStamp::isOlderThan(const TimeStamp& stamp) const  )
 RESULT
 
 
-CHECK(TimeStamp::stamp(const Time& time = ZERO) )
+CHECK(stamp(const Time& time = ZERO) )
   TimeStamp* ts1 = new TimeStamp;
 	ts1->stamp();
 	STATUS(*ts1)
@@ -160,19 +161,17 @@ CHECK(TimeStamp::stamp(const Time& time = ZERO) )
 	delete ts2;
 RESULT
 
-CHECK(TimeStamp::operator << (std::ostream& os, const TimeStamp& ts))
+CHECK(operator << (std::ostream& os, const TimeStamp& ts))
 	TimeStamp t;
 	// a very nasty way to break the encapsulation, but simplifies
 	// things a great deal....!
 	PreciseTime& t_ref = const_cast<PreciseTime&>(t.getTime());
 	t_ref.set(12345678, 456789);
-	string filename;
-	NEW_TMP_FILE(filename);
-	ofstream of(filename.c_str(), std::ios::out);
-	of << t << std::endl;
-	of.close();
-	// ???? THis has to be ported back from BALL
-	// TEST_FILE_REGEXP(filename.c_str(), "data/TimeStamp_test.txt")
+	stringstream str;
+	str << t;
+	String time_str = str.str();
+	TEST_EQUAL(time_str.hasPrefix("1970052"), true)
+	TEST_EQUAL(time_str.hasSuffix("456789"), true)
 RESULT
 
 /////////////////////////////////////////////////////////////

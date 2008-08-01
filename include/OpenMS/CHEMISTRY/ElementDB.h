@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -100,13 +100,17 @@ namespace OpenMS
 		protected:
 	
 			/*_ parses a Histogram given as a OpenMS String and return the distribution
+			 
+			 		@throw throws exception ParseError
 			 */
-			IsotopeDistribution parseIsotopeDistribution_(const Map<UInt, double>& distribution) 
-				throw(Exception::ParseError);
+			IsotopeDistribution parseIsotopeDistribution_(const Map<UInt, double>& distribution);
 
 			/*_ read elements from a XML file, formated as a Param file.
+
+			 		@throw throws ParseError if the file cannot be parsed
+					@throw throws FileNotFound if the file could not be found
 			 */
-			void readFromFile_(const String& file_name) throw(Exception::FileNotFound, Exception::ParseError);
+			void readFromFile_(const String& file_name);
 
 			/*_ resets all containers 
 			 */

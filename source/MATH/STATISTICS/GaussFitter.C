@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -27,12 +27,15 @@
 
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 #include <sstream>
-#include <iostream>
 
 using namespace std;
 
 #define GAUSS_FITTER_VERBOSE
 #undef  GAUSS_FITTER_VERBOSE
+
+#ifdef GAUSS_FITTER_VERBOSE
+	#include <iostream>
+#endif
 
 namespace OpenMS
 {
@@ -77,7 +80,7 @@ namespace OpenMS
 		return gnuplot_formula_;
 	}
 
-	int GaussFitter::gauss_fitter_f_(const gsl_vector* x, void* params, gsl_vector* f)
+	int GaussFitter::gaussFitterf_(const gsl_vector* x, void* params, gsl_vector* f)
 	{
 		vector<DPosition<2> >* data = static_cast<vector<DPosition<2> >*>(params);
 		
@@ -94,7 +97,7 @@ namespace OpenMS
 		return GSL_SUCCESS;
 	}
 
-	int GaussFitter::gauss_fitter_df_(const gsl_vector* x, void* params, gsl_matrix* J)
+	int GaussFitter::gaussFitterdf_(const gsl_vector* x, void* params, gsl_matrix* J)
 	{
 		vector<DPosition<2> >* data = static_cast<vector<DPosition<2> >*>(params);
 
@@ -112,15 +115,15 @@ namespace OpenMS
 	  return GSL_SUCCESS;
 	}
 
-	int GaussFitter::gauss_fitter_fdf_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
+	int GaussFitter::gaussFitterfdf_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
 	{
-	  gauss_fitter_f_(x, params, f);
-	  gauss_fitter_df_(x, params, J);
+	  gaussFitterf_(x, params, f);
+	  gaussFitterdf_(x, params, J);
 	  return GSL_SUCCESS;
 	}
 
 #ifdef GAUSS_FITTER_VERBOSE
-	void GaussFitter::print_state_(size_t iter, gsl_multifit_fdfsolver * s)
+	void GaussFitter::printState_(size_t iter, gsl_multifit_fdfsolver * s)
 	{
 	  printf ("iter: %3u x = % 15.8f % 15.8f % 15.8f "
 	          "|f(x)| = %g\n",
@@ -154,9 +157,9 @@ namespace OpenMS
 	  type = gsl_rng_default;
 	  r = gsl_rng_alloc (type);
 	
-	  f.f = &gauss_fitter_f_;
-	  f.df = &gauss_fitter_df_;
-	  f.fdf = &gauss_fitter_fdf_;
+	  f.f = &gaussFitterf_;
+	  f.df = &gaussFitterdf_;
+	  f.fdf = &gaussFitterfdf_;
 	  f.n = input.size();
 	  f.p = p;
 	  f.params = &input;
@@ -166,7 +169,7 @@ namespace OpenMS
 	  gsl_multifit_fdfsolver_set (s, &f, &x.vector);
 
 		#ifdef GAUSS_FITTER_VERBOSE
-	  print_state_(iter, s);
+	  printState_(iter, s);
 		#endif
 	
 	  do
@@ -176,7 +179,7 @@ namespace OpenMS
 	
 			#ifdef GAUSS_FITTER_VERBOSE
 	    printf ("status = %s\n", gsl_strerror (status));
-	    print_state_(iter, s);
+	    printState_(iter, s);
 
 			cerr << "f(x)=" << gsl_vector_get(s->x, 0) << " * exp(-(x - " << gsl_vector_get(s->x, 1) << ") ** 2 / 2 / (" << gsl_vector_get(s->x, 2) << ") ** 2)";
 			#endif

@@ -63,7 +63,7 @@ class TOPPPILISIdentification
 {
 	public:
 		TOPPPILISIdentification()
-			: TOPPBase("PILISIdentification", "Performs a peptide/protein identification using the PILIS engine.")
+			: TOPPBase("PILISIdentification", "performs a peptide/protein identification with the PILIS engine")
 		{
 		}
 	

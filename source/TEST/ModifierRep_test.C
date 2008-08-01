@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -43,7 +43,7 @@ START_TEST(ModifierRep, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 typedef std::pair <String, String> FASTAEntry;
-/*
+
 ModifierRep* ptr = 0;
 
 CHECK(ModifierRep())
@@ -63,7 +63,7 @@ CHECK(ModifierRep(const ModifierRep &source))
 	TEST_EQUAL (ptr->getModificationTable().size(),new_ptr->getModificationTable().size());
 RESULT
 
-CHECK(void setNumberOfModifications(const UInt i))
+CHECK(void setNumberOfModifications(UInt i))
 	ptr = new ModifierRep();
 	TEST_EQUAL (0,ptr->getNumberOfModifications());
 	ptr->setNumberOfModifications(1);
@@ -78,23 +78,24 @@ CHECK(UInt getNumberOfModifications() const )
 	TEST_EQUAL (2,ptr->getNumberOfModifications());
 
 RESULT
-*/
+
 
 
 CHECK(const std::vector<std::vector<double> >& getModificationTable())
-/*	ptr = new ModifierRep();
+				/*
+	ptr = new ModifierRep();
 	std::vector<std::vector<double> > mod_table = ptr->getModificationTable();
-	ResidueDB rdb;
+	ResidueDB* rdb = ResidueDB::getInstance();
 		
 	char aa[] = "ARNDCEQGHILKMFPSTWYV";
 	for (unsigned int i = 0; i<strlen(aa);++i)
 	{
-		const Residue * r = rdb.getResidue(aa[i]);
+		const Residue* r = rdb->getResidue(aa[i]);
 		std::set< const ResidueModification * > mods (rdb.getModifications(r));
 		std::set< const ResidueModification * >::iterator it (mods.begin());
 		for(;it!=mods.end();++it)
 		{
-			double add_mass = (*it)->getdiffAverageWeight();
+			double add_mass = (*it)->getDiffAverageMass();
 			bool found_add = false;
 			if (add_mass>0) 
 			{
@@ -119,9 +120,7 @@ CHECK(const std::vector<std::vector<double> >& getModificationTable())
 	}*/
 RESULT
 
-
-/*
-CHECK(int getMaxModificationMasses())
+CHECK(UInt getMaxModificationMasses())
 	ptr = new ModifierRep();
 	TEST_EQUAL(0,ptr->getMaxModificationMasses());
 	std::vector<std::vector<double> > mod_table = ptr->getModificationTable();
@@ -138,6 +137,7 @@ CHECK(int getMaxModificationMasses())
 RESULT
 
 CHECK(void refreshModificationList(std::map< double, int > &mod_map, const char &c))
+				/*
 	ptr = new ModifierRep();
 	std::map<double,int> mods;
 	std::vector<std::vector<double> > mod_table = ptr->getModificationTable();
@@ -160,7 +160,7 @@ CHECK(void refreshModificationList(std::map< double, int > &mod_map, const char 
 	TEST_EQUAL (mods.size(),5);
 	const char aa2 = 'X';
 	ptr->refreshModificationList(mods,aa2);
-	TEST_EQUAL (mods.size(),5);
+	TEST_EQUAL (mods.size(),5);*/
 RESULT
 
 CHECK(std::vector<String> getModificationsForMass(double &m))
@@ -210,7 +210,6 @@ CHECK(std::vector<String> getModificationsForMass(double &m, const String &seq))
 		}
 	}
 RESULT
-*/
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

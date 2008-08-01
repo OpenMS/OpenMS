@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -74,22 +74,22 @@ exp[4].setMSLevel(1);
 exp[4][0].setMZ(502.1);
 exp[4][1].setMZ(510.1);
 
-CHECK(AreaIterator())
+CHECK((AreaIterator()))
 	ptr1 = new AI();
 	TEST_NOT_EQUAL(ptr1,0)
 RESULT
 
-CHECK(AreaIterator(SpectrumIteratorType begin, SpectrumIteratorType end, CoordinateType low_mz, CoordinateType high_mz))
+CHECK((AreaIterator(SpectrumIteratorType first, SpectrumIteratorType begin, SpectrumIteratorType end, CoordinateType low_mz, CoordinateType high_mz)))
 	ptr2 = new AI(exp.begin(),exp.RTBegin(0), exp.RTEnd(0), 0, 0);
 	TEST_NOT_EQUAL(ptr2,0)
 RESULT
 
-CHECK(~AreaIterator())
+CHECK((~AreaIterator()))
 	delete ptr1;
 	delete ptr2;
 RESULT
 
-CHECK(bool operator==(const AreaIterator &rhs) const)
+CHECK((bool operator==(const AreaIterator &rhs) const))
 	AI a1, a2;
 	TEST_EQUAL(a1==a1, true)
 	TEST_EQUAL(a2==a2, true)
@@ -101,7 +101,7 @@ CHECK(bool operator==(const AreaIterator &rhs) const)
 	TEST_EQUAL(a2==a3, false)
 RESULT
 
-CHECK(bool operator!=(const AreaIterator &rhs) const)
+CHECK((bool operator!=(const AreaIterator &rhs) const))
 	AI a1, a2;
 	TEST_EQUAL(a1!=a1, false)
 	TEST_EQUAL(a2!=a2, false)
@@ -113,7 +113,7 @@ CHECK(bool operator!=(const AreaIterator &rhs) const)
 	TEST_EQUAL(a2!=a3, true)
 RESULT
 
-CHECK(AreaIterator(const AreaIterator &rhs))
+CHECK((AreaIterator(const AreaIterator &rhs)))
 	AI a1;
 	AI a2(exp.begin(),exp.RTBegin(0), exp.RTEnd(10), 500, 600);
 
@@ -126,7 +126,7 @@ CHECK(AreaIterator(const AreaIterator &rhs))
 	TEST_EQUAL(a4==a2, false)
 RESULT
 
-CHECK(AreaIterator& operator=(const AreaIterator &rhs))
+CHECK((AreaIterator& operator=(const AreaIterator &rhs)))
 	AI a1, a2;
 	AI a3(exp.begin(),exp.RTBegin(0), exp.RTEnd(10), 500, 600);
 
@@ -139,17 +139,17 @@ CHECK(AreaIterator& operator=(const AreaIterator &rhs))
 	TEST_EQUAL(a2==a3, false)
 RESULT
 
-CHECK(reference operator *() const)
+CHECK((reference operator *() const))
 	AI it = AI(exp.begin(),exp.RTBegin(0), exp.RTEnd(7), 505, 520);
 	TEST_REAL_EQUAL((*it).getMZ(),510.0);
 RESULT
 
-CHECK(pointer operator->() const)
+CHECK((pointer operator->() const))
 	AI it = AI(exp.begin(),exp.RTBegin(0), exp.RTEnd(7), 505, 520);
 	TEST_REAL_EQUAL(it->getMZ(),510.0);
 RESULT
 
-CHECK(AreaIterator& operator++())
+CHECK((AreaIterator& operator++()))
 	AI it = AI(exp.begin(),exp.RTBegin(0), exp.RTEnd(7), 505, 520);
 	Map::PeakType* peak = &(*(it++));
 	TEST_REAL_EQUAL(peak->getMZ(),510.0);
@@ -158,7 +158,7 @@ CHECK(AreaIterator& operator++())
 	TEST_EQUAL(it==exp.areaEnd(),true);
 RESULT
 
-CHECK(AreaIterator operator++(int))
+CHECK((AreaIterator operator++(int)))
 	AI it = AI(exp.begin(),exp.RTBegin(0), exp.RTEnd(7), 505, 520);
 	TEST_REAL_EQUAL(it->getMZ(),510.0);
 	++it;
@@ -167,7 +167,7 @@ CHECK(AreaIterator operator++(int))
 	TEST_EQUAL(it==exp.areaEnd(),true);
 RESULT
 
-CHECK(CoordinateType getRT() const)
+CHECK((CoordinateType getRT() const))
 	AI it = AI(exp.begin(),exp.RTBegin(3), exp.RTEnd(9), 503, 509);
 	TEST_REAL_EQUAL(it->getMZ(),504.0);
 	TEST_REAL_EQUAL(it.getRT(),4.0);
@@ -292,7 +292,7 @@ CHECK([EXTRA] Overall test)
 	TEST_EQUAL(it==exp2.areaEnd(),true);
 RESULT
 
-CHECK(PeakIndex getPeakIndex() const)
+CHECK((PeakIndex getPeakIndex() const))
   PeakIndex i;
 	AI it = AI(exp.begin(),exp.begin(), exp.end(), 0, 1000);
 	i = it.getPeakIndex();

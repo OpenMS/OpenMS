@@ -204,7 +204,7 @@ namespace OpenMS
 		
 		scorer_ = Factory<PeakSpectrumCompareFunctor>::create(score_name);
 		Param scorer_param(scorer_->getParameters());
-		scorer_param.setValue("tolerance",(DoubleReal)param_.getValue("peak_mass_tolerance"));
+		scorer_param.setValue("epsilon",(DoubleReal)param_.getValue("peak_mass_tolerance"));
 		scorer_->setParameters(scorer_param);
 	
 		double pre_pos = spec_copy.getPrecursorPeak().getPosition()[0];
@@ -230,7 +230,7 @@ namespace OpenMS
 /*
 		SpectrumAlignment aligner;
 		Param aligner_param(aligner.getParameters());
-		aligner_param.setValue("tolerance", 0.3);
+		aligner_param.setValue("epsilon", 0.3);
 		aligner.setParameters(aligner_param);
 
 		for (UInt i = 0; i != id.getPeptideHits().size(); ++i)

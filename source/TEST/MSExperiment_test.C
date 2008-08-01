@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -69,7 +69,7 @@ CHECK((MSExperiment(const MSExperiment& source)))
 }
 RESULT
 
-CHECK(MSExperiment& operator= (const MSExperiment& source))
+CHECK((MSExperiment& operator= (const MSExperiment& source)))
   MSExperiment<> tmp;
   tmp.getContacts().resize(1);
   tmp.getContacts()[0].setFirstName("Name");
@@ -214,7 +214,7 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 	TEST_REAL_EQUAL(it->getMZ(),25);
 RESULT
 
-CHECK((template<class Container> void set2DData(const Container& cont) ))
+CHECK((template<class Container> void set2DData(const Container& cont)))
 	MSExperiment<> exp;
 
 	// create sample data
@@ -742,26 +742,26 @@ CHECK((void reset()))
 	TEST_EQUAL(exp==MSExperiment<>(),true);
 RESULT
 
-CHECK(const ExperimentalSettings& getExperimentalSettings() const)
+CHECK((const ExperimentalSettings& getExperimentalSettings() const))
 	MSExperiment<> exp;
 	exp.setComment("test");
 	TEST_EQUAL(exp.getExperimentalSettings().getComment(),"test");
 RESULT
 
-CHECK(ExperimentalSettings& getExperimentalSettings())
+CHECK((ExperimentalSettings& getExperimentalSettings()))
 	MSExperiment<> exp;
 	exp.getExperimentalSettings().setComment("test");
 	TEST_EQUAL(exp.getExperimentalSettings().getComment(),"test");
 RESULT
 
-CHECK(MSExperiment& operator=(const ExperimentalSettings &source))
+CHECK((MSExperiment& operator=(const ExperimentalSettings &source)))
 	MSExperiment<> exp,exp2;
 	exp.getExperimentalSettings().setComment("test");
 	exp2 = exp.getExperimentalSettings();
 	TEST_EQUAL(exp2.getExperimentalSettings().getComment(),"test");
 RESULT
 
-CHECK(ConstIterator getPrecursorSpectrum(ConstIterator iterator) const)
+CHECK((ConstIterator getPrecursorSpectrum(ConstIterator iterator) const))
 	MSExperiment<> exp;
 	exp.resize(10);
 	exp[0].setMSLevel(1);
@@ -792,7 +792,7 @@ CHECK(ConstIterator getPrecursorSpectrum(ConstIterator iterator) const)
 
 RESULT
 
-CHECK(void clearMetaDataArrays())
+CHECK((bool clearMetaDataArrays()))
 	MSExperiment<> exp;
 	exp.resize(5);
 	exp[0].getMetaDataArrays().resize(5);
@@ -801,7 +801,7 @@ CHECK(void clearMetaDataArrays())
 	TEST_EQUAL(exp[0].getMetaDataArrays().size(),0)
 RESULT
 
-CHECK(void swap(const MSExperiment& from))
+CHECK((void swap(MSExperiment &from)))
 	MSExperiment<> exp1, exp2;
 	exp1.setComment("stupid comment");
 	exp1.resize(1);

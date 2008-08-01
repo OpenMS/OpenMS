@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -61,9 +61,9 @@ CHECK((static String getProductName()))
 RESULT
 
 CHECK((virtual void group(const std::vector< FeatureMap<> > &maps, ConsensusMap &out)))
-
+	// This is tested extensively in TEST/TOPP. See FeatureLinker_test.
+	NOT_TESTABLE;
 RESULT
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

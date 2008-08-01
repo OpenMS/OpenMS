@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -46,52 +46,97 @@ CHECK(GammaDistributionFitter())
 }
 RESULT
 
-CHECK(~GammaDistributionFitter())
+CHECK(virtual ~GammaDistributionFitter())
 {
 	delete ptr;
 }
 RESULT
 
-CHECK((GammaDistributionFitter(const GammaDistributionFitter &)))
+CHECK((GammaDistributionFitter(const GammaDistributionFitter & rhs)))
 {
-  // TODO
+  GammaDistributionFitter::GammaDistributionFitResult result;
+	result.b = 0.3;
+	result.p = 0.7;
+	GammaDistributionFitter f1;
+	f1.setInitialParameters(result);
+	GammaDistributionFitter f2(f1);
+	TEST_REAL_EQUAL(f1.getInitialParameters().b, result.b)
+	TEST_REAL_EQUAL(f1.getInitialParameters().p, result.p)
+	TEST_REAL_EQUAL(f1.getInitialParameters().b, f2.getInitialParameters().b)
+	TEST_REAL_EQUAL(f1.getInitialParameters().p, f2.getInitialParameters().p)
 }
 RESULT
 
-CHECK((virtual ~GammaDistributionFitter()))
+CHECK((GammaDistributionFitter& operator=(const GammaDistributionFitter & rhs)))
 {
-  // TODO
+  GammaDistributionFitter::GammaDistributionFitResult result;
+	result.b = 0.3;
+	result.p = 0.7;
+	GammaDistributionFitter f1;
+	f1.setInitialParameters(result);
+	GammaDistributionFitter f2;
+	f2 = f1;
+	TEST_EQUAL(f1.getInitialParameters().b, result.b)
+	TEST_EQUAL(f1.getInitialParameters().p, result.p)
+	TEST_EQUAL(f2.getInitialParameters().b, result.b)
+	TEST_EQUAL(f2.getInitialParameters().p, result.p)
+	TEST_EQUAL(f1.getInitialParameters().b, f2.getInitialParameters().b)
+	TEST_EQUAL(f1.getInitialParameters().p, f2.getInitialParameters().p)
 }
 RESULT
 
-CHECK((GammaDistributionFitter& operator=(const GammaDistributionFitter &)))
+CHECK((GammaDistributionFitResult fit(std::vector< DPosition< 2 > > & points)))
 {
-  // TODO
-}
-RESULT
+	/*
+	DPosition<2> pos;
+  pos.setX(0.0);
+  pos.setY(0.01);
+  vector<DPosition<2> > points;
+  points.push_back(pos);
+  pos.setX(0.05); pos.setY(0.2*4); points.push_back(pos);
+	pos.setX(0.08); pos.setY(0.3*4); points.push_back(pos);
+	pos.setX(0.12); pos.setY(0.5*4); points.push_back(pos);
+  pos.setX(0.16); pos.setY(0.63*4); points.push_back(pos);
+  pos.setX(0.28); pos.setY(0.99*4); points.push_back(pos);
+	pos.setX(0.43); pos.setY(0.9*4); points.push_back(pos);
+  pos.setX(0.66); pos.setY(0.83*4); points.push_back(pos);
+  pos.setX(0.78); pos.setY(0.10*4); points.push_back(pos);
+	pos.setX(0.99); pos.setY(0.02*4); points.push_back(pos);
+	
 
-CHECK((GammaDistributionFitResult fit(std::vector< DPosition< 2 > > &)))
-{
-  // TODO
+  ptr = new GammaDistributionFitter;
+  GammaDistributionFitter::GammaDistributionFitResult result = ptr->fit(points);
+
+  PRECISION(0.1)
+  TEST_REAL_EQUAL(result.b, 1.0)
+  TEST_REAL_EQUAL(result.p, 0.3)
+	*/
 }
 RESULT
 
 CHECK((const GammaDistributionFitResult& getInitialParameters() const ))
 {
-  // TODO
+  NOT_TESTABLE // tested above
 }
 RESULT
 
-CHECK((void setInitialParameters(const GammaDistributionFitResult &)))
+CHECK((void setInitialParameters(const GammaDistributionFitResult & result)))
 {
-  // TODO
+  GammaDistributionFitter f1;
+	GammaDistributionFitter::GammaDistributionFitResult result = f1.getInitialParameters();
+	TEST_REAL_EQUAL(result.b, 1.0)
+	TEST_REAL_EQUAL(result.p, 5.0)
+	result.b = 0.15;
+	result.p = 0.24;
+	f1.setInitialParameters(result);
+
+	TEST_REAL_EQUAL(f1.getInitialParameters().b, 0.15)
+	TEST_REAL_EQUAL(f1.getInitialParameters().p, 0.24)
 }
 RESULT
 
 CHECK((const String& getGnuplotFormula() const ))
-{
-  // TODO
-}
+	// TODO
 RESULT
 
 

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -238,7 +238,7 @@ namespace OpenMS
         }
       }
       
-			if (max_intensity_ <= 0)
+			if (max_intensity_ < 0)
 			{
 				std::cerr << "TODO SignalToNoiseEstimatorMedian: the max_intensity_ value should be positive! " << max_intensity_ << std::endl;
 				return;

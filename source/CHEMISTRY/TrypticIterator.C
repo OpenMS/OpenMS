@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -39,7 +39,9 @@ using namespace OpenMS;
 	
 	///Constructor to intialize algorithm
 	TrypticIterator::TrypticIterator ()
+		: PepIterator()
 	{
+		setName(TrypticIterator::getProductName());
 		b_ = 0;
 		e_ = 0;
 		is_at_end_ = false;
@@ -64,7 +66,7 @@ using namespace OpenMS;
 		f_iterator_=source.f_iterator_;
 	}
 
-	FASTAEntry TrypticIterator::operator*() throw (Exception::InvalidIterator)
+	FASTAEntry TrypticIterator::operator*()
 	{
 		if (actual_pep_=="")
 		{
@@ -73,7 +75,7 @@ using namespace OpenMS;
 		return FASTAEntry(f_entry_.first,actual_pep_);
 	}
 	
-	PepIterator & TrypticIterator::operator++() throw (Exception::InvalidIterator)
+	PepIterator & TrypticIterator::operator++()
 	{
 		if (actual_pep_=="")
 		{
@@ -88,7 +90,7 @@ using namespace OpenMS;
 		return *this;
 	}
 
-	PepIterator * TrypticIterator::operator++(int) throw (Exception::InvalidIterator)
+	PepIterator * TrypticIterator::operator++(int)
 	{
 		if (actual_pep_=="")
 		{
@@ -103,7 +105,7 @@ using namespace OpenMS;
 		return old;
 	}	
 
-	void TrypticIterator::setFastaFile(const String & f) throw (Exception::FileNotFound)
+	void TrypticIterator::setFastaFile(const String & f)
 	{
 		std::fstream fs;
 		fs.open(f.c_str());
@@ -119,7 +121,7 @@ using namespace OpenMS;
 		return (f_file_);
 	}
 
-	bool TrypticIterator::begin () throw (Exception::InvalidIterator)
+	bool TrypticIterator::begin ()
 	{
 		if (f_file_=="")
 		{

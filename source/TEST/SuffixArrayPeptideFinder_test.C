@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -45,7 +45,7 @@ START_TEST(SuffixArrayPeptideFinder, "$Id$")
 SuffixArrayPeptideFinder* ptr = 0;
 
 
-CHECK(SuffixArrayPeptideFinder(const String &fFile, const String &method) throw (Exception::FileNotFound, Exception::ParseError, Exception::InvalidValue))
+CHECK(SuffixArrayPeptideFinder(const String& filename, const String& method))
 	ptr = new SuffixArrayPeptideFinder("data/SuffixArrayPeptideFinder_test.fasta","seqan");
 	ptr = new SuffixArrayPeptideFinder("data/SuffixArrayPeptideFinder_test.fasta","trypticSeqan");
 	ptr = new SuffixArrayPeptideFinder("data/SuffixArrayPeptideFinder_test.fasta","trypticCompressed");
@@ -101,7 +101,7 @@ CHECK(UInt getNumberOfModifications() const)
 	sa->setNumberOfModifications(0);
 RESULT
 
-CHECK(void setTags(const std::vector< OpenMS::String > &tags) throw (OpenMS::Exception::InvalidValue))
+CHECK(void setTags(const std::vector< OpenMS::String > &tags))
 	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder("data/SuffixArrayPeptideFinder_test.fasta","trypticSeqan");
 	std::vector<String> tags;
 	tags.push_back("AAA");
@@ -158,7 +158,7 @@ CHECK(bool getUseTags())
 	TEST_EQUAL(sa->getUseTags(),0);
 RESULT
 
-CHECK(void setModificationOutputMethod(const String &s) throw (OpenMS::Exception::InvalidValue))
+CHECK(void setModificationOutputMethod(const String &s))
 	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder("data/SuffixArrayPeptideFinder_test.fasta","seqan");
 	sa->setModificationOutputMethod ("stringChecked");
 	TEST_EQUAL("stringChecked",sa->getModificationOutputMethod());
@@ -190,13 +190,15 @@ CHECK((void getCandidates(std::vector< std::vector< std::pair< FASTAEntry, Strin
 	sa->setNumberOfModifications(0);
 	vector<vector<pair<FASTAEntry,String> > > res2;
 	sa->getCandidates(res2, specc);
+	/*
 	for (vector<vector<pair<FASTAEntry,String> > >::const_iterator it1 = res2.begin(); it1 != res2.end(); ++it1)
 	{
 		for (vector<pair<FASTAEntry, String> >::const_iterator it2 = it1->begin(); it2 != it1->end(); ++it2)
 		{
-			cerr << /*it2->first.first << " ##### " <<*/ it2->first.second << " " << AASequence(it2->first.second).getAverageWeight() << endl;
+			cerr << it2->first.first << " ##### " << it2->first.second << " " << AASequence(it2->first.second).getAverageWeight() << endl;
 		}
 	}
+	*/
 	FastaIterator * fit = new FastaIterator ();
 	fit->setFastaFile("data/SuffixArrayPeptideFinder_test.fasta");
 	fit->begin();
@@ -219,7 +221,7 @@ CHECK((void getCandidates(std::vector< std::vector< std::pair< FASTAEntry, Strin
 				found |= complete_seq.substr(k-l,l)==pep_seq;
 			}
 			TEST_EQUAL (found,1);
-			if (!found ) std::cout<<pep_seq <<":"<<complete_seq<<std::endl;
+			//if (!found ) std::cout<<pep_seq <<":"<<complete_seq<<std::endl;
 			TEST_EQUAL (res2.at(i).at(j).second,"");
 		}
 	}
@@ -263,6 +265,13 @@ CHECK((void getCandidates(std::vector< std::vector< std::pair< FASTAEntry, Strin
 			TEST_EQUAL(mod_mass==""||mod_mass=="[C]"||mod_mass=="[S]"||mod_mass=="[Y]",1)
 		}
 	}
+RESULT
+
+CHECK(void getCandidates(std::vector< std::vector< std::pair< FASTAEntry, String > > > &candidates, const String &DTA_file))
+	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder("data/SuffixArrayPeptideFinder_test.fasta","trypticSeqan");
+	vector<vector<pair<FASTAEntry, String> > > candidates;
+	sa->getCandidates(candidates, "data/DTAFile_test.dta");
+	TEST_EQUAL(candidates.size(), 25)
 RESULT
 
 /////////////////////////////////////////////////////////////

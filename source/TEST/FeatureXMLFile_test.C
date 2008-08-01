@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -252,7 +252,7 @@ CHECK( PeakFileOptions& getOptions() )
 	TEST_EQUAL(e.size(), 0)
 RESULT
 
-CHECK(static bool isValid(const String& filename))
+CHECK([EXTRA] static bool isValid(const String& filename))
 	FeatureMap<> e;
   FeatureXMLFile f;
 	String filename;
@@ -267,6 +267,19 @@ CHECK(static bool isValid(const String& filename))
 	f.load("data/FeatureXMLFile.xml",e);
 	f.store(filename, e);	
   TEST_EQUAL(f.isValid(filename),true);
+RESULT
+
+CHECK( const PeakFileOptions& getOptions() const )
+	FeatureXMLFile f;
+ 	FeatureMap<> e;
+	f.getOptions().setRTRange(makeRange(1.5, 4.5));
+	f.getOptions().setIntensityRange(makeRange(290.0, 310.0));
+	
+	const PeakFileOptions pfo = f.getOptions();
+	
+	TEST_EQUAL(pfo.getRTRange(),makeRange(1.5, 4.5))
+	TEST_EQUAL(pfo.getIntensityRange(),makeRange(290.0, 310.0))
+	
 RESULT
 
 /////////////////////////////////////////////////////////////

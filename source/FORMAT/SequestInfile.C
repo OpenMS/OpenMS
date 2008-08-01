@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -179,8 +179,6 @@ namespace OpenMS
 	void
 	SequestInfile::store(
 		const String& filename)
-	throw (
-		Exception::UnableToCreateFile)
 	{
 		ofstream ofs(filename.c_str());
 		if ( !ofs ) throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
@@ -499,10 +497,6 @@ namespace OpenMS
 		const String& modification_line,
 		const String& modifications_filename,
 		const bool monoisotopic)
-	throw (
-		Exception::FileNotReadable,
-		Exception::FileNotFound,
-		Exception::ParseError)
 	{
 		PTMname_residues_mass_type_.clear();
 		// to store the information about modifications from the ptm xml file

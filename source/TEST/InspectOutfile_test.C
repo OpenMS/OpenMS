@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -74,7 +74,7 @@ RESULT
 
 InspectOutfile file;
 
-CHECK(std::vector< UInt > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, const String& database_filename = "") throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument, Exception::FileEmpty))
+CHECK(std::vector< UInt > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, const String& database_filename = ""))
 	vector< PeptideIdentification > peptide_identifications;
 	ProteinIdentification protein_identification;
 	
@@ -160,7 +160,7 @@ std::cout << "MARTIN" << std::endl;
 	}
 RESULT
 
-CHECK(void generateTrieDB(const std::String& source_database_filename, const std::String& database_filename, const std::String& index_filename, bool append = false, const std::String species = "") throw (Exception::FileNotFound, Exception::UnableToCreateFile))
+CHECK(void generateTrieDB(const std::String& source_database_filename, const std::String& database_filename, const std::String& index_filename, bool append = false, const std::String species = ""))
 	// test exceptions
 	// test file not found for input file
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.generateTrieDB("a", "", ""), "the file 'a' could not be found")
@@ -188,7 +188,7 @@ CHECK(void generateTrieDB(const std::String& source_database_filename, const std
 	remove("InspectOutfile_test.index");
 RESULT
 
-CHECK(void compressTrieDB(const String& database_filename, const String& index_filename, std::vector< UInt >& wanted_records, const String& snd_database_filename, const String& snd_index_filename, bool append = false) throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile))
+CHECK(void compressTrieDB(const String& database_filename, const String& index_filename, std::vector< UInt >& wanted_records, const String& snd_database_filename, const String& snd_index_filename, bool append = false))
 	vector< UInt > wanted_records(1, 0);
 
 	// test exceptions
@@ -247,7 +247,7 @@ CHECK(void compressTrieDB(const String& database_filename, const String& index_f
 RESULT
 
 
-CHECK(std::vector< UInt > getSequences(const String& database_filename, const std::map< UInt, UInt >& wanted_records, std::vector< String >& sequences) throw (Exception::FileNotFound))
+CHECK(std::vector< UInt > getSequences(const String& database_filename, const std::map< UInt, UInt >& wanted_records, std::vector< String >& sequences))
 	map< UInt, UInt > rn_position_map;
 	rn_position_map[0] = 0;
 	rn_position_map[1] = 1;
@@ -327,7 +327,7 @@ CHECK(void getACAndACType(String line, String& accession, String& accession_type
 	TEST_STRING_EQUAL(accession_type, "SwissProt")
 RESULT
 
-CHECK(void getPrecursorRTandMZ(const vector< pair< String, vector< pair < UInt, UInt > > > >& files_and_peptide_identification_with_scan_number, std::vector< PeptideIdentification >& ids) throw (Exception::ParseError))
+CHECK(void getPrecursorRTandMZ(const vector< pair< String, vector< pair < UInt, UInt > > > >& files_and_peptide_identification_with_scan_number, std::vector< PeptideIdentification >& ids))
 	vector< pair< String, vector< pair< UInt, UInt > > > > files_and_peptide_identification_with_scan_number;
 	vector< PeptideIdentification > ids, ids_found;
 
@@ -359,7 +359,7 @@ CHECK(void getPrecursorRTandMZ(const vector< pair< String, vector< pair < UInt, 
 	TEST_REAL_EQUAL(ids_found.back().getMetaValue("MZ"), ids.back().getMetaValue("MZ"));
 RESULT
 
-CHECK(void getLabels(const String& source_database_filename, String& ac_label, String& sequence_start_label, String& sequence_end_label, String& comment_label, String& species_label) throw (Exception::FileNotFound, Exception::ParseError))
+CHECK(void getLabels(const String& source_database_filename, String& ac_label, String& sequence_start_label, String& sequence_end_label, String& comment_label, String& species_label))
 	String ac_label, sequence_start_label, sequence_end_label, comment_label, species_label;
 
 	// test exceptions
@@ -376,7 +376,7 @@ CHECK(void getLabels(const String& source_database_filename, String& ac_label, S
 	TEST_STRING_EQUAL(species_label, ">")
 RESULT
 
-CHECK(vector< UInt > getWantedRecords(const String& result_filename, Real p_value_threshold) throw (Exception::FileNotFound, Exception::FileEmpty, Exception::IllegalArgument))
+CHECK(vector< UInt > getWantedRecords(const String& result_filename, Real p_value_threshold))
 
 	// test exceptions
 	TEST_EXCEPTION(Exception::IllegalArgument, file.getWantedRecords("", 2.0))
@@ -394,7 +394,7 @@ CHECK(vector< UInt > getWantedRecords(const String& result_filename, Real p_valu
 	if ( !wanted_records.empty() ) TEST_EQUAL (wanted_records.front(), 0)
 RESULT
 
-CHECK(template< typename PeakT > void getExperiment(MSExperiment< PeakT >& exp, String& type, const String& in_filename) throw(Exception::ParseError))
+CHECK(template< typename PeakT > void getExperiment(MSExperiment< PeakT >& exp, String& type, const String& in_filename))
 	MSExperiment< > exp;
 	String type;
 
@@ -409,7 +409,7 @@ CHECK(template< typename PeakT > void getExperiment(MSExperiment< PeakT >& exp, 
 	TEST_STRING_EQUAL(type, "mzData")
 RESULT
 
-CHECK(void getSearchEngineAndVersion(const String& inspect_output_without_parameters_filename, ProteinIdentification& protein_identification) throw (Exception::FileNotFound))
+CHECK(void getSearchEngineAndVersion(const String& inspect_output_without_parameters_filename, ProteinIdentification& protein_identification) )
 	ProteinIdentification protein_identification;
 
 	// test exceptions
@@ -424,7 +424,7 @@ CHECK(void getSearchEngineAndVersion(const String& inspect_output_without_parame
 	TEST_STRING_EQUAL(protein_identification.getSearchEngineVersion(), "20060907");
 RESULT
 
-CHECK(void readOutHeader(const String& filename, const String& header_line, Int& spectrum_file_column, Int& scan_column, Int& peptide_column, Int& protein_column, Int& charge_column, Int& MQ_score_column, Int& p_value_column, Int& record_number_column, Int& DB_file_pos_column, Int& spec_file_pos_column, UInt &number_of_columns) throw (Exception::ParseError))
+CHECK(void readOutHeader(const String& filename, const String& header_line, Int& spectrum_file_column, Int& scan_column, Int& peptide_column, Int& protein_column, Int& charge_column, Int& MQ_score_column, Int& p_value_column, Int& record_number_column, Int& DB_file_pos_column, Int& spec_file_pos_column, UInt &number_of_columns))
 		
 	String header_line = "#SpectrumFile	Scan#	Annotation	Protein	Charge	MQScore	Length	TotalPRMScore	MedianPRMScore	FractionY	FractionB	Intensity	NTT	p-value	F-Score	DeltaScore	DeltaScoreOther	RecordNumber	DBFilePos	";
 	

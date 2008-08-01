@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -146,7 +146,7 @@ CHECK((virtual void group(const std::vector< FeatureMap<> > &maps, ConsensusMap 
 	fga.group(in,out);
 	
 	TEST_EQUAL(out.size(),1)
-	TEST_REAL_EQUAL(out[0].getQuality(),0.9203f);
+	TEST_REAL_EQUAL(out[0].getQuality(),0.959346);
 	TEST_EQUAL(out[0].size(),2)
 	ConsensusFeature::HandleSetType::const_iterator it = out[0].begin();
 	TEST_REAL_EQUAL(it->getMZ(),1.0f);

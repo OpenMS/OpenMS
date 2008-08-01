@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -82,13 +82,19 @@ namespace OpenMS
               points to a data point of type Peak1D or any other class derived from Peak1D.
         
         @note The resulting peaks in the baseline_filtered_container (e.g. of type MSSpectrum<Peak1D >)
-              can be of type Peak1D or any other class derived from DPeak.
+              can be of type Peak1D or any other class derived from Peak1D.
       */
       template <typename InputPeakIterator, typename OutputPeakContainer  >
       void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& baseline_filtered_container)
       {
-        typedef typename InputPeakIterator::value_type PeakType;
-
+      	baseline_filtered_container.clear();
+      	
+				//filter the baseline only if the scan contains enough raw data points
+        if ( distance(first,last)==0 || struc_size_ > fabs(first->getMZ()-(last-1)->getMZ()))
+        {
+					return;
+        }
+      
         // compute the number of data points of the structuring element given the spacing of the raw data
         // and the size (in Th) of the structuring element
         DoubleReal spacing= ((last-1)->getMZ() - first->getMZ()) / (distance(first,last)-1);
@@ -99,22 +105,14 @@ namespace OpenMS
         {
           struc_elem_number_of_points += 1;
         }
-//         std::cout << "struc_size_ " << struc_size_ 
-//                   <<  " spacing " << spacing 
-//                   << " (struc_size_ / spacing ) " << (struc_size_ / spacing )
-//                   << " round(struc_size_ / spacing ) " << ceil(struc_size_ / spacing ) 
-//                   << " struc_elem_number_of_points " << struc_elem_number_of_points << std::endl;
 
-        std::vector<PeakType> erosion_result;
+        std::vector<typename InputPeakIterator::value_type> erosion_result;
         // compute the erosion of raw data
-        this->template erosion//<InputPeakIterator>
-        (first, last, erosion_result, struc_elem_number_of_points);
+        this->template erosion(first, last, erosion_result, struc_elem_number_of_points);
         // compute the dilation of erosion_result
-        this->template dilatation//<InputPeakIterator>
-        (erosion_result.begin(),erosion_result.end(), baseline_filtered_container, struc_elem_number_of_points);
+        this->template dilatation(erosion_result.begin(),erosion_result.end(), baseline_filtered_container, struc_elem_number_of_points);
         // subtract the result from the original data
-        this->template minusIntensities_//<InputPeakIterator>
-        (first,last,baseline_filtered_container);
+        this->template minusIntensities_(first,last,baseline_filtered_container);
       }
 
 
@@ -135,77 +133,26 @@ namespace OpenMS
       {
         // copy the experimental settings
         static_cast<SpectrumSettings&>(baseline_filtered_container) = input_peak_container;
-        
+        baseline_filtered_container.setType(SpectrumSettings::RAWDATA);
         filter(input_peak_container.begin(), input_peak_container.end(), baseline_filtered_container);
       }
 
 
       /** 
-      	@brief Removes the baseline in a range of MSSpectra.
-          
-        Filters the data successive in every scan in the intervall [first,last).
-        The filtered data are stored in a MSExperiment.
-                
-        @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type Peak1D 
-                or any other derived class of DPeak.
-
-        @note You have to copy the ExperimentalSettings of the raw data by your own.  
+      	@brief Convenience method that removes the baseline from an MSExperiment containing raw data.
       */
-      template <typename InputSpectrumIterator, typename OutputPeakType, typename OutputAllocType >
-      void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType, OutputAllocType>& ms_exp_filtered)
+      template <typename PeakType>
+      void filterExperiment(MSExperiment<PeakType>& map)
       {
-        UInt n = distance(first,last);
-        ms_exp_filtered.reserve(n);
-        startProgress(0,n,"filtering baseline of data");
-        // pick peaks on each scan
-        for (UInt i = 0; i < n; ++i)
+        startProgress(0,map.size(),"filtering baseline");
+        for (UInt i = 0; i < map.size(); ++i)
         {
-          InputSpectrumIterator input_it(first+i);
-          // if the scan contains enough raw data points filter the baseline
-          if ( struc_size_ < fabs((input_it->end()-1)->getMZ()- input_it->begin()->getMZ()))
-          {
-            MSSpectrum< OutputPeakType > spectrum;
-
-            // pick the peaks in scan i
-            filter(*input_it,spectrum);
-            setProgress(i);
-
-            // if any peaks are found copy the spectrum settings
-            if (spectrum.size() > 0)
-            {
-              // copy the spectrum settings
-              static_cast<SpectrumSettings&>(spectrum) = *input_it;
-              spectrum.setType(SpectrumSettings::RAWDATA);
-
-              // copy the spectrum information
-              spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
-              spectrum.setRT(input_it->getRT());
-              spectrum.setMSLevel(input_it->getMSLevel());
-              spectrum.getName() = input_it->getName();
-
-              ms_exp_filtered.push_back(spectrum);
-            }
-          }
+          typename MSExperiment<PeakType>::SpectrumType spectrum;
+          filter(map[i],spectrum);
+          map[i].getContainer() = spectrum.getContainer();
+          setProgress(i);
         }
         endProgress();
-      }
-
-      /** 
-      	@brief Removes the baseline in a MSExperiment.
-        
-	      Filters the data every scan in the MSExperiment.
-	      The filtered data are stored in a MSExperiment.
-	              
-	      @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type Peak1D 
-	            or any other derived class of DPeak.
-      */
-      template <typename InputPeakType, typename InputAllocType, typename OutputPeakType,  typename OutputAllocType >
-      void filterExperiment(const MSExperiment< InputPeakType, InputAllocType>& ms_exp_raw, MSExperiment<OutputPeakType, OutputAllocType>& ms_exp_filtered)
-      {
-        // copy the experimental settings
-        static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
-
-        filterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
       }
   };
 

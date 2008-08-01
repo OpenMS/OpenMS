@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -238,6 +238,12 @@ namespace OpenMS
                                            s);
           }
         }
+
+				if (max_intensity_ < 0)
+				{
+					std::cerr << "TODO SignalToNoiseEstimatorMedian: the max_intensity_ value should be positive! " << max_intensity_ << std::endl;
+					return;
+				}
 
         PeakIterator window_pos_center  = scan_first_;
         PeakIterator window_pos_borderleft = scan_first_;

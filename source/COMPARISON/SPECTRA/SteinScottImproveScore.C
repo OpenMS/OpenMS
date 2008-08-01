@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -34,7 +34,7 @@ namespace OpenMS
     : PeakSpectrumCompareFunctor()
   {
 		setName(SteinScottImproveScore::getProductName());
-		defaults_.setValue("epsilon", 0.2, "defines the absolut error of the mass spectrometer", false);
+		defaults_.setValue("tolerance", 0.2, "defines the absolut error of the mass spectrometer", false);
 		defaults_.setValue("threshold",0.2, "if the calculated score is smaller than the threshold, a zero is given back");
 		defaultsToParam_();
   }
@@ -79,7 +79,7 @@ namespace OpenMS
 	*/	
   double SteinScottImproveScore::operator () (const PeakSpectrum& s1, const PeakSpectrum& s2) const
   {
-	  const double epsilon = (double)param_.getValue("epsilon");
+		const double epsilon = (double)param_.getValue("tolerance");
 	  const double constant = epsilon/10000;
   	
     //const double c(0.0004);
@@ -101,30 +101,54 @@ namespace OpenMS
     	sum4+=temp;
     }
     double z=constant*(sum3*sum4);
-    UInt j_left(0);
-    for (UInt i = 0; i != s1.getContainer().size(); ++i)
-    {
-    	for (UInt j = j_left; j != s2.getContainer().size(); ++j)
-    	{
-    		double pos1(s1.getContainer()[i].getMZ()), pos2(s2.getContainer()[j].getMZ());
-    		if (std::abs(pos1 - pos2) <= 2 * epsilon)
-    		{
-    			sum += s1.getContainer()[i].getIntensity() * s2.getContainer()[j].getIntensity();
-    		}
-    		else
-    		{
-    			if (pos2 > pos1)
-    			{
-    				break;
-    			}
-    			else
-    			{
-    				j_left = j;
-    			}
-    		}
-    	}
-    }
-    //std::cout<< sum << " Sum " << z << " z " << std::endl;
+    UInt j(0);
+		
+		for(UInt i =0; i <s1.size();++i)
+		{
+			Real counter =0;
+			double intensitiy=0;
+			while( j<= s2.size())
+			{
+				if(j!=s2.size())
+				{
+					if(std::abs((double)(s1[i].getMZ())-(double)(s2[j].getMZ())) <=2*epsilon)
+					{
+						intensitiy+=s2[j].getIntensity();
+						++counter;
+					}
+					else
+					{
+						if(s2[j].getMZ() > s1[i].getMZ())
+						{
+							if(counter!=0 && intensitiy !=0)
+							{
+								//std::cout<< intensitiy << " intensitiy " << counter << " counter " << i << " i " << j << " j " << s1.size()<< " size " << sum << " summe "<<std::endl;
+								intensitiy/=counter;
+								sum+=s1[i].getIntensity()*intensitiy;
+								//std::cout<<sum << " Summe" << std::endl;
+							}
+							break;
+						}
+					}
+				}
+				else
+				{
+					if(counter!=0 && intensitiy !=0)
+					{
+						//std::cout<< intensitiy << " intensitiy " << counter << " counter " << i << " i " << j << " j " << s1.size()<< " size " << sum << " summe "<<std::endl;
+						intensitiy/=counter;
+						sum+=s1[i].getIntensity()*intensitiy;
+						//std::cout<<sum << " Summe" << std::endl;
+					}
+				}
+				++j;
+			}
+		}
+		
+		
+		
+		
+		 //std::cout<< sum << " Sum " << z << " z " << std::endl;
     score = (sum-z )/ (std::sqrt((sum1* sum2)));
     // std::cout<<score<< " score" << std::endl;
     if(score <(Real)param_.getValue("threshold")) score =0;

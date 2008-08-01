@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -97,6 +97,10 @@ CHECK((virtual IsotopeFitter1D& operator=(const  IsotopeFitter1D &source)))
 RESULT
 
 CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
+	// dummy subtest 
+	IsotopeFitter1D if1;
+	if1 = IsotopeFitter1D();
+	TEST_EQUAL(if1.getParameters(), if1.getParameters())
 RESULT
 
 CHECK((Fitter1D* create()))

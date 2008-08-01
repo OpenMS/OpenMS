@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -65,12 +65,13 @@ namespace OpenMS
 		    @param protein_identification the protein identification
 		    @param peptide_identifications the peptide identifications
 				@param p the significance level (for the protein hit scores)
+				@throw ParseError is thrown if the file could not be parsed
 
 		    This class serves to read in a Mascot outfile. The information can be 
 		    retrieved via the load function. This class is only contained to be compatible with previous versions.
 		    You should use the MascotXMLFile instead. 
 		  */
-			void load(String filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& peptide_identifications, Real p = 0.05) throw (Exception::ParseError);
+			void load(String filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& peptide_identifications, Real p = 0.05);
 
     protected:
 

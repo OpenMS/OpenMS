@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -24,7 +24,7 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include<iostream>
+#include <iostream>
 
 //OpenMS
 #include <OpenMS/VISUAL/Spectrum3DWidget.h>

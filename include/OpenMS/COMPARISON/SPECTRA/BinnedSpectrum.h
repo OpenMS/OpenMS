@@ -1,10 +1,10 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -38,61 +38,61 @@
 namespace OpenMS
 {
 
-  /**
+	/**
 	@brief This is a binned representation of a PeakSpectrum
 
-		@param 	sz the size of the bins and 
-		@param	sp number of neighboring bins to both sides affected by a peak contribution
-		@param	ps the peakspectrum, that shall be represented
-		
-		@p sz denotes the size of a bin in Th, thereby decideing the number of bins discretizeing 
-		the spectrum. The peaks will be put in the respective bins and sum up inside. E.g. a BinnedSpectrum
-		with binsize of 0.5 Th will have a peak at 100 Th in bin no. 200, a peak at 100.1 Th will be in bin 
-		no. 201.
-		@p sp denotes the number of neighboring bins to the left and the number of neighboring bins to the 
-		right a peak is also added. 
-		
-		@ingroup SpectraComparison
-  */
-	
-  class BinnedSpectrum : public MSSpectrum<>
-  {
-	  
-  private:
-	
-	UInt binSpread_;
-	Real binSize_;
-	SparseVector<Real> bins_;
-	
-  public:
+		@param sz the size of the bins and
+		@param sp number of neighboring bins to both sides affected by a peak contribution
+		@param ps the peakspectrum, that shall be represented
 
-	/** 
-		@brief 	Exception which is thrown if BinnedSpectrum bins are accessed and no PeakSpektrum has been 
-				integrated yet i.e. bins_ is empty	
+		sz denotes the size of a bin in @p Th, thereby deciding the number of bins(all of size sz) the spectrum is discretized to.
+		Each bin will represent a certain @p Th range and the peaks will be put in the respective bins and sum up inside.
+		sp denotes the number of neighboring bins to the left and the number of neighboring bins to the right a peak is also added to.
+		E.g. a BinnedSpectrum with binsize of 0.5 @p Th will have a peak at 100 @p Th in bin no. 200, a peak at 100.1 @p Th will be in bin no. 201.
+		If the binspread is 1, the peak at 100 Th will be added to bin no. 199, 200 and 201.
+		If the binspread is 2, the peak at 100 @p Th will also be added to bin no. 198 and 202, and so on.
+
+		@ingroup SpectraComparison
+	*/
+
+	class BinnedSpectrum : public MSSpectrum<>
+	{
+
+	private:
+
+	UInt bin_spread_;
+	Real bin_size_;
+	SparseVector<Real> bins_;
+
+	public:
+
+	/**
+		@brief 	Exception which is thrown if BinnedSpectrum bins are accessed and no PeakSpektrum has been
+				integrated yet i.e. bins_ is empty
 	*/
 	class NoSpectrumIntegrated : public Exception::BaseException
 	{
 	public:
 		NoSpectrumIntegrated(const char* file, int line, const char* function, const char* message ="BinnedSpectrum hasn't got a PeakSpectrum to base on yet") throw();
 
-		virtual ~NoSpectrumIntegrated() throw();
-	}; 
-  
+		virtual ~NoSpectrumIntegrated() throw(); // @todo ask Marc if this is ok ????
+	};
+
 	typedef SparseVector<Real>::const_iterator const_bin_iterator;
 	typedef SparseVector<Real>::iterator bin_iterator;
-	
+
 	/// default constructor
 	BinnedSpectrum();
-    
-	/// constructor
+
+	/// detailed constructor
 	BinnedSpectrum(Real size, UInt spread, PeakSpectrum ps);
-	
+
 	/// copy constructor
 	BinnedSpectrum(const BinnedSpectrum& source);
 
 	/// destructor
 	virtual ~BinnedSpectrum();
-	
+
 	/// assignment operator
 	BinnedSpectrum& operator= (const BinnedSpectrum& source)
 	{
@@ -104,8 +104,8 @@ namespace OpenMS
 			MSSpectrum<>::operator=(source);
 		}
 		return *this;
-	}	
-	
+	}
+
 	/// assignment operator for PeakSpectra
 	BinnedSpectrum& operator= (const PeakSpectrum& source)
 	{
@@ -115,74 +115,79 @@ namespace OpenMS
 			setBinning();
 		}
 		return *this;
-	}	
-	
+	}
+
 	/// equality operator
 	bool operator== (const BinnedSpectrum& rhs) const
 	{
 		return
 			(MSSpectrum<>::operator==(rhs) &&
-			rhs.getBinSize()==this->binSize_ &&
-			rhs.getBinSpread()==this->binSpread_)
+			rhs.getBinSize()==this->bin_size_ &&
+			rhs.getBinSpread()==this->bin_spread_)
 			;
 	}
-	
+
 	/// inequality operator
 	bool operator!= (const BinnedSpectrum& rhs) const
 	{
 		return !(operator==(rhs));
 	}
-		
+
 	/// equality operator for PeakSpectra
 	bool operator== (const PeakSpectrum& rhs) const
 	{
 		return MSSpectrum<>::operator==(rhs);
 	}
-	
+
 	/// inequality operator for PeakSpectra
 	bool operator!= (const PeakSpectrum& rhs) const
 	{
 		return !(operator==(rhs));
 	}
-    
+
 	/// get the BinSize
 	inline double getBinSize() const
 	{
-		return this->binSize_;
+		return this->bin_size_;
 	}
 
-	
 	/// get the BinSpread
 	inline UInt getBinSpread() const
 	{
-		return this->binSpread_;
+		return this->bin_spread_;
 	}
-	
+
 	/// get the BinNumber, number of Bins
 	inline UInt getBinNumber() const
 	{
-		return (UInt)this->bins_.size();	
+		return (UInt)this->bins_.size();
 	}
-	
+
 	/// get the FilledBinNumber, number of filled Bins
 	inline UInt getFilledBinNumber() const
 	{
-		return (UInt)this->bins_.nonzero_size();	
+		return (UInt)this->bins_.nonzero_size();
 	}
-	
-	/// unmutable access to the Bincontainer
-	inline const SparseVector<Real>& getBins() const throw (BinnedSpectrum::NoSpectrumIntegrated)
-	{ 
+
+	/** unmutable access to the Bincontainer
+
+			@throw NoSpectrumIntegrated is thrown if no spectrum was integrated
+	*/
+	inline const SparseVector<Real>& getBins() const
+	{
 		if(bins_.size() == 0)
 		{
 			throw BinnedSpectrum::NoSpectrumIntegrated(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 		}
-		return bins_; 
+		return bins_;
 	}
-	
-	/// mutable access to the Bincontainer.
-	inline SparseVector<Real>& getBins() throw (BinnedSpectrum::NoSpectrumIntegrated)
-	{ 
+
+	/** mutable access to the Bincontainer
+
+			@throw NoSpectrumIntegrated is thrown if no spectrum was integrated
+	*/
+	inline SparseVector<Real>& getBins()
+	{
 		if(bins_.size() == 0)
 		{
 			try
@@ -194,37 +199,41 @@ namespace OpenMS
 				throw BinnedSpectrum::NoSpectrumIntegrated(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 			}
 		}
-		return bins_; 
+		return bins_;
 	}
-	
+
 	/// returns the const begin iterator of the container
-	inline const_bin_iterator begin() const 
-	{ 
-		return bins_.begin(); 
+	inline const_bin_iterator begin() const
+	{
+		return bins_.begin();
 	}
 	/// returns the const end iterator of the container
-	inline const_bin_iterator end() const 
-	{ 
-		return bins_.end(); 
+	inline const_bin_iterator end() const
+	{
+		return bins_.end();
 	}
-	
+
 	/// returns the begin iterator of the container
-	inline bin_iterator begin() 
-	{ 
-		return bins_.begin(); 
+	inline bin_iterator begin()
+	{
+		return bins_.begin();
 	}
 	/// returns the end iterator of the container
-	inline bin_iterator end() 
-	{ 
-		return bins_.end(); 
-	}
-	
-	/// sets the BinSize_ (and rebinnes)
-	inline void setBinSize(double s) throw (BinnedSpectrum::NoSpectrumIntegrated)
+	inline bin_iterator end()
 	{
-		if(this->binSize_ != s)
+		return bins_.end();
+	}
+
+	/** sets the BinSize_ (and rebinnes)
+
+			@param s defines the size of the bins
+			@throw NoSpectrumIntegrated is thrown if no spectrum is integrated
+	*/
+	inline void setBinSize(double s)
+	{
+		if(this->bin_size_ != s)
 		{
-			this->binSize_ = s;
+			this->bin_size_ = s;
 			try
 			{
 				this->setBinning();
@@ -232,17 +241,21 @@ namespace OpenMS
 			catch(...)
 			{
 				throw BinnedSpectrum::NoSpectrumIntegrated(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-			}		
+			}
 		}
 	}
 
-	
-	/// sets the BinSpread_ (and rebinnes)
-	inline void setBinSpread(UInt s) throw (BinnedSpectrum::NoSpectrumIntegrated)
+
+	/** sets the BinSpread_ (and rebinnes)
+
+			@param s defines the binning spread, given as positive integer
+			@throw NoSpectrumIntegrated is thrown if no spec was integrated into the instance
+	*/
+	inline void setBinSpread(UInt s)
 	{
-		if(this->binSpread_ != s)
+		if(this->bin_spread_ != s)
 		{
-			this->binSpread_ = s;
+			this->bin_spread_ = s;
 			try
 			{
 				this->setBinning();
@@ -250,18 +263,21 @@ namespace OpenMS
 			catch(...)
 			{
 				throw BinnedSpectrum::NoSpectrumIntegrated(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-			}		
-		}	
+			}
+		}
 	}
-	
-	
-	/// makes the binning: all Peaks of the containing PeakSpectrum are summed up in the bins corresponding to m/z ranges
-	void setBinning() throw(BinnedSpectrum::NoSpectrumIntegrated);
-	
-	/// function to check compliance of two BinnedSpectrum objects
+
+
+	/** makes the binning: all Peaks of the containing PeakSpectrum are summed up in the bins corresponding to @p m/z ranges
+
+			@throw NoSpectrumIntegrated is thrown if no spectrum was integrated before
+	*/
+	void setBinning();
+
+	/// function to check comparability of two BinnedSpectrum objects, i.e. if they have equal bin size and spread
 	bool checkCompliance(const BinnedSpectrum& bs) const;
 
-	
+
   protected:
 	// docu in base class
 	virtual void clearChildIds_()

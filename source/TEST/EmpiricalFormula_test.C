@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -52,7 +52,7 @@ CHECK(~EmpiricalFormula())
 	delete e_ptr;
 RESULT
 
-CHECK(EmpiricalFormula(const String& rhs) throw(Exception::ParseError))
+CHECK(EmpiricalFormula(const String& rhs))
 	e_ptr = new EmpiricalFormula("C4");
 	TEST_NOT_EQUAL(e_ptr, 0)
 RESULT
@@ -105,7 +105,7 @@ CHECK(EmpiricalFormula& operator = (const EmpiricalFormula& rhs))
 	TEST_EQUAL(*e_ptr == ef, true)
 RESULT
 
-CHECK(EmpiricalFormula& operator = (const String& rhs) throw(Exception::ParseError))
+CHECK(EmpiricalFormula& operator = (const String& rhs))
 	EmpiricalFormula ef;
 	ef = "C4";
 	TEST_EQUAL(*e_ptr == ef, true)
@@ -119,7 +119,7 @@ CHECK(EmpiricalFormula& operator += (const EmpiricalFormula& rhs))
 	TEST_EQUAL(ef, "C6")
 RESULT
 
-CHECK(EmpiricalFormula& operator += (const String& rhs) throw(Exception::ParseError))
+CHECK(EmpiricalFormula& operator += (const String& rhs))
 	EmpiricalFormula ef;
 	ef += "C";
 	TEST_EQUAL(ef, "C")
@@ -132,35 +132,35 @@ CHECK(EmpiricalFormula operator + (const EmpiricalFormula& rhs) const)
 	TEST_EQUAL(ef2, "C4")
 RESULT
 
-CHECK(EmpiricalFormula operator + (const String& rhs) const throw(Exception::ParseError))
+CHECK(EmpiricalFormula operator + (const String& rhs) const)
 	EmpiricalFormula ef1("C2");
 	EmpiricalFormula ef2;
 	ef2 = ef1 + "C2";
 	TEST_EQUAL(ef2, "C4")
 RESULT
 
-CHECK(EmpiricalFormula& operator -= (const EmpiricalFormula& rhs) throw(Exception::SizeUnderflow))
+CHECK(EmpiricalFormula& operator -= (const EmpiricalFormula& rhs))
 	EmpiricalFormula ef1("C5H12"), ef2("CH12");
 	ef1 -= ef2;
 	TEST_EQUAL(*e_ptr == ef1, true)
 	TEST_EXCEPTION(Exception::SizeUnderflow, ef1 -= ef2)
 RESULT
 
-CHECK(EmpiricalFormula& operator -= (const String& rhs) throw(Exception::ParseError, Exception::SizeUnderflow))
+CHECK(EmpiricalFormula& operator -= (const String& rhs))
 	EmpiricalFormula ef1("C5H12");
 	ef1 -= "CH12";
 	TEST_EQUAL(*e_ptr == ef1, true)
 	TEST_EXCEPTION(Exception::SizeUnderflow, ef1 -= "CH12")
 RESULT
 
-CHECK(EmpiricalFormula operator - (const EmpiricalFormula& rhs) const throw(Exception::SizeUnderflow))
+CHECK(EmpiricalFormula operator - (const EmpiricalFormula& rhs) const)
 	EmpiricalFormula ef1("C5H12"), ef2("CH12");
 	EmpiricalFormula ef3, ef4;
 	ef3 = ef1 - ef2;
 	TEST_EQUAL(*e_ptr == ef3, true)
 RESULT
 
-CHECK(EmpiricalFormula operator - (const String& rhs) const throw(Exception::ParseError, Exception::SizeUnderflow))
+CHECK(EmpiricalFormula operator - (const String& rhs) const)
 	EmpiricalFormula ef1("C5H12"), ef2("CH12"), ef4;
 	ef4 = ef1 - "CH12";
 	TEST_EQUAL(*e_ptr == ef4, true)
@@ -250,7 +250,7 @@ CHECK(bool operator != (const EmpiricalFormula& rhs) const)
 	TEST_EQUAL(ef2 != *e_ptr, true)
 RESULT
 
-CHECK(bool operator != (const String& rhs) const throw(Exception::ParseError))
+CHECK(bool operator != (const String& rhs) const)
 	EmpiricalFormula ef1("C2H5");
 	TEST_EQUAL(ef1 != "C2", true)
 	TEST_EQUAL(ef1 != "C2H5", false)
@@ -264,7 +264,7 @@ CHECK(bool operator == (const EmpiricalFormula& rhs) const)
 	TEST_EQUAL(ef2 == *e_ptr, false)
 RESULT
 
-CHECK(bool operator == (const String& rhs) const throw(Exception::ParseError))
+CHECK(bool operator == (const String& rhs) const)
 	EmpiricalFormula ef1("C2H5");
 	TEST_EQUAL(ef1 == "C2", false)
 	TEST_EQUAL(ef1 == "C2H5", true)

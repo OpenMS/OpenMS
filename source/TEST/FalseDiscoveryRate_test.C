@@ -1,0 +1,125 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Andreas Bertsch $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+
+///////////////////////////
+#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+///////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+START_TEST(FalseDiscoveryRate, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+FalseDiscoveryRate* ptr = 0;
+CHECK(FalseDiscoveryRate())
+{
+	ptr = new FalseDiscoveryRate();
+	TEST_NOT_EQUAL(ptr, 0)
+}
+RESULT
+
+CHECK(~FalseDiscoveryRate())
+{
+	delete ptr;
+}
+RESULT
+
+CHECK((void apply(std::vector< PeptideIdentification > &fwd_ids, std::vector< PeptideIdentification > &rev_ids)))
+{
+  ptr = new FalseDiscoveryRate();
+	vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids;
+	vector<PeptideIdentification> fwd_pep_ids, rev_pep_ids;
+	IdXMLFile().load("data/XTandem_fwd_ids.idXML", fwd_prot_ids, fwd_pep_ids);
+	IdXMLFile().load("data/XTandem_rev_ids.idXML", rev_prot_ids, rev_pep_ids);
+	ptr->apply(fwd_pep_ids, rev_pep_ids);
+	PRECISION(0.001)
+	for (vector<PeptideIdentification>::const_iterator it = fwd_pep_ids.begin(); it != fwd_pep_ids.end(); ++it)
+	{
+		if (it->getHits().size() > 0)
+		{
+			PeptideHit hit(*it->getHits().begin());
+			double fdr(hit.getScore());
+			double orig_score((double)hit.getMetaValue("XTandem_score"));
+
+			if (orig_score >= 39.4)
+			{
+				TEST_REAL_EQUAL(fdr, 0)
+			}
+			if (orig_score == 37.9)
+			{
+				TEST_REAL_EQUAL(fdr, 0.0769231)
+			}
+		}
+	}
+}
+RESULT
+
+CHECK((void apply(std::vector< ProteinIdentification > &fwd_ids, std::vector< ProteinIdentification > &rev_ids)))
+{
+  vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids;
+  vector<PeptideIdentification> fwd_pep_ids, rev_pep_ids;
+  IdXMLFile().load("data/XTandem_fwd_ids.idXML", fwd_prot_ids, fwd_pep_ids);
+  IdXMLFile().load("data/XTandem_rev_ids.idXML", rev_prot_ids, rev_pep_ids);
+  ptr->apply(fwd_prot_ids, rev_prot_ids);
+  PRECISION(0.001)
+	
+	for (vector<ProteinIdentification>::const_iterator prot_it = fwd_prot_ids.begin(); prot_it != fwd_prot_ids.end(); ++prot_it)
+	{
+		if (prot_it->getHits().size() > 0)
+		{
+			for (vector<ProteinHit>::const_iterator it = prot_it->getHits().begin(); it != prot_it->getHits().end(); ++it)
+			{
+				ProteinHit hit(*it);
+				double fdr(hit.getScore());
+				double orig_score((double)hit.getMetaValue("XTandem_score"));
+
+				if (orig_score < -1.8)
+				{
+					TEST_REAL_EQUAL(fdr, 0)
+				}
+				if ((orig_score == -1.7))
+				{
+					TEST_REAL_EQUAL(fdr, 0.0617284)
+				}
+			}
+		}
+	}
+}
+RESULT
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+
+
+

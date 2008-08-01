@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -46,7 +46,7 @@ namespace OpenMS
 		: fragment_mass_tolerance_(0.3),
 			precursor_mass_tolerance_plus_(2.0),
 			precursor_mass_tolerance_minus_(2.0),
-      precursor_monoisotopic_error_(XTandemInfile::MONOISOTOPIC),
+      precursor_mass_type_(XTandemInfile::MONOISOTOPIC),
       precursor_mass_error_unit_(XTandemInfile::DALTONS),
       fragment_mass_error_unit_(XTandemInfile::DALTONS),
 			fragment_mass_type_(XTandemInfile::MONOISOTOPIC),
@@ -72,7 +72,7 @@ namespace OpenMS
 	{
 	}
 	
-  void XTandemInfile::load(const String& filename) throw (Exception::FileNotFound, Exception::ParseError)
+  void XTandemInfile::load(const String& filename)
   {
   	//try to open file
 		if (!File::exists(filename))
@@ -115,7 +115,7 @@ namespace OpenMS
     }
 	}
 		
-	void XTandemInfile::write(const String& filename) throw (Exception::UnableToCreateFile)
+	void XTandemInfile::write(const String& filename)
 	{
 		if (!File::writable(filename))
 		{
@@ -156,7 +156,7 @@ namespace OpenMS
     writeNote_(os, "input", "spectrum, parent monoisotopic mass error minus", String(precursor_mass_tolerance_minus_));
 		used_labels.insert("spectrum, parent monoisotopic mass error minus");
 		//<note type="input" label="spectrum, parent monoisotopic mass isotope error">yes</note>
-		if (precursor_monoisotopic_error_ == XTandemInfile::MONOISOTOPIC)
+		if (precursor_mass_type_ == XTandemInfile::MONOISOTOPIC)
 		{
     	writeNote_(os , "input", "spectrum, parent monoisotopic mass isotope error", "yes");
 		}
@@ -641,22 +641,22 @@ namespace OpenMS
 		return precursor_mass_tolerance_minus_;
 	}
 	
-	void XTandemInfile::setPrecursorMassErrorUnit(ERROR_UNIT unit)
+	void XTandemInfile::setPrecursorMassErrorUnit(ErrorUnit unit)
 	{
 		precursor_mass_error_unit_ = unit;
 	}
 
-	XTandemInfile::ERROR_UNIT XTandemInfile::getPrecursorMassErrorUnit() const
+	XTandemInfile::ErrorUnit XTandemInfile::getPrecursorMassErrorUnit() const
 	{
 		return precursor_mass_error_unit_;
 	}
 
-	void XTandemInfile::setFragmentMassErrorUnit(ERROR_UNIT unit)
+	void XTandemInfile::setFragmentMassErrorUnit(ErrorUnit unit)
 	{
 		fragment_mass_error_unit_ = unit;
 	}
 
-	XTandemInfile::ERROR_UNIT XTandemInfile::getFragmentMassErrorUnit() const
+	XTandemInfile::ErrorUnit XTandemInfile::getFragmentMassErrorUnit() const
 	{
 		return fragment_mass_error_unit_;
 	}
@@ -691,6 +691,15 @@ namespace OpenMS
 		return number_of_threads_;
 	}
 
+	XTandemInfile::MassType XTandemInfile::getPrecursorErrorType() const
+	{
+		return precursor_mass_type_;
+	}
+
+	void XTandemInfile::setPrecursorErrorType(const MassType mass_type)
+	{
+		precursor_mass_type_ = mass_type;
+	}
 
 	void XTandemInfile::setMaxValidEValue(double value)
 	{

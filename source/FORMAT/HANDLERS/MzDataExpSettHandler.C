@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -494,7 +494,7 @@ namespace OpenMS
 			{
 				os << "\t\t\t<sampleDescription>\n";
 				writeCVS_(os, sm.getNumber(), "1000001", "SampleNumber");
-				writeCVS_(os, cv_terms_[0][sm.getState()], "1000003", "SampleState");
+				writeCVS_(os, sm.getState(), 0, "1000003", "SampleState");
 				writeCVS_(os, sm.getMass(), "1000004", "SampleMass");
 				writeCVS_(os, sm.getVolume(), "1000005", "SampleVolume");
 				writeCVS_(os, sm.getConcentration(), "1000006", "SampleConcentration");
@@ -535,9 +535,9 @@ namespace OpenMS
 			os << "\t\t<instrument>\n"
 				 << "\t\t\t<instrumentName>" << inst.getName() << "</instrumentName>\n"
 				 << "\t\t\t<source>\n";
-			writeCVS_(os, cv_terms_[11][inst.getIonSource().getInletType()], "1000007", "InletType");
-			writeCVS_(os,cv_terms_[10][inst.getIonSource().getIonizationMethod()], "1000008","IonizationType");
-			writeCVS_(os,cv_terms_[1][inst.getIonSource().getPolarity()], "1000009", "IonizationMode");
+			writeCVS_(os, inst.getIonSource().getInletType(),11, "1000007", "InletType");
+			writeCVS_(os, inst.getIonSource().getIonizationMethod(), 10, "1000008","IonizationType");
+			writeCVS_(os, inst.getIonSource().getPolarity(), 1, "1000009", "IonizationMode");
 			writeUserParam_(os, inst.getIonSource());
 			os << "\t\t\t</source>\n";
 						
@@ -556,18 +556,18 @@ namespace OpenMS
 				{
 					os << "\t\t\t\t<analyzer>\n";
 					const MassAnalyzer& ana = inst.getMassAnalyzers()[i];
-					writeCVS_(os, cv_terms_[14][ana.getType()], "1000010", "AnalyzerType",5);
+					writeCVS_(os, ana.getType(), 14, "1000010", "AnalyzerType",5);
 					writeCVS_(os, ana.getResolution(), "1000011", "Resolution",5);
-					writeCVS_(os, cv_terms_[2][ana.getResolutionMethod()],"1000012", "ResolutionMethod",5);
-					writeCVS_(os, cv_terms_[3][ana.getResolutionType()], "1000013", "ResolutionType",5);
+					writeCVS_(os, ana.getResolutionMethod(), 2,"1000012", "ResolutionMethod",5);
+					writeCVS_(os, ana.getResolutionType(), 3, "1000013", "ResolutionType",5);
 					writeCVS_(os, ana.getAccuracy(), "1000014", "Accuracy",5);
 					writeCVS_(os, ana.getScanRate(), "1000015", "ScanRate",5);
 					writeCVS_(os, ana.getScanTime(), "1000016", "ScanTime",5);
-					writeCVS_(os, cv_terms_[4][ana.getScanFunction()],	"1000017", "ScanFunction",5);
-					writeCVS_(os, cv_terms_[5][ana.getScanDirection()],	"1000018", "ScanDirection",5);
-					writeCVS_(os, cv_terms_[6][ana.getScanLaw()], "1000019", "ScanLaw",5);
-					writeCVS_(os, cv_terms_[12][ana.getTandemScanMethod()],"1000020", "TandemScanningMethod",5);
-					writeCVS_(os, cv_terms_[8][ana.getReflectronState()], "1000021", "ReflectronState",5);
+					writeCVS_(os, ana.getScanFunction(), 4,	"1000017", "ScanFunction",5);
+					writeCVS_(os, ana.getScanDirection(), 5,	"1000018", "ScanDirection",5);
+					writeCVS_(os, ana.getScanLaw(), 6, "1000019", "ScanLaw",5);
+					writeCVS_(os, ana.getTandemScanMethod(), 12,"1000020", "TandemScanningMethod",5);
+					writeCVS_(os, ana.getReflectronState(), 8, "1000021", "ReflectronState",5);
 					writeCVS_(os, ana.getTOFTotalPathLength(), "1000022", "TOFTotalPathLength",5);
 					writeCVS_(os, ana.getIsolationWidth(), "1000023", "IsolationWidth",5);
 					writeCVS_(os, ana.getFinalMSExponent(), "1000024", "FinalMSExponent",5);
@@ -579,8 +579,8 @@ namespace OpenMS
 			os << "\t\t\t</analyzerList>\n";
 			
 			os << "\t\t\t<detector>\n";
-			writeCVS_(os, cv_terms_[13][inst.getIonDetector().getType()], "1000026", "DetectorType");
-			writeCVS_(os, cv_terms_[9][inst.getIonDetector().getAcquisitionMode()], "1000027", "DetectorAcquisitionMode");
+			writeCVS_(os, inst.getIonDetector().getType(), 13, "1000026", "DetectorType");
+			writeCVS_(os, inst.getIonDetector().getAcquisitionMode(), 9, "1000027", "DetectorAcquisitionMode");
 			writeCVS_(os, inst.getIonDetector().getResolution(), "1000028", "DetectorResolution");
 			writeCVS_(os, inst.getIonDetector().getADCSamplingFrequency(),
 								"1000029", "ADCSamplingFrequency");
@@ -623,7 +623,7 @@ namespace OpenMS
 					 << "\t\t\t\t<cvParam cvLabel=\"psi\" name=\"ChargeDeconvolution\" accession=\"PSI:1000034\" value=\""
 					 << ((cexp_->getProcessingMethod().getChargeDeconvolution())? "true" : "false")
 					 << "\"/>\n";
-				writeCVS_(os, cv_terms_[7][cexp_->getProcessingMethod().getSpectrumType()], "1000035", "PeakProcessing");
+				writeCVS_(os, cexp_->getProcessingMethod().getSpectrumType(), 7, "1000035", "PeakProcessing");
 				writeUserParam_(os, cexp_->getProcessingMethod());
 				os << "\t\t\t</processingMethod>\n";
 			}

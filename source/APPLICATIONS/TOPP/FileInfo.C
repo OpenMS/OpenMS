@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -78,7 +78,7 @@ class TOPPFileInfo
 		virtual void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in","<file>","","input file ");
-			setValidFormats_("in",StringList::create("mzData,mzXML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
+			setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
 			registerStringOption_("in_type","<type>","","input file type -- default: determined from file extension or content\n", false);
 			setValidStrings_("in_type",StringList::create("mzData,mzXML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
 			registerFlag_("m","Show meta information about the whole experiment");
@@ -135,6 +135,10 @@ class TOPPFileInfo
 					case FileHandler::MZDATA :
 						cout << " against schema version " << MzDataFile().getVersion() << endl;
 						valid = MzDataFile().isValid(in);
+						break;
+					case FileHandler::MZML :
+						cout << " against schema version " << MzMLFile().getVersion() << endl;
+						valid = MzMLFile().isValid(in);
 						break;
 					case FileHandler::FEATUREXML :
 						cout << " against schema version " << FeatureXMLFile().getVersion() << endl;
@@ -233,7 +237,7 @@ class TOPPFileInfo
 				//determine type (search for the first scan with at least 5 peaks)
 				UInt type = SpectrumSettings::UNKNOWN;
 				UInt i=0; 
-				while(exp[i].size()<5 && i<exp.size()) ++i;
+				while(i<exp.size() && exp[i].size()<5) ++i;
 				if (i!=exp.size())
 				{
 					type = PeakTypeEstimator().estimateType(exp[i].begin(),exp[i].end());

@@ -1,4 +1,4 @@
-# -*- Mode: make; tab-width: 2; -*-
+# -*- mode: makefile; tab-width: 2; -*-
 # vi: set ts=2:
 #
 # --------------------------------------------------------------------------
@@ -35,11 +35,10 @@ CPP_SOURCES=\
 	ConsensusID.C\
 	ProtonDistributionModel.C\
 	PILISScoring.C\
-	PILISModel.C\
-	HiddenMarkovModelLight.C\
-	PILISIdentification.C\
-	HiddenMarkovModel.C\
 	PILISSequenceDB.C\
+	HiddenMarkovModel.C\
+	HiddenMarkovModelLight.C\
+	PILISModel.C\
 	PILISModelGenerator.C\
 	IDDecoyProbability.C\
 	FalseDiscoveryRate.C

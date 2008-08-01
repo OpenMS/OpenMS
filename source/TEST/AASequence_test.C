@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -80,35 +80,58 @@ CHECK(AASequence(ConstIterator begin, ConstIterator end))
 	TEST_EQUAL(seq2, seq3);
 RESULT
 
-CHECK(bool operator == (const AASequence&) const)
-	AASequence seq1("ACDEF");
-	AASequence seq2("ADCEF");
-	TEST_EQUAL(seq1 == seq1, true)
-	TEST_EQUAL(seq1 == seq2, false)
+CHECK(bool operator == (const char* rhs) const)
+  AASequence seq1("(MOD:00051)DFPIANGER");
+  AASequence seq2("DFPIANGER");
+  TEST_EQUAL(seq2 == "DFPIANGER", true)
+  TEST_EQUAL(seq1 == "(MOD:00051)DFPIANGER", true)
+
+  AASequence seq3("DFPIANGER(MOD:00177)");
+  AASequence seq4("DFPIANGER(ArgN)");
+  TEST_EQUAL(seq3 == "DFPIANGER", false)
+  TEST_EQUAL(seq3 == "DFPIANGER(MOD:00177)", true)
+  TEST_EQUAL(seq4 == "DFPIANGER(ArgN)", true)
+  TEST_EQUAL(seq4 == "DFPIANGER", false)
+
+  AASequence seq5("DFBIANGER");
+  TEST_EQUAL(seq5 == "DFPIANGER", false)
+  TEST_EQUAL(seq5 == "DFBIANGER", true)	
 RESULT
 
-CHECK(bool operator == (const String&) const)
-	AASequence seq("ACDEF");
-	TEST_EQUAL(seq == "ACDEF", true)
-	TEST_EQUAL(seq == "ADCEF", false)
+CHECK(bool operator == (const String& rhs) const)
+  AASequence seq1("(MOD:00051)DFPIANGER");
+  AASequence seq2("DFPIANGER");
+  TEST_EQUAL(seq2 == String("DFPIANGER"), true)
+  TEST_EQUAL(seq1 == String("(MOD:00051)DFPIANGER"), true)
 
-	AASequence seq2("ABCDE");
-	TEST_EQUAL(seq2 == "ABCDF", false)
-	TEST_EQUAL(seq2 == "ABCDE", true)
-	TEST_EQUAL(seq2 == "ABDEF", false);
+  AASequence seq3("DFPIANGER(MOD:00177)");
+  AASequence seq4("DFPIANGER(ArgN)");
+  TEST_EQUAL(seq3 == String("DFPIANGER"), false)
+  TEST_EQUAL(seq3 == String("DFPIANGER(MOD:00177)"), true)
+  TEST_EQUAL(seq4 == String("DFPIANGER(ArgN)"), true)
+  TEST_EQUAL(seq4 == String("DFPIANGER"), false)
+
+  AASequence seq5("DFBIANGER");
+  TEST_EQUAL(seq5 == String("DFPIANGER"), false)
+  TEST_EQUAL(seq5 == String("DFBIANGER"), true)
 RESULT
 
-CHECK(bool operator != (const AASequence&) const)
-  AASequence seq1("ACDEF");
-  AASequence seq2("ADCEF");
-  TEST_EQUAL(seq1 != seq1, false)
-  TEST_EQUAL(seq1 != seq2, true)
-RESULT
+CHECK(bool operator == (const AASequence& rhs) const)
+  AASequence seq1("(MOD:00051)DFPIANGER");
+  AASequence seq2("DFPIANGER");
+  TEST_EQUAL(seq2 == AASequence("DFPIANGER"), true)
+  TEST_EQUAL(seq1 == AASequence("(MOD:00051)DFPIANGER"), true)
 
-CHECK(bool operator != (const String&) const)
-  AASequence seq("ACDEF");
-  TEST_EQUAL(seq != "ACDEF", false)
-  TEST_EQUAL(seq != "ADCEF", true)
+  AASequence seq3("DFPIANGER(MOD:00177)");
+  AASequence seq4("DFPIANGER(ArgN)");
+  TEST_EQUAL(seq3 == AASequence("DFPIANGER"), false)
+  TEST_EQUAL(seq3 == AASequence("DFPIANGER(MOD:00177)"), true)
+  TEST_EQUAL(seq4 == AASequence("DFPIANGER(ArgN)"), true)
+  TEST_EQUAL(seq4 == AASequence("DFPIANGER"), false)
+
+  AASequence seq5("DFBIANGER");
+  TEST_EQUAL(seq5 == AASequence("DFPIANGER"), false)
+  TEST_EQUAL(seq5 == AASequence("DFBIANGER"), true)
 RESULT
 
 CHECK((const Residue& getResidue(Int index) const))
@@ -414,7 +437,11 @@ CHECK(void setCTerminalModification(const String &modification))
 RESULT
 
 CHECK(const String& getCTerminalModification() const)
-	
+  AASequence seq1("DFPIANGER(ArgN)");
+  TEST_EQUAL(seq1.getCTerminalModification(), "MOD:00091")
+
+  AASequence seq2("DFPIANGER");
+  TEST_EQUAL(seq2.getCTerminalModification(), "")	
 RESULT
 
 CHECK(bool setStringSequence(const String &sequence))
@@ -433,12 +460,14 @@ CHECK(bool setStringSequence(const String &sequence))
 RESULT
 
 CHECK(AASequence operator + (const char *rhs) const)
-
+  AASequence seq1("DFPIANGER"), seq2("DFP");
+	TEST_EQUAL(seq1, seq2 + "IANGER");
 RESULT
 
 CHECK(AASequence& operator += (const char *rhs))
-
-
+	AASequence seq1("DFPIANGER"), seq2("DFP");
+	seq2 += "IANGER";
+	TEST_EQUAL(seq1, seq2)
 RESULT
 
 
@@ -463,44 +492,101 @@ CHECK(bool hasNTerminalModification() const)
 	
 	AASequence seq3("(MOD:00051)DFPIANGER");
 	AASequence seq4("DFPIANGER");
-	TEST_EQUAL(seq3.hasCTerminalModification(), false)
-	TEST_EQUAL(seq4.hasCTerminalModification(), false)
+	TEST_EQUAL(seq3.hasNTerminalModification(), true)
+	TEST_EQUAL(seq4.hasNTerminalModification(), false)
 RESULT
  
 CHECK(bool hasCTerminalModification() const)
-
+	AASequence seq1("DFPIANGER(ArgN)");
+	AASequence seq2("DFPIANGER");
+	TEST_EQUAL(seq1.hasCTerminalModification(), true)
+	TEST_EQUAL(seq2.hasCTerminalModification(), false)
+	seq1.setCTerminalModification("");
+	TEST_EQUAL(seq1.hasCTerminalModification(), false)
 RESULT
 
 CHECK(bool isModified() const)
+	AASequence seq1("DFPIANGER");
+	TEST_EQUAL(seq1.isModified(), false);
+	AASequence seq2(seq1);
+	seq2.setNTerminalModification("MOD:09999");
+	TEST_EQUAL(seq2.isModified(), true)
 
+	AASequence seq3(seq1);
+	seq3.setCTerminalModification("ArgN");
+	TEST_EQUAL(seq3.isModified(), true);
+
+	AASequence seq4("DFPIANGER(MOD:00177)");
+	TEST_EQUAL(seq4.isModified(), true);
 RESULT
 
 CHECK(bool isModified(UInt index) const)
-
-RESULT
-
-CHECK(bool operator==(const char *rhs) const)
-
+	AASequence seq4("DFPIAN(MOD:00565)GER");
+	TEST_EQUAL(seq4.isModified(5), true)
+	TEST_EQUAL(seq4.isModified(4), false)
 RESULT
 
 CHECK(bool operator<(const AASequence &rhs) const)
-
+	AASequence seq1("DFPIANGER");
+	AASequence seq2("DFBIANGER");
+	TEST_EQUAL(seq2 < seq1, true)
+	TEST_EQUAL(seq1 < seq2, false)
+	AASequence seq3("DFPIANGFR");
+	TEST_EQUAL(seq3 < seq1, false)
 RESULT
  
-CHECK(bool operator<=(const AASequence &rhs) const)
+CHECK(bool operator!=(const AASequence& rhs) const)
+  AASequence seq1("(MOD:00051)DFPIANGER");
+  AASequence seq2("DFPIANGER");
+  TEST_EQUAL(seq2 != AASequence("DFPIANGER"), false)
+  TEST_EQUAL(seq1 != AASequence("(MOD:00051)DFPIANGER"), false)
 
+  AASequence seq3("DFPIANGER(MOD:00177)");
+  AASequence seq4("DFPIANGER(ArgN)");
+  TEST_EQUAL(seq3 != AASequence("DFPIANGER"), true)
+  TEST_EQUAL(seq3 != AASequence("DFPIANGER(MOD:00177)"), false)
+  TEST_EQUAL(seq4 != AASequence("DFPIANGER(ArgN)"), false)
+  TEST_EQUAL(seq4 != AASequence("DFPIANGER"), true)
+
+  AASequence seq5("DFBIANGER");
+  TEST_EQUAL(seq5 != AASequence("DFPIANGER"), true)
+  TEST_EQUAL(seq5 != AASequence("DFBIANGER"), false)
 RESULT
 
-CHECK(bool operator>(const AASequence &rhs) const)
+CHECK(bool operator!=(const String& rhs) const)
+  AASequence seq1("(MOD:00051)DFPIANGER");
+  AASequence seq2("DFPIANGER");
+  TEST_EQUAL(seq2 != String("DFPIANGER"), false)
+  TEST_EQUAL(seq1 != String("(MOD:00051)DFPIANGER"), false)
 
-RESULT
+  AASequence seq3("DFPIANGER(MOD:00177)");
+  AASequence seq4("DFPIANGER(ArgN)");
+  TEST_EQUAL(seq3 != String("DFPIANGER"), true)
+  TEST_EQUAL(seq3 != String("DFPIANGER(MOD:00177)"), false)
+  TEST_EQUAL(seq4 != String("DFPIANGER(ArgN)"), false)
+  TEST_EQUAL(seq4 != String("DFPIANGER"), true)
 
-CHECK(bool operator>=(const AASequence &rhs) const)
-
+	AASequence seq5("DFBIANGER");
+	TEST_EQUAL(seq5 != String("DFPIANGER"), true)
+	TEST_EQUAL(seq5 != String("DFBIANGER"), false)
 RESULT
 
 CHECK(bool operator!=(const char *rhs) const)
+	AASequence seq1("(MOD:00051)DFPIANGER");
+	AASequence seq2("DFPIANGER");
+	TEST_EQUAL(seq2 != "DFPIANGER", false)
+	TEST_EQUAL(seq1 != "(MOD:00051)DFPIANGER", false)
 
+	AASequence seq3("DFPIANGER(MOD:00177)");
+	AASequence seq4("DFPIANGER(ArgN)");
+	TEST_EQUAL(seq3 != "DFPIANGER", true)
+	TEST_EQUAL(seq3 != "DFPIANGER(MOD:00177)", false)
+	TEST_EQUAL(seq4 != "DFPIANGER(ArgN)", false)
+	TEST_EQUAL(seq4 != "DFPIANGER", true)
+
+	AASequence seq5("DFBIANGER");
+	TEST_EQUAL(seq5 != "DFPIANGER", true)
+	TEST_EQUAL(seq5 != "DFBIANGER", false)
 RESULT
 
 /////////////////////////////////////////////////////////////

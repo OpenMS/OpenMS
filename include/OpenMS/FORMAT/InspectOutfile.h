@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -63,40 +63,73 @@ namespace OpenMS
 			/// equality operator
 			bool operator==(const InspectOutfile& inspect_outfile) const;
 			
-			/// load the results of an Inspect search
-			std::vector< UInt > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, const String& database_filename = "") throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument, Exception::FileEmpty);
+			/** load the results of an Inspect search
+					
+					@param result_filename Input parameter which is the file name of the input file
+					@param peptide_identifications Output parameter which holds the peptide identifications from the given file
+					@param protein_identification Output parameter which holds the protein identifications from the given file
+					@param p_value_threshold
+					@param database_filename 
+					@throw FileNotFound is thrown if the given file could not be found
+					@throw ParseError is thrown if the given file could not be parsed
+					@throw FileEmptry is thrown if the given file is empty 
+			*/
+			std::vector< UInt > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, const String& database_filename = "");
 			
-			std::vector< UInt > getWantedRecords(const String& result_filename, Real p_value_threshold) throw (Exception::FileNotFound, Exception::FileEmpty, Exception::IllegalArgument);
+			/** loads only results which exceeds a given P-value threshold
 
-			/// generates a trie database from another one, using the wanted records only
-			void compressTrieDB(const String& database_filename, const String& index_filename, std::vector< UInt >& wanted_records, const String& snd_database_filename, const String& snd_index_filename, bool append = false) throw (Exception::FileNotFound, Exception::ParseError, Exception::UnableToCreateFile);
+					@param result_filename The filename of the results file
+					@param p_value_threshold Only identifications exceeding this threshold are read
+					@throw FileNotFound is thrown is the file is not found
+					@throw FileEmpty is thrown if the given file is empty
+			*/
+			std::vector< UInt > getWantedRecords(const String& result_filename, Real p_value_threshold);
 
-			/// generates a trie database from a given one (the type of database is determined by getLabels)
-			void generateTrieDB(const String& source_database_filename, const String& database_filename, const String& index_filename, bool append = false, const String species = "") throw (Exception::FileNotFound, Exception::UnableToCreateFile);
+			/** generates a trie database from another one, using the wanted records only
+			
+					@throw Exception::FileNotFound
+					@throw Exception::ParseError
+					@throw Exception::UnableToCreateFile
+
+			*/
+			void compressTrieDB(const String& database_filename, const String& index_filename, std::vector< UInt >& wanted_records, const String& snd_database_filename, const String& snd_index_filename, bool append = false);
+
+			/** generates a trie database from a given one (the type of database is determined by getLabels)
+					@throw Exception::FileNotFound
+					@throw Exception::UnableToCreateFile
+			*/
+			void generateTrieDB(const String& source_database_filename, const String& database_filename, const String& index_filename, bool append = false, const String species = "");
 			
 
 			/// retrieve the accession type and accession number from a protein description line
 			/// (e.g. from FASTA line: >gi|5524211|gb|AAD44166.1| cytochrome b [Elephas maximus maximus], get ac:AAD44166.1 ac type: GenBank)
 			void getACAndACType(String line, String& accession, String& accession_type);
 
-			/// retvrieve the precursor retention time and mz value
-			void getPrecursorRTandMZ(const std::vector< std::pair< String, std::vector< std::pair< UInt, UInt > > > >& files_and_peptide_identification_with_scan_number, std::vector< PeptideIdentification >& ids) throw(Exception::ParseError);
+			/** retrieve the precursor retention time and mz value
 
-			/// retrieve the labes of a given database (at the moment FASTA and Swissprot)
-			void getLabels(const String& source_database_filename, String& ac_label, String& sequence_start_label, String& sequence_end_label, String& comment_label, String& species_label) throw (Exception::FileNotFound, Exception::ParseError);
+					@throw Exception::ParseError
+			*/
+			void getPrecursorRTandMZ(const std::vector< std::pair< String, std::vector< std::pair< UInt, UInt > > > >& files_and_peptide_identification_with_scan_number, std::vector< PeptideIdentification >& ids);
 
-			/// retrieve sequences from a trie database
-			std::vector< UInt > getSequences(const String& database_filename, const std::map< UInt, UInt >& wanted_records, std::vector< String >& sequences) throw (Exception::FileNotFound);
+			/** retrieve the labes of a given database (at the moment FASTA and Swissprot)
+					
+					@throw Exception::FileNotFound
+					@throw Exception::ParseError
+			*/
+			void getLabels(const String& source_database_filename, String& ac_label, String& sequence_start_label, String& sequence_end_label, String& comment_label, String& species_label);
 
-			/// get the experiment from a file
+			/** retrieve sequences from a trie database
+					
+					@throw Exception::FileNotFound
+			*/
+			std::vector< UInt > getSequences(const String& database_filename, const std::map< UInt, UInt >& wanted_records, std::vector< String >& sequences);
+
+			/** get the experiment from a file
+
+					@throw Exception::ParseError is thrown if the file could not be parsed or the filetype could not be determined
+			*/
 			template< typename PeakT >
-			void
-			getExperiment(
-				MSExperiment< PeakT >& exp,
-				String& type,
-				const String& in_filename)
-			throw (
-				Exception::ParseError)
+			void getExperiment(MSExperiment< PeakT >& exp, String& type, const String& in_filename)
 			{
 				type.clear();
 				exp.reset();
@@ -111,11 +144,16 @@ namespace OpenMS
 				fh.loadExperiment(in_filename, exp, in_type);
 			}
 
-			/// get the search engine and its version from a file with the output of InsPecT without parameters
-			void getSearchEngineAndVersion(const String& inspect_output_without_parameters_filename, ProteinIdentification& protein_identification) throw (Exception::FileNotFound);
+			/** get the search engine and its version from a file with the output of InsPecT without parameters
+					
+					@throw Exception::FileNotFound
+			*/
+			void getSearchEngineAndVersion(const String& inspect_output_without_parameters_filename, ProteinIdentification& protein_identification);
 
-			/// read the header of an inspect output file and retrieve various informations
-			void readOutHeader(const String& filename, const String& header_line, Int& spectrum_file_column, Int& scan_column, Int& peptide_column, Int& protein_column, Int& charge_column, Int& MQ_score_column, Int& p_value_column, Int& record_number_column, Int& DB_file_pos_column, Int& spec_file_pos_column, UInt& number_of_columns) throw (Exception::ParseError);
+			/** read the header of an inspect output file and retrieve various informations
+					@throw Exception::ParseError
+			*/
+			void readOutHeader(const String& filename, const String& header_line, Int& spectrum_file_column, Int& scan_column, Int& peptide_column, Int& protein_column, Int& charge_column, Int& MQ_score_column, Int& p_value_column, Int& record_number_column, Int& DB_file_pos_column, Int& spec_file_pos_column, UInt& number_of_columns);
 
 		protected:
 			/// a record in the index file that belongs to a trie database consists of three parts

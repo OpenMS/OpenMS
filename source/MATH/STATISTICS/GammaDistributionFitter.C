@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -34,6 +34,15 @@ using namespace std;
 
 #define GAMMA_DISTRIBUTION_FITTER_VERBOSE
 #undef  GAMMA_DISTRIBUTION_FITTER_VERBOSE
+
+#ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
+	#include <gsl/gsl_rng.h>
+	#include <gsl/gsl_randist.h>
+	#include <gsl/gsl_vector.h>
+	#include <gsl/gsl_blas.h>
+	#include <gsl/gsl_multifit_nlin.h>
+#endif
+
 
 namespace OpenMS
 {
@@ -75,7 +84,7 @@ namespace OpenMS
 		return gnuplot_formula_;
 	}
 
-	int GammaDistributionFitter::gamma_distribution_fitter_f_(const gsl_vector* x, void* params, gsl_vector* f)
+	int GammaDistributionFitter::gammaDistributionFitterf_(const gsl_vector* x, void* params, gsl_vector* f)
 	{
 		vector<DPosition<2> >* data = static_cast<vector<DPosition<2> >*>(params);
 		
@@ -93,7 +102,7 @@ namespace OpenMS
 	}
 
 	// compute Jacobian matrix for the different parameters
-	int GammaDistributionFitter::gamma_distribution_fitter_df_(const gsl_vector* x, void* params, gsl_matrix* J)
+	int GammaDistributionFitter::gammaDistributionFitterdf_(const gsl_vector* x, void* params, gsl_matrix* J)
 	{
 		vector<DPosition<2> >* data = static_cast<vector<DPosition<2> >*>(params);
 
@@ -118,15 +127,15 @@ namespace OpenMS
 	  return GSL_SUCCESS;
 	}
 
-	int GammaDistributionFitter::gamma_distribution_fitter_fdf_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
+	int GammaDistributionFitter::gammaDistributionFitterfdf_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)
 	{
-	  gamma_distribution_fitter_f_(x, params, f);
-	  gamma_distribution_fitter_df_(x, params, J);
+	  gammaDistributionFitterf_(x, params, f);
+	  gammaDistributionFitterdf_(x, params, J);
 	  return GSL_SUCCESS;
 	}
 
 #ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
-	void GammaDistributionFitter::print_state_(size_t iter, gsl_multifit_fdfsolver * s)
+	void GammaDistributionFitter::printState_(size_t iter, gsl_multifit_fdfsolver * s)
 	{
 	  printf ("iter: %3u x = % 15.8f % 15.8f "
 	          "|f(x)| = %g\n",
@@ -158,9 +167,9 @@ namespace OpenMS
 	  type = gsl_rng_default;
 	  r = gsl_rng_alloc (type);
 	
-	  f.f = &gamma_distribution_fitter_f_;
-	  f.df = &gamma_distribution_fitter_df_;
-	  f.fdf = &gamma_distribution_fitter_fdf_;
+	  f.f = &gammaDistributionFitterf_;
+	  f.df = &gammaDistributionFitterdf_;
+	  f.fdf = &gammaDistributionFitterfdf_;
 	  f.n = input.size();
 	  f.p = p;
 	  f.params = &input;
@@ -170,7 +179,7 @@ namespace OpenMS
 	  gsl_multifit_fdfsolver_set (s, &f, &x.vector);
 
 		#ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
-	  print_state(iter, s);
+	  printState_(iter, s);
 		#endif
 	
 	  do
@@ -180,7 +189,7 @@ namespace OpenMS
 	
 			#ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
 	    printf ("status = %s\n", gsl_strerror (status));
-	    print_state(iter, s);
+	    printState_(iter, s);
 			#endif
 	
 	    if (status)
@@ -196,6 +205,7 @@ namespace OpenMS
 #ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
 		cerr << "Status: " << status << endl;
 #endif
+
 		if (status)
 		{
 			gsl_multifit_fdfsolver_free (s);
@@ -215,6 +225,7 @@ namespace OpenMS
 		stringstream formula;
 		formula << "f(x)=" << "(" << result.b << " ** " << result.p << ") / gamma(" << result.p << ") * x ** (" << result.p << " - 1) * exp(- " << result.b << " * x)";
 		gnuplot_formula_ = formula.str();
+		
 #ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
 		cout << gnuplot_formula_ << endl;
 #endif

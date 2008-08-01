@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -102,8 +102,6 @@ CHECK((PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal left_wi
     left_width,
     right_width,
 		area,
-		std::vector<Peak1D>::iterator(),
-		std::vector<Peak1D>::iterator(),
 		type);
 
     TEST_REAL_EQUAL(peakshape.height,height) 
@@ -128,8 +126,6 @@ CHECK((DoubleReal getSymmetricMeasure() const))
 												left_width,
 												right_width,
 												area,
-												std::vector<Peak1D>::iterator(),
-												std::vector<Peak1D>::iterator(),
 												type);
 
     DoubleReal sym_value = peakshape.getSymmetricMeasure();
@@ -149,8 +145,6 @@ CHECK((DoubleReal operator() (DoubleReal x) const))
 												left_width,
 												right_width,
 												area,
-												std::vector<Peak1D>::iterator(),
-												std::vector<Peak1D>::iterator(),
 												type);
    
     TEST_REAL_EQUAL(peakshape.getFWHM(),.5)
@@ -169,8 +163,6 @@ CHECK((DoubleReal getFWHM() const))
 							left_width,
 							right_width,
 							area,
-							std::vector<Peak1D>::iterator(),
-							std::vector<Peak1D>::iterator(),
 							type);
 
 

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -92,14 +92,14 @@ CHECK(double getPrecursorMassToleranceMinus() const)
 	NOT_TESTABLE
 RESULT
 
-CHECK(void setPrecursorMassErrorUnit(ERROR_UNIT unit))
+CHECK(void setPrecursorMassErrorUnit(ErrorUnit unit))
 	ptr->setPrecursorMassErrorUnit(XTandemInfile::DALTONS);
 	TEST_EQUAL(ptr->getPrecursorMassErrorUnit(), XTandemInfile::DALTONS)
 	ptr->setPrecursorMassErrorUnit(XTandemInfile::PPM);
 	TEST_EQUAL(ptr->getPrecursorMassErrorUnit(), XTandemInfile::PPM)
 RESULT
 
-CHECK(ERROR_UNIT getPrecursorMassErrorUnit() const)
+CHECK(ErrorUnit getPrecursorMassErrorUnit() const)
 	NOT_TESTABLE
 RESULT
   
@@ -117,11 +117,6 @@ CHECK(void setModifications(const ModificationDefinitionsSet &mods))
 	ptr->setModifications(sets);
 	TEST_EQUAL(ptr->getModifications() == sets, true)
 RESULT
-
-CHECK(const ModificationDefinitionsSet& getFixedModifications() const)
-	NOT_TESTABLE
-RESULT
-
 
 CHECK(void setOutputFilename(const String &output))
 	ptr->setOutputFilename("blubb_new_outputfilename");
@@ -195,13 +190,48 @@ CHECK(double getMaxValidEValue() const)
 	NOT_TESTABLE
 RESULT
 
+CHECK(void setPrecursorErrorType(MassType mono_isotopic))
+	XTandemInfile::MassType mono = XTandemInfile::MONOISOTOPIC;
+	XTandemInfile::MassType average = XTandemInfile::AVERAGE;
+	ptr->setPrecursorErrorType(mono);
+	TEST_EQUAL(ptr->getPrecursorErrorType(), mono)
+	ptr->setPrecursorErrorType(average);
+	TEST_EQUAL(ptr->getPrecursorErrorType(), average)
+RESULT
+
+CHECK(MassType getPrecursorErrorType() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(void setFragmentMassErrorUnit(ErrorUnit unit))
+	XTandemInfile::ErrorUnit daltons = XTandemInfile::DALTONS;
+	XTandemInfile::ErrorUnit ppm = XTandemInfile::PPM;
+	ptr->setFragmentMassErrorUnit(daltons);
+	TEST_EQUAL(ptr->getFragmentMassErrorUnit(), daltons)
+	ptr->setFragmentMassErrorUnit(ppm);
+	TEST_EQUAL(ptr->getFragmentMassErrorUnit(), ppm)
+RESULT
+
+CHECK(ErrorUnit getFragmentMassErrorUnit() const)
+	NOT_TESTABLE
+RESULT
+
+CHECK(const ModificationDefinitionsSet& getModifications() const)
+	NOT_TESTABLE
+RESULT
 
 CHECK(void write(const String &filename))
-
+	string filename("XTandemInfile_test.tmp");
+	NEW_TMP_FILE(filename);
+	ptr->write(filename);
+	XTandemInfile file;
+	file.load(filename);
+	NOT_TESTABLE
 RESULT
 
 CHECK(void load(const String &filename))
-
+	ptr->load("data/XTandemInfile_test.xml");
+	NOT_TESTABLE
 RESULT
 
 

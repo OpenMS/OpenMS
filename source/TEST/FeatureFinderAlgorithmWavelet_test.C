@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marcel Grunert $
+// $Maintainer: Marcel Grunert, Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -53,6 +53,15 @@ CHECK(FeatureFinderAlgorithmWavelet())
 RESULT
 
 CHECK(virtual void run())
+	// dummy subtest
+	TEST_EQUAL(1,1)
+RESULT
+
+CHECK((virtual Param getDefaultParameters() const))
+{
+  // dummy subtest
+	TEST_EQUAL(1,1)
+}
 RESULT
 
 CHECK((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))

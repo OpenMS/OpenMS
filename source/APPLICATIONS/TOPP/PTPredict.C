@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -128,7 +128,6 @@ class TOPPPTPredict
 				if (additional_parameters.getValue("kernel_type") != DataValue::EMPTY)
 				{
 					svm.setParameter(KERNEL_TYPE, ((String) additional_parameters.getValue("kernel_type")).toInt());
-					cout << "Kernel type = " << svm.getIntParameter(KERNEL_TYPE) << endl;					
 				}
 								
 				if (additional_parameters.getValue("border_length") == DataValue::EMPTY
@@ -197,7 +196,6 @@ class TOPPPTPredict
 				inputFileReadable_((svmfile_name + "_samples").c_str());
 
 				training_data = encoder.loadLibSVMProblem(svmfile_name + "_samples");
-				cout << "Loading training_data" << endl;
 				svm.setTrainingSample(training_data);
 
 				svm.setParameter(BORDER_LENGTH, (Int) border_length);

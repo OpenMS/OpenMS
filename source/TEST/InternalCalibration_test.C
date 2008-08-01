@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -141,6 +141,16 @@ CHECK((void setPeaks(const MSExperiment<> &exp_peaks)))
   TEST_EQUAL(ptr->getPeaks()==exp,true)
 
 }
+RESULT
+
+
+CHECK(( DoubleReal getWindowLength() const))
+  TEST_REAL_EQUAL(ptr->getWindowLength(),5.0)  
+RESULT
+
+CHECK(( void setWindowLength(const DoubleReal window_length) ))
+  ptr->setWindowLength(10.);
+  TEST_REAL_EQUAL(ptr->getWindowLength(),10.0)  
 RESULT
 
 CHECK((const std::vector<std::vector<UInt> >& getMonoisotopicPeaks() const))

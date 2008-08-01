@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -42,11 +42,13 @@ namespace OpenMS
 	
 			@brief database which holds all residue modifications from PSI-MOD
 			
-			bla
+			This singleton class serves as a storage of the available modifications
+			represented by the PSI-MOD ontology. Each of the modifications is identified by
+			their unique PSI-MOD identifier, e.g. MOD:01214. This identifier is also used
+			in AASequence to specifiy modifications. Also residues can be modified by setting
+			a modification using the unique identifier. Some modifications also have synonyms 
+			which are also unique.
 
-			singleton
-			
-			...
 	*/
 	class ModificationsDB
 	{					
@@ -89,12 +91,11 @@ namespace OpenMS
 			/// returns the index of the modification in the mods_ vector; a unique name must be given
 			UInt findModificationIndex(const String& mod_name) const;
 
-			
+			/// query the modifications DB to get the modifications with mass, without any specific origin
 			void getModificationsByDiffMonoMass(std::vector<String>& mods, double mass, double error = 0.0);
 			
-
+			/// query the modifications DB to get modifications with the given mass at the given residue
 			void getModificationsByDiffMonoMass(std::vector<String>& mods, const String& residue, double mass, double error = 0.0);
-
 
 			/// adds modifications from a given file in OBO format
 			void readFromOBOFile(const String& filename);

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -35,9 +35,9 @@
 #include <OpenMS/KERNEL/AreaIterator.h>
 #include <OpenMS/SYSTEM/ExternalAllocator.h>
 
-#include<vector>
-#include<algorithm>
-#include<limits>
+#include <vector>
+#include <algorithm>
+#include <limits>
 
 #ifdef OPENMS_ENABLE_EXTERNALMEMORY
 	#define OPENMS_DEFAULT_ALLOC ExternalAllocator<PeakT>

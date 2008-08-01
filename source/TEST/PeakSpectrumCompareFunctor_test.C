@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -76,7 +76,7 @@ CHECK(static void registerChildren())
 	c1 = Factory<PeakSpectrumCompareFunctor>::create("SteinScottImproveScore");
 	TEST_EQUAL(c1->getName(), "SteinScottImproveScore");
 	c1 = Factory<PeakSpectrumCompareFunctor>::create("CompareFouriertransform");
-		TEST_EQUAL(c1->getName(), "CompareFouriertransform")
+	TEST_EQUAL(c1->getName(), "CompareFouriertransform")
 RESULT
 
 CHECK(static const String getProductName())

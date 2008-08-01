@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -35,8 +35,8 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 
-#include<vector>
-#include<algorithm>
+#include <vector>
+#include <algorithm>
 
 using namespace OpenMS;
 using namespace std;
@@ -158,8 +158,6 @@ class TOPPTextExporter
 				/// No progress logging implemented for ConsensusXMLFile
 				ConsensusXMLFile().load(in,cmap);
 												
-				UInt nr_conds = cmap.getFileDescriptions().size();
-				
 				// A consensus feature map consisting of many feature maps will often
 				// contain a lot of singleton features (i.e. features detected only in one
 				// LC-MS map). We want to put these features at the end of the text file.
@@ -168,46 +166,55 @@ class TOPPTextExporter
     
 				ofstream txt_out( out.c_str() );
 				
+				//Write file descriptions
+		 		const ConsensusMap::FileDescriptions& descs = cmap.getFileDescriptions();
+	 			txt_out << "#Source file descriptions:" << endl;
+	 			txt_out << "#" << endl;
+		 		for (ConsensusMap::FileDescriptions::const_iterator it=descs.begin(); it!=descs.end(); ++it)
+		 		{
+					txt_out << "# identifier " << it->first << ": " << endl;
+					txt_out << "#   filename : " << it->second.filename << endl;
+					String label = it->second.label;
+					label.trim();
+					if (label!="") txt_out << "#   label : " << it->second.label << endl;
+					if (it->second.size!=0) txt_out  << "#   size : " << it->second.size << endl;
+					txt_out << "#" << endl;
+		 		}
+				
 				// write header
-				txt_out << "# consensus_rt consensus_mz ";
-				for (UInt i=0;i<nr_conds;++i)
-				{
-					txt_out << "exp_" + String(i+1) + " ";
+				txt_out << "#consensus_rt	consensus_mz	consensus_intensity	quality	";
+		 		for (ConsensusMap::FileDescriptions::const_iterator it=descs.begin(); it!=descs.end(); ++it)
+		 		{
+					txt_out << "	intensity_" << it->first;
 				}
 				txt_out << endl;
 				
 				for (ConsensusMap::iterator cmap_it = cmap.begin(); cmap_it != cmap.end();++cmap_it)
 				{
 					// write consensus rt and m/z
-					txt_out << cmap_it->getPosition()[0] << " " << cmap_it->getPosition()[1] << " ";
-						
-					UInt curr_cond = 0;						 		 																
-					for ( ConsensusFeature::HandleSetType::const_iterator group_it = cmap_it->begin(); group_it != cmap_it->end(); ++group_it)
-					{			
-						UInt this_cond = group_it->getMapIndex();
-						
-						// print 0 (not available) for missing values
-						while ( (curr_cond) != this_cond )
-						{
-							txt_out << "0 ";
-							++curr_cond;
-						}
-					 		 																		    																																						
-						txt_out << group_it->getIntensity() << " "; 
-						++curr_cond;						
-						
-					}	// end for all features in this consensus element	    																																																					    			
+					txt_out << cmap_it->getPosition()[0] << "	" << cmap_it->getPosition()[1] << "	" << cmap_it->getIntensity() << "	" << cmap_it->getQuality();
 					
-					// append zeros for missing feature maps / conditions ( we start counting at zero)
-					while (curr_cond <= ( nr_conds - 1) )
+					//determine present values	
+					Map<UInt,DoubleReal> intensities;			 		 																
+					for ( ConsensusFeature::HandleSetType::const_iterator group_it = cmap_it->begin(); group_it != cmap_it->end(); ++group_it)
 					{
-						txt_out << "0 ";
-						++curr_cond;
+						intensities[group_it->getMapIndex()] = group_it->getIntensity();
 					}
 					
+					//print all values (0.0 for missing ones)
+					for (ConsensusMap::FileDescriptions::const_iterator it=descs.begin(); it!=descs.end(); ++it)
+			 		{
+						if (intensities.has(it->first))
+						{
+							txt_out << "	" << intensities[it->first];
+						}
+						else
+						{
+							txt_out << "	0.0";
+						}
+					}
 					txt_out << endl;
-				} // end for all elements in consensus map 
-				
+				}
 				txt_out.close();
       }
 			else if (in_type == FileHandler::IDXML)

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -120,15 +120,15 @@ class TOPPNoiseFilter
 
       MzDataFile mz_data_file;
       mz_data_file.setLogType(log_type_);
-      MSExperiment<Peak1D > ms_exp_raw;
-      mz_data_file.load(in,ms_exp_raw);
+      MSExperiment<Peak1D> exp;
+      mz_data_file.load(in,exp);
 
 			//check for peak type (raw data required)
-			if (ms_exp_raw.getProcessingMethod().getSpectrumType()==SpectrumSettings::PEAKS)
+			if (exp.getProcessingMethod().getSpectrumType()==SpectrumSettings::PEAKS)
 			{
 				writeLog_("Warning: The file meta data claims that this is not raw data!");
 			}
-			if (PeakTypeEstimator().estimateType(ms_exp_raw[0].begin(),ms_exp_raw[0].end())==SpectrumSettings::PEAKS)
+			if (PeakTypeEstimator().estimateType(exp[0].begin(),exp[0].end())==SpectrumSettings::PEAKS)
 			{
 				writeLog_("Warning: OpenMS peak type estimation indicates that this is not raw data!");
 			}
@@ -136,8 +136,6 @@ class TOPPNoiseFilter
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
-      MSExperiment<Peak1D > ms_exp_filtered;
-
     	Param filter_param = getParam_().copy("algorithm:",true);
 			writeDebug_("Parameters passed to filter", filter_param,3);
       if (type == "sgolay")
@@ -149,58 +147,30 @@ class TOPPNoiseFilter
         // no resampling of the data
         if (spacing==0.0)
         { 
-           sgolay.filterExperiment(ms_exp_raw,ms_exp_filtered);
+           sgolay.filterExperiment(exp);
 					 writeDebug_(String("No resampling!"), 1);
         }
         else
         {
 					LinearResampler lin_resampler;
-					lin_resampler.setLogType(log_type_);
 					Param resampler_param;
 					resampler_param.setValue("spacing",spacing);
 					lin_resampler.setParameters(resampler_param);
 			
-          UInt n = ms_exp_raw.size();
-          sgolay.startProgress(0,n,"smoothing mzData file");
-          lin_resampler.startProgress(0,n,"resampling of data");
+          sgolay.startProgress(0,exp.size(),"smoothing mzData file");
           // resample and filter every scan
-          for (UInt i = 0; i < n; ++i)
+          for (UInt i = 0; i < exp.size(); ++i)
           {
             // temporary container for the resampled data
-            MSSpectrum<Peak1D> resampled_data;
-            lin_resampler.raster(ms_exp_raw[i],resampled_data);
-            lin_resampler.setProgress(i);
+            MSSpectrum<Peak1D> resampled_spectrum;
+            lin_resampler.raster(exp[i],resampled_spectrum);
 
-            MSSpectrum<Peak1D> spectrum;
-						
-						if (resampled_data.size() == 1)
-						{
-							ms_exp_filtered.push_back(resampled_data);
-						}
-						else
-						{
-							sgolay.filter(resampled_data, spectrum);
-              sgolay.setProgress(i);
-						}
-
-            // if any peaks are found copy the spectrum settings
-            if (spectrum.size() > 0)
-            {
-              // copy the spectrum settings
-              static_cast<SpectrumSettings&>(spectrum) = ms_exp_raw[i];
-              spectrum.setType(SpectrumSettings::RAWDATA);
-
-              // copy the spectrum information
-              spectrum.getPrecursorPeak() = ms_exp_raw[i].getPrecursorPeak();
-              spectrum.setRT(ms_exp_raw[i].getRT());
-              spectrum.setMSLevel(ms_exp_raw[i].getMSLevel());
-              spectrum.getName() = ms_exp_raw[i].getName();
-
-              ms_exp_filtered.push_back(spectrum);
-            }
+            MSSpectrum<Peak1D> smoothed_spectrum;
+						sgolay.filter(resampled_spectrum, smoothed_spectrum);
+            exp[i].getContainer() = smoothed_spectrum.getContainer();
+            sgolay.setProgress(i);            
           }
           sgolay.endProgress();
-          lin_resampler.endProgress();
         }
       }
       else if (type == "gaussian")
@@ -210,7 +180,7 @@ class TOPPNoiseFilter
         gauss.setParameters(filter_param);
         try
         {
-          gauss.filterExperiment(ms_exp_raw, ms_exp_filtered);
+          gauss.filterExperiment(exp);
         }
         catch(Exception::IllegalArgument& e)
         {
@@ -222,9 +192,8 @@ class TOPPNoiseFilter
       //-------------------------------------------------------------
       // writing output
       //-------------------------------------------------------------
-			
-			ms_exp_filtered.getProcessingMethod().setSpectrumType(SpectrumSettings::RAWDATA);
-      mz_data_file.store(out,ms_exp_filtered);
+			exp.getProcessingMethod().setSpectrumType(SpectrumSettings::RAWDATA);
+      mz_data_file.store(out,exp);
 
       return EXECUTION_OK;
     }

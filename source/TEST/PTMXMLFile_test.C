@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -44,14 +44,15 @@ START_TEST(PTMXMLFile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-PTMXMLFile* ptr;
+PTMXMLFile* ptr = 0;
 PTMXMLFile xml_file;
 
 CHECK((PTMXMLFile()))
 	ptr = new PTMXMLFile();
+	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((void load(const String& filename, map< String, pair< String, String > >& ptm_informations) const throw (Exception::FileNotFound, Exception::ParseError)))
+CHECK((void load(const String& filename, std::map< String, std::pair< String, String > >& ptm_informations)))
 
 	map< String, pair< String, String > > ptm_informations;
 	xml_file.load("data/PTMs.xml", ptm_informations);
@@ -61,7 +62,7 @@ CHECK((void load(const String& filename, map< String, pair< String, String > >& 
 RESULT
 
 
-CHECK((void store(String filename, std::map< String, std::pair< String, String > > &ptm_informations) const throw (Exception::UnableToCreateFile)))
+CHECK((void store(String filename, std::map< String, std::pair< String, String > > &ptm_informations) const))
 
 	map< String, pair< String, String > > ptm_informations;
 	xml_file.load("data/PTMs.xml", ptm_informations);

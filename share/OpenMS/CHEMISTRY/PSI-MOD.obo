@@ -4784,6 +4784,7 @@ synonym: "CysOH" EXACT PSI-MOD-short []
 synonym: "Cysteine sulfenic acid (-SOH)" EXACT UniProt-feature []
 synonym: "S-hydroxycysteine" EXACT RESID-alternate []
 synonym: "Sulfenic Acid (from Cysteine)" EXACT DeltaMass-label []
+synonym: "sulfenic_acid"
 property_value: DiffAvg: "16.00"
 property_value: DiffFormula: "C 0 H 0 N 0 O 1 S 0"
 property_value: DiffMono: "15.994915"
@@ -9471,6 +9472,7 @@ comment: From DeltaMass: Average Mass: 208 Abbreviation:-PECys- Formula:C10H12O2
 synonym: "Pyridylethyl" RELATED PSI-MS-label []
 synonym: "Pyridylethyl Cystenyl" EXACT DeltaMass-label []
 synonym: "S-pyridylethylation" RELATED UniMod-description []
+synonym: "S-pyridylethyl"
 property_value: DiffAvg: "105.14"
 property_value: DiffFormula: "C 7 H 7 N 1"
 property_value: DiffMono: "105.057849"
@@ -10062,6 +10064,7 @@ synonym: "CysO3H" EXACT PSI-MOD-short []
 synonym: "Cysteic acid, oxidation of cysteine" EXACT DeltaMass-label []
 synonym: "cysteine oxidation to cysteic acid" RELATED UniMod-description []
 synonym: "Trioxidation" RELATED PSI-MS-label []
+synonym: "Cysteic_acid"
 property_value: DiffAvg: "48.00"
 property_value: DiffFormula: "C 0 H 0 N 0 O 3 S 0"
 property_value: DiffMono: "47.984744"

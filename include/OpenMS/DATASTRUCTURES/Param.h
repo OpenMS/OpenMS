@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -53,7 +53,7 @@ namespace OpenMS
 		Each parameter has an <i>advanced</i> flag that indicates if this parameter is shown to 
 		all users (false) or in advanced mode only (true). This is mostly used in visualization.
 		
-		@todo 1 Add support for lists of all types to XML file (Johannes)
+		@todo Add support for string/int/float lists (Hiwi)
 		
 		@see DefaultParamHandler
 		

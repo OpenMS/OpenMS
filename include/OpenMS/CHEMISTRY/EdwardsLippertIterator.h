@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -58,30 +58,30 @@ class EdwardsLippertIterator : public PepIterator
 	/**
 	@brief * operator for getting the value of the iterator
 	@return FASTAEntry with specific candidate
-	@throw Exception::InvalidIterator if iterator has not been initialized
+	@throw InvalidIterator if iterator has not been initialized
 	*/
-	virtual FASTAEntry operator*() throw (Exception::InvalidIterator);
+	virtual FASTAEntry operator*();
 	
 	/**
 	@brief opperator ++ for postincrement
 	@return Reference to PepIterator
-	@throw Exception::InvalidIterator if iterator has not been initialized
+	@throw InvalidIterator if iterator has not been initialized
 	*/
-	virtual PepIterator & operator++() throw (Exception::InvalidIterator);
+	virtual PepIterator & operator++();
 	
 	/**
 	@brief opperator ++ for preincrement
 	@return pointer to PepIterator
-	@throw Exception::InvalidIterator if iterator has not been initialized
+	@throw InvalidIterator if iterator has not been initialized
 	*/
-	virtual PepIterator * operator++(int i) throw (Exception::InvalidIterator);
+	virtual PepIterator * operator++(int i);
 
 	/**
 	@brief setter for fasta file
 	@param f String with fasta file location
-	@throw Exception::FileNotFound if file could not be found
+	@throw FileNotFound if file could not be found
 	*/
-	virtual void setFastaFile (const String & f) throw (Exception::FileNotFound);
+	virtual void setFastaFile (const String & f);
 	
 	/**
 	@brief getter for FASTA file
@@ -92,9 +92,9 @@ class EdwardsLippertIterator : public PepIterator
 	/**
 	@brief setter for tolerance
 	@param t tolerance
-	@throw Exception::InvalidValue if tolerance is negative
+	@throw InvalidValue if tolerance is negative
 	*/
-	virtual void setTolerance (float t) throw (Exception::InvalidValue);
+	virtual void setTolerance (float t);
 	
 	/**
 	@brief getter for tolerance
@@ -105,9 +105,9 @@ class EdwardsLippertIterator : public PepIterator
 	/**
 	@brief setter for spectrum
 	@param s spectrum as a vector of floats
-	@throw Exception::InvalidValue if spectrum is not sorted
+	@throw InvalidValue if spectrum is not sorted
 	*/
-	virtual void setSpectrum (const std::vector<float> & s) throw (Exception::InvalidValue);
+	virtual void setSpectrum(const std::vector<float> & s);
 
 	/**
 	@brief getter for spectrum
@@ -118,8 +118,9 @@ class EdwardsLippertIterator : public PepIterator
 	/**
 	@brief initializing iterator
 	@return true if everything was ok
+	@throw InvalidIterator is thrown if the begin iterator is invalid
 	*/
-	virtual bool begin () throw (Exception::InvalidIterator);
+	virtual bool begin ();
 
 	/**
 	@brief indicates whether iterator is at end
@@ -138,7 +139,7 @@ class EdwardsLippertIterator : public PepIterator
 	@brief needed by FactoryProduct
 	@return const string name of class
 	*/
-	static const std::string getName()
+	static const String getProductName()
 	{
 		return "EdwardsLippertIterator";
 	}

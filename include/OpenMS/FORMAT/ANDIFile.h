@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -38,6 +38,8 @@ namespace OpenMS
 	
   /**
   	@brief File adapter for ANDI/MS files
+  	
+  	@todo Fix bugs on 64 bit systems (Hiwi)
   	
   	@ingroup FileIO
   */

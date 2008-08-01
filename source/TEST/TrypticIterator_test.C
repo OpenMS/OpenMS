@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -60,7 +60,7 @@ CHECK(TrypticIterator(const TrypticIterator &))
 	TEST_EQUAL ((**ptr).second,(*copy).second);
 RESULT
 
-CHECK(virtual void setFastaFile(const String &f) throw (Exception::FileNotFound))
+CHECK(virtual void setFastaFile(const String &f))
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::FileNotFound,ptr->setFastaFile("FileThatNotExists"));
 	TEST_EXCEPTION (Exception::FileNotFound,ptr->setFastaFile(""));
@@ -73,9 +73,9 @@ CHECK(virtual String getFastaFile())
 	TEST_EQUAL(ptr->getFastaFile(),"data/TrypticIterator_test.fasta");
 RESULT
 
-CHECK(static const std::string getName())
+CHECK(static const String getProductName())
 	ptr = new TrypticIterator();
-	TEST_EQUAL(ptr->getName(),"TrypticIterator");
+	TEST_EQUAL(ptr->getProductName(),"TrypticIterator");
 RESULT
 
 CHECK(static PepIterator* create())
@@ -83,7 +83,7 @@ CHECK(static PepIterator* create())
 	TEST_NOT_EQUAL(ptr->create(),0);
 RESULT
 
-CHECK(virtual FASTAEntry operator *() throw (Exception::InvalidIterator))
+CHECK(virtual FASTAEntry operator *())
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator,**ptr);
 	ptr->setFastaFile("data/TrypticIterator_test.fasta");
@@ -122,7 +122,7 @@ CHECK(virtual FASTAEntry operator *() throw (Exception::InvalidIterator))
 RESULT
 
 
-CHECK(virtual PepIterator& operator++() throw (Exception::InvalidIterator))
+CHECK(virtual PepIterator& operator++())
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, ++(*ptr));
 	ptr->setFastaFile("data/TrypticIterator_test.fasta");
@@ -135,7 +135,7 @@ CHECK(virtual PepIterator& operator++() throw (Exception::InvalidIterator))
 	TEST_EQUAL ((*pepIt).second,(**ptr).second);
 RESULT
 
-CHECK(virtual PepIterator* operator++(int i) throw (Exception::InvalidIterator))
+CHECK(virtual PepIterator* operator++(int i))
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, (*ptr)++);
 	ptr->setFastaFile("data/TrypticIterator_test.fasta");
@@ -146,7 +146,7 @@ CHECK(virtual PepIterator* operator++(int i) throw (Exception::InvalidIterator))
 	TEST_EQUAL ((**pepIt).second,fe.second);
 RESULT
 
-CHECK(virtual bool begin() throw (Exception::InvalidIterator))
+CHECK(virtual bool begin())
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, (*ptr).begin());
 	ptr->setFastaFile("data/TrypticIterator_test.fasta");
@@ -169,24 +169,24 @@ CHECK(virtual bool isAtEnd())
 RESULT
 
 
-CHECK(virtual void setSpectrum(const std::vector< float > &) throw (Exception::InvalidValue, Exception::NotImplemented))
+CHECK(virtual void setSpectrum(const std::vector< float > &))
 	ptr = new TrypticIterator();
 	const std::vector<float> spec;
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).setSpectrum(spec));
 RESULT
 
-CHECK(virtual const std::vector<float>& getSpectrum() throw (Exception::InvalidValue, Exception::NotImplemented))
+CHECK(virtual const std::vector<float>& getSpectrum())
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).getSpectrum());
 RESULT
 
-CHECK(virtual void setTolerance(float) throw (Exception::InvalidValue, Exception::NotImplemented))
+CHECK(virtual void setTolerance(float))
 	ptr = new TrypticIterator();
 	float t = 0.5;
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).setTolerance(t));
 RESULT
 
-CHECK(virtual float getTolerance() throw (Exception::InvalidValue, Exception::NotImplemented))
+CHECK(virtual float getTolerance())
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).getTolerance());
 RESULT

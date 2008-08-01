@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -148,7 +148,7 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	}
 RESULT
 
-CHECK((void setOffset(double offset)))
+CHECK((void setOffset(CoordinateType offset)))
 	BiGaussModel bgm1;
 	
 	Param tmp;

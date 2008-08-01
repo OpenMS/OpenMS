@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -49,7 +49,7 @@ namespace OpenMS
 	{
 	}
 	
-  void UnimodXMLFile::load(const String& filename, vector<ResidueModification*>& modifications) const throw (Exception::FileNotFound, Exception::ParseError)
+  void UnimodXMLFile::load(const String& filename, vector<ResidueModification*>& modifications) const
   {
 		String file = File::find(filename);
 						

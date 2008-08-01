@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -54,6 +54,39 @@ CHECK(~EdwardsLippertIteratorTryptic())
 	delete ptr;
 RESULT
 
+CHECK(EdwardsLippertIteratorTryptic(const EdwardsLippertIteratorTryptic& rhs))
+  ptr = new EdwardsLippertIteratorTryptic();
+  ptr->setFastaFile("data/EdwardsLippertIterator_test_2.fasta");
+	vector<float> specc;
+	specc.push_back(178.1864);
+	specc.push_back(441.4806);
+  ptr->setSpectrum(specc);
+  ptr->begin();
+  ++*ptr;
+  EdwardsLippertIteratorTryptic copy (*ptr);
+  TEST_EQUAL ((*ptr).getFastaFile(),(copy).getFastaFile());
+  TEST_EQUAL ((*ptr).getTolerance(),(copy).getTolerance());
+  TEST_EQUAL ((**ptr).first,(*copy).first);
+  TEST_EQUAL ((**ptr).second,(*copy).second);
+RESULT
+
+CHECK(EdwardsLippertIteratorTryptic& operator=(const EdwardsLippertIteratorTryptic &rhs))
+	ptr = new EdwardsLippertIteratorTryptic();
+  ptr->setFastaFile("data/EdwardsLippertIterator_test_2.fasta");
+  vector<float> specc;
+  specc.push_back(178.1864);
+  specc.push_back(441.4806);
+  ptr->setSpectrum(specc);
+  ptr->begin();
+  ++*ptr;
+  EdwardsLippertIteratorTryptic copy;
+	copy = *ptr;
+  TEST_EQUAL ((*ptr).getFastaFile(),(copy).getFastaFile());
+  TEST_EQUAL ((*ptr).getTolerance(),(copy).getTolerance());
+  TEST_EQUAL ((**ptr).first,(*copy).first);
+  TEST_EQUAL ((**ptr).second,(*copy).second);				
+RESULT
+
 CHECK (virtual bool isDigestingEnd(char aa1,char aa2))
 	ptr = new EdwardsLippertIteratorTryptic();
 	TEST_EQUAL(ptr->isDigestingEnd('R','S'),1)
@@ -63,8 +96,7 @@ CHECK (virtual bool isDigestingEnd(char aa1,char aa2))
 	TEST_EQUAL(ptr->isDigestingEnd('S','S'),0)
 RESULT
 
-CHECK (FASTAEntry operator*())
-				/* TODO
+CHECK ([EXTRA] FASTAEntry operator*())
 	vector<float> spec;
 	spec.push_back(178.1864);
 	spec.push_back(441.4806);
@@ -77,35 +109,59 @@ CHECK (FASTAEntry operator*())
 	ptr->setSpectrum(specc);
 	fit->begin();
 	ptr->begin();
+	
 	float tol = 0.2;
 	ptr->setTolerance(tol);
+	
 	while (!ptr->isAtEnd())
 	{
-		while ((**fit).first != (**ptr).first) ++*fit;
+		while ((**fit).first != (**ptr).first) 
+		{
+			++*fit;
+		}
+		
 		String seq = (**ptr).second;
 		String realSeq = (**fit).second;
+		
 		bool isCorrect = false;
 		if (seq == realSeq.substr(0,seq.length()))
 		{
-			if (realSeq[seq.length()-1]=='R'||realSeq[seq.length()-1]=='K') isCorrect = true;
+			if (realSeq[seq.length() - 1] == 'R' || realSeq[seq.length() - 1] == 'K') isCorrect = true;
 		} 
-		else if (seq == realSeq.substr(realSeq.length()-seq.length()-1,seq.length()))
+		else if (seq == realSeq.substr(realSeq.length() - seq.length() - 1, seq.length()))
 		{
-			if (realSeq[realSeq.length()-seq.length()-2]=='R'||realSeq[realSeq.length()-seq.length()-2]=='K') isCorrect = true;
+			if (realSeq[realSeq.length() - seq.length()-2] == 'R' || realSeq[realSeq.length() - seq.length() - 2] == 'K') isCorrect = true;
 		} 
 		else 
 		{
-			for (unsigned int i = 1; i<realSeq.length()-1;++i)
+			for (unsigned int i = 1; i < realSeq.length() - 1; ++i)
 			{
-				if (realSeq.substr(i,seq.length())==seq)
+				if (realSeq.substr(i, seq.length()) == seq)
 				{
-					if ((realSeq[i-1]=='R'||realSeq[i-1]=='K')&&seq[0]!='P' && (seq[seq.length()-1]=='R'||seq[seq.length()-1]=='K') ) isCorrect=true;
+					if ((realSeq[i-1] == 'R' || realSeq[i-1] == 'K') && seq[0] != 'P' && (seq[seq.length() - 1] == 'R' || seq[seq.length() - 1] == 'K')) isCorrect = true;
 				}
 			}
 		}
-		TEST_EQUAL (isCorrect,1);
+		if (realSeq.hasSuffix(seq))
+		{
+			String suffix = realSeq.suffix(seq.size() + 1);
+			if ((suffix[0] == 'K' || suffix[0] == 'R') && seq[0] != 'P')
+			{
+				isCorrect = true;
+			}
+		}
+		
+		TEST_EQUAL (isCorrect, 1);
 		++*ptr;
-	}*/
+	}
+RESULT
+
+CHECK(static const String getProductName())
+	TEST_STRING_EQUAL(EdwardsLippertIteratorTryptic::getProductName(), "EdwardsLippertIteratorTryptic")
+RESULT
+			
+CHECK(static PepIterator* create())
+	TEST_NOT_EQUAL(EdwardsLippertIterator::create(), 0)
 RESULT
 
 /////////////////////////////////////////////////////////////

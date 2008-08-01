@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -71,7 +71,7 @@ RESULT
 
 SequestOutfile file;
 
-CHECK(void load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, std::vector< Real >& pvalues, const String& database="") throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument))
+CHECK(void load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, std::vector< Real >& pvalues, const String& database=""))
 	vector< PeptideIdentification > peptide_identifications;
 	ProteinIdentification protein_identification;
 	vector< Real > pvalues;
@@ -238,7 +238,7 @@ CHECK(bool getColumns(const String& line, vector< String >& substrings, UInt num
 	TEST_EQUAL((columns == substrings), true)
 RESULT
 
-CHECK(void getSequences(const String& database_filename, const map< String, UInt >& ac_position_map, vector< String >& sequences, vector< pair< String, UInt > >& found, map< String, UInt >& not_found) throw (Exception::FileNotFound))
+CHECK(void getSequences(const String& database_filename, const map< String, UInt >& ac_position_map, vector< String >& sequences, vector< pair< String, UInt > >& found, map< String, UInt >& not_found))
 	map< String, UInt > ac_position_map, not_found;
 	vector< String > sequences, found_sequences;
 	vector< pair< String, UInt > > found;
@@ -347,7 +347,7 @@ CHECK(void getACAndACType(String line, String& accession, String& accession_type
 	TEST_STRING_EQUAL(accession_type, "SwissProt")
 RESULT
 
-CHECK(void readOutHeader(const String& result_filename, DateTime& datetime, Real& precursor_mz_value, Int& charge, UInt& precursor_mass_type, UInt& ion_mass_type, UInt& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, UInt& number_of_columns) throw(Exception::FileNotFound, Exception::ParseError))
+CHECK(void readOutHeader(const String& result_filename, DateTime& datetime, Real& precursor_mz_value, Int& charge, UInt& precursor_mass_type, UInt& ion_mass_type, UInt& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, UInt& number_of_columns))
 	
 	String result_filename = "TOPP/tmp/Sequest.mzXML.13.1.d.out";
 	DateTime datetime;

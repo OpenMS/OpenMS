@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -84,7 +84,7 @@ CHECK(SpectrumAlignment& operator=(const SpectrumAlignment &source))
 
 RESULT
 		    
-CHECK(void getSpectrumAlignment(std::vector< std::pair< UInt, UInt > > &alignment, const PeakSpectrum &s1, const PeakSpectrum &s2) const)
+CHECK(template <typename SpectrumType> void getSpectrumAlignment(std::vector< std::pair< UInt, UInt > > &alignment, const SpectrumType &s1, const SpectrumType &s2) const)
 	PeakSpectrum s1, s2;
   DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
   DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s2);

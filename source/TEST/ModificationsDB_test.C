@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -39,7 +39,7 @@ START_TEST(ModificationsDB, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ModificationsDB* ptr = 0;
-CHECK(ModificationsDB())
+CHECK(ModificationsDB* getInstance())
 {
 	ptr = ModificationsDB::getInstance();
 	TEST_NOT_EQUAL(ptr, 0)
@@ -48,8 +48,70 @@ RESULT
 
 CHECK(UInt getNumberOfModifications() const)
 	// range because data may change over time
-	TEST_EQUAL(ptr->getNumberOfModifications() < 10000, true);
-	TEST_EQUAL(ptr->getNumberOfModifications() > 1000, true);
+	TEST_EQUAL(ptr->getNumberOfModifications() > 100, true);
+RESULT
+
+CHECK(const ResidueModification& getModification(UInt index) const)
+	TEST_EQUAL(ptr->getModification(0).getId().size() > 0, true)
+RESULT
+
+CHECK(std::set<String> searchModifications(const String &name) const)
+	set<String> mods = ptr->searchModifications("Phosphorylation");
+	TEST_EQUAL(mods.find("MOD:00046") != mods.end(), true)
+	TEST_EQUAL(mods.find("MOD:00047") != mods.end(), true)
+	TEST_EQUAL(mods.find("MOD:00048") != mods.end(), true)
+RESULT
+
+CHECK(const ResidueModification& getModification(const String &name) const)
+	TEST_EQUAL(ptr->getModification("Carboxymethyl Cystenyl").getId(), "MOD:01062")
+RESULT
+
+CHECK(const ResidueModification& getModification(const String &residue_name, const String &mod_name) const)
+	TEST_EQUAL(ptr->getModification("S", "Phosphorylation").getId(), "MOD:00046")
+RESULT
+
+CHECK(UInt findModificationIndex(const String &mod_name) const)
+	int index = -1;
+	index = ptr->findModificationIndex("MOD:00046");
+	TEST_NOT_EQUAL(index, -1)
+RESULT
+    
+CHECK(void getModificationsByDiffMonoMass(std::vector< String > &mods, double mass, double error=0.0))
+	vector<String> mods;
+	ptr->getModificationsByDiffMonoMass(mods, 80.0, 0.1);
+	set<String> uniq_mods;
+	for (vector<String>::const_iterator it = mods.begin(); it != mods.end(); ++it)
+	{
+		uniq_mods.insert(*it);
+	}
+
+	TEST_EQUAL(uniq_mods.find("MOD:00046") != uniq_mods.end(), true)
+	TEST_EQUAL(uniq_mods.find("MOD:00047") != uniq_mods.end(), true)
+	TEST_EQUAL(uniq_mods.find("MOD:00048") != uniq_mods.end(), true)
+	TEST_EQUAL(uniq_mods.find("MOD:00180") != uniq_mods.end(), true)
+RESULT
+
+CHECK(void getModificationsByDiffMonoMass(std::vector< String > &mods, const String &residue, double mass, double error=0.0))
+	vector<String> mods;
+	ptr->getModificationsByDiffMonoMass(mods, "S", 80.0, 0.1);
+	set<String> uniq_mods;
+	for (vector<String>::const_iterator it = mods.begin(); it != mods.end(); ++it)
+	{
+		uniq_mods.insert(*it);
+	}
+
+	TEST_EQUAL(uniq_mods.find("MOD:00046") != uniq_mods.end(), true)
+	TEST_EQUAL(uniq_mods.find("MOD:00366") != uniq_mods.end(), true)
+RESULT
+
+CHECK(void readFromOBOFile(const String &filename))
+	// implicitely tested above
+	NOT_TESTABLE
+RESULT
+
+CHECK(void readFromUnimodXMLFile(const String &filename))
+	// just provided for convenience at the moment
+	NOT_TESTABLE
 RESULT
 
 /////////////////////////////////////////////////////////////

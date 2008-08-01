@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -418,7 +418,7 @@ namespace OpenMS
 		defaults_.setValidStrings("preferences:legend",StringList::create("show,hide"));
     defaults_.setValue("preferences:intensity_cutoff", "off","Low intensity cutoff for maps.");
 		defaults_.setValidStrings("preferences:intensity_cutoff",StringList::create("on,off"));
-    defaults_.setValue("preferences:on_file_change","ask","What action to take, when a data file changes. Do nothing, update autmatically or aks the user.");
+    defaults_.setValue("preferences:on_file_change","ask","What action to take, when a data file changes. Do nothing, update automatically or ask the user.");
 		defaults_.setValidStrings("preferences:on_file_change",StringList::create("none,ask,update automatically"));
     //db
     defaults_.setValue("preferences:db:host", "localhost", "Database server host name.");

@@ -158,8 +158,6 @@ namespace OpenMS
 
 
   
-	//@}
-
 	enum ASCII
 	{
 		ASCII__BACKSPACE        = '\b',

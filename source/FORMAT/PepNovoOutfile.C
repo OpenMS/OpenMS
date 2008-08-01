@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -59,9 +59,6 @@ namespace OpenMS
 		ProteinIdentification& protein_identification,
 		const Real& p_value_threshold,
 		const map< String, Real >& dta_filenames_and_precursor_retention_times)
-	throw(
-		Exception::FileNotFound,
-		Exception::ParseError)
 	{
 		// generally used variables
 		vector< String > substrings;
@@ -200,8 +197,6 @@ namespace OpenMS
 	PepNovoOutfile::getSearchEngineAndVersion(
 		const String& pepnovo_output_without_parameters_filename,
 		ProteinIdentification& protein_identification)
-	throw (
-		Exception::FileNotFound)
 	{
 		ifstream pepnovo_output_without_parameters(pepnovo_output_without_parameters_filename.c_str());
 		if (!pepnovo_output_without_parameters)

@@ -1,5 +1,5 @@
-#ifndef COMPAREFOURIERTRANSFORM_H
-#define COMPAREFOURIERTRANSFORM_H
+#ifndef OPENMS_COMPARISON_SPECTRA_COMPAREFOURIERTRANSFORM_H
+#define OPENMS_COMPARISON_SPECTRA_COMPAREFOURIERTRANSFORM_H
 
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -24,6 +24,9 @@ namespace OpenMS
 		Only use this method of transformation, if you are sure there exists enough free memory. This is a fast estimation, but it only gives one or
 		zero back.
 		
+		@ref CompareFouriertransform_Parameters are explained on a separate page.
+		
+		@ingroup SpectraComparison
 		
 	*/
 	
@@ -53,7 +56,7 @@ namespace OpenMS
 				
 				This function only returns 0 for any given PeakSpectrum, please use the other compare operator function
 		
-		  	@param PeakSpectrum PeakSpectrum 
+				@param PeakSpectrum PeakSpectrum 
 		  */
 	    double operator () (const PeakSpectrum& )const;
 	    /**
@@ -99,6 +102,6 @@ namespace OpenMS
   };
 
 }
-#endif /*COMPAREFOURIERTRANSFORM_H*/
+#endif /*OPENMS_COMPARISON_SPECTRA_COMPAREFOURIERTRANSFORM_H*/
 
 

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -112,6 +112,9 @@ namespace OpenMS
 
 	void ModificationDefinitionsSet::setModifications(const String& fixed_modifications, const String& variable_modifications)
 	{
+		fixed_mods_.clear();
+		variable_mods_.clear();
+
 		if (fixed_modifications != "")
 		{
 			vector<String> split;

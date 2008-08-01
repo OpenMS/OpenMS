@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -37,12 +37,27 @@ namespace OpenMS
       area(area),
       r_value(0),
 			signal_to_noise(0),
-			left_endpoint(left),
-			right_endpoint(right),
-			type(type)
+			type(type),
+			left_endpoint_(left),
+			right_endpoint_(right)
   {
   }
 
+PeakShape::PeakShape(DoubleReal height, DoubleReal mz_position, DoubleReal left_width, DoubleReal right_width, DoubleReal area, Type type)
+		: height(height),
+      mz_position(mz_position),
+      left_width(left_width),
+      right_width(right_width),
+      area(area),
+      r_value(0),
+			signal_to_noise(0),
+			type(type)
+  {
+		left_endpoint_ = exp_.end();
+		right_endpoint_ = exp_.end();
+  }
+
+	
   PeakShape::PeakShape(const PeakShape& rhs)
 		: height(rhs.height),
       mz_position(rhs.mz_position),
@@ -51,10 +66,21 @@ namespace OpenMS
       area(rhs.area),
       r_value(rhs.r_value),
       signal_to_noise(rhs.signal_to_noise),
-			left_endpoint(rhs.left_endpoint),
-			right_endpoint(rhs.right_endpoint),
       type(rhs.type)
   {
+		if(rhs.iteratorsSet())
+			{
+				left_endpoint_ = rhs.getLeftEndpoint();
+				right_endpoint_ = rhs.getRightEndpoint();
+				left_iterator_set_ = true;
+				right_iterator_set_ = true;
+			}
+		else
+			{
+				left_endpoint_ = exp_.end();
+				right_endpoint_ = exp_.end();
+			}
+			
   }
 
   PeakShape& PeakShape::operator = (const PeakShape& rhs)
@@ -69,8 +95,18 @@ namespace OpenMS
     area=rhs.area;
     type=rhs.type;
     signal_to_noise = rhs.signal_to_noise;
-		left_endpoint = rhs.left_endpoint;
-    right_endpoint = rhs.right_endpoint;
+		if(rhs.iteratorsSet())
+			{
+				left_endpoint_ = rhs.getLeftEndpoint();
+				right_endpoint_ = rhs.getRightEndpoint();
+				left_iterator_set_ = true;
+				right_iterator_set_ = true;
+			}
+		else
+			{
+				left_endpoint_ = exp_.end();
+				right_endpoint_ = exp_.end();
+			}
     r_value=rhs.r_value;
 
     return *this;
@@ -86,8 +122,6 @@ namespace OpenMS
 			area==rhs.area && 
 			type==rhs.type && 
 			signal_to_noise == rhs.signal_to_noise && 
-			left_endpoint == rhs.left_endpoint &&
-			right_endpoint == rhs.right_endpoint && 
 			r_value==rhs.r_value;
 	}
 
@@ -101,8 +135,6 @@ namespace OpenMS
 			area!=rhs.area || 
 			type!=rhs.type || 
 			signal_to_noise != rhs.signal_to_noise || 
-			left_endpoint != rhs.left_endpoint ||
-			right_endpoint != rhs.right_endpoint || 
 			r_value!=rhs.r_value;
 	}
 
@@ -175,4 +207,33 @@ namespace OpenMS
 
     return value;
   }
+
+
+	bool PeakShape::iteratorsSet() const
+	{
+		if(left_iterator_set_ && right_iterator_set_) return true;
+		else return false;
+	}
+
+	PeakShape::PeakIterator PeakShape::getLeftEndpoint() const
+	{
+		return left_endpoint_;
+	}
+	void PeakShape::setLeftEndpoint(PeakShape::PeakIterator left_endpoint)
+	{
+		left_endpoint_=left_endpoint;
+		left_iterator_set_ = true;
+	}
+	PeakShape::PeakIterator PeakShape::getRightEndpoint() const
+	{
+		return right_endpoint_;
+	}
+
+	void PeakShape::setRightEndpoint(PeakShape::PeakIterator right_endpoint)
+	{
+		right_endpoint_=right_endpoint;
+		right_iterator_set_ = true;
+	}
+
+	
 }

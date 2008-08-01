@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -98,6 +98,8 @@ CHECK((virtual ExtendedIsotopeFitter1D& operator=(const  ExtendedIsotopeFitter1D
 RESULT
 
 CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
+	// dummy subtest
+	TEST_EQUAL(1,1)
 RESULT
 
 CHECK((Fitter1D* create()))

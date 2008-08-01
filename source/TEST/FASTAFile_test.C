@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -71,7 +71,7 @@ temp_entry.sequence = 		String("GDREQLLQRARLAEQAERYDDMASAMKAVTEL") +
 sequences.push_back(temp_entry);	
 
 
-CHECK((void load(const String& filename, FASTAType& data) throw(Exception::FileNotFound, Exception::ParseError)))
+CHECK((void load(const String& filename, std::vector< FASTAEntry > &data)))
 	vector<FASTAFile::FASTAEntry> data;
 	FASTAFile file;
 	
@@ -96,7 +96,7 @@ CHECK((void load(const String& filename, FASTAType& data) throw(Exception::FileN
 		String("LWTSENQGDEGDAGEGEN"))
 RESULT
 
-CHECK((void store(const String& filename, const FASTAType& data) const throw(Exception::UnableToCreateFile)))
+CHECK((void store(const String& filename, const std::vector< FASTAEntry > &data) const))
 	vector<FASTAFile::FASTAEntry> data, data2;
 	String tmp_filename;
 	NEW_TMP_FILE(tmp_filename);

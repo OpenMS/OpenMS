@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -59,11 +59,23 @@ namespace OpenMS
 			/// equality operator
 			bool operator==(const PepNovoInfile& pepnovo_infile) const;
 
-			/// stores the experiment data in a PepNovo input file that can be used as input for PepNovo shell execution
-			String store(const String& filename) throw (Exception::UnableToCreateFile);
+			/** stores the experiment data in a PepNovo input file that can be used as input for PepNovo shell execution
+					
+					@param filename the file which the input file is stored into
+					@throw Exception::UnableToCreateFile is thrown if the given file could not be created
+			*/
+			String store(const String& filename);
 
-			/// retrieves the name, mass change, affected residues, type and position for all modifications from a string
-			void handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic) throw (Exception::FileNotReadable, Exception::FileNotFound, Exception::ParseError);
+			/** retrieves the name, mass change, affected residues, type and position for all modifications from a string
+					
+					@param modification_line
+					@param modifications_filename
+					@param monoisotopic
+					@throw FileNotFound is thrown if the given file is not found
+					@throw FileNotReadable is thrown if the given file is not readable
+					@throw ParseError is throw if the given file could not be parsed
+			*/
+			void handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic);
 
 			/// return the modifications (the modification names map to the affected residues, the mass change and the type)
 			const std::map< String, std::vector< String > >& getModifications() const;

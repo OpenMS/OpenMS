@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -23,7 +23,6 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
@@ -117,122 +116,38 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
        }
 RESULT
 
-CHECK((template <typename InputSpectrumIterator, typename OutputPeakType, typename OutputAllocType> void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment< OutputPeakType, OutputAllocType > &ms_exp_filtered)))
-  MSExperiment<Peak1D > ms_exp_raw;
-  MSExperiment<Peak1D > ms_exp_filtered;
+CHECK((template <typename PeakType> void filterExperiment(MSExperiment<PeakType>& map)))
+  MSExperiment<Peak1D> exp;
+  exp.resize(4);
+	
+	Peak1D p;
+	for (int i=0; i<8; ++i)
+	{
+		p.setMZ(i);
+		p.setIntensity(0);
+		if (i>1 && i<5)
+		{
+			p.setIntensity(1);
+		}
+		exp[0].push_back(p);
+		exp[1].push_back(p);
+	}
+	exp[2].push_back(p);
+	
+	TopHatFilter tophat;
+	tophat.filterExperiment(exp);
+	
+	TEST_EQUAL(exp.size(),4);
+	TEST_EQUAL(exp[0].size(),8);
+	TEST_EQUAL(exp[1].size(),8);
+	TEST_EQUAL(exp[2].size(),0);
+	TEST_EQUAL(exp[3].size(),0);
 
-  DPeakArray<Peak2D > raw_data;
-  DPeakArray<Peak2D > filtered_data;
-
-    int i;
-    for (i=0; i<8; ++i)
-    {
-      Peak2D p;
-      DPosition<2> pos;
-      pos[0]=10.;
-      pos[1]=i;
-      if ( (1<i) && (i<5))
-        {
-          p.setIntensity(1);
-        }
-      else
-        {
-          p.setIntensity(0);
-        }
-      p.setPosition(pos);
-      raw_data.push_back(p);
-    }
-
-    ms_exp_raw.set2DData(raw_data);
-
-    TopHatFilter tophat;
-    tophat.filterExperiment(ms_exp_raw.begin(),ms_exp_raw.end(), ms_exp_filtered);
-
-    ms_exp_filtered.get2DData(filtered_data);
-    DPeakArray<Peak2D >::iterator it = filtered_data.begin();
-    for (int i=0; i<8; ++i)
-       {
-         TEST_REAL_EQUAL(it->getIntensity(), 0)
-       }
-RESULT
-
-
-
-CHECK((template <typename InputPeakType, typename InputAllocType, typename OutputPeakType, typename OutputAllocType> void filterExperiment(const MSExperiment< InputPeakType, InputAllocType > &ms_exp_raw, MSExperiment< OutputPeakType, OutputAllocType > &ms_exp_filtered)))
-  MSExperiment< Peak1D > ms_exp_raw;
-  MSExperiment< Peak1D > ms_exp_filtered;
-
-  DPeakArray<Peak2D > raw_data;
-  int i;
-  for (i=0; i < 8; ++i)
-  {
-    Peak2D p;
-    DPosition<2> pos;
-    pos[0]=10.;
-    pos[1]=i;
-    p.setPosition(pos);
-
-    if ( (1<i) && (i<5))
-    {
-      p.setIntensity(1);
-    }
-    else
-    {
-      p.setIntensity(0);
-    }
-    raw_data.push_back(p);
-  }
-  ms_exp_raw.set2DData(raw_data);
-
-  TopHatFilter tophat;
-  tophat.filterExperiment(ms_exp_raw, ms_exp_filtered);
-
-  DPeakArray<Peak2D> dpeak_arra_filtered;
-  ms_exp_filtered.get2DData(dpeak_arra_filtered);
-  DPeakArray<Peak2D>::iterator it = dpeak_arra_filtered.begin();
-  for (int i=0; i < 8; ++i)
-  {
-    TEST_REAL_EQUAL(it->getIntensity(), 0)
-   }
-RESULT
-
-CHECK((template <typename InputSpectrumIterator, typename OutputPeakType, typename OutputAllocType> void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment< OutputPeakType, OutputAllocType > &ms_exp_filtered)))
-  MSExperiment<Peak1D > ms_exp_raw;
-  MSExperiment<Peak1D > ms_exp_filtered;
-
-  DPeakArray<Peak2D > raw_data;
-  DPeakArray<Peak2D > filtered_data;
-
-    int i;
-    for (i=0; i<8; ++i)
-    {
-      Peak2D p;
-      DPosition<2> pos;
-      pos[0]=10.;
-      pos[1]=i;
-      if ( (1<i) && (i<5))
-        {
-          p.setIntensity(1);
-        }
-      else
-        {
-          p.setIntensity(0);
-        }
-      p.setPosition(pos);
-      raw_data.push_back(p);
-    }
-
-    ms_exp_raw.set2DData(raw_data);
-
-    TopHatFilter tophat;
-    tophat.filterExperiment(ms_exp_raw.begin(),ms_exp_raw.end(), ms_exp_filtered);
-
-    ms_exp_filtered.get2DData(filtered_data);
-    DPeakArray<Peak2D >::iterator it = filtered_data.begin();
-    for (int i=0; i<8; ++i)
-       {
-         TEST_REAL_EQUAL(it->getIntensity(), 0)
-       }
+	for (UInt i=0; i<exp[0].size(); ++i)
+	{
+		TEST_REAL_EQUAL(exp[0][i].getIntensity(), 0.0)
+		TEST_REAL_EQUAL(exp[1][i].getIntensity(), 0.0)
+	}
 RESULT
 
 /////////////////////////////////////////////////////////////

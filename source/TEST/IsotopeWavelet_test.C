@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -44,6 +44,13 @@ CHECK(static UInt getMaxCharge())
 	TEST_EQUAL(IsotopeWavelet::getMaxCharge(), 1)
 RESULT
 
+CHECK(static Int getGammaTableMaxIndex())
+	TEST_EQUAL(IsotopeWavelet::getGammaTableMaxIndex(), -1)
+RESULT
+
+CHECK(static Int getExpTableMaxIndex())
+	TEST_EQUAL(IsotopeWavelet::getExpTableMaxIndex(), -1)
+RESULT
 
 CHECK((static void setMaxCharge(const UInt max_charge))) 
 	IsotopeWavelet::setMaxCharge(3);
@@ -59,6 +66,10 @@ CHECK((static void setTableSteps(const DoubleReal table_steps)))
 	TEST_EQUAL(IsotopeWavelet::getTableSteps(), 0.0001)
 RESULT
 
+CHECK((static DoubleReal getInvTableSteps())) 
+	IsotopeWavelet::getInvTableSteps();
+	TEST_EQUAL(IsotopeWavelet::getInvTableSteps(), 10000)
+RESULT
 
 CHECK((static DoubleReal getLambdaL(const DoubleReal m)))
 	TEST_REAL_EQUAL(IsotopeWavelet::getLambdaL(1000), 0.69628)
@@ -111,6 +122,11 @@ CHECK((static DoubleReal getValueByLambdaExtrapol (const DoubleReal lambda, cons
 		PRECISION (1e-4)
 		TEST_REAL_EQUAL(v, 0)
 	};
+RESULT
+
+
+CHECK(static float myPow(float a, float b))
+	TEST_EQUAL (trunc(IsotopeWavelet::myPow(1.1, 3)*10), 13);
 RESULT
 
 

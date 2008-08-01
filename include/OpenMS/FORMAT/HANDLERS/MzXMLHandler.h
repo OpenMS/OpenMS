@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -318,7 +318,15 @@ namespace OpenMS
 			}
 			else if (tag=="precursorMz")
 			{
-				exp_->back().getPrecursorPeak().setIntensity( attributeAsDouble_(attributes, s_precursorintensity) );
+				try
+				{
+					exp_->back().getPrecursorPeak().setIntensity( attributeAsDouble_(attributes, s_precursorintensity) );
+				}
+				catch (Exception::ParseError& e)
+				{
+					std::cerr << "Error: MzXMLHandler: mandatory attribute precursorMz not found! Setting precursor intensity to 0; trying to continue;" << std::endl;
+					exp_->back().getPrecursorPeak().setIntensity(0.0);
+				}
 				
 				Int charge = 0;
 				optionalAttributeAsInt_(charge, attributes, s_precursorcharge);
@@ -379,7 +387,7 @@ namespace OpenMS
 				
 				//peak count == twice the scan size
 				peak_count_ = attributeAsInt_(attributes, s_peakscount);
-				exp_->back().getContainer().reserve(peak_count_);
+				exp_->back().reserve(peak_count_);
 				
 				//TODO centroided, chargeDeconvoluted, deisotoped are ignored.
 				//     Should we include them into our model?

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -106,8 +106,10 @@ namespace OpenMS
 					&& range->getMZ() <=it->getMZ()+mz_pair_dist/it->getCharge()+mz_dev)
 				{
 					
-					DoubleReal score =  PValue_(range->getMZ() - it->getMZ(), mz_pair_dist/it->getCharge(), mz_dev, mz_dev)
-														* PValue_(range->getRT() - it->getRT(), rt_pair_dist, rt_dev_low, rt_dev_high);
+					DoubleReal score = sqrt(
+															  PValue_(range->getMZ() - it->getMZ(), mz_pair_dist/it->getCharge(), mz_dev, mz_dev)
+															* PValue_(range->getRT() - it->getRT(), rt_pair_dist, rt_dev_low, rt_dev_high)
+														);
 					matches.push_back(ConsensusFeature(light_index,it->begin()->getElementIndex(),*it));
 					matches.back().insert(heavy_index,range->begin()->getElementIndex(),*range);
 					matches.back().setQuality(score);

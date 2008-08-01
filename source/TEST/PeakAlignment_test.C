@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -54,10 +54,9 @@ CHECK(~PeakAlignment())
 }
 RESULT
 
-ptr = new PeakAlignment();
-
 CHECK((PeakAlignment(const PeakAlignment &source)))
 {
+	ptr = new PeakAlignment();
 	PeakAlignment copy(*ptr);
 	TEST_EQUAL(copy.getName(), ptr->getName());
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters());
@@ -75,12 +74,13 @@ RESULT
 
 CHECK((double operator()(const PeakSpectrum &spec1, const PeakSpectrum &spec2) const ))
 {
-  PeakSpectrum s1, s2;
-  DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
-  DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s2);
-  s2.getContainer().pop_back();
-  double score = (*ptr)(s1, s2);
-  TEST_REAL_EQUAL(score, 0.997477)
+	PeakAlignment pa;
+	PeakSpectrum s1, s2;
+	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
+	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s2);
+	s2.getContainer().pop_back();
+	double score = pa(s1, s2);
+	TEST_REAL_EQUAL(score, 0.997477)
 }
 RESULT
 
@@ -95,7 +95,21 @@ RESULT
 
 CHECK((vector< pair<UInt,UInt> > getAlignmentTraceback(const PeakSpectrum &spec1, const PeakSpectrum &spec2) const ))
 {
-  // TODO
+	PeakAlignment pa;
+	PeakSpectrum s1, s2;
+	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
+	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s2);
+	vector< pair<UInt,UInt> > result, tester;
+	result = pa.getAlignmentTraceback(s1,s2);
+	for(UInt i = 0; i < 127; ++i)
+	{
+		tester.push_back(pair<UInt,UInt>(i,i));
+	}
+	TEST_EQUAL(tester.size(),result.size())
+	for(UInt i = 0; i < tester.size(); ++i)
+	{
+		TEST_EQUAL(tester.at(i).first,result.at(i).first)
+	}
 }
 RESULT
 

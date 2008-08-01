@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -49,7 +49,7 @@ const String text = "$AAARAA$ARARP$";
 
 SuffixArraySeqan* sa = new SuffixArraySeqan(text,"");
 
-CHECK(SuffixArraySeqan(const String &st, const String &sa_file_name) throw (Exception::InvalidValue, Exception::FileNotFound))
+CHECK(SuffixArraySeqan(const String &st, const String &filename))
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArraySeqan("A",""));
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArraySeqan("$A",""));
 	ptr = new SuffixArraySeqan("$","");
@@ -58,7 +58,7 @@ CHECK(SuffixArraySeqan(const String &st, const String &sa_file_name) throw (Exce
 RESULT
 
 CHECK(SuffixArraySeqan(const SuffixArraySeqan &source))
-        SuffixArraySeqan* sa_new = new SuffixArraySeqan(text,"");
+  SuffixArraySeqan* sa_new = new SuffixArraySeqan(text,"");
 	sa_new->setTolerance(0.1);
 	sa_new->setNumberOfModifications(1);
 	vector<String> tags;
@@ -71,17 +71,18 @@ CHECK(SuffixArraySeqan(const SuffixArraySeqan &source))
 	TEST_EQUAL (sa_new->getNumberOfModifications(),sa2.getNumberOfModifications());
 	TEST_EQUAL (sa_new->getUseTags(),sa2.getUseTags());
 	TEST_EQUAL (sa_new->getTags().size(),sa2.getTags().size());
-	for (unsigned int i = 0; i < sa2.getTags().size();++i){
+	for (unsigned int i = 0; i < sa2.getTags().size();++i)
+	{
 		TEST_EQUAL (sa_new->getTags().at(i),sa2.getTags().at(i));
 	}
 RESULT
 
 CHECK(~SuffixArraySeqan())
-        delete ptr;
+  delete ptr;
 RESULT
 
 CHECK(void printStatistic())
-
+	NOT_TESTABLE
 RESULT
 
 CHECK(bool isDigestingEnd(const char aa1, const char aa2) const )
@@ -100,7 +101,7 @@ CHECK(double getTolerance() const )
 	sa->setTolerance(0.5);
 RESULT
 
-CHECK(void setTolerance(double t) throw (Exception::InvalidValue))
+CHECK(void setTolerance(double t))
 	TEST_REAL_EQUAL (sa->getTolerance(),0.5);
 	sa->setTolerance(0.1);
 	TEST_REAL_EQUAL (sa->getTolerance(),0.1);
@@ -115,7 +116,10 @@ CHECK(unsigned int getNumberOfModifications ())
 RESULT
 
 CHECK(String toString())
-	
+	SuffixArraySeqan new_sa(text, "");
+	String sa_string = new_sa.toString();
+	// not implemented in this SA, hence string is empty
+	TEST_STRING_EQUAL(sa_string, "")
 RESULT
 
 CHECK(void setNumberOfModifications(unsigned int number_of_mods))
@@ -126,7 +130,7 @@ CHECK(void setNumberOfModifications(unsigned int number_of_mods))
 	TEST_EXCEPTION(Exception::InvalidValue,sa->setTolerance(-0.5));
 RESULT
 
-CHECK(void setTags(const std::vector< OpenMS::String > &tags) throw (OpenMS::Exception::InvalidValue))
+CHECK(void setTags(const std::vector< OpenMS::String > &tags))
 	SuffixArraySeqan * satc = new SuffixArraySeqan(text,"");
 	vector<String> tags;
 	tags.push_back("AAA");
@@ -183,19 +187,18 @@ CHECK(bool getUseTags())
 	TEST_EQUAL(satc->getUseTags(),0);
 RESULT
 
-CHECK(bool open(const String &file_name) throw (Exception::FileNotFound))
+CHECK(bool open(const String &filename))
 	TEST_EXCEPTION (Exception::FileNotFound,sa->open("FileThatNotExists"));
 	//needs no further testing because the functionality comes from seqan
 RESULT
 
-/*
-CHECK(bool save(const String &file_name) throw (Exception::UnableToCreateFile))
+
+CHECK(bool save(const String &filename))
 	TEST_EXCEPTION (Exception::UnableToCreateFile,sa->save("/usr/WhereIHaveNoRigths"));
 	//needs no further testing because the functionality comes from seqan
 RESULT
-*/
 
-CHECK((std::vector<std::vector<std::pair<std::pair<int,int>,float > > > findSpec(const std::vector< double > &spec) throw (Exception::InvalidValue)))
+CHECK((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >, float > > > &candidates, const std::vector< double > &spec)))
 	double masse[255];
 	ResidueDB* rdb = ResidueDB::getInstance();
 		

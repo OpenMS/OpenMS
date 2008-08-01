@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -57,7 +57,7 @@ RESULT
 
 ptr = new UnimodXMLFile();
 
-CHECK(void load(const String& filename, vector<ResidueModification*>& modifications) const throw(Exception::FileNotFound, Exception::ParseError))
+CHECK(void load(const String& filename, vector<ResidueModification*>& modifications) const)
 	vector<ResidueModification*> modifications;
 	ptr->load("CHEMISTRY/unimod.xml", modifications);
 

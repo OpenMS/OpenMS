@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -134,40 +134,28 @@ namespace OpenMS
 
 	bool AASequence::operator < (const AASequence& rhs) const
 	{
-		if (!valid_ && !rhs.valid_)
+		if (!valid_)
 		{
-			return sequence_string_ < rhs.sequence_string_;
-		}
-		if (!valid_ && rhs.valid_)
-		{
-			return false;
-		}
-
-		if (valid_ && !rhs.valid_)
-		{
-			return true;
-		}
-		if (valid_ && rhs.valid_)
-		{
-			ConstIterator rhs_it = rhs.begin(); 
-			for (ConstIterator it = begin(); it != end(); ++it)
+			if (!rhs.valid_)
 			{
-				if (rhs_it != rhs.end())
-				{
-					if (*rhs_it != *it)
-					{
-						return it->getOneLetterCode() < rhs_it->getOneLetterCode();
-					}
-				}
+				return sequence_string_ < rhs.sequence_string_;
 			}
-
-			// now difference found
-			if (size() < rhs.size())
+			else
 			{
-				return true;
+				return sequence_string_ < rhs.toString();
 			}
 		}
-		
+		else
+		{
+			if (!rhs.valid_)
+			{
+				return toString() < rhs.sequence_string_;
+			}
+			else
+			{
+				return toString() < rhs.toString();
+			}
+		}
 		return false;
 	}
 	
@@ -939,6 +927,11 @@ namespace OpenMS
 
 	void AASequence::setNTerminalModification(const String& modification)
 	{
+		if (modification == "")
+		{
+			n_term_mod_ = "";
+			return;
+		}
 		set<String> mods(ModificationsDB::getInstance()->searchModifications(modification));
 		if (mods.size() > 1)
 		{
@@ -951,12 +944,16 @@ namespace OpenMS
 			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, modification);
 		}
 		// TODO check term specificity
-		
 		n_term_mod_ = ModificationsDB::getInstance()->getModification(*mods.begin()).getId();
 	}
 
 	void AASequence::setCTerminalModification(const String& modification)
 	{
+		if (modification == "")
+		{
+			c_term_mod_ = "";
+			return;
+		}
 		set<String> mods = ModificationsDB::getInstance()->searchModifications(modification);
     if (mods.size() > 1)
     {
@@ -969,8 +966,6 @@ namespace OpenMS
 			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, modification);
     }
     // TODO check term specificity
-
-
 		c_term_mod_ = ModificationsDB::getInstance()->getModification(*mods.begin()).getId();
 	}
 

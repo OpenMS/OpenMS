@@ -1,10 +1,10 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -42,18 +42,18 @@ namespace OpenMS
 
   /**
 		@brief A two-dimensional distance matrix, similar to OpenMS::Matrix
-		
-		similar to OpenMS::Matrix, but contains only elements above the main diagonal, hence translating access with operator(,) 
-		for elements of lower triangular matrix to corresponing elements in upper triangular matrix and returning 0 for requested 
-		elements in the main diagonal, since selfdistance is assumed to be 0. Inherits OpenMS::SparseVector and is therefor optimal 
+
+		similar to OpenMS::Matrix, but contains only elements above the main diagonal, hence translating access with operator(,)
+		for elements of lower triangular matrix to corresponing elements in upper triangular matrix and returning 0 for requested
+		elements in the main diagonal, since selfdistance is assumed to be 0. Inherits OpenMS::SparseVector and is therefor optimal
 		for data with lots of redundant values. Keeps track of the minimal element in the Matrix with OpenMS::DistanceMatrix::min_element_
-		if only for setting a value OpenMS::DistanceMatrix::setValue is used. Other Matrix altering functions may require a maual update 
+		if only for setting a value OpenMS::DistanceMatrix::setValue is used. Other OpenMS::DistanceMatrix altering functions may require a maual update
 		by call of OpenMS::DistanceMatrix::updateMinElement
-	    
+
 		@ingroup Datastructures
   */
   template <typename Value>
-	class DistanceMatrix 
+	class DistanceMatrix
 		: SparseVector<Value>
 	{
 	 protected:
@@ -98,7 +98,11 @@ namespace OpenMS
 		typedef allocator_type AllocatorType;
 		//@}
 
-		/// constructor @param se the sparse element
+		/** @brief detailed constructor, discouraged unless made safe that filling element is same as sparse element
+
+			@param se the sparse element
+			@see OpenMS::SparseVector
+		*/
 		DistanceMatrix (Value se=1)
 			: Base(se),
 				dimensionsize_(0), min_element_(0)
@@ -106,14 +110,15 @@ namespace OpenMS
 		}
 
 		/** @brief detailed constructor, discouraged unless made safe that filling element is same as sparse element
-		
+
 			@param dimensionsize the number of rows (and therewith cols)
-			@param value Matrix will be filled with this element (main diagonal will still "hold" only zeros)
-			@param se the sparse element (@see OpenMS::SparseVector)
+			@param value DistanceMatrix will be filled with this element (main diagonal will still "hold" only zeros)
+			@param se the sparse element
+			@see OpenMS::SparseVector
 		*/
 		DistanceMatrix (SizeType dimensionsize, Value value = Value(), Value se=1)
 			: Base(((dimensionsize-1)*(dimensionsize))/2,value,se),
-				dimensionsize_(dimensionsize-1), 
+				dimensionsize_(dimensionsize-1),
 				min_element_(0)
 		{
 		}
@@ -121,7 +126,7 @@ namespace OpenMS
 		/// copy constructor
 		DistanceMatrix (const DistanceMatrix& source)
 			: Base(source),
-				dimensionsize_(source.dimensionsize_), 
+				dimensionsize_(source.dimensionsize_),
 				min_element_(source.min_element_)
 		{
 		}
@@ -130,21 +135,21 @@ namespace OpenMS
 		DistanceMatrix& operator= (const DistanceMatrix& rhs)
 		{
 			Base::operator= (rhs);
-			
+
 			dimensionsize_ = rhs.dimensionsize_;
 			min_element_ = rhs.min_element_;
-			
+
 			return *this;
 		}
-		
+
 		/// destructor
-		~DistanceMatrix() 
+		~DistanceMatrix()
 		{
 		}
 
 		/** @brief gets a value at a given position:
-			
-			@param i the i-th row 
+
+			@param i the i-th row
 			@param j the j-th col
 		*/
 		const value_type operator() (size_type const i, size_type const j) const
@@ -152,8 +157,8 @@ namespace OpenMS
 			return getValue(i,j);
 		}
 
-		/** @brief gets a value at a given position: 
-			
+		/** @brief gets a value at a given position:
+
 			@param i the i-th row
 			@param j the j-th col
 		*/
@@ -162,8 +167,8 @@ namespace OpenMS
 			return getValue(i,j);
 		}
 
-		/** @brief gets a value at a given position: 
-			
+		/** @brief gets a value at a given position:
+
 			@param i the i-th row
 			@param j the j-th col
 		*/
@@ -177,8 +182,8 @@ namespace OpenMS
 			return Base::at(index(i,j));
 		}
 
-		/** @brief gets a value at a given position: 
-			
+		/** @brief gets a value at a given position:
+
 			@param i the i-th row
 			@param j the j-th col
 		*/
@@ -191,9 +196,9 @@ namespace OpenMS
 			}
 			return Base::at(index(i,j));
 		}
-		
-		/** @brief sets a value at a given position: 
-			
+
+		/** @brief sets a value at a given position:
+
 			@param i the i-th row
 			@param j the j-th col
 			@param value the set-value
@@ -203,12 +208,12 @@ namespace OpenMS
 			// elements on main diagonal are not stored and assumed to be 0
 			if(i!=j)
 			{
-				UInt pos = index(i,j); 
-				
+				UInt pos = index(i,j);
+
 				//this is for keeping min_element_ position in underlying SparseVector up to date
 				if(value < Base::at(min_element_))
 				{
-					Base::operator[](pos) = value; 
+					Base::operator[](pos) = value;
 					min_element_ = pos;
 				}
 				else // value >=
@@ -216,7 +221,7 @@ namespace OpenMS
 					//same as min_element, but maybe at a earlier position
 					if(value == Base::at(min_element_))
 					{
-						Base::operator[](pos) = value; 
+						Base::operator[](pos) = value;
 						min_element_ = std::min(min_element_,pos);
 					}
 					else // value >
@@ -225,19 +230,19 @@ namespace OpenMS
 						//overwriting min_element_
 						if (pos == min_element_)
 						{
-							updateMinElement();	
+							updateMinElement();
 						}
 					}
 				}
 			}
 		}
 
-		/** @brief sets a value at a given position: 
-			
+		/** @brief sets a value at a given position:
+
 			@param i the i-th row
 			@param j the j-th col
 			@param value the set-value
-			
+
 			possible invalidation of min_element_ - make sure to update before further usage of matrix
 		*/
 		void setValueQuick(size_type const i, size_type const j, value_type value)
@@ -245,7 +250,7 @@ namespace OpenMS
 			// elements on main diagonal are not stored and assumed to be 0
 			if(i!=j)
 			{
-				UInt pos = index(i,j); 
+				UInt pos = index(i,j);
 				Base::operator[](pos) = value;
 			}
 		}
@@ -262,7 +267,7 @@ namespace OpenMS
 		Base::rend;
 		//@}
 
-		/// reset all (except allocated mem.)
+		/// reset all
 		void clear()
 		{
 			Base::clear();
@@ -270,10 +275,14 @@ namespace OpenMS
 			min_element_ = 0;
 		}
 
-		/// resizing the container (invalidates content)
-		void resize(size_type i) throw (Exception::OutOfRange)
+		/** @brief resizing the container (invalidates content)
+
+			@param i the desired number of rows (and therewith cols)
+			@throw Exception::OutOfRange thrown if DistanceMatrix is requseted to be made smaller than 1
+		*/
+		void resize(size_type i)
 		{
-			if (i <= 1) 
+			if (i <= 1)
 			{
 				throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 			}
@@ -284,11 +293,15 @@ namespace OpenMS
 				updateMinElement();
 			}
 		}
-		
-		/// reduces triangular matrix by one dimension. first the jth row, then jth column - invalidates min_element_ - make sure to update before used @param j j-th row/col to be reduced
+
+		///
+		/** @brief reduces DistanceMatrix by one dimension. first the jth row, then jth column - invalidates min_element_ - make sure to update before used
+
+			@param j the jth row (and therewith col) to be removed
+		*/
 		void reduce(size_type j)
 		{
-			//behind last element in row j 
+			//behind last element in row j
 			UInt x = index(j,dimensionsize_);
 		 	if(j!=dimensionsize_)
 		  {
@@ -308,15 +321,18 @@ namespace OpenMS
 	  	}
 			--dimensionsize_;
 		}
-			
+
 		/// gives the number of rows (i.e. number of columns)
 		SizeType dimensionsize() const
 		{
 			return dimensionsize_+1;
 		}
-		
-		/// keep track of the actual minimum element after altering the matrix
-		void updateMinElement() throw (Exception::OutOfRange)
+
+		/** @brief keep track of the actual minimum element after altering the matrix
+
+			@throw Exception::OutOfRange thrown if there is no element to access
+		*/
+		void updateMinElement()
 		{
   		iterator pos = Base::getMinElement();
   		if(pos==Base::end())
@@ -324,10 +340,13 @@ namespace OpenMS
 	    	throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
   		}
   		min_element_ = pos.position();
-		}	
-				
-		/// Indexpair of minimal element
-		std::pair<UInt,UInt> getMinElementCoordinates() const throw(Exception::IndexOverflow)
+		}
+
+		/** @brief Indexpair of minimal element
+
+			@throw Exception::IndexOverflow thrown if there is no element to access
+		*/
+		std::pair<UInt,UInt> getMinElementCoordinates() const
 		{
 			if ( Base::size() == 0 ) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 			return indexPair(min_element_);
@@ -351,7 +370,7 @@ namespace OpenMS
 			}
 		}
 
-	
+
 		/// Calculate the row and column from an index into the underlying vector. Note that Matrix uses the (row,column) lexicographic ordering for indexing.
 		std::pair<UInt,UInt> const indexPair(UInt index) const
 		{
@@ -361,12 +380,12 @@ namespace OpenMS
 			//index counting from 0, formula from 1!
 			//rowindex: ceiling[dimensionsize_ + 0,5 -sqrt(dimensionsize_² + dimensionsize_ + 0,25-2*index+1)]
 			//colindex: index - (rowindex-1 * (dimensionsize_ -(rowindex-1)/2))
-			double row_index = ceil( 
-						dimensionsize_ + 0.5 - sqrt( 
-										(dimensionsize_*dimensionsize_) + dimensionsize_ + 0.25 - (2 * double(index+1) ) 
-										) 
+			double row_index = ceil(
+						dimensionsize_ + 0.5 - sqrt(
+										(dimensionsize_*dimensionsize_) + dimensionsize_ + 0.25 - (2 * double(index+1) )
+										)
 						);
-			
+
 			double col_index = (index+1) - ((row_index-1) * (dimensionsize_ - (row_index)/2 ) );
 
 			//(i,j) -> (i,j+1)
@@ -375,8 +394,8 @@ namespace OpenMS
 
 
 		/**@brief Equality comparator.
-		
-			If matrices have different row or column numbers, throws a precondition exception.
+
+			@throw Exception::Precondition thrown if given DistanceMatrix is not compatible in size
 		*/
 		bool operator== ( DistanceMatrix<Value> const & rhs ) const
 			throw (Exception::Precondition)
@@ -387,7 +406,7 @@ namespace OpenMS
 
 		/**@brief less-than comparator.  Comparison is done lexicographically: first by row, then by column.
 
-			If matrices have different row or column numbers, throws a precondition exception.
+			@throw Exception::Precondition thrown if given DistanceMatrix is not compatible in size
 		*/
 		bool operator< (DistanceMatrix<Value> const & rhs) const
 			throw (Exception::Precondition)

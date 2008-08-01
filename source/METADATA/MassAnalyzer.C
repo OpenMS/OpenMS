@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -31,14 +31,21 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string MassAnalyzer::NamesOfAnalyzerType[] = {"Unknown","QUADRUPOLE","PAULIONTRAP","RADIALEJECTIONLINEARIONTRAP","AXIALEJECTIONLINEARIONTRAP","TOF","SECTOR","FOURIERTRANSFORM","IONSTORAGE"};
-	const std::string MassAnalyzer::NamesOfResolutionMethod[] = {"Unknown","FWHM","TENPERCENTVALLEY","BASELINE"};
-	const std::string MassAnalyzer::NamesOfResolutionType[] = {"Unknown","CONSTANT","PROPORTIONAL"};
-	const std::string MassAnalyzer::NamesOfScanFunction[] = {"Unknown","SELECTEDIONDETECTION","MASSSCAN"};
-	const std::string MassAnalyzer::NamesOfScanDirection[] = {"Unknown","UP","DOWN"};
-	const std::string MassAnalyzer::NamesOfScanLaw[] = {"Unknown","EXPONENTIAL","LINEAR","QUADRATIC"};
-	const std::string MassAnalyzer::NamesOfTandemScanningMethod[] = {"Unknown","PRODUCTIONSCAN","PRECURSORIONSCAN","CONSTANTNEUTRALLOSS","SINGLEREACTIONMONITORING","MULTIPLEREACTIONMONITORING","SINGLEIONMONITORING","MULTIPLEIONMONITORING"};
-	const std::string MassAnalyzer::NamesOfReflectronState[] = {"Unknown","ON","OFF","NONE"};
+	const std::string MassAnalyzer::NamesOfAnalyzerType[] = {"Unknown","Quadrupole","Quadrupole ion trap","Radial ejection linear ion trap","Axial ejection linear ion trap","Time-of-flight","Magnetic sector","Fourier transform ion cyclotron resonance mass spectrometer","Ion storage","Electrostatic energy analyzer","Ion trap","Stored waveform inverse fourier transform","Cyclotron","Orbitrap","Linear ion trap"};
+
+	const std::string MassAnalyzer::NamesOfResolutionMethod[] = {"Unknown","Full width at half max","Ten percent valley","Baseline"};
+
+	const std::string MassAnalyzer::NamesOfResolutionType[] = {"Unknown","Constant","Proportional"};
+
+	const std::string MassAnalyzer::NamesOfScanFunction[] = {"Unknown","Selected ion detection","Mass scan"};
+
+	const std::string MassAnalyzer::NamesOfScanDirection[] = {"Unknown","Up","Down"};
+
+	const std::string MassAnalyzer::NamesOfScanLaw[] = {"Unknown","Exponential","Linar","Quadratic"};
+
+	const std::string MassAnalyzer::NamesOfTandemScanningMethod[] = {"Unknown","Product ion scan","Precursor ion scan","Constant neutral loss","Single reaction monitoring","Multiple reaction monitoring","Single ion monitoring","Multiple ion monitoring"};
+
+	const std::string MassAnalyzer::NamesOfReflectronState[] = {"Unknown","On","Off","None"};
 	
 	MassAnalyzer::MassAnalyzer():
 		MetaInfoInterface(),

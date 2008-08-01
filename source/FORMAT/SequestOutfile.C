@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -52,19 +52,13 @@ namespace OpenMS
 		return true;
 	}
 	
-	void
-	SequestOutfile::load(
-		const String& result_filename,
+	void SequestOutfile::load(const String& result_filename,
 		vector<PeptideIdentification>& peptide_identifications,
 		ProteinIdentification& protein_identification,
 		const Real p_value_threshold,
 		vector<Real>& pvalues,
 		const String& database)
-	throw(
-		Exception::FileNotFound,
-		Exception::ParseError,
-		Exception::IllegalArgument)
-  {
+	{
 		// check whether the p_value is correct
 		if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
 		{
@@ -362,9 +356,7 @@ namespace OpenMS
 		vector<String>& sequences,
 		vector<pair<String, UInt> >& found,
 		map<String, UInt>& not_found)
-	throw (
-		Exception::FileNotFound)
-	{
+	{	
 		ifstream database_file(database_filename.c_str());
 		if ( !database_file )
 		{
@@ -564,7 +556,6 @@ namespace OpenMS
 		Int& peptide_column,
 		Int& score_column,
 		UInt& number_of_columns)
-	throw(Exception::FileNotFound, Exception::ParseError)
 	{
 		charge = 0;
 		precursor_mz_value = 0.0;

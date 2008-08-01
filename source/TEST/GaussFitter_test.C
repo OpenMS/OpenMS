@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -46,51 +46,121 @@ CHECK(GaussFitter())
 }
 RESULT
 
-CHECK(~GaussFitter())
+CHECK((GaussFitter(const GaussFitter & rhs)))
 {
-	delete ptr;
-}
-RESULT
-
-CHECK((GaussFitter(const GaussFitter &)))
-{
-  // TODO
+  GaussFitter::GaussFitResult result;
+	result.A = 0.3;
+	result.x0 = 0.4;
+	result.sigma = 0.7;
+	GaussFitter g1;
+	g1.setInitialParameters(result);
+	GaussFitter g2(g1);
+	TEST_REAL_EQUAL(g1.getInitialParameters().A, result.A)
+	TEST_REAL_EQUAL(g1.getInitialParameters().x0, result.x0)
+	TEST_REAL_EQUAL(g1.getInitialParameters().sigma, result.sigma)
+	TEST_REAL_EQUAL(g1.getInitialParameters().A, g2.getInitialParameters().A)
+	TEST_REAL_EQUAL(g1.getInitialParameters().x0, g2.getInitialParameters().x0)
+	TEST_REAL_EQUAL(g1.getInitialParameters().sigma, g2.getInitialParameters().sigma)
 }
 RESULT
 
 CHECK((virtual ~GaussFitter()))
 {
-  // TODO
+  delete ptr;
+	NOT_TESTABLE
 }
 RESULT
 
-CHECK((GaussFitter& operator=(const GaussFitter &)))
+CHECK((GaussFitter& operator=(const GaussFitter & rhs)))
 {
-  // TODO
+  GaussFitter::GaussFitResult result;
+  result.A = 0.3;
+  result.x0 = 0.7;
+	result.sigma = 0.9;
+  GaussFitter f1;
+  f1.setInitialParameters(result);
+  GaussFitter f2;
+  f2 = f1;
+
+	TEST_REAL_EQUAL(f1.getInitialParameters().A, result.A)
+  TEST_REAL_EQUAL(f1.getInitialParameters().x0, result.x0)
+	TEST_REAL_EQUAL(f1.getInitialParameters().sigma, result.sigma)
+  
+	TEST_REAL_EQUAL(f2.getInitialParameters().A, result.A)
+  TEST_REAL_EQUAL(f2.getInitialParameters().x0, result.x0)
+	TEST_REAL_EQUAL(f2.getInitialParameters().sigma, result.sigma)
+	
+  TEST_REAL_EQUAL(f1.getInitialParameters().A, f2.getInitialParameters().A)
+  TEST_REAL_EQUAL(f1.getInitialParameters().x0, f2.getInitialParameters().x0)
+	TEST_REAL_EQUAL(f1.getInitialParameters().sigma, f2.getInitialParameters().sigma)
 }
 RESULT
 
-CHECK((GaussFitResult fit(std::vector< DPosition< 2 > > &)))
+CHECK((GaussFitResult fit(std::vector< DPosition< 2 > >& points)))
 {
-  // TODO
+  DPosition<2> pos;
+	pos.setX(0.0);
+	pos.setY(0.01);
+	vector<DPosition<2> > points;
+	points.push_back(pos);
+	pos.setX(0.05);
+	pos.setY(0.2);
+	points.push_back(pos);
+	pos.setX(0.16);
+	pos.setY(0.63);
+	points.push_back(pos);
+	pos.setX(0.28);
+	pos.setY(0.99);
+	points.push_back(pos);
+	pos.setX(0.66);
+	pos.setY(0.03);
+	points.push_back(pos);
+	pos.setX(0.50);
+	pos.setY(0.36);
+	points.push_back(pos);
+	
+	ptr = new GaussFitter;
+	GaussFitter::GaussFitResult result = ptr->fit(points);
+
+	PRECISION(0.1)
+	TEST_REAL_EQUAL(result.A, 1.0)
+	TEST_REAL_EQUAL(result.x0, 0.3)
+	TEST_REAL_EQUAL(result.sigma, 0.2)
 }
 RESULT
 
 CHECK((const GaussFitResult& getInitialParameters() const ))
 {
-  // TODO
+  NOT_TESTABLE // tested above
 }
 RESULT
 
-CHECK((void setInitialParameters(const GaussFitResult &)))
+CHECK((void setInitialParameters(const GaussFitResult& result)))
 {
-  // TODO
+  GaussFitter f1;
+  GaussFitter::GaussFitResult result = f1.getInitialParameters();
+  TEST_REAL_EQUAL(result.A, 0.06)
+  TEST_REAL_EQUAL(result.x0, 3.0)
+	TEST_REAL_EQUAL(result.sigma, 0.5)
+  result.A = 0.15;
+  result.x0 = 0.24;
+	result.sigma = 0.35;
+  f1.setInitialParameters(result);
+
+  TEST_REAL_EQUAL(f1.getInitialParameters().A, 0.15)
+  TEST_REAL_EQUAL(f1.getInitialParameters().x0, 0.24)
+	TEST_REAL_EQUAL(f1.getInitialParameters().sigma, 0.35)
 }
 RESULT
 
 CHECK((const String& getGnuplotFormula() const ))
 {
-  // TODO
+  String formula = ptr->getGnuplotFormula();
+	// f(x)=1.01775 * exp(-(x - 0.300549) ** 2 / 2 / (0.136341) ** 2
+	TEST_EQUAL(formula.hasSubstring("f(x)="), true)
+	TEST_EQUAL(formula.hasSubstring(" * exp(-(x - 0.3"), true)
+	TEST_EQUAL(formula.hasSubstring(") ** 2 / 2 / (0.1"), true)
+	TEST_EQUAL(formula.hasSubstring(") ** 2"), true)
 }
 RESULT
 

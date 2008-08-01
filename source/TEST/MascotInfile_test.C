@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -284,7 +284,7 @@ CHECK((void store(const String &filename, const MSExperiment<> &experiment, Stri
 	remove("MascotInfile_test.txt");
 RESULT
 
-CHECK(template <typename MapType> void load(const String &filename, MapType &map) throw (Exception::FileNotFound, Exception::ParseError))
+CHECK(template <typename MapType> void load(const String &filename, MapType &exp))
 	MascotInfile infile;
 	MSExperiment<> experiment;
 	MSExperiment<>::SpectrumType spectrum;

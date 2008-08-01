@@ -4,7 +4,7 @@
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -70,28 +70,28 @@ namespace OpenMS
 		/// Acceptable relative error (a number >= 1.0)
 		const double & getAcceptableRelative() const
 		{
-			return ratio_max_allowed;
+			return ratio_max__allowed_;
 		}
 
 		/// Acceptable relative error (a number >= 1.0)
 		void setAcceptableRelative(const double rhs)
 		{
-			this->ratio_max_allowed = rhs;
-			if ( ratio_max_allowed < 1.0 ) ratio_max_allowed = 1/ratio_max_allowed;
+			this->ratio_max__allowed_ = rhs;
+			if ( ratio_max__allowed_ < 1.0 ) ratio_max__allowed_ = 1/ratio_max__allowed_;
 
 		}
 
 		/// Acceptable absolute difference (a number >= 0.0)
 		const double & getAcceptableAbsolute() const
 		{
-			return absdiff_max_allowed;
+			return absdiff_max__allowed_;
 		}
 
 		/// Acceptable absolute difference (a number >= 0.0)
 		void setAcceptableAbsolute(const double rhs)
 		{
-			this->absdiff_max_allowed = rhs;
-			if ( absdiff_max_allowed < 0.0 ) absdiff_max_allowed = -absdiff_max_allowed;
+			this->absdiff_max__allowed_ = rhs;
+			if ( absdiff_max__allowed_ < 0.0 ) absdiff_max__allowed_ = -absdiff_max__allowed_;
 		}
 
 		/**@brief verbose level
@@ -104,7 +104,7 @@ namespace OpenMS
 		*/
 		const int & getVerboseLevel() const
 		{
-			return verbose_level;
+			return verbose_level_;
 		}
 
 		/**@brief verbose level
@@ -117,35 +117,35 @@ namespace OpenMS
 		*/
 		void setVerboseLevel(const int rhs)
 		{
-			this->verbose_level = rhs;
+			this->verbose_level_ = rhs;
 		}
 
 		/**@brief get tab width (for column numbers)
 		*/
 		const int & getTabWidth() const
 		{
-			return tab_width;
+			return tab_width_;
 		}
 
 		/**@brief set tab width (for column numbers)
 		*/
 		void setTabWidth(const int rhs)
 		{
-			this->tab_width = rhs;
+			this->tab_width_ = rhs;
 		}
 
 		/**@brief get first column (for column numbers)
 		*/
 		const int & getFirstColumn() const
 		{
-			return first_column;
+			return first_column_;
 		}
 
 		/**@brief set first column (for column numbers)
 		*/
 		void setFirstColumn(const int rhs)
 		{
-			this->first_column = rhs;
+			this->first_column_ = rhs;
 		}
 
 		/**@brief Log output is written to this destination.
@@ -162,6 +162,12 @@ namespace OpenMS
 
 		The default is std::cout.  Use std::ostringstream etc. to save the output
 		in a string.
+		
+		@todo: default for log destination should be std::cout, but strangely this
+		doesn't work with Windows, thus I commented out the first subtest. Maybe a
+		problem with static initializers? (see FuzzyStringComparator_test.C:
+		TEST_EQUAL(fsc.getLogDestination(),std::cout); ) (Clemens, 2008-03-28)
+
 		*/
 		void setLogDestination(std::ostream & rhs)
 		{
@@ -174,7 +180,7 @@ namespace OpenMS
 
 		returns true in case of success
 		*/
-		bool compare_strings( std::string const & lhs, std::string const & rhs );
+		bool compareStrings( std::string const & lhs, std::string const & rhs );
 		
 		/**@brief Compare two streams of input.
 		
@@ -183,7 +189,7 @@ namespace OpenMS
 
 		returns true in case of success
 		*/
-		bool compare_streams( std::istream & input_1, std::istream & input_2 );
+		bool compareStreams( std::istream & input_1, std::istream & input_2 );
 		
 		/**@brief Simple diff-like application to compare two input files.
 		Numeric differences are tolerated up to a certain ratio or absolute
@@ -196,7 +202,7 @@ namespace OpenMS
 
 		@sa acceptable_ratio
 		@sa acceptable_absdiff
-		@sa verbose_level
+		@sa verbose_level_
 		*/
 		bool compare_files( const std::string & filename_1, const std::string & filename_2);
 
@@ -209,71 +215,71 @@ namespace OpenMS
 
 		returns true in case of success
 		*/
-		bool compare_lines_( std::string const & line_str_1,
+		bool compareLines_( std::string const & line_str_1,
 												 std::string const & line_str_2
 											 );
 
 		/// Report good news.
- 		void report_success_() const;
+ 		void reportSuccess_() const;
 
 		/// Report bad news.
- 		void report_failure_( char const * const message ) const throw(AbortComparison);
+ 		void reportFailure_( char const * const message ) const throw(AbortComparison);
 
     /// Log and results output goes here
 		std::ostream * log_dest_;
 
 		/// input_1 name
-		std::string input_1_name;
+		std::string input_1_name_;
 		/// input_2 name
-		std::string input_2_name;
+		std::string input_2_name_;
 
-		std::stringstream line_1;
-		std::stringstream line_2;
+		std::stringstream line_1_;
+		std::stringstream line_2_;
 
-		std::ios::pos_type line_1_pos;
-		std::ios::pos_type line_2_pos;
+		std::ios::pos_type line_1__pos_;
+		std::ios::pos_type line_2__pos_;
 
 		/// Maximum ratio of numbers allowed
-		double ratio_max_allowed;
+		double ratio_max__allowed_;
 
 		/// Maximum ratio of numbers observed so far
-		double ratio_max;
+		double ratio_max_;
 
 		/// Maximum absolute difference of numbers allowed
-		double absdiff_max_allowed;
+		double absdiff_max__allowed_;
 
 		/// Maximum difference of numbers observed so far
-		double absdiff_max;
+		double absdiff_max_;
 
-		double number_1;
-		char letter_1;
-		bool is_number_1;
-		bool is_space_1;
+		double number_1_;
+		char letter_1_;
+		bool is_number_1_;
+		bool is_space_1_;
 
-		double number_2;
-		char letter_2;
-		bool is_number_2;
-		bool is_space_2;
+		double number_2_;
+		char letter_2_;
+		bool is_number_2_;
+		bool is_space_2_;
 
-		bool is_absdiff_small; 
+		bool is_absdiff_small_; 
 
-		int line_num_1;
-		int line_num_2;
+		int line_num_1_;
+		int line_num_2_;
 
-		int line_num_1_max;
-		int line_num_2_max;
+		int line_num_1__max_;
+		int line_num_2__max_;
 
-		int verbose_level;
-		int tab_width;
-		int first_column;
+		int verbose_level_;
+		int tab_width_;
+		int first_column_;
 		
 		/**@brief Has comparison been sucessful so far?  Note: this flag is
-		changed in report_failure_();
+		changed in reportFailure_();
 		*/
-		bool is_status_success;
+		bool is_status_success_;
 
-		std::string line_str_1_max;
-		std::string line_str_2_max;
+		std::string line_str_1_max_;
+		std::string line_str_2_max_;
 
 	}; // class FuzzyStringComparator
 

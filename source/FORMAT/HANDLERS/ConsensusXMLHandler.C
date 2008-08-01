@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -185,8 +185,14 @@ namespace OpenMS
 
     void ConsensusXMLHandler::writeTo(std::ostream& os)
     {
-      os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
-      << "<consensusXML version=\"" << version_ << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_2.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+      os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
+    	//add XSLT file if it can be found
+			String xslt_file =  File::find("XSL/ConsensusXML.xsl");
+			if (xslt_file!="")
+			{
+				os << "<?xml-stylesheet type=\"text/xsl\" href=\"file:///" << xslt_file << "\"?>\n";
+			}
+      os << "<consensusXML version=\"" << version_ << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_2.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
       const ConsensusMap::FileDescriptions& description_vector = consensus_map_->getFileDescriptions();
       os << "\t<mapList count=\"" << description_vector.size() << "\">\n";

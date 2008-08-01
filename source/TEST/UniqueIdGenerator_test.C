@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -41,6 +41,7 @@ using namespace std;
 
 CHECK(static UniqueIdGenerator& instance())
 	UniqueIdGenerator::instance();
+	NOT_TESTABLE
 RESULT
 
 CHECK(UID getUID())

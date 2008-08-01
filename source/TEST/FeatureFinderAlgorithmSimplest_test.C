@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -51,6 +51,8 @@ CHECK(FeatureFinderAlgorithmSimplest())
 RESULT
 
 CHECK(virtual void run())
+	// dummy subtest
+	TEST_EQUAL(1,1)
 RESULT
 
 CHECK((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
@@ -61,6 +63,13 @@ RESULT
 
 CHECK(static const String getProductName())
 	TEST_EQUAL(FFAS::getProductName(),"simplest")
+RESULT
+
+CHECK((virtual Param getDefaultParameters() const))
+{
+  // dummy subtest
+	TEST_EQUAL(1,1)
+}
 RESULT
 
 //remove log file

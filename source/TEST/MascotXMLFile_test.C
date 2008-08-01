@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -64,7 +64,7 @@ CHECK((MascotXMLFile()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, std::map<String, vector<AASequence> >& peptides =  std::map<String, vector<AASequence> >()) const throw (Exception::FileNotFound, Exception::ParseError)))
+CHECK((void load(const String &filename, ProteinIdentification &protein_identification, std::vector<PeptideIdentification> &id_data) const))
 
 	xml_file.load("data/MascotXMLFile_test_1.mascotXML",
 							protein_identification, 
@@ -113,6 +113,76 @@ CHECK((void load(const String& filename, ProteinIdentification& protein_identifi
 	TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
 	TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
 	TEST_EQUAL(peptide_identifications[1].getHits()[0].getSequence(), "HSKLSAK")
+RESULT
+
+CHECK((void load(const String &filename, ProteinIdentification &protein_identification, std::vector<PeptideIdentification> &id_data, std::map<String, std::vector<AASequence> > &peptides) const))	
+	std::map<String, vector<AASequence> > modified_peptides;
+	AASequence aa_sequence_1;
+	AASequence aa_sequence_2;
+	AASequence aa_sequence_3;
+	vector<AASequence> temp;
+	
+	aa_sequence_1.setStringSequence("LHASGITVTEIPVTATNFK");
+	aa_sequence_1.setModification(6, "Deamidated");
+	aa_sequence_2.setStringSequence("MRSLGYVAVISAVATDTDK");
+	aa_sequence_2.setModification(2, "Phospho");
+	aa_sequence_3.setStringSequence("HSKLSAK");
+	aa_sequence_3.setModification(4, "Phospho");
+	temp.push_back(aa_sequence_1);
+	temp.push_back(aa_sequence_2);
+	modified_peptides.insert(make_pair("789.83", temp));
+	temp.clear();
+	temp.push_back(aa_sequence_3);
+	modified_peptides.insert(make_pair("135.29", temp));
+		
+	xml_file.load("data/MascotXMLFile_test_1.mascotXML",
+								protein_identification, 
+					   		peptide_identifications,
+					   		modified_peptides);
+	
+	TEST_EQUAL(peptide_identifications.size(), 3)
+	PRECISION(0.0001)
+	TEST_REAL_EQUAL(peptide_identifications[0].getMetaValue("MZ"), 789.83)
+	TEST_REAL_EQUAL(peptide_identifications[1].getMetaValue("MZ"), 135.29)
+	TEST_REAL_EQUAL(peptide_identifications[2].getMetaValue("MZ"), 982.58)
+	PRECISION(0.00001)	
+	TEST_EQUAL(protein_identification.getHits().size(), 2)
+	TEST_EQUAL(protein_identification.getHits()[0].getAccession(), "AAN17824")
+	TEST_EQUAL(protein_identification.getHits()[1].getAccession(), "GN1736")
+	TEST_REAL_EQUAL(protein_identification.getHits()[0].getScore(), 619)
+	TEST_REAL_EQUAL(protein_identification.getHits()[1].getScore(), 293)
+	TEST_EQUAL(protein_identification.getScoreType(), "Mascot")
+	
+	protein_identification.getDateTime().get(date_string_1);
+	TEST_EQUAL(date_string_1, "2006-03-09 11:31:52")
+	
+	TEST_REAL_EQUAL(peptide_identifications[0].getSignificanceThreshold(), 31.8621)
+	TEST_EQUAL(peptide_identifications[0].getHits().size(), 2)
+	
+	peptide_hit = peptide_identifications[0].getHits()[0];
+	references = peptide_hit.getProteinAccessions();
+	TEST_EQUAL(references.size(), 2)
+	TEST_EQUAL(references[0], "AAN17824")
+	TEST_EQUAL(references[1], "GN1736")
+	peptide_hit = peptide_identifications[0].getHits()[1];
+	references = peptide_hit.getProteinAccessions();
+	TEST_EQUAL(references.size(), 1)
+	TEST_EQUAL(references[0], "AAN17824")
+	peptide_hit = peptide_identifications[1].getHits()[0];
+	references = peptide_hit.getProteinAccessions();
+	TEST_EQUAL(references.size(), 1)
+	TEST_EQUAL(references[0], "GN1736")
+	
+	TEST_EQUAL(peptide_identifications[1].getHits().size(), 1)
+	TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), 33.85)
+	TEST_REAL_EQUAL(peptide_identifications[0].getHits()[1].getScore(), 33.12)
+	TEST_REAL_EQUAL(peptide_identifications[1].getHits()[0].getScore(), 43.9)
+	TEST_EQUAL(peptide_identifications[0].getScoreType(), "Mascot")
+	TEST_EQUAL(peptide_identifications[1].getScoreType(), "Mascot")
+	TEST_EQUAL(protein_identification.getDateTime() == date, true)	
+	TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), aa_sequence_1)
+	TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), aa_sequence_2)
+	TEST_EQUAL(peptide_identifications[1].getHits()[0].getSequence(), aa_sequence_3)
 RESULT
 
 /////////////////////////////////////////////////////////////

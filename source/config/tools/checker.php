@@ -1,5 +1,4 @@
-<?php
-# -*- Mode: C++; tab-width: 2; -*-
+<?php # -*- mode: php; tab-width: 2; -*-
 # vi: set ts=2:
 #
 # --------------------------------------------------------------------------
@@ -35,6 +34,11 @@
 	function printUsage()
 	{
 		print "Usage: checker.php <Absolute path to OpenMS> [-u \"user name\"] [-t test] [options]\n";
+		print "\n";
+		print "This script works only if an OpenMS copy is used, where\n";
+		print "- the internal documentation was built,\n";
+		print "- all OpenMS tests were executed,\n";
+		print "- all TOPP tests were executed.\n";
 		print "\n";
 		print "If no user name is given, the tests are performed for all users.\n";
 		print "\n";
@@ -405,6 +409,7 @@
 			"IsotopeCluster.h",
 			"RangeUtils.h",
 			"ComparatorUtils.h",
+			"StatisticFunctions.h",
 			"KernelTraits.h",
 			"StandardTypes.h",
 			"DimensionDescription.h",
@@ -737,7 +742,7 @@
 			{
 				//print "NP: '".$tmp."'\n";
 				# constructor, destructor, serialize methods, QT events and Xerces-C parser methods are allowed
-				if ( endswith($tmp,'Event') || endsWith($tmp,'load')  || endsWith($tmp,'save') || endsWith($tmp,'serialize') || $tmp==$class_info["classname"] || $tmp=='~'.$class_info["classname"] || $tmp=="operator=" || $tmp=="startElement" || $tmp=="endElement")
+				if ( endswith($tmp,'Event') || endsWith($tmp,'load')  || endsWith($tmp,'save') || endsWith($tmp,'serialize') || $tmp==$class_info["classname"] || $tmp=='~'.$class_info["classname"] || $tmp=="operator=" || $tmp=="startElement" || $tmp=="endElement" || $tmp=="characters")
 				{
 					continue;
 				}

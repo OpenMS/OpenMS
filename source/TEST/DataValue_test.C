@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -48,7 +48,7 @@ CHECK((DataValue()))
 RESULT
 
 // destructor
-CHECK((~DataValue()))
+CHECK((virtual ~DataValue()))
 	delete dv_ptr;
 RESULT
 
@@ -90,7 +90,7 @@ CHECK((DataValue(const String&)))
 	TEST_EQUAL((String)d, "test string")
 RESULT
 
-CHECK((DataValue(const StringList& p)))
+CHECK((DataValue(const StringList &)))
 	StringList sl;
 	sl << "test string" << "test String 2";
 	DataValue d(sl);
@@ -174,13 +174,13 @@ RESULT
 
 // conversion operators
 
-CHECK((operator std::string() const ))
+CHECK((operator std::string() const))
 	DataValue d((std::string) "test string");
 	std::string k = d;
 	TEST_EQUAL(k,"test string")
 RESULT
 
-CHECK((operator StringList() const ))
+CHECK((operator StringList() const))
 	StringList sl;
 	sl << "test string list";
 	DataValue d(sl);
@@ -188,7 +188,7 @@ CHECK((operator StringList() const ))
 	TEST_EQUAL(sl_op, d)
 RESULT
 
-CHECK((operator DoubleReal() const ))
+CHECK((operator DoubleReal() const))
 	DataValue d((DoubleReal) 5.5);
 	DoubleReal k = d;
 	TEST_REAL_EQUAL(k,5.5)
@@ -196,7 +196,7 @@ CHECK((operator DoubleReal() const ))
   TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55))
 RESULT
 
-CHECK((operator Real() const ))
+CHECK((operator Real() const))
 	DataValue d((Real) 5.45);
 	Real k = d;
 	TEST_REAL_EQUAL(k,5.45)
@@ -204,7 +204,7 @@ CHECK((operator Real() const ))
   TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55))
 RESULT
 
-CHECK((operator Int() const ))
+CHECK((operator Int() const))
 	DataValue d((Int) 55);
 	int k = d;
 	TEST_EQUAL(k,55)
@@ -212,7 +212,7 @@ CHECK((operator Int() const ))
   TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55.4))
 RESULT
 
-CHECK((operator UInt() const ))
+CHECK((operator UInt() const))
 	DataValue d((Int) 55);
 	UInt k = d;
 	TEST_EQUAL(k,55)
@@ -255,7 +255,7 @@ CHECK(([EXTRA] friend bool operator!=(const DataValue&, const DataValue&)))
 
 RESULT
 
-CHECK((const char* toChar() const ))
+CHECK((const char* toChar() const))
 	DataValue a;
   TEST_EQUAL(a.toChar() == NULL, true)  
   a = DataValue("hello");
@@ -279,7 +279,7 @@ CHECK((String toString() const))
   TEST_EQUAL(a.toString(), "[test string, string2, last string]")
 RESULT
 
-CHECK(bool toBool() const)
+CHECK((bool toBool() const))
 	//valid cases
 	DataValue a("true");
 	TEST_EQUAL(a.toBool(),true)

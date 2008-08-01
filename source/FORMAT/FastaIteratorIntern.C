@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -37,7 +37,7 @@ namespace OpenMS {
 	FastaIteratorIntern::FastaIteratorIntern() :
 		fasta_file_("")
 	{
-		
+		setName(FastaIteratorIntern::getProductName());
 	}
 	
 	FastaIteratorIntern::~FastaIteratorIntern()
@@ -54,7 +54,7 @@ namespace OpenMS {
 		
 	}
 
-	FASTAEntry FastaIteratorIntern::operator*() throw (Exception::InvalidIterator)
+	FASTAEntry FastaIteratorIntern::operator*()
 	{
 		if (fasta_file_=="")
 		{
@@ -63,7 +63,7 @@ namespace OpenMS {
 		return *it_;
 	}
 	
-	PepIterator & FastaIteratorIntern::operator++() throw (Exception::InvalidIterator)
+	PepIterator & FastaIteratorIntern::operator++()
 	{
 		if (fasta_file_=="")
 		{
@@ -73,7 +73,7 @@ namespace OpenMS {
 		return *this;
 	}
 	
-	PepIterator * FastaIteratorIntern::operator++(int) throw (Exception::InvalidIterator)
+	PepIterator * FastaIteratorIntern::operator++(int)
 	{
 		if (fasta_file_=="")
 		{
@@ -84,7 +84,7 @@ namespace OpenMS {
 		return old;
 	}
 	
-	void FastaIteratorIntern::setFastaFile (const String & f) throw (Exception::FileNotFound, Exception::ParseError)
+	void FastaIteratorIntern::setFastaFile (const String & f)
 	{
 		
 		FASTAFile ffile;
@@ -108,7 +108,7 @@ namespace OpenMS {
 		return (fasta_file_);
 	}
 	
-	bool FastaIteratorIntern::begin () throw (Exception::InvalidIterator)
+	bool FastaIteratorIntern::begin ()
 	{
 		if (fasta_file_=="")
 		{

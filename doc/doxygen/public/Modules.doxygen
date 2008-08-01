@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -106,10 +106,8 @@
 	This module contains all classes that are involved in file IO.
 	Take a look at the FileHandler class!
 	
-	@todo 8 - Implement mzML format (Johannes)
-	@todo 4 - Implement PSI validator for mzML format (Johannes)
-	@todo Extend metadata data structures for mzML (Marc)
 	@todo Implement reading of pepXML and protXML (Andreas)
+	@todo Allow reading of zipped XML files (Hiwi)
 	
 	@ingroup Format
 */

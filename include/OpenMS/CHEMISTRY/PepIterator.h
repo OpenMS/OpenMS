@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -36,9 +36,9 @@ namespace OpenMS{
 /**
 @brief Abstract base class for different peptide iterators
 
-@note every derived class has to implement the static functions "PepIterator * create()" and "const String getName()" (see FactoryProduct for details)
+@note every derived class has to implement the static functions "PepIterator * create()" and "const String getProductName()" (see FactoryProduct for details)
 */
-class PepIterator : FactoryProduct
+class PepIterator : public FactoryProduct
 	{
  	
 	public:
@@ -63,23 +63,23 @@ class PepIterator : FactoryProduct
 	/**
 	@brief * operator for accessing the value of the iterator
 	@return FASTAEntry representing a peptide
-	@throw Exception::InvalidIterator if iterator has not been initialized
+	@throw InvalidIterator if iterator has not been initialized
 	*/
-	virtual FASTAEntry operator*() throw (Exception::InvalidIterator)=0;
+	virtual FASTAEntry operator*() = 0;
 	
 	/**
 	@brief opperator ++ for postincrement
 	@return Reference to PepIterator
-	@throw Exception::InvalidIterator if iterator has not been initialized
+	@throw InvalidIterator if iterator has not been initialized
 	*/		
-	virtual PepIterator & operator++() throw (Exception::InvalidIterator)=0;
+	virtual PepIterator & operator++() = 0;
 	
 	/**
 	@brief opperator ++ for preincrement
 	@return pointer to PepIterator
 	@throw Exception::InvalidIterator if iterator has not been initialized
 	*/
-	virtual PepIterator * operator++(int) throw (Exception::InvalidIterator)=0;
+	virtual PepIterator * operator++(int) = 0;
 
 	/**
 	@brief setter for FASTA file
@@ -87,20 +87,20 @@ class PepIterator : FactoryProduct
 	@throw Exception::FileNotFound
 	@throw Exception::ParseError
 	*/
-	virtual void setFastaFile (const String & f) throw (Exception::FileNotFound, Exception::ParseError)=0;
+	virtual void setFastaFile (const String & f) = 0;
 	
 	/**
 	@brief getter for FASTA file
 	@return String with file location
 	*/
-	virtual String getFastaFile()=0;	
+	virtual String getFastaFile() = 0;
 	
 	/**
 	@brief setter for spectrum
 	@param s ms spectrum given as vector of floats
 	@throw Exception::InvalidValue if spectrum is not sorted acendingly
 	*/
-	virtual void setSpectrum (const std::vector<float> & s) throw (Exception::InvalidValue, Exception::NotImplemented)=0;
+	virtual void setSpectrum (const std::vector<float> & s) = 0;
  
 	/**
 	@brief getter for spectrum
@@ -113,7 +113,7 @@ class PepIterator : FactoryProduct
 	@param t tolerance value
 	@throw Exception::InvalidValue if tolerance is negative
 	*/
-	virtual void setTolerance (float t) throw (Exception::InvalidValue, Exception::NotImplemented)=0;
+	virtual void setTolerance (float t) = 0;
 	
 	/**
 	@brief getter for tolerance
@@ -136,7 +136,12 @@ class PepIterator : FactoryProduct
 	@see FactoryProduct
 	*/
 	static void registerChildren();
-	
+
+	static String getProductName()
+	{
+		return "PepIterator";
+	}
+
 	};
 }
 #endif // OPENMS_CHEMISTRY_PEPITERATOR_H

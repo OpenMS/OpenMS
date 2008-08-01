@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -53,15 +53,14 @@
 		Documented schemas of the %OpenMS formats can be found at
 		<tt>http://open-ms.sourceforge.net/schemas/</tt> .
 
-		For identification results in idXML format, there is an XSLT-script that you
-		can use to visualize the identifications in a web browser. The script is contained
-		in the current version of OpenMS in the folder XSL relative to yout OpenMS directory.
-		
-		If you do not change anything you can just click on the IdXML files and open it in your
-		browser. If you copy the file to another computer, you have to change the second line
-		in the IdXML files to be able to use the stylesheet for visualization. Furthermore, you have to 
-		copy the stylesheet XSL/IdXML.xsl to a folder on that computer.
-		Change *PATH* in the line
+		@em IdXML files and @em ConsensusXML files created by %OpenMS can be visualized in a web browser directly.
+		XSLT stylesheets are used to transform the XML to HTML code. The stylesheets are contained
+		in the @em OpenMS/share/OpenMS/XSLT/ folder of your %OpenMS installation.
+		@n If you want to view the file on the computer with the %OpenMS installation, you can just open it in your
+		browser. 
+		@n If you copy the file to another computer, you have must copy the XSLT stylesheet to that coputer and
+		change the second line in the XML file. The following example shows how to change the stylesheet location for
+		an IdXML file. You simply have to change the *PATH* in the line
 		@code<?xml-stylesheet type="text/xsl" href="file:///*PATH*IdXML.xsl"?>@endcode
 		to the folder where the stylesheet resides.
 
@@ -346,6 +345,160 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	For quantitation, the @b FeatureFinder tool is used. It extracts the
 	features from raw or peak maps.  The @b FeatureFinder offers different
 	algorithms:
+
+	<TABLE border=1>
+	
+	<TR>
+		<TD> <b>Algorithm:</b> isotope_wavelet &nbsp;&nbsp; <b>Input data:</b> raw data </TD>
+	</TR>
+	<TR>
+		<TD>
+			@b Description: <br/>
+			
+			This algorithm detects and quantifies peptide signals in a raw LC-MS map. We use
+			the wavelet transform to identify signal candidates. The transform uses a mother
+			wavelet which models the intensity pattern of peptide isotopic peaks. Isotopic
+			pattern of the same peptide ion in adjacent scans are clustered using a sweep-line
+			approach. Finally, we fit a two-dimensional model to the signals and use it to
+			compute a bounding box and to filter for false positives.
+			The (relative) abundance of the peptide is estimated by integration the signal.<br>
+
+			Details of the algorithms can be found in Schulz-Trieglaff and Hussong et al.:
+			"A Fast and Accurate Algorithm for the Quantification of Peptides from Mass Spectrometry Data"
+			Proceedings of RECOMB (2007) and Schulz-Trieglaff and Hussong et al. "Computational
+			Quantification of Peptides from LC-MS data" Journal of Computational Biology 2008.<br>
+
+			Details on the mother wavelet can be found in Hussong et al.: "Efficient Analysis of Mass Spectrometry Data Using the Isotope Wavelet" (2007). <BR>
+
+			The algorithm "isotope_wavelet_nofit" which is described below does not use
+			the two-dimensional model for filtering and is thus particularly well suited
+			for peitde mass fingerpriting (PMF) on MALDI data.
+			
+			
+			<B>Seeding:</B>
+			<BR>Identification of regions of interest using the isotope wavelet. 
+
+			<B>Extension:</B>
+			<BR>
+			Clustering of isotopic signals using the sweep-line paradigm.
+			
+			<B>Modelling:</B>
+			<BR>
+			2D model based on averagine isotope pattern and elution profile.
+
+			See  
+			<a href="./FeatureFinderAlgorithmWavelet_Parameters.html">FeatureFinderAlgorithmWavelet Parameters</a> for a list of parameters.
+		</TD>
+	</TR>
+	</TABLE>
+
+	<TABLE border=1>
+	
+	<TR>
+		<TD> <b>Algorithm:</b> isotope_wavelet_nofit &nbsp;&nbsp; <b>Input data:</b> raw data </TD>
+	</TR>
+	<TR>
+		<TD>
+			@b Description: <br/>
+			
+			This is an @b experimental algorithm for feature detection in raw single MS (not MS/MS) data sets.
+			The method is based on the <I>isotope wavelet</I>, which has been tailored to the
+			detection of isotopic patterns following the averagine model.
+			For more information about the theory behind this technique, please refer to
+			Hussong et al.: "Efficient Analysis of Mass Spectrometry Data Using the Isotope Wavelet" (2007). <BR>
+			Please note that this algorithm features no "modelling stage", since the structure
+			of the isotopic pattern is explicitly coded by the wavelet itself. The method is in particular suited
+			for peptide mass fingerprints (PMFs) of single MS scans. The algorithm also works in 2D (in combination with
+			the so-called <I>sweep-line</I> technique (Schulz-Trieglaff et al.:
+			"A Fast and Accurate Algorithm for the Quantification of Peptides from Mass Spectrometry Data" (2007)), 
+			but currently lacks the ability of separating overlapping features. Thus, the algorithm is still marked 
+			as "experimental". <BR>
+			Please note that the "wavelet" algorithm (described above), which is also based on the isotope wavelet
+			transform, uses an additional fit as a final filtering step.  
+			
+			<B>Seeding:</B>
+			<BR>Identification of regions of interest by convolving the signal with the wavelet function.
+			<BR>A score, measuring the closeness of the transform to a theoretically determined output function, 
+					finally distinguishes potential features from noise.  			
+			
+			<B>Extension:</B>
+			<BR>
+			The extension is based on the sweep-line paradigm and is done on the fly after the wavelet transform.
+			
+			<B>Modelling:</B>
+			<BR>
+			None (explicitely done by the wavelet, in contrast cf.: the "wavelet" algorithm).
+
+			See the 
+			<a href="./FeatureFinderAlgorithmIsotopeWavelet_Parameters.html">FeatureFinderAlgorithmIsotopeWavelet Parameters</a>
+			 page for a documented list of configuration options for this algorithm.
+		</TD>
+	</TR>
+	</TABLE>
+
+	<TABLE border=1>
+	
+	<TR>
+		<TD> <b>Algorithm:</b> picked_peak &nbsp;&nbsp; <b>Input data:</b> peak data </TD>
+	</TR>
+	<TR>
+		<TD>
+			@b Description: <br/>
+			
+			This is an @b experimental algorithm for feature detection based on peak data.
+		  In contrast to the other algorithms, it is based on peak/stick data,
+		  which makes it applicable even if no raw data is available.
+			Another advantage is its speed due to the reduced amount of data after peak picking.
+			
+			<B>Seeding:</B>
+			<BR>It identifies interesting regions by calculating a score for each peak based on 
+			<UL>
+				<LI>the significance of the intensity in the local environment
+				<LI>RT dimension: the quality of the mass trace in a local RT window
+				<LI>m/z dimension: the quality of fit to an averagine isotope model
+			</UL>
+			
+			<B>Extension:</B>
+			<BR>
+			The extension is based on a heuristics -- the average slope of the mass trace for RT dimension, the best fit to averagine model in m/z dimension.
+			
+			<B>Modelling:</B>
+			<BR>
+			In model fitting, the retention time profile (Gaussian) of all mass traces is fitted to the data at the same time. After fitting, the data is truncated in RT and m/z dimension. The reported feature intensity is based on the fitted model, rather than on the (noisy) data.
+			
+			See the 
+			<a href="./FeatureFinderAlgorithmPicked_Parameters.html">FeatureFinderAlgorithmPicked Parameters</a>
+			 page for a documented list of configuration options for this algorithm.
+		</TD>
+	</TR>
+	</TABLE>
+
+	<TABLE border=1>
+	<TR>
+		<TD> <b>Algorithm:</b> simple &nbsp;&nbsp; <b>Input data:</b> raw data </TD>
+	</TR>
+		<TR>
+			<TD>
+				@b Description: <br/>
+				
+				This is another algorithm for feature detection in raw data.
+				It is similar to the "simplest" algorithm, except for the modeling.
+				
+				@b Seeding: see "simplest"
+				
+				@b Extension: see "simplest"
+				
+				@b Modelling: <br/>
+				like in "simplest", but an exponentially modified Gaussian (EMG) is used for the elution profile.
+				The least-squares fitting is done by the Levenberg-Marquardt algorithm.
+				(class EMGFitter1D, class LmaGaussFitter1D)
+				
+				See the 
+				<a href="./FeatureFinderAlgorithmSimple_Parameters.html">FeatureFinderAlgorithmSimple Parameters</a>
+				 page for a documented list of configuration options for this algorithm.
+			</TD>
+		</TR>
+	</TABLE>
 	
 	<TABLE border=1>
 		<TR>
@@ -391,69 +544,6 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		</TR>
 	</TABLE>
 	
-	<TABLE border=1>
-	<TR>
-		<TD> <b>Algorithm:</b> simple &nbsp;&nbsp; <b>Input data:</b> raw data </TD>
-	</TR>
-		<TR>
-			<TD>
-				@b Description: <br/>
-				
-				This is another algorithm for feature detection in raw data.
-				It is similar to the "simplest" algorithm, except for the modeling.
-				
-				@b Seeding: see "simplest"
-				
-				@b Extension: see "simplest"
-				
-				@b Modelling: <br/>
-				like in "simplest", but an exponentially modified Gaussian (EMG) is used for the elution profile.
-				The least-squares fitting is done by the Levenberg-Marquardt algorithm.
-				(class EMGFitter1D, class LmaGaussFitter1D)
-				
-				See the 
-				<a href="./FeatureFinderAlgorithmSimple_Parameters.html">FeatureFinderAlgorithmSimple Parameters</a>
-				 page for a documented list of configuration options for this algorithm.
-			</TD>
-		</TR>
-	</TABLE>
-	
-	<TABLE border=1>
-	
-	<TR>
-		<TD> <b>Algorithm:</b> picked_peak &nbsp;&nbsp; <b>Input data:</b> peak data </TD>
-	</TR>
-	<TR>
-		<TD>
-			@b Description: <br/>
-			
-			This is an @b experimental algorithm for feature detection based on peak data.
-		  In contrast to the other algorithms, it is based on peak/stick data,
-		  which makes it applicable even if no raw data is available.
-			Another advantage is its speed due to the reduced amount of data after peak picking.
-			
-			<B>Seeding:</B>
-			<BR>It identifies interesting regions by calculating a score for each peak based on 
-			<UL>
-				<LI>the significance of the intensity in the local environment
-				<LI>RT dimension: the quality of the mass trace in a local RT window
-				<LI>m/z dimension: the quality of fit to an averagine isotope model
-			</UL>
-			
-			<B>Extension:</B>
-			<BR>
-			The extension is based on a heuristics -- the average slope of the mass trace for RT dimension, the best fit to averagine model in m/z dimension.
-			
-			<B>Modelling:</B>
-			<BR>
-			In model fitting, the retention time profile (Gaussian) of all mass traces is fitted to the data at the same time. After fitting, the data is truncated in RT and m/z dimension. The reported feature intensity is based on the fitted model, rather than on the (noisy) data.
-			
-			See the 
-			<a href="./FeatureFinderAlgorithmPicked_Parameters.html">FeatureFinderAlgorithmPicked Parameters</a>
-			 page for a documented list of configuration options for this algorithm.
-		</TD>
-	</TR>
-	</TABLE>
 
 */
 //##############################################################################
@@ -509,14 +599,20 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	a peak picking step is necessary, the important parameters can be set via the ini-file.
 	If you have already picked data, don't forget the  '<tt>-peak_data</tt>' flag.
 
-	The external calibration is used to convert flight times into m/z- values with the
+	The external calibration (@b TOFCalibration) is used to convert flight times into m/z- values with the
 	help of external calibrant spectra containing e.g. a polymer like polylysine. For the calibrant spectra,
 	the calibration constants the machine uses need to be known as well as the expected masses. Then a quadratic function is fitted to
 	convert the flight times into m/z-values.
 
-	The internal calibration uses reference masses in the spectra to correct the m/z-values using a linear function.
+	The internal calibration (@b InternalCalibration) uses reference masses in the spectra to correct the m/z-values using a linear function.
 
-	@todo Update content - perhaps add an image - mention the TOPP tool names at least once (Alexandra)
+	In a typical setting one would first pick the TOF-data, then perform the TOFCalibration and then the InternalCalibration:
+	@code
+	PeakPicker -in raw_tof.mzData -out picked_tof.mzData -ini pp.ini
+	TOFCalibration -in picked_tof.mzData -out picked.mzData -ext_calibrants ext_cal.mzData -ref_masses ext_cal_masses -tof_const tof_conv_consts -peak_data
+	InternalCalibration -in picked.mzData -out picked_calibrated.mzData -ref_masses internal_calibrant_masses -peak_data
+	@endcode
+
 */
 //##############################################################################
 
@@ -524,7 +620,65 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 /**
 	@page TOPP_example_ppp Peptide property prediction
 
-	@todo Add content: RT and PT prediction (Nico)
+	You can train a model for retention time prediction as well as for the prediction of
+	proteotypic peptides. 
+
+	The predicted retention time can be used in IDFilter to filter out
+	false identifications. Assume you have data from several identification runs. You should
+	first align the data using MapAligner. Then you can use the various identification
+	wrappers like MascotAdapter, OMSSAAdapter, ... to get the identifications. To train a model using RTModel you can now use
+	IDFilter for one of the runs to get the high scoring identifications (40 to 200 distinct peptides should be enough). 
+	Then you use RTModel as described in the documentation to train a model for these spectra. 
+	With this model you can use RTPredict to predict the retention times for the remaining runs.
+	The predicted retention times are stored in the IdXML files. These predicted retention times can then
+	be used to filter out false identifications using the IDFilter tool.
+
+	A typical sequence of TOPP tools would look like this:
+	@code
+
+	./MapAligner -in Run1.mzData,...,Run4.mzData -out Run1_aligned.mzData,...,Run4_aligned.mzData
+	./MascotAdapter -in Run1_aligned.mzData -out Run1_aligned.IdXML -ini Mascot.ini
+	./MascotAdapter -in Run2_aligned.mzData -out Run2_aligned.IdXML -ini Mascot.ini
+	./MascotAdapter -in Run3_aligned.mzData -out Run3_aligned.IdXML -ini Mascot.ini
+	./MascotAdapter -in Run4_aligned.mzData -out Run4_aligned.IdXML -ini Mascot.ini
+	./IDFilter -in Run1_aligned.IdXML -out Run1_best_hits.IdXML -pep_fraction 1 -best_hits
+	./RTModel -in Run1_best_hits.IdXML -out Run1.model -ini RT.ini
+	./RTPredict -in Run2_aligned.mzData -out Run2_predicted.mzData
+	./RTPredict -in Run3_aligned.mzData -out Run3_predicted.mzData
+	./RTPredict -in Run4_aligned.mzData -out Run4_predicted.mzData
+	./IDFilter -in Run2_predicted.mzData -out Run2_filtered.mzData -rt_filtering
+	./IDFilter -in Run3_predicted.mzData -out Run3_filtered.mzData -rt_filtering
+	./IDFilter -in Run4_predicted.mzData -out Run4_filtered.mzData -rt_filtering
+
+	@endcode
+
+	If you have a file with certainly identified peptides and want to train a model for RT prediction, you can also directly use the
+	IDs. Therefore, the file has to have one peptide sequence together with the RT per line (separated by one tab or space).
+	This can then be loaded by RTModel using the -textfile_input flag:
+	@code
+	./RTModel -in IDs_with_RTs.txt -out IDs_with_RTs.model -ini RT.ini -textfile_input	
+	@endcode
+
+	The likelihood of a peptide to be proteotypic can be predicted using PTModel and PTPredict.
+	Assume we have a file PT.IdXML which contains all proteotypic peptides
+	of a set of proteins. Lets also assume, we have a fasta file containing the amino acid
+	sequences of these proteins called mixture.fasta. To be able to train PTPredict, we
+	need negative peptides (peptides, which are not proteotypic). Therefore, one can use
+	the Digestor, which is located in the APPLICATIONS/UTILS/ folder together with the IDFilter:
+
+	@code
+	./Digestor -in mixture.fasta -out all.IdXML
+	./IDFilter -in all.IdXML -out NonPT.IdXML -exclusion_peptides_file PT.IdXML 
+	@endcode
+ 
+	In this example the proteins are digested in silico and the non proteotypic peptides set is
+	created by subtracting all proteotypic peptides from the set of all possible peptides. Then, one
+	can train PTModel:
+
+	@code
+	./PTModel -in_positive PT.IdXML -in_negative NonPT.IdXML -out PT.model -ini PT.ini
+	@endcode
+
 */
 	
 

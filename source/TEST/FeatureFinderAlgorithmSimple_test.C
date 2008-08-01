@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -51,6 +51,15 @@ CHECK(FeatureFinderAlgorithmSimple())
 RESULT
 
 CHECK(virtual void run())
+	// dummy subtest
+	TEST_EQUAL(1,1)
+RESULT
+
+CHECK((virtual Param getDefaultParameters() const))
+{
+  // dummy subtest
+	TEST_EQUAL(1,1)
+}
 RESULT
 
 CHECK((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))

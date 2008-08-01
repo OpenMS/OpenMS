@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -38,10 +38,15 @@
 namespace OpenMS 
 {
   /**
-    @brief Write s.th. useful here
+    @brief IDDecoyProbability calculates probabilities using decoy approach
 
-		here also, but with more detail
- 		
+ 		This class calcalates the probabilities using a target deocy approach. Like
+		in peptide prophet the forward distribution is modeled using a gaussian 
+		distribution the reverse scores are modeled using a famma distribution.
+
+		@ref IDDecoyProbability_Parameters are explained on a separate page.
+
+    @ingroup Analysis_ID
   */
   class IDDecoyProbability : public DefaultParamHandler
   {
@@ -59,15 +64,24 @@ namespace OpenMS
 			/// assignment operator
 			IDDecoyProbability& operator = (const IDDecoyProbability& rhs);
 
-		  /// 
+		  /**	converts the forward and reverse identification into probabilities
+					
+					@param prob_ids Output of the algorithm which includes identifications with probability based scores
+					@param fwd_ids Input parameter which represents the identifications of the forward search
+					@param rev_ids Input parameter which represents the identifications of the reversed search
+			*/
 			void apply(	std::vector<PeptideIdentification>& prob_ids,
 									const std::vector<PeptideIdentification>& fwd_ids, 
-									const std::vector<PeptideIdentification>& rev_ids) throw (Exception::MissingInformation);
+									const std::vector<PeptideIdentification>& rev_ids);
 
 			void generateDistributionImage(const Map<double, double>& ids, const String& formula, const String& filename);
 
 		protected:
 
+			/** @brief struct to be used to store a transformation (used for fitting)
+
+					
+			*/
 			struct Transformation_
 			{
 			  double y_factor;
@@ -77,8 +91,10 @@ namespace OpenMS
 			  double y_max_bin;
 			};
 
+			// normalizes histograms
 			void normalizeBins_(const std::vector<double>& scores, Map<double, double>& binned, Transformation_& trafo);
 
+			// returns the probability of given score with the transformations of reverse and forward searches and the results of the fits
 			double getProbability_(const GammaDistributionFitter::GammaDistributionFitResult& result_gamma,
 														const Transformation_& gamma_trafo,
 														const GaussFitter::GaussFitResult& result_gauss,

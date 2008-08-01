@@ -1,10 +1,10 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -42,6 +42,28 @@ namespace OpenMS
 	/** 
 		@brief Representation of a peptide/protein sequence
 		
+		This class represents amino acid sequences in OpenMS. Basically a AASequence instance
+		consists of a sequence of residues. The residues are represented as instances of 
+		Residue. Each amino acid has only one instance which is accessible using the ResidueDB instance (singleton).
+
+		A critical property of amino acid sequence is that they can be modified. Which means that one or more 
+		amino acids are chemically modified, e.g. oxidized. This is represented via Residue instances which carry
+		a ResidueModification object. This is also handled in the ResidueDB. 
+
+		If one wants to specify a AASequence the easiest way is simply writing the amino acid sequence. For example
+		AASequence seq("DFPIANGER") is sufficient to create a instance of AASequence with DFPIANGER as peptide.
+
+		Modifications are specified using a unique string identifier present in the ModificationsDB in brackets
+		after the modified amino acid. For example AASequence seq("DFPIAM(MOD:01214)GER") creates an instance
+		of the peptide DFPIAMGER with an oxidized methionine. N-terminal modifications are specified by writing
+		the modification as prefix to the sequence. C-terminal modifications are specified by writing the 
+		modification as suffix. C-terminal modifications are distinguished from modifications of the last amino 
+		acid by considering the specificity of the modification as stored in ModificationsDB.
+	
+		If a string cannot be converted into a valid instance of AASequence, the valid flag is false. The flag
+		can be read using the isValid() predicate. However, instances of AASequence which are not valid report 
+		wrong weights, because the weight cannot be calculated then. Also other operations might fail.
+		
 		@ingroup Chemistry
 	*/
 	class AASequence
@@ -50,7 +72,10 @@ namespace OpenMS
 		public:
 			class Iterator;
 						
-			// iterator
+			/** @brief ConstIterator for AASequence
+			
+					AASequence constant iterator
+			*/
 			class ConstIterator
 			{
 				public: 
@@ -176,6 +201,11 @@ namespace OpenMS
 				difference_type position_;
 			};
 
+
+			/** @brief Iterator class for AASequence
+			
+					Mutable iterator for AASequence
+			*/
 			class Iterator
 			{
 				public: 
@@ -331,20 +361,25 @@ namespace OpenMS
 			/** @name Accessors
 			*/
 			//@{
-			/// returns the given string; if no string was given, the sequence is converted into a string
+			/// returns the peptide as string with modifications embedded in brackets
 			String toString() const;
 
+			/// returns the peptide as string without any modifications 
 			String toUnmodifiedString() const;
 			
-			/// 
+			/// set the modification of the residue at position index
 			void setModification(UInt index, const String& modification);
 
+			/// sets the N-terminal modification
 			void setNTerminalModification(const String& modification);
 
+			/// returns the Id of the N-term modification; an empty string is returned if none was set
 			const String& getNTerminalModification() const;
 			
+			/// sets the C-terminal modification 
 			void setCTerminalModification(const String& modification);
 
+			/// returns the Id of the C-term modification; an empty string is returned if none was set
 			const String& getCTerminalModification() const;
 			
 			/// sets the string of the sequence; returns true if the conversion to real AASequence was successful, false otherwise
@@ -380,6 +415,7 @@ namespace OpenMS
 			/// adds the residues of the peptide, which is given as a string
 			AASequence operator + (const String& peptide) const;
 
+			/// adds the residue of the peptide, which is given as string literal
 			AASequence operator + (const char* rhs) const;
 
 			/// adds the residues of a peptide
@@ -388,6 +424,7 @@ namespace OpenMS
 			/// adds the residues of a peptide, which is given as a string
 			AASequence& operator += (const String&);
 
+			/// adds the residues of a peptide, which is given as string literal
 			AASequence& operator += (const char* rhs);
 			
 			/// returns the number of residues
@@ -438,8 +475,10 @@ namespace OpenMS
 			/// returns true if the peptide has the given suffix
 			bool hasSuffix(const String& peptide) const;
 
+			/// predicate which is true if the peptide is N-term modified
 			bool hasNTerminalModification() const;
 
+			/// predicate which is true if the peptide is C-term modified
 			bool hasCTerminalModification() const;
 			
 			// returns true if any of the residues is modified
@@ -449,28 +488,24 @@ namespace OpenMS
 			bool isModified(UInt index) const;
 			
 			/// equality operator
-			bool operator == (const AASequence&) const;
+			bool operator == (const AASequence& rhs) const;
 
 			/// equality operator given the peptide as a string
-			bool operator == (const String&) const;
+			bool operator == (const String& rhs) const;
 
-			/// 
+			/// equality operator given the peptide as string literal
 			bool operator == (const char* rhs) const;
 
+			/// lesser than operator which compares the C-term mods, sequence and N-term mods; can be used for maps
 			bool operator < (const AASequence& rhs) const;
 
-			bool operator <= (const AASequence& rhs) const;
-			
-			bool operator > (const AASequence& rhs) const;
-
-			bool operator >= (const AASequence& rhs) const;
-			
 			/// inequality operator 
-			bool operator != (const AASequence&) const;
+			bool operator != (const AASequence& rhs) const;
 
 			/// inequality operator given the peptide as a string
-			bool operator != (const String&) const;
+			bool operator != (const String& rhs) const;
 
+			/// inequality operator given the peptide as string literal
 			bool operator != (const char* rhs) const;
 			//@}
 
@@ -485,12 +520,16 @@ namespace OpenMS
 
 			inline ConstIterator end() const { return ConstIterator(&peptide_, peptide_.size()); }
 			//@}
-			
+
+			/** @name Stream operators
+			*/
+			//@{
 			/// writes a peptide to an output stream
 			friend std::ostream& operator << (std::ostream& os, const AASequence& peptide);
 			
 			/// reads a peptide from an input stream
 			friend std::istream& operator >> (std::istream& is, const AASequence& peptide);
+			//@}
 			
 		protected:
 

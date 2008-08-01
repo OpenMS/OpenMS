@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -53,7 +53,7 @@ CHECK(virtual ~SimpleSeeder())
 RESULT
 
 
-CHECK(IndexPair nextSeed() throw (NoSuccessor))
+CHECK(IndexPair nextSeed())
 
 	//create map
 	MSExperiment<Peak1D> exp;

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -71,7 +71,7 @@ CHECK((AverageLinkage& operator=(const AverageLinkage &source)))
 }
 RESULT
 
-CHECK((void cluster(const DistanceMatrix< double > &originalDist, DistanceMatrix< double > &actualDist, vector< vector< UInt > > &clusters, const String filepath="", const double threshold=1) const  throw (Exception::UnableToCreateFile, ClusterFunctor::InsufficientInput)))
+CHECK((void cluster(const DistanceMatrix< double > &original_distance, DistanceMatrix< double > &actual_distance, vector< vector< UInt > > &clusters, const String filepath="", const double threshold=1) const))
 {
 	DistanceMatrix<double> matrix(5,666);
 	matrix.setValue(0,1,1.0);
@@ -118,7 +118,7 @@ CHECK((void cluster(const DistanceMatrix< double > &originalDist, DistanceMatrix
 			TEST_EQUAL(cluster[i][j], result[i][j]);
 		}
 	}
-	
+
 }
 RESULT
 
@@ -129,6 +129,13 @@ CHECK((static const String getProductName()))
 }
 RESULT
 
+CHECK((static ClusterFunctor* create()))
+{
+	ClusterFunctor* cf = AverageLinkage::create();
+	AverageLinkage al;
+	TEST_EQUAL(cf->getName(), al.getName())
+}
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

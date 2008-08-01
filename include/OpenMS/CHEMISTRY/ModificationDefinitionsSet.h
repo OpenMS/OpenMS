@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -39,6 +39,10 @@ namespace OpenMS
 	/** @ingroup Chemistry
 	
 			@brief Representation of a set of modification definitions
+
+			This class enhances the modification definitions as defined in the 
+			class ModificationDefinition into a set of definitions. This is also
+			e.g. used as input parameters  in search engines.
 	*/
 	class ModificationDefinitionsSet
 	{

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -52,7 +52,7 @@ CHECK((MascotOutfile()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK((void load(String filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &peptide_identifications, Real p=0.05) throw (Exception::ParseError)))
+CHECK((void load(String filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &peptide_identifications, Real p=0.05)))
 	ptr = new MascotOutfile();
 	vector<PeptideIdentification> peptide_identifications;
 	ProteinIdentification protein_identification;

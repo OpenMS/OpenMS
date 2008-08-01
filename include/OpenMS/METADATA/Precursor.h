@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -42,12 +42,35 @@ namespace OpenMS
   {
     public:
     	/// Method of activation
-      enum ActivationMethod{ACTMETHNULL,CID,PSD,PD,SID,SIZE_OF_ACTIVATIONMETHOD};
+      enum ActivationMethod
+      {
+      	ACTMETHNULL,	///< Unknown activation method
+      	CID,					///< Collision-induced dissociation
+      	PSD,					///< Post-source decay
+      	PD,						///< Plasma desorption
+      	SID,					///< Surface-induced dissociation
+				BIRD,					///< Blackbody infrared radiative dissociation
+				ECD,					///< Electron capture dissociation
+				IMD,					///< Infrared multiphoton dissociation
+				SORI,					///< Sustained off-resonance irradiation
+				HCID,					///< High-energy collision-induced dissociation
+				LCID,					///< Low-energy collision-induced dissociation
+				PHD,					///< Photodissociation
+				ETD,					///< Electron transfer dissociation
+				PQD,					///< Pulsed q dissociation
+      	SIZE_OF_ACTIVATIONMETHOD
+      };
 			/// Names of activation methods
 			static const std::string NamesOfActivationMethod[SIZE_OF_ACTIVATIONMETHOD];
 
       /// Energy unit
-      enum EnergyUnits{UNITSNULL,EV,PERCENT,SIZE_OF_ENERGYUNITS};
+      enum EnergyUnits
+      {
+      	UNITSNULL,	///< Unknown energy unit
+      	EV,					///< Electron volt
+      	PERCENT,		///< Percent
+      	SIZE_OF_ENERGYUNITS
+      };
 			/// Names of energy units
 			static const std::string NamesOfEnergyUnits[SIZE_OF_ENERGYUNITS];
       

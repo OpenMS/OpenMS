@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -65,8 +65,17 @@ RESULT
 
 ptr = new XTandemXMLFile();
 
-CHECK(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data) const throw(Exception::FileNotFound, Exception::ParseError))
-	// TODO
+CHECK(void setModificationDefinitionsSet(const ModificationDefinitionsSet &rhs))
+	ModificationDefinitionsSet mod_set("", "MOD:01214,MOD:00719,MOD:01061");
+
+	ptr->setModificationDefinitionsSet(mod_set);
+	NOT_TESTABLE
+RESULT
+
+CHECK(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data))
+	ptr->load("data/XTandemXMLFile_test.xml", protein_identification, peptide_identifications);
+	TEST_EQUAL(peptide_identifications.size(), 303)
+	TEST_EQUAL(protein_identification.getHits().size(), 497)
 RESULT
 
 /////////////////////////////////////////////////////////////

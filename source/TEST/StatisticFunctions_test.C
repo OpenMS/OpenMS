@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -57,7 +57,7 @@ START_TEST( StatisticFunctions, "$Id$" );
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CHECK((template< typename IteratorType1, typename IteratorType2 > static RealType meanSquareError( IteratorType1 begin_a, const IteratorType1 end_a, IteratorType2 begin_b, const IteratorType2 end_b )))
+CHECK([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType meanSquareError( IteratorType1 begin_a, const IteratorType1 end_a, IteratorType2 begin_b, const IteratorType2 end_b )))
 {
 	std::list<DoubleReal> numbers1(20, 1.5);
 	std::list<DoubleReal> numbers2(20, 1.3);
@@ -69,7 +69,7 @@ CHECK((template< typename IteratorType1, typename IteratorType2 > static RealTyp
 }
 RESULT
 
-CHECK((template< typename IteratorType1, typename IteratorType2 > static RealType classificationRate( IteratorType1 begin_a, const IteratorType1 end_a, IteratorType2 begin_b, const IteratorType2 end_b )))
+CHECK([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType classificationRate( IteratorType1 begin_a, const IteratorType1 end_a, IteratorType2 begin_b, const IteratorType2 end_b )))
 {
 	std::vector<DoubleReal> numbers1(20, 1);
 	std::vector<DoubleReal> numbers2(20, 1);
@@ -94,7 +94,7 @@ CHECK((template< typename IteratorType1, typename IteratorType2 > static RealTyp
 }
 RESULT
 
-CHECK((template< typename IteratorType1, typename IteratorType2 > static RealType pearsonCorrelationCoefficient( const IteratorType1 begin_a, const IteratorType1 end_a, const IteratorType2 begin_b, const IteratorType2 end_b )))
+CHECK([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType pearsonCorrelationCoefficient( const IteratorType1 begin_a, const IteratorType1 end_a, const IteratorType2 begin_b, const IteratorType2 end_b )))
 {
 	std::vector<DoubleReal> numbers1(20, 1.5);
 	std::vector<DoubleReal> numbers2(20, 1.3);
@@ -256,7 +256,7 @@ CHECK((template< typename IteratorType1, typename IteratorType2 > static RealTyp
 }
 RESULT
 
-CHECK(static void computeRank(std::vector<DoubleReal>& w))
+CHECK([EXTRA](static void computeRank(std::vector<DoubleReal>& w)))
 {
   std::vector<DoubleReal> numbers1(10, 1.5);
 
@@ -281,7 +281,7 @@ CHECK(static void computeRank(std::vector<DoubleReal>& w))
 }
 RESULT        
     
-CHECK((template< typename IteratorType1, typename IteratorType2 > static RealType rankCorrelationCoefficient( const IteratorType1 begin_a, const IteratorType1 end_a, const IteratorType2 begin_b, const IteratorType2 end_b )))
+CHECK([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType rankCorrelationCoefficient( const IteratorType1 begin_a, const IteratorType1 end_a, const IteratorType2 begin_b, const IteratorType2 end_b )))
 {
   std::vector<DoubleReal> numbers1(10, 1.5);
   std::vector<DoubleReal> numbers2(10, 1.3);

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -79,7 +79,7 @@ ModifierRep::~ModifierRep ()
 
 }
 
-void ModifierRep::setNumberOfModifications(const unsigned int i)
+void ModifierRep::setNumberOfModifications(UInt i)
 {
 	number_of_modifications_ = i;
 }

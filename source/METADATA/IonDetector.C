@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -31,8 +31,9 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string IonDetector::NamesOfType[] = {"Unknown","ELECTRONMULTIPLIER","PHOTOMULTIPLIER","FOCALPLANEARRAY","FARADAYCUP","CONVERSIONDYNODEELECTRONMULTIPLIER","CONVERSIONDYNODEPHOTOMULTIPLIER","MULTICOLLECTOR","CHANNELELECTRONMULTIPLIER"};
-	const std::string IonDetector::NamesOfAcquisitionMode[] = {"Unknown","PULSECOUNTING","ADC","TDC","TRANSIENTRECORDER"};
+	const std::string IonDetector::NamesOfType[] = {"Unknown","Electron multiplier","Photo multiplier","Focal plane array","Faraday cup","Conversion dynode electron multiplier","Conversion dynode photo multiplier","Multi-collector","Channel electron multiplier","channeltron","daly detector","microchannel plate detector","array detector","conversion dynode","dynode","focal plane collector","ion-to-photon detector","point collector","postacceleration detector","photodiode array detector","inductive detector","electron multiplier tube"};
+
+	const std::string IonDetector::NamesOfAcquisitionMode[] = {"Unknown","Pulse counting","Analog-digital converter","Time-digital converter","Transient recorder"};
 	
 	IonDetector::IonDetector():
 		MetaInfoInterface(),

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -548,9 +548,15 @@ namespace OpenMS
 		}
 
 		/// Resizes the container to size @p num. Uses @p val to fill up if it is shorter than @p num.
-		inline void resize( size_type num, const value_type& val = value_type() )
+		inline void resize(size_type num, const value_type& val = value_type() )
 		{
 			container_.resize(num, val);
+		}
+
+		/// Reserves space for @p num elements in the container.
+		inline void reserve(size_type num)
+		{
+			container_.reserve(num);
 		}
 
 		//@}

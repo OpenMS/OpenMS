@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -96,8 +96,6 @@ using namespace std;
 				This mode is selected by the <b>-inspect_out</b> option in the command line.
 				</li>
 	</ol>
-
-	@todo extract by-ions, compute protein score? (Andreas)
 */
 
 // We do not want this class to show up in the docu -> cond

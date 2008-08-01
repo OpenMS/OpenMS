@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -50,7 +50,7 @@ using namespace std;
 	During some conversion operations information is lost, e.g. when converting featureXML to mzData.
 	In these cases a warning is shown. 
 
-	@todo Implement support for writing MGF or remove if from the valid output types (Andreas) 
+	@improvement Implement support for writing MGF (Andreas) 
 */
 
 // We do not want this class to show up in the docu:
@@ -71,12 +71,12 @@ class TOPPFileConverter
 	void registerOptionsAndFlags_()
 	{
 		registerInputFile_("in","<file>","","input file ");
-		setValidFormats_("in",StringList::create("mzData,mzXML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
+		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
 		registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
 		setValidStrings_("in_type",StringList::create("mzData,mzXML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
 		
 		registerOutputFile_("out","<file>","","output file ");
-		setValidFormats_("out",StringList::create("mzData,mzXML,DTA2D,featureXML"));
+		setValidFormats_("out",StringList::create("mzData,mzXML,DTA2D,mgf,featureXML"));
 		registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
 		setValidStrings_("out_type",StringList::create("mzData,mzXML,DTA2D,featureXML"));
 	}
@@ -217,7 +217,7 @@ class TOPPFileConverter
 		else if (out_type == FileHandler::MGF)
 		{
 			MascotInfile f;
-			// TODO (Andreas)
+			f.store(out, exp, "");
 		}
 		else
 		{

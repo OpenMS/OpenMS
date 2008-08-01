@@ -1,10 +1,10 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -39,50 +39,56 @@ namespace OpenMS
   /**
 	  @brief Compare functor scoring the spectral contrast angle for similarity measurement
 
-		The details of the score can be found in: 
-		K. Wan, I. Vidavsky, and M. Gross. Comparing similar spectra: from  
-		similarity index to spectral contrast angle. Journal of the American Society 
+		The details of the score can be found in:
+		K. Wan, I. Vidavsky, and M. Gross. Comparing similar spectra: from
+		similarity index to spectral contrast angle. Journal of the American Society
 		for Mass Spectrometry, 13(1):85-88, January 2002.
-		
-		@ref BinnedSpectrum Parameters are explained on a separate page.
 
-		@see BinnedSpectrumCompareFunctor
-		
+		@ref BinnedSpectralContrastAngle_Parameters are explained on a separate page.
+
+		@see BinnedSpectrumCompareFunctor @see BinnedSpectrum
+
 		@ingroup SpectraComparison
-  */
-	
-  class BinnedSpectralContrastAngle : public BinnedSpectrumCompareFunctor
-  {
-  public:
-	
-    /// default constructor
-    BinnedSpectralContrastAngle();
+	*/
 
-    /// copy constructor
-    BinnedSpectralContrastAngle(const BinnedSpectralContrastAngle& source);
-
-    /// destructor
-    virtual ~BinnedSpectralContrastAngle();
-
-    /// assignment operator
-    BinnedSpectralContrastAngle& operator = (const BinnedSpectralContrastAngle& source);
-	
-    /// function call operator, calculates the similarity of the given arguments 
-	double operator () (const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const throw (BinnedSpectrumCompareFunctor::IncompatibleBinning);
-
-	/// function call operator, calculates self similarity
-	double operator () (const BinnedSpectrum& spec) const;
-
-	///
-    static BinnedSpectrumCompareFunctor* create() { return new BinnedSpectralContrastAngle(); }
-
-	/// get the identifier for this FactoryProduct
-	static const String getProductName()
+	class BinnedSpectralContrastAngle : public BinnedSpectrumCompareFunctor
 	{
-		return "BinnedSpectralContrastAngle";
-	}
 
-  };
+		public:
+
+		/// default constructor
+		BinnedSpectralContrastAngle();
+
+		/// copy constructor
+		BinnedSpectralContrastAngle(const BinnedSpectralContrastAngle& source);
+
+		/// destructor
+		virtual ~BinnedSpectralContrastAngle();
+
+		/// assignment operator
+		BinnedSpectralContrastAngle& operator = (const BinnedSpectralContrastAngle& source);
+
+		/** function call operator, calculates the similarity of the given arguments
+
+			@param spec1 First spectrum given in a binned representation
+			@param spec2 Second spectrum ginve in a binned representation
+			@throw IncompatibleBinning is thrown if the binnings of the spectra are not the same
+		*/
+		double operator () (const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const;
+
+		/// function call operator, calculates self similarity
+		double operator () (const BinnedSpectrum& spec) const;
+
+		///
+		static BinnedSpectrumCompareFunctor* create() { return new BinnedSpectralContrastAngle(); }
+
+		/// get the identifier for this FactoryProduct
+		static const String getProductName()
+		{
+			return "BinnedSpectralContrastAngle";
+		}
+
+	};
 
 }
 #endif //OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRALCONTRASTANGLE_H

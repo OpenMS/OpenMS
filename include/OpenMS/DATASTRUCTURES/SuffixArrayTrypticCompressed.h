@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -49,12 +49,13 @@ public:
 	/**
 	@brief constructor taking the string and the filename for writing or reading
 	@param st the string as const reference with which the suffix array will be build
-	@param saFileName the filename for writing or reading the suffix array
+	@param filename the filename for writing or reading the suffix array
 	@throw Exception::InvalidValue if string does not start with empty string ($)
+	@throw FileNotFound is thrown if the given file was not found
 
 	The constructor checks if a suffix array with given filename (without file extension) exists or not. In the first case it will simple be loaded and otherwise it will be build. Bulding the suffix array consists of several steps. At first all indices for a digesting enzyme (defined by using function isDigestingEnd) are created as an vector of int pairs. After creating all relevant indices they are sorted and the lcp and skip vectors are created.
 	*/
-	SuffixArrayTrypticCompressed(const String& st, const String& sa_file_name) throw (Exception::InvalidValue, Exception::FileNotFound);
+	SuffixArrayTrypticCompressed(const String& st, const String& filename);
 
 	/**
 	@brief copy constructor
@@ -74,34 +75,35 @@ public:
 	/**
 	@brief the function that will find all peptide candidates for a given spectrum
 	@param spec const reference of double vector describing the spectrum
+	@param candidates output parameter which contains the candidates of the masses given in spec
 	@return a vector of int pairs.
-	@throw Exception::InvalidValue if the spectrum is not sorted ascendingly
+	@throw InvalidValue if the spectrum is not sorted ascendingly
 	
 	for every mass within the spectrum all candidates described by as pairs of ints are returned. All masses are searched for the same time in just one suffix array traversal. In order to accelerate the traversal the skip and lcp table are used. The mass wont be calculated for each entry but it will be updated during traversal using a stack datastructure 
 	*/
-	void findSpec(std::vector<std::vector<std::pair<std::pair<int, int>, float > > >& candidates, const std::vector<double> & spec) throw (Exception::InvalidValue);
+	void findSpec(std::vector<std::vector<std::pair<std::pair<int, int>, float > > >& candidates, const std::vector<double> & spec);
 
 	/**
 	@brief saves the suffix array to disc
-	@param filename const reference string describing the filename
+	@param file_name const reference string describing the filename
 	@return bool if operation was succesful
 	@throw Exception::UnableToCreateFile if file could not be created (e.x. if you have no rigths)
 	*/
-	bool save(const String& file_name) throw (Exception::UnableToCreateFile);
+	bool save(const String& file_name);
 	/**
 	@brief opens the suffix array
-	@param filename const reference string describing the filename
+	@param file_name const reference string describing the filename
 	@return bool if operation was succesful
-	@throw Exception::FileNotFound
+	@throw FileNotFound
 	*/
-	bool open(const String& file_name) throw (Exception::FileNotFound);
+	bool open(const String& file_name);
 
 	/**
 	@brief setter for tolerance
 	@param t double with tolerance
 	@throw Exception::InvalidValue if tolerance is negative
 	*/
-	void setTolerance(double t) throw (Exception::InvalidValue);
+	void setTolerance(double t);
 
 	/**
 	@brief getter for tolerance
@@ -120,9 +122,9 @@ public:
 	/**
 	@brief setter for tags
 	@param tags const vector of strings with tags with length 3 each
-	@throw Exception::InvalidValue if at least one tag does not have size of 3
+	@throw InvalidValue if at least one tag does not have size of 3
 	*/
-	void setTags(const std::vector<String>& tags) throw (Exception::InvalidValue);
+	void setTags(const std::vector<String>& tags);
 
 	/**
 	@brief getter for tags

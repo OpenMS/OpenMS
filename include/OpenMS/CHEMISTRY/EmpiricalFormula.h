@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -75,8 +75,11 @@ namespace OpenMS
 			/// copy constructor
 			EmpiricalFormula(const EmpiricalFormula& rhs);
 
-			/// constructor from an OpenMS String
-			EmpiricalFormula(const String& rhs) throw(Exception::ParseError);
+			/** constructor from an OpenMS String
+
+					@throw throws ParseError if the formula cannot be parsed
+			*/
+			EmpiricalFormula(const String& rhs);
 
 			/// constructor with element pointer and number
 			EmpiricalFormula(UInt number, const Element* element, Int charge = 0);
@@ -138,32 +141,55 @@ namespace OpenMS
 			/// assignment operator
 			EmpiricalFormula& operator = (const EmpiricalFormula& rhs);
 
-			/// assignment operator which assigns an string to the formula
-			EmpiricalFormula& operator = (const String& rhs) throw(Exception::ParseError);
+			/** assignment operator which assigns an string to the formula
+
+					@throw throws ParseError if the formula cannot be parsed
+			*/
+			EmpiricalFormula& operator = (const String& rhs);
 
 			/// adds the elements of the given formula
 			EmpiricalFormula& operator += (const EmpiricalFormula& rhs);
 
-			/// adds the elements from the given formula, which is given as a OpenMS String
-			EmpiricalFormula& operator += (const String& rhs) throw(Exception::ParseError);
+			/** adds the elements from the given formula, which is given as a OpenMS String
+			
+					@throw throws ParseError if the formula cannot be parsed
+			*/
+			EmpiricalFormula& operator += (const String& rhs);
 
 			/// adds the elements of the given formula and returns a new formula
 			EmpiricalFormula operator + (const EmpiricalFormula& rhs) const;
 
-			/// adds the elements of the given formula (given as a String) and returns a new formula
-			EmpiricalFormula operator + (const String& rhs) const throw(Exception::ParseError);
+			/** adds the elements of the given formula (given as a String) and returns a new formula
 
-			/// subtracts the elements of a formula
-			EmpiricalFormula& operator -= (const EmpiricalFormula& rhs) throw(Exception::SizeUnderflow);
+					@throw throws ParseError if the formula cannot be parsed
+			*/
+			EmpiricalFormula operator + (const String& rhs) const;
 
-			/// subtracts the elements of a formula given as string
-			EmpiricalFormula& operator -= (const String& rhs) throw(Exception::ParseError, Exception::SizeUnderflow);
+			/** subtracts the elements of a formula
 
-			/// subtracts the elements of a formula an returns a new formula
-			EmpiricalFormula operator - (const EmpiricalFormula& rhs) const throw(Exception::SizeUnderflow);
+					@throw throws SizeUnderflow if one number of elements of right hand side is larger than left hand side
+			*/
+			EmpiricalFormula& operator -= (const EmpiricalFormula& rhs);
 
-			/// subtracts the elements of a formula given as a String and returns a new formula
-			EmpiricalFormula operator - (const String& rhs) const throw(Exception::ParseError, Exception::SizeUnderflow);
+			/** subtracts the elements of a formula given as string
+			
+					@throw throws ParseError if the formula cannot be parsed
+					@throw throws SizeUnderflow if one number of elements of right hand side is larger than left hand side
+			*/
+			EmpiricalFormula& operator -= (const String& rhs);
+
+			/** subtracts the elements of a formula an returns a new formula
+
+					@throw throws SizeUnderflow if one number of elements of right hand side is larger than left hand side
+			*/
+			EmpiricalFormula operator - (const EmpiricalFormula& rhs) const;
+
+			/** subtracts the elements of a formula given as a String and returns a new formula
+
+					@throw throws ParseError if the formula cannot be parsed
+					@throw throws SizeUnderflow if one number of elements of right hand side is larger than left hand side
+			*/
+			EmpiricalFormula operator - (const String& rhs) const;
 			//@}
 
 			/**@name Predicates
@@ -187,14 +213,20 @@ namespace OpenMS
 			/// returns true if the formulas contain equal elements in equal quantities
 			bool operator == (const EmpiricalFormula& rhs) const;
 
-			/// returns true if the formulas contain equal elements in equal quantities
-			bool operator == (const String& rhs) const throw(Exception::ParseError);
+			/** returns true if the formulas contain equal elements in equal quantities
+					
+					@throw throws ParseError if the formula cannot be parsed
+			*/
+			bool operator == (const String& rhs) const;
 
 			/// returns true if the formulas differ in elements composition
 			bool operator != (const EmpiricalFormula& rhs) const;
 
-			/// returns true if the formulas differ in elements composition
-			bool operator != (const String& rhs) const throw(Exception::ParseError);
+			/** returns true if the formulas differ in elements composition
+
+					@throw throws ParseError if the formula cannot be parsed
+			*/
+			bool operator != (const String& rhs) const;
 			//@}
 
 			/// writes the formula to a stream
@@ -214,9 +246,9 @@ namespace OpenMS
 
 			Int charge_;
 
-			void readElementsFromFile_(const String& file_name) throw(Exception::FileNotFound, Exception::ParseError);
+			void readElementsFromFile_(const String& file_name);
 
-			Int parseFormula_(Map<const Element*, UInt>& ef,const String& formula) const throw(Exception::ParseError);
+			Int parseFormula_(Map<const Element*, UInt>& ef,const String& formula) const;
 
 			const ElementDB* element_db_;
 	};

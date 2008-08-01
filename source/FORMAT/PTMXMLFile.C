@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -39,8 +39,7 @@ namespace OpenMS
 	{
 	}
 	
-	void
-	PTMXMLFile::load(const String& filename, map< String, pair< String, String > >& ptm_informations) throw (Exception::FileNotFound, Exception::ParseError)
+	void PTMXMLFile::load(const String& filename, map< String, pair< String, String > >& ptm_informations)
 	{
 		ptm_informations.clear();
 
@@ -48,8 +47,7 @@ namespace OpenMS
 		parse_(filename,&handler);
 	}
 	
-	void
-	PTMXMLFile::store(String filename, map< String, pair< String, String > >& ptm_informations) const throw (Exception::UnableToCreateFile)
+	void PTMXMLFile::store(String filename, map< String, pair< String, String > >& ptm_informations) const
 	{
 		Internal::PTMXMLHandler handler(ptm_informations, filename);
 		save_(filename, &handler);

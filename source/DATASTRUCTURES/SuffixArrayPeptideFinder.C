@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*- vi: set ts=2:
+// -*- mode: C++; tab-width: 2; -*- vi: set ts=2:
 //
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
@@ -41,7 +41,7 @@ using namespace std;
 namespace OpenMS
 {
 				
-SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const String& f_file, const String& method) throw (Exception::FileNotFound,Exception::ParseError,Exception::InvalidValue)
+SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const String& f_file, const String& method)
 {
 	if (!(method=="trypticCompressed" || method=="seqan" || method=="trypticSeqan"))
 	{
@@ -148,7 +148,7 @@ UInt SuffixArrayPeptideFinder::getNumberOfModifications() const
 	return (sa_->getNumberOfModifications());
 }
 
-void SuffixArrayPeptideFinder::setTags(const vector<OpenMS::String> & tags) throw (OpenMS::Exception::InvalidValue)
+void SuffixArrayPeptideFinder::setTags(const vector<OpenMS::String> & tags)
 {
 	sa_->setTags(tags);
 }
@@ -168,7 +168,7 @@ bool SuffixArrayPeptideFinder::getUseTags()
 	return (sa_->getUseTags());
 }
 
-void SuffixArrayPeptideFinder::setModificationOutputMethod (const String & s) throw (OpenMS::Exception::InvalidValue)
+void SuffixArrayPeptideFinder::setModificationOutputMethod (const String & s)
 {
 	if (!(s == "mass" || s == "stringUnchecked" || s == "stringChecked"))
 	{
@@ -259,7 +259,7 @@ void SuffixArrayPeptideFinder::getCandidates(vector<vector<pair<FASTAEntry, Stri
 	return;
 }
 
-void SuffixArrayPeptideFinder::getCandidates (vector<vector<pair<SuffixArrayPeptideFinder::FASTAEntry, String > > >& candidates, const String& DTA_file) throw (Exception::FileNotFound, Exception::ParseError)
+void SuffixArrayPeptideFinder::getCandidates (vector<vector<pair<SuffixArrayPeptideFinder::FASTAEntry, String > > >& candidates, const String& DTA_file)
 {
 	DTAFile dta_file;
 	PeakSpectrum s;

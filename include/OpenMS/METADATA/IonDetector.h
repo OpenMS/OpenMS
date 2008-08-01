@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -34,20 +34,52 @@ namespace OpenMS
 	/**
 		@brief Description of a ion detector ( part of a MS Instrument )
 		
-		
-		
 		@ingroup Metadata
 	*/
-  class IonDetector: public MetaInfoInterface
+  class IonDetector
+  	: public MetaInfoInterface
   {
     public:
-    	/// detector type
-			enum Type {TYPENULL,ELECTRONMULTIPLIER,PHOTOMULTIPLIER,FOCALPLANEARRAY,FARADAYCUP,CONVERSIONDYNODEELECTRONMULTIPLIER,CONVERSIONDYNODEPHOTOMULTIPLIER,MULTICOLLECTOR,CHANNELELECTRONMULTIPLIER,SIZE_OF_TYPE};
+    	/// Detector type
+			enum Type
+			{
+				TYPENULL,														///< Unknown
+				ELECTRONMULTIPLIER,									///< Electron multiplier
+				PHOTOMULTIPLIER,										///< Photo multiplier
+				FOCALPLANEARRAY,										///< Focal plane array
+				FARADAYCUP,													///< Faraday cup
+				CONVERSIONDYNODEELECTRONMULTIPLIER,	///< Conversion dynode electron multiplier
+				CONVERSIONDYNODEPHOTOMULTIPLIER,		///< Conversion dynode photo multiplier
+				MULTICOLLECTOR,											///< Multi-collector
+				CHANNELELECTRONMULTIPLIER,					///< Channel electron multiplier
+				CHANNELTRON,												///< channeltron
+				DALYDETECTOR,												///< daly detector
+				MICROCHANNELPLATEDETECTOR,					///< microchannel plate detector
+				ARRAYDETECTOR,											///< array detector
+				CONVERSIONDYNODE,										///< conversion dynode
+				DYNODE,															///< dynode
+				FOCALPLANECOLLECTOR,								///< focal plane collector
+				IONTOPHOTONDETECTOR,								///< ion-to-photon detector
+				POINTCOLLECTOR,											///< point collector
+				POSTACCELERATIONDETECTOR,						///< postacceleration detector
+				PHOTODIODEARRAYDETECTOR,						///< photodiode array detector
+				INDUCTIVEDETECTOR,									///< inductive detector
+				ELECTRONMULTIPLIERTUBE,							///< electron multiplier tube
+				SIZE_OF_TYPE
+			};
 			/// Names of detector types
 			static const std::string NamesOfType[SIZE_OF_TYPE];
-			
-			/// acquisition mode
-			enum AcquisitionMode {ACQMODENULL,PULSECOUNTING,ADC,TDC,TRANSIENTRECORDER,SIZE_OF_ACQUISITIONMODE};
+
+			/// Acquisition mode
+			enum AcquisitionMode
+			{
+				ACQMODENULL,				///< Unknown
+				PULSECOUNTING,			///< Pulse counting
+				ADC,								///< Analog-digital converter
+				TDC,								///< Time-digital converter
+				TRANSIENTRECORDER,	///< Transient recorder
+				SIZE_OF_ACQUISITIONMODE
+			};
 			/// Names of acquisition modes
 			static const std::string NamesOfAcquisitionMode[SIZE_OF_ACQUISITIONMODE];
 

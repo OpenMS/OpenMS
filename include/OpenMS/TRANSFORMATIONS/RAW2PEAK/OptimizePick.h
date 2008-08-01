@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -111,11 +111,11 @@ namespace OpenMS
   class OptimizePick
   {
   public:
+
     /// Raw data vector type
     typedef std::vector<DPeak<1> > RawDataVector;
     /// Raw data iterator type
     typedef RawDataVector::iterator PeakIterator;
-    //@}
 
 
     /// Constructor
@@ -160,8 +160,6 @@ namespace OpenMS
     inline double& getMaxRelError() { return eps_rel_; }
     /// Mutable access to the maximum relative error
     inline void setMaxRelError(double eps_rel) { eps_rel_ = eps_rel; }
-    //@}
-
 
     /// Start the optimization of the peak shapes peaks. The original peak shapes will be subsituted by the optimized peak shapes.
     void optimize(std::vector<PeakShape>& peaks);

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -194,7 +194,15 @@ namespace OpenMS
 	
 	void ModificationsDB::readFromUnimodXMLFile(const String& filename)
 	{
-		UnimodXMLFile().load(filename, mods_);
+		String file = File::find(filename);
+    ifstream is(file.c_str());
+    if (!is)
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+    }	
+		is.close();
+
+		UnimodXMLFile().load(file, mods_);
 
     for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it !=mods_.end(); ++it)
     {

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -56,24 +56,7 @@ CHECK((~ConsensusXMLFile()))
 	delete ptr;
 RESULT
 
-CHECK((void store(const String &filename, const ConsensusMap &map)))
-  std::string tmp_filename;
-  ConsensusMap cons_map;
-  ConsensusXMLFile cons_file;
-  
-  cons_file.load("data/ConsensusXMLFile.xml",cons_map);
-
-  NEW_TMP_FILE(tmp_filename);
-  cons_file.store(tmp_filename,cons_map);
-  PRECISION(0.01);
-	FuzzyStringComparator fsc;
-	fsc.setVerboseLevel(0);
-	fsc.setAcceptableRelative(1.0);
-	fsc.setAcceptableAbsolute(0.0);
-	bool file_is_okay = fsc.compare_files(tmp_filename.c_str(),"data/ConsensusXMLFile2.xml");
-	TEST_EQUAL(file_is_okay,true);
-  TEST_EQUAL(cons_file.isValid(tmp_filename),true);
-RESULT
+PRECISION(0.01)
 
 CHECK((void load(const String &filename, ConsensusMap &map) throw (Exception::FileNotFound, Exception::ParseError)))
   ConsensusMap cons_map;
@@ -98,8 +81,6 @@ CHECK((void load(const String &filename, ConsensusMap &map) throw (Exception::Fi
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().max()[0],3.12539e+07)
   TEST_REAL_EQUAL(cons_feature.getQuality(),1.1)
   ConsensusFeature::HandleSetType::const_iterator it = cons_feature.begin();
-//  TEST_REAL_EQUAL(it->getElement().getRT(),1273.27)  
-//  TEST_REAL_EQUAL(it->getElement().getMZ(),904.47)
   TEST_REAL_EQUAL(it->getIntensity(),3.12539e+07)
   
   cons_feature = cons_map[5];
@@ -114,12 +95,8 @@ CHECK((void load(const String &filename, ConsensusMap &map) throw (Exception::Fi
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().max()[0],1.78215e+07)
   TEST_REAL_EQUAL(cons_feature.getQuality(),0.0)
   it = cons_feature.begin();
-//  TEST_REAL_EQUAL(it->getElement().getRT(),1194.82)  
-//  TEST_REAL_EQUAL(it->getElement().getMZ(),777.101)
   TEST_REAL_EQUAL(it->getIntensity(),1.78215e+07)
   ++it;
-//  TEST_REAL_EQUAL(it->getElement().getRT(),2401.64)  
-//  TEST_REAL_EQUAL(it->getElement().getMZ(),777.201)
   TEST_REAL_EQUAL(it->getIntensity(),1.78215e+07)
 
 
@@ -144,8 +121,26 @@ CHECK((void load(const String &filename, ConsensusMap &map) throw (Exception::Fi
 
 RESULT
 
-CHECK([EXTRA] (static bool isValid(const String& filename)))
-	NOT_TESTABLE; //tested above
+CHECK((void store(const String &filename, const ConsensusMap &map)))
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  
+  ConsensusMap cons_map, cons_map2;
+  ConsensusXMLFile cons_file;
+  
+  cons_file.load("data/ConsensusXMLFile2.xml",cons_map);  
+  cons_file.store(tmp_filename,cons_map);
+  cons_file.load(tmp_filename,cons_map2);  
+  TEST_EQUAL(cons_map.size(),cons_map2.size())
+  TEST_EQUAL(cons_map[0]==cons_map2[0],true)
+  TEST_EQUAL(cons_map[1]==cons_map2[1],true)
+RESULT
+
+CHECK([EXTRA] (bool isValid(const String& filename)))
+  ConsensusXMLFile cons_file;
+  TEST_EQUAL(cons_file.isValid("data/ConsensusXMLFile.xml"),true);
+  TEST_EQUAL(cons_file.isValid("data/ConsensusXMLFile2.xml"),true);
+  TEST_EQUAL(cons_file.isValid("data/ConsensusXMLFile3.xml"),true);
 RESULT
 
 /////////////////////////////////////////////////////////////

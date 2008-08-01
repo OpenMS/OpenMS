@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -115,7 +115,7 @@ CHECK((const String& getEnzyme() const))
 	TEST_STRING_EQUAL(file.getEnzyme(), "Trypsin")
 RESULT
 
-CHECK(void handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic) throw (Exception::FileNotReadable, Exception::FileNotFound, Exception::ParseError))
+CHECK(void handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic))
 
 	// test exceptions
 	String modification_line = "Phosphorylation";
@@ -369,7 +369,7 @@ CHECK((Int getTagCount() const))
 RESULT
 
 
-CHECK(void store(const String& filename) throw (Exception::UnableToCreateFile))
+CHECK(void store(const String& filename))
 	String filename;
 	NEW_TMP_FILE(filename)
 	

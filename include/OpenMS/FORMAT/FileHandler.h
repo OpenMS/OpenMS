@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -31,6 +31,7 @@
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MascotInfile.h>
@@ -75,6 +76,7 @@ namespace OpenMS
 			MGF,								///< Mascot Generic Format (.mgf)                   
 			PARAM,          		///< %OpenMS parameters file (.ini)                  
 			TRANSFORMATIONXML,  ///< Tranformation description file (.trafoXML)
+			MZML,								///< MzML file (.mzML)
 			SIZE_OF_TYPE    		///< No file type. Simply stores the number of types
 		};
 			
@@ -176,6 +178,15 @@ namespace OpenMS
 				case MZDATA:
 					{
 						MzDataFile f;
+						f.getOptions() = options_;
+						f.setLogType(log);
+						f.load(filename,exp);
+						return true;
+					}
+					break;
+				case MZML:
+					{
+						MzMLFile f;
 						f.getOptions() = options_;
 						f.setLogType(log);
 						f.load(filename,exp);

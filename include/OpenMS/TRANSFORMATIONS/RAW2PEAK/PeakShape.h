@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -78,15 +78,19 @@ namespace OpenMS
 					area(0),
 					r_value(0),
 					signal_to_noise(0.),
-					left_endpoint(),
-					right_endpoint(),
 					type(UNDEFINED)
     {
+			left_endpoint_ = exp_.end();
+			right_endpoint_ = exp_.end();
     }
     
     /// Constructor that sets most of the members
     PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal left_width_, DoubleReal right_width_, DoubleReal area_, PeakIterator left_, PeakIterator right_, Type type_);
-    
+
+		/// Constructor that sets most of the members 
+    PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal left_width_, DoubleReal right_width_, DoubleReal area_, Type type_);
+
+		
     /// Copy constructor
     PeakShape(const PeakShape& rhs);
     
@@ -109,6 +113,14 @@ namespace OpenMS
     DoubleReal getSymmetricMeasure() const;
     /// Estimates the full width at half maximum.
     DoubleReal getFWHM() const;
+		/// Check if endpoint iterators 
+		bool iteratorsSet() const;
+		
+		PeakIterator getLeftEndpoint() const;
+		void setLeftEndpoint(PeakIterator left_endpoint);
+		
+		PeakIterator getRightEndpoint() const;
+		void setRightEndpoint(PeakIterator right_endpoint);
     /// Maximum intensity of the peak shape
     DoubleReal height;
     /// Centroid position
@@ -126,10 +138,7 @@ namespace OpenMS
     DoubleReal r_value;
     /// The signal to noise ratio at the mz_position
     DoubleReal signal_to_noise;
-    /// Left peak endpoint in the data
-    PeakIterator left_endpoint;
-    /// Right peak endpoint in the data
-    PeakIterator right_endpoint;
+    
     ///peak shape type
     Type type;
 
@@ -153,7 +162,19 @@ namespace OpenMS
 	
 	    protected:
 	      Int dimension_;
+
     };
+	protected:
+		/// Left peak endpoint in the data
+    PeakIterator left_endpoint_;
+    /// Right peak endpoint in the data
+    PeakIterator right_endpoint_;
+		/// Needed for initialisation of endpoint iterators
+		std::vector<Peak1D> exp_;
+		/// flag if left endpoint iterator differs from default value
+		bool left_iterator_set_;
+		/// flag if left endpoint iterator differs from default value
+		bool right_iterator_set_;
   };
 } // namespace OpenMS
 

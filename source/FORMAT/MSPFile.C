@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -25,16 +25,246 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MSPFile.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
+#include <fstream>
+
+using namespace std;
 
 namespace OpenMS
 {
 	MSPFile::MSPFile()
+		: DefaultParamHandler("MSPFile")
+	{
+		defaults_.setValue("parse_headers", "false", "Flag whether header information should be parsed an stored for each spectrum");
+		vector<String> parse_strings;
+		parse_strings.push_back("true");
+		parse_strings.push_back("false");
+		defaults_.setValidStrings("parse_headers", parse_strings);
+		defaults_.setValue("parse_peakinfo", "true", "Flag whether the peak annotation information should be parsed and stored for each peak");
+		defaults_.setValidStrings("parse_peakinfo", parse_strings);
+		defaults_.setValue("instrument", "", "If instrument given, only spectra of these type of instrument (Inst= in header) are parsed");
+		vector<String> inst_strings;
+		inst_strings.push_back("");
+		inst_strings.push_back("it");
+		inst_strings.push_back("qtof");
+		defaults_.setValidStrings("instrument", inst_strings);
+
+		defaultsToParam_();
+	}
+
+
+	MSPFile::MSPFile(const MSPFile& rhs)
+		: DefaultParamHandler(rhs)
 	{
 	}
 
+	MSPFile& MSPFile::operator = (const MSPFile& rhs)
+	{
+		if (this != &rhs)
+		{
+			DefaultParamHandler::operator = (rhs);
+		}
+		return *this;
+	}
+	
 	MSPFile::~MSPFile()
 	{
 	}
 
+
+  void MSPFile::load(const String& filename, vector<PeptideIdentification>& ids, RichPeakMap& exp)
+  {
+    if (!File::exists(filename))
+    {
+    	throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+    }
+    if (!File::readable(filename))
+    {
+      throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+    }
+    String line;
+    ifstream is(filename.c_str());
+
+    Map<String, double> mod_to_mass;
+    mod_to_mass["Oxidation"] = 15.994915;
+    mod_to_mass["Carbamidomethyl"] = 57.02146;
+    mod_to_mass["ICAT_light"] = 227.12;
+    mod_to_mass["ICAT_heavy"] = 236.12;
+    mod_to_mass["AB_old_ICATd0"] = 442.20;
+    mod_to_mass["AB_old_ICATd8"] = 450.20;
+    mod_to_mass["Acetyl"] = 42.0106;
+    mod_to_mass["Deamidation"] = 0.9840;
+    mod_to_mass["Pyro-cmC"] = -17.026549;
+    mod_to_mass["Pyro-glu"] = -17.026549;
+    mod_to_mass["Pyro_glu"] = -18.010565;
+    mod_to_mass["Amide"] = -0.984016;
+    mod_to_mass["Phospho"] = 79.9663;
+    mod_to_mass["Methyl"] = 14.0157;
+    mod_to_mass["Carbamyl"] = 43.00581;
+
+    RichPeakSpectrum spec;
+
+		bool parse_headers(param_.getValue("parse_headers").toBool());
+		bool parse_peakinfo(param_.getValue("parse_peakinfo").toBool());
+		String instrument((String)param_.getValue("instrument"));
+		bool inst_type_correct(true);
+		
+		while (getline(is, line))
+    {
+      if (line.hasPrefix("Name:"))
+      {
+        vector<String> split, split2;
+        line.split(' ', split);
+        split[1].split('/', split2);
+        String peptide = split2[0];
+        // remove damn (O), also defined in 'Mods=' comment
+        peptide.substitute("(O)", "");
+        PeptideIdentification id;
+        id.insertHit(PeptideHit(0, 0, split2[1].toInt(), peptide));
+        ids.push_back(id);
+				inst_type_correct = true;
+				continue;
+      }
+			
+			/*
+      if (line.hasPrefix("MW:"))
+      {
+        // skip that as it is not necessary and might not be available at all
+      }*/
+			
+      if (line.hasPrefix("Comment:"))
+      {
+        // slow, but we need the modifications from the header and the instrument type
+        vector<String> split;
+        line.split(' ', split);
+        for (vector<String>::const_iterator it = split.begin(); it != split.end(); ++it)
+        {
+					if (!inst_type_correct)
+					{
+						break;
+					}
+					if (instrument != "" && it->hasPrefix("Inst="))
+					{
+						String inst_type = it->suffix('=');
+						if (instrument != inst_type)
+						{
+							inst_type_correct = false;
+							ids.erase(--ids.end());
+						}
+						break;
+					}
+					
+          if (it->hasPrefix("Mods=") && *it != "Mods=0")
+          {
+            String mods = it->suffix('=');
+            // e.g. Mods=2/7,K,Carbamyl/22,K,Carbamyl
+            vector<String> mod_split;
+            mods.split('/', mod_split);
+            AASequence peptide = ids.back().getHits().begin()->getSequence();
+            for (UInt i = 1; i <= (UInt)mod_split[0].toInt(); ++i)
+            {
+              vector<String> single_mod;
+              mod_split[i].split(',', single_mod);
+
+              String mod_name = single_mod[2];
+
+              if (!mod_to_mass.has(mod_name))
+              {
+                cerr << "mod to mass does not have element named " <<mod_name << endl;
+                throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name);
+              }
+
+              vector<String> candidate_mods;
+              ModificationsDB::getInstance()->getModificationsByDiffMonoMass(candidate_mods, single_mod[1], mod_to_mass[mod_name], 0.1);
+
+              if (candidate_mods.size() == 0)
+              {
+                cerr << "MSPFile: a modification with name '" << mod_name <<
+                        "' or mass '" << mod_to_mass[mod_name] <<
+                        "' at residue '" << single_mod[1] << "' could not be found, aborting!" << endl;
+                throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name);
+              }
+              /*
+              // this gives many error, e.g. Oxidation of Methionine is present multiple times in PSI-MOD
+              if (candidate_mods.size() > 1)
+              {
+                cerr << "MSPFile: more than one modification with mass '" << mod_to_mass[mod_name] << "' at residue '" << single_mod[1] <<
+                        "' found, choosing first one!" << endl;
+              }
+              */
+              String psi_mod = ModificationsDB::getInstance()->getModification(single_mod[1], candidate_mods[0]).getId();
+              peptide.setModification(single_mod[0].toInt(), psi_mod);
+            }
+            vector<PeptideHit> hits(ids.back().getHits());
+            hits.begin()->setSequence(peptide);
+            ids.back().setHits(hits);
+          }
+        }
+
+        if (parse_headers && inst_type_correct)
+        {
+          parseHeader_(line, spec);
+        }
+				continue;
+      }
+      
+			if (line.hasPrefix("Num peaks:"))
+			{
+				if (!inst_type_correct)
+				{
+					while (getline(is, line) && line.size() > 0 && isdigit(line[0])) ;
+				}
+				else
+				{
+        	while (getline(is, line) && line.size() > 0 && isdigit(line[0]))
+        	{
+          	vector<String> split;
+          	line.split('\t', split);
+          	RichPeak1D peak;
+          	if (split.size() != 3)
+          	{
+            	throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "not <mz><tab><intensity><tab>\"<comment>\"");
+          	}
+          	peak.setMZ(split[0].toFloat());
+          	peak.setIntensity(split[1].toFloat());
+						if (parse_peakinfo)
+						{
+           		peak.setMetaValue("MSPPeakInfo", split[2]);
+						}
+          	spec.push_back(peak);
+        	}
+
+       		exp.push_back(spec);
+        	spec.clear();
+      	}
+			}
+    }
+  }
+	
+
+
+
+	void MSPFile::parseHeader_(const String& header, RichPeakSpectrum& spec)
+  {
+    // first header from std_protein of NIST spectra DB
+    // Spec=Consensus Pep=Tryptic Fullname=R.AAANFFSASCVPCADQSSFPK.L/2 Mods=0 Parent=1074.480 Inst=it Mz_diff=0.500 Mz_exact=1074.4805 Mz_av=1075.204 Protein="TRFE_BOVIN" Organism="Protein Standard" Se=2^X23:ex=3.1e-008/1.934e-005,td=5.14e+007/2.552e+019,sd=0/0,hs=45.8/5.661,bs=6.3e-021,b2=1.2e-015,bd=5.87e+020^O22:ex=3.24e-005/0.0001075,td=304500/5.909e+297,pr=3.87e-007/1.42e-006,bs=1.65e-301,b2=1.25e-008,bd=1.3e+299 Sample=1/bovine-serotransferrin_cam,23,26 Nreps=23/34 Missing=0.3308/0.0425 Parent_med=1074.88/0.23 Max2med_orig=22.1/9.5 Dotfull=0.618/0.029 Dot_cons=0.728/0.040 Unassign_all=0.161 Unassigned=0.000 Dotbest=0.70 Naa=21 DUScorr=2.3/3.8/0.61 Dottheory=0.86 Pfin=4.3e+010 Probcorr=1 Tfratio=8e+008 Specqual=0.0
+		vector<String> split;
+    header.split(' ', split);
+
+    for (vector<String>::const_iterator it = split.begin(); it != split.end(); ++it)
+    {
+    	vector<String> split2;
+      String tmp = *it;
+      tmp.trim();
+      tmp.split('=', split2);
+      if (split2.size() == 2)
+      {
+        spec.setMetaValue(split2[0], split2[1]);
+      }
+    }
+  }
+
+	
 }// namespace OpenMS
 

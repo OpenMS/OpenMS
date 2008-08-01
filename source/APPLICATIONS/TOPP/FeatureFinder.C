@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -54,7 +54,11 @@ using namespace std;
   feature region. The intensity of the feature is then given by the sum of the data points included
   in its regions.
   
-  How to find suitable parameters is described in the TOPP tutorial.
+  How to find suitable parameters and details of the different algorithms implemented are described 
+	in the TOPP tutorial.
+	
+	Note that the wavelet transform is very slow on high-resolution spectra (i.e. FT, Orbitrap). We recommend 
+	to use a noise or intensity filter to remove spurious points first and to speed-up the feature detection process.
   
 */
 
@@ -81,7 +85,7 @@ class TOPPFeatureFinder
 		setValidStrings_("type", Factory<FeatureFinderAlgorithm<Peak1D,Feature> >::registeredProducts());
 		addEmptyLine_();
 		addText_("All other options of the Featurefinder depend on the algorithm type used.\n"
-									 "They are set in the 'algorithm' seciton of the INI file.\n");	
+						 "They are set in the 'algorithm' seciton of the INI file.\n");	
 
 		registerSubsection_("algorithm","Algorithm section");
 	}

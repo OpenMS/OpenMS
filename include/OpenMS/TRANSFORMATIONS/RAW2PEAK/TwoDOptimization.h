@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -32,8 +32,8 @@
 #undef DEBUG_2D
 
 #ifdef DEBUG_2D
-#include<iostream>
-#include<fstream>
+#include <iostream>
+#include <fstream>
 #endif
 
 #include <vector>
@@ -182,10 +182,9 @@ namespace OpenMS
 			@param first begin of the raw data spectra iterator range
 			@param last end of the raw data spectra interator range
 			@param ms_exp peak map corresponding to the raw data in the range from @p first to @p last
-
+			@param real2D flag if the optimization should be two dimensional or on each scan separately
 			@exception Exception::IllegalArgument is thrown if required meta information from peak picking is missing (area, shape, left width, right width) or if the input data is invalid in some other way
 			
-			@todo document parameters (Alexandra)
 		*/
 		template <typename InputSpectrumIterator,typename OutputPeakType>
 		void optimize(InputSpectrumIterator& first,

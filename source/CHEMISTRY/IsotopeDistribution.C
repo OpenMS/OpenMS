@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -208,10 +208,15 @@ namespace OpenMS
 			return;
 		}
 		
-		int r_max = min(left.size() + right.size() - 1, (ContainerType::size_type)max_isotope_);
+		ContainerType::size_type r_max = left.size() + right.size() - 1;
+		
+		if ((ContainerType::size_type)max_isotope_ != 0 && r_max > (ContainerType::size_type)max_isotope_)
+		{
+			r_max = (ContainerType::size_type)max_isotope_;
+		}
 		
 		result.resize(r_max);
-    for (int i = 0; i != r_max; ++i)
+    for (ContainerType::size_type i = 0; i != r_max; ++i)
     {
       result[i] = make_pair<UInt, double>(left[0].first + right[0].first + i, 0);
     }
@@ -220,7 +225,7 @@ namespace OpenMS
 		// (for better numerics)
 		for (int i = left.size() - 1; i >= 0; --i)
 		{
-			for (int j = min(r_max - i, int(right.size())) - 1; j >= 0; --j)
+			for (int j = min((int)(r_max - i), (int)right.size()) - 1; j >= 0; --j)
 			{
 				result[i+j].second += left[i].second * right[j].second;
 			}
@@ -290,9 +295,15 @@ namespace OpenMS
   void IsotopeDistribution::convolveSquare_(ContainerType& result, const ContainerType& input) const
   {
 	  result.clear();
-   	int r_max = min(2 * input.size() - 1, (ContainerType::size_type)(max_isotope_ + 1));
+   	ContainerType::size_type r_max = 2 * input.size() - 1;
+		
+		if ((ContainerType::size_type)max_isotope_ != 0 && (ContainerType::size_type)(max_isotope_ + 1) < r_max)
+		{
+			r_max = (ContainerType::size_type)(max_isotope_ + 1);
+		}
+
     result.resize(r_max);
-		for (int i = 0; i != r_max; ++i)
+		for (ContainerType::size_type i = 0; i != r_max; ++i)
 		{
 			result[i] = make_pair<UInt, double>(2 * input[0].first + i, 0);
 		}
@@ -301,7 +312,7 @@ namespace OpenMS
     // (for better numerics)
     for (int i = input.size() - 1; i >= 0; --i) 
 		{
-      for (int j = min(r_max - i, int(input.size())) - 1; j >= 0; --j) 
+      for (int j = min((int)(r_max - i), (int)input.size()) - 1; j >= 0; --j) 
 			{
         result[i+j].second += input[i].second * input[j].second;
       }

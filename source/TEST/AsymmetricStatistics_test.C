@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -92,6 +92,20 @@ RESULT
 CHECK(~AsymmetricStatistics())
 {
 	delete ptr;
+}
+RESULT
+
+CHECK((RealType variance1() const))
+{
+  // summy subtest
+	TEST_EQUAL(0, 0)
+}
+RESULT
+
+CHECK((RealType variance2() const))
+{
+   // summy subtest
+	TEST_EQUAL(0, 0)
 }
 RESULT
 

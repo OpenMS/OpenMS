@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -119,32 +119,32 @@ START_TEST(RangeManager, "RangeManager")
 /////////////////////////////////////////////////////////////
 
 RM* ptr;
-CHECK(RangeManager())
+CHECK((RangeManager()))
 	ptr = new RM();
   TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(~RangeManager())
+CHECK((virtual ~RangeManager()))
 	delete ptr;
 RESULT
 
-CHECK(const PositionType& getMin() const)
+CHECK((const PositionType& getMin() const))
 	TEST_EQUAL(RM().getMin(), RM::PositionType::max)
 RESULT
 
-CHECK(const PositionType& getMax() const)
+CHECK((const PositionType& getMax() const))
 	TEST_EQUAL(RM().getMax(), RM::PositionType::min_negative)
 RESULT
 
-CHECK(Real getMinInt() const)
+CHECK((DoubleReal getMinInt() const ))
 	TEST_REAL_EQUAL(RM().getMinInt(), numeric_limits<DoubleReal>::max())
 RESULT
 
-CHECK(Real getMaxInt() const)
+CHECK((DoubleReal getMaxInt() const ))
 	TEST_REAL_EQUAL(RM().getMaxInt(), -numeric_limits<DoubleReal>::max())
 RESULT
 
-CHECK(void updateRanges())
+CHECK((virtual void updateRanges()=0))
 	RM rm;
 	
 	rm.updateRanges();
@@ -168,7 +168,7 @@ CHECK(void updateRanges())
 	TEST_REAL_EQUAL(rm.getMaxInt(), 1.0)	
 RESULT
 
-CHECK(void clearRanges())
+CHECK((void clearRanges()))
 	RM rm;
 	rm.updateRanges();
 	TEST_REAL_EQUAL(rm.getMin()[0], 2.0)
@@ -185,7 +185,7 @@ CHECK(void clearRanges())
 	TEST_REAL_EQUAL(RM().getMaxInt(), -numeric_limits<DoubleReal>::max())
 RESULT
 
-CHECK(RangeManager(const RangeManager& rhs))
+CHECK((RangeManager(const RangeManager& rhs)))
 	RM rm0;
 	rm0.updateRanges();
 	RM rm(rm0);
@@ -197,7 +197,7 @@ CHECK(RangeManager(const RangeManager& rhs))
 	TEST_REAL_EQUAL(rm.getMaxInt(), 47110.0)		
 RESULT
 
-CHECK(RangeManager& operator = (const RangeManager& rhs))
+CHECK((RangeManager& operator = (const RangeManager& rhs)))
 	RM rm0;
 	rm0.updateRanges();
 	RM rm;
@@ -210,14 +210,14 @@ CHECK(RangeManager& operator = (const RangeManager& rhs))
 	TEST_REAL_EQUAL(rm.getMaxInt(), 47110.0)	
 RESULT
 
-CHECK(bool operator == (const RangeManager& rhs) const)
+CHECK((bool operator == (const RangeManager& rhs) const))
 	RM rm0 , rm;
 	TEST_EQUAL(rm==rm0, true);
 	rm0.updateRanges();
 	TEST_EQUAL(rm==rm0, false);
 RESULT
 
-CHECK(bool operator != (const RangeManager& rhs) const)
+CHECK((bool operator != (const RangeManager& rhs) const))
 	RM rm0 , rm;
 	TEST_EQUAL(rm!=rm0, false);
 	rm0.updateRanges();

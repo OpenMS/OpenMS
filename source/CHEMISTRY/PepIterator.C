@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -37,28 +37,27 @@ namespace OpenMS{
 	
 	typedef std::pair <String, String> FASTAEntry;
 	
-	PepIterator::PepIterator():FactoryProduct("PepIterator")
+	PepIterator::PepIterator()
+		: FactoryProduct(PepIterator::getProductName())
 	{
-
 	}
 
-	PepIterator::PepIterator(const PepIterator & source) : FactoryProduct(source)
+	PepIterator::PepIterator(const PepIterator & source) 
+		: FactoryProduct(source)
 	{
-
 	}
 	
 	PepIterator::~PepIterator()
 	{
-
 	}
 
-void PepIterator::registerChildren()
-{
-	//register new products here
-	Factory<PepIterator>::registerProduct(EdwardsLippertIterator::getName(),& EdwardsLippertIterator::create);
-	Factory<PepIterator>::registerProduct(EdwardsLippertIteratorTryptic::getName(),& EdwardsLippertIteratorTryptic::create);	
-	Factory<PepIterator>::registerProduct(FastaIterator::getName(),& FastaIterator::create);	
-	Factory<PepIterator>::registerProduct(FastaIteratorIntern::getName(),& FastaIteratorIntern::create);
-	Factory<PepIterator>::registerProduct(TrypticIterator::getName(),& TrypticIterator::create);
-}
+	void PepIterator::registerChildren()
+	{
+		//register new products here
+		Factory<PepIterator>::registerProduct(EdwardsLippertIterator::getProductName(),& EdwardsLippertIterator::create);
+		Factory<PepIterator>::registerProduct(EdwardsLippertIteratorTryptic::getProductName(),& EdwardsLippertIteratorTryptic::create);	
+		Factory<PepIterator>::registerProduct(FastaIterator::getProductName(),& FastaIterator::create);	
+		Factory<PepIterator>::registerProduct(FastaIteratorIntern::getProductName(),& FastaIteratorIntern::create);
+		Factory<PepIterator>::registerProduct(TrypticIterator::getProductName(),& TrypticIterator::create);
+	}
 }

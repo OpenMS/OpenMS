@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -53,6 +53,7 @@ namespace OpenMS
     @ref FeatureFinderAlgorithmPicked_Parameters are explained on a separate page.
 
 		@todo Add RT model with tailing/fronting (Marc)
+		@todo Add choise monoisotopic vs. average feature mass (Marc)
 		@improvement The elution profile could be integrated into the trace score (Marc)
 				
 		@experimental This algorithm is work in progress and might change.
@@ -1084,14 +1085,18 @@ namespace OpenMS
 					}
 				}
 				//finally remove features with intensity 0
+				UInt removed = 0;
 				for(Int i=this->features_->size()-1; i>=0; --i)
 				{
 					if (this->features_->operator[](i).getIntensity()==0)
 					{
+						++removed;
 						this->features_->erase(this->features_->begin()+i);
 					}
 				}
 				this->ff_->endProgress();
+				std::cout << "Removed " << removed << " overlapping features." << std::endl;
+				std::cout << this->features_->size() << " features left." << std::endl;
 				
 				//Abort reasons 
 				std::cout << std::endl;
@@ -1452,7 +1457,7 @@ namespace OpenMS
 				DoubleReal rt_min = max_trace.peaks.begin()->first;
 				log_ << "   - rt bounds: " << rt_min << "-" << rt_max << std::endl;
 				//Abort if too few peak were found
-				if (max_trace.peaks.size()<2*min_spectra_-max_missing_trace_peaks_)
+				if ((Int)max_trace.peaks.size()< (2*(Int)min_spectra_-(Int)max_missing_trace_peaks_))
 				{
 					log_ << "   - could not extend trace with maximum intensity => abort" << std::endl;
 					return;

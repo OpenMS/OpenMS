@@ -1,10 +1,10 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -39,35 +39,41 @@
 namespace OpenMS
 {
 
-  /**
-	  @brief make a PeakAlignment of two PeakSpectra
+	/**
+		@brief make a PeakAlignment of two PeakSpectra
 
 		The alignment is done according to the Needleman-Wunsch Algorithm (local alignment considering gaps).
 
+		@ref PeakAlignment_Parameters are explained on a separate page.
+
 		@ingroup SpectraComparison
-  */
-	
-  class PeakAlignment : public PeakSpectrumCompareFunctor
-  {
-  public:
-	
-    /// default constructor
-    PeakAlignment();
+	*/
 
-    /// copy constructor
-    PeakAlignment(const PeakAlignment& source);
+	class PeakAlignment : public PeakSpectrumCompareFunctor
+	{
+	public:
 
-    /// destructor
-    virtual ~PeakAlignment();
+		/// default constructor
+		PeakAlignment();
 
-	/// assignment operator
-	PeakAlignment& operator = (const PeakAlignment& source);
-	
-	/// function call operator, calculates the similarity of the given arguments
-	double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
+		/// copy constructor
+		PeakAlignment(const PeakAlignment& source);
 
-	/// function call operator, calculates self similarity
-	double operator () (const PeakSpectrum& spec) const;
+		/// destructor
+		virtual ~PeakAlignment();
+
+		/// assignment operator
+		PeakAlignment& operator = (const PeakAlignment& source);
+
+		/** function call operator, calculates the similarity of the given arguments
+
+			@param spec1 First spectrum given in a binned representation
+			@param spec2 Second spectrum ginve in a binned representation
+		*/
+		double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
+
+		/// function call operator, calculates self similarity
+		double operator () (const PeakSpectrum& spec) const;
 
 	///
 	static PeakSpectrumCompareFunctor* create() { return new PeakAlignment(); }
@@ -77,17 +83,17 @@ namespace OpenMS
 	{
 		return "PeakAlignment";
 	}
-	
+
 	/// make alignment and get the traceback
 	std::vector< std::pair<UInt,UInt> > getAlignmentTraceback (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
 
-  private:
+	private:
 
-  	/// calculates the score for aligning two peaks
+		/// calculates the score for aligning two peaks
 	double peakPairScore_(double& pos1, double& intens1, double& pos2, double& intens2, const double& sigma) const;
 
 
-  };
+	};
 
 }
 #endif //OPENMS_COMPARISON_SPECTRA_PEAKALIGNMENT_H

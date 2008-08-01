@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -61,6 +61,11 @@ namespace OpenMS
 	{
 		return residues_.size();
 	}
+
+	UInt ResidueDB::getNumberOfModifiedResidues() const
+	{
+		return modified_residues_.size();
+	}
 		
 	const set<const Residue*>& ResidueDB::getResidues() const
 	{
@@ -76,7 +81,7 @@ namespace OpenMS
 
 	void ResidueDB::addResidue(const Residue& residue)
 	{
-		Residue * r = new Residue(residue);
+		Residue* r = new Residue(residue);
 		addResidue_(r);
 	}
 
@@ -132,6 +137,7 @@ namespace OpenMS
 				}
 			}
 		}
+		buildResidueNames_();
 		return;
 	}
 
@@ -371,6 +377,20 @@ namespace OpenMS
 		}
 	}
 
+
+	const Residue* ResidueDB::getModifiedResidue(const String& modification)
+	{
+		String origin = ModificationsDB::getInstance()->getModification(modification).getOrigin();
+		if (origin.size() > 1 || origin.size() == 0 || (origin.size() == 1 && origin == "X"))
+		{
+			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Modification '" + modification
+						+ "' has no specific residue as origin! Please specifiy it!").c_str());
+		}
+
+		return getModifiedResidue(getResidue(origin), modification);
+	}
+	
+	
 	const Residue* ResidueDB::getModifiedResidue(const Residue* residue, const String& modification)
 	{
 		// search if the mod already exists
@@ -381,15 +401,17 @@ namespace OpenMS
 			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Residue with name " 
 											+ res_name + " was not registered in residue DB, register first!").c_str());
 		}
+
+		String id = ModificationsDB::getInstance()->getModification(res_name, modification).getId();
 		
-		if (residue_mod_names_.has(res_name) && residue_mod_names_[res_name].has(modification))
+		if (residue_mod_names_.has(res_name) && residue_mod_names_[res_name].has(id))
 		{
-			return residue_mod_names_[res_name][modification];
+			return residue_mod_names_[res_name][id];
 		}
 
 		
 		Residue* res = new Residue(*residue_names_[res_name]);
-		res->setModification(modification);
+		res->setModification(id);
 		
 		// now register this modified residue 
 		addResidue_(res);

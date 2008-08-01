@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -78,10 +78,14 @@ namespace OpenMS
 				@param pvalues a list with the pvalues of the peptides (pvalues computed with peptide prophet)
 				@param database the database used for the search
 				
+				@throw Exception::FileNotFound is thrown if the given result file could not be found
+				@throw Exception::ParseError is thrown if the given result file could not be parsed
+				@throw Exception::IllegalArgument
+
 				This class serves to read in a Sequest outfile. The information can be
 				retrieved via the load function.
 			*/
-			void load(const String& result_filename, std::vector<PeptideIdentification>& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, std::vector<Real>& pvalues, const String& database = "") throw (Exception::FileNotFound, Exception::ParseError, Exception::IllegalArgument);
+			void load(const String& result_filename, std::vector<PeptideIdentification>& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, std::vector<Real>& pvalues, const String& database = "");
 
 //			/// retrieve the p-values from the out files
 // 			void getPValuesFromOutFiles(vector< pair < String, vector< Real > > >& filenames_and_pvalues) throw (Exception::FileNotFound, Exception::ParseError);
@@ -89,15 +93,26 @@ namespace OpenMS
 			/// retrieve columns from a Sequest outfile line
 			bool getColumns(const String& line, std::vector<String>& substrings, UInt number_of_columns, UInt reference_column);
 
-			/// retrieve sequences from a FASTA database
-			void getSequences(const String& database_filename, const std::map<String, UInt>& ac_position_map, std::vector<String>& sequences, std::vector<std::pair<String, UInt> >& found, std::map<String, UInt>& not_found) throw (Exception::FileNotFound);
+			/** retrieve sequences from a FASTA database
+					@param database_filename 
+					@param ac_position_map
+					@param sequences
+					@param found 
+					@param not_found
+					@throw Exception::FileNotFound is thrown if the database filen could not be found
+			*/
+			void getSequences(const String& database_filename, const std::map<String, UInt>& ac_position_map, std::vector<String>& sequences, std::vector<std::pair<String, UInt> >& found, std::map<String, UInt>& not_found);
 
 			/// retrieve the accession type and accession number from a protein description line
 			/// (e.g. from FASTA line: >gi|5524211|gb|AAD44166.1| cytochrome b [Elephas maximus maximus], get ac:AAD44166.1 ac type: GenBank)
 			void getACAndACType(String line, String& accession, String& accession_type);
 
-			/// read the header of an out file and retrieve various informations
-			void readOutHeader(const String& result_filename, DateTime& datetime, Real& precursor_mz_value, Int& charge, UInt& precursor_mass_type, UInt& ion_mass_type, UInt& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, UInt& number_of_columns) throw(Exception::FileNotFound, Exception::ParseError);
+			/** read the header of an out file and retrieve various information
+					
+					@throw Exception::FileNotFound is thrown if the results file could not be found
+					@throw Exception::ParseError is thrown if the results file could not be parsed
+			*/
+			void readOutHeader(const String& result_filename, DateTime& datetime, Real& precursor_mz_value, Int& charge, UInt& precursor_mass_type, UInt& ion_mass_type, UInt& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, UInt& number_of_columns);
 			
 		private:
 

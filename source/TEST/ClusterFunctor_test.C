@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -42,7 +42,7 @@ START_TEST(ClusterFunctor, "$Id$")
 CHECK(ClusterFunctor())
 {
   NOT_TESTABLE
-}	
+}
 RESULT
 
 CHECK(~ClusterFunctor())
@@ -65,7 +65,7 @@ CHECK((ClusterFunctor& operator=(const ClusterFunctor &source)))
 }
 RESULT
 
-CHECK((virtual void cluster(const DistanceMatrix< double > &originalDist, DistanceMatrix< double > &actualDist, vector< vector< UInt > > &clusters, const String filepath="", const double threshold=1) const =0))
+CHECK((virtual void cluster(const DistanceMatrix< double > &original_distance, DistanceMatrix< double > &actual_distance, vector< vector< UInt > > &clusters, const String filepath="", const double threshold=1) const =0))
 {
   NOT_TESTABLE
 }

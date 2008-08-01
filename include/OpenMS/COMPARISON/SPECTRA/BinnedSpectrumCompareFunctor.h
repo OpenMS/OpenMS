@@ -1,10 +1,10 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -65,8 +65,8 @@ namespace OpenMS
     {
     public:
       IncompatibleBinning(const char* file, int line, const char* function, const char* message
-          = "compared spectra have different settings in binsize and/or binspread") throw();
-      virtual ~IncompatibleBinning() throw();
+          = "compared spectra have different settings in binsize and/or binspread")  throw();
+      virtual ~IncompatibleBinning() throw(); // @todo ask Marc if these throw specifiers are ok ????
     };
 	
     /// default constructor

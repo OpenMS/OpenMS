@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -27,8 +27,9 @@
 #ifndef OPENMS_FILTERING_SMOOTHING_SAVITZKYGOLAYFILTER_H
 #define OPENMS_FILTERING_SMOOTHING_SAVITZKYGOLAYFILTER_H
 
-#include <OpenMS/FILTERING/SMOOTHING/SmoothFilter.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
@@ -97,12 +98,10 @@ namespace OpenMS
     @ingroup SignalProcessing
   */
   class SavitzkyGolayFilter 
-  	: public SmoothFilter, 
+  	: public ProgressLogger, 
   		public DefaultParamHandler
   {
     public:
-      using SmoothFilter::coeffs_;
-
       /// Constructor
       SavitzkyGolayFilter();
 
@@ -121,17 +120,17 @@ namespace OpenMS
       void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container) 
       {
         UInt n = distance(first,last);
-        if (n <= frame_size_)
+        
+        smoothed_data_container.resize(n);
+        
+        if (frame_size_ > n)
         {
-          smoothed_data_container.resize(n);
           for (UInt i = 0; i < n; ++i)
           {
             smoothed_data_container[i] = *first;
           }
           return;
         }
-
-        smoothed_data_container.resize(n);
 
         int i;
         UInt j;
@@ -208,71 +207,35 @@ namespace OpenMS
 				resulting data to the smoothed_data_container.
       */
       template <typename InputPeakContainer, typename OutputPeakContainer >
-      void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& baseline_filtered_container)
+      void filter(const InputPeakContainer& input_peak_container, OutputPeakContainer& smoothed_data_container)
       {
         // copy the spectrum settings
-        static_cast<SpectrumSettings&>(baseline_filtered_container) = input_peak_container;
-        
-        filter(input_peak_container.begin(), input_peak_container.end(), baseline_filtered_container);
+        static_cast<SpectrumSettings&>(smoothed_data_container) = input_peak_container;
+        smoothed_data_container.setType(SpectrumSettings::RAWDATA);
+        filter(input_peak_container.begin(), input_peak_container.end(), smoothed_data_container);
       }
 
       /** 
-      	@brief Filters every MSSpectrum in a given iterator range.
-          		
-      	Filters the data successive in every scan in the intervall [first,last).
-      	The filtered data are stored in a MSExperiment.
-
-        @note You have to copy the ExperimentalSettings of the raw data on your own. 	
+      	@brief Convenience method that removed the noise from an MSExperiment containing raw data.
       */
-      template <typename InputSpectrumIterator, typename OutputPeakType >
-      void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)
+      template <typename PeakType>
+      void filterExperiment(MSExperiment<PeakType>& map)
       {
-        UInt n = distance(first,last);
-        ms_exp_filtered.reserve(n);
-        startProgress(0,n,"smoothing data");
-        
-        // smooth each scan
-        for (UInt i = 0; i < n; ++i)
+        startProgress(0,map.size(),"smoothing data");
+        for (UInt i = 0; i < map.size(); ++i)
         {
-          MSSpectrum< OutputPeakType > spectrum;
-          InputSpectrumIterator input_it(first+i);
-
-          // smooth scan i
-          filter(*input_it,spectrum);
-
-          // copy the spectrum settings
-          static_cast<SpectrumSettings&>(spectrum) = *input_it;
-          spectrum.setType(SpectrumSettings::RAWDATA);
-
-          // copy the spectrum information
-          spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
-          spectrum.setRT(input_it->getRT());
-          spectrum.setMSLevel(input_it->getMSLevel());
-          spectrum.getName() = input_it->getName();
-
-          ms_exp_filtered.push_back(spectrum);
+          typename MSExperiment<PeakType>::SpectrumType spectrum;
+          filter(map[i],spectrum);
+          map[i].getContainer() = spectrum.getContainer();
+          setProgress(i);
         }
         endProgress();
       }
-
-
-      /** 
-      	@brief Filters a MSExperiment.
-           	
-				Filters the data every scan in the MSExperiment.
-				The filtered data are stored in a MSExperiment.
-      */
-      template <typename InputPeakType, typename OutputPeakType >
-      void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)
-      {
-        // copy the experimental settings
-        static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
-
-        filterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
-      }
 	  
     protected:
-      /// UInt of the filter kernel (number of pre-tabulated coefficients)
+			/// Coefficients
+			std::vector<DoubleReal> coeffs_;
+			/// UInt of the filter kernel (number of pre-tabulated coefficients)
       UInt frame_size_;
       /// The order of the smoothing polynomial.
       UInt order_;

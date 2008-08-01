@@ -1,10 +1,10 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -24,8 +24,8 @@
 // $Maintainer: Rene Hussong$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELET_FF_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELET_FF_H
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMISOTOPEWAVELET_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMISOTOPEWAVELET_H
 
 #ifndef NULL
 #define NULL 0
@@ -45,6 +45,8 @@ namespace OpenMS
 	 * 	The FeatureFinderAlgorithmIsotopeWavelet class has been designed for finding features in 1D or 2D MS data sets using the isotope wavelet.
 	 * 	In the case of two dimensional data, the class provides additionally the sweep line algorithm. Please note that in
 	 * 	its current implementation the isotope wavelet feature finder is only applicable to raw data (not to picked data). 
+	 *
+	 * 	@ref FeatureFinderAlgorithmIsotopeWavelet_Parameters are explained on a separate page.
 	 *
 	 *	@ingroup FeatureFinder */
 	template <typename PeakType, typename FeatureType>
@@ -108,21 +110,21 @@ namespace OpenMS
 					iwt.getTransforms (Base::map_->at(i), pwts, max_charge_, mode_);
 					Base::ff_->setProgress (++j);
 
-					#ifdef OPENMS_DEBUG
+					#ifdef DEBUG_FEATUREFINDER
 						std::cout << "transform O.K. ... "; std::cout.flush();
 					#endif
 					
 					iwt.identifyCharges (pwts,  Base::map_->at(i), i, ampl_cutoff_);
 					Base::ff_->setProgress (++j);
 
-					#ifdef OPENMS_DEBUG
+					#ifdef DEBUG_FEATUREFINDER
 						std::cout << "charge recognition O.K. ... "; std::cout.flush();
 					#endif
 
 					iwt.updateBoxStates(*Base::map_, i, RT_interleave_, RT_votes_cutoff);
 					Base::ff_->setProgress (++j);
 
-					#ifdef OPENMS_DEBUG
+					#ifdef DEBUG_FEATUREFINDER
 						std::cout << "updated box states." << std::endl;
 					#endif
 
@@ -134,25 +136,27 @@ namespace OpenMS
 				//Forces to empty OpenBoxes_ and to synchronize ClosedBoxes_ 
 				iwt.updateBoxStates(*Base::map_, INT_MAX, RT_interleave_, RT_votes_cutoff); 
 
-				#ifdef OPENMS_DEBUG
+				#ifdef DEBUG_FEATUREFINDER
 					std::cout << "Final mapping."; std::cout.flush();
 				#endif
 	
 				*Base::features_ = iwt.mapSeeds2Features (*Base::map_, max_charge_, RT_votes_cutoff_);
 
-				std::vector<DoubleReal> error_prone_scans = iwt.getErrorProneScans();
-				if (!error_prone_scans.empty())
-				{
-					std::cerr << "Warning: some of your scans triggered errors while passing the isotope wavelet transform (IWT)." << std::endl;
-					std::cerr << "Please remember that the IWT is only suited for MS and not for MS/MS scans. Hence you should always exclude tandem MS signals from the IWT." << std::endl;
-					std::cerr << "Another reason might be a very bad resolution of your scan, s.t. the wavelet is unable to adapt its own spacing in a still reasonable manner." << std::endl;
-					std::cerr << "The problematic scans are: " << std::endl;
-					for (UInt i=0; i<error_prone_scans.size(); ++i)
+				#ifdef DEBUG_FEATUREFINDER
+					std::vector<DoubleReal> error_prone_scans = iwt.getErrorProneScans();
+					if (!error_prone_scans.empty())
 					{
-						std::cerr << error_prone_scans[i] << "\t"; 
+						std::cerr << "Warning: some of your scans triggered errors while passing the isotope wavelet transform (IWT)." << std::endl;
+						std::cerr << "Please remember that the IWT is only suited for MS and not for MS/MS scans. Hence you should always exclude tandem MS signals from the IWT." << std::endl;
+						std::cerr << "Another reason might be a very bad resolution of your scan, s.t. the wavelet is unable to adapt its own spacing in a still reasonable manner." << std::endl;
+						std::cerr << "The problematic scans are: " << std::endl;
+						for (UInt i=0; i<error_prone_scans.size(); ++i)
+						{
+							std::cerr << error_prone_scans[i] << "\t"; 
+						};
+						std::cerr << std::endl;
 					};
-					std::cerr << std::endl;
-				};
+				#endif
 
 			}
 

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -110,21 +110,23 @@ namespace OpenMS
 	        it = resampled_peak_container.begin();
 	        for (int i=0; i < number_raw_points ; ++i)
 	        {
-	            left_index = (int)floor(((first+i)->getMZ() - start_pos) / spacing_);
-	           // std::cout << "Left index " << left_index << std::endl;
-	            right_index = left_index + 1;
-//							std::cout << "Right index " << right_index << std::endl;
+  	          int help = (int)floor(((first+i)->getMZ() - start_pos) / spacing_);
+	            left_index = (help < 0) ? 0 : help;
+	            help = distance(first,last) - 1;
+	            right_index = (left_index >= help) ? help : left_index + 1;
 //								
 //							std::cout << "Number of points " << number_raw_points << '\n'
 //												<< "Act pos " << (first+i)->getPosition()[0] 
 //												<< " Start pos " << start_pos << " End position " << end_pos << std::endl;
+
 //	
 	            // compute the distance between x and the left adjacent resampled peak
 	            distance_left = fabs((first+i)->getMZ() - (it + left_index)->getMZ()) / spacing_;
-	           // std::cout << "Distance left " << distance_left << std::endl;
+	            //std::cout << "Distance left " << distance_left << std::endl;
 	            // compute the distance between x and the right adjacent resampled peak
 	            distance_right = fabs((first+i)->getMZ() - (it + right_index)->getMZ());
-	            //std::cout << "Distance right " << distance_right << std::endl;
+              //std::cout << "Distance right " << distance_right << std::endl;
+	            
 	
 	            // add the distance_right*h to the left resampled peak and distance_left*h to the right resampled peak
 	            DoubleReal intensity = (it + left_index)->getIntensity();

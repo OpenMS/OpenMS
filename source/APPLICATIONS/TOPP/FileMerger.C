@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -70,7 +70,7 @@ class TOPPFileMerger
 	{
 		registerInputFile_("file_list","<file>","","a text file containing one input file name per line");		
 		registerStringOption_("in_type","<type>","","input file type (default: determined from file extension or content)\n", false);
-		setValidStrings_("in_type",StringList::create("mzData,mzXML,DTA,DTA2D,cdf,mgf"));
+		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf"));
 		registerOutputFile_("out","<file>","","output file ");
 		setValidFormats_("out",StringList::create("mzData"));
 		

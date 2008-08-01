@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -30,7 +30,7 @@ namespace OpenMS
 {
 
 	MzMLFile::MzMLFile()
-		: XMLFile("/SCHEMAS/mzML_1_00.xsd","1.00")
+		: XMLFile("/SCHEMAS/mzML_1_00.xsd","1.0")
 	{
 	}
 

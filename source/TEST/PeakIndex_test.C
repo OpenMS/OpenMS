@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -41,14 +41,14 @@ START_TEST(PeakIndex, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PeakIndex* ptr = 0;
-CHECK(PeakIndex())
+CHECK((PeakIndex()))
 {
 	ptr = new PeakIndex();
 	TEST_NOT_EQUAL(ptr, 0)
 }
 RESULT
 
-CHECK(~PeakIndex())
+CHECK((~PeakIndex()))
 {
 	delete ptr;
 }
@@ -69,7 +69,7 @@ CHECK((PeakIndex(UInt spectrum, UInt peak)))
 }
 RESULT
 
-CHECK((bool isValid() const ))
+CHECK((bool isValid() const))
 {
   PeakIndex i;
 	TEST_EQUAL(i.isValid(),false)
@@ -90,7 +90,7 @@ CHECK((void clear()))
 }
 RESULT
 
-CHECK((bool operator==(const PeakIndex &rhs) const ))
+CHECK((bool operator==(const PeakIndex &rhs) const))
 {
   PeakIndex i1, i2;
 	TEST_EQUAL(i1==i2, true)
@@ -105,7 +105,7 @@ CHECK((bool operator==(const PeakIndex &rhs) const ))
 }
 RESULT
 
-CHECK((bool operator!=(const PeakIndex &rhs) const ))
+CHECK((bool operator!=(const PeakIndex &rhs) const))
 {
   PeakIndex i1, i2;
 	TEST_EQUAL(i1!=i2, false)
@@ -128,7 +128,7 @@ map[2].setMZ(3);
 map[3].setMZ(4);
 map[4].setMZ(5);
 
-CHECK((template <typename FeatureMapType> const typename FeatureMapType::FeatureType& getFeature(const FeatureMapType& map) const))
+CHECK((template <typename FeatureMapType> const FeatureMapType::FeatureType& getFeature(const FeatureMapType &map) const ))
 {
   PeakIndex i;
 	TEST_EXCEPTION(Exception::Precondition,i.getFeature(map))
@@ -153,7 +153,7 @@ exp[2][1].setMZ(2.0);
 exp[2][2].setMZ(3.0);
 
 
-CHECK((template <typename PeakMapType> const typename PeakMapType::SpectrumType& getSpectrum(const PeakMapType& map) const))
+CHECK((template <typename PeakMapType> const PeakMapType::SpectrumType& getSpectrum(const PeakMapType &map) const ))
 {
   PeakIndex i;
 	TEST_EXCEPTION(Exception::Precondition,i.getSpectrum(exp))
@@ -166,7 +166,7 @@ CHECK((template <typename PeakMapType> const typename PeakMapType::SpectrumType&
 }
 RESULT
 
-CHECK((template <typename PeakMapType> const typename PeakMapType::PeakType& getPeak(const PeakMapType& map) const))
+CHECK((template <typename PeakMapType> const PeakMapType::PeakType& getPeak(const PeakMapType &map) const ))
 {
   PeakIndex i;
 	TEST_EXCEPTION(Exception::Precondition,i.getPeak(exp))

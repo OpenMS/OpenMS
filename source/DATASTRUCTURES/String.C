@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -555,7 +555,7 @@ namespace OpenMS
 	Int String::toInt() const
 	{
     std::stringstream ss(c_str());
-    Int ret;
+    Int ret = 0;
     if (!(ss >> ret)) throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string ")+*this+" to an int");
     return ret;
 	}

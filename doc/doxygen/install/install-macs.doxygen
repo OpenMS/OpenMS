@@ -21,7 +21,6 @@
 			This directory is from now on referenced as $OPENMSDIR in this document.
 		<LI> export OPENMSDIR="please-insert-your-OpenMS-directory-here"
 			(just to make this manual easier to follow)
-		<LI> download %OpenMS contrib source and unpack to $OPENMSDIR/contrib
 		<LI> export MACOSX_DEPLOYMENT_TARGET=10.4
 		<LI> cd $OPENMSDIR/contrib
 		<LI> ./configure

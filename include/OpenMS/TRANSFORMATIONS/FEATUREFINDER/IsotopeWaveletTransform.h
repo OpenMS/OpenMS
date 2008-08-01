@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -26,7 +26,6 @@
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETTRANSFORM_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETTRANSFORM_H
-
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
@@ -128,7 +127,8 @@ namespace OpenMS
 
 			/** @brief A function keeping track of currently open and closed sweep line boxes. 
  				* This function is used by the isotope wavelet feature finder and must be called for each processed scan. 
- 				* @param scan_index The index of the scan currently under consideration w.r.t. its MS map. 
+ 				* @param map The original map containing the data set to be analyzed.
+				* @param scan_index The index of the scan currently under consideration w.r.t. its MS map. 
  				* This information is necessary to sweep across the map after each scan has been evaluated. 
  				* @param RT_interleave See the IsotopeWaveletFF class. 
  				* @param RT_votes_cutoff See the IsotopeWaveletFF class. */	
@@ -157,15 +157,17 @@ namespace OpenMS
 				return ((UInt) ceil(peak_cutoff_intercept_+peak_cutoff_slope_*mass*z)); 
 			};	
 
-			std::vector<DoubleReal> getErrorProneScans () const
-			{
-				return (error_prone_scans_);
-			};	
+			#ifdef DEBUG_FEATUREFINDER
+				std::vector<DoubleReal> getErrorProneScans () const
+				{
+					return (error_prone_scans_);
+				};	
 
-			void clearErrorProneScans () 
-			{
-				error_prone_scans_.clear();
-			};  
+				void clearErrorProneScans () 
+				{
+					error_prone_scans_.clear();
+				};  
+			#endif
 
 
 		protected:						
@@ -188,7 +190,7 @@ namespace OpenMS
  				* @param offset The offset the wavelet function needs to be aligned with a signal point.
  				* @param charge The charge (not the index c!) the wavelet function should adapt (corresponds to z in the paper).
  				* @param mode Indicates whether positive mode (+1) or negative mode (-1) has been used for ionization. */ 
-			void sampleTheIsotopeWavelet (const MSSpectrum<PeakType>& scan, const UInt wavelet_length, 
+			void sampleTheIsotopeWavelet_ (const MSSpectrum<PeakType>& scan, const UInt wavelet_length, 
 				const UInt mz_index, const DoubleReal offset, const UInt charge, const Int mode);
 
 			/** @brief Given a candidate for an isotopic pattern, this function computes the corresponding score 
@@ -309,7 +311,9 @@ namespace OpenMS
 			gsl_spline* spline_; 
 			DoubleReal av_MZ_spacing_, peak_cutoff_intercept_, peak_cutoff_slope_;  
 			std::vector<DoubleReal> c_mzs_, c_spacings_, psi_, prod_, xs_;
-			std::vector<DoubleReal> error_prone_scans_;
+			#ifdef DEBUG_FEATUREFINDER
+				std::vector<DoubleReal> error_prone_scans_;
+			#endif
 	};
 
 
@@ -373,7 +377,7 @@ namespace OpenMS
 		UInt c=0, k=0, j=0;
 		DoubleReal c_charge; //DoubleReal, since we will oven divide by c_charge 
 		typename MSSpectrum<PeakType>::const_iterator wave_start, wave_end;
-
+	
 		//The upcoming variable is necessary to capture strange effects in special types of unequally spaced data sets.
 		//Imagine some wholes in the m/z range (points the mass spectrometer did not sample). If they become larger than 
 		//0.25*NEUTRON_MASS (considering the case of charge 1), several data points will share the same max_position, 
@@ -382,7 +386,7 @@ namespace OpenMS
 		std::vector<int> multiple_s (max_charge,-1);
 		std::vector<DoubleReal> last_max_position_scan (max_charge, -1);
 		bool repair=false;
-
+	
 		//Starting convolution
 		for (UInt i=0; i<scan_size; ++i)
 		{
@@ -462,17 +466,19 @@ namespace OpenMS
 				if (wavelet_length >= scan_size || wavelet_length <=0 || (scan[i+wavelet_length-1].getMZ() - scan[i].getMZ() > peak_cutoff+NEUTRON_MASS/c_charge))
 				{			
 					sums=-1;
-					if (error_prone_scans_.empty())
-					{
-						error_prone_scans_.push_back(i);
-					}
-					else
-					{
-						if (*(--error_prone_scans_.end()) != i)
+					#ifdef DEBUG_FEATUREFINDER
+						if (error_prone_scans_.empty())
 						{
 							error_prone_scans_.push_back(i);
 						}
-					};	
+						else
+						{
+							if (*(--error_prone_scans_.end()) != i)
+							{
+								error_prone_scans_.push_back(i);
+							}
+						};	
+					#endif
 				}
 				else
 				{
@@ -493,7 +499,7 @@ namespace OpenMS
 					memset(&(c_spacings_[0]), 0, sizeof(DoubleReal)*c_spacings_.size());
 
 					//Sampling the wavelet
-					sampleTheIsotopeWavelet (scan, wavelet_length, i, cum_spacing, (UInt) c_charge, mode);
+					sampleTheIsotopeWavelet_ (scan, wavelet_length, i, cum_spacing, (UInt) c_charge, mode);
 					k=0; 
 		
 					for (UInt j=i; j<scan_size && k<wavelet_length; ++j, ++k)
@@ -580,8 +586,8 @@ namespace OpenMS
 		UInt peak_cutoff=0; 	
 		UInt cands_size=candidates.size();
 		UInt signal_size=candidates[0].size(), i_iter; 
-		typename MSSpectrum<PeakType>::iterator iter, iter2, bound_iter;
-		typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p, help_iter;
+		typename MSSpectrum<PeakType>::iterator iter, bound_iter;
+		typename MSSpectrum<PeakType>::const_iterator iter_start, iter_end, iter_p, help_iter, iter2;
 		DoubleReal seed_mz, c_av_intens=0, c_score=0, c_sd_intens=0, threshold=0, help_mz;
 	 	UInt help_dist, MZ_start, MZ_end;
 			
@@ -661,13 +667,13 @@ namespace OpenMS
 					if (h!=0)
 					{
 						help_mz = seed_mz + h*NEUTRON_MASS/(c+1.);
-						iter2 = c_sorted_candidate.MZBegin (help_mz);
-						if (iter2 == c_sorted_candidate.end())
+						iter2 = candidates[c].MZBegin (help_mz);
+						if (iter2 == candidates[c].end())
 						{
 							break;
 						};
 
-						if (fabs(iter2->getMZ()-help_mz) > fabs(h)*NEUTRON_MASS/(2*(c+1.)))
+						if (fabs(iter2->getMZ()-seed_mz) > (fabs(h)-0.5)*NEUTRON_MASS/(c+1.))
 						{
 							typename MSSpectrum<PeakType>::const_iterator iter3 (candidates[c].MZBegin(help_mz));
 							if (iter3 != candidates[c].end())
@@ -705,7 +711,7 @@ namespace OpenMS
 	}
 
 	template <typename PeakType>
-	void IsotopeWaveletTransform<PeakType>::sampleTheIsotopeWavelet (const MSSpectrum<PeakType>& scan, const UInt wavelet_length, 
+	void IsotopeWaveletTransform<PeakType>::sampleTheIsotopeWavelet_ (const MSSpectrum<PeakType>& scan, const UInt wavelet_length, 
 		const UInt mz_index, const DoubleReal offset, const UInt charge, const Int mode)
 	{
 		UInt scan_size = scan.size();
@@ -936,9 +942,9 @@ namespace OpenMS
 		if (lower_iter != open_boxes_.end())
 		{
 			//Ugly, but necessary due to the implementation of STL lower_bound
-			if (mz != lower_iter->first)
+			if (mz != lower_iter->first && lower_iter != open_boxes_.begin())
 			{
-				lower_iter = --(open_boxes_.lower_bound(mz));
+				--lower_iter;
 			};
 		};
 		
@@ -1062,9 +1068,9 @@ namespace OpenMS
 		if (lower_iter != tmp_box.end())
 		{
 			//Ugly, but necessary due to the implementation of STL lower_bound
-			if (mz != lower_iter->first)
+			if (mz != lower_iter->first && lower_iter != tmp_box.begin())
 			{
-				lower_iter = --(tmp_box.lower_bound(mz));
+				--lower_iter;
 			};
 		};
 		
@@ -1077,7 +1083,7 @@ namespace OpenMS
 			//then the lower bound for the new mz value is box.end and this would usually force a new entry
 			if (!tmp_box.empty())
 			{
-				if (fabs((--lower_iter)->first - mz) < 0.5*NEUTRON_MASS/(/*charge+*/1.0)) //matching box
+				if (fabs((--lower_iter)->first - mz) < 0.5*NEUTRON_MASS) //matching box
 				{
 					create_new_box=false;
 					insert_iter = lower_iter;
@@ -1090,7 +1096,7 @@ namespace OpenMS
 		}
 		else
 		{
-			if (upper_iter == tmp_box.end() && fabs(lower_iter->first - mz) < 0.5*NEUTRON_MASS/(/*charge+*/1.0)) //Found matching Box
+			if (upper_iter == tmp_box.end() && fabs(lower_iter->first - mz) < 0.5*NEUTRON_MASS) //Found matching Box
 			{
 				insert_iter = lower_iter;
 				create_new_box=false;

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -156,7 +156,7 @@ CHECK((String(long long unsigned int i)))
 	TEST_EQUAL(s,"12345678")
 RESULT
 
-CHECK(static String numberLength(double d, UInt n))
+CHECK((static String numberLength(DoubleReal d, UInt n)))
 	TEST_EQUAL(String::numberLength(12345678.9123,11),"12345678.91")
 	TEST_EQUAL(String::numberLength(-12345678.9123,11),"-12345678.9")
 	TEST_EQUAL(String::numberLength(12345678.9123,10),"12345678.9")
@@ -166,7 +166,7 @@ CHECK(static String numberLength(double d, UInt n))
 RESULT
 
 
-CHECK(static String number(double d, UInt n))
+CHECK((static String number(DoubleReal d, UInt n)))
 	TEST_EQUAL(String::number(123.1234,0),"123")
 	TEST_EQUAL(String::number(123.1234,1),"123.1")
 	TEST_EQUAL(String::number(123.1234,2),"123.12")
@@ -232,39 +232,39 @@ CHECK((bool has(Byte byte) const))
 	TEST_EQUAL(s.has('O'), false);
 RESULT
 
-CHECK((String prefix(Int length) const ))
+CHECK((String prefix(Int length) const))
 	TEST_EQUAL(s.prefix((Int)4), "ACDE");
 	TEST_EQUAL(s.prefix((Int)0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.prefix(s.size()+1));
 	TEST_EXCEPTION(Exception::IndexUnderflow, s.prefix(-1));
 RESULT
 
-CHECK((String suffix(Int length) const ))
+CHECK((String suffix(Int length) const))
 	TEST_EQUAL(s.suffix((Int)4), "TVWY");
 	TEST_EQUAL(s.suffix((Int)0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.suffix(s.size()+1));
 	TEST_EXCEPTION(Exception::IndexUnderflow, s.suffix(-1));
 RESULT
 
-CHECK((String prefix(SizeType length) const ))
+CHECK((String prefix(SizeType length) const))
 	TEST_EQUAL(s.prefix((String::SizeType)4), "ACDE");
 	TEST_EQUAL(s.prefix((String::SizeType)0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.prefix(s.size()+1));
 RESULT
 
-CHECK((String suffix(SizeType length) const ))
+CHECK((String suffix(SizeType length) const))
 	TEST_EQUAL(s.suffix((String::SizeType)4), "TVWY");
 	TEST_EQUAL(s.suffix((String::SizeType)0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.suffix(s.size()+1));
 RESULT
 
-CHECK((String prefix(char delim) const ))
+CHECK((String prefix(char delim) const))
 	TEST_EQUAL(s.prefix('F'), "ACDE");
 	TEST_EQUAL(s.prefix('A'), "");
 	TEST_EXCEPTION(Exception::ElementNotFound, s.suffix('Z'));
 RESULT
 
-CHECK((String suffix(char delim) const ))
+CHECK((String suffix(char delim) const))
 	TEST_EQUAL(s.suffix('S'), "TVWY");
 	TEST_EQUAL(s.suffix('Y'), "");
 	TEST_EXCEPTION(Exception::ElementNotFound, s.suffix('Z'));
@@ -380,7 +380,7 @@ CHECK((String& fillRight(char c, UInt size)))
 	TEST_EQUAL(s,"TESTyzz")	
 RESULT
 
-CHECK((Int toInt() const ))
+CHECK((Int toInt() const))
 	String s;
 	s = "123.456";
 	TEST_EQUAL(s.toInt(),123);
@@ -396,7 +396,7 @@ CHECK((Int toInt() const ))
 	TEST_REAL_EQUAL(s.toInt(),73629);
 RESULT
 
-CHECK((Real toFloat() const ))
+CHECK((Real toFloat() const))
 	String s;
 	s = "123.456";
 	TEST_REAL_EQUAL(s.toFloat(),123.456);
@@ -410,7 +410,7 @@ CHECK((Real toFloat() const ))
 	TEST_EQUAL(String(s.toFloat()),"47218.89");
 RESULT
 
-CHECK((DoubleReal toDouble() const ))
+CHECK((DoubleReal toDouble() const))
 	String s;
 	s = "123.456";
 	TEST_REAL_EQUAL(s.toDouble(),123.456);

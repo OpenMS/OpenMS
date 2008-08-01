@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -52,17 +52,23 @@ namespace OpenMS
 			
 			/**
 				@brief Loads the informations of a PTMXML file
-				
+			
+				@param filename The name of the file
+				@param ptm_informations the PTM information from the file are stored herein
+				@throw FileNotFound is thrown if the given file could not be found
+				@throw ParseError is thrown if the given file could not be parsed
 				The information is read in and stored in the corresponding variables
 			*/
-			void load(const String& filename, std::map< String, std::pair< String, String > >& ptm_informations) throw (Exception::FileNotFound, Exception::ParseError);
+			void load(const String& filename, std::map< String, std::pair< String, String > >& ptm_informations);
 			
 			/**
 				@brief Stores the data in an PTMXML file
 				
+				@throw UnableToCreateFile is thrown if the given filename could not be created
+
 				The data is read in and stored in the file 'filename'.
 			*/
-			void store(String filename, std::map< String, std::pair< String, String > >& ptm_informations) const throw (Exception::UnableToCreateFile);
+			void store(String filename, std::map< String, std::pair< String, String > >& ptm_informations) const;
 	};
  
 } // namespace OpenMS

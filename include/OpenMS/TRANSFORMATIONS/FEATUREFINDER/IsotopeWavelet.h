@@ -1,10 +1,10 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -68,7 +68,7 @@
 #include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-#include<vector>
+#include <vector>
 
 
 namespace OpenMS
@@ -158,6 +158,10 @@ namespace OpenMS
 					return (table_steps_); 
 				}			 					
 
+				/** @brief Returns the inv_table_steps_ parameter. 
+ 					* 
+ 					* This is an internally used parameter controlling the precision of several pre-sampling steps. 
+ 					* Normally, this parameter can be left unchanged. */
 				static DoubleReal getInvTableSteps () 
 				{ 
 					return (inv_table_steps_); 
@@ -187,11 +191,13 @@ namespace OpenMS
 				static const IsotopeDistribution::ContainerType& getAveragine (const DoubleReal m, UInt* size=NULL) ;
 
 
+				/** @brief Returns the largest possible index for the pre-sampled gamma table. */
 				static Int getGammaTableMaxIndex ()
 				{
 					return (gamma_table_max_index_);
 				};
 
+				/** @brief Returns the largest possible index for the pre-sampled exp table. */
 				static Int getExpTableMaxIndex ()
 				{
 					return (exp_table_max_index_);
@@ -267,6 +273,7 @@ namespace OpenMS
 				/** Internally used averagine model. */
 				static IsotopeDistribution averagine_;
 
+				/** The largest possible indices for the corresponding tables. */
 				static Int gamma_table_max_index_, exp_table_max_index_;
 	};
 

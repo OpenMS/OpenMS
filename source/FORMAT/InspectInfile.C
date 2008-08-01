@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -114,7 +114,7 @@ namespace OpenMS
 		return true;
 	}
 
-	void InspectInfile::store(const String& filename) throw (Exception::UnableToCreateFile)
+	void InspectInfile::store(const String& filename)
 	{
 		ofstream ofs( filename.c_str() );
 		if ( !ofs )
@@ -160,15 +160,7 @@ namespace OpenMS
 		ofs.clear();
 	}
 
-	void
-	InspectInfile::handlePTMs(
-		const String& modification_line,
-		const String& modifications_filename,
-		const bool monoisotopic)
-	throw (
-		Exception::FileNotReadable,
-		Exception::FileNotFound,
-		Exception::ParseError)
+	void InspectInfile::handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic)
 	{
 		PTMname_residues_mass_type_.clear();
 		// to store the information about modifications from the ptm xml file

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -104,7 +104,7 @@ RESULT
 CHECK((bool operator<(const SparseVector &rhs) const ))
 {
 	SparseVector<double> sv3(sv);
-	sv3[0]=-1.23; 
+	sv3[0]=-1.23;
 	TEST_EQUAL((sv3<sv), true)
 }
 RESULT
@@ -135,7 +135,7 @@ CHECK((const Value operator[](size_type pos) const ))
 RESULT
 
 
-CHECK((Value at(size_type pos) const  throw (Exception::OutOfRange)))
+CHECK((Value at(size_type pos) const))
 {
 	TEST_EQUAL(sv2.at(8), 3)
 	TEST_EQUAL(sv2.at(0), 0)
@@ -161,7 +161,7 @@ CHECK((void clear()))
 }
 RESULT
 
-CHECK((void erase(SparseVectorIterator it) throw (Exception::OutOfRange)))
+CHECK((void erase(SparseVectorIterator it)))
 {
 	sv.erase(sv.begin()+5);
 	TEST_EQUAL(sv.size(),7)
@@ -180,7 +180,7 @@ CHECK((void erase(SparseVectorIterator it) throw (Exception::OutOfRange)))
 	TEST_EQUAL(sv2.at(1),1.2)
 	TEST_EQUAL(sv2.at(2),1.3)
 	TEST_EQUAL(sv2.at(3),1.4)
-	
+
 	sv2.erase(sv2.begin()+2);
 	TEST_EQUAL(sv2.size(),3)
 	TEST_EQUAL(sv2.at(0),1.1)
@@ -194,12 +194,12 @@ CHECK((void erase(SparseVectorIterator it) throw (Exception::OutOfRange)))
 }
 RESULT
 
-CHECK((void erase(SparseVectorIterator itFirst, SparseVectorIterator itLast) throw (Exception::OutOfRange)))
+CHECK((void erase(SparseVectorIterator first, SparseVectorIterator last)))
 {
 	sv[4]=3;
 	sv.erase(sv.begin()+5,sv.end());
 	TEST_EQUAL(sv.size(),5)
-	
+
 	//real test
 	SparseVector<double> sv2;
 	sv2.push_back(1.0);
@@ -219,7 +219,7 @@ CHECK((void erase(SparseVectorIterator itFirst, SparseVectorIterator itLast) thr
 	TEST_EQUAL(sv2.at(3),1.5)
 	TEST_EQUAL(sv2.at(4),1.6)
 	TEST_EQUAL(sv2.at(5),1.7)
-	
+
 	sv2.erase(sv2.begin()+1,sv2.begin()+3);
 	TEST_EQUAL(sv2.size(),4)
 	TEST_EQUAL(sv2.at(0),1.2)
@@ -516,6 +516,12 @@ CHECK((const_reverse_iterator rend() const ))
 {
   NOT_TESTABLE
 	//tested above
+}
+RESULT
+
+CHECK((void print() const))
+{
+  NOT_TESTABLE
 }
 RESULT
 

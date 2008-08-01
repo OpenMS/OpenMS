@@ -1,8 +1,8 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,13 +21,39 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Eva Lange  $
+// $Maintainer: Clemens Groepl, Chris Bielow $
 // --------------------------------------------------------------------------
-//
 
-#include <OpenMS/FILTERING/SMOOTHING/SmoothFilter.h>
- 
-namespace OpenMS
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+#include <OpenMS/CONCEPT/FactoryBase.h>
+///////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+START_TEST(FactoryBase, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+FactoryBase* ptr = 0;
+CHECK(FactoryBase())
 {
-
+        ptr = new FactoryBase();
+        TEST_NOT_EQUAL(ptr, 0)
 }
+RESULT
+
+CHECK(~FactoryBase())
+{
+        delete ptr;
+}
+RESULT
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+

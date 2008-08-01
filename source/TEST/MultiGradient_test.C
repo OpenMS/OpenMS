@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -51,11 +51,11 @@ CHECK((~MultiGradient()))
 	delete d10_ptr;
 RESULT
 
-CHECK((UInt getInterpolationMode() const))
+CHECK((InterpolationMode getInterpolationMode() const ))
 	TEST_EQUAL(MultiGradient().getInterpolationMode(),MultiGradient::IM_LINEAR)
 RESULT
 
-CHECK((void setInterpolationMode(UInt mode)))
+CHECK((void setInterpolationMode(InterpolationMode mode)))
 	MultiGradient mg;
 	mg.setInterpolationMode(MultiGradient::IM_STAIRS);
 	TEST_EQUAL(mg.getInterpolationMode(),MultiGradient::IM_STAIRS)
@@ -66,13 +66,13 @@ CHECK((UInt size() const))
 	TEST_EQUAL(mg.size(),2);
 RESULT
 
-CHECK((UInt position(UInt index) ))
+CHECK((UInt position(UInt index)))
 	MultiGradient mg;
 	TEST_EQUAL(mg.position(0),0);
 	TEST_EQUAL(mg.position(1),100);
 RESULT
 
-CHECK((const QColor& color(UInt index) ))
+CHECK((const QColor& color(UInt index)))
 	MultiGradient mg;
 	TEST_EQUAL(mg.color(0)==Qt::white,true);
 	TEST_EQUAL(mg.color(1)==Qt::black,true);

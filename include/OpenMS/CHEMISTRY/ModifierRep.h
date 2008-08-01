@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -59,7 +59,7 @@ virtual ~ModifierRep ();
 @brief setter for number of modifications
 @param i number of modifications
 */
-void setNumberOfModifications(const unsigned int i);
+void setNumberOfModifications(UInt i);
 
 /**
 @brief getter for number of modifications

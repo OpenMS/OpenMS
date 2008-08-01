@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -140,7 +140,7 @@ int SuffixArrayTrypticCompressed::getLCP_(const pair<int,int> & last_point, cons
 
 
 // constructor 
-SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String & st, const String & sa_file_name) throw (Exception::InvalidValue, Exception::FileNotFound) : 
+SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String & st, const String & sa_file_name)  : 
 	s_(st),
 	tol_(0.5),
 	number_of_modifications_(0)
@@ -258,7 +258,8 @@ bool SuffixArrayTrypticCompressed::isDigestingEnd(const char aa1, const char aa2
 		return ((aa1 == 'K' || aa1 == 'R') && aa2 != 'P');
 	}
 
-bool SuffixArrayTrypticCompressed::save(const String & file_name) throw (Exception::UnableToCreateFile){
+bool SuffixArrayTrypticCompressed::save(const String & file_name)
+{
 	ofstream file_INDICES;
 	ofstream file_LCP;
 	ofstream file_SKIP;
@@ -296,7 +297,8 @@ bool SuffixArrayTrypticCompressed::save(const String & file_name) throw (Excepti
 	return true;
 }
 
-bool SuffixArrayTrypticCompressed::open(const String & file_name) throw (Exception::FileNotFound){
+bool SuffixArrayTrypticCompressed::open(const String & file_name)
+{
 	indices_.clear();
 	lcp_.clear();
 	skip_.clear();
@@ -387,7 +389,7 @@ int SuffixArrayTrypticCompressed::findFirst_ (const vector<double> & spec, doubl
 }
 
 // finds all occurences of a given spectrum
-void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<int,int>,float > > >& candidates, const vector<double> & spec ) throw (Exception::InvalidValue)
+void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<int,int>,float > > >& candidates, const vector<double> & spec )
 {
 	//time_t t0 (time(NULL));
 	if (spec.size() == 0)
@@ -607,7 +609,7 @@ void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<int,int>,flo
 	return;
 }
 
-void SuffixArrayTrypticCompressed::setTolerance (double t) throw (Exception::InvalidValue)
+void SuffixArrayTrypticCompressed::setTolerance (double t)
 {
 	if (t < 0)
 	{
@@ -621,7 +623,7 @@ double SuffixArrayTrypticCompressed::getTolerance () const
 	return (tol_);
 }
 
-void SuffixArrayTrypticCompressed::setTags (const vector<String> & tags) throw (Exception::InvalidValue)
+void SuffixArrayTrypticCompressed::setTags (const vector<String> & tags)
 {
 	tags_ = tags;
 	for (UInt i = 0; i < tags.size();++i)

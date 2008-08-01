@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -37,7 +37,14 @@ using namespace std;
 	
 	@brief Tool to estimate the false discovery rate on peptide and protein level
 
-	@todo Add documentation (Andreas)
+	This TOPP tool can calulate the false discovery rate (FDR) given a forward and
+	backward search. Most useful is this on protein level, however, it also can be 
+	applied to peptides.
+
+	The false discovery rate is defined as the number of false discoveries (the hits
+	in the reversed search) over the number of false and correct discoveries (the hits 
+	in both databases) given a score.
+
 */
 
 
@@ -60,6 +67,8 @@ class TOPPFalseDiscoveryRate
 			registerInputFile_("fwd_in", "<file>", "", "Identification input to estimate FDR, forward");
 			registerInputFile_("rev_in", "<file>", "", "Identification input to estimate FDR, decoy run");
 			registerOutputFile_("out", "<file>", "", "Identification output with annotated FDR");
+			registerFlag_("proteins_only", "if set, the FDR of the proteins only is calculated");
+			registerFlag_("peptides_only", "if set, the FDR of the peptides only is caluclated");
 		
 			addEmptyLine_();		
 		}
@@ -73,6 +82,8 @@ class TOPPFalseDiscoveryRate
 			//input/output files
 			String fwd_in(getStringOption_("fwd_in")), rev_in(getStringOption_("rev_in"));
 			String out(getStringOption_("out"));
+			bool proteins_only(getFlag_("proteins_only"));
+			bool peptides_only(getFlag_("peptides_only"));
 
       //-------------------------------------------------------------
       // loading input
@@ -90,7 +101,14 @@ class TOPPFalseDiscoveryRate
 			writeDebug_("Starting calculations", 1);
 
 			FalseDiscoveryRate fdr;
-			fdr.apply(fwd_pep, rev_pep);
+			if (!proteins_only)
+			{
+				fdr.apply(fwd_pep, rev_pep);
+			}
+			if (!peptides_only)
+			{
+				fdr.apply(fwd_prot, rev_prot);
+			}
 			
 			//-------------------------------------------------------------
 			// writing output

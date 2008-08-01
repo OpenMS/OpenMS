@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -32,7 +32,7 @@ using namespace std;
 
 namespace OpenMS
 {
-	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "Param", "TrafoXML"};
+	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "Param", "TrafoXML", "mzML"};
 
 
 	FileHandler::Type FileHandler::getType(const String& filename)
@@ -61,6 +61,10 @@ namespace OpenMS
 		if (tmp == "MZDATA")
 		{
 			return MZDATA;
+		}
+		else if (tmp == "MZML")
+		{
+			return MZML;
 		}
 		else if (tmp == "DTA")
 		{
@@ -145,6 +149,8 @@ namespace OpenMS
 			return true;
 		case MZXML:
 			return true;
+		case MZML:
+			return true;
 		case MZDATA:
 			return true;
 		case FEATUREXML:
@@ -193,12 +199,16 @@ namespace OpenMS
     // replace tabs by spaces
     two_five.substitute('\t',' ');
     
-		//mzXML (all lines)
 		String all_simple = one + ' ' + two_five;
+
+		//mzXML (all lines)
     if (all_simple.find("<mzXML")!=string::npos) return MZXML;
     
     //mzData (all lines)
     if (all_simple.find("<mzData")!=string::npos) return MZDATA;
+
+    //mzML (all lines)
+    if (all_simple.find("<mzML")!=string::npos) return MZML;
     
     //feature map (all lines)
     if (all_simple.find("<featureMap")!=string::npos) return FEATUREXML;

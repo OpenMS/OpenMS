@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -71,7 +71,7 @@ CHECK((~IDFilter()))
 	delete ptr;	
 RESULT
 
-CHECK((void filterIdentificationsByProteins(const ProteinIdentification& identification, std::vector<FASTAFile::FASTAEntry>&  proteins, ProteinIdentification& filtered_identification)))
+CHECK((void filterIdentificationsByProteins(const ProteinIdentification& identification, const std::vector<FASTAFile::FASTAEntry> &proteins, ProteinIdentification& filtered_identification)))
 	ProteinIdentification protein_identification2;
 
 	IDFilter().filterIdentificationsByProteins(protein_identification, proteins, protein_identification2);
@@ -82,7 +82,7 @@ CHECK((void filterIdentificationsByProteins(const ProteinIdentification& identif
 	TEST_EQUAL(protein_identification2.getHits()[1].getAccession(), "Q872T5")
 RESULT
 
-CHECK((void filterIdentificationsByProteins(const PeptideIdentification& identification, std::vector<FASTAFile::FASTAEntry>& proteins, PeptideIdentification& filtered_identification)))
+CHECK((void filterIdentificationsByProteins(const PeptideIdentification& identification, const std::vector<FASTAFile::FASTAEntry> &proteins, PeptideIdentification& filtered_identification)))
 	PeptideIdentification identification2;
 
 	IDFilter().filterIdentificationsByProteins(identification, proteins, identification2);
@@ -181,7 +181,7 @@ CHECK((void filterIdentificationsByExclusionPeptides(const PeptideIdentification
 	protein_hits = protein_identification.getHits();
 RESULT
 
-CHECK((template<class PeakT> void filterIdentificationsByProteins(MSExperiment< PeakT >& experiment, std::vector<FASTAFile::FASTAEntry>& proteins)))
+CHECK((template<class PeakT> void filterIdentificationsByProteins(MSExperiment< PeakT > &experiment, const std::vector<FASTAFile::FASTAEntry> &proteins)))
 	
 	MSExperiment<> experiment;
   vector< FASTAFile::FASTAEntry > proteins;

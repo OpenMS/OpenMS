@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -51,11 +51,14 @@ namespace OpenMS
 		  /**
 		    @brief loads data from unimod.xml file
 		   
-				bla
+				@param filename the filename were the unimod xml file should be read from
+				@param modifications the modifications which are read from the file
+				@throw FileNotFound is thrown if the file could not be found
+				@throw ParseError is thrown if the given file could not be parsed
 				
 		  	@ingroup FileIO
 		  */
-	    void load(const String& filename, std::vector<ResidueModification*>& modifications) const throw (Exception::FileNotFound, Exception::ParseError);
+	    void load(const String& filename, std::vector<ResidueModification*>& modifications) const;
 
 		protected:
 

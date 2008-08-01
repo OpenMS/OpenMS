@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -37,6 +37,23 @@ namespace OpenMS
 	/**
 		@brief File adapter for MzML files
 		
+		This is a beta implementation that does not support all functionality of MzML:
+		- Currently only reading is supported
+  	- Missing features are:
+  	  - chromatograms
+  	  - zlib compression of base64 data
+  	  - base64 integer data
+  	  - base64 16 bit data
+		- Meta information that does not fit into the %OpenMS object model is ignored.
+		
+		If a critical error occurs, Exception::NotImplemented is thrown.
+		
+		@todo Implement mzML semantic validator (Hiwi)
+		@todo Add tests for PeakFileOptions (Hiwi)
+		@todo Implement and use Base64 integers and 16 bit (Hiwi)
+		@todo Implement and use zlib support (Hiwi)
+		@todo Implement all extensions to our data model that are necessary for mzML (Hiwi, Marc)
+
 		@ingroup FileIO
 	*/
 	class MzMLFile 
@@ -60,8 +77,8 @@ namespace OpenMS
 
 				@p map has to be a MSExperiment or have the same interface.
 
-				@exception Exception::FileNotFound is thrown  if the file could not be opened
-				@exception Exception::ParseError is thrown  if an error occurs during parsing
+				@exception Exception::FileNotFound is thrown if the file could not be opened
+				@exception Exception::ParseError is thrown if an error occurs during parsing
 			*/
 			template <typename MapType>
 			void load(const String& filename, MapType& map)

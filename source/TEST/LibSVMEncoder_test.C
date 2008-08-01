@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -368,7 +368,7 @@ CHECK((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector<
 	TEST_EQUAL(output, "(2, 1) (2, 1) (2, 2) (3, 2) (3, 3) (3, 3) ")
 RESULT
 
-CHECK((void encodeProblemWithOligoBorderVectors(const std::vector< AASequence > &sequences, std::vector< DoubleReal > &labels, UInt k_mer_length, const String &allowed_characters, UInt border_length)))
+CHECK((void encodeProblemWithOligoBorderVectors(const std::vector< AASequence > &sequences, UInt k_mer_length, const String &allowed_characters, UInt border_length, std::vector< std::vector< std::pair< Int, DoubleReal > > > &vectors)))
 	vector<AASequence> sequences;
 	String allowed_characters = "ACNGT";
 	String output;
@@ -408,7 +408,7 @@ CHECK((void encodeProblemWithOligoBorderVectors(const std::vector< AASequence > 
   
 RESULT
 
-CHECK((void encodeOligo(AASequence sequence, UInt k_mer_length, const String& allowed_characters, std::vector< std::pair<Int, DoubleReal> >& libsvm_vector)))
+CHECK((void encodeOligo(const AASequence &sequence, UInt k_mer_length, const String &allowed_characters, std::vector< std::pair< Int, DoubleReal > > &values, bool is_right_border=false)))
 	AASequence sequence = AASequence("ACNNGTATCA");
 	String allowed_characters = "ACNGT";
 	String output;
@@ -465,9 +465,18 @@ CHECK((void encodeOligo(AASequence sequence, UInt k_mer_length, const String& al
   TEST_EQUAL(encoded_sequence[0].first, 1)
   TEST_REAL_EQUAL(encoded_sequence[0].second, 1.)
   TEST_EQUAL(encoded_sequence[1].first, 2)
-  TEST_REAL_EQUAL(encoded_sequence[1].second, allowed_characters.size() * modifications->getNumberOfModifications() + 7.)
+  TEST_REAL_EQUAL(encoded_sequence[1].second, allowed_characters.size() * (modifications->getNumberOfModifications() + 1) + 2.)
   TEST_EQUAL(encoded_sequence[2].first, 3)
-  TEST_REAL_EQUAL(encoded_sequence[2].second, 2 * allowed_characters.size() * modifications->getNumberOfModifications() + 12.)
+  TEST_REAL_EQUAL(encoded_sequence[2].second, 2 * allowed_characters.size() * (modifications->getNumberOfModifications() + 1) + 2.)
+
+  sequence = AASequence("ACNN");       
+	encoder.encodeOligo(sequence, 2, allowed_characters, encoded_sequence, right_border);
+  TEST_EQUAL(encoded_sequence[0].first, 3)
+  TEST_REAL_EQUAL(encoded_sequence[0].second, allowed_characters.size() * (modifications->getNumberOfModifications() + 1))
+  TEST_EQUAL(encoded_sequence[1].first, 2)
+  TEST_REAL_EQUAL(encoded_sequence[1].second, 2 * allowed_characters.size() * (modifications->getNumberOfModifications() + 1) + 1.)
+  TEST_EQUAL(encoded_sequence[2].first, 1)
+  TEST_REAL_EQUAL(encoded_sequence[2].second, 2 * allowed_characters.size() * (modifications->getNumberOfModifications() + 1) + 2.)
 
 RESULT
 
@@ -507,6 +516,10 @@ CHECK((void libSVMVectorsToString(svm_problem* vector, String& output)))
 	problem = encoder.encodeLibSVMProblemWithCompositionVectors(sequences, labels, allowed_characters);			
 	encoder.libSVMVectorsToString(problem, output);
 	TEST_EQUAL(output, correct_output)	
+RESULT
+
+CHECK(static void destroyProblem(svm_problem *problem))
+	NOT_TESTABLE
 RESULT
 
 /////////////////////////////////////////////////////////////

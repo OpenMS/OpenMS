@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -78,7 +78,7 @@ RESULT
 PepNovoOutfile file;
 
 
-CHECK(void load(const std::string& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real& p_value_threshold, const std::map< String, Real >& dta_filenames_and_precursor_retention_times) throw (Exception::FileNotFound, Exception::ParseError))
+CHECK(void load(const std::string& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real& p_value_threshold, const std::map< String, Real >& dta_filenames_and_precursor_retention_times))
 	
 	std::vector< PeptideIdentification > peptide_identifications;
 	ProteinIdentification protein_identification;
@@ -151,7 +151,7 @@ CHECK(void load(const std::string& result_filename, std::vector< PeptideIdentifi
 	}
 RESULT
 
-CHECK(void getSearchEngineAndVersion(const String& pepnovo_output_without_parameters_filename, ProteinIdentification& protein_identification) throw (Exception::FileNotFound))
+CHECK(void getSearchEngineAndVersion(const String& pepnovo_output_without_parameters_filename, ProteinIdentification& protein_identification))
 	ProteinIdentification protein_identification;
 	
 	// test exceptions

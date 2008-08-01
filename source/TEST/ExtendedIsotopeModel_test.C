@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -198,6 +198,13 @@ CHECK( CoordinateType getOffset() )
 		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
 		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
 	}	
+RESULT
+
+CHECK((void setSamples()))
+{
+  // dummy subtest
+	TEST_EQUAL(1,1)
+}
 RESULT
 
 /////////////////////////////////////////////////////////////

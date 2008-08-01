@@ -1,5 +1,4 @@
-
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -25,9 +24,9 @@
 // $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#include<OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/ClassTest.h>
 
-#include<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
 
 using namespace std;
 using namespace OpenMS;
@@ -60,7 +59,17 @@ CHECK((static String getProductName()))
 RESULT
 
 CHECK((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::vector< TransformationDescription > &)))
+{
+  // Tested extensively in TEST/TOPP.  See MapAligner_test.
+  NOT_TESTABLE;
+}
+RESULT
 
+CHECK((virtual void alignFeatureMaps(std::vector< FeatureMap<> > &, std::vector< TransformationDescription > &)))
+{
+  // Tested extensively in TEST/TOPP.  See MapAligner_test.
+  NOT_TESTABLE;
+}
 RESULT
 
 /////////////////////////////////////////////////////////////

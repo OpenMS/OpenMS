@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -37,31 +37,44 @@ namespace OpenMS
 class EdwardsLippertIteratorTryptic : public EdwardsLippertIterator
 {
 	public:
-	/**
-	@brief indicates if trypsin will cat between the two amino acids
-	@param aa1 first amino acid
-	@param aa2 second amino acid
-	*/
-	virtual bool isDigestingEnd (char aa1, char aa2);
-	
-	/**
-	@brief needed by FactoryProduct
-	@return const string name of class
-	*/
-	static const std::string getName()
-	{
-		return "EdwardsLippertIteratorTryptic";
-	}
 
-	/**
-	@brief needed by FactoryProduct
-	@return poiter to new object
-	*/
-	static PepIterator * create()
-	{
-		return new EdwardsLippertIteratorTryptic;
-	}
-};
+		/// default constructor
+		EdwardsLippertIteratorTryptic();
+
+		/// copy constructor
+		EdwardsLippertIteratorTryptic(const EdwardsLippertIteratorTryptic& rhs);
+
+		/// destructor
+		virtual ~EdwardsLippertIteratorTryptic();
+					
+		/// assignment operator
+		EdwardsLippertIteratorTryptic& operator = (const EdwardsLippertIteratorTryptic& rhs);
+		
+		/**
+		@brief indicates if trypsin will cat between the two amino acids
+		@param aa1 first amino acid
+		@param aa2 second amino acid
+		*/
+		virtual bool isDigestingEnd (char aa1, char aa2);
+	
+		/**
+		@brief needed by FactoryProduct
+		@return const string name of class
+		*/
+		static const String getProductName()
+		{
+			return "EdwardsLippertIteratorTryptic";
+		}
+
+		/**
+		@brief needed by FactoryProduct
+		@return poiter to new object
+		*/
+		static PepIterator * create()
+		{
+			return new EdwardsLippertIteratorTryptic;
+		}
+	};
 
 }
 

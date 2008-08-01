@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -62,13 +62,10 @@ CHECK((template <typename InputPeakIterator, typename OutputPeakContainer> void 
   MSSpectrum<Peak1D>::Iterator it = raw.begin();
   for (int i=0; i<5; ++i, ++it)
   {
+  	it->setIntensity(0);
     if (i==2)
     {
       it->setIntensity(1);
-    }
-    else
-    {
-      it->setIntensity(0);
     }
   }
 
@@ -76,124 +73,79 @@ CHECK((template <typename InputPeakIterator, typename OutputPeakContainer> void 
 	sgolay.setParameters(param);
   sgolay.filter(raw.begin(),raw.end(),filtered);
   it=filtered.begin();
-  TEST_REAL_EQUAL(it->getIntensity(),0.)
+  TEST_REAL_EQUAL(it->getIntensity(),0.0)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0.)
+  TEST_REAL_EQUAL(it->getIntensity(),0.0)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),1)
+  TEST_REAL_EQUAL(it->getIntensity(),1.0)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0)
+  TEST_REAL_EQUAL(it->getIntensity(),0.0)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),5.55112e-17)
+  TEST_REAL_EQUAL(it->getIntensity(),0.0)
 RESULT 
 
-CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)))
-	MSExperiment< Peak1D > raw_exp;
-	MSExperiment< Peak1D > filtered_exp;
-	MSSpectrum< Peak1D > raw_spectrum;
-	raw_spectrum.resize(5);
-	
+
+CHECK((template <typename PeakType> void filterExperiment(MSExperiment<PeakType>& map)))
+	PRECISION(0.01)
+
+	param.setValue("frame_length",4);
+
+	MSExperiment<Peak1D> exp;
+  exp.resize(4);
   
-  MSSpectrum< Peak1D >::iterator it=raw_spectrum.begin();
-  for (int i=0; i<5; ++i, ++it)
+  Peak1D p;
+  for (int i=0; i<9; ++i)
   {
-    if (i==2)
+  	p.setIntensity(0.0);
+    if (i==3)
     {
-      it->setIntensity(1);
+  		p.setIntensity(1.0);
     }
-    else
+    if (i==4)
     {
-      it->setIntensity(0);
+  		p.setIntensity(0.8);
     }
+    if (i==5)
+    {
+  		p.setIntensity(1.2);
+    }
+    exp[0].push_back(p);
+    exp[1].push_back(p);
   }
+  exp[2].push_back(p);
 
   SavitzkyGolayFilter sgolay;
 	sgolay.setParameters(param);
-  raw_exp.resize(1);
-  raw_exp[0] = raw_spectrum;
-  sgolay.filterExperiment(raw_exp.begin(),raw_exp.end(),filtered_exp);
-
-  MSExperiment< Peak1D >::SpectrumType::iterator it2 = filtered_exp[0].begin();
-  TEST_REAL_EQUAL(it2->getIntensity(),0.)
-  ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),0.)
-  ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),1)
-  ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),0)
-  ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),5.55112e-17)
-RESULT
-
-CHECK((template<typename InputPeakType, typename OutputPeakType > void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)))
-	MSExperiment< Peak1D > raw_exp;
-	MSExperiment< Peak1D > filtered_exp;
-	MSSpectrum< Peak1D > raw_spectrum;
-	raw_spectrum.resize(5);
+  sgolay.filterExperiment(exp);
 	
-  
-  MSSpectrum< Peak1D >::iterator it=raw_spectrum.begin();
-  for (int i=0; i<5; ++i, ++it)
-  {
-    if (i==2)
-    {
-      it->setIntensity(1);
-    }
-    else
-    {
-      it->setIntensity(0);
-    }
-  }
+	TEST_EQUAL(exp.size(),4)
+	TEST_EQUAL(exp[0].size(),9)
+	TEST_EQUAL(exp[1].size(),9)
+	TEST_EQUAL(exp[2].size(),1)
+	TEST_EQUAL(exp[3].size(),0)
 
-  SavitzkyGolayFilter sgolay;
-	sgolay.setParameters(param);
-  raw_exp.resize(1);
-  raw_exp[0] = raw_spectrum;
-  sgolay.filterExperiment(raw_exp,filtered_exp);
+	TEST_REAL_EQUAL(exp[0][0].getIntensity(),0.0)	
+	TEST_REAL_EQUAL(exp[0][1].getIntensity(),0.0571429)
+	TEST_REAL_EQUAL(exp[0][2].getIntensity(),0.274286)
+	TEST_REAL_EQUAL(exp[0][3].getIntensity(),0.657143)
+	TEST_REAL_EQUAL(exp[0][4].getIntensity(),1.14286)
+	TEST_REAL_EQUAL(exp[0][5].getIntensity(),0.771429)
+	TEST_REAL_EQUAL(exp[0][6].getIntensity(),0.342857)
+	TEST_REAL_EQUAL(exp[0][7].getIntensity(),0.0914286)
+	TEST_REAL_EQUAL(exp[0][8].getIntensity(),0.0)
 
-  MSExperiment< Peak1D >::SpectrumType::iterator it2 = filtered_exp[0].begin();
-  TEST_REAL_EQUAL(it2->getIntensity(),0.)
-  ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),0.)
-  ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),1)
-  ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),0)
-  ++it2;
-  TEST_REAL_EQUAL(it2->getIntensity(),5.55112e-17)
-RESULT
+	TEST_REAL_EQUAL(exp[1][0].getIntensity(),0.0)
+	TEST_REAL_EQUAL(exp[1][1].getIntensity(),0.0571429)
+	TEST_REAL_EQUAL(exp[1][2].getIntensity(),0.274286)
+	TEST_REAL_EQUAL(exp[1][3].getIntensity(),0.657143)
+	TEST_REAL_EQUAL(exp[1][4].getIntensity(),1.14286)
+	TEST_REAL_EQUAL(exp[1][5].getIntensity(),0.771429)
+	TEST_REAL_EQUAL(exp[1][6].getIntensity(),0.342857)
+	TEST_REAL_EQUAL(exp[1][7].getIntensity(),0.0914286)
+	TEST_REAL_EQUAL(exp[1][8].getIntensity(),0.0)
 
-CHECK((template <typename InputPeakContainer, typename OutputPeakContainer> void filter(const InputPeakContainer &input_peak_container, OutputPeakContainer &baseline_filtered_container)))
-  MSSpectrum<Peak1D> raw;
-  raw.resize(5);
-  MSSpectrum<Peak1D> filtered;
+	TEST_REAL_EQUAL(exp[2][0].getIntensity(),0.0)
 
-  MSSpectrum<Peak1D>::Iterator it = raw.begin();
-  for (int i=0; i<5; ++i, ++it)
-  {
-    if (i==2)
-    {
-      it->setIntensity(1);
-    }
-    else
-    {
-      it->setIntensity(0);
-    }
-  }
-
-  SavitzkyGolayFilter sgolay;
-	sgolay.setParameters(param);
-  sgolay.filter(raw,filtered);
-  it=filtered.begin();
-  TEST_REAL_EQUAL(it->getIntensity(),0.)
-  ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0.)
-  ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),1)
-  ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0)
-  ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),5.55112e-17)
 RESULT
 
 /////////////////////////////////////////////////////////////

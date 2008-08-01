@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -310,7 +310,7 @@ namespace OpenMS
 			if ( is_bidirectionally_nearest )
 			{
 				DoubleReal pair_distance_m_s =
-					squared_distance_( model_iter->x(), model_iter->y(),
+					squaredDistance_( model_iter->x(), model_iter->y(),
 														 scene_point.x(), scene_point.y()  );
 				
 				VV_(pair_distance_m_s);
@@ -321,14 +321,14 @@ namespace OpenMS
 				{
 					Point const & scene_point_second_nearest = neighbours[MODEL_][model_cf_index][1];
 					DoubleReal pair_distance_m_s2nd =
-						squared_distance_( model_iter->x(),                model_iter->y(),
-															 scene_point_second_nearest.x(), scene_point_second_nearest.y() );
+						squaredDistance_( model_iter->x(),                model_iter->y(),
+															scene_point_second_nearest.x(), scene_point_second_nearest.y() );
 					VV_(pair_distance_m_s2nd);
 					Point const & model_point_second_nearest = neighbours[SCENE_][scene_cf_index][1];
 					VV_(model_point_second_nearest);
 					DoubleReal pair_distance_m2nd_s =
-						squared_distance_( model_point_second_nearest.x(), model_point_second_nearest.y(),
-															 scene_point.x(),                scene_point.y()                 );
+						squaredDistance_( model_point_second_nearest.x(), model_point_second_nearest.y(),
+															scene_point.x(),                scene_point.y()                 );
 					VV_(pair_distance_m2nd_s);
 					DoubleReal min_second_pair_distance = pair_distance_m_s * second_nearest_gap_;
 					VV_(min_second_pair_distance);

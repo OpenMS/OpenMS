@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -45,7 +45,7 @@ using namespace std;
 
 float score = 4.4;
 uint rank = 3;
-String sequence = "ARRAY";
+AASequence sequence = AASequence("ARRAY");
 std::string sequence2 = "  ARRAY  ";
 Int charge;
 
@@ -59,7 +59,7 @@ CHECK((virtual ~PeptideHit()))
 	delete ptr;
 RESULT
 
-CHECK((PeptideHit(DoubleReal score, UInt rank, Int charge, const String &sequence)))
+CHECK((PeptideHit(DoubleReal score, UInt rank, Int charge, const AASequence &sequence)))
 	PeptideHit hit(score, rank, charge, sequence);
 	TEST_EQUAL(hit.getScore(), score)
 	TEST_EQUAL(hit.getRank(), rank)
@@ -148,7 +148,7 @@ CHECK((UInt getRank() const))
 	TEST_EQUAL(hit.getRank(), rank)
 RESULT
 
-CHECK((String getSequence() const))
+CHECK((const AASequence& getSequence() const))
 	PeptideHit hit(score, rank, charge, sequence);
 	TEST_EQUAL(hit.getSequence(), sequence)
 RESULT
@@ -165,7 +165,7 @@ CHECK((void setScore(DoubleReal score)))
 	TEST_EQUAL(hit.getScore(), score)
 RESULT
 
-CHECK((void setSequence(const String& sequence)))
+CHECK((void setSequence(const AASequence& sequence)))
 	PeptideHit hit;
 	hit.setSequence(sequence);
 	TEST_EQUAL(hit.getSequence(), sequence)

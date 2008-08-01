@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -706,7 +706,7 @@ CHECK([EXTRA] static bool isValid(const String& filename))
   TEST_EQUAL(f.isValid(tmp_filename),true);
 RESULT
 
-CHECK([[EXTRA] loading a minimal file containing one spectrum  - with whitespaces inside the base64 data)
+CHECK([EXTRA] loading a minimal file containing one spectrum  - with whitespaces inside the base64 data)
 	MSExperiment<> e;
   MzXMLFile f;
   f.load("data/MzXMLFile_test_5.mzXML",e);

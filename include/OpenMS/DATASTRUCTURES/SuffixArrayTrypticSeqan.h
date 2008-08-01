@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -43,8 +43,16 @@ namespace OpenMS {
 class SuffixArrayTrypticSeqan : public SuffixArraySeqan  {
 	
 public:
+	
+	/** @brief constructor for tryptic seqan array with a specially optimized implementation
+	
+			@param st the suffix array string, which is used to build the suffix array
+			@param filename filename of fasta file
 
-	SuffixArrayTrypticSeqan(const String & st,const String & sa_file_name) throw (Exception::InvalidValue,Exception::FileNotFound);
+			@throw InvalidValue is thrown if string st if invalid
+			@throw FileNotFound is thrown if given file is not found
+	*/
+	SuffixArrayTrypticSeqan(const String& st, const String& filename);
 	
 	/**
 	@brief returns if an enzyme will cut after first character

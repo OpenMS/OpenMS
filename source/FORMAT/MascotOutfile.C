@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -41,7 +41,7 @@ namespace OpenMS
   {
   }
 
-	void MascotOutfile::load(String filename,	ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& peptide_identifications, Real p) throw (Exception::ParseError)
+	void MascotOutfile::load(String filename,	ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& peptide_identifications, Real p)
 	{
   	TextFile f(filename);
   	vector<PeptideHit>::iterator peptide_hit_iterator;

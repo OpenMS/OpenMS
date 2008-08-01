@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -47,7 +47,7 @@
 
 /**
 
-@page tutorial_general General information 
+@page tutorial_general General information
 
 	This tutorial gives an introduction to the %OpenMS core datastructures and algorithms.
 	It is intended to allow for a quick start in writing your own applications based on
@@ -66,12 +66,12 @@
 	- <b>C++:</b> C++ Primer, Effective C++
 	- <b>STL:</b> Generic Programming and the STL, Effective STL, The C++ Standard Library
 	- <b>Qt:</b> C++ GUI Programming with Qt 4
-	
+
 	@section general_search Class search engine
-	
+
 	You can search for Classes in the %OpenMS documentation using the the class search engine
 	that can be found at http://open-ms.sourceforge.net/documentation.php .
-	
+
 	The search engine can e.g. be used to
 	- find all classes matching a keyword.
 	- find the exact include path, when you know the class name only.
@@ -94,9 +94,9 @@ libraries: <i>Qt</i> provides visualization, database support and a
 platform abstraction layer. <i>Xerces</i> allows XML file parsing.
 <i>libSVM</i> is used for machine learning tasks. The <i>Computational
 Geometry Algorithms Library</i> (CGAL) provides data structures and
-algorithms for geometric computation. The <i>GNU Scientific Library</i>(GSL) 
+algorithms for geometric computation. The <i>GNU Scientific Library</i>(GSL)
 is used for different mathematical and statistical tasks.
- 	
+
 OpenMS can itself be subdivided into several layers. At the very
 bottom are the foundation classes which implement low-level concepts and
 data structures. They include basic concepts (e.g. factory pattern, exception
@@ -300,7 +300,7 @@ file formats, data reduction functionality and all other analysis algorithms.
   Another class derived from @a DIntervalBase is @a DBoundingBox. It also represents a
   closed interval, but differs in the methods. Please have a look at the class
   documentation for details.
-  
+
 @section datastructures_param Param
 
   Most algorithms of %OpenMS and some of the TOPP tools have many parameters. The parameters
@@ -563,10 +563,10 @@ file formats, data reduction functionality and all other analysis algorithms.
   @image latex SpectrumSettings.png "Spectrum meta information" width=7cm
 
 @section metadata_peaks Meta data associated to peaks
-	
+
 	If you want to annotate the peaks or raw data points in your spectra with meta information,
 	there are three different ways to do this with different advantages and disadvantages.
-	
+
 	If each peak is annotated with the same type of information (e.g. width of a peak):
 	- Use the meta data arrays provided by DSpectrum (recommended)
 	  - Advantages: Independent of peak type, information automatically stored in mzData files
@@ -574,7 +574,7 @@ file formats, data reduction functionality and all other analysis algorithms.
 	- Derive a new peak type that contains members for the additional information
 	  - Advantages: Very fast
 	  - Disadvantages: Information not automatically stored in mzData files, Custom peak type are not supported by all algorithms
-	
+
 	If you need to annotate only a small subset of the peaks with meta information:
 	- Use the MetaInfoInterface of RichPeak1D
 	  - Advantages: Each peak can be annotated with individual information
@@ -685,9 +685,14 @@ previous step (peak picking), we do not only search for pronounced
 signals (peak) in the LC-MS map but search explicitly for peptides
 which can be recognized by their isotopic pattern.
 
-OpenMS offers different algorithms for this task.
+%OpenMS offers different algorithms for this task. Details of how
+to apply them are given in the TOPP documentation. Please also refer
+to our publications on the %OpenMS web page. TOPP contains a command
+line program which allows to execute our algorithms without writing
+a single line of code.
 
-Writing a FeatureFinder application of your own is straightforward to do.
+But you can also write your own FeatureFinder application. This gives you
+more flexibility and is straightforward to do.
 A short example (Tutorial_FeatureFinder.C) is given below. First we need to instantiate the FeatureFinder,
 its parameters and the input/output data:
 
@@ -808,7 +813,7 @@ First the spectra and reference masses are loaded.
 @dontinclude Tutorial_TOFCalibration.C
   @skip main
 	@until }
-	
+
 Then we set the calibration constants	for the calibrant spectra.
   @until ec.setML3s
 
@@ -940,10 +945,10 @@ the retention time axis so that peak/feature positions become comparable.
 
 The classes described in this section can be found in the @a ANALYSIS/MAPMATCHING folder.
 
-All map alignment algorithms are derived from the common base class @em MapAlignmentAlgorithm and, thus, share 
+All map alignment algorithms are derived from the common base class @em MapAlignmentAlgorithm and, thus, share
 a common interface. That is why only one example (Tutorial_MapAlignment.C) is shown here. Other algorithms can be work accordingly.
 
-First, we load two feature maps: 
+First, we load two feature maps:
 	@dontinclude Tutorial_MapAlignment.C
 	@skip main
 	@until Tutorial_MapAlignment_2
@@ -977,18 +982,18 @@ two labels and another for label-free quantitation.
 @section tutorial_featuregrouping_unlabeled Feature grouping for label-free quantitation
 
 	The first example shows the label-free quantitation (Tutorial_Unlabeled.C):
-	
-	First, we load two feature maps: 
+
+	First, we load two feature maps:
 		@dontinclude Tutorial_Unlabeled.C
 		@skip main
 		@until Tutorial_Unlabeled_2
-	
+
 	In order to write the a valid output file, we need to set the input file names and sizes.
 		@until maps[1].size()
-		
+
 	Then, we instanciate the algorithm and group the features:
 		@until algorithm.group
-	
+
 	Finally, we store the grouped features in a consensusXML file.
 		@until end of main
 
@@ -996,33 +1001,25 @@ two labels and another for label-free quantitation.
 @section tutorial_featuregrouping_labeled Feature grouping for isotope-labeled quantitation
 
 	The second example shows the isotope-labeled quantitation (Tutorial_Labeled.C):
-	
-	First, we load the feature map: 
+
+	First, we load the feature map:
 		@dontinclude Tutorial_Labeled.C
 		@skip main
 		@until Tutorial_Labeled.featureXML
-	
+
 	The isotope-labeled quantitation finds two types of features in the same map (heavy and light variant).
 	So we add two map descriptions with the same file name to the output and set the labels accordingly:
 		@until "heavy"
-	
+
 	Then, we instanciate the algorithm and group the features:
 		@until algorithm.group
-	
-	Finally, we store the grouped features in a consensusXML file. In order to write a valid file, we need to set the input file names and sizes. 
+
+	Finally, we store the grouped features in a consensusXML file. In order to write a valid file, we need to set the input file names and sizes.
 		@until end of main
 
 */
 
 //####################################### IDENTIFICATION #######################################
-
-/**
-
-@page tutorial_identification Peptide and protein identification
-
-	@todo add content (Andreas)
-
-*/
 
 //####################################### VISUAL #######################################
 
@@ -1030,11 +1027,11 @@ two labels and another for label-free quantitation.
 
 @page tutorial_visual Visualization
 
-Visualization in %OpenMS is based on Qt. 
+Visualization in %OpenMS is based on Qt.
 
 @section visualization_1D 1D view
 
-All types of peak or feature visualization share a common interface. So here only an example how to visualize 
+All types of peak or feature visualization share a common interface. So here only an example how to visualize
 a single spectrum is given (Tutorial_Spectrum1D.C).
 
 First we need to create a @a QApplication in order to be able to use Qt widgets in out application.
@@ -1047,7 +1044,7 @@ Then we load a DTA file (the first command line argument of our application).
 
 Then we create a widget for 1D visualization and hand over the data.
 	@until show
-	
+
 Finally we start the application.
 	@until end of main
 
@@ -1056,14 +1053,93 @@ Finally we start the application.
 @a Param objects are used to set algorithm parameters in %OpenMS. In order to be able to visually edit them, the @a ParamEditor
 class can be used. The following example (Tutorial_ParamEditor.C) show how to use it.
 
-We need to create a QApplication, load the data from a file (e.g. the parameters file of any TOPP tool), 
+We need to create a QApplication, load the data from a file (e.g. the parameters file of any TOPP tool),
 create the @a ParamEditor and execute the application:
 	@dontinclude Tutorial_ParamEditor.C
   @skip main
   @until exec
-	
+
 When it is closed, we store the result back to the @a Param object and then to the file.
 	@until end of main
+*/
+
+//####################################### CLUSTERING #######################################
+
+/**
+
+@page tutorial_clustering Clustering
+
+In OpenMS, generic hierarchical clustering is available, the example (Tutorial_Clustering.C)
+shows how to build a rudimental clustering pipeline.
+
+@section Inputdata
+
+All types of data can be clustered, as long as a SimilarityComparator for the type is provided.
+This Comparator has to produce a similarity measurment with the @a ()-operator in the
+range of @a [0,1] for each two elements of this type, so it can be transformed to a
+distance. Some SimilarityComparators are already implemented, e.g. the baseclass for the
+PeakSpectrum-type SimilarityComparator is OpenMS::PeakSpectrumCompareFunctor.
+
+	@dontinclude Tutorial_Clustering.C
+  @skip LowLevelComparator
+  @until end of LowLevelComparator
+
+This example of a SimilarityComparator is very basic and takes onedimensional input of @a doubles
+in the range of @a [0,1]. Real input will generally be more complex and so has to be the
+corresponding SimilarityComparator. Note that similarity in the example is calculated by
+@a 1-distance, whereas generally distance is obtained by getting the similarity and not the other
+way round.
+
+@section Clustering
+
+Clustering is conducted in the @a OpenMS::ClusterHierarchical class that offers two ways of clustering,
+both using ClusterFunctors to perform the clustering. They only differ in elaboration of
+the output.
+
+  @skip main
+  @until must be filled
+  @skip llc
+  @until setThreshold
+
+The @a ClusterHierarchical functions will need at least these arguments, setting the threshold is
+optional (per default set to 1,0).
+
+  @skip clustering
+  @until clusterForVector
+
+This function will create a clustering up to the threshold in the @a result vector. See @ref Output.
+
+  @skip clear
+  @until end of main
+
+This function will generate a more elaborate output to the given path, therefor see @ref Output.
+@n
+The ClusterFunctors cluster distancebased, so the closest clusters will be merged until the given
+threshold is exceeded. The ClusterFuctors differ in the way they update the distances between the
+clusters after each step, in which the two closest clusters were merged.
+
+@section Output
+
+If known, at what threshold (see @a OpenMS::ClusterHierarchical::clusterForVector) a reasonable clustering is produced,
+there is only the final clustering needed. Use the @a clusterForVector function. Elements of the @a result vector
+(vectors again) represent the cluster structure and the elements of those inner vectors are indices for the elements
+in @a data.
+@n
+If closer survey of the clustering process is desired, use the @a OpenMS::ClusterHierarchical::clusterForDendrogramm
+function. This will generate a file that can be used to generate a dendrogramm (cluster tree), since it contains for
+each step the indices to the clusters merged in this step and the distance that separated them (i.e. the minimal
+distance between all clusters). This file will be found under the given name (@a "output/Tutorial_Clustering.den"
+in the example).
+@n
+In Addition, a similaritymatrix corresponding to the actual clustering status will be given in regular intervals.
+Those files will have the given name appended the corresponding step number and file appendix (in the example
+@a "output/Tutorial_Clustering.den.step#.sm"). The similaritiymatrices are ordered corresponding to the clustering and
+can be used to create heatmaps, visualizing the density and coherence of the clustering up to the corresponding step
+(for example with gnuplot 4.3 heatmaps).
+
+Note that write access to the given folder has to be granted (@a "output/" in the example).
+
+
 */
 
 //####################################### HOWTO #######################################

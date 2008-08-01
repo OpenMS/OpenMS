@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -39,16 +39,16 @@ START_TEST(Map, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Map<int, int>* map_ptr;
-CHECK(Map())
+CHECK((Map()))
 	map_ptr = new Map<int, int>;
 	TEST_NOT_EQUAL(map_ptr, 0)
 RESULT
 
-CHECK(~Map() )
+CHECK((~Map()))
 	delete map_ptr;
 RESULT
 
-CHECK(T& operator [] (const Key& key) )
+CHECK((T& operator [] (const Key& key)))
 	Map<int, int> hm;
 	hm[0] = 0;
 	hm[0] = 1;
@@ -66,7 +66,7 @@ CHECK(T& operator [] (const Key& key) )
 	TEST_EQUAL(hm[5], 32)
 RESULT
 
-CHECK(const T& operator [] (const Key& key) const throw(typename Map<Key, T>::IllegalKey))
+CHECK((const T & operator[](const Key &key) const ))
 	Map<int, int> hm;
 	hm[0] = 0;
 	hm[0] = 1;
@@ -87,7 +87,7 @@ CHECK(const T& operator [] (const Key& key) const throw(typename Map<Key, T>::Il
 	TEST_EXCEPTION(MyMap::IllegalKey, const_map[6])
 RESULT
 
-CHECK(bool has(const Key& key) const )
+CHECK((bool has(const Key& key) const))
 	Map<int, int> hm;
 	hm.insert(Map<int, int>::ValueType(0, 0));
 	hm.insert(Map<int, int>::ValueType(1, 1));

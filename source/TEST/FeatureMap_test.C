@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -277,7 +277,7 @@ CHECK((void sortByNthPosition(UInt i) throw(Exception::NotImplemented)))
 	
 RESULT
 
-CHECK(void swap(const FeatureMap& from))
+CHECK(void swap(FeatureMap& from))
 	FeatureMap<> fm1, fm2;
 	fm1.setComment("stupid comment");
 	fm1.push_back(feature1);
@@ -298,6 +298,35 @@ RESULT
 
 CHECK(void sortByOverallQuality() )
 	
+	FeatureMap<> to_be_sorted;
+	
+	Feature f1;
+	f1.getPosition()[0] = 1;
+	f1.getPosition()[1] = 1;
+	f1.setOverallQuality(10);
+	to_be_sorted.push_back(f1);
+	
+	Feature f2;
+	f2.getPosition()[0] = 2;
+	f2.getPosition()[1] = 2;
+	f2.setOverallQuality(30);
+	to_be_sorted.push_back(f2);
+	
+	Feature f3;
+	f3.getPosition()[0] = 3;
+	f3.getPosition()[1] = 3;
+	f3.setOverallQuality(20);
+	to_be_sorted.push_back(f3);
+	
+	to_be_sorted.sortByOverallQuality();
+	
+	TEST_EQUAL(to_be_sorted[0].getPosition()[0],1);
+	TEST_EQUAL(to_be_sorted[1].getPosition()[0],3);
+	TEST_EQUAL(to_be_sorted[2].getPosition()[0],2);
+	
+	TEST_EQUAL(to_be_sorted[0].getOverallQuality(),10);
+	TEST_EQUAL(to_be_sorted[1].getOverallQuality(),20);
+	TEST_EQUAL(to_be_sorted[2].getOverallQuality(),30);
 
 RESULT
 

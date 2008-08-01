@@ -1,10 +1,10 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -41,19 +41,19 @@ namespace OpenMS
 
 		Transformation and other factors of the peptide mass spectrometry pairwise peak-list comparison process
 		Witold E Wolski , Maciej Lalowski* , Peter Martus* , Ralf Herwig* , Patrick Giavalisco , Johan Gobom , Albert Sickmann , Hans Lehrach and Knut Reinert*
-		BMC Bioinformatics 2005, 6:285     doi:10.1186/1471-2105-6-285	
-			
-		@ref BinnedSpectrum Parameters are explained on a separate page.
-		
-		@see BinnedSpectrumCompareFunctor
+		BMC Bioinformatics 2005, 6:285     doi:10.1186/1471-2105-6-285
+
+		@ref BinnedSumAgreeingIntensities_Parameters are explained on a separate page.
+
+		@see BinnedSpectrumCompareFunctor @see BinnedSpectrum
 
 		@ingroup SpectraComparison
   */
-	
+
   class BinnedSumAgreeingIntensities : public BinnedSpectrumCompareFunctor
   {
   public:
-	
+
     /// default constructor
     BinnedSumAgreeingIntensities();
 
@@ -65,12 +65,17 @@ namespace OpenMS
 
     /// assignment operator
     BinnedSumAgreeingIntensities& operator = (const BinnedSumAgreeingIntensities& source);
-	
-    /// function call operator, calculates the similarity of the given arguments 
-	double operator () (const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const throw (BinnedSpectrumCompareFunctor::IncompatibleBinning);
 
-	/// function call operator, calculates self similarity
-	double operator () (const BinnedSpectrum& spec) const;
+    /** function call operator, calculates the similarity of the given arguments
+
+				@param spec1 First spectrum given as a binned representation
+				@param spec2 Second spectrum given as a binned representation
+				@throw IncompatibleBinning is thrown if the binning of the two input spectra are not the same
+		*/
+		double operator () (const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const;
+
+		/// function call operator, calculates self similarity
+		double operator () (const BinnedSpectrum& spec) const;
 
 	///
     static BinnedSpectrumCompareFunctor* create() { return new BinnedSumAgreeingIntensities(); }

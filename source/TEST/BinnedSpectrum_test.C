@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -146,13 +146,13 @@ CHECK((UInt getFilledBinNumber() const ))
 }
 RESULT
 
-CHECK((const SparseVector<Real>& getBins() const  throw (NoSpectrumIntegrated)))
+CHECK((const SparseVector<Real>& getBins() const))
 {
 	TEST_EQUAL(bs1->getBins().at(658),501645)
 }
 RESULT
 
-CHECK((SparseVector<Real>& getBins() throw (NoSpectrumIntegrated)))
+CHECK((SparseVector<Real>& getBins()))
 {
 	TEST_EQUAL(bs1->getBins().at(658),501645)
 }
@@ -194,19 +194,19 @@ CHECK((bin_iterator end()))
 }
 RESULT
 
-CHECK((void setBinSize(double s) throw (NoSpectrumIntegrated)))
+CHECK((void setBinSize(double s)))
 {
 	TEST_EQUAL(bs1->getBinSize(),1.5)
 }
 RESULT
 
-CHECK((void setBinSpread(UInt s) throw (NoSpectrumIntegrated)))
+CHECK((void setBinSpread(UInt s)))
 {
 	TEST_EQUAL(bs1->getBinSpread(),2)
 }
 RESULT
 
-CHECK((void setBinning() throw (NoSpectrumIntegrated)))
+CHECK((void setBinning()))
 {
 	NOT_TESTABLE
 	//tested within another test

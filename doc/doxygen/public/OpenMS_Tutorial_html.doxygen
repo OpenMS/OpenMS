@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -27,7 +27,7 @@
 /**
 
 	@page OpenMSTutorial %OpenMS tutorial
-	
+
 	First, we give a small introduction to this tutorial and %OpenMS:
 	- @subpage tutorial_general
 	- @subpage tutorial_structure
@@ -46,9 +46,9 @@
 	- @subpage tutorial_transformations
 	- @subpage tutorial_mapalignment
 	- @subpage tutorial_featuregrouping
-	- @subpage tutorial_identification
-	
+
 	Other advanced tutorials:
 	- @subpage tutorial_visual
+	- @subpage tutorial_clustering
 	- @subpage tutorial_howto
 */

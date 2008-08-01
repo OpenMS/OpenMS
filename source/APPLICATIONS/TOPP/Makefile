@@ -1,4 +1,4 @@
-# -*- Mode: makefile; tab-width: 2; -*-
+# -*- mode: makefile; tab-width: 2; -*-
 # vi: set ts=2:
 #
 # --------------------------------------------------------------------------
@@ -72,8 +72,6 @@ TOPP_EXECUTABLES=\
 	TOFCalibration\
 	TextExporter\
 	FeatureFinderMRM\
-	PILISModel\
-	PILISIdentification\
 	XTandemAdapter\
 	FalseDiscoveryRate\
 	IDDecoyProbability

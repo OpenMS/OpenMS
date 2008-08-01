@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -92,7 +92,7 @@ namespace OpenMS
   	- add a doxygen page for the tool and add the page to TOPP.doxygen
   	- hide the derived class in the OpenMS documentation by using doxygen codition macros.
 		
-		@todo 6 - Create infrastructure for command line arguments that are lists as soon as lists are implemented in Param, use the infrastructure in all TOPP tools that take lists as arguments e.g. file lists (Johannes)
+		@todo Create infrastructure for command line arguments that are lists, use it in all TOPP tools that take lists as arguments e.g. file lists (Hiwi)
   */
   class TOPPBase
   {

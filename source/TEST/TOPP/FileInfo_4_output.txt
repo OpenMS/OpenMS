@@ -32,9 +32,9 @@ Instument
   Name             : 
   Model            : MS 1
   Vendor           : MS-Vendor
-  Ion source       : ESI (electrospray ionisation)
-  Detector         : FARADAYCUP
-  Mass Analyzer(s) : PAULIONTRAP, 
+  Ion source       : Electrospray ionisation
+  Detector         : Faraday cup
+  Mass Analyzer(s) : Quadrupole ion trap, 
 
 Contact Person
   First Name       : FirstName

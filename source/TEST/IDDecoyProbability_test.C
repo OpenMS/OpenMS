@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch$
+// $Maintainer: Andreas Bertsch, Sven Nahnsen$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -48,7 +48,7 @@ CHECK(IDDecoyProbability())
 }
 RESULT
 
-CHECK(~IDDecoyProbability())
+CHECK(virtual ~IDDecoyProbability())
 {
 	delete ptr;
 }
@@ -56,52 +56,52 @@ RESULT
 
 CHECK((IDDecoyProbability(const IDDecoyProbability &rhs)))
 {
-  // TODO
-}
-RESULT
-
-CHECK((virtual ~IDDecoyProbability()))
-{
-  // TODO
+ 	NOT_TESTABLE 
 }
 RESULT
 
 CHECK((IDDecoyProbability& operator=(const IDDecoyProbability &rhs)))
 {
-  // TODO
+  NOT_TESTABLE
 }
 RESULT
 
-CHECK((void apply(std::vector<PeptideIdentification>& prob_ids, const std::vector< PeptideIdentification > &fwd_ids, const std::vector< PeptideIdentification > &rev_ids) throw (Exception::MissingInformation)))
+CHECK((void apply(std::vector<PeptideIdentification>& prob_ids, const std::vector< PeptideIdentification > &fwd_ids, const std::vector< PeptideIdentification > &rev_ids)))
 {
-	/*
   IDDecoyProbability decoy;
 	vector<ProteinIdentification> prot_ids_fwd, prot_ids_rev;
 	vector<PeptideIdentification> pep_ids_fwd, pep_ids_rev, prob_ids;
-	IdXMLFile().load("040404XX_XTandem.idXML", prot_ids_fwd, pep_ids_fwd);
-	IdXMLFile().load("040404XX_XTandem_rev.idXML", prot_ids_rev, pep_ids_rev);
+	IdXMLFile().load("data/XTandem_fwd_ids.idXML", prot_ids_fwd, pep_ids_fwd);
+	IdXMLFile().load("data/XTandem_rev_ids.idXML", prot_ids_rev, pep_ids_rev);
 
 	decoy.apply(prob_ids, pep_ids_fwd, pep_ids_rev);
 
-	DateTime now;
-	now.now();
-	String now_str;
-	
-	now.get(now_str);
+	for (vector<PeptideIdentification>::const_iterator it = prob_ids.begin(); it != prob_ids.end(); ++it)
+	{
+		if (it->getHits().size() > 0)
+		{
+			for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
+			{
+				double prob(pit->getScore());
+				double orig_score((double)pit->getMetaValue("XTandem_score"));
 
-	for (vector<PeptideIdentification>::iterator it = prob_ids.begin(); it != prob_ids.end(); ++it)
-	{
-		it->setIdentifier("DecoyProbabilities_" + now_str);
+				if (orig_score > 40.0)
+				{
+					TEST_EQUAL(prob > 0.97, true)
+				}
+				if (orig_score < 25)
+				{
+					TEST_EQUAL(prob < 0.05, true)
+				}
+			}
+		}
 	}
-	for (vector<ProteinIdentification>::iterator it = prot_ids_fwd.begin(); it != prot_ids_fwd.end(); ++it)
-	{
-		it->setIdentifier("DecoyProbabilities_" + now_str);
-		it->setDateTime(now);
-	}
-	
-	IdXMLFile().store("prob_ids.idXML", prot_ids_fwd, prob_ids);
-	*/
 }
+RESULT
+
+
+CHECK(void generateDistributionImage(const Map< double, double > &ids, const String &formula, const String &filename))
+	NOT_TESTABLE
 RESULT
 
 

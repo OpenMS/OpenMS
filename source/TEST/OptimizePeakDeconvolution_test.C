@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -139,7 +139,7 @@ CHECK((void setCharge(const int charge)))
  	TEST_EQUAL(charge == opt_deconv.getCharge(), true)
 RESULT
 
-CHECK((const int getCharge() const))
+CHECK((int getCharge() const))
   int charge = 2;
    
   OptimizePeakDeconvolution opt_deconv;

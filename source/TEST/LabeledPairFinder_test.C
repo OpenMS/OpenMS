@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -134,7 +134,7 @@ CHECK((virtual void run(const std::vector<ConsensusMap>& input_maps, ConsensusMa
 	TEST_REAL_EQUAL(output[0].begin()->getRT(),1.0f);
 	TEST_REAL_EQUAL(output[0].rbegin()->getMZ(),5.0f);
 	TEST_REAL_EQUAL(output[0].rbegin()->getRT(),1.5f);
-	TEST_REAL_EQUAL(output[0].getQuality(),0.920344f);
+	TEST_REAL_EQUAL(output[0].getQuality(),0.959346);
 RESULT
 
 

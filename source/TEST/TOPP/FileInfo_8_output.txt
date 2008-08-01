@@ -32,8 +32,8 @@ Instument
   Name             : i1
   Model            : i4
   Vendor           : i3
-  Ion source       : EI (electron impact)
-  Detector         : ELECTRONMULTIPLIER
+  Ion source       : Electron ionization
+  Detector         : Electron multiplier
   Mass Analyzer(s) : Unknown, 
 
 Contact Person

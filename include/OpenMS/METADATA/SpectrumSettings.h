@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -59,7 +59,13 @@ namespace OpenMS
     		
     		If set to unknown see SpectrumType of the ProcessingMethod ( in MSExperiment ).
     	*/
-    	enum SpectrumType {UNKNOWN, PEAKS, RAWDATA,SIZE_OF_SPECTRUMTYPE};
+    	enum SpectrumType
+    	{
+    		UNKNOWN,	///< Unknown spectrum type
+    		PEAKS,		///< Peak data (also called centroided data or stick data)
+    		RAWDATA,	///< Raw data (also called profile data)
+    		SIZE_OF_SPECTRUMTYPE
+    	};
 			/// Names of spectrum types
 			static const std::string NamesOfSpectrumType[SIZE_OF_SPECTRUMTYPE];
    	

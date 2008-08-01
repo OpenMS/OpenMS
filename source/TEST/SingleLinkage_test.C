@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -71,7 +71,7 @@ CHECK((SingleLinkage& operator=(const SingleLinkage &source)))
 }
 RESULT
 
-CHECK((void cluster(const DistanceMatrix< double > &originalDist, DistanceMatrix< double > &actualDist, vector< vector< UInt > > &clusters, const String filepath="", const double threshold=1) const  throw (Exception::UnableToCreateFile, ClusterFunctor::InsufficientInput)))
+CHECK((void cluster(const DistanceMatrix< double > &original_distance, DistanceMatrix< double > &actual_distance, vector< vector< UInt > > &clusters, const String filepath="", const double threshold=1) const))
 {
 	DistanceMatrix<double> matrix(5,666);
 	matrix.setValue(0,1,1.0);
@@ -87,7 +87,7 @@ CHECK((void cluster(const DistanceMatrix< double > &originalDist, DistanceMatrix
 	DistanceMatrix<double> m(matrix);
 	double th(2.2);
 	vector< vector<UInt> > cluster;
-	
+
 	(*ptr).cluster(m,matrix,cluster,"",th);
 	vector< vector<UInt> > result;
 	UInt a[] = {0,1,2,3,4};
@@ -123,6 +123,14 @@ RESULT
 CHECK((static const String getProductName()))
 {
   TEST_EQUAL(ptr->getProductName(), "SingleLinkage")
+}
+RESULT
+
+CHECK((static ClusterFunctor* create()))
+{
+	ClusterFunctor* cf = SingleLinkage::create();
+	SingleLinkage sl;
+	TEST_EQUAL(cf->getName(), sl.getName())
 }
 RESULT
 

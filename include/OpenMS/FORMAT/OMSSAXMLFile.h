@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -67,6 +67,7 @@ namespace OpenMS
 		    @param filename the file to be loaded
 		    @param protein_identification protein identifications belonging to the whole experiment
 		    @param id_data the identifications with m/z and RT
+				@param load_proteins if this flag is set to false, the protein identifications are not loaded
 
 		    This class serves to read in a OMSSAXML file. The information can be 
 		    retrieved via the load function.      
@@ -82,7 +83,6 @@ namespace OpenMS
 			void setModificationDefinitionsSet(const ModificationDefinitionsSet& rhs);
 
 		protected:
-
 			// Docu in base class
       void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
 			

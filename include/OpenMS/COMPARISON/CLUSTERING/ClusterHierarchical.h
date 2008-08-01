@@ -1,10 +1,10 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -46,19 +46,17 @@ namespace OpenMS
 	/**
 		@brief Hierarchical clustering with generic clustering functions
 
-		ClusterHierarchical clusters objects with the corresponding distancemethod and clusteringmethod.
-		
-		@param 	threshold_ distance value from which on merging clusters is considered to 'overcluster'
+		ClusterHierarchical clusters objects with corresponding distancemethod and clusteringmethod.
 		@ingroup SpectraClustering
 	*/
-	class ClusterHierarchical 
+	class ClusterHierarchical
 	{
 	private:
-	
-	/// the threshold given to the clusterer
-	double threshold_; 
-	
-	public: 
+
+	/// the threshold given to the ClusterFunctor
+	double threshold_;
+
+	public:
 	/// default constructor
 	ClusterHierarchical(): threshold_(1.0)
 	{
@@ -68,31 +66,30 @@ namespace OpenMS
 	ClusterHierarchical(const ClusterHierarchical& source):threshold_(source.threshold_)
 	{
 	}
-		
+
 	/// destructor
 	virtual ~ClusterHierarchical()
 	{
 	}
-		
-		/**
-			@brief clustering function
-	    
-			The generic clustering function up to the given ClusterHierarchical::threshold_. 
-			The type of the objects to be clustered has to be the first template argument, the 
-			similarity functor applicable to this type must be the second template argument, e.g. 
-			with a @see PeakSpectrumCompareFunctor for @see PeakSpectrum to be clustered.
-			The similarity functor must provide the similarity calculation with the ()-operator and 
-			yield normalized values in range of [0,1].
-			
-			@param data vector of objects to be clustered	                
-			@param comparator similarity functor fitting for types in data
-			@param clusterer a clustermethod 
-			@param clusters the vector that will hold the index represented clusters @see ClusterFunctor
-			
 
-			@ingroup SpectraClustering
+		/**
+			@brief Clustering function
+
+			Conducts the SimilarityComparator with a ClusterFunctor an produces a clustering.
+			Will create a DistanceMatrix and start the clustering up to the given ClusterHierarchical::threshold_ used for the ClusterFunctor.
+			The type of the objects to be clustered has to be the first template argument, the
+			similarity functor applicable to this type must be the second template argument, e.g.
+			for @ref PeakSpectrum with a @ref PeakSpectrumCompareFunctor.
+			The similarity functor must provide the similarity calculation with the ()-operator and
+			yield normalized values in range of [0,1] for the type of @ref data.
+
+			@param data vector of objects to be clustered
+			@param comparator similarity functor fitting for types in data
+			@param clusterer a clustermethod implementation, baseclass ClusterFunctor
+			@param clusters the vector that will hold the index represented clusters (only indices refering to the input data)
+			@see ClusterFunctor
 		*/
-		template <typename Data, typename SimilarityComparator> 
+		template <typename Data, typename SimilarityComparator>
 		void clusterForVector(std::vector<Data>& data, const SimilarityComparator& comparator, const ClusterFunctor& clusterer, std::vector< std::vector < UInt > >& clusters)
 		{
 
@@ -109,10 +106,10 @@ namespace OpenMS
 
 			//prepare input for clusterer
 			DistanceMatrix<double> actual_distance(original_distance);
-				
+
 			//prune clusters vector and fill atomar
 			clusters.clear();
-			
+
 			/*
 			for (UInt i = 0; i < original_distance.dimensionsize(); ++i)
 			{
@@ -120,32 +117,31 @@ namespace OpenMS
 				clusters.push_back(tmp);
 			}
 			*/
-			
+
 			// create clustering with ClusterMethod, DistanceMatrix and Data
 			clusterer.cluster(original_distance, actual_distance, clusters,"",threshold_);
 		}
-		
-		
+
+
 
 
 		/**
-			@brief complete clustering function
-	    
-			The generic function for complete clustering and creating a corresponding dendrogramm. 
+			@brief Clustering function with detailed output
+
+			Conducts the SimilarityComparator with a ClusterFunctor an produces a clustering.
+			Will create a DistanceMatrix and start the clustering up to the given ClusterHierarchical::threshold_.used for the ClusterFunctor.
 			The type of the objects to be clustered has to be the first template argument, the
-			similarity functor applicable to this type must be the second template argument, e.g. 
-			with a @see PeakSpectrumCompareFunctor for @see PeakSpectrum to be clustered.
-			The similarity functor must provide the similarity calculation with the ()-operator and 
-			yield normalized values in range of [0,1].
-			In this case any threshold other than 1 will defy the construction of a complete dendrogram.
-			
-			@param data vector of objects to be clustered	                
-			@param comparator similarity functor fitting for types in data	   		
-			@param clusterer a clustermethod 
-			@param clusters a vector to contain the clustering (only indices reffering to data)
-			@param filepath the full path for the dendrogramfile to be stored
-						
-			@ingroup SpectraClustering
+			similarity functor applicable to this type must be the second template argument, e.g.
+			for @ref PeakSpectrum with a @ref PeakSpectrumCompareFunctor.
+			The similarity functor must provide the similarity calculation with the ()-operator and
+			yield normalized values in range of [0,1] for the type of @ref data.
+			Any threshold other than 1 will defy the construction of a complete dendrogram.
+
+			@param data vector of objects to be clustered
+			@param comparator similarity functor fitting for types in data
+			@param clusterer a clustermethod implementation, baseclass ClusterFunctor
+			@param clusters the vector that will hold the index represented clusters (only indices refering to the input data)
+			@param filepath the full path for the output to be stored in
 		*/
 		template <typename Data, typename SimilarityComparator>
 		void clusterForDendrogramm( const std::vector<Data>& data, const SimilarityComparator& comparator, const ClusterFunctor& clusterer, std::vector< std::vector < UInt > >& clusters, const String& filepath)
@@ -162,7 +158,7 @@ namespace OpenMS
 				}
 			}
 
-			//prepare input for clusterer			
+			//prepare input for clusterer
 			DistanceMatrix<double> actual_distance(original_distance);
 
 			//prune clusters vector and fill atomar
@@ -177,33 +173,33 @@ namespace OpenMS
 			// create Clustering with ClusterMethod, DistanceMatrix
 			clusterer.cluster(original_distance,actual_distance,clusters,filepath,threshold_);
 		}
-		
+
 		/* *
 	   	    @brief clustering function for binned PeakSpectrum
-	    
-	   		The explicite version of the clustering function up to the given ClusterHierarchical::threshold_ for PeakSpectra 
-	   		employing binned similarity methods. From the given PeakSpectrum BinnedSpectrum are generated, 
+
+	   		The explicite version of the clustering function up to the given ClusterHierarchical::threshold_ for PeakSpectra
+	   		employing binned similarity methods. From the given PeakSpectrum BinnedSpectrum are generated,
 	   		so the similarity functor @see BinnedSpectrumCompareFunctor can be applied.
-	   		
-			@param data vector of PeakSpectrum to be clustered	                
-			@param comparator a BinnedSpectrumCompareFunctor	   		
-			@param clusterer a clustermethod 
+
+			@param data vector of PeakSpectrum to be clustered
+			@param comparator a BinnedSpectrumCompareFunctor
+			@param clusterer a clustermethod
 			@param sz the desired binsize for the @see BinnedSpectrum s
 			@param sp the desired binspread for the @see BinnedSpectrum s
 			@param clusters the vector that will hold the index represented clusters @see ClusterFunctor
 			@param distances the matrix that will hold the actual distances at each step of clustering (and after exceeding the ClusterHierarchical::threshold_ holding the final cluster distances)
-			
+
 			@ingroup SpectraClustering
 		*/
-		
+
 		/*
-		void clusterForVector(const vector<PeakSpectrum>& data, const BinnedSpectrumCompareFunctor& comparator, const ClusterFunctor& clusterer, 
+		void clusterForVector(const vector<PeakSpectrum>& data, const BinnedSpectrumCompareFunctor& comparator, const ClusterFunctor& clusterer,
 								double sz, UInt sp, vector< vector<UInt> >& clusters)
 		{
-			
+
 			vector<BinnedSpectrum> binned_data;
 			binned_data.reserve(data.size());
-			
+
 			// transform each PeakSpectrum to a corresponding BinnedSpectrum with given settings of size and spread
 			for(UInt i=0; i < data.size(); i++)
 			{
@@ -213,7 +209,7 @@ namespace OpenMS
 
 			//create distancematrix for data with comparator
 			DistanceMatrix<double> original_distance(data.size(),1);
-			
+
 			for(UInt i=0; i < binned_data.size(); i++)
 			{
 				for(UInt j=i+1; j < binned_data.size(); j++)
@@ -222,48 +218,48 @@ namespace OpenMS
 					original_distance.setValue(i,j,1-comparator(binned_data[i],binned_data[j]));
 				}
 			}
-			
+
 			// create Clustering with ClusterMethod, DistanceMatrix and Data
-			clusterer.cluster(original_distance, threshold_, clusters);		
-		}				
+			clusterer.cluster(original_distance, threshold_, clusters);
+		}
 		*/
-		
+
 		/* *
 			@brief clustering function for binned PeakSpectrum
-	    
-	   		The explicite version of the complete clustering function and creating a corresponding dendrogramm for PeakSpectra 
-	   		employing binned similarity methods. From the given PeakSpectrum BinnedSpectrum are generated, 
+
+	   		The explicite version of the complete clustering function and creating a corresponding dendrogramm for PeakSpectra
+	   		employing binned similarity methods. From the given PeakSpectrum BinnedSpectrum are generated,
 	   		so the similarity functor @see BinnedSpectrumCompareFunctor can be applied.
-	   		
-			@param data vector of PeakSpectrum to be clustered	                
-			@param comparator a BinnedSpectrumCompareFunctor	   		
-			@param clusterer a clustermethod 
+
+			@param data vector of PeakSpectrum to be clustered
+			@param comparator a BinnedSpectrumCompareFunctor
+			@param clusterer a clustermethod
 			@param sz the desired binsize for the @see BinnedSpectrum s
 			@param sp the desired binspread for the @see BinnedSpectrum s
 
 			@return name String with the tablename holding the dendrogramm and additional output @see ClusterFunctor
-			
+
 			@ingroup SpectraClustering
 		*/
-		
+
 		/*
-		void clusterForDendrogram(const vector<PeakSpectrum>& data, const BinnedSpectrumCompareFunctor& comparator, const ClusterFunctor& clusterer, 
+		void clusterForDendrogram(const vector<PeakSpectrum>& data, const BinnedSpectrumCompareFunctor& comparator, const ClusterFunctor& clusterer,
 									double sz, UInt sp, const String& filepath)
 		{
-			
+
 			vector<BinnedSpectrum> binned_data;
 			binned_data.reserve(data.size());
-			
+
 			// transform each PeakSpectrum to a corresponding BinnedSpectrum with given settings of size and spread
 			for(UInt i=0; i < data.size(); i++)
 			{
 				//double sz(2), UInt sp(1);
 				binned_data[i] = BinnedSpectrum(sz,sp,data[i]);
 			}
-			
+
 			//create distancematrix for data with comparator
 			DistanceMatrix<double> original_distance(data.size(),1);
-						
+
 			for(UInt i=0; i < binned_data.size(); i++)
 			{
 				for(UInt j=i; j < binned_data.size(); j++)
@@ -272,19 +268,19 @@ namespace OpenMS
 					original_distance.setValue(i,j,1-comparator(binned_data[i],binned_data[j]));
 				}
 			}
-			
+
 			// create Clustering with ClusterMethod, DistanceMatrix and Data
-			clusterer.dendrogramInFile(original_distance,filepath);	
-			
+			clusterer.dendrogramInFile(original_distance,filepath);
+
 		}
 		*/
-		
+
 		/// get the threshold
 		double getThreshold()
 		{
 			return threshold_;
 		}
-		
+
 		/// set the threshold
 		void setThreshold(double x)
 		{
@@ -292,14 +288,14 @@ namespace OpenMS
 		}
 
   	};
-  	
+
 	/** @brief Exception thrown if clustering is attempted without a normalized compare functor
-		
-		    due to similarity - distance conversions that are mandatory in some context, compare functors 
-		    must return values normalized in the range [0,1] to ensure a clean conversion	
+
+		    due to similarity - distance conversions that are mandatory in some context, compare functors
+		    must return values normalized in the range [0,1] to ensure a clean conversion
 	*/
 	class UnnormalizedComparator : public Exception::BaseException
-	{	
+	{
 		public:
 		UnnormalizedComparator(const char* file, int line, const char* function, const char* message
           	= "Clustering with unnormalized similarity measurement requested, normalized is mandatory") throw();

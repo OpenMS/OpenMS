@@ -143,12 +143,16 @@
   
   @subsection install_linux_contrib Installing the contrib package
   
-  First download the contrib package (you can find the contrib package <a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">here</a>).
-  <br>Alternatively you can check out the contrib from Sourceforge SVN repository
+  @b Download:
+  
+  The contrib package is contained in the %OpenMS release package and is available under the path contrib in the %OpenMS directory.
+  
+  If you are using the developer version of %OpenMS, you must check out the contrib from Sourceforge SVN repository
 	<pre>&gt; svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib</pre> 
 	to obtain the latest developer version (potentially unstable).
-  <br>
-	Now do:
+  
+  @b Installation:
+  @n Execute:
   <pre>
 &gt; ./configure
 	</pre>
@@ -200,23 +204,18 @@
     It contains the header files needed for %OpenMS.</li>
   </ul>
 
-	In order to point the %OpenMS configure to the contrib libraries you can use the
-	configure option '--with-default-path'. The default value of this option is 'OpenMS/contrib/'
-	so you can move the contrib package there to make %OpenMS find it automatically.
-
   @section install_linux_openms Installing OpenMS
-  
-  If you have not installed the libraries which %OpenMS requires,
-  please refer to the section @ref install_linux_required above. Otherwise you might only get parts of the
-  full %OpenMS functionality.
+ 
+ 	You need to get the %OpenMS source code from our website. The latest stable version of %OpenMS can be found in the 
+	<a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">files</a> section.
+	For further (e.g. latest developer version from SVN) info see the <a href="http://open-ms.sourceforge.net/download.php" target="_blank">download instructions</a>.
+
+  If you have not installed the libraries which %OpenMS requires, please refer to the section @ref install_linux_required above. Otherwise you might only get parts of the full %OpenMS functionality.
   <br>
-  Assuming you have successfully installed the dependent libraries, you need to
-  get the %OpenMS source code. The latest stable version of %OpenMS
-  can be found in the <a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">files</a>
-  section. For further (e.g. latest developer version from SVN) info see the <a href="http://open-ms.sourceforge.net/download.php" target="_blank">download instructions</a>.
+  Assuming you have successfully installed the dependent libraries, you can proceed.
   <br>
   <br>
-  After you got the source code go to the <tt>source</tt> directory and type in the following commands (... see 'configure --help' and below for more options during <code>./configure</code>)
+  After you got the source code and prepared the contrib libs go to the <tt>source</tt> directory and type in the following commands (... see 'configure --help' and below for more options during <code>./configure</code>)
 
   <pre>
 &gt; ./configure
@@ -258,7 +257,8 @@
   together with a description of the problem by <a href="http://open-ms.sourceforge.net/team.html" target="_blank">email</a>.
 
 	Add <i>&lt;path_to_OpenMS&gt;/lib/</i> (e.g. <i>~/OpenMS/lib/</i>) to the environment variable <b>LD_LIBRARY_PATH</b> (as suggested by the previous <code>make</code>).
-		
+	
+	On 64bit machines it may be requiered to switch off support for ANDI/MS and netCDF using the switches  --disable-andims and --disable-netcdf, however these data formats will not be supported then.
 
   @section install_linux_testing_openms Testing your OpenMS installation  
   
@@ -278,9 +278,6 @@
 	In order to successfully test DB connectivity, the database must exist 
 	and the the given user must have write access to the database.
 	
-	@note If ANDI/MS (cdf) tests fail, you can disable ANDI/MS (cdf) support using <code>--disable-andims</code> in the %OpenMS configure.
-  
-  
   @section install_linux_topp Building the TOPP tools
   
 	TOPP is a toolset for the analysis of HPLC/MS data. It consists of several small applications that can be chained to create analysis pipelines tailored for a specific problem.

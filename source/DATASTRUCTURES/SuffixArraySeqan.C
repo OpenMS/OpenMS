@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -41,10 +41,12 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-using namespace OpenMS;
 using namespace seqan;
 using namespace std;
 
+
+namespace OpenMS
+{
 /**
 @brief comperator for two doubles with a tolerance value
 */
@@ -109,8 +111,8 @@ struct IntsInRangeLess : public binary_function<double , double, bool>
 
 
 // constructor 
-SuffixArraySeqan::SuffixArraySeqan(const OpenMS::String & st,const  OpenMS::String & sa_file_name) throw (Exception::InvalidValue,Exception::FileNotFound) : 
-	s_(st)
+SuffixArraySeqan::SuffixArraySeqan(const String & st,const  String & sa_file_name)
+: s_(st)
 	//tol_(0.5),
 	//use_tags_(false),
 	//number_of_modifications_(0)
@@ -188,7 +190,7 @@ bool SuffixArraySeqan::isDigestingEnd(const char , const char ) const
   return true;
 }
 
-bool SuffixArraySeqan::save(const OpenMS::String & file_name) throw (Exception::UnableToCreateFile)
+bool SuffixArraySeqan::save(const String & file_name)
 {
   if (!seqan::save(index_, file_name.c_str())) 
   {
@@ -197,7 +199,7 @@ bool SuffixArraySeqan::save(const OpenMS::String & file_name) throw (Exception::
   return true;
 }
 
-bool SuffixArraySeqan::open(const OpenMS::String & file_name) throw (Exception::FileNotFound)
+bool SuffixArraySeqan::open(const String & file_name)
 {
   if (!seqan::open(index_, file_name.c_str()))
   {
@@ -225,18 +227,18 @@ SuffixArraySeqan::~SuffixArraySeqan()
 
 }
 
-OpenMS::String SuffixArraySeqan::toString()
+String SuffixArraySeqan::toString()
 {
-  return "";
+	return "";
 }
 
-void SuffixArraySeqan::setTags (const vector<OpenMS::String>  & tags) throw (OpenMS::Exception::InvalidValue)
+void SuffixArraySeqan::setTags (const vector<String>  & tags)
 {
   tags_ = tags;
   use_tags_=true;
 }
 
-const vector<OpenMS::String> & SuffixArraySeqan::getTags ()
+const vector<String> & SuffixArraySeqan::getTags ()
 {
   return (tags_);
 }
@@ -293,7 +295,7 @@ int SuffixArraySeqan::findFirst_ (const vector<double> & spec, double & m)
 
 
 // finds all occurences of a given spectrum
-void SuffixArraySeqan::findSpec(vector<vector<pair<pair<int,int>,float> > >& candidates, const vector<double> & spec) throw (Exception::InvalidValue)
+void SuffixArraySeqan::findSpec(vector<vector<pair<pair<int,int>,float> > >& candidates, const vector<double> & spec)
 {
   if (spec.size() == 0)
   {
@@ -349,7 +351,7 @@ void SuffixArraySeqan::findSpec(vector<vector<pair<pair<int,int>,float> > >& can
   history.push(map<double,int>());
 
   double m = 18.0;
-  goNext(*it_, m, allm, history);
+  goNext_(*it_, m, allm, history);
   //goNextSubTree(*it_);
   int nres = 0;
 	
@@ -396,7 +398,7 @@ void SuffixArraySeqan::findSpec(vector<vector<pair<pair<int,int>,float> > >& can
 	{
 	  allm.push(0);
 	  history.push(map<double,int>());
-	  goNextSubTree(*it_,m,allm,history);
+	  goNextSubTree_(*it_,m,allm,history);
 	  br = true;
 	  break;
 	}
@@ -449,7 +451,7 @@ void SuffixArraySeqan::findSpec(vector<vector<pair<pair<int,int>,float> > >& can
 	  // because of having reached a separator we can skip the sub tree
 	  history.push(map<double,int>());
 	  allm.push(0);
-	  goNextSubTree(*it_,m,allm,history);
+	  goNextSubTree_(*it_,m,allm,history);
 	  br = true;
 	  break;
 	}
@@ -520,7 +522,7 @@ void SuffixArraySeqan::findSpec(vector<vector<pair<pair<int,int>,float> > >& can
 	}
 	history.push(map<double,int>(modification_map));
 	allm.push(subm);
-	goNext(*it_,m,allm,history);
+	goNext_(*it_,m,allm,history);
       }
 				
     } 
@@ -528,16 +530,17 @@ void SuffixArraySeqan::findSpec(vector<vector<pair<pair<int,int>,float> > >& can
     {
       history.push(map<double,int>());
       allm.push(0);
-      goNextSubTree(*it_,m,allm,history);
+      goNextSubTree_(*it_,m,allm,history);
     }
   }
-  //time_t t2 (time(NULL));
+  
+	//time_t t2 (time(NULL));
   //cout <<"number of hits: " << nres<<endl;
   //cout <<"used time: "<< t2-t1<<endl;
   return;
 }
 
-void SuffixArraySeqan::setTolerance (double t) throw (Exception::InvalidValue)
+void SuffixArraySeqan::setTolerance (double t)
 {
   if (t < 0)
   {
@@ -559,19 +562,23 @@ void SuffixArraySeqan::printStatistic ()
   vector<pair<int,int> > edge_length;
   vector<int> leafe_depth;
   //goNext(*it_);
-  goNextSubTree(*it_);
-  parseTree(*it_,out_number,edge_length,leafe_depth);
-  for (UInt i = 0; i < leafe_depth.size();i++){
-    cout<<leafe_depth.at(i)<<",";
+  goNextSubTree_(*it_);
+  parseTree_(*it_, out_number, edge_length, leafe_depth);
+  for (UInt i = 0; i < leafe_depth.size(); i++)
+	{
+    cout << leafe_depth.at(i) << ",";
   }
-  cout<<endl;
-  for (UInt i = 0; i < out_number.size();i++){
-    cout<<"("<<out_number.at(i).first<<","<<out_number.at(i).second<<") ; ";
+  cout << endl;
+  for (UInt i = 0; i < out_number.size(); i++)
+	{
+    cout << "(" << out_number.at(i).first << "," << out_number.at(i).second << ") ; ";
   }
-  cout<<endl;
-  for (UInt i = 0; i < edge_length.size();i++){
-    cout<<"("<<edge_length.at(i).first<<","<<edge_length.at(i).second<<") ; ";
+  cout << endl;
+  for (UInt i = 0; i < edge_length.size(); i++)
+	{
+    cout << "(" << edge_length.at(i).first << "," << edge_length.at(i).second << ") ; ";
   }
-  cout<<endl;
+  cout << endl;
 }
 
+}

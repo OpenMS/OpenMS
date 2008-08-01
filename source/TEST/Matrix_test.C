@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -281,7 +281,7 @@ CHECK((bool operator < ( Matrix const & rhs ) const throw (Exception::Preconditi
 }
 RESULT
 
-CHECK(std::ostream& operator << (std::ostream& os, const Matrix<Value>& matrix))
+CHECK((template <typename Value> std::ostream & operator<<(std::ostream &os, const Matrix< Value > &matrix)))
 {
 	Matrix<int> mi(2,3,6);
 	mi(1,2)=112;

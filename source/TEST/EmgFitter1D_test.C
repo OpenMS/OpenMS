@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -97,6 +97,10 @@ CHECK((virtual EmgFitter1D& operator=(const  EmgFitter1D &source)))
 RESULT
 
 CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
+	// dummy subtest 
+	EmgFitter1D ef1;
+	ef1 = EmgFitter1D();
+	TEST_EQUAL(ef1.getParameters(), ef1.getParameters())
 RESULT
 
 CHECK((Fitter1D* create()))

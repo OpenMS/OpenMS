@@ -5,8 +5,8 @@ file name: FileInfo_3_input.featureXML
 file type: FeatureXML
 Number of features: 10
 
-retention time range: 537.41 / 539.232
-m/z range: 407.581 / 648.388
+retention time range: 537.11 / 539.532
+m/z range: 407.281 / 648.688
 intensity range: 1376 / 6712
 
 
@@ -24,9 +24,9 @@ Instument
   Name             : MS-Instrument
   Model            : MS 1
   Vendor           : MS-Vendor
-  Ion source       : ESI (electrospray ionisation)
-  Detector         : FARADAYCUP
-  Mass Analyzer(s) : PAULIONTRAP, QUADRUPOLE, 
+  Ion source       : Electrospray ionisation
+  Detector         : Faraday cup
+  Mass Analyzer(s) : Quadrupole ion trap, Quadrupole, 
 
 Contact Person
   First Name       : John

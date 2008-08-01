@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -24,8 +24,8 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_XTANDEMINFILEHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_XTANDEMINFILEHANDLER_H
+#ifndef OPENMS_FORMAT_HANDLERS_XTANDEMINFILEXMLHANDLER_H
+#define OPENMS_FORMAT_HANDLERS_XTANDEMINFILEXMLHANDLER_H
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
@@ -34,7 +34,11 @@ namespace OpenMS
 	class XTandemInfile;
 	namespace Internal
 	{
-	
+
+		/** @brief Note representation of bioml structure used by XTandem
+
+
+		*/
 	  struct XTandemInfileNote
     {
       String note_type;

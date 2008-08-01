@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -59,8 +59,11 @@ namespace OpenMS
 			/// equality operator
 			bool operator==(const SequestInfile& sequest_infile) const;
 
-			/// stores the experiment data in a Sequest input file that can be used as input for Sequest shell execution
-			void store(const String& filename) throw (Exception::UnableToCreateFile);
+			/** stores the experiment data in a Sequest input file that can be used as input for Sequest shell execution
+					@param filename the name of the file in which the infile is stored into
+					@throw Exception::UnableToCreateFile is thrown if the file could not be created
+			*/
+			void store(const String& filename);
 			
 			/// returns the enzyme list as a string
 			const String getEnzymeInfoAsString() const;
@@ -217,8 +220,18 @@ namespace OpenMS
 			/// return the modifications (the modification names map to the affected residues, the mass change and the type)
 			const std::map< String, std::vector< String > >& getModifications() const;
 			
-			/// retrieves the name, mass change, affected residues, type and position for all modifications from a string
-			void handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic) throw (Exception::FileNotReadable, Exception::FileNotFound, Exception::ParseError);
+			/** retrieves the name, mass change, affected residues, type and position for all modifications from a string
+					
+					@param modification_line
+					@param modifications_filename
+					@param monoisotopic
+
+					@throw Exception::FileNotFound is thrown if the given file is not found
+					@throw Exception::FileNotReadable is thrown if the given file could not be read
+					@throw Exception::ParseError is thrown if the given file could not be parsed
+			
+			*/
+			void handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic);
 
 		protected:
 			/// returns the enzyme list

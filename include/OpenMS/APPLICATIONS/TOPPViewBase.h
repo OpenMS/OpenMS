@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -67,9 +67,11 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 
-		@todo Speed up 2D view: profile first. Ideas: paint only highest point per pixel, paint only part of the data when moving (Marc)
   	@todo Add support for consensusXML (Marc)
-  	@ingroup TOPPView_elements
+
+    @improvement Paint only highest point per pixel, paint only part of the data when moving (Marc)
+
+    @ingroup TOPPView_elements
   */
   class TOPPViewBase 
   	: public QMainWindow, 

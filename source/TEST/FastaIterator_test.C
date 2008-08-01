@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -51,7 +51,7 @@ CHECK(~FastaIterator())
 	delete ptr;
 RESULT
 
-CHECK(virtual void setFastaFile(const String &f) throw (Exception::FileNotFound, Exception::ParseError))
+CHECK(virtual void setFastaFile(const String &f))
 	ptr = new FastaIterator();
 	TEST_EXCEPTION (Exception::FileNotFound,ptr->setFastaFile("FileThatNotExists"));
 	TEST_EXCEPTION (Exception::FileNotFound,ptr->setFastaFile(""));
@@ -66,7 +66,7 @@ CHECK(String getFastaFile ())
 RESULT
 
 
-CHECK(virtual FASTAEntry operator *() throw (Exception::InvalidIterator))
+CHECK(virtual FASTAEntry operator *())
 	ptr = new FastaIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator,**ptr);
 	ptr->setFastaFile("data/FastaIterator_test.fasta");
@@ -76,7 +76,7 @@ CHECK(virtual FASTAEntry operator *() throw (Exception::InvalidIterator))
 	TEST_EQUAL(fe.second,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 RESULT
 
-CHECK(virtual PepIterator& operator++() throw (Exception::InvalidIterator))
+CHECK(virtual PepIterator& operator++())
 	ptr = new FastaIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, ++(*ptr));
 	ptr->setFastaFile("data/FastaIterator_test.fasta");
@@ -89,7 +89,7 @@ CHECK(virtual PepIterator& operator++() throw (Exception::InvalidIterator))
 	TEST_EQUAL ((*pepIt).second,(**ptr).second);
 RESULT
 
-CHECK(virtual PepIterator* operator++(int i) throw (Exception::InvalidIterator))
+CHECK(virtual PepIterator* operator++(int i))
 	ptr = new FastaIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, (*ptr)++);
 	ptr->setFastaFile("data/FastaIterator_test.fasta");
@@ -100,7 +100,7 @@ CHECK(virtual PepIterator* operator++(int i) throw (Exception::InvalidIterator))
 	TEST_EQUAL ((**pepIt).second,fe.second);
 RESULT
 
-CHECK(virtual bool begin() throw (Exception::InvalidIterator))
+CHECK(virtual bool begin())
 	ptr = new FastaIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, (*ptr).begin());
 	ptr->setFastaFile("data/FastaIterator_test.fasta");
@@ -136,27 +136,27 @@ RESULT
 
 
 
-CHECK(virtual void setSpectrum(const std::vector< float > &) throw (Exception::InvalidValue, Exception::NotImplemented))
+CHECK(virtual void setSpectrum(const std::vector< float > &))
 	const std::vector<float> spec;
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).setSpectrum(spec));
 RESULT
 
-CHECK(virtual const std::vector<float>& getSpectrum() throw (Exception::NotImplemented))
+CHECK(virtual const std::vector<float>& getSpectrum())
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).getSpectrum());
 RESULT
 
-CHECK(virtual void setTolerance(float) throw (Exception::InvalidValue, Exception::NotImplemented))
+CHECK(virtual void setTolerance(float))
 	float t = 0.5;
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).setTolerance(t));
 RESULT
 
-CHECK(virtual float getTolerance() throw (Exception::NotImplemented))
+CHECK(virtual float getTolerance())
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).getTolerance());
 RESULT
 
-CHECK(static const std::string getName())
+CHECK(static const String getProductName())
 	ptr = new FastaIterator();
-	TEST_EQUAL(ptr->getName(),"FastaIterator");
+	TEST_EQUAL(ptr->getProductName(),"FastaIterator");
 RESULT
 
 CHECK(static PepIterator* create())

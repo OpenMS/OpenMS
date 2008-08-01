@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -48,7 +48,6 @@ namespace OpenMS
 	}
 
 	EmpiricalFormula::EmpiricalFormula(const String& formula) 
-		throw(Exception::ParseError)
 		:	element_db_(ElementDB::getInstance())
 	{
 		charge_ = parseFormula_(formula_, formula);
@@ -191,7 +190,6 @@ namespace OpenMS
 	}
 
 	EmpiricalFormula::EmpiricalFormula& EmpiricalFormula::operator = (const String& formula)
-		throw(Exception::ParseError)
 	{
 		charge_ = 0;
 		formula_.clear();
@@ -220,7 +218,6 @@ namespace OpenMS
 	}
 
 	EmpiricalFormula::EmpiricalFormula EmpiricalFormula::operator + (const String& formula) const
-		throw(Exception::ParseError)
 	{
 		EmpiricalFormula ef;
 		Int charge = parseFormula_(ef.formula_, formula);
@@ -259,7 +256,6 @@ namespace OpenMS
 	}
 
 	EmpiricalFormula::EmpiricalFormula& EmpiricalFormula::operator += (const String& formula) 
-		throw(Exception::ParseError)
 	{
 		Map<const Element*, UInt> str_formula;
 		Int charge = parseFormula_(str_formula, formula);
@@ -280,7 +276,6 @@ namespace OpenMS
 	}
 	
 	EmpiricalFormula::EmpiricalFormula EmpiricalFormula::operator - (const EmpiricalFormula& formula) const
-		throw(Exception::SizeUnderflow)
 	{
 		EmpiricalFormula ef;
 		Map<const Element*, UInt>::ConstIterator it=formula.formula_.begin();
@@ -314,7 +309,6 @@ namespace OpenMS
 	}
 
 	EmpiricalFormula::EmpiricalFormula EmpiricalFormula::operator - (const String& formula) const
-		throw(Exception::ParseError, Exception::SizeUnderflow)
 	{
 		EmpiricalFormula ef;
 		Map<const Element*, UInt> str_formula;
@@ -350,7 +344,6 @@ namespace OpenMS
 	}
 	
 	EmpiricalFormula::EmpiricalFormula& EmpiricalFormula::operator -= (const EmpiricalFormula& formula) 
-		throw(Exception::SizeUnderflow)
 	{
 		Map<const Element*, UInt>::ConstIterator it=formula.formula_.begin();
 		for (; it!=formula.formula_.end(); ++it)
@@ -376,7 +369,6 @@ namespace OpenMS
 	}
 
 	EmpiricalFormula::EmpiricalFormula& EmpiricalFormula::operator -= (const String& formula) 
-		throw(Exception::ParseError, Exception::SizeUnderflow)
 	{
 		Map<const Element*, UInt> str_formula;
 		Int charge = parseFormula_(str_formula, formula);
@@ -456,7 +448,6 @@ namespace OpenMS
 	}
 	
 	bool EmpiricalFormula::operator == (const String& formula) const
-		throw(Exception::ParseError)
 	{
 		Map<const Element*, UInt> str_formula;
 		Int charge = parseFormula_(str_formula, formula);
@@ -469,7 +460,6 @@ namespace OpenMS
 	}
 	
 	bool EmpiricalFormula::operator != (const String& formula) const
-		throw(Exception::ParseError)
 	{
 		Map<const Element *, UInt> str_formula;
 		Int charge = parseFormula_(str_formula, formula);
@@ -516,7 +506,6 @@ namespace OpenMS
 	}
 
 	Int EmpiricalFormula::parseFormula_(Map<const Element*, UInt>& ef, const String& formula) const 
-		throw(Exception::ParseError)
 	{
 		Int charge = 0;
 		

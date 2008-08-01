@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -31,8 +31,8 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string Precursor::NamesOfActivationMethod[] = {"Unknown","CID","PSD","PD","SID"};
-	const std::string Precursor::NamesOfEnergyUnits[] = {"Unknown","EV","PERCENT"};
+	const std::string Precursor::NamesOfActivationMethod[] = {"Unknown","Collision-induced dissociation","Post-source decay","Plasma desorption","Surface-induced dissociation","Blackbody infrared radiative dissociation","Electron capture dissociation","Infrared multiphoton dissociation","Sustained off-resonance irradiation","High-energy collision-induced dissociation","Low-energy collision-induced dissociation","Photodissociation","Electron transfer dissociation","Pulsed q dissociation"};
+	const std::string Precursor::NamesOfEnergyUnits[] = {"Unknown","Electron volt","Precent"};
 
 	Precursor::Precursor():
 		MetaInfoInterface(),

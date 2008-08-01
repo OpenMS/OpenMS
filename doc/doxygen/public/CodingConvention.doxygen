@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -88,7 +88,7 @@ is performed to enforce this rule.
 <H2 style="margin-top:20px; border-top:1px solid grey;">Sample .h file</H2>
 
 @code
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 ... copyright header, not shown ...
@@ -115,7 +115,7 @@ namespace OpenMS
 <H2 style="margin-top:20px; border-top:1px solid grey;">Sample .C file</H2>
 
 @code
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 ... copyright header, not shown ...
@@ -662,7 +662,7 @@ The name of suplementary files has to begin with the name of the tested class.
 	<LI><TT>TEST_NOT_EQUAL(a, b)</TT><BR> Tests if two expressions are not equal
 	<LI><TT>TEST_REAL_EQUAL(a, b)</TT><BR> Tests if two real numbers are equal (within a margin)
 	<LI><TT>TEST_STRING_EQUAL(a, b)</TT><BR> Tests if <TT>a</TT> and <TT>b</TT> are equal as strings
-	<LI><TT>PRECISION(double)</TT><BR> Sets the margin for TEST_REAL_EQUAL(a, b)
+	<LI><TT>PRECISION(double)</TT><BR> Sets the absolute difference allowed in TEST_REAL_EQUAL(a, b)
 	<LI><TT>TEST_EXCEPTION(exception, expression)</TT><BR> Tests if the expression throws the exception
 	<LI><TT>TEST_EXCEPTION_WITH_MESSAGE(exception, expression, message)</TT><BR> Tests if the expression throws the exception and if the exception has the message
 	<LI><TT>TEST_FILE(file, template_file)</TT><BR> Tests if two files are identical

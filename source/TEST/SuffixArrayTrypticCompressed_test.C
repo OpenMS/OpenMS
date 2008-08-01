@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -48,7 +48,7 @@ const String text = "$AAARAA$ARARP$";
 
 SuffixArrayTrypticCompressed* sa = new SuffixArrayTrypticCompressed(text, "");
 
-CHECK(SuffixArrayTrypticCompressed(const String &st, const String &sa_file_name) throw (Exception::InvalidValue, Exception::FileNotFound))
+CHECK(SuffixArrayTrypticCompressed(const String &st, const String &filename))
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArrayTrypticCompressed("A",""));
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArrayTrypticCompressed("$A",""));
 	ptr = new SuffixArrayTrypticCompressed("$","");
@@ -89,7 +89,7 @@ CHECK(double getTolerance () const)
 	sa->setTolerance(0.5);
 RESULT
 
-CHECK(void setTolerance(double t) throw (Exception::InvalidValue))
+CHECK(void setTolerance(double t))
 	TEST_REAL_EQUAL (sa->getTolerance(),0.5);
 	sa->setTolerance(0.1);
 	TEST_REAL_EQUAL (sa->getTolerance(),0.1);
@@ -111,7 +111,7 @@ CHECK(void setNumberOfModifications(unsigned int number_of_mods))
 	sa->setNumberOfModifications(0);
 RESULT
 
-CHECK(void setTags(const std::vector< String > &tags) throw (Exception::InvalidValue))
+CHECK(void setTags(const std::vector< String > &tags))
 	SuffixArrayTrypticCompressed * satc = new SuffixArrayTrypticCompressed(text,"");
 	vector<String> tags;
 	tags.push_back("AAA");
@@ -168,7 +168,7 @@ CHECK(bool getUseTags())
 	TEST_EQUAL(satc->getUseTags(),0);
 RESULT
 
-CHECK(bool open(const String &file_name) throw (Exception::FileNotFound))
+CHECK(bool open(const String &file_name))
 	TEST_EXCEPTION (Exception::FileNotFound,sa->open("FileThatNotExists"));
 	sa = new SuffixArrayTrypticCompressed(text,"");
 	NEW_TMP_FILE(String("SuffixArrayTrypticCompressed_test_save.lcp2"))
@@ -180,7 +180,7 @@ CHECK(bool open(const String &file_name) throw (Exception::FileNotFound))
 	TEST_EQUAL(sa->toString(),sa2->toString());
 RESULT
 
-CHECK(bool save(const String &file_name) throw (Exception::UnableToCreateFile))
+CHECK(bool save(const String &file_name))
 	//TEST_EXCEPTION (Exception::UnableToCreateFile,sa->save("/usr/WhereIHaveNoRigths"));
 	sa = new SuffixArrayTrypticCompressed(text,"");
 	NEW_TMP_FILE(String("SuffixArrayTrypticCompressed_test_save.lcp2"))
@@ -204,10 +204,11 @@ CHECK(String toString())
 RESULT
 
 CHECK(void printStatistic())
+	NOT_TESTABLE
 	//only for internal use
 RESULT
 
-CHECK((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >, float > > > &candidates, const std::vector< double > &spec) throw (Exception::InvalidValue)))
+CHECK((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >, float > > > &candidates, const std::vector< double > &spec)))
 	double masse[255];
 	ResidueDB* rdb = ResidueDB::getInstance();
 		

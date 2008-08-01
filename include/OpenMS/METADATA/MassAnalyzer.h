@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -35,15 +35,32 @@ namespace OpenMS
 	/**
 		@brief Descripton of a mass analyzer ( Part of a MS Instrument )
 		
-		
-		
 		@ingroup Metadata
 	*/
-  class MassAnalyzer: public MetaInfoInterface
+  class MassAnalyzer
+  	: public MetaInfoInterface
   {
     public:
     	/// analyzer type
-	    enum AnalyzerType {ANALYZERNULL,QUADRUPOLE,PAULIONTRAP,RADIALEJECTIONLINEARIONTRAP,AXIALEJECTIONLINEARIONTRAP,TOF,SECTOR,FOURIERTRANSFORM,IONSTORAGE,SIZE_OF_ANALYZERTYPE};
+	    enum AnalyzerType
+	    {
+	    	ANALYZERNULL,									///< Unknown
+	    	QUADRUPOLE,										///< Quadrupole
+	    	PAULIONTRAP,									///< Quadrupole ion trap / Paul ion trap
+	    	RADIALEJECTIONLINEARIONTRAP,	///< Radial ejection linear ion trap
+	    	AXIALEJECTIONLINEARIONTRAP,		///< Axial ejection linear ion trap
+	    	TOF,													///< Time-of-flight
+	    	SECTOR,												///< Magnetic sector
+	    	FOURIERTRANSFORM,							///< Fourier transform ion cyclotron resonance mass spectrometer
+	    	IONSTORAGE,										///< Ion storage
+	    	ESA,													///< Electrostatic energy analyzer
+	    	IT,														///< Ion trap
+	    	SWIFT,												///< Stored waveform inverse fourier transform
+	    	CYCLOTRON,										///< Cyclotron
+	    	ORBITRAP,											///< Orbitrap
+	    	LIT,													///< Linear ion trap
+	    	SIZE_OF_ANALYZERTYPE
+	    };
 			/// Names of the analyzer types                    
 			static const std::string NamesOfAnalyzerType[SIZE_OF_ANALYZERTYPE];                    
 			
@@ -52,34 +69,87 @@ namespace OpenMS
 				
 				Which of the available standard measures is used to define whether two peaks are separate
 			*/									 
-			enum ResolutionMethod {RESMETHNULL,FWHM,TENPERCENTVALLEY,BASELINE,SIZE_OF_RESOLUTIONMETHOD};
+			enum ResolutionMethod
+			{
+				RESMETHNULL,			///< Unknown
+				FWHM,							///< Full width at half max
+				TENPERCENTVALLEY,	///< Ten percent valley
+				BASELINE,					///< Baseline
+				SIZE_OF_RESOLUTIONMETHOD
+			};
 			/// Names of resolustion methods
 			static const std::string NamesOfResolutionMethod[SIZE_OF_RESOLUTIONMETHOD];
-				
-			enum ResolutionType {RESTYPENULL,CONSTANT,PROPORTIONAL,SIZE_OF_RESOLUTIONTYPE};
+			
+			/// Resolution type
+			enum ResolutionType
+			{
+				RESTYPENULL,	///< Unknown
+				CONSTANT,			///< Constant
+				PROPORTIONAL,	///< Proportional
+				SIZE_OF_RESOLUTIONTYPE
+			};
 			/// Names of resulution type
 			static const std::string NamesOfResolutionType[SIZE_OF_RESOLUTIONTYPE];
-				
-			enum ScanFunction {SCANFCTNULL,SELECTEDIONDETECTION,MASSSCAN,SIZE_OF_SCANFUNCTION};
+			
+			/// Scan function
+			enum ScanFunction
+			{
+				SCANFCTNULL,					///< Unknown
+				SELECTEDIONDETECTION,	///< Selected ion detection
+				MASSSCAN,							///< Mass scan
+				SIZE_OF_SCANFUNCTION
+			};
 			/// Names of scan functions
 			static const std::string NamesOfScanFunction[SIZE_OF_SCANFUNCTION];
 				
 			/// direction of scanning
-			enum ScanDirection {SCANDIRNULL,UP,DOWN,SIZE_OF_SCANDIRECTION};
+			enum ScanDirection
+			{
+				SCANDIRNULL,	///< Unknown
+				UP,						///< Up
+				DOWN,					///< Down
+				SIZE_OF_SCANDIRECTION
+			};
 			/// Names of direction of scanning
 			static const std::string NamesOfScanDirection[SIZE_OF_SCANDIRECTION];
-
-			enum ScanLaw	{SCANLAWNULL,EXPONENTIAL,LINEAR,QUADRATIC,SIZE_OF_SCANLAW};
+			
+			///Scan law
+			enum ScanLaw
+			{
+				SCANLAWNULL,	///< Unknown
+				EXPONENTIAL,	///< Unknown
+				LINEAR,				///< Linear
+				QUADRATIC,		///< Quadratic
+				SIZE_OF_SCANLAW
+			};
 			/// Names of scan laws
 			static const std::string NamesOfScanLaw[SIZE_OF_SCANLAW];
 
 			/// MS/MS scan method
-			enum TandemScanningMethod {TANDEMNULL,PRODUCTIONSCAN,PRECURSORIONSCAN,CONSTANTNEUTRALLOSS,SINGLEREACTIONMONITORING,MULTIPLEREACTIONMONITORING,SINGLEIONMONITORING,MULTIPLEIONMONITORING,SIZE_OF_TANDEMSCANNINGMETHOD};
+			enum TandemScanningMethod
+			{
+				TANDEMNULL,									///< Unknown
+				PRODUCTIONSCAN,							///< Product ion scan
+				PRECURSORIONSCAN,						///< Precursor ion scan
+				CONSTANTNEUTRALLOSS,				///< Constant neutral loss
+				SINGLEREACTIONMONITORING,		///< Single reaction monitoring
+				MULTIPLEREACTIONMONITORING,	///< Multiple reaction monitoring
+				SINGLEIONMONITORING,				///< Single ion monitoring
+				MULTIPLEIONMONITORING,			///< Multiple ion monitoring
+				SIZE_OF_TANDEMSCANNINGMETHOD
+			};
 			/// Names of MS/MS scan methods
 			static const std::string NamesOfTandemScanningMethod[SIZE_OF_TANDEMSCANNINGMETHOD];
 
-			/// reflectron state
-			enum ReflectronState {REFLSTATENULL,ON,OFF,NONE,SIZE_OF_REFLECTRONSTATE};
+			///Reflectron state
+			enum ReflectronState
+			{
+				REFLSTATENULL,	///< Unknown
+				ON,							///< On
+				OFF,						///< Off
+				NONE,						///< None
+				SIZE_OF_REFLECTRONSTATE
+			};
 			/// Names of reclectron states
 			static const std::string NamesOfReflectronState[SIZE_OF_REFLECTRONSTATE];
 			

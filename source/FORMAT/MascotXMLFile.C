@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -45,7 +45,7 @@ namespace OpenMS
 
   void MascotXMLFile::load(const String& filename, 
 						      					ProteinIdentification& protein_identification, 
-						      					vector<PeptideIdentification>& id_data) const throw (Exception::FileNotFound, Exception::ParseError)
+						      					vector<PeptideIdentification>& id_data) const
   {
   	map<String, vector<AASequence> > peptides;
   	
@@ -55,7 +55,7 @@ namespace OpenMS
   void MascotXMLFile::load(const String& filename, 
 						      					ProteinIdentification& protein_identification, 
 						      					vector<PeptideIdentification>& id_data,
-						      					map<String, vector<AASequence> >& peptides) const throw (Exception::FileNotFound, Exception::ParseError)
+						      					map<String, vector<AASequence> >& peptides) const
   {
   	//try to open file
 		if (!File::exists(filename))
@@ -72,6 +72,9 @@ namespace OpenMS
 		{
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + Internal::StringManager().convert(toCatch.getMessage()) );
 	  }
+
+		protein_identification = ProteinIdentification();
+		id_data.clear();
 
 		SAX2XMLReader* parser = XMLReaderFactory::createXMLReader();
 		parser->setFeature(XMLUni::fgSAX2CoreNameSpaces,false);

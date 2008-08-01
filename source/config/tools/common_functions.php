@@ -1,5 +1,4 @@
-<?
-# -*- Mode: C++; tab-width: 2; -*-
+<? # -*- mode: php; tab-width: 2; -*-
 # vi: set ts=2:
 #
 # --------------------------------------------------------------------------
@@ -267,7 +266,7 @@ function getClassInfo($path,$header, $debug)
 						{
 							if ($first)
 							{
-								$template = "template <".$para->type." ".$para->defname;
+								$template = "template <".trim($para->type->ref." ".$para->type)." ".$para->defname;
 								$first = false;
 							}
 							else

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -102,28 +102,33 @@ CHECK(const PairVector& getPairs() const)
 RESULT
 
 CHECK(void setPairs(const PairVector& pairs))	
+{
 	TransformationDescription td;
 	td.setPairs(pairs);
 	TEST_EQUAL(td.getPairs().size(),3)
 
-	pairs.clear();
-	td.setPairs(pairs);
+	TransformationDescription::PairVector pairs_empty;
+  pairs_empty.clear();
+	td.setPairs(pairs_empty);
 	TEST_EQUAL(td.getPairs().size(),0)
+}
 RESULT
 
-CHECK((TransformationDescription(const TransformationDescription& source)))
+CHECK((TransformationDescription(const TransformationDescription& rhs)))
+{
 	TransformationDescription td;
 	td.setName("dummy");
 	td.setParam("int",5);
 	td.setPairs(pairs);
-	TransformationDescription td2(td);
 	
-	TEST_EQUAL(td2.getName()==td.getName(),true)
-	TEST_EQUAL(td2.getParameters()==td.getParameters(),true)
-	TEST_EQUAL(td2.getPairs()==td.getPairs(),true)	
+	TEST_EQUAL(td.getName()==td.getName(),true)
+	TEST_EQUAL(td.getParameters()==td.getParameters(),true)
+	TEST_EQUAL(td.getPairs().size(),3)
+}
 RESULT
 
-CHECK((TransformationDescription& operator = (const TransformationDescription& source)))
+CHECK((TransformationDescription& operator = (const TransformationDescription& rhs)))
+{
 	TransformationDescription td;
 	td.setName("dummy");
 	td.setParam("int",5);
@@ -131,9 +136,39 @@ CHECK((TransformationDescription& operator = (const TransformationDescription& s
 	TransformationDescription td2;
 	td2 = td;
 	
-	TEST_EQUAL(td2.getName()==td.getName(),true)
-	TEST_EQUAL(td2.getParameters()==td.getParameters(),true)
-	TEST_EQUAL(td2.getPairs()==td.getPairs(),true)	
+ 	TEST_STRING_EQUAL(td2.getName(),td.getName());
+	TEST_EQUAL(td2.getParameters()==td.getParameters(),true);
+	TEST_EQUAL(td2.getPairs()==td.getPairs(),true);
+}
+RESULT
+
+CHECK((void clear()))
+{
+	TransformationDescription td;
+
+	td.setName("linear");
+	td.setParam("slope",2.0);
+	td.setParam("intercept",47.12);
+	td.setPairs(pairs);
+
+	DoubleReal value = 5.0;
+	td.apply(value);
+	TEST_REAL_EQUAL(value,57.12);
+
+ 	TEST_STRING_EQUAL(td.getName(),"linear");
+	TEST_EQUAL((DoubleReal)td.getParameters().getValue("slope"),2.0);
+	TEST_EQUAL((DoubleReal)td.getParameters().getValue("intercept"),47.12);
+	TEST_EQUAL(td.getPairs()==pairs,true);
+	TEST_EQUAL(td.getPairs().size(),3);
+
+	td.clear();
+
+ 	TEST_STRING_EQUAL(td.getName(),"");
+	TEST_EQUAL(td.getParameters().empty(),true);
+	TEST_EQUAL(td.getPairs()==pairs,false);
+	TEST_EQUAL(td.getPairs().size(),0);
+	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value));
+}
 RESULT
 
 CHECK((void apply(DoubleReal& value)))
@@ -141,7 +176,7 @@ CHECK((void apply(DoubleReal& value)))
 	TransformationDescription td;
 	
 	//test missing name and parameters
-	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value))
+ 	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value))
 
 	td.setName("bla");
 	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value))

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -64,22 +64,22 @@ namespace OpenMS
 	double CompareFouriertransform::operator () (const PeakSpectrum& spec1 , const PeakSpectrum& spec2 ) const
 	{
 		const DSpectrum<>::MetaDataArrays& temp1 = spec1.getMetaDataArrays();
-		
 		if(temp1.size()== 0)
 		{
  
 			throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Input need to be a fouriertransformation, try first transform ()");
 			//transform(spec1); 
 		}
-		
+	
 		UInt i=	searchTransformation_(spec1);
-
+		
 		const DSpectrum<>::MetaDataArrays& temp2 = spec2.getMetaDataArrays();
 		if(temp2.size()== 0)
 		{
 			throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Input need to be a fouriertransformation, try first transform ()");
 		}
 		UInt j=	searchTransformation_(spec2);
+		
 		if(temp1[i].size() != temp2[j].size())
 		{
 		//	std::cout<< temp1[i].size() << temp2[j].size() << std::endl; 
@@ -87,13 +87,14 @@ namespace OpenMS
 		}
 		else
 		{	
+			
 			Real sum=0;
 			for(UInt k=0; k< temp1[i].size();++k)
 			{
-			//	std::cout<< temp1[i][k] << " temp1 "<< temp2[j][k] << " temp2 " << std::endl; 
+		 
 				sum=sum + temp1[i][k]-temp2[j][k];
 			}
-			//std::cout << sum << " summe " << std::endl;
+		//	std::cout << sum << " summe " << std::endl;
 			if(sum !=0)
 			{
 				return 0;
@@ -119,8 +120,8 @@ namespace OpenMS
 				++i;
 			}
 		}
-		//lesen oder erstellen
-		if(i < temp.size() && temp[i].getName()!= "Fouriertransformation")
+		//find entry
+		if(i == temp.size() || temp[i].getName()!= "Fouriertransformation")
 		{
 			throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Input need to be a fouriertransformation, try first transform ()");			//transform_(spec);
 			//return i+1;

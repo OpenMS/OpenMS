@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -94,7 +94,7 @@ namespace OpenMS
 		//@}
 		
 		///Calculates the squared distance between two-dimensional points
-		inline DoubleReal squared_distance_( DoubleReal x1, DoubleReal y1, DoubleReal x2, DoubleReal y2 ) const
+		inline DoubleReal squaredDistance_( DoubleReal x1, DoubleReal y1, DoubleReal x2, DoubleReal y2 ) const
 		{
 			return pow(x1-x2,2) + pow(y1-y2,2); // TODO: check if pow(x,2) is really faster than x*x  (as claimed by AnHi)
 		}
@@ -108,7 +108,7 @@ namespace OpenMS
     /// Factor by which MZ has to be rescaled so that differences in MZ and RT are equally significant.
     DoubleReal internal_mz_scaling_;
 
-		/// Upper bound for squared_distance_()
+		/// Upper bound for squaredDistance_()
 		DoubleReal max_squared_distance_;
 		
 		/// The distance of the second nearest neighbor must be this factor larger

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -66,9 +66,9 @@ CHECK(UInt getNumberOfResidues() const)
 RESULT
 
 CHECK(const Residue* getModifiedResidue(const String &name))
-	//const Residue* mod_res = ptr->getModifiedResidue("MOD:00720"); // ox methionine
-	//TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
-	//TEST_STRING_EQUAL(mod_res->getModification(), "MOD:00720")
+	const Residue* mod_res = ptr->getModifiedResidue("MOD:00720"); // ox methionine
+	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
+	TEST_STRING_EQUAL(mod_res->getModification(), "MOD:00720")
 RESULT
 
 CHECK(const Residue* getModifiedResidue(const Residue *residue, const String &name))
@@ -83,27 +83,59 @@ CHECK(const std::set<const Residue*>& getResidues() const)
 RESULT
 
 CHECK(void setResidues(const String &filename))
-	
+	NOT_TESTABLE // this method is hard to test, just provided for convenience
 RESULT
     
 CHECK(void addResidue(const Residue &residue))
-	
+	TEST_EQUAL(ptr->hasResidue("UGU"), false)
+	TEST_EQUAL(ptr->hasResidue("U"), false)
+	Residue res;
+	res.setShortName("U");
+	res.setOneLetterCode("U");
+	res.setThreeLetterCode("UGU");
+	res.setName("MyLittleUGUResidue");
+	res.setFormula(EmpiricalFormula("C3H4O4"));
+	ptr->addResidue(res);
+	TEST_EQUAL(ptr->hasResidue("UGU"), true)
+	TEST_EQUAL(ptr->hasResidue("U"), true)
 RESULT
 
 CHECK(ResidueIterator beginResidue())
+	ResidueDB::ResidueIterator it = ptr->beginResidue();
+	UInt count(0);
+	while (it != ptr->endResidue())
+	{
+		++it;
+		++count;
+	}
 
+	TEST_EQUAL(count, 21)
 RESULT
   
 CHECK(ResidueIterator endResidue())
-
+	NOT_TESTABLE // tested above
 RESULT
 
 CHECK(ResidueConstIterator beginResidue() const)
-
+	const ResidueDB* const_ptr = ptr;
+	ResidueDB::ResidueConstIterator it = const_ptr->beginResidue();
+	UInt count(0);
+	while (it != const_ptr->endResidue())
+	{
+		++it;
+		++count;
+	}
+	TEST_EQUAL(count, 21)
 RESULT
 
 CHECK(ResidueConstIterator endResidue() const)
+	NOT_TESTABLE // tested above
+RESULT
 
+CHECK(UInt getNumberOfModifiedResidues() const)
+	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 1)
+	const Residue* mod_res = ptr->getModifiedResidue("MOD:01214");
+	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 2)
 RESULT
 
 /////////////////////////////////////////////////////////////

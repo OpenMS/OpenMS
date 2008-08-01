@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -268,6 +268,13 @@ CHECK((CoordinateType getCenter() const))
 	em1.setOffset(680.0);
 	TEST_REAL_EQUAL(em1.getCenter(), 681.2)
 
+RESULT
+
+CHECK((void setSamples()))
+{
+  // dummy subtest
+	TEST_EQUAL(1,1)
+}
 RESULT
 
 /////////////////////////////////////////////////////////////

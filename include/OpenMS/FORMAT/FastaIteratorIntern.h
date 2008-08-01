@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -66,21 +66,21 @@ class FastaIteratorIntern : public PepIterator
 	@return FASTEEntry iterator at actual position
 	@throw Exception::InvalidIterator if iterator has not been initialized
 	*/
-	virtual FASTAEntry operator*() throw (Exception::InvalidIterator);
+	virtual FASTAEntry operator*();
 	
 	/**
 	@brief ++ Operator for the iterator
 	@return reference to PepIterator
 	@throw Exception::InvalidIterator if iterator has not been initialized
 	*/
-	virtual PepIterator & operator++() throw (Exception::InvalidIterator);
+	virtual PepIterator & operator++();
 	
 	/**
 	@brief ++ Operator for the iterator
 	@return pointer to PepIterator
 	@throw Exception::InvalidIterator if iterator has not been initialized
 	*/
-	virtual PepIterator * operator++(int i) throw (Exception::InvalidIterator);
+	virtual PepIterator * operator++(int i);
 	
 	/**
 	@brief setter for FASTA file
@@ -88,7 +88,7 @@ class FastaIteratorIntern : public PepIterator
 	@throw Exception::FileNotFound
 	@throw Exception::ParseError
 	*/
-	virtual void setFastaFile (const String & f) throw (Exception::FileNotFound,Exception::ParseError);
+	virtual void setFastaFile (const String & f);
 
 	/**
 	@brief getter for FASTA file
@@ -101,7 +101,7 @@ class FastaIteratorIntern : public PepIterator
 	@note note availeble for FastaIterator
 	@throw Exception::NotImplemented 
 	*/
-	virtual void setSpectrum (const std::vector<float> &) throw (Exception::NotImplemented)
+	virtual void setSpectrum (const std::vector<float> & /*spec*/)
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	};
@@ -111,7 +111,7 @@ class FastaIteratorIntern : public PepIterator
 	@note note availeble for FastaIterator
 	@throw Exception::NotImplemented 
 	*/
-	virtual const std::vector<float> & getSpectrum () throw (Exception::NotImplemented)
+	virtual const std::vector<float> & getSpectrum ()
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	};
@@ -119,10 +119,9 @@ class FastaIteratorIntern : public PepIterator
 	/**
 	@brief setter for tolerance
 	@note note availeble for FastaIterator
-	@param t tolerance value
 	@throw Exception::NotImplemented 
 	*/
-	virtual void setTolerance (float) throw (Exception::NotImplemented)
+	virtual void setTolerance (float /* t */)
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	};
@@ -133,7 +132,7 @@ class FastaIteratorIntern : public PepIterator
 	@return tolerance
 	@throw Exception::NotImplemented 
 	*/
-	virtual float getTolerance()throw (Exception::NotImplemented)
+	virtual float getTolerance()
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	};
@@ -143,7 +142,7 @@ class FastaIteratorIntern : public PepIterator
 	@return true if everything went rigth
 	@throw Exception::InvalidIterator if fastaFile was not set
 	*/	
-	virtual bool begin () throw (Exception::InvalidIterator);
+	virtual bool begin ();
 	
 	/**
 	@brief indicates whether iterator is at end
@@ -155,7 +154,7 @@ class FastaIteratorIntern : public PepIterator
 	@brief needed by FactoryProduct
 	@return const string name of class
 	*/
-	static const std::string getName()
+	static const std::string getProductName()
 	{
 		return "FastaIteratorIntern";
 	}

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -177,8 +177,6 @@ CHECK(void load(const String& filename, std::vector<ProteinIdentification>& prot
 RESULT
 
 CHECK(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) )
-	
-	cout << endl << endl << endl;
 	
 	//store and load data
 	std::vector<ProteinIdentification> protein_ids, protein_ids2;

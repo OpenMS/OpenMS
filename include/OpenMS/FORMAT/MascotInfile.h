@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -62,10 +62,15 @@ namespace OpenMS
 			/// stores the experiment data in a MascotInfile that can be used as input for MASCOT shell execution
 			void store(const String& filename, const MSExperiment<>& experiment, String search_title);
 														
-			/// loads a Mascot Generic File into a PeakMap
-			template <typename MapType> void load(const String& filename, MapType& map) throw (Exception::FileNotFound, Exception::ParseError)
+			/** loads a Mascot Generic File into a PeakMap
+					
+					@param filename file name which the map should be read from
+					@param exp the map which is filled with the data from the given file
+					@throw FileNotFound is thrown if the given file could not be found
+			*/
+			template <typename MapType> void load(const String& filename, MapType& exp)
       {
-				map.reset();
+				exp.reset();
 				if (!File::exists(filename))
 				{
 					throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
@@ -97,7 +102,7 @@ namespace OpenMS
 						title = "";
 					}
 
-					map.push_back(spectrum);
+					exp.push_back(spectrum);
 					
 					// clean up
 					spec.clear();

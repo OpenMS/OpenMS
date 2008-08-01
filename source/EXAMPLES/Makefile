@@ -1,4 +1,4 @@
-# -*- Mode: make; tab-width: 2; -*-
+# -*- mode: makefile; tab-width: 2; -*-
 # vi: set ts=2:
 #
 # --------------------------------------------------------------------------
@@ -52,7 +52,8 @@ CPP_SOURCES=\
 	Tutorial_Spectrum1D.C\
 	Tutorial_ParamEditor.C\
 	Tutorial_Unlabeled.C\
-	Tutorial_Labeled.C
+	Tutorial_Labeled.C\
+	Tutorial_Clustering.C
 
 OBJECTS=$(SOURCES:.C=.o)
 
@@ -90,9 +91,9 @@ execute: $(EXECUTABLES)
 example: example.o
 
 #Main example target
-#as example is not in the 'depend' and 'clean' target, we need to clean up before building it 
+#as example is not in the 'depend' and 'clean' target, we need to clean up before building it
 ex:
 	@rm -rf example.o example
-	@make example 
+	@make example
 
 dummy:

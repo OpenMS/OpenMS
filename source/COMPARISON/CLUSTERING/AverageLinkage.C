@@ -1,10 +1,10 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
 //                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
-//  Copyright (C) 2003-2007 -- Oliver Kohlbacher, Knut Reinert
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -36,16 +36,16 @@ namespace OpenMS
 	{
 			setName(AverageLinkage::getProductName());
 	}
-	
+
 	AverageLinkage::AverageLinkage(const AverageLinkage& source)
 	  : ClusterFunctor(source)
 	{
 	}
-	
+
 	AverageLinkage::~AverageLinkage()
 	{
 	}
-	
+
 	AverageLinkage& AverageLinkage::operator = (const AverageLinkage& source)
 	{
 		if (this != &source)
@@ -54,24 +54,24 @@ namespace OpenMS
 		}
 		return *this;
 	}
-	
-	void AverageLinkage::cluster(const DistanceMatrix<double>& original_distance, DistanceMatrix<double>& actual_distance, vector< vector<UInt> >& clusters, const String filepath /*= ""*/, const double threshold /*=1*/) const throw (Exception::UnableToCreateFile,ClusterFunctor::InsufficientInput)
+
+	void AverageLinkage::cluster(const DistanceMatrix<double>& original_distance, DistanceMatrix<double>& actual_distance, vector< vector<UInt> >& clusters, const String filepath /*= ""*/, const double threshold /*=1*/) const
 	{
-		// attention: clustering process is done by clustering the indices 
+		// attention: clustering process is done by clustering the indices
 		// pointing to elements in inputvector and distances in inputmatrix
-		
+
 		// input MUST have >= 2 elements!
-		if(actual_distance.dimensionsize()<2) 
+		if(actual_distance.dimensionsize()<2)
 		{
 			throw ClusterFunctor::InsufficientInput(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Distance matrix to start from only contains one element");
 		}
-		
+
 		// in case of preclustering actual_distance and clusters have to match
-		if(clusters.size()>0 && actual_distance.dimensionsize()!=clusters.size()) 
+		if(clusters.size()>0 && actual_distance.dimensionsize()!=clusters.size())
 		{
 			throw ClusterFunctor::InsufficientInput(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Distance matrix to start from does not match the clusters to start from");
 		}
-		
+
 		std::ofstream os;
 		//make sure writing is successful
 		if(filepath.size()!=0)
@@ -81,9 +81,9 @@ namespace OpenMS
 			{
 				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filepath);
 			}
-			
+
 			os << "average linkage" << endl << "dendrogram-file: " << filepath << endl << "timestamp: " << PreciseTime::now() << endl;
-			
+
 			//clusters inital state
 			if(clusters.size()!=original_distance.dimensionsize())
 			{
@@ -100,11 +100,11 @@ namespace OpenMS
 				os << "preclustering--snap" << endl;
 			}
 		}
-						
+
 		// when no clustering has been done start atomar
-		if(clusters.size()==0) 
+		if(clusters.size()==0)
 		{
-			if(actual_distance.dimensionsize()!=original_distance.dimensionsize()) 
+			if(actual_distance.dimensionsize()!=original_distance.dimensionsize())
 			{
 				throw ClusterFunctor::InsufficientInput(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Distance matrices do not match");
 			}
@@ -114,34 +114,35 @@ namespace OpenMS
 				clusters.push_back(tmp);
 			}
 		}
-		
+
 		// Initial minimum-distance pair
 		actual_distance.updateMinElement();
 		pair<UInt,UInt> min = actual_distance.getMinElementCoordinates();
-				
+
 		UInt clustersteps_counter(0);
 		while(actual_distance(min.first,min.second) < threshold && actual_distance.dimensionsize() > 2)
-		{ 
+		{
 			++clustersteps_counter;
-			
+
 			if(filepath.size()!=0)
 			{
 				//write in file
 				os << clustersteps_counter << " | " << min.first << " | " << min.second << " | " << actual_distance(min.first,min.second) << endl;
 			}
-				
+
 		//pick minimum-distance pair i,j and merge them
 			//pushback elements of second to first (and then erase second)
 			for (UInt c = 0; c < clusters[min.second].size(); ++c)
 			{
-			 	clusters[min.first].push_back(clusters[min.second][c]);
+				clusters[min.first].push_back(clusters[min.second][c]);
 			}
+
 			// erase second one
 			clusters.erase(clusters.begin()+min.second,clusters.begin()+min.second+1);
-					
+
 			//reduce
 			actual_distance.reduce(min.second);
-					 	 	
+
 			//update actual_distance matrix (and minimum-distance pair)
 			//average linkage: new distcance between clusteres is the minimum distance between elements of each cluster
 			for (UInt i = 0; i < min.first; ++i)
@@ -152,23 +153,62 @@ namespace OpenMS
 			{
 				actual_distance.setValueQuick(min.first,j,getAveDist_(min.first,j,clusters,original_distance));
 			}
-			
+
 			//update min
 			actual_distance.updateMinElement();
-				
+
 			//get min-pair from triangular matrix
 			min = actual_distance.getMinElementCoordinates();
-			
+
+			//extra output of similaritymatrix for plotting to survey clusteringprogress in 10% steps
+			UInt zp((UInt) ((((double)original_distance.dimensionsize())/10.0)+0.5) );
+			(original_distance.dimensionsize()<5)?zp=2:zp;
+			if(filepath.size()!=0 && clustersteps_counter%zp == 0)
+			{
+				//close actual file and make new file
+				os.close();
+				os.open(String(filepath+".step"+clustersteps_counter+".sm").c_str());
+				if (!os)
+				{
+					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filepath);
+				}
+				// original distancematrix in order of actual clustering
+				for(vector< vector <UInt> >::iterator outer_it1=clusters.begin();outer_it1!=clusters.end();++outer_it1)
+				{
+					for(vector<UInt>::iterator outer_it2=outer_it1->begin();outer_it2!=outer_it1->end();++outer_it2)
+					{
+						for(vector< vector <UInt> >::iterator inner_it1=clusters.begin();inner_it1!=clusters.end();++inner_it1)
+						{
+							for(vector<UInt>::iterator inner_it2=inner_it1->begin();inner_it2!=inner_it1->end();++inner_it2)
+							{
+								//format and out
+								os << scientific << setprecision(15) << 1-original_distance(*outer_it2,*inner_it2) << '\t';
+							}
+						}
+						os << endl;
+					}
+				}
+
+				//reopen old file afterwards
+				os.close();
+				os.open(filepath.c_str(), ofstream::app);
+				if (!os)
+				{
+					throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filepath);
+				}
+
+			}
+
 		//repeat until only two cluster remains, last step skips matrix operations
 		}
-		
+
 		if(actual_distance(min.first,min.second) < threshold && actual_distance.dimensionsize() == 2)
 		{
 			if(filepath.size()!=0)
 			{
 				//write in file
 				os << clustersteps_counter << " | " << min.first << " | " << min.second << " | " << actual_distance(min.first,min.second) << endl;
-			}				
+			}
 			//pick minimum-distance pair i,j and merge them
 			//pushback elements of second to first (and then erase second)
 			for (UInt c = 0; c < clusters[min.second].size(); ++c)
@@ -178,19 +218,24 @@ namespace OpenMS
 			// erase second one
 			clusters.erase(clusters.begin()+min.second,clusters.begin()+min.second+1);
 		}
-		
+
 		if(filepath.size()!=0)
 		{
+			// ad notification, if clustering was aborted due to threshold exceeding - else only one ubercluster is left
+			if(actual_distance(min.first,min.second) >= threshold)
+			{
+				os << " threshold exceeded " << endl;
+			}
 			//done writing
 			os.close();
 		}
 	}
-	
+
 	double AverageLinkage::getAveDist_(UInt& o, UInt x, vector< vector<UInt> >& clusters, const DistanceMatrix<double>& original_dist) const
 	{
 		double ave(0);
 		double divisor(clusters[x].size()*clusters[o].size());
-			
+
 		if(clusters.size() > o && clusters.size() > x )
 		{
 			double divisor();
@@ -199,17 +244,17 @@ namespace OpenMS
 			//wanted is mindist between elements of o to x
 			for (UInt i = 0; i < clusters[x].size(); ++i)
 			{
-							
+
 				for (UInt j = 0; j < clusters[o].size(); ++j)
 				{
-							
+
 					if(clusters[x][i]<clusters[o][j])
 					{
 						#ifdef OPENMS_DEBUG
 						cout << "comparing element "<< clusters[x][i] << " and element " << clusters[o][j] << endl;
 						cout << "distance: "<< original_dist.getValue(clusters[x][i],clusters[o][j]) << endl;
 						#endif
-						
+
 						ave += original_dist.getValue(clusters[x][i],clusters[o][j]);
 					}
 					else
@@ -218,18 +263,18 @@ namespace OpenMS
 						cout << "comparing element "<< clusters[o][j] << " and element " << clusters[x][i] << endl;
 						cout << "distance: "<< original_dist.getValue(clusters[o][j],clusters[x][i]) << endl;
 						#endif
-						
+
 						ave += original_dist.getValue(clusters[o][j],clusters[x][i]);
 					}
 				}
-			}	
+			}
 		}
-		
+
 		#ifdef OPENMS_DEBUG
 		cout << "Average distance is:" << ave/divisor << endl;
 		#endif
-	
+
 		return ave/divisor;
 	}
-	
+
 }

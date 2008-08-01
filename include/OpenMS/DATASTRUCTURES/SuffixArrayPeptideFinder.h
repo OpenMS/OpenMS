@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -51,14 +51,18 @@ public:
 
 	/**
 	@brief constructor
-	@param fFile const string for location of FASTA File
+	@param filename const string for location of FASTA File
+	@param method name of the method used (e.g. tryptic_compressed)
+	@throw FileNotFound is thrown if the filename is not found
+	@throw ParseError is thrown if a error in parsing of the fasta file occurs
+	@throw InvalidValue is thrown if an unknown method is supplied 
 	*/
-	SuffixArrayPeptideFinder(const String & fFile, const String & method) throw (Exception::FileNotFound,Exception::ParseError,Exception::InvalidValue);
+	SuffixArrayPeptideFinder(const String& filename, const String& method);
 
 	/**
 	@brief copy constructor
 	*/
-	SuffixArrayPeptideFinder(const SuffixArrayPeptideFinder & source);
+	SuffixArrayPeptideFinder(const SuffixArrayPeptideFinder& source);
 
 	/**
 	@brief destructor
@@ -68,6 +72,7 @@ public:
 	/**
 	@brief finds all candidate for given spectrum in the suffix array
 	@param spec const reference to float vector describing the MS spectrum
+	@param candidates output parameters which holds the candidates of the masses given in spec after the call
 	@return	for every mass a entry with all Candidates as vector of FASTAEntrys
 	@see sufArray.h
 	*/
@@ -75,12 +80,14 @@ public:
 
 	/**
 	@brief finds all candidate for given DTA file
-	@param DTAFile DTA file location
+	@param DTA_file DTA file location
+	@param candidates Output parameters which holds the candidates suitable for the mass given in the dta file
 	@return	for every mass a entry with all Candidates as vector of FASTAEntrys
-	@throw Exception::FileNotFound if DTA file does not exists
+	@throw FileNotFound if DTA file does not exists
+	@throw ParseError is thrown if the dta file could not be parsed
 	@see sufArray.h
 	*/
-	void getCandidates(std::vector<std::vector<std::pair<FASTAEntry, String > > >& candidates, const String & DTA_file) throw (Exception::FileNotFound,Exception::ParseError);
+	void getCandidates(std::vector<std::vector<std::pair<FASTAEntry, String > > >& candidates, const String & DTA_file);
 
 	/**
 	@brief setter for tolerance
@@ -111,13 +118,13 @@ public:
 	@param tags reference to vector of strings with tags
 	@note sets use_tags = true
 	*/
-	void setTags(const std::vector<OpenMS::String> & tags) throw (OpenMS::Exception::InvalidValue);
+	void setTags(const std::vector<String>& tags);
 
 	/**
 	@brief getter for tags
 	@return const reference to vector of strings
 	*/
-	const std::vector<OpenMS::String> & getTags();
+	const std::vector<String>& getTags();
 
 	/**
 	@brief setter for use_tags
@@ -134,8 +141,9 @@ public:
 	/**
 	@brief setter for modification output method
 	@param s describing how modifications sould be given back
+	@throw InvalidValue is thrown if method s is not known
 	*/
-	void setModificationOutputMethod(const String & s) throw (OpenMS::Exception::InvalidValue);
+	void setModificationOutputMethod(const String& s);
 
 	/**
 	@brief getter for modification output method

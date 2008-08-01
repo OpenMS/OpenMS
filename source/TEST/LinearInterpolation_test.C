@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -75,6 +75,7 @@ CHECK([EXTRA] typedefs )
 	key = 0;
 	container = 0;
 	containerValue = 0;
+	NOT_TESTABLE;
 }
 RESULT
 
@@ -108,18 +109,6 @@ CHECK(~LinearInterpolation())
 }
 RESULT
 
-CHECK(template< typename SourceContainer > void setData( SourceContainer const & data ) )
-{
-	LIFD lifd;
-	std::vector < LIFD::ValueType > v;
-	v.push_back(17);
-	v.push_back(18.9);
-	v.push_back(20.333);
-	v.push_back(-.1);
-	lifd.setData(v);
-}
-RESULT
-
 CHECK(ContainerType const& getData() const )
 {
 	LIFD lifd;
@@ -132,6 +121,13 @@ CHECK(ContainerType const& getData() const )
 	TEST_EQUAL(lifd.getData().size(),v.size());
 	for ( UInt i = 0; i < v.size(); ++i )
 		TEST_EQUAL(lifd.getData()[i],v[i]);
+}
+RESULT
+
+CHECK(template< typename SourceContainer > void setData( SourceContainer const & data ) )
+{
+	// see above, getData()
+	NOT_TESTABLE;
 }
 RESULT
 

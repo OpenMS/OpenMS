@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -334,7 +334,10 @@ namespace OpenMS
 	          {
 	            h[j]=std::min((DoubleReal)(first->getIntensity()),h[j+1]);
 	          }
-	          --first;
+	          if (j > 0)
+	          {
+	            --first;
+	          }
 	        }
 	      }
 	      else
@@ -416,7 +419,10 @@ namespace OpenMS
 	          {
 	            h[j]=std::max((DoubleReal)(last->getIntensity()),h[j+1]);
 	          }
-	          --last;
+	          if (j > 0)
+	          {
+	            --last;
+	          }
 	        }
 	      }
 	      else

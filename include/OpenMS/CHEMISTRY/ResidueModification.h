@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -41,6 +41,13 @@ namespace OpenMS
 
 	/** @brief Representation of a modification
 
+			This class represents a modification of a residue. A residue modification
+			has several attributes like the diff formula, a terminal specificity 
+			a mass and maybe an origin which means a specific residue which it can
+			be applied to. A residue modification can be represented by its PSI-MOD
+			identifier, e.g. MOD:01214. This is a unique key which only occurs ones in 
+			an OpenMS instance stored in the ModificationsDB. Some residue modifications
+			have also unique synonyms which can be used instead.
 	*/
 	class ResidueModification
 	{
@@ -71,23 +78,6 @@ namespace OpenMS
 			};
 
 			/** @brief Classification of the modification
-
-					the PSI-MOD defined the following classes of modifications
-						AA substitution
-						Artefact
-						Chemical derivative
-						Co-translational
-						Isotopic label
-						Multiple
-						N-linked glycosylation
-						Non-standard residue
-						O-linked glycosylation
-						Other
-						Other glycosylation
-						Post-translational
-						Pre-translational
-						Synth. pep. protect. gp.
-													 
 				
 			*/
 			enum Source_Classification
@@ -124,77 +114,97 @@ namespace OpenMS
 			/** @name Accessors
 			*/
 			//@{
-
+			/// set the identifier of the modification
 			void setId(const String& id);
 
+			/// returns the identifier the modification
 			const String& getId() const;
 
+			/// sets the full name of the modification
 			void setFullName(const String& full_name);
 
+			/// returns the full name of the modification
 			const String& getFullName() const;
 
-			///
+			/// sets the name of modification
 			void setName(const String& name);
 
 			/// returns the PSI-MS-label if available; e.g. Mascot uses this name
 			const String& getName() const;
 			
+			/// sets the term specificity 
 			void setTermSpecificity(Term_Specificity term_spec);
 
+			/// sets the term specificity specified using a name
 			void setTermSpecificity(const String& name);
 			
+			/// returns terminal specificity
 			Term_Specificity getTermSpecificity() const;
 			
+			/// returns the terminal specificity name which is set or given as parameter
 			String getTermSpecificityName(Term_Specificity = NUMBER_OF_TERM_SPECIFICITY) const;
 	
+			///	sets the origin 
 			void setOrigin(const String& origin);
 
+			/// returns the origin if set
 			const String& getOrigin() const;
 
 			/// classification as defined by the PSI-MOD
 			void setSourceClassification(const String& classification);
 
+			/// sets the source classification
 			void setSourceClassification(Source_Classification classification);
 
+			/// returns the source classification, if none was set, it is unspecific
 			Source_Classification getSourceClassification() const;
 			
 			/// returns the classification
 			String getSourceClassificationName(Source_Classification classification = NUMBER_OF_SOURCE_CLASSIFICATIONS) const;
 			
+			/// sets the average mass
 			void setAverageMass(double mass);
 
+			/// returns the average mass if set 
 			double getAverageMass() const;
 
+			/// sets the monoisotopic mass
 			void setMonoMass(double mass);
 
+			/// return the monoisotopic mass, if set
 			double getMonoMass() const;
 
+			/// set the difference average mass
 			void setDiffAverageMass(double mass);
 
+			/// returns the difference average mass if set
 			double getDiffAverageMass() const;
 
+			/// sets the difference monoisotopic mass 
 			void setDiffMonoMass(double mass);
 
+			/// returns the diff monoisotopic mass if set
 			double getDiffMonoMass() const;
 			
+			/// set the formula 
 			void setFormula(const String& composition);
 
+			/// returns the chemical formula if set
 			const String& getFormula() const;
 
+			/// sets diff formula
 			void setDiffFormula(const String& diff_formula);
 
+			/// returns the diff formula if one was set
 			const String& getDiffFormula() const;
 			
-			/// sets the valid residue(s)
-			//void setValidResidues(const std::vector<String>& residue_names);
-
-			/// returns the valid residues (in PSI-MOD terminology this is called origin)
-			//const std::vector<String>& getValidResidues() const;
-
+			/// sets the synonyms of that modification
 			void setSynonyms(const std::set<String>& synonyms);
 
+			/// adds a synonym to the unique list
 			void addSynonym(const String& synonym);
 
+			/// returns the set of synonyms
 			const std::set<String>& getSynonyms() const;
 			//@}
 

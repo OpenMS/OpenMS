@@ -66,7 +66,7 @@
 </xsl:template>
 
 <xsl:template match="IdentificationRun">
-	<table border="1" align="center" style="border-style:solid; border-collapse:collapse;" width="100%">
+	<table border="1" cellpadding="2" style="border-style:solid; border-collapse:collapse;" width="100%">
     <tr><th>Search parameter</th>
     <th>Value</th></tr>
     <tr>
@@ -93,7 +93,7 @@
 	  <xsl:apply-templates select="parent::IdXML/SearchParameters[@id=$search_parameters_reference]"/>
 	</table>
 	<br/>
-	<table border="1" align="center" style="border-style:solid; border-collapse:collapse;" width="100%">
+	<table border="1" cellpadding="2" style="border-style:solid; border-collapse:collapse;" width="100%">
     <tr><th>Protein</th>
     	<th align="center">Score</th>
     	<th align="center"> Corresponding identified peptides </th>	
@@ -103,10 +103,10 @@
 	  </xsl:apply-templates>
 	</table>
 	<br/>
-	<table border="1" align="center" width="100%" style="border-style:solid; border-collapse:collapse;">
+	<table border="1" cellpadding="2" width="100%" style="border-style:solid; border-collapse:collapse;">
   	<tr><th><nobr>Unassigned peptides</nobr></th>
    	<th>Score</th>
-   	<th><nobr>charge</nobr></th>
+   	<th><nobr>Charge</nobr></th>
    	<th><nobr>RT</nobr></th>
    	<th><nobr>MZ</nobr></th>
    	<th><nobr>AA before</nobr></th>
@@ -147,7 +147,7 @@
 	  		<xsl:value-of select="@id"/>
  	  	</xsl:variable>
     
-			<table border="1" align="center" width="100%"  style="border-style:none; border-collapse:collapse;" cellpadding="2">
+			<table border="1" cellpadding="2" width="100%" style="border-style:none; border-collapse:collapse;" >
     	<tr><th width="20%">Sequence</th>
 	  	<th>Score</th>
 	  	<th><nobr>charge</nobr></th>

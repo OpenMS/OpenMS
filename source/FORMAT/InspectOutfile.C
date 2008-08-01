@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -60,18 +60,8 @@ namespace OpenMS
 		return true;
 	}
 
-	vector< UInt >
-	InspectOutfile::load(
-		const String& result_filename,
-		vector< PeptideIdentification >& peptide_identifications,
-		ProteinIdentification& protein_identification,
-		const Real p_value_threshold,
-		const String& database_filename)
-	throw (
-		Exception::FileNotFound,
-		Exception::ParseError,
-		Exception::IllegalArgument,
-		Exception::FileEmpty)
+	vector<UInt> InspectOutfile::load(const String& result_filename, vector<PeptideIdentification>& peptide_identifications,
+		ProteinIdentification& protein_identification, const Real p_value_threshold, const String& database_filename)
 	{
 		// check whether the p_value is correct
 		if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
@@ -293,8 +283,6 @@ namespace OpenMS
 		const String& database_filename,
 		const map< UInt, UInt >& wanted_records,
 		vector< String >& sequences)
-	throw (
-		Exception::FileNotFound)
 	{
 		ifstream database(database_filename.c_str());
 		if (!database)
@@ -467,8 +455,6 @@ namespace OpenMS
 	InspectOutfile::getPrecursorRTandMZ(
 		const vector< pair< String, vector< pair < UInt, UInt > > > >& files_and_peptide_identification_with_scan_number,
 		vector< PeptideIdentification >& ids)
-	throw(
-		Exception::ParseError)
 	{
 		MSExperiment<> experiment;
 		String type;
@@ -498,10 +484,6 @@ namespace OpenMS
 		const String& snd_database_filename,
 		const String& snd_index_filename,
 		bool append)
-	throw (
-		Exception::FileNotFound,
-		Exception::ParseError,
-		Exception::UnableToCreateFile)
 	{
 		if ( database_filename == snd_database_filename )
 		{
@@ -654,9 +636,6 @@ namespace OpenMS
 		const String& index_filename,
 		bool append,
 		const String species)
-	throw (
-		Exception::FileNotFound,
-		Exception::UnableToCreateFile)
 	{
 		ifstream source_database(source_database_filename.c_str());
 		if ( !source_database )
@@ -872,9 +851,6 @@ namespace OpenMS
 		String& sequence_end_label,
 		String& comment_label,
 		String& species_label)
-	throw (
-		Exception::FileNotFound,
-		Exception::ParseError)
 	{
 		ac_label = sequence_start_label = sequence_end_label = comment_label = species_label = "";
 		ifstream source_database(source_database_filename.c_str());
@@ -916,14 +892,7 @@ namespace OpenMS
 		}
 	}
 
-	vector< UInt >
-	InspectOutfile::getWantedRecords(
-		const String& result_filename,
-		Real p_value_threshold)
-	throw (
-		Exception::FileNotFound,
-		Exception::FileEmpty,
-		Exception::IllegalArgument)
+	vector<UInt> InspectOutfile::getWantedRecords(const String& result_filename, Real p_value_threshold)
 	{
 		// check whether the p_value is correct
 		if ( (p_value_threshold < 0) || (p_value_threshold > 1) )
@@ -1011,8 +980,6 @@ namespace OpenMS
 	InspectOutfile::getSearchEngineAndVersion(
 		const String& inspect_output_without_parameters_filename,
 		ProteinIdentification& protein_identification)
-	throw (
-		Exception::FileNotFound)
 	{
 		ifstream inspect_output_without_parameters(inspect_output_without_parameters_filename.c_str());
 		if (!inspect_output_without_parameters)
@@ -1060,8 +1027,6 @@ namespace OpenMS
 		Int& DB_file_pos_column,
 		Int& spec_file_pos_column,
 		UInt& number_of_columns)
-	throw (
-		Exception::ParseError)
 	{
 		spectrum_file_column = scan_column = peptide_column = protein_column = charge_column = MQ_score_column = p_value_column = record_number_column = DB_file_pos_column = spec_file_pos_column = -1;
 		

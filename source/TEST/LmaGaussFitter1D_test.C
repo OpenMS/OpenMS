@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -94,6 +94,10 @@ CHECK((virtual LmaGaussFitter1D& operator=(const  LmaGaussFitter1D &source)))
 RESULT
 
 CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
+	// dummy subtest 
+	LmaGaussFitter1D gf1;
+	gf1 = LmaGaussFitter1D();
+	TEST_EQUAL(gf1.getParameters(), gf1.getParameters())
 RESULT
 
 CHECK((Fitter1D* create()))

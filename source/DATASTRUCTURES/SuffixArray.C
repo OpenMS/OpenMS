@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -27,11 +27,22 @@
 
 #include <OpenMS/DATASTRUCTURES/SuffixArray.h>
 
-namespace OpenMS{
+namespace OpenMS
+{
 	
-	SuffixArray::~SuffixArray(){}
+	SuffixArray::~SuffixArray()
+	{
+	}
 
-	SuffixArray::SuffixArray(){}	
+	SuffixArray::SuffixArray()
+	{
+	}
 
-	SuffixArray::SuffixArray(const SuffixArray &){}	
+	SuffixArray::SuffixArray(const SuffixArray &)
+	{
+	}
+
+	SuffixArray::SuffixArray(const String & st, const String & filename)
+	{
+	}
 }

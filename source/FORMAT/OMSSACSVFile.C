@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -42,7 +42,7 @@ namespace OpenMS
 	{
 	}
 
-	void OMSSACSVFile::load(const String& filename, ProteinIdentification& /* protein_identification */, vector<PeptideIdentification>& id_data) const throw (Exception::FileNotFound, Exception::ParseError)
+	void OMSSACSVFile::load(const String& filename, ProteinIdentification& /* protein_identification */, vector<PeptideIdentification>& id_data) const
 	{
 		ifstream is(filename.c_str());
     if (!is)
@@ -58,7 +58,7 @@ namespace OpenMS
 		}
 		
 		// ignore first line
-		UInt actual_spectrum_number(0);
+		Int actual_spectrum_number(-1);
 		while (getline(is, line, '\n'))
 		{
 			// Spectrum number, Filename/id, Peptide, E-value, Mass, gi, Accession, Start, Stop, Defline, Mods, Charge, Theo Mass, P-value
@@ -89,7 +89,7 @@ namespace OpenMS
 			p.setScore(split[13+offset].trim().toDouble());
 			p.setCharge(split[11+offset].trim().toInt());
 
-			if  (actual_spectrum_number != (UInt)split[0].trim().toInt())
+			if  (actual_spectrum_number != split[0].trim().toInt())
 			{
 				// new id
 				//id_data.push_back(IdentificationData());

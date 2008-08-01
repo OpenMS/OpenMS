@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -302,7 +302,6 @@
 							<LI> Login in the @a Admin section on http://sourceforge.net/project/showfiles.php?group_id=90558
 							<LI> Go to @a File @a Releases
 							<LI> Now you can add your release
-							<LI> Go to @a Edit @a Releases to change the status of the old release to @a hidden 
 						</OL>
 					<LI> Copy the documentation of the release to @a /share/www/ApacheRoot/html/extern/OpenMS-release/html.
 					<LI> Check the function of the public search engine at @a http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/search.php
@@ -312,7 +311,7 @@
 
 				<LI><B>How is an new release package created?</B>
 				<OL>
-					<LI> Prepare the %OpenMS release file:
+					<LI> Prepare the platform-independent sources release file:
 						<OL>
 							<LI> Update version number in <tt>source/configure.ac</tt> (AC_INIT macro)
 							<LI> Update version number in <tt>doc/OpenMS_tutorial/refman_overwrite.tex</tt>
@@ -328,13 +327,14 @@
 									<LI> Make sure that the Parameter documentation was created.
 									<LI> Make sure the include paths in the documentation are correct.
 								</OL>
+							<LI> Prepare the contrib release file:
+								<OL>
+									<LI> Update Version number in <tt>configure.ac</tt> (AC_INIT macro)
+									<LI> Run autoconf in <tt>source/</tt>
+									<LI> Commit the changes to the SVN repository
+								</OL>
 							<LI> Run the script <tt>source/config/tools/make_dist.sh</tt> according to the help shown when executed.
-						</OL>
-					<LI> Prepare the contrib release file:
-						<OL>
-							<LI> Update Version number in <tt>configure.ac</tt> (AC_INIT macro)
-							<LI> Commit the changes to the SVN repository
-							<LI> Run the script <tt>source/config/tools/make_dist_contrib.sh</tt>
+							<LI> Test installation of contrib and %OpenMS from release package
 						</OL>
 					<LI> Prepare the Windows installer file:
 						<OL>

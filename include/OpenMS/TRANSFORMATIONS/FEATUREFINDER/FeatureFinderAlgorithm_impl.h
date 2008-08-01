@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -27,8 +27,8 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHM_IMPL_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHM_IMPL_H
 
-#include<OpenMS/KERNEL/MSExperiment.h>
-#include<OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>

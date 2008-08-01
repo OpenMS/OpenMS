@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -49,8 +49,6 @@ using namespace std;
 	@page XTandemAdapter XTandemAdapter
 	
 	@brief Identifies peptides in MS/MS spectra via XTandem.
-	
-	@todo Search parameteters (Andreas)
 */
 
 // We do not want this class to show up in the docu:
@@ -97,8 +95,8 @@ class TOPPXTandemAdapter
 			registerIntOption_("max_precursor_charge", "<charge>", 4, "maximum precursor charge", false);
 			registerIntOption_("threads", "<num>", 1, "number of threads", false);
 			
-			registerStringOption_("fixed_modifications", "<mods>", "", "fixed modifications", false);
-      registerStringOption_("variable_modifications", "<mods>", "", "variable modifications", false);
+			registerStringOption_("fixed_modifications", "<mods>", "", "fixed modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048", false);
+      registerStringOption_("variable_modifications", "<mods>", "", "variable modifications, specified using PSI-MOD terms, e.g. MOD:01214,MOD:00048", false);
 			registerIntOption_("missed_cleavages", "<num>", 1, "Number of possible cleavage sites missed by the enzyme", false);
 	
 			addEmptyLine_();
@@ -248,7 +246,6 @@ class TOPPXTandemAdapter
 				
 
 			String call = tandem_path + "/./tandem.exe " + input_filename;
-			cerr << call << endl;
 			int status = system(call.c_str());
 
 			if (status != 0)

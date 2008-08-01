@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -29,6 +29,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <vector>
 
@@ -53,15 +54,21 @@ namespace OpenMS
 	  	FalseDiscoveryRate();
   		
   		/**
-  			@brief Calculates the FDR of two runs, a forward run and a decoy run
+  			@brief Calculates the FDR of two runs, a forward run and a decoy run on peptide level
+
+				@param fwd_ids forward peptide identifications
+				@param rev_ids reverse peptide identifications
   		*/
   		void apply(std::vector<PeptideIdentification>& fwd_ids, std::vector<PeptideIdentification>& rev_ids);
 
 			/**
-				@brief Calculates the FDR of the run containing both, decoy and forward hits
+			 	@brief Calculates the FDR of two runs, a forward run and decoy run on protein level
+
+				@param fwd_ids forward protein identifications
+				@param rev_ids reverse protein identifications
 			*/
-			void apply(std::vector<PeptideIdentification>& ids);
-  		
+			void apply(std::vector<ProteinIdentification>& fwd_ids, std::vector<ProteinIdentification>& rev_ids);
+
   	private:
   		///Not implemented
   		FalseDiscoveryRate(const FalseDiscoveryRate&);

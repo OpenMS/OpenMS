@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -58,9 +58,11 @@ namespace OpenMS
 		/**
 		@brief constructor
 		@param st const string reference with the string for which the suffix array should be build
-		@param saFileName const string reference with filename for opening or saving the suffix array
+		@param filename const string reference with filename for opening or saving the suffix array
+		@throw FileNotFound is thrown if the given file is not found
+		@throw InvalidValue if the given suffix array string is invalid
 		*/
-		SuffixArraySeqan(const String& st,const String& sa_file_name) throw (Exception::InvalidValue,Exception::FileNotFound);
+		SuffixArraySeqan(const String& st, const String& filename);
 
 		/** 
 		@brief copy constructor
@@ -80,31 +82,36 @@ namespace OpenMS
 		/**
 		@brief the function that will find all peptide candidates for a given spectrum
 		@param spec const reference of double vector describing the spectrum
+		@param candidates output parameters which holds the candidates of the masses given in spec after call
 		@return a vector of int pairs.
 	
 		for every mass within the spectrum all candidates described by as pairs of ints are returned. All masses are searched for the same time in just one suffix array traversal. In order to accelerate the traversal the skip and lcp table are used. The mass wont be calculated for each entry but it will be updated during traversal using a stack datastructure 
 		*/
-		void findSpec(std::vector<std::vector<std::pair<std::pair<int, int>, float > > >& candidates, const std::vector<double> & spec) throw (Exception::InvalidValue);
+		void findSpec(std::vector<std::vector<std::pair<std::pair<int, int>, float > > >& candidates, const std::vector<double> & spec);
 
 		/**
 		@brief saves the suffix array to disc
 		@param filename const reference string describing the filename
 		@return bool if operation was succesful
+		@throw UnableToCreateFile is thrown if the output files could not be created
 		*/
-		bool save(const String& file_name) throw (Exception::UnableToCreateFile);
+		bool save(const String& filename);
 
 		/**
 		@brief opens the suffix array
+<<<<<<< .mine
 		@param filename const reference string describing the filename
 		@return bool if operation was succesful
+		@throw FileNotFound is thrown if the given file could not be found
 		*/
-		bool open(const String& file_name) throw (Exception::FileNotFound);
+		bool open(const String& filename);
 
 		/**
 		@brief setter for tolerance
-		@param t double with tolerance
+		@param t double with tolerance, only 0 or greater is allowed
+		@throw InvalidValue is thrown if given tolerance is negative
 		*/
-		void setTolerance(double t) throw (Exception::InvalidValue);
+		void setTolerance(double t);
 
 		/**
 		@brief getter for tolerance
@@ -125,7 +132,7 @@ namespace OpenMS
 		@param tags reference to vector of strings with tags
 		@note sets use_tags = true
 		*/
-		void setTags(const std::vector<OpenMS::String>& tags) throw (OpenMS::Exception::InvalidValue);
+		void setTags(const std::vector<OpenMS::String>& tags);
 
 		/**
 		@brief getter for tags
@@ -157,18 +164,23 @@ namespace OpenMS
 		*/
 		unsigned int getNumberOfModifications();
 
+		void printStatistic ();
+
+	    protected:
+		
 		/**
-		@brief overwriting goNextSubTree from seqan index_esa_stree.h for mass update during suffix array traversal
+		@brief overwriting goNextSubTree_ from seqan index_esa_stree.h for mass update during suffix array traversal
 
 		the suffix array is treated as a suffix tree. this function skips the subtree under the actual node and goes directly to the next subtree that has not been visited yet. During this traversal the mass will be updated using the stack with edge masses.
 
 		@param it reference to the suffix array iterator
 		@param m reference to actual mass
 		@param allm reference to the stack with history of traversal
+		@param mod_map input parameters which specifies the modification massen allowed in the candidates
 
 		@see goNext
 		*/
-		inline void goNextSubTree(TIter& it, double& m, std::stack<double>& allm, std::stack<std::map<double, int> >& mod_map) 
+		inline void goNextSubTree_(TIter& it, double& m, std::stack<double>& allm, std::stack<std::map<double, int> >& mod_map) 
 		{
 			// preorder dfs
 			if (!goRight(it))
@@ -212,7 +224,7 @@ namespace OpenMS
   	@param it reference to the suffix array iterator
   	@see goNext
 		*/
-		inline void goNextSubTree(TIter& it)
+		inline void goNextSubTree_(TIter& it)
 		{
 			// preorder dfs
 			if (!goRight(it))
@@ -243,21 +255,22 @@ namespace OpenMS
 		@param it reference to the suffix array iterator
 		@param m reference to actual mass
 		@param allm reference to the stack with history of traversal
+		@param mod_map input parameters which specifies the modification masses allowed in the candidates
 
-		@see goNextSubTree
+		@see goNextSubTree_
 		*/
-		inline void goNext(TIter& it, double& m, std::stack<double>& allm, std::stack<std::map<double, int> >& mod_map)
+		inline void goNext_(TIter& it, double& m, std::stack<double>& allm, std::stack<std::map<double, int> >& mod_map)
 		{
 			// preorder dfs
 			if (!goDown(it))
 			{
-				goNextSubTree(it, m, allm, mod_map);
+				goNextSubTree_(it, m, allm, mod_map);
 			}
 		}
 
 
 	
-		inline void parseTree(TIter& it, std::vector<std::pair<int, int> >& out_number, std::vector<std::pair<int, int> >& edge_length, std::vector<int>& leafe_depth)
+		inline void parseTree_(TIter& it, std::vector<std::pair<int, int> >& out_number, std::vector<std::pair<int, int> >& edge_length, std::vector<int>& leafe_depth)
 		{
 			int depth = 1;
 			while (!atEnd(it))
@@ -299,10 +312,6 @@ namespace OpenMS
 		}
 
 	
-		void printStatistic ();
-	
-	 protected:
-
 		TIndex index_; ///< seqan suffix array
 
 		TIter* it_; ///< seqan suffix array iterator

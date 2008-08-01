@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -79,19 +79,19 @@
 		</TR>
 		<TR>
 			<TD colspan="3">
-				The %OpenMS project was initiated by Prof. Oliver Kohlbacher and Prof. Knut Reinert.
+				The %OpenMS project was initiated by Prof. Oliver Kohlbacher and Prof. Knut Reinert in 2003.
 			
-				The current main developers of %OpenMS are listed here:
+				Currently the main developers of %OpenMS are:
 				<UL>
-					<LI> Andreas Bertsch -- Protein/peptide identification
-					<LI> Chris Bielow -- External memory support, Windows XP port
-					<LI> Clemens Gr&ouml;pl -- Quantitation, Map alignment
-					<LI> Rene Hussong -- Signal processing, Pattern recognition
-					<LI> Eva Lange -- Signal processing, Map alignment
-					<LI> Nico Pfeifer -- Protein/peptide identification, Prediction of peptide properties
-					<LI> Ole Schulz-Trieglaff -- Quantitation
-					<LI> Marc Sturm -- Build system, Software design, File formats, Visualization, Quantitation
-					<LI> Alexandra Zerck -- Signal processing, Calibration
+					<LI> Andreas Bertsch - protein/peptide identification
+					<LI> Chris Bielow - external memory support, Windows XP port
+					<LI> Clemens Gr&ouml;pl - quantitation, map alignment
+					<LI> Rene Hussong - signal processing, pattern recognition
+					<LI> Eva Lange - signal processing, map alignment
+					<LI> Nico Pfeifer - protein/peptide identification, prediction of peptide properties
+					<LI> Ole Schulz-Trieglaff - quantitation
+					<LI> Marc Sturm - build system, software design, file formats, visualization, quantitation
+					<LI> Alexandra Zerck - signal processing, calibration
 				</UL>			
 			</TD>
 		</TR>
@@ -110,4 +110,3 @@ General ToDo list of Marc:
 	 - Update changelog
  - Reihenfolge der Paremter anschauen
 
-*/

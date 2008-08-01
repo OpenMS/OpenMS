@@ -1,4 +1,4 @@
-# -*- Mode: makefile; tab-width: 2; -*-
+# -*- mode: makefile; tab-width: 2; -*-
 # vi: set ts=2:
 #
 # --------------------------------------------------------------------------
@@ -62,8 +62,10 @@ UNCONDITIONAL_TESTS = \
 
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \
-	RTModel_test #\
-	#RTPredict_test
+	RTPredict_test \
+	RTModel_test \
+	PTModel_test \
+	PTPredict_test
 endif
 
 TOPP_TOOL_TESTS = ${UNCONDITIONAL_TESTS} ${LIBSVM_TESTS}
@@ -353,9 +355,9 @@ FileConverter_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,FileConverter.tmp,FileConverter_4_output.dta2d)
 
 ifeq ($(ANDIMS_SUPPORT),true)
-	@$(ECHO) "- Test 5: netCDF -> DTA2D"
-	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_5_input.txt -in_type cdf -out FileConverter.tmp -out_type DTA2D)
-	@$(call TEST_FILE_EQUAL,FileConverter.tmp,FileConverter_5_output.dta2d)
+#	@$(ECHO) "- Test 5: netCDF -> DTA2D"
+#	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_5_input.txt -in_type cdf -out FileConverter.tmp -out_type DTA2D)
+#	@$(call TEST_FILE_EQUAL,FileConverter.tmp,FileConverter_5_output.dta2d)
 endif
 	@$(ECHO) "- Test 6a: DTA2D -> MzXML -> DTA2D"
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_6_input.dta2d -out FileConverter.tmp -out_type mzXML)
@@ -371,6 +373,9 @@ endif
 	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_7_input.consensusXML -out FileConverter_7_output.tmp -out_type featureXML)
 	@$(call TEST_FILE_EQUAL,FileConverter_7_output.tmp,FileConverter_7_output.featureXML)
 
+	@$(ECHO) "- Test 8: mzML -> mzData"
+	@$(call RUN_PROG_OPT,FileConverter,-in FileConverter_8_input.mzML -out FileConverter_8_output.tmp -out_type mzData)
+	@$(call TEST_FILE_EQUAL,FileConverter_8_output.tmp,FileConverter_8_output.mzData)
 
 FileFilter_test: make_fuzzydiff
 	@$(ECHO) ""
@@ -405,7 +410,8 @@ FileFilter_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,FileFilter_7_out.tmp,FileFilter_7_out.mzData)
 
 	@$(ECHO) "- Test 8: consensusXML"
-	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_8_input.consensusXML -out FileFilter_8_out.tmp -rt 600:1400 -mz 700:2300 -int  1100:6000)
+	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_8_input.consensusXML -out FileFilter_8_out.tmp_ -rt 600:1400 -mz 700:2300 -int  1100:6000)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' FileFilter_8_out.tmp_ > FileFilter_8_out.tmp
 	@$(call TEST_FILE_EQUAL,FileFilter_8_out.tmp,FileFilter_8_out.consensusXML)
 
 
@@ -447,6 +453,9 @@ ifeq ($(ANDIMS_SUPPORT),true)
 	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_8_output.txt)
 endif
 
+	@$(ECHO) "- Test 9: mzML test"
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_9_input.mzML -no_progress > FileInfo.tmp)
+	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_9_output.txt)
 
 
 FileMerger_test: make_fuzzydiff
@@ -476,6 +485,10 @@ FileMerger_test: make_fuzzydiff
 	@$(ECHO) "- Test 5: 3 Files (guess rt from filename, -rt_from_filename, -user_ms_level, -ms_level)"
 	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_5_ini.txt -rt_from_filename -user_ms_level -ms_level 2  -out FileMerger5.tmp)
 	@$(call TEST_FILE_EQUAL,FileMerger5.tmp,FileMerger_5_output.txt)
+
+	@$(ECHO) "- Test 5: 2 mzML Files"
+	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_6_ini.txt -out FileMerger6.tmp)
+	@$(call TEST_FILE_EQUAL,FileMerger6.tmp,FileMerger_6_output.mzData)
 
 IDFilter_test: make_fuzzydiff
 	@$(ECHO) ""
@@ -552,7 +565,9 @@ NoiseFilter_test: make_fuzzydiff
 	@$(ECHO) "- Test 1: Savitzky-Golay filter"
 	@$(call RUN_PROG_OPT,NoiseFilter, -ini NoiseFilter_1_parameters.ini -in RawData_input.mzData -out NoiseFilter_1_output.tmp)
 	@$(call TEST_FILE_EQUAL,NoiseFilter_1_output.tmp,NoiseFilter_1_output.mzData)
-
+	@$(ECHO) "- Test 2: Gaussian filter"
+	@$(call RUN_PROG_OPT,NoiseFilter, -ini NoiseFilter_2_parameters.ini -in RawData_input.mzData -out NoiseFilter_2_output.tmp)
+	@$(call TEST_FILE_EQUAL,NoiseFilter_2_output.tmp,NoiseFilter_2_output.mzData)
 
 PeakPicker_test: make_fuzzydiff
 	@$(ECHO) ""
@@ -605,6 +620,25 @@ RTModel_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,RTModel_4_output.tmp_samples,RTModel_4_output.samples)
 	@$(RM) -rf RTModel_4_output.tmp_additional_parameters RTModel_4_output.tmp_samples points.txt
 	
+	
+PTModel_test: make_fuzzydiff
+	@$(ECHO) ""
+	@$(ECHO) "PTModel:"
+	@$(call RUN_PROG_OPT,PTModel,-in_positive PTModel_1_input_positive.idXML -in_negative PTModel_1_input_negative.idXML -out PTModel_1_output.tmp -ini PTModel_1_parameters.ini)
+	@$(SED) 's/^.*prob.*$$//g' PTModel_1_output.tmp > PTModel_1_output.tmp_
+	@$(call TEST_FILE_EQUAL,PTModel_1_output.tmp_,PTModel_1_output.model)
+	@$(call TEST_FILE_EQUAL,PTModel_1_output.tmp_samples,PTModel_1_output.samples)
+	@$(call TEST_FILE_EQUAL,PTModel_1_output.tmp_additional_parameters,PTModel_1_output.additional_parameters)
+	@$(RM) -rf PTModel_1_output.tmp_additional_parameters PTModel_1_output.tmp_samples
+	
+
+PTPredict_test: make_fuzzydiff
+	@$(ECHO) ""
+	@$(ECHO) "PTPredict:"
+	@$(call RUN_PROG_OPT,PTPredict,-in PTPredict_1_input.idXML -out PTPredict_1_output.tmp_ -svm_model PTPredict_1_input.model)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' PTPredict_1_output.tmp_ > PTPredict_1_output.tmp
+	@$(call TEST_FILE_EQUAL,PTPredict_1_output.idXML)
+
 
 RTPredict_test: make_fuzzydiff
 	@$(ECHO) ""
@@ -752,7 +786,7 @@ InternalCalibration_test: make_fuzzydiff
 
 TOFCalibration_test: make_fuzzydiff
 	@$(ECHO) ""
-	@$(ECHO) "TOFCalibration_test:"
+	@$(ECHO) "TOFCalibration:"
 	@$(ECHO) "- Test1: calibration of raw data"
 	@$(call RUN_PROG_OPT,TOFCalibration,-in TOFCalibration_1_input.mzData -out TOFCalibration_1_output.tmp -ref_masses TOFCalibration_ref_masses -ini TOFCalibration_parameters.ini -tof_const TOFCalibration_const -ext_calibrants TOFCalibration_1_calibrants.mzData)
 	@$(call TEST_FILE_EQUAL,TOFCalibration_1_output.mzData)
@@ -769,7 +803,8 @@ TextExporter_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,TextExporter.tmp,TextExporter_1_output.txt)
 
 	@$(ECHO) "- Test 2: ConsensusXML test"
-	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_2_input.consensusXML -no_progress -out TextExporter.tmp)
+	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_2_input.consensusXML -no_progress -out TextExporter.tmp_)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' TextExporter.tmp_ > TextExporter.tmp
 	@$(call TEST_FILE_EQUAL,TextExporter.tmp,TextExporter_2_output.txt)
 
 	@$(ECHO) "- Test 3: IdXML test"
@@ -800,20 +835,24 @@ FeatureLinker_test: make_fuzzydiff
 	@$(ECHO) "FeatureLinker:"
 
 	@$(ECHO) "- Test 1: labeled"
-	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_1_parameters.ini -in FeatureLinker_1_input.featureXML -out FeatureLinker_1_output.tmp)
-	@$(call TEST_FILE_EQUAL,FeatureLinker_1_output.tmp,FeatureLinker_1_output.consensusXML)
+	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_1_parameters.ini -in FeatureLinker_1_input.featureXML)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' FeatureLinker.tmp_ > FeatureLinker.tmp
+	@$(call TEST_FILE_EQUAL,FeatureLinker.tmp,FeatureLinker_1_output.consensusXML)
 
 	@$(ECHO) "- Test 2: unlabeled (big dataset)"
 	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_2_parameters.ini)
-	@$(call TEST_FILE_EQUAL,FeatureLinker_2_output.tmp,FeatureLinker_2_output.consensusXML)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' FeatureLinker.tmp_ > FeatureLinker.tmp
+	@$(call TEST_FILE_EQUAL,FeatureLinker.tmp,FeatureLinker_2_output.consensusXML)
 
 	@$(ECHO) "- Test 3: unlabeled (small dataset)"
 	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_3_parameters.ini)
-	@$(call TEST_FILE_EQUAL,FeatureLinker_3_output.tmp,FeatureLinker_3_output.consensusXML)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' FeatureLinker.tmp_ > FeatureLinker.tmp
+	@$(call TEST_FILE_EQUAL,FeatureLinker.tmp,FeatureLinker_3_output.consensusXML)
 
 	@$(ECHO) "- Test 4: unlabeled (small dataset)"
 	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_4_parameters.ini)
-	@$(call TEST_FILE_EQUAL,FeatureLinker_4_output.tmp,FeatureLinker_4_output.consensusXML)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' FeatureLinker.tmp_ > FeatureLinker.tmp
+	@$(call TEST_FILE_EQUAL,FeatureLinker.tmp,FeatureLinker_4_output.consensusXML)
 
 
 

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -73,7 +73,7 @@ CHECK(EdwardsLippertIterator(const EdwardsLippertIterator &))
 	TEST_EQUAL ((**ptr).second,(*copy).second);
 RESULT
 
-CHECK(virtual void setFastaFile(const String &f) throw (Exception::FileNotFound))
+CHECK(virtual void setFastaFile(const String &f))
 	ptr = new EdwardsLippertIterator();
 	TEST_EXCEPTION (Exception::FileNotFound,ptr->setFastaFile("FileThatNotExists"));
 	TEST_EXCEPTION (Exception::FileNotFound,ptr->setFastaFile(""));
@@ -90,7 +90,7 @@ RESULT
 
 
 
-CHECK(virtual FASTAEntry operator *() throw (Exception::InvalidIterator))
+CHECK(virtual FASTAEntry operator *())
 	float masse[255];
 	ResidueDB* rdb = ResidueDB::getInstance();
 		
@@ -151,7 +151,7 @@ CHECK(virtual FASTAEntry operator *() throw (Exception::InvalidIterator))
 	}
 RESULT
 
-CHECK(virtual PepIterator& operator++() throw (Exception::InvalidIterator))
+CHECK(virtual PepIterator& operator++())
 	ptr = new EdwardsLippertIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, ++(*ptr));
 	ptr->setFastaFile("data/EdwardsLippertIterator_test.fasta");
@@ -165,7 +165,7 @@ CHECK(virtual PepIterator& operator++() throw (Exception::InvalidIterator))
 	TEST_EQUAL ((*pepIt).second,(**ptr).second);
 RESULT
 
-CHECK(virtual PepIterator* operator++(int i) throw (Exception::InvalidIterator))
+CHECK(virtual PepIterator* operator++(int i))
 	ptr = new EdwardsLippertIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, (*ptr)++);
 	ptr->setFastaFile("data/EdwardsLippertIterator_test.fasta");
@@ -177,7 +177,7 @@ CHECK(virtual PepIterator* operator++(int i) throw (Exception::InvalidIterator))
 	TEST_EQUAL ((**pepIt).second,fe.second);
 RESULT
 
-CHECK(virtual bool begin() throw (Exception::InvalidIterator))
+CHECK(virtual bool begin())
 	ptr = new EdwardsLippertIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, (*ptr).begin());
 	ptr->setFastaFile("data/EdwardsLippertIterator_test.fasta");
@@ -201,7 +201,7 @@ CHECK(bool isAtEnd ())
 	TEST_EQUAL(ptr->isAtEnd(),1);
 RESULT
 
-CHECK(virtual void setTolerance(float t) throw (Exception::InvalidValue))
+CHECK(virtual void setTolerance(float t))
 	ptr = new EdwardsLippertIterator();
 	ptr->setTolerance(0.4);
 	TEST_REAL_EQUAL(0.4,ptr->getTolerance());
@@ -215,7 +215,7 @@ CHECK(virtual float getTolerance())
 	TEST_REAL_EQUAL(0.4,ptr->getTolerance());
 RESULT
 
-CHECK(virtual void setSpectrum(const std::vector< float > &s) throw (Exception::InvalidValue))
+CHECK(virtual void setSpectrum(const std::vector< float > &s))
 	ptr = new EdwardsLippertIterator();
 	ptr->setSpectrum(specc);
 	vector<float> spec2;
@@ -244,9 +244,9 @@ CHECK(virtual bool isDigestingEnd(char, char))
 	TEST_EQUAL(ptr->isDigestingEnd('S','S'),1)
 RESULT
 
-CHECK(static const std::string getName())
+CHECK(static const String getProductName())
 	ptr = new EdwardsLippertIterator();
-	TEST_EQUAL(ptr->getName(),"EdwardsLippertIterator");
+	TEST_EQUAL(ptr->getProductName(),"EdwardsLippertIterator");
 RESULT
 
 CHECK(static PepIterator* create())

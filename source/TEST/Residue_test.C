@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -67,103 +67,104 @@ CHECK((static DoubleReal getInternalToFullAverageWeight()))
 RESULT
 
 CHECK((static DoubleReal getInternalToFullMonoWeight()))
-
+	PRECISION(0.001)
+	TEST_REAL_EQUAL(e_ptr->getInternalToFullMonoWeight(), 18.0106)
 RESULT
 
 CHECK((static const EmpiricalFormula& getNTerminalToFull()))
-
+	TEST_EQUAL(e_ptr->getNTerminalToFull() == EmpiricalFormula("OH"), true)
 RESULT
 
 CHECK((static DoubleReal getNTerminalToFullAverageWeight()))
-
+	TEST_REAL_EQUAL(e_ptr->getNTerminalToFullAverageWeight(), 17.0073)
 RESULT
 
 CHECK((static DoubleReal getNTerminalToFullMonoWeight()))
-
+	TEST_REAL_EQUAL(e_ptr->getNTerminalToFullMonoWeight(), 17.0027)
 RESULT
 
 CHECK((static const EmpiricalFormula& getCTerminalToFull()))
-
+	TEST_EQUAL(e_ptr->getCTerminalToFull() == EmpiricalFormula("H"), true)
 RESULT
 
 CHECK((static DoubleReal getCTerminalToFullAverageWeight()))
-
+	TEST_REAL_EQUAL(e_ptr->getCTerminalToFullAverageWeight(), 1.00794)
 RESULT
 
 CHECK((static DoubleReal getCTerminalToFullMonoWeight()))
-
+	TEST_REAL_EQUAL(e_ptr->getCTerminalToFullMonoWeight(), 1.00783)
 RESULT
 
 CHECK((static const EmpiricalFormula& getBIonToFull()))
-
+	TEST_EQUAL(e_ptr->getBIonToFull(), EmpiricalFormula("OH"))
 RESULT
 
 CHECK((static DoubleReal getBIonToFullAverageWeight()))
-
+	TEST_REAL_EQUAL(e_ptr->getBIonToFullAverageWeight(), 17.0073)
 RESULT
 
 CHECK((static DoubleReal getBIonToFullMonoWeight()))
-
+	TEST_REAL_EQUAL(e_ptr->getBIonToFullMonoWeight(), 17.0027)
 RESULT
 
 CHECK((static const EmpiricalFormula& getAIonToFull()))
-
+	TEST_EQUAL(e_ptr->getAIonToFull(), EmpiricalFormula("O2HC"))
 RESULT
 
 CHECK((static DoubleReal getAIonToFullAverageWeight()))
-
+	TEST_REAL_EQUAL(e_ptr->getAIonToFullAverageWeight(), 45.0174)
 RESULT
 
 CHECK((static DoubleReal getAIonToFullMonoWeight()))
-
+	TEST_REAL_EQUAL(e_ptr->getAIonToFullMonoWeight(), 44.9976)
 RESULT
 
 CHECK((static const EmpiricalFormula& getYIonToFull()))
-
+	TEST_EQUAL(e_ptr->getYIonToFull(), EmpiricalFormula(""))
 RESULT
 
 CHECK((static DoubleReal getYIonToFullAverageWeight()))
-
+	TEST_REAL_EQUAL(e_ptr->getYIonToFullAverageWeight(), 0)
 RESULT
 
 CHECK((static DoubleReal getYIonToFullMonoWeight()))
-
+	TEST_REAL_EQUAL(e_ptr->getYIonToFullMonoWeight(), 0)
 RESULT
 
 CHECK((static const EmpiricalFormula& getCIonToFull()))
-
+	TEST_EQUAL(e_ptr->getCIonToFull(), EmpiricalFormula(""))
 RESULT
 
 CHECK((static DoubleReal getCIonToFullAverageWeight()))
-
+	TEST_EQUAL(e_ptr->getCIonToFullAverageWeight(), 0)
 RESULT
 
 CHECK((static DoubleReal getCIonToFullMonoWeight()))
-
+	TEST_EQUAL(e_ptr->getCIonToFullMonoWeight(), 0)
 RESULT
 
 CHECK((static const EmpiricalFormula& getXIonToFull()))
-
+	TEST_EQUAL(e_ptr->getXIonToFull(), EmpiricalFormula("OCH"))
 RESULT
 
 CHECK((static DoubleReal getXIonToFullAverageWeight()))
-
+	TEST_REAL_EQUAL(e_ptr->getXIonToFullAverageWeight(), 29.018)
 RESULT
 
 CHECK((static DoubleReal getXIonToFullMonoWeight()))
-
+	TEST_REAL_EQUAL(e_ptr->getXIonToFullMonoWeight(), 29.0027)
 RESULT
 
 CHECK((static const EmpiricalFormula& getZIonToFull()))
-
+	TEST_EQUAL(e_ptr->getZIonToFull(), EmpiricalFormula("NH2"))
 RESULT
 
 CHECK((static DoubleReal getZIonToFullAverageWeight()))
-
+	TEST_REAL_EQUAL(e_ptr->getZIonToFullAverageWeight(), 16.0226)
 RESULT
 
 CHECK((static DoubleReal getZIonToFullMonoWeight()))
-
+	TEST_REAL_EQUAL(e_ptr->getZIonToFullMonoWeight(), 16.0187)
 RESULT
 
 CHECK(Residue(const Residue &residue))
@@ -349,11 +350,214 @@ CHECK(bool hasNeutralLoss() const)
 RESULT
 
 CHECK(bool operator==(const Residue &residue) const)
-	// implicitly testet above
+	Residue r;
+	r = *e_ptr;
+	TEST_EQUAL(r == *e_ptr, true)
+	r.setName("other_name");
+	TEST_EQUAL(r == *e_ptr, false)
+	
+	r = *e_ptr;
+	TEST_EQUAL(r == *e_ptr, true)
+	r.setShortName("other_short_name");
+	TEST_EQUAL(r == *e_ptr, false)
+	
+	r = *e_ptr;
+	TEST_EQUAL(r == *e_ptr, true)
+	set<String> syns;
+	syns.insert("new_syn");
+	r.setSynonyms(syns);
+	TEST_EQUAL(r == *e_ptr, false)
+
+	r = *e_ptr;
+	TEST_EQUAL(r == *e_ptr, true)
+	r.setThreeLetterCode("new_3lc");
+	TEST_EQUAL(r == *e_ptr, false)
+	
+	r = *e_ptr;
+	TEST_EQUAL(r == *e_ptr, true)
+	r.setOneLetterCode("new_1lc");
+	TEST_EQUAL(r == *e_ptr, false)
+	
+	r = *e_ptr;
+	TEST_EQUAL(r == *e_ptr, true)
+	r.setLossFormula(EmpiricalFormula("C1H3"));
+	TEST_EQUAL(r == *e_ptr, false)
+	
+	r = *e_ptr;
+	TEST_EQUAL(r == *e_ptr, true)
+	r.setLossAverageWeight(123.456);
+	TEST_EQUAL(r == *e_ptr, false)
+	
+	r = *e_ptr;
+	TEST_EQUAL(r == *e_ptr, true)
+	r.setLossMonoWeight(1234.567);
+	TEST_EQUAL(r == *e_ptr, false)
+	
+	r = *e_ptr;
+	TEST_EQUAL(r == *e_ptr, true)
+	r.setLossName("new_loss_name");
+	TEST_EQUAL(r == *e_ptr, false)
+
+	r = *e_ptr;
+	TEST_EQUAL(r == *e_ptr, true)
+	r.setFormula(EmpiricalFormula("C16H18N3O5"));
+	TEST_EQUAL(r == *e_ptr, false)
+
+	r = *e_ptr;
+	TEST_EQUAL(r == *e_ptr, true)
+	r.setAverageWeight(12345.678);
+	TEST_EQUAL(r == *e_ptr, false)
+
+	r = *e_ptr;
+	TEST_EQUAL(r == *e_ptr, true)
+	r.setMonoWeight(12345.6789);
+	TEST_EQUAL(r == *e_ptr, false)
+				
+	//r = *e_ptr;
+	//TEST_EQUAL(r == *e_ptr, true)
+	//r.setModification("MOD:00010");
+	//TEST_EQUAL(r == *e_ptr, false)
+
+	r = *e_ptr;
+	TEST_EQUAL(r == *e_ptr, true);
+	vector<EmpiricalFormula> low_mass_ions;
+	low_mass_ions.push_back(EmpiricalFormula("H"));
+	r.setLowMassIons(low_mass_ions);
+	TEST_EQUAL(r == *e_ptr, false);
+
+	r = *e_ptr;
+	TEST_EQUAL(r == *e_ptr, true)
+	r.setPka(123456.789);
+	TEST_EQUAL(r == *e_ptr, false);
+
+	r = *e_ptr;
+	TEST_EQUAL(r == *e_ptr, true);
+	r.setPkb(1234567.89);
+	TEST_EQUAL(r == *e_ptr, false);
+
+	r = *e_ptr;
+	TEST_EQUAL(r == *e_ptr, true);
+	r.setPkc(12345678.9);
+	TEST_EQUAL(r == *e_ptr, false)
+
+	r = *e_ptr;
+	TEST_EQUAL(r == *e_ptr, true)
+	r.setSideChainBasicity(111.2345);
+	TEST_EQUAL(r == *e_ptr, false)
+	
+	r = *e_ptr;
+	TEST_EQUAL(r == *e_ptr, true)
+	r.setBackboneBasicityLeft(1112.345);
+	TEST_EQUAL(r == *e_ptr, false)
+	
+	r = *e_ptr;
+	TEST_EQUAL(r == *e_ptr, true)
+	r.setBackboneBasicityRight(11123.45);
+	TEST_EQUAL(r == *e_ptr, false)
 RESULT
     
 CHECK(bool operator!=(const Residue &residue) const)
-	// implicitly tested above
+  Residue r;
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setName("other_name");
+  TEST_EQUAL(r != *e_ptr, true)
+
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setShortName("other_short_name");
+  TEST_EQUAL(r != *e_ptr, true)
+
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  set<String> syns;
+  syns.insert("new_syn");
+  r.setSynonyms(syns);
+  TEST_EQUAL(r != *e_ptr, true)
+
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setThreeLetterCode("new_3lc");
+  TEST_EQUAL(r != *e_ptr, true)
+
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setOneLetterCode("new_1lc");
+  TEST_EQUAL(r != *e_ptr, true)
+
+	r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setLossFormula(EmpiricalFormula("C1H3"));
+  TEST_EQUAL(r != *e_ptr, true)
+
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setLossAverageWeight(123.456);
+  TEST_EQUAL(r != *e_ptr, true)
+
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setLossMonoWeight(1234.567);
+  TEST_EQUAL(r != *e_ptr, true)
+
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setLossName("new_loss_name");
+  TEST_EQUAL(r != *e_ptr, true)
+
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setFormula(EmpiricalFormula("C16H18N3O5"));
+  TEST_EQUAL(r != *e_ptr, true)
+
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setAverageWeight(12345.678);
+  TEST_EQUAL(r != *e_ptr, true)
+
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setMonoWeight(12345.6789);
+  TEST_EQUAL(r != *e_ptr, true)
+
+
+	r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false);
+  vector<EmpiricalFormula> low_mass_ions;
+  low_mass_ions.push_back(EmpiricalFormula("H"));
+  r.setLowMassIons(low_mass_ions);
+  TEST_EQUAL(r != *e_ptr, true);
+
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setPka(123456.789);
+  TEST_EQUAL(r != *e_ptr, true);
+
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false);
+  r.setPkb(1234567.89);
+  TEST_EQUAL(r != *e_ptr, true);
+
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false);
+  r.setPkc(12345678.9);
+  TEST_EQUAL(r != *e_ptr, true)
+
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setSideChainBasicity(111.2345);
+  TEST_EQUAL(r != *e_ptr, true)
+
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setBackboneBasicityLeft(1112.345);
+  TEST_EQUAL(r != *e_ptr, true)
+
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setBackboneBasicityRight(11123.45);
+  TEST_EQUAL(r != *e_ptr, true)
+				
 RESULT
 
 CHECK(bool operator==(char one_letter_code) const)

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -73,7 +73,7 @@ CHECK((BinnedSpectralContrastAngle& operator=(const BinnedSpectralContrastAngle 
 }
 RESULT
 
-CHECK((double operator()(const BinnedSpectrum &spec1, const BinnedSpectrum &spec2) const  throw (BinnedSpectrumCompareFunctor::IncompatibleBinning)))
+CHECK((double operator()(const BinnedSpectrum &spec1, const BinnedSpectrum &spec2) const))
 {
   PeakSpectrum s1, s2;
   DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);

@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -83,7 +83,10 @@ protected:
 	Param getSubsectionDefaults_(const String& /*section*/) const
 	{
 		String type = getStringOption_("type");
-		return Factory<MapAlignmentAlgorithm>::create(type)->getParameters();
+		MapAlignmentAlgorithm* alignment = Factory<MapAlignmentAlgorithm>::create(type);
+		Param tmp = alignment->getParameters();
+		delete alignment;
+		return tmp;
 	}   
 
 	ExitCodes main_(int , const char**)
@@ -207,6 +210,8 @@ protected:
 		    f.store(outs[i], feat_maps[i]);
 			}
 		}
+		
+		delete alignment;
 		
 		if (trafos.size()!=0)
 		{

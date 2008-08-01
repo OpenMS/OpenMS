@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -48,11 +48,11 @@ public:
 	/**
 	@brief constructor taking the string and the filename for writing or reading
 	@param st the string as const reference with which the suffix array will be build
-	@param saFileName the filename for writing or reading the suffix array
+	@param filename the filename for writing or reading the suffix array
 	@throw Exception::InvalidValue if string does not start with empty string ($)
-
+	@throw Exception::FileNotFound is thrown if the given filename is not found
 	*/
-	SuffixArray(const String & st, const String & sa_file_name) throw (Exception::InvalidValue, Exception::FileNotFound);
+	SuffixArray(const String & st, const String & filename);
 
 	/**
 	@brief copy constructor
@@ -72,33 +72,34 @@ public:
 	/**
 	@brief the function that will find all peptide candidates for a given spectrum
 	@param spec const reference of double vector describing the spectrum
+	@param candidates the candidates which are returned for the masses given in spec
 	@return a vector of int pairs.
-	@throw Exception::InvalidValue if the spectrum is not sorted ascendingly
+	@throw InvalidValue if the spectrum is not sorted ascendingly
 	
 	*/
-	virtual void findSpec(std::vector<std::vector<std::pair<std::pair<int, int>,float > > >& candidates, const std::vector<double> & spec) throw (Exception::InvalidValue) = 0;
+	virtual void findSpec(std::vector<std::vector<std::pair<std::pair<int, int>,float > > >& candidates, const std::vector<double> & spec) = 0;
 
 	/**
 	@brief saves the suffix array to disc
 	@param filename const reference string describing the filename
 	@return bool if operation was succesful
-	@throw Exception::UnableToCreateFile if file could not be created (e.x. if you have no rigths)
+	@throw UnableToCreateFile if file could not be created (e.x. if you have no rigths)
 	*/
-	virtual bool save(const String & file_name) throw (Exception::UnableToCreateFile) = 0;
+	virtual bool save(const String & filename) = 0;
 	/**
 	@brief opens the suffix array
 	@param filename const reference string describing the filename
 	@return bool if operation was succesful
-	@throw Exception::FileNotFound
+	@throw FileNotFound
 	*/
-	virtual bool open(const String & file_name) throw (Exception::FileNotFound) = 0;
+	virtual bool open(const String & filename) = 0;
 
 	/**
 	@brief setter for tolerance
 	@param t double with tolerance
-	@throw Exception::InvalidValue if tolerance is negative
+	@throw InvalidValue if tolerance is negative
 	*/
-	virtual void setTolerance (double t) throw (Exception::InvalidValue) = 0;
+	virtual void setTolerance (double t) = 0;
 
 	/**
 	@brief getter for tolerance
@@ -110,7 +111,7 @@ public:
 	@brief returns if an enzyme will cut after first character
 	@param aa1 const char as first aminoacid
 	@param aa2 const char as second aminoacid
-	@return bool descibing if it is a digesting site
+	@return bool describing if it is a digesting site
 	*/
 	virtual bool isDigestingEnd(const char aa1, const char aa2) const = 0;
 
@@ -119,7 +120,7 @@ public:
 	@param tags const vector of strings with tags with length 3 each
 	@throw Exception::InvalidValue if at least one tag does not have size of 3
 	*/
-	virtual void setTags(const std::vector<String>& tags) throw (Exception::InvalidValue) = 0;
+	virtual void setTags(const std::vector<String>& tags) = 0;
 
 	/**
 	@brief getter for tags

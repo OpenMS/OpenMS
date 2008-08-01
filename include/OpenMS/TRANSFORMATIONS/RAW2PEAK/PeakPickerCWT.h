@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -121,15 +121,7 @@ namespace OpenMS
 			{
         return;
 			}
-			else
-			{
-				// only one "peak"
-				if (last - first == 1)
-				{
-					/// @todo handle spectra with only one raw data point -- seg. faulted (Chris Bielow)
-					return;
-				}
-			}
+
       typedef typename OutputPeakContainer::value_type OutputPeakType;
 
       //clear the peak shapes vector
@@ -262,9 +254,9 @@ namespace OpenMS
 #endif
             // determine the best fitting lorezian or sech2 function
             PeakShape shape = fitPeakShape_(area,centroid_fit);
-            shape.left_endpoint = (raw_peak_array_original.begin() + distance(raw_peak_array.begin(), area.left));
-            shape.right_endpoint = (raw_peak_array_original.begin() + distance(raw_peak_array.begin(), area.right));
-						if(shape.right_endpoint == raw_peak_array_original.end()) --shape.right_endpoint; 
+            shape.setLeftEndpoint( (raw_peak_array_original.begin() + distance(raw_peak_array.begin(), area.left)));
+            shape.setRightEndpoint ( (raw_peak_array_original.begin() + distance(raw_peak_array.begin(), area.right)));
+						if(shape.getRightEndpoint() == raw_peak_array_original.end()) shape.setRightEndpoint(raw_peak_array_original.end()-1); 
             // Use the centroid for Optimization
             shape.mz_position=area.centroid_position[0];
             if ( (shape.r_value > peak_corr_bound_)
@@ -333,8 +325,8 @@ namespace OpenMS
 														<< " with fwhm: " << peak_shapes_[i].getFWHM() 
 														<< " and " << peak_shapes_[i].left_width 
 														<< ' ' << peak_shapes_[i].right_width 
-														<< ' ' << peak_shapes_[i].left_endpoint->getMZ()
-														<< ' ' << peak_shapes_[i].right_endpoint->getMZ()
+														<< ' ' << peak_shapes_[i].getLeftEndpoint()->getMZ()
+														<< ' ' << peak_shapes_[i].getRightEndpoint()->getMZ()
 														<< std::endl;
 #endif
 									// this might be a convolved peak pattern
@@ -727,7 +719,7 @@ namespace OpenMS
     bool deconvolutePeak_(PeakShape& shape);
 
 		/// Determines the number of peaks in the given mass range using the cwt
-    int getNumberOfPeaks_(PeakIterator& first,PeakIterator& last, std::vector<double>& peak_values,
+    int getNumberOfPeaks_(PeakIterator first,PeakIterator last, std::vector<double>& peak_values,
 													int direction,DoubleReal resolution, ContinuousWaveletTransformNumIntegration& wt);
 
 		/// Estimate the charge state of the peaks

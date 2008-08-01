@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -74,13 +74,22 @@ namespace OpenMS
 				@param p_value_threshold the significance level (for the peptide hit scores)
 				@param dta_filenames_and_precursor_retention_times retention times
 
+				@throw Exception::FileNotFound is thrown if the result file could not be found
+				@throw Exception::ParseErro is thrown if the results file could not be parsed
+
 				This class serves to read in a PepNovo outfile. The information can be
 				retrieved via the load function.
 			*/
-			void load(const std::string& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real& p_value_threshold, const std::map< String, Real >& dta_filenames_and_precursor_retention_times) throw (Exception::FileNotFound, Exception::ParseError);
+			void load(const std::string& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real& p_value_threshold, const std::map< String, Real >& dta_filenames_and_precursor_retention_times);
 
-			/// get the search engine and it's version from a file that is the output of PepNovo run without parameters
-			void getSearchEngineAndVersion(const String& pepnovo_output_without_parameters_filename, ProteinIdentification& protein_identification) throw (Exception::FileNotFound);
+			/** get the search engine and it's version from a file that is the output of PepNovo run without parameters
+
+				@param pepnovo_output_without_parameters_filename
+				@param protein_identification 
+
+				@throw Exception::FileNotFound is thrown if the results file could not be found
+			*/
+			void getSearchEngineAndVersion(const String& pepnovo_output_without_parameters_filename, ProteinIdentification& protein_identification);
 
 	};
 

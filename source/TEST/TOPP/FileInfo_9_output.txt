@@ -1,0 +1,25 @@
+
+-- General information --
+
+file name: FileInfo_9_input.mzML
+file type: mzML
+
+peak type (metadata) : Unknown
+peak type (estimated): Raw data
+raw data spacing: 1
+
+Number of peaks: 25
+
+retention time range: 5.8905 / 6.0905
+m/z range: 0 / 18
+intensity range: 1 / 20
+MS levels: 1, 2
+
+Spectra of MS Level 1: 2
+Spectra of MS Level 2: 1
+
+Meta data array: charge (for 1 spectra)
+Meta data array: signal to noise (for 1 spectra)
+
+
+

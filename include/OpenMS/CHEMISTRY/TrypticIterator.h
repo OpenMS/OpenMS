@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -58,30 +58,30 @@ class TrypticIterator : public PepIterator
 	/**
 	@brief * operator for getting the value of the iterator
 	@return FASTAEntry with specific candidate
-	@throw Exception::InvalidIterator if iterator has not been initialized
+	@throw InvalidIterator if iterator has not been initialized
 	*/
-	virtual FASTAEntry operator*() throw (Exception::InvalidIterator);
+	virtual FASTAEntry operator*();
 	
 	/**
 	@brief opperator ++ for postincrement
 	@return Reference to PepIterator
-	@throw Exception::InvalidIterator if iterator has not been initialized
+	@throw InvalidIterator if iterator has not been initialized
 	*/
-	virtual PepIterator & operator++() throw (Exception::InvalidIterator);
+	virtual PepIterator & operator++();
 	
 	/**
 	@brief opperator ++ for preincrement
 	@return pointer to PepIterator
-	@throw Exception::InvalidIterator if iterator has not been initialized
+	@throw InvalidIterator if iterator has not been initialized
 	*/
-	virtual PepIterator * operator++(int i) throw (Exception::InvalidIterator);
+	virtual PepIterator * operator++(int i);
 
 	/**
 	@brief setter for fasta file
 	@param f String with fasta file location
-	@throw Exception::FileNotFound if file could not be found
+	@throw FileNotFound if file could not be found
 	*/
-	virtual void setFastaFile (const String & f) throw (Exception::FileNotFound);
+	virtual void setFastaFile (const String& f);
 	
 	/**
 	@brief getter for FASTA file
@@ -91,9 +91,9 @@ class TrypticIterator : public PepIterator
 
 	/**
 	@brief setter for tolerance
-	@throw Exception::NotImplemented because its not available for tryptic iterator
+	@throw NotImplemented because its not available for tryptic iterator
 	*/
-	virtual void setTolerance (float) throw (Exception::InvalidValue, Exception::NotImplemented)
+	virtual void setTolerance (float)
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	};
@@ -101,18 +101,18 @@ class TrypticIterator : public PepIterator
 	/**
 	@brief getter for tolerance
 	@return tolerance
-	@throw Exception::NotImplemented because its not available for tryptic iterator
+	@throw NotImplemented because its not available for tryptic iterator
 	*/
-	virtual float getTolerance () throw (Exception::InvalidValue, Exception::NotImplemented)
+	virtual float getTolerance ()
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	};
 
 	/**
 	@brief setter for spectrum
-	@throw Exception::NotImplemented because its not available for tryptic iterator
+	@throw NotImplemented because its not available for tryptic iterator
 	*/
-	virtual void setSpectrum (const std::vector<float> & ) throw (Exception::InvalidValue, Exception::NotImplemented)
+	virtual void setSpectrum (const std::vector<float> & )
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	};
@@ -120,9 +120,9 @@ class TrypticIterator : public PepIterator
 	/**
 	@brief getter for spectrum
 	@return the used spectrum
-	@throw Exception::NotImplemented because its not available for tryptic iterator
+	@throw NotImplemented because its not available for tryptic iterator
 	*/
-	virtual const std::vector<float> & getSpectrum () throw (Exception::InvalidValue, Exception::NotImplemented)
+	virtual const std::vector<float> & getSpectrum ()
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	};
@@ -130,8 +130,9 @@ class TrypticIterator : public PepIterator
 	/**
 	@brief initializing iterator
 	@return true if everything was ok
+	@throw throws InvalidIterator if begin iterator is not valid
 	*/
-	virtual bool begin () throw (Exception::InvalidIterator);
+	virtual bool begin ();
 
 	/**
 	@brief indicates whether iterator is at end
@@ -150,7 +151,7 @@ class TrypticIterator : public PepIterator
 	@brief needed by FactoryProduct
 	@return const string name of class
 	*/
-	static const std::string getName()
+	static const String getProductName()
 	{
 		return "TrypticIterator";
 	}

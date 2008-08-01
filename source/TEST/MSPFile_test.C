@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -50,14 +50,56 @@ CHECK((~MSPFile()))
 	delete ptr;
 RESULT
 
-CHECK(template <typename MapType> void load(const String &filename, std::vector< PeptideIdentification > &ids, MapType &exp))
-	MSPFile msp_file;
-	vector<PeptideIdentification> ids;
-	PeakMap exp;
+CHECK(MSPFile(const MSPFile &rhs))
+	MSPFile f1, f2;
+	Param p = f1.getParameters();
+	p.setValue("instrument", "it");
+	f1.setParameters(p);
+	TEST_EQUAL(f1.getParameters() == f2.getParameters(), false)
+	MSPFile f3(f1);
+	TEST_EQUAL(f1.getParameters() == f3.getParameters(), true)
 RESULT
 
-CHECK((template <typename MapType> void store(const String &filename, const MapType &map) const throw (Exception::UnableToCreateFile)))
+CHECK(MSPFile& operator=(const MSPFile &rhs))
+	MSPFile f1, f2;
+	Param p = f1.getParameters();
+	p.setValue("instrument", "it");
+	f1.setParameters(p);
+	TEST_EQUAL(f1.getParameters() == f2.getParameters(), false)
+	f2 = f1;
+	TEST_EQUAL(f1.getParameters() == f2.getParameters(), true)
+RESULT
 
+CHECK(void load(const String &filename, std::vector< PeptideIdentification > &ids, RichPeakMap &exp))
+	MSPFile msp_file;
+	vector<PeptideIdentification> ids;
+	RichPeakMap exp;
+	msp_file.load("data/MSPFile_test.msp", ids, exp);
+	TEST_EQUAL(exp.size(), 5)
+	TEST_EQUAL(ids.size(), 5)
+
+	Param p(msp_file.getParameters());
+	p.setValue("instrument", "qtof");
+	msp_file.setParameters(p);
+	ids.clear();
+	exp.clear();
+	msp_file.load("data/MSPFile_test.msp", ids, exp);
+	TEST_EQUAL(exp.size(), 2)
+	TEST_EQUAL(ids.size(), 2)
+
+	p.setValue("instrument", "it");
+	msp_file.setParameters(p);
+	ids.clear();
+	exp.clear();
+	msp_file.load("data/MSPFile_test.msp", ids, exp);
+	TEST_EQUAL(exp.size(), 3)
+	TEST_EQUAL(ids.size(), 3)
+RESULT
+
+CHECK(void store(const String &, const RichPeakMap &) const)
+	MSPFile msp_file;
+	RichPeakMap exp;
+	TEST_EXCEPTION(Exception::NotImplemented, msp_file.store("this_file_will_never_be_created", exp))
 RESULT
 
 /////////////////////////////////////////////////////////////

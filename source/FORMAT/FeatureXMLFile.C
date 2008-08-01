@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -24,7 +24,7 @@
 // $Maintainer: Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
-#include<OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/FeatureXMLHandler.h>
 
 namespace OpenMS 

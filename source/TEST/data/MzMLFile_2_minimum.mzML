@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mzML xmlns="http://psi.hupo.org/schema_revision/mzML_1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/schema_revision/mzML_1.0.0 mzML1.0.0.xsd" id="urn:lsid:psidev.info:mzML.instanceDocuments.tiny.pwiz" version="1.0">
+	<cvList count="1">
+    <cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" version="2.0.2" URI="http://psidev.sourceforge.net/ms/xml/mzdata/psi-ms.2.0.2.obo"/>
+	</cvList>
+	<fileDescription>
+		<fileContent/>
+	</fileDescription>
+	<instrumentConfigurationList count="1">
+		<instrumentConfiguration id="ID_1">
+			<componentList count="1">
+				<source order="0"/>
+				<analyzer order="1"/>
+				<detector order="2"/>
+			</componentList>
+		</instrumentConfiguration>
+	</instrumentConfigurationList>
+	<softwareList count="1">
+		<software id="ID_2">
+      <softwareParam cvRef="MS" accession="MS:1000533" name="Bioworks" version="3.3.1 sp1"/>
+		</software>
+	</softwareList>
+	<dataProcessingList count="1">
+		<dataProcessing softwareRef="ID_2" id="ID_3">
+			<processingMethod order="1"/>
+			<processingMethod order="1"/>
+		</dataProcessing>
+	</dataProcessingList>
+	<run id="ID_9" defaultInstrumentConfigurationRef="ID_1">
+		<spectrumList count="0"/>
+	</run>
+</mzML>

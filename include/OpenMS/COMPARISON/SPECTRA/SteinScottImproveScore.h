@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -24,8 +24,8 @@
 // $Maintainer: Vipul Patel $
 // --------------------------------------------------------------------------
 //
-#ifndef STEINSCOTTIMPROVESCORE_H
-#define STEINSCOTTIMPROVESCORE_H
+#ifndef OPENMS_COMPARISON_SPECTRA_STEINSCOTTIMPROVESCORE_H
+#define OPENMS_COMPARISON_SPECTRA_STEINSCOTTIMPROVESCORE_H
 
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -54,6 +54,9 @@ namespace OpenMS
 		Amanda Paulovich, Mark Flory, Hookeun Lee, Ruedi Aebersold,
 		and Benno Schwikowski
 		
+		@ref SteinScottImproveScore_Parameters are explained on a separate page.
+		
+		@ingroup SpectraComparison
 	*/
 	class SteinScottImproveScore
 		: public PeakSpectrumCompareFunctor
@@ -73,8 +76,8 @@ namespace OpenMS
 			
 			This function return the similarity score of two Spectrums based on SteinScott.
 			
-			@param s1  const PeakSpectrum Spectrum 1
-	   	@param s2  const PeakSpectrum Spectrum 2 
+			@param spec1  const PeakSpectrum Spectrum 1
+			@param spec2  const PeakSpectrum Spectrum 2 
 	   	@see SteinScottImproveScore()
 		*/
 		double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const;
@@ -99,5 +102,5 @@ namespace OpenMS
 }
 
 
-#endif /*STEINSCOTTIMPROVESCORE_H*/
+#endif /*OPENMS_COMPARISON_SPECTRA_STEINSCOTTIMPROVESCORE_H*/
 

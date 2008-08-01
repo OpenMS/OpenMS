@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -29,7 +29,7 @@
 #include <fstream>
 
 #define IDDECOYPROBABILITY_DEBUG
-#undef  IDDECOYPROBABILITY_DEBUG
+//#undef  IDDECOYPROBABILITY_DEBUG
 
 using namespace std;
 
@@ -59,7 +59,7 @@ namespace OpenMS
 	{
 	}
 
-	void IDDecoyProbability::apply(vector<PeptideIdentification>& prob_ids, const vector<PeptideIdentification>& orig_fwd_ids, const vector<PeptideIdentification>& rev_ids) throw (Exception::MissingInformation)
+	void IDDecoyProbability::apply(vector<PeptideIdentification>& prob_ids, const vector<PeptideIdentification>& orig_fwd_ids, const vector<PeptideIdentification>& rev_ids)
 	{
 		double number_of_bins((double)param_.getValue("number_of_bins"));
 		double lower_score_better_default_value_if_zero((double)param_.getValue("lower_score_better_default_value_if_zero"));
@@ -161,6 +161,7 @@ namespace OpenMS
   	cerr << gdf.getGnuplotFormula() << endl;
 		String rev_filename = param_.getValue("rev_filename");
 		generateDistributionImage(rev_scores_normalized, gdf.getGnuplotFormula(), rev_filename);
+		cerr << "blubb" << endl;
 #endif
 		
   	// generate diffs of distributions
@@ -210,6 +211,10 @@ namespace OpenMS
     	}
   	}
 
+#ifdef IDDECOYPROBABILITY_DEBUG
+		cerr << "Trying to get diff scores" << endl;
+#endif
+		
   	// get diff of fwd and rev
   	for (UInt i = 0; i < number_of_bins; ++i)
   	{
@@ -310,8 +315,8 @@ namespace OpenMS
 					{
 						score = -log10(score);
 					}
-					hit.setScore(getProbability_(result_gamma, rev_trafo, result_gauss, fwd_trafo, score));
 					hit.setMetaValue(score_type, hit.getScore());
+					hit.setScore(getProbability_(result_gamma, rev_trafo, result_gauss, fwd_trafo, score));
 					hits.push_back(hit);
 				}
 				PeptideIdentification id = *it;
@@ -442,7 +447,14 @@ namespace OpenMS
   	ofstream o((filename + "_dist_tmp.dat").c_str());
   	for (UInt i = 0; i < number_of_bins; ++i)
   	{
-    	o << (double)i / number_of_bins << " " << ids[(double)i/number_of_bins] << endl;
+			if (ids.has((double)i/number_of_bins))
+			{
+    		o << (double)i / number_of_bins << " " << ids[(double)i/number_of_bins] << endl;
+			}
+			else
+			{
+				cerr << "Error: some bins are not present!" << endl;
+			}
   	}
   	o.close();
 

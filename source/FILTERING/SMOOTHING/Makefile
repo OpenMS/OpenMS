@@ -1,4 +1,4 @@
-# -*- Mode: make; tab-width: 2; -*-
+# -*- mode: makefile; tab-width: 2; -*-
 # vi: set ts=2:
 #
 # --------------------------------------------------------------------------
@@ -29,8 +29,7 @@ DIRECTORY=FILTERING/SMOOTHING
 
 include ../../config_defs.mak
 
-CPP_SOURCES= \
-	SmoothFilter.C\
+CPP_SOURCES=\
 	GaussFilter.C\
 	SavitzkyGolayFilter.C
 

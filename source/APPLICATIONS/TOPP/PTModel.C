@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -157,7 +157,7 @@ class TOPPPTModel
 			registerOutputFile_("out","<file>","","output file: the model in libsvm format");
 			registerDoubleOption_("c","<float>",1,"the penalty parameter of the svm",false);
 			registerStringOption_("svm_type","<type>","C_SVC","the type of the svm (NU_SVC or C_SVC)\n",false);
-			setValidStrings_("svm_type",StringList::create("NU_SVR,NU_SVC,EPSILON_SVR,C_SVC"));
+			setValidStrings_("svm_type",StringList::create("NU_SVC,C_SVC"));
 			registerDoubleOption_("nu","<float>",0.5,"the nu parameter [0..1] of the svm (for nu-SVR)",false);
 			setMinFloat_("nu", 0);
 			setMaxFloat_("nu", 1);
@@ -256,7 +256,7 @@ class TOPPPTModel
  			String type = getStringOption_("svm_type");
 			if (type == "NU_SVC")
 			{
-				svm.setParameter(SVM_TYPE, NU_SVR);
+				svm.setParameter(SVM_TYPE, NU_SVC);
 			}
 			else if (type == "C_SVC")
 			{
@@ -312,70 +312,79 @@ class TOPPPTModel
 			}
 
 			//grid search parameters
-			UInt degree_start = 0;
-			if (setByUser_("degree_start"))
+			if (svm.getIntParameter(KERNEL_TYPE) == POLY)
 			{
-				degree_start = getIntOption_("degree_start");
-			}
-			UInt degree_step_size = 0;
-			if (setByUser_("degree_step_size"))
-			{
-				degree_step_size = getIntOption_("degree_step_size");
-			}
-			UInt degree_stop = 0;
-			if (setByUser_("degree_stop"))
-			{
-				degree_stop = getIntOption_("degree_stop");
-			}
-			if (degree_start != 0 && degree_step_size != 0 && degree_stop != 0)
-			{
-				start_values.insert(make_pair(DEGREE, degree_start));
-				step_sizes.insert(make_pair(DEGREE, degree_step_size));
-				end_values.insert(make_pair(DEGREE, degree_stop));	
+				UInt degree_start = 0;
+				if (setByUser_("degree_start"))
+				{
+					degree_start = getIntOption_("degree_start");
+				}
+				UInt degree_step_size = 0;
+				if (setByUser_("degree_step_size"))
+				{
+					degree_step_size = getIntOption_("degree_step_size");
+				}
+				UInt degree_stop = 0;
+				if (setByUser_("degree_stop"))
+				{
+					degree_stop = getIntOption_("degree_stop");
+				}
+				if (degree_start != 0 && degree_step_size != 0 && degree_stop != 0)
+				{
+					start_values.insert(make_pair(DEGREE, degree_start));
+					step_sizes.insert(make_pair(DEGREE, degree_step_size));
+					end_values.insert(make_pair(DEGREE, degree_stop));	
+				}
 			}
 			
-			DoubleReal c_start = 0.;
-			DoubleReal c_step_size = 0.;
-			DoubleReal c_stop = 0.;
-			if (setByUser_("c_start"))
-			{
-				c_start = getDoubleOption_("c_start");
+			if (svm.getIntParameter(SVM_TYPE) == C_SVC)
+			{			
+				DoubleReal c_start = 0.;
+				DoubleReal c_step_size = 0.;
+				DoubleReal c_stop = 0.;
+				if (setByUser_("c_start"))
+				{
+					c_start = getDoubleOption_("c_start");
+				}
+				if (setByUser_("c_step_size"))
+				{
+					c_step_size = getDoubleOption_("c_step_size");
+				}
+				if (setByUser_("c_stop"))
+				{
+					c_stop = getDoubleOption_("c_stop");
+				}
+				if (c_start != 0.0 && c_step_size != 0.0 && c_stop != 0.0)
+				{
+					start_values.insert(make_pair(C, c_start));
+					step_sizes.insert(make_pair(C, c_step_size));
+					end_values.insert(make_pair(C, c_stop));	
+				}			
 			}
-			if (setByUser_("c_step_size"))
-			{
-				c_step_size = getDoubleOption_("c_step_size");
-			}
-			if (setByUser_("c_stop"))
-			{
-				c_stop = getDoubleOption_("c_stop");
-			}
-			if (c_start != 0.0 && c_step_size != 0.0 && c_stop != 0.0)
-			{
-				start_values.insert(make_pair(C, c_start));
-				step_sizes.insert(make_pair(C, c_step_size));
-				end_values.insert(make_pair(C, c_stop));	
-			}			
 
-			DoubleReal nu_start = 0.;
-			DoubleReal nu_step_size = 0.;
-			DoubleReal nu_stop = 0.;
-			if (setByUser_("nu_start"))
-			{
-				nu_start = getDoubleOption_("nu_start");
-			}
-			if (setByUser_("nu_step_size"))
-			{
-				nu_step_size = getDoubleOption_("nu_step_size");
-			}
-			if (setByUser_("nu_stop"))
-			{
-				nu_stop = getDoubleOption_("nu_stop");
-			}
-			if (nu_start != 0.0 && nu_step_size != 0.0 && nu_stop != 0.0 && svm.getIntParameter(SVM_TYPE) == NU_SVR)
-			{
-				start_values.insert(make_pair(NU, nu_start));
-				step_sizes.insert(make_pair(NU, nu_step_size));
-				end_values.insert(make_pair(NU, nu_stop));	
+			if (svm.getIntParameter(SVM_TYPE) == NU_SVC)
+			{			
+				DoubleReal nu_start = 0.;
+				DoubleReal nu_step_size = 0.;
+				DoubleReal nu_stop = 0.;
+				if (setByUser_("nu_start"))
+				{
+					nu_start = getDoubleOption_("nu_start");
+				}
+				if (setByUser_("nu_step_size"))
+				{
+					nu_step_size = getDoubleOption_("nu_step_size");
+				}
+				if (setByUser_("nu_stop"))
+				{
+					nu_stop = getDoubleOption_("nu_stop");
+				}
+				if (nu_start != 0.0 && nu_step_size != 0.0 && nu_stop != 0.0 && svm.getIntParameter(SVM_TYPE) == NU_SVR)
+				{
+					start_values.insert(make_pair(NU, nu_start));
+					step_sizes.insert(make_pair(NU, nu_step_size));
+					end_values.insert(make_pair(NU, nu_stop));	
+				}
 			}			
 
 			if (setByUser_("border_length"))

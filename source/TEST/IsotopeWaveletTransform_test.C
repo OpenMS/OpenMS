@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -40,9 +40,8 @@ using namespace std;
 START_TEST(IsotopeWaveletTransform, "$Id$")
 
 
-
 MSExperiment<> map;
-MzDataFile file; file.load ("data/IsotopeWaveletTransform_test.mzData", map);
+MzDataFile file; file.load ("data/IsotopeWaveletTransform_test_2.mzData", map);
 map.updateRanges();
 IsotopeWaveletTransform<Peak1D>* trans = 0;
 CHECK(IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge))
@@ -51,7 +50,7 @@ CHECK(IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz,
 RESULT
 
 
-CHECK((virtual std::multimap<DoubleReal, Box_> getClosedBoxes ()))
+CHECK((virtual std::multimap<DoubleReal, Box> getClosedBoxes()))
 	TEST_EQUAL(trans->getClosedBoxes().size(), 0)
 RESULT
 
@@ -85,9 +84,13 @@ CHECK((FeatureMap<Feature> mapSeeds2Features (const MSExperiment<PeakType>& map,
 	{
 		ifile >> tmp;
 		TEST_REAL_EQUAL (iter->getMZ(), tmp);
-		ifile >> tmp;
 	}
 	ifile.close();
+RESULT
+
+
+CHECK(UInt getPeakCutOff(const DoubleReal mass, const UInt z))
+	TEST_EQUAL(trans->getPeakCutOff(2000, 1), 4)
 RESULT
 
 

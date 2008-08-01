@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -44,6 +44,10 @@ namespace OpenMS
 			
 			The residues stored in this DB are defined in a
 			XML file under data/CHEMISTRY/residues.xml
+
+			By default no modified residues are stored in an instance. However, if one
+			queries the instance with getModifiedResidue, a new modified residue is 
+			added. 
 	*/
 	class ResidueDB
 	{					
@@ -54,11 +58,9 @@ namespace OpenMS
 			//@{
 			typedef std::set<Residue*>::iterator ResidueIterator;
 			typedef std::set<const Residue*>::const_iterator ResidueConstIterator;
-			
-			//typedef std::set<ResidueModification*>::iterator ResidueModificationIterator;
-			//typedef std::set<const ResidueModification*>::const_iterator ResidueModificationConstIterator;
 			//@}
 			
+			/// this member function serves as a replacement of the constructor
 			inline static ResidueDB* getInstance()
       {
         static ResidueDB* db_ = 0;

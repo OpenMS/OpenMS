@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -1026,7 +1026,7 @@ CHECK([EXTRA] storing/loading of meta data arrays)
 
 RESULT
 
-CHECK([[EXTRA] loading a minimal file containing one spectrum  - with whitespaces inside the base64 data)
+CHECK([EXTRA] loading a minimal file containing one spectrum  - with whitespaces inside the base64 data)
 	MSExperiment<> e;
   MzDataFile f;
   f.load("data/MzDataFile_test_5.mzData",e);

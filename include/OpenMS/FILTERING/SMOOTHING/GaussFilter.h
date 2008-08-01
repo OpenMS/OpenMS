@@ -1,4 +1,4 @@
-// -*- Mode: C++; tab-width: 2; -*-
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -27,10 +27,9 @@
 #ifndef OPENMS_FILTERING_SMOOTHING_GAUSSFILTER_H
 #define OPENMS_FILTERING_SMOOTHING_GAUSSFILTER_H
 
-#include <OpenMS/FILTERING/SMOOTHING/SmoothFilter.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <cmath>
 
@@ -64,16 +63,15 @@ namespace OpenMS
 //#define DEBUG_FILTERING
 
   class GaussFilter 
-  	: public SmoothFilter,
+  	: public ProgressLogger,
   		public DefaultParamHandler
   {
     public:
-      using SmoothFilter::coeffs_;
-
       /// Constructor
       inline GaussFilter()
-      : SmoothFilter(),
+      : ProgressLogger(),
         DefaultParamHandler("GaussFilter"),
+				coeffs_(),
         sigma_(0.1),
         spacing_(0.01) // this number just describes the sampling of the gauss 
       {
@@ -82,8 +80,8 @@ namespace OpenMS
 														"Use a gaussian filter kernel which has approximately the same width as your mass peaks."
       											"This width corresponds to 8 times sigma of the gaussian.");
 				defaults_.setValue("ppm_tolerance", 10.0 , "specification of the peak width, which is dependent of the m/z value. \nThe higher the value, the wider the peak and therefore the wider the gaussian.");
-				defaults_.setValue("use_mz_dependency", "false", "if true, instead of the gaussian_width value, the ppm_tolerance is used. The gaussion is calculated in each step anew!.");
-				
+				defaults_.setValue("use_ppm_tolerance", "false", "If true, instead of the gaussian_width value, the ppm_tolerance is used. The gaussion is calculated in each step anew, so this is much slower.");
+				defaults_.setValidStrings("use_ppm_tolerance", StringList::create("true,false"));
         defaultsToParam_();
       }
 
@@ -105,7 +103,7 @@ namespace OpenMS
       {
         smoothed_data_container.resize(distance(first,last));
 
-				bool use_mz_dependency(param_.getValue("use_mz_dependency").toBool());
+				bool use_ppm_tolerance(param_.getValue("use_ppm_tolerance").toBool());
 				DoubleReal ppm_tolerance((DoubleReal)param_.getValue("ppm_tolerance"));				
 
 #ifdef DEBUG_FILTERING
@@ -115,10 +113,10 @@ namespace OpenMS
 
         InputPeakIterator help = first;
         typename OutputPeakContainer::iterator out_it = smoothed_data_container.begin();
-        UInt m = 0;
+        UInt non_zero_signal_count = 0;
         while (help != last)
         {
-					if (use_mz_dependency)
+					if (use_ppm_tolerance)
           {
 						// calculate a reasonable width value for this m/z
 						param_.setValue("gaussian_width", help->getMZ() * ppm_tolerance * 10e-6);
@@ -129,7 +127,7 @@ namespace OpenMS
           DoubleReal act_int = integrate_(help,first,last);
           if (fabs(act_int) > 0)
           {
-            ++m;
+            ++non_zero_signal_count;
           }
           out_it->setIntensity(std::max(act_int, 0.0));
 
@@ -139,7 +137,7 @@ namespace OpenMS
                 
         // If all intensities are zero in the scan and the scan has a reasonable size, throw an exception. 
         // This is the case if the gaussian filter is smaller than the spacing of raw data
-        if (m == 0 && distance(first,last)>=3)
+        if (non_zero_signal_count == 0 && distance(first,last)>=3)
         { 
           throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__, "The width of the gaussian is smaller than the spacing in raw data! Try to use a greater gaussian_width value.");  
         } 
@@ -160,71 +158,31 @@ namespace OpenMS
       {
       	// copy the spectrum settings
       	static_cast<SpectrumSettings&>(smoothed_data_container) = input_peak_container;
-        
+        smoothed_data_container.setType(SpectrumSettings::RAWDATA);
         filter(input_peak_container.begin(), input_peak_container.end(), smoothed_data_container);
       }
 
 
-       /**
-       	@brief Filters every MSSpectrum in a given iterator range.
-      		
-      	Filters the data successive in every scan in the intervall [first,last).
-      	The filtered data are stored in a MSExperiment.
-      					
-        @note You have to copy the ExperimentalSettings of the raw data by your own. 	
-	      
-	      @exception Exception::IllegalArgument is thrown, if the @em gaussian_width parameter is too small.
+      /** 
+      	@brief Convenience method that removed the noise from an MSExperiment containing raw data.
       */
-      template <typename InputSpectrumIterator, typename OutputPeakType >
-      void filterExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_filtered)
+      template <typename PeakType>
+      void filterExperiment(MSExperiment<PeakType>& map)
       {
-        UInt n = distance(first,last);
-        ms_exp_filtered.reserve(n);
-        startProgress(0,n,"smoothing data");
-        
-        // pick peaks on each scan
-        for (UInt i = 0; i < n; ++i)
+        startProgress(0,map.size(),"smoothing data");
+        for (UInt i = 0; i < map.size(); ++i)
         {
-          MSSpectrum< OutputPeakType > spectrum;
-          InputSpectrumIterator input_it = first+i;
-          
-          // filter scan i
-          filter(*input_it,spectrum);
+          typename MSExperiment<PeakType>::SpectrumType spectrum;
+          filter(map[i],spectrum);
+          map[i].getContainer() = spectrum.getContainer();
           setProgress(i);
-          
-          // copy the spectrum settings
-          static_cast<SpectrumSettings&>(spectrum) = *input_it;
-          spectrum.setType(SpectrumSettings::RAWDATA);
-
-          // copy the spectrum information
-          spectrum.getPrecursorPeak() = input_it->getPrecursorPeak();
-          spectrum.setRT(input_it->getRT());
-          spectrum.setMSLevel(input_it->getMSLevel());
-          spectrum.getName() = input_it->getName();
-
-          ms_exp_filtered.push_back(spectrum);
         }
         endProgress();
       }
 
-      /** 
-      	@brief Filters a MSExperiment.
-      	
-	      Filters the data every scan in the MSExperiment.
-	      The filtered data are stored in a MSExperiment.
-	      
-	      @exception Exception::IllegalArgument is thrown, if the @em gaussian_width parameter is too small.
-      */
-      template <typename InputPeakType, typename OutputPeakType >
-      void filterExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_filtered)
-      {
-        // copy the experimental settings
-        static_cast<ExperimentalSettings&>(ms_exp_filtered) = ms_exp_raw;
-
-        filterExperiment(ms_exp_raw.begin(), ms_exp_raw.end(), ms_exp_filtered);
-      }
-
     protected:
+			///Coefficients
+			std::vector<DoubleReal> coeffs_;
       /// The standard derivation  \f$ \sigma \f$.
       DoubleReal sigma_;
       /// The spacing of the pre-tabulated kernel coefficients

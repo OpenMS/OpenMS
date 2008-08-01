@@ -1,4 +1,4 @@
-# -*- Mode: makefile; tab-width: 2; -*-
+# -*- mode: makefile; tab-width: 2; -*-
 # vi: set ts=2:
 #
 # --------------------------------------------------------------------------
@@ -37,6 +37,7 @@ ADD_CXXFLAGS=-D_FILE_OFFSET_BITS=64
 EXECUTABLES_CONCEPT = \
 	ClassTest_test\
 	Exception_Base_test\
+	FactoryBase_test\
 	Factory_test\
 	FactoryProduct_test\
 	PreciseTime_test\
@@ -62,6 +63,7 @@ EXECUTABLES_DATASTRUCTURES = \
 	Matrix_test\
 	ConvexHull2D_test\
 	DefaultParamHandler_test\
+	SuffixArray_test\
 	SuffixArraySeqan_test\
 	SuffixArrayTrypticSeqan_test\
 	SuffixArrayTrypticCompressed_test\
@@ -229,7 +231,6 @@ EXECUTABLES_FILTERING = \
 	SignalToNoiseEstimator_test\
 	SignalToNoiseEstimatorMedian_test\
 	SignalToNoiseEstimatorMeanIterative_test\
-	SmoothFilter_test\
 	GaussFilter_test\
 	PreprocessingFunctor_test\
 	NLargest_test\
@@ -301,6 +302,7 @@ EXECUTABLES_CHEMISTRY = \
 	ModifierRep_test\
 	FastaIterator_test\
 	FastaIteratorIntern_test\
+	PepIterator_test\
 	EdwardsLippertIterator_test\
 	EdwardsLippertIteratorTryptic_test\
 	TrypticIterator_test\
@@ -343,13 +345,13 @@ EXECUTABLES_ANALYSIS_ID =\
 	ConsensusID_test\
 	ProtonDistributionModel_test\
 	PILISScoring_test\
-	PILISModel_test\
-	HiddenMarkovModelLight_test\
-	PILISIdentification_test\
 	HiddenMarkovModel_test\
-	PILISSequenceDB_test\
+	HiddenMarkovModelLight_test\
+	PILISModel_test\
 	PILISModelGenerator_test\
-	IDDecoyProbability_test
+	PILISSequenceDB_test\
+	IDDecoyProbability_test\
+	FalseDiscoveryRate_test
 
 # APPLICATIONS
 
@@ -377,6 +379,7 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 	FeatureFinderAlgorithmSimplest_test\
 	FeatureFinderAlgorithmSimple_test\
 	FeatureFinderAlgorithmWavelet_test\
+	FeatureFinderAlgorithmIsotopeWavelet_test\
 	SimpleSeeder_test\
 	SimpleExtender_test\
   GaussFitter1D_test\
@@ -430,8 +433,8 @@ all:	$(EXECUTABLES)
 # required for clean and depend
 CPP_SOURCES=$(EXECUTABLES:=.C)
 OBJECTS=$(EXECUTABLES:=.o)
-#VALGRINDS=$(EXECUTABLES:=.vgr)
-VALGRINDS=$(EXECUTABLES_CHEMISTRY:=.vgr)
+VALGRINDS=$(EXECUTABLES:=.vgr)
+#VALGRINDS=$(EXECUTABLES_CHEMISTRY:=.vgr)
 
 include ../common.mak
 -include .Dependencies
