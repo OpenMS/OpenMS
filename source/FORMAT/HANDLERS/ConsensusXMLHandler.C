@@ -71,6 +71,7 @@ namespace OpenMS
      	static XMLCh* s_type = xercesc::XMLString::transcode("type");
      	static XMLCh* s_value = xercesc::XMLString::transcode("value");
      	static XMLCh* s_quality = xercesc::XMLString::transcode("quality");
+     	static XMLCh* s_charge = xercesc::XMLString::transcode("charge");
       	
       String tmp_str;
       if (equal_(qname,s_map))
@@ -96,6 +97,12 @@ namespace OpenMS
         if (optionalAttributeAsDouble_(quality,attributes,s_quality))
         {
         	act_cons_element_.setQuality(quality);
+        }
+				//charge
+        Int charge = 0;
+        if (optionalAttributeAsInt_(charge,attributes,s_charge))
+        {
+        	act_cons_element_.setCharge(charge);
         }
     	}
       else if (equal_(qname,s_centroid))
@@ -143,6 +150,14 @@ namespace OpenMS
 
             act_index_tuple.setPosition(pos);
             act_index_tuple.setIntensity(attributeAsDouble_(attributes,s_it));
+
+						//charge
+		        Int charge = 0;
+		        if (optionalAttributeAsInt_(charge,attributes,s_charge))
+		        {
+		        	act_index_tuple.setCharge(charge);
+		        }
+
             act_cons_element_.insert(act_index_tuple);
           }
         }
@@ -192,7 +207,7 @@ namespace OpenMS
 			{
 				os << "<?xml-stylesheet type=\"text/xsl\" href=\"file:///" << xslt_file << "\"?>\n";
 			}
-      os << "<consensusXML version=\"" << version_ << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_2.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+      os << "<consensusXML version=\"" << version_ << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
       const ConsensusMap::FileDescriptions& description_vector = consensus_map_->getFileDescriptions();
       os << "\t<mapList count=\"" << description_vector.size() << "\">\n";
@@ -207,22 +222,33 @@ namespace OpenMS
       os << "\t<consensusElementList>\n";
       for (UInt i = 0; i < consensus_map_->size(); ++i)
       {
+      	//consensusElement
       	const ConsensusFeature& elem = consensus_map_->operator[](i);
-        os << "\t\t<consensusElement id=\"e_"<< i << "\" quality=\"" << elem.getQuality() << "\">\n";
+        os << "\t\t<consensusElement id=\"e_"<< i << "\" quality=\"" << elem.getQuality() << "\"";
+        if (elem.getCharge()!=0)
+        {
+        	os << " charge=\"" << elem.getCharge() << "\"";
+        }
+        os << ">\n";
+        //centroid
         os << "\t\t\t<centroid rt=\"" << elem.getRT()
         << "\" mz=\"" << elem.getMZ()
         << "\" it=\"" << elem.getIntensity() <<"\"/>\n";
-
+				//groupedElementList
         os << "\t\t\t<groupedElementList>\n";
         for (ConsensusFeature::HandleSetType::const_iterator it = elem.begin(); it != elem.end(); ++it)
         {
-          os  << "\t\t\t\t<element"
-						" map=\"" << it->getMapIndex() << "\""
-						" id=\"" << it->getElementIndex() << "\""
-						" rt=\"" << it->getPosition()[0] << "\""
-						" mz=\"" << it->getPosition()[1] << "\""
-						" it=\"" << it->getIntensity() << "\""
-						"/>\n";
+          os << "\t\t\t\t<element"
+								" map=\"" << it->getMapIndex() << "\""
+								" id=\"" << it->getElementIndex() << "\""
+								" rt=\"" << it->getPosition()[0] << "\""
+								" mz=\"" << it->getPosition()[1] << "\""
+								" it=\"" << it->getIntensity() << "\"";
+					if (it->getCharge()!=0)
+					{
+						os << " charge=\"" << it->getCharge() << "\"";
+					}
+					os << "/>\n";
         }
         os << "\t\t\t</groupedElementList>\n";
         os << "\t\t</consensusElement>\n";

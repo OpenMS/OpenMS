@@ -141,6 +141,20 @@ namespace OpenMS
 			insert(map_index,element_index,element);
 		}
 
+		/**
+			@brief Constructor with map and element index for a singleton consensus
+			feature. Sets the consensus feature position, intensity, charge and quality to the values
+			of @p element as well.
+		*/
+		ConsensusFeature(UInt map_index,  UInt element_index, const ConsensusFeature& element)
+			: Peak2D(element),
+				HandleSetType(),
+				quality_(element.getQuality()),
+				charge_(element.getCharge())
+		{
+			insert(map_index,element_index,element);
+		}
+
 		
 		/// Assignment operator
 		ConsensusFeature& operator=(const ConsensusFeature& rhs)
