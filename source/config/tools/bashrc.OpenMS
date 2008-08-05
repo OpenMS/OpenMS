@@ -1,0 +1,665 @@
+# -*- mode:shell-script; tab-width:2 -*-
+# vi: set ts=2:
+#
+# --------------------------------------------------------------------------
+#                   OpenMS Mass Spectrometry Framework
+# --------------------------------------------------------------------------
+#  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2.1 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# --------------------------------------------------------------------------
+# $Maintainer: Clemens Groepl $  ### send feedback to groepl@mi.fu-berlin.de
+# --------------------------------------------------------------------------
+
+
+############################################################
+#  PURPOSE
+############################################################
+#
+# This file is an attempt to share some bash functions which have been
+# developed by the programmers of OpenMS over the years.  We hope that such a
+# collection will be useful, especially for newbies.  Further contributions
+# are welcome (see below).
+
+
+############################################################
+#  INSTALLATION
+############################################################
+#
+# If you want to try this out, just type the following at a bash prompt:
+#
+#   source .bashrc.OpenMS
+#
+# and the functions will be available for this session.  That's it!
+#
+# If you like this stuff, you can automate this following these steps:
+#
+# (1) Probably you already have a ".bashrc" file in your home directory.
+#     If not, create an empty file, e.g. like this:
+#       cd ${HOME}
+#       touch .bashrc
+# (2) Add the following somewhere near the end:
+#       source /path/to/this/file/.bashrc.OpenMS
+
+
+############################################################
+#  HOW TO GET HELP
+############################################################
+#
+# =>  See the definition of the function om_help below.
+
+
+############################################################
+#  SPECIAL NOTE TO OPENMS DEVELOPERS
+############################################################
+#
+# Please send any suggestions or improvements to the maintainer (which see
+# above).  Even if you have developer rights at Sourceforge svn, please do not
+# check in _incompatible_ changes, as these might harm other developers which
+# are using this for their daily work.
+
+
+# [end of info]
+
+
+
+############################################################################
+# -------------------------------------------------------------------------#
+# ...........................  Implementation  ............................#
+# -------------------------------------------------------------------------#
+############################################################################
+
+
+# Very few essential environment variable settings...
+
+# tab width 2 for less
+export PAGER=less
+export LESS=${LESS}' -x 2'
+
+export GREP_OPTIONS='--color'
+export PATCH_VERSION_CONTROL=numbered
+export VERSION_CONTROL=numbered
+
+set noclobber
+
+# file completion 
+set filec
+
+
+############################################################
+#  INTERNAL (little helpers used by these functions)
+############################################################
+
+# The variable om_do_help_condition will be eval'ed.  Note that $1 might not
+# exist, hence the X suffix to keep the test syntactically correct.
+om_do_help_condition='[ ${1}X == --helpX ]'
+
+om_where_defined_message="[ This is a bash function defined in bashrc.OpenMS ]"
+function om_where_defined()
+{
+		echo
+		echo $om_where_defined_message
+}
+
+
+############################################################
+#  DIAGNOSTICS (no remaining effects)
+############################################################
+
+function om_help()
+{
+		echo
+		echo " om_help is the built-in help for bashrc.OpenMS"
+		echo ""
+		echo " -  All functions start with the prefix om_" 
+		echo "    So if you forgot a name, the command completion at the prompt"
+		echo "    can help you find it.  (Type \"om_\" then <tab>.)"
+		echo ""
+		echo " -  The definition of any bash function can be displayed"
+		echo "    using the command: \"type name_of_function\"".
+		echo ""
+		echo " -  Moreover, each om_-function will print a short usage info"
+		echo "    when called with the argument \"--help\"."
+		echo ""
+		echo " -  To get a list of all functions with built-in help: om_help_functions"
+		echo ""
+		echo " -  My favorites: om_develop, om_find_sources, om_grep_sources, om_ldli, om_safer_sed"
+		om_where_defined
+		echo
+}
+
+#-----------------------------------------------------------
+
+function om_help_functions ()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "List all om_* functions"
+				om_where_defined
+    else
+				# for f in `grep function\ *om_ bashrc.OpenMS | grep -o om_[A-Za-z_]* | grep -v om_where_defined | sort`;
+				for f in om_backup om_chop om_chop_verbose om_cwd om_date om_develop om_directory om_dusn om_emacsclient om_find_executables om_find_sources om_godev om_goi om_gorel om_gos om_grep_sources om_help om_help_functions om_I om_ldli om_mogrify_margin om_path om_postfix_LD_LIBRARY_PATH om_postfix_PATH om_prefix_LD_LIBRARY_PATH om_prefix_PATH om_release om_safer_sed om_svn_diff om_svn_status_files;
+				do
+						echo "#----------------------------------------------------------------------"
+						echo $f:
+						$f --help | grep -v bashrc.OpenMS
+				done
+				om_where_defined
+		fi
+}
+
+#-----------------------------------------------------------
+
+function om_chop()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "If you have a list of strings separated by ':' characters"
+				echo "(such as the PATH or LD_LIBRARY_PATH variables)"
+				echo "this will chop this by replacing : with line breaks."
+				om_where_defined
+    else
+				sed s/:/\\n/g -
+    fi;
+}
+
+#-----------------------------------------------------------
+
+function om_chop_verbose()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "'om_chop_verbose' is like 'om_chop' but more verbose,"
+				echo "so that empty strings can be identified easily."
+				om_where_defined
+    else
+				echo '#BEGIN'
+				chop | sed 's/^/\t/' -
+				echo '#END'
+    fi;
+}
+
+#-----------------------------------------------------------
+
+function om_path()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Print the PATH environment variable."
+				om_where_defined
+    else
+				echo $PATH | chop
+    fi;
+}
+
+#-----------------------------------------------------------
+
+function om_ldli()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Print the LD_LIBRARY_PATH environment variable."
+				om_where_defined
+    else
+				echo $LD_LIBRARY_PATH | chop
+    fi;
+}
+
+#-----------------------------------------------------------
+
+function om_I()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Tell me who and where I am."
+				echo "(Useful if you are working on a remote host with a different login.)"
+				om_where_defined
+    else
+				echo You are `whoami` on `hostname`.
+    fi;
+}
+
+#-----------------------------------------------------------
+
+function om_date()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Print current date and time."
+				echo "Uses the C locale for consistency."
+				echo "=>  See also: om_safer_sed"
+				om_where_defined
+    else
+				LC_ALL=C date +%Y-%m-%d-%a-%H-%M-%S-%6N
+    fi;
+}
+
+#-----------------------------------------------------------
+
+function om_dusn()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Print disk usage, sorted numerically."
+				echo "Actually, it does:  du \$* | sort -n"
+				om_where_defined
+    else
+ 				du $* | sort -n 
+    fi;
+}
+
+#-----------------------------------------------------------
+
+function om_find_executables()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Find files with executable permissions (but not directories)."
+				om_where_defined
+    else
+				find $@ -perm /u+x -and -not -type d | sort
+    fi;
+}
+
+#-----------------------------------------------------------
+
+function om_find_sources()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Find C++ source files."
+				echo "Searches from the current directory.  You can append further options."
+				echo "=>  See also: om_grep_sources, info find"
+				om_where_defined
+    else
+				find . \( -name \*.[Hh] -o -name \*.[Cc] -o -name \*.[Hh][Pp][Pp] -o -name \*.[Cc][Pp][Pp] -o -name \*.[Hh][Hh] -o -name \*.[Cc][Cc] \) $@
+    fi;
+}
+
+#-----------------------------------------------------------
+
+function om_grep_sources()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Grep C++ source files."
+				echo "Searches from the current directory.  You can append further grep options (like -i -n -l etc.)."
+				echo "=>  See also: om_find_sources, info xargs, info grep"
+				om_where_defined
+    else
+				om_find_sources -print0 | xargs -0 grep --color -n $@
+		fi;
+}
+
+#-----------------------------------------------------------
+
+function om_svn_diff()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Like 'svn diff', but using colordiff as external diff program, with suitable options."
+				om_where_defined
+    else
+				svn diff --diff-cmd colordiff -x -uwB $*
+    fi;
+}
+
+#-----------------------------------------------------------
+
+function om_svn_status_files
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Like 'svn status', but remove first seven columns so that only file names remain."
+				echo "So you might further work on these files using xargs."
+				echo "=>  See also: info xargs"
+				om_where_defined
+    else
+				svn status $@ | sed 's/^.......//' | sort
+    fi
+}
+
+#-----------------------------------------------------------
+
+
+
+############################################################
+#  ENVIRONMENT (setting PATH and LD_LIBRARY_PATH)
+############################################################
+
+
+function om_prefix_PATH ()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Add a directory at the begin of the PATH environment variable."
+				echo "Also checks that the argument exists and is a directory."
+				om_where_defined
+    else
+				if [ $1_ != _ ] && [ -d $1 ]; then
+						export PATH=$1:$PATH
+				else
+						echo "'$1' is not a directory"
+				fi
+    fi;
+}
+
+function om_postfix_PATH ()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Add a directory at the end of the PATH environment variable."
+				echo "Also checks that the argument exists and is a directory."
+				om_where_defined
+    else
+				if [ $1_ != _ ] && [ -d $1 ]; then
+						export PATH=$PATH:$1
+				else
+						echo "'$1' is not a directory"
+				fi
+    fi;
+}
+
+function om_prefix_LD_LIBRARY_PATH ()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Add a directory at the begin of the LD_LIBRARY_PATH environment variable."
+				echo "Also checks that the argument exists and is a directory."
+				om_where_defined
+    else
+				if [ $1_ != _ ] && [ -d $1 ]; then
+						export LD_LIBRARY_PATH=$1:$LD_LIBRARY_PATH
+				else
+						echo "'$1' is not a directory"
+				fi
+    fi;
+}
+
+function om_postfix_LD_LIBRARY_PATH ()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Add a directory at the end of the LD_LIBRARY_PATH environment variable."
+				echo "Also checks that the argument exists and is a directory."
+				om_where_defined
+    else
+				if [ $1_ != _ ] && [ -d $1 ]; then
+						export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$1
+				else
+						echo "'$1' is not a directory"
+				fi
+    fi;
+}
+
+#-----------------------------------------------------------
+
+function om_directory()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Set up environment variables for OpenMS using the given directory."
+				echo "If the directory is a link, it is expanded."
+				echo "This command comes in handy when you are working with release and development versions simultaneously."
+				echo "Uses OPENMS_CONTRIB and OPENMS_QT4 (which should be set elsewhere, e.g. in your .bashrc)."
+				echo "=>  See also:  om_develop,  om_release"
+				om_where_defined
+    else
+				if [ $1_ != _ ] && [ -d $1 ]; then
+						dir=`cd $1; pwd -P`
+						echo "Setting up environment for OpenMS in directory " ${dir}
+						echo
+						export OPENMS=${dir}
+						echo export OPENMS=${OPENMS}
+						export PROJECT=${dir}
+						echo export PROJECT=${PROJECT}
+						export CXX='g++'
+						echo export CXX=\'${CXX}\'
+						export CXXCPP='g++ -E'
+						echo export CXXCPP=\'${CXXCPP}\'
+						export CC=gcc
+						echo export CC=\'${CC}\'
+						export CPP='gcc -E'
+						echo export CPP=\'${CPP}\'
+						echo
+						if [ -d ${OPENMS_CONTRIB}"" ]; then
+								echo "### Adding " ${OPENMS_CONTRIB} " to LD_LIBRARY_PATH"
+    						prefix_LD_LIBRARY_PATH ${OPENMS_CONTRIB}/lib
+						fi
+						if [ -d ${OPENMS_QT4}"" ]; then
+								echo "### Adding " ${OPENMS_QT4}/lib " to LD_LIBRARY_PATH"
+								prefix_LD_LIBRARY_PATH ${OPENMS_QT4}/lib
+								echo "### Adding " ${OPENMS_QT4}/bin " to PATH"
+								prefix_PATH ${OPENMS_QT4}/bin
+						fi
+						echo "### Adding " ${OPENMS}/lib " to LD_LIBRARY_PATH"
+    				prefix_LD_LIBRARY_PATH ${OPENMS}/lib
+						echo "### Adding " ${OPENMS}/bin " to PATH"
+    				prefix_PATH ${OPENMS}/bin
+    				echo
+						echo cd ${OPENMS}
+						cd ${OPENMS}
+				else
+						echo "'"$1"' is not a directory"
+				fi
+    fi
+}
+
+function om_develop ()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Set up environment variables for OpenMS using directory ${HOME}/OpenMS."
+				echo "("
+				echo "  Check out the developmental version like this:"
+				echo "    cd;"
+				echo "    svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS"
+				echo ")"
+				echo "=>  See also:  om_directory"
+				om_where_defined
+    else
+				om_directory ${HOME}/OpenMS
+    fi;
+}
+
+function om_release ()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Set up environment variables for OpenMS using directory ${HOME}/Release."
+				echo "("
+				echo "  Check out a release like this:"
+				echo "    cd;"
+				echo "    svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/Release1.2"
+				echo "    ln -s Release1.2 Release"
+				echo "  To switch from one release to another, replace the symbolic link."
+				echo "  The linked directory will be 'expanded' by this function."
+				echo ")"
+				echo "=>  See also:  om_directory"
+				om_where_defined
+    else
+				om_directory ${HOME}/Release
+    fi;
+}
+
+
+############################################################
+#  MOVING AROUND (change working directory)
+############################################################
+
+
+function om_cwd
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Change to the current working directory, resolving symbolic links."
+				om_where_defined
+    else
+				cd `pwd -P`
+    fi
+}
+
+
+function om_gos
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Change to corresponding source/ directory."
+				echo "=>  See also: om_goi, om_gorel, om_godev"
+				om_where_defined
+    else
+				cd `pwd | sed "s/include\/OpenMS/source/"`
+    fi
+}
+
+
+function om_goi
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Change to corresponding include/OpenMS/ directory."
+				echo "=>  See also: om_gos, om_gorel, om_godev"
+				om_where_defined
+    else
+				cd `pwd | sed "s/source/include\/OpenMS/"`
+    fi
+}
+
+
+function om_gorel
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Change to corresponding Release*/ directory."
+				echo "Also print the LD_LIBRARY_PATH because usually this has to be changed as well... ;-)"
+				echo "Assumes that a symbolic link like Release -> Release1.2 exists."
+				echo "=>  See also: om_release, om_goi, om_gos"
+				om_where_defined
+    else
+				if ! ( pwd | grep --silent Release ); then  
+						cd `pwd | sed "s:OpenMS:Release:"`
+				else
+						echo "Already in directory" `pwd`
+				fi
+				echo "Note: LD_LIBRARY_PATH contains"
+				ldli | grep --color -e '\(OpenMS\)\|\(Release[0-9.]*\)'
+		fi
+}
+
+
+function om_godev
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Change from Release*/ to corresponding developmental OpenMS/ directory."
+				echo "Also print the LD_LIBRARY_PATH because usually this has to be changed as well... ;-)"
+				echo "=>  See also: om_develop, om_goi, om_gos"
+				om_where_defined
+    else
+				cd `pwd | sed "s:Release[0-9.]*:OpenMS:"`
+				echo "Note: LD_LIBRARY_PATH contains"
+				ldli | grep --color -e '\(OpenMS\)\|\(Release[0-9.]*\)'
+		fi
+}
+
+
+############################################################
+#  WORKING ON FILES (actually do something)
+############################################################
+
+function om_emacsclient ()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Open one or more file(s) in a running emacs."
+				echo "This does some magic so that e.g. the following will open each file at the intended line and column:"
+				echo "om_emacsclient filea fileb:33 filec:33: filed:33:33 filee:33:33:"
+				om_where_defined
+    else
+				( echo $* | sed 's/ /\n/g' | sed 's#:$##g; s#\(\(:[0-9]\+\)\{1,2\}\)$#%%\1#g; s#\(.\+\)%%:\([:0-9]\+\)$#+\2 \1#g' | xargs emacsclient --no-wait ) &
+    fi;
+}
+
+#-----------------------------------------------------------
+
+function om_safer_sed ()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Run 'sed' in place (!), making backups with time stamp.  DANGEROUS."
+				echo "NOTES:"
+				echo "  1. Think twice before running _any_ sed command."
+				echo "  2. Do not rely on this function alone for making backups."
+				echo
+				echo "=>  For further advice, see also:  om_backup, type om_safer_sed, info sed"
+				om_where_defined
+    else
+				sed '-i.sed_backup.'`om_date` $*
+    fi;
+}
+
+#-----------------------------------------------------------
+
+function om_backup ()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Make a backup file with time stamp in subdirectory ./backup."
+				echo "Leading directories names are removed from filename using 'basename'."
+				echo "Assumes subdirectory ./backup has been created before."
+				echo "=>  See also: om_date"
+				om_where_defined
+    else
+				if [ $# == 1 ]; then
+						if ! ( [ -e $1 ] && [ -r $1 ] && [ -f $1 ] && [ -s $1 ] ); then
+								echo "Error:" $1 "is not an existing readable regular file of non-zero size"
+						else
+								if ! ( [ -e ./backup ] && [ -d ./backup ] && [ -r ./backup ] && [ -w ./backup ] && [ -x ./backup ] ); then
+										echo "./backup is not an existing directory with permissions rwx"
+								else
+										doit_tmp="cp $1 ./backup/"`basename $1`.`om_date`
+										echo $doit_tmp
+										$doit_tmp
+								fi
+						fi
+				else
+						echo "Usage: om_backup filename"
+						om_backup --help
+				fi
+		fi
+}
+
+#-----------------------------------------------------------
+
+function om_mogrify_margin ()
+{
+    if eval $om_do_help_condition;
+    then
+				echo "Call mogrify (see ImageMagick) with suitable options to remove margins from screenshots."
+				echo "=>  See also: http://www.imagemagick.org/"
+				om_where_defined
+    else
+				mogrify -fuzz 5% -trim -bordercolor white -border 1x1 $1
+		fi
+}
+
+#-----------------------------------------------------------
+
+
+
+
+
+
