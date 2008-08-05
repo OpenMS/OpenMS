@@ -350,7 +350,7 @@ namespace OpenMS
 				this->defaults_.setMinFloat("mass_trace:mz_tolerance",0.0);
 				this->defaults_.setValue("mass_trace:min_spectra",14,"Number of spectra the have to show the same peak mass for a mass trace.");
 				this->defaults_.setMinInt("mass_trace:min_spectra",1);
-				this->defaults_.setValue("mass_trace:max_missing",4,"Number of spectra where a high mass deviation or missing peak is acceptable.");
+				this->defaults_.setValue("mass_trace:max_missing",4,"Number of spectra where a high mass deviation or missing peak is acceptable.\n This parameter should be well below 'min_spectra'!");
 				this->defaults_.setMinInt("mass_trace:max_missing",0);
 				this->defaults_.setValue("mass_trace:slope_bound",0.1,"The maximum slope of mass trace intensities when extending from the highest peak", true);
 				this->defaults_.setMinFloat("mass_trace:slope_bound",0.0);
@@ -1536,7 +1536,7 @@ namespace OpenMS
 				DoubleReal rt_min = max_trace.peaks.begin()->first;
 				log_ << "   - rt bounds: " << rt_min << "-" << rt_max << std::endl;
 				//Abort if too few peak were found
-				if ((Int)max_trace.peaks.size()< (2*(Int)min_spectra_-(Int)max_missing_trace_peaks_))
+				if (!max_trace.isValid() || max_trace.peaks.size()<2*min_spectra_-max_missing_trace_peaks_)
 				{
 					log_ << "   - could not extend trace with maximum intensity => abort" << std::endl;
 					return;
