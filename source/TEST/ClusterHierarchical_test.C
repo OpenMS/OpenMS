@@ -29,6 +29,7 @@
 ///////////////////////////
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 #include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <vector>
 #include <algorithm>
 ///////////////////////////
@@ -45,79 +46,79 @@ class lowlevelComparator
 		UInt x,y;
 		x = min(second,first);
 		y = max(first,second);
-		
+
 		switch (x)
 		{
-			case 0: 
+			case 0:
 				switch(y)
 				{
 					default:
-						return 666; 
+						return 666;
 						break;
 					case 1:
-						return 0; 
+						return 0;
 						break;
 					case 2:
-						return -1.8; 
+						return -1.8;
 						break;
 					case 3:
-						return -2.6; 
+						return -2.6;
 						break;
 					case 4:
-						return -3.2; 
+						return -3.2;
 						break;
-				} 
+				}
 			break;
 			case 1:
 				switch(y)
 				{
 					default:
-						return 666; 
+						return 666;
 						break;
 					case 2:
-						return -1.2; 
+						return -1.2;
 						break;
 					case 3:
-						return -1.8; 
+						return -1.8;
 						break;
 					case 4:
-						return -2.6; 
+						return -2.6;
 						break;
-				} 
-			
+				}
+
 			break;
 			case 2:
 				switch(y)
 				{
 					default:
-						return 666; 
+						return 666;
 						break;
 					case 3:
-						return 0; 
+						return 0;
 						break;
 					case 4:
-						return -0.4; 
+						return -0.4;
 						break;
-				} 
-			
+				}
+
 			break;
 			case 3:
 				switch(y)
 				{
 					default:
-						return 666; 
+						return 666;
 						break;
 					case 4:
-						return 0; 
+						return 0;
 						break;
-				} 
-			
+				}
+
 			break;
-			default: 
+			default:
 				return 666;
 				break;
 		}
-	}	
+	}
 };
 
 
@@ -201,7 +202,7 @@ CHECK((template <typename Data, typename SimilarityComparator> void clusterForDe
 	vector< vector<UInt> > result;
 	result.push_back(vector<UInt>(a,a+2));
 	result.push_back(vector<UInt>(a+2,a+5));
-	
+
 	vector< vector<UInt> > r;
 	String s;
 	NEW_TMP_FILE(s);
@@ -216,6 +217,15 @@ CHECK((template <typename Data, typename SimilarityComparator> void clusterForDe
 			{
 				TEST_EQUAL(r[i][j], result[i][j]);
 			}
+	}
+	//remove additionaly created files
+	vector<String> list;
+	File file;
+	file.fileList(file.path(string),"*.sm",list);
+	for(vector<String>::iterator it=list.begin(); it != list.end(); ++it)
+	{
+		//erase
+		file.remove(*it);
 	}
 }
 RESULT
