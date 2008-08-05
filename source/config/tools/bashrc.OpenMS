@@ -555,7 +555,7 @@ function om_gorel
 						echo "Already in directory" `pwd`
 				fi
 				echo "Note: LD_LIBRARY_PATH contains"
-				ldli | grep --color -e '\(OpenMS\)\|\(Release[0-9.]*\)'
+				ldli | grep --color -e '\(OpenMS\)\|\(Release[0-9.]*\)' || echo 'neither OpenMS nor Release[0-9.]*'
 		fi
 }
 
@@ -571,7 +571,7 @@ function om_godev
     else
 				cd `pwd | sed "s:Release[0-9.]*:OpenMS:"`
 				echo "Note: LD_LIBRARY_PATH contains"
-				ldli | grep --color -e '\(OpenMS\)\|\(Release[0-9.]*\)'
+				ldli | grep --color -e '\(OpenMS\)\|\(Release[0-9.]*\)' || echo 'neither OpenMS nor Release[0-9.]*'
 		fi
 }
 
