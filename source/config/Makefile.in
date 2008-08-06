@@ -273,12 +273,3 @@ UTILS:
 
 dummy:
 
-
-
-configure:  config/configure.in config/configure.header
-	@$(ECHO) "Creating new ./configure from config/configure.in"
-	@autoconf config/configure.in > configure.tmp
-	@cat configure.tmp|sed "2r config/configure.header" >configure
-	@-rm configure.tmp
-	@chmod 755 configure
-

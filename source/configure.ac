@@ -599,7 +599,6 @@ dnl
 dnl	PATHS
 AC_SUBST(OPENMS_PATH)         dnl  Path to top level directory
 AC_SUBST(OPENMS_INCLUDES)     dnl  Includes 
-AC_SUBST(OPENMS_LIBS)
 
 
 dnl	DEPENDENCIES
