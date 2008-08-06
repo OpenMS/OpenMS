@@ -741,7 +741,7 @@ namespace OpenMS
 		void paintGridLines_(QPainter& painter);
 		
 		/// Buffer that stores the actual peak information
-		QPixmap buffer_;
+		QImage buffer_;
 		
 		/// Stores the current action mode (Pick, Zoom, Translate)
 		ActionModes action_mode_;

@@ -34,26 +34,29 @@
 	
 	@attention Whenever you added a path to your Windows Path Environment variable, restart MSYS in order for the changes to take effect
 
-	@attention You'll find all Software packages related to MinGW and MSYS on the Sourceforge File release page of MinGW (see http://mingw.org/download.shtml)
+	@attention You'll find all Software packages related to MinGW and MSYS on the Sourceforge File release page of MinGW (see http://sourceforge.net/project/showfiles.php?group_id=2435)
 	To install a package in <code>.tar.gz</code> format, we recommend using <a href="http://www.7-zip.org/" target="_blank">7-Zip</a>.
 			
   <OL>
-  	<LI> Install MinGW (5.1.3)
+  	<LI> Install MinGW (5.1.4)
 	  	<UL>
 	  		<LI> Install candidate version (which currently is GCC 3.4.5)
         <LI> Select g++ only (no make)
 	  		<LI> Install to default location (c:/MinGW/)
 	  	</ul>
-	  	<ul>
-	  		<li> Download and unzip the file <code>w32api-3.11.tar.gz</code> from the MinGW download page into the MinGW directory
-	  	</ul>
-  	<LI> Install MSYS (1.0.10)
+  	<LI> Install MSYS (1.0.10 - from <em>MSYS Base System</em>) 
 	  	<UL>
 	  		<LI> Install to default location (c:/msys/1.0/)
         <LI> Answer the Post-Install dialog questions (really simple)
 	  	</UL>
-  	<LI> Install msysDTK (1.0.1) (in the same directory where you installed MSYS)
-  	<LI> Install MSYS autoconf 2.59 (extract the archive and copy it to the MSYS directory)
+  	<LI> Install msysDTK (1.0.1 - from <em>MSYS Supplementary Tools</em>) 
+ 	  	<UL>
+	  		<LI> Install in the same directory where you installed MSYS
+	  	</UL>
+  	<LI> Install MSYS autoconf (2.59 - from <em>MSYS Supplementary Tools</em>) 
+	  	<UL>
+	  		<LI> Extract the archive and copy it to the MSYS directory)
+	  	</UL>
 	</OL>	
 		
   @section install_win_required Installing required dependency libraries
@@ -115,18 +118,15 @@
 		have to install those two libraries first. 
 				
 		<b> Install Qt</b>
-		There is a binary package of Qt for windows (open-source MinGW version!) available at http://trolltech.no/ (we tested 4.3.2).
+		There is a binary package of Qt for windows (@em qt-win-opensource-4.3.5-mingw.exe) available at ftp://ftp.trolltech.com/qt/source/ .
 			<UL>
 				<LI> Download the installer from the website and run it.
 				<LI> The installer should find your MinGW directory. If not, enter it manually.
+				<LI> If the installer complains about the version of @em w31api.h, ignore the warning.
 				<LI> Once the install is finished, you should be able to run most of the test programs (system dependend)
-				<LI> Add <i>&lt;path_to_QT&gt;\\bin</i> to the Windows Path Environment variable (click Start->Control-Panel->System->Advanced->Environmental Variables->System Variables->Path) [this is where Windows looks for the dll's].
+				<LI> Add <i>&lt;path_to_QT&gt;\\bin</i> to the Windows Path Environment variable (click Start->(System->)Control-Panel->System->Advanced->Environmental Variables->System Variables->Path) [this is where Windows looks for the dll's].
 				<LI> <b>Hint:</b> this precompiled version does not include SQL Database drivers (see @ref enable_db)
 			</UL>
-  
-	<p>
-  ²: this includes the version subdirectory, e.g. c:/Qt/4.3.2/bin
-  </p>	
 	
 		@subsection install_win_contrib Contrib installation
 		
@@ -139,7 +139,7 @@
 	to obtain the latest developer version (potentially unstable).
   
   @b Installation:
-  @n Execute:
+	Now open an MSYS console and do <code>cd &lt;path_to_CONTRIB&gt;</code>, e.g. <code>cd c:/programs/mycontrib</code> and do:
   <pre>
 &gt; ./configure
 	</pre>
@@ -248,10 +248,10 @@
 		
 		<p>
 		If <code>./configure</code> fails, a file called <b>config.diag.tar</b> is created. Please send this file
-		together with a description of the problem by <a href="http://open-ms.sourceforge.net/team.html" target="_blank">email</a>.
+		together with a description of the problem by <a href="http://open-ms.sourceforge.net/contact.php" target="_blank">email</a>.
 	
 		
-		Add <i>&lt;path_to_OpenMS&gt;/lib/</i> (e.g. <i>c:/Programs/OpenMS/lib/</i>) to the Windows Path Environment variable (as suggested by the previous <code>make</code>) and remember to open a new MSYS console in order for the change to take effect.
+		Add <i>&lt;path_to_OpenMS&gt;/lib/</i> (e.g. <i>c:/Programs/OpenMS/lib/</i>) to the Windows Path Environment variable and open a new MSYS console in order for the change to take effect.
 		
   @section install_win_testing_openms Testing your OpenMS installation  
   
@@ -348,7 +348,7 @@
 	<OL>
 		<LI>Download MySQLServer4.1 and install it.</LI>
 		
-		<LI>Download "reimp" (see http://www.mingw.org/mingwfaq.shtml) and install 'reimp.exe' into c:/Msys/bin</LI>
+		<LI>Download "reimp" (see http://www.mingw.org/wiki/FAQ/) and install 'reimp.exe' into c:/Msys/bin</LI>
 		
 		<LI>
 			Now open a command shell (not an MSYS shell!) via 'START->Run: cmd.exe' and do:<br>

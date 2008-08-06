@@ -456,7 +456,7 @@ namespace OpenMS
 		QVector<QRect> rects = e->region().rects();
 		for (int i = 0; i < (int)rects.size(); ++i)
 		{
-			painter.drawPixmap(rects[i].topLeft(), buffer_, rects[i]);
+			painter.drawImage(rects[i].topLeft(), buffer_, rects[i]);
 		}
 		//draw selected peak
 		if (selected_peak_.isValid())

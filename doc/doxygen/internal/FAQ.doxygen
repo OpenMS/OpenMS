@@ -293,12 +293,12 @@
 					<LI> Create the new release package (see below)
 					<LI> Update the SourceForge files section:
 						<OL>
-							<LI> FTP to upload.sourceforge.net (see http://sourceforge.net/docman/display_doc.php?docid=6445&group_id=1#howtoupload)
-							<LI> Login as @a anonymous
-							<LI> Use your e-mail address as the password for this login
-							<LI> Set your client to binary mode (@a bin on command-line clients)
-							<LI> Change your current directory to /incoming (@a cd @a /incoming)
-							<LI> Upload the desired tarball file for the release (@a put @a filename)
+							<LI> Upload to sourceforge, here with sftp (see http://alexandria.wiki.sourceforge.net/File+Release+System+-+Offering+Files+for+Download#howtoupload)
+							<UL>
+								<LI> <em>sftp &lt;login&gt;@@frs.sourceforge.net</em>
+								<LI> <em>cd uploads</em>
+								<LI> <em>put &lt;file&gt;</em>
+							</UL>
 							<LI> Login in the @a Admin section on http://sourceforge.net/project/showfiles.php?group_id=90558
 							<LI> Go to @a File @a Releases
 							<LI> Now you can add your release

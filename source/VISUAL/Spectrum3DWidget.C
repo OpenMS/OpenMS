@@ -34,7 +34,6 @@
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DGoToDialog.h>
 
 //QT
-#include <QtGui/QPixmap>
 #include <QtGui/QGridLayout>
 
 using namespace std;
