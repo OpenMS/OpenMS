@@ -115,7 +115,7 @@ namespace OpenMS
 #ifdef DEBUG_TOPPVIEW
 		cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
 #endif
-		buffer_ = QPixmap(width(), height());
+		buffer_ = QImage(width(), height(), QImage::QImage::Format_RGB32);
 		update_buffer_ = true;
 		updateScrollbars_();
 		update_(__PRETTY_FUNCTION__);

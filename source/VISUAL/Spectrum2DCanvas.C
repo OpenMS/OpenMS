@@ -229,9 +229,8 @@ namespace OpenMS
 			}
 			//cout << "peaks: " << peaks << "  scans: " << scans << endl;
 			//cout << "width: " << width() << "  height: " << height() << endl;
-			QImage image = buffer_.toImage();
-			Int image_width = image.width();
-			Int image_height = image.height();
+			Int image_width = buffer_.width();
+			Int image_height = buffer_.height();
 			for (ExperimentType::ConstAreaIterator i = layer.peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
 					 i != layer.peaks.areaEndConst(); 
 					 ++i)
@@ -245,25 +244,22 @@ namespace OpenMS
 					{
 						if (pos.x()<image_width && pos.y()<image_height)
 						{
-							image.setPixel(pos.x(),pos.y(), color);
+							buffer_.setPixel(pos.x(),pos.y(), color);
 						}
 					}
 					else
 					{
 						if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
 						{
-							image.setPixel(pos.x()   ,pos.y()   ,color);
-							image.setPixel(pos.x()-1 ,pos.y()   ,color);
-							image.setPixel(pos.x()+1 ,pos.y()   ,color);
-							image.setPixel(pos.x()   ,pos.y()-1 ,color);
-							image.setPixel(pos.x()   ,pos.y()+1 ,color);
+							buffer_.setPixel(pos.x()   ,pos.y()   ,color);
+							buffer_.setPixel(pos.x()-1 ,pos.y()   ,color);
+							buffer_.setPixel(pos.x()+1 ,pos.y()   ,color);
+							buffer_.setPixel(pos.x()   ,pos.y()-1 ,color);
+							buffer_.setPixel(pos.x()   ,pos.y()+1 ,color);
 						}
 					}
 				}
 			}
-			painter.end();
-			buffer_ = QPixmap::fromImage(image);
-			painter.begin(&buffer_);
 			
 			//draw precursor peaks
 			if (getLayerFlag(layer_index,LayerData::P_PRECURSORS))
@@ -788,7 +784,7 @@ namespace OpenMS
 		QVector<QRect> rects = e->region().rects();
 		for (int i = 0; i < (int)rects.size(); ++i)
 		{
-			painter.drawPixmap(rects[i].topLeft(), buffer_, rects[i]);
+			painter.drawImage(rects[i].topLeft(), buffer_, rects[i]);
 		}
 		
 		//draw mesaurement peak
