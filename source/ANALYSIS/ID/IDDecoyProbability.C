@@ -29,7 +29,7 @@
 #include <fstream>
 
 #define IDDECOYPROBABILITY_DEBUG
-//#undef  IDDECOYPROBABILITY_DEBUG
+#undef  IDDECOYPROBABILITY_DEBUG
 
 using namespace std;
 
