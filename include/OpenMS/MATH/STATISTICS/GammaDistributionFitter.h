@@ -41,13 +41,14 @@
 
 namespace OpenMS
 {
-  /** @brief Class which implements a fitter for gaussian functions
+  /** @brief Implements a fitter for the Gamma distribution.
 
-      This class is able to fit a gaussian distribution to a number of data points.
-      The results as well as the initial guess are specified using the struct GaussFitResult.
+      This class fits a Gamma distribution to a number of data points.
+      The results as well as the initial guess are specified using the struct 
+			GammaDistributionFitResult.
 
-      The complete gaussian formula with the fitted parameters can be transformed into a
-      gnuplot formula using getGnuplotFormula after fitting.
+      The formula with the fitted parameters can be transformed into a
+      gnuplot formula using getGnuplotFormulai() after fitting.
 
 			The implementation is done using the gsl fitting algorithms.
 	*/

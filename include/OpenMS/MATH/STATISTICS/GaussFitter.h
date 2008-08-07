@@ -42,9 +42,9 @@
 namespace OpenMS
 {
 
-	/** @brief Class which implements a fitter for gaussian functions
+	/** @brief Implements a fitter for gaussian functions
 	
-			This class is able to fit a gaussian distribution to a number of data points.
+			This class fits a gaussian distribution to a number of data points.
 			The results as well as the initial guess are specified using the struct GaussFitResult.
 
 			The complete gaussian formula with the fitted parameters can be transformed into a
