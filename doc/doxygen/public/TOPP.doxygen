@@ -75,8 +75,6 @@
   - @subpage SequestAdapter - Annotates MS/MS spectra using Sequest.
   - @subpage OMSSAAdapter - Annotates MS/MS spectra using OMSSA.
 	- @subpage PepNovoAdapter - Annotates MS/MS spectra using PepNovo.
- 	- @subpage PILISModel - Trains the PILIS model using a given set of spectra and identifications.
- 	- @subpage PILISIdentification - Performs a peptide/protein identification using the PILIS engine.
  	- @subpage XTandemAdapter - Annotates MS/MS spectra using XTandem.
 	- @subpage FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
 	- @subpage IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy.
