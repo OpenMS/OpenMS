@@ -163,7 +163,7 @@
 		of the data to the m/z and RT axis. This feature is mainly used to assess the quality
 		of a feature without opening the data region in 3D view.
 		
-		Through the <B>bontext menu:</B> of the 2D view you can:
+		Through the <B>context menu:</B> of the 2D view you can:
 		<UL>
 			<LI> View/edit meta data
 			<LI> View survey/fragment scans in 1D view
@@ -187,7 +187,7 @@
 		@image html Spectrum3DWidget.png
 		@image latex Spectrum3DWidget.png "" width=8cm
 
-		Through the <B>bontext menu:</B> of the 3D view you can:
+		Through the <B>context menu:</B> of the 3D view you can:
 		<UL>
 			<LI> View/edit meta data
 			<LI> Save the current layer data
