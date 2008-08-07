@@ -106,7 +106,6 @@ PREFIX = @prefix@
 #
 OPENMS_PATH       = @OPENMS_PATH@
 OPENMS_INCLUDES   = @OPENMS_INCLUDES@
-OPENMS_LIBS       = @OPENMS_LIBS@
 
 # These are the flags for the contrib libraries.
 # These flags are used in the Makefiles to determine whether
