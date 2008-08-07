@@ -138,7 +138,7 @@
 		@image html Spectrum1DWidget.png
 		@image latex Spectrum1DWidget.png "" width=8cm
 
-		Through the <B>bontext menu:</B> of the 1D view you can:
+		Through the <B>context menu:</B> of the 1D view you can:
 		<UL>
 			<LI> View/edit meta data
 			<LI> Save the current layer data
