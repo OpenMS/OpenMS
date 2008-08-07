@@ -122,7 +122,7 @@
 			<UL>
 				<LI> Download the installer from the website and run it.
 				<LI> The installer should find your MinGW directory. If not, enter it manually.
-				<LI> If the installer complains about the version of @em w31api.h, ignore the warning.
+				<LI> If the installer complains about the version of @em w32api.h, ignore the warning.
 				<LI> Once the install is finished, you should be able to run most of the test programs (system dependend)
 				<LI> Add <i>&lt;path_to_QT&gt;\\bin</i> to the Windows Path Environment variable (click Start->(System->)Control-Panel->System->Advanced->Environmental Variables->System Variables->Path) [this is where Windows looks for the dll's].
 				<LI> <b>Hint:</b> this precompiled version does not include SQL Database drivers (see @ref enable_db)
