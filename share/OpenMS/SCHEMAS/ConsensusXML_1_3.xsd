@@ -3,6 +3,7 @@
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
+<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 	<xs:element name="consensusXML">
 		<xs:annotation>
@@ -10,12 +11,37 @@
 		</xs:annotation>
 		<xs:complexType>
 			<xs:sequence>
+				<xs:element name="userParam" type="userParam" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>user parameters</xs:documentation>
+					</xs:annotation>
+				</xs:element>
 				<xs:element ref="mapList"/>
 				<xs:element ref="consensusElementList"/>
 			</xs:sequence>
 			<xs:attribute name="version" type="xs:string">
 				<xs:annotation>
 					<xs:documentation>Schema version, e.g. '1.1'. If it is missing, version 1.0 is assumed.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="experiment_type">
+				<xs:annotation>
+					<xs:documentation>Type of experiment, e.g. ICAT, label-free</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="labeled_MS1"/>
+						<xs:enumeration value="labeled_MS2"/>
+						<xs:enumeration value="icat"/>
+						<xs:enumeration value="itraq"/>
+						<xs:enumeration value="label-free"/>
+						<xs:enumeration value="other"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="id" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>An optional id for the document. It is recommended to use LSIDs when possible.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 		</xs:complexType>

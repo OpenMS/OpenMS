@@ -42,7 +42,10 @@ namespace OpenMS
   	
   	@note If a feature meta value named 'id' is present, it is stored in the feature 'id' attribute in the file.
   	      If meta value 'id' is not set, incrementing numbers are used.
-  	
+
+  	@todo Update version to 1.3 in load and store (Clemens, Chris)
+  	@todo Implement 'id' attribute - stored in ExperimentalSettings (Clemens, Chris)
+
   	@ingroup FileIO
   */
   class FeatureXMLFile

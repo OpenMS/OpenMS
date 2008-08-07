@@ -10,7 +10,6 @@ New features and improvements of OpenMS:
   The affected classes are not listed in detail here.
 - Added meta data arrays to spectra as the new standard way of handing peak meta information
 - Improved interface of SpectrumCanvas and derived classes for easier reuse outside of TOPPView
-- Added (beta) mzML support
 - Added support for arbitrary modifications to peptide/protein modifications (based on PSI-MOD)
 - Exceptions thrown by member functions are no longer declared in the header files.
   They are however documented in the class documentation.

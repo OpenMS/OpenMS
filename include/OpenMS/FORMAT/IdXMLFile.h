@@ -50,6 +50,9 @@ namespace OpenMS
 		
   	@note This format will eventually be replaced by the HUPO-PSI AnalysisXML format!
   	
+  	@todo Update version to 1.2 in load and store (Clemens, Chris, Andreas)
+  	@todo Implement 'id' attribute - see comments in load and store methods (Clemens, Chris, Andreas)
+  	
   	@ingroup FileIO
   */
   class IdXMLFile
@@ -71,6 +74,10 @@ namespace OpenMS
 				@exception Exception::ParseError is thrown  if an error occurs during parsing
 			*/
 			void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids);
+
+			/*
+			void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, String& id);
+			*/
 			 			 
 			/**
 				@brief Stores the data in an IdXML file
@@ -79,7 +86,7 @@ namespace OpenMS
 
 				@exception Exception::UnableToCreateFile is thrown if the file could not be created
 			*/
-			void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids); 
+			void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids /*,String id=""*/); 
   	
   	protected:
 			// Docu in base class
