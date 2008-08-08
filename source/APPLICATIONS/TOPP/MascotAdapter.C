@@ -40,6 +40,9 @@
 #include <fstream>
 #include <string>
 
+#include <QtCore/QDir>
+#include <QtCore/QFile>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -279,6 +282,7 @@ class TOPPMascotAdapter
 			
 			date_time.now();
 			date_time.get(date_time_string);
+			date_time_string.substitute(':','.'); // Windows does not allow ":" in filenames!
 			date_time_string.split(' ', parts);
 			
 			mascot_infile_name = parts[0] + "_" + parts[1] + "_" + mascot_infile_name;
@@ -414,7 +418,7 @@ class TOPPMascotAdapter
 			}
 			if (!mascot_in && !mascot_out)
 			{
-				
+				// full pipeline:
 				mascot_cgi_dir = getStringOption_("mascot_directory");
 				if (mascot_cgi_dir == "")
 				{
@@ -423,6 +427,7 @@ class TOPPMascotAdapter
 				}
 				writeDebug_(String("Mascot directory: ") + mascot_cgi_dir, 1);
 				mascot_cgi_dir += "/cgi/";
+				mascot_cgi_dir = QDir(mascot_cgi_dir.toQString()).absolutePath();
 
 				mascot_data_dir = getStringOption_("temp_data_directory");
 
@@ -433,6 +438,7 @@ class TOPPMascotAdapter
 				}
 				
 				writeDebug_(String("Temp directory: ") + mascot_data_dir, 1);
+				mascot_data_dir = QDir(mascot_data_dir.toQString()).absolutePath();
 
 				String tmp = mascot_data_dir + "/" + mascot_outfile_name;
 				if (!File::writable(tmp))
@@ -442,6 +448,8 @@ class TOPPMascotAdapter
 				}
 				mascotXML_file_name = mascot_data_dir + "/" + mascot_outfile_name + ".mascotXML";				
 				pepXML_file_name = mascot_data_dir + "/" + mascot_outfile_name + ".pepXML";				
+				writeDebug_(String("mascotXML_file_name: ") + mascotXML_file_name, 1);
+				writeDebug_(String("pepXML_file_name: ") + pepXML_file_name, 1);
 			}
 
 //			contact_person.setName(getStringOption_("contactName", "unknown"));
@@ -489,6 +497,12 @@ class TOPPMascotAdapter
 				mascot_infile.setCharges(charges);
 				if (!mascot_in)
 				{
+					#ifdef OPENMS_WINDOWSPLATFORM
+					/// @TODO test this with a real mascot version for windows
+					writeLog_(QString("The windows platform version of this tool has not been tested yet! If you encounter problems,") +
+										QString(" please write to the OpenMS mailing list (open-ms-general@lists.sourceforge.net)"));
+					#endif
+
 					mascot_infile.store(mascot_data_dir + "/" + mascot_infile_name, 
 															 experiment, 
 															 "OpenMS search");
@@ -498,39 +512,68 @@ class TOPPMascotAdapter
 					writeDebug_("Searching...", 1);
 					// calling the Mascot process
 					writeDebug_("The Mascot process created the following output:", 1);
-					call = "cd " + mascot_cgi_dir + "; ./nph-mascot.exe 1 -commandline -f " + 
+
+					#ifdef OPENMS_WINDOWSPLATFORM
+					// the windows command separator is "&" for WinNT and upwards. For WinME and downwards it is "|", but Mascot requires WinNT+ anyways
+					call = QDir(mascot_cgi_dir.toQString()).absolutePath().left(2).toStdString() +
+								 " && cd \\ && cd \"." + QDir(mascot_cgi_dir.toQString()).absolutePath().mid(2).toStdString() + "\"" + 
+								 " && nph-mascot.exe 1 -commandline -f " +
+						mascot_data_dir + "/" + mascot_outfile_name + " < " + 
+						mascot_data_dir + "/" + mascot_infile_name + 
+						" > " + tmp;
+					#else
+					call = "cd " + mascot_cgi_dir + "; ./nph-mascot.exe 1 -commandline -f " +
 						mascot_data_dir + "/" + mascot_outfile_name + " < " + 
 						mascot_data_dir + "/" + mascot_infile_name + 
 						" >> " + tmp + ";";
-					writeDebug_(call, 10);
+					#endif
+					writeDebug_("CALLING: " + call + "\nCALL Done!    ", 10);
 					status = system(call.c_str());
 					
 					if (status != 0)
 					{
 						writeLog_("Mascot server problem. Aborting!(Details can be seen in the logfile: \"" + logfile + "\")");
-						call = "rm " + mascot_data_dir + "/" 
-										+ mascot_infile_name + ";";
-						system(call.c_str());
+						//call = "rm " + mascot_data_dir + "/" + mascot_infile_name + ";";
+						//system(call.c_str());
+						QFile(String(mascot_data_dir + "/" + mascot_infile_name).toQString()).remove();
 						return EXTERNAL_PROGRAM_ERROR;						
 					}
-					call = "cd " + mascot_cgi_dir + "; ./export_dat.pl do_export=1 export_format=XML file=" + mascot_data_dir + 
+
+					#ifdef OPENMS_WINDOWSPLATFORM
+					call = QDir(mascot_cgi_dir.toQString()).absolutePath().left(2).toStdString() +
+							" && cd \\ && cd \"." + QDir(mascot_cgi_dir.toQString()).absolutePath().mid(2).toStdString() + "\"" + 
+							"& perl export_dat.pl " +
+					#else
+					call = "cd " + mascot_cgi_dir + "; ./export_dat.pl " +
+					#endif
+						" do_export=1 export_format=XML file=" + mascot_data_dir + 
 						"/" + mascot_outfile_name + " _sigthreshold=" + String(sigthreshold) + " _showsubset=1 show_same_sets=1 show_unassigned=" + String(show_unassigned) + 
 						" prot_score=" + String(prot_score) + " pep_exp_z=" + String(pep_exp_z) + " pep_score=" + String(pep_score) + 
 						" pep_homol=" + String(pep_homol) + " pep_ident=" + String(pep_ident) + " pep_seq=1 report=0 " + 
-						"show_params=1 _showallfromerrortolerant=1 show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + mascotXML_file_name + ";"
-						 + "./export_dat.pl do_export=1 export_format=pepXML file=" + mascot_data_dir + 
+						"show_params=1 _showallfromerrortolerant=1 show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + mascotXML_file_name + 
+						
+					#ifdef OPENMS_WINDOWSPLATFORM
+						" && " + " perl export_dat.pl " + 
+					#else
+						";"    + "./export_dat.pl " +
+					#endif	 
+						" do_export=1 export_format=pepXML file="  + mascot_data_dir + 
 						"/" + mascot_outfile_name + " _sigthreshold=" + String(sigthreshold) + " _showsubset=1 show_same_sets=1 show_unassigned=" + String(show_unassigned) + 
 						" prot_score=" + String(prot_score) + " pep_exp_z=" + String(pep_exp_z) + " pep_score=" + String(pep_score) + 
 						" pep_homol=" + String(pep_homol) + " pep_ident=" + String(pep_ident) + " pep_seq=1 report=0 " + 
-						"show_params=1 show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + pepXML_file_name + ";";
+						"show_params=1 show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + pepXML_file_name;
+					writeDebug_("CALLING: " + call + "\nCALL Done!    ", 10);
 					status = system(call.c_str());
 
 					if (status != 0)
 					{
 						writeLog_("Mascot server problem. Aborting!(Details can be seen in the logfile: \"" + logfile + "\")");
-						call = "rm " + mascot_data_dir + "/" 
-										+ mascot_infile_name + "; rm " + mascotXML_file_name + ";" + "; rm " + pepXML_file_name + ";";
-						system(call.c_str());
+						//call = "rm " + mascot_data_dir + "/" 
+						//				+ mascot_infile_name + "; rm " + mascotXML_file_name + ";" + "; rm " + pepXML_file_name + ";";
+						//system(call.c_str());
+						QFile(String(mascot_data_dir + "/" + mascot_infile_name).toQString()).remove();
+						QFile(mascotXML_file_name.toQString()).remove();
+						QFile(pepXML_file_name.toQString()).remove();
 						return EXTERNAL_PROGRAM_ERROR;						
 					}
 					
@@ -583,10 +626,14 @@ class TOPPMascotAdapter
 					// Deletion of temporary Mascot files
 					if (!mascot_out)
 					{
-						call = "rm " + mascot_data_dir + "/" + mascot_infile_name + ";"
-							+ "rm " + mascot_data_dir + "/" + mascot_outfile_name + ";"
-							+ "rm " + mascotXML_file_name + ";rm " + pepXML_file_name + ";";
-						system(call.c_str());
+						//call = "rm " + mascot_data_dir + "/" + mascot_infile_name + ";"
+						//	+ "rm " + mascot_data_dir + "/" + mascot_outfile_name + ";"
+						//	+ "rm " + mascotXML_file_name + ";rm " + pepXML_file_name + ";";
+						//system(call.c_str());
+						QFile(String(mascot_data_dir + "/" + mascot_infile_name).toQString()).remove();
+						QFile(String(mascot_data_dir + "/" + mascot_outfile_name).toQString()).remove();
+						QFile(mascotXML_file_name.toQString()).remove();
+						QFile(pepXML_file_name.toQString()).remove();
 					}
 			
 				} // from if(!mascot_in)
