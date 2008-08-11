@@ -145,8 +145,16 @@ namespace OpenMS
 			else if (action_mode_ == AM_ZOOM)
 			{
 				PointType pos = widgetToData_(p);
-	
-				rubber_band_.setGeometry(last_mouse_pos_.x(), 0, p.x() - last_mouse_pos_.x(), height());
+				
+				if (isMzToXAxis())
+				{
+					rubber_band_.setGeometry(last_mouse_pos_.x(), 0, p.x() - last_mouse_pos_.x(), height());
+				}
+				else
+				{
+					rubber_band_.setGeometry(0, last_mouse_pos_.y(), width(), p.y() - last_mouse_pos_.y());
+				}
+				
 				update_(__PRETTY_FUNCTION__);
 				
 				emit sendCursorStatus( pos.getX() );
