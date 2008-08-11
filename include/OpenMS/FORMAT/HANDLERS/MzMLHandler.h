@@ -47,7 +47,6 @@
 #include <iostream>
 
 //TODO:
-// - warning for obsolete CV terms
 // - writing files, add to automatic tmp file validation in tests
 // - units
 
@@ -614,6 +613,11 @@ namespace OpenMS
 		template <typename MapType>
 		void MzMLHandler<MapType>::handleCVParam_(const String& parent_tag, const String& accession, const String& value)
 		{
+			//Warn when using obsolete CV terms
+			if (cv_.exists(accession) && cv_.getTerm(accession).obsolete)
+			{
+				warning(String("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'");
+			}
 			//------------------------- binaryDataArray ----------------------------
 			if (parent_tag=="binaryDataArray" && in_spectrum_list_)
 			{

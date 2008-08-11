@@ -78,6 +78,7 @@ namespace OpenMS
 						term.id="";
 						term.name="";
 						term.parents.clear();
+						term.obsolete=false;
 					}
 					else if (term.name!="")
 					{
@@ -96,6 +97,10 @@ namespace OpenMS
 				else if (line_wo_spaces.hasPrefix("is_a:"))
 				{
 					term.parents.push_back(line.substr(line.find(':')+1).prefix('!').trim());
+				}
+				else if (line_wo_spaces=="is_obsolete:true")
+				{
+					term.obsolete = true;
 				}
 				else
 				{

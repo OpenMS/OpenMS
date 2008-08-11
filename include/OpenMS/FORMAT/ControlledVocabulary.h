@@ -47,9 +47,19 @@ namespace OpenMS
 			/// Representation of a CV term
 			struct CVTerm
 			{
-				String name;
-				String id;
-				std::vector<String> parents;				
+				String name;									///< Text name
+				String id;										///< Identifier
+				std::vector<String> parents;	///< List of parent IDs
+				bool obsolete; 								///< Flag that indicates of the term is obsolete
+				
+				///Default constructor
+				CVTerm()
+					: name(),
+						id(),
+						parents(),
+						obsolete(false)
+				{
+				}
 			};
 			
 			/// Constructor
@@ -58,7 +68,7 @@ namespace OpenMS
 			///Destructor
 			virtual ~ControlledVocabulary();
 			
-			/// Returns the CV name
+			/// Returns the CV name (set in the load method)
 			const String& name() const;
 			
 			///load the CV from a OBO file
@@ -67,16 +77,17 @@ namespace OpenMS
 			/// Returns true if the term is in the CV. Returns false otherwise.
 			bool exists(const String& id) const;
 			
-			///Returns a term specified by Id
+			///Returns a term specified by ID
 			const CVTerm& getTerm(const String& id) const throw (Exception::InvalidValue);
 
 			///Returns if @p child is a child of @p parent
 			bool isChildOf(const String& child, const String& parent) const  throw (Exception::InvalidValue);
 			
 		protected:
+			///Map from ID to CVTerm
 			std::map<String, CVTerm> terms_;
-			String name_;
-			
+			///Name set in the load method
+			String name_;			
 	};
 	
 	///Print the contents to a stream.

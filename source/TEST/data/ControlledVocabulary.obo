@@ -8,7 +8,8 @@ id  :    OpenMS:1
 id: OpenMS:6
 name: Ka
 is_a : OpenMS:2  		  ! 	 Ford
-			
+is_obsolete 	: true
+
 [Term]
 id : OpenMS:2
 name: Ford
