@@ -182,11 +182,20 @@ namespace OpenMS
 				
 				Filters the peptide hits of this ProteinIdentification by the 
 				probability (p-value) of a correct ProteinIdentification having a deviation between 
-				observed and predicted rt equal or bigger than allowed. If there are 
-				unset p_values of the peptide hits the function returns 'true' 
-				otherwise 'false'.
+				observed and predicted rt equal or bigger than allowed.
 			*/
 			void filterIdentificationsByRTPValues(const PeptideIdentification& identification, PeptideIdentification& 				filtered_identification, DoubleReal p_value = 0.05);
+
+		  /**
+				@brief Filters the peptide hits according to their predicted rt p-values of the first dimension
+				
+				Filters the peptide hits of this ProteinIdentification by the 
+				probability (p-value) of a correct ProteinIdentification having a deviation between 
+				observed and predicted rt equal or bigger than allowed. 
+			*/
+			void filterIdentificationsByRTFirstDimPValues(const PeptideIdentification& 	identification,
+																										PeptideIdentification& 				filtered_identification,
+																										DoubleReal 										p_value = 0.05);
 
       /// filters an MS/MS experiment corresponding to the threshold_fractions
 			template <class PeakT>

@@ -201,6 +201,33 @@ namespace OpenMS
 		}
 	}
 	
+	void IDFilter::filterIdentificationsByRTFirstDimPValues(const PeptideIdentification& 	identification,
+																										 			PeptideIdentification& 				filtered_identification,
+																										 			DoubleReal 										p_value)
+	{
+		DoubleReal border = 1 - p_value;
+		vector< UInt > new_peptide_indices;		
+		vector<PeptideHit> filtered_peptide_hits;
+		PeptideHit temp_peptide_hit;
+		
+		filtered_identification=identification;
+		filtered_identification.setHits(vector<PeptideHit>());
+		
+		for(UInt i = 0; i < identification.getHits().size(); i++)
+		{
+			if (identification.getHits()[i].metaValueExists("predicted_RT_p_value_first_dim") 
+			    && (DoubleReal)(identification.getHits()[i].getMetaValue("predicted_RT_p_value_first_dim")) <= border )
+			{
+		  	filtered_peptide_hits.push_back(identification.getHits()[i]);
+			}		
+		}
+		if (filtered_peptide_hits.size() > 0)
+		{
+  		filtered_identification.setHits(filtered_peptide_hits);		
+  		filtered_identification.assignRanks();											
+		}
+	}																		 																										 
+
 	void IDFilter::filterIdentificationsByRTPValues(const PeptideIdentification& 	identification,
 																						 			PeptideIdentification& 				filtered_identification,
 																						 			DoubleReal 										p_value)

@@ -43,7 +43,7 @@ using namespace std;
 namespace OpenMS 
 {
 		
-	SVMWrapper::SVMWrapper() : param_(NULL), model_(NULL), sigma_(0), sigmas_(vector<DoubleReal>()), gauss_table_(), kernel_type_(PRECOMPUTED), border_length_(0), training_set_(NULL), training_problem_(NULL)
+	SVMWrapper::SVMWrapper() : param_(NULL), model_(NULL), sigma_(0), sigmas_(vector<DoubleReal>()), gauss_table_(), kernel_type_(PRECOMPUTED), border_length_(0), training_set_(NULL), training_problem_(NULL), training_data_(SVMData())
 	{	
 	  param_ = (struct svm_parameter*) malloc(sizeof(struct svm_parameter));
 	  initParameters_();
@@ -219,6 +219,11 @@ namespace OpenMS
   	training_set_ = training_sample;		
 	}
 	
+	void SVMWrapper::setTrainingSample(SVMData& training_sample)
+	{
+  	training_data_ = training_sample;		
+	}
+	
 	Int SVMWrapper::train(struct svm_problem* problem)
 	{
 	  if (problem != NULL 
@@ -265,6 +270,47 @@ namespace OpenMS
 	  	cout << "Training error" << endl;
 			return 0;
 	  }
+	}
+	
+	Int SVMWrapper::train(SVMData& problem)
+	{
+	  if (param_ != NULL || kernel_type_ != OLIGO)
+	  {
+	  	training_data_ = problem;
+	  	
+			if (model_ != NULL)
+			{
+		    svm_destroy_model(model_);
+		    model_ = NULL;
+			}
+			
+			if (border_length_ != gauss_table_.size())
+			{
+				SVMWrapper::calculateGaussTable(border_length_, sigma_, gauss_table_);
+   		}
+   		training_problem_ = computeKernelMatrix(problem, problem);
+			
+			if (svm_check_parameter(training_problem_,param_) == NULL)
+			{
+				model_ = svm_train(training_problem_, param_);
+				return 1;			
+			}
+		}
+  	if (training_problem_ == NULL)
+  	{
+			cout << "problem is null" << endl;	  		
+  	}
+  	if (param_ == NULL)
+  	{
+  		cout << "param_ == null" << endl;
+  	}
+  	if (svm_check_parameter(training_problem_,param_) != NULL)
+  	{
+  		cout << "check parameter failed" << endl;
+  	}
+  	cout << "Training error" << endl;
+		return 0;
+
 	}
 	
 	void SVMWrapper::saveModel(string model_filename) const throw (Exception::UnableToCreateFile)
@@ -368,6 +414,41 @@ namespace OpenMS
   	}
 	}
 	
+	void SVMWrapper::predict(const SVMData& problem, vector<DoubleReal>& results)
+	{
+    DoubleReal          label = 0.0;
+    struct svm_problem* prediction_problem = NULL;
+    
+    results.clear();
+
+		if (kernel_type_ == OLIGO)
+		{
+			if (model_ == NULL)
+			{
+				cout << "Model is null" << endl;
+			}
+			else if (problem.sequences.size() == 0)
+			{
+				cout << "problem is empty" << endl;
+			}
+			else if (training_data_.sequences.size() == 0)
+			{
+				cout << "Training set is empty and kernel type == PRECOMPUTED" << endl;
+			}
+			else if (model_ != NULL)
+	    {
+	   		prediction_problem = computeKernelMatrix(problem, training_data_);
+		    for(UInt i = 0; i < problem.sequences.size(); i++)
+		    {
+					label = svm_predict(model_, prediction_problem->x[i]);
+					results.push_back(label);
+				}
+			
+ 		   	LibSVMEncoder::destroyProblem(prediction_problem);
+	  	}
+		}
+	}
+	
 	void SVMWrapper::createRandomPartitions(svm_problem* 					problem,
 																					UInt  			 					number,
 																					vector<svm_problem*>& 	problems)
@@ -437,6 +518,75 @@ namespace OpenMS
 		}
 	}
 	
+	void SVMWrapper::createRandomPartitions(const SVMData&				  problem,
+																					UInt  			 					  number,
+																					vector<SVMData>& 				problems)
+	{
+		vector<UInt> indices;
+		UInt partition_count = 0;
+		UInt actual_partition_size = 0; 
+		vector<UInt>::iterator indices_iterator;
+		
+		for(UInt i = 0; i < problems.size(); ++i)
+		{
+			problems[i].labels.clear();
+			problems[i].sequences.clear();
+		}		
+		problems.clear();
+			
+		if (number == 1)
+		{
+			problems.push_back(problem);
+		}
+		else if (number > 1)
+		{
+			// Creating the particular partition instances
+			for(UInt i = 0; i < number; i++)
+			{
+				problems.push_back(SVMData());
+			}
+			
+			// Creating indices
+			for(UInt  i = 0; i < problem.sequences.size(); i++)
+			{
+				indices.push_back(i);
+			}
+			// Shuffling the indices => random indices
+			random_shuffle(indices.begin(), indices.end());
+			
+			indices_iterator = indices.begin();
+			
+			for(UInt partition_index = 0; 
+					partition_index < number; 
+					partition_index++)
+			{
+				actual_partition_size = 0;
+				// determining the number of elements in this partition
+				partition_count = (problem.sequences.size() / number);
+				if (problem.sequences.size() % number > partition_index)
+				{
+					partition_count++;
+				}
+				
+				// filling the actual partition with 'partition_count' elements
+				while(actual_partition_size < partition_count)
+				{
+					if (actual_partition_size == 0)
+					{
+						problems[partition_index].sequences.resize(partition_count, std::vector< std::pair<int, double> >());
+						problems[partition_index].labels.resize(partition_count, 0.);						
+					}
+					problems[partition_index].sequences[actual_partition_size] = 
+						problem.sequences[*indices_iterator];
+					problems[partition_index].labels[actual_partition_size] = 
+						problem.labels[*indices_iterator];
+					actual_partition_size++;
+					indices_iterator++;
+				}
+			}			
+		}
+	}
+	
 	svm_problem* SVMWrapper::mergePartitions(const vector<svm_problem*>& problems,
 								 													 UInt 											 except)
 	{
@@ -476,6 +626,45 @@ namespace OpenMS
 			}
 		}
 		return merged_problem;
+	}
+	
+	void SVMWrapper::mergePartitions(const vector<SVMData>& problems,
+				 													 UInt 								  except,
+				 													 SVMData&								merged_problem)
+	{
+		UInt count = 0;
+		UInt actual_index = 0;
+		
+		merged_problem.sequences.clear();
+		merged_problem.labels.clear();
+		
+		if (problems.size() != 1 || except != 0)
+		{			
+			if (problems.size() > 0)
+			{
+				for(UInt i = 0; i < problems.size(); i++)
+				{
+					if (i != except)
+					{
+						count += problems[i].labels.size();
+					}
+				}
+				merged_problem.sequences.resize(count, std::vector< std::pair<int, double> >());
+				merged_problem.labels.resize(count, 0.);
+				for(UInt i = 0; i < problems.size(); i++)
+				{
+					if (i != except)
+					{
+						for(UInt j = 0; j < problems[i].sequences.size(); j++)
+						{
+							merged_problem.sequences[actual_index] = problems[i].sequences[j];
+							merged_problem.labels[actual_index] = problems[i].labels[j];
+							actual_index++;
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	void SVMWrapper::getLabels(svm_problem* problem, vector<DoubleReal>& labels)
@@ -952,7 +1141,495 @@ namespace OpenMS
 			performances_file << "Best parameter combination ended****************" << endl;
 		}
 		
-		performances_file.close();
+		if (output)
+		{
+			performances_file.flush();
+			run_performances_file.flush();
+		  performances_file.close();
+		  run_performances_file.close();
+		}   
+		
+		for(actual_index = 0; actual_index < start_values_map.size(); actual_index++)
+		{
+			best_parameters.insert(make_pair(actual_types[actual_index], actual_values[actual_index]));
+		}
+		cv_quality = performances[max_index] / number_of_runs;
+
+		actual_index = 0;
+		while(actual_index < start_values_map.size())
+		{			
+			setParameter(actual_types[actual_index], actual_values[actual_index]);
+			actual_index++;
+		}
+				
+		delete start_values;
+		delete actual_values;
+		delete end_values;
+		delete step_sizes;
+		delete best_values;
+		
+		return cv_quality;
+		
+	}
+
+	DoubleReal SVMWrapper::performCrossValidation(const SVMData& 															 problem,
+																 								const	map<SVM_parameter_type, DoubleReal>&   start_values_map,
+																 								const	map<SVM_parameter_type, DoubleReal>&   step_sizes_map,
+																 								const	map<SVM_parameter_type, DoubleReal>&   end_values_map,
+																 								UInt 												   				 			 number_of_partitions,
+																 								UInt 												   				 			 number_of_runs,
+																 								map<SVM_parameter_type, DoubleReal>&   			 best_parameters,
+																 								bool																	 			 additive_step_sizes,
+																 								bool				 												   			 output,
+																 								String																 			 performances_file_name,
+																 								bool																				 mcc_as_performance_measure)
+	{
+		map<SVM_parameter_type, DoubleReal>::const_iterator start_values_iterator;
+		map<SVM_parameter_type, DoubleReal>::const_iterator step_sizes_iterator;
+		map<SVM_parameter_type, DoubleReal>::const_iterator end_values_iterator;
+		vector<pair<DoubleReal, UInt> > combined_parameters;
+		DoubleReal cv_quality = 0.0;
+		combined_parameters.push_back(make_pair(1, 25));
+		for(UInt i = 1; i < gauss_tables_.size(); ++i)
+		{
+			combined_parameters.push_back(make_pair(1, 25));
+		}				
+		DoubleReal precision = 0.0001;
+		
+		DoubleReal* start_values = new DoubleReal[start_values_map.size()]();
+		DoubleReal* actual_values = new DoubleReal[start_values_map.size()]();
+		DoubleReal* step_sizes = new DoubleReal[start_values_map.size()]();
+		DoubleReal* end_values = new DoubleReal[start_values_map.size()]();
+		SVM_parameter_type* actual_types = new SVM_parameter_type[start_values_map.size()]();
+		UInt actual_index = 0;
+		bool condition = false;
+		bool found = false;
+		UInt counter = 0;
+		vector<SVMData> partitions;
+		vector<SVMData> training_data;
+		DoubleReal temp_performance = 0;
+		vector<DoubleReal> predicted_labels;
+		vector<DoubleReal> real_labels;
+		vector<DoubleReal> performances;
+		UInt max_index = 0;
+		DoubleReal max = 0;
+		ofstream performances_file;
+		ofstream run_performances_file;
+		DoubleReal max_performance;
+		DoubleReal* best_values = new DoubleReal[start_values_map.size()]();
+		vector<DoubleReal>::iterator predicted_it;
+		vector<DoubleReal>::iterator real_it;
+		
+		best_parameters.clear();
+		
+		if (output)
+		{
+		  performances_file.open(performances_file_name.c_str(), ios_base::out);
+		  run_performances_file.open((performances_file_name + "_runs.txt").c_str(), ios_base::out);
+		}   
+		
+		start_values_iterator = start_values_map.begin();
+		step_sizes_iterator = step_sizes_map.begin();
+		end_values_iterator = end_values_map.begin();
+
+		// Initializing the necessary variables
+		while(start_values_iterator != start_values_map.end())
+		{
+			actual_types[actual_index] = start_values_iterator->first;
+			start_values[actual_index] = start_values_iterator->second;
+			actual_values[actual_index] = start_values_iterator->second;
+			step_sizes_iterator = step_sizes_map.find(start_values_iterator->first);
+			if (step_sizes_iterator == step_sizes_map.end())
+			{
+				
+			}
+			else
+			{
+				step_sizes[actual_index] = step_sizes_iterator->second;
+			}
+			end_values_iterator = end_values_map.find(start_values_iterator->first);
+			if (end_values_iterator == end_values_map.end())
+			{
+				
+			}
+			else
+			{
+				end_values[actual_index] = end_values_iterator->second;
+			}			
+			start_values_iterator++;
+			actual_index++;
+		}
+
+		// for every 
+		for(UInt i = 0; i < number_of_runs; i++)
+		{
+			for(UInt index = 0; index < start_values_map.size(); ++index)
+			{
+				best_values[index] = 0;
+			}
+			max_performance = 0;		
+			createRandomPartitions(problem, number_of_partitions, partitions);
+	
+			counter = 0;
+			found = true;
+
+			training_data.resize(number_of_partitions, SVMData());
+			for(UInt j = 0; j < number_of_partitions; j++)
+			{
+				SVMWrapper::mergePartitions(partitions, j, training_data[j]);
+			}
+			
+			while(found)
+			{
+				// testing whether actual parameters are in the defined range
+				condition = true;	
+				actual_index = 0;
+				while(actual_index < start_values_map.size())
+				{			
+					if (actual_values[actual_index] > end_values[actual_index])
+					{
+						condition = false;
+					}
+					actual_index++;
+				}
+				// setting the actual parameters
+				actual_index = 0;
+				while(actual_index < start_values_map.size())
+				{
+					setParameter(actual_types[actual_index], actual_values[actual_index]);
+					
+					++actual_index;
+					
+				}
+
+				// evaluation of parameter performance
+				temp_performance = 0;
+				for(UInt j = 0; j < number_of_partitions; j++)
+				{
+					if (train(training_data[j]))
+					{
+						predict(partitions[j], predicted_labels);
+												
+						predicted_it = predicted_labels.begin();
+						real_it = partitions[j].labels.begin();
+						
+						if (param_->svm_type == C_SVC || param_->svm_type == NU_SVC)
+						{
+							if (mcc_as_performance_measure)
+							{
+								temp_performance += 
+									OpenMS::Math::matthewsCorrelationCoefficient
+									( predicted_labels.begin(), predicted_labels.end(),
+										partitions[j].labels.begin(), partitions[j].labels.end()
+									);
+							}
+							else
+							{
+								temp_performance +=
+									OpenMS::Math::classificationRate
+									( predicted_labels.begin(), predicted_labels.end(),
+										partitions[j].labels.begin(), partitions[j].labels.end()
+									);
+							}
+						}
+						else if (param_->svm_type == NU_SVR || param_->svm_type == EPSILON_SVR)
+						{
+							temp_performance +=
+								Math::pearsonCorrelationCoefficient
+								( predicted_labels.begin(), predicted_labels.end(),
+									partitions[j].labels.begin(), partitions[j].labels.end()
+								);
+						}
+						
+						if (param_->kernel_type == PRECOMPUTED)
+						{
+							LibSVMEncoder::destroyProblem(training_problem_);
+						}
+
+						if (output && j == number_of_partitions - 1)
+						{
+							performances_file << temp_performance / (j + 1) << " ";
+							for(UInt k = 0; k < start_values_map.size(); k++)
+							{
+								switch(actual_types[k])
+								{
+									case C:
+										performances_file << "C: " << actual_values[k];						
+										break;
+									case NU:
+										performances_file << "NU: " << actual_values[k];						
+										break;									
+									case DEGREE:
+										performances_file << "DEGREE: " << actual_values[k];						
+										break;																														
+									case P:
+										performances_file << "P: " << actual_values[k];						
+										break;																														
+									case GAMMA:										
+										performances_file << "GAMMA: " << actual_values[k];						
+										break;																														
+									case SIGMA:
+										performances_file << "SIGMA: " << actual_values[k];																										
+										break;																														
+									default:
+										break;																														
+								}
+								if (k < (start_values_map.size() - 1))
+								{
+									performances_file << " ";
+								}
+								else
+								{
+									performances_file << endl;
+								}
+							}
+						}
+					}
+					else
+					{
+						cout << "Training failed" << endl;
+					}
+				}
+
+				// storing performance for this parameter combination
+				temp_performance = temp_performance / number_of_partitions;
+				if (temp_performance > max_performance)
+				{
+					max_performance = temp_performance;
+					for(UInt index = 0; index < start_values_map.size(); ++index)
+					{
+						best_values[index] = actual_values[index];
+					}		
+				}
+								
+				if (i == 0)
+				{
+					performances.push_back(temp_performance);
+				}
+				else
+				{
+					performances[counter] = performances[counter] + temp_performance;
+					counter++;
+				}
+
+				// trying to find new parameter combination
+				found = false;
+				actual_index = 0;
+				while(actual_index < start_values_map.size()
+							&& !found)
+				{
+					if (additive_step_sizes)
+					{			
+						if (actual_values[actual_index] + 
+								step_sizes[actual_index] 
+								<= end_values[actual_index] + precision)
+						{
+							found = true;
+							actual_values[actual_index] = actual_values[actual_index] + 
+																						step_sizes[actual_index];
+						}
+						else
+						{
+							actual_values[actual_index] = start_values[actual_index];
+						}
+					}
+					else
+					{
+						if (actual_values[actual_index] * 
+								step_sizes[actual_index] 
+								<= end_values[actual_index] + precision)
+						{
+							found = true;
+							actual_values[actual_index] = actual_values[actual_index] * 
+																						step_sizes[actual_index];
+						}
+						else
+						{
+							actual_values[actual_index] = start_values[actual_index];
+						}
+					}
+					actual_index++;
+				}
+			}
+			
+			if (output)
+			{
+				cout << "run finished, time elapsed since start: " << clock() 
+					<< " mean performance is: " << *(max_element(performances.begin(), performances.end())) / (i + 1) 
+					<< endl << "performance of this run is: " << max_performance << " with parameters: ";
+				run_performances_file << max_performance << " ";
+				for(UInt k = 0; k < start_values_map.size(); k++)
+				{
+					switch(actual_types[k])
+					{
+						case C:
+							cout << "C: " << best_values[k];						
+							run_performances_file << "C: " << best_values[k];						
+							break;
+						case NU:
+							cout << "NU: " << best_values[k];						
+							run_performances_file << "NU: " << best_values[k];						
+							break;									
+						case DEGREE:
+							cout << "DEGREE: " << best_values[k];						
+							run_performances_file << "DEGREE: " << best_values[k];						
+							break;																														
+						case P:
+							cout << "P: " << best_values[k];						
+							run_performances_file << "P: " << best_values[k];						
+							break;																														
+						case GAMMA:										
+							cout << "GAMMA: " << best_values[k];						
+							run_performances_file << "GAMMA: " << best_values[k];						
+							break;																														
+						case SIGMA:
+							cout << "SIGMA: " << best_values[k];						
+							run_performances_file << "SIGMA: " << best_values[k];																										
+							break;																														
+						default:
+							break;																														
+					}
+					if (k < (start_values_map.size() - 1))
+					{
+						cout << " ";
+						run_performances_file << " ";
+					}
+					else
+					{
+						cout << endl;
+						run_performances_file << endl;
+					}
+				}
+
+			}
+		}
+		
+		// Determining the index for the maximum performance
+		for(UInt i = 0; i < performances.size(); i++)
+		{
+			if (performances[i] > max)
+			{
+				max_index = i;
+				max = performances[i];
+			}
+		}
+
+		// Determining the best parameter combination		
+		start_values_iterator = start_values_map.begin();
+		actual_index = 0;
+		// resetting actual values to start values
+		while(start_values_iterator != start_values_map.end())
+		{
+			actual_values[actual_index] = start_values_iterator->second;
+			++actual_index;
+			++start_values_iterator;		
+		}
+
+		actual_index = 0;
+		if (max_index == 0)
+		{
+			while(actual_index < start_values_map.size())
+			{
+				actual_values[actual_index] = start_values[actual_index];
+				++actual_index;
+			}
+		}
+		else
+		{
+			performances_file << "Best parameter combination *********************" << endl;
+			counter = 1;
+			found = true;
+			while(found)
+			{
+				found = false;
+				actual_index = 0;
+				while(actual_index < start_values_map.size()
+							&& !found && counter <= max_index)
+				{			
+					if (additive_step_sizes)
+					{			
+						if (actual_values[actual_index] + 
+								step_sizes[actual_index] 
+								<= end_values[actual_index] + precision)
+						{
+							found = true;
+							actual_values[actual_index] = actual_values[actual_index] + 
+																						step_sizes[actual_index];
+						}
+						else
+						{
+							actual_values[actual_index] = start_values[actual_index];
+						}
+					}
+					else
+					{
+						if (actual_values[actual_index] * 
+								step_sizes[actual_index] 
+								<= end_values[actual_index] + precision)
+						{
+							found = true;
+							actual_values[actual_index] = actual_values[actual_index] * 
+																						step_sizes[actual_index];
+						}
+						else
+						{
+							actual_values[actual_index] = start_values[actual_index];
+						}
+					}
+					actual_index++;
+				}
+				performances_file	<< performances[counter]  / number_of_runs << ": ";
+				for(UInt k = 0; k < start_values_map.size(); k++)
+				{
+					switch(actual_types[k])
+					{
+						case C:
+							performances_file << "C: " << actual_values[k];						
+							break;
+						case NU:
+							performances_file << "NU: " << actual_values[k];						
+							break;									
+						case DEGREE:
+							performances_file << "DEGREE: " << actual_values[k];						
+							break;																														
+						case P:
+							performances_file << "P: " << actual_values[k];						
+							break;																														
+						case GAMMA:										
+							performances_file << "GAMMA: " << actual_values[k];						
+							break;																														
+						case SIGMA:
+							performances_file << "SIGMA: " << actual_values[k];																										
+							break;																														
+						default:
+							break;
+					}																														
+					if (k < (start_values_map.size() - 1))
+					{
+						performances_file << ", ";
+					}
+					else
+					{
+						performances_file << endl;
+					}
+				}
+				// best parameter combination found
+				if (counter == max_index)
+				{
+					found = false;
+				}
+				counter++;
+			}
+			performances_file << "Best parameter combination ended****************" << endl;
+		}
+		
+		if (output)
+		{
+			performances_file.flush();
+			run_performances_file.flush();
+		  performances_file.close();
+		  run_performances_file.close();
+		}   
 		
 		for(actual_index = 0; actual_index < start_values_map.size(); actual_index++)
 		{
@@ -1087,6 +1764,91 @@ namespace OpenMS
 		}
 	}
 
+	DoubleReal SVMWrapper::kernelOligo(const vector< pair<int, DoubleReal> >&    x, 
+																		 const vector< pair<int, DoubleReal> >&    y,
+																		 const vector<DoubleReal>& 	          		 gauss_table,
+																		 int 			          											 max_distance)
+{
+    DoubleReal kernel = 0;
+    unsigned int    i1     = 0;
+    unsigned int    i2     = 0;
+    unsigned int    c1     = 0;
+    unsigned int x_size = x.size();
+    unsigned int y_size = y.size();
+    
+    while(i1 < x_size && i2 < y_size)
+    {
+			if (x[i1].second == y[i2].second)
+			{
+			  if (max_distance < 0 
+						|| (abs(x[i1].first - y[i2].first)) <= max_distance)
+			  {
+					kernel += gauss_table.at(abs((x[i1].first - y[i2].first)));
+					if (x[i1].second == x[i1 + 1].second)
+					{
+				    i1++;
+				    c1++;
+					}
+					else if (y[i2].second == y[i2 + 1].second)
+					{
+				    i2++;
+				    i1 -= c1;
+				    c1 = 0;
+					}
+					else
+					{
+				    i1++;
+				    i2++;
+					}
+			  }
+			  else
+			  {
+					if (x[i1].first < y[i2].first)
+					{
+				    if (x[i1].second == x[i1 + 1].second)
+				    {
+							i1++;
+				    }
+				    else if (y[i2].second == y[i2 + 1].second)
+				    {
+							while(y[i2++].second == y[i2].second)
+							{
+							    ;
+							}
+							++i1;
+							c1 = 0;
+				    }
+				    else
+				    {
+							i1++;
+							i2++;
+							c1 = 0;
+				    }
+					}
+					else
+					{
+				    i2++;
+				    i1 -= c1;
+				    c1 = 0;
+					}
+			  }
+			}
+			else
+			{
+			  if (x[i1].second < y[i2].second)
+			  {
+					i1++;
+			  }
+			  else
+			  {
+					i2++;
+			  }
+			  c1 = 0;
+			}
+    }
+    return kernel;
+}		
+
 	DoubleReal SVMWrapper::kernelOligo(const svm_node* 						x, 
 																		 const svm_node*						y,
 																		 const vector<DoubleReal>& 	gauss_table,
@@ -1187,7 +1949,6 @@ namespace OpenMS
 	{
 		DoubleReal temp = 0;
 		svm_problem* kernel_matrix;
-		vector<DoubleReal> sigma_squares;
 				
 		if (problem1 == NULL || problem2 == NULL)
 		{
@@ -1239,6 +2000,69 @@ namespace OpenMS
 		}
 		return kernel_matrix;
 	}
+
+	svm_problem* SVMWrapper::computeKernelMatrix(const SVMData& problem1, const SVMData& problem2)
+	{
+		DoubleReal temp = 0;
+		svm_problem* kernel_matrix;
+				
+		if (problem1.labels.size() == 0 || problem2.labels.size() == 0)
+		{
+			return NULL;
+		}
+			
+		if (problem1.labels.size() != problem1.sequences.size()
+			|| problem2.labels.size() != problem2.sequences.size())
+		{
+			return NULL;
+		}		
+
+		UInt number_of_sequences = 0;
+
+		number_of_sequences = problem1.labels.size();		
+		kernel_matrix = new svm_problem;
+		kernel_matrix->l = number_of_sequences;
+		kernel_matrix->x = new svm_node*[number_of_sequences];
+		kernel_matrix->y = new DoubleReal[number_of_sequences];
+		
+		for(UInt i = 0; i < number_of_sequences; i++)
+		{
+			kernel_matrix->x[i] = new svm_node[problem2.labels.size() + 2];
+			kernel_matrix->x[i][0].index = 0;
+			kernel_matrix->x[i][0].value = i + 1;
+			kernel_matrix->y[i] = problem1.labels[i];
+			kernel_matrix->x[i][problem2.labels.size() + 1].index = -1;
+		}
+
+		if (&problem1 == &problem2)
+		{
+			for(UInt i = 0; i < number_of_sequences; i++)
+			{			
+				for(UInt j = i; j < number_of_sequences; j++)
+				{
+					temp = SVMWrapper::kernelOligo(problem1.sequences[i], problem2.sequences[j], gauss_table_);
+					kernel_matrix->x[i][j + 1].index = j + 1;
+					kernel_matrix->x[i][j + 1].value = temp;
+					kernel_matrix->x[j][i + 1].index = i + 1;
+					kernel_matrix->x[j][i + 1].value = temp;				
+				}
+			}
+		}
+		else
+		{
+			for(UInt i = 0; i < number_of_sequences; i++)
+			{			
+				for(UInt j = 0; j < (UInt) problem2.labels.size(); j++)
+				{
+					temp = SVMWrapper::kernelOligo(problem1.sequences[i], problem2.sequences[j], gauss_table_);
+
+					kernel_matrix->x[i][j + 1].index = j + 1;
+					kernel_matrix->x[i][j + 1].value = temp;
+				}
+			}			
+		}
+		return kernel_matrix;
+	}
 	
 	void SVMWrapper::getSignificanceBorders(svm_problem* data, 
 																					pair<DoubleReal, DoubleReal>& sigmas,
@@ -1258,8 +2082,12 @@ namespace OpenMS
 		UInt																	target = 0;
 		ofstream															file("points.txt");
 		DoubleReal 														mean;
-		DoubleReal														sigma1 = 0;
-		DoubleReal														sigma2 = 0;
+		DoubleReal														intercept = 0;
+		DoubleReal														slope = 0;
+		DoubleReal 														step_size1 = 0.;
+		DoubleReal 														step_size2 = step_size;
+		DoubleReal 														maximum = 0.;
+		DoubleReal														minimum = 0.;
 			
 		
 		// creation of points (measured rt, predicted rt)
@@ -1293,43 +2121,136 @@ namespace OpenMS
 		// trying to find the two line parameters
 		target = (UInt) round(confidence * points.size());
 		
-		mean = accumulate(differences.begin(), differences.end(), 0.0) / differences.size();
-		sigma1 = mean;
-		sigma2 = mean;
-		while(target > getNumberOfEnclosedPoints_(sigma1, sigma2, points) && counter < max_iterations)
+		mean = accumulate(differences.begin(), differences.end(), 0.0) / differences.size();		
+		intercept = mean;
+		slope = 1;
+		
+		step_size1 = (maximum - minimum) * step_size;
+		while(target > getNumberOfEnclosedPoints_(intercept, slope, points) && counter < max_iterations)
 		{
 			
-			cout << "sigma1: " << sigma1 << ", sigma2: " << sigma2 << " shape contains " 
-						<< ((getNumberOfEnclosedPoints_(sigma1, sigma2, points) / ((DoubleReal)points.size())) * 100)
+			cout << "intercept: " << intercept << ", slope: " << slope << " shape contains " 
+						<< ((getNumberOfEnclosedPoints_(intercept, slope, points) / ((DoubleReal)points.size())) * 100)
 						<< " % of points" << endl;
 
-			sigma1 += (step_size / 2);
-			sigma2 += step_size;
+			intercept += step_size1;
+			slope += step_size2;
 			++counter;			
 		}
-		sigmas.first = sigma1;
-		sigmas.second = sigma2;
+		sigmas.first = intercept;
+		sigmas.second = slope;
 
-		cout << "sigma1: " << sigma1 << ", sigma2: " << sigma2 << " shape contains " 
-			<< ((getNumberOfEnclosedPoints_(sigma1, sigma2, points) / ((DoubleReal)points.size())) * 100)
+		cout << "intercept: " << intercept << ", slope: " << slope << " shape contains " 
+			<< ((getNumberOfEnclosedPoints_(intercept, slope, points) / ((DoubleReal)points.size())) * 100)
 			<< " % of points" << endl;			
 	}
 	
-	UInt SVMWrapper::getNumberOfEnclosedPoints_(DoubleReal sigma1, 
-																						 DoubleReal sigma2, 
+	void SVMWrapper::getSignificanceBorders(const SVMData& data, 
+																					pair<DoubleReal, DoubleReal>& sigmas,
+																					DoubleReal confidence,
+																					UInt number_of_runs,
+																					UInt number_of_partitions,
+																					DoubleReal step_size,
+																					UInt max_iterations)
+	{
+		vector<pair<DoubleReal, DoubleReal> > points;
+		vector<DoubleReal> 										differences;
+		vector<SVMData>			  								partitions;
+		SVMData																training_data;
+		vector<DoubleReal>										predicted_labels;
+		UInt																	counter = 0;
+		UInt																	target = 0;
+		ofstream															file("points.txt");
+		DoubleReal 														mean;
+		DoubleReal														intercept = 0;
+		DoubleReal														slope = 0;
+		DoubleReal 														step_size1 = 0.;
+		DoubleReal 														step_size2 = step_size;
+		DoubleReal 														maximum = 0.;
+		DoubleReal														minimum = 0.;
+		
+			
+		
+		// creation of points (measured rt, predicted rt)
+		for(UInt i = 0; i < number_of_runs; ++i)
+		{
+			createRandomPartitions(data, number_of_partitions, partitions);
+			
+			for (UInt j = 0; j < number_of_partitions; ++j)
+			{
+				SVMWrapper::mergePartitions(partitions, j, training_data);
+				if (train(training_data))
+				{
+					predict(partitions[j], predicted_labels);
+					vector<DoubleReal>::iterator pred_it = predicted_labels.begin();
+					vector<DoubleReal>::iterator real_it = partitions[j].labels.begin();						
+					while(pred_it != predicted_labels.end()
+								&& real_it != partitions[j].labels.end())
+					{
+						points.push_back(make_pair(*real_it, *pred_it));
+						differences.push_back(abs(*real_it - *pred_it));
+						file << *real_it << " " << *pred_it << endl;
+						
+						if (*real_it < minimum)
+						{
+							minimum = *real_it;
+						}
+						if (*real_it > maximum)
+						{
+							maximum = *real_it;
+						}
+						++pred_it;
+						++real_it;
+					}
+				}
+			}
+		}
+		file << flush;
+								
+		// trying to find the two line parameters
+		target = (UInt) round(confidence * points.size());
+		
+		mean = accumulate(differences.begin(), differences.end(), 0.0) / differences.size();		
+		intercept = mean;
+		slope = 1;
+		
+		step_size1 = (maximum - minimum) * step_size;
+		while(target > getNumberOfEnclosedPoints_(intercept, slope, points) && counter < max_iterations)
+		{
+			
+			cout << "intercept: " << intercept << ", slope: " << slope << " shape contains " 
+						<< ((getNumberOfEnclosedPoints_(intercept, slope, points) / ((DoubleReal)points.size())) * 100)
+						<< " % of points" << endl;
+
+			intercept += step_size1;
+			slope += step_size2;
+			++counter;			
+		}
+		sigmas.first = intercept;
+		sigmas.second = slope;
+
+		cout << "intercept: " << intercept << ", slope: " << slope << " shape contains " 
+			<< ((getNumberOfEnclosedPoints_(intercept, slope, points) / ((DoubleReal)points.size())) * 100)
+			<< " % of points" << endl;			
+	}
+	
+	UInt SVMWrapper::getNumberOfEnclosedPoints_(DoubleReal intercept, 
+																						 DoubleReal slope, 
 																						 const vector<pair<DoubleReal, DoubleReal> >& points)
 	{
 		UInt counter = 0;
-		DoubleReal 	sigma		= 0;
+		DoubleReal lower_bound = 0.;
+		DoubleReal upper_bound = 0.;
 		
 		for(vector<pair<DoubleReal, DoubleReal> >::const_iterator it = points.begin();
 				it != points.end();
 				++it)
 		{
-			sigma = sigma1 + it->first * (sigma2 - sigma1);
+			upper_bound = intercept + it->first * slope;
+			lower_bound = -intercept + it->first * (1 / slope);
 			
-			if (it->first + sigma >= it->second
-					&& it->first - sigma <= it->second)
+			if (it->second >= lower_bound
+					&& it->first <= upper_bound)
 			{
 				++counter;
 			}
@@ -1337,21 +2258,28 @@ namespace OpenMS
 		return counter; 
 	}
 	
-	DoubleReal SVMWrapper::getPValue(DoubleReal 										sigma1, 
-																	 DoubleReal 										sigma2,
+	DoubleReal SVMWrapper::getPValue(DoubleReal 										intercept, 
+																	 DoubleReal 										slope,
 																	 pair<DoubleReal, DoubleReal>		point)
 	{
 		DoubleReal center = point.first;
 		DoubleReal distance = point.second - center;
 		DoubleReal sd_units = 0;
 		DoubleReal result = 0;
+		DoubleReal actual_sigma = 0.;
 		
 		// getting the absolute value
 		distance = (distance < 0) ? (-1 * distance) : distance;
 			
-		sd_units = (2 * distance) / (sigma1 + point.first * (sigma2 - sigma1));
+		actual_sigma = ((intercept + point.first * slope) - point.first) / 2;
+				
+		actual_sigma = (actual_sigma < 0) ? (-1 * actual_sigma) : actual_sigma;
+		sd_units = distance / actual_sigma;
 		
+		// getting only the inner part of the area (0 +- sd_units) 
 		result = (gsl_cdf_gaussian_P(sd_units, 1) - 0.5) * 2;
+		
+		//should be impossible
 		if (result > 1)
 		{
 			result = 1;

@@ -192,6 +192,7 @@ class TOPPRTModel
 			registerDoubleOption_("sigma","<float>",5,"sigma of the POBK",false);
 			registerDoubleOption_("total_gradient_time","<time>",1,"the time (in seconds) of the gradient (only for RT prediction)", false);
 			setMinFloat_("total_gradient_time", 0.00001);
+			registerFlag_("first_dim_rt","if set the model will be built for first_dim_rt");
 			registerFlag_("additive_cv","if the step sizes should be interpreted additively (otherwise the actual value is multiplied\nwith the step size to get the new value");
 			addEmptyLine_();
 			addText_("Parameters for the grid search / cross validation:");
@@ -277,6 +278,7 @@ class TOPPRTModel
 			vector<ProteinIdentification> protein_identifications_negative;
 		  vector<PeptideIdentification> identifications_negative;
 		  vector<String> training_peptides;
+		  vector<AASequence> training_modified_peptides;
 		  vector< DoubleReal > training_retention_times;
 		  PeptideHit temp_peptide_hit;
 			SVMWrapper svm;
@@ -305,10 +307,12 @@ class TOPPRTModel
 			Int border_length = 0;
 			bool separation_prediction = false;
 			map<String, DoubleReal> redundant_peptides;
+			map<AASequence, DoubleReal> redundant_modified_peptides;
 			DoubleReal max_std = 0.;
 			bool textfile_input = false;
+			SVMData training_sample;
+			bool first_dim_rt = false;
 			
-	
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
@@ -577,6 +581,8 @@ class TOPPRTModel
 				additive_cv = getFlag_("additive_cv");
 			}
 			
+			first_dim_rt = getFlag_("first_dim_rt");
+			
 			Int debug_level = getIntOption_("debug");
 			
 			//-------------------------------------------------------------
@@ -590,7 +596,15 @@ class TOPPRTModel
 					loadStringLabelLines_(inputfile_name, training_peptides, training_retention_times);
 					for(UInt i = 0; i < training_peptides.size(); ++i)
 					{
-						redundant_peptides.insert(make_pair(training_peptides[i], training_retention_times[i]));
+						if (temp_type == OLIGO)
+						{
+							redundant_modified_peptides.insert(make_pair(AASequence(training_peptides[i]),
+																									training_retention_times[i]));
+						}
+						else
+						{
+							redundant_peptides.insert(make_pair(training_peptides[i], training_retention_times[i]));
+						}
 					}
 					training_peptides.clear();
 					training_retention_times.clear();
@@ -622,12 +636,43 @@ class TOPPRTModel
 							if (separation_prediction)
 							{
 								training_retention_times.push_back(1.0);
-								training_peptides.push_back(temp_peptide_hit.getSequence().toUnmodifiedString());
+								if (temp_type == OLIGO)
+								{
+									training_modified_peptides.push_back(temp_peptide_hit.getSequence());
+								}
+								else
+								{
+									training_peptides.push_back(temp_peptide_hit.getSequence().toUnmodifiedString());
+								}
 							}	
 							else
 							{
-								redundant_peptides.insert(make_pair(temp_peptide_hit.getSequence().toUnmodifiedString(),
-																										(DoubleReal)(identifications[i].getMetaValue("RT"))));
+								if (first_dim_rt)
+								{
+									if (temp_type != OLIGO)
+									{
+										redundant_peptides.insert(make_pair(temp_peptide_hit.getSequence().toUnmodifiedString(),
+																												(DoubleReal)(identifications[i].getMetaValue("first_dim_rt"))));
+									}
+									else
+									{
+										redundant_modified_peptides.insert(make_pair(temp_peptide_hit.getSequence(),
+																												(DoubleReal)(identifications[i].getMetaValue("first_dim_rt"))));
+									}
+								}
+								else
+								{
+									if (temp_type != OLIGO)
+									{
+										redundant_peptides.insert(make_pair(temp_peptide_hit.getSequence().toUnmodifiedString(),
+																												(DoubleReal)(identifications[i].getMetaValue("RT"))));
+									}
+									else
+									{
+										redundant_modified_peptides.insert(make_pair(temp_peptide_hit.getSequence(),
+																												(DoubleReal)(identifications[i].getMetaValue("RT"))));
+									}
+								}
 							}
 						}
 						else
@@ -651,7 +696,67 @@ class TOPPRTModel
 			// the standard deviation is calculated. If this std is less or equal to the
 			// maximal allowed std 'max_std', the peptide is added to the training set
 			// with the median as retention time. Unique peptides are added immediately.
-			if (!separation_prediction)
+			if (!separation_prediction && svm.getIntParameter(KERNEL_TYPE) == OLIGO)
+			{
+				map<AASequence, DoubleReal>::iterator it = redundant_modified_peptides.begin();
+				DoubleReal temp_variance = 0;
+				DoubleReal temp_median = 0;
+				DoubleReal temp_mean = 0;
+				vector<DoubleReal> temp_values;
+				pair< map<AASequence, DoubleReal>::iterator, map<AASequence, DoubleReal>::iterator > it_pair;
+					
+				while(it != redundant_modified_peptides.end())
+			  {
+			    temp_values.clear();
+			    temp_variance = 0;
+			 
+			    it_pair = redundant_modified_peptides.equal_range(it->first);
+			    for(it = it_pair.first; it != it_pair.second; ++it)
+			    {
+			      temp_values.push_back(it->second);
+			    }
+			    if (temp_values.size() == 1)
+			    {
+			      temp_median = temp_values[0];
+			      temp_mean = temp_values[0];
+			    }
+			    else
+			    {
+			      sort(temp_values.begin(), temp_values.end());
+			      if (temp_values.size() % 2 == 1)
+			      {
+							temp_median = temp_values[temp_values.size() / 2];
+			      }
+			      else
+			      {
+							temp_median = ((DoubleReal) temp_values[temp_values.size() / 2] 
+															+ temp_values[temp_values.size() / 2 - 1]) / 2;
+			      }
+			
+			      temp_mean = accumulate(temp_values.begin(), temp_values.end(), 0) / temp_values.size();
+			
+			      for(UInt j =0; j < temp_values.size(); ++j)
+			      {
+							temp_variance += (temp_values[j] - temp_mean) * (temp_values[j] - temp_mean);
+			      }
+			      temp_variance /= temp_values.size();
+			    }
+			    if (sqrt(temp_variance) <= max_std)
+			    {
+			    	training_modified_peptides.push_back(it_pair.first->first);
+			    	training_retention_times.push_back(temp_median);
+			    }
+			    else
+			    {
+			    	debug_string = "Did not take peptide " + it_pair.first->first.toString() + " for training because"
+			    		+ " there were several copies and std was " + String(temp_median) 
+			    		+ " while " + String(max_std) + " was allowed.";
+			    	writeDebug_(debug_string, 1);
+			    }
+			  }
+			}
+			
+			if (!separation_prediction && svm.getIntParameter(KERNEL_TYPE) != OLIGO)
 			{
 				map<String, DoubleReal>::iterator it = redundant_peptides.begin();
 				DoubleReal temp_variance = 0;
@@ -722,7 +827,14 @@ class TOPPRTModel
 						if (temp_size == 1)
 						{
 							temp_peptide_hit = identifications_negative[i].getHits()[0];
-							training_peptides.push_back(temp_peptide_hit.getSequence().toUnmodifiedString());
+							if (temp_type == OLIGO)
+							{
+								training_modified_peptides.push_back(temp_peptide_hit.getSequence());
+							}
+							else
+							{
+								training_peptides.push_back(temp_peptide_hit.getSequence().toUnmodifiedString());
+							}
 
 							training_retention_times.push_back(-1.0);
 						}
@@ -750,6 +862,7 @@ class TOPPRTModel
 					training_retention_times[i] = training_retention_times[i] / total_gradient_time;
 				}
 			}
+
 			if (temp_type == LINEAR || temp_type == POLY || temp_type == RBF)
 			{
 				encoded_training_sample = 
@@ -760,14 +873,18 @@ class TOPPRTModel
 			}
 			else if (temp_type == OLIGO)
 			{
-				encoded_training_sample = 
-					encoder.encodeLibSVMProblemWithOligoBorderVectors(training_peptides,
-																														training_retention_times,
-																														k_mer_length,
-																														allowed_amino_acid_characters,
-																														svm.getIntParameter(BORDER_LENGTH));
+				encoder.encodeProblemWithOligoBorderVectors(training_modified_peptides,
+																										k_mer_length,
+																										allowed_amino_acid_characters,
+																										svm.getIntParameter(BORDER_LENGTH),
+																										training_sample.sequences);
 			}			
 																													
+			if (temp_type == OLIGO)
+			{
+				training_sample.labels = training_retention_times;
+			}
+			
 			if (start_values.size() > 0)
 			{	
 				String digest = "";
@@ -785,8 +902,13 @@ class TOPPRTModel
 					{
 						digest = parts[parts.size() - 1];
 					}
-				}				
-				cv_quality = svm.performCrossValidation(encoded_training_sample,
+				}
+				if (temp_type == OLIGO)
+				{					
+					cout << training_sample.sequences.size() << " sequences for training, " 
+						<< training_sample.labels.size() << " labels for training" << flush << endl;
+					
+					cv_quality = svm.performCrossValidation(training_sample,
 																								start_values,
 																	 							step_sizes,
 																	 							end_values,
@@ -796,7 +918,20 @@ class TOPPRTModel
 																	 							additive_cv,
 																	 							output_flag,
 																	 							"performances_" + digest + ".txt");
-																	 												
+				}
+				else
+				{				
+					cv_quality = svm.performCrossValidation(encoded_training_sample,
+																								start_values,
+																	 							step_sizes,
+																	 							end_values,
+																	 							number_of_partitions,
+																	 							number_of_runs,
+																	 							optimized_parameters,
+																	 							additive_cv,
+																	 							output_flag,
+																	 							"performances_" + digest + ".txt");
+				}												 												
 				String debug_string = "Best parameters found in cross validation:";
 
 				for(parameters_iterator = optimized_parameters.begin();
@@ -830,7 +965,14 @@ class TOPPRTModel
 				writeDebug_(debug_string, 1);
 			}			
 
-			svm.train(encoded_training_sample);
+			if (temp_type == OLIGO)
+			{
+				svm.train(training_sample);
+			}
+			else
+			{
+				svm.train(encoded_training_sample);
+			}
 	
 			//-------------------------------------------------------------
 			// writing output
@@ -841,14 +983,19 @@ class TOPPRTModel
 			// If the oligo-border kernel is used some additional information has to be stored
 			if (temp_type == OLIGO)
 			{
-				encoder.storeLibSVMProblem(outputfile_name + "_samples", encoded_training_sample);
+				training_sample.store(outputfile_name + "_samples");
 				additional_parameters.setValue("kernel_type", temp_type);
 				
 				if (!separation_prediction)
-				{	
-					svm.getSignificanceBorders(encoded_training_sample, sigmas);
+				{
+					svm.getSignificanceBorders(training_sample, sigmas);
+
 					additional_parameters.setValue("sigma_0", sigmas.first); 
 					additional_parameters.setValue("sigma_max", sigmas.second);
+					if (first_dim_rt)
+					{
+						additional_parameters.setValue("first_dim_rt", "true");
+					}
 				}
 				if (temp_type == OLIGO)
 				{

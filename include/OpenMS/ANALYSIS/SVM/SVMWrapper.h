@@ -31,11 +31,15 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <string>
 #include <vector>
 #include <map>
 #include <math.h>
+#include <iostream>
+#include <fstream>
 
 namespace OpenMS 
 {
@@ -61,6 +65,104 @@ namespace OpenMS
 	
 	enum SVM_kernel_type{OLIGO = 19, OLIGO_COMBINED}; /* kernel_type */
 	
+	struct SVMData
+	{
+		std::vector< std::vector< std::pair<Int, DoubleReal> > > sequences;
+		std::vector< DoubleReal > labels;
+		
+		SVMData()
+			: sequences(std::vector< std::vector< std::pair<Int, DoubleReal> > >()),
+				labels(std::vector< DoubleReal >())
+		{
+		};
+		
+		SVMData(std::vector< std::vector< std::pair<Int, DoubleReal> > >& seqs, std::vector< DoubleReal >& lbls)
+			: sequences(seqs),
+				labels(lbls)
+		{
+		};
+		
+		bool operator == (const SVMData& rhs) const
+		{
+			return sequences == rhs.sequences
+				&& labels == rhs.labels;
+		}
+		
+		bool store(const String& filename) const
+		{
+			std::ofstream output_file(filename.c_str());
+
+			// checking if file is writable
+			if (!File::writable(filename) || sequences.size() != labels.size())
+			{
+				return false;
+			}
+				
+			// writing feature vectors		
+			for(UInt i = 0; i < sequences.size(); i++)
+			{
+				output_file << labels[i] << " ";
+				for(UInt j = 0; j < sequences[i].size(); ++j)
+				{
+					output_file << sequences[i][j].second << ":" << sequences[i][j].first << " " ;					
+				}
+				output_file << std::endl;
+			}
+			output_file.flush();
+			output_file.close();
+			std::cout.flush();
+			return true;
+		}
+		
+		bool load(const String& filename)
+		{
+			UInt counter = 0;
+			std::vector<String> parts;
+			std::vector<String> temp_parts;
+			
+			if (!File::exists(filename))
+			{
+				return false;
+			}
+			if (!File::readable(filename))
+			{
+				return false;
+			}
+	    if (File::empty(filename))
+	    {
+				return false;
+	    }		
+	
+			TextFile text_file(filename.c_str(), true);
+	    TextFile::iterator it;
+	
+			it = text_file.begin();
+			
+			sequences.resize(text_file.size(), std::vector< std::pair<Int, DoubleReal> >());
+			labels.resize(text_file.size(), 0.);
+			while(counter < text_file.size()&& it != text_file.end())
+			{
+				it->split(' ', parts);
+				labels[counter] = parts[0].trim().toFloat();		
+				sequences[counter].resize(parts.size(), std::pair<Int, DoubleReal>());			
+				for(UInt j = 1; j < parts.size(); ++j)
+				{
+					parts[j].split(':', temp_parts);
+					if (temp_parts.size() < 2)
+					{
+						return false;
+					}
+					sequences[counter][j - 1].second = temp_parts[0].trim().toFloat();
+					sequences[counter][j - 1].first = temp_parts[1].trim().toInt();
+				}
+				++counter;
+				++it;
+			}
+			return true;			
+		}
+							
+	};
+
   /**
     @brief Serves as a wrapper for the libsvm
     
@@ -108,6 +210,13 @@ namespace OpenMS
 	    Int  train(struct svm_problem* problem);
 	
 		  /**
+		    @brief	trains the svm 
+
+	      The svm is trained with the data stored in the 'SVMData' structure.
+			*/
+			Int train(SVMData& problem);
+
+		  /**
 		    @brief	saves the svm model 
 
 	      The model of the trained svm is saved into 'modelFilename'. Throws an exception if 
@@ -126,10 +235,18 @@ namespace OpenMS
 		  /**
 		    @brief predicts the labels using the trained model
 		    
-	     	 The prediction process is started and the results are stored in 'predicted_rts'.
+	     	 The prediction process is started and the results are stored in 'predicted_labels'.
 
 		  */
-	    void predict(struct svm_problem* predictProblem, std::vector<DoubleReal>& predicted_rts);
+	    void predict(struct svm_problem* problem, std::vector<DoubleReal>& predicted_labels);
+
+		  /**
+		    @brief predicts the labels using the trained model
+		    
+	     	 The prediction process is started and the results are stored in 'predicted_labels'.
+
+		  */
+			void predict(const SVMData& problem, std::vector<DoubleReal>& results);
 
 		  /**
 		    @brief You can get the actual int- parameters of the svm
@@ -166,11 +283,28 @@ namespace OpenMS
 			static void createRandomPartitions(svm_problem* problem, UInt number, std::vector<svm_problem*>& partitions);
 	
 		  /**
+		    @brief You can create 'number' equally sized random partitions
+		    
+		    This function creates 'number' equally sized random partitions and stores them in 'partitions'. 
+		    
+		  */
+			static void createRandomPartitions(const SVMData&				  problem,
+																				UInt  			 					  number,
+																				std::vector<SVMData>&		problems);
+		  /**
 		    @brief You can merge partitions excuding the partition with index 'except' 
 		    
 		  */
 	    static svm_problem* mergePartitions(const std::vector<svm_problem*>& problems,UInt except);
 																	 				
+		  /**
+		    @brief You can merge partitions excuding the partition with index 'except' 
+		    
+		  */
+			static void mergePartitions(const std::vector<SVMData>& problems,
+			 													  UInt 											  except,
+				 													SVMData&										merged_problem);
+
 		  /**
 		    @brief predicts the labels using the trained model
 		    
@@ -192,6 +326,21 @@ namespace OpenMS
 			DoubleReal performCrossValidation(svm_problem* problem, const std::map<SVM_parameter_type, DoubleReal>& start_values, const std::map<SVM_parameter_type, DoubleReal>& step_sizes, const std::map<SVM_parameter_type, DoubleReal>& end_values, UInt number_of_partitions, UInt number_of_runs, std::map<SVM_parameter_type, DoubleReal>& best_parameters, bool additive_step_size = true, bool output = false, String performances_file_name = "performances.txt", bool mcc_as_performance_measure = false);
 																 					
 		  /**
+		    @brief Performs a CV for the data given by 'problem'
+		    
+		  */
+			DoubleReal performCrossValidation(const SVMData& 																		 problem,
+												 								const	std::map<SVM_parameter_type, DoubleReal>&    start_values_map,
+												 								const	std::map<SVM_parameter_type, DoubleReal>&    step_sizes_map,
+												 								const	std::map<SVM_parameter_type, DoubleReal>&    end_values_map,
+												 								UInt 												   				 			 			 number_of_partitions,
+												 								UInt 												   				 						 number_of_runs,
+												 								std::map<SVM_parameter_type, DoubleReal>&   			 best_parameters,
+												 								bool																	 			 			 additive_step_sizes = true,
+												 								bool				 												   			 			 output = false,
+												 								String																 			 			 performances_file_name = "perfromances.txt",
+												 								bool																				 			 mcc_as_performance_measure = false);
+		  /**
 		    @brief Returns the probability parameter sigma of the fitted laplace model.		      
 		    
 		    The libsvm is used to fit a laplace model to the prediction values by performing
@@ -202,6 +351,26 @@ namespace OpenMS
 		  */
 			DoubleReal getSVRProbability();																			 					
 
+      /**
+				@brief returns the value of the oligo kernel for sequences 'x' and 'y'
+
+	        This function computes the kernel value of the oligo kernel,
+					which was introduced by Meinicke et al. in 2004. 'x' and
+					'y' are encoded by encodeOligo and 'gauss_table' has to be 
+					constructed by calculateGaussTable. 
+					
+					'max_distance' can be used to speed up the computation 
+					even further by restricting the maximum distance between a k_mer at
+					position i in sequence 'x' and a k_mer at position j 
+					in sequence 'y'. If i - j > 'max_distance' the value is not
+					added to the kernel value. This approximation is switched
+					off by default (max_distance < 0).
+      */
+      static DoubleReal kernelOligo(const std::vector< std::pair<int, double> >&    x, 
+																		const std::vector< std::pair<int, double> >&    y,
+																		const std::vector<double>& 	                    gauss_table,
+																		int 			                    									max_distance = -1);
+																
 		  /**
 		    @brief calculates the oligo kernel value for the encoded sequences 'x' and 'y'
 		    
@@ -212,10 +381,22 @@ namespace OpenMS
 			static DoubleReal kernelOligo(const svm_node*	x, const svm_node* y, const std::vector<DoubleReal>&	gauss_table, DoubleReal sigma_square = 0,	UInt	max_distance = 50);
 
 		  /**
-		    @brief calculates the significance borders of the error model and stores them in 'borders'	      
+		    @brief calculates the significance borders of the error model and stores them in 'sigmas'	      
 		    
 		  */
-			void getSignificanceBorders(svm_problem* data, std::pair<DoubleReal, DoubleReal>& borders, DoubleReal confidence = 0.95, UInt number_of_runs = 10, UInt number_of_partitions = 5, DoubleReal step_size = 0.01, UInt max_iterations = 1000000);
+			void getSignificanceBorders(svm_problem* data, std::pair<DoubleReal, DoubleReal>& borders, DoubleReal confidence = 0.95, UInt number_of_runs = 5, UInt number_of_partitions = 5, DoubleReal step_size = 0.01, UInt max_iterations = 1000000);
+
+		  /**
+		    @brief calculates the significance borders of the error model and stores them in 'sigmas'	      
+		    
+		  */
+			void getSignificanceBorders(const SVMData& data, 
+																	std::pair<DoubleReal, DoubleReal>& sigmas,
+																	DoubleReal confidence = 0.95,
+																	UInt number_of_runs = 5,
+																	UInt number_of_partitions = 5,
+																	DoubleReal step_size = 0.01,
+																	UInt max_iterations = 1000000);
 
 		  /**
 		    @brief calculates a p-value for a given data point using the model parameters
@@ -259,11 +440,27 @@ namespace OpenMS
 			svm_problem* computeKernelMatrix(svm_problem* problem1, svm_problem* problem2);
 
 		  /**
+		    @brief computes the kernel matrix using the actual svm parameters	and the given data
+		    
+		    This function can be used to compute a kernel matrix. 'problem1' and 'problem2'
+		    are used together wit the oligo kernel function (could be extended if you 
+		    want to use your own kernel functions).      
+		    
+		  */
+			svm_problem* computeKernelMatrix(const SVMData& problem1, const SVMData& problem2);
+
+		  /**
 		    @brief This is used for being able to perform predictions with non libsvm standard kernels	    		        
 		    
 		  */
   		void setTrainingSample(svm_problem* training_sample);
   		
+		  /**
+		    @brief This is used for being able to perform predictions with non libsvm standard kernels	    		        
+		    
+		  */
+			void setTrainingSample(SVMData& training_sample);
+				
 		  /**
 		    @brief This function fills probabilities with the probability estimates for the first class.
 		    		    		        
@@ -296,10 +493,11 @@ namespace OpenMS
 			std::vector<DoubleReal>								sigmas_;							// for the combined oligo kernel (amount of positional smearing) 
 			std::vector<DoubleReal>								gauss_table_;					// lookup table for fast computation of the oligo kernel
 			std::vector<std::vector<DoubleReal>	> gauss_tables_;				// lookup table for fast computation of the combined oligo kernel
-			UInt			 											kernel_type_;					// the actual kernel type	
-			UInt			 											border_length_;				// the actual kernel type				
+			UInt			 														kernel_type_;					// the actual kernel type	
+			UInt			 														border_length_;				// the actual kernel type				
 			svm_problem*													training_set_;				// the training set
 			svm_problem*													training_problem_;		// the training set
+			SVMData 															training_data_;				// the training set (different encoding)
 
 	};
  

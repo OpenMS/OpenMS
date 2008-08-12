@@ -28,6 +28,7 @@
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 #include <map>
 #include <algorithm>
@@ -217,6 +218,27 @@ namespace OpenMS
 			
 			encodeCompositionVector(sequences[i], encoded_vector, allowed_characters);
 			encoded_vector.push_back(make_pair(allowed_characters.size() + 1, ((DoubleReal) sequences[i].length()) / maximum_sequence_length));
+			libsvm_vector = encodeLibSVMVector(encoded_vector);
+			vectors.push_back(libsvm_vector);
+		}
+		
+		return encodeLibSVMProblem(vectors, labels);		
+	}
+	
+	svm_problem* LibSVMEncoder::encodeLibSVMProblemWithCompositionLengthAndWeightVectors(const vector<String>&    sequences,
+																																											 std::vector<DoubleReal>& labels,
+																																											 const String& 	 				  allowed_characters)
+	{
+		vector<svm_node*> vectors;
+		vector< pair<Int, DoubleReal> > encoded_vector;
+		svm_node* libsvm_vector;
+		
+		for(UInt i = 0; i < sequences.size(); i++)
+		{
+			
+			encodeCompositionVector(sequences[i], encoded_vector, allowed_characters);
+			encoded_vector.push_back(make_pair(allowed_characters.size() + 1, (DoubleReal) sequences[i].length()));
+			encoded_vector.push_back(make_pair(allowed_characters.size() + 2, AASequence(sequences[i]).getAverageWeight()));
 			libsvm_vector = encodeLibSVMVector(encoded_vector);
 			vectors.push_back(libsvm_vector);
 		}
@@ -545,12 +567,21 @@ namespace OpenMS
 		vectors.clear();
 		for(UInt i = 0; i < sequences.size(); i++)
 		{	
-			is_right_border = false;		
-			encodeOligo(sequences[i].getPrefix(border_length), k_mer_length, allowed_characters, temp_encoded_vector_left, is_right_border);
-			is_right_border = true;
-			encodeOligo(sequences[i].getSuffix(border_length), k_mer_length, allowed_characters, temp_encoded_vector_right, is_right_border);
+			is_right_border = false;
+			if (sequences[i].size() > border_length)
+			{
+				encodeOligo(sequences[i].getPrefix(border_length), k_mer_length, allowed_characters, temp_encoded_vector_left, is_right_border);
+				is_right_border = true;
+				encodeOligo(sequences[i].getSuffix(border_length), k_mer_length, allowed_characters, temp_encoded_vector_right, is_right_border);
+			}
+			else
+			{
+				encodeOligo(sequences[i], k_mer_length, allowed_characters, temp_encoded_vector_left, is_right_border);
+				is_right_border = true;
+				encodeOligo(sequences[i], k_mer_length, allowed_characters, temp_encoded_vector_right, is_right_border);
+			}
 			temp_encoded_vector_left.insert(temp_encoded_vector_left.end(), temp_encoded_vector_right.begin(), temp_encoded_vector_right.end());
-			sort(temp_encoded_vector_left.begin(), temp_encoded_vector_left.end());
+			stable_sort(temp_encoded_vector_left.begin(), temp_encoded_vector_left.end(), cmpOligos_);
 			vectors.push_back(temp_encoded_vector_left);
 		}
 	}

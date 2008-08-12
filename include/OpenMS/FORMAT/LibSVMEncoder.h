@@ -96,6 +96,11 @@ namespace OpenMS
 																																			const String&              allowed_characters,
 																																			UInt                maximum_sequence_length);      
     	
+      /// creates composition vectors with additional length and average weight information for 'sequences' and stores them in LibSVM compliant format
+			svm_problem* encodeLibSVMProblemWithCompositionLengthAndWeightVectors(const std::vector<String>&    sequences,
+																																						std::vector<DoubleReal>& labels,
+																																						const String& 	 				  allowed_characters);
+
     	/// stores the LibSVM-encoded data in a text file that can be used by the LibSVM applications (svm-scale, svm-train,...)
 			bool storeLibSVMProblem(const String& filename, const svm_problem* problem) const;
 

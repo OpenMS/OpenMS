@@ -34,6 +34,7 @@ HEADER_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
 UTILS_EXECUTABLES=\
 	FuzzyDiff\
 	Digestor\
+	IdXMLInfo\
 	XMLValidator\
 	FFEval
 

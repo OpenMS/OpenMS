@@ -566,7 +566,7 @@ pair<DoubleReal, DoubleReal> point;
 point.first = 0.447934;
 point.second = 0.404208;
 
-TEST_REAL_EQUAL(svm.getPValue(0.09520049, 0.1452005, point), 0.54292)
+TEST_REAL_EQUAL(svm.getPValue(0.18, 1.06, point), 0.327505)
 	NOT_TESTABLE
 RESULT
 

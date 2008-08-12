@@ -143,6 +143,7 @@ class TOPPIDFilter
 		registerFlag_("best_hits", "If this flag is set only the highest scoring hit is kept.\n"
 															"If there are two or more highest scoring hits, none are kept.");
 		registerFlag_("rt_filtering","If this flag is set rt filtering will be pursued.");
+		registerFlag_("first_dim_rt","If this flag is set rt filtering will be pursued for first_dim.");
 	}
 
 	ExitCodes main_(int , const char**)
@@ -165,6 +166,7 @@ class TOPPIDFilter
 		vector< FASTAFile::FASTAEntry > sequences;
 		vector<String> exclusion_peptides;
 		bool rt_filtering = false;
+		bool first_dim_rt = false;
 		DoubleReal p_value = 0.05;
 		
 		
@@ -188,6 +190,7 @@ class TOPPIDFilter
 		
 		p_value = getDoubleOption_("p_value");
 		rt_filtering = getFlag_("rt_filtering");
+		first_dim_rt = getFlag_("first_dim_rt");
 
 		bool strict = getFlag_("best_hits");
 	
@@ -242,6 +245,12 @@ class TOPPIDFilter
 			{
 				PeptideIdentification temp_identification = filtered_identification;
 				filter.filterIdentificationsByRTPValues(temp_identification, filtered_identification, p_value);																																
+			}
+
+			if (first_dim_rt)
+			{
+				PeptideIdentification temp_identification = filtered_identification;
+				filter.filterIdentificationsByRTFirstDimPValues(temp_identification, filtered_identification, p_value);																																
 			}
 
 			if (exclusion_peptides_file_name != "")
