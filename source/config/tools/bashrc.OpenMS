@@ -2,63 +2,61 @@
 # vi: set ts=2:
 #
 # --------------------------------------------------------------------------
-#										OpenMS Mass Spectrometry Framework
+#                   OpenMS Mass Spectrometry Framework
 # --------------------------------------------------------------------------
-#	 Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+#  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 #
-#	 This library is free software; you can redistribute it and/or
-#	 modify it under the terms of the GNU Lesser General Public
-#	 License as published by the Free Software Foundation; either
-#	 version 2.1 of the License, or (at your option) any later version.
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2.1 of the License, or (at your option) any later version.
 #
-#	 This library is distributed in the hope that it will be useful,
-#	 but WITHOUT ANY WARRANTY; without even the implied warranty of
-#	 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
-#	 Lesser General Public License for more details.
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Lesser General Public License for more details.
 #
-#	 You should have received a copy of the GNU Lesser General Public
-#	 License along with this library; if not, write to the Free Software
-#	 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA	 02111-1307	 USA
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Clemens Groepl $	 ### send feedback to groepl@mi.fu-berlin.de
+# $Maintainer: Clemens Groepl $  ### send feedback to groepl@mi.fu-berlin.de
 # --------------------------------------------------------------------------
 
 ############################################################
-#	 PURPOSE
+#  PURPOSE
 ############################################################
 #
 # This file is an attempt to share some bash functions which have been
-# developed by the programmers of OpenMS over the years.	We hope that such a
-# collection will be useful, especially for newbies.	Further contributions
+# developed by the programmers of OpenMS over the years.  We hope that such a
+# collection will be useful, especially for newbies.  Further contributions
 # are welcome (see below).
 
 
 ############################################################
-#	 INSTALLATION
+#  INSTALLATION
 ############################################################
 #
 # If you want to try this out, just type the following at a bash prompt:
 #
-#		source .bashrc.OpenMS
+#   source bashrc.OpenMS
 #
-# and the functions will be available for this session.	 That's it!
+# and the functions will be available for this session.  That's it!
 #
-# If you like this stuff, you can automate this following these steps:
-#
-# (1) Probably you already have a ".bashrc" file in your home directory.
-#     If not, create an empty file, e.g. like this:
-#       cd ${HOME}
-#       touch .bashrc
-# (2) Add the following somewhere near the end:
-#       source /path/to/this/file/.bashrc.OpenMS
-
+# To automate this:
+# You should have a ".bashrc" file in your home directory.
+# (If not, create an empty file, e.g. like this: cd ${HOME}; touch .bashrc)
+# Add this line somewhere near the end:
+#   source ${HOME}/OpenMS/source/config/tools/bashrc.OpenMS
+# You can also define an alias:
+#   alias sob='source ${HOME}/OpenMS/source/config/tools/bashrc.OpenMS'
 
 ############################################################
 #  HOW TO GET HELP
 ############################################################
 #
-# =>  See the definition of the function om_help below.
+# =>  See the definition of function om_help below.
 
 
 ############################################################
@@ -68,7 +66,8 @@
 # Please send any suggestions or improvements to the maintainer (which see
 # above).  Even if you have developer rights at Sourceforge svn, please do not
 # check in _incompatible_ changes, as these might harm other developers which
-# are using this for their daily work. Use no tabs in this file.
+# are using this for their daily work.  Avoid tabs in this file.
+# If you add a function, include it in om_help and om_help_verbose.
 
 
 # [end of info]
@@ -81,7 +80,7 @@
 # -------------------------------------------------------------------------#
 ############################################################################
 
-echo "reading  bashrc.OpenMS ... "
+echo -n "reading bashrc.OpenMS ..."
 
 # Very few essential environment variable settings...
 
@@ -124,6 +123,8 @@ function om_help()
     echo
     echo " om_help is the built-in help for bashrc.OpenMS"
     echo "    "
+    echo " -  To get a list of all functions with built-in help:  om_help_verbose"
+    echo "    "
     echo " -  All functions start with the prefix om_" 
     echo "    So if you forgot a name, the command completion at the prompt"
     echo "    can help you find it.  (Type \"om_\" then <tab>.)"
@@ -131,40 +132,39 @@ function om_help()
     echo " -  The definition of any bash function can be displayed"
     echo "    using the command: \"type name_of_function\"".
     echo "    "
-    echo " -  Moreover, each om_-function will print a short usage info"
+    echo " -  Each om_-function will print a short usage info"
     echo "    when called with the argument \"--help\"."
     echo "    "
-    echo " -  To get a list of all functions with built-in help: om_help_functions"
-    echo "    My favorites: om_develop, om_find_sources, om_grep_sources, om_ldli, om_safer_sed"
+    echo " Summary of functions:"
     echo "    "
-		echo " -  DIAGNOSTICS (no remaining effects):"
-		echo "    om_help             om_help_functions"
-		echo "    om_chop             om_chop_verbose"
-		echo "    om_path             om_ldi"
-		echo "    om_I                om_date             om_dusn   "
-		echo "    om_find_sources     om_grep_sources     om_find_executables"
-		echo "    om_svn_diff         om_svn_status_files"
-		echo "    "
-		echo " -  ENVIRONMENT (setting PATH and LD_LIBRARY_PATH):"
-		echo "    om_develop          om_release          om_directory"
-		echo "    om_prefix_PATH                om_postfix_PATH" 
-		echo "    om_prefix_LD_LIBRARY_PATH     om_postfix_LD_LIBRARY_PATH"
-		echo "    "
-		echo " -  MOVING AROUND (change working directory):"
-		echo "    om_goi    om_gos    om_cwd"
-		echo "    om_godev  om_gorel"
-		echo "    "
-		echo " -  WORKING ON FILES (actually do something):"
-		echo "    om_backup           om_safer_sed"
-		echo "    om_emacsclient"
+    echo " -  DIAGNOSTICS (no remaining effects):"
+    echo "    om_help             om_help_verbose"
+    echo "    om_chop             om_chop_verbose"
+    echo "    om_path             om_ldi"
+    echo "    om_I                om_date             om_dusn   "
+    echo "    om_find_sources     om_grep_sources     om_find_executables"
+    echo "    om_svn_diff         om_svn_status_files"
+    echo "    "
+    echo " -  ENVIRONMENT (setting PATH and LD_LIBRARY_PATH):"
+    echo "    om_develop          om_release          om_directory"
+    echo "    om_prefix_PATH                om_postfix_PATH" 
+    echo "    om_prefix_LD_LIBRARY_PATH     om_postfix_LD_LIBRARY_PATH"
+    echo "    om_prompt"
+    echo "    "
+    echo " -  MOVING AROUND (change working directory):"
+    echo "    om_goi    om_gos    om_cwd"
+    echo "    om_godev  om_gorel"
+    echo "    "
+    echo " -  WORKING (actually do something):"
+    echo "    om_backup           om_safer_sed"
+    echo "    om_emacsclient"
     echo "    om_mogrify_margin   om_postscript_boundingbox"
     om_where_defined
-    echo
 }
 
 #-----------------------------------------------------------
 
-function om_help_functions ()
+function om_help_verbose ()
 {
     if eval $om_do_help_condition;
     then
@@ -172,23 +172,23 @@ function om_help_functions ()
         om_where_defined
     else
         # for f in `grep function\ *om_ bashrc.OpenMS | grep -o om_[A-Za-z_]* | grep -v om_where_defined | sort`;
-        for f in om_help_functions om_help om_backup om_chop om_chop_verbose om_cwd om_date om_develop om_directory om_dusn om_emacsclient om_find_executables om_find_sources om_godev om_goi om_gorel om_gos om_grep_sources om_I om_ldli om_mogrify_margin om_path om_postfix_LD_LIBRARY_PATH om_postfix_PATH om_prefix_LD_LIBRARY_PATH om_prefix_PATH om_postscript_boundingbox om_release om_safer_sed om_svn_diff om_svn_status_files;
+        for f in om_help_verbose om_help om_backup om_chop om_chop_verbose om_cwd om_date om_develop om_directory om_dusn om_emacsclient om_find_executables om_find_sources om_godev om_goi om_gorel om_gos om_grep_sources om_I om_ldli om_mogrify_margin om_path om_postfix_LD_LIBRARY_PATH om_postfix_PATH om_prefix_LD_LIBRARY_PATH om_prefix_PATH om_postscript_boundingbox om_prompt om_release om_safer_sed om_svn_diff om_svn_status_files;
         do
             echo "#----------------------------------------------------------------------"
-						echo ""
-						if [ $1_ != "nocolor_" ]; then
-								echo -e '\033[1;31m'${f}'\033[0;0m':
-						else
-								echo -e ${f}:
-						fi
-						echo ""
+            echo ""
+            if [ $1_ != "nocolor_" ]; then
+                echo -e '\033[1;31m'${f}'\033[0;0m':
+            else
+                echo -e ${f}:
+            fi
+            echo ""
             $f --help | grep -v bashrc.OpenMS
-						
+            
         done
         om_where_defined
-				if [ $1_ != "nocolor_" ]; then
-						echo "###    If the output above looks scrambled, try this:   om_help_functions nocolor "
-				fi
+        if [ $1_ != "nocolor_" ]; then
+            echo "###    If the output above looks scrambled, try this:   om_help_verbose nocolor "
+        fi
     fi
 }
 
@@ -204,7 +204,7 @@ function om_chop()
         om_where_defined
     else
         sed s/:/\\n/g -
-    fi;
+    fi
 }
 
 #-----------------------------------------------------------
@@ -220,7 +220,7 @@ function om_chop_verbose()
         echo '#BEGIN'
         om_chop | sed 's/^/\t/' -
         echo '#END'
-    fi;
+    fi
 }
 
 #-----------------------------------------------------------
@@ -233,7 +233,7 @@ function om_path()
         om_where_defined
     else
         echo $PATH | om_chop
-    fi;
+    fi
 }
 
 #-----------------------------------------------------------
@@ -246,7 +246,7 @@ function om_ldli()
         om_where_defined
     else
         echo $LD_LIBRARY_PATH | om_chop
-    fi;
+    fi
 }
 
 #-----------------------------------------------------------
@@ -260,7 +260,7 @@ function om_I()
         om_where_defined
     else
         echo You are `whoami` on `hostname`.
-    fi;
+    fi
 }
 
 #-----------------------------------------------------------
@@ -271,12 +271,12 @@ function om_date()
     then
         echo "Print current date and time."
         echo "Uses the C locale for consistency."
-				echo "Precision is in microseconds, which should be unique even in looping scripts."
+        echo "Precision is in microseconds, which should be unique even in looping scripts."
         echo "=>  See also: om_safer_sed"
         om_where_defined
     else
         LC_ALL=C date +%Y-%m-%d-%a-%H-%M-%S-%6N
-    fi;
+    fi
 }
 
 #-----------------------------------------------------------
@@ -290,7 +290,7 @@ function om_dusn()
         om_where_defined
     else
         du $* | sort -n 
-    fi;
+    fi
 }
 
 #-----------------------------------------------------------
@@ -303,7 +303,7 @@ function om_find_executables()
         om_where_defined
     else
         find $@ -perm /u+x -and -not -type d | sort
-    fi;
+    fi
 }
 
 #-----------------------------------------------------------
@@ -318,7 +318,7 @@ function om_find_sources()
         om_where_defined
     else
         find . \( -name \*.[Hh] -o -name \*.[Cc] -o -name \*.[Hh][Pp][Pp] -o -name \*.[Cc][Pp][Pp] -o -name \*.[Hh][Hh] -o -name \*.[Cc][Cc] \) $@
-    fi;
+    fi
 }
 
 #-----------------------------------------------------------
@@ -333,7 +333,7 @@ function om_grep_sources()
         om_where_defined
     else
         om_find_sources -print0 | xargs -0 grep --color -n $@
-    fi;
+    fi
 }
 
 #-----------------------------------------------------------
@@ -346,7 +346,7 @@ function om_svn_diff()
         om_where_defined
     else
         svn diff --diff-cmd colordiff -x -uwB $*
-    fi;
+    fi
 }
 
 #-----------------------------------------------------------
@@ -386,7 +386,7 @@ function om_prefix_PATH ()
         else
             echo "'$1' is not a directory"
         fi
-    fi;
+    fi
 }
 
 function om_postfix_PATH ()
@@ -402,7 +402,7 @@ function om_postfix_PATH ()
         else
             echo "'$1' is not a directory"
         fi
-    fi;
+    fi
 }
 
 function om_prefix_LD_LIBRARY_PATH ()
@@ -418,7 +418,7 @@ function om_prefix_LD_LIBRARY_PATH ()
         else
             echo "'$1' is not a directory"
         fi
-    fi;
+    fi
 }
 
 function om_postfix_LD_LIBRARY_PATH ()
@@ -434,7 +434,7 @@ function om_postfix_LD_LIBRARY_PATH ()
         else
             echo "'$1' is not a directory"
         fi
-    fi;
+    fi
 }
 
 #-----------------------------------------------------------
@@ -468,18 +468,23 @@ function om_directory()
             echo export CPP=\'${CPP}\'
             echo
             if [ -d ${OPENMS_CONTRIB}"" ]; then
-                echo "### Adding " ${OPENMS_CONTRIB} " to LD_LIBRARY_PATH"
+                echo "######  OPENMS_CONTRIB="${OPENMS_CONTRIB}
+                echo "# Adding " ${OPENMS_CONTRIB} " to LD_LIBRARY_PATH"
                 om_prefix_LD_LIBRARY_PATH ${OPENMS_CONTRIB}/lib
+                echo
             fi
             if [ -d ${OPENMS_QT4}"" ]; then
-                echo "### Adding " ${OPENMS_QT4}/lib " to LD_LIBRARY_PATH"
+                echo "######  OPENMS_QT4="${OPENMS_QT4}
+                echo "# Adding " ${OPENMS_QT4}/lib " to LD_LIBRARY_PATH"
                 om_prefix_LD_LIBRARY_PATH ${OPENMS_QT4}/lib
-                echo "### Adding " ${OPENMS_QT4}/bin " to PATH"
+                echo "# Adding " ${OPENMS_QT4}/bin " to PATH"
                 om_prefix_PATH ${OPENMS_QT4}/bin
+                echo
             fi
-            echo "### Adding " ${OPENMS}/lib " to LD_LIBRARY_PATH"
+            echo "######  OPENMS="${OPENMS}
+            echo "# Adding " ${OPENMS}/lib " to LD_LIBRARY_PATH"
             om_prefix_LD_LIBRARY_PATH ${OPENMS}/lib
-            echo "### Adding " ${OPENMS}/bin " to PATH"
+            echo "# Adding " ${OPENMS}/bin " to PATH"
             om_prefix_PATH ${OPENMS}/bin
             echo
             echo cd ${OPENMS}
@@ -504,7 +509,7 @@ function om_develop ()
         om_where_defined
     else
         om_directory ${HOME}/OpenMS
-    fi;
+    fi
 }
 
 function om_release ()
@@ -524,7 +529,23 @@ function om_release ()
         om_where_defined
     else
         om_directory ${HOME}/Release
-    fi;
+    fi
+}
+
+function om_prompt ()
+{
+    if eval $om_do_help_condition;
+    then
+        echo "Set a colorful prompt string (PS1) with specified width (default: 20)."
+        echo "For width < 7 the prompt will be '$ '."
+        om_where_defined
+    else
+        export PROMPT_LENGTH=${1:-20}
+        export PS1="\[\033[0m\033[0;1m\]\$(\
+        if [ \${PROMPT_LENGTH} -gt 6 ]; then if [ \${#PWD} -gt \$((\${PROMPT_LENGTH}-3)) ]; \
+        then echo \"\[\033[0;31m\]...\[\033[m\033[0;1m\]\${PWD:\$((6-\${PROMPT_LENGTH}))} \";\
+        else echo \\w\ ; fi; fi)\[\033[0;32m\]\$ \[\033[0;0m\]"
+    fi
 }
 
 
@@ -609,7 +630,7 @@ function om_godev
 
 
 ############################################################
-#  WORKING ON FILES (actually do something)
+#  WORKING (actually do something)
 ############################################################
 
 function om_emacsclient ()
@@ -622,7 +643,7 @@ function om_emacsclient ()
         om_where_defined
     else
         ( echo $* | sed 's/ /\n/g' | sed 's#:$##g; s#\(\(:[0-9]\+\)\{1,2\}\)$#%%\1#g; s#\(.\+\)%%:\([:0-9]\+\)$#+\2 \1#g' | xargs emacsclient --no-wait ) &
-    fi;
+    fi
 }
 
 #-----------------------------------------------------------
@@ -640,7 +661,7 @@ function om_safer_sed ()
         om_where_defined
     else
         sed '-i.sed_backup.'`om_date` $*
-    fi;
+    fi
 }
 
 #-----------------------------------------------------------
@@ -697,7 +718,7 @@ function om_postscript_boundingbox ()
         echo "Call ps2eps  with suitable options to recalculate the bounding box."
         om_where_defined
     else
-				ps2eps -B --size=a0 --loose $1
+        ps2eps -B --size=a0 --loose $1
     fi
 }
 
@@ -706,5 +727,5 @@ function om_postscript_boundingbox ()
 
 
 
-echo "reading  bashrc.OpenMS ... done"
+echo " done"
 
