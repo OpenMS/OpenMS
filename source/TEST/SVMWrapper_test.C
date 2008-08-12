@@ -561,13 +561,12 @@ RESULT
 
 CHECK((DoubleReal getPValue(DoubleReal sigma1, DoubleReal sigma2, std::pair<DoubleReal, DoubleReal> point)))
 
-pair<DoubleReal, DoubleReal> point;
+	pair<DoubleReal, DoubleReal> point;
+	
+	point.first = 0.447934;
+	point.second = 0.404208;
 
-point.first = 0.447934;
-point.second = 0.404208;
-
-TEST_REAL_EQUAL(svm.getPValue(0.18, 1.06, point), 0.327505)
-	NOT_TESTABLE
+	TEST_REAL_EQUAL(svm.getPValue(0.18, 1.06, point), 0.327505)
 RESULT
 
 CHECK((void setTrainingSample(svm_problem* training_sample)))
