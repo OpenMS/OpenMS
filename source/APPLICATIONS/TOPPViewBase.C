@@ -1641,8 +1641,8 @@ namespace OpenMS
 		filter_all +=" *.cdf";
 		filter_single += ";;ANDI/MS files (*.cdf)";
 #endif
-		filter_all += " *.mzXML *.mzData *.featureXML);;" ;
-		filter_single +=";;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;all files (*)";
+		filter_all += " *.mzML *.mzXML *.mzData *.featureXML);;" ;
+		filter_single +=";;mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;XML files (*.xml);;all files (*)";
 	
 	 	return QFileDialog::getOpenFileNames(this, "Open file(s)", param_.getValue("preferences:default_path").toQString(), (filter_all+ filter_single).toQString());
   }
