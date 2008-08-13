@@ -54,22 +54,38 @@ namespace OpenMS
 		
 		if (identification.getHits().size() > 0)
 		{
-			Real max_value = identification.getHits()[0].getScore();
+			Real optimal_value = identification.getHits()[0].getScore();
 			new_peptide_indices.push_back(0);
 			
 			// searching for peptide(s) with maximal score			
 			for(UInt i = 1; i < identification.getHits().size(); i++)
 			{
 				Real temp_score = identification.getHits()[i].getScore();
-				if (temp_score > max_value)
+				if (identification.isHigherScoreBetter())
 				{
-					max_value = temp_score;
-					new_peptide_indices.clear();
-					new_peptide_indices.push_back(i);
-				}				
-				else if (temp_score == max_value)
+					if (temp_score > optimal_value)
+					{
+						optimal_value = temp_score;
+						new_peptide_indices.clear();
+						new_peptide_indices.push_back(i);
+					}				
+					else if (temp_score == optimal_value)
+					{
+						new_peptide_indices.push_back(i);
+					}
+				}
+				else
 				{
-					new_peptide_indices.push_back(i);
+					if (temp_score < optimal_value)
+					{
+						optimal_value = temp_score;
+						new_peptide_indices.clear();
+						new_peptide_indices.push_back(i);
+					}				
+					else if (temp_score == optimal_value)
+					{
+						new_peptide_indices.push_back(i);
+					}
 				}
 			}						
 			if (!strict || new_peptide_indices.size() == 1)
@@ -86,6 +102,37 @@ namespace OpenMS
   		filtered_identification.setHits(filtered_peptide_hits);
 			filtered_identification.assignRanks();  																								
 		}
+	}
+
+	void IDFilter::filterIdentificationsByLength(const PeptideIdentification& 	identification,
+																							 UInt            								min_length,
+																							 PeptideIdentification& 				filtered_identification)
+	{
+		vector< UInt > new_peptide_indices;		
+		vector<PeptideHit> filtered_peptide_hits;
+		
+		filtered_identification = identification;		
+		filtered_identification.setHits(vector<PeptideHit>());
+
+		const vector<PeptideHit>& temp_peptide_hits = identification.getHits();
+
+		for(UInt i = 0; i < temp_peptide_hits.size(); i++)
+		{
+	  	if (temp_peptide_hits[i].getSequence().size() >= min_length)
+	  	{
+	  		new_peptide_indices.push_back(i);
+			}				
+		}		
+		
+		for(UInt i = 0; i < new_peptide_indices.size(); i++)
+		{
+			filtered_peptide_hits.push_back(identification.getHits()[new_peptide_indices[i]]);
+		}
+		if (filtered_peptide_hits.size() > 0)
+		{
+  		filtered_identification.setHits(filtered_peptide_hits);
+			filtered_identification.assignRanks();  																								
+		}		
 	}
 
 	void IDFilter::filterIdentificationsByProteins(const PeptideIdentification& identification, 

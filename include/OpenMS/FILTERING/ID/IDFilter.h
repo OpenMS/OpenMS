@@ -177,6 +177,9 @@ namespace OpenMS
 			/// removes all peptide hits having a sequence equal to a element in <code>peptides</code>
 			void filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification, std::vector<String> peptides, PeptideIdentification& filtered_identification);
 																														
+		  /// only peptides having a length equal to or greater than 'length' will be kept
+		  void filterIdentificationsByLength(const PeptideIdentification& identification, UInt length, PeptideIdentification& filtered_identification);
+
 		  /**
 				@brief Filters the peptide hits according to their predicted rt p-values
 				

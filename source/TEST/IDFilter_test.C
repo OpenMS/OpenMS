@@ -152,6 +152,21 @@ CHECK((template <class IdentificationType> void filterIdentificationsByScore(con
 	TEST_EQUAL(peptide_hits[4].getRank() , 4)
 RESULT
 
+CHECK((template <class IdentificationType> void filterIdentificationsByLength(const IdentificationType &identification, UInt length, IdentificationType &filtered_identification)))
+	PeptideIdentification identification2;
+	vector<PeptideHit> peptide_hits;
+	
+	TEST_EQUAL(identification.getHits().size(), 10)	
+	IDFilter().filterIdentificationsByLength(identification, 19, identification2);
+	peptide_hits = identification2.getHits();
+	TEST_EQUAL(peptide_hits.size(), 4)
+	TEST_EQUAL(peptide_hits[0].getRank() , 1)
+	TEST_EQUAL(peptide_hits[0].getSequence() , "LHASGITVTEIPVTATNFK")
+	TEST_EQUAL(peptide_hits[1].getSequence(), "MRSLGYVAVISAVATDTDK")
+	TEST_EQUAL(peptide_hits[2].getSequence() , "EGASTDFAALRTFLAEDGK")
+	TEST_EQUAL(peptide_hits[3].getSequence() , "TGCDTWGQGTLVTVSSASTK")
+RESULT
+
 CHECK((void filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification, std::vector<String> peptides, PeptideIdentification& filtered_identification)))
 	PeptideIdentification identification2;
 	vector<PeptideHit> peptide_hits;

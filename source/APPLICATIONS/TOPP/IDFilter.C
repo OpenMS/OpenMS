@@ -140,6 +140,8 @@ class TOPPIDFilter
 		setMinInt_("best_n_peptide_hits", 1);
 		registerIntOption_("best_n_protein_hits","<score>", 0, "If this value is set only the n highest scoring protein hits are kept.", false);
 		setMinInt_("best_n_protein_hits", 1);
+		registerIntOption_("min_length","<property>", 6, "If this value is set only peptide hits with a length greater or equal this value are kept.", false);
+		setMinInt_("min_length", 1);
 		registerFlag_("best_hits", "If this flag is set only the highest scoring hit is kept.\n"
 															"If there are two or more highest scoring hits, none are kept.");
 		registerFlag_("rt_filtering","If this flag is set rt filtering will be pursued.");
@@ -168,6 +170,7 @@ class TOPPIDFilter
 		bool rt_filtering = false;
 		bool first_dim_rt = false;
 		DoubleReal p_value = 0.05;
+		UInt min_length = 1;
 		
 		
 		//-------------------------------------------------------------
@@ -184,6 +187,7 @@ class TOPPIDFilter
 		
 		Int best_n_peptide_hits = getIntOption_("best_n_peptide_hits");
 		Int best_n_protein_hits = getIntOption_("best_n_protein_hits");
+		min_length = getIntOption_("min_length");
 		
 		String sequences_file_name = getStringOption_("sequences_file");
 		String exclusion_peptides_file_name = getStringOption_("exclusion_peptides_file");
@@ -265,6 +269,14 @@ class TOPPIDFilter
 				filter.filterIdentificationsByBestHits(temp_identification, filtered_identification, strict); 				
 			}
 			
+			if (setByUser_("min_length"))
+			{
+				PeptideIdentification temp_identification = filtered_identification;
+				filter.filterIdentificationsByLength(temp_identification,
+																						 min_length,
+																						 filtered_identification); 								
+			}
+
 			if (setByUser_("pep_score"))
 			{
 				PeptideIdentification temp_identification = filtered_identification;

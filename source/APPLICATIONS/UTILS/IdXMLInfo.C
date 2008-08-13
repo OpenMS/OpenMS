@@ -73,6 +73,8 @@ class TOPPIdXMLInfo
 			vector<PeptideHit> temp_peptide_hits;
 			UInt spectrum_count = 0;
 			UInt peptide_hit_count = 0;
+			UInt runs_count = 0;
+			UInt protein_hit_count = 0;
 			String inputfile_name = "";
 			
 			protein_identifications.push_back(ProteinIdentification());
@@ -98,9 +100,16 @@ class TOPPIdXMLInfo
 					peptide_hit_count += identifications[i].getHits().size();
 				}
 			} 
+			for(UInt i = 0; i < protein_identifications.size(); ++i)
+			{
+				++runs_count;
+				protein_hit_count += protein_identifications[i].getHits().size();
+			} 
 
 			cout << "Number of spectra: " << spectrum_count << endl;
 			cout << "Number of peptide hits: " << peptide_hit_count << endl;
+			cout << "Number of runs: " << runs_count << endl;
+			cout << "Number of protein hits: " << protein_hit_count << endl;
 			
 			return EXECUTION_OK;
 		}
