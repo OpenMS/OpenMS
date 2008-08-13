@@ -100,9 +100,12 @@ namespace OpenMS
 				//apply transformation to consensus feature and contained feature handles
 				for (UInt j=0; j<input[1].size(); ++j)
 				{
+					//Calculate new RT
 					DoubleReal rt = input[1][j].getRT();
 					si_trafos[0].apply(rt);
+					//Set rt of consensus feature centroid
 					input[1][j].setRT(rt);
+					//Set RT of consensus feature handles
 					FeatureHandle tmp = *(input[1][j].begin()); //TODO: make this better!?
 					tmp.setRT(rt);
 					input[1][j].clear();
@@ -253,20 +256,19 @@ namespace OpenMS
 		{
 			DoubleReal rt_x, rt_y;
 			ConsensusFeature::HandleSetType::const_iterator handle_x = iter->lower_bound(probe_x);
-			if ( handle_x == iter->end() ) break;
-			if ( handle_x->getMapIndex() == index_x_map )
-				rt_x = handle_x->getRT();
-			else
-				break;
+			if ( handle_x == iter->end() || handle_x->getMapIndex() != index_x_map)
+			{
+				continue;
+			}
+			rt_x = handle_x->getRT();
+			
 			ConsensusFeature::HandleSetType::const_iterator handle_y = iter->lower_bound(probe_y);
-			if ( handle_y == iter->end() ) break;
-			if ( handle_y->getMapIndex() == index_y_map )
-				rt_y = handle_y->getRT();
-			else
-				break;
-			// If performance is an issue, we could move this case distinction
-			// outside the for() loop.  But, well, it does not seem to be a
-			// performance issue. (Clemens) 2008-05-22
+			if ( handle_y == iter->end() || handle_y->getMapIndex() != index_y_map)
+			{
+				continue;
+			}
+			rt_y = handle_y->getRT();
+			
 			if (symmetric_regression)
 			{
 				vec_x.push_back(rt_y+rt_x);
