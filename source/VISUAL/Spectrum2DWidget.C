@@ -320,13 +320,13 @@ namespace OpenMS
 			{
 				UInt feature_index = goto_dialog.getFeatureNumber();
 				///check if the feature index exists
-				if (feature_index==0 || feature_index>canvas()->getCurrentLayer().features.size())
+				if (feature_index>=canvas()->getCurrentLayer().features.size())
 				{
 					QMessageBox::warning(this, "Invalid feature number", "Feature number too large.\nPlease select a valid feature!");
 					return;
 				}
 				//display feature with a margin
-				DBoundingBox<2> bb = canvas()->getCurrentLayer().features[feature_index-1].getConvexHull().getBoundingBox();
+				DBoundingBox<2> bb = canvas()->getCurrentLayer().features[feature_index].getConvexHull().getBoundingBox();
 				DoubleReal rt_margin = (bb.max()[0] - bb.min()[0])*0.01;
 				DoubleReal mz_margin = (bb.max()[1] - bb.min()[1])*0.01;
 				SpectrumCanvas::AreaType area(bb.min()[1]-mz_margin, bb.min()[0]-rt_margin, bb.max()[1]+mz_margin, bb.max()[0]+rt_margin);
