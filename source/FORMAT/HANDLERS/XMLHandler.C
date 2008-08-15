@@ -104,7 +104,7 @@ namespace OpenMS
 			return error_message_;
 		}
 
-		void XMLHandler::writeCVS_(std::ostream& os, int value, int map, const String& acc, const String& name, int indent)
+		void XMLHandler::writeCVS_(std::ostream& os, UInt value, UInt map, const String& acc, const String& name, UInt indent)
 		{
 			//abort when receiving a wrong map index
 			if (map>=cv_terms_.size())

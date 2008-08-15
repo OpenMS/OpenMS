@@ -207,7 +207,7 @@ namespace OpenMS
 				Example:
 				&lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value=""/&gt;
 			*/
-			void writeCVS_(std::ostream& os, int value, int map, const String& acc, const String& name, int indent=4);
+			void writeCVS_(std::ostream& os, UInt value, UInt map, const String& acc, const String& name, UInt indent=4);
 
 			///Writing the MetaInfo as UserParam to the file
 			inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent=4)
