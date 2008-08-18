@@ -38,7 +38,7 @@ namespace OpenMS
   /**
     @brief Representation of a Peak2D, RichPeak2D or Feature .
     
-    The position and the intensity of the referenced feature are stores in the base class Peak2D.
+    The position and the intensity of the referenced feature are stored in the base class Peak2D.
     The original datapoint is referenced by the map and element index.
   	
   	@ingroup Kernel
@@ -174,7 +174,7 @@ namespace OpenMS
 		Int charge_;
   };
 
-  ///Print the contents of an FeatureHandle to a stream.
+  ///Print the contents of a FeatureHandle to a stream.
   std::ostream& operator << (std::ostream& os, const FeatureHandle& cons);
   	
 } // namespace OpenMS

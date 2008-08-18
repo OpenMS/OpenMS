@@ -69,7 +69,7 @@
 				<ITEM name="36" value="0.02" type="float" />
 			</NODE>
 		</NODE>
-	<NODE name="Iodine">
+		<NODE name="Iodine">
 			<ITEM name="Name" value="Iodine" type="string" />
 			<ITEM name="Symbol" value="I" type="string" />
 			<ITEM name="AtomicNumber" value="53" type="int" />
@@ -79,7 +79,7 @@
 				<ITEM name="127" value="100.00" type="float" />
 			</NODE>
 		</NODE>
-	<NODE name="Chlorine">
+		<NODE name="Chlorine">
 			<ITEM name="Name" value="Chlorine" type="string" />
 			<ITEM name="Symbol" value="Cl" type="string" />
 			<ITEM name="AtomicNumber" value="17" type="int" />
@@ -90,7 +90,19 @@
 				<ITEM name="37" value="24.22" type="float" />
 			</NODE>
 		</NODE>
-	<NODE name="Calcium">
+		<NODE name="Potassium">
+			<ITEM name="Name" value="Potassium" type="string" />
+			<ITEM name="Symbol" value="K" type="string" />
+			<ITEM name="AtomicNumber" value="19" type="int" />
+			<ITEM name="AverageWeight" value="39.0983" type="float" />
+			<ITEM name="MonoWeight" value="38.96370668" type="float" />
+			<NODE name="Isotopes">
+				<ITEM name="39" value="93.2581" type="float" />
+				<ITEM name="40" value="0.0117" type="float" />
+				<ITEM name="41" value="6.7302" type="float" />
+			</NODE>
+		</NODE>
+		<NODE name="Calcium">
 			<ITEM name="Name" value="Calcium" type="string" />
 			<ITEM name="Symbol" value="Ca" type="string" />
 			<ITEM name="AtomicNumber" value="20" type="int" />
@@ -105,7 +117,7 @@
 				<ITEM name="48" value="0.187" type="float" />
 			</NODE>
 		</NODE>
-	<NODE name="Fluorine">
+		<NODE name="Fluorine">
 			<ITEM name="Name" value="Fluorine" type="string" />
 			<ITEM name="Symbol" value="F" type="string" />
 			<ITEM name="AtomicNumber" value="9" type="int" />
@@ -115,7 +127,7 @@
 				<ITEM name="19" value="100.0" type="float" />
 			</NODE>
 		</NODE>			
-	<NODE name="Selenium">
+		<NODE name="Selenium">
 			<ITEM name="Name" value="Selenium" type="string" />
 			<ITEM name="Symbol" value="Se" type="string" />
 			<ITEM name="AtomicNumber" value="34" type="int" />
@@ -130,7 +142,7 @@
 				<ITEM name="82" value="8.731" type="float" />
 			</NODE>
 		</NODE>
-	<NODE name="Cobalt">
+		<NODE name="Cobalt">
 			<ITEM name="Name" value="Cobalt" type="string" />
 			<ITEM name="Symbol" value="Co" type="string" />
 			<ITEM name="AtomicNumber" value="27" type="int" />
@@ -140,7 +152,7 @@
 				<ITEM name="59" value="100.0" type="float" />
 			</NODE>
 		</NODE>			
-	<NODE name="Ferum">
+		<NODE name="Ferum">
 			<ITEM name="Name" value="Ferum" type="string" />
 			<ITEM name="Symbol" value="Fe" type="string" />
 			<ITEM name="AtomicNumber" value="26" type="int" />
@@ -153,7 +165,7 @@
 				<ITEM name="58" value="0.2819" type="float" />
 			</NODE>
 		</NODE>	
-	<NODE name="Bromine">
+		<NODE name="Bromine">
 			<ITEM name="Name" value="Bromine" type="string" />
 			<ITEM name="Symbol" value="Br" type="string" />
 			<ITEM name="AtomicNumber" value="35" type="int" />
@@ -164,7 +176,7 @@
 				<ITEM name="81" value="49.314" type="float" />
 			</NODE>
 		</NODE>
-	<NODE name="Sodium">
+		<NODE name="Sodium">
 			<ITEM name="Name" value="Sodium" type="string" />
 			<ITEM name="Symbol" value="Na" type="string" />
 			<ITEM name="AtomicNumber" value="11" type="int" />
@@ -174,7 +186,7 @@
 				<ITEM name="23" value="100.00" type="float" />
 			</NODE>
 		</NODE>
-	<NODE name="Silicon">
+		<NODE name="Silicon">
 			<ITEM name="Name" value="Silicon" type="string" />
 			<ITEM name="Symbol" value="Si" type="string" />
 			<ITEM name="AtomicNumber" value="14" type="int" />
@@ -186,5 +198,5 @@
 				<ITEM name="30" value="3.10" type="float" />
 			</NODE>
 		</NODE>	
-</NODE>
+	</NODE>
 </PARAMETERS>
