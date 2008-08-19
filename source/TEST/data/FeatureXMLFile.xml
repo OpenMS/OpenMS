@@ -43,18 +43,18 @@
 					<cvParam cvLabel="psi" accession="PSI:1000011" name="Resolution" value="22.33"/>
 					<cvParam cvLabel="psi" accession="PSI:1000012" name="ResolutionMethod" value="FWHM"/>
 					<cvParam cvLabel="psi" accession="PSI:1000013" name="ResolutionType" value="Constant"/>
-					<cvParam cvLabel="psi" accession="PSI:1000014" name="Accuracy" value="33.44"/>
-					<cvParam cvLabel="psi" accession="PSI:1000015" name="ScanRate" value="44.55"/>
+					<cvParam cvLabel="psi" accession="PSI:1000014" name="Accuracy" value="33.439999"/>
+					<cvParam cvLabel="psi" accession="PSI:1000015" name="ScanRate" value="44.549999"/>
 					<cvParam cvLabel="psi" accession="PSI:1000016" name="ScanTime" value="55.66"/>
 					<cvParam cvLabel="psi" accession="PSI:1000017" name="ScanFunction" value="MassScan"/>
 					<cvParam cvLabel="psi" accession="PSI:1000018" name="ScanDirection" value="Up"/>
 					<cvParam cvLabel="psi" accession="PSI:1000019" name="ScanLaw" value="Linear"/>
 					<cvParam cvLabel="psi" accession="PSI:1000020" name="TandemScanningMethod" value="PrecursorIonScan"/>
 					<cvParam cvLabel="psi" accession="PSI:1000021" name="ReflectronState" value="Off"/>
-					<cvParam cvLabel="psi" accession="PSI:1000022" name="TOFTotalPathLength" value="66.77"/>
-					<cvParam cvLabel="psi" accession="PSI:1000023" name="IsolationWidth" value="77.88"/>
+					<cvParam cvLabel="psi" accession="PSI:1000022" name="TOFTotalPathLength" value="66.769997"/>
+					<cvParam cvLabel="psi" accession="PSI:1000023" name="IsolationWidth" value="77.879997"/>
 					<cvParam cvLabel="psi" accession="PSI:1000024" name="FinalMSExponent" value="2"/>
-					<cvParam cvLabel="psi" accession="PSI:1000025" name="MagneticFieldStrength" value="88.99"/>
+					<cvParam cvLabel="psi" accession="PSI:1000025" name="MagneticFieldStrength" value="88.989998"/>
 					<userParam name="URL" value="www.open-ms.de"/>
 					<userParam name="AnalyzerComment" value="Analyzer 1"/>
 				</analyzer>
@@ -71,8 +71,8 @@
 					<cvParam cvLabel="psi" accession="PSI:1000019" name="ScanLaw" value="Exponential"/>
 					<cvParam cvLabel="psi" accession="PSI:1000020" name="TandemScanningMethod" value="ProductIonScan"/>
 					<cvParam cvLabel="psi" accession="PSI:1000021" name="ReflectronState" value="On"/>
-					<cvParam cvLabel="psi" accession="PSI:1000022" name="TOFTotalPathLength" value="16.7"/>
-					<cvParam cvLabel="psi" accession="PSI:1000023" name="IsolationWidth" value="17.8"/>
+					<cvParam cvLabel="psi" accession="PSI:1000022" name="TOFTotalPathLength" value="16.700001"/>
+					<cvParam cvLabel="psi" accession="PSI:1000023" name="IsolationWidth" value="17.799999"/>
 					<cvParam cvLabel="psi" accession="PSI:1000024" name="FinalMSExponent" value="-2"/>
 					<cvParam cvLabel="psi" accession="PSI:1000025" name="MagneticFieldStrength" value="18.9"/>
 					<userParam name="URL" value="www.open-ms.de"/>

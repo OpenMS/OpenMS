@@ -237,7 +237,7 @@ namespace OpenMS
 	String DataValue::toString() const
 	{
 		stringstream ss;
-		ss.precision(7);
+		ss.precision(8);
 		switch(value_type_) 
 		{
 			case DataValue::EMPTY_VALUE: break;

@@ -74,11 +74,12 @@ namespace OpenMS
   void IdXMLFile::store(String filename, const vector<ProteinIdentification>& protein_ids, const vector<PeptideIdentification>& peptide_ids)
   {
   	//open stream
-		std::ofstream os(filename.c_str());
+		std::ofstream os(filename.c_str());	
 		if (!os)
 		{
 			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		}
+		os.precision(8);
 		
 		//write header
 		os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;

@@ -240,6 +240,8 @@ namespace OpenMS
 	
 	 	void FeatureXMLHandler::writeTo(ostream& os)
 		{
+			os.precision(8);
+			
 			UInt identifier = 0;
 
 			os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
