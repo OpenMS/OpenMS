@@ -1784,12 +1784,12 @@ namespace OpenMS
 						|| (abs(x[i1].first - y[i2].first)) <= max_distance)
 			  {
 					kernel += gauss_table.at(abs((x[i1].first - y[i2].first)));
-					if (x[i1].second == x[i1 + 1].second)
+					if (i1 < x_size - 1 && x[i1].second == x[i1 + 1].second)
 					{
 				    i1++;
 				    c1++;
 					}
-					else if (y[i2].second == y[i2 + 1].second)
+					else if (i2 < y_size - 1 && y[i2].second == y[i2 + 1].second)
 					{
 				    i2++;
 				    i1 -= c1;
@@ -1805,13 +1805,13 @@ namespace OpenMS
 			  {
 					if (x[i1].first < y[i2].first)
 					{
-				    if (x[i1].second == x[i1 + 1].second)
+				    if (i1 < x_size - 1 && x[i1].second == x[i1 + 1].second)
 				    {
 							i1++;
 				    }
-				    else if (y[i2].second == y[i2 + 1].second)
+				    else if (i2 < y_size - 1 && y[i2].second == y[i2 + 1].second)
 				    {
-							while(y[i2++].second == y[i2].second)
+							while(i2 < y_size - 1 && y[i2++].second == y[i2].second)
 							{
 							    ;
 							}
