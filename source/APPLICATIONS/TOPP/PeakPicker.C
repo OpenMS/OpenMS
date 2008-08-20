@@ -57,7 +57,33 @@ using namespace std;
 	techniques from nonlinear optimization.
 	
 	How to find @ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial. 
-
+	
+	In the following table you, can find example values of the most important parameters for 
+	different instrument types. @n These parameters are not valid for all instruments of that type,
+	but can be used as a starting point for finding suitable parameters.
+	<table>
+		<tr>
+			<td>&nbsp;</td>
+			<td><b>Q-TOF</b></td>
+			<td><b>LTQ Orbitrap</b></td>
+		</tr>
+		<tr>
+			<td><b>thresholds:signal_to_noise</b></td>
+			<td>2</td>
+			<td>0</td>
+		</tr>
+		<tr>
+			<td><b>thresholds:fwhm_bound</b></td>
+			<td>0.1</td>
+			<td>0.005</td>
+		</tr>
+		<tr>
+		<td><b>wavelet_transform:scale</b></td>
+			<td>0.1</td>
+			<td>0.012</td>
+		</tr>
+	</table>
+	
 	@ingroup TOPP
 */
 
