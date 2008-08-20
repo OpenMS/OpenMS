@@ -128,6 +128,7 @@ CHECK((virtual void group(const std::vector< FeatureMap<> > &maps, ConsensusMap 
 	in[0][9].setOverallQuality(1);
 	
 	Param p;
+	p.setValue("rt_estimate","false");
 	p.setValue("rt_pair_dist",0.4);
 	p.setValue("rt_dev_low",1.0);
 	p.setValue("rt_dev_high",2.0);

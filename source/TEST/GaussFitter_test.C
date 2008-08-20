@@ -46,53 +46,10 @@ CHECK(GaussFitter())
 }
 RESULT
 
-CHECK((GaussFitter(const GaussFitter & rhs)))
-{
-  GaussFitter::GaussFitResult result;
-	result.A = 0.3;
-	result.x0 = 0.4;
-	result.sigma = 0.7;
-	GaussFitter g1;
-	g1.setInitialParameters(result);
-	GaussFitter g2(g1);
-	TEST_REAL_EQUAL(g1.getInitialParameters().A, result.A)
-	TEST_REAL_EQUAL(g1.getInitialParameters().x0, result.x0)
-	TEST_REAL_EQUAL(g1.getInitialParameters().sigma, result.sigma)
-	TEST_REAL_EQUAL(g1.getInitialParameters().A, g2.getInitialParameters().A)
-	TEST_REAL_EQUAL(g1.getInitialParameters().x0, g2.getInitialParameters().x0)
-	TEST_REAL_EQUAL(g1.getInitialParameters().sigma, g2.getInitialParameters().sigma)
-}
-RESULT
-
 CHECK((virtual ~GaussFitter()))
 {
   delete ptr;
 	NOT_TESTABLE
-}
-RESULT
-
-CHECK((GaussFitter& operator=(const GaussFitter & rhs)))
-{
-  GaussFitter::GaussFitResult result;
-  result.A = 0.3;
-  result.x0 = 0.7;
-	result.sigma = 0.9;
-  GaussFitter f1;
-  f1.setInitialParameters(result);
-  GaussFitter f2;
-  f2 = f1;
-
-	TEST_REAL_EQUAL(f1.getInitialParameters().A, result.A)
-  TEST_REAL_EQUAL(f1.getInitialParameters().x0, result.x0)
-	TEST_REAL_EQUAL(f1.getInitialParameters().sigma, result.sigma)
-  
-	TEST_REAL_EQUAL(f2.getInitialParameters().A, result.A)
-  TEST_REAL_EQUAL(f2.getInitialParameters().x0, result.x0)
-	TEST_REAL_EQUAL(f2.getInitialParameters().sigma, result.sigma)
-	
-  TEST_REAL_EQUAL(f1.getInitialParameters().A, f2.getInitialParameters().A)
-  TEST_REAL_EQUAL(f1.getInitialParameters().x0, f2.getInitialParameters().x0)
-	TEST_REAL_EQUAL(f1.getInitialParameters().sigma, f2.getInitialParameters().sigma)
 }
 RESULT
 
@@ -129,27 +86,13 @@ CHECK((GaussFitResult fit(std::vector< DPosition< 2 > >& points)))
 }
 RESULT
 
-CHECK((const GaussFitResult& getInitialParameters() const ))
-{
-  NOT_TESTABLE // tested above
-}
-RESULT
-
 CHECK((void setInitialParameters(const GaussFitResult& result)))
 {
   GaussFitter f1;
-  GaussFitter::GaussFitResult result = f1.getInitialParameters();
-  TEST_REAL_EQUAL(result.A, 0.06)
-  TEST_REAL_EQUAL(result.x0, 3.0)
-	TEST_REAL_EQUAL(result.sigma, 0.5)
-  result.A = 0.15;
-  result.x0 = 0.24;
-	result.sigma = 0.35;
+  GaussFitter::GaussFitResult result;
   f1.setInitialParameters(result);
-
-  TEST_REAL_EQUAL(f1.getInitialParameters().A, 0.15)
-  TEST_REAL_EQUAL(f1.getInitialParameters().x0, 0.24)
-	TEST_REAL_EQUAL(f1.getInitialParameters().sigma, 0.35)
+	
+	NOT_TESTABLE //implicitly tested in fit method
 }
 RESULT
 

@@ -52,25 +52,8 @@ namespace OpenMS
 		init_param_.p = 5.0;
 	}
 
-	GammaDistributionFitter::GammaDistributionFitter(const GammaDistributionFitter& fitter)
-	{
-		*this = fitter;
-	}
-
 	GammaDistributionFitter::~GammaDistributionFitter()
 	{
-	}
-
-	GammaDistributionFitter::GammaDistributionFitter& GammaDistributionFitter::operator = (const GammaDistributionFitter& fitter)
-	{
-		init_param_.b = fitter.init_param_.b;
-		init_param_.p = fitter.init_param_.p;
-		return *this;
-	}
-
-	const GammaDistributionFitter::GammaDistributionFitResult& GammaDistributionFitter::getInitialParameters() const
-	{
-		return init_param_;
 	}
 
 	void GammaDistributionFitter::setInitialParameters(const GammaDistributionFitResult& param)

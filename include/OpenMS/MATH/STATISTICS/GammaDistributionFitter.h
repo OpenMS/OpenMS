@@ -50,7 +50,9 @@ namespace OpenMS
       The formula with the fitted parameters can be transformed into a
       gnuplot formula using getGnuplotFormulai() after fitting.
 
-			The implementation is done using the gsl fitting algorithms.
+			The implementation is done using GSL fitting algorithms.
+			
+			@ingroup Math
 	*/
 	class GammaDistributionFitter
 	{
@@ -68,34 +70,20 @@ namespace OpenMS
 					double p;
 			};
 	
-			/** @name Constructors and destructors
-			*/
-			//@{
 			/// Default constructor
 			GammaDistributionFitter();
-
-			/// Copy constructor
-			GammaDistributionFitter(const GammaDistributionFitter& rhs);
-
 			/// Destructor
 			virtual ~GammaDistributionFitter();
-			//@}
-
-			/// assignment operator 
-			GammaDistributionFitter& operator = (const GammaDistributionFitter& rhs);
-
-			/** tries to fit the given data points onto a gamma distribution
-
-					@param points Input parameter which represents the point used for the fitting
-
-			*/
-			GammaDistributionFitResult fit(std::vector<DPosition<2> >& points);
-
-			/// returns the initial parmaters b and p of the gamma distribution
-			const GammaDistributionFitResult& getInitialParameters() const;
 			
 			/// sets the gamma distribution start parameters b and p for the fitting 
 			void setInitialParameters(const GammaDistributionFitResult& result);
+
+			/** 
+				@brief Fits a gamma distribution to the given data points
+
+				@param points Input parameter which represents the point used for the fitting
+			*/
+			GammaDistributionFitResult fit(std::vector<DPosition<2> >& points);
 
 			/// returns the gnuplot formula of the fitted gamma distribution
 			const String& getGnuplotFormula() const;
@@ -113,6 +101,12 @@ namespace OpenMS
 			GammaDistributionFitResult init_param_;
 			
 			String gnuplot_formula_;
+
+		private:
+			/// Copy constructor (not implemented)
+			GammaDistributionFitter(const GammaDistributionFitter& rhs);
+			/// assignment operator (not implemented)
+			GammaDistributionFitter& operator = (const GammaDistributionFitter& rhs);
 	};
 }
 

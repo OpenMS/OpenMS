@@ -26,11 +26,13 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
+#include <OpenMS/MATH/STATISTICS/Histogram.h>
+#include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 
 using namespace std;
-
 namespace OpenMS
 {
+	using namespace Math;
 	const DoubleReal LabeledPairFinder::sqrt2_half_ = 0.5*sqrt(2);
 
 
@@ -38,7 +40,12 @@ namespace OpenMS
 		: BaseGroupFinder()
 	{
 		setName("LabeledPairFinder");
-		
+		defaults_.setValue("rt_estimate", "true", "If 'true' the optimal RT pair distance and deviation are estimated by "
+																							 "fitting a gaussian distribution to the histogram of pair distance. "
+																							 "Note that this works only datasets with a significant amount of pairs! "
+																							 "If 'false' the parameters 'rt_pair_dist', 'rt_dev_low' "
+																							 "and 'rt_dev_high' define the optimal distance.");
+		defaults_.setValidStrings("rt_estimate", StringList::create("true,false"));
 		defaults_.setValue("rt_pair_dist", 0.3, "optimal pair distance in RT [sec]");
 		defaults_.setValue("rt_dev_low", 0.44, "maximum allowed deviation below optimal retention time distance");
 		defaults_.setMinFloat("rt_dev_low",0.0);
@@ -52,7 +59,7 @@ namespace OpenMS
 		defaultsToParam_();
 	}
 
-	void LabeledPairFinder::run(const std::vector<ConsensusMap>& input_maps, ConsensusMap& result_map) 
+	void LabeledPairFinder::run(const vector<ConsensusMap>& input_maps, ConsensusMap& result_map) 
 	{
 		if (input_maps.size()!=1) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"exactly one input map required");
 		if (result_map.getFileDescriptions().size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"two file descriptions required");
@@ -60,8 +67,8 @@ namespace OpenMS
 		checkIds_(input_maps);
 		
 		//look up the light and heavy index
-		UInt light_index = std::numeric_limits<UInt>::max();
-		UInt heavy_index = std::numeric_limits<UInt>::max();	
+		UInt light_index = numeric_limits<UInt>::max();
+		UInt heavy_index = numeric_limits<UInt>::max();	
 		for (ConsensusMap::FileDescriptions::const_iterator it = result_map.getFileDescriptions().begin();
 			 	 it!=result_map.getFileDescriptions().end();
 			 	 ++it)
@@ -75,7 +82,7 @@ namespace OpenMS
 				light_index = it->first;
 			}
 		}
-		if (light_index == std::numeric_limits<UInt>::max() || heavy_index == std::numeric_limits<UInt>::max())
+		if (light_index == numeric_limits<UInt>::max() || heavy_index == numeric_limits<UInt>::max())
 		{
 			throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"the input maps have to be labeled 'light' and 'heavy'");
 		}
@@ -95,27 +102,112 @@ namespace OpenMS
 		DoubleReal rt_dev_high = param_.getValue("rt_dev_high");
 		DoubleReal mz_dev = param_.getValue("mz_dev");
 		DoubleReal mz_pair_dist = param_.getValue("mz_pair_dist");
+		
+		//estimate RT parameters
+		if (param_.getValue("rt_estimate")=="true")
+		{
+			//find all possible RT distances of features with the same charge and a good m/z distance
+			vector<DoubleReal> dists;
+			dists.reserve(model_ref.size());
+			for (RefMap::const_iterator it=model_ref.begin(); it!=model_ref.end(); ++it)
+			{
+				for (RefMap::const_iterator it2=model_ref.begin(); it2!=model_ref.end(); ++it2)
+				{
+					if (it2->getCharge() == it->getCharge()
+						&& it2->getMZ() >=it->getMZ()+mz_pair_dist/it->getCharge()-mz_dev  
+						&& it2->getMZ() <=it->getMZ()+mz_pair_dist/it->getCharge()+mz_dev)
+					{
+						dists.push_back(it2->getRT()-it->getRT());
+					}
+				}
+			}
+			if (dists.empty())
+			{
+				cout << "Warning: Could not find pairs for RT distance estimation. Defaults are used!" << endl;
+			}
+			else
+			{
+				//--------------------------- estimate initial parameters of fit ---------------------------
+				GaussFitter::GaussFitResult result;
+				//estimate optimal shift: median of the distances
+				sort(dists.begin(),dists.end());
+				UInt median_index = dists.size()/2; 
+				result.x0 = dists[median_index]; 
+				//cout << "Estimated x0: " << result.x0 << endl;
+				//create histogram of distances
+				//consider only the maximum of pairs, centered around the optimal shift
+				Int max_pairs = model_ref.size()/2;
+				UInt start_index = max(0,(Int)(median_index) - max_pairs/2);
+				UInt end_index = min((Int)(dists.size()-1),(Int)(median_index) + max_pairs/2);
+				DoubleReal bin_step = fabs(dists[end_index]-dists[start_index])/100;
+				Math::Histogram<> hist(dists[start_index],dists[end_index],bin_step);
+				for (UInt i=start_index; i<=end_index; ++i)
+				{
+					hist.inc(dists[i]);
+				}
+				dists.clear();
+				//determine median of bins (uniform background distribution)
+				vector<UInt> bins(hist.begin(),hist.end());
+				sort(bins.begin(),bins.end());
+				UInt bin_median = bins[bins.size()/2];
+				bins.clear();
+				//estimate scale A: maximum of the histogram
+				result.A = hist.maxValue()-bin_median;
+				//cout << "Estimated A: " <<  result.A << endl;
+				//estimate sigma: first time the count goes below the median count in the histogram
+				DoubleReal pos = result.x0;
+				while (hist.binValue(pos)>=bin_median)
+				{
+					pos -= bin_step;
+				}
+				DoubleReal sigma_low =  result.x0 - pos;
+				pos = result.x0;
+				while (hist.binValue(pos)>=bin_median)
+				{
+					pos += bin_step;
+				}
+				DoubleReal sigma_high = pos - result.x0;				
+				result.sigma = (sigma_high + sigma_low)/6.0;
+				//cout << "Estimated sigma: " <<  sigma_low << "/" << sigma_high << " => " << result.sigma*3.0 << endl;
+				//--------------------------- do gauss fit ---------------------------
+				vector<DPosition<2> > points(hist.size());
+				for (UInt i=0;i<hist.size();++i)
+				{
+					points[i][0] = hist.centerOfBin(i);
+					points[i][1] = max(0u,hist[i]);
+				}
+				GaussFitter fitter;
+				fitter.setInitialParameters(result);
+				result = fitter.fit(points);
+				cout << "estimated optimal RT distance: " << result.x0 << endl;
+				cout << "estimated allowed deviation: " << result.sigma*3.0 << endl;
+				rt_dev_low = result.sigma*3.0;
+				rt_dev_high = result.sigma*3.0;
+			}
+		}
+
+		
 		// check each feature
 		for (RefMap::const_iterator it=model_ref.begin(); it!=model_ref.end(); ++it)
 		{
-			RefMap::const_iterator range = lower_bound(model_ref.begin(),model_ref.end(),it->getRT()+rt_pair_dist - rt_dev_low, ConsensusFeature::NthPositionLess<0>());
-			while (range!=model_ref.end() && range->getRT() <= it->getRT()+rt_pair_dist + rt_dev_high)
+			RefMap::const_iterator it2 = lower_bound(model_ref.begin(),model_ref.end(),it->getRT()+rt_pair_dist - rt_dev_low, ConsensusFeature::NthPositionLess<0>());
+			while (it2!=model_ref.end() && it2->getRT() <= it->getRT()+rt_pair_dist + rt_dev_high)
 			{
-				if (range->getCharge() == it->getCharge()
-					&& range->getMZ() >=it->getMZ()+mz_pair_dist/it->getCharge()-mz_dev  
-					&& range->getMZ() <=it->getMZ()+mz_pair_dist/it->getCharge()+mz_dev)
+				if (it2->getCharge() == it->getCharge()
+					&& it2->getMZ() >=it->getMZ()+mz_pair_dist/it->getCharge()-mz_dev  
+					&& it2->getMZ() <=it->getMZ()+mz_pair_dist/it->getCharge()+mz_dev)
 				{
 					
 					DoubleReal score = sqrt(
-															  PValue_(range->getMZ() - it->getMZ(), mz_pair_dist/it->getCharge(), mz_dev, mz_dev)
-															* PValue_(range->getRT() - it->getRT(), rt_pair_dist, rt_dev_low, rt_dev_high)
+															  PValue_(it2->getMZ() - it->getMZ(), mz_pair_dist/it->getCharge(), mz_dev, mz_dev)
+															* PValue_(it2->getRT() - it->getRT(), rt_pair_dist, rt_dev_low, rt_dev_high)
 														);
 					matches.push_back(ConsensusFeature(light_index,it->begin()->getElementIndex(),*it));
-					matches.back().insert(heavy_index,range->begin()->getElementIndex(),*range);
+					matches.back().insert(heavy_index,it2->begin()->getElementIndex(),*it2);
 					matches.back().setQuality(score);
 					matches.back().computeConsensus();
 				}
-				++range;
+				++it2;
 			}
 		}
 		

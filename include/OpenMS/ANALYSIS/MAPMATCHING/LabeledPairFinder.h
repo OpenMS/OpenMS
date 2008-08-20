@@ -40,6 +40,8 @@ namespace OpenMS
 	
 		@ref LabeledPairFinder_Parameters are explained on a separate page.
 		
+		@improvement Add correlation of chromatograms to the score as suggested by MacCoss in 2003 (Marc)
+		
 		@ingroup FeatureGrouping
 	*/
 	class LabeledPairFinder

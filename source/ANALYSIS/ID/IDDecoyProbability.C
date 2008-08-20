@@ -269,7 +269,7 @@ namespace OpenMS
 		cerr << "setting initial parameters: " << endl;
 #endif
   	GaussFitter gf;
-  	GaussFitter::GaussFitResult result_1st = gf.getInitialParameters();
+  	GaussFitter::GaussFitResult result_1st;
   	result_1st.A = gauss_A; //0.06;
   	result_1st.x0 = gauss_x0; //0.7;
   	result_1st.sigma = gauss_sigma; //0.5;

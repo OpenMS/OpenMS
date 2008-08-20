@@ -1,4 +1,31 @@
 ------------------------------------------------------------------------------------------
+----                                   OpenMS 1.3                                     ----
+------------------------------------------------------------------------------------------
+
+New features and improvements of OpenMS:
+
+New features and improvements of TOPP:
+- FeatureLinker: Added automated RT parameter estimated for 'labeled' algorithm.
+
+New features and improvements of TOPPView:
+
+Changes to OpenMS XML formats:
+
+Changes to the contrib package:
+
+Detailed list of changes to specific OpenMS classes:
+- Renamed and moved classes
+
+- Removed classes
+
+- New classes
+
+- Changes to classes
+  - LabeledPairFinder: Added automated RT parameter estimated.
+  - GaussFitter: removed several unneeded methods.
+  - GammaDistributionFitter: removed several unneeded methods.
+
+------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.2                                     ----
 ------------------------------------------------------------------------------------------
 

@@ -42,15 +42,18 @@
 namespace OpenMS
 {
 
-	/** @brief Implements a fitter for gaussian functions
+	/** 
+		@brief Implements a fitter for gaussian functions
 	
-			This class fits a gaussian distribution to a number of data points.
-			The results as well as the initial guess are specified using the struct GaussFitResult.
+		This class fits a gaussian distribution to a number of data points.
+		The results as well as the initial guess are specified using the struct GaussFitResult.
 
-			The complete gaussian formula with the fitted parameters can be transformed into a
-			gnuplot formula using getGnuplotFormula after fitting.
+		The complete gaussian formula with the fitted parameters can be transformed into a
+		gnuplot formula using getGnuplotFormula after fitting.
 
-			The fitting is implemented using the gsl fitting classes
+		The fitting is implemented using GSL fitting algorithms.
+		
+		@ingroup Math
 	*/
 	class GaussFitter
 	{
@@ -71,32 +74,21 @@ namespace OpenMS
 					double sigma;
 			};
 		
-			/** @name Constructors and desctructors
-			*/
-			//@{
 			/// Default constructor
 			GaussFitter();
-
-			/// Copy constructor
-			GaussFitter(const GaussFitter& rhs);
 
 			/// Destructor
 			virtual ~GaussFitter();
 
-			/// assignment operator 
-			GaussFitter& operator = (const GaussFitter& rhs);
-
-			/** fits a gaussian distribution to the given data points 
-
-					@param points the data points used for the gaussian fitting
-			*/
-			GaussFitResult fit(std::vector<DPosition<2> >& points);
-
-			/// returns the initial parameters of the gaussian
-			const GaussFitResult& getInitialParameters() const;
-
 			/// sets the initial parameters used by the fit method as inital guess for the gaussian
 			void setInitialParameters(const GaussFitResult& result);
+
+			/** 
+				@brief Fits a gaussian distribution to the given data points 
+
+				@param points the data points used for the gaussian fitting
+			*/
+			GaussFitResult fit(std::vector<DPosition<2> >& points);
 
 			/// return the gnuplot formula of the gaussian
 			const String& getGnuplotFormula() const;
@@ -114,6 +106,14 @@ namespace OpenMS
 			GaussFitResult init_param_;
 			
 			String gnuplot_formula_;
+
+		private:
+			
+			/// Copy constructor (not implemented)
+			GaussFitter(const GaussFitter& rhs);
+
+			/// Assignment operator (not implemented)
+			GaussFitter& operator=(const GaussFitter& rhs);
 	};
 }
 

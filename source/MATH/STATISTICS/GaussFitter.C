@@ -46,26 +46,8 @@ namespace OpenMS
 		init_param_.sigma = 0.5;
 	}
 
-	GaussFitter::GaussFitter(const GaussFitter& fitter)
-	{
-		*this = fitter;
-	}
-
 	GaussFitter::~GaussFitter()
 	{
-	}
-
-	GaussFitter::GaussFitter& GaussFitter::operator = (const GaussFitter& fitter)
-	{
-		init_param_.A = fitter.init_param_.A;
-		init_param_.x0 = fitter.init_param_.x0;
-		init_param_.sigma = fitter.init_param_.sigma;
-		return *this;
-	}
-
-	const GaussFitter::GaussFitResult& GaussFitter::getInitialParameters() const
-	{
-		return init_param_;
 	}
 
 	void GaussFitter::setInitialParameters(const GaussFitResult& param)
