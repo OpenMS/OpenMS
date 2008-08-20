@@ -48,6 +48,8 @@ namespace OpenMS
 	 		"Atomic weights of the elements. Review 2000" (IUPAC Technical Report)
 			Pure Appl. Chem., 2003, Vol. 75, No. 6, pp. 683-799
 			doi:10.1351/pac200375060683	
+
+			@todo update references (Andreas)
 */
 	
 	class ElementDB
