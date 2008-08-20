@@ -523,13 +523,21 @@ class TOPPRTModel
 			{
 	 			sigma = getDoubleOption_("sigma");
 	 		}
- 			if (!setByUser_("sigma") 
+ 			if ((!setByUser_("sigma") && !setByUser_("sigma_start"))
  					&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
  			{
 				writeLog_("No sigma given for POBK. Aborting!");
 				return ILLEGAL_PARAMETERS;		
  			}
-			svm.setParameter(SIGMA, sigma);
+ 			if (setByUser_("sigma"))
+			{
+				svm.setParameter(SIGMA, sigma);
+			}
+			else if (setByUser_("sigma_start"))
+			{
+				sigma = getDoubleOption_("sigma_start");
+				svm.setParameter(SIGMA, sigma);
+			}
 			if (setByUser_("k_mer_length"))
 			{
 	 			k_mer_length = getIntOption_("k_mer_length");
@@ -733,7 +741,7 @@ class TOPPRTModel
 															+ temp_values[temp_values.size() / 2 - 1]) / 2;
 			      }
 			
-			      temp_mean = accumulate(temp_values.begin(), temp_values.end(), 0) / temp_values.size();
+			      temp_mean = accumulate(temp_values.begin(), temp_values.end(), 0.) / temp_values.size();
 			
 			      for(UInt j =0; j < temp_values.size(); ++j)
 			      {
@@ -793,7 +801,7 @@ class TOPPRTModel
 															+ temp_values[temp_values.size() / 2 - 1]) / 2;
 			      }
 			
-			      temp_mean = accumulate(temp_values.begin(), temp_values.end(), 0) / temp_values.size();
+			      temp_mean = accumulate(temp_values.begin(), temp_values.end(), 0.) / temp_values.size();
 			
 			      for(UInt j =0; j < temp_values.size(); ++j)
 			      {
@@ -904,9 +912,10 @@ class TOPPRTModel
 					}
 				}
 				if (temp_type == OLIGO)
-				{					
-					cout << training_sample.sequences.size() << " sequences for training, " 
-						<< training_sample.labels.size() << " labels for training" << flush << endl;
+				{
+					debug_string = String(training_sample.sequences.size()) + " sequences for training, "
+						+ training_sample.labels.size() + " labels for training";
+					writeDebug_(debug_string, 1);
 					
 					cv_quality = svm.performCrossValidation(training_sample,
 																								start_values,
