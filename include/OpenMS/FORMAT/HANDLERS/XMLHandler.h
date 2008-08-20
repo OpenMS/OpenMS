@@ -239,8 +239,14 @@ namespace OpenMS
 			inline UInt cvStringToEnum_(UInt section, const String& term, const char* message)
 			{
 				OPENMS_PRECONDITION(section<cv_terms_.size(),"cvStringToEnum_: Index overflow (secion number too large)");
-				//std::cout << "looking up key \"" << value << "\" in map nr. " << index << "..." << std::endl;
-		
+//				std::cout << "Section " << section << ": ";
+//				for (UInt i=0; i<cv_terms_[section].size();++i)
+//				{
+//					std::cout << cv_terms_[section][i] << ", ";
+//				}
+//				std::cout << std::endl;
+//				std::cout << "Term: '" << term << "'" << std::endl;
+					
 				std::vector<String>::const_iterator it = std::find(cv_terms_[section].begin(), cv_terms_[section].end(), term);
 				if (it == cv_terms_[section].end())
 				{
