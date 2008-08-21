@@ -299,6 +299,8 @@
 			<TR> <TD>CTRL+O</TD> <TD>Open file</TD> </TR>
 			<TR> <TD>CTRL+D</TD> <TD>Open from database</TD> </TR>
 			<TR> <TD>CTRL+W</TD> <TD>Close current window</TD> </TR>
+			<TR> <TD>CTRL+S</TD> <TD>Save current layer</TD> </TR>
+			<TR> <TD>CTRL+SHIFT+S</TD> <TD>Save visible data of current layer</TD> </TR>
 			
 			<TR> <TD colspan=2><B>Navigation in the data </B></TD> </TR>
 			<TR> <TD>CTRL</TD> <TD>Activate zoom mode</TD> </TR>

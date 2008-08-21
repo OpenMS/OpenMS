@@ -1365,10 +1365,17 @@ namespace OpenMS
 	void Spectrum2DCanvas::saveCurrentLayer(bool visible)
 	{
 		const LayerData& layer = getCurrentLayer();
-    	
+    
+    //determine proposed filename
+		String proposed_name = param_.getValue("default_path");
+    if (visible==false && layer.filename!="")
+    {
+    	proposed_name = layer.filename;
+    }
+    
 		if (layer.type==LayerData::DT_PEAK) //peak data
 		{
-    	QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"mzData files (*.mzData);;All files (*)");
+    	QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(),"mzData files (*.mzData);;All files (*)");
 			if (!file_name.isEmpty())
 			{
 				//set up file adapter
@@ -1389,7 +1396,7 @@ namespace OpenMS
 	  }
 	  else //features
 	  {
-			QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"featureXML files (*.featureXML);;All files (*)");
+			QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(),"featureXML files (*.featureXML);;All files (*)");
 			if (!file_name.isEmpty())
 			{
 		  	if (visible) //only visible data

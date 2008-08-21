@@ -195,8 +195,8 @@ namespace OpenMS
     //Layer menu
     QMenu* layer = new QMenu("&Layer",this);
     menuBar()->addMenu(layer);
-    layer->addAction("Save all data", this, SLOT(saveLayerAll()));
-    layer->addAction("Save visible data", this, SLOT(saveLayerVisible()));
+    layer->addAction("Save all data", this, SLOT(saveLayerAll()), Qt::CTRL+Qt::Key_S);
+    layer->addAction("Save visible data", this, SLOT(saveLayerVisible()), Qt::CTRL+Qt::SHIFT+Qt::Key_S);
 		layer->addSeparator();
     layer->addAction("Show/hide grid lines", this, SLOT(toggleGridLines()), Qt::CTRL+Qt::Key_R);
     layer->addAction("Show/hide axis legends", this, SLOT(toggleAxisLegends()), Qt::CTRL+Qt::Key_L);

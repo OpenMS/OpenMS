@@ -301,7 +301,16 @@ namespace OpenMS
 
 	void Spectrum3DCanvas::saveCurrentLayer(bool visible)
 	{
-  	QString file_name = QFileDialog::getSaveFileName(this, "Save file", param_.getValue("default_path").toQString(),"mzData files (*.mzData);;All files (*)");
+		const LayerData& layer = getCurrentLayer();
+		
+		//determine proposed filename
+		String proposed_name = param_.getValue("default_path");
+    if (visible==false && layer.filename!="")
+    {
+    	proposed_name = layer.filename;
+    }
+    
+  	QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(),"mzData files (*.mzData);;All files (*)");
 		if (!file_name.isEmpty())
 		{
 			//set up file adapter
@@ -316,7 +325,7 @@ namespace OpenMS
 			}
 			else //all data
 			{
-				MzDataFile().store(file_name,getCurrentLayer().peaks);
+				MzDataFile().store(file_name,layer.peaks);
 			}
 		}
 	}
