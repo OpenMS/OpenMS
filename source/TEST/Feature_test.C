@@ -100,7 +100,6 @@ CHECK((void setQuality(UInt index, QualityType q)))
   TEST_EXCEPTION(Exception::Precondition, p.setQuality(10,1.0))
 RESULT
 
-
 CHECK((const ModelDescription<2>& getModelDescription() const))
 	const Feature p;
 	TEST_EQUAL(p.getModelDescription().getName(), "")
@@ -162,6 +161,101 @@ CHECK([EXTRA](PositionType& getPosition()))
 	TEST_REAL_EQUAL(pos2[1], 2.0)
 RESULT
 
+//do not change these datastructures, they are used in the following tests...
+std::vector< ConvexHull2D > hulls(2);
+hulls[0].addPoint(DPosition<2>(1.0,2.0));
+hulls[0].addPoint(DPosition<2>(3.0,4.0));
+hulls[1].addPoint(DPosition<2>(0.5,0.0));
+hulls[1].addPoint(DPosition<2>(1.0,1.0));
+
+CHECK((const vector<ConvexHull2D>& getConvexHulls() const))
+	Feature tmp;
+	TEST_EQUAL(tmp.getConvexHulls().size(),0)
+RESULT
+
+CHECK((vector<ConvexHull2D>& getConvexHulls()))
+	Feature tmp;
+	tmp.setConvexHulls(hulls);
+	TEST_EQUAL(tmp.getConvexHulls().size(),2)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[0][0],1.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[0][1],2.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[1][0],3.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[1][1],4.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[0][0],0.5)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[0][1],0.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[1][0],1.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[1][1],1.0)
+RESULT
+
+CHECK((void setConvexHulls(const vector<ConvexHull2D>& hulls)))
+	Feature tmp;
+	tmp.setConvexHulls(hulls);
+	TEST_EQUAL(tmp.getConvexHulls().size(),2)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[0][0],1.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[0][1],2.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[1][0],3.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[1][1],4.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[0][0],0.5)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[0][1],0.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[1][0],1.0)
+	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[1][1],1.0)
+RESULT
+
+CHECK(ConvexHull2D& getConvexHull() const)
+	Feature tmp;
+	tmp.setConvexHulls(hulls);
+	
+	//check if the bounding box is ok
+	DBoundingBox<2> bb = tmp.getConvexHull().getBoundingBox();
+	TEST_REAL_EQUAL(bb.min()[0],0.5)
+	TEST_REAL_EQUAL(bb.min()[1],0.0)
+	TEST_REAL_EQUAL(bb.max()[0],3.0)
+	TEST_REAL_EQUAL(bb.max()[1],4.0)
+
+	//check the convex hull points
+	TEST_EQUAL(tmp.getConvexHull().getPoints().size(),3)
+	TEST_REAL_EQUAL(tmp.getConvexHull().getPoints()[0][0],0.5)
+	TEST_REAL_EQUAL(tmp.getConvexHull().getPoints()[0][1],0.0)
+	TEST_REAL_EQUAL(tmp.getConvexHull().getPoints()[1][0],3.0)
+	TEST_REAL_EQUAL(tmp.getConvexHull().getPoints()[1][1],4.0)
+	TEST_REAL_EQUAL(tmp.getConvexHull().getPoints()[2][0],1.0)
+	TEST_REAL_EQUAL(tmp.getConvexHull().getPoints()[2][1],2.0)
+
+RESULT
+
+hulls[0].addPoint(DPosition<2>(3.0,2.0));
+hulls[1].addPoint(DPosition<2>(2.0,1.0));
+
+CHECK( bool encloses(DoubleReal rt, DoubleReal mz) const)
+	Feature tmp;
+	tmp.setConvexHulls(hulls);
+
+	TEST_EQUAL(tmp.encloses(0.0,0.0), false);
+	TEST_EQUAL(tmp.encloses(1.0,1.0), true);
+	TEST_EQUAL(tmp.encloses(2.0,0.5), false);
+	TEST_EQUAL(tmp.encloses(2.0,2.5), true);
+	TEST_EQUAL(tmp.encloses(2.0,3.5), false);
+	TEST_EQUAL(tmp.encloses(4.0,3.0), false);
+	TEST_EQUAL(tmp.encloses(1.5,1.5), false);
+RESULT
+
+CHECK((const ChargeType& getCharge() const))
+{
+	Feature const tmp;
+	TEST_EQUAL(tmp.getCharge(),0);
+	// continued in setCharge()
+}
+RESULT
+
+CHECK((void setCharge(const ChargeType &ch)))
+{
+	Feature tmp;
+	TEST_EQUAL(tmp.getCharge(),0);
+	tmp.setCharge(17);
+	TEST_EQUAL(tmp.getCharge(),17);
+}
+RESULT
+
 CHECK((Feature(const Feature &feature)))
 	Feature::PositionType pos;
 	pos[0] = 21.21;
@@ -176,7 +270,9 @@ CHECK((Feature(const Feature &feature)))
   ModelDescription<2> desc;
   desc.setName("gauss");
   p.setModelDescription(desc);
-
+  p.setConvexHulls(hulls);
+	p.getConvexHull(); //this precalculates the overall convex hull
+	
 	Feature::PositionType pos2;
 	Feature::IntensityType i2;
 
@@ -199,6 +295,8 @@ CHECK((Feature(const Feature &feature)))
 	q2 = copy_of_p.getQuality(1);
 	TEST_REAL_EQUAL(q2, 0.2)
 	TEST_EQUAL(copy_of_p.getModelDescription().getName(), "gauss")
+	TEST_EQUAL(copy_of_p.getConvexHull().getPoints().size(),p.getConvexHull().getPoints().size())
+	TEST_EQUAL(copy_of_p.getConvexHulls().size(),p.getConvexHulls().size())
 RESULT
 
 CHECK((Feature& operator = (const Feature& rhs)))
@@ -215,11 +313,13 @@ CHECK((Feature& operator = (const Feature& rhs)))
   desc.setName("gauss");
   p.setModelDescription(desc);
 	p.setMetaValue("cluster_id",4712);
+  p.setConvexHulls(hulls);
 
 	Feature::PositionType pos2;
 	Feature::IntensityType i2;
 
 	Feature copy_of_p;
+	copy_of_p.getConvexHull(); //this precalculates the overall convex hull in order to check that the recalculation flag is copied correctly
 	copy_of_p = p;
 
 	i2 = copy_of_p.getIntensity();
@@ -237,6 +337,8 @@ CHECK((Feature& operator = (const Feature& rhs)))
 	q2 = copy_of_p.getQuality(1);
 	TEST_REAL_EQUAL(q2, 0.2)
 	TEST_EQUAL(copy_of_p.getModelDescription().getName(), "gauss")
+	TEST_EQUAL(copy_of_p.getConvexHull().getPoints().size(),p.getConvexHull().getPoints().size())
+	TEST_EQUAL(copy_of_p.getConvexHulls().size(),p.getConvexHulls().size())
 RESULT
 
 CHECK((bool operator==(const Feature &rhs) const))
@@ -327,103 +429,6 @@ CHECK((std::vector<PeptideIdentification>& getPeptideIdentifications()))
 
 	tmp.getPeptideIdentifications().resize(1);
 	TEST_EQUAL(tmp.getPeptideIdentifications().size(),1);
-RESULT
-
-//do not change these datastructures, they are used in the following tests...
-std::vector< ConvexHull2D > hulls(2);
-hulls[0].addPoint(DPosition<2>(1.0,2.0));
-hulls[0].addPoint(DPosition<2>(3.0,4.0));
-hulls[1].addPoint(DPosition<2>(0.5,0.0));
-hulls[1].addPoint(DPosition<2>(1.0,1.0));
-
-CHECK((const vector<ConvexHull2D>& getConvexHulls() const))
-	Feature tmp;
-	TEST_EQUAL(tmp.getConvexHulls().size(),0)
-RESULT
-
-CHECK((vector<ConvexHull2D>& getConvexHulls()))
-	Feature tmp;
-	tmp.setConvexHulls(hulls);
-	TEST_EQUAL(tmp.getConvexHulls().size(),2)
-	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[0][0],1.0)
-	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[0][1],2.0)
-	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[1][0],3.0)
-	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[1][1],4.0)
-	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[0][0],0.5)
-	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[0][1],0.0)
-	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[1][0],1.0)
-	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[1][1],1.0)
-RESULT
-
-CHECK((void setConvexHulls(const vector<ConvexHull2D>& hulls)))
-	Feature tmp;
-	tmp.setConvexHulls(hulls);
-	TEST_EQUAL(tmp.getConvexHulls().size(),2)
-	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[0][0],1.0)
-	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[0][1],2.0)
-	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[1][0],3.0)
-	TEST_REAL_EQUAL(tmp.getConvexHulls()[0].getPoints()[1][1],4.0)
-	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[0][0],0.5)
-	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[0][1],0.0)
-	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[1][0],1.0)
-	TEST_REAL_EQUAL(tmp.getConvexHulls()[1].getPoints()[1][1],1.0)
-RESULT
-
-
-
-CHECK(ConvexHull2D& getConvexHull() const)
-	Feature tmp;
-	tmp.setConvexHulls(hulls);
-	
-	//check if the bounding box is ok
-	DBoundingBox<2> bb = tmp.getConvexHull().getBoundingBox();
-	TEST_REAL_EQUAL(bb.min()[0],0.5)
-	TEST_REAL_EQUAL(bb.min()[1],0.0)
-	TEST_REAL_EQUAL(bb.max()[0],3.0)
-	TEST_REAL_EQUAL(bb.max()[1],4.0)
-
-	//check the convex hull points
-	TEST_EQUAL(tmp.getConvexHull().getPoints().size(),3)
-	TEST_REAL_EQUAL(tmp.getConvexHull().getPoints()[0][0],0.5)
-	TEST_REAL_EQUAL(tmp.getConvexHull().getPoints()[0][1],0.0)
-	TEST_REAL_EQUAL(tmp.getConvexHull().getPoints()[1][0],3.0)
-	TEST_REAL_EQUAL(tmp.getConvexHull().getPoints()[1][1],4.0)
-	TEST_REAL_EQUAL(tmp.getConvexHull().getPoints()[2][0],1.0)
-	TEST_REAL_EQUAL(tmp.getConvexHull().getPoints()[2][1],2.0)
-
-RESULT
-
-hulls[0].addPoint(DPosition<2>(3.0,2.0));
-hulls[1].addPoint(DPosition<2>(2.0,1.0));
-CHECK( bool encloses(DoubleReal rt, DoubleReal mz) const)
-	Feature tmp;
-	tmp.setConvexHulls(hulls);
-
-	TEST_EQUAL(tmp.encloses(0.0,0.0), false);
-	TEST_EQUAL(tmp.encloses(1.0,1.0), true);
-	TEST_EQUAL(tmp.encloses(2.0,0.5), false);
-	TEST_EQUAL(tmp.encloses(2.0,2.5), true);
-	TEST_EQUAL(tmp.encloses(2.0,3.5), false);
-	TEST_EQUAL(tmp.encloses(4.0,3.0), false);
-	TEST_EQUAL(tmp.encloses(1.5,1.5), false);
-RESULT
-
-
-CHECK((const ChargeType& getCharge() const))
-{
-	Feature const tmp;
-	TEST_EQUAL(tmp.getCharge(),0);
-	// continued in setCharge()
-}
-RESULT
-
-CHECK((void setCharge(const ChargeType &ch)))
-{
-	Feature tmp;
-	TEST_EQUAL(tmp.getCharge(),0);
-	tmp.setCharge(17);
-	TEST_EQUAL(tmp.getCharge(),17);
-}
 RESULT
 
 
