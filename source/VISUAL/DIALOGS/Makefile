@@ -48,7 +48,8 @@ CPP_SOURCES=\
 	Spectrum2DPrefDialog.C\
 	Spectrum3DPrefDialog.C\
 	DataFilterDialog.C\
-	LayerStatisticsDialog.C
+	LayerStatisticsDialog.C\
+	FeatureEditDialog.C
 
 MOC_SOURCES=\
 	SaveImageDialog_moc.C\
@@ -63,7 +64,8 @@ MOC_SOURCES=\
 	Spectrum2DPrefDialog_moc.C\
 	Spectrum3DPrefDialog_moc.C\
 	DataFilterDialog_moc.C\
-	LayerStatisticsDialog_moc.C
+	LayerStatisticsDialog_moc.C\
+	FeatureEditDialog_moc.C
 
 SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
@@ -77,7 +79,8 @@ depend: uic_depend $(MOC_SOURCES)
 	@echo "" > .Dependencies
 	@$(CXX_MAKEDEPEND) $(MAKEDEP_OPTS) $(CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
 
-uic_depend: $(UIC_DIR)/Spectrum1DGoToDialogTemplate.h $(UIC_DIR)/Spectrum2DGoToDialogTemplate.h $(UIC_DIR)/TOPPViewOpenDialogTemplate.h $(UIC_DIR)/TOPPViewPrefDialogTemplate.h $(UIC_DIR)/Spectrum1DPrefDialogTemplate.h $(UIC_DIR)/Spectrum2DPrefDialogTemplate.h $(UIC_DIR)/Spectrum3DPrefDialogTemplate.h  $(UIC_DIR)/DataFilterDialogTemplate.h $(UIC_DIR)/LayerStatisticsDialogTemplate.h
+uic_depend: $(UIC_DIR)/Spectrum1DGoToDialogTemplate.h $(UIC_DIR)/Spectrum2DGoToDialogTemplate.h $(UIC_DIR)/TOPPViewOpenDialogTemplate.h $(UIC_DIR)/TOPPViewPrefDialogTemplate.h $(UIC_DIR)/Spectrum1DPrefDialogTemplate.h $(UIC_DIR)/Spectrum2DPrefDialogTemplate.h $(UIC_DIR)/Spectrum3DPrefDialogTemplate.h  $(UIC_DIR)/DataFilterDialogTemplate.h $(UIC_DIR)/LayerStatisticsDialogTemplate.h $(UIC_DIR)/FeatureEditDialogTemplate.h
+ 
 
 
 uic_clean:
@@ -140,6 +143,8 @@ DataFilterDialog_moc.C:  $(HEADER_DIR)/DataFilterDialog.h
 LayerStatisticsDialog_moc.C:  $(HEADER_DIR)/LayerStatisticsDialog.h
 	$(MOC) $(HEADER_DIR)/LayerStatisticsDialog.h -o LayerStatisticsDialog_moc.C
 
+FeatureEditDialog_moc.C:  $(HEADER_DIR)/FeatureEditDialog.h
+	$(MOC) $(HEADER_DIR)/FeatureEditDialog.h -o FeatureEditDialog_moc.C
 
 
 ## UIC HEADER
@@ -170,4 +175,7 @@ $(UIC_DIR)/DataFilterDialogTemplate.h: DataFilterDialog.ui
 
 $(UIC_DIR)/LayerStatisticsDialogTemplate.h: LayerStatisticsDialog.ui
 	$(UIC) -o $(UIC_DIR)/LayerStatisticsDialogTemplate.h LayerStatisticsDialog.ui
+
+$(UIC_DIR)/FeatureEditDialogTemplate.h: FeatureEditDialog.ui
+	$(UIC) -o $(UIC_DIR)/FeatureEditDialogTemplate.h FeatureEditDialog.ui
 

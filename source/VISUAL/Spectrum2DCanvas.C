@@ -34,6 +34,7 @@
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DPrefDialog.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
+#include <OpenMS/VISUAL/DIALOGS/FeatureEditDialog.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
 
 //STL
@@ -1236,6 +1237,7 @@ namespace OpenMS
 			QMenu* meta = new QMenu("Feature meta data");
 			bool present = false;
 			FeatureMapType& features = getCurrentLayer_().features;
+			//featre meta data menu
 			for (FeatureMapType::Iterator it = features.begin(); it!=features.end(); ++it)
 			{
 				if (it->getMZ() <= mz_max && it->getMZ() >= mz_min && it->getRT() <= rt_max && it->getRT() >= rt_min)
@@ -1254,7 +1256,18 @@ namespace OpenMS
 			//add settings menu
 			context_menu->addMenu(save_menu);
  			context_menu->addMenu(settings_menu);
-			
+
+			//add/delete feature 
+			if (selected_peak_.isValid())
+			{
+				context_menu->addSeparator(); 	
+				context_menu->addAction("Delete selected feature");
+			}
+			else 
+			{
+				context_menu->addSeparator(); 	
+				context_menu->addAction("Add feature");
+			}
 
 			//add external context menu
 			if (context_add_)
@@ -1279,6 +1292,28 @@ namespace OpenMS
 					}
 					
 		      dlg.exec();
+				}
+				else if (result->text()=="Delete selected feature")
+				{
+					features.erase(features.begin()+selected_peak_.peak);
+					selected_peak_.clear();
+					update_buffer_ = true;	
+					update_(__PRETTY_FUNCTION__);
+				}
+				else if (result->text()=="Add feature")
+				{
+					Feature tmp;
+					tmp.setRT(widgetToData_(e->pos())[1]);
+					tmp.setMZ(widgetToData_(e->pos())[0]);
+					FeatureEditDialog dialog(this);
+					dialog.setFeature(tmp);
+					if (dialog.exec())
+					{
+						tmp = dialog.getFeature();
+						features.push_back(tmp);
+						update_buffer_ = true;	
+						update_(__PRETTY_FUNCTION__);
+					}
 				}
 			}
 		}
@@ -1390,7 +1425,7 @@ namespace OpenMS
 				}
 				else //all data
 				{
-					f.store(file_name,getCurrentLayer().peaks);
+					f.store(file_name,layer.peaks);
 				}
 			}
 	  }
@@ -1407,7 +1442,7 @@ namespace OpenMS
 				}
 				else //all data
 				{
-					FeatureXMLFile().store(file_name,getCurrentLayer().features);
+					FeatureXMLFile().store(file_name,layer.features);
 				}
 			}
 	  }
