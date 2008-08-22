@@ -77,6 +77,7 @@ namespace OpenMS
 		button_group = new QButtonGroup(this);
 		button_group->addButton(window_);
 		button_group->addButton(layer_);
+		button_group->addButton(merge_);
 		connect(button_group,SIGNAL(buttonClicked(QAbstractButton*)),this,SLOT(updateViewMode_(QAbstractButton*)));
 		if (!as_window)
 		{
@@ -86,8 +87,9 @@ namespace OpenMS
 		{
 			window_->setChecked(true);
 		}
+		connect(merge_combo_,SIGNAL(activated(int)),merge_,SLOT(click()));
 		
-		//do file/DB specific stuff
+		//set title
 		setWindowTitle((String("Open data options for ") + data_name).toQString());
 	}
 	
@@ -113,7 +115,7 @@ namespace OpenMS
 		return false;	
 	}
 
-	void TOPPViewOpenDialog::disableMapAs2D(bool as_2d)
+	void TOPPViewOpenDialog::disableDimension(bool as_2d)
 	{
 		d2_->setChecked(as_2d);
 		d2_->setEnabled(false);
@@ -128,16 +130,25 @@ namespace OpenMS
 		nocutoff_->setEnabled(false);
 	}
 	
-	void TOPPViewOpenDialog::disableAsWindow(bool as_window)
+	void TOPPViewOpenDialog::disableLocation(bool as_window)
 	{
-		window_->setChecked(as_window);
 		window_->setEnabled(false);
 		layer_->setEnabled(false);
+		merge_->setEnabled(false);
+		merge_combo_->setEnabled(false);
+		if (as_window)
+		{
+			window_->setChecked(true);
+		}
+		else
+		{
+			layer_->setChecked(true);
+		}
 	}
-	
+
 	void TOPPViewOpenDialog::updateViewMode_(QAbstractButton* button)
 	{
-		if (button==layer_)
+		if (button==layer_ || button==merge_)
 		{
 			d2_->setEnabled(false);
 			d3_->setEnabled(false);
@@ -148,6 +159,39 @@ namespace OpenMS
 			d3_->setEnabled(true);
 		}
 	}
+
+	void TOPPViewOpenDialog::setMergeLayers(const Map<UInt,String>& layers)
+	{
+		//remove all items
+		merge_combo_->clear();
+		
+		if (layers.size()!=0)
+		{
+			merge_->setEnabled(true);
+			merge_combo_->setEnabled(true);
+			UInt i=0;
+			for (Map<UInt,String>::const_iterator it=layers.begin(); it!=layers.end(); ++it)
+			{
+				merge_combo_->insertItem(i++,it->second.toQString(), it->first);
+			}
+		}
+		else
+		{
+			merge_->setEnabled(false);
+			merge_combo_->setEnabled(false);
+		}
+	}
+
+	Int TOPPViewOpenDialog::getMergeLayer() const
+	{
+		if (merge_->isChecked())
+		{
+			return merge_combo_->itemData(merge_combo_->currentIndex()).toInt();
+		}
+		
+		return -1;
+	}
+
 }
 
 

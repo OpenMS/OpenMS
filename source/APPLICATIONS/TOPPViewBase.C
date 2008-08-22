@@ -187,7 +187,7 @@ namespace OpenMS
     tools->addAction("&Statistics",this,SLOT(layerStatistics()));
 		tools->addSeparator();
     tools->addAction("Apply TOPP tool (whole layer)", this, SLOT(showTOPPDialog()), Qt::CTRL+Qt::Key_T)->setData(false);
-    tools->addAction("Apply TOPP tool (visible layer data)", this, SLOT(showTOPPDialog()))->setData(true);
+    tools->addAction("Apply TOPP tool (visible layer data)", this, SLOT(showTOPPDialog()), Qt::CTRL+Qt::SHIFT+Qt::Key_T)->setData(true);
     tools->addAction("Rerun TOPP tool", this, SLOT(rerunTOPPTool()),Qt::Key_F4);
     tools->addSeparator();
     tools->addAction("&Annotate with identifiction", this, SLOT(annotateWithID()), Qt::CTRL+Qt::Key_I);
@@ -759,12 +759,27 @@ namespace OpenMS
 			  || (is_2D && qobject_cast<Spectrum1DWidget*>(open_window)!=0) //2D data is to opened, but the current window is a 1D window
 			  || (is_feature && qobject_cast<Spectrum3DWidget*>(open_window)!=0)) //feature data is to opened, but the current window is a 3D window
 		{
-			dialog.disableAsWindow(true);
+			dialog.disableLocation(true);
 		}
 		//disable 2d/3d option for features and single scans
-		if (is_feature || !is_2D) dialog.disableMapAs2D(true);
+		if (is_feature || !is_2D) dialog.disableDimension(true);
 		//disable cutoff for features and single scans
 		if (is_feature || !is_2D) dialog.disableCutoff(false);
+		//enable merge layers if a feature layer is opened and there are already features layers to merge it to
+		if (is_feature && open_window!=0)
+		{
+			SpectrumCanvas* open_canvas = open_window->canvas();
+			Map<UInt,String> layers;
+			for (UInt i=0; i<open_canvas->getLayerCount(); ++i)
+			{
+				if (open_canvas->getLayer(i).type==LayerData::DT_FEATURE)
+				{
+					layers[i] = open_canvas->getLayer(i).name;
+				}
+			}
+			dialog.setMergeLayers(layers);
+		}
+		
 		//show options if requested
 		if (show_options && !dialog.exec())
 		{
@@ -773,6 +788,7 @@ namespace OpenMS
 		as_new_window = dialog.openAsNewWindow();
 		maps_as_2d = dialog.viewMapAs2D();
 		use_mower = dialog.isCutoffEnabled();
+  	Int merge_layer = dialog.getMergeLayer();
   	
 		//determine the window to open the data in
   	if (as_new_window) //new window
@@ -792,35 +808,44 @@ namespace OpenMS
       }
     }
 
-    //add data to the window
-    if (is_feature)
+    if (merge_layer==-1) //add data to the window
     {
-      if (!open_window->canvas()->addLayer(feature_map,filename)) return;
-    }
-    else
-    {
-		  if (!open_window->canvas()->addLayer(peak_map,filename)) return;
-      //calculate noise
-      if(use_mower && is_2D)
-      {
-        DoubleReal cutoff = estimateNoise_(open_window->canvas()->getCurrentLayer().peaks);
-				//create filter
-				DataFilters::DataFilter filter;
-				filter.field = DataFilters::INTENSITY;
-				filter.op = DataFilters::GREATER_EQUAL;
-				filter.value = cutoff;
-				///add filter
-				DataFilters filters;
-				filters.add(filter);
-				open_window->canvas()->setFilters(filters);
-      }
+	    if (is_feature)
+	    {
+	      if (!open_window->canvas()->addLayer(feature_map,filename)) return;
+	    }
+	    else
+	    {
+			  if (!open_window->canvas()->addLayer(peak_map,filename)) return;
+	      //calculate noise
+	      if(use_mower && is_2D)
+	      {
+	        DoubleReal cutoff = estimateNoise_(open_window->canvas()->getCurrentLayer().peaks);
+					//create filter
+					DataFilters::DataFilter filter;
+					filter.field = DataFilters::INTENSITY;
+					filter.op = DataFilters::GREATER_EQUAL;
+					filter.value = cutoff;
+					///add filter
+					DataFilters filters;
+					filters.add(filter);
+					open_window->canvas()->setFilters(filters);
+	      }
+			}
+			
+			//set caption
+    	open_window->canvas()->setLayerName(open_window->canvas()->activeLayerIndex(), caption);
+		}
+		else //merge features data into feature layer
+		{
+			qobject_cast<Spectrum2DCanvas*>(open_window->canvas())->mergeIntoLayer(merge_layer,feature_map);
 		}
 
-    //caption
-    open_window->canvas()->setLayerName(open_window->canvas()->activeLayerIndex(), caption);
-
-    if (as_new_window) showAsWindow_(open_window,caption);
-
+    if (as_new_window)
+    {
+    	showAsWindow_(open_window,caption);
+		}
+		
 		updateLayerBar();
 		updateFilterBar();
   	updateMenu();

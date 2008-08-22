@@ -9,7 +9,7 @@
     <x>0</x>
     <y>0</y>
     <width>485</width>
-    <height>163</height>
+    <height>192</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -44,6 +44,29 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QRadioButton" name="merge_" >
+          <property name="enabled" >
+           <bool>false</bool>
+          </property>
+          <property name="text" >
+           <string>merge into layer</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="merge_combo_" >
+          <property name="enabled" >
+           <bool>false</bool>
+          </property>
+          <property name="minimumSize" >
+           <size>
+            <width>200</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>
@@ -69,6 +92,19 @@
            <string>3D</string>
           </property>
          </widget>
+        </item>
+        <item>
+         <spacer>
+          <property name="orientation" >
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" >
+           <size>
+            <width>20</width>
+            <height>5</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </widget>
@@ -99,6 +135,19 @@
           </property>
          </widget>
         </item>
+        <item>
+         <spacer>
+          <property name="orientation" >
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" >
+           <size>
+            <width>20</width>
+            <height>5</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
        </layout>
       </widget>
      </item>
@@ -114,8 +163,8 @@
      </property>
      <property name="sizeHint" >
       <size>
-       <width>451</width>
-       <height>20</height>
+       <width>467</width>
+       <height>16</height>
       </size>
      </property>
     </spacer>

@@ -1257,18 +1257,6 @@ namespace OpenMS
 			context_menu->addMenu(save_menu);
  			context_menu->addMenu(settings_menu);
 
-			//add/delete feature 
-			if (selected_peak_.isValid())
-			{
-				context_menu->addSeparator(); 	
-				context_menu->addAction("Delete selected feature");
-			}
-			else 
-			{
-				context_menu->addSeparator(); 	
-				context_menu->addAction("Add feature");
-			}
-
 			//add external context menu
 			if (context_add_)
 			{
@@ -1292,28 +1280,6 @@ namespace OpenMS
 					}
 					
 		      dlg.exec();
-				}
-				else if (result->text()=="Delete selected feature")
-				{
-					features.erase(features.begin()+selected_peak_.peak);
-					selected_peak_.clear();
-					update_buffer_ = true;	
-					update_(__PRETTY_FUNCTION__);
-				}
-				else if (result->text()=="Add feature")
-				{
-					Feature tmp;
-					tmp.setRT(widgetToData_(e->pos())[1]);
-					tmp.setMZ(widgetToData_(e->pos())[0]);
-					FeatureEditDialog dialog(this);
-					dialog.setFeature(tmp);
-					if (dialog.exec())
-					{
-						tmp = dialog.getFeature();
-						features.push_back(tmp);
-						update_buffer_ = true;	
-						update_(__PRETTY_FUNCTION__);
-					}
 				}
 			}
 		}
@@ -1545,6 +1511,82 @@ namespace OpenMS
 		changeVisibleArea_(AreaType(visible_area_.minX(),newLo,visible_area_.maxX(),newHi));		
 	}
 
+
+	void Spectrum2DCanvas::keyPressEvent(QKeyEvent* e)
+	{
+		// Delete features
+		if (getCurrentLayer().type==LayerData::DT_FEATURE && selected_peak_.isValid() && e->key()==Qt::Key_Delete)
+		{
+			getCurrentLayer_().features.erase(getCurrentLayer_().features.begin()+selected_peak_.peak);
+			selected_peak_.clear();
+			update_buffer_ = true;	
+			update_(__PRETTY_FUNCTION__);
+			e->accept();
+		}
+		else
+		{
+			SpectrumCanvas::keyPressEvent(e);
+		}
+	}
+
+	void Spectrum2DCanvas::mouseDoubleClickEvent(QMouseEvent* e)
+	{
+		if (getCurrentLayer_().type==LayerData::DT_FEATURE)
+		{
+			Feature tmp;
+			tmp.setRT(widgetToData_(e->pos())[1]);
+			tmp.setMZ(widgetToData_(e->pos())[0]);
+			FeatureEditDialog dialog(this);
+			dialog.setFeature(tmp);
+			if (dialog.exec())
+			{
+				tmp = dialog.getFeature();
+				getCurrentLayer_().features.push_back(tmp);
+				update_buffer_ = true;	
+				update_(__PRETTY_FUNCTION__);
+			}
+		}
+	}
+
+	void Spectrum2DCanvas::mergeIntoLayer(UInt i, FeatureMapType& map)
+	{
+		OPENMS_PRECONDITION(i < layers_.size(), "Spectrum2DCanvas::mergeIntoLayer(i, map) index overflow");
+		OPENMS_PRECONDITION(layers_[i].type==LayerData::DT_FEATURE, "Spectrum2DCanvas::mergeIntoLayer(i, map) non-feature layer selected");
+		//reserve enough space
+		layers_[i].features.reserve(layers_[i].features.size()+map.size());
+		//add features
+		for (UInt j=0; j<map.size(); ++j)
+		{
+			layers_[i].features.push_back(map[j]);
+		}
+		//update the layer and overall ranges (if necessary)
+		RangeManager<2>::PositionType min_pos_old = layers_[i].features.getMin();
+		RangeManager<2>::PositionType max_pos_old = layers_[i].features.getMax();
+		DoubleReal min_int_old = layers_[i].features.getMinInt();
+		DoubleReal max_int_old = layers_[i].features.getMaxInt();
+		//cout << "Min pos old: " << layers_[i].features.getMin() << endl;
+		//cout << "Max pos old: " << layers_[i].features.getMax() << endl;
+		//cout << "Min int old: " << layers_[i].features.getMinInt() << endl;
+		//cout << "Max int old: " << layers_[i].features.getMaxInt() << endl;
+		layers_[i].features.updateRanges();
+		//cout << "Min pos new: " << layers_[i].features.getMin() << endl;
+		//cout << "Max pos new: " << layers_[i].features.getMax() << endl;
+		//cout << "Min int new: " << layers_[i].features.getMinInt() << endl;
+		//cout << "Max int new: " << layers_[i].features.getMaxInt() << endl;
+		if(min_pos_old>layers_[i].features.getMin() || max_pos_old<layers_[i].features.getMax())
+		{
+			//cout << "Recalculating ranges" << endl;
+			//cout << "Overall range old: " << overall_data_range_ << endl;
+			recalculateRanges_(0,1,2);
+			//cout << "Overall range old: " << overall_data_range_ << endl;
+			resetZoom(true);
+		}
+		if(min_int_old>layers_[i].features.getMinInt() || max_int_old<layers_[i].features.getMaxInt())
+		{
+			//cout << "Recalculating intensity gradient" << endl;
+			intensityModeChange_();
+		}
+	}
 
 } //namespace OpenMS
 

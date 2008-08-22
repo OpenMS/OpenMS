@@ -73,6 +73,7 @@ namespace OpenMS
 		list.sort();
 		list.push_front("<select tool>");
 		tools_combo_=new QComboBox;
+		tools_combo_->setMinimumWidth(150);
 		tools_combo_->addItems(list);
 		connect(tools_combo_,SIGNAL(activated(int)),this,SLOT(setTool_(int)));
 		connect(tools_combo_,SIGNAL(currentIndexChanged(int)),this,SLOT(updateTypes_(int)));
@@ -81,6 +82,7 @@ namespace OpenMS
 
 		//type combobox
 		type_combo_=new QComboBox;
+		type_combo_->setMinimumWidth(150);
 		connect(type_combo_,SIGNAL(activated(int)),this,SLOT(setType_(int)));
 		list.clear();
 		list << "<select type>";

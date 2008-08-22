@@ -321,6 +321,7 @@
 
 			<TR> <TD colspan=2><B>Advanced</B></TD> </TR>
 			<TR> <TD>CTRL+T</TD> <TD>Apply TOPP tool to the current layer</TD> </TR>
+			<TR> <TD>CTRL+SHIFT+T</TD> <TD>Apply TOPP tool to the visible data of the current layer</TD> </TR>
 			<TR> <TD>F4</TD> <TD>Rerun TOPP tool</TD> </TR>
 			<TR> <TD>CTRL+M</TD> <TD>Show layer meta information</TD> </TR>
 			<TR> <TD>CTRL+I</TD> <TD>Annotate with identification results</TD> </TR>

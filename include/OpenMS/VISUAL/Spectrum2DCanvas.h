@@ -71,6 +71,9 @@ namespace OpenMS
 			// Docu in base class
 			virtual void saveCurrentLayer(bool visible);
 			
+			/// Merges the features in @p map into the features layer @p i 
+			void mergeIntoLayer(UInt i, FeatureMapType& map);
+			
     signals:
       /// Sets the data for the horizontal projection
       void showProjectionHorizontal(const ExperimentType&, Spectrum1DCanvas::DrawModes);
@@ -115,6 +118,8 @@ namespace OpenMS
       void mouseMoveEvent(QMouseEvent* e);
 			void paintEvent(QPaintEvent* e);
 			void contextMenuEvent(QContextMenuEvent* e);
+			void keyPressEvent(QKeyEvent* e);
+			void mouseDoubleClickEvent(QMouseEvent* e); 
       //@}
 
       // Docu in base class

@@ -29,6 +29,8 @@
 #define OPENMS_VISUAL_DIALOGS_TOPPVIEWOPENDIALOG_H
 
 #include <OpenMS/VISUAL/DIALOGS/UIC/TOPPViewOpenDialogTemplate.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 
 class QAbstractButton;
 
@@ -59,14 +61,22 @@ namespace OpenMS
 			bool isCutoffEnabled() const;
 			/// Returns true, if the data should be opened in a new window
 			bool openAsNewWindow() const;
+			///Returns the index of the selected merge layer. If the option is not selected -1 is returned.
+			Int getMergeLayer() const;
 			
-			/// Disables map view option and set it
-			void disableMapAs2D(bool as_2d);
-			/// Disables cutoff option and set it
+			/// Disables view dimension section and sets the selected option
+			void disableDimension(bool as_2d);
+			/// Disables cutoff section and sets the selected option
 			void disableCutoff(bool cutoff_on);
-			/// Disables window option and set it
-			void disableAsWindow(bool window);
-		
+			/// Disables opening location section and sets the selected option
+			void disableLocation(bool window);
+			/**
+				@brief Sets the possible merge layers (index and name) and activates the the option
+				
+				It is deactivated by default and can be deactivated manually by passing an empty list.
+			*/
+			void setMergeLayers(const Map<UInt,String>& layers);
+			
 		protected slots:
 			///slot that disables 2D/3D options, when as layer is selected
 			void updateViewMode_(QAbstractButton* button);
