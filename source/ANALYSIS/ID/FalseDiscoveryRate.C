@@ -135,13 +135,17 @@ namespace OpenMS
 						j--;
 					}
 					while (j != 0
-								 &&((fwd_scores[i] >= rev_scores[j] && higher_score_better) ||
-								 		(fwd_scores[i] <= rev_scores[j] && !higher_score_better)))
+								 &&((fwd_scores[i] > rev_scores[j] && higher_score_better) ||
+								 		(fwd_scores[i] < rev_scores[j] && !higher_score_better)))
 					{
 						--j;
 					}
-					// Since j has to be equal to the number of fps above the threshold we add one 
-					++j;					
+					// Since j has to be equal to the number of fps above the threshold we add one
+					if ((fwd_scores[i] <= rev_scores[j] && higher_score_better)
+							|| (fwd_scores[i] >= rev_scores[j] && !higher_score_better))
+					{
+						++j;					
+					}
 				}	
 
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
