@@ -139,7 +139,9 @@ namespace OpenMS
 								 		(fwd_scores[i] <= rev_scores[j] && !higher_score_better)))
 					{
 						--j;
-					}					
+					}
+					// Since j has to be equal to the number of fps above the threshold we add one 
+					++j;					
 				}	
 
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
