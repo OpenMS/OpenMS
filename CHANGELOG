@@ -8,7 +8,7 @@ New features and improvements of TOPP:
 - FeatureLinker: Added automated RT parameter estimated for 'labeled' algorithm.
 
 New features and improvements of TOPPView:
-
+- Added functionality for editing feature data
 Changes to OpenMS XML formats:
 
 Changes to the contrib package:
