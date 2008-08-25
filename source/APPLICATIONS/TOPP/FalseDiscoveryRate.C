@@ -62,6 +62,11 @@ class TOPPFalseDiscoveryRate
 	
 	protected:
 
+		Param getSubsectionDefaults_(const String& /*section*/) const
+		{
+			return FalseDiscoveryRate().getDefaults();
+		}
+
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("fwd_in", "<file>", "", "Identification input to estimate FDR, forward");
@@ -69,6 +74,7 @@ class TOPPFalseDiscoveryRate
 			registerOutputFile_("out", "<file>", "", "Identification output with annotated FDR");
 			registerFlag_("proteins_only", "if set, the FDR of the proteins only is calculated");
 			registerFlag_("peptides_only", "if set, the FDR of the peptides only is caluclated");
+			registerFlag_("q_value", "if set, the q-values will be calculated instead of the FDRs");
 		
 			addEmptyLine_();		
 		}
@@ -79,6 +85,15 @@ class TOPPFalseDiscoveryRate
 			// parameter handling
 			//-------------------------------------------------------------
 	
+			Param alg_param = getParam_().copy("q_value",false);
+			FalseDiscoveryRate fdr;
+
+			if (!alg_param.empty())
+			{
+				fdr.setParameters(alg_param);
+				writeDebug_("Parameters passed to FalseDiscoveryRate", alg_param, 3);
+			}
+
 			//input/output files
 			String fwd_in(getStringOption_("fwd_in")), rev_in(getStringOption_("rev_in"));
 			String out(getStringOption_("out"));
@@ -100,7 +115,6 @@ class TOPPFalseDiscoveryRate
 			
 			writeDebug_("Starting calculations", 1);
 
-			FalseDiscoveryRate fdr;
 			if (!proteins_only)
 			{
 				fdr.apply(fwd_pep, rev_pep);

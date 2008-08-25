@@ -61,7 +61,7 @@ CHECK((void apply(std::vector< PeptideIdentification > &fwd_ids, std::vector< Pe
 	IdXMLFile().load("data/XTandem_fwd_ids.idXML", fwd_prot_ids, fwd_pep_ids);
 	IdXMLFile().load("data/XTandem_rev_ids.idXML", rev_prot_ids, rev_pep_ids);
 	ptr->apply(fwd_pep_ids, rev_pep_ids);
-	PRECISION(0.001)
+	PRECISION(0.0001)
 	for (vector<PeptideIdentification>::const_iterator it = fwd_pep_ids.begin(); it != fwd_pep_ids.end(); ++it)
 	{
 		if (it->getHits().size() > 0)
@@ -74,9 +74,9 @@ CHECK((void apply(std::vector< PeptideIdentification > &fwd_ids, std::vector< Pe
 			{
 				TEST_REAL_EQUAL(fdr, 0)
 			}
-			if (orig_score == 37.9)
+			if (orig_score <= 37.9 + 0.0001 && orig_score >= 37.9 - 0.0001)
 			{
-				TEST_REAL_EQUAL(fdr, 0.0769231)
+				TEST_REAL_EQUAL(fdr, 0.0740741)
 			}
 		}
 	}

@@ -38,13 +38,16 @@ namespace OpenMS
 {
 	FalseDiscoveryRate::FalseDiscoveryRate()
 		: DefaultParamHandler("FalseDiscoveryRate")
-	{
-		
-		defaultsToParam_();
+	{		
+ 			defaults_.setValue("q_value", "false", "if true, the q-values will be calculated instead of the FDRs");
+		  defaults_.setValidStrings("q_value", StringList::create("true,false"));
+			defaultsToParam_();
 	}
 	
 	void FalseDiscoveryRate::apply(vector<PeptideIdentification>& fwd_ids, vector<PeptideIdentification>& rev_ids)
 	{
+		bool q_value = param_.getValue("q_value").toBool();
+		
 		if (fwd_ids.size() == 0 || rev_ids.size() == 0)
 		{
 			return;
@@ -58,6 +61,8 @@ namespace OpenMS
 				fwd_scores.push_back(pit->getScore());
 			}
 		}
+		UInt number_of_fwd_scores = fwd_scores.size();
+
 		for (vector<PeptideIdentification>::const_iterator it = rev_ids.begin(); it != rev_ids.end(); ++it)
     {
       for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
@@ -69,14 +74,24 @@ namespace OpenMS
 		bool higher_score_better(fwd_ids.begin()->isHigherScoreBetter());
 		
 		// sort the scores
-		if (higher_score_better)
+		if (higher_score_better && !q_value)
 		{
 			sort(fwd_scores.rbegin(), fwd_scores.rend());
 			sort(rev_scores.rbegin(), rev_scores.rend());
 		}
-		else
+		else if (!higher_score_better && !q_value)
 		{
 			sort(fwd_scores.begin(), fwd_scores.end());
+			sort(rev_scores.begin(), rev_scores.end());
+		}
+		else if (higher_score_better)
+		{
+			sort(fwd_scores.begin(), fwd_scores.end());
+			sort(rev_scores.rbegin(), rev_scores.rend());
+		}
+		else
+		{
+			sort(fwd_scores.rbegin(), fwd_scores.rend());
 			sort(rev_scores.begin(), rev_scores.end());
 		}
 
@@ -98,36 +113,92 @@ namespace OpenMS
 		// calculate fdr for the forward scores
 		Map<double, double> score_to_fdr;
 		UInt j = 0;
-		for (UInt i = 0; i != fwd_scores.size(); ++i)
+		DoubleReal minimal_fdr = 1.;
+		
+		if (q_value)
 		{
-			while (j != rev_scores.size() && 
-						 ((fwd_scores[i] <= rev_scores[j] && higher_score_better) ||
-						 (fwd_scores[i] >= rev_scores[j] && !higher_score_better)))
+			for (UInt i = 0; i != fwd_scores.size(); ++i)
 			{
-				++j;
-			}
+				if (i == 0 && j == 0)
+				{
+					while (j != rev_scores.size()
+								 &&((fwd_scores[i] <= rev_scores[j] && higher_score_better) ||
+								 		(fwd_scores[i] >= rev_scores[j] && !higher_score_better)))
+					{
+						++j;
+					}
+				}
+				else
+				{
+					if (j == rev_scores.size())
+					{
+						j--;
+					}
+					while (j != 0
+								 &&((fwd_scores[i] >= rev_scores[j] && higher_score_better) ||
+								 		(fwd_scores[i] <= rev_scores[j] && !higher_score_better)))
+					{
+						--j;
+					}					
+				}	
 
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
-			cerr << fwd_scores[i] << " " << rev_scores[j] << " " << i << " " << j << " ";
+				cerr << fwd_scores[i] << " " << rev_scores[j] << " " << i << " " << j << " ";
 #endif
-			
-			double fdr(0);
 
-			if (j != 0 && i != 0)
-			{
-				fdr = (double)j / (double)(i + j);
-			}
+				DoubleReal fdr = 0.;
+
+				if (minimal_fdr >= (DoubleReal)j / (number_of_fwd_scores - i + j))
+				{
+					minimal_fdr = (DoubleReal)j / (number_of_fwd_scores - i + j);
+				}
+				fdr = minimal_fdr;
+
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
-			cerr << fdr << endl;
+				cerr << fdr << endl;
 #endif
-			score_to_fdr[fwd_scores[i]] = fdr;
+				score_to_fdr[fwd_scores[i]] = fdr;
+
+			}					
 		}
+		else
+		{
+			for (UInt i = 0; i != fwd_scores.size(); ++i)
+			{
+				while (j != rev_scores.size() && 
+							 ((fwd_scores[i] <= rev_scores[j] && higher_score_better) ||
+							 (fwd_scores[i] >= rev_scores[j] && !higher_score_better)))
+				{
+					++j;
+				}
+	
+#ifdef FALSE_DISCOVERY_RATE_DEBUG
+				cerr << fwd_scores[i] << " " << rev_scores[j] << " " << i << " " << j << " ";
+#endif
+				
+				double fdr(0);
+	
+				fdr = (double)j / (double)(i + 1 + j);
 
+#ifdef FALSE_DISCOVERY_RATE_DEBUG
+				cerr << fdr << endl;
+#endif
+				score_to_fdr[fwd_scores[i]] = fdr;
+			}
+		}
 		// annotate fdr 
 		String score_type = fwd_ids.begin()->getScoreType() + "_score";
 		for (vector<PeptideIdentification>::iterator it = fwd_ids.begin(); it != fwd_ids.end(); ++it)
 		{
-			it->setScoreType("FDR");
+			if (q_value)
+			{
+				it->setScoreType("q-value");
+			}
+			else
+			{
+				it->setScoreType("FDR");
+			}
+				
 			it->setHigherScoreBetter(false);
 			vector<PeptideHit> hits = it->getHits();
 			for (vector<PeptideHit>::iterator pit = hits.begin(); pit != hits.end(); ++pit)
