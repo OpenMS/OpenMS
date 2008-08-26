@@ -113,6 +113,9 @@ namespace OpenMS
 			//@{
 			/// returns true if the db contains a residue with the given name
 			bool hasResidue(const String& name) const;
+
+			/// returns true if the db contains the residue of the given pointer
+			bool hasResidue(const Residue* residue) const;
 			//@}
 			
 			/** @name Iterators

@@ -384,6 +384,12 @@ namespace OpenMS
 			
 			/// sets the string of the sequence; returns true if the conversion to real AASequence was successful, false otherwise
 			bool setStringSequence(const String& sequence);
+		
+			/// sets the residue at position index; residue must be a valid residue of the ResidueDB!
+			bool setResidue(Int index, const Residue* residue);
+		
+			/// sets the residue at position index; residue must be a valid residue of the ResidueDB!
+			bool setResidue(UInt index, const Residue* residue);
 			
 			/// returns a pointer to the residue, which is at position index
 			const Residue& getResidue(Int index) const;
@@ -418,6 +424,9 @@ namespace OpenMS
 			/// adds the residue of the peptide, which is given as string literal
 			AASequence operator + (const char* rhs) const;
 
+			/// adds the residue to the peptide; the residue must be a valid residue of the ResidueDB
+			AASequence operator + (const Residue* residue) const;
+			
 			/// adds the residues of a peptide
 			AASequence& operator += (const AASequence&);
 
@@ -426,6 +435,9 @@ namespace OpenMS
 
 			/// adds the residues of a peptide, which is given as string literal
 			AASequence& operator += (const char* rhs);
+
+			/// adds the residue to the peptide; the residue must be a valid residue of the ResidueDB
+			AASequence& operator += (const Residue* residue);
 			
 			/// returns the number of residues
 			UInt size() const;

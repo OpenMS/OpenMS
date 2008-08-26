@@ -58,7 +58,6 @@ namespace OpenMS
 			three_letter_code_(three_letter_code),
 			one_letter_code_(one_letter_code),
 			formula_(formula),
-			internal_formula_(formula_ - getInternalToFull()),
 			average_weight_(0),
 			mono_weight_(0),
 			is_modified_(false),
@@ -73,6 +72,10 @@ namespace OpenMS
 			gb_bb_l_(0.0),
 			gb_bb_r_(0.0)
 	{
+		if (formula_ != "")
+		{
+			internal_formula_ = formula_ - getInternalToFull();
+		}
 	}
 
 	Residue::Residue(const Residue& residue)
@@ -314,6 +317,11 @@ namespace OpenMS
 	
 	void Residue::setFormula(const EmpiricalFormula& formula, ResidueType res_type)
 	{
+		if (formula == "")
+		{
+			return;
+		}
+
 		switch (res_type)
 		{
 			case Full: 

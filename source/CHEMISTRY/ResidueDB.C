@@ -149,6 +149,16 @@ namespace OpenMS
 		}
 		return false;
 	}
+
+	bool ResidueDB::hasResidue(const Residue* residue) const
+	{
+		if (const_residues_.find(residue) != const_residues_.end() ||
+				const_modified_residues_.find(residue) != const_modified_residues_.end())
+		{
+			return true;
+		}
+		return false;
+	}
 	
 	void ResidueDB::readResiduesFromFile_(const String& file_name)
 	{

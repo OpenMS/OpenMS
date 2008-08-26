@@ -311,6 +311,17 @@ namespace OpenMS
 	{
 		return *this + String(peptide);
 	}
+
+	AASequence AASequence::operator + (const Residue* residue) const
+	{
+		if (!ResidueDB::getInstance()->hasResidue(residue))
+		{
+			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "given residue");
+		}
+		AASequence seq = *this;
+		seq += residue;
+		return seq;
+	}
 	
 	AASequence& AASequence::operator += (const AASequence& sequence)
 	{
@@ -338,6 +349,17 @@ namespace OpenMS
 		return *this;
 	}
 
+
+	AASequence& AASequence::operator += (const Residue* residue)
+	{
+		if (!ResidueDB::getInstance()->hasResidue(residue))
+		{
+			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "given residue");
+		}
+		peptide_.push_back(residue);
+		return *this;
+	}
+	
 	UInt AASequence::size() const
 	{
 		return peptide_.size();
@@ -867,8 +889,8 @@ namespace OpenMS
 					if (res_ptr == 0)
 					{
 						Residue res(tag, String(""), String(""), EmpiricalFormula(""), EmpiricalFormula(""));
-						res.setMonoWeight(tag.toFloat());
-						res.setAverageWeight(tag.toFloat());
+						res.setMonoWeight(tag.toFloat(), Residue::Internal);
+						res.setAverageWeight(tag.toFloat(), Residue::Internal);
 						getResidueDB_()->addResidue(res);
 						sequence.push_back(getResidueDB_()->getResidue(tag));
 					}
