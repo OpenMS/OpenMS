@@ -62,6 +62,8 @@ namespace OpenMS
   	count.
 
   	@ingroup Kernel
+
+		@todo update documentation in class doc and tutorial (Clemens)
   */
   class Feature
     : public RichPeak2D
