@@ -38,13 +38,19 @@ namespace OpenMS
 {
 	using namespace Exception;
 	
-  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description)
+  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, const String& version)
   	: tool_name_(tool_name),
   		tool_description_(tool_description),
 			instance_number_(-1),
 			debug_level_(-1),
+			version_(version),
 			log_type_(ProgressLogger::NONE)
 	{
+		//if version is empty, use the OpenMS/TOPP version and date/time
+		if (version_=="")
+		{
+			version_ = VersionInfo::getVersionAndTime();
+		}
 	}
 
 	TOPPBase::~TOPPBase()
@@ -73,9 +79,9 @@ namespace OpenMS
 		addEmptyLine_();
 		addText_("Common TOPP options:");
 		registerStringOption_("ini","<file>","","Use the given TOPP INI file",false);
-		registerStringOption_("log","<file>","TOPP.log","Location of the log file",false);
+		registerStringOption_("log","<file>","TOPP.log","Location of the log file",false, true);
 		registerIntOption_("instance","<n>",1,"Instance number for the TOPP INI file",false);
-		registerIntOption_("debug","<n>",0,"Sets the debug level",false);
+		registerIntOption_("debug","<n>",0,"Sets the debug level",false, true);
 		registerStringOption_("write_ini","<file>","","Writes an example INI file",false);
 		registerFlag_("no_progress","Disables progress logging to command line");
 		registerFlag_("-help","Shows this help");
@@ -170,7 +176,7 @@ namespace OpenMS
 						switch(it->type)
 						{
 							case ParameterInformation::STRING:
-								tmp.setValue(name,it->default_value, it->description);
+								tmp.setValue(name,it->default_value, it->description, it->advanced);
 								if (it->valid_strings.size()!=0)
 								{
 									tmp.setValidStrings(name,it->valid_strings);
@@ -185,11 +191,11 @@ namespace OpenMS
 										formats.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
 										formats = String("(valid formats: '") + formats + "')";
 									}
-									tmp.setValue(name,it->default_value, it->description + formats);
+									tmp.setValue(name,it->default_value, it->description + formats, it->advanced);
 								}
 								break;
 							case ParameterInformation::DOUBLE:
-								tmp.setValue(name,String(it->default_value).toDouble(), it->description);
+								tmp.setValue(name,String(it->default_value).toDouble(), it->description, it->advanced);
 								if (it->min_float!=-std::numeric_limits<DoubleReal>::max())
 								{
 									tmp.setMinFloat(name, it->min_float);
@@ -200,7 +206,7 @@ namespace OpenMS
 								}
 								break;
 							case ParameterInformation::INT:
-								tmp.setValue(name,String(it->default_value).toInt(), it->description);
+								tmp.setValue(name,String(it->default_value).toInt(), it->description, it->advanced);
 								if (it->min_int!=-std::numeric_limits<Int>::max())
 								{
 									tmp.setMinInt(name, it->min_int);
@@ -211,7 +217,7 @@ namespace OpenMS
 								}
 								break;
 							case ParameterInformation::FLAG:
-								tmp.setValue(name,"false", it->description);
+								tmp.setValue(name,"false", it->description, it->advanced);
 								tmp.setValidStrings(name,StringList::create("true,false"));
 								break;
 							default:
@@ -387,8 +393,7 @@ namespace OpenMS
 		//common output
 		cerr << endl
 	       << tool_name_ << " -- " << tool_description_ << endl
-	       << "Version: " << VersionInfo::getVersionAndTime() << endl
-	       << endl
+	       << "Version: " << version_ << endl
 	       << "Usage:" << endl
 				 << "  " << tool_name_ << " <options>" << endl
 				 << endl
@@ -542,9 +547,9 @@ namespace OpenMS
 	}
 
 
-	void TOPPBase::registerStringOption_(const String& name, const String& argument, const String& default_value,const String& description, bool required)
+	void TOPPBase::registerStringOption_(const String& name, const String& argument, const String& default_value,const String& description, bool required, bool advanced)
 	{
-		parameters_.push_back(ParameterInformation(name, ParameterInformation::STRING, argument, default_value, description, required));
+		parameters_.push_back(ParameterInformation(name, ParameterInformation::STRING, argument, default_value, description, required, advanced));
 	}
 
 	void TOPPBase::setValidStrings_(const String& name, const std::vector<String>& strings)
@@ -684,39 +689,39 @@ namespace OpenMS
 	}
 	
 
-	void TOPPBase::registerInputFile_(const String& name, const String& argument, const String& default_value,const String& description, bool required)
+	void TOPPBase::registerInputFile_(const String& name, const String& argument, const String& default_value,const String& description, bool required, bool advanced)
 	{
-		parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE, argument, default_value, description, required));
+		parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE, argument, default_value, description, required, advanced));
 	}
 	
-	void TOPPBase::registerOutputFile_(const String& name, const String& argument, const String& default_value,const String& description, bool required)
+	void TOPPBase::registerOutputFile_(const String& name, const String& argument, const String& default_value,const String& description, bool required, bool advanced)
 	{
-		parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_FILE, argument, default_value, description, required));
+		parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_FILE, argument, default_value, description, required, advanced));
 	}	
 	
-	void TOPPBase::registerDoubleOption_(const String& name, const String& argument, double default_value, const String& description, bool required)
+	void TOPPBase::registerDoubleOption_(const String& name, const String& argument, double default_value, const String& description, bool required, bool advanced)
 	{
-		parameters_.push_back(ParameterInformation(name, ParameterInformation::DOUBLE, argument, String(default_value), description, required));
+		parameters_.push_back(ParameterInformation(name, ParameterInformation::DOUBLE, argument, String(default_value), description, required, advanced));
 	}
 
-	void TOPPBase::registerIntOption_(const String& name, const String& argument, Int default_value, const String& description, bool required)
+	void TOPPBase::registerIntOption_(const String& name, const String& argument, Int default_value, const String& description, bool required, bool advanced)
 	{
-		parameters_.push_back(ParameterInformation(name, ParameterInformation::INT, argument, String(default_value), description, required));
+		parameters_.push_back(ParameterInformation(name, ParameterInformation::INT, argument, String(default_value), description, required, advanced));
 	}
 
-	void TOPPBase::registerFlag_(const String& name, const String& description)
+	void TOPPBase::registerFlag_(const String& name, const String& description, bool advanced)
 	{
-		parameters_.push_back(ParameterInformation(name, ParameterInformation::FLAG, "", "", description, false));
+		parameters_.push_back(ParameterInformation(name, ParameterInformation::FLAG, "", "", description, false, advanced));
 	}
 
 	void TOPPBase::addEmptyLine_()
 	{
-		parameters_.push_back(ParameterInformation("",ParameterInformation::NEWLINE, "", "", "", false));
+		parameters_.push_back(ParameterInformation("",ParameterInformation::NEWLINE, "", "", "", false, false));
 	}
 
 	void TOPPBase::addText_(const String& text)
 	{
-		parameters_.push_back(ParameterInformation("",ParameterInformation::TEXT, "", "", text, false));
+		parameters_.push_back(ParameterInformation("",ParameterInformation::TEXT, "", "", text, false, false));
 	}
 
 	const TOPPBase::ParameterInformation& TOPPBase::findEntry_(const String& name) const
@@ -869,7 +874,7 @@ namespace OpenMS
 		return false;
 	}
 
-	double TOPPBase::getDoubleOption_(const String& name) const
+	DoubleReal TOPPBase::getDoubleOption_(const String& name) const
 	{
 		const ParameterInformation& p = findEntry_(name);
 		if (p.type != ParameterInformation::DOUBLE)

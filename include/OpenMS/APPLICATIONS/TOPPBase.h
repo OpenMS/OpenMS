@@ -117,7 +117,7 @@ namespace OpenMS
     	};
 
       /// Construtor
-      TOPPBase( const String& tool_name, const String& tool_description );
+      TOPPBase( const String& tool_name, const String& tool_description, const String& version="");
 
       /// Destructor
       virtual ~TOPPBase();
@@ -154,6 +154,8 @@ namespace OpenMS
         String argument;
         /// flag that indicates if this parameter is required i.e. it must differ from the default value
         bool required;
+        /// flag the indicates that the parameter is advanced (this is used for writing the INI file only)
+        bool advanced;
 				///@name Restrictions for different parameter types
 				//@{
 				std::vector<String> valid_strings;
@@ -164,19 +166,20 @@ namespace OpenMS
 				//@}
 				
         /// Constructor that takes all members in declaration order
-        ParameterInformation( const String& n, ParameterTypes t, const String& arg, const String& def, const String& desc, bool req )
-        	: valid_strings(),
+        ParameterInformation( const String& n, ParameterTypes t, const String& arg, const String& def, const String& desc, bool req, bool adv )
+        	: name(n),
+	          type(t),
+	          default_value(def),
+	          description(desc),
+	          argument(arg),
+	          required(req),
+	          advanced(adv),
+	          valid_strings(),
             min_int(-std::numeric_limits<Int>::max()),
         	  max_int(std::numeric_limits<Int>::max()),
         	  min_float(-std::numeric_limits<DoubleReal>::max()),
         	  max_float(std::numeric_limits<DoubleReal>::max())        	
         {
-          name = n;
-          type = t;
-          default_value = def;
-          description = desc;
-          argument = arg;
-          required = req;
         }
 
         ParameterInformation()
@@ -186,17 +189,18 @@ namespace OpenMS
             description(),
             argument(),
             required(true),
+        	  advanced(false),
             valid_strings(),
             min_int(-std::numeric_limits<Int>::max()),
         	  max_int(std::numeric_limits<Int>::max()),
         	  min_float(-std::numeric_limits<DoubleReal>::max()),
-        	  max_float(std::numeric_limits<DoubleReal>::max())   
+        	  max_float(std::numeric_limits<DoubleReal>::max())
         {
         }
 
         ParameterInformation& operator=( const ParameterInformation& rhs )
         {
-          if ( &rhs == this ) return * this;
+          if ( &rhs == this ) return *this;
 
           name = rhs.name;
           type = rhs.type;
@@ -209,6 +213,8 @@ namespace OpenMS
           max_int = rhs.max_int;
           min_float = rhs.min_float;
           max_float = rhs.max_float;
+          advanced = rhs.advanced;
+          
           return *this;
         }
       };
@@ -335,7 +341,9 @@ namespace OpenMS
       //@}
 
     protected:
-
+			///Version string (if empty, the OpenMS/TOPP version is printed)
+			String version_;
+			
       /**
       	@brief Returns the location of the ini file where parameters are taken
       	from.  E.g. if the command line was <code>TOPPTool -instance 17</code>, then
@@ -379,7 +387,7 @@ namespace OpenMS
       	@param description Description of the parameter. Indentation of newline is done automatically.
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
       */
-      void registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true);
+      void registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
 			
 			/**
 				@brief Sets the valid strings for a string option
@@ -401,7 +409,7 @@ namespace OpenMS
       	@param description Description of the parameter. Indentation of newline is done automatically.
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
       */
-      void registerInputFile_( const String& name, const String& argument, const String& default_value, const String& description, bool required = true );
+      void registerInputFile_( const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false );
 
       /**
       	@brief Registers an output file option.
@@ -415,7 +423,7 @@ namespace OpenMS
       	@param description Description of the parameter. Indentation of newline is done automatically.
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
       */
-      void registerOutputFile_( const String& name, const String& argument, const String& default_value, const String& description, bool required = true );
+      void registerOutputFile_( const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false );
 
 			/**
 				@brief Sets the formats for a input/output file option
@@ -438,7 +446,7 @@ namespace OpenMS
       	@param description Description of the parameter. Indentation of newline is done automatically.
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
       */
-      void registerDoubleOption_( const String& name, const String& argument, double default_value, const String& description, bool required = true );
+      void registerDoubleOption_( const String& name, const String& argument, double default_value, const String& description, bool required = true, bool advanced = false );
 
 			/**
 				@brief Sets the minimum value for the integer parameter @p name. 
@@ -474,10 +482,10 @@ namespace OpenMS
       	@param description Description of the parameter. Indentation of newline is done automatically.
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
       */
-      void registerIntOption_( const String& name, const String& argument, Int default_value, const String& description, bool required = true );
+      void registerIntOption_( const String& name, const String& argument, Int default_value, const String& description, bool required = true, bool advanced = false );
 
       /// Registers a flag
-      void registerFlag_( const String& name, const String& description );
+      void registerFlag_( const String& name, const String& description, bool advanced = false );
 
       /**
       	@brief Registers an allowed subsection in the INI file.
@@ -509,12 +517,12 @@ namespace OpenMS
 
       	If you want to find out if a value was really set or is a default value, use the setByUser_(String) method.
 
-        @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
-        @exception Exception::RequiredParameterNotGiven is if a required parameter is not present
-        @exception Exception::WrongParameterType is thrown if the parameter has the wrong type
-        @exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
-      */
-      double getDoubleOption_( const String& name ) const;
+				@exception Exception::UnregisteredParameter is thrown if the parameter was not registered
+				@exception Exception::RequiredParameterNotGiven is if a required parameter is not present
+				@exception Exception::WrongParameterType is thrown if the parameter has the wrong type
+				@exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
+			*/
+			DoubleReal getDoubleOption_( const String& name ) const;
 
       /**
       	@brief Returns the value of a previously registered integer option
