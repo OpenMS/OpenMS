@@ -176,8 +176,6 @@ namespace OpenMS
 		  }
 		  while (status == GSL_CONTINUE && iter < 500);
 	
-			cout << "STATUS: " << status << endl;
-	
 			if (status!=GSL_SUCCESS)
 			{
 				gsl_multifit_fdfsolver_free(s);

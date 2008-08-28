@@ -123,28 +123,36 @@ namespace OpenMS
 			}
 			if (dists.empty())
 			{
-				cout << "Warning: Could not find pairs for RT distance estimation. Defaults are used!" << endl;
+				cout << "Warning: Could not find pairs for RT distance estimation. The manual settings are used!" << endl;
 			}
 			else
 			{
+				if (dists.size()<50)
+				{
+					cout << "Warning: Found only " << dists.size() << " pairs. The estimated shift and std deviation are probably not reliable!" << endl;
+				}
 				//--------------------------- estimate initial parameters of fit ---------------------------
 				GaussFitter::GaussFitResult result;
-				//estimate optimal shift: median of the distances
+				//first estimate of the optimal shift: median of the distances
 				sort(dists.begin(),dists.end());
 				UInt median_index = dists.size()/2; 
 				result.x0 = dists[median_index]; 
-				//cout << "Estimated x0: " << result.x0 << endl;
 				//create histogram of distances
 				//consider only the maximum of pairs, centered around the optimal shift
 				Int max_pairs = model_ref.size()/2;
 				UInt start_index = max(0,(Int)(median_index) - max_pairs/2);
 				UInt end_index = min((Int)(dists.size()-1),(Int)(median_index) + max_pairs/2);
-				DoubleReal bin_step = fabs(dists[end_index]-dists[start_index])/100;
-				Math::Histogram<> hist(dists[start_index],dists[end_index],bin_step);
+				DoubleReal start_value = dists[start_index];
+				DoubleReal end_value = dists[end_index];
+				DoubleReal bin_step = fabs(end_value-start_value)/100;
+				Math::Histogram<> hist(start_value,end_value,bin_step);
+				//std::cout << "Histogram from " << start_value << " to " << end_value << " (bin size " << bin_step << ")" << endl;
 				for (UInt i=start_index; i<=end_index; ++i)
 				{
+					//std::cout << "i: " << dists[i] << endl;		
 					hist.inc(dists[i]);
 				}
+				//std::cout << hist << endl;
 				dists.clear();
 				//determine median of bins (uniform background distribution)
 				vector<UInt> bins(hist.begin(),hist.end());
@@ -152,23 +160,33 @@ namespace OpenMS
 				UInt bin_median = bins[bins.size()/2];
 				bins.clear();
 				//estimate scale A: maximum of the histogram
-				result.A = hist.maxValue()-bin_median;
-				//cout << "Estimated A: " <<  result.A << endl;
-				//estimate sigma: first time the count goes below the median count in the histogram
+				UInt max_value = hist.maxValue();
+				result.A = max_value-bin_median;
+				//overwrite estimate of x0 with the position of the highest bin
+				for (UInt i=0;i<hist.size();++i)
+				{
+					if (hist[i]==max_value)
+					{
+						result.x0 = hist.centerOfBin(i);
+						break;
+					}
+				}
+				//estimate sigma: first time the count is less or equal the median count in the histogram
 				DoubleReal pos = result.x0;
-				while (hist.binValue(pos)>=bin_median)
+				while (pos>start_value && hist.binValue(pos)>bin_median)
 				{
 					pos -= bin_step;
 				}
 				DoubleReal sigma_low =  result.x0 - pos;
 				pos = result.x0;
-				while (hist.binValue(pos)>=bin_median)
+				while (pos<end_value && hist.binValue(pos)>bin_median)
 				{
 					pos += bin_step;
 				}
-				DoubleReal sigma_high = pos - result.x0;				
+				DoubleReal sigma_high = pos - result.x0;		
 				result.sigma = (sigma_high + sigma_low)/6.0;
-				//cout << "Estimated sigma: " <<  sigma_low << "/" << sigma_high << " => " << result.sigma*3.0 << endl;
+				//cout << "estimated optimal RT distance (before fit): " << result.x0 << endl;
+				//cout << "estimated allowed deviation (before fit): " << result.sigma*3.0 << endl;
 				//--------------------------- do gauss fit ---------------------------
 				vector<DPosition<2> > points(hist.size());
 				for (UInt i=0;i<hist.size();++i)

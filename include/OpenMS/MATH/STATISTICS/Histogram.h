@@ -288,6 +288,7 @@ namespace OpenMS
 			*/
 			UInt valToBin_(BinSizeType val) const
 			{
+				//std::cout << "val: " << val << " (min: " << min_ << " max: " << max_ << ")" << std::endl;
 				if (val < min_ || val > max_)
 				{
 					throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
