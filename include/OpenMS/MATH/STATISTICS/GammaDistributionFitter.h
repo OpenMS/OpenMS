@@ -41,75 +41,79 @@
 
 namespace OpenMS
 {
-  /** @brief Implements a fitter for the Gamma distribution.
-
-      This class fits a Gamma distribution to a number of data points.
-      The results as well as the initial guess are specified using the struct 
+	namespace Math
+	{
+	  /** 
+	  	@brief Implements a fitter for the Gamma distribution.
+	
+	    This class fits a Gamma distribution to a number of data points.
+	    The results as well as the initial guess are specified using the struct 
 			GammaDistributionFitResult.
-
-      The formula with the fitted parameters can be transformed into a
-      gnuplot formula using getGnuplotFormulai() after fitting.
-
+	
+	    The formula with the fitted parameters can be transformed into a
+	    gnuplot formula using getGnuplotFormulai() after fitting.
+	
 			The implementation is done using GSL fitting algorithms.
 			
 			@ingroup Math
-	*/
-	class GammaDistributionFitter
-	{
-		public:
-
-			/// struct to represent the parameters of a gamma distribution
-			struct GammaDistributionFitResult
-			{
-				public:
-
-					/// parameter b of the gamma distribution
-					double b;
-
-					/// parameter p of the gamma distribution
-					double p;
-			};
+		*/
+		class GammaDistributionFitter
+		{
+			public:
 	
-			/// Default constructor
-			GammaDistributionFitter();
-			/// Destructor
-			virtual ~GammaDistributionFitter();
-			
-			/// sets the gamma distribution start parameters b and p for the fitting 
-			void setInitialParameters(const GammaDistributionFitResult& result);
-
-			/** 
-				@brief Fits a gamma distribution to the given data points
-
-				@param points Input parameter which represents the point used for the fitting
-
-				@exception Exception::UnableToFit is thrown if fitting cannot be performed
-			*/
-			GammaDistributionFitResult fit(std::vector<DPosition<2> >& points);
-
-			/// returns the gnuplot formula of the fitted gamma distribution
-			const String& getGnuplotFormula() const;
-			
-		protected:
-			
-			static int gammaDistributionFitterf_(const gsl_vector* x, void* params, gsl_vector* f);
-
-			static int gammaDistributionFitterdf_(const gsl_vector* x, void* params, gsl_matrix* J);
-
-			static int gammaDistributionFitterfdf_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
-
-			void printState_(size_t iter, gsl_multifit_fdfsolver* s);
-			
-			GammaDistributionFitResult init_param_;
-			
-			String gnuplot_formula_;
-
-		private:
-			/// Copy constructor (not implemented)
-			GammaDistributionFitter(const GammaDistributionFitter& rhs);
-			/// assignment operator (not implemented)
-			GammaDistributionFitter& operator = (const GammaDistributionFitter& rhs);
-	};
+				/// struct to represent the parameters of a gamma distribution
+				struct GammaDistributionFitResult
+				{
+					public:
+	
+						/// parameter b of the gamma distribution
+						double b;
+	
+						/// parameter p of the gamma distribution
+						double p;
+				};
+		
+				/// Default constructor
+				GammaDistributionFitter();
+				/// Destructor
+				virtual ~GammaDistributionFitter();
+				
+				/// sets the gamma distribution start parameters b and p for the fitting 
+				void setInitialParameters(const GammaDistributionFitResult& result);
+	
+				/** 
+					@brief Fits a gamma distribution to the given data points
+	
+					@param points Input parameter which represents the point used for the fitting
+	
+					@exception Exception::UnableToFit is thrown if fitting cannot be performed
+				*/
+				GammaDistributionFitResult fit(std::vector<DPosition<2> >& points);
+	
+				/// returns the gnuplot formula of the fitted gamma distribution
+				const String& getGnuplotFormula() const;
+				
+			protected:
+				
+				static int gammaDistributionFitterf_(const gsl_vector* x, void* params, gsl_vector* f);
+	
+				static int gammaDistributionFitterdf_(const gsl_vector* x, void* params, gsl_matrix* J);
+	
+				static int gammaDistributionFitterfdf_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
+	
+				void printState_(size_t iter, gsl_multifit_fdfsolver* s);
+				
+				GammaDistributionFitResult init_param_;
+				
+				String gnuplot_formula_;
+	
+			private:
+				/// Copy constructor (not implemented)
+				GammaDistributionFitter(const GammaDistributionFitter& rhs);
+				/// assignment operator (not implemented)
+				GammaDistributionFitter& operator = (const GammaDistributionFitter& rhs);
+		};
+	}
 }
 
 #endif

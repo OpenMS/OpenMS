@@ -41,82 +41,84 @@
 
 namespace OpenMS
 {
-
-	/** 
-		@brief Implements a fitter for gaussian functions
-	
-		This class fits a gaussian distribution to a number of data points.
-		The results as well as the initial guess are specified using the struct GaussFitResult.
-
-		The complete gaussian formula with the fitted parameters can be transformed into a
-		gnuplot formula using getGnuplotFormula after fitting.
-
-		The fitting is implemented using GSL fitting algorithms.
-		
-		@ingroup Math
-	*/
-	class GaussFitter
+	namespace Math
 	{
-		public:
-
-			/// struct of parameters of a gaussian distribution
-			struct GaussFitResult
-			{
-				public:
-
-					/// parameter A of gaussian distribution (amplitude)
-					double A;
-
-					/// parameter x0 of gaussian distribution (left/right shift)
-					double x0; 
-
-					/// parameter sigma of gaussian distribution (width)
-					double sigma;
-			};
+		/** 
+			@brief Implements a fitter for gaussian functions
 		
-			/// Default constructor
-			GaussFitter();
-
-			/// Destructor
-			virtual ~GaussFitter();
-
-			/// sets the initial parameters used by the fit method as inital guess for the gaussian
-			void setInitialParameters(const GaussFitResult& result);
-
-			/** 
-				@brief Fits a gaussian distribution to the given data points 
-
-				@param points the data points used for the gaussian fitting
-
-				@exception Exception::UnableToFit is thrown if fitting cannot be performed
-			*/
-			GaussFitResult fit(std::vector<DPosition<2> >& points);
-
-			/// return the gnuplot formula of the gaussian
-			const String& getGnuplotFormula() const;
+			This class fits a gaussian distribution to a number of data points.
+			The results as well as the initial guess are specified using the struct GaussFitResult.
+	
+			The complete gaussian formula with the fitted parameters can be transformed into a
+			gnuplot formula using getGnuplotFormula after fitting.
+	
+			The fitting is implemented using GSL fitting algorithms.
 			
-		protected:
+			@ingroup Math
+		*/
+		class GaussFitter
+		{
+			public:
+	
+				/// struct of parameters of a gaussian distribution
+				struct GaussFitResult
+				{
+					public:
+	
+						/// parameter A of gaussian distribution (amplitude)
+						double A;
+	
+						/// parameter x0 of gaussian distribution (left/right shift)
+						double x0; 
+	
+						/// parameter sigma of gaussian distribution (width)
+						double sigma;
+				};
 			
-			static int gaussFitterf_(const gsl_vector* x, void* params, gsl_vector* f);
-
-			static int gaussFitterdf_(const gsl_vector* x, void* params, gsl_matrix* J);
-
-			static int gaussFitterfdf_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
-			
-			void printState_(size_t iter, gsl_multifit_fdfsolver * s);
-			
-			GaussFitResult init_param_;
-			
-			String gnuplot_formula_;
-
-		private:
-			
-			/// Copy constructor (not implemented)
-			GaussFitter(const GaussFitter& rhs);
-
-			/// Assignment operator (not implemented)
-			GaussFitter& operator=(const GaussFitter& rhs);
-	};
+				/// Default constructor
+				GaussFitter();
+	
+				/// Destructor
+				virtual ~GaussFitter();
+	
+				/// sets the initial parameters used by the fit method as inital guess for the gaussian
+				void setInitialParameters(const GaussFitResult& result);
+	
+				/** 
+					@brief Fits a gaussian distribution to the given data points 
+	
+					@param points the data points used for the gaussian fitting
+	
+					@exception Exception::UnableToFit is thrown if fitting cannot be performed
+				*/
+				GaussFitResult fit(std::vector<DPosition<2> >& points);
+	
+				/// return the gnuplot formula of the gaussian
+				const String& getGnuplotFormula() const;
+				
+			protected:
+				
+				static int gaussFitterf_(const gsl_vector* x, void* params, gsl_vector* f);
+	
+				static int gaussFitterdf_(const gsl_vector* x, void* params, gsl_matrix* J);
+	
+				static int gaussFitterfdf_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
+				
+				void printState_(size_t iter, gsl_multifit_fdfsolver * s);
+				
+				GaussFitResult init_param_;
+				
+				String gnuplot_formula_;
+	
+			private:
+				
+				/// Copy constructor (not implemented)
+				GaussFitter(const GaussFitter& rhs);
+	
+				/// Assignment operator (not implemented)
+				GaussFitter& operator=(const GaussFitter& rhs);
+		};
+	}
 }
 
 #endif

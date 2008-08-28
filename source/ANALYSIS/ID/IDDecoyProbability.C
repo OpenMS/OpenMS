@@ -153,9 +153,9 @@ namespace OpenMS
   	}
 
 
-		GammaDistributionFitter gdf;
+		Math::GammaDistributionFitter gdf;
   	// TODO heuristic for good start parameters
-  	GammaDistributionFitter::GammaDistributionFitResult result_gamma = gdf.fit(rev_data);
+  	Math::GammaDistributionFitter::GammaDistributionFitResult result_gamma = gdf.fit(rev_data);
 
 #ifdef IDDECOYPROBABILITY_DEBUG
   	cerr << gdf.getGnuplotFormula() << endl;
@@ -268,15 +268,15 @@ namespace OpenMS
 #ifdef IDDECOYPROBABILITY_DEBUG
 		cerr << "setting initial parameters: " << endl;
 #endif
-  	GaussFitter gf;
-  	GaussFitter::GaussFitResult result_1st;
+  	Math::GaussFitter gf;
+  	Math::GaussFitter::GaussFitResult result_1st;
   	result_1st.A = gauss_A; //0.06;
   	result_1st.x0 = gauss_x0; //0.7;
   	result_1st.sigma = gauss_sigma; //0.5;
 #ifdef IDDECOYPROBABILITY_DEBUG
 		cerr << "Initial Gauss guess: A=" << gauss_A << ", x0=" << gauss_x0 << ", sigma=" << gauss_sigma << endl;
 #endif
-  	GaussFitter::GaussFitResult result_gauss = gf.fit(diff_data);
+  	Math::GaussFitter::GaussFitResult result_gauss = gf.fit(diff_data);
 
 		// fit failed?
 		if (gf.getGnuplotFormula() == "")
@@ -394,9 +394,9 @@ namespace OpenMS
 #endif
 	}
 
-	double IDDecoyProbability::getProbability_(const GammaDistributionFitter::GammaDistributionFitResult& result_gamma,
+	double IDDecoyProbability::getProbability_(const Math::GammaDistributionFitter::GammaDistributionFitResult& result_gamma,
 																						const Transformation_& gamma_trafo,
-																						const GaussFitter::GaussFitResult& result_gauss,
+																						const Math::GaussFitter::GaussFitResult& result_gauss,
 																						const Transformation_& gauss_trafo,
 																						double score)
 	{
