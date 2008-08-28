@@ -182,7 +182,7 @@ class TOPPTextExporter
 		 		}
 				
 				// write header
-				txt_out << "#consensus_rt	consensus_mz	consensus_intensity	quality	";
+				txt_out << "#consensus_rt	consensus_mz	consensus_intensity	quality";
 		 		for (ConsensusMap::FileDescriptions::const_iterator it=descs.begin(); it!=descs.end(); ++it)
 		 		{
 					txt_out << "	intensity_" << it->first;
