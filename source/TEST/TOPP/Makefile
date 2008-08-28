@@ -816,6 +816,16 @@ TextExporter_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,TextExporter3.tmp,TextExporter_3_output_peptides.txt)
 
 
+SILACAnalyzer_test: make_fuzzydiff
+	@$(ECHO) ""
+	@$(ECHO) "SILACAnalyzer:"
+
+	@$(ECHO) "- Test 1:"
+	@$(call RUN_PROG_OPT,SILACAnalyzer,-ini SILACAnalyzer_1_parameters.ini -in SILACAnalyzer_1_input.mzData -out SILACAnalyzer_1_output.tmp)
+	@$(call RUN_PROG_OPT,SILACAnalyzer,-ini SILACAnalyzer_1_parameters.ini -in SILACAnalyzer_1_input.mzData -out SILACAnalyzer_1_output.tmp_)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' SILACAnalyzer_1_output.tmp_ > SILACAnalyzer_1_output.tmp
+	@$(call TEST_FILE_EQUAL,SILACAnalyzer_1_output.tmp,SILACAnalyzer_1_output.consensusXML)
+
 FeatureFinderMRM_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "FeatureFinderMRM:"
@@ -854,6 +864,9 @@ FeatureLinker_test: make_fuzzydiff
 	@$(SED) 's/^.*xml-stylesheet.*$$//g' FeatureLinker.tmp_ > FeatureLinker.tmp
 	@$(call TEST_FILE_EQUAL,FeatureLinker.tmp,FeatureLinker_4_output.consensusXML)
 
-
+	@$(ECHO) "- Test 5: labeled (with estimation of RT shift)"
+	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_5_parameters.ini -in FeatureLinker_5_input.featureXML)
+	@$(SED) 's/^.*xml-stylesheet.*$$//g' FeatureLinker.tmp_ > FeatureLinker.tmp
+	@$(call TEST_FILE_EQUAL,FeatureLinker.tmp,FeatureLinker_5_output.consensusXML)
 
 
