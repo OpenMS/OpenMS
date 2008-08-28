@@ -157,7 +157,7 @@ CHECK((virtual void run(const std::vector<ConsensusMap>& input_maps, ConsensusMa
 	output2.getFileDescriptions()[8] = output.getFileDescriptions()[5];
 	output2.getFileDescriptions()[8].label = "heavy";
 	pm2.run(input2,output2);
-	TEST_EQUAL(output2.size(),151);
+	TEST_EQUAL(output2.size(),250);
 RESULT
 
 
