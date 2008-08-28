@@ -186,12 +186,15 @@ namespace OpenMS
 				percentage_factor_ = overall_data_range_.max()[2]/layer.features.getMaxInt();
 			}
 		}
-		
-		//temporary variable
-		QPoint pos;
-		
+
+		//set painter to black (we operate directly on the pixels for all colored data)
 		painter.setPen(Qt::black);
-		
+
+		//temporary variables
+		QPoint pos;
+		Int image_width = buffer_.width();
+		Int image_height = buffer_.height();
+				
 		if (layer.type==LayerData::DT_PEAK) //peaks
 		{
 			//determine number of MS1 scans
@@ -230,8 +233,7 @@ namespace OpenMS
 			}
 			//cout << "peaks: " << peaks << "  scans: " << scans << endl;
 			//cout << "width: " << width() << "  height: " << height() << endl;
-			Int image_width = buffer_.width();
-			Int image_height = buffer_.height();
+
 			for (ExperimentType::ConstAreaIterator i = layer.peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
 					 i != layer.peaks.areaEndConst(); 
 					 ++i)
@@ -266,7 +268,6 @@ namespace OpenMS
 			if (getLayerFlag(layer_index,LayerData::P_PRECURSORS))
 			{
 				const ExperimentType& exp = layer.peaks; 
-				painter.setPen(Qt::black);
 				for (ExperimentType::ConstIterator i = exp.RTBegin(visible_area_.min()[1]); 
 						 i != exp.RTEnd(visible_area_.max()[1]); 
 						 ++i)
@@ -301,13 +302,29 @@ namespace OpenMS
 						 i->getMZ() <= visible_area_.max()[0] &&
 						 layer.filters.passes(*i))
 				{
-					painter.setPen(heightColor_(i->getIntensity(), layer.gradient));
+					//determine color
+					QRgb color;
+					if (i->metaValueExists(5))
+					{
+						color = QColor(i->getMetaValue(5).toString().c_str()).rgb();
+					}
+					else
+					{
+						color = heightColor_(i->getIntensity(), layer.gradient).rgb();
+					}
+					//paint
 					dataToWidget_(i->getMZ(),i->getRT(),pos);
-					painter.drawLine(pos.x(),pos.y()-1,pos.x(),pos.y()+1);
-					painter.drawLine(pos.x()-1,pos.y(),pos.x()+1,pos.y());
+					if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
+					{
+						buffer_.setPixel(pos.x()   ,pos.y()   ,color);
+						buffer_.setPixel(pos.x()-1 ,pos.y()   ,color);
+						buffer_.setPixel(pos.x()+1 ,pos.y()   ,color);
+						buffer_.setPixel(pos.x()   ,pos.y()-1 ,color);
+						buffer_.setPixel(pos.x()   ,pos.y()+1 ,color);
+					}
+					//number and label
 					if (numbers)
 					{
-						painter.setPen(Qt::black);
 						//paint label of feature number
 						QString label = QString::number(num);
 						if (i->metaValueExists(3))
