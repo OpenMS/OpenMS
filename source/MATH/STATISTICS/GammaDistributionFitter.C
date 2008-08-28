@@ -184,19 +184,11 @@ namespace OpenMS
 	  }
 	  while (status == GSL_CONTINUE && iter < 10000);
 
-		// TODO throw exception
-#ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
-		cerr << "Status: " << status << endl;
-#endif
-
-		if (status)
+		if (status!=GSL_SUCCESS)
 		{
-			gsl_multifit_fdfsolver_free (s);
+			gsl_multifit_fdfsolver_free(s);
 
-			GammaDistributionFitResult result;
-			result.b = 0;
-			result.p = 0;
-			return result;
+			throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-GammaDistributionFitter","Could not fit the gaussian to the data");
 		}
 	  
 		// write the result in a GammaDistributionFitResult struct

@@ -704,7 +704,7 @@ namespace OpenMS
 		};
 
 
-		Math::LinearRegression<std::vector<DoubleReal>::iterator > regress;
+		Math::LinearRegression regress;
 		regress.computeRegression (0.95, x.begin(), x.end(), y.begin());
 		peak_cutoff_intercept_ = regress.getIntercept();
 		peak_cutoff_slope_ = regress.getSlope();

@@ -232,8 +232,7 @@ class AdditiveSeries
 
 		try
 		{
-			LinearRegression<vector<double>::const_iterator> linreg;
-
+			LinearRegression linreg;
 			linreg.computeRegression ( confidence_p, conc_vec_begin, conc_vec_end, area_vec_begin );
 
 			if (write_gnuplot)

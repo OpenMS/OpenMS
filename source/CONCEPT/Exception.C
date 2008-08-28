@@ -317,6 +317,11 @@ namespace OpenMS
 				what_ = "the element '" + element + "' could not be found";
 				globalHandler.setMessage(what_);
 			}
+
+			UnableToFit::UnableToFit(const char* file, int line, const char* function, const string& name , const string& message) throw()
+				: BaseException(file, line, function, name, message)
+			{
+			}
 		
 			DEF_EXCEPTION(DivisionByZero, "a division by zero was requested")
 

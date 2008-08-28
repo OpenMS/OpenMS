@@ -51,8 +51,6 @@ using namespace std;
 	 It is assumed that major retention time distortions are corrected before applying this tool.
 	 Please use MapAligner to do that on the peak or feature level.
 	 
-	 @improvement Estimate the RT parameters by fitting a gaussian distribution to all shifts of the correct m/z distance (Marc)
-	 
 	 @ingroup TOPP
 */
 

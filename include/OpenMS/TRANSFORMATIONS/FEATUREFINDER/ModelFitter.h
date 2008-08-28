@@ -203,15 +203,19 @@ namespace OpenMS
 		{
 			monoisotopic_mz_ = mz;
 		}
-            
-		/// Return next feature
-		Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit)
+
+		/**
+			@brief Return next feature
+			
+			@exception Exception::UnableToFit is thrown if fitting cannot be performed
+		*/
+		Feature fit(const ChargedIndexSet& index_set)
 		{
 			// Test the number of peaks (not enough peaks to fit)
 			if ( index_set.size() < ( UInt ) ( this->param_.getValue( "min_num_peaks:extended" ) ) )
 			{
 				String mess = String( "Skipping feature, IndexSet size too small: " ) + index_set.size();
-				throw UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-IndexSet", mess.c_str() );
+				throw Exception::UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-IndexSet", mess.c_str() );
 			}
                 
 			// Calculate statistics for mz and rt
@@ -249,7 +253,7 @@ namespace OpenMS
 			if ( ! final )
 			{				
 				delete final;
-				throw UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-BadQuality", "Zero quality after fitting. Skipping this feature" );
+				throw Exception::UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-BadQuality", "Zero quality after fitting. Skipping this feature" );
 			}
 			                
 			// find peak with highest predicted intensity to use as cutoff
@@ -284,7 +288,7 @@ namespace OpenMS
 			if ( model_set.size() < ( UInt ) ( this->param_.getValue( "min_num_peaks:final" ) ) )
 			{
 				delete final;
-				throw UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__,"UnableToFit-FinalSet",String( "Skipping feature, IndexSet size after cutoff too small: " ) + model_set.size() );
+				throw Exception::UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__,"UnableToFit-FinalSet",String( "Skipping feature, IndexSet size after cutoff too small: " ) + model_set.size() );
 			}
 				
 			// fit has too low quality or fit was not possible i.e. because of zero stdev
@@ -292,7 +296,7 @@ namespace OpenMS
 			{
 				delete final;
 				String mess = String( "Skipping feature, correlation too small: " ) + max_quality;
-				throw UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-Correlation", mess.c_str() );
+				throw Exception::UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-Correlation", mess.c_str() );
 			}
 				
 			// Calculate intensity scaling
@@ -311,7 +315,7 @@ namespace OpenMS
 			if ( model_sum == 0 )
 			{
 				delete final;
-				throw UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__,"UnableToFit-ZeroSum", "Skipping feature, model_sum zero." );
+				throw Exception::UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__,"UnableToFit-ZeroSum", "Skipping feature, model_sum zero." );
 			}
 
 			final->setScale( data_max / model_max );	// use max quotient instead of sum quotient

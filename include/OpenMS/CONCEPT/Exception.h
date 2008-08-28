@@ -593,6 +593,20 @@ namespace OpenMS
 				ElementNotFound(const char* file, int line, const char* function, const std::string& element)	throw();
 		};
 
+		/**	
+			@brief Exception used if an error occurred while fitting a model to a given dataset
+			
+			The given element could not be found. 
+
+			@ingroup Exceptions
+		*/			
+		class UnableToFit
+			: public BaseException
+		{
+			public:
+				UnableToFit(const char* file, int line, const char* function, const std::string& name , const std::string& message) throw();
+		};
+
 
 		/**
 			@brief OpenMS global exception handler

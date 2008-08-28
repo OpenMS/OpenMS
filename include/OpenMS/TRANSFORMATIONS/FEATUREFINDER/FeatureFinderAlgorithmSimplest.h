@@ -169,7 +169,7 @@ namespace OpenMS
 								}
 							}
 						}
-						catch( UnableToFit ex)
+						catch( Exception::UnableToFit ex)
 						{
 							std::cout << "UnableToFit: " << ex.what() << std::endl;
 

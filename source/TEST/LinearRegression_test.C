@@ -41,130 +41,99 @@ using namespace OpenMS;
 using namespace Math;
 using namespace std;
 
-LinearRegression<vector<double>::const_iterator>* linreg_ptr;
-CHECK((LinearRegression()))
-  linreg_ptr = new LinearRegression<vector<double>::const_iterator>;
-  TEST_NOT_EQUAL(linreg_ptr, 0)
+LinearRegression* ptr;
+CHECK(LinearRegression())
+  ptr = new LinearRegression;
+  TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
+CHECK((virtual ~LinearRegression()))
+  delete ptr;
+RESULT
 
 // Create a test data set
 vector<double> x_axis(10);
 vector<double> y_axis(10);
 vector<double> weight(10);
 for (int i=0; i < 10; ++i)
-  {
-    x_axis[i]=i;
-    y_axis[i]=2*i+4;
-    weight[i]=1;
-  }
+{
+  x_axis[i]=i;
+  y_axis[i]=2*i+4;
+  weight[i]=1;
+}
 
-CHECK((int computeRegression(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin)))
-  double ci=0.95;
-  int error = linreg_ptr->computeRegression(ci,x_axis.begin(),x_axis.end(),y_axis.begin());
-  TEST_EQUAL(error,0)
+LinearRegression lin_reg;
+
+CHECK((bool computeRegression(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin)))
+  lin_reg.computeRegression(0.95,x_axis.begin(),x_axis.end(),y_axis.begin());
+
+  TEST_REAL_EQUAL(lin_reg.getSlope(),2.0)
+  TEST_REAL_EQUAL(lin_reg.getIntercept(),4.0)
 RESULT
 
 CHECK((int computeRegressionWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin)))
-  double ci=0.95;
-  int error = linreg_ptr->computeRegressionWeighted(ci,x_axis.begin(),x_axis.end(),y_axis.begin(),weight.begin());
-  TEST_EQUAL(error,0);
+  lin_reg.computeRegressionWeighted(0.95,x_axis.begin(),x_axis.end(),y_axis.begin(),weight.begin());
 RESULT
-
-
-CHECK((LinearRegression( LinearRegression const & arg )))
-	double ci=0.95;
-  int error = linreg_ptr->computeRegressionWeighted(ci,x_axis.begin(),x_axis.end(),y_axis.begin(),weight.begin());
-
- 	LinearRegression<vector<double>::const_iterator> linreg_copy(*linreg_ptr);
-
-  TEST_REAL_EQUAL(error,linreg_copy.getStandErrSlope());
-  TEST_REAL_EQUAL(linreg_ptr->getChiSquared(),linreg_copy.getChiSquared())
-  TEST_REAL_EQUAL(linreg_ptr->getIntercept(),linreg_copy.getIntercept())
-  TEST_REAL_EQUAL(linreg_ptr->getLower(),linreg_copy.getLower())
-  TEST_REAL_EQUAL(linreg_ptr->getUpper(),linreg_copy.getUpper())
-  TEST_REAL_EQUAL(linreg_ptr->getSlope(),linreg_copy.getSlope())
-  TEST_REAL_EQUAL(linreg_ptr->getStandDevRes(),linreg_copy.getStandDevRes())
-  TEST_REAL_EQUAL(linreg_ptr->getStandErrSlope(),linreg_copy.getStandErrSlope())
-  TEST_REAL_EQUAL(linreg_ptr->getRSquared(),linreg_copy.getRSquared())
-  TEST_REAL_EQUAL(linreg_ptr->getTValue(),linreg_copy.getTValue())
-  TEST_REAL_EQUAL(linreg_ptr->getXIntercept(),linreg_copy.getXIntercept())
-RESULT
-
-CHECK((LinearRegression& operator=(LinearRegression const &arg)))
-	double ci=0.95;
-  int error = linreg_ptr->computeRegressionWeighted(ci,x_axis.begin(),x_axis.end(),y_axis.begin(),weight.begin());
-
- 	LinearRegression<vector<double>::const_iterator> linreg_copy;
-  linreg_copy = (*linreg_ptr);
-
-  TEST_REAL_EQUAL(error,linreg_copy.getStandErrSlope());
-  TEST_REAL_EQUAL(linreg_ptr->getChiSquared(),linreg_copy.getChiSquared())
-  TEST_REAL_EQUAL(linreg_ptr->getIntercept(),linreg_copy.getIntercept())
-  TEST_REAL_EQUAL(linreg_ptr->getLower(),linreg_copy.getLower())
-  TEST_REAL_EQUAL(linreg_ptr->getUpper(),linreg_copy.getUpper())
-  TEST_REAL_EQUAL(linreg_ptr->getSlope(),linreg_copy.getSlope())
-  TEST_REAL_EQUAL(linreg_ptr->getStandDevRes(),linreg_copy.getStandDevRes())
-  TEST_REAL_EQUAL(linreg_ptr->getStandErrSlope(),linreg_copy.getStandErrSlope())
-  TEST_REAL_EQUAL(linreg_ptr->getRSquared(),linreg_copy.getRSquared())
-  TEST_REAL_EQUAL(linreg_ptr->getTValue(),linreg_copy.getTValue())
-  TEST_REAL_EQUAL(linreg_ptr->getXIntercept(),linreg_copy.getXIntercept())
-RESULT
-
-
 
 CHECK((DoubleReal getChiSquared() const))
-  TEST_REAL_EQUAL(linreg_ptr->getChiSquared(),0)
+  TEST_REAL_EQUAL(lin_reg.getChiSquared(),0)
 RESULT
 
 CHECK((DoubleReal getIntercept() const))
-  TEST_REAL_EQUAL(linreg_ptr->getIntercept(),4.0)
+  TEST_REAL_EQUAL(lin_reg.getIntercept(),4.0)
 RESULT
 
 CHECK((DoubleReal getLower() const))
-  TEST_REAL_EQUAL(linreg_ptr->getLower(),-2.0)
+  TEST_REAL_EQUAL(lin_reg.getLower(),-2.0)
 RESULT
 
 CHECK((DoubleReal getUpper() const))
-  TEST_REAL_EQUAL(linreg_ptr->getUpper(),-2.0)
+  TEST_REAL_EQUAL(lin_reg.getUpper(),-2.0)
 RESULT
 
 CHECK((DoubleReal getSlope() const))
-  TEST_REAL_EQUAL(linreg_ptr->getSlope(),2.0)
+  TEST_REAL_EQUAL(lin_reg.getSlope(),2.0)
 RESULT
 
 CHECK((DoubleReal getStandDevRes() const))
-  TEST_REAL_EQUAL(linreg_ptr->getStandDevRes(),0.0)
+  TEST_REAL_EQUAL(lin_reg.getStandDevRes(),0.0)
 RESULT
 
 CHECK((DoubleReal getStandErrSlope() const))
-  TEST_REAL_EQUAL(linreg_ptr->getStandErrSlope(),0.0)
+  TEST_REAL_EQUAL(lin_reg.getStandErrSlope(),0.0)
 RESULT
 
 CHECK((DoubleReal getRSquared() const))
-  TEST_REAL_EQUAL(linreg_ptr->getRSquared(),1.0)
+  TEST_REAL_EQUAL(lin_reg.getRSquared(),1.0)
 RESULT
 
 CHECK((DoubleReal getTValue() const))
-  TEST_REAL_EQUAL(linreg_ptr->getTValue(),2.306)
+  TEST_REAL_EQUAL(lin_reg.getTValue(),2.306)
 RESULT
 
 CHECK((DoubleReal getXIntercept() const))
-  TEST_REAL_EQUAL(linreg_ptr->getXIntercept(),-2.0)
+  TEST_REAL_EQUAL(lin_reg.getXIntercept(),-2.0)
 RESULT
 
 CHECK((DoubleReal getRSD() const))
-  TEST_REAL_EQUAL(linreg_ptr->getRSD(),0.0)
+  TEST_REAL_EQUAL(lin_reg.getRSD(),0.0)
 RESULT
 
 CHECK((DoubleReal getMeanRes() const))
-  TEST_REAL_EQUAL(linreg_ptr->getMeanRes(),0.0)
+  TEST_REAL_EQUAL(lin_reg.getMeanRes(),0.0)
 RESULT
 
-CHECK((virtual ~LinearRegression()))
-  delete linreg_ptr;
-RESULT
+//test with no intercept
+for (int i=0; i < 10; ++i)
+{
+  y_axis[i]=2*i;
+}
+CHECK((template <typename Iterator> bool computeRegressionNoIntercept(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin);))
+  lin_reg.computeRegressionNoIntercept(0.95,x_axis.begin(),x_axis.end(),y_axis.begin());
 
+  TEST_REAL_EQUAL(lin_reg.getSlope(),2.0)
+  TEST_REAL_EQUAL(lin_reg.getIntercept(),0.0)
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -87,6 +87,8 @@ namespace OpenMS
 				@brief Fits a gaussian distribution to the given data points 
 
 				@param points the data points used for the gaussian fitting
+
+				@exception Exception::UnableToFit is thrown if fitting cannot be performed
 			*/
 			GaussFitResult fit(std::vector<DPosition<2> >& points);
 

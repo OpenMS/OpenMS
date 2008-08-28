@@ -54,20 +54,6 @@ namespace OpenMS
 		/// Flags that indicate if a peak is alread used in a feature
 		enum Flag { UNUSED, USED };
 
-		/// Exception used if a ModelFitter cannot fit a model i.e. data set with standard deviation of zero 
-		class UnableToFit :
-			public Exception::BaseException
-		{
-			public:
-				UnableToFit(const char* file, int line, const char* function, const std::string& name , const std::string& message) :
-					BaseException(file, line, function, name, message)
-				{
-				}
-				virtual ~UnableToFit() throw()
-				{
-				}
-		};
-
 		/// Exception that is thrown if a method a invalid IndexPair is given
 		class NoSuccessor :
 			public Exception::BaseException

@@ -33,9 +33,8 @@ using namespace std;
 #define GAUSS_FITTER_VERBOSE
 #undef  GAUSS_FITTER_VERBOSE
 
-#ifdef GAUSS_FITTER_VERBOSE
-	#include <iostream>
-#endif
+#include <iostream>
+
 
 namespace OpenMS
 {
@@ -176,19 +175,13 @@ namespace OpenMS
 	  }
 	  while (status == GSL_CONTINUE && iter < 500);
 
-		// TODO throw exception
-#ifdef GAUSS_FITTER_VERBOSE
-		cerr << "Status: " << status << endl;
-#endif
-		if (status)
-		{
-			gsl_multifit_fdfsolver_free (s);
+		cout << "STATUS: " << status << endl;
 
-			GaussFitResult result;
-			result.A = 0;
-			result.x0 = 0;
-			result.sigma = 0;
-			return result;
+		if (status!=GSL_SUCCESS)
+		{
+			gsl_multifit_fdfsolver_free(s);
+
+			throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-GaussFitter","Could not fit the gaussian to the data");
 		}
 	  
 		// write the result in a GaussFitResult struct

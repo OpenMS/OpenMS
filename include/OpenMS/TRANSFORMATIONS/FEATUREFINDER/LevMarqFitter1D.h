@@ -116,7 +116,12 @@ namespace OpenMS
           return gsl_strerror( gsl_status_ );
         }
            
-        /// Optimize start parameter
+
+				/**
+					@brief Optimize start parameter
+					
+					@exception Exception::UnableToFit is thrown if fitting cannot be performed
+				*/
         void optimize_(const RawDataArrayType& set, Int num_params, CoordinateType x_init[],
                        Int (* residual)(const gsl_vector * x, void * params, gsl_vector * f),
                        Int (* jacobian)(const gsl_vector * x, void * params, gsl_matrix * J),
@@ -135,7 +140,7 @@ namespace OpenMS
           
           // gsl always expects N>=p or default gsl error handler invoked, 
           // cause Jacobian be rectangular M x N with M>=N
-          if ( n < p ) throw UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-FinalSet", "Skipping feature, gsl always expects N>=p" );
+          if ( n < p ) throw Exception::UnableToFit( __FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-FinalSet", "Skipping feature, gsl always expects N>=p" );
     
 		 		 // allocate space for a covariance matrix of size p by p
           gsl_matrix *covar = gsl_matrix_alloc( p, p );
