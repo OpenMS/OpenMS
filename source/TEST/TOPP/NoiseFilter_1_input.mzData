@@ -24,11 +24,6 @@
 				<name></name>
 				<version></version>
 			</software>
-			<processingMethod>
-				<cvParam cvLabel="psi" name="Deisotoping" accession="PSI:1000033" value="false"/>
-				<cvParam cvLabel="psi" name="ChargeDeconvolution" accession="PSI:1000034" value="false"/>
-				<cvParam cvLabel="psi" accession="PSI:1000035" name="PeakProcessing" value="ContinuumMassSpectrum"/>
-			</processingMethod>
 		</dataProcessing>
 	</description>
 	<spectrumList count="2">
@@ -44,7 +39,7 @@
 				<data precision="32" endian="little" length="66">AABpRM0MaUSaGWlEZiZpRDMzaUQAQGlEzUxpRJpZaURmZmlEM3NpRACAaUTNjGlEmplpRGamaUQzs2lEAMBpRM3MaUSa2WlEZuZpRDPzaUQAAGpEzQxqRJoZakRmJmpEMzNqRABAakTNTGpEmllqRGZmakQzc2pEAIBqRM2MakSamWpEZqZqRDOzakQAwGpEzcxqRJrZakRm5mpEM/NqRAAAa0TNDGtEmhlrRGYma0QzM2tEAEBrRM1Ma0SaWWtEZmZrRDNza0QAgGtEzYxrRJqZa0RmpmtEM7NrRADAa0TNzGtEmtlrRGbma0Qz82tEAABsRM0MbESaGWxEZiZsRDMzbEQAQGxE</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="66">pU/oQrFJ+0KoLENDBb5yQ7dNZEPoSxdDDvypQg9Bw0JTm7pC8QptQmbnu0EAAAAAKNGCQgJPqkI2mwlCa1KGQtUaikPNbPpDIGEERCHCoEOqJOBCZsnLQtk97kIAAAAAkrtuRHUNBEaJ/mVG4J5jRnhW60VTeddE7SU/RU36xEUmNrNF4W8PRcWgL0SrC1VF5eCoRTLBlkWMFQlFUr0uQ3rGR0REIsxED5ejRC+/A0QAAAAAv7OVQhLQrkNG3btDn8yFQ8Tf3EJQ/pJDlp4URA+VCETepK1DlZDiQgAAAABkpKRDb9QGRKo0/UPTcaxDYvEbQ0/48kIMHMxCFZ8BQ6848UIAAAAA</data>
+				<data precision="32" endian="little" length="66">AAC4QqD8V0OQFJ5CNv6VQ6z8VEMAABxD+PzBQgBADD3A+GdDAAAAAAAAAAAAAAAAwP6BQqALNEK4/RFDAAAAAGj9JUOeABhEDAEXRPj9gUMAAAAAmPzZQhABOEIAADk9eP0hRACwkUXNz4xGKMGFRqB8kUVqfGVEAGAgRdchCkYCOaFFfY7dRHz9IEQAYAhFebzhRV8vokUXomhExPxOQwDAb0QjPPdEwh+iRNggdkMAAAAAAADmQuj9hUPc/Q1ENA4gQxj9uUIAgIxDOPzxQ9Q7X0SAMOpCAAAAAAAAgkPw/QND8AfYQy99WkR0/SJDAAAAABD8e0Ps/ZtDYCBUQgAAAAAAAAAA</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="2">
@@ -59,7 +54,7 @@
 				<data precision="32" endian="little" length="66">AABpRM0MaUSaGWlEZiZpRDMzaUQAQGlEzUxpRJpZaURmZmlEM3NpRACAaUTNjGlEmplpRGamaUQzs2lEAMBpRM3MaUSa2WlEZuZpRDPzaUQAAGpEzQxqRJoZakRmJmpEMzNqRABAakTNTGpEmllqRGZmakQzc2pEAIBqRM2MakSamWpEZqZqRDOzakQAwGpEzcxqRJrZakRm5mpEM/NqRAAAa0TNDGtEmhlrRGYma0QzM2tEAEBrRM1Ma0SaWWtEZmZrRDNza0QAgGtEzYxrRJqZa0RmpmtEM7NrRADAa0TNzGtEmtlrRGbma0Qz82tEAABsRM0MbESaGWxEZiZsRDMzbEQAQGxE</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="66">AAAAAJjFCEN6N1FDnYNlQ93HVEMDhyhDrOMMQwpLCEIb0L0/yFiFQWH7DkKoZ4BCD8g3QjSSXUEAAAAAqHVRQDzEFkJO24hCXyt1QszJHUGB8YxB07iAQyO2y0IAAAAAw3HVRCHN5EU/YCtGWJkWRlK5aUULzCdETi5SRTSsq0V8voxF1ffSRHYZ0EE1rbFEMNYMRQo7/kQMaEZE5a2OQxw6ckT0M89EQd+zRNMkI0SE9n1DFhU7RMuEf0S5OkZEG/IDQwAAAAD8C3hDs+3NQyQr3kN1Wq1DX/RBQwObN0N48dJCKSUwQSb1AkKNLFBBC+k2QsGvoEJVWKxCM1mSQvJdG0IAAAAA</data>
+				<data precision="32" endian="little" length="66">AAAAAAj9vUIi/KhDQDksQnT9okMAAD9DsPxTQsj7u0IAADw8AAAAAAAAAAC4/RFDAAASPAAAAAAAAAAAAAAAAAAAAADw/c9CEAKOQgAAAAAAAAAAmP2ZQrz/e0MgBk1DrP2UQwC4nEVRxGtGKtgRRrLOBEWKfR1EAOAYRSM090WigXZF8hhORLj9EUMAIKFENn0yRSv//UTCncND8b0DRACAz0PCjQ9FtWC2RG6P9UOQ/RtCAIAgRMzczESaht9DoDFIQgAAAAAAABBCfn0gRKz/60OwDwJDgP2fQwAARENg/adCAACoOwAA0ju4/NFCAAAAAAAAAAB4+l1DIBY0QgAAAAAAAAAA</data>
 			</intenArrayBinary>
 		</spectrum>
 	</spectrumList>

@@ -29,7 +29,6 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
@@ -79,11 +78,10 @@ class TOPPNoiseFilter
 	  	setValidFormats_("out",StringList::create("mzData"));
       registerStringOption_("type","<type>","","smoothing filter type", true);
 			setValidStrings_("type", StringList::create("sgolay,gaussian"));
-      registerDoubleOption_("resampling","<spacing>",0.0,"spacing for the resampling process",false);
 			addEmptyLine_();
 	  	addText_("Parameters for the algorithms can be given in the INI file only.");
 			addEmptyLine_();
-			addText_("Note: The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the resampling option).\n"
+			addText_("Note: The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the Resampler tool).\n"
       				 "      The Gaussian filter works for uniform as well as for non-uniform data.");
     	registerSubsection_("algorithm","Algorithm parameters section");
     }
@@ -112,7 +110,6 @@ class TOPPNoiseFilter
       String in = getStringOption_("in");
       String out = getStringOption_("out");
       String type = getStringOption_("type");
-      float spacing = getDoubleOption_("resampling");
 
       //-------------------------------------------------------------
       // loading input
@@ -143,35 +140,7 @@ class TOPPNoiseFilter
   			SavitzkyGolayFilter sgolay;
         sgolay.setLogType(log_type_);
   			sgolay.setParameters( filter_param );
-        
-        // no resampling of the data
-        if (spacing==0.0)
-        { 
-           sgolay.filterExperiment(exp);
-					 writeDebug_(String("No resampling!"), 1);
-        }
-        else
-        {
-					LinearResampler lin_resampler;
-					Param resampler_param;
-					resampler_param.setValue("spacing",spacing);
-					lin_resampler.setParameters(resampler_param);
-			
-          sgolay.startProgress(0,exp.size(),"smoothing mzData file");
-          // resample and filter every scan
-          for (UInt i = 0; i < exp.size(); ++i)
-          {
-            // temporary container for the resampled data
-            MSSpectrum<Peak1D> resampled_spectrum;
-            lin_resampler.raster(exp[i],resampled_spectrum);
-
-            MSSpectrum<Peak1D> smoothed_spectrum;
-						sgolay.filter(resampled_spectrum, smoothed_spectrum);
-            exp[i].getContainer() = smoothed_spectrum.getContainer();
-            sgolay.setProgress(i);            
-          }
-          sgolay.endProgress();
-        }
+				sgolay.filterExperiment(exp);
       }
       else if (type == "gaussian")
       {	

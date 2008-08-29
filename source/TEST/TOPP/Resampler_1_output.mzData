@@ -4,7 +4,7 @@
 		<admin>
 			<sampleName></sampleName>
 			<contact>
-				<name></name>
+				<name> </name>
 				<institution></institution>
 			</contact>
 		</admin>
@@ -26,230 +26,60 @@
 			</software>
 		</dataProcessing>
 	</description>
-	<spectrumList count="15">
+	<spectrumList count="3">
 		<spectrum id="1">
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1230"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="474.558"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="20">AEArRGxoK0TYkCtEQ7krRK/hK0QbCixEhzIsRPNaLERegyxEyqssRDbULESi/CxEDSUtRHlNLUTldS1EUZ4tRL3GLUQo7y1ElBcuRABALkQ=</data>
+				<data precision="32" endian="little" length="45">AABpRDMTaURmJmlEmjlpRM1MaUQAYGlEM3NpRGaGaUSamWlEzaxpRADAaUQz02lEZuZpRJr5aUTNDGpEACBqRDMzakRmRmpEmllqRM1sakQAgGpEM5NqRGamakSauWpEzcxqRADgakQz82pEZgZrRJoZa0TNLGtEAEBrRDNTa0RmZmtEmnlrRM2Ma0QAoGtEM7NrRGbGa0Sa2WtEzexrRAAAbEQzE2xEZiZsRJo5bETNTGxE</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="20">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</data>
+				<data precision="32" endian="little" length="45">wP0jQ4WxREN5qcZDyP11Q/3+FEODsBpDAKGaQgAAAAAr/59Ci67+QoD5z0JpAAFECFZfRKBSLUN7pvhCFZz1QZSfCUW8T2xGxtDARn87aEXT1LVFrNURRiqqZ0Upf+tEeEIXRs4Mf0VJJVFEbL30RIHK/kTlFSRDi1JMQ+hTC0RnL75DXVR5Q2zPWkTbWyhEdVD7QvqpgkP71z9EdNMsRANRCkOd/rtDZQUdQwAAAAAAAAAA</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="2">
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1232.14"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="475.321"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="20">AEArRGxoK0TYkCtEQ7krRK/hK0QbCixEhzIsRPNaLERegyxEyqssRDbULESi/CxEDSUtRHlNLUTldS1EUZ4tRL3GLUQo7y1ElBcuRABALkQ=</data>
+				<data precision="32" endian="little" length="45">AABpRDMTaURmJmlEmjlpRM1MaUQAYGlEM3NpRGaGaUSamWlEzaxpRADAaUQz02lEZuZpRJr5aUTNDGpEACBqRDMzakRmRmpEmllqRM1sakQAgGpEM5NqRGamakSauWpEzcxqRADgakQz82pEZgZrRJoZa0TNLGtEAEBrRDNTa0RmZmtEmnlrRM2Ma0QAoGtEM7NrRGbGa0Sa2WtEzexrRAAAbEQzE2xEZiZsRJo5bETNTGxE</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="20">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</data>
+				<data precision="32" endian="little" length="45">a039QcJSkENwL4RDo1OsQ379E0O1tHpCAAAAAKCnwkLAsEJCAAAAAAAAAABKqYpCtVbTQgAAAADy+SBDC1yYQxS//kTgalFGHIBrRpmT5UQ4ZaVFNfv2RX65CEVJKm9Ef6t3RWL1yURC50ZEAv3hRJFFFUX0tLBDeyiWRG/WrURFCEdDAADAQTTRSkTztchDUFLWQ8upOkMAB+BBMAKMQqD7C0JQ/BNDYAfuQgAAAAAAAAAA</data>
 			</intenArrayBinary>
 		</spectrum>
 		<spectrum id="3">
 			<spectrumDesc>
 				<spectrumSettings>
-					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1234.29"/>
+					<spectrumInstrument msLevel="2">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="475.321"/>
 					</spectrumInstrument>
 				</spectrumSettings>
+				<precursorList count="1">
+					<precursor msLevel="2" spectrumRef="2">
+						<ionSelection>
+							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="940.368"/>
+							<cvParam cvLabel="psi" accession="PSI:1000042" name="Intensity" value="7817"/>
+						</ionSelection>
+						<activation>
+						</activation>
+					</precursor>
+				</precursorList>
 			</spectrumDesc>
 			<mzArrayBinary>
-				<data precision="32" endian="little" length="20">AEArRGxoK0TYkCtEQ7krRK/hK0QbCixEhzIsRPNaLERegyxEyqssRDbULESi/CxEDSUtRHlNLUTldS1EUZ4tRL3GLUQo7y1ElBcuRABALkQ=</data>
+				<data precision="32" endian="little" length="45">AABpRDMTaURmJmlEmjlpRM1MaUQAYGlEM3NpRGaGaUSamWlEzaxpRADAaUQz02lEZuZpRJr5aUTNDGpEACBqRDMzakRmRmpEmllqRM1sakQAgGpEM5NqRGamakSauWpEzcxqRADgakQz82pEZgZrRJoZa0TNLGtEAEBrRDNTa0RmZmtEmnlrRM2Ma0QAoGtEM7NrRGbGa0Sa2WtEzexrRAAAbEQzE2xEZiZsRJo5bETNTGxE</data>
 			</mzArrayBinary>
 			<intenArrayBinary>
-				<data precision="32" endian="little" length="20">AAAAAAAAAAAAAAAAAAAAAAAAAAA5JJ1AB5GMQu4xJ0NPYLJDRQ4yRMnfTESPXcNDPs15Q4pzvELI40NCAAAAAAAAAAAAAAAAAAAAAAAAAAA=</data>
-			</intenArrayBinary>
-		</spectrum>
-		<spectrum id="4">
-			<spectrumDesc>
-				<spectrumSettings>
-					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1236.43"/>
-					</spectrumInstrument>
-				</spectrumSettings>
-			</spectrumDesc>
-			<mzArrayBinary>
-				<data precision="32" endian="little" length="20">AEArRGxoK0TYkCtEQ7krRK/hK0QbCixEhzIsRPNaLERegyxEyqssRDbULESi/CxEDSUtRHlNLUTldS1EUZ4tRL3GLUQo7y1ElBcuRABALkQ=</data>
-			</mzArrayBinary>
-			<intenArrayBinary>
-				<data precision="32" endian="little" length="20">AAAAAAAAAAAAAAAAAAAAAAAAAAAsOr1C3AhPRGS0HEUpSepF4KItRveIBUbeZ4NFZGMFRWQQ80S+im1EAAAAAAAAAAAAAAAAAAAAAAAAAAA=</data>
-			</intenArrayBinary>
-		</spectrum>
-		<spectrum id="5">
-			<spectrumDesc>
-				<spectrumSettings>
-					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1238.57"/>
-					</spectrumInstrument>
-				</spectrumSettings>
-			</spectrumDesc>
-			<mzArrayBinary>
-				<data precision="32" endian="little" length="20">AEArRGxoK0TYkCtEQ7krRK/hK0QbCixEhzIsRPNaLERegyxEyqssRDbULESi/CxEDSUtRHlNLUTldS1EUZ4tRL3GLUQo7y1ElBcuRABALkQ=</data>
-			</mzArrayBinary>
-			<intenArrayBinary>
-				<data precision="32" endian="little" length="20">AAAAAAAAAAAAAAAAAAAAAAAAAABwX9ZCxQilRNR4GUa/KhlHd//FRsQdJEZ4xZhFft4eRRqu/0RtQVpEAAAAAAAAAAAAAAAAAAAAAAAAAAA=</data>
-			</intenArrayBinary>
-		</spectrum>
-		<spectrum id="6">
-			<spectrumDesc>
-				<spectrumSettings>
-					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1240.71"/>
-					</spectrumInstrument>
-				</spectrumSettings>
-			</spectrumDesc>
-			<mzArrayBinary>
-				<data precision="32" endian="little" length="20">AEArRGxoK0TYkCtEQ7krRK/hK0QbCixEhzIsRPNaLERegyxEyqssRDbULESi/CxEDSUtRHlNLUTldS1EUZ4tRL3GLUQo7y1ElBcuRABALkQ=</data>
-			</mzArrayBinary>
-			<intenArrayBinary>
-				<data precision="32" endian="little" length="20">AAAAAAAAAAAAAAAAAAAAAAAAAACYdCFDrKEwRaRd9kZCBA1IsyK6R8fH8EZzEdtFcMvgRH6hukT7WylEAAAAAAAAAAAAAAAAAAAAAAAAAAA=</data>
-			</intenArrayBinary>
-		</spectrum>
-		<spectrum id="7">
-			<spectrumDesc>
-				<spectrumSettings>
-					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1242.86"/>
-					</spectrumInstrument>
-				</spectrumSettings>
-			</spectrumDesc>
-			<mzArrayBinary>
-				<data precision="32" endian="little" length="20">AEArRGxoK0TYkCtEQ7krRK/hK0QbCixEhzIsRPNaLERegyxEyqssRDbULESi/CxEDSUtRHlNLUTldS1EUZ4tRL3GLUQo7y1ElBcuRABALkQ=</data>
-			</mzArrayBinary>
-			<intenArrayBinary>
-				<data precision="32" endian="little" length="20">AAAAAAAAAAAAAAAAAAAAAAAAAABoIhREJxKPRSJxq0cyv/dIrqGrSJDh1UeyL61GQV60RQfOA0UblvtEAAAAAAAAAAAAAAAAAAAAAAAAAAA=</data>
-			</intenArrayBinary>
-		</spectrum>
-		<spectrum id="8">
-			<spectrumDesc>
-				<spectrumSettings>
-					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1245"/>
-					</spectrumInstrument>
-				</spectrumSettings>
-			</spectrumDesc>
-			<mzArrayBinary>
-				<data precision="32" endian="little" length="20">AEArRGxoK0TYkCtEQ7krRK/hK0QbCixEhzIsRPNaLERegyxEyqssRDbULESi/CxEDSUtRHlNLUTldS1EUZ4tRL3GLUQo7y1ElBcuRABALkQ=</data>
-			</mzArrayBinary>
-			<intenArrayBinary>
-				<data precision="32" endian="little" length="20">AAAAAAAAAAAAAAAAAAAAAAAAAACIQ8JCZeVMRTZg4EddPCRJm9vgSCCeCkgjY+FGRCjeReM0V0UKweFEAAAAAAAAAAAAAAAAAAAAAAAAAAA=</data>
-			</intenArrayBinary>
-		</spectrum>
-		<spectrum id="9">
-			<spectrumDesc>
-				<spectrumSettings>
-					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1247.14"/>
-					</spectrumInstrument>
-				</spectrumSettings>
-			</spectrumDesc>
-			<mzArrayBinary>
-				<data precision="32" endian="little" length="20">AEArRGxoK0TYkCtEQ7krRK/hK0QbCixEhzIsRPNaLERegyxEyqssRDbULESi/CxEDSUtRHlNLUTldS1EUZ4tRL3GLUQo7y1ElBcuRABALkQ=</data>
-			</mzArrayBinary>
-			<intenArrayBinary>
-				<data precision="32" endian="little" length="20">AAAAAAAAAAAAAAAAAAAAAAAAAAA5DshCXmOtRFazAUciUS5IB3TzRy2eJ0dFKDRGnGKLRWh2HUWSY7VEAAAAAAAAAAAAAAAAAAAAAAAAAAA=</data>
-			</intenArrayBinary>
-		</spectrum>
-		<spectrum id="10">
-			<spectrumDesc>
-				<spectrumSettings>
-					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1249.29"/>
-					</spectrumInstrument>
-				</spectrumSettings>
-			</spectrumDesc>
-			<mzArrayBinary>
-				<data precision="32" endian="little" length="20">AEArRGxoK0TYkCtEQ7krRK/hK0QbCixEhzIsRPNaLERegyxEyqssRDbULESi/CxEDSUtRHlNLUTldS1EUZ4tRL3GLUQo7y1ElBcuRABALkQ=</data>
-			</mzArrayBinary>
-			<intenArrayBinary>
-				<data precision="32" endian="little" length="20">AAAAAAAAAAAAAAAAAAAAAAAAAADk695D9ZoaRYDSj0UsGkpGF7kuRuCuv0WDz8BFBSadRRrLBEWleS9EAAAAAAAAAAAAAAAAAAAAAAAAAAA=</data>
-			</intenArrayBinary>
-		</spectrum>
-		<spectrum id="11">
-			<spectrumDesc>
-				<spectrumSettings>
-					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1251.43"/>
-					</spectrumInstrument>
-				</spectrumSettings>
-			</spectrumDesc>
-			<mzArrayBinary>
-				<data precision="32" endian="little" length="20">AEArRGxoK0TYkCtEQ7krRK/hK0QbCixEhzIsRPNaLERegyxEyqssRDbULESi/CxEDSUtRHlNLUTldS1EUZ4tRL3GLUQo7y1ElBcuRABALkQ=</data>
-			</mzArrayBinary>
-			<intenArrayBinary>
-				<data precision="32" endian="little" length="20">AAAAAAAAAAAAAAAAAAAAAAAAAAAcRLlChQ6WRGDVJkXb3NBF8/fBRc6TA0Wk4+tEKTgDRdeFlUQ7L2lEAAAAAAAAAAAAAAAAAAAAAAAAAAA=</data>
-			</intenArrayBinary>
-		</spectrum>
-		<spectrum id="12">
-			<spectrumDesc>
-				<spectrumSettings>
-					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1253.57"/>
-					</spectrumInstrument>
-				</spectrumSettings>
-			</spectrumDesc>
-			<mzArrayBinary>
-				<data precision="32" endian="little" length="20">AEArRGxoK0TYkCtEQ7krRK/hK0QbCixEhzIsRPNaLERegyxEyqssRDbULESi/CxEDSUtRHlNLUTldS1EUZ4tRL3GLUQo7y1ElBcuRABALkQ=</data>
-			</mzArrayBinary>
-			<intenArrayBinary>
-				<data precision="32" endian="little" length="20">AAAAAAAAAAAAAAAAAAAAAAAAAADn2qNB9+ugQ3AxGEQYo4dEHt+8RLcK3EPOVIBDKy1YQ4W5lkP4WiJDAAAAAAAAAAAAAAAAAAAAAAAAAAA=</data>
-			</intenArrayBinary>
-		</spectrum>
-		<spectrum id="13">
-			<spectrumDesc>
-				<spectrumSettings>
-					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1255.71"/>
-					</spectrumInstrument>
-				</spectrumSettings>
-			</spectrumDesc>
-			<mzArrayBinary>
-				<data precision="32" endian="little" length="20">AEArRGxoK0TYkCtEQ7krRK/hK0QbCixEhzIsRPNaLERegyxEyqssRDbULESi/CxEDSUtRHlNLUTldS1EUZ4tRL3GLUQo7y1ElBcuRABALkQ=</data>
-			</mzArrayBinary>
-			<intenArrayBinary>
-				<data precision="32" endian="little" length="20">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</data>
-			</intenArrayBinary>
-		</spectrum>
-		<spectrum id="14">
-			<spectrumDesc>
-				<spectrumSettings>
-					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1257.86"/>
-					</spectrumInstrument>
-				</spectrumSettings>
-			</spectrumDesc>
-			<mzArrayBinary>
-				<data precision="32" endian="little" length="20">AEArRGxoK0TYkCtEQ7krRK/hK0QbCixEhzIsRPNaLERegyxEyqssRDbULESi/CxEDSUtRHlNLUTldS1EUZ4tRL3GLUQo7y1ElBcuRABALkQ=</data>
-			</mzArrayBinary>
-			<intenArrayBinary>
-				<data precision="32" endian="little" length="20">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</data>
-			</intenArrayBinary>
-		</spectrum>
-		<spectrum id="15">
-			<spectrumDesc>
-				<spectrumSettings>
-					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1260"/>
-					</spectrumInstrument>
-				</spectrumSettings>
-			</spectrumDesc>
-			<mzArrayBinary>
-				<data precision="32" endian="little" length="20">AEArRGxoK0TYkCtEQ7krRK/hK0QbCixEhzIsRPNaLERegyxEyqssRDbULESi/CxEDSUtRHlNLUTldS1EUZ4tRL3GLUQo7y1ElBcuRABALkQ=</data>
-			</mzArrayBinary>
-			<intenArrayBinary>
-				<data precision="32" endian="little" length="20">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</data>
+				<data precision="32" endian="little" length="45">a039QcJSkENwL4RDo1OsQ379E0O1tHpCAAAAAKCnwkLAsEJCAAAAAAAAAABKqYpCtVbTQgAAAADy+SBDC1yYQxS//kTgalFGHIBrRpmT5UQ4ZaVFNfv2RX65CEVJKm9Ef6t3RWL1yURC50ZEAv3hRJFFFUX0tLBDeyiWRG/WrURFCEdDAADAQTTRSkTztchDUFLWQ8upOkMAB+BBMAKMQqD7C0JQ/BNDYAfuQgAAAAAAAAAA</data>
 			</intenArrayBinary>
 		</spectrum>
 	</spectrumList>

@@ -563,7 +563,7 @@ NoiseFilter_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "NoiseFilter:"
 	@$(ECHO) "- Test 1: Savitzky-Golay filter"
-	@$(call RUN_PROG_OPT,NoiseFilter, -ini NoiseFilter_1_parameters.ini -in RawData_input.mzData -out NoiseFilter_1_output.tmp)
+	@$(call RUN_PROG_OPT,NoiseFilter, -ini NoiseFilter_1_parameters.ini -in NoiseFilter_1_input.mzData -out NoiseFilter_1_output.tmp)
 	@$(call TEST_FILE_EQUAL,NoiseFilter_1_output.tmp,NoiseFilter_1_output.mzData)
 	@$(ECHO) "- Test 2: Gaussian filter"
 	@$(call RUN_PROG_OPT,NoiseFilter, -ini NoiseFilter_2_parameters.ini -in RawData_input.mzData -out NoiseFilter_2_output.tmp)
@@ -592,12 +592,12 @@ Resampler_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "Resampler:"
 
-	@$(ECHO) "- Test 1: output mzData"
-	@$(call RUN_PROG_OPT,Resampler,-in Resampler_1_input.mzData -out Resampler_1_output.tmp -mz 685:697 -cols_mz 20 -rt 1230:1260 -rows_rt 15)
+	@$(ECHO) "- Test 1: mzData"
+	@$(call RUN_PROG_OPT,Resampler,-in Resampler_1_input.mzData -out Resampler_1_output.tmp -sampling_rate 0.3)
 	@$(call TEST_FILE_EQUAL,Resampler_1_output.mzData)
 
-	@$(ECHO) "- Test 2: output png"
-	@$(call RUN_PROG_OPT,Resampler,-in Resampler_1_input.mzData -png Resampler_2_output.tmp -cols_mz 20 -rows_rt 15)
+	@$(ECHO) "- Test 2: PNG"
+	@$(call RUN_PROG_OPT,Resampler,-in Resampler_2_input.mzData -out Resampler_2_output.tmp -image -width 20 -height 15)
 	@$(call TEST_FILE_EQUAL,Resampler_2_output.png)
 
 
@@ -821,7 +821,6 @@ SILACAnalyzer_test: make_fuzzydiff
 	@$(ECHO) "SILACAnalyzer:"
 
 	@$(ECHO) "- Test 1:"
-	@$(call RUN_PROG_OPT,SILACAnalyzer,-ini SILACAnalyzer_1_parameters.ini -in SILACAnalyzer_1_input.mzData -out SILACAnalyzer_1_output.tmp)
 	@$(call RUN_PROG_OPT,SILACAnalyzer,-ini SILACAnalyzer_1_parameters.ini -in SILACAnalyzer_1_input.mzData -out SILACAnalyzer_1_output.tmp_)
 	@$(SED) 's/^.*xml-stylesheet.*$$//g' SILACAnalyzer_1_output.tmp_ > SILACAnalyzer_1_output.tmp
 	@$(call TEST_FILE_EQUAL,SILACAnalyzer_1_output.tmp,SILACAnalyzer_1_output.consensusXML)
