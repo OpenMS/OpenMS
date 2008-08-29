@@ -246,8 +246,8 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 
 		We offer two different smoothing filters: a Gaussian filter and a Savitzky Golay filter,
 	  which can be selected by the option '<tt>type</tt>'. If you want to use the Savitzky Golay filter,
-	  or our @b BaselineFilter with non equally spaced raw data, e.g. TOF data, you have to generate equally spaced data by setting
-	  the '<tt>resampling</tt>' option.
+	  or our @b BaselineFilter with non equally spaced raw data, e.g. TOF data, you have to generate equally spaced data using the
+	  @b Resampler tool.
 
 	@section TOPP_example_signalprocessing_parameters Finding the right parameters for the NoiseFilter, the BaselineFilter and the PeakPicker
 

@@ -41,20 +41,23 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-   @page NoiseFilter NoiseFilter
- 
-   @brief  Executes a Savitzky Golay or a Gaussian filter to reduce the noise in a MS experiment.
- 
-   The idea of the Savitzky Golay filter is to find filter-coefficients
-   that preserve higher moments, which means to approximate the underlying
-   function within the moving window by a polynomial of higher order
-   (typically quadratic or quartic) (see A. Savitzky and M. J. E. Golay,
-   ''Smoothing and Differentiation of Data by Simplified Least Squares Procedures'').
-   
-   The Gaussian is a peak area preserving low-pass filter and is characterized by narrow bandwidths,
-   sharp cutoffs, and low passband ripple.
- 
-   @ingroup TOPP
+	@page NoiseFilter NoiseFilter
+	
+	@brief  Executes a Savitzky Golay or a Gaussian filter to reduce the noise in a MS experiment.
+	
+	The idea of the Savitzky Golay filter is to find filter-coefficients
+	that preserve higher moments, which means to approximate the underlying
+	function within the moving window by a polynomial of higher order
+	(typically quadratic or quartic) (see A. Savitzky and M. J. E. Golay,
+	''Smoothing and Differentiation of Data by Simplified Least Squares Procedures'').
+	
+	The Gaussian is a peak area preserving low-pass filter and is characterized by narrow bandwidths,
+	sharp cutoffs, and low passband ripple.
+	
+	@note The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the @b Resampler tool).
+	      The Gaussian filter works for uniform as well as for non-uniform data.
+	
+	@ingroup TOPP
 */
 
 // We do not want this class to show up in the docu:

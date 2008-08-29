@@ -43,16 +43,17 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
- @page Resampler Resampler
-
- @brief Resampler can be used to transform an LC/MS map into a resampled map or a png image.
-
- The input is first resampled into a matrix using bilinear interpolation.
- Then the content of the matrix is written into a mzData File or a png image.
- The output has a uniform spacing in both dimensions regardless of the input.
-
- @improvement maybe we could include support for one-dimensional resampling e.g. "-cols auto -rows auto" for mzData output (Clemens)
- */
+	@page Resampler Resampler
+	
+	@brief Resampler can be used to transform an LC/MS map into a resampled map or a png image.
+	
+	When writing a mzData file, all spectra are resampled with a new sampling rate.
+	The number of spectra does not change.
+	
+	When writing an image, the input is first resampled into a matrix using bilinear interpolation.
+	Then the content of the matrix is written to a PNG file.
+	The output has a uniform spacing in both dimensions regardless of the input.
+*/
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
