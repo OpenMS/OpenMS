@@ -287,6 +287,10 @@ namespace OpenMS
 				id_data_[actual_query_ - 1].setMetaValue("RT", parts[1].toFloat());
 			}
 		}
+		else if (tag_ == "RTINSECONDS")
+		{
+			id_data_[actual_query_ - 1].setMetaValue("RT", ((String) sm_.convert(chars)).trim().toFloat());
+		}
 		else if (tag_ == "MascotVer")
 		{
 			protein_identification_.setSearchEngineVersion(((String) sm_.convert(chars)).trim());
