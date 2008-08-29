@@ -58,7 +58,8 @@ UNCONDITIONAL_TESTS = \
 	TOFCalibration_test\
 	FeatureFinder_test\
 	FeatureFinderMRM_test\
-	TextExporter_test
+	TextExporter_test\
+	SILACAnalyzer_test
 
 ifeq ($(LIBSVM_SUPPORT),true)
 LIBSVM_TESTS= \

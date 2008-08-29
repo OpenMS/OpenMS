@@ -66,6 +66,7 @@
 	- @subpage AdditiveSeries - Computes an additive series to quantify a peptide in a set of samples.
 	- @subpage Decharger - Decharges and merges different feature charge variants of the same chemical entity.
 	- @subpage FeatureLinker - Groups corresponding features in one map or across maps.
+	- @subpage SILACAnalyzer - Determines the ratio of peak pairs in LC-MS data.
 
   <b>Protein/peptide Identification</b>
   - @subpage IDFilter_TOPP - Filters results from protein or peptide identification engines based on different criteria.
@@ -93,5 +94,6 @@
   <b>Misc</b>
   - @subpage TOPPView - A viewer for mass spectrometry data
 	- @subpage INIFileEditor - An editor for %OpenMS configuration files.
+	- @subpage QuantIDMerger - Merges quantitation and identification data.
 		
 */
