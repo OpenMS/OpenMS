@@ -40,7 +40,10 @@ namespace OpenMS
     @brief Represents the peptide hits for a spectrum
     
 	  This class is closely related to ProteinIdentification, which stores the protein hits 
-	  and the general information about the identification run.
+	  and the general information about the identification run. More than one PeptideIdentification
+	  can belong to one ProteinIdentification. The general information about a
+	  PeptideIdentification has to be looked up in the correpsonding ProteinIndentification, using
+	  the unique <i>identifier</i> that links the two.
 	  
 	  When loading PeptideHit instances from a File, the retention time and mass-to-charge ratio
 	  of the precursor spectrum is stored in the MetaInfoInterface using the names 'MZ' and 'RT'.
