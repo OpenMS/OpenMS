@@ -42,6 +42,8 @@ namespace OpenMS
 		It takes two or more maps and corrects for retention time distortions.
 		
 		The input maps are transformed and the transformation description is returned.
+		
+		@improvement The maps should not be all loaded before the algorithm  - in order to save memory e.g. in the star-wise approach (Marc, Clemens)
 	*/
 	class MapAlignmentAlgorithm
 	 : public FactoryProduct
