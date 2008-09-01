@@ -168,7 +168,7 @@ function om_help_verbose ()
         om_where_defined
     else
         # for f in `grep function\ * bashrc.OpenMS | grep -o [A-Za-z_]* | grep -v om_where_defined | sort`;
-        for f in om_help_verbose om_help backup chop chop_verbose cwd Date setenv_develop setenv_directory dusn elc find_executables find_sources godev goi gorel gos grep_sources I ldli mogrify_margin path postfix_LD_LIBRARY_PATH postfix_PATH prefix_LD_LIBRARY_PATH prefix_PATH postscript_boundingbox prompt setenv_release safer_sed svn_diff svn_status_files;
+        for f in om_help_verbose om_help backup chop chop_verbose cwd Date setenv_develop setenv_directory dusn emacsclient_line_column find_executables find_sources godev goi gorel gos grep_sources I ldli mogrify_margin path postfix_LD_LIBRARY_PATH postfix_PATH prefix_LD_LIBRARY_PATH prefix_PATH postscript_boundingbox prompt setenv_release safer_sed svn_diff svn_status_files;
         do
             echo "#----------------------------------------------------------------------"
             echo ""
@@ -646,8 +646,9 @@ function emacsclient_line_column ()
     then
         echo "Open one or more file(s) in a running emacs."
 				echo "\"elc\" is an abbreviation for \"emacsclient-line-column\""
-        echo "This does some magic so that e.g. the following will open each file at the intended line and column:"
-        echo "elc fileA fileB:33 fileC:33: fileD:33:33 fileE:33:33:"
+        echo "This does some sed-magic with the command line such that"
+				echo "e.g. the following will open files at line 33 resp. column 44:"
+        echo "elc fileA fileB:33 fileC:33: fileD:33:44 fileE:33:44:"
         om_where_defined
     else
         ( echo $* | sed 's/ /\n/g' | sed 's#:$##g; s#\(\(:[0-9]\+\)\{1,2\}\)$#%%\1#g; s#\(.\+\)%%:\([:0-9]\+\)$#+\2 \1#g' | xargs emacsclient --no-wait ) &
