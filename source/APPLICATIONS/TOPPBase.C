@@ -29,6 +29,7 @@
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/XMLValidator.h>
 
 #include <math.h>
 
@@ -82,7 +83,8 @@ namespace OpenMS
 		registerStringOption_("log","<file>","TOPP.log","Location of the log file",false, true);
 		registerIntOption_("instance","<n>",1,"Instance number for the TOPP INI file",false);
 		registerIntOption_("debug","<n>",0,"Sets the debug level",false, true);
-		registerStringOption_("write_ini","<file>","","Writes an example INI file",false);
+		registerStringOption_("write_ini","<file>","","Writes an example configuration file",false);
+		registerStringOption_("write_wsdl","<file>","","Writes an example WSDL file",true);
 		registerFlag_("no_progress","Disables progress logging to command line");
 		registerFlag_("-help","Shows this help");
 
@@ -165,82 +167,161 @@ namespace OpenMS
 			if (ini_file != "")
 			{
 				outputFileWritable_(ini_file);
-				Param tmp;
-				String loc = tool_name_ + ":1:";
-				//parameters
-				for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
-				{
-					if (it->name!="ini" && it->name!="-help" && it->name!="instance" && it->name!="write_ini")
-					{
-						String name = loc + it->name;
-						switch(it->type)
-						{
-							case ParameterInformation::STRING:
-								tmp.setValue(name,it->default_value, it->description, it->advanced);
-								if (it->valid_strings.size()!=0)
-								{
-									tmp.setValidStrings(name,it->valid_strings);
-								}
-								break;
-							case ParameterInformation::INPUT_FILE:
-							case ParameterInformation::OUTPUT_FILE:
-								{
-									String formats;
-									if (it->valid_strings.size()!=0)
-									{
-										formats.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
-										formats = String("(valid formats: '") + formats + "')";
-									}
-									tmp.setValue(name,it->default_value, it->description + formats, it->advanced);
-								}
-								break;
-							case ParameterInformation::DOUBLE:
-								tmp.setValue(name,String(it->default_value).toDouble(), it->description, it->advanced);
-								if (it->min_float!=-std::numeric_limits<DoubleReal>::max())
-								{
-									tmp.setMinFloat(name, it->min_float);
-								}
-								if (it->max_float!=std::numeric_limits<DoubleReal>::max())
-								{
-									tmp.setMaxFloat(name, it->max_float);
-								}
-								break;
-							case ParameterInformation::INT:
-								tmp.setValue(name,String(it->default_value).toInt(), it->description, it->advanced);
-								if (it->min_int!=-std::numeric_limits<Int>::max())
-								{
-									tmp.setMinInt(name, it->min_int);
-								}
-								if (it->max_int!=std::numeric_limits<Int>::max())
-								{
-									tmp.setMaxInt(name, it->max_int);
-								}
-								break;
-							case ParameterInformation::FLAG:
-								tmp.setValue(name,"false", it->description, it->advanced);
-								tmp.setValidStrings(name,StringList::create("true,false"));
-								break;
-							default:
-								break;
-						}
-					}
-				}
-				//subsections
-				for(map<String,String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
-				{
-					Param tmp2 = getSubsectionDefaults_(it->first);
-					if (!tmp2.empty())
-					{
-						tmp.insert(loc + it->first + ":",tmp2);
-						tmp.setSectionDescription(loc + it->first, it->second);
-					}
-				}
-				tmp.setSectionDescription(tool_name_ + ":1", String("Instance '1' section for '") + tool_name_ + "'");
+				getDefaultParameters_().store(ini_file);
+				return EXECUTION_OK;
+			}
+
+			// '-write_wsdl' given
+			String wsdl_file("");
+			if (param_cmdline_.exists("write_wsdl")) wsdl_file = param_cmdline_.getValue("write_wsdl");
+			if (wsdl_file != "")
+			{
+				outputFileWritable_(wsdl_file);
+				ofstream os(wsdl_file.c_str());
 				
-				// store "type" in INI-File (if given)
-				if (param_cmdline_.exists("type")) tmp.setValue(loc + "type", (String) param_cmdline_.getValue("type"));
-							
-				tmp.store(ini_file);
+				//write header
+				os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
+				os << "<wsdl:definitions targetNamespace=\"http://www-bs.informatik.uni-tuebingen.de/compas\" xmlns:ns1=\"http://org.apache.axis2/xsd\" xmlns:plnk=\"http://schemas.xmlsoap.org/ws/2003/05/partner-link/\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\" xmlns:tns=\"http://www-bs.informatik.uni-tuebingen.de/compas\" xmlns:wsdl=\"http://schemas.xmlsoap.org/wsdl/\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">" << endl;
+				os << "  <wsdl:types>" << endl;
+				os << "    <xs:schema attributeFormDefault=\"unqualified\" elementFormDefault=\"qualified\" targetNamespace=\"http://org.apache.axis2/xsd\" xmlns:ns1=\"http://org.apache.axis2/xsd\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">" << endl;
+				os << "      <xs:element name=\"" << tool_name_ << "Request\">" << endl;
+				os << "        <xs:complexType>" << endl;
+				os << "          <xs:sequence>" << endl;
+
+				//write types (forward declaration for readablility only. Could be defined in the message as well.
+				Param param = getDefaultParameters_();
+				param = param.copy(tool_name_ + ":1:",true);
+				for (Param::ParamIterator it=param.begin(); it!=param.end(); ++it)
+				{
+					//find out if the value is restricted
+					bool restricted = false;
+					if (it->value.valueType()==DataValue::STRING_VALUE  && !it->valid_strings.empty())
+					{
+						restricted = true;
+					}
+					if (it->value.valueType()==DataValue::STRING_LIST)
+					{
+						restricted = true;
+					}
+					if (it->value.valueType()==DataValue::INT_VALUE && (it->min_int!=-std::numeric_limits<Int>::max() || it->max_int!=std::numeric_limits<Int>::max()))
+					{
+						restricted = true;
+					}
+					if (it->value.valueType()==DataValue::DOUBLE_VALUE && (it->min_float!=-std::numeric_limits<DoubleReal>::max() || it->max_float!=std::numeric_limits<DoubleReal>::max()))
+					{
+						restricted = true;
+					}
+										
+					//name, default (and type if not restricted)
+					os << "            <xs:element name=\"" << it.getName() << "\"";
+					if (!restricted)
+					{
+						if (it->value.valueType()==DataValue::STRING_VALUE) os << " type=\"xs:string\"";
+						if (it->value.valueType()==DataValue::DOUBLE_VALUE) os << " type=\"xs:double\"";
+						if (it->value.valueType()==DataValue::INT_VALUE) os << " type=\"xs:integer\"";
+					}
+					os << " default=\"" << it->value.toString() << "\">" << endl;
+					//docu
+					if (it->description!="")
+					{
+						String description = it->description;
+						description.substitute("<","&lt;");
+						description.substitute(">","&gt;");
+						os << "              <xs:annotation>" << endl;
+						os << "                <xs:documentation>" << description << "</xs:documentation>" << endl;
+						os << "              </xs:annotation>" << endl;					
+					}
+					//restrictions
+					if (restricted)
+					{
+						os << "              <xs:simpleType>" << endl;
+						if (it->value.valueType()==DataValue::STRING_LIST)
+						{
+							os << "                <xs:restriction base=\"xs:string\">" << endl;
+							os << "                  <xs:pattern value=\"^$|[^,](,[^,]+)*\"/>" << endl;
+						}
+						else if (it->value.valueType()==DataValue::STRING_VALUE)
+						{
+							os << "                <xs:restriction base=\"xs:string\">" << endl;
+							for (UInt i=0; i<it->valid_strings.size(); ++i)
+							{
+								os << "                  <xs:enumeration value=\"" << it->valid_strings[i] << "\"/>" << endl;
+							}
+						}
+						else if (it->value.valueType()==DataValue::DOUBLE_VALUE)
+						{
+							os << "                <xs:restriction base=\"xs:double\">" << endl;
+							if (it->min_float!=-std::numeric_limits<DoubleReal>::max())
+							{
+								os << "                  <xs:minInclusive value=\"" << it->min_float << "\"/>" << endl;
+							}
+							if (it->max_float!=std::numeric_limits<DoubleReal>::max())
+							{
+								os << "                  <xs:maxInclusive value=\"" << it->max_float << "\"/>" << endl;
+							}
+						}
+						else if (it->value.valueType()==DataValue::INT_VALUE)
+						{
+							os << "                <xs:restriction base=\"xs:integer\">" << endl;
+							if (it->min_int!=-std::numeric_limits<Int>::max())
+							{
+								os << "                  <xs:minInclusive value=\"" << it->min_int << "\"/>" << endl;
+							}
+							if (it->max_int!=std::numeric_limits<Int>::max())
+							{
+								os << "                  <xs:maxInclusive value=\"" << it->max_int << "\"/>" << endl;
+							}
+						}
+						os << "                </xs:restriction>" << endl;
+						os << "              </xs:simpleType>" << endl;
+					}
+					os << "            </xs:element>" << endl;
+				}
+				os << "          </xs:sequence>" << endl;
+				os << "        </xs:complexType>" << endl;
+				os << "      </xs:element>" << endl;
+				os << "    </xs:schema>" << endl;
+				os << "  </wsdl:types>" << endl;
+				//message
+				os << "  <wsdl:message name=\"" << tool_name_ << "RequestMessage\">" << endl;
+				os << "    <wsdl:part element=\"ns1:" << tool_name_ << "Request\" name=\"part1\"/>" << endl;
+				os << "  </wsdl:message>" << endl;
+				//port
+				os << "  <wsdl:portType name=\"SVMHCProcessPortType\">" << endl;
+				os << "    <wsdl:operation name=\"request\">" << endl;
+				os << "      <wsdl:input message=\"tns:" << tool_name_ << "RequestMessage\"/>" << endl;
+				os << "    </wsdl:operation>" << endl;
+				os << "  </wsdl:portType>" << endl;
+				//binding
+				os << "  <wsdl:binding name=\"" << tool_name_ << "ProviderServiceBinding\" type=\"tns:" << tool_name_ << "PortType\">" << endl;
+				os << "    <soap:binding style=\"rpc\" transport=\"http://schemas.xmlsoap.org/soap/http\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
+				os << "    <wsdl:operation name=\"request\">" << endl;
+				os << "      <soap:operation soapAction=\"\" style=\"rpc\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
+				os << "      <wsdl:input>" << endl;
+				os << "        <soap:body encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\" use=\"encoded\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
+				os << "      </wsdl:input>" << endl;
+				os << "      <wsdl:output>" << endl;
+				os << "        <soap:body encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\" use=\"encoded\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
+				os << "      </wsdl:output>" << endl;
+				os << "    </wsdl:operation>" << endl;
+				os << "  </wsdl:binding>" << endl;
+				//service
+				os << "  <wsdl:service name=\"" << tool_name_ << "ProviderService\">" << endl;
+				os << "    <wsdl:port binding=\"tns:" << tool_name_ << "ProviderServiceBinding\" name=\"" << tool_name_ << "ProviderServicePort\">" << endl;
+				os << "     <soap:address location=\"http://trypsin.informatik.uni-tuebingen.de:30090/active-bpel/services/" << tool_name_ << "ProviderService\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
+				os << "    </wsdl:port>" << endl;
+				os << "  </wsdl:service>" << endl;
+				//end
+				os << "</wsdl:definitions>" << endl;
+				
+				//validate written file
+				XMLValidator validator;
+				if (!validator.isValid(wsdl_file,File::find("SCHEMAS/WSDL_20030211.xsd")))
+				{
+					writeLog_("Error: The written WSDL file does not validate against the XML schema. Please report this bug!");
+					return INTERNAL_ERROR;			
+				}
+				
 				return EXECUTION_OK;
 			}
 
@@ -1218,6 +1299,85 @@ namespace OpenMS
 		return Param();
 	}
 
+	Param TOPPBase::getDefaultParameters_() const
+	{
+		Param tmp;
+		String loc = tool_name_ + ":1:";
+		//parameters
+		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
+		{
+			if (it->name!="ini" && it->name!="-help" && it->name!="instance" && it->name!="write_ini" && it->name!="write_wsdl")
+			{
+				String name = loc + it->name;
+				switch(it->type)
+				{
+					case ParameterInformation::STRING:
+						tmp.setValue(name,it->default_value, it->description, it->advanced);
+						if (it->valid_strings.size()!=0)
+						{
+							tmp.setValidStrings(name,it->valid_strings);
+						}
+						break;
+					case ParameterInformation::INPUT_FILE:
+					case ParameterInformation::OUTPUT_FILE:
+						{
+							String formats;
+							if (it->valid_strings.size()!=0)
+							{
+								formats.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
+								formats = String("(valid formats: '") + formats + "')";
+							}
+							tmp.setValue(name,it->default_value, it->description + formats, it->advanced);
+						}
+						break;
+					case ParameterInformation::DOUBLE:
+						tmp.setValue(name,String(it->default_value).toDouble(), it->description, it->advanced);
+						if (it->min_float!=-std::numeric_limits<DoubleReal>::max())
+						{
+							tmp.setMinFloat(name, it->min_float);
+						}
+						if (it->max_float!=std::numeric_limits<DoubleReal>::max())
+						{
+							tmp.setMaxFloat(name, it->max_float);
+						}
+						break;
+					case ParameterInformation::INT:
+						tmp.setValue(name,String(it->default_value).toInt(), it->description, it->advanced);
+						if (it->min_int!=-std::numeric_limits<Int>::max())
+						{
+							tmp.setMinInt(name, it->min_int);
+						}
+						if (it->max_int!=std::numeric_limits<Int>::max())
+						{
+							tmp.setMaxInt(name, it->max_int);
+						}
+						break;
+					case ParameterInformation::FLAG:
+						tmp.setValue(name,"false", it->description, it->advanced);
+						tmp.setValidStrings(name,StringList::create("true,false"));
+						break;
+					default:
+						break;
+				}
+			}
+		}
+		//subsections
+		for(map<String,String>::const_iterator it = subsections_.begin(); it!=subsections_.end(); ++it)
+		{
+			Param tmp2 = getSubsectionDefaults_(it->first);
+			if (!tmp2.empty())
+			{
+				tmp.insert(loc + it->first + ":",tmp2);
+				tmp.setSectionDescription(loc + it->first, it->second);
+			}
+		}
+		tmp.setSectionDescription(tool_name_ + ":1", String("Instance '1' section for '") + tool_name_ + "'");
+		
+		// store "type" in INI-File (if given)
+		if (param_cmdline_.exists("type")) tmp.setValue(loc + "type", (String) param_cmdline_.getValue("type"));
+		
+		return tmp;
+	}
 
 } // namespace OpenMS
 

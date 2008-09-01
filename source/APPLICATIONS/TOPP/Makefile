@@ -88,6 +88,12 @@ write_ini:
 	@cd ini
 	@for i in $(TOPP_EXECUTABLES); do echo $$i; `cd ini && $$i -write_ini $$i.ini`; done;
 
+
+write_wsdl:
+	@mkdir -p wsdl
+	@cd wsdl
+	@for i in $(TOPP_EXECUTABLES); do echo $$i; `cd wsdl && $$i -write_wsdl $$i.xml`; done;
+
 # replace library-specific flags by application-specific compiler flags 
 LIB_CXXFLAGS=$(NONLIB_CXXFLAGS) 
 

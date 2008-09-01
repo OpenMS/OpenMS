@@ -84,9 +84,9 @@ namespace OpenMS
 				bool advanced;
 				///@name Restrictions to accepted values (used in checkDefaults)
 				//@{
-				DoubleReal min_float; ///< Default: -std::numeric_limits<DoubleReal>::max()
+				DoubleReal min_float; ///< Default: - std::numeric_limits<DoubleReal>::max()
 				DoubleReal max_float; ///< Default: std::numeric_limits<DoubleReal>::max()
-				Int min_int; ///< Default: -std::numeric_limits<Int>::max()
+				Int min_int; ///< Default: - std::numeric_limits<Int>::max()
 				Int max_int; ///< Default: std::numeric_limits<Int>::max()
 				std::vector<String> valid_strings; ///< Default: empty
 				//@}

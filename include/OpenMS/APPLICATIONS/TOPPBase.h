@@ -338,7 +338,10 @@ namespace OpenMS
       	 
       	 where "some_key" == key in the examples.
       */
-      DataValue const& getParam_( const String& key ) const;
+      const DataValue& getParam_( const String& key ) const;
+      
+      /// Returns the default parameters
+      Param getDefaultParameters_() const;
       //@}
 
     protected:
