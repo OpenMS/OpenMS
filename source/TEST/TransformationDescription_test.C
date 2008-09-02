@@ -93,8 +93,8 @@ RESULT
 
 TransformationDescription::PairVector pairs;
 pairs.push_back(make_pair(1.2,5.2));
-pairs.push_back(make_pair(2.2,6.25));
 pairs.push_back(make_pair(3.2,7.3));
+pairs.push_back(make_pair(2.2,6.25));
 
 CHECK(const PairVector& getPairs() const)
 	TransformationDescription td;
@@ -172,14 +172,15 @@ CHECK((void clear()))
 RESULT
 
 CHECK((void apply(DoubleReal& value)))
+{
 	DoubleReal value = 5.0;
 	TransformationDescription td;
 	
 	//test missing name and parameters
- 	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value))
-
+ 	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value));
+	
 	td.setName("bla");
-	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value))
+	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value));
 	
 	//test with identity
 	td.setName("none");
@@ -189,18 +190,70 @@ CHECK((void apply(DoubleReal& value)))
 	//test for missing parameter
 	td.setName("linear");
 	td.setParam("slope",1.0);	
-	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value))
+	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value));
 	
 	//real test (linear, identity)
 	td.setParam("intercept",0.0);
 	TEST_REAL_EQUAL(value,5.0);
-
+	
 	//real test (linear, no identity)
 	td.setParam("slope",2.0);
 	td.setParam("intercept",47.12);
 	td.apply(value);
 	TEST_REAL_EQUAL(value,57.12);
-		
+
+	td.clear();
+	td.setName("interpolated_linear");
+	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value));
+	td.setPairs(pairs);
+	td.apply(value);
+
+	// VALUES FROM ABOVE:
+	// pairs.push_back(make_pair(1.2,5.2));
+	// pairs.push_back(make_pair(2.2,6.25));
+	// pairs.push_back(make_pair(3.2,7.3));
+
+	value = 0.2;
+	td.apply(value);
+	TEST_REAL_EQUAL(value,4.15);
+
+	value = 0.7;
+	td.apply(value);
+	TEST_REAL_EQUAL(value,4.675);
+
+	value = 1.2;
+	td.apply(value);
+	TEST_REAL_EQUAL(value,5.2);
+
+	value = 1.45;
+	td.apply(value);
+	TEST_REAL_EQUAL(value,5.4625);
+
+	value = 1.7;
+	td.apply(value);
+	TEST_REAL_EQUAL(value,5.725);
+
+	value = 2.2;
+	td.apply(value);
+	TEST_REAL_EQUAL(value,6.25);
+
+	value = 2.45;
+	td.apply(value);
+	TEST_REAL_EQUAL(value, 6.5125);
+
+	value = 2.7;
+	td.apply(value);
+	TEST_REAL_EQUAL(value,6.775);
+
+	value = 3.2;
+	td.apply(value);
+	TEST_REAL_EQUAL(value,7.3);
+
+	value = 4.2;
+	td.apply(value);
+	TEST_REAL_EQUAL(value,8.35);
+
+}
 RESULT
 
 
