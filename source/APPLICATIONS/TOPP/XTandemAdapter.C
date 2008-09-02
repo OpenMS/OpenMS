@@ -120,7 +120,6 @@ class TOPPXTandemAdapter
 			ofstream log;
 			String inputfile_name;
 			String outputfile_name;
-			//String tandem_outfile_name("tandem_tmp_output.xml");
 			PeakMap exp;
 		
 			//-------------------------------------------------------------
@@ -161,10 +160,12 @@ class TOPPXTandemAdapter
 			// reading input
 			//-------------------------------------------------------------
 
+			// only load msLevel 2
 			MzDataFile mzdata_infile;
+			mzdata_infile.getOptions().addMSLevel(2);
 			mzdata_infile.setLogType(log_type_);
 			mzdata_infile.load(inputfile_name, exp);
-			
+
 			MascotInfile mgf_file;
 			mgf_file.store(tandem_input_filename, exp, "XTandemSearch");
 
