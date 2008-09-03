@@ -313,7 +313,8 @@ namespace OpenMS
           //move i to j (go to next intensity level)
           i=j;
  				}
-
+        ff_->endProgress();
+        
         if (debug_)
         {
 					//debug info
@@ -332,8 +333,6 @@ namespace OpenMS
           //store image
           image_.save(param_.getValue("debug:image_name").toString().toQString(), "PNG");      
         }  
-        ff_->endProgress();
-
 
         //---------------------------------------------------------------------------
         //Step 3:
@@ -366,8 +365,11 @@ namespace OpenMS
         }
         ff_->endProgress();
 				//calculate convex hulls and remove features without points
+				ff_->startProgress(0, features_->size(), "Creating feature convex hulls");
+
 				for (Int i=features_->size()-1; i>=0 ; --i)
 				{
+					ff_->setProgress(features_->size()-i);
 					if (points[i].empty())
 					{
 						features_->erase(features_->begin()+i);
@@ -379,7 +381,8 @@ namespace OpenMS
 						(*features_)[i].setMetaValue("contained_points",(UInt)(points[i].size()));
 					}
 				}
-
+        ff_->endProgress();
+        
 				//debug info
         if (debug_)
         {

@@ -41,7 +41,8 @@ namespace OpenMS
 			begin_(0),
 			end_(0),
 			value_(0),
-			dlg_(0)
+			dlg_(0),
+			stop_watch_()
 	{
 		
 	}
@@ -66,6 +67,7 @@ namespace OpenMS
 				begin_ = begin;
 				end_ = end;
 				cout << "Progress of '" << label << "':" << endl;		
+				stop_watch_.start();
 				break;
 			case GUI:
 				begin_ = begin;
@@ -126,13 +128,14 @@ namespace OpenMS
 		switch (type_)
 		{
 			case CMD:
+				stop_watch_.stop();
 				if (begin_==end_)
 				{
-					cout << endl << " -- done --  " << endl;
+					cout << endl << " -- done (took " << stop_watch_.getCPUTime() << " s) --" << endl;
 				}
 				else
 				{
-					cout << "\r -- done --          " << endl;
+					cout << "\r -- done (took " << stop_watch_.getCPUTime() << " s) --" << endl;
 				}
 				break;
 			case GUI:

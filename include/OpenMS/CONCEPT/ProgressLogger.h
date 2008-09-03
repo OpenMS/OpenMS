@@ -29,6 +29,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
 
 class QProgressDialog;
 
@@ -88,6 +89,7 @@ namespace OpenMS
 			mutable UInt end_;
 			mutable UInt value_;
 			mutable QProgressDialog* dlg_;
+			mutable StopWatch stop_watch_;
 	};
 
 }//namespace OpenMS
