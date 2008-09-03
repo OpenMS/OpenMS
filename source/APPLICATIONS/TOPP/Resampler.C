@@ -47,12 +47,13 @@ using namespace std;
 	
 	@brief Resampler can be used to transform an LC/MS map into a resampled map or a png image.
 	
-	When writing a mzData file, all spectra are resampled with a new sampling rate.
-	The number of spectra does not change.
+	When writing an mzData file, all spectra are resampled with a new sampling
+	rate.  The number of spectra does not change.
 	
-	When writing an image, the input is first resampled into a matrix using bilinear interpolation.
-	Then the content of the matrix is written to a PNG file.
-	The output has a uniform spacing in both dimensions regardless of the input.
+	When writing an image, the input is first resampled into a matrix using
+	bilinear forward resampling.  Then the content of the matrix is written to
+	a PNG file.  The output has a uniform spacing in both dimensions regardless
+	of the input.
 */
 
 // We do not want this class to show up in the docu:
@@ -100,7 +101,7 @@ class TOPPResampler
 	ExitCodes main_(int , const char**)
 	{
 		//----------------------------------------------------------------
-		//load data
+		// load data
 		//----------------------------------------------------------------
 		String in = getStringOption_("in");
 		String out = getStringOption_("out");
@@ -110,7 +111,7 @@ class TOPPResampler
 		f.load(in, exp);
 		
 		//----------------------------------------------------------------
-		//PNG image
+		// PNG image
 		//----------------------------------------------------------------
 		if (getFlag_("image"))
 		{
@@ -139,7 +140,7 @@ class TOPPResampler
 			}
 			
 			//----------------------------------------------------------------
-			//Do the actual interpolation
+			//Do the actual resampling
 			BilinearInterpolation<DoubleReal, DoubleReal> bilip;
 			bilip.getData().resize(rows, cols);
 			if (!getFlag_("transpose"))
@@ -226,7 +227,7 @@ class TOPPResampler
 			image.save(out.toQString(), "PNG");
 		}
 		//----------------------------------------------------------------
-		//MzData file
+		// MzData file
 		//----------------------------------------------------------------
 		else
 		{
