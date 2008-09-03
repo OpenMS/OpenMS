@@ -177,16 +177,3 @@ namespace OpenMS
   }
 
 } 
-
-
-/*
-
-gnuplot history - how the plot was created - please do not delete this
-
-f(x,intercept,exponent)=1/(1+(abs(x)*intercept)**exponent)
-set terminal postscript enhanced color
-set output "choosingsimplepairfinderparams.ps"
-set size ratio .3
-plot [-3:3] [0:1] f(x,1,1), f(x,2,1), f(x,1,2), f(x,2,2)
-
-*/
