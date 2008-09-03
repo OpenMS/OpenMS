@@ -56,7 +56,7 @@
 #  HOW TO GET HELP
 ############################################################
 #
-# =>  See the definition of function om_help below.
+# =>  See the definition of function OpenMS_help below.
 
 
 ############################################################
@@ -67,7 +67,7 @@
 # above).  Even if you have developer rights at Sourceforge svn, please do not
 # check in _incompatible_ changes, as these might harm other developers which
 # are using this for their daily work.  Avoid tabs in this file.
-# If you add a function, include it in om_help and om_help_verbose.
+# If you add a function, include it in OpenMS_help and OpenMS_help_verbose.
 
 
 # [end of info]
@@ -102,15 +102,16 @@ set filec
 #  INTERNAL (little helpers used by these functions)
 ############################################################
 
-# The variable om_do_help_condition will be eval'ed.  Note that $1 might not
+# The variable OpenMS_do_help_condition will be eval'ed.  Note that $1 might not
 # exist, hence the X suffix to keep the test syntactically correct.
-om_do_help_condition='[ ${1}X == --helpX ]'
+OpenMS_do_help_condition='[ ${1}X == --helpX ]'
 
-om_where_defined_message="[ This is a bash function defined in bashrc.OpenMS ]"
-function om_where_defined()
+# These get a leading _ so that they won't clutter autocompletion when you type OpenMS <tab>
+_OpenMS_where_defined_message="[ This is a bash function defined in bashrc.OpenMS ]"
+function _OpenMS_where_defined()
 {
     echo
-    echo $om_where_defined_message
+    echo $_OpenMS_where_defined_message
 }
 
 
@@ -118,23 +119,23 @@ function om_where_defined()
 #  DIAGNOSTICS (no remaining effects)
 ############################################################
 
-function om_help()
+function OpenMS_help()
 {
     echo
-    echo " om_help is the built-in help for bashrc.OpenMS"
+    echo " OpenMS_help is the built-in help for bashrc.OpenMS"
     echo "    "
-    echo " -  To get a list of all functions with built-in help:  om_help_verbose"
-    echo "    "
-    echo " -  The definition of any bash function can be displayed"
-    echo "    using the command: \"type name_of_function\"".
+    echo " -  To get a list of all functions with built-in help:  OpenMS_help_verbose"
     echo "    "
     echo " -  Each function will print a short usage info"
     echo "    when called with the argument \"--help\"."
     echo "    "
+    echo " -  The definition of any bash function can be displayed"
+    echo "    using the bash command: \"type name_of_function\"".
+    echo "    "
     echo " Summary of functions:"
     echo "    "
     echo " -  DIAGNOSTICS (no remaining effects):"
-    echo "    om_help          om_help_verbose"
+    echo "    OpenMS_help      OpenMS_help_verbose"
     echo "    chop             chop_verbose"
     echo "    path             ldli"
     echo "    I                D Date           dusn   "
@@ -142,7 +143,7 @@ function om_help()
     echo "    svn_diff         svn_status_files"
     echo "    "
     echo " -  ENVIRONMENT (setting PATH and LD_LIBRARY_PATH):"
-    echo "    setenv_develop   setenv_release   setenv_directory"
+    echo "    OpenMS_develop   OpenMS_release   OpenMS_directory"
     echo "    prefix_PATH                postfix_PATH" 
     echo "    prefix_LD_LIBRARY_PATH     postfix_LD_LIBRARY_PATH"
     echo "    prompt"
@@ -155,20 +156,20 @@ function om_help()
     echo "    backup           safer_sed"
     echo "    elc emacsclient_line_column"
     echo "    mogrify_margin   postscript_boundingbox"
-    om_where_defined
+    _OpenMS_where_defined
 }
 
 #-----------------------------------------------------------
 
-function om_help_verbose ()
+function OpenMS_help_verbose ()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "List all * functions"
-        om_where_defined
+        _OpenMS_where_defined
     else
-        # for f in `grep function\ * bashrc.OpenMS | grep -o [A-Za-z_]* | grep -v om_where_defined | sort`;
-        for f in om_help_verbose om_help backup chop chop_verbose cwd Date setenv_develop setenv_directory dusn emacsclient_line_column find_executables find_sources godev goi gorel gos grep_sources I ldli mogrify_margin path postfix_LD_LIBRARY_PATH postfix_PATH prefix_LD_LIBRARY_PATH prefix_PATH postscript_boundingbox prompt setenv_release safer_sed svn_diff svn_status_files;
+        # for f in `grep function\ * bashrc.OpenMS | grep -o [A-Za-z_]* | grep -v _OpenMS_where_defined | sort`;
+        for f in OpenMS_help_verbose OpenMS_help backup chop chop_verbose cwd Date OpenMS_develop OpenMS_directory dusn emacsclient_line_column find_executables find_sources godev goi gorel gos grep_sources I ldli mogrify_margin path postfix_LD_LIBRARY_PATH postfix_PATH prefix_LD_LIBRARY_PATH prefix_PATH postscript_boundingbox prompt OpenMS_release safer_sed svn_diff svn_status_files;
         do
             echo "#----------------------------------------------------------------------"
             echo ""
@@ -181,9 +182,9 @@ function om_help_verbose ()
             $f --help | grep -v bashrc.OpenMS
             
         done
-        om_where_defined
+        _OpenMS_where_defined
         if [ $1_ != "nocolor_" ]; then
-            echo "###    If the output above looks scrambled, try this:   om_help_verbose nocolor "
+            echo "###    If the output above looks scrambled, try this:   OpenMS_help_verbose nocolor "
         fi
     fi
 }
@@ -192,12 +193,12 @@ function om_help_verbose ()
 
 function chop()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "If you have a list of strings separated by ':' characters"
         echo "(such as the PATH or LD_LIBRARY_PATH variables)"
         echo "this will chop this by replacing : with line breaks."
-        om_where_defined
+        _OpenMS_where_defined
     else
         sed s/:/\\n/g -
     fi
@@ -207,11 +208,11 @@ function chop()
 
 function chop_verbose()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "'chop_verbose' is like 'chop' but more verbose,"
         echo "so that empty strings can be identified easily."
-        om_where_defined
+        _OpenMS_where_defined
     else
         echo '#BEGIN'
         chop | sed 's/^/\t/' -
@@ -223,10 +224,10 @@ function chop_verbose()
 
 function path()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Print the PATH environment variable."
-        om_where_defined
+        _OpenMS_where_defined
     else
         echo $PATH | chop
     fi
@@ -236,10 +237,10 @@ function path()
 
 function ldli()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Print the LD_LIBRARY_PATH environment variable."
-        om_where_defined
+        _OpenMS_where_defined
     else
         echo $LD_LIBRARY_PATH | chop
     fi
@@ -249,11 +250,11 @@ function ldli()
 
 function I()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Tell me who and where I am."
         echo "(Useful if you are working on a remote host with a different login.)"
-        om_where_defined
+        _OpenMS_where_defined
     else
         echo You are `whoami` on `hostname`.
     fi
@@ -263,19 +264,19 @@ function I()
 
 function D ()
 {
-		Date $*
+    Date $*
 }
 
 function Date()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Print current date and time."
-				echo "\"D\" is an abbreviation for \"Date\"."
+        echo "\"D\" is an abbreviation for \"Date\"."
         echo "Uses the C locale for consistency."
         echo "Precision is in microseconds, which should be unique even in looping scripts."
         echo "=>  See also: safer_sed"
-        om_where_defined
+        _OpenMS_where_defined
     else
         LC_ALL=C date +%Y-%m-%d-%a-%H-%M-%S-%6N
     fi
@@ -285,11 +286,11 @@ function Date()
 
 function dusn()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Print disk usage, sorted numerically."
         echo "Actually, it does:  du \$* | sort -n"
-        om_where_defined
+        _OpenMS_where_defined
     else
         du $* | sort -n 
     fi
@@ -299,10 +300,10 @@ function dusn()
 
 function find_executables()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Find files with executable permissions (but not directories)."
-        om_where_defined
+        _OpenMS_where_defined
     else
         find $@ -perm /u+x -and -not -type d | sort
     fi
@@ -312,12 +313,12 @@ function find_executables()
 
 function find_sources()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Find C++ source files."
         echo "Searches from the current directory.  You can append further options."
         echo "=>  See also: grep_sources, info find"
-        om_where_defined
+        _OpenMS_where_defined
     else
         find . \( -name \*.[Hh] -o -name \*.[Cc] -o -name \*.[Hh][Pp][Pp] -o -name \*.[Cc][Pp][Pp] -o -name \*.[Hh][Hh] -o -name \*.[Cc][Cc] \) $@
     fi
@@ -327,12 +328,12 @@ function find_sources()
 
 function grep_sources()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Grep C++ source files."
         echo "Searches from the current directory.  You can append further grep options (like -i -n -l etc.)."
         echo "=>  See also: find_sources, info xargs, info grep"
-        om_where_defined
+        _OpenMS_where_defined
     else
         find_sources -print0 | xargs -0 grep --color -n $@
     fi
@@ -342,10 +343,10 @@ function grep_sources()
 
 function svn_diff()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Like 'svn diff', but using colordiff as external diff program, with suitable options."
-        om_where_defined
+        _OpenMS_where_defined
     else
         svn diff --diff-cmd colordiff -x -uwB $*
     fi
@@ -355,12 +356,12 @@ function svn_diff()
 
 function svn_status_files
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Like 'svn status', but remove first seven columns so that only file names remain."
         echo "So you might further work on these files using xargs."
         echo "=>  See also: info xargs"
-        om_where_defined
+        _OpenMS_where_defined
     else
         svn status $@ | sed 's/^.......//' | sort
     fi
@@ -377,11 +378,11 @@ function svn_status_files
 
 function prefix_PATH ()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Add a directory at the begin of the PATH environment variable."
         echo "Also checks that the argument exists and is a directory."
-        om_where_defined
+        _OpenMS_where_defined
     else
         if [ $1_ != _ ] && [ -d $1 ]; then
             export PATH=$1:$PATH
@@ -393,11 +394,11 @@ function prefix_PATH ()
 
 function postfix_PATH ()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Add a directory at the end of the PATH environment variable."
         echo "Also checks that the argument exists and is a directory."
-        om_where_defined
+        _OpenMS_where_defined
     else
         if [ $1_ != _ ] && [ -d $1 ]; then
             export PATH=$PATH:$1
@@ -409,11 +410,11 @@ function postfix_PATH ()
 
 function prefix_LD_LIBRARY_PATH ()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Add a directory at the begin of the LD_LIBRARY_PATH environment variable."
         echo "Also checks that the argument exists and is a directory."
-        om_where_defined
+        _OpenMS_where_defined
     else
         if [ $1_ != _ ] && [ -d $1 ]; then
             export LD_LIBRARY_PATH=$1:$LD_LIBRARY_PATH
@@ -425,11 +426,11 @@ function prefix_LD_LIBRARY_PATH ()
 
 function postfix_LD_LIBRARY_PATH ()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Add a directory at the end of the LD_LIBRARY_PATH environment variable."
         echo "Also checks that the argument exists and is a directory."
-        om_where_defined
+        _OpenMS_where_defined
     else
         if [ $1_ != _ ] && [ -d $1 ]; then
             export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$1
@@ -441,16 +442,16 @@ function postfix_LD_LIBRARY_PATH ()
 
 #-----------------------------------------------------------
 
-function setenv_directory()
+function OpenMS_directory()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Set up environment variables for OpenMS using the given directory."
         echo "If the directory is a link, it is expanded."
         echo "This command comes in handy when you are working with release and development versions simultaneously."
         echo "Uses OPENMS_CONTRIB and OPENMS_QT4 (which should be set elsewhere, e.g. in your .bashrc)."
-        echo "=>  See also:  setenv_develop,  setenv_release"
-        om_where_defined
+        echo "=>  See also:  OpenMS_develop,  OpenMS_release"
+        _OpenMS_where_defined
     else
         if [ $1_ != _ ] && [ -d $1 ]; then
             dir=`cd $1; pwd -P`
@@ -497,9 +498,9 @@ function setenv_directory()
     fi
 }
 
-function setenv_develop ()
+function OpenMS_develop ()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Set up environment variables for OpenMS using directory ${HOME}/OpenMS."
         echo "("
@@ -507,16 +508,16 @@ function setenv_develop ()
         echo "    cd;"
         echo "    svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS"
         echo ")"
-        echo "=>  See also:  setenv_directory"
-        om_where_defined
+        echo "=>  See also:  OpenMS_directory"
+        _OpenMS_where_defined
     else
-        setenv_directory ${HOME}/OpenMS
+        OpenMS_directory ${HOME}/OpenMS
     fi
 }
 
-function setenv_release ()
+function OpenMS_release ()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Set up environment variables for OpenMS using directory ${HOME}/Release."
         echo "("
@@ -527,23 +528,24 @@ function setenv_release ()
         echo "  To switch from one release to another, replace the symbolic link."
         echo "  The linked directory will be 'expanded' by this function."
         echo ")"
-        echo "=>  See also:  setenv_directory"
-        om_where_defined
+        echo "=>  See also:  OpenMS_directory"
+        _OpenMS_where_defined
     else
-        setenv_directory ${HOME}/Release
+        OpenMS_directory ${HOME}/Release
     fi
 }
 
+# Note: the leading "\[\033]0;\u@\h:\w\007\]" is to update the window title.
 function prompt ()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Set a colorful prompt string (PS1) with specified width (default: 20)."
         echo "For width < 7 the prompt will be '$ '."
-        om_where_defined
+        _OpenMS_where_defined
     else
         export PROMPT_LENGTH=${1:-20}
-        export PS1="\[\033[0m\033[0;1m\]\$(\
+        export PS1="\[\033]0;\u@\h:\w\007\]\[\033[0m\033[0;1m\]\$(\
         if [ \${PROMPT_LENGTH} -gt 6 ]; then if [ \${#PWD} -gt \$((\${PROMPT_LENGTH}-3)) ]; \
         then echo \"\[\033[0;31m\]...\[\033[m\033[0;1m\]\${PWD:\$((6-\${PROMPT_LENGTH}))} \";\
         else echo \\w\ ; fi; fi)\[\033[0;32m\]\$ \[\033[0;0m\]"
@@ -558,10 +560,10 @@ function prompt ()
 
 function cwd
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Change to the current working directory, resolving symbolic links."
-        om_where_defined
+        _OpenMS_where_defined
     else
         cd `pwd -P`
     fi
@@ -570,11 +572,11 @@ function cwd
 
 function gos
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Change to corresponding source/ directory."
         echo "=>  See also: goi, gorel, godev"
-        om_where_defined
+        _OpenMS_where_defined
     else
         cd `pwd | sed "s/include\/OpenMS/source/"`
     fi
@@ -583,11 +585,11 @@ function gos
 
 function goi
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Change to corresponding include/OpenMS/ directory."
         echo "=>  See also: gos, gorel, godev"
-        om_where_defined
+        _OpenMS_where_defined
     else
         cd `pwd | sed "s/source/include\/OpenMS/"`
     fi
@@ -596,13 +598,13 @@ function goi
 
 function gorel
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Change to corresponding Release*/ directory."
         echo "Also print the LD_LIBRARY_PATH because usually this has to be changed as well... ;-)"
         echo "Assumes that a symbolic link like Release -> Release1.2 exists."
-        echo "=>  See also: setenv_release, goi, gos"
-        om_where_defined
+        echo "=>  See also: OpenMS_release, goi, gos"
+        _OpenMS_where_defined
     else
         if ! ( pwd | grep --silent Release ); then  
             cd `pwd | sed "s:OpenMS:Release:"` && cwd
@@ -617,12 +619,12 @@ function gorel
 
 function godev
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Change from Release*/ to corresponding developmental OpenMS/ directory."
         echo "Also print the LD_LIBRARY_PATH because usually this has to be changed as well... ;-)"
-        echo "=>  See also: setenv_develop, goi, gos"
-        om_where_defined
+        echo "=>  See also: OpenMS_develop, goi, gos"
+        _OpenMS_where_defined
     else
         cd `pwd | sed "s:Release[0-9.]*:OpenMS:"` && cwd
         echo "Note: LD_LIBRARY_PATH contains"
@@ -637,19 +639,19 @@ function godev
 
 function elc ()
 {
-		emacsclient_line_column $*
+    emacsclient_line_column $*
 }
 
 function emacsclient_line_column ()
 {
-    if ( ( eval $om_do_help_condition ) || ( [[ $# == 0 ]] ) ) ;
+    if ( ( eval $OpenMS_do_help_condition ) || ( [[ $# == 0 ]] ) ) ;
     then
         echo "Open one or more file(s) in a running emacs."
-				echo "\"elc\" is an abbreviation for \"emacsclient-line-column\""
+        echo "\"elc\" is an abbreviation for \"emacsclient-line-column\""
         echo "This does some sed-magic with the command line such that"
-				echo "e.g. the following will open files at line 33 resp. column 44:"
+        echo "e.g. the following will open files at line 33 resp. column 44:"
         echo "elc fileA fileB:33 fileC:33: fileD:33:44 fileE:33:44:"
-        om_where_defined
+        _OpenMS_where_defined
     else
         ( echo $* | sed 's/ /\n/g' | sed 's#:$##g; s#\(\(:[0-9]\+\)\{1,2\}\)$#%%\1#g; s#\(.\+\)%%:\([:0-9]\+\)$#+\2 \1#g' | xargs emacsclient --no-wait ) &
     fi
@@ -659,7 +661,7 @@ function emacsclient_line_column ()
 
 function safer_sed ()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Run 'sed' in place (!), making backups with time stamp.  DANGEROUS."
         echo "NOTES:"
@@ -667,7 +669,7 @@ function safer_sed ()
         echo "  2. Do not rely on this function alone for making backups."
         echo
         echo "=>  For further advice, see also:  backup, type safer_sed, info sed"
-        om_where_defined
+        _OpenMS_where_defined
     else
         sed '-i.sed_backup.'`Date` $*
     fi
@@ -677,13 +679,13 @@ function safer_sed ()
 
 function backup ()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Make a backup file with time stamp in subdirectory ./backup."
         echo "Leading directories names are removed from filename using 'basename'."
         echo "Assumes subdirectory ./backup has been created before."
         echo "=>  See also: Date"
-        om_where_defined
+        _OpenMS_where_defined
     else
         if [ $# == 1 ]; then
             if ! ( [ -e $1 ] && [ -r $1 ] && [ -f $1 ] && [ -s $1 ] ); then
@@ -708,11 +710,11 @@ function backup ()
 
 function mogrify_margin ()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Call mogrify (see ImageMagick) with suitable options to remove margins from screenshots."
         echo "=>  See also: http://www.imagemagick.org/"
-        om_where_defined
+        _OpenMS_where_defined
     else
         mogrify -fuzz 5% -trim -bordercolor white -border 1x1 $1
     fi
@@ -722,19 +724,16 @@ function mogrify_margin ()
 
 function postscript_boundingbox ()
 {
-    if eval $om_do_help_condition;
+    if eval $OpenMS_do_help_condition;
     then
         echo "Call ps2eps  with suitable options to recalculate the bounding box."
-        om_where_defined
+        _OpenMS_where_defined
     else
         ps2eps -B --size=a0 --loose $1
     fi
 }
 
 #-----------------------------------------------------------
-
-
-
 
 echo " done"
 
