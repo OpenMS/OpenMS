@@ -135,7 +135,17 @@ namespace OpenMS
   void SimplePairFinder::updateMembers_()
   {
     diff_intercept_[Peak2D::RT] = (DoubleReal)param_.getValue("similarity:diff_intercept:RT");
+		if ( diff_intercept_[Peak2D::RT] <= 0 )
+		{
+			throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"intercept for RT must be > 0");
+		}
+
     diff_intercept_[Peak2D::MZ] = (DoubleReal)param_.getValue("similarity:diff_intercept:MZ");
+		if ( diff_intercept_[Peak2D::MZ] <= 0 )
+		{
+			throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"intercept for MZ must be > 0");
+		}
+
     diff_exponent_[Peak2D::RT] = (DoubleReal)param_.getValue("similarity:diff_exponent:RT");
     diff_exponent_[Peak2D::MZ] = (DoubleReal)param_.getValue("similarity:diff_exponent:MZ");
     pair_min_quality_ = (DoubleReal)param_.getValue("similarity:pair_min_quality");
@@ -153,18 +163,30 @@ namespace OpenMS
 
     for ( UInt dimension = 0; dimension < 2; ++dimension )
     {
-			// Take the absolute value
+			// the formula is explained in class doc
 			if ( position_difference[dimension] < 0 )
 			{
 				position_difference[dimension] = -position_difference[dimension];
 			}
-			// Raise the difference to a (potentially fractional) power
+			position_difference[dimension] *= diff_intercept_[dimension];
+			position_difference[dimension] += 1.0;
 			position_difference[dimension] = pow(position_difference[dimension],diff_exponent_[dimension]);
-			// Add an absolute number
-			position_difference[dimension] += diff_intercept_[dimension];
     }
 
     return intensity_ratio / position_difference[Peak2D::RT] / position_difference[Peak2D::MZ];
   }
 
 } 
+
+
+/*
+
+gnuplot history - how the plot was created - please do not delete this
+
+f(x,intercept,exponent)=1/(1+(abs(x)*intercept)**exponent)
+set terminal postscript enhanced color
+set output "choosingsimplepairfinderparams.ps"
+set size ratio .3
+plot [-3:3] [0:1] f(x,1,1), f(x,2,1), f(x,1,2), f(x,2,2)
+
+*/
