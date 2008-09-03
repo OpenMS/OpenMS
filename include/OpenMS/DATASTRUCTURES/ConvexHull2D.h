@@ -147,6 +147,21 @@ namespace OpenMS
 				if (!encloses(point))
 				{
 					points_.push_back(point);
+					//convert input to cgal
+					std::vector<Point_2> cgal_points;
+					for (PointArrayTypeConstIterator it = points_.begin(); it!=points_.end(); ++it)
+		      {
+						cgal_points.push_back( Point_2((*it)[0], (*it)[1]) );    
+		      }
+					//calculate convex hull
+					std::vector<Point_2> cgal_result;
+		  		CGAL::convex_hull_2( cgal_points.begin(), cgal_points.end(), std::inserter(cgal_result, cgal_result.begin() ) );
+		      // add the points
+		      points_.clear();
+					for (std::vector<Point_2>::const_iterator cit = cgal_result.begin(); cit !=	cgal_result.end(); ++cit)
+					{
+						points_.push_back( PointType(cit->x(),cit->y()) );			
+					}
 					return true;
 				}
 				return false;
