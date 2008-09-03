@@ -80,7 +80,8 @@ using namespace OpenMS;
 
 //TODO:
 //- several charges
-//- docu
+//- documentation
+//- debug output and gnuplot scripts
 
 
 struct SILACData
