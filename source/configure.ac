@@ -590,10 +590,18 @@ dnl
 BINFMT="${BINFMT}-${CXX_NAME}"
 
 LIBS_EXTERNAL=" ${OPENMS_LIBS} ${LIBS} -lm"
-dnl CF_UNIQUIFY(${LIBS_EXTERNAL},LIBS_EXTERNAL)
-
 OPENMS_LIBS=" -L${PREFIX}/lib/ -lOpenMS ${LIBS_EXTERNAL}"
-dnl CF_UNIQUIFY(${OPENMS_LIBS},OPENMS_LIBS)
+
+dnl
+dnl   Remove duplicate library entries, but make sure
+dnl   that the linker lines don't get messed up for Mac OS
+dnl   (-framework XY needs to be kept as it is)
+dnl
+if test "${OS}" != "Darwin" ; then
+  CF_UNIQUIFY(${LIBS_EXTERNAL},LIBS_EXTERNAL)
+  CF_UNIQUIFY(${LIBS_EXTERNAL},LIBS_EXTERNAL)
+fi
+
 
 
 LIBS="${OPENMS_LIBS}"
