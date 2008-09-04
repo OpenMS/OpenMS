@@ -19,9 +19,9 @@ namespace OpenMS
 		@brief FeatureFinderAlgorithm implementation using the Watershed Segmentation.
     
     The watershed segmentation algorithm is based on the paper:
-    @nWatersheds in digital spaces: an efficient algorithm based onimmersion simulations
-    @nVincent, L.   Soille, P.  
-		@nIEEE Transactions on Pattern Analysis and Machine Intelligence, 1991, 13 (6), 583-598
+    @n Watersheds in digital spaces: an efficient algorithm based onimmersion simulations
+    @n Vincent, L.   Soille, P.  
+		@n IEEE Transactions on Pattern Analysis and Machine Intelligence, 1991, 13 (6), 583-598
     
     @experimental Currently only the watershed segmentation is returnes, not real features!
     
@@ -339,7 +339,8 @@ namespace OpenMS
         //Create features
         //---------------------------------------------------------------------------
 				ff_->startProgress(0, data_ptrs_.size(), "Creating features");
-				features_->resize(current_label);
+				FeatureMap<> tmp_features;
+				tmp_features.resize(current_label);
         std::vector<ConvexHull2D::PointArrayType> points;
         points.resize(current_label);
         for (UInt i=0; i<data_ptrs_.size(); ++i)
@@ -352,7 +353,7 @@ namespace OpenMS
         		DoubleReal rt = (*map_)[point.spectrum].getRT();
         		DoubleReal mz = map_->getMinMZ() + (0.5+point.peak)*mz_sampling_;
         		//update feature center (to maximum)
-        		Feature& feature = (*features_)[point.flag-1];
+        		Feature& feature = tmp_features[point.flag-1];
         		if (point.intensity > feature.getIntensity())
         		{
         			feature.setIntensity(point.intensity);
@@ -364,21 +365,19 @@ namespace OpenMS
         	}
         }
         ff_->endProgress();
-				//calculate convex hulls and remove features without points
-				ff_->startProgress(0, features_->size(), "Creating feature convex hulls");
-
-				for (Int i=features_->size()-1; i>=0 ; --i)
+        
+				//calculate convex hulls and copy features with points to the output array
+				ff_->startProgress(0, tmp_features.size(), "Calculating feature convex hulls");
+				features_->reserve(tmp_features.size());
+				for (UInt i=0; i<tmp_features.size(); ++i)
 				{
-					ff_->setProgress(features_->size()-i);
-					if (points[i].empty())
+					ff_->setProgress(i);
+					if (!points[i].empty())
 					{
-						features_->erase(features_->begin()+i);
-					}
-					else
-					{
-						(*features_)[i].getConvexHulls().push_back(points[i]);
-						(*features_)[i].setMetaValue("label",i);
-						(*features_)[i].setMetaValue("contained_points",(UInt)(points[i].size()));
+						features_->push_back(tmp_features[i]);
+						features_->back().getConvexHulls().push_back(points[i]);
+						features_->back().setMetaValue("label",i);
+						features_->back().setMetaValue("contained_points",(UInt)(points[i].size()));
 					}
 				}
         ff_->endProgress();
