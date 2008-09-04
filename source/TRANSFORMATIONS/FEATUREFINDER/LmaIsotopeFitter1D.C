@@ -286,7 +286,7 @@ namespace OpenMS
           model = static_cast<InterpolationModel*> (Factory<BaseModel<1> >::create("LmaIsotopeModel"));
                   
           Param iso_param = this->param_.copy( "isotope_model:", true );
-          iso_param.remove( "stdev" );
+          iso_param.removeAll("stdev");
           model->setParameters( iso_param );
           model->setInterpolationStep( interpolation_step_ );
           

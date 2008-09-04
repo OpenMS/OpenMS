@@ -76,7 +76,7 @@ namespace OpenMS
 			}
 			
 
-			///constructor from a vector of points
+			///assignment operator from a vector of points
 			ConvexHull2D& operator=(const PointArrayType& points)
 			{
 				//init

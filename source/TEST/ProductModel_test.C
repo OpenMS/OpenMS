@@ -162,15 +162,15 @@ pm1 = ProductModel();
 
 //remove fitting data and compare
 Param tmp1 = pm3.getParameters();
-tmp1.remove("RT:bounding_box:");
-tmp1.remove("RT:statistics:");
-tmp1.remove("MZ:bounding_box:");
-tmp1.remove("MZ:statistics:");
+tmp1.removeAll("RT:bounding_box:");
+tmp1.removeAll("RT:statistics:");
+tmp1.removeAll("MZ:bounding_box:");
+tmp1.removeAll("MZ:statistics:");
 Param tmp2 = pm2->getParameters();
-tmp2.remove("RT:bounding_box:");
-tmp2.remove("RT:statistics:");
-tmp2.remove("MZ:bounding_box:");
-tmp2.remove("MZ:statistics:");
+tmp2.removeAll("RT:bounding_box:");
+tmp2.removeAll("RT:statistics:");
+tmp2.removeAll("MZ:bounding_box:");
+tmp2.removeAll("MZ:statistics:");
 TEST_EQUAL(tmp1, tmp2)
 
 DPosition<2> pos;

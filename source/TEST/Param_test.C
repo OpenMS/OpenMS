@@ -906,10 +906,39 @@ CHECK((Param copy(const String &prefix, bool remove_prefix=false) const))
 	TEST_EQUAL(p2.getSectionDescription("test"),"sectiondesc")
 RESULT
 
-CHECK((void remove(const String& prefix)))
+CHECK((void remove(const String& key)))
+	Param p2(p);
+	p2.setValue("test:string2","test,test");
+	
+	TEST_EQUAL(p2.size(),7)
+	
+	p2.remove("test");
+	TEST_EQUAL(p2.size(),7)
+	
+	p2.remove("test2");
+	TEST_EQUAL(p2.size(),7)
+	
+	p2.remove("test:strin");
+	TEST_EQUAL(p2.size(),7)
+	
+	p2.remove("test:string");
+	TEST_EQUAL(p2.size(),6)
+
+	p2.remove("test:string2");
+	TEST_EQUAL(p2.size(),5)
+
+	p2.remove("test:float");
+	TEST_EQUAL(p2.size(),4)
+
+	p2.remove("test:int");
+	TEST_EQUAL(p2.size(),3)
+
+RESULT
+
+CHECK((void removeAll(const String& prefix)))
 	Param p2(p);
 	
-	p2.remove("test:float");
+	p2.removeAll("test:float");
 	TEST_EXCEPTION(Exception::ElementNotFound, p2.getValue("test:float"))
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
 	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
@@ -918,14 +947,14 @@ CHECK((void remove(const String& prefix)))
 	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
 	TEST_EQUAL(p2.getSectionDescription("test"),"sectiondesc")
 
-	p2.remove("test:");
+	p2.removeAll("test:");
 	TEST_EXCEPTION(Exception::ElementNotFound, p2.getValue("test:string"))
 	TEST_EXCEPTION(Exception::ElementNotFound, p2.getValue("test:int"))
 	TEST_REAL_EQUAL(float(p2.getValue("test2:float")), 17.5)
 	TEST_EQUAL(p2.getValue("test2:string"), "test2")
 	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
 
-	p2.remove("test");
+	p2.removeAll("test");
 	TEST_EQUAL(p2.empty(),true)
 
 	cout << p2;
@@ -941,7 +970,7 @@ CHECK((bool operator == (const Param& rhs) const))
 	p2.setValue("test:float3",17.4f);
 	TEST_EQUAL(p==p2, false)
 	p2 = p;
-	p2.remove("test:float");
+	p2.removeAll("test:float");
 	TEST_EQUAL(p==p2, false)
 	
 	//it should be independent of entry order

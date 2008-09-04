@@ -95,7 +95,7 @@ namespace OpenMS
 			//remove registered subsections
 			for(vector<String>::const_iterator it = subsections_.begin(); it != subsections_.end(); ++it)
 			{
-				tmp.remove(*it+':');
+				tmp.removeAll(*it+':');
 			}
 			
 			//check defaults

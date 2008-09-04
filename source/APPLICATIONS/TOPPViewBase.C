@@ -1628,7 +1628,7 @@ namespace OpenMS
   void TOPPViewBase::savePreferences()
   {
     // replace recent files
-    param_.remove("preferences:RecentFiles");
+    param_.removeAll("preferences:RecentFiles");
 
     for (int i = 0; i < recent_files_.size(); ++i)
     {

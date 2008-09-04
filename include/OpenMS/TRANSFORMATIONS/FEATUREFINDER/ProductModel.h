@@ -173,7 +173,7 @@ namespace OpenMS
 
 			// Update model info
 			String name = Peak2D::shortDimensionName(dim);
-	    this->param_.remove(name + ':');
+	    this->param_.removeAll(name + ':');
 	    this->param_.insert(name + ':',distributions_[dim]->getParameters());
 	    this->param_.setValue(name, distributions_[dim]->getName());
 

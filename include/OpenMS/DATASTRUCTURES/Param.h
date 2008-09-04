@@ -343,8 +343,13 @@ namespace OpenMS
 			void clear();
 			///Insert all values of @p param and adds the prefix @p prefix.
 			void insert(String prefix, const Param& param);
-			///Remove all entries that start with @p prefix.
-			void remove(const String& prefix);
+			/**
+				@brief Remove the entry @p key
+				@note This method does not remove subnodes. Use removeAll() to do that.
+			*/
+			void remove(const String& key);
+			///Remove all entries that start with @p prefix 
+			void removeAll(const String& prefix);
 			/**
 				@brief Returns a new Param object containing all entries that start with @p prefix.
 				

@@ -520,8 +520,25 @@ namespace OpenMS
 			}
 		}
 	}
-	
-	void Param::remove(const String& prefix)
+
+	void Param::remove(const String& key)
+	{
+		ParamNode* node = root_.findParentOf(key);
+		if (node!=0)
+		{
+			String suffix = node->suffix(key);
+			for (Param::ParamNode::EntryIterator it = node->entries.begin(); it!=node->entries.end(); ++it)
+			{
+				if (it->name==suffix)
+				{
+					it = node->entries.erase(it);
+					break;
+				}
+			}
+		}
+	}
+
+	void Param::removeAll(const String& prefix)
 	{
 		if (prefix.hasSuffix(':')) //we have to delete one node only
 		{

@@ -173,8 +173,6 @@ namespace OpenMS
 			arg_param_.load((ini_file_).c_str());
 			
 			vis_param_=arg_param_.copy(getTool()+":1:",true);
-			vis_param_.remove("in");
-			vis_param_.remove("out");
 			vis_param_.remove("log");
 			vis_param_.remove("no_progress");
 			vis_param_.remove("debug");
@@ -353,8 +351,6 @@ namespace OpenMS
 		tools_combo_->setCurrentIndex(pos);
 		//Extract the required parameters
 		vis_param_=arg_param_.copy(getTool()+":1:",true);
-		vis_param_.remove("in");
-		vis_param_.remove("out");
 		vis_param_.remove("log");
 		vis_param_.remove("no_progress");
 		vis_param_.remove("debug");

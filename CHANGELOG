@@ -24,6 +24,9 @@ Detailed list of changes to specific OpenMS classes:
   - LabeledPairFinder: Added automated RT parameter estimated.
   - GaussFitter: removed several unneeded methods.
   - GammaDistributionFitter: removed several unneeded methods.
+  - Param:
+    - Added a new remove(key) method, that removed only exact matches.
+    - The old remove method was renamed to removeAll(prefix)
 
 ------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.2                                     ----
