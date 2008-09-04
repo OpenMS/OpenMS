@@ -193,8 +193,8 @@ CHECK(LexicographicComparator<>)
   for ( vector < IntStringPair >::iterator p = seq.begin(); p != seq.end(); ++p ) STATUS( p-> id << ":  " << p->first << ' ' << p->second );
 
   vector < IntStringPair * > seqp;
-  for ( vector < IntStringPair >::iterator pos = seq.begin(); pos != seq.end(); seqp.push_back(&(*pos++)) );
-  for ( vector < IntStringPair * >::iterator p = seqp.begin(); p != seqp.end(); ++p ) STATUS( (*p)->id << ":  " << (*p)->first << ' ' << (*p)->second );
+  for ( vector < IntStringPair >::iterator pos = seq.begin(); pos != seq.end(); seqp.push_back(&(*pos++)) ) ;
+  for ( vector < IntStringPair * >::iterator p = seqp.begin(); p != seqp.end(); ++p ) STATUS( (*p)->id << ":  " << (*p)->first << ' ' << (*p)->second ) ;
   
   sort ( seq.begin(), seq.end(), IntStringPairLessSecond() );
   sort ( seq.begin(), seq.end(), IntStringPairLessFirst() );
@@ -333,8 +333,8 @@ CHECK(lexicographicComparator())
   for ( vector < IntStringPair >::iterator p = seq.begin(); p != seq.end(); ++p ) STATUS( p-> id << ":  " << p->first << ' ' << p->second );
 
   vector < IntStringPair * > seqp;
-  for ( vector < IntStringPair >::iterator pos = seq.begin(); pos != seq.end(); seqp.push_back(&(*pos++)) );
-  for ( vector < IntStringPair * >::iterator p = seqp.begin(); p != seqp.end(); ++p ) STATUS( (*p)->id << ":  " << (*p)->first << ' ' << (*p)->second );
+  for ( vector < IntStringPair >::iterator pos = seq.begin(); pos != seq.end(); seqp.push_back(&(*pos++)) ) ;
+  for ( vector < IntStringPair * >::iterator p = seqp.begin(); p != seqp.end(); ++p ) STATUS( (*p)->id << ":  " << (*p)->first << ' ' << (*p)->second ) ;
   
   sort ( seq.begin(), seq.end(), IntStringPairLessSecond() );
   sort ( seq.begin(), seq.end(), IntStringPairLessFirst() );

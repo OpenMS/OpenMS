@@ -349,7 +349,7 @@ EXECUTABLES_ANALYSIS_ID =\
 	HiddenMarkovModelLight_test\
 	PILISModel_test\
 	PILISModelGenerator_test\
-	PILISSequenceDB_test\
+	PILISIdentification_test\
 	IDDecoyProbability_test\
 	FalseDiscoveryRate_test
 

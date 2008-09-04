@@ -127,21 +127,7 @@ namespace OpenMS
 		}
 		return hmm_model_;
 	}
-/*
-	//PILISSequenceDB* PILISIdentification::getSequenceDB_()
-	SuffixArrayPeptidefinder* PILISIdentification::getSequenceDB_()
-	{
-		if (sequence_db_ == 0)
-		{*/
-			/*sequence_db_ = new PILISSequenceDB();
-			own_sequence_db_ = true;
-			*/
-		/*	cerr << "Sequence DB not set!" << endl;
-			exit(0);
-		}
-		return sequence_db_;
-	}
-	*/
+	
 	void PILISIdentification::getIdentifications(const vector<map<String, UInt> >& candidates, vector<PeptideIdentification>& ids, const RichPeakMap& exp)
 	{
 		UInt max_candidates = (UInt)param_.getValue("max_candidates");
@@ -216,11 +202,6 @@ namespace OpenMS
     }
 
 
-		//vector<PILISSequenceDB::PepStruct> cand_peptides;
-    //getSequenceDB_()->getPeptides(cand_peptides, pre_pos - pre_tol, pre_pos + pre_tol);
-			
-
-		
 		//cerr << "#cand peptides: " << cand_peptides.size() << ", " << pre_pos << ", +/- " << pre_tol << endl;
 
 		PeptideIdentification pre_id;

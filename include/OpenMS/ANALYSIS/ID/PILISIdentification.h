@@ -29,10 +29,7 @@
 #define OPENMS_ANALYSIS_ID_PILISIDENTIFICATION_H
 
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
-#include <OpenMS/ANALYSIS/ID/PILISSequenceDB.h>
-
 #include <OpenMS/METADATA/PeptideIdentification.h>
-
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <vector>
