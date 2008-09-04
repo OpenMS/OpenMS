@@ -42,6 +42,7 @@ namespace OpenMS
 			static const XMLCh* s_float = xercesc::XMLString::transcode("float");
 			static const XMLCh* s_string = xercesc::XMLString::transcode("string");	
 			static const XMLCh* s_featuremap = xercesc::XMLString::transcode("featureMap");
+			static const XMLCh* s_id = xercesc::XMLString::transcode("id");
 
 			String tag = sm_.convert(qname);
 			open_tags_.push_back(tag);
@@ -133,6 +134,12 @@ namespace OpenMS
 				if (file_version.toDouble()>version_.toDouble())
 				{
 					warning(String("The XML file (") + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
+				}
+				//handle file id
+				String id;
+				if (optionalAttributeAsString_(id, attributes, s_id))
+				{
+					map_->setIdentifier(id);
 				}
 			}	
 		}
@@ -245,7 +252,12 @@ namespace OpenMS
 			UInt identifier = 0;
 
 			os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
-			   << "<featureMap version=\"" << version_ << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_2.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+			   << "<featureMap version=\"" << version_ << "\"";
+			if (cmap_->getIdentifier()!="")
+			{
+				os << " id=\"" << cmap_->getIdentifier() << "\"";
+			}
+			os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 	
 			// delegate control to ExperimentalSettings handler
 			Internal::MzDataExpSettHandler handler(*((const ExperimentalSettings*)cmap_),"");

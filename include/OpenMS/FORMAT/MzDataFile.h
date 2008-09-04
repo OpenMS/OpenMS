@@ -37,8 +37,6 @@ namespace OpenMS
 	/**
 		@brief File adapter for MzData files
 		
-		@todo Implement 'accessionNumber' attribute - stored in ExperimentalSettings (Clemens, Chris, Marc)
-		
 		@ingroup FileIO
 	*/
 	class MzDataFile 

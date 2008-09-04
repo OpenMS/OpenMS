@@ -72,7 +72,8 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	//-------------------------- general information --------------------------
   		
 	TEST_EQUAL(exp.size(),3)
-	
+	//id
+	TEST_EQUAL(exp.getIdentifier(),"urn:lsid:psidev.info:mzML.instanceDocuments.tiny.pwiz");
 	//contacts
 	TEST_EQUAL(exp.getContacts().size(),2)
 	TEST_STRING_EQUAL(exp.getContacts()[0].getFirstName(),"William")

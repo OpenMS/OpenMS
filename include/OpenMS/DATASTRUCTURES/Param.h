@@ -53,8 +53,9 @@ namespace OpenMS
 		Each parameter has an <i>advanced</i> flag that indicates if this parameter is shown to 
 		all users (false) or in advanced mode only (true). This is mostly used in visualization.
 		
-		@todo Add support for string/int/float lists (Hiwi)
-		
+		@todo Add support for int/float lists (Hiwi)
+		@todo Replace advanced flag by a more generic approach i.e. string tags (Hiwi)
+
 		@see DefaultParamHandler
 		
 		@ingroup Datastructures

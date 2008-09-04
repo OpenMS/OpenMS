@@ -101,6 +101,17 @@ CHECK((void setComment(const String& comment)))
 	TEST_EQUAL(tmp.getComment(), "bla");
 RESULT
 
+CHECK((const String& getIdentifier() const))
+	ExperimentalSettings tmp;
+	TEST_EQUAL(tmp.getIdentifier(), "");
+RESULT
+
+CHECK((void setIdentifier(const String& identifier)))
+	ExperimentalSettings tmp;
+	tmp.setIdentifier("bla");
+	TEST_EQUAL(tmp.getIdentifier(), "bla");
+RESULT
+
 CHECK(const std::vector<ContactPerson>& getContacts() const)
   ExperimentalSettings tmp;
   TEST_EQUAL(tmp.getContacts().size(),0);
@@ -251,6 +262,7 @@ CHECK(ExperimentalSettings(const ExperimentalSettings& source))
   
   tmp.getHPLC().setFlux(5);
   tmp.setComment("bla");
+  tmp.setIdentifier("lsid");
   tmp.getInstrument().setName("bla");
   tmp.getProcessingMethod().setDeisotoping(true);
   tmp.getSample().setName("bla2");
@@ -262,6 +274,7 @@ CHECK(ExperimentalSettings(const ExperimentalSettings& source))
   
   ExperimentalSettings tmp2(tmp);
   TEST_EQUAL(tmp2.getComment(),"bla");
+  TEST_EQUAL(tmp2.getIdentifier(),"lsid");
   TEST_EQUAL(tmp2.getHPLC().getFlux(),5);
   TEST_EQUAL(tmp2.getInstrument().getName(),"bla");
   TEST_EQUAL(tmp2.getProcessingMethod().getDeisotoping(),true);
@@ -288,6 +301,7 @@ CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
 
   tmp.getHPLC().setFlux(5);
   tmp.setComment("bla");
+  tmp.setIdentifier("lsid");
   tmp.getInstrument().setName("bla");
   tmp.getProcessingMethod().setDeisotoping(true);
   tmp.getSample().setName("bla2");
@@ -302,6 +316,7 @@ CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
   TEST_EQUAL(tmp2.getHPLC().getFlux(),5);
   TEST_EQUAL(tmp2.getInstrument().getName(),"bla");
   TEST_EQUAL(tmp2.getComment(),"bla");
+  TEST_EQUAL(tmp2.getIdentifier(),"lsid");
   TEST_EQUAL(tmp2.getProcessingMethod().getDeisotoping(),true);
   TEST_EQUAL(tmp2.getSample().getName(),"bla2");
   TEST_EQUAL(tmp2.getSoftware().getName(),"bla3");
@@ -314,6 +329,7 @@ CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
   tmp2 = ExperimentalSettings();
   TEST_EQUAL(tmp2.getHPLC().getFlux(),0);
   TEST_EQUAL(tmp2.getInstrument().getName(),"");
+  TEST_EQUAL(tmp2.getIdentifier(),"");
   TEST_EQUAL(tmp2.getProcessingMethod().getDeisotoping(),false);
   TEST_EQUAL(tmp2.getSample().getName(),"");
   TEST_EQUAL(tmp2.getSoftware().getName(),"");
@@ -371,6 +387,10 @@ CHECK(bool operator== (const ExperimentalSettings& rhs) const)
 
   edit = empty;
 	edit.setComment("bla");
+  TEST_EQUAL(edit==empty, false);
+
+  edit = empty;
+	edit.setIdentifier("bla");
   TEST_EQUAL(edit==empty, false);
 
 	edit = empty;

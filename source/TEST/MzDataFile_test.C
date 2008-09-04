@@ -356,6 +356,11 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_EQUAL(e[2].getMetaDataArrays()[6][4], 100)
 
   //---------------------------------------------------------------------------
+  // accessionNumber
+  //---------------------------------------------------------------------------
+	TEST_EQUAL(e.getIdentifier(),"lsid");
+  
+  //---------------------------------------------------------------------------
   // const SourceFile& getSourceFile() const;
   //---------------------------------------------------------------------------
   TEST_EQUAL(e.getSourceFile().getNameOfFile(), "MzDataFile_test_1.raw");
@@ -784,6 +789,7 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
  	NEW_TMP_FILE(tmp_filename);
 	f.store(tmp_filename,e1);
 	f.load(tmp_filename,e2);
+  TEST_EQUAL(e2.getIdentifier(),"lsid");
   TEST_EQUAL(e1==e2,true);
 	TEST_EQUAL(e1[0].getMetaDataArrays()==e1[0].getMetaDataArrays(),true);
 	TEST_EQUAL(e1[1].getMetaDataArrays()==e1[1].getMetaDataArrays(),true);
@@ -810,8 +816,9 @@ CHECK([EXTRA] load with 64 bit precision and endian conversion )
   //---------------------------------------------------------------------------
   // 120: (110,100) (120,200) (130,100)
 	//---------------------------------------------------------------------------
-  TEST_EQUAL(e.size(), 1)
+	TEST_EQUAL(e.getIdentifier(),"");
 
+  TEST_EQUAL(e.size(), 1)
 	TEST_EQUAL(e[0].getContainer().size(), 3)
 
 	TEST_REAL_EQUAL(e[0].getContainer()[0].getPosition()[0], 110)

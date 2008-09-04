@@ -53,7 +53,6 @@ namespace OpenMS
 		@todo Implement and use Base64 integers and 16 bit (Hiwi)
 		@todo Implement and use zlib support (Hiwi)
 		@todo Implement all extensions to our data model that are necessary for mzML (Hiwi, Marc)
-		@todo Implement 'id' attribute - stored in ExperimentalSettings (Clemens, Chris, Marc)
 		
 		@ingroup FileIO
 	*/

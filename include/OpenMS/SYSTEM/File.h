@@ -87,7 +87,7 @@ namespace OpenMS
 				- the directory contained in the environment variable $OPENMS_DATA_PATH
 				- the 'share/OpenMS/' directory of the OpenMS install directory
 				
-				@Exception FileNotFound is thrown, if the file is not found
+				@exception FileNotFound is thrown, if the file is not found
 			*/
 			static String find(const String& filename, std::vector<String> directories = std::vector<String>());
 			

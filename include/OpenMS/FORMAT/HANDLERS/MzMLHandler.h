@@ -359,6 +359,12 @@ namespace OpenMS
 				{
 					warning("The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
 				}
+				//handle file id
+				String id;
+				if (optionalAttributeAsString_(id, attributes, s_id))
+				{
+					exp_->setIdentifier(id);
+				}
 			}
 			else if (tag=="contact")
 			{

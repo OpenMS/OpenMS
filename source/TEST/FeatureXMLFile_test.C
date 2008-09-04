@@ -68,6 +68,11 @@ CHECK((void load(String filename, FeatureMap<>& feature_map) throw (Exception::F
 	
 	// real test
 	dfmap_file.load("data/FeatureXMLFile.xml",e);
+
+  //---------------------------------------------------------------------------
+  // id
+  //---------------------------------------------------------------------------
+	TEST_EQUAL(e.getIdentifier(),"lsid");
   
   //---------------------------------------------------------------------------
   // const SourceFile& getSourceFile() const;

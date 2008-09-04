@@ -309,7 +309,8 @@ namespace OpenMS
 			static const XMLCh* s_endian = xercesc::XMLString::transcode("endian");
 			static const XMLCh* s_length = xercesc::XMLString::transcode("length");
 			static const XMLCh* s_comment = xercesc::XMLString::transcode("comment");
-			
+			static const XMLCh* s_accessionnumber = xercesc::XMLString::transcode("accessionNumber");
+
 			String tag = sm_.convert(qname);
 			open_tags_.push_back(tag);
 			//std::cout << "Start: '" << tag << "'" << std::endl;
@@ -413,6 +414,11 @@ namespace OpenMS
 		  	exp_->reserve(count);
 		  	logger_.startProgress(0,count,"loading mzData file");
 		  	//std::cout << Date::now() << " done" << std::endl;
+			}
+			else if (tag=="mzData")
+			{
+				//handle file id
+				exp_->setIdentifier(attributeAsString_(attributes, s_accessionnumber));
 			}
 			else if (tag=="acqSpecification")
 			{
@@ -753,7 +759,7 @@ namespace OpenMS
 			logger_.startProgress(0,cexp_->size(),"storing mzData file");
 			
 			os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
-				 << "<mzData version=\"1.05\" accessionNumber=\"\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://psidev.sourceforge.net/ms/xml/mzdata/mzdata.xsd\">\n";
+				 << "<mzData version=\"1.05\" accessionNumber=\"" << cexp_->getIdentifier() << "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://psidev.sourceforge.net/ms/xml/mzdata/mzdata.xsd\">\n";
 
 			// delegate control to ExperimentalSettings handler
 			Internal::MzDataExpSettHandler handler( cexp_->getExperimentalSettings(),"");

@@ -146,6 +146,11 @@ namespace OpenMS
       /// sets the free-text comment
       void setComment(const String& comment);
 
+			/// returns the identifier e.g. a LSID
+      const String& getIdentifier() const;
+      /// sets the identifier e.g. a LSID
+      void setIdentifier(const String& identifier);
+
 		 	/// returns a const reference to the protein ProteinIdentification vector
 		 	const std::vector<ProteinIdentification>& getProteinIdentifications() const;		 		    	
 		 	/// returns a mutable reference to the protein ProteinIdentification vector
@@ -166,6 +171,7 @@ namespace OpenMS
 		  ExperimentType type_;
 		  Date date_;
 			String comment_;
+			String identifier_;
 			std::vector<ProteinIdentification> protein_identifications_;
   };
 
