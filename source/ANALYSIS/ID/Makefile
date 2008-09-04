@@ -35,11 +35,11 @@ CPP_SOURCES=\
 	ConsensusID.C\
 	ProtonDistributionModel.C\
 	PILISScoring.C\
-	PILISSequenceDB.C\
 	HiddenMarkovModel.C\
 	HiddenMarkovModelLight.C\
 	PILISModel.C\
 	PILISModelGenerator.C\
+	PILISIdentification.C\
 	IDDecoyProbability.C\
 	FalseDiscoveryRate.C
 
