@@ -27,6 +27,7 @@ Detailed list of changes to specific OpenMS classes:
   - Param:
     - Added a new remove(key) method, that removed only exact matches.
     - The old remove method was renamed to removeAll(prefix)
+	- File: find(...) now throws an exception, of the file is not found
 
 ------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.2                                     ----

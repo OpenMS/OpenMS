@@ -79,10 +79,9 @@ CHECK((static bool writable(const String &file)))
 RESULT
 
 CHECK((static String find(const String &filename, std::vector< String > directories=std::vector< String >())))
-	TEST_EQUAL(File::find("File.h"),"");
-	vector<String> vec;
-	vec.push_back(OPENMS_DATA_PATH);
-	TEST_NOT_EQUAL(File::find("OpenMS_DB.sql",vec),"");
+	TEST_EXCEPTION(Exception::FileNotFound,File::find("File.h"))
+
+	TEST_NOT_EQUAL(File::find("OpenMS_DB.sql"),"");
 RESULT
 
 CHECK((static String absolutePath(const String &file)))

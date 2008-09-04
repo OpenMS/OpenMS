@@ -204,10 +204,13 @@ namespace OpenMS
 			
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
     	//add XSLT file if it can be found
-			String xslt_file =  File::find("XSL/ConsensusXML.xsl");
-			if (xslt_file!="")
+			try
 			{
+				String xslt_file = File::find("XSL/ConsensusXML.xsl");
 				os << "<?xml-stylesheet type=\"text/xsl\" href=\"file:///" << xslt_file << "\"?>\n";
+			}
+			catch(Exception::FileNotFound&)
+			{
 			}
       os << "<consensusXML version=\"" << version_ << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 

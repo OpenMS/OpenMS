@@ -65,6 +65,9 @@ help:
 	@echo "clean -- cleans up the directory"
 	@echo "execute -- executes all examples"
 	@echo ""
+	@echo "Internal targets are:"
+	@echo "ex -- Builds the executable 'example' from 'example.C'"
+	@echo ""
 
 include ../common.mak
 -include .Dependencies

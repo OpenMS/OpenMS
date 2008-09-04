@@ -163,11 +163,6 @@ namespace OpenMS
 	void ResidueDB::readResiduesFromFile_(const String& file_name)
 	{
 		String file = File::find(file_name);
-
-		if (!File::exists(file))
-		{
-			throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_name);
-		}
 		
 		Param param;
 		param.load(file);

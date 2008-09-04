@@ -69,7 +69,6 @@ namespace OpenMS
 			void load(const String& filename, MapType& map)
 			{
 				map.reset();
-				
 				Internal::MzXMLHandler<MapType> handler(map,filename,schema_version_,*this);
 				handler.setOptions(options_);
 				parse_(filename, &handler);

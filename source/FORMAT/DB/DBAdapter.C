@@ -624,35 +624,38 @@ namespace OpenMS
 			db_version = db_version.prefix('$');
 			db_version.trim();
 			
-			String sql_path = File::find("OpenMS_DB.sql");
-			if (sql_path == "")
+			String sql_path;
+			try
+			{
+				sql_path = File::find("OpenMS_DB.sql");
+			}
+			catch(Exception::FileNotFound&)
 			{
 				cerr << "Warning: Could not verify DB version. Please set the environment variable OPENMS_DATA_PATH to the OpenMS data directory: $PREFIX/share/OpenMS/" << endl;
+				return true;
 			}
-			else
+				
+			TextFile sql(sql_path);
+			// ReverseIterator instead or ConstReverseIterator as rend() it non-const and operator!= fails (until gcc 4.0.x)
+			for (TextFile::ReverseIterator it = sql.rbegin(); it != sql.rend(); ++it)
 			{
-				TextFile sql(sql_path);
-				// ReverseIterator instead or ConstReverseIterator as rend() it non-const and operator!= fails (until gcc 4.0.x)
-				for (TextFile::ReverseIterator it = sql.rbegin(); it != sql.rend(); ++it)
+				if (it->hasSubstring("$Revision:"))
 				{
-					if (it->hasSubstring("$Revision:"))
+					String file_version = *it;
+					file_version = file_version.suffix(':');
+					file_version = file_version.prefix('$');
+					file_version.trim();
+					if (file_version!=db_version)
 					{
-						String file_version = *it;
-						file_version = file_version.suffix(':');
-						file_version = file_version.prefix('$');
-						file_version.trim();
-						if (file_version!=db_version)
+						if (warning)
 						{
-							if (warning)
-							{
-								cerr << "Error: The given DB (Rev: " << db_version 
-										 << ") has a different revision than OpenMS (Rev: " 
-										 << file_version << ")!"<< endl;
-							}
-							return false;
+							cerr << "Error: The given DB (Rev: " << db_version 
+									 << ") has a different revision than OpenMS (Rev: " 
+									 << file_version << ")!"<< endl;
 						}
-						break;
+						return false;
 					}
+					break;
 				}
 			}
 		}
@@ -661,15 +664,19 @@ namespace OpenMS
 	
 	void DBAdapter::createDB()
 	{
-		String sql_path = File::find("OpenMS_DB.sql");
-		if (sql_path == "")
+		String sql_path;
+		try
+		{
+			sql_path = File::find("OpenMS_DB.sql");
+		}
+		catch(Exception::FileNotFound&)
 		{
 			cerr << "Error: Could not find the OpenMS DB declaration file. Please set the environment variable OPENMS_DATA_PATH to the OpenMS data directory: $PREFIX/share/OpenMS/" << endl;
 			return;
 		}
 
 		// load sql queries
-		TextFile sql(File::find("OpenMS_DB.sql"));
+		TextFile sql(sql_path);
 		
 		// delete existing tables
 		QSqlQuery result, dummy;

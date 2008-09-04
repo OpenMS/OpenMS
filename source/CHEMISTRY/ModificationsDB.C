@@ -195,12 +195,6 @@ namespace OpenMS
 	void ModificationsDB::readFromUnimodXMLFile(const String& filename)
 	{
 		String file = File::find(filename);
-    ifstream is(file.c_str());
-    if (!is)
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-    }	
-		is.close();
 
 		UnimodXMLFile().load(file, mods_);
 
@@ -217,13 +211,7 @@ namespace OpenMS
 		ResidueModification mod;
 		Map<String, ResidueModification> all_mods;
 	
-		String file = File::find(filename);
- 		ifstream is(file.c_str());
-    if (!is)
-    {
-    	throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-    }
-
+ 		ifstream is(File::find(filename).c_str());
     String line, line_wo_spaces, id;
       
 		//parse file

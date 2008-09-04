@@ -84,10 +84,13 @@ namespace OpenMS
 		//write header
 		os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
 		//add XSLT file if it can be found
-		String xslt_file =  File::find("XSL/IdXML.xsl");
-		if (xslt_file!="")
+		try
 		{
+			String xslt_file =  File::find("XSL/IdXML.xsl");
 			os << "<?xml-stylesheet type=\"text/xsl\" href=\"file:///" << xslt_file << "\"?>" << endl;
+		}
+		catch(Exception::FileNotFound&)
+		{
 		}
 		os << "<IdXML version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/IdXML_1_1.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" << endl;
 		

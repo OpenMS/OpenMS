@@ -52,12 +52,6 @@ namespace OpenMS
   void UnimodXMLFile::load(const String& filename, vector<ResidueModification*>& modifications) const
   {
 		String file = File::find(filename);
-						
-  	//try to open file
-		if (!File::exists(file))
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-    }
 		
 		// initialize parser
 		try 

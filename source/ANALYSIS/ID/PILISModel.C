@@ -131,18 +131,7 @@ namespace OpenMS
 	void PILISModel::readFromFile(const String& filename)
 	{
 		// read the model
-		vector<String> paths;
-		paths.push_back(File::path(filename));
-		//cout << "PATH=" << paths.back() << endl;
-		String new_filename = File::find(File::basename(filename), paths);
-		if (new_filename == "")
-		{
-			new_filename = File::find(filename, paths);
-		}
-		if (!File::exists(new_filename))
- 	  {
- 	   	throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, new_filename);
-    }
+		String new_filename = File::find(filename);
     if (!File::readable(new_filename))
     {
      	throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, new_filename);

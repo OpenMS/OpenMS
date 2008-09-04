@@ -385,12 +385,6 @@ class TOPPOMSSAAdapter
 			// read mapping for the modifications
 			String file = File::find("CHEMISTRY/OMSSA_modification_mapping");
 
-   		//try to open file
-    	if (!File::exists(file))
-    	{
-      	throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "CHEMISTRY/OMSSA_modification_mapping");
-    	}
-
     	TextFile infile(file);
 			Map<String, UInt> mods_map;
     	for (TextFile::ConstIterator it = infile.begin(); it != infile.end(); ++it)
