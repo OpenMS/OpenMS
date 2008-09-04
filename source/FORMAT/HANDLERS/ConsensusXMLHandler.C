@@ -173,6 +173,12 @@ namespace OpenMS
 				{
 					warning("The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
 				}
+				//handle file id
+				String id;
+				if (optionalAttributeAsString_(id, attributes, s_id))
+				{
+					consensus_map_->setIdentifier(id);
+				}
 			}
 			else if (equal_(qname,s_userparam))
 			{
@@ -212,7 +218,12 @@ namespace OpenMS
 			catch(Exception::FileNotFound&)
 			{
 			}
-      os << "<consensusXML version=\"" << version_ << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+      os << "<consensusXML version=\"" << version_ << "\"";
+			if (consensus_map_->getIdentifier()!="")
+			{
+				os << " id=\"" << consensus_map_->getIdentifier() << "\"";
+			}
+      os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
       const ConsensusMap::FileDescriptions& description_vector = consensus_map_->getFileDescriptions();
       os << "\t<mapList count=\"" << description_vector.size() << "\">\n";

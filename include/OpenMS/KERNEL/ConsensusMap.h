@@ -85,7 +85,9 @@ namespace OpenMS
 	    /// Default onstructor
 	    inline ConsensusMap()
 	      : Base(),
-	      	RangeManagerType()
+	      	RangeManagerType(),
+	        file_description_(),
+	        identifier_()
 	    {
 	    }
 	
@@ -93,7 +95,8 @@ namespace OpenMS
 	    inline ConsensusMap(const ConsensusMap& source)
 	      : Base(source),
 	      	RangeManagerType(source),
-	        file_description_(source.file_description_)
+	        file_description_(source.file_description_),
+	        identifier_(source.identifier_)
 	    {
 	    }
 	
@@ -104,7 +107,10 @@ namespace OpenMS
 	
 	    /// Creates a ConsensusMap with n elements
 	    inline ConsensusMap(Base::size_type n) 
-	    	: Base(n)
+	    	: Base(n),
+	      	RangeManagerType(),
+	        file_description_(),
+	        identifier_()
 	    {
 	    }
 	
@@ -116,6 +122,7 @@ namespace OpenMS
 	      Base::operator=(source);
 				RangeManagerType::operator=(source);
 	      file_description_ = source.file_description_;
+	      identifier_ = source.identifier_;
 	      
 	      return *this;
 	    }
@@ -131,7 +138,18 @@ namespace OpenMS
 	    {
 	      return file_description_;
 	    }
-	    			
+
+			/// returns the identifier e.g. a LSID
+			inline const String& getIdentifier() const
+			{
+				return identifier_;
+			}
+			/// sets the identifier e.g. a LSID
+			inline void setIdentifier(const String& identifier)
+			{
+				identifier_ = identifier;
+			}
+
 			///Checks if all map identifiers in FeatureHandles are have a filename associated
 			bool isValid() const;
 			
@@ -205,6 +223,8 @@ namespace OpenMS
 	  protected:
 	    /// Map from index to file description
 	  	FileDescriptions file_description_;
+	  	/// Unique identifier e.g. LSID
+	  	String identifier_;
   };
 
   ///Print the contents of a ConsensusMap to a stream.

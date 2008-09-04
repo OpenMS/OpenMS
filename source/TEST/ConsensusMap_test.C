@@ -52,6 +52,17 @@ CHECK((~ConsensusMap()))
 	delete ptr;
 RESULT
 
+CHECK((const String& getIdentifier() const))
+	ConsensusMap tmp;
+	TEST_EQUAL(tmp.getIdentifier(), "");
+RESULT
+
+CHECK((void setIdentifier(const String& identifier)))
+	ConsensusMap tmp;
+	tmp.setIdentifier("bla");
+	TEST_EQUAL(tmp.getIdentifier(), "bla");
+RESULT
+
 Feature feature1;
 feature1.getPosition()[0] = 2.0;
 feature1.getPosition()[1] = 3.0;
@@ -128,6 +139,7 @@ RESULT
 
 CHECK((ConsensusMap& operator = (const ConsensusMap& source)))
   ConsensusMap cons_map;
+  cons_map.setIdentifier("lsid");
   cons_map.getFileDescriptions()[0].filename = "blub";
   cons_map.getFileDescriptions()[0].size = 47;
   cons_map.getFileDescriptions()[0].label = "label";
@@ -136,7 +148,8 @@ CHECK((ConsensusMap& operator = (const ConsensusMap& source)))
   
   ConsensusMap cons_map_copy;
   cons_map_copy = cons_map;
-  
+
+  TEST_EQUAL(cons_map_copy.getIdentifier(),"lsid")
   TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].filename == "blub", true)
   TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].label == "label", true)
   TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].size == 47, true)
@@ -145,6 +158,7 @@ RESULT
 
 CHECK((ConsensusMap(const ConsensusMap& source)))
   ConsensusMap cons_map;
+  cons_map.setIdentifier("lsid");
   cons_map.getFileDescriptions()[0].filename = "blub";
   cons_map.getFileDescriptions()[0].size = 47;
   cons_map.getFileDescriptions()[0].label = "label";
@@ -152,7 +166,8 @@ CHECK((ConsensusMap(const ConsensusMap& source)))
   vector< FeatureMap<>* > map_vector(4);
   
   ConsensusMap cons_map_copy(cons_map);
-  
+
+  TEST_EQUAL(cons_map_copy.getIdentifier(),"lsid")
   TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].filename == "blub", true)
   TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].label == "label", true)
   TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].size == 47, true)

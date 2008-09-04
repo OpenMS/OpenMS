@@ -62,6 +62,7 @@ CHECK((void load(const String &filename, ConsensusMap &map) throw (Exception::Fi
   ConsensusMap cons_map;
   ConsensusXMLFile cons_file;
   cons_file.load("data/ConsensusXMLFile.xml", cons_map);
+  TEST_EQUAL(cons_map.getIdentifier(),"lsid");
   TEST_EQUAL(cons_map.getFileDescriptions()[0].filename == "data/MapAlignmentFeatureMap1.xml", true)
   TEST_EQUAL(cons_map.getFileDescriptions()[0].label,"label")
   TEST_EQUAL(cons_map.getFileDescriptions()[0].size, 144)
