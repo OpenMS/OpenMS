@@ -154,13 +154,7 @@ class TOPPPepNovoAdapter
 			registerStringOption_("contact_info", "<info>", "unknown", "Some information about the contact", false);
 		}
 
-  UInt
-		MSExperiment2DTAs(
-			MSExperiment<Peak1D>& msexperiment,
-			const String& common_name,
-			const vector< Int >& charges,
-			map< String, Real >& dta_filenames_and_precursor_retention_times,
-			bool make_dtas = true)
+  UInt MSExperiment2DTAs(MSExperiment<Peak1D>& msexperiment, const String& common_name,	const vector< Int >& charges,	map< String, Real >& dta_filenames_and_precursor_retention_times, bool make_dtas = true)
 		throw (Exception::UnableToCreateFile)
 		{
 			DTAFile dtafile;
@@ -256,7 +250,7 @@ class TOPPPepNovoAdapter
 				monoisotopic(false),
 				make_dtas(false);
 
-			vector< String >
+			vector<String>
 				substrings,
 				substrings2,
 				spectra,
@@ -278,9 +272,9 @@ class TOPPPepNovoAdapter
 				writable(4),
 				delete_afterwards(8);
 
-			vector< Int > charges;
+			vector<Int> charges;
 
-			map< String, Real > dta_filenames_and_precursor_retention_times;
+			map<String, Real> dta_filenames_and_precursor_retention_times;
 
 			/*
 				LTQ - linear quadrupole ion trap
