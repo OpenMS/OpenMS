@@ -55,6 +55,7 @@ namespace OpenMS
 		
 		@todo Add support for int/float lists (Hiwi)
 		@todo Replace advanced flag by a more generic approach i.e. string tags (Hiwi)
+		@todo parseCommandLine: unknown and misc values should be string lists (Hiwi)
 
 		@see DefaultParamHandler
 		

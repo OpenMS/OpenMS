@@ -36,7 +36,8 @@ UTILS_EXECUTABLES=\
 	Digestor\
 	IdXMLInfo\
 	XMLValidator\
-	FFEval
+	FFEval\
+	HistView
 
 all: $(UTILS_EXECUTABLES)
 
