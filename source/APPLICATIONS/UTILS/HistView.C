@@ -57,10 +57,10 @@ void print_usage()
 			 << " HistView <input> [options]" << endl
 			 << endl
 			 << "Options are:" << endl
-			 << "  -bins <int>   The number of bins." << endl
-			 << "  -min <float>  Start of value range." << endl
-			 << "  -max <float>  End of value range" << endl
-			 << "  -v            Print verbose information to the command line" << endl
+			 << "  -bins <int>   The number of bins (default: 100)" << endl
+			 << "  -min <float>  Start of value range (default: data minimum)" << endl
+			 << "  -max <float>  End of value range (default: data maximum)" << endl
+			 << "  -v            Prints verbose information to the command line" << endl
 			 << "  --help        Shows this help" << endl
 			 << endl
 			 << "Note: <input> must contain one number per line!" << endl
