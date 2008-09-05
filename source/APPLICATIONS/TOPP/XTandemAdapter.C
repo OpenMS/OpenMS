@@ -218,20 +218,13 @@ class TOPPXTandemAdapter
 
 			infile.setPrecursorMassTolerancePlus(getDoubleOption_("precursor_mass_tolerance"));
 			infile.setPrecursorMassToleranceMinus(getDoubleOption_("precursor_mass_tolerance"));
-
 			infile.setFragmentMassTolerance(getDoubleOption_("fragment_mass_tolerance"));
-
 			infile.setMaxPrecursorCharge(getIntOption_("max_precursor_charge"));
 			infile.setNumberOfThreads(getIntOption_("threads"));
-			
 			infile.setModifications(ModificationDefinitionsSet(getStringOption_("fixed_modifications"), getStringOption_("variable_modifications")));
-			
 			infile.setTaxon("OpenMS_dummy_taxonomy");
-
 			infile.setMaxValidEValue(getDoubleOption_("max_valid_expect"));
-			
 			infile.setNumberOfMissedCleavages(getIntOption_("missed_cleavages"));
-
 			infile.write(input_filename);
 			
 			vector<ProteinIdentification> protein_identifications;
