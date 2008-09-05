@@ -39,4 +39,5 @@
 	- @subpage Digestor
   - @subpage FuzzyDiff
   - @subpage FFEval
+  - @subpage HistView
 */
