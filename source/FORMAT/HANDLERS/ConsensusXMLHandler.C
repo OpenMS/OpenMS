@@ -184,18 +184,28 @@ namespace OpenMS
 			{
 				String name = attributeAsString_(attributes,s_name);
 				String type = attributeAsString_(attributes,s_type);
-				
+				//determine where to read to
+				MetaInfoInterface* meta;
+				if (consensus_map_->getFileDescriptions().size()==0) //consensus map
+				{
+					meta = consensus_map_;
+				}
+				else //last file description
+				{
+					meta = &(consensus_map_->getFileDescriptions()[last_map_]);
+				}
+				//read data
 				if(type=="int")
 				{
-					consensus_map_->getFileDescriptions()[last_map_].setMetaValue(name, attributeAsInt_(attributes,s_value));
+					meta->setMetaValue(name, attributeAsInt_(attributes,s_value));
 				}
 				else if (type=="float")
 				{
-					consensus_map_->getFileDescriptions()[last_map_].setMetaValue(name, attributeAsDouble_(attributes,s_value));
+					meta->setMetaValue(name, attributeAsDouble_(attributes,s_value));
 				}
 				else if (type=="string")
 				{
-					consensus_map_->getFileDescriptions()[last_map_].setMetaValue(name, (String)attributeAsString_(attributes,s_value));
+					meta->setMetaValue(name, (String)attributeAsString_(attributes,s_value));
 				}
 				else
 				{
@@ -224,7 +234,11 @@ namespace OpenMS
 				os << " id=\"" << consensus_map_->getIdentifier() << "\"";
 			}
       os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
-
+			
+			//user param
+			writeUserParam_("userParam", os, *consensus_map_, 1);
+			
+			//file descriptions
       const ConsensusMap::FileDescriptions& description_vector = consensus_map_->getFileDescriptions();
       os << "\t<mapList count=\"" << description_vector.size() << "\">\n";
       for (Map<UInt,ConsensusMap::FileDescription>::const_iterator it=description_vector.begin(); it!=description_vector.end(); ++it)
@@ -234,7 +248,8 @@ namespace OpenMS
       	os << "\t\t</map>\n";
       }
       os << "\t</mapList>\n";
-
+			
+			//consensus elements
       os << "\t<consensusElementList>\n";
       for (UInt i = 0; i < consensus_map_->size(); ++i)
       {

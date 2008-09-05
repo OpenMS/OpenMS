@@ -50,6 +50,7 @@ namespace OpenMS
   */
 	class ConsensusMap 
 		: public DPeakArray<ConsensusFeature>,
+			public MetaInfoInterface,
 			public RangeManager<2>
 	{
 	  public:
@@ -85,6 +86,7 @@ namespace OpenMS
 	    /// Default onstructor
 	    inline ConsensusMap()
 	      : Base(),
+	      	MetaInfoInterface(),
 	      	RangeManagerType(),
 	        file_description_(),
 	        identifier_()
@@ -94,6 +96,7 @@ namespace OpenMS
 	    /// Copy constructor
 	    inline ConsensusMap(const ConsensusMap& source)
 	      : Base(source),
+	      	MetaInfoInterface(source),
 	      	RangeManagerType(source),
 	        file_description_(source.file_description_),
 	        identifier_(source.identifier_)
@@ -108,6 +111,7 @@ namespace OpenMS
 	    /// Creates a ConsensusMap with n elements
 	    inline ConsensusMap(Base::size_type n) 
 	    	: Base(n),
+	    		MetaInfoInterface(),
 	      	RangeManagerType(),
 	        file_description_(),
 	        identifier_()
@@ -120,6 +124,7 @@ namespace OpenMS
 	      if (this==&source) return *this;
 	
 	      Base::operator=(source);
+	      MetaInfoInterface::operator=(source);
 				RangeManagerType::operator=(source);
 	      file_description_ = source.file_description_;
 	      identifier_ = source.identifier_;

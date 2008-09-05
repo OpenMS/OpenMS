@@ -44,6 +44,7 @@ ConsensusMap* ptr = 0;
 CHECK((ConsensusMap()))
 	ptr = new ConsensusMap();
 	TEST_NOT_EQUAL(ptr, 0)
+	TEST_EQUAL(ptr->isMetaEmpty(),true)
 	TEST_REAL_EQUAL(ptr->getMinInt(), numeric_limits<DoubleReal>::max())
 	TEST_REAL_EQUAL(ptr->getMaxInt(), -numeric_limits<DoubleReal>::max())
 RESULT
@@ -139,6 +140,7 @@ RESULT
 
 CHECK((ConsensusMap& operator = (const ConsensusMap& source)))
   ConsensusMap cons_map;
+  cons_map.setMetaValue("meta",String("value"));
   cons_map.setIdentifier("lsid");
   cons_map.getFileDescriptions()[0].filename = "blub";
   cons_map.getFileDescriptions()[0].size = 47;
@@ -150,6 +152,7 @@ CHECK((ConsensusMap& operator = (const ConsensusMap& source)))
   cons_map_copy = cons_map;
 
   TEST_EQUAL(cons_map_copy.getIdentifier(),"lsid")
+  TEST_EQUAL(cons_map_copy.getMetaValue("meta").toString(),"value")
   TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].filename == "blub", true)
   TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].label == "label", true)
   TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].size == 47, true)
@@ -158,6 +161,7 @@ RESULT
 
 CHECK((ConsensusMap(const ConsensusMap& source)))
   ConsensusMap cons_map;
+  cons_map.setMetaValue("meta",String("value"));
   cons_map.setIdentifier("lsid");
   cons_map.getFileDescriptions()[0].filename = "blub";
   cons_map.getFileDescriptions()[0].size = 47;
@@ -168,6 +172,7 @@ CHECK((ConsensusMap(const ConsensusMap& source)))
   ConsensusMap cons_map_copy(cons_map);
 
   TEST_EQUAL(cons_map_copy.getIdentifier(),"lsid")
+  TEST_EQUAL(cons_map_copy.getMetaValue("meta").toString(),"value")
   TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].filename == "blub", true)
   TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].label == "label", true)
   TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].size == 47, true)

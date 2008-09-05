@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////raid/sturm/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.2" id="lsid" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<userParam type="string" name="name1" value="value1"/>
+	<userParam type="int" name="name2" value="2"/>
 	<mapList count="2">
 		<map id="0" name="data/MapAlignmentFeatureMap1.xml" label="label" size="144">
-			<userParam type="string" name="name1" value="value1"/>
-			<userParam type="int" name="name2" value="2"/>
+			<userParam type="string" name="name3" value="value3"/>
+			<userParam type="int" name="name4" value="4"/>
 		</map>
 		<map id="1" name="data/MapAlignmentFeatureMap2.xml" label="" size="0">
-			<userParam type="string" name="name3" value="value3"/>
-			<userParam type="float" name="name4" value="4"/>
+			<userParam type="string" name="name5" value="value5"/>
+			<userParam type="float" name="name6" value="6"/>
 		</map>
 	</mapList>
 	<consensusElementList>

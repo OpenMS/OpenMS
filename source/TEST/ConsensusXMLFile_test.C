@@ -62,13 +62,19 @@ CHECK((void load(const String &filename, ConsensusMap &map) throw (Exception::Fi
   ConsensusMap cons_map;
   ConsensusXMLFile cons_file;
   cons_file.load("data/ConsensusXMLFile.xml", cons_map);
+	TEST_EQUAL(cons_map.getMetaValue("name1")==DataValue("value1"),true)
+	TEST_EQUAL(cons_map.getMetaValue("name2")==DataValue(2),true)
   TEST_EQUAL(cons_map.getIdentifier(),"lsid");
   TEST_EQUAL(cons_map.getFileDescriptions()[0].filename == "data/MapAlignmentFeatureMap1.xml", true)
   TEST_EQUAL(cons_map.getFileDescriptions()[0].label,"label")
   TEST_EQUAL(cons_map.getFileDescriptions()[0].size, 144)
+	TEST_EQUAL(cons_map.getFileDescriptions()[0].getMetaValue("name3")==DataValue("value3"),true)
+	TEST_EQUAL(cons_map.getFileDescriptions()[0].getMetaValue("name4")==DataValue(4),true)
   TEST_STRING_EQUAL(cons_map.getFileDescriptions()[1].filename,"data/MapAlignmentFeatureMap2.xml")
   TEST_EQUAL(cons_map.getFileDescriptions()[1].label,"")
   TEST_EQUAL(cons_map.getFileDescriptions()[1].size, 0)
+	TEST_EQUAL(cons_map.getFileDescriptions()[1].getMetaValue("name5")==DataValue("value5"),true)
+	TEST_EQUAL(cons_map.getFileDescriptions()[1].getMetaValue("name6")==DataValue(6.0),true)
 
   ConsensusFeature cons_feature = cons_map[0];
   TEST_REAL_EQUAL(cons_feature.getRT(),1273.27)  
