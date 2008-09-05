@@ -67,9 +67,34 @@ namespace OpenMS
 		return modified_residues_.size();
 	}
 		
-	const set<const Residue*>& ResidueDB::getResidues() const
+	const set<const Residue*> ResidueDB::getResidues(AminoAcidSet aa_set) const
 	{
-		return const_residues_;
+		if (aa_set == ALL)
+		{
+			return const_residues_;
+		}
+		String aa;
+		set<const Residue*> residues;
+		if (aa_set == NATURAL_20)
+		{
+			aa = "ACDEFGHIKLMNPQRSTVWY";
+		}
+
+		if (aa_set == NATURAL_19)
+		{
+			aa = "ACDEFGHKLMNPQRSTVWY";
+		}
+	
+		if (aa == "")
+		{
+			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "AminoAcidSet cannot be found: '" + String(aa_set) + "'");
+		}
+		
+		for (String::ConstIterator it = aa.begin(); it != aa.end(); ++it)
+		{
+			residues.insert(getResidue(*it));
+		}
+		return residues;	
 	}
 
 	void ResidueDB::setResidues(const String& file_name)

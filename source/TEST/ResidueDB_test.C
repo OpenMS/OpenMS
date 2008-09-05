@@ -62,7 +62,7 @@ CHECK((bool hasResidue(const String &name) const))
 RESULT
 
 CHECK(UInt getNumberOfResidues() const)
-	TEST_EQUAL(ptr->getNumberOfResidues(), 20);
+	TEST_EQUAL(ptr->getNumberOfResidues(), 21);
 RESULT
 
 CHECK(const Residue* getModifiedResidue(const String &name))
@@ -78,8 +78,12 @@ CHECK(const Residue* getModifiedResidue(const Residue *residue, const String &na
 RESULT
     
 CHECK(const std::set<const Residue*>& getResidues() const)
-	set<const Residue*> residues = ptr->getResidues();
+	set<const Residue*> residues = ptr->getResidues(ResidueDB::ALL);
+	TEST_EQUAL(residues.size(), 21)
+	residues = ptr->getResidues(ResidueDB::NATURAL_20);
 	TEST_EQUAL(residues.size(), 20)
+	residues = ptr->getResidues(ResidueDB::NATURAL_19);
+	TEST_EQUAL(residues.size(), 19)
 RESULT
 
 CHECK(void setResidues(const String &filename))
@@ -88,16 +92,16 @@ RESULT
     
 CHECK(void addResidue(const Residue &residue))
 	TEST_EQUAL(ptr->hasResidue("UGU"), false)
-	TEST_EQUAL(ptr->hasResidue("U"), false)
+	TEST_EQUAL(ptr->hasResidue("$"), false)
 	Residue res;
-	res.setShortName("U");
-	res.setOneLetterCode("U");
+	res.setShortName("$");
+	res.setOneLetterCode("$");
 	res.setThreeLetterCode("UGU");
 	res.setName("MyLittleUGUResidue");
 	res.setFormula(EmpiricalFormula("C3H4O4"));
 	ptr->addResidue(res);
 	TEST_EQUAL(ptr->hasResidue("UGU"), true)
-	TEST_EQUAL(ptr->hasResidue("U"), true)
+	TEST_EQUAL(ptr->hasResidue("$"), true)
 RESULT
 
 CHECK(ResidueIterator beginResidue())
@@ -109,7 +113,7 @@ CHECK(ResidueIterator beginResidue())
 		++count;
 	}
 
-	TEST_EQUAL(count, 21)
+	TEST_EQUAL(count, 22)
 RESULT
   
 CHECK(ResidueIterator endResidue())
@@ -125,7 +129,7 @@ CHECK(ResidueConstIterator beginResidue() const)
 		++it;
 		++count;
 	}
-	TEST_EQUAL(count, 21)
+	TEST_EQUAL(count, 22)
 RESULT
 
 CHECK(ResidueConstIterator endResidue() const)

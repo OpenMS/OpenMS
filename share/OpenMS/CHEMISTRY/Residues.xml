@@ -275,6 +275,24 @@
 				<ITEM name="" value="" type="string" />
 			</NODE>
 		</NODE>
+		<NODE name="Selenocysteine">
+			<ITEM name="Name" value="Selenocysteine" type="string" />
+			<ITEM name="ShortName" value="Sec" type="string" />
+			<ITEM name="ThreeLetterCode" value="SEC" type="string" />
+			<ITEM name="OneLetterCode" value="U" type="string" />
+			<NODE name="Synonyms">
+				<ITEM name="Sec" value="Sec" type="string" />
+			</NODE>
+			<ITEM name="Formula" value="C3H7NO2Se" type="string" />
+      <ITEM name="LossName" value="" type="string" />
+      <ITEM name="LossFormula" value="H2S" type="string" />
+      <ITEM name="GB_SC" value="0.00" type="string" />
+      <ITEM name="GB_BB_L" value="880.99" type="string" />
+      <ITEM name="GB_BB_R" value="0.12" type="string" />
+      <NODE name="LowMassIons">
+        <ITEM name="" value="" type="string" />
+      </NODE>
+		</NODE>
 		<NODE name="Serine">
 			<ITEM name="Name" value="Serine" type="string" />
 			<ITEM name="ShortName" value="Ser" type="string" />
