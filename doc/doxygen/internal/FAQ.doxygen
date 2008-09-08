@@ -455,6 +455,43 @@
 			</OL>
 			
 		</UL>
+
+	<H2 style="border-top:2px solid grey;">Contrib libraries</H2>
+		<UL>
+    <LI><B>How to upgrade to a new snapshot version of SeqAn?</B></LI>
+			<OL>
+         <LI>If there is a recent SeqAn release that works, use it instead ;-) Otherwise:
+         <LI>Checkout the lasted stuff from SVN.
+         <LI>Create new generated forwards:<br>
+              <code>make Project=basic Platform=gcc clean</code><br>
+              <code>make Project=basic Platform=gcc</code><br>
+              You can obort the last command as soon as all forwards have been generated.
+         <LI>Copy the suitable <code>platform.h</code> from <code>platforms/{gcc,mingw,...}/seqan/platform.h</code> to <code>projects/library/seqan/</code>.
+             Note: currently the practice is to include \c gcc and support \c mingw through a patch.
+         <LI>Optionally, fix the file permissions (.h, .gif, etc. should not be executable)
+         <LI>Try the demos:<br>
+              <code>make -C projects/library/demos all</code><br>
+              (Now go there and call them one by one from the command line.)
+         <LI>You can try out whether %OpenMS would work with it by replacing <code>seqan/contrib/include/seqan</code>
+             with a symbolic link to <code>projects/library/seqan</code>.
+         <LI>Create the snapshot (documentation is also generated, this will take some minutes):<br>
+              <code>make Project=basic Platform=gcc snapshot</code>
+         <LI>Copy the snapshot to a new directory, named something like <code>SeqAn_snap_r2666_20080908/</code>,
+             unzip the snapshot <i>inside there</i>, remove the <code>.zip</code> file, <code>cd ..</code>,
+             and '<code>tar czf</code>' the directory.
+         <LI>Copy the <code>.tar.gz</code> to <code>contrib/src/Seqan...tar.gz</code>
+         <LI>Adapt in contrib/Makefile.in the line 'SEQAN_SRC_DIR=SeqAn_snap_r2666_20080908' accordingly
+         <LI>In <code>contrib/</code>:<br>
+             <code>rm -Rf src/Seqan.../ src/Seqan....is_patched include/seqan</code><br>
+             <code>./configure</code><br>
+             <code>make seqan</code>
+         <LI>In %OpenMS/: Make sure you have generated full <code>.Dependencies</code> (<code>make depend</code>, not <code>make depend_strip</code>).
+             Rebuild the library: <code>make lib install test</code>; this should only affect a few classes.
+         <LI>Commit everything, send an email do developers mentioning revision numbers (for %OpenMS, contrib, SeqAn)
+         <LI>Consider updating this FAQ entry.
+      </OL>
+		</UL>
+
 		
 */
 
