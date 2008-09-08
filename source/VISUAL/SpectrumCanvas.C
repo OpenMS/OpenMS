@@ -576,11 +576,13 @@ namespace OpenMS
 		// Alt/Shift pressed => change action mode
 		if (e->key()==Qt::Key_Control)
 		{
+			e->accept();
 			action_mode_ = AM_ZOOM;
 			emit actionModeChange();
 		}
 		else if (e->key()==Qt::Key_Shift)
 		{
+			e->accept();
 			action_mode_ = AM_MEASURE;
 			emit actionModeChange();
 		}
@@ -588,34 +590,41 @@ namespace OpenMS
 		// CTRL+/CTRL- => Zoom stack
 		if ((e->modifiers() & Qt::ControlModifier) && (e->key()==Qt::Key_Plus))
 		{
+			e->accept();
 			zoomForward_();
 		}
 		else if ((e->modifiers() & Qt::ControlModifier) && (e->key()==Qt::Key_Minus))
 		{
+			e->accept();
 			zoomBack_();
 		}
 		
 		// Arrow keys => translate
 		else if (e->key()==Qt::Key_Left)
 		{
+			e->accept();
 			translateLeft_();
 		}
 		else if (e->key()==Qt::Key_Right)
 		{
+			e->accept();
 			translateRight_();
 		}
 		else if (e->key()==Qt::Key_Up)
 		{
+			e->accept();
 			translateForward_();
 		}
 		else if (e->key()==Qt::Key_Down)
 		{
+			e->accept();
 			translateBackward_();
 		}
 		
 		//Backspace to reset zoom
 		else if (e->key()==Qt::Key_Backspace)
 		{
+			e->accept();
 			resetZoom();
 		}
 		

@@ -432,8 +432,43 @@ namespace OpenMS
 	
 	void Spectrum2DCanvas::updateProjections()
 	{
-		const LayerData& layer = getCurrentLayer();
-		if (layer.type != LayerData::DT_PEAK)
+		//try to find the right (peak) layer to project
+		const LayerData* layer = &(getCurrentLayer()); //first, try current layer
+		if (layer->type != LayerData::DT_PEAK) //second, check if more than one peak layer is present
+		{
+			UInt peak_layer_count = 0;
+			Int last_peak_layer = 0;
+			for(UInt i=0; i<getLayerCount(); ++i)
+			{
+				if (getLayer(i).type==LayerData::DT_PEAK)
+				{
+					++peak_layer_count;
+					last_peak_layer = i;
+				}
+			}
+			if (peak_layer_count==1)
+			{
+				layer = &(getLayer(last_peak_layer));
+			}
+		}
+		if (layer->type != LayerData::DT_PEAK) //third, check if more than one peak layer is visible
+		{
+			UInt peak_layer_count = 0;
+			Int last_peak_layer = 0;
+			for(UInt i=0; i<getLayerCount(); ++i)
+			{
+				if (getLayer(i).type==LayerData::DT_PEAK && getLayer(i).visible)
+				{
+					++peak_layer_count;
+					last_peak_layer = i;
+				}
+			}
+			if (peak_layer_count==1)
+			{
+				layer = &(getLayer(last_peak_layer));
+			}
+		}
+		if (layer->type != LayerData::DT_PEAK)//forth, abort of no peak layer or several peak layers are present
 		{
 			QMessageBox::critical(this,"Error","Cannot show projections of feature layers!");
 			return;	
@@ -453,12 +488,12 @@ namespace OpenMS
 		float mult = 1.0/prec;
 
 
-		for (ExperimentType::ConstAreaIterator i = layer.peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
-				 i != layer.peaks.areaEndConst();
+		for (ExperimentType::ConstAreaIterator i = layer->peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
+				 i != layer->peaks.areaEndConst();
 				 ++i)
 		{
 			PeakIndex pi = i.getPeakIndex();
-			if (layer.filters.passes(layer.peaks[pi.spectrum],pi.peak))
+			if (layer->filters.passes(layer->peaks[pi.spectrum],pi.peak))
 			{
 				//sum
 				++peak_count;

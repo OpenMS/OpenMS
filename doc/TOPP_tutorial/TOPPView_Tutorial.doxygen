@@ -309,6 +309,8 @@
 			<TR> <TD>CTRL+,CTRL-</TD> <TD>Move up and down in zoom history</TD> </TR>
 			<TR> <TD>CTRL+G</TD> <TD>Goto dialog</TD> </TR>
 			<TR> <TD>Backspace</TD> <TD>Reset zoom</TD> </TR>
+			<TR> <TD>PageUp</TD> <TD>Select previous layer</TD> </TR>
+			<TR> <TD>PageDown</TD> <TD>Select next layer</TD> </TR>
 
 			<TR> <TD colspan=2><B>Visualization options</B></TD> </TR>
 			<TR> <TD>CTRL+R</TD> <TD>Show/hide grid lines </TD> </TR>

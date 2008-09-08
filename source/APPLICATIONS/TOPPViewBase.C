@@ -359,7 +359,7 @@ namespace OpenMS
     QDockWidget* layer_bar = new QDockWidget("Layers", this);
     addDockWidget(Qt::RightDockWidgetArea, layer_bar);
     layer_manager_ = new QListWidget(layer_bar);
-    layer_manager_->setWhatsThis("Layer bar<BR><BR>Here the availabe layers are shown. Left-click on a layer to select it.<BR>Layers can be shown and hidden using the checkboxes in front of the name.<BR> Renaming and removing a layer is possible through the context menu.<BR>Dragging a layer to the tab bar copies the layer.<BR>Double-clicking a layer open its preferences.");
+    layer_manager_->setWhatsThis("Layer bar<BR><BR>Here the availabe layers are shown. Left-click on a layer to select it.<BR>Layers can be shown and hidden using the checkboxes in front of the name.<BR> Renaming and removing a layer is possible through the context menu.<BR>Dragging a layer to the tab bar copies the layer.<BR>Double-clicking a layer open its preferences.<BR>You can use the 'PageUp' and 'PageDown' buttons to change the selected layer.");
 
     layer_bar->setWidget(layer_manager_);
     layer_manager_->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -2362,6 +2362,43 @@ namespace OpenMS
 
 		//reset cursor
   	setCursor(Qt::ArrowCursor);		
+	}
+
+	void TOPPViewBase::keyPressEvent(QKeyEvent* e)
+	{
+ 		SpectrumCanvas* canvas = activeCanvas_();
+    if (canvas == 0 || canvas->getLayerCount()==0)
+    {
+    	e->ignore();
+      return;
+    }
+    
+		//page up => go one layer up
+		if (e->key()==Qt::Key_PageUp)
+		{
+			if (canvas->activeLayerIndex()!=0)
+			{
+				canvas->activateLayer(canvas->activeLayerIndex()-1);
+				updateLayerBar();
+				updateFilterBar();
+				updateMenu();
+				e->accept();
+			}
+		}
+		//page down => go one layer down
+		else if (e->key()==Qt::Key_PageDown)
+		{
+			if (canvas->activeLayerIndex()!=canvas->getLayerCount()-1)
+			{
+				canvas->activateLayer(canvas->activeLayerIndex()+1);
+				updateLayerBar();
+				updateFilterBar();
+				updateMenu();
+				e->accept();
+			}
+		}
+		
+		e->ignore();
 	}
 
 } //namespace OpenMS

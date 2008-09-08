@@ -390,9 +390,11 @@ namespace OpenMS
 
       /// check if all avaiable preferences get set by the .ini file. If there are some missing entries fill them with default values.
       void checkPreferences_();
-      ///reimplemented Qt close event
+      ///@name reimplemented Qt events
+      //@{
       void closeEvent(QCloseEvent* event);
-			///shows a log message in the log window
+			void keyPressEvent(QKeyEvent* e);
+			//@}
 			
 			///Log message states
 			enum LogState
