@@ -152,7 +152,7 @@ class TOPPXTandemAdapter
 			String unique_name = File::getUniqueName(); // body for the tmp files
 
 			String input_filename("/tmp/" + unique_name + "_tandem_input_file.xml");
-			String tandem_input_filename("/tmp/" + unique_name + "_tandem_input_file.mgf");
+			String tandem_input_filename("/tmp/" + unique_name + "_tandem_input_file.mzData");
 			String tandem_output_filename("/tmp/" + unique_name + "_tandem_output_file.xml");
 			String tandem_taxonomy_filename("/tmp/" + unique_name + "_tandem_taxonomy_file.xml");
 	
@@ -166,10 +166,17 @@ class TOPPXTandemAdapter
 			mzdata_infile.setLogType(log_type_);
 			mzdata_infile.load(inputfile_name, exp);
 
-			MascotInfile mgf_file;
-			mgf_file.store(tandem_input_filename, exp, "XTandemSearch");
+			// We store the file in mzData file format, because mgf file somehow produce in most 
+			// of the cases ids with charge 2+. We do not use the input file of this TOPP-tools
+			// because XTandem sometimes stumbles over misleading substrings in the filename,
+			// e.g. mzXML ...
+			MzDataFile mzdata_outfile;
+			mzdata_outfile.store(tandem_input_filename, exp);
+			//MascotInfile mgf_file;
+			//mgf_file.store(tandem_input_filename, exp, "XTandemSearch");
 
 			infile.setInputFilename(tandem_input_filename);
+			//infile.setInputFilename(inputfile_name);
 			infile.setOutputFilename(tandem_output_filename);
 
 			
