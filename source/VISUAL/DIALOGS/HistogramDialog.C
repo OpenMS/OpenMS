@@ -94,6 +94,12 @@ namespace OpenMS
 	{
 		mw_->setLegend(legend);
 	}
-	
+
+	void HistogramDialog::setLogMode(bool log_mode)
+	{
+		mw_->setLogMode(log_mode);
+	}
+
+
 
 } //namespace OpenMS

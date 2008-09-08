@@ -30,6 +30,7 @@
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPaintEvent>
 #include <QtGui/QPainter>
+#include <QtGui/QMenu>
 
 // STL
 #include <iostream>
@@ -44,17 +45,15 @@ namespace OpenMS
 {
 	using namespace Math;
 	
-	HistogramWidget::HistogramWidget(const Histogram<UInt,float>& distribution, QWidget* parent)
+	HistogramWidget::HistogramWidget(const Histogram<UInt,Real>& distribution, QWidget* parent)
 	  : QWidget(parent),
 		dist_(distribution),
 		show_splitters_(false),
 		moving_splitter_(0),
 		margin_(30),
-		buffer_()
+		buffer_(),
+		log_mode_(false)
 	{
-     //use log scale for int 	 
-     dist_.applyLogTransformation(100);
-     
 		left_splitter_ =  dist_.min();
 		right_splitter_ = dist_.max();
 		setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
@@ -63,6 +62,10 @@ namespace OpenMS
 		bottom_axis_->setMargin(margin_);
 		bottom_axis_->setTickLevel(2);
 		bottom_axis_->setAxisBounds(dist_.min(),dist_.max());
+		
+		//signals and slots
+		setContextMenuPolicy(Qt::CustomContextMenu);
+		connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenu(const QPoint&)));
 	}
 	
 	HistogramWidget::~HistogramWidget()
@@ -70,12 +73,12 @@ namespace OpenMS
 		delete(bottom_axis_);
 	}
 	
-	float HistogramWidget::getLeftSplitter()
+	Real HistogramWidget::getLeftSplitter()
 	{
 		return left_splitter_;	
 	}
 	
-	float HistogramWidget::getRightSplitter()
+	Real HistogramWidget::getRightSplitter()
 	{
 		return right_splitter_;	
 	}
@@ -85,12 +88,12 @@ namespace OpenMS
 		show_splitters_=on;	
 	}
 	
-	void HistogramWidget::setRightSplitter(float pos)
+	void HistogramWidget::setRightSplitter(Real pos)
 	{
 		right_splitter_=min(dist_.max(),pos);
 	}
 	
-	void HistogramWidget::setLeftSplitter(float pos)
+	void HistogramWidget::setLeftSplitter(Real pos)
 	{
 		left_splitter_=max(dist_.min(),pos);
 	}
@@ -101,7 +104,7 @@ namespace OpenMS
 	}
 	
 	
-	void HistogramWidget::mousePressEvent( QMouseEvent *e)
+	void HistogramWidget::mousePressEvent(QMouseEvent* e)
 	{
 		if (show_splitters_ && e->button()==Qt::LeftButton)
 		{
@@ -126,14 +129,14 @@ namespace OpenMS
 		}
 	}
 	
-	void HistogramWidget::mouseMoveEvent( QMouseEvent *e)
+	void HistogramWidget::mouseMoveEvent(QMouseEvent* e)
 	{
 		if (show_splitters_ && (e->buttons() & Qt::LeftButton))
 		{
 			//left
 			if (moving_splitter_==1)
 			{
-				left_splitter_ = float(Int(e->x())-Int(margin_))/(width()-2*margin_)*(dist_.max()-dist_.min())+dist_.min();
+				left_splitter_ = Real(Int(e->x())-Int(margin_))/(width()-2*margin_)*(dist_.max()-dist_.min())+dist_.min();
 				//upper bound
 				if (left_splitter_>right_splitter_-(dist_.max()-dist_.min())/50.0)
 				{
@@ -151,7 +154,7 @@ namespace OpenMS
 			if (moving_splitter_==2)
 			{
 				
-				right_splitter_ = float(Int(e->x())-Int(margin_))/(width()-2*margin_+2)*(dist_.max()-dist_.min())+dist_.min();
+				right_splitter_ = Real(Int(e->x())-Int(margin_))/(width()-2*margin_+2)*(dist_.max()-dist_.min())+dist_.min();
 				//upper bound
 				if (right_splitter_<left_splitter_+(dist_.max()-dist_.min())/50.0)
 				{
@@ -171,7 +174,7 @@ namespace OpenMS
 		}
 	}
 	
-	void HistogramWidget::mouseReleaseEvent( QMouseEvent *e)
+	void HistogramWidget::mouseReleaseEvent(QMouseEvent* e)
 	{
 		if (show_splitters_)
 		{
@@ -183,10 +186,19 @@ namespace OpenMS
 		}
 	}
 	
-	void HistogramWidget::paintEvent( QPaintEvent * /*e*/)
+	void HistogramWidget::paintEvent(QPaintEvent* /*e*/)
 	{
+		//histogram from buffer
 		QPainter painter2(this);
 		painter2.drawPixmap(margin_, 0, buffer_);
+
+		//y-axis label
+		painter2.rotate(270);
+		painter2.setPen(Qt::black);
+		QString label = "count";
+		if (log_mode_) label = "log ( count )";
+		painter2.drawText(0,0,-height(), margin_, Qt::AlignHCenter|Qt::AlignVCenter, label);
+		
 		
 		//draw splitters
 		if (show_splitters_)
@@ -212,7 +224,7 @@ namespace OpenMS
 		}
 	}
 	
-	void HistogramWidget::resizeEvent( QResizeEvent * /*e*/)
+	void HistogramWidget::resizeEvent(QResizeEvent* /*e*/)
 	{
 		buffer_ = QPixmap(width()-margin_,height()-bottom_axis_->height());
 		bottom_axis_->setGeometry(margin_,height()-bottom_axis_->height(),width()-margin_,bottom_axis_->height());
@@ -221,51 +233,92 @@ namespace OpenMS
 	
 	void HistogramWidget::invalidate_()
 	{
+		//apply log trafo if needed
+		Math::Histogram<UInt,Real> dist(dist_);
+		if (log_mode_)
+		{
+			dist.applyLogTransformation(100.0);
+		}
+		
 		QPainter painter(&buffer_);
 		buffer_.fill(palette().window().color());
 		UInt w = buffer_.width();
 		UInt h = buffer_.height();
-	
+		UInt pen_width = std::min(margin_,UInt(0.5*w/dist.size()));
+		
 		//draw distribution	
 		QPen pen;
-		pen.setWidth(UInt(rint(float(w)/(dist_.size()*2)))); //reconfigure pen width
+		pen.setWidth(pen_width);
 		pen.setColor(QColor(100,125,175));
 		painter.setPen(pen);
 		
-		for (UInt i=0; i<dist_.size();++i)
+		for (UInt i=0; i<dist.size();++i)
 		{
-			UInt p = UInt((float(i)/(dist_.size()-1))*(w-margin_));
-			UInt top = UInt(((DoubleReal)dist_[i]/dist_.maxValue())*(h-margin_));
-			painter.drawLine(p+1,h,p+1,h-top);
+			if (dist[i]!=0)
+			{
+				UInt bin_pos = UInt((Real(i)/(dist.size()-1))*(w-margin_));
+				UInt bin_height = UInt(((DoubleReal)dist[i]/dist.maxValue())*(h-margin_));
+				painter.drawLine(bin_pos+1,h,bin_pos+1,h-bin_height);
+			}
 		}
 	
 		//calculate total intensity
-		float total_sum=0;
-		for (UInt i=0; i<dist_.size();++i)
+		Real total_sum=0;
+		for (UInt i=0; i<dist.size();++i)
 		{
-			total_sum += dist_[i];
+			total_sum += dist[i];
 		}	
 	
 		// draw part of total intensity
 		painter.setPen(Qt::red);
 		QPoint last_point(1,h);
 		QPoint point;
-		float int_sum=0;
-		for (UInt i=0; i<dist_.size();++i)
+		Real int_sum=0;
+		for (UInt i=0; i<dist.size();++i)
 		{
-			int_sum += dist_[i];
-			point.setX(UInt((float(i)/(dist_.size()-1))*(w-margin_)));
+			int_sum += dist[i];
+			point.setX(UInt((Real(i)/(dist.size()-1))*(w-margin_)));
 			point.setY(UInt((1-(int_sum / total_sum))*(h-margin_)+margin_));
 			painter.drawLine(last_point,point);
 			last_point=point;
 		}	
-		//draw coord system	(on top distribution because of pen width)
+		//draw coord system	(on top distribution)
 		painter.setPen(Qt::black);
-	
-		painter.drawLine(0,margin_,0,h-1);
-		painter.drawLine(0,h-1,w-margin_+1,h-1);
+		painter.drawLine(0,h-1,w-margin_+0.5*pen_width,h-1);
 		
 		update();
 	}
+
+
+	void HistogramWidget::showContextMenu(const QPoint& pos)
+	{
+		//create menu
+		QMenu menu(this);
+		QAction* action = menu.addAction("Normal mode");
+		if (!log_mode_) action->setEnabled(false);
+		action = menu.addAction("Log mode");
+		if (log_mode_) action->setEnabled(false);
+		//execute
+		QAction* result = menu.exec(mapToGlobal(pos));
+		//change according to selected value
+		if (result!=0)
+		{
+			if (result->text()=="Normal mode")
+			{
+				setLogMode(false);
+			}
+			else if (result->text()=="Log mode")
+			{
+				setLogMode(true);
+			}
+		}
+	}
+
+	void HistogramWidget::setLogMode(bool log_mode)
+	{
+		log_mode_ = log_mode;
+		if (!buffer_.isNull()) invalidate_();
+	}
+
 
 } //namespace OpenMS

@@ -77,6 +77,8 @@ namespace OpenMS
 			void setRightSplitter(Real pos);
 			/// Sets the value of the left splitter
 			void setLeftSplitter(Real pos);
+			/// Enables/disables log mode
+			void setLogMode(bool log_mode);
 
 		protected:
 			/// the histogram to display
@@ -95,16 +97,21 @@ namespace OpenMS
 			UInt margin_;
 			/// internal buffer for the double buffering
 			QPixmap buffer_;
+			///Flag that indicates the current mode
+			bool log_mode_;
 			/// repaints the contents to the buffer and calls update()
 			void invalidate_();
 			///@name reimplemented Qt events
 			//@{
-			void paintEvent( QPaintEvent * );
-			void mousePressEvent( QMouseEvent *);
-			void mouseReleaseEvent( QMouseEvent *);
-			void mouseMoveEvent( QMouseEvent *);
-			void resizeEvent( QResizeEvent *);
+			void paintEvent(QPaintEvent*);
+			void mousePressEvent(QMouseEvent*);
+			void mouseReleaseEvent(QMouseEvent*);
+			void mouseMoveEvent(QMouseEvent*);
+			void resizeEvent(QResizeEvent*);
 			//@}
+		protected slots:
+			///Context menu event
+			void showContextMenu(const QPoint& pos);
 	};
 } // namespace OpenMS
 

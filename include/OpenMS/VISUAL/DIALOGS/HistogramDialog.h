@@ -63,7 +63,8 @@ namespace OpenMS
 			
 			/// Sets the axis legend
 			void setLegend(const String& legend);
-	
+			/// Sets log mode
+			void setLogMode(bool log_mode);
 
 		protected:
 			HistogramWidget *mw_;

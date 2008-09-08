@@ -117,7 +117,7 @@ namespace OpenMS
 		Histogram<UInt,Real> dist = createIntensityDistribution_();
 		HistogramDialog dw(dist);
 		dw.setLegend("intensity");
-		
+		dw.setLogMode(true);
 		if (dw.exec() == QDialog::Accepted)
 		{
 			DataFilters filters;

@@ -168,7 +168,7 @@ int main( int argc, const char** argv )
 	Histogram<UInt,Real> hist(min,max,bin_size);
 	for (UInt i=0; i<input_data.size(); ++i)
 	{
-		if (input_data[i]>min && input_data[i]<max)
+		if (input_data[i]>=min && input_data[i]<=max)
 		{
 			hist.inc(input_data[i]);
 		}
