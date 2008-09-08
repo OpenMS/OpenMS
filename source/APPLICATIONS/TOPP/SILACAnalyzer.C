@@ -336,8 +336,8 @@ class TOPPSILACAnalyzer
 						DoubleReal int_spline6 = gsl_spline_eval (spline2, mz+envelope_distance+2*isotope_distance, acc2);
 	
 						bool cond1 = (int_lin1 >= intensity_cutoff) && (int_lin2 >= intensity_cutoff) && (int_lin3 >= intensity_cutoff) && (int_lin4 >= intensity_cutoff) && (int_lin5 >= intensity_cutoff) && (int_lin6 >= intensity_cutoff); // all six intensities peak simultaneously
-						//bool cond2 = (int_spline3 <= int_spline1) && (int_spline5 <= int_spline3) && (int_spline4 <= int_spline2) && (int_spline6 <= int_spline4); // isotopic peaks within one envelop decrease
-						if (cond1)
+						bool cond2 = (int_spline3 <= int_spline1) && (int_spline5 <= int_spline3) && (int_spline4 <= int_spline2) && (int_spline6 <= int_spline4); // isotopic peaks within one envelop decrease
+						if (cond1 && cond2)
 						{
 			  			data.push_back(SILACData(rt_it->getRT(),mz,int_spline1,int_spline3,int_spline5,int_spline2,int_spline4,int_spline6));
 						}
