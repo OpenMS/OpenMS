@@ -511,6 +511,20 @@ namespace OpenMS
 				FileNotReadable(const char* file, int line, const char* function, const std::string& filename) throw();
 		};
 
+		/** 
+		  @brief File not writable exception.
+
+			A given file is not writable for the current user.
+
+			@ingroup Exceptions
+		*/
+	 	class FileNotWritable
+			: public BaseException
+		{
+			public:
+				FileNotWritable(const char* file, int line, const char* function, const std::string& filename) throw();
+		};
+
 		/**	
 			@brief File is empty.
 

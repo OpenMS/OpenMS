@@ -263,6 +263,13 @@ namespace OpenMS
 				globalHandler.setMessage(what_);
 			}
 
+			FileNotWritable::FileNotWritable(const char* file, int line, const char* function, const std::string& filename) throw()
+				: BaseException(file, line, function, "FileNotWritable", "")
+			{
+				what_ = "the file '" + filename + "' is not writable for the current user";
+				globalHandler.setMessage(what_);
+			}
+
 			FileEmpty::FileEmpty(const char* file, int line, const char* function, const std::string& filename) throw()
 				:	BaseException(file, line, function, "FileEmpty", "")
 			{
