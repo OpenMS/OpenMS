@@ -239,8 +239,8 @@ class TOPPSILACAnalyzer
       DoubleReal intensity_cutoff = getDoubleOption_("intensity_cutoff");
       DoubleReal rt_scaling = getDoubleOption_("rt_scaling");
       DoubleReal cluster_number_scaling = getDoubleOption_("cluster_number_scaling");
-			UInt cluster_min = getIntOption_("cluster_min");
-			UInt cluster_max = getIntOption_("cluster_max");
+			int cluster_min = getIntOption_("cluster_min");
+			int cluster_max = getIntOption_("cluster_max");
       
       String in = getStringOption_("in");
 			String out = getStringOption_("out");
@@ -260,13 +260,16 @@ class TOPPSILACAnalyzer
 	    // determine file name for debug output
       //--------------------------------------------------------------
       String debug_trunk = in;
+      //std::cout << "in=" << in << std::endl;
       if (in.has('.'))
       {
-      	String debug_trunk = in.substr(0,-in.suffix('.').length()-1);
+      	//std::cout << "yes" << std::endl;      	
+      	debug_trunk = in.substr(0,-in.suffix('.').length()-1);
+      	//std::cout << debug_trunk << std::endl;      	
 			}
 			
 			// number of clusters found for each charge state (filled with best_n, need to remember for gnuplot script)
-			Int cluster_number[] = {1,1,1,1,1,1,1,1,1,1};
+			int cluster_number[] = {1,1,1,1,1,1,1,1,1,1};
       
 			//iterate over all charge states
 			for (UInt charge=charge_min; charge<=charge_max; ++charge)
@@ -740,7 +743,7 @@ class TOPPSILACAnalyzer
   	    	
   	    	// write *_clusters.eps
 					stream_gnuplotscript << "set output \"" + debug_clusters + "\"" << std::endl;
-					stream_gnuplotscript << "set title \"SILACAnalyzer, mass separation = " << String(0.01*floor(mass_separation*100+0.5)) << " Da, charge = " << charge << "+, intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
+					stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << ", mass separation = " << String(0.01*floor(mass_separation*100+0.5)) << " Da, charge = " << charge << "+, intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
 					stream_gnuplotscript << "set xlabel \'[m/Z]=Th\'" << std::endl;
 					stream_gnuplotscript << "set ylabel \'[RT]=s\'" << std::endl;
 					stream_gnuplotscript << "plot";
@@ -753,7 +756,7 @@ class TOPPSILACAnalyzer
 
   	    	// write *_Clusters.eps
 					stream_gnuplotscript << "set output \"" + debug_Clusters + "\"" << std::endl;
-					stream_gnuplotscript << "set title \"SILACAnalyzer, mass separation = " << String(0.01*floor(mass_separation*100+0.5)) << " Da, charge = " << charge << "+, intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
+					stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << ", mass separation = " << String(0.01*floor(mass_separation*100+0.5)) << " Da, charge = " << charge << "+, intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
 					stream_gnuplotscript << "set xlabel \'[m/Z]=Th\'" << std::endl;
 					stream_gnuplotscript << "set ylabel \'[RT]=s\'" << std::endl;
 					stream_gnuplotscript << "plot";
@@ -766,7 +769,7 @@ class TOPPSILACAnalyzer
 
   	    	// write *_clustersInt.eps
 					stream_gnuplotscript << "set output \"" + debug_clustersInt + "\"" << std::endl;
-					stream_gnuplotscript << "set title \"SILACAnalyzer, mass separation = " << String(0.01*floor(mass_separation*100+0.5)) << " Da, charge = " << charge << "+, intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
+					stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << ", mass separation = " << String(0.01*floor(mass_separation*100+0.5)) << " Da, charge = " << charge << "+, intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
 					stream_gnuplotscript << "set xlabel \'intensity at m/Z\'" << std::endl;
 					stream_gnuplotscript << "set ylabel \'intensity at m/Z + " + String(0.01*floor(mass_separation/charge*100+0.5)) + "Th\'" << std::endl;
 					stream_gnuplotscript << "plot";
@@ -779,7 +782,7 @@ class TOPPSILACAnalyzer
 
   	    	// write *_ClustersInt.eps
 					stream_gnuplotscript << "set output \"" + debug_ClustersInt + "\"" << std::endl;
-					stream_gnuplotscript << "set title \"SILACAnalyzer, mass separation = " << String(0.01*floor(mass_separation*100+0.5)) << " Da, charge = " << charge << "+, intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
+					stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << ", mass separation = " << String(0.01*floor(mass_separation*100+0.5)) << " Da, charge = " << charge << "+, intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
 					stream_gnuplotscript << "set xlabel \'intensity at m/Z\'" << std::endl;
 					stream_gnuplotscript << "set ylabel \'intensity at m/Z + " + String(0.01*floor(mass_separation/charge*100+0.5)) + "Th\'" << std::endl;
 					stream_gnuplotscript << "plot";
@@ -792,7 +795,8 @@ class TOPPSILACAnalyzer
 
   	    	// write *_ratios.eps
 					stream_gnuplotscript << "set output \"" + debug_ratios + "\"" << std::endl;
-					stream_gnuplotscript << "set title \"SILACAnalyzer, mass separation = " << String(0.01*floor(mass_separation*100+0.5)) << " Da, charge = " << charge << "+, intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
+					stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << ", mass separation = " << String(0.01*floor(mass_separation*100+0.5)) << " Da, charge = " << charge << "+, intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
+					stream_gnuplotscript << "set nokey" << std::endl;
 					stream_gnuplotscript << "set xlabel \'m/Z\'" << std::endl;
 					stream_gnuplotscript << "set ylabel \'ratio\'" << std::endl;
 					stream_gnuplotscript << "plot \'" + debug_dat + "\' using 4:5";
@@ -800,9 +804,10 @@ class TOPPSILACAnalyzer
 						  		
   	    	// write *_sizes.eps
 					stream_gnuplotscript << "set output \"" + debug_sizes + "\"" << std::endl;
-					stream_gnuplotscript << "set title \"SILACAnalyzer, mass separation = " << String(0.01*floor(mass_separation*100+0.5)) << " Da, charge = " << charge << "+, intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
+					stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << ", mass separation = " << String(0.01*floor(mass_separation*100+0.5)) << " Da, charge = " << charge << "+, intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
+					stream_gnuplotscript << "set nokey" << std::endl;
 					stream_gnuplotscript << "set xlabel \'cluster ID\'" << std::endl;
-					stream_gnuplotscript << "set ylabel \'size\'" << std::endl;
+					stream_gnuplotscript << "set ylabel \'cluster size\'" << std::endl;
 					stream_gnuplotscript << "plot \'" + debug_dat + "\' using 1:2";
 					stream_gnuplotscript << std::endl;
 				}
