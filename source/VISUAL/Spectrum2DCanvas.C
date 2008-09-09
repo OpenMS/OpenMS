@@ -670,6 +670,8 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::recalculateSnapFactor_()
 	{
+		snap_factor_ = 1.0;
+		
 		if (intensity_mode_ == IM_SNAP) 
 		{
 			double local_max  = -numeric_limits<double>::max();
@@ -709,11 +711,10 @@ namespace OpenMS
 					}
 				}
 			}
-			snap_factor_ = overall_data_range_.max()[2]/local_max;			
-		}
-		else
-		{ 
-			snap_factor_ = 1.0;
+			if (local_max>0.0)
+			{
+				snap_factor_ = overall_data_range_.max()[2]/local_max;			
+			}
 		}
 	}
 
