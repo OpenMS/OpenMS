@@ -46,7 +46,7 @@ namespace OpenMS
 
 	class SuffixArraySeqan : public SuffixArray
 	{
-	
+
 		typedef seqan::TopDown<seqan::ParentLinks<> > TIterSpec;
 		typedef seqan::Index<seqan::String<char>, seqan::Index_ESA<TIterSpec> > TIndex;
 		typedef seqan::Iter<TIndex, seqan::VSTree<TIterSpec> > TIter;
@@ -64,17 +64,17 @@ namespace OpenMS
 		*/
 		SuffixArraySeqan(const String& st, const String& filename);
 
-		/** 
+		/**
 		@brief copy constructor
 		*/
 		SuffixArraySeqan(const SuffixArraySeqan& source);
 
-		/** 
+		/**
 		@brief destructor
 		*/
 		virtual ~SuffixArraySeqan();
 
-		/** 
+		/**
 		@brief converts suffix array to a printable string
 		*/
 		String toString();
@@ -84,8 +84,8 @@ namespace OpenMS
 		@param spec const reference of double vector describing the spectrum
 		@param candidates output parameters which holds the candidates of the masses given in spec after call
 		@return a vector of int pairs.
-	
-		for every mass within the spectrum all candidates described by as pairs of ints are returned. All masses are searched for the same time in just one suffix array traversal. In order to accelerate the traversal the skip and lcp table are used. The mass wont be calculated for each entry but it will be updated during traversal using a stack datastructure 
+
+		for every mass within the spectrum all candidates described by as pairs of ints are returned. All masses are searched for the same time in just one suffix array traversal. In order to accelerate the traversal the skip and lcp table are used. The mass wont be calculated for each entry but it will be updated during traversal using a stack datastructure
 		*/
 		void findSpec(std::vector<std::vector<std::pair<std::pair<int, int>, float > > >& candidates, const std::vector<double> & spec);
 
@@ -99,7 +99,7 @@ namespace OpenMS
 
 		/**
 		@brief opens the suffix array
-<<<<<<< .mine
+
 		@param filename const reference string describing the filename
 		@return bool if operation was succesful
 		@throw FileNotFound is thrown if the given file could not be found
@@ -157,7 +157,7 @@ namespace OpenMS
 		@param number_of_mods
 		*/
 		void setNumberOfModifications(unsigned int number_of_mods);
-	
+
 		/**
 		@brief getter for number of modifications
 		@return number of modifications
@@ -166,8 +166,8 @@ namespace OpenMS
 
 		void printStatistic ();
 
-	    protected:
-		
+	 protected:
+
 		/**
 		@brief overwriting goNextSubTree_ from seqan index_esa_stree.h for mass update during suffix array traversal
 
@@ -180,7 +180,7 @@ namespace OpenMS
 
 		@see goNext
 		*/
-		inline void goNextSubTree_(TIter& it, double& m, std::stack<double>& allm, std::stack<std::map<double, int> >& mod_map) 
+		inline void goNextSubTree_(TIter& it, double& m, std::stack<double>& allm, std::stack<std::map<double, int> >& mod_map)
 		{
 			// preorder dfs
 			if (!goRight(it))
@@ -220,9 +220,9 @@ namespace OpenMS
 		}
 
 		/**
-  	@brief goes to the next sub tree
-  	@param it reference to the suffix array iterator
-  	@see goNext
+		@brief goes to the next sub tree
+		@param it reference to the suffix array iterator
+		@see goNext
 		*/
 		inline void goNextSubTree_(TIter& it)
 		{
@@ -269,7 +269,7 @@ namespace OpenMS
 		}
 
 
-	
+
 		inline void parseTree_(TIter& it, std::vector<std::pair<int, int> >& out_number, std::vector<std::pair<int, int> >& edge_length, std::vector<int>& leafe_depth)
 		{
 			int depth = 1;
@@ -304,14 +304,14 @@ namespace OpenMS
 						depth--;
 						if (isRoot(it)) return;
 					}
-				} 
-				else 
+				}
+				else
 				{
 				}
 			}
 		}
 
-	
+
 		TIndex index_; ///< seqan suffix array
 
 		TIter* it_; ///< seqan suffix array iterator

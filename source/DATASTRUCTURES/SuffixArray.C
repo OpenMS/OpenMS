@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl,Andreas Bertsch$
+// $Maintainer: Clemens Groepl, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 
@@ -42,7 +42,8 @@ namespace OpenMS
 	{
 	}
 
-	SuffixArray::SuffixArray(const String & st, const String & filename)
+	SuffixArray::SuffixArray(const String & /* st */ , const String & /* filename */)
 	{
 	}
+
 }

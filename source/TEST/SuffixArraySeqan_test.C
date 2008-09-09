@@ -49,15 +49,18 @@ const String text = "$AAARAA$ARARP$";
 
 SuffixArraySeqan* sa = new SuffixArraySeqan(text,"");
 
-CHECK(SuffixArraySeqan(const String &st, const String &filename))
+CHECK((SuffixArraySeqan(const String &st, const String &filename)))
+{
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArraySeqan("A",""));
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArraySeqan("$A",""));
 	ptr = new SuffixArraySeqan("$","");
 	TEST_NOT_EQUAL(ptr, 0);
 	TEST_EXCEPTION (Exception::FileNotFound,new SuffixArraySeqan(text,"FileThatNotExists"));
+}
 RESULT
 
-CHECK(SuffixArraySeqan(const SuffixArraySeqan &source))
+CHECK((SuffixArraySeqan(const SuffixArraySeqan &source)))
+{
   SuffixArraySeqan* sa_new = new SuffixArraySeqan(text,"");
 	sa_new->setTolerance(0.1);
 	sa_new->setNumberOfModifications(1);
@@ -75,62 +78,80 @@ CHECK(SuffixArraySeqan(const SuffixArraySeqan &source))
 	{
 		TEST_EQUAL (sa_new->getTags().at(i),sa2.getTags().at(i));
 	}
+}
 RESULT
 
-CHECK(~SuffixArraySeqan())
+CHECK((~SuffixArraySeqan()))
+{
   delete ptr;
+}
 RESULT
 
 CHECK(void printStatistic())
-	NOT_TESTABLE
+{
+	NOT_TESTABLE;
+}
 RESULT
 
 CHECK(bool isDigestingEnd(const char aa1, const char aa2) const )
+{
 	TEST_EQUAL (sa->isDigestingEnd('R','R'),true);
 	TEST_EQUAL (sa->isDigestingEnd('K','K'),true);
 	TEST_EQUAL (sa->isDigestingEnd('R','K'),true);
 	TEST_EQUAL (sa->isDigestingEnd('R','P'),true);
 	TEST_EQUAL (sa->isDigestingEnd('K','P'),true);
 	TEST_EQUAL (sa->isDigestingEnd('A','R'),true);
+}
 RESULT
 
 CHECK(double getTolerance() const )
+{
 	TEST_REAL_EQUAL (sa->getTolerance(),0.5);
 	sa->setTolerance(0.1);
 	TEST_REAL_EQUAL (sa->getTolerance(),0.1);
 	sa->setTolerance(0.5);
+}
 RESULT
 
 CHECK(void setTolerance(double t))
+{
 	TEST_REAL_EQUAL (sa->getTolerance(),0.5);
 	sa->setTolerance(0.1);
 	TEST_REAL_EQUAL (sa->getTolerance(),0.1);
 	sa->setTolerance(0.5);
+}
 RESULT
 
 CHECK(unsigned int getNumberOfModifications ())
+{
 	TEST_EQUAL (sa->getNumberOfModifications(),0);
 	sa->setNumberOfModifications(1);
 	TEST_EQUAL (sa->getNumberOfModifications(),1);
 	sa->setNumberOfModifications(0);
+}
 RESULT
 
 CHECK(String toString())
+{
 	SuffixArraySeqan new_sa(text, "");
 	String sa_string = new_sa.toString();
 	// not implemented in this SA, hence string is empty
-	TEST_STRING_EQUAL(sa_string, "")
+	TEST_STRING_EQUAL(sa_string, "");
+}
 RESULT
 
 CHECK(void setNumberOfModifications(unsigned int number_of_mods))
+{
 	TEST_EQUAL (sa->getNumberOfModifications(),0);
 	sa->setNumberOfModifications(1);
 	TEST_EQUAL (sa->getNumberOfModifications(),1);
 	sa->setNumberOfModifications(0);
 	TEST_EXCEPTION(Exception::InvalidValue,sa->setTolerance(-0.5));
+}
 RESULT
 
 CHECK(void setTags(const std::vector< OpenMS::String > &tags))
+{
 	SuffixArraySeqan * satc = new SuffixArraySeqan(text,"");
 	vector<String> tags;
 	tags.push_back("AAA");
@@ -140,9 +161,11 @@ CHECK(void setTags(const std::vector< OpenMS::String > &tags))
 	vector<String> res = satc->getTags();
 	TEST_EQUAL(res.at(0),tags.at(0));
 	TEST_EQUAL(res.at(1),tags.at(1));
+}
 RESULT
 
 CHECK(const std::vector<OpenMS::String>& getTags())
+{
 	SuffixArraySeqan * satc = new SuffixArraySeqan(text,"");
 	TEST_EQUAL(satc->getTags().size(),0);
 	TEST_EQUAL(satc->getUseTags(),0);
@@ -155,9 +178,11 @@ CHECK(const std::vector<OpenMS::String>& getTags())
 	vector<String> res = satc->getTags();
 	TEST_EQUAL(res.at(0),tags.at(0));
 	TEST_EQUAL(res.at(1),tags.at(1));
+}
 RESULT
 
-CHECK(void setUseTags(bool use_tags))
+CHECK((void setUseTags(bool use_tags)))
+{
 	SuffixArraySeqan * satc = new SuffixArraySeqan(text,"");
 	TEST_EQUAL(satc->getUseTags(),0);
 	satc->setUseTags(1);
@@ -170,9 +195,11 @@ CHECK(void setUseTags(bool use_tags))
 	TEST_EQUAL(satc->getUseTags(),1);
 	satc->setUseTags(0);
 	TEST_EQUAL(satc->getUseTags(),0);
+}
 RESULT
 
 CHECK(bool getUseTags())
+{
 	SuffixArraySeqan * satc = new SuffixArraySeqan(text,"");
 	TEST_EQUAL(satc->getUseTags(),0);
 	satc->setUseTags(1);
@@ -185,20 +212,28 @@ CHECK(bool getUseTags())
 	TEST_EQUAL(satc->getUseTags(),1);
 	satc->setUseTags(0);
 	TEST_EQUAL(satc->getUseTags(),0);
+}
 RESULT
 
-CHECK(bool open(const String &filename))
+CHECK((bool open(const String &filename)))
+{
 	TEST_EXCEPTION (Exception::FileNotFound,sa->open("FileThatNotExists"));
 	//needs no further testing because the functionality comes from seqan
+}
 RESULT
 
 
-CHECK(bool save(const String &filename))
+CHECK((bool save(const String &filename)))
+{
 	TEST_EXCEPTION (Exception::UnableToCreateFile,sa->save("/usr/WhereIHaveNoRigths"));
 	//needs no further testing because the functionality comes from seqan
+}
 RESULT
 
+#if 1
+
 CHECK((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >, float > > > &candidates, const std::vector< double > &spec)))
+{
 	double masse[255];
 	ResidueDB* rdb = ResidueDB::getInstance();
 		
@@ -248,15 +283,20 @@ CHECK((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >,
 	String txt;
 	getline(i_stream,txt);
 	sa = new SuffixArraySeqan(txt,"");
+	OK;
 	vector<double> spec_new;
 	for (int i = 500; i < 5000; i+=20) 
 	{
 		spec_new.push_back((float)i);
 	}
+	OK;
 	vector<double> specc_new(spec_new);
+	OK;
 	res.clear();
+	OK;
 	sa->findSpec(res, specc_new);
 	//checking for doubled results;
+	OK;
 	for (unsigned int i = 0; i < res.size();i++)
 	{
 		for (unsigned int j = 0;j<res.at(i).size();j++)
@@ -268,6 +308,7 @@ CHECK((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >,
 			}
 		}
 	}
+	OK;
 	PRECISION(0.55)
 	sa->setTolerance(0.5);
 	// checking if the mass of the found candidates is correct
@@ -285,6 +326,7 @@ CHECK((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >,
 			TEST_REAL_EQUAL(m,specc_new.at(i));
 		}
 	}
+	OK;
 
 	// getting all candidates with tags 
 	int number_of_tags=0;
@@ -311,6 +353,8 @@ CHECK((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >,
 		}
 	}
 
+	OK;
+
 	//cout << "number_of_tags_:" << number_of_tags << endl;
 	vector<String> tags;
 	tags.push_back("AAA");
@@ -319,6 +363,7 @@ CHECK((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >,
 	sa->setTags(tags_c);
 	res.clear();
 	sa->findSpec(res, specc_new);
+	OK;
 	vector<String> res_with_tags;
 	for (unsigned int i = 0; i < res.size();i++)
 	{
@@ -341,6 +386,7 @@ CHECK((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >,
 			res_with_tags.push_back(seq);
 		}
 	}
+	OK;
 	for (unsigned int i = 0; i < res_with_tags_exp.size();++i){
 		bool was_found = false;
 		for (unsigned int j = 0; j < res_with_tags.size();++j){
@@ -357,6 +403,8 @@ CHECK((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >,
 	res.clear();
 	sa->findSpec(res, specc_new);
 	
+	OK;
+
 	//Checking if mass is correct
 	for (unsigned int i = 0; i < res.size();i++)
 	{
@@ -373,6 +421,8 @@ CHECK((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >,
 		}
 	}
 	spec.clear();
+	OK;
+
 	//testing if a candidate can belong to serveal input masses
 	spec.push_back(441.4806);
 	spec.push_back(441.4806);
@@ -388,8 +438,12 @@ CHECK((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >,
 		TEST_EQUAL(res.at(0).at(j).first.second,res.at(1).at(j).first.second);
 		TEST_EQUAL(res.at(0).at(j).second,res.at(1).at(j).second);
 	}
+	OK;
+
+}
 RESULT
 
+#endif
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
