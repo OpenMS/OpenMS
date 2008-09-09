@@ -259,8 +259,11 @@ class TOPPSILACAnalyzer
 			//--------------------------------------------------------------
 	    // determine file name for debug output
       //--------------------------------------------------------------
-      String in_tmp = in;
-			String debug_trunk = in_tmp.reverse().substr((in_tmp.suffix('.')).length()+1).reverse();
+      String debug_trunk = in;
+      if (in.has('.'))
+      {
+      	String debug_trunk = in.substr(0,-in.suffix('.').length()-1);
+			}
 			
 			// number of clusters found for each charge state (filled with best_n, need to remember for gnuplot script)
 			Int cluster_number[] = {1,1,1,1,1,1,1,1,1,1};
