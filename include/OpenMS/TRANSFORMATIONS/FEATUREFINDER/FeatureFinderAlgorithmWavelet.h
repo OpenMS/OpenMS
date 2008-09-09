@@ -40,8 +40,8 @@ namespace OpenMS
     IsotopeWavelet (Seeding & Extension) and ModelFitter (using EMG in RT dimension and 
 		improved IsotopeModel in dimension of mz)
 
-    The algorithm based on a combination of the sweep line paradigm with a novel wavelet function 
-		tailored to detect isotopic patterns (seeding and extension). 
+    The algorithm is based on a combination of the sweep line paradigm with a novel wavelet function 
+		tailored to detect isotopic patterns. 
 		More details are given in Schulz-Trieglaff and Hussong et al. ("A fast and accurate algorithm 
 		for the quantification of peptides from mass spectrometry data", In "Proceedings of the Eleventh 
 		Annual International Conference on Research in Computational Molecular Biology (RECOMB 2007)", 
