@@ -254,7 +254,7 @@ class TOPPFileInfo
 						spacing.push_back(exp[i][j].getMZ()-exp[i][j-1].getMZ());
 					}
 					std::sort(spacing.begin(),spacing.end());
-					cout << "raw data spacing: " << spacing[spacing.size()/2] << endl;	
+					cout << "estimated raw data spacing: " << spacing[spacing.size()/2] << " (min: " << spacing[0] << " max: " << spacing.back() << ")" << endl;	
 				}
 				cout << endl;
 		

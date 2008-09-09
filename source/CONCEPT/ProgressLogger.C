@@ -67,6 +67,7 @@ namespace OpenMS
 				begin_ = begin;
 				end_ = end;
 				cout << "Progress of '" << label << "':" << endl;		
+				stop_watch_.reset();
 				stop_watch_.start();
 				break;
 			case GUI:
