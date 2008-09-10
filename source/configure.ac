@@ -27,6 +27,7 @@ AC_ARG_ENABLE(debuginfo,       [  --enable-debuginfo      add -g to the compiler
 AC_ARG_ENABLE(stl-debug,       [  --enable-stl-debug      enables debug mode of the STL when using gcc.])
 AC_ARG_ENABLE(pedantic,        [  --disable-pedantic      removes the '-pedantic' flag when using gcc.])
 AC_ARG_ENABLE(externalmemory,  [  --enable-externalmemory enable external memory structure for all MSExperiments (warning: performance hit). Only recommended if you run out of RAM+swap!])
+AC_ARG_ENABLE(openmp,          [  --enable-openmp         enable usage of OpenMP features, which enables compiling OpenMS to use more than one thread.])
 AC_ARG_ENABLE(db-plugin,       [  --with-db-plugin        set the Qt SQL DB plugin to use (default: QMYSQL)])
 AC_ARG_WITH(compiler,          [  --with-compiler=CXX     use CXX as C++ compiler])
 AC_ARG_WITH(cxxflags,          [  --with-cxxflags=FLAGS   add FLAGS to the C++ compiler flags (commas are converted to blanks)])
@@ -112,7 +113,19 @@ if test "$enable_externalmemory" = "yes" -o "$with_externalmemory" = "yes"; then
 else
 	AC_MSG_RESULT(disabled (default))
 fi
-	
+
+dnl
+dnl   checking for openmp-flag
+dnl
+AC_MSG_CHECKING(openmp)
+if test "$enable_openmp" = "yes" -o "$with_openmp" = "yes"; then
+	CXXFLAGS="$CXX_FLAGS -fopenmp"
+	LIBS="$LIBS -fopenmp"
+	AC_MSG_RESULT(enabled)
+else
+	AC_MSG_RESULT(disabled (default))
+fi
+
 
 if test "$with_pedantic" = "no" -o "$enable_pedantic" = "no"; then
 	GCC_PEDANTIC=

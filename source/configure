@@ -853,6 +853,7 @@ Optional Features:
   --enable-stl-debug      enables debug mode of the STL when using gcc.
   --disable-pedantic      removes the '-pedantic' flag when using gcc.
   --enable-externalmemory enable external memory structure for all MSExperiments (warning: performance hit). Only recommended if you run out of RAM+swap!
+  --enable-openmp         enable usage of OpenMP features, which enables compiling OpenMS to use more than one thread.
   --with-db-plugin        set the Qt SQL DB plugin to use (default: QMYSQL)
   --disable-netcdf        disable the use of NetCDF (a library for a data format)
   --disable-andims        disable the use of ANDI/MS (a library for a data format based on NetCDF)
@@ -1386,6 +1387,11 @@ if test "${enable_externalmemory+set}" = set; then
   enableval="$enable_externalmemory"
 
 fi;
+# Check whether --enable-openmp or --disable-openmp was given.
+if test "${enable_openmp+set}" = set; then
+  enableval="$enable_openmp"
+
+fi;
 # Check whether --enable-db-plugin or --disable-db-plugin was given.
 if test "${enable_db_plugin+set}" = set; then
   enableval="$enable_db_plugin"
@@ -1622,6 +1628,18 @@ if test "$enable_externalmemory" = "yes" -o "$with_externalmemory" = "yes"; then
 #define OPENMS_ENABLE_EXTERNALMEMORY 1
 _ACEOF
 
+	echo "$as_me:$LINENO: result: enabled" >&5
+echo "${ECHO_T}enabled" >&6
+else
+	echo "$as_me:$LINENO: result: disabled (default)" >&5
+echo "${ECHO_T}disabled (default)" >&6
+fi
+
+echo "$as_me:$LINENO: checking openmp" >&5
+echo $ECHO_N "checking openmp... $ECHO_C" >&6
+if test "$enable_openmp" = "yes" -o "$with_openmp" = "yes"; then
+	CXXFLAGS="$CXX_FLAGS -fopenmp"
+	LIBS="$LIBS -fopenmp"
 	echo "$as_me:$LINENO: result: enabled" >&5
 echo "${ECHO_T}enabled" >&6
 else
