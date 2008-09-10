@@ -479,20 +479,25 @@ namespace OpenMS
     while ( input_1 || input_2 )
     {
 
-			// read the next line in both input streams, skipping over empty lines
-			// and lines consisting of whitespace only
+			// read the next line in both input streams, skipping over 
+			// - empty lines
+			// - lines consisting of whitespace only
+			// - XML stylesheet lines (xml-stylesheet)
 
 			for ( line_str_1.clear(); ++line_num_1_, std::getline(input_1,line_str_1); )
 			{
 				if ( line_str_1.empty() ) continue; // shortcut
+				if ( line_str_1.find("<?xml-stylesheet")!=std::string::npos ) continue; // XML stylesheet
 				std::string::const_iterator iter = line_str_1.begin(); // loop initialization
 				for ( ; iter != line_str_1.end() && isspace(*iter); ++iter ) ; // skip over whitespace
 				if ( iter != line_str_1.end() ) break; // line is not empty or whitespace only
+				
 			}
 
 			for ( line_str_2.clear(); ++line_num_2_, std::getline(input_2,line_str_2); )
 			{
 				if ( line_str_2.empty() ) continue; // shortcut
+				if ( line_str_2.find("<?xml-stylesheet")!=std::string::npos ) continue; // XML stylesheet
 				std::string::const_iterator iter = line_str_2.begin(); // loop initialization
 				for ( ; iter != line_str_2.end() && isspace(*iter); ++iter ) ; // skip over whitespace
 				if ( iter != line_str_2.end() ) break; // line is not empty or whitespace only
