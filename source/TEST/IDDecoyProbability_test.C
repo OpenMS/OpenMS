@@ -84,10 +84,10 @@ CHECK((void apply(std::vector<PeptideIdentification>& prob_ids, const std::vecto
 			{
 				double prob(pit->getScore());
 				double orig_score((double)pit->getMetaValue("XTandem_score"));
-
+				cerr << orig_score << " " << prob << endl;
 				if (orig_score > 40.0)
 				{
-					TEST_EQUAL(prob > 0.97, true)
+					TEST_EQUAL(prob > 0.9, true)
 				}
 				if (orig_score < 25)
 				{
