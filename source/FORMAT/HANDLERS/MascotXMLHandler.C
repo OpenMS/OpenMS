@@ -215,7 +215,52 @@ namespace OpenMS
 		}
 		else if (tag_ == "pep_seq")
 		{
-			actual_peptide_hit_.setSequence(((String) sm_.convert(chars)).trim());
+			AASequence temp_aa_sequence = AASequence(((String) sm_.convert(chars)).trim());
+				
+			// If everything is just read from the MascotXML file
+			if (modified_peptides_.size() == 0)
+			{			
+				// fixed modifications
+				for (vector<String>::const_iterator it = search_parameters_.fixed_modifications.begin(); it != search_parameters_.fixed_modifications.end(); ++it)
+				{
+					// e.g. Carboxymethyl (C)
+					vector<String> mod_split;
+					it->split(' ', mod_split);
+					if (mod_split.size() == 2)
+					{
+						if (mod_split[1] == "(C-term)")
+						{
+							temp_aa_sequence.setCTerminalModification(mod_split[0]);
+						}
+						else
+						{
+							if (mod_split[1] == "(N-term)")
+							{
+								temp_aa_sequence.setNTerminalModification(mod_split[0]);
+							}
+							else
+							{
+								String origin = mod_split[1];
+								origin.remove(')');
+								origin.remove('(');
+								for (UInt i = 0; i != temp_aa_sequence.size(); ++i)
+								{
+									// best way we can check; because origin can be e.g. (STY)
+									if (origin.hasSubstring(temp_aa_sequence[i].getOneLetterCode()))
+									{
+										temp_aa_sequence.setModification(i, mod_split[0]);
+									}
+								}
+							}
+						}
+					}
+					else
+					{
+						cerr << "MascotXMLFile: Error Cannot parse fixed modification '" << *it << "'" << endl;
+					}
+				}
+			}
+			actual_peptide_hit_.setSequence(temp_aa_sequence);
 			tag_ = "";
 		}
 		else if (tag_ == "pep_res_before")
@@ -235,6 +280,56 @@ namespace OpenMS
 				actual_peptide_hit_.setAAAfter(temp_string[0]);
 			}
 			tag_ = "";
+		}
+		else if (tag_ == "pep_var_mod_pos")
+		{
+			AASequence temp_aa_sequence = actual_peptide_hit_.getSequence();
+			String temp_string = ((String) sm_.convert(chars)).trim();
+			vector<String> parts;
+			
+			temp_string.split('.', parts);
+			if (parts.size() == 3)
+			{
+				temp_string = parts[1];
+				for(UInt i = 0; i < temp_string.size(); ++i)
+				{
+					if (temp_string.at(i) != '0')
+					{
+						UInt temp_modification_index = String(temp_string[i]).toInt() - 1;
+						String& temp_modification = search_parameters_.variable_modifications[temp_modification_index];
+
+						// e.g. Carboxymethyl (C)
+						vector<String> mod_split;
+						temp_modification.split(' ', mod_split);
+
+						if (mod_split.size() == 2)
+						{
+							if (mod_split[1] == "(C-term)")
+							{
+								temp_aa_sequence.setCTerminalModification(mod_split[0]);
+							}
+							else
+							{
+								if (mod_split[1] == "(N-term)")
+								{
+									temp_aa_sequence.setNTerminalModification(mod_split[0]);
+								}
+								else
+								{
+									// search this mod, if not directly use a general one
+									temp_aa_sequence.setModification(i, mod_split[0]);
+								}
+							}
+						}
+						else
+						{
+							cerr << "MascotXMLFile: Error: Cannot parse modification '" << temp_modification << "'" << endl;
+						}
+					}
+				}
+				actual_peptide_hit_.setSequence(temp_aa_sequence);
+			}
+			
 		}
 		else if (tag_ == "Date")
 		{	
