@@ -740,7 +740,7 @@ namespace OpenMS
 								{
 									restrictions += String(it->min_int);
 								}
-								restrictions += '-';
+								restrictions += ':';
 								if (max_set)
 								{
 									restrictions += String(it->max_int);
@@ -758,7 +758,7 @@ namespace OpenMS
 								{
 									restrictions += String(it->min_float);
 								}
-								restrictions += '-';
+								restrictions += ':';
 								if (max_set)
 								{
 									restrictions += String(it->max_float);
@@ -784,11 +784,7 @@ namespace OpenMS
 				switch(value_type)
 				{
 					case DataValue::INT_VALUE:
-						os << " />" <<  endl;	
-						break;
 					case DataValue::DOUBLE_VALUE:
-						os << " />" <<  endl;	
-						break;
 					case DataValue::STRING_VALUE:
 						os << " />" <<  endl;	
 						break;

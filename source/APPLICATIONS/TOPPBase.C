@@ -445,13 +445,13 @@ namespace OpenMS
 		// Internal errors because of wrong use of this class
 		catch(Exception::UnregisteredParameter& e)
 		{
-			writeLog_(String("Internal error: Request for unregistered parameter '") + e.what() + ")");
+			writeLog_(String("Internal error: Request for unregistered parameter '") + e.what() + "'");
 			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return INTERNAL_ERROR;
 		}
 		catch(Exception::WrongParameterType& e)
 		{
-			writeLog_(String("Internal error: Request for parameter with wrong type '") + e.what() + ")");
+			writeLog_(String("Internal error: Request for parameter with wrong type '") + e.what() + "'");
 			writeDebug_(String("Error occured in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !",1);
 			return INTERNAL_ERROR;
 		}

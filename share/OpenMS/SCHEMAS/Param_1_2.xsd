@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
-<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
-<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
-<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
-<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
 	<xs:element name="PARAMETERS">
 		<xs:annotation>
@@ -98,7 +94,7 @@
 			</xs:attribute>
 			<xs:attribute name="restrictions" type="xs:string" default="">
 				<xs:annotation>
-					<xs:documentation>Restrictions for the value field. For numeric values the lower and upper boundary is given, e.g '[min]-[max]'. For string values a comma-separated list can be given, e.g. 'one,two,three'</xs:documentation>
+					<xs:documentation>Restrictions for the value field. For numeric values the lower and upper boundary is given, e.g '[min]:[max]'. For string values a comma-separated list can be given, e.g. 'one,two,three'</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 		</xs:complexType>
@@ -151,7 +147,7 @@
 			</xs:attribute>
 			<xs:attribute name="restrictions" type="xs:string" default="">
 				<xs:annotation>
-					<xs:documentation>Restrictions for the value field. For numeric values the lower and upper boundary is given, e.g '[min]-[max]'. For string values a comma-separated list can be given, e.g. 'one,two,three'</xs:documentation>
+					<xs:documentation>Restrictions for the value field. For numeric values the lower and upper boundary is given, e.g '[min]:[max]'. For string values a comma-separated list can be given, e.g. 'one,two,three'</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 		</xs:complexType>

@@ -95,7 +95,7 @@ namespace OpenMS
 				std::vector<String> parts;
 				if (type == "int")
 				{
-					value.split('-', parts);
+					value.split(':', parts);
 					if (parts[0]!="")
 					{
 						param_.setMinInt(name,parts[0].toInt());
@@ -112,7 +112,7 @@ namespace OpenMS
 				}
 				else if (type == "float" || type == "double")
 				{
-					value.split('-', parts);
+					value.split(':', parts);
 					if (parts[0]!="")
 					{
 						param_.setMinFloat(name,parts[0].toDouble());
