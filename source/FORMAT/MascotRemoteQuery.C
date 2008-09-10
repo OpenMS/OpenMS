@@ -1,0 +1,465 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Andreas Bertsch $
+// --------------------------------------------------------------------------
+
+/*
+ * remotemascotquery.cpp
+ * (c) 2008 Daniel Jameson, University of Manchester
+ *  
+ */
+
+#include <OpenMS/FORMAT/MascotRemoteQuery.h>
+#include <iostream>
+
+#define MASCOTREMOTEQUERY_DEBUG
+#undef  MASCOTREMOTEQUERY_DEBUG
+
+using namespace std;
+
+namespace OpenMS
+{
+
+	MascotRemoteQuery::MascotRemoteQuery(QObject* parent)
+		:	QObject(parent),
+			DefaultParamHandler("MascotRemoteQuery")
+	{	
+		http_ = new QHttp();
+					
+		// server specifications
+		defaults_.setValue("hostname", "", "Address of the host where Mascot listens, e.g. 'mascot-server' or '127.0.0.1'", false);
+		defaults_.setValue("host_port", 80, "Port where the Mascot server listens, 80 should be a good guess", false);
+		defaults_.setMinInt("host_port", 0);
+		defaults_.setValue("server_path", "mascot", "Path on the server where Mascot server listens, 'mascot' should be a good guess", false);
+		defaults_.setValue("boundary", "GZWgAaYKjHFeUaLOLEIOMq", "Boundary for the MIME section", true);
+		
+		// proxy settings
+		defaults_.setValue("use_proxy", "false", "Flag which enabled the proxy usage for the http requests, please specify at least 'proxy_host' and 'proxy_port'", true);
+		defaults_.setValidStrings("use_proxy", StringList::create("true,false"));
+		defaults_.setValue("proxy_host", "", "Host where the proxy server runs on", true);
+		defaults_.setValue("proxy_port", 0, "Port where the proxy server listens", true);
+		defaults_.setMinInt("proxy_port", 0);
+		defaults_.setValue("proxy_username", "", "Login name for the proxy server, if needed", true);
+		defaults_.setValue("proxy_password", "", "Login password for the proxy server, if needed", true);
+
+		// login for Mascot security
+		defaults_.setValue("login", "false", "Flag which should be set 'true' if Mascot security is enabled; also set 'username' and 'password' then.", false);
+		defaults_.setValidStrings("login", StringList::create("true,false"));
+		defaults_.setValue("username", "", "Name of the user if login is used (Mascot security must be enabled!)", false);
+		defaults_.setValue("password", "", "Password of the user if login is used (Mascot security must be enabled!)", false);
+
+		defaultsToParam_();
+	}
+
+	MascotRemoteQuery::~MascotRemoteQuery()
+	{
+		delete http_;
+	}
+
+	void MascotRemoteQuery::run()
+	{
+		updateMembers_(); // resets the values
+					
+		connect(http_, SIGNAL(requestFinished(int, bool)), this, SLOT(httpRequestFinished(int,bool)));
+    connect(http_, SIGNAL(requestStarted(int)), this, SLOT(httpRequestStarted(int)));
+    connect(http_, SIGNAL(done(bool)), this, SLOT(httpDone(bool)));
+    connect(http_, SIGNAL(stateChanged(int)), this, SLOT(httpStateChanged(int)));
+    connect(http_, SIGNAL(responseHeaderReceived(const QHttpResponseHeader &)), this, SLOT(readResponseHeader(const QHttpResponseHeader &)));
+    connect(this, SIGNAL(loginDone()), this, SLOT(execQuery()));
+    connect(this, SIGNAL(queryDone()), this, SLOT(getResults()));
+					
+		if (param_.getValue("login").toBool())
+		{
+			login();
+		}
+		else
+		{
+			emit loginDone();
+		}
+		return;
+	}
+
+
+void MascotRemoteQuery::login() 
+{
+#ifdef MASCOTREMOTEQUERY_DEBUG	
+	cerr << "void MascotRemoteQuery::login()" << endl;
+#endif
+
+	// header
+	QHttpRequestHeader header;
+	QString boundary(((String)param_.getValue("boundary")).c_str());
+	header.setRequest("POST", ("/" + (String)param_.getValue("server_path") + "/cgi/login.pl").c_str());
+	header.setValue("Host", ((String)param_.getValue("hostname")).c_str());
+	header.setValue("Content-Type", "multipart/form-data, boundary=" + boundary);
+ 	header.setValue("Cache-Control", "no-cache");
+	header.setValue("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");	
+
+	// content
+	QByteArray loginbytes;
+	QString boundary_string("--" + boundary + "\r\n");
+  loginbytes.append(boundary_string);
+  loginbytes.append("Content-Disposition: ");
+  loginbytes.append("form-data; name=\"username\"\r\n");
+  loginbytes.append("\r\n");
+  loginbytes.append(((String)param_.getValue("username")).c_str());
+  loginbytes.append("\r\n");
+  loginbytes.append(boundary_string);
+  loginbytes.append("Content-Disposition: ");
+  loginbytes.append("form-data; name=\"password\"\r\n");
+  loginbytes.append("\r\n");
+  loginbytes.append(((String)param_.getValue("password")).c_str());
+  loginbytes.append("\r\n");
+  loginbytes.append(boundary_string);
+  loginbytes.append("Content-Disposition: ");
+  loginbytes.append("form-data; name=\"submit\"\r\n");
+  loginbytes.append("\r\n");
+  loginbytes.append("Login\r\n");
+  loginbytes.append(boundary_string);
+  loginbytes.append("Content-Disposition: ");
+  loginbytes.append("form-data; name=\"referer\"\r\n");
+  loginbytes.append("\r\n");
+  loginbytes.append("\r\n");
+  loginbytes.append(boundary_string);
+  loginbytes.append("Content-Disposition: ");
+  loginbytes.append("form-data; name=\"display\"\r\n");
+  loginbytes.append("\r\n");
+  loginbytes.append("nothing\r\n");
+  loginbytes.append(boundary_string);
+  loginbytes.append("Content-Disposition: ");
+  loginbytes.append("form-data; name=\"savecookie\"\r\n");
+  loginbytes.append("\r\n");
+  loginbytes.append("1\r\n");
+  loginbytes.append(boundary_string);
+  loginbytes.append("Content-Disposition: ");
+  loginbytes.append("form-data; name=\"action\"\r\n");
+  loginbytes.append("\r\n");
+  loginbytes.append("login\r\n");
+  loginbytes.append(boundary_string);
+  loginbytes.append("Content-Disposition: ");
+  loginbytes.append("form-data; name=\"userid\"\r\n");
+  loginbytes.append("\r\n");
+  loginbytes.append("\r\n");
+  loginbytes.append(boundary_string);
+  loginbytes.append("Content-Disposition: ");
+  loginbytes.append("form-data; name=\"onerrdisplay\"\r\n");
+  loginbytes.append("\r\n");
+  loginbytes.append("login_prompt\r\n");
+  loginbytes.append("--" + boundary + "--\r\n");	
+	
+#ifdef MASCOTREMOTEQUERY_DEBUG
+	cerr << ">>>> Header to send: " << endl;
+	cerr << header->toString().toStdString() << endl;
+	cerr << "ended" << endl;
+#endif
+
+	header.setContentLength(loginbytes.length());
+ 	http_->request(header, loginbytes);
+
+}
+
+void MascotRemoteQuery::getResults() 
+{
+	//Tidy up again and run another request...
+#ifdef MASCOTREMOTEQUERY_DEBUG	
+	cerr << "void MascotRemoteQuery::getResults()" << endl;
+#endif
+	
+	QHttpRequestHeader header;
+	header.setRequest("GET", results_path_);
+	header.setValue("Host", ((String)param_.getValue("hostname")).c_str());
+	header.setValue("Accept","text/xml,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+	header.setValue("Keep-Alive","300");
+	header.setValue("Connection","keep-alive");
+	if (cookie_ != "")
+	{
+		header.setValue("Cookie", cookie_);
+	}
+
+#ifdef MASCOTREMOTEQUERY_DEBUG
+	cerr << ">>> Header to request results: " << endl;
+	cerr << header.toString().toStdString() << endl;
+	cerr << "ended: " << endl;
+#endif
+
+	http_->request(header);
+}
+
+void MascotRemoteQuery::execQuery() 
+{
+#ifdef MASCOTREMOTEQUERY_DEBUG
+	cerr << "void MascotRemoteQuery::execQuery()" << endl;
+#endif
+
+	QHttpRequestHeader header;
+	
+	header.setRequest("POST", ("/" + (String)param_.getValue("server_path") + "/cgi/nph-mascot.exe?1").c_str());
+	header.setValue("Host", ((String)param_.getValue("hostname")).c_str());
+ 	header.setValue("Content-Type", ("multipart/form-data, boundary=" + (String)param_.getValue("boundary")).c_str());
+ 	header.setValue("Cache-Control", "no-cache");
+	if (cookie_ != "")
+	{
+		header.setValue("Cookie", cookie_);	
+	}
+	header.setValue("Accept","text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*");
+ 	
+	QByteArray querybytes;
+	querybytes.append(query_spectra_.c_str());
+	querybytes.replace("\n", "\r\n");
+ 	header.setContentLength(querybytes.length());
+#ifdef MASCOTREMOTEQUERY_DEBUG
+	cerr << ">>>> Header to request:" << endl;
+	cerr << header.toString().toStdString() << endl;
+	cerr << "ended: " << endl;
+
+	cerr << ">>>> Query:" << endl;
+	cerr << querybytes.constData() << endl;
+	cerr << "ended: " << endl;
+#endif
+	
+	http_->request(header, querybytes);
+}
+
+
+
+void MascotRemoteQuery::httpRequestFinished(int requestId, bool error)
+{
+#ifdef MASCOTREMOTEQUERY_DEBUG
+	cerr << "Request Finished Id: " << requestId << endl;
+	cerr << "Error: " << error << "(" << http_->errorString().toStdString() << ")" << endl;
+#endif
+	
+}
+
+void MascotRemoteQuery::httpDataReadProgress(int bytes_read, int bytes_total)
+{
+#ifdef MASCOTREMOTEQUERY_DEBUG
+	cerr << "void MascotRemoteQuery::httpDataReadProgress(): " << bytes_read << " bytes of " << bytes_total << " read." << endl;
+#endif
+}
+
+void MascotRemoteQuery::httpDataSendProgress(int bytes_sent, int bytes_total)
+{
+#ifdef MASCOTREMOTEQUERY_DEBUG
+	cerr << "void MascotRemoteQuery::httpDataSendProgress(): " << bytes_sent << " bytes of " << bytes_total << " sent." << endl;
+#endif
+}
+
+void MascotRemoteQuery::httpRequestStarted(int requestId)
+{
+#ifdef MASCOTREMOTEQUERY_DEBUG
+	cout<<"Request started: "<<requestId<<endl;
+#endif
+}
+
+void MascotRemoteQuery::httpStateChanged(int state)
+{
+#ifdef MASCOTREMOTEQUERY_DEBUG
+	cout<<"State change: "<<state<<endl;
+#endif
+}
+
+void MascotRemoteQuery::readResponseHeader(const QHttpResponseHeader& response_header) 
+{
+#ifdef MASCOTREMOTEQUERY_DEBUG	
+	cerr << "void MascotRemoteQuery::readResponseHeader(const QHttpResponseHeader &responseHeader)" << endl;
+
+	cerr << ">>>>> Header to read: " << endl;
+	cerr <<  response_header.toString().toStdString() << endl;
+	cerr << "ended" << endl;
+#endif
+
+	//Get session and username and so on...
+	if (response_header.hasKey("Set-Cookie")) 
+	{
+		QString response = response_header.toString();
+		
+		QRegExp rx("MASCOT_SESSION=(\\w+);\\spath");
+		rx.indexIn(response);
+		QString mascot_session(rx.cap(1));
+		
+		rx.setPattern("MASCOT_USERNAME=(\\w+);\\spath");
+		rx.indexIn(response);
+		QString mascot_username(rx.cap(1));
+		
+		rx.setPattern("MASCOT_USERID=(\\d+);\\spath");
+		rx.indexIn(response);
+		QString mascot_user_ID(rx.cap(1));
+		
+		//Put the cookie together...
+		cookie_ = "userName=; userEmail=; MASCOT_SESSION=";
+		cookie_.append(mascot_session);
+		cookie_.append("; MASCOT_USERNAME=");
+		cookie_.append(mascot_username);
+		cookie_.append("; MASCOT_USERID=");
+		cookie_.append(mascot_user_ID);
+		
+#ifdef MASCOTREMOTEQUERY_DEBUG
+cout<<"Cookie created:"<<cookie_->toStdString()<<endl;
+#endif
+	}
+}	
+
+void MascotRemoteQuery::httpDone(bool error)
+{
+
+#ifdef MASCOTREMOTEQUERY_DEBUG
+	cerr << "void MascotRemoteQuery::httpDone(bool error): ";
+	if (error)
+	{
+		cerr << "'" << http_->errorString().toStdString() << "'" << endl;
+	}
+	else
+	{
+		cerr << endl;
+	}
+#endif
+	
+	QByteArray new_bytes = http_->readAll();
+#ifdef MASCOTREMOTEQUERY_DEBUG
+	cerr << "Response of query: " << endl;
+	cerr << new_bytes.constData() << endl;
+#endif
+	
+	//Sucessful login? fire off the search
+	if (new_bytes.contains("Logged in successfuly")) 
+	{
+		emit loginDone();
+	} 
+	else 
+	{
+		if (new_bytes.contains("Click here to see Search Report")) 
+		{
+			//Extract date and file from this...
+			int pos=0;
+			results_path_ = "";
+			QString response(new_bytes);
+			QRegExp rx("file=\\.\\./data/(\\d+)/(\\w+\\.dat)");
+			pos=rx.indexIn(response);
+		
+			//This will get the xml...
+			results_path_.append("/mascot/cgi/export_dat_2.pl?file=../data/");
+			//resultsPath->append("/mascot/cgi/export_dat.pl?file=../data/");
+			results_path_.append(rx.cap(1));
+			results_path_.append("/");
+			results_path_.append(rx.cap(2));
+#ifdef MASCOTREMOTEQUERY_DEBUG
+			cerr << "Results path to export: " << results_path_.toStdString() << endl;
+#endif
+			results_path_.append("&_sigthreshold=0&query_master=1&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_query=1&pep_rank=1&_sigthreshold=0.05&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&prot_score=1&prot_thresh=1&search_master=1&show_header=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1");
+		
+		
+		
+		/* This will retrieve the dat file, it seems that TOPP wants the XML though.
+		resultsPath->append("/x-cgi/ms-status.exe?Autorefresh=false&Show=RESULTFILE&DateDir=");
+		resultsPath->append(rx.cap(1));
+		resultsPath->append("&ResJob=");
+		resultsPath->append(rx.cap(2));
+		resultsPath->append("&BrowserSafe=false");
+		datFileName=new QString(rx.cap(2));
+		*/
+
+		//Finished search, fire off results retrieval
+		emit queryDone();
+		
+		} 
+		else 
+		{	
+		//In theory finished results retrieval, save results file. Quite possible that errors
+		//would land you here too.
+
+#ifdef MASCOTREMOTEQUERY_DEBUG
+		cerr << "Get the XML File" << endl;
+#endif
+		mascot_xml_ = new_bytes;
+		//Write the XML file
+
+						/*
+		QFile output("searchresults.xml");
+		output.open(QIODevice::WriteOnly);
+		output.write(newBytes);
+*/
+
+		/* This would write out the .dat file...
+		QString response(newBytes);
+		QRegExp rx("<PRE>(.*)</PRE>");
+		int pos=0;
+		pos=rx.indexIn(response);
+		QFile output(*datFileName);
+		output.open(QIODevice::WriteOnly);
+		output.write(rx.cap(1).toAscii());
+		*/
+		
+	/*
+		output.close();
+		*/
+		emit done();
+		}
+	}
+}
+
+	void MascotRemoteQuery::setQuerySpectra(const String& exp)
+	{
+		query_spectra_ = exp;
+	}
+
+	const QByteArray& MascotRemoteQuery::getMascotXMLResponse() const
+	{
+		return mascot_xml_;
+	}
+
+	void MascotRemoteQuery::updateMembers_()
+	{
+#ifdef MASCOTREMOTEQUERY_DEBUG
+		cerr << "MascotRemoteQuery::updateMembers_()" << endl;
+#endif
+		// clear all content from this class
+		delete http_;
+		http_ = new QHttp(this);
+		http_->setHost(((String)param_.getValue("hostname")).c_str(), (UInt)param_.getValue("host_port"));
+
+		cookie_ = "";
+		mascot_xml_ = "";
+		results_path_ = "";
+
+		bool use_proxy(param_.getValue("use_proxy").toBool());
+		if (use_proxy)
+		{
+			String proxy_host(param_.getValue("proxy_host"));
+			String proxy_port(param_.getValue("proxy_port"));
+			String proxy_username(param_.getValue("proxy_username"));
+			String proxy_password(param_.getValue("proxy_password"));
+			if (proxy_username != "")
+			{
+				http_->setProxy(proxy_host.c_str(), proxy_port.toInt(), proxy_username.c_str(), proxy_password.c_str());
+			}
+			else
+			{
+				http_->setProxy(proxy_host.c_str(), proxy_port.toInt());
+			}
+		}
+
+		return;
+	}
+}

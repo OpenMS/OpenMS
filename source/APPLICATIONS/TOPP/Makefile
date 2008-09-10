@@ -69,6 +69,9 @@ TOPP_EXECUTABLES=\
 	XTandemAdapter\
 	FalseDiscoveryRate\
 	IDDecoyProbability\
+	MascotAdapterOnline\
+	PILISIdentification\
+	PILISModel\
 	SILACAnalyzer\
 	QuantIDMerger
 

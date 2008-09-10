@@ -30,6 +30,10 @@ include ../config_defs.mak
 
 DIRECTORY=FORMAT
 
+
+# Where the headers of the derived classes reside
+HEADER_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
+
 -include .Dependencies
 
 CPP_SOURCES=\
@@ -44,6 +48,8 @@ CPP_SOURCES=\
 	XMLFile.C\
 	MzXMLFile.C\
 	MascotInfile.C\
+	MascotInfile2.C\
+	MascotRemoteQuery.C\
 	MascotOutfile.C\
 	InspectInfile.C\
 	InspectOutfile.C\
@@ -74,6 +80,9 @@ CPP_SOURCES=\
 	TransformationXMLFile.C\
 	LibSVMEncoder.C
 
+MOC_SOURCES=\
+	MascotRemoteQuery_moc.C
+
 ifeq ($(ANDIMS_SUPPORT),true)
 	ANDI_SOURCES=\
 		ANDIFile.C
@@ -84,15 +93,15 @@ endif
 
 dummy:
 
-depend:	dummy
+depend:	dummy $(MOC_SOURCES)
 	@echo "creating dependencies for $(DIRECTORY)..."
 	@echo "" > .Dependencies
-	@$(CXX_MAKEDEPEND) $(MAKEDEP_OPTS) $(CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
+	@$(CXX_MAKEDEPEND) $(MAKEDEP_OPTS) $(MOC_SOURCES) $(CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
 	@cd DB; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1; fi;
 	@cd HANDLERS; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1; fi;
 
 default_clean: dummy
-	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS) $(EXECUTABLES) $(EXECUTABLE)
+	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS) $(EXECUTABLES) $(EXECUTABLE) $(MOC_SOURCES)
 	@cd DB; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1; fi;
 	@cd HANDLERS; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1; fi;
 
@@ -105,7 +114,11 @@ collectlib:	dummy
 
 include ../config.mak
 
-SOURCES		= $(CPP_SOURCES) $(ANDI_SOURCES)
+MascotRemoteQuery_moc.C:  $(HEADER_DIR)/MascotRemoteQuery.h 
+	$(MOC) $(HEADER_DIR)/MascotRemoteQuery.h -o MascotRemoteQuery_moc.C
+
+
+SOURCES		= $(CPP_SOURCES) $(ANDI_SOURCES) $(MOC_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
 
 default: $(OBJECTS) dummy

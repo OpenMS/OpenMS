@@ -1,0 +1,205 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Nico Pfeifer $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MascotXMLFile.h>
+#include <OpenMS/FORMAT/MascotInfile.h>
+#include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/MascotRemoteQuery.h>
+#include <OpenMS/FORMAT/MascotInfile2.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/SYSTEM/File.h>
+
+#include <map>
+#include <iostream>
+#include <fstream>
+#include <string>
+
+#include <QtCore/QDir>
+#include <QtCore/QFile>
+#include <QtCore/QCoreApplication>
+#include <QtCore/QTimer>
+
+using namespace OpenMS;
+using namespace std;
+
+//-------------------------------------------------------------
+//Doxygen docu
+//-------------------------------------------------------------
+
+/**
+	@page MascotAdapter MascotAdapter
+	
+	@brief Identifies peptides in MS/MS spectra via Mascot.
+	
+	This wrapper application serves for getting peptide identifications
+	for MS/MS spectra. 
+*/
+
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+
+
+class TOPPMascotAdapter
+	: public TOPPBase
+{
+	public:
+		TOPPMascotAdapter()
+			: TOPPBase("MascotAdapter","Annotates MS/MS spectra using Mascot.")
+		{
+		}
+	
+	protected:
+		
+		void registerOptionsAndFlags_()
+		{
+			registerInputFile_("in", "<file>", "", "input file in mzData format.\n"
+					 																			"Note: In mode 'mascot_out' a Mascot results file (.mascotXML) is read");
+			registerOutputFile_("out", "<file>", "", "output file in IdXML format.\n"
+			                                           "Note: In mode 'mascot_in' Mascot generic format is written.");
+
+			registerSubsection_("Mascot_server", "Mascot server details");
+			registerSubsection_("Mascot_parameters", "Mascot parameters used for searching");
+		}
+
+    Param getSubsectionDefaults_(const String& section) const
+    {
+			if (section == "Mascot_server")
+			{
+				MascotRemoteQuery mascot_query;
+				return mascot_query.getParameters();
+			}
+
+			if (section == "Mascot_parameters")
+			{
+				MascotInfile2 mascot_infile;
+				return mascot_infile.getParameters();
+			}
+
+      return Param();
+    }
+
+		
+		ExitCodes main_(int argc, const char** argv)
+		{
+			//-------------------------------------------------------------
+      // parameter handling
+      //-------------------------------------------------------------
+
+      //input/output files
+			String in(getStringOption_("in")), out(getStringOption_("out"));
+			FileHandler fh;
+			FileHandler::Type in_type = fh.getType(in);
+
+      //-------------------------------------------------------------
+      // loading input
+      //-------------------------------------------------------------
+
+			PeakMap exp;
+			fh.loadExperiment(in, exp, in_type, log_type_);
+		
+      //-------------------------------------------------------------
+      // calculations
+      //-------------------------------------------------------------
+
+			Param mascot_param = getParam_().copy("Mascot_parameters:", true);
+      MascotInfile2 mascot_infile;
+			mascot_infile.setParameters(mascot_param);
+		
+			// get the spectra into string stream
+			stringstream ss;
+			mascot_infile.store(ss, in, exp);
+		
+			// Usage of a QCoreApplication is overkill here (and ugly too), but we just use the 
+			// QEventLoop to process the signals and slots and grab the results afterwards from 
+			// the MascotRemotQuery instance
+			char** argv2 = const_cast<char**>(argv);
+			QCoreApplication event_loop(argc, argv2);
+			MascotRemoteQuery* mascot_query = new MascotRemoteQuery(&event_loop);
+			Param mascot_query_param = getParam_().copy("Mascot_server:", true);
+			mascot_query->setParameters(mascot_query_param);
+			mascot_query->setQuerySpectra(ss.str());
+
+			// remove unnecessary spectra
+			ss.clear();
+			
+		  QObject::connect(mascot_query, SIGNAL(done()), &event_loop, SLOT(quit()));
+			QTimer::singleShot(1000, mascot_query, SLOT(run()));
+			event_loop.exec();
+		
+			// write Mascot response to file
+			String mascot_tmp_file_name("mascot_tmp_file");
+			QFile mascot_tmp_file(mascot_tmp_file_name.c_str());
+			mascot_tmp_file.open(QIODevice::WriteOnly);
+			mascot_tmp_file.write(mascot_query->getMascotXMLResponse());
+			mascot_tmp_file.close();
+
+			// clean up
+			delete mascot_query;
+
+
+			vector<PeptideIdentification> pep_ids;
+			ProteinIdentification prot_id;
+
+			// read the response
+			MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids);
+
+			// delete file
+			//mascot_tmp_file.remove();
+
+			vector<ProteinIdentification> prot_ids;
+			prot_ids.push_back(prot_id);
+
+			writeDebug_("Read " + String(pep_ids.size()) + " peptide ids and " + String(prot_id.getHits().size()) + " protein identifications", 5);
+			
+
+      //-------------------------------------------------------------
+      // writing output
+      //-------------------------------------------------------------
+
+      IdXMLFile().store(out, prot_ids, pep_ids);
+
+			return EXECUTION_OK;
+		}
+
+};
+
+
+int main( int argc, const char** argv )
+{
+	TOPPMascotAdapter tool;
+
+	return tool.main(argc,argv);
+}
+
+/// @endcond

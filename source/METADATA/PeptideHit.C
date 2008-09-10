@@ -118,7 +118,7 @@ namespace OpenMS
 	}
 
   // returns the score of the peptide hit 
-  Real PeptideHit::getScore() const 
+  DoubleReal PeptideHit::getScore() const 
   {
   	return score_;
   }

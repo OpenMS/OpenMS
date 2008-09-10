@@ -104,7 +104,7 @@ namespace OpenMS
 			*/
 			//@{
 	    /// returns the score of the peptide hit 
-	    Real getScore() const;
+	    DoubleReal getScore() const;
 	    
 			/// returns the rank of the peptide hit
 	    UInt getRank() const;
@@ -151,7 +151,7 @@ namespace OpenMS
 	
 	  
 		protected:
-	    Real score_;									///< the score of the peptide hit
+	    DoubleReal score_;		///< the score of the peptide hit
 			UInt rank_;    				///< the position(rank) where the hit appeared in the hit list
 			Int charge_; ///< the charge of the peptide
 	    AASequence sequence_;							///< the amino acid sequence of the peptide hit

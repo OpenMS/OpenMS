@@ -73,14 +73,14 @@ namespace OpenMS
 		{
 			actual_query_ = (String(sm_.convert(attributes.getValue(0u))).trim()).toInt();
 		}
-		else if (tag_ == "peptide" || tag_ == "u_peptide") 
+		else if (tag_ == "peptide" || tag_ == "u_peptide" || tag_ == "q_peptide") 
 		{
 			if (tag_ == "peptide")
 			{
 				String attribute_value = String(sm_.convert(attributes.getValue(0u))).trim();
 		  	peptide_identification_index_ = attribute_value.toInt() - 1;
 			}
-			else if (tag_ == "u_peptide")
+			else if (tag_ == "u_peptide" || tag_ == "q_peptide")
 			{
 				String attribute_value = String(sm_.convert(attributes.getValue(0u))).trim();
 	  		peptide_identification_index_ = attribute_value.toInt() - 1;
@@ -136,7 +136,7 @@ namespace OpenMS
 			}
  			actual_peptide_hit_ = PeptideHit();
  		}
- 		else if (tag_ == "u_peptide")
+ 		else if (tag_ == "u_peptide" || tag_ == "q_peptide")
  		{
 			id_data_[peptide_identification_index_].setScoreType("Mascot");
  			id_data_[peptide_identification_index_].insertHit(actual_peptide_hit_); 			
@@ -171,7 +171,7 @@ namespace OpenMS
 		}
 		else if (tag_ == "pep_exp_mz")
 		{
-			id_data_[peptide_identification_index_].setMetaValue("MZ", ((String) sm_.convert(chars)).trim().toFloat());
+			id_data_[peptide_identification_index_].setMetaValue("MZ", ((String) sm_.convert(chars)).trim().toDouble());
 			tag_ = "";
 		}
 		else if (tag_ == "pep_exp_z")
@@ -181,19 +181,18 @@ namespace OpenMS
 		}
 		else if (tag_ == "pep_score")
 		{
-			actual_peptide_hit_.setScore(((String) sm_.convert(chars)).trim().toFloat());
+			actual_peptide_hit_.setScore(((String) sm_.convert(chars)).trim().toDouble());
 			tag_ = "";
 		}
 		else if (tag_ == "pep_expect")
 		{
 			actual_peptide_hit_.metaRegistry().registerName("EValue", "E-value of e.g. Mascot searches", ""); /// @todo what E-value flag? (andreas)
-			actual_peptide_hit_.setMetaValue("EValue", ((String)sm_.convert(chars)).trim().toFloat());
+			actual_peptide_hit_.setMetaValue("EValue", ((String)sm_.convert(chars)).trim().toDouble());
 			tag_ = "";
 		}
 		else if (tag_ == "pep_homol")
 		{			
-			id_data_[peptide_identification_index_].setSignificanceThreshold(
-					((String) sm_.convert(chars)).trim().toFloat());
+			id_data_[peptide_identification_index_].setSignificanceThreshold(((String) sm_.convert(chars)).trim().toDouble());
 			tag_ = "";
 		}
 		else if (tag_ == "pep_ident")
@@ -205,7 +204,7 @@ namespace OpenMS
 			// smaller than the identity threshold.
 			temp_homology = 
 				id_data_[peptide_identification_index_].getSignificanceThreshold();
-			temp_identity = ((String) sm_.convert(chars)).trim().toFloat();
+			temp_identity = ((String) sm_.convert(chars)).trim().toDouble();
 			if (temp_homology > temp_identity || temp_homology == 0)
 			{
 				id_data_[peptide_identification_index_].setSignificanceThreshold(
@@ -379,12 +378,12 @@ namespace OpenMS
 			title.split('_', parts);
 			if (parts.size() == 2)
 			{
-				id_data_[actual_query_ - 1].setMetaValue("RT", parts[1].toFloat());
+				id_data_[actual_query_ - 1].setMetaValue("RT", parts[1].toDouble());
 			}
 		}
 		else if (tag_ == "RTINSECONDS")
 		{
-			id_data_[actual_query_ - 1].setMetaValue("RT", ((String) sm_.convert(chars)).trim().toFloat());
+			id_data_[actual_query_ - 1].setMetaValue("RT", ((String) sm_.convert(chars)).trim().toDouble());
 		}
 		else if (tag_ == "MascotVer")
 		{
@@ -446,11 +445,11 @@ namespace OpenMS
 		}
 		else if (tag_ == "TOL")
 		{
-			search_parameters_.precursor_tolerance = (((String) sm_.convert(chars)).trim()).toFloat();
+			search_parameters_.precursor_tolerance = (((String) sm_.convert(chars)).trim()).toDouble();
 		}
 		else if (tag_ == "ITOL")
 		{
-			search_parameters_.peak_mass_tolerance = (((String) sm_.convert(chars)).trim()).toFloat();
+			search_parameters_.peak_mass_tolerance = (((String) sm_.convert(chars)).trim()).toDouble();
 		}
   }
 

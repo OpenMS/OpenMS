@@ -1,0 +1,147 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Andreas Bertsch $
+// --------------------------------------------------------------------------
+
+/*
+ * remotemascotquery.h
+ * (c) 2008 Daniel Jameson, University of Manchester
+ *  
+ */
+
+#ifndef OPENMS_FORMAT_MASCOTREMOTEQUERY_H
+#define OPENMS_FORMAT_MASCOTREMOTEQUERY_H
+
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <QtCore/QObject>
+#include <QtCore/QString>
+#include <QtCore/QFile>
+#include <QtNetwork/QHttpRequestHeader>
+
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+
+#include <vector>
+
+namespace OpenMS
+{
+				
+	class MascotRemoteQuery 
+		: public QObject,
+			public DefaultParamHandler
+	{
+		Q_OBJECT
+	
+		public:
+		
+			/** @name Constructors and destructors
+			*/
+			//@{
+			/// default constructor
+			MascotRemoteQuery(QObject *parent=0);
+	
+			/// copy constructor
+			MascotRemoteQuery(const MascotRemoteQuery& rhs);
+						
+			/// destructor
+			virtual ~MascotRemoteQuery();		
+			//@}
+
+
+			void setQuerySpectra(const String& exp);
+			
+			const QByteArray& getMascotXMLResponse() const;
+			
+			
+			/// assignment operator 
+			MascotRemoteQuery& operator = (const MascotRemoteQuery& rhs);
+
+		protected:
+
+			virtual void updateMembers_();
+	
+		public slots:
+
+			void run();
+		
+		private slots:
+
+			/** slot connected to signal requestFinished of QHttp: "This signal is emitted 
+				  when processing the request identified by id has finished. error is true 
+					if an error occurred during the processing; otherwise error is false"
+			*/
+			void httpRequestFinished(int request_id, bool error);
+
+			/// slot connected to signal dataReadProgress of QHttp
+			void httpDataReadProgress(int bytes_read, int bytes_total);
+
+			/// slot connected to signal dataSendProgress of QHttp
+			void httpDataSendProgress(int bytes_sent, int bytes_total);
+
+			/// slot connected to signal requestStarted of QHttp, which indicates that the processing of request request_id has been started
+			void httpRequestStarted(int request_id);
+
+			/** slot connected to signal stateChanged of QHttp, which is emitted if 
+		 			the http state changed. See 'enum QHttp::State' of Qt docu for more 
+					info.
+			*/
+			void httpStateChanged(int state);
+
+			/// slot connected to signal done of QHttp
+			void httpDone(bool error);
+
+			/// slot connect to responseHeaderRecieved, which indicates that a new response header is available
+			void readResponseHeader(const QHttpResponseHeader& response_header);
+
+			void login();
+		
+			void execQuery();
+
+			void getResults();
+		
+		
+		signals:
+		
+			void done();
+		
+			void loginDone();
+
+			void queryDone();
+
+		private:
+
+			String query_spectra_;
+
+			QByteArray mascot_xml_;
+
+			QHttp* http_;
+
+			QString results_path_;
+
+			QString cookie_;
+};
+
+}
+#endif /*OPENMS_FORMAT_MASCOTREMOTEQUERY_H*/
