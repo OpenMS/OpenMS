@@ -78,7 +78,7 @@ class TOPPFileConverter
 		registerOutputFile_("out","<file>","","output file ");
 		setValidFormats_("out",StringList::create("mzData,mzXML,DTA2D,mgf,featureXML"));
 		registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
-		setValidStrings_("out_type",StringList::create("mzData,mzXML,DTA2D,featureXML"));
+		setValidStrings_("out_type",StringList::create("mzData,mzXML,DTA2D,mgf,featureXML"));
 	}
 	
 	ExitCodes main_(int , const char**)
@@ -216,8 +216,11 @@ class TOPPFileConverter
 		}
 		else if (out_type == FileHandler::MGF)
 		{
-			MascotInfile f;
-			f.store(out, exp, "");
+			MascotInfile2 f;
+			Param p(f.getParameters());
+			p.setValue("peaklists_only", "true");
+			f.setParameters(p);
+			f.store(out, exp);
 		}
 		else
 		{
