@@ -76,6 +76,7 @@ namespace OpenMS
 			String identifier_;
 			String actual_title_;
 			std::map<String, std::vector<AASequence> >& modified_peptides_;
+			String actual_var_mod_;
   };
 
 	} // namespace Internal
