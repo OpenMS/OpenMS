@@ -89,11 +89,17 @@ namespace OpenMS
 
 	void MascotInfile2::store(ostream& os, const String& filename, const PeakMap& experiment)
 	{
-		writeHeader_(os);
+		if (!param_.getValue("peaklists_only").toBool())
+		{
+			writeHeader_(os);
+		}
 		writeMSExperiment_(os, filename, experiment);
 
 		//close file
-		os << endl << endl << "--" << param_.getValue("boundary") << "--" << endl;
+		if (!param_.getValue("peaklists_only").toBool())
+		{
+			os << endl << endl << "--" << param_.getValue("boundary") << "--" << endl;
+		}
 	}
 	
 	void MascotInfile2::writeParameterHeader_(const String& name, ostream& os)
@@ -253,7 +259,10 @@ namespace OpenMS
 
 	void MascotInfile2::writeMSExperiment_(ostream& os, const String& filename, const PeakMap& experiment)
 	{
-		os << "--" << param_.getValue("boundary") << endl << "Content-Disposition: form-data; name=\"FILE\"; filename=\"" << filename << "\"" << endl << endl;
+		if (!param_.getValue("peaklists_only").toBool())
+		{
+			os << "--" << param_.getValue("boundary") << endl << "Content-Disposition: form-data; name=\"FILE\"; filename=\"" << filename << "\"" << endl << endl;
+		}
 
 		for(UInt i = 0; i < experiment.size(); i++)
 		{
