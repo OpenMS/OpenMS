@@ -31,16 +31,11 @@ DIRECTORY=APPLICATIONS/TOPP
 # Where the headers of the derived classes reside
 HEADER_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
 
-ifeq ($(LIBSVM_SUPPORT),true)
-LIBSVM_EXEC=\
+TOPP_EXECUTABLES=\
 	RTModel\
 	RTPredict\
 	PTModel\
-	PTPredict
-endif
-
-TOPP_EXECUTABLES=\
-	$(LIBSVM_EXEC)\
+	PTPredict\
 	MapAligner\
 	FeatureLinker\
 	ConsensusID\

@@ -54,7 +54,6 @@ AC_ARG_WITH(cluster-incl,      [  --with-cluster-incl=DIR specify the location o
 AC_ARG_WITH(cluster-libs,      [  --with-cluster-libs=DIR specify the location of the Cluster 3.0 object file "cluster.o"])
 AC_ARG_WITH(gsl-incl,          [  --with-gsl-incl=DIR     specify the location of the directory containing "gsl/gsl_version.h"])
 AC_ARG_WITH(gsl-libs,          [  --with-gsl-libs=DIR     specify the location of the GSL library files "libgsl.so" and "libgslcblas.so"])
-AC_ARG_ENABLE(libsvm,          [  --disable-libsvm        disable the use of libSVM (needed for rentention time prediction)])
 AC_ARG_WITH(libsvm-incl,       [  --with-libsvm-incl=DIR  specify the location of the libSVM directory containing "svm.h"])
 AC_ARG_WITH(libsvm-libs,       [  --with-libsvm-libs=DIR  specify the location of the libSVM directory containing "svm.o"])
 AC_ARG_WITH(xerces-incl,       [  --with-xerces-incl=DIR  specify the location of the XERCES include directory containing "xercesc/util/Base64.hpp"])
@@ -274,21 +273,8 @@ else
 fi
 
 # support for libSVM
-if test "$with_libsvm" = "no" -o "$enable_libsvm" = "no"; then
-  LIBSVM_SUPPORT=false
-else
-  LIBSVM_SUPPORT=true
-  AC_DEFINE(LIBSVM_DEF)
-fi
-
-# support for libSVM
-if test "$with_libsvm" = "no" -o "$enable_libsvm" = "no"; then
-  LIBSVM_SUPPORT=false
-else
-  LIBSVM_SUPPORT=true
-  AC_DEFINE(LIBSVM_DEF)
-fi
-
+LIBSVM_SUPPORT=true
+AC_DEFINE(LIBSVM_DEF)
 if test "$with_libsvm_incl" != "" ; then
   LIBSVM_INCPATH="${with_libsvm_incl}"
 else

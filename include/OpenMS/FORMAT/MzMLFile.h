@@ -48,7 +48,7 @@ namespace OpenMS
 		
 		If a critical error occurs, Exception::NotImplemented is thrown.
 		
-		@todo Implement mzML semantic validator (Hiwi)
+		@improvement Implement mzML semantic validator (Hiwi)
 		@todo Add tests for PeakFileOptions (Hiwi)
 		@todo Implement and use Base64 integers and 16 bit (Hiwi)
 		@todo Implement and use zlib support (Hiwi)

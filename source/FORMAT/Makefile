@@ -71,16 +71,12 @@ CPP_SOURCES=\
 	UnimodXMLFile.C\
 	PepXMLFile.C\
 	ControlledVocabulary.C\
-	TransformationXMLFile.C
+	TransformationXMLFile.C\
+	LibSVMEncoder.C
 
 ifeq ($(ANDIMS_SUPPORT),true)
 	ANDI_SOURCES=\
 		ANDIFile.C
-endif
-
-ifeq ($(LIBSVM_SUPPORT),true)
-	LIBSVM_SOURCES=\
-		LibSVMEncoder.C
 endif
 
 
@@ -109,7 +105,7 @@ collectlib:	dummy
 
 include ../config.mak
 
-SOURCES		= $(CPP_SOURCES) $(ANDI_SOURCES) $(LIBSVM_SOURCES)
+SOURCES		= $(CPP_SOURCES) $(ANDI_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
 
 default: $(OBJECTS) dummy

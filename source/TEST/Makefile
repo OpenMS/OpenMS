@@ -154,17 +154,12 @@ ifeq ($(ANDIMS_SUPPORT),true)
 		ANDIFile_test
 endif
 
-ifeq ($(LIBSVM_SUPPORT),true)
-	LIBSVM_EXECUTABLES_FORMAT=\
-		LibSVMEncoder_test
-endif
-
 EXECUTABLES_FORMAT = \
 	XMLValidator_test\
 	TextFile_test\
 	XMLFile_test\
 	$(ANDI_EXECUTABLES_FORMAT)\
-	${LIBSVM_EXECUTABLES_FORMAT}\
+	LibSVMEncoder_test\
 	DTAFile_test\
 	DTA2DFile_test\
 	MascotInfile_test\
@@ -312,12 +307,8 @@ EXECUTABLES_CHEMISTRY = \
 
 #ANALYSIS
 
-ifeq ($(LIBSVM_SUPPORT),true)
-	EXECUTABLES_ANALYSIS_SVM = \
+EXECUTABLES_ANALYSIS_SVM = \
 	SVMWrapper_test
-endif
-
-
 
 EXECUTABLES_ANALYSIS_MAPMATCHING=\
 	TransformationDescription_test\

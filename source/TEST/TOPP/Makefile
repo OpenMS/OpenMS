@@ -29,7 +29,7 @@ include ../../config_defs.mak
 DIRECTORY=TEST/TOPP
 
 # Tests for individual tools
-UNCONDITIONAL_TESTS = \
+TOPP_TOOL_TESTS = \
 	FeatureLinker_test \
   MapAligner_test \
 	ConsensusID_test \
@@ -59,17 +59,11 @@ UNCONDITIONAL_TESTS = \
 	FeatureFinder_test\
 	FeatureFinderMRM_test\
 	TextExporter_test\
-	SILACAnalyzer_test
-
-ifeq ($(LIBSVM_SUPPORT),true)
-LIBSVM_TESTS= \
+	SILACAnalyzer_test\
 	RTPredict_test \
 	RTModel_test \
 	PTModel_test \
 	PTPredict_test
-endif
-
-TOPP_TOOL_TESTS = ${UNCONDITIONAL_TESTS} ${LIBSVM_TESTS}
 
 # Tests for processing pipelines using several tools
 
