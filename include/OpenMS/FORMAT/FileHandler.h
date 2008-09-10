@@ -34,7 +34,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/MascotInfile.h>
+#include <OpenMS/FORMAT/MascotInfile2.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #ifdef ANDIMS_DEF
@@ -205,7 +205,7 @@ namespace OpenMS
 #endif
 				case MGF:
 					{
-						MascotInfile f;
+						MascotInfile2 f;
 						f.setLogType(log);
 						f.load(filename, exp);
 						return true;
