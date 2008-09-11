@@ -158,8 +158,8 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 		class_doc += class_name;
 		class_doc.substitute("::","_1_1");
 		f << "Parameters of <a href=\"" << class_doc << ".html\">" << class_name << "</a>:<BR><BR>\n";
-		f << "<table border=1>" << endl;
-		f <<"<tr><th>Name</th><th>Type</th><th>Default</th><th>Restrictions</th><th>Description</th></tr>" << endl;
+		f << "<table border=\"1\" style=\"border-style:solid; border-collapse:collapse; border-color:#c0c0c0;\" width=\"100%\" cellpadding=\"4\">" << endl;
+		f <<"<tr style=\"border-bottom:1px solid black; background:#fffff0\"><th>Name</th><th>Type</th><th>Default</th><th>Restrictions</th><th>Description</th></tr>" << endl;
 		String type, description, restrictions;
 		for(Param::ParamIterator it = param.begin(); it != param.end();++it)
 		{
@@ -257,7 +257,7 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 			if (it->advanced) style = "i";
 
 			//final output
-			f <<"<tr><td valign=top><" << style << ">"<< name << "</" << style << "></td><td valign=top>" << type << "</td><td valign=top>" << value <<  "</td><td valign=top>" << restrictions << "</td><td valign=top>" << description <<  "</td></tr>" << endl;
+			f <<"<tr><td style=\"vertical-align:top\"><" << style << ">"<< name << "</" << style << "></td><td style=\"vertical-align:top\">" << type << "</td><td style=\"vertical-align:top\">" << value <<  "</td><td style=\"vertical-align:top\">" << restrictions << "</td><td style=\"vertical-align:top\">" << description <<  "</td></tr>" << endl;
 		}
 		f << "</table>" << endl;
 		f << endl << "<b>Note:</b>" << endl;
