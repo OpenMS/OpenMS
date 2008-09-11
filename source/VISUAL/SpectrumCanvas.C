@@ -766,6 +766,15 @@ namespace OpenMS
 		}
 	}
 
+	void SpectrumCanvas::modificationStatus_(UInt layer_index, bool modified)
+	{
+		LayerData& layer = getLayer_(layer_index);
+		if (layer.modified!=modified)
+		{
+			layer.modified = modified;
+			emit layerModficationChange(activeLayerIndex(), modified);
+		}
+	}
 	
 } //namespace
 

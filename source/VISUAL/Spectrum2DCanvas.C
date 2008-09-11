@@ -1446,6 +1446,7 @@ namespace OpenMS
 				{
 					f.store(file_name,layer.peaks);
 				}
+				modificationStatus_(activeLayerIndex(), false);
 			}
 	  }
 	  else //features
@@ -1463,6 +1464,7 @@ namespace OpenMS
 				{
 					FeatureXMLFile().store(file_name,layer.features);
 				}
+				modificationStatus_(activeLayerIndex(), false);
 			}
 	  }
 	}
@@ -1501,6 +1503,7 @@ namespace OpenMS
 		recalculateRanges_(0,1,2);
 		resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
 		intensityModeChange_();
+		modificationStatus_(i, false);
 	}
 
 
@@ -1568,13 +1571,16 @@ namespace OpenMS
 	void Spectrum2DCanvas::keyPressEvent(QKeyEvent* e)
 	{
 		// Delete features
-		if (getCurrentLayer().type==LayerData::DT_FEATURE && selected_peak_.isValid() && e->key()==Qt::Key_Delete)
+		LayerData& layer = getCurrentLayer_();
+		if (layer.type==LayerData::DT_FEATURE && selected_peak_.isValid() && e->key()==Qt::Key_Delete)
 		{
-			getCurrentLayer_().features.erase(getCurrentLayer_().features.begin()+selected_peak_.peak);
+			layer.features.erase(layer.features.begin()+selected_peak_.peak);
 			selected_peak_.clear();
 			update_buffer_ = true;	
 			update_(__PRETTY_FUNCTION__);
 			e->accept();
+			
+			modificationStatus_(activeLayerIndex(), true);
 		}
 		else
 		{
@@ -1597,6 +1603,8 @@ namespace OpenMS
 				getCurrentLayer_().features.push_back(tmp);
 				update_buffer_ = true;	
 				update_(__PRETTY_FUNCTION__);
+
+				modificationStatus_(activeLayerIndex(), true);
 			}
 		}
 	}

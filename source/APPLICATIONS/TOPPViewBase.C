@@ -1204,16 +1204,21 @@ namespace OpenMS
 		QListWidgetItem* item = 0;
     for (UInt i = 0; i<cc->getLayerCount(); ++i)
     {
+    	const LayerData& layer = cc->getLayer(i);
     	//add item
     	item = new QListWidgetItem( layer_manager_ );
-			item->setText(cc->getLayer(i).name.toQString());
-    	if (cc->getLayer(i).visible)
+    	if (layer.visible)
     	{
     		item->setCheckState(Qt::Checked);
     	}
     	else
     	{
     		item->setCheckState(Qt::Unchecked);
+    	}
+    	item->setText(layer.name.toQString());
+    	if (layer.modified)
+    	{
+    		item->setText(item->text() + '*');
     	}
     	//highlight active item
     	if (i == cc->activeLayerIndex())
@@ -1484,6 +1489,7 @@ namespace OpenMS
   {
   	ws_->addWindow(sw);
     connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateToolBar()));
+    connect(sw->canvas(),SIGNAL(layerModficationChange(UInt,bool)),this,SLOT(updateLayerBar()));
     connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
     connect(sw,SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
   

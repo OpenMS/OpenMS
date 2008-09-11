@@ -848,6 +848,7 @@ namespace OpenMS
 		overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
 		
 		resetZoom();
+		modificationStatus_(i, false);
 	}
 
 	void Spectrum1DCanvas::translateLeft_()

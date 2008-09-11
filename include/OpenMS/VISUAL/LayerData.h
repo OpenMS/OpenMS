@@ -81,7 +81,8 @@ namespace OpenMS
 				f3(false),
 				param(),
 				gradient(),
-				filters()
+				filters(),
+				modified(false)
 		{
 		}
 		
@@ -113,6 +114,9 @@ namespace OpenMS
 		
 		///Filters to apply before painting
 		DataFilters filters;
+		
+		///Flag that indicates that the input data was modified since loading it
+		bool modified;
 	};
 
 	///Print the contents to a stream.

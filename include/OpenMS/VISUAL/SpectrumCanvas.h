@@ -543,8 +543,11 @@ namespace OpenMS
 		void getVisibleFeatureData(FeatureMapType& map) const;
 		
 	signals:
+
+		/// Signal emitted whenever the modification status of a layer changes (editing and storing)
+		void layerModficationChange(UInt layer, bool modified);
 		
-		/// Signal emitted whenever a new Layer is activated within the current window
+		/// Signal emitted whenever a new layer is activated within the current window
 		void layerActivated(QWidget* w);
 		
 		/**
@@ -801,7 +804,10 @@ namespace OpenMS
 			@param caller_name Name of the calling function (use __PRETTY_FUNCTION__).
 		*/
 		virtual void update_(const char* caller_name);
-
+		
+		///Takes all actions necessary when the modification status of a layer changes (signals etc.)
+		void modificationStatus_(UInt layer_index, bool modified);
+		
 		/// Whether to recalculate the data in the buffer when repainting
 		bool update_buffer_;
 

@@ -355,6 +355,7 @@ namespace OpenMS
 		
 		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
+		modificationStatus_(i, false);
 	}
 
 	void Spectrum3DCanvas::translateLeft_()

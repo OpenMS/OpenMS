@@ -139,7 +139,7 @@
   
 	@note If you want to use the preinstalled binaries, make sure that the qt-devel package is installed.
   
-  @note Qt 4.4 can also be used, but causes several severe bugs in the visualization.
+  @note Qt 4.4.1 and higher can also be used, although this version has several minor bugs.
   
   @subsection install_linux_contrib Installing the contrib package
   

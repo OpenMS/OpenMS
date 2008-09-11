@@ -96,6 +96,7 @@ namespace OpenMS
 				if (type == "int")
 				{
 					value.split(':', parts);
+					if (parts.size()!=2) value.split('-', parts); //for downward compatibility
 					if (parts[0]!="")
 					{
 						param_.setMinInt(name,parts[0].toInt());
@@ -113,6 +114,7 @@ namespace OpenMS
 				else if (type == "float" || type == "double")
 				{
 					value.split(':', parts);
+					if (parts.size()!=2) value.split('-', parts); //for downward compatibility
 					if (parts[0]!="")
 					{
 						param_.setMinFloat(name,parts[0].toDouble());
