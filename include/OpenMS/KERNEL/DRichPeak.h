@@ -42,6 +42,8 @@ namespace OpenMS
 	 
 		This datastructure is intended for continuous data or peak data.
 		If wou do not need to annotated single peaks with meta data, use DPeak instead.
+
+		@see RichPeak1D, RichPeak2D
 		
 		@ingroup Kernel
 	*/

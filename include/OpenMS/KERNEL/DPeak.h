@@ -40,6 +40,8 @@ namespace OpenMS
 		This datastructure is intended for continuous data or peak data.
 		If wou want to annotated single peaks with meta data, use DRichPeak instead.
 		
+		@see Peak1D, Peak2D
+		
 		@ingroup Kernel
 	*/
 	template <UInt D>

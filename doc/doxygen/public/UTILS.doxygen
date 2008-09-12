@@ -40,4 +40,5 @@
   - @subpage FuzzyDiff
   - @subpage FFEval
   - @subpage HistView
+  - @subpage IdXMLInfo
 */

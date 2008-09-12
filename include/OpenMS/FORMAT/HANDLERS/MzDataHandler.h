@@ -34,7 +34,6 @@
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 
@@ -711,7 +710,7 @@ namespace OpenMS
 				}
 			}
 
-			// this works only if MapType::PeakType is at least DPeak
+			// this works only if MapType::PeakType is a Peak1D or derived from it
 			{
 				//store what precision is used for intensity and m/z
 				bool mz_precision_64 = true;

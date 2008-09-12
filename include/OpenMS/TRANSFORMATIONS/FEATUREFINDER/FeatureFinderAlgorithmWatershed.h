@@ -49,7 +49,7 @@ namespace OpenMS
     @n Vincent, L.   Soille, P.  
 		@n IEEE Transactions on Pattern Analysis and Machine Intelligence, 1991, 13 (6), 583-598
     
-    @experimental Currently only the watershed segmentation is returnes, not real features!
+    @experimental Currently only the watershed segmentation is returned, not real features!
     
     @ingroup FeatureFinder
 	*/
