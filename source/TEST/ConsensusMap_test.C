@@ -191,25 +191,29 @@ CHECK((const FileDescriptions& getFileDescriptions() const ))
   TEST_REAL_EQUAL(cons_map.getFileDescriptions().size(),0)
 RESULT
 
-CHECK((bool isValid() const))
+CHECK((bool isValid(String& error_message) const))
+	String error_message;
 	ConsensusMap cm;
 	//empty map
-	TEST_EQUAL(cm.isValid(),true)
+	TEST_EQUAL(cm.isValid(error_message),true)
 	//one, valid feature
 	ConsensusFeature f;
 	f.insert(1,1,Feature());
 	cm.push_back(f);
   cm.getFileDescriptions()[1].filename = "bla";
 	cm.getFileDescriptions()[1].size = 5;
-	TEST_EQUAL(cm.isValid(),true)
+	TEST_EQUAL(cm.isValid(error_message),true)
+	TEST_EQUAL(error_message,"")
 	//two valid features
 	f.insert(1,4,Feature());
 	cm.push_back(f);
-	TEST_EQUAL(cm.isValid(),true)
+	TEST_EQUAL(cm.isValid(error_message),true)
+	TEST_EQUAL(error_message,"")
 	//two valid and one invalid feature (map index)
 	f.insert(2,1,Feature());
 	cm.push_back(f);
-	TEST_EQUAL(cm.isValid(),false)
+	TEST_EQUAL(cm.isValid(error_message),false)
+	TEST_NOT_EQUAL(error_message,"")
 	//one invalid feature (element index)
 	cm.clear();
 	ConsensusFeature f2;
@@ -217,6 +221,27 @@ CHECK((bool isValid() const))
 	cm.push_back(f2);
 	
 RESULT
+
+CHECK(void swap(ConsensusMap& from))
+	ConsensusMap map1, map2;	
+	ConsensusFeature f;
+	f.insert(1,1,Feature());
+	map1.push_back(f);
+  map1.getFileDescriptions()[1].filename = "bla";
+	map1.getFileDescriptions()[1].size = 5;
+	map1.setIdentifier("LSID");
+	
+	map1.swap(map2);
+
+	TEST_EQUAL(map1.size(),0)
+	TEST_EQUAL(map1.getFileDescriptions().size(),0)
+	TEST_EQUAL(map1.getIdentifier(),"")	
+	
+	TEST_EQUAL(map2.size(),1)
+	TEST_EQUAL(map2.getFileDescriptions().size(),1)
+	TEST_EQUAL(map2.getIdentifier(),"LSID")	
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

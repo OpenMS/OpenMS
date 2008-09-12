@@ -74,7 +74,7 @@ namespace OpenMS
 	  }
 		
 		/**
-		 @brief Access to the feature corresponding to this index
+		 @brief Access to the feature (or consensus feature) corresponding to this index
      
      This method is intended for arrays of features e.g. FeatureMap
      
@@ -84,7 +84,7 @@ namespace OpenMS
 		 @exception Exception::Precondition is thrown if this index is invalid for the @p map (only in debug mode) 
 		*/
 		template <typename FeatureMapType>
-		const typename FeatureMapType::FeatureType& getFeature(const FeatureMapType& map) const
+		const typename FeatureMapType::value_type& getFeature(const FeatureMapType& map) const
 		{
 		  OPENMS_PRECONDITION(peak<map.size(),"Feature index exceeds map size");
 			return map[peak];

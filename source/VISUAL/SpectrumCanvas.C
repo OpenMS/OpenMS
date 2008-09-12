@@ -379,6 +379,17 @@ namespace OpenMS
 		return finishAdding_();
 	}
 
+	bool SpectrumCanvas::addLayer(ConsensusMapType& map, const String& filename)
+	{
+		layers_.resize(layers_.size()+1);
+		layers_.back().param = param_;
+		layers_.back().filename = filename;
+		layers_.back().consensus.swap(map);
+		layers_.back().type = LayerData::DT_CONSENSUS;
+
+		return finishAdding_();
+	}
+
 	void SpectrumCanvas::setLayerName(UInt i, const String& name)
 	{ 
 		OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::setLayerName(i,name) index overflow");
@@ -425,24 +436,34 @@ namespace OpenMS
 		{
 			if (getLayer(layer_index).type==LayerData::DT_PEAK)
 			{
-				const ExperimentType& peaks = getLayer(layer_index).peaks;
-				if (peaks.getMinMZ() < min[mz_dim]) min[mz_dim] = peaks.getMinMZ();
-				if (peaks.getMaxMZ() > max[mz_dim]) max[mz_dim] = peaks.getMaxMZ();
-				if (peaks.getMinRT() < min[rt_dim]) min[rt_dim] = peaks.getMinRT();
-				if (peaks.getMaxRT() > max[rt_dim]) max[rt_dim] = peaks.getMaxRT();
-				if (peaks.getMinInt() < min[it_dim]) min[it_dim] = peaks.getMinInt();
-				if (peaks.getMaxInt() > max[it_dim]) max[it_dim] = peaks.getMaxInt();
+				const ExperimentType& map = getLayer(layer_index).peaks;
+				if (map.getMinMZ() < min[mz_dim]) min[mz_dim] = map.getMinMZ();
+				if (map.getMaxMZ() > max[mz_dim]) max[mz_dim] = map.getMaxMZ();
+				if (map.getMinRT() < min[rt_dim]) min[rt_dim] = map.getMinRT();
+				if (map.getMaxRT() > max[rt_dim]) max[rt_dim] = map.getMaxRT();
+				if (map.getMinInt() < min[it_dim]) min[it_dim] = map.getMinInt();
+				if (map.getMaxInt() > max[it_dim]) max[it_dim] = map.getMaxInt();
+			}
+			else if (getLayer(layer_index).type==LayerData::DT_FEATURE)
+			{
+				const FeatureMapType& map = getLayer(layer_index).features;
+				if (map.getMin()[1] < min[mz_dim]) min[mz_dim] = map.getMin()[1];
+				if (map.getMax()[1] > max[mz_dim]) max[mz_dim] = map.getMax()[1];
+				if (map.getMin()[0] < min[rt_dim]) min[rt_dim] = map.getMin()[0];
+				if (map.getMax()[0] > max[rt_dim]) max[rt_dim] = map.getMax()[0];
+				if (map.getMinInt() < min[it_dim]) min[it_dim] = map.getMinInt();
+				if (map.getMaxInt() > max[it_dim]) max[it_dim] = map.getMaxInt();
 			}
 			else
 			{
-				const FeatureMapType& feat = getLayer(layer_index).features;
-				if (feat.getMin()[1] < min[mz_dim]) min[mz_dim] = feat.getMin()[1];
-				if (feat.getMax()[1] > max[mz_dim]) max[mz_dim] = feat.getMax()[1];
-				if (feat.getMin()[0] < min[rt_dim]) min[rt_dim] = feat.getMin()[0];
-				if (feat.getMax()[0] > max[rt_dim]) max[rt_dim] = feat.getMax()[0];
-				if (feat.getMinInt() < min[it_dim]) min[it_dim] = feat.getMinInt();
-				if (feat.getMaxInt() > max[it_dim]) max[it_dim] = feat.getMaxInt();
-			}	
+				const ConsensusMapType& map = getLayer(layer_index).consensus;
+				if (map.getMin()[1] < min[mz_dim]) min[mz_dim] = map.getMin()[1];
+				if (map.getMax()[1] > max[mz_dim]) max[mz_dim] = map.getMax()[1];
+				if (map.getMin()[0] < min[rt_dim]) min[rt_dim] = map.getMin()[0];
+				if (map.getMax()[0] > max[rt_dim]) max[rt_dim] = map.getMax()[0];
+				if (map.getMinInt() < min[it_dim]) min[it_dim] = map.getMinInt();
+				if (map.getMaxInt() > max[it_dim]) max[it_dim] = map.getMaxInt();
+			}
 		}
 		//Add 1% margin to RT in order to display all the data
 		DoubleReal margin = 0.01*std::max(1.0, max[rt_dim] - min[rt_dim]);
@@ -727,6 +748,35 @@ namespace OpenMS
 		}
 	}
 
+	void SpectrumCanvas::getVisibleConsensusData(ConsensusMapType& map) const
+	{		
+		//clear output experiment
+		map.clear();
+		
+    const LayerData& layer = getCurrentLayer();
+  	if (layer.type==LayerData::DT_CONSENSUS)
+  	{
+			//copy file descriptions
+			map.getFileDescriptions() = layer.consensus.getFileDescriptions();
+			//Visible area
+			DoubleReal min_rt = getVisibleArea().min()[1];
+			DoubleReal max_rt = getVisibleArea().max()[1];
+			DoubleReal min_mz = getVisibleArea().min()[0];
+			DoubleReal max_mz = getVisibleArea().max()[0];
+			//copy features
+  		for (ConsensusMapType::ConstIterator it=layer.consensus.begin(); it!=layer.consensus.end(); ++it)
+  		{
+				if ( layer.filters.passes(*it)
+					&& it->getRT() >= min_rt 
+					&& it->getRT() <= max_rt 
+					&& it->getMZ() >= min_mz 
+					&& it->getMZ() <= max_mz )
+				{
+					map.push_back(*it);
+				}
+			}
+		}
+	}
 
 	void SpectrumCanvas::showMetaData(bool modifiable)
   {
@@ -743,9 +793,13 @@ namespace OpenMS
 				dlg.visualize(static_cast<SpectrumSettings&>(layer.peaks[0]));
 			}
   	}
-  	else
+  	else if (layer.type==LayerData::DT_FEATURE)
   	{
   		dlg.visualize(layer.features);
+  	}
+  	else
+  	{
+  		dlg.visualize(layer.consensus);
   	}
     dlg.exec();
   }

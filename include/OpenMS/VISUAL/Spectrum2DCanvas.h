@@ -73,6 +73,9 @@ namespace OpenMS
 			
 			/// Merges the features in @p map into the features layer @p i 
 			void mergeIntoLayer(UInt i, FeatureMapType& map);
+
+			/// Merges the consensus features in @p map into the features layer @p i 
+			void mergeIntoLayer(UInt i, ConsensusMapType& map);
 			
     signals:
       /// Sets the data for the horizontal projection
@@ -137,7 +140,7 @@ namespace OpenMS
       void paintDots_(UInt layer_index, QPainter& p);
 
       /**
-      	@brief Paints convex hulls (one for each mass trace) for a features of a layer.
+      	@brief Paints convex hulls (one for each mass trace) of a features layer.
       	
       	@param layer_index Int of the layer.
       	@param p The QPainter to paint on.
@@ -145,12 +148,20 @@ namespace OpenMS
       void paintTraceConvexHulls_(UInt layer_index, QPainter& p);
 
       /**
-      	@brief Paints the convex hulls (one for each feature) for a features of a layer.
+      	@brief Paints the convex hulls (one for each feature) of a features layer.
       	
       	@param layer_index Int of the layer.
       	@param p The QPainter to paint on.
       */
       void paintFeatureConvexHulls_(UInt layer_index, QPainter& p);
+
+      /**
+      	@brief Paints the consensus elements of a consensus features layer.
+      	
+      	@param layer_index Int of the layer.
+      	@param p The QPainter to paint on.
+      */
+      void paintConsensusElements_(UInt layer_index, QPainter& p);
 
       /**
       	@brief Paints convex hulls (one for each mass trace) for a single feature.
@@ -221,6 +232,9 @@ namespace OpenMS
 			virtual void translateForward_();
 			//docu in base class
 			virtual void translateBackward_();
+			
+			/// Finishes context menu after customization to peaks, features or consensus features
+			void finishContextMenu_(QMenu* context_menu, QMenu* settings_menu);
   };
 }
 

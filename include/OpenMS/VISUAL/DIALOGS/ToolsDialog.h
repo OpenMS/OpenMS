@@ -125,7 +125,7 @@ namespace OpenMS
 			/// stores an ini-file from the editor_
 			void storeINI_();
 			/// Updates the available types, when the tool changes
-			void updateTypes_(int);
+			void updateTypes_();
 			
 	};
 

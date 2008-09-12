@@ -29,6 +29,7 @@
 ///////////////////////////
 #include <OpenMS/KERNEL/PeakIndex.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 ///////////////////////////
 
@@ -128,14 +129,24 @@ map[2].setMZ(3);
 map[3].setMZ(4);
 map[4].setMZ(5);
 
-CHECK((template <typename FeatureMapType> const FeatureMapType::FeatureType& getFeature(const FeatureMapType &map) const ))
+ConsensusMap c_map;
+c_map.resize(5);
+c_map[0].setMZ(1.1);
+c_map[1].setMZ(2.1);
+c_map[2].setMZ(3.1);
+c_map[3].setMZ(4.1);
+c_map[4].setMZ(5.1);
+
+CHECK((template <typename FeatureMapType> const FeatureMapType::value_type& getFeature(const FeatureMapType &map) const ))
 {
   PeakIndex i;
 	TEST_EXCEPTION(Exception::Precondition,i.getFeature(map))
 	i.peak = 4;
 	TEST_REAL_EQUAL(i.getFeature(map).getMZ(),5.0)
+	TEST_REAL_EQUAL(i.getFeature(c_map).getMZ(),5.1)
 	i.peak = 0;
 	TEST_REAL_EQUAL(i.getFeature(map).getMZ(),1.0)
+	TEST_REAL_EQUAL(i.getFeature(c_map).getMZ(),1.1)
 	i.peak = 5;
 	TEST_EXCEPTION(Exception::Precondition,i.getFeature(map))
 }

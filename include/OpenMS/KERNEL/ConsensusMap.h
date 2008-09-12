@@ -155,8 +155,13 @@ namespace OpenMS
 				identifier_ = identifier;
 			}
 
-			///Checks if all map identifiers in FeatureHandles are have a filename associated
-			bool isValid() const;
+			/**
+				@brief Checks if all map identifiers in FeatureHandles have a filename associated
+				
+				@param error_message If the map is not valid, this variable contains the error message				
+				@return if the map is valid
+			*/
+			bool isValid(String& error_message) const;
 			
 			/// Sorts the peaks according to ascending quality
 			void sortByQuality(bool reverse=false) 
@@ -224,6 +229,24 @@ namespace OpenMS
 			
 			// Docu in base class
 			void updateRanges();
+
+			/// Swaps the content of this map with the content of @p from
+			void swap(ConsensusMap& from)
+			{
+				ConsensusMap tmp;
+				
+				//swap range information
+				tmp.RangeManagerType::operator=(*this);
+				this->RangeManagerType::operator=(from);
+				from.RangeManagerType::operator=(tmp);
+				
+				//swap consensus features
+				Base::swap(from);
+				
+				//swap the remaining members
+				std::swap(file_description_, from.file_description_);
+				std::swap(identifier_, from.identifier_);
+			}
 			
 	  protected:
 	    /// Map from index to file description

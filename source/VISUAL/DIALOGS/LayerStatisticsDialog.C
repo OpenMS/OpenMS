@@ -91,6 +91,72 @@ namespace OpenMS
 			table_->setItem(2,3,item);
 			
 		}
+		else if (layer_data_.type == LayerData::DT_CONSENSUS)
+		{
+			computeConsensusStats_();
+
+			// add thres rows for charge, quality and elements
+			table_->setRowCount(table_->rowCount() + 3);
+			QTableWidgetItem* item = new QTableWidgetItem();
+			item->setText(QString("Charge"));
+			table_->setVerticalHeaderItem(1, item);
+			item = new QTableWidgetItem();
+			item->setText(QString("Quality"));
+			table_->setVerticalHeaderItem(2, item);
+			item = new QTableWidgetItem();
+			item->setText(QString("Elements"));
+			table_->setVerticalHeaderItem(3, item);
+			
+			// add computed charge and quality stats to the table
+			item = new QTableWidgetItem();
+			item->setText("-");
+			table_->setItem(1,0,item);
+			
+			item = new QTableWidgetItem();
+			item->setText(QString::number(min_charge_,'f',2));
+			table_->setItem(1,1,item);
+					
+			item = new QTableWidgetItem();
+			item->setText(QString::number(max_charge_,'f',2));
+			table_->setItem(1,2,item);
+			
+			item = new QTableWidgetItem();
+			item->setText(QString::number(avg_charge_,'f',2));
+			table_->setItem(1,3,item);
+			
+			item = new QTableWidgetItem();
+			item->setText("-");
+			table_->setItem(2,0,item);
+			
+			item = new QTableWidgetItem();
+			item->setText(QString::number(min_quality_,'f',2));
+			table_->setItem(2,1,item);
+					
+			item = new QTableWidgetItem();
+			item->setText(QString::number(max_quality_,'f',2));
+			table_->setItem(2,2,item);
+			
+			item = new QTableWidgetItem();
+			item->setText(QString::number(avg_quality_,'f',2));
+			table_->setItem(2,3,item);
+
+			item = new QTableWidgetItem();
+			item->setText("-");
+			table_->setItem(3,0,item);
+			
+			item = new QTableWidgetItem();
+			item->setText(QString::number(min_elements_,'f',2));
+			table_->setItem(3,1,item);
+					
+			item = new QTableWidgetItem();
+			item->setText(QString::number(max_elements_,'f',2));
+			table_->setItem(3,2,item);
+			
+			item = new QTableWidgetItem();
+			item->setText(QString::number(avg_elements_,'f',2));
+			table_->setItem(3,3,item);
+
+		}
 		
 		// add computed intensity stats to the table
 		QTableWidgetItem* item = new QTableWidgetItem();
@@ -232,17 +298,17 @@ namespace OpenMS
 		}
 		
 		unsigned long divisor = 0;
-		for(FeatureIterator_ it_feature = layer_data_.features.begin(); it_feature != layer_data_.features.end(); it_feature++)
+		for(FeatureIterator_ it = layer_data_.features.begin(); it != layer_data_.features.end(); it++)
 		{
-			if(it_feature->getCharge() < min_charge_) min_charge_ = it_feature->getCharge();
-			if(it_feature->getCharge() > max_charge_) max_charge_ = it_feature->getCharge();
-			if(it_feature->getOverallQuality() < min_quality_) min_quality_ = it_feature->getOverallQuality();
-			if(it_feature->getOverallQuality() > max_quality_) max_quality_ = it_feature->getOverallQuality();
-			avg_intensity_ += it_feature->getIntensity();
-			avg_charge_ += it_feature->getCharge();
-			avg_quality_ += it_feature->getOverallQuality();
+			if(it->getCharge() < min_charge_) min_charge_ = it->getCharge();
+			if(it->getCharge() > max_charge_) max_charge_ = it->getCharge();
+			if(it->getOverallQuality() < min_quality_) min_quality_ = it->getOverallQuality();
+			if(it->getOverallQuality() > max_quality_) max_quality_ = it->getOverallQuality();
+			avg_intensity_ += it->getIntensity();
+			avg_charge_ += it->getCharge();
+			avg_quality_ += it->getOverallQuality();
 			divisor++;
-			const MetaInfoInterface& mii = static_cast<MetaInfoInterface>(*it_feature);
+			const MetaInfoInterface& mii = static_cast<MetaInfoInterface>(*it);
 			bringInMetaStats_(mii);
 		}
 		if(divisor != 0)
@@ -252,6 +318,50 @@ namespace OpenMS
 			avg_quality_ /= (DoubleReal)divisor;
 		}
 		computeMetaAverages_();
+	}
+
+	void LayerStatisticsDialog::computeConsensusStats_()
+	{
+		min_intensity_ = canvas_->getCurrentMinIntensity();
+		max_intensity_ = canvas_->getCurrentMaxIntensity();
+		avg_intensity_ = 0;
+		if(!layer_data_.consensus.empty())
+		{
+			min_charge_ = layer_data_.consensus.begin()->getCharge();
+			max_charge_ = layer_data_.consensus.begin()->getCharge();
+			avg_charge_ = 0;
+		
+			min_quality_ = layer_data_.consensus.begin()->getQuality();
+			max_quality_ = layer_data_.consensus.begin()->getQuality();
+			avg_quality_ = 0;
+			
+			min_elements_ = layer_data_.consensus.begin()->size();
+			max_elements_ = layer_data_.consensus.begin()->size();
+			avg_elements_ = 0;			
+		}
+		
+		unsigned long divisor = 0;
+		for(ConsensusIterator_ it = layer_data_.consensus.begin(); it != layer_data_.consensus.end(); it++)
+		{
+			if(it->getCharge() < min_charge_) min_charge_ = it->getCharge();
+			if(it->getCharge() > max_charge_) max_charge_ = it->getCharge();
+			if(it->getQuality() < min_quality_) min_quality_ = it->getQuality();
+			if(it->getQuality() > max_quality_) max_quality_ = it->getQuality();
+			if(it->size() < min_elements_) min_elements_ = it->size();
+			if(it->size() > max_elements_) max_elements_ = it->size();
+			avg_intensity_ += it->getIntensity();
+			avg_charge_ += it->getCharge();
+			avg_quality_ += it->getQuality();
+			avg_elements_ += it->size();
+			divisor++;
+		}
+		if(divisor != 0)
+		{
+			avg_intensity_ /= (DoubleReal)divisor;
+			avg_charge_ /= (DoubleReal)divisor;
+			avg_quality_ /= (DoubleReal)divisor;
+			avg_elements_ /= (DoubleReal)divisor;
+		}
 	}
 
 	void LayerStatisticsDialog::computeMetaDataArrayStats_(RTIterator_ spectrum_it)

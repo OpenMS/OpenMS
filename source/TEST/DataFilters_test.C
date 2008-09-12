@@ -30,6 +30,7 @@
 
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
 #include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
 ///////////////////////////
@@ -249,7 +250,23 @@ feature_3.setMetaValue(String("test_int"), 0);
 feature_3.setMetaValue(String("test_double"), 100.01);
 feature_3.setMetaValue(String("test_string"), String("hello world 3"));
 
-///and some test peaks
+///construct some test consensus features
+ConsensusFeature c_feature_1;
+c_feature_1.setIntensity(1000.00);
+c_feature_1.setCharge(4);
+c_feature_1.setQuality(31.3334);
+
+ConsensusFeature c_feature_2;
+c_feature_2.setIntensity(122.01);
+c_feature_2.setCharge(3);
+c_feature_2.setQuality(0.002);
+
+ConsensusFeature c_feature_3;
+c_feature_3.setIntensity(55.0);
+c_feature_3.setCharge(4);
+c_feature_3.setQuality(1);
+
+///construct some test peaks
 MSSpectrum<Peak1D> spec;
 Peak1D peak;
 peak.setIntensity(201.334);
@@ -365,6 +382,31 @@ CHECK ((bool passes(const Feature& feature) const))
 
 RESULT
 
+CHECK (bool passes(const ConsensusFeature& consensus_feature) const)
+
+	filters.clear();
+	filters.add(filter_3); // "Charge = 4"
+	TEST_EQUAL(filters.passes(c_feature_1), true) // 4
+	TEST_EQUAL(filters.passes(c_feature_2), false) // 3
+	TEST_EQUAL(filters.passes(c_feature_3), true) // 4
+	
+	filters.add(filter_4); // "Quality <= 1.0" && "Charge = 4"
+	TEST_EQUAL(filters.passes(c_feature_1), false) // Quality = 31.3334; Charge = 4
+	TEST_EQUAL(filters.passes(c_feature_2), false) // Quality = 0.002; Charge = 3
+	TEST_EQUAL(filters.passes(c_feature_3), true) // Quality = 1; Charge = 4
+	
+	filters.remove(0); // "Quality <= 1.0"
+	TEST_EQUAL(filters.passes(c_feature_1), false) // Quality = 31.3334
+	TEST_EQUAL(filters.passes(c_feature_2), true) // Quality = 0.002
+	TEST_EQUAL(filters.passes(c_feature_3), true) // Quality = 1
+	
+	filters.clear();
+	filters.add(filter_2); // "Intensity >= 1000"
+	TEST_EQUAL(filters.passes(c_feature_1), true) // 1000.00
+	TEST_EQUAL(filters.passes(c_feature_2), false) // 122.01
+	TEST_EQUAL(filters.passes(c_feature_3), false) // 55.0
+
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

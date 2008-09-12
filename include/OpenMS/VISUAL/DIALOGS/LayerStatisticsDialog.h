@@ -84,13 +84,17 @@ namespace OpenMS
 			typedef LayerData::ExperimentType::SpectrumType::ConstIterator PeakIterator_;
 			/// Iterates over features of a feature map
 			typedef LayerData::FeatureMapType::ConstIterator FeatureIterator_;
+			/// Iterates over features of a feature map
+			typedef LayerData::ConsensusMapType::ConstIterator ConsensusIterator_;
 			/// Iterates over the meta_stats map
 			typedef std::map<UInt, MetaStatsValue_>::iterator MetaIterator_;
 			
-			/// Computes the statistics of a peak type layer
+			/// Computes the statistics of a peak layer
 			void computePeakStats_();
-			/// Computes the statistics of a feature type layer
+			/// Computes the statistics of a feature layer
 			void computeFeatureStats_();
+			/// Computes the statistics of a consensus feature layer
+			void computeConsensusStats_();
 			/// Computes the statistics of all meta data contained in the MetaDataArray of a @p spectrum
 			void computeMetaDataArrayStats_(RTIterator_ spectrum);
 			/// Brings the meta values of one @p meta_interface (a peak or feature) into the statistics
@@ -124,6 +128,12 @@ namespace OpenMS
 			DoubleReal max_quality_;
 			/// Average quality value
 			DoubleReal avg_quality_;
+			/// Minimum number of elements (for consensus features only)
+			DoubleReal min_elements_;
+			/// Maximum number of elements (for consensus features only)
+			DoubleReal max_elements_;
+			/// Average number of elements (for consensus features only)
+			DoubleReal avg_elements_;
 			
 		private:
 			///Not implemented

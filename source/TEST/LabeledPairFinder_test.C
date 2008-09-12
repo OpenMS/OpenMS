@@ -137,6 +137,7 @@ CHECK((virtual void run(const std::vector<ConsensusMap>& input_maps, ConsensusMa
 	TEST_REAL_EQUAL(output[0].rbegin()->getMZ(),5.0f);
 	TEST_REAL_EQUAL(output[0].rbegin()->getRT(),1.5f);
 	TEST_REAL_EQUAL(output[0].getQuality(),0.959346);
+	TEST_EQUAL(output[0].getCharge(),1);
 	
 	//test automated RT parameter estimation
 	LabeledPairFinder pm2;

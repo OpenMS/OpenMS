@@ -90,6 +90,8 @@ namespace OpenMS
 		typedef LayerData::ExperimentType ExperimentType;
 		/// Main data type (features)
 		typedef LayerData::FeatureMapType FeatureMapType;
+		/// Main data type (consensus features)
+		typedef LayerData::ConsensusMapType ConsensusMapType;
 		/// Spectrum type
 		typedef ExperimentType::SpectrumType SpectrumType;
 		/// Spectrum iterator type (iterates over peaks)
@@ -229,6 +231,8 @@ namespace OpenMS
 					return layers_[current_layer_].f1;
 				case LayerData::P_PROJECTIONS:
 					return layers_[current_layer_].f2;
+				case LayerData::C_ELEMENTS:
+					return layers_[current_layer_].f1;
 			}
 			std::cout << "Error: SpectrumCanvas::getLayerFlag -- unknown flag '" << f << "'!" << std::endl;
 			return false;
@@ -258,6 +262,9 @@ namespace OpenMS
 				case LayerData::P_PROJECTIONS:
 					layers_[current_layer_].f2 = value;
 					break;
+				case LayerData::C_ELEMENTS:
+					layers_[current_layer_].f1 = value;
+					break;
 			}
 			update_buffer_ = true;
 			update();
@@ -279,6 +286,8 @@ namespace OpenMS
 					return layers_[layer].f1;
 				case LayerData::P_PROJECTIONS:
 					return layers_[layer].f2;
+				case LayerData::C_ELEMENTS:
+					return layers_[layer].f1;
 			}
 			std::cout << "Error: SpectrumCanvas::getLayerFlag -- unknown flag '" << f << "'!" << std::endl;
 			return false;
@@ -307,6 +316,9 @@ namespace OpenMS
 					break;
 				case LayerData::P_PROJECTIONS:
 					layers_[layer].f2 = value;
+					break;
+				case LayerData::C_ELEMENTS:
+					layers_[layer].f1 = value;
 					break;
 			}
 			update_buffer_ = true;
@@ -353,7 +365,7 @@ namespace OpenMS
 		///removes the layer with index @p layer_index
 		virtual void removeLayer(int layer_index)=0;
 		/**
-			@brief Add a peak data layer (data is copied)
+			@brief Add a peak data layer
 			
 			@param map Input map, which has to be mutable and will be empty after adding. Swapping is used to insert the data. It can be performed in constant time and does not double the required memory. 
 			@param filename This @em absolute filename is used to monitor changes in the file and reload the data
@@ -363,15 +375,24 @@ namespace OpenMS
 		bool addLayer(ExperimentType& map, const String& filename="");
 
 		/**
-			@brief Add a feature data layer (data is copied)
+			@brief Add a feature data layer
 			
-			@param pairs Flag that indicates that a feature pair file was read.
 			@param map Input map, which has to be mutable and will be empty after adding. Swapping is used to insert the data. It can be performed in constant time and does not double the required memory. 
 			@param filename This @em absolute filename is used to monitor changes in the file and reload the data
 			
 			@return If a new layer was created
 		*/
 		bool addLayer(FeatureMapType& map, const String& filename="");
+		
+		/**
+			@brief Add a consensus feature data layer
+			
+			@param map Input map, which has to be mutable and will be empty after adding. Swapping is used to insert the data. It can be performed in constant time and does not double the required memory. 
+			@param filename This @em absolute filename is used to monitor changes in the file and reload the data
+			
+			@return If a new layer was created
+		*/
+		bool addLayer(ConsensusMapType& map, const String& filename="");
 		//@}
 		
 		/// Returns the minimum intensity of the active layer
@@ -381,9 +402,13 @@ namespace OpenMS
 			{
 				return getCurrentLayer().peaks.getMinInt(); 
 			}
-			else
+			else if (getCurrentLayer().type==LayerData::DT_FEATURE)
 			{
 				return getCurrentLayer().features.getMinInt(); 
+			}
+			else
+			{
+				return getCurrentLayer().consensus.getMinInt(); 
 			}
 		}
 
@@ -392,12 +417,17 @@ namespace OpenMS
 		{ 
 			if (getCurrentLayer().type==LayerData::DT_PEAK)
 			{
-				return getCurrentLayer().peaks.getMaxInt(); 
+				return getCurrentLayer().peaks.getMaxInt();
+			}
+			else if (getCurrentLayer().type==LayerData::DT_FEATURE)
+			{
+				return getCurrentLayer().features.getMaxInt();
 			}
 			else
 			{
-				return getCurrentLayer().features.getMaxInt(); 
+				return getCurrentLayer().consensus.getMaxInt();
 			}
+			
 		}
 
 		/// Returns the minimum intensity of the layer with index @p index
@@ -405,11 +435,15 @@ namespace OpenMS
 		{ 
 			if (getLayer(index).type==LayerData::DT_PEAK)
 			{
-				return getCurrentLayer().peaks.getMinInt(); 
+				return getCurrentLayer().peaks.getMinInt();
+			}
+			else if (getCurrentLayer().type==LayerData::DT_FEATURE)
+			{
+				return getLayer(index).features.getMinInt();
 			}
 			else
 			{
-				return getLayer(index).features.getMinInt(); 
+				return getLayer(index).consensus.getMinInt();
 			}
 		}
 
@@ -428,11 +462,15 @@ namespace OpenMS
 		{ 
 			if (getLayer(index).type==LayerData::DT_PEAK)
 			{
-				return getLayer(index).peaks.getMaxInt(); 
+				return getLayer(index).peaks.getMaxInt();
+			}
+			else if (getCurrentLayer().type==LayerData::DT_FEATURE)
+			{
+				return getLayer(index).features.getMaxInt();
 			}
 			else
 			{
-				return getLayer(index).features.getMaxInt(); 
+				return getLayer(index).consensus.getMaxInt();
 			}
 		}
 
@@ -534,13 +572,22 @@ namespace OpenMS
 
 
 		/**
-			@brief Fills the handed over @p map with the visible peaks of the current layer. 
+			@brief Fills the handed over @p map with the visible features of the current layer. 
 			
 			Takes zoom area and data filters into account.
 			
 			If the current layer is not a feature layer, @p map is cleared only.
 		*/
 		void getVisibleFeatureData(FeatureMapType& map) const;
+
+		/**
+			@brief Fills the handed over @p map with the visible consensus features of the current layer. 
+			
+			Takes zoom area and data filters into account.
+			
+			If the current layer is not a consensus feature layer, @p map is cleared only.
+		*/
+		void getVisibleConsensusData(ConsensusMapType& map) const;
 		
 	signals:
 

@@ -224,6 +224,7 @@ namespace OpenMS
 					matches.push_back(ConsensusFeature(light_index,it->begin()->getElementIndex(),*it));
 					matches.back().insert(heavy_index,it2->begin()->getElementIndex(),*it2);
 					matches.back().setQuality(score);
+					matches.back().setCharge(it->getCharge());
 					matches.back().computeConsensus();
 				}
 				++it2;

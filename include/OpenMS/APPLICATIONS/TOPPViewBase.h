@@ -88,6 +88,8 @@ namespace OpenMS
     	//@{
     	//Feature map type
     	typedef LayerData::FeatureMapType FeatureMapType;
+    	//Feature map type
+    	typedef LayerData::ConsensusMapType ConsensusMapType;
     	//Peak map type
     	typedef LayerData::ExperimentType ExperimentType;
     	///Peak spectrum type
@@ -272,7 +274,7 @@ namespace OpenMS
       	@param caption Sets the layer name and window caption of the data. If unset the file name is used. If set, the file is not monitored foro changes.
       	@param window_id in which window the file is opened if opened as a new layer (0 or default equals current 
       */
-  		void addData_(FeatureMapType& feature_map, ExperimentType& peak_map, bool is_feature, bool is_2D, bool show_options, const String& filename="", const String& caption="", UInt window_id=0);
+  		void addData_(FeatureMapType& feature_map, ConsensusMapType& consensus_map, ExperimentType& peak_map, bool is_feature, bool is_2D, bool show_options, const String& filename="", const String& caption="", UInt window_id=0);
   
     	/// Tries to open a db connection (queries the user for the DB password)
     	void connectToDB_(DBConnection& db);
@@ -327,6 +329,7 @@ namespace OpenMS
       QAction* dm_hull_2d_;
       QAction* dm_hulls_2d_;
       QAction* dm_numbers_2d_;
+      QAction* dm_elements_2d_;
       QAction* projections_2d_;
       //@}
 

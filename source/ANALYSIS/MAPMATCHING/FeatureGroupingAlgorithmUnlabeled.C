@@ -78,7 +78,7 @@ namespace OpenMS
 				input[0].swap(result);
 			}
 		}
-		out.swap(input[0]);		
+		out.ConsensusMap::Base::swap(input[0]);		
 	}
 
 } // namespace OpenMS

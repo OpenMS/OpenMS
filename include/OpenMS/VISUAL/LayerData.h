@@ -29,6 +29,7 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
@@ -49,6 +50,7 @@ namespace OpenMS
 		{
 			DT_PEAK,		      ///< Peak/Raw data
 			DT_FEATURE,	      ///< Feature data
+			DT_CONSENSUS,     ///< Consensus feature data
 			DT_UNKNOWN			  ///< Undefined data type indicating an error
 		};
 
@@ -59,13 +61,16 @@ namespace OpenMS
 			F_HULLS,      ///< Features: Convex hulls of single mass traces 
 			F_NUMBERS,    ///< Features: Number
 			P_PRECURSORS, ///< Peaks: Mark precursor peaks of MS/MS scans
-			P_PROJECTIONS ///< Peaks: Show projections
+			P_PROJECTIONS,///< Peaks: Show projections
+			C_ELEMENTS    ///< Consensus features: Show elements
 		};
 				
 		/// Main data type (experiment)
-		typedef MSExperiment<Peak1D> ExperimentType;
+		typedef MSExperiment<> ExperimentType;
 		/// Main data type (features)
-		typedef FeatureMap<> FeatureMapType;	
+		typedef FeatureMap<> FeatureMapType;
+		/// Main data type (consensus features)
+		typedef ConsensusMap ConsensusMapType;
 		//@}
 		
 		/// Default constructor
@@ -76,6 +81,7 @@ namespace OpenMS
 				filename(),
 				peaks(),
 				features(),
+				consensus(),
 				f1(false),
 				f2(false),
 				f3(false),
@@ -98,12 +104,14 @@ namespace OpenMS
 		ExperimentType peaks;
 		/// feature data
 		FeatureMapType features;
+		/// consensus feature data
+		ConsensusMapType consensus;
 		
-		/// Flag one (Features: convex hulls, Peak: precursors)
+		/// Flag one (Features: convex hulls, Peak: precursors, Consensus: elements)
 		bool f1;
-		/// Flag two (Features: numbers, Peak: projections)
+		/// Flag two (Features: numbers, Peak: projections, Consensus: -)
 		bool f2;
-		/// Flag tree (Features: convex hull, Peak: -)
+		/// Flag tree (Features: convex hull, Peak: -, Consensus: -)
 		bool f3;
 		
 		///Layer parameters

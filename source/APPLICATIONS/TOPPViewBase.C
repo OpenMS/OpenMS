@@ -41,6 +41,7 @@
 #include <OpenMS/VISUAL/Spectrum2DWidget.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
@@ -102,6 +103,7 @@
 #include "../VISUAL/ICONS/convexhull.xpm"
 #include "../VISUAL/ICONS/convexhulls.xpm"
 #include "../VISUAL/ICONS/numbers.xpm"
+#include "../VISUAL/ICONS/elements.xpm"
 
 //misc
 #include "../VISUAL/ICONS/TOPPView.xpm"
@@ -354,6 +356,12 @@ namespace OpenMS
     dm_numbers_2d_->setWhatsThis("2D feature draw mode: Numbers/labels<BR><BR>The feature number is displayed next to the feature. If the meta data value 'label' is set, it is displayed in brackets after the number.");
     connect(dm_numbers_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
+    dm_elements_2d_ = tool_bar_2d_->addAction(QPixmap(elements),"Show consensus feature element positions");
+    dm_elements_2d_->setCheckable(true);
+    dm_elements_2d_->setWhatsThis("2D consensus feature draw mode: Elements<BR><BR>The individual elements that make up the  consensus feature are drawn.");
+    connect(dm_elements_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
+
+
 		//################## Dock widgets #################
     //layer window
     QDockWidget* layer_bar = new QDockWidget("Layers", this);
@@ -497,6 +505,7 @@ namespace OpenMS
     DBAdapter db(con);
     ExperimentType exp;
     FeatureMapType dummy_map;
+    ConsensusMapType dummy_map2;
 		try
 		{
 			db.loadExperiment(db_id, exp);
@@ -514,7 +523,7 @@ namespace OpenMS
 		
 		//add data
     if (caption=="") caption = String("DB entry ")+db_id;
-		addData_(dummy_map, exp, false, is_2D, show_options, "", caption, window_id);
+		addData_(dummy_map, dummy_map2, exp, false, is_2D, show_options, "", caption, window_id);
   	
   	//Reset cursor
   	setCursor(Qt::ArrowCursor);
@@ -673,7 +682,7 @@ namespace OpenMS
       return;
 		}
 		//abort if file type unsupported
-		if (file_type==FileHandler::PARAM || file_type==FileHandler::IDXML || file_type==FileHandler::CONSENSUSXML)
+		if (file_type==FileHandler::PARAM || file_type==FileHandler::IDXML)
 		{
 			showLogMessage_(LS_ERROR,"Open file error",String("The type '")+fh.typeToName(file_type)+"' is not supported!");
    		setCursor(Qt::ArrowCursor);
@@ -683,6 +692,8 @@ namespace OpenMS
 		//try to load data and determine if it is 1D or 2D data
 		FeatureMapType feature_map;
 		ExperimentType peak_map;
+		ConsensusMapType consensus_map;
+		
 		bool is_2D = false;
 		bool is_feature = false;
     try
@@ -690,6 +701,12 @@ namespace OpenMS
 	    if (file_type==FileHandler::FEATUREXML)
 	    {
         FeatureXMLFile().load(abs_filename,feature_map);
+        is_2D = true;
+        is_feature = true;
+      }
+      else if (file_type==FileHandler::CONSENSUSXML)
+	    {
+        ConsensusXMLFile().load(abs_filename,consensus_map);
         is_2D = true;
         is_feature = true;
       }
@@ -724,7 +741,7 @@ namespace OpenMS
     {
     	abs_filename = "";
     }
-    addData_(feature_map, peak_map, is_feature, is_2D, show_options, abs_filename, caption, window_id);
+    addData_(feature_map, consensus_map, peak_map, is_feature, is_2D, show_options, abs_filename, caption, window_id);
   	
   	//add to recent file
   	if (add_to_recent) addRecentFile_(filename);
@@ -733,13 +750,14 @@ namespace OpenMS
     setCursor(Qt::ArrowCursor);
   }
   
-  void TOPPViewBase::addData_(FeatureMapType& feature_map, ExperimentType& peak_map, bool is_feature, bool is_2D, bool show_options, const String& filename, const String& caption, UInt window_id)
+  void TOPPViewBase::addData_(FeatureMapType& feature_map, ConsensusMapType& consensus_map, ExperimentType& peak_map, bool is_feature, bool is_2D, bool show_options, const String& filename, const String& caption, UInt window_id)
   {
   	//initialize flags with defaults from the parameters
   	bool as_new_window = true;
   	bool maps_as_2d = ((String)param_.getValue("preferences:default_map_view")=="2d");
   	bool use_mower = ((String)param_.getValue("preferences:intensity_cutoff")=="on");
-  	
+		
+		bool is_consensus_feature = (feature_map==FeatureMapType());
 		
 		//set the window where (new layer) data could be opened in
 		SpectrumWidget* open_window = window_(window_id);
@@ -766,13 +784,17 @@ namespace OpenMS
 		//disable cutoff for features and single scans
 		if (is_feature || !is_2D) dialog.disableCutoff(false);
 		//enable merge layers if a feature layer is opened and there are already features layers to merge it to
-		if (is_feature && open_window!=0)
+		if (is_feature && open_window!=0) //TODO merge
 		{
 			SpectrumCanvas* open_canvas = open_window->canvas();
 			Map<UInt,String> layers;
 			for (UInt i=0; i<open_canvas->getLayerCount(); ++i)
 			{
-				if (open_canvas->getLayer(i).type==LayerData::DT_FEATURE)
+				if (!is_consensus_feature && open_canvas->getLayer(i).type==LayerData::DT_FEATURE)
+				{
+					layers[i] = open_canvas->getLayer(i).name;
+				}
+				if (is_consensus_feature && open_canvas->getLayer(i).type==LayerData::DT_CONSENSUS)
 				{
 					layers[i] = open_canvas->getLayer(i).name;
 				}
@@ -810,11 +832,18 @@ namespace OpenMS
 
     if (merge_layer==-1) //add data to the window
     {
-	    if (is_feature)
+	    if (is_feature) //features and consensus features
 	    {
-	      if (!open_window->canvas()->addLayer(feature_map,filename)) return;
+	    	if (!is_consensus_feature) //features
+	    	{
+	      	if (!open_window->canvas()->addLayer(feature_map,filename)) return;
+	    	}
+	    	else //consensus features
+	    	{
+	    		if (!open_window->canvas()->addLayer(consensus_map,filename)) return;
+	    	}
 	    }
-	    else
+	    else //peaks
 	    {
 			  if (!open_window->canvas()->addLayer(peak_map,filename)) return;
 	      //calculate noise
@@ -838,7 +867,15 @@ namespace OpenMS
 		}
 		else //merge features data into feature layer
 		{
-			qobject_cast<Spectrum2DCanvas*>(open_window->canvas())->mergeIntoLayer(merge_layer,feature_map);
+			Spectrum2DCanvas* canvas = qobject_cast<Spectrum2DCanvas*>(open_window->canvas());
+			if (is_consensus_feature)
+			{
+				canvas->mergeIntoLayer(merge_layer,consensus_map);
+			}
+			else
+			{
+				canvas->mergeIntoLayer(merge_layer,feature_map);
+			}
 		}
 
     if (as_new_window)
@@ -1099,7 +1136,6 @@ namespace OpenMS
 			{
 		    win->canvas()->setLayerFlag(LayerData::F_HULLS,on);
 			}
-			//features
 			else if (action == dm_hull_2d_)
 			{
 		    win->canvas()->setLayerFlag(LayerData::F_HULL,on);
@@ -1107,6 +1143,11 @@ namespace OpenMS
 			else if (action == dm_numbers_2d_)
 			{
 		    win->canvas()->setLayerFlag(LayerData::F_NUMBERS,on);
+			}
+			//consensus features
+			else if (action == dm_elements_2d_)
+			{
+				 win->canvas()->setLayerFlag(LayerData::C_ELEMENTS,on);
 			}
 		}
   }
@@ -1163,19 +1204,32 @@ namespace OpenMS
       	dm_hulls_2d_->setVisible(false);
       	dm_hull_2d_->setVisible(false);
       	dm_numbers_2d_->setVisible(false);
+      	dm_elements_2d_->setVisible(false);
 				dm_precursors_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::P_PRECURSORS));
 			}
 			//feature draw modes
-			else
+			else if (w2->canvas()->getCurrentLayer().type == LayerData::DT_FEATURE)
 			{
       	dm_precursors_2d_->setVisible(false);
       	projections_2d_->setVisible(false);
       	dm_hulls_2d_->setVisible(true);
       	dm_hull_2d_->setVisible(true);
       	dm_numbers_2d_->setVisible(true);
+      	dm_elements_2d_->setVisible(false);
       	dm_hulls_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_HULLS));
       	dm_hull_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_HULL));
       	dm_numbers_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::F_NUMBERS));
+			}
+			//consensus feature draw modes
+			else
+			{
+      	dm_precursors_2d_->setVisible(false);
+      	projections_2d_->setVisible(false);
+      	dm_hulls_2d_->setVisible(false);
+      	dm_hull_2d_->setVisible(false);
+      	dm_numbers_2d_->setVisible(false);
+      	dm_elements_2d_->setVisible(true);
+      	dm_hulls_2d_->setChecked(w2->canvas()->getLayerFlag(LayerData::C_ELEMENTS));
 			}
       //show/hide toolbars and buttons
       tool_bar_1d_->hide();
@@ -1672,8 +1726,8 @@ namespace OpenMS
 		filter_all +=" *.cdf";
 		filter_single += ";;ANDI/MS files (*.cdf)";
 #endif
-		filter_all += " *.mzML *.mzXML *.mzData *.featureXML);;" ;
-		filter_single +=";;mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;XML files (*.xml);;all files (*)";
+		filter_all += " *.mzML *.mzXML *.mzData *.featureXML *.consensusXML);;" ;
+		filter_single +=";;mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;XML files (*.xml);;all files (*)";
 	
 	 	return QFileDialog::getOpenFileNames(this, "Open file(s)", param_.getValue("preferences:default_path").toQString(), (filter_all+ filter_single).toQString());
   }
@@ -1835,7 +1889,20 @@ namespace OpenMS
 				FeatureXMLFile().store(topp_.file_name+"_in",layer.features);
 			}
 		}
-
+		else
+		{
+			if (topp_.visible)
+			{
+				ConsensusMapType map;
+				activeCanvas_()->getVisibleConsensusData(map);
+				ConsensusXMLFile().store(topp_.file_name+"_in",map);
+			}
+			else
+			{
+				ConsensusXMLFile().store(topp_.file_name+"_in",layer.consensus);
+			}
+		}
+		
 		//compose argument list
 		QStringList args;
 		args << "-ini"
@@ -1937,6 +2004,10 @@ namespace OpenMS
 			else if (layer.type==LayerData::DT_FEATURE)
 			{
 				IDFeatureMapper().annotate(const_cast<LayerData&>(layer).features,identifications,protein_identifications);
+			}
+			else
+			{
+				showLogMessage_(LS_NOTICE,"Cannot annotate consensus feature layer","Please select a peak or feature layer for this operation!");
 			}
 		}
 	}
@@ -2326,7 +2397,6 @@ namespace OpenMS
 		//int row, col;
 		//stream >> row >> col;
 
-
   	//set wait cursor
   	setCursor(Qt::WaitCursor);		
 		
@@ -2336,6 +2406,7 @@ namespace OpenMS
 		//copy the feature and peak data
 		FeatureMapType features = layer.features;
 		ExperimentType peaks = layer.peaks;
+		ConsensusMapType consensus = layer.consensus;
 		
 		//determine where to copy the data
 		UInt new_id = 0;
@@ -2345,6 +2416,11 @@ namespace OpenMS
 		bool is_2D = false;
 		bool is_feature = false;
     if (layer.type==LayerData::DT_FEATURE)
+    {
+      is_2D = true;
+      is_feature = true;
+    }
+    else if (layer.type==LayerData::DT_CONSENSUS)
     {
       is_2D = true;
       is_feature = true;
@@ -2364,7 +2440,7 @@ namespace OpenMS
     }
 		
 		//add the data
-		addData_(features, peaks, is_feature, is_2D, false, layer.filename, layer.name, new_id);
+		addData_(features, consensus, peaks, is_feature, is_2D, false, layer.filename, layer.name, new_id);
 
 		//reset cursor
   	setCursor(Qt::ArrowCursor);		

@@ -31,7 +31,7 @@ using namespace std;
 namespace OpenMS
 {
 	
-	bool ConsensusMap::isValid() const
+	bool ConsensusMap::isValid(String& error_message) const
 	{	
 		//store the size of the input files
 		Map<UInt,UInt> map_sizes;
@@ -56,15 +56,13 @@ namespace OpenMS
       	//check if all map indices are registered
       	if (!file_description_.has(it->getMapIndex()))
       	{
-      		cout << "ConsensusFeature " << i << ": Invalid map index " << it->getMapIndex() << endl;
-      		cout << *this << endl;
+      		error_message = String("ConsensusFeature ") + i + ": Invalid map index " + it->getMapIndex();
       		return false;
       	}
       	//check if the element indices are valid
       	if (it->getElementIndex()>=map_sizes[it->getMapIndex()])
       	{
-      		cout << "ConsensusFeature " << i << ": Invalid element index " << it->getElementIndex() << " (size is " << map_sizes[it->getMapIndex()] << ")" << endl;
-      		cout << *this << endl;
+      		error_message = String("ConsensusFeature ") + i + ": Invalid element index " + it->getElementIndex() + " (size is " + map_sizes[it->getMapIndex()] + ")";
       		return false;
       	}
       }

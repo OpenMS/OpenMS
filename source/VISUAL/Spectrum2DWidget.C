@@ -160,9 +160,16 @@ namespace OpenMS
 				}
 			}
 		}
-		else
+		else if (canvas_->getCurrentLayer().type==LayerData::DT_FEATURE)
 		{
 			for (Spectrum2DCanvas::FeatureMapType::ConstIterator it = canvas_->getCurrentLayer().features.begin(); it != canvas_->getCurrentLayer().features.end(); ++it)
+			{
+				tmp.inc(it->getIntensity());
+			}
+		}
+		else
+		{
+			for (Spectrum2DCanvas::ConsensusMapType::ConstIterator it = canvas_->getCurrentLayer().consensus.begin(); it != canvas_->getCurrentLayer().consensus.end(); ++it)
 			{
 				tmp.inc(it->getIntensity());
 			}

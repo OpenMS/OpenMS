@@ -26,6 +26,7 @@
 
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
 #include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
 
 #include <iostream>
 
@@ -204,10 +205,9 @@ namespace OpenMS
 	{
 		if (!is_active_) return true;
 			
-		DataFilters::DataFilter filter;
 		for (UInt i = 0; i < filters_.size(); i++)
 		{
-			filter = filters_[i]; 
+			const DataFilters::DataFilter& filter = filters_[i];
 			if (filter.field==INTENSITY)
 			{
 				if (filter.op==GREATER_EQUAL && feature.getIntensity()<filter.value) return false;
@@ -235,6 +235,34 @@ namespace OpenMS
 		return true;
 	}
 
+	bool DataFilters::passes(const ConsensusFeature& consensus_feature) const
+	{
+		if (!is_active_) return true;
+			
+		for (UInt i = 0; i < filters_.size(); i++)
+		{
+			const DataFilters::DataFilter& filter = filters_[i];
+			if (filter.field==INTENSITY)
+			{
+				if (filter.op==GREATER_EQUAL && consensus_feature.getIntensity()<filter.value) return false;
+				else if (filter.op==LESS_EQUAL && consensus_feature.getIntensity()>filter.value) return false;
+				else if (filter.op==EQUAL && consensus_feature.getIntensity()!=filter.value) return false;
+			}
+			else if (filter.field==QUALITY)
+			{
+				if (filter.op==GREATER_EQUAL && consensus_feature.getQuality()<filter.value) return false;
+				else if (filter.op==LESS_EQUAL && consensus_feature.getQuality()>filter.value) return false;
+				else if (filter.op==EQUAL && consensus_feature.getQuality()!=filter.value) return false;
+			}
+			else if (filter.field==CHARGE)
+			{
+				if (filter.op==EQUAL && consensus_feature.getCharge()!=filter.value) return false;
+				else if (filter.op==GREATER_EQUAL && consensus_feature.getCharge()<filter.value) return false;
+				else if (filter.op==LESS_EQUAL && consensus_feature.getCharge()>filter.value) return false;
+			}
+		}
+		return true;
+	}
 	
 	void DataFilters::setActive(bool is_active)
 	{

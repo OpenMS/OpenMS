@@ -198,7 +198,7 @@ namespace OpenMS
 		QString label = "count";
 		if (log_mode_) label = "log ( count )";
 		painter2.drawText(0,0,-height(), margin_, Qt::AlignHCenter|Qt::AlignVCenter, label);
-		
+		painter2.end();
 		
 		//draw splitters
 		if (show_splitters_)
