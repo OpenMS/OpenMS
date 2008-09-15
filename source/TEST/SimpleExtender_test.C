@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Marcel Grunert $
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 //
 
@@ -37,7 +37,6 @@
 
 #include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
-#include <OpenMS/KERNEL/DPeak.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/MzDataFile.h>

@@ -60,7 +60,7 @@ namespace OpenMS
 		typedef DPosition<2> PositionType;
     //@}
 
-		/// Dimensions
+		/// @name Dimension descriptions
 		//@{
 		
 		/// This enum maps the symbolic names of the dimensions to numbers
@@ -99,7 +99,13 @@ namespace OpenMS
     /// Unit of measurement (self-explanatory form)
 		static char const * fullDimensionUnitMZ();
 
+		//@}
+		
 	 protected:
+		
+		/// @name Dimension descriptions
+		//@{
+		
     /// Short name of the dimension (abbreviated form)
 		static char const * const dimension_name_short_[DIMENSION];
 		

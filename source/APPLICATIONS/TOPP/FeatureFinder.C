@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff, Marcel Grunert, Clemens Groepl$
+// $Maintainer: Ole Schulz-Trieglaff, Clemens Groepl$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzDataFile.h>

@@ -49,7 +49,7 @@ namespace OpenMS
 	{
 
  	public:
-    typedef typename DPeak<D>::IntensityType IntensityType;
+    typedef DoubleReal IntensityType;
     typedef DPosition<D> PositionType;
     typedef DPeakArray<DPeak<D> > SamplesType;
 
@@ -204,7 +204,7 @@ namespace OpenMS
     /// get reasonable set of samples from the model (i.e. for printing)
     void getSamples(SamplesType& cont) const
     {
-      cont = SamplesType();
+      cont.clear();
       typedef typename BaseModel<1>::SamplesType Samples1D;
       std::vector<Samples1D> samples(D);
       // get samples for each dimension
@@ -235,6 +235,7 @@ namespace OpenMS
           }
         }
       }
+			return;
     }
 
 	protected:

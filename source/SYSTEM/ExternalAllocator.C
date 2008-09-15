@@ -26,11 +26,8 @@
 
 #include <OpenMS/SYSTEM/ExternalAllocator.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/KERNEL/DPeak.h>
-
 
 namespace OpenMS
 {
-	//ExternalAllocator< Peak1D > default_extalloc_1;
-	//ExternalAllocator< DPeak<1> > default_extalloc_2;
+	// ExternalAllocator< Peak1D > default_extalloc_1;
 }

@@ -64,12 +64,8 @@
 #endif
 #endif
 
-
-#include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-#include <vector>
-
 
 namespace OpenMS
 {

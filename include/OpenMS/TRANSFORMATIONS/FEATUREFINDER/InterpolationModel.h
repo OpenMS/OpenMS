@@ -59,9 +59,9 @@ namespace OpenMS
     {
 
       public:
-			typedef DPeak<1>::IntensityType IntensityType;
+			typedef DoubleReal IntensityType;
       typedef DPosition<1> PositionType;
-			typedef PositionType::CoordinateType CoordinateType;
+			typedef DoubleReal CoordinateType;
 			typedef Math::LinearInterpolation<DoubleReal> LinearInterpolation;
 			typedef LinearInterpolation::container_type ContainerType;
 			typedef DPeakArray<DPeak<1> > SamplesType;

@@ -463,10 +463,10 @@ namespace OpenMS
       The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
         
       @note This method assumes that the input_peak_container contains data points of type 
-           Peak1D or any other class derived from DPeak. 
+           Peak1D or any other class derived from Peak1D. 
               
 			@note The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<>)
-						can be of type Peak1D or any other class derived from DPeak.
+						can be of type Peak1D or any other class derived from Peak1D.
     */
     template <typename InputPeakContainer, typename OutputPeakContainer >
     void pick(const InputPeakContainer& input_peak_container, OutputPeakContainer& picked_peaks_container, int ms_level = 1)

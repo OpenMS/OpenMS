@@ -169,7 +169,7 @@ CHECK(template<typename SpectrumType> void load(const String& filename, Spectrum
 
 
 
-	//TEST WITH DPeakArray and DPeak
+	//TEST WITH DPeakArray and Peak1D
 
 	DSpectrum<DPeakArray<Peak1D > > s2;
 	f1.load("data/DTAFile_test.dta",s2);
@@ -329,7 +329,7 @@ CHECK(template<typename SpectrumType> void store(const String& filename, const S
 	TEST_REAL_EQUAL(it->getIntensity(), 13.5)
 
 
-	//TEST WITH DPeakArray and DPeak
+	//TEST WITH DPeakArray and Peak1D
 	
 	DSpectrum<DPeakArray<Peak1D > > raw_spec, raw_spec2;
 	DSpectrum<DPeakArray<Peak1D > >::PeakType raw_peak;

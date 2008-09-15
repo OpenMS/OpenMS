@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marcel Grunert $
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_LMAISOTOPEFITTER1D_H
@@ -131,7 +131,7 @@ namespace OpenMS
           DoubleReal isotope_distance_;
           /// Centroid m/z (as opposed to monoisotopic m/z)
           CoordinateType mean_;
-          /// number of an atom per Daton of mass
+          /// number of an atom per Dalton of mass
           DoubleReal averagine_[AVERAGINE_NUM];
           /// relative abundance of i-th isotopic peak
           ContainerType isotopes_exact_;

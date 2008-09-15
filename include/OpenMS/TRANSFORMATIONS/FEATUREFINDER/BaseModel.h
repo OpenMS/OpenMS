@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marcel Grunert $
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASEMODEL_H
@@ -50,8 +50,8 @@ namespace OpenMS
 	      typedef int Flag;
 	      typedef std::vector<Flag> Flags;
 
-	      typedef typename DPeak<D>::IntensityType IntensityType;
-        typedef typename DPeak<D>::CoordinateType CoordinateType;
+	      typedef DoubleReal IntensityType;
+        typedef DoubleReal CoordinateType;
 	      typedef DPosition<D> PositionType;
 	      typedef DPeak<D> PeakType;
 	      typedef DPeakArray<DPeak<D> > SamplesType;

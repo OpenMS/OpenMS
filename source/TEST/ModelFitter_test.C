@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marcel Grunert $
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -334,9 +334,8 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit))
 RESULT
 #endif
 
-
-/*
-#if 1 
+// "monster test" (?)
+#if 0
 CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit)))
 {
 	// Test Isotope/Bigauss Fitting (mz/rt)
@@ -437,11 +436,9 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit))
 }
 RESULT
 #endif
-*/
 
-// Marcel's "monster test" is here.
-/*
-#if 1
+// "monster test"
+#if 0
 CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 {
 	// *************************************************
@@ -774,7 +771,6 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 }
 RESULT
 #endif 
-*/
 
 
 /////////////////////////////////////////////////////////////

@@ -35,14 +35,16 @@ namespace OpenMS
 {
 	
 	/**
-		@brief	D-dimensional raw data point or peak.
-		
-		This datastructure is intended for continuous data or peak data.
-		If wou want to annotated single peaks with meta data, use DRichPeak instead.
-		
-		@see Peak1D, Peak2D
-		
-		@ingroup Kernel
+	@brief	D-dimensional raw data point or peak.
+	
+	This datastructure is intended for continuous data or peak data.  If wou
+	want to annotated single peaks with meta data, use DRichPeak instead.
+	
+	@deprecated Usage of DPeak is deprecated.  Use Peak1D or Peak2D instead.
+	
+	@see Peak1D, Peak2D
+	
+	@ingroup Kernel
 	*/
 	template <UInt D>
 	class DPeak
@@ -52,9 +54,9 @@ namespace OpenMS
 			///@name Type definitions
 			//@{
 			/// Dimensionality
-			enum
+			enum DimensionDescription
 			{
-				DIMENSION = D
+				DIMENSION = D ///< Number of dimensions
 			};
 			/// Intensity type
 			typedef Real IntensityType;

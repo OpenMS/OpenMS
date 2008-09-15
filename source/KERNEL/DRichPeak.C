@@ -24,10 +24,10 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/DPeak.h>
+#include <OpenMS/KERNEL/DRichPeak.h>
 
 namespace OpenMS
 {
-	DPeak<1> default_dpeak_1;
-	DPeak<2> default_dpeak_2;
+	DRichPeak<1> default_drichpeak_1;
+	DRichPeak<2> default_drichpeak_2;
 }

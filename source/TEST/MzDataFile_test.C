@@ -71,7 +71,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	PRECISION(0.01)
 
   //---------------------------------------------------------------------------
-  // test with DPeak (only peak data is tested, no meta data)
+  // test with Peak1D (only peak data is tested, no meta data)
   //---------------------------------------------------------------------------
 
 	MSExperiment< Peak1D > e2;
@@ -473,11 +473,11 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_EQUAL(e.getSample().getMetaValue("SampleComment"), "Sample")
 RESULT
 
-CHECK([EXTRA] load with DPeak)
+CHECK([EXTRA] load with Peak1D)
 	PRECISION(0.01)
 
   //---------------------------------------------------------------------------
-  // test with DPeak (only peak data is tested, no meta data)
+  // test with Peak1D (only peak data is tested, no meta data)
   //---------------------------------------------------------------------------
 
 	MSExperiment< Peak1D > e2;
@@ -529,7 +529,7 @@ CHECK(([EXTRA] load with metadata-only flag))
 	PRECISION(0.01)
 
   //---------------------------------------------------------------------------
-  // test with DPeak (only peak data is tested, no meta data)
+  // test with Peak1D (only peak data is tested, no meta data)
   //---------------------------------------------------------------------------
 
 	MzDataFile mzdata;

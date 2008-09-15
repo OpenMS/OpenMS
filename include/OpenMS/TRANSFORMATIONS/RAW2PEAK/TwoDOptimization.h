@@ -44,7 +44,6 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/KERNEL/PeakIndex.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>

@@ -41,7 +41,7 @@ namespace OpenMS
 		
 		@ingroup Kernel
 		A group of predicates that can be used to perform range operations on MS data.
-		They operate on classes that have the save interface as Spectrum or DPeak respectively.
+		They operate on classes that have the save interface as Spectrum or Peak1D or Peak2D, respectively.
 		<BR>
 		<BR>
 		The code for the removal of spectra in a certain retention time range from a vector of spectra might look like this:
@@ -204,6 +204,8 @@ namespace OpenMS
 		
 		SpectrumType must have a size() member function
 		
+		@todo Testing for size()==0 is generally considered bad practice if empty() is available (Marc)
+		
 		@ingroup RangeUtils
 	*/	
 	template <class SpectrumType>
@@ -238,7 +240,7 @@ namespace OpenMS
 	/**
 		@brief Predicate that determines if a peak lies inside/outside a specific m/z range
 		
-		PeakType must be a DPeak or have the same interface.
+		PeakType must have a getPosition() member function.
 		
 		@note It is assumed that the m/z dimension is dimension 0!
 		
@@ -283,7 +285,7 @@ namespace OpenMS
 	/**
 		@brief Predicate that determines if a peak lies inside/outside a specific intensity range
 		
-		PeakType must be a DPeak or have the same interface 
+		PeakType must have a getIntensity() member function.
 		
 		@ingroup RangeUtils
 	*/	

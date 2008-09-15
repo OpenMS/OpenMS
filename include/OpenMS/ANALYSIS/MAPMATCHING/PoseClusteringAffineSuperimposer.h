@@ -47,7 +47,7 @@ namespace OpenMS
 
 	  It works on two element maps and computes an affine transformation, that maps the 
 	  elements of second map as near as possible to the elements in the first map.
-	  An element can be a DPeak, a DFeature or ConsensusFeature.
+	  An element can be a Peak2D, a DFeature or ConsensusFeature.
 	
 	  This superimposer hashes affine transformations between pairs of features in map one and pairs of features in map two.
 	  Then, it finds the transformation with most votes.

@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Rene Hussong$
+// $Maintainer: Rene Hussong $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMISOTOPEWAVELET_H
@@ -184,7 +184,6 @@ namespace OpenMS
 			};				
 
 			typedef std::map<UInt, BoxElement> Box; ///<Key: RT (index), value: BoxElement
-			typedef DPeak<2> Peak2D; 
 
 			UInt max_charge_; ///<The maximal charge state we will consider
 			DoubleReal ampl_cutoff_; ///<The only parameter of the isotope wavelet

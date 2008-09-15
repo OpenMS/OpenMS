@@ -738,7 +738,7 @@ ref_vector.sortByIntensity();
 	
 	      These simplified sorting methods are supported for convenience.
 	      
-	      @note To use these methods, the ValueType must provide an interface similar to DPeak.
+	      @note To use these methods, the ValueType must provide an interface similar to Peak1D or Peak2D.
 	    */
 	    //@{
 	

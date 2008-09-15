@@ -192,7 +192,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(it2->getRT(), 4711.9)
 	TEST_REAL_EQUAL(it2->getIntensity(), 73629.98)
 
-	// Test with DPeak 
+	// ---
 
 	MSExperiment<Peak1D > e3;
 	dta.load("data/DTA2DFile_test_1.dta2d",e3);

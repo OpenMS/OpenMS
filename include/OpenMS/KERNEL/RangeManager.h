@@ -150,7 +150,7 @@ namespace OpenMS
 			/// Position range (D-dimensional)
 			PositionRangeType pos_range_;
 			
-			/// Updates the range using DPeak or 2D-dimensional data points in the iterator range
+			/// Updates the range using data points in the iterator range. 
 			template <class PeakIteratorType>
 			void updateRanges_(const PeakIteratorType& begin, const PeakIteratorType& end)
 			{
