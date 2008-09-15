@@ -161,10 +161,6 @@ namespace OpenMS
 				status_list_ = status_list_ + "\n"+ "\n"+ "Invalid modifications will not be saved.";
 				QMessageBox::warning(this,tr("Save warning"),status_list_.c_str());
 			}
-			else
-			{
-				QMessageBox::information(this,tr("Save information"),tr("Your modifications have been saved."));
-			}
 		}
 		catch(exception& e)
 		{

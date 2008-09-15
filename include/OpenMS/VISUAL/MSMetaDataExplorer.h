@@ -77,8 +77,11 @@ namespace OpenMS
 		
 		@image html MSMetaDataExplorer.png
 		
-		It contains a tree view showing all objects of the file to be viewed in hierarchical order. <BR>
+		It contains a tree view showing all objects of the file to be viewed in hierarchical order.
+		
 		The meta info data of the tree items are shown in the right part of the viewer, when they are selected in the tree.
+		
+		If the data has beed modified exec() returns @em true . Otherwise @em false is returned.
 		
 		@ingroup Visual
 	*/
@@ -90,14 +93,12 @@ namespace OpenMS
     public: 
 			/// Constructor with flag for edit mode
 			MSMetaDataExplorer(bool editable = FALSE, QWidget *parent = 0, bool modal = FALSE );
-		  
-			
 			
 			/**
-			@brief A template function to add classes
-				
-			The meta data information of many different objects can be visualized using this function. 
-			The object is passed to one of the type-specific visualize_ methods, managing the visulization of the meta data.
+				@brief A template function to add classes
+					
+				The meta data information of many different objects can be visualized using this function. 
+				The object is passed to one of the type-specific visualize_ methods, managing the visulization of the meta data.
 			*/
 			template <class T> void visualize(T& class_reference) 
 			{                

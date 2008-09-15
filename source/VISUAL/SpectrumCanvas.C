@@ -797,11 +797,16 @@ namespace OpenMS
   	{
   		dlg.visualize(layer.features);
   	}
-  	else
+  	else if (layer.type==LayerData::DT_CONSENSUS)
   	{
   		dlg.visualize(layer.consensus);
   	}
-    dlg.exec();
+  	
+  	//if the meta data was modified, set the flag
+    if (dlg.exec())
+    {
+			modificationStatus_(activeLayerIndex(), true);
+    }
   }
 	
 	void SpectrumCanvas::updateCursor_()

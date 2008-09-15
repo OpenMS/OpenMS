@@ -477,6 +477,28 @@ namespace OpenMS
 
   void TOPPViewBase::closeEvent(QCloseEvent* event)
   {
+  	//go over all SpectrumWidgets
+  	QList<QWidget*> windows = ws_->windowList();
+		for(Int w=0; w<windows.size(); ++w)
+		{
+			SpectrumCanvas* canvas = qobject_cast<SpectrumWidget*>(windows.at(w))->canvas();
+			//go over all all layers
+			for (UInt l=0; l<canvas->getLayerCount(); ++l)
+			{
+				//modified => ask if it should be saved		
+				const LayerData& layer = canvas->getLayer(l);
+				if (layer.modified)
+				{
+					QMessageBox::StandardButton result=QMessageBox::question(this,"Save?",(String("Do you want to save your changes to layer '")+ layer.name +  "'?").toQString(),QMessageBox::Ok|QMessageBox::Discard);
+					if (result==QMessageBox::Ok)
+					{
+						canvas->activateLayer(l);
+						canvas->saveCurrentLayer(false);
+					}
+				}
+			}
+		}
+
   	ws_->closeAllWindows();
   	event->accept();
   }

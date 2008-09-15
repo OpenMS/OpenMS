@@ -167,6 +167,7 @@ namespace OpenMS
 			event->accept();
 		}
 	}
+	
 	void INIFileEditorWindow::updateWindowTitle(bool update)
 	{
 		if(update)
