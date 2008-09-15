@@ -34,6 +34,7 @@
 
 class QGridLayout;
 class QScrollBar;
+class QCloseEvent;
 
 namespace OpenMS
 {
@@ -161,6 +162,11 @@ namespace OpenMS
 			void changeLegendVisibility();
 			
 		protected:
+			/// @name Reimplemented Qt events
+			//@{ 
+			void closeEvent(QCloseEvent* e);
+			//@}
+				
 			/**
 				@brief Adds the canvas, axes and scrollbars to the layout
 			

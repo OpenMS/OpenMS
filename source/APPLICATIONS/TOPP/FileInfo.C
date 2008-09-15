@@ -85,7 +85,7 @@ class TOPPFileInfo
 			registerFlag_("s","Computes a five-number statistics of intensities and qualities");
 			registerFlag_("d","Show detailed listing of all spectra (peak files only)");
 			registerFlag_("c","Check for corrupt data in the file (peak files only)");
-			registerFlag_("v","Validate the file only (for mzData, mzXML, featureXML, IdXML, featurePairsXML, ConsensusXML)");
+			registerFlag_("v","Validate the file only (for mzData, mzXML, featureXML, IdXML, consensusXML)");
 		}
 		
 		ExitCodes main_(int , const char**)

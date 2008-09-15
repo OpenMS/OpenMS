@@ -834,7 +834,7 @@ namespace OpenMS
 			emit layerModficationChange(activeLayerIndex(), modified);
 		}
 	}
-	
+
 } //namespace
 
 
