@@ -67,8 +67,6 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 
-  	@todo Add support for consensusXML (Marc)
-
     @improvement Paint only highest point per pixel, paint only part of the data when moving (Marc)
 		@improvement Add painting of lines directly on QImage and use this to replace QPainter.
 		             This should speed up the 1D view and the 2D feature view significantly (Hiwi)

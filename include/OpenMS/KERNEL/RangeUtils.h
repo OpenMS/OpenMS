@@ -202,9 +202,7 @@ namespace OpenMS
 	/**
 		@brief Predicate that determines if a spectrum is empty.
 		
-		SpectrumType must have a size() member function
-		
-		@todo Testing for size()==0 is generally considered bad practice if empty() is available (Marc)
+		SpectrumType must have a empty() member function
 		
 		@ingroup RangeUtils
 	*/	
@@ -228,9 +226,9 @@ namespace OpenMS
 			{
 				if (reverse_)
 				{
-					return s.size() != 0 ; 
+					return !s.empty(); 
 				}
-				return s.size() == 0 ; 
+				return s.empty(); 
 			}
 		
 		protected:

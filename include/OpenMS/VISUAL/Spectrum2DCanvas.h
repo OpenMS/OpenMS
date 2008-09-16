@@ -50,6 +50,8 @@ namespace OpenMS
 		The example image shows %Spectrum2DCanvas displaying a peak layer and a feature layer. 
   	
 		@ref Spectrum2DCanvas_Parameters are explained on a separate page.
+
+    @improvement Support different peak icons - cross, star, square, ... (HiWi)
 		
   	@ingroup SpectrumWidgets
   */
