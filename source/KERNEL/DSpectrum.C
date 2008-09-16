@@ -27,12 +27,9 @@
 #include <OpenMS/KERNEL/DSpectrum.h>
 #include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/KERNEL/RichPeak2D.h>
-#include <OpenMS/KERNEL/DPeak.h>
 
 namespace OpenMS
 {
 	DSpectrum< DPeakArray<Peak1D> > default_dspectrum_peak1d;
 	DSpectrum< DPeakArray<Peak2D> > default_dspectrum_peak2d;
-	DSpectrum< DPeakArray<DPeak<1> > > default_dspectrum_dpeak1;
-	DSpectrum< DPeakArray<DPeak<2> > > default_dspectrum_dpeak2;
 }

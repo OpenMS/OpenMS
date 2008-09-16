@@ -469,7 +469,7 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 		em1.setParameters(tmp);
 
 		// get samples from model
-		DPeakArray<DPeak<1> > dpa1;
+		DPeakArray<Peak1D> dpa1;
 		em1.getSamples(dpa1);
 
 		// save samples
@@ -540,7 +540,7 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 	em2.setParameters(tmp);
 
 	//get samples from model
-	DPeakArray<DPeak<1> > dpa2;
+	DPeakArray<Peak1D> dpa2;
 	em2.getSamples(dpa2);
 
 	// save samples
@@ -626,7 +626,7 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 	logm1.setParameters(tmp);
 
 	// get samples from model
-	DPeakArray<DPeak<1> > dpa3;
+	DPeakArray<Peak1D> dpa3;
 	logm1.getSamples(dpa3);
 
 	Peak2D p3;
@@ -710,7 +710,7 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 			lm1.setParameters(tmp2);
 
 			// get samples from model
-			DPeakArray<DPeak<1> > dpa4;
+			DPeakArray<Peak1D > dpa4;
 			lm1.getSamples(dpa4);
 
 			Peak2D p4;

@@ -139,8 +139,8 @@ CHECK([EXTRA] DefaultParmHandler::setParameters(...))
 	GaussModel gm2;
 	gm2.setParameters( gm1.getParameters() );
 
-	DPeakArray<DPeak<1> > dpa1;
-	DPeakArray<DPeak<1> > dpa2;
+	DPeakArray<Peak1D> dpa1;
+	DPeakArray<Peak1D> dpa2;
 	gm1.getSamples(dpa1);
 	gm2.getSamples(dpa2);
 

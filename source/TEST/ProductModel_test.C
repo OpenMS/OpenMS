@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Clemens Groepl, Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -37,7 +37,7 @@
 
 ///////////////////////////
 
-START_TEST(ProductModel<3>, "$Id$")
+START_TEST(ProductModel<2>, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -206,36 +206,37 @@ CHECK( IntensityType getIntensity(const PositionType &pos) const )
 RESULT
 
 CHECK( void getSamples(SamplesType &cont) const )
-		
-		GaussModel* gm1 = new GaussModel();
-		gm1->setParameters(p1);
-		GaussModel* gm2 = new GaussModel();
-		gm2->setParameters(p2);
+{
+	GaussModel* gm1 = new GaussModel();
+	gm1->setParameters(p1);
+	GaussModel* gm2 = new GaussModel();
+	gm2->setParameters(p2);
 
-		ProductModel pm1;
-		pm1.setModel(0,gm1);
-		pm1.setModel(1,gm2);		
+	ProductModel pm1;
+	pm1.setModel(0,gm1);
+	pm1.setModel(1,gm2);		
 		
-		ProductModel pm2(pm1);
+	ProductModel pm2(pm1);
 
-		TEST_EQUAL(pm1.getParameters(),pm2.getParameters())
-		TEST_EQUAL(pm1.getModel(0)->getParameters(),pm2.getModel(0)->getParameters())
-		TEST_EQUAL(pm1.getModel(1)->getParameters(),pm2.getModel(1)->getParameters())		
-		TEST_EQUAL(pm1.getModel(0)->getName(),pm2.getModel(0)->getName())
-		TEST_EQUAL(pm1.getModel(1)->getName(),pm2.getModel(1)->getName())	
+	TEST_EQUAL(pm1.getParameters(),pm2.getParameters());
+	TEST_EQUAL(pm1.getModel(0)->getParameters(),pm2.getModel(0)->getParameters());
+	TEST_EQUAL(pm1.getModel(1)->getParameters(),pm2.getModel(1)->getParameters());
+	TEST_EQUAL(pm1.getModel(0)->getName(),pm2.getModel(0)->getName());
+	TEST_EQUAL(pm1.getModel(1)->getName(),pm2.getModel(1)->getName());
 		
-		DPeakArray<DPeak<2> > dpa1;
-		DPeakArray<DPeak<2> > dpa2;
-		pm1.getSamples(dpa1);
-		pm2.getSamples(dpa2);
+	DPeakArray<Peak2D> dpa1;
+	DPeakArray<Peak2D> dpa2;
+	pm1.getSamples(dpa1);
+	pm2.getSamples(dpa2);
 
-		TEST_EQUAL(dpa1.size(),dpa2.size())
-		ABORT_IF(dpa1.size()!=dpa2.size());
-		for (UInt i=0; i<dpa1.size(); ++i)
-		{
-			TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
-			TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
-		}
+	TEST_EQUAL(dpa1.size(),dpa2.size());
+	ABORT_IF(dpa1.size()!=dpa2.size());
+	for (UInt i=0; i<dpa1.size(); ++i)
+	{
+		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0]);
+		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity());
+	}
+}
 RESULT
 
 CHECK( void setScale(IntensityType scale) )

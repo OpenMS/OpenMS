@@ -31,7 +31,9 @@
 #include <string>
 
 #include <OpenMS/KERNEL/DSpectrum.h>
+#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/Peak2D.h>
 ///////////////////////////
 
 START_TEST(DSpectrum, "$Id$")
@@ -42,22 +44,22 @@ START_TEST(DSpectrum, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-typedef DSpectrum<DPeakArray<DPeak<1> > > DSpectrum1;
-typedef DSpectrum<DPeakArray<DPeak<2> > > DSpectrum2;
-typedef DSpectrum<DPeakArray<DPeak<3> > > DSpectrum3;
-typedef DSpectrum<DPeakArray<DPeak<4> > > DSpectrum4;
+typedef DSpectrum<DPeakArray<Peak1D> > DSpectrum1;
+typedef DSpectrum<DPeakArray<Peak2D> > DSpectrum2;
+typedef DSpectrum<DPeakArray<Peak1D> > DSpectrum3;
+typedef DSpectrum<DPeakArray<Peak2D> > DSpectrum4;
 
-DPeak<2> dp2_1;
+Peak2D dp2_1;
 dp2_1.setIntensity(1);
 dp2_1.getPosition()[0] = 2;
 dp2_1.getPosition()[1] = 3;
 
-DPeak<2> dp2_2;
+Peak2D dp2_2;
 dp2_2.setIntensity(2);
 dp2_2.getPosition()[0] = 10;
 dp2_2.getPosition()[1] = 12;
 
-DPeak<2> dp2_3;
+Peak2D dp2_3;
 dp2_3.setIntensity(3);
 dp2_3.getPosition()[0] = 30;
 dp2_3.getPosition()[1] = 32;
@@ -117,10 +119,10 @@ CHECK((virtual void updateRanges()))
   TEST_REAL_EQUAL(s.getMin()[1],3)  
 RESULT
 
-DPeak<1> p;
+Peak1D p;
 p.setIntensity(0.0);
 p.getPosition()[0] = 500.0;
-DPeak<1> p2;
+Peak1D p2;
 p2.setIntensity(100.0);
 p2.getPosition()[0] = 1300.0;
 
@@ -305,11 +307,9 @@ CHECK((ContainerType& getContainer()))
 	TEST_EQUAL(ds.empty(), true)
 	TEST_EQUAL(ds.size(), 0)
 
-	DPeak<4> p;
+	Peak2D p;
 	p.getPosition()[0] = 0.0;
 	p.getPosition()[1] = 1.1;
-	p.getPosition()[2] = 2.2;
-	p.getPosition()[3] = 3.3;
 	p.setIntensity(15.0);
 	ds.getContainer().push_back(p);
 	TEST_EQUAL(ds.getContainer().empty(), false)
@@ -317,11 +317,9 @@ CHECK((ContainerType& getContainer()))
 	TEST_EQUAL(ds.empty(), false)
 	TEST_EQUAL(ds.size(), 1)
 
-	DPeak<4> q;
+	Peak2D q;
 	q.getPosition()[0] = 0.0;
 	q.getPosition()[1] = 1.1;
-	q.getPosition()[2] = 2.2;
-	q.getPosition()[3] = 3.3;
 	q.setIntensity(15.0);
 	ds.getContainer().push_back(q);
 	TEST_EQUAL(ds.getContainer().empty(), false)

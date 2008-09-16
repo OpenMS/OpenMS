@@ -80,9 +80,9 @@ namespace OpenMS
 		/// Isotope charge
 		typedef Feature::ChargeType ChargeType;
 		/// FeaFiModule
-		typedef FeaFiModule<PeakType,FeatureType> Base;
+		typedef FeaFiModule< PeakType, FeatureType > Base;
 		/// Raw data container type using for the temporary storage of the input data
-		typedef DPeakArray<PeakType > RawDataArrayType;
+		typedef DPeakArray< PeakType > RawDataArrayType;
     
 		enum 
 			{
@@ -630,8 +630,8 @@ namespace OpenMS
 			return quality;
 		}
            
-		/// Copy the raw data into 1-dim. DPeakArray 
-		CoordinateType doProjectionDim_(const ChargedIndexSet& index_set, RawDataArrayType& set, Int dim, String algorithm)
+		/// Project the raw data into 1-dim array
+		CoordinateType doProjectionDim_(const ChargedIndexSet& index_set, RawDataArrayType& set, Int dim, const String &algorithm)
 		{
 			CoordinateType total_intensity = 0;
          
@@ -654,7 +654,7 @@ namespace OpenMS
 					}  
 				}
                  
-				// Copy the raw data into a DPeakArray<DPeak<D> >
+				// Copy the raw data into set
 				set.resize(data_map.size());
 				std::map<CoordinateType,CoordinateType>::iterator it;
 				UInt i=0;

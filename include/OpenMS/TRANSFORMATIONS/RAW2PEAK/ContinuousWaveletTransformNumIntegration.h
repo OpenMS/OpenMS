@@ -40,13 +40,13 @@
 namespace OpenMS
 {
   /**
-     @brief This class computes the continuous wavelet transformation using a marr wavelet.
+	@brief This class computes the continuous wavelet transformation using a marr wavelet.
 
-     The convolution of the signal and the wavelet is computed by numerical integration.
+	The convolution of the signal and the wavelet is computed by numerical integration.
   */
   class ContinuousWaveletTransformNumIntegration : public ContinuousWaveletTransform
   {
-  public:
+	 public:
     /// Raw data const iterator type
     typedef ContinuousWaveletTransform::PeakConstIterator PeakConstIterator;
 
@@ -61,20 +61,24 @@ namespace OpenMS
 
     /// Constructor
     ContinuousWaveletTransformNumIntegration()
-        : ContinuousWaveletTransform()
+			: ContinuousWaveletTransform()
     {}
 
     /// Destructor.
     virtual ~ContinuousWaveletTransformNumIntegration() {}
 
     /**
-     @brief Computes the wavelet transform of a given raw data intervall [begin_input,end_input)
+		@brief Computes the wavelet transform of a given raw data intervall [begin_input,end_input)
 
-            Resolution = 1: the wavelet transform will be computed at every position of the raw data,
-            Resolution = 2: the wavelet transform will be computed at 2x(number of raw data positions) positions
-                        (the raw data are interpolated to get the intensity for missing positions)
-            @note The InputPeakIterator should point to a DPeak<1> or any other one dimensional class derived from DPeak.
-            @note Before starting the transformation you have to call the init function
+		- Resolution = 1: the wavelet transform will be computed at every position of the raw data,
+		- Resolution = 2: the wavelet transform will be computed at 2x(number of raw data positions) positions
+			(the raw data are interpolated to get the intensity for missing positions)
+		.
+
+		@note The InputPeakIterator should point to a Peak1D or a class derived from Peak1D.
+
+		@note Before starting the transformation you have to call the init function
+
     */
     template < typename InputPeakIterator >
     void transform(InputPeakIterator begin_input,
@@ -123,9 +127,9 @@ namespace OpenMS
 				
 				// zero-padding at the ends?
 				if(zeros > 0)
-					{
-						n += (2*zeros);
-					}
+				{
+					n += (2*zeros);
+				}
         
 
         std::vector<double> processed_input(n);
@@ -134,10 +138,10 @@ namespace OpenMS
 
         InputPeakIterator it_help = begin_input;
         if(zeros >0)
-					{
-						processed_input[0]=it_help->getMZ() - zeros*spacing;
-						for(unsigned int i = 0; i < zeros; ++i) processed_input[i]=0;
-					}
+				{
+					processed_input[0]=it_help->getMZ() - zeros*spacing;
+					for(unsigned int i = 0; i < zeros; ++i) processed_input[i]=0;
+				}
 				else processed_input[0]=it_help->getIntensity();
 				
         double x;
@@ -152,9 +156,9 @@ namespace OpenMS
           processed_input[k] = getInterpolatedValue_(x,it_help);
         }
 				if(zeros >0)
-					{
-						for(unsigned int i = 0; i < zeros; ++i) processed_input[n-zeros+i]=0;
-					}
+				{
+					for(unsigned int i = 0; i < zeros; ++i) processed_input[n-zeros+i]=0;
+				}
 
         // TODO avoid to compute the cwt for the zeros in signal
         for (unsigned int i=0; i < n; ++i)
@@ -164,32 +168,32 @@ namespace OpenMS
         }
 
         if(zeros == 0)
-					{
-						begin_right_padding_=n;
-						end_left_padding_=-1;
-					}
+				{
+					begin_right_padding_=n;
+					end_left_padding_=-1;
+				}
 				else
-					{
-						begin_right_padding_=n-zeros;
-						end_left_padding_=zeros-1;
-					}
+				{
+					begin_right_padding_=n-zeros;
+					end_left_padding_=zeros-1;
+				}
       }
     }
 
 
     /**
-     @brief Perform necessary preprocessing steps like tabulating the Wavelet.
+		@brief Perform necessary preprocessing steps like tabulating the Wavelet.
      
-      	Build a Marr-Wavelet for the current spacing and scale.
-      	We store the wavelet in the vector<double> wavelet_;
+		Build a Marr-Wavelet for the current spacing and scale.
+		We store the wavelet in the vector<double> wavelet_;
 
-      	We only need a finite amount of points since the Marr function
-      	decays fast. We take 5*scale, since at that point the wavelet
-      	has dropped to ~ -10^-4
+		We only need a finite amount of points since the Marr function
+		decays fast. We take 5*scale, since at that point the wavelet
+		has dropped to ~ -10^-4
     */
     virtual void init(double scale, double spacing);
 
-  protected:
+	 protected:
 
     /// Computes the convolution of the wavelet and the raw data at position x with resolution = 1
     template < typename InputPeakIterator >
@@ -203,9 +207,9 @@ namespace OpenMS
       int middle = wavelet_.size();
 
       double start_pos = ((x->getMZ()-(middle*spacing_)) > first->getMZ()) ? (x->getMZ()-(middle*spacing_))
-                         : first->getMZ();
+				: first->getMZ();
       double end_pos = ((x->getMZ()+(middle*spacing_)) < (last-1)->getMZ()) ? (x->getMZ()+(middle*spacing_))
-                       : (last-1)->getMZ();
+				: (last-1)->getMZ();
 
       InputPeakIterator help = x;
 
@@ -244,7 +248,7 @@ namespace OpenMS
         std::cout << "wavelet_ at left " <<   wavelet_left << std::endl;
 
         std::cout << " intensity " << fabs((help-1)->getMZ()-help->getMZ()) / 2. << " * " << (help-1)->getIntensity() << " * " << wavelet_left <<" + " << (help)->getIntensity()<< "* " << wavelet_right
-        << std::endl;
+									<< std::endl;
 #endif
 
         v+= fabs((help-1)->getMZ()-help->getMZ()) / 2. * ((help-1)->getIntensity()*wavelet_left + help->getIntensity()*wavelet_right);

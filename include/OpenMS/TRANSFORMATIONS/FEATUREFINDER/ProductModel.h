@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Clemens Groepl, Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
 
@@ -43,15 +43,21 @@ namespace OpenMS
 	
 		@ingroup FeatureFinder
 	*/
-	template <UInt D>
-	class ProductModel
-		: public BaseModel<D>
-	{
+	template <UInt D> class ProductModel;
 
- 	public:
+	/// The class template is only implemented for D=2 because we use Peak2D here.
+	template <>
+	class ProductModel <2>
+		: public BaseModel<2>
+	{
+	 public:
+
+		/// Number of dimensions
+		enum { D=2 };
+		
     typedef DoubleReal IntensityType;
     typedef DPosition<D> PositionType;
-    typedef DPeakArray<DPeak<D> > SamplesType;
+    typedef BaseModel<D>::SamplesType SamplesType;
 
     /// Default constructor
     ProductModel()
@@ -205,7 +211,7 @@ namespace OpenMS
     void getSamples(SamplesType& cont) const
     {
       cont.clear();
-      typedef typename BaseModel<1>::SamplesType Samples1D;
+      typedef BaseModel<1>::SamplesType Samples1D;
       std::vector<Samples1D> samples(D);
       // get samples for each dimension
       for (UInt dim=0; dim<D; ++dim)
@@ -213,7 +219,7 @@ namespace OpenMS
       	distributions_[dim]->getSamples(samples[dim]);
       }
 
-      typename BaseModel<D>::PeakType peak;
+      BaseModel<D>::PeakType peak;
       std::vector<UInt> i(D,0);  // index vector
 
       while(i[D-1]<samples[D-1].size())

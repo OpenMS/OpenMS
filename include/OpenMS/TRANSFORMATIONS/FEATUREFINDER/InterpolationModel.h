@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Clemens Groepl, Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
 
@@ -64,7 +64,6 @@ namespace OpenMS
 			typedef DoubleReal CoordinateType;
 			typedef Math::LinearInterpolation<DoubleReal> LinearInterpolation;
 			typedef LinearInterpolation::container_type ContainerType;
-			typedef DPeakArray<DPeak<1> > SamplesType;
 
       /// Default constructor
       InterpolationModel()
@@ -144,7 +143,7 @@ namespace OpenMS
 			void getSamples(SamplesType& cont) const
 			{
 				cont = SamplesType();
-				DPeak<1> peak;
+				BaseModel<1>::PeakType peak;
 				for (UInt i=0; i<interpolation_.getData().size(); ++i)
 				{
 					peak.setIntensity( interpolation_.getData()[i] );

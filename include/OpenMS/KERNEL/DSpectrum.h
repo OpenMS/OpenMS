@@ -54,10 +54,10 @@ namespace OpenMS
 			precursor information from DTA files.  No data processing!
 
 			@internal If you ever think about using it for more than
-			the most trivial tasks, please contact Clemens!
-			We could easily replace DPeak with a better class, but
-			at the moment this does not seem to pay off the effort.
-			The class has been pulled out of the scope of the DSpectrum class
+			the most trivial tasks, please contact Clemens and/or Marc!
+			We could easily replace DRichPeak with a better class, but
+			at the moment this does not pay off the effort.  Historically,
+			the class has been pulled out of the scope of the DSpectrum class
 			because it does not depend on the container type, only on the dimension.
 			Thus we can avoid unnecessary code duplication and incompatible types,
 			e.g. when raw data and picked data is present during peak picking.

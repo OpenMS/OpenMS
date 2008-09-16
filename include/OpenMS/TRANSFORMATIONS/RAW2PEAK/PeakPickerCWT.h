@@ -47,36 +47,37 @@
 namespace OpenMS
 {
   /**
-		@brief This class implements a peak picking algorithm using wavelet techniques
+	@brief This class implements a peak picking algorithm using wavelet techniques
 		
-		The algorithm is descripted in detail in Lange et al. (2006) Proc. PSB-06.
+	The algorithm is descripted in detail in Lange et al. (2006) Proc. PSB-06.
 		
-		This peak picking algorithm uses the continuous wavelet transform of a raw data signal to detect mass peaks.
-		Afterwards a given asymmetric peak function is fitted to the raw data and important peak parameters (e.g. fwhm)
-		are extracted.
-		In an optional step these parameters can be optimized using a non-linear opimization method.
+	This peak picking algorithm uses the continuous wavelet transform of a raw data signal to detect mass peaks.
+	Afterwards a given asymmetric peak function is fitted to the raw data and important peak parameters (e.g. fwhm)
+	are extracted.
+	In an optional step these parameters can be optimized using a non-linear opimization method.
 		
-		The peak parameters are stored in the meta data arrays of the spectra (see DSpectrum) in this order:
-		- rValue
-		- area
-		- fwhm
-		- leftWidth
-		- rightWidth
-		- peakShape
-		- SignalToNoise
+	The peak parameters are stored in the meta data arrays of the spectra (see DSpectrum) in this order:
+	- rValue
+	- area
+	- fwhm
+	- leftWidth
+	- rightWidth
+	- peakShape
+	- SignalToNoise
+	.
 
-		@ref PeakPickerCWT_Parameters are explained on a separate page.
+	@ref PeakPickerCWT_Parameters are explained on a separate page.
     
-    @ingroup PeakPicking
+	@ingroup PeakPicking
   */
   class PeakPickerCWT : public PeakPicker
   {
-  public:
+	 public:
 
     /// Raw data point type
     typedef Peak1D PeakType;
     /// Raw data container type using for the temporary storage of the input data
-    typedef DPeakArray<PeakType > RawDataArrayType;
+    typedef DPeakArray<PeakType> RawDataArrayType;
     /// Raw data iterator type
     typedef RawDataArrayType::iterator PeakIterator;
     /// Position type
@@ -95,17 +96,17 @@ namespace OpenMS
     virtual ~PeakPickerCWT();
 
     /** 
-    	@brief Applies the peak picking algorithm to an given iterator range.
+		@brief Applies the peak picking algorithm to an given iterator range.
         
-      Picks the peaks in the given iterator intervall [first,last) and writes the
-      resulting peaks to the picked_peak_container.
-      The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
+		Picks the peaks in the given iterator intervall [first,last) and writes the
+		resulting peaks to the picked_peak_container.
+		The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
         
-      @note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<Peak1D>::const_iterator)
-            points to a data point of type Peak1D or any other class derived from Peak1D.
+		@note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<Peak1D>::const_iterator)
+		points to a data point of type Peak1D or any other class derived from Peak1D.
         
-     	@note The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<>)
-						can be of type Peak1D or any other class derived from DPeak. 
+		@note The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<>)
+		can be of type Peak1D or any other class derived from Peak1D.
     */
     template <typename InputPeakIterator, typename OutputPeakContainer  >
     void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)
@@ -138,14 +139,13 @@ namespace OpenMS
       picked_peak_container.getMetaDataArrays()[6].setName("SignalToNoise");
 
 #ifdef DEBUG_PEAK_PICKING
-
       std::cout << "****************** PICK ******************" << std::endl;
 #endif
 
       // vector of peak endpoint positions
       std::vector<double> peak_endpoints;
 
-      // copy the raw data into a DPeakArray<DPeak<D> >
+      // copy the raw data into a DPeakArray<Peak1D>
 			//  raw_peak_array_original is needed for the separation of overlapping peaks
       RawDataArrayType raw_peak_array, raw_peak_array_original;
       // signal to noise estimator
@@ -247,10 +247,10 @@ namespace OpenMS
           {
 #ifdef DEBUG_PEAK_PICKING
             std::cout << "The endpoints are "
-            << area.left->getPosition()
-            << " and "
-            << area.right->getPosition()
-            << std::endl;
+											<< area.left->getPosition()
+											<< " and "
+											<< area.right->getPosition()
+											<< std::endl;
 #endif
             // determine the best fitting lorezian or sech2 function
             PeakShape shape = fitPeakShape_(area,centroid_fit);
@@ -316,118 +316,118 @@ namespace OpenMS
 				if( deconvolution_)
 				{
 					for (UInt i = 0; i < n; ++i)
+					{
+						if ((peak_shapes_[i].getFWHM() > fwhm_threshold) 
+								|| (peak_shapes_[i].getSymmetricMeasure() < symm_threshold))
 						{
-							if ((peak_shapes_[i].getFWHM() > fwhm_threshold) 
-									|| (peak_shapes_[i].getSymmetricMeasure() < symm_threshold))
+#ifdef DEBUG_DECONV
+							std::cout << "check " << peak_shapes_[i].mz_position 
+												<< " with fwhm: " << peak_shapes_[i].getFWHM() 
+												<< " and " << peak_shapes_[i].left_width 
+												<< ' ' << peak_shapes_[i].right_width 
+												<< ' ' << peak_shapes_[i].getLeftEndpoint()->getMZ()
+												<< ' ' << peak_shapes_[i].getRightEndpoint()->getMZ()
+												<< std::endl;
+#endif
+							// this might be a convolved peak pattern
+							// and we check the distance to the neighboring peaks as well as their fwhm values:
+							//float max_distance = 1.1;
+							float dist_left = ((i > 0) && (fabs(peak_shapes_[i].mz_position-peak_shapes_[i-1].mz_position) < 1.2)) ? fabs(peak_shapes_[i].mz_position-peak_shapes_[i-1].mz_position) : -1;
+							float dist_right = ((i < (n-1)) && (fabs(peak_shapes_[i].mz_position-peak_shapes_[i+1].mz_position) < 1.2)) ? fabs(peak_shapes_[i].mz_position-peak_shapes_[i+1].mz_position) : -1;
+          
+							// left and right neighbor
+							if ((dist_left > 0) && (dist_right > 0))
+							{
+								// if distances to left and right adjacent peaks is dissimilar deconvolute
+								DoubleReal ratio = (dist_left > dist_right) ? dist_right/dist_left : dist_left/dist_right;
+#ifdef DEBUG_DECONV
+								std::cout << "Ratio " << ratio << std::endl;
+#endif
+								if (ratio < 0.6)
 								{
 #ifdef DEBUG_DECONV
-									std::cout << "check " << peak_shapes_[i].mz_position 
-														<< " with fwhm: " << peak_shapes_[i].getFWHM() 
-														<< " and " << peak_shapes_[i].left_width 
-														<< ' ' << peak_shapes_[i].right_width 
-														<< ' ' << peak_shapes_[i].getLeftEndpoint()->getMZ()
-														<< ' ' << peak_shapes_[i].getRightEndpoint()->getMZ()
-														<< std::endl;
+									std::cout << "deconvolute: dissimilar left and right neighbor "  << peak_shapes_[i-1].mz_position << ' ' << peak_shapes_[i+1].mz_position << std::endl;
 #endif
-									// this might be a convolved peak pattern
-									// and we check the distance to the neighboring peaks as well as their fwhm values:
-									//float max_distance = 1.1;
-									float dist_left = ((i > 0) && (fabs(peak_shapes_[i].mz_position-peak_shapes_[i-1].mz_position) < 1.2)) ? fabs(peak_shapes_[i].mz_position-peak_shapes_[i-1].mz_position) : -1;
-									float dist_right = ((i < (n-1)) && (fabs(peak_shapes_[i].mz_position-peak_shapes_[i+1].mz_position) < 1.2)) ? fabs(peak_shapes_[i].mz_position-peak_shapes_[i+1].mz_position) : -1;
-          
-									// left and right neighbor
-									if ((dist_left > 0) && (dist_right > 0))
-										{
-											// if distances to left and right adjacent peaks is dissimilar deconvolute
-											DoubleReal ratio = (dist_left > dist_right) ? dist_right/dist_left : dist_left/dist_right;
-#ifdef DEBUG_DECONV
-											std::cout << "Ratio " << ratio << std::endl;
-#endif
-											if (ratio < 0.6)
-												{
-#ifdef DEBUG_DECONV
-													std::cout << "deconvolute: dissimilar left and right neighbor "  << peak_shapes_[i-1].mz_position << ' ' << peak_shapes_[i+1].mz_position << std::endl;
-#endif
-													if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
-												}
-										}
-									// has only one or no neighbor peak
-									else
-										{
-											// only left neighbor
-											if (dist_left > 0)
-												{
-													// check distance and compare fwhm
-													DoubleReal dist = 1.00235;
-													//check charge 1 or 2
-													bool dist_ok = ((fabs(dist-dist_left) < 0.21) || (fabs(dist/2.-dist_left) < 0.11)) ? true : false ;  
-													// distance complies peptide mass rule
-													if (dist_ok)
-														{
-#ifdef DEBUG_DECONV
-															std::cout << "left neighbor " << peak_shapes_[i-1].mz_position << ' ' << peak_shapes_[i-1].getFWHM() << std::endl;
-#endif
-															// if the left peak has a fwhm which is smaller than 60% of the fwhm of the broad peak deconvolute
-															if ((peak_shapes_[i-1].getFWHM()/peak_shapes_[i].getFWHM()) < 0.6)
-																{
-#ifdef DEBUG_DECONV
-																	std::cout << " too small fwhm" << std::endl;
-#endif
-																	if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
-																}
-														}
-													else
-														{
-#ifdef DEBUG_DECONV
-															std::cout << "distance not ok" << dist_left << ' ' << peak_shapes_[i-1].mz_position << std::endl;
-#endif
-															if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
-														}
-												}
-											else
-												{ 
-													// only right neighbor 
-													if (dist_right > 0)
-														{
-															// check distance and compare fwhm
-															DoubleReal dist = 1.00235;
-															//check charge 1 or 2
-															bool dist_ok = ((fabs(dist-dist_right) < 0.21) || (fabs(dist/2.-dist_right) < 0.11)) ? true : false ;  
-															// distance complies peptide mass rule
-															if (dist_ok)
-																{
-#ifdef DEBUG_DECONV
-																	std::cout << "right neighbor " << peak_shapes_[i+1].mz_position << ' ' << peak_shapes_[i+1].getFWHM() << std::endl;
-#endif
-																	// if the left peak has a fwhm which is smaller than 60% of the fwhm of the broad peak deconvolute
-																	if ((peak_shapes_[i+1].getFWHM()/peak_shapes_[i].getFWHM()) < 0.6)
-																		{
-#ifdef DEBUG_DECONV
-																			std::cout << "too small fwhm"  << std::endl;
-#endif
-																			if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
-																		}
-																}
-															else
-																{
-#ifdef DEBUG_DECONV
-																	std::cout << "distance not ok" << dist_right << ' ' << peak_shapes_[i+1].mz_position << std::endl;
-#endif
-																	if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
-																}
-														}
-													// no neighbor
-													else
-														{
-#ifdef DEBUG_DECONV
-															std::cout << "no neighbor" << std::endl;
-#endif
-															if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
-														} 
-												}
-										}
+									if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
 								}
+							}
+							// has only one or no neighbor peak
+							else
+							{
+								// only left neighbor
+								if (dist_left > 0)
+								{
+									// check distance and compare fwhm
+									DoubleReal dist = 1.00235;
+									//check charge 1 or 2
+									bool dist_ok = ((fabs(dist-dist_left) < 0.21) || (fabs(dist/2.-dist_left) < 0.11)) ? true : false ;  
+									// distance complies peptide mass rule
+									if (dist_ok)
+									{
+#ifdef DEBUG_DECONV
+										std::cout << "left neighbor " << peak_shapes_[i-1].mz_position << ' ' << peak_shapes_[i-1].getFWHM() << std::endl;
+#endif
+										// if the left peak has a fwhm which is smaller than 60% of the fwhm of the broad peak deconvolute
+										if ((peak_shapes_[i-1].getFWHM()/peak_shapes_[i].getFWHM()) < 0.6)
+										{
+#ifdef DEBUG_DECONV
+											std::cout << " too small fwhm" << std::endl;
+#endif
+											if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
+										}
+									}
+									else
+									{
+#ifdef DEBUG_DECONV
+										std::cout << "distance not ok" << dist_left << ' ' << peak_shapes_[i-1].mz_position << std::endl;
+#endif
+										if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
+									}
+								}
+								else
+								{ 
+									// only right neighbor 
+									if (dist_right > 0)
+									{
+										// check distance and compare fwhm
+										DoubleReal dist = 1.00235;
+										//check charge 1 or 2
+										bool dist_ok = ((fabs(dist-dist_right) < 0.21) || (fabs(dist/2.-dist_right) < 0.11)) ? true : false ;  
+										// distance complies peptide mass rule
+										if (dist_ok)
+										{
+#ifdef DEBUG_DECONV
+											std::cout << "right neighbor " << peak_shapes_[i+1].mz_position << ' ' << peak_shapes_[i+1].getFWHM() << std::endl;
+#endif
+											// if the left peak has a fwhm which is smaller than 60% of the fwhm of the broad peak deconvolute
+											if ((peak_shapes_[i+1].getFWHM()/peak_shapes_[i].getFWHM()) < 0.6)
+											{
+#ifdef DEBUG_DECONV
+												std::cout << "too small fwhm"  << std::endl;
+#endif
+												if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
+											}
+										}
+										else
+										{
+#ifdef DEBUG_DECONV
+											std::cout << "distance not ok" << dist_right << ' ' << peak_shapes_[i+1].mz_position << std::endl;
+#endif
+											if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
+										}
+									}
+									// no neighbor
+									else
+									{
+#ifdef DEBUG_DECONV
+										std::cout << "no neighbor" << std::endl;
+#endif
+										if(deconvolutePeak_(peak_shapes_[i])) peaks_to_skip.push_back(i);
+									} 
+								}
+							}
 						}
+					}
 				}
 				
         // write the picked peaks to the outputcontainer
@@ -455,18 +455,18 @@ namespace OpenMS
     }
 
     /** 
-    	@brief Applies the peak picking algorithm to a raw data point container.
+		@brief Applies the peak picking algorithm to a raw data point container.
         
-      Picks the peaks in the input container (e.g. of type MSSpectrum<Peak1D >) 
-      and writes the resulting peaks to the picked_peak_container (e.g. MSSpectrum<>).
+		Picks the peaks in the input container (e.g. of type MSSpectrum<Peak1D >) 
+		and writes the resulting peaks to the picked_peak_container (e.g. MSSpectrum<>).
 
-      The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
+		The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
         
-      @note This method assumes that the input_peak_container contains data points of type 
-           Peak1D or any other class derived from Peak1D. 
+		@note This method assumes that the input_peak_container contains data points of type 
+		Peak1D or any other class derived from Peak1D. 
               
-			@note The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<>)
-						can be of type Peak1D or any other class derived from Peak1D.
+		@note The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<>)
+		can be of type Peak1D or any other class derived from Peak1D.
     */
     template <typename InputPeakContainer, typename OutputPeakContainer >
     void pick(const InputPeakContainer& input_peak_container, OutputPeakContainer& picked_peaks_container, int ms_level = 1)
@@ -479,15 +479,16 @@ namespace OpenMS
 
 
     /** 
-    	@brief Picks the peaks in a range of MSSpectra.
+		@brief Picks the peaks in a range of MSSpectra.
         
-      Picks the peaks successive in every scan in the intervall [first,last).
-      The detected peaks are stored in a MSExperiment.
+		Picks the peaks successive in every scan in the intervall [first,last).
+		The detected peaks are stored in a MSExperiment.
               
-      @note The InputSpectrumIterator should point to a MSSpectrum. Elements of the input spectra should be of type Peak1D 
-              or any other derived class of DPeak.
+		@note The InputSpectrumIterator should point to a MSSpectrum.
+		Elements of the input spectra should be of type Peak1D 
+		or any other derived class of Peak1D.
 
-      @note You have to copy the ExperimentalSettings of the raw data by your own.  
+		@note You have to copy the ExperimentalSettings of the raw data by your own.  
     */
     template <typename InputSpectrumIterator, typename OutputPeakType >
     void pickExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_peaks)
@@ -541,12 +542,12 @@ namespace OpenMS
     }
 
     /** 
-    	@brief Picks the peaks in a MSExperiment.
+		@brief Picks the peaks in a MSExperiment.
         
-      Picks the peaks on every scan in the MSExperiment.
-      The detected peaks are stored in a MSExperiment.
+		Picks the peaks on every scan in the MSExperiment.
+		The detected peaks are stored in a MSExperiment.
               
-      @note The input peaks should be of type Peak1D or any other derived class of DPeak.
+		@note The input peaks should be of type Peak1D or any other derived class of Peak1D.
     */
     template <typename InputPeakType, typename OutputPeakType >
     void pickExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_peaks)
@@ -557,7 +558,7 @@ namespace OpenMS
       pickExperiment(ms_exp_raw.begin(),ms_exp_raw.end(),ms_exp_peaks);
     }
 
-  protected:
+	 protected:
     /// Container the determined peak shapes
     std::vector<PeakShape> peak_shapes_;
 
@@ -602,28 +603,28 @@ namespace OpenMS
 
 
     /**
-    	@brief Class for the internal peak representation
+		@brief Class for the internal peak representation
         
-      A regularData-Object which contents some additional useful informations
-      for analysing peaks and their properties
+		A regularData-Object which contents some additional useful informations
+		for analysing peaks and their properties
     */
     class PeakArea_
     {
       typedef std::vector<PeakType>::iterator PeakIterator;
 
-    public:
+		 public:
       PeakArea_() : left(), max(), right(), left_behind_centroid()
       {
       }
 
       /** 
-      	@brief Iterator defining a raw data peak.
+			@brief Iterator defining a raw data peak.
          
-				The left and right iterators delimit a range in the raw data which represents a raw peak.
-				They define the raw peak endpoints. Max points to the raw data point in [left, right] with the highest intensity, the 
-				maximum of the raw peak. 
+			The left and right iterators delimit a range in the raw data which represents a raw peak.
+			They define the raw peak endpoints. Max points to the raw data point in [left, right] with the highest intensity, the 
+			maximum of the raw peak. 
 				
-				Left_behind_centroid points to the raw data point next to the estimates centroid position.
+			Left_behind_centroid points to the raw data point next to the estimates centroid position.
       */
       PeakIterator left;
       PeakIterator max;
@@ -640,55 +641,52 @@ namespace OpenMS
     PeakShape fitPeakShape_(const PeakArea_& area, bool enable_centroid_fit);
 
     /** 
-    	@brief Returns the squared pearson coefficient.
+		@brief Returns the squared pearson coefficient.
 
-      Computes the correlation of the peak and the original data given by the peak enpoints area.left and area.right.
-      If the value is near 1, the fitted peakshape and the raw data are expected to be very similar. 
+		Computes the correlation of the peak and the original data given by the peak enpoints area.left and area.right.
+		If the value is near 1, the fitted peakshape and the raw data are expected to be very similar. 
     */
     double correlate_(const PeakShape& peak, const PeakArea_& area, int direction=0) const;
 
 
     /** 
-    	@brief Finds the next maximum position in the wavelet transform wt.
+		@brief Finds the next maximum position in the wavelet transform wt.
         
-      If the maximum is greater than peak_bound_cwt we search for the corresponding maximum in the raw data interval [first,last)
-      given a predefined search radius radius. Only peaks with intensities greater than peak_bound_ 
-      are relevant. If no peak is detected the method return false.
-      For direction=1, the method runs from first to last given direction=-1 it runs the other way around.
+		If the maximum is greater than peak_bound_cwt we search for the corresponding maximum in the raw data interval [first,last)
+		given a predefined search radius radius. Only peaks with intensities greater than peak_bound_ 
+		are relevant. If no peak is detected the method return false.
+		For direction=1, the method runs from first to last given direction=-1 it runs the other way around.
     */
     bool getMaxPosition_(PeakIterator first, PeakIterator last, const ContinuousWaveletTransform& wt, PeakArea_& area, int distance_from_scan_border, int ms_level, int direction=1);
 
 
     /** 
-    	@brief Determines a peaks's endpoints.
+		@brief Determines a peaks's endpoints.
       
-      The algorithm does the following:
-          - let x_m be the position of the maximum in the data and let (x_l, x_r) be
-            the left and right neighbours
-      
-      
-        (1) starting from x_l', walk left until one of the following happens
-               - the new point is lower than the original bound
-                    => we found our left endpoint
-      
-               - the new point is larger than the last, but the point left from
-                 the new point is smaller. In that case, we either ran into another
-                 peak, or we encounter some noise. Therefore we now look in the cwt
-                 at the position corresponding to this value. If the cwt here is
-                 monotonous, we consider the point as noise and continue further to the
-                 left. Otherwise, we probably found the beginning of a new peak and
-                 therefore stop here.
-      
-        (2) analogous procedure to the right of x_r
+		The algorithm does the following:
+		- let x_m be the position of the maximum in the data and let (x_l, x_r) be
+			the left and right neighbours
+    -	(1) starting from x_l', walk left until one of the following happens
+			- the new point is lower than the original bound => we found our left endpoint
+			- the new point is larger than the last, but the point left from
+				the new point is smaller. In that case, we either ran into another
+				peak, or we encounter some noise. Therefore we now look in the cwt
+				at the position corresponding to this value. If the cwt here is
+				monotonous, we consider the point as noise and continue further to the
+				left. Otherwise, we probably found the beginning of a new peak and
+				therefore stop here.
+			.
+		-	(2) analogous procedure to the right of x_r
+		.
     */
     bool getPeakEndPoints_(PeakIterator first, PeakIterator last,  PeakArea_ &area, int distance_from_scan_border, int& peak_left_index, int& peak_right_index);
 
 
     /** 
-    	@brief Estimates a peak's centroid position.
+		@brief Estimates a peak's centroid position.
 
-			Computes the centroid position of the peak using all raw data points which are greater than 
-			60% of the most intensive raw data point.
+		Computes the centroid position of the peak using all raw data points which are greater than 
+		60% of the most intensive raw data point.
     */
     void getPeakCentroid_(PeakArea_& area);
 
@@ -696,25 +694,25 @@ namespace OpenMS
     double lorentz_(double height, double lambda, double pos, double x);
 
     /** 
-    	@brief Computes the threshold for the peak height in the wavelet transform and initializes the wavelet transform.
+		@brief Computes the threshold for the peak height in the wavelet transform and initializes the wavelet transform.
 
-      Given the threshold for the peak height a corresponding value peak_bound_cwt can be computed
-      for the continious wavelet transform. 
-      Therefore we compute a theoretical lorentzian peakshape with height=peak_bound_ and a width which 
-      is similar to the width of the wavelet. Taking the maximum in the wavelet transform of the
-      lorentzian peak we have a peak bound in the wavelet transform. 
+		Given the threshold for the peak height a corresponding value peak_bound_cwt can be computed
+		for the continious wavelet transform. 
+		Therefore we compute a theoretical lorentzian peakshape with height=peak_bound_ and a width which 
+		is similar to the width of the wavelet. Taking the maximum in the wavelet transform of the
+		lorentzian peak we have a peak bound in the wavelet transform. 
     */
     void initializeWT_();
 
-		 /** @name Methods needed for separation of overlapping peaks
+		/** @name Methods needed for separation of overlapping peaks
     */
     //@{
 		
 		/** 
-			@brief Separates overlapping peaks.
+		@brief Separates overlapping peaks.
 
-	    It determines the number of peaks lying underneath the initial peak using the cwt with different scales.
-			Then a nonlinear optimzation procedure is applied to optimize the peak parameters.
+		It determines the number of peaks lying underneath the initial peak using the cwt with different scales.
+		Then a nonlinear optimzation procedure is applied to optimize the peak parameters.
 		*/
     bool deconvolutePeak_(PeakShape& shape);
 
@@ -729,7 +727,7 @@ namespace OpenMS
     void addPeak_(std::vector<PeakShape>& peaks_DC,PeakArea_& area,double left_width,double right_width);
 		//@}
   }
-  ; // end PeakPickerCWT
+		; // end PeakPickerCWT
 
 
 }// namespace OpenMS

@@ -28,7 +28,7 @@
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_OPTIMIZEPICK_H
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
-#include <OpenMS/KERNEL/DPeak.h>
+#include <OpenMS/KERNEL/Peak1D.h>
 
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_multifit_nlin.h>
@@ -48,7 +48,7 @@ namespace OpenMS
   namespace OptimizationFunctions
   {
     /// Raw data vector type
-    typedef std::vector<DPeak<1> > RawDataVector;
+    typedef std::vector<Peak1D> RawDataVector;
     /// Raw data iterator type
     typedef RawDataVector::iterator PeakIterator;
 
@@ -113,7 +113,7 @@ namespace OpenMS
   public:
 
     /// Raw data vector type
-    typedef std::vector<DPeak<1> > RawDataVector;
+    typedef std::vector<Peak1D> RawDataVector;
     /// Raw data iterator type
     typedef RawDataVector::iterator PeakIterator;
 

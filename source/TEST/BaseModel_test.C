@@ -42,11 +42,11 @@ START_TEST(BaseModel, "$Id$")
 using namespace OpenMS;
 using std::stringstream;
 
-class TestModel : public BaseModel<3>
+class TestModel : public BaseModel<2>
 {
   public:
 	TestModel()
-		: BaseModel<3>()
+		: BaseModel<2>()
 	{
 		setName(getProductName());
 		
@@ -56,7 +56,7 @@ class TestModel : public BaseModel<3>
 	}
 
 	TestModel(const TestModel& source)
-		: BaseModel<3>(source)
+		: BaseModel<2>(source)
 	{
 		updateMembers_();
 	}
@@ -69,7 +69,7 @@ class TestModel : public BaseModel<3>
 	{
 		if (&source == this) return *this;
 		
-		BaseModel<3>::operator = (source);
+		BaseModel<2>::operator = (source);
 		updateMembers_();
 		
 		return *this;
@@ -77,22 +77,17 @@ class TestModel : public BaseModel<3>
 	
 	void updateMembers_()
 	{
-		BaseModel<3>::updateMembers_();
+		BaseModel<2>::updateMembers_();
 	}
 
 	IntensityType getIntensity(const PositionType& pos) const
 	{
-		return pos[0]+pos[1]+pos[2];
+		return pos[0]+pos[1];
 	}
 
 	bool isContained(const PositionType& pos) const
 	{
 		return getIntensity(pos)>cut_off_;
-	}
-
-	void  fillIntensity(PeakType& peak) const
-	{
-		peak.setIntensity(getIntensity(peak.getPosition()));
 	}
 
 	void getSamples(SamplesType& /*cont*/) const
@@ -155,37 +150,36 @@ CHECK(([EXTRA]const String& getName() const))
 RESULT
 
 CHECK((virtual IntensityType getIntensity(const PositionType &pos) const =0))
+{
 	const TestModel s;
   TestModel::PositionType pos;
   pos[0]=0.1;
   pos[1]=0.2;
-  pos[2]=0.3;
-  TEST_REAL_EQUAL(s.getIntensity(pos), 0.6)
+	TEST_REAL_EQUAL(s.getIntensity(pos), 0.3);
+}
 RESULT
 
-CHECK((virtual bool isContained(const PositionType &pos) const ))
+CHECK((virtual bool isContained(const PositionType &pos) const))
 	TestModel s;
   s.setCutOff(0.9);
   TestModel::PositionType pos;
   pos[0]=0.1;
   pos[1]=0.2;
-  pos[2]=0.3;
   const TestModel& t = s;
   TEST_REAL_EQUAL(t.isContained(pos), false)
 RESULT
 
-CHECK((virtual void fillIntensity(PeakType &peak) const ))
+CHECK((template <typename PeakType> void fillIntensity(PeakType &peak) const))
 	const TestModel t;
   TestModel::PeakType p;
   p.getPosition()[0]=0.1;
   p.getPosition()[1]=0.2;
-  p.getPosition()[2]=0.3;
   p.setIntensity(0.1);
   t.fillIntensity(p);
-  TEST_REAL_EQUAL(p.getIntensity(), 0.6)
+  TEST_REAL_EQUAL(p.getIntensity(), 0.3)
 RESULT
 
-CHECK((template <class PeakIterator> void fillIntensities(PeakIterator beg, PeakIterator end) const ))
+CHECK((template <class PeakIterator> void fillIntensities(PeakIterator begin, PeakIterator end) const))
 	const TestModel t;
   std::vector< TestModel::PeakType > vec(4);
   for (UInt i=0; i<4; ++i)
@@ -212,17 +206,17 @@ CHECK((static void registerChildren()))
 	// TODO
 RESULT
 
-CHECK( virtual IntensityType getCutOff() const )
+CHECK((virtual IntensityType getCutOff() const))
 	TestModel s;
 	s.setCutOff(4.4);
   TEST_REAL_EQUAL(s.getCutOff(), 4.4)
 RESULT
 
-CHECK( virtual void getSamples(SamplesType &cont) const =0 )
+CHECK((virtual void getSamples(SamplesType &cont) const =0))
 	// TODO
 RESULT
 
-CHECK( virtual void getSamples(std::ostream &os) )
+CHECK((virtual void getSamples(std::ostream &os)))
 	// TODO
 RESULT
 

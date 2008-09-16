@@ -26,7 +26,6 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/KERNEL/DPeakArray.h>
-#include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <string>
@@ -58,17 +57,23 @@ CHECK((~DPeakArray()))
 RESULT
 
 CHECK((DPeakArray(const DPeakArray& p)))
-	DPeakArray<DPeak<4> > pl;
-	DPeak<4> peak;
+{
+	DPeakArray<Peak2D> pl;
+	Peak2D peak;
 	peak.setIntensity(1.0);
   pl.push_back(peak);
 	peak.setIntensity(2.0);
+	peak.setMZ(88.8);
+	peak.setRT(99.9);
   pl.push_back(peak);
   
-  DPeakArray<DPeak<4> > pl2(pl);
-	TEST_EQUAL(pl2.size(), 2)
-	TEST_REAL_EQUAL(pl2[0].getIntensity(), 1.0)
-	TEST_REAL_EQUAL(pl2[1].getIntensity(), 2.0)
+  DPeakArray<Peak2D> pl2(pl);
+	TEST_EQUAL(pl2.size(), 2);
+	TEST_REAL_EQUAL(pl2[0].getIntensity(), 1.0);
+	TEST_REAL_EQUAL(pl2[1].getIntensity(), 2.0);
+	TEST_REAL_EQUAL(pl2[1].getMZ(), 88.8);
+	TEST_REAL_EQUAL(pl2[1].getRT(), 99.9);
+}
 RESULT
 
 CHECK((template<class InputIterator> DPeakArray(InputIterator f, InputIterator l)))

@@ -42,7 +42,7 @@ namespace OpenMS
 	
 	@deprecated Usage of DPeak is deprecated.  Use Peak1D or Peak2D instead.
 	
-	@see Peak1D, Peak2D
+	@see Peak1D, Peak2D, PeakXD
 	
 	@ingroup Kernel
 	*/

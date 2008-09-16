@@ -43,8 +43,10 @@ namespace OpenMS
 		This datastructure is intended for continuous data or peak data.
 		If wou do not need to annotated single peaks with meta data, use DPeak instead.
 
-		@see RichPeak1D, RichPeak2D
+		@deprecated Usage of DRichPeak is deprecated. Use RichPeak1D or RichPeak2D instead.
 		
+		@see RichPeak1D, RichPeak2D, RichPeakXD
+
 		@ingroup Kernel
 	*/
 	template <UInt D>

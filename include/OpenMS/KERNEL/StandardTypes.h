@@ -29,6 +29,7 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/RichPeak1D.h>
+#include <OpenMS/KERNEL/RichPeak2D.h>
 
 namespace OpenMS
 {
@@ -61,7 +62,89 @@ namespace OpenMS
 		@ingroup Kernel
 	*/
 	typedef MSExperiment<RichPeak1D> RichPeakMap;
+
 	//@}
+
+	/**
+	@brief Metafunction to choose among Peak1D respectively Peak2D through a
+	template argument.  The result is accessible via typedef Type.
+
+	- @c PeakXD<1>::Type is @c Peak1D
+	- @c PeakXD<2>::Type is @c Peak2D
+	.
+
+	Example:
+  @code
+	template class BaseModel<UInt D>
+	{
+	;;;
+	// BaseModel<D>::PeakType is either Peak1D or Peak2D, depending on D
+	typedef typename PeakXD<D>::Type PeakType;
+	;;;
+	};
+	@endcode
+
+	@internal @note PeakXD is default-defined as an empty class, rather than declared as a template only, since doxygen won't document this otherwise.  :-(
+
+	*/
+	template <UInt Dimensions>
+	struct PeakXD
+	{};
+	
+	// we do not want the template specializations to show up in normal docu:
+	/// @cond INTERNAL_INFO
+
+	/// @c PeakXD<1>::Type is @c Peak1D
+	template <>
+	struct PeakXD <1>
+	{
+		typedef Peak1D Type;
+	};
+
+	/// @c PeakXD<2>::Type is @c Peak2D
+	template <>
+	struct PeakXD <2>
+	{
+		typedef Peak2D Type;
+	};
+	
+	/// @endcond
+
+	/**
+	@brief Metafunction to choose among RichPeak1D respectively RichPeak2D through a
+	template argument.  The result is accessible via typedef Type.
+
+	- @c RichPeakXD<1>::Type is @c RichPeak1D
+	- @c RichPeakXD<2>::Type is @c RichPeak2D
+	.
+
+	Example: see @c PeakXD
+
+	@internal @note RichPeakXD is default-defined as an empty class, rather than declared as a template only, since doxygen won't document this otherwise.  :-(
+
+	*/
+	template <UInt Dimensions>
+	struct RichPeakXD
+	{};
+	
+	// we do not want the template specializations to show up in normal docu:
+	/// @cond INTERNAL_INFO
+
+	/// @c RichPeakXD<1>::Type is @c RichPeak1D
+	template <>
+	struct RichPeakXD <1>
+	{
+		typedef RichPeak1D Type;
+	};
+
+	/// @c RichPeakXD<2>::Type is @c RichPeak2D
+	template <>
+	struct RichPeakXD <2>
+	{
+		typedef RichPeak2D Type;
+	};
+	
+	/// @endcond
 
 }
 

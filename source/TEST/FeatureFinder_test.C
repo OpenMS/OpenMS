@@ -30,7 +30,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
