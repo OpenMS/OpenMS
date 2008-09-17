@@ -195,19 +195,19 @@ namespace OpenMS
 		{
 			inline bool operator () (const Peak1D& a, const Peak1D& b) const
 			{
-				return (a.getMZ() < b.getMZ());
+				return (a.getPos() < b.getPos());
 			}
 		
 			/// comparison of a Peak2D with a CoordinateType
 			inline bool operator () ( Peak1D const & left, CoordinateType right ) const 
 			{
-				return (left.getMZ() < right );
+				return (left.getPos() < right );
 			}
 			
 			/// comparison of a CoordinateType with a Peak2D
 			inline bool operator () ( CoordinateType left, Peak1D const & right ) const 
 			{
-				return (left < right.getMZ() );
+				return (left < right.getPos() );
 			}
 
 			/**

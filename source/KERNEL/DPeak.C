@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/DPeak.h>
@@ -29,5 +29,7 @@
 namespace OpenMS
 {
   DPeak<1> default_dpeak_1;
+  DPeak<1>::Type default_dpeak_1_type;
   DPeak<2> default_dpeak_2;
+  DPeak<2>::Type default_dpeak_2_type;
 }

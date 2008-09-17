@@ -119,12 +119,12 @@ EXECUTABLES_SYSTEM = \
 
 EXECUTABLES_KERNEL =\
 	PeakIndex_test\
-	DPeak_test\
 	Peak1D_test\
 	Peak2D_test\
-	DRichPeak_test\
+	DPeak_test\
 	RichPeak1D_test\
 	RichPeak2D_test\
+	DRichPeak_test\
 	DPeakArray_test\
 	ConstRefVector_test\
 	DSpectrum_test\

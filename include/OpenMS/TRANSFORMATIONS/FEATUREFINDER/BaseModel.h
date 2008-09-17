@@ -28,7 +28,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_BASEMODEL_H
 
 #include <OpenMS/CONCEPT/FactoryProduct.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/DPeak.h>
 #include <OpenMS/KERNEL/DPeakArray.h>
 
 namespace OpenMS
@@ -52,7 +52,7 @@ namespace OpenMS
 		typedef DoubleReal IntensityType;
 		typedef DoubleReal CoordinateType;
 		typedef DPosition<D> PositionType;
-		typedef typename PeakXD<D>::Type PeakType;
+		typedef typename DPeak<D>::Type PeakType;
 		typedef DPeakArray<PeakType> SamplesType;
 
 

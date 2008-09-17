@@ -27,14 +27,13 @@
 #ifndef OPENMS_KERNEL_DSPECTRUM_H
 #define OPENMS_KERNEL_DSPECTRUM_H
 
-#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/DRichPeak.h>
+#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 
 #include <gsl/gsl_randist.h>
-
 
 #include <list>
 #include <cmath>
@@ -64,11 +63,11 @@ namespace OpenMS
 		*/
 		template < UInt D >
 		class PrecursorPeak
-			: public DRichPeak<D>
+			: public DRichPeak<D>::Type
 		{
 
 			/// Base class (do not even think of using this outside the scope of this class)
-			typedef DRichPeak<D> Base;
+			typedef typename DRichPeak<D>::Type Base;
 
 		 public:
 
@@ -147,7 +146,7 @@ namespace OpenMS
 
 		 @ingroup Kernel
 	*/
-	template < typename ContainerT = DPeakArray<Peak1D> >
+	template < typename ContainerT = ::OpenMS::DPeakArray<Peak1D> >
 	class DSpectrum	:
 		public MetaInfoInterface,
 		public RangeManager<ContainerT::value_type::DIMENSION>
@@ -774,6 +773,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-
-
-#endif // OPENMS_KERNEL_SPECTRUM_H
+#endif // OPENMS_KERNEL_DSPECTRUM_H

@@ -21,107 +21,49 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-
 #include <OpenMS/KERNEL/DRichPeak.h>
-
 ///////////////////////////
+
+using namespace OpenMS;
+using namespace std;
 
 START_TEST(DRichPeak<D>, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-using namespace OpenMS;
-
-DRichPeak<10>* d10_ptr = 0;
-CHECK((DRichPeak()))
-	d10_ptr = new DRichPeak<10>;
-	TEST_NOT_EQUAL(d10_ptr, 0)
+DRichPeak<1>::Type* ptr1 = 0;
+CHECK(DRichPeak())
+{
+	ptr1 = new DRichPeak<1>::Type();
+	TEST_NOT_EQUAL(ptr1, 0);
+}
 RESULT
 
-CHECK((~DRichPeak()))
-	delete d10_ptr;
+CHECK(~DRichPeak())
+{
+	delete ptr1;
+}
 RESULT
 
-CHECK((DRichPeak(DRichPeak const& p)))
-	DRichPeak<3> p;
-	p.setIntensity(123.456);
-	p.setMetaValue("cluster_id",4711);
-	
-	DRichPeak<3> copy_of_p(p);
-
-	TEST_REAL_EQUAL(copy_of_p.getIntensity(), 123.456)
-	TEST_EQUAL(copy_of_p.getMetaValue("cluster_id"),DataValue(4711));
+DRichPeak<2>::Type* ptr2 = 0;
+CHECK([EXTRA]DRichPeak())
+{
+	ptr2 = new DRichPeak<2>::Type();
+	TEST_NOT_EQUAL(ptr2, 0);
+}
 RESULT
 
-CHECK((DRichPeak& operator = (const DRichPeak& rhs)))
-	DRichPeak<3> p;
-	p.setIntensity(123.456);
-	p.setMetaValue("cluster_id",4711);
-	
-	DRichPeak<3> copy_of_p;
-	copy_of_p = p;
-
-	TEST_REAL_EQUAL(copy_of_p.getIntensity(), 123.456)
-	TEST_EQUAL(copy_of_p.getMetaValue("cluster_id"),DataValue(4711));
-RESULT
-
-CHECK((bool operator == (const DRichPeak& rhs) const))
-	DRichPeak<1> p1, p2;
-	TEST_REAL_EQUAL(p1==p2, true)
-	
-	p1.setIntensity(5);
-	TEST_REAL_EQUAL(p1==p2, false)
-	p2.setIntensity(5);
-	TEST_REAL_EQUAL(p1==p2, true)
-
-	p1.setMetaValue("cluster_id",4711);
-	TEST_REAL_EQUAL(p1==p2, false)
-	p1.removeMetaValue("cluster_id");
-	TEST_REAL_EQUAL(p1==p2, true)		
-RESULT
-
-CHECK((bool operator != (const DRichPeak& rhs) const))
-	DRichPeak<1> p1, p2;
-	TEST_REAL_EQUAL(p1!=p2, false)
-	
-	p1.setIntensity(5);
-	TEST_REAL_EQUAL(p1!=p2, true)
-	p2.setIntensity(5);
-	TEST_REAL_EQUAL(p1!=p2, false)
-
-	p1.setMetaValue("cluster_id",4711);
-	TEST_REAL_EQUAL(p1!=p2, true)
-	p1.removeMetaValue("cluster_id");
-	TEST_REAL_EQUAL(p1!=p2, false)	
-RESULT
-
-CHECK(([EXTRA] meta info with copy constructor))
-	DRichPeak<1> p;
-	p.setMetaValue(2,String("bla"));
- 	DRichPeak<1> p2(p);
-	TEST_EQUAL(p.getMetaValue(2), "bla")
-	TEST_EQUAL(p2.getMetaValue(2), "bla")
- 	p.setMetaValue(2,String("bluff"));
-	TEST_EQUAL(p.getMetaValue(2), "bluff")
-	TEST_EQUAL(p2.getMetaValue(2), "bla")
-RESULT
-
-CHECK(([EXTRA] meta info with assignment))
-	DRichPeak<1> p;
-	p.setMetaValue(2,String("bla"));
- 	DRichPeak<1> p2 = p;
-	TEST_EQUAL(p.getMetaValue(2), "bla")
-	TEST_EQUAL(p2.getMetaValue(2), "bla")
- 	p.setMetaValue(2,String("bluff"));
-	TEST_EQUAL(p.getMetaValue(2), "bluff")
-	TEST_EQUAL(p2.getMetaValue(2), "bla")
+CHECK([EXTRA]~DRichPeak())
+{
+	delete ptr2;
+}
 RESULT
 
 /////////////////////////////////////////////////////////////
