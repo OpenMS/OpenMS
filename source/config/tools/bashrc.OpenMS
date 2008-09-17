@@ -72,6 +72,9 @@
 
 # [end of info]
 
+# TODO
+# combination of xargs with safer_sed, elc, etc., does not work
+
 
 
 ############################################################################
