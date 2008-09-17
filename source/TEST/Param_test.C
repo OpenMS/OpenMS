@@ -1261,7 +1261,7 @@ CHECK((void parseCommandLine(const int argc, const char** argv, const std::map<S
 	p50.setValue("a","av");
 	p50.setValue("b","true");
 	p50.setValue("misc__",StringList::create("bv,cv,rv1,rv2"));
-	p50.setValue("unknown__","-c");
+	p50.setValue("unknown__",StringList::create("-c"));
 	TEST_EQUAL(p40==p50,true)
 
 	//"executable -a av -b -c cv"	
@@ -1270,7 +1270,7 @@ CHECK((void parseCommandLine(const int argc, const char** argv, const std::map<S
 	p500.setValue("a","av");
 	p500.setValue("b","true");
 	p500.setValue("misc__",StringList::create("cv"));
-	p500.setValue("unknown__","-c");
+	p500.setValue("unknown__",StringList::create("-c"));
 	TEST_EQUAL(p400==p500,true)
 
 	//"executable -a -b -c cv rv1"
@@ -1279,7 +1279,7 @@ CHECK((void parseCommandLine(const int argc, const char** argv, const std::map<S
 	p5000.setValue("a","");
 	p5000.setValue("b","true");
 	p5000.setValue("misc__",StringList::create("cv,rv1"));
-	p5000.setValue("unknown__","-c");
+	p5000.setValue("unknown__",StringList::create("-c"));
 	TEST_EQUAL(p4000==p5000,true)
 RESULT
 

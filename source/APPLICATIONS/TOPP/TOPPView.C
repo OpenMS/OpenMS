@@ -92,7 +92,7 @@ int main( int argc, const char** argv )
 	valid_options["-ini"] = "ini";
 	
 	Param param;
-	param.parseCommandLine(argc, argv, valid_options, valid_flags, "misc", "unknown");
+	param.parseCommandLine(argc, argv, valid_options, valid_flags);
 
 	// '--help' given
 	if (param.exists("help"))
@@ -104,7 +104,7 @@ int main( int argc, const char** argv )
 	// test if unknown options were given
 	if (param.exists("unknown"))
 	{
-		cout << "Unknown option '" << (string)(param.getValue("unknown")) << "' given. Aborting!" << endl;
+		cout << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
 		print_usage();
 		return 1;
 	}
@@ -139,9 +139,7 @@ int main( int argc, const char** argv )
 	  //load command line files
 	  if (param.exists("misc"))
 	  {
-	  	// parameters in "misc" are stored as a StringList
-	  	StringList file_list = param.getValue("misc");
-	  	mw->loadFiles(file_list);
+	  	mw->loadFiles((StringList)(param.getValue("misc")));
 	  }
 	  
 	  a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );

@@ -109,7 +109,7 @@ namespace OpenMS
 					break;
 			}
 		}
-		param_cmdline_.parseCommandLine(argc,argv,options,flags,"misc","unknown");
+		param_cmdline_.parseCommandLine(argc,argv,options,flags);
 
 		// assign instance number
 		*const_cast<int*>(&instance_number_) = getParamAsInt_("instance",1);

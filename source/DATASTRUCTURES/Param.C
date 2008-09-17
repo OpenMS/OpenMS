@@ -945,11 +945,16 @@ namespace OpenMS
       	ParamEntry* unknown_entry = root_.findEntryRecursive(unknown);
       	if (unknown_entry==0)
       	{
-      		root_.insert(ParamEntry("",arg,"",false),unknown);
+      		StringList sl;
+      		sl << arg;
+      		root_.insert(ParamEntry("",sl,"",false),unknown);
       	}
       	else
       	{
-      		unknown_entry->name = unknown_entry->value.toString()+" "+arg;
+
+      		StringList sl = (StringList)unknown_entry->value;
+      		sl << arg;
+      		unknown_entry->value = sl;
       	}		
 			}
 			//just text argument

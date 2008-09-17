@@ -78,7 +78,7 @@ int main( int argc, const char** argv )
 	valid_options["-max"] = "max";
 	
 	Param param;
-	param.parseCommandLine(argc, argv, valid_options, valid_flags, "file", "unknown");
+	param.parseCommandLine(argc, argv, valid_options, valid_flags);
 	
 	// '--help' given
 	if (param.exists("help"))
@@ -90,13 +90,13 @@ int main( int argc, const char** argv )
 	// test if unknown options were given
 	if (param.exists("unknown"))
 	{
-		cout << "Unknown option '" << (string)(param.getValue("unknown")) << "' given. Aborting!" << endl;
+		cout << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
 		print_usage();
 		return 1;
 	}
 
 	// test if input file was given
-	if (!param.exists("file"))
+	if (!param.exists("misc"))
 	{
 		cout << "No input file given. Aborting!" << endl;
 		print_usage();
@@ -124,17 +124,25 @@ int main( int argc, const char** argv )
 	//load input data
 	if (verbose) cout << "Loading input data" << endl;
 	vector<DoubleReal> input_data;
-	String filename = param.getValue("file").toString().substr(1,-1).c_str();
-	ifstream is(filename.c_str());
+	StringList filenames = param.getValue("misc");
+	ifstream is(filenames[0].c_str());
   if (!is)
   {
-    cerr << "File '" << filename.c_str() << "' not found!" << endl;
+    cerr << "File '" << filenames[0].c_str() << "' not found!" << endl;
     return 1;
   }
   String str;
   while(getline(is,str,'\n'))
   {
-  	input_data.push_back(str.toDouble());
+  	try
+  	{
+  		DoubleReal value = str.toDouble();
+  		input_data.push_back(value);
+  	}
+  	catch(Exception::ConversionError& e)
+  	{
+  		cerr << "Invalid input data line '" << str << "' is ignored!" << endl;
+  	}
   }		
 	
 	//determine min and max
