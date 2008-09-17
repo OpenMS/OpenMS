@@ -81,14 +81,14 @@ namespace OpenMS
 	
 	      defaults_.setValue("mz_bucket_size",0.5,"An estimate of m/z deviation of corresponding elements in different maps.");
 	      defaults_.setValue("num_used_points",2000,"The number of points used.\nThe most intense points are used");
-	      defaults_.setValue("shift_bucket_size",10.0,"Defines the shift parameter's bucket size during histograming.",true);
-	      defaults_.setValue("scaling_bucket_size",0.01,"Defines the scaling parameter's bucket size during histograming.",true);
-	      defaults_.setValue("bucket_window_shift",2,"Number of surrounding buckets of element indices to be considered when computing the shift parameter.",true);
-	      defaults_.setValue("bucket_window_scaling",2,"Number of surrounding buckets of element indices to be considered when computing the scaling parameter.",true);
-	      defaults_.setValue("min_shift",-1000.0,"Minimal shift parameter which is considered during histogramming.",true);
-	      defaults_.setValue("max_shift",1000.0,"Maximal shift parameter which is considered during histogramming.",true);
-	      defaults_.setValue("min_scaling",0.5,"Minimal scaling parameter which is considered during histogramming.",true);
-	      defaults_.setValue("max_scaling",2.0,"Maximal scaling parameter which is considered during histogramming.",true);
+	      defaults_.setValue("shift_bucket_size",10.0,"Defines the shift parameter's bucket size during histograming.",StringList::create("advanced"));
+	      defaults_.setValue("scaling_bucket_size",0.01,"Defines the scaling parameter's bucket size during histograming.",StringList::create("advanced"));
+	      defaults_.setValue("bucket_window_shift",2,"Number of surrounding buckets of element indices to be considered when computing the shift parameter.",StringList::create("advanced"));
+	      defaults_.setValue("bucket_window_scaling",2,"Number of surrounding buckets of element indices to be considered when computing the scaling parameter.",StringList::create("advanced"));
+	      defaults_.setValue("min_shift",-1000.0,"Minimal shift parameter which is considered during histogramming.",StringList::create("advanced"));
+	      defaults_.setValue("max_shift",1000.0,"Maximal shift parameter which is considered during histogramming.",StringList::create("advanced"));
+	      defaults_.setValue("min_scaling",0.5,"Minimal scaling parameter which is considered during histogramming.",StringList::create("advanced"));
+	      defaults_.setValue("max_scaling",2.0,"Maximal scaling parameter which is considered during histogramming.",StringList::create("advanced"));
 	
 	      defaultsToParam_();
 	    }

@@ -33,8 +33,8 @@ namespace OpenMS
     {
         setName(getProductName());
     
-        defaults_.setValue("statistics:variance1",1.0,"Variance of the first gaussian, used for the lower half of the model.", true);
-        defaults_.setValue("statistics:variance2",1.0,"Variance of the second gaussian, used for the upper half of the model.", true);
+        defaults_.setValue("statistics:variance1",1.0,"Variance of the first gaussian, used for the lower half of the model.", StringList::create("advanced"));
+        defaults_.setValue("statistics:variance2",1.0,"Variance of the second gaussian, used for the upper half of the model.", StringList::create("advanced"));
     
         defaultsToParam_();
     }

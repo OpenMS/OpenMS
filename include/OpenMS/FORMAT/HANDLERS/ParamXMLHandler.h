@@ -71,7 +71,7 @@ namespace OpenMS
         String name;
         String type;
         StringList list;
-        bool advanced;
+        StringList tags;
         String description;
       } list_;
 

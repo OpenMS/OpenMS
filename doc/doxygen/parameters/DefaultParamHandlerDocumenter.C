@@ -254,7 +254,7 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 
 			//make the advanced parameters cursive, the normal ones bold
 			String style = "b";
-			if (it->advanced) style = "i";
+			if (it->tags.count("advanced")==1) style = "i";
 
 			//final output
 			f <<"<tr><td style=\"vertical-align:top\"><" << style << ">"<< name << "</" << style << "></td><td style=\"vertical-align:top\">" << type << "</td><td style=\"vertical-align:top\">" << value <<  "</td><td style=\"vertical-align:top\">" << restrictions << "</td><td style=\"vertical-align:top\">" << description <<  "</td></tr>" << endl;

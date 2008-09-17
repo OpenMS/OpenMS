@@ -61,7 +61,7 @@ namespace OpenMS
     aamass_.insert(make_pair(186.06,'W'));
      
     //value from Bioinformatics, Bern 2004
-    defaults_.setValue("tolerance", 0.37, "Tolerance value as defined by Bern et al.", false);
+    defaults_.setValue("tolerance", 0.37, "Tolerance value as defined by Bern et al.");
 		defaultsToParam_();
   }
   

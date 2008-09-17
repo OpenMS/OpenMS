@@ -108,84 +108,84 @@ namespace OpenMS
 		{
 			this->setName("ModelFitter");
                 
-			this->defaults_.setValue("fit_algorithm", "simple", "Fitting algorithm type (internal parameter).", true);
+			this->defaults_.setValue("fit_algorithm", "simple", "Fitting algorithm type (internal parameter).", StringList::create("advanced"));
 			std::vector<String> fit_opts;
 			fit_opts.push_back("simple");
 			fit_opts.push_back("simplest");
 			fit_opts.push_back("wavelet");
 			this->defaults_.setValidStrings("fit_algorithm", fit_opts);
                 
-			this->defaults_.setValue( "max_iteration", 500, "Maximum number of iterations for fitting with Levenberg-Marquardt algorithm.", true );
+			this->defaults_.setValue( "max_iteration", 500, "Maximum number of iterations for fitting with Levenberg-Marquardt algorithm.", StringList::create("advanced") );
 			this->defaults_.setMinInt("max_iteration", 1);
-			this->defaults_.setValue( "deltaAbsError", 0.0001, "Absolute error used by the Levenberg-Marquardt algorithm.", true );
+			this->defaults_.setValue( "deltaAbsError", 0.0001, "Absolute error used by the Levenberg-Marquardt algorithm.", StringList::create("advanced") );
 			this->defaults_.setMinFloat("deltaAbsError", 0.0);
-			this->defaults_.setValue( "deltaRelError", 0.0001, "Relative error used by the Levenberg-Marquardt algorithm.", true );
+			this->defaults_.setValue( "deltaRelError", 0.0001, "Relative error used by the Levenberg-Marquardt algorithm.", StringList::create("advanced") );
 			this->defaults_.setMinFloat("deltaRelError", 0.0);
                 
-			this->defaults_.setValue( "tolerance_stdev_bounding_box", 3.0f, "Bounding box has range [minimim of data, maximum of data] enlarged by tolerance_stdev_bounding_box times the standard deviation of the data", true );
+			this->defaults_.setValue( "tolerance_stdev_bounding_box", 3.0f, "Bounding box has range [minimim of data, maximum of data] enlarged by tolerance_stdev_bounding_box times the standard deviation of the data", StringList::create("advanced") );
 			this->defaults_.setMinFloat("tolerance_stdev_bounding_box", 0.0);
                 
-			this->defaults_.setValue( "intensity_cutoff_factor", 0.05f, "Cutoff peaks with a predicted intensity below intensity_cutoff_factor times the maximal intensity of the model", false );
+			this->defaults_.setValue( "intensity_cutoff_factor", 0.05f, "Cutoff peaks with a predicted intensity below intensity_cutoff_factor times the maximal intensity of the model" );
 			this->defaults_.setMinFloat("intensity_cutoff_factor", 0.0);
 			this->defaults_.setMaxFloat("intensity_cutoff_factor", 1.0);
                 
-			this->defaults_.setValue( "feature_intensity_sum", 1, "Determines what is reported as feature intensity.\n1: the sum of peak intensities;\n0: the maximum intensity of all peaks" , true);
+			this->defaults_.setValue( "feature_intensity_sum", 1, "Determines what is reported as feature intensity.\n1: the sum of peak intensities;\n0: the maximum intensity of all peaks" , StringList::create("advanced"));
 			this->defaults_.setMinInt("feature_intensity_sum", 0);
 			this->defaults_.setMaxInt("feature_intensity_sum", 1);
                 
-			this->defaults_.setValue( "min_num_peaks:final", 5, "Minimum number of peaks left after cutoff. If smaller, feature will be discarded." , false);
+			this->defaults_.setValue( "min_num_peaks:final", 5, "Minimum number of peaks left after cutoff. If smaller, feature will be discarded.");
 			this->defaults_.setMinInt("min_num_peaks:final", 1);
-			this->defaults_.setValue( "min_num_peaks:extended", 10, "Minimum number of peaks after extension. If smaller, feature will be discarded." , false);
+			this->defaults_.setValue( "min_num_peaks:extended", 10, "Minimum number of peaks after extension. If smaller, feature will be discarded.");
 			this->defaults_.setMinInt("min_num_peaks:extended", 1);
 			this->defaults_.setSectionDescription( "min_num_peaks", "Required number of peaks for a feature." );
                 
-			this->defaults_.setValue( "rt:interpolation_step", 0.2f, "Step size in seconds used to interpolate model for RT." , false);
+			this->defaults_.setValue( "rt:interpolation_step", 0.2f, "Step size in seconds used to interpolate model for RT.");
 			this->defaults_.setMinFloat("rt:interpolation_step", 0.0);
 			this->defaults_.setSectionDescription( "rt", "Model settings in RT dimension." );
                 
-			this->defaults_.setValue( "mz:interpolation_step", 0.03f, "Interpolation step size for m/z.", false );
+			this->defaults_.setValue( "mz:interpolation_step", 0.03f, "Interpolation step size for m/z." );
 			this->defaults_.setMinFloat("mz:interpolation_step", 0.001);
-			this->defaults_.setValue( "mz:model_type:first", 1, "Numeric id of first m/z model fitted (usually indicating the charge state), 0 = no isotope pattern (fit a single gaussian).", false );
+			this->defaults_.setValue( "mz:model_type:first", 1, "Numeric id of first m/z model fitted (usually indicating the charge state), 0 = no isotope pattern (fit a single gaussian)." );
 			this->defaults_.setMinInt("mz:model_type:first", 0);
-			this->defaults_.setValue( "mz:model_type:last", 4, "Numeric id of last m/z model fitted (usually indicating the charge state), 0 = no isotope pattern (fit a single gaussian).", false );
+			this->defaults_.setValue( "mz:model_type:last", 4, "Numeric id of last m/z model fitted (usually indicating the charge state), 0 = no isotope pattern (fit a single gaussian)." );
 			this->defaults_.setMinInt("mz:model_type:last", 0);
 			this->defaults_.setSectionDescription( "mz", "Model settings in m/z dimension." );
                 
-			this->defaults_.setValue( "quality:type", "Correlation", "Type of the quality measure used to assess the fit of model vs data.", true );
+			this->defaults_.setValue( "quality:type", "Correlation", "Type of the quality measure used to assess the fit of model vs data.", StringList::create("advanced") );
 			std::vector<String> quality_opts;
 			quality_opts.push_back("Correlation");
 			quality_opts.push_back("RankCorrelation");
 			this->defaults_.setValidStrings("quality:type", quality_opts);
-			this->defaults_.setValue( "quality:minimum", 0.65f, "Minimum quality of fit, features below this threshold are discarded." , false);
+			this->defaults_.setValue( "quality:minimum", 0.65f, "Minimum quality of fit, features below this threshold are discarded." );
 			this->defaults_.setMinFloat("quality:minimum", 0.0);
 			this->defaults_.setMaxFloat("quality:minimum", 1.0);
 			this->defaults_.setSectionDescription( "quality", "Fitting quality settings." );
                 
-			this->defaults_.setValue( "isotope_model:stdev:first", 0.04f, "First standard deviation to be considered for isotope model.", false );
+			this->defaults_.setValue( "isotope_model:stdev:first", 0.04f, "First standard deviation to be considered for isotope model." );
 			this->defaults_.setMinFloat("isotope_model:stdev:first", 0.0);
-			this->defaults_.setValue( "isotope_model:stdev:last", 0.12f, "Last standard deviation to be considered for isotope model.", false );
+			this->defaults_.setValue( "isotope_model:stdev:last", 0.12f, "Last standard deviation to be considered for isotope model." );
 			this->defaults_.setMinFloat("isotope_model:stdev:last", 0.0);
-			this->defaults_.setValue( "isotope_model:stdev:step", 0.04f, "Step size for standard deviations considered for isotope model.", false );
+			this->defaults_.setValue( "isotope_model:stdev:step", 0.04f, "Step size for standard deviations considered for isotope model." );
 			this->defaults_.setMinFloat("isotope_model:stdev:step", 0.0);
 			this->defaults_.setSectionDescription( "isotope_model:stdev", "Instrument resolution settings for m/z dimension." );
                 
-			this->defaults_.setValue( "isotope_model:averagines:C", 0.0443f, "Number of C atoms per Dalton of the mass.", true );
+			this->defaults_.setValue( "isotope_model:averagines:C", 0.0443f, "Number of C atoms per Dalton of the mass.", StringList::create("advanced") );
 			this->defaults_.setMinFloat("isotope_model:averagines:C", 0.0);
-			this->defaults_.setValue( "isotope_model:averagines:H", 0.007f, "Number of H atoms per Dalton of the mass.", true );
+			this->defaults_.setValue( "isotope_model:averagines:H", 0.007f, "Number of H atoms per Dalton of the mass.", StringList::create("advanced") );
 			this->defaults_.setMinFloat("isotope_model:averagines:H", 0.0);
-			this->defaults_.setValue( "isotope_model:averagines:N", 0.0012f, "Number of N atoms per Dalton of the mass.", true );
+			this->defaults_.setValue( "isotope_model:averagines:N", 0.0012f, "Number of N atoms per Dalton of the mass.", StringList::create("advanced") );
 			this->defaults_.setMinFloat("isotope_model:averagines:N", 0.0);
-			this->defaults_.setValue( "isotope_model:averagines:O", 0.013f, "Number of O atoms per Dalton of the mass.", true );
+			this->defaults_.setValue( "isotope_model:averagines:O", 0.013f, "Number of O atoms per Dalton of the mass.", StringList::create("advanced") );
 			this->defaults_.setMinFloat("isotope_model:averagines:O", 0.0);
-			this->defaults_.setValue( "isotope_model:averagines:S", 0.00037f, "Number of S atoms per Dalton of the mass.", true);
+			this->defaults_.setValue( "isotope_model:averagines:S", 0.00037f, "Number of S atoms per Dalton of the mass.", StringList::create("advanced"));
 			this->defaults_.setMinFloat("isotope_model:averagines:S", 0.0);
 			this->defaults_.setSectionDescription( "isotope_model:averagines", "Averagines are used to approximate the number of atoms (C,H,N,O,S) which a peptide of a given mass contains." ); 
                 
-			this->defaults_.setValue( "isotope_model:isotope:trim_right_cutoff", 0.001f, "Cutoff for averagine distribution, trailing isotopes below this relative intensity are not considered.", true );
+			this->defaults_.setValue( "isotope_model:isotope:trim_right_cutoff", 0.001f, "Cutoff for averagine distribution, trailing isotopes below this relative intensity are not considered.", StringList::create("advanced") );
 			this->defaults_.setMinFloat("isotope_model:isotope:trim_right_cutoff", 0.0);
-			this->defaults_.setValue( "isotope_model:isotope:maximum", 100, "Maximum number of isotopes being used for the IsotopeModel.", true );
+			this->defaults_.setValue( "isotope_model:isotope:maximum", 100, "Maximum number of isotopes being used for the IsotopeModel.", StringList::create("advanced") );
 			this->defaults_.setMinInt("isotope_model:isotope:maximum", 1);
-			this->defaults_.setValue( "isotope_model:isotope:distance", 1.000495f, "Distance between consecutive isotopic peaks.", true );
+			this->defaults_.setValue( "isotope_model:isotope:distance", 1.000495f, "Distance between consecutive isotopic peaks.", StringList::create("advanced") );
 			this->defaults_.setMinFloat("isotope_model:isotope:distance", 0.0);
 			this->defaults_.setSectionDescription( "isotope_model", "Settings of the isotope model (m/z)." );
     

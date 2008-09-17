@@ -36,13 +36,13 @@ namespace OpenMS
     : PeakSpectrumCompareFunctor()
   {
 		setName(SpectrumAlignmentScore::getProductName());
-		//defaults_.setValue("epsilon", 0.3, "Defines the absolut error of the mass spectrometer", false);
-		defaults_.setValue("tolerance", 0.3, "Defines the absolut (in Da) or relative (in ppm) tolerance", false);
-		defaults_.setValue("is_relative_tolerance", "false", "if true, the tolerance value is interpreted as ppm", false);
+		//defaults_.setValue("epsilon", 0.3, "Defines the absolut error of the mass spectrometer");
+		defaults_.setValue("tolerance", 0.3, "Defines the absolut (in Da) or relative (in ppm) tolerance");
+		defaults_.setValue("is_relative_tolerance", "false", "if true, the tolerance value is interpreted as ppm");
 		defaults_.setValidStrings("is_relative_tolerance", StringList::create("true,false"));
-		defaults_.setValue("use_linear_factor", "false", "if true, the intensities are weighted with the relative m/z difference", false);
+		defaults_.setValue("use_linear_factor", "false", "if true, the intensities are weighted with the relative m/z difference");
 		defaults_.setValidStrings("use_linear_factor", StringList::create("true,false"));
-		defaults_.setValue("use_gaussian_factor", "false", "if true, the intensities are weighted with the relative m/z difference using a gaussian", false);
+		defaults_.setValue("use_gaussian_factor", "false", "if true, the intensities are weighted with the relative m/z difference using a gaussian");
 		defaultsToParam_();
   }
 

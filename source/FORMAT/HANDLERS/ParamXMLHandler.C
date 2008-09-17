@@ -61,26 +61,29 @@ namespace OpenMS
 			String description;
 			optionalAttributeAsString_(description,attributes,"description");
 			description.substitute("#br#","\n");
-			//advanced parameters
-			bool advanced = false;
+			//tags
+			String tags_string;
+			optionalAttributeAsString_(tags_string,attributes,"tags");
+			StringList tags = StringList::create(tags_string);
+			//advanced (for downward compatibility with old Param files)
 			String advanced_string;
 			optionalAttributeAsString_(advanced_string,attributes,"advanced");
 			if (advanced_string=="true") 
 			{
-				advanced = true;
-			}			
+				tags.push_back("advanced");
+			}
 			//type
 			if (type == "int")
 			{
-				param_.setValue(name, asInt_(value), description, advanced);
+				param_.setValue(name, asInt_(value), description, tags);
 			}
 			else if (type == "string")
 			{
-				param_.setValue(name, value, description, advanced);
+				param_.setValue(name, value, description, tags);
 			}
 			else if (type == "float" || type == "double")
 			{
-				param_.setValue(name, asDouble_(value), description, advanced);
+				param_.setValue(name, asDouble_(value), description, tags);
 			}
 			else
 			{
@@ -150,14 +153,17 @@ namespace OpenMS
 			list_.description = "";
 			optionalAttributeAsString_(list_.description,attributes,"description");
 			list_.description.substitute("#br#","\n");
-			//advanced parameters
-			list_.advanced = false;
+			//tags
+			String tags_string;
+			optionalAttributeAsString_(tags_string,attributes,"tags");
+			StringList tags = StringList::create(tags_string);
+			//advanced (for downward compatibility with old Param files)
 			String advanced_string;
 			optionalAttributeAsString_(advanced_string,attributes,"advanced");
 			if (advanced_string=="true") 
 			{
-				list_.advanced = true;
-			}			
+				list_.tags.push_back("advanced");
+			}
 		}
 		else if (element == "LISTITEM")
 		{
@@ -192,7 +198,7 @@ namespace OpenMS
 		{
 			if (list_.type=="string")
 			{
-				param_.setValue(list_.name, list_.list, list_.description, list_.advanced);
+				param_.setValue(list_.name, list_.list, list_.description, list_.tags);
 			}
 			else
 			{

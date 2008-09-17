@@ -35,14 +35,14 @@ namespace OpenMS
     {
       setName(getProductName());
       
-      defaults_.setValue("bounding_box:min",0.0f,"Lower end of bounding box enclosing the data used to fit the model.", true);
-      defaults_.setValue("bounding_box:max",1.0f,"Upper end of bounding box enclosing the data used to fit the model.", true);
-      defaults_.setValue("statistics:mean",0.0f,"Centroid position of the model.", true);
-      defaults_.setValue("statistics:variance",1.0f,"The variance of the model.", true);
-      defaults_.setValue("emg:height",100000.0f,"Height of the exponentially modified Gaussian.", true);
-      defaults_.setValue("emg:width",5.0f,"Width of the exponentially modified Gaussian.", true);
-      defaults_.setValue("emg:symmetry",5.0f,"Symmetry of the exponentially modified Gaussian.", true);
-      defaults_.setValue("emg:retention",1200.0f,"Retention time of the exponentially modified Gaussian.", true);
+      defaults_.setValue("bounding_box:min",0.0f,"Lower end of bounding box enclosing the data used to fit the model.", StringList::create("advanced"));
+      defaults_.setValue("bounding_box:max",1.0f,"Upper end of bounding box enclosing the data used to fit the model.", StringList::create("advanced"));
+      defaults_.setValue("statistics:mean",0.0f,"Centroid position of the model.", StringList::create("advanced"));
+      defaults_.setValue("statistics:variance",1.0f,"The variance of the model.", StringList::create("advanced"));
+      defaults_.setValue("emg:height",100000.0f,"Height of the exponentially modified Gaussian.", StringList::create("advanced"));
+      defaults_.setValue("emg:width",5.0f,"Width of the exponentially modified Gaussian.", StringList::create("advanced"));
+      defaults_.setValue("emg:symmetry",5.0f,"Symmetry of the exponentially modified Gaussian.", StringList::create("advanced"));
+      defaults_.setValue("emg:retention",1200.0f,"Retention time of the exponentially modified Gaussian.", StringList::create("advanced"));
       
       defaultsToParam_();
     }

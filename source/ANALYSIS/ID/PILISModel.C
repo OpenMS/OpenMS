@@ -63,16 +63,16 @@ namespace OpenMS
 		: DefaultParamHandler("PILISModel"),
 			valid_(false)
 	{	
-		defaults_.setValue("upper_mz", 2000.0, "Max m/z value of product ions in the simulated spectrum", false);
-		defaults_.setValue("lower_mz", 200.0, "Lowest m/z value of product ions in the simulated spectrum", false);
-		defaults_.setValue("charge_remote_threshold", 0.2, "If the probability for the proton at the N-terminus is lower than this value, enable charge-remote pathways", false);
-		defaults_.setValue("charge_directed_threshold", 0.3, "Limit the proton availability at the N-terminus to at least this value for charge-directed pathways", false);
+		defaults_.setValue("upper_mz", 2000.0, "Max m/z value of product ions in the simulated spectrum");
+		defaults_.setValue("lower_mz", 200.0, "Lowest m/z value of product ions in the simulated spectrum");
+		defaults_.setValue("charge_remote_threshold", 0.2, "If the probability for the proton at the N-terminus is lower than this value, enable charge-remote pathways");
+		defaults_.setValue("charge_directed_threshold", 0.3, "Limit the proton availability at the N-terminus to at least this value for charge-directed pathways");
 		//defaults_.setValue("side_chain_intensity_threshold", 0.0, "Side-chain pathways are active if this threshold is exceeded by the probability of N-terminal proton");
-		defaults_.setValue("model_depth", 4, "The number of explicitly modeled backbone cleavages from N-terminus and C-terminus, would be 9 for the default value", false);
-		defaults_.setValue("visible_model_depth", 30, "The maximal possible size of a peptide to be modeled", false);
-		defaults_.setValue("precursor_mass_tolerance", 3.0, "Mass tolerance of the precursor peak, used to identify the precursor peak and its loss peaks for training", false);
-		defaults_.setValue("peak_mass_tolerance", 0.3, "Peak mass tolerance of the product ions, used to identify the ions for training", false);
-		defaults_.setValue("fixed_modifications", "", "Fixed modifications in format '57.001@C'", false);
+		defaults_.setValue("model_depth", 4, "The number of explicitly modeled backbone cleavages from N-terminus and C-terminus, would be 9 for the default value");
+		defaults_.setValue("visible_model_depth", 30, "The maximal possible size of a peptide to be modeled");
+		defaults_.setValue("precursor_mass_tolerance", 3.0, "Mass tolerance of the precursor peak, used to identify the precursor peak and its loss peaks for training");
+		defaults_.setValue("peak_mass_tolerance", 0.3, "Peak mass tolerance of the product ions, used to identify the ions for training");
+		defaults_.setValue("fixed_modifications", "", "Fixed modifications in format '57.001@C'");
 
 		defaults_.setValue("min_y_ion_intensity", 0.20, ".");
 		defaults_.setValue("min_b_ion_intensity", 0.15, ".");

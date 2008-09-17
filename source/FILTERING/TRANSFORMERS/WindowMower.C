@@ -33,8 +33,8 @@ namespace OpenMS
     : PreprocessingFunctor()
   {
 		setName(WindowMower::getProductName());
-    defaults_.setValue("windowsize", 50.0, "The size of the sliding window along the m/z axis.", false); // smallest amino acid
-    defaults_.setValue("peakcount", 2, "The number of peaks that should be kept.", false); // b and y ion
+    defaults_.setValue("windowsize", 50.0, "The size of the sliding window along the m/z axis.");
+    defaults_.setValue("peakcount", 2, "The number of peaks that should be kept.");
 		defaultsToParam_();
   }
 

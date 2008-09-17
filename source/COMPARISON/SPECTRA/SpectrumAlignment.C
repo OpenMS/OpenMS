@@ -34,8 +34,8 @@ namespace OpenMS
   SpectrumAlignment::SpectrumAlignment()
 		: DefaultParamHandler("SpectrumAlignment")
   {
-		defaults_.setValue("tolerance", 0.3, "Defines the absolut (in Da) or relative (in ppm) tolerance", false);
-		defaults_.setValue("is_relative_tolerance", "false", "If true, the 'tolerance' is interpreted as ppm-value", false);
+		defaults_.setValue("tolerance", 0.3, "Defines the absolut (in Da) or relative (in ppm) tolerance");
+		defaults_.setValue("is_relative_tolerance", "false", "If true, the 'tolerance' is interpreted as ppm-value");
 		defaults_.setValidStrings("is_relative_tolerance", StringList::create("true,false"));
 		defaultsToParam_();
   }

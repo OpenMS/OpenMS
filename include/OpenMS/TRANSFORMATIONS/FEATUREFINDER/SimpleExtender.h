@@ -90,21 +90,21 @@ namespace OpenMS
 		{
 			this->setName("SimpleExtender");
       
-      this->defaults_.setValue("dist_mz_up",6.0,"Maximum high m/z distance of peak in the region/boundary from the seed.", false);
+      this->defaults_.setValue("dist_mz_up",6.0,"Maximum high m/z distance of peak in the region/boundary from the seed.");
       this->defaults_.setMinFloat("dist_mz_up",0.0);
-			this->defaults_.setValue("dist_mz_down",2.0,"Maximum low m/z distance of peak in the region/boundary from the seed.", false);
+			this->defaults_.setValue("dist_mz_down",2.0,"Maximum low m/z distance of peak in the region/boundary from the seed.");
       this->defaults_.setMinFloat("dist_mz_down",0.0);
-			this->defaults_.setValue("dist_rt_up",5.0,"Maximum high RT distance of peak in the region/boundary from the seed.", false);
+			this->defaults_.setValue("dist_rt_up",5.0,"Maximum high RT distance of peak in the region/boundary from the seed.");
       this->defaults_.setMinFloat("dist_rt_up",0.0);
-			this->defaults_.setValue("dist_rt_down",5.0,"Maximum low RT distance of peak in the region/boundary from the seed.", false);
+			this->defaults_.setValue("dist_rt_down",5.0,"Maximum low RT distance of peak in the region/boundary from the seed.");
       this->defaults_.setMinFloat("dist_rt_down",0.0);
 
 			// priority check is per default switched off
 			// these values were used for the Myoglobin quantification project
 			// DON'T REMOVE THIS
-			this->defaults_.setValue("priority_thr",-0.1,"Minimum priority for data points to be included into the boundary of the feature (default 0.0). The priority of a data point is a function of its intensity and its distance to the last point included into the feature region. Setting this threshold to zero or a very small value is usually a good idea.", true);
+			this->defaults_.setValue("priority_thr",-0.1,"Minimum priority for data points to be included into the boundary of the feature (default 0.0). The priority of a data point is a function of its intensity and its distance to the last point included into the feature region. Setting this threshold to zero or a very small value is usually a good idea.", StringList::create("advanced"));
      
-			this->defaults_.setValue("intensity_factor",0.03,"Influences for intensity (ion count) threshold in the feature extension. We include only raw data points into this region if their intensity is larger than [intensity_factor * (intensity of the seed)].", false);
+			this->defaults_.setValue("intensity_factor",0.03,"Influences for intensity (ion count) threshold in the feature extension. We include only raw data points into this region if their intensity is larger than [intensity_factor * (intensity of the seed)].");
       this->defaults_.setMinFloat("intensity_factor",0.0);
       this->defaults_.setMaxFloat("intensity_factor",1.0);
       

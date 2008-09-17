@@ -60,19 +60,19 @@ namespace OpenMS
 			/** @brief Default Constructor */
 			FeatureFinderAlgorithmIsotopeWavelet() 
 			{ 
-				Base::defaults_.setValue ("max_charge", 1, "The maximal charge state to be considered.", false);
+				Base::defaults_.setValue ("max_charge", 1, "The maximal charge state to be considered.");
 				Base::defaults_.setValue ("intensity_threshold", 1, "The final threshold t' is build upon the formula: t' = av+t*sd\n" 
 														"where t is the intensity_threshold, av the average intensity within the wavelet transformed signal\n" 
 														"and sd the standard deviation of the transform.\n"
 														"If you set intensity_threshold=-1, t' will be zero.\n"
 														"For single scan analysis (e.g. MALDI peptide fingerprints) you should start with an intensity_threshold\n"
-														"around 0..1 and increase if necessary.", false);
+														"around 0..1 and increase if necessary.");
 				Base::defaults_.setValue ("rt_votes_cutoff", 5, "A parameter of the sweep line algorithm. It determines the minimum number of\n"
-														"subsequent scans a pattern must occur to be considered as a feature.", false);
+														"subsequent scans a pattern must occur to be considered as a feature.");
 				Base::defaults_.setValue ("rt_interleave", 2, "A parameter of the sweep line algorithm. It determines the maximum number of\n"
-														"scans (w.r.t. rt_votes_cutoff) where an expected pattern is missing.", true);
+														"scans (w.r.t. rt_votes_cutoff) where an expected pattern is missing.", StringList::create("advanced"));
 				Base::defaults_.setValue ("recording_mode", 1, "Determines if the spectra have been recorded in positive ion (1) or\n" 
-																	"negative ion (-1) mode.", true);
+																	"negative ion (-1) mode.", StringList::create("advanced"));
 				Base::defaultsToParam_();
 			}
 

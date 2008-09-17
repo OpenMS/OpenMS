@@ -35,37 +35,37 @@ namespace OpenMS
 		: ProgressLogger(),
 			DefaultParamHandler("MascotInfile")
 	{
-		defaults_.setValue("database", "MSDB", "Name of the sequence database", false);
-		defaults_.setValue("search_type", "MIS", "Name of the search type for the query", true);
+		defaults_.setValue("database", "MSDB", "Name of the sequence database");
+		defaults_.setValue("search_type", "MIS", "Name of the search type for the query", StringList::create("advanced"));
 		defaults_.setValidStrings("search_type", StringList::create("MIS,SQ,PMF"));
-		defaults_.setValue("enzyme", "Trypsin", "Name of enzyme used for the digestion", false);
-		defaults_.setValue("instrument", "Default", "Instrument definition which specifies the fragmentation rules", false);
-		defaults_.setValue("missed_cleavages", 1, "Number of missed cleavages allowed for the enzyme", false);
+		defaults_.setValue("enzyme", "Trypsin", "Name of enzyme used for the digestion");
+		defaults_.setValue("instrument", "Default", "Instrument definition which specifies the fragmentation rules");
+		defaults_.setValue("missed_cleavages", 1, "Number of missed cleavages allowed for the enzyme");
 		defaults_.setMinInt("missed_cleavages", 0);
-		defaults_.setValue("precursor_mass_tolerance", 3.0, "Tolerance of the precursor peaks", false);
+		defaults_.setValue("precursor_mass_tolerance", 3.0, "Tolerance of the precursor peaks");
 		defaults_.setMinFloat("precursor_mass_tolerance", 0.0);
-		defaults_.setValue("precursor_error_units", "Da", "Units of the precursor mass tolerance", false);
+		defaults_.setValue("precursor_error_units", "Da", "Units of the precursor mass tolerance");
 		defaults_.setValidStrings("precursor_error_units", StringList::create("%,ppm,mmu,Da"));
-		defaults_.setValue("fragment_mass_tolerance", 0.3, "Tolerance of the peaks in the fragment spectrum", false);
+		defaults_.setValue("fragment_mass_tolerance", 0.3, "Tolerance of the peaks in the fragment spectrum");
 		defaults_.setMinFloat("fragment_mass_tolerance", 0.0);
-		defaults_.setValue("fragment_error_units", "Da", "Units of the fragment peaks tolerance", false);
+		defaults_.setValue("fragment_error_units", "Da", "Units of the fragment peaks tolerance");
 		defaults_.setValidStrings("fragment_error_units", StringList::create("mmu,Da"));
-		defaults_.setValue("charges", "1,2,3", "Allowed charge states, given as a comma separated list of integers", false);
-		defaults_.setValue("taxonomy", "All entries", "Taxonomy specification of the sequences", false);
-		defaults_.setValue("fixed_modifications", "", "Comma separated list of modifications, PSI-MOD definitions or which Mascot understands directly", false);
-		defaults_.setValue("variable_modifications", "", "Comma separated list of variable modifications, PSI-MOD definitions, or which Mascot understands directly", false);
+		defaults_.setValue("charges", "1,2,3", "Allowed charge states, given as a comma separated list of integers");
+		defaults_.setValue("taxonomy", "All entries", "Taxonomy specification of the sequences");
+		defaults_.setValue("fixed_modifications", "", "Comma separated list of modifications, PSI-MOD definitions or which Mascot understands directly");
+		defaults_.setValue("variable_modifications", "", "Comma separated list of variable modifications, PSI-MOD definitions, or which Mascot understands directly");
 	
-		defaults_.setValue("mass_type", "monoisotopic", "Defines the mass type, either monoisotopic or average", false);
+		defaults_.setValue("mass_type", "monoisotopic", "Defines the mass type, either monoisotopic or average");
 		defaults_.setValidStrings("mass_type", StringList::create("monoisotopic,average"));
 		defaults_.setValue("number_of_hits", 10, "Number of hits which should be returned, if 0 AUTO mode is enabled.");
 		defaults_.setMinInt("number_of_hits", 0);
 		
-		defaults_.setValue("search_title", "OpenMS_search", "Sets the title of the search.", true);
-		defaults_.setValue("username", "OpenMS", "Sets the username which is mentioned in the results file.", true);
-		defaults_.setValue("format", "Mascot generic", "Sets the format type of the peak list, this should not be changed.", true);
-		defaults_.setValue("form_version", "1.01", "Sets the version of the peak list format, this should not be changed.", true);
-		defaults_.setValue("peaklists_only", "false", "Skip the parameter header and the MIME parts; just write the peak lists", true);
-		defaults_.setValue("boundary", "GZWgAaYKjHFeUaLOLEIOMq", "MIME boundary", true);
+		defaults_.setValue("search_title", "OpenMS_search", "Sets the title of the search.", StringList::create("advanced"));
+		defaults_.setValue("username", "OpenMS", "Sets the username which is mentioned in the results file.", StringList::create("advanced"));
+		defaults_.setValue("format", "Mascot generic", "Sets the format type of the peak list, this should not be changed.", StringList::create("advanced"));
+		defaults_.setValue("form_version", "1.01", "Sets the version of the peak list format, this should not be changed.", StringList::create("advanced"));
+		defaults_.setValue("peaklists_only", "false", "Skip the parameter header and the MIME parts; just write the peak lists", StringList::create("advanced"));
+		defaults_.setValue("boundary", "GZWgAaYKjHFeUaLOLEIOMq", "MIME boundary", StringList::create("advanced"));
 		defaults_.setValidStrings("peaklists_only", StringList::create("true,false"));
 
 		defaultsToParam_();

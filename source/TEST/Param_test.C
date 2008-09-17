@@ -52,22 +52,22 @@ CHECK((~Param::ParamEntry()))
 RESULT
 
 CHECK((Param::ParamEntry(const String& n, const DataValue& v, const String& d, bool u)))
-	Param::ParamEntry pe("n","v","d",true);
+	Param::ParamEntry pe("n","v","d",StringList::create("advanced"));
 	TEST_EQUAL(pe.name,"n")
 	TEST_EQUAL(pe.description,"d")
 	TEST_EQUAL(pe.value,"v")
-	TEST_EQUAL(pe.advanced,true)
+	TEST_EQUAL(pe.tags.count("advanced")==1,true)
 	
-	 pe = Param::ParamEntry("n1","v1","d1",false);
+	 pe = Param::ParamEntry("n1","v1","d1");
 	TEST_EQUAL(pe.name,"n1")
 	TEST_EQUAL(pe.description,"d1")
 	TEST_EQUAL(pe.value,"v1")
-	TEST_EQUAL(pe.advanced,false)
+	TEST_EQUAL(pe.tags.count("advanced")==1,false)
 RESULT
 
 CHECK((bool operator==(const Param::ParamEntry& rhs) const))
-	Param::ParamEntry n1("n","d","v",true);
-	Param::ParamEntry n2("n","d","v",true);
+	Param::ParamEntry n1("n","d","v",StringList::create("advanced"));
+	Param::ParamEntry n2("n","d","v",StringList::create("advanced"));
 	
 	TEST_EQUAL(n1==n2,true)
 	
@@ -82,7 +82,7 @@ CHECK((bool operator==(const Param::ParamEntry& rhs) const))
 	n2.description = "bla";
 	TEST_EQUAL(n1==n2,true)
 
-	n2.advanced = false;
+	n2.tags.clear();
 	TEST_EQUAL(n1==n2,true)	
 RESULT
 
@@ -131,10 +131,10 @@ CHECK((bool operator==(const Param::ParamNode& rhs) const))
 	TEST_EQUAL(n1==n2,false)
 	n2 = n1;
 	
-	n2.entries.push_back(Param::ParamEntry("a","x","",false));
-	n2.entries.push_back(Param::ParamEntry("b","y","",false));
-	n1.entries.push_back(Param::ParamEntry("b","y","",false));
-	n1.entries.push_back(Param::ParamEntry("a","x","",false));
+	n2.entries.push_back(Param::ParamEntry("a","x",""));
+	n2.entries.push_back(Param::ParamEntry("b","y",""));
+	n1.entries.push_back(Param::ParamEntry("b","y",""));
+	n1.entries.push_back(Param::ParamEntry("a","x",""));
 	TEST_EQUAL(n1==n2,true)
 	
 	n2.nodes.push_back(Param::ParamNode("a","x"));
@@ -242,7 +242,7 @@ RESULT
 
 CHECK((void insert(const Param::ParamNode& node, const String& prefix = "")))
 	Param::ParamNode node("","");
-	node.entries.push_back(Param::ParamEntry("H",5,"",true));
+	node.entries.push_back(Param::ParamEntry("H",5,"",StringList::create("advanced")));
 	pn.insert(node,"F");
 	TEST_NOT_EQUAL(pn.findEntryRecursive("F:H"),0)
 
@@ -264,7 +264,7 @@ CHECK((void insert(const Param::ParamNode& node, const String& prefix = "")))
 RESULT
 
 CHECK((void insert(const Param::ParamEntry& entry, const String& prefix = "")))
-	Param::ParamEntry entry("H","",5,true);
+	Param::ParamEntry entry("H","",5,StringList::create("advanced"));
 
 	pn.insert(entry);
 	TEST_NOT_EQUAL(pn.findEntryRecursive("H"),0)
@@ -302,22 +302,22 @@ RESULT
 
 CHECK((const Param::ParamEntry& operator*()))
 	Param::ParamNode node;
-	node.entries.push_back(Param::ParamEntry("name","value","description",true));
+	node.entries.push_back(Param::ParamEntry("name","value","description",StringList::create("advanced")));
 	Param::ParamIterator it(node);
 	TEST_EQUAL((*it).name,"name")
 	TEST_EQUAL((*it).value,"value");
 	TEST_EQUAL((*it).description,"description")
-	TEST_EQUAL((*it).advanced,true)
+	TEST_EQUAL((*it).tags.count("advanced")==1,true)
 RESULT
 
 CHECK((const Param::ParamEntry* operator->()))
 	Param::ParamNode node;
-	node.entries.push_back(Param::ParamEntry("name","value","description",true));
+	node.entries.push_back(Param::ParamEntry("name","value","description",StringList::create("advanced")));
 	Param::ParamIterator it(node);
 	TEST_EQUAL(it->name,"name");
 	TEST_EQUAL(it->value,"value");	
 	TEST_EQUAL(it->description,"description");
-	TEST_EQUAL(it->advanced,true);
+	TEST_EQUAL(it->tags.count("advanced")==1,true);
 RESULT
 
 //complicated subtree
@@ -335,20 +335,20 @@ root.name="root";
 r.name="r";
 s.name="s";
 t.name="t";
-root.entries.push_back(Param::ParamEntry("A","1","",false));
-s.entries.push_back(Param::ParamEntry("B","2","",false));
+root.entries.push_back(Param::ParamEntry("A","1",""));
+s.entries.push_back(Param::ParamEntry("B","2",""));
 s.description="s_desc";
-s.entries.push_back(Param::ParamEntry("C","3","",false));
-t.entries.push_back(Param::ParamEntry("D","4","",false));
+s.entries.push_back(Param::ParamEntry("C","3",""));
+t.entries.push_back(Param::ParamEntry("D","4",""));
 r.nodes.push_back(s);
 root.nodes.push_back(r);
 root.nodes.push_back(t);
 
 CHECK((ParamIterator& operator++()))
 	Param::ParamNode node;
-	node.entries.push_back(Param::ParamEntry("name","value","description",true));
-	node.entries.push_back(Param::ParamEntry("name2","value2","description2",false));
-	node.entries.push_back(Param::ParamEntry("name3","value3","description3",true));
+	node.entries.push_back(Param::ParamEntry("name","value","description",StringList::create("advanced")));
+	node.entries.push_back(Param::ParamEntry("name2","value2","description2"));
+	node.entries.push_back(Param::ParamEntry("name3","value3","description3",StringList::create("advanced")));
 
 	//linear list
 	Param::ParamIterator it(node);
@@ -356,13 +356,13 @@ CHECK((ParamIterator& operator++()))
 	TEST_EQUAL(it->name,"name2");
 	TEST_EQUAL(it->value,"value2");	
 	TEST_EQUAL(it->description,"description2");
-	TEST_EQUAL(it->advanced,false);
+	TEST_EQUAL(it->tags.count("advanced")==1,false);
 
 	++it;
 	TEST_EQUAL(it->name,"name3");
 	TEST_EQUAL(it->value,"value3");	
 	TEST_EQUAL(it->description,"description3");
-	TEST_EQUAL(it->advanced,true);
+	TEST_EQUAL(it->tags.count("advanced")==1,true);
 	
 	++it;
 
@@ -378,37 +378,37 @@ CHECK((ParamIterator& operator++()))
 	TEST_EQUAL(it->name,"name");
 	TEST_EQUAL(it->value,"value");	
 	TEST_EQUAL(it->description,"description");
-	TEST_EQUAL(it->advanced,true);
+	TEST_EQUAL(it->tags.count("advanced")==1,true);
 	
 	++it;
 	TEST_EQUAL(it->name,"name2");
 	TEST_EQUAL(it->value,"value2");	
 	TEST_EQUAL(it->description,"description2");
-	TEST_EQUAL(it->advanced,false);
+	TEST_EQUAL(it->tags.count("advanced")==1,false);
 
 	++it;
 	TEST_EQUAL(it->name,"name3");
 	TEST_EQUAL(it->value,"value3");	
 	TEST_EQUAL(it->description,"description3");
-	TEST_EQUAL(it->advanced,true);
+	TEST_EQUAL(it->tags.count("advanced")==1,true);
 	
 	++it;
 	TEST_EQUAL(it->name,"name4");
 	TEST_EQUAL(it->value,"value");	
 	TEST_EQUAL(it->description,"description");
-	TEST_EQUAL(it->advanced,true);
+	TEST_EQUAL(it->tags.count("advanced")==1,true);
 	
 	++it;
 	TEST_EQUAL(it->name,"name5");
 	TEST_EQUAL(it->value,"value2");	
 	TEST_EQUAL(it->description,"description2");
-	TEST_EQUAL(it->advanced,false);
+	TEST_EQUAL(it->tags.count("advanced")==1,false);
 
 	++it;
 	TEST_EQUAL(it->name,"name6");
 	TEST_EQUAL(it->value,"value3");	
 	TEST_EQUAL(it->description,"description3");
-	TEST_EQUAL(it->advanced,true);
+	TEST_EQUAL(it->tags.count("advanced")==1,true);
 
 	++it;
 	
@@ -434,9 +434,9 @@ RESULT
 
 CHECK((ParamIterator operator++(Int)))
 	Param::ParamNode node;
-	node.entries.push_back(Param::ParamEntry("name","value","description",true));
-	node.entries.push_back(Param::ParamEntry("name2","value2","description2",false));
-	node.entries.push_back(Param::ParamEntry("name3","value3","description3",true));
+	node.entries.push_back(Param::ParamEntry("name","value","description",StringList::create("advanced")));
+	node.entries.push_back(Param::ParamEntry("name2","value2","description2"));
+	node.entries.push_back(Param::ParamEntry("name3","value3","description3",StringList::create("advanced")));
 
 	//linear list
 	Param::ParamIterator it(node), it2(node);
@@ -445,11 +445,11 @@ CHECK((ParamIterator operator++(Int)))
 	TEST_EQUAL(it->name,"name2");
 	TEST_EQUAL(it->value,"value2");	
 	TEST_EQUAL(it->description,"description2");
-	TEST_EQUAL(it->advanced,false);
+	TEST_EQUAL(it->tags.count("advanced")==1,false);
 	TEST_EQUAL(it2->name,"name");
 	TEST_EQUAL(it2->value,"value");	
 	TEST_EQUAL(it2->description,"description");
-	TEST_EQUAL(it2->advanced,true);
+	TEST_EQUAL(it2->tags.count("advanced")==1,true);
 RESULT
 
 CHECK((String getName() const))
@@ -607,13 +607,6 @@ CHECK((const String& getDescription(const String &key) const  ))
 	TEST_EXCEPTION(Exception::ElementNotFound, p.getDescription("key:value"))
 RESULT
 
-CHECK((bool isAdvancedParameter(const String &key) const  ))
-	Param p;
-	TEST_EXCEPTION(Exception::ElementNotFound, p.isAdvancedParameter(""))
-	TEST_EXCEPTION(Exception::ElementNotFound, p.isAdvancedParameter("key"))
-	TEST_EXCEPTION(Exception::ElementNotFound, p.isAdvancedParameter("key:value"))
-RESULT
-
 CHECK((const ParamEntry& getEntry(const String &key) const  ))
 	Param p;
 	TEST_EXCEPTION(Exception::ElementNotFound, p.getEntry(""))
@@ -627,59 +620,124 @@ CHECK((void setValue(const String& key, const String& value, const String& descr
 	TEST_EQUAL(p.exists("key"), true)
 	TEST_EQUAL(p.getValue("key"), "value")
 	TEST_EQUAL(p.getDescription("key"), "")
-	TEST_EQUAL(p.isAdvancedParameter("key"), false)
+	TEST_EQUAL(p.hasTag("key","advanced"), false)
 
-	p.setValue("key","value","description",true);
+	p.setValue("key","value","description",StringList::create("advanced"));
 	TEST_EQUAL(p.exists("key"), true)
 	TEST_EQUAL(p.getValue("key"), "value")
 	TEST_EQUAL(p.getDescription("key"), "description")
-	TEST_EQUAL(p.isAdvancedParameter("key"), true)
+	TEST_EQUAL(p.hasTag("key","advanced"), true)
 
-	p.setValue("key:key","value2","description2",false);
+	p.setValue("key:key","value2","description2");
 	TEST_EQUAL(p.exists("key"), true)
 	TEST_EQUAL(p.getValue("key"), "value")
 	TEST_EQUAL(p.getDescription("key"), "description")
-	TEST_EQUAL(p.isAdvancedParameter("key"), true)
+	TEST_EQUAL(p.hasTag("key","advanced"), true)
 	TEST_EQUAL(p.exists("key:key"), true)
 	TEST_EQUAL(p.getValue("key:key"), "value2")
 	TEST_EQUAL(p.getDescription("key:key"), "description2")
-	TEST_EQUAL(p.isAdvancedParameter("key:key"), false)
+	TEST_EQUAL(p.hasTag("key:key","advanced"), false)
 RESULT
 
 CHECK((void setValue(const String& key, Int value, const String& description="", bool advanced=false)))
 	Param p;
-	p.setValue("key",-5,"description",true);
+	p.setValue("key",-5,"description",StringList::create("advanced"));
 	TEST_EQUAL(p.exists("key"), true)
 	TEST_EQUAL((Int)p.getValue("key"),-5)
 	TEST_EQUAL(p.getDescription("key"), "description")
-	TEST_EQUAL(p.isAdvancedParameter("key"), true)
+	TEST_EQUAL(p.hasTag("key","advanced"), true)
 RESULT
 
 CHECK((void setValue(const String& key, UInt value, const String& description="", bool advanced=false)))
 	Param p;
-	p.setValue("key",5u,"description",true);
+	p.setValue("key",5u,"description",StringList::create("advanced"));
 	TEST_EQUAL(p.exists("key"), true)
 	TEST_EQUAL((Int)p.getValue("key"),5u)
 	TEST_EQUAL(p.getDescription("key"), "description")
-	TEST_EQUAL(p.isAdvancedParameter("key"), true)
+	TEST_EQUAL(p.hasTag("key","advanced"), true)
 RESULT
 
 CHECK((void setValue(const String& key, Real value, const String& description="", bool advanced=false)))
 	Param p;
-	p.setValue("key",11.4f,"description",true);
+	p.setValue("key",11.4f,"description",StringList::create("advanced"));
 	TEST_EQUAL(p.exists("key"), true)
 	TEST_REAL_EQUAL(p.getValue("key"), 11.4f)
 	TEST_EQUAL(p.getDescription("key"), "description")
-	TEST_EQUAL(p.isAdvancedParameter("key"), true)
+	TEST_EQUAL(p.hasTag("key","advanced"), true)
 RESULT
 
 CHECK((void setValue(const String& key, DoubleReal value, const String& description="", bool advanced=false)))
 	Param p;
-	p.setValue("key",11.5,"description",true);
+	p.setValue("key",11.5,"description",StringList::create("advanced"));
 	TEST_EQUAL(p.exists("key"), true)
 	TEST_REAL_EQUAL(p.getValue("key"), 11.5)
 	TEST_EQUAL(p.getDescription("key"), "description")
-	TEST_EQUAL(p.isAdvancedParameter("key"), true)
+	TEST_EQUAL(p.hasTag("key","advanced"), true)
+RESULT
+
+CHECK(StringList getTags(const String& key) const)
+	Param p;
+	TEST_EXCEPTION(Exception::ElementNotFound, p.getTags("key"))
+
+	p.setValue("key","value");
+	TEST_EQUAL(p.getTags("key").size(),0)
+RESULT
+
+CHECK(void addTag(const String& key, const String& tag))
+	Param p;
+	TEST_EXCEPTION(Exception::ElementNotFound, p.addTag("key","bla"))
+	StringList error_list;
+	error_list.push_back("a,b");
+	TEST_EXCEPTION(Exception::ElementNotFound, p.addTags("key",error_list))
+
+	p.setValue("key","value");
+	TEST_EQUAL(p.getTags("key").size(),0)
+	p.addTag("key","advanced");
+	TEST_EQUAL(p.getTags("key").size(),1)
+	p.addTag("key","advanced");
+	TEST_EQUAL(p.getTags("key").size(),1)
+	p.addTag("key","advanced2");
+	TEST_EQUAL(p.getTags("key").size(),2)
+RESULT
+
+CHECK(bool hasTag(const String& key, const String& tag) const)
+	Param p;
+	TEST_EXCEPTION(Exception::ElementNotFound, p.hasTag("key","bla"))
+
+	p.setValue("key","value");
+	TEST_EQUAL(p.hasTag("key","advanced"),false)
+	TEST_EQUAL(p.hasTag("key","advanced2"),false)
+	p.addTag("key","advanced");
+	TEST_EQUAL(p.hasTag("key","advanced"),true)
+	TEST_EQUAL(p.hasTag("key","advanced2"),false)
+	p.addTag("key","advanced2");
+	TEST_EQUAL(p.hasTag("key","advanced"),true)
+	TEST_EQUAL(p.hasTag("key","advanced2"),true)
+RESULT
+
+CHECK(void addTags(const String& key, const StringList& tags))
+	Param p;
+	TEST_EXCEPTION(Exception::ElementNotFound, p.addTags("key",StringList()))
+	StringList error_list;
+	error_list.push_back("a,b");
+	TEST_EXCEPTION(Exception::ElementNotFound, p.addTags("key",error_list))
+
+	p.setValue("key","value");
+	TEST_EQUAL(p.hasTag("key","advanced"),false)
+	TEST_EQUAL(p.hasTag("key","advanced2"),false)
+	p.addTags("key",StringList::create("advanced,advanced2"));
+	TEST_EQUAL(p.hasTag("key","advanced"),true)
+	TEST_EQUAL(p.hasTag("key","advanced2"),true)
+RESULT
+
+CHECK(void clearTags(const String& key))
+	Param p;
+	TEST_EXCEPTION(Exception::ElementNotFound, p.clearTags("key"))
+	p.setValue("key","value");
+	p.addTag("key","advanced");
+	TEST_EQUAL(p.getTags("key").size(),1)
+	p.clearTags("key");
+	TEST_EQUAL(p.getTags("key").size(),0)
 RESULT
 
 CHECK((bool empty() const))
@@ -1002,7 +1060,7 @@ CHECK((void store(const String& filename) const ))
 	p2.setValue("test:b:b1", 47.1);
 	p2.setSectionDescription("test:b","bdesc\"<>\nnewline");
 	p2.setValue("test2:a:a1", 47.1);
-	p2.setValue("test2:b:b1", 47.1,"",true);
+	p2.setValue("test2:b:b1", 47.1,"",StringList::create("advanced"));
 	p2.setSectionDescription("test2:a","adesc");
 	
 	//exception
@@ -1028,23 +1086,23 @@ CHECK((void store(const String& filename) const ))
 	TEST_EQUAL(p3.getDescription("test:a:a1"),"a1desc'<>\nnewline")
 	TEST_EQUAL(p3.getSectionDescription("test:b"),"bdesc'<>\nnewline")
 	TEST_EQUAL(p3.getSectionDescription("test2:a"),"adesc")
-	TEST_EQUAL(p3.isAdvancedParameter("test2:b:b1"),true)
-	TEST_EQUAL(p3.isAdvancedParameter("test2:a:a1"),false)
+	TEST_EQUAL(p3.hasTag("test2:b:b1","advanced"),true)
+	TEST_EQUAL(p3.hasTag("test2:a:a1","advanced"),false)
 	TEST_EQUAL(p2.isValid(filename),true)
 	
 	//advanced
 	NEW_TMP_FILE(filename);
 	Param p7;
-	p7.setValue("true",5,"",true);
-	p7.setValue("false",5,"",false);
+	p7.setValue("true",5,"",StringList::create("advanced"));
+	p7.setValue("false",5,"");
 	
 	p7.store(filename);
 	TEST_EQUAL(p7.isValid(filename),true)
 	Param p8;
 	p8.load(filename);
 	
-	TEST_EQUAL(p8.getEntry("true").advanced, true)
-	TEST_EQUAL(p8.getEntry("false").advanced, false)
+	TEST_EQUAL(p8.getEntry("true").tags.count("advanced")==1, true)
+	TEST_EQUAL(p8.getEntry("false").tags.count("advanced")==1, false)
 
 	//restrictions
 	NEW_TMP_FILE(filename);

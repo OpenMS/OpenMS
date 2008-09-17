@@ -324,8 +324,8 @@ namespace OpenMS
 	{
 		
 		defaults_.setValue("max_iteration",10,"maximal number of iterations for the fitting step");
-		defaults_.setValue("eps_abs",1e-04,"if the absolute error gets smaller than this value the fitting is stopped",true);
-		defaults_.setValue("eps_rel",1e-04,"if the relative error gets smaller than this value the fitting is stopped",true);
+		defaults_.setValue("eps_abs",1e-04,"if the absolute error gets smaller than this value the fitting is stopped", StringList::create("advanced"));
+		defaults_.setValue("eps_rel",1e-04,"if the relative error gets smaller than this value the fitting is stopped", StringList::create("advanced"));
 
 		defaults_.setValue("penalties:left_width",0.0,"penalty term for the fitting of the left width:"\
 											 "If the left width gets too broad or negative during the fitting it can be penalized.");

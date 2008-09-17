@@ -86,9 +86,9 @@
 					<xs:documentation>Parameter desription. It should contain unit and valid range where applicable.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
-			<xs:attribute name="advanced" type="xs:boolean" default="false">
+			<xs:attribute name="tags" type="xs:string" default="false">
 				<xs:annotation>
-					<xs:documentation>Flag that determines if the parameter is always shown, or in 'advanced  mode' only. This attribute is only used for displaying purposes.</xs:documentation>
+					<xs:documentation>Comma-separated list of tags. The 'advanced' tag determines if the parameter is always shown, or only in 'advanved' mode.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 			<xs:attribute name="restrictions" type="xs:string" default="">
@@ -139,9 +139,9 @@
 					<xs:documentation>Parameter desription. It should contain unit and valid range where applicable.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
-			<xs:attribute name="advanced" type="xs:boolean" default="false">
+			<xs:attribute name="tags" type="xs:string" default="false">
 				<xs:annotation>
-					<xs:documentation>Flag that determines if the parameter is always shown, or in 'advanced  mode' only. This attribute is only used for displaying purposes.</xs:documentation>
+					<xs:documentation>Comma-separated list of tags. The 'advanced' tag determines if the parameter is always shown, or only in 'advanved' mode.</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
 			<xs:attribute name="restrictions" type="xs:string" default="">

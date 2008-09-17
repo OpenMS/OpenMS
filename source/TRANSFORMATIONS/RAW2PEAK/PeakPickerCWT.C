@@ -44,88 +44,88 @@ namespace OpenMS
   {
     // if a peak picking parameter is missed in the param object the value should be substituted by a default value
   	defaults_.setValue("centroid_percentage",0.8,"Percentage of the maximum height that the raw data points must exceed to be taken into account for the calculation of the centroid. "\
-											 "If it is 1 the centroid position corresponds to the position of the highest intensity.",false);
+											 "If it is 1 the centroid position corresponds to the position of the highest intensity.");
 		defaults_.setMinFloat("centroid_percentage",0.0);
 		defaults_.setMaxFloat("centroid_percentage",1.0);
   	defaults_.setValue("thresholds:correlation",0.5,"minimal correlation of a peak and the raw signal. "\
-											 "If a peak has a lower correlation it is skipped.",true);
+											 "If a peak has a lower correlation it is skipped.", StringList::create("advanced"));
 		defaults_.setMinFloat("thresholds:correlation",0.0);
 		defaults_.setMaxFloat("thresholds:correlation",1.0);
   	defaults_.setValue("wavelet_transform:scale",0.15,"Width of the used wavelet. "	\
-											 "Should correspond approx. to the fwhm of the peaks.", false);
+											 "Should correspond approx. to the fwhm of the peaks.");
 		defaults_.setMinFloat("wavelet_transform:scale",0.0);
-  	defaults_.setValue("wavelet_transform:spacing",0.001,"spacing of the cwt.",true);
+  	defaults_.setValue("wavelet_transform:spacing",0.001,"spacing of the cwt.", StringList::create("advanced"));
 		defaults_.setMinFloat("wavelet_transform:spacing",0.0);
-  	defaults_.setValue("thresholds:noise_level",0.1,"noise level for the search of the peak endpoints.",true);
+  	defaults_.setValue("thresholds:noise_level",0.1,"noise level for the search of the peak endpoints.", StringList::create("advanced"));
 		defaults_.setMinFloat("thresholds:noise_level",0.0);
-   	defaults_.setValue("thresholds:search_radius",3,"search radius for the search of the maximum in the signal after a maximum in the cwt was found",true); 	
+   	defaults_.setValue("thresholds:search_radius",3,"search radius for the search of the maximum in the signal after a maximum in the cwt was found", StringList::create("advanced")); 	
 		defaults_.setMinInt("thresholds:search_radius",0);
 		
 		//Optimization parameters
   	defaults_.setValue("optimization","no","If the peak parameters position, intensity and left/right width"\
-											 "shall be optimized set optimization to one_dimensional or two_dimensional.",true);
+											 "shall be optimized set optimization to one_dimensional or two_dimensional.", StringList::create("advanced"));
 		std::vector<String> valid_opts;
 		valid_opts.push_back("no");
 		valid_opts.push_back("one_dimensional");
 		valid_opts.push_back("two_dimensional");
 		defaults_.setValidStrings("optimization",valid_opts);
 		defaults_.setValue("optimization:penalties:position",0.0,"penalty term for the fitting of the position:"\
-											 "If it differs too much from the initial one it can be penalized ",true);
+											 "If it differs too much from the initial one it can be penalized ", StringList::create("advanced"));
 		defaults_.setMinFloat("optimization:penalties:position",0.0);
 		defaults_.setValue("optimization:penalties:left_width",1.0,"penalty term for the fitting of the left width:" \
-											 "If the left width differs too much from the initial one during the fitting it can be penalized.",true);
+											 "If the left width differs too much from the initial one during the fitting it can be penalized.", StringList::create("advanced"));
 		defaults_.setMinFloat("optimization:penalties:left_width",0.0);
 		defaults_.setValue("optimization:penalties:right_width",1.0,"penalty term for the fitting of the right width:"\
-        "If the right width differs too much from the initial one during the fitting it can be penalized.",true); 	
+        "If the right width differs too much from the initial one during the fitting it can be penalized.", StringList::create("advanced")); 	
 		defaults_.setMinFloat("optimization:penalties:right_width",0.0);
 		defaults_.setValue("optimization:penalties:height",1.0,"penalty term for the fitting of the intensity (only used in 2D Optimization):" \
-											 "If it gets negative during the fitting it can be penalized.",true);
+											 "If it gets negative during the fitting it can be penalized.", StringList::create("advanced"));
 		defaults_.setMinFloat("optimization:penalties:height",0.0);
-    defaults_.setValue("optimization:iterations",15,"maximal number of iterations for the fitting step",true);
+    defaults_.setValue("optimization:iterations",15,"maximal number of iterations for the fitting step", StringList::create("advanced"));
 		defaults_.setMinInt("optimization:iterations",1);
-    defaults_.setValue("optimization:delta_abs_error",1e-04f,"if the absolute error gets smaller than this value the fitting is stopped.",true);
+    defaults_.setValue("optimization:delta_abs_error",1e-04f,"if the absolute error gets smaller than this value the fitting is stopped.", StringList::create("advanced"));
 		defaults_.setMinFloat("optimization:delta_abs_error",0.0);
-    defaults_.setValue("optimization:delta_rel_error",1e-04f,"if the relative error gets smaller than this value the fitting is stopped",true);
+    defaults_.setValue("optimization:delta_rel_error",1e-04f,"if the relative error gets smaller than this value the fitting is stopped", StringList::create("advanced"));
 		defaults_.setMinFloat("optimization:delta_rel_error",0.0);
 		// additional 2d optimization parameters
-		defaults_.setValue("optimization:2d:tolerance_mz",2.2,"mz tolerance for cluster construction",true);
+		defaults_.setValue("optimization:2d:tolerance_mz",2.2,"mz tolerance for cluster construction", StringList::create("advanced"));
 		defaults_.setMinFloat("optimization:2d:tolerance_mz",0.0);
- 		defaults_.setValue("optimization:2d:max_peak_distance",1.2,"maximal peak distance in mz in a cluster",true);
+ 		defaults_.setValue("optimization:2d:max_peak_distance",1.2,"maximal peak distance in mz in a cluster", StringList::create("advanced"));
 		defaults_.setMinFloat("optimization:2d:max_peak_distance",0.0);
 		// deconvolution parameters
-    defaults_.setValue("deconvolution:deconvolution","false","If you want heavily overlapping peaks to be separated set this value to \"true\"",true);
+    defaults_.setValue("deconvolution:deconvolution","false","If you want heavily overlapping peaks to be separated set this value to \"true\"", StringList::create("advanced"));
 		valid_opts.clear();
 		valid_opts.push_back("true");
 		valid_opts.push_back("false");
 		defaults_.setValidStrings("deconvolution:deconvolution",valid_opts);
-    defaults_.setValue("deconvolution:asym_threshold",0.3,"If the symmetry of a peak is smaller than asym_thresholds it is assumed that it consists of more than one peak and the deconvolution procedure is started.",true);
+    defaults_.setValue("deconvolution:asym_threshold",0.3,"If the symmetry of a peak is smaller than asym_thresholds it is assumed that it consists of more than one peak and the deconvolution procedure is started.", StringList::create("advanced"));
 		defaults_.setMinFloat("deconvolution:asym_threshold",0.0);
-    defaults_.setValue("deconvolution:left_width",2.0,"1/left_width is the initial value for the left width of the peaks found in the deconvolution step.",true);
+    defaults_.setValue("deconvolution:left_width",2.0,"1/left_width is the initial value for the left width of the peaks found in the deconvolution step.", StringList::create("advanced"));
 		defaults_.setMinFloat("deconvolution:left_width",0.0);
-    defaults_.setValue("deconvolution:right_width",2.0,"1/right_width is the initial value for the right width of the peaks found in the deconvolution step.",true);
+    defaults_.setValue("deconvolution:right_width",2.0,"1/right_width is the initial value for the right width of the peaks found in the deconvolution step.", StringList::create("advanced"));
 		defaults_.setMinFloat("deconvolution:right_width",0.0);
-		defaults_.setValue("deconvolution:scaling",0.12,"Initial scaling of the cwt used in the seperation of heavily overlapping peaks. The initial value is used for charge 1, for higher charges it is adapted to scaling/charge.",true);
+		defaults_.setValue("deconvolution:scaling",0.12,"Initial scaling of the cwt used in the seperation of heavily overlapping peaks. The initial value is used for charge 1, for higher charges it is adapted to scaling/charge.", StringList::create("advanced"));
 		defaults_.setMinFloat("deconvolution:scaling",0.0);
 		defaults_.setValue("deconvolution:fitting:penalties:position",0.0,"penalty term for the fitting of the peak position:"\
 											 "If the position changes more than 0.5Da during the fitting it can be penalized as well as "\
-                           "discrepancies of the peptide mass rule.",true);
+                           "discrepancies of the peptide mass rule.", StringList::create("advanced"));
 		defaults_.setMinFloat("deconvolution:fitting:penalties:position",0.0);
 		defaults_.setValue("deconvolution:fitting:penalties:height",1.0,"penalty term for the fitting of the intensity:"\
-        "If it gets negative during the fitting it can be penalized.",true);
+        "If it gets negative during the fitting it can be penalized.", StringList::create("advanced"));
 		defaults_.setMinFloat("deconvolution:fitting:penalties:height",0.0);
 		defaults_.setValue("deconvolution:fitting:penalties:left_width",0.0,"penalty term for the fitting of the left width:"\
-        "If the left width gets too broad or negative during the fitting it can be penalized.",true);
+        "If the left width gets too broad or negative during the fitting it can be penalized.", StringList::create("advanced"));
 		defaults_.setMinFloat("deconvolution:fitting:penalties:left_width",0.0);
 		defaults_.setValue("deconvolution:fitting:penalties:right_width",0.0,"penalty term for the fitting of the right width:"\
-        "If the right width gets too broad or negative during the fitting it can be penalized.",true);
+        "If the right width gets too broad or negative during the fitting it can be penalized.", StringList::create("advanced"));
 		defaults_.setMinFloat("deconvolution:fitting:penalties:right_width",0.0);
-    defaults_.setValue("deconvolution:fitting:fwhm_threshold",0.7,"If the fwhm of a peak is higher than fwhm_thresholds it is assumed that it consists of more than one peak and the deconvolution procedure is started.",true);
+    defaults_.setValue("deconvolution:fitting:fwhm_threshold",0.7,"If the fwhm of a peak is higher than fwhm_thresholds it is assumed that it consists of more than one peak and the deconvolution procedure is started.", StringList::create("advanced"));
 		defaults_.setMinFloat("deconvolution:fitting:fwhm_threshold",0.0);
-    defaults_.setValue("deconvolution:fitting:eps_abs",1e-05f,"if the absolute error gets smaller than this value the fitting is stopped.",true);
+    defaults_.setValue("deconvolution:fitting:eps_abs",1e-05f,"if the absolute error gets smaller than this value the fitting is stopped.", StringList::create("advanced"));
 		defaults_.setMinFloat("deconvolution:fitting:eps_abs",0.0);
-    defaults_.setValue("deconvolution:fitting:eps_rel",1e-05f,"if the relative error gets smaller than this value the fitting is stopped.",true);
+    defaults_.setValue("deconvolution:fitting:eps_rel",1e-05f,"if the relative error gets smaller than this value the fitting is stopped.", StringList::create("advanced"));
 		defaults_.setMinFloat("deconvolution:fitting:eps_rel",0.0);
-    defaults_.setValue("deconvolution:fitting:max_iteration",10,"maximal number of iterations for the fitting step",true);
+    defaults_.setValue("deconvolution:fitting:max_iteration",10,"maximal number of iterations for the fitting step", StringList::create("advanced"));
 	  defaults_.setMinInt("deconvolution:fitting:max_iteration",1);
 
 		subsections_.push_back("SignalToNoiseEstimationParameter");

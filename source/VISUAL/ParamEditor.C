@@ -321,7 +321,7 @@ namespace OpenMS
 			
 			//********handle item********
 			item = new QTreeWidgetItem(parent);
-			if (it->advanced)
+			if (it->tags.count("advanced"))
 			{
 				item->setData(0,Qt::UserRole,ADVANCED_ITEM);
 			}
@@ -481,10 +481,15 @@ namespace OpenMS
 		}
 		else //item + section descriptions
 		{
-			bool advanced = (child->data(0, Qt::UserRole)==ADVANCED_ITEM);
+			StringList tags;
+			if (child->data(0, Qt::UserRole)==ADVANCED_ITEM)
+			{
+				tags.push_back("advanced");
+			}
+			
 			if(child->text(2)=="float")
 			{
-				param_->setValue(path,child->text(1).toDouble(),description,advanced);
+				param_->setValue(path,child->text(1).toDouble(),description,tags);
 				String restrictions = child->data(2, Qt::UserRole).toString();
 				vector<String> parts;
 				if (restrictions.split(' ',parts))
@@ -501,7 +506,7 @@ namespace OpenMS
 			}
 			else if(child->text(2)=="string")
 			{
-				param_->setValue(path, child->text(1).toStdString(),description,advanced);
+				param_->setValue(path, child->text(1).toStdString(),description,tags);
 				String restrictions = child->data(2, Qt::UserRole).toString();
 				if(restrictions!="")
 				{
@@ -512,7 +517,7 @@ namespace OpenMS
 			}
 			else if(child->text(2)=="int")
 			{
-				param_->setValue(path, child->text(1).toInt(),description,advanced);
+				param_->setValue(path, child->text(1).toInt(),description,tags);
 				String restrictions = child->data(2, Qt::UserRole).toString();
 				vector<String> parts;
 				if (restrictions.split(' ',parts))

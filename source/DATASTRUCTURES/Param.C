@@ -44,7 +44,7 @@ namespace OpenMS
 		: name(),
 			description(),
 			value(),
-			advanced(true),
+			tags(),
 			min_float(-std::numeric_limits<DoubleReal>::max()),
 			max_float(std::numeric_limits<DoubleReal>::max()),
 			min_int(-std::numeric_limits<Int>::max()),
@@ -53,17 +53,23 @@ namespace OpenMS
 	{
 	}
 
-	Param::ParamEntry::ParamEntry(const String& n, const DataValue& v, const String& d, bool a)
+	Param::ParamEntry::ParamEntry(const String& n, const DataValue& v, const String& d, const StringList& t)
 		: name(n),
 			description(d),
 			value(v),
-			advanced(a),
+			tags(),
 			min_float(-std::numeric_limits<DoubleReal>::max()),
 			max_float(std::numeric_limits<DoubleReal>::max()),
 			min_int(-std::numeric_limits<Int>::max()),
 			max_int(std::numeric_limits<Int>::max()),
 			valid_strings()
 	{
+		//add tags
+		for (UInt i=0; i<t.size(); ++i)
+		{
+			tags.insert(t[i]);
+		}
+		//check name
 		if (name.has(':'))
 		{
 			cerr << "Error ParamEntry name must not contain ':' characters!" << endl;
@@ -263,7 +269,7 @@ namespace OpenMS
 		if (it!=insert_node->entries.end()) //overwrite entry
 		{
 			it->value = entry.value;
-			it->advanced = entry.advanced;
+			it->tags = entry.tags;
 			if (it->description=="" || entry.description!="") //replace description if not empty in new entry
 			{
 				it->description = entry.description;
@@ -299,7 +305,7 @@ namespace OpenMS
 	//********************************* Param **************************************
 	
 	Param::Param()
-		: XMLFile("/SCHEMAS/Param_1_2.xsd","1.2"),
+		: XMLFile("/SCHEMAS/Param_1_3.xsd","1.3"),
 			root_("ROOT","") 
 	{
 	}
@@ -332,34 +338,34 @@ namespace OpenMS
 		return root_ == rhs.root_;
 	}	
 	
-	void Param::setValue(const String& key, Int value, const String& description, bool advanced)
+	void Param::setValue(const String& key, Int value, const String& description, const StringList& tags)
 	{
-		root_.insert(ParamEntry("",DataValue(value),description,advanced),key);
+		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
 	}
 
-	void Param::setValue(const String& key, UInt value, const String& description, bool advanced)
+	void Param::setValue(const String& key, UInt value, const String& description, const StringList& tags)
 	{
-		root_.insert(ParamEntry("",DataValue(value),description,advanced),key);
+		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
 	}
 	
-	void Param::setValue(const String& key, Real value, const String& description, bool advanced)
+	void Param::setValue(const String& key, Real value, const String& description, const StringList& tags)
 	{
-		root_.insert(ParamEntry("",DataValue(value),description,advanced),key);
+		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
 	}
 
-	void Param::setValue(const String& key, DoubleReal value, const String& description, bool advanced)
+	void Param::setValue(const String& key, DoubleReal value, const String& description, const StringList& tags)
 	{
-		root_.insert(ParamEntry("",DataValue(value),description,advanced),key);
+		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
 	}
 
-	void Param::setValue(const String& key, const String& value, const String& description, bool advanced)
+	void Param::setValue(const String& key, const String& value, const String& description, const StringList& tags)
 	{
-		root_.insert(ParamEntry("",DataValue(value),description,advanced),key);
+		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
 	}
 
-	void Param::setValue(const String& key, const StringList& value, const String& description, bool advanced)
+	void Param::setValue(const String& key, const StringList& value, const String& description, const StringList& tags)
 	{
-		root_.insert(ParamEntry("",DataValue(value),description,advanced),key);
+		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
 	}
 
 	void Param::setValidStrings(const String& key, const std::vector<String>& strings)
@@ -472,7 +478,12 @@ namespace OpenMS
 			{
 				if (showMessage) cerr << "Setting " << prefix+it.getName() << " to " << it->value << endl;
 				String name = prefix+it.getName();
-				root_.insert(ParamEntry("", it->value, it->description, it->advanced), name);
+				root_.insert(ParamEntry("", it->value, it->description), name);
+				//copy tags
+				for (set<String>::const_iterator tag_it=it->tags.begin(); tag_it!=it->tags.end(); ++tag_it)
+				{
+					addTag(name,*tag_it);
+				}
 				//copy restrictions
 				if (it->value.valueType()==DataValue::STRING_VALUE)
 				{
@@ -658,7 +669,7 @@ namespace OpenMS
 		os.precision(8);
 		
   	os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-  	os << "<PARAMETERS version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/Param_1_2.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+  	os << "<PARAMETERS version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/Param_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 		String indentation = "  ";
 		ParamIterator it = begin();
 		while(it != end())
@@ -717,15 +728,19 @@ namespace OpenMS
 				d.substitute("<","&lt;");
 				d.substitute(">","&gt;");
 				os << " description=\"" << d << "\"";
-				//advanced parameter handling
-				if (it->advanced)
+				
+				//tags
+				if (!it->tags.empty())
 				{
-					os << " advanced=\"true\"";
+					String list;
+					for (set<String>::const_iterator tag_it=it->tags.begin(); tag_it!=it->tags.end(); ++tag_it)
+					{
+						if (!list.empty()) list += ",";
+						list += *tag_it;
+					}
+					os << " tags=\"" << list << "\"";
 				}
-				else
-				{
-					os << " advanced=\"false\"";
-				}
+
 				//restrictions
 				String restrictions = "";
 				switch(value_type)
@@ -859,12 +874,12 @@ namespace OpenMS
       //flag (option without text argument)
       if(arg_is_option && arg1_is_option)
       {
-	    	root_.insert(ParamEntry(arg,String(""),"",false),prefix);
+	    	root_.insert(ParamEntry(arg,String(""),""),prefix);
       }
       //option with argument
       else if(arg_is_option && !arg1_is_option)
       {
-      	root_.insert(ParamEntry(arg,arg1,"",false),prefix);
+      	root_.insert(ParamEntry(arg,arg1,""),prefix);
       	++i;
       }      
       //just text arguments (not preceded by an option)
@@ -877,7 +892,7 @@ namespace OpenMS
       		StringList sl;
       		sl << arg;
 					// create "misc"-Node: 
-      		root_.insert(ParamEntry("misc",sl,"",false),prefix);
+      		root_.insert(ParamEntry("misc",sl,""),prefix);
       	}
       	else
       	{
@@ -922,7 +937,7 @@ namespace OpenMS
 			//without argument
 			if (options_without_argument.find(arg)!=options_without_argument.end())
 			{
-				root_.insert(ParamEntry("",String("true"),"",false),options_without_argument.find(arg)->second);
+				root_.insert(ParamEntry("",String("true"),""),options_without_argument.find(arg)->second);
 			}
 			//with argument
 			else if (options_with_argument.find(arg)!=options_with_argument.end())
@@ -930,13 +945,13 @@ namespace OpenMS
 				//next argument is not a option
 				if (!arg1_is_option)
 				{
-					root_.insert(ParamEntry("",arg1,"",false),options_with_argument.find(arg)->second);
+					root_.insert(ParamEntry("",arg1,""),options_with_argument.find(arg)->second);
 					++i;
 				}
 				//next argument is a option
 				else
 				{
-					root_.insert(ParamEntry("",String(""),"",false),options_with_argument.find(arg)->second);
+					root_.insert(ParamEntry("",String(""),""),options_with_argument.find(arg)->second);
 				}
 			}
 			//unknown option
@@ -947,7 +962,7 @@ namespace OpenMS
       	{
       		StringList sl;
       		sl << arg;
-      		root_.insert(ParamEntry("",sl,"",false),unknown);
+      		root_.insert(ParamEntry("",sl,""),unknown);
       	}
       	else
       	{
@@ -966,7 +981,7 @@ namespace OpenMS
       		StringList sl;
       		sl << arg;
 					// create "misc"-Node: 
-      		root_.insert(ParamEntry("",sl,"",false),misc);
+      		root_.insert(ParamEntry("",sl,""),misc);
       	}
       	else
       	{
@@ -1249,10 +1264,48 @@ namespace OpenMS
 	{
 		return getEntry_(key).description;
 	}
-	
-	bool Param::isAdvancedParameter(const String& key) const
+
+	void Param::addTag(const String& key, const String& tag)
 	{
-		return getEntry_(key).advanced;
+		if (tag.has(','))
+		{
+			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Param tags may not contain comma characters",tag); 
+		}
+		getEntry_(key).tags.insert(tag);
+	}
+	
+	void Param::addTags(const String& key, const StringList& tags)
+	{
+		ParamEntry& entry = getEntry_(key);
+		for(UInt i=0; i!=tags.size(); ++i)
+		{
+			if (tags[i].has(','))
+			{
+				throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Param tags may not contain comma characters",tags[i]); 
+			}
+			entry.tags.insert(tags[i]);
+		}
+	}
+
+	StringList Param::getTags(const String& key) const
+	{
+		ParamEntry& entry = getEntry_(key);
+		StringList list;
+		for(set<String>::const_iterator it=entry.tags.begin(); it!=entry.tags.end(); ++it)
+		{
+			list.push_back(*it);
+		}
+		return list;
+	}
+	
+	void Param::clearTags(const String& key)
+	{
+		getEntry_(key).tags.clear();
+	}
+
+	bool Param::hasTag(const String& key, const String& tag) const
+	{
+		return getEntry_(key).tags.count(tag);
 	}
 	
 	bool Param::exists(const String& key) const

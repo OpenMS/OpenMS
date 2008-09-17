@@ -37,13 +37,13 @@ namespace OpenMS
     {
       setName(getProductName());
       
-      defaults_.setValue("bounding_box:min",0.0f,"Lower end of bounding box enclosing the data used to fit the model.", true);
-      defaults_.setValue("bounding_box:max",1.0f,"Upper end of bounding box enclosing the data used to fit the model.", true);
-      defaults_.setValue("statistics:mean",0.0f,"Centroid position of the model.", true);
-      defaults_.setValue("statistics:variance",1.0f,"The variance of the model.", true);
-      defaults_.setValue("lma:scale_factor",1000000.0f,"Scale factor for the intensity of the model.", true);
-      defaults_.setValue("lma:standard_deviation",5.0f,"The standard deviation (variance) of the model.", true);
-      defaults_.setValue("lma:expected_value",1200.0f,"The expected value (centroid position) of the model.", true);
+      defaults_.setValue("bounding_box:min",0.0f,"Lower end of bounding box enclosing the data used to fit the model.", StringList::create("advanced"));
+      defaults_.setValue("bounding_box:max",1.0f,"Upper end of bounding box enclosing the data used to fit the model.", StringList::create("advanced"));
+      defaults_.setValue("statistics:mean",0.0f,"Centroid position of the model.", StringList::create("advanced"));
+      defaults_.setValue("statistics:variance",1.0f,"The variance of the model.", StringList::create("advanced"));
+      defaults_.setValue("lma:scale_factor",1000000.0f,"Scale factor for the intensity of the model.", StringList::create("advanced"));
+      defaults_.setValue("lma:standard_deviation",5.0f,"The standard deviation (variance) of the model.", StringList::create("advanced"));
+      defaults_.setValue("lma:expected_value",1200.0f,"The expected value (centroid position) of the model.", StringList::create("advanced"));
   
       defaultsToParam_();
     }

@@ -72,14 +72,14 @@ namespace OpenMS
 	    {
 				Base::setName(getProductName());
 				
-	      Base::defaults_.setValue("input_map:bucket_size:RT",150.0,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
-	      Base::defaults_.setValue("input_map:bucket_size:MZ",4.0,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
+	      Base::defaults_.setValue("input_map:bucket_size:RT",150.0,"Number of surrounding buckets of element indices to be considered when computing shifts.",StringList::create("advanced"));
+	      Base::defaults_.setValue("input_map:bucket_size:MZ",4.0,"Number of surrounding buckets of element indices to be considered when computing shifts.",StringList::create("advanced"));
 	      Base::defaults_.setValue("transformation_space:shift_bucket_size:RT",5.0,"Defines the shift parameter's bucket size during histograming.");
 	      Base::defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1,"Defines the shift parameter's bucket size during histograming.");
-	      Base::defaults_.setValue("input_map:bucket_window:RT",2,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
-	      Base::defaults_.setValue("input_map:bucket_window:MZ",1,"Number of surrounding buckets of element indices to be considered when computing shifts.",true);
-	      Base::defaults_.setValue("transformation_space:bucket_window_shift:RT",2,"Number of surrounding buckets of shift indices to be considered when computing shifts.",true);
-	      Base::defaults_.setValue("transformation_space:bucket_window_shift:MZ",1,"Number of surrounding buckets of shift indices to be considered when computing shifts.",true);
+	      Base::defaults_.setValue("input_map:bucket_window:RT",2,"Number of surrounding buckets of element indices to be considered when computing shifts.",StringList::create("advanced"));
+	      Base::defaults_.setValue("input_map:bucket_window:MZ",1,"Number of surrounding buckets of element indices to be considered when computing shifts.",StringList::create("advanced"));
+	      Base::defaults_.setValue("transformation_space:bucket_window_shift:RT",2,"Number of surrounding buckets of shift indices to be considered when computing shifts.",StringList::create("advanced"));
+	      Base::defaults_.setValue("transformation_space:bucket_window_shift:MZ",1,"Number of surrounding buckets of shift indices to be considered when computing shifts.",StringList::create("advanced"));
 				Base::subsections_.push_back("debug");
 				
 	      Base::defaultsToParam_();

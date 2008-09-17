@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="Windows-1252"?>
-<!-- Created with Liquid XML Studio 1.0.8.0 (http://www.liquid-technologies.com) -->
 <xs:schema xmlns:dx="http://psi.hupo.org/schema_revision/mzML_1.0.0" attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://psi.hupo.org/schema_revision/mzML_1.0.0" version="1.0.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:element name="mzML" type="dx:mzMLType">
     <xs:annotation>

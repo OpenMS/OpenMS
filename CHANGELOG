@@ -30,6 +30,7 @@ Detailed list of changes to specific OpenMS classes:
     - The old remove method was renamed to removeAll(prefix)
 	  - Restrictions in Param .ini files are represented by min:max instead of min-max now, to avoid issues with small (1e-06) and negative numbers.
 	- File: find(...) now throws an exception, of the file is not found
+	- Param: replaced 'advanced' flag by a generic tagging mechanism for parameters
 
 ------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.2                                     ----

@@ -1,13 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- edited with XMLSPY v2004 rel. 3 U (http://www.xmlspy.com) by Chris Taylor (EMBL OUTSTATION THE EBI) -->
-<!--
- Authors:
-  Randy K Julian (Eli Lilly)
-  Andreas Wilke, Kai Runte (Bielefeld University)
-  Weimin Zhu, Chris Taylor (EBI)
- Tested with:
-  SQC (Schema Quality Checker, IBM), MSV (Multi Schema Validator, Sun), XMLSPY (Altova)
--->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
 	<xs:element name="mzData">
 		<xs:annotation>

@@ -48,26 +48,26 @@ namespace OpenMS
 		http_ = new QHttp();
 					
 		// server specifications
-		defaults_.setValue("hostname", "", "Address of the host where Mascot listens, e.g. 'mascot-server' or '127.0.0.1'", false);
-		defaults_.setValue("host_port", 80, "Port where the Mascot server listens, 80 should be a good guess", false);
+		defaults_.setValue("hostname", "", "Address of the host where Mascot listens, e.g. 'mascot-server' or '127.0.0.1'");
+		defaults_.setValue("host_port", 80, "Port where the Mascot server listens, 80 should be a good guess");
 		defaults_.setMinInt("host_port", 0);
-		defaults_.setValue("server_path", "mascot", "Path on the server where Mascot server listens, 'mascot' should be a good guess", false);
-		defaults_.setValue("boundary", "GZWgAaYKjHFeUaLOLEIOMq", "Boundary for the MIME section", true);
+		defaults_.setValue("server_path", "mascot", "Path on the server where Mascot server listens, 'mascot' should be a good guess");
+		defaults_.setValue("boundary", "GZWgAaYKjHFeUaLOLEIOMq", "Boundary for the MIME section", StringList::create("advanced"));
 		
 		// proxy settings
-		defaults_.setValue("use_proxy", "false", "Flag which enabled the proxy usage for the http requests, please specify at least 'proxy_host' and 'proxy_port'", true);
+		defaults_.setValue("use_proxy", "false", "Flag which enabled the proxy usage for the http requests, please specify at least 'proxy_host' and 'proxy_port'", StringList::create("advanced"));
 		defaults_.setValidStrings("use_proxy", StringList::create("true,false"));
-		defaults_.setValue("proxy_host", "", "Host where the proxy server runs on", true);
-		defaults_.setValue("proxy_port", 0, "Port where the proxy server listens", true);
+		defaults_.setValue("proxy_host", "", "Host where the proxy server runs on", StringList::create("advanced"));
+		defaults_.setValue("proxy_port", 0, "Port where the proxy server listens", StringList::create("advanced"));
 		defaults_.setMinInt("proxy_port", 0);
-		defaults_.setValue("proxy_username", "", "Login name for the proxy server, if needed", true);
-		defaults_.setValue("proxy_password", "", "Login password for the proxy server, if needed", true);
+		defaults_.setValue("proxy_username", "", "Login name for the proxy server, if needed", StringList::create("advanced"));
+		defaults_.setValue("proxy_password", "", "Login password for the proxy server, if needed", StringList::create("advanced"));
 
 		// login for Mascot security
-		defaults_.setValue("login", "false", "Flag which should be set 'true' if Mascot security is enabled; also set 'username' and 'password' then.", false);
+		defaults_.setValue("login", "false", "Flag which should be set 'true' if Mascot security is enabled; also set 'username' and 'password' then.");
 		defaults_.setValidStrings("login", StringList::create("true,false"));
-		defaults_.setValue("username", "", "Name of the user if login is used (Mascot security must be enabled!)", false);
-		defaults_.setValue("password", "", "Password of the user if login is used (Mascot security must be enabled!)", false);
+		defaults_.setValue("username", "", "Name of the user if login is used (Mascot security must be enabled!)");
+		defaults_.setValue("password", "", "Password of the user if login is used (Mascot security must be enabled!)");
 
 		defaultsToParam_();
 	}

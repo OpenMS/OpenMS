@@ -37,21 +37,21 @@ namespace OpenMS
     {
       setName(getProductName());
       
-      defaults_.setValue("averagines:C",0.0443f,"Number of C atoms per Dalton of mass.", true);
-      defaults_.setValue("averagines:H",0.007f,"Number of H atoms per Dalton of mass.", true);
-      defaults_.setValue("averagines:N",0.0037f,"Number of N atoms per Dalton of mass.", true);
-      defaults_.setValue("averagines:O",0.022f,"Number of O atoms per Dalton of mass.", true);
-      defaults_.setValue("averagines:S",0.00037f,"Number of S atoms per Dalton of mass.", true);
-      defaults_.setValue("isotope:trim_right_cutoff",0.001,"Cutoff in averagine distribution, trailing isotopes below this relative intensity are not considered.", true);
-      defaults_.setValue("isotope:maximum",100,"Maximum isotopic rank to be considered.", true);
-      defaults_.setValue("isotope:distance",1.000495,"Distance between consecutive isotopic peaks.", true);
-      defaults_.setValue("isotope:stdev",0.1,"Standard deviation of gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", true);
-      defaults_.setValue("charge",1,"Charge state of the model.", true);
-      defaults_.setValue("statistics:mean",0.0,"Centroid m/z (as opposed to monoisotopic m/z).", true);
-      defaults_.setValue("statistics:variance",1.0,"Variance of the model.", true);
-      defaults_.setValue("interpolation_step",0.1,"Sampling rate for the interpolation of the model function.", true);
-      defaults_.setValue("total_intensity",100.0,"Total intensity under the curve in mz dimension.", true);
-      defaults_.setValue("monoisotopic_mass",0.0,"Monoisotopic mz of the model.", true);
+      defaults_.setValue("averagines:C",0.0443f,"Number of C atoms per Dalton of mass.", StringList::create("advanced"));
+      defaults_.setValue("averagines:H",0.007f,"Number of H atoms per Dalton of mass.", StringList::create("advanced"));
+      defaults_.setValue("averagines:N",0.0037f,"Number of N atoms per Dalton of mass.", StringList::create("advanced"));
+      defaults_.setValue("averagines:O",0.022f,"Number of O atoms per Dalton of mass.", StringList::create("advanced"));
+      defaults_.setValue("averagines:S",0.00037f,"Number of S atoms per Dalton of mass.", StringList::create("advanced"));
+      defaults_.setValue("isotope:trim_right_cutoff",0.001,"Cutoff in averagine distribution, trailing isotopes below this relative intensity are not considered.", StringList::create("advanced"));
+      defaults_.setValue("isotope:maximum",100,"Maximum isotopic rank to be considered.", StringList::create("advanced"));
+      defaults_.setValue("isotope:distance",1.000495,"Distance between consecutive isotopic peaks.", StringList::create("advanced"));
+      defaults_.setValue("isotope:stdev",0.1,"Standard deviation of gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", StringList::create("advanced"));
+      defaults_.setValue("charge",1,"Charge state of the model.", StringList::create("advanced"));
+      defaults_.setValue("statistics:mean",0.0,"Centroid m/z (as opposed to monoisotopic m/z).", StringList::create("advanced"));
+      defaults_.setValue("statistics:variance",1.0,"Variance of the model.", StringList::create("advanced"));
+      defaults_.setValue("interpolation_step",0.1,"Sampling rate for the interpolation of the model function.", StringList::create("advanced"));
+      defaults_.setValue("total_intensity",100.0,"Total intensity under the curve in mz dimension.", StringList::create("advanced"));
+      defaults_.setValue("monoisotopic_mass",0.0,"Monoisotopic mz of the model.", StringList::create("advanced"));
       
       defaultsToParam_();
     }

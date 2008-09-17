@@ -557,10 +557,10 @@ namespace OpenMS
 											 "If the left width gets too broad or negative during the fitting it can be penalized.");
 		defaults_.setValue("penalties:right_width",0.0,"penalty term for the fitting of the right width:"\
 											 "If the right width gets too broad or negative during the fitting it can be penalized.");
-		defaults_.setValue("2d:tolerance_mz",2.2,"mz tolerance for cluster construction",true);
-		defaults_.setValue("2d:max_peak_distance",1.2,"maximal peak distance in mz in a cluster",true);
-		defaults_.setValue("delta_abs_error",1e-05f,"if the absolute error gets smaller than this value the fitting is stopped.",true);
-		defaults_.setValue("delta_rel_error",1e-05f,"if the relative error gets smaller than this value the fitting is stopped.",true);
+		defaults_.setValue("2d:tolerance_mz",2.2,"mz tolerance for cluster construction", StringList::create("advanced"));
+		defaults_.setValue("2d:max_peak_distance",1.2,"maximal peak distance in mz in a cluster", StringList::create("advanced"));
+		defaults_.setValue("delta_abs_error",1e-05f,"if the absolute error gets smaller than this value the fitting is stopped.", StringList::create("advanced"));
+		defaults_.setValue("delta_rel_error",1e-05f,"if the relative error gets smaller than this value the fitting is stopped.", StringList::create("advanced"));
 		defaults_.setValue("iterations",10,"maximal number of iterations for the fitting step");
 
 

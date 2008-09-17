@@ -1309,10 +1309,12 @@ namespace OpenMS
 			if (it->name!="ini" && it->name!="-help" && it->name!="instance" && it->name!="write_ini" && it->name!="write_wsdl")
 			{
 				String name = loc + it->name;
+				StringList tags;
+				if (it->advanced) tags.push_back("advanced");
 				switch(it->type)
 				{
 					case ParameterInformation::STRING:
-						tmp.setValue(name,it->default_value, it->description, it->advanced);
+						tmp.setValue(name,it->default_value, it->description, tags);
 						if (it->valid_strings.size()!=0)
 						{
 							tmp.setValidStrings(name,it->valid_strings);
@@ -1327,11 +1329,11 @@ namespace OpenMS
 								formats.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
 								formats = String("(valid formats: '") + formats + "')";
 							}
-							tmp.setValue(name,it->default_value, it->description + formats, it->advanced);
+							tmp.setValue(name,it->default_value, it->description + formats, tags);
 						}
 						break;
 					case ParameterInformation::DOUBLE:
-						tmp.setValue(name,String(it->default_value).toDouble(), it->description, it->advanced);
+						tmp.setValue(name,String(it->default_value).toDouble(), it->description, tags);
 						if (it->min_float!=-std::numeric_limits<DoubleReal>::max())
 						{
 							tmp.setMinFloat(name, it->min_float);
@@ -1342,7 +1344,7 @@ namespace OpenMS
 						}
 						break;
 					case ParameterInformation::INT:
-						tmp.setValue(name,String(it->default_value).toInt(), it->description, it->advanced);
+						tmp.setValue(name,String(it->default_value).toInt(), it->description, tags);
 						if (it->min_int!=-std::numeric_limits<Int>::max())
 						{
 							tmp.setMinInt(name, it->min_int);
@@ -1353,7 +1355,7 @@ namespace OpenMS
 						}
 						break;
 					case ParameterInformation::FLAG:
-						tmp.setValue(name,"false", it->description, it->advanced);
+						tmp.setValue(name,"false", it->description, tags);
 						tmp.setValidStrings(name,StringList::create("true,false"));
 						break;
 					default:

@@ -48,13 +48,13 @@ namespace OpenMS
 			own_sequence_db_(false),
 			own_model_(false)
 	{
-		defaults_.setValue("precursor_mass_tolerance", 3.0, "Precursor mass tolerance which is used to query the peptide database for peptides", false);
-		defaults_.setValue("peak_mass_tolerance", 0.3, "Peak mass tolerance to align the simulated and experimental spectra", false);
-		defaults_.setValue("max_candidates", 200, "Number of candidates which are kept at the end of the identification", false);
-		defaults_.setValue("pre_score_name", "ZhangSimilarityScore", "The prescoring which is used", true);
-		defaults_.setValue("score_name", "ZhangSimilarityScore", "The scoring for the comparison of simulated and experimental spectrum", true);
-		defaults_.setValue("use_evalue_scoring", 1, "If set to 1 EValue scoring as described in PILISScoring is used, otherwise similarity scores are directly reported", false);
-		defaults_.setValue("fixed_modifications", "", "fixed modifications to used in the format 57.001@C", false);
+		defaults_.setValue("precursor_mass_tolerance", 3.0, "Precursor mass tolerance which is used to query the peptide database for peptides");
+		defaults_.setValue("peak_mass_tolerance", 0.3, "Peak mass tolerance to align the simulated and experimental spectra");
+		defaults_.setValue("max_candidates", 200, "Number of candidates which are kept at the end of the identification");
+		defaults_.setValue("pre_score_name", "ZhangSimilarityScore", "The prescoring which is used", StringList::create("advanced"));
+		defaults_.setValue("score_name", "ZhangSimilarityScore", "The scoring for the comparison of simulated and experimental spectrum", StringList::create("advanced"));
+		defaults_.setValue("use_evalue_scoring", 1, "If set to 1 EValue scoring as described in PILISScoring is used, otherwise similarity scores are directly reported");
+		defaults_.setValue("fixed_modifications", "", "fixed modifications to used in the format 57.001@C");
 		
 		defaultsToParam_();
 		updateMembers_();

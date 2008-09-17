@@ -36,9 +36,9 @@ namespace OpenMS
     // values from the paper
     // they should be good for GoodDiff and Complements
     // IsotopeDiffs needs lower peaks
-    defaults_.setValue("C1", 28.0, "C1 value of the normalization.", true);
-    defaults_.setValue("C2", 400.0, "C2 value of the normalization.", true);
-    defaults_.setValue("threshold", 0.1, "Threshold of the Bern et al. normalization.", false); // i.e. what is a significant peak
+    defaults_.setValue("C1", 28.0, "C1 value of the normalization.", StringList::create("advanced"));
+    defaults_.setValue("C2", 400.0, "C2 value of the normalization.", StringList::create("advanced"));
+    defaults_.setValue("threshold", 0.1, "Threshold of the Bern et al. normalization."); // i.e. what is a significant peak
 		defaultsToParam_();
   }
 

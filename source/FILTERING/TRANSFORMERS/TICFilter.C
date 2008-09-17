@@ -39,7 +39,7 @@ namespace OpenMS
     :FilterFunctor()
   {
 		setName(TICFilter::getProductName());
-    defaults_.setValue("window", 5, "Windowing parameter which defines the windows size", false);
+    defaults_.setValue("window", 5, "Windowing parameter which defines the windows size");
 		defaultsToParam_();
   }
 
