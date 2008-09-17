@@ -31,6 +31,7 @@
 
 #include <limits.h>
 #include <time.h>
+#include <string>
 
 #ifdef OPENMS_HAS_BASETSD_H
 #include <basetsd.h>
@@ -155,8 +156,6 @@ namespace OpenMS
     typedef int64_t	 Offset64Int;
 
 	#endif
-
-
   
 	enum ASCII
 	{
@@ -177,6 +176,67 @@ namespace OpenMS
 		ASCII__QUESTION_MARK    = '?',
 		ASCII__SEMICOLON        = ';'
 	};
+
+	/**
+	@brief Returns the @c Type as as std::string.
+
+	Have you ever spent a long time trying to find out what a @c typedef
+	actually "points" to?  Then this can help.
+
+	typeAsString is implemented as a function template.  There are two ways to us this:
+	@code
+	SomeType instance;
+	string what_type_1 = typeAsString(instance);
+	string what_type_2 = typeAsString<SomeType>();
+	@endcode
+	The %typeAsString<SomeType>() version seems to go a bit deeper.
+	Sometimes the results
+	depend on how the %typeAsString() is instantiated in the first place.
+  The argument given to the function is never used, it only serves to infer the type.
+	You can even supply function pointers, etc.
+
+	Example (Tutorial_typeAsString.C):
+	@dontinclude Tutorial_typeAsString.C
+	@until end of Tutorial_typeAsString.C
+	On a 64 bit platform running GCC 4.3.1, this produced the following output:
+	@code
+	int
+	unsigned int
+	double
+	float
+	
+	int
+	long unsigned int
+	
+	OpenMS::Peak1D
+	OpenMS::Peak1D
+	OpenMS::DPosition<1u>
+	double
+	float
+	
+	double ()(int, int*)
+	WOW<const char* const*** const&, 5>
+	Oink<double, 55, 666u, WOW>
+	float ()(float&)
+	double (WOW<char, 8>::*)(const double&)
+	@endcode
+	*/
+	template < typename Type >
+	std::string typeAsString(const Type & /* unused */ = Type() )
+	{
+#ifndef OPENMS_COMPILER_GXX
+		return "[ Sorry, OpenMS::typeAsString() relies upon GNU extension __PRETTY_FUNCTION__ ]";
+#else
+		std::string pretty(__PRETTY_FUNCTION__);
+		static char const context_left [] = "with Type =";
+		static char const context_right [] = "]";
+		size_t left = pretty.find(context_left);
+		left+=sizeof(context_left);
+		size_t right = pretty.rfind(context_right);
+		if ( right <= left ) return pretty; // oops!
+		return pretty.substr(left, right-left);
+#endif
+	}
 	
 } // namespace OpenMS
 

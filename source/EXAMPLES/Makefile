@@ -53,7 +53,8 @@ CPP_SOURCES=\
 	Tutorial_ParamEditor.C\
 	Tutorial_Unlabeled.C\
 	Tutorial_Labeled.C\
-	Tutorial_Clustering.C
+	Tutorial_Clustering.C\
+	Tutorial_typeAsString.C
 
 OBJECTS=$(SOURCES:.C=.o)
 

@@ -157,6 +157,8 @@ file formats, data reduction functionality and all other analysis algorithms.
   @a DoubleReal (double) are used.
 
   These and more types are defined in @a OpenMS/CONCEPT/Types.h.
+  The typeAsString() function can be used to find out the actual type of an object,
+  e.g. if typedefs are used.
 
 @section concept_namespace The OpenMS namespace
 
