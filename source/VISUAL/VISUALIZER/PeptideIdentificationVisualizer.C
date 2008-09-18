@@ -26,7 +26,7 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/PeptideIdentificationVisualizer.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/VISUAL/MSMetaDataExplorer.h>
+#include <OpenMS/VISUAL/MetaDataBrowser.h>
 
 //QT
 #include <QtGui/QLineEdit>
@@ -41,7 +41,7 @@ using namespace std;
 namespace OpenMS
 {
 
-	PeptideIdentificationVisualizer::PeptideIdentificationVisualizer(bool editable, QWidget *parent, MSMetaDataExplorer *caller) 
+	PeptideIdentificationVisualizer::PeptideIdentificationVisualizer(bool editable, QWidget *parent, MetaDataBrowser *caller) 
 		: BaseVisualizer(editable,parent)
 	{
 		type_="PeptideIdentification";

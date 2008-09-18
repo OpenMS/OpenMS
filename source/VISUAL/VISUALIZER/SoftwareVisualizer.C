@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------s
 
 #include <OpenMS/VISUAL/VISUALIZER/SoftwareVisualizer.h>
-#include <OpenMS/VISUAL/MSMetaDataExplorer.h>
+#include <OpenMS/VISUAL/MetaDataBrowser.h>
 
 //QT
 #include <QtGui/QTextEdit>

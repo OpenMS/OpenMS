@@ -6,33 +6,35 @@ New features and improvements of OpenMS:
 
 New features and improvements of TOPP:
 - FeatureLinker: Added automated RT parameter estimated for 'labeled' algorithm.
+- Added new Tools: SILACAnalyzer, IDQuantMerger
 
 New features and improvements of TOPPView:
 - Added functionality for editing feature data
+
 Changes to OpenMS XML formats:
+- ParamXML:
+  - Restrictions in Param .ini files are represented by 'min:max' instead
+    of 'min-max' now, to avoid issues with small (1e-06) and negative numbers.
+  - replaced 'advanced' attribute by the 'tags' attribute.
 
 Changes to the contrib package:
 - Updated SeqAn package to revision 2666 (this fixes the STL debug error)
 
 Detailed list of changes to specific OpenMS classes:
 - Renamed and moved classes
-
+  - Renamed MSMetaDataExplorer to MetaDataBroswer
 - Removed classes
-
 - New classes
-
 - Changes to classes
   - LabeledPairFinder: Added automated RT parameter estimated.
   - GaussFitter: removed several unneeded methods.
   - GammaDistributionFitter: removed several unneeded methods.
   - Param:
     - Added a new remove(key) method, that removed only exact matches.
-    - The old remove method was renamed to removeAll(prefix)
-    - Restrictions in Param .ini files are represented by min:max instead
-      of min-max now, to avoid issues with small (1e-06) and negative numbers.
-    - File: find(...) now throws an exception, of the file is not found
-    - DPeak and DRichPeak are metafunctions now, e.g. DPeak<1>::Type is a typedef for Peak1D.
-    - Param: replaced 'advanced' flag by a generic tagging mechanism for parameters
+      The old remove method was renamed to removeAll(prefix)
+    - replaced 'advanced' flag by a generic tagging mechanism
+  - File: find(...) now throws an exception, of the file is not found
+  - DPeak and DRichPeak are metafunctions now, e.g. DPeak<1>::Type is a typedef for Peak1D.
 
 ------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.2                                     ----

@@ -26,7 +26,7 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/ExperimentalSettingsVisualizer.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
-#include <OpenMS/VISUAL/MSMetaDataExplorer.h>
+#include <OpenMS/VISUAL/MetaDataBrowser.h>
 
 //QT
 #include <QtGui/QLineEdit>

@@ -29,7 +29,7 @@
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
-#include <OpenMS/VISUAL/MSMetaDataExplorer.h>
+#include <OpenMS/VISUAL/MetaDataBrowser.h>
 
 // QT
 #include <QtGui/QPainter>
@@ -782,7 +782,7 @@ namespace OpenMS
   {
 		LayerData& layer = getCurrentLayer_();
 		
-		MSMetaDataExplorer dlg(modifiable, this);
+		MetaDataBrowser dlg(modifiable, this);
     dlg.setWindowTitle("Layer meta data");
 		if (layer.type==LayerData::DT_PEAK)
   	{

@@ -27,7 +27,7 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/ProteinIdentificationVisualizer.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/VISUAL/MSMetaDataExplorer.h>
+#include <OpenMS/VISUAL/MetaDataBrowser.h>
 
 //QT
 #include <QtGui/QLineEdit>
@@ -43,7 +43,7 @@ using namespace std;
 namespace OpenMS
 {
 	//Constructor
-	ProteinIdentificationVisualizer::ProteinIdentificationVisualizer(bool editable, QWidget *parent, MSMetaDataExplorer *caller) : BaseVisualizer(editable, parent)
+	ProteinIdentificationVisualizer::ProteinIdentificationVisualizer(bool editable, QWidget *parent, MetaDataBrowser *caller) : BaseVisualizer(editable, parent)
 	{
 		type_="Identification";
 		pidv_caller_= caller;

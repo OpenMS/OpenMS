@@ -404,7 +404,7 @@ file formats, data reduction functionality and all other analysis algorithms.
   @par Typedefs
   For convenience, the following type definitions are defined in @a OpenMS/KERNEL/StandardTypes.h.
   @code
-  typedef MSSpectrum<RichPeak1D> PeakSpectrum;
+  typedef MSSpectrum<RichPeak1D> RichPeakSpectrum;
   typedef MSSpectrum<Peak1D> PeakSpectrum;
   @endcode
 
@@ -436,7 +436,7 @@ file formats, data reduction functionality and all other analysis algorithms.
   @par Typedefs
   For convenience, the following map types are defined in @a OpenMS/KERNEL/StandardTypes.h.
   @code
-  typedef MSExperiment<RichPeak1D> PeakMap;
+  typedef MSExperiment<RichPeak1D> RichPeakMap;
   typedef MSExperiment<Peak1D> PeakMap;
   @endcode
 

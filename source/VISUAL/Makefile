@@ -46,7 +46,7 @@ CPP_SOURCES=\
 	PeakIcon.C\
 	AxisTickCalculator.C\
 	DataTable.C\
-	MSMetaDataExplorer.C\
+	MetaDataBrowser.C\
 	LayerData.C\
 	SpectrumCanvas.C\
 	SpectrumWidget.C\
@@ -67,7 +67,7 @@ MOC_SOURCES=\
 	MultiGradientSelector_moc.C\
 	HistogramWidget_moc.C\
 	DataTable_moc.C\
-	MSMetaDataExplorer_moc.C\
+	MetaDataBrowser_moc.C\
 	SpectrumCanvas_moc.C\
 	SpectrumWidget_moc.C\
 	Spectrum1DCanvas_moc.C\
@@ -174,8 +174,8 @@ ListStack_moc.C:  $(HEADER_DIR)/ListStack.h
 DataTable_moc.C:  $(HEADER_DIR)/DataTable.h
 	$(MOC) $(HEADER_DIR)/DataTable.h -o DataTable_moc.C
 
-MSMetaDataExplorer_moc.C:  $(HEADER_DIR)/MSMetaDataExplorer.h
-	$(MOC) $(HEADER_DIR)/MSMetaDataExplorer.h -o MSMetaDataExplorer_moc.C
+MetaDataBrowser_moc.C:  $(HEADER_DIR)/MetaDataBrowser.h
+	$(MOC) $(HEADER_DIR)/MetaDataBrowser.h -o MetaDataBrowser_moc.C
 
 ParamEditor_moc.C:  $(HEADER_DIR)/ParamEditor.h
 	$(MOC) $(HEADER_DIR)/ParamEditor.h -o ParamEditor_moc.C

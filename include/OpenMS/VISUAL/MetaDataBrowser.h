@@ -75,7 +75,7 @@ namespace OpenMS
 	/**
 		@brief A meta data visualization widget
 		
-		@image html MSMetaDataExplorer.png
+		@image html MetaDataBrowser.png
 		
 		It contains a tree view showing all objects of the file to be viewed in hierarchical order.
 		
@@ -85,14 +85,14 @@ namespace OpenMS
 		
 		@ingroup Visual
 	*/
-  class MSMetaDataExplorer 
+  class MetaDataBrowser 
   	: public QDialog
   {
     Q_OBJECT
   
     public: 
 			/// Constructor with flag for edit mode
-			MSMetaDataExplorer(bool editable = FALSE, QWidget *parent = 0, bool modal = FALSE );
+			MetaDataBrowser(bool editable = FALSE, QWidget *parent = 0, bool modal = FALSE );
 			
 			/**
 				@brief A template function to add classes

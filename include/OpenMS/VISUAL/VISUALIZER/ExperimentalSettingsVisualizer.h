@@ -38,7 +38,7 @@ class QComboBox;
 namespace OpenMS 
 {
 
-	class MSMetaDataExplorer;
+	class MetaDataBrowser;
 	
 	/**
 	@brief Class that displays all meta information for ExperimentalSettings objects

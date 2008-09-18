@@ -36,7 +36,7 @@ class QComboBox;
 
 namespace OpenMS
 {
-	class MSMetaDataExplorer;
+	class MetaDataBrowser;
 
 	/**
 		@brief Class that displays all meta information for PeptideIdentification objects
@@ -49,7 +49,7 @@ namespace OpenMS
 
 		public: 
 		  /// Default constructor
-			PeptideIdentificationVisualizer(bool editable= FALSE, QWidget *parent =0, MSMetaDataExplorer *caller=0);
+			PeptideIdentificationVisualizer(bool editable= FALSE, QWidget *parent =0, MetaDataBrowser *caller=0);
 			
 			/// Loads the meta data from the object to the viewer. Gets the id of the item in the tree as parameter.
 			void load(PeptideIdentification &s, int tree_item_id);
@@ -61,9 +61,9 @@ namespace OpenMS
 			/// Restore all changes
 			void reject_();
 			/** 
-				@brief Updates the tree by calling MSMetaDataExplorer::updatePeptideHits(PeptideIdentification, int)
+				@brief Updates the tree by calling MetaDataBrowser::updatePeptideHits(PeptideIdentification, int)
 					
-				Calls MSMetaDataExplorer::updatePeptideHits(PeptideIdentification, int).<br>
+				Calls MetaDataBrowser::updatePeptideHits(PeptideIdentification, int).<br>
 				Updates the tree depending of the protein significance threshold.<br>
 				Only ProteinHits with a score superior or equal to the current threshold will be displayed.
 			*/
@@ -74,8 +74,8 @@ namespace OpenMS
 			PeptideIdentification *ptr_;
 			/// Copy of current object for restoring the original values
 			PeptideIdentification  tempidentification_;
-		  /// Pointer to MSMetaDataExplorer
-			MSMetaDataExplorer *pidv_caller_;
+		  /// Pointer to MetaDataBrowser
+			MetaDataBrowser *pidv_caller_;
 			/// The id of the item in the tree
 			int tree_id_;
 			

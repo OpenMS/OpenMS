@@ -273,8 +273,8 @@
 		One can access the metadata the layer is annotated with.
 		This data comprises e.g. contact person, instrument description and sample description.
 		
-		@image html MSMetaDataExplorer.png
-		@image latex MSMetaDataExplorer.png "" width=12cm
+		@image html MetaDataiBrower.png
+		@image latex MetaDataBrowser.png "" width=12cm
 		
 		@note Identification data, e.g. from a Mascot run, can be annotated to the spectra or features, 
 		too. After annotation, this data is listed in the metadata as well.

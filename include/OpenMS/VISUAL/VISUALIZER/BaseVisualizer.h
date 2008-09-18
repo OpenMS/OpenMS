@@ -52,7 +52,7 @@ namespace OpenMS
 			String getType();
 			
 			///Defines a friend class that can use the functionality of the subclasses.
-			friend class MSMetaDataExplorer;
+			friend class MetaDataBrowser;
 		
 			signals:
 			/// Sends a status message, if date is not in proper format.

@@ -31,7 +31,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/VISUAL/MSMetaDataExplorer.h>
+#include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DPrefDialog.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
@@ -1422,7 +1422,7 @@ namespace OpenMS
 				else if (result->parent()==ms1_meta || result->parent()==msn_meta)
 				{
 					SpectrumType& spec = currentPeakData_()[result->data().toInt()];
-					MSMetaDataExplorer dlg(true, this);
+					MetaDataBrowser dlg(true, this);
 		      dlg.setWindowTitle("View/Edit meta data");
 		    	dlg.visualize(static_cast<SpectrumSettings&>(spec));
 		      //Add MetaInfoDescriptions
@@ -1477,7 +1477,7 @@ namespace OpenMS
 			{
 				if (result->text().left(3)=="RT:")
 				{
-					MSMetaDataExplorer dlg(true, this);
+					MetaDataBrowser dlg(true, this);
 		      dlg.setWindowTitle("View/Edit meta data");
 		      dlg.visualize(features[result->data().toInt()]);
 		      

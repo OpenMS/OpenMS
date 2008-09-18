@@ -26,7 +26,7 @@
 
 
 //OpenMS
-#include <OpenMS/VISUAL/MSMetaDataExplorer.h>
+#include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/VISUAL/VISUALIZER/SampleVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/DigestionVisualizer.h>
@@ -72,7 +72,7 @@ using namespace std;
 namespace OpenMS
 {
 	
-	MSMetaDataExplorer::MSMetaDataExplorer(bool editable, QWidget *parent, bool modal)
+	MetaDataBrowser::MetaDataBrowser(bool editable, QWidget *parent, bool modal)
 	: QDialog(parent), 
 		editable_(editable)
 	{    
@@ -125,29 +125,29 @@ namespace OpenMS
 	}//end of constructor
 	
 	
-	bool MSMetaDataExplorer::isEditable()
+	bool MetaDataBrowser::isEditable()
 	{
 			return editable_;
 	}
 	
-	void MSMetaDataExplorer::setStatus(std::string status)
+	void MetaDataBrowser::setStatus(std::string status)
 	{
 		status_list_ = status_list_+ "\n"+ status;    
 	}
 	
 	
-	void MSMetaDataExplorer::showDetails_(QTreeWidgetItem *item,int /*column*/)
+	void MetaDataBrowser::showDetails_(QTreeWidgetItem *item,int /*column*/)
 	{
 	  ws_->setCurrentIndex(item->text(1).toInt());
 	}
 	
-	void MSMetaDataExplorer::connectVisualizer_(BaseVisualizer* ptr)
+	void MetaDataBrowser::connectVisualizer_(BaseVisualizer* ptr)
 	{
 		connect(ptr, SIGNAL(sendStatus(std::string)), this, SLOT(setStatus(std::string))  );			
 	}
 		
 	//Save all changes
-	void MSMetaDataExplorer::saveAll_()
+	void MetaDataBrowser::saveAll_()
 	{
 		try
 		{
@@ -177,7 +177,7 @@ namespace OpenMS
 	//-------------------------------------------------------------------------------
 
 	//Visualizing AcquisitionInfo object
-	void MSMetaDataExplorer::visualize_(AcquisitionInfo& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(AcquisitionInfo& meta, QTreeWidgetItem* parent)
 	{
 		AcquisitionInfoVisualizer *visualizer = new AcquisitionInfoVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
@@ -205,7 +205,7 @@ namespace OpenMS
 	}
 		
 	//Visualizing Acquisition object
-	void MSMetaDataExplorer::visualize_(Acquisition& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(Acquisition& meta, QTreeWidgetItem* parent)
 	{
 		AcquisitionVisualizer *visualizer = new AcquisitionVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
@@ -230,7 +230,7 @@ namespace OpenMS
 	
 	
 	//Visualizing ContactPerson object
-	void MSMetaDataExplorer::visualize_(ContactPerson& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(ContactPerson& meta, QTreeWidgetItem* parent)
 	{
 		ContactPersonVisualizer *visualizer = new ContactPersonVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
@@ -254,7 +254,7 @@ namespace OpenMS
 	
 	
 	//Visualizing Digestion object
-	void MSMetaDataExplorer::visualize_(Digestion& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(Digestion& meta, QTreeWidgetItem* parent)
 	{
 		DigestionVisualizer *visualizer = new DigestionVisualizer(isEditable(),this);  
 		visualizer->load(meta);  
@@ -277,7 +277,7 @@ namespace OpenMS
 	}
 	
 	//Visualizing ExperimentalSettings object
-	void MSMetaDataExplorer::visualize_(ExperimentalSettings& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(ExperimentalSettings& meta, QTreeWidgetItem* parent)
 	{
 		ExperimentalSettingsVisualizer *visualizer = new ExperimentalSettingsVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
@@ -332,7 +332,7 @@ namespace OpenMS
 	}
 	
 	//Visualizing Gradient object
-	void MSMetaDataExplorer::visualize_(Gradient& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(Gradient& meta, QTreeWidgetItem* parent)
 	{
 		GradientVisualizer *visualizer = new GradientVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
@@ -354,7 +354,7 @@ namespace OpenMS
 	
 	
 	//Visualizing HPLC object
-	void MSMetaDataExplorer::visualize_(HPLC& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(HPLC& meta, QTreeWidgetItem* parent)
 	{
 		HPLCVisualizer *visualizer = new HPLCVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
@@ -380,7 +380,7 @@ namespace OpenMS
 	
 	
 	//Visualizing PeptideIdentification object
-	void MSMetaDataExplorer::visualize_(PeptideIdentification& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(PeptideIdentification& meta, QTreeWidgetItem* parent)
 	{
 		PeptideIdentificationVisualizer *visualizer = new PeptideIdentificationVisualizer(isEditable(), this, this); 
 		
@@ -415,7 +415,7 @@ namespace OpenMS
 	}
 
 	//Visualizing ProteinIdentification object
-	void MSMetaDataExplorer::visualize_(ProteinIdentification& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(ProteinIdentification& meta, QTreeWidgetItem* parent)
 	{
 		ProteinIdentificationVisualizer *visualizer = new ProteinIdentificationVisualizer(isEditable(), this, this); 
 		
@@ -450,7 +450,7 @@ namespace OpenMS
 	
 	
 	//Visualizing InstrumentSettings object
-	void MSMetaDataExplorer::visualize_(InstrumentSettings& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(InstrumentSettings& meta, QTreeWidgetItem* parent)
 	{
 		InstrumentSettingsVisualizer *visualizer = new InstrumentSettingsVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
@@ -474,7 +474,7 @@ namespace OpenMS
 	
 	
 	//Visualizing Instrument object
-	void MSMetaDataExplorer::visualize_(Instrument& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(Instrument& meta, QTreeWidgetItem* parent)
 	{
 		InstrumentVisualizer* visualizer = new InstrumentVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
@@ -514,7 +514,7 @@ namespace OpenMS
 	
 	
 	//Visualizing IonDetector object
-	void MSMetaDataExplorer::visualize_(IonDetector& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(IonDetector& meta, QTreeWidgetItem* parent)
 	{
 		IonDetectorVisualizer *visualizer = new IonDetectorVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
@@ -538,7 +538,7 @@ namespace OpenMS
 	
 	
 	//Visualizing IonSource object
-	void MSMetaDataExplorer::visualize_(IonSource& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(IonSource& meta, QTreeWidgetItem* parent)
 	{
 		IonSourceVisualizer *visualizer = new IonSourceVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
@@ -562,7 +562,7 @@ namespace OpenMS
 	
 	
 	//Visualizing MassAnalyzer object
-	void MSMetaDataExplorer::visualize_(MassAnalyzer& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(MassAnalyzer& meta, QTreeWidgetItem* parent)
 	{
 		MassAnalyzerVisualizer *visualizer = new MassAnalyzerVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
@@ -586,7 +586,7 @@ namespace OpenMS
 	
 	
 	//Visualizing MetaInfoDescription object
-	void MSMetaDataExplorer::visualize_(MetaInfoDescription& meta,  QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(MetaInfoDescription& meta,  QTreeWidgetItem* parent)
 	{
 		MetaInfoDescriptionVisualizer *visualizer = new MetaInfoDescriptionVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
@@ -614,7 +614,7 @@ namespace OpenMS
 	
 	
 	//Visualizing MetaInfoInterface object
-	void MSMetaDataExplorer::visualize_(MetaInfoInterface& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(MetaInfoInterface& meta, QTreeWidgetItem* parent)
 	{
 		MetaInfoVisualizer *visualizer = new MetaInfoVisualizer(isEditable(),this);  
 		visualizer->load(meta);  
@@ -636,7 +636,7 @@ namespace OpenMS
 	
 	
 	//Visualizing modification object
-	void MSMetaDataExplorer::visualize_(Modification& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(Modification& meta, QTreeWidgetItem* parent)
 	{
 		ModificationVisualizer *visualizer = new ModificationVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
@@ -660,7 +660,7 @@ namespace OpenMS
 	
 	
 	//Visualizing PeptideHit object
-	void MSMetaDataExplorer::visualize_(PeptideHit& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(PeptideHit& meta, QTreeWidgetItem* parent)
 	{
 		PeptideHitVisualizer *visualizer = new PeptideHitVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
@@ -688,7 +688,7 @@ namespace OpenMS
 	
 	
 	//Visualizing Precursor object
-	void MSMetaDataExplorer::visualize_(Precursor& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(Precursor& meta, QTreeWidgetItem* parent)
 	{
 		PrecursorVisualizer* visualizer = new PrecursorVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
@@ -710,7 +710,7 @@ namespace OpenMS
 	
 	
 	//Visualizing ProcessingMethod object
-	void MSMetaDataExplorer::visualize_(ProcessingMethod& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(ProcessingMethod& meta, QTreeWidgetItem* parent)
 	{
 		ProcessingMethodVisualizer *visualizer = new ProcessingMethodVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
@@ -734,7 +734,7 @@ namespace OpenMS
 	
 	
 	//Visualizing ProteinHit object
-	void MSMetaDataExplorer::visualize_(ProteinHit& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(ProteinHit& meta, QTreeWidgetItem* parent)
 	{
 		ProteinHitVisualizer *visualizer = new ProteinHitVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
@@ -762,7 +762,7 @@ namespace OpenMS
 	
 		
 	//Visualizing sample object
-	void MSMetaDataExplorer::visualize_(Sample& meta, QTreeWidgetItem* parent )
+	void MetaDataBrowser::visualize_(Sample& meta, QTreeWidgetItem* parent )
 	{	
 		SampleVisualizer *visualizer = new SampleVisualizer(isEditable(), this); 
     visualizer->load(meta);
@@ -819,7 +819,7 @@ namespace OpenMS
 	
 	
 	//Visualizing Software object
-	void MSMetaDataExplorer::visualize_(Software& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(Software& meta, QTreeWidgetItem* parent)
 	{
 		SoftwareVisualizer *visualizer = new SoftwareVisualizer(isEditable(), this);
 		visualizer->load(meta);  
@@ -841,7 +841,7 @@ namespace OpenMS
 
 	
 	//Visualizing SourceFile object
-	void MSMetaDataExplorer::visualize_(SourceFile& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(SourceFile& meta, QTreeWidgetItem* parent)
 	{
 		SourceFileVisualizer *visualizer = new SourceFileVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
@@ -864,7 +864,7 @@ namespace OpenMS
 	
 	
 	//Visualizing SpectrumSettings object
-	void MSMetaDataExplorer::visualize_(SpectrumSettings& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(SpectrumSettings& meta, QTreeWidgetItem* parent)
 	{
 		SpectrumSettingsVisualizer *visualizer = new SpectrumSettingsVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
@@ -904,7 +904,7 @@ namespace OpenMS
 	
 	
 	//Visualizing tagging object
-	void MSMetaDataExplorer::visualize_(Tagging& meta, QTreeWidgetItem* parent)
+	void MetaDataBrowser::visualize_(Tagging& meta, QTreeWidgetItem* parent)
 	{
 		TaggingVisualizer *visualizer = new TaggingVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
@@ -924,7 +924,7 @@ namespace OpenMS
 		connectVisualizer_(visualizer);
 	}
 
-	void MSMetaDataExplorer::filterHits_(DoubleReal threshold, bool higher_better, int tree_item_id)
+	void MetaDataBrowser::filterHits_(DoubleReal threshold, bool higher_better, int tree_item_id)
 	{		
 		// find item in tree belonging to PeptideIdentification object
 		QTreeWidgetItem *item = treeview_->findItems(QString::number(tree_item_id),Qt::MatchExactly | Qt::MatchRecursive, 1).first();
@@ -950,7 +950,7 @@ namespace OpenMS
 	}			
 
 	/// Filters hits according to a score @a threshold. Takes the score orientation into account
-	void MSMetaDataExplorer::showAllHits_(int tree_item_id)
+	void MetaDataBrowser::showAllHits_(int tree_item_id)
 	{
 		// find item in tree belonging to PeptideIdentification object
 		QTreeWidgetItem *item = treeview_->findItems(QString::number(tree_item_id),Qt::MatchExactly | Qt::MatchRecursive, 1).first();
@@ -967,7 +967,7 @@ namespace OpenMS
 	}
 
 
-}//end of MSMetaDataExplorer
+}//end of MetaDataBrowser
 
 
 

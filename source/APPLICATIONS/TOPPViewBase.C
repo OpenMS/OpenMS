@@ -49,7 +49,7 @@
 #include <OpenMS/FILTERING/BASELINE/TopHatFilter.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/VISUAL/MSMetaDataExplorer.h>
+#include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
@@ -2348,7 +2348,7 @@ namespace OpenMS
 				QMessageBox::critical(this,"Error",(String("Error while reading data: ")+e.what()).c_str());
 	      return;
 			}
-			MSMetaDataExplorer dlg(false, this);
+			MetaDataBrowser dlg(false, this);
 			dlg.setWindowTitle("Meta data");			
 			dlg.visualize(exp);
 	 	 	dlg.exec();			
@@ -2379,7 +2379,7 @@ namespace OpenMS
 						QMessageBox::critical(this,"Error",(String("Error while reading data: ")+e.what()).c_str());
 			      return;
 					}
-					MSMetaDataExplorer dlg(false, this);
+					MetaDataBrowser dlg(false, this);
 					dlg.setWindowTitle("Meta data");			
 					dlg.visualize(exp);
 			 	 	dlg.exec();
