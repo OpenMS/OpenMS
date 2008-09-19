@@ -26,7 +26,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FILTERING/BASELINE/TopHatFilter.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -75,9 +74,8 @@ class TOPPBaselineFilter
 			registerOutputFile_("out","<file>","","output raw data file ");
 	  	setValidFormats_("out",StringList::create("mzData"));
       registerDoubleOption_("struc_elem_length","<size>",2.5,"Length of the structuring element in Th.",false);
-      registerDoubleOption_("resampling","<spacing>",0.0,"Spacing for the resampling process.",false);
       addEmptyLine_();
-			addText_("Note: The top-hat filter works only on uniform data (to generate equally spaced data you have to set the resampling option!)");
+			addText_("Note: The top-hat filter works only on roughly uniform data (to generate equally-spaced data you can use the Resampler tool!)");
 	}
   
  	ExitCodes main_(int , const char**)
@@ -87,7 +85,6 @@ class TOPPBaselineFilter
 		//-------------------------------------------------------------
 		String in = getStringOption_("in");
 		String out = getStringOption_("out");
-		double spacing = getDoubleOption_("resampling");
 
 		//-------------------------------------------------------------
 		// loading input
@@ -116,36 +113,8 @@ class TOPPBaselineFilter
     Param tophat_param;
     tophat_param.setValue("struc_elem_length",getDoubleOption_("struc_elem_length"));
 		tophat.setParameters(tophat_param);
+		tophat.filterExperiment(exp);
 
-		// no resampling of the data
-		if (spacing==0.0)
-		{
-			tophat.filterExperiment(exp);
-		}
-		else
-		{
-			LinearResampler lin_resampler;
-			lin_resampler.setLogType(log_type_);
-			Param resampler_param;
-			resampler_param.setValue("spacing",spacing);
-			lin_resampler.setParameters(resampler_param);
-		
-      tophat.startProgress(0,exp.size(),"resampling and baseline filtering of data");
-			// resample and filter every scan
-			for (UInt i = 0; i < exp.size(); ++i)
-			{
-				// temporary container for the resampled data
-				MSSpectrum<Peak1D> resampled_data;
-				lin_resampler.raster(exp[i],resampled_data);
-
-				MSSpectrum<Peak1D> spectrum;
-				tophat.filter(resampled_data, spectrum);
-        
-        exp[i].getContainer() = spectrum.getContainer();
-				tophat.setProgress(i);
-			}
-      tophat.endProgress();
-		}
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------

@@ -7,6 +7,7 @@ New features and improvements of OpenMS:
 New features and improvements of TOPP:
 - FeatureLinker: Added automated RT parameter estimated for 'labeled' algorithm.
 - Added new Tools: SILACAnalyzer, IDQuantMerger
+- Resampler: this tool is now used for resampling raw data instead of NoiseFilter or BaselineFilters
 
 New features and improvements of TOPPView:
 - Added functionality for editing feature data

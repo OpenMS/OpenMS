@@ -243,7 +243,7 @@ IDMerger_test: make_fuzzydiff
 BaselineFilter_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "BaselineFilter:"
-	@$(call RUN_PROG_OPT,BaselineFilter, -in RawData_input.mzData -out BaselineFilter_output.tmp -resampling 0.2 -struc_elem_length 1.5)
+	@$(call RUN_PROG_OPT,BaselineFilter, -in RawData_input.mzData -out BaselineFilter_output.tmp -struc_elem_length 1.5)
 	@$(call TEST_FILE_EQUAL,BaselineFilter_output.mzData)
 
 
