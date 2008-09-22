@@ -547,8 +547,8 @@ function prompt ()
         echo "For width < 7 the prompt will be '$ '."
         _OpenMS_where_defined
     else
-        export PROMPT_LENGTH=${1:-20}
-        export PS1="\[\033]0;\u@\h:\w\007\]\[\033[0m\033[0;1m\]\$(\
+        export PROMPT_LENGTH=${1:-30}
+        export PS1="\[\033]30;\u@\h\007\]\[\033]0;\w\007\]\[\033[0m\033[0;1m\]\[\033[28;128t\]\$(\
         if [ \${PROMPT_LENGTH} -gt 6 ]; then if [ \${#PWD} -gt \$((\${PROMPT_LENGTH}-3)) ]; \
         then echo \"\[\033[0;31m\]...\[\033[m\033[0;1m\]\${PWD:\$((6-\${PROMPT_LENGTH}))} \";\
         else echo \\w\ ; fi; fi)\[\033[0;32m\]\$ \[\033[0;0m\]"
