@@ -41,9 +41,9 @@ class QMouseEvent;
 namespace OpenMS
 {
   /**
-  	@brief Canvas for 2D-visualization of peak map and feature map data
+  	@brief Canvas for 2D-visualization of peak map, feature map and consensus map data
 
-  	This widget displays a 2D representation of a set of peaks or features.
+  	This widget displays a 2D representation of a set of peaks, features or consensus elements.
 		
 		@image html Spectrum2DCanvas.png
 		
@@ -166,6 +166,21 @@ namespace OpenMS
       void paintConsensusElements_(UInt layer_index, QPainter& p);
 
       /**
+      	@brief Paints one consensus element of a consensus features layer.
+      	
+      	@param layer_index Int of the layer.
+      	@param p The QPainter to paint on.
+      */		
+			void paintConsensusElement_(UInt layer_index, const ConsensusFeature& cf, QPainter& p);
+			
+      /**
+      	@brief checks if any element of a consensus feature is currently visible.
+      	
+      	@param ce The ConsensusFeature that needs checking
+      */
+			bool isConsensusFeatureVisible_(const ConsensusFeature& ce);
+
+			/**
       	@brief Paints convex hulls (one for each mass trace) for a single feature.
       	
       	@param hulls Reference to convex hull vector.

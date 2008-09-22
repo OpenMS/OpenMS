@@ -472,45 +472,66 @@ namespace OpenMS
   }
 
 	void Spectrum2DCanvas::paintConsensusElements_(UInt layer_index, QPainter& p)
+	{	
+		const LayerData& layer = getLayer(layer_index);
+		
+		for (ConsensusMapType::ConstIterator i = layer.consensus.begin(); i != layer.consensus.end(); ++i)
+		{
+			paintConsensusElement_(layer_index, *i, p);
+		}
+	}
+
+	void Spectrum2DCanvas::paintConsensusElement_(UInt layer_index, const ConsensusFeature& cf, QPainter& p)
 	{
 		Int image_width = buffer_.width();
 		Int image_height = buffer_.height();
 		
 		const LayerData& layer = getLayer(layer_index);
 		
-		for (ConsensusMapType::ConstIterator i = layer.consensus.begin(); i != layer.consensus.end(); ++i)
+		if ( isConsensusFeatureVisible_(cf) && layer.filters.passes(cf))
 		{
-			if ( i->getRT() >= visible_area_.min()[1] &&
-					 i->getRT() <= visible_area_.max()[1] &&
-					 i->getMZ() >= visible_area_.min()[0] &&
-					 i->getMZ() <= visible_area_.max()[0] &&
-					 layer.filters.passes(*i))
+			//calculate position of consensus feature (centroid)
+			QPoint consensus_pos;
+			dataToWidget_(cf.getMZ(), cf.getRT(),consensus_pos);
+			//iterate over elements
+			for (ConsensusFeature::HandleSetType::const_iterator element=cf.begin(); element!=cf.end(); ++element)
 			{
-				//calculate position of consensus feature (centroid)
-				QPoint consensus_pos;
-				dataToWidget_(i->getMZ(), i->getRT(),consensus_pos);
-				//iterate over elements
-				for (ConsensusFeature::HandleSetType::const_iterator element=i->begin(); element!=i->end(); ++element)
+				//calculate position of consensus element
+				QPoint pos;
+				dataToWidget_(element->getMZ(), element->getRT(),pos);
+				//paint line
+				p.drawLine(consensus_pos,pos);
+				//paint point
+				if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
 				{
-					//calculate position of consensus element
-					QPoint pos;
-					dataToWidget_(element->getMZ(), element->getRT(),pos);
-					//paint line
-					p.drawLine(consensus_pos,pos);
-					//paint point
-					if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
-					{
-						buffer_.setPixel(pos.x()   ,pos.y()   ,Qt::black);
-						buffer_.setPixel(pos.x()-1 ,pos.y()   ,Qt::black);
-						buffer_.setPixel(pos.x()+1 ,pos.y()   ,Qt::black);
-						buffer_.setPixel(pos.x()   ,pos.y()-1 ,Qt::black);
-						buffer_.setPixel(pos.x()   ,pos.y()+1 ,Qt::black);
-					}
+					buffer_.setPixel(pos.x()   ,pos.y()   ,Qt::black);
+					buffer_.setPixel(pos.x()-1 ,pos.y()   ,Qt::black);
+					buffer_.setPixel(pos.x()+1 ,pos.y()   ,Qt::black);
+					buffer_.setPixel(pos.x()   ,pos.y()-1 ,Qt::black);
+					buffer_.setPixel(pos.x()   ,pos.y()+1 ,Qt::black);
 				}
 			}
 		}
+			
 	}
-
+	
+	
+	bool Spectrum2DCanvas::isConsensusFeatureVisible_(const ConsensusFeature& ce)
+	{
+		ConsensusFeature::HandleSetType::const_iterator element=ce.getFeatures().begin();
+		for (; element != ce.getFeatures().end(); ++element)
+		{
+			if (element->getRT() >= visible_area_.min()[1] &&
+					element->getRT() <= visible_area_.max()[1] &&
+					element->getMZ() >= visible_area_.min()[0] &&
+					element->getMZ() <= visible_area_.max()[0])
+			{
+					return true;
+			}
+		}
+		return false;
+	}
+					
 	void Spectrum2DCanvas::intensityModeChange_()
 	{
 		for (UInt i=0; i<layers_.size();++i)
@@ -1024,11 +1045,20 @@ namespace OpenMS
 		if (action_mode_==AM_MEASURE || action_mode_==AM_TRANSLATE) highlightPeak_(painter, selected_peak_);
 		
 		//draw convex hull of selected peak
-		if (selected_peak_.isValid() && getCurrentLayer().type==LayerData::DT_FEATURE)
+		if (selected_peak_.isValid())
 		{
-			painter.setPen(QPen(Qt::red, 2));
+			if (getCurrentLayer().type==LayerData::DT_FEATURE)
+			{
+				painter.setPen(QPen(Qt::red, 2));
 
-			paintConvexHulls_(selected_peak_.getFeature(getCurrentLayer().features).getConvexHulls(),painter);
+				paintConvexHulls_(selected_peak_.getFeature(getCurrentLayer().features).getConvexHulls(),painter);
+			}
+			else if (getCurrentLayer().type==LayerData::DT_CONSENSUS && getLayerFlag(current_layer_,LayerData::C_ELEMENTS))
+			{
+				painter.setPen(QPen(Qt::red, 2));
+
+				paintConsensusElement_(current_layer_, selected_peak_.getFeature(getCurrentLayer().consensus),painter);
+			}
 		}
 		
 		painter.end();
