@@ -40,8 +40,12 @@
 			<BR> If a error message similar to
 			@code error while loading shared libraries: libOpenMS.so: cannot open shared object file @endcode
 			is shown, you have probably not correctly added your &lt;%OpenMS&gt;/lib/ folder to the environment variable <i>LD_LIBRARY_PATH</i>.
-			@n Please check the settings.
-
+			
+			Please check the settings:
+			- You can print the LD_LIBRARY_PATH with '<i>echo $LD_LIBRARY_PATH</i>'.
+			- If your <i>&lt;%OpenMS&gt;/lib/</i> folder is included, check that <i>libOpenMS.so</i> 
+			  is present in the folder. If it is not, you have properly forgotten to execute '<i>make install</i>'.
+			- With the ldd command, you can show the libraries used by an exutable, e.g. '<i>ldd &lt;%OpenMS&gt;/source/TEST/ClassTest_test</i>'
 		</UL>
 
 	<H2 style="border-top:2px solid grey;">TOPP</H2>
@@ -50,7 +54,7 @@
 			<LI><B>Some TOPP tools always crashes when executed. Other TOPP tools work properly.</B>
 			<BR> If a error message similar to
 			@code OpenMS::File::find(...) of File.C error message: the file 'CHEMISTRY/Elements.xml' could not be found @endcode
-			is shown, you have probably moved your %OpenMS installation after compling it.
+			is shown, you have probably moved your %OpenMS installation after compiling it.
 			Then the TOPP tools cannot find some required data files anymore, e.g. XML schema files or chemical isotope data.
 			
 			Either of the following actions should fix your problem:
