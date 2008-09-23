@@ -52,6 +52,10 @@ CHECK((virtual ~TopHatFilter()))
   delete tophat_ptr;
 RESULT
 
+
+Param param;
+param.setValue("struc_elem_length",3.0);
+
 CHECK((template <typename InputPeakContainer, typename OutputPeakContainer> void filter(const InputPeakContainer &input_peak_container, OutputPeakContainer &baseline_filtered_container)))
     MSSpectrum<Peak1D > raw_data;
     int i;
@@ -73,6 +77,7 @@ CHECK((template <typename InputPeakContainer, typename OutputPeakContainer> void
 
     MSSpectrum<Peak1D > tophat_data;
     TopHatFilter tophat;
+    tophat.setParameters(param);
     tophat.filter(raw_data,tophat_data);
 
     DPeakArray<Peak1D >::ConstIterator it=tophat_data.begin();
@@ -107,6 +112,7 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
      DPeakArray<Peak1D > tophat_data;
 
      TopHatFilter tophat;
+     tophat.setParameters(param);
      tophat.filter(raw_data.begin(),raw_data.end(),tophat_data);
 
      DPeakArray<Peak1D >::ConstIterator it=tophat_data.begin();
@@ -135,6 +141,7 @@ CHECK((template <typename PeakType> void filterExperiment(MSExperiment<PeakType>
 	exp[2].push_back(p);
 	
 	TopHatFilter tophat;
+  tophat.setParameters(param);
 	tophat.filterExperiment(exp);
 	
 	TEST_EQUAL(exp.size(),4);

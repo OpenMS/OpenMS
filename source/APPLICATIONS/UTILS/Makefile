@@ -37,6 +37,7 @@ UTILS_EXECUTABLES=\
 	IdXMLInfo\
 	XMLValidator\
 	FFEval\
+	LabeledEval\
 	HistView
 
 all: $(UTILS_EXECUTABLES)

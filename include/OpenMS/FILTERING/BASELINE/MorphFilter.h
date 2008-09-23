@@ -60,7 +60,7 @@ namespace OpenMS
 	      : DefaultParamHandler("MorphFilter"),
 	      	struc_size_(3)
 	    {
-	      defaults_.setValue("struc_elem_length",3.0,"Length of the structuring element. Should be wider than the expected peak width.");
+	      defaults_.setValue("struc_elem_length",10.0,"Length of the structuring element. Should be wider than the expected peak width.");
 	    
 	      defaultsToParam_();
 	    }

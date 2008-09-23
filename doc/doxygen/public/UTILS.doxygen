@@ -39,6 +39,7 @@
 	- @subpage Digestor
   - @subpage FuzzyDiff
   - @subpage FFEval
+  - @subpage LabeledEval
   - @subpage HistView
   - @subpage IdXMLInfo
 */
