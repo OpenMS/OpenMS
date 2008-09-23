@@ -477,11 +477,11 @@ namespace OpenMS
 		
 		for (ConsensusMapType::ConstIterator i = layer.consensus.begin(); i != layer.consensus.end(); ++i)
 		{
-			paintConsensusElement_(layer_index, *i, p);
+			paintConsensusElement_(layer_index, *i, p, true);
 		}
 	}
 
-	void Spectrum2DCanvas::paintConsensusElement_(UInt layer_index, const ConsensusFeature& cf, QPainter& p)
+	void Spectrum2DCanvas::paintConsensusElement_(UInt layer_index, const ConsensusFeature& cf, QPainter& p, const bool use_buffer)
 	{
 		Int image_width = buffer_.width();
 		Int image_height = buffer_.height();
@@ -504,11 +504,23 @@ namespace OpenMS
 				//paint point
 				if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
 				{
-					buffer_.setPixel(pos.x()   ,pos.y()   ,Qt::black);
-					buffer_.setPixel(pos.x()-1 ,pos.y()   ,Qt::black);
-					buffer_.setPixel(pos.x()+1 ,pos.y()   ,Qt::black);
-					buffer_.setPixel(pos.x()   ,pos.y()-1 ,Qt::black);
-					buffer_.setPixel(pos.x()   ,pos.y()+1 ,Qt::black);
+					// use buffer only when not highlighting	
+					if (use_buffer)
+					{
+						buffer_.setPixel(pos.x()   ,pos.y()   ,Qt::black);
+						buffer_.setPixel(pos.x()-1 ,pos.y()   ,Qt::black);
+						buffer_.setPixel(pos.x()+1 ,pos.y()   ,Qt::black);
+						buffer_.setPixel(pos.x()   ,pos.y()-1 ,Qt::black);
+						buffer_.setPixel(pos.x()   ,pos.y()+1 ,Qt::black);
+					}
+					else
+					{
+						p.drawPoint(pos.x()   ,pos.y());
+						p.drawPoint(pos.x()-1 ,pos.y());
+						p.drawPoint(pos.x()+1 ,pos.y());
+						p.drawPoint(pos.x()   ,pos.y()-1);
+						p.drawPoint(pos.x()   ,pos.y()+1);
+					}
 				}
 			}
 		}
@@ -1010,7 +1022,7 @@ namespace OpenMS
 			painter.drawImage(rects[i].topLeft(), buffer_, rects[i]);
 		}
 		
-		//draw mesaurement peak
+		//draw measurement peak
 		if (action_mode_==AM_MEASURE && measurement_start_.isValid())
 		{
 			painter.setPen(Qt::black);
@@ -1070,7 +1082,7 @@ namespace OpenMS
 			{
 				painter.setPen(QPen(Qt::red, 2));
 
-				paintConsensusElement_(current_layer_, selected_peak_.getFeature(getCurrentLayer().consensus),painter);
+				paintConsensusElement_(current_layer_, selected_peak_.getFeature(getCurrentLayer().consensus),painter,false);
 			}
 		}
 		

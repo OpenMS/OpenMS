@@ -171,7 +171,7 @@ namespace OpenMS
       	@param layer_index Int of the layer.
       	@param p The QPainter to paint on.
       */		
-			void paintConsensusElement_(UInt layer_index, const ConsensusFeature& cf, QPainter& p);
+			void paintConsensusElement_(UInt layer_index, const ConsensusFeature& cf, QPainter& p, const bool use_buffer);
 			
       /**
       	@brief checks if any element of a consensus feature is currently visible.
