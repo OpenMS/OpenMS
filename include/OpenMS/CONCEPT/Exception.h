@@ -252,6 +252,23 @@ namespace OpenMS
 		};
 
 		/**	
+			@brief A call to an external library (other than OpenMS) went wrong.
+
+			Throw this exception to indicate that an external library call came
+			back unsuccessfull.
+
+			@param	size the size causing the problem
+
+			@ingroup Exceptions
+		*/
+		class FailedAPICall 
+			: public BaseException
+		{
+			public:
+			  FailedAPICall(const char* file, int line, const char* function, const std::string& message) throw();
+		};
+		
+		/**	
 			@brief Invalid range exception.
 
 			Use this exception to indicate a general range problems.
@@ -345,7 +362,7 @@ namespace OpenMS
 		/**	
 			@brief Illegal self operation exception.	
 				
-			Throw this excpetion to indicate an invalid operation on the object
+			Throw this exception to indicate an invalid operation on the object
 			itself. In general these operations are self assignments or related
 			methods.
 

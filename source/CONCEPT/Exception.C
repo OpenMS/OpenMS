@@ -185,6 +185,11 @@ namespace OpenMS
 				globalHandler.setMessage(what_);
 			}
 
+		  FailedAPICall::FailedAPICall(const char* file, int line, const char* function, const std::string& message) throw()
+				: BaseException(file, line, function, "FailedAPICall", message)
+			{
+			}
+		
 			OutOfMemory::OutOfMemory(const char* file, int line, const char* function, UInt size) throw()
 				:	BaseException(file, line, function, "OutOfMemory", "a memory allocation failed")
 			{

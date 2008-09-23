@@ -178,7 +178,7 @@ namespace OpenMS
       	
       	@param ce The ConsensusFeature that needs checking
       */
-			bool isConsensusFeatureVisible_(const ConsensusFeature& ce);
+			bool isConsensusFeatureVisible_(const ConsensusFeature& ce, UInt layer_index);
 
 			/**
       	@brief Paints convex hulls (one for each mass trace) for a single feature.

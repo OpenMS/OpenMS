@@ -487,8 +487,8 @@ namespace OpenMS
 		Int image_height = buffer_.height();
 		
 		const LayerData& layer = getLayer(layer_index);
-		
-		if ( isConsensusFeatureVisible_(cf) && layer.filters.passes(cf))
+						
+		if ( isConsensusFeatureVisible_(cf, layer_index) && layer.filters.passes(cf))
 		{
 			//calculate position of consensus feature (centroid)
 			QPoint consensus_pos;
@@ -516,17 +516,30 @@ namespace OpenMS
 	}
 	
 	
-	bool Spectrum2DCanvas::isConsensusFeatureVisible_(const ConsensusFeature& ce)
+	bool Spectrum2DCanvas::isConsensusFeatureVisible_(const ConsensusFeature& ce, UInt layer_index)
 	{
-		ConsensusFeature::HandleSetType::const_iterator element=ce.getFeatures().begin();
-		for (; element != ce.getFeatures().end(); ++element)
+		// check the centroid first	
+		if (ce.getRT() >= visible_area_.min()[1] &&
+				ce.getRT() <= visible_area_.max()[1] &&
+				ce.getMZ() >= visible_area_.min()[0] &&
+				ce.getMZ() <= visible_area_.max()[0])
 		{
-			if (element->getRT() >= visible_area_.min()[1] &&
-					element->getRT() <= visible_area_.max()[1] &&
-					element->getMZ() >= visible_area_.min()[0] &&
-					element->getMZ() <= visible_area_.max()[0])
+			return true;
+		}
+		
+		// if element-flag is set, check if any of the consensus elements is visible
+		if (getLayerFlag(layer_index, LayerData::C_ELEMENTS))
+		{
+			ConsensusFeature::HandleSetType::const_iterator element=ce.getFeatures().begin();
+			for (; element != ce.getFeatures().end(); ++element)
 			{
+				if (element->getRT() >= visible_area_.min()[1] &&
+						element->getRT() <= visible_area_.max()[1] &&
+						element->getMZ() >= visible_area_.min()[0] &&
+						element->getMZ() <= visible_area_.max()[0])
+				{
 					return true;
+				}
 			}
 		}
 		return false;
