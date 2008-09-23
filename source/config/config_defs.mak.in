@@ -88,14 +88,14 @@ ECHO = @ECHO_COMMAND@
 FIND = @FIND@
 
 
-OS       = @OS@
 # name of your OS
-OSREV    = @OSREV@
+OS       = @OS@
 # full revision number
-OSMAJOR  = @OSMAJOR@
+OSREV    = @OSREV@
 # major revision number (full revision number cut at the first dot)
-BINFMT   = @BINFMT@
+OSMAJOR  = @OSMAJOR@
 # binary format type (platform-architecture-compiler)
+BINFMT   = @BINFMT@
 
 #installation prefix
 PREFIX = @prefix@
@@ -110,7 +110,7 @@ OPENMS_INCLUDES   = @OPENMS_INCLUDES@
 # These are the flags for the contrib libraries.
 # These flags are used in the Makefiles to determine whether
 # specific objects can be built (see e.g. ANALYSIS/Makefile).
-
+#
 CGAL_SUPPORT      = @CGAL_SUPPORT@
 ANDIMS_SUPPORT    = @ANDIMS_SUPPORT@
 NETCDF_SUPPORT    = @NETCDF_SUPPORT@
@@ -118,7 +118,6 @@ LIBSVM_SUPPORT    = @LIBSVM_SUPPORT@
 MOC               = @MOC@
 UIC               = @UIC@
 
-#
 # Support for valgrind, a memory leak checker.
 # Try "make valgrind" in source/TEST.
 #

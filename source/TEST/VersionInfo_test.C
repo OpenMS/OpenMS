@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm$
+// $Maintainer: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -44,18 +44,34 @@ CHECK(static String getVersionAndTime())
 	TEST_EQUAL(VersionInfo::getVersionAndTime().hasPrefix(PACKAGE_VERSION),true)
 RESULT
 
+CHECK(static String getRevision() )
+{
+	// just to call the method
+	STATUS("This should print a number if you have compiled from an SVN sandbox.  Compare with \"svnversion\" or \"svn info\".")
+	STATUS(VersionInfo::getRevision());
+	NOT_TESTABLE;
+}
+RESULT
+
 CHECK(static String getVersion() )
-	TEST_EQUAL(VersionInfo::getVersion(), PACKAGE_VERSION)
+{
+	STATUS("We will need to update this for a new release, oops!");
+	TEST_STRING_EQUAL(VersionInfo::getVersion(),"1.2");
+}
 RESULT
 
-CHECK(static Int getMajorRevision())
-	// just to call the method
-	TEST_NOT_EQUAL(VersionInfo::getMajorRevision(), -1)
+CHECK(static Int getMajorVersion())
+{
+	STATUS("We might need to update this for a new release, oops!");
+	TEST_EQUAL(VersionInfo::getMajorVersion(), 1);
+}
 RESULT
 
-CHECK(static Int getMinorRevision())
-	// just to call the method
-	TEST_NOT_EQUAL(VersionInfo::getMinorRevision(), -1)
+CHECK(static Int getMinorVersion())
+{
+	STATUS("We might need to update this for a new release, oops!");
+	TEST_EQUAL(VersionInfo::getMinorVersion(), 2);
+}
 RESULT
 
 /////////////////////////////////////////////////////////////

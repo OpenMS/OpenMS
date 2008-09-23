@@ -52,6 +52,10 @@ namespace OpenMS
 		{
 			version_ = VersionInfo::getVersionAndTime();
 		}
+		if ( !VersionInfo::getRevision().empty() )
+		{
+			version_ += String(", Revision: ") + VersionInfo::getRevision() + "";
+		}
 	}
 
 	TOPPBase::~TOPPBase()

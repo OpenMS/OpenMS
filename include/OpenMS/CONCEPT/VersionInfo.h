@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CONCEPT_VERSIONINFO_H
@@ -47,17 +47,27 @@ namespace OpenMS
 	{
 		public:
 
-		///Return the version number and the build time of OpenMS
+		/// Return the version number and the build time of OpenMS
 		static String getVersionAndTime();
 
-		///Return the version number of OpenMS
+		/// Return the version number of OpenMS
 		static String getVersion();
 
-		/// Return the major revision number. The part of the release number before the dot.
-		static Int getMajorRevision();
+		/// Return the major version number. The part of the release number before the dot.
+		static Int getMajorVersion();
 
-		///Return the minor revision number. The part of the release number after the dot.
-		static Int getMinorRevision();
+		/// Return the minor version number. The part of the release number after the dot.
+		static Int getMinorVersion();
+
+		/**@brief Return the revision number from revision control system, e.g. Subversion.
+
+		@internal Actually finding out what the revision number is requires some
+		tricks at compile time: From CONCEPT/Makefile, we invoke the @c svnversion
+		command (with working directory OpenMS/) and store its output in a file
+		that is included by VersionInfo.C.  
+		*/
+		static String getRevision();
+
 	};
 	
 }

@@ -21,50 +21,84 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/CONCEPT/revision.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <cstdlib>
+#include <iostream> // TODO remove this
 
 namespace OpenMS
 {
 
 	String VersionInfo::getVersionAndTime()
 	{
-		return PACKAGE_VERSION " ("__DATE__", " __TIME__ ")";
+		static bool is_initialized = false;
+		static String result;
+		if ( !is_initialized )
+		{
+			result = getVersion() + ", " + __DATE__ + ", " + __TIME__;
+			is_initialized = true;
+		}
+		return result;
 	}
 
 	String VersionInfo::getVersion()
 	{
-		return PACKAGE_VERSION;
+		static bool is_initialized = false;
+		static String result;
+		if ( !is_initialized )
+		{
+			// Ultimately, this is derived from configure.ac, and might have
+			// whitespace around it
+			result = PACKAGE_VERSION;
+			result.trim();
+			is_initialized = true;
+		}
+		return result;
 	}
 
-	Int VersionInfo::getMajorRevision()
+	Int VersionInfo::getMajorVersion()
 	{
-		static std::string release(PACKAGE_VERSION);
 		static Int major = -1;
 		if (major < 0)
 		{
-			size_t first_dot = release.find(".");
-			std::string major_str(release, first_dot);
-			major = atoi(major_str.c_str());
+			const String version = getVersion();
+			size_t first_dot = version.find('.');
+			major = atoi(version.substr(0,first_dot).c_str());
 		}
 		return major;
 	}
 	
-	Int VersionInfo::getMinorRevision()
+	Int VersionInfo::getMinorVersion()
 	{
-		static std::string release(PACKAGE_VERSION);
 		static Int minor = -1;
 		if (minor < 0)
 		{
-			size_t first_dot = release.find(".");
-			size_t second_dot = release.find(".", first_dot + 1);
-			std::string minor_str(release, first_dot + 1, second_dot - first_dot - 1);
-			minor = atoi(minor_str.c_str());
+			const String version = getVersion();
+			size_t first_dot = version.find('.');
+			size_t second_dot = version.find('.', first_dot + 1);
+			if ( second_dot > 1000 ) second_dot = 1000; // avoid arithmetic overflow if there is no second dot
+			minor = atoi(version.substr(first_dot+1,second_dot-first_dot+1).c_str());
 		}
 		return minor;
 	}
+
+	String VersionInfo::getRevision()
+	{
+		static bool is_initialized = false;
+		static String result;
+		if ( !is_initialized )
+		{
+			// Ultimately, this is derived from a shell command, and might have
+			// whitespace around it
+			result = OPENMS_REVISION;
+			result.trim();
+			is_initialized = true;
+		}
+		return result;
+	}
+
 }
