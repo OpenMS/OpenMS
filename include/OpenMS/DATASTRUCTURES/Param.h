@@ -237,7 +237,7 @@ namespace OpenMS
 				@param key String key. Can contain ':' which separates section names
 				@param value The actual value
 				@param description Verbose description of the parameter
-				@param tags list of tags associalted to this parameter
+				@param tags list of tags associated to this parameter
 			*/
 			void setValue(const String& key, Int value, const String& description="", const StringList& tags=StringList());
 			/**
@@ -246,7 +246,7 @@ namespace OpenMS
 				@param key String key. Can contain ':' which separates section names
 				@param value The actual value
 				@param description Verbose description of the parameter
-				@param tags list of tags associalted to this parameter
+				@param tags list of tags associated to this parameter
 			*/
 			void setValue(const String& key, UInt value, const String& description="", const StringList& tags=StringList());
 			/**
@@ -255,7 +255,7 @@ namespace OpenMS
 				@param key String key. Can contain ':'which separates section names
 				@param value The actual value
 				@param description Verbose description of the parameter
-				@param tags list of tags associalted to this parameter
+				@param tags list of tags associated to this parameter
 			*/
 			void setValue(const String& key, Real value, const String& description="", const StringList& tags=StringList());
 			/**
@@ -264,7 +264,7 @@ namespace OpenMS
 				@param key String key. Can contain ':' which separates section names
 				@param value The actual value
 				@param description Verbose description of the parameter
-				@param tags list of tags associalted to this parameter
+				@param tags list of tags associated to this parameter
 			*/
 			void setValue(const String& key, DoubleReal value, const String& description="", const StringList& tags=StringList());
 			/**
@@ -273,7 +273,7 @@ namespace OpenMS
 				@param key String key. Can contain ':' which separates section names
 				@param value The actual value
 				@param description Verbose description of the parameter
-				@param tags list of tags associalted to this parameter
+				@param tags list of tags associated to this parameter
 			*/
 			void setValue(const String& key, const String& value, const String& description="", const StringList& tags=StringList());
 			/**
@@ -282,7 +282,7 @@ namespace OpenMS
 				@param key String key. Can contain ':' which separates section names
 				@param value The actual value
 				@param description Verbose description of the parameter
-				@param tags list of tags associalted to this parameter
+				@param tags list of tags associated to this parameter
 			*/
 			void setValue(const String& key, const StringList& value, const String& description="", const StringList& tags=StringList());
 
