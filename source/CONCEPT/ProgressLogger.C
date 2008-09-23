@@ -132,11 +132,11 @@ namespace OpenMS
 				stop_watch_.stop();
 				if (begin_==end_)
 				{
-					cout << endl << " -- done (took " << stop_watch_.getCPUTime() << " s) --" << endl;
+					cout << endl << " -- done (took " << String::number(stop_watch_.getCPUTime(),3) << " s) --" << endl;
 				}
 				else
 				{
-					cout << "\r -- done (took " << stop_watch_.getCPUTime() << " s) --" << endl;
+					cout << "\r -- done (took " << String::number(stop_watch_.getCPUTime(),3) << " s) --" << endl;
 				}
 				break;
 			case GUI:

@@ -1113,6 +1113,13 @@ namespace OpenMS
 				//------------------------------------------------------------------
 				this->ff_->startProgress(0, this->features_->size()*this->features_->size(), "Resolving overlapping features");
 				log_ << "Resolving intersecting features" << std::endl;
+				//precalculate BBs
+				std::vector< DBoundingBox<2> > bbs(this->features_->size());
+				for (UInt i=0; i<this->features_->size(); ++i)
+				{
+					bbs[i] = this->features_->at(i).getConvexHull().getBoundingBox();
+				}
+				//intersect
 				for (UInt i=0; i<this->features_->size(); ++i)
 				{
 					Feature& f1(this->features_->at(i));
@@ -1121,6 +1128,7 @@ namespace OpenMS
 						this->ff_->setProgress(i*this->features_->size()+j);
 						Feature& f2(this->features_->at(j));
 						if (f1.getIntensity()==0.0 || f2.getIntensity()==0.0) continue;
+						if (!bbs[i].intersects(bbs[j])) continue;
 						//act depending on the intersection
 						DoubleReal intersection = intersection_(f1, f2);
 						if (intersection>=max_feature_intersection_)
