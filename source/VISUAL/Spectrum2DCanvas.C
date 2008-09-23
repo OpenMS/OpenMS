@@ -1125,6 +1125,7 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::mouseMoveEvent(QMouseEvent* e)
 	{
+		grabKeyboard(); // (re-)grab keyboard after it has been released by unhandled key	
 		QPoint pos = e->pos();
 	  PeakIndex near_peak = findNearestPeak_(pos);
 
