@@ -572,13 +572,13 @@ namespace OpenMS
 
 	void SpectrumCanvas::leaveEvent(QEvent* /*e*/)
 	{
-		//grab keyboard, as we need to handle key presses
+		//release keyboard, when the mouse pointer leaves
 		releaseKeyboard();
 	}
 
 	void SpectrumCanvas::enterEvent(QEvent* /*e*/)
 	{
-		//release keyboard, when the mouse pointer leaves
+		//grab keyboard, as we need to handle key presses
 		grabKeyboard();
 	}
 
@@ -589,7 +589,10 @@ namespace OpenMS
 		{
 			action_mode_ = AM_TRANSLATE;
 			emit actionModeChange();
+			e->accept();
 		}
+
+		e->ignore();
 	}
 
 	void SpectrumCanvas::keyPressEvent(QKeyEvent* e)
@@ -649,6 +652,7 @@ namespace OpenMS
 			resetZoom();
 		}
 		
+		releaseKeyboard();// ensure that the key event is passed on to parent widget
 		e->ignore();
 	}
 
