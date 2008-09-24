@@ -31,6 +31,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+
 ///////////////////////////
 
 START_TEST(VersionInfo, "$Id$")
@@ -39,9 +40,12 @@ START_TEST(VersionInfo, "$Id$")
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
+using namespace std;
 
 CHECK(static String getVersionAndTime())
-	TEST_EQUAL(VersionInfo::getVersionAndTime().hasPrefix(PACKAGE_VERSION),true)
+	cout << "'" << VersionInfo::getVersionAndTime() << "'" << endl;
+	cout << "'" << PACKAGE_VERSION << "'" << endl;
+	TEST_EQUAL(VersionInfo::getVersionAndTime().hasPrefix(String(PACKAGE_VERSION).trim()),true)
 RESULT
 
 CHECK(static String getRevision() )
