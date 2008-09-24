@@ -21,10 +21,17 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Marc Sturm $
+# $Maintainer: Marc Sturm, Clemens Groepl $
 # --------------------------------------------------------------------------
 
 -include ../source/config.mak
+
+# We want to add the revision info only if it is meaningful.
+# If the svnversion command fails, the result of the shell builtin function is "".
+# If we have a download without svn, the result of svnversion is "exported",
+# which is replaced by "" using the subst builtin function.
+# In both cases, we get "(revision )", which becomes "" by another use of the subst builtin.
+OPENMS_REVISION := $(subst (revision ),,(revision $(subst exported,,$(shell export LC_ALL=C; cd ..; svnversion -n))))
 
 #######################################################################
 # HELP TARGET
@@ -61,8 +68,6 @@ paramdoc_try: doxygen/parameters/DefaultParamHandlerDocumenter.C ../source/confi
 	@touch doxygen/parameters/DefaultParameters.doxygen
 
 #######################################################################
-# creates the documentation
-doc:
 	@make paramdoc
 	@echo "";
 	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
@@ -70,7 +75,7 @@ doc:
 	@echo "";
 	@rm -rf doxygen/xml_output html
 	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile
-	@doxygen doxygen/Doxyfile
+	@export OPENMS_REVISION='$(OPENMS_REVISION)'; doxygen doxygen/Doxyfile
 	@echo "";
 	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 	@echo "The documentation has been successfully created.";
@@ -87,7 +92,7 @@ idoc:
 	@echo "";
 	@rm -rf doxygen/xml_output html
 	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile
-	@doxygen doxygen/Doxyfile_internal
+	@export OPENMS_REVISION='$(OPENMS_REVISION)'; doxygen doxygen/Doxyfile_internal
 	@echo "";
 	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 	@echo "The documentation has been successfully created.";
@@ -107,7 +112,7 @@ dotdoc:
 	@echo "";
 	@rm -rf doxygen/xml_output html-dot
 	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile
-	@doxygen doxygen/Doxyfile_dot
+	@export OPENMS_REVISION='$(OPENMS_REVISION)'; doxygen doxygen/Doxyfile_dot
 	@echo "";
 	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 	@echo "The documentation has been successfully created.";
@@ -124,7 +129,7 @@ noclassdoc:
 	@echo "";
 	@rm -rf doxygen/xml_output html
 	@test -f doxygen/Doxyfile || cp ../source/config/Doxyfile.in doxygen/Doxyfile
-	@doxygen doxygen/Doxyfile_noclass
+	@export OPENMS_REVISION='$(OPENMS_REVISION)'; doxygen doxygen/Doxyfile_noclass
 	@echo "";
 	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 	@echo "The documentation has been successfully created.";
@@ -139,7 +144,7 @@ OpenMS_tutorial: OpenMS_tutorial/OpenMS_Tutorial.doxygen OpenMS_tutorial/Doxyfil
 	@echo "Creating the OpenMS tutorial";
 	@echo "";
 	@rm -rf OpenMS_tutorial/latex_output
-	@doxygen OpenMS_tutorial/Doxyfile
+	@export OPENMS_REVISION='$(OPENMS_REVISION)'; doxygen OpenMS_tutorial/Doxyfile
 	@cp OpenMS_tutorial/refman_overwrite.tex OpenMS_tutorial/latex_output/refman.tex
 	@cd OpenMS_tutorial/latex_output/ && make
 	@cp OpenMS_tutorial/latex_output/refman.pdf OpenMS_tutorial.pdf
@@ -158,7 +163,7 @@ TOPP_tutorial: TOPP_tutorial/TOPP_Tutorial.doxygen TOPP_tutorial/TOPPView_Tutori
 	@echo "Creating the TOPP tutorial (TOPP_tutorial.pdf)";
 	@echo "";
 	@rm -rf TOPP_tutorial/latex_output
-	@doxygen TOPP_tutorial/Doxyfile
+	@export OPENMS_REVISION='$(OPENMS_REVISION)'; doxygen TOPP_tutorial/Doxyfile
 	@cp TOPP_tutorial/refman_overwrite.tex TOPP_tutorial/latex_output/refman.tex
 	@cd TOPP_tutorial/latex_output/ && make
 	@cp TOPP_tutorial/latex_output/refman.pdf TOPP_tutorial.pdf
@@ -175,5 +180,6 @@ clean:
 	@rm -rf OpenMS_tutorial/latex_output/ OpenMS_tutorial.pdf OpenMS_tutorial/doxygen-error.log
 	@rm -rf TOPP_tutorial/latex_output/ TOPP_tutorial.pdf TOPP_tutorial/doxygen-error.log
 	@rm -rf doxygen/parameters/DefaultParamHandlerDocumenter doxygen/parameters/DefaultParamHandlerDocumenter.o
+
 
 dummy:

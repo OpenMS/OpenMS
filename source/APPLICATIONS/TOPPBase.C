@@ -47,12 +47,13 @@ namespace OpenMS
 			version_(version),
 			log_type_(ProgressLogger::NONE)
 	{
-		//if version is empty, use the OpenMS/TOPP version and date/time
+		// if version is empty, use the OpenMS/TOPP version and date/time
 		if (version_=="")
 		{
 			version_ = VersionInfo::getVersionAndTime();
 		}
-		if ( !VersionInfo::getRevision().empty() )
+		// if the revision info is meaningful, show it as well
+		if ( !VersionInfo::getRevision().empty() && VersionInfo::getRevision() != "exported" )
 		{
 			version_ += String(", Revision: ") + VersionInfo::getRevision() + "";
 		}
@@ -478,7 +479,7 @@ namespace OpenMS
 		//common output
 		cerr << endl
 	       << tool_name_ << " -- " << tool_description_ << endl
-	       << "Version: " << version_ << endl
+	       << "Version: " << version_ << endl << endl
 	       << "Usage:" << endl
 				 << "  " << tool_name_ << " <options>" << endl
 				 << endl

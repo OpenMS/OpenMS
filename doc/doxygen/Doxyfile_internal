@@ -1,7 +1,5 @@
 @INCLUDE = doxygen/Doxyfile
 
-# Doxyfile 1.5.1
-
 GENERATE_TODOLIST      = YES
 
 # issue all possible warnings

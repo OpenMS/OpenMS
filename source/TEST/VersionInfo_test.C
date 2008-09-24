@@ -43,15 +43,18 @@ using namespace OpenMS;
 using namespace std;
 
 CHECK(static String getVersionAndTime())
-	cout << "'" << VersionInfo::getVersionAndTime() << "'" << endl;
-	cout << "'" << PACKAGE_VERSION << "'" << endl;
-	TEST_EQUAL(VersionInfo::getVersionAndTime().hasPrefix(String(PACKAGE_VERSION).trim()),true)
+{
+	STATUS(VersionInfo::getVersionAndTime());
+	STATUS(PACKAGE_VERSION);
+	TEST_EQUAL(VersionInfo::getVersionAndTime().hasPrefix(String(PACKAGE_VERSION).trim()),true);
+}
 RESULT
 
 CHECK(static String getRevision() )
 {
 	// just to call the method
-	STATUS("This should print a number if you have compiled from an SVN sandbox.  Compare with \"svnversion\" or \"svn info\".")
+	STATUS("If you have compiled from an SVN sandbox, then this should print a revision number, or a range of revisions followed by \"M\", or something similar.");
+  STATUS("Compare with \"svnversion\" or \"svn info\".")
 	STATUS(VersionInfo::getRevision());
 	NOT_TESTABLE;
 }
@@ -59,8 +62,7 @@ RESULT
 
 CHECK(static String getVersion() )
 {
-	STATUS("We will need to update this for a new release, oops!");
-	TEST_STRING_EQUAL(VersionInfo::getVersion(),"1.2");
+	TEST_STRING_EQUAL(VersionInfo::getVersion(),String(PACKAGE_VERSION).trim());
 }
 RESULT
 

@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -32,13 +32,17 @@
 namespace OpenMS
 {
 	class String;
-	
-	/**	
+
+	/**
 		@brief Version information class.
-		
-		The OpenMS release and version data can be retrieved as a string
+
+		The OpenMS release version and revision data can be retrieved as a string
 		or as integers.
-			
+
+		Note that the term <i>"version"</i> refers to releases (such as 1.0, 1.1, 1.1.1,
+		1.2, ...),  whereas the term <i>"revision"</i> refers to a revision control system
+		such as subversion and is mainly of interest for developers.
+
 		The VersionInfo class contains only static methods.
 
 		@ingroup Concept
@@ -61,15 +65,20 @@ namespace OpenMS
 
 		/**@brief Return the revision number from revision control system, e.g. Subversion.
 
-		@internal Actually finding out what the revision number is requires some
-		tricks at compile time: From CONCEPT/Makefile, we invoke the @c svnversion
-		command (with working directory OpenMS/) and store its output in a file
-		that is included by VersionInfo.C.  
+		On released versions of OpenMS (not from SVN), the result is "exported".
+		The result can be possibly be "" on some platforms, which means that
+		revision info is unavailable.  You should check for both cases in your
+		code.
+
+		@internal Finding out what the revision number is requires some tricks at
+		compile time: From CONCEPT/Makefile, we invoke the @c svnversion command
+		(with working directory OpenMS/) and store its output in a file that is
+		included by VersionInfo.C.
 		*/
 		static String getRevision();
 
 	};
-	
+
 }
 
 #endif // OPENMS_CONCEPT_VERSIONINFO_H
