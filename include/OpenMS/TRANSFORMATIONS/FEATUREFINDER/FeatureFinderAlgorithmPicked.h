@@ -34,11 +34,8 @@
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-
-// Eva
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/Element.h>
-// Eva
 
 #include <numeric>
 #include <fstream>
@@ -76,6 +73,9 @@ namespace OpenMS
 			//@}
 			
 			using FeatureFinderAlgorithm<PeakType, FeatureType>::param_;
+			using FeatureFinderAlgorithm<PeakType, FeatureType>::features_;
+			using FeatureFinderAlgorithm<PeakType, FeatureType>::ff_;
+			using FeatureFinderAlgorithm<PeakType, FeatureType>::defaults_;
 				
 		protected:
 			///Helper structure for seeds used in FeatureFinderAlgorithmPicked
@@ -336,67 +336,69 @@ namespace OpenMS
 					log_("featurefinder.log")
 			{
 				//debugging
-				this->defaults_.setValue("debug","false","When debug mode is activated, several files with intermediate results are written to the folder 'debug'.");
-				this->defaults_.setValidStrings("debug",StringList::create("true,false"));
+				defaults_.setValue("debug","false","When debug mode is activated, several files with intermediate results are written to the folder 'debug'.");
+				defaults_.setValidStrings("debug",StringList::create("true,false"));
 				//intensity
-				this->defaults_.setValue("intensity:bins",10,"Number of bins per dimension (RT and m/z).");
-				this->defaults_.setMinInt("intensity:bins",1);
-				this->defaults_.setSectionDescription("intensity","Settings for the calculation of a score indicating if a peak's intensity is significant in the local environment (between 0 and 1)");
+				defaults_.setValue("intensity:bins",10,"Number of bins per dimension (RT and m/z).");
+				defaults_.setMinInt("intensity:bins",1);
+				defaults_.setSectionDescription("intensity","Settings for the calculation of a score indicating if a peak's intensity is significant in the local environment (between 0 and 1)");
 				//mass trace search parameters
-				this->defaults_.setValue("mass_trace:mz_tolerance",0.03,"m/z difference tolerance of peaks belonging to the same mass trace.\n This value must be smaller than that 1/charge_high!");
-				this->defaults_.setMinFloat("mass_trace:mz_tolerance",0.0);
-				this->defaults_.setValue("mass_trace:min_spectra",14,"Number of spectra the have to show the same peak mass for a mass trace.");
-				this->defaults_.setMinInt("mass_trace:min_spectra",1);
-				this->defaults_.setValue("mass_trace:max_missing",4,"Number of spectra where a high mass deviation or missing peak is acceptable.\n This parameter should be well below 'min_spectra'!");
-				this->defaults_.setMinInt("mass_trace:max_missing",0);
-				this->defaults_.setValue("mass_trace:slope_bound",0.1,"The maximum slope of mass trace intensities when extending from the highest peak", StringList::create("advanced"));
-				this->defaults_.setMinFloat("mass_trace:slope_bound",0.0);
-				this->defaults_.setSectionDescription("mass_trace","Settings for the calculation of a score indicating if a peak is part of a mass trace (between 0 and 1).");
+				defaults_.setValue("mass_trace:mz_tolerance",0.03,"m/z difference tolerance of peaks belonging to the same mass trace.\n This value must be smaller than that 1/charge_high!");
+				defaults_.setMinFloat("mass_trace:mz_tolerance",0.0);
+				defaults_.setValue("mass_trace:min_spectra",14,"Number of spectra the have to show the same peak mass for a mass trace.");
+				defaults_.setMinInt("mass_trace:min_spectra",1);
+				defaults_.setValue("mass_trace:max_missing",4,"Number of spectra where a high mass deviation or missing peak is acceptable.\n This parameter should be well below 'min_spectra'!");
+				defaults_.setMinInt("mass_trace:max_missing",0);
+				defaults_.setValue("mass_trace:slope_bound",0.1,"The maximum slope of mass trace intensities when extending from the highest peak", StringList::create("advanced"));
+				defaults_.setMinFloat("mass_trace:slope_bound",0.0);
+				defaults_.setSectionDescription("mass_trace","Settings for the calculation of a score indicating if a peak is part of a mass trace (between 0 and 1).");
 				//Isotopic pattern search parameters
-				this->defaults_.setValue("isotopic_pattern:charge_low",1,"Lowest charge to search for.");
-				this->defaults_.setMinInt("isotopic_pattern:charge_low",1);
-				this->defaults_.setValue("isotopic_pattern:charge_high",4,"Highest charge to search for.");
-				this->defaults_.setMinInt("isotopic_pattern:charge_high",1);
-				this->defaults_.setValue("isotopic_pattern:mz_tolerance",0.03,"Tolerated mass deviation from the theoretical isotopic pattern.\nThis value must be smaller than that 1/charge_high!");		
-				this->defaults_.setMinFloat("isotopic_pattern:mz_tolerance",0.0);
-				this->defaults_.setValue("isotopic_pattern:intensity_percentage",10.0,"Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present.", StringList::create("advanced"));
-				this->defaults_.setMinFloat("isotopic_pattern:intensity_percentage",0.0);
-				this->defaults_.setMaxFloat("isotopic_pattern:intensity_percentage",100.0);
-				this->defaults_.setValue("isotopic_pattern:intensity_percentage_optional",0.1,"Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing.", StringList::create("advanced"));
-				this->defaults_.setMinFloat("isotopic_pattern:intensity_percentage_optional",0.0);
-				this->defaults_.setMaxFloat("isotopic_pattern:intensity_percentage_optional",100.0);
-				this->defaults_.setValue("isotopic_pattern:optional_fit_improvement",2.0,"Minimal percental improvement of isotope fit to allow leaving out an optional peak.", StringList::create("advanced"));
-				this->defaults_.setMinFloat("isotopic_pattern:optional_fit_improvement",0.0);
-				this->defaults_.setMaxFloat("isotopic_pattern:optional_fit_improvement",100.0);
-				this->defaults_.setValue("isotopic_pattern:mass_window_width",100.0,"Window width in Dalton for precalcuation of estimated isotope distribtions.", StringList::create("advanced"));
-				this->defaults_.setMinFloat("isotopic_pattern:mass_window_width",1.0);
-				this->defaults_.setMaxFloat("isotopic_pattern:mass_window_width",200.0);
-				this->defaults_.setSectionDescription("isotopic_pattern","Settings for the calculation of a score indicating if a peak is part of a isotoipic pattern (between 0 and 1).");
+				defaults_.setValue("isotopic_pattern:charge_low",1,"Lowest charge to search for.");
+				defaults_.setMinInt("isotopic_pattern:charge_low",1);
+				defaults_.setValue("isotopic_pattern:charge_high",4,"Highest charge to search for.");
+				defaults_.setMinInt("isotopic_pattern:charge_high",1);
+				defaults_.setValue("isotopic_pattern:mz_tolerance",0.03,"Tolerated mass deviation from the theoretical isotopic pattern.\nThis value must be smaller than that 1/charge_high!");		
+				defaults_.setMinFloat("isotopic_pattern:mz_tolerance",0.0);
+				defaults_.setValue("isotopic_pattern:intensity_percentage",10.0,"Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present.", StringList::create("advanced"));
+				defaults_.setMinFloat("isotopic_pattern:intensity_percentage",0.0);
+				defaults_.setMaxFloat("isotopic_pattern:intensity_percentage",100.0);
+				defaults_.setValue("isotopic_pattern:intensity_percentage_optional",0.1,"Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing.", StringList::create("advanced"));
+				defaults_.setMinFloat("isotopic_pattern:intensity_percentage_optional",0.0);
+				defaults_.setMaxFloat("isotopic_pattern:intensity_percentage_optional",100.0);
+				defaults_.setValue("isotopic_pattern:optional_fit_improvement",2.0,"Minimal percental improvement of isotope fit to allow leaving out an optional peak.", StringList::create("advanced"));
+				defaults_.setMinFloat("isotopic_pattern:optional_fit_improvement",0.0);
+				defaults_.setMaxFloat("isotopic_pattern:optional_fit_improvement",100.0);
+				defaults_.setValue("isotopic_pattern:mass_window_width",100.0,"Window width in Dalton for precalcuation of estimated isotope distribtions.", StringList::create("advanced"));
+				defaults_.setMinFloat("isotopic_pattern:mass_window_width",1.0);
+				defaults_.setMaxFloat("isotopic_pattern:mass_window_width",200.0);
+				defaults_.setSectionDescription("isotopic_pattern","Settings for the calculation of a score indicating if a peak is part of a isotoipic pattern (between 0 and 1).");
 				//Seed settings
-				this->defaults_.setValue("seed:min_score",0.8,"Minimum seed score a peak has to reach to be used as seed.\nThe seed score is the geometric mean of intensity score, mass trace score and isotope pattern score.");
-				this->defaults_.setMinFloat("seed:min_score",0.0);
-				this->defaults_.setMaxFloat("seed:min_score",1.0);
-				this->defaults_.setSectionDescription("seed","Settings that determine which peaks are considered a seed");
+				defaults_.setValue("seed:min_score",0.8,"Minimum seed score a peak has to reach to be used as seed.\nThe seed score is the geometric mean of intensity score, mass trace score and isotope pattern score.");
+				defaults_.setMinFloat("seed:min_score",0.0);
+				defaults_.setMaxFloat("seed:min_score",1.0);
+				defaults_.setSectionDescription("seed","Settings that determine which peaks are considered a seed");
 				//Feature settings
-				this->defaults_.setValue("feature:min_score",0.7, "Feature score threshold for a feature to be reported.\nThe feature score is the geometric mean of the average relative deviation and the correlation between the model and the observed peaks.");
-				this->defaults_.setMinFloat("feature:min_score",0.0);
-				this->defaults_.setMaxFloat("feature:min_score",1.0);
-				this->defaults_.setValue("feature:min_isotope_fit",0.8,"Minimum isotope fit of the feature before model fitting.", StringList::create("advanced"));
-				this->defaults_.setMinFloat("feature:min_isotope_fit",0.0);
-				this->defaults_.setMaxFloat("feature:min_isotope_fit",1.0);
-				this->defaults_.setValue("feature:min_trace_score",0.5, "Trace score threshold.\nTraces below this threshold are removed after the model fitting.", StringList::create("advanced"));
-				this->defaults_.setMinFloat("feature:min_trace_score",0.0);
-				this->defaults_.setMaxFloat("feature:min_trace_score",1.0);
-				this->defaults_.setValue("feature:min_rt_span",0.333, "Mimum RT span in relation to extended area that has to remain after model fitting.", StringList::create("advanced"));
-				this->defaults_.setMinFloat("feature:min_rt_span",0.0);
-				this->defaults_.setMaxFloat("feature:min_rt_span",1.0);
-				this->defaults_.setValue("feature:max_intersection",0.35, "Maximum allowed intersection of features.", StringList::create("advanced"));
-				this->defaults_.setMinFloat("feature:max_intersection",0.0);
-				this->defaults_.setMaxFloat("feature:max_intersection",1.0);
-				this->defaults_.setValue("feature:reported_mz","average", "The mass type that is reported for features.\n'average' returns the average mass of the highest mass trace.\n'monoisotopic' returns the theoretical averagene m/z calculated from the average mass.");
-				this->defaults_.setValidStrings("feature:reported_mz",StringList::create("average,monoisotopic"));
-				this->defaults_.setSectionDescription("feature","Settings for the features (intensity, quality assessment, ...)");
-						
+				defaults_.setValue("feature:min_score",0.7, "Feature score threshold for a feature to be reported.\nThe feature score is the geometric mean of the average relative deviation and the correlation between the model and the observed peaks.");
+				defaults_.setMinFloat("feature:min_score",0.0);
+				defaults_.setMaxFloat("feature:min_score",1.0);
+				defaults_.setValue("feature:min_isotope_fit",0.8,"Minimum isotope fit of the feature before model fitting.", StringList::create("advanced"));
+				defaults_.setMinFloat("feature:min_isotope_fit",0.0);
+				defaults_.setMaxFloat("feature:min_isotope_fit",1.0);
+				defaults_.setValue("feature:min_trace_score",0.5, "Trace score threshold.\nTraces below this threshold are removed after the model fitting.", StringList::create("advanced"));
+				defaults_.setMinFloat("feature:min_trace_score",0.0);
+				defaults_.setMaxFloat("feature:min_trace_score",1.0);
+				defaults_.setValue("feature:min_rt_span",0.333, "Mimum RT span in relation to extended area that has to remain after model fitting.", StringList::create("advanced"));
+				defaults_.setMinFloat("feature:min_rt_span",0.0);
+				defaults_.setMaxFloat("feature:min_rt_span",1.0);
+				defaults_.setValue("feature:max_intersection",0.35, "Maximum allowed intersection of features.", StringList::create("advanced"));
+				defaults_.setMinFloat("feature:max_intersection",0.0);
+				defaults_.setMaxFloat("feature:max_intersection",1.0);
+				defaults_.setValue("feature:reported_mz","average", "The mass type that is reported for features.\n'average' returns the average mass of the highest mass trace.\n'monoisotopic' returns the theoretical averagene m/z calculated from the average mass.");
+				defaults_.setValidStrings("feature:reported_mz",StringList::create("average,monoisotopic"));
+				defaults_.setValue("feature:report_rt_apex_spectrum","false", "If 'true' the spectrum  number of the RT apex is reported as the meta data value 'rt_apex_spectrum'.",StringList::create("advanced"));
+				defaults_.setValidStrings("feature:report_rt_apex_spectrum",StringList::create("true,false"));
+				defaults_.setSectionDescription("feature","Settings for the features (intensity, quality assessment, ...)");
+				
 				this->defaultsToParam_();
 			}
 			
@@ -453,7 +455,7 @@ namespace OpenMS
 				log_ << "Precalculating intensity thresholds ..." << std::endl;
 				//new scope to make local variables disappear
 				{
-					this->ff_->startProgress(0, intensity_bins_*intensity_bins_, "Precalculating intensity scores");
+					ff_->startProgress(0, intensity_bins_*intensity_bins_, "Precalculating intensity scores");
 					DoubleReal rt_start = map_.getMinRT();
 					DoubleReal mz_start = map_.getMinMZ();
 					intensity_rt_step_ = (map_.getMaxRT() - rt_start ) / (DoubleReal)intensity_bins_;
@@ -467,7 +469,7 @@ namespace OpenMS
 						std::vector<DoubleReal> tmp;
 						for (UInt mz=0; mz<intensity_bins_; ++mz)
 						{
-							this->ff_->setProgress(rt*intensity_bins_+ mz);
+							ff_->setProgress(rt*intensity_bins_+ mz);
 							DoubleReal min_mz = mz_start + mz * intensity_mz_step_;
 							DoubleReal max_mz = mz_start + ( mz + 1 ) * intensity_mz_step_;
 							//std::cout << "rt range: " << min_rt << " - " << max_rt << std::endl;
@@ -500,7 +502,7 @@ namespace OpenMS
 							map_[s].getMetaDataArrays()[1][p] = intensityScore_(s,p);
 						}
 					}
-					this->ff_->endProgress();
+					ff_->endProgress();
 				}
 				
 				//---------------------------------------------------------------------------
@@ -509,10 +511,10 @@ namespace OpenMS
 				//---------------------------------------------------------------------------
 				//new scope to make local variables disappear
 				{
-					this->ff_->startProgress(0, map_.size(), "Precalculating mass trace scores");
+					ff_->startProgress(0, map_.size(), "Precalculating mass trace scores");
 					for (UInt s=0; s<map_.size(); ++s)
 					{
-						this->ff_->setProgress(s);
+						ff_->setProgress(s);
 						//do nothing for the first few and last few spectra as the scans required to search for traces are missing
 						if (s<min_spectra_ || s>=map_.size()-min_spectra_)
 						{
@@ -567,7 +569,7 @@ namespace OpenMS
 							map_[s].getMetaDataArrays()[3][p] = is_max_peak;
 						}
 					}
-					this->ff_->endProgress();
+					ff_->endProgress();
 				}
 
 				//-------------------------------------------------------------------------
@@ -578,16 +580,16 @@ namespace OpenMS
 				for (UInt c=charge_low; c<=charge_high; ++c)
 				{
 					UInt charge_index_meta = 4 + c - charge_low;
-					UInt feature_count_before = this->features_->size();
+					UInt feature_count_before = features_->size();
 					std::vector<Seed> seeds;
 					
 					//-----------------------------------------------------------
 					//Step 3.1: Precalculate IsotopePattern score
 					//-----------------------------------------------------------
-					this->ff_->startProgress(0, map_.size(), String("Calculating isotope pattern scores for charge ")+c);
+					ff_->startProgress(0, map_.size(), String("Calculating isotope pattern scores for charge ")+c);
 					for (UInt s=0; s<map_.size(); ++s)
 					{
-						this->ff_->setProgress(s);
+						ff_->setProgress(s);
 						const SpectrumType& spectrum = map_[s];
 						for (UInt p=0; p<spectrum.size(); ++p)
 						{
@@ -620,17 +622,17 @@ namespace OpenMS
 							}
 						}
 					}
-					this->ff_->endProgress();
+					ff_->endProgress();
 
 					//-----------------------------------------------------------
 					//Step 3.2:
 					//Find seeds for this charge
 					//-----------------------------------------------------------		
-					this->ff_->startProgress(0, map_.size(), String("Finding seeds for charge ")+c);
+					ff_->startProgress(0, map_.size(), String("Finding seeds for charge ")+c);
 					DoubleReal min_seed_score = param_.getValue("seed:min_score");
 					for (UInt s=0; s<map_.size(); ++s)
 					{
-						this->ff_->setProgress(s);
+						ff_->setProgress(s);
 						//do nothing for the first few and last few spectra as the scans required to search for traces are missing
 						if (s<min_spectra_ || s>=map_.size()-min_spectra_)
 						{
@@ -677,21 +679,21 @@ namespace OpenMS
 						}
 						FeatureXMLFile().store(String("debug/seeds_")+c+".featureXML", seed_map);
 					}
-					this->ff_->endProgress();
+					ff_->endProgress();
 					std::cout << "Found " << seeds.size() << " seeds for charge " << c << "." << std::endl;
 					
 					//------------------------------------------------------------------
 					//Step 3.3:
 					//Extension of seeds
 					//------------------------------------------------------------------
-					this->ff_->startProgress(0,seeds.size(), String("Extending seeds for charge ")+c);
+					ff_->startProgress(0,seeds.size(), String("Extending seeds for charge ")+c);
 					for (UInt i=0; i<seeds.size(); ++i)
 					{
 						//------------------------------------------------------------------
 						//Step 3.3.1:
 						//Extend all mass traces
 						//------------------------------------------------------------------
-						this->ff_->setProgress(i);
+						ff_->setProgress(i);
 						log_ << std::endl << "Seed " << i << ":" << std::endl;
 						//If the intensity is zero this seed is already uses in another feature
 						const SpectrumType& spectrum = map_[seeds[i].spectrum];
@@ -962,7 +964,7 @@ namespace OpenMS
 								}
 								else
 								{
-									script = script + (this->features_->size()+1) + " (score: " + final_score + ")";
+									script = script + (features_->size()+1) + " (score: " + final_score + ")";
 								}
 								script = script + "' with points 3";
 							}
@@ -1087,7 +1089,7 @@ namespace OpenMS
 						{
 							f.getConvexHulls().push_back(traces[j].getConvexhull());
 						}
-						this->features_->push_back(f);
+						features_->push_back(f);
 	
 						//----------------------------------------------------------------
 						//Remove all seeds that lie inside the convex hull of the new feature
@@ -1103,30 +1105,30 @@ namespace OpenMS
 							}
 						}
 					}
-					this->ff_->endProgress();
-					std::cout << "Found " << this->features_->size()-feature_count_before << " features candidates for charge " << c << "." << std::endl;
+					ff_->endProgress();
+					std::cout << "Found " << features_->size()-feature_count_before << " features candidates for charge " << c << "." << std::endl;
 				}
 					
 				//------------------------------------------------------------------
 				//Step 4:
 				//Resolve contradicting and overlapping features
 				//------------------------------------------------------------------
-				this->ff_->startProgress(0, this->features_->size()*this->features_->size(), "Resolving overlapping features");
+				ff_->startProgress(0, features_->size()*features_->size(), "Resolving overlapping features");
 				log_ << "Resolving intersecting features" << std::endl;
 				//precalculate BBs
-				std::vector< DBoundingBox<2> > bbs(this->features_->size());
-				for (UInt i=0; i<this->features_->size(); ++i)
+				std::vector< DBoundingBox<2> > bbs(features_->size());
+				for (UInt i=0; i<features_->size(); ++i)
 				{
-					bbs[i] = this->features_->at(i).getConvexHull().getBoundingBox();
+					bbs[i] = features_->at(i).getConvexHull().getBoundingBox();
 				}
 				//intersect
-				for (UInt i=0; i<this->features_->size(); ++i)
+				for (UInt i=0; i<features_->size(); ++i)
 				{
-					Feature& f1(this->features_->at(i));
-					for (UInt j=i+1; j<this->features_->size(); ++j)
+					Feature& f1(features_->at(i));
+					for (UInt j=i+1; j<features_->size(); ++j)
 					{
-						this->ff_->setProgress(i*this->features_->size()+j);
-						Feature& f2(this->features_->at(j));
+						ff_->setProgress(i*features_->size()+j);
+						Feature& f2(features_->at(j));
 						if (f1.getIntensity()==0.0 || f2.getIntensity()==0.0) continue;
 						if (!bbs[i].intersects(bbs[j])) continue;
 						//act depending on the intersection
@@ -1170,17 +1172,28 @@ namespace OpenMS
 				}
 				//finally remove features with intensity 0
 				UInt removed = 0;
-				for(Int i=this->features_->size()-1; i>=0; --i)
+				for(Int i=features_->size()-1; i>=0; --i)
 				{
-					if (this->features_->operator[](i).getIntensity()==0)
+					if (features_->operator[](i).getIntensity()==0)
 					{
 						++removed;
-						this->features_->erase(this->features_->begin()+i);
+						features_->erase(features_->begin()+i);
 					}
 				}
-				this->ff_->endProgress();
+				ff_->endProgress();
 				std::cout << "Removed " << removed << " overlapping features." << std::endl;
-				std::cout << this->features_->size() << " features left." << std::endl;
+				std::cout << features_->size() << " features left." << std::endl;
+				
+				//report RT apex spectrum if wished by the user
+				if((String)(param_.getValue("feature:report_rt_apex_spectrum"))=="true")
+				{
+					for(UInt i=0; i<features_->size(); ++i)
+					{
+						Feature& f = features_->operator[](i);
+						UInt apex_spectrum = map_.RTBegin(f.getRT()) - map_.begin();
+						f.setMetaValue("rt_apex_spectrum",apex_spectrum);
+					}
+				}
 				
 				//Abort reasons 
 				std::cout << std::endl;
