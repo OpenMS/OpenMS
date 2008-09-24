@@ -15,7 +15,7 @@
 # Project related configuration options
 #---------------------------------------------------------------------------
 PROJECT_NAME           = OpenMS
-PROJECT_NUMBER         = "@PACKAGE_VERSION@"
+PROJECT_NUMBER         = "@PACKAGE_VERSION@" $(OPENMS_REVISION)
 OUTPUT_DIRECTORY       = 
 CREATE_SUBDIRS         = NO
 OUTPUT_LANGUAGE        = English
