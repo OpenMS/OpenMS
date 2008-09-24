@@ -196,7 +196,7 @@ CHECK((bool operator != (const FeatureMap& rhs) const))
 RESULT
 
 
-CHECK((void sortByIntensity()))
+CHECK((void sortByIntensity(bool reverse=false)))
 	
 	FeatureMap<> to_be_sorted;
 	
@@ -217,6 +217,13 @@ CHECK((void sortByIntensity()))
 	TEST_EQUAL(to_be_sorted[0].getIntensity(),3);
 	TEST_EQUAL(to_be_sorted[1].getIntensity(),5);
 	TEST_EQUAL(to_be_sorted[2].getIntensity(),10);
+
+
+	to_be_sorted.sortByIntensity(true);
+	
+	TEST_EQUAL(to_be_sorted[0].getIntensity(),10);
+	TEST_EQUAL(to_be_sorted[1].getIntensity(),5);
+	TEST_EQUAL(to_be_sorted[2].getIntensity(),3);
 	
 RESULT
 

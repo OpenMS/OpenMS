@@ -1115,11 +1115,18 @@ namespace OpenMS
 				//------------------------------------------------------------------
 				ff_->startProgress(0, features_->size()*features_->size(), "Resolving overlapping features");
 				log_ << "Resolving intersecting features" << std::endl;
-				//precalculate BBs
+				//sort features according to m/z in order to speed up the resolution
+				features_->sortByNthPosition(1);
+				//precalculate BBs and maximum mz span
 				std::vector< DBoundingBox<2> > bbs(features_->size());
+				DoubleReal max_mz_span = 0.0;
 				for (UInt i=0; i<features_->size(); ++i)
 				{
 					bbs[i] = features_->at(i).getConvexHull().getBoundingBox();
+					if (bbs[i].height()>max_mz_span)
+					{
+						max_mz_span = bbs[i].height();
+					}
 				}
 				//intersect
 				for (UInt i=0; i<features_->size(); ++i)
@@ -1129,7 +1136,11 @@ namespace OpenMS
 					{
 						ff_->setProgress(i*features_->size()+j);
 						Feature& f2(features_->at(j));
+						//features that are more than 2 times the maximum m/z span apart do not overlap => abort 
+						if (f2.getMZ()-f1.getMZ()>2.0*max_mz_span) break;
+						//do nothting if one of the features is alreay removed
 						if (f1.getIntensity()==0.0 || f2.getIntensity()==0.0) continue;
+						//do nothing if the overall convex hulls du not overlap
 						if (!bbs[i].intersects(bbs[j])) continue;
 						//act depending on the intersection
 						DoubleReal intersection = intersection_(f1, f2);
@@ -1171,15 +1182,23 @@ namespace OpenMS
 					}
 				}
 				//finally remove features with intensity 0
+				FeatureMap<> tmp;
+				tmp.reserve(features_->size());
 				UInt removed = 0;
-				for(Int i=features_->size()-1; i>=0; --i)
+				for(UInt i=0; i<features_->size(); ++i)
 				{
-					if (features_->operator[](i).getIntensity()==0)
+					if (features_->operator[](i).getIntensity()!=0.0)
+					{
+						tmp.push_back(features_->operator[](i));
+					}
+					else
 					{
 						++removed;
-						features_->erase(features_->begin()+i);
 					}
 				}
+				tmp.Base::swap(*features_);
+				//sort features by intensty
+				features_->sortByIntensity(true);
 				ff_->endProgress();
 				std::cout << "Removed " << removed << " overlapping features." << std::endl;
 				std::cout << features_->size() << " features left." << std::endl;
@@ -1311,7 +1330,7 @@ namespace OpenMS
 			{
 				//calculate the RT range sum of feature 1
 				DoubleReal s1 = 0.0;
-				std::vector<ConvexHull2D> hulls1 = f1.getConvexHulls();
+				const std::vector<ConvexHull2D>& hulls1 = f1.getConvexHulls();
 				for (UInt i=0; i<hulls1.size(); ++i)
 				{
 					s1 += hulls1[i].getBoundingBox().width();
@@ -1319,7 +1338,7 @@ namespace OpenMS
 				
 				//calculate the RT range sum of feature 2
 				DoubleReal s2 = 0.0;
-				std::vector<ConvexHull2D> hulls2 = f2.getConvexHulls();
+				const std::vector<ConvexHull2D>& hulls2 = f2.getConvexHulls();
 				for (UInt j=0; j<hulls2.size(); ++j)
 				{
 					s2 += hulls2[j].getBoundingBox().width();

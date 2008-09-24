@@ -131,12 +131,17 @@ namespace OpenMS
 				return !(operator==(rhs));
 			}
 				
-			/** @brief Sort features by intensity. */
-			void sortByIntensity() 
+			/// Sorts the peaks according to ascending intensity
+			void sortByIntensity(bool reverse=false) 
 			{ 
-				typename FeatureMap::iterator beg = this->begin();
-				typename FeatureMap::iterator ed  = this->end();
-				std::sort(beg, ed, typename FeatureType::IntensityLess() ); 
+				if (reverse)
+				{
+					std::sort(this->begin(), this->end(), reverseComparator(typename FeatureType::IntensityLess()) );
+				}
+				else
+				{
+					std::sort(this->begin(), this->end(), typename FeatureType::IntensityLess() ); 
+				}
 			}
 				
 			/** @brief Sort features by position.

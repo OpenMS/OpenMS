@@ -1,7 +1,5 @@
 @INCLUDE = doxygen/Doxyfile
 
-# Doxyfile 1.5.1
-
 GENERATE_TODOLIST      = YES
 
 # issue all possible warnings
@@ -14,9 +12,6 @@ WARN_NO_PARAMDOC       = YES
 # Internal info sections
 ENABLED_SECTIONS       = INTERNAL_INFO
 
-# XML for checker.php
-GENERATE_XML           = YES
-
 #overwrite files to parse
 INPUT                  = ../include/OpenMS/ \
                          ../source/APPLICATIONS/TOPP/ \
@@ -28,4 +23,4 @@ INPUT                  = ../include/OpenMS/ \
                          ./doxygen/internal/ \
                          ./doxygen/install/
 
-FILE_PATTERNS          = *.doxygen *.C *.h
+FILE_PATTERNS          = *.doxygen *.C
