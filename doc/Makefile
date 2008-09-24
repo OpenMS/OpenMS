@@ -68,6 +68,8 @@ paramdoc_try: doxygen/parameters/DefaultParamHandlerDocumenter.C ../source/confi
 	@touch doxygen/parameters/DefaultParameters.doxygen
 
 #######################################################################
+# creates the documentation
+doc:
 	@make paramdoc
 	@echo "";
 	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
@@ -100,7 +102,7 @@ idoc:
 	@echo "";
 
 #######################################################################
-# Creates the full-blown, graphical, super-duper, internal documentation.
+# Creates the full-blown, graphical, internal documentation.
 # This requires the "dot" program, see http://www.graphviz.org/
 # Also required is some patience when creating the doc.
 # Therefore the output goes to a different directory.
