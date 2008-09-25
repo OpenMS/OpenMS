@@ -188,7 +188,20 @@ class TOPPFileInfo
 						 << "m/z range: " << feat.getMin()[Peak2D::MZ] << " / " << feat.getMax()[Peak2D::MZ] << endl
 						 << "intensity range: " << feat.getMinInt() << " / " << feat.getMaxInt() << endl
 						 << endl; 
-		 
+		 		
+		 		//Charge distribution
+		 		Map<UInt,UInt> charges;
+		 		for (UInt i=0; i< feat.size(); ++i)
+		 		{
+		 			charges[feat[i].getCharge()]++;
+		 		}
+		 		
+		 		cout << "Charge distribution" << endl;
+		 		for (Map<UInt,UInt>::const_iterator it=charges.begin(); it!=charges.end(); ++it)
+		 		{
+		 			cout << "charge " << it->first << ": " << it->second << endl;
+		 		}
+		 		
 				exp_set = &feat;
 			}
 			//-------------------------------------------------------------

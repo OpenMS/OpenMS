@@ -133,9 +133,6 @@ CHECK(static const String getProductName())
 	TEST_EQUAL(FFAW::getProductName(),"watershed")
 RESULT
 
-//remove log file
-File::remove("featurefinder.log");
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

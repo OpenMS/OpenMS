@@ -53,7 +53,7 @@ class TOPPFFEVal
 {
  public:
 	TOPPFFEVal()
-		: TOPPBase("FFEVal"," Evaluation tool for isotope-labeled quantitation experiments.")
+		: TOPPBase("FFEVal","Evaluation tool for isotope-labeled quantitation experiments.")
 	{
 	}
 	
@@ -62,82 +62,147 @@ class TOPPFFEVal
 	void registerOptionsAndFlags_()
 	{
 		addText_("Input options");
-		registerInputFile_("features","<file>","","Feature result file");
-		setValidFormats_("features", StringList::create("featureXML"));
-		registerInputFile_("manual","<file>","","Manual result file");
-		setValidFormats_("manual", StringList::create("featureXML"));
-	}
-
-	String correlation(vector<DoubleReal> a, vector<DoubleReal> b)
-	{
-		DoubleReal corr = Math::pearsonCorrelationCoefficient(a.begin(),a.end(),b.begin(),b.end());
-		return String::number(corr,3);
-	}
-
-	String fiveNumbers(vector<DoubleReal> a, UInt decimal_places)
-	{
-		sort(a.begin(),a.end());
-		return String::number(a[0],decimal_places) + " " + String::number(a[a.size()/4],decimal_places) + " " + String::number(a[a.size()/2],decimal_places) + " " + String::number(a[(3*a.size())/4],decimal_places) + " " + String::number(a.back(),decimal_places);
+		registerInputFile_("in","<file>","","Feature input file, which contains the data to be tested against the truth file.");
+		setValidFormats_("in", StringList::create("featureXML"));
+		registerInputFile_("truth","<file>","","Truth feature file that defines what features should be found.");
+		setValidFormats_("truth", StringList::create("featureXML"));
+		registerOutputFile_("out","<file>","","Feature output file. If given, an annotated input file is written.", false);
+		setValidFormats_("out", StringList::create("featureXML"));
 	}
 	
-	String fiveNumberErrors(vector<DoubleReal> a, vector<DoubleReal> b, UInt decimal_places)
+	/// Counts the number of features with meta value @p name equal to @p value
+	UInt count(const FeatureMap<>& map, const String& name, const String& value="")
 	{
-		vector<DoubleReal> errors;
-		for (UInt i=0; i< a.size(); ++i) errors.push_back(fabs(b[i] - a[i]));
-		return fiveNumbers(errors, decimal_places);
+		UInt count =0;
+		for (UInt i=0; i<map.size(); ++i)
+		{
+			if (map[i].metaValueExists(name))
+			{
+				if (value=="")
+				{
+					++count;
+				}
+				else
+				{
+					if (map[i].getMetaValue(name).toString()==value)
+					{
+						++count;
+					}
+				}
+			} 
+		}
+		return count;
 	}
-
-	String fiveNumberQuotients(vector<DoubleReal> a, vector<DoubleReal> b, UInt decimal_places)
+	
+	/// Returns the total number and percentage in parentheses
+	String percentage(UInt count, UInt size)
 	{
-		vector<DoubleReal> errors;
-		for (UInt i=0; i< a.size(); ++i) errors.push_back(a[i] / b[i]);
-		return fiveNumbers(errors, decimal_places);
+		return String(" (") + String::number(100.0*count/size,2) + "%)";
 	}
-
-	String meanError(vector<DoubleReal> a, vector<DoubleReal> b)
-	{
-		DoubleReal sum;
-		for (UInt i=0; i< a.size(); ++i) sum += fabs(b[i] - a[i]);
-		return  String::number(sum/a.size(),3);
-	}
-
+	
 	ExitCodes main_(int , const char**)
 	{
 		//load data
-		FeatureMap<> features_automatic,features_manual;
-		FeatureXMLFile().load(getStringOption_("features"),features_automatic);
-		features_automatic.sortByPosition();
-		FeatureXMLFile().load(getStringOption_("manual"),features_manual);
-		features_manual.sortByPosition();
+		FeatureMap<> features_in,features_truth;
+		FeatureXMLFile().load(getStringOption_("in"),features_in);
+		features_in.sortByPosition();
+		FeatureXMLFile().load(getStringOption_("truth"),features_truth);
+		features_truth.sortByPosition();
 		
 		//general statistics
-		UInt matched_single=0;
-		UInt matched_multi=0;
-				
-		for (UInt m=0; m<features_manual.size(); ++m)
+		for (UInt m=0; m<features_truth.size(); ++m)
 		{
-			const Feature& f_m =  features_manual[m];
+			Feature& f_t =  features_truth[m];
 			UInt match_count = 0;
+			bool charge_ok = false;
 			Feature best_match;
-			for (UInt a=0; a<features_automatic.size(); ++a)
+			for (UInt a=0; a<features_in.size(); ++a)
 			{
-				const Feature& f_a =  features_automatic[a];
-				if (f_a.getConvexHull().encloses(f_m.getPosition()))
+				const Feature& f_i =  features_in[a];
+				if (f_i.getConvexHull().encloses(f_t.getPosition()))
 				{
 					++match_count;
+					if(f_i.getCharge()==f_t.getCharge()) charge_ok = true;
+				}
+				else 
+				{
+					if (fabs(f_i.getRT()-f_t.getRT())<0.25*f_i.getConvexHull().getBoundingBox().width())
+					{
+						if (f_t.getCharge()!=0 && fabs(f_i.getMZ()-f_t.getMZ())<0.25/f_t.getCharge())
+						{
+							++match_count;
+							if(f_i.getCharge()==f_t.getCharge()) charge_ok = true;
+						}
+					}
 				}
 			}
-			if (match_count==1) ++matched_single;
-			if (match_count>1) ++matched_multi;
+			
+			if (match_count==0)
+			{
+				f_t.setMetaValue("matches",String("none"));
+			}
+			else if (match_count==1)
+			{
+				f_t.setMetaValue("matches",String("one"));
+				if (charge_ok)
+				{
+					f_t.setMetaValue("charge_correct",String("true"));
+				}
+				else
+				{
+					f_t.setMetaValue("charge_correct",String("false"));
+				}
+			}
+			else if (match_count>1)
+			{
+				f_t.setMetaValue("matches",String("mutiple"));
+			}
 		}
-		
+
+		//------------------------ general statistics ------------------------
 		cout << endl;
-		cout << "feature detection statistics:" << endl;
-		cout << "=============================" << endl;
-		cout << "  manual features: " << features_manual.size() << endl;
-		cout << "  matches: " << matched_single + matched_multi << " (" << String::number(100.0*(matched_single + matched_multi)/features_manual.size(),2) << "%)" << endl;
-		cout << "    one match: " << matched_single << " (" << String::number(100.0*matched_single/features_manual.size(),2) << "%)" << endl;
-		cout << "    multiple matches: " << matched_multi << " (" << String::number(100.0*matched_multi/features_manual.size(),2) << "%)" << endl;
+		cout << "general information:" << endl;
+		cout << "====================" << endl;
+		cout << "input features: " << features_in.size() << endl;		
+		cout << "truth features: " << features_truth.size() << endl;		
+
+		//------------------------ matches ------------------------
+		cout << endl;
+		cout << "feature matching statistics:" << endl;
+		cout << "============================" << endl;
+		UInt tmp = count(features_truth,"matches","none");
+		cout << "no match: " << tmp << percentage(tmp,features_truth.size()) << endl;
+		tmp = count(features_truth,"matches","one");
+		cout << "one match: " << tmp << percentage(tmp,features_truth.size()) << endl;
+		tmp = count(features_truth,"matches","multiple");
+		cout << "multiple matches: " << tmp << percentage(tmp,features_truth.size()) << endl;
+		
+		//------------------------ charges ------------------------
+		cout << endl;
+		cout << "charge matches statistics:" << endl;
+		cout << "===========================" << endl;
+		tmp = count(features_truth,"charge_correct","true");
+		cout << "one match and correct charge: " << tmp << percentage(tmp,features_truth.size()) << endl;
+		Map<UInt,UInt> present_charges,found_charges;
+		for (UInt i=0;i<features_truth.size(); ++i)
+		{
+			UInt charge = features_truth[i].getCharge();
+			present_charges[charge]++;
+			if (features_truth[i].getMetaValue("charge_correct").toString()=="true")
+			{
+				found_charges[charge]++;
+			}
+		}
+ 		for (Map<UInt,UInt>::const_iterator it=present_charges.begin(); it!=present_charges.end(); ++it)
+ 		{
+ 			cout << "charge " << it->first << ": " << found_charges[it->first] << "/" << it->second << percentage(found_charges[it->first],it->second) << endl;
+ 		}
+		
+		//write output
+		if (getStringOption_("out")!="")
+		{
+			FeatureXMLFile().store(getStringOption_("out"),features_truth);
+		}
 		
 		return EXECUTION_OK;
 	}

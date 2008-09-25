@@ -74,9 +74,6 @@ CHECK(static const String getProductName())
     TEST_EQUAL(FFAW::getProductName(),"isotope_wavelet")
 RESULT
 
-//remove log file
-File::remove("featurefinder.log");
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

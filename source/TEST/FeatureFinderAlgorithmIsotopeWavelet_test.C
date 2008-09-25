@@ -69,9 +69,6 @@ CHECK(static const String getProductName())
 	TEST_EQUAL(FFASS::getProductName(),"isotope_wavelet_nofit")
 RESULT
 
-//remove log file
-File::remove("featurefinder.log");
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

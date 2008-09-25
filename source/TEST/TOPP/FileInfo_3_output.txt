@@ -9,6 +9,9 @@ retention time range: 537.11 / 539.532
 m/z range: 407.281 / 648.688
 intensity range: 1376 / 6712
 
+Charge distribution
+charge 2: 4
+charge 3: 6
 
 -- Meta information --
 

@@ -333,7 +333,7 @@ namespace OpenMS
 			FeatureFinderAlgorithmPicked() 
 				: FeatureFinderAlgorithm<PeakType,FeatureType>(),
 					map_(),
-					log_("featurefinder.log")
+					log_()
 			{
 				//debugging
 				defaults_.setValue("debug","false","When debug mode is activated, several files with intermediate results are written to the folder 'debug'.");
@@ -446,6 +446,7 @@ namespace OpenMS
 				{
 					QDir dir(".");
 					dir.mkpath("debug/features");
+					log_.open("debug/log.txt");
 				}
 
 				//---------------------------------------------------------------------------
@@ -1164,6 +1165,11 @@ namespace OpenMS
 							{
 								log_ << "   - different charge (one is the multiple of the other) -> removing lower charge " << (i+1) << std::endl;
 								f1.setIntensity(0.0);
+							}
+							else if (f1.getCharge()%f2.getCharge()==0)
+							{
+								log_ << "   - different charge (one is the multiple of the other) -> removing lower charge " << (i+1) << std::endl;
+								f2.setIntensity(0.0);
 							}
 							else
 							{
