@@ -25,11 +25,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 using namespace OpenMS;
 using namespace OpenMS::Math;
@@ -43,6 +40,8 @@ using namespace std;
 	@page FFEval FFEval
 	
 	@brief Evaluation tool for isotope-labeled quantitation experiments.
+	
+	@todo Handling of truth convex hulls (Marc)
 */
 
 // We do not want this class to show up in the docu:
@@ -110,52 +109,72 @@ class TOPPFFEVal
 		features_truth.sortByPosition();
 		
 		//general statistics
+		std::vector<DoubleReal> ints_t;
+		std::vector<DoubleReal> ints_i;
+			
 		for (UInt m=0; m<features_truth.size(); ++m)
 		{
 			Feature& f_t =  features_truth[m];
 			UInt match_count = 0;
-			bool charge_ok = false;
-			Feature best_match;
+			bool correct_charge = false;
+			bool exact_centroid_match = false;
+			Feature last_match;
 			for (UInt a=0; a<features_in.size(); ++a)
 			{
 				const Feature& f_i =  features_in[a];
-				if (f_i.getConvexHull().encloses(f_t.getPosition()))
+				//RT match
+				DoubleReal rt_tol = 0.15*f_i.getConvexHull().getBoundingBox().width();
+				if (fabs(f_i.getRT()-f_t.getRT())<rt_tol)
 				{
-					++match_count;
-					if(f_i.getCharge()==f_t.getCharge()) charge_ok = true;
-				}
-				else 
-				{
-					if (fabs(f_i.getRT()-f_t.getRT())<0.25*f_i.getConvexHull().getBoundingBox().width())
+					DoubleReal mz_tol = 0.25 / f_t.getCharge();
+					//Exact m/z match
+					if (fabs(f_i.getMZ()-f_t.getMZ())<mz_tol)
 					{
-						if (f_t.getCharge()!=0 && fabs(f_i.getMZ()-f_t.getMZ())<0.25/f_t.getCharge())
-						{
-							++match_count;
-							if(f_i.getCharge()==f_t.getCharge()) charge_ok = true;
-						}
+						++match_count;
+						last_match = f_i;
+						exact_centroid_match = true;
+						if(f_i.getCharge()==f_t.getCharge()) correct_charge = true;
+					}
+					//Centroid is one trace off, but still contained in the convex hull
+					else if (f_i.getConvexHull().encloses(f_t.getPosition())
+									 &&
+									 (
+									  fabs(f_i.getMZ()+1.0/f_t.getCharge()-f_t.getMZ())<mz_tol
+									  ||
+									  fabs(f_i.getMZ()-1.0/f_t.getCharge()-f_t.getMZ())<mz_tol
+									 )
+						      )
+					{
+						++match_count;
+						last_match = f_i;
+						if(f_i.getCharge()==f_t.getCharge()) correct_charge = true;
 					}
 				}
 			}
 			
-			if (match_count==0)
+			f_t.setMetaValue("matches",match_count);
+			if (match_count==1)
 			{
-				f_t.setMetaValue("matches",String("none"));
-			}
-			else if (match_count==1)
-			{
-				f_t.setMetaValue("matches",String("one"));
-				if (charge_ok)
+				//flag matched feature with addition information
+				if (correct_charge)
 				{
-					f_t.setMetaValue("charge_correct",String("true"));
+					f_t.setMetaValue("correct_charge",String("true"));
+					//intensity correlation
+					ints_t.push_back(f_t.getIntensity());
+					ints_i.push_back(last_match.getIntensity());
 				}
 				else
 				{
-					f_t.setMetaValue("charge_correct",String("false"));
+					f_t.setMetaValue("correct_charge",String("false"));
 				}
-			}
-			else if (match_count>1)
-			{
-				f_t.setMetaValue("matches",String("mutiple"));
+				if (exact_centroid_match)
+				{
+					f_t.setMetaValue("exact_centroid_match",String("true"));
+				}
+				else
+				{
+					f_t.setMetaValue("exact_centroid_match",String("false"));
+				}
 			}
 		}
 
@@ -170,25 +189,33 @@ class TOPPFFEVal
 		cout << endl;
 		cout << "feature matching statistics:" << endl;
 		cout << "============================" << endl;
-		UInt tmp = count(features_truth,"matches","none");
+		UInt tmp = count(features_truth,"matches","0");
 		cout << "no match: " << tmp << percentage(tmp,features_truth.size()) << endl;
-		tmp = count(features_truth,"matches","one");
+		tmp = count(features_truth,"matches","1");
 		cout << "one match: " << tmp << percentage(tmp,features_truth.size()) << endl;
-		tmp = count(features_truth,"matches","multiple");
+		tmp = count(features_truth,"correct_charge","true");
+		cout << " - correct charge: " << tmp << percentage(tmp,features_truth.size()) << endl;
+		tmp = count(features_truth,"exact_centroid_match","true");
+		cout << " - exact centroid match: " << tmp << percentage(tmp,features_truth.size()) << endl;
+		tmp = features_truth.size() - count(features_truth,"matches","0") - count(features_truth,"matches","1");
 		cout << "multiple matches: " << tmp << percentage(tmp,features_truth.size()) << endl;
+
+		//------------------------ intensity ------------------------
+		cout << endl;
+		cout << "intensity statistics:" << endl;
+		cout << "=====================" << endl;
+		cout << "correlation of correct features: " << pearsonCorrelationCoefficient(ints_i.begin(),ints_i.end(),ints_t.begin(),ints_t.end()) << endl;
 		
 		//------------------------ charges ------------------------
 		cout << endl;
 		cout << "charge matches statistics:" << endl;
 		cout << "===========================" << endl;
-		tmp = count(features_truth,"charge_correct","true");
-		cout << "one match and correct charge: " << tmp << percentage(tmp,features_truth.size()) << endl;
 		Map<UInt,UInt> present_charges,found_charges;
 		for (UInt i=0;i<features_truth.size(); ++i)
 		{
 			UInt charge = features_truth[i].getCharge();
 			present_charges[charge]++;
-			if (features_truth[i].getMetaValue("charge_correct").toString()=="true")
+			if (features_truth[i].getMetaValue("correct_charge").toString()=="true")
 			{
 				found_charges[charge]++;
 			}

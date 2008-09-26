@@ -20,6 +20,7 @@ Changes to OpenMS XML formats:
 
 Changes to the contrib package:
 - Updated SeqAn package to revision 2666 (this fixes the STL debug error)
+- Added Cluster 3.0 library (version 1.40)
 
 Detailed list of changes to specific OpenMS classes:
 - Renamed and moved classes

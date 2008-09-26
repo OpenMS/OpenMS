@@ -28,9 +28,6 @@
 #include <algorithm>
 #include <OpenMS/CONCEPT/Types.h>
 
-// #include "gsl/gsl_cdf.h" // needed by p-value
-// #include <iostream> // debugging
-
 #ifndef OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H
 #define OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H
 
@@ -41,163 +38,141 @@ namespace OpenMS
 	{
 
 		/**
-		@brief Calculates the mean square error for the values in [begin_a, end_a) and [begin_b, end_b)
-
-		Calculates the mean square error for the data given by the two iterator
-		ranges. If one of the ranges contains a smaller number of values the rest
-		of the longer range is omitted.
-
-		@ingroup MathFunctionsStatistics
-
+			@brief Calculates the mean square error for the values in [begin_a, end_a) and [begin_b, end_b)
+	
+			Calculates the mean square error for the data given by the two iterator
+			ranges. If one of the ranges contains a smaller number of values the rest
+			of the longer range is omitted.
+   
+   		@exception Exception::InvalidRange is thrown if the iterator ranges are not of the same length or empty.
+		
+			@ingroup MathFunctionsStatistics
 		*/
 		template < typename IteratorType1, typename IteratorType2 >
-	  static
-		DoubleReal meanSquareError ( IteratorType1 begin_a, const IteratorType1 end_a,
-																 IteratorType2 begin_b, const IteratorType2 end_b
-															 )
+	  static DoubleReal meanSquareError ( IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b )
 		{
-			Int count = 0;
-			DoubleReal error = 0;
-			IteratorType1 & it_a = begin_a;
-			IteratorType2 & it_b = begin_b;
-
-			while(it_a != end_a && it_b != end_b)
+			//no data or different lengths
+			UInt count = distance(begin_a,end_a);
+			if (count==0 || count!=distance(begin_b,end_b))
 			{
-				DoubleReal diff = *it_a - *it_b;
-				error += diff * diff;
-				++count;
-				++it_a;
-				++it_b;
+				throw Exception::InvalidRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+			}
+			
+			DoubleReal error = 0;
+			while(begin_a != end_a)
+			{
+				error += pow(*begin_a - *begin_b,2);
+				++begin_a;
+				++begin_b;
 			}
 
 			return error / count;
-
 		}
 
 		/**
-		@brief Calculates the classification rate for the values in [begin_a,	end_a) and [begin_b, end_b)
+			@brief Calculates the classification rate for the values in [begin_a,	end_a) and [begin_b, end_b)
+	
+			Calculates the classification rate for the data given by the two iterator ranges. If
+			one of the ranges contains a smaller number of values the rest of the longer range is omitted.
 
-		Calculates the classification rate for the data given by the two iterator ranges. If
-		one of the ranges contains a smaller number of values the rest of the longer range is omitted.
-
-		@ingroup MathFunctionsStatistics
-
+	    @exception Exception::InvalidRange is thrown if the iterator ranges are not of the same length or empty.
+	
+			@ingroup MathFunctionsStatistics
 		*/
 		template < typename IteratorType1, typename IteratorType2 >
-	  static
-		Real classificationRate ( IteratorType1 begin_a, const IteratorType1 end_a,
-															IteratorType2 begin_b, const IteratorType2 end_b
-														)
+	  static DoubleReal classificationRate ( IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b )
 		{
-			Int count = 0;
-			DoubleReal error = 0;
-			IteratorType1 & it_a = begin_a;
-			IteratorType2 & it_b = begin_b;
-
-			if (it_a == end_a || it_b == end_b)
+			//no data or different lengths
+			UInt count = distance(begin_a,end_a);
+			if (count==0 || count!=distance(begin_b,end_b))
 			{
-				return 0;
+				throw Exception::InvalidRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 			}
-
-			while(it_a != end_a && it_b != end_b)
+			
+			DoubleReal correct = count;
+			while(begin_a != end_a)
 			{
-				if ((*it_a < 0 && *it_b >= 0)
-						|| (*it_a >= 0 && *it_b < 0))
+				if ((*begin_a < 0 && *begin_b >= 0) || (*begin_a >= 0 && *begin_b < 0))
 				{
-					error += 1;
+					--correct;
 				}
-				++count;
-				++it_a;
-				++it_b;
+				++begin_a;
+				++begin_b;
 			}
 
-			return (count - error) / count;
-
+			return correct / count;
 		}
 
-		/**@brief Calculates the Matthews Correlation Coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
+		/**
+			@brief Calculates the Matthews Correlation Coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
 
-		Calculates the Matthews Correlation Coefficient for the data given by the
-		two iterator ranges. If one of the ranges contains a smaller number of
-		values the rest of the longer range is omitted.  The values in [begin_a,
-		end_a) have to be the predicted labels and the values in [begin_b, end_b)
-		have to be the real labels.
+			Calculates the Matthews Correlation Coefficient for the data given by the
+			two iterator ranges. The values in [begin_a,
+			end_a) have to be the predicted labels and the values in [begin_b, end_b)
+			have to be the real labels.
 
-		Formerly called mcc, renamed for obvious reason.
-
-		@ingroup MathFunctionsStatistics
-
+	    @exception Exception::InvalidRange is thrown if the iterator ranges are not of the same length or empty.
+	    	
+			@ingroup MathFunctionsStatistics
 		*/
 		template < typename IteratorType1, typename IteratorType2 >
-	  static DoubleReal matthewsCorrelationCoefficient( IteratorType1 begin_a, const IteratorType1 end_a,
-																						 IteratorType2 begin_b, const IteratorType2 end_b
-																					 )
+	  static DoubleReal matthewsCorrelationCoefficient( IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b)
 		{
-			IteratorType1 & it_a = begin_a;
-			IteratorType2 & it_b = begin_b;
+			//no data or different lengths
+			UInt count = distance(begin_a,end_a);
+			if (count==0 || count!=distance(begin_b,end_b))
+			{
+				throw Exception::InvalidRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+			}
+			
 			DoubleReal tp = 0;
 			DoubleReal fp = 0;
 			DoubleReal tn = 0;
 			DoubleReal fn = 0;
 
-			if (it_a == end_a || it_b == end_b)
+			while(begin_a != end_a)
 			{
-				return 0;
-			}
-
-			while(it_a != end_a && it_b != end_b)
-			{
-				if (*it_a < 0 && *it_b >= 0)
+				if (*begin_a < 0 && *begin_b >= 0)
 				{
 					++fn;
 				}
-				else if (*it_a < 0 && *it_b < 0)
+				else if (*begin_a < 0 && *begin_b < 0)
 				{
 					++tn;
 				}
-				else if (*it_a >= 0 && *it_b >= 0)
+				else if (*begin_a >= 0 && *begin_b >= 0)
 				{
 					++tp;
 				}
-				else if (*it_a >= 0 && *it_b < 0)
+				else if (*begin_a >= 0 && *begin_b < 0)
 				{
 					++fp;
 				}
 
-				++it_a;
-				++it_b;
+				++begin_a;
+				++begin_b;
 			}
 
-			return ((tp * tn - fp * fn) / 
-							sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn)));
-
+			return ((tp * tn - fp * fn) / sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn)));
 		}
 
 		/**
-		@brief calculates the pearson correlation coefficient for the values in
-		[begin_a, end_a) and [begin_b, end_b)
+			@brief calculates the pearson correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
+	
+			Calculates the linear correlation coefficient for the data given by the two iterator ranges.
+					
+			If one of the ranges contains only the same values 'nan' is returned.
 
-		Calculates the linear correlation coefficient for the data given by the
-		two iterator ranges.
-
-		If the iterator ranges are not of the same length or empty an exception is
-		thrown.
-				
-		If one of the ranges contains only the same values 'nan' is returned.
-
-		@ingroup MathFunctionsStatistics
-
+	    @exception Exception::InvalidRange is thrown if the iterator ranges are not of the same length or empty.
+	
+			@ingroup MathFunctionsStatistics
 		*/
 		template < typename IteratorType1, typename IteratorType2 >
-	  static 
-	  DoubleReal pearsonCorrelationCoefficient ( IteratorType1 begin_a, IteratorType1 end_a,
-																						 IteratorType2 begin_b, IteratorType2 end_b
-																					 )
-			throw (Exception::InvalidRange)
+	  static DoubleReal pearsonCorrelationCoefficient ( IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b )
 		{
-			UInt count = end_a-begin_a;
 			//no data or different lengths
-			if (count==0 || end_a-begin_a!=end_b-begin_b)
+			UInt count = distance(begin_a,end_a);
+			if (count==0 || count!=distance(begin_b,end_b))
 			{
 				throw Exception::InvalidRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 			}
@@ -257,31 +232,25 @@ namespace OpenMS
     }
 
     /**
-    @brief calculates the rank correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)         
-               
-    Calculates the rank correlation coefficient for the data given by the
-    two iterator ranges.
+	    @brief calculates the rank correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)         
+	               
+	    Calculates the rank correlation coefficient for the data given by the two iterator ranges.
+	
+	    If one of the ranges contains only the same values 'nan' is returned.
 
-    If the iterator ranges are not of the same length or empty an exception is
-    thrown.
+	    @exception Exception::InvalidRange is thrown if the iterator ranges are not of the same length or empty.
 
-    If one of the ranges contains only the same values 'nan' is returned.
-
-    @ingroup MathFunctionsStatistics
-
+	    @ingroup MathFunctionsStatistics
     */
     template < typename IteratorType1, typename IteratorType2 >
-    static DoubleReal rankCorrelationCoefficient ( IteratorType1 begin_a, IteratorType1 end_a,
-    IteratorType2 begin_b, IteratorType2 end_b )
-    throw (Exception::InvalidRange)
+    static DoubleReal rankCorrelationCoefficient ( IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b )
     {
-      UInt count = end_a-begin_a;
-      
-      //no data or different lengths
-      if (count==0 || end_a-begin_a!=end_b-begin_b)
-      {
-        throw Exception::InvalidRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-      }
+			//no data or different lengths
+			UInt count = distance(begin_a,end_a);
+			if (count==0 || count!=distance(begin_b,end_b))
+			{
+				throw Exception::InvalidRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+			}
 
       // store and sort intensities of model and data
       std::vector<DoubleReal> ranks_data;
@@ -321,15 +290,6 @@ namespace OpenMS
       if ( ! sqsum_data || ! sqsum_model ) return 0;		
 		
       DoubleReal corr = sum_model_data / (  sqrt(sqsum_data) * sqrt(sqsum_model) ); 
-		
-      // compute p-value
-      /*
-      UInt df = ranks_data.size()-1;
-      DoubleReal t_stat = sqrt(df) * corr; 
-		
-		  // t_stat follows Normal Gaussian distribution 
-      DoubleReal pval = (1 - gsl_cdf_ugaussian_P(t_stat));	
- 			*/	
 				
       return ( fabs(corr));
     }

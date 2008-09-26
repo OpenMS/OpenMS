@@ -495,7 +495,7 @@ namespace OpenMS
     {
       UInt n = distance(first,last);
       ms_exp_peaks.reserve(n);
-      startProgress(0,n,"pick peaks in mzData file");
+      startProgress(0,n,"picking peaks");
       // pick peaks on each scan
       for (UInt i = 0; i < n; ++i)
       {
