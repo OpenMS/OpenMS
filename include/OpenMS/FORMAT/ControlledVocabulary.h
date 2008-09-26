@@ -71,17 +71,30 @@ namespace OpenMS
 			/// Returns the CV name (set in the load method)
 			const String& name() const;
 			
-			///load the CV from a OBO file
-			void loadFromOBO(const String& name, const String& filename) throw (Exception::FileNotFound, Exception::ParseError);
+			/**
+				@brief Loads the CV from an OBO file
+
+				@exception Exception::FileNotFound is thrown if the file could not be opened
+				@exception Exception::ParseError is thrown if an error occurs during parsing
+			*/
+			void loadFromOBO(const String& name, const String& filename);
 			
 			/// Returns true if the term is in the CV. Returns false otherwise.
 			bool exists(const String& id) const;
 			
-			///Returns a term specified by ID
-			const CVTerm& getTerm(const String& id) const throw (Exception::InvalidValue);
+			/**
+				@brief Returns a term specified by ID
+				
+				@exception Exception::InvalidValue is thrown if the term is not present
+			*/
+			const CVTerm& getTerm(const String& id) const;
 
-			///Returns if @p child is a child of @p parent
-			bool isChildOf(const String& child, const String& parent) const  throw (Exception::InvalidValue);
+			/**
+				@brief Returns if @p child is a child of @p parent
+				
+				@exception Exception::InvalidValue is thrown if one of the terms is not present
+			*/
+			bool isChildOf(const String& child, const String& parent) const;
 			
 		protected:
 			///Map from ID to CVTerm

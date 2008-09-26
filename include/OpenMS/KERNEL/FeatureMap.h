@@ -153,11 +153,12 @@ namespace OpenMS
 				std::sort(this->begin(), this->end(), typename FeatureType::PositionLess() );
 			}
 			
-			/** @brief Sort features by position @p i.
+			/**
+				@brief Sort features by position @p i.
 				
-			   Features are only sorted by position @p i.		
+				@exception Exception::NotImplemented is thrown if sorting by the requested position is not supported.
 			*/
-			void sortByNthPosition(UInt i) throw (Exception::NotImplemented);
+			void sortByNthPosition(UInt i);
 			
 			///Sort features by overall quality @p i.
 			void sortByOverallQuality()
@@ -241,7 +242,7 @@ namespace OpenMS
 	}
 	
 	template <typename FeatureType > 
-	void FeatureMap<FeatureType>::sortByNthPosition(UInt i) throw (Exception::NotImplemented)
+	void FeatureMap<FeatureType>::sortByNthPosition(UInt i)
 	{ 
 		if (i==0)
 		{

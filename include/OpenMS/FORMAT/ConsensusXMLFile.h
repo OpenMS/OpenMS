@@ -55,8 +55,13 @@ namespace OpenMS
       ~ConsensusXMLFile();
 
 
-      /// Loads a consenus map from a ConsensusXML file.
-      void load(const String& filename, ConsensusMap& map) throw (Exception::FileNotFound, Exception::ParseError)
+			/**
+				@brief Loads a consenus map from a ConsensusXML file.
+			
+				@exception Exception::FileNotFound is thrown if the file could not be opened
+				@exception Exception::ParseError is thrown if an error occurs during parsing
+			*/
+      void load(const String& filename, ConsensusMap& map)
       {
         map.clear(); // clear map
         Internal::ConsensusXMLHandler handler(map,filename,schema_version_);

@@ -58,7 +58,7 @@ RESULT
 
 PRECISION(0.01)
 
-CHECK((void load(const String &filename, ConsensusMap &map) throw (Exception::FileNotFound, Exception::ParseError)))
+CHECK((void load(const String &filename, ConsensusMap &map)))
   ConsensusMap cons_map;
   ConsensusXMLFile cons_file;
   cons_file.load("data/ConsensusXMLFile.xml", cons_map);

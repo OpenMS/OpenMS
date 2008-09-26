@@ -60,8 +60,8 @@ namespace OpenMS
 				@brief Loads peptide sequences with modifications out of a PepXML file
 				
 
-				@exception Exception::FileNotFound is thrown  if the file could not be opened
-				@exception Exception::ParseError is thrown  if an error occurs during parsing
+				@exception Exception::FileNotFound is thrown if the file could not be opened
+				@exception Exception::ParseError is thrown if an error occurs during parsing
 			*/
 			void load(const String& filename,  std::map<String, std::vector<AASequence> >& peptides);			 			 
   	protected:

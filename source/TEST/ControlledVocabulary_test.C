@@ -53,7 +53,7 @@ CHECK(const String& name() const)
 RESULT
 
 ControlledVocabulary cv;
-CHECK(void loadFromOBO(const String &name, const String &filename) throw (Exception::FileNotFound, Exception::ParseError))
+CHECK(void loadFromOBO(const String &name, const String &filename))
 	cv.loadFromOBO("bla","data/ControlledVocabulary.obo");
 	TEST_EQUAL(cv.name(),"bla")
 RESULT
@@ -68,7 +68,7 @@ CHECK(bool exists(const String& id) const)
 	TEST_EQUAL(cv.exists("OpenMS:7"),false)
 RESULT
 
-CHECK(const CVTerm& getTerm(const String& id) const throw (Exception::InvalidValue))
+CHECK(const CVTerm& getTerm(const String& id) const)
 	const ControlledVocabulary::CVTerm* term=0;
 	//Auto
 	term = &(cv.getTerm("OpenMS:1"));
@@ -115,7 +115,7 @@ CHECK(const CVTerm& getTerm(const String& id) const throw (Exception::InvalidVal
 	TEST_EXCEPTION(Exception::InvalidValue , cv.getTerm("OpenMS:7"))
 RESULT
 
-CHECK(bool isChildOf(const String& child, const String& parent) const  throw (Exception::InvalidValue))
+CHECK(bool isChildOf(const String& child, const String& parent) const)
 	TEST_EQUAL(cv.isChildOf("OpenMS:6","OpenMS:2"),true)
 	TEST_EQUAL(cv.isChildOf("OpenMS:5","OpenMS:2"),true)
 	TEST_EQUAL(cv.isChildOf("OpenMS:2","OpenMS:1"),true)

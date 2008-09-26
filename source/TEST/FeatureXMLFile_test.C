@@ -57,7 +57,7 @@ CHECK((~FeatureXMLFile()))
 	delete ptr;
 RESULT
  
-CHECK((void load(String filename, FeatureMap<>& feature_map) throw (Exception::FileNotFound, Exception::ParseError)))
+CHECK((void load(String filename, FeatureMap<>& feature_map)))
 	PRECISION(0.01)
 	
 	FeatureMap<> e;
@@ -223,7 +223,7 @@ CHECK((void load(String filename, FeatureMap<>& feature_map) throw (Exception::F
 	TEST_REAL_EQUAL(e[0].getIntensity(), 500)
 RESULT
 
-CHECK((void store(String filename, const FeatureMap<>& feature_map) const throw(Exception::UnableToCreateFile)))
+CHECK((void store(String filename, const FeatureMap<>& feature_map) const))
   
   std::string tmp_filename;
   FeatureMap<> e;

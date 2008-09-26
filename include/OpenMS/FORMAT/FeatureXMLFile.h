@@ -60,11 +60,20 @@ namespace OpenMS
 			~FeatureXMLFile();
 			//@}
 			
-			/// loads the file with name @p filename into @p map.
-			void load(String filename, FeatureMap<>& feature_map) throw (Exception::FileNotFound, Exception::ParseError);
+			/**
+				@brief loads the file with name @p filename into @p map.
+			
+				@exception Exception::FileNotFound is thrown if the file could not be opened
+				@exception Exception::ParseError is thrown if an error occurs during parsing
+			*/
+			void load(String filename, FeatureMap<>& feature_map);
 					
-			/// stores the map @p feature_map in file with name @p filename.
-			void store(String filename, const FeatureMap<>& feature_map) const throw (Exception::UnableToCreateFile);
+			/**
+				@brief stores the map @p feature_map in file with name @p filename.
+				
+				@exception Exception::UnableToCreateFile is thrown if the file could not be created
+			*/
+			void store(String filename, const FeatureMap<>& feature_map) const;
 			
       /// Mutable access to the options for loading/storing 
       PeakFileOptions& getOptions();

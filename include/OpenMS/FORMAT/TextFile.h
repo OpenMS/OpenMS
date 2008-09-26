@@ -69,7 +69,7 @@ namespace OpenMS
     		@param filename the filename
     		@param trim_lines wether or not the lines are trimmed when reading them from file
 
-				@exception Exception::FileNotFound is thrown  if the file could not be opened
+				@exception Exception::FileNotFound is thrown if the file could not be opened
     	*/
 			TextFile(const String& filename, bool trim_lines=false);
 
@@ -79,7 +79,7 @@ namespace OpenMS
     		@param filename the filename
     		@param trim_lines wether or not the lines are trimmed when reading them from file
 
-				@exception Exception::FileNotFound is thrown  if the file could not be opened
+				@exception Exception::FileNotFound is thrown if the file could not be opened
     	*/
 			void load(const String& filename, bool trim_lines=false);
 

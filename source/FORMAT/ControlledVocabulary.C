@@ -48,15 +48,15 @@ namespace OpenMS
 		
 	}
 	
-	void ControlledVocabulary::loadFromOBO(const String& name, const String& filename) throw (Exception::FileNotFound, Exception::ParseError)
+	void ControlledVocabulary::loadFromOBO(const String& name, const String& filename)
 	{
 		name_ = name;
 		
 		ifstream is(filename.c_str());
-	    if (!is)
-	    {
-	     	throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-	    }
+    if (!is)
+    {
+     	throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+    }
 		
 		String line, line_wo_spaces;
 		CVTerm term;
@@ -115,7 +115,7 @@ namespace OpenMS
 		}
 	}
 		
-	const ControlledVocabulary::CVTerm& ControlledVocabulary::getTerm(const String& id) const throw (Exception::InvalidValue)
+	const ControlledVocabulary::CVTerm& ControlledVocabulary::getTerm(const String& id) const
 	{
 		map<String, CVTerm>::const_iterator it = terms_.find(id);
 		if (it==terms_.end())
@@ -134,7 +134,7 @@ namespace OpenMS
 		return true;
 	}	
 	
-	bool ControlledVocabulary::isChildOf(const String& child, const String& parent) const throw (Exception::InvalidValue)
+	bool ControlledVocabulary::isChildOf(const String& child, const String& parent) const
 	{
 		//cout << "CHECK child:" << child << " parent: " << parent << endl;
 		const CVTerm& ch = getTerm(child);

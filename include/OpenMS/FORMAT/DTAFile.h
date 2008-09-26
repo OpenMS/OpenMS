@@ -58,8 +58,8 @@ namespace OpenMS
  				The content of the file is stored in @p spectrum.
  				@p spectrum has to be a DSpectrum<1>/MSSpectrum<> or have the same interface.
 
-				@exception Exception::FileNotFound is thrown  if the file could not be opened
-				@exception Exception::ParseError is thrown  if an error occurs during parsing
+				@exception Exception::FileNotFound is thrown if the file could not be opened
+				@exception Exception::ParseError is thrown if an error occurs during parsing
       */
       template <typename SpectrumType>
       void load(const String& filename, SpectrumType& spectrum)

@@ -39,7 +39,7 @@ namespace OpenMS
 	{
 	}
 
-	void FeatureXMLFile::load(String filename, FeatureMap<>& feature_map) throw (Exception::FileNotFound, Exception::ParseError)
+	void FeatureXMLFile::load(String filename, FeatureMap<>& feature_map)
 	{
 		feature_map.clear();
 		Internal::FeatureXMLHandler handler(feature_map,filename,schema_version_);
@@ -47,7 +47,7 @@ namespace OpenMS
 		parse_(filename, &handler);
 	}
 
-	void FeatureXMLFile::store(String filename, const FeatureMap<>& feature_map) const throw (Exception::UnableToCreateFile)
+	void FeatureXMLFile::store(String filename, const FeatureMap<>& feature_map) const
 	{
 		Internal::FeatureXMLHandler handler(feature_map,filename,schema_version_);
 		save_(filename, &handler);

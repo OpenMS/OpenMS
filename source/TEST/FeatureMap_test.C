@@ -251,7 +251,7 @@ CHECK((void sortByPosition()))
 	
 RESULT
 
-CHECK((void sortByNthPosition(UInt i) throw(Exception::NotImplemented)))
+CHECK((void sortByNthPosition(UInt i)))
 	
 	FeatureMap<> to_be_sorted;
 	
