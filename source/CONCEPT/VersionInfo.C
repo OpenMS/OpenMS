@@ -28,7 +28,11 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <cstdlib>
-#include <iostream> // TODO remove this
+
+#ifndef OPENMS_REVISION
+#warning OPENMS_REVISION not defined!
+#define OPENMS_REVISION ""
+#endif
 
 namespace OpenMS
 {
@@ -92,7 +96,7 @@ namespace OpenMS
 		static String result;
 		if ( !is_initialized )
 		{
-			// Ultimately, this is derived from a shell command, and might have
+			// Ultimately, this is derived from a shell command, and hence might have
 			// whitespace around it
 			result = OPENMS_REVISION;
 			result.trim();
