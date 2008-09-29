@@ -121,8 +121,11 @@ namespace OpenMS
 
       //@}
       
-      /// compute clusters from a vector of DPositions up until given cutoff
-      void compute(const std::vector<ClusterPointType>& points) throw (Exception::NotImplemented)
+      /** @brief compute clusters from a vector of DPositions up until given cutoff
+			 *  
+			 *	@exception Throws Exception::NotImplemented if linkage_type Param is invalid
+			 */
+      void compute(const std::vector<ClusterPointType>& points)
       {
         double cutoff = param_.getValue("cluster_cutoff");
         int linkage_method = param_.getValue("linkage_type");

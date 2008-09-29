@@ -152,11 +152,12 @@ namespace OpenMS
   protected:
 
 
-    /// calculate StN values for all datapoints given, by using a sliding window approach
-    /// @param scan_first_ first element in the scan
-    /// @param scan_last_ last element in the scan (disregarded)
+		/** calculate StN values for all datapoints given, by using a sliding window approach
+				@param scan_first_ first element in the scan
+				@param scan_last_ last element in the scan (disregarded)
+				@exception Throws Exception::InvalidValue
+	  */
     void computeSTN_(const PeakIterator& scan_first_, const PeakIterator& scan_last_)
-    throw(Exception::InvalidValue)
     {
       // reset counter for sparse windows
       double sparse_window_percent = 0;
