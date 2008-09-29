@@ -81,7 +81,8 @@ namespace OpenMS
 				convex_hulls_(),
 				convex_hulls_modified_(true),
 				convex_hull_(),
-				charge_( 0 )
+				charge_( 0 ),
+				subordinates_()
 		{
 			std::fill( qualities_, qualities_ + 2, 0 );
 		}
@@ -95,7 +96,8 @@ namespace OpenMS
 				convex_hulls_modified_(feature.convex_hulls_modified_),
 				convex_hull_( feature.convex_hull_ ),
 				charge_( feature.charge_ ),
-				identifications_( feature.identifications_ )
+				identifications_( feature.identifications_ ),
+				subordinates_( feature.subordinates_ )
 		{
 			std::copy( feature.qualities_, feature.qualities_ + 2, qualities_ );
 		}
@@ -124,14 +126,14 @@ namespace OpenMS
 		{
 			OPENMS_PRECONDITION( index < 2, "Feature<2>:getQuality(UInt): index overflow!" );
 			return qualities_[ index ];
-		}
+			}
 		/// Set the quality in dimension c
 		inline void setQuality( UInt index, QualityType q )
 		{
 			OPENMS_PRECONDITION( index < 2, "Feature<2>:setQuality(UInt): index overflow!" );
 			qualities_[ index ] = q;
 		}
-			
+
 		/// Non-mutable access to the model description
 		inline const ModelDescription<2>& getModelDescription() const
 		{
@@ -236,6 +238,31 @@ namespace OpenMS
 			identifications_ = identifications;
 		};
 
+		/// are subordinate features (e.g. with other charge and lower quality) available?
+		bool hasSubOrdinates() const
+		{
+			if (subordinates_.size()>0) return true;
+			else return false;
+		}
+		
+		/// get subordinate features
+		const std::vector<Feature>& getSubOrdinates() const
+		{
+			return subordinates_;
+		}
+		
+		/// mutable access to subordinate features
+		std::vector<Feature>& getSubOrdinates()
+		{
+			return subordinates_;
+		}		
+		
+		/// add a subordinate feature
+		void addSubOrdinate(const Feature& f)
+		{
+			subordinates_.push_back(f);
+		}
+		
 	 protected:
 		/// Overall quality measure of the feature
 		QualityType overall_quality_;
@@ -253,6 +280,9 @@ namespace OpenMS
 		ChargeType charge_;
 		/// Peptide PeptideIdentifications belonging to the feature
 		std::vector<PeptideIdentification> identifications_;
+		
+		/// subordinate features (e.g. features that the ModelFitter discarded due to inferior quality)
+		std::vector<Feature> subordinates_;		
   };
 
 } // namespace OpenMS

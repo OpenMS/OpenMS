@@ -103,7 +103,8 @@ EXECUTABLES_METADATA = \
 	SpectrumSettings_test\
 	Gradient_test\
 	HPLC_test\
-	ExperimentalSettings_test
+	ExperimentalSettings_test\
+	DocumentIdentifier_test
 
 #SYSTEM
 

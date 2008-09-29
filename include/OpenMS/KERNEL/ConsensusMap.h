@@ -50,7 +50,8 @@ namespace OpenMS
 	class ConsensusMap 
 		: public std::vector<ConsensusFeature>,
 			public MetaInfoInterface,
-			public RangeManager<2>
+			public RangeManager<2>,
+			public DocumentIdentifier
 	{
 	  public:
 	  	/// Source file desciption for input files
@@ -94,9 +95,9 @@ namespace OpenMS
 	    inline ConsensusMap()
 	      : Base(),
 	      	MetaInfoInterface(),
-	      	RangeManagerType(),
-	        file_description_(),
-	        identifier_()
+					RangeManagerType(),
+					DocumentIdentifier(),
+	        file_description_()
 	    {
 	    }
 	
@@ -105,8 +106,8 @@ namespace OpenMS
 	      : Base(source),
 	      	MetaInfoInterface(source),
 	      	RangeManagerType(source),
-	        file_description_(source.file_description_),
-	        identifier_(source.identifier_)
+					DocumentIdentifier(source),
+	        file_description_(source.file_description_)
 	    {
 	    }
 	
@@ -120,8 +121,8 @@ namespace OpenMS
 	    	: Base(n),
 	    		MetaInfoInterface(),
 	      	RangeManagerType(),
-	        file_description_(),
-	        identifier_()
+					DocumentIdentifier(),
+	        file_description_()
 	    {
 	    }
 	
@@ -133,8 +134,8 @@ namespace OpenMS
 	      Base::operator=(source);
 	      MetaInfoInterface::operator=(source);
 				RangeManagerType::operator=(source);
+				DocumentIdentifier::operator=(source);
 	      file_description_ = source.file_description_;
-	      identifier_ = source.identifier_;
 	      
 	      return *this;
 	    }
@@ -150,17 +151,6 @@ namespace OpenMS
 	    {
 	      return file_description_;
 	    }
-
-			/// returns the identifier e.g. a LSID
-			inline const String& getIdentifier() const
-			{
-				return identifier_;
-			}
-			/// sets the identifier e.g. a LSID
-			inline void setIdentifier(const String& identifier)
-			{
-				identifier_ = identifier;
-			}
 
 			/**
 				@brief Checks if all map identifiers in FeatureHandles have a filename associated
@@ -290,15 +280,14 @@ namespace OpenMS
 				
 				//swap the remaining members
 				std::swap(file_description_, from.file_description_);
-				std::swap(identifier_, from.identifier_);
+				
+				DocumentIdentifier::swap(from);
 			}
 			
 	  protected:
 	    /// Map from index to file description
 	  	FileDescriptions file_description_;
-	  	/// Unique identifier e.g. LSID
-	  	String identifier_;
-  };
+	};
 
   ///Print the contents of a ConsensusMap to a stream.
   std::ostream& operator << (std::ostream& os, const ConsensusMap& cons_map);

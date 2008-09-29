@@ -35,6 +35,7 @@ namespace OpenMS
 
 	ExperimentalSettings::ExperimentalSettings():
 		MetaInfoInterface(),
+		DocumentIdentifier(),
 		sample_(),
 		source_file_(),
 		contacts_(),
@@ -45,7 +46,6 @@ namespace OpenMS
 		type_(UNKNOWN),
 		date_(),
 		comment_(),
-		identifier_(),
 		protein_identifications_()
 	{
 	  
@@ -53,6 +53,7 @@ namespace OpenMS
 	
 	ExperimentalSettings::ExperimentalSettings(const ExperimentalSettings& source):
 		MetaInfoInterface(source),
+		DocumentIdentifier(source),
 	  sample_(source.sample_),
 	  source_file_(source.source_file_),
 	  contacts_(source.contacts_),
@@ -63,7 +64,6 @@ namespace OpenMS
 	  type_(source.type_),
 	  date_(source.date_),
 	  comment_(source.comment_),
-	  identifier_(source.identifier_),
 		protein_identifications_(source.protein_identifications_)
 	{
 	  
@@ -88,9 +88,9 @@ namespace OpenMS
     type_ = source.type_;
     date_ = source.date_;
     comment_ = source.comment_;
-	  identifier_ = source.identifier_;
     protein_identifications_ = source.protein_identifications_;
     MetaInfoInterface::operator=(source);
+		DocumentIdentifier::operator=(source);
 	  
 	  return *this;
 	}
@@ -109,8 +109,8 @@ namespace OpenMS
 	    date_ == rhs.date_ &&
     	protein_identifications_ == rhs.protein_identifications_ &&
     	comment_ == rhs.comment_ &&
-    	identifier_ == rhs.identifier_ &&
-  		MetaInfoInterface::operator==(rhs)
+  		MetaInfoInterface::operator==(rhs) &&
+			DocumentIdentifier::operator==(rhs)
   		;
   }
 
@@ -282,14 +282,5 @@ namespace OpenMS
 	  comment_ = comment; 
 	}
 
-  const String& ExperimentalSettings::getIdentifier() const
-  {
-  	return identifier_;
-  }
-
-  void ExperimentalSettings::setIdentifier(const String& identifier)
-  {
-  	identifier_ = identifier;
-  }
 }
 

@@ -48,6 +48,8 @@ namespace OpenMS
 		as an STL vector has (model of Random Access Container and Back Insertion Sequence).
 		Maps are typically created from peak data of 2D runs through the FeatureFinder.
 		
+		@TODO kill derivation from ExperimentalSettings and derive from DocumentIdentifier&... instead (Marc, Chris)
+	 
 		@ingroup Kernel
 	*/
 	template <typename FeatureT = Feature >

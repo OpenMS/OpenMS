@@ -69,17 +69,19 @@ namespace OpenMS
 				 	map_(&map), 
 				 	cmap_(0),	
 				 	exp_sett_(),
-				 	in_description_(false)
+				 	in_description_(false),
+					subordinate_feature_level_(0)
 	  		{
 				}
 	      
-	      ///Constructor for writing
+	      /// Constructor for writing
 	      FeatureXMLHandler(const FeatureMap<Feature>& map, const String& filename, const String& version)
 	      : XMLHandler(filename,version),
 					map_(0), 
 					cmap_(&map),	
 					exp_sett_(),
-				 	in_description_(false)
+				 	in_description_(false),
+					subordinate_feature_level_(0)
 	  		{
 				}
 	
@@ -97,14 +99,25 @@ namespace OpenMS
 				
 				// Docu in base class
 	      virtual void characters(const XMLCh* const chars, unsigned int length);
-	
-				///Writes the contents to a stream
+
+				// Writes the content to a stream
 				void writeTo(std::ostream& os);
 				
-				///Sets the options
+				
+				/// Sets the options
 				void setOptions(const PeakFileOptions& options);
 	
 	    protected:
+				/// Writes a feature body to a stream
+				void writeFeature_(std::ostream& os, const Feature& feat, const String& identifier_prefix, const UInt identifier, const UInt& intendation_level);
+				/** @brief update the pointer to the current feature
+						
+					  @param create If true, a new (empty) Feature is added at the appropriate subordinate_feature_level_
+				 */
+				void updateCurrentFeature_(const bool create);
+
+				/// points to the last open <feature> tag (possibly a subordinate feature)
+				Feature* current_feature_;
 				/// Feature map pointer for reading
 				FeatureMap<Feature>* map_;
 				/// Feature map pointer for writing
@@ -114,7 +127,6 @@ namespace OpenMS
 				
 				/**@name temporary datastructures to hold parsed data */
 		    //@{
-				Feature feature_;
 				ModelDescription<2>* model_desc_;
 				Param param_;
 				ConvexHull2D current_chull_;
@@ -126,8 +138,11 @@ namespace OpenMS
 				/// current dimension of the feature position, quality, or convex hull point
 		 		UInt dim_;			
 				
-				//flag that indicates that the parser in in the description secion
+				/// flag that indicates that the parser in in the description secion
 				bool in_description_;
+				
+				/// level in Feature stack during parsing
+				Int subordinate_feature_level_;
 		};
 	} // namespace Internal
 } // namespace OpenMS

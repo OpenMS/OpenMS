@@ -284,6 +284,9 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit))
 	param.setValue("rt:interpolation_step",0.05f);
 	param.setValue("intensity_cutoff_factor",0.0f);
 	param.setValue("fit_algorithm","simplest");
+	param.setValue("mz:model_type:first", 0);
+	param.setValue("mz:model_type:last", 4);
+
 	model_fitter.setParameters(param);
 	ChargedIndexSet  set;
 	
@@ -307,6 +310,8 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit))
 	ProductModel<2>* model = static_cast< ProductModel<2>* >
 													(feature.getModelDescription().createModel());
 
+	// std::cout << model->getParameters() << std::endl;
+	
 	BaseModel<1>* rt_model = model->getModel(RT);
 	PRECISION(mean[RT]*0.01)		// Mean can differ by 1%
 	TEST_REAL_EQUAL(rt_model->getParameters().getValue("statistics:mean"),mean[RT]);

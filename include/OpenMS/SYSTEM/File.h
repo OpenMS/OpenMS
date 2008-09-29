@@ -128,7 +128,7 @@ namespace OpenMS
 				  
       	@return handle to a file (which is created if necessary)
       	
-				@throws exception on failure to acquire the handle (to make cross platform error handling easy)
+				@throws Exception::UnableToCreateFile or Exception::FileNotFound on failure to acquire the handle (to make cross platform error handling easy)
       	
 				@note implementation is platform dependent, as handles in Windows are void* vs. int in Unix
 			*/

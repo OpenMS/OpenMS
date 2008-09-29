@@ -35,6 +35,7 @@
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/METADATA/Instrument.h>
+#include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
 
@@ -51,7 +52,8 @@ namespace OpenMS
 		@ingroup Metadata
 	*/
   class ExperimentalSettings
-  	: public MetaInfoInterface
+  	: public MetaInfoInterface,
+			public DocumentIdentifier
   {
     public:
     	///Type of the experiment
@@ -146,11 +148,6 @@ namespace OpenMS
       /// sets the free-text comment
       void setComment(const String& comment);
 
-			/// returns the identifier e.g. a LSID
-      const String& getIdentifier() const;
-      /// sets the identifier e.g. a LSID
-      void setIdentifier(const String& identifier);
-
 		 	/// returns a const reference to the protein ProteinIdentification vector
 		 	const std::vector<ProteinIdentification>& getProteinIdentifications() const;		 		    	
 		 	/// returns a mutable reference to the protein ProteinIdentification vector
@@ -171,7 +168,6 @@ namespace OpenMS
 		  ExperimentType type_;
 		  Date date_;
 			String comment_;
-			String identifier_;
 			std::vector<ProteinIdentification> protein_identifications_;
   };
 

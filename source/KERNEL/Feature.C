@@ -43,6 +43,7 @@ namespace OpenMS
 		convex_hull_      			= rhs.convex_hull_;
 		charge_       					= rhs.charge_;
 		identifications_				= rhs.identifications_;
+		subordinates_						= rhs.subordinates_;
 		
 		return *this;
 	}
@@ -54,7 +55,8 @@ namespace OpenMS
 						&& (charge_ == rhs.charge_)
 						&& equal(qualities_, qualities_+2, rhs.qualities_)
 						&& (model_desc_ == rhs.model_desc_)
-						&& (convex_hulls_ == rhs.convex_hulls_));
+						&& (convex_hulls_ == rhs.convex_hulls_)
+						&& (subordinates_  == rhs.subordinates_));
 	}
 	
 	bool Feature::encloses(DoubleReal rt, DoubleReal mz) const

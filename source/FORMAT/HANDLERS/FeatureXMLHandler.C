@@ -64,8 +64,14 @@ namespace OpenMS
 			
 			if (tag=="feature")
 			{
-				feature_ = Feature();
+				//std::cout << "new feature tag at level: " << subordinate_feature_level_ << std::endl;
+				// create new feature at apropriate level	
+				updateCurrentFeature_(true);
 			}
+			else if (tag=="subordinate")
+			{ // this is not safe towards malformed xml!
+				++subordinate_feature_level_;
+			}			
 			else if (tag=="description")
 			{
 				//cout << "RT range : " << options_.getRTRange() << endl;
@@ -111,15 +117,15 @@ namespace OpenMS
 				
 				if(*type==*s_int)
 				{
-					feature_.setMetaValue(name, xercesc::XMLString::parseInt(value));
+					current_feature_->setMetaValue(name, xercesc::XMLString::parseInt(value));
 				}
 				else if (*type==*s_float)
 				{
-					feature_.setMetaValue(name, atof(sm_.convert(value)) );
+					current_feature_->setMetaValue(name, atof(sm_.convert(value)) );
 				}
 				else if (*type==*s_string)
 				{
-					feature_.setMetaValue(name, (String)sm_.convert(value));
+					current_feature_->setMetaValue(name, (String)sm_.convert(value));
 				}
 				else
 				{
@@ -129,7 +135,7 @@ namespace OpenMS
 			else if (equal_(qname,s_featuremap))
 			{
 				//check file version against schema version
-				String file_version="1.0";
+				String file_version="1.0"; // default schema is 1.0
 				optionalAttributeAsString_(file_version,attributes,"version");
 				if (file_version.toDouble()>version_.toDouble())
 				{
@@ -151,7 +157,7 @@ namespace OpenMS
 			static const XMLCh* s_model = xercesc::XMLString::transcode("model");
 			static const XMLCh* s_hullpoint = xercesc::XMLString::transcode("hullpoint");
 			static const XMLCh* s_convexhull = xercesc::XMLString::transcode("convexhull");
-		
+			static const XMLCh* s_subordinate = xercesc::XMLString::transcode("subordinate");
 			//cout << "End: '" << sm_.convert(qname) <<"' - '"<< sm_.convert(s_description) << "'" << endl;
 			
 			open_tags_.pop_back();
@@ -185,17 +191,44 @@ namespace OpenMS
 			}
 			else if (equal_(qname,s_feature))
 			{
-				if ((!options_.hasRTRange() || options_.getRTRange().encloses(feature_.getRT()))
-					&&	(!options_.hasMZRange() || options_.getMZRange().encloses(feature_.getMZ()))
-					&&	(!options_.hasIntensityRange() || options_.getIntensityRange().encloses(feature_.getIntensity())))
+				if ((!options_.hasRTRange() || options_.getRTRange().encloses(current_feature_->getRT()))
+					&&	(!options_.hasMZRange() || options_.getMZRange().encloses(current_feature_->getMZ()))
+					&&	(!options_.hasIntensityRange() || options_.getIntensityRange().encloses(current_feature_->getIntensity())))
 				{
-					map_->push_back(feature_);
 				}
+				else
+				{
+					// this feature does not pass the restrictions --> remove it
+					if (subordinate_feature_level_==0) 
+					{
+							map_->pop_back();
+					}
+					else
+					{
+						Feature* f1;
+						if (!map_->empty()) 
+						{
+							f1 = &(map_->back());
+						}
+						else 
+						{
+							throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Feature", "<Feature> with unexpected location." );
+						}
+										
+						for (Int level = 1; level<subordinate_feature_level_;++level)
+						{
+							f1 = &(f1->getSubOrdinates().back());
+						}
+						// delete the offending feature
+						f1->getSubOrdinates().pop_back();
+					}
+				}
+				updateCurrentFeature_(false);
 			}
 			else if (equal_(qname,s_model))
 			{
 				model_desc_->setParam(param_);
-				feature_.setModelDescription(*model_desc_);
+				current_feature_->setModelDescription(*model_desc_);
 				delete model_desc_;
 			}
 			else if (equal_(qname,s_hullpoint))
@@ -204,12 +237,20 @@ namespace OpenMS
 			}
 			else if (equal_(qname,s_convexhull))
 			{
-				feature_.getConvexHulls().push_back(current_chull_);
+				current_feature_->getConvexHulls().push_back(current_chull_);
+			}
+			else if (equal_(qname,s_subordinate))
+			{ // this is not safe towards malformed xml!
+				--subordinate_feature_level_;
+				if (subordinate_feature_level_ < 0) throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "subordinate", "Too many closing tags for </subordinate>." );
+				// reset current_feature
+				updateCurrentFeature_(false);
 			}
 	  }
 	
 	  void FeatureXMLHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
 	  {
+			//std::cout << "characters: "	 << sm_.convert(chars) << std::endl;
 	  	// collect Experimental Settings
 			if (in_description_)
 			{
@@ -220,23 +261,23 @@ namespace OpenMS
 			String& current_tag = open_tags_.back();
 			if (current_tag == "intensity")
 			{
-				feature_.setIntensity(asDouble_(sm_.convert(chars))); 
+				current_feature_->setIntensity(asDouble_(sm_.convert(chars))); 
 			}
 			else if (current_tag == "position")
 			{
-				feature_.getPosition()[dim_] = asDouble_(sm_.convert(chars));
+				current_feature_->getPosition()[dim_] = asDouble_(sm_.convert(chars));
 			}
 			else if (current_tag == "quality")
 			{
-				feature_.setQuality(dim_, asDouble_(sm_.convert(chars)));
+				current_feature_->setQuality(dim_, asDouble_(sm_.convert(chars)));
 			}
 			else if (current_tag == "overallquality")
 			{
-				feature_.setOverallQuality(asDouble_(sm_.convert(chars)));
+				current_feature_->setOverallQuality(asDouble_(sm_.convert(chars)));
 			}
 			else if (current_tag == "charge")
 			{
-				feature_.setCharge(asInt_(chars));
+				current_feature_->setCharge(asInt_(chars));
 			}
 			else if (current_tag == "hposition")
 			{
@@ -249,8 +290,6 @@ namespace OpenMS
 		{
 			os.precision(8);
 			
-			UInt identifier = 0;
-
 			os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
 			   << "<featureMap version=\"" << version_ << "\"";
 			if (cmap_->getIdentifier()!="")
@@ -269,65 +308,7 @@ namespace OpenMS
 			for (UInt s=0; s<cmap_->size(); s++)
 			{
 				const Feature& feat = (*cmap_)[s];
-				os << "\t\t<feature id=\"f_" << (identifier++) << "\">" << endl;
-				for (UInt i=0; i<2;i++)
-				{
-					os <<	"\t\t\t<position dim=\"" << i << "\">" << feat.getPosition()[i] << "</position>" << 	endl;
-				}
-				os << "\t\t\t<intensity>" << feat.getIntensity() << "</intensity>" << endl;
-				for (UInt i=0; i<2;i++)
-				{
-					os << "\t\t\t<quality dim=\"" << i << "\">" << feat.getQuality(i) << "</quality>" <<  endl;
-				}
-				os << "\t\t\t<overallquality>" << feat.getOverallQuality() << "</overallquality>" <<  endl;
-				os << "\t\t\t<charge>" << feat.getCharge() << "</charge>" <<  endl;
-	
-				// write model description
-				ModelDescription<2> desc = feat.getModelDescription();
-				os << "\t\t\t<model name=\"" << desc.getName() << "\">" <<  endl;
-				Param modelp = desc.getParam();
-				Param::ParamIterator piter = modelp.begin();
-				while (piter != modelp.end())
-				{
-					os << "\t\t\t\t<param name=\"" << piter.getName() << "\" value=\"" << piter->value << "\">";
-					os << "</param>" << endl;
-					piter++;
-				}
-				os << "\t\t\t</model>" << endl;
-	
-				// write convex hull
-				vector<ConvexHull2D> hulls = feat.getConvexHulls();
-				vector<ConvexHull2D>::iterator citer = hulls.begin();
-	
-				UInt hulls_count = hulls.size();
-	
-				for (UInt i=0;i<hulls_count; i++)
-				{
-					os << "\t\t\t<convexhull nr=\"" << i << "\">" <<  endl;
-	
-					ConvexHull2D current_hull = hulls[i];
-					UInt hull_size  = current_hull.getPoints().size();
-	
-					for (UInt j=0;j<hull_size;j++)
-					{
-						os << "\t\t\t\t<hullpoint>" << endl;
-	
-						DPosition<2> pos = current_hull.getPoints()[j];
-						UInt pos_size = pos.size();
-						for (UInt k=0; k<pos_size; k++)
-						{
-							os << "\t\t\t\t\t<hposition dim=\"" << k << "\">" << pos[k] << "</hposition>" << endl;
-						}
-	
-						os << "\t\t\t\t</hullpoint>" << endl;
-					} // end for (..hull_size..)
-	
-					os << "\t\t\t</convexhull>" << endl;
-				} // end  for ( ... hull_count..)
-				
-				writeUserParam_("userParam", os, feat, 3);
-				
-				os << "\t\t</feature>\n";
+				writeFeature_(os, feat, "f_", s, 0);
 	
 			} // end for ( features )
 	
@@ -339,6 +320,145 @@ namespace OpenMS
 			options_ = options; 
 		}
 
+		void FeatureXMLHandler::writeFeature_(ostream& os, const Feature& feat, const String& identifier_prefix, const UInt identifier, const UInt& intendation_level)
+		{
+				String intend = String(intendation_level,'\t');
+				
+				os << intend << "\t\t<feature id=\"" << identifier_prefix << identifier << "\">" << endl;
+				for (UInt i=0; i<2;i++)
+				{
+					os << intend <<	"\t\t\t<position dim=\"" << i << "\">" << feat.getPosition()[i] << "</position>" << 	endl;
+				}
+				os << intend << "\t\t\t<intensity>" << feat.getIntensity() << "</intensity>" << endl;
+				for (UInt i=0; i<2;i++)
+				{
+					os << intend << "\t\t\t<quality dim=\"" << i << "\">" << feat.getQuality(i) << "</quality>" <<  endl;
+				}
+				os << intend << "\t\t\t<overallquality>" << feat.getOverallQuality() << "</overallquality>" <<  endl;
+				os << intend << "\t\t\t<charge>" << feat.getCharge() << "</charge>" <<  endl;
+	
+				// write model description
+				ModelDescription<2> desc = feat.getModelDescription();
+				if (!desc.getName().empty() || !desc.getParam().empty())
+				{
+					os << intend << "\t\t\t<model name=\"" << desc.getName() << "\">" <<  endl;
+					Param modelp = desc.getParam();
+					Param::ParamIterator piter = modelp.begin();
+					while (piter != modelp.end())
+					{
+						os << intend << "\t\t\t\t<param name=\"" << piter.getName() << "\" value=\"" << piter->value << "\">";
+						os << intend << "</param>" << endl;
+						piter++;
+					}
+					os << intend << "\t\t\t</model>" << endl;
+				}
+	
+				// write convex hull
+				vector<ConvexHull2D> hulls = feat.getConvexHulls();
+				vector<ConvexHull2D>::iterator citer = hulls.begin();
+	
+				UInt hulls_count = hulls.size();
+	
+				for (UInt i=0;i<hulls_count; i++)
+				{
+					os << intend << "\t\t\t<convexhull nr=\"" << i << "\">" <<  endl;
+	
+					ConvexHull2D current_hull = hulls[i];
+					UInt hull_size  = current_hull.getPoints().size();
+	
+					for (UInt j=0;j<hull_size;j++)
+					{
+						os << intend << "\t\t\t\t<hullpoint>" << endl;
+	
+						DPosition<2> pos = current_hull.getPoints()[j];
+						UInt pos_size = pos.size();
+						for (UInt k=0; k<pos_size; k++)
+						{
+							os << intend << "\t\t\t\t\t<hposition dim=\"" << k << "\">" << pos[k] << "</hposition>" << endl;
+						}
+	
+						os << intend << "\t\t\t\t</hullpoint>" << endl;
+					} // end for (..hull_size..)
+	
+					os << intend << "\t\t\t</convexhull>" << endl;
+				} // end  for ( ... hull_count..)
+				
+				if (feat.hasSubOrdinates())
+				{
+					os << intend << "\t\t\t<subordinate>" << endl;
+					UInt identifier_subordinate = 0;
+					for (std::size_t i=0;i<feat.getSubOrdinates().size();++i)
+					{
+						writeFeature_(os, feat.getSubOrdinates()[i], identifier_prefix+identifier+"_", identifier_subordinate, intendation_level+2);
+						++identifier_subordinate;
+					}
+					os << intend << "\t\t\t</subordinate>" << endl;
+				}
+				
+				writeUserParam_("userParam", os, feat, 3+intendation_level);
+				
+				os << intend << "\t\t</feature>\n";
+		}
 		
+		void FeatureXMLHandler::updateCurrentFeature_(const bool create)
+		{
+			//std::cout << "updateCurrentF:  -- D="<<	subordinate_feature_level_ << " -- create=" << create << std::endl;
+			if (subordinate_feature_level_==0)
+			{
+				if (create)
+				{
+					map_->push_back(Feature());
+					current_feature_ = &(map_->back());
+					return;
+				}
+				else
+				{
+					if (map_->empty()) 
+					{	
+						current_feature_ = 0;
+						return;
+					}
+					else
+					{
+						current_feature_ = &(map_->back());
+						return;
+					}
+				}
+			}
+
+			Feature* f1 = 0;
+			if (!map_->empty()) 
+			{
+				f1 = &(map_->back());
+			}
+			else  
+			{
+				// do NOT throw an exception here. this is a valid case!
+				// e.g. the only one feature in a map was discarded during endElement(), thus the map_ is empty() now
+				// and we cannot assign a current_feature, because there is none!
+				current_feature_ = 0;
+				return;
+			}
+
+			for (Int level = 1; level<subordinate_feature_level_;++level)
+			{
+				// if all features of the current level are discarded (due to range-restrictions etc), then
+				// the current feature is the one which is one level up
+				if (f1->getSubOrdinates().empty())	
+				{
+					current_feature_ = f1;
+					return;
+				}
+				f1 = &(f1->getSubOrdinates().back());
+			}
+			if (create)	
+			{
+				f1->addSubOrdinate(Feature());
+			}
+			current_feature_ = &(f1->getSubOrdinates().back());
+
+			//std::cout << "CF: " << (*current_feature_) << std::endl;
+		}
+	
 	} //namespace Internal
 } // namespace OpenMS
