@@ -29,7 +29,6 @@
 
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 
@@ -49,7 +48,7 @@ namespace OpenMS
     @ingroup Kernel
   */
 	class ConsensusMap 
-		: public DPeakArray<ConsensusFeature>,
+		: public std::vector<ConsensusFeature>,
 			public MetaInfoInterface,
 			public RangeManager<2>
 	{
@@ -78,9 +77,17 @@ namespace OpenMS
 
 	    ///@name Type definitions
 	    //@{
-	    typedef DPeakArray<ConsensusFeature > Base;
+	    typedef std::vector<ConsensusFeature > Base;
 			typedef RangeManager<2> RangeManagerType;
 	  	typedef Map<UInt,FileDescription> FileDescriptions;
+			/// Mutable iterator		
+			typedef std::vector<ConsensusFeature>::iterator Iterator;
+			/// Non-mutable iterator
+			typedef std::vector<ConsensusFeature>::const_iterator ConstIterator;
+			/// Mutable reverse iterator
+			typedef std::vector<ConsensusFeature>::reverse_iterator ReverseIterator;
+			/// Non-mutable reverse iterator
+			typedef std::vector<ConsensusFeature>::const_reverse_iterator ConstReverseIterator;
 			//@}
 	  	
 	    /// Default onstructor
@@ -162,8 +169,45 @@ namespace OpenMS
 				@return if the map is valid
 			*/
 			bool isValid(String& error_message) const;
+
+			/**	
+				@name Sorting.
+				These simplified sorting methods are supported in addition to	
+				the standard sorting methods of std::vector.
+			*/
+			//@{
+			/// Sorts the peaks according to ascending intensity.
+			void sortByIntensity(bool reverse=false) 
+			{ 
+				if (reverse)
+				{
+					std::sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::IntensityLess())); 
+				}
+				else
+				{
+					std::sort(Base::begin(), Base::end(), ConsensusFeature::IntensityLess()); 
+				}
+			}
+
+			/// Sorts the peaks to RT position.
+			void sortByRT() 
+			{ 
+				std::sort(Base::begin(), Base::end(), ConsensusFeature::RTLess()); 
+			}
+
+			/// Sorts the peaks to m/z position.
+			void sortByMZ() 
+			{ 
+				std::sort(Base::begin(), Base::end(), ConsensusFeature::MZLess()); 
+			}
 			
-			/// Sorts the peaks according to ascending quality
+			/// Lexicographically sorts the peaks by their position (First RT then m/z).
+			void sortByPosition() 
+			{ 
+				std::sort(Base::begin(), Base::end(), ConsensusFeature::PositionLess());
+			}
+			
+			/// Sorts the peaks according to ascending quality.
 			void sortByQuality(bool reverse=false) 
 			{ 
 				if (reverse)
@@ -175,18 +219,7 @@ namespace OpenMS
 					std::sort(Base::begin(), Base::end(), ConsensusFeature::QualityLess()); 
 				}
 			}
-
-			/// Sorts the peaks to RT position
-			void sortByRT() 
-			{ 
-				std::sort(Base::begin(), Base::end(), ConsensusFeature::RTLess()); 
-			}
-
-			/// Sorts the peaks to m/z position
-			void sortByMZ() 
-			{ 
-				std::sort(Base::begin(), Base::end(), ConsensusFeature::MZLess()); 
-			}
+			//@}
 
 			/**
 				@brief Convert any (random access) container of features to a ConsensusMap.  Each

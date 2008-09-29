@@ -130,9 +130,15 @@ namespace OpenMS
 			{
 				return !(operator==(rhs));
 			}
-				
-			/// Sorts the peaks according to ascending intensity
-			void sortByIntensity(bool reverse=false) 
+
+			/**	
+				@name Sorting.
+				These simplified sorting methods are supported in addition to	
+				the standard sorting methods of std::vector.
+			*/
+			//@{
+			/// Sorts the peaks according to ascending intensity.
+			void sortByIntensity(bool reverse=false)
 			{ 
 				if (reverse)
 				{
@@ -162,11 +168,19 @@ namespace OpenMS
 				std::sort(this->begin(), this->end(), typename FeatureType::MZLess() );
 			}
 			
-			///Sort features by overall quality.
-			void sortByOverallQuality()
+			///Sort features by ascending overall quality.
+			void sortByOverallQuality(bool reverse=false) 
 			{
-				std::sort(this->begin(), this->end(), typename FeatureType::OverallQualityLess() ); 
+				if (reverse)
+				{
+					std::sort(this->begin(), this->end(), reverseComparator(typename FeatureType::OverallQualityLess()) );
+				}
+				else
+				{
+					std::sort(this->begin(), this->end(), typename FeatureType::OverallQualityLess() );
+				}
 			}
+			//@}
 			
 			// Docu in base class
 			void updateRanges()

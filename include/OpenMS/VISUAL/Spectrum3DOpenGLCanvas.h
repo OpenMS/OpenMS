@@ -33,7 +33,6 @@
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/DSpectrum.h>
-#include <OpenMS/KERNEL/DPeakArray.h>
 
 namespace OpenMS
 {

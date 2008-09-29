@@ -3,6 +3,7 @@
 ------------------------------------------------------------------------------------------
 
 New features and improvements of OpenMS:
+- Kernel: replaced sortByNthPosition() by the method(s) sortByRT() and/or sortByMZ().
 
 New features and improvements of TOPP:
 - FeatureLinker: Added automated RT parameter estimated for 'labeled' algorithm.
