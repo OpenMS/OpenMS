@@ -51,12 +51,11 @@ RESULT
 
 CHECK(virtual ~FeatureFinderAlgorithmIsotopeWavelet())
 	delete ptr;
-	ptr = NULL;
 RESULT
 
 CHECK(virtual void run())
 	//is tested in TOPP test
-	TEST_EQUAL (ptr, NULL)
+	NOT_TESTABLE
 RESULT
 
 CHECK((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))

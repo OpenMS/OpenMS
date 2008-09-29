@@ -128,7 +128,10 @@ namespace OpenMS
     defaults_.setValue("deconvolution:fitting:max_iteration",10,"maximal number of iterations for the fitting step", StringList::create("advanced"));
 	  defaults_.setMinInt("deconvolution:fitting:max_iteration",1);
 
-		subsections_.push_back("SignalToNoiseEstimationParameter");
+		//this->subsections_.push_back("SignalToNoiseEstimationParameter");
+		SignalToNoiseEstimatorMeanIterative< RawDataArrayType > sne; // make sure this is the same as in pick()!
+		this->defaults_.insert ("SignalToNoiseEstimationParameter:", sne.getDefaults());
+		
 		defaultsToParam_();
   }
 
@@ -1057,7 +1060,7 @@ namespace OpenMS
 											<< std::endl;
 
 #endif
-						max_pos=(i-offset)/resolution;
+						max_pos=int((i-offset)/resolution);
 
 						// if the maximum position is high enough and isn't one of the border points, we return it
 						if(((first+max_pos)->getIntensity() >= noise_level) 

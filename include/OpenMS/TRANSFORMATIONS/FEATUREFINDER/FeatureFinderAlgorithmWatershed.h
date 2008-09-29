@@ -126,7 +126,7 @@ namespace OpenMS
         //---------------------------------------------------------------------------
         debug_ = param_.getValue("debug").toBool();
         mz_sampling_ = (DoubleReal)(param_.getValue("mz_sampling"));
-        peaks_ = (map_->getMaxMZ() - map_->getMinMZ()) / mz_sampling_;
+        peaks_ = UInt((map_->getMaxMZ() - map_->getMinMZ()) / mz_sampling_);
         
         //---------------------------------------------------------------------------
       	//RESAMPLE AND BUILD MAIN DATASTRUCTURE

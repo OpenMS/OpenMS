@@ -65,12 +65,14 @@ namespace OpenMS
 			{
 				this->setName("SimpleSeeder");				
 
-        this->defaults_.setValue("min_intensity",0.0, "Absolute value for the minimum intensity of a seed. If set to 0, a fixed percentage of the intensity of the largest peak is taken (see intensity_perc).");
+        this->defaults_.setValue("min_intensity",0.0, "Absolute value for the minimum intensity required for a seed.");
         this->defaults_.setMinFloat("min_intensity",0.0);
-        this->defaults_.setValue("signal_to_noise", 10.0, "SignalToNoise (S/N) ratio.");
+        this->defaults_.setValue("signal_to_noise", 10.0, "Minimal required SignalToNoise (S/N) ratio for a seed.");
         this->defaults_.setMinFloat("signal_to_noise",0.0);
         
-        this->subsections_.push_back("SignalToNoiseEstimationParameter");
+        //this->subsections_.push_back("SignalToNoiseEstimationParameter");
+				SignalToNoiseEstimatorMedian < typename MapType::SpectrumType > sne; // make sure this is the same as in pick()!
+				this->defaults_.insert ("SignalToNoiseEstimationParameter:", sne.getDefaults());
         
         this->defaultsToParam_();
 			}

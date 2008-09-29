@@ -151,9 +151,9 @@ namespace OpenMS
       // signal to noise estimator
 			SignalToNoiseEstimatorMeanIterative< RawDataArrayType > sne;      
       Param sne_param(param_.copy("SignalToNoiseEstimationParameter:",true));
-      if(sne_param.empty()) sne.setParameters(Param());
-      else sne.setParameters(sne_param);
-      UInt n = distance(first, last);
+      sne.setParameters(sne_param);
+      
+			UInt n = distance(first, last);
       raw_peak_array.resize(n);
 			raw_peak_array_original.resize(n);
       
