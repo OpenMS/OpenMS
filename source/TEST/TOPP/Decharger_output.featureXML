@@ -29,14 +29,12 @@
 	<featureList count="3">
 		<feature id="f_0">
 			<position dim="0">144.576</position>
-			<position dim="1">1332.47</position>
+			<position dim="1">1332.4725</position>
 			<intensity>20000</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_1">
 			<position dim="0">151.6</position>
@@ -46,8 +44,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_2">
 			<position dim="0">151.897</position>
@@ -57,8 +53,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 	</featureList>
 </featureMap>

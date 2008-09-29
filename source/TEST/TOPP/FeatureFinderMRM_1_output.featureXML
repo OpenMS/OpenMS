@@ -28,23 +28,21 @@
 	</description>
 	<featureList count="1">
 		<feature id="f_0">
-			<position dim="0">3696.27</position>
+			<position dim="0">3696.2716</position>
 			<position dim="1">461.743</position>
-			<intensity>1.75084e+07</intensity>
+			<intensity>17508440</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">1.21201</hposition>
-					<hposition dim="1">461.743</hposition>
+					<hposition dim="1">461.74301</hposition>
 				</hullpoint>
 				<hullpoint>
-					<hposition dim="0">6841.84</hposition>
-					<hposition dim="1">461.743</hposition>
+					<hposition dim="0">6841.8398</hposition>
+					<hposition dim="1">461.74301</hposition>
 				</hullpoint>
 			</convexhull>
 		</feature>

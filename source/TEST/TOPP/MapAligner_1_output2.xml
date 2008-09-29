@@ -28,1588 +28,1300 @@
 	</description>
 	<featureList count="144">
 		<feature id="f_0">
-			<position dim="0">1273.27</position>
+			<position dim="0">1273.3769</position>
 			<position dim="1">904.569</position>
-			<intensity>3.12539e+07</intensity>
+			<intensity>31253900</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_1">
-			<position dim="0">1248.33</position>
+			<position dim="0">1248.4255</position>
 			<position dim="1">897.549</position>
-			<intensity>2.59179e+07</intensity>
+			<intensity>25917900</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_2">
-			<position dim="0">1352.31</position>
+			<position dim="0">1352.4533</position>
 			<position dim="1">927.795</position>
-			<intensity>2.53279e+07</intensity>
+			<intensity>25327900</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_3">
-			<position dim="0">1210.55</position>
+			<position dim="0">1210.6281</position>
 			<position dim="1">973.52</position>
-			<intensity>2.41847e+07</intensity>
+			<intensity>24184700</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_4">
-			<position dim="0">1184.46</position>
+			<position dim="0">1184.5261</position>
 			<position dim="1">953.468</position>
-			<intensity>1.97719e+07</intensity>
+			<intensity>19771900</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_5">
-			<position dim="0">1194.82</position>
+			<position dim="0">1194.8909</position>
 			<position dim="1">777.201</position>
-			<intensity>1.78215e+07</intensity>
+			<intensity>17821500</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_6">
-			<position dim="0">1239.64</position>
+			<position dim="0">1239.7315</position>
 			<position dim="1">897.547</position>
-			<intensity>1.75988e+07</intensity>
+			<intensity>17598800</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_7">
-			<position dim="0">1298.06</position>
+			<position dim="0">1298.1783</position>
 			<position dim="1">962.853</position>
-			<intensity>1.66497e+07</intensity>
+			<intensity>16649700</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_8">
-			<position dim="0">1285.19</position>
+			<position dim="0">1285.3024</position>
 			<position dim="1">962.85</position>
-			<intensity>1.4856e+07</intensity>
+			<intensity>14856000</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_9">
-			<position dim="0">1152.83</position>
+			<position dim="0">1152.8816</position>
 			<position dim="1">839.485</position>
-			<intensity>1.48093e+07</intensity>
+			<intensity>14809300</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_10">
-			<position dim="0">1312.98</position>
+			<position dim="0">1313.1052</position>
 			<position dim="1">956.393</position>
-			<intensity>1.42961e+07</intensity>
+			<intensity>14296100</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_11">
-			<position dim="0">1162.56</position>
+			<position dim="0">1162.6161</position>
 			<position dim="1">937.504</position>
-			<intensity>1.29669e+07</intensity>
+			<intensity>12966900</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_12">
-			<position dim="0">1136.52</position>
+			<position dim="0">1136.5641</position>
 			<position dim="1">848.849</position>
-			<intensity>1.20098e+07</intensity>
+			<intensity>12009800</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_13">
-			<position dim="0">1352.62</position>
+			<position dim="0">1352.7634</position>
 			<position dim="1">795.48</position>
-			<intensity>1.08926e+07</intensity>
+			<intensity>10892600</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_14">
-			<position dim="0">1161.71</position>
+			<position dim="0">1161.7657</position>
 			<position dim="1">839.49</position>
-			<intensity>1.07202e+07</intensity>
+			<intensity>10720200</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_15">
-			<position dim="0">972.55</position>
+			<position dim="0">972.51875</position>
 			<position dim="1">751.962</position>
-			<intensity>9.89889e+06</intensity>
+			<intensity>9898890</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_16">
-			<position dim="0">1297.6</position>
+			<position dim="0">1297.7231</position>
 			<position dim="1">998.323</position>
-			<intensity>9.70046e+06</intensity>
+			<intensity>9700460</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_17">
-			<position dim="0">1186.54</position>
+			<position dim="0">1186.6071</position>
 			<position dim="1">777.183</position>
-			<intensity>9.47309e+06</intensity>
+			<intensity>9473090</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_18">
-			<position dim="0">1174.57</position>
+			<position dim="0">1174.6316</position>
 			<position dim="1">777.231</position>
-			<intensity>9.13198e+06</intensity>
+			<intensity>9131980</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_19">
-			<position dim="0">980.665</position>
+			<position dim="0">980.63748</position>
 			<position dim="1">751.959</position>
-			<intensity>8.0816e+06</intensity>
+			<intensity>8081600</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_20">
-			<position dim="0">1202.21</position>
+			<position dim="0">1202.2843</position>
 			<position dim="1">777.201</position>
-			<intensity>7.18028e+06</intensity>
+			<intensity>7180280</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_21">
-			<position dim="0">1359.36</position>
+			<position dim="0">1359.5065</position>
 			<position dim="1">927.836</position>
-			<intensity>6.89222e+06</intensity>
+			<intensity>6892220</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_22">
-			<position dim="0">1143.76</position>
+			<position dim="0">1143.8074</position>
 			<position dim="1">848.891</position>
-			<intensity>6.14441e+06</intensity>
+			<intensity>6144410</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_23">
-			<position dim="0">1171.2</position>
+			<position dim="0">1171.26</position>
 			<position dim="1">937.48</position>
-			<intensity>5.85495e+06</intensity>
+			<intensity>5854950</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_24">
-			<position dim="0">1191.11</position>
+			<position dim="0">1191.1792</position>
 			<position dim="1">953.497</position>
-			<intensity>5.7537e+06</intensity>
+			<intensity>5753700</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_25">
-			<position dim="0">1291.62</position>
+			<position dim="0">1291.7354</position>
 			<position dim="1">998.36</position>
-			<intensity>5.52848e+06</intensity>
+			<intensity>5528480</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_26">
-			<position dim="0">903.485</position>
+			<position dim="0">903.42201</position>
 			<position dim="1">643.949</position>
-			<intensity>5.17321e+06</intensity>
+			<intensity>5173210</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_27">
-			<position dim="0">1279.18</position>
+			<position dim="0">1279.2897</position>
 			<position dim="1">890.174</position>
-			<intensity>4.71078e+06</intensity>
+			<intensity>4710780</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_28">
-			<position dim="0">1273.21</position>
+			<position dim="0">1273.3169</position>
 			<position dim="1">805.471</position>
-			<intensity>4.12656e+06</intensity>
+			<intensity>4126560</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_29">
-			<position dim="0">1047.96</position>
+			<position dim="0">1047.9634</position>
 			<position dim="1">942.565</position>
-			<intensity>4.05003e+06</intensity>
+			<intensity>4050030</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_30">
-			<position dim="0">1369.07</position>
+			<position dim="0">1369.221</position>
 			<position dim="1">991.387</position>
-			<intensity>3.93985e+06</intensity>
+			<intensity>3939850</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_31">
-			<position dim="0">1288.09</position>
+			<position dim="0">1288.2037</position>
 			<position dim="1">835.422</position>
-			<intensity>3.9132e+06</intensity>
+			<intensity>3913200</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_32">
-			<position dim="0">1247.82</position>
+			<position dim="0">1247.9152</position>
 			<position dim="1">798.493</position>
-			<intensity>3.90326e+06</intensity>
+			<intensity>3903260</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_33">
-			<position dim="0">1216.06</position>
+			<position dim="0">1216.1406</position>
 			<position dim="1">973.547</position>
-			<intensity>3.70377e+06</intensity>
+			<intensity>3703770</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_34">
-			<position dim="0">1168.3</position>
+			<position dim="0">1168.3587</position>
 			<position dim="1">839.997</position>
-			<intensity>3.49596e+06</intensity>
+			<intensity>3495960</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_35">
-			<position dim="0">937.405</position>
+			<position dim="0">937.3576</position>
 			<position dim="1">940</position>
-			<intensity>3.39914e+06</intensity>
+			<intensity>3399140</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_36">
-			<position dim="0">1360.14</position>
+			<position dim="0">1360.2869</position>
 			<position dim="1">959.206</position>
-			<intensity>3.32085e+06</intensity>
+			<intensity>3320850</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_37">
-			<position dim="0">1273.21</position>
+			<position dim="0">1273.3169</position>
 			<position dim="1">603.449</position>
-			<intensity>3.2026e+06</intensity>
+			<intensity>3202600</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_38">
-			<position dim="0">1242.43</position>
+			<position dim="0">1242.5228</position>
 			<position dim="1">690.074</position>
-			<intensity>3.10437e+06</intensity>
+			<intensity>3104370</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_39">
-			<position dim="0">1313.09</position>
+			<position dim="0">1313.2152</position>
 			<position dim="1">765.802</position>
-			<intensity>2.97352e+06</intensity>
+			<intensity>2973520</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_40">
-			<position dim="0">1015.53</position>
+			<position dim="0">1015.5185</position>
 			<position dim="1">952.939</position>
-			<intensity>2.96441e+06</intensity>
+			<intensity>2964410</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_41">
-			<position dim="0">1359.05</position>
+			<position dim="0">1359.1964</position>
 			<position dim="1">795.199</position>
-			<intensity>2.91559e+06</intensity>
+			<intensity>2915590</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_42">
-			<position dim="0">906.725</position>
+			<position dim="0">906.6635</position>
 			<position dim="1">701.463</position>
-			<intensity>2.78458e+06</intensity>
+			<intensity>2784580</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_43">
-			<position dim="0">1011.91</position>
+			<position dim="0">1011.8968</position>
 			<position dim="1">817.063</position>
-			<intensity>2.77346e+06</intensity>
+			<intensity>2773460</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_44">
-			<position dim="0">1389.35</position>
+			<position dim="0">1389.5103</position>
 			<position dim="1">818.138</position>
-			<intensity>2.75985e+06</intensity>
+			<intensity>2759850</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_45">
-			<position dim="0">1119.66</position>
+			<position dim="0">1119.6963</position>
 			<position dim="1">872.627</position>
-			<intensity>2.56853e+06</intensity>
+			<intensity>2568530</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_46">
-			<position dim="0">1233.5</position>
+			<position dim="0">1233.5887</position>
 			<position dim="1">909.111</position>
-			<intensity>2.5427e+06</intensity>
+			<intensity>2542700</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_47">
-			<position dim="0">911.205</position>
+			<position dim="0">911.14556</position>
 			<position dim="1">643.952</position>
-			<intensity>2.44038e+06</intensity>
+			<intensity>2440380</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_48">
-			<position dim="0">1011.73</position>
+			<position dim="0">1011.7168</position>
 			<position dim="1">941.587</position>
-			<intensity>2.43337e+06</intensity>
+			<intensity>2433370</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_49">
-			<position dim="0">1087.32</position>
+			<position dim="0">1087.3415</position>
 			<position dim="1">769.013</position>
-			<intensity>2.43179e+06</intensity>
+			<intensity>2431790</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_50">
-			<position dim="0">1305.67</position>
+			<position dim="0">1305.7918</position>
 			<position dim="1">804.994</position>
-			<intensity>2.41591e+06</intensity>
+			<intensity>2415910</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_51">
-			<position dim="0">1298.02</position>
+			<position dim="0">1298.1383</position>
 			<position dim="1">770.207</position>
-			<intensity>2.32838e+06</intensity>
+			<intensity>2328380</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_52">
 			<position dim="0">1040.46</position>
 			<position dim="1">937.069</position>
-			<intensity>2.28078e+06</intensity>
+			<intensity>2280780</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_53">
-			<position dim="0">1239.69</position>
+			<position dim="0">1239.7815</position>
 			<position dim="1">798.496</position>
-			<intensity>2.21642e+06</intensity>
+			<intensity>2216420</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_54">
-			<position dim="0">1067.75</position>
+			<position dim="0">1067.7625</position>
 			<position dim="1">949.907</position>
-			<intensity>2.21183e+06</intensity>
+			<intensity>2211830</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_55">
-			<position dim="0">941.52</position>
+			<position dim="0">941.47449</position>
 			<position dim="1">946.99</position>
-			<intensity>2.08774e+06</intensity>
+			<intensity>2087740</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_56">
-			<position dim="0">1294.77</position>
+			<position dim="0">1294.8868</position>
 			<position dim="1">798.644</position>
-			<intensity>2.07615e+06</intensity>
+			<intensity>2076150</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_57">
-			<position dim="0">1317.77</position>
+			<position dim="0">1317.8974</position>
 			<position dim="1">959.869</position>
-			<intensity>2.0428e+06</intensity>
+			<intensity>2042800</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_58">
-			<position dim="0">1303.86</position>
+			<position dim="0">1303.981</position>
 			<position dim="1">743.646</position>
-			<intensity>1.99137e+06</intensity>
+			<intensity>1991370</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_59">
-			<position dim="0">1273.28</position>
+			<position dim="0">1273.3869</position>
 			<position dim="1">854.942</position>
-			<intensity>1.98052e+06</intensity>
+			<intensity>1980520</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_60">
-			<position dim="0">1291.96</position>
+			<position dim="0">1292.0755</position>
 			<position dim="1">962.861</position>
-			<intensity>1.96804e+06</intensity>
+			<intensity>1968040</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_61">
-			<position dim="0">1277.27</position>
+			<position dim="0">1277.3788</position>
 			<position dim="1">958.811</position>
-			<intensity>1.93802e+06</intensity>
+			<intensity>1938020</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_62">
-			<position dim="0">1187.71</position>
+			<position dim="0">1187.7776</position>
 			<position dim="1">839.493</position>
-			<intensity>1.86948e+06</intensity>
+			<intensity>1869480</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_63">
-			<position dim="0">1369.01</position>
+			<position dim="0">1369.1609</position>
 			<position dim="1">881.192</position>
-			<intensity>1.84093e+06</intensity>
+			<intensity>1840930</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_64">
-			<position dim="0">1141.34</position>
+			<position dim="0">1141.3863</position>
 			<position dim="1">742.545</position>
-			<intensity>1.82443e+06</intensity>
+			<intensity>1824430</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_65">
-			<position dim="0">973.655</position>
+			<position dim="0">973.62426</position>
 			<position dim="1">762.861</position>
-			<intensity>1.76865e+06</intensity>
+			<intensity>1768650</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_66">
-			<position dim="0">1000.81</position>
+			<position dim="0">1000.7917</position>
 			<position dim="1">952.401</position>
-			<intensity>1.6976e+06</intensity>
+			<intensity>1697600</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_67">
-			<position dim="0">1121.01</position>
+			<position dim="0">1121.047</position>
 			<position dim="1">738.429</position>
-			<intensity>1.67726e+06</intensity>
+			<intensity>1677260</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_68">
-			<position dim="0">1185.04</position>
+			<position dim="0">1185.1064</position>
 			<position dim="1">964.423</position>
-			<intensity>1.65796e+06</intensity>
+			<intensity>1657960</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_69">
-			<position dim="0">1149.52</position>
+			<position dim="0">1149.5701</position>
 			<position dim="1">849.947</position>
-			<intensity>1.64843e+06</intensity>
+			<intensity>1648430</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_70">
-			<position dim="0">1210.22</position>
+			<position dim="0">1210.298</position>
 			<position dim="1">954.005</position>
-			<intensity>1.62502e+06</intensity>
+			<intensity>1625020</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_71">
-			<position dim="0">1014.04</position>
+			<position dim="0">1014.0278</position>
 			<position dim="1">804.714</position>
-			<intensity>1.58544e+06</intensity>
+			<intensity>1585440</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_72">
-			<position dim="0">986.77</position>
+			<position dim="0">986.74528</position>
 			<position dim="1">751.978</position>
-			<intensity>1.5587e+06</intensity>
+			<intensity>1558700</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_73">
-			<position dim="0">1248.07</position>
+			<position dim="0">1248.1654</position>
 			<position dim="1">848.038</position>
-			<intensity>1.55611e+06</intensity>
+			<intensity>1556110</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_74">
-			<position dim="0">1210.53</position>
+			<position dim="0">1210.6081</position>
 			<position dim="1">984.489</position>
-			<intensity>1.5256e+06</intensity>
+			<intensity>1525600</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_75">
-			<position dim="0">1157.07</position>
+			<position dim="0">1157.1235</position>
 			<position dim="1">937.484</position>
-			<intensity>1.4942e+06</intensity>
+			<intensity>1494200</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_76">
-			<position dim="0">1356.77</position>
+			<position dim="0">1356.9153</position>
 			<position dim="1">886.851</position>
-			<intensity>1.47014e+06</intensity>
+			<intensity>1470140</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_77">
-			<position dim="0">1224.97</position>
+			<position dim="0">1225.0547</position>
 			<position dim="1">763.27</position>
-			<intensity>1.45935e+06</intensity>
+			<intensity>1459350</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_78">
-			<position dim="0">1283.75</position>
+			<position dim="0">1283.8618</position>
 			<position dim="1">770.274</position>
-			<intensity>1.45172e+06</intensity>
+			<intensity>1451720</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_79">
-			<position dim="0">1023.07</position>
+			<position dim="0">1023.062</position>
 			<position dim="1">953.078</position>
-			<intensity>1.43406e+06</intensity>
+			<intensity>1434060</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_80">
-			<position dim="0">1367.46</position>
+			<position dim="0">1367.6102</position>
 			<position dim="1">898.708</position>
-			<intensity>1.3586e+06</intensity>
+			<intensity>1358600</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_81">
-			<position dim="0">1078.81</position>
+			<position dim="0">1078.8276</position>
 			<position dim="1">960.284</position>
-			<intensity>1.31103e+06</intensity>
+			<intensity>1311030</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_82">
-			<position dim="0">982.125</position>
+			<position dim="0">982.09815</position>
 			<position dim="1">762.98</position>
-			<intensity>1.27605e+06</intensity>
+			<intensity>1276050</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_83">
-			<position dim="0">1184.63</position>
+			<position dim="0">1184.6962</position>
 			<position dim="1">852.497</position>
-			<intensity>1.21351e+06</intensity>
+			<intensity>1213510</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_84">
-			<position dim="0">1351.07</position>
+			<position dim="0">1351.2127</position>
 			<position dim="1">695.489</position>
-			<intensity>1.21051e+06</intensity>
+			<intensity>1210510</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_85">
-			<position dim="0">1390.05</position>
+			<position dim="0">1390.2106</position>
 			<position dim="1">910.405</position>
-			<intensity>1.20646e+06</intensity>
+			<intensity>1206460</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_86">
-			<position dim="0">1280.14</position>
+			<position dim="0">1280.2501</position>
 			<position dim="1">962.413</position>
-			<intensity>1.20293e+06</intensity>
+			<intensity>1202930</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_87">
-			<position dim="0">1200.39</position>
+			<position dim="0">1200.4634</position>
 			<position dim="1">937.498</position>
-			<intensity>1.19735e+06</intensity>
+			<intensity>1197350</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_88">
-			<position dim="0">1275</position>
+			<position dim="0">1275.1077</position>
 			<position dim="1">904.695</position>
-			<intensity>1.19359e+06</intensity>
+			<intensity>1193590</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_89">
-			<position dim="0">1150.08</position>
+			<position dim="0">1150.1303</position>
 			<position dim="1">839.647</position>
-			<intensity>1.16013e+06</intensity>
+			<intensity>1160130</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_90">
-			<position dim="0">911.08</position>
+			<position dim="0">911.0205</position>
 			<position dim="1">652.459</position>
-			<intensity>1.14208e+06</intensity>
+			<intensity>1142080</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_91">
-			<position dim="0">1286.73</position>
+			<position dim="0">1286.8431</position>
 			<position dim="1">832.562</position>
-			<intensity>1.12607e+06</intensity>
+			<intensity>1126070</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_92">
-			<position dim="0">1047.56</position>
+			<position dim="0">1047.5632</position>
 			<position dim="1">937.285</position>
-			<intensity>1.10755e+06</intensity>
+			<intensity>1107550</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_93">
-			<position dim="0">1352.57</position>
+			<position dim="0">1352.7134</position>
 			<position dim="1">930.972</position>
-			<intensity>1.09783e+06</intensity>
+			<intensity>1097830</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_94">
-			<position dim="0">1272.8</position>
+			<position dim="0">1272.9067</position>
 			<position dim="1">915.508</position>
-			<intensity>1.07147e+06</intensity>
+			<intensity>1071470</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_95">
-			<position dim="0">1351.68</position>
+			<position dim="0">1351.823</position>
 			<position dim="1">792.661</position>
-			<intensity>1.06801e+06</intensity>
+			<intensity>1068010</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_96">
-			<position dim="0">1248.43</position>
+			<position dim="0">1248.5255</position>
 			<position dim="1">898.32</position>
-			<intensity>1.05527e+06</intensity>
+			<intensity>1055270</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_97">
-			<position dim="0">1248.04</position>
+			<position dim="0">1248.1353</position>
 			<position dim="1">908.51</position>
-			<intensity>1.05289e+06</intensity>
+			<intensity>1052890</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_98">
-			<position dim="0">1285.26</position>
+			<position dim="0">1285.3724</position>
 			<position dim="1">890.18</position>
-			<intensity>1.02972e+06</intensity>
+			<intensity>1029720</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_99">
-			<position dim="0">1240.2</position>
+			<position dim="0">1240.2917</position>
 			<position dim="1">848.061</position>
-			<intensity>1.02439e+06</intensity>
+			<intensity>1024390</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_100">
-			<position dim="0">936.95</position>
+			<position dim="0">936.90239</position>
 			<position dim="1">797.082</position>
-			<intensity>1.01287e+06</intensity>
+			<intensity>1012870</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_101">
-			<position dim="0">1219.81</position>
+			<position dim="0">1219.8924</position>
 			<position dim="1">662.157</position>
-			<intensity>1.00678e+06</intensity>
+			<intensity>1006780</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_102">
-			<position dim="0">1358.82</position>
+			<position dim="0">1358.9662</position>
 			<position dim="1">822.423</position>
-			<intensity>1.00366e+06</intensity>
+			<intensity>1003660</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_103">
-			<position dim="0">1175.52</position>
+			<position dim="0">1175.582</position>
 			<position dim="1">848.852</position>
 			<intensity>992715</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_104">
-			<position dim="0">1129.95</position>
+			<position dim="0">1129.9911</position>
 			<position dim="1">849.871</position>
 			<intensity>958594</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_105">
-			<position dim="0">1033.04</position>
+			<position dim="0">1033.0365</position>
 			<position dim="1">937.2</position>
 			<intensity>957359</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_106">
-			<position dim="0">1266.76</position>
+			<position dim="0">1266.8639</position>
 			<position dim="1">906.536</position>
 			<intensity>955735</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_107">
-			<position dim="0">1211.17</position>
+			<position dim="0">1211.2484</position>
 			<position dim="1">913.573</position>
 			<intensity>789739</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_108">
-			<position dim="0">1285.62</position>
+			<position dim="0">1285.7326</position>
 			<position dim="1">893.661</position>
 			<intensity>784331</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_109">
-			<position dim="0">1017.81</position>
+			<position dim="0">1017.7995</position>
 			<position dim="1">817.083</position>
 			<intensity>775390</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_110">
-			<position dim="0">1301.02</position>
+			<position dim="0">1301.1397</position>
 			<position dim="1">835.41</position>
 			<intensity>745796</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_111">
-			<position dim="0">1316.31</position>
+			<position dim="0">1316.4367</position>
 			<position dim="1">956.982</position>
 			<intensity>729256</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_112">
-			<position dim="0">1257.62</position>
+			<position dim="0">1257.7197</position>
 			<position dim="1">938.044</position>
 			<intensity>714956</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_113">
-			<position dim="0">1009.21</position>
+			<position dim="0">1009.1956</position>
 			<position dim="1">952.924</position>
 			<intensity>711580</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_114">
-			<position dim="0">1325.91</position>
+			<position dim="0">1326.0411</position>
 			<position dim="1">954.334</position>
 			<intensity>707701</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_115">
-			<position dim="0">1194.94</position>
+			<position dim="0">1195.0109</position>
 			<position dim="1">953.437</position>
 			<intensity>645042</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_116">
-			<position dim="0">1300.78</position>
+			<position dim="0">1300.8996</position>
 			<position dim="1">962.587</position>
 			<intensity>633699</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_117">
-			<position dim="0">1302.11</position>
+			<position dim="0">1302.2302</position>
 			<position dim="1">798.633</position>
 			<intensity>628116</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_118">
-			<position dim="0">1308.31</position>
+			<position dim="0">1308.433</position>
 			<position dim="1">910.047</position>
 			<intensity>627663</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_119">
-			<position dim="0">1272.35</position>
+			<position dim="0">1272.4565</position>
 			<position dim="1">901.433</position>
 			<intensity>612273</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_120">
-			<position dim="0">1180</position>
+			<position dim="0">1180.0641</position>
 			<position dim="1">777.273</position>
 			<intensity>606607</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_121">
-			<position dim="0">1209.05</position>
+			<position dim="0">1209.1274</position>
 			<position dim="1">974.423</position>
 			<intensity>606193</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_122">
-			<position dim="0">902</position>
+			<position dim="0">901.93633</position>
 			<position dim="1">654.886</position>
 			<intensity>585108</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_123">
-			<position dim="0">1375.86</position>
+			<position dim="0">1376.0141</position>
 			<position dim="1">899.285</position>
 			<intensity>582684</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_124">
-			<position dim="0">1308.44</position>
+			<position dim="0">1308.5631</position>
 			<position dim="1">818.831</position>
 			<intensity>561553</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_125">
-			<position dim="0">1254.65</position>
+			<position dim="0">1254.7484</position>
 			<position dim="1">754.732</position>
 			<intensity>561332</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_126">
-			<position dim="0">917.595</position>
+			<position dim="0">917.5385</position>
 			<position dim="1">644.145</position>
 			<intensity>550557</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_127">
-			<position dim="0">1291.3</position>
+			<position dim="0">1291.4152</position>
 			<position dim="1">770.684</position>
 			<intensity>549460</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_128">
-			<position dim="0">1260.45</position>
+			<position dim="0">1260.551</position>
 			<position dim="1">918.497</position>
 			<intensity>522833</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_129">
-			<position dim="0">1183.3</position>
+			<position dim="0">1183.3656</position>
 			<position dim="1">953.494</position>
 			<intensity>511531</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_130">
-			<position dim="0">1389.2</position>
+			<position dim="0">1389.3602</position>
 			<position dim="1">682.461</position>
 			<intensity>491133</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_131">
-			<position dim="0">967.2</position>
+			<position dim="0">967.16629</position>
 			<position dim="1">752.851</position>
 			<intensity>486554</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_132">
-			<position dim="0">910.535</position>
+			<position dim="0">910.47525</position>
 			<position dim="1">745.596</position>
 			<intensity>482292</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_133">
-			<position dim="0">1312.61</position>
+			<position dim="0">1312.735</position>
 			<position dim="1">957.295</position>
 			<intensity>461239</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_134">
-			<position dim="0">1354.43</position>
+			<position dim="0">1354.5742</position>
 			<position dim="1">927.277</position>
 			<intensity>445245</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_135">
-			<position dim="0">1245.22</position>
+			<position dim="0">1245.314</position>
 			<position dim="1">676.041</position>
 			<intensity>430096</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_136">
-			<position dim="0">1541.69</position>
+			<position dim="0">1541.9203</position>
 			<position dim="1">605.436</position>
 			<intensity>429990</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_137">
-			<position dim="0">1044.56</position>
+			<position dim="0">1044.5618</position>
 			<position dim="1">942.516</position>
 			<intensity>401665</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_138">
-			<position dim="0">1317.94</position>
+			<position dim="0">1318.0675</position>
 			<position dim="1">768.43</position>
 			<intensity>395570</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_139">
-			<position dim="0">1289.56</position>
+			<position dim="0">1289.6744</position>
 			<position dim="1">798.8</position>
 			<intensity>372432</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_140">
-			<position dim="0">1053.12</position>
+			<position dim="0">1053.1258</position>
 			<position dim="1">942.669</position>
 			<intensity>369640</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_141">
-			<position dim="0">968.075</position>
+			<position dim="0">968.04169</position>
 			<position dim="1">762.877</position>
 			<intensity>247205</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_142">
-			<position dim="0">912.66</position>
+			<position dim="0">912.60123</position>
 			<position dim="1">785.583</position>
 			<intensity>241660</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_143">
-			<position dim="0">1245.02</position>
+			<position dim="0">1245.114</position>
 			<position dim="1">896.998</position>
 			<intensity>116772</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 	</featureList>
 </featureMap>
