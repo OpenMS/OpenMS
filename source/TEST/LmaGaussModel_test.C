@@ -132,8 +132,8 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	LmaGaussModel lm2;
 	lm2.setParameters(lm1.getParameters());
 
-	DPeakArray<Peak1D> dpa1;
-	DPeakArray<Peak1D> dpa2;
+	std::vector<Peak1D> dpa1;
+	std::vector<Peak1D> dpa2;
 	lm1.getSamples(dpa1);
 	lm2.getSamples(dpa2);
 
@@ -210,8 +210,8 @@ CHECK((void setOffset(CoordinateType offset)))
 	TEST_REAL_EQUAL(lm1.getCenter(), lm2.getCenter())
 	TEST_REAL_EQUAL(lm1.getCenter(), 682.1)
 
-	DPeakArray<Peak1D> dpa1;
-	DPeakArray<Peak1D> dpa2;
+	std::vector<Peak1D> dpa1;
+	std::vector<Peak1D> dpa2;
 	lm1.getSamples(dpa1);
 	lm2.getSamples(dpa2);
 

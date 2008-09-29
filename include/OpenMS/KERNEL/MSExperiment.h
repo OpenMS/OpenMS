@@ -171,10 +171,8 @@ namespace OpenMS
       template <typename A>
       void push_back(const MSSpectrum<PeakT, A>& spec)
       {
-        // create new spectrum with local allocator
-        SpectrumType newSpec(spec, alloc_);
-        // add it to our spectrum
-        Base::push_back(newSpec);
+        // create new spectrum with local allocator and add it to our spectrum
+        Base::push_back(SpectrumType(spec));
         
         if (spec.size() != this->back().getContainer().size())
         {
@@ -482,7 +480,7 @@ namespace OpenMS
 					// sort each spectrum by m/z
 					for (Iterator iter = this->begin(); iter != this->end(); ++iter)
 					{
-						iter->getContainer().sortByPosition();
+						iter->sortByPosition();
 					}
 				}
 			}

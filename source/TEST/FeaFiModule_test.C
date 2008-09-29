@@ -281,7 +281,7 @@ RESULT
 
 CHECK(void addConvexHull(const FeatureFinderDefs::IndexSet& set, Feature& feature) const)
 	Peak2D p;
-	DPeakArray<Peak2D> peak_array;
+	std::vector<Peak2D> peak_array;
 	p.getPosition()[0] = 1240.54;   p.getPosition()[1] = 687.6;     peak_array.push_back(p);
 	p.getPosition()[0] = 1241.81;   p.getPosition()[1] = 687.6;     peak_array.push_back(p);
 	p.getPosition()[0] = 1252.39;   p.getPosition()[1] = 687.6;     peak_array.push_back(p);
@@ -311,7 +311,7 @@ CHECK(void addConvexHull(const FeatureFinderDefs::IndexSet& set, Feature& featur
 	p.getPosition()[0] = 1237.27;   p.getPosition()[1] = 691;       peak_array.push_back(p);
 	p.getPosition()[0] = 1237.93;   p.getPosition()[1] = 688.4;     peak_array.push_back(p);
 	
-	peak_array.sortByPosition();
+	std::sort(peak_array.begin(),peak_array.end(),Peak2D::PositionLess());
 	MSExperiment<Peak1D> exp2;
 	exp2.set2DData(peak_array);
 	

@@ -87,7 +87,7 @@ namespace OpenMS
 			if (spectrum.size() <= n) return;
 			
 			// sort by reverse intensity
-			spectrum.getContainer().sortByIntensity(true);
+			spectrum.sortByIntensity(true);
 
 			// keep the n largest peaks if more than n are present
 			spectrum.resize(n);

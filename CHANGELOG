@@ -3,7 +3,8 @@
 ------------------------------------------------------------------------------------------
 
 New features and improvements of OpenMS:
-- Kernel: replaced sortByNthPosition() by the method(s) sortByRT() and/or sortByMZ().
+- Kernel: replaced comparators NthPositionLess by the comparator(s) RTLess and/or MZLess.
+- Kernel: replaced methods sortByNthPosition() by the method(s) sortByRT() and/or sortByMZ().
 
 New features and improvements of TOPP:
 - FeatureLinker: Added automated RT parameter estimated for 'labeled' algorithm.
@@ -27,6 +28,7 @@ Detailed list of changes to specific OpenMS classes:
 - Renamed and moved classes
   - Renamed MSMetaDataExplorer to MetaDataBroswer
 - Removed classes
+  - Removed DPeakArray and moved the functionality to the classes that inherited from DPeakArray
 - New classes
 - Changes to classes
   - LabeledPairFinder: Added automated RT parameter estimated.

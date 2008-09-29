@@ -30,7 +30,6 @@
 
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/DSpectrum.h>
-#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
 ///////////////////////////
@@ -169,9 +168,9 @@ CHECK(template<typename SpectrumType> void load(const String& filename, Spectrum
 
 
 
-	//TEST WITH DPeakArray and Peak1D
+	//TEST WITH Peak1D
 
-	DSpectrum<DPeakArray<Peak1D > > s2;
+	DSpectrum<> s2;
 	f1.load("data/DTAFile_test.dta",s2);
 	
 	TEST_EQUAL(s2.size(), 25);
@@ -179,7 +178,7 @@ CHECK(template<typename SpectrumType> void load(const String& filename, Spectrum
 	TEST_REAL_EQUAL(s2.getPrecursorPeak().getCharge(), 3)
 
 	ABORT_IF(s2.size() != 25)
-	DSpectrum<DPeakArray<Peak1D > >::ConstIterator it2(s2.begin());
+	DSpectrum<>::ConstIterator it2(s2.begin());
 	
 	TEST_REAL_EQUAL(it2->getPosition()[0], 139.42)
 	TEST_REAL_EQUAL(it2->getIntensity(), 318.52)
@@ -329,10 +328,10 @@ CHECK(template<typename SpectrumType> void store(const String& filename, const S
 	TEST_REAL_EQUAL(it->getIntensity(), 13.5)
 
 
-	//TEST WITH DPeakArray and Peak1D
+	//TEST WITH std::vector and Peak1D
 	
-	DSpectrum<DPeakArray<Peak1D > > raw_spec, raw_spec2;
-	DSpectrum<DPeakArray<Peak1D > >::PeakType raw_peak;
+	DSpectrum<> raw_spec, raw_spec2;
+	DSpectrum<>::PeakType raw_peak;
 	
 	raw_peak.getPosition()[0] = 11.4;
 	raw_peak.setIntensity(11.5);
@@ -353,7 +352,7 @@ CHECK(template<typename SpectrumType> void store(const String& filename, const S
 	
 	ABORT_IF(raw_spec2.getContainer().size() != 3)
 	
-	DSpectrum<DPeakArray<Peak1D > >::ConstIterator it2 = raw_spec2.begin();
+	DSpectrum<>::ConstIterator it2 = raw_spec2.begin();
 
 	TEST_REAL_EQUAL(it2->getPosition()[0], 11.4)
 	TEST_REAL_EQUAL(it2->getIntensity(), 11.5)

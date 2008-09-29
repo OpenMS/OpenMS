@@ -224,8 +224,8 @@ CHECK( void getSamples(SamplesType &cont) const )
 	TEST_EQUAL(pm1.getModel(0)->getName(),pm2.getModel(0)->getName());
 	TEST_EQUAL(pm1.getModel(1)->getName(),pm2.getModel(1)->getName());
 		
-	DPeakArray<Peak2D> dpa1;
-	DPeakArray<Peak2D> dpa2;
+	std::vector<Peak2D> dpa1;
+	std::vector<Peak2D> dpa2;
 	pm1.getSamples(dpa1);
 	pm2.getSamples(dpa2);
 

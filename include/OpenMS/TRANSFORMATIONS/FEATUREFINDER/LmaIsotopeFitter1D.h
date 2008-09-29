@@ -83,7 +83,7 @@ namespace OpenMS
           struct Data
           {
             typedef Peak1D PeakType;
-            typedef DPeakArray<PeakType > RawDataArrayType;
+            typedef std::vector<PeakType > RawDataArrayType;
             typedef std::vector < double > ContainerType;
             typedef Feature::CoordinateType CoordinateType;
       

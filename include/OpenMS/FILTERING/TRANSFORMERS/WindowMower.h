@@ -80,7 +80,7 @@ namespace OpenMS
 
 			std::set<double> positions; // store the indices that are the most intense ones in an interval
 			
-			spectrum.getContainer().sortByPosition();
+			spectrum.sortByPosition();
 			
 			// slide the window over spectrum and store peakcount most intense peaks (if available) of every window position
 			bool end(false);
@@ -97,7 +97,7 @@ namespace OpenMS
 					}
 				}
 
-				container.sortByIntensity(true);
+				std::sort(container.begin(), container.end(), reverseComparator( typename SpectrumType::PeakType::IntensityLess()));
 				
 				for (UInt i = 0; i < peakcount; ++i)
 				{
@@ -125,7 +125,7 @@ namespace OpenMS
 			
 			// overwrite the spectrum with the new container
 			spectrum.setContainer(container);
-			spectrum.getContainer().sortByPosition();
+			spectrum.sortByPosition();
     }
 
 		void filterPeakSpectrum(PeakSpectrum& spectrum);

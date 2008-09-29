@@ -163,7 +163,7 @@ CHECK(Feature fit(const ChargedIndexSet& index_set))
 
 	
 	Peak2D p;
-	DPeakArray<Peak2D> peak_array;
+	std::vector<Peak2D> peak_array;
 	for (UInt mz=0; mz<mz_num; mz++) 
 	{
 		for (UInt rt=0; rt<rt_num; rt++)
@@ -174,7 +174,8 @@ CHECK(Feature fit(const ChargedIndexSet& index_set))
 			peak_array.push_back(p);
 		}
 	}
-	peak_array.sortByPosition();
+	
+	std::sort(peak_array.begin(),peak_array.end(),Peak2D::PositionLess());
 		
 	input.set2DData(peak_array);
 	input.updateRanges(-1);
@@ -257,7 +258,7 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit))
 	double intens[] = { 0.002340574, 0.210691772, 6.97715327, 84.99912758, 380.9396643, 628.0641208, 381.0115632, 87.38019912, 35.98454301, 130.2127941, 214.3397749, 130.0205003, 29.61635618, 9.799801456, 33.32034304, 54.81824895, 33.25192853, 7.534121353, 2.014721947, 6.318548333, 10.38741682, 6.300717685, 1.424225194, 0.340398214, 1.011894924, 0.01108898, 0.998198173, 33.05578366, 402.7018848, 2814.6645, 4522.9635, 2717.9924, 413.98273, 170.4846121, 616.9114803, 1015.48138, 616.0004463, 140.3139396, 46.42869438, 157.8623843, 259.7133971, 157.5382557, 35.69454129, 9.545184149, 29.93549928, 49.21265019, 29.85102271, 6.747577139, 1.6127107, 4.794072654, 0.033685347, 3.032258312, 100.4146044, 1223.300312, 5482.451686, 9039.046129, 5483.486448, 1257.568494, 517.8865237, 1874.011608, 3084.760056, 1871.244131, 426.2361132, 141.0379203, 479.5435813, 788.9396394, 478.5589655, 108.4304424, 28.99570921, 90.93601745, 149.4948313, 90.67940027, 20.4973295, 4.89898254, 14.56310685, 0.065610097, 5.906032735, 195.5809433, 2382.663661, 10678.35778, 17605.65784, 10680.37322, 2449.408965, 1008.705212, 3650.076202, 6008.29217, 3644.685893, 830.1945873, 274.7043585, 934.0233574, 1536.644592, 932.1055877, 211.1936637, 56.47592987, 177.1191767, 291.176172, 176.6193547, 39.92334641, 9.54191506, 28.36505895, 0.081937096, 7.375742301, 244.2510398, 2975.586818, 13335.65503, 21986.80589, 13338.17202, 3058.941616, 1259.720363, 4558.393536, 7503.448881, 4551.661855, 1036.787571, 343.0642274, 1166.454014, 1919.036861, 1164.059009, 263.748968, 70.52990115, 221.1950835, 363.6350331, 220.5708814, 49.85822601, 11.91640983, 35.42367178, 0.049697361, 4.473613844, 148.1457443, 1804.784636, 8088.483645, 13335.67188, 8090.010272, 1855.341876, 764.0590226, 2764.805439, 4551.0718, 2760.722468, 628.8434496, 208.0789721, 707.4901223, 1163.954693, 706.0374786, 159.9718356, 42.77854747, 134.1615999, 220.5557965, 133.7830022, 30.24054271, 7.227667916, 21.48554302, 0.01108898, 0.998198173, 33.05578366, 402.7018848, 1804.784651, 2975.590602, 1805.125288, 413.98273, 170.4846121, 616.9114803, 1015.48138, 616.0004463, 140.3139396, 46.42869438, 157.8623843, 259.7133971, 157.5382557, 35.69454129, 9.545184149, 29.93549928, 49.21265019, 29.85102271, 6.747577139, 1.6127107, 4.794072654, 0.000910239, 0.081937096, 2.713383956, 33.05578366, 148.1457456, 244.2513505, 148.1737067, 33.98177182, 13.99422915, 50.63917801, 83.35578764, 50.56439579, 11.51766954, 3.811099314, 12.9581336, 21.31857384, 12.9315275, 2.929986373, 0.783516428, 2.457255417, 4.039620323, 2.450321158, 0.55387486, 0.132379356, 0.393521447};
 
 	Peak2D p;
-	DPeakArray<Peak2D> peak_array;
+	std::vector<Peak2D> peak_array;
 	for (UInt rt=0; rt<rt_num; rt++) for (UInt mz=0; mz<mz_num; mz++)
 	{
 		p.setMZ(mzs[mz]);
@@ -265,7 +266,7 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit))
 		p.setIntensity(intens[rt*mz_num+mz]);
 		peak_array.push_back(p);
 	}
-	peak_array.sortByPosition();
+	std::sort(peak_array.begin(),peak_array.end(),Peak2D::PositionLess());
 
 	MSExperiment<PeakType> input;
 	FeatureMap<FeatureType> features;
@@ -365,7 +366,7 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit))
 	STATUS(sizeof(intens)/sizeof(*intens));
 	
 	Peak2D p;
-	DPeakArray<Peak2D> peak_array;
+	std::vector<Peak2D> peak_array;
 	for (UInt rt=0; rt<rt_num; rt++) for (UInt mz=0; mz<mz_num; mz++)
 	{
 		p.setMZ(mzs[mz]);
@@ -373,7 +374,7 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit))
 		p.setIntensity(intens[rt*mz_num+mz]);
 		peak_array.push_back(p);
 	}
-	peak_array.sortByPosition();
+	std::sort(peak_array.begin(),peak_array.end(),Peak2D::PositionLess());
 
 	MSExperiment<PeakType> input;
 	FeatureMap<FeatureType> features;
@@ -474,12 +475,12 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 		em1.setParameters(tmp);
 
 		// get samples from model
-		DPeakArray<Peak1D> dpa1;
+		std::vector<Peak1D> dpa1;
 		em1.getSamples(dpa1);
 
 		// save samples
 		Peak2D p;
-		DPeakArray<Peak2D> peak_array;
+		std::vector<Peak2D> peak_array;
 		for (UInt i=0; i<dpa1.size(); ++i) {
 			p.setMZ(1);
 			p.setRT(dpa1[i].getPosition()[0]);
@@ -488,7 +489,7 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 		}
 
 		// set traits
-		peak_array.sortByPosition();
+		std::sort(peak_array.begin(),peak_array.end(),Peak2D::PositionLess());
 		MSExperiment<PeakType> input;
 		FeatureMap<FeatureType> features;
 		FeatureFinder ff;
@@ -545,12 +546,12 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 	em2.setParameters(tmp);
 
 	//get samples from model
-	DPeakArray<Peak1D> dpa2;
+	std::vector<Peak1D> dpa2;
 	em2.getSamples(dpa2);
 
 	// save samples
 	Peak2D p2;
-	DPeakArray<Peak2D> peak_array2;
+	std::vector<Peak2D> peak_array2;
 
 	// noise value		
 	double noise = 10;
@@ -578,7 +579,7 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 	//file2.close();
 
 	// set traits
-	peak_array2.sortByPosition();
+	std::sort(peak_array2.begin(),peak_array2.end(),Peak2D::PositionLess());
 	MSExperiment<PeakType> input2;
 	FeatureMap<FeatureType> features;
 	FeatureFinder ff;
@@ -631,11 +632,11 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 	logm1.setParameters(tmp);
 
 	// get samples from model
-	DPeakArray<Peak1D> dpa3;
+	std::vector<Peak1D> dpa3;
 	logm1.getSamples(dpa3);
 
 	Peak2D p3;
-	DPeakArray<Peak2D> peak_array3;
+	std::vector<Peak2D> peak_array3;
 
 	//String fname3 = "samples3.dta2d";
 	//ofstream file3(fname3.c_str()); 
@@ -650,7 +651,7 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 	//file3.close();
 
 	// set traits
-	peak_array3.sortByPosition();
+	std::sort(peak_array3.begin(),peak_array3.end(),Peak2D::PositionLess());
 	MSExperiment<PeakType > exp3;
 	exp3.set2DData(peak_array3);
 
@@ -715,11 +716,11 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 			lm1.setParameters(tmp2);
 
 			// get samples from model
-			DPeakArray<Peak1D > dpa4;
+			std::vector<Peak1D > dpa4;
 			lm1.getSamples(dpa4);
 
 			Peak2D p4;
-			DPeakArray<Peak2D> peak_array4;
+			std::vector<Peak2D> peak_array4;
 
 			//String fname4 = "samples4.dta2d";
 			//ofstream file4(fname4.c_str()); 
@@ -736,7 +737,7 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 			//file4.close();
 
 			// set traits
-			peak_array4.sortByPosition();
+			std::sort(peak_array4.begin(),peak_array4.end(),Peak2D::PositionLess());
 			MSExperiment<PeakType> exp4;
 			exp4.set2DData(peak_array4);
 

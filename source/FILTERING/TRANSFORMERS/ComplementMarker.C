@@ -65,7 +65,7 @@ namespace OpenMS
     double parentmass = spec.getPrecursorPeak().getPosition()[0];
     double tolerance = (double)param_.getValue("tolerance");
     map<double,int> matching_b_y_ions;
-    spec.getContainer().sortByPosition();
+    spec.sortByPosition();
     int j = spec.size() -1;
     for (uint i = 0; i < spec.size(); ++i)
     {

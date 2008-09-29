@@ -265,7 +265,7 @@ namespace OpenMS
 			p_.setMetaValue("IonName", String(""));
 		}
 		
-		spectrum.getContainer().sortByPosition();
+		spectrum.sortByPosition();
 
 		return;
 	}

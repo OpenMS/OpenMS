@@ -38,7 +38,6 @@ CPP_SOURCES= \
   RichPeak1D.C\
   RichPeak2D.C\
 	Feature.C\
-  DPeakArray.C\
   StandardTypes.C\
 	RangeManager.C\
 	FeatureMap.C\

@@ -35,7 +35,6 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>

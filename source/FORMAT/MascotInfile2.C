@@ -249,7 +249,7 @@ namespace OpenMS
 
 			os << endl;
 
-			for (DPeakArray<Peak1D>::const_iterator it = spec.begin() ; it != spec.end();++it)
+			for (PeakSpectrum::const_iterator it = spec.begin() ; it != spec.end();++it)
 			{
 				os << it->getMZ() << " " << it->getIntensity() << endl;
 			}

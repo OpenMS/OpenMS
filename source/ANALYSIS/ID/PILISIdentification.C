@@ -393,7 +393,7 @@ namespace OpenMS
 			}
 		}
 
-		spec.getContainer().sortByPosition();
+		spec.sortByPosition();
 		
 		return;
 	}

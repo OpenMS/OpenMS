@@ -43,8 +43,7 @@ START_TEST(MascotInfile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-//DPeakArray (dummy for spectrum)
-DPeakArray<Peak1D> spec;
+PeakSpectrum spec;
 Peak1D tmp;
 vector<Int> charges;
 charges.push_back(2);
@@ -77,7 +76,7 @@ CHECK((const String& getBoundary()))
 	TEST_EQUAL(file.getBoundary() , "ABCDEFGHIJKMNOPQRSTUVWXYZ")
 RESULT
 
-CHECK((void store(const String &filename, const DPeakArray< Peak1D > &spec, DoubleReal mz, DoubleReal retention_time, String search_title)))
+CHECK((void store(const String &filename, const PeakSpectrum& spec, DoubleReal mz, DoubleReal retention_time, String search_title)))
 
 	// here a fixed name has to be used as it has to be in the template
 	file.store("MascotInfile_test.txt", spec, 1998.0f, 25.379, "TestTitle");
@@ -209,7 +208,7 @@ CHECK((const std::vector<String>& getVariableModifications()))
 	TEST_EQUAL(file.getVariableModifications() == vmods, true)
 RESULT
 
-CHECK([EXTRA] void store(const std::string& filename, const DPeakArray<1>& spec, double mz, double retention_time, std::string search_title))
+CHECK([EXTRA] void store(const std::string& filename, const PeakSpectrum& spec, double mz, double retention_time, std::string search_title))
 	// here a fixed name has to be used as it has to be in the tamplate
 	file.store("MascotInfile_test.txt", spec, 1998.0f, 25.379, "TestTitle");
 	TEST_FILE("MascotInfile_test.txt", "data/MascotInfile_test_template2.txt");

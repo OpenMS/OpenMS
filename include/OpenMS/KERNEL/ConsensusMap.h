@@ -31,6 +31,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/KERNEL/RangeManager.h>
+#include <OpenMS/KERNEL/ComparatorUtils.h>
 
 namespace OpenMS
 {

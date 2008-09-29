@@ -117,8 +117,8 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	IsotopeModel im2;
 	im2.setParameters(im1.getParameters());
 
-	DPeakArray<Peak1D> dpa1;
-	DPeakArray<Peak1D> dpa2;
+	std::vector<Peak1D> dpa1;
+	std::vector<Peak1D> dpa2;
 	im1.getSamples(dpa1);
 	im2.getSamples(dpa2);
 
@@ -162,8 +162,8 @@ CHECK( void setOffset(CoordinateType offset) )
 	im2.setParameters(im1.getParameters());
 	im2.setOffset( 673.5 );
 	
-	DPeakArray<Peak1D> dpa1;
-	DPeakArray<Peak1D> dpa2;
+	std::vector<Peak1D> dpa1;
+	std::vector<Peak1D> dpa2;
 	im1.getSamples(dpa1);
 	im2.getSamples(dpa2);
 
@@ -190,8 +190,8 @@ CHECK( CoordinateType getOffset() )
 	im2.setParameters(im1.getParameters());
 	im2.setOffset( im1.getOffset() );
 	
-	DPeakArray<Peak1D> dpa1;
-	DPeakArray<Peak1D> dpa2;
+	std::vector<Peak1D> dpa1;
+	std::vector<Peak1D> dpa2;
 	im1.getSamples(dpa1);
 	im2.getSamples(dpa2);
 

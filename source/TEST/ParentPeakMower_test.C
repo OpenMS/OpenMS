@@ -73,7 +73,7 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	dta_file.load("data/Transformers_tests.dta", spec);
 	spec.setMSLevel(2);
 	
-	spec.getContainer().sortByPosition();
+	spec.sortByPosition();
 
 	TEST_REAL_EQUAL((spec.begin() + 40)->getIntensity(), 37.5)
 
@@ -132,7 +132,7 @@ CHECK((void filterPeakMap(PeakMap& exp)))
 
   pm.begin()->setMSLevel(2);
 
-  pm.begin()->getContainer().sortByPosition();
+  pm.begin()->sortByPosition();
 
   TEST_REAL_EQUAL((pm.begin()->begin() + 40)->getIntensity(), 37.5)
 
@@ -177,7 +177,7 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   dta_file.load("data/Transformers_tests.dta", spec);
   spec.setMSLevel(2);
 
-  spec.getContainer().sortByPosition();
+  spec.sortByPosition();
 
   TEST_REAL_EQUAL((spec.begin() + 40)->getIntensity(), 37.5)
 

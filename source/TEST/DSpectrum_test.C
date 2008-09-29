@@ -31,7 +31,6 @@
 #include <string>
 
 #include <OpenMS/KERNEL/DSpectrum.h>
-#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 ///////////////////////////
@@ -44,10 +43,10 @@ START_TEST(DSpectrum, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-typedef DSpectrum<DPeakArray<Peak1D> > DSpectrum1;
-typedef DSpectrum<DPeakArray<Peak2D> > DSpectrum2;
-typedef DSpectrum<DPeakArray<Peak1D> > DSpectrum3;
-typedef DSpectrum<DPeakArray<Peak2D> > DSpectrum4;
+typedef DSpectrum<Peak1D> DSpectrum1;
+typedef DSpectrum<Peak2D> DSpectrum2;
+typedef DSpectrum<Peak1D> DSpectrum3;
+typedef DSpectrum<Peak2D> DSpectrum4;
 
 Peak2D dp2_1;
 dp2_1.setIntensity(1);
@@ -605,50 +604,6 @@ CHECK((void resize( size_type num, const value_type& val = value_type() )))
   TEST_REAL_EQUAL(s.back().getIntensity(),3)  
 RESULT
 
-CHECK((bool operator<(const DSpectrum& rhs)))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-  DSpectrum2 s2(s);
-
-	TEST_EQUAL(s < s2, false)
-	s2.push_back(dp2_2);
-	TEST_EQUAL(s < s2 , true)
-RESULT
-
-CHECK((bool operator>(const DSpectrum& rhs)))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-  DSpectrum2 s2(s);
-
-	TEST_EQUAL(s > s2, false)
-	s.push_back(dp2_2);
-	TEST_EQUAL(s > s2 , true)
-RESULT
-
-CHECK((bool operator<=(const DSpectrum& rhs)))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-  DSpectrum2 s2(s);
-
-	TEST_EQUAL(s <= s2, true)
-	s.push_back(dp2_2);
-	TEST_EQUAL(s <= s2 , false)
-RESULT
-
-CHECK((bool operator>=(const DSpectrum& rhs)))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-  DSpectrum2 s2(s);
-
-	TEST_EQUAL(s >= s2, true)
-	s2.push_back(dp2_2);
-	TEST_EQUAL(s >= s2 , false)
-RESULT
-
 //*************************** Tests for MetaInfoInterface ****************************************
 
 CHECK(([EXTRA] setMetaValue(index,string)/getMetaValue(index)))
@@ -844,7 +799,7 @@ CHECK((ConstIterator MZBegin(CoordinateType mz) const))
 RESULT
 
 CHECK((UInt findNearest(CoordinateType mz) const  ))
-	DSpectrum< DPeakArray<Peak1D> > tmp;
+	DSpectrum<Peak1D> tmp;
 	Peak1D p;
 	p.setIntensity(29); p.setMZ(412.321); tmp.push_back(p); //0
 	p.setIntensity(60); p.setMZ(412.824); tmp.push_back(p); //1
@@ -881,7 +836,7 @@ CHECK((UInt findNearest(CoordinateType mz) const  ))
 	TEST_EQUAL(tmp.findNearest(427.3),11);
 	
 	//empty spectrum
-	DSpectrum< DPeakArray<Peak1D> > tmp2;
+	DSpectrum<Peak1D> tmp2;
 	TEST_EXCEPTION(Exception::Precondition, tmp2.findNearest(427.3));
 RESULT
 

@@ -138,8 +138,8 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	EmgModel em3;
 	em3.setParameters(em1.getParameters());
 
-	DPeakArray<Peak1D> dpa1;
-	DPeakArray<Peak1D> dpa2;
+	std::vector<Peak1D> dpa1;
+	std::vector<Peak1D> dpa2;
 	em1.getSamples(dpa1);
 	em3.getSamples(dpa2);
 
@@ -236,8 +236,8 @@ CHECK((void setOffset(CoordinateType offset)))
 	TEST_REAL_EQUAL(em1.getCenter(), em2.getCenter())
 	TEST_REAL_EQUAL(em1.getCenter(), 682.1)
 
-	DPeakArray<Peak1D> dpa1;
-	DPeakArray<Peak1D> dpa2;
+	std::vector<Peak1D> dpa1;
+	std::vector<Peak1D> dpa2;
 	em1.getSamples(dpa1);
 	em2.getSamples(dpa2);
 

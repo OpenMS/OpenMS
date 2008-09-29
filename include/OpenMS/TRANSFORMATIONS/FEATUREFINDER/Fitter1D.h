@@ -64,7 +64,7 @@ namespace OpenMS
             /// Raw data point type
             typedef Peak1D PeakType;
             /// Raw data container type using for the temporary storage of the input data
-            typedef DPeakArray<PeakType > RawDataArrayType;
+            typedef std::vector<PeakType > RawDataArrayType;
             /// Raw data iterator
             typedef RawDataArrayType::iterator PeakIterator;
           

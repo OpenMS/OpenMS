@@ -15,7 +15,7 @@ Int main()
     spectrum.push_back(peak);
   }
 
-  spectrum.getContainer().sortByPosition();
+  spectrum.sortByPosition();
 
   MSSpectrum<>::Iterator it;
   for(it=spectrum.MZBegin(800.0); it!=spectrum.MZEnd(1000.0); ++it)

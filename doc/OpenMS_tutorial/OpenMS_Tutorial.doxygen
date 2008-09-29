@@ -381,9 +381,6 @@ file formats, data reduction functionality and all other analysis algorithms.
 
   @par d-dimensional spectrum
   The base class of @a MSSpectrum is @a DSpectrum. This class provides a generic container for d-dimensional data.
-  One of the template arguments of @a DSpectrum is the Container the data is stored in. As container @p DPeakArray or a
-  container with the same interface is used. @a DPeakArray is a vector of data points with a more convenient interface
-  for sorting the data. @n
   The peak container can be accessed through the @a getContainer() method. For convenience, part of the container interface is
   also provided by @a DSpectrum.
 
@@ -425,8 +422,8 @@ file formats, data reduction functionality and all other analysis algorithms.
   The following figure shows the big picture of the kernel datastructures. @a MSExperiment is
   derived from @a ExperimentalSettings (meta data of the experiment) and from @a vector<MSSpectrum>.
   The one-dimensional spectrum @a MSSpectrum is derived from SpectrumSettings (meta data of a spectrum)
-  and from @a DSpectrum<1>, which stores the actual peak data in a @a DPeakArray. @n
-  Since DPeakArray can store all types of peaks derived from @a Peak, all the data containers
+  and from @a DSpectrum<1>. @n
+  Since DSpectrum can store all types of peaks derived from @a Peak, all the data containers
   are template classes that take the peak type as template argument. This is omitted in the diagram for
   simplicity.
 

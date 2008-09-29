@@ -77,7 +77,7 @@ namespace OpenMS
     /// Raw data point type
     typedef Peak1D PeakType;
     /// Raw data container type using for the temporary storage of the input data
-    typedef DPeakArray<PeakType> RawDataArrayType;
+    typedef std::vector<PeakType> RawDataArrayType;
     /// Raw data iterator type
     typedef RawDataArrayType::iterator PeakIterator;
     /// Position type
@@ -145,7 +145,7 @@ namespace OpenMS
       // vector of peak endpoint positions
       std::vector<double> peak_endpoints;
 
-      // copy the raw data into a DPeakArray<Peak1D>
+      // copy the raw data into a std::vector<Peak1D>
 			//  raw_peak_array_original is needed for the separation of overlapping peaks
       RawDataArrayType raw_peak_array, raw_peak_array_original;
       // signal to noise estimator

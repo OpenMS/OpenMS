@@ -65,7 +65,7 @@ namespace OpenMS
     double marks = 1;
     double tolerance = (double)param_.getValue("tolerance");
     map<double,int> ions_w_neutrallosses;
-    spec.getContainer().sortByPosition();
+    spec.sortByPosition();
     for (uint i = 0; i < spec.size(); ++i)
     {
       double mz = spec.getContainer()[i].getPosition()[0];

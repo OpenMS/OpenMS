@@ -65,7 +65,7 @@ namespace OpenMS
     double mzvariation = (double)param_.getValue("mz_variation");
     double invariation = (double)param_.getValue("in_variation");
     uint marks = (unsigned int)param_.getValue("marks");
-    spec.getContainer().sortByPosition();
+    spec.sortByPosition();
     map<double,uint> isotopemarks ; // possible isotopes
     for (uint i = 0; i < spec.size(); ++i)
     {

@@ -27,7 +27,6 @@
 #ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_CONTINUOUSWAVELETTRANSFORM_H
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_CONTINUOUSWAVELETTRANSFORM_H
 
-#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
 #include <vector>
@@ -59,17 +58,17 @@ namespace OpenMS
     {}
 
     /// Non-mutable access to the wavelet transform of the signal
-    inline const DPeakArray<Peak1D >& getSignal() const
+    inline const std::vector<Peak1D>& getSignal() const
     {
 			return signal_;
     }
     /// Mutable access to the wavelet transform of the signal
-    inline DPeakArray<Peak1D >& getSignal()
+    inline std::vector<Peak1D>& getSignal()
     {
 			return signal_;
     }
     /// Mutable access to the wavelet transform of the signal
-    inline void setSignal(const DPeakArray<Peak1D >& signal)
+    inline void setSignal(const std::vector<Peak1D>& signal)
     {
 			signal_ = signal;
     }
@@ -199,7 +198,7 @@ namespace OpenMS
 
 	protected:
     /// The transformed signal
-    DPeakArray<Peak1D > signal_;
+		std::vector<Peak1D> signal_;
 
     /// The pretabulated wavelet used for the transform
     std::vector<double> wavelet_;

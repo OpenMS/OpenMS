@@ -78,7 +78,7 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	
 	TEST_EQUAL(spec.size(), 121)
 
-	spec.getContainer().sortByIntensity();
+	spec.sortByIntensity();
 	TEST_REAL_EQUAL(spec.begin()->getIntensity(), 96)
 	TEST_REAL_EQUAL((spec.end()-1)->getIntensity(), 121)
 	TEST_REAL_EQUAL((spec.end()-1)->getPosition()[0], 136.077)
@@ -105,7 +105,7 @@ CHECK((void filterPeakMap(PeakMap& exp)))
 
   TEST_EQUAL(pm.begin()->size(), 121)
 
-  pm.begin()->getContainer().sortByIntensity();
+  pm.begin()->sortByIntensity();
   TEST_REAL_EQUAL(pm.begin()->begin()->getIntensity(), 96)
   TEST_REAL_EQUAL((pm.begin()->end()-1)->getIntensity(), 121)
   TEST_REAL_EQUAL((pm.begin()->end()-1)->getPosition()[0], 136.077)
@@ -121,7 +121,7 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 
   TEST_EQUAL(spec.size(), 121)
 
-  spec.getContainer().sortByIntensity();
+  spec.sortByIntensity();
   TEST_REAL_EQUAL(spec.begin()->getIntensity(), 96)
   TEST_REAL_EQUAL((spec.end()-1)->getIntensity(), 121)
   TEST_REAL_EQUAL((spec.end()-1)->getPosition()[0], 136.077)

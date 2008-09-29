@@ -171,7 +171,7 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 	exp.push_back(spec);
 
 	//Convert
-	DPeakArray<Peak2D> a;
+	std::vector<Peak2D> a;
 	exp.get2DData(a);
 
 	//Tests
@@ -190,12 +190,12 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 	TEST_REAL_EQUAL(a[4].getMZ(),25);
 
 	//Convert
-	DPeakArray<Peak2D> list;
+	std::vector<Peak2D> list;
 	exp.get2DData(list);
 
 	//Tests
 	TEST_REAL_EQUAL(list.size(),5);
-	DPeakArray<Peak2D>::const_iterator it = list.begin();
+	std::vector<Peak2D>::const_iterator it = list.begin();
 	TEST_REAL_EQUAL(it->getRT(),11.1);
 	TEST_REAL_EQUAL(it->getMZ(),5);
 	TEST_REAL_EQUAL(it->getIntensity(),47.11);
@@ -218,7 +218,7 @@ CHECK((template<class Container> void set2DData(const Container& cont)))
 	MSExperiment<> exp;
 
 	// create sample data
-	DPeakArray<Peak2D> input;
+	std::vector<Peak2D> input;
 
 	Peak2D p1;
 	p1.setIntensity(1.0);
@@ -241,7 +241,7 @@ CHECK((template<class Container> void set2DData(const Container& cont)))
 	exp.set2DData(input);
 
 	// retrieve data again and check for changes
-	DPeakArray< Peak2D> output;
+	std::vector< Peak2D> output;
 
 	exp.get2DData(output);
 	TEST_EQUAL(output==input,true);
@@ -507,7 +507,7 @@ NOT_TESTABLE
 RESULT
 
 CHECK((ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz) const))
-	DPeakArray< Peak2D> plist;
+	std::vector< Peak2D> plist;
 
 	Peak2D p1;
 	p1.getPosition()[0] = 1.0;
@@ -549,7 +549,7 @@ NOT_TESTABLE
 RESULT
 
 CHECK((AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz)))
-	DPeakArray< Peak2D> plist;
+	std::vector< Peak2D> plist;
 
 	Peak2D p1;
 	p1.getPosition()[0] = 1.0;
@@ -689,7 +689,7 @@ CHECK((ConstIterator RTEnd(CoordinateType rt) const))
 RESULT
 
 CHECK((void sortSpectra(bool sort_mz = true)))
-	DPeakArray< Peak2D> plist;
+	std::vector< Peak2D> plist;
 
 	Peak2D p1;
 	p1.getPosition()[0] = 1.0;
@@ -723,7 +723,7 @@ CHECK((void sortSpectra(bool sort_mz = true)))
 RESULT
 
 CHECK((void reset()))
-	DPeakArray< Peak2D> plist;
+	std::vector< Peak2D> plist;
 
 	Peak2D p;
 	p.getPosition()[0] = 1.0;

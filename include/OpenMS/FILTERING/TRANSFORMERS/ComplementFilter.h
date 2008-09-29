@@ -78,7 +78,7 @@ namespace OpenMS
 	    double parentmass = spectrum.getPrecursorPeak().getPosition()[0];
 	    double result(0);
 		
-			spectrum.getContainer().sortByPosition();
+			spectrum.sortByPosition();
 	
 			/// @improvement think about an correct fast algorithm, not just an heuristic (Andreas)
 	    uint j = spectrum.size() - 1;

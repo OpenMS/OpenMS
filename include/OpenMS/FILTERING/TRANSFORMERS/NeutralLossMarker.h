@@ -76,7 +76,7 @@ namespace OpenMS
     	double marks = (double)param_.getValue("marks");
     	double tolerance = (double)param_.getValue("tolerance");
     	std::map<double, int> ions_w_neutrallosses;
-    	spectrum.getContainer().sortByPosition();
+    	spectrum.sortByPosition();
     	for (uint i = 0; i < spectrum.size(); ++i)
     	{
       	double mz = spectrum.getContainer()[i].getPosition()[0];

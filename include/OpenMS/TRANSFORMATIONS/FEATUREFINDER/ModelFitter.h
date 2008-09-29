@@ -82,7 +82,7 @@ namespace OpenMS
 		/// FeaFiModule
 		typedef FeaFiModule< PeakType, FeatureType > Base;
 		/// Raw data container type using for the temporary storage of the input data
-		typedef DPeakArray< PeakType > RawDataArrayType;
+		typedef std::vector< PeakType > RawDataArrayType;
     
 		enum 
 			{

@@ -81,7 +81,7 @@ namespace OpenMS
     	double c2 = (double)param_.getValue("C2");
     	double threshold = (double)param_.getValue("threshold");
 
-    	spectrum.getContainer().sortByPosition();
+    	spectrum.sortByPosition();
 
     	// find highest peak and ranking
     	double maxint = 0;

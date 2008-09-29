@@ -70,7 +70,7 @@ namespace OpenMS
 		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
 		{			
 			// sort by intensity
-			spectrum.getContainer().sortByIntensity();
+			spectrum.sortByIntensity();
 			
 			// find right position to erase
 			typename SpectrumType::PeakType p;

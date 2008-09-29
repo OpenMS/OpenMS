@@ -31,6 +31,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/KERNEL/RangeManager.h>
+#include <OpenMS/KERNEL/ComparatorUtils.h>
 
 #include <algorithm>
 #include <vector>

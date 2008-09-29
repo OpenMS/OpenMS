@@ -224,7 +224,7 @@ namespace OpenMS
 		}
 
 		RichPeakSpectrum train_spec = in_spec;
-		train_spec.getContainer().sortByPosition();
+		train_spec.sortByPosition();
 		
 		#ifdef TRAINING_DEBUG
 		cout << "peptide: " << peptide  << "(z=" << charge << ")" << endl;
@@ -1883,7 +1883,7 @@ namespace OpenMS
 			}
 		}
 
-		spec.getContainer().sortByPosition();
+		spec.sortByPosition();
 
 		double min_y_int((double)param_.getValue("min_y_ion_intensity"));
 		double min_b_int((double)param_.getValue("min_b_ion_intensity"));

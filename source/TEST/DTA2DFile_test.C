@@ -131,12 +131,12 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 
 
 	dta.load("data/DTA2DFile_test_2.dta2d",e);
-	DPeakArray<Peak2D> array;
+	std::vector<Peak2D> array;
 	e.get2DData(array);
 	TEST_EQUAL(array.size(), 11);
 	ABORT_IF(array.size() != 11)
 
-	DPeakArray<Peak2D>::ConstIterator it2 = array.begin();
+	std::vector<Peak2D>::const_iterator it2 = array.begin();
 
 	TEST_REAL_EQUAL(it2->getMZ(), 230.02)
 	TEST_REAL_EQUAL(it2->getRT(), 4711.1)
@@ -275,12 +275,12 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
 
 	MSExperiment<> e2;
 	f.load(tmp_filename,e2);
-	DPeakArray<Peak2D> array;
+	std::vector<Peak2D> array;
 	e2.get2DData(array);
 	TEST_EQUAL(array.size(), 11);
 	ABORT_IF(array.size() != 11)
 
-	DPeakArray<Peak2D>::ConstIterator it2 = array.begin();
+	std::vector<Peak2D>::const_iterator it2 = array.begin();
 
 	TEST_REAL_EQUAL(it2->getMZ(), 230.02)
 	TEST_REAL_EQUAL(it2->getRT(), 4711.1)
@@ -338,12 +338,12 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
 
 	MSExperiment< Peak1D > e3;
 	f.load(tmp_filename,e3);
-	DPeakArray<Peak2D > array2;
+	std::vector<Peak2D > array2;
 	e2.get2DData(array2);
 	TEST_EQUAL(array2.size(), 11);
 	ABORT_IF(array2.size() != 11)
 
-	DPeakArray<Peak2D >::ConstIterator it3 = array2.begin();
+	std::vector<Peak2D >::const_iterator it3 = array2.begin();
 
 	TEST_REAL_EQUAL(it3->getMZ(), 230.02)
 	TEST_REAL_EQUAL(it3->getRT(), 4711.1)

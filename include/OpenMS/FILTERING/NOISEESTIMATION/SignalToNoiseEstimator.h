@@ -164,7 +164,7 @@ namespace OpenMS
     };  
 
 
-    /// calculate mean & stdev of intensities of a DPeakArray
+    /// calculate mean & stdev of intensities of a spectrum
     inline GaussianEstimate estimate_(const PeakIterator& scan_first_, const PeakIterator& scan_last_) const
     {
       int size = 0;

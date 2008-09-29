@@ -126,7 +126,6 @@ EXECUTABLES_KERNEL =\
 	RichPeak1D_test\
 	RichPeak2D_test\
 	DRichPeak_test\
-	DPeakArray_test\
 	ConstRefVector_test\
 	DSpectrum_test\
 	ComparatorUtils_test\

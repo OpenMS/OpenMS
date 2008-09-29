@@ -29,7 +29,6 @@
 
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/KERNEL/DPeak.h>
-#include <OpenMS/KERNEL/DPeakArray.h>
 
 namespace OpenMS
 {
@@ -53,7 +52,7 @@ namespace OpenMS
 		typedef DoubleReal CoordinateType;
 		typedef DPosition<D> PositionType;
 		typedef typename DPeak<D>::Type PeakType;
-		typedef DPeakArray<PeakType> SamplesType;
+		typedef std::vector<PeakType> SamplesType;
 
 
 		/// Default constructor.
@@ -136,7 +135,7 @@ namespace OpenMS
 		{
 			SamplesType samples;
 			getSamples(samples);
-			for (typename SamplesType::ConstIterator it=samples.begin();it!=samples.end(); ++it)
+			for (typename SamplesType::const_iterator it=samples.begin();it!=samples.end(); ++it)
 			{
 				os << *it << std::endl;
 			}

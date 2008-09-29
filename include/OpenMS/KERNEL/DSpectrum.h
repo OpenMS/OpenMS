@@ -28,10 +28,10 @@
 #define OPENMS_KERNEL_DSPECTRUM_H
 
 #include <OpenMS/KERNEL/DRichPeak.h>
-#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/KERNEL/RangeManager.h>
+#include <OpenMS/KERNEL/ComparatorUtils.h>
 
 #include <gsl/gsl_randist.h>
 
@@ -131,9 +131,6 @@ namespace OpenMS
 	/**
 		 @brief Representation of a D-dimensional spectrum.
 
-		 The peak data itself is stored in a container class, which can be a DPeakArray
-		 or a STL container like std::list or std::vector.
-
 		 Some meta information about the spectrum (ms-level, precursor peak, ...) is
 		 also stored. If you want to store more meta information
 		 see the MSSpectrum and MSExperiment classes.
@@ -146,10 +143,10 @@ namespace OpenMS
 
 		 @ingroup Kernel
 	*/
-	template < typename ContainerT = ::OpenMS::DPeakArray<Peak1D> >
+	template < typename PeakT = Peak1D, typename AllocT = std::allocator<PeakT> >
 	class DSpectrum	:
 		public MetaInfoInterface,
-		public RangeManager<ContainerT::value_type::DIMENSION>
+		public RangeManager<PeakT::DIMENSION>
 	{
 	 public:
 
@@ -163,10 +160,10 @@ namespace OpenMS
 
 		/**	@name	Type definitions */
 		//@{
-		/// Peak container type
-		typedef ContainerT ContainerType;
 		/// Peak type
-		typedef typename ContainerType::value_type PeakType;
+		typedef PeakT PeakType;
+		/// Peak container type
+		typedef std::vector<PeakType, AllocT> ContainerType;
 		/// Dimensionality of the peaks
 		enum
 		{
@@ -182,9 +179,6 @@ namespace OpenMS
 		typedef std::vector<MetaDataArray> MetaDataArrays;
 		//@}
 		
-    // allow c'tors of other template instances to access private members
-    template < typename ContainerT_ > friend class DSpectrum;
-
 		/**	@name	STL-compliance type definitions of the container interface*/
 		//@{
 		typedef typename ContainerType::iterator iterator;
@@ -228,7 +222,7 @@ namespace OpenMS
 		}
 
     /// constructor with custom allocator
-    DSpectrum(const typename ContainerType::AllocType& alloc)
+    DSpectrum(const AllocT& alloc)
       : MetaInfoInterface(),
         RangeManagerType(),
         container_(alloc),
@@ -254,8 +248,8 @@ namespace OpenMS
 		}
 
     /// Copy constructor for different allocator
-    template < template < typename, typename > class ContainerT2, typename AllocT2>
-    DSpectrum(const DSpectrum< ContainerT2 <PeakType, AllocT2 > >& rhs)
+    template < typename AllocT2>
+    DSpectrum(const DSpectrum<PeakType,AllocT2>& rhs)
       : MetaInfoInterface(rhs),
         RangeManagerType(rhs),
         container_(rhs.container_),
@@ -265,21 +259,7 @@ namespace OpenMS
         name_(rhs.name_),
         meta_data_arrays_(rhs.meta_data_arrays_)
     {
-    }    
-
-    /// Copy constructor for different (but unique) allocator
-    template < template < typename, typename > class ContainerT2, typename AllocT2, typename AllocT>
-    DSpectrum(const DSpectrum< ContainerT2 <PeakType, AllocT2 > >& rhs, const AllocT& alloc)
-      : MetaInfoInterface(rhs),
-        RangeManagerType(rhs),
-        container_(rhs.container_, alloc),
-        precursor_peak_(rhs.precursor_peak_),
-        retention_time_(rhs.retention_time_),
-        ms_level_(rhs.ms_level_),
-        name_(rhs.name_),
-        meta_data_arrays_(rhs.meta_data_arrays_)
-    {
-    }       
+    } 
         
 		/// Destructor
 		inline ~DSpectrum()
@@ -304,8 +284,8 @@ namespace OpenMS
 		}
 
     /// Assignment operator for different allocator
-    template < template < typename, typename > class ContainerT2, typename AllocT>
-    DSpectrum& operator = (const DSpectrum< ContainerT2 <PeakType, AllocT > >& rhs)
+    template < typename AllocT2>
+    DSpectrum& operator = (const DSpectrum< PeakType, AllocT2 >& rhs)
     {
       //if (this==&rhs) return *this;
 
@@ -628,6 +608,25 @@ namespace OpenMS
 		}
 
 		//@}
+
+		/// Sorts the peaks according to ascending intensity
+		void sortByIntensity(bool reverse=false)
+		{
+			if (reverse)
+			{
+				std::sort(container_.begin(), container_.end(), reverseComparator(typename PeakType::IntensityLess()));
+			}
+			else
+			{
+				std::sort(container_.begin(), container_.end(), typename PeakType::IntensityLess());
+			}
+		}
+		
+		/// Lexicographically sorts the peaks by their position.
+		void sortByPosition()
+		{
+			std::sort(container_.begin(), container_.end(), typename PeakType::PositionLess());
+		}
 
 
 		///	@name Searching a peak or peak range

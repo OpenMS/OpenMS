@@ -30,6 +30,6 @@
 
 namespace OpenMS
 {
-	DSpectrum< DPeakArray<Peak1D> > default_dspectrum_peak1d;
-	DSpectrum< DPeakArray<Peak2D> > default_dspectrum_peak2d;
+	DSpectrum<Peak1D> default_dspectrum_peak1d;
+	DSpectrum<Peak2D> default_dspectrum_peak2d;
 }

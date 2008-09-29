@@ -264,7 +264,7 @@ void SuffixArrayPeptideFinder::getCandidates (vector<vector<pair<SuffixArrayPept
 	DTAFile dta_file;
 	PeakSpectrum s;
 	dta_file.load(DTA_file, s);
-	s.getContainer().sortByPosition();
+	s.sortByPosition();
 	PeakSpectrum::ConstIterator it(s.begin());
 	vector<double> spec;
 	for (;it!=s.end();++it)

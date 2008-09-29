@@ -80,7 +80,7 @@ namespace OpenMS
     	double invariation = (double)param_.getValue("in_variation");
     	UInt marks = (unsigned int)param_.getValue("marks");
 			
-    	spectrum.getContainer().sortByPosition();
+    	spectrum.sortByPosition();
 			
 			std::map<double, uint> isotopemarks ; // possible isotopes
 			

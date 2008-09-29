@@ -26,7 +26,6 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 
 ///////////////////////////
@@ -36,8 +35,8 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef DPeakArray< Peak1D > PeakArrayType;
-typedef DPeakArray< Peak2D > PeakArray2DType;
+typedef std::vector< Peak1D > PeakArrayType;
+typedef std::vector< Peak2D > PeakArray2DType;
 
 START_TEST(ConstRefVector, "$Id$")
 

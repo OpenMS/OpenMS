@@ -612,7 +612,7 @@ namespace OpenMS
 		}
 	
 		// sort peaks in accending order of position
-		currentPeakData_()[0].getContainer().sortByPosition();
+		currentPeakData_()[0].sortByPosition();
 		
 		//update nearest peak
 		selected_peak_.clear();

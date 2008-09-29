@@ -83,7 +83,7 @@ namespace OpenMS
     	double tolerance = (double)param_.getValue("tolerance");
     	std::map<double, int> matching_b_y_ions;
 			
-    	spectrum.getContainer().sortByPosition();
+    	spectrum.sortByPosition();
 			
     	int j = spectrum.size() -1;
     	for (uint i = 0; i < spectrum.size(); ++i)

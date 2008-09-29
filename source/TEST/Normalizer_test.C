@@ -72,13 +72,13 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
 
-	spec.getContainer().sortByIntensity();
+	spec.sortByIntensity();
 
 	TEST_EQUAL(spec.rbegin()->getIntensity(), 46)
 
 	e_ptr->filterSpectrum(spec);
 
-	spec.getContainer().sortByIntensity();
+	spec.sortByIntensity();
 	
 	TEST_EQUAL(spec.rbegin()->getIntensity(), 1)
 
@@ -118,13 +118,13 @@ CHECK((void filterPeakMap(PeakMap& exp)))
 	PeakMap pm;
 	pm.push_back(spec);
 
-  pm.begin()->getContainer().sortByIntensity();
+  pm.begin()->sortByIntensity();
 
   TEST_EQUAL(pm.begin()->rbegin()->getIntensity(), 46)
 
   e_ptr->filterPeakMap(pm);
 
-  pm.begin()->getContainer().sortByIntensity();
+  pm.begin()->sortByIntensity();
 
   TEST_EQUAL(pm.begin()->rbegin()->getIntensity(), 1)
 
@@ -150,13 +150,13 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   PeakSpectrum spec;
   dta_file.load("data/Transformers_tests.dta", spec);
 
-  spec.getContainer().sortByIntensity();
+  spec.sortByIntensity();
 
   TEST_EQUAL(spec.rbegin()->getIntensity(), 46)
 
   e_ptr->filterPeakSpectrum(spec);
 
-  spec.getContainer().sortByIntensity();
+  spec.sortByIntensity();
 
   TEST_EQUAL(spec.rbegin()->getIntensity(), 1)
 

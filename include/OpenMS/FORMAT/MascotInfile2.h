@@ -57,9 +57,6 @@ namespace OpenMS
 			/// constructor
 			virtual ~MascotInfile2();
 
-			/// stores the peak list in a MascotInfile2 that can be used as input for MASCOT shell execution
-			//void store(const String& filename, const DPeakArray<Peak1D>& spec, DoubleReal mz , DoubleReal retention_time, String search_title);		
-
 			/// stores the experiment data in a MascotInfile2 that can be used as input for MASCOT shell execution
 			void store(const String& filename, const PeakMap& experiment);
 

@@ -56,7 +56,7 @@ namespace OpenMS
 	}
 	
 	void MascotInfile::store(const String& filename,
-													const DPeakArray<Peak1D>& spec, 
+													const PeakSpectrum& spec, 
 													DoubleReal mz ,
 													DoubleReal retention_time, 
 													String search_title)		
@@ -226,7 +226,7 @@ namespace OpenMS
 	
 	void MascotInfile::writeSpectrum_(FILE* fp, 
 																		const String& filename,
-																		const DPeakArray<Peak1D>& peaks)
+																		const PeakSpectrum& peaks)
 	{
 		stringstream ss;
 
@@ -263,7 +263,7 @@ namespace OpenMS
 			ss << retention_time_;
 			fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(),fp);				
 
-			for (DPeakArray<Peak1D>::const_iterator it = peaks.begin() ; it != peaks.end();++it)
+			for (PeakSpectrum::const_iterator it = peaks.begin() ; it != peaks.end();++it)
 			{
 				//mass
 				ss.str("");
@@ -288,7 +288,6 @@ namespace OpenMS
 		stringstream ss;
 		MSSpectrum<>::PrecursorPeakType precursor_peak;
 		DPosition< 1 >::CoordinateType precursor_position;
-		MSSpectrum<>::ContainerType peaks;
 		
 		fputs ("\n--",fp);
 		fputs (boundary_.c_str(),fp);
@@ -298,7 +297,7 @@ namespace OpenMS
 
 		for(UInt i = 0; i < experiment.size(); i++)
 		{
-			peaks = experiment[i].getContainer();
+			MSSpectrum<> peaks = experiment[i];
 			peaks.sortByPosition();
 			precursor_peak = experiment[i].getPrecursorPeak();
 			precursor_position = experiment[i].getPrecursorPeak().getPosition()[0];
@@ -352,7 +351,7 @@ namespace OpenMS
 					}
 					fputs("\n",fp);
 							
-					for (DPeakArray<Peak1D>::iterator it = peaks.begin(); 
+					for (PeakSpectrum::iterator it = peaks.begin(); 
 							 it != peaks.end();
 							 ++it)
 					{

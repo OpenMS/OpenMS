@@ -49,16 +49,16 @@ CHECK((~ContinuousWaveletTransform()))
 RESULT
 
 
-CHECK((DPeakArray<Peak1D >& getSignal()))
+CHECK((std::vector<Peak1D >& getSignal()))
   ContinuousWaveletTransform cwt;
   
-  DPeakArray<Peak1D > signal(2);
+  std::vector<Peak1D > signal(2);
   cwt.getSignal() = signal;
   
   TEST_EQUAL(cwt.getSignal() == signal, true)
 RESULT
 
-CHECK((const DPeakArray<Peak1D >& getSignal() const))
+CHECK((const std::vector<Peak1D >& getSignal() const))
  ContinuousWaveletTransform cwt;
  
  TEST_EQUAL(cwt.getSignal().size() == 0, true)
@@ -79,7 +79,7 @@ RESULT
 CHECK((double operator[](unsigned int i) const ))
   ContinuousWaveletTransform cwt;
   
-  DPeakArray<Peak1D > signal(1);
+  std::vector<Peak1D > signal(1);
   cwt.getSignal() = signal;
   
   ContinuousWaveletTransform const cwt_const(cwt);
@@ -132,7 +132,7 @@ CHECK((double& getSpacing()))
 RESULT
 
 CHECK((double operator[](unsigned int i)))
-  DPeakArray<Peak1D > signal;
+  std::vector<Peak1D > signal;
   Peak1D rp;
   rp.setIntensity(100);
   signal.push_back(rp);
@@ -207,10 +207,10 @@ CHECK((void setScale(DoubleReal scale)))
   TEST_REAL_EQUAL(cwt.getScale(), 0.2)
 RESULT
 
-CHECK((void setSignal(const DPeakArray<Peak1D >& signal)))
+CHECK((void setSignal(const std::vector<Peak1D >& signal)))
   ContinuousWaveletTransform cwt;
   
-  DPeakArray<Peak1D > signal(2);
+  std::vector<Peak1D > signal(2);
   cwt.setSignal(signal);
   
   TEST_EQUAL(cwt.getSignal() == signal, true)

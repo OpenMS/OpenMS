@@ -28,7 +28,6 @@
 #define OPENMS_KERNEL_MSSPECTRUM_H
 
 #include <OpenMS/KERNEL/DSpectrum.h>
-#include <OpenMS/KERNEL/DPeakArray.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/FORMAT/PersistentObject.h>
 
@@ -57,7 +56,7 @@ namespace OpenMS
 	*/
 	template <typename PeakT = Peak1D, typename AllocT = std::allocator<PeakT> >
 	class MSSpectrum
-		: public DSpectrum< DPeakArray< PeakT, AllocT > >,
+		: public DSpectrum< PeakT >,
 			public SpectrumSettings,
 			public PersistentObject
 	{
@@ -77,7 +76,7 @@ namespace OpenMS
 		/// Peak type
 		typedef PeakT PeakType;
 		/// Spectrum base type
-		typedef DSpectrum< DPeakArray< PeakT, AllocT > > BaseSpectrum;
+		typedef DSpectrum< PeakT > BaseSpectrum;
 		/// Metadata array type
 		typedef typename BaseSpectrum::MetaDataArray MetaDataArray;
 		/// Metadata array vector type
@@ -119,16 +118,6 @@ namespace OpenMS
       PersistentObject(source)
     {
     }
-    
-    /// Copy constructor for different allocator
-    template <typename AllocT2>
-    MSSpectrum(const MSSpectrum<PeakT, AllocT2>& source, const AllocT& alloc):
-      BaseSpectrum(source, alloc),
-      SpectrumSettings(source),
-      PersistentObject(source)
-    {
-    }
-
         
 		/// Destructor
 		~MSSpectrum()
@@ -179,7 +168,6 @@ namespace OpenMS
 		// Docu in base class
 		virtual void clearChildIds_()
 		{
-			BaseSpectrum::container_.clearId(true);
 		}
 
 	};

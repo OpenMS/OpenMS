@@ -75,7 +75,7 @@ namespace OpenMS
 		{	
 			if (spectrum.size()==0) return;
 			
-			spectrum.getContainer().sortByIntensity();
+			spectrum.sortByIntensity();
 			typename SpectrumType::size_type count = spectrum.size();
 			++count;
 			typename SpectrumType::PeakType::IntensityType last_int = 0.0; 

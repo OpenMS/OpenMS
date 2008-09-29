@@ -80,7 +80,7 @@ CHECK((template <typename InputPeakContainer, typename OutputPeakContainer> void
     tophat.setParameters(param);
     tophat.filter(raw_data,tophat_data);
 
-    DPeakArray<Peak1D >::ConstIterator it=tophat_data.begin();
+    std::vector<Peak1D >::const_iterator it=tophat_data.begin();
     for (int i=0; i<24; ++i)
     {
       TEST_REAL_EQUAL(it->getIntensity(), 0)
@@ -89,7 +89,7 @@ RESULT
 
 
 CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& baseline_filtered_container)))
-    DPeakArray<Peak1D > raw_data;
+    std::vector<Peak1D > raw_data;
     int i;
     for (i=0; i<8; ++i)
     {
@@ -109,13 +109,13 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
       raw_data.push_back(p);
      }
 
-     DPeakArray<Peak1D > tophat_data;
+     std::vector<Peak1D > tophat_data;
 
      TopHatFilter tophat;
      tophat.setParameters(param);
      tophat.filter(raw_data.begin(),raw_data.end(),tophat_data);
 
-     DPeakArray<Peak1D >::ConstIterator it=tophat_data.begin();
+     std::vector<Peak1D >::const_iterator it=tophat_data.begin();
      for (int i=0; i < 8; ++i)
        {
          TEST_REAL_EQUAL(it->getIntensity(), 0)
