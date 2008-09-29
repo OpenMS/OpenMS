@@ -209,7 +209,7 @@ namespace OpenMS
 		// check each feature
 		for (RefMap::const_iterator it=model_ref.begin(); it!=model_ref.end(); ++it)
 		{
-			RefMap::const_iterator it2 = lower_bound(model_ref.begin(),model_ref.end(),it->getRT()+rt_pair_dist - rt_dev_low, ConsensusFeature::NthPositionLess<0>());
+			RefMap::const_iterator it2 = lower_bound(model_ref.begin(),model_ref.end(),it->getRT()+rt_pair_dist - rt_dev_low, ConsensusFeature::RTLess());
 			while (it2!=model_ref.end() && it2->getRT() <= it->getRT()+rt_pair_dist + rt_dev_high)
 			{
 				if (it2->getCharge() == it->getCharge()
@@ -251,6 +251,6 @@ namespace OpenMS
 		}
 		
 		// Very useful for checking the results, and the ids have no real meaning anyway
-		result_map.sortByNthPosition(Peak2D::MZ);
+		result_map.sortByMZ();
 	}
 }

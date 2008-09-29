@@ -232,97 +232,99 @@ namespace OpenMS
 									
  		/**	@name	Comparator classes.
 				These classes implement binary predicates that can be used 
-				to compare two peaks with respect to their intensities, positions.
-				They are employed by the sort methods in container classes such as PeakArray.
+				to compare two peaks with respect to their intensities, positions, etc.
 		*/
 		//@{
-
-		/// Compare by getIntensity()
+		/// Comparator by intensity
 		struct IntensityLess
 			: std::binary_function < Peak2D, Peak2D, bool >
 		{
-			inline bool operator () ( Peak2D const & left, Peak2D const & right ) const
+			inline bool operator () ( const Peak2D& left, const Peak2D& right ) const
 			{
 				return ( left.getIntensity() < right.getIntensity() );
 			}
-			inline bool operator () ( Peak2D const & left, IntensityType const & right ) const
+			inline bool operator () ( const Peak2D& left, IntensityType right ) const
 			{
 				return ( left.getIntensity() < right );
 			}
-			inline bool operator () ( IntensityType const & left, Peak2D const & right ) const
+			inline bool operator () ( IntensityType left, const Peak2D& right ) const
 			{
 				return ( left< right.getIntensity() );
 			}
-			inline bool operator () ( IntensityType const & left, IntensityType const & right ) const
+			inline bool operator () ( IntensityType left, IntensityType right ) const
 			{
 				return ( left < right );
 			}
 		};
-		
-		/**
-			@brief Comparator for the n-th coordinate of the position.
-		*/
-		template <UInt i>
-		struct NthPositionLess
+
+		/// Comparator by RT position
+		struct RTLess
 			: std::binary_function <Peak2D, Peak2D, bool>
 		{
-			enum { DIMENSION = i };
-			
-			/// comparison of two Peak2Ds
-			inline bool operator () ( Peak2D const & left, Peak2D const & right ) const 
+			inline bool operator () (const Peak2D& left, const Peak2D& right ) const 
 			{
-				return (left.getPosition()[i] < right.getPosition()[i]);
+				return (left.getRT() < right.getRT());
 			}
-			
-			/// comparison of a Peak2D with a CoordinateType
-			inline bool operator () ( Peak2D const & left, CoordinateType right ) const 
+			inline bool operator () ( const Peak2D& left, CoordinateType right ) const 
 			{
-				return (left.getPosition()[i] < right );
+				return (left.getRT() < right );
 			}
-			
-			/// comparison of a CoordinateType with a Peak2D
-			inline bool operator () ( CoordinateType left, Peak2D const & right ) const 
+			inline bool operator () ( CoordinateType left, const Peak2D& right ) const 
 			{
-				return (left < right.getPosition()[i] );
+				return (left < right.getRT() );
 			}
-
-			/**
-				@brief Operator to check if comparison is done increasing or decreasing.
-				
-				Sometimes we need a way to find out which way the CoordinateType is
-				sorted and adding this overload seems to be the best way to achieve that goal.
-			*/
 			inline bool operator () ( CoordinateType left, CoordinateType right ) const 
 			{
 				return (left < right );
 			}
-
 		};
-
-		/// Comparator with respect to retention time
-		typedef NthPositionLess < RT > LessRT;
 		
-		/// Comparator with respect to mass-to-charge
-		typedef NthPositionLess < MZ > LessMZ;
-		
-
-		/**
-			@brief Comparator for the position.
-			
-			Lexicographical comparison from dimension 0 to dimension D-1 is done.
-		*/
+		/// Comparator by m/z position
+		struct MZLess
+			: std::binary_function <Peak2D, Peak2D, bool>
+		{
+			inline bool operator () ( const Peak2D& left, const Peak2D& right ) const 
+			{
+				return (left.getMZ() < right.getMZ());
+			}
+			inline bool operator () ( const Peak2D& left, CoordinateType right ) const 
+			{
+				return (left.getMZ() < right );
+			}
+			inline bool operator () ( CoordinateType left, const Peak2D& right ) const 
+			{
+				return (left < right.getMZ() );
+			}
+			inline bool operator () ( CoordinateType left, CoordinateType right ) const 
+			{
+				return (left < right );
+			}
+		};
+		/// Comparator by position. Lexicographical comparison (first RT then m/z) is done.
 		struct PositionLess
 			: public std::binary_function <Peak2D, Peak2D, bool>
 		{
-			inline bool operator () (const Peak2D& a, const Peak2D& b) const
+			inline bool operator () ( const Peak2D& left, const Peak2D& right) const
 			{
-				return (a.getPosition() < b.getPosition());
+				return (left.getPosition() < right.getPosition());
+			}
+			inline bool operator () ( const Peak2D& left, const PositionType& right ) const 
+			{
+				return (left.getPosition() < right );
+			}
+			inline bool operator () ( const PositionType& left, const Peak2D& right ) const 
+			{
+				return (left < right.getPosition() );
+			}
+			inline bool operator () ( const PositionType& left, const PositionType& right ) const 
+			{
+				return (left < right );
 			}
 		};
-		
 		//@}
 		
-		protected:
+	 protected:
+	 	
 		/// The data point position
 		PositionType	position_;
 		/// The data point intensity

@@ -251,7 +251,7 @@ CHECK((void sortByPosition()))
 	
 RESULT
 
-CHECK((void sortByNthPosition(UInt i)))
+CHECK(void sortByMZ())
 	
 	FeatureMap<> to_be_sorted;
 	
@@ -270,17 +270,38 @@ CHECK((void sortByNthPosition(UInt i)))
 	f3.getPosition()[1] = 10;
 	to_be_sorted.push_back(f3);
 	
-	to_be_sorted.sortByNthPosition(0);
-	
-	TEST_EQUAL(to_be_sorted[0].getPosition()[0],3);
-	TEST_EQUAL(to_be_sorted[1].getPosition()[0],5);
-	TEST_EQUAL(to_be_sorted[2].getPosition()[0],10);
-	
-	to_be_sorted.sortByNthPosition(1);
+	to_be_sorted.sortByMZ();
 	
 	TEST_EQUAL(to_be_sorted[0].getPosition()[1],10);
 	TEST_EQUAL(to_be_sorted[1].getPosition()[1],15);
 	TEST_EQUAL(to_be_sorted[2].getPosition()[1],25);
+	
+RESULT
+
+CHECK(void sortByRT())
+	
+	FeatureMap<> to_be_sorted;
+	
+	Feature f1;
+	f1.getPosition()[0] = 10;
+	f1.getPosition()[1] = 25;
+	to_be_sorted.push_back(f1);
+	
+	Feature f2;
+	f2.getPosition()[0] = 5;
+	f2.getPosition()[1] = 15;
+	to_be_sorted.push_back(f2);
+	
+	Feature f3;
+	f3.getPosition()[0] = 3;
+	f3.getPosition()[1] = 10;
+	to_be_sorted.push_back(f3);
+	
+	to_be_sorted.sortByRT();
+	
+	TEST_EQUAL(to_be_sorted[0].getPosition()[0],3);
+	TEST_EQUAL(to_be_sorted[1].getPosition()[0],5);
+	TEST_EQUAL(to_be_sorted[2].getPosition()[0],10);
 	
 RESULT
 

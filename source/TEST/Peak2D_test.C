@@ -202,7 +202,7 @@ CHECK([EXTRA] class PositionLess)
 	TEST_REAL_EQUAL(v[1].getPosition()[1], 3.5)
 	TEST_REAL_EQUAL(v[2].getPosition()[1], 2.5)
 
-	std::sort(v.begin(), v.end(), Peak2D::NthPositionLess<1>());
+	std::sort(v.begin(), v.end(), Peak2D::MZLess());
 	TEST_REAL_EQUAL(v[0].getPosition()[1], 1.5)
 	TEST_REAL_EQUAL(v[1].getPosition()[1], 2.5)
 	TEST_REAL_EQUAL(v[2].getPosition()[1], 3.5)
@@ -211,7 +211,7 @@ CHECK([EXTRA] class PositionLess)
 	TEST_REAL_EQUAL(v[2].getPosition()[0], 2.0)
 RESULT
 
-CHECK([EXTRA] struct NthPositionLess)
+CHECK([EXTRA] struct MZLess)
 
 	std::vector<Peak2D > v;
 	Peak2D p;
@@ -228,13 +228,33 @@ CHECK([EXTRA] struct NthPositionLess)
 	p.getPosition()[1]=1.5;
 	v.push_back(p);
 
-	std::sort(v.begin(), v.end(), Peak2D::NthPositionLess<1>());
+	std::sort(v.begin(), v.end(), Peak2D::MZLess());
 	TEST_REAL_EQUAL(v[0].getPosition()[1], 1.5)
 	TEST_REAL_EQUAL(v[1].getPosition()[1], 2.5)
 	TEST_REAL_EQUAL(v[2].getPosition()[1], 3.5)
+RESULT
+
+CHECK([EXTRA] struct RTLess)
+
+	std::vector<Peak2D > v;
+	Peak2D p;
+	
+	p.getPosition()[0]=3.0;
+	p.getPosition()[1]=2.5;
+	v.push_back(p);
+
+	p.getPosition()[0]=2.0;
+	p.getPosition()[1]=3.5;
+	v.push_back(p);
+
+	p.getPosition()[0]=1.0;
+	p.getPosition()[1]=1.5;
+	v.push_back(p);
+
+	std::sort(v.begin(), v.end(), Peak2D::RTLess());
 	TEST_REAL_EQUAL(v[0].getPosition()[0], 1.0)
-	TEST_REAL_EQUAL(v[1].getPosition()[0], 3.0)
-	TEST_REAL_EQUAL(v[2].getPosition()[0], 2.0)
+	TEST_REAL_EQUAL(v[1].getPosition()[0], 2.0)
+	TEST_REAL_EQUAL(v[2].getPosition()[0], 3.0)
 RESULT
 
 CHECK([EXTRA] struct IntensityLess)

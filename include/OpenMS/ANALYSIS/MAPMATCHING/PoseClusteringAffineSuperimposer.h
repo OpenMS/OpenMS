@@ -128,12 +128,12 @@ namespace OpenMS
 	      PeakPointerArray model_map(maps[0].begin(),maps[0].end());
 	      model_map.sortByIntensity(true);
 				if (model_map.size()>num_used_points) model_map.resize(num_used_points);
-				model_map.sortByNthPosition(Peak2D::MZ);
+				model_map.sortByComparator(Peak2D::MZLess());
 				
 	      PeakPointerArray scene_map(maps[1].begin(),maps[1].end());
 	      scene_map.sortByIntensity(true);
 	      if (scene_map.size()>num_used_points) scene_map.resize(num_used_points);
-				scene_map.sortByNthPosition(Peak2D::MZ);
+				scene_map.sortByComparator(Peak2D::MZLess());
 
         // compute total intensities of both maps for normalisation
         DoubleReal total_int_model_map = 0;

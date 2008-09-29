@@ -1117,7 +1117,7 @@ namespace OpenMS
 				ff_->startProgress(0, features_->size()*features_->size(), "Resolving overlapping features");
 				log_ << "Resolving intersecting features" << std::endl;
 				//sort features according to m/z in order to speed up the resolution
-				features_->sortByNthPosition(1);
+				features_->sortByMZ();
 				//precalculate BBs and maximum mz span
 				std::vector< DBoundingBox<2> > bbs(features_->size());
 				DoubleReal max_mz_span = 0.0;

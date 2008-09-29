@@ -109,7 +109,6 @@ namespace OpenMS
       // copy data manually into new vector
       //TODO #ifdef OPENMS_64BIT_ARCHITECTURE .. use large capacity for ExternalAlloc() to avoid reallocation?! Check cache locality (benchmark)!
       this->reserve(p.capacity());
-      //std::copy(p.begin(), p.end(), std::back_inserter(this->back()));        
       for(typename std::vector<PeakT, AllocT2>::const_iterator it = p.begin(); it != p.end(); ++it)
       {
         this->push_back(*it);
@@ -179,15 +178,6 @@ namespace OpenMS
 		{ 
 			std::sort(Base::begin(), Base::end(), typename PeakType::PositionLess());
 		}
-
-		/**
-			@brief Sorts the peaks by one dimension of their position.
-			
-			It is only sorted according to dimentsion @p i.
-			
-			@exception Exception::NotImplemented is thrown if sorting for dimension @p i is not implemented
-		*/
-		void sortByNthPosition(UInt i);
 		
 		/** 
 			@name Generic sorting function templates.
@@ -261,32 +251,6 @@ namespace OpenMS
 		}
 		os << "-- DPEAKARRAY END --"<<std::endl;
 		return os;
-	}
-
-//---------------------------------------------------------------
-//  Implementation of the inline / template functions
-//---------------------------------------------------------------
-
-	template <typename PeakT, typename Alloc > 
-	void DPeakArray<PeakT,Alloc>::sortByNthPosition(UInt i)
-	{ 
-		OPENMS_PRECONDITION(i < UInt(DIMENSION), "illegal dimension")
-		if (i==0)
-		{
-			std::sort(Base::begin(), Base::end(), typename PeakType::template NthPositionLess<0>() );
-		}
-		else if (i==1)
-		{
-			std::sort(Base::begin(), Base::end(), typename PeakType::template NthPositionLess<1>() );
-		}
-		else if (i==2)
-		{
-			std::sort(Base::begin(), Base::end(), typename PeakType::template NthPositionLess<2>() );
-		}
-		else
-		{
-			throw Exception::NotImplemented(__FILE__,__LINE__,__FUNCTION__);
-		}
 	}
 
 } // namespace OpenMS

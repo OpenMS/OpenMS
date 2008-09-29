@@ -176,6 +176,18 @@ namespace OpenMS
 				}
 			}
 
+			/// Sorts the peaks to RT position
+			void sortByRT() 
+			{ 
+				std::sort(Base::begin(), Base::end(), ConsensusFeature::RTLess()); 
+			}
+
+			/// Sorts the peaks to m/z position
+			void sortByMZ() 
+			{ 
+				std::sort(Base::begin(), Base::end(), ConsensusFeature::MZLess()); 
+			}
+
 			/**
 				@brief Convert any (random access) container of features to a ConsensusMap.  Each
 				ConsensusFeature contains a map index, so this has to be given as well.

@@ -144,28 +144,28 @@ namespace OpenMS
 				}
 			}
 				
-			/** @brief Sort features by position.
-				
-				Lexicographical sorting from dimention 0 to dimension 1 is performed.			
-			*/
+			///Sort features by position. Lexicographical comparison (first RT then m/z) is done.
 			void sortByPosition() 
 			{ 
 				std::sort(this->begin(), this->end(), typename FeatureType::PositionLess() );
 			}
 			
-			/**
-				@brief Sort features by position @p i.
-				
-				@exception Exception::NotImplemented is thrown if sorting by the requested position is not supported.
-			*/
-			void sortByNthPosition(UInt i);
+			///Sort features by RT position.
+			void sortByRT() 
+			{ 
+				std::sort(this->begin(), this->end(), typename FeatureType::RTLess() );
+			}
+
+			///Sort features by m/z position.
+			void sortByMZ() 
+			{ 
+				std::sort(this->begin(), this->end(), typename FeatureType::MZLess() );
+			}
 			
-			///Sort features by overall quality @p i.
+			///Sort features by overall quality.
 			void sortByOverallQuality()
 			{
-				typename FeatureMap::iterator beg = this->begin();
-				typename FeatureMap::iterator ed  = this->end();
-				std::sort(beg, ed, typename FeatureType::OverallQualityLess() ); 
+				std::sort(this->begin(), this->end(), typename FeatureType::OverallQualityLess() ); 
 			}
 			
 			// Docu in base class
@@ -239,23 +239,6 @@ namespace OpenMS
 		}
 		os << "# -- DFEATUREMAP END --"<< std::endl;
 		return os;
-	}
-	
-	template <typename FeatureType > 
-	void FeatureMap<FeatureType>::sortByNthPosition(UInt i)
-	{ 
-		if (i==0)
-		{
-			std::sort(Base::begin(), Base::end(), typename FeatureType::template NthPositionLess<0>() );
-		}
-		else if (i==1)
-		{
-			std::sort(Base::begin(), Base::end(), typename FeatureType::template NthPositionLess<1>() );
-		}
-		else
-		{
-			throw Exception::NotImplemented(__FILE__,__LINE__,__FUNCTION__);
-		}
 	}
 	
 } // namespace OpenMS

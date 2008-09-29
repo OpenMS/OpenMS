@@ -755,25 +755,11 @@ ref_vector.sortByIntensity();
 				}
 			}
 	    /// Lexicographically sorts the elements by their position.
-	    void sortByPosition(bool reverse=false)
+	    void sortByPosition()
 	    {
-				if (reverse)
-				{
-					std::sort(vector_.begin(), vector_.end(), reverseComparator(pointerComparator(typename ValueType::PositionLess())) );
-				}
-				else
-				{
-					std::sort(vector_.begin(), vector_.end(), pointerComparator(typename ValueType::PositionLess()) );
-				}
+				std::sort(vector_.begin(), vector_.end(), pointerComparator(typename ValueType::PositionLess()) );
 	    }
-	
-	    /**
-	      @brief Sorts the elements by one dimension of their position.
-	
-	      It is only sorted according to dimentsion @p i .
-	    */
-	    void sortByNthPosition(UInt i) throw (Exception::NotImplemented);
-	
+
 	    //@}
 	
 	    /**
@@ -807,34 +793,6 @@ ref_vector.sortByIntensity();
 	    /// Pointer to the base container
 	    const ContainerType* base_container_ptr_;
   };
-
-  //---------------------------------------------------------------
-  //  Implementation of the inline / template functions
-  //---------------------------------------------------------------
-
-  template <typename MapT>
-  void ConstRefVector<MapT>::sortByNthPosition(UInt i)
-  throw (Exception::NotImplemented)
-  {
-    OPENMS_PRECONDITION(i < Int(ValueType::DIMENSION), "illegal dimension")
-    if (i==0)
-    {
-      std::sort(vector_.begin(), vector_.end(), pointerComparator( typename ValueType::template NthPositionLess<0>()) );
-    }
-    else if (i==1)
-    {
-      std::sort(vector_.begin(), vector_.end(), pointerComparator( typename ValueType::template NthPositionLess<1>()) );
-    }
-    else if (i==2)
-    {
-      std::sort(vector_.begin(), vector_.end(), pointerComparator( typename ValueType::template NthPositionLess<2>()) );
-    }
-    else
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,__FUNCTION__);
-    }
-  }
-
 
 } // namespace OpenMS
 

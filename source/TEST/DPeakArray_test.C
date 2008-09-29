@@ -179,61 +179,6 @@ CHECK((void sortByIntensity(bool reverse=false)))
 	TEST_REAL_EQUAL(v[2].getPosition()[1], peak3.getPosition()[1])
 RESULT
 
-CHECK((void sortByNthPosition(UInt i) ))
-	DPeakArray<Peak2D > pl2(pl);
-	pl2.sortByNthPosition(0);
-	TEST_EQUAL(pl2.size(), 3)
-	
-	std::vector<Peak2D > v(pl2.size());
-	std::copy(pl2.begin(), pl2.end(), v.begin());
-	TEST_EQUAL(v.size(), 3)
-	ABORT_IF(v.size() != 3)
-	TEST_REAL_EQUAL(v[1].getIntensity(), peak1.getIntensity())
-	TEST_REAL_EQUAL(v[1].getPosition()[0], peak1.getPosition()[0])
-	TEST_REAL_EQUAL(v[1].getPosition()[1], peak1.getPosition()[1])
-
-	TEST_REAL_EQUAL(v[0].getIntensity(), peak2.getIntensity())
-	TEST_REAL_EQUAL(v[0].getPosition()[0], peak2.getPosition()[0])
-	TEST_REAL_EQUAL(v[0].getPosition()[1], peak2.getPosition()[1])
-
-	TEST_REAL_EQUAL(v[2].getIntensity(), peak3.getIntensity())
-	TEST_REAL_EQUAL(v[2].getPosition()[0], peak3.getPosition()[0])
-	TEST_REAL_EQUAL(v[2].getPosition()[1], peak3.getPosition()[1])
-
-
-	pl2.sortByNthPosition(1);
-	TEST_EQUAL(pl2.size(), 3)
-	
-	std::copy(pl2.begin(), pl2.end(), v.begin());
-	TEST_EQUAL(v.size(), 3)
-	ABORT_IF(v.size() != 3)
-	TEST_REAL_EQUAL(v[2].getIntensity(), peak1.getIntensity())
-	TEST_REAL_EQUAL(v[2].getPosition()[0], peak1.getPosition()[0])
-	TEST_REAL_EQUAL(v[2].getPosition()[1], peak1.getPosition()[1])
-
-	TEST_REAL_EQUAL(v[1].getIntensity(), peak2.getIntensity())
-	TEST_REAL_EQUAL(v[1].getPosition()[0], peak2.getPosition()[0])
-	TEST_REAL_EQUAL(v[1].getPosition()[1], peak2.getPosition()[1])
-
-	TEST_REAL_EQUAL(v[0].getIntensity(), peak3.getIntensity())
-	TEST_REAL_EQUAL(v[0].getPosition()[0], peak3.getPosition()[0])
-	TEST_REAL_EQUAL(v[0].getPosition()[1], peak3.getPosition()[1])
-
-	pl2.sortByNthPosition(0);
-	pl2[0].getPosition()[0] = 2.0;
-	pl2[1].getPosition()[0] = 2.0;
-	pl2.sortByPosition();
-	
-	TEST_REAL_EQUAL(pl2[0].getPosition()[0], 2.0)
-	TEST_REAL_EQUAL(pl2[0].getPosition()[1], peak2.getPosition()[1])
-
-	TEST_REAL_EQUAL(pl2[1].getPosition()[0], 2.0)
-	TEST_REAL_EQUAL(pl2[1].getPosition()[1], peak1.getPosition()[1])
-	
-	TEST_REAL_EQUAL(pl2[2].getPosition()[0], peak3.getPosition()[0])
-	TEST_REAL_EQUAL(pl2[2].getPosition()[1], peak3.getPosition()[1])
-RESULT
-
 CHECK((template< typename ComparatorType > void sortByComparator()))
 	DPeakArray<Peak2D > pl2(pl);
 	pl2.sortByComparator<Peak2D::PositionLess>();
@@ -269,7 +214,7 @@ RESULT
 
 CHECK((template< typename ComparatorType > void sortByComparator( ComparatorType const & comparator )))
 	DPeakArray<Peak2D > pl2(pl);
-	pl2.sortByComparator<Peak2D::NthPositionLess<1> >(Peak2D::NthPositionLess<1>());
+	pl2.sortByComparator<Peak2D::MZLess >(Peak2D::MZLess());
 	TEST_EQUAL(pl2.size(), 3)
 	
 	TEST_REAL_EQUAL(pl2[2].getIntensity(), peak1.getIntensity())
@@ -285,7 +230,7 @@ CHECK((template< typename ComparatorType > void sortByComparator( ComparatorType
 	TEST_REAL_EQUAL(pl2[0].getPosition()[1], peak3.getPosition()[1])
 
 	swap(pl2[0],pl2[2]);
-	pl2.sortByComparator<Peak2D::NthPositionLess<0> >(Peak2D::NthPositionLess<0>());
+	pl2.sortByComparator<Peak2D::RTLess >(Peak2D::RTLess());
 	
 	TEST_REAL_EQUAL(pl2[1].getIntensity(), peak1.getIntensity())
 	TEST_REAL_EQUAL(pl2[1].getPosition()[0], peak1.getPosition()[0])
