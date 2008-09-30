@@ -66,7 +66,7 @@ namespace OpenMS
 					what_ = String("there is no successor/predecessor for the given Index: ") + index_.first + "/" + index_.second;
 					Exception::globalHandler.setMessage(what_);
 				}
-				virtual ~NoSuccessor()
+				virtual ~NoSuccessor() throw()
 				{
 				}
 			protected:
