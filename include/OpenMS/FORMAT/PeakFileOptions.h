@@ -91,7 +91,7 @@ namespace OpenMS
 		//@}
 		
 		/**
-			@brief MS levels option
+			@name MS levels option
 			
 			With this option, MS level filters can be set.
 			When enabled, the original spectrum numbers are stored in the spectrum meta data value @em original_spectrum_number .

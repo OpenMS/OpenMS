@@ -55,6 +55,8 @@ namespace OpenMS
 		instance of the SpectrumCanvas class as a child widget.
 		
 		This Widget also provides axis widgets and scrollbars.
+		
+		@todo Add support to store the displayed data as SVG or PNG image (HiWi)
 	*/
 	class SpectrumWidget 
 		: public QWidget
