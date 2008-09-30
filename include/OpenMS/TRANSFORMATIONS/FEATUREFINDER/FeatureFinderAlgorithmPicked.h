@@ -1153,26 +1153,26 @@ namespace OpenMS
 								if (f1.getIntensity()*f1.getOverallQuality()>f2.getIntensity()*f2.getOverallQuality())
 								{
 									log_ << "   - same charge -> removing duplicate " << (j+1) << std::endl;
-									f1.getSubOrdinates().push_back(f2);
+									f1.getSubordinates().push_back(f2);
 									f2.setIntensity(0.0);
 								}
 								else
 								{
 									log_ << "   - same charge -> removing duplicate " << (i+1) << std::endl;
-									f2.getSubOrdinates().push_back(f1);
+									f2.getSubordinates().push_back(f1);
 									f1.setIntensity(0.0);
 								}
 							}
 							else if (f2.getCharge()%f1.getCharge()==0)
 							{
 								log_ << "   - different charge (one is the multiple of the other) -> removing lower charge " << (i+1) << std::endl;
-								f2.getSubOrdinates().push_back(f1);
+								f2.getSubordinates().push_back(f1);
 								f1.setIntensity(0.0);
 							}
 							else if (f1.getCharge()%f2.getCharge()==0)
 							{
 								log_ << "   - different charge (one is the multiple of the other) -> removing lower charge " << (i+1) << std::endl;
-								f1.getSubOrdinates().push_back(f2);
+								f1.getSubordinates().push_back(f2);
 								f2.setIntensity(0.0);
 							}
 							else
@@ -1180,13 +1180,13 @@ namespace OpenMS
 								if (f1.getOverallQuality()>f2.getOverallQuality())
 								{
 									log_ << "   - different charge -> removing lower score " << (j+1) << std::endl;
-									f1.getSubOrdinates().push_back(f2);
+									f1.getSubordinates().push_back(f2);
 									f2.setIntensity(0.0);
 								}
 								else
 								{
 									log_ << "   - different charge -> removing lower score " << (i+1) << std::endl;
-									f2.getSubOrdinates().push_back(f1);
+									f2.getSubordinates().push_back(f1);
 									f1.setIntensity(0.0);
 								}
 							}
