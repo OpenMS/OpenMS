@@ -35,8 +35,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>2</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_1">
 			<position dim="0">50</position>
@@ -46,8 +44,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>2</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_2">
 			<position dim="0">150</position>
@@ -57,8 +53,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>2</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_3">
 			<position dim="0">66.586</position>
@@ -68,8 +62,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_4">
 			<position dim="0">123.057</position>
@@ -79,8 +71,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_5">
 			<position dim="0">127.356</position>
@@ -90,8 +80,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_6">
 			<position dim="0">81.632</position>
@@ -101,8 +89,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_7">
 			<position dim="0">114.069</position>
@@ -112,8 +98,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_8">
 			<position dim="0">79.678</position>
@@ -123,8 +107,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_9">
 			<position dim="0">123.253</position>
@@ -134,8 +116,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_10">
 			<position dim="0">111.333</position>
@@ -145,8 +125,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_11">
 			<position dim="0">112.701</position>
@@ -156,8 +134,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_12">
 			<position dim="0">139.08</position>
@@ -167,8 +143,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_13">
 			<position dim="0">63.655</position>
@@ -178,8 +152,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_14">
 			<position dim="0">142.598</position>
@@ -189,8 +161,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_15">
 			<position dim="0">97.655</position>
@@ -200,8 +170,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_16">
 			<position dim="0">87.299</position>
@@ -211,8 +179,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_17">
 			<position dim="0">97.46</position>
@@ -222,8 +188,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_18">
 			<position dim="0">104.69</position>
@@ -233,8 +197,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_19">
 			<position dim="0">104.69</position>
@@ -244,8 +206,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		<feature id="f_20">
 			<position dim="0">89.839</position>
@@ -255,8 +215,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 	</featureList>
 </featureMap>

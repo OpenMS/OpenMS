@@ -35,8 +35,6 @@
 			<quality dim="1">167</quality>
 			<overallquality>0</overallquality>
 			<charge>2</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">426.885</hposition>
@@ -101,8 +99,6 @@
 			<quality dim="1">187</quality>
 			<overallquality>0</overallquality>
 			<charge>2</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">621.405</hposition>
@@ -159,8 +155,6 @@
 			<quality dim="1">210</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">706.616</hposition>
@@ -205,8 +199,6 @@
 			<quality dim="1">212</quality>
 			<overallquality>0</overallquality>
 			<charge>2</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">716.799</hposition>
@@ -259,8 +251,6 @@
 			<quality dim="1">215</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">761.474</hposition>
@@ -305,8 +295,6 @@
 			<quality dim="1">219</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">657.266</hposition>
@@ -359,8 +347,6 @@
 			<quality dim="1">224</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">793.277</hposition>
@@ -405,8 +391,6 @@
 			<quality dim="1">233</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">827.347</hposition>
@@ -459,8 +443,6 @@
 			<quality dim="1">228</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">828.346</hposition>
@@ -513,8 +495,6 @@
 			<quality dim="1">224</quality>
 			<overallquality>0</overallquality>
 			<charge>2</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">730.013</hposition>
@@ -575,8 +555,6 @@
 			<quality dim="1">234</quality>
 			<overallquality>0</overallquality>
 			<charge>2</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">829.335</hposition>
@@ -641,8 +619,6 @@
 			<quality dim="1">247</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">805.248</hposition>
@@ -691,8 +667,6 @@
 			<quality dim="1">244</quality>
 			<overallquality>0</overallquality>
 			<charge>2</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">782.787</hposition>
@@ -757,8 +731,6 @@
 			<quality dim="1">258</quality>
 			<overallquality>0</overallquality>
 			<charge>2</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">971.472</hposition>
@@ -815,8 +787,6 @@
 			<quality dim="1">264</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">883.263</hposition>
@@ -877,8 +847,6 @@
 			<quality dim="1">276</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">940.808</hposition>
@@ -919,8 +887,6 @@
 			<quality dim="1">278</quality>
 			<overallquality>0</overallquality>
 			<charge>2</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">954.895</hposition>
@@ -981,8 +947,6 @@
 			<quality dim="1">303</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">1176.12</hposition>
@@ -1031,8 +995,6 @@
 			<quality dim="1">302</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">1073.95</hposition>
@@ -1069,8 +1031,6 @@
 			<quality dim="1">314</quality>
 			<overallquality>0</overallquality>
 			<charge>2</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">1196.02</hposition>
@@ -1143,8 +1103,6 @@
 			<quality dim="1">314</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">1232.27</hposition>
@@ -1189,8 +1147,6 @@
 			<quality dim="1">316</quality>
 			<overallquality>0</overallquality>
 			<charge>2</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">1144.01</hposition>
@@ -1243,8 +1199,6 @@
 			<quality dim="1">339</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">1280.83</hposition>
@@ -1293,8 +1247,6 @@
 			<quality dim="1">362</quality>
 			<overallquality>0</overallquality>
 			<charge>2</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">1371.86</hposition>

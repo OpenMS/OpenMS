@@ -35,8 +35,6 @@
 			<quality dim="1">240</quality>
 			<overallquality>0</overallquality>
 			<charge>2</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">877.64</hposition>
@@ -97,8 +95,6 @@
 			<quality dim="1">248</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">898.927</hposition>
@@ -159,8 +155,6 @@
 			<quality dim="1">263</quality>
 			<overallquality>0</overallquality>
 			<charge>1</charge>
-			<model name="">
-			</model>
 			<convexhull nr="0">
 				<hullpoint>
 					<hposition dim="0">877.542</hposition>
