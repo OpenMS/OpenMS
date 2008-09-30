@@ -197,7 +197,6 @@ namespace OpenMS
           typename std::multimap<CoordinateType, Box>::iterator iter;
           typename Box::iterator box_iter;
           UInt best_charge_index; CoordinateType c_mz;
-          UInt c_charge; // UInt peak_cutoff;
           CoordinateType av_intens=0, av_mz=0;// begin_mz=0; 
           
         	this->ff_->setLogType (ProgressLogger::CMD);
@@ -213,6 +212,14 @@ namespace OpenMS
             Box& c_box = iter->second;
             std::vector<CoordinateType> charge_votes (max_charge_, 0), charge_binary_votes (max_charge_, 0);
   
+						
+						//TODO (big)
+						//{
+						
+						
+						//TODO: can we just test ALL charges, that were tested by the Wavelet?!
+						// --> need subordinate features! In this case most code from the TODO (big) is obsolete
+						
   		      //Let's first determine the charge
             for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
             {
@@ -261,13 +268,10 @@ namespace OpenMS
               best_charge_index = i-1;
               
             	// Pattern found in too few RT scan 
-            	if (charge_binary_votes[best_charge_index] < RT_votes_cutoff && RT_votes_cutoff <= this->map_->size()) 
+            	if (charge_binary_votes[best_charge_index] < RT_votes_cutoff) 
            	 	{
             		continue;
             	}
-                
-              // that's the finally predicted charge state for the pattern
-              c_charge = best_charge_index + 1; 
               
               //---------------------------------------------------------------------------
               // Get the boundaries for the box with specific charge
@@ -275,14 +279,17 @@ namespace OpenMS
               av_intens=0, av_mz=0;
 
               // Index set for seed region
+							// TODO: why is this charge dependent (except for the if(best_charge_...) ??!
+							// ---> pull outside charge-loop
+							// TODO: do extension of region depending on charge?! (so far only the box itself is used)
               ChargedIndexSet region;
               for (box_iter=c_box.begin(); box_iter!=c_box.end(); ++box_iter)
               {
                 c_mz = box_iter->second.mz;
                 
                 // begin/end of peaks in spectrum
-								// peak_cutoff = iwt.getPeakCutOff (c_mz, c_charge);
-                //begin_mz = c_mz - NEUTRON_MASS/(CoordinateType)c_charge;
+								// peak_cutoff = iwt.getPeakCutOff (c_mz, i);
+                //begin_mz = c_mz - NEUTRON_MASS/(CoordinateType)i;
                 //const SpectrumType& spectrum = this->map_->at(box_iter->second.RT_index);
 								
                 UInt spec_index_begin = box_iter->second.MZ_begin; //spectrum.findNearest(begin_mz);
@@ -291,6 +298,7 @@ namespace OpenMS
                 if (spec_index_end >= this->map_->at(box_iter->second.RT_index).size() )
                 	break;
                 
+								//TODO add some mz left to the box for modelfitting
                 // compute index set for seed region
                 for (UInt p=spec_index_begin; p<=spec_index_end; ++p)
                 {
@@ -305,12 +313,15 @@ namespace OpenMS
                 
               };
        
+							// } TODO
+							
+							
+              // calculate monoisotopic peak
+              av_mz /= av_intens;
               // calculate the average intensity
               av_intens /= (CoordinateType)charge_binary_votes[best_charge_index];
-              // calculate monoisotopic peak
-              av_mz /= av_intens*(CoordinateType)charge_binary_votes[best_charge_index];
               // Set charge for seed region
-              region.charge_ = c_charge;
+              region.charge_ = i;
               
               //---------------------------------------------------------------------------
               // Step 3:
@@ -357,7 +368,9 @@ namespace OpenMS
                       if (corr<summary.corr_min) summary.corr_min = corr;
                       if (corr>summary.corr_max) summary.corr_max = corr;
 
+											
                       // charge
+											//TODO this will fail badly for negative charges!
                       UInt ch = f.getCharge();
                       if (ch>= summary.charge.size())
                       {
@@ -383,7 +396,9 @@ namespace OpenMS
              {
 								std::cout << "UnableToFit: " << ex.what() << std::endl;
  
-                // set unused flag for all data points
+								// TODO: WHY ARE THE Peaks released?! this is only valid if NO charge was sucessfully fitted!!
+                
+								// set unused flag for all data points
                 for (IndexSet::const_iterator it=region.begin(); it!=region.end(); ++it)
                 {
                 	this->ff_->getPeakFlag(*it) = UNUSED;

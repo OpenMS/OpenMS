@@ -200,7 +200,7 @@ namespace OpenMS
 		}
             
 		/** @brief Sets or fixed the monoisotopic m/z at a specific position. 
-		* @param mz The monoisotopic m/z that occures in the current data set. */
+		* @param mz The monoisotopic m/z that occurres in the current data set. */
 		void setMonoIsotopicMass(CoordinateType mz)
 		{
 			monoisotopic_mz_ = mz;
@@ -642,7 +642,7 @@ namespace OpenMS
 			param.setValue( "statistics:variance", mz_stat_.variance() );
 			param.setValue( "interpolation_step", interpolation_step_mz_ );
 
-			if ( monoisotopic_mz_ != 0 ) // monnoisotopic mz is known
+			if ( monoisotopic_mz_ != 0 ) // monoisotopic mz is known
 			{
 				param.setValue( "statistics:mean",monoisotopic_mz_ );
 			}
