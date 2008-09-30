@@ -11,8 +11,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</first>
 		<second>
@@ -24,8 +22,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</second>
 	</pair>
@@ -40,8 +36,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</first>
 		<second>
@@ -53,8 +47,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</second>
 	</pair>
@@ -69,8 +61,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</first>
 		<second>
@@ -82,8 +72,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</second>
 	</pair>
@@ -98,8 +86,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</first>
 		<second>
@@ -111,8 +97,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</second>
 	</pair>
@@ -127,8 +111,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</first>
 		<second>
@@ -140,8 +122,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</second>
 	</pair>
@@ -156,8 +136,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</first>
 		<second>
@@ -169,8 +147,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</second>
 	</pair>
@@ -185,8 +161,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</first>
 		<second>
@@ -198,8 +172,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</second>
 	</pair>
@@ -214,8 +186,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</first>
 		<second>
@@ -227,8 +197,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</second>
 	</pair>
@@ -243,8 +211,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</first>
 		<second>
@@ -256,8 +222,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</second>
 	</pair>
@@ -272,8 +236,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</first>
 		<second>
@@ -285,8 +247,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</second>
 	</pair>
@@ -301,8 +261,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</first>
 		<second>
@@ -314,8 +272,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</second>
 	</pair>
@@ -330,8 +286,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</first>
 		<second>
@@ -343,8 +297,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</second>
 	</pair>
@@ -359,8 +311,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</first>
 		<second>
@@ -372,8 +322,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</second>
 	</pair>
@@ -388,8 +336,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</first>
 		<second>
@@ -401,8 +347,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</second>
 	</pair>
@@ -417,8 +361,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</first>
 		<second>
@@ -430,8 +372,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</second>
 	</pair>
@@ -446,8 +386,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</first>
 		<second>
@@ -459,8 +397,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</second>
 	</pair>
@@ -475,8 +411,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</first>
 		<second>
@@ -488,8 +422,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</second>
 	</pair>
@@ -504,8 +436,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</first>
 		<second>
@@ -517,8 +447,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</second>
 	</pair>
@@ -533,8 +461,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</first>
 		<second>
@@ -546,8 +472,6 @@
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
 			<charge>0</charge>
-			<model name="">
-			</model>
 		</feature>
 		</second>
 	</pair>
