@@ -122,8 +122,8 @@ CHECK((virtual Fitter1D& operator=(const  Fitter1D &source)))
 	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 RESULT
 
-CHECK((virtual QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)=0))
-	// dummy subtest 
+CHECK((virtual QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
+	// dummy subtest TODO
 	TEST_EQUAL(1,1)
 RESULT
 

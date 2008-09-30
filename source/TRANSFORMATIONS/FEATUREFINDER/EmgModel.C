@@ -71,7 +71,7 @@ namespace OpenMS
 
     void EmgModel::setSamples()
     {
-      ContainerType& data = interpolation_.getData();
+      LinearInterpolation::container_type& data = interpolation_.getData();
       data.clear();
       if (max_==min_) return;
       data.reserve( UInt ( (max_-min_) / interpolation_step_ + 1 ) );

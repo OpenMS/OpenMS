@@ -39,17 +39,7 @@ namespace OpenMS
 		Model wrapping LinearInterpolation for speed-up in calculation of predicted intensities
 		Derived classes have to implement setSamples()
 		
-		Parameters:
-		<table>
-			<tr>
-				<td>interpolation_step</td>
-				<td>step size used to interpolate model</td>
-			</tr>
-			<tr>
-				<td>intensity_scaling</td>
-				<td>factor used to scale the calculated intensities</td>
-			</tr>
-		</table>
+    @ref InterpolationModel_Parameters are explained on a separate page.
 
 		@ingroup FeatureFinder
 
@@ -63,7 +53,6 @@ namespace OpenMS
       typedef DPosition<1> PositionType;
 			typedef DoubleReal CoordinateType;
 			typedef Math::LinearInterpolation<DoubleReal> LinearInterpolation;
-			typedef LinearInterpolation::container_type ContainerType;
 
       /// Default constructor
       InterpolationModel()
@@ -153,10 +142,17 @@ namespace OpenMS
 			}
 
 			/// "center" of the model, particular definition (depends on the derived model)
-			virtual CoordinateType getCenter() const=0;
+			virtual CoordinateType getCenter() const
+			{
+				throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+				return CoordinateType(); // we will never get here, but this avoids a warning
+			}
 
 			/// set sample/supporting points of interpolation wrt params.
-			virtual void setSamples() =0;
+			virtual void setSamples()
+			{
+				throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+			};
 
 			/**
 				@brief Set the interpolation step for the linear interpolation of the model

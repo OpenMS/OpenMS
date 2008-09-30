@@ -45,10 +45,8 @@ namespace OpenMS
   @code
 	template class BaseModel<UInt D>
 	{
-	;;;
 	// BaseModel<D>::PeakType is either Peak1D or Peak2D, depending on D
 	typedef typename DPeak<D>::Type PeakType;
-	;;;
 	};
 	@endcode
 
@@ -58,25 +56,22 @@ namespace OpenMS
 	template <UInt Dimensions>
 	struct DPeak
 	{};
-	
-	// we do not want the template specializations to show up in normal docu:
-	/// @cond INTERNAL_INFO
 
-	/// @c DPeak<1>::Type is @c Peak1D
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+	
 	template <>
 	struct DPeak <1>
 	{
 		typedef Peak1D Type;
 	};
 
-	/// @c DPeak<2>::Type is @c Peak2D
 	template <>
 	struct DPeak <2>
 	{
 		typedef Peak2D Type;
 	};
-	
-	/// @endcond
+
+#endif
 
 } // namespace OpenMS
 

@@ -55,10 +55,6 @@ namespace OpenMS
       updateMembers_();
     }
 
-    Fitter1D::~Fitter1D()
-    {
-    }
-
     Fitter1D& Fitter1D::operator = (const Fitter1D& source)
     {
       if (&source == this) return *this;

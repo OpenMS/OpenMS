@@ -272,21 +272,22 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 //Helper macros that can be used for easy classes
 //**********************************************************************************
 
-// for classes that have a default-constructor, simply use this macro with the class name
-#define DOCME(class) \
-writeParameters(f,""#class ,class().getDefaults());
+// For classes that have a default-constructor, simply use this macro with the
+// class name
+#define DOCME(class_name)																				\
+	writeParameters(f,""#class_name ,class_name().getDefaults());
 
-// For class templates and classes without default constructor use this macro with the macro and a class instance
-// you may have to put parenteses around the instantiation
-#define DOCME2(class_template_name,instantiation) \
-writeParameters(f,""#class_template_name,instantiation.getDefaults());
+// For class templates and classes without default constructor use this macro
+// with (1.) the class name and (2.) a class instance.
+#define DOCME2(class_template_name,instantiation)												\
+	writeParameters(f,""#class_template_name,(instantiation).getDefaults());
 
 //**********************************************************************************
 //Main method - add your class here
 //**********************************************************************************
 int main (int argc , char** argv)
 {
-	//some classes require a QApplication
+	// some classes require a QApplication
 	QApplication app(argc,argv);
 
 	ofstream f;
@@ -299,6 +300,9 @@ int main (int argc , char** argv)
 	DOCME(BernNorm);
 	DOCME(BiGaussFitter1D);
 	DOCME(BiGaussModel);
+	DOCME(BinnedSharedPeakCount);
+	DOCME(BinnedSpectralContrastAngle);
+	DOCME(BinnedSumAgreeingIntensities);
 	DOCME(ComplementFilter);
 	DOCME(ComplementMarker);
 	DOCME(ConsensusID);
@@ -307,21 +311,30 @@ int main (int argc , char** argv)
 	DOCME(EmgModel);
 	DOCME(ExtendedIsotopeFitter1D);
 	DOCME(ExtendedIsotopeModel);
+	DOCME(FalseDiscoveryRate);
 	DOCME(FeatureDecharger);
+	DOCME(FeatureGroupingAlgorithmLabeled);
+	DOCME(FeatureGroupingAlgorithmUnlabeled);
 	DOCME(GaussFilter);
 	DOCME(GaussFitter1D);
 	DOCME(GaussModel);
 	DOCME(GoodDiffFilter);
+	DOCME(IDDecoyProbability);
 	DOCME(InternalCalibration);
+	DOCME(InterpolationModel);
 	DOCME(IsotopeDiffFilter);
 	DOCME(IsotopeFitter1D);
 	DOCME(IsotopeMarker);
 	DOCME(IsotopeModel);
+	DOCME(LabeledPairFinder);
 	DOCME(LinearResampler);
 	DOCME(LmaGaussFitter1D);
 	DOCME(LmaGaussModel);
 	DOCME(LmaIsotopeFitter1D);
 	DOCME(LmaIsotopeModel);
+	DOCME(MSPFile);
+	DOCME(MapAlignmentAlgorithmPoseClustering);
+	DOCME(MapAlignmentAlgorithmSpectrumAlignment);
 	DOCME(MorphFilter);
 	DOCME(NLargest);
 	DOCME(NeutralLossDiffFilter);
@@ -329,11 +342,8 @@ int main (int argc , char** argv)
 	DOCME(Normalizer);
 	DOCME(OptimizePeakDeconvolution);
 	DOCME(PILISScoring);
-	DOCME(IDDecoyProbability);
-	DOCME(MSPFile);
-	DOCME(FalseDiscoveryRate);
-	DOCME(LabeledPairFinder);
 	DOCME(ParentPeakMower);
+	DOCME(PeakAlignment);
 	DOCME(PeakPicker);
 	DOCME(PeakPickerCWT);
 	DOCME(ProtonDistributionModel);
@@ -343,6 +353,7 @@ int main (int argc , char** argv)
 	DOCME(SpectrumAlignmentScore);
 	DOCME(SpectrumCheapDPCorr);
 	DOCME(SpectrumPrecursorComparator);
+	DOCME(SteinScottImproveScore);
 	DOCME(TICFilter);
 	DOCME(TheoreticalSpectrumGenerator);
 	DOCME(ThresholdMower);
@@ -350,25 +361,15 @@ int main (int argc , char** argv)
 	DOCME(TwoDOptimization);
 	DOCME(WindowMower);
 	DOCME(ZhangSimilarityScore);
-	DOCME(SteinScottImproveScore);
-	DOCME(MapAlignmentAlgorithmSpectrumAlignment);
-	DOCME(MapAlignmentAlgorithmPoseClustering);
-	DOCME(FeatureGroupingAlgorithmLabeled);
-	DOCME(FeatureGroupingAlgorithmUnlabeled);
-	DOCME(BinnedSharedPeakCount);
-	DOCME(BinnedSumAgreeingIntensities);
-	DOCME(BinnedSpectralContrastAngle);
-	DOCME(PeakAlignment);
-
 
 	//////////////////////////////////
 	// More complicated cases
 	//////////////////////////////////
 
+	DOCME2(FeatureFinderAlgorithmIsotopeWavelet, (FeatureFinderAlgorithmIsotopeWavelet<Peak1D,Feature>()))
 	DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked<Peak1D,Feature>()));
 	DOCME2(FeatureFinderAlgorithmSimple, (FeatureFinderAlgorithmSimple<Peak1D,Feature>()));
 	DOCME2(FeatureFinderAlgorithmSimplest, (FeatureFinderAlgorithmSimplest<Peak1D,Feature>()));
-	DOCME2(FeatureFinderAlgorithmIsotopeWavelet, (FeatureFinderAlgorithmIsotopeWavelet<Peak1D,Feature>()))
 	DOCME2(FeatureFinderAlgorithmWavelet, (FeatureFinderAlgorithmWavelet<Peak1D,Feature>()))
 	DOCME2(HierarchicalClustering, HierarchicalClustering<>());
 	DOCME2(ModelFitter, (ModelFitter<Peak1D,Feature>(0,0,0)));

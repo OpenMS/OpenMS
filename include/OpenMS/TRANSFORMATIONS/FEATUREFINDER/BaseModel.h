@@ -88,7 +88,7 @@ namespace OpenMS
 		/// register all derived classes here
 		static void registerChildren();
 
-		/// acess model predicted intensity at position @p pos
+		/// access model predicted intensity at position @p pos
 		virtual IntensityType getIntensity(const PositionType& pos) const=0;
 
 		/// check if position @p pos is part of the model regarding the models cut-off.

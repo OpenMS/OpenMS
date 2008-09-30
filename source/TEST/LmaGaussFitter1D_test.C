@@ -93,7 +93,7 @@ CHECK((virtual LmaGaussFitter1D& operator=(const  LmaGaussFitter1D &source)))
 	TEST_EQUAL(gf3.getParameters(), gf2.getParameters())
 RESULT
 
-CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
+CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *& model)))
 	// dummy subtest 
 	LmaGaussFitter1D gf1;
 	gf1 = LmaGaussFitter1D();

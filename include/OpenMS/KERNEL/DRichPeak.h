@@ -59,26 +59,22 @@ namespace OpenMS
 	struct DRichPeak
 	{};
 	
-	// we do not want the template specializations to show up in normal docu:
-	/// @cond INTERNAL_INFO
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 
-	/// @c DRichPeak<1>::Type is @c RichPeak1D
 	template <>
 	struct DRichPeak <1>
 	{
 		typedef RichPeak1D Type;
 	};
 
-	/// @c DRichPeak<2>::Type is @c RichPeak2D
 	template <>
 	struct DRichPeak <2>
 	{
 		typedef RichPeak2D Type;
 	};
 	
-	/// @endcond
+#endif
 
 } // namespace OpenMS
-
 
 #endif // OPENMS_KERNEL_DRICHPEAK_H

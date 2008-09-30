@@ -83,14 +83,14 @@ namespace OpenMS
     
     void LmaIsotopeModel::setSamples()
     {
-      ContainerType& data = interpolation_.getData();
+      LinearInterpolation::container_type& data = interpolation_.getData();
       data.clear();
       if (max_==min_) return;
       data.reserve( UInt ( (max_-min_) / interpolation_step_ + 1 ) );
       CoordinateType pos = min_;
           
       // compute relative abundance of i-th isotopic peak
-      ContainerType isotopes_exact;
+      LinearInterpolation::container_type isotopes_exact;
       CoordinateType mass = mean_ * charge_;
 
       Int C_num = Int( 0.5 + mass * averagine_[C]);

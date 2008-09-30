@@ -67,7 +67,7 @@ namespace OpenMS
 
 		void BiGaussModel::setSamples()
 		{
-			ContainerType& data = interpolation_.getData();
+			LinearInterpolation::container_type& data = interpolation_.getData();
 			data.clear();
 			if (max_==min_) return;
 			data.reserve( UInt ( (max_-min_) / interpolation_step_ + 1 ) );
@@ -90,7 +90,7 @@ namespace OpenMS
 			IntensityType factor = scaling_ / interpolation_step_ /
 						std::accumulate ( data.begin(), data.end(), IntensityType(0) );
 
-			for (ContainerType::iterator it=data.begin();	it!=data.end();	++it)
+			for (LinearInterpolation::container_type::iterator it=data.begin();	it!=data.end();	++it)
       {
 				*it *= factor;
 			}

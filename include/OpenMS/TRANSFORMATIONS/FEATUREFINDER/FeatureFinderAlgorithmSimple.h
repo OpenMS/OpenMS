@@ -38,7 +38,11 @@ namespace OpenMS
 	/** 
 		@brief FeatureFinderAlgorithm implementation using the Simple* modules.
 
-    SimpleSeeder, SimpleExtender, ModelFitter (using EmgModel (exponentially modified gaussian with parameter optimization [Levenberg-Marquardt algorithm]) in RT dimension and IsotopeModel (charge does not equal zero) or LmaGaussModel (parameter optimization using Levenberg-Marquardt algorithm) in dimension of mz).
+    SimpleSeeder, SimpleExtender, ModelFitter (using EmgModel (exponentially
+    modified gaussian with parameter optimization [Levenberg-Marquardt
+    algorithm]) in RT dimension and IsotopeModel (charge does not equal zero)
+    or LmaGaussModel (parameter optimization using Levenberg-Marquardt
+    algorithm) in dimension of mz).
                
 	  @ref FeatureFinderAlgorithmSimple_Parameters are explained on a separate page.
 	
@@ -71,7 +75,7 @@ namespace OpenMS
 				tmp.setSectionDescription("extender", "Settings for the extender (Collects all peaks belonging to a feature)");
 
 				ModelFitter<PeakType,FeatureType> fitter(this->map_, this->features_, this->ff_);
-				tmp.insert("fitter:", fitter.getParameters());
+ 				tmp.insert("fitter:", fitter.getParameters());
 				tmp.setSectionDescription("fitter", "Settings for the modefitter (Fits a model to the data determinging the probapility that they represent a feature.)");
 				
 				return tmp;

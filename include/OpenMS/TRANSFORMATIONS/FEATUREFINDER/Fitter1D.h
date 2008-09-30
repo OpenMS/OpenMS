@@ -37,75 +37,81 @@
 
 namespace OpenMS
 {
-    /**
-		  @brief Abstract base class for all 1D-dimensional model fitter.
+	/**
+	@brief Abstract base class for all 1D-dimensional model fitter.
 
-			@ref Fitter1D_Parameters are explained on a separate page.
+	@ref Fitter1D_Parameters are explained on a separate page.
 
-		  Every derived class has to implement the static functions
-		  "T* create()" and "const String getProductName()" (see FactoryProduct for details)
+	Every derived class has to implement the static functions
+	"T* create()" and "const String getProductName()" (see FactoryProduct for details)
 		  
-		  @ingroup FeatureFinder
-   */
-    class Fitter1D
+	@ingroup FeatureFinder
+	*/
+	class Fitter1D
     : public FactoryProduct,
       public FeatureFinderDefs
-    {
-        public:
+	{
+	 public:
             
-            /// IndexSet
-            typedef IsotopeCluster::IndexSet IndexSet;
-            /// IndexSet with charge information
-            typedef IsotopeCluster::ChargedIndexSet ChargedIndexSet;
-            /// Single coordinate
-            typedef Feature::CoordinateType CoordinateType;
-            /// Quality of a feature
-            typedef Feature::QualityType QualityType;
-            /// Raw data point type
-            typedef Peak1D PeakType;
-            /// Raw data container type using for the temporary storage of the input data
-            typedef std::vector<PeakType > RawDataArrayType;
-            /// Raw data iterator
-            typedef RawDataArrayType::iterator PeakIterator;
+		/// IndexSet
+		typedef IsotopeCluster::IndexSet IndexSet;
+		/// IndexSet with charge information
+		typedef IsotopeCluster::ChargedIndexSet ChargedIndexSet;
+		/// Single coordinate
+		typedef Feature::CoordinateType CoordinateType;
+		/// Quality of a feature
+		typedef Feature::QualityType QualityType;
+		/// Raw data point type
+		typedef Peak1D PeakType;
+		/// Raw data container type using for the temporary storage of the input data
+		typedef std::vector<PeakType > RawDataArrayType;
+		/// Raw data iterator
+		typedef RawDataArrayType::iterator PeakIterator;
           
-              /// Default constructor.
-            Fitter1D();
+		/// Default constructor.
+		Fitter1D();
             
-            /// copy constructor
-            Fitter1D(const Fitter1D& source);
+		/// copy constructor
+		Fitter1D(const Fitter1D& source);
     
-              /// destructor
-            virtual ~Fitter1D();
+		/// destructor
+		virtual ~Fitter1D()
+		{
+		}
     
-            /// assignment operator
-            virtual Fitter1D& operator = (const Fitter1D& source);
+		/// assignment operator
+		virtual Fitter1D& operator = (const Fitter1D& source);
                             
-            /// return interpolation model
-            virtual QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model)=0;	
+		/// return interpolation model
+		virtual QualityType fit1d(const RawDataArrayType& /* range */, InterpolationModel*& /* model */)
+		{
+			throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+		}
     
-            /// register all derived classes here
-            static void registerChildren();
+		/// register all derived classes here
+		static void registerChildren();
 		
-        protected:
+	 protected:
 		
-            /// standard derivation in bounding box		
-            CoordinateType tolerance_stdev_box_;
-            /// minimum of the bounding box
-            CoordinateType min_;
-            /// maximum of the bounding box
-            CoordinateType max_;
-            /// standard derivation
-            CoordinateType stdev1_; 
-            /// standard derivation            
-            CoordinateType stdev2_;
-            /// basic statistics           
-            Math::BasicStatistics<> statistics_;
-            /// interpolation step size
-            CoordinateType interpolation_step_;
+		/// standard derivation in bounding box		
+		CoordinateType tolerance_stdev_box_;
+		/// minimum of the bounding box
+		CoordinateType min_;
+		/// maximum of the bounding box
+		CoordinateType max_;
+		/// standard derivation
+		CoordinateType stdev1_; 
+		/// standard derivation            
+		CoordinateType stdev2_;
+		/// basic statistics           
+		Math::BasicStatistics<> statistics_;
+		/// interpolation step size
+		CoordinateType interpolation_step_;
             
-            virtual void updateMembers_();
+		virtual void updateMembers_();
 				
-  	};
+	};
+
 }
 
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_FITTER1D_H

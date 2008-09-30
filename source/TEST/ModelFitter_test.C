@@ -231,7 +231,7 @@ CHECK(Feature fit(const ChargedIndexSet& index_set))
 		TEST_REAL_EQUAL(model->getIntensity(pos),intens[mz*rt_num+rt]);
 	}
 }
-RESULT;
+RESULT
 
 #if 1
 CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit)))

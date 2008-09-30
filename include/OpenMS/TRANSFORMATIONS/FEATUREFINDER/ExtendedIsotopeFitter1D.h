@@ -33,56 +33,56 @@
 
 namespace OpenMS
 {
-    /** 
-      @brief Extended isotope distribution fitter (1-dim.) approximated using linear interpolation.
-                 
-      @ref ExtendedIsotopeFitter1D_Parameters are explained on a separate page.                   
-     */
-    class ExtendedIsotopeFitter1D
-    : public MaxLikeliFitter1D
-    {
-        public:
-	
-            /// Default constructor
-            ExtendedIsotopeFitter1D();
-        
-            /// copy constructor
-            ExtendedIsotopeFitter1D(const ExtendedIsotopeFitter1D& source);
-        
-            /// destructor
-            virtual ~ExtendedIsotopeFitter1D();
-        
-            /// assignment operator
-            virtual ExtendedIsotopeFitter1D& operator = (const ExtendedIsotopeFitter1D& source);
-      
-            /// create new BiGaussModel object (function needed by Factory)
-            static Fitter1D* create()
-            {
-              return new ExtendedIsotopeFitter1D();
-            }
-      
-            /// name of the model (needed by Factory)
-            static const String getProductName()
-            {
-              return "ExtendedIsotopeFitter1D";
-            }
-            
-            /// return interpolation model
-            QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model);
-		
-        protected:
-	
-            /// isotope charge
-            CoordinateType charge_;
-            /// standard derivation in isotope
-            CoordinateType isotope_stdev_;
-            /// monoistopic mass
-            CoordinateType monoisotopic_mz_;
-            /// maximum isotopic rank to be considered
-          	Int max_isotope_;
-        
-            void updateMembers_();
-  };
+	/**
+	@brief Extended isotope distribution fitter (1-dim.) approximated using linear interpolation.
+
+	@ref ExtendedIsotopeFitter1D_Parameters are explained on a separate page.
+	*/
+	class ExtendedIsotopeFitter1D
+		: public MaxLikeliFitter1D
+	{
+	 public:
+
+		/// Default constructor
+		ExtendedIsotopeFitter1D();
+
+		/// copy constructor
+		ExtendedIsotopeFitter1D(const ExtendedIsotopeFitter1D& source);
+
+		/// destructor
+		virtual ~ExtendedIsotopeFitter1D();
+
+		/// assignment operator
+		virtual ExtendedIsotopeFitter1D& operator = (const ExtendedIsotopeFitter1D& source);
+
+		/// create new BiGaussModel object (function needed by Factory)
+		static Fitter1D* create()
+		{
+			return new ExtendedIsotopeFitter1D();
+		}
+
+		/// name of the model (needed by Factory)
+		static const String getProductName()
+		{
+			return "ExtendedIsotopeFitter1D";
+		}
+
+		/// return interpolation model
+		QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model);
+
+	 protected:
+
+		/// isotope charge
+		CoordinateType charge_;
+		/// standard derivation in isotope
+		CoordinateType isotope_stdev_;
+		/// monoistopic mass
+		CoordinateType monoisotopic_mz_;
+		/// maximum isotopic rank to be considered
+		Int max_isotope_;
+
+		void updateMembers_();
+	};
 }
 
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_EXTENDEDISOTOPEFITTER1D_H
