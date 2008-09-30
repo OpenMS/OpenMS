@@ -24,7 +24,6 @@
 // $Maintainer: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/CONCEPT/revision.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <cstdlib>
