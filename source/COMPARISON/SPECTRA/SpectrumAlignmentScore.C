@@ -104,22 +104,22 @@ namespace OpenMS
 		for (vector<pair<UInt, UInt> >::const_iterator it = alignment.begin(); it != alignment.end(); ++it)
 		{
 			//double factor(0.0);
-			//factor = (epsilon - fabs(s1.getContainer()[it->first].getPosition()[0] - s2.getContainer()[it->second].getPosition()[0])) / epsilon;
+			//factor = (epsilon - fabs(s1[it->first].getPosition()[0] - s2[it->second].getPosition()[0])) / epsilon;
 			double mz_tolerance(tolerance);
 
 			if (is_relative_tolerance)
 			{
-				mz_tolerance = mz_tolerance * s1.getContainer()[it->first].getPosition()[0] / 10e6;
+				mz_tolerance = mz_tolerance * s1[it->first].getPosition()[0] / 10e6;
 			}
 	
-			double mz_difference(fabs(s1.getContainer()[it->first].getPosition()[0] - s2.getContainer()[it->second].getPosition()[0]));
+			double mz_difference(fabs(s1[it->first].getPosition()[0] - s2[it->second].getPosition()[0]));
 			double factor = 1.0;
 			
 			if (use_linear_factor || use_gaussian_factor)
 			{
 				factor = getFactor_(mz_tolerance, mz_difference, use_gaussian_factor);
 			}
-			sum += sqrt(s1.getContainer()[it->first].getIntensity() * s2.getContainer()[it->second].getIntensity() * factor);
+			sum += sqrt(s1[it->first].getIntensity() * s2[it->second].getIntensity() * factor);
 		}
 
     score = sum / (sqrt(sum1 * sum2));

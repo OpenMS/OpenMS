@@ -71,7 +71,7 @@ namespace OpenMS
 				}
 		
 				//  Delete old spectrum
-				spectrum.getContainer().clear();
+				spectrum.clear();
 				
 				//temporary variables
 				String line;
@@ -148,7 +148,7 @@ namespace OpenMS
 					{
 						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line: \"")+line+"\"" ,filename);
 					}
-					spectrum.getContainer().push_back(p);
+					spectrum.push_back(p);
 				}
 				
 				is.close();  	

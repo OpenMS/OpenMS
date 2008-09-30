@@ -223,8 +223,8 @@ namespace OpenMS
 			double rms(0);
 			for (UInt j = 0; j != alignment.size(); ++j)
 			{
-				double mz1(spec_copy.getContainer()[alignment[j].first].getMZ()), mz2(sim_specs_[i].getContainer()[alignment[j].second].getMZ());
-				cerr << mz1 << " " << mz2 << " " << mz1 - mz2 << " " << sim_specs_[i].getContainer()[alignment[j].second].getMetaValue("IonName") << endl;
+				double mz1(spec_copy[alignment[j].first].getMZ()), mz2(sim_specs_[i][alignment[j].second].getMZ());
+				cerr << mz1 << " " << mz2 << " " << mz1 - mz2 << " " << sim_specs_[i][alignment[j].second].getMetaValue("IonName") << endl;
 				rms += pow(mz1 - mz2, 2.0);
 			}
 			cerr << "RMS=" << sqrt(rms/double(id.getPeptideHits().size())) << endl;
@@ -342,7 +342,7 @@ namespace OpenMS
 				// b-ions
 				p_.setPosition((b_pos + z)/z);
 				p_.setIntensity(0.8);
-				spec.getContainer().push_back(p_);
+				spec.push_back(p_);
 
 				// b-ion losses
 				if (b_H2O_loss || aa == 'S' || aa == 'T' || aa == 'E' || aa == 'D')
@@ -350,25 +350,25 @@ namespace OpenMS
 					b_H2O_loss = true;
 					p_.setPosition((b_pos + z - 18.0)/z);
 					p_.setIntensity(0.1);
-					spec.getContainer().push_back(p_);
+					spec.push_back(p_);
 				}
 				if (b_NH3_loss || aa == 'Q' || aa == 'N' || aa == 'R' || aa == 'K')
 				{
 					b_NH3_loss = true;
 					p_.setPosition((b_pos + z - 17.0)/z);
 					p_.setIntensity(0.1);
-					spec.getContainer().push_back(p_);
+					spec.push_back(p_);
 				}
 
 				// a-ions
 				p_.setPosition((b_pos +z - 28.0)/z);
 				p_.setIntensity(0.3);
-				spec.getContainer().push_back(p_);
+				spec.push_back(p_);
 				
 				// y-ions
 				p_.setPosition((y_pos + z)/z);
 				p_.setIntensity(1.0);
-				spec.getContainer().push_back(p_);
+				spec.push_back(p_);
 
 				if (y_H2O_loss || aa2 == 'S' || aa2 == 'T' || aa2 == 'E' || aa2 == 'D' || aa2 == 'Q')
 				{
@@ -382,7 +382,7 @@ namespace OpenMS
 					{
 						p_.setIntensity(1);
 					}
-					spec.getContainer().push_back(p_);
+					spec.push_back(p_);
 				}
 				if (y_NH3_loss || aa == 'Q' || aa == 'N' || aa == 'R' || aa == 'K')
 				{

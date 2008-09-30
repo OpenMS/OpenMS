@@ -483,7 +483,7 @@ namespace OpenMS
 			else if (intensity_format == "Long") intensity =  (double) ((long*)   scan_data->intensities)[i];
 			else if (intensity_format == "Float") intensity =  (double) ((float*)  scan_data->intensities)[i];
 			else if (intensity_format == "Double") intensity =  ((double*) scan_data->intensities)[i];
-			spectrum.getContainer()[i].setIntensity(intensity * intens_factor + intens_offset);
+			spectrum[i].setIntensity(intensity * intens_factor + intens_offset);
 			
 			//parse mass
 			double mass(0);
@@ -491,7 +491,7 @@ namespace OpenMS
 			else if (mass_format == "Long") mass = (double) ((long*)   scan_data->masses)[i];
 			else if (mass_format == "Float") mass = (double) ((float*)  scan_data->masses)[i];
 			else if (mass_format == "Double") mass = ((double*) scan_data->masses)[i];
-			spectrum.getContainer()[i].setPosition(mass * mass_factor);
+			spectrum[i].setPosition(mass * mass_factor);
 		}
 
 		// unused MS_Raw_Data_Global fields:	mass_axis_global_min, mass_axis_global_max, time_axis_global_min,

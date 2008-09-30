@@ -101,7 +101,7 @@ CHECK(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) 
   double score = (*ptr)(s1, s2);
   TEST_REAL_EQUAL(score, 1.82682)
 
-  s2.getContainer().resize(100);
+  s2.resize(100);
 
   score = (*ptr)(s1, s2);
 

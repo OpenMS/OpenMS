@@ -130,44 +130,44 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 	spec.setMSLevel(1);
 	peak.getPosition()[0] = 5;
 	peak.setIntensity(47.11);
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	peak.getPosition()[0] = 10;
 	peak.setIntensity(48.11);
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	peak.getPosition()[0] = 15;
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	exp.push_back(spec);
 
 	// second spectrum (MS/MS)
-	spec.getContainer().clear();
+	spec.clear();
 	spec.setRT(11.5);
 	spec.setMSLevel(2);
 	peak.getPosition()[0] = 6;
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	peak.getPosition()[0] = 11;
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	exp.push_back(spec);
 
 	// third spectrum (MS)
-	spec.getContainer().clear();
+	spec.clear();
 	spec.setRT(12.2);
 	spec.setMSLevel(1);
 	peak.getPosition()[0] = 20;
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	peak.getPosition()[0] = 25;
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	exp.push_back(spec);
 
 	// forth spectrum (MS/MS)
-	spec.getContainer().clear();
+	spec.clear();
 	spec.setRT(12.5);
 	spec.setMSLevel(2);
 	peak.getPosition()[0] = 21;
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	peak.getPosition()[0] = 26;
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	peak.getPosition()[0] = 31;
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	exp.push_back(spec);
 
 	//Convert
@@ -255,9 +255,9 @@ RESULT
 CHECK(([EXTRA] MSExperiment<Peak1D >()))
 	MSExperiment<Peak1D > tmp;
 	tmp.resize(1);
-	tmp[0].getContainer().resize(1);
-	tmp[0].getContainer()[0].getPosition()[0] = 47.11;
-	TEST_REAL_EQUAL(tmp[0].getContainer()[0].getPosition()[0],47.11)
+	tmp[0].resize(1);
+	tmp[0][0].getPosition()[0] = 47.11;
+	TEST_REAL_EQUAL(tmp[0][0].getPosition()[0],47.11)
 RESULT
 
 CHECK((CoordinateType getMinMZ() const))
@@ -307,31 +307,31 @@ CHECK((virtual void updateRanges()))
 	s.setRT(30.0);
 	p.getPosition()[0] = 5.0;
 	p.setIntensity(-5.0);
-	s.getContainer().push_back(p);
+	s.push_back(p);
 	tmp.push_back(s);
 
-	s.getContainer().clear();
+	s.clear();
 	s.setMSLevel(1);
 	s.setRT(40.0);
 	p.getPosition()[0] = 7.0;
 	p.setIntensity(-7.0);
-	s.getContainer().push_back(p);
+	s.push_back(p);
 	tmp.push_back(s);
 
-	s.getContainer().clear();
+	s.clear();
 	s.setMSLevel(3);
 	s.setRT(45.0);
 	p.getPosition()[0] = 9.0;
 	p.setIntensity(-10.0);
-	s.getContainer().push_back(p);
+	s.push_back(p);
 	tmp.push_back(s);
 
-	s.getContainer().clear();
+	s.clear();
 	s.setMSLevel(3);
 	s.setRT(50.0);
 	p.getPosition()[0] = 10.0;
 	p.setIntensity(-9.0);
-	s.getContainer().push_back(p);
+	s.push_back(p);
 	tmp.push_back(s);
 
 	tmp.updateRanges();
@@ -399,7 +399,7 @@ CHECK((virtual void updateRanges()))
 	s2.setRT(30.0);
 	p2.getPosition()[0] = 5.0;
 	p2.setIntensity(-5.0);
-	s2.getContainer().push_back(p2);
+	s2.push_back(p2);
 	tmp2.push_back(s2);
 
 	tmp2.updateRanges();
@@ -429,31 +429,31 @@ CHECK((void updateRanges(Int ms_level)))
 	s.setRT(30.0);
 	p.getPosition()[0] = 5.0;
 	p.setIntensity(-5.0);
-	s.getContainer().push_back(p);
+	s.push_back(p);
 	tmp.push_back(s);
 
-	s.getContainer().clear();
+	s.clear();
 	s.setMSLevel(1);
 	s.setRT(40.0);
 	p.getPosition()[0] = 7.0;
 	p.setIntensity(-7.0);
-	s.getContainer().push_back(p);
+	s.push_back(p);
 	tmp.push_back(s);
 
-	s.getContainer().clear();
+	s.clear();
 	s.setMSLevel(3);
 	s.setRT(45.0);
 	p.getPosition()[0] = 9.0;
 	p.setIntensity(-10.0);
-	s.getContainer().push_back(p);
+	s.push_back(p);
 	tmp.push_back(s);
 
-	s.getContainer().clear();
+	s.clear();
 	s.setMSLevel(3);
 	s.setRT(50.0);
 	p.getPosition()[0] = 10.0;
 	p.setIntensity(-9.0);
-	s.getContainer().push_back(p);
+	s.push_back(p);
 	tmp.push_back(s);
 
 	//Update for MS level 1
@@ -489,7 +489,7 @@ CHECK((void updateRanges(Int ms_level)))
 	s2.setRT(30.0);
 	p2.getPosition()[0] = 5.0;
 	p2.setIntensity(-5.0);
-	s2.getContainer().push_back(p2);
+	s2.push_back(p2);
 	tmp2.push_back(s2);
 
 	tmp2.updateRanges(1);

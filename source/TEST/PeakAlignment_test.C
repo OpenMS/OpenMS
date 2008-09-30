@@ -78,7 +78,7 @@ CHECK((double operator()(const PeakSpectrum &spec1, const PeakSpectrum &spec2) c
 	PeakSpectrum s1, s2;
 	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
 	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s2);
-	s2.getContainer().pop_back();
+	s2.pop_back();
 	double score = pa(s1, s2);
 	TEST_REAL_EQUAL(score, 0.997477)
 }

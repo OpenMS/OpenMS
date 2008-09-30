@@ -59,47 +59,4 @@ namespace OpenMS
     return *this;
   }
 
-/*
-  map<double,bool> IsotopeMarker::operator()(MSSpectrum<>& spec)const
-  {
-    double mzvariation = (double)param_.getValue("mz_variation");
-    double invariation = (double)param_.getValue("in_variation");
-    uint marks = (unsigned int)param_.getValue("marks");
-    spec.sortByPosition();
-    map<double,uint> isotopemarks ; // possible isotopes
-    for (uint i = 0; i < spec.size(); ++i)
-    {
-      double mz = spec.getContainer()[i].getPosition()[0];
-      double intensity = spec.getContainer()[i].getIntensity();
-      uint j = i+1;
-      vector<pair<double,double> > isotopes = SpectrumGenerator::instance()->isotopepeaks(mz,intensity);
-      while ( j < spec.getContainer().size() && spec.getContainer()[j].getPosition()[0] <= mz + 3 + mzvariation )
-      {
-        double curmz = spec.getContainer()[j].getPosition()[0];
-        double curIntensity = spec.getContainer()[j].getIntensity();
-        uint iso = (uint)(curmz - mz + 0.499999 );
-        if ( iso > 0 && curmz - mz - iso > mzvariation ) 
-        {
-          ++j;
-          continue;
-        }
-        if ( fabs(isotopes[iso].second-curIntensity) < invariation*isotopes[iso].second )
-        {
-          isotopemarks[mz]++;
-          isotopemarks[curmz]++;
-        }
-        ++j;
-      }
-    }
-    map<double,bool> result;
-    for ( map<double,uint>::const_iterator cmit = isotopemarks.begin(); cmit != isotopemarks.end(); ++cmit )
-    {
-      if ( cmit->second >= marks ) 
-      {
-        result.insert(make_pair(cmit->first,1));
-      }
-    }
-    return result;
-  }
-	*/
 }

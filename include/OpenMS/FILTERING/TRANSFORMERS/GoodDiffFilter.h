@@ -81,7 +81,7 @@ namespace OpenMS
       	//look for each peakdifference that is in range of aa residuemasses (56/187), if it could be a aa (aamass)
       	for (uint j = i; i+j < spectrum.size(); ++j)
       	{
-        	double diff =  spectrum.getContainer()[i+j].getPosition()[0] - spectrum.getContainer()[i].getPosition()[0];
+        	double diff =  spectrum[i+j].getPosition()[0] - spectrum[i].getPosition()[0];
         	if (diff < 56)
         	{
 						continue;
@@ -93,7 +93,7 @@ namespace OpenMS
         	}
         	else
         	{
-          	totaldiff += spectrum.getContainer()[i+j].getIntensity() + spectrum.getContainer()[i].getIntensity();
+          	totaldiff += spectrum[i+j].getIntensity() + spectrum[i].getIntensity();
           	std::map<double, char>::const_iterator aait = aamass_.lower_bound(diff);
 						if (aait == aamass_.end())
 						{
@@ -102,14 +102,14 @@ namespace OpenMS
           	//look for aamasses that fit diff
           	if (fabs(aait->first - diff ) <= tolerance)
           	{
-           		gooddiff += spectrum.getContainer()[i+j].getIntensity()  + spectrum.getContainer()[i].getIntensity();
+           		gooddiff += spectrum[i+j].getIntensity()  + spectrum[i].getIntensity();
           	}
           	else
           	{
            		++aait;
            		if ((aait) != aamass_.end() && fabs ((aait)->first - diff) <= tolerance)
            		{
-             		gooddiff += spectrum.getContainer()[i+j].getIntensity() + spectrum.getContainer()[i].getIntensity();
+             		gooddiff += spectrum[i+j].getIntensity() + spectrum[i].getIntensity();
            		}
 						}
           }

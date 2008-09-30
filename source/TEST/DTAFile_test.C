@@ -294,15 +294,15 @@ CHECK(template<typename SpectrumType> void store(const String& filename, const S
 	
 	peak.getPosition()[0] = 11.4;
 	peak.setIntensity(11.5);
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	
 	peak.getPosition()[0] = 12.4;
 	peak.setIntensity(12.5);
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	
 	peak.getPosition()[0] = 13.4;
 	peak.setIntensity(13.5);
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	
 	//store file
 	dta.store(filename,spec);
@@ -312,7 +312,7 @@ CHECK(template<typename SpectrumType> void store(const String& filename, const S
 	TEST_REAL_EQUAL(spec.getPrecursorPeak().getPosition()[0],582.40666)
 	TEST_REAL_EQUAL(spec.getPrecursorPeak().getCharge(),3)
 	
-	ABORT_IF(spec2.getContainer().size() != 3)
+	ABORT_IF(spec2.size() != 3)
 	
 	DSpectrum<>::ConstIterator it = spec2.begin();
 
@@ -335,22 +335,22 @@ CHECK(template<typename SpectrumType> void store(const String& filename, const S
 	
 	raw_peak.getPosition()[0] = 11.4;
 	raw_peak.setIntensity(11.5);
-	raw_spec.getContainer().push_back(raw_peak);
+	raw_spec.push_back(raw_peak);
 	
 	raw_peak.getPosition()[0] = 12.4;
 	raw_peak.setIntensity(12.5);
-	raw_spec.getContainer().push_back(raw_peak);
+	raw_spec.push_back(raw_peak);
 	
 	raw_peak.getPosition()[0] = 13.4;
 	raw_peak.setIntensity(13.5);
-	raw_spec.getContainer().push_back(raw_peak);
+	raw_spec.push_back(raw_peak);
 	
 	//store file
 	dta.store(filename,raw_spec);
 	//load file
 	dta.load(filename,raw_spec2);
 	
-	ABORT_IF(raw_spec2.getContainer().size() != 3)
+	ABORT_IF(raw_spec2.size() != 3)
 	
 	DSpectrum<>::ConstIterator it2 = raw_spec2.begin();
 

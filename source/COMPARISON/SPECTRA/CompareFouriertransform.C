@@ -157,9 +157,9 @@ namespace OpenMS
   	
   	gsl_fft_real_wavetable * real;
   	gsl_fft_real_workspace * work;
-  	work = gsl_fft_real_workspace_alloc (spec.getContainer().size());
-  	real = gsl_fft_real_wavetable_alloc (spec.getContainer().size());
-  	gsl_fft_real_transform (data,1,spec.getContainer().size(),real, work);
+  	work = gsl_fft_real_workspace_alloc (spec.size());
+  	real = gsl_fft_real_wavetable_alloc (spec.size());
+  	gsl_fft_real_transform (data,1,spec.size(),real, work);
   	gsl_fft_real_wavetable_free (real);
   	gsl_fft_real_workspace_free (work);
   	
@@ -168,7 +168,7 @@ namespace OpenMS
   	temp.resize(i+1);
   	temp[i].setName("Fouriertransformation");
   	UInt j=0;
-  	while(j < spec.getContainer().size())
+  	while(j < spec.size())
   	{
   		temp[i].push_back(data[j]);
   		if(j==0) ++j; //we only intress in the real part of FFT

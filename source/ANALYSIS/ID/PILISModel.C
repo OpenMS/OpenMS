@@ -741,10 +741,10 @@ namespace OpenMS
     for (RichPeakSpectrum::ConstIterator it = y_theo_spec.begin(); it != y_theo_spec.end(); ++it)
     {
       p.setPosition(it->getPosition() - h2o_weight / (double)z);
-      y_H2O_theo_spec.getContainer().push_back(p);
+      y_H2O_theo_spec.push_back(p);
 
       p.setPosition(it->getPosition() - nh3_weight / (double)z);
-      y_NH3_theo_spec.getContainer().push_back(p);
+      y_NH3_theo_spec.push_back(p);
     }
 
 		vector<double> y_ints(peptide.size() - 1, 0.0);
@@ -772,11 +772,11 @@ namespace OpenMS
     for (RichPeakSpectrum::ConstIterator it = b_theo_spec.begin(); it != b_theo_spec.end(); ++it)
     {
       p.setPosition(it->getPosition() - h2o_weight / (double)z);
-      b_H2O_theo_spec.getContainer().push_back(p);
+      b_H2O_theo_spec.push_back(p);
       p.setPosition(it->getPosition() - nh3_weight / (double)z);
-      b_NH3_theo_spec.getContainer().push_back(p);
+      b_NH3_theo_spec.push_back(p);
 			p.setPosition(it->getPosition() - co_weight / (double)z);
-			b_CO_theo_spec.getContainer().push_back(p);
+			b_CO_theo_spec.push_back(p);
     }
 
 		vector<double> b_ints(peptide.size() - 1, 0.0);
@@ -806,8 +806,8 @@ namespace OpenMS
 
     for (vector<pair<UInt, UInt> >::const_iterator it = peak_map.begin(); it != peak_map.end(); ++it)
     {
-			intensities[it->second] = train_spec.getContainer()[it->first].getIntensity();
-			sum += train_spec.getContainer()[it->first].getIntensity();
+			intensities[it->second] = train_spec[it->first].getIntensity();
+			sum += train_spec[it->first].getIntensity();
     }
 		return sum;
 	}
@@ -1685,8 +1685,8 @@ namespace OpenMS
 			double weight = prefixes[i].getMonoWeight(Residue::BIon);
 			id.estimateFromPeptideWeight(weight);
 			
-			//cerr << weight + 1.0 << " " << prefix_ints1[i] << " " << id.getContainer()[0].first << " ";
-			//for (vector<pair<UInt, double> >::const_iterator it = id.getContainer().begin(); it != id.getContainer().end(); ++it)
+			//cerr << weight + 1.0 << " " << prefix_ints1[i] << " " << id[0].first << " ";
+			//for (vector<pair<UInt, double> >::const_iterator it = id.begin(); it != id.end(); ++it)
 			//{
 			//	cerr << "(" << it->first << "|" << it->second << ") ";
 			//}
@@ -1855,10 +1855,10 @@ namespace OpenMS
 		{
 			if (it->second.size() == 1/* && it->second.begin()->getIntensity() != 0*/)
 			{
-				spec.getContainer().push_back(*it->second.begin());
-				if (intensity_max < spec.getContainer().back().getIntensity())
+				spec.push_back(*it->second.begin());
+				if (intensity_max < spec.back().getIntensity())
 				{
-					intensity_max = spec.getContainer().back().getIntensity();
+					intensity_max = spec.back().getIntensity();
 				}
 			}
 			else
@@ -1875,7 +1875,7 @@ namespace OpenMS
 				}
 
 				p.setIntensity(int_sum);
-				spec.getContainer().push_back(p);
+				spec.push_back(p);
 				if (intensity_max < int_sum)
 				{
 					intensity_max = int_sum;

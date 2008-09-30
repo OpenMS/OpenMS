@@ -236,46 +236,46 @@ CHECK((void store(const String &filename, const MSExperiment<> &experiment, Stri
 	spec.setMSLevel(1);
 	peak.getPosition()[0] = 5;
 	peak.setIntensity(47.11);
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	peak.getPosition()[0] = 10;
 	peak.setIntensity(48.11);
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	peak.getPosition()[0] = 15;
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	exp.push_back(spec);
 
 	// second spectrum (MS/MS)
-	spec.getContainer().clear();
+	spec.clear();
 	spec.setRT(11.5);
 	spec.getPrecursorPeak().getPosition()[0] = 11.4;
 	spec.setMSLevel(2);
 	peak.getPosition()[0] = 6;
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	peak.getPosition()[0] = 11;
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	exp.push_back(spec);	
 
 	// third spectrum (MS)
-	spec.getContainer().clear();
+	spec.clear();
 	spec.setRT(12.2);
 	spec.setMSLevel(1);
 	peak.getPosition()[0] = 20;
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	peak.getPosition()[0] = 25;
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	exp.push_back(spec);	
 
 	// forth spectrum (MS/MS)
-	spec.getContainer().clear();
+	spec.clear();
 	spec.setRT(12.5);
 	spec.getPrecursorPeak().getPosition()[0] = 21.4;
 	spec.setMSLevel(2);
 	peak.getPosition()[0] = 21;
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	peak.getPosition()[0] = 26;
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	peak.getPosition()[0] = 31;
-	spec.getContainer().push_back(peak);
+	spec.push_back(peak);
 	exp.push_back(spec);	
 
 	file.store("MascotInfile_test.txt", exp, "Experiment");
@@ -294,24 +294,24 @@ CHECK(template <typename MapType> void load(const String &filename, MapType &exp
 	TEST_REAL_EQUAL(spectrum.getPrecursorPeak().getPosition()[0], 1998) 
 	TEST_EQUAL(spectrum.getMetaValue("TITLE"), "Testtitle");
 
-	TEST_REAL_EQUAL(spectrum.getContainer()[0].getIntensity(), 1)
-	TEST_REAL_EQUAL(spectrum.getContainer()[0].getMZ(), 1)
-	TEST_REAL_EQUAL(spectrum.getContainer()[1].getIntensity(), 4)
-	TEST_REAL_EQUAL(spectrum.getContainer()[1].getMZ(), 2)
-	TEST_REAL_EQUAL(spectrum.getContainer()[2].getIntensity(), 9)
-	TEST_REAL_EQUAL(spectrum.getContainer()[2].getMZ(), 3)
-	TEST_REAL_EQUAL(spectrum.getContainer()[3].getIntensity(), 16)
-	TEST_REAL_EQUAL(spectrum.getContainer()[3].getMZ(), 4)
-	TEST_REAL_EQUAL(spectrum.getContainer()[4].getIntensity(), 25)
-	TEST_REAL_EQUAL(spectrum.getContainer()[4].getMZ(), 5)
-	TEST_REAL_EQUAL(spectrum.getContainer()[5].getIntensity(), 36)
-	TEST_REAL_EQUAL(spectrum.getContainer()[5].getMZ(), 6)
-	TEST_REAL_EQUAL(spectrum.getContainer()[6].getIntensity(), 49)
-	TEST_REAL_EQUAL(spectrum.getContainer()[6].getMZ(), 7)
-	TEST_REAL_EQUAL(spectrum.getContainer()[7].getIntensity(), 64)
-	TEST_REAL_EQUAL(spectrum.getContainer()[7].getMZ(), 8)
-	TEST_REAL_EQUAL(spectrum.getContainer()[8].getIntensity(), 81)
-	TEST_REAL_EQUAL(spectrum.getContainer()[8].getMZ(), 9)
+	TEST_REAL_EQUAL(spectrum[0].getIntensity(), 1)
+	TEST_REAL_EQUAL(spectrum[0].getMZ(), 1)
+	TEST_REAL_EQUAL(spectrum[1].getIntensity(), 4)
+	TEST_REAL_EQUAL(spectrum[1].getMZ(), 2)
+	TEST_REAL_EQUAL(spectrum[2].getIntensity(), 9)
+	TEST_REAL_EQUAL(spectrum[2].getMZ(), 3)
+	TEST_REAL_EQUAL(spectrum[3].getIntensity(), 16)
+	TEST_REAL_EQUAL(spectrum[3].getMZ(), 4)
+	TEST_REAL_EQUAL(spectrum[4].getIntensity(), 25)
+	TEST_REAL_EQUAL(spectrum[4].getMZ(), 5)
+	TEST_REAL_EQUAL(spectrum[5].getIntensity(), 36)
+	TEST_REAL_EQUAL(spectrum[5].getMZ(), 6)
+	TEST_REAL_EQUAL(spectrum[6].getIntensity(), 49)
+	TEST_REAL_EQUAL(spectrum[6].getMZ(), 7)
+	TEST_REAL_EQUAL(spectrum[7].getIntensity(), 64)
+	TEST_REAL_EQUAL(spectrum[7].getMZ(), 8)
+	TEST_REAL_EQUAL(spectrum[8].getIntensity(), 81)
+	TEST_REAL_EQUAL(spectrum[8].getMZ(), 9)
 RESULT
 
 /////////////////////////////////////////////////////////////

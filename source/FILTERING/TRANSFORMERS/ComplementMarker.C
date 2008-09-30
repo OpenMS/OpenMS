@@ -57,38 +57,4 @@ namespace OpenMS
     return *this;
   }
 
-/*
-  map<double,bool> ComplementMarker::operator()( MSSpectrum<>& spec) const
-  {
-    // how often a peak needs to be marked to be returned
-    double marks = (double)param_.getValue("marks");
-    double parentmass = spec.getPrecursorPeak().getPosition()[0];
-    double tolerance = (double)param_.getValue("tolerance");
-    map<double,int> matching_b_y_ions;
-    spec.sortByPosition();
-    int j = spec.size() -1;
-    for (uint i = 0; i < spec.size(); ++i)
-    {
-      while ( j >= 0 && spec.getContainer()[j].getPosition()[0] > (parentmass-spec.getContainer()[i].getPosition()[0]) + tolerance ){
-        j--;
-      }
-      // just takes the first matching ion; todo take all
-      if ( j >= 0 && fabs(spec.getContainer()[i].getPosition()[0] + spec.getContainer()[j].getPosition()[0] - parentmass ) < tolerance ) 
-      {
-        matching_b_y_ions[spec.getContainer()[i].getPosition()[0]]++;
-        matching_b_y_ions[spec.getContainer()[j].getPosition()[0]]++;
-        j--;
-      }
-    }
-    map<double,bool> result;
-    for ( map<double,int>::const_iterator cmit = matching_b_y_ions.begin(); cmit != matching_b_y_ions.end(); ++cmit )
-    {
-      if ( cmit->second >= marks )
-      {
-        result.insert(make_pair(cmit->first,1));
-      }
-    }
-    return result;
-  }
-*/
 }

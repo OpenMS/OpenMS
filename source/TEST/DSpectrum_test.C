@@ -128,8 +128,8 @@ p2.getPosition()[0] = 1300.0;
 CHECK((DSpectrum(const DSpectrum& rhs)))
 	DSpectrum1 s;
 	s.setMetaValue("label",5.0);
-	s.getContainer().push_back(p);
-	s.getContainer().push_back(p2);
+	s.push_back(p);
+	s.push_back(p2);
 	s.getPrecursorPeak().setIntensity(200.0);
 	s.setMSLevel(17);
 	s.setRT(7.0);
@@ -138,7 +138,7 @@ CHECK((DSpectrum(const DSpectrum& rhs)))
 	DSpectrum1 s2(s);
 
 	TEST_REAL_EQUAL(5.0 , (float)s2.getMetaValue("label"))
-	TEST_EQUAL(2 , s2.getContainer().size())
+	TEST_EQUAL(2 , s2.size())
 	TEST_REAL_EQUAL(200.0 , s2.getPrecursorPeak().getIntensity())
 	TEST_REAL_EQUAL(500.0 , s2.getMin()[0])
 	TEST_REAL_EQUAL(1300.0 , s2.getMax()[0])
@@ -152,8 +152,8 @@ RESULT
 CHECK((DSpectrum& operator = (const DSpectrum& rhs)))
 	DSpectrum1 s;
 	s.setMetaValue("label",5.0);
-	s.getContainer().push_back(p);
-	s.getContainer().push_back(p2);
+	s.push_back(p);
+	s.push_back(p2);
 	s.getPrecursorPeak().setIntensity(200.0);
 	s.setMSLevel(17);
 	s.setRT(7.0);
@@ -163,7 +163,7 @@ CHECK((DSpectrum& operator = (const DSpectrum& rhs)))
 	s2 = s;
 
 	TEST_REAL_EQUAL(5.0 , (float)s2.getMetaValue("label"))
-	TEST_EQUAL(2 , s2.getContainer().size())
+	TEST_EQUAL(2 , s2.size())
 	TEST_REAL_EQUAL(200.0 , s2.getPrecursorPeak().getIntensity())
 	TEST_REAL_EQUAL(500.0 , s2.getMin()[0])
 	TEST_REAL_EQUAL(1300.0 , s2.getMax()[0])
@@ -187,7 +187,7 @@ CHECK((bool operator == (const DSpectrum& rhs) const))
 	TEST_EQUAL(empty==edit, false);
 	
 	edit = empty;
-	edit.getContainer().push_back(DSpectrum1::ContainerType::value_type());
+	edit.push_back(DSpectrum1::ContainerType::value_type());
 	TEST_EQUAL(empty==edit, false);
 
 	edit = empty;
@@ -250,7 +250,7 @@ CHECK((bool operator != (const DSpectrum& rhs) const))
 	TEST_EQUAL(empty!=edit, true);
 	
 	edit = empty;
-	edit.getContainer().push_back(DSpectrum1::ContainerType::value_type());
+	edit.push_back(DSpectrum1::ContainerType::value_type());
 	TEST_EQUAL(empty!=edit, true);
 
 	//name is not checked => no change
@@ -275,333 +275,6 @@ CHECK((void setName(const String &name)))
 	DSpectrum1 s;
 	s.setName("bla");
 	TEST_EQUAL(s.getName(),"bla")
-RESULT
-
-//*************************** Container interface tests *********************************
-
-CHECK((const ContainerType& getContainer() const))
-	DSpectrum4 ds;
-	TEST_EQUAL(ds.getContainer().empty(), true)
-	TEST_EQUAL(ds.getContainer().size(), 0)
-RESULT
-
-CHECK((reference operator[] (size_type n)))
-	DSpectrum2 ds;
-	ds.getContainer().resize(1);
-	ds[0].setIntensity(5.0);
-	TEST_EQUAL(ds.getContainer()[0].getIntensity(),5.0);
-RESULT
-
-CHECK((const_reference operator[] (size_type n) const))
-	DSpectrum2 ds;
-	ds.getContainer().resize(1);
-	ds.getContainer()[0].setIntensity(5.0);
-	TEST_EQUAL(ds[0].getIntensity(),5.0);
-RESULT
-
-CHECK((ContainerType& getContainer()))
-	DSpectrum4 ds;
-	TEST_EQUAL(ds.getContainer().empty(), true)
-	TEST_EQUAL(ds.getContainer().size(), 0)
-	TEST_EQUAL(ds.empty(), true)
-	TEST_EQUAL(ds.size(), 0)
-
-	Peak2D p;
-	p.getPosition()[0] = 0.0;
-	p.getPosition()[1] = 1.1;
-	p.setIntensity(15.0);
-	ds.getContainer().push_back(p);
-	TEST_EQUAL(ds.getContainer().empty(), false)
-	TEST_EQUAL(ds.getContainer().size(), 1)
-	TEST_EQUAL(ds.empty(), false)
-	TEST_EQUAL(ds.size(), 1)
-
-	Peak2D q;
-	q.getPosition()[0] = 0.0;
-	q.getPosition()[1] = 1.1;
-	q.setIntensity(15.0);
-	ds.getContainer().push_back(q);
-	TEST_EQUAL(ds.getContainer().empty(), false)
-	TEST_EQUAL(ds.getContainer().size(), 2)
-	TEST_EQUAL(ds.empty(), false)
-	TEST_EQUAL(ds.size(), 2)
-
-	ds.getContainer().clear();
-	TEST_EQUAL(ds.getContainer().empty(), true)
-	TEST_EQUAL(ds.getContainer().size(), 0)	
-	TEST_EQUAL(ds.empty(), true)
-	TEST_EQUAL(ds.size(), 0)
-RESULT
-
-CHECK((void setContainer(const ContainerType& container)))
-  DSpectrum2::ContainerType c;
-  c.push_back(dp2_2);
-  c.push_back(dp2_1);
-  
-  DSpectrum2 s;
-  s.getContainer().push_back(dp2_1);
-  s.setContainer(c);
-  TEST_EQUAL(s.getContainer().size(),2);
-  TEST_REAL_EQUAL(s.getContainer()[0].getIntensity(),2);
-	TEST_REAL_EQUAL(s.getContainer()[1].getIntensity(),1);
-RESULT
-
-CHECK((UInt size() const))
-	DSpectrum2 s;
-	TEST_EQUAL(s.size(), 0)
-RESULT
-
-CHECK((void push_back( const value_type& val )))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-	TEST_EQUAL(s.size(), 1)
-  s.push_back(dp2_1);
-	TEST_EQUAL(s.size(), 2)
-  s.push_back(dp2_1);
-	TEST_EQUAL(s.size(), 3)
-RESULT
-
-CHECK((void clear()))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.clear();
-	TEST_EQUAL(s.size(), 0)
-RESULT
-
-CHECK((bool empty() const))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-	TEST_EQUAL(s.empty(), false)
-  s.clear();
-	TEST_EQUAL(s.empty(), true)
-RESULT
-
-CHECK((ConstIterator begin() const))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-	TEST_REAL_EQUAL(s.begin()->getIntensity(),1.0)
-	TEST_REAL_EQUAL((++(s.begin()))->getIntensity(),2.0)
-RESULT
-
-CHECK((ConstIterator end() const))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-	TEST_REAL_EQUAL((--(s.end()))->getIntensity(),2.0)
-RESULT
-
-CHECK((Iterator begin()))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-	s.begin()->setIntensity(4711);
-	TEST_REAL_EQUAL(s.begin()->getIntensity(),4711)
-RESULT
-
-CHECK((Iterator end()))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-	(--(s.end()))->setIntensity(4711);
-	TEST_REAL_EQUAL((--(s.end()))->getIntensity(),4711)
-RESULT
-
-CHECK((size_type max_size() const))
-  DSpectrum2 s;
-  TEST_EQUAL(s.max_size()>0,true)
-RESULT
-
-CHECK((void swap(ContainerType& rhs)))
-  DSpectrum2::ContainerType c;
-  c.push_back(dp2_2);
-  c.push_back(dp2_1);
-  
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.swap(c);
-  TEST_EQUAL(s.getContainer().size(),2);
-  TEST_REAL_EQUAL(s.getContainer()[0].getIntensity(),2);
-	TEST_REAL_EQUAL(s.getContainer()[1].getIntensity(),1);
-  TEST_EQUAL(c.size(),1);
-  TEST_REAL_EQUAL(c[0].getIntensity(),1);
-RESULT
-
-CHECK((ConstReverseIterator rbegin() const))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-	TEST_REAL_EQUAL(s.rbegin()->getIntensity(),2)
-RESULT
-
-CHECK((ConstReverseIterator rend() const))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-	TEST_REAL_EQUAL((--(s.rend()))->getIntensity(),1)
-RESULT
-
-CHECK((ReverseIterator rbegin()))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-	s.rbegin()->setIntensity(4711);
-	TEST_REAL_EQUAL(s.rbegin()->getIntensity(),4711)
-RESULT
-
-CHECK((ReverseIterator rend()))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-	(--(s.rend()))->setIntensity(4711);
-	TEST_REAL_EQUAL((--(s.rend()))->getIntensity(),4711)
-RESULT
-
-CHECK((Iterator insert( Iterator loc, const value_type& val )))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-	s.insert(++(s.begin()),dp2_3);
-	TEST_REAL_EQUAL(s.begin()->getIntensity(),1)
-	TEST_REAL_EQUAL((++(s.begin()))->getIntensity(),3)
-	TEST_REAL_EQUAL((++(++(s.begin())))->getIntensity(),2)
-RESULT
-
-CHECK((void insert( iterator loc, size_type num, const value_type& val )))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-	s.insert(++(s.begin()),4,dp2_3);
-	TEST_REAL_EQUAL(s.begin()->getIntensity(),1)
-	TEST_REAL_EQUAL((++(s.begin()))->getIntensity(),3)
-	TEST_REAL_EQUAL((--(--(s.end())))->getIntensity(),3)
-	TEST_REAL_EQUAL((--(s.end()))->getIntensity(),2)
-RESULT
-
-CHECK((template<class InputIterator> void insert( iterator loc, InputIterator start, InputIterator end )))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-  
-  DSpectrum2::ContainerType c;
-  c.push_back(dp2_3);
-  c.push_back(dp2_1);
-  
-  s.insert(++(s.begin()),c.begin(),c.end());
-	TEST_REAL_EQUAL(s.begin()->getIntensity(),1)
-	TEST_REAL_EQUAL((++(s.begin()))->getIntensity(),3)
-	TEST_REAL_EQUAL((--(--(s.end())))->getIntensity(),1)
-	TEST_REAL_EQUAL((--(s.end()))->getIntensity(),2)  
-RESULT
-
-CHECK((value_type& front()))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-  TEST_REAL_EQUAL(s.front().getIntensity(),1)
-  s.front().setIntensity(5);
-  TEST_REAL_EQUAL(s.front().getIntensity(),5)
-RESULT
-
-CHECK((const value_type& front() const))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-  TEST_REAL_EQUAL(s.front().getIntensity(),1)
-RESULT
-
-CHECK((value_type& back()))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-  TEST_REAL_EQUAL(s.back().getIntensity(),2)
-  s.back().setIntensity(5);
-  TEST_REAL_EQUAL(s.back().getIntensity(),5)
-RESULT
-
-CHECK((const value_type& back() const))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-  TEST_REAL_EQUAL(s.back().getIntensity(),2)
-RESULT
-
-CHECK((Iterator erase( iterator loc )))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-  s.push_back(dp2_3);
-  s.erase(++(s.begin()));
-  TEST_EQUAL(s.size(),2);
-  TEST_REAL_EQUAL(s.front().getIntensity(),1)
-  TEST_REAL_EQUAL(s.back().getIntensity(),3)
-RESULT
-
-CHECK((Iterator erase( iterator start, iterator end )))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-  s.push_back(dp2_2);
-  s.push_back(dp2_2);
-  s.push_back(dp2_3);
-  s.erase(++(s.begin()), --(s.end()));
-  TEST_EQUAL(s.size(),2);
-  TEST_REAL_EQUAL(s.front().getIntensity(),1)
-  TEST_REAL_EQUAL(s.back().getIntensity(),3)
-RESULT
-
-CHECK((void pop_back()))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-  s.push_back(dp2_3);
-  s.pop_back();
-  TEST_REAL_EQUAL(s.back().getIntensity(),2)
-  s.pop_back();
-  TEST_REAL_EQUAL(s.back().getIntensity(),1)
-RESULT
-
-CHECK((void assign( size_type num, const value_type& val )))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_1);
-  s.push_back(dp2_3);
-  s.assign(2, dp2_2);
-  TEST_EQUAL(s.size(),2);
-  TEST_REAL_EQUAL(s.front().getIntensity(),2)
-  TEST_REAL_EQUAL(s.back().getIntensity(),2)  
-RESULT
-
-CHECK((template<class InputIterator> void assign( InputIterator start, InputIterator end )))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-  
-  DSpectrum2::ContainerType c;
-  c.push_back(dp2_3);
-  c.push_back(dp2_1);
-  
-  s.assign(c.begin(),c.end());
-  TEST_EQUAL(s.size(),2);
-  TEST_REAL_EQUAL(s.front().getIntensity(),3)
-  TEST_REAL_EQUAL(s.back().getIntensity(),1)  
-RESULT
-
-CHECK((void resize( size_type num, const value_type& val = value_type() )))
-  DSpectrum2 s;
-  s.push_back(dp2_1);
-  s.push_back(dp2_2);
-  
-  s.resize(1);
-  TEST_EQUAL(s.size(),1);
-  TEST_REAL_EQUAL(s.front().getIntensity(),1)
-  TEST_REAL_EQUAL(s.back().getIntensity(),1)  
-
-  s.resize(3,dp2_3);
-  TEST_EQUAL(s.size(),3);
-  TEST_REAL_EQUAL(s.front().getIntensity(),1)
-  TEST_REAL_EQUAL((++(s.begin()))->getIntensity(),3)  
-  TEST_REAL_EQUAL(s.back().getIntensity(),3)  
 RESULT
 
 //*************************** Tests for MetaInfoInterface ****************************************
@@ -690,19 +363,19 @@ CHECK((Iterator MZEnd(CoordinateType mz)))
 	DSpectrum1 tmp;
 	DSpectrum1::PeakType rdp;
 	rdp.getPosition()[0] = 1.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 2.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 3.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 4.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 5.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 6.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 7.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	
 	DSpectrum1::Iterator it;
 	
@@ -718,19 +391,19 @@ CHECK((Iterator MZBegin(CoordinateType mz)))
 	DSpectrum1 tmp;
 	DSpectrum1::PeakType rdp;
 	rdp.getPosition()[0] = 1.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 2.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 3.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 4.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 5.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 6.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 7.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	
 	DSpectrum1::Iterator it;
 	
@@ -746,19 +419,19 @@ CHECK((ConstIterator MZEnd(CoordinateType mz) const))
 	DSpectrum1 tmp;
 	DSpectrum1::PeakType rdp;
 	rdp.getPosition()[0] = 1.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 2.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 3.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 4.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 5.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 6.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 7.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	
 	DSpectrum1::ConstIterator it;
 	
@@ -774,19 +447,19 @@ CHECK((ConstIterator MZBegin(CoordinateType mz) const))
 	DSpectrum1 tmp;
 	DSpectrum1::PeakType rdp;
 	rdp.getPosition()[0] = 1.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 2.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 3.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 4.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 5.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 6.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	rdp.getPosition()[0] = 7.0;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	
 	DSpectrum1::ConstIterator it;
 	
@@ -850,6 +523,13 @@ CHECK(MetaDataArrays& getMetaDataArrays())
   DSpectrum<> s1;
   s1.getMetaDataArrays().resize(2);
   TEST_EQUAL(s1.getMetaDataArrays().size(),2)
+RESULT
+
+CHECK(([EXTRA] template <typename Container> std::ostream& operator << (std::ostream& os, const DSpectrum<Container>& rhs)))
+	NOT_TESTABLE
+	DSpectrum<> s1;
+	s1.resize(2);
+	std::cout << s1 << endl;
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -64,7 +64,7 @@ namespace OpenMS
 				{
 					unsigned int curr_scan_idx = current_scan + iso_map_iter->second.peaks_.begin()->first;
 					current_position = ((raw_data_first 
-															 + signal2D[2*current_scan].first)->getContainer().begin() 
+															 + signal2D[2*current_scan].first)->begin() 
 															+ signal2D[2*current_scan].second)->getMZ();
 					//iterate over all points of the signal
 					for (int current_point = 1;
@@ -76,20 +76,20 @@ namespace OpenMS
 							
 							computed_signal   = 0.;
 							current_position  = ((raw_data_first 
-																		+ signal2D[2*current_scan].first)->getContainer().begin() 
+																		+ signal2D[2*current_scan].first)->begin() 
 																	 + signal2D[2*current_scan].second+current_point)->getMZ();
 							experimental_signal = ((raw_data_first 
-																			+ signal2D[2*current_scan].first)->getContainer().begin()
+																			+ signal2D[2*current_scan].first)->begin()
 																		 + signal2D[2*current_scan].second+current_point)->getIntensity();
 							step = current_position - last_position;
 #ifdef DEBUG_2D
           std::cout << "experimental signal rt "<<(raw_data_first 
                 + signal2D[2*current_scan].first)->getRT()
                 << "\tmz " << ((raw_data_first 
-                + signal2D[2*current_scan].first)->getContainer().begin()
+                + signal2D[2*current_scan].first)->begin()
 															 + signal2D[2*current_scan].second+current_point)->getMZ()
                 << "\tint " << ((raw_data_first 
-                + signal2D[2*current_scan].first)->getContainer().begin()
+                + signal2D[2*current_scan].first)->begin()
                 + signal2D[2*current_scan].second+current_point)->getIntensity()<<std::endl;
 #endif
 
@@ -266,7 +266,7 @@ namespace OpenMS
 				{
 					unsigned int curr_scan_idx = current_scan + iso_map_iter->second.peaks_.begin()->first;
 					current_position = ((raw_data_first 
-															 + signal2D[2*current_scan].first)->getContainer().begin() 
+															 + signal2D[2*current_scan].first)->begin() 
 															+ signal2D[2*current_scan].second)->getMZ();
 					// iterate over all points of the signal
 					for (int current_point = 1;
@@ -277,9 +277,9 @@ namespace OpenMS
 							last_position = current_position;
 							computed_signal   = 0.;
 							current_position  = ((raw_data_first 
-																		+ signal2D[2*current_scan].first)->getContainer().begin() 
+																		+ signal2D[2*current_scan].first)->begin() 
 																	 + signal2D[2*current_scan].second+current_point)->getMZ();
-							experimental_signal = ((raw_data_first + signal2D[2*current_scan].first)->getContainer().begin()
+							experimental_signal = ((raw_data_first + signal2D[2*current_scan].first)->begin()
 																		 + signal2D[2*current_scan].second+current_point)->getIntensity();
 
 							step = current_position - last_position;
@@ -288,10 +288,10 @@ namespace OpenMS
           std::cout << "experimental signal rt "<<(raw_data_first 
                         + signal2D[2*current_scan].first)->getRT()
                     << "\tmz " << ((raw_data_first 
-                        + signal2D[2*current_scan].first)->getContainer().begin()
+                        + signal2D[2*current_scan].first)->begin()
 																	 + signal2D[2*current_scan].second+current_point)->getMZ()
                     << "\tint " << ((raw_data_first 
-                        + signal2D[2*current_scan].first)->getContainer().begin()
+                        + signal2D[2*current_scan].first)->begin()
                         + signal2D[2*current_scan].second+current_point)->getIntensity()<<std::endl;
 
 #endif

@@ -204,7 +204,7 @@ namespace OpenMS
 					{
 						p_.setMetaValue("IonName", ion_name);
 					}
-					spectrum.getContainer().push_back(p_);
+					spectrum.push_back(p_);
 				}
 			}
 			else
@@ -215,7 +215,7 @@ namespace OpenMS
 				{
 					p_.setMetaValue("IonName", ion_name);
 				}
-				spectrum.getContainer().push_back(p_);
+				spectrum.push_back(p_);
 			}
 			
 			if (add_losses)
@@ -244,7 +244,7 @@ namespace OpenMS
 							{
 								p_.setMetaValue("IonName", ion_name + "-" + loss_name);
 							}
-							spectrum.getContainer().push_back(p_);
+							spectrum.push_back(p_);
 						}
 					}
 					else
@@ -254,7 +254,7 @@ namespace OpenMS
 						{
 							p_.setMetaValue("IonName", ion_name + "-" + loss_name);
 						}
-						spectrum.getContainer().push_back(p_);
+						spectrum.push_back(p_);
 					}
 				}
 			}
@@ -299,7 +299,7 @@ namespace OpenMS
 				p_.setMetaValue("IonName", name);
 			}
 			
-			spec.getContainer().push_back(p_);
+			spec.push_back(p_);
 
 			// loss peaks of the precursor
 			static const double h2o_weight = EmpiricalFormula("H2O").getAverageWeight();
@@ -315,7 +315,7 @@ namespace OpenMS
 				}
 				p_.setMetaValue("IonName", name);
 			}
-			spec.getContainer().push_back(p_);
+			spec.push_back(p_);
 
 			static const double nh3_weight = EmpiricalFormula("NH3").getAverageWeight();
       p_.setMZ((peptide.getAverageWeight(Residue::Full, charge) - nh3_weight)/double(charge));
@@ -330,7 +330,7 @@ namespace OpenMS
         }
         p_.setMetaValue("IonName", name);
       }
-      spec.getContainer().push_back(p_);
+      spec.push_back(p_);
 
 		}
 		

@@ -83,9 +83,9 @@ namespace OpenMS
 
       	//bern 2004 says to only check between 300 and size
       	//but that seems inappropriate for small peptides (smallest is ca 450)
-      	while (j < spectrum.size() && spectrum.getContainer()[j].getPosition()[0] < (size-300)/bands*(i+1) +300)
+      	while (j < spectrum.size() && spectrum[j].getPosition()[0] < (size-300)/bands*(i+1) +300)
       	{
-        	intensity += spectrum.getContainer()[j++].getIntensity();
+        	intensity += spectrum[j++].getIntensity();
       	}
       	band_intensity.insert(std::make_pair(intensity,i));
     	}

@@ -58,17 +58,17 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void r
   raw.resize(1);
   MSExperiment< Peak1D > resampled;
   MSSpectrum< Peak1D > spec;
-  spec.getContainer().resize(5);
-  spec.getContainer()[0].setMZ(0);
-  spec.getContainer()[0].setIntensity(3);
-  spec.getContainer()[1].setMZ(0.5);
-  spec.getContainer()[1].setIntensity(6);
-  spec.getContainer()[2].setMZ(1.);
-  spec.getContainer()[2].setIntensity(8);
-  spec.getContainer()[3].setMZ(1.6);
-  spec.getContainer()[3].setIntensity(2);
-  spec.getContainer()[4].setMZ(1.8);
-  spec.getContainer()[4].setIntensity(1);
+  spec.resize(5);
+  spec[0].setMZ(0);
+  spec[0].setIntensity(3);
+  spec[1].setMZ(0.5);
+  spec[1].setIntensity(6);
+  spec[2].setMZ(1.);
+  spec[2].setIntensity(8);
+  spec[3].setMZ(1.6);
+  spec[3].setIntensity(2);
+  spec[4].setMZ(1.8);
+  spec[4].setIntensity(1);
   raw[0] = spec;
 
   LinearResampler lr;
@@ -91,17 +91,17 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void rasterExp
   raw.resize(1);
   MSExperiment< Peak1D > resampled;
   MSSpectrum< Peak1D > spec;
-  spec.getContainer().resize(5);
-  spec.getContainer()[0].setMZ(0);
-  spec.getContainer()[0].setIntensity(3);
-  spec.getContainer()[1].setMZ(0.5);
-  spec.getContainer()[1].setIntensity(6);
-  spec.getContainer()[2].setMZ(1.);
-  spec.getContainer()[2].setIntensity(8);
-  spec.getContainer()[3].setMZ(1.6);
-  spec.getContainer()[3].setIntensity(2);
-  spec.getContainer()[4].setMZ(1.8);
-  spec.getContainer()[4].setIntensity(1);
+  spec.resize(5);
+  spec[0].setMZ(0);
+  spec[0].setIntensity(3);
+  spec[1].setMZ(0.5);
+  spec[1].setIntensity(6);
+  spec[2].setMZ(1.);
+  spec[2].setIntensity(8);
+  spec[3].setMZ(1.6);
+  spec[3].setIntensity(2);
+  spec[4].setMZ(1.8);
+  spec[4].setIntensity(1);
   raw[0] = spec;
 
   LinearResampler lr;
@@ -121,17 +121,17 @@ RESULT
 
 CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void raster(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& resampled_peak_container)))
   MSSpectrum< Peak1D > spec;
-  spec.getContainer().resize(5);
-  spec.getContainer()[0].setMZ(0);
-  spec.getContainer()[0].setIntensity(3);
-  spec.getContainer()[1].setMZ(0.5);
-  spec.getContainer()[1].setIntensity(6);
-  spec.getContainer()[2].setMZ(1.);
-  spec.getContainer()[2].setIntensity(8);
-  spec.getContainer()[3].setMZ(1.6);
-  spec.getContainer()[3].setIntensity(2);
-  spec.getContainer()[4].setMZ(1.8);
-  spec.getContainer()[4].setIntensity(1);
+  spec.resize(5);
+  spec[0].setMZ(0);
+  spec[0].setIntensity(3);
+  spec[1].setMZ(0.5);
+  spec[1].setIntensity(6);
+  spec[2].setMZ(1.);
+  spec[2].setIntensity(8);
+  spec[3].setMZ(1.6);
+  spec[3].setIntensity(2);
+  spec[4].setMZ(1.8);
+  spec[4].setIntensity(1);
 
   LinearResampler lr;
   lr.setParameters(param);
@@ -151,17 +151,17 @@ RESULT
 
 CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void raster(const InputPeakContainer& input_peak_container, OutputPeakContainer& baseline_filtered_container)))
   MSSpectrum< Peak1D > spec;
-  spec.getContainer().resize(5);
-  spec.getContainer()[0].setMZ(0);
-  spec.getContainer()[0].setIntensity(3);
-  spec.getContainer()[1].setMZ(0.5);
-  spec.getContainer()[1].setIntensity(6);
-  spec.getContainer()[2].setMZ(1.);
-  spec.getContainer()[2].setIntensity(8);
-  spec.getContainer()[3].setMZ(1.6);
-  spec.getContainer()[3].setIntensity(2);
-  spec.getContainer()[4].setMZ(1.8);
-  spec.getContainer()[4].setIntensity(1);
+  spec.resize(5);
+  spec[0].setMZ(0);
+  spec[0].setIntensity(3);
+  spec[1].setMZ(0.5);
+  spec[1].setIntensity(6);
+  spec[2].setMZ(1.);
+  spec[2].setIntensity(8);
+  spec[3].setMZ(1.6);
+  spec[3].setIntensity(2);
+  spec[4].setMZ(1.8);
+  spec[4].setIntensity(1);
 
   LinearResampler lr;
   lr.setParameters(param);

@@ -471,7 +471,7 @@ namespace OpenMS
 				if (parent_tag=="mzArrayBinary")
 				{
 					peak_count_ = attributeAsInt_(attributes, s_length);
-					spec_.getContainer().reserve(peak_count_);
+					spec_.reserve(peak_count_);
 				}			
 			}
 			else if (tag=="mzArrayBinary")
@@ -902,7 +902,7 @@ namespace OpenMS
 					data_to_encode_.clear();
 					for (UInt i=0; i<spec.size(); i++)
 					{
-						data_to_encode_.push_back(spec.getContainer()[i].getPosition()[0]);
+						data_to_encode_.push_back(spec[i].getPosition()[0]);
 					}
 					
 					writeBinary_(os,spec.size(),"mzArrayBinary");
@@ -911,7 +911,7 @@ namespace OpenMS
 					data_to_encode_.clear();
 					for (UInt i=0; i<spec.size(); i++)
 					{
-						data_to_encode_.push_back(spec.getContainer()[i].getIntensity());
+						data_to_encode_.push_back(spec[i].getIntensity());
 					}
 					
 					writeBinary_(os,spec.size(),"intenArrayBinary");

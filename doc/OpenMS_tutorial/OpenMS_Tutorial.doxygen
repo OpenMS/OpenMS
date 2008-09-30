@@ -381,8 +381,6 @@ file formats, data reduction functionality and all other analysis algorithms.
 
   @par d-dimensional spectrum
   The base class of @a MSSpectrum is @a DSpectrum. This class provides a generic container for d-dimensional data.
-  The peak container can be accessed through the @a getContainer() method. For convenience, part of the container interface is
-  also provided by @a DSpectrum.
 
   In the following example (Tutorial_MSSpectrum.C) program, a @a MSSpectrum is filled with peaks, sorted according to mass-to-charge
   ratio and a selection of peak positions is displayed.

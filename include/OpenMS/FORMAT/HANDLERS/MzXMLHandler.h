@@ -905,8 +905,8 @@ namespace OpenMS
 					std::vector<Real> tmp;
 					for (UInt i=0; i<spec.size(); i++)
 					{
-						tmp.push_back(spec.getContainer()[i].getMZ());
-						tmp.push_back(spec.getContainer()[i].getIntensity());
+						tmp.push_back(spec[i].getMZ());
+						tmp.push_back(spec[i].getIntensity());
 					}
 					
 					std::string encoded;

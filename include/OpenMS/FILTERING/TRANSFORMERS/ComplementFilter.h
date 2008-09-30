@@ -84,11 +84,11 @@ namespace OpenMS
 	    uint j = spectrum.size() - 1;
 	    for (uint i = 0; i < spectrum.size() && i <= j; /*++i*/)
 	    {
-	      double sum = spectrum.getContainer()[i].getPosition()[0] + spectrum.getContainer()[j].getPosition()[0];
+	      double sum = spectrum[i].getPosition()[0] + spectrum[j].getPosition()[0];
 				
 	      if (std::fabs(sum - parentmass) < tolerance)
 	      {
-	        result += spectrum.getContainer()[i].getIntensity() + spectrum.getContainer()[j].getIntensity();
+	        result += spectrum[i].getIntensity() + spectrum[j].getIntensity();
 	      }
 				
 				if (sum < parentmass)

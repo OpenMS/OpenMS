@@ -94,7 +94,7 @@ namespace OpenMS
 				}
 				else
 				{
-					it = spectrum.getContainer().erase(it);
+					it = spectrum.erase(it);
 				}
 			}
 		}

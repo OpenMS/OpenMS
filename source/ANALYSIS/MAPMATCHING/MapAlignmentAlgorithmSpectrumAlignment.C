@@ -754,29 +754,29 @@ namespace OpenMS
 			if(i == temp.size() || i==0||temp[i].getName()!= "Fouriertransformation" )
 			{
 			  	//a copy have to be made
-				double* data=  new double [spec.getContainer().size()<<1];
+				double* data=  new double [spec.size()<<1];
 				bool aflag = false;
 				bool iflag = true;
 				Real sum=0;
   			//normalize first the intensity!!!
-  			for(UInt k = 0 ;k<spec.getContainer().size(); ++k)
+  			for(UInt k = 0 ;k<spec.size(); ++k)
   			{
-  				sum+=spec.getContainer()[k].getIntensity();
+  				sum+=spec[k].getIntensity();
   			}
 				i =0;
 				//copy spectrum to the array, and after that mirrow the data, FFT needs perodic function
 				while(!aflag)
 				{	
-					if(i== (spec.getContainer().size()<<1))	
+					if(i== (spec.size()<<1))	
 					{
 						aflag=true;
 						break;
 					}
 					if(iflag)
 					{
-						if(i< spec.getContainer().size())
+						if(i< spec.size())
 						{
-							data[i]= spec.getContainer()[i].getIntensity()/sum;
+							data[i]= spec[i].getIntensity()/sum;
 							++i;
 						}
 						else
@@ -786,16 +786,16 @@ namespace OpenMS
 					}
 					else
 					{
-						data[i] =spec.getContainer()[(spec.getContainer().size()<<1)-i].getIntensity()/sum;
+						data[i] =spec[(spec.size()<<1)-i].getIntensity()/sum;
 						++i;
 					}
 				}
 				//calculate the fft by using gsl
 				gsl_fft_real_wavetable * real;
 				gsl_fft_real_workspace * work;
-				work = gsl_fft_real_workspace_alloc (spec.getContainer().size());
-				real = gsl_fft_real_wavetable_alloc (spec.getContainer().size());
-				gsl_fft_real_transform (data,1,spec.getContainer().size(),real, work);
+				work = gsl_fft_real_workspace_alloc (spec.size());
+				real = gsl_fft_real_wavetable_alloc (spec.size());
+				gsl_fft_real_transform (data,1,spec.size(),real, work);
 				gsl_fft_real_wavetable_free (real);
 				gsl_fft_real_workspace_free (work);
 				//saving the transformation, but only the real part
@@ -803,7 +803,7 @@ namespace OpenMS
 			  temp.resize(i+1);
 			  temp[i].setName("Fouriertransformation");
 			  UInt j=0;
-			  while(j < spec.getContainer().size())
+			  while(j < spec.size())
 			  {
 			  	temp[i].push_back(data[j]);
 			   	if(j==0) ++j;

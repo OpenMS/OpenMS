@@ -226,7 +226,7 @@ namespace OpenMS
         {
           typename MSExperiment<PeakType>::SpectrumType spectrum;
           filter(map[i],spectrum);
-          map[i].getContainer() = spectrum.getContainer();
+          map[i].swap(spectrum);
           setProgress(i);
         }
         endProgress();

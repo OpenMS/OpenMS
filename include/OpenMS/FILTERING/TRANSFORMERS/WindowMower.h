@@ -45,7 +45,7 @@ namespace OpenMS
   {
   public:
 
-		// @name Constructors and Destructors
+		// @name Constructors, destructors and assignment operators
 		// @{
     /// default constructor
     WindowMower();
@@ -55,89 +55,77 @@ namespace OpenMS
 
     /// destructor
     virtual ~WindowMower();
-		// @}
 
-		// @name Operators
-		// @{
     /// assignment operator
     WindowMower& operator = (const WindowMower& source);
 		// @}
 
-		// @name Accessors
-		// @{
-		///
-    static PreprocessingFunctor* create() { return new WindowMower(); }
+    static PreprocessingFunctor* create()
+    { 
+    	return new WindowMower();
+    }
 		
-		///
 		template <typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)
 		{
 			typedef typename SpectrumType::Iterator Iterator;
 			typedef typename SpectrumType::ConstIterator ConstIterator;
-			typedef typename SpectrumType::ContainerType ContainerType;
 			
-			double windowsize = (double)param_.getValue("windowsize");
-    	UInt peakcount = (int)param_.getValue("peakcount");
-
-			std::set<double> positions; // store the indices that are the most intense ones in an interval
+			DoubleReal windowsize = (DoubleReal)param_.getValue("windowsize");
+    	UInt peakcount = (UInt)param_.getValue("peakcount");
 			
-			spectrum.sortByPosition();
+			//copy spectrum
+			SpectrumType old_spectrum = spectrum;
+			old_spectrum.sortByPosition();
 			
-			// slide the window over spectrum and store peakcount most intense peaks (if available) of every window position
-			bool end(false);
-			for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
+			//find high peak positions
+			bool end  = false;
+			std::set<double> positions;
+			for (ConstIterator it = old_spectrum.begin(); it != old_spectrum.end(); ++it)
 			{
-				ContainerType container;
+				// copy the window from the spectrum
+				SpectrumType window;
 				for (ConstIterator it2 = it; (it2->getPosition() - it->getPosition() < windowsize); )
 				{
-					container.push_back(*it2);
-					if (++it2 == spectrum.end())
+					window.push_back(*it2);
+					if (++it2 == old_spectrum.end())
 					{
 						end = true;
 						break;
 					}
 				}
-
-				std::sort(container.begin(), container.end(), reverseComparator( typename SpectrumType::PeakType::IntensityLess()));
 				
+				//extract peakcount most intense peaks				
+				window.sortByIntensity(true);
 				for (UInt i = 0; i < peakcount; ++i)
 				{
-					if (container.size() > i)
+					if (i < window.size())
 					{
-						positions.insert(container[i].getMZ());
+						positions.insert(window[i].getMZ());
 					}
 				}
-
-				if (end)
-				{
-					break;
-				}
+				//abort at the end of the spectrum
+				if (end) break;
 			}
 
-			// add the found peaks to a new container
-			ContainerType container;
-			for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
+			// replace the old peaks by the new ones
+			spectrum.clear();
+			for (ConstIterator it = old_spectrum.begin(); it != old_spectrum.end(); ++it)
 			{
 				if (positions.find(it->getMZ()) != positions.end())
 				{
-					container.push_back(*it);
+					spectrum.push_back(*it);
 				}
 			}
-			
-			// overwrite the spectrum with the new container
-			spectrum.setContainer(container);
-			spectrum.sortByPosition();
     }
 
 		void filterPeakSpectrum(PeakSpectrum& spectrum);
 
 		void filterPeakMap(PeakMap& exp);
 	
-		///
 		static const String getProductName()
 		{
 			return "WindowMower";
 		}
-		// @}
 		
   };
 

@@ -31,6 +31,11 @@ Detailed list of changes to specific OpenMS classes:
   - Removed DPeakArray and moved the functionality to the classes that inherited from DPeakArray
 - New classes
 - Changes to classes
+  - DSpectrum
+    - The peaks are no longer stored in a container member, but DSpectrum is derived 
+      from std::vector<PeakType>.
+    - The container type is no longer a template argument. Peak type and allocator type
+      are the new template arguments.
   - LabeledPairFinder: Added automated RT parameter estimated.
   - GaussFitter: removed several unneeded methods.
   - GammaDistributionFitter: removed several unneeded methods.

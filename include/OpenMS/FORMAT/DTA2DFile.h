@@ -220,11 +220,11 @@ namespace OpenMS
 						setProgress(0);
 						//std::cout << "NEW SPEC"<< std::endl;
 					}
-					spec.getContainer().clear();
+					spec.clear();
 					spec.setRT(rt);
 				}
 				//insert peak into the spectrum
-				spec.getContainer().push_back(p);
+				spec.push_back(p);
 			}
 
 			if (spec.getRT() >= 0) map.push_back(spec);  // add last Spectrum

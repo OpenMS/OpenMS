@@ -104,9 +104,9 @@ namespace OpenMS
     	double maxmz = 0;
     	for (int i = spectrum.size() -1 ; i >= 0 ; --i)
     	{
-      	if (spectrum.getContainer()[i].getIntensity() > maxint * threshold)
+      	if (spectrum[i].getIntensity() > maxint * threshold)
       	{
-        	maxmz = spectrum.getContainer()[i].getMZ();
+        	maxmz = spectrum[i].getMZ();
         	break;
       	}
     	}
@@ -117,7 +117,7 @@ namespace OpenMS
       	double newint = c1 - (c2 / maxmz) * peakranks[it->getIntensity()];
       	if (newint < 0)
       	{
-        	it = spectrum.getContainer().erase(it);
+        	it = spectrum.erase(it);
       	}
       	else
       	{

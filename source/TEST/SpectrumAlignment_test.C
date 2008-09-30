@@ -103,7 +103,7 @@ CHECK(template <typename SpectrumType> void getSpectrumAlignment(std::vector< st
 
   TEST_REAL_EQUAL(alignment.size(), s1.size())
 
-  s2.getContainer().resize(100);
+  s2.resize(100);
 
 	alignment.clear();
   sas1.getSpectrumAlignment(alignment, s1, s2);

@@ -81,15 +81,15 @@ namespace OpenMS
     	{
       	for (uint j = 1; i + j < spectrum.size(); ++j)
       	{
-					double pos_ij = spectrum.getContainer()[i+j].getPosition()[0];
-					double pos_i = spectrum.getContainer()[i].getPosition()[0];
+					double pos_ij = spectrum[i+j].getPosition()[0];
+					double pos_i = spectrum[i].getPosition()[0];
         	if (std::fabs(pos_ij - pos_i + 1) < tolerance)
         	{
-          	isodiff += spectrum.getContainer()[i].getIntensity() + spectrum.getContainer()[i+j].getIntensity();
+          	isodiff += spectrum[i].getIntensity() + spectrum[i+j].getIntensity();
         	}
         	else 
 					{
-						if (std::fabs(spectrum.getContainer()[i+j].getPosition()[0] - spectrum.getContainer()[i].getPosition()[0]) > 1 + tolerance)
+						if (std::fabs(spectrum[i+j].getPosition()[0] - spectrum[i].getPosition()[0]) > 1 + tolerance)
         		{
          			break;
         		}

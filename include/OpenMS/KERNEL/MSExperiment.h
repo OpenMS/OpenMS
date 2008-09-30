@@ -174,9 +174,9 @@ namespace OpenMS
         // create new spectrum with local allocator and add it to our spectrum
         Base::push_back(SpectrumType(spec));
         
-        if (spec.size() != this->back().getContainer().size())
+        if (spec.size() != this->back().size())
         {
-          std::cout << "ERROR in MSExperiment::push_back() : given size (" << spec.size() << ") <=> pushed size (" << this->back().getContainer().size() << ")" << std::endl;
+          std::cout << "ERROR in MSExperiment::push_back() : given size (" << spec.size() << ") <=> pushed size (" << this->back().size() << ")" << std::endl;
         }
       }      
       

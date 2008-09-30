@@ -53,12 +53,12 @@ CHECK((MSSpectrum(const MSSpectrum& source)))
   tmp.getInstrumentSettings().setMzRangeStart(5.1);
 	MSSpectrum<>::PeakType peak;
 	peak.getPosition()[0] = 47.11;
-	tmp.getContainer().push_back(peak);
+	tmp.push_back(peak);
 	
 	MSSpectrum<> tmp2(tmp);
 	TEST_REAL_EQUAL(tmp2.getInstrumentSettings().getMzRangeStart(),5.1);
 	TEST_EQUAL(tmp2.size(),1);
-	TEST_REAL_EQUAL(tmp2.getContainer()[0].getPosition()[0],47.11);
+	TEST_REAL_EQUAL(tmp2[0].getPosition()[0],47.11);
 RESULT
 
 CHECK((MSSpectrum& operator= (const MSSpectrum& source)))
@@ -66,14 +66,14 @@ CHECK((MSSpectrum& operator= (const MSSpectrum& source)))
   tmp.getInstrumentSettings().setMzRangeStart(5.1);
 	MSSpectrum<>::PeakType peak;
 	peak.getPosition()[0] = 47.11;
-	tmp.getContainer().push_back(peak);
+	tmp.push_back(peak);
 	
 	//normal assignment
 	MSSpectrum<> tmp2;
 	tmp2 = tmp;
 	TEST_REAL_EQUAL(tmp2.getInstrumentSettings().getMzRangeStart(),5.1);
 	TEST_EQUAL(tmp2.size(),1);
-	TEST_REAL_EQUAL(tmp2.getContainer()[0].getPosition()[0],47.11);
+	TEST_REAL_EQUAL(tmp2[0].getPosition()[0],47.11);
 	
 	//Assignment of empty object
 	//normal assignment
@@ -93,7 +93,7 @@ CHECK((bool operator== (const MSSpectrum& rhs) const))
 	edit = empty;
 	MSSpectrum<>::PeakType peak;
 	peak.getPosition()[0] = 47.11;
-	edit.getContainer().push_back(peak);
+	edit.push_back(peak);
 	TEST_EQUAL(edit==empty,false);
 RESULT
 
@@ -108,7 +108,7 @@ CHECK((bool operator!= (const MSSpectrum& rhs) const))
 	edit = empty;
 	MSSpectrum<>::PeakType peak;
 	peak.getPosition()[0] = 47.11;
-	edit.getContainer().push_back(peak);
+	edit.push_back(peak);
 	TEST_EQUAL(edit!=empty,true);
 RESULT
 
@@ -116,9 +116,9 @@ CHECK(([EXTRA] MSSpectrum<Peak1D >))
 	MSSpectrum<Peak1D > tmp;
 	MSSpectrum<Peak1D >::PeakType rdp;
 	rdp.getPosition()[0] = 47.11;
-	tmp.getContainer().push_back(rdp);
+	tmp.push_back(rdp);
 	TEST_EQUAL(tmp.size(),1);
-	TEST_REAL_EQUAL(tmp.getContainer()[0].getPosition()[0],47.11);	
+	TEST_REAL_EQUAL(tmp[0].getPosition()[0],47.11);	
 RESULT
 
 /////////////////////////////////////////////////////////////

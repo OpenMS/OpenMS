@@ -107,9 +107,9 @@ namespace OpenMS
     
     int xpos = 0;
     int ypos = 0;
-		PeakSpectrum::ConstIterator xit = x.getContainer().begin();
-		PeakSpectrum::ConstIterator yit = y.getContainer().begin();
-    while (xit != x.getContainer().end() && yit != y.getContainer().end())
+		PeakSpectrum::ConstIterator xit = x.begin();
+		PeakSpectrum::ConstIterator yit = y.begin();
+    while (xit != x.end() && yit != y.end())
     {
       double variation = (xit->getMZ() + yit->getMZ()) / 2 * var; 
 
@@ -121,7 +121,7 @@ namespace OpenMS
           Peak1D consensuspeak;
           consensuspeak.setMZ(xit->getMZ());
           consensuspeak.setIntensity((xit->getIntensity()) * (1 - factor_));
-          if (keeppeaks_) lastconsensus_.getContainer().push_back(consensuspeak);
+          if (keeppeaks_) lastconsensus_.push_back(consensuspeak);
           ++xit;
           ++xpos;
         }
@@ -130,7 +130,7 @@ namespace OpenMS
           Peak1D consensuspeak;
           consensuspeak.setMZ(yit->getMZ());
           consensuspeak.setIntensity( (yit->getIntensity()) * (factor_));
-          if (keeppeaks_) lastconsensus_.getContainer().push_back(consensuspeak);
+          if (keeppeaks_) lastconsensus_.push_back(consensuspeak);
           ++yit;
           ++ypos;
         }
@@ -140,7 +140,7 @@ namespace OpenMS
         //x/yrun represents the number of peaks in both spectra that could be paired
         int xrun = 1;
         int yrun = 1;
-        while (xit + xrun != x.getContainer().end() && yit + yrun != y.getContainer().end() && 
+        while (xit + xrun != x.end() && yit + yrun != y.end() && 
             (!((xit + xrun - 1)->getMZ() + variation < (yit + yrun)->getMZ()) || 
              !((yit + yrun - 1)->getMZ() + variation < (xit + xrun)->getMZ())))
         {
@@ -157,8 +157,8 @@ namespace OpenMS
             xrun++;
             yrun++;
           }
-          if (xit + xrun == x.getContainer().end()) break;
-          if (yit + yrun == y.getContainer().end()) break;
+          if (xit + xrun == x.end()) break;
+          if (yit + yrun == y.end()) break;
         }
         
         //dynamic programming necessary to calculate optimal pairing
@@ -177,15 +177,15 @@ namespace OpenMS
           Peak1D consensuspeak;
           consensuspeak.setMZ((xit->getMZ() * (1 - factor_) + yit->getMZ() * (factor_)));
           consensuspeak.setIntensity((xit->getIntensity() * (1 - factor_) + yit->getIntensity() * factor_));
-          lastconsensus_.getContainer().push_back(consensuspeak);
+          lastconsensus_.push_back(consensuspeak);
 					
-					if (!peak_map_.has(xit - x.getContainer().begin()))
+					if (!peak_map_.has(xit - x.begin()))
 					{
-						peak_map_[xit - x.getContainer().begin()] = yit - y.getContainer().begin();
+						peak_map_[xit - x.begin()] = yit - y.begin();
 					}
 					else
 					{
-						peak_map_[xit - x.getContainer().begin()] = yit - y.getContainer().begin() > xit - x.getContainer().begin() ? xit - x.getContainer().begin() : yit - y.getContainer().begin();
+						peak_map_[xit - x.begin()] = yit - y.begin() > xit - x.begin() ? xit - x.begin() : yit - y.begin();
 					}
           
           variation = (xit->getMZ() + yit->getMZ()) / 2 * var;
@@ -214,15 +214,15 @@ namespace OpenMS
     {
       for (int j = 1; j < yend - ystart+2; ++j)
       {
-        double variation = (y.getContainer()[ystart + j - 1].getMZ() + x.getContainer()[xstart + i - 1].getMZ()) / 2 * var;
+        double variation = (y[ystart + j - 1].getMZ() + x[xstart + i - 1].getMZ()) / 2 * var;
         //positions too different
-        if (fabs( x.getContainer()[xstart + i - 1].getMZ() - y.getContainer()[ystart + j - 1].getMZ()) > variation ) align = 0;
+        if (fabs( x[xstart + i - 1].getMZ() - y[ystart + j - 1].getMZ()) > variation ) align = 0;
 
         //calculate score of alignment
-        else  align = comparepeaks_(x.getContainer()[xstart + i - 1].getMZ(), 
-																		y.getContainer()[ystart + j - 1].getMZ(), 
-																		x.getContainer()[xstart + i - 1].getIntensity(), 
-																		y.getContainer()[ystart + j - 1].getIntensity());
+        else  align = comparepeaks_(x[xstart + i - 1].getMZ(), 
+																		y[ystart + j - 1].getMZ(), 
+																		x[xstart + i - 1].getIntensity(), 
+																		y[ystart + j - 1].getIntensity());
         //dynaminc programming step
         if ((((dparray[i][j-1]) > (dparray[i-1][j-1]+align)) ? (dparray[i][j-1]) : (dparray[i-1][j-1]+align)) /*== max*/ > dparray[i-1][j])
         {
@@ -252,9 +252,9 @@ namespace OpenMS
       if ( trace[i][j] == 5 ) 
       {
         Peak1D consensuspeak;
-        consensuspeak.setMZ(( y.getContainer()[ystart + j-1].getMZ()*(1-factor_)+x.getContainer()[xstart + i-1].getMZ()*factor_));
-        consensuspeak.setIntensity(( y.getContainer()[ystart + j-1].getIntensity()*(1-factor_) + x.getContainer()[xstart + i-1].getIntensity()*factor_ ));
-        lastconsensus_.getContainer().push_back(consensuspeak);
+        consensuspeak.setMZ(( y[ystart + j-1].getMZ()*(1-factor_)+x[xstart + i-1].getMZ()*factor_));
+        consensuspeak.setIntensity(( y[ystart + j-1].getIntensity()*(1-factor_) + x[xstart + i-1].getIntensity()*factor_ ));
+        lastconsensus_.push_back(consensuspeak);
 				if (!peak_map_.has(xstart + i-1))
 				{
 					peak_map_[xstart + i-1] = ystart + j-1;
@@ -269,17 +269,17 @@ namespace OpenMS
       else if ( trace[i][j] == 1 )
       {
         Peak1D consensuspeak;
-        consensuspeak.setMZ(x.getContainer()[xstart + i-1].getMZ()) ;
-        consensuspeak.setIntensity( (x.getContainer()[xstart + i-1].getIntensity()) * ( 1-factor_ ));
-        if ( keeppeaks_ ) lastconsensus_.getContainer().push_back(consensuspeak);
+        consensuspeak.setMZ(x[xstart + i-1].getMZ()) ;
+        consensuspeak.setIntensity( (x[xstart + i-1].getIntensity()) * ( 1-factor_ ));
+        if ( keeppeaks_ ) lastconsensus_.push_back(consensuspeak);
         i--;
       }
       else if ( trace[i][j] == -1 )
       {
         Peak1D consensuspeak;
-        consensuspeak.setMZ(y.getContainer()[ystart + j-1].getMZ());
-        consensuspeak.setIntensity((y.getContainer()[ystart + j-1].getIntensity())*factor_);
-        if ( keeppeaks_ ) lastconsensus_.getContainer().push_back(consensuspeak);
+        consensuspeak.setMZ(y[ystart + j-1].getMZ());
+        consensuspeak.setIntensity((y[ystart + j-1].getIntensity())*factor_);
+        if ( keeppeaks_ ) lastconsensus_.push_back(consensuspeak);
         j--;
       }
       if ( !i || !j ) break;

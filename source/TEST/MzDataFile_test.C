@@ -89,36 +89,36 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	//--------------------------------------------------------------------------- 
   TEST_EQUAL(e2.size(), 3)
 
-	TEST_EQUAL(e2[0].getContainer().size(), 1)
-	TEST_EQUAL(e2[1].getContainer().size(), 3)
-	TEST_EQUAL(e2[2].getContainer().size(), 5)
+	TEST_EQUAL(e2[0].size(), 1)
+	TEST_EQUAL(e2[1].size(), 3)
+	TEST_EQUAL(e2[2].size(), 5)
 
-	TEST_REAL_EQUAL(e2[0].getContainer()[0].getPosition()[0], 120)
-	TEST_REAL_EQUAL(e2[0].getContainer()[0].getIntensity(), 100)
+	TEST_REAL_EQUAL(e2[0][0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e2[0][0].getIntensity(), 100)
 
-	TEST_REAL_EQUAL(e2[1].getContainer()[0].getPosition()[0], 110)
-	TEST_REAL_EQUAL(e2[1].getContainer()[0].getIntensity(), 100)
+	TEST_REAL_EQUAL(e2[1][0].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e2[1][0].getIntensity(), 100)
 
-	TEST_REAL_EQUAL(e2[1].getContainer()[1].getPosition()[0], 120)
-	TEST_REAL_EQUAL(e2[1].getContainer()[1].getIntensity(), 200)
+	TEST_REAL_EQUAL(e2[1][1].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e2[1][1].getIntensity(), 200)
 
-	TEST_REAL_EQUAL(e2[1].getContainer()[2].getPosition()[0], 130)
-	TEST_REAL_EQUAL(e2[1].getContainer()[2].getIntensity(), 100)
+	TEST_REAL_EQUAL(e2[1][2].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e2[1][2].getIntensity(), 100)
 
-	TEST_REAL_EQUAL(e2[2].getContainer()[0].getPosition()[0], 100)
-	TEST_REAL_EQUAL(e2[2].getContainer()[0].getIntensity(), 100)
+	TEST_REAL_EQUAL(e2[2][0].getPosition()[0], 100)
+	TEST_REAL_EQUAL(e2[2][0].getIntensity(), 100)
 
-	TEST_REAL_EQUAL(e2[2].getContainer()[1].getPosition()[0], 110)
-	TEST_REAL_EQUAL(e2[2].getContainer()[1].getIntensity(), 200)
+	TEST_REAL_EQUAL(e2[2][1].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e2[2][1].getIntensity(), 200)
 
-	TEST_REAL_EQUAL(e2[2].getContainer()[2].getPosition()[0], 120)
-	TEST_REAL_EQUAL(e2[2].getContainer()[2].getIntensity(), 300)
+	TEST_REAL_EQUAL(e2[2][2].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e2[2][2].getIntensity(), 300)
 
-	TEST_REAL_EQUAL(e2[2].getContainer()[3].getPosition()[0], 130)
-	TEST_REAL_EQUAL(e2[2].getContainer()[3].getIntensity(), 200)
+	TEST_REAL_EQUAL(e2[2][3].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e2[2][3].getIntensity(), 200)
 
-	TEST_REAL_EQUAL(e2[2].getContainer()[4].getPosition()[0], 140)
-	TEST_REAL_EQUAL(e2[2].getContainer()[4].getIntensity(), 100)
+	TEST_REAL_EQUAL(e2[2][4].getPosition()[0], 140)
+	TEST_REAL_EQUAL(e2[2][4].getIntensity(), 100)
 
   //---------------------------------------------------------------------------
   // test with Peak1D
@@ -243,9 +243,9 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_EQUAL(e[2].getAcquisitionInfo().getMethodOfCombination(), "average")
 	TEST_EQUAL(e[2].getAcquisitionInfo()[0].getNumber(), 601)
 
-	TEST_EQUAL(e[0].getContainer().size(), 1)
-	TEST_EQUAL(e[1].getContainer().size(), 3)
-	TEST_EQUAL(e[2].getContainer().size(), 5)
+	TEST_EQUAL(e[0].size(), 1)
+	TEST_EQUAL(e[1].size(), 3)
+	TEST_EQUAL(e[2].size(), 5)
  
 //	0) r_value
 //  1) area
@@ -256,8 +256,8 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 //  5) type
 //  6) signal_to_noise
 
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getPosition()[0], 120)
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getIntensity(), 100)
+	TEST_REAL_EQUAL(e[0][0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[0][0].getIntensity(), 100)
 	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[1][0], 100)
 	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[2][0], 100)
 	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[4][0], 100)
@@ -267,8 +267,8 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[7][0], 100)
 	TEST_EQUAL(e[0].getMetaDataArrays()[6][0], 100)
 
-	TEST_REAL_EQUAL(e[1].getContainer()[0].getPosition()[0], 110)
-	TEST_REAL_EQUAL(e[1].getContainer()[0].getIntensity(), 100)
+	TEST_REAL_EQUAL(e[1][0].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e[1][0].getIntensity(), 100)
 	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[1][0], 100)
 	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[2][0], 100)
 	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[4][0], 100)
@@ -278,8 +278,8 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[7][0], 100)
 	TEST_EQUAL(e[1].getMetaDataArrays()[6][0], 100)
 
-	TEST_REAL_EQUAL(e[1].getContainer()[1].getPosition()[0], 120)
-	TEST_REAL_EQUAL(e[1].getContainer()[1].getIntensity(), 200)
+	TEST_REAL_EQUAL(e[1][1].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[1][1].getIntensity(), 200)
 	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[1][1], 200)
 	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[2][1], 200)
 	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[4][1], 200)
@@ -289,8 +289,8 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[7][1], 200)
 	TEST_EQUAL(e[1].getMetaDataArrays()[6][1], 200)
 
-	TEST_REAL_EQUAL(e[1].getContainer()[2].getPosition()[0], 130)
-	TEST_REAL_EQUAL(e[1].getContainer()[2].getIntensity(), 100)
+	TEST_REAL_EQUAL(e[1][2].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e[1][2].getIntensity(), 100)
 	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[1][2], 100)
 	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[2][2], 100)
 	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[4][2], 100)
@@ -300,8 +300,8 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e[1].getMetaDataArrays()[7][2], 100)
 	TEST_EQUAL(e[1].getMetaDataArrays()[6][2], 100)
 
-	TEST_REAL_EQUAL(e[2].getContainer()[0].getPosition()[0], 100)
-	TEST_REAL_EQUAL(e[2].getContainer()[0].getIntensity(), 100)
+	TEST_REAL_EQUAL(e[2][0].getPosition()[0], 100)
+	TEST_REAL_EQUAL(e[2][0].getIntensity(), 100)
 	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[1][0], 100)
 	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[2][0], 100)
 	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[4][0], 100)
@@ -311,8 +311,8 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[7][0], 100)
 	TEST_EQUAL(e[2].getMetaDataArrays()[6][0], 100)
 
-	TEST_REAL_EQUAL(e[2].getContainer()[1].getPosition()[0], 110)
-	TEST_REAL_EQUAL(e[2].getContainer()[1].getIntensity(), 200)
+	TEST_REAL_EQUAL(e[2][1].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e[2][1].getIntensity(), 200)
 	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[1][1], 200)
 	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[2][1], 200)
 	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[4][1], 200)
@@ -322,8 +322,8 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[7][1], 200)
 	TEST_EQUAL(e[2].getMetaDataArrays()[6][1], 200)
 
-	TEST_REAL_EQUAL(e[2].getContainer()[2].getPosition()[0], 120)
-	TEST_REAL_EQUAL(e[2].getContainer()[2].getIntensity(), 300)
+	TEST_REAL_EQUAL(e[2][2].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[2][2].getIntensity(), 300)
 	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[1][2], 300)
 	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[2][2], 300)
 	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[4][2], 300)
@@ -333,8 +333,8 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[7][2], 300)
 	TEST_EQUAL(e[2].getMetaDataArrays()[6][2], 300)
 
-	TEST_REAL_EQUAL(e[2].getContainer()[3].getPosition()[0], 130)
-	TEST_REAL_EQUAL(e[2].getContainer()[3].getIntensity(), 200)
+	TEST_REAL_EQUAL(e[2][3].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e[2][3].getIntensity(), 200)
 	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[1][3], 200)
 	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[2][3], 200)
 	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[4][3], 200)
@@ -344,8 +344,8 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[7][3], 200)
 	TEST_EQUAL(e[2].getMetaDataArrays()[6][3], 200)
 
-	TEST_REAL_EQUAL(e[2].getContainer()[4].getPosition()[0], 140)
-	TEST_REAL_EQUAL(e[2].getContainer()[4].getIntensity(), 100)
+	TEST_REAL_EQUAL(e[2][4].getPosition()[0], 140)
+	TEST_REAL_EQUAL(e[2][4].getIntensity(), 100)
 	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[1][4], 100)
 	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[2][4], 100)
 	TEST_REAL_EQUAL(e[2].getMetaDataArrays()[4][4], 100)
@@ -491,36 +491,36 @@ CHECK([EXTRA] load with Peak1D)
 	//--------------------------------------------------------------------------- 
   TEST_EQUAL(e2.size(), 3)
 
-	TEST_EQUAL(e2[0].getContainer().size(), 1)
-	TEST_EQUAL(e2[1].getContainer().size(), 3)
-	TEST_EQUAL(e2[2].getContainer().size(), 5)
+	TEST_EQUAL(e2[0].size(), 1)
+	TEST_EQUAL(e2[1].size(), 3)
+	TEST_EQUAL(e2[2].size(), 5)
 
-	TEST_REAL_EQUAL(e2[0].getContainer()[0].getPosition()[0], 120)
-	TEST_REAL_EQUAL(e2[0].getContainer()[0].getIntensity(), 100)
+	TEST_REAL_EQUAL(e2[0][0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e2[0][0].getIntensity(), 100)
 
-	TEST_REAL_EQUAL(e2[1].getContainer()[0].getPosition()[0], 110)
-	TEST_REAL_EQUAL(e2[1].getContainer()[0].getIntensity(), 100)
+	TEST_REAL_EQUAL(e2[1][0].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e2[1][0].getIntensity(), 100)
 
-	TEST_REAL_EQUAL(e2[1].getContainer()[1].getPosition()[0], 120)
-	TEST_REAL_EQUAL(e2[1].getContainer()[1].getIntensity(), 200)
+	TEST_REAL_EQUAL(e2[1][1].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e2[1][1].getIntensity(), 200)
 
-	TEST_REAL_EQUAL(e2[1].getContainer()[2].getPosition()[0], 130)
-	TEST_REAL_EQUAL(e2[1].getContainer()[2].getIntensity(), 100)
+	TEST_REAL_EQUAL(e2[1][2].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e2[1][2].getIntensity(), 100)
 
-	TEST_REAL_EQUAL(e2[2].getContainer()[0].getPosition()[0], 100)
-	TEST_REAL_EQUAL(e2[2].getContainer()[0].getIntensity(), 100)
+	TEST_REAL_EQUAL(e2[2][0].getPosition()[0], 100)
+	TEST_REAL_EQUAL(e2[2][0].getIntensity(), 100)
 
-	TEST_REAL_EQUAL(e2[2].getContainer()[1].getPosition()[0], 110)
-	TEST_REAL_EQUAL(e2[2].getContainer()[1].getIntensity(), 200)
+	TEST_REAL_EQUAL(e2[2][1].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e2[2][1].getIntensity(), 200)
 
-	TEST_REAL_EQUAL(e2[2].getContainer()[2].getPosition()[0], 120)
-	TEST_REAL_EQUAL(e2[2].getContainer()[2].getIntensity(), 300)
+	TEST_REAL_EQUAL(e2[2][2].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e2[2][2].getIntensity(), 300)
 
-	TEST_REAL_EQUAL(e2[2].getContainer()[3].getPosition()[0], 130)
-	TEST_REAL_EQUAL(e2[2].getContainer()[3].getIntensity(), 200)
+	TEST_REAL_EQUAL(e2[2][3].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e2[2][3].getIntensity(), 200)
 
-	TEST_REAL_EQUAL(e2[2].getContainer()[4].getPosition()[0], 140)
-	TEST_REAL_EQUAL(e2[2].getContainer()[4].getIntensity(), 100)
+	TEST_REAL_EQUAL(e2[2][4].getPosition()[0], 140)
+	TEST_REAL_EQUAL(e2[2][4].getIntensity(), 100)
 
 RESULT  
 
@@ -666,9 +666,9 @@ CHECK(([EXTRA] load with selected MS levels))
 	mzdata.getOptions().addMSLevel(1);
 	mzdata.load("data/MzDataFile_test_1.mzData",e);
 	TEST_EQUAL(e.size(), 2)
-	TEST_EQUAL(e[0].getContainer().size(), 1)
+	TEST_EQUAL(e[0].size(), 1)
 	TEST_EQUAL((UInt)(e[0].getMetaValue("original_spectrum_number")),0)
-	TEST_EQUAL(e[1].getContainer().size(), 5)
+	TEST_EQUAL(e[1].size(), 5)
 	TEST_EQUAL((UInt)(e[1].getMetaValue("original_spectrum_number")),2)
 	TEST_REAL_EQUAL(e[0].getMSLevel(), 1)
 	TEST_REAL_EQUAL(e[1].getMSLevel(), 1)
@@ -677,9 +677,9 @@ CHECK(([EXTRA] load with selected MS levels))
 	mzdata.getOptions().clearMSLevels();
 	mzdata.load("data/MzDataFile_test_1.mzData",e);
 	TEST_EQUAL(e.size(), 3)
-	TEST_EQUAL(e[0].getContainer().size(), 1)
-	TEST_EQUAL(e[1].getContainer().size(), 3)
-	TEST_EQUAL(e[2].getContainer().size(), 5)
+	TEST_EQUAL(e[0].size(), 1)
+	TEST_EQUAL(e[1].size(), 3)
+	TEST_EQUAL(e[2].size(), 5)
 	TEST_REAL_EQUAL(e[0].getMSLevel(), 1)
 	TEST_REAL_EQUAL(e[1].getMSLevel(), 2)
 	TEST_REAL_EQUAL(e[2].getMSLevel(), 1)
@@ -720,24 +720,24 @@ CHECK(([EXTRA] load with MZ range))
 	//--------------------------------------------------------------------------- 
 	TEST_EQUAL(e.size(), 3)
 
-	TEST_EQUAL(e[0].getContainer().size(), 1)
-	TEST_EQUAL(e[1].getContainer().size(), 2)
-	TEST_EQUAL(e[2].getContainer().size(), 2)
+	TEST_EQUAL(e[0].size(), 1)
+	TEST_EQUAL(e[1].size(), 2)
+	TEST_EQUAL(e[2].size(), 2)
 
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getPosition()[0], 120)
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getIntensity(), 100)
+	TEST_REAL_EQUAL(e[0][0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[0][0].getIntensity(), 100)
 
-	TEST_REAL_EQUAL(e[1].getContainer()[0].getPosition()[0], 120)
-	TEST_REAL_EQUAL(e[1].getContainer()[0].getIntensity(), 200)
+	TEST_REAL_EQUAL(e[1][0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[1][0].getIntensity(), 200)
 
-	TEST_REAL_EQUAL(e[1].getContainer()[1].getPosition()[0], 130)
-	TEST_REAL_EQUAL(e[1].getContainer()[1].getIntensity(), 100)
+	TEST_REAL_EQUAL(e[1][1].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e[1][1].getIntensity(), 100)
 
-	TEST_REAL_EQUAL(e[2].getContainer()[0].getPosition()[0], 120)
-	TEST_REAL_EQUAL(e[2].getContainer()[0].getIntensity(), 300)
+	TEST_REAL_EQUAL(e[2][0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[2][0].getIntensity(), 300)
 
-	TEST_REAL_EQUAL(e[2].getContainer()[1].getPosition()[0], 130)
-	TEST_REAL_EQUAL(e[2].getContainer()[1].getIntensity(), 200)
+	TEST_REAL_EQUAL(e[2][1].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e[2][1].getIntensity(), 200)
 RESULT
 
 CHECK(([EXTRA] load with intensity range))
@@ -755,21 +755,21 @@ CHECK(([EXTRA] load with intensity range))
 	//--------------------------------------------------------------------------- 
 	TEST_EQUAL(e.size(), 3)
 
-	TEST_EQUAL(e[0].getContainer().size(), 0)
-	TEST_EQUAL(e[1].getContainer().size(), 1)
-	TEST_EQUAL(e[2].getContainer().size(), 3)
+	TEST_EQUAL(e[0].size(), 0)
+	TEST_EQUAL(e[1].size(), 1)
+	TEST_EQUAL(e[2].size(), 3)
 
-	TEST_REAL_EQUAL(e[1].getContainer()[0].getPosition()[0], 120)
-	TEST_REAL_EQUAL(e[1].getContainer()[0].getIntensity(), 200)
+	TEST_REAL_EQUAL(e[1][0].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[1][0].getIntensity(), 200)
 
-	TEST_REAL_EQUAL(e[2].getContainer()[0].getPosition()[0], 110)
-	TEST_REAL_EQUAL(e[2].getContainer()[0].getIntensity(), 200)
+	TEST_REAL_EQUAL(e[2][0].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e[2][0].getIntensity(), 200)
 
-	TEST_REAL_EQUAL(e[2].getContainer()[1].getPosition()[0], 120)
-	TEST_REAL_EQUAL(e[2].getContainer()[1].getIntensity(), 300)
+	TEST_REAL_EQUAL(e[2][1].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[2][1].getIntensity(), 300)
 
-	TEST_REAL_EQUAL(e[2].getContainer()[2].getPosition()[0], 130)
-	TEST_REAL_EQUAL(e[2].getContainer()[2].getIntensity(), 200)
+	TEST_REAL_EQUAL(e[2][2].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e[2][2].getIntensity(), 200)
 RESULT
 
 CHECK(([EXTRA] load one extremely long spectrum - tests CDATA splitting))
@@ -821,10 +821,10 @@ CHECK([EXTRA] load with 64 bit precision and endian conversion )
 	TEST_EQUAL(e.getIdentifier(),"");
 
   TEST_EQUAL(e.size(), 1)
-	TEST_EQUAL(e[0].getContainer().size(), 3)
+	TEST_EQUAL(e[0].size(), 3)
 
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getPosition()[0], 110)
-	TEST_REAL_EQUAL(e[0].getContainer()[0].getIntensity(), 100)
+	TEST_REAL_EQUAL(e[0][0].getPosition()[0], 110)
+	TEST_REAL_EQUAL(e[0][0].getIntensity(), 100)
 	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[1][0], 100)
 	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[2][0], 100)
 	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[4][0], 100)
@@ -834,8 +834,8 @@ CHECK([EXTRA] load with 64 bit precision and endian conversion )
 	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[7][0], 100)
 	TEST_EQUAL(e[0].getMetaDataArrays()[6][0], 100)
 
-	TEST_REAL_EQUAL(e[0].getContainer()[1].getPosition()[0], 120)
-	TEST_REAL_EQUAL(e[0].getContainer()[1].getIntensity(), 200)
+	TEST_REAL_EQUAL(e[0][1].getPosition()[0], 120)
+	TEST_REAL_EQUAL(e[0][1].getIntensity(), 200)
 	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[1][1], 200)
 	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[2][1], 200)
 	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[4][1], 200)
@@ -845,8 +845,8 @@ CHECK([EXTRA] load with 64 bit precision and endian conversion )
 	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[7][1], 200)
 	TEST_EQUAL(e[0].getMetaDataArrays()[6][1], 200)
 
-	TEST_REAL_EQUAL(e[0].getContainer()[2].getPosition()[0], 130)
-	TEST_REAL_EQUAL(e[0].getContainer()[2].getIntensity(), 100)
+	TEST_REAL_EQUAL(e[0][2].getPosition()[0], 130)
+	TEST_REAL_EQUAL(e[0][2].getIntensity(), 100)
 	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[1][2], 100)
 	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[2][2], 100)
 	TEST_REAL_EQUAL(e[0].getMetaDataArrays()[4][2], 100)

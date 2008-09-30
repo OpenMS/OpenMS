@@ -268,14 +268,14 @@ if (do_tests)
 		p.setIntensity(565);
 		p.getPosition()[0] = 600.1;
 		p.setMetaValue("label", String("peaklabel"));
-		spec.getContainer().push_back(p);
+		spec.push_back(p);
 		p.setIntensity(620);
 		p.getPosition()[0] = 700.1;
 		p.removeMetaValue("label");
-		spec.getContainer().push_back(p);
+		spec.push_back(p);
 		p.setIntensity(701);
 		p.getPosition()[0] = 800.1;
-		spec.getContainer().push_back(p);
+		spec.push_back(p);
 		spec.setRT(1.98);
 		spec.setMSLevel(1);	
 		
@@ -353,16 +353,16 @@ if (do_tests)
 		exp_original.push_back(spec);
 			
 		//MSMS spectrum
-		spec.getContainer().clear();
+		spec.clear();
 		p.setIntensity(210);
 		p.getPosition()[0] = 100.155;
-		spec.getContainer().push_back(p);
+		spec.push_back(p);
 		p.setIntensity(101);
 		p.getPosition()[0] = 150.25;
-		spec.getContainer().push_back(p);
+		spec.push_back(p);
 		p.setIntensity(90);
 		p.getPosition()[0] = 300.5;
-		spec.getContainer().push_back(p);
+		spec.push_back(p);
 		spec.setRT(3.96);
 		spec.setMSLevel(2);
 		spec.getPrecursorPeak().getPosition()[0] = 600.1;
@@ -398,13 +398,13 @@ if (do_tests)
 		
 		peak1d.setIntensity(565);
 		peak1d.getPosition()[0] = 600.1;
-		spec_peak1d.getContainer().push_back(peak1d);
+		spec_peak1d.push_back(peak1d);
 		peak1d.setIntensity(620);
 		peak1d.getPosition()[0] = 700.1;
-		spec_peak1d.getContainer().push_back(peak1d);
+		spec_peak1d.push_back(peak1d);
 		peak1d.setIntensity(701);
 		peak1d.getPosition()[0] = 800.1;
-		spec_peak1d.getContainer().push_back(peak1d);
+		spec_peak1d.push_back(peak1d);
 		spec_peak1d.setRT(1.98);
 		spec_peak1d.setMSLevel(1);	
 		
@@ -457,7 +457,7 @@ if (do_tests)
 			TEST_EQUAL( spec.getSourceFile().getSha1() , exp_original.begin()->getSourceFile().getSha1() )
 			
 			// make sure storing/loading of meta data works for RichPeaks
-			TEST_EQUAL( spec.getContainer()[0].getMetaValue("label"), "peaklabel");
+			TEST_EQUAL( spec[0].getMetaValue("label"), "peaklabel");
 			
 			RichPeakSpectrum::MetaDataArrays& meta_data_arrays = spec.getMetaDataArrays();
 			TEST_EQUAL( meta_data_arrays[0].getComment(), "little icon with colors and stuff" )
@@ -476,8 +476,8 @@ if (do_tests)
 			
 			for (UInt i=0; i<3; ++i)
 			{
-				TEST_REAL_EQUAL( spec.getContainer()[i].getIntensity() , exp_original.begin()->getContainer()[i].getIntensity() )
-				TEST_REAL_EQUAL( spec.getContainer()[i].getPosition()[0] , exp_original.begin()->getContainer()[i].getPosition()[0] )
+				TEST_REAL_EQUAL( spec[i].getIntensity() , exp_original.begin()->operator[](i).getIntensity() )
+				TEST_REAL_EQUAL( spec[i].getPosition()[0] , exp_original.begin()->operator[](i).getPosition()[0] )
 			}
 
 			PeakFileOptions options;
@@ -638,8 +638,8 @@ if (do_tests)
 			TEST_EQUAL( itn->size() , ito->size() )
 			for (UInt i=0; i<3; ++i)
 			{
-				TEST_REAL_EQUAL( itn->getContainer()[i].getIntensity() , ito->getContainer()[i].getIntensity() )
-				TEST_REAL_EQUAL( itn->getContainer()[i].getPosition()[0] , ito->getContainer()[i].getPosition()[0] )
+				TEST_REAL_EQUAL( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
+				TEST_REAL_EQUAL( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
 			}
 		
 			//SPECTRUM 2
@@ -658,8 +658,8 @@ if (do_tests)
 			TEST_EQUAL( itn->size() , ito->size() )
 			for (UInt i=0; i<3; ++i)
 			{
-				TEST_REAL_EQUAL( itn->getContainer()[i].getIntensity() , ito->getContainer()[i].getIntensity() )
-				TEST_REAL_EQUAL( itn->getContainer()[i].getPosition()[0] , ito->getContainer()[i].getPosition()[0] )
+				TEST_REAL_EQUAL( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
+				TEST_REAL_EQUAL( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
 			}
 			
 			//META INFO
@@ -771,8 +771,8 @@ if (do_tests)
 			TEST_EQUAL( itn->getAcquisitionInfo()[1].getMetaValue("label"), "yet another label");
 			for (UInt i=0; i<3; ++i)
 			{
-				TEST_REAL_EQUAL( itn->getContainer()[i].getIntensity() , ito->getContainer()[i].getIntensity() )
-				TEST_REAL_EQUAL( itn->getContainer()[i].getPosition()[0] , ito->getContainer()[i].getPosition()[0] )
+				TEST_REAL_EQUAL( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
+				TEST_REAL_EQUAL( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
 			}
 		
 			//SPECTRUM 2
@@ -789,8 +789,8 @@ if (do_tests)
 			TEST_EQUAL( itn->size() , ito->size() )
 			for (UInt i=0; i<3; ++i)
 			{
-				TEST_REAL_EQUAL( itn->getContainer()[i].getIntensity() , ito->getContainer()[i].getIntensity() )
-				TEST_REAL_EQUAL( itn->getContainer()[i].getPosition()[0] , ito->getContainer()[i].getPosition()[0] )
+				TEST_REAL_EQUAL( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
+				TEST_REAL_EQUAL( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
 			}
 			
 			//META INFO
@@ -812,8 +812,8 @@ if (do_tests)
 			//test if values are correct
 			for(int i = 0; i < 3; i++)
 			{
-				TEST_REAL_EQUAL( spec2.getContainer()[i].getIntensity(), spec2_original.getContainer()[i].getIntensity() )
-				TEST_REAL_EQUAL( spec2.getContainer()[i].getPosition()[0], spec2_original.getContainer()[i].getPosition()[0] )
+				TEST_REAL_EQUAL( spec2[i].getIntensity(), spec2_original[i].getIntensity() )
+				TEST_REAL_EQUAL( spec2[i].getPosition()[0], spec2_original[i].getPosition()[0] )
 			}
 						
 		RESULT

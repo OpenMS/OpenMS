@@ -79,7 +79,7 @@ namespace OpenMS
 		const double gap = (double)param_.getValue("epsilon");
 
 		//initialize alignment matrix with 0 in (0,0) and a multiple of gapcost in the first row/col matrix(row,col,values)
-		Matrix<double> matrix(spec1.getContainer().size()+1, spec2.getContainer().size()+1,0);
+		Matrix<double> matrix(spec1.size()+1, spec2.size()+1,0);
 		for (UInt i = 1; i < matrix.rows(); i++)
 		{
 			matrix.setValue(i,0,-gap*i);
@@ -91,16 +91,16 @@ namespace OpenMS
 		
 		//get sigma - the standard deviation (sqrt of variance)
 		double mid(0);
-		for (UInt i = 0; i < spec1.getContainer().size(); ++i)
+		for (UInt i = 0; i < spec1.size(); ++i)
 		{
-			for (UInt j = 0; j < spec2.getContainer().size(); ++j)
+			for (UInt j = 0; j < spec2.size(); ++j)
 			{
-				double pos1(spec1.getContainer()[i].getMZ()), pos2(spec2.getContainer()[j].getMZ());
+				double pos1(spec1[i].getMZ()), pos2(spec2[j].getMZ());
 				mid += fabs(pos1 - pos2);
 			}
 		}
 		// average peak distance
-		mid /= (spec1.getContainer().size()*spec2.getContainer().size());
+		mid /= (spec1.size()*spec2.size());
 			
 			#ifdef OPENMS_DEBUG 	
 			cout << "average peak distance " << mid << endl; 
@@ -108,16 +108,16 @@ namespace OpenMS
 				
 				
 		double var(0);
-		for (UInt i = 0; i < spec1.getContainer().size(); ++i)
+		for (UInt i = 0; i < spec1.size(); ++i)
 		{
-			for (UInt j = 0; j < spec2.getContainer().size(); ++j)
+			for (UInt j = 0; j < spec2.size(); ++j)
 			{
-				double pos1(spec1.getContainer()[i].getMZ()), pos2(spec2.getContainer()[j].getMZ());
+				double pos1(spec1[i].getMZ()), pos2(spec2[j].getMZ());
 				var += (fabs(pos1 - pos2) - mid)*(fabs(pos1 - pos2) - mid);
 			}
 		}	
 		// peak distance variance
-		var = var/(spec1.getContainer().size()*spec2.getContainer().size());
+		var = var/(spec1.size()*spec2.size());
 				
 			#ifdef OPENMS_DEBUG 
 			cout << "peak distance variance " << var << endl;
@@ -133,18 +133,18 @@ namespace OpenMS
 			#endif
 				
 		//fill alignment matrix
-		for (UInt i = 1; i < spec1.getContainer().size()+1; ++i)
+		for (UInt i = 1; i < spec1.size()+1; ++i)
 		{
-			for (UInt j = 1; j < spec2.getContainer().size()+1; ++j)
+			for (UInt j = 1; j < spec2.size()+1; ++j)
 			{
-				double pos1(spec1.getContainer()[i-1].getMZ()), pos2(spec2.getContainer()[j-1].getMZ());
+				double pos1(spec1[i-1].getMZ()), pos2(spec2[j-1].getMZ());
 				//only if peaks are in reasonable proximity alignment is considered else only gaps
 				if (fabs(pos1 - pos2) <= epsilon)
 				{
 					// actual cell = max(upper left cell+score, left cell-gap, upper cell-gap)
 					double from_left(matrix.getValue(i,j-1)-gap);
 					double from_above(matrix.getValue(i-1,j)-gap);
-					double int1(spec1.getContainer()[i-1].getIntensity()), int2(spec2.getContainer()[j-1].getIntensity());
+					double int1(spec1[i-1].getIntensity()), int2(spec2[j-1].getIntensity());
 					double from_diagonal(matrix.getValue(i-1,j-1) + peakPairScore_(pos1,int1,pos2,int2,sigma));
 					matrix.setValue(i,j,max(from_left,max(from_above,from_diagonal)));
 				}
@@ -175,16 +175,16 @@ namespace OpenMS
 		
 		//calculate selfalignment-scores for both input spectra
 		double score_spec1(0),score_spec2(0);
-		for (UInt i = 0; i < spec1.getContainer().size(); ++i)
+		for (UInt i = 0; i < spec1.size(); ++i)
 		{
-			double int_i(spec1.getContainer()[i].getIntensity());
-			double pos_i(spec1.getContainer()[i].getMZ());
+			double int_i(spec1[i].getIntensity());
+			double pos_i(spec1[i].getMZ());
 			score_spec1 += peakPairScore_(pos_i,int_i,pos_i,int_i,sigma);
 		}
-		for (UInt i = 0; i < spec2.getContainer().size(); ++i)
+		for (UInt i = 0; i < spec2.size(); ++i)
 		{
-			double int_i(spec2.getContainer()[i].getIntensity());
-			double pos_i(spec2.getContainer()[i].getMZ());
+			double int_i(spec2[i].getIntensity());
+			double pos_i(spec2[i].getMZ());
 			score_spec2 += peakPairScore_(pos_i,int_i,pos_i,int_i,sigma);
 		}
 		
@@ -216,7 +216,7 @@ namespace OpenMS
 		const double gap = (double)param_.getValue("epsilon");
 
 		//initialize alignment matrix with 0 in (0,0) and a multiple of gapcost in the first row/col matrix(row,col,values)
-		Matrix<double> matrix(spec1.getContainer().size()+1, spec2.getContainer().size()+1,0);
+		Matrix<double> matrix(spec1.size()+1, spec2.size()+1,0);
 		for (UInt i = 1; i < matrix.rows(); i++)
 		{
 			matrix.setValue(i,0,-gap*i);
@@ -229,34 +229,34 @@ namespace OpenMS
 		// gives the direction of the matrix cell that originated the respective cell
 		// e.g. matrix(i+1,j+1) could have originated from matrix(i,j), matrix(i+1,j) or matrix(i,j+1)
 		// so traceback(i,j) represents matrix(i+1,j+1) and contains a "1"-from diagonal, a "0"-from left or a "2"-from above
-		Matrix<UInt> traceback	(spec1.getContainer().size(), spec2.getContainer().size());
+		Matrix<UInt> traceback	(spec1.size(), spec2.size());
 		
 		//get sigma - the standard deviation (sqrt of variance)
 		double mid(0);
-		for (UInt i = 0; i < spec1.getContainer().size(); ++i)
+		for (UInt i = 0; i < spec1.size(); ++i)
 		{
-			for (UInt j = 0; j < spec2.getContainer().size(); ++j)
+			for (UInt j = 0; j < spec2.size(); ++j)
 			{
-				double pos1(spec1.getContainer()[i].getMZ()), pos2(spec2.getContainer()[j].getMZ());
+				double pos1(spec1[i].getMZ()), pos2(spec2[j].getMZ());
 				mid += fabs(pos1 - pos2);
 			}
 		}
-		mid = mid/(spec1.getContainer().size()*spec2.getContainer().size());
+		mid = mid/(spec1.size()*spec2.size());
 			
 			#ifdef OPENMS_DEBUG	
 			cout << mid << endl;
 			#endif
 
 		double var(0);
-		for (UInt i = 0; i < spec1.getContainer().size(); ++i)
+		for (UInt i = 0; i < spec1.size(); ++i)
 		{
-			for (UInt j = 0; j < spec2.getContainer().size(); ++j)
+			for (UInt j = 0; j < spec2.size(); ++j)
 			{
-				double pos1(spec1.getContainer()[i].getMZ()), pos2(spec2.getContainer()[j].getMZ());
+				double pos1(spec1[i].getMZ()), pos2(spec2[j].getMZ());
 				var += (fabs(pos1 - pos2) - mid)*(fabs(pos1 - pos2) - mid);
 			}
 		}	
-		var = var/(spec1.getContainer().size()*spec2.getContainer().size());
+		var = var/(spec1.size()*spec2.size());
 			
 			#ifdef OPENMS_DEBUG	
 			cout << var << endl;
@@ -270,18 +270,18 @@ namespace OpenMS
 
 		
 		//fill alignment matrix
-		for (UInt i = 1; i < spec1.getContainer().size()+1; ++i)
+		for (UInt i = 1; i < spec1.size()+1; ++i)
 		{
-			for (UInt j = 1; j < spec2.getContainer().size()+1; ++j)
+			for (UInt j = 1; j < spec2.size()+1; ++j)
 			{
-				double pos1(spec1.getContainer()[i-1].getMZ()), pos2(spec2.getContainer()[j-1].getMZ());
+				double pos1(spec1[i-1].getMZ()), pos2(spec2[j-1].getMZ());
 				//only if peaks are in reasonable proximity alignment is considered else only gaps
 				if (fabs(pos1 - pos2) <= epsilon)
 				{
 					// actual cell = max(upper left cell+score, left cell-gap, upper cell-gap)
 					double from_left(matrix.getValue(i,j-1)-gap);
 					double from_above(matrix.getValue(i-1,j)-gap);
-					double int1(spec1.getContainer()[i-1].getIntensity()), int2(spec2.getContainer()[j-1].getIntensity());
+					double int1(spec1[i-1].getIntensity()), int2(spec2[j-1].getIntensity());
 					double from_diagonal(matrix.getValue(i-1,j-1) + peakPairScore_(pos1,int1,pos2,int2,sigma));
 					matrix.setValue(i,j,max(from_left,max(from_above,from_diagonal)));
 					

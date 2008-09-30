@@ -81,35 +81,7 @@ namespace OpenMS
   }
 
 	
-/*
-  void MarkerMower::operator()(MSSpectrum<>& spec) const
-  {
-    map<double,int> marks;
-    for ( vector<PeakMarker*>::const_iterator cvit = markers_.begin(); cvit != markers_.end(); ++cvit )
-    {
-      map<double,bool> marked = (**cvit)(spec);
-      for ( map<double,bool>::const_iterator cmit = marked.begin(); cmit != marked.end(); ++cmit )
-      {
-        if ( cmit->second ) marks[cmit->first]++;
-      }
-    }
-    for (MSSpectrum<>::iterator it = spec.begin(); it != spec.end(); )
-    {
-      if ( marks[it->getPosition()[0]] > 0 )
-      {
-        ++it;
-      }
-      else 
-      {
-        it = spec.getContainer().erase(it);
-      }
-    }
-    
-  }
- */ 
-  /**
-  violates FactoryProduct interface
-  */
+  ///@todo violates FactoryProduct interface (Andreas)
   void MarkerMower::insertmarker(PeakMarker* pm)
   {
     markers_.push_back(pm);

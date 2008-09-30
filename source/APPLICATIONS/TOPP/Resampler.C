@@ -243,7 +243,7 @@ class TOPPResampler
       {
       	MSExperiment<>::SpectrumType resampled_spectrum;
         lin_resampler.raster(exp[i],resampled_spectrum);
-        exp[i].getContainer() = resampled_spectrum.getContainer();
+        exp[i].swap(resampled_spectrum);
         exp[i].getMetaDataArrays().clear();
       }
 			MzDataFile f;

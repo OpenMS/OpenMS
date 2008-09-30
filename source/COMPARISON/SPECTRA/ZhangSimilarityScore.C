@@ -90,15 +90,15 @@ namespace OpenMS
 
 /*
 		UInt i_left(0);
-		for (UInt i = 0; i != s1.getContainer().size(); ++i)
+		for (UInt i = 0; i != s1.size(); ++i)
 		{
-			sum1 += s1.getContainer()[i].getIntensity();
-			for (UInt j = i_left; j != s1.getContainer().size(); ++j)
+			sum1 += s1[i].getIntensity();
+			for (UInt j = i_left; j != s1.size(); ++j)
 			{
-				double pos1(s1.getContainer()[i].getPosition()[0]), pos2(s1.getContainer()[j].getPosition()[0]);
+				double pos1(s1[i].getPosition()[0]), pos2(s1[j].getPosition()[0]);
 				if (abs(pos1 - pos2) <= 2 * tolerance)
 				{
-					squared_sum1 += s1.getContainer()[i].getIntensity() * s1.getContainer()[j].getIntensity();
+					squared_sum1 += s1[i].getIntensity() * s1[j].getIntensity();
 				}
 				else
 				{
@@ -116,15 +116,15 @@ namespace OpenMS
 
 /*
     i_left = 0;
-    for (UInt i = 0; i != s2.getContainer().size(); ++i)
+    for (UInt i = 0; i != s2.size(); ++i)
     {
-      sum2 += s2.getContainer()[i].getIntensity();
-      for (UInt j = i_left; j != s2.getContainer().size(); ++j)
+      sum2 += s2[i].getIntensity();
+      for (UInt j = i_left; j != s2.size(); ++j)
       {
-        double pos1(s2.getContainer()[i].getPosition()[0]), pos2(s2.getContainer()[j].getPosition()[0]);
+        double pos1(s2[i].getPosition()[0]), pos2(s2[j].getPosition()[0]);
         if (abs(pos1 - pos2) <= 2 * tolerance)
         {
-          squared_sum1 += s2.getContainer()[i].getIntensity() * s2.getContainer()[j].getIntensity();
+          squared_sum1 += s2[i].getIntensity() * s2[j].getIntensity();
         }
         else
         {
@@ -155,11 +155,11 @@ namespace OpenMS
     }
 
 		UInt j_left(0);
-		for (UInt i = 0; i != s1.getContainer().size(); ++i)
+		for (UInt i = 0; i != s1.size(); ++i)
 		{
-			for (UInt j = j_left; j != s2.getContainer().size(); ++j)
+			for (UInt j = j_left; j != s2.size(); ++j)
 			{
-				double pos1(s1.getContainer()[i].getMZ()), pos2(s2.getContainer()[j].getMZ());
+				double pos1(s1[i].getMZ()), pos2(s2[j].getMZ());
 				if (fabs(pos1 - pos2) < tolerance)
 				{
 					//double factor((tolerance - fabs(pos1 - pos2)) / tolerance);
@@ -169,7 +169,7 @@ namespace OpenMS
 					{
 						factor = getFactor_(tolerance, fabs(pos1 - pos2), use_gaussian_factor);
 					}
-					sum += sqrt(s1.getContainer()[i].getIntensity() * s2.getContainer()[j].getIntensity() * factor);
+					sum += sqrt(s1[i].getIntensity() * s2[j].getIntensity() * factor);
 				}
 				else
 				{

@@ -101,13 +101,13 @@ namespace OpenMS
 				{
 					bool off_band(false);
 					// find min of the three possible directions
-					double pos1(s1.getContainer()[i - 1].getMZ()), pos2(s2.getContainer()[j - 1].getMZ());
+					double pos1(s1[i - 1].getMZ()), pos2(s2[j - 1].getMZ());
 					double diff_align = fabs(pos1 - pos2);
 	
 					// running off the right border of the band?
 					if (pos2 > pos1 && diff_align > tolerance)
 					{
-						if (i < s1.size() && j < s2.size() && s1.getContainer()[i].getMZ() < pos2 && fabs(s1.getContainer()[i].getMZ() - pos2))
+						if (i < s1.size() && j < s2.size() && s1[i].getMZ() < pos2 && fabs(s1[i].getMZ() - pos2))
 						{
 							off_band = true;
 						}
@@ -192,14 +192,14 @@ namespace OpenMS
 			cerr << "TheMatrix: " << endl << " \t  \t";
 			for (UInt j = 0; j != s2.size(); ++j)
 			{
-				cerr << s2.getContainer()[j].getPosition()[0] << " \t";
+				cerr << s2[j].getPosition()[0] << " \t";
 			}
 			cerr << endl;
 			for (UInt i = 0; i <= s1.size(); ++i)
 			{
 				if (i != 0)
 				{
-					cerr << s1.getContainer()[i - 1].getPosition()[0] << " \t";
+					cerr << s1[i - 1].getPosition()[0] << " \t";
 				}
 				else
 				{
@@ -266,16 +266,16 @@ namespace OpenMS
 			{
 				while (i_s1 < it->first - 1)
 				{
-					cerr << i_s1 << " " << s1.getContainer()[i_s1].getPosition()[0] << " " << s1.getContainer()[i_s1].getIntensity() << endl;
+					cerr << i_s1 << " " << s1[i_s1].getPosition()[0] << " " << s1[i_s1].getIntensity() << endl;
 					i_s1++;
 				}
 				while (i_s2 < it->second - 1)
 				{
-					cerr << " \t " <<  i_s2 << " " << s2.getContainer()[i_s2].getPosition()[0] << " " << s2.getContainer()[i_s2].getIntensity() << endl;
+					cerr << " \t " <<  i_s2 << " " << s2[i_s2].getPosition()[0] << " " << s2[i_s2].getIntensity() << endl;
 					i_s2++;
 				}
-				cerr << "(" << s1.getContainer()[it->first - 1].getPosition()[0] << " <-> "<< s2.getContainer()[it->second - 1].getPosition()[0] << ") (" 
-				<< it->first << "|" << it->second << ") (" << s1.getContainer()[it->first - 1].getIntensity() << "|" << s2.getContainer()[it->second - 1].getIntensity() << ")" << endl;
+				cerr << "(" << s1[it->first - 1].getPosition()[0] << " <-> "<< s2[it->second - 1].getPosition()[0] << ") (" 
+				<< it->first << "|" << it->second << ") (" << s1[it->first - 1].getIntensity() << "|" << s2[it->second - 1].getIntensity() << ")" << endl;
 			}
 #endif
 #endif
