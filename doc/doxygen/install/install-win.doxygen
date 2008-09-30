@@ -30,7 +30,7 @@
   
 	@attention Replace all directories in angle brackets with your system specific couterparts, e.g. <i>&lt;path_to_CONTRIB&gt;</i> might become <i>c:/programs/mycontrib</i>
 	
-	@warning If you run into strange error message like "fork : permission denied", switch off Firewall/Antivirus software as they might interfere with MinGW (see http://cygwin.com/acronyms/#BLODA). You might even have to completely uninstall Firewall/Antivirus software, as disabling them might still leave some services running in the background (e.g. Zonealarm Personal Edition).
+	@warning If you run into strange error message like "fork : permission denied" or stack dumps, switch off Firewall/Antivirus software as they might interfere with MinGW/MSys (see http://cygwin.com/acronyms/#BLODA). You might even have to completely uninstall Firewall/Antivirus software, as disabling them might still leave some services running in the background (e.g. "Zonealarm Personal Edition" or "Symantec Firewall").
 	
 	@attention Whenever you added a path to your Windows Path Environment variable, restart MSYS in order for the changes to take effect
 
