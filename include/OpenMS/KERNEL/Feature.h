@@ -36,30 +36,30 @@
 namespace OpenMS
 {
 
-  /**	@brief An LC-MS feature.
-	
+	/** @brief An LC-MS feature.
+
 	The Feature class is used to describe the two-dimensional signal caused by a
-	peptide.  It can store a charge state and a list of peptide identifications.
+	peptide.	It can store a charge state and a list of peptide identifications.
 	The area occupied by the Feature in the LC-MS data set is represented by a
-	list of convex hulls (one for each isotopic peak).  There is also a convex
-	hull for the entire Feature.  The model description can store the parameters
+	list of convex hulls (one for each isotopic peak).	There is also a convex
+	hull for the entire Feature.	The model description can store the parameters
 	of a two-dimensional theoretical model of the underlying signal in LC-MS.
 	Currently, non-peptidic compounds are also represented as features.
 
 	By convention in %OpenMS, the position of a feature is defined as maximum
 	position of the model for the retention time dimension and the mass of the
-	monoisotopic peak for the m/z dimension.  The intensity of a feature is
+	monoisotopic peak for the m/z dimension.	The intensity of a feature is
 	(proportional to) its total ion count.
-	
-	Feature is derived from RichPeak2D.  Also inherited is a MetaInfoInterface.
-	Features as usually contained in a FeatureMap.  See also FeatureHandle and
+
+	Feature is derived from RichPeak2D.	 Also inherited is a MetaInfoInterface.
+	Features as usually contained in a FeatureMap.	See also FeatureHandle and
 	ConsensusFeature.
 
 	@ingroup Kernel
-  */
-  class Feature
-    : public RichPeak2D
-  {
+	*/
+	class Feature
+		: public RichPeak2D
+	{
 	 public:
 		///@name Type definitions
 		//@{
@@ -75,7 +75,7 @@ namespace OpenMS
 		*/
 		//@{
 		/// Default constructor
-		inline Feature()
+		Feature()
 			: RichPeak2D(),
 				overall_quality_(),
 				convex_hulls_(),
@@ -88,7 +88,7 @@ namespace OpenMS
 		}
 
 		/// Copy constructor
-		inline Feature( const Feature& feature )
+		Feature( const Feature& feature )
 			: RichPeak2D( feature ),
 				overall_quality_( feature.overall_quality_ ),
 				model_desc_( feature.model_desc_ ),
@@ -108,87 +108,87 @@ namespace OpenMS
 		}
 		//@}
 
-		///	@name Model and Quality methods
+		/// @name Model and Quality methods
 		//@{
 		/// Non-mutable access to the overall quality
-		inline QualityType getOverallQuality() const
+		QualityType getOverallQuality() const
 		{
 			return overall_quality_;
 		}
 		/// Set the overall quality
-		inline void setOverallQuality( QualityType q )
+		void setOverallQuality( QualityType q )
 		{
 			overall_quality_ = q;
 		}
 
 		/// Non-mutable access to the quality in dimension c
-		inline QualityType getQuality( UInt index ) const
+		QualityType getQuality( UInt index ) const
 		{
 			OPENMS_PRECONDITION( index < 2, "Feature<2>:getQuality(UInt): index overflow!" );
 			return qualities_[ index ];
-			}
+		}
 		/// Set the quality in dimension c
-		inline void setQuality( UInt index, QualityType q )
+		void setQuality( UInt index, QualityType q )
 		{
 			OPENMS_PRECONDITION( index < 2, "Feature<2>:setQuality(UInt): index overflow!" );
 			qualities_[ index ] = q;
 		}
 
 		/// Non-mutable access to the model description
-		inline const ModelDescription<2>& getModelDescription() const
+		const ModelDescription<2>& getModelDescription() const
 		{
 			return model_desc_;
 		}
 		/// Mutable access to the model description
-		inline ModelDescription<2>& getModelDescription()
+		ModelDescription<2>& getModelDescription()
 		{
 			return model_desc_;
 		}
 		/// Set the model description
-		inline void setModelDescription( const ModelDescription<2>& q )
+		void setModelDescription( const ModelDescription<2>& q )
 		{
 			model_desc_ = q;
 		}
 		//@}
-			
+
 		/// Non-mutable access to charge state
-		inline const ChargeType& getCharge() const
+		const ChargeType& getCharge() const
 		{
 			return charge_;
 		}
 		/// Set charge state
-		inline void setCharge( const ChargeType& ch )
+		void setCharge( const ChargeType& ch )
 		{
 			charge_ = ch;
 		}
-			
+
 		///@name Convex hulls and bounding box
 		//@{
 		/// Non-mutable access to the convex hulls
-		inline const std::vector<ConvexHull2D>& getConvexHulls() const
+		const std::vector<ConvexHull2D>& getConvexHulls() const
 		{
 			return convex_hulls_;
 		}
 		/// Mutable access to the convex hulls of single mass traces
-		inline std::vector<ConvexHull2D>& getConvexHulls()
+		std::vector<ConvexHull2D>& getConvexHulls()
 		{
 			convex_hulls_modified_ = true;
 			return convex_hulls_;
 		}
 		/// Set the convex hulls of single mass traces
-		inline void setConvexHulls( const std::vector<ConvexHull2D>& hulls )
+		void setConvexHulls( const std::vector<ConvexHull2D>& hulls )
 		{
 			convex_hulls_modified_ = true;
 			convex_hulls_ = hulls;
 		}
 		/**
 		@brief Returns the overall convex hull of the feature (calculated from the convex hulls of the mass traces)
-      	
+
 		@note the bounding box of the feature can be accessed through the returned convex hull
 		*/
 		ConvexHull2D& getConvexHull() const;
-      
-		///Returns if the mass trace convex hulls of the feature enclose the position specified by @p rt and @p mz
+
+		/// Returns if the mass trace convex hulls of the feature enclose the position specified by @p rt and @p mz
 		bool encloses(DoubleReal rt, DoubleReal mz) const;
 		//@}
 
@@ -202,88 +202,90 @@ namespace OpenMS
 		struct OverallQualityLess
 			: std::binary_function < Feature, Feature, bool >
 		{
-			inline bool operator () ( Feature const & left, Feature const & right ) const
+			bool operator () ( Feature const & left, Feature const & right ) const
 			{
 				return ( left.getOverallQuality() < right.getOverallQuality() );
 			}
-			inline bool operator () ( Feature const & left, QualityType right ) const
+			bool operator () ( Feature const & left, QualityType right ) const
 			{
 				return ( left.getOverallQuality() < right );
 			}
-			inline bool operator () ( QualityType left, Feature const & right ) const
+			bool operator () ( QualityType left, Feature const & right ) const
 			{
 				return ( left < right.getOverallQuality() );
 			}
-			inline bool operator () ( QualityType left, QualityType right ) const
+			bool operator () ( QualityType left, QualityType right ) const
 			{
 				return ( left < right );
 			}
 		};
 
 		/// returns a const reference to the PeptideIdentification vector
-		inline const std::vector<PeptideIdentification>& getPeptideIdentifications() const
+		const std::vector<PeptideIdentification>& getPeptideIdentifications() const
 		{
 			return identifications_;
 		};
 
 		/// returns a mutable reference to the PeptideIdentification vector
-		inline std::vector<PeptideIdentification>& getPeptideIdentifications()
+		std::vector<PeptideIdentification>& getPeptideIdentifications()
 		{
 			return identifications_;
 		};
 
 		/// sets the PeptideIdentification vector
-		inline void setPeptideIdentifications( const std::vector<PeptideIdentification>& identifications )
+		void setPeptideIdentifications( const std::vector<PeptideIdentification>& identifications )
 		{
 			identifications_ = identifications;
 		};
 
-		/// are subordinate features (e.g. with other charge and lower quality) available?
-		bool hasSubOrdinates() const
-		{
-			if (subordinates_.size()>0) return true;
-			else return false;
-		}
-		
-		/// get subordinate features
-		const std::vector<Feature>& getSubOrdinates() const
+		/// immutable access to subordinate features
+		const std::vector<Feature>& getSubordinates() const
 		{
 			return subordinates_;
 		}
-		
+
 		/// mutable access to subordinate features
-		std::vector<Feature>& getSubOrdinates()
+		std::vector<Feature>& getSubordinates()
 		{
 			return subordinates_;
-		}		
-		
-		/// add a subordinate feature
-		void addSubOrdinate(const Feature& f)
-		{
-			subordinates_.push_back(f);
 		}
-		
+
+		/// mutable access to subordinate features
+		void setSubordinates(const std::vector<Feature>& rhs)
+		{
+			subordinates_ = rhs;
+		}
+
 	 protected:
+
 		/// Overall quality measure of the feature
 		QualityType overall_quality_;
+
 		/// Quality measures for each dimension
 		QualityType qualities_[ 2 ];
+
 		/// Description of the theoretical model the feature was constructed with
 		ModelDescription<2> model_desc_;
+
 		/// Array of convex hulls (one for each mass trace)
 		std::vector<ConvexHull2D> convex_hulls_;
+
 		/// Flag that indicates if the overall convex hull needs to be recomputed (i.e. mass trace convex hulls were modified)
 		mutable bool convex_hulls_modified_;
+
 		/// Overall convex hull of the feature
 		mutable ConvexHull2D convex_hull_;
-		/// Charge of the peptide represented by this feature.  The default value is 0, which represents an unknown charge state.  
+
+		/// Charge of the peptide represented by this feature.  The default value is 0, which represents an unknown charge state.
 		ChargeType charge_;
+
 		/// Peptide PeptideIdentifications belonging to the feature
 		std::vector<PeptideIdentification> identifications_;
-		
+
 		/// subordinate features (e.g. features that the ModelFitter discarded due to inferior quality)
-		std::vector<Feature> subordinates_;		
-  };
+		std::vector<Feature> subordinates_;
+
+	};
 
 } // namespace OpenMS
 

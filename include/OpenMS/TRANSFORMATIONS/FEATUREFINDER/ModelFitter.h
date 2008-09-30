@@ -487,7 +487,7 @@ namespace OpenMS
 			for (std::size_t idx = 0; idx < feature_collection.size(); ++idx)
 			{
 					if (idx == best_idx) continue;
-					best_feature.addSubOrdinate(feature_collection[idx]);
+					best_feature.getSubordinates().push_back(feature_collection[idx]);
 			}
 			
 			// return "best" feature
@@ -789,4 +789,6 @@ namespace OpenMS
 	};
  
 }
+
 #endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_MODELFITTER_H
+

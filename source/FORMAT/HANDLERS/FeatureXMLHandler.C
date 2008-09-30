@@ -217,10 +217,10 @@ namespace OpenMS
 										
 						for (Int level = 1; level<subordinate_feature_level_;++level)
 						{
-							f1 = &(f1->getSubOrdinates().back());
+							f1 = &(f1->getSubordinates().back());
 						}
 						// delete the offending feature
-						f1->getSubOrdinates().pop_back();
+						f1->getSubordinates().pop_back();
 					}
 				}
 				updateCurrentFeature_(false);
@@ -383,13 +383,13 @@ namespace OpenMS
 					os << intend << "\t\t\t</convexhull>" << endl;
 				} // end  for ( ... hull_count..)
 				
-				if (feat.hasSubOrdinates())
+				if (!feat.getSubordinates().empty())
 				{
 					os << intend << "\t\t\t<subordinate>" << endl;
 					UInt identifier_subordinate = 0;
-					for (std::size_t i=0;i<feat.getSubOrdinates().size();++i)
+					for (std::size_t i=0;i<feat.getSubordinates().size();++i)
 					{
-						writeFeature_(os, feat.getSubOrdinates()[i], identifier_prefix+identifier+"_", identifier_subordinate, intendation_level+2);
+						writeFeature_(os, feat.getSubordinates()[i], identifier_prefix+identifier+"_", identifier_subordinate, intendation_level+2);
 						++identifier_subordinate;
 					}
 					os << intend << "\t\t\t</subordinate>" << endl;
@@ -444,18 +444,18 @@ namespace OpenMS
 			{
 				// if all features of the current level are discarded (due to range-restrictions etc), then
 				// the current feature is the one which is one level up
-				if (f1->getSubOrdinates().empty())	
+				if (f1->getSubordinates().empty())	
 				{
 					current_feature_ = f1;
 					return;
 				}
-				f1 = &(f1->getSubOrdinates().back());
+				f1 = &(f1->getSubordinates().back());
 			}
 			if (create)	
 			{
-				f1->addSubOrdinate(Feature());
+				f1->getSubordinates().push_back(Feature());
 			}
-			current_feature_ = &(f1->getSubOrdinates().back());
+			current_feature_ = &(f1->getSubordinates().back());
 
 			//std::cout << "CF: " << (*current_feature_) << std::endl;
 		}
