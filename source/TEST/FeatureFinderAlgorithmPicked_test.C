@@ -65,7 +65,9 @@ RESULT
 CHECK(virtual void run())
 	//input and output
 	MSExperiment<> input;
-	MzDataFile().load("data/FeatureFinderAlgorithmPicked.mzData",input);
+	MzDataFile mzdata_file;
+	mzdata_file.getOptions().addMSLevel(1);
+	mzdata_file.load("data/FeatureFinderAlgorithmPicked.mzData",input);
 	input.updateRanges(1);
 	FeatureMap<> output;
 	
@@ -102,6 +104,16 @@ CHECK(virtual void run())
 	TEST_REAL_EQUAL(output[5].getIntensity(),8510.74);
 	TEST_REAL_EQUAL(output[6].getIntensity(),7295.91);
 	TEST_REAL_EQUAL(output[7].getIntensity(),5026.28);
+	
+	TEST_EQUAL((UInt)(output[0].getMetaValue("rt_apex_spectrum")),89)
+	TEST_EQUAL((UInt)(output[1].getMetaValue("rt_apex_spectrum")),84)
+	TEST_EQUAL((UInt)(output[2].getMetaValue("rt_apex_spectrum")),57)
+	TEST_EQUAL((UInt)(output[3].getMetaValue("rt_apex_spectrum")),50)
+	TEST_EQUAL((UInt)(output[4].getMetaValue("rt_apex_spectrum")),26)
+	TEST_EQUAL((UInt)(output[5].getMetaValue("rt_apex_spectrum")),32)
+	TEST_EQUAL((UInt)(output[6].getMetaValue("rt_apex_spectrum")),21)
+	TEST_EQUAL((UInt)(output[7].getMetaValue("rt_apex_spectrum")),26)
+	
 RESULT
 
 /////////////////////////////////////////////////////////////

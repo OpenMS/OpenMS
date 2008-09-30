@@ -237,6 +237,7 @@ namespace OpenMS
 	  	static const XMLCh* s_deisotoped = xercesc::XMLString::transcode("deisotoped");
 	  	static const XMLCh* s_chargedeconvoluted = xercesc::XMLString::transcode("chargeDeconvoluted");
 	  	
+	  	static UInt scan_count = 0;
 	  	
 	  	String tag = sm_.convert(qname);
 	  	open_tags_.push_back(tag);
@@ -251,6 +252,7 @@ namespace OpenMS
 				optionalAttributeAsInt_(count, attributes, s_count);
 				exp_->reserve(count);
 				logger_.startProgress(0,count,"loading mzXML file");
+				scan_count = 0;
 			}
 			else if (tag=="parentFile")
 			{
@@ -371,20 +373,25 @@ namespace OpenMS
 					}
 				}
 
+				logger_.setProgress(scan_count);
+				
 				if ( (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(retention_time)))
 				 || (options_.hasMSLevels() && !options_.containsMSLevel(ms_level)) )
 				{
 					// skip this tag
-					skip_spectrum_ = true;					
+					skip_spectrum_ = true;
+					++scan_count;			
 					return;
 				}
-				
-				logger_.setProgress(exp_->size());
+
 				//Add a new spectrum and set MS level and RT
 				exp_->resize(exp_->size()+1);
 				exp_->back().setMSLevel(ms_level);
 				exp_->back().setRT(retention_time);
-				
+				if (options_.hasMSLevels())
+				{
+					exp_->back().setMetaValue("original_spectrum_number", scan_count);
+				}
 				//peak count == twice the scan size
 				peak_count_ = attributeAsInt_(attributes, s_peakscount);
 				exp_->back().reserve(peak_count_);
@@ -412,6 +419,8 @@ namespace OpenMS
 				String type = "";
 				optionalAttributeAsString_(type, attributes, s_scantype);
 				exp_->back().getInstrumentSettings().setScanMode( (InstrumentSettings::ScanMode) cvStringToEnum_(1,type,"scanType") );
+				
+				++scan_count;
 			}
 			else if (tag=="operator")
 			{

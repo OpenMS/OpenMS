@@ -1216,6 +1216,10 @@ namespace OpenMS
 					{
 						Feature& f = features_->operator[](i);
 						UInt apex_spectrum = map_.RTBegin(f.getRT()) - map_.begin();
+						if (map_[apex_spectrum].metaValueExists("original_spectrum_number"))
+						{
+							apex_spectrum = (UInt)(map_[apex_spectrum].getMetaValue("original_spectrum_number"));
+						}
 						f.setMetaValue("rt_apex_spectrum",apex_spectrum);
 					}
 				}

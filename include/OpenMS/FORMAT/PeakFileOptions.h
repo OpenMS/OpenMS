@@ -39,46 +39,66 @@ namespace OpenMS
 	class PeakFileOptions
 	{
 	public:
-		typedef std::vector<int> MSLevels;
-		
 		///Default constructor
 		PeakFileOptions();
 		///Destructor
 		~PeakFileOptions();
 
+		///@name Meta data option
+		//@{
 		///sets whether or not to load only meta data
 		void setMetadataOnly(bool only);
 		///returns whether or not to load only meta data
 		bool getMetadataOnly() const;
-		
+		//@}
+
+		///@name Suplemental data option
+		//@{
 		///sets whether or not to write supplemental peak data in MzData files
 		void setWriteSupplementalData(bool write);
 		///returns whether or not to write supplemental peak data in MzData files
 		bool getWriteSupplementalData() const;
-		
+		//@}
+
+		///@name RT range option
+		//@{
 		///restricts the range of RT values for peaks to load
 		void setRTRange(const DRange<1>& range);
 		///returns @c true if an RT range has been set
 		bool hasRTRange() const;
 		///returns the RT range
 		const DRange<1>& getRTRange() const;
+		//@}
 		
+		///@name m/z range option
+		//@{
 		///restricts the range of MZ values for peaks to load
 		void setMZRange(const DRange<1>& range);
 		///returns @c true if an MZ range has been set
 		bool hasMZRange() const;
 		///returns the MZ range
 		const DRange<1>& getMZRange() const;
+		//@}
 		
+		///@name Intensity range option
+		//@{
 		///restricts the range of intensity values for peaks to load
 		void setIntensityRange(const DRange<1>& range);
 		///returns @c true if an intensity range has been set
 		bool hasIntensityRange() const;
 		///returns the intensity range
 		const DRange<1>& getIntensityRange() const;
+		//@}
 		
+		/**
+			@brief MS levels option
+			
+			With this option, MS level filters can be set.
+			When enabled, the original spectrum numbers are stored in the spectrum meta data value @em original_spectrum_number .
+		*/
+		//@{
 		///sets the desired MS levels for peaks to load
-		void setMSLevels(const MSLevels& levels);
+		void setMSLevels(const std::vector<Int>& levels);
 		///adds a desired MS level for peaks to load
 		void addMSLevel(int level);
 		///clears the MS levels
@@ -88,8 +108,9 @@ namespace OpenMS
 		///returns @c true, if MS level @p level has been set
 		bool containsMSLevel(int level) const;
 		///returns the set MS levels
-		const MSLevels& getMSLevels() const;
-
+		const std::vector<Int>& getMSLevels() const;
+		//@}
+		
 	private:
 		bool metadata_only_;
 		bool write_supplemental_data_;
@@ -99,7 +120,7 @@ namespace OpenMS
 		DRange<1> rt_range_;
 		DRange<1> mz_range_;
 		DRange<1> intensity_range_;
-		MSLevels ms_levels_;
+		std::vector<Int> ms_levels_;
 	};
 
 } // namespace OpenMS

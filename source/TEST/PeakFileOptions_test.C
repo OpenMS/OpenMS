@@ -149,9 +149,9 @@ CHECK(const DRange<1>& getIntensityRange() const)
 	TEST_EQUAL(tmp.getIntensityRange(), DRange<1>());
 RESULT
 
-CHECK(void setMSLevels(const MSLevels& levels))
+CHECK(void setMSLevels(const vector<Int>& levels))
 	PeakFileOptions tmp;
-	PeakFileOptions::MSLevels levels;
+	vector<Int> levels;
 	levels.push_back(1);
 	levels.push_back(3);
 	levels.push_back(5);
@@ -168,7 +168,7 @@ CHECK(void addMSLevel(int level))
 	TEST_EQUAL(tmp.hasMSLevels(), true);
 	TEST_EQUAL(tmp.getMSLevels().size(), 3);
 
-	PeakFileOptions::MSLevels levels;
+	vector<Int> levels;
 	levels.push_back(1);
 	levels.push_back(3);
 	levels.push_back(5);
@@ -178,7 +178,7 @@ RESULT
 
 CHECK(void clearMSLevels())
 	PeakFileOptions tmp;
-	PeakFileOptions::MSLevels levels;
+	vector<Int> levels;
 	levels.push_back(1);
 	levels.push_back(3);
 	levels.push_back(5);
@@ -188,7 +188,7 @@ CHECK(void clearMSLevels())
 	// now clear the ms levels
 	tmp.clearMSLevels();
 	TEST_EQUAL(tmp.hasMSLevels(), false);
-	TEST_EQUAL(tmp.getMSLevels(), PeakFileOptions::MSLevels());
+	TEST_EQUAL(tmp.getMSLevels(), vector<Int>());
 RESULT
 
 CHECK(bool hasMSLevels() const)
@@ -198,7 +198,7 @@ RESULT
 
 CHECK(bool containsMSLevel(int level) const)
 	PeakFileOptions tmp;
-	PeakFileOptions::MSLevels levels;
+	vector<Int> levels;
 	levels.push_back(1);
 	levels.push_back(3);
 	levels.push_back(5);
@@ -207,9 +207,9 @@ CHECK(bool containsMSLevel(int level) const)
 	TEST_EQUAL(tmp.containsMSLevel(2), false);
 RESULT
 
-CHECK(const MSLevels& getMSLevels() const)
+CHECK(const vector<Int>& getMSLevels() const)
 	PeakFileOptions tmp;
-	TEST_EQUAL(tmp.getMSLevels(), PeakFileOptions::MSLevels());
+	TEST_EQUAL(tmp.getMSLevels(), vector<Int>());
 RESULT
 
 /////////////////////////////////////////////////////////////

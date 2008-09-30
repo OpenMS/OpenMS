@@ -49,7 +49,7 @@ namespace OpenMS
 		If a critical error occurs, Exception::NotImplemented is thrown.
 		
 		@improvement Implement mzML semantic validator (Hiwi)
-		@todo Add tests for PeakFileOptions (Hiwi)
+		@todo Add tests for PeakFileOptions, MS level option is set, write 'original_spectrum_number' (Hiwi)
 		@todo Implement and use Base64 integers and 16 bit (Hiwi)
 		@todo Implement and use zlib support (Hiwi)
 		@todo Implement all extensions to our data model that are necessary for mzML (Hiwi, Marc)

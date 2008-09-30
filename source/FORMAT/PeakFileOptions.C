@@ -28,6 +28,8 @@
 
 #include <algorithm>
 
+using namespace std;
+
 namespace OpenMS
 {
 	PeakFileOptions::PeakFileOptions()
@@ -111,7 +113,7 @@ namespace OpenMS
 		return intensity_range_;
 	}
 	
-	void PeakFileOptions::setMSLevels(const PeakFileOptions::MSLevels& levels)
+	void PeakFileOptions::setMSLevels(const vector<Int>& levels)
 	{
 		ms_levels_ = levels;
 	}
@@ -136,7 +138,7 @@ namespace OpenMS
 		return find(ms_levels_.begin(), ms_levels_.end(), level) != ms_levels_.end();
 	}
 	
-	const PeakFileOptions::MSLevels& PeakFileOptions::getMSLevels() const
+	const vector<Int>& PeakFileOptions::getMSLevels() const
 	{
 		return ms_levels_;
 	}

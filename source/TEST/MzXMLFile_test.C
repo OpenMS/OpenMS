@@ -518,12 +518,15 @@ CHECK(([EXTRA] load with selected MS levels))
 	
 	// load only MS level 1
 	mzxml.getOptions().addMSLevel(1);
-	mzxml.load("data/MzXMLFile_test_1.mzXML",e);
+	mzxml.load("data/MzXMLFile_test_6.mzXML",e);
 
 	TEST_EQUAL(e.size(), 3)
 	TEST_REAL_EQUAL(e[0].getMSLevel(), 1)
+	TEST_EQUAL((UInt)(e[0].getMetaValue("original_spectrum_number")),0)
 	TEST_REAL_EQUAL(e[1].getMSLevel(), 1)
+	TEST_EQUAL((UInt)(e[1].getMetaValue("original_spectrum_number")),2)
 	TEST_REAL_EQUAL(e[2].getMSLevel(), 1)
+	TEST_EQUAL((UInt)(e[2].getMetaValue("original_spectrum_number")),4)
 	TEST_REAL_EQUAL(e[0].getContainer().size(), 1)
 	TEST_REAL_EQUAL(e[1].getContainer().size(), 3)
 	TEST_REAL_EQUAL(e[2].getContainer().size(), 5)
