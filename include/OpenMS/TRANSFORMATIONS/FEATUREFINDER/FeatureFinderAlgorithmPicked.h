@@ -762,18 +762,18 @@ namespace OpenMS
 						const size_t data_count = traces.getPeakCount();
 					  gsl_multifit_function_fdf func;
 
-					  //parameter estimates (height, x0, sigma)
-						traces[traces.max_trace].updateMaximum();
-						DoubleReal height = traces[traces.max_trace].max_peak->getIntensity(); //TODO try - traces.baseline;
-						DoubleReal x0 = traces[traces.max_trace].max_rt;
-						DoubleReal sigma = (traces[traces.max_trace].peaks.back().first-traces[traces.max_trace].peaks[0].first)/4.0; //TODO try dividing by 2.0			
-					  double x_init[param_count] = {height, x0, sigma};
-						log_ << " - estimates - height: " << height << " x0: " << x0 <<  " sigma: " << sigma  << std::endl;
-
 						//TODO try baseline fit once more
 						//baseline estimate
 						traces.updateBaseline();
 						traces.baseline = 0.75 * traces.baseline;
+
+					  //parameter estimates (height, x0, sigma)
+						traces[traces.max_trace].updateMaximum();
+						DoubleReal height = traces[traces.max_trace].max_peak->getIntensity() - traces.baseline;
+						DoubleReal x0 = traces[traces.max_trace].max_rt;
+						DoubleReal sigma = (traces[traces.max_trace].peaks.back().first-traces[traces.max_trace].peaks[0].first)/6.0;
+					  double x_init[param_count] = {height, x0, sigma};
+						log_ << " - estimates - height: " << height << " x0: " << x0 <<  " sigma: " << sigma  << std::endl;
 						
 						//fit					  
 					  gsl_vector_view x = gsl_vector_view_array(x_init, param_count);	
@@ -804,9 +804,6 @@ namespace OpenMS
 					    status = gsl_multifit_test_delta(s->dx, s->x, epsilon_abs, epsilon_rel);
 					  } 
 					  while (status == GSL_CONTINUE && iter < max_iterations);
-						DoubleReal height_est = height;
-						DoubleReal x0_est = x0;
-						DoubleReal sigma_est = sigma;
 						height = gsl_vector_get(s->x, 0);
 						x0 = gsl_vector_get(s->x, 1);
 						sigma = std::fabs(gsl_vector_get(s->x, 2));						
@@ -925,13 +922,6 @@ namespace OpenMS
 						DoubleReal correlation = 0.0;
 						DoubleReal final_score = 0.0;
 
-						if (debug && feature_ok)
-						{
-							log_ << "fit_iterations: " << iter << std::endl;
-							log_ << "fit_height: " << height_est << " " << height << std::endl;
-							log_ << "fit_x0: " << x0_est << " " << x0 << std::endl;
-							log_ << "fit_sigma: " << sigma_est << " " << sigma << std::endl;
-						}
 						if(feature_ok)
 						{
 							std::vector<DoubleReal> v_theo, v_real;
