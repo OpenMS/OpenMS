@@ -638,6 +638,21 @@ namespace OpenMS
 				UnableToFit(const char* file, int line, const char* function, const std::string& name , const std::string& message) throw();
 		};
 
+		/**	
+			@brief Exception used if an error occurred while calibrating a dataset.
+				
+			The calibration can not be performed because not enough reference masses
+					were detected.
+				
+			@ingroup Exceptions
+		*/			
+		class UnableToCalibrate
+			: public BaseException
+		{
+		public:
+			UnableToCalibrate(const char* file, int line, const char* function, const std::string& name , const std::string& message) throw();
+		};
+		
 
 		/**
 			@brief OpenMS global exception handler

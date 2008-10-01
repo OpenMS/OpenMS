@@ -60,18 +60,6 @@ namespace OpenMS
     	public ProgressLogger
   {
   public:
-		/** @brief Inner Classes for Exception handling
-	     		
-	     		UnableToCalibrate-Exception if the calibration can not be performed because not enough reference masses
-					were detected.
-			*/
-		class UnableToCalibrate
-			: public Exception::BaseException
-		{
-		public:
-			UnableToCalibrate(const char* file, int line, const char* function, const std::string& name , const std::string& message) ;
-			virtual ~UnableToCalibrate() throw();
-		};
     
     /// Default constructor
     TOFCalibration();
@@ -79,12 +67,23 @@ namespace OpenMS
     /// Destructor
     ~TOFCalibration();
     
-		/// Apply the external calibration using raw calibrant spectra.
+
+		/*
+			@ brief Apply the external calibration using raw calibrant spectra.
+			
+			@exception Exception::UnableToCalibrate is thrown if not enough reference masses are observed.
+			
+		*/
     template<typename PeakType>
     void pickAndCalibrate(MSExperiment<Peak1D>& calib_spectra,MSExperiment<PeakType >& exp, std::vector<double>& exp_masses);
 		
-		/// Apply the external calibration using picked calibrant spectra.
-    template<typename PeakType>
+		/*
+			@ brief Apply the external calibration using picked calibrant spectra.
+			
+			@exception Exception::UnableToCalibrate is thrown if not enough reference masses are observed.
+
+		*/
+		template<typename PeakType>
     void calibrate(MSExperiment<Peak1D>& calib_spectra,MSExperiment<PeakType >& exp, std::vector<double>& exp_masses);
 
 		/// Non-mutable access to the first calibration constant 
@@ -145,7 +144,7 @@ namespace OpenMS
     gsl_spline* spline_;
 
     /// Calculates the coefficients of the quadratic fit used for external calibration.
-    void calculateCalibCoeffs_(MSExperiment<>& calib_peaks_ft) throw (UnableToCalibrate);
+    void calculateCalibCoeffs_(MSExperiment<>& calib_peaks_ft) ;
 
 		
     /// determines the monoisotopic peaks

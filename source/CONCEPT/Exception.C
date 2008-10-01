@@ -335,6 +335,12 @@ namespace OpenMS
 			{
 			}
 		
+  		UnableToCalibrate::UnableToCalibrate(const char* file, int line, const char* function, const string& name , const string& message) throw()
+	  		: BaseException(file, line, function, name, message)
+			{
+			}
+		
+		
 			DEF_EXCEPTION(DivisionByZero, "a division by zero was requested")
 
 			DEF_EXCEPTION(InvalidRange, "the range of the operation was invalid")

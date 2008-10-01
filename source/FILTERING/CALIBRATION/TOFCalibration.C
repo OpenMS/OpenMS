@@ -29,14 +29,6 @@
 
 namespace OpenMS
 {
-	TOFCalibration::UnableToCalibrate::UnableToCalibrate(const char* file, int line, const char* function, const std::string& name , const std::string& message) 
-		:	BaseException(file, line, function, name, message)
-	{
-	}
-
-	TOFCalibration::UnableToCalibrate::~UnableToCalibrate() throw()
-	{	
-	}
 	
   TOFCalibration::TOFCalibration()
     :DefaultParamHandler("TOFCalibration"),ProgressLogger()
@@ -48,7 +40,7 @@ namespace OpenMS
   TOFCalibration::~TOFCalibration(){}
 
 
-  void TOFCalibration::calculateCalibCoeffs_(MSExperiment<>& calib_spectra) throw (UnableToCalibrate)
+  void TOFCalibration::calculateCalibCoeffs_(MSExperiment<>& calib_spectra)
   {
 		// flight times are needed later
     calib_peaks_ft_ = calib_spectra;
@@ -145,7 +137,7 @@ namespace OpenMS
 		if(coeff_quad_fit_.size() == 0)
 			{
 				String mess = String("Data can't be calibrated, not enough reference masses found: ") + coeff_quad_fit_.size()/3;
-				throw UnableToCalibrate(__FILE__, __LINE__,__PRETTY_FUNCTION__,"UnableToCalibrate", mess.c_str());
+				Exception::UnableToCalibrate(__FILE__, __LINE__,__PRETTY_FUNCTION__,"UnableToCalibrate", mess.c_str());
 			}
     averageErrors_();
     averageCoefficients_();
