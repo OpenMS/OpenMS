@@ -377,6 +377,14 @@ namespace OpenMS
 				defaults_.setMinFloat("seed:min_score",0.0);
 				defaults_.setMaxFloat("seed:min_score",1.0);
 				defaults_.setSectionDescription("seed","Settings that determine which peaks are considered a seed");
+				//Fitting settings
+				defaults_.setValue("fit:epsilon_abs",0.0001,"Absolute epsilon used for convergence of the fit.", StringList::create("advanced"));
+				defaults_.setMinFloat("fit:epsilon_abs",0.0);
+				defaults_.setValue("fit:epsilon_rel",0.0001,"Relative epsilon used for convergence of the fit.", StringList::create("advanced"));
+				defaults_.setMinFloat("fit:epsilon_rel",0.0);
+				defaults_.setValue("fit:max_iterations",500,"Maximum number of iterations of the fit.", StringList::create("advanced"));
+				defaults_.setMinInt("fit:max_iterations",1);
+				defaults_.setSectionDescription("fit","Settings for the model fitting");
 				//Feature settings
 				defaults_.setValue("feature:min_score",0.7, "Feature score threshold for a feature to be reported.\nThe feature score is the geometric mean of the average relative deviation and the correlation between the model and the observed peaks.");
 				defaults_.setMinFloat("feature:min_score",0.0);
@@ -413,6 +421,10 @@ namespace OpenMS
 				//charges to look at				
 				UInt charge_low = param_.getValue("isotopic_pattern:charge_low");
 				UInt charge_high = param_.getValue("isotopic_pattern:charge_high");
+				//fitting settings
+				UInt max_iterations = param_.getValue("fit:max_iterations");
+				DoubleReal epsilon_abs = param_.getValue("fit:epsilon_abs");
+				DoubleReal epsilon_rel = param_.getValue("fit:epsilon_rel");
 				
 				//copy the input map
 				map_ = *(FeatureFinderAlgorithm<PeakType, FeatureType>::map_);
@@ -747,16 +759,17 @@ namespace OpenMS
 
 					  //parameter estimates (height, x0, sigma)
 						traces[traces.max_trace].updateMaximum();
-						DoubleReal height = traces[traces.max_trace].max_peak->getIntensity();
+						DoubleReal height = traces[traces.max_trace].max_peak->getIntensity(); //TODO try - traces.baseline;
 						DoubleReal x0 = traces[traces.max_trace].max_rt;
-						DoubleReal sigma = (traces[traces.max_trace].peaks.back().first-traces[traces.max_trace].peaks[0].first)/4.0;			
+						DoubleReal sigma = (traces[traces.max_trace].peaks.back().first-traces[traces.max_trace].peaks[0].first)/4.0; //TODO try dividing by 2.0			
 					  double x_init[param_count] = {height, x0, sigma};
 						log_ << " - estimates - height: " << height << " x0: " << x0 <<  " sigma: " << sigma  << std::endl;
 
+						//TODO try baseline fit once more
 						//baseline estimate
 						traces.updateBaseline();
 						traces.baseline = 0.75 * traces.baseline;
-
+						
 						//fit					  
 					  gsl_vector_view x = gsl_vector_view_array(x_init, param_count);	
 					  const gsl_rng_type * type;
@@ -778,11 +791,17 @@ namespace OpenMS
 					  {
 					    iter++;
 					    status = gsl_multifit_fdfsolver_iterate(s);
+					    if (debug)
+					    {
+					    	log_ << "iter " << iter << ": " << gsl_vector_get(s->x, 0) << " " << gsl_vector_get(s->x, 1) << " " << gsl_vector_get(s->x, 2) << std::endl;
+					    }
 					    if (status) break;
-					    status = gsl_multifit_test_delta(s->dx, s->x, 0.0001, 0.0001);
+					    status = gsl_multifit_test_delta(s->dx, s->x, epsilon_abs, epsilon_rel);
 					  } 
-					  while (status == GSL_CONTINUE && iter < 5000);
-						
+					  while (status == GSL_CONTINUE && iter < max_iterations);
+						DoubleReal height_est = height;
+						DoubleReal x0_est = x0;
+						DoubleReal sigma_est = sigma;
 						height = gsl_vector_get(s->x, 0);
 						x0 = gsl_vector_get(s->x, 1);
 						sigma = std::fabs(gsl_vector_get(s->x, 2));						
@@ -900,6 +919,14 @@ namespace OpenMS
 						DoubleReal fit_score = 0.0;
 						DoubleReal correlation = 0.0;
 						DoubleReal final_score = 0.0;
+
+						if (debug && feature_ok)
+						{
+							log_ << "fit_iterations: " << iter << std::endl;
+							log_ << "fit_height: " << height_est/height << std::endl;
+							log_ << "fit_x0: " << x0_est/x0 << std::endl;
+							log_ << "fit_sigma: " << sigma_est/sigma << std::endl;
+						}
 						if(feature_ok)
 						{
 							std::vector<DoubleReal> v_theo, v_real;
@@ -1502,6 +1529,8 @@ namespace OpenMS
 					pattern.spectrum[0] = center.spectrum;
 					pattern.mz_score[0] = 1.0;
 					pattern.theoretical_mz[0] = spectrum[start].getMZ();
+					//TODO fit only at those peaks, where the m/z value is plausible (n*1/charge + candidate m/z ~ seed m/z)
+					//TODO try if fitting to the average value of three adjacent scans is better (because of RT noise)
 					log_ << " - Fitting at " << start << " (mz:" << spectrum[start].getMZ() << ")" << std::endl;
 					log_ << "   - Isotope 0: " << pattern.intensity[0] << std::endl;
 					for (UInt iso=1; iso<isotopes.size(); ++iso)
