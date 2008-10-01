@@ -415,6 +415,7 @@ namespace OpenMS
 			{
 				//-------------------------------------------------------------------------
 				//General initialization
+				//---------------------------------------------------------------------------
 				
 				//quality estimation
 				DoubleReal min_feature_score = param_.getValue("feature:min_score");
@@ -460,7 +461,11 @@ namespace OpenMS
 					dir.mkpath("debug/features");
 					log_.open("debug/log.txt");
 				}
-
+				
+				//time
+				StopWatch stop_watch;
+				stop_watch.start();
+				
 				//---------------------------------------------------------------------------
 				//Step 1:
 				//Precalculate intensity scores for peaks
@@ -923,9 +928,9 @@ namespace OpenMS
 						if (debug && feature_ok)
 						{
 							log_ << "fit_iterations: " << iter << std::endl;
-							log_ << "fit_height: " << height_est/height << std::endl;
-							log_ << "fit_x0: " << x0_est/x0 << std::endl;
-							log_ << "fit_sigma: " << sigma_est/sigma << std::endl;
+							log_ << "fit_height: " << height_est << " " << height << std::endl;
+							log_ << "fit_x0: " << x0_est << " " << x0 << std::endl;
+							log_ << "fit_sigma: " << sigma_est << " " << sigma << std::endl;
 						}
 						if(feature_ok)
 						{
@@ -1287,6 +1292,11 @@ namespace OpenMS
 					}					
 					MzDataFile().store("debug/input.mzData", map_);
 				}
+
+				//Execution time
+				stop_watch.stop();
+				std::cout << std::endl;
+				std::cout << "Execution time: " << stop_watch.getCPUTime() << " s" << std::endl;
 			}
 			
 			static FeatureFinderAlgorithm<PeakType,FeatureType>* create()
