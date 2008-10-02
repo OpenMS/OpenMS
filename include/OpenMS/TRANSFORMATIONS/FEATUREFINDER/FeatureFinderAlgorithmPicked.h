@@ -771,7 +771,7 @@ namespace OpenMS
 						traces[traces.max_trace].updateMaximum();
 						DoubleReal height = traces[traces.max_trace].max_peak->getIntensity() - traces.baseline;
 						DoubleReal x0 = traces[traces.max_trace].max_rt;
-						DoubleReal sigma = (traces[traces.max_trace].peaks.back().first-traces[traces.max_trace].peaks[0].first)/6.0;
+						DoubleReal sigma = (traces[traces.max_trace].peaks.back().first-traces[traces.max_trace].peaks[0].first)/10.0;
 					  double x_init[param_count] = {height, x0, sigma};
 						log_ << " - estimates - height: " << height << " x0: " << x0 <<  " sigma: " << sigma  << std::endl;
 						
@@ -796,10 +796,7 @@ namespace OpenMS
 					  {
 					    iter++;
 					    status = gsl_multifit_fdfsolver_iterate(s);
-					    if (debug)
-					    {
-					    	log_ << "iter " << iter << ": " << gsl_vector_get(s->x, 0) << " " << gsl_vector_get(s->x, 1) << " " << gsl_vector_get(s->x, 2) << std::endl;
-					    }
+					    //log_ << "iter " << iter << ": " << gsl_vector_get(s->x, 0) << " " << gsl_vector_get(s->x, 1) << " " << gsl_vector_get(s->x, 2) << std::endl;
 					    if (status) break;
 					    status = gsl_multifit_test_delta(s->dx, s->x, epsilon_abs, epsilon_rel);
 					  } 
@@ -1524,16 +1521,8 @@ namespace OpenMS
 					//find isotope peaks for the current start peak
 					UInt peak_index = start;
 					IsotopePattern pattern(isotopes.size());
-					pattern.intensity[0] = spectrum[start].getIntensity();
-					pattern.peak[0] = start;
-					pattern.spectrum[0] = center.spectrum;
-					pattern.mz_score[0] = 1.0;
-					pattern.theoretical_mz[0] = spectrum[start].getMZ();
-					//TODO fit only at those peaks, where the m/z value is plausible (n*1/charge + candidate m/z ~ seed m/z)
-					//TODO try if fitting to the average value of three adjacent scans is better (because of RT noise)
 					log_ << " - Fitting at " << start << " (mz:" << spectrum[start].getMZ() << ")" << std::endl;
-					log_ << "   - Isotope 0: " << pattern.intensity[0] << std::endl;
-					for (UInt iso=1; iso<isotopes.size(); ++iso)
+					for (UInt iso=0; iso<isotopes.size(); ++iso)
 					{
 						DoubleReal pos = spectrum[start].getMZ() + iso/(DoubleReal)charge;
 						findIsotope_(pos, center.spectrum, pattern, iso, true, peak_index);
@@ -1829,6 +1818,12 @@ namespace OpenMS
 			*/
 			void findIsotope_(DoubleReal pos, UInt spectrum_index, IsotopePattern& pattern, UInt pattern_index, bool debug, UInt& peak_index)
 			{
+				if (debug) log_ << "   - Isotope " << pattern_index << ": "; 				
+				
+				DoubleReal intensity = 0.0;
+				DoubleReal pos_score = 0.0;
+				UInt matches = 0;
+				
 				//search in the center spectrum
 				const SpectrumType& spectrum = map_[spectrum_index];
 				peak_index = nearest_(pos, spectrum, peak_index);
@@ -1836,48 +1831,67 @@ namespace OpenMS
 				pattern.theoretical_mz[pattern_index] = pos;
 				if (mz_score!=0.0)
 				{
-					if (debug) log_ << "   - Isotope " << pattern_index << ": " << spectrum[peak_index].getIntensity() << std::endl;
+					if (debug) log_ << String::number(spectrum[peak_index].getIntensity(),1) << " ";
 					pattern.peak[pattern_index] = peak_index;
 					pattern.spectrum[pattern_index] = spectrum_index;
-					pattern.mz_score[pattern_index] = mz_score;
-					pattern.intensity[pattern_index] = spectrum[peak_index].getIntensity();
-					return;
+					intensity += spectrum[peak_index].getIntensity();
+					pos_score += mz_score;
+					++matches;
 				}
-				//try to find the mass in the previous spectrum if it contains peaks)
+				//previous spectrum
 				if (spectrum_index!=0 && map_[spectrum_index-1].size()>0)
 				{
 					const SpectrumType& spectrum_before = map_[spectrum_index-1];
 					UInt index_before = spectrum_before.findNearest(pos);
-					if (positionScore_(pos, spectrum_before[index_before].getMZ(), pattern_tolerance_)!=0.0)
+					DoubleReal mz_score = positionScore_(pos, spectrum_before[index_before].getMZ(), pattern_tolerance_);
+					if (mz_score!=0.0)
 					{
-						if (debug) log_ << "   - Isotope " << pattern_index << ": " << spectrum_before[index_before].getIntensity() << " - previous spectrum" << std::endl;
-						pattern.peak[pattern_index] = index_before;
-						pattern.spectrum[pattern_index] = spectrum_index-1;
-						pattern.mz_score[pattern_index] = positionScore_(pos, spectrum_before[index_before].getMZ(), pattern_tolerance_);
-						pattern.intensity[pattern_index] = spectrum_before[index_before].getIntensity();
-						return;
+						if (debug) log_ << String::number(spectrum_before[index_before].getIntensity(),1) << "b ";
+						intensity += spectrum_before[index_before].getIntensity();
+						pos_score += mz_score;
+						++matches;
+
+						if (pattern.peak[pattern_index]==-1)
+						{
+							pattern.peak[pattern_index] = index_before;
+							pattern.spectrum[pattern_index] = spectrum_index-1;
+						}
 					}
 				}
-				//try to find the mass in the next spectrum (if it contains peaks)
+				//next spectrum
 				if (spectrum_index!=map_.size()-1 && map_[spectrum_index+1].size()>0)
 				{
 					const SpectrumType& spectrum_after = map_[spectrum_index+1];
 					UInt index_after = spectrum_after.findNearest(pos);
-					if (positionScore_(pos, spectrum_after[index_after].getMZ(), pattern_tolerance_)!=0.0)
+					DoubleReal mz_score = positionScore_(pos, spectrum_after[index_after].getMZ(), pattern_tolerance_);
+					if (mz_score!=0.0)
 					{
-						if (debug) if (debug) log_ << "   - Isotope " << pattern_index << ": " << spectrum_after[index_after].getIntensity() << " - next spectrum" << std::endl;
-						pattern.peak[pattern_index] = index_after;
-						pattern.spectrum[pattern_index] = spectrum_index+1;
-						pattern.mz_score[pattern_index] = positionScore_(pos, spectrum_after[index_after].getMZ(), pattern_tolerance_);
-						pattern.intensity[pattern_index] = spectrum_after[index_after].getIntensity();
-						return;
+						if (debug) log_ << String::number(spectrum_after[index_after].getIntensity(),1) << "a ";
+						intensity += spectrum_after[index_after].getIntensity();
+						pos_score += mz_score;
+						++matches;
+						
+						if (pattern.peak[pattern_index]==-1)
+						{
+							pattern.peak[pattern_index] = index_after;
+							pattern.spectrum[pattern_index] = spectrum_index+1;
+						}
 					}
 				}
 				//no isotope found
-				if (debug) log_ << "   - Isotope " << pattern_index << ": missing" << std::endl;
-				pattern.peak[pattern_index] = -1;
-				pattern.mz_score[pattern_index] = 0.0;
-				pattern.intensity[pattern_index] = 0.0;
+				if (matches==0)
+				{
+					if (debug) log_ << " missing" << std::endl;
+					pattern.peak[pattern_index] = -1;
+					pattern.mz_score[pattern_index] = 0.0;
+					pattern.intensity[pattern_index] = 0.0;
+				}
+				else
+				{
+					if (debug) log_ << "=> " << intensity/matches << std::endl;
+					pattern.mz_score[pattern_index] = pos_score/matches;
+					pattern.intensity[pattern_index] = intensity/matches;
+				}
 			}
 
 			/// Calculates a score between 0 and 1 for the m/z deviation of two peaks.
