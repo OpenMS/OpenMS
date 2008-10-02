@@ -368,7 +368,7 @@ namespace OpenMS
 				defaults_.setValue("isotopic_pattern:optional_fit_improvement",2.0,"Minimal percental improvement of isotope fit to allow leaving out an optional peak.", StringList::create("advanced"));
 				defaults_.setMinFloat("isotopic_pattern:optional_fit_improvement",0.0);
 				defaults_.setMaxFloat("isotopic_pattern:optional_fit_improvement",100.0);
-				defaults_.setValue("isotopic_pattern:mass_window_width",100.0,"Window width in Dalton for precalcuation of estimated isotope distribtions.", StringList::create("advanced"));
+				defaults_.setValue("isotopic_pattern:mass_window_width",25.0,"Window width in Dalton for precalcuation of estimated isotope distribtions.", StringList::create("advanced"));
 				defaults_.setMinFloat("isotopic_pattern:mass_window_width",1.0);
 				defaults_.setMaxFloat("isotopic_pattern:mass_window_width",200.0);
 				defaults_.setSectionDescription("isotopic_pattern","Settings for the calculation of a score indicating if a peak is part of a isotoipic pattern (between 0 and 1).");
@@ -1545,7 +1545,7 @@ namespace OpenMS
 					}
 
 					DoubleReal score = isotopeScore_(isotopes, pattern, false, true);
-	
+					
 					//check if the seed is still contained, otherwise abort
 					seed_contained = false;
 					for (UInt iso=0; iso<pattern.peak.size(); ++iso)
@@ -1562,14 +1562,14 @@ namespace OpenMS
 						continue;
 					}
 					
-					log_ << "   - final score: " << score << std::endl;
-					if (score>max_score)
+					log_ << "   - final score        : " << score << std::endl;
+					if (score> max_score)
 					{
 						max_score = score;
 						best_pattern = pattern;
 					}
 				}
-				log_ << " - best score: " << max_score << std::endl;
+				log_ << " - best score              : " << max_score << std::endl;
 				best_pattern.theoretical_ints = isotopes;
 				return max_score;
 			}
