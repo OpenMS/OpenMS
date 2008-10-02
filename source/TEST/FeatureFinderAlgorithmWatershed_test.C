@@ -73,15 +73,16 @@ CHECK(virtual void run())
 	
 	//create parameters
 	Param param;
-	param.setValue("debug","false");
+	param.setValue("debug","true");
 	param.setValue("mz_sampling",1.0);
+  param.setValue("cutoff_factor",7.0);
 	
 	//create dummy feature finder and run algorithm	
 	FeatureMap<> output;
 	FeatureFinder ff;
 	FFAW ffaw;
 	ffaw.setParameters(param);
-	//UInt test_number = 0;
+	UInt test_number = 0;
 	
 	//--------------------------------------------------------------------
 	//TEST WITH FLAT MAP
@@ -107,17 +108,18 @@ CHECK(virtual void run())
 	//--------------------------------------------------------------------
 	//TEST WITH THREE BASIN IN V-SHAPE
 	input[125][125].setIntensity(2.0);
-	input[125][375].setIntensity(3.0);
+	input[125][375].setIntensity(4.0);
 	input.updateRanges(1);
 	ffaw.setData(input, output, ff);
   ffaw.run();
 	TEST_EQUAL(output.size(),3);
-	TEST_REAL_EQUAL(output[0].getRT(),250.0);
-	TEST_REAL_EQUAL(output[0].getMZ(),749.5);
-	TEST_REAL_EQUAL(output[1].getRT(),125.0);
-	TEST_REAL_EQUAL(output[1].getMZ(),874.5);
+	TEST_REAL_EQUAL(output[0].getRT(),125.0);
+	TEST_REAL_EQUAL(output[0].getMZ(),874.5);
+	TEST_REAL_EQUAL(output[1].getRT(),250.0);
+	TEST_REAL_EQUAL(output[1].getMZ(),749.5);
 	TEST_REAL_EQUAL(output[2].getRT(),125.0);
 	TEST_REAL_EQUAL(output[2].getMZ(),625.5);
+
 	//MzDataFile().store(String("ff_in_")+test_number,input);
 	//FeatureXMLFile().store(String("ff_out_")+(test_number++),output);
 

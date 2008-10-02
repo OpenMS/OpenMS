@@ -69,7 +69,7 @@ namespace OpenMS
       {
         UInt spectrum;
         UInt peak;
-        Real intensity; //TODO: Is a real intensity good for the runtime? Would a integer range e.g. [0:10000] be better?
+        Int intensity;
         UInt distance;
         Int flag;
         
@@ -84,16 +84,16 @@ namespace OpenMS
 	      };
       };
       
-      //debug image
-      QImage image_;
       UInt peaks_;
       DoubleReal mz_sampling_;
+      DoubleReal cutoff_factor_;
 
       std::vector< std::vector<GridPoint> > data_;
       std::vector<GridPoint*> data_ptrs_;
       std::deque<GridPoint*> fifo_;
       	
       bool debug_;
+      bool apply_log_;
 
     public: 
       FeatureFinderAlgorithmWatershed() :
@@ -103,11 +103,14 @@ namespace OpenMS
         this->setName("Watershed");
         this->defaults_.setValue("mz_sampling",1.0,"Sampling rate for m/z dimension.");
 				this->defaults_.setMinFloat("mz_sampling",0.0);
+        this->defaults_.setValue("cutoff_factor",1.0,"Only features with a size of average size/cutoff_factor are allowed.");
+        this->defaults_.setMinFloat("cutoff_factor",0.0);
+        this->defaults_.setMaxFloat("cutoff_factor",7.0);
+        this->defaults_.setValue("apply_log","false","Apply log transformation");
+        this->defaults_.setValidStrings("apply_log",StringList::create("true,false"));
 				//Debug flags
-        this->defaults_.setValue("debug","true","run in debug mode");
+        this->defaults_.setValue("debug","false","run in debug mode");
         this->defaults_.setValidStrings("debug",StringList::create("true,false"));
-				this->defaults_.setValue("debug:image_name","debug.png","Image of the resampled input data and the watershed segmentation");
-				this->defaults_.setValue("debug:gradient","0,#FFFFFF;35,#888888;100,#000000","Gradient of greyscale image");
         this->defaultsToParam_();
       }
       virtual void run()
@@ -115,7 +118,7 @@ namespace OpenMS
         features_->clear();
         
         //Label constants
-        const Int FICTIOUS = -3;
+        const Int FICTITIOUS = -3;
         const Int MASK = -2;
         const Int INIT = -1;
         const Int WATERSHED = 0;
@@ -126,8 +129,18 @@ namespace OpenMS
         //---------------------------------------------------------------------------
         debug_ = param_.getValue("debug").toBool();
         mz_sampling_ = (DoubleReal)(param_.getValue("mz_sampling"));
-        peaks_ = UInt((map_->getMaxMZ() - map_->getMinMZ()) / mz_sampling_);
-        
+        cutoff_factor_ = (DoubleReal)(param_.getValue("cutoff_factor"));
+        apply_log_ = param_.getValue("apply_log").toBool();
+        peaks_ = (map_->getMaxMZ() - map_->getMinMZ()) / mz_sampling_;
+        Real normalizing_factor = 0;
+        if (apply_log_)
+        {
+          normalizing_factor = 10000/(log(map_->getMaxInt())+1);
+        }
+        else
+        {
+          normalizing_factor = 10000/(map_->getMaxInt());
+        }
         //---------------------------------------------------------------------------
       	//RESAMPLE AND BUILD MAIN DATASTRUCTURE
 				//do linear resampling in m/z dimension
@@ -144,10 +157,21 @@ namespace OpenMS
 		      lip.getData().resize(peaks_);
           lip.setMapping( 0, map_->getMinMZ(), peaks_-1, map_->getMaxMZ() );
           
-          for (UInt p=0; p<(*map_)[s].size(); ++p)
+          if (apply_log_)
           {
-            lip.addValue((*map_)[s][p].getMZ(), (*map_)[s][p].getIntensity());
+            for (UInt p=0; p<(*map_)[s].size(); ++p)
+            {
+              lip.addValue((*map_)[s][p].getMZ(),log(1 + (*map_)[s][p].getIntensity()));
+            }
           }
+          else
+          {
+            for (UInt p=0; p<(*map_)[s].size(); ++p)
+            {
+              lip.addValue((*map_)[s][p].getMZ(),((*map_)[s][p].getIntensity()));
+            }
+          }
+          
           std::vector<GridPoint> spectrum_points;
           spectrum_points.reserve(peaks_);
           for (UInt p=0; p<peaks_; ++p )
@@ -155,7 +179,7 @@ namespace OpenMS
            	GridPoint current_point;
             current_point.spectrum = s;
             current_point.peak = p;
-            current_point.intensity = lip.getData().at(p);
+            current_point.intensity = lip.getData().at(p)*normalizing_factor;
             current_point.distance = 0;
             current_point.flag = INIT;
             spectrum_points.push_back(current_point);
@@ -187,18 +211,6 @@ namespace OpenMS
 	        	}
         	}
         	std::cout << "min/max intensity: " << min_int << "/" << max_int << std::endl;
-					
-        	//convert the map to a grayscale image (png-format)
-			    MultiGradient gradient;
-				  gradient.fromString(String("Linear|") + param_.getValue("debug:gradient").toString());
-          image_ = QImage(peaks_, data_.size(), QImage::Format_RGB32);;
-        	for (UInt s=0;s<data_.size();++s)
-        	{
-        		for (UInt p=0;p<data_[s].size();++p)
-	        	{
-              image_.setPixel(p, data_.size() - s - 1, gradient.interpolatedColorAt(100.0 * data_[s][p].intensity/max_int).rgb());
-            }
-          }
         }
         //---------------------------------------------------------------------------
 				//SORTING
@@ -259,14 +271,14 @@ namespace OpenMS
 	        //----------------------------------------------------------------------------------
 					//PROCESS THE POINTS IN THE QUEUE
           GridPoint fict;
-          fict.flag = FICTIOUS;
+          fict.flag = FICTITIOUS;
           fifo_.push_back(&fict);        
           UInt current_dist = 1;
           while (true)
           {
             GridPoint* current_point = fifo_.front();
             fifo_.pop_front();
-            if (current_point->flag == FICTIOUS)
+            if (current_point->flag == FICTITIOUS)
             {
               if (fifo_.empty())  break;
               fifo_.push_back(&fict);
@@ -346,20 +358,7 @@ namespace OpenMS
         if (debug_)
         {
 					//debug info
-        	std::cout << "Labels: " << current_label << std::endl;
-        	//paint watersheds on the input image
-          for (UInt i=0; i<data_.size(); ++i)
-          {
-            for (UInt j=0; j<peaks_; ++j)
-            {
-              if (data_[i][j].flag == WATERSHED)
-              {
-              	image_.setPixel(j,data_.size() - 1 - i,QColor("RED").rgb());
-              }
-            }
-          }
-          //store image
-          image_.save(param_.getValue("debug:image_name").toString().toQString(), "PNG");      
+        	std::cout << "Labels: " << current_label << std::endl;      
         }  
 
         //---------------------------------------------------------------------------
@@ -394,21 +393,49 @@ namespace OpenMS
         }
         ff_->endProgress();
         
-				//calculate convex hulls and copy features with points to the output array
+				//Calculate the average contained points
+        ff_->startProgress(0, tmp_features.size(),"Calculating average contained points");
+        Real average_points = 0;
+        UInt counter = 0; 
+        UInt pointssize[500];
+        for (UInt l = 0; l<500;l++)          
+          {  pointssize[l] = 0;
+          }       
+        for (UInt i=0; i<tmp_features.size(); ++i)
+				{
+          ff_->setProgress(i);
+          if (!points[i].empty())
+          {
+            counter++;
+            average_points += points[i].size();
+            if(points[i].size() < 5000)
+            {
+              pointssize[(UInt)(points[i].size()/10)] +=1;
+            }
+          }
+        }
+        average_points /= counter * cutoff_factor_;
+         
+        ff_->endProgress();
+        //calculate convex hulls and copy features with points to the output array
 				ff_->startProgress(0, tmp_features.size(), "Calculating feature convex hulls");
-				features_->reserve(tmp_features.size());
+				features_->reserve(tmp_features.size()); 
 				for (UInt i=0; i<tmp_features.size(); ++i)
 				{
 					ff_->setProgress(i);
-					if (!points[i].empty())
+          
+					if (points[i].size() > average_points)
 					{
 						features_->push_back(tmp_features[i]);
 						features_->back().getConvexHulls().push_back(points[i]);
 						features_->back().setMetaValue("label",i);
-						features_->back().setMetaValue("contained_points",(UInt)(points[i].size()));
+						features_->back().setMetaValue("contained_points",(UInt)points[i].size());
+            
 					}
 				}
+        std::cout << std::endl;
         ff_->endProgress();
+        
         
 				//debug info
         if (debug_)
