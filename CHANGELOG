@@ -47,6 +47,7 @@ Detailed list of changes to specific OpenMS classes:
   - DPeak and DRichPeak are metafunctions now, e.g. DPeak<1>::Type is a typedef for Peak1D.
   - VersionInfo: Added support for SVN revision info. Slight interface changes.
   - TOPPBase: Print revison info (if meaningful).
+  - METAINFO uses double precision now.
 
 ------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.2                                     ----
