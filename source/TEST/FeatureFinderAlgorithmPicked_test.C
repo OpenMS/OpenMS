@@ -87,23 +87,23 @@ CHECK(virtual void run())
 	
 	PRECISION(0.001);
 	TEST_REAL_EQUAL(output[0].getOverallQuality(),0.8819);
-	TEST_REAL_EQUAL(output[1].getOverallQuality(),0.8674);
-	TEST_REAL_EQUAL(output[2].getOverallQuality(),0.9083);
-	TEST_REAL_EQUAL(output[3].getOverallQuality(),0.9268);
-	TEST_REAL_EQUAL(output[4].getOverallQuality(),0.9402);
-	TEST_REAL_EQUAL(output[5].getOverallQuality(),0.9093);
-	TEST_REAL_EQUAL(output[6].getOverallQuality(),0.9403);
+	TEST_REAL_EQUAL(output[1].getOverallQuality(),0.8766);
+	TEST_REAL_EQUAL(output[2].getOverallQuality(),0.9158);
+	TEST_REAL_EQUAL(output[3].getOverallQuality(),0.9271);
+	TEST_REAL_EQUAL(output[4].getOverallQuality(),0.9538);
+	TEST_REAL_EQUAL(output[5].getOverallQuality(),0.9094);
+	TEST_REAL_EQUAL(output[6].getOverallQuality(),0.9392);
 	TEST_REAL_EQUAL(output[7].getOverallQuality(),0.9243);
 	
 	PRECISION(20.0);
-	TEST_REAL_EQUAL(output[0].getIntensity(),51249.6);
-	TEST_REAL_EQUAL(output[1].getIntensity(),44637.9);
-	TEST_REAL_EQUAL(output[2].getIntensity(),34596.9);
-	TEST_REAL_EQUAL(output[3].getIntensity(),19423.1);
-	TEST_REAL_EQUAL(output[4].getIntensity(),12528.0);
-	TEST_REAL_EQUAL(output[5].getIntensity(),8510.74);
-	TEST_REAL_EQUAL(output[6].getIntensity(),7295.91);
-	TEST_REAL_EQUAL(output[7].getIntensity(),5026.28);
+	TEST_REAL_EQUAL(output[0].getIntensity(),51260.0);
+	TEST_REAL_EQUAL(output[1].getIntensity(),44667.3);
+	TEST_REAL_EQUAL(output[2].getIntensity(),34613.3);
+	TEST_REAL_EQUAL(output[3].getIntensity(),19428.9);
+	TEST_REAL_EQUAL(output[4].getIntensity(),12513.9);
+	TEST_REAL_EQUAL(output[5].getIntensity(),8512.71);
+	TEST_REAL_EQUAL(output[6].getIntensity(),6561.2);
+	TEST_REAL_EQUAL(output[7].getIntensity(),5024.74);
 	
 	TEST_EQUAL((UInt)(output[0].getMetaValue("rt_apex_spectrum")),89)
 	TEST_EQUAL((UInt)(output[1].getMetaValue("rt_apex_spectrum")),84)
