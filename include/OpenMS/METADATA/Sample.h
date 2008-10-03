@@ -96,19 +96,19 @@ namespace OpenMS
       void setState(SampleState state);
 
 			/// returns the mass (in mg) (default: 0.0)
-      float getMass() const;
+      DoubleReal getMass() const;
       /// sets the mass (in mg)
-      void setMass(float mass);
+      void setMass(DoubleReal mass);
 
 			/// returns the volume (in ml) (default: 0.0)
-      float getVolume() const;
+      DoubleReal getVolume() const;
       /// sets the volume (in ml)
-      void setVolume(float volume);
+      void setVolume(DoubleReal volume);
 
 			/// returns the concentration (in mg/ml) (default: 0.0)
-      float getConcentration() const;
+      DoubleReal getConcentration() const;
       /// sets the concentration (in mg/ml)
-      void setConcentration(float concentration);
+      void setConcentration(DoubleReal concentration);
 
 			/// returns a mutable reference to the vector of subsamples that were combined to create this sample
 		  std::vector<Sample>& getSubsamples();
@@ -150,9 +150,9 @@ namespace OpenMS
 		String comment_;
 		String organism_;
 		SampleState state_;
-		float mass_;
-		float volume_;
-		float concentration_;
+		DoubleReal mass_;
+		DoubleReal volume_;
+		DoubleReal concentration_;
 		std::vector<Sample> subsamples_;
 		std::list<SampleTreatment*> treatments_; 
 

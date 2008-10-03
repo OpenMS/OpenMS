@@ -230,62 +230,62 @@ namespace OpenMS
 	  reflectron_state_ = reflectron_state; 
 	}
 	
-	float MassAnalyzer::getResolution() const 
+	DoubleReal MassAnalyzer::getResolution() const 
 	{
 	  return resolution_; 
 	}
 	
-	void MassAnalyzer::setResolution(float resolution)
+	void MassAnalyzer::setResolution(DoubleReal resolution)
 	{
 	  resolution_ = resolution; 
 	}
 	
-	float MassAnalyzer::getAccuracy() const 
+	DoubleReal MassAnalyzer::getAccuracy() const 
 	{
 	  return accuracy_; 
 	}
 	
-	void MassAnalyzer::setAccuracy(float accuracy)
+	void MassAnalyzer::setAccuracy(DoubleReal accuracy)
 	{
 	  accuracy_ = accuracy; 
 	}
 	
-	float MassAnalyzer::getScanRate() const 
+	DoubleReal MassAnalyzer::getScanRate() const 
 	{
 	  return scan_rate_; 
 	}
 	
-	void MassAnalyzer::setScanRate(float scan_rate)
+	void MassAnalyzer::setScanRate(DoubleReal scan_rate)
 	{
 	  scan_rate_ = scan_rate; 
 	}
 	
-	float MassAnalyzer::getScanTime() const 
+	DoubleReal MassAnalyzer::getScanTime() const 
 	{
 	  return scan_time_; 
 	}
 	
-	void MassAnalyzer::setScanTime(float scan_time)
+	void MassAnalyzer::setScanTime(DoubleReal scan_time)
 	{
 	  scan_time_ = scan_time; 
 	}
 	
-	float MassAnalyzer::getTOFTotalPathLength() const 
+	DoubleReal MassAnalyzer::getTOFTotalPathLength() const 
 	{
 	  return TOF_total_path_length_; 
 	}
 	
-	void MassAnalyzer::setTOFTotalPathLength(float TOF_total_path_length)
+	void MassAnalyzer::setTOFTotalPathLength(DoubleReal TOF_total_path_length)
 	{
 	  TOF_total_path_length_ = TOF_total_path_length; 
 	}
 	
-	float MassAnalyzer::getIsolationWidth() const 
+	DoubleReal MassAnalyzer::getIsolationWidth() const 
 	{
 	  return isolation_width_; 
 	}
 	
-	void MassAnalyzer::setIsolationWidth(float isolation_width)
+	void MassAnalyzer::setIsolationWidth(DoubleReal isolation_width)
 	{
 	  isolation_width_ = isolation_width; 
 	}
@@ -300,12 +300,12 @@ namespace OpenMS
 	  final_MS_exponent_ = final_MS_exponent; 
 	}
 	
-	float MassAnalyzer::getMagneticFieldStrength() const 
+	DoubleReal MassAnalyzer::getMagneticFieldStrength() const 
 	{
 	  return magnetic_field_strength_; 
 	}
 	
-	void MassAnalyzer::setMagneticFieldStrength(float magnetic_field_strength)
+	void MassAnalyzer::setMagneticFieldStrength(DoubleReal magnetic_field_strength)
 	{
 	  magnetic_field_strength_ = magnetic_field_strength; 
 	}

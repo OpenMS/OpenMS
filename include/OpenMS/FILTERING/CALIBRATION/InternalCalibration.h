@@ -117,7 +117,7 @@ namespace OpenMS
   void InternalCalibration::calibrate(MSExperiment<InputPeakType>& exp, std::vector<double>& ref_masses,bool peak_data)
   {
 #ifdef DEBUG_CALIBRATION
-		std::cout.precision(12);
+		std::cout.precision(written_digits_doublereal);
 #endif
 	
 		if(peak_data)

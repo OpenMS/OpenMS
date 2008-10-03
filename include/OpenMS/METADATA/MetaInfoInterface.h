@@ -89,9 +89,9 @@ namespace OpenMS
 			void setMetaValue(const String& name, UInt value);
 			/// sets the value (unsigned integer) corresponding to an index
 			void setMetaValue(UInt index, UInt value);
-			/// sets the value (float) corresponding to a name
+			/// sets the value (DoubleReal) corresponding to a name
 			void setMetaValue(const String& name, Real value);
-			/// sets the value (float) corresponding to an index
+			/// sets the value (DoubleReal) corresponding to an index
 			void setMetaValue(UInt index, Real value);
 			/// sets the value (double) corresponding to a name
 			void setMetaValue(const String& name, DoubleReal value);

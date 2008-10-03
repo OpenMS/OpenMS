@@ -97,33 +97,33 @@ namespace OpenMS
 		/**	Accessors	*/
 		//@{
 		/// Non-mutable access to model name
-		inline const String& getName() const
+		const String& getName() const
 		{ 
 			return name_; 
 		}
 		/// Mutable access to the model name
-		inline String& getName() 
+		String& getName() 
 		{ 
 			return name_; 
 		}
 		/// Set the model name
-		inline void setName(const String& name)
+		void setName(const String& name)
 		{ 
 			name_ = name; 
 		}
 
 		/// Non-mutable access to model parameters
-		inline const Param& getParam() const 
+		const Param& getParam() const 
 		{ 
 			return parameters_; 
 		}
 		/// Mutable access to the model parameters
-		inline Param& getParam() 
+		Param& getParam() 
 		{ 
 			return parameters_;
 		}
 		/// Set the model parameters
-		inline void setParam(const Param& param)
+		void setParam(const Param& param)
 		{ 
 			parameters_ = param; 
 		}

@@ -47,8 +47,6 @@ namespace OpenMS
 			String tag = sm_.convert(qname);
 			open_tags_.push_back(tag);
 
-			//cout << "Start: " << tag << endl;
-
 			// collect Experimental Settings
 			if (in_description_)
 			{
@@ -64,7 +62,6 @@ namespace OpenMS
 
 			if (tag=="feature")
 			{
-				//std::cout << "new feature tag at level: " << subordinate_feature_level_ << std::endl;
 				// create new feature at apropriate level
 				updateCurrentFeature_(true);
 			}
@@ -74,10 +71,6 @@ namespace OpenMS
 			}
 			else if (tag=="description")
 			{
-				//cout << "RT range : " << options_.getRTRange() << endl;
-				//cout << "MZ range : " << options_.getMZRange() << endl;
-				//cout << "Int range: " << options_.getIntensityRange() << endl;
-
 				exp_sett_ << "<description>";
 				in_description_ = true;
 			}
@@ -158,7 +151,7 @@ namespace OpenMS
 			static const XMLCh* s_hullpoint = xercesc::XMLString::transcode("hullpoint");
 			static const XMLCh* s_convexhull = xercesc::XMLString::transcode("convexhull");
 			static const XMLCh* s_subordinate = xercesc::XMLString::transcode("subordinate");
-			//cout << "End: '" << sm_.convert(qname) <<"' - '"<< sm_.convert(s_description) << "'" << endl;
+			// std::cout << "end tag: '" << sm_.convert(qname) <<"' - '"<< sm_.convert(s_description) << "'" << std::endl;
 
 			open_tags_.pop_back();
 
@@ -250,7 +243,7 @@ namespace OpenMS
 
 		void FeatureXMLHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
 		{
-			//std::cout << "characters: "	 << sm_.convert(chars) << std::endl;
+			// std::cout << "characters: "	 << sm_.convert(chars) << std::endl;
 			// collect Experimental Settings
 			if (in_description_)
 			{
@@ -288,7 +281,7 @@ namespace OpenMS
 
 		void FeatureXMLHandler::writeTo(ostream& os)
 		{
-			os.precision(8);
+			os.precision(written_digits_doublereal);
 
 			os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
 				 << "<featureMap version=\"" << version_ << "\"";
@@ -324,33 +317,32 @@ namespace OpenMS
 		{
 			String intend = String(intendation_level,'\t');
 
-			os << intend << "\t\t<feature id=\"" << identifier_prefix << identifier << "\">" << endl;
+			os << intend << "\t\t<feature id=\"" << identifier_prefix << identifier << "\">\n";
 			for (UInt i=0; i<2;i++)
 			{
-				os << intend <<	"\t\t\t<position dim=\"" << i << "\">" << feat.getPosition()[i] << "</position>" <<		endl;
+				os << intend <<	"\t\t\t<position dim=\"" << i << "\">" << feat.getPosition()[i] << "</position>\n";
 			}
-			os << intend << "\t\t\t<intensity>" << feat.getIntensity() << "</intensity>" << endl;
+			os << intend << "\t\t\t<intensity>" << feat.getIntensity() << "</intensity>\n";
 			for (UInt i=0; i<2;i++)
 			{
-				os << intend << "\t\t\t<quality dim=\"" << i << "\">" << feat.getQuality(i) << "</quality>" <<	endl;
+				os << intend << "\t\t\t<quality dim=\"" << i << "\">" << feat.getQuality(i) << "</quality>\n";
 			}
-			os << intend << "\t\t\t<overallquality>" << feat.getOverallQuality() << "</overallquality>" <<	endl;
-			os << intend << "\t\t\t<charge>" << feat.getCharge() << "</charge>" <<	endl;
+			os << intend << "\t\t\t<overallquality>" << feat.getOverallQuality() << "</overallquality>\n";
+			os << intend << "\t\t\t<charge>" << feat.getCharge() << "</charge>\n";
 
 			// write model description
 			ModelDescription<2> desc = feat.getModelDescription();
 			if (!desc.getName().empty() || !desc.getParam().empty())
 			{
-				os << intend << "\t\t\t<model name=\"" << desc.getName() << "\">" <<	endl;
+				os << intend << "\t\t\t<model name=\"" << desc.getName() << "\">\n";
 				Param modelp = desc.getParam();
 				Param::ParamIterator piter = modelp.begin();
 				while (piter != modelp.end())
 				{
-					os << intend << "\t\t\t\t<param name=\"" << piter.getName() << "\" value=\"" << piter->value << "\">";
-					os << intend << "</param>" << endl;
+					os << intend << "\t\t\t\t<param name=\"" << piter.getName() << "\" value=\"" << piter->value << "\"/>\n";
 					piter++;
 				}
-				os << intend << "\t\t\t</model>" << endl;
+				os << intend << "\t\t\t</model>\n";
 			}
 
 			// write convex hull
@@ -361,38 +353,38 @@ namespace OpenMS
 
 			for (UInt i=0;i<hulls_count; i++)
 			{
-				os << intend << "\t\t\t<convexhull nr=\"" << i << "\">" <<	endl;
+				os << intend << "\t\t\t<convexhull nr=\"" << i << "\">\n";
 
 				ConvexHull2D current_hull = hulls[i];
 				UInt hull_size	= current_hull.getPoints().size();
 
 				for (UInt j=0;j<hull_size;j++)
 				{
-					os << intend << "\t\t\t\t<hullpoint>" << endl;
+					os << intend << "\t\t\t\t<hullpoint>\n";
 
 					DPosition<2> pos = current_hull.getPoints()[j];
 					UInt pos_size = pos.size();
 					for (UInt k=0; k<pos_size; k++)
 					{
-						os << intend << "\t\t\t\t\t<hposition dim=\"" << k << "\">" << pos[k] << "</hposition>" << endl;
+						os << intend << "\t\t\t\t\t<hposition dim=\"" << k << "\">" << pos[k] << "</hposition>\n";
 					}
 
-					os << intend << "\t\t\t\t</hullpoint>" << endl;
+					os << intend << "\t\t\t\t</hullpoint>\n";
 				} // end for (..hull_size..)
 
-				os << intend << "\t\t\t</convexhull>" << endl;
+				os << intend << "\t\t\t</convexhull>\n";
 			} // end	for ( ... hull_count..)
 
 			if (!feat.getSubordinates().empty())
 			{
-				os << intend << "\t\t\t<subordinate>" << endl;
+				os << intend << "\t\t\t<subordinate>\n";
 				UInt identifier_subordinate = 0;
 				for (std::size_t i=0;i<feat.getSubordinates().size();++i)
 				{
 					writeFeature_(os, feat.getSubordinates()[i], identifier_prefix+identifier+"_", identifier_subordinate, intendation_level+2);
 					++identifier_subordinate;
 				}
-				os << intend << "\t\t\t</subordinate>" << endl;
+				os << intend << "\t\t\t</subordinate>\n";
 			}
 
 			writeUserParam_("userParam", os, feat, 3+intendation_level);

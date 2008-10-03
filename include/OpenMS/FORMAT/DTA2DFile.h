@@ -249,7 +249,7 @@ namespace OpenMS
 			{
 				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 			}
-			os.precision(8);
+			os.precision(written_digits_doublereal);
 
 			// Iterate over all peaks of each spectrum and
 			// write one line for each peak of the spectrum.

@@ -109,20 +109,20 @@ namespace OpenMS
       void setAcquisitionMode(AcquisitionMode acquisition_mode);
 			
 			/// returns the resolution (in ns)
-      float getResolution() const;
+      DoubleReal getResolution() const;
       /// sets the resolution (in ns)
-      void setResolution(float resolution);
+      void setResolution(DoubleReal resolution);
 			
 			/// retruns the analog-to-digital converter sampling frequency (in MHz)
-      float getADCSamplingFrequency() const;
+      DoubleReal getADCSamplingFrequency() const;
       /// sets the analog-to-digital converter sampling frequency (in MHz)
-      void setADCSamplingFrequency(float ADC_sampling_frequency);
+      void setADCSamplingFrequency(DoubleReal ADC_sampling_frequency);
 
     protected:
 	    Type type_;
 	    AcquisitionMode acquisition_mode_; 
-	    float resolution_;
-	    float ADC_sampling_frequency_;
+	    DoubleReal resolution_;
+	    DoubleReal ADC_sampling_frequency_;
     
   };
 } // namespace OpenMS

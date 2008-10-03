@@ -27,7 +27,7 @@
 		</dataProcessing>
 	</description>
 	<featureList count="5">
-		<feature id="44">
+		<feature id="f_44">
 			<position dim="0">908.712</position>
 			<position dim="1">941.449</position>
 			<intensity>1.25569e+08</intensity>
@@ -79,7 +79,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="RPCFSALTPDETYVPK"/>
 		</feature>
-		<feature id="45">
+		<feature id="f_45">
 			<position dim="0">1005.49</position>
 			<position dim="1">1014.61</position>
 			<intensity>2.35017e+08</intensity>
@@ -147,7 +147,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="QTALVELLK"/>
 		</feature>
-		<feature id="46">
+		<feature id="f_46">
 			<position dim="0">1033.52</position>
 			<position dim="1">1163.62</position>
 			<intensity>2.93257e+08</intensity>
@@ -191,7 +191,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="LVNELTEFAK"/>
 		</feature>
-		<feature id="47">
+		<feature id="f_47">
 			<position dim="0">1192.41</position>
 			<position dim="1">954.949</position>
 			<intensity>1.93777e+08</intensity>
@@ -243,7 +243,7 @@
 			</convexhull>
 			<userParam type="string" name="sequence" value="LFTFHADICTLPDTEK"/>
 		</feature>
-		<feature id="48">
+		<feature id="f_48">
 			<position dim="0">1297.92</position>
 			<position dim="1">944.96</position>
 			<intensity>3.20176e+08</intensity>

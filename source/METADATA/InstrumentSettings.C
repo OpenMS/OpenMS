@@ -105,22 +105,22 @@ namespace OpenMS
 	  polarity_ = polarity; 
 	}
 	
-	float InstrumentSettings::getMzRangeStart() const 
+	DoubleReal InstrumentSettings::getMzRangeStart() const 
 	{
 	  return mz_range_start_; 
 	}
 	
-	void InstrumentSettings::setMzRangeStart(float mz_range_start)
+	void InstrumentSettings::setMzRangeStart(DoubleReal mz_range_start)
 	{
 	  mz_range_start_ = mz_range_start; 
 	}
 	
-	float InstrumentSettings::getMzRangeStop() const 
+	DoubleReal InstrumentSettings::getMzRangeStop() const 
 	{
 	  return mz_range_stop_; 
 	}
 	
-	void InstrumentSettings::setMzRangeStop(float mz_range_stop)
+	void InstrumentSettings::setMzRangeStop(DoubleReal mz_range_stop)
 	{
 	  mz_range_stop_ = mz_range_stop; 
 	}

@@ -116,12 +116,12 @@ namespace OpenMS
 	  method_ = method; 
 	}
 
-	float ProcessingMethod::getIntensityCutoff() const
+	DoubleReal ProcessingMethod::getIntensityCutoff() const
 	{
 		return intensity_cutoff_;
 	}
 	
-	void ProcessingMethod::setIntensityCutoff(float cutoff)
+	void ProcessingMethod::setIntensityCutoff(DoubleReal cutoff)
 	{
 		intensity_cutoff_ = cutoff;
 	}

@@ -23,7 +23,7 @@
 	<featureList count="6">
 		
     <!-- apparently two charge variants of the same peptide -> cluster them -->
-		<feature id="0">
+		<feature id="f_0">
 			<position dim="0">143.076</position>
 			<position dim="1">445.155</position>
 			<intensity>10000</intensity>
@@ -34,7 +34,7 @@
 			<charge>3</charge>
 		</feature>
 
-    <feature id="1">
+    <feature id="f_1">
       <position dim="0">146.076</position>
       <position dim="1">334.12</position>
       <intensity>10000</intensity>
@@ -46,7 +46,7 @@
     </feature>
 
     <!-- very close features with the same charge -> should be separated -->
-		<feature id="2">
+		<feature id="f_2">
 			<position dim="0">151.897</position>
 			<position dim="1">395.906</position>
 			<intensity>55761</intensity>
@@ -57,7 +57,7 @@
 			<charge>2</charge>
 		</feature>
 
-    <feature id="3">
+    <feature id="f_3">
       <position dim="0">151.6</position>
       <position dim="1">397.906</position>
       <intensity>55761</intensity>

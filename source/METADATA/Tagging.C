@@ -83,12 +83,12 @@ namespace OpenMS
 	}
 	
 	
-	float Tagging::getMassShift() const
+	DoubleReal Tagging::getMassShift() const
 	{
 	  return mass_shift_;
 	}
 	
-	void Tagging::setMassShift(float mass_shift)
+	void Tagging::setMassShift(DoubleReal mass_shift)
 	{
 	  mass_shift_ = mass_shift;
 	}

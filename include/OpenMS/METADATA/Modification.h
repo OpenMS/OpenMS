@@ -83,9 +83,9 @@ namespace OpenMS
 		  void setReagentName(const String& reagent_name);
 			
 			/// returns the mass change (default: 0.0)
-		  float getMass() const;
+		  DoubleReal getMass() const;
 		  /// sets the mass change
-		  void setMass(float mass);
+		  void setMass(DoubleReal mass);
 		
 			/// returns the specificity of the the reagent (default: AA)
 		  const SpecificityType& getSpecificityType() const;
@@ -99,7 +99,7 @@ namespace OpenMS
 
     protected:
 			String reagent_name_;
-			float mass_;
+			DoubleReal mass_;
 			SpecificityType specificity_type_;
 			String affected_amino_acids_;
   };

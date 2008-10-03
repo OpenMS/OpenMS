@@ -4,7 +4,7 @@
 		
 		<!-- FRAME FOR VIEWER -->
 		
-		<feature id="1">
+		<feature id="f_1">
 			<position dim="0">5</position>
 			<position dim="1">500</position>
 			<intensity>100</intensity>
@@ -14,7 +14,7 @@
 			<charge>1</charge>
 		</feature>
 		
-		<feature id="2">
+		<feature id="f_2">
 			<position dim="0">20</position>
 			<position dim="1">600</position>
 			<intensity>100</intensity>
@@ -26,7 +26,7 @@
 
 		<!-- CHARGE 1 -->
 
-		<feature id="3">
+		<feature id="f_3">
 			<position dim="0">11</position>
 			<position dim="1">558</position>
 			<intensity>100</intensity>
@@ -54,7 +54,7 @@
 			</convexhull>
 		</feature>	
 
-		<feature id="4">
+		<feature id="f_4">
 			<position dim="0">9</position>
 			<position dim="1">566</position>
 			<intensity>100</intensity>
@@ -64,7 +64,7 @@
 			<charge>1</charge>
 		</feature>
 
-		<feature id="5">
+		<feature id="f_5">
 			<position dim="0">11</position>
 			<position dim="1">566</position>
 			<intensity>100</intensity>
@@ -74,7 +74,7 @@
 			<charge>1</charge>
 		</feature>
 
-		<feature id="6">
+		<feature id="f_6">
 			<position dim="0">10</position>
 			<position dim="1">559</position>
 			<intensity>100</intensity>
@@ -84,7 +84,7 @@
 			<charge>1</charge>
 		</feature>		
 
-		<feature id="7">
+		<feature id="f_7">
 			<position dim="0">10</position>
 			<position dim="1">566</position>
 			<intensity>100</intensity>
@@ -94,7 +94,7 @@
 			<charge>1</charge>
 		</feature>		
 
-		<feature id="8">
+		<feature id="f_8">
 			<position dim="0">10</position>
 			<position dim="1">573</position>
 			<intensity>100</intensity>
@@ -106,7 +106,7 @@
 
 		<!-- CHARGE 2 -->
 
-		<feature id="9">
+		<feature id="f_9">
 			<position dim="0">15</position>
 			<position dim="1">530</position>
 			<intensity>100</intensity>
@@ -116,7 +116,7 @@
 			<charge>2</charge>
 		</feature>	
 
-		<feature id="10">
+		<feature id="f_10">
 			<position dim="0">14</position>
 			<position dim="1">531</position>
 			<intensity>100</intensity>
@@ -126,7 +126,7 @@
 			<charge>2</charge>
 		</feature>
 
-		<feature id="11">
+		<feature id="f_11">
 			<position dim="0">14</position>
 			<position dim="1">534</position>
 			<intensity>100</intensity>
@@ -136,7 +136,7 @@
 			<charge>2</charge>
 		</feature>		
 
-		<feature id="12">
+		<feature id="f_12">
 			<position dim="0">14</position>
 			<position dim="1">537</position>
 			<intensity>100</intensity>
@@ -146,7 +146,7 @@
 			<charge>2</charge>
 		</feature>		
 
-		<feature id="13">
+		<feature id="f_13">
 			<position dim="0">15</position>
 			<position dim="1">534</position>
 			<intensity>100</intensity>
@@ -156,7 +156,7 @@
 			<charge>2</charge>
 		</feature>		
 
-		<feature id="14">
+		<feature id="f_14">
 			<position dim="0">13</position>
 			<position dim="1">534</position>
 			<intensity>100</intensity>
@@ -168,7 +168,7 @@
 
 		<!-- CHARGE MISMATCH -->
 
-		<feature id="15">
+		<feature id="f_15">
 			<position dim="0">18</position>
 			<position dim="1">550</position>
 			<intensity>100</intensity>
@@ -180,7 +180,7 @@
 			<charge>1</charge>
 		</feature>	
 
-		<feature id="16">
+		<feature id="f_16">
 			<position dim="0">17</position>
 			<position dim="1">558</position>
 			<intensity>100</intensity>

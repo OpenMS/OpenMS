@@ -630,7 +630,7 @@ namespace OpenMS
 			}
 			else if (	open_tags_.back()=="precursorMz")
 			{
-				exp_->back().getPrecursorPeak().getPosition()[0] = asFloat_(transcoded_chars);
+				exp_->back().getPrecursorPeak().getPosition()[0] = asDouble_(transcoded_chars);
 			}
 			else if (	open_tags_.back()=="comment")
 			{

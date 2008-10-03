@@ -81,7 +81,7 @@ CHECK((String(const char* s, SizeType length)))
 RESULT
 
 CHECK((String(const DataValue& d)))
-	TEST_EQUAL(String(DataValue(1.4f)),"1.4")
+	TEST_EQUAL(String(DataValue(1.4)),"1.4")
 	TEST_EQUAL(String(DataValue("bla")),"bla")
 	TEST_EQUAL(String(DataValue(4711)),"4711")
 RESULT
@@ -147,7 +147,7 @@ CHECK((String(double d)))
 RESULT
 
 CHECK((String(long double d)))
-	String s((long double)(17.012345));
+	String s(17.012345L); // suffix L indicates long double
 	TEST_EQUAL(s,"17.012345")
 RESULT
 
@@ -404,24 +404,24 @@ CHECK((Real toFloat() const))
 	TEST_REAL_EQUAL(s.toFloat(),-123.456);
 	s = "123.9";
 	TEST_REAL_EQUAL(s.toFloat(),123.9);
-	s = "73629.98";
-	TEST_EQUAL(String(s.toFloat()),"73629.98");
-	s = "47218.89";
-	TEST_EQUAL(String(s.toFloat()),"47218.89");
+	s = "73629.9";
+	TEST_EQUAL(String(s.toFloat()),"73629.9");
+	s = "47218.8";
+	TEST_EQUAL(String(s.toFloat()),"47218.8");
 RESULT
 
 CHECK((DoubleReal toDouble() const))
 	String s;
 	s = "123.456";
 	TEST_REAL_EQUAL(s.toDouble(),123.456);
-	s = "-123.456";
-	TEST_REAL_EQUAL(s.toDouble(),-123.456);
-	s = "123.9";
-	TEST_REAL_EQUAL(s.toDouble(),123.9);
-	s = "73629.98";
-	TEST_EQUAL(String(s.toDouble()),"73629.98");
-	s = "47218.89";
-	TEST_EQUAL(String(s.toDouble()),"47218.89");
+	s = "-123.4567890123";
+	TEST_REAL_EQUAL(s.toDouble(),-123.4567890123);
+	s = "123.99999";
+	TEST_REAL_EQUAL(s.toDouble(),123.99999);
+	s = "73629.980123";
+	TEST_EQUAL(String(s.toDouble()),"73629.980123");
+	s = "47218.890000001";
+	TEST_EQUAL(String(s.toDouble()),"47218.890000001");
 RESULT
 
 CHECK((static String random(UInt length)))
@@ -732,7 +732,7 @@ RESULT
 
 CHECK((String& operator+= (long double d)))
 	String s = "test";
-	s += (long double)(7.4);
+	s += 7.4L;
 	TEST_EQUAL(s, "test7.4")
 RESULT
 

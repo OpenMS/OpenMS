@@ -197,7 +197,8 @@ namespace OpenMS
 	void IsotopeWavelet::computeIsotopeDistributionSize_ (const DoubleReal max_m) 
 	{
 		DoubleReal max_deconv_mz = max_m*max_charge_;
-		averagine_.setMaxIsotope (INT_MAX);
+		averagine_.setMaxIsotope(UInt(max_deconv_mz/100.+10.)); // expect less than 10 extra Da for heavy isotopes per 1000 Da mono mass.
+		// averagine_.setMaxIsotope (INT_MAX); // old version INT_MAX is C not C++, should use #include <limits> anyway
 		averagine_.estimateFromPeptideWeight (max_deconv_mz);
 		//maybe we should provide some interface to that constant, although its range is rather limited and
 		//its influence within this range is negligible.

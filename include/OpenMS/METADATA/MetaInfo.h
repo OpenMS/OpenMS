@@ -102,9 +102,9 @@ namespace OpenMS
 		void setValue(const String& name, DoubleReal value);
 		/// sets the value (double) corresponding to an index
 		void setValue(UInt index, DoubleReal value);
-		/// sets the value (float) corresponding to a name
+		/// sets the value (DoubleReal) corresponding to a name
 		void setValue(const String& name, Real value);
-		/// sets the value (float) corresponding to an index
+		/// sets the value (DoubleReal) corresponding to an index
 		void setValue(UInt index, Real value);
 		/// sets the DataValue corresponding to a name
 		void setValue(const String& name, const DataValue& value);

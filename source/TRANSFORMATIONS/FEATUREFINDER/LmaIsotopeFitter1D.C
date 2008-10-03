@@ -253,7 +253,7 @@ namespace OpenMS
                  
         // The various _f, _df and _fdf of the LM loop return GSL_EDOM if any parameter is < 0
         
-     	  // Optimize parameter with Levenberg-Marquardt algorithm (GLS)   
+     	  // Optimize parameters with Levenberg-Marquardt algorithm (GLS)   
         CoordinateType x_init[ 2 ] = { total_intensity_/100 , /*isotope_stdev_,*/ monoisotopic_mz_ };
         optimize_(set, 2, x_init, &(residual_), &(jacobian_), &(evaluate_), &d);
         

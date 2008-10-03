@@ -28,6 +28,7 @@
 #define OPENMS_FORMAT_HANDLERS_XMLHANDLER_H
 
 #include <iostream>
+#include <iomanip> // setprecision etc.
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Macros.h>
@@ -172,7 +173,7 @@ namespace OpenMS
 			{
 				if (value!=0.0)
 				{
-					os << String(indent,'\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:" << acc << "\" name=\"" << name << "\" value=\"" << value << "\"/>\n";
+					os << String(indent,'\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:" << acc << "\" name=\"" << name << "\" value=\"" << std::setprecision(written_digits_doublereal) << value << "\"/>\n";
 				}
 			}
 			/**  

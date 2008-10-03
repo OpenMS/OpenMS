@@ -102,12 +102,12 @@ namespace OpenMS
 	}
 	
 	
-	float Modification::getMass() const
+	DoubleReal Modification::getMass() const
 	{
 	  return mass_;
 	}
 	
-	void Modification::setMass(float mass)
+	void Modification::setMass(DoubleReal mass)
 	{
 	  mass_ = mass;
 	}

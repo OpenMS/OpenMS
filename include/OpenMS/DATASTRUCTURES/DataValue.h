@@ -63,7 +63,7 @@ namespace OpenMS
 				EMPTY_VALUE       ///< Empty value
 				};
 			
-			///@name Constructors and destructors
+			/// @name Constructors and destructors
 			//@{
 			/// default constructor
 			DataValue();

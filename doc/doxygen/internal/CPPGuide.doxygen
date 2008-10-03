@@ -117,6 +117,17 @@ namespace OpenMS
 
 <b>Note:</b> In OpenMS, Qt headers have to be included with the library prefix!
 
+<H2 style="margin-top:20px; border-top:1px solid grey;">Input/Output</H2>
+
+Note that code like <code>std::cout << "blabla" << std::endl;</code> forces the output buffer to be <i>flushed</i>,
+i.e. written to disk <i>immediately</i>, which is a big nuisance.
+Get used to write code like <code>std::cout << "blabla\n";</code>.
+Debug output can be an exception, because the content of the stream buffer may be lost upon segfault etc..
+
+Write sufficiently many digits to avoid unnecessary rounding errors.
+Use the constants OpenMS::written_digits_real, OpenMS::written_digits_doublereal, etc.
+which are defined in <OpenMS/CONCEPT/Types.h>.
+
 */
 
 /// @endcond

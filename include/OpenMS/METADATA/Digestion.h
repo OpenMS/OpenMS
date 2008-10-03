@@ -69,25 +69,25 @@ namespace OpenMS
 		  void setEnzyme(const String& enzyme);
 		
 			/// returns the digestion time in minutes (default is 0.0)
-		  float getDigestionTime() const;
+		  DoubleReal getDigestionTime() const;
 		  /// sets the digestion time in minutes
-		  void setDigestionTime(float digestion_time);
+		  void setDigestionTime(DoubleReal digestion_time);
 		
 			/// return the temperature during digestion in degree C (default is 0.0)
-		  float getTemperature() const;
+		  DoubleReal getTemperature() const;
 		  /// sets the temperature during digestion in degree C
-		  void setTemperature(float temperature);
+		  void setTemperature(DoubleReal temperature);
 		
 			/// returns the pH value (default is 0.0)
-		  float getPh() const;
+		  DoubleReal getPh() const;
 		  /// sets the pH value
-		  void setPh(float ph);			
+		  void setPh(DoubleReal ph);			
 
     protected:
 			String enzyme_;
-			float digestion_time_;
-			float temperature_;
-			float ph_;
+			DoubleReal digestion_time_;
+			DoubleReal temperature_;
+			DoubleReal ph_;
   };
 } // namespace OpenMS
 

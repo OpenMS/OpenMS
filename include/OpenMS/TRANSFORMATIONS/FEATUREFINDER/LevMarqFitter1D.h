@@ -105,7 +105,7 @@ namespace OpenMS
         /// Statistic needed by pearson correlation coefficient
         Math::BasicStatistics<Real> stat_;
        
-        /** Diplay the intermediate state of the solution. The solver state contains 
+        /** Display the intermediate state of the solution. The solver state contains 
             the vector s->x which is the current position, and the vector s->f with 
             corresponding function values */
         virtual void printState_(Int iter, gsl_multifit_fdfsolver * s) = 0;  
@@ -135,7 +135,7 @@ namespace OpenMS
           Int iter = 0;
           const UInt n = set.size();
     
-          // number of parameter to be optimize
+          // number of parameters to be optimized
           UInt p = num_params;
           
           // gsl always expects N>=p or default gsl error handler invoked, 
@@ -222,7 +222,7 @@ namespace OpenMS
           }
 #endif
         
-          // set optimized parameter  
+          // set optimized parameters
           for (UInt i = 0; i < p; ++i)
           {
             x_init[i] = FIT( i );

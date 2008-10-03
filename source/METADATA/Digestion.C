@@ -101,34 +101,34 @@ namespace OpenMS
   }
 
 
-  float Digestion::getDigestionTime() const
+  DoubleReal Digestion::getDigestionTime() const
   {
     return digestion_time_;
   }
 
-  void Digestion::setDigestionTime(float digestion_time)
+  void Digestion::setDigestionTime(DoubleReal digestion_time)
   {
     digestion_time_ = digestion_time;
   }
 
 
-  float Digestion::getTemperature() const
+  DoubleReal Digestion::getTemperature() const
   {
     return temperature_;
   }
 
-  void Digestion::setTemperature(float temperature)
+  void Digestion::setTemperature(DoubleReal temperature)
   {
     temperature_ = temperature;
   }
 
 
-  float Digestion::getPh() const
+  DoubleReal Digestion::getPh() const
   {
     return ph_;
   }
 
-  void Digestion::setPh(float ph)
+  void Digestion::setPh(DoubleReal ph)
   {
     ph_ = ph;
   }

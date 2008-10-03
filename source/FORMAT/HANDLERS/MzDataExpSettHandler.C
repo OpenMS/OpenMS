@@ -299,11 +299,11 @@ namespace OpenMS
 			}
 			else if (accession_transcoded=="PSI:1000028")
 			{
-				exp_->getInstrument().getIonDetector().setResolution( asFloat_(value_transcoded) );
+				exp_->getInstrument().getIonDetector().setResolution( asDouble_(value_transcoded) );
 			}
 			else if (accession_transcoded=="PSI:1000029")
 			{
-				exp_->getInstrument().getIonDetector().setADCSamplingFrequency( asFloat_(value_transcoded) );
+				exp_->getInstrument().getIonDetector().setADCSamplingFrequency( asDouble_(value_transcoded) );
 			}
 			else if (accession_transcoded=="PSI:1000027")
 			{
@@ -345,15 +345,15 @@ namespace OpenMS
 			}
 			else if (accession_transcoded=="PSI:1000004")
 			{
-				exp_->getSample().setMass( asFloat_(value_transcoded) );
+				exp_->getSample().setMass( asDouble_(value_transcoded) );
 			}
 			else if (accession_transcoded=="PSI:1000005")
 			{
-				exp_->getSample().setVolume( asFloat_(value_transcoded) );
+				exp_->getSample().setVolume( asDouble_(value_transcoded) );
 			}
 			else if (accession_transcoded=="PSI:1000006")
 			{
-				exp_->getSample().setConcentration( asFloat_(value_transcoded) );
+				exp_->getSample().setConcentration( asDouble_(value_transcoded) );
 			}
 			else 
 			{
@@ -368,7 +368,7 @@ namespace OpenMS
 			}
 			else if (accession_transcoded=="PSI:1000011")
 			{
-				exp_->getInstrument().getMassAnalyzers().back().setResolution( asFloat_(value_transcoded) );
+				exp_->getInstrument().getMassAnalyzers().back().setResolution( asDouble_(value_transcoded) );
 			}
 			else if (accession_transcoded=="PSI:1000012")
 			{
@@ -380,15 +380,15 @@ namespace OpenMS
 			}
 			else if (accession_transcoded=="PSI:1000014")
 			{
-				exp_->getInstrument().getMassAnalyzers().back().setAccuracy( asFloat_(value_transcoded) );
+				exp_->getInstrument().getMassAnalyzers().back().setAccuracy( asDouble_(value_transcoded) );
 			}
 			else if (accession_transcoded=="PSI:1000015")
 			{
-				exp_->getInstrument().getMassAnalyzers().back().setScanRate( asFloat_(value_transcoded) );
+				exp_->getInstrument().getMassAnalyzers().back().setScanRate( asDouble_(value_transcoded) );
 			}
 			else if (accession_transcoded=="PSI:1000016")
 			{
-				exp_->getInstrument().getMassAnalyzers().back().setScanTime( asFloat_(value_transcoded) );
+				exp_->getInstrument().getMassAnalyzers().back().setScanTime( asDouble_(value_transcoded) );
 			}
 			else if (accession_transcoded=="PSI:1000017")
 			{
@@ -413,11 +413,11 @@ namespace OpenMS
 			}
 			else if (accession_transcoded=="PSI:1000022")
 			{
-				exp_->getInstrument().getMassAnalyzers().back().setTOFTotalPathLength( asFloat_(value_transcoded) );
+				exp_->getInstrument().getMassAnalyzers().back().setTOFTotalPathLength( asDouble_(value_transcoded) );
 			}
 			else if (accession_transcoded=="PSI:1000023")
 			{
-				exp_->getInstrument().getMassAnalyzers().back().setIsolationWidth( asFloat_(value_transcoded) );
+				exp_->getInstrument().getMassAnalyzers().back().setIsolationWidth( asDouble_(value_transcoded) );
 			}
 			else if (accession_transcoded=="PSI:1000024")
 			{
@@ -425,7 +425,7 @@ namespace OpenMS
 			}
 			else if (accession_transcoded=="PSI:1000025")
 			{
-				exp_->getInstrument().getMassAnalyzers().back().setMagneticFieldStrength( asFloat_(value_transcoded) );
+				exp_->getInstrument().getMassAnalyzers().back().setMagneticFieldStrength( asDouble_(value_transcoded) );
 			}
 			else 
 			{

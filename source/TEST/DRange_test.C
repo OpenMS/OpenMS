@@ -55,8 +55,8 @@ two[1]=2;
 
 //do not modify these points, they are used in many tests
 
-std::cout.precision(20);
-std::cerr.precision(20);
+std::cout.precision(written_digits_doublereal);
+std::cerr.precision(written_digits_doublereal);
 
 DRange<2>* ptr = 0;
 CHECK(DRange())

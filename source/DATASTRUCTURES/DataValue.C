@@ -237,14 +237,13 @@ namespace OpenMS
 	String DataValue::toString() const
 	{
 		stringstream ss;
-		ss.precision(8);
 		switch(value_type_) 
 		{
 			case DataValue::EMPTY_VALUE: break;
 			case DataValue::STRING_VALUE: return *(data_.str_); break;
 			case DataValue::STRING_LIST: ss << *(data_.str_list_) ; break;
 			case DataValue::INT_VALUE: ss << data_.int_ ; break;
-			case DataValue::DOUBLE_VALUE: ss << data_.dou_ ; break;
+			case DataValue::DOUBLE_VALUE: ss.precision(written_digits_doublereal); ss << data_.dou_ ; break;
 			default: throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to String");
 		};
 		return ss.str();

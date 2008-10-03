@@ -41,6 +41,9 @@ namespace OpenMS
 	
 		@ref ProductModel_Parameters are explained on a separate page.
 	
+	@todo This class provides new member functions, which makes
+	Factory<BaseModel<2> >::create("ProductModel2D") pretty much useless!  (Clemens)
+
 		@ingroup FeatureFinder
 	*/
 	template <UInt D> class ProductModel;

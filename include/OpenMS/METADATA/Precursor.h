@@ -95,9 +95,9 @@ namespace OpenMS
       void setActivationMethod(ActivationMethod activation_method);
 			
 			/// returns the activation energy
-      float getActivationEnergy() const;
+      DoubleReal getActivationEnergy() const;
       /// sets the activation energy
-      void setActivationEnergy(float activation_energy);
+      void setActivationEnergy(DoubleReal activation_energy);
 			
 			/// return the actication energy unit
       EnergyUnits getActivationEnergyUnit() const;
@@ -105,15 +105,15 @@ namespace OpenMS
       void setActivationEnergyUnit(EnergyUnits activation_energy_unit);
       
       /// returns the window size
-      float getWindowSize() const;
+      DoubleReal getWindowSize() const;
       /// sets the window size
-      void setWindowSize(float size);
+      void setWindowSize(DoubleReal size);
  
     protected:
       ActivationMethod activation_method_;
-      float activation_energy_;
+      DoubleReal activation_energy_;
       EnergyUnits activation_energy_unit_;
-      float window_size_;
+      DoubleReal window_size_;
   };
 } // namespace OpenMS
 

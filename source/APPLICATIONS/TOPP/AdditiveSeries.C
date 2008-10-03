@@ -293,7 +293,7 @@ class AdditiveSeries
 				// writing the peak data points
 				vector<double>::const_iterator cit = conc_vec_begin;
 				vector<double>::const_iterator ait = area_vec_begin;
-				dataout.precision(15);
+				dataout.precision(written_digits_doublereal);
 				for ( ;cit != conc_vec_end; ++cit, ++ait )
 				{
 					dataout << *cit << ' ' << *ait << '\n';

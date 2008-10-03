@@ -30,6 +30,7 @@
 #include <OpenMS/KERNEL/FeatureHandle.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 
+#include <climits> // damn CGAL uses INT_MAX!
 #include <CGAL/Cartesian.h>
 #include <CGAL/Point_set_2.h>
 

@@ -85,20 +85,20 @@ namespace OpenMS
       void setPolarity(IonSource::Polarity polarity);
 			
 			/// returns the scan begin in m/z dimension (default is 0.0)
-      float getMzRangeStart() const;
+      DoubleReal getMzRangeStart() const;
       /// sets the scan begin in m/z dimension
-      void setMzRangeStart(float mz_range_start);
+      void setMzRangeStart(DoubleReal mz_range_start);
 			
 			/// returns the scan end in m/z dimension (default is 0.0)
-      float getMzRangeStop() const;
+      DoubleReal getMzRangeStop() const;
       /// sets the scan end in m/z dimension
-      void setMzRangeStop(float mz_range_stop);
+      void setMzRangeStop(DoubleReal mz_range_stop);
 
     protected:
       ScanMode scan_mode_;
       IonSource::Polarity polarity_;
-      float mz_range_start_;
-      float mz_range_stop_;
+      DoubleReal mz_range_start_;
+      DoubleReal mz_range_stop_;
   };
 } // namespace OpenMS
 

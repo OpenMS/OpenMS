@@ -98,12 +98,12 @@ namespace OpenMS
 	  activation_method_ = activation_method; 
 	}
 	
-	float Precursor::getActivationEnergy() const 
+	DoubleReal Precursor::getActivationEnergy() const 
 	{
 	  return activation_energy_; 
 	}
 	
-	void Precursor::setActivationEnergy(float activation_energy)
+	void Precursor::setActivationEnergy(DoubleReal activation_energy)
 	{
 	  activation_energy_ = activation_energy; 
 	}
@@ -118,12 +118,12 @@ namespace OpenMS
 	  activation_energy_unit_ = activation_energy_unit; 
 	}
 	
-	float Precursor::getWindowSize() const
+	DoubleReal Precursor::getWindowSize() const
 	{
 		return window_size_;
 	}
 	
-	void Precursor::setWindowSize(float size)
+	void Precursor::setWindowSize(DoubleReal size)
 	{
 		window_size_ = size;
 	}

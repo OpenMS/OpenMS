@@ -575,7 +575,7 @@ namespace OpenMS
 				}
 				else if (accession=="PSI:1000038") //Time in minutes
 				{
-					spec_.setRT(asFloat_(value)*60); //Minutes to seconds
+					spec_.setRT(asDouble_(value)*60); //Minutes to seconds
 					if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRT())))
 					{
 						skip_spectrum_=true;
@@ -583,7 +583,7 @@ namespace OpenMS
 				}
 				else if (accession=="PSI:1000039") //Time in seconds
 				{
-					spec_.setRT(asFloat_(value));
+					spec_.setRT(asDouble_(value));
 					if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRT())))
 					{
 						skip_spectrum_=true;
@@ -602,7 +602,7 @@ namespace OpenMS
 			{
 				if (accession=="PSI:1000040") //m/z
 				{
-					spec_.getPrecursorPeak().getPosition()[0] = asFloat_(value);			
+					spec_.getPrecursorPeak().getPosition()[0] = asDouble_(value);			
 				}
 				else if (accession=="PSI:1000041") //Charge
 				{
@@ -610,7 +610,7 @@ namespace OpenMS
 				}
 				else if (accession=="PSI:1000042") //Intensity
 				{
-					spec_.getPrecursorPeak().setIntensity(asFloat_(value));		
+					spec_.getPrecursorPeak().setIntensity(asDouble_(value));		
 				}
 				else if (accession=="PSI:1000043") //Intensity unit (not really handled)
 				{
@@ -629,7 +629,7 @@ namespace OpenMS
 				}
 				else if (accession=="PSI:1000045") //Energy
 				{
-					spec_.getPrecursor().setActivationEnergy( asFloat_(value) );
+					spec_.getPrecursor().setActivationEnergy( asDouble_(value) );
 				}
 				else if (accession=="PSI:1000046") //Energy unit
 				{

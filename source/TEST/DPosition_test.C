@@ -39,8 +39,8 @@ START_TEST(DPosition<D>, "$Id$")
 
 using namespace OpenMS;
 
-std::cout.precision(20);
-std::cerr.precision(20);
+std::cout.precision(written_digits_doublereal);
+std::cerr.precision(written_digits_doublereal);
 
 DPosition<10>* d10_ptr = 0;
 CHECK((DPosition()))

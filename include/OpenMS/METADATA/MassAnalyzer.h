@@ -213,34 +213,34 @@ namespace OpenMS
 			
 				The maximum m/z value at which two peaks can be resolved, according to one of the standard measures
 			*/
-      float getResolution() const;
+      DoubleReal getResolution() const;
       /// sets the resolution
-      void setResolution(float resolution);
+      void setResolution(DoubleReal resolution);
 			
 			/// returns the mass accuracy i.e. how much the theoretical mass differs from the measured mass (in m/z)
-      float getAccuracy() const;
+      DoubleReal getAccuracy() const;
       /// sets the accuracy  i.e. how much the theoretical mass differs from the measured mass  (in m/z)
-      void setAccuracy(float accuracy);
+      void setAccuracy(DoubleReal accuracy);
 			
 			/// returns the scan rate (in s)
-      float getScanRate() const;
+      DoubleReal getScanRate() const;
       /// sets the scan rate (in s)
-      void setScanRate(float scan_rate);
+      void setScanRate(DoubleReal scan_rate);
 			
 			/// returns the scan time for a single scan (in s)
-      float getScanTime() const;
+      DoubleReal getScanTime() const;
       /// sets the scan time for a single scan (in s)
-      void setScanTime(float scan_time);
+      void setScanTime(DoubleReal scan_time);
 			
 			/// returns the path length for a TOF mass analyzer (in mm)
-      float getTOFTotalPathLength() const;
+      DoubleReal getTOFTotalPathLength() const;
       /// sets the path length for a TOF mass analyzer (in mm)
-      void setTOFTotalPathLength(float TOF_total_path_length);
+      void setTOFTotalPathLength(DoubleReal TOF_total_path_length);
 			
 			/// returns the isolation width i.e. in which m/z range the precursor ion is selected for MS to the n (in m/z)
-      float getIsolationWidth() const;
+      DoubleReal getIsolationWidth() const;
       /// sets the isolation width i.e. in which m/z range the precursor ion is selected for MS to the n (in m/z)
-      void setIsolationWidth(float isolation_width);
+      void setIsolationWidth(DoubleReal isolation_width);
 			
 			/// returns the final MS exponent
       Int getFinalMSExponent() const;
@@ -248,9 +248,9 @@ namespace OpenMS
       void setFinalMSExponent(Int final_MS_exponent);
 			
 			/// returns the strength of the magnetic field (in T)
-      float getMagneticFieldStrength() const;
+      DoubleReal getMagneticFieldStrength() const;
       /// sets the strength of the magnetic field (in T)
-      void setMagneticFieldStrength(float magnetic_field_strength);
+      void setMagneticFieldStrength(DoubleReal magnetic_field_strength);
 
     protected:
 			AnalyzerType type_;
@@ -261,14 +261,14 @@ namespace OpenMS
 			ScanLaw scan_law_;
 			TandemScanningMethod tandem_scan_method_;
 			ReflectronState reflectron_state_;
-			float resolution_;
-			float accuracy_;
-			float scan_rate_;
-			float scan_time_;
-			float TOF_total_path_length_;
-			float isolation_width_;
+			DoubleReal resolution_;
+			DoubleReal accuracy_;
+			DoubleReal scan_rate_;
+			DoubleReal scan_time_;
+			DoubleReal TOF_total_path_length_;
+			DoubleReal isolation_width_;
 			Int final_MS_exponent_;
-			float magnetic_field_strength_;
+			DoubleReal magnetic_field_strength_;
 	};
 } // namespace OpenMS
 

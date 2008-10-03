@@ -29,7 +29,7 @@
 
 #include <OpenMS/config.h>
 
-#include <limits.h>
+#include <limits>
 #include <time.h>
 #include <string>
 
@@ -146,7 +146,7 @@ namespace OpenMS
 		typedef int32_t Int; 
 		typedef uint32_t UInt;
 		typedef time_t	Time;
-   	typedef unsigned int UInt;		/* Remark: previous "Position" is unkown */
+   	typedef unsigned int UInt;
 		typedef float Real;
 		typedef double DoubleReal;
 		typedef	uint8_t Byte;
@@ -176,6 +176,55 @@ namespace OpenMS
 		ASCII__QUESTION_MARK    = '?',
 		ASCII__SEMICOLON        = ';'
 	};
+
+	/**
+	@name Numbers of digits used for writing floating point numbers (a.k.a. precision).
+
+	These static const integeres are provided to unify the handling of this
+	issue throughout %OpenMS.  (So please don't use ad-hoc numbers ;-) )
+
+	In practice, the number of decimal digits that the type can represent
+	without loss of precision are 6 digits for single precision
+	and 15 digits for double precision.
+	We have \f$2^{24}/10^{6}=16.777216\f$ and \f$2^{53}/10^{15}=9.007199254740992\f$,
+	so rounding will remove the remaining difference.
+
+	Example:
+	@code
+  #define NUMBER 12345.67890123456789012345678901
+  std::cout << NUMBER << '\n'; // default precision, writes: 12345.7
+
+  DoubleReal d = NUMBER;
+  std::cout.precision(written_digits_doublereal);
+  std::cout << written_digits_doublereal << ": " << d << '\n'; // writes: 15: 12345.6789012346
+  
+  Real r = NUMBER;
+  std::cout.precision(written_digits_real);
+  std::cout << written_digits_real << ": " << r << '\n'; // writes: 6: 12345.7
+  
+  long double l = NUMBER;
+  std::cout.precision(written_digits_long_double);
+  std::cout << written_digits_long_double << ": " << l << '\n'; // writes: 18: 12345.6789012345671
+
+  DoubleReal x = 88.99;
+  std::cout.precision(15);
+  std::cout << "15: " << x << '\n'; // writes: 15: 88.99
+  std::cout.precision(16);
+  std::cout << "16: " << x << '\n'; // writes: 16: 88.98999999999999
+	@endcode
+	*/
+	//@{
+	/// Number of digits commonly used for writing a @c double (a.k.a. precision).
+	static const Int written_digits_double = std::numeric_limits<double>::digits10;
+	/// Number of digits commonly used for writing a @c DoubleReal (a.k.a. precision).
+	static const Int written_digits_doublereal = std::numeric_limits<DoubleReal>::digits10;
+	/// Number of digits commonly used for writing a @c float (a.k.a. precision).
+	static const Int written_digits_float = std::numeric_limits<float>::digits10;
+	/// Number of digits commonly used for writing a @c Real (a.k.a. precision).
+	static const Int written_digits_real = std::numeric_limits<Real>::digits10;
+	/// Number of digits commonly used for writing a @c long @c double (a.k.a. precision).
+	static const Int written_digits_long_double = std::numeric_limits<long double>::digits10;
+	//@}
 
 	/**
 	@brief Returns the @c Type as as std::string.

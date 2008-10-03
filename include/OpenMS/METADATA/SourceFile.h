@@ -86,7 +86,7 @@ namespace OpenMS
     protected:
 			String name_of_file_;
 			String path_to_file_;
-			float file_size_;
+			DoubleReal file_size_;
 			String file_type_;
 			String sha1_;
   };
