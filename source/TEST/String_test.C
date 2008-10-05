@@ -731,6 +731,9 @@ CHECK((String& operator+= (double d)))
 RESULT
 
 CHECK((String& operator+= (long double d)))
+	STATUS(sizeof(long double));
+  STATUS(std::numeric_limits<long double>::digits);
+  STATUS(std::numeric_limits<long double>::digits10);
 	STATUS(written_digits_long_double);
 	String s = "test";
 	s += 7.4L;
