@@ -100,7 +100,7 @@ rm core *.backtrace 2>/dev/null
 COUNT=1
 for i in $* ; do
 	# print the name of the test running
-	$ECHO "`if [[ ${COUNT} -le 9 ]]; then echo ' '; fi;`  (${COUNT})	$i: $SUFFIX"
+	$ECHO "`if [ ${COUNT} -le 9 ] ; then echo ' '; fi;`  (${COUNT})	$i: $SUFFIX"
 	
 	# remove potential log files
 	rm $i.log 2>/dev/null
