@@ -731,6 +731,7 @@ CHECK((String& operator+= (double d)))
 RESULT
 
 CHECK((String& operator+= (long double d)))
+	STATUS(written_digits_long_double);
 	String s = "test";
 	s += 7.4L;
 	TEST_EQUAL(s, "test7.4")
