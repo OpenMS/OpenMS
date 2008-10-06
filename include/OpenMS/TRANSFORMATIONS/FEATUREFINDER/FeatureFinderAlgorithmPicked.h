@@ -293,6 +293,8 @@ namespace OpenMS
 				UInt optional_end;
 				///The maximum intensity contribution before scaling the pattern to 1
 				DoubleReal max;
+				///The number of isotopes trimmed on the left side. This is needed to reconstruct the monoisotopic peak.
+				UInt trimmed_left;
 				/// Returns the size
 				UInt size() const
 				{
@@ -314,7 +316,7 @@ namespace OpenMS
 				///Theoretical m/z value of the isotope peak
 				std::vector<DoubleReal> theoretical_mz;
 				///Theoretical isotope pattern
-				TheoreticalIsotopePattern theoretical_ints;
+				TheoreticalIsotopePattern theoretical_pattern;
 				
 				/// Constructor that resizes the internal vectors
 				IsotopePattern(UInt size)
@@ -401,8 +403,8 @@ namespace OpenMS
 				defaults_.setValue("feature:max_intersection",0.35, "Maximum allowed intersection of features.", StringList::create("advanced"));
 				defaults_.setMinFloat("feature:max_intersection",0.0);
 				defaults_.setMaxFloat("feature:max_intersection",1.0);
-				defaults_.setValue("feature:reported_mz","average", "The mass type that is reported for features.\n'average' returns the average mass of the highest mass trace.\n'monoisotopic' returns the theoretical averagene m/z calculated from the average mass.");
-				defaults_.setValidStrings("feature:reported_mz",StringList::create("average,monoisotopic"));
+				defaults_.setValue("feature:reported_mz","maximum", "The mass type that is reported for features.\n'maximum' returns the m/z value of the highest mass trace.\n'average' returns the intensity-weighted average m/z value of all contained peaks.\n'monoisotopic' returns the monoisotopic m/z value derived from the fitted isotope model.");
+				defaults_.setValidStrings("feature:reported_mz",StringList::create("maximum,average,monoisotopic"));
 				defaults_.setValue("feature:report_rt_apex_spectrum","false", "If 'true' the spectrum  number of the RT apex is reported as the meta data value 'rt_apex_spectrum'.",StringList::create("advanced"));
 				defaults_.setValidStrings("feature:report_rt_apex_spectrum",StringList::create("true,false"));
 				defaults_.setSectionDescription("feature","Settings for the features (intensity, quality assessment, ...)");
@@ -1031,73 +1033,32 @@ namespace OpenMS
 						}
 						f.setRT(x0);
 						
-						//Calculate the mass of the feature: 
-						//- monoisotopic
-						//- average
-						if((String)(param_.getValue("feature:reported_mz"))=="average")
+						//Calculate the mass of the feature: maximum, average, monoisotopic
+						String reported_mz = param_.getValue("feature:reported_mz");
+						if(reported_mz=="maximum")
 						{
 							f.setMZ(traces[traces.getTheoreticalMax()].getAvgMZ());
 						}
-						else
+						else if(reported_mz=="average")
 						{
-							// compute the average mz value of the whole feature
 							DoubleReal total_intensity = 0.0;
-							DoubleReal average_mass = 0.0;
-	 						for (UInt u=0; u<traces.size(); ++u)
+							DoubleReal average_mz = 0.0;
+	 						for (UInt t=0; t<traces.size(); ++t)
 							{
-								for (UInt v=0; v<traces[u].peaks.size(); ++v)
+								for (UInt p=0; p<traces[t].peaks.size(); ++p)
 								{
-									average_mass += traces[u].peaks[v].second->getMZ()*traces[u].peaks[v].second->getIntensity();
-									total_intensity+=traces[u].peaks[v].second->getIntensity();
+									average_mz += traces[t].peaks[p].second->getMZ()*traces[t].peaks[p].second->getIntensity();
+									total_intensity+=traces[t].peaks[p].second->getIntensity();
 								}
 							}
-							average_mass /= total_intensity;
-	
-							// given the average mz value, estimate the theoretical monoisotopic mass of an averagine
-							const ElementDB* db = ElementDB::getInstance();
-	
-							//Averagine element count divided by averagine weight 
-							std::vector<DoubleReal> factors;
-							factors.push_back(4.9384/111.1254);
-							factors.push_back(7.7583/111.1254);
-							factors.push_back(1.3577/111.1254);
-							factors.push_back(1.4773/111.1254);
-							factors.push_back(0.0417/111.1254);
-	
-							std::vector<String> names;
-							names.push_back("C");
-							names.push_back("H");
-							names.push_back("N");
-							names.push_back("O");
-							names.push_back("S");
-	
-							DoubleReal mono_mass = 0.0;
-							for (UInt w=0; w!=names.size(); ++w)
-							{
-								mono_mass  += db->getElement(names[w])->getMonoWeight()*factors[w]*average_mass;
-							}
-	
-							// try to determine the monoisotopic mass trace in the data
-							// if it is not found, use the theoretical value
-							DoubleReal dist = std::numeric_limits<DoubleReal>::max();
-							DoubleReal exp_mono_mass = 0.0;
-							for (UInt u=0; u<traces.size(); ++u)
-							{
-								DoubleReal act_exp_mono_mass = traces[u].getAvgMZ();
-								if (fabs(act_exp_mono_mass - mono_mass) < dist)
-								{
-									dist = fabs(act_exp_mono_mass - mono_mass);
-									exp_mono_mass = act_exp_mono_mass;
-								}
-							}
-							if (dist < trace_tolerance_)
-							{
-								f.setMZ(exp_mono_mass);
-							}
-							else
-							{
-								f.setMZ(mono_mass);
-							}
+							average_mz /= total_intensity;
+							f.setMZ(average_mz);
+						}
+						else if(reported_mz=="monoisotopic")
+						{
+							DoubleReal mono_mz = traces[traces.getTheoreticalMax()].getAvgMZ();
+							mono_mz -= (1.005/c) * (traces.getTheoreticalMax() + best_pattern.theoretical_pattern.trimmed_left);
+							f.setMZ(mono_mz);
 						}
 						
 						//Calculate intensity based on model only
@@ -1436,7 +1397,10 @@ namespace OpenMS
 					IsotopeDistribution d;
 					d.setMaxIsotope(20);
 					d.estimateFromPeptideWeight(0.5*mass_window_width_ + index * mass_window_width_);
+					//trim left and right. And store the number of isotopes on the left, to reconstruct the monoisotopic peak
+					UInt size_before = d.size();
 					d.trimLeft(intensity_percentage_optional_);
+					isotope_distributions_[index].trimmed_left = size_before - d.size();
 					d.trimRight(intensity_percentage_optional_);
 					for (IsotopeDistribution::Iterator it=d.begin(); it!=d.end(); ++it)
 					{
@@ -1570,7 +1534,7 @@ namespace OpenMS
 					}
 				}
 				log_ << " - best score              : " << max_score << std::endl;
-				best_pattern.theoretical_ints = isotopes;
+				best_pattern.theoretical_pattern = isotopes;
 				return max_score;
 			}
 			
@@ -1619,7 +1583,7 @@ namespace OpenMS
 					{
 						log_ << "   - previously extended maximum trace" << std::endl;
 						traces.push_back(max_trace);
-						traces.back().theoretical_int = pattern.theoretical_ints.intensity[p];
+						traces.back().theoretical_int = pattern.theoretical_pattern.intensity[p];
 						traces.max_trace = traces.size()-1;
 						continue;
 					}
@@ -1691,7 +1655,7 @@ namespace OpenMS
 						}
 					}
 					traces.push_back(trace);
-					traces.back().theoretical_int = pattern.theoretical_ints.intensity[p];
+					traces.back().theoretical_int = pattern.theoretical_pattern.intensity[p];
 				}
 			}
 
