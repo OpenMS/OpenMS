@@ -100,7 +100,7 @@ CHECK((const String& getIdentifier() const))
 }
 RESULT
 
-CHECK((void swap(DocumentIdentifier from)))
+CHECK((void swap(DocumentIdentifier& from)))
 {
   DocumentIdentifier di1;
 	di1.setIdentifier("this is a test");

@@ -125,6 +125,8 @@ namespace OpenMS
 
       typedef typename OutputPeakContainer::value_type OutputPeakType;
 
+			//prepare the container
+			picked_peak_container.clear();
       //clear the peak shapes vector
       peak_shapes_.clear();
       //set up meta data arrays
@@ -273,7 +275,6 @@ namespace OpenMS
               std::cout << "Corr: " << shape.r_value << " SN: " << sne.getSignalToNoise(area.max) << " FWHM: " << shape.getFWHM() << std::endl;
               std::cout << "Bad fitting peak "<< std::endl;
 #endif
-
             }
           }
 
@@ -295,7 +296,6 @@ namespace OpenMS
 
       // start the nonlinear optimization for all peaks in split
 #ifdef DEBUG_PEAK_PICKING
-
       std::cout << "Try the optimization run... with " << peak_shapes_.size() << std::endl;
 #endif
 
@@ -452,6 +452,10 @@ namespace OpenMS
 					}
         }
       } // if (peak_shapes_.size() > 0)
+			
+			// set MS level of output container to match the input container
+			picked_peak_container.setMSLevel(ms_level);
+			
     }
 
     /** 

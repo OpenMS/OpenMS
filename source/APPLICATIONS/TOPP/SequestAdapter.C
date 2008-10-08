@@ -133,7 +133,7 @@ class TOPPSequestAdapter
 																															"(rdesktop is used to connect to this computer)", false);
 			registerStringOption_("sequest_directory_win", "<dir>", "", "the windows directory in which Sequest (sequest.exe) is located", false);
 			registerStringOption_("user", "<name>", "", "user name for the sequest computer (has to have access to network!)", false);
-			registerStringOption_("password", "<pw>", "", "password for this user (if not given, you have to enter it at promt)", false);
+			registerStringOption_("password", "<pw>", "", "password for this user (if not given, you have to enter it at prompt)", false);
 			registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
 			registerStringOption_("temp_data_directory_win", "<dir>", "", "windows path of the temporary data directory,\n"
 																																																			"e.g. X:\\temp_data_dir", false);
@@ -207,7 +207,7 @@ class TOPPSequestAdapter
 																																															"Next, all other elements are tested. The protein is processed\n"
 																																															"if one filter string matches the header string.\n"
 																																															"A tilde (~) in the filter string is replaced by a blank during comparison.", false);
-			registerFlag_("keep_out_files", "If set the Seuest .out-files are not removed");
+			registerFlag_("keep_out_files", "If set the Sequest .out-files are not removed");
 			registerFlag_("keep_dta_files", "If set the dta-files that were created from the mzXML or mzData files are not removed");
 			registerIntOption_("nuc_reading_frame", "<num>", 0, "Format of the FASTA database:\n"
 																													 "0  The FASTA file contains amino acid codes. No translation is needed.\n"

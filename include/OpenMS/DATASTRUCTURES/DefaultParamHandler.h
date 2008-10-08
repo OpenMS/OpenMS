@@ -125,7 +125,7 @@ namespace OpenMS
 
 		protected:
 			/**
-				@brief This method is used to update extra member variables at the end of the setParam() method.
+				@brief This method is used to update extra member variables at the end of the setParameters() method.
 
 				Also call it at the end of the derived classes' copy constructor and assignment operator.
 
@@ -142,7 +142,7 @@ namespace OpenMS
 			/**
 				@brief Container for default parameters. This member should be filled in the constructor of derived classes!
 
-				@note call the setParam_() method at the end of the constructor in order to copy the defaults to param_.
+				@note call the defaultsToParam_() method at the end of the constructor in order to copy the defaults to param_.
 			*/
 			Param defaults_;
 
