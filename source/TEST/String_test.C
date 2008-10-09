@@ -31,6 +31,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <iostream>
+#include <iomanip>
 #include <vector>
 
 #include <QtCore/QString>
@@ -731,13 +732,40 @@ CHECK((String& operator+= (double d)))
 RESULT
 
 CHECK((String& operator+= (long double d)))
-	STATUS(sizeof(long double));
-  STATUS(std::numeric_limits<long double>::digits);
-  STATUS(std::numeric_limits<long double>::digits10);
-	STATUS(written_digits_long_double);
+{
+	{
+		// NOTE (Clemens): I am still trying to find out what goes wrong with g++
+		// 3.4 as used for windows test builds.  Will remove this stuff when the
+		// problem is solved.
+
+		STATUS(sizeof(double));
+		STATUS(std::numeric_limits<double>::digits);
+		STATUS(std::numeric_limits<double>::digits10);
+		STATUS(written_digits_double);
+
+		STATUS(sizeof(long double));
+		STATUS(std::numeric_limits<long double>::digits);
+		STATUS(std::numeric_limits<long double>::digits10);
+		STATUS(written_digits_long_double);
+
+		STATUS(typeAsString(7.4));
+		STATUS(typeAsString(7.4L));
+
+		const UInt save_prec  = std::cout.precision();
+		for ( UInt prec = 10; prec <= 30; ++prec)
+		{
+			std::cout.precision(prec);
+			STATUS("prec: " << prec << "   7.4: " << 7.4 << "   7.4L: " << 7.4L);
+		}
+		std::cout.precision(save_prec);
+	}
+
 	String s = "test";
-	s += 7.4L;
-	TEST_EQUAL(s, "test7.4")
+	// long double x = 7.4; // implictly double (not long double!)  =>  7.40000000000000036
+	long double x = 7.4L; // explictly long double  =>  7.4
+	s += x;
+	TEST_EQUAL(s, "test7.4");
+}
 RESULT
 
 CHECK((String& operator+= (char c)))
