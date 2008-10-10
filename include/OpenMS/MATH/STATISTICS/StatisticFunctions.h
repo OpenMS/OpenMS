@@ -52,8 +52,8 @@ namespace OpenMS
 	  static DoubleReal meanSquareError ( IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b )
 		{
 			//no data or different lengths
-			UInt count = distance(begin_a,end_a);
-			if (count==0 || count!=distance(begin_b,end_b))
+			Int dist = distance(begin_a,end_a);
+			if (dist==0 || dist!=distance(begin_b,end_b))
 			{
 				throw Exception::InvalidRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 			}
@@ -66,7 +66,7 @@ namespace OpenMS
 				++begin_b;
 			}
 
-			return error / count;
+			return error / dist;
 		}
 
 		/**
@@ -83,13 +83,13 @@ namespace OpenMS
 	  static DoubleReal classificationRate ( IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b )
 		{
 			//no data or different lengths
-			UInt count = distance(begin_a,end_a);
-			if (count==0 || count!=distance(begin_b,end_b))
+			Int dist = distance(begin_a,end_a);
+			if (dist==0 || dist!=distance(begin_b,end_b))
 			{
 				throw Exception::InvalidRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 			}
 			
-			DoubleReal correct = count;
+			DoubleReal correct = dist;
 			while(begin_a != end_a)
 			{
 				if ((*begin_a < 0 && *begin_b >= 0) || (*begin_a >= 0 && *begin_b < 0))
@@ -100,7 +100,7 @@ namespace OpenMS
 				++begin_b;
 			}
 
-			return correct / count;
+			return correct / dist;
 		}
 
 		/**
@@ -119,8 +119,8 @@ namespace OpenMS
 	  static DoubleReal matthewsCorrelationCoefficient( IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b)
 		{
 			//no data or different lengths
-			UInt count = distance(begin_a,end_a);
-			if (count==0 || count!=distance(begin_b,end_b))
+			Int dist = distance(begin_a,end_a);
+			if (dist==0 || dist!=distance(begin_b,end_b))
 			{
 				throw Exception::InvalidRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 			}
@@ -171,15 +171,15 @@ namespace OpenMS
 	  static DoubleReal pearsonCorrelationCoefficient ( IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b )
 		{
 			//no data or different lengths
-			UInt count = distance(begin_a,end_a);
-			if (count==0 || count!=distance(begin_b,end_b))
+			Int dist = distance(begin_a,end_a);
+			if (dist==0 || dist!=distance(begin_b,end_b))
 			{
 				throw Exception::InvalidRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 			}
 				
 			//calculate average
-			DoubleReal avg_a = std::accumulate(begin_a,end_a,0.0) / count;
-			DoubleReal avg_b = std::accumulate(begin_b,end_b,0.0) / count;
+			DoubleReal avg_a = std::accumulate(begin_a,end_a,0.0) / dist;
+			DoubleReal avg_b = std::accumulate(begin_b,end_b,0.0) / dist;
 
 			DoubleReal numerator = 0;
 			DoubleReal denominator_a = 0;
@@ -246,17 +246,17 @@ namespace OpenMS
     static DoubleReal rankCorrelationCoefficient ( IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b )
     {
 			//no data or different lengths
-			UInt count = distance(begin_a,end_a);
-			if (count==0 || count!=distance(begin_b,end_b))
+			Int dist = distance(begin_a,end_a);
+			if (dist==0 || dist!=distance(begin_b,end_b))
 			{
 				throw Exception::InvalidRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 			}
 
       // store and sort intensities of model and data
       std::vector<DoubleReal> ranks_data;
-      ranks_data.reserve(count);
+      ranks_data.reserve(dist);
       std::vector<DoubleReal> ranks_model;
-      ranks_model.reserve(count);
+      ranks_model.reserve(dist);
 	
       while(begin_a != end_a)
       {
@@ -279,7 +279,7 @@ namespace OpenMS
       DoubleReal sqsum_data     = 0;
       DoubleReal sqsum_model    = 0;
 		
-      for (UInt i=0; i<count;++i)
+      for (Int i=0; i<dist;++i)
       {
         sum_model_data  += (ranks_data[i] - mu) *(ranks_model[i] - mu);
         sqsum_data   += (ranks_data[i] - mu) * (ranks_data[i] - mu);
