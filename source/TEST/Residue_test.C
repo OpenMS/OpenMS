@@ -258,7 +258,7 @@ CHECK(void setLossFormulas(const std::vector<EmpiricalFormula> &))
 	vector<EmpiricalFormula> losses;
 	losses.push_back(EmpiricalFormula("H2O"));
 	e_ptr->setLossFormulas(losses);
-	TEST_NOT_EQUAL(*e_ptr == copy, false)
+	TEST_NOT_EQUAL(*e_ptr == copy, true)
 RESULT
 
 CHECK(const std::vector<EmpiricalFormula>& getLossFormulas() const)
