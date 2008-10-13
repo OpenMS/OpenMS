@@ -205,10 +205,11 @@ namespace OpenMS
 			temp_homology = 
 				id_data_[peptide_identification_index_].getSignificanceThreshold();
 			temp_identity = ((String) sm_.convert(chars)).trim().toDouble();
+			actual_peptide_hit_.setMetaValue("homology_threshold", temp_homology);
+			actual_peptide_hit_.setMetaValue("identity_threshold", temp_identity);
 			if (temp_homology > temp_identity || temp_homology == 0)
 			{
-				id_data_[peptide_identification_index_].setSignificanceThreshold(
-					temp_identity);				
+				id_data_[peptide_identification_index_].setSignificanceThreshold(temp_identity);				
 			}
 			tag_ = "";
 		}
