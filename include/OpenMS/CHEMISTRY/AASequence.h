@@ -450,6 +450,12 @@ namespace OpenMS
 
 			/// returns a peptide sequence of number residues, beginning at position index
 			AASequence getSubsequence(UInt index, UInt number) const;
+
+			/// counts the number of occurrences of residue given by a string
+			UInt getNumberOf(const String& residue) const;
+
+			/// counts the number of occurrences of residue given by a string literal
+			UInt getNumberOf(const char* residue) const;
 			//@}
 
 			/** @name Predicates

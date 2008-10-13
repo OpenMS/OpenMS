@@ -184,9 +184,24 @@ namespace OpenMS
 			if (fabs((*it)->getDiffMonoMass() - mass) <= error)
 			{
 				String origin = (*it)->getOrigin();
-				if (origin  == "X" || ResidueDB::getInstance()->getResidue(origin) == ResidueDB::getInstance()->getResidue(residue))
+				if (ResidueDB::getInstance()->getResidue(origin) == ResidueDB::getInstance()->getResidue(residue))
 				{
 					mods.push_back((*it)->getId());
+				}
+			}
+		}
+
+		// no specific mod found? Then use 'X' as origin
+		if (mods.size() == 0)
+		{
+			for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
+			{
+				if (fabs((*it)->getDiffMonoMass() - mass) <= error)
+				{
+					if ((*it)->getOrigin() == "X")
+					{
+						mods.push_back((*it)->getId());
+					}
 				}
 			}
 		}

@@ -919,6 +919,39 @@ namespace OpenMS
 		return ResidueDB::getInstance();
 	}	
 
+	UInt AASequence::getNumberOf(const String& residue) const
+	{
+		UInt count(0);
+		const Residue* res = getResidueDB_()->getResidue(residue);
+		if (valid_)
+		{
+			for (vector<const Residue*>::const_iterator it = peptide_.begin(); it != peptide_.end(); ++it)
+			{
+				if (*it == res)
+				{
+					++count;
+				}
+			}
+		}
+		else
+		{
+			for (String::ConstIterator it = sequence_string_.begin(); it != sequence_string_.end(); ++it)
+			{
+				if (String(*it) == res->getOneLetterCode())
+				{
+					++count;
+				}
+			}
+		}
+
+		return count;
+	}
+
+	UInt AASequence::getNumberOf(const char* residue) const
+	{
+		return getNumberOf(String(residue));
+	}
+	
 	AASequence::AASequence(ConstIterator begin, ConstIterator end)
 		: valid_(true)
 	{
