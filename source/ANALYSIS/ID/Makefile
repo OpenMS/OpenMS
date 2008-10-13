@@ -37,6 +37,7 @@ CPP_SOURCES=\
 	PILISScoring.C\
 	HiddenMarkovModel.C\
 	PILISModel.C\
+	PILISPrecursorModel.C\
 	PILISModelGenerator.C\
 	PILISIdentification.C\
 	IDDecoyProbability.C\

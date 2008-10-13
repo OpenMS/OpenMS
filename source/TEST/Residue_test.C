@@ -173,12 +173,11 @@ CHECK(Residue(const Residue &residue))
 RESULT
 
 CHECK(Residue(const String &name, const String &three_letter_code, const String &one_letter_code, const EmpiricalFormula &formula, const EmpiricalFormula &neutral_loss))
-	Residue copy(e_ptr->getName(), e_ptr->getThreeLetterCode(), e_ptr->getOneLetterCode(), e_ptr->getFormula(), e_ptr->getLossFormula());
+	Residue copy(e_ptr->getName(), e_ptr->getThreeLetterCode(), e_ptr->getOneLetterCode(), e_ptr->getFormula());
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 	TEST_EQUAL(copy.getThreeLetterCode(), e_ptr->getThreeLetterCode())
 	TEST_EQUAL(copy.getOneLetterCode(), e_ptr->getOneLetterCode())
 	TEST_EQUAL(copy.getFormula(), e_ptr->getFormula())
-	TEST_EQUAL(copy.getLossFormula(), e_ptr->getLossFormula())
 RESULT
 
 CHECK(Residue& operator=(const Residue &residue))
@@ -246,44 +245,48 @@ CHECK(const String& getOneLetterCode() const)
 	TEST_EQUAL(e_ptr->getOneLetterCode(), "B")
 RESULT
 
-CHECK(void setLossFormula(const EmpiricalFormula &))
+CHECK(void addLossFormula(const EmpiricalFormula&))
 	Residue copy(*e_ptr);
-	e_ptr->setLossFormula(EmpiricalFormula("H2O"));
+	TEST_EQUAL(*e_ptr, copy)
+	e_ptr->addLossFormula(EmpiricalFormula("H2O"));
 	TEST_NOT_EQUAL(*e_ptr, copy)
 RESULT
 
-CHECK(const EmpiricalFormula& getLossFormula() const)
-	TEST_EQUAL(e_ptr->getLossFormula(), EmpiricalFormula("H2O"))
+CHECK(void setLossFormulas(const std::vector<EmpiricalFormula> &))
+	Residue copy(*e_ptr);
+	TEST_EQUAL(*e_ptr, copy)
+	vector<EmpiricalFormula> losses;
+	losses.push_back(EmpiricalFormula("H2O"));
+	e_ptr->setLossFormulas(losses);
+	TEST_NOT_EQUAL(*e_ptr == copy, false)
 RESULT
 
-CHECK(void setLossAverageWeight(DoubleReal weight))
+CHECK(const std::vector<EmpiricalFormula>& getLossFormulas() const)
+	vector<EmpiricalFormula> losses;
+	losses.push_back(EmpiricalFormula("H2O"));
+	TEST_EQUAL(e_ptr->getLossFormulas() == losses, true)
+RESULT
+
+CHECK(void setLossNames(const std::vector<String> &name))
 	Residue copy(*e_ptr);
-	e_ptr->setLossAverageWeight(18.5);
+	TEST_EQUAL(*e_ptr, copy)
+	vector<String> names;
+	names.push_back("Waesserchen");
+	e_ptr->setLossNames(names);
 	TEST_NOT_EQUAL(*e_ptr, copy)
 RESULT
 
-CHECK(DoubleReal getLossAverageWeight() const)
-	TEST_REAL_EQUAL(e_ptr->getLossAverageWeight(), 18.5)
+CHECK(const std::vector<String>& getLossName() const)
+	vector<String> names;
+	names.push_back("Waesserchen");
+	TEST_EQUAL(e_ptr->getLossNames() == names, true)
 RESULT
 
-CHECK(void setLossMonoWeight(DoubleReal weight))
+CHECK(void addLossName(const String&))
 	Residue copy(*e_ptr);
-	e_ptr->setLossMonoWeight(18.6);
+	TEST_EQUAL(*e_ptr, copy)
+	copy.addLossName("Waesserchen2");
 	TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT
-
-CHECK(DoubleReal getLossMonoWeight() const)
-	TEST_EQUAL(e_ptr->getLossMonoWeight(), 18.6)
-RESULT
-
-CHECK(void setLossName(const String &name))
-	Residue copy(*e_ptr);
-	e_ptr->setLossName("Waesserchen");
-	TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT
-
-CHECK(const String& getLossName() const)
-	TEST_EQUAL(e_ptr->getLossName(), "Waesserchen")
 RESULT
 
 CHECK(void setFormula(const EmpiricalFormula &formula, ResidueType res_type=Full))
@@ -345,7 +348,7 @@ RESULT
 CHECK(bool hasNeutralLoss() const)
 	Residue res;
 	TEST_EQUAL(res.hasNeutralLoss(), false)
-	res.setLossFormula(EmpiricalFormula("H2O"));
+	res.addLossFormula(EmpiricalFormula("H2O"));
 	TEST_EQUAL(res.hasNeutralLoss(), true)
 RESULT
 
@@ -380,22 +383,12 @@ CHECK(bool operator==(const Residue &residue) const)
 	
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
-	r.setLossFormula(EmpiricalFormula("C1H3"));
+	r.addLossFormula(EmpiricalFormula("C1H3"));
 	TEST_EQUAL(r == *e_ptr, false)
 	
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
-	r.setLossAverageWeight(123.456);
-	TEST_EQUAL(r == *e_ptr, false)
-	
-	r = *e_ptr;
-	TEST_EQUAL(r == *e_ptr, true)
-	r.setLossMonoWeight(1234.567);
-	TEST_EQUAL(r == *e_ptr, false)
-	
-	r = *e_ptr;
-	TEST_EQUAL(r == *e_ptr, true)
-	r.setLossName("new_loss_name");
+	r.addLossName("new_loss_name");
 	TEST_EQUAL(r == *e_ptr, false)
 
 	r = *e_ptr;
@@ -487,22 +480,12 @@ CHECK(bool operator!=(const Residue &residue) const)
 
 	r = *e_ptr;
   TEST_EQUAL(r != *e_ptr, false)
-  r.setLossFormula(EmpiricalFormula("C1H3"));
+  r.addLossFormula(EmpiricalFormula("C1H3"));
   TEST_EQUAL(r != *e_ptr, true)
 
   r = *e_ptr;
   TEST_EQUAL(r != *e_ptr, false)
-  r.setLossAverageWeight(123.456);
-  TEST_EQUAL(r != *e_ptr, true)
-
-  r = *e_ptr;
-  TEST_EQUAL(r != *e_ptr, false)
-  r.setLossMonoWeight(1234.567);
-  TEST_EQUAL(r != *e_ptr, true)
-
-  r = *e_ptr;
-  TEST_EQUAL(r != *e_ptr, false)
-  r.setLossName("new_loss_name");
+  r.addLossName("new_loss_name");
   TEST_EQUAL(r != *e_ptr, true)
 
   r = *e_ptr;

@@ -707,10 +707,10 @@ namespace OpenMS
 		set<String> losses;
 		for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
 		{
-			String loss = (*it)->getLossFormula().getString();
-
-			if (loss != "")
+			vector<EmpiricalFormula> res_losses = (*it)->getLossFormulas();
+			for (vector<EmpiricalFormula>::const_iterator loss_it = res_losses.begin(); loss_it != res_losses.end(); ++loss_it)
 			{
+				String loss = loss_it->getString();
 				losses.insert(loss);
 #ifdef PRECURSOR_MODEL_DEBUG
 				cerr << "Loss: " << loss << " (name=" << (*it)->getLossName() << ") of residue: " << (*it)->getName() << endl;
@@ -761,93 +761,105 @@ namespace OpenMS
 		{
 			AASequence aa1;
 			aa1 += *it1;
-			String loss1 = (*it1)->getLossFormula().getString();
-			if (loss1 == "")
-			{
-				continue;
-			}
-			
-			model_.hmm_precursor_.addNewState(new HMMState(aa1.toString() + "-" + loss1));
-			model_.hmm_precursor_.addNewState(new HMMState(aa1.toString() + "-" + loss1 + "-next"));
 
-			for (UInt i = 0; i != num_explicit; ++i)
-			{
-				model_.hmm_precursor_.addNewState(new HMMState(aa1.toString() + "-" + loss1 + "_" + String(i + 1)));
-			}
-			
-			model_.hmm_precursor_.addNewState(new HMMState(aa1.toString()  + "COOH-" + loss1 + "-" + h2o));
-			model_.hmm_precursor_.addNewState(new HMMState(aa1.toString()  + "COOH-" + loss1 + "-" + h2o + "-next"));
-
-			String losses;
-			if (h2o < loss1)
-			{
-				losses = "-" + h2o  + "-" + loss1;
-			}
-			else
-			{
-				losses = "-" + loss1 + "-" + h2o;
-			}
-			String cooh_name = aa1.toString() + "COOH-" + loss1 + "-" + h2o;
-			model_.hmm_precursor_.setTransitionProbability(cooh_name, "p" + losses, 0.25);
-			model_.hmm_precursor_.setTransitionProbability(cooh_name, aa1.toString() + "-" + loss1, 0.25);
-			model_.hmm_precursor_.setTransitionProbability(cooh_name, "COOH-" + h2o, 0.25);
-			model_.hmm_precursor_.setTransitionProbability(cooh_name, cooh_name + "-next", 0.25);
-		}
-		for (set<const Residue*>::const_iterator it1 = residues.begin(); it1 != residues.end(); ++it1)
-		{
-			AASequence aa1;
-			aa1 += *it1;
-			String loss1 = (*it1)->getLossFormula().getString();
-			if (loss1 == "")
-			{
-				continue;
-			}
-			
-			for (set<const Residue*>::const_iterator it2 = it1; it2 != residues.end(); ++it2)
-			{
-				AASequence aa2;
-				aa2 += *it2;
-				String loss2 = (*it2)->getLossFormula().getString();
-				if (loss2 != "")
+			vector<EmpiricalFormula> res_losses1 = (*it1)->getLossFormulas();
+      for (vector<EmpiricalFormula>::const_iterator loss_it1 = res_losses1.begin(); loss_it1 != res_losses1.end(); ++loss_it1)
+      {
+				String loss1 = loss_it1->getString();
+				if (loss1 == "")
 				{
-					String name;
-					String losses;
-					if (loss1 < loss2)
-					{
-						losses = "-" + loss1 + "-" + loss2;
-					}
-					else
-					{
-						losses = "-" + loss2 + "-" + loss1;
-					}
-					if (aa1 < aa2)
-					{
-						name = aa1.toString() + aa2.toString();
-					}
-					else
-					{
-						name = aa2.toString() + aa1.toString();
-					}
-					model_.hmm_precursor_.addNewState(new HMMState(name + losses, true));
-					model_.hmm_precursor_.addNewState(new HMMState(name + losses + "-next", true));
+					continue;
+				}
+			
+				model_.hmm_precursor_.addNewState(new HMMState(aa1.toString() + "-" + loss1));
+				model_.hmm_precursor_.addNewState(new HMMState(aa1.toString() + "-" + loss1 + "-next"));
 
-					for (UInt i = 0; i != num_explicit; ++i)
-					{
-						model_.hmm_precursor_.addNewState(new HMMState(name + losses + "_" + String(i + 1), true));
-					}
+				for (UInt i = 0; i != num_explicit; ++i)
+				{
+					model_.hmm_precursor_.addNewState(new HMMState(aa1.toString() + "-" + loss1 + "_" + String(i + 1)));
+				}
+			
+				model_.hmm_precursor_.addNewState(new HMMState(aa1.toString()  + "COOH-" + loss1 + "-" + h2o));
+				model_.hmm_precursor_.addNewState(new HMMState(aa1.toString()  + "COOH-" + loss1 + "-" + h2o + "-next"));
 
-					model_.hmm_precursor_.setTransitionProbability(name + losses, "p" + losses, 0.25);
-					model_.hmm_precursor_.setTransitionProbability(name + losses, aa1.toString() + "-" + loss1, 0.25);
-					model_.hmm_precursor_.setTransitionProbability(name + losses, aa2.toString() + "-" + loss2, 0.25);
-					model_.hmm_precursor_.setTransitionProbability(name + losses, name + losses + "-next", 0.25);
+				String losses;
+				if (h2o < loss1)
+				{
+					losses = "-" + h2o  + "-" + loss1;
+				}
+				else
+				{
+					losses = "-" + loss1 + "-" + h2o;
+				}
+				String cooh_name = aa1.toString() + "COOH-" + loss1 + "-" + h2o;
+				model_.hmm_precursor_.setTransitionProbability(cooh_name, "p" + losses, 0.25);
+				model_.hmm_precursor_.setTransitionProbability(cooh_name, aa1.toString() + "-" + loss1, 0.25);
+				model_.hmm_precursor_.setTransitionProbability(cooh_name, "COOH-" + h2o, 0.25);
+				model_.hmm_precursor_.setTransitionProbability(cooh_name, cooh_name + "-next", 0.25);
+			
+			/*}
+			
+			for (set<const Residue*>::const_iterator it1 = residues.begin(); it1 != residues.end(); ++it1)
+			{
+				AASequence aa1;
+				aa1 += *it1;
+				String loss1 = (*it1)->getLossFormula().getString();
+				if (loss1 == "")
+				{
+					continue;
+				}*/
+				
+				for (set<const Residue*>::const_iterator it2 = it1; it2 != residues.end(); ++it2)
+				{
+					AASequence aa2;
+					aa2 += *it2;
 
-					for (UInt i = 0; i != num_explicit; ++i)
-					{
-						String state_name_num = name + losses + "_" + String(i + 1);
-						String state_name = name + losses;
-						model_.hmm_precursor_.addSynonymTransition(state_name, "p" + losses,  state_name_num, "p" + losses);
-						model_.hmm_precursor_.addSynonymTransition(state_name, aa1.toString() + "-" + loss1, state_name_num, aa1.toString() + "-" + loss1 + "_" + String(i + 1));
-						model_.hmm_precursor_.addSynonymTransition(state_name, aa2.toString() + "-" + loss2, state_name_num, aa2.toString() + "-" + loss2 + "_" + String(i + 1));
+					vector<EmpiricalFormula> res_losses2 = (*it2)->getLossFormulas();
+		      for (vector<EmpiricalFormula>::const_iterator loss_it2 = res_losses2.begin(); loss_it2 != res_losses2.end(); ++loss_it2)
+    		  {
+						String loss2 = loss_it2->getString();
+						if (loss2 != "")
+						{
+							String name;
+							String losses;
+							if (loss1 < loss2)
+							{
+								losses = "-" + loss1 + "-" + loss2;
+							}
+							else
+							{
+								losses = "-" + loss2 + "-" + loss1;
+							}
+							if (aa1 < aa2)
+							{
+								name = aa1.toString() + aa2.toString();
+							}
+							else
+							{
+								name = aa2.toString() + aa1.toString();
+							}
+							model_.hmm_precursor_.addNewState(new HMMState(name + losses, true));
+							model_.hmm_precursor_.addNewState(new HMMState(name + losses + "-next", true));
+		
+							for (UInt i = 0; i != num_explicit; ++i)
+							{
+								model_.hmm_precursor_.addNewState(new HMMState(name + losses + "_" + String(i + 1), true));
+							}
+		
+							model_.hmm_precursor_.setTransitionProbability(name + losses, "p" + losses, 0.25);
+							model_.hmm_precursor_.setTransitionProbability(name + losses, aa1.toString() + "-" + loss1, 0.25);
+							model_.hmm_precursor_.setTransitionProbability(name + losses, aa2.toString() + "-" + loss2, 0.25);
+							model_.hmm_precursor_.setTransitionProbability(name + losses, name + losses + "-next", 0.25);
+		
+							for (UInt i = 0; i != num_explicit; ++i)
+							{
+								String state_name_num = name + losses + "_" + String(i + 1);
+								String state_name = name + losses;
+								model_.hmm_precursor_.addSynonymTransition(state_name, "p" + losses,  state_name_num, "p" + losses);
+								model_.hmm_precursor_.addSynonymTransition(state_name, aa1.toString() + "-" + loss1, state_name_num, aa1.toString() + "-" + loss1 + "_" + String(i + 1));
+								model_.hmm_precursor_.addSynonymTransition(state_name, aa2.toString() + "-" + loss2, state_name_num, aa2.toString() + "-" + loss2 + "_" + String(i + 1));
+							}
+						}
 					}
 				}
 			}
@@ -857,22 +869,28 @@ namespace OpenMS
 		{
 			AASequence aa;
       aa += *it;
-      String loss = (*it)->getLossFormula().getString();
-      if (loss == "")
-      {
-        continue;
-      }
-
-			model_.hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, "p-" + loss, 0.25);
-			model_.hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, "p", 0.25);
-			model_.hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, aa.toString() + "-" + loss + "-next", 0.5);
-
-			for (UInt i = 0; i != num_explicit; ++i)
+			
+			vector<EmpiricalFormula> res_losses = (*it)->getLossFormulas();
+      for (vector<EmpiricalFormula>::const_iterator loss_it = res_losses.begin(); loss_it != res_losses.end(); ++loss_it)
 			{
-				String name_num = aa.toString() + "-" + loss + "_" + String(i + 1);
-				String name = aa.toString() + "-" + loss;
-				model_.hmm_precursor_.addSynonymTransition(name, "p-" + loss, name_num, "p-" + loss);
-				model_.hmm_precursor_.addSynonymTransition(name, "p", name_num, "p");
+				String loss = loss_it->getString();
+			
+	      if (loss == "")
+ 	     	{
+ 	      	continue;
+ 	     	}
+
+				model_.hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, "p-" + loss, 0.25);
+				model_.hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, "p", 0.25);
+				model_.hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, aa.toString() + "-" + loss + "-next", 0.5);
+
+				for (UInt i = 0; i != num_explicit; ++i)
+				{
+					String name_num = aa.toString() + "-" + loss + "_" + String(i + 1);
+					String name = aa.toString() + "-" + loss;
+					model_.hmm_precursor_.addSynonymTransition(name, "p-" + loss, name_num, "p-" + loss);
+					model_.hmm_precursor_.addSynonymTransition(name, "p", name_num, "p");
+				}
 			}
 		}
 

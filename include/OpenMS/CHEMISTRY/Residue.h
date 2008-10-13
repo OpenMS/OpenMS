@@ -259,8 +259,7 @@ namespace OpenMS
 			Residue(const String& name,
 							const String& three_letter_code,
 							const String& one_letter_code,
-							const EmpiricalFormula& formula,
-							const EmpiricalFormula& neutral_loss);
+							const EmpiricalFormula& formula);
 	
 			/// destructor
 			virtual ~Residue();
@@ -309,29 +308,23 @@ namespace OpenMS
 			/// returns the name as one letter code
 			const String& getOneLetterCode() const;
 	
-			/// sets the neutral loss formula (if there is one)
-			void setLossFormula(const EmpiricalFormula&);
-	
+			/// adds a neutral loss formula
+			void addLossFormula(const EmpiricalFormula&);
+
+			/// sets the neutral loss formulas 
+			void setLossFormulas(const std::vector<EmpiricalFormula>&);
+			
 			/// returns the neutral loss formula (or just an empty string if there is none)
-			const EmpiricalFormula& getLossFormula() const;
+			const std::vector<EmpiricalFormula>& getLossFormulas() const;
 	
-			/// sets the average weight of the neutral loss molecule
-			void setLossAverageWeight(DoubleReal weight);
-	
-			/// return the average weight of the neutral loss molecule
-			DoubleReal getLossAverageWeight() const;
-	
-			/// sets the mono isotopic weight of the neutral loss molecule
-			void setLossMonoWeight(DoubleReal weight);
-	
-			/// returns the mono isotopic weight of the neutral loss molecule
-			DoubleReal getLossMonoWeight() const;
-	
-			/// set the neutral loss molecule weight (if there is one)
-			void setLossName(const String& name);
+			/// set the neutral loss molecule name
+			void setLossNames(const std::vector<String>& name);
+
+			/// add netural loss molecule name
+			void addLossName(const String& name);
 			
 			/// gets neutral loss name (if there is one, else returns an empty string)
-			const String& getLossName() const;
+			const std::vector<String>& getLossNames() const;
 			
 			/// set empirical formula of the residue
 			void setFormula(const EmpiricalFormula& formula, ResidueType res_type = Full);
@@ -463,9 +456,9 @@ namespace OpenMS
 			String modification_;
 			
 			// loss
-			String loss_name_;
+			std::vector<String> loss_names_;
 
-			EmpiricalFormula loss_formula_;
+			std::vector<EmpiricalFormula> loss_formulas_;
 
 			DoubleReal loss_average_weight_;
 

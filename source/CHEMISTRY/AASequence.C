@@ -228,14 +228,16 @@ namespace OpenMS
 	{
 		// the following losses are from the Zhang paper (AC, 76, 14, 2004)
 		// charge directed
+		/*
 		static const EmpiricalFormula R_44("NH2CHNH"); 
 		static const EmpiricalFormula R_59("CN3H5"); // guanidium
 		static const EmpiricalFormula R_61("N2H4CH");
 		// charge remote
 		static const EmpiricalFormula R_60("N2H4CO"); // combination of NH=C=NH + C-terminal H2O
 		static const EmpiricalFormula H2O("H2O"); // loss from the C-terminus
-		static const EmpiricalFormula NH3("NH3");
+		static const EmpiricalFormula NH3("NH3");*/
 		Map<const EmpiricalFormula*, UInt> losses;
+		/*
 		for (UInt i=0;i!=peptide_.size();++i)
 		{
 			if (peptide_[i]->hasNeutralLoss())
@@ -261,7 +263,7 @@ namespace OpenMS
 			}
 			losses[&H2O] = 1;
 			losses[&NH3] = 1;
-		}		
+		}	*/	
 		return losses;
 	}
 
@@ -888,7 +890,7 @@ namespace OpenMS
 					// if the residue db does not have this tag-residue, we add one
 					if (res_ptr == 0)
 					{
-						Residue res(tag, String(""), String(""), EmpiricalFormula(""), EmpiricalFormula(""));
+						Residue res(tag, String(""), String(""), EmpiricalFormula(""));
 						res.setMonoWeight(tag.toFloat(), Residue::Internal);
 						res.setAverageWeight(tag.toFloat(), Residue::Internal);
 						getResidueDB_()->addResidue(res);

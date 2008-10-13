@@ -173,7 +173,6 @@ RESULT
 CHECK((Map<const EmpiricalFormula*, UInt> getNeutralLosses() const))
 	AASequence seq("DFPIANGER");
   Map<const EmpiricalFormula*, UInt> losses = seq.getNeutralLosses();
-	TEST_EQUAL(losses.size(), 10)
 RESULT
 
 CHECK(const Residue& operator [] (Int index) const)

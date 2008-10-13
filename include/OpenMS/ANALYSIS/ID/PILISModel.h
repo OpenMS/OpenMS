@@ -133,34 +133,18 @@ namespace OpenMS
 			/// initializes the model
 			void initModels_();
 	
-			
-			/// extracts the precursor and related intensities of a training spectrum
-			void getPrecursorIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, Map<String, double>& pre_ints, double peptide_weight, UInt charge);
-
 			/// extracts the ions intensities of a training spectrum
 			double getIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, IonPeaks_& ion_ints, const AASequence& peptide, UInt charge);
 
 			/// aligns two spectra a writes the intensities from the first which matches the second to the vector
 			double getIntensitiesFromComparison_(const RichPeakSpectrum& train_spec, const RichPeakSpectrum& theo_spec, std::vector<double>& intensities);
 
-			/// trains precursor and related peaks
-			void trainPrecursorIons_(double initial_probability, const Map<String, double>& intensities, const AASequence& peptide);
-
 			/// trains neutral losses an related peaks
 			void trainNeutralLossesFromIon_(double initial_probability, const Map<String, double>& intensities, IonType_ ion_type, double ion_intensity, const AASequence& ion);
-
-			
-			/// estimates the precursor intensities 
-			void getPrecursorIons_(Map<String, double>& intensities, double initial_probability, const AASequence& precursor);
 
 			/// estimates the neutral losses of an ion
 			void getNeutralLossesFromIon_(Map<String, double>& intensities, double initial_probability, IonType_ ion_type, const AASequence& ion);
 
-			/// enables the states needed for precursor training/simulation
-			void enablePrecursorIonStates_(const AASequence& peptide);
-
-
-			
 			/// enables the states needed for neutral loss training/simulation
 			void enableNeutralLossStates_(IonType_ ion_type, const AASequence& ion);
 

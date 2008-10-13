@@ -230,8 +230,8 @@ namespace OpenMS
 		#endif
 		double peptide_weight((peptide.getMonoWeight() + double(charge)) / double(charge));
 		
-		Map<String, double> pre_ints;
-		getPrecursorIntensitiesFromSpectrum_(train_spec, pre_ints, peptide_weight, charge);
+		//Map<String, double> pre_ints;
+		//getPrecursorIntensitiesFromSpectrum_(train_spec, pre_ints, peptide_weight, charge);
 
 		// get the ions intensities, y and b ions and losses H2O, NH3 respectively
 		IonPeaks_ ints_1, ints_2;
@@ -247,18 +247,20 @@ namespace OpenMS
 		// normalize the intensities
 		double sum(sum1);
 
+		/*
 		for (Map<String, double>::ConstIterator it = pre_ints.begin(); it != pre_ints.end(); ++it)
 		{
 #ifdef PRECURSOR_DEBUG
 			cerr << it->first << " " << it->second << endl;
 #endif
 			sum += it->second;
-		}
+		}*/
 		
+		/*
 		for (Map<String, double>::Iterator it = pre_ints.begin(); it != pre_ints.end(); ++it)
 		{
 			it->second /= sum;
-		}
+		}*/
 
 		for (Map<IonType_, vector<double> >::Iterator it1 = ints_1.ints.begin(); it1 != ints_1.ints.end(); ++it1)
 		{
@@ -667,22 +669,25 @@ namespace OpenMS
 		//cerr << "PrecursorStats: " << pre_int1 << " " << pre_int2 << " " << pre_int_H2O_1 << " " << pre_int_H2O_2 << " " << pre_int_NH3_1 << " " << pre_int_NH3_2 << endl;
 
 		// precursor handling
+		/*
 		double pre_sum(0);
 		
 		for (Map<String, double>::ConstIterator it = pre_ints.begin(); it != pre_ints.end(); ++it)
 		{
 			pre_sum += it->second;
-		}
+		}*/
 		
 		/*
 		if (peptide[0].getOneLetterCode() == "Q" && pre_ints.pre_H2O > 0.05)
 		{
 			trainPrecursorIons_(1, pre_ints, peptide);
 		}*/
-		if (is_charge_remote && charge < 3 && pre_sum > 0.05)
+		if (is_charge_remote && charge < 3/* && pre_sum > 0.05*/)
 		{
 			//cerr << "BB_SUM: " << bb_sum << " " << pre_sum << " " << peptide << endl;
-			trainPrecursorIons_(max(0.01, 1.0 - bb_sum), pre_ints, peptide);
+			//trainPrecursorIons_(max(0.01, 1.0 - bb_sum), pre_ints, peptide);
+
+			// TODO
 		}
 
 		// now train the model with the data set
@@ -697,80 +702,6 @@ namespace OpenMS
 		return;
 	}
 
-	void PILISModel::getPrecursorIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, Map<String, double>& peak_ints, double peptide_weight, UInt charge)
-	{
-#ifdef PRECURSOR_DEBUG
-		cerr << "PILISModel::getPrecursorIntensitiesFromSpectrum_(#peaks=" << train_spec.size() << ", weight=" << peptide_weight << ", charge=" << charge << ")" << endl;
-#endif
-		vector<String> precursor_losses;
-		precursor_losses.push_back(EmpiricalFormula("H2O").getString());
-		precursor_losses.push_back(EmpiricalFormula("NH3").getString());
-		//precursor_losses.push_back(EmpiricalFormula("H2S").getString());
-		//precursor_losses.push_back(EmpiricalFormula("SCH3").getString());
-		
-		//double pre_error = (double)param_.getValue("precursor_mass_tolerance");
-		double pre_error = (double)param_.getValue("peak_mass_tolerance");
-
-  	for (RichPeakSpectrum::ConstIterator it = train_spec.begin(); it != train_spec.end(); ++it)
-    {
-			// intact peptide
-			if (fabs(it->getMZ() - peptide_weight / (double)charge) < pre_error)
-			{
-				if (peak_ints.has(""))
-				{
-					peak_ints[""] += it->getIntensity();
-				}
-				else
-				{
-					peak_ints[""] = it->getIntensity();
-				}
-			}
-
-			// single losses
-			for (vector<String>::const_iterator lit1 = precursor_losses.begin(); lit1 != precursor_losses.end(); ++lit1)
-			{		
-				if (fabs(it->getMZ() - (peptide_weight - EmpiricalFormula(*lit1).getMonoWeight()) / (double)charge) < pre_error)
-				{
-					if (peak_ints.has(*lit1))
-					{
-						peak_ints[*lit1] += it->getIntensity();
-					}
-					else
-					{
-						peak_ints[*lit1] = it->getIntensity();
-					}
-				}
-
-				for (vector<String>::const_iterator lit2 = lit1; lit2 != precursor_losses.end(); ++lit2)
-				{
-					String name;
-					if (*lit1 < *lit2)
-					{
-						name = *lit1 + "-" + *lit2;
-					}
-					else
-					{
-						name = *lit2 + "-" + *lit1;
-					}
-
-					if (fabs(it->getMZ() - (peptide_weight - EmpiricalFormula(*lit1).getMonoWeight() -  EmpiricalFormula(*lit2).getMonoWeight()) / (double)charge) < pre_error)
-					{
-						if (peak_ints.has(name))
-						{
-							peak_ints[name] += it->getIntensity();
-						}
-						else
-						{
-							peak_ints[name] = it->getIntensity();
-						}
-					}
-				}
-			}
-			
-		}
-		return;
-	}
-	
 	double PILISModel::getIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, IonPeaks_& ion_ints, const AASequence& peptide, UInt z)
 	{
 		double sum(0);
@@ -857,49 +788,6 @@ namespace OpenMS
 		return sum;
 	}
 	
-	void PILISModel::trainPrecursorIons_(double initial_probability, const Map<String, double>& ints, const AASequence& peptide)
-	{
-#ifdef PRECURSOR_DEBUG
-		cerr << "PILISModel::trainPrecursorIons_(" << initial_probability << ", " << ints.size() << ", " << peptide << ")" << endl;
-#endif
-		// clean up
-		hmm_precursor_.clearInitialTransitionProbabilities();
-		hmm_precursor_.clearTrainingEmissionProbabilities();
-
-		// set start transition prob
-		hmm_precursor_.setInitialTransitionProbability("start", initial_probability);
-	
-		// set emission probabilities from the precursor ions present in the spectrum
-		for (Map<String, double>::ConstIterator it = ints.begin(); it != ints.end(); ++it)
-		{
-			if (it->first != "")
-			{
-				hmm_precursor_.setTrainingEmissionProbability("p-" + it->first, it->second);
-			}
-			else
-			{
-				hmm_precursor_.setTrainingEmissionProbability("p", it->second);
-			}
-		}
-	
-		// build the final model
-		enablePrecursorIonStates_(peptide);
-	
-#ifdef PRECURSOR_DEBUG
-		stringstream ss;
-		ss << peptide;
-		hmm_precursor_.writeGraphMLFile("graphs/model_graph_train_precursor_" + peptide.toUnmodifiedString() + ".graphml");
-#endif
-		
-		// train
-		hmm_precursor_.train();
-
-		// reset the model
-		hmm_precursor_.disableTransitions();
-
-		return;
-	}
-
 	void PILISModel::trainNeutralLossesFromIon_(double /*initial_probability*/, 
 																								const Map<String, double>& /*ints*/, 
 																								IonType_ /*ion_type*/, 
@@ -981,161 +869,6 @@ namespace OpenMS
 		return;
 	}
 
-  void PILISModel::enablePrecursorIonStates_(const AASequence& peptide)
-	{
-#ifdef PRECURSOR_DEBUG
-		cerr << "void PILISModel::enablePrecursorIonStates_(" << peptide << ")" << endl;
-#endif
-		UInt max_explicit(4);
-		Map<String, UInt> double_losses;
-		vector<String> nexts;
-
-		for (AASequence::ConstIterator it1 = peptide.begin(); it1 != peptide.end(); ++it1)
-		{
-			AASequence aa1;
-			aa1 += &*it1;
-
-			String loss1 = it1->getLossFormula().getString();
-			if (loss1 == "")
-			{
-				continue;
-			}
-		
-			for (AASequence::ConstIterator it2 = it1 + 1; it2 != peptide.end(); ++it2)
-			{
-				AASequence aa2;
-				aa2 += &*it2;
-
-				String loss2 = it2->getLossFormula().getString();
-				if (loss2 == "")
-				{
-					continue;
-				}
-
-				String name;
-				if (aa1 < aa2)
-				{
-					name = aa1.toString() + aa2.toString();
-				}
-				else
-				{
-					name = aa2.toString() + aa1.toString();
-				}
-
-				String losses;
-				if (loss1 < loss2)
-				{
-					losses = "-" + loss1 + "-" + loss2;
-				}
-				else
-				{
-					losses = "-" + loss2 + "-" + loss1;
-				}
-
-				String num;
-				if (!double_losses.has(name))
-				{
-					double_losses[name] = 1;
-					num = "1";
-				}
-				else
-				{
-					++double_losses[name];
-					if (double_losses[name] > max_explicit)
-					{
-						break;
-					}
-					num = String(double_losses[name]);
-				}
-
-				name += losses + "_" + num;
-			
-				// enable transitions to emit state, and single emission states
-				hmm_precursor_.enableTransition(name, "p" + losses);
-				hmm_precursor_.enableTransition(name, aa1.toString() + "-" + loss1 + "_1");
-				vector<String> split;
-				name.split('_', split);
-				hmm_precursor_.setTransitionProbability(name, aa1.toString() + "-" + loss1 + "_1", hmm_precursor_.getTransitionProbability(split[0], aa1.toString() + "-" + loss1));
-				hmm_precursor_.enableTransition(name, aa2.toString() + "-" + loss2 + "_1");
-				hmm_precursor_.setTransitionProbability(name, aa2.toString() + "-" + loss2 + "_1", hmm_precursor_.getTransitionProbability(split[0], aa2.toString() + "-" + loss2));
-				
-				// store transition to connect the next lines
-				nexts.push_back(name);
-			}
-		}
-
-
-		if (nexts.size() > 0)
-		{
-			hmm_precursor_.setTransitionProbability("start", *nexts.begin(), 1.0);
-		}
-		
-		for (vector<String>::const_iterator it = nexts.begin(); it != nexts.end(); ++it)
-		{
-			if (it != (nexts.end() - 1))
-			{
-				vector<String>::const_iterator next_it = it + 1;
-				hmm_precursor_.enableTransition(*it, *next_it);
-				vector<String> split;
-        it->split('_', split);
-        hmm_precursor_.setTransitionProbability(*it, *next_it, hmm_precursor_.getTransitionProbability(split[0], split[0] + "-next"));
-
-			}
-		}
-		
-		Map<String, UInt> single_losses;
-		vector<String> single_nexts;
-		for (AASequence::ConstIterator it1 = peptide.begin(); it1 != peptide.end(); ++it1)
-    {
-      AASequence aa1;
-      aa1 += &*it1;
-			String name = aa1.toString();
-			String loss = it1->getLossFormula().getString();
-			String num;
-			if (loss != "")
-			{
-				if (!single_losses.has(name))
-				{
-					single_losses[name] = 1;
-					num = "1";
-				}
-				else
-				{
-					++single_losses[name];
-					if (single_losses[name] > max_explicit)
-					{
-						break;
-					}
-					num = String(single_losses[name]);
-				}
-
-				name += "-" + loss + "_" + num;
-				hmm_precursor_.enableTransition(name, "p-" + loss);
-				single_nexts.push_back(name);
-			}
-		}
-
-		for (vector<String>::const_iterator it = single_nexts.begin(); it != single_nexts.end(); ++it)
-		{
-			if (it != (single_nexts.end() - 1))
-			{
-				vector<String>::const_iterator next_it = it + 1;
-				hmm_precursor_.enableTransition(*it, *next_it);
-				vector<String> split;
-				it->split('_', split);
-				hmm_precursor_.setTransitionProbability(*it, *next_it, hmm_precursor_.getTransitionProbability(split[0], split[0] + "-next"));
-			}
-		}
-
-		// last transition, no reaction took place
-		if (single_nexts.size() > 0)
-		{
-			hmm_precursor_.enableTransition(single_nexts.back(), "p");
-		}
-
-
-		return;
-	}
 
   void PILISModel::enableNeutralLossStates_(IonType_ /*ion_type*/, const AASequence& /*ion*/)
 	{
@@ -1661,7 +1394,7 @@ namespace OpenMS
 		if ((is_charge_remote && charge < 3 && !(peptide.has("D") && charge == 2)) || peptide[0].getOneLetterCode() == "Q")
 		{
 			Map<String, double> pre_ints;
-			getPrecursorIons_(pre_ints, max(0.01, 1 - bb_sum - suffix_sum - prefix_sum), peptide);
+			//getPrecursorIons_(pre_ints, max(0.01, 1 - bb_sum - suffix_sum - prefix_sum), peptide);
 
 			double weight = peptide.getMonoWeight();
 			id.estimateFromPeptideWeight(weight);
@@ -1694,58 +1427,6 @@ namespace OpenMS
 		}
 		
 		
-		/*
-		if ((is_charge_remote && charge < 3 && !(peptide.has("D") && charge == 2)) || peptide[0].getOneLetterCode() == "Q")
-		{
-			Map<String_, double> pre_ints;
-			//cerr << "PRECURSOR_GET: " << peptide << " " <<  bb_sum << " " << 1 - bb_sum - suffix_sum - prefix_sum << " (" << peptide << ", " << charge << ")" << endl;
-
-			if (peptide[0].getOneLetterCode() == "Q")
-			{
-				getPrecursorIons_(pre_ints, 1, peptide, false);
-			}
-			else
-			{
-				getPrecursorIons_(pre_ints, max(0.01, 1 - bb_sum - suffix_sum - prefix_sum), peptide, false);
-			}
-
-			double weight = peptide.getMonoWeight();
-			id.estimateFromPeptideWeight(weight);
-		
-			
-			if (pre_ints.has(LOSS_TYPE_NH2CHNH))
-			{
-				addPeaks_(weight, charge, -44.0, pre_ints[LOSS_TYPE_NH2CHNH], spec, id, "M-NH2-CH=NH");
-			}
-			
-			if (pre_ints.has(LOSS_TYPE_H2O))
-			{
-				addPeaks_(weight, charge, -18.0, pre_ints[LOSS_TYPE_H2O], spec, id, "M-H2O"); 
-				//cerr << "Int from Pre: " << pre_ints[LOSS_TYPE_H2O] << endl;
-			}
-
-			if (pre_ints.has(LOSS_TYPE_NH3))
-			{
-				addPeaks_(weight, charge, -17.0, pre_ints[LOSS_TYPE_NH3], spec, id, "M-NH3");
-			}
-
-			
-			if (pre_ints.has(LOSS_TYPE_NONE))
-			{
-				addPeaks_(weight, charge, 0.0, pre_ints[LOSS_TYPE_NONE], spec, id, "M");
-			}
-			
-			if (pre_ints.has(LOSS_TYPE_H2O_H2O))
-			{
-				addPeaks_(weight, charge, -36.0, pre_ints[LOSS_TYPE_H2O_H2O], spec, id, "M-H2O-H2O");
-			}
-
-			if (pre_ints.has(LOSS_TYPE_H2O_NH3))
-			{
-				addPeaks_(weight, charge, -35.0, pre_ints[LOSS_TYPE_H2O_NH3], spec, id, "M-H2O-NH3");
-			}
-		}
-	*/
 		// now build the spectrum with the peaks
 		double intensity_max(0);
 		for (Map<double, vector<RichPeak1D> >::ConstIterator it = peaks_.begin(); it != peaks_.end(); ++it)
@@ -1844,33 +1525,6 @@ namespace OpenMS
 		}
 
 		return;
-	}
-
-	void PILISModel::getPrecursorIons_(Map<String, double>& intensities, double initial_probability, const AASequence& precursor)
-	{
-		hmm_precursor_.setInitialTransitionProbability("start", initial_probability);
-
-		enablePrecursorIonStates_(precursor);
-
-		Map<HMMState*, double> tmp;
-		hmm_precursor_.calculateEmissionProbabilities(tmp);
-
-		for (Map<HMMState*, double>::ConstIterator it = tmp.begin(); it != tmp.end(); ++it)
-		{
-			intensities[it->first->getName()] = it->second;
-		}
-		
-#ifdef PRECURSOR_DEBUG
-		for (Map<HMMState*, double>::ConstIterator it = tmp.begin(); it != tmp.end(); ++it)
-		{
-			cerr << it->first->getName() << " -> " << it->second << endl;
-		}		
-		//stringstream ss;
-		//ss << precursor;
-		//hmm_pre_loss_.writeGraphMLFile(String("model_graph_train_"+ss.str()+"_precursor.graphml").c_str());
-#endif
-		
-		hmm_precursor_.disableTransitions();
 	}
 
   void PILISModel::getNeutralLossesFromIon_(Map<String, double>& /*intensities*/, double /*initial_probability*/, IonType_ /*ion_type*/, const AASequence& /*ion*/)

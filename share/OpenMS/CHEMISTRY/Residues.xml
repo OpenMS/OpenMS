@@ -13,9 +13,11 @@
 				<ITEM name="alanin" value="alanin" type="string" />
 				<ITEM name="Ala" value="Ala" type="string" />
 			</NODE>
+			<NODE name="Losses">
+				<ITEM name="LossName" value="" type="string" />
+				<ITEM name="LossFormula" value="" type="string" />
+			</NODE>
 			<ITEM name="Formula" value="C3H7NO2" type="string" />
-			<ITEM name="LossName" value="" type="string" />
-			<ITEM name="LossFormula" value="" type="string" />
 			<ITEM name="GB_SC" value="0.00" type="string" />
 			<ITEM name="GB_BB_L" value="881.82" type="string" />
 			<ITEM name="GB_BB_R" value="0.00" type="string" />
@@ -32,8 +34,6 @@
 				<ITEM name="Cystine" value="Cystine" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C3H7NO2S" type="string" />
-			<ITEM name="LossName" value="" type="string" />
-			<ITEM name="LossFormula" value="H2S" type="string" />
       <ITEM name="GB_SC" value="0.00" type="string" />
       <ITEM name="GB_BB_L" value="880.99" type="string" />
       <ITEM name="GB_BB_R" value="0.12" type="string" />
@@ -50,8 +50,10 @@
 				<ITEM name="Asp" value="Asp" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C4H7NO4" type="string" />
-			<ITEM name="LossName" value="water" type="string" />
-			<ITEM name="LossFormula" value="H2O" type="string" />
+      <NODE name="Losses">
+        <ITEM name="LossName" value="water" type="string" />
+        <ITEM name="LossFormula" value="H2O" type="string" />
+      </NODE>			
       <ITEM name="GB_SC" value="784.0" type="string" />
       <ITEM name="GB_BB_L" value="880.02" type="string" />
       <ITEM name="GB_BB_R" value="-0.63" type="string" />
@@ -68,8 +70,10 @@
 				<ITEM name="Glu" value="Glu" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C5H9NO4" type="string" />
-			<ITEM name="LossName" value="water" type="string" />
-			<ITEM name="LossFormula" value="H2O" type="string" />
+      <NODE name="Losses">
+        <ITEM name="LossName" value="water" type="string" />
+        <ITEM name="LossFormula" value="H2O" type="string" />
+      </NODE>
       <ITEM name="GB_SC" value="790.0" type="string" />
       <ITEM name="GB_BB_L" value="880.10" type="string" />
       <ITEM name="GB_BB_R" value="-0.39" type="string" />
@@ -86,8 +90,6 @@
 				<ITEM name="Phe" value="Phe" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C9H11NO2" type="string" />
-			<ITEM name="LossName" value="" type="string" />
-			<ITEM name="LossFormula" value="" type="string" />
       <ITEM name="GB_SC" value="0.00" type="string" />
       <ITEM name="GB_BB_L" value="881.08" type="string" />
       <ITEM name="GB_BB_R" value="0.03" type="string" />
@@ -104,8 +106,6 @@
 				<ITEM name="Gly" value="Gly" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C2H5NO2" type="string" />
-			<ITEM name="LossName" value="" type="string" />
-			<ITEM name="LossFormula" value="" type="string" />
       <ITEM name="GB_SC" value="0.00" type="string" />
       <ITEM name="GB_BB_L" value="881.17" type="string" />
       <ITEM name="GB_BB_R" value="0.92" type="string" />
@@ -122,8 +122,6 @@
 				<ITEM name="His" value="His" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C6H9N3O2" type="string" />
-			<ITEM name="LossName" value="" type="string" />
-			<ITEM name="LossFormula" value="" type="string" />
       <ITEM name="GB_SC" value="927.84" type="string" />
       <ITEM name="GB_BB_L" value="881.27" type="string" />
       <ITEM name="GB_BB_R" value="-0.19" type="string" />
@@ -140,8 +138,6 @@
 				<ITEM name="Ile" value="Ile" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C6H13NO2" type="string" />
-			<ITEM name="LossName" value="" type="string" />
-			<ITEM name="LossFormula" value="" type="string" />
       <ITEM name="GB_SC" value="0.00" type="string" />
       <ITEM name="GB_BB_L" value="880.99" type="string" />
       <ITEM name="GB_BB_R" value="-1.17" type="string" />
@@ -158,8 +154,10 @@
 				<ITEM name="Lys" value="Lys" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C6H14N2O2" type="string" />
-			<ITEM name="LossName" value="ammonia" type="string" />
-			<ITEM name="LossFormula" value="NH3" type="string" />
+      <NODE name="Losses">
+        <ITEM name="LossName" value="ammonia" type="string" />
+        <ITEM name="LossFormula" value="NH3" type="string" />
+      </NODE>
       <ITEM name="GB_SC" value="926.74" type="string" />
       <ITEM name="GB_BB_L" value="880.06" type="string" />
       <ITEM name="GB_BB_R" value="-0.71" type="string" />
@@ -176,8 +174,6 @@
 				<ITEM name="Leu" value="Leu" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C6H13NO2" type="string" />
-			<ITEM name="LossName" value="" type="string" />
-			<ITEM name="LossFormula" value="" type="string" />
       <ITEM name="GB_SC" value="0.00" type="string" />
       <ITEM name="GB_BB_L" value="881.88" type="string" />
       <ITEM name="GB_BB_R" value="-0.09" type="string" />
@@ -194,8 +190,10 @@
 				<ITEM name="Met" value="Met" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C5H11NO2S" type="string" />
-			<ITEM name="LossName" value="" type="string" />
-			<ITEM name="LossFormula" value="H3CSH" type="string" />
+      <NODE name="Losses">
+        <ITEM name="LossName" value="" type="string" />
+        <ITEM name="LossFormula" value="H3CSH" type="string" />
+      </NODE>
       <ITEM name="GB_SC" value="830.0" type="string" />
       <ITEM name="GB_BB_L" value="881.38" type="string" />
       <ITEM name="GB_BB_R" value="0.30" type="string" />
@@ -212,8 +210,10 @@
 				<ITEM name="Asn" value="Asn" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C4H8N2O3" type="string" />
-			<ITEM name="LossName" value="ammonia" type="string" />
-			<ITEM name="LossFormula" value="NH3" type="string" />
+      <NODE name="Losses">
+        <ITEM name="LossName" value="ammonia" type="string" />
+        <ITEM name="LossFormula" value="NH3" type="string" />
+      </NODE>
       <ITEM name="GB_SC" value="864.94" type="string" />
       <ITEM name="GB_BB_L" value="881.18" type="string" />
       <ITEM name="GB_BB_R" value="1.56" type="string" />
@@ -230,8 +230,6 @@
 				<ITEM name="Pro" value="Pro" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C5H9NO2" type="string" />
-			<ITEM name="LossName" value="" type="string" />
-			<ITEM name="LossFormula" value="" type="string" />
       <ITEM name="GB_SC" value="0.00" type="string" />
       <ITEM name="GB_BB_L" value="881.25" type="string" />
       <ITEM name="GB_BB_R" value="11.75" type="string" />
@@ -248,8 +246,10 @@
 				<ITEM name="Gln" value="Gln" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C5H10N2O3" type="string" />
-			<ITEM name="LossName" value="ammonia" type="string" />
-			<ITEM name="LossFormula" value="NH3" type="string" />
+      <NODE name="Losses">
+        <ITEM name="LossName" value="ammonia" type="string" />
+        <ITEM name="LossFormula" value="NH3" type="string" />
+      </NODE>
       <ITEM name="GB_SC" value="865.25" type="string" />
       <ITEM name="GB_BB_L" value="881.50" type="string" />
       <ITEM name="GB_BB_R" value="4.10" type="string" />
@@ -266,8 +266,12 @@
 				<ITEM name="Arg" value="Arg" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C6H14N4O2" type="string" />
-			<ITEM name="LossName" value="ammonia" type="string" />
-			<ITEM name="LossFormula" value="NH3" type="string" />
+      <NODE name="Losses">
+        <ITEM name="LossName" value="ammonia" type="string" />
+        <ITEM name="LossFormula" value="NH3" type="string" />
+        <ITEM name="LossName" value="" type="string" />
+        <ITEM name="LossFormula" value="NHCNH" type="string" />
+      </NODE>
       <ITEM name="GB_SC" value="1000.0" type="string" />
       <ITEM name="GB_BB_L" value="882.98" type="string" />
       <ITEM name="GB_BB_R" value="6.28" type="string" />
@@ -284,8 +288,6 @@
 				<ITEM name="Sec" value="Sec" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C3H7NO2Se" type="string" />
-      <ITEM name="LossName" value="" type="string" />
-      <ITEM name="LossFormula" value="H2S" type="string" />
       <ITEM name="GB_SC" value="0.00" type="string" />
       <ITEM name="GB_BB_L" value="880.99" type="string" />
       <ITEM name="GB_BB_R" value="0.12" type="string" />
@@ -302,8 +304,10 @@
 				<ITEM name="Ser" value="Ser" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C3H7NO3" type="string" />
-			<ITEM name="LossName" value="water" type="string" />
-			<ITEM name="LossFormula" value="H2O" type="string" />
+      <NODE name="Losses">
+        <ITEM name="LossName" value="water" type="string" />
+        <ITEM name="LossFormula" value="H2O" type="string" />
+      </NODE>			
       <ITEM name="GB_SC" value="775.0" type="string" />
       <ITEM name="GB_BB_L" value="881.08" type="string" />
       <ITEM name="GB_BB_R" value="0.98" type="string" />
@@ -320,8 +324,10 @@
 				<ITEM name="Thr" value="Thr" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C4H9NO3" type="string" />
-			<ITEM name="LossName" value="water" type="string" />
-			<ITEM name="LossFormula" value="H2O" type="string" />
+      <NODE name="Losses">
+        <ITEM name="LossName" value="water" type="string" />
+        <ITEM name="LossFormula" value="H2O" type="string" />
+      </NODE>
       <ITEM name="GB_SC" value="780.0" type="string" />
       <ITEM name="GB_BB_L" value="881.14" type="string" />
       <ITEM name="GB_BB_R" value="1.21" type="string" />
@@ -338,8 +344,6 @@
 				<ITEM name="Val" value="Val" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C5H11NO2" type="string" />
-			<ITEM name="LossName" value="" type="string" />
-			<ITEM name="LossFormula" value="" type="string" />
       <ITEM name="GB_SC" value="0.0" type="string" />
       <ITEM name="GB_BB_L" value="881.17" type="string" />
       <ITEM name="GB_BB_R" value="-0.90" type="string" />
@@ -356,8 +360,6 @@
 				<ITEM name="Trp" value="Trp" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C11H12N2O2" type="string" />
-			<ITEM name="LossName" value="" type="string" />
-			<ITEM name="LossFormula" value="" type="string" />
       <ITEM name="GB_SC" value="909.53" type="string" />
       <ITEM name="GB_BB_L" value="881.31" type="string" />
       <ITEM name="GB_BB_R" value="0.10" type="string" />
@@ -373,8 +375,6 @@
 				<ITEM name="Tyr" value="Tyr" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C9H11NO3" type="string" />
-			<ITEM name="LossName" value="" type="string" />
-			<ITEM name="LossFormula" value="" type="string" />
       <ITEM name="GB_SC" value="790.0" type="string" />
       <ITEM name="GB_BB_L" value="881.20" type="string" />
       <ITEM name="GB_BB_R" value="-0.38" type="string" />

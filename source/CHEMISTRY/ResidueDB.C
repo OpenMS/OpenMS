@@ -197,8 +197,8 @@ namespace OpenMS
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "");
 		}
 
-		try
-		{
+		//try
+		//{
 			vector<String> split;
 			param.begin().getName().split(':',split);
 			String prefix = split[0] + split[1];
@@ -229,11 +229,11 @@ namespace OpenMS
 			res_ptr = parseResidue_(values);
 			residues_.insert(res_ptr);
 			const_residues_.insert(res_ptr);
-		}
-		catch (...)
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "");
-		}
+		//}
+		//catch (Exception::BaseException& e)
+		//{
+		//	throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, e.what(), "");
+		//}
 	}
 
 	void ResidueDB::clear_()
@@ -292,19 +292,19 @@ namespace OpenMS
 				res_ptr->setMonoWeight(formula.getMonoWeight());
 				continue;
 			}
-			if (key.hasSuffix(":LossName"))
+
+			if (key.hasSuffix("Losses:LossName"))
 			{
-				res_ptr->setLossName(value);
+				res_ptr->addLossName(value);
 				continue;
 			}
-			if (key.hasSuffix(":LossFormula"))
+			if (key.hasSuffix("Losses:LossFormula"))
 			{
 				EmpiricalFormula loss(value);
-				res_ptr->setLossFormula(loss);
-				res_ptr->setLossAverageWeight(loss.getAverageWeight());
-				res_ptr->setLossMonoWeight(loss.getMonoWeight());
+				res_ptr->addLossFormula(loss);
 				continue;
 			}
+			
 			if (key.hasSubstring("LowMassIons"))
 			{
 				// no markers defined?
