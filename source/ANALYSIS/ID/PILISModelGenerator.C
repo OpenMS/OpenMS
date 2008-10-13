@@ -26,8 +26,12 @@
 
 
 #include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
 
 using namespace std;
+
+#define PRECURSOR_MODEL_DEBUG
+#undef  PRECURSOR_MODEL_DEBUG
 
 namespace OpenMS 
 {
@@ -36,6 +40,7 @@ namespace OpenMS
 	{
 		defaults_.setValue("model_depth", 4, "The number of explicitly modeled backbone cleavages from N-terminus and C-terminus, would be 9 for the default value");
 		defaults_.setValue("visible_model_depth", 30, "The maximal possible size of a peptide to be modeled");
+		defaults_.setValue("modifications", StringList::create("MOD:00719,MOD:01214"), "Modifications which should be included in the model, represented by PSI-MOD accessions.");
 		defaultsToParam_();
 	}
 
@@ -69,7 +74,7 @@ namespace OpenMS
 	void PILISModelGenerator::initModels_()
 	{
 		initMainModel_();
-		initLossModels_();
+		//initLossModels_();
 		initPrecursorModel_();
 		return;
 	}
@@ -100,30 +105,44 @@ namespace OpenMS
 		model_.hmm_.addNewState("K");
 		model_.hmm_.addNewState("H");
 		model_.hmm_.addNewState("R");
-	
-		const String residues("ACDEFGHIKLMNPQRSTVWY");
+
+		// 
+		set<const Residue*> residues(ResidueDB::getInstance()->getResidues(ResidueDB::NATURAL_20));
+		StringList modifications = param_.getValue("modifications");
+		for (StringList::const_iterator it = modifications.begin(); it != modifications.end(); ++it)
+		{
+			residues.insert(ResidueDB::getInstance()->getModifiedResidue(*it));
+		}
+
+		cerr << "Using " << residues.size() << " residues" << endl;
+		
+		//const String residues("ACDEFGHIKLMNPQRSTVWY");
 	
 		// create the residue states states
-		for (UInt ii = 0; ii != residues.size(); ++ii)
+		for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
     {
-      String first;
-      first += residues[ii];
-      model_.hmm_.addNewState(first+"D");
-			model_.hmm_.addNewState(first+"E");
+			AASequence first_aa;
+			first_aa += *it;
+      String first(first_aa.toString());
+      
+			model_.hmm_.addNewState(first + "_D");
+			model_.hmm_.addNewState(first + "_E");
 
-			model_.hmm_.addNewState(first+"K");
-			model_.hmm_.addNewState(first+"H");
-			model_.hmm_.addNewState(first+"RSC");
+			model_.hmm_.addNewState(first + "_K");
+			model_.hmm_.addNewState(first + "_H");
+			model_.hmm_.addNewState(first + "_R");
 			
-			for (UInt j = 0; j != residues.size(); ++j)
+			for (set<const Residue*>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
 			{
-				String second;
-				second += residues[j];
-      	model_.hmm_.addNewState(first+second+"bxyz");
-				model_.hmm_.addNewState(first+second+"axyz");
+				AASequence second_aa;
+				second_aa += *jt;
+				String second(second_aa.toString());
+      	
+				model_.hmm_.addNewState(first+second +"_bxyz");
+				model_.hmm_.addNewState(first+second +"_axyz");
 			}
-			model_.hmm_.addNewState(first+"bk-1");
-			model_.hmm_.addNewState(first+"bk-2");
+			model_.hmm_.addNewState(first + "_bk-1");
+			model_.hmm_.addNewState(first + "_bk-2");
     }
 		model_.hmm_.addNewState("bk-1");
 		model_.hmm_.addNewState("bk-2");
@@ -133,13 +152,13 @@ namespace OpenMS
 			// these states are really created
 			// charge states
 			String num(i);
-			model_.hmm_.addNewState("BB"+num);
-			model_.hmm_.addNewState("BBk-"+num);
-			model_.hmm_.addNewState("CR"+num); 
-			model_.hmm_.addNewState("CRk-"+num);
+			model_.hmm_.addNewState("BB" + num);
+			model_.hmm_.addNewState("BBk-" + num);
+			model_.hmm_.addNewState("CR" + num); 
+			model_.hmm_.addNewState("CRk-" + num);
 
-			model_.hmm_.addNewState("SC"+num);
-			model_.hmm_.addNewState("SCk-"+num);
+			model_.hmm_.addNewState("SC" + num);
+			model_.hmm_.addNewState("SCk-" + num);
 
 			// states for trans mapping 
 			model_.hmm_.addNewState("AA"+num);
@@ -152,25 +171,23 @@ namespace OpenMS
 			model_.hmm_.addNewState("ASCk-"+num);
 
 			// emitting ion states
-			model_.hmm_.addNewState(new HMMState("b"+num+"+", false));
-			model_.hmm_.addNewState(new HMMState("bk-"+num+"+", false));
-			model_.hmm_.addNewState(new HMMState("y"+num+"+", false));
-			model_.hmm_.addNewState(new HMMState("yk-"+num+"+", false));
-			model_.hmm_.addNewState(new HMMState("a"+num+"+", false));
-			model_.hmm_.addNewState(new HMMState("ak-"+num+"+", false));
+			model_.hmm_.addNewState(new HMMState("b" + num + "+", false));
+			model_.hmm_.addNewState(new HMMState("bk-" + num + "+", false));
+			model_.hmm_.addNewState(new HMMState("y" + num + "+", false));
+			model_.hmm_.addNewState(new HMMState("yk-" + num + "+", false));
+			model_.hmm_.addNewState(new HMMState("a" + num + "+", false));
+			model_.hmm_.addNewState(new HMMState("ak-" + num + "+", false));
 
 			model_.hmm_.addNewState(new HMMState("b"+num+"++", false));
-      model_.hmm_.addNewState(new HMMState("bk-"+num+"++", false));
-      model_.hmm_.addNewState(new HMMState("y"+num+"++", false));
-      model_.hmm_.addNewState(new HMMState("yk-"+num+"++", false));
-      model_.hmm_.addNewState(new HMMState("a"+num+"++", false));
-      model_.hmm_.addNewState(new HMMState("ak-"+num+"++", false));
+      model_.hmm_.addNewState(new HMMState("bk-" + num + "++", false));
+      model_.hmm_.addNewState(new HMMState("y" + num + "++", false));
+      model_.hmm_.addNewState(new HMMState("yk-" + num + "++", false));
+      model_.hmm_.addNewState(new HMMState("a" + num + "++", false));
+      model_.hmm_.addNewState(new HMMState("ak-" + num + "++", false));
 
 			model_.hmm_.addNewState(new HMMState("end"+num, false));
 			model_.hmm_.addNewState(new HMMState("endk-"+num, false));
 
-			// emitting neutral loss states
-		
 			// post AA collector states
 			model_.hmm_.addNewState("bxyz"+num);
 			model_.hmm_.addNewState("bxyzk-"+num);
@@ -191,34 +208,38 @@ namespace OpenMS
 			model_.hmm_.addNewState("Rk-"+num);
 
 			// map the residue states
-			for (UInt ii = 0; ii != residues.size(); ++ii)
+			for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
 			{
-				String first;
-				first += residues[ii];
-				model_.hmm_.addNewState(first+"D"+num);
-				model_.hmm_.addNewState(first+"Dk-"+num);
-
-        model_.hmm_.addNewState(first+"E"+num);
-        model_.hmm_.addNewState(first+"Ek-"+num);
-
-				model_.hmm_.addNewState(first+"K"+num);
-				model_.hmm_.addNewState(first+"Kk-"+num);
-
-				model_.hmm_.addNewState(first+"H"+num);
-        model_.hmm_.addNewState(first+"Hk-"+num);
-
-				model_.hmm_.addNewState(first+"RSC"+num);
-        model_.hmm_.addNewState(first+"RSCk-"+num);
+				AASequence first_aa;
+				first_aa += *it;
+				String first(first_aa.toString());
 				
-				for (UInt j = 0; j != residues.size(); ++j)
-				{
-					String second;
-					second += residues[j];
-					model_.hmm_.addNewState(first+second+"bxyz"+num);
-					model_.hmm_.addNewState(first+second+"bxyzk-"+num);
+				model_.hmm_.addNewState(first + "_D" + num);
+				model_.hmm_.addNewState(first + "_Dk-" + num);
 
-					model_.hmm_.addNewState(first+second+"axyz"+num);
-					model_.hmm_.addNewState(first+second+"axyzk-"+num);
+        model_.hmm_.addNewState(first + "_E" + num);
+        model_.hmm_.addNewState(first + "_Ek-" + num);
+
+				model_.hmm_.addNewState(first + "_K" + num);
+				model_.hmm_.addNewState(first + "_Kk-" + num);
+
+				model_.hmm_.addNewState(first + "_H" + num);
+        model_.hmm_.addNewState(first + "_Hk-" + num);
+
+				model_.hmm_.addNewState(first + "_R" + num);
+        model_.hmm_.addNewState(first + "_Rk-" + num);
+				
+				for (set<const Residue*>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
+				{
+					AASequence second_aa;
+					second_aa += *jt;
+					String second(second_aa.toString());
+					
+					model_.hmm_.addNewState(first + second + "_bxyz" + num);
+					model_.hmm_.addNewState(first + second + "_bxyzk-" + num);
+
+					model_.hmm_.addNewState(first + second + "_axyz" + num);
+					model_.hmm_.addNewState(first + second + "_axyzk-" + num);
 				}
 			}
 		}
@@ -226,18 +247,20 @@ namespace OpenMS
 		model_.hmm_.setTransitionProbability("AABase1", "AABase2", 1);
 
     // CR(?) bk-1, bk-2
-		for (UInt i = 0; i != residues.size(); ++i)
+		for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
 		{
-			String first;
-			first += residues[i];
-    	model_.hmm_.addSynonymTransition("AABase1", "AABase2", "Ak-1", first+"bk-1");
+			AASequence first_aa;
+			first_aa += *it;
+			String first(first_aa.toString());
 
-    	model_.hmm_.setTransitionProbability(first+"bk-1", "bk-1", 0.5);
-    	model_.hmm_.setTransitionProbability(first+"bk-1", "endk-1", 0.5);
+    	model_.hmm_.addSynonymTransition("AABase1", "AABase2", "Ak-1", first+"_bk-1");
 
-			model_.hmm_.addSynonymTransition("AABase1", "AABase2", "Ak-2", first+"bk-2");
-			model_.hmm_.setTransitionProbability(first+"bk-2", "bk-2", 0.5);
-			model_.hmm_.setTransitionProbability(first+"bk-2", "endk-2", 0.5);
+    	model_.hmm_.setTransitionProbability(first+"_bk-1", "bk-1", 0.5);
+    	model_.hmm_.setTransitionProbability(first+"_bk-1", "endk-1", 0.5);
+
+			model_.hmm_.addSynonymTransition("AABase1", "AABase2", "Ak-2", first+"_bk-2");
+			model_.hmm_.setTransitionProbability(first+"_bk-2", "bk-2", 0.5);
+			model_.hmm_.setTransitionProbability(first+"_bk-2", "endk-2", 0.5);
 			
 		}
 
@@ -293,137 +316,142 @@ namespace OpenMS
         model_.hmm_.setTransitionProbability("SCcenter", "ASCcenter", 0.5);
 			}
 			
-			for (UInt ii = 0; ii != residues.size(); ++ii)
+			for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
 			{
-				String first;
-				first += residues[ii];
+				AASequence first_aa;
+				first_aa += *it;
+				String first(first_aa.toString());
 
 				// CR D
-				model_.hmm_.addSynonymTransition("AABase1", "AABase2", "A"+num, first+"D"+num);
-				model_.hmm_.addSynonymTransition("AABase1", "AABase2", "Ak-"+num, first+"Dk-"+num);
+				model_.hmm_.addSynonymTransition("AABase1", "AABase2", "A"+num, first+"_D"+num);
+				model_.hmm_.addSynonymTransition("AABase1", "AABase2", "Ak-"+num, first+"_Dk-"+num);
 			
-				model_.hmm_.addSynonymTransition(first+"D", "D", first+"D"+num, "D"+num);
-				model_.hmm_.addSynonymTransition(first+"D", "end", first+"D"+num, "end"+num);
-				model_.hmm_.addSynonymTransition(first+"D", "D", first+"Dk-"+num, "Dk-"+num);
-				model_.hmm_.addSynonymTransition(first+"D", "end", first+"Dk-"+num, "endk-"+num);
+				model_.hmm_.addSynonymTransition(first+"_D", "D", first+"_D"+num, "D"+num);
+				model_.hmm_.addSynonymTransition(first+"_D", "end", first+"_D"+num, "end"+num);
+				model_.hmm_.addSynonymTransition(first+"_D", "D", first+"_Dk-"+num, "Dk-"+num);
+				model_.hmm_.addSynonymTransition(first+"_D", "end", first+"_Dk-"+num, "endk-"+num);
 
-				model_.hmm_.setTransitionProbability(first+"D", "D", 0.5);
-				model_.hmm_.setTransitionProbability(first+"D", "end", 0.5);
+				model_.hmm_.setTransitionProbability(first+"_D", "D", 0.5);
+				model_.hmm_.setTransitionProbability(first+"_D", "end", 0.5);
 		
 				// CR E
-				model_.hmm_.addSynonymTransition("AABase1", "AABase2", "A"+num, first+"E"+num);
-        model_.hmm_.addSynonymTransition("AABase1", "AABase2", "Ak-"+num, first+"Ek-"+num);
+				model_.hmm_.addSynonymTransition("AABase1", "AABase2", "A"+num, first+"_E"+num);
+        model_.hmm_.addSynonymTransition("AABase1", "AABase2", "Ak-"+num, first+"_Ek-"+num);
         
-        model_.hmm_.addSynonymTransition(first+"E", "E", first+"E"+num, "E"+num);
-				model_.hmm_.addSynonymTransition(first+"E", "end", first+"E"+num, "end"+num);
-        model_.hmm_.addSynonymTransition(first+"E", "E", first+"Ek-"+num, "Ek-"+num);
-				model_.hmm_.addSynonymTransition(first+"E", "end", first+"Ek-"+num, "endk-"+num);
+        model_.hmm_.addSynonymTransition(first+"_E", "E", first+"_E"+num, "E"+num);
+				model_.hmm_.addSynonymTransition(first+"_E", "end", first+"_E"+num, "end"+num);
+        model_.hmm_.addSynonymTransition(first+"_E", "E", first+"_Ek-"+num, "Ek-"+num);
+				model_.hmm_.addSynonymTransition(first+"_E", "end", first+"_Ek-"+num, "endk-"+num);
         
-        model_.hmm_.setTransitionProbability(first+"E", "E", 0.5);
-       	model_.hmm_.setTransitionProbability(first+"E", "end", 0.5);
+        model_.hmm_.setTransitionProbability(first+"_E", "E", 0.5);
+       	model_.hmm_.setTransitionProbability(first+"_E", "end", 0.5);
 				
 				// SC K
-				model_.hmm_.addSynonymTransition("AABase1", "AABase2", "ASC"+num, first+"K"+num);
-        model_.hmm_.addSynonymTransition("AABase1", "AABase2", "ASCk-"+num, first+"Kk-"+num);
+				model_.hmm_.addSynonymTransition("AABase1", "AABase2", "ASC"+num, first+"_K"+num);
+        model_.hmm_.addSynonymTransition("AABase1", "AABase2", "ASCk-"+num, first+"_Kk-"+num);
 
-        model_.hmm_.addSynonymTransition(first+"K", "K", first+"K"+num, "K"+num);
-				model_.hmm_.addSynonymTransition(first+"K", "end", first+"K"+num, "end"+num);
-        model_.hmm_.addSynonymTransition(first+"K", "K", first+"Kk-"+num, "Kk-"+num);
-				model_.hmm_.addSynonymTransition(first+"K", "end", first+"Kk-"+num, "endk-"+num);
+        model_.hmm_.addSynonymTransition(first+"_K", "K", first+"_K"+num, "K"+num);
+				model_.hmm_.addSynonymTransition(first+"_K", "end", first+"_K"+num, "end"+num);
+        model_.hmm_.addSynonymTransition(first+"_K", "K", first+"_Kk-"+num, "Kk-"+num);
+				model_.hmm_.addSynonymTransition(first+"_K", "end", first+"_Kk-"+num, "endk-"+num);
 
-        model_.hmm_.setTransitionProbability(first+"K", "K", 0.5);
-        model_.hmm_.setTransitionProbability(first+"K", "end", 0.5);
+        model_.hmm_.setTransitionProbability(first+"_K", "K", 0.5);
+        model_.hmm_.setTransitionProbability(first+"_K", "end", 0.5);
 			
 				// SC H
-				model_.hmm_.addSynonymTransition("AABase1", "AABase2", "ASC"+num, first+"H"+num);
-        model_.hmm_.addSynonymTransition("AABase1", "AABase2", "ASCk-"+num, first+"Hk-"+num);
+				model_.hmm_.addSynonymTransition("AABase1", "AABase2", "ASC"+num, first+"_H"+num);
+        model_.hmm_.addSynonymTransition("AABase1", "AABase2", "ASCk-"+num, first+"_Hk-"+num);
 
-        model_.hmm_.addSynonymTransition(first+"H", "H", first+"H"+num, "H"+num);
-				model_.hmm_.addSynonymTransition(first+"H", "end", first+"H"+num, "end"+num);
-        model_.hmm_.addSynonymTransition(first+"H", "H", first+"Hk-"+num, "Hk-"+num);
-				model_.hmm_.addSynonymTransition(first+"H", "end", first+"Hk-"+num, "endk-"+num);
+        model_.hmm_.addSynonymTransition(first+"_H", "H", first+"_H"+num, "H"+num);
+				model_.hmm_.addSynonymTransition(first+"_H", "end", first+"_H"+num, "end"+num);
+        model_.hmm_.addSynonymTransition(first+"_H", "H", first+"_Hk-"+num, "Hk-"+num);
+				model_.hmm_.addSynonymTransition(first+"_H", "end", first+"_Hk-"+num, "endk-"+num);
 
-        model_.hmm_.setTransitionProbability(first+"H", "H", 0.5);
-        model_.hmm_.setTransitionProbability(first+"H", "end", 0.5);
+        model_.hmm_.setTransitionProbability(first+"_H", "H", 0.5);
+        model_.hmm_.setTransitionProbability(first+"_H", "end", 0.5);
 
 				// SC R	
-				model_.hmm_.addSynonymTransition("AABase1", "AABase2", "ASC"+num, first+"RSC"+num);
-        model_.hmm_.addSynonymTransition("AABase1", "AABase2", "ASCk-"+num, first+"RSCk-"+num);
+				model_.hmm_.addSynonymTransition("AABase1", "AABase2", "ASC"+num, first+"_R"+num);
+        model_.hmm_.addSynonymTransition("AABase1", "AABase2", "ASCk-"+num, first+"_Rk-"+num);
 
-        model_.hmm_.addSynonymTransition(first+"RSC", "R", first+"RSC"+num, "R"+num);
-				model_.hmm_.addSynonymTransition(first+"RSC", "end", first+"RSC"+num, "end"+num);
-        model_.hmm_.addSynonymTransition(first+"RSC", "R", first+"RSCk-"+num, "Rk-"+num);
-				model_.hmm_.addSynonymTransition(first+"RSC", "end", first+"RSCk-"+num, "endk-"+num);
+        model_.hmm_.addSynonymTransition(first+"_R", "R", first+"_R"+num, "R"+num);
+				model_.hmm_.addSynonymTransition(first+"_R", "end", first+"_R"+num, "end"+num);
+        model_.hmm_.addSynonymTransition(first+"_R", "R", first+"_Rk-"+num, "Rk-"+num);
+				model_.hmm_.addSynonymTransition(first+"_R", "end", first+"_Rk-"+num, "endk-"+num);
 
-        model_.hmm_.setTransitionProbability(first+"RSC", "R", 0.5);
-        model_.hmm_.setTransitionProbability(first+"RSC", "end", 0.5);
+        model_.hmm_.setTransitionProbability(first+"_R", "R", 0.5);
+        model_.hmm_.setTransitionProbability(first+"_R", "end", 0.5);
 				
 
 				
-				for (UInt j = 0; j != residues.size(); ++j)
+				for (set<const Residue*>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
 				{
-					String second;
-					second += residues[j];
+					AASequence second_aa;
+					second_aa += *jt;
+					String second(second_aa.toString());
 
-					model_.hmm_.addSynonymTransition("AABase1", "AABase2", "AA"+num, first+second+"bxyz"+num);
-					model_.hmm_.addSynonymTransition("AABase1", "AABase2", "AAk-"+num, first+second+"bxyzk-"+num);
+					model_.hmm_.addSynonymTransition("AABase1", "AABase2", "AA"+num, first+second+"_bxyz"+num);
+					model_.hmm_.addSynonymTransition("AABase1", "AABase2", "AAk-"+num, first+second+"_bxyzk-"+num);
 
-					model_.hmm_.addSynonymTransition("AABase1", "AABase2", "AA"+num, first+second+"axyz"+num);
-					model_.hmm_.addSynonymTransition("AABase1", "AABase2", "AAk-"+num, first+second+"axyzk-"+num);
+					model_.hmm_.addSynonymTransition("AABase1", "AABase2", "AA"+num, first+second+"_axyz"+num);
+					model_.hmm_.addSynonymTransition("AABase1", "AABase2", "AAk-"+num, first+second+"_axyzk-"+num);
 				
 					if (i <= 2)
 					{
 						if (second == "P")
 						{
-            	model_.hmm_.setTransitionProbability(first+second+"bxyz"+num, "bxyz"+num, 0.5);
-							model_.hmm_.addSynonymTransition(first+second+"bxyz"+num, "end", first+second+"bxyz"+num, "end"+num);
-							model_.hmm_.setTransitionProbability(first+second+"bxyz"+num, "end", 0.5);
+            	model_.hmm_.setTransitionProbability(first+second+"_bxyz"+num, "bxyz"+num, 0.5);
+							model_.hmm_.addSynonymTransition(first+second+"_bxyz"+num, "end", first+second+"_bxyz"+num, "end"+num);
+							model_.hmm_.setTransitionProbability(first+second+"_bxyz"+num, "end", 0.5);
 
-							model_.hmm_.setTransitionProbability(first+second+"axyz"+num, "axyz"+num, 0.5);
-							model_.hmm_.addSynonymTransition(first+second+"axyz"+num, "end", first+second+"axyz"+num, "end"+num);
-							model_.hmm_.setTransitionProbability(first+second+"axyz"+num, "end", 0.5);
+							model_.hmm_.setTransitionProbability(first+second+"_axyz"+num, "axyz"+num, 0.5);
+							model_.hmm_.addSynonymTransition(first+second+"_axyz"+num, "end", first+second+"_axyz"+num, "end"+num);
+							model_.hmm_.setTransitionProbability(first+second+"_axyz"+num, "end", 0.5);
 
 						}
 						else
 						{
-							model_.hmm_.setTransitionProbability(first+second+"bxyz"+num, "bxyz"+num, 0.5);
-              model_.hmm_.addSynonymTransition(first+second+"bxyz"+num, "end", first+second+"bxyz"+num, "end"+num);
-              model_.hmm_.setTransitionProbability(first+second+"bxyz"+num, "end", 0.5);
+							model_.hmm_.setTransitionProbability(first+second+"_bxyz"+num, "bxyz"+num, 0.5);
+              model_.hmm_.addSynonymTransition(first+second+"_bxyz"+num, "end", first+second+"_bxyz"+num, "end"+num);
+              model_.hmm_.setTransitionProbability(first+second+"_bxyz"+num, "end", 0.5);
 
-							model_.hmm_.setTransitionProbability(first+second+"axyz"+num, "axyz"+num, 0.5);
-							model_.hmm_.addSynonymTransition(first+second+"axyz"+num, "end", first+second+"axyz"+num, "end"+num);
-							model_.hmm_.setTransitionProbability(first+second+"axyz"+num, "end", 0.5);
+							model_.hmm_.setTransitionProbability(first+second+"_axyz"+num, "axyz"+num, 0.5);
+							model_.hmm_.addSynonymTransition(first+second+"_axyz"+num, "end", first+second+"_axyz"+num, "end"+num);
+							model_.hmm_.setTransitionProbability(first+second+"_axyz"+num, "end", 0.5);
 						}
 					}
 					else
 					{
 					
-						model_.hmm_.addSynonymTransition(first+second+"bxyz", "bxyz", first+second+"bxyz"+num, "bxyz"+num);
-						model_.hmm_.addSynonymTransition(first+second+"bxyz", "end", first+second+"bxyz"+num, "end"+num);
+						model_.hmm_.addSynonymTransition(first+second+"_bxyz", "bxyz", first+second+"_bxyz"+num, "bxyz"+num);
+						model_.hmm_.addSynonymTransition(first+second+"_bxyz", "end", first+second+"_bxyz"+num, "end"+num);
 
-						model_.hmm_.addSynonymTransition(first+second+"axyz", "axyz", first+second+"axyz"+num, "axyz"+num);
-						model_.hmm_.addSynonymTransition(first+second+"axyz", "end", first+second+"axyz"+num, "end"+num);
+						model_.hmm_.addSynonymTransition(first+second+"_axyz", "axyz", first+second+"_axyz"+num, "axyz"+num);
+						model_.hmm_.addSynonymTransition(first+second+"_axyz", "end", first+second+"_axyz"+num, "end"+num);
 					}
 					
-					model_.hmm_.addSynonymTransition(first+second+"bxyz", "bxyz", first+second+"bxyzk-"+num, "bxyzk-"+num);
-					model_.hmm_.addSynonymTransition(first+second+"bxyz", "end", first+second+"bxyzk-"+num, "endk-"+num);
-					model_.hmm_.setTransitionProbability(first+second+"bxyz", "bxyz", 0.5);
-					model_.hmm_.setTransitionProbability(first+second+"bxyz", "end", 0.5);
-					model_.hmm_.addSynonymTransition(first+second+"bxyz", "end", first+second+"bxyzk-"+num, "end"+num);
+					model_.hmm_.addSynonymTransition(first+second+"_bxyz", "bxyz", first+second+"_bxyzk-"+num, "bxyzk-"+num);
+					model_.hmm_.addSynonymTransition(first+second+"_bxyz", "end", first+second+"_bxyzk-"+num, "endk-"+num);
+					model_.hmm_.setTransitionProbability(first+second+"_bxyz", "bxyz", 0.5);
+					model_.hmm_.setTransitionProbability(first+second+"_bxyz", "end", 0.5);
+					model_.hmm_.addSynonymTransition(first+second+"_bxyz", "end", first+second+"_bxyzk-"+num, "end"+num);
 
-					model_.hmm_.addSynonymTransition(first+second+"axyz", "axyz", first+second+"axyzk-"+num, "axyzk-"+num);
-					model_.hmm_.addSynonymTransition(first+second+"axyz", "end", first+second+"axyzk-"+num, "endk-"+num);
-					model_.hmm_.setTransitionProbability(first+second+"axyz", "axyz", 0.5);
-					model_.hmm_.setTransitionProbability(first+second+"axyz", "end", 0.5);
-					model_.hmm_.addSynonymTransition(first+second+"axyz", "end", first+second+"axyzk-"+num, "end"+num);
+					model_.hmm_.addSynonymTransition(first+second+"_axyz", "axyz", first+second+"_axyzk-"+num, "axyzk-"+num);
+					model_.hmm_.addSynonymTransition(first+second+"_axyz", "end", first+second+"_axyzk-"+num, "endk-"+num);
+					model_.hmm_.setTransitionProbability(first+second+"_axyz", "axyz", 0.5);
+					model_.hmm_.setTransitionProbability(first+second+"_axyz", "end", 0.5);
+					model_.hmm_.addSynonymTransition(first+second+"_axyz", "end", first+second+"_axyzk-"+num, "end"+num);
 				}
 			}
 		}
 
 		model_.hmm_.disableTransitions();
 		model_.hmm_.buildSynonyms();
+
+		//model_.hmm_.write(cerr);
 	}
 
+	/*
 	void PILISModelGenerator::initLossModels_()
 	{
 		//# new states from this HMM
@@ -659,199 +687,204 @@ namespace OpenMS
     model_.hmms_losses_[PILISModel::B2Ion].buildSynonyms();
 		return;
 	}
+*/
 
 	void PILISModelGenerator::initPrecursorModel_()
 	{
-		model_.hmm_pre_loss_.addNewState(new HMMState("PRE", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("S1", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("T1", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("E1", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("D1", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("Q11", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("COOH1", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("S2", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("T2", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("E2", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("D2", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("Q12", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("COOH2", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("NH2CHNH", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("M-NH2CHNH", false));
-		model_.hmm_pre_loss_.addNewState(new HMMState("M-H2O", false));
-		model_.hmm_pre_loss_.addNewState(new HMMState("M-NH3", false));
-		model_.hmm_pre_loss_.addNewState(new HMMState("end", false));
-		model_.hmm_pre_loss_.addNewState(new HMMState("M", false));
-		model_.hmm_pre_loss_.addNewState(new HMMState("M-H2O-H2O", false));
-		model_.hmm_pre_loss_.addNewState(new HMMState("M-H2O-NH3", false));
-		model_.hmm_pre_loss_.addNewState(new HMMState("R1", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("K1", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("Q1", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("N1", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("R2", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("K2", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("N2", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("Q2", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("BASE1", true));
-		model_.hmm_pre_loss_.addNewState(new HMMState("BASE2", true));
-		model_.hmm_pre_loss_.setTransitionProbability("BASE1", "BASE2", 1);
+    set<const Residue*> residues(ResidueDB::getInstance()->getResidues(ResidueDB::NATURAL_20));
+    StringList modifications = param_.getValue("modifications");
 
-		// first layer y to residue specific losses (delta 0-1 function)
-		model_.hmm_pre_loss_.addSynonymTransition("BASE1", "BASE2", "PRE", "S1");
-		model_.hmm_pre_loss_.addSynonymTransition("BASE1", "BASE2", "PRE", "T1");
-		model_.hmm_pre_loss_.addSynonymTransition("BASE1", "BASE2", "PRE", "E1");
-		model_.hmm_pre_loss_.addSynonymTransition("BASE1", "BASE2", "PRE", "D1");
-		model_.hmm_pre_loss_.addSynonymTransition("BASE1", "BASE2", "PRE", "Q11");
-		model_.hmm_pre_loss_.addSynonymTransition("BASE1", "BASE2", "PRE", "COOH1");
+    for (StringList::const_iterator it = modifications.begin(); it != modifications.end(); ++it)
+    {
+      residues.insert(ResidueDB::getInstance()->getModifiedResidue(*it));
+#ifdef PRECURSOR_MODEL_DEBUG
+			AASequence aa;
+			aa += ResidueDB::getInstance()->getModifiedResidue(*it);
+			cerr << "AddingModifiedResidue: " << aa.toString() << endl;
+#endif
+    }
 
-		model_.hmm_pre_loss_.addSynonymTransition("BASE1", "BASE2", "PRE", "NH2CHNH");
+		set<String> losses;
+		for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+		{
+			String loss = (*it)->getLossFormula().getString();
+
+			if (loss != "")
+			{
+				losses.insert(loss);
+#ifdef PRECURSOR_MODEL_DEBUG
+				cerr << "Loss: " << loss << " (name=" << (*it)->getLossName() << ") of residue: " << (*it)->getName() << endl;
+#endif
+			}
+		}
+
+		// precursor is not fragmented
+		model_.hmm_precursor_.addNewState(new HMMState("p", false));
+
+		// emitting nodes for single losses
+		for (set<String>::const_iterator it = losses.begin(); it != losses.end(); ++it)
+		{
+			model_.hmm_precursor_.addNewState(new HMMState("p-" + *it, false));
+		}
+
+		// emitting nodes for double losses
+		set<String> double_losses;
+		for (set<String>::const_iterator it1 = losses.begin(); it1 != losses.end(); ++it1)
+		{
+			set<String>::const_iterator it2 = it1;
+			++it2;
+			for (; it2 != losses.end(); ++it2)
+			{
+				double_losses.insert(*it1 + "-" + *it2);
+			}
+		}
+		for (set<String>::const_iterator it1 = losses.begin(); it1 != losses.end(); ++it1)
+		{
+			for (set<String>::const_iterator it2 = it1; it2 != losses.end(); ++it2)
+			{
+				model_.hmm_precursor_.addNewState(new HMMState("p-" + *it1 + "-" + *it2, false));
+			}
+		}
 		
-		// residue specific loss probabilities
-		model_.hmm_pre_loss_.setTransitionProbability("S1", "M", 0.1);
-		model_.hmm_pre_loss_.setTransitionProbability("S1", "end", 0.5);	
-		model_.hmm_pre_loss_.setTransitionProbability("T1", "M", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("T1", "end", 0.5);
-		model_.hmm_pre_loss_.setTransitionProbability("E1", "M", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("E1", "end", 0.5);
-		model_.hmm_pre_loss_.setTransitionProbability("D1", "M", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("D1", "end", 0.5);
-		model_.hmm_pre_loss_.setTransitionProbability("Q11", "M", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("Q11", "end", 0.5);
-		model_.hmm_pre_loss_.setTransitionProbability("COOH1", "M", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("COOH1", "end", 0.5);
 
-		model_.hmm_pre_loss_.setTransitionProbability("S1", "S2", 0.1);
-		model_.hmm_pre_loss_.setTransitionProbability("S1", "T2", 0.1);
-		model_.hmm_pre_loss_.setTransitionProbability("S1", "E2", 0.1);
-		model_.hmm_pre_loss_.setTransitionProbability("S1", "D2", 0.1);
-		model_.hmm_pre_loss_.setTransitionProbability("S1", "Q12", 0.1);
-		model_.hmm_pre_loss_.setTransitionProbability("S1", "COOH2", 0.1);
+		// H2O loss from the C-terminus
+		String h2o(EmpiricalFormula("H2O").getString());
+		model_.hmm_precursor_.addNewState(new HMMState("COOH-" + h2o, true));
+		model_.hmm_precursor_.addNewState(new HMMState("start", true));
 
-    model_.hmm_pre_loss_.setTransitionProbability("T1", "S2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("T1", "T2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("T1", "E2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("T1", "D2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("T1", "Q12", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("T1", "COOH2", 0.1);
-
-    model_.hmm_pre_loss_.setTransitionProbability("E1", "S2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("E1", "T2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("E1", "E2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("E1", "D2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("E1", "Q12", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("E1", "COOH2", 0.1);
-
-    model_.hmm_pre_loss_.setTransitionProbability("D1", "S2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("D1", "T2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("D1", "E2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("D1", "D2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("D1", "Q12", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("D1", "COOH2", 0.1);
-
-		model_.hmm_pre_loss_.setTransitionProbability("Q11", "S2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("Q11", "T2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("Q11", "E2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("Q11", "D2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("Q11", "Q12", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("Q11", "COOH2", 0.1);
-
-    model_.hmm_pre_loss_.setTransitionProbability("COOH1", "S2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("COOH1", "T2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("COOH1", "E2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("COOH1", "D2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("COOH1", "Q12", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("COOH1", "COOH2", 0.1);
-
-		// .. to NH3 loss states
-    model_.hmm_pre_loss_.setTransitionProbability("S1", "K2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("S1", "N2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("S1", "Q2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("S1", "R2", 0.1);
-
-    model_.hmm_pre_loss_.setTransitionProbability("T1", "K2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("T1", "N2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("T1", "Q2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("T1", "R2", 0.1);
-
-    model_.hmm_pre_loss_.setTransitionProbability("E1", "K2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("E1", "N2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("E1", "Q2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("E1", "R2", 0.1);
-
-    model_.hmm_pre_loss_.setTransitionProbability("D1", "K2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("D1", "N2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("D1", "Q2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("D1", "R2", 0.1);
-
-    model_.hmm_pre_loss_.setTransitionProbability("Q11", "K2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("Q11", "N2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("Q11", "Q2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("Q11", "R2", 0.1);
-
-		model_.hmm_pre_loss_.setTransitionProbability("COOH1", "K2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("COOH1", "N2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("COOH1", "Q2", 0.1);
-    model_.hmm_pre_loss_.setTransitionProbability("COOH1", "R2", 0.1);
-	
-		// from second loss states to y-H2O-H2O
-    model_.hmm_pre_loss_.setTransitionProbability("S2", "M-H2O-H2O", 0.4);
-		model_.hmm_pre_loss_.setTransitionProbability("S2", "M-H2O", 0.4);
-    model_.hmm_pre_loss_.setTransitionProbability("S2", "end", 0.2);
-    model_.hmm_pre_loss_.setTransitionProbability("T2", "M-H2O-H2O", 0.4);
-		model_.hmm_pre_loss_.setTransitionProbability("T2", "M-H2O", 0.4);
-    model_.hmm_pre_loss_.setTransitionProbability("T2", "end", 0.2);
-    model_.hmm_pre_loss_.setTransitionProbability("E2", "M-H2O-H2O", 0.4);
-		model_.hmm_pre_loss_.setTransitionProbability("E2", "M-H2O", 0.4);
-    model_.hmm_pre_loss_.setTransitionProbability("E2", "end", 0.2);
-    model_.hmm_pre_loss_.setTransitionProbability("D2", "M-H2O-H2O", 0.4);
-		model_.hmm_pre_loss_.setTransitionProbability("D2", "M-H2O", 0.4);
-    model_.hmm_pre_loss_.setTransitionProbability("D2", "end", 0.2);
-    model_.hmm_pre_loss_.setTransitionProbability("Q12", "M-H2O-H2O", 0.4);
-		model_.hmm_pre_loss_.setTransitionProbability("Q12", "M-H2O", 0.4);
-    model_.hmm_pre_loss_.setTransitionProbability("Q12", "end", 0.2);
-    model_.hmm_pre_loss_.setTransitionProbability("COOH2", "M-H2O-H2O", 0.4);
-		model_.hmm_pre_loss_.setTransitionProbability("COOH2", "M-H2O", 0.4);
-    model_.hmm_pre_loss_.setTransitionProbability("COOH2", "end", 0.2);
-
-		// single NH3 loss delta functions
-    model_.hmm_pre_loss_.addSynonymTransition("BASE1", "BASE2", "PRE", "K1");
-    model_.hmm_pre_loss_.addSynonymTransition("BASE1", "BASE2", "PRE", "N1");
-    model_.hmm_pre_loss_.addSynonymTransition("BASE1", "BASE2", "PRE", "Q1");
-    model_.hmm_pre_loss_.addSynonymTransition("BASE1", "BASE2", "PRE", "R1");
-
-    model_.hmm_pre_loss_.setTransitionProbability("K1", "M-NH3", 0.4);
-    model_.hmm_pre_loss_.setTransitionProbability("K1", "M", 0.4);
-		model_.hmm_pre_loss_.setTransitionProbability("K1", "end", 0.2);
-    model_.hmm_pre_loss_.setTransitionProbability("N1", "M-NH3", 0.4);
-    model_.hmm_pre_loss_.setTransitionProbability("N1", "M", 0.4);
-		model_.hmm_pre_loss_.setTransitionProbability("N1", "end", 0.2);
-    model_.hmm_pre_loss_.setTransitionProbability("Q1", "M-NH3", 0.4);
-		model_.hmm_pre_loss_.setTransitionProbability("Q1", "M", 0.4);
-    model_.hmm_pre_loss_.setTransitionProbability("Q1", "end", 0.2);		
-    model_.hmm_pre_loss_.setTransitionProbability("R1", "M-NH3", 0.4);
-		model_.hmm_pre_loss_.setTransitionProbability("R1", "M", 0.4);
-    model_.hmm_pre_loss_.setTransitionProbability("R1", "end", 0.2);
-	
-		model_.hmm_pre_loss_.setTransitionProbability("NH2CHNH", "M-NH2CHNH", 0.4);
-		model_.hmm_pre_loss_.setTransitionProbability("NH2CHNH", "M", 0.4);
-		model_.hmm_pre_loss_.setTransitionProbability("NH2CHNH", "end", 0.2);
+		// TODO put this into a parameter
+		UInt num_explicit(4);
 		
-    model_.hmm_pre_loss_.setTransitionProbability("K2", "M-H2O-NH3", 0.4);
-    model_.hmm_pre_loss_.setTransitionProbability("K2", "M-H2O", 0.4);
-		model_.hmm_pre_loss_.setTransitionProbability("K2", "end", 0.2);
-    model_.hmm_pre_loss_.setTransitionProbability("N2", "M-H2O-NH3", 0.4);
-    model_.hmm_pre_loss_.setTransitionProbability("N2", "M-H2O", 0.4);
-		model_.hmm_pre_loss_.setTransitionProbability("N2", "end", 0.2);
-    model_.hmm_pre_loss_.setTransitionProbability("Q2", "M-H2O-NH3", 0.4);
-		model_.hmm_pre_loss_.setTransitionProbability("Q2", "M-H2O", 0.4);
-    model_.hmm_pre_loss_.setTransitionProbability("Q2", "end", 0.2);	
-    model_.hmm_pre_loss_.setTransitionProbability("R2", "M-H2O-NH3", 0.4);
-		model_.hmm_pre_loss_.setTransitionProbability("R2", "M-H2O", 0.4);
-    model_.hmm_pre_loss_.setTransitionProbability("R2", "end", 0.2);
+		// add double loss states
+		// add edges from double loss states to single loss states and emitting states
+		for (set<const Residue*>::const_iterator it1 = residues.begin(); it1 != residues.end(); ++it1)
+		{
+			AASequence aa1;
+			aa1 += *it1;
+			String loss1 = (*it1)->getLossFormula().getString();
+			if (loss1 == "")
+			{
+				continue;
+			}
+			
+			model_.hmm_precursor_.addNewState(new HMMState(aa1.toString() + "-" + loss1));
+			model_.hmm_precursor_.addNewState(new HMMState(aa1.toString() + "-" + loss1 + "-next"));
 
+			for (UInt i = 0; i != num_explicit; ++i)
+			{
+				model_.hmm_precursor_.addNewState(new HMMState(aa1.toString() + "-" + loss1 + "_" + String(i + 1)));
+			}
+			
+			model_.hmm_precursor_.addNewState(new HMMState(aa1.toString()  + "COOH-" + loss1 + "-" + h2o));
+			model_.hmm_precursor_.addNewState(new HMMState(aa1.toString()  + "COOH-" + loss1 + "-" + h2o + "-next"));
+
+			String losses;
+			if (h2o < loss1)
+			{
+				losses = "-" + h2o  + "-" + loss1;
+			}
+			else
+			{
+				losses = "-" + loss1 + "-" + h2o;
+			}
+			String cooh_name = aa1.toString() + "COOH-" + loss1 + "-" + h2o;
+			model_.hmm_precursor_.setTransitionProbability(cooh_name, "p" + losses, 0.25);
+			model_.hmm_precursor_.setTransitionProbability(cooh_name, aa1.toString() + "-" + loss1, 0.25);
+			model_.hmm_precursor_.setTransitionProbability(cooh_name, "COOH-" + h2o, 0.25);
+			model_.hmm_precursor_.setTransitionProbability(cooh_name, cooh_name + "-next", 0.25);
+		}
+		for (set<const Residue*>::const_iterator it1 = residues.begin(); it1 != residues.end(); ++it1)
+		{
+			AASequence aa1;
+			aa1 += *it1;
+			String loss1 = (*it1)->getLossFormula().getString();
+			if (loss1 == "")
+			{
+				continue;
+			}
+			
+			for (set<const Residue*>::const_iterator it2 = it1; it2 != residues.end(); ++it2)
+			{
+				AASequence aa2;
+				aa2 += *it2;
+				String loss2 = (*it2)->getLossFormula().getString();
+				if (loss2 != "")
+				{
+					String name;
+					String losses;
+					if (loss1 < loss2)
+					{
+						losses = "-" + loss1 + "-" + loss2;
+					}
+					else
+					{
+						losses = "-" + loss2 + "-" + loss1;
+					}
+					if (aa1 < aa2)
+					{
+						name = aa1.toString() + aa2.toString();
+					}
+					else
+					{
+						name = aa2.toString() + aa1.toString();
+					}
+					model_.hmm_precursor_.addNewState(new HMMState(name + losses, true));
+					model_.hmm_precursor_.addNewState(new HMMState(name + losses + "-next", true));
+
+					for (UInt i = 0; i != num_explicit; ++i)
+					{
+						model_.hmm_precursor_.addNewState(new HMMState(name + losses + "_" + String(i + 1), true));
+					}
+
+					model_.hmm_precursor_.setTransitionProbability(name + losses, "p" + losses, 0.25);
+					model_.hmm_precursor_.setTransitionProbability(name + losses, aa1.toString() + "-" + loss1, 0.25);
+					model_.hmm_precursor_.setTransitionProbability(name + losses, aa2.toString() + "-" + loss2, 0.25);
+					model_.hmm_precursor_.setTransitionProbability(name + losses, name + losses + "-next", 0.25);
+
+					for (UInt i = 0; i != num_explicit; ++i)
+					{
+						String state_name_num = name + losses + "_" + String(i + 1);
+						String state_name = name + losses;
+						model_.hmm_precursor_.addSynonymTransition(state_name, "p" + losses,  state_name_num, "p" + losses);
+						model_.hmm_precursor_.addSynonymTransition(state_name, aa1.toString() + "-" + loss1, state_name_num, aa1.toString() + "-" + loss1 + "_" + String(i + 1));
+						model_.hmm_precursor_.addSynonymTransition(state_name, aa2.toString() + "-" + loss2, state_name_num, aa2.toString() + "-" + loss2 + "_" + String(i + 1));
+					}
+				}
+			}
+		}
+
+		for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+		{
+			AASequence aa;
+      aa += *it;
+      String loss = (*it)->getLossFormula().getString();
+      if (loss == "")
+      {
+        continue;
+      }
+
+			model_.hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, "p-" + loss, 0.25);
+			model_.hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, "p", 0.25);
+			model_.hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, aa.toString() + "-" + loss + "-next", 0.5);
+
+			for (UInt i = 0; i != num_explicit; ++i)
+			{
+				String name_num = aa.toString() + "-" + loss + "_" + String(i + 1);
+				String name = aa.toString() + "-" + loss;
+				model_.hmm_precursor_.addSynonymTransition(name, "p-" + loss, name_num, "p-" + loss);
+				model_.hmm_precursor_.addSynonymTransition(name, "p", name_num, "p");
+			}
+		}
+
+		model_.hmm_precursor_.disableTransitions();
+		model_.hmm_precursor_.buildSynonyms();
+
+
+#ifdef PRECURSOR_MODEL_DEBUG
+    cerr << "#States: " << model_.hmm_precursor_.getNumberOfStates() << endl;
+    model_.hmm_precursor_.writeGraphMLFile("precursor_model.graphML");
+#endif
 		
-		model_.hmm_pre_loss_.disableTransitions();
-		model_.hmm_pre_loss_.buildSynonyms();
-
 		return;
 	}
 

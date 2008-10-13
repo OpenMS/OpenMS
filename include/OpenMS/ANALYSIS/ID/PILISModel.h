@@ -35,7 +35,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>
-#include <OpenMS/ANALYSIS/ID/HiddenMarkovModelLight.h>
+//#include <OpenMS/ANALYSIS/ID/HiddenMarkovModelLight.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 //#include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -111,18 +111,6 @@ namespace OpenMS
 
 		protected:
 
-			/// enumerates the basic loss types implemented
-			enum NeutralLossType_
-			{
-				LOSS_TYPE_H2O = 0,
-				LOSS_TYPE_NH3,
-				LOSS_TYPE_NONE,
-				LOSS_TYPE_NH2CHNH,
-				LOSS_TYPE_CO,
-				LOSS_TYPE_H2O_H2O,
-				LOSS_TYPE_H2O_NH3
-			};
-
 			/// enumeration of the basic ion types used
 			enum IonType_
 			{
@@ -136,17 +124,6 @@ namespace OpenMS
 				YIon_NH3
 			};
 			
-			/// describes precursor and related peaks
-			struct PrecursorPeaks_
-			{
-				double pre;
-				double pre_H2O;
-				double pre_NH3;
-				double pre_H2O_H2O;
-				double pre_H2O_NH3;
-				double pre_NH2CHNH;
-			};
-		
 			/// describes ions peaks and the relatives of them
 			struct IonPeaks_
 			{
@@ -156,66 +133,9 @@ namespace OpenMS
 			/// initializes the model
 			void initModels_();
 	
-			/// the states of the precursor and loss states
-			enum States_
-			{							
-				PRE_MH = 0,
-				PRE_MH_H2O,
-				PRE_MH_NH3,
-				PRE_MH_NH2CHNH,
-				PRE_END,
-				PRE_ION,
-				PRE_BASE1,
-				PRE_BASE2,
-				PRE_H2O_S,
-				PRE_H2O_T,
-				PRE_H2O_E,
-				PRE_H2O_D,
-				PRE_H2O_Q1,
-				PRE_H2O_CTERM,
-				PRE_NH3_K,
-				PRE_NH3_R,
-				PRE_NH3_Q,
-				PRE_NH3_N,
-				PRE_NH2CHNH_R,
-				B_H2O,
-				B_NH3,
-				B_LOSS_END,
-				B_ION,
-				B_BASE1,
-				B_BASE2,
-				B_H2O_S,
-				B_H2O_T,
-				B_H2O_E,
-				B_H2O_D,
-				B_H2O_Q1,
-				B_NH3_K,
-				B_NH3_R,
-				B_NH3_Q,
-				B_NH3_N,
-				B_CO,
-				A_ION,
-        Y_H2O,
-        Y_NH3,
-        Y_LOSS_END,
-        Y_ION,
-        Y_BASE1,
-        Y_BASE2,
-        Y_H2O_S,
-        Y_H2O_T,
-        Y_H2O_E,
-        Y_H2O_D,
-				Y_H2O_Q1,
-				Y_H2O_CTERM,
-        Y_NH3_K,
-        Y_NH3_R,
-				Y_NH3_Q,
-				Y_NH3_N
-      };			
-
 			
 			/// extracts the precursor and related intensities of a training spectrum
-			void getPrecursorIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, PrecursorPeaks_& pre_ints, double peptide_weight, UInt charge);
+			void getPrecursorIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, Map<String, double>& pre_ints, double peptide_weight, UInt charge);
 
 			/// extracts the ions intensities of a training spectrum
 			double getIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, IonPeaks_& ion_ints, const AASequence& peptide, UInt charge);
@@ -224,20 +144,23 @@ namespace OpenMS
 			double getIntensitiesFromComparison_(const RichPeakSpectrum& train_spec, const RichPeakSpectrum& theo_spec, std::vector<double>& intensities);
 
 			/// trains precursor and related peaks
-			void trainPrecursorIons_(double initial_probability, const PrecursorPeaks_& intensities, const AASequence& peptide, bool Q_only);
+			void trainPrecursorIons_(double initial_probability, const Map<String, double>& intensities, const AASequence& peptide);
 
 			/// trains neutral losses an related peaks
-			void trainNeutralLossesFromIon_(double initial_probability, const Map<NeutralLossType_, double>& intensities, IonType_ ion_type, double ion_intensity, const AASequence& ion);
+			void trainNeutralLossesFromIon_(double initial_probability, const Map<String, double>& intensities, IonType_ ion_type, double ion_intensity, const AASequence& ion);
 
+			
 			/// estimates the precursor intensities 
-			void getPrecursorIons_(Map<NeutralLossType_, double>& intensities, double initial_probability, const AASequence& precursor, bool Q_only);
+			void getPrecursorIons_(Map<String, double>& intensities, double initial_probability, const AASequence& precursor);
 
 			/// estimates the neutral losses of an ion
-			void getNeutralLossesFromIon_(Map<NeutralLossType_, double>& intensities, double initial_probability, IonType_ ion_type, const AASequence& ion);
+			void getNeutralLossesFromIon_(Map<String, double>& intensities, double initial_probability, IonType_ ion_type, const AASequence& ion);
 
 			/// enables the states needed for precursor training/simulation
-			void enablePrecursorIonStates_(const AASequence& peptide, bool Q_only);
+			void enablePrecursorIonStates_(const AASequence& peptide);
 
+
+			
 			/// enables the states needed for neutral loss training/simulation
 			void enableNeutralLossStates_(IonType_ ion_type, const AASequence& ion);
 
@@ -254,36 +177,35 @@ namespace OpenMS
 		
 			/// parse the base model
 			void parseHMMModel_(const TextFile::ConstIterator& begin, const TextFile::ConstIterator& end, HiddenMarkovModel& hmm);
-			
+		
+			/*
 			/// parse model file of losses and precursor models
 			void parseHMMLightModel_(const TextFile::ConstIterator& begin, const TextFile::ConstIterator& end, HiddenMarkovModelLight& model);
-
+*/
 			/// base model used
 			HiddenMarkovModel hmm_;
 
+		
 			/// precursor model used
-			HiddenMarkovModelLight hmm_precursor_;
+			HiddenMarkovModel hmm_precursor_;
 
+			/*
 			/// loss models used
 			Map<IonType_, HiddenMarkovModelLight> hmms_losses_;
+			*/
 
 			HiddenMarkovModel hmm_yloss_;
 
 			HiddenMarkovModel hmm_bloss_;
 
-			HiddenMarkovModel hmm_pre_loss_;
+			//hmm_pre_loss_
+			//HiddenMarkovModel hmm_pre_loss_;
 
 			/// proton distribution model
 			ProtonDistributionModel prot_dist_;
 
 			/// theoretical spectrum generator (needed for training/aligning and spectrum intensity extraction)
 			TheoreticalSpectrumGenerator tsg_;
-
-			/// name to enum mapping of the losses/precursor states
-			Map<String, States_> name_to_enum_;
-
-			/// enum to name mapping of the losses/precursor states
-			Map<States_, String> enum_to_name_;
 
 			/// true if the instance is valid
 			bool valid_;

@@ -51,6 +51,7 @@ namespace OpenMS
 		defaults_.setValue("gb_bb_r_COOH", -95.82, "Gas-phase basicity value of C-terminus", StringList::create("advanced"));
 		defaults_.setValue("gb_bb_r_b-ion", 36.46, "Gas-phase basicity value of b-ion C-terminus", StringList::create("advanced"));
 		defaults_.setValue("gb_bb_r_a-ion", 46.85, "Gas-phase basicity value of a-ion C-terminus", StringList::create("advanced"));
+		//defaults_.setValue("temperature", 500.0, "Temperature term ", true);
 
 		defaultsToParam_();
 	}

@@ -36,7 +36,6 @@ CPP_SOURCES=\
 	ProtonDistributionModel.C\
 	PILISScoring.C\
 	HiddenMarkovModel.C\
-	HiddenMarkovModelLight.C\
 	PILISModel.C\
 	PILISModelGenerator.C\
 	PILISIdentification.C\
