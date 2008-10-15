@@ -731,62 +731,60 @@ CHECK((String& operator+= (double d)))
 	TEST_EQUAL(s, "test7.4")
 RESULT
 
- // NOTE (Clemens): I am still trying to find out what goes wrong with g++
-// 3.4 as used for windows test builds.  Will remove this stuff when the
-// problem is solved.
 CHECK((String& operator+= (long double d)))
 {
-	{
-		// NOTE (Clemens): I am still trying to find out what goes wrong with g++
-		// 3.4 as used for windows test builds.  Will remove this stuff when the
-		// problem is solved.
-
+	/*
+	NOTE (by Clemens): Windows platforms do not really support long double.  See
+	<CONCEPT/Types.h>.  I am leaving this code here because it will help to
+	clarify how to set written_digits_xyz on new platforms.
+	*/
+#if 1
 #define ECHO_AND_DO(bla) STATUS(""#bla); bla
+#define ECHO_AND_VALUE(bla) STATUS(""#bla << ": " << bla);
 
-		STATUS(sizeof(double));
-		STATUS(std::numeric_limits<double>::digits);
-		STATUS(std::numeric_limits<double>::digits10);
-		STATUS(written_digits_double);
+	ECHO_AND_VALUE(sizeof(double));
+	ECHO_AND_VALUE(std::numeric_limits<double>::digits);
+	ECHO_AND_VALUE(std::numeric_limits<double>::digits10);
+	ECHO_AND_VALUE(written_digits_double);
 
-		ECHO_AND_DO(std::cout.precision(std::numeric_limits<double>::digits10));
-		STATUS(typeAsString(7.4) << ": " << 7.4);
-		STATUS(typeAsString(7.4L) << ": " << 7.4L);
+	ECHO_AND_DO(std::cout.precision(std::numeric_limits<double>::digits10));
+	ECHO_AND_VALUE(typeAsString(7.4) << ": " << 7.4);
+	ECHO_AND_VALUE(typeAsString(7.4L) << ": " << 7.4L);
 
-		ECHO_AND_DO(std::cout.precision(written_digits_double));
-		STATUS(typeAsString(7.4) << ": " << 7.4);
-		STATUS(typeAsString(7.4L) << ": " << 7.4L);
+	ECHO_AND_DO(std::cout.precision(written_digits_double));
+	ECHO_AND_VALUE(typeAsString(7.4) << ": " << 7.4);
+	ECHO_AND_VALUE(typeAsString(7.4L) << ": " << 7.4L);
 
-		STATUS(sizeof(long double));
-		STATUS(std::numeric_limits<long double>::digits);
-		STATUS(std::numeric_limits<long double>::digits10);
-		STATUS(written_digits_long_double);
+	ECHO_AND_VALUE(sizeof(long double));
+	ECHO_AND_VALUE(std::numeric_limits<long double>::digits);
+	ECHO_AND_VALUE(std::numeric_limits<long double>::digits10);
+	ECHO_AND_VALUE(written_digits_long_double);
 
-		ECHO_AND_DO(std::cout.precision(std::numeric_limits<long double>::digits10));
-		STATUS(typeAsString(7.4) << ": " << 7.4);
-		STATUS(typeAsString(7.4L) << ": " << 7.4L);
+	ECHO_AND_DO(std::cout.precision(std::numeric_limits<long double>::digits10));
+	STATUS(typeAsString(7.4) << ": " << 7.4);
+	STATUS(typeAsString(7.4L) << ": " << 7.4L);
 
-		ECHO_AND_DO(std::cout.precision(written_digits_long_double));
-		STATUS(typeAsString(7.4) << ": " << 7.4);
-		STATUS(typeAsString(7.4L) << ": " << 7.4L);
+	ECHO_AND_DO(std::cout.precision(written_digits_long_double));
+	STATUS(typeAsString(7.4) << ": " << 7.4);
+	STATUS(typeAsString(7.4L) << ": " << 7.4L);
 
-		const UInt save_prec  = std::cout.precision();
-		for ( UInt prec = 10; prec <= 30; ++prec)
-		{
-			std::cout.precision(prec);
-			STATUS("prec: " << prec << "   7.4: " << 7.4 << "   7.4L: " << 7.4L);
-		}
-		std::cout.precision(save_prec);
+	const UInt save_prec  = std::cout.precision();
+	for ( UInt prec = 10; prec <= 30; ++prec)
+	{
+		std::cout.precision(prec);
+		STATUS("prec: " << prec << "   7.4: " << 7.4 << "   7.4L: " << 7.4L);
+	}
+	std::cout.precision(save_prec);
 
 #undef ECHO_AND_DO
-	}
+#undef ECHO_AND_VALUE
+#endif /* End of funny stuff by Clemens */
 
 	String s = "test";
 	// long double x = 7.4; // implictly double (not long double!)  =>  7.40000000000000036
 	long double x = 7.4L; // explictly long double  =>  7.4
 	s += x;
 	TEST_EQUAL(s, "test7.4");
-
-	STATUS("Note: Today this test crashes intentionally :-P   I want to see what happens on ALL platforms.  Will remove this when issue is resolved. (Clemens)");	TEST_EQUAL(0,1);
 }
 RESULT
 

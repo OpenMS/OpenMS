@@ -222,11 +222,19 @@ namespace OpenMS
 	static const Int written_digits_float = std::numeric_limits<float>::digits10;
 	/// Number of digits commonly used for writing a @c Real (a.k.a. precision).
 	static const Int written_digits_real = std::numeric_limits<Real>::digits10;
-	/**@brief Number of digits commonly used for writing a @c long @c double (a.k.a. precision).
+
+	/*
+	META-COMMENT:  DO NOT INTRODUCE ANY LINEBREAKS BELOW IN
+	"<code>std::numeric_limits<long double>::digits10 == 18</code>".
+	The doxygen parser (version 1.5.5) will get confused!  (Clemens)
+	*/
+
+	/**@brief Number of digits commonly used for writing a @c long @c double (a.k.a. precision). ...
 	
   Note: On Microsoft platforms, the I/O sytem seems to treat @c long @c double
-  just like @c double.  We observed that <code>std::numeric_limits<long
-  double>::digits10 == 18</code> with GCC 3.4 on MinGW, but this promise is
+  just like @c double.  We observed that
+	<code>std::numeric_limits<long double>::digits10 == 18</code>
+	with GCC 3.4 on MinGW, but this promise is
   <i>not</i> kept by the Microsoft I/O sytem libraries.  Therefore we use the
   value of @c digits10 for @c double also for @c long @c double.  See
   http://msdn.microsoft.com/ + search: "long double".
