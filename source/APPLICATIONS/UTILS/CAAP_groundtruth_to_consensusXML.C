@@ -26,6 +26,7 @@
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <fstream>
 #include <sstream>
 
@@ -37,13 +38,12 @@ int main( int argc, const char** argv )
 	if ( argc != 4 && argc != 5 )
 	{
 		std::cout <<
-			"Usage:  " << argv[0] << " input output prefix [-v]\n"
+			"Usage:  " << argv[0] << " input output [-v]\n"
 			"\n"
 			"where:\n"
 			"  input    is a ground truth file as described on the CAAP web page\n"
 			"  output   is the result in consensusXML format as described in the OpenMS docu.\n"
-			"  prefix   is replaces the original prefix for the map ids (the suffix after _ is retained)\n"
-			"  [supply optional fourth argument -v for verbose output]\n"
+			"  [supply optional third argument -v for verbose output]\n"
 			"\n"
 			"See the paper:\n"
 			"\"Critical assessment of alignment procedures for LC-MS proteomics and metabolomics measurements\"\n"
@@ -55,9 +55,9 @@ int main( int argc, const char** argv )
 	}
 
 	int verbose = 0;
-	if ( argc == 5 )
+	if ( argc == 4 )
 	{
-		if ( std::string(argv[4]) =="-v" )
+		if ( std::string(argv[3]) =="-v" )
 		{
 			verbose = 1;
 		}
@@ -72,13 +72,12 @@ int main( int argc, const char** argv )
 
 	const char * const argv_input  = argv[1];
 	const char * const argv_output = argv[2];
-	const char * const argv_prefix = argv[3];
 
 	std::fstream input(argv_input);
 	std::string line;
-	OpenMS::String map_id_str;
-	int map_id_num;
-	std::set<int> map_id_numbers;
+	std::string map_id_str;
+	int map_id_num = 0;
+	std::map<std::string,unsigned> map_filename_to_map_index;
 	double score;
 	double intensity;
 	double retention_time;
@@ -98,7 +97,15 @@ int main( int argc, const char** argv )
 		{
 			linestream >> map_id_str >> score >> intensity >> retention_time >> mass_to_charge;
 			if (!linestream) break;
-			map_id_num = map_id_str.suffix('_').toInt();
+			std::map<std::string,unsigned>::const_iterator map_iter = map_filename_to_map_index.find(map_id_str);
+			if ( map_iter != map_filename_to_map_index.end() )
+			{
+				map_id_num = map_iter->second;
+			}
+			else
+			{
+				map_filename_to_map_index.insert(std::make_pair(map_id_str,(map_id_num=map_filename_to_map_index.size())));
+			}
 			VERBOSEMSG2
 				(
 				 "CE: " <<
@@ -110,7 +117,6 @@ int main( int argc, const char** argv )
 				 mass_to_charge <<
 				 std::endl
 				);
-			map_id_numbers.insert(map_id_num);
 			feature_handle.setMapIndex(map_id_num);
 			// We currently do not trace the element indices back to the original feature maps.
 			feature_handle.setElementIndex(0);
@@ -141,16 +147,16 @@ int main( int argc, const char** argv )
 
 	OpenMS::ConsensusMap::FileDescription file_description;
 	VERBOSEMSG2("map_id_numbers:");
-	for ( std::set<int>::const_iterator iter = map_id_numbers.begin();
-				iter != map_id_numbers.end();
-				++iter
+	for ( std::map<std::string,unsigned>::const_iterator map_iter = map_filename_to_map_index.begin();
+				map_iter != map_filename_to_map_index.end();
+				++map_iter
 			)
 	{
-		VERBOSEMSG2(" " << *iter);
-		file_description.filename = OpenMS::String(argv_prefix) + *iter;
+		VERBOSEMSG2(" " << map_iter->first << ':' << map_iter->second);
+		file_description.filename = map_iter->first;
 		file_description.label = "";
 		file_description.size = 1; // element_index is always 0
-		consensus_map.getFileDescriptions()[*iter] = file_description;
+		consensus_map.getFileDescriptions()[map_iter->second] = file_description;
 	}
 	VERBOSEMSG2(std::endl);
 
