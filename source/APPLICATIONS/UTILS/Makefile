@@ -58,7 +58,7 @@ CPP_SOURCES =\
 	$(UTILS_EXECUTABLES:=.C)
 
 %: %.o
-	$(ECHO) $(CXX) $(LDFLAGS) -o $@ $< $(LIBS); \
+	@$(ECHO) $(CXX) $(LDFLAGS) -o $@ $< $(LIBS); \
 	$(CXX) $(LDFLAGS) -o $@ $< $(LIBS); \
 	$(ECHO) $(CP) $@ $(PREFIX)/bin/; \
 	$(CP) $@ $(PREFIX)/bin/; \

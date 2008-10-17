@@ -142,6 +142,7 @@ int main( int argc, const char** argv )
 #endif
 		}
 		consensus_feature.computeConsensus();
+		consensus_feature.setQuality(1);
 		consensus_map.push_back(consensus_feature);
 	}
 
