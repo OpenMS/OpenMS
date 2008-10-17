@@ -313,36 +313,36 @@ namespace OpenMS
 			options_ = options;
 		}
 
-		void FeatureXMLHandler::writeFeature_(ostream& os, const Feature& feat, const String& identifier_prefix, const UInt identifier, const UInt& intendation_level)
+		void FeatureXMLHandler::writeFeature_(ostream& os, const Feature& feat, const String& identifier_prefix, const UInt identifier, const UInt& indentation_level)
 		{
-			String intend = String(intendation_level,'\t');
+			String indent = String(indentation_level,'\t');
 
-			os << intend << "\t\t<feature id=\"" << identifier_prefix << identifier << "\">\n";
+			os << indent << "\t\t<feature id=\"" << identifier_prefix << identifier << "\">\n";
 			for (UInt i=0; i<2;i++)
 			{
-				os << intend <<	"\t\t\t<position dim=\"" << i << "\">" << feat.getPosition()[i] << "</position>\n";
+				os << indent <<	"\t\t\t<position dim=\"" << i << "\">" << precisionWrapper(feat.getPosition()[i]) << "</position>\n";
 			}
-			os << intend << "\t\t\t<intensity>" << feat.getIntensity() << "</intensity>\n";
+			os << indent << "\t\t\t<intensity>" << precisionWrapper(feat.getIntensity()) << "</intensity>\n";
 			for (UInt i=0; i<2;i++)
 			{
-				os << intend << "\t\t\t<quality dim=\"" << i << "\">" << feat.getQuality(i) << "</quality>\n";
+				os << indent << "\t\t\t<quality dim=\"" << i << "\">" << precisionWrapper(feat.getQuality(i)) << "</quality>\n";
 			}
-			os << intend << "\t\t\t<overallquality>" << feat.getOverallQuality() << "</overallquality>\n";
-			os << intend << "\t\t\t<charge>" << feat.getCharge() << "</charge>\n";
+			os << indent << "\t\t\t<overallquality>" << precisionWrapper(feat.getOverallQuality()) << "</overallquality>\n";
+			os << indent << "\t\t\t<charge>" << feat.getCharge() << "</charge>\n";
 
 			// write model description
 			ModelDescription<2> desc = feat.getModelDescription();
 			if (!desc.getName().empty() || !desc.getParam().empty())
 			{
-				os << intend << "\t\t\t<model name=\"" << desc.getName() << "\">\n";
+				os << indent << "\t\t\t<model name=\"" << desc.getName() << "\">\n";
 				Param modelp = desc.getParam();
 				Param::ParamIterator piter = modelp.begin();
 				while (piter != modelp.end())
 				{
-					os << intend << "\t\t\t\t<param name=\"" << piter.getName() << "\" value=\"" << piter->value << "\"/>\n";
+					os << indent << "\t\t\t\t<param name=\"" << piter.getName() << "\" value=\"" << piter->value << "\"/>\n";
 					piter++;
 				}
-				os << intend << "\t\t\t</model>\n";
+				os << indent << "\t\t\t</model>\n";
 			}
 
 			// write convex hull
@@ -353,43 +353,43 @@ namespace OpenMS
 
 			for (UInt i=0;i<hulls_count; i++)
 			{
-				os << intend << "\t\t\t<convexhull nr=\"" << i << "\">\n";
+				os << indent << "\t\t\t<convexhull nr=\"" << i << "\">\n";
 
 				ConvexHull2D current_hull = hulls[i];
 				UInt hull_size	= current_hull.getPoints().size();
 
 				for (UInt j=0;j<hull_size;j++)
 				{
-					os << intend << "\t\t\t\t<hullpoint>\n";
+					os << indent << "\t\t\t\t<hullpoint>\n";
 
 					DPosition<2> pos = current_hull.getPoints()[j];
 					UInt pos_size = pos.size();
 					for (UInt k=0; k<pos_size; k++)
 					{
-						os << intend << "\t\t\t\t\t<hposition dim=\"" << k << "\">" << pos[k] << "</hposition>\n";
+						os << indent << "\t\t\t\t\t<hposition dim=\"" << k << "\">" << precisionWrapper(pos[k]) << "</hposition>\n";
 					}
 
-					os << intend << "\t\t\t\t</hullpoint>\n";
+					os << indent << "\t\t\t\t</hullpoint>\n";
 				} // end for (..hull_size..)
 
-				os << intend << "\t\t\t</convexhull>\n";
+				os << indent << "\t\t\t</convexhull>\n";
 			} // end	for ( ... hull_count..)
 
 			if (!feat.getSubordinates().empty())
 			{
-				os << intend << "\t\t\t<subordinate>\n";
+				os << indent << "\t\t\t<subordinate>\n";
 				UInt identifier_subordinate = 0;
 				for (std::size_t i=0;i<feat.getSubordinates().size();++i)
 				{
-					writeFeature_(os, feat.getSubordinates()[i], identifier_prefix+identifier+"_", identifier_subordinate, intendation_level+2);
+					writeFeature_(os, feat.getSubordinates()[i], identifier_prefix+identifier+"_", identifier_subordinate, indentation_level+2);
 					++identifier_subordinate;
 				}
-				os << intend << "\t\t\t</subordinate>\n";
+				os << indent << "\t\t\t</subordinate>\n";
 			}
 
-			writeUserParam_("userParam", os, feat, 3+intendation_level);
+			writeUserParam_("userParam", os, feat, 3+indentation_level);
 
-			os << intend << "\t\t</feature>\n";
+			os << indent << "\t\t</feature>\n";
 		}
 
 		void FeatureXMLHandler::updateCurrentFeature_(const bool create)

@@ -109,7 +109,7 @@ namespace OpenMS
 	
 	    protected:
 				/// Writes a feature body to a stream
-				void writeFeature_(std::ostream& os, const Feature& feat, const String& identifier_prefix, const UInt identifier, const UInt& intendation_level);
+				void writeFeature_(std::ostream& os, const Feature& feat, const String& identifier_prefix, const UInt identifier, const UInt& indentation_level);
 				/** @brief update the pointer to the current feature
 						
 					  @param create If true, a new (empty) Feature is added at the appropriate subordinate_feature_level_

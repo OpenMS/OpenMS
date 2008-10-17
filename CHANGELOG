@@ -26,7 +26,7 @@ Changes to the contrib package:
 
 Detailed list of changes to specific OpenMS classes:
 - Renamed and moved classes
-  - Renamed MSMetaDataExplorer to MetaDataBroswer
+  - Renamed MSMetaDataExplorer to MetaDataBrowser
 - Removed classes
   - Removed DPeakArray and moved the functionality to the classes that inherited from DPeakArray
 - New classes

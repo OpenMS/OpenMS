@@ -249,7 +249,6 @@ namespace OpenMS
 			{
 				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 			}
-			os.precision(written_digits_doublereal);
 
 			// Iterate over all peaks of each spectrum and
 			// write one line for each peak of the spectrum.
@@ -260,7 +259,7 @@ namespace OpenMS
 				for (typename MapType::SpectrumType::ConstIterator it = spec->begin(); it != spec->end(); ++it)
 				{
 					// Write rt, m/z and intensity.
-					os	<< spec->getRT() << " "<< it->getPosition() << " "<< it->getIntensity() << std::endl;
+					os	<< precisionWrapper(spec->getRT()) << " " << precisionWrapper(it->getPos()) << " "<< precisionWrapper(it->getIntensity()) << std::endl;
 				}
 
 			}

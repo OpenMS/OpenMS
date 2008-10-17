@@ -102,7 +102,7 @@ namespace OpenMS
 		}
     //@}
     
-    //@name Accessors
+    ///@name Accessors
     //@{
 		/// Returns the map index
 		UInt getMapIndex() const

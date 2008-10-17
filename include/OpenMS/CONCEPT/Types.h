@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CONCEPT_TYPES_H
@@ -32,6 +32,8 @@
 #include <limits>
 #include <time.h>
 #include <string>
+#include <iostream>
+#include <iomanip>
 
 #ifdef OPENMS_HAS_BASETSD_H
 #include <basetsd.h>
@@ -183,6 +185,11 @@ namespace OpenMS
 	These static const integeres are provided to unify the handling of this
 	issue throughout %OpenMS.  (So please don't use ad-hoc numbers ;-) )
 
+	If you want to avoid side effects you can use precisionWrapper() to write a
+	floating point number with appropriate precision; in this case the original
+	state of the stream is automatically restored afterwards.  See
+	precisionWrapper() for details.
+
 	In practice, the number of decimal digits that the type can represent
 	without loss of precision are 6 digits for single precision
 	and 15 digits for double precision.
@@ -244,8 +251,97 @@ namespace OpenMS
 #else
 	static const Int written_digits_long_double = std::numeric_limits<double>::digits10;
 #endif
-	//@}
+	
+	/// Wrapper to implement output with appropriate precision.  See precisionWrapper().
+	template <typename T >
+	struct PrecisionWrapper
+	{
+		/// Constructor.  Note: Normally you will prefer to use the "make"-function precisionWrapper(), which see.
+		PrecisionWrapper(const T rhs)
+			: ref_(rhs)
+		{
+		}
+		PrecisionWrapper(const PrecisionWrapper& rhs)
+			: ref_(rhs.ref_)
+		{
+		}
+		
+		T const ref_;
+		
+	 private:
+		PrecisionWrapper(); //< intentionally not implemented
+	};
+  
+	/**@brief Wrapper function that sets the appropriate precision for output
+	temporarily.  The original precision is restored afterwards so that no side
+	effects remain.  This is a "make"-function that deduces the typename T from
+	its argument and returns a PrecisionWrapper<T>.
+	
+	Example:
+	@code
+	std::cout
+	<< 0.1234567890123456789f << ' ' << 0.1234567890123456789 << ' ' << 0.1234567890123456789l << '\n'
+	<< precisionWrapper(0.1234567890123456789f) << '\n' // float
+	<< 0.1234567890123456789f << ' ' << 0.1234567890123456789 << ' ' << 0.1234567890123456789l << '\n'
+	<< precisionWrapper(0.1234567890123456789) << '\n' // double
+	<< 0.1234567890123456789f << ' ' << 0.1234567890123456789 << ' ' << 0.1234567890123456789l << '\n'
+	<< precisionWrapper(0.1234567890123456789l) << '\n' // long double
+	<< 0.1234567890123456789f << ' ' << 0.1234567890123456789 << ' ' << 0.1234567890123456789l << '\n';
+	@endcode
+	Result:
+	@code
+	0.123457 0.123457 0.123457
+	0.123457
+	0.123457 0.123457 0.123457
+	0.123456789012346
+	0.123457 0.123457 0.123457
+	0.123456789012345679
+	0.123457 0.123457 0.123457
+	@endcode
 
+	Note: Unfortunately we cannot return a const& - this will change when rvalue
+	references become part of the new C++ standard.  As a consequence, we need a
+	copy constructor for PrecisionWrapper.
+  */
+	template <typename T>
+	inline const PrecisionWrapper<T> precisionWrapper(const T rhs)
+	{
+		return PrecisionWrapper<T>(rhs);
+	}
+
+	/// Output operator for a PrecisionWrapper.  Specializations are defined for float, double, long double.
+	template <typename T >
+	std::ostream & operator << ( std::ostream& os, const PrecisionWrapper<T>& rhs);
+	
+	/// Output operator for a PrecisionWrapper.  Specializations are defined for float, double, long double.
+	template <> inline std::ostream & operator << ( std::ostream& os, const PrecisionWrapper<float>& rhs)
+	{
+		const unsigned prec_save = os.precision();
+		return os << std::setprecision(OpenMS::written_digits_float)
+							<< rhs.ref_
+							<< std::setprecision(prec_save);
+	}
+	
+	/// Output operator for a PrecisionWrapper.  Specializations are defined for float, double, long double.
+	template <> inline std::ostream & operator << ( std::ostream& os, const PrecisionWrapper<double>& rhs)
+	{
+		const unsigned prec_save = os.precision();
+		return os << std::setprecision(OpenMS::written_digits_double)
+							<< rhs.ref_
+							<< std::setprecision(prec_save);
+	}
+	
+	/// Output operator for a PrecisionWrapper.  Specializations are defined for float, double, long double.
+	template <> inline std::ostream & operator << ( std::ostream& os, const PrecisionWrapper<long double>& rhs)
+	{
+		const unsigned prec_save = os.precision();
+		return os << std::setprecision(OpenMS::written_digits_long_double)
+							<< rhs.ref_
+							<< std::setprecision(prec_save);
+	}
+	
+	//@}
+	
 	/**
 	@brief Returns the @c Type as as std::string.
 
