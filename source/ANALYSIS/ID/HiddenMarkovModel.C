@@ -44,6 +44,7 @@
 #undef STATE_DEBUG
 
 #define EVALUATE_DEBUG
+#undef EVALUATE_DEBUG
 
 using namespace std;
 
@@ -392,6 +393,19 @@ namespace OpenMS
       cerr << "state '" << synonym2 << "' unknown" << endl;
     }
 		synonym_trans_names_[synonym1][synonym2] = make_pair<String, String>(name1, name2);
+
+		synonym_trans_[name_to_state_[synonym1]][name_to_state_[synonym2]] = make_pair<HMMState*, HMMState*>(name_to_state_[name1], name_to_state_[name2]);
+
+/*
+		for (map<String, map<String, std::pair<String, String> > >::const_iterator it = synonym_trans_names_.begin(); it != synonym_trans_names_.end(); ++it)
+    {
+      for (map<String, pair<String, String> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+      {
+        synonym_trans_[name_to_state_[it->first]][name_to_state_[it2->first]] =
+            make_pair<HMMState*, HMMState*>(name_to_state_[it2->second.first], name_to_state_[it2->second.second]);
+      }
+    }
+	*/	
 	}
 
 	void HiddenMarkovModel::setTransitionProbability(HMMState * s1, HMMState * s2, double trans_prob)
@@ -811,6 +825,7 @@ namespace OpenMS
     }
 	}
 
+/*
 	void HiddenMarkovModel::buildSynonyms()
 	{
 		for (map<String, map<String, std::pair<String, String> > >::const_iterator it = synonym_trans_names_.begin(); it != synonym_trans_names_.end(); ++it)
@@ -821,7 +836,7 @@ namespace OpenMS
 						make_pair<HMMState*, HMMState*>(name_to_state_[it2->second.first], name_to_state_[it2->second.second]);
 			}
 		}
-	}
+	}*/
 
 	void HiddenMarkovModel::estimateUntrainedTransitions()
 	{
@@ -1156,7 +1171,17 @@ namespace OpenMS
 		synonym_trans_names_ = source.synonym_trans_names_;
 		pseudo_counts_ = source.pseudo_counts_;
 
-		buildSynonyms();
+
+		//buildSynonyms();
+    for (map<String, map<String, std::pair<String, String> > >::const_iterator it = synonym_trans_names_.begin(); it != synonym_trans_names_.end(); ++it)
+    {
+      for (map<String, pair<String, String> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+      {
+        synonym_trans_[name_to_state_[it->first]][name_to_state_[it2->first]] =
+            make_pair<HMMState*, HMMState*>(name_to_state_[it2->second.first], name_to_state_[it2->second.second]);
+      }
+    }
+
 
 		for (map<HMMState*, set<HMMState*> >::const_iterator it1 = source.enabled_trans_.begin(); it1 != source.enabled_trans_.end(); ++it1)
 		{

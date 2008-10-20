@@ -25,6 +25,8 @@
 
 
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
+#include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
+
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -35,8 +37,6 @@
 #include <numeric>
 #include <fstream>
 
-
-#define PRECURSOR_DEBUG
 
 #define TRAINING_DEBUG
 #undef  TRAINING_DEBUG
@@ -76,8 +76,9 @@ namespace OpenMS
 		defaults_.setValue("visible_model_depth", 30, "The maximal possible size of a peptide to be modeled");
 		defaults_.setValue("precursor_mass_tolerance", 3.0, "Mass tolerance of the precursor peak, used to identify the precursor peak and its loss peaks for training");
 		defaults_.setValue("peak_mass_tolerance", 0.3, "Peak mass tolerance of the product ions, used to identify the ions for training");
-		defaults_.setValue("fixed_modifications", "", "Fixed modifications in format '57.001@C'");
-
+		defaults_.setValue("variable_modifications", StringList::create("MOD:00719,MOD:09997"), "Modifications which should be included in the model, represented by PSI-MOD accessions.");
+		defaults_.setValue("fixed_modifications", StringList::create(""), "Modifications which should replace the unmodified amino acid, represented by PSI-MOD accessions.");
+						
 		defaults_.setValue("min_y_ion_intensity", 0.20, ".");
 		defaults_.setValue("min_b_ion_intensity", 0.15, ".");
 		defaults_.setValue("min_a_ion_intensity", 0.05, ".");
@@ -89,7 +90,6 @@ namespace OpenMS
 		defaults_.setValue("max_isotope", 2, "Maximal isotope peak which is reported by the model, 0 means all isotope peaks are reported");
 
 		defaultsToParam_();
-		initModels_();
 	}
 
 	PILISModel::~PILISModel()
@@ -99,12 +99,13 @@ namespace OpenMS
 	PILISModel::PILISModel(const PILISModel& model)
 		: DefaultParamHandler(model),
 			hmm_(model.hmm_),
-			hmm_precursor_(model.hmm_precursor_),
 			prot_dist_(model.prot_dist_),
 			tsg_(model.tsg_),
 			valid_(model.valid_),
 			peaks_(model.peaks_),
-			spectra_aligner_(model.spectra_aligner_)
+			spectra_aligner_(model.spectra_aligner_),
+			precursor_model_cr_(model.precursor_model_cr_),
+			precursor_model_cd_(model.precursor_model_cd_)
 	{
 	}
 
@@ -114,15 +115,52 @@ namespace OpenMS
 		{
 			DefaultParamHandler::operator=(model);
 			hmm_ = model.hmm_;
-	    hmm_precursor_ = model.hmm_precursor_;
 	    prot_dist_ = model.prot_dist_;
 	    tsg_ = model.tsg_;
 	    valid_ = model.valid_;
 			peaks_ = model.peaks_;
 			spectra_aligner_ = model.spectra_aligner_;
+			precursor_model_cr_ = model.precursor_model_cr_;
+			precursor_model_cd_ = model.precursor_model_cd_;
 		}
 		return *this;
 	}
+
+	void PILISModel::setHMM(const HiddenMarkovModel& model)
+	{
+		hmm_ = model;
+	}
+
+	/*
+	void PILISModel::setPrecursorHMM(const HiddenMarkovModel& model)
+	{
+		precursor_model_.setHMM(model);
+	}*/
+
+	void PILISModel::init()
+	{
+		PILISModelGenerator gen;
+		Param gen_param(gen.getParameters());
+		gen_param.setValue("variable_modifications", (StringList)param_.getValue("variable_modifications"));
+		gen_param.setValue("fixed_modifications", (StringList)param_.getValue("fixed_modifications"));
+		gen_param.setValue("model_depth", (UInt)param_.getValue("model_depth"));
+		gen_param.setValue("visible_model_depth", (UInt)param_.getValue("visible_model_depth"));
+		gen.setParameters(gen_param);
+		gen.getModel(hmm_);
+
+		cerr << "Generate precursor model" << endl;
+		//HiddenMarkovModel hmm;
+		//gen.getPrecursorModel(hmm);
+
+		precursor_model_cr_.generateModel();
+		precursor_model_cd_.generateModel();
+		
+		//b_ion_losses_.generateModel();
+		//y_ion_losses_.generateModel();
+
+		valid_ = true;
+	}
+				
 	
 	void PILISModel::readFromFile(const String& filename)
 	{
@@ -228,7 +266,7 @@ namespace OpenMS
 		#ifdef TRAINING_DEBUG
 		cout << "peptide: " << peptide  << "(z=" << charge << ")" << endl;
 		#endif
-		double peptide_weight((peptide.getMonoWeight() + double(charge)) / double(charge));
+		//double peptide_weight((peptide.getMonoWeight() + double(charge)) / double(charge));
 		
 		//Map<String, double> pre_ints;
 		//getPrecursorIntensitiesFromSpectrum_(train_spec, pre_ints, peptide_weight, charge);
@@ -250,9 +288,6 @@ namespace OpenMS
 		/*
 		for (Map<String, double>::ConstIterator it = pre_ints.begin(); it != pre_ints.end(); ++it)
 		{
-#ifdef PRECURSOR_DEBUG
-			cerr << it->first << " " << it->second << endl;
-#endif
 			sum += it->second;
 		}*/
 		
@@ -682,13 +717,20 @@ namespace OpenMS
 		{
 			trainPrecursorIons_(1, pre_ints, peptide);
 		}*/
-		if (is_charge_remote && charge < 3/* && pre_sum > 0.05*/)
-		{
-			//cerr << "BB_SUM: " << bb_sum << " " << pre_sum << " " << peptide << endl;
-			//trainPrecursorIons_(max(0.01, 1.0 - bb_sum), pre_ints, peptide);
 
-			// TODO
+
+		//if (is_charge_remote && charge < 3/* && pre_sum > 0.05*/)
+		//{
+		if (is_charge_remote)
+		{
+			precursor_model_cr_.train(in_spec, peptide, charge);
 		}
+		else
+		{
+			precursor_model_cd_.train(in_spec, peptide, charge);
+		}
+		//	precursor_model_.train(in_spec, peptide, charge);
+		//}
 
 		// now train the model with the data set
 		hmm_.train();
@@ -879,9 +921,8 @@ namespace OpenMS
 	void PILISModel::evaluate()
 	{
 		hmm_.evaluate();
-		hmm_precursor_.evaluate();
-
-		
+		precursor_model_cr_.evaluate();
+		precursor_model_cd_.evaluate();
 		//hmm_.estimateUntrainedTransitions(); // TODO
 	}
 
@@ -1391,41 +1432,27 @@ namespace OpenMS
       }
 		}
 
-		if ((is_charge_remote && charge < 3 && !(peptide.has("D") && charge == 2)) || peptide[0].getOneLetterCode() == "Q")
+		// precursor intensities
+		vector<RichPeak1D> pre_peaks;
+		cerr << "getSpectrum: bb_sum=" << bb_sum << endl;
+		if (/*(*/is_charge_remote/* && charge < 3 && !(peptide.has("D") && charge == 2)) || peptide[0].getOneLetterCode() == "Q"*/)
 		{
-			Map<String, double> pre_ints;
-			//getPrecursorIons_(pre_ints, max(0.01, 1 - bb_sum - suffix_sum - prefix_sum), peptide);
-
-			double weight = peptide.getMonoWeight();
-			id.estimateFromPeptideWeight(weight);
-			
-			for (Map<String, double>::ConstIterator it = pre_ints.begin(); it != pre_ints.end(); ++it)
-			{
-				double loss_weight = 0;
-				if (it->first == "p-O1H2-O1H2")
-				{
-					loss_weight = -36.0;
-				}
-				if (it->first == "p-O1H2")
-				{
-					loss_weight = -18.0;
-				}
-				if (it->first == "p-N1H3")
-				{
-					loss_weight = -17.0;
-				}
-				if (it->first == "p-N1H3-O1H2")
-				{
-					loss_weight = -35.0;
-				}
-				if (it->first == "p-N1H3-N1H3")
-				{
-					loss_weight = -34.0;
-				}
-				addPeaks_(weight, charge, loss_weight , it->second, spec, id, it->first);
-			}
+			//vector<RichPeak1D> pre_peaks;
+			precursor_model_cr_.getPrecursorIons(pre_peaks, peptide, charge, bb_sum);
 		}
-		
+		else
+		{
+			precursor_model_cd_.getPrecursorIons(pre_peaks, peptide, charge, min(1.0, 1.0 - bb_sum));
+		}
+			//precursor_model_.getPrecursorIons(pre_peaks, peptide, charge, max(0.01, 1 - bb_sum - suffix_sum - prefix_sum));
+			
+		double weight = peptide.getMonoWeight();
+		id.estimateFromPeptideWeight(weight);	
+		for (vector<RichPeak1D>::const_iterator it = pre_peaks.begin(); it != pre_peaks.end(); ++it)
+		{
+			addPeaks_(weight, charge, it->getMZ(), it->getIntensity(), spec, id, it->getMetaValue("IonName"));
+		}
+		//}		
 		
 		// now build the spectrum with the peaks
 		double intensity_max(0);
@@ -1704,12 +1731,6 @@ namespace OpenMS
 		return;
 	}
 	
-	
-	void PILISModel::initModels_()
-	{
-		return;
-	}
-
 	void PILISModel::parseHMMModel_(const TextFile::ConstIterator& begin, const TextFile::ConstIterator& end, HiddenMarkovModel& hmm)
 	{
 		if (begin == end)
@@ -1763,8 +1784,7 @@ namespace OpenMS
       }
     }
     //hmm_.disableTransitions();
-		hmm.buildSynonyms();
-
+		//hmm.buildSynonyms();
 		hmm.disableTransitions();
 	
 		//cerr << hmm_.getNumberOfStates() << endl;
@@ -1777,16 +1797,14 @@ namespace OpenMS
 		double pseudo_counts = (double)param_.getValue("pseudo_counts");
 		hmm_.setPseudoCounts(pseudo_counts);
 
-		
-		hmm_precursor_.setPseudoCounts(pseudo_counts);
+		// pass parameters to precursor model
+		Param precursor_param(precursor_model_cr_.getParameters());
+		precursor_param.setValue("pseudo_counts", pseudo_counts);
+		precursor_model_cr_.setParameters(precursor_param);
 
-		/*
-		hmm_pre_loss_.setPseudoCounts(pseudo_counts);
-		for (Map<IonType_, HiddenMarkovModelLight>::Iterator it = hmms_losses_.begin(); it != hmms_losses_.end(); ++it)
-		{
-			it->second.setPseudoCounts(pseudo_counts);
-		}
-		*/
+		precursor_param = precursor_model_cd_.getParameters();
+		precursor_param.setValue("pseudo_counts", pseudo_counts);
+		precursor_model_cd_.setParameters(precursor_param);
 	}
 } // namespace OpenMS
 

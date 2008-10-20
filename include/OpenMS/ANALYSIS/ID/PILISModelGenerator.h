@@ -27,7 +27,7 @@
 #ifndef OPENMS_ANALYSIS_ID_PILISMODELGENERATOR_H
 #define OPENMS_ANALYSIS_ID_PILISMODELGENERATOR_H
 
-#include <OpenMS/ANALYSIS/ID/PILISModel.h>
+#include <OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 namespace OpenMS 
@@ -66,27 +66,27 @@ namespace OpenMS
 			/** @name Accessors
 			*/
 			//@{
-			/// generates the model and returns a PILISModel 
-			const PILISModel& getModel();
+			/// generates the model and writes it into model
+			void getModel(HiddenMarkovModel& model);
+
+			/// generates the precursor model and writes it into model
+			//void getPrecursorModel(HiddenMarkovModel& model);
 			//@}
 
 
 		protected:
 
 			/// initializes the model
-			void initModels_();
+			//void initModels_();
 
 			///
-			void initMainModel_();
+			//void initMainModel_();
 
 			///
-			void initLossModels_();
+			//void initLossModels_();
 
 			///
-			void initPrecursorModel_();
-
-			/// the PILISModel which is generated
-			PILISModel model_;
+			//void initPrecursorModel_();
 	};
 }
 #endif

@@ -85,8 +85,10 @@ namespace OpenMS
 			//void readFromFile(const String& filename);
 
 			/// 
-			void getPrecursorIons(std::vector<RichPeak1D>& peaks, const AASequence& peptide, UInt charge);
+			void getPrecursorIons(std::vector<RichPeak1D>& peaks, const AASequence& peptide, UInt charge, double initial_prob);
 
+			///
+			void setHMM(const HiddenMarkovModel& model);
 			/// writes the HMM to the given file in the GraphML format. A detailed description of the GraphML format can be found under http://graphml.graphdrawing.org/
 			//void writeGraphMLFile(const String& filename);
 
@@ -94,7 +96,9 @@ namespace OpenMS
 			    @param filename filename of the base model
 			*/			 
 			//void writeToFile(const String& filename);
-
+			void generateModel();
+			
+			
 			/// this method evaluates the model after training; it should be called after all training steps with train
 			void evaluate();
 			//@}
@@ -102,7 +106,7 @@ namespace OpenMS
 		protected:
 
 			/// extracts the precursor and related intensities of a training spectrum
-			void getPrecursorIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, Map<String, double>& pre_ints, double peptide_weight, UInt charge);
+			void getPrecursorIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, Map<String, double>& pre_ints, double peptide_weight, const AASequence& peptide, UInt charge);
 
 			/// trains precursor and related peaks
 			void trainPrecursorIons_(double initial_probability, const Map<String, double>& intensities, const AASequence& peptide);

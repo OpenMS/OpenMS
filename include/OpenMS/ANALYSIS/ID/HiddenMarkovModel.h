@@ -229,7 +229,7 @@ namespace OpenMS
 			void forwardDump(); 
 
 			/// builds a synonyms structure, needed when synonyms are used
-			void buildSynonyms();
+			//void buildSynonyms();
 
 			/// estimates the transition probabilities of not trained transitions by averages similar trained ones
 			void estimateUntrainedTransitions();

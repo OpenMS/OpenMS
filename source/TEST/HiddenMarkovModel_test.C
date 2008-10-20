@@ -35,7 +35,7 @@
 
 ///////////////////////////
 
-START_TEST(HiddenMarkovModel, "$Id$")
+START_TEST(HiddenMarkovModel, "$Id: HiddenMarkovModel_test.C 3036 2008-04-16 12:56:29Z marc_sturm $")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -178,10 +178,10 @@ CHECK((void addSynonymTransition(const String& name1, const String& name2, const
 	ptr->addSynonymTransition("state_name_hidden", "state_name_emitting", "state_name_hidden2", "state_name_emitting2");
 RESULT
 
-CHECK((void buildSynonyms()))
-	ptr->buildSynonyms();
-	TEST_REAL_EQUAL(ptr->getTransitionProbability("state_name_hidden2", "state_name_emitting2"), 0.4)
-RESULT
+//CHECK((void buildSynonyms()))
+//	ptr->buildSynonyms();
+//	TEST_REAL_EQUAL(ptr->getTransitionProbability("state_name_hidden2", "state_name_emitting2"), 0.4)
+//RESULT
 
 CHECK((void setInitialTransitionProbability(const String& state, double prob)))
 	ptr->setInitialTransitionProbability("state_name_hidden2", 1.0);

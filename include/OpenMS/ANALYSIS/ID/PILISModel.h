@@ -42,6 +42,8 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/ANALYSIS/ID/PILISPrecursorModel.h>
+
 
 namespace OpenMS 
 {
@@ -60,8 +62,6 @@ namespace OpenMS
 	*/	
 	class PILISModel : public DefaultParamHandler
 	{
-		friend class PILISModelGenerator;
-
 		public:
 						
 			/** @name Constructors and destructors
@@ -99,12 +99,22 @@ namespace OpenMS
 			*/			 
 			void writeToFile(const String& filename);
 
+
+			// 
+			void init();
+			
 			/// greedy specturm aligner, should be replaced by a better algorithm
 			//void getSpectrumAlignment(Map<UInt, UInt>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2);
 
 			/// simulates a spectrum with the model of the given peptide and charge and writes it to the given PeakSpectrum
 			void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, UInt charge);
 
+			/// sets the main hidden Markov model
+			void setHMM(const HiddenMarkovModel& model);
+
+			/// set the precursor hidden Markov model
+			void setPrecursorHMM(const HiddenMarkovModel& model);
+			
 			/// this method evaluates the model after training; it should be called after all training steps with train
 			void evaluate();
 			//@}
@@ -130,9 +140,6 @@ namespace OpenMS
 				Map<IonType_, std::vector<double> > ints;
 			};
 			
-			/// initializes the model
-			void initModels_();
-	
 			/// extracts the ions intensities of a training spectrum
 			double getIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, IonPeaks_& ion_ints, const AASequence& peptide, UInt charge);
 
@@ -169,22 +176,6 @@ namespace OpenMS
 			/// base model used
 			HiddenMarkovModel hmm_;
 
-		
-			/// precursor model used
-			HiddenMarkovModel hmm_precursor_;
-
-			/*
-			/// loss models used
-			Map<IonType_, HiddenMarkovModelLight> hmms_losses_;
-			*/
-
-			HiddenMarkovModel hmm_yloss_;
-
-			HiddenMarkovModel hmm_bloss_;
-
-			//hmm_pre_loss_
-			//HiddenMarkovModel hmm_pre_loss_;
-
 			/// proton distribution model
 			ProtonDistributionModel prot_dist_;
 
@@ -199,6 +190,11 @@ namespace OpenMS
 
 			/// the alignment algorithm used
 			SpectrumAlignment spectra_aligner_;
+
+			/// precursor model used
+			PILISPrecursorModel precursor_model_cr_;
+
+			PILISPrecursorModel precursor_model_cd_;
 
 			void updateMembers_();
 	};
