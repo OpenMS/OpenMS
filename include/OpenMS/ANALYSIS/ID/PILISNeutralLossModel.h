@@ -25,8 +25,8 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ANALYSIS_ID_PILISPRECURSORMODEL_H
-#define OPENMS_ANALYSIS_ID_PILISPRECURSORMODEL_H
+#ifndef OPENMS_ANALYSIS_ID_PILISNEUTRALLOSSMODEL_H
+#define OPENMS_ANALYSIS_ID_PILISNEUTRALLOSSMODEL_H
 
 #include <vector>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -47,13 +47,13 @@ namespace OpenMS
 		from a peptide. The spectrum generator can be accessed via the getSpectrum
 		method.
 		 
-		@ref PILISPrecursorModel_Parameters are explained on a separate page.
+		@ref PILISNeutralLossModel_Parameters are explained on a separate page.
 
 		@ingroup Analysis_ID
 	*/	
-	class PILISPrecursorModel : public DefaultParamHandler
+	class PILISNeutralLossModel : public DefaultParamHandler
 	{
-		friend class PILISPrecursorModelGenerator;
+		friend class PILISNeutralLossModelGenerator;
 
 		public:
 			
@@ -61,17 +61,17 @@ namespace OpenMS
 			*/
 			//@{
 			/// default constructor
-			PILISPrecursorModel();
+			PILISNeutralLossModel();
 
 			/// copy constructor
-			PILISPrecursorModel(const PILISPrecursorModel& model);
+			PILISNeutralLossModel(const PILISNeutralLossModel& model);
 			
 			/// destructor
-			virtual ~PILISPrecursorModel();
+			virtual ~PILISNeutralLossModel();
 			//@}
 
 			/// assignment operator
-			PILISPrecursorModel& operator = (const PILISPrecursorModel& mode);
+			PILISNeutralLossModel& operator = (const PILISNeutralLossModel& mode);
 			
 			/** @name Accessors
 			*/

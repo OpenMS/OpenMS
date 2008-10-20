@@ -24,7 +24,7 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/ANALYSIS/ID/PILISPrecursorModel.h>
+#include <OpenMS/ANALYSIS/ID/PILISNeutralLossModel.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 
 #define PRECURSOR_DEBUG
@@ -34,8 +34,8 @@ using namespace std;
 namespace OpenMS 
 {
 
-	PILISPrecursorModel::PILISPrecursorModel()
-		: DefaultParamHandler("PILISPrecursorModel")
+	PILISNeutralLossModel::PILISNeutralLossModel()
+		: DefaultParamHandler("PILISNeutralLossModel")
 	{	
 		//defaults_.setValue("precursor_mass_tolerance", 3.0, "Mass tolerance of the precursor peak, used to identify the precursor peak and its loss peaks for training"); // TODO needed?
 		defaults_.setValue("fragment_mass_tolerance", 0.3, "Peak mass tolerance of the product ions, used to identify the ions for training");
@@ -50,17 +50,17 @@ namespace OpenMS
 		defaultsToParam_();
 	}
 
-	PILISPrecursorModel::~PILISPrecursorModel()
+	PILISNeutralLossModel::~PILISNeutralLossModel()
 	{
 	}
 
-	PILISPrecursorModel::PILISPrecursorModel(const PILISPrecursorModel& model)
+	PILISNeutralLossModel::PILISNeutralLossModel(const PILISNeutralLossModel& model)
 		: DefaultParamHandler(model),
 			hmm_precursor_(model.hmm_precursor_)
 	{
 	}
 
-	PILISPrecursorModel& PILISPrecursorModel::operator = (const PILISPrecursorModel& model)
+	PILISNeutralLossModel& PILISNeutralLossModel::operator = (const PILISNeutralLossModel& model)
 	{
 		if (this != &model)
 		{
@@ -70,12 +70,12 @@ namespace OpenMS
 		return *this;
 	}
 
-	void PILISPrecursorModel::setHMM(const HiddenMarkovModel& model)
+	void PILISNeutralLossModel::setHMM(const HiddenMarkovModel& model)
 	{
 		hmm_precursor_ = model;
 	}
 	
-	void PILISPrecursorModel::train(const RichPeakSpectrum& spec, const AASequence& peptide, UInt charge)
+	void PILISNeutralLossModel::train(const RichPeakSpectrum& spec, const AASequence& peptide, UInt charge)
 	{
 		Map<String, double> peak_ints;
 		double peptide_weight((peptide.getMonoWeight() + charge) / (double)charge);
@@ -105,7 +105,7 @@ namespace OpenMS
 		return;
 	}
 
-	void PILISPrecursorModel::getPrecursorIons(vector<RichPeak1D>& peaks, const AASequence& peptide, UInt /*charge*/, double initial_prob)
+	void PILISNeutralLossModel::getPrecursorIons(vector<RichPeak1D>& peaks, const AASequence& peptide, UInt /*charge*/, double initial_prob)
 	{
 		Map<String, double> pre_ints;
 		getPrecursorIons_(pre_ints, initial_prob, peptide);
@@ -139,10 +139,10 @@ namespace OpenMS
 		}
 	}
 	
-	void PILISPrecursorModel::getPrecursorIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, Map<String, double>& peak_ints, double peptide_weight, const AASequence& peptide, UInt charge)
+	void PILISNeutralLossModel::getPrecursorIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, Map<String, double>& peak_ints, double peptide_weight, const AASequence& peptide, UInt charge)
 	{
 #ifdef PRECURSOR_DEBUG
-		cerr << "PILISPrecursorModel::getPrecursorIntensitiesFromSpectrum_(#peaks=" << train_spec.size() << ", weight=" << peptide_weight << ", charge=" << charge << ")" << endl;
+		cerr << "PILISNeutralLossModel::getPrecursorIntensitiesFromSpectrum_(#peaks=" << train_spec.size() << ", weight=" << peptide_weight << ", charge=" << charge << ")" << endl;
 #endif
 		set<String> precursor_losses;
 		for (AASequence::ConstIterator it = peptide.begin(); it != peptide.end(); ++it)
@@ -210,10 +210,10 @@ namespace OpenMS
 		return;
 	}
 	
-	void PILISPrecursorModel::trainPrecursorIons_(double initial_probability, const Map<String, double>& ints, const AASequence& peptide)
+	void PILISNeutralLossModel::trainPrecursorIons_(double initial_probability, const Map<String, double>& ints, const AASequence& peptide)
 	{
 #ifdef PRECURSOR_DEBUG
-		cerr << "PILISPrecursorModel::trainPrecursorIons_(" << initial_probability << ", " << ints.size() << ", " << peptide << ")" << endl;
+		cerr << "PILISNeutralLossModel::trainPrecursorIons_(" << initial_probability << ", " << ints.size() << ", " << peptide << ")" << endl;
 #endif
 		// clean up
 		hmm_precursor_.clearInitialTransitionProbabilities();
@@ -246,10 +246,10 @@ namespace OpenMS
 		return;
 	}
 
-  void PILISPrecursorModel::enablePrecursorIonStates_(const AASequence& peptide)
+  void PILISNeutralLossModel::enablePrecursorIonStates_(const AASequence& peptide)
 	{
 #ifdef PRECURSOR_DEBUG
-		cerr << "void PILISPrecursorModel::enablePrecursorIonStates_(" << peptide << ")" << endl;
+		cerr << "void PILISNeutralLossModel::enablePrecursorIonStates_(" << peptide << ")" << endl;
 #endif
 		
 		bool enable_COOH(param_.getValue("C_term_H2O_loss").toBool());
@@ -479,12 +479,12 @@ namespace OpenMS
 		return;
 	}
 
-	void PILISPrecursorModel::evaluate()
+	void PILISNeutralLossModel::evaluate()
 	{
 		hmm_precursor_.evaluate();
 	}
 
-	void PILISPrecursorModel::getPrecursorIons_(Map<String, double>& intensities, double initial_probability, const AASequence& precursor)
+	void PILISNeutralLossModel::getPrecursorIons_(Map<String, double>& intensities, double initial_probability, const AASequence& precursor)
 	{
 		hmm_precursor_.setInitialTransitionProbability("start", initial_probability);
 
@@ -514,7 +514,7 @@ namespace OpenMS
 		hmm_precursor_.disableTransitions();
 	}
 
-  void PILISPrecursorModel::generateModel()
+  void PILISNeutralLossModel::generateModel()
   {
     set<const Residue*> residues(ResidueDB::getInstance()->getResidues(ResidueDB::NATURAL_20));
     StringList variable_modifications = param_.getValue("variable_modifications");
@@ -783,7 +783,7 @@ namespace OpenMS
   }
 
 	
-	void PILISPrecursorModel::updateMembers_()
+	void PILISNeutralLossModel::updateMembers_()
 	{
 		double pseudo_counts = (double)param_.getValue("pseudo_counts");
 		hmm_precursor_.setPseudoCounts(pseudo_counts);

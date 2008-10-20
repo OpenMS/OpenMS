@@ -42,7 +42,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/ANALYSIS/ID/PILISPrecursorModel.h>
+#include <OpenMS/ANALYSIS/ID/PILISNeutralLossModel.h>
 
 
 namespace OpenMS 
@@ -192,9 +192,9 @@ namespace OpenMS
 			SpectrumAlignment spectra_aligner_;
 
 			/// precursor model used
-			PILISPrecursorModel precursor_model_cr_;
+			PILISNeutralLossModel precursor_model_cr_;
 
-			PILISPrecursorModel precursor_model_cd_;
+			PILISNeutralLossModel precursor_model_cd_;
 
 			void updateMembers_();
 	};

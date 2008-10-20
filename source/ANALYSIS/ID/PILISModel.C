@@ -25,7 +25,8 @@
 
 
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
-#include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
+//#include <OpenMS/ANALYSIS/ID/PILISNeutralLossModel.h>
+//#include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
 
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -139,6 +140,7 @@ namespace OpenMS
 
 	void PILISModel::init()
 	{
+					/*
 		PILISModelGenerator gen;
 		Param gen_param(gen.getParameters());
 		gen_param.setValue("variable_modifications", (StringList)param_.getValue("variable_modifications"));
@@ -147,6 +149,7 @@ namespace OpenMS
 		gen_param.setValue("visible_model_depth", (UInt)param_.getValue("visible_model_depth"));
 		gen.setParameters(gen_param);
 		gen.getModel(hmm_);
+		*/
 
 		cerr << "Generate precursor model" << endl;
 		//HiddenMarkovModel hmm;
