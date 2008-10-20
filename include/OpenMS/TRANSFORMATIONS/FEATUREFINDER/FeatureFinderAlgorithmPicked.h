@@ -906,11 +906,11 @@ namespace OpenMS
 						  	error_msg = "Invalid fit: Center outside of feature bounds";
 							}
 						}
-						//check if the remaining traces fill out at least a third of the RT span
+						//check if the remaining traces fill out at least 'min_rt_span' of the RT span
 						if (feature_ok)
 						{
 							std::pair<DoubleReal,DoubleReal> rt_bounds = new_traces.getRTBounds();
-							if ((rt_bounds.second-rt_bounds.first)<min_rt_span_*5.0*sigma )
+							if ((rt_bounds.second-rt_bounds.first)<min_rt_span_*(2.0*2.5)*sigma )
 							{
 						  	feature_ok = false;
 						  	error_msg = "Invalid fit: Less than 'min_rt_span' left after fit";
@@ -957,7 +957,7 @@ namespace OpenMS
 						{
 							TextFile tf;
 							//gnuplot script	
-							String script = String("plot \"debug/features/") + plot_nr + ".dta\" title 'before fit (RT:" + x0 + " m/z:" + peak.getMZ() + ")' with points 1";
+							String script = String("plot \"debug/features/") + plot_nr + ".dta\" title 'before fit (RT: " +  String::number(x0,2) + " m/z: " +  String::number(peak.getMZ(),4) + ")' with points 1";
 							//feature before fit
 							for (UInt k=0; k<traces.size(); ++k)
 							{
@@ -986,7 +986,7 @@ namespace OpenMS
 								}
 								else
 								{
-									script = script + (features_->size()+1) + " (score: " + final_score + ")";
+									script = script + (features_->size()+1) + " (score: " +  String::number(final_score,3) + ")";
 								}
 								script = script + "' with points 3";
 							}
@@ -997,11 +997,12 @@ namespace OpenMS
 								char fun = 'f';
 								fun += k;
 								tf.push_back(String(fun)+"(x)= " + traces.baseline + " + " + (traces[k].theoretical_int*height) + " * exp(-0.5*(x-" + (500.0*k+x0) + ")**2/(" + sigma + ")**2)");
-								script =  script + ", " + fun + "(x) title 'Trace " + k + " (m/z:" + traces[k].getAvgMZ() + ")'";
+								script =  script + ", " + fun + "(x) title 'Trace " + k + " (m/z: " + String::number(traces[k].getAvgMZ(),4) + ")'";
 							}
 							//output
 							tf.push_back("set xlabel \"pseudo RT (mass traces side-by-side)\"");
 							tf.push_back("set ylabel \"intensity\"");
+							tf.push_back("set samples 1000");
 							tf.push_back(script);
 							tf.push_back("pause -1");
 							tf.store(String("debug/features/") + plot_nr + ".plot");
@@ -1526,7 +1527,7 @@ namespace OpenMS
 						continue;
 					}
 					
-					log_ << "   - final score        : " << score << std::endl;
+					log_ << "   - final score: " << score << std::endl;
 					if (score> max_score)
 					{
 						max_score = score;

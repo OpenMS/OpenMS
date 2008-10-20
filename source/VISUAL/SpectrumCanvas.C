@@ -65,7 +65,7 @@ namespace OpenMS
 			current_layer_(0),
 			spectrum_widget_(0),
 			percentage_factor_(1.0),
-			snap_factor_(1.0),
+			snap_factors_(1,1.0),
 			rubber_band_(QRubberBand::Rectangle,this),
 			watcher_(0),
 			context_add_(0)
@@ -478,9 +478,9 @@ namespace OpenMS
 		overall_data_range_.setMax(max);
 	}
 
-	double SpectrumCanvas::getSnapFactor()
+	DoubleReal SpectrumCanvas::getSnapFactor()
 	{
-		return snap_factor_;
+		return snap_factors_[0];
 	}
 
 	void SpectrumCanvas::recalculateSnapFactor_()

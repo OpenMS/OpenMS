@@ -115,7 +115,7 @@ namespace OpenMS
 			*/
 			void changeVisibleArea_(double lo, double hi, bool repaint = true, bool add_to_stack = false);  
 			
-			/// Calls dataToWidget_(const PointType&, QPoint& point) but takes snap_factor_ and percentage_factor_ into account.
+			/// Calls dataToWidget_(const PointType&, QPoint& point) but takes snap_factors_ and percentage_factor_ into account.
 			void dataToWidget_(const PeakType& peak, QPoint& point);
 			
 			/**

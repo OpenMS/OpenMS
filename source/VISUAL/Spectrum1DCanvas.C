@@ -93,7 +93,7 @@ namespace OpenMS
 	
 	void Spectrum1DCanvas::dataToWidget_(const PeakType& peak, QPoint& point)
 	{
-		SpectrumCanvas::dataToWidget_(peak.getMZ(), snap_factor_*percentage_factor_*peak.getIntensity(), point);
+		SpectrumCanvas::dataToWidget_(peak.getMZ(), snap_factors_[0]*percentage_factor_*peak.getIntensity(), point);
 	}
 	
 	//////////////////////////////////////////////////////////////////////////////////
@@ -657,11 +657,11 @@ namespace OpenMS
 					local_max = tmp->getIntensity();
 				}
 			}
-			snap_factor_ = overall_data_range_.max()[1]/local_max;
+			snap_factors_[0] = overall_data_range_.max()[1]/local_max;
 		}
 		else
 		{ 
-			snap_factor_ = 1.0;
+			snap_factors_[0] = 1.0;
 		}  	
   }
 

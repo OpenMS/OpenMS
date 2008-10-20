@@ -1,3 +1,4 @@
+// -*- mode: C++; tab-width: 2; -*-
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
@@ -396,7 +397,7 @@ namespace OpenMS
 		//@}
 		
 		/// Returns the minimum intensity of the active layer
-		inline double getCurrentMinIntensity() const 
+		inline Real getCurrentMinIntensity() const 
 		{ 
 			if (getCurrentLayer().type==LayerData::DT_PEAK)
 			{
@@ -413,7 +414,7 @@ namespace OpenMS
 		}
 
 		/// Returns the maximum intensity of the active layer
-		inline double getCurrentMaxIntensity() const 
+		inline Real getCurrentMaxIntensity() const 
 		{ 
 			if (getCurrentLayer().type==LayerData::DT_PEAK)
 			{
@@ -431,19 +432,36 @@ namespace OpenMS
 		}
 
 		/// Returns the minimum intensity of the layer with index @p index
-		inline double getMinIntensity(UInt index) const 
+		inline Real getMinIntensity(UInt index) const 
 		{ 
 			if (getLayer(index).type==LayerData::DT_PEAK)
 			{
-				return getCurrentLayer().peaks.getMinInt();
+				return getLayer(index).peaks.getMinInt();
 			}
-			else if (getCurrentLayer().type==LayerData::DT_FEATURE)
+			else if (getLayer(index).type==LayerData::DT_FEATURE)
 			{
 				return getLayer(index).features.getMinInt();
 			}
 			else
 			{
 				return getLayer(index).consensus.getMinInt();
+			}
+		}
+
+		/// Returns the maximum intensity of the layer with index @p index
+		inline Real getMaxIntensity(UInt index) const 
+		{ 
+			if (getLayer(index).type==LayerData::DT_PEAK)
+			{
+				return getLayer(index).peaks.getMaxInt();
+			}
+			else if (getLayer(index).type==LayerData::DT_FEATURE)
+			{
+				return getLayer(index).features.getMaxInt();
+			}
+			else
+			{
+				return getLayer(index).consensus.getMaxInt();
 			}
 		}
 
@@ -457,23 +475,6 @@ namespace OpenMS
 		  currentLayerParamtersChanged_();
 		}
 
-		/// Returns the maximum intensity of the layer with index @p index
-		inline double getMaxIntensity(UInt index) const 
-		{ 
-			if (getLayer(index).type==LayerData::DT_PEAK)
-			{
-				return getLayer(index).peaks.getMaxInt();
-			}
-			else if (getCurrentLayer().type==LayerData::DT_FEATURE)
-			{
-				return getLayer(index).features.getMaxInt();
-			}
-			else
-			{
-				return getLayer(index).consensus.getMaxInt();
-			}
-		}
-
 		/**
 			@brief Returns the area which encloses all data points.
 			
@@ -482,11 +483,11 @@ namespace OpenMS
 		const DRange<3>& getDataRange();	
 
 		/**
-			@brief Returns the intensity scaling factor for 'snap to maximum intensity mode'.
+			@brief Returns the first intensity scaling factor for 'snap to maximum intensity mode'.
 			
-			@see snap_factor_
+			@see snap_factors_
 		*/
-		double getSnapFactor();
+		DoubleReal getSnapFactor();
 		
 		/// Shows the preferences dialog of the active layer
 		virtual void showCurrentLayerPreferences() = 0;
@@ -695,7 +696,7 @@ namespace OpenMS
 		/**
 			@brief REcalculates the intensity scaling factor for 'snap to maximum intensity mode'.
 			
-			@see snap_factor_
+			@see snap_factors_
 		*/
 		virtual void recalculateSnapFactor_();
 		
@@ -882,7 +883,7 @@ namespace OpenMS
 			
 			In this mode the highest currently visible intensisty is treated like the maximum overall intensity.
 		*/
-		double snap_factor_;
+		std::vector<DoubleReal> snap_factors_;
 		
 		/// Rubber band for selected area
 		QRubberBand rubber_band_;

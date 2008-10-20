@@ -202,15 +202,12 @@ namespace OpenMS
       /// RT projection data
       ExperimentType projection_rt_;
 
-
-      /// interpolation helper function
-      float betweenFactor_(float v1, float v2, float val);
       /**
       	@brief Returns the color associated with @p val for the gradient @p gradient.
       	
       	Takes intensity modes into account.
       */
-      inline const QColor& heightColor_(float val, const MultiGradient& gradient)
+      inline const QColor& heightColor_(Real val, const MultiGradient& gradient, DoubleReal snap_factor)
 			{
 				switch (intensity_mode_)
 				{
@@ -221,7 +218,7 @@ namespace OpenMS
 						return gradient.precalculatedColorAt(val*percentage_factor_);
 						break;
 					case IM_SNAP:
-						return gradient.precalculatedColorAt(val*snap_factor_);
+						return gradient.precalculatedColorAt(val*snap_factor);
 						break;
 					default:
 						throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);

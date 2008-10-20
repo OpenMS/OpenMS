@@ -185,13 +185,6 @@ namespace OpenMS
 		return PeakIndex();
 	}
 	
-	float Spectrum2DCanvas::betweenFactor_(float v1, float v2, float val)
-	{
-		float lo = min(v1, v2);
-		float hi = max(v1, v2);
-		return (hi - lo == 0) ? 1 : (val - lo) / (hi - lo);
-	}
-
 	void Spectrum2DCanvas::paintDots_(UInt layer_index, QPainter& painter)
 	{
 #ifdef TIMING_TOPPVIEW
@@ -199,7 +192,7 @@ namespace OpenMS
 		timer.start();
 #endif
 		const LayerData& layer = getLayer(layer_index);
-		
+		DoubleReal snap_factor = snap_factors_[layer_index];
 		percentage_factor_ = 1.0;
 		if (intensity_mode_ == IM_PERCENTAGE)
 		{
@@ -271,7 +264,7 @@ namespace OpenMS
 				PeakIndex pi = i.getPeakIndex();
 				if (layer.filters.passes(layer.peaks[pi.spectrum],pi.peak))
 				{
-					QRgb color = heightColor_(i->getIntensity(), layer.gradient).rgb();
+					QRgb color = heightColor_(i->getIntensity(), layer.gradient, snap_factor).rgb();
 					dataToWidget_(i->getMZ(), i.getRT(),pos);
 					if (dots)
 					{
@@ -340,7 +333,7 @@ namespace OpenMS
 					}
 					else
 					{
-						color = heightColor_(i->getIntensity(), layer.gradient).rgb();
+						color = heightColor_(i->getIntensity(), layer.gradient, snap_factor).rgb();
 					}
 					//paint
 					dataToWidget_(i->getMZ(),i->getRT(),pos);
@@ -380,7 +373,7 @@ namespace OpenMS
 						 layer.filters.passes(*i))
 				{
 					//determine color
-					QRgb color = heightColor_(i->getIntensity(), layer.gradient).rgb();
+					QRgb color = heightColor_(i->getIntensity(), layer.gradient, snap_factor).rgb();
 					//paint
 					dataToWidget_(i->getMZ(),i->getRT(),pos);
 					if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
@@ -569,8 +562,7 @@ namespace OpenMS
 	void Spectrum2DCanvas::recalculateDotGradient_(UInt layer)
 	{
 		getLayer_(layer).gradient.fromString(getLayer_(layer).param.getValue("dot:gradient"));
-		//cout << "recalculateDotGradient_" << endl;
-		getLayer_(layer).gradient.activatePrecalculationMode(min(0.0,overall_data_range_.min()[2]), overall_data_range_.max()[2], param_.getValue("interpolation_steps"));
+		getLayer_(layer).gradient.activatePrecalculationMode(getMinIntensity(layer), overall_data_range_.max()[2], param_.getValue("interpolation_steps"));
 	}
 	
 	void Spectrum2DCanvas::updateProjections()
@@ -826,15 +818,15 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::recalculateSnapFactor_()
 	{
-		snap_factor_ = 1.0;
+		snap_factors_ = vector<DoubleReal>(getLayerCount(),1.0);
 		
 		if (intensity_mode_ == IM_SNAP) 
 		{
-			double local_max  = -numeric_limits<double>::max();
 			for (UInt i=0; i<getLayerCount(); i++)
 			{
 				if (getLayer(i).visible)
 				{
+					DoubleReal local_max  = -numeric_limits<DoubleReal>::max();
 					if (getLayer(i).type==LayerData::DT_PEAK)
 					{
 						for (ExperimentType::ConstAreaIterator it = getLayer(i).peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
@@ -882,11 +874,11 @@ namespace OpenMS
 							}
 						}
 					}
+					if (local_max>0.0)
+					{
+						snap_factors_[i] = overall_data_range_.max()[2]/local_max;			
+					}
 				}
-			}
-			if (local_max>0.0)
-			{
-				snap_factor_ = overall_data_range_.max()[2]/local_max;			
 			}
 		}
 	}
@@ -1884,19 +1876,35 @@ namespace OpenMS
 	{
 		if (getCurrentLayer_().type==LayerData::DT_FEATURE)
 		{
-			Feature tmp;
-			tmp.setRT(widgetToData_(e->pos())[1]);
-			tmp.setMZ(widgetToData_(e->pos())[0]);
-			FeatureEditDialog dialog(this);
-			dialog.setFeature(tmp);
-			if (dialog.exec())
+			if (selected_peak_.isValid()) //edit existing feature
 			{
-				tmp = dialog.getFeature();
-				getCurrentLayer_().features.push_back(tmp);
-				update_buffer_ = true;	
-				update_(__PRETTY_FUNCTION__);
-
-				modificationStatus_(activeLayerIndex(), true);
+				FeatureEditDialog dialog(this);
+				dialog.setFeature(getCurrentLayer_().features[selected_peak_.peak]);
+				if (dialog.exec())
+				{
+					getCurrentLayer_().features[selected_peak_.peak] = dialog.getFeature();
+					update_buffer_ = true;	
+					update_(__PRETTY_FUNCTION__);
+	
+					modificationStatus_(activeLayerIndex(), true);
+				}
+			}
+			else //create new feature
+			{
+				Feature tmp;
+				tmp.setRT(widgetToData_(e->pos())[1]);
+				tmp.setMZ(widgetToData_(e->pos())[0]);
+				FeatureEditDialog dialog(this);
+				dialog.setFeature(tmp);
+				if (dialog.exec())
+				{
+					tmp = dialog.getFeature();
+					getCurrentLayer_().features.push_back(tmp);
+					update_buffer_ = true;	
+					update_(__PRETTY_FUNCTION__);
+	
+					modificationStatus_(activeLayerIndex(), true);
+				}
 			}
 		}
 	}
