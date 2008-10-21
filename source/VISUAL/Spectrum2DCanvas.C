@@ -1109,8 +1109,12 @@ namespace OpenMS
 			}
 			else if (action_mode_ == AM_ZOOM)
 			{
-				rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
-				rubber_band_.show();
+				//translate (if not moving features)
+				if (!getCurrentLayer().type==LayerData::DT_FEATURE || !selected_peak_.isValid()) 
+				{
+					rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
+					rubber_band_.show();
+				}
 			}
 		}
 	}
@@ -1182,7 +1186,7 @@ namespace OpenMS
 				}
 			}
 		}
-		else
+		else if (action_mode_==AM_ZOOM)
 		{
 			//Zoom mode => no peak should be select
 			selected_peak_.clear(); 
@@ -1240,46 +1244,59 @@ namespace OpenMS
 		else if (action_mode_ == AM_TRANSLATE)
 		{
 			if (e->buttons() & Qt::LeftButton)
-			{
-				//calculate data coordinates of shift
-				PointType old_data = widgetToData_(last_mouse_pos_);
-				PointType new_data = widgetToData_(pos);
-				//calculate x shift
-				double shift = old_data.getX() - new_data.getX();
-				double newLoX = visible_area_.minX() + shift;
-				double newHiX = visible_area_.maxX() + shift;
-				// check if we are falling out of bounds
-				if (newLoX < overall_data_range_.minX())
+			{	
+				if (getCurrentLayer().type==LayerData::DT_FEATURE && selected_peak_.isValid()) //move feature
 				{
-					newLoX = overall_data_range_.minX();
-					newHiX = newLoX + visible_area_.width();
+					PointType new_data = widgetToData_(pos);
+					getCurrentLayer_().features[selected_peak_.peak].setRT(new_data[1]);
+					getCurrentLayer_().features[selected_peak_.peak].setMZ(new_data[0]);
+					
+					update_buffer_ = true;	
+					update_(__PRETTY_FUNCTION__);
+					modificationStatus_(activeLayerIndex(), true);
 				}
-				if (newHiX > overall_data_range_.maxX())
+				else //translate
 				{
-					newHiX = overall_data_range_.maxX();
-					newLoX = newHiX - visible_area_.width();
+					//calculate data coordinates of shift
+					PointType old_data = widgetToData_(last_mouse_pos_);
+					PointType new_data = widgetToData_(pos);
+					//calculate x shift
+					DoubleReal shift = old_data.getX() - new_data.getX();
+					DoubleReal newLoX = visible_area_.minX() + shift;
+					DoubleReal newHiX = visible_area_.maxX() + shift;
+					// check if we are falling out of bounds
+					if (newLoX < overall_data_range_.minX())
+					{
+						newLoX = overall_data_range_.minX();
+						newHiX = newLoX + visible_area_.width();
+					}
+					if (newHiX > overall_data_range_.maxX())
+					{
+						newHiX = overall_data_range_.maxX();
+						newLoX = newHiX - visible_area_.width();
+					}
+					//calculate y shift
+					shift = old_data.getY() - new_data.getY();
+					DoubleReal newLoY = visible_area_.minY() + shift;
+					DoubleReal newHiY = visible_area_.maxY() + shift;
+					// check if we are falling out of bounds
+					if (newLoY < overall_data_range_.minY())
+					{
+						newLoY = overall_data_range_.minY();
+						newHiY = newLoY + visible_area_.height();
+					}
+					if (newHiY > overall_data_range_.maxY())
+					{
+						newHiY = overall_data_range_.maxY();
+						newLoY = newHiY - visible_area_.height();
+					}
+					
+					//change area
+					//cout << "New area: x " << newLoX <<"-"<< newHiX << " - y "<<newLoY <<"-"<< newHiY << endl;
+					//cout << __PRETTY_FUNCTION__ << endl;
+					changeVisibleArea_(AreaType(newLoX,newLoY,newHiX,newHiY));
+					last_mouse_pos_ = pos;
 				}
-				//calculate y shift
-				shift = old_data.getY() - new_data.getY();
-				double newLoY = visible_area_.minY() + shift;
-				double newHiY = visible_area_.maxY() + shift;
-				// check if we are falling out of bounds
-				if (newLoY < overall_data_range_.minY())
-				{
-					newLoY = overall_data_range_.minY();
-					newHiY = newLoY + visible_area_.height();
-				}
-				if (newHiY > overall_data_range_.maxY())
-				{
-					newHiY = overall_data_range_.maxY();
-					newLoY = newHiY - visible_area_.height();
-				}
-				
-				//change area
-				//cout << "New area: x " << newLoX <<"-"<< newHiX << " - y "<<newLoY <<"-"<< newHiY << endl;
-				//cout << __PRETTY_FUNCTION__ << endl;
-				changeVisibleArea_(AreaType(newLoX,newLoY,newHiX,newHiY));
-				last_mouse_pos_ = pos;
 			}
 		}
 	}
