@@ -67,6 +67,12 @@ class TOPPFFEVal
 		setValidFormats_("truth", StringList::create("featureXML"));
 		registerOutputFile_("out","<file>","","Feature output file. If given, an annotated input file is written.", false);
 		setValidFormats_("out", StringList::create("featureXML"));
+		registerDoubleOption_("rt_tol","<double>",0.15,"Allowed tolerance of RT relative to feature RT span.", false);
+		setMinFloat_("rt_tol",0);
+		setMaxFloat_("rt_tol",1);
+		registerDoubleOption_("mz_tol","<double>",0.25,"Allowed tolerance in m/z (is devided by charge).", false);
+		setMinFloat_("mz_tol",0);
+		setMaxFloat_("mz_tol",1);
 	}
 	
 	/// Counts the number of features with meta value @p name equal to @p value
@@ -123,10 +129,10 @@ class TOPPFFEVal
 			{
 				const Feature& f_i =  features_in[a];
 				//RT match
-				DoubleReal rt_tol = 0.15*f_i.getConvexHull().getBoundingBox().width();
+				DoubleReal rt_tol = getDoubleOption_("rt_tol")*f_i.getConvexHull().getBoundingBox().width();
 				if (fabs(f_i.getRT()-f_t.getRT())<rt_tol)
 				{
-					DoubleReal mz_tol = 0.25 / f_t.getCharge();
+					DoubleReal mz_tol = getDoubleOption_("mz_tol") / f_t.getCharge();
 					//Exact m/z match
 					if (fabs(f_i.getMZ()-f_t.getMZ())<mz_tol)
 					{
@@ -159,6 +165,7 @@ class TOPPFFEVal
 				if (correct_charge)
 				{
 					f_t.setMetaValue("correct_charge",String("true"));
+					f_t.setMetaValue("intensity_ratio",last_match.getIntensity()/f_t.getIntensity());
 					//intensity correlation
 					ints_t.push_back(f_t.getIntensity());
 					ints_i.push_back(last_match.getIntensity());

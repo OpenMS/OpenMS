@@ -58,7 +58,9 @@ using namespace std;
   - featureXML
     - filter by feature charge
     - filter by overall feature quality
-
+	
+	@todo MS2 and higher spectra should be filtered according to precursor m/z and RT.
+	      The MzMLFile, MzDataFile, MzXMLFile have to be changed for that (Hiwi)
 */
 
 // We do not want this class to show up in the docu:
