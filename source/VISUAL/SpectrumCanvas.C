@@ -692,8 +692,10 @@ namespace OpenMS
 			//reserve space for the correct number of spectra in RT range
 			ExperimentType::ConstIterator begin = layer.peaks.RTBegin(area.min()[1]);
 			ExperimentType::ConstIterator end = layer.peaks.RTEnd(area.max()[1]);
+			
 			//Exception for Spectrum1DCanvas, here we simply copy all spectra
-			if (getName()=="Spectrum1DCanvas")
+			bool is_1d = (getName()=="Spectrum1DCanvas");
+			if (is_1d)
 			{
 				begin = layer.peaks.begin();
 				end = layer.peaks.end();
@@ -710,11 +712,21 @@ namespace OpenMS
 				spectrum.setMSLevel(it->getMSLevel());
 				spectrum.setPrecursorPeak(it->getPrecursorPeak());
 				//copy peak information
-				for (SpectrumType::ConstIterator it2 = it->MZBegin(area.min()[0]); it2!= it->MZEnd(area.max()[0]); ++it2)
+				if (!is_1d && it->getMSLevel()>1) //MS^n (n>1) spectra are copied if their precursor is in the m/z range
 				{
-					if (layer.filters.passes(*it,it2-it->begin()))
+					if (it->getPrecursorPeak().getMZ()>=area.min()[0] && it->getPrecursorPeak().getMZ()<= area.max()[0])
 					{
-						spectrum.push_back(*it2);
+						spectrum.insert(spectrum.begin(), it->begin(), it->end());
+					}
+				}
+				else // MS1(0) spectra are cropped to the m/z range
+				{
+					for (SpectrumType::ConstIterator it2 = it->MZBegin(area.min()[0]); it2!= it->MZEnd(area.max()[0]); ++it2)
+					{
+						if (layer.filters.passes(*it,it2-it->begin()))
+						{
+							spectrum.push_back(*it2);
+						}
 					}
 				}
 				map.push_back(spectrum);
