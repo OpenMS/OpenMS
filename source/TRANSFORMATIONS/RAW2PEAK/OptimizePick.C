@@ -100,7 +100,7 @@ namespace OpenMS
             }
           }
 
-          std::cerr.precision(written_digits_doublereal);
+          std::cerr.precision(writtenDigits<DoubleReal>());
 
           std::cerr << positions_[0] + i*sw << " " << computed_signal << std::endl;
         }

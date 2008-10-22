@@ -193,7 +193,7 @@ namespace OpenMS
 		// really_big_doublereal: Something like
 		// std::numeric_limits<DoubleReal>::max() / 2.  does not work here,
 		// because CGAL fails on a precondition.  But 1E10 is a really big
-		// number, doesn't it?  Found by trial and error.  Clemens, 2008-05-19]
+		// number, isn't it?  Found by trial and error.  Clemens, 2008-05-19]
 		DoubleReal const really_big_doublereal = 1E10;
 		Feature outlier_feature_1;
 		outlier_feature_1.setRT(-really_big_doublereal); outlier_feature_1.setMZ(-really_big_doublereal);

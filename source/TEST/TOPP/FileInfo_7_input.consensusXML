@@ -8,38 +8,38 @@
 	</mapList>
 	<consensusElementList>
 		<consensusElement id="e_0" quality="0.5">
-			<centroid rt="14.5" mz="532" it="100"/>
+			<centroid rt="14.5" mz="532" it="101"/>
 			<groupedElementList>
 				<element map="0" id="8" rt="15" mz="530" it="100"/>
-				<element map="1" id="10" rt="14" mz="534" it="122"/>
+				<element map="1" id="10" rt="14" mz="534" it="102"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_1" quality="1.5">
-			<centroid rt="10.5" mz="562" it="100.1"/>
+			<centroid rt="10.5" mz="562" it="100"/>
 			<groupedElementList>
-				<element map="0" id="2" rt="11" mz="558" it="45"/>
-				<element map="1" id="6" rt="10" mz="566" it="98"/>
+				<element map="0" id="2" rt="11" mz="558" it="98"/>
+				<element map="1" id="6" rt="10" mz="566" it="102"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_2" quality="1.0">
-			<centroid rt="10.5" mz="562" it="100.3"/>
+			<centroid rt="10.5" mz="562" it="1000"/>
 			<groupedElementList>
-				<element map="0" id="2" rt="11" mz="558" it="5"/>
-				<element map="1" id="6" rt="10" mz="566" it="8"/>
+				<element map="0" id="2" rt="11" mz="558" it="900"/>
+				<element map="1" id="6" rt="10" mz="566" it="1111"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_3" quality="0.4">
-			<centroid rt="10.5" mz="562" it="100.3"/>
+			<centroid rt="10.5" mz="562" it="10"/>
 			<groupedElementList>
-				<element map="0" id="2" rt="11" mz="558" it="7"/>
-				<element map="1" id="6" rt="10" mz="566" it="15"/>
+				<element map="0" id="2" rt="11" mz="558" it="11"/>
+				<element map="1" id="6" rt="10" mz="566" it="9"/>
 			</groupedElementList>
 		</consensusElement>
 		<consensusElement id="e_4" quality="0.5">
-			<centroid rt="10.5" mz="562" it="100.1"/>
+			<centroid rt="10.5" mz="562" it="100"/>
 			<groupedElementList>
-				<element map="0" id="2" rt="11" mz="558" it="45"/>
-				<element map="1" id="6" rt="10" mz="566" it="76"/>
+				<element map="0" id="2" rt="11" mz="558" it="73"/>
+				<element map="1" id="6" rt="10" mz="566" it="136"/>
 			</groupedElementList>
 		</consensusElement>
 	</consensusElementList>

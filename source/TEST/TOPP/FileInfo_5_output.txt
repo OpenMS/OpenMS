@@ -28,7 +28,7 @@ Sample
   Organism         : 
   Comment          : 
 
-Instument
+Instrument
   Name             : MS-Instrument
   Model            : MS 1
   Vendor           : MS-Vendor
@@ -50,13 +50,13 @@ Contact Person
 -- Statistics --
 
 Intensities:
-  mean: 869.84
-  median: 490.92
-  variance: 1891529.99
-  min: 16.30
-  max: 38920.12
-  lower_quartile: 209.70
-  upper_quartile: 1037.65
+  mean: 869.843
+  min: 16.2972
+  lower quartile: 209.7
+  median: 490.921
+  upper quartile: 1037.65
+  max: 38920.1
+  variance: 1.89153e+06
 
 
 

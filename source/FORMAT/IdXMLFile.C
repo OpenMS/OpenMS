@@ -79,7 +79,7 @@ namespace OpenMS
 		{
 			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		}
-		os.precision(written_digits_doublereal);
+		os.precision(writtenDigits<DoubleReal>());
 		
 		//write header
 		os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;

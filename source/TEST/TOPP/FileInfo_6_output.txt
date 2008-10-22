@@ -35,12 +35,12 @@ spectrum 2 - mslevel:1 scanMode:Unknown peaks:5 RT:475.321 m/z:937.276-941.2
 
 Intensities:
   mean: 7317.89
-  median: 7224.00
-  variance: 35451296.61
-  min: 1639.00
-  max: 18025.00
-  lower_quartile: 2297.00
-  upper_quartile: 8841.00
+  min: 1639
+  lower quartile: 2297
+  median: 7224
+  upper quartile: 8841
+  max: 18025
+  variance: 3.54513e+07
 
 Meta data: SignalToNoise
   count: 9

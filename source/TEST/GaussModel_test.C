@@ -120,7 +120,7 @@ CHECK((GaussModel(const GaussModel& source)))
 	TEST_EQUAL(gm3.getParameters(), gm2.getParameters())
 RESULT
 
-CHECK([EXTRA] DefaultParmHandler::setParameters(...))
+CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	PRECISION(0.001)
 	GaussModel gm1;
 	

@@ -736,7 +736,7 @@ CHECK((String& operator+= (long double d)))
 	/*
 	NOTE (by Clemens): Windows platforms do not really support long double.  See
 	<CONCEPT/Types.h>.  I am leaving this code here because it will help to
-	clarify how to set written_digits_xyz on new platforms.
+	clarify how to set writtenDigits on new platforms.
 	*/
 #if 1
 #define ECHO_AND_DO(bla) STATUS(""#bla); bla
@@ -745,26 +745,26 @@ CHECK((String& operator+= (long double d)))
 	ECHO_AND_VALUE(sizeof(double));
 	ECHO_AND_VALUE(std::numeric_limits<double>::digits);
 	ECHO_AND_VALUE(std::numeric_limits<double>::digits10);
-	ECHO_AND_VALUE(written_digits_double);
+	ECHO_AND_VALUE(writtenDigits<double>());
 
 	ECHO_AND_DO(std::cout.precision(std::numeric_limits<double>::digits10));
 	ECHO_AND_VALUE(typeAsString(7.4) << ": " << 7.4);
 	ECHO_AND_VALUE(typeAsString(7.4L) << ": " << 7.4L);
 
-	ECHO_AND_DO(std::cout.precision(written_digits_double));
+	ECHO_AND_DO(std::cout.precision(writtenDigits<double>()));
 	ECHO_AND_VALUE(typeAsString(7.4) << ": " << 7.4);
 	ECHO_AND_VALUE(typeAsString(7.4L) << ": " << 7.4L);
 
 	ECHO_AND_VALUE(sizeof(long double));
 	ECHO_AND_VALUE(std::numeric_limits<long double>::digits);
 	ECHO_AND_VALUE(std::numeric_limits<long double>::digits10);
-	ECHO_AND_VALUE(written_digits_long_double);
+	ECHO_AND_VALUE(writtenDigits<long double>());
 
 	ECHO_AND_DO(std::cout.precision(std::numeric_limits<long double>::digits10));
 	STATUS(typeAsString(7.4) << ": " << 7.4);
 	STATUS(typeAsString(7.4L) << ": " << 7.4L);
 
-	ECHO_AND_DO(std::cout.precision(written_digits_long_double));
+	ECHO_AND_DO(std::cout.precision(writtenDigits<long double>()));
 	STATUS(typeAsString(7.4) << ": " << 7.4);
 	STATUS(typeAsString(7.4L) << ": " << 7.4L);
 

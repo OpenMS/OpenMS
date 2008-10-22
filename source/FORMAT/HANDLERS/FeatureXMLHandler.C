@@ -281,7 +281,7 @@ namespace OpenMS
 
 		void FeatureXMLHandler::writeTo(ostream& os)
 		{
-			os.precision(written_digits_doublereal);
+			os.precision(writtenDigits<DoubleReal>());
 
 			os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
 				 << "<featureMap version=\"" << version_ << "\"";

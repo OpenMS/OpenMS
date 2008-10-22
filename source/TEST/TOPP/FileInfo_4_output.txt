@@ -28,7 +28,7 @@ Sample
   Organism         : 
   Comment          : 
 
-Instument
+Instrument
   Name             : 
   Model            : MS 1
   Vendor           : MS-Vendor

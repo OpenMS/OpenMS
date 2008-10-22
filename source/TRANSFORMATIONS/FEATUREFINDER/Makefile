@@ -63,9 +63,8 @@ CPP_SOURCES=\
 	FeatureFinderAlgorithmWatershed.C\
 	IsotopeWavelet.C\
 	FeatureFinderAlgorithmIsotopeWavelet.C\
-  FeatureFinderAlgorithmWavelet.C
-
-
+  FeatureFinderAlgorithmWavelet.C\
+#  FeatureFinderAlgorithmComposite.C
 
 include ../../common.mak
 -include .Dependencies

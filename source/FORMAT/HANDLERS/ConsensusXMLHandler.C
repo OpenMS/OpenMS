@@ -217,7 +217,7 @@ namespace OpenMS
 
 		void ConsensusXMLHandler::writeTo(std::ostream& os)
 		{
-			os.precision(written_digits_doublereal);
+			os.precision(writtenDigits<DoubleReal>());
 
 			os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
 			//add XSLT file if it can be found

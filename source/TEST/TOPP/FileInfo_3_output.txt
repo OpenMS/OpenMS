@@ -23,7 +23,7 @@ Sample
   Organism         : 
   Comment          : 
 
-Instument
+Instrument
   Name             : MS-Instrument
   Model            : MS 1
   Vendor           : MS-Vendor
@@ -45,21 +45,40 @@ Contact Person
 -- Statistics --
 
 Intensities:
-  mean: 3673.90
-  median: 3049.00
-  variance: 3496921.66
-  min: 1376.00
-  max: 6712.00
-  lower_quartile: 2436.50
-  upper_quartile: 4930.25
+  mean: 3673.9
+  min: 1376
+  lower quartile: 2436.5
+  median: 3049
+  upper quartile: 4930.25
+  max: 6712
+  variance: 3.49692e+06
 
-Qualities:
-  mean: 0.7985
-  median: 0.7998
-  variance: 0.0021
-  min: 0.7466
-  max: 0.8834
-  lower_quartile: 0.7594
-  upper_quartile: 0.8198
+Overall qualities:
+  mean: 0.79855
+  min: 0.746627
+  lower quartile: 0.75938625
+  median: 0.799752
+  upper quartile: 0.8197615
+  max: 0.883375
+  variance: 0.00209716938
+
+Qualities in retention time dimension:
+  mean: 50.8456478
+  min: 50.788159
+  lower quartile: 50.81471775
+  median: 50.841378
+  upper quartile: 50.875713
+  max: 50.913873
+  variance: 0.00163704738528893
+
+Qualities in mass-to-charge dimension:
+  mean: 0.7215226
+  min: 0.661723
+  lower quartile: 0.6941975
+  median: 0.7178075
+  upper quartile: 0.74979875
+  max: 0.778111
+  variance: 0.00160696407204445
+
 
 

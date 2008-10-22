@@ -29,7 +29,6 @@
 ///////////////////////////
 
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 
 ///////////////////////////

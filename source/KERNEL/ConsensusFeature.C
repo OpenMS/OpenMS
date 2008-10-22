@@ -50,16 +50,17 @@ namespace OpenMS
   {
     os << "---------- CONSENSUS ELEMENT BEGIN -----------------\n";
     os << "Position: " << cons.getPosition()<< std::endl;
-    os << "Intensity " << cons.getIntensity() << std::endl;
+    os << "Intensity " << precisionWrapper(cons.getIntensity()) << std::endl;
+    os << "Quality " << precisionWrapper(cons.getQuality()) << std::endl;
     os << "Grouped features: " << std::endl;
 
     for (ConsensusFeature::HandleSetType::const_iterator it = cons.begin(); it != cons.end(); ++it)
     {
       os << " - Map index: " << it->getMapIndex() << std::endl
          << "   Feature index: " << it->getElementIndex() << std::endl
-      	 << "   RT: " << it->getRT() << std::endl
-      	 << "   m/z: " << it->getMZ()  << std::endl
-      	 << "   Intensity: " << it->getIntensity() << std::endl;
+      	 << "   RT: " << precisionWrapper(it->getRT()) << std::endl
+      	 << "   m/z: " << precisionWrapper(it->getMZ())  << std::endl
+      	 << "   Intensity: " << precisionWrapper(it->getIntensity()) << std::endl;
     }
     os << "---------- CONSENSUS ELEMENT END ----------------- " << std::endl;
 

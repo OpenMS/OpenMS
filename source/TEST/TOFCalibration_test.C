@@ -107,7 +107,7 @@ RESULT
 
 CHECK((template<typename PeakType> void pickAndCalibrate(MSExperiment< Peak1D > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
   PRECISION(0.000001)
-  std::cout.precision(written_digits_doublereal);
+  std::cout.precision(writtenDigits<DoubleReal>());
   MSExperiment<Peak1D> calib_exp;
   MSExperiment<Peak1D> exp,res_exp;
   MzDataFile file;
@@ -162,7 +162,7 @@ tc = TOFCalibration();
 
 CHECK((template<typename PeakType> void calibrate(MSExperiment<Peak1D> &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
   PRECISION(0.000001)
-  std::cout.precision(written_digits_doublereal);
+std::cout.precision(writtenDigits<DoubleReal>());
   MSExperiment<> calib_exp;
   MSExperiment<> exp,res_exp;
   MzDataFile file;

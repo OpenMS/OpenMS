@@ -142,7 +142,7 @@ namespace OpenMS
 		: string()
 	{
 		stringstream s;
-		s.precision(written_digits_float);
+		s.precision(writtenDigits(f));
 		s << f;
 		string::operator=(s.str());
 	}
@@ -151,17 +151,17 @@ namespace OpenMS
 		: string()
 	{
 		stringstream s;
-		s.precision(written_digits_double);
+		s.precision(writtenDigits(d));
 		s << d;
 		string::operator=(s.str());
 	}
 
-	String::String(long double d)
+	String::String(long double ld)
 		: string()
 	{
 		stringstream s;
-		s.precision(written_digits_long_double);
-		s << d;
+		s.precision(writtenDigits(ld));
+		s << ld;
 		string::operator=(s.str());
 	}
 	
@@ -175,7 +175,7 @@ namespace OpenMS
 		
 		if (d<pow(10.0,Int(n-sign-2)))
 		{
-			s.precision(written_digits_double); // Note: Precision was formerly set to 10.  TODO: remove this comment.
+			s.precision(writtenDigits(d)); // Note: Precision was formerly set to 10.  TODO: remove this comment.
 			if (sign==1) s << "-";
 			s << d;
 		}
@@ -700,7 +700,7 @@ namespace OpenMS
 	String String::operator+ (float f) const
 	{
 		stringstream s;
-		s.precision(written_digits_float);
+		s.precision(writtenDigits(f));
 		s << *this << f;
 		return s.str();
 	}
@@ -708,16 +708,16 @@ namespace OpenMS
 	String String::operator+ (double d) const
 	{
 		stringstream s;
-		s.precision(written_digits_double);
+		s.precision(writtenDigits(d));
 		s << *this << d;
 		return s.str();
 	}
 
-	String String::operator+ (long double d) const
+	String String::operator+ (long double ld) const
 	{
 		stringstream s;
-		s.precision(written_digits_long_double);
-		s << *this << d;
+		s.precision(writtenDigits(ld));
+		s << *this << ld;
 		return s.str();
 	}
 
