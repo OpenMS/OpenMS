@@ -93,6 +93,7 @@ CHECK((void run(const ConsensusMap &consensus_map_in, ConsensusMap &consensus_ma
 	cm_file.store(cm_file_out,cm_out);
 	
 	FuzzyStringComparator fsc;
+	fsc.setAcceptableAbsolute(0.01);
 	TEST_EQUAL(fsc.compare_files(cm_file_out,"data/ItraqQuantifier.consensusXML"), true);
 }
 RESULT
