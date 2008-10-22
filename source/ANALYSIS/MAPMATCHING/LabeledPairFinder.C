@@ -33,8 +33,6 @@ using namespace std;
 namespace OpenMS
 {
 	using namespace Math;
-	const DoubleReal LabeledPairFinder::sqrt2_half_ = 0.5*sqrt(2);
-
 
 	LabeledPairFinder::LabeledPairFinder()
 		: BaseGroupFinder()
@@ -46,10 +44,10 @@ namespace OpenMS
 																							 "If 'false' the parameters 'rt_pair_dist', 'rt_dev_low' "
 																							 "and 'rt_dev_high' define the optimal distance.");
 		defaults_.setValidStrings("rt_estimate", StringList::create("true,false"));
-		defaults_.setValue("rt_pair_dist", 0.3, "optimal pair distance in RT [sec]");
-		defaults_.setValue("rt_dev_low", 0.44, "maximum allowed deviation below optimal retention time distance");
+		defaults_.setValue("rt_pair_dist", -20.0, "optimal pair distance in RT [sec] from light to heavy feature");
+		defaults_.setValue("rt_dev_low", 15.0, "maximum allowed deviation below optimal retention time distance");
 		defaults_.setMinFloat("rt_dev_low",0.0);
-		defaults_.setValue("rt_dev_high", 1.3, "maximum allowed deviation above optimal retention time distance");
+		defaults_.setValue("rt_dev_high", 15.0, "maximum allowed deviation above optimal retention time distance");
 		defaults_.setMinFloat("rt_dev_high",0.0);
 		
 		defaults_.setValue("mz_pair_dist", 4.0, "optimal pair distance in m/z [Th] for features with charge +1 (adapted to +2, +3, .. by division through charge)");

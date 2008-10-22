@@ -39,7 +39,7 @@ using namespace std;
 /**
 	@page FFEval FFEval
 	
-	@brief Evaluation tool for isotope-labeled quantitation experiments.
+	@brief Evaluation tool for for feature detection algorithms.
 	
 	@todo Handling of truth convex hulls (Marc)
 */
@@ -52,7 +52,7 @@ class TOPPFFEVal
 {
  public:
 	TOPPFFEVal()
-		: TOPPBase("FFEVal","Evaluation tool for isotope-labeled quantitation experiments.")
+		: TOPPBase("FFEVal","Evaluation tool for feature detection algorithms.")
 	{
 	}
 	
@@ -67,7 +67,9 @@ class TOPPFFEVal
 		setValidFormats_("truth", StringList::create("featureXML"));
 		registerOutputFile_("out","<file>","","Feature output file. If given, an annotated input file is written.", false);
 		setValidFormats_("out", StringList::create("featureXML"));
-		registerDoubleOption_("rt_tol","<double>",0.15,"Allowed tolerance of RT relative to feature RT span.", false);
+		registerInputFile_("abort_reasons","<file>","","Feature file containing seeds with abort reasons.",false);
+		setValidFormats_("abort_reasons", StringList::create("featureXML"));
+		registerDoubleOption_("rt_tol","<double>",0.15,"Allowed tolerance of RT relative to average feature RT span.", false);
 		setMinFloat_("rt_tol",0);
 		setMaxFloat_("rt_tol",1);
 		registerDoubleOption_("mz_tol","<double>",0.25,"Allowed tolerance in m/z (is devided by charge).", false);
@@ -104,7 +106,13 @@ class TOPPFFEVal
 	{
 		return String(" (") + String::number(100.0*count/size,2) + "%)";
 	}
-	
+
+	String fiveNumbers(vector<DoubleReal> a, UInt decimal_places)
+	{
+		sort(a.begin(),a.end());
+		return String::number(a[0],decimal_places) + " " + String::number(a[a.size()/4],decimal_places) + " " + String::number(a[a.size()/2],decimal_places) + " " + String::number(a[(3*a.size())/4],decimal_places) + " " + String::number(a.back(),decimal_places);
+	}
+
 	ExitCodes main_(int , const char**)
 	{
 		//load data
@@ -113,11 +121,30 @@ class TOPPFFEVal
 		features_in.sortByPosition();
 		FeatureXMLFile().load(getStringOption_("truth"),features_truth);
 		features_truth.sortByPosition();
+		FeatureMap<> abort_reasons;
+		if(getStringOption_("abort_reasons")!="")
+		{
+			FeatureXMLFile().load(getStringOption_("abort_reasons"),abort_reasons);
+		}
+		DoubleReal mz_tol = getDoubleOption_("mz_tol");
+		
+		//determine average RT tolerance:
+		//median feature RT span times given factor
+		vector<DoubleReal> rt_spans;
+		for (UInt t=0; t<features_in.size(); ++t)
+		{
+			rt_spans.push_back(features_in[t].getConvexHull().getBoundingBox().width());
+		}
+		sort(rt_spans.begin(), rt_spans.end());
+		DoubleReal rt_tol = getDoubleOption_("rt_tol")*rt_spans[rt_spans.size()/2];
 		
 		//general statistics
 		std::vector<DoubleReal> ints_t;
 		std::vector<DoubleReal> ints_i;
-			
+		std::vector<DoubleReal> ints_found;
+		std::vector<DoubleReal> ints_missed;
+		Map<String,UInt> abort_strings;
+
 		for (UInt m=0; m<features_truth.size(); ++m)
 		{
 			Feature& f_t =  features_truth[m];
@@ -129,12 +156,11 @@ class TOPPFFEVal
 			{
 				const Feature& f_i =  features_in[a];
 				//RT match
-				DoubleReal rt_tol = getDoubleOption_("rt_tol")*f_i.getConvexHull().getBoundingBox().width();
 				if (fabs(f_i.getRT()-f_t.getRT())<rt_tol)
 				{
-					DoubleReal mz_tol = getDoubleOption_("mz_tol") / f_t.getCharge();
+					DoubleReal charge_mz_tol = mz_tol / f_t.getCharge();
 					//Exact m/z match
-					if (fabs(f_i.getMZ()-f_t.getMZ())<mz_tol)
+					if (fabs(f_i.getMZ()-f_t.getMZ())<charge_mz_tol)
 					{
 						++match_count;
 						last_match = f_i;
@@ -145,9 +171,9 @@ class TOPPFFEVal
 					else if (f_i.getConvexHull().encloses(f_t.getPosition())
 									 &&
 									 (
-									  fabs(f_i.getMZ()+1.0/f_t.getCharge()-f_t.getMZ())<mz_tol
+									  fabs(f_i.getMZ()+1.0/f_t.getCharge()-f_t.getMZ())<charge_mz_tol
 									  ||
-									  fabs(f_i.getMZ()-1.0/f_t.getCharge()-f_t.getMZ())<mz_tol
+									  fabs(f_i.getMZ()-1.0/f_t.getCharge()-f_t.getMZ())<charge_mz_tol
 									 )
 						      )
 					{
@@ -166,14 +192,12 @@ class TOPPFFEVal
 				{
 					f_t.setMetaValue("correct_charge",String("true"));
 					f_t.setMetaValue("intensity_ratio",last_match.getIntensity()/f_t.getIntensity());
-					//intensity correlation
-					ints_t.push_back(f_t.getIntensity());
-					ints_i.push_back(last_match.getIntensity());
 				}
 				else
 				{
 					f_t.setMetaValue("correct_charge",String("false"));
 				}
+				
 				if (exact_centroid_match)
 				{
 					f_t.setMetaValue("exact_centroid_match",String("true"));
@@ -181,6 +205,47 @@ class TOPPFFEVal
 				else
 				{
 					f_t.setMetaValue("exact_centroid_match",String("false"));
+				}
+			}
+			//evaluation of correct features only
+			if (match_count==1 && correct_charge)
+			{
+				ints_t.push_back(f_t.getIntensity());
+				ints_i.push_back(last_match.getIntensity());
+				ints_found.push_back(f_t.getIntensity());
+			}
+			else
+			{
+				ints_missed.push_back(f_t.getIntensity());
+				
+				//look up the abort reason of the nearest seed
+				DoubleReal best_score_ab = 0;
+				String reason = "";
+				for (UInt b=0; b<abort_reasons.size(); ++b)
+				{
+					const Feature& f_ab =  abort_reasons[b];
+					if ( fabs(f_ab.getRT() - f_t.getRT()) <= rt_tol
+						&& fabs(f_ab.getMZ() - f_t.getMZ()) <= mz_tol) 
+					{
+						DoubleReal score = (1.0-fabs(f_ab.getMZ()-f_t.getMZ())/mz_tol) * (1.0-fabs(f_ab.getRT()-f_t.getRT())/rt_tol);
+						if (score > best_score_ab)
+						{
+							best_score_ab = score;
+							reason = f_ab.getMetaValue("abort_reason");
+						}
+					}
+				}
+				if (reason=="")
+				{
+					reason = "No seed found";
+				}
+				if (abort_strings.has(reason))
+				{
+					abort_strings[reason]++;	
+				}
+				else
+				{
+					abort_strings[reason] = 1;
 				}
 			}
 		}
@@ -206,12 +271,21 @@ class TOPPFFEVal
 		cout << " - exact centroid match: " << tmp << percentage(tmp,features_truth.size()) << endl;
 		tmp = features_truth.size() - count(features_truth,"matches","0") - count(features_truth,"matches","1");
 		cout << "multiple matches: " << tmp << percentage(tmp,features_truth.size()) << endl;
-
+		if (abort_reasons.size())
+		{
+			cout << "reasons for unmatched features:" << endl;
+			for (Map<String,UInt>::iterator it=abort_strings.begin(); it!=abort_strings.end(); ++it)
+			{
+				cout << " - " << String(it->second).fillLeft(' ',4) << ": " << it->first << endl;
+			}
+		}
 		//------------------------ intensity ------------------------
 		cout << endl;
 		cout << "intensity statistics:" << endl;
 		cout << "=====================" << endl;
-		cout << "correlation of correct features: " << pearsonCorrelationCoefficient(ints_i.begin(),ints_i.end(),ints_t.begin(),ints_t.end()) << endl;
+		cout << "correlation of found features: " << pearsonCorrelationCoefficient(ints_i.begin(),ints_i.end(),ints_t.begin(),ints_t.end()) << endl;
+		cout << "intensity distribution of found: " << fiveNumbers(ints_found,1) << endl;
+		cout << "intensity distribution of missed: " << fiveNumbers(ints_missed,1) << endl;
 		
 		//------------------------ charges ------------------------
 		cout << endl;
