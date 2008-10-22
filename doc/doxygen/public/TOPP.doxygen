@@ -67,6 +67,7 @@
 	- @subpage Decharger - Decharges and merges different feature charge variants of the same chemical entity.
 	- @subpage FeatureLinker - Groups corresponding features in one map or across maps.
 	- @subpage SILACAnalyzer - Determines the ratio of peak pairs in LC-MS data.
+	- @subpage ITRAQAnalyzer - Extracts and normalizes iTRAQ information from an MS experiment.
 
   <b>Protein/peptide Identification</b>
   - @subpage IDFilter_TOPP - Filters results from protein or peptide identification engines based on different criteria.
