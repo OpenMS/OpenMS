@@ -107,12 +107,12 @@ namespace OpenMS
 		String(long unsigned int i);
 		/// Constructor from an unsigned integer
 		String(long long unsigned int i);
-		/// Constructor from float (precision is 7)
+		/// Constructor from float
 		String(float f);
-		/// Constructor from double (precision is 10)
+		/// Constructor from double
 		String(double d);
-		/// Constructor from long double (precision is 16)
-		String(long double d);
+		/// Constructor from long double
+		String(long double ld);
 		/// Constructor from DataValue (casted to String)
 		String(const DataValue& d);
 
@@ -297,12 +297,12 @@ namespace OpenMS
 		String operator+ (long unsigned int i) const;
 		/// Sum operator for an unsigned integer
 		String operator+ (long long unsigned int i) const;
-		/// Sum operator for float (precision is 7)
+		/// Sum operator for float
 		String operator+ (float f) const;
-		/// Sum operator for double (precision is 10)
+		/// Sum operator for double
 		String operator+ (double d) const;
-		/// Sum operator for long double (precision is 16)
-		String operator+ (long double d) const;
+		/// Sum operator for long double
+		String operator+ (long double ld) const;
 		/// Sum operator for char
 		String operator+ (char c) const;
 		/// Sum operator for char*
@@ -330,11 +330,11 @@ namespace OpenMS
 		String& operator+= (long unsigned int i);
 		/// Sum operator for an unsigned integer
 		String& operator+= (long long unsigned int i);
-		/// Sum operator for float (precision is 7)
+		/// Sum operator for float
 		String& operator+= (float f);
-		/// Sum operator for double (precision is 10)
+		/// Sum operator for double
 		String& operator+= (double d);
-		/// Sum operator for long double (precision is 16)
+		/// Sum operator for long double
 		String& operator+= (long double d);
 		/// Sum operator for char
 		String& operator+= (char c);

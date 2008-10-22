@@ -167,7 +167,7 @@ namespace OpenMS
 
 				// sort index vector by intensity of peaks (highest first)
 				sort(indices_.begin(),indices_.end(),
-						reverseComparator(Internal::IntensityLess<Base>(*this))
+						 reverseComparator(Internal::IntensityLess<Base>(*this))
 						);
 
 				// progress logger

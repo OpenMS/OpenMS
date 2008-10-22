@@ -97,14 +97,19 @@ namespace OpenMS
 			return getIntensity(pos) >= cut_off_;
 		}
 
-		/// Set the intensity of a peak to the predicted intensity at its current position, calling virtual void getIntensity()
+		/**@brief Convenience function to set the intensity of a peak to the
+		predicted intensity at its current position, calling virtual void
+		getIntensity().
+		*/
 		template <typename PeakType>
 		void fillIntensity(PeakType& peak) const
 		{
 			peak.setIntensity(getIntensity(peak.getPosition()));
 		}
 
-		/// Applies fillIntensity(PeakType&) to an iterator range
+		/**@brief Convenience function that applies fillIntensity() to an iterator
+		range.
+		*/
 		template <class PeakIterator>
 		void  fillIntensities(PeakIterator begin, PeakIterator end) const
 		{

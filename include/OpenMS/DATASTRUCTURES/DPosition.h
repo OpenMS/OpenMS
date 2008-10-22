@@ -368,12 +368,11 @@ namespace OpenMS
 	template <UInt D>
 	std::ostream& operator << (std::ostream& os, const DPosition<D>& pos)
 	{
-		os << pos[0];
+		os << precisionWrapper(pos[0]);
 		for (UInt i=1; i < D; ++i)
 		{
-			os << ' ' << pos[i];
+			os << ' ' << precisionWrapper(pos[i]);
 		}
-		
 		return os;
 	}
 

@@ -32,7 +32,6 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 
 #include <map>
 #include <vector>

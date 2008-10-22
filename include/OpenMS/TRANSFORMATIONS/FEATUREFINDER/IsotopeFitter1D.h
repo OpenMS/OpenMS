@@ -28,7 +28,6 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEFITTER1D_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
-#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
@@ -55,7 +54,7 @@ namespace OpenMS
             /// assignment operator
             virtual IsotopeFitter1D& operator = (const IsotopeFitter1D& source);
       
-            /// create new BiGaussModel object (function needed by Factory)
+            /// create new IsotopeFitter1D object (function needed by Factory)
             static Fitter1D* create()
             {
               return new IsotopeFitter1D();

@@ -170,7 +170,7 @@ namespace OpenMS
 				{
 					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 				}
-				os.precision(written_digits_doublereal);
+				os.precision(writtenDigits<DoubleReal>());
 				
 				// Write mh+ mass
 				if (spectrum.getPrecursorPeak().getCharge()==0)

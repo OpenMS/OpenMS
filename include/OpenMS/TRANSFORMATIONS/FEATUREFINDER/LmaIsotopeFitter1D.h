@@ -28,7 +28,6 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_LMAISOTOPEFITTER1D_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>
-#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
@@ -62,7 +61,7 @@ namespace OpenMS
             /// assignment operator
             virtual LmaIsotopeFitter1D& operator = (const LmaIsotopeFitter1D& source);
     
-            /// create new BiGaussModel object (function needed by Factory)
+            /// create new LmaIsotopeFitter1D object (function needed by Factory)
             static Fitter1D* create()
             {
               return new LmaIsotopeFitter1D();

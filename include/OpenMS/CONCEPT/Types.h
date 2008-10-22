@@ -182,8 +182,8 @@ namespace OpenMS
 	/**
 	@name Numbers of digits used for writing floating point numbers (a.k.a. precision).
 
-	These static const integeres are provided to unify the handling of this
-	issue throughout %OpenMS.  (So please don't use ad-hoc numbers ;-) )
+	These functions are provided to unify the handling of this issue throughout
+	%OpenMS.  (So please don't use ad-hoc numbers ;-) )
 
 	If you want to avoid side effects you can use precisionWrapper() to write a
 	floating point number with appropriate precision; in this case the original
@@ -196,22 +196,22 @@ namespace OpenMS
 	We have \f$2^{24}/10^{6}=16.777216\f$ and \f$2^{53}/10^{15}=9.007199254740992\f$,
 	so rounding will remove the remaining difference.
 
-	Example:
+	Example:  TODO rewrite for new implementation (Clemens)
 	@code
   #define NUMBER 12345.67890123456789012345678901
   std::cout << NUMBER << '\n'; // default precision, writes: 12345.7
 
   DoubleReal d = NUMBER;
-  std::cout.precision(written_digits_doublereal);
-  std::cout << written_digits_doublereal << ": " << d << '\n'; // writes: 15: 12345.6789012346
+  std::cout.precision(writtenDigits<DoubleReal>()); // explicit template instantiation
+  std::cout << writtenDigits<DoubleReal>() << ": " << d << '\n'; // writes: 15: 12345.6789012346
   
   Real r = NUMBER;
-  std::cout.precision(written_digits_real);
-  std::cout << written_digits_real << ": " << r << '\n'; // writes: 6: 12345.7
+  std::cout.precision(writtenDigits(r)); // type deduced from argument
+  std::cout << writtenDigits(r) << ": " << r << '\n'; // writes: 6: 12345.7
   
   long double l = NUMBER;
-  std::cout.precision(written_digits_long_double);
-  std::cout << written_digits_long_double << ": " << l << '\n'; // writes: 18: 12345.6789012345671
+  std::cout.precision(writtenDigits(1L); // argument is not used, but L suffix indicates a long double
+  std::cout << writtenDigits(1L) << ": " << l << '\n'; // writes: 18: 12345.6789012345671
 
   DoubleReal x = 88.99;
   std::cout.precision(15);
@@ -221,15 +221,26 @@ namespace OpenMS
 	@endcode
 	*/
 	//@{
-	/// Number of digits commonly used for writing a @c double (a.k.a. precision).
-	static const Int written_digits_double = std::numeric_limits<double>::digits10;
-	/// Number of digits commonly used for writing a @c DoubleReal (a.k.a. precision).
-	static const Int written_digits_doublereal = std::numeric_limits<DoubleReal>::digits10;
-	/// Number of digits commonly used for writing a @c float (a.k.a. precision).
-	static const Int written_digits_float = std::numeric_limits<float>::digits10;
-	/// Number of digits commonly used for writing a @c Real (a.k.a. precision).
-	static const Int written_digits_real = std::numeric_limits<Real>::digits10;
 
+
+	/**@brief Number of digits commonly used for writing a floating point type
+  (a.k.a. precision).  Specializations are defined for float, double, long
+  double.
+	*/
+ 	template <typename FloatingPointType> inline Int writtenDigits(const FloatingPointType& /* unused */ = FloatingPointType());
+
+	/// Number of digits commonly used for writing a @c float (a.k.a. precision).
+	template <> inline Int writtenDigits <float> (const float & )
+	{
+		return std::numeric_limits<float>::digits10;
+	}
+	
+	/// Number of digits commonly used for writing a @c double (a.k.a. precision).
+	template <> inline Int writtenDigits <double> (const double & )
+	{
+		return std::numeric_limits<double>::digits10;
+	}
+	
 	/*
 	META-COMMENT:  DO NOT INTRODUCE ANY LINEBREAKS BELOW IN
 	"<code>std::numeric_limits<long double>::digits10 == 18</code>".
@@ -246,36 +257,40 @@ namespace OpenMS
   value of @c digits10 for @c double also for @c long @c double.  See
   http://msdn.microsoft.com/ + search: "long double".
 	*/
+	template <> inline Int writtenDigits <long double> (const long double & )
+	{
 #ifndef OPENMS_WINDOWSPLATFORM
-	static const Int written_digits_long_double = std::numeric_limits<long double>::digits10;
+		return std::numeric_limits<long double>::digits10;
 #else
-	static const Int written_digits_long_double = std::numeric_limits<double>::digits10;
+		return std::numeric_limits<double>::digits10;
 #endif
+	}
+
+	/// The general template definition will force a compile-time error if FloatingPointType is in fact not a floating point type.  Only the template specializations for float, double, long double shall be used.
+ 	template <typename FloatingPointType> inline Int writtenDigits(const FloatingPointType& /* unused */ = FloatingPointType())
+	{
+		// Self-explanatory compile time error!
+		return FloatingPointType::Sorry_but_writtenDigits_is_designed_to_work_for_floating_point_types_only;
+	}
 	
-	/// Wrapper to implement output with appropriate precision.  See precisionWrapper().
-	template <typename T >
+	// Note: I once tried to move PrecisionWrapper to namespace Internal, but oops! operator <<  won't be found (through ADL?) anymore.
+	/// Wrapper class to implement output with appropriate precision.  See precisionWrapper().
+	template <typename FloatingPointType >
 	struct PrecisionWrapper
 	{
 		/// Constructor.  Note: Normally you will prefer to use the "make"-function precisionWrapper(), which see.
-		PrecisionWrapper(const T rhs)
-			: ref_(rhs)
-		{
-		}
-		PrecisionWrapper(const PrecisionWrapper& rhs)
-			: ref_(rhs.ref_)
-		{
-		}
-		
-		T const ref_;
-		
+		PrecisionWrapper(const FloatingPointType rhs) : ref_(rhs) {}
+		PrecisionWrapper(const PrecisionWrapper& rhs) : ref_(rhs.ref_) {}
+		FloatingPointType const ref_;
 	 private:
-		PrecisionWrapper(); //< intentionally not implemented
+		PrecisionWrapper(); // intentionally not implemented
 	};
   
 	/**@brief Wrapper function that sets the appropriate precision for output
 	temporarily.  The original precision is restored afterwards so that no side
-	effects remain.  This is a "make"-function that deduces the typename T from
-	its argument and returns a PrecisionWrapper<T>.
+	effects remain.  This is a "make"-function that deduces the typename
+	FloatingPointType from its argument and returns a
+	PrecisionWrapper<FloatingPointType>.
 	
 	Example:
 	@code
@@ -300,46 +315,25 @@ namespace OpenMS
 	@endcode
 
 	Note: Unfortunately we cannot return a const& - this will change when rvalue
-	references become part of the new C++ standard.  As a consequence, we need a
+	references become part of the new C++ standard.  In the meantime, we need a
 	copy constructor for PrecisionWrapper.
   */
-	template <typename T>
-	inline const PrecisionWrapper<T> precisionWrapper(const T rhs)
+	template <typename FloatingPointType>
+	inline const PrecisionWrapper<FloatingPointType> precisionWrapper(const FloatingPointType rhs)
 	{
-		return PrecisionWrapper<T>(rhs);
+		return PrecisionWrapper<FloatingPointType>(rhs);
 	}
 
 	/// Output operator for a PrecisionWrapper.  Specializations are defined for float, double, long double.
-	template <typename T >
-	std::ostream & operator << ( std::ostream& os, const PrecisionWrapper<T>& rhs);
-	
-	/// Output operator for a PrecisionWrapper.  Specializations are defined for float, double, long double.
-	template <> inline std::ostream & operator << ( std::ostream& os, const PrecisionWrapper<float>& rhs)
+	template <typename FloatingPointType >
+	std::ostream & operator << ( std::ostream& os, const PrecisionWrapper<FloatingPointType>& rhs)
 	{
 		const unsigned prec_save = os.precision();
-		return os << std::setprecision(OpenMS::written_digits_float)
+		return os << std::setprecision(writtenDigits<FloatingPointType>())
 							<< rhs.ref_
 							<< std::setprecision(prec_save);
 	}
-	
-	/// Output operator for a PrecisionWrapper.  Specializations are defined for float, double, long double.
-	template <> inline std::ostream & operator << ( std::ostream& os, const PrecisionWrapper<double>& rhs)
-	{
-		const unsigned prec_save = os.precision();
-		return os << std::setprecision(OpenMS::written_digits_double)
-							<< rhs.ref_
-							<< std::setprecision(prec_save);
-	}
-	
-	/// Output operator for a PrecisionWrapper.  Specializations are defined for float, double, long double.
-	template <> inline std::ostream & operator << ( std::ostream& os, const PrecisionWrapper<long double>& rhs)
-	{
-		const unsigned prec_save = os.precision();
-		return os << std::setprecision(OpenMS::written_digits_long_double)
-							<< rhs.ref_
-							<< std::setprecision(prec_save);
-	}
-	
+
 	//@}
 	
 	/**

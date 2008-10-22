@@ -102,8 +102,6 @@ namespace OpenMS
         CoordinateType abs_error_;
         /// Relative error
         CoordinateType rel_error_;
-        /// Statistic needed by pearson correlation coefficient
-        Math::BasicStatistics<Real> stat_;
        
         /** Display the intermediate state of the solution. The solver state contains 
             the vector s->x which is the current position, and the vector s->f with 
@@ -125,7 +123,9 @@ namespace OpenMS
         void optimize_(const RawDataArrayType& set, Int num_params, CoordinateType x_init[],
                        Int (* residual)(const gsl_vector * x, void * params, gsl_vector * f),
                        Int (* jacobian)(const gsl_vector * x, void * params, gsl_matrix * J),
-                       Int (* evaluate)(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J), void* advanced_params )
+                       Int (* evaluate)(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J),
+											 void* advanced_params
+											)
         {
           
           const gsl_multifit_fdfsolver_type *T;

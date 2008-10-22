@@ -58,6 +58,7 @@ namespace OpenMS
 		@name Type definitions
 		*/
 		//@{
+		typedef DoubleReal QualityType;
 		typedef std::set<FeatureHandle, FeatureHandle::IndexLess> HandleSetType;
 		//@}
 
@@ -69,15 +70,15 @@ namespace OpenMS
 				{
 					return ( left.getQuality() < right.getQuality() );
 				}
-				inline bool operator () ( ConsensusFeature const & left, DoubleReal const & right ) const
+				inline bool operator () ( ConsensusFeature const & left, QualityType const & right ) const
 				{
 					return ( left.getQuality() < right );
 				}
-				inline bool operator () ( DoubleReal const & left, ConsensusFeature const & right ) const
+				inline bool operator () ( QualityType const & left, ConsensusFeature const & right ) const
 				{
 					return ( left< right.getQuality() );
 				}
-				inline bool operator () ( DoubleReal const & left, DoubleReal const & right ) const
+				inline bool operator () ( QualityType const & left, QualityType const & right ) const
 				{
 					return ( left < right );
 				}
@@ -243,12 +244,12 @@ namespace OpenMS
 		///@name Accessors
 		//@{
 		/// Returns the quality
-		DoubleReal getQuality() const
+		QualityType getQuality() const
 		{
 			return quality_;
 		}
 		/// Sets the quality
-		void setQuality(DoubleReal quality)
+		void setQuality(QualityType quality)
 		{
 			quality_ = quality;
 		}
@@ -302,7 +303,7 @@ namespace OpenMS
 
 	 protected:
 		///Quality of the consensus feature
-		DoubleReal quality_;
+		QualityType quality_;
 		///Charge of the consensus feature
 		Int charge_;
   };

@@ -28,7 +28,6 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_LMAGAUSSFITTER1D_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>
-#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 
 namespace OpenMS
 {
@@ -54,7 +53,7 @@ namespace OpenMS
             /// assignment operator
             virtual LmaGaussFitter1D& operator = (const LmaGaussFitter1D& source);
             
-            /// create new BiGaussModel object (function needed by Factory)
+            /// create new LmaGaussFitter1D object (function needed by Factory)
             static Fitter1D* create()
             {
                 return new LmaGaussFitter1D();
