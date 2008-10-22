@@ -1,0 +1,111 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Chris Bielow $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+#include <OpenMS/ANALYSIS/QUANTITATION/ItraqChannelExtractor.h>
+#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
+
+///////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+START_TEST(ItraqChannelExtractor, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+ItraqChannelExtractor* ptr = 0;
+CHECK(ItraqChannelExtractor())
+{
+	ptr = new ItraqChannelExtractor();
+	TEST_NOT_EQUAL(ptr, 0)
+}
+RESULT
+
+CHECK(~ItraqChannelExtractor())
+{
+	delete ptr;
+}
+RESULT
+
+CHECK((ItraqChannelExtractor(Int itraq_type)))
+{
+  ItraqChannelExtractor ice(ItraqChannelExtractor::EIGHTPLEX);
+	TEST_EQUAL((String) ice.getParameters().getValue("channel_active"), "113:myReference");
+  ItraqChannelExtractor ice2(ItraqChannelExtractor::FOURPLEX);
+	TEST_EQUAL((String) ice2.getParameters().getValue("channel_active"), "114:myReference");
+}
+RESULT
+
+CHECK((ItraqChannelExtractor(Int itraq_type, const Param &param)))
+{
+	Param p;
+	p.setValue("reporter_mass_deviation", 0.1234);
+	p.setValue("channel_active", "121:this is a test");
+  ItraqChannelExtractor ice(ItraqChannelExtractor::EIGHTPLEX, p);
+	TEST_EQUAL((double) ice.getParameters().getValue("reporter_mass_deviation"), 0.1234);
+	TEST_EQUAL((String) ice.getParameters().getValue("channel_active"), "121:this is a test");
+	
+	// this should go wrong
+	p.setValue("channel_active", "120:channel non existant");	
+	TEST_EXCEPTION(Exception::InvalidParameter, ItraqChannelExtractor ice2(ItraqChannelExtractor::EIGHTPLEX, p));	
+}
+RESULT
+
+CHECK((void run(const MSExperiment< Peak1D > &ms_exp_data, ConsensusMap &consensus_map)))
+{
+	MzDataFile mz_data_file;
+	MSExperiment<Peak1D > exp;
+	mz_data_file.load("data/ItraqChannelExtractor.mzData",exp);
+	Param p;
+	p.setValue("channel_active", "114:ref, 115:something, 116:else");
+  ItraqChannelExtractor ice(ItraqChannelExtractor::FOURPLEX, p);
+	ConsensusMap cm_out;
+	ice.run(exp, cm_out);
+	
+	ConsensusXMLFile cm_file;
+	String cm_file_out;
+	NEW_TMP_FILE(cm_file_out);
+	cm_file.store(cm_file_out,cm_out);
+	
+	FuzzyStringComparator fsc;
+	TEST_EQUAL(fsc.compare_files(cm_file_out,"data/ItraqChannelExtractor.consensusXML"), true);
+	
+}
+RESULT
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+
+
+

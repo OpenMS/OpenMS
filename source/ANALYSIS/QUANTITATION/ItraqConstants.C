@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,27 +21,20 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Chris Bielow $
 // --------------------------------------------------------------------------
+//
 
-#include <OpenMS/DATASTRUCTURES/Matrix.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
 
-namespace OpenMS
-{
-	Matrix<int>    default_matrix_int;
-	Matrix<double> default_matrix_double;
-	
-	template<>
-	gsl_matrix* Matrix<double>::toGslMatrix()
+
+namespace OpenMS {
+
+	ItraqConstants::~ItraqConstants()
 	{
-		gsl_matrix* m_ptr = gsl_matrix_alloc(rows_, cols_);
-	  for ( size_type i = 0; i < this->rows_; ++i ) 
-		{
-	    for ( size_type j = 0; j < this->cols_; ++j ) 
-			{
-				gsl_matrix_set (m_ptr, i, j, (*this)(i,j));
-	    }
-	  }
-		return m_ptr;
 	}
-}
+
+	const Int ItraqConstants::CHANNELS_FOURPLEX[4][1] = {{114}, {115}, {116}, {117}};
+	const Int ItraqConstants::CHANNELS_EIGHTPLEX[8][1] = {{113}, {114}, {115}, {116}, {117}, {118}, {119}, {121}};
+	
+} // !namespace

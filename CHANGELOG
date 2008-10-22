@@ -8,7 +8,7 @@ New features and improvements of OpenMS:
 
 New features and improvements of TOPP:
 - FeatureLinker: Added automated RT parameter estimated for 'labeled' algorithm.
-- Added new Tools: SILACAnalyzer, IDQuantMerger
+- Added new Tools: SILACAnalyzer, IDQuantMerger, ITRAQAnalyzer
 - Resampler: this tool is now used for resampling raw data instead of NoiseFilter or BaselineFilter
 
 New features and improvements of TOPPView:
@@ -19,6 +19,8 @@ Changes to OpenMS XML formats:
   - Restrictions in Param .ini files are represented by 'min:max' instead
     of 'min-max' now, to avoid issues with small (1e-06) and negative numbers.
   - replaced 'advanced' attribute by the 'tags' attribute.
+- featureXML:
+  - added tag <subordinate> to store competing features that did not qualify for the final map
 
 Changes to the contrib package:
 - Updated SeqAn package to revision 2666 (this fixes the STL debug error)

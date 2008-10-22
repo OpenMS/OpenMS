@@ -42,6 +42,7 @@ default: $(OBJECTS) dummy
 	@cd ID; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd SVM; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd DECHARGING; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd QUANTITATION; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
 
 depend:	dummy
 	@echo "" > .Dependencies
@@ -49,6 +50,7 @@ depend:	dummy
 	@cd ID; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd SVM; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd DECHARGING; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd QUANTITATION; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
 
 default_clean: dummy
 	@-$(RM) -rf .Dependencies *~  core.*
@@ -56,12 +58,14 @@ default_clean: dummy
 	@cd ID; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd SVM; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd DECHARGING; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd QUANTITATION; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
 
 collectlib: dummy
 	@cd MAPMATCHING; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd ID; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd SVM; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
 	@cd DECHARGING; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
+	@cd QUANTITATION; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
 
 
 include ../config.mak

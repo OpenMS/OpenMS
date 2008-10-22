@@ -187,7 +187,7 @@ RESULT;
 
 Matrix<int> mi5(4,5,6);
 
-CHECK((Matrix(SizeType rows, SizeType cols, ValueType value = ValueType())))
+CHECK((Matrix(const SizeType rows, const SizeType cols, ValueType value = ValueType())))
 {
   STATUS("mi5:\n"<<mi5);
 	TEST_EQUAL(mi5.size(),20);
@@ -278,6 +278,48 @@ CHECK((bool operator < ( Matrix const & rhs ) const throw (Exception::Preconditi
 	TEST_EXCEPTION(Exception::Precondition,mi1==mi3);
 	TEST_EXCEPTION(Exception::Precondition,mi1==mi4);
 	TEST_EXCEPTION(Exception::Precondition,mi1==mi5);
+}
+RESULT
+
+CHECK((template <int ROWS, int COLS> void setMatrix (const ValueType matrix[ROWS][COLS])))
+{
+	double test_matrix[4][4] = {
+		{0, 2.5,   3, 0.1},		
+		{0,   1, 5.9, 0.2},
+		{0,   2, 5.6, 0.1},
+		{0,   2,   3, 0.1}	
+	};
+	
+	Matrix<double> myMatrix;
+	myMatrix.setMatrix<4,4>(test_matrix);
+	for (size_t i=0;i<4;++i)
+	{
+		for (size_t j=0;j<4;++j)
+		{
+			TEST_EQUAL( myMatrix(i,j), test_matrix[i][j] )
+		}
+	}	
+
+}
+RESULT
+
+
+CHECK((gsl_matrix* Matrix<double>::toGslMatrix()))
+{
+	Matrix<double> mi(2,3,6);
+	mi(1,2)=112;
+	mi(0,0)=100;
+	mi(1,1)=111;
+	mi(0,2)=103;
+	gsl_matrix* gsl_m = mi.toGslMatrix();
+	for (size_t i=0;i<2;++i)
+	{
+		for (size_t j=0;j<3;++j)
+		{
+			TEST_EQUAL(mi(i,j),gsl_matrix_get (gsl_m, i, j))
+		}
+	}
+	gsl_matrix_free (gsl_m);
 }
 RESULT
 

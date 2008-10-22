@@ -306,6 +306,10 @@ EXECUTABLES_CHEMISTRY = \
 
 #ANALYSIS
 
+EXECUTABLES_ANALYSIS_QUANTITATION = \
+	ItraqChannelExtractor_test \
+	ItraqQuantifier_test
+				
 EXECUTABLES_ANALYSIS_SVM = \
 	SVMWrapper_test
 
@@ -447,7 +451,7 @@ CPP_MODE_FLAGS= $(CPP_MODE_FLAGS_NO_OPTIMIZATION) -O0
 dummy:
 
 # concept_test should be the first one, because it tests the testing ...
-test: info concept_test system_test math_test datastructures_test metadata_test kernel_test format_test filtering_test visual_test comparison_test chemistry_test transformations_featurefinder_test transformations_peakpicker_test analysis_id_test analysis_decharging_test analysis_svm_test analysis_mapmatching_test applications_test
+test: info concept_test system_test math_test datastructures_test metadata_test kernel_test format_test filtering_test visual_test comparison_test chemistry_test transformations_featurefinder_test transformations_peakpicker_test analysis_id_test analysis_decharging_test analysis_svm_test analysis_quantitation_test analysis_mapmatching_test applications_test
 	@./runtests -success
 
 info:
@@ -500,6 +504,9 @@ analysis_decharging_test:	$(EXECUTABLES_ANALYSIS_DECHARGING) dummy
 
 analysis_svm_test:	$(EXECUTABLES_ANALYSIS_SVM) dummy
 	@./runtests -section "ANALYSIS_SVM" $(TEST_OPTIONS) $(EXECUTABLES_ANALYSIS_SVM)
+
+analysis_quantitation_test:	$(EXECUTABLES_ANALYSIS_QUANTITATION) dummy
+	@./runtests -section "ANALYSIS_QUANTITATION" $(TEST_OPTIONS) $(EXECUTABLES_ANALYSIS_QUANTITATION)
 
 analysis_mapmatching_test:	$(EXECUTABLES_ANALYSIS_MAPMATCHING) dummy
 	@./runtests -section "ANALYSIS_MAPMATCHING" $(TEST_OPTIONS) $(EXECUTABLES_ANALYSIS_MAPMATCHING)

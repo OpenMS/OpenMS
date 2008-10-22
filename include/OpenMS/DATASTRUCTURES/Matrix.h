@@ -34,6 +34,10 @@
 #include <iomanip>
 #include <vector>
 
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_linalg.h>
+
 namespace OpenMS
 {
 
@@ -120,7 +124,7 @@ namespace OpenMS
 				cols_(0)
 		{}
 
-		Matrix (SizeType rows, SizeType cols, ValueType value = ValueType())
+		Matrix (const SizeType rows, const SizeType cols, ValueType value = ValueType())
 			: Base(rows*cols,value),
 				rows_(rows),
 				cols_(cols)
@@ -314,7 +318,28 @@ namespace OpenMS
 			return static_cast < typename Matrix<Value>::Base const &>(*this) < static_cast < typename Matrix<Value>::Base const &>(rhs);
 		}
 
-	 protected:
+		/// set matrix to 2D arrays values
+		template <int ROWS, int COLS>
+		void setMatrix (const ValueType matrix[ROWS][COLS])
+		{
+			resize(ROWS, COLS);
+			for (SizeType i=0; i<rows_; ++i)
+			{
+				for (SizeType j=0; j<cols_; ++j)
+				{
+					setValue(i,j,matrix[i][j]);
+				}	
+			}
+		}
+
+		/**
+		 *	allocate and return an equivalent GSL matrix
+		 *  @note Works only for Matrix<double>
+		 *	@note Clean up the gsl_matrix using gsl_matrix_free (gsl_matrix * m)
+		 */
+		gsl_matrix* toGslMatrix();
+		
+	protected:
 
 		///@name Data members
 		//@{
@@ -326,6 +351,9 @@ namespace OpenMS
 
 	}; // class Matrix
 
+	template<>
+	gsl_matrix* Matrix<double>::toGslMatrix();
+	
 	/**@brief Print the contents to a stream.
 
 	@relatesalso Matrix

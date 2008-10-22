@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -21,27 +21,46 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/Matrix.h>
+#ifndef OPENMS_ANALYSIS_QUANTITATION_ITRAQCONSTANTS_H
+#define OPENMS_ANALYSIS_QUANTITATION_ITRAQCONSTANTS_H
 
-namespace OpenMS
-{
-	Matrix<int>    default_matrix_int;
-	Matrix<double> default_matrix_double;
-	
-	template<>
-	gsl_matrix* Matrix<double>::toGslMatrix()
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/KERNEL/Peak2D.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+
+namespace OpenMS {
+
+	class ItraqConstants
 	{
-		gsl_matrix* m_ptr = gsl_matrix_alloc(rows_, cols_);
-	  for ( size_type i = 0; i < this->rows_; ++i ) 
+
+	public:
+
+		enum ITRAQ_TYPES {FOURPLEX=0, EIGHTPLEX};
+		
+		/// destructor
+    virtual ~ItraqConstants();
+		
+		/// stores information on an iTRAQ channel
+		struct ChannelInfo
 		{
-	    for ( size_type j = 0; j < this->cols_; ++j ) 
-			{
-				gsl_matrix_set (m_ptr, i, j, (*this)(i,j));
-	    }
-	  }
-		return m_ptr;
-	}
-}
+			String description; // description given by experimentator (e.g. lung tissue)
+			Int name; // 114-117 or 113 to 121
+			Int id;		// 0-4 or 0-8
+			Peak2D::CoordinateType center; // expected centoid of peak in MZ
+			bool active; // channel actually added to the experiment?
+		};
+
+		typedef Map<Int, ChannelInfo > ChannelMapType;
+		
+		static const Int CHANNELS_FOURPLEX[4][1];
+		static const Int CHANNELS_EIGHTPLEX[8][1];
+	}; // !class
+	
+} // !namespace
+
+#endif // OPENMS_ANALYSIS_QUANTITATION_ITRAQCONSTANTS_H
+ 
