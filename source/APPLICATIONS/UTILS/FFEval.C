@@ -72,7 +72,7 @@ class TOPPFFEVal
 		registerDoubleOption_("rt_tol","<double>",0.15,"Allowed tolerance of RT relative to average feature RT span.", false);
 		setMinFloat_("rt_tol",0);
 		setMaxFloat_("rt_tol",1);
-		registerDoubleOption_("mz_tol","<double>",0.25,"Allowed tolerance in m/z (is devided by charge).", false);
+		registerDoubleOption_("mz_tol","<double>",0.25,"Allowed tolerance in m/z (is divided by charge).", false);
 		setMinFloat_("mz_tol",0);
 		setMaxFloat_("mz_tol",1);
 	}
