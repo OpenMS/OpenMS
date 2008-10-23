@@ -950,8 +950,8 @@ namespace OpenMS
 
 #ifdef DEBUG_TOPPVIEW
 		cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
-	  cout << "  Visible area -- m/z: " << visible_area_.minX() << " - " << visible_area_.maxX() << " int: " << visible_area_.minY() << " - " << visible_area_.maxY() << endl;
-	  cout << "  Overall area -- m/z: " << overall_data_range_.min()[0] << " - " << overall_data_range_.max()[0] << " int: " << overall_data_range_.min()[1] << " - " << overall_data_range_.max()[1] << endl; 
+	  cout << "  Visible area -- m/z: " << visible_area_.minX() << " - " << visible_area_.maxX() << " rt: " << visible_area_.minY() << " - " << visible_area_.maxY() << endl;
+	  cout << "  Overall area -- m/z: " << overall_data_range_.min()[0] << " - " << overall_data_range_.max()[0] << " rt: " << overall_data_range_.min()[1] << " - " << overall_data_range_.max()[1] << endl; 
 #endif
 #ifdef TIMING_TOPPVIEW
 		QTime timer;
@@ -1248,8 +1248,17 @@ namespace OpenMS
 				if (getCurrentLayer().type==LayerData::DT_FEATURE && selected_peak_.isValid()) //move feature
 				{
 					PointType new_data = widgetToData_(pos);
-					getCurrentLayer_().features[selected_peak_.peak].setRT(new_data[1]);
-					getCurrentLayer_().features[selected_peak_.peak].setMZ(new_data[0]);
+					DoubleReal mz = new_data[0];
+					DoubleReal rt = new_data[1];
+					
+					//restrict the movement to the data range
+					mz = max(mz,overall_data_range_.min()[0]);
+					mz = min(mz,overall_data_range_.max()[0]);
+					rt = max(rt,overall_data_range_.min()[1]);
+					rt = min(rt,overall_data_range_.max()[1]);
+					
+					getCurrentLayer_().features[selected_peak_.peak].setRT(rt);
+					getCurrentLayer_().features[selected_peak_.peak].setMZ(mz);
 					
 					update_buffer_ = true;	
 					update_(__PRETTY_FUNCTION__);
@@ -1300,7 +1309,7 @@ namespace OpenMS
 			}
 		}
 	}
-	
+
 	void Spectrum2DCanvas::mouseReleaseEvent(QMouseEvent* e)
 	{
 		QPoint pos = e->pos();
@@ -1887,6 +1896,29 @@ namespace OpenMS
 		{
 			SpectrumCanvas::keyPressEvent(e);
 		}
+	}
+
+	void Spectrum2DCanvas::keyReleaseEvent(QKeyEvent* e)
+	{
+		//zoom if in zoom mode and a valid rectangle is selected
+		if (action_mode_==AM_ZOOM && rubber_band_.isVisible())
+		{
+			rubber_band_.hide();
+			QRect rect = rubber_band_.geometry();
+			if (rect.width()!=0 && rect.height()!=0)
+			{
+				AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
+				changeVisibleArea_(area, true, true);
+			}
+		}
+		else if (action_mode_==AM_MEASURE)
+		{
+			measurement_start_.clear();
+			update_(__PRETTY_FUNCTION__);
+		}
+		
+		//do the normal stuff
+		SpectrumCanvas::keyReleaseEvent(e);
 	}
 
 	void Spectrum2DCanvas::mouseDoubleClickEvent(QMouseEvent* e)

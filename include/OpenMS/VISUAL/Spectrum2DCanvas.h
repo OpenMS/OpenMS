@@ -124,6 +124,7 @@ namespace OpenMS
 			void paintEvent(QPaintEvent* e);
 			void contextMenuEvent(QContextMenuEvent* e);
 			void keyPressEvent(QKeyEvent* e);
+      void keyReleaseEvent(QKeyEvent* e);
 			void mouseDoubleClickEvent(QMouseEvent* e); 
       //@}
 
