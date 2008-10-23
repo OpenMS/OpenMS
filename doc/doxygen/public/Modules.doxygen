@@ -246,7 +246,7 @@
 */
 
 /**
-	@defgroup SpectraClustering classes
+	@defgroup SpectraClustering Clustering
 
 	@brief This class contains SpectraClustering classes
 	These classes are components for clustering all kinds of data for which a distance relation, normalizable in
