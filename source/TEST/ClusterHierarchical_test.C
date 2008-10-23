@@ -29,7 +29,11 @@
 ///////////////////////////
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 #include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedSharedPeakCount.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/DTAFile.h>
+
 #include <vector>
 #include <algorithm>
 ///////////////////////////
@@ -53,19 +57,22 @@ class lowlevelComparator
 				switch(y)
 				{
 					default:
-						return 666;
-						break;
-					case 1:
 						return 0;
 						break;
+					case 1:
+						return 1-0.5;
+						break;
 					case 2:
-						return -1.8;
+						return 1-0.8;
 						break;
 					case 3:
-						return -2.6;
+						return 1-0.6;
 						break;
 					case 4:
-						return -3.2;
+						return 1-0.8;
+						break;
+					case 5:
+						return 1-0.7;
 						break;
 				}
 			break;
@@ -73,16 +80,19 @@ class lowlevelComparator
 				switch(y)
 				{
 					default:
-						return 666;
+						return 0;
 						break;
 					case 2:
-						return -1.2;
+						return 1-0.3;
 						break;
 					case 3:
-						return -1.8;
+						return 1-0.8;
 						break;
 					case 4:
-						return -2.6;
+						return 1-0.8;
+						break;
+					case 5:
+						return 1-0.8;
 						break;
 				}
 
@@ -91,13 +101,16 @@ class lowlevelComparator
 				switch(y)
 				{
 					default:
-						return 666;
-						break;
-					case 3:
 						return 0;
 						break;
+					case 3:
+						return 1-0.8;
+						break;
 					case 4:
-						return -0.4;
+						return 1-0.8;
+						break;
+					case 5:
+						return 1-0.8;
 						break;
 				}
 
@@ -106,10 +119,25 @@ class lowlevelComparator
 				switch(y)
 				{
 					default:
-						return 666;
+						return 0;
 						break;
 					case 4:
+						return 1-0.4;
+						break;
+					case 5:
+						return 1-0.8;
+						break;
+				}
+
+			break;
+			case 4:
+				switch(y)
+				{
+					default:
 						return 0;
+						break;
+					case 5:
+						return 1-0.8;
 						break;
 				}
 
@@ -117,6 +145,7 @@ class lowlevelComparator
 			default:
 				return 666;
 				break;
+
 		}
 	}
 };
@@ -166,66 +195,76 @@ CHECK((void setThreshold(double x)))
 }
 RESULT
 
-CHECK((template <typename Data, typename SimilarityComparator> void clusterForVector(vector< Data > &data, const SimilarityComparator &comparator, const ClusterFunctor &clusterer, vector< vector< UInt > > &clusters)))
+CHECK((template <typename Data, typename SimilarityComparator> void cluster(vector< Data > &data, const SimilarityComparator &comparator, const ClusterFunctor &clusterer, vector<BinaryTreeNode>& cluster_tree)))
 {
+	vector<UInt> d(6,0);
+	for(UInt i = 0; i<d.size(); ++i)
+	{
+		d[i]=i;
+	}
 	ClusterHierarchical ch;
-	UInt a[] = {0,1,2,3,4};
-	vector<UInt> d(a,a+5);
 	lowlevelComparator lc;
 	SingleLinkage sl;
-	vector< vector<UInt> > result;
-	result.push_back(vector<UInt>(a,a+2));
-	result.push_back(vector<UInt>(a+2,a+5));
+	vector< BinaryTreeNode > result;
+	vector< BinaryTreeNode > tree;
+	tree.push_back(BinaryTreeNode(1,2,0.3));
+	tree.push_back(BinaryTreeNode(2,3,0.4));
+	tree.push_back(BinaryTreeNode(0,1,0.5));
+	tree.push_back(BinaryTreeNode(0,1,0.6));
+	tree.push_back(BinaryTreeNode(0,1,0.7));
+	DistanceMatrix<Real> matrix;
 
-	vector< vector<UInt> > r;
-	ch.setThreshold(2.2);
-	ch.clusterForVector<UInt,lowlevelComparator>(d,lc,sl,r);
-	TEST_EQUAL(r.size(), result.size());
-	for (UInt i = 0; i < r.size(); ++i)
+	ch.cluster<UInt,lowlevelComparator>(d,lc,sl,result, matrix);
+
+	TEST_EQUAL(tree.size(), result.size());
+	for (UInt i = 0; i < tree.size(); ++i)
 	{
-			TEST_EQUAL(r[i].size(), result[i].size());
-			for (UInt j = 0; j < r[i].size(); ++j)
-			{
-				TEST_EQUAL(r[i][j], result[i][j]);
-			}
+			PRECISION(0.0001);
+			TEST_EQUAL(tree[i].left_child, result[i].left_child);
+			TEST_EQUAL(tree[i].right_child, result[i].right_child);
+			TEST_REAL_EQUAL(tree[i].distance, result[i].distance);
 	}
 }
 RESULT
 
-CHECK((template <typename Data, typename SimilarityComparator> void clusterForDendrogramm(const vector< Data > &data, const SimilarityComparator &comparator, const ClusterFunctor &clusterer, vector< vector< UInt > > &clusters, const String &filepath)))
+CHECK((void cluster(std::vector<PeakSpectrum>& data, const BinnedSpectrumCompareFunctor& comparator, double sz, UInt sp, const ClusterFunctor& clusterer, std::vector<BinaryTreeNode>& cluster_tree, DistanceMatrix<Real>& original_distance)))
 {
-	ClusterHierarchical ch;
-	UInt a[] = {0,1,2,3,4};
-	vector<UInt> d(a,a+5);
-	lowlevelComparator lc;
-	SingleLinkage sl;
-	vector< vector<UInt> > result;
-	result.push_back(vector<UInt>(a,a+2));
-	result.push_back(vector<UInt>(a+2,a+5));
 
-	vector< vector<UInt> > r;
-	String s;
-	NEW_TMP_FILE(s);
-	const String string(s);
-	ch.setThreshold(2.2);
-	ch.clusterForDendrogramm<UInt,lowlevelComparator>(d,lc,sl,r,string);
-	TEST_EQUAL(r.size(), result.size());
-	for (UInt i = 0; i < r.size(); ++i)
+	PeakSpectrum s1, s2, s3;
+	Peak1D peak;
+
+	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
+	s2 = s1;
+	s3 = s1;
+	s2.pop_back();
+	s3.pop_back();
+	peak.setMZ(666.66);
+	peak.setIntensity(999.99);
+	s2.push_back(peak);
+	s2.sortByPosition();
+	s3.push_back(peak);
+	s3.sortByPosition();
+
+	vector<PeakSpectrum> d(3);
+	d[0] = s1; d[1] = s2; d[2] = s3;
+	ClusterHierarchical ch;
+	BinnedSharedPeakCount bspc;
+	SingleLinkage sl;
+	vector< BinaryTreeNode > result;
+	vector< BinaryTreeNode > tree;
+	tree.push_back(BinaryTreeNode(1,2,0.0));
+	tree.push_back(BinaryTreeNode(0,1,0.0086));
+	DistanceMatrix<Real> matrix;
+
+	ch.cluster(d,bspc,1.5,2,sl,result, matrix);
+
+	TEST_EQUAL(tree.size(), result.size());
+	for (UInt i = 0; i < tree.size(); ++i)
 	{
-			TEST_EQUAL(r[i].size(), result[i].size());
-			for (UInt j = 0; j < r[i].size(); ++j)
-			{
-				TEST_EQUAL(r[i][j], result[i][j]);
-			}
-	}
-	//remove additionaly created files
-	vector<String> list;
-	File file;
-	file.fileList(file.path(string),"*.sm",list);
-	for(vector<String>::iterator it=list.begin(); it != list.end(); ++it)
-	{
-		//erase
-		file.remove(*it);
+			PRECISION(0.0001);
+			TEST_EQUAL(tree[i].left_child, result[i].left_child);
+			TEST_EQUAL(tree[i].right_child, result[i].right_child);
+			TEST_REAL_EQUAL(tree[i].distance, result[i].distance);
 	}
 }
 RESULT

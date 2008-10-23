@@ -28,22 +28,21 @@
 #define OPENMS_COMPARISON_CLUSTERING_SINGLELINKAGE_H
 
 #include <vector>
-#include <cfloat>
-#include <fstream>
+#include <limits>
+#include <algorithm>
 
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterFunctor.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CONCEPT/TimeStamp.h>
 
 namespace OpenMS
 {
 	/**
 		@brief SingleLinkage ClusterMethod
 
-		The details of the score can be found in:
-		LU, S. Y. AND FU, K. S. 1978. A sentence-to-sentence clustering procedure for pattern analysis. IEEE Trans. Syst. Man Cybern. 8,381-389.
+		The details of the method can be found in:
+		SLINK: An optimally efficient algorithm for the single-link cluster method, The Computer Journal 1973 16(1):30-34; doi:10.1093/comjnl/16.1.30
 		@see ClusterFunctor() base class.
 
 		@ingroup SpectraClustering
@@ -52,64 +51,45 @@ namespace OpenMS
 	{
 		public:
 
-		/// default constructor
-		SingleLinkage();
+			/// default constructor
+			SingleLinkage();
 
-		/// copy constructor
-		SingleLinkage(const SingleLinkage& source);
+			/// copy constructor
+			SingleLinkage(const SingleLinkage& source);
 
-		/// destructor
-		virtual ~SingleLinkage();
+			/// destructor
+			virtual ~SingleLinkage();
 
-		/// assignment operator
-		SingleLinkage& operator = (const SingleLinkage& source);
+			/// assignment operator
+			SingleLinkage& operator = (const SingleLinkage& source);
 
-		/**
-			@brief clusters the indices according to their respective element distances
+			/**
+				@brief clusters the indices according to their respective element distances
 
-			@param original_distance DistanceMatrix<double> containing the distances of the elements to be clustered
-			@param actual_distance DistanceMatrix<double> containing the distances of the clusters at current stage
-			@param clusters vector< vector<UInt> >, each vector<UInt> represents a cluster, its elements being the indices according to original_dist.
-			@param filepath String&, by default empty, when given, a dendrogram will be written in a file created in that path
-			@param threshold double value, the minimal distance from which on cluster merging is considered unrealistic. By default set to 1, i.e. complete clustering until only one cluster remains
-			@throw UnableToCreateFile thrown if for the given filepath no file can be created
+			@param original_distance DistanceMatrix<Real> containing the distances of the elements to be clustered
+			@param cluster_tree vector< BinaryTreeNode >, represents the clustering, each node contains the next two clusters merged and their distance, strict order is kept: left_child < right_child
+			@param threshold Real value to meet Baseclass interface, will not be used because algorithm used is considerably fast and does not work by growing distances
 			@throw ClusterFunctor::InsufficientInput thrown if input is <2
-			@see ClusterFunctor() Base class.
-			The clustering method is single linkage, where the updated distances after merging two clusters
-			are each the minimal distance between the elements of their clusters. @see SingleLinkage::getMinDist_
-			Output is the stagewise merged clusters and each clusters average distance to the others
-		*/
-		void cluster(const DistanceMatrix<double>& original_distance, DistanceMatrix<double>& actual_distance, std::vector< std::vector<UInt> >& clusters, const String filepath="", const double threshold=1) const;
+				The clustering method is single linkage, where the updated distances after merging two clusters are each the minimal distance between the elements of their clusters.
+			@see ClusterFunctor , BinaryTreeNode
+			*/
+			void cluster(DistanceMatrix<Real>& original_distance, std::vector<BinaryTreeNode>& cluster_tree, const Real threshold=1) const;
 
-		/// creates a new instance of a SingleLinkage object
-		static ClusterFunctor* create()
-		{
-			return new SingleLinkage();
-		}
+			/// creates a new instance of a SingleLinkage object
+			static ClusterFunctor* create()
+			{
+				return new SingleLinkage();
+			}
 
-		/// get the identifier for this object
-		static const String getProductName()
-		{
-			return "SingleLinkage";
-		}
-	private:
-
-		/**
-			@brief gets the minimum distance between all elements of one cluster and all elements of another cluster.
-
-			@param o first UInt index pointing to a cluster
-			@param x second UInt index pointing to a cluster
-			@param clusters the clusters
-			@param original_dist DistanceMatrix containing the distances between all clustered elements of clusters
-
-			The indices shall point to clusters in the given clustering vector< vector<UInt> > for which the
-			minimal distance between elements from o and x is to be calculated from the given original_dist.
-
-			@see ClusterFunctor() Base class.
-		*/
-		double getMinDist_(UInt& o, UInt x, std::vector< std::vector<UInt> >& clusters, const DistanceMatrix<double>& original_dist) const;
+			/// get the identifier for this object
+			static const String getProductName()
+			{
+				return "SingleLinkage";
+			}
 
 	};
+
+
 
 }
 #endif //OPENMS_COMPARISON_CLUSTERING_SINGLELINKAGE_H

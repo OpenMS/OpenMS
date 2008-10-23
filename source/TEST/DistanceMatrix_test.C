@@ -52,16 +52,9 @@ CHECK(~DistanceMatrix())
 }
 RESULT
 
-CHECK((DistanceMatrix(Value se=1)))
-{
-	DistanceMatrix<double> dm3(1.0);
-	TEST_EQUAL(dm3.dimensionsize(), 1)
-}
-RESULT
+DistanceMatrix<double> dm(8,1.0);
 
-DistanceMatrix<double> dm(8,1.0,1.0);
-
-CHECK((DistanceMatrix(SizeType dimensionsize, Value value=Value(), Value se=1)))
+CHECK((DistanceMatrix(SizeType dimensionsize, Value value=Value())))
 {
 	TEST_EQUAL(dm.dimensionsize(), 8)
 	TEST_EQUAL(dm(6,7),1)
@@ -77,29 +70,20 @@ CHECK((DistanceMatrix(const DistanceMatrix &source)))
 }
 RESULT
 
-CHECK((void resize(size_type i) throw (Exception::OutOfRange)))
+CHECK(void resize(SizeType dimensionsize, Value value=Value()))
 {
 	dm2.resize(5);
 	TEST_EQUAL(dm2.dimensionsize(),5)
-	TEST_EQUAL(dm2(2,3),1)
-}
-RESULT
-
-CHECK((DistanceMatrix& operator=(const DistanceMatrix &rhs)))
-{
-	dm=dm2;
-	TEST_EQUAL(dm.dimensionsize(),5)
-	TEST_EQUAL(dm(2,3),1)
 }
 RESULT
 
 CHECK((SizeType dimensionsize() const ))
 {
-	TEST_EQUAL(dm.dimensionsize(),5)
+	TEST_EQUAL(dm2.dimensionsize(),5)
 }
 RESULT
 
-CHECK((void setValue(size_type const i, size_type const j, value_type value)))
+CHECK((void setValue(SizeType const i, SizeType const j, value_type value)))
 {
 	dm.setValue(0,1,10);
 	dm.setValue(0,2,9);
@@ -110,13 +94,16 @@ CHECK((void setValue(size_type const i, size_type const j, value_type value)))
 	dm.setValue(1,4,4);
 	dm.setValue(2,3,3);
 	dm.setValue(2,4,2);
-	dm.setValue(3,4,1);
+	dm.setValue(3,4,0.5);
 	TEST_EQUAL(dm.getValue(0,1),10)
+	TEST_EQUAL(dm.getValue(dm.getMinElementCoordinates().first, dm.getMinElementCoordinates().second),0.5)
+	dm.setValue(3,4,1);
+	TEST_EQUAL(dm.getValue(dm.getMinElementCoordinates().first, dm.getMinElementCoordinates().second),1.0)
 	//more tested below
 }
 RESULT
 
-CHECK((const value_type getValue(size_type const i, size_type const j) const ))
+CHECK((const value_type getValue(SizeType const i, SizeType const j) const ))
 {
 	TEST_EQUAL(dm.getValue(0,1),10)
 	TEST_EQUAL(dm.getValue(0,2),9)
@@ -131,7 +118,7 @@ CHECK((const value_type getValue(size_type const i, size_type const j) const ))
 }
 RESULT
 
-CHECK((value_type getValue(size_type const i, size_type const j)))
+CHECK((value_type getValue(SizeType const i, SizeType const j)))
 {
 	TEST_EQUAL(dm.getValue(0,1),10)
 	TEST_EQUAL(dm.getValue(0,2),9)
@@ -149,11 +136,11 @@ RESULT
 CHECK((void clear()))
 {
 	dm2.clear();
-	TEST_EQUAL(dm2.dimensionsize(),1)
+	TEST_EQUAL(dm2.dimensionsize(),0)
 }
 RESULT
 
-CHECK((void setValueQuick(size_type const i, size_type const j, value_type value)))
+CHECK((void setValueQuick(SizeType const i, SizeType const j, value_type value)))
 {
 	dm.setValueQuick(0,1,1);
 	dm.setValueQuick(0,2,2);
@@ -178,7 +165,7 @@ CHECK((void setValueQuick(size_type const i, size_type const j, value_type value
 }
 RESULT
 
-CHECK((const value_type operator()(size_type const i, size_type const j) const ))
+CHECK((const value_type operator()(SizeType const i, SizeType const j) const ))
 {
 	TEST_EQUAL(dm.getValue(0,1),dm(0,1))
 	TEST_EQUAL(dm.getValue(0,2),dm(0,2))
@@ -193,7 +180,7 @@ CHECK((const value_type operator()(size_type const i, size_type const j) const )
 }
 RESULT
 
-CHECK((value_type operator()(size_type const i, size_type const j)))
+CHECK((value_type operator()(SizeType const i, SizeType const j)))
 {
 	TEST_EQUAL(dm.getValue(0,1),dm(0,1))
 	TEST_EQUAL(dm.getValue(0,2),dm(0,2))
@@ -208,65 +195,46 @@ CHECK((value_type operator()(size_type const i, size_type const j)))
 }
 RESULT
 
-CHECK((void reduce(size_type j)))
+CHECK((void reduce(SizeType j)))
 {
 	dm.reduce(2);
-
 	TEST_EQUAL(dm.getValue(0,1),1)
 	TEST_EQUAL(dm.getValue(0,2),3)
 	TEST_EQUAL(dm.getValue(0,3),4)
 	TEST_EQUAL(dm.getValue(1,2),6)
 	TEST_EQUAL(dm.getValue(1,3),7)
 	TEST_EQUAL(dm.getValue(2,3),10)
-	TEST_EQUAL(dm.dimensionsize(),4)
+	TEST_EQUAL(dm.dimensionsize(),7)
 }
 RESULT
 
-CHECK((std::pair<UInt,UInt> getMinElementCoordinates() const  throw (Exception::IndexOverflow)))
+CHECK((std::pair<UInt,UInt> getMinElementCoordinates() ))
 {
 	dm.updateMinElement();
 	pair<UInt,UInt> min = dm.getMinElementCoordinates();
-	TEST_EQUAL(min.first,0)
-	TEST_EQUAL(min.second,1)
+	TEST_EQUAL(min.first,1)
+	TEST_EQUAL(min.second,0)
 }
 RESULT
 
-CHECK((void updateMinElement() throw (Exception::OutOfRange)))
+CHECK((void updateMinElement()))
 {
 	dm.setValueQuick(2,3,0.5);
 	dm.updateMinElement();
 	std::pair<UInt,UInt> min = dm.getMinElementCoordinates();
-	TEST_EQUAL(min.first,2)
-	TEST_EQUAL(min.second,3)	
+	TEST_EQUAL(min.first,3)
+	TEST_EQUAL(min.second,2)
 }
 RESULT
 
-CHECK((UInt index(UInt row, UInt col) const ))
+DistanceMatrix<double> dm3(dm);
+
+CHECK(bool operator==(DistanceMatrix< Value > const &rhs) const)
 {
-  NOT_TESTABLE
+	TEST_EQUAL((dm==dm3),true)
 }
 RESULT
 
-CHECK((std::pair<UInt,UInt> const indexPair(UInt index) const ))
-{
-	NOT_TESTABLE
-}
-RESULT
-
-CHECK((bool operator==(DistanceMatrix< Value > const &rhs) const  throw (Exception::Precondition)))
-{
-	dm2=dm;
-	TEST_EQUAL((dm==dm2),true)
-}
-RESULT
-
-
-CHECK((bool operator<(DistanceMatrix< Value > const &rhs) const  throw (Exception::Precondition)))
-{
-	dm2.setValue(2,3,10);
-	TEST_EQUAL((dm<dm2),true)
-}
-RESULT
 
 CHECK((template <typename Value> std::ostream & operator<<(std::ostream &os, const DistanceMatrix< Value > &matrix)))
 {

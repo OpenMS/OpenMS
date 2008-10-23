@@ -30,6 +30,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
+#include <OpenMS/KERNEL/DSpectrum.h>
 
 #include <cfloat>
 #include <cmath>

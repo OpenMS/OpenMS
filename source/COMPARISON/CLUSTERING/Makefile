@@ -36,7 +36,9 @@ CPP_SOURCES=\
 	SingleLinkage.C\
 	CompleteLinkage.C\
 	AverageLinkage.C\
-	ClusterHierarchical.C
+	ClusterHierarchical.C\
+	ClusterAnalyzer.C\
+	EuclideanSimilarity.C
 
 include ../../common.mak
 

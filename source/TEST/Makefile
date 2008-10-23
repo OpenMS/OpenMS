@@ -278,7 +278,9 @@ EXECUTABLES_COMPARISON=\
 	CompleteLinkage_test\
 	AverageLinkage_test\
 	PeakAlignment_test\
-	ClusterHierarchical_test
+	ClusterHierarchical_test\
+	ClusterAnalyzer_test\
+	EuclideanSimilarity_test
 
 #CHEMISTRY
 

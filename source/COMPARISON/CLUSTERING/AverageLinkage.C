@@ -27,8 +27,6 @@
 
 #include <OpenMS/COMPARISON/CLUSTERING/AverageLinkage.h>
 
-using namespace std;
-
 namespace OpenMS
 {
 	AverageLinkage::AverageLinkage()
@@ -55,226 +53,84 @@ namespace OpenMS
 		return *this;
 	}
 
-	void AverageLinkage::cluster(const DistanceMatrix<double>& original_distance, DistanceMatrix<double>& actual_distance, vector< vector<UInt> >& clusters, const String filepath /*= ""*/, const double threshold /*=1*/) const
+	void AverageLinkage::cluster(DistanceMatrix<Real>& original_distance, std::vector<BinaryTreeNode>& cluster_tree, const Real threshold /*=1*/) const
 	{
-		// attention: clustering process is done by clustering the indices
-		// pointing to elements in inputvector and distances in inputmatrix
-
 		// input MUST have >= 2 elements!
-		if(actual_distance.dimensionsize()<2)
+		if(original_distance.dimensionsize()<2)
 		{
 			throw ClusterFunctor::InsufficientInput(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Distance matrix to start from only contains one element");
 		}
 
-		// in case of preclustering actual_distance and clusters have to match
-		if(clusters.size()>0 && actual_distance.dimensionsize()!=clusters.size())
+		std::vector< std::vector<UInt> >clusters;
+		clusters.reserve(original_distance.dimensionsize());
+		for(UInt i = 0; i < original_distance.dimensionsize(); ++i)
 		{
-			throw ClusterFunctor::InsufficientInput(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Distance matrix to start from does not match the clusters to start from");
+			clusters.push_back(std::vector<UInt>(1,i));
 		}
 
-		std::ofstream os;
-		//make sure writing is successful
-		if(filepath.size()!=0)
-		{
-			os.open(filepath.c_str());
-			if (!os)
-			{
-				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filepath);
-			}
-
-			os << "average linkage" << endl << "dendrogram-file: " << filepath << endl << "timestamp: " << PreciseTime::now() << endl;
-
-			//clusters inital state
-			if(clusters.size()!=original_distance.dimensionsize())
-			{
-				os << "preclustering--snip" << endl;
-				UInt mergedCounter = 0;
-				for(UInt i = 0; i < clusters.size(); ++i)
-				{
-					if(clusters[i].size() == 2)
-					{
-						os << "*" << " | " << clusters[i][0]-mergedCounter << " | " << clusters[i][1]-mergedCounter << " | " << "#" << endl;
-						++mergedCounter;
-					}
-				}
-				os << "preclustering--snap" << endl;
-			}
-		}
-
-		// when no clustering has been done start atomar
-		if(clusters.size()==0)
-		{
-			if(actual_distance.dimensionsize()!=original_distance.dimensionsize())
-			{
-				throw ClusterFunctor::InsufficientInput(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Distance matrices do not match");
-			}
-			for (UInt i = 0; i < actual_distance.dimensionsize(); ++i)
-			{
-				vector<UInt> tmp(1,i);
-				clusters.push_back(tmp);
-			}
-		}
+		cluster_tree.clear();
+		cluster_tree.reserve(original_distance.dimensionsize()-1);
 
 		// Initial minimum-distance pair
-		actual_distance.updateMinElement();
-		pair<UInt,UInt> min = actual_distance.getMinElementCoordinates();
+		original_distance.updateMinElement();
+		std::pair<UInt,UInt> min = original_distance.getMinElementCoordinates();
 
-		UInt clustersteps_counter(0);
-		while(actual_distance(min.first,min.second) < threshold && actual_distance.dimensionsize() > 2)
+		while(original_distance(min.second,min.first) < threshold)
 		{
-			++clustersteps_counter;
+			//grow the tree
+			cluster_tree.push_back( BinaryTreeNode(min.second,min.first,original_distance(min.first,min.second) ) );
 
-			if(filepath.size()!=0)
+			if(original_distance.dimensionsize() > 2)
 			{
-				//write in file
-				os << clustersteps_counter << " | " << min.first << " | " << min.second << " | " << actual_distance(min.first,min.second) << endl;
-			}
+				//pick minimum-distance pair i,j and merge them
 
-		//pick minimum-distance pair i,j and merge them
-			//pushback elements of second to first (and then erase second)
-			for (UInt c = 0; c < clusters[min.second].size(); ++c)
-			{
-				clusters[min.first].push_back(clusters[min.second][c]);
-			}
+				//calculate parameter for lance-williams formula
+				Real alpha_i = (Real)(clusters[min.first].size()/(Real)(clusters[min.first].size()+clusters[min.second].size()));
+				Real alpha_j = (Real)(clusters[min.second].size()/(Real)(clusters[min.first].size()+clusters[min.second].size()));
+				//~ std::cout << alpha_i << '\t' << alpha_j << std::endl;
 
-			// erase second one
-			clusters.erase(clusters.begin()+min.second,clusters.begin()+min.second+1);
+				//pushback elements of second to first (and then erase second)
+				clusters[min.second].insert(clusters[min.second].end(),clusters[min.first].begin(),clusters[min.first].end());
+				// erase first one
+				clusters.erase(clusters.begin()+min.first);
 
-			//reduce
-			actual_distance.reduce(min.second);
-
-			//update actual_distance matrix (and minimum-distance pair)
-			//average linkage: new distcance between clusteres is the minimum distance between elements of each cluster
-			for (UInt i = 0; i < min.first; ++i)
-			{
-				actual_distance.setValueQuick(i,min.first,getAveDist_(i,min.first,clusters,original_distance));
-			}
-			for (UInt j = min.first+1; j < actual_distance.dimensionsize(); ++j)
-			{
-				actual_distance.setValueQuick(min.first,j,getAveDist_(min.first,j,clusters,original_distance));
-			}
-
-			//update min
-			actual_distance.updateMinElement();
-
-			//get min-pair from triangular matrix
-			min = actual_distance.getMinElementCoordinates();
-
-			//extra output of similaritymatrix for plotting to survey clusteringprogress in 10% steps
-			UInt zp((UInt) ((((double)original_distance.dimensionsize())/10.0)+0.5) );
-			(original_distance.dimensionsize()<5)?zp=2:zp;
-			if(filepath.size()!=0 && clustersteps_counter%zp == 0)
-			{
-				//close actual file and make new file
-				os.close();
-				os.open(String(filepath+".step"+clustersteps_counter+".sm").c_str());
-				if (!os)
+				//update original_distance matrix
+				//average linkage: new distcance between clusteres is the minimum distance between elements of each cluster
+				//lance-williams update für d((i,j),k): (m_i/m_i+m_j)* d(i,k) + (m_j/m_i+m_j)* d(j,k) ; m_x is the number of elements in cluster x
+				for (UInt k = 0; k < min.second; ++k)
 				{
-					throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filepath);
+					Real dik = original_distance.getValue(min.first,k);
+					Real djk = original_distance.getValue(min.second,k);
+					original_distance.setValueQuick(min.second,k, (alpha_i* dik + alpha_j* djk ));
 				}
-				// original distancematrix in order of actual clustering
-				for(vector< vector <UInt> >::iterator outer_it1=clusters.begin();outer_it1!=clusters.end();++outer_it1)
+				for (UInt k = min.second+1; k < original_distance.dimensionsize(); ++k)
 				{
-					for(vector<UInt>::iterator outer_it2=outer_it1->begin();outer_it2!=outer_it1->end();++outer_it2)
-					{
-						for(vector< vector <UInt> >::iterator inner_it1=clusters.begin();inner_it1!=clusters.end();++inner_it1)
-						{
-							for(vector<UInt>::iterator inner_it2=inner_it1->begin();inner_it2!=inner_it1->end();++inner_it2)
-							{
-								//format and out
-								os << scientific << setprecision(15) << 1-original_distance(*outer_it2,*inner_it2) << '\t';
-							}
-						}
-						os << endl;
-					}
+					Real dik = original_distance.getValue(min.first,k);
+					Real djk = original_distance.getValue(min.second,k);
+					original_distance.setValueQuick(k,min.second, (alpha_i* dik + alpha_j* djk ));
 				}
 
-				//reopen old file afterwards
-				os.close();
-				os.open(filepath.c_str(), ofstream::app);
-				if (!os)
-				{
-					throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filepath);
-				}
+				//reduce
+				original_distance.reduce(min.first);
 
+				//update minimum-distance pair
+				original_distance.updateMinElement();
+
+				//get min-pair from triangular matrix
+				min = original_distance.getMinElementCoordinates();
+			}
+			else
+			{
+				break;
 			}
 
 		//repeat until only two cluster remains, last step skips matrix operations
 		}
-
-		if(actual_distance(min.first,min.second) < threshold && actual_distance.dimensionsize() == 2)
+		//fill tree with dummy nodes
+		while(cluster_tree.size() < cluster_tree.capacity())
 		{
-			if(filepath.size()!=0)
-			{
-				//write in file
-				os << clustersteps_counter << " | " << min.first << " | " << min.second << " | " << actual_distance(min.first,min.second) << endl;
-			}
-			//pick minimum-distance pair i,j and merge them
-			//pushback elements of second to first (and then erase second)
-			for (UInt c = 0; c < clusters[min.second].size(); ++c)
-			{
-			 	clusters[min.first].push_back(clusters[min.second][c]);
-			}
-			// erase second one
-			clusters.erase(clusters.begin()+min.second,clusters.begin()+min.second+1);
+			cluster_tree.push_back(BinaryTreeNode(0,1,-1.0));
 		}
-
-		if(filepath.size()!=0)
-		{
-			// ad notification, if clustering was aborted due to threshold exceeding - else only one ubercluster is left
-			if(actual_distance(min.first,min.second) >= threshold)
-			{
-				os << " threshold exceeded " << endl;
-			}
-			//done writing
-			os.close();
-		}
-	}
-
-	double AverageLinkage::getAveDist_(UInt& o, UInt x, vector< vector<UInt> >& clusters, const DistanceMatrix<double>& original_dist) const
-	{
-		double ave(0);
-		double divisor(clusters[x].size()*clusters[o].size());
-
-		if(clusters.size() > o && clusters.size() > x )
-		{
-			double divisor();
-			//look only in cells upper the main diagonal!
-			//o, x are indices of clusters
-			//wanted is mindist between elements of o to x
-			for (UInt i = 0; i < clusters[x].size(); ++i)
-			{
-
-				for (UInt j = 0; j < clusters[o].size(); ++j)
-				{
-
-					if(clusters[x][i]<clusters[o][j])
-					{
-						#ifdef OPENMS_DEBUG
-						cout << "comparing element "<< clusters[x][i] << " and element " << clusters[o][j] << endl;
-						cout << "distance: "<< original_dist.getValue(clusters[x][i],clusters[o][j]) << endl;
-						#endif
-
-						ave += original_dist.getValue(clusters[x][i],clusters[o][j]);
-					}
-					else
-					{
-						#ifdef OPENMS_DEBUG
-						cout << "comparing element "<< clusters[o][j] << " and element " << clusters[x][i] << endl;
-						cout << "distance: "<< original_dist.getValue(clusters[o][j],clusters[x][i]) << endl;
-						#endif
-
-						ave += original_dist.getValue(clusters[o][j],clusters[x][i]);
-					}
-				}
-			}
-		}
-
-		#ifdef OPENMS_DEBUG
-		cout << "Average distance is:" << ave/divisor << endl;
-		#endif
-
-		return ave/divisor;
 	}
 
 }
