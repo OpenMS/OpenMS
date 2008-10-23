@@ -38,7 +38,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page FFEval FFEval
+	@page LabeledEval LabeledEval
 	
 	@brief Evaluation tool for isotope-labeled quantitation experiments.
 */
@@ -46,12 +46,12 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPFFEVal
+class TOPPLabeledEval
 	: public TOPPBase
 {
  public:
-	TOPPFFEVal()
-		: TOPPBase("FFEVal"," Evaluation tool for isotope-labeled quantitation experiments.")
+	TOPPLabeledEval()
+		: TOPPBase("LabeledEval"," Evaluation tool for isotope-labeled quantitation experiments.")
 	{
 	}
 	
@@ -174,7 +174,7 @@ class TOPPFFEVal
 
 int main( int argc, const char** argv )
 {
-	TOPPFFEVal tool;
+	TOPPLabeledEval tool;
 	return tool.main(argc,argv);
 }
 
