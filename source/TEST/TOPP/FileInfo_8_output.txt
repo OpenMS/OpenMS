@@ -28,7 +28,7 @@ Sample
   Organism         : 
   Comment          : 42
 
-Instument
+Instrument
   Name             : i1
   Model            : i4
   Vendor           : i3
