@@ -71,8 +71,6 @@ namespace OpenMS
 		@improvement Add painting of lines directly on QImage and use this to replace QPainter.
 		             This should speed up the 1D view and the 2D feature view significantly (Hiwi)
 		
-		@todo Add feature-editing to tutorial (Marc)
-		
     @ingroup TOPPView_elements
   */
   class TOPPViewBase 

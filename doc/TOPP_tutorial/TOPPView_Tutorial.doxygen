@@ -291,6 +291,18 @@
 //##############################################################################
 
 /**	
+	@page TOPPView_editing Data editing
+	
+		TOPPView also offers editing functionality for feature layers:
+		- Features can be dragged with the mouse in order to change the m/z and RT position.
+		- The postion, intensity and charge of a feature can be edited by double-clicking a feature.
+		- Features can be created by double-clicking the layer background.
+		- Features can be removed by selecting them and pressing the DEL key.			
+*/
+
+//##############################################################################
+
+/**	
 	@page TOPPView_hotkeys Hotkeys table
 	
 		<TABLE border=0>

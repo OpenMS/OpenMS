@@ -36,6 +36,7 @@
 	- @subpage TOPPView_views
 	- @subpage TOPPView_modes
 	- @subpage TOPPView_analysis
+	- @subpage TOPPView_editing
 	- @subpage TOPPView_hotkeys
 
 */
