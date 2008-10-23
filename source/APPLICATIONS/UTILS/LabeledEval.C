@@ -150,7 +150,7 @@ class TOPPLabeledEval
 				DoubleReal m_r = elements[0].getIntensity()/elements[1].getIntensity();
 				i_ratio.push_back(m_r);
 				rt_diffs.push_back(best_matches[1].getRT()-best_matches[0].getRT());
-				mz_diffs.push_back(best_matches[1].getMZ()-best_matches[0].getMZ());
+				mz_diffs.push_back((best_matches[1].getMZ()-best_matches[0].getMZ())*truth[t].getCharge());
 			}
 		}
 		
