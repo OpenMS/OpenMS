@@ -75,18 +75,19 @@ namespace OpenMS
 			void writeTo(std::ostream& os);
 
     protected:
-		/// map pointer for reading
-		ExperimentalSettings* exp_;
-		/// map pointer for writing
-		const ExperimentalSettings* cexp_;
-
-		/** @brief read attributes of MzData's cvParamType
-
-			Example:
-			&lt;cvParam cvLabel="psi" accession="PSI:1000001" name="@p name" value="@p value"/&gt;
-			@p name and sometimes @p value are defined in the MzData ontology.
-		*/
-		void cvParam_(const XMLCh* name, const XMLCh* value);
+    	
+			/// map pointer for reading
+			ExperimentalSettings* exp_;
+			/// map pointer for writing
+			const ExperimentalSettings* cexp_;
+	
+			/** @brief read attributes of MzData's cvParamType
+	
+				Example:
+				&lt;cvParam cvLabel="psi" accession="PSI:1000001" name="@p name" value="@p value"/&gt;
+				@p name and sometimes @p value are defined in the MzData ontology.
+			*/
+			void cvParam_(const XMLCh* name, const XMLCh* value);
   };
 
 	} // namespace Internal

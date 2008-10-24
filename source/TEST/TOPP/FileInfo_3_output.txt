@@ -15,32 +15,7 @@ charge 3: 6
 
 -- Meta information --
 
-Experiment Type  : Unknown
-Date             : 0000-00-00
-
-Sample
-  Name             : MS-Sample
-  Organism         : 
-  Comment          : 
-
-Instrument
-  Name             : MS-Instrument
-  Model            : MS 1
-  Vendor           : MS-Vendor
-  Ion source       : Electrospray ionisation
-  Detector         : Faraday cup
-  Mass Analyzer(s) : Quadrupole ion trap, Quadrupole, 
-
-Contact Person
-  First Name       : John
-  Last Name        : Doe
-  Email            : 
-
-Contact Person
-  First Name       : Jane
-  Last Name        : Doe
-  Email            : 
-
+Document id      : feat
 
 -- Statistics --
 

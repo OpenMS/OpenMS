@@ -56,7 +56,8 @@ CPP_SOURCES=\
 	MetaInfoDescriptionVisualizer.C\
 	PrecursorVisualizer.C\
 	InstrumentSettingsVisualizer.C\
-	SpectrumSettingsVisualizer.C
+	SpectrumSettingsVisualizer.C\
+	DocumentIdentifierVisualizer.C
 
 MOC_SOURCES=\
 	BaseVisualizer_moc.C\
@@ -85,7 +86,8 @@ MOC_SOURCES=\
 	PrecursorVisualizer_moc.C\
 	InstrumentSettingsVisualizer_moc.C\
 	ProteinIdentificationVisualizer_moc.C\
-	SpectrumSettingsVisualizer_moc.C	
+	SpectrumSettingsVisualizer_moc.C\
+	DocumentIdentifierVisualizer_moc.C
 
 SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
@@ -194,3 +196,6 @@ ProteinIdentificationVisualizer_moc.C:  $(HEADER_DIR)/ProteinIdentificationVisua
 	
 SpectrumSettingsVisualizer_moc.C:  $(HEADER_DIR)/SpectrumSettingsVisualizer.h
 	$(MOC) $(HEADER_DIR)/SpectrumSettingsVisualizer.h -o SpectrumSettingsVisualizer_moc.C
+
+DocumentIdentifierVisualizer_moc.C:  $(HEADER_DIR)/DocumentIdentifierVisualizer.h
+	$(MOC) $(HEADER_DIR)/DocumentIdentifierVisualizer.h -o DocumentIdentifierVisualizer_moc.C

@@ -1,25 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<description>
-		<admin>
-			<sampleName></sampleName>
-		</admin>
-		<instrument>
-			<instrumentName></instrumentName>
-			<source>
-			</source>
-			<analyzerList count="0">
-			</analyzerList>
-			<detector>
-			</detector>
-		</instrument>
-		<dataProcessing>
-			<software>
-				<name></name>
-				<version></version>
-			</software>
-		</dataProcessing>
-	</description>
 	<featureList count="6">
 		
     <!-- apparently two charge variants of the same peptide -> cluster them -->

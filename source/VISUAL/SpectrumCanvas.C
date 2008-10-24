@@ -742,8 +742,9 @@ namespace OpenMS
     const LayerData& layer = getCurrentLayer();
   	if (layer.type==LayerData::DT_FEATURE)
   	{
-			//copy experimental settings
-			map.ExperimentalSettings::operator=(layer.features);
+			//copy meta data
+			map.setIdentifier(layer.features.getIdentifier());
+			map.setProteinIdentifications(layer.features.getProteinIdentifications());
 			//Visible area
 			DoubleReal min_rt = getVisibleArea().min()[1];
 			DoubleReal max_rt = getVisibleArea().max()[1];
@@ -812,10 +813,15 @@ namespace OpenMS
   	else if (layer.type==LayerData::DT_FEATURE)
   	{
   		dlg.visualize(layer.features);
+			for(UInt i=0; i<layer.features.getProteinIdentifications().size(); ++i)    
+			{
+				dlg.visualize(layer.features.getProteinIdentifications()[i]);
+			}
   	}
   	else if (layer.type==LayerData::DT_CONSENSUS)
   	{
-  		dlg.visualize(layer.consensus);
+  		dlg.visualize(static_cast<DocumentIdentifier&>(layer.consensus));
+  		dlg.visualize(static_cast<MetaInfoInterface&>(layer.consensus));
   	}
   	
   	//if the meta data was modified, set the flag

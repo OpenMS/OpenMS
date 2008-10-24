@@ -31,7 +31,6 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/FORMAT/HANDLERS/MzDataExpSettHandler.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
@@ -68,7 +67,6 @@ namespace OpenMS
 	      : XMLHandler(filename,version),
 				 	map_(&map), 
 				 	cmap_(0),	
-				 	exp_sett_(),
 				 	in_description_(false),
 					subordinate_feature_level_(0)
 	  		{
@@ -79,7 +77,6 @@ namespace OpenMS
 	      : XMLHandler(filename,version),
 					map_(0), 
 					cmap_(&map),	
-					exp_sett_(),
 				 	in_description_(false),
 					subordinate_feature_level_(0)
 	  		{
@@ -114,7 +111,7 @@ namespace OpenMS
 						
 					  @param create If true, a new (empty) Feature is added at the appropriate subordinate_feature_level_
 				 */
-				void updateCurrentFeature_(const bool create);
+				void updateCurrentFeature_(bool create);
 
 				/// points to the last open <feature> tag (possibly a subordinate feature)
 				Feature* current_feature_;
@@ -131,8 +128,6 @@ namespace OpenMS
 				Param param_;
 				ConvexHull2D current_chull_;
 				DPosition<2> hull_position_;	
-				/// stream to collect experimental settings
-				std::stringstream exp_sett_;
 		    //@}
 				
 				/// current dimension of the feature position, quality, or convex hull point

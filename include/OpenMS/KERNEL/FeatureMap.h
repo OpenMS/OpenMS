@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_KERNEL_FEATUREMAP_H
@@ -29,7 +29,8 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/METADATA/ExperimentalSettings.h>
+#include <OpenMS/METADATA/DocumentIdentifier.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 
@@ -40,24 +41,24 @@ namespace OpenMS
 {
 
 	/**	
-		@brief A container for (composite) features.
+		@brief A container for features.
 		
 		A map is a container holding 2-dimensional features,
 		which in turn represent chemical entities (peptides, proteins, etc.) found
 		in a 2-dimensional experiment.
+		
 		Maps are implemented as vectors of features and have basically the same interface
 		as an STL vector has (model of Random Access Container and Back Insertion Sequence).
-		Maps are typically created from peak data of 2D runs through the FeatureFinder.
 		
-		@TODO kill derivation from ExperimentalSettings and derive from DocumentIdentifier&... instead (Marc, Chris)
-	 
+		Feature maps are typically created from peak data of 2D runs through the FeatureFinder.
+		
 		@ingroup Kernel
 	*/
 	template <typename FeatureT = Feature >
 	class FeatureMap
 		: public std::vector<FeatureT>,
 			public RangeManager<2>,
-			public ExperimentalSettings
+			public DocumentIdentifier
 	{
 	 public:
 			/**	
@@ -73,7 +74,6 @@ namespace OpenMS
 			typedef typename Base::const_reverse_iterator ConstReverseIterator;
 			typedef FeatureType& Reference;
 			typedef const FeatureType& ConstReference;
-	
 			//@}
 			/**	
 				 @name Constructors and Destructor
@@ -84,24 +84,23 @@ namespace OpenMS
 			FeatureMap()
 				: Base(),
 					RangeManagerType(),
-					ExperimentalSettings()
+					DocumentIdentifier(),
+					protein_identifications_()
 			{
-				
 			}
 			
 			/// Copy constructor
 			FeatureMap(const FeatureMap& map) 
 				: Base(map),
 					RangeManagerType(map),
-					ExperimentalSettings(map)
+					DocumentIdentifier(map),
+					protein_identifications_(map.protein_identifications_)
 			{
-			
 			}
 			
 			/// Destructor
 			virtual ~FeatureMap()
 			{
-				
 			}
 			
 			//@}
@@ -113,8 +112,9 @@ namespace OpenMS
 					
 				Base::operator=(rhs);
 				RangeManagerType::operator=(rhs);
-				ExperimentalSettings::operator=(rhs);
-				
+				DocumentIdentifier::operator=(rhs);
+				protein_identifications_ = rhs.protein_identifications_;
+
 				return *this;
 			}
 	
@@ -124,8 +124,9 @@ namespace OpenMS
 				return
 					std::operator==(*this, rhs) &&
 					RangeManagerType::operator==(rhs) &&
-					ExperimentalSettings::operator==(rhs) 
-					;				
+					DocumentIdentifier::operator==(rhs) &&
+					protein_identifications_==rhs.protein_identifications_
+					;
 			}
 				
 			/// Equality operator
@@ -224,20 +225,49 @@ namespace OpenMS
 			{
 				FeatureMap tmp;
 				
-				//swap range information
+				//range information
 				tmp.RangeManagerType::operator=(*this);
 				this->RangeManagerType::operator=(from);
 				from.RangeManagerType::operator=(tmp);
 				
-				//swap experimental settings
-				tmp.ExperimentalSettings::operator=(*this);
-				this->ExperimentalSettings::operator=(from);
-				from.ExperimentalSettings::operator=(tmp);
+				//experimental settings
+				tmp.DocumentIdentifier::operator=(*this);
+				this->DocumentIdentifier::operator=(from);
+				from.DocumentIdentifier::operator=(tmp);
 				
-				//swap features
+				//protein identifications
+				tmp.setProteinIdentifications(this->getProteinIdentifications());
+				this->setProteinIdentifications(from.getProteinIdentifications());
+				from.setProteinIdentifications(tmp.getProteinIdentifications());
+				
+				//swap actual features
 				Base::swap(from);
 			}
 
+		 	const std::vector<ProteinIdentification>& getProteinIdentifications() const
+		 	{
+		  	return protein_identifications_;	   		
+		 	}	
+		 		    	
+		  std::vector<ProteinIdentification>& getProteinIdentifications()
+		  {
+		  	return protein_identifications_;	
+		  }
+
+		  void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)
+		  {
+		  	protein_identifications_ = protein_identifications;
+		  }
+		  
+		  void addProteinIdentification(ProteinIdentification& protein_identification)
+		  {
+		  	protein_identifications_.push_back(protein_identification);
+		  }
+
+		protected:
+			
+			std::vector<ProteinIdentification> protein_identifications_;
+			
 	};
 	
 	/// Print content of a feature map to a stream.

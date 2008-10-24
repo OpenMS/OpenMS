@@ -188,7 +188,6 @@ class TOPPFileConverter
 			// The feature specific information is only defaulted. Enough reasons to issue a warning!
 			writeLog_("Warning: Converting peaks to features results in incomplete features!");	
 			FeatureMapType feature_map;
-			static_cast<ExperimentalSettings>(feature_map) = exp;
 			feature_map.reserve(exp.getSize());
 			typedef FeatureMapType::FeatureType FeatureType;
 			FeatureType feature;

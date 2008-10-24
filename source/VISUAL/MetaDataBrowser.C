@@ -54,6 +54,7 @@
 #include <OpenMS/VISUAL/VISUALIZER/InstrumentSettingsVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/PeptideIdentificationVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/SpectrumSettingsVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/DocumentIdentifierVisualizer.h>
 
 #include <QtGui/QLabel>
 #include <QtGui/QStackedWidget>
@@ -295,8 +296,9 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 
-		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+		visualize_(dynamic_cast<DocumentIdentifier&>(meta), item);		
 		
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		
 		//check for Sample
 		visualize_(meta.getSample(), item);
@@ -911,6 +913,27 @@ namespace OpenMS
 		
     QStringList labels;
     labels << "Tagging" << QString::number(ws_->addWidget(visualizer));
+    
+    QTreeWidgetItem* item;
+		if(parent == 0)
+		{
+			item = new QTreeWidgetItem(treeview_, labels );
+		}
+		else
+		{
+			item = new QTreeWidgetItem(parent, labels );
+		}
+		connectVisualizer_(visualizer);
+	}
+
+	//Visualizing tagging object
+	void MetaDataBrowser::visualize_(DocumentIdentifier& meta, QTreeWidgetItem* parent)
+	{
+		DocumentIdentifierVisualizer *visualizer = new DocumentIdentifierVisualizer(isEditable(), this);  
+		visualizer->load(meta);  
+		
+    QStringList labels;
+    labels << "DocumentIdentifier" << QString::number(ws_->addWidget(visualizer));
     
     QTreeWidgetItem* item;
 		if(parent == 0)

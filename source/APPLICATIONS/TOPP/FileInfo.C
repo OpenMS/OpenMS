@@ -159,7 +159,6 @@ class TOPPFileInfo
 		MSExperiment<Peak1D> exp;
 		FeatureMap<> feat;
 		ConsensusMap cons;
-		ExperimentalSettings* exp_set;
 
 		//-------------------------------------------------------------
 		// validation
@@ -239,8 +238,6 @@ class TOPPFileInfo
 			{
 				cout << "charge " << it->first << ": " << it->second << endl;
 			}
-
-			exp_set = &feat;
 		}
 		//-------------------------------------------------------------
 		// Consensus features
@@ -270,8 +267,6 @@ class TOPPFileInfo
 							 << "   size      : " << it->second.size << endl;
 				}
 			}
-
-			exp_set = new ExperimentalSettings();
 		}
 		//-------------------------------------------------------------
 		// Peaks
@@ -344,8 +339,6 @@ class TOPPFileInfo
 				}
 			}
 			cout << endl;
-
-			exp_set = &exp;
 
 			//show meta data array names
 			for (MSExperiment<Peak1D>::iterator it = exp.begin(); it!=exp.end(); ++it)
@@ -459,45 +452,61 @@ class TOPPFileInfo
 		if (getFlag_("m"))
 		{
 			String date;
-			exp_set->getDate().get(date);
+			exp.getDate().get(date);
 			//basic info
 			cout << endl
 					 << "-- Meta information --" << endl
-					 << endl
-					 << "Experiment Type  : " << ExperimentalSettings::NamesOfExperimentType[exp_set->getType()] << endl
-					 << "Date             : " <<  date << endl;
-
-			//basic info
-			cout << endl
-					 << "Sample" << endl
-					 << "  Name             : " << exp_set->getSample().getName() << endl
-					 << "  Organism         : " << exp_set->getSample().getOrganism()  << endl
-					 << "  Comment          : " << exp_set->getSample().getComment()  << endl;
-
-			//instrument info
-			cout << endl
-					 << "Instrument" << endl
-					 << "  Name             : " << exp_set->getInstrument().getName() << endl
-					 << "  Model            : " << exp_set->getInstrument().getModel()  << endl
-					 << "  Vendor           : " << exp_set->getInstrument().getVendor()  << endl
-					 << "  Ion source       : " << IonSource::NamesOfIonizationMethod[exp_set->getInstrument().getIonSource().getIonizationMethod()]  << endl
-					 << "  Detector         : " << IonDetector::NamesOfType[exp_set->getInstrument().getIonDetector().getType()]  << endl
-					 << "  Mass Analyzer(s) : ";
-
-			for (UInt i=0; i< exp_set->getInstrument().getMassAnalyzers().size(); ++i)
+					 << endl;
+					 
+			if (in_type==FileHandler::FEATUREXML) //features
 			{
-				cout  << MassAnalyzer::NamesOfAnalyzerType[exp_set->getInstrument().getMassAnalyzers()[i].getType()] << ", ";
-			}
-			cout << endl << endl;
-
-			//contact persons
-			for (UInt i=0; i< exp_set->getContacts().size(); ++i)
-			{
-				cout << "Contact Person" << endl
-						 << "  First Name       : " << exp_set->getContacts()[i].getFirstName() << endl
-						 << "  Last Name        : " << exp_set->getContacts()[i].getLastName() << endl
-						 << "  Email            : " << exp_set->getContacts()[i].getEmail() << endl
+				cout << "Document id       : " << feat.getIdentifier() << endl
 						 << endl;
+			}
+			else if (in_type==FileHandler::CONSENSUSXML) //consensus features
+			{
+				cout << "Document id       : " << cons.getIdentifier() << endl
+						 << endl;
+			}
+			else //peaks
+			{
+				
+				cout << "Document id       : " << exp.getIdentifier() << endl
+						 << "Experiment Type   : " << ExperimentalSettings::NamesOfExperimentType[exp.getType()] << endl
+						 << "Date              : " << date << endl;
+
+				//basic info
+				cout << endl
+						 << "Sample" << endl
+						 << "  Name             : " << exp.getSample().getName() << endl
+						 << "  Organism         : " << exp.getSample().getOrganism()  << endl
+						 << "  Comment          : " << exp.getSample().getComment()  << endl;
+	
+				//instrument info
+				cout << endl
+						 << "Instrument" << endl
+						 << "  Name             : " << exp.getInstrument().getName() << endl
+						 << "  Model            : " << exp.getInstrument().getModel()  << endl
+						 << "  Vendor           : " << exp.getInstrument().getVendor()  << endl
+						 << "  Ion source       : " << IonSource::NamesOfIonizationMethod[exp.getInstrument().getIonSource().getIonizationMethod()]  << endl
+						 << "  Detector         : " << IonDetector::NamesOfType[exp.getInstrument().getIonDetector().getType()]  << endl
+						 << "  Mass Analyzer(s) : ";
+	
+				for (UInt i=0; i< exp.getInstrument().getMassAnalyzers().size(); ++i)
+				{
+					cout  << MassAnalyzer::NamesOfAnalyzerType[exp.getInstrument().getMassAnalyzers()[i].getType()] << ", ";
+				}
+				cout << endl << endl;
+	
+				//contact persons
+				for (UInt i=0; i< exp.getContacts().size(); ++i)
+				{
+					cout << "Contact Person" << endl
+							 << "  First Name       : " << exp.getContacts()[i].getFirstName() << endl
+							 << "  Last Name        : " << exp.getContacts()[i].getLastName() << endl
+							 << "  Email            : " << exp.getContacts()[i].getEmail() << endl
+							 << endl;
+				}
 			}
 		}
 

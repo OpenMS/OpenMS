@@ -314,19 +314,19 @@ FeatureFinder_test: make_fuzzydiff
 
 	@$(ECHO) "- Test 1: raw data with algorithm 'simple'"
 	@$(call RUN_PROG_OPT,FeatureFinder, -ini FeatureFinder_1_parameters.ini -in FeatureFinder_1_input.mzData -out FeatureFinder_1_output.tmp)
-	@$(call TEST_FILE_EQUAL,FeatureFinder_1_output.xml)
+	@$(call TEST_FILE_EQUAL,FeatureFinder_1_output.featureXML)
 
 	@$(ECHO) "- Test 2: raw data with algorithm 'simplest'"
 	@$(call RUN_PROG_OPT,FeatureFinder, -ini FeatureFinder_2_parameters.ini -in FeatureFinder_1_input.mzData -out FeatureFinder_2_output.tmp)
-	@$(call TEST_FILE_EQUAL,FeatureFinder_2_output.xml)
+	@$(call TEST_FILE_EQUAL,FeatureFinder_2_output.featureXML)
 
 	@$(ECHO) "- Test 3: raw data with algorithm 'isotope_wavelet'"
 	@$(call RUN_PROG_OPT,FeatureFinder, -ini FeatureFinder_3_parameters.ini -in FeatureFinder_1_input.mzData -out FeatureFinder_3_output.tmp)
-	@$(call TEST_FILE_EQUAL,FeatureFinder_3_output.xml)
+	@$(call TEST_FILE_EQUAL,FeatureFinder_3_output.featureXML)
 
 	@$(ECHO) "- Test 4: peak data with algorithm 'picked_peak'"
 	@$(call RUN_PROG_OPT,FeatureFinder, -ini FeatureFinder_4_parameters.ini -in FeatureFinder_4_input.mzData -out FeatureFinder_4_output.tmp)
-	@$(call TEST_FILE_EQUAL,FeatureFinder_4_output.xml)
+	@$(call TEST_FILE_EQUAL,FeatureFinder_4_output.featureXML)
 
 FileConverter_test: make_fuzzydiff
 	@$(ECHO) ""
@@ -436,8 +436,8 @@ FileInfo_test: make_fuzzydiff
 	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_6_input.mzData -d -s -no_progress > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_6_output.txt)
 
-	@$(ECHO) "- Test 7: ConsensusXML file test (with statistics)"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_7_input.consensusXML -s -no_progress > FileInfo.tmp)
+	@$(ECHO) "- Test 7: ConsensusXML file test (with meta info and statistics)"
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_7_input.consensusXML -s -m -no_progress > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_7_output.txt)
 
 ifeq ($(ANDIMS_SUPPORT),true)

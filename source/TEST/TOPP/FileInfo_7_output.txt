@@ -19,6 +19,10 @@ File descriptions
    label     : heavy
    size      : 16
 
+-- Meta information --
+
+Document id      : cons
+
 -- Statistics --
 
 Intensities of consensus features:

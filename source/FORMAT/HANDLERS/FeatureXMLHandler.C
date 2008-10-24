@@ -45,20 +45,9 @@ namespace OpenMS
 			static const XMLCh* s_id = xercesc::XMLString::transcode("id");
 
 			String tag = sm_.convert(qname);
+			String previous_tag;
+			if (open_tags_.size()!=0) previous_tag = open_tags_.back();
 			open_tags_.push_back(tag);
-
-			// collect Experimental Settings
-			if (in_description_)
-			{
-				exp_sett_ << '<' << sm_.convert(qname);
-				UInt n=attributes.getLength();
-				for (UInt i=0; i<n; ++i)
-				{
-					exp_sett_ << ' ' << sm_.convert(attributes.getQName(i)) << "=\""	<< sm_.convert(attributes.getValue(i)) << '\"';
-				}
-				exp_sett_ << '>';
-				return;
-			}
 
 			if (tag=="feature")
 			{
@@ -68,11 +57,6 @@ namespace OpenMS
 			else if (tag=="subordinate")
 			{ // this is not safe towards malformed xml!
 				++subordinate_feature_level_;
-			}
-			else if (tag=="description")
-			{
-				exp_sett_ << "<description>";
-				in_description_ = true;
 			}
 			else if (tag=="featureList")
 			{
@@ -102,7 +86,7 @@ namespace OpenMS
 				String value = attributeAsString_(attributes,s_value);
 				if (name != "" && value != "") param_.setValue(name, value);
 			}
-			else if (tag == "userParam")
+			else if (tag == "userParam" && previous_tag=="feature")
 			{
 				const XMLCh* value = attributes.getValue(s_value);
 				const XMLCh* type = attributes.getValue(s_type);
@@ -145,44 +129,15 @@ namespace OpenMS
 
 		void FeatureXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 		{
-			static const XMLCh* s_description = xercesc::XMLString::transcode("description");
 			static const XMLCh* s_feature = xercesc::XMLString::transcode("feature");
 			static const XMLCh* s_model = xercesc::XMLString::transcode("model");
 			static const XMLCh* s_hullpoint = xercesc::XMLString::transcode("hullpoint");
 			static const XMLCh* s_convexhull = xercesc::XMLString::transcode("convexhull");
 			static const XMLCh* s_subordinate = xercesc::XMLString::transcode("subordinate");
-			// std::cout << "end tag: '" << sm_.convert(qname) <<"' - '"<< sm_.convert(s_description) << "'" << std::endl;
 
 			open_tags_.pop_back();
 
-			// collect Experimental Settings
-			if (in_description_)
-			{
-				exp_sett_ << "</" << sm_.convert(qname) << ">\n";
-				if (!equal_(qname,s_description)) return;
-			}
-
-			if (equal_(qname,s_description))
-			{
-				in_description_ = false;
-				// call MzDataExpSett parser
-				xercesc::XMLPlatformUtils::Initialize();
-				xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
-				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces,false);
-				parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes,false);
-
-				MzDataExpSettHandler handler( *((ExperimentalSettings*)map_),file_);
-				handler.resetErrors();
-				parser->setContentHandler(&handler);
-				parser->setErrorHandler(&handler);
-
-				String tmp(exp_sett_.str().c_str());
-
-				xercesc::MemBufInputSource source((const XMLByte*)(tmp.c_str()), tmp.size(), "dummy");
-				parser->parse(source);
-				delete(parser);
-			}
-			else if (equal_(qname,s_feature))
+			if (equal_(qname,s_feature))
 			{
 				if ((!options_.hasRTRange() || options_.getRTRange().encloses(current_feature_->getRT()))
 						&&	(!options_.hasMZRange() || options_.getMZRange().encloses(current_feature_->getMZ()))
@@ -244,12 +199,6 @@ namespace OpenMS
 		void FeatureXMLHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
 		{
 			// std::cout << "characters: "	 << sm_.convert(chars) << std::endl;
-			// collect Experimental Settings
-			if (in_description_)
-			{
-				exp_sett_ << sm_.convert(chars);
-				return;
-			}
 
 			String& current_tag = open_tags_.back();
 			if (current_tag == "intensity")
@@ -290,11 +239,6 @@ namespace OpenMS
 				os << " id=\"" << cmap_->getIdentifier() << "\"";
 			}
 			os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
-
-			// delegate control to ExperimentalSettings handler
-			Internal::MzDataExpSettHandler handler(*((const ExperimentalSettings*)cmap_),"");
-			handler.writeTo(os);
-
 			os << "\t<featureList count=\"" << cmap_->size() << "\">\n";
 
 			// write features with their corresponding attributes
@@ -392,7 +336,7 @@ namespace OpenMS
 			os << indent << "\t\t</feature>\n";
 		}
 
-		void FeatureXMLHandler::updateCurrentFeature_(const bool create)
+		void FeatureXMLHandler::updateCurrentFeature_(bool create)
 		{
 			if (subordinate_feature_level_==0)
 			{

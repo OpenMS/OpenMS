@@ -82,7 +82,6 @@ CHECK(virtual void run())
 	FeatureFinder ff;
 	FFAW ffaw;
 	ffaw.setParameters(param);
-	UInt test_number = 0;
 	
 	//--------------------------------------------------------------------
 	//TEST WITH FLAT MAP

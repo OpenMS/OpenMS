@@ -71,6 +71,7 @@ namespace OpenMS
 	class SourceFile;
 	class SpectrumSettings;
 	class Tagging;
+	class DocumentIdentifier;
 	
 	/**
 		@brief A meta data visualization widget
@@ -153,6 +154,7 @@ namespace OpenMS
 			void visualize_(Precursor& meta, QTreeWidgetItem* parent=0);
 			void visualize_(InstrumentSettings& meta, QTreeWidgetItem* parent=0);
 			void visualize_(PeptideIdentification& meta, QTreeWidgetItem* parent=0);
+			void visualize_(DocumentIdentifier& meta, QTreeWidgetItem* parent=0);
 			//@}
 			
 			/// Connects the Signals of all visualier classes with Slot setStatus()
