@@ -77,7 +77,7 @@ namespace OpenMS
 			*/
 			//@{
 			/// performs a training step; needs as parameters a spectrum with annotated sequence and charge
-			void train(const RichPeakSpectrum&, const AASequence& peptide, UInt charge);
+			void train(const RichPeakSpectrum&, const AASequence& peptide, double ion_weight, UInt charge);
 
 			/** reads the model parameters from the given files
 			    @param filename filename of the model
@@ -85,11 +85,12 @@ namespace OpenMS
 			//void readFromFile(const String& filename);
 
 			/// 
-			void getPrecursorIons(std::vector<RichPeak1D>& peaks, const AASequence& peptide, UInt charge, double initial_prob);
+			void getIons(std::vector<RichPeak1D>& peaks, const AASequence& peptide, double initial_prob);
 
 			///
 			void setHMM(const HiddenMarkovModel& model);
 			/// writes the HMM to the given file in the GraphML format. A detailed description of the GraphML format can be found under http://graphml.graphdrawing.org/
+			const HiddenMarkovModel& getHMM() const;
 			//void writeGraphMLFile(const String& filename);
 
 			/** writes the model parameters into the given files
@@ -106,19 +107,22 @@ namespace OpenMS
 		protected:
 
 			/// extracts the precursor and related intensities of a training spectrum
-			void getPrecursorIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, Map<String, double>& pre_ints, double peptide_weight, const AASequence& peptide, UInt charge);
+			void getIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, Map<String, double>& pre_ints, double ion_weight, const AASequence& peptide, UInt charge);
 
 			/// trains precursor and related peaks
-			void trainPrecursorIons_(double initial_probability, const Map<String, double>& intensities, const AASequence& peptide);
+			void trainIons_(double initial_probability, const Map<String, double>& intensities, const AASequence& peptide);
 			
 			/// estimates the precursor intensities 
-			void getPrecursorIons_(Map<String, double>& intensities, double initial_probability, const AASequence& precursor);
+			void getIons_(Map<String, double>& intensities, double initial_probability, const AASequence& precursor);
 
 			/// enables the states needed for precursor training/simulation
-			void enablePrecursorIonStates_(const AASequence& peptide);
+			void enableIonStates_(const AASequence& peptide);
 
 			/// precursor model used
 			HiddenMarkovModel hmm_precursor_;
+
+			/// 
+			UInt num_explicit_;
 
 			void updateMembers_();
 	};

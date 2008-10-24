@@ -26,7 +26,7 @@
 
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
 //#include <OpenMS/ANALYSIS/ID/PILISNeutralLossModel.h>
-//#include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
+#include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
 
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -76,7 +76,7 @@ namespace OpenMS
 		defaults_.setValue("model_depth", 4, "The number of explicitly modeled backbone cleavages from N-terminus and C-terminus, would be 9 for the default value");
 		defaults_.setValue("visible_model_depth", 30, "The maximal possible size of a peptide to be modeled");
 		defaults_.setValue("precursor_mass_tolerance", 3.0, "Mass tolerance of the precursor peak, used to identify the precursor peak and its loss peaks for training");
-		defaults_.setValue("peak_mass_tolerance", 0.3, "Peak mass tolerance of the product ions, used to identify the ions for training");
+		defaults_.setValue("fragment_mass_tolerance", 0.3, "Peak mass tolerance of the product ions, used to identify the ions for training");
 		defaults_.setValue("variable_modifications", StringList::create("MOD:00719,MOD:09997"), "Modifications which should be included in the model, represented by PSI-MOD accessions.");
 		defaults_.setValue("fixed_modifications", StringList::create(""), "Modifications which should replace the unmodified amino acid, represented by PSI-MOD accessions.");
 						
@@ -106,7 +106,9 @@ namespace OpenMS
 			peaks_(model.peaks_),
 			spectra_aligner_(model.spectra_aligner_),
 			precursor_model_cr_(model.precursor_model_cr_),
-			precursor_model_cd_(model.precursor_model_cd_)
+			precursor_model_cd_(model.precursor_model_cd_),
+			b_ion_losses_(model.b_ion_losses_),
+			y_ion_losses_(model.y_ion_losses_)
 	{
 	}
 
@@ -123,6 +125,8 @@ namespace OpenMS
 			spectra_aligner_ = model.spectra_aligner_;
 			precursor_model_cr_ = model.precursor_model_cr_;
 			precursor_model_cd_ = model.precursor_model_cd_;
+			b_ion_losses_ = model.b_ion_losses_;
+			y_ion_losses_ = model.y_ion_losses_;
 		}
 		return *this;
 	}
@@ -132,15 +136,8 @@ namespace OpenMS
 		hmm_ = model;
 	}
 
-	/*
-	void PILISModel::setPrecursorHMM(const HiddenMarkovModel& model)
-	{
-		precursor_model_.setHMM(model);
-	}*/
-
 	void PILISModel::init()
 	{
-					/*
 		PILISModelGenerator gen;
 		Param gen_param(gen.getParameters());
 		gen_param.setValue("variable_modifications", (StringList)param_.getValue("variable_modifications"));
@@ -149,17 +146,31 @@ namespace OpenMS
 		gen_param.setValue("visible_model_depth", (UInt)param_.getValue("visible_model_depth"));
 		gen.setParameters(gen_param);
 		gen.getModel(hmm_);
-		*/
 
-		cerr << "Generate precursor model" << endl;
-		//HiddenMarkovModel hmm;
-		//gen.getPrecursorModel(hmm);
 
+		Param pre_param(precursor_model_cr_.getParameters());
+		pre_param.setValue("fragment_mass_tolerance", (double)param_.getValue("fragment_mass_tolerance"));
+		pre_param.setValue("variable_modifications", (StringList)param_.getValue("variable_modifications"));
+		pre_param.setValue("fixed_modifications", (StringList)param_.getValue("fixed_modifications"));
+		pre_param.setValue("pseudo_counts", (double)param_.getValue("pseudo_counts"));
+		pre_param.setValue("C_term_H2O_loss", "true");
+		pre_param.setValue("ion_name", "p");
+		precursor_model_cr_.setParameters(pre_param);
+		precursor_model_cd_.setParameters(pre_param);
+		
 		precursor_model_cr_.generateModel();
 		precursor_model_cd_.generateModel();
 		
-		//b_ion_losses_.generateModel();
-		//y_ion_losses_.generateModel();
+
+		pre_param.setValue("C_term_H2O_loss", "false");
+		pre_param.setValue("ion_name", "b");
+		b_ion_losses_.setParameters(pre_param);
+		b_ion_losses_.generateModel();
+
+		pre_param.setValue("C_term_H2O_loss", "true");
+		pre_param.setValue("ion_name", "y");
+		y_ion_losses_.setParameters(pre_param);
+		y_ion_losses_.generateModel();
 
 		valid_ = true;
 	}
@@ -186,26 +197,39 @@ namespace OpenMS
 		it_end = file.search(it_begin, "BASE_MODEL_END");
 		parseHMMModel_(++it_begin, it_end, hmm_);
 
-/*
 		// seek to next interval
-		it_begin = file.search(it_end, "PRECURSOR_MODEL_BEGIN");
-		it_end = file.search(it_begin, "PRECURSOR_MODEL_END");
-		parseHMMModel_(++it_begin, it_end, hmm_pre_loss_);
+		it_begin = file.search(it_end, "PRECURSOR_MODEL_CR_BEGIN");
+		it_end = file.search(it_begin, "PRECURSOR_MODEL_CR_END");
+		HiddenMarkovModel precursor_model_cr_hmm;
+		parseHMMModel_(++it_begin, it_end, precursor_model_cr_hmm);
+		precursor_model_cr_.setHMM(precursor_model_cr_hmm);
 
+    it_begin = file.search(it_end, "PRECURSOR_MODEL_CD_BEGIN");
+    it_end = file.search(it_begin, "PRECURSOR_MODEL_CD_END");
+		HiddenMarkovModel precursor_model_cd_hmm;
+    parseHMMModel_(++it_begin, it_end, precursor_model_cd_hmm);
+		precursor_model_cd_.setHMM(precursor_model_cd_hmm);
+		
 		// loss models
 		it_begin = file.search(it_end, "BION_LOSS_MODEL_BEGIN");
 		it_end = file.search(it_begin, "BION_LOSS_MODEL_END");
-		parseHMMLightModel_(++it_begin, it_end, hmms_losses_[BIon]);
-	
+		HiddenMarkovModel b_ion_loss_hmm;
+		parseHMMModel_(++it_begin, it_end, b_ion_loss_hmm);
+		b_ion_losses_.setHMM(b_ion_loss_hmm);
+
+		/*
 		it_begin = file.search(it_end, "B2ION_LOSS_MODEL_BEGIN");
 		it_end = file.search(it_begin, "B2ION_LOSS_MODEL_END");
 		parseHMMLightModel_(++it_begin, it_end, hmms_losses_[B2Ion]);
+		*/
 		
 		// y-ion loss model
 		it_begin = file.search(it_end, "YION_LOSS_MODEL_BEGIN");
 		it_end = file.search(it_begin, "YION_LOSS_MODEL_END");
-		parseHMMLightModel_(++it_begin, it_end, hmms_losses_[YIon]);
-*/
+		HiddenMarkovModel y_ion_loss_hmm;
+		parseHMMModel_(++it_begin, it_end, y_ion_loss_hmm);
+		y_ion_losses_.setHMM(y_ion_loss_hmm);
+
 		valid_ = true;
 		return;
 	}
@@ -228,23 +252,28 @@ namespace OpenMS
 		hmm_.write(out);
 		out << "BASE_MODEL_END" << endl;
 
-		/*
-		out << "PRECURSOR_MODEL_BEGIN" << endl;
-		hmm_pre_loss_.write(out);
-		out << "PRECURSOR_MODEL_END" << endl;
+		out << "PRECURSOR_MODEL_CR_BEGIN" << endl;
+		precursor_model_cr_.getHMM().write(out);
+		out << "PRECURSOR_MODEL_CR_END" << endl;
+		
+		out << "PRECURSOR_MODEL_CD_BEGIN" << endl;
+		precursor_model_cd_.getHMM().write(out);
+		out << "PRECURSOR_MODEL_CD_END" << endl;
 
 		out << "BION_LOSS_MODEL_BEGIN" << endl;
-		hmms_losses_[BIon].write(out);
+		b_ion_losses_.getHMM().write(out);
 		out << "BION_LOSS_MODEL_END" << endl;
 
+		/*
 		out << "B2ION_LOSS_MODEL_BEGIN" << endl;
 		hmms_losses_[B2Ion].write(out);
 		out << "B2ION_LOSS_MODEL_END" << endl;
+		*/
 		
 		out << "YION_LOSS_MODEL_BEGIN" << endl;
-		hmms_losses_[YIon].write(out);
+		y_ion_losses_.getHMM().write(out);
 		out << "YION_LOSS_MODEL_END" << endl;
-	*/	
+	
 		return;
 	}
 
@@ -271,9 +300,6 @@ namespace OpenMS
 		#endif
 		//double peptide_weight((peptide.getMonoWeight() + double(charge)) / double(charge));
 		
-		//Map<String, double> pre_ints;
-		//getPrecursorIntensitiesFromSpectrum_(train_spec, pre_ints, peptide_weight, charge);
-
 		// get the ions intensities, y and b ions and losses H2O, NH3 respectively
 		IonPeaks_ ints_1, ints_2;
 		double sum1 = getIntensitiesFromSpectrum_(train_spec, ints_1, peptide, 1);
@@ -626,127 +652,34 @@ namespace OpenMS
 				hmm_.enableTransition(aa2+"_R"+pos_name, "end"+pos_name);
       } 
 
-			/*
-			// losses
-			double y_loss_sum_1 = ints_1.ints[YIon][suffix_pos - 1] + ints_1.ints[YIon_H2O][suffix_pos - 1] + ints_1.ints[YIon_NH3][suffix_pos - 1];
-			if (y_loss_sum_1 > 0.0)
-			{
-				Map<String, double> y_intensities;
-				y_intensities[LOSS_TYPE_H2O] = ints_1.ints[YIon_H2O][suffix_pos - 1];
-				y_intensities[LOSS_TYPE_NH3] = ints_1.ints[YIon_NH3][suffix_pos - 1];
-				double ion_intensity = ints_1.ints[YIon][suffix_pos - 1];
-				trainNeutralLossesFromIon_(y_sum1, y_intensities, YIon, ion_intensity, suffix);
-				//cerr << "YLOSS: " << suffix << " " << y_sum1 << " " << y_intensities[LOSS_TYPE_H2O] << " " << y_intensities[LOSS_TYPE_NH3] << " " << ion_intensity << endl;
+			double pre_weight = prefix.getMonoWeight(Residue::BIon) + 1.0;
+			b_ion_losses_.train(in_spec, prefix, pre_weight, 1);
 
-				//cerr << "YLOSS: " << prefix << " " << suffix << " " << 1 << " " << y_sum1 << " y-H2O " << y_intensities[LOSS_TYPE_H2O] << " y-NH3 " << y_intensities[LOSS_TYPE_NH3] << " y " << ion_intensity << endl;
-			}
-		
-			double y_loss_sum_2(0);
-			if (charge > 1)
-			{
-				y_loss_sum_2 = ints_2.ints[YIon][suffix_pos - 1] + ints_2.ints[YIon_H2O][suffix_pos - 1] + ints_2.ints[YIon_NH3][suffix_pos - 1];
-			}
-			if (charge > 1 && y_loss_sum_2 > 0.0)
-			{
-				Map<String, double> y_intensities;
-				y_intensities[LOSS_TYPE_H2O] = ints_2.ints[YIon_H2O][suffix_pos - 1];
-				y_intensities[LOSS_TYPE_NH3] = ints_2.ints[YIon_NH3][suffix_pos - 1];
-				double ion_intensity = ints_2.ints[YIon][suffix_pos - 1];
-
-				trainNeutralLossesFromIon_(y_sum2, y_intensities, YIon, ion_intensity, suffix);
-
-				//cerr << "YLOSS: " << prefix << " " << suffix << " " << 2 << " " << y_sum2 << " y-H2O " << y_intensities[LOSS_TYPE_H2O] << " y-NH3 " << y_intensities[LOSS_TYPE_NH3] << " y " << ion_intensity << endl;
-			}
-			
-
-			double b_loss_sum_1 = ints_1.ints[BIon][i] + ints_1.ints[BIon_H2O][i] + ints_1.ints[BIon_NH3][i] + ints_1.ints[AIon][i];
-			if (b_loss_sum_1 > 0.0)
-			{
-      	Map<String, double> b_intensities;
-      	b_intensities[LOSS_TYPE_H2O] = ints_1.ints[BIon_H2O][i];
-      	b_intensities[LOSS_TYPE_NH3] = ints_1.ints[BIon_NH3][i];
-				b_intensities[LOSS_TYPE_CO] = ints_1.ints[AIon][i];
-      	double ion_intensity = ints_1.ints[BIon][i];
-				if (prefix.size() == 2)
-				{
-					trainNeutralLossesFromIon_(b_sum1, b_intensities, B2Ion, ion_intensity, prefix);
-				}
-				else
-				{
-					trainNeutralLossesFromIon_(b_sum1, b_intensities, BIon, ion_intensity, prefix);	
-				}
-
-				//cerr << "BLOSS: " << prefix << " " << suffix << " " << 1 << " " << b_sum1 << " b-H2O " << b_intensities[LOSS_TYPE_H2O] << " b-NH3 " << b_intensities[LOSS_TYPE_NH3] << " b-CO " << b_intensities[LOSS_TYPE_CO] << " b " << ion_intensity << endl;
-			}
-
-			double b_loss_sum_2(0);
-			if (charge > 1)
-			{
-				b_loss_sum_2 = ints_2.ints[BIon][i] + ints_2.ints[BIon_H2O][i] + ints_2.ints[BIon_NH3][i] + ints_2.ints[AIon][i];
-			}
-			if (charge > 1 && b_loss_sum_2 > 0.0)
-			{
-				Map<String, double> b_intensities;
-				b_intensities[LOSS_TYPE_H2O] = ints_2.ints[BIon_H2O][i];
-				b_intensities[LOSS_TYPE_NH3] = ints_2.ints[BIon_NH3][i];
-				b_intensities[LOSS_TYPE_CO] = ints_2.ints[AIon][i];
-				double ion_intensity = ints_2.ints[BIon][i];
-				//cerr << "BLOSS: " << prefix << " " << suffix << " " << 2 << " " << b_sum2 << " b-H2O " << b_intensities[LOSS_TYPE_H2O] << " b-NH3 " << b_intensities[LOSS_TYPE_NH3] << " b-CO " << b_intensities[LOSS_TYPE_CO] << " b " << ion_intensity << endl;
-				if (prefix.size() == 2)
-				{
-					trainNeutralLossesFromIon_(b_sum2, b_intensities, B2Ion, ion_intensity, prefix);
-				}
-				else
-				{
-					trainNeutralLossesFromIon_(b_sum2, b_intensities, BIon, ion_intensity, prefix);
-				}
-			}
-*/
+			double suf_weight = suffix.getMonoWeight(Residue::YIon) + 1.0;
+			y_ion_losses_.train(in_spec, suffix, suf_weight, 1);
 		}
 
-		//cerr << "PrecursorStats: " << pre_int1 << " " << pre_int2 << " " << pre_int_H2O_1 << " " << pre_int_H2O_2 << " " << pre_int_NH3_1 << " " << pre_int_NH3_2 << endl;
-
-		// precursor handling
-		/*
-		double pre_sum(0);
 		
-		for (Map<String, double>::ConstIterator it = pre_ints.begin(); it != pre_ints.end(); ++it)
-		{
-			pre_sum += it->second;
-		}*/
 		
-		/*
-		if (peptide[0].getOneLetterCode() == "Q" && pre_ints.pre_H2O > 0.05)
-		{
-			trainPrecursorIons_(1, pre_ints, peptide);
-		}*/
-
-
-		//if (is_charge_remote && charge < 3/* && pre_sum > 0.05*/)
-		//{
 		if (is_charge_remote)
 		{
-			precursor_model_cr_.train(in_spec, peptide, charge);
+			double peptide_weight((peptide.getMonoWeight() + charge) / (double)charge);
+			precursor_model_cr_.train(in_spec, peptide, peptide_weight, charge);
 		}
 		else
 		{
-			precursor_model_cd_.train(in_spec, peptide, charge);
+			double peptide_weight((peptide.getMonoWeight() + charge) / (double)charge);
+			precursor_model_cd_.train(in_spec, peptide, peptide_weight, charge);
 		}
-		//	precursor_model_.train(in_spec, peptide, charge);
-		//}
 
 		// now train the model with the data set
 		hmm_.train();
-
-		//stringstream ss;
-		//ss << peptide;
-		//hmm_.writetoYGFFile(String("stats/model_graph_train_"+ss.str()+"_"+String(charge)+".graphml").c_str());
-
 		hmm_.disableTransitions();
 
 		return;
 	}
 
+	// TODO Code cleanup, only b, y and a ions are needed
 	double PILISModel::getIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, IonPeaks_& ion_ints, const AASequence& peptide, UInt z)
 	{
 		double sum(0);
@@ -833,106 +766,19 @@ namespace OpenMS
 		return sum;
 	}
 	
-	void PILISModel::trainNeutralLossesFromIon_(double /*initial_probability*/, 
-																								const Map<String, double>& /*ints*/, 
-																								IonType_ /*ion_type*/, 
-																								double /*ion_intensity*/, 
-																								const AASequence& /*ion*/)
-	{
-		//Map<String, double> intensities = ints;
-		//cerr << "LOSS: " << initial_probability << " " << intensities[LOSS_TYPE_H2O] << " " << intensities[LOSS_TYPE_NH3] << " " << ion_intensity << " " << ion << endl;
-		// b-ions loss
-		/*
-		HiddenMarkovModelLight* hmm = &hmms_losses_[ion_type];
-		hmm->clearInitialTransitionProbabilities();
-		hmm->clearTrainingEmissionProbabilities();
-		if (ion_type == BIon || ion_type == B2Ion)
-		{
-			// normalize to sum = 1
-			double sum = ion_intensity + intensities[LOSS_TYPE_H2O] + intensities[LOSS_TYPE_NH3] + intensities[LOSS_TYPE_CO];
-			intensities[LOSS_TYPE_H2O] /= sum;
-			intensities[LOSS_TYPE_NH3] /= sum;
-			intensities[LOSS_TYPE_CO] /= sum;
-			ion_intensity /= sum;	
-			
-			hmm->setInitialTransitionProbability(B_ION, initial_probability);
-
-			// H2O loss
-			if (intensities.has(LOSS_TYPE_H2O))
-			{
-				hmm->setTrainingEmissionProbability(B_H2O, intensities[LOSS_TYPE_H2O]);
-			}
-			
-			// NH3 loss
-			if (intensities.has(LOSS_TYPE_NH3))
-			{
-				hmm->setTrainingEmissionProbability(B_NH3, intensities[LOSS_TYPE_NH3]);
-			}
-
-			// a-ions (CO loss)
-			if (intensities.has(LOSS_TYPE_CO))
-			{
-				hmm->setTrainingEmissionProbability(A_ION, intensities[LOSS_TYPE_CO]);
-			}
-			// end state
-			hmm->setTrainingEmissionProbability(B_LOSS_END, ion_intensity);
-			enableNeutralLossStates_(ion_type, ion);
-
-			hmm->train();
-			hmm->disableTransitions();
-
-			return;
-		}
-
-		if (ion_type == YIon)
-		{
-			double sum = ion_intensity + intensities[LOSS_TYPE_H2O] + intensities[LOSS_TYPE_NH3];
-      intensities[LOSS_TYPE_H2O] /= sum;
-      intensities[LOSS_TYPE_NH3] /= sum;
-      ion_intensity /= sum;
-
-			hmm->setInitialTransitionProbability(Y_ION, initial_probability);
-      if (intensities.has(LOSS_TYPE_H2O))
-      {
-        hmm->setTrainingEmissionProbability(Y_H2O, intensities[LOSS_TYPE_H2O]);
-      }
-
-      if (intensities.has(LOSS_TYPE_NH3))
-      {
-        hmm->setTrainingEmissionProbability(Y_NH3, intensities[LOSS_TYPE_NH3]);
-      }
-      hmm->setTrainingEmissionProbability(Y_LOSS_END, ion_intensity);
-
-			enableNeutralLossStates_(ion_type, ion);
-
-			hmm->train();
-			hmm->disableTransitions();
-			
-      return;
-		}
-*/
-		return;
-	}
-
-
-  void PILISModel::enableNeutralLossStates_(IonType_ /*ion_type*/, const AASequence& /*ion*/)
-	{
-		return;
-	}
-	
-
 	void PILISModel::evaluate()
 	{
 		hmm_.evaluate();
 		precursor_model_cr_.evaluate();
 		precursor_model_cd_.evaluate();
-		//hmm_.estimateUntrainedTransitions(); // TODO
+		b_ion_losses_.evaluate();
+		y_ion_losses_.evaluate();
+
+		hmm_.estimateUntrainedTransitions(); // TODO reimplement in HiddenMarkovModel
 	}
 
 	void PILISModel::getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, UInt charge)
 	{
-		//cerr << "==============================================================================" << endl;
-		//cerr << peptide << " " << charge << endl;
 		if (!valid_)
 		{
 			cerr << "PILISModel: cannot simulate, initialize model from file first, e.g. data/PILIS/PILIS_model_default.dat" << endl;
@@ -1272,17 +1118,6 @@ namespace OpenMS
 			prefix_sum = prefix_int1 + prefix_int2;
 			//cerr << "prefix loss ints, "<< prefix_names1[i] << " "  << prefix_int1 << " " << prefix_int2 << endl;
 			prefix_ints2.push_back(prefix_int2);
-			/*
-			if (prefixes[i].size() == 2)
-			{
-				getNeutralLossesFromIon_(prefix_loss, prefix_int1 + prefix_int2, B2Ion, prefixes[i]);
-			}
-			else
-			{
-				getNeutralLossesFromIon_(prefix_loss, prefix_int1 + prefix_int2, BIon, prefixes[i]);
-			}
-			prefix_losses.push_back(prefix_loss);
-			*/
 
 			Map<String, double> suffix_loss;
 			double suffix_int1 = tmp[hmm_.getState(suffix_names1[i])];
@@ -1291,11 +1126,6 @@ namespace OpenMS
 			suffix_sum = suffix_int1 + suffix_int2;
 			suffix_ints2.push_back(suffix_int2);
 			//cerr << "suffix loss ints, " << suffix_names1[i] << " "  << suffix_int1 << " " <<  suffix_int2 << endl;
-
-			/*
-			getNeutralLossesFromIon_(suffix_loss, suffix_int1 + suffix_int2, YIon, suffixes[i]);
-			suffix_losses.push_back(suffix_loss);
-			*/
 		}
 
 		//cerr << "PREFIX_SUM=" << prefix_sum << ", SUFFIX_SUM=" << suffix_sum << endl;
@@ -1316,146 +1146,133 @@ namespace OpenMS
 			double weight = prefixes[i].getMonoWeight(Residue::BIon);
 			id.estimateFromPeptideWeight(weight);
 			
-			//cerr << weight + 1.0 << " " << prefix_ints1[i] << " " << id[0].first << " ";
-			//for (vector<pair<UInt, double> >::const_iterator it = id.begin(); it != id.end(); ++it)
-			//{
-			//	cerr << "(" << it->first << "|" << it->second << ") ";
-			//}
-			//cerr << endl;
-			
 			// first isotope peak
-			addPeaks_(weight, 1, 0.0, prefix_ints1[i], spec, id, "b"+String(i+1) + "+");
-			if (charge >= 2)
-			{
-				addPeaks_(weight, 2, 0.0, prefix_ints2[i], spec, id, "b"+String(i+1) + "++");
+			//addPeaks_(weight, 1, 0.0, prefix_ints1[i], spec, id, "b"+String(i+1) + "+");
 
-				// neutral losses
-				// get fractions as the different charge states are treated together 
-				//double loss_1_fraction = prefix_ints1[i] / (prefix_ints1[i] + prefix_ints2[i]);
-				//double loss_2_fraction = prefix_ints2[i] / (prefix_ints1[i] + prefix_ints2[i]);
+      vector<RichPeak1D> b_loss_peaks;
+      b_ion_losses_.getIons(b_loss_peaks, prefixes[i], prefix_ints1[i]);
+      for (vector<RichPeak1D>::const_iterator it = b_loss_peaks.begin(); it != b_loss_peaks.end(); ++it)
+      {
+				String b_ion_name = it->getMetaValue("IonName");
+				vector<String> split;
+				b_ion_name.split('-', split);
+				if (split.size() == 0)
+				{
+					b_ion_name += String(i + 1);
+				}
+				else
+				{
+					b_ion_name = split[0] + String(i + 1) + "-";
+					for (UInt j = 1; j != split.size(); ++j)
+					{
+						b_ion_name += split[j];
+					}
+				}
+				b_ion_name += "+";
+        addPeaks_(weight, 1, it->getMZ(), it->getIntensity(), spec, id, b_ion_name);
+      }
+
+			if (charge > 1)
+			{
+				b_loss_peaks.clear();
+				b_ion_losses_.getIons(b_loss_peaks, prefixes[i], prefix_ints2[i]);
+      	for (vector<RichPeak1D>::const_iterator it = b_loss_peaks.begin(); it != b_loss_peaks.end(); ++it)
+      	{
+        	String b_ion_name = it->getMetaValue("IonName");
+        	vector<String> split;
+        	b_ion_name.split('-', split);
+        	if (split.size() == 0)
+        	{
+          	b_ion_name += String(i + 1);
+        	}
+        	else
+       	 	{
+          	b_ion_name = split[0] + String(i + 1) + "-";
+          	for (UInt j = 1; j != split.size(); ++j)
+          	{
+            	b_ion_name += split[j];
+          	}
+        	}
+					b_ion_name += "++";
+        	addPeaks_(weight, 2, it->getMZ(), it->getIntensity(), spec, id, b_ion_name);
+      	}
+			}
 		
-				/*
-				if (prefix_losses[i].has(LOSS_TYPE_H2O))
-				{
-					addPeaks_(weight, 1, -18.0, prefix_losses[i][LOSS_TYPE_H2O] * loss_1_fraction, spec, id, "b" + String(i+1) + "-H2O+");
-
-          // doubly charged
-					addPeaks_(weight, 2, -18.0, prefix_losses[i][LOSS_TYPE_H2O] * loss_2_fraction, spec, id, "b" + String(i+1) + "-H2O++");
-				}
-				if (prefix_losses[i].has(LOSS_TYPE_NH3))
-				{
-					addPeaks_(weight, 1, -17.0, prefix_losses[i][LOSS_TYPE_NH3] * loss_1_fraction, spec, id, "b" + String(i+1) + "-NH3+");
-          // doubly charged
-					addPeaks_(weight, 2, -17.0, prefix_losses[i][LOSS_TYPE_NH3] * loss_2_fraction, spec, id, "b" + String(i+1) + "-NH3++");
-				}
-
-				if (prefix_losses[i].has(LOSS_TYPE_CO))
-				{
-					addPeaks_(weight, 1, -28.0, prefix_losses[i][LOSS_TYPE_CO] * loss_1_fraction, spec, id, "a" + String(i+1) + "+");
-					addPeaks_(weight, 2, -28.0, prefix_losses[i][LOSS_TYPE_CO] * loss_2_fraction, spec, id, "a" + String(i+1) + "++");
-				}
-				*/
-				
-			}
-			else
-			{
-				/*
-				if (prefix_losses[i].has(LOSS_TYPE_H2O))
-        {
-					//cerr << weight << " " << prefix_losses[i][LOSS_TYPE_H2O] << "b" << String(i+1) << "-H2O" << endl;
-					addPeaks_(weight, 1, -18.0, prefix_losses[i][LOSS_TYPE_H2O], spec, id, "b" + String(i+1) + "-H2O+");
-				}
-				if (prefix_losses[i].has(LOSS_TYPE_NH3))
-        {
-					//cerr << weight << " " << prefix_losses[i][LOSS_TYPE_NH3] << "b" << String(i+1) << "-NH3" << endl;
-					addPeaks_(weight, 1, -17.0, prefix_losses[i][LOSS_TYPE_NH3], spec, id, "b" + String(i+1) + "-NH3+");
-				}
-
-				if (prefix_losses[i].has(LOSS_TYPE_CO))
-				{
-					addPeaks_(weight, 1, -28.0, prefix_losses[i][LOSS_TYPE_CO], spec, id, "a" + String(i+1) + "+");
-				}
-				*/
-			}
-
-			/*
-			// a-ions
-			//weight = prefixes[i].getMonoWeight(AIon);
-			//id.estimateFromPeptideWeight(weight);
-			double a_int1 = tmp[hmm_.getState(a_names1[i])];
-			addPeaks_(weight - 28.0, 1, 0.0, a_int1, spec, id, "a" + String(i+1) + "+");
-
-			if (charge >= 2)
-			{
-				double a_int2 = tmp[hmm_.getState(a_names2[i])];
-				addPeaks_(weight - 28.0, 2, 0.0, a_int2, spec, id, "a" + String(i+1) + "++");
-			}*/
 
 			// suffix ions
 			weight = suffixes[i].getMonoWeight(Residue::YIon);
       id.estimateFromPeptideWeight(weight);
-			addPeaks_(weight, 1, 0.0, suffix_ints1[i], spec, id, suffix_names1[i]);
-      if (charge >= 2)
-      {
-				addPeaks_(weight, 2, 0.0, suffix_ints2[i], spec, id, suffix_names2[i]);
-
-				/*
-        // neutral losses
-        // get fractions as the different charge states are treated together
-        double loss_1_fraction = suffix_ints1[i] / (suffix_ints1[i] + suffix_ints2[i]);
-        double loss_2_fraction = suffix_ints2[i] / (suffix_ints1[i] + suffix_ints2[i]);
-
-        if (suffix_losses[i].has(LOSS_TYPE_H2O))
-	      {
-					addPeaks_(weight, 1, -18.0, suffix_losses[i][LOSS_TYPE_H2O] * loss_1_fraction, spec, id, "y" + String(i + 1) + "-H2O+");
-          // doubly charged
-					addPeaks_(weight, 2, -18.0, suffix_losses[i][LOSS_TYPE_H2O] * loss_2_fraction, spec, id, "y" + String(i + 1) + "-H2O++");
+			//addPeaks_(weight, 1, 0.0, suffix_ints1[i], spec, id, suffix_names1[i]);
+			// neutral losses
+      vector<RichPeak1D> y_loss_peaks;
+      y_ion_losses_.getIons(y_loss_peaks, suffixes[i], suffix_ints1[i]);
+			for (vector<RichPeak1D>::const_iterator it = y_loss_peaks.begin(); it != y_loss_peaks.end(); ++it)
+			{
+				String y_ion_name = it->getMetaValue("IonName");
+        vector<String> split;
+        y_ion_name.split('-', split);
+        if (split.size() == 0)
+        {
+          y_ion_name += String(suffixes.size() - i);
         }
-
-        if (suffix_losses[i].has(LOSS_TYPE_NH3))
+        else
         {
-					addPeaks_(weight, 1, -17.0, suffix_losses[i][LOSS_TYPE_NH3] * loss_1_fraction, spec, id, "y" + String(i + 1) + "-NH3+");
-          // doubly charged
-					addPeaks_(weight, 2, -17.0, suffix_losses[i][LOSS_TYPE_NH3] * loss_2_fraction, spec, id, "y" + String(i + 1) + "-NH3++");
-        }*/
-      }
-      else
-      {
-				/*
-        if (suffix_losses[i].has(LOSS_TYPE_H2O))
-        {
-					//cerr << "H2O: " << suffix_losses[i][LOSS_TYPE_H2O] << " " << suffix_ints1[i] << endl;
-					//cerr << "NH3: " << suffix_losses[i][LOSS_TYPE_H2O] << endl;
-					addPeaks_(weight, 1, -18.0, suffix_losses[i][LOSS_TYPE_H2O], spec, id, "y" + String(i + 1) + "-H2O+");
+          y_ion_name = split[0] + String(suffixes.size() - i) + "-";
+          for (UInt j = 1; j != split.size(); ++j)
+          {
+            y_ion_name += split[j];
+          }
         }
-        if (suffix_losses[i].has(LOSS_TYPE_NH3))
-        {
-					addPeaks_(weight, 1, -17.0, suffix_losses[i][LOSS_TYPE_NH3], spec, id, "y" + String(i + 1) + "-NH3+");
-        }*/
-      }
+						
+				y_ion_name += "+";
+				addPeaks_(weight, 1, it->getMZ(), it->getIntensity(), spec, id, y_ion_name);
+			}
+		
+			if (charge > 1)
+			{
+				y_loss_peaks.clear();
+				y_ion_losses_.getIons(y_loss_peaks, suffixes[i], suffix_ints2[i]);
+      	for (vector<RichPeak1D>::const_iterator it = y_loss_peaks.begin(); it != y_loss_peaks.end(); ++it)
+      	{
+        	String y_ion_name = it->getMetaValue("IonName");
+        	vector<String> split;
+        	y_ion_name.split('-', split);
+        	if (split.size() == 0)
+        	{
+          	y_ion_name += String(suffixes.size() - i - 1);
+        	}
+        	else
+        	{
+          	y_ion_name = split[0] + String(suffixes.size() - i - 1) + "-";
+          	for (UInt j = 1; j != split.size(); ++j)
+         		{
+            	y_ion_name += split[j];
+          	}
+        	}
+					y_ion_name += "++";
+	        addPeaks_(weight, 2, it->getMZ(), it->getIntensity(), spec, id, y_ion_name);
+				}
+			}
 		}
 
 		// precursor intensities
 		vector<RichPeak1D> pre_peaks;
-		cerr << "getSpectrum: bb_sum=" << bb_sum << endl;
+		//cerr << "getSpectrum: bb_sum=" << bb_sum << endl;
 		if (/*(*/is_charge_remote/* && charge < 3 && !(peptide.has("D") && charge == 2)) || peptide[0].getOneLetterCode() == "Q"*/)
 		{
-			//vector<RichPeak1D> pre_peaks;
-			precursor_model_cr_.getPrecursorIons(pre_peaks, peptide, charge, bb_sum);
+			precursor_model_cr_.getIons(pre_peaks, peptide, bb_sum);
 		}
 		else
 		{
-			precursor_model_cd_.getPrecursorIons(pre_peaks, peptide, charge, min(1.0, 1.0 - bb_sum));
+			precursor_model_cd_.getIons(pre_peaks, peptide, min(1.0, 1.0 - bb_sum));
 		}
-			//precursor_model_.getPrecursorIons(pre_peaks, peptide, charge, max(0.01, 1 - bb_sum - suffix_sum - prefix_sum));
-			
+		
 		double weight = peptide.getMonoWeight();
 		id.estimateFromPeptideWeight(weight);	
 		for (vector<RichPeak1D>::const_iterator it = pre_peaks.begin(); it != pre_peaks.end(); ++it)
 		{
 			addPeaks_(weight, charge, it->getMZ(), it->getIntensity(), spec, id, it->getMetaValue("IonName"));
 		}
-		//}		
 		
 		// now build the spectrum with the peaks
 		double intensity_max(0);
@@ -1505,6 +1322,7 @@ namespace OpenMS
 		{
 			it->setIntensity(it->getIntensity() / intensity_max);
 
+			/*
 			String ion_name(it->getMetaValue("IonName"));
 			if (ion_name != "")
 			{
@@ -1552,6 +1370,7 @@ namespace OpenMS
 					}
 				}
 			}
+			*/
 		}
 
 		return;
@@ -1808,6 +1627,14 @@ namespace OpenMS
 		precursor_param = precursor_model_cd_.getParameters();
 		precursor_param.setValue("pseudo_counts", pseudo_counts);
 		precursor_model_cd_.setParameters(precursor_param);
+
+		Param b_ion_losses_param = b_ion_losses_.getParameters();
+		b_ion_losses_param.setValue("pseudo_counts", pseudo_counts);
+		b_ion_losses_.setParameters(b_ion_losses_param);
+
+		Param y_ion_losses_param = y_ion_losses_.getParameters();
+    y_ion_losses_param.setValue("pseudo_counts", pseudo_counts);
+    y_ion_losses_.setParameters(y_ion_losses_param);
 	}
 } // namespace OpenMS
 

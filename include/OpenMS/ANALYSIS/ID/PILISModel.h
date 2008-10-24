@@ -196,6 +196,10 @@ namespace OpenMS
 
 			PILISNeutralLossModel precursor_model_cd_;
 
+			PILISNeutralLossModel b_ion_losses_;
+
+			PILISNeutralLossModel y_ion_losses_;
+
 			void updateMembers_();
 	};
 }

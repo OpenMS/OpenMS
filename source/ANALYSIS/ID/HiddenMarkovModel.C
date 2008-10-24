@@ -273,7 +273,7 @@ namespace OpenMS
 		
 	}
 
-	void HiddenMarkovModel::write(ostream& out)
+	void HiddenMarkovModel::write(ostream& out) const
 	{
 		// write states
 		for (set<HMMState*>::const_iterator it = states_.begin(); it != states_.end(); ++it)
