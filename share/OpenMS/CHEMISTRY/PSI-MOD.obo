@@ -23702,6 +23702,23 @@ property_value: TermSpec: "none"
 is_a: MOD:00626 ! fluorescein-5-thiosemicarbazide
 
 [Term]
+id: MOD:09997
+name: cyanate or urea derivatized residue - carbamylation
+def: "modification from UniMod" [DeltaMass:56, PubMed:10978403, PubMed:12203680, UniMod:5]
+synonym: "Carbamyl" RELATED UniMod-interim []
+synonym: "Carbamylation" EXACT DeltaMass-label []
+synonym: "Carbamylation" RELATED UniMod-description []
+property_value: DiffAvg: "43.02"
+property_value: DiffFormula: "C 1 H 1 N 1 O 1"
+property_value: DiffMono: "43.005814"
+property_value: Formula: "none"
+property_value: MassAvg: "none"
+property_value: MassMono: "none"
+property_value: Origin: "K"
+property_value: TermSpec: "none"
+is_a: MOD:00848 ! reagent derivatized residue
+
+[Term]
 id: MOD:09998
 name: NIC
 def: "NIC light label as defined in NBT"
