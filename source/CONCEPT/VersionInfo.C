@@ -28,8 +28,11 @@
 
 #include <cstdlib>
 
-#ifndef OPENMS_REVISION
-#warning OPENMS_REVISION not defined!
+#ifndef  OPENMS_REVISION
+// #warning is not a standard preprocessor directive, but supported by many compilers, including GCC.
+#ifdef   OPENMS_COMPILER_GXX
+#warning "Note: OPENMS_REVISION is undefined.  This is not an error.   OpenMS uses the subversion software for revision control, but now revision info is unavailable.  This is normally the case when you are compiling a released version (without .svn subdirectories)."
+#endif
 #define OPENMS_REVISION ""
 #endif
 
