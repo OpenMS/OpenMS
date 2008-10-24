@@ -636,6 +636,88 @@ function godev
 }
 
 
+## A few not-so-nicely-self-documented functions follow below.  Will adapt
+## them to the framework when time permits. -- Clemens
+
+a d='dirs -v | sed s:\ \\\([0-9]\\\)\ :\ \\o033[31m\ \\1\ \\o033[0\;0m:g;'
+a dirs_v='echo $(dirs -v | sed s:\ \\\([0-9]\\\)\ :\ \\o033[31m\ \\1\ \\o033[0\;0m:g;)'
+
+## all you need to maintain a stack of directories
+function g ()
+{
+    if [ "$1_" != "_" ]
+    then
+	dirs_num=$1
+    else
+	d
+	dirs_num=xxx
+	read -p "Your choice:  " -t 7 -n 1 dirs_num
+	echo
+    fi
+    case ${dirs_num} in
+	[0-9] )
+ 	    pushd +${dirs_num} > /dev/null
+	    dirs_v
+	    ;;
+	"+")
+	    pushd . > /dev/null
+	    dirs_v
+	    ;;
+	"-")
+	    popd > /dev/null
+	    dirs_v
+	    ;;
+	*)
+	    echo ' (???)'
+	    ;;
+    esac
+}
+
+alias a=alias
+
+a ..='cd ..'
+a ...='cd ../..'
+a cd...=...
+a ....='cd ../../..'
+a cd....=....
+a .....='cd ../../../..'
+a cd.....=.....
+
+a -- ++='g +'
+a -- --='g -'
+a -- g+='g +'
+a -- g-='g -'
+a -- g1='g 1'
+a -- g2='g 2'
+a -- g3='g 3'
+a -- g4='g 4'
+a -- g5='g 5'
+a -- g6='g 6'
+a -- g7='g 7'
+a -- g8='g 8'
+a -- g9='g 9'
+a -- +1='g 1'
+a -- +2='g 2'
+a -- +3='g 3'
+a -- +4='g 4'
+a -- +5='g 5'
+a -- +6='g 6'
+a -- +7='g 7'
+a -- +8='g 8'
+a -- +9='g 9'
+
+a cp='cp -i'
+a rm='rm -i'
+a mv='mv -i'
+
+
+function manx ()
+{
+    ( PAGER='less -A' xterm -geometry 120x50 +sb -b 3 -selbg yellow -title "man  $*"  -xrm "XTerm*faceName: Bitstream Vera Sans Mono" -xrm "XTerm*faceSize: 7" -e man -a $* ) &
+}
+
+
+
 ############################################################
 #  WORKING (actually do something)
 ############################################################

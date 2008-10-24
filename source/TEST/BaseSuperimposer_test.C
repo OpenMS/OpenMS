@@ -33,19 +33,17 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef FeatureMap<> ElementMapType;
-
 class TestSuperimposer 
-	: public BaseSuperimposer<ElementMapType>
+	: public BaseSuperimposer
 {
   public:
 	TestSuperimposer() 
-		: BaseSuperimposer<ElementMapType>()
+		: BaseSuperimposer()
 	{ 
 		check_defaults_ = false; 
 	}
 
-	virtual void run(const std::vector<ElementMapType>& maps, std::vector<TransformationDescription>& transformations)
+	virtual void run(const std::vector<ConsensusMap>& maps, std::vector<TransformationDescription>& transformations)
 	{
 		if (maps.size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"scene_map");
 		transformations.clear();
@@ -71,10 +69,10 @@ CHECK((virtual ~BaseSuperimposer()))
 	delete ptr;
 RESULT
 
-CHECK((virtual void run(const std::vector< ElementMapType > &maps, std::vector<TransformationDescription>& transformations)=0))
+CHECK((virtual void run(const std::vector< ConsensusMap > &maps, std::vector<TransformationDescription>& transformations)=0))
   std::vector<TransformationDescription> transformations;
   TestSuperimposer si;
-	std::vector<ElementMapType> maps;
+	std::vector<ConsensusMap> maps;
 	TEST_EXCEPTION(Exception::IllegalArgument,si.run(maps,transformations))
 	maps.resize(2);
   si.run(maps, transformations);

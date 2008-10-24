@@ -58,26 +58,16 @@ namespace OpenMS
 
 		@ingroup MapAlignment
   */
-  template < typename MapT = FeatureMap<> >
   class PoseClusteringAffineSuperimposer 
-  	: public BaseSuperimposer< MapT >
+  	: public BaseSuperimposer
   {
   	public:
-  		
-  		///Base class type definition
-			typedef BaseSuperimposer< MapT > Base;
-			///Input map type
-	    typedef typename Base::ElementMapType ElementMapType;
-	    
-	    using Base::param_;
-	    using Base::defaultsToParam_;
-	    using Base::defaults_;
 
 	    /// Constructor
 	    PoseClusteringAffineSuperimposer()
-	    	: Base()
+	    	: BaseSuperimposer()
 	    {
-	      Base::setName(getProductName());
+				setName(getProductName());
 	
 	      defaults_.setValue("mz_bucket_size",0.5,"An estimate of m/z deviation of corresponding elements in different maps.");
 	      defaults_.setValue("num_used_points",2000,"The number of points used.\nThe most intense points are used");
@@ -105,7 +95,7 @@ namespace OpenMS
 	    	
 	    	@exception IllegalArgument is thrown if the input maps are invalid.
 	    */
-	    virtual void run(const std::vector<ElementMapType>& maps, std::vector<TransformationDescription>& transformations)
+	    virtual void run(const std::vector<ConsensusMap>& maps, std::vector<TransformationDescription>& transformations)
 	    {
 	    	if (maps.size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Excactly two input maps are required");
 	    	
@@ -153,8 +143,8 @@ namespace OpenMS
 	      // which lie in a predefined mz intervall (mz_i in [mz_m-eps,mz_m+eps))
 	
 	      // take only elements of the model map which have partners in the scene map
-	      typename PeakPointerArray::const_iterator it_first = scene_map.begin();
-	      typename PeakPointerArray::const_iterator it_last = it_first;
+	      PeakPointerArray::const_iterator it_first = scene_map.begin();
+	      PeakPointerArray::const_iterator it_last = it_first;
 	      for (UInt i = 0; i < model_map.size(); ++i)
 	      {
 	        DoubleReal act_mz = model_map[i].getMZ();
@@ -176,7 +166,7 @@ namespace OpenMS
 	          ++it_last;
 	        }
 	
-	        for (typename PeakPointerArray::const_iterator it = it_first; it != it_last; ++it)
+	        for (PeakPointerArray::const_iterator it = it_first; it != it_last; ++it)
 	        {
 	        	partners.push_back(&(*it)); //TODO do not store the parterns, but do what has to be done right here
 	        }
@@ -277,7 +267,7 @@ namespace OpenMS
 	      // search for the maximal vote parameter
 	      PairType max_element_index_rt;
 	      DoubleReal act_max_rt = 0;
-	      for (typename AffineTransformationMapType::const_iterator it = rt_hash_.begin(); it != rt_hash_.end(); ++it)
+	      for (AffineTransformationMapType::const_iterator it = rt_hash_.begin(); it != rt_hash_.end(); ++it)
 	      {
 	        if (it->second > act_max_rt)
 	        {
@@ -302,7 +292,7 @@ namespace OpenMS
 	
 	        {
 	          // TODO use lower bound instead of find
-	          typename AffineTransformationMapType::const_iterator it = rt_hash_.find(PairType(shift_index, scale_index));
+						AffineTransformationMapType::const_iterator it = rt_hash_.find(PairType(shift_index, scale_index));
 	          if ( it != rt_hash_.end())
 	          {
 	            quality_sum += it->second;
@@ -326,7 +316,7 @@ namespace OpenMS
     	}
 
 	    /// Returns an instance of this class
-	    static BaseSuperimposer<ElementMapType>* create()
+	    static BaseSuperimposer* create()
 	    {
 	      return new PoseClusteringAffineSuperimposer();
 	    }
@@ -340,8 +330,8 @@ namespace OpenMS
 	  protected:
 			///@name Internal type definitions
 			//@{
-	    typedef typename ElementMapType::value_type PointType;
-	    typedef ConstRefVector<ElementMapType> PeakPointerArray;
+	    typedef ConsensusMap::value_type PointType;
+	    typedef ConstRefVector<ConsensusMap> PeakPointerArray;
 	    typedef std::pair<int,int> PairType;
 	    typedef std::map< PairType, DoubleReal> AffineTransformationMapType;
 			//@}
@@ -372,7 +362,7 @@ namespace OpenMS
 	    }
 	
 	    /// Reduced model map which contains only elements of the model map which have a partner in the scene map
-	    ElementMapType model_map_red_;
+	    ConsensusMap model_map_red_;
 	
 	    /// Partner elements in the scene map
 	    std::vector< std::vector< const PointType* > > scene_map_partners_;
@@ -411,4 +401,4 @@ namespace OpenMS
   
 } // namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHING_PoseClusteringAffineSuperimposer_H
+#endif  // OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGAFFINESUPERIMPOSER_H

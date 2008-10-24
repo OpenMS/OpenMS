@@ -346,6 +346,8 @@ int main (int argc , char** argv)
 	DOCME(PeakAlignment);
 	DOCME(PeakPicker);
 	DOCME(PeakPickerCWT);
+	DOCME(PoseClusteringAffineSuperimposer);
+	DOCME(PoseClusteringShiftSuperimposer);
 	DOCME(ProtonDistributionModel);
 	DOCME(SavitzkyGolayFilter);
 	DOCME(SimplePairFinder);
@@ -373,8 +375,6 @@ int main (int argc , char** argv)
 	DOCME2(FeatureFinderAlgorithmWavelet, (FeatureFinderAlgorithmWavelet<Peak1D,Feature>()))
 	DOCME2(HierarchicalClustering, HierarchicalClustering<>());
 	DOCME2(ModelFitter, (ModelFitter<Peak1D,Feature>(0,0,0)));
-	DOCME2(PoseClusteringAffineSuperimposer,PoseClusteringAffineSuperimposer<>());
-	DOCME2(PoseClusteringShiftSuperimposer,PoseClusteringShiftSuperimposer<>());
 	DOCME2(ProductModel,ProductModel<2>());
 	DOCME2(SignalToNoiseEstimatorMeanIterative,SignalToNoiseEstimatorMeanIterative<>());
 	DOCME2(SignalToNoiseEstimatorMedian,SignalToNoiseEstimatorMedian<>());

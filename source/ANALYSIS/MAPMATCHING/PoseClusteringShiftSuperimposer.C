@@ -28,5 +28,5 @@
 
 namespace OpenMS
 {
-  PoseClusteringShiftSuperimposer<FeatureMap<> > default_poseclusteringshiftsuperimposer;
+  PoseClusteringShiftSuperimposer default_poseclusteringshiftsuperimposer;
 } 

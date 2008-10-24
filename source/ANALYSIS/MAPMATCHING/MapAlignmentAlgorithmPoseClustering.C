@@ -38,7 +38,7 @@ namespace OpenMS
 	{
 		setName("MapAlignmentAlgorithmPoseClustering");
 	
-		defaults_.insert("superimposer:",PoseClusteringAffineSuperimposer<ConsensusMap>().getParameters());
+		defaults_.insert("superimposer:",PoseClusteringAffineSuperimposer().getParameters());
 		defaults_.insert("pairfinder:",DelaunayPairFinder().getParameters());
 		defaults_.setValue("symmetric_regression","true","If true, linear regression will be based on (y-x) versus (x+y).\nIf false, a \"standard\" linear regression will be performed for y versus x.");
 		defaults_.setValidStrings("symmetric_regression",StringList::create("true,false"));
@@ -79,7 +79,7 @@ namespace OpenMS
 		ConsensusMap::convert( reference_map_index, maps[reference_map_index], input[0], max_num_peaks_considered );
 		
 		//init superimposer and pairfinder with model and parameters
-		PoseClusteringAffineSuperimposer<ConsensusMap> superimposer;
+		PoseClusteringAffineSuperimposer superimposer;
     superimposer.setParameters(param_.copy("superimposer:",true));
     
     DelaunayPairFinder pairfinder;
@@ -145,7 +145,7 @@ namespace OpenMS
 				}
 			}
 		}
-		//set no transformation for reference map
+		// set no transformation for reference map
 		transformations[reference_map_index].setName("none");
 	}
 
@@ -158,7 +158,7 @@ namespace OpenMS
 		
 		const bool symmetric_regression = param_.getValue("symmetric_regression").toBool();
 
-		//define reference map (the one with most peaks)
+		// define reference map (the one with most peaks)
 		UInt reference_map_index = 0;
 		UInt max_count = 0;		
 		for (UInt m=0; m<maps.size(); ++m)
@@ -174,8 +174,8 @@ namespace OpenMS
     std::vector<ConsensusMap> input(2);
 		ConsensusMap::convert(reference_map_index, maps[reference_map_index], input[0]);
    
-		//init superimposer and pairfinder with model and parameters
-		PoseClusteringAffineSuperimposer<ConsensusMap> superimposer;
+		// init superimposer and pairfinder with model and parameters
+		PoseClusteringAffineSuperimposer superimposer;
     superimposer.setParameters(param_.copy("superimposer:",true));
     
     DelaunayPairFinder pairfinder;
@@ -187,12 +187,11 @@ namespace OpenMS
 			{
 				ConsensusMap::convert(i,maps[i],input[1]);
 
-				//run superimposer to find the global transformation
+				// run superimposer to find the global transformation
 	      std::vector<TransformationDescription> si_trafos;
-				//si_trafos.setName("linear");
 	      superimposer.run(input, si_trafos);
 
-				//apply transformation
+				// apply transformation
 				for (UInt j=0; j<input[1].size(); ++j)
 				{
 					DoubleReal rt = input[1][j].getRT();

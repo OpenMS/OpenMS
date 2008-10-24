@@ -41,9 +41,9 @@ START_TEST(PoseClusteringShiftSuperimposer, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PoseClusteringShiftSuperimposer<FeatureMap<> >* ptr = 0;
+PoseClusteringShiftSuperimposer* ptr = 0;
 CHECK((PoseClusteringShiftSuperimposer()))
-	ptr = new PoseClusteringShiftSuperimposer<FeatureMap<> >();
+	ptr = new PoseClusteringShiftSuperimposer();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
@@ -51,21 +51,21 @@ CHECK((virtual ~PoseClusteringShiftSuperimposer()))
 	delete ptr;
 RESULT
 
-CHECK((static BaseSuperimposer<ElementMapType>* create()))
-  BaseSuperimposer<FeatureMap<> >* base_ptr = 0;
-	base_ptr = PoseClusteringShiftSuperimposer<FeatureMap<> >::create();
+CHECK((static BaseSuperimposer* create()))
+  BaseSuperimposer* base_ptr = 0;
+	base_ptr = PoseClusteringShiftSuperimposer::create();
 	TEST_NOT_EQUAL(base_ptr, 0)
   delete (base_ptr);
 RESULT
 
 CHECK((static const String getProductName()))
-  PoseClusteringShiftSuperimposer<FeatureMap<> > pcsi;
+  PoseClusteringShiftSuperimposer pcsi;
   
   TEST_EQUAL(pcsi.getName() == "poseclustering_shift",true)
 RESULT
 
 CHECK((virtual void run(const std::vector<ElementMapType>& maps, std::vector<TransformationDescription>& transformations)))
-  std::vector<FeatureMap<> > input(2);
+  std::vector<ConsensusMap> input(2);
   Feature feat1;
   Feature feat2;
   PositionType pos1(1,1);
@@ -90,7 +90,7 @@ CHECK((virtual void run(const std::vector<ElementMapType>& maps, std::vector<Tra
   input[1].push_back(feat4);
 
   std::vector<TransformationDescription> transformations;
-  PoseClusteringShiftSuperimposer<FeatureMap<> > pcat;
+  PoseClusteringShiftSuperimposer pcat;
   pcat.run(input,transformations);
   
 	TEST_EQUAL(transformations.size(),1)

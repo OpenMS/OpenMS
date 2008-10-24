@@ -52,37 +52,28 @@ namespace OpenMS
 
 		@ingroup MapAlignment
   */
-  template < typename MapT = FeatureMap<> >
   class PoseClusteringShiftSuperimposer
-        : public BaseSuperimposer< MapT >
+        : public BaseSuperimposer
   {
   	public:
 
-  		///Base class type definition
-			typedef BaseSuperimposer< MapT > Base;
-			///Input map type
-	    typedef typename Base::ElementMapType ElementMapType;
-	      					
-	    using Base::getParameters;
-	    using Base::param_;
-			
 	    /// Constructor
 	    PoseClusteringShiftSuperimposer()
-	    	: Base()
+	    	: BaseSuperimposer()
 	    {
-				Base::setName(getProductName());
+				setName(getProductName());
 				
-	      Base::defaults_.setValue("input_map:bucket_size:RT",150.0,"Number of surrounding buckets of element indices to be considered when computing shifts.",StringList::create("advanced"));
-	      Base::defaults_.setValue("input_map:bucket_size:MZ",4.0,"Number of surrounding buckets of element indices to be considered when computing shifts.",StringList::create("advanced"));
-	      Base::defaults_.setValue("transformation_space:shift_bucket_size:RT",5.0,"Defines the shift parameter's bucket size during histograming.");
-	      Base::defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1,"Defines the shift parameter's bucket size during histograming.");
-	      Base::defaults_.setValue("input_map:bucket_window:RT",2,"Number of surrounding buckets of element indices to be considered when computing shifts.",StringList::create("advanced"));
-	      Base::defaults_.setValue("input_map:bucket_window:MZ",1,"Number of surrounding buckets of element indices to be considered when computing shifts.",StringList::create("advanced"));
-	      Base::defaults_.setValue("transformation_space:bucket_window_shift:RT",2,"Number of surrounding buckets of shift indices to be considered when computing shifts.",StringList::create("advanced"));
-	      Base::defaults_.setValue("transformation_space:bucket_window_shift:MZ",1,"Number of surrounding buckets of shift indices to be considered when computing shifts.",StringList::create("advanced"));
-				Base::subsections_.push_back("debug");
+	      defaults_.setValue("input_map:bucket_size:RT",150.0,"Number of surrounding buckets of element indices to be considered when computing shifts.",StringList::create("advanced"));
+	      defaults_.setValue("input_map:bucket_size:MZ",4.0,"Number of surrounding buckets of element indices to be considered when computing shifts.",StringList::create("advanced"));
+	      defaults_.setValue("transformation_space:shift_bucket_size:RT",5.0,"Defines the shift parameter's bucket size during histograming.");
+	      defaults_.setValue("transformation_space:shift_bucket_size:MZ",0.1,"Defines the shift parameter's bucket size during histograming.");
+	      defaults_.setValue("input_map:bucket_window:RT",2,"Number of surrounding buckets of element indices to be considered when computing shifts.",StringList::create("advanced"));
+	      defaults_.setValue("input_map:bucket_window:MZ",1,"Number of surrounding buckets of element indices to be considered when computing shifts.",StringList::create("advanced"));
+	      defaults_.setValue("transformation_space:bucket_window_shift:RT",2,"Number of surrounding buckets of shift indices to be considered when computing shifts.",StringList::create("advanced"));
+	      defaults_.setValue("transformation_space:bucket_window_shift:MZ",1,"Number of surrounding buckets of shift indices to be considered when computing shifts.",StringList::create("advanced"));
+				subsections_.push_back("debug");
 				
-	      Base::defaultsToParam_();
+	      defaultsToParam_();
 	    }
 	
 	    /// Destructor
@@ -97,7 +88,7 @@ namespace OpenMS
 	    	
 	    	@exception IllegalArgument is thrown if the input maps are invalid.
 	    */
-	    virtual void run(const std::vector<ElementMapType>& maps, std::vector<TransformationDescription>& transformations)
+	    virtual void run(const std::vector<ConsensusMap>& maps, std::vector<TransformationDescription>& transformations)
 	    {
 	    	if (maps.size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Excactly two input maps are required");
 	    	
@@ -119,7 +110,7 @@ namespace OpenMS
 	    }
 	
 	    /// Returns an instance of this class
-	    static BaseSuperimposer<ElementMapType>* create()
+	    static BaseSuperimposer* create()
 	    {
 	      return new PoseClusteringShiftSuperimposer();
 	    }
@@ -132,7 +123,7 @@ namespace OpenMS
 	    
 	  protected:
 
-	    ///Internal representation of a shift used in PoseClusteringShiftSuperimposer
+	    /// Internal representation of a shift used in PoseClusteringShiftSuperimposer
 	    struct Shift
 	    {
 				///Constructor
@@ -148,8 +139,7 @@ namespace OpenMS
 
 			///@name Type definitions
 			//@{
-			/// Base class type 
-	    typedef typename ElementMapType::value_type PointType;
+	    typedef ConsensusMap::value_type PointType;
 	    typedef Matrix < std::vector<UInt> > ElementBucketMatrixType;
 	    typedef Matrix < DoubleReal > ShiftQualityMatrixType;
 	    typedef Matrix < Shift > ShiftMatrixType;
@@ -180,12 +170,12 @@ namespace OpenMS
 	      // Shorthands ...
 	      DPosition<2> & fbs = element_bucket_size_;
 	
-				const ElementMapType* map_array[2] = {model_map_, scene_map_};
+				const ConsensusMap* map_array[2] = {model_map_, scene_map_};
 	
 	      for ( UInt map_index = 0; map_index < 2; ++map_index )
 	      {
 	        // Shorthands ...
-	      	ElementMapType const & fm = *(map_array[map_index]);
+	      	ConsensusMap const & fm = *(map_array[map_index]);
 	        DBoundingBox<2> & fmpbb  = element_map_position_bounding_box_[map_index] ;
 	        DBoundingBox<1> & fmibb  = element_map_intensity_bounding_box_[map_index];
 	
@@ -194,7 +184,7 @@ namespace OpenMS
 	
 	        // Compute the bounding box for the element map, with respect to
 	        // position and intensity.
-	        for ( typename ElementMapType::const_iterator fm_iter = fm.begin();
+	        for ( ConsensusMap::const_iterator fm_iter = fm.begin();
 	              fm_iter != fm.end();
 	              ++fm_iter
 	            )
@@ -211,7 +201,7 @@ namespace OpenMS
 	      for ( UInt map_index = 0; map_index < 2; ++map_index )
 	      {
 	        // Shorthands ...
-	        ElementMapType const & fm = *(map_array[map_index]);
+	        ConsensusMap const & fm = *(map_array[map_index]);
 	        DBoundingBox<2> const & fmpbb  = element_map_position_bounding_box_[map_index] ;
 	        DBoundingBox<2> & fmpbbe = element_map_position_bounding_box_enlarged_[map_index] ;
 	        ElementBucketMatrixType       & fb     = element_bucket_[map_index];
@@ -466,7 +456,7 @@ namespace OpenMS
 	        dump_file << "# " << dump_filename << " generated " << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << std::endl;
 	        dump_file << "# Shift buckets: xcoord ycoord quality xindex yindex" << std::endl;
 	
-	        for ( typename ShiftQualityMatrixType::ConstIterator iter = tb.begin(); iter != tb.end(); ++iter)
+	        for ( ShiftQualityMatrixType::ConstIterator iter = tb.begin(); iter != tb.end(); ++iter)
 	        {
 	          std::pair<UInt,UInt> row_col = tb.indexPair(iter-tb.begin());
 	          if ( *iter )
@@ -567,9 +557,9 @@ namespace OpenMS
 	    }
 			
 			///Pointer to the model map
-			const ElementMapType* model_map_;
+			const ConsensusMap* model_map_;
 			///Pointer to the scene map
-			const ElementMapType* scene_map_;
+			const ConsensusMap* scene_map_;
 			
 	    /// Holds the bounding box of all input elements.
 	    DBoundingBox<2>  element_map_position_bounding_box_[2];

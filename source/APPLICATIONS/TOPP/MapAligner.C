@@ -117,19 +117,19 @@ protected:
 		//-------------------------------------------------------------
 		// check for valid input
 		//-------------------------------------------------------------
-		//check if the numer of input files equals the number of output files
+		//check whether the numer of input files equals the number of output files
 		if (ins.size()!=outs.size())
 		{
 			writeLog_("Error: The number of input and output files has to be equal!");
 			return ILLEGAL_PARAMETERS;
 		}
-		//check if the numer of input files equals the number of output files
+		//check whether the number of input files equals the number of output files
 		if (trafos.size()!=0 && ins.size()!=trafos.size())
 		{
 			writeLog_("Error: The number of input and transformation files has to be equal!");
 			return ILLEGAL_PARAMETERS;
 		}
-		//check if all input files have the same type (this type is used to store the output type too)		
+		//check whether all input files have the same type (this type is used to store the output type too)		
 		FileHandler::Type in_type = FileHandler::getType(ins[0]);
 		for (UInt i=1;i<ins.size();++i)
 		{
@@ -154,7 +154,7 @@ protected:
 		std::vector<TransformationDescription> transformations;
 		if (in_type == FileHandler::MZDATA)
 		{
-			//load input
+			// load input
 			std::vector< MSExperiment<> > peak_maps(ins.size());
 			MzDataFile f;
 			f.setLogType(log_type_);
@@ -163,7 +163,7 @@ protected:
 		    f.load(ins[i], peak_maps[i]);
 			}
 			
-			//try to align
+			// try to align
 			try
 			{
 				alignment->alignPeakMaps(peak_maps,transformations);
@@ -185,7 +185,7 @@ protected:
     //-------------------------------------------------------------
 		else
 		{
-			//load input
+			// load input
 			std::vector< FeatureMap<> > feat_maps(ins.size());
 			FeatureXMLFile f;
 			for (UInt i=0; i<ins.size(); ++i)
@@ -193,7 +193,7 @@ protected:
 		    f.load(ins[i], feat_maps[i]);
 			}
 
-			//try to align
+			// try to align
 			try
 			{
 				alignment->alignFeatureMaps(feat_maps,transformations);
@@ -204,7 +204,7 @@ protected:
 				return INTERNAL_ERROR;
 			}
 			
-			//write output
+			// write output
 			for (UInt i=0; i<outs.size(); ++i)
 			{		 		
 		    f.store(outs[i], feat_maps[i]);

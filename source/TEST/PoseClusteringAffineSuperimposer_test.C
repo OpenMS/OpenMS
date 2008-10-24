@@ -41,9 +41,9 @@ START_TEST(PoseClusteringAffineSuperimposer, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PoseClusteringAffineSuperimposer<FeatureMap<> >* ptr = 0;
+PoseClusteringAffineSuperimposer* ptr = 0;
 CHECK((PoseClusteringAffineSuperimposer()))
-	ptr = new PoseClusteringAffineSuperimposer<FeatureMap<> >();
+	ptr = new PoseClusteringAffineSuperimposer();
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
@@ -51,20 +51,20 @@ CHECK((virtual ~PoseClusteringAffineSuperimposer()))
 	delete ptr;
 RESULT
 
-CHECK((static BaseSuperimposer<ElementMapType>* create()))
-  BaseSuperimposer<FeatureMap<> >* base_ptr = 0;
-	base_ptr = PoseClusteringAffineSuperimposer<FeatureMap<> >::create();
+CHECK((static BaseSuperimposer* create()))
+  BaseSuperimposer* base_ptr = 0;
+	base_ptr = PoseClusteringAffineSuperimposer::create();
 	TEST_NOT_EQUAL(base_ptr, 0)
 RESULT
 
 CHECK((static const String getProductName()))
-  PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;
+  PoseClusteringAffineSuperimposer pcat;
   
   TEST_EQUAL(pcat.getName() == "poseclustering_affine",true)
 RESULT
 
 CHECK((virtual void run(const std::vector<ElementMapType>& maps, std::vector<TransformationDescription>& transformations)))
-  std::vector<FeatureMap<> > input(2);
+  std::vector<ConsensusMap> input(2);
   Feature feat1;
   Feature feat2;
   PositionType pos1(1,1);
@@ -93,7 +93,7 @@ CHECK((virtual void run(const std::vector<ElementMapType>& maps, std::vector<Tra
 	parameters.setValue(String("bucket_window_scaling"), 1);
 
   std::vector<TransformationDescription> transformations;  
-  PoseClusteringAffineSuperimposer<FeatureMap<> > pcat;
+  PoseClusteringAffineSuperimposer pcat;
   pcat.setParameters(parameters);
   pcat.run(input, transformations);
 
