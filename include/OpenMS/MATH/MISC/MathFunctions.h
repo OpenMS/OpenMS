@@ -24,13 +24,12 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
+#ifndef OPENMS_MATH_MISC_MATHFUNCTIONS_H
+#define OPENMS_MATH_MISC_MATHFUNCTIONS_H
 
 #include <cmath>
 #include <OpenMS/CONCEPT/Types.h>
 // #include <iostream> // debugging
-
-#ifndef OPENMS_MATH_MISC_MATHFUNCTIONS_H
-#define OPENMS_MATH_MISC_MATHFUNCTIONS_H
 
 // MinGW32 lacks proper definition of isnan/isinf
 #ifndef isnan

@@ -213,7 +213,8 @@ EXECUTABLES_MATH = \
 	LinearRegression_test\
 	BilinearInterpolation_test\
 	GammaDistributionFitter_test\
-	GaussFitter_test
+	GaussFitter_test\
+	NNLS_test
 
 
 #FILTERING

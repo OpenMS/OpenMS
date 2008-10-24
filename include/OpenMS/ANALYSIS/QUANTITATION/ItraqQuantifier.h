@@ -30,15 +30,11 @@
 #include <vector>
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_matrix.h>
-#include <gsl/gsl_linalg.h>
 
 namespace OpenMS {
 
@@ -78,6 +74,9 @@ namespace OpenMS {
 		 *	
 		 *	@param consensus_map_in Raw iTRAQ intensities from previous step
 		 *	@param consensus_map_out Postprocessed iTRAQ ratios for peptides
+		 *
+		 *	@throws Exception::FailedAPICall is least-squares fit fails
+		 *	@throws Exception::InvalidParameter if parameter is invalid (e.g. reference_channel)
 		 */
 		void run(const ConsensusMap& consensus_map_in, 
 						 ConsensusMap& consensus_map_out
@@ -90,6 +89,9 @@ namespace OpenMS {
 		 *	@param peptide_ids List of peptides identified by a search engine on the same MS² dataset
 		 *	@param protein_ids List of proteins inferred from peptides
 		 *	@param consensus_map_out Postprocessed iTRAQ ratios for Proteins (if provided) or Peptides otherwise
+		 *
+		 *	@throws Exception::FailedAPICall is least-squares fit fails
+		 *	@throws Exception::InvalidParameter if parameter is invalid (e.g. reference_channel)
 		 */
 		void run(const ConsensusMap& consensus_map_in, 
 						 const std::vector< PeptideIdentification > &peptide_ids,

@@ -34,7 +34,8 @@ DIRECTORY=MATH/MISC
 
 CPP_SOURCES= \
   MathFunctions.C\
-	LinearInterpolation.C
+	LinearInterpolation.C\
+	NNLS.C
 
 include ../../common.mak
 -include .Dependencies

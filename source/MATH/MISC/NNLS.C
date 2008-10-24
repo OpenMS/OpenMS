@@ -1,0 +1,129 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework 
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Chris Bielow $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/MATH/MISC/NNLS.h>
+
+// the following is done on purpose!
+// we include the .cc file in order to keep the namespace clean
+namespace NNLS_EXTERNAL
+{
+	#include <OpenMS/MATH/MISC/NNLS/nnls.h>
+	#include <OpenMS/MATH/MISC/NNLS/nnls.cc>
+}
+
+namespace OpenMS
+{
+	/**
+	 *	This is a wrapper for the external nnls library for the 
+	 *	non-negative least square problem Ax=b, where x>0
+	 *
+	 *	@param: A Input matrix A of size mxn
+	 *	@param: b Input vector (matrix with one column) b of size mx1
+	 *	@param: x Output vector with non-negative least square solution of size mx1
+	 *	@return: status of solution (either NNLS::SOLVED, NNLS::ITERATION_EXCEEDED)
+	 *
+	 *	@throws: Exception::InvalidParameters if Matrix dimensions do not fit
+	 */
+	Int NNLS::solve(const Matrix<double>& A, const Matrix<double>& b, Matrix<double>& x)
+	{
+		
+		// translate A to array a (column major order)
+		double *a_vec = new double[A.rows()*A.cols()];
+		size_t idx=0;
+		for (size_t col=0; col<A.cols(); ++col)
+		{
+			for (size_t row=0; row<A.rows(); ++row)
+			{
+				a_vec[idx] = A(row,col);
+				idx++;
+			}	
+		}
+
+		#ifdef NNLS_DEBUG
+		//std::cout << "A:\n" << A << std::endl;
+		#endif
+		
+		Int a_rows = A.rows();
+		Int a_cols = A.cols();
+		
+		// translate b
+		double *b_vec = new double[a_rows];
+		for (size_t row=0; row<b.rows(); ++row)
+		{ 
+			b_vec[row] = b(row,0);
+		}
+		
+		#ifdef NNLS_DEBUG
+		std::cout << "b:\n" << b << std::endl;
+		#endif
+
+		// prepare solution array (directly copied from example)
+		double *x_vec = new double[a_rows+1];
+		double rnorm;
+		double *w = new double[a_rows+1];
+		double *zz = new double[a_rows+1];
+		int *indx = new int[a_rows+1];
+		int mode;
+		
+		#ifdef NNLS_DEBUG
+		std::cout << "solving ..." << std::endl;
+		#endif
+		
+		NNLS_EXTERNAL::nnls(a_vec, a_rows, a_rows, a_cols, b_vec, x_vec, &rnorm, w, zz, indx, &mode);
+
+		
+		// translate solution back to Matrix:
+		x.resize(a_rows,1);
+		for (Int row=0; row<a_rows; ++row)
+		{ 
+			x(row,0) = x_vec[row];
+		}		
+		
+		#ifdef NNLS_DEBUG
+		std::cout << "done" << std::endl;
+		std::cout << "solution x:\n" << x << std::endl;
+		#endif
+
+		// clean up
+		delete[] a_vec;
+		delete[] b_vec;
+		delete[] x_vec;
+		delete[] w;
+		delete[] zz;
+		delete[] indx;
+		
+		if (mode==1) return SOLVED;
+		else if (mode==2)
+		{ // this should not happen (dimensions are bad)
+			throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"NNSL::solve() Bad dimension reported!");
+		}
+		else /*if (mode==3)*/ return ITERATION_EXCEEDED;
+		 
+	}
+	
+} // namespace OpenMS
+
+ 
