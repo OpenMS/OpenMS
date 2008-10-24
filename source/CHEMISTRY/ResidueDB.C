@@ -293,12 +293,12 @@ namespace OpenMS
 				continue;
 			}
 
-			if (key.hasSuffix("Losses:LossName"))
+			if (key.hasSubstring("Losses:LossName"))
 			{
 				res_ptr->addLossName(value);
 				continue;
 			}
-			if (key.hasSuffix("Losses:LossFormula"))
+			if (key.hasSubstring("Losses:LossFormula"))
 			{
 				EmpiricalFormula loss(value);
 				res_ptr->addLossFormula(loss);
@@ -414,7 +414,7 @@ namespace OpenMS
 		if (origin.size() > 1 || origin.size() == 0 || (origin.size() == 1 && origin == "X"))
 		{
 			throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Modification '" + modification
-						+ "' has no specific residue as origin! Please specifiy it!").c_str());
+						+ "' has no specific residue as origin! Please specify it!").c_str());
 		}
 
 		return getModifiedResidue(getResidue(origin), modification);
@@ -442,6 +442,34 @@ namespace OpenMS
 		
 		Residue* res = new Residue(*residue_names_[res_name]);
 		res->setModification(id);
+		res->setLossFormulas(vector<EmpiricalFormula>());
+		res->setLossNames(vector<String>());
+
+		// TODO HACK HACK HACK TODO
+		if (id == "MOD:00719")
+		{
+			// Methionine
+			cerr << "Setting new neutral losses for mod " << id << endl;
+			res->addLossFormula(EmpiricalFormula("CH3SOH"));
+			res->addLossName("");
+		}
+
+		if (id == "MOD:09997")
+		{
+			// Carbamyl K
+			cerr << "Setting new neutral losses for mod " << id << endl;
+			res->addLossFormula(EmpiricalFormula("NHCO"));
+			res->addLossName("");
+		}
+
+		/*
+		if (id == "MOD:01214")
+		{
+			// Cmc
+			res->addLossFormula(EmpiricalFormula(""));
+			res->addLossName("");
+		}*/
+
 		
 		// now register this modified residue 
 		addResidue_(res);

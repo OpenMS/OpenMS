@@ -13,10 +13,6 @@
 				<ITEM name="alanin" value="alanin" type="string" />
 				<ITEM name="Ala" value="Ala" type="string" />
 			</NODE>
-			<NODE name="Losses">
-				<ITEM name="LossName" value="" type="string" />
-				<ITEM name="LossFormula" value="" type="string" />
-			</NODE>
 			<ITEM name="Formula" value="C3H7NO2" type="string" />
 			<ITEM name="GB_SC" value="0.00" type="string" />
 			<ITEM name="GB_BB_L" value="881.82" type="string" />
@@ -190,10 +186,6 @@
 				<ITEM name="Met" value="Met" type="string" />
 			</NODE>
 			<ITEM name="Formula" value="C5H11NO2S" type="string" />
-      <NODE name="Losses">
-        <ITEM name="LossName" value="" type="string" />
-        <ITEM name="LossFormula" value="H3CSH" type="string" />
-      </NODE>
       <ITEM name="GB_SC" value="830.0" type="string" />
       <ITEM name="GB_BB_L" value="881.38" type="string" />
       <ITEM name="GB_BB_R" value="0.30" type="string" />
@@ -267,10 +259,12 @@
 			</NODE>
 			<ITEM name="Formula" value="C6H14N4O2" type="string" />
       <NODE name="Losses">
-        <ITEM name="LossName" value="ammonia" type="string" />
-        <ITEM name="LossFormula" value="NH3" type="string" />
-        <ITEM name="LossName" value="" type="string" />
-        <ITEM name="LossFormula" value="NHCNH" type="string" />
+        <ITEM name="LossName1" value="ammonia" type="string" />
+        <ITEM name="LossFormula1" value="NH3" type="string" />
+        <ITEM name="LossName2" value="" type="string" />
+        <ITEM name="LossFormula2" value="NHCNH" type="string" />
+				<ITEM name="LossName3" value="" type="string" />
+				<ITEM name="LossFormula3" value="CONH2" type="string" />
       </NODE>
       <ITEM name="GB_SC" value="1000.0" type="string" />
       <ITEM name="GB_BB_L" value="882.98" type="string" />
