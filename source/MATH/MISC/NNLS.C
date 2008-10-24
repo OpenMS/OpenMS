@@ -42,13 +42,18 @@ namespace OpenMS
 	 *
 	 *	@param: A Input matrix A of size mxn
 	 *	@param: b Input vector (matrix with one column) b of size mx1
-	 *	@param: x Output vector with non-negative least square solution of size mx1
+	 *	@param: x Output vector with non-negative least square solution of size nx1
 	 *	@return: status of solution (either NNLS::SOLVED, NNLS::ITERATION_EXCEEDED)
 	 *
 	 *	@throws: Exception::InvalidParameters if Matrix dimensions do not fit
 	 */
 	Int NNLS::solve(const Matrix<double>& A, const Matrix<double>& b, Matrix<double>& x)
 	{
+		
+		if (A.rows()!= b.rows())
+		{
+			throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"NNSL::solve() #rows of A does not match #rows of b !");
+		}
 		
 		// translate A to array a (column major order)
 		double *a_vec = new double[A.rows()*A.cols()];
@@ -81,11 +86,11 @@ namespace OpenMS
 		#endif
 
 		// prepare solution array (directly copied from example)
-		double *x_vec = new double[a_rows+1];
+		double *x_vec = new double[a_cols+1];
 		double rnorm;
-		double *w = new double[a_rows+1];
+		double *w = new double[a_cols+1];
 		double *zz = new double[a_rows+1];
-		int *indx = new int[a_rows+1];
+		int *indx = new int[a_cols+1];
 		int mode;
 		
 		#ifdef NNLS_DEBUG
@@ -96,8 +101,8 @@ namespace OpenMS
 
 		
 		// translate solution back to Matrix:
-		x.resize(a_rows,1);
-		for (Int row=0; row<a_rows; ++row)
+		x.resize(a_cols,1);
+		for (Int row=0; row<a_cols; ++row)
 		{ 
 			x(row,0) = x_vec[row];
 		}		
