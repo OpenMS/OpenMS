@@ -44,11 +44,11 @@ namespace OpenMS
 		defaults_.setValue("parse_peakinfo", "true", "Flag whether the peak annotation information should be parsed and stored for each peak");
 		defaults_.setValidStrings("parse_peakinfo", parse_strings);
 		defaults_.setValue("instrument", "", "If instrument given, only spectra of these type of instrument (Inst= in header) are parsed");
-		vector<String> inst_strings;
+/*		vector<String> inst_strings;
 		inst_strings.push_back("");
 		inst_strings.push_back("it");
-		inst_strings.push_back("qtof");
-		defaults_.setValidStrings("instrument", inst_strings);
+		inst_strings.push_back("qtof");*/
+		defaults_.setValidStrings("instrument", StringList::create(",it,qtof,toftof"));
 
 		defaultsToParam_();
 	}
@@ -96,12 +96,13 @@ namespace OpenMS
     mod_to_mass["Acetyl"] = 42.0106;
     mod_to_mass["Deamidation"] = 0.9840;
     mod_to_mass["Pyro-cmC"] = -17.026549;
-    mod_to_mass["Pyro-glu"] = -17.026549;
-    mod_to_mass["Pyro_glu"] = -18.010565;
+    mod_to_mass["Pyro-glu"] = -18.010565;
+		mod_to_mass["Gln->pyro-Glu"] = -18.010565;
     mod_to_mass["Amide"] = -0.984016;
     mod_to_mass["Phospho"] = 79.9663;
     mod_to_mass["Methyl"] = 14.0157;
     mod_to_mass["Carbamyl"] = 43.00581;
+		mod_to_mass["di-Methylation"] = 28.031300;
 
     RichPeakSpectrum spec;
 
@@ -176,7 +177,7 @@ namespace OpenMS
               }
 
               vector<String> candidate_mods;
-              ModificationsDB::getInstance()->getModificationsByDiffMonoMass(candidate_mods, single_mod[1], mod_to_mass[mod_name], 0.1);
+              ModificationsDB::getInstance()->getModificationsByDiffMonoMass(candidate_mods, single_mod[1], mod_to_mass[mod_name], 0.001);
 
               if (candidate_mods.size() == 0)
               {
@@ -185,16 +186,34 @@ namespace OpenMS
                         "' at residue '" << single_mod[1] << "' could not be found, aborting!" << endl;
                 throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name);
               }
-              /*
+              
               // this gives many error, e.g. Oxidation of Methionine is present multiple times in PSI-MOD
               if (candidate_mods.size() > 1)
               {
                 cerr << "MSPFile: more than one modification with mass '" << mod_to_mass[mod_name] << "' at residue '" << single_mod[1] <<
-                        "' found, choosing first one!" << endl;
+                        "' found:";
+								for (vector<String>::const_iterator it = candidate_mods.begin(); it != candidate_mods.end(); ++it)
+								{
+									cerr << " " << *it;
+								}
+												
+								cerr << "; choosing first one!" << endl;
               }
-              */
+
               String psi_mod = ModificationsDB::getInstance()->getModification(single_mod[1], candidate_mods[0]).getId();
-              peptide.setModification(single_mod[0].toInt(), psi_mod);
+
+							UInt mod_position = single_mod[0].toInt();
+
+							// TODO C-term modification
+							
+							if (mod_position == 0 && ModificationsDB::getInstance()->getModification(psi_mod).getTermSpecificity() == ResidueModification::N_TERM)
+							{
+								peptide.setNTerminalModification(psi_mod);
+							}
+							else
+							{
+              	peptide.setModification(mod_position, psi_mod);
+							}
             }
             vector<PeptideHit> hits(ids.back().getHits());
             hits.begin()->setSequence(peptide);
