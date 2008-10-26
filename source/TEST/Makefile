@@ -168,7 +168,6 @@ EXECUTABLES_FORMAT = \
 	PersistentObject_test\
 	FASTAFile_test\
 	FileHandler_test\
-	MzDataExpSettHandler_test\
 	MzXMLFile_test\
 	MzMLFile_test\
 	MzDataFile_test\
@@ -213,8 +212,10 @@ EXECUTABLES_MATH = \
 	LinearRegression_test\
 	BilinearInterpolation_test\
 	GammaDistributionFitter_test\
-	GaussFitter_test\
-	NNLS_test
+	GaussFitter_test
+	
+#	\
+#	NNLS_test
 
 
 #FILTERING

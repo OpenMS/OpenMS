@@ -88,7 +88,7 @@ namespace OpenMS
 						case FileHandler::PARAM:																						
 							if (!Param().isValid(file_names[i]))													
 							{																																						
-								std::cout << "Error: Invalid FeaturePairsXML file '" << file_names[i] << "' - " << std::endl; 
+								std::cout << "Error: Invalid Param file '" << file_names[i] << "' - " << std::endl; 
 								passed = false;																									
 							}																																						
 							break;																											

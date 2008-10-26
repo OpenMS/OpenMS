@@ -1,25 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap>
-	<description>
-		<admin>
-			<sampleName></sampleName>
-		</admin>
-		<instrument>
-			<instrumentName></instrumentName>
-			<source>
-			</source>
-			<analyzerList count="0">
-			</analyzerList>
-			<detector>
-			</detector>
-		</instrument>
-		<dataProcessing>
-			<software>
-				<name></name>
-				<version></version>
-			</software>
-		</dataProcessing>
-	</description>
 	<featureList count="6">
 		
     <!-- apparently two charge variants of the same peptide -> cluster them -->

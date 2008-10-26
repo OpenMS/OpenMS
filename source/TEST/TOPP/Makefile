@@ -517,24 +517,24 @@ MapAligner_test: make_fuzzydiff
 
 	@$(ECHO) "- Test 1: pose_clustering feature files"
 	@$(call RUN_PROG_OPT,MapAligner,-ini MapAligner_1_parameters.ini)
-	@$(call TEST_FILE_EQUAL,MapAligner_1_output1.tmp,MapAligner_1_output1.xml)
-	@$(call TEST_FILE_EQUAL,MapAligner_1_output2.tmp,MapAligner_1_output2.xml)
-	@$(call TEST_FILE_EQUAL,MapAligner_1_output3.tmp,MapAligner_1_output3.xml)
-	@$(call TEST_FILE_EQUAL,MapAligner_1_trafo1.tmp,MapAligner_1_trafo1.xml)
-	@$(call TEST_FILE_EQUAL,MapAligner_1_trafo2.tmp,MapAligner_1_trafo2.xml)
-	@$(call TEST_FILE_EQUAL,MapAligner_1_trafo3.tmp,MapAligner_1_trafo3.xml)
+	@$(call TEST_FILE_EQUAL,MapAligner_1_output1.tmp,MapAligner_1_output1.featureXML)
+	@$(call TEST_FILE_EQUAL,MapAligner_1_output2.tmp,MapAligner_1_output2.featureXML)
+	@$(call TEST_FILE_EQUAL,MapAligner_1_output3.tmp,MapAligner_1_output3.featureXML)
+	@$(call TEST_FILE_EQUAL,MapAligner_1_trafo1.tmp,MapAligner_1_trafo1.trafoXML)
+	@$(call TEST_FILE_EQUAL,MapAligner_1_trafo2.tmp,MapAligner_1_trafo2.trafoXML)
+	@$(call TEST_FILE_EQUAL,MapAligner_1_trafo3.tmp,MapAligner_1_trafo3.trafoXML)
 
 	@$(ECHO) "- Test 2: pose_clustering peak files"
 	@$(call RUN_PROG_OPT,MapAligner,-ini MapAligner_2_parameters.ini)
-	@$(call TEST_FILE_EQUAL,MapAligner_2_output1.tmp,MapAligner_2_output1.xml)
-	@$(call TEST_FILE_EQUAL,MapAligner_2_output2.tmp,MapAligner_2_output2.xml)
-	@$(call TEST_FILE_EQUAL,MapAligner_2_output3.tmp,MapAligner_2_output3.xml)
+	@$(call TEST_FILE_EQUAL,MapAligner_2_output1.tmp,MapAligner_2_output1.mzData)
+	@$(call TEST_FILE_EQUAL,MapAligner_2_output2.tmp,MapAligner_2_output2.mzData)
+	@$(call TEST_FILE_EQUAL,MapAligner_2_output3.tmp,MapAligner_2_output3.mzData)
 
 	@$(ECHO) "- Test 3: spectrum_alignment peak files"
 	@$(call RUN_PROG_OPT,MapAligner,-ini MapAligner_3_parameters.ini)
-	@$(call TEST_FILE_EQUAL,MapAligner_3_output1.tmp,MapAligner_3_output1.xml)
-	@$(call TEST_FILE_EQUAL,MapAligner_3_output2.tmp,MapAligner_3_output2.xml)
-	@$(call TEST_FILE_EQUAL,MapAligner_3_output3.tmp,MapAligner_3_output3.xml)
+	@$(call TEST_FILE_EQUAL,MapAligner_3_output1.tmp,MapAligner_3_output1.mzData)
+	@$(call TEST_FILE_EQUAL,MapAligner_3_output2.tmp,MapAligner_3_output2.mzData)
+	@$(call TEST_FILE_EQUAL,MapAligner_3_output3.tmp,MapAligner_3_output3.mzData)
 
 MascotAdapter_test: make_fuzzydiff
 	@$(ECHO) ""

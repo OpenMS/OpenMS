@@ -93,7 +93,7 @@ RESULT
 CHECK((static Type getTypeByContent(const String &filename)))
 	FileHandler tmp;
 	TEST_EQUAL(tmp.getTypeByContent("data/MzDataFile_test_1.mzData"), FileHandler::MZDATA)
-	TEST_EQUAL(tmp.getTypeByContent("data/FeatureXMLFile.xml"), FileHandler::FEATUREXML)
+	TEST_EQUAL(tmp.getTypeByContent("data/FeatureXMLFile.featureXML"), FileHandler::FEATUREXML)
 	TEST_EQUAL(tmp.getTypeByContent("data/MzXMLFile_test_1.mzXML"), FileHandler::MZXML)
 	TEST_EQUAL(tmp.getTypeByContent("data/MzMLFile_1.mzML"), FileHandler::MZML)
 	TEST_EQUAL(tmp.getTypeByContent("data/DTAFile_test.dta"), FileHandler::DTA)
@@ -102,7 +102,7 @@ CHECK((static Type getTypeByContent(const String &filename)))
 	TEST_EQUAL(tmp.getTypeByContent("data/ANDIFile_test.cdf"), FileHandler::ANDIMS)
 	TEST_EQUAL(tmp.getTypeByContent("data/class_test_infile.txt"), FileHandler::UNKNOWN)
 	TEST_EQUAL(tmp.getTypeByContent("data/IdXMLFile_whole.idXML"), FileHandler::IDXML)
-	TEST_EQUAL(tmp.getTypeByContent("data/TransformationXMLFile_1.xml"), FileHandler::TRANSFORMATIONXML)
+	TEST_EQUAL(tmp.getTypeByContent("data/TransformationXMLFile_1.trafoXML"), FileHandler::TRANSFORMATIONXML)
 	
 	TEST_EXCEPTION(Exception::FileNotFound,tmp.getTypeByContent("/bli/bla/bluff"))
 RESULT
@@ -111,8 +111,8 @@ CHECK((static Type getType(const String &filename)))
 	FileHandler tmp;
 	TEST_EQUAL(tmp.getType("data/class_test_infile.txt"), FileHandler::UNKNOWN)
 	TEST_EQUAL(tmp.getType("data/IdXMLFile_whole.idXML"), FileHandler::IDXML)
-	TEST_EQUAL(tmp.getType("data/ConsensusXMLFile.xml"), FileHandler::CONSENSUSXML)
-	TEST_EQUAL(tmp.getType("data/TransformationXMLFile_1.xml"), FileHandler::TRANSFORMATIONXML)
+	TEST_EQUAL(tmp.getType("data/ConsensusXMLFile.consensusXML"), FileHandler::CONSENSUSXML)
+	TEST_EQUAL(tmp.getType("data/TransformationXMLFile_1.trafoXML"), FileHandler::TRANSFORMATIONXML)
 	
 	TEST_EXCEPTION(Exception::FileNotFound,tmp.getType("/bli/bla/bluff"))
 RESULT
@@ -202,9 +202,9 @@ CHECK((template <class FeatureType> bool loadFeatures(const String &filename, Fe
   FileHandler tmp;
 	FeatureMap<> map;
 	TEST_EQUAL(tmp.loadFeatures("test.bla",map), false)	
-	TEST_EQUAL(tmp.loadFeatures("data/FeatureXMLFile2.xml",map), true)
+	TEST_EQUAL(tmp.loadFeatures("data/FeatureXMLFile2.featureXML",map), true)
 	TEST_EQUAL(map.size(),7);
-	TEST_EQUAL(tmp.loadFeatures("data/FeatureXMLFile2.xml",map), true)
+	TEST_EQUAL(tmp.loadFeatures("data/FeatureXMLFile2.featureXML",map), true)
 	TEST_EQUAL(map.size(),7);
 	
 RESULT

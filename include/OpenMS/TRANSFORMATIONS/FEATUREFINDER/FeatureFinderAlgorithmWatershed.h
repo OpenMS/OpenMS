@@ -69,7 +69,7 @@ namespace OpenMS
       {
         UInt spectrum;
         UInt peak;
-        Int intensity;
+        UInt intensity;
         UInt distance;
         Int flag;
         
@@ -131,7 +131,7 @@ namespace OpenMS
         mz_sampling_ = (DoubleReal)(param_.getValue("mz_sampling"));
         cutoff_factor_ = (DoubleReal)(param_.getValue("cutoff_factor"));
         apply_log_ = param_.getValue("apply_log").toBool();
-        peaks_ = (map_->getMaxMZ() - map_->getMinMZ()) / mz_sampling_;
+        peaks_ = UInt( ceil((map_->getMaxMZ() - map_->getMinMZ()) / mz_sampling_));
         Real normalizing_factor = 0;
         if (apply_log_)
         {
@@ -179,7 +179,7 @@ namespace OpenMS
            	GridPoint current_point;
             current_point.spectrum = s;
             current_point.peak = p;
-            current_point.intensity = lip.getData().at(p)*normalizing_factor;
+            current_point.intensity = UInt(round(lip.getData().at(p)*normalizing_factor));
             current_point.distance = 0;
             current_point.flag = INIT;
             spectrum_points.push_back(current_point);

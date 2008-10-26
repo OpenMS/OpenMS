@@ -67,7 +67,7 @@ CHECK((void load(String filename, FeatureMap<>& feature_map)))
 	TEST_EXCEPTION( Exception::FileNotFound , dfmap_file.load("dummy/dummy.MzData",e) )
 	
 	// real test
-	dfmap_file.load("data/FeatureXMLFile.xml",e);
+	dfmap_file.load("data/FeatureXMLFile.featureXML",e);
 
   // id
 	TEST_EQUAL(e.getIdentifier(),"lsid");
@@ -86,7 +86,7 @@ CHECK((void load(String filename, FeatureMap<>& feature_map)))
 
 	//PeakFileOptions tests
 	dfmap_file.getOptions().setRTRange(makeRange(0, 10));
-	dfmap_file.load("data/FeatureXMLFile.xml",e);
+	dfmap_file.load("data/FeatureXMLFile.featureXML",e);
 	TEST_EQUAL(e.size(),1)
 	TEST_REAL_EQUAL(e[0].getRT(), 0)
 	TEST_REAL_EQUAL(e[0].getMZ(), 35)
@@ -94,7 +94,7 @@ CHECK((void load(String filename, FeatureMap<>& feature_map)))
 
 	dfmap_file.getOptions() = PeakFileOptions();
 	dfmap_file.getOptions().setMZRange(makeRange(10, 50));
-	dfmap_file.load("data/FeatureXMLFile.xml",e);
+	dfmap_file.load("data/FeatureXMLFile.featureXML",e);
 	TEST_EQUAL(e.size(),1)
 	TEST_REAL_EQUAL(e[0].getRT(), 0)
 	TEST_REAL_EQUAL(e[0].getMZ(), 35)
@@ -102,7 +102,7 @@ CHECK((void load(String filename, FeatureMap<>& feature_map)))
 
 	dfmap_file.getOptions() = PeakFileOptions();
 	dfmap_file.getOptions().setIntensityRange(makeRange(400, 600));
-	dfmap_file.load("data/FeatureXMLFile.xml",e);
+	dfmap_file.load("data/FeatureXMLFile.featureXML",e);
 	TEST_EQUAL(e.size(),1)
 	TEST_REAL_EQUAL(e[0].getRT(), 0)
 	TEST_REAL_EQUAL(e[0].getMZ(), 35)
@@ -116,9 +116,9 @@ CHECK((void store(String filename, const FeatureMap<>& feature_map) const))
   FeatureXMLFile f;
   
   NEW_TMP_FILE(tmp_filename);
-  f.load("data/FeatureXMLFile.xml",e);
+  f.load("data/FeatureXMLFile.featureXML",e);
   f.store(tmp_filename,e);
-  TEST_FILE(tmp_filename.c_str(),"data/FeatureXMLFile.xml");
+  TEST_FILE(tmp_filename.c_str(),"data/FeatureXMLFile.featureXML");
 
 RESULT
 
@@ -126,19 +126,19 @@ CHECK( PeakFileOptions& getOptions() )
 	FeatureXMLFile f;
   FeatureMap<> e;
 	f.getOptions().setRTRange(makeRange(1.5, 4.5));
-	f.load("data/FeatureXMLFile2.xml",e);
+	f.load("data/FeatureXMLFile2.featureXML",e);
 	TEST_EQUAL(e.size(), 5)
 
 	f.getOptions().setMZRange(makeRange(1025.0, 2000.0));
-	f.load("data/FeatureXMLFile2.xml",e);
+	f.load("data/FeatureXMLFile2.featureXML",e);
 	TEST_EQUAL(e.size(), 3)
 
 	f.getOptions().setIntensityRange(makeRange(290.0, 310.0));
-	f.load("data/FeatureXMLFile2.xml",e);
+	f.load("data/FeatureXMLFile2.featureXML",e);
 	TEST_EQUAL(e.size(), 1)
 	
 	f.getOptions().setMetadataOnly(true);
-	f.load("data/FeatureXMLFile2.xml",e);
+	f.load("data/FeatureXMLFile2.featureXML",e);
 	TEST_EQUAL(e.getIdentifier(), "lsid2")
 	TEST_EQUAL(e.size(), 0)
 RESULT
@@ -155,7 +155,7 @@ CHECK([EXTRA] static bool isValid(const String& filename))
 	
 	//test if full file is valid
 	NEW_TMP_FILE(filename);
-	f.load("data/FeatureXMLFile.xml",e);
+	f.load("data/FeatureXMLFile.featureXML",e);
 	f.store(filename, e);	
   TEST_EQUAL(f.isValid(filename),true);
 RESULT

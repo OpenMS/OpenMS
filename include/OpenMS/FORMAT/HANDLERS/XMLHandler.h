@@ -156,76 +156,7 @@ namespace OpenMS
 				return xercesc::XMLString::compareString(a,b)==0;
 			}
 
-			///@name cvParam and userParam handling methods (for mzData and FeatureXML)
-			//@{
-			/**  
-				@brief write cvParam containing strings to stream
-				
-				@p value string value
-				@p acc accession number defined by ontology
-				@p name term defined by ontology
-				@p indent number of tabs used in front of tag
-				
-				Example:
-				&lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value="@p value"/&gt;
-			*/
-			inline void writeCVS_(std::ostream& os, DoubleReal value, const String& acc, const String& name, int indent=4) const
-			{
-				if (value!=0.0)
-				{
-					os << String(indent,'\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:" << acc << "\" name=\"" << name << "\" value=\"" << std::setprecision(writtenDigits<DoubleReal>()) << value << "\"/>\n";
-				}
-			}
-			/**  
-				@brief write cvParam containing strings to stream
-				
-				@p value string value
-				@p acc accession number defined by ontology
-				@p name term defined by ontology
-				@p indent number of tabs used in front of tag
-				
-				Example:
-				&lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value="@p value"/&gt;
-			*/
-			inline void writeCVS_(std::ostream& os, const String& value, const String& acc, const String& name, int indent=4) const
-			{
-				if (value!="")
-				{
-					os << String(indent,'\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:" << acc << "\" name=\"" << name << "\" value=\"" << value << "\"/>\n";
-				}
-			}
-
-			/**  
-				@brief write cvParam element to stream
-
-				@p os Output stream
-				@p value enumeration value	
-				@p map index if the terms in cv_terms_
-				@p acc accession number defined by ontology
-				@p name term defined by ontology
-				@p indent number of tabs used in front of tag
-				
-				Example:
-				&lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value=""/&gt;
-			*/
-			void writeCVS_(std::ostream& os, UInt value, UInt map, const String& acc, const String& name, UInt indent=4);
-
-			///Writing the MetaInfo as UserParam to the file
-			inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent=4)
-			{
-				std::vector<String> keys;
-				meta.getKeys(keys);
-				for (std::vector<String>::const_iterator it = keys.begin(); it!=keys.end(); ++it)
-				{
-					if ( (*it)[0] != '#')  // internally used meta info start with '#'
-					{
-						os << String(indent,'\t') << "<userParam name=\"" << *it << "\" value=\"" << meta.getMetaValue(*it) << "\"/>\n";
-					}
-				}
-			}
-			//@}
-
-			///@name General MetaInfo handling (for IdXML, FeatureXML, FeaturePairsXML)
+			///@name General MetaInfo handling (for IdXML, FeatureXML)
 			//@{
 			///Writes the content of MetaInfoInterface to the file
 			void writeUserParam_(const String& tag_name, std::ostream& os, const MetaInfoInterface& meta, UInt indent) const;

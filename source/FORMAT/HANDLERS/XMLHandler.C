@@ -104,23 +104,6 @@ namespace OpenMS
 			return error_message_;
 		}
 
-		void XMLHandler::writeCVS_(std::ostream& os, UInt value, UInt map, const String& acc, const String& name, UInt indent)
-		{
-			//abort when receiving a wrong map index
-			if (map>=cv_terms_.size())
-			{
-				warning(String("Cannot find map '") + map + "' needed to write CV term '" + name + "' with accession '" + acc + "'.");
-				return;
-			}
-			//abort when receiving a wrong term index
-			if (value>=cv_terms_[map].size())
-			{
-				warning(String("Cannot find value '") + value + "' needed to write CV term '" + name + "' with accession '" + acc + "'.");
-				return;
-			}
-			XMLHandler::writeCVS_(os, cv_terms_[map][value], acc, name, indent);
-		}
-
 		void XMLHandler::writeUserParam_(const String& tag_name, std::ostream& os, const MetaInfoInterface& meta, UInt indent) const
 		{
 			std::vector<String> keys;

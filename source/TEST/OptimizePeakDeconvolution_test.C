@@ -114,7 +114,7 @@ CHECK((bool optimize(std::vector<PeakShape>& peaks,int failure)))
   	OptimizationFunctions::positions_DC_[i] = origin +i*spacing;
     OptimizationFunctions::signal_DC_[i] = peak_shape(origin +i*spacing);
    }
-  String file = "data/OptimizePeakDeconvolution.xml";
+  String file = "data/OptimizePeakDeconvolution.ini";
   Param param;
   param.load(file);
 

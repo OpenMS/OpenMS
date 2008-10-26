@@ -61,7 +61,7 @@ PRECISION(0.01)
 CHECK((void load(const String &filename, ConsensusMap &map)))
   ConsensusMap cons_map;
   ConsensusXMLFile cons_file;
-  cons_file.load("data/ConsensusXMLFile.xml", cons_map);
+  cons_file.load("data/ConsensusXMLFile.consensusXML", cons_map);
 	TEST_EQUAL(cons_map.getMetaValue("name1")==DataValue("value1"),true)
 	TEST_EQUAL(cons_map.getMetaValue("name2")==DataValue(2),true)
   TEST_EQUAL(cons_map.getIdentifier(),"lsid");
@@ -110,19 +110,19 @@ CHECK((void load(const String &filename, ConsensusMap &map)))
 	//PeakFileOptions tests
 	
 	cons_file.getOptions().setRTRange(makeRange(815, 818));
-	cons_file.load("data/ConsensusXMLFile3.xml",cons_map);
+	cons_file.load("data/ConsensusXMLFile3.consensusXML",cons_map);
 	TEST_EQUAL(cons_map.size(),1)
 	TEST_REAL_EQUAL(cons_map[0].getRT(), 817.266)
 
 	cons_file.getOptions() = PeakFileOptions();
 	cons_file.getOptions().setMZRange(makeRange(944, 945));
-	cons_file.load("data/ConsensusXMLFile3.xml",cons_map);
+	cons_file.load("data/ConsensusXMLFile3.consensusXML",cons_map);
 	TEST_EQUAL(cons_map.size(),1)
 	TEST_REAL_EQUAL(cons_map[0].getMZ(), 944.96)
 
 	cons_file.getOptions() = PeakFileOptions();
 	cons_file.getOptions().setIntensityRange(makeRange(15000,24000));
-	cons_file.load("data/ConsensusXMLFile3.xml",cons_map);
+	cons_file.load("data/ConsensusXMLFile3.consensusXML",cons_map);
 	TEST_EQUAL(cons_map.size(),1)
 	TEST_REAL_EQUAL(cons_map[0].getIntensity(),23000.238)
 
@@ -135,7 +135,7 @@ CHECK((void store(const String &filename, const ConsensusMap &map)))
   ConsensusMap cons_map, cons_map2;
   ConsensusXMLFile cons_file;
   
-  cons_file.load("data/ConsensusXMLFile2.xml",cons_map);  
+  cons_file.load("data/ConsensusXMLFile2.consensusXML",cons_map);  
   cons_file.store(tmp_filename,cons_map);
   cons_file.load(tmp_filename,cons_map2);  
   TEST_EQUAL(cons_map.size(),cons_map2.size())
@@ -145,9 +145,9 @@ RESULT
 
 CHECK([EXTRA] (bool isValid(const String& filename)))
   ConsensusXMLFile cons_file;
-  TEST_EQUAL(cons_file.isValid("data/ConsensusXMLFile.xml"),true);
-  TEST_EQUAL(cons_file.isValid("data/ConsensusXMLFile2.xml"),true);
-  TEST_EQUAL(cons_file.isValid("data/ConsensusXMLFile3.xml"),true);
+  TEST_EQUAL(cons_file.isValid("data/ConsensusXMLFile.consensusXML"),true);
+  TEST_EQUAL(cons_file.isValid("data/ConsensusXMLFile2.consensusXML"),true);
+  TEST_EQUAL(cons_file.isValid("data/ConsensusXMLFile3.consensusXML"),true);
 RESULT
 
 /////////////////////////////////////////////////////////////
