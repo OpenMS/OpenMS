@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Marc Sturm $<s
 // --------------------------------------------------------------------------
 
 
@@ -284,7 +284,7 @@ namespace OpenMS
 		}	
 		//draw coord system	(on top distribution)
 		painter.setPen(Qt::black);
-		painter.drawLine(0,h-1,w-margin_+0.5*pen_width,h-1);
+		painter.drawLine(0,h-1,w-margin_+Int(0.5*pen_width),h-1);
 		
 		update();
 	}

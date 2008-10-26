@@ -212,10 +212,8 @@ EXECUTABLES_MATH = \
 	LinearRegression_test\
 	BilinearInterpolation_test\
 	GammaDistributionFitter_test\
-	GaussFitter_test
-	
-#	\
-#	NNLS_test
+	GaussFitter_test\
+	NNLS_test
 
 
 #FILTERING
@@ -418,6 +416,7 @@ EXECUTABLES = \
 	$(EXECUTABLES_ANALYSIS_ID)\
 	$(EXECUTABLES_ANALYSIS_DECHARGING)\
 	$(EXECUTABLES_ANALYSIS_SVM)\
+	$(EXECUTABLES_ANALYSIS_QUANTITATION)\
 	$(EXECUTABLES_ANALYSIS_MAPMATCHING)\
 	$(EXECUTABLES_APPLICATIONS)
 

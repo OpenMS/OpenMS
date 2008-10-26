@@ -86,9 +86,9 @@ namespace OpenMS
 			s2.sortByIntensity(true);
 
 			//heuristic filters (and shortcuts) if spec1 and spec2 have NOT at least one peak in the sets of |heuristic_level|-many highest peaks in common
-			for(PeakSpectrum::ConstIterator it_s1 = s1.begin(); (it_s1-s1.begin())<heuristic_level&&it_s1!=s1.end();++it_s1)
+			for(PeakSpectrum::ConstIterator it_s1 = s1.begin(); UInt(it_s1-s1.begin())<heuristic_level&&it_s1!=s1.end();++it_s1)
 			{
-				for(PeakSpectrum::ConstIterator it_s2 = s2.begin(); (it_s2-s2.begin())<heuristic_level&&it_s2!=s2.end();++it_s2)
+				for(PeakSpectrum::ConstIterator it_s2 = s2.begin(); UInt(it_s2-s2.begin())<heuristic_level&&it_s2!=s2.end();++it_s2)
 				{
 					// determine if it is a match, i.e. mutual peak at certain m/z with epsilon tolerance
 					if(fabs((*it_s2).getMZ() - (*it_s1).getMZ()) < epsilon)

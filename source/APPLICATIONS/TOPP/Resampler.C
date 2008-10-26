@@ -131,9 +131,9 @@ class TOPPResampler
 			Int cols = getIntOption_("width");
 	    if (cols == 0)
 	    {
-	      cols = exp.getMaxMZ() - exp.getMinMZ();
+	      cols = UInt(ceil(exp.getMaxMZ() - exp.getMinMZ()));
 	    }
-			if ( cols < 1 )
+			if ( cols <= 0 )
 			{
 				writeLog_("Error: Zero columns is not possible.");
 				return ILLEGAL_PARAMETERS;

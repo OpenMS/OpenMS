@@ -438,7 +438,7 @@ class TOPPSILACAnalyzer
 	  				best_n = i;
 	  			}			
 	  		}
-	  		best_n = cluster_number_scaling * best_n; // slightly increase cluster number
+	  		best_n = UInt(cluster_number_scaling * best_n); // slightly increase cluster number
 	  		cuttree(size, tree, best_n, clusterid);
 	  		cluster_number[charge] = best_n;
 	  		
