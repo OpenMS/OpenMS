@@ -55,6 +55,14 @@ namespace OpenMS
 		{
 			delete (data_.str_list_);
 		}
+		else if(value_type_ == INT_LIST)
+		{
+			delete (data_.int_list_);
+		}
+		else if(value_type_ == DOUBLE_LIST)
+		{
+			delete (data_.dou_list_);
+		}
 	}
 	
 	//-------------------------------------------------------------------
@@ -94,6 +102,16 @@ namespace OpenMS
 	{ 
 		data_.str_list_ = new StringList(p);
 	}
+	
+	DataValue::DataValue(const IntList& p): value_type_(INT_LIST)
+	{ 
+		data_.int_list_ = new IntList(p);
+	}
+	
+	DataValue::DataValue(const DoubleList& p): value_type_(DOUBLE_LIST)
+	{ 
+		data_.dou_list_ = new DoubleList(p);
+	}
 
 	
 	//--------------------------------------------------------------------
@@ -108,6 +126,14 @@ namespace OpenMS
 		else if (value_type_==STRING_LIST)
 		{
 			data_.str_list_ = new StringList(*(p.data_.str_list_));
+		}
+		else if (value_type_==INT_LIST)
+		{
+			data_.int_list_ = new IntList(*(p.data_.int_list_));
+		}
+		else if (value_type_==DOUBLE_LIST)
+		{
+			data_.dou_list_ = new DoubleList(*(p.data_.dou_list_));
 		}
 	}
 	
@@ -128,8 +154,15 @@ namespace OpenMS
 		{
 			delete(data_.str_);
 		}
+		else if (value_type_==INT_LIST)
+		{
+			delete(data_.int_list_);
+		}
+		else if (value_type_==DOUBLE_LIST)
+		{
+			delete(data_.dou_list_);
+		}
 		
-
 		// assign
 		if (p.value_type_ == STRING_LIST)
 		{
@@ -138,6 +171,14 @@ namespace OpenMS
 		else if (p.value_type_ == STRING_VALUE)
 		{
 			data_.str_ = new String(*(p.data_.str_));
+		}
+		else if (p.value_type_ == INT_LIST)
+		{
+			data_.int_list_ = new IntList(*(p.data_.int_list_));
+		}
+		else if (p.value_type_ == DOUBLE_LIST)
+		{
+			data_.dou_list_ = new DoubleList(*(p.data_.dou_list_));
 		}
 		else
 		{
@@ -221,6 +262,23 @@ namespace OpenMS
 		return *(data_.str_list_);
 	}
 
+	DataValue::operator IntList() const
+	{
+		if(value_type_ != INT_LIST)
+		{
+		  throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert non-IntList DataValue to IntList");
+		}
+		return *(data_.int_list_);
+	}
+
+	DataValue::operator DoubleList() const
+	{
+		if(value_type_ != DOUBLE_LIST)
+		{
+		  throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert non-DoubleList DataValue to DoubleList");
+		}
+		return *(data_.dou_list_);
+	}
 	
 	// Convert DataValues to char*
 	const char* DataValue::toChar() const
@@ -242,6 +300,8 @@ namespace OpenMS
 			case DataValue::EMPTY_VALUE: break;
 			case DataValue::STRING_VALUE: return *(data_.str_); break;
 			case DataValue::STRING_LIST: ss << *(data_.str_list_) ; break;
+			case DataValue::INT_LIST: ss << *(data_.int_list_) ; break;
+			case DataValue::DOUBLE_LIST: ss << *(data_.dou_list_) ; break;
 			case DataValue::INT_VALUE: ss << data_.int_ ; break;
 			case DataValue::DOUBLE_VALUE: ss.precision(writtenDigits<DoubleReal>()); ss << data_.dou_ ; break;
 			default: throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to String");
@@ -257,6 +317,8 @@ namespace OpenMS
 			case DataValue::EMPTY_VALUE: break;
 			case DataValue::STRING_VALUE: result = QString::fromStdString(*(data_.str_)); break;
 			case DataValue::STRING_LIST: result = QString::fromStdString(this->toString()) ; break;
+			case DataValue::INT_LIST: result = QString::fromStdString(this->toString()) ; break;
+			case DataValue::DOUBLE_LIST: result = QString::fromStdString(this->toString()) ; break;
 			case DataValue::INT_VALUE: result.setNum(data_.int_); break;
 			case DataValue::DOUBLE_VALUE: result.setNum(data_.dou_,'f'); break;
 			default: throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Could not convert DataValue to QString");
@@ -290,6 +352,8 @@ namespace OpenMS
 				case DataValue::EMPTY_VALUE: return true;
 	  		case DataValue::STRING_VALUE: return *(a.data_.str_) == *(b.data_.str_);
 	  		case DataValue::STRING_LIST: return *(a.data_.str_list_) == *(b.data_.str_list_);
+			case DataValue::INT_LIST: return *(a.data_.int_list_) == *(b.data_.int_list_);
+			case DataValue::DOUBLE_LIST: return *(a.data_.dou_list_)==*(b.data_.dou_list_);
 				case DataValue::INT_VALUE: return a.data_.int_ == b.data_.int_;
 			  case DataValue::DOUBLE_VALUE: return fabs(a.data_.dou_ - b.data_.dou_)<1e-6;
 			};
@@ -310,6 +374,8 @@ namespace OpenMS
 		{
 			case DataValue::STRING_VALUE: os << *(p.data_.str_); break;
 			case DataValue::STRING_LIST: os << *(p.data_.str_list_); break;
+			case DataValue::INT_LIST: os << *(p.data_.int_list_);break;
+			case DataValue::DOUBLE_LIST: os << *(p.data_.dou_list_);break;
 			case DataValue::INT_VALUE: os << p.data_.int_; break;
 			case DataValue::DOUBLE_VALUE: os << p.data_.dou_; break;
 			case DataValue::EMPTY_VALUE: break;

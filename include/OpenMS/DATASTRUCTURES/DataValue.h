@@ -30,6 +30,8 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/IntList.h>
+#include <OpenMS/DATASTRUCTURES/DoubleList.h>
 #include <QtCore/QString>
 
 namespace OpenMS
@@ -60,7 +62,9 @@ namespace OpenMS
 				STRING_LIST,      ///< StringList value
 				INT_VALUE,        ///< UInt/Int value
 				DOUBLE_VALUE,     ///< DoubleReal/Real value
-				EMPTY_VALUE       ///< Empty value
+				EMPTY_VALUE,       ///< Empty value
+				INT_LIST,		///< IntList value
+				DOUBLE_LIST	///< DoubleList value
 				};
 
 			/// @name Constructors and destructors
@@ -73,6 +77,10 @@ namespace OpenMS
 			DataValue(const String&);
 			/// specific constructor for StringList
 			DataValue(const StringList&);
+			/// specific constructor for DoubleReal
+			DataValue(const IntList&);
+			/// specific constructor for DoubleReal
+			DataValue(const DoubleList&);
 			/// specific constructor for DoubleReal
 			DataValue(DoubleReal);
 			/// specific constructor for Real
@@ -103,6 +111,18 @@ namespace OpenMS
 				@exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
 			*/
 			operator StringList() const ;
+			/**
+				@brief conversion operator to IntList
+
+				@exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+			*/
+			operator IntList() const ;
+			/**
+				@brief conversion operator to DoubleList
+	
+				@exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+			*/
+			operator DoubleList() const ;
 			/**
 				@brief conversion operator to double
 
@@ -188,6 +208,8 @@ namespace OpenMS
 				DoubleReal dou_;
 				String* str_;
 				StringList* str_list_;
+				IntList* int_list_;
+				DoubleList* dou_list_;
 			} data_;
 	};
 }

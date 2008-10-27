@@ -368,6 +368,16 @@ namespace OpenMS
 		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
 	}
 
+	void Param::setValue(const String& key, const IntList& value, const String& description, const StringList& tags)
+	{
+		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
+	}
+
+	void Param::setValue(const String& key, const DoubleList& value, const String& description, const StringList& tags)
+	{
+		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
+	}
+	
 	void Param::setValidStrings(const String& key, const std::vector<String>& strings)
 	{
 		ParamEntry& entry = getEntry_(key);
@@ -717,6 +727,12 @@ namespace OpenMS
 					case DataValue::STRING_LIST:
 						os << indentation << "<ITEMLIST name=\"" << it->name << "\" type=\"string\"";
 						break;
+					case DataValue::INT_LIST:
+						os << indentation << "<ITEMLIST name=\"" << it->name << "\" type=\"int\"";
+						break;
+					case DataValue::DOUBLE_LIST:
+						os << indentation << "<ITEMLIST name=\"" << it->name << "\" type=\"double\"";
+						break;
 					default:
 						break;
 				};
@@ -814,6 +830,29 @@ namespace OpenMS
 							os << indentation << "</ITEMLIST>" << endl;	
 						}
 						break;
+					case DataValue::INT_LIST:
+						{
+							os << ">" <<  endl;
+							const IntList& list = it->value;
+							for (UInt i=0; i<list.size();++i)
+							{
+								os << indentation << "  <LISTITEM value=\"" << list[i] << "\"/>" << endl;	
+							}
+							os << indentation << "</ITEMLIST>" << endl;	
+						}
+						break;
+					case DataValue::DOUBLE_LIST:
+						{
+							os << ">" <<  endl;
+							const StringList& list = it->value;
+							for (UInt i=0; i<list.size();++i)
+							{
+								os << indentation << "  <LISTITEM value=\"" << list[i] << "\"/>" << endl;	
+							}
+							os << indentation << "</ITEMLIST>" << endl;	
+						}
+						break;
+					
 					default:
 						break;
 				};

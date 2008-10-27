@@ -97,6 +97,19 @@ CHECK((DataValue(const StringList &)))
 	TEST_EQUAL((StringList)d, sl)
 RESULT
 
+CHECK((DataValue(const IntList &)))
+	IntList il;
+	il << 1 <<2 ;
+	DataValue d(il);
+	TEST_EQUAL((IntList)d,il)
+RESULT
+
+CHECK((DataValue(const DoubleList &)))
+	DoubleList dl;
+	dl << 1.2 << 22.3333;
+	DataValue d(dl);
+	TEST_EQUAL((DoubleList)d,dl);
+RESULT
 // copy ctor
 
 CHECK((DataValue(const DataValue&)))
@@ -108,6 +121,8 @@ CHECK((DataValue(const DataValue&)))
 	DataValue p7(std::string("test string"));
 	DataValue p8(StringList::create("test string,string2,last string"));
 	DataValue p9;
+	DataValue p10(IntList::create("1,2,3,4,5"));
+	DataValue p11(DoubleList::create("1.2,2.3,3.4"));
 	DataValue copy_of_p1(p1);
 	DataValue copy_of_p3(p3);
 	DataValue copy_of_p4(p4);
@@ -116,6 +131,8 @@ CHECK((DataValue(const DataValue&)))
 	DataValue copy_of_p7(p7);
 	DataValue copy_of_p8(p8);
 	DataValue copy_of_p9(p9);
+	DataValue copy_of_p10(p10);
+	DataValue copy_of_p11(p11);
 	TEST_REAL_EQUAL( (DoubleReal) copy_of_p1, 1.23)
 	TEST_REAL_EQUAL( (Real) copy_of_p3, 1.23)
 	TEST_EQUAL( (Int) copy_of_p4, -3)
@@ -124,6 +141,8 @@ CHECK((DataValue(const DataValue&)))
 	TEST_EQUAL( (std::string) copy_of_p7, "test string")
 	TEST_EQUAL( (StringList) copy_of_p8, StringList::create("test string,string2,last string"))
 	TEST_EQUAL( (copy_of_p9.isEmpty()),true)
+	TEST_EQUAL((IntList)copy_of_p10,IntList::create("1,2,3,4,5"))
+	TEST_EQUAL((DoubleList)copy_of_p11,DoubleList::create("1.2,2.3,3.4"))
 RESULT
 
 // assignment operator
@@ -137,6 +156,8 @@ CHECK((DataValue& operator = (const DataValue&)))
 	DataValue p7(std::string("test string"));
 	DataValue p8(StringList::create("test string,string2,last string"));
 	DataValue p9;
+	DataValue p10(IntList::create("1,2,3,4,5"));
+	DataValue p11(DoubleList::create("1.2,2.3,3.4"));
 	DataValue copy_of_p;
 	copy_of_p = p1;
 	TEST_REAL_EQUAL( (DoubleReal) copy_of_p, 1.23)
@@ -154,6 +175,10 @@ CHECK((DataValue& operator = (const DataValue&)))
 	TEST_EQUAL( (StringList) copy_of_p, StringList::create("test string,string2,last string"))
 	copy_of_p = p9;
 	TEST_EQUAL( (copy_of_p.isEmpty()),true)
+	copy_of_p = p10;
+	TEST_EQUAL((IntList)copy_of_p,IntList::create("1,2,3,4,5"))
+	copy_of_p = p11;
+	TEST_EQUAL((DoubleList)copy_of_p,DoubleList::create("1.2,2.3,3.4"))
 RESULT
 
 // Is DataValue object empty?
@@ -186,6 +211,22 @@ CHECK((operator StringList() const))
 	DataValue d(sl);
 	StringList sl_op = d;
 	TEST_EQUAL(sl_op, d)
+RESULT
+
+CHECK((operator IntList() const))
+	IntList il;
+	il << 1<< 2;
+	DataValue d(il);
+	IntList il_op = d;
+	TEST_EQUAL(il_op,d);
+RESULT
+
+CHECK((operator DoubleList() const))
+	DoubleList dl;
+	dl<< 1.2 <<22.34455;
+	DataValue d(dl);
+	DoubleList dl_op = d;
+	TEST_EQUAL(dl_op,d);
 RESULT
 
 CHECK((operator DoubleReal() const))
@@ -277,6 +318,10 @@ CHECK((String toString() const))
   TEST_EQUAL(a.toString(), "-23456.78")
   a = DataValue(StringList::create("test string,string2,last string"));
   TEST_EQUAL(a.toString(), "[test string, string2, last string]")
+  a = DataValue(IntList::create("1,2,3,4,5"));
+  TEST_EQUAL(a.toString(),"[1, 2, 3, 4, 5]")
+  a= DataValue(DoubleList::create("1.2,23.3333"));
+  TEST_EQUAL(a.toString(),"[1.2, 23.3333]")
 RESULT
 
 CHECK((bool toBool() const))
@@ -310,6 +355,10 @@ CHECK((QString toQString() const))
   TEST_EQUAL(a.toQString().toStdString(), "-23456.780000")
   a = DataValue(StringList::create("test string,string2,last string"));
   TEST_EQUAL(a.toQString().toStdString(), "[test string, string2, last string]")
+  a =DataValue(IntList::create("1,2,3"));
+  TEST_EQUAL(a.toQString().toStdString(), "[1, 2, 3]")
+  a = DataValue(DoubleList::create("1.22,43.23232"));
+  TEST_EQUAL(a.toQString().toStdString(),"[1.22, 43.2323]")
 RESULT
 
 CHECK(([EXTRA] friend std::ostream& operator<<(std::ostream&, const DataValue&)))
@@ -336,12 +385,19 @@ CHECK((DataType valueType() const))
 	TEST_EQUAL(a4.valueType(), DataValue::STRING_VALUE);
 
 	DataValue a5(StringList::create("test string,string2,last string"));
-	TEST_EQUAL(a5.valueType(), DataValue::STRING_LIST);
+	TEST_EQUAL(a5.valueType(), DataValue::STRING_LIST)
 
 	DataValue a6(UInt(2));
 	TEST_EQUAL(a6.valueType(), DataValue::INT_VALUE);
+	
+	DataValue a7(IntList::create("1,2,3"));
+	TEST_EQUAL(a7.valueType(),DataValue::INT_LIST)
+	
+	DataValue a8(DoubleList::create("1.2,32.4567"));
+	TEST_EQUAL(a8.valueType(),DataValue::DOUBLE_LIST);
 RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+

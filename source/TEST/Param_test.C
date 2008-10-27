@@ -675,6 +675,26 @@ CHECK((void setValue(const String& key, DoubleReal value, const String& descript
 	TEST_EQUAL(p.hasTag("key","advanced"), true)
 RESULT
 
+CHECK((void setValue(const String& key, DoubleList& value, const String& description="", bool advanced=false)))
+	Param p;
+	DoubleList dl = DoubleList::create("1.2,23.33");
+	p.setValue("key",DoubleList::create("1.2,23.33"),"description",StringList::create("advanced"));
+	TEST_EQUAL(p.exists("key"), true)
+	TEST_EQUAL(p.getValue("key"), dl)
+	TEST_EQUAL(p.getDescription("key"), "description")
+	TEST_EQUAL(p.hasTag("key","advanced"), true)
+RESULT
+
+CHECK((void setValue(const String& key, IntList& value, const String& description="", bool advanced=false)))
+	Param p;
+	IntList il = IntList::create("1,23");
+	p.setValue("key",IntList::create("1.2,23.33"),"description",StringList::create("advanced"));
+	TEST_EQUAL(p.exists("key"), true)
+	TEST_EQUAL(p.getValue("key"), il)
+	TEST_EQUAL(p.getDescription("key"), "description")
+	TEST_EQUAL(p.hasTag("key","advanced"), true)
+RESULT
+
 CHECK(StringList getTags(const String& key) const)
 	Param p;
 	TEST_EXCEPTION(Exception::ElementNotFound, p.getTags("key"))

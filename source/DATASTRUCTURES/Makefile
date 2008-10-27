@@ -39,6 +39,8 @@ CPP_SOURCES=\
 	Map.C\
 	String.C\
 	StringList.C\
+	IntList.C\
+	DoubleList.C\
 	Param.C\
 	Date.C\
 	Matrix.C\

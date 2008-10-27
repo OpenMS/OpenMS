@@ -53,8 +53,6 @@ namespace OpenMS
 		
 		Each parameter can be annotated with an arbitrary number of tags. Tags cannot contain comma chracters!
 		@n E.g. the <i>advanced</i> tag indicates if this parameter is shown to all users or in advanced mode only.
-		
-		@todo Add support for int/float lists (Hiwi)
 
 		@see DefaultParamHandler
 		
@@ -285,7 +283,24 @@ namespace OpenMS
 				@param tags list of tags associated to this parameter
 			*/
 			void setValue(const String& key, const StringList& value, const String& description="", const StringList& tags=StringList());
+			/**
+				@brief Set a IntList value.
 
+				@param key String key. Can contain ':' which separates section names
+				@param value The actual value
+				@param description Verbose description of the parameter
+				@param tags list of tags associated to this parameter
+			*/
+			void setValue(const String& key, const IntList& value, const String& description="", const StringList& tags=StringList());
+			/**
+				@brief Set a DoubleList value.
+
+				@param key String key. Can contain ':' which separates section names
+				@param value The actual value
+				@param description Verbose description of the parameter
+				@param tags list of tags associated to this parameter
+			*/
+			void setValue(const String& key, const DoubleList& value, const String& description="", const StringList& tags=StringList());
 			/**
 				@brief Returns a value of a parameter.
 			
