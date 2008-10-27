@@ -66,6 +66,17 @@ CHECK((static Int solve(const Matrix< double > &A, const Matrix< double > &b, Ma
 	double x_1[3][1] = {{0.931153},{0.36833},{0}};
 
 	Matrix<double> A,b,x;
+	A.setMatrix<4,4>(A_1);
+	b.setMatrix<4,1>(b_1);
+	x.resize(4,1);
+	
+	PRECISION(0.0005);
+	
+	NNLS::solve(A,b,x);
+	for (size_t i=0;i<x.rows();++i)
+	{
+		TEST_REAL_EQUAL(x(i,0), x_1[i][0]);
+	}	
 	
 	
 		
@@ -80,14 +91,14 @@ CHECK((static Int solve(const Matrix< double > &A, const Matrix< double > &b, Ma
 	double b_2[4][1] = {{5},{45},{4},{31}};
 	double x_2[4][1] = {{4.3395},{48.4364},{0},{33.4945}};	
 	
-	A.setMatrix<4,4>(A_1);
-	b.setMatrix<4,1>(b_1);
+	A.setMatrix<4,4>(A_2);
+	b.setMatrix<4,1>(b_2);
 	x.resize(4,1);
 	
 	NNLS::solve(A,b,x);
 	for (size_t i=0;i<x.rows();++i)
 	{
-		TEST_REAL_EQUAL(x(i,0), x_1[i][0]);
+		TEST_REAL_EQUAL(x(i,0), x_2[i][0]);
 	}	
 	
 }
