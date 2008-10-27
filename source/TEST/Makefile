@@ -213,7 +213,7 @@ EXECUTABLES_MATH = \
 	BilinearInterpolation_test\
 	GammaDistributionFitter_test\
 	GaussFitter_test\
-	NNLS_test
+	NonNegativeLeastSquaresSolver_test
 
 
 #FILTERING

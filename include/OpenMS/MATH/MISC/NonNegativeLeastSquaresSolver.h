@@ -37,7 +37,7 @@ namespace OpenMS
 	 *  (i.e. minimum residual)
 	 *
 	 */
-	class NNLS
+	class NonNegativeLeastSquaresSolver
 	{
 	public:
 		
@@ -50,7 +50,7 @@ namespace OpenMS
 	 *	@param: A Input matrix A of size mxn
 	 *	@param: b Input vector (matrix with one column) b of size mx1
 	 *	@param: x Output vector with non-negative least square solution of size mx1
-	 *	@return: status of solution (either NNLS::SOLVED, NNLS::ITERATION_EXCEEDED)
+	 *	@return: status of solution (either NonNegativeLeastSquaresSolver::SOLVED, NonNegativeLeastSquaresSolver::ITERATION_EXCEEDED)
 	 *
 	 *	@throws: Exception::InvalidParameters if Matrix dimensions do not fit
 	 */

@@ -24,7 +24,7 @@
 // $Maintainer: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/MATH/MISC/NNLS.h>
+#include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
 
 // the following is done on purpose!
 // we include the .cc file in order to keep the namespace clean
@@ -43,11 +43,11 @@ namespace OpenMS
 	 *	@param: A Input matrix A of size mxn
 	 *	@param: b Input vector (matrix with one column) b of size mx1
 	 *	@param: x Output vector with non-negative least square solution of size nx1
-	 *	@return: status of solution (either NNLS::SOLVED, NNLS::ITERATION_EXCEEDED)
+	 *	@return: status of solution (either NonNegativeLeastSquaresSolver::SOLVED, NonNegativeLeastSquaresSolver::ITERATION_EXCEEDED)
 	 *
 	 *	@throws: Exception::InvalidParameters if Matrix dimensions do not fit
 	 */
-	Int NNLS::solve(const Matrix<double>& A, const Matrix<double>& b, Matrix<double>& x)
+	Int NonNegativeLeastSquaresSolver::solve(const Matrix<double>& A, const Matrix<double>& b, Matrix<double>& x)
 	{
 		
 		if (A.rows()!= b.rows())
@@ -123,7 +123,7 @@ namespace OpenMS
 		if (mode==1) return SOLVED;
 		else if (mode==2)
 		{ // this should not happen (dimensions are bad)
-			throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"NNSL::solve() Bad dimension reported!");
+			throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,"NonNegativeLeastSquaresSolver::solve() Bad dimension reported!");
 		}
 		else /*if (mode==3)*/ return ITERATION_EXCEEDED;
 		 

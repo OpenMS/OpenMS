@@ -35,7 +35,7 @@ DIRECTORY=MATH/MISC
 CPP_SOURCES= \
   MathFunctions.C\
 	LinearInterpolation.C\
-	NNLS.C
+	NonNegativeLeastSquaresSolver.C
 
 include ../../common.mak
 -include .Dependencies

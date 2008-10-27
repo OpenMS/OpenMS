@@ -27,26 +27,26 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/MATH/MISC/NNLS.h>
+#include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(NNLS, "$Id$")
+START_TEST(NonNegativeLeastSquaresSolver, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-NNLS* ptr = 0;
-CHECK(NNLS())
+NonNegativeLeastSquaresSolver* ptr = 0;
+CHECK(NonNegativeLeastSquaresSolver())
 {
-	ptr = new NNLS();
+	ptr = new NonNegativeLeastSquaresSolver();
 	TEST_NOT_EQUAL(ptr, 0)
 }
 RESULT
 
-CHECK(~NNLS())
+CHECK(~NonNegativeLeastSquaresSolver())
 {
 	delete ptr;
 }
@@ -72,7 +72,7 @@ CHECK((static Int solve(const Matrix< double > &A, const Matrix< double > &b, Ma
 	
 	PRECISION(0.0005);
 	
-	NNLS::solve(A,b,x);
+	NonNegativeLeastSquaresSolver::solve(A,b,x);
 	for (size_t i=0;i<x.rows();++i)
 	{
 		TEST_REAL_EQUAL(x(i,0), x_1[i][0]);
@@ -95,7 +95,7 @@ CHECK((static Int solve(const Matrix< double > &A, const Matrix< double > &b, Ma
 	b.setMatrix<4,1>(b_2);
 	x.resize(4,1);
 	
-	NNLS::solve(A,b,x);
+	NonNegativeLeastSquaresSolver::solve(A,b,x);
 	for (size_t i=0;i<x.rows();++i)
 	{
 		TEST_REAL_EQUAL(x(i,0), x_2[i][0]);

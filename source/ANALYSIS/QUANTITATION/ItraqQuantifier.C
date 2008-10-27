@@ -26,7 +26,7 @@
 //
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
-#include <OpenMS/MATH/MISC/NNLS.h>
+#include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 
 
@@ -229,8 +229,8 @@ namespace OpenMS
 					throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; the Matrix is not invertible!");
 				}
 				#endif
-				Int status = NNLS::solve(channel_frequency,m_b,m_x);
-				if (status!=NNLS::SOLVED)
+				Int status = NonNegativeLeastSquaresSolver::solve(channel_frequency,m_b,m_x);
+				if (status!=NonNegativeLeastSquaresSolver::SOLVED)
 				{
 					throw Exception::FailedAPICall(__FILE__, __LINE__, __PRETTY_FUNCTION__,"ItraqQuantifier: Failed to find least-square fit!");
 				}
