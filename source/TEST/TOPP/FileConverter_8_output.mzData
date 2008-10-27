@@ -51,9 +51,11 @@
 		</instrument>
 		<dataProcessing>
 			<software>
-				<name>Xcalibur</name>
-				<version>2.0.5</version>
+				<name>ProteoWizard</name>
+				<version>1.0</version>
 			</software>
+			<processingMethod>
+			</processingMethod>
 		</dataProcessing>
 	</description>
 	<spectrumList count="3">

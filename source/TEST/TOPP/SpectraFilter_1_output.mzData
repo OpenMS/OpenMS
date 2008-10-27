@@ -102,9 +102,8 @@
 				<comments>none</comments>
 			</software>
 			<processingMethod>
-				<cvParam cvLabel="psi" name="Deisotoping" accession="PSI:1000033" value="false"/>
-				<cvParam cvLabel="psi" name="ChargeDeconvolution" accession="PSI:1000034" value="false"/>
-				<cvParam cvLabel="psi" accession="PSI:1000035" name="PeakProcessing" value="CentroidMassSpectrum"/>
+				<cvParam cvLabel="psi" name="Deisotoping" accession="PSI:1000033" value="true"/>
+				<cvParam cvLabel="psi" name="ChargeDeconvolution" accession="PSI:1000034" value="true"/>
 				<userParam name="URL" value="www.open-ms.de"/>
 				<userParam name="ProcessingComment" value="Processed"/>
 			</processingMethod>
@@ -156,7 +155,7 @@
 						<ionSelection>
 							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="1.2"/>
 							<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="2"/>
-							<cvParam cvLabel="psi" accession="PSI:1000042" name="Intensity" value="2.3"/>
+							<cvParam cvLabel="psi" accession="PSI:1000042" name="Intensity" value="2.29999995231628"/>
 							<cvParam cvLabel="psi" accession="PSI:1000043" name="IntensityUnits" value="NumberOfCounts"/>
 							<userParam name="URL" value="www.open-ms.de"/>
 							<userParam name="IonSelectionComment" value="selected"/>

@@ -43,7 +43,8 @@ namespace OpenMS
 
 		This class provides all functionality to view the meta information of an object of type PeptideIdentification.		
 	*/
-	class PeptideIdentificationVisualizer : public BaseVisualizer
+	class PeptideIdentificationVisualizer
+		: public BaseVisualizer
 	{
 		Q_OBJECT
 
@@ -79,7 +80,7 @@ namespace OpenMS
 			/// The id of the item in the tree
 			int tree_id_;
 			
-			/// @name Edit fields
+			///@name Edit fields and buttons
 	    //@{
 			QLineEdit* identifier_;
 			QLineEdit* score_type_;

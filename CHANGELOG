@@ -21,6 +21,10 @@ Changes to OpenMS XML formats:
   - replaced 'advanced' attribute by the 'tags' attribute.
 - featureXML:
   - added tag <subordinate> to store competing features that did not qualify for the final map
+  - removed <description> section
+  - added document Id
+- consensusXML:
+	- added document Id
 
 Changes to the contrib package:
 - Updated SeqAn package to revision 2666 (this fixes the STL debug error)
@@ -29,10 +33,15 @@ Changes to the contrib package:
 Detailed list of changes to specific OpenMS classes:
 - Renamed and moved classes
   - Renamed MSMetaDataExplorer to MetaDataBrowser
+  - Renamed ProcessingMethod to DataProcessing
 - Removed classes
   - Removed DPeakArray and moved the functionality to the classes that inherited from DPeakArray
 - New classes
+  - IntList
+  - StringList
 - Changes to classes
+	- DataProcessing: Reimplementation for MzML data.
+	- Software: Reimplementation for MzML data.
   - DSpectrum
     - The peaks are no longer stored in a container member, but DSpectrum is derived 
       from std::vector<PeakType>.
@@ -49,7 +58,7 @@ Detailed list of changes to specific OpenMS classes:
   - DPeak and DRichPeak are metafunctions now, e.g. DPeak<1>::Type is a typedef for Peak1D.
   - VersionInfo: Added support for SVN revision info. Slight interface changes.
   - TOPPBase: Print revison info (if meaningful).
-  - METAINFO uses double precision now.
+  - MetaInfo: uses double precision now.
 
 ------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.2                                     ----

@@ -107,10 +107,14 @@ namespace OpenMS
 		if ((String) param_.getValue("intensity_method")=="peak_picker")
 		{
 			do_picking = true;
-			if (ms_exp_data.getProcessingMethod().getSpectrumType()==SpectrumSettings::PEAKS)
+			for (UInt i=0; i<ms_exp_data.getDataProcessing().size(); ++i)
 			{
-				std::cerr << "WARNING: ItraqChannelExtractor::run() MSExperiment is already picked! Skipping PeakPicking!" << std::endl;
-				do_picking = false;
+				if (ms_exp_data.getDataProcessing()[i].getProcessingActions().count(DataProcessing::PEAK_PICKING)==1)
+				{
+					std::cerr << "WARNING: ItraqChannelExtractor::run() MSExperiment is already picked! Skipping PeakPicking!" << std::endl;
+					do_picking = false;
+					break;
+				}
 			}
 		}
 		else

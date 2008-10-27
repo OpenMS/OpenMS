@@ -15,11 +15,15 @@
 			<nameValue name="URL2" value="www.uni-tuebingen.de"/>
 			<comment>Instrument Comment</comment>
 		</msInstrument>
-		<dataProcessing deisotoped="0" chargeDeconvoluted="0" centroided="">
-			<software type="processing" name="MS-X" version="1.0"/>
-			<processingOperation name="processing 1" type="type 1" value="done 1"/>
-			<processingOperation name="processing 2" type="type 2" value="done 2"/>
-			<comment>dataProcessing Comment</comment>
+		<dataProcessing>
+			<software type="conversion" name="MS-X" version="1.0" completionTime="2001-02-03T04:05:06"/>
+			<processingOperation name="processing 1" type="bla" value="done 1"/>
+			<processingOperation name="processing 2" type="" value="done 2"/>
+			<comment>dataProcessing Comment 1</comment>
+		</dataProcessing>
+		<dataProcessing deisotoped="1" chargeDeconvoluted="1" centroided="1" intensityCutoff="3.4">
+			<software type="processing" name="MS-Y" version="1.1"/>
+			<processingOperation name="processing 3" type="type 3" value="done 3"/>
 		</dataProcessing>
 		<scan num="1" msLevel="1" peaksCount="1" polarity="any" retentionTime="PT1S">
 			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QvAAAELIAAA=</peaks>

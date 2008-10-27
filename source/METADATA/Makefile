@@ -36,7 +36,7 @@ CPP_SOURCES=\
 	IonDetector.C\
 	Software.C\
   Acquisition.C\
-  ProcessingMethod.C\
+  DataProcessing.C\
   ExperimentalSettings.C\
   AcquisitionInfo.C\
 	InstrumentSettings.C\

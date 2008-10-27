@@ -35,60 +35,59 @@ using namespace std;
 
 namespace OpenMS
 {
-
-//Constructor
-MetaInfoDescriptionVisualizer::MetaInfoDescriptionVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
-{
-  
-	addLabel("Modify MetaInfoDescription information");		
-	addSeperator();
-	addLineEdit(metainfodescription_name_, "Name of peak annotations" );
-	addTextEdit(metainfodescription_comment_, "Comment" );
-		
-	finishAdding_();
-}
-
-
-
-void MetaInfoDescriptionVisualizer::load(MetaInfoDescription &a)
-{
-  ptr_ = &a;
 	
-	//Copy of current object for restoring the original values
-	tempMetaInfoDescription_=a;
-	
-  metainfodescription_name_->setText(tempMetaInfoDescription_.getName().c_str() );
-	metainfodescription_comment_->setText(tempMetaInfoDescription_.getComment().c_str() );
-				
-}
-
-void MetaInfoDescriptionVisualizer::store_()
-{
-	try
+	MetaInfoDescriptionVisualizer::MetaInfoDescriptionVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
 	{
-				
-		(*ptr_).setName(metainfodescription_name_->text().toStdString());
-		(*ptr_).setComment(metainfodescription_comment_->toPlainText().toStdString());
+	  
+		addLabel("Modify MetaInfoDescription information");		
+		addSeparator();
+		addLineEdit(metainfodescription_name_, "Name of peak annotations" );
+		addTextEdit(metainfodescription_comment_, "Comment" );
+			
+		finishAdding_();
+	}
+	
+	
+	
+	void MetaInfoDescriptionVisualizer::load(MetaInfoDescription &a)
+	{
+	  ptr_ = &a;
+		
+		//Copy of current object for restoring the original values
+		tempMetaInfoDescription_=a;
+		
+	  metainfodescription_name_->setText(tempMetaInfoDescription_.getName().c_str() );
+		metainfodescription_comment_->setText(tempMetaInfoDescription_.getComment().c_str() );
 					
-		tempMetaInfoDescription_ = (*ptr_);
-		
 	}
-	catch(exception& e)
+	
+	void MetaInfoDescriptionVisualizer::store_()
 	{
-		std::cout<<"Error while trying to store the new MetaInfoDescription data. "<<e.what()<<endl;
+		try
+		{
+					
+			ptr_->setName(metainfodescription_name_->text().toStdString());
+			ptr_->setComment(metainfodescription_comment_->toPlainText().toStdString());
+						
+			tempMetaInfoDescription_ = (*ptr_);
+			
+		}
+		catch(exception& e)
+		{
+			std::cout<<"Error while trying to store the new MetaInfoDescription data. "<<e.what()<<endl;
+		}
 	}
-}
-
-void MetaInfoDescriptionVisualizer::reject_()
-{
-	try
+	
+	void MetaInfoDescriptionVisualizer::reject_()
 	{
-		load(tempMetaInfoDescription_);
+		try
+		{
+			load(tempMetaInfoDescription_);
+		}
+		catch(exception e)
+		{
+			cout<<"Error while trying to restore original MetaInfoDescription data. "<<e.what()<<endl;
+		} 
 	}
-	catch(exception e)
-	{
-		cout<<"Error while trying to restore original MetaInfoDescription data. "<<e.what()<<endl;
-	} 
-}
 
 }

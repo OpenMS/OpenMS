@@ -4,7 +4,7 @@
 file name: FileInfo_5_input.txt
 file type: mzData
 
-peak type (metadata) : Peak data
+peak type (metadata) : Unknown
 peak type (estimated): Peak data
 
 Number of peaks: 3149
@@ -20,9 +20,9 @@ Spectra of MS Level 2: 6
 
 -- Meta information --
 
-Document id      : OpenMS:
-Experiment Type  : Unknown
-Date             : 0000-00-00
+Document id       : OpenMS:
+Experiment Type   : Unknown
+Date              : 0000-00-00
 
 Sample
   Name             : MS-Sample

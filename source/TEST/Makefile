@@ -98,7 +98,7 @@ EXECUTABLES_METADATA = \
 	SourceFile_test\
 	Software_test\
 	MetaInfoDescription_test\
-	ProcessingMethod_test\
+	DataProcessing_test\
 	InstrumentSettings_test\
 	SpectrumSettings_test\
 	Gradient_test\

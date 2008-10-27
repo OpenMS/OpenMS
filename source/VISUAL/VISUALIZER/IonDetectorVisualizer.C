@@ -38,92 +38,91 @@ using namespace std;
 
 namespace OpenMS
 {
-
-//Constructor
-IonDetectorVisualizer::IonDetectorVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
-{
-	type_="IonDetector";
-  
-	addLabel("Modify iondetector information.");	
-	addSeperator();  
 	
-	addComboBox(iondetector_type_, "Type");
-	addComboBox(iondetector_ac_mode_, "Acquisition mode");
-	addDoubleLineEdit(iondetector_res_, "Resolution (in ns)" );
-	addDoubleLineEdit(iondetector_freq_, "ADC sampling frequency (in MHz)" );
-	
-	finishAdding_();			
-}
-
-
-
-void IonDetectorVisualizer::load(IonDetector &s)
-{
-  //Pointer to current object to keep track of the actual object
-	ptr_ = &s;
-	
-	//Copy of current object for restoring the original values
-	tempiondetector_=s;
-			
-	update_();
-}
-
-void IonDetectorVisualizer::update_()
-{
-		if(! isEditable())
-		{
-			fillComboBox(iondetector_type_, &tempiondetector_.NamesOfType[tempiondetector_.getType()] , 1);
-			fillComboBox(iondetector_ac_mode_, &tempiondetector_.NamesOfAcquisitionMode[tempiondetector_.getAcquisitionMode()] , 1);
-		}
-		else
-		{
-			fillComboBox(iondetector_type_, tempiondetector_.NamesOfType , IonDetector::SIZE_OF_TYPE);
-			fillComboBox(iondetector_ac_mode_, tempiondetector_.NamesOfAcquisitionMode , IonDetector::SIZE_OF_ACQUISITIONMODE);
-			iondetector_type_->setCurrentIndex(tempiondetector_.getType()); 
-			iondetector_ac_mode_->setCurrentIndex(tempiondetector_.getAcquisitionMode()); 
-		}
-		
-		iondetector_res_->setText(String( tempiondetector_.getResolution() ).c_str());
-		iondetector_freq_->setText(String( tempiondetector_.getADCSamplingFrequency() ).c_str());
-		
-		
-}
-
-void IonDetectorVisualizer::store_()
-{
-	try
+	IonDetectorVisualizer::IonDetectorVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
 	{
-
-		String m(iondetector_res_->text().toStdString());
-		(*ptr_).setResolution(m.toFloat());
-		String n(iondetector_freq_->text().toStdString());
-		(*ptr_).setADCSamplingFrequency(n.toFloat());
-		(*ptr_).setType((IonDetector::Type)iondetector_type_->currentIndex());		
-		(*ptr_).setAcquisitionMode((IonDetector::AcquisitionMode)iondetector_ac_mode_->currentIndex());		
+		type_="IonDetector";
+	  
+		addLabel("Modify iondetector information.");	
+		addSeparator();  
 		
+		addComboBox(iondetector_type_, "Type");
+		addComboBox(iondetector_ac_mode_, "Acquisition mode");
+		addDoubleLineEdit(iondetector_res_, "Resolution (in ns)" );
+		addDoubleLineEdit(iondetector_freq_, "ADC sampling frequency (in MHz)" );
 		
-		tempiondetector_=(*ptr_);
-	}
-	catch(exception& e)
-	{
-		std::cout<<"Error while trying to store the new ion detector data. "<<e.what()<<endl;
+		finishAdding_();			
 	}
 	
-}
-
-void IonDetectorVisualizer::reject_()
-{
 	
-	try
+	
+	void IonDetectorVisualizer::load(IonDetector &s)
 	{
-
+	  //Pointer to current object to keep track of the actual object
+		ptr_ = &s;
+		
+		//Copy of current object for restoring the original values
+		tempiondetector_=s;
+				
 		update_();
 	}
-	catch(exception e)
+	
+	void IonDetectorVisualizer::update_()
 	{
-		cout<<"Error while trying to restore original ion detector data. "<<e.what()<<endl;
+			if(! isEditable())
+			{
+				fillComboBox(iondetector_type_, &tempiondetector_.NamesOfType[tempiondetector_.getType()] , 1);
+				fillComboBox(iondetector_ac_mode_, &tempiondetector_.NamesOfAcquisitionMode[tempiondetector_.getAcquisitionMode()] , 1);
+			}
+			else
+			{
+				fillComboBox(iondetector_type_, tempiondetector_.NamesOfType , IonDetector::SIZE_OF_TYPE);
+				fillComboBox(iondetector_ac_mode_, tempiondetector_.NamesOfAcquisitionMode , IonDetector::SIZE_OF_ACQUISITIONMODE);
+				iondetector_type_->setCurrentIndex(tempiondetector_.getType()); 
+				iondetector_ac_mode_->setCurrentIndex(tempiondetector_.getAcquisitionMode()); 
+			}
+			
+			iondetector_res_->setText(String( tempiondetector_.getResolution() ).c_str());
+			iondetector_freq_->setText(String( tempiondetector_.getADCSamplingFrequency() ).c_str());
+			
+			
 	}
 	
-}
+	void IonDetectorVisualizer::store_()
+	{
+		try
+		{
+	
+			String m(iondetector_res_->text().toStdString());
+			ptr_->setResolution(m.toFloat());
+			String n(iondetector_freq_->text().toStdString());
+			ptr_->setADCSamplingFrequency(n.toFloat());
+			ptr_->setType((IonDetector::Type)iondetector_type_->currentIndex());		
+			ptr_->setAcquisitionMode((IonDetector::AcquisitionMode)iondetector_ac_mode_->currentIndex());		
+			
+			
+			tempiondetector_=(*ptr_);
+		}
+		catch(exception& e)
+		{
+			std::cout<<"Error while trying to store the new ion detector data. "<<e.what()<<endl;
+		}
+		
+	}
+	
+	void IonDetectorVisualizer::reject_()
+	{
+		
+		try
+		{
+	
+			update_();
+		}
+		catch(exception e)
+		{
+			cout<<"Error while trying to restore original ion detector data. "<<e.what()<<endl;
+		}
+		
+	}
 
 }

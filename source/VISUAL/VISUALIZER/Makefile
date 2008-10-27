@@ -45,7 +45,7 @@ CPP_SOURCES=\
 	IonSourceVisualizer.C\
 	IonDetectorVisualizer.C\
 	MassAnalyzerVisualizer.C\
-	ProcessingMethodVisualizer.C\
+	DataProcessingVisualizer.C\
 	ProteinHitVisualizer.C\
 	PeptideHitVisualizer.C\
 	PeptideIdentificationVisualizer.C\
@@ -75,7 +75,7 @@ MOC_SOURCES=\
 	IonSourceVisualizer_moc.C\
 	IonDetectorVisualizer_moc.C\
 	MassAnalyzerVisualizer_moc.C\
-  ProcessingMethodVisualizer_moc.C\
+  DataProcessingVisualizer_moc.C\
 	PeptideIdentificationVisualizer_moc.C\
 	ProteinHitVisualizer_moc.C\
 	PeptideHitVisualizer_moc.C\
@@ -161,8 +161,8 @@ IonDetectorVisualizer_moc.C:  $(HEADER_DIR)/IonDetectorVisualizer.h
 MassAnalyzerVisualizer_moc.C:  $(HEADER_DIR)/MassAnalyzerVisualizer.h
 	$(MOC) $(HEADER_DIR)/MassAnalyzerVisualizer.h -o MassAnalyzerVisualizer_moc.C		
 	
-ProcessingMethodVisualizer_moc.C:  $(HEADER_DIR)/ProcessingMethodVisualizer.h
-	$(MOC) $(HEADER_DIR)/ProcessingMethodVisualizer.h -o ProcessingMethodVisualizer_moc.C		
+DataProcessingVisualizer_moc.C:  $(HEADER_DIR)/DataProcessingVisualizer.h
+	$(MOC) $(HEADER_DIR)/DataProcessingVisualizer.h -o DataProcessingVisualizer_moc.C		
 
 PeptideIdentificationVisualizer_moc.C:  $(HEADER_DIR)/PeptideIdentificationVisualizer.h
 	$(MOC) $(HEADER_DIR)/PeptideIdentificationVisualizer.h -o PeptideIdentificationVisualizer_moc.C		

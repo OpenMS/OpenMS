@@ -37,81 +37,73 @@ using namespace std;
 
 namespace OpenMS
 {
-
-//Constructor
-HPLCVisualizer::HPLCVisualizer(bool editable, QWidget *parent) 
-	: BaseVisualizer(editable, parent)
-{
-  
-	addLabel("Modify HPLC information");		
-	addSeperator();
-	addLineEdit(hplcinstrument_, "Instrument" );
-	addLineEdit(hplccolumn_, "Column" );
-	addIntLineEdit(hplctemperature_, "Temperature (in °C)" );
-	addIntLineEdit(hplcpressure_, "Pressure (in bar)" );
-	addIntLineEdit(hplcflux_, "Flux (in µl/sec)" );
-	addTextEdit(hplccomment_, "Comment");
-		
-	finishAdding_();
 	
-	
-	
-}
-
-
-void HPLCVisualizer::load(HPLC &h)
-{
-  ptr_ = &h;
-	
-	//Copy of current object for restoring the original values
-	tempHPLC_=h;
-  hplcinstrument_->setText(h.getInstrument().c_str());
-	hplccolumn_->setText(h.getColumn().c_str() );
-  hplctemperature_->setText(String(h.getTemperature()).c_str());
-	hplcpressure_->setText(String(h.getPressure()).c_str());
-	hplcflux_->setText(String(h.getFlux()).c_str());
-	hplccomment_->setText(h.getComment().c_str()); 
-	
+	HPLCVisualizer::HPLCVisualizer(bool editable, QWidget *parent) 
+		: BaseVisualizer(editable, parent)
+	{
+	  
+		addLabel("Modify HPLC information");		
+		addSeparator();
+		addLineEdit(hplcinstrument_, "Instrument" );
+		addLineEdit(hplccolumn_, "Column" );
+		addIntLineEdit(hplctemperature_, "Temperature (in °C)" );
+		addIntLineEdit(hplcpressure_, "Pressure (in bar)" );
+		addIntLineEdit(hplcflux_, "Flux (in µl/sec)" );
+		addTextEdit(hplccomment_, "Comment");
 			
-}
-
-void HPLCVisualizer::store_()
-{
-	try
+		finishAdding_();
+		
+		
+		
+	}
+	
+	
+	void HPLCVisualizer::load(HPLC &h)
 	{
+	  ptr_ = &h;
+		
+		//Copy of current object for restoring the original values
+		tempHPLC_=h;
+	  hplcinstrument_->setText(h.getInstrument().c_str());
+		hplccolumn_->setText(h.getColumn().c_str() );
+	  hplctemperature_->setText(String(h.getTemperature()).c_str());
+		hplcpressure_->setText(String(h.getPressure()).c_str());
+		hplcflux_->setText(String(h.getFlux()).c_str());
+		hplccomment_->setText(h.getComment().c_str()); 
+		
 				
-		
-		(*ptr_).setInstrument(hplcinstrument_->text().toStdString());
-				
-		(*ptr_).setColumn(hplccolumn_->text().toStdString());
-		
-		(*ptr_).setTemperature(hplctemperature_->text().toInt() );
-		
-		(*ptr_).setPressure(hplcpressure_->text().toInt() );
-		
-		(*ptr_).setFlux(hplcflux_->text().toInt());
-		
-		(*ptr_).setComment(hplccomment_->toPlainText().toStdString());
-		
-		tempHPLC_ = (*ptr_);
-		
 	}
-	catch(exception& e)
+	
+	void HPLCVisualizer::store_()
 	{
-		std::cout<<"Error while trying to store the new HPLC data. "<<e.what()<<endl;
+		try
+		{
+			ptr_->setInstrument(hplcinstrument_->text().toStdString());
+			ptr_->setColumn(hplccolumn_->text().toStdString());
+			ptr_->setTemperature(hplctemperature_->text().toInt() );
+			ptr_->setPressure(hplcpressure_->text().toInt() );
+			ptr_->setFlux(hplcflux_->text().toInt());
+			ptr_->setComment(hplccomment_->toPlainText().toStdString());
+			
+			tempHPLC_ = (*ptr_);
+			
+		}
+		catch(exception& e)
+		{
+			std::cout<<"Error while trying to store the new HPLC data. "<<e.what()<<endl;
+		}
 	}
-}
-
-void HPLCVisualizer::reject_()
-{
-	try
+	
+	void HPLCVisualizer::reject_()
 	{
-		load(tempHPLC_);
+		try
+		{
+			load(tempHPLC_);
+		}
+		catch(exception e)
+		{
+			cout<<"Error while trying to restore original HPLC data. "<<e.what()<<endl;
+		} 
 	}
-	catch(exception e)
-	{
-		cout<<"Error while trying to restore original HPLC data. "<<e.what()<<endl;
-	} 
-}
 
 }

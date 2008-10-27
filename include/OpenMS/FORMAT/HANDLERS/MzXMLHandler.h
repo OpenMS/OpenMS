@@ -175,22 +175,24 @@ namespace OpenMS
 					meta.getKeys(keys);
 		
 					for (std::vector<String>::const_iterator it = keys.begin(); it!=keys.end(); ++it)
-						if ( (*it)[0] != '#')  // internally used meta info start with '#'
 					{
-						String name = *it;
-						os << String(indent,'\t') << "<" << tag << " name=\"";
-						if (tag=="processingOperation" && name.find('#')!=std::string::npos)
+						if ( (*it)[0] != '#')  // internally used meta info start with '#'
 						{
-							std::vector<String> parts;
-							name.split('#',parts);
-							os << parts[0] << "\" type=\"" << parts[1];
+							String name = *it;
+							os << String(indent,'\t') << "<" << tag << " name=\"";
+							if (tag=="processingOperation" && name.find('#')!=std::string::npos)
+							{
+								std::vector<String> parts;
+								name.split('#',parts);
+								os << parts[0] << "\" type=\"" << parts[1];
+							}
+							else
+							{
+								os << name;
+							}
+							os << "\" value=\""
+								 << meta.getMetaValue(*it) << "\"/>\n";
 						}
-						else
-						{
-							os << name;
-						}
-						os << "\" value=\""
-							 << meta.getMetaValue(*it) << "\"/>\n";
 					}
 				}
 			
@@ -267,15 +269,13 @@ namespace OpenMS
 				//     Perhaps we need to adjust our model!
 				if (parent_tag=="dataProcessing")
 				{
-					exp_->getSoftware().setVersion(attributeAsString_(attributes, s_version));
-					exp_->getSoftware().setName(attributeAsString_(attributes, s_name));
-					//TODO Software type can be aquisition/conversion/processing
-					//     Should we store information like that?
-					exp_->getSoftware().setComment(attributeAsString_(attributes, s_type));
+					exp_->getDataProcessing().back().getSoftware().setVersion(attributeAsString_(attributes, s_version));
+					exp_->getDataProcessing().back().getSoftware().setName(attributeAsString_(attributes, s_name));
+					exp_->getDataProcessing().back().setMetaValue("#type",String(attributeAsString_(attributes, s_type)));
 					
 					String time;
 					optionalAttributeAsString_(time,attributes,s_completiontime);
-					exp_->getSoftware().setCompletionTime( asDateTime_(time) );
+					exp_->getDataProcessing().back().setCompletionTime( asDateTime_(time) );
 				}
 				else if (parent_tag=="msInstrument")
 				{
@@ -476,33 +476,35 @@ namespace OpenMS
 			{
 				exp_->getInstrument().getMassAnalyzers()[0].setResolutionMethod( (MassAnalyzer::ResolutionMethod) cvStringToEnum_(5, attributeAsString_(attributes, s_value), "msResolution"));
 			}
-			//TODO dataProcessing can occur several times. Can we store that?
-			//     Perhaps we need to adjust our model!
 			else if (tag=="dataProcessing")
 			{
+				exp_->getDataProcessing().push_back(DataProcessing());
 				String boolean = "";
 				optionalAttributeAsString_(boolean, attributes, s_deisotoped);
 				if (boolean == "true" || boolean == "1")
 				{
-					exp_->getProcessingMethod().setDeisotoping(true);
+					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::DEISOTOPING);
 				}
 				
 				boolean = "";
 				optionalAttributeAsString_(boolean, attributes, s_chargedeconvoluted);
 				if (boolean == "true" || boolean == "1")
 				{
-					exp_->getProcessingMethod().setChargeDeconvolution(true);
+					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::DECONVOLUTION);
 				}
 				
 				DoubleReal cutoff = 0.0;
 				optionalAttributeAsDouble_(cutoff, attributes, s_intensitycutoff);
-				exp_->getProcessingMethod().setIntensityCutoff(cutoff);
-				
-				String peaks = "";
-				optionalAttributeAsString_(peaks, attributes, s_centroided);
-				if (peaks == "true" || peaks == "1")
+				if (cutoff!=0.0)
 				{
-					exp_->getProcessingMethod().setSpectrumType(SpectrumSettings::PEAKS);
+					exp_->getDataProcessing().back().setMetaValue("#intensity_cutoff",cutoff);
+				}
+					
+				boolean = "";
+				optionalAttributeAsString_(boolean, attributes, s_centroided);
+				if (boolean == "true" || boolean == "1")
+				{
+					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::PEAK_PICKING);
 				}
 			}
 			else if (tag=="nameValue")
@@ -529,11 +531,16 @@ namespace OpenMS
 					std::cout << " Warning: Unexpected tag 'nameValue' in tag '" << parent_tag << "'" << std::endl;
 				}
 			}
-			//TODO dataProcessing - processingOperation can occur several times. Can we store that?
-			//     Perhaps we need to adjust our model!
 			else if (tag=="processingOperation")
 			{
-				//TODO This is currently ignored
+				String name = "";
+				optionalAttributeAsString_(name, attributes, s_name);
+				if (name == "") return;
+
+				String value = "";
+				optionalAttributeAsString_(value, attributes, s_value);
+				
+				exp_->getDataProcessing().back().setMetaValue(name, value);
 			}
 			
 			//std::cout << " -- !Start -- " << std::endl;
@@ -706,7 +713,10 @@ namespace OpenMS
 				   os << cexp_->getSourceFile().getSha1();
 				 }
 				 os  << "\"/>\n";
-	
+
+			//----------------------------------------------------------------------------------------
+			//instrument
+			//----------------------------------------------------------------------------------------
 			if (cexp_->getInstrument() != Instrument())
 			{
 				const Instrument& inst = cexp_->getInstrument();
@@ -809,39 +819,66 @@ namespace OpenMS
 				}
 				os << "\t\t</msInstrument>\n";
 			}
-	
-			const Software& software = cexp_->getSoftware();
-			os << "\t\t<dataProcessing deisotoped=\""
-				 << cexp_->getProcessingMethod().getDeisotoping()
-				 << "\" chargeDeconvoluted=\""
-				 << cexp_->getProcessingMethod().getChargeDeconvolution()
-				 << "\" centroided=\"";
-			if(cexp_->getProcessingMethod().getSpectrumType()==SpectrumSettings::PEAKS)
+			
+			//----------------------------------------------------------------------------------------
+			//data processing
+			//----------------------------------------------------------------------------------------
+			if (cexp_->getDataProcessing().size()==0)
 			{
-				os << "1";
+				os << "\t\t<dataProcessing>\n"
+					 << "\t\t\t<software type=\"processing\" name=\"\" version=\"\"/>\n"
+					 << "\t\t</dataProcessing>\n";
 			}
 			else
 			{
-				os << "0";
+				for (UInt i=0; i<cexp_->getDataProcessing().size(); ++i)
+				{
+					const DataProcessing& data_processing = cexp_->getDataProcessing()[i];
+					os << "\t\t<dataProcessing deisotoped=\""
+						 << data_processing.getProcessingActions().count(DataProcessing::DEISOTOPING)
+						 << "\" chargeDeconvoluted=\""
+						 << data_processing.getProcessingActions().count(DataProcessing::DECONVOLUTION)
+						 << "\" centroided=\""
+						 << data_processing.getProcessingActions().count(DataProcessing::PEAK_PICKING)
+						 << "\"";
+					if (data_processing.metaValueExists("#intensity_cutoff"))
+					{
+						if (data_processing.getMetaValue("#intensity_cutoff").valueType()==DataValue::INT_VALUE)
+						{
+							os  << " intensityCutoff=\"" << (Int)(data_processing.getMetaValue("#intensity_cutoff")) << "\"";
+						}
+						else if (data_processing.getMetaValue("#intensity_cutoff").valueType()==DataValue::DOUBLE_VALUE)
+						{
+							os  << " intensityCutoff=\"" << (DoubleReal)(data_processing.getMetaValue("#intensity_cutoff")) << "\"";							
+						}
+					}
+					os << ">\n"
+						 << "\t\t\t<software type=\"";
+					if (data_processing.metaValueExists("#type"))
+					{
+						os << data_processing.getMetaValue("#type").toString();
+					}
+					else
+					{
+						os << "processing";
+					}
+					
+					os << "\" name=\"" << data_processing.getSoftware().getName()
+						 << "\" version=\"" << data_processing.getSoftware().getVersion();
+			
+					if (data_processing.getCompletionTime() != DateTime())
+					{
+						String tmp;
+						data_processing.getCompletionTime().get(tmp);
+						tmp.substitute(' ', 'T');
+						os << "\" completionTime=\"" << tmp;
+					}
+					os << "\"/>\n";
+					writeUserParam_(os,data_processing,3,"processingOperation");
+			
+					os << "\t\t</dataProcessing>\n";	
+				}
 			}
-			os << "\" intensityCutoff=\""
-				 << cexp_->getProcessingMethod().getIntensityCutoff()
-				 << "\">\n"
-				 << "\t\t\t<software type=\"processing\" name=\"" << software.getName()
-				 << "\" version=\"" << software.getVersion();
-	
-			if (software.getCompletionTime() != DateTime())
-			{
-				String tmp;
-				software.getCompletionTime().get(tmp);
-				String qtmp(tmp);
-				qtmp.substitute(' ', 'T');
-				os << "\" completionTime=\"" << qtmp;
-			}
-			os << "\"/>\n";
-			writeUserParam_(os,cexp_->getProcessingMethod(),3,"processingOperation");
-	
-			os << "\t\t</dataProcessing>\n";
 			
 			std::stack<UInt> open_scans;
 			

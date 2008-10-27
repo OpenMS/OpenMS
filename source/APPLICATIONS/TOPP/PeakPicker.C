@@ -149,10 +149,6 @@ class TOPPPeakPicker
     mz_data_file.load(in,ms_exp_raw);
 		
 		//check for peak type (raw data required)
-		if (ms_exp_raw.getProcessingMethod().getSpectrumType()==SpectrumSettings::PEAKS)
-		{
-			writeLog_("Warning: The file meta data claims that this is not raw data!");
-		}
 		if (PeakTypeEstimator().estimateType(ms_exp_raw[0].begin(),ms_exp_raw[0].end())==SpectrumSettings::PEAKS)
 		{
 			writeLog_("Warning: OpenMS peak type estimation indicates that this is not raw data!");
@@ -169,10 +165,7 @@ class TOPPPeakPicker
 		// writing output
 		//-------------------------------------------------------------
 
-		ms_exp_peaks.getProcessingMethod().setSpectrumType(SpectrumSettings::PEAKS);
 		mz_data_file.store(out,ms_exp_peaks);
-
-
 		
 		return EXECUTION_OK;
 	}

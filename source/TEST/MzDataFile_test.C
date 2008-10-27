@@ -382,23 +382,18 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
   TEST_EQUAL(e.getContacts()[1].getContactInfo(), "www.jane.doe");
 
   //---------------------------------------------------------------------------
-  // const Software& getSoftware() const;
+  // const DataProcessing& getDataProcessing() const;
   //---------------------------------------------------------------------------
-  TEST_EQUAL(e.getSoftware().getName(), "MS-X");
-  TEST_EQUAL(e.getSoftware().getVersion(), "1.0");
-  TEST_EQUAL(e.getSoftware().getComment(), "none");
+  TEST_EQUAL(e.getDataProcessing().size(), 1)
+	TEST_EQUAL(e.getDataProcessing()[0].getMetaValue("URL"), "www.open-ms.de")
+	TEST_EQUAL(e.getDataProcessing()[0].getMetaValue("comment"), "ProcessingComment")
+	TEST_EQUAL(e.getDataProcessing()[0].getMetaValue("#comment"), "SoftwareComment")
 	String tmp;
-	e.getSoftware().getCompletionTime().get(tmp);
+	e.getDataProcessing()[0].getCompletionTime().get(tmp);
   TEST_EQUAL(tmp, "2001-02-03 04:05:06");
 
-  //---------------------------------------------------------------------------
-  // const ProcessingMethod& getProcessingMethod() const;
-  //---------------------------------------------------------------------------
-  TEST_EQUAL(e.getProcessingMethod().getDeisotoping(), false)
-	TEST_EQUAL(e.getProcessingMethod().getChargeDeconvolution(), false)
-	TEST_EQUAL(e.getProcessingMethod().getSpectrumType(), SpectrumSettings::PEAKS)
-	TEST_EQUAL(e.getProcessingMethod().getMetaValue("URL"), "www.open-ms.de")
-	TEST_EQUAL(e.getProcessingMethod().getMetaValue("ProcessingComment"), "Processed")
+  TEST_EQUAL(e.getDataProcessing()[0].getSoftware().getName(), "MS-X");
+  TEST_EQUAL(e.getDataProcessing()[0].getSoftware().getVersion(), "1.0");
 
   //---------------------------------------------------------------------------
   // const Instrument& getInstrument() const;
@@ -565,23 +560,18 @@ CHECK(([EXTRA] load with metadata-only flag))
   TEST_EQUAL(e.getContacts()[1].getContactInfo(), "www.jane.doe");
 
   //---------------------------------------------------------------------------
-  // const Software& getSoftware() const;
+  // const DataProcessing& getDataProcessing() const;
   //---------------------------------------------------------------------------
-  TEST_EQUAL(e.getSoftware().getName(), "MS-X");
-  TEST_EQUAL(e.getSoftware().getVersion(), "1.0");
-  TEST_EQUAL(e.getSoftware().getComment(), "none");
+  TEST_EQUAL(e.getDataProcessing().size(), 1)
+	TEST_EQUAL(e.getDataProcessing()[0].getMetaValue("URL"), "www.open-ms.de")
+	TEST_EQUAL(e.getDataProcessing()[0].getMetaValue("comment"), "ProcessingComment")
+	TEST_EQUAL(e.getDataProcessing()[0].getMetaValue("#comment"), "SoftwareComment")
 	String tmp;
-	e.getSoftware().getCompletionTime().get(tmp);
+	e.getDataProcessing()[0].getCompletionTime().get(tmp);
   TEST_EQUAL(tmp, "2001-02-03 04:05:06");
 
-  //---------------------------------------------------------------------------
-  // const ProcessingMethod& getProcessingMethod() const;
-  //---------------------------------------------------------------------------
-  TEST_EQUAL(e.getProcessingMethod().getDeisotoping(), false)
-	TEST_EQUAL(e.getProcessingMethod().getChargeDeconvolution(), false)
-	TEST_EQUAL(e.getProcessingMethod().getSpectrumType(), SpectrumSettings::PEAKS)
-	TEST_EQUAL(e.getProcessingMethod().getMetaValue("URL"), "www.open-ms.de")
-	TEST_EQUAL(e.getProcessingMethod().getMetaValue("ProcessingComment"), "Processed")
+  TEST_EQUAL(e.getDataProcessing()[0].getSoftware().getName(), "MS-X");
+  TEST_EQUAL(e.getDataProcessing()[0].getSoftware().getVersion(), "1.0");
 
   //---------------------------------------------------------------------------
   // const Instrument& getInstrument() const;
@@ -793,9 +783,9 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
 	f.load(tmp_filename,e2);
   TEST_EQUAL(e2.getIdentifier(),"lsid");
   TEST_EQUAL(e1==e2,true);
-	TEST_EQUAL(e1[0].getMetaDataArrays()==e1[0].getMetaDataArrays(),true);
-	TEST_EQUAL(e1[1].getMetaDataArrays()==e1[1].getMetaDataArrays(),true);
-	TEST_EQUAL(e1[2].getMetaDataArrays()==e1[2].getMetaDataArrays(),true);
+	TEST_EQUAL(e1[0].getMetaDataArrays()==e2[0].getMetaDataArrays(),true);
+	TEST_EQUAL(e1[1].getMetaDataArrays()==e2[1].getMetaDataArrays(),true);
+	TEST_EQUAL(e1[2].getMetaDataArrays()==e2[2].getMetaDataArrays(),true);
 	NEW_TMP_FILE(tmp_filename);
 	f.store(tmp_filename,e2);
 	

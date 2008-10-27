@@ -38,89 +38,61 @@ using namespace std;
 namespace OpenMS
 {
 
-//Constructor
-SoftwareVisualizer::SoftwareVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
-{
-	type_="Software";
-  
-	addLabel("Modify software information.");	
-	addSeperator();        
-	addLineEdit(software_name_, "Name" );
-	addLineEdit(software_version_, "Version" );	
-	addTextEdit(software_comment_, "Comment");
-	addLineEdit(software_completion_time_, "Completion time" );
-
-	finishAdding_();
-	
-	
-}
-
-
-
-void SoftwareVisualizer::load(Software &s)
-{
-        //Pointer to current object to keep track of the actual object
-	ptr_ = &s;
-	
-	//Copy of current object for restoring the original values
-	tempsoftware_=s;
-			
-  software_name_->setText(s.getName().c_str());
-	software_version_->setText(s.getVersion().c_str());
-	software_comment_->setText(s.getComment().c_str());
-  String str;
-  s.getCompletionTime().get(str);
-	software_completion_time_->setText(str.c_str()); 
-				
-}
-
-void SoftwareVisualizer::store_()
-{
-	try
+	SoftwareVisualizer::SoftwareVisualizer(bool editable, QWidget *parent)
+		: BaseVisualizer(editable, parent)
 	{
-		(*ptr_).setName(software_name_->text().toStdString());
-		(*ptr_).setVersion(software_version_->text().toStdString());
-		String m(software_completion_time_->text().toStdString());
-		DateTime date;
+		type_="Software";
+	  
+		addLabel("Modify software information.");	
+		addSeparator();        
+		addLineEdit(software_name_, "Name" );
+		addLineEdit(software_version_, "Version" );	
+	
+		finishAdding_();
+	}
+	
+	
+	
+	void SoftwareVisualizer::load(Software &s)
+	{
+		//Pointer to current object to keep track of the actual object
+		ptr_ = &s;
 		
+		//Copy of current object for restoring the original values
+		tempsoftware_=s;
+				
+	  software_name_->setText(s.getName().c_str());
+		software_version_->setText(s.getVersion().c_str());
+	}
+	
+	void SoftwareVisualizer::store_()
+	{
 		try
 		{
-			date.set(m);
-			(*ptr_).setCompletionTime(date);
+			ptr_->setName(software_name_->text().toStdString());
+			ptr_->setVersion(software_version_->text().toStdString());
+			
+			tempsoftware_=(*ptr_);		
 		}
 		catch(exception& e)
 		{
-			if(date.isNull())
-			{
-				std::string status= "Format of date in SOFTWARE is not correct.";
-				emit sendStatus(status);
-			}
+			std::cout<<"Error while trying to store the new software data. "<<e.what()<<endl;
 		}
 		
+	}
+	
+	void SoftwareVisualizer::reject_()
+	{
 		
-		(*ptr_).setComment(software_comment_->toPlainText().toStdString());
+		try
+		{
+			load(tempsoftware_);
+		}
+		catch(exception e)
+		{
+			cout<<"Error while trying to restore original software data. "<<e.what()<<endl;
+		}
 		
-		tempsoftware_=(*ptr_);		
 	}
-	catch(exception& e)
-	{
-		std::cout<<"Error while trying to store the new software data. "<<e.what()<<endl;
-	}
-	
-}
-
-void SoftwareVisualizer::reject_()
-{
-	
-	try
-	{
-		load(tempsoftware_);
-	}
-	catch(exception e)
-	{
-		cout<<"Error while trying to restore original software data. "<<e.what()<<endl;
-	}
-	
-}
 
 }

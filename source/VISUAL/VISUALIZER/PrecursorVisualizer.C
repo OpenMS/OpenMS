@@ -37,90 +37,86 @@ using namespace std;
 
 namespace OpenMS
 {
-
-//Constructor
-PrecursorVisualizer::PrecursorVisualizer(bool editable, QWidget *parent) 
-	: BaseVisualizer(editable, parent)
-{
-	type_="Precursor";
- 
-	addLabel("Modify processing method information.");	
 	
-	addSeperator();  
-	
-	addComboBox(precursor_activation_method_, "Activation method");
-	addDoubleLineEdit(precursor_activation_energy_, "Activation energy");
-	addComboBox(precursor_energy_units_, "Energy unit");
-	addDoubleLineEdit(precursor_window_size_, "Window size");	
-	
-	finishAdding_();
-}
-
-
-
-
-void PrecursorVisualizer::load(Precursor &s)
-{
-  //Pointer to current object to keep track of the actual object
-	ptr_ = &s;
-	
-	//Copy of current object for restoring the original values
-	tempprecursor_=s;
-	
-	update_();
-}
-
-void PrecursorVisualizer::update_()
-{		
-	if(! isEditable())
+	PrecursorVisualizer::PrecursorVisualizer(bool editable, QWidget *parent) 
+		: BaseVisualizer(editable, parent)
 	{
-		fillComboBox(precursor_activation_method_, &tempprecursor_.NamesOfActivationMethod[tempprecursor_.getActivationMethod()] , 1);
-		fillComboBox(precursor_energy_units_, &tempprecursor_.NamesOfEnergyUnits[tempprecursor_.getActivationEnergyUnit()] , 1);
-	}
-	else
-	{
-		fillComboBox(precursor_activation_method_, Precursor::NamesOfActivationMethod , Precursor::SIZE_OF_ACTIVATIONMETHOD);
-		fillComboBox(precursor_energy_units_, Precursor::NamesOfEnergyUnits , Precursor::SIZE_OF_ENERGYUNITS);
-		precursor_activation_method_->setCurrentIndex(tempprecursor_.getActivationMethod()); 
-		precursor_energy_units_->setCurrentIndex(tempprecursor_.getActivationEnergyUnit()); 
-	}
-	
-	precursor_activation_energy_->setText(String( tempprecursor_.getActivationEnergy() ).c_str() );
-	precursor_window_size_->setText(String( tempprecursor_.getWindowSize() ).c_str() );		
-}
-
-void PrecursorVisualizer::store_()
-{
-	try
-	{
-		(*ptr_).setActivationMethod((Precursor::ActivationMethod)precursor_activation_method_->currentIndex());		
-		(*ptr_).setActivationEnergy(precursor_activation_energy_->text().toFloat());		
-		(*ptr_).setActivationEnergyUnit((Precursor::EnergyUnits)precursor_energy_units_->currentIndex());	
-		(*ptr_).setWindowSize(precursor_window_size_->text().toFloat());		
+		type_="Precursor";
+	 
+		addLabel("Modify processing method information.");	
 		
-		tempprecursor_=(*ptr_);
+		addSeparator();  
 		
-	}
-	catch(exception& e)
-	{
-		std::cout<<"Error while trying to store the new processing method data. "<<e.what()<<endl;
+		addComboBox(precursor_activation_method_, "Activation method");
+		addDoubleLineEdit(precursor_activation_energy_, "Activation energy");
+		addComboBox(precursor_energy_units_, "Energy unit");
+		addDoubleLineEdit(precursor_window_size_, "Window size");	
+		
+		finishAdding_();
 	}
 	
-}
-
-void PrecursorVisualizer::reject_()
-{
-	
-	try
+	void PrecursorVisualizer::load(Precursor &s)
 	{
-
+	  //Pointer to current object to keep track of the actual object
+		ptr_ = &s;
+		
+		//Copy of current object for restoring the original values
+		tempprecursor_=s;
+		
 		update_();
 	}
-	catch(exception e)
-	{
-		cout<<"Error while trying to restore original processing method data. "<<e.what()<<endl;
+	
+	void PrecursorVisualizer::update_()
+	{		
+		if(! isEditable())
+		{
+			fillComboBox(precursor_activation_method_, &tempprecursor_.NamesOfActivationMethod[tempprecursor_.getActivationMethod()] , 1);
+			fillComboBox(precursor_energy_units_, &tempprecursor_.NamesOfEnergyUnits[tempprecursor_.getActivationEnergyUnit()] , 1);
+		}
+		else
+		{
+			fillComboBox(precursor_activation_method_, Precursor::NamesOfActivationMethod , Precursor::SIZE_OF_ACTIVATIONMETHOD);
+			fillComboBox(precursor_energy_units_, Precursor::NamesOfEnergyUnits , Precursor::SIZE_OF_ENERGYUNITS);
+			precursor_activation_method_->setCurrentIndex(tempprecursor_.getActivationMethod()); 
+			precursor_energy_units_->setCurrentIndex(tempprecursor_.getActivationEnergyUnit()); 
+		}
+		
+		precursor_activation_energy_->setText(String( tempprecursor_.getActivationEnergy() ).c_str() );
+		precursor_window_size_->setText(String( tempprecursor_.getWindowSize() ).c_str() );		
 	}
 	
-}
+	void PrecursorVisualizer::store_()
+	{
+		try
+		{
+			ptr_->setActivationMethod((Precursor::ActivationMethod)precursor_activation_method_->currentIndex());		
+			ptr_->setActivationEnergy(precursor_activation_energy_->text().toFloat());		
+			ptr_->setActivationEnergyUnit((Precursor::EnergyUnits)precursor_energy_units_->currentIndex());	
+			ptr_->setWindowSize(precursor_window_size_->text().toFloat());		
+			
+			tempprecursor_=(*ptr_);
+			
+		}
+		catch(exception& e)
+		{
+			std::cout<<"Error while trying to store the new processing method data. "<<e.what()<<endl;
+		}
+		
+	}
+	
+	void PrecursorVisualizer::reject_()
+	{
+		
+		try
+		{
+	
+			update_();
+		}
+		catch(exception e)
+		{
+			cout<<"Error while trying to restore original processing method data. "<<e.what()<<endl;
+		}
+		
+	}
 
 }

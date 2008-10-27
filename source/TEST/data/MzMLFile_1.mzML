@@ -108,7 +108,11 @@
       <processingMethod order="1">
         <cvParam cvRef="MS" accession="MS:1000033" name="deisotoping" value=""/>
         <cvParam cvRef="MS" accession="MS:1000629" name="low intensity threshold" value="5.9"/>
-  			<userParam name="name" value="processingMethod"/>
+  			<userParam name="p1" value="value1"/>
+      </processingMethod>
+      <processingMethod order="2">
+        <cvParam cvRef="MS" accession="MS:1000034" name="charge deconvolution" value=""/>
+  			<userParam name="p2" value="value2"/>
       </processingMethod>
     </dataProcessing>
   </dataProcessingList>

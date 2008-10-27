@@ -29,7 +29,7 @@
 
 #include <OpenMS/METADATA/Sample.h>
 #include <OpenMS/METADATA/Software.h>
-#include <OpenMS/METADATA/ProcessingMethod.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/HPLC.h>
 #include <OpenMS/METADATA/SourceFile.h>
@@ -112,19 +112,12 @@ namespace OpenMS
       /// sets the MS instrument description
       void setInstrument(const Instrument& instrument);
 			
-			/// returns a const reference to the software used for processing
-      const Software& getSoftware() const;
-      /// returns a mutable reference to the software used for processing
-      Software& getSoftware();
-      /// sets the software used for processing
-      void setSoftware(const Software& software);
-			
 			/// returns a const reference to the description of the applied processing 
-      const ProcessingMethod& getProcessingMethod() const;
+      const std::vector<DataProcessing>& getDataProcessing() const;
       /// returns a mutable reference to the description of the applied processing 
-      ProcessingMethod& getProcessingMethod();
+      std::vector<DataProcessing>& getDataProcessing();
       /// sets the description of the applied processing 
-      void setProcessingMethod(const ProcessingMethod& processing_method);
+      void setDataProcessing(const std::vector<DataProcessing>& processing_method);
 
 			/// returns a const reference to the description of the HPLC run
       const HPLC& getHPLC() const;
@@ -162,8 +155,7 @@ namespace OpenMS
 			SourceFile source_file_;
 			std::vector<ContactPerson> contacts_;
 			Instrument instrument_;
-			Software software_;
-		  ProcessingMethod processing_method_;
+		  std::vector<DataProcessing> data_processing_;
 		  HPLC hplc_;
 		  ExperimentType type_;
 		  Date date_;

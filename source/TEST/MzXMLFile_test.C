@@ -130,12 +130,32 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	  TEST_EQUAL(e.getSourceFile().getSha1(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
 	
 		//---------------------------------------------------------------------------
-	  // const Software& getSoftware() const;
+	  // const vector<DataProcessing>& getDataProcessing() const;
 	  //---------------------------------------------------------------------------
-	  TEST_EQUAL(e.getSoftware().getName(), "MS-X");
-	  TEST_EQUAL(e.getSoftware().getVersion(), "1.0");
-	  TEST_EQUAL(e.getSoftware().getComment(), "processing");
-	
+	  TEST_EQUAL(e.getDataProcessing().size(),2)
+
+	  TEST_EQUAL(e.getDataProcessing()[0].getSoftware().getName(), "MS-X");
+	  TEST_EQUAL(e.getDataProcessing()[0].getSoftware().getVersion(), "1.0");
+	  TEST_STRING_EQUAL(e.getDataProcessing()[0].getMetaValue("#type").toString(), "conversion");
+	  TEST_STRING_EQUAL(e.getDataProcessing()[0].getMetaValue("processing 1").toString(), "done 1");
+	  TEST_STRING_EQUAL(e.getDataProcessing()[0].getMetaValue("processing 2").toString(), "done 2");
+		String tmp;
+		e.getDataProcessing()[0].getCompletionTime().get(tmp);
+	  TEST_EQUAL(tmp, "2001-02-03 04:05:06");
+		TEST_EQUAL(e.getDataProcessing()[0].getProcessingActions().size(),0)
+
+	  TEST_EQUAL(e.getDataProcessing()[1].getSoftware().getName(), "MS-Y");
+	  TEST_EQUAL(e.getDataProcessing()[1].getSoftware().getVersion(), "1.1");
+	  TEST_STRING_EQUAL(e.getDataProcessing()[1].getMetaValue("#type").toString(), "processing");
+	  TEST_REAL_EQUAL((DoubleReal)(e.getDataProcessing()[1].getMetaValue("#intensity_cutoff")), 3.4);
+	  TEST_STRING_EQUAL(e.getDataProcessing()[1].getMetaValue("processing 3").toString(), "done 3");
+		e.getDataProcessing()[1].getCompletionTime().get(tmp);
+	  TEST_EQUAL(tmp, "0000-00-00 00:00:00");
+		TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().size(),3)
+		TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
+		TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::DECONVOLUTION),1)
+		TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::PEAK_PICKING),1)
+
 		//---------------------------------------------------------------------------
 	  // const Instrument& getInstrument() const;
 	  //---------------------------------------------------------------------------
@@ -240,9 +260,27 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 		//---------------------------------------------------------------------------
 	  // const Software& getSoftware() const;
 	  //---------------------------------------------------------------------------
-	  TEST_EQUAL(e.getSoftware().getName(), "MS-X");
-	  TEST_EQUAL(e.getSoftware().getVersion(), "1.0");
-	  TEST_EQUAL(e.getSoftware().getComment(), "processing");
+	  TEST_EQUAL(e.getDataProcessing()[0].getSoftware().getName(), "MS-X");
+	  TEST_EQUAL(e.getDataProcessing()[0].getSoftware().getVersion(), "1.0");
+	  TEST_STRING_EQUAL(e.getDataProcessing()[0].getMetaValue("#type").toString(), "conversion");
+	  TEST_STRING_EQUAL(e.getDataProcessing()[0].getMetaValue("processing 1").toString(), "done 1");
+	  TEST_STRING_EQUAL(e.getDataProcessing()[0].getMetaValue("processing 2").toString(), "done 2");
+		String tmp;
+		e.getDataProcessing()[0].getCompletionTime().get(tmp);
+	  TEST_EQUAL(tmp, "2001-02-03 04:05:06");
+		TEST_EQUAL(e.getDataProcessing()[0].getProcessingActions().size(),0)
+
+	  TEST_EQUAL(e.getDataProcessing()[1].getSoftware().getName(), "MS-Y");
+	  TEST_EQUAL(e.getDataProcessing()[1].getSoftware().getVersion(), "1.1");
+	  TEST_STRING_EQUAL(e.getDataProcessing()[1].getMetaValue("#type").toString(), "processing");
+	  TEST_REAL_EQUAL((DoubleReal)(e.getDataProcessing()[1].getMetaValue("#intensity_cutoff")), 3.4);
+	  TEST_STRING_EQUAL(e.getDataProcessing()[1].getMetaValue("processing 3").toString(), "done 3");
+		e.getDataProcessing()[1].getCompletionTime().get(tmp);
+	  TEST_EQUAL(tmp, "0000-00-00 00:00:00");
+		TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().size(),3)
+		TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
+		TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::DECONVOLUTION),1)
+		TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::PEAK_PICKING),1)
 	
 		//---------------------------------------------------------------------------
 	  // const Instrument& getInstrument() const;
@@ -346,7 +384,6 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
 	f.load(tmp_filename,e2);
 	TEST_EQUAL(e1==e2, true);
 
-
 	NEW_TMP_FILE(tmp_filename);
 	f.load("data/MzXMLFile_test_2.mzXML",e1);
 	f.store(tmp_filename,e1);
@@ -415,19 +452,13 @@ CHECK(([EXTRA] load with optional attributes))
 	TEST_REAL_EQUAL(e[2].getInstrumentSettings().getMzRangeStop(), 140)
 
 	//---------------------------------------------------------------------------
-  // const Software& getSoftware() const;
+  // const vector<DataProcessing>& getDataProcessing() const;
   //---------------------------------------------------------------------------
+	TEST_EQUAL(e.getDataProcessing().size(),1)
 	String tmp;
-	e.getSoftware().getCompletionTime().get(tmp);
+	e.getDataProcessing().back().getCompletionTime().get(tmp);
   TEST_EQUAL(tmp, "2001-02-03 04:05:06");
 
-	//---------------------------------------------------------------------------
-  // const ProcessingMethod& getProcessingMethod() const;
-  //---------------------------------------------------------------------------
-  TEST_EQUAL(e.getProcessingMethod().getDeisotoping(), true)
-	TEST_EQUAL(e.getProcessingMethod().getChargeDeconvolution(), true)
-	TEST_EQUAL(e.getProcessingMethod().getSpectrumType(), SpectrumSettings::PEAKS)
-	TEST_REAL_EQUAL(e.getProcessingMethod().getIntensityCutoff(), 2);
 RESULT
 
 CHECK(([EXTRA] load with metadata only flag))
@@ -454,9 +485,9 @@ CHECK(([EXTRA] load with metadata only flag))
 	//---------------------------------------------------------------------------
   // const Software& getSoftware() const;
   //---------------------------------------------------------------------------
-  TEST_EQUAL(e.getSoftware().getName(), "MS-X");
-  TEST_EQUAL(e.getSoftware().getVersion(), "1.0");
-  TEST_EQUAL(e.getSoftware().getComment(), "processing");
+	TEST_EQUAL(e.getDataProcessing().size(),2)
+  TEST_EQUAL(e.getDataProcessing().back().getSoftware().getName(), "MS-Y");
+  TEST_EQUAL(e.getDataProcessing().back().getSoftware().getVersion(), "1.1");
 
 	//---------------------------------------------------------------------------
   // const Instrument& getInstrument() const;

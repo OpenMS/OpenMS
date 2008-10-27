@@ -280,6 +280,15 @@ class TOPPFileInfo
 				return ILLEGAL_PARAMETERS;
 			}
 
+			//check if the meta data indicates that this is peak data
+			UInt meta_type = SpectrumSettings::UNKNOWN;
+			for (UInt i=0; i<exp.getDataProcessing().size(); ++i)
+			{
+				if (exp.getDataProcessing()[i].getProcessingActions().count(DataProcessing::PEAK_PICKING)==1)
+				{
+					meta_type = SpectrumSettings::PEAKS;
+				}
+			}
 			//determine type (search for the first scan with at least 5 peaks)
 			UInt type = SpectrumSettings::UNKNOWN;
 			UInt i=0;
@@ -289,7 +298,7 @@ class TOPPFileInfo
 				type = PeakTypeEstimator().estimateType(exp[i].begin(),exp[i].end());
 			}
 			cout << endl
-					 << "peak type (metadata) : " << SpectrumSettings::NamesOfSpectrumType[exp.getProcessingMethod().getSpectrumType()] << endl
+					 << "peak type (metadata) : " << SpectrumSettings::NamesOfSpectrumType[meta_type] << endl
 					 << "peak type (estimated): " << SpectrumSettings::NamesOfSpectrumType[type] << endl;
 			//if raw data, determine the spacing
 			if (type==SpectrumSettings::RAWDATA)

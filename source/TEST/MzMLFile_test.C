@@ -107,13 +107,26 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_EQUAL(exp.getInstrument().getIonDetector().getAcquisitionMode(),IonDetector::TDC)
 	TEST_REAL_EQUAL(exp.getInstrument().getIonDetector().getResolution(),5.1)
 	TEST_REAL_EQUAL(exp.getInstrument().getIonDetector().getADCSamplingFrequency(),1.1)
-	//software
-	TEST_STRING_EQUAL(exp.getSoftware().getName(),"Xcalibur")
-	TEST_STRING_EQUAL(exp.getSoftware().getVersion(),"2.0.5")
 	//processing
-	TEST_EQUAL(exp.getProcessingMethod().getDeisotoping(),true)
-	TEST_EQUAL(exp.getProcessingMethod().getChargeDeconvolution(),false)
-	TEST_REAL_EQUAL(exp.getProcessingMethod().getIntensityCutoff(),5.9)
+	TEST_EQUAL(exp.getDataProcessing().size(),2)
+	
+	TEST_EQUAL(exp.getDataProcessing()[0].getSoftware().getName(),"ProteoWizard")
+	TEST_EQUAL(exp.getDataProcessing()[0].getSoftware().getVersion(),"1.0")
+	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().size(),1)
+	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().count(DataProcessing::CONVERSION_MZML),1)
+	TEST_EQUAL(exp.getDataProcessing()[0].isMetaEmpty(),true)
+	
+	TEST_EQUAL(exp.getDataProcessing()[1].getSoftware().getName(),"Xcalibur")
+	TEST_EQUAL(exp.getDataProcessing()[1].getSoftware().getVersion(),"2.0.5")
+	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().size(),3)
+	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
+	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().count(DataProcessing::DECONVOLUTION),1)
+	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().count(DataProcessing::LOW_INTENSITY_REMOVAL),1)
+	TEST_REAL_EQUAL(DoubleReal(exp.getDataProcessing()[1].getMetaValue("#intensity_cutoff")),5.9)
+	TEST_REAL_EQUAL(DoubleReal(exp.getDataProcessing()[1].getMetaValue("#intensity_cutoff")),5.9)
+	TEST_EQUAL(exp.getDataProcessing()[1].isMetaEmpty(),false)
+	TEST_STRING_EQUAL(exp.getDataProcessing()[1].getMetaValue("p1").toString(),"value1")
+	TEST_STRING_EQUAL(exp.getDataProcessing()[1].getMetaValue("p2").toString(),"value2")
 
 	//-------------------------- spectrum 0 --------------------------
 	{
@@ -234,8 +247,6 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	//acquisition
 	TEST_STRING_EQUAL((String)exp[0].getAcquisitionInfo()[0].getMetaValue("name"),"acquisition1")
 	TEST_STRING_EQUAL((String)exp[0].getAcquisitionInfo()[1].getMetaValue("name"),"acquisition2")
-	//processingMethod
-	TEST_STRING_EQUAL((String)exp.getProcessingMethod().getMetaValue("name"),"processingMethod")
 	
 	/////////////////////// TESTING SPECIAL CASES ///////////////////////
 	

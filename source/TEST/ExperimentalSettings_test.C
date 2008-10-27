@@ -70,19 +70,14 @@ CHECK(const Instrument& getInstrument() const)
   TEST_EQUAL(tmp.getInstrument()==Instrument(),true);
 RESULT
 
-CHECK(const ProcessingMethod& getProcessingMethod() const)
+CHECK(const DataProcessing& getDataProcessing() const)
   ExperimentalSettings tmp;
-  TEST_EQUAL(tmp.getProcessingMethod()==ProcessingMethod(),true);
+  TEST_EQUAL(tmp.getDataProcessing().size(),0);
 RESULT
 
 CHECK(const Sample& getSample() const)
   ExperimentalSettings tmp;
   TEST_EQUAL(tmp.getSample()==Sample(),true);
-RESULT
-
-CHECK(const Software& getSoftware() const)
-  ExperimentalSettings tmp;
-  TEST_EQUAL(tmp.getSoftware()==Software(),true);
 RESULT
 
 CHECK(const SourceFile& getSourceFile() const)
@@ -161,12 +156,13 @@ CHECK(void setInstrument(const Instrument& instrument))
   TEST_EQUAL(tmp.getInstrument().getName(),"bla");
 RESULT
 
-CHECK(void setProcessingMethod(const ProcessingMethod& processing_method))
+CHECK(void setDataProcessing(const DataProcessing& processing_method))
   ExperimentalSettings tmp;
-  ProcessingMethod dummy;
-  dummy.setDeisotoping(true);
-  tmp.setProcessingMethod(dummy);
-  TEST_EQUAL(tmp.getProcessingMethod().getDeisotoping(),true);
+  std::vector<DataProcessing> dummy;
+  dummy.resize(1);
+  dummy[0].getProcessingActions().insert(DataProcessing::DEISOTOPING);
+  tmp.setDataProcessing(dummy);
+  TEST_EQUAL(tmp.getDataProcessing()[0].getProcessingActions().size(),1);
 RESULT
 
 CHECK(void setSample(const Sample& sample))
@@ -175,14 +171,6 @@ CHECK(void setSample(const Sample& sample))
   dummy.setName("bla3");
   tmp.setSample(dummy);
   TEST_EQUAL(tmp.getSample().getName(),"bla3");
-RESULT
-
-CHECK(void setSoftware(const Software& software))
-  ExperimentalSettings tmp;
-  Software dummy;
-  dummy.setName("bla33");
-  tmp.setSoftware(dummy);
-  TEST_EQUAL(tmp.getSoftware().getName(),"bla33");
 RESULT
 
 CHECK(void setSourceFile(const SourceFile& source_file))
@@ -211,22 +199,17 @@ CHECK(Instrument& getInstrument())
   TEST_EQUAL(tmp.getInstrument().getName(),"bla55");
 RESULT
 
-CHECK(ProcessingMethod& getProcessingMethod())
+CHECK(DataProcessing& getDataProcessing())
   ExperimentalSettings tmp;
-  tmp.getProcessingMethod().setDeisotoping(true);
-  TEST_EQUAL(tmp.getProcessingMethod().getDeisotoping(),true);
+  tmp.getDataProcessing().resize(1);
+  tmp.getDataProcessing()[0].getProcessingActions().insert(DataProcessing::DEISOTOPING);
+  TEST_EQUAL(tmp.getDataProcessing()[0].getProcessingActions().size(),1);
 RESULT
 
 CHECK(Sample& getSample())
   ExperimentalSettings tmp;
   tmp.getSample().setName("bla2");
   TEST_EQUAL(tmp.getSample().getName(),"bla2");
-RESULT
-
-CHECK(Software& getSoftware())
-  ExperimentalSettings tmp;
-  tmp.getSoftware().setName("bla3");
-  TEST_EQUAL(tmp.getSoftware().getName(),"bla3");
 RESULT
 
 CHECK(SourceFile& getSourceFile())
@@ -264,9 +247,8 @@ CHECK(ExperimentalSettings(const ExperimentalSettings& source))
   tmp.setComment("bla");
   tmp.setIdentifier("lsid");
   tmp.getInstrument().setName("bla");
-  tmp.getProcessingMethod().setDeisotoping(true);
+  tmp.getDataProcessing().resize(1);
   tmp.getSample().setName("bla2");
-  tmp.getSoftware().setName("bla3");
   tmp.getSourceFile().setNameOfFile("bla4");
   tmp.getContacts().resize(1);
   tmp.addProteinIdentification(id);
@@ -277,9 +259,8 @@ CHECK(ExperimentalSettings(const ExperimentalSettings& source))
   TEST_EQUAL(tmp2.getIdentifier(),"lsid");
   TEST_EQUAL(tmp2.getHPLC().getFlux(),5);
   TEST_EQUAL(tmp2.getInstrument().getName(),"bla");
-  TEST_EQUAL(tmp2.getProcessingMethod().getDeisotoping(),true);
+  TEST_EQUAL(tmp2.getDataProcessing().size(),1);
   TEST_EQUAL(tmp2.getSample().getName(),"bla2");
-  TEST_EQUAL(tmp2.getSoftware().getName(),"bla3");
   TEST_EQUAL(tmp2.getSourceFile().getNameOfFile(),"bla4");
   TEST_EQUAL(tmp2.getContacts().size(),1);
   TEST_EQUAL(id == tmp2.getProteinIdentifications()[0], true);
@@ -303,9 +284,8 @@ CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
   tmp.setComment("bla");
   tmp.setIdentifier("lsid");
   tmp.getInstrument().setName("bla");
-  tmp.getProcessingMethod().setDeisotoping(true);
+  tmp.getDataProcessing().resize(1);
   tmp.getSample().setName("bla2");
-  tmp.getSoftware().setName("bla3");
   tmp.getSourceFile().setNameOfFile("bla4");
   tmp.getContacts().resize(1);
 	tmp.addProteinIdentification(id);
@@ -317,9 +297,8 @@ CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
   TEST_EQUAL(tmp2.getInstrument().getName(),"bla");
   TEST_EQUAL(tmp2.getComment(),"bla");
   TEST_EQUAL(tmp2.getIdentifier(),"lsid");
-  TEST_EQUAL(tmp2.getProcessingMethod().getDeisotoping(),true);
+  TEST_EQUAL(tmp2.getDataProcessing().size(),1);
   TEST_EQUAL(tmp2.getSample().getName(),"bla2");
-  TEST_EQUAL(tmp2.getSoftware().getName(),"bla3");
   TEST_EQUAL(tmp2.getSourceFile().getNameOfFile(),"bla4");
   TEST_EQUAL(tmp2.getContacts().size(),1);
   TEST_EQUAL(tmp2.getProteinIdentifications().size(), 1);
@@ -330,9 +309,8 @@ CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
   TEST_EQUAL(tmp2.getHPLC().getFlux(),0);
   TEST_EQUAL(tmp2.getInstrument().getName(),"");
   TEST_EQUAL(tmp2.getIdentifier(),"");
-  TEST_EQUAL(tmp2.getProcessingMethod().getDeisotoping(),false);
+  TEST_EQUAL(tmp2.getDataProcessing().size(),0);
   TEST_EQUAL(tmp2.getSample().getName(),"");
-  TEST_EQUAL(tmp2.getSoftware().getName(),"");
   TEST_EQUAL(tmp2.getSourceFile().getNameOfFile(),"");
   TEST_EQUAL(tmp2.getContacts().size(),0);
   TEST_EQUAL(tmp2.getProteinIdentifications().size(), 0);
@@ -362,15 +340,11 @@ CHECK(bool operator== (const ExperimentalSettings& rhs) const)
   TEST_EQUAL(edit==empty,false);
   
   edit = empty;
-  edit.getProcessingMethod().setDeisotoping(true);
+  edit.getDataProcessing().resize(1);
   TEST_EQUAL(edit==empty,false);
   
   edit = empty;
   edit.getSample().setName("bla2");
-  TEST_EQUAL(edit==empty,false);
-  
-  edit = empty;
-  edit.getSoftware().setName("bla3");
   TEST_EQUAL(edit==empty,false);
   
   edit = empty;
@@ -421,15 +395,11 @@ CHECK(bool operator!= (const ExperimentalSettings& rhs) const)
   TEST_EQUAL(edit!=empty,true);
   
   edit = empty;
-  edit.getProcessingMethod().setDeisotoping(true);
+  edit.getDataProcessing().resize(1);
   TEST_EQUAL(edit!=empty,true);
   
   edit = empty;
   edit.getSample().setName("bla2");
-  TEST_EQUAL(edit!=empty,true);
-  
-  edit = empty;
-  edit.getSoftware().setName("bla3");
   TEST_EQUAL(edit!=empty,true);
   
   edit = empty;

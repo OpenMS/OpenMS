@@ -35,55 +35,48 @@
 class QLabel;
 class QLineEdit;
 
-namespace OpenMS {
-/**
-@brief Class that displays all meta information for SourceFile objects
-
-This class provides all functionality to view the meta information of an object of type SourceFile.
-*/
-
-	class SourceFileVisualizer : public BaseVisualizer
+namespace OpenMS
+{
+	/**
+		@brief Class that displays all meta information for SourceFile objects
+		
+		This class provides all functionality to view the meta information of an object of type SourceFile.
+	*/
+	class SourceFileVisualizer
+		: public BaseVisualizer
 	{
 		Q_OBJECT
 
-	public: 
-         /// Default constructor
-	      SourceFileVisualizer(bool editable= FALSE, QWidget *parent =0);
+		public: 
+			/// Default constructor
+			SourceFileVisualizer(bool editable = FALSE, QWidget *parent = 0);
+			
+			/// Loads the meta data from the object to the viewer.
+			void load(SourceFile &h);
+
+		private slots:
+			/// Saves the changes made to the meta data into the object.
+			void store_();
+			/// Deletes all changes made in the viewer and restores the original meta data.
+			void reject_();
+
+		private:  
 				
-        /// Loads the meta data from the object to the viewer.
-	      void load(SourceFile &h);
-
-	private slots:
-	       /// Saves the changes made to the meta data into the object.
-	       void store_();
-	       /// Deletes all changes made in the viewer and restores the original meta data.
-	       void reject_();
-
-	private:  
-				
-		/** @name Edit fields and buttons
-   */
-    //@{
-		QLineEdit *name_of_file_;
-		QLineEdit *path_to_file_;
-		QLineEdit *file_size_;
-		QLineEdit *file_type_;
-		QLineEdit *sha1_;
-		//@}
-
-		/// Pointer to current object to keep track of the actual object
-		SourceFile *ptr_;
-		/// Copy of current object for restoring the original values
-		SourceFile tempSourceFile_;
-		
-		
-		
-		
-		
-		
+			///@name Edit fields and buttons
+			//@{
+			QLineEdit *name_of_file_;
+			QLineEdit *path_to_file_;
+			QLineEdit *file_size_;
+			QLineEdit *file_type_;
+			QLineEdit *sha1_;
+			//@}
+			
+			/// Pointer to current object to keep track of the actual object
+			SourceFile *ptr_;
+			/// Copy of current object for restoring the original values
+			SourceFile tempSourceFile_;
 		
 	};
-
 
 }
 #endif

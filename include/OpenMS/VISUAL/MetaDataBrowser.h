@@ -62,7 +62,7 @@ namespace OpenMS
 	class Modification;
 	class PeptideHit;
 	class Precursor;
-	class ProcessingMethod;
+	class DataProcessing;
 	class ProteinHit;
 	class ProteinIdentification;
 	class Sample;
@@ -144,7 +144,7 @@ namespace OpenMS
 			void visualize_(IonSource& meta, QTreeWidgetItem* parent=0);
 			void visualize_(IonDetector& meta, QTreeWidgetItem* parent=0);
 			void visualize_(MassAnalyzer& meta, QTreeWidgetItem* parent=0);
-			void visualize_(ProcessingMethod& meta, QTreeWidgetItem* parent=0);
+			void visualize_(DataProcessing& meta, QTreeWidgetItem* parent=0);
 			void visualize_(ProteinIdentification& meta, QTreeWidgetItem* parent=0);
 			void visualize_(ProteinHit& meta, QTreeWidgetItem* parent=0);
 			void visualize_(PeptideHit& meta, QTreeWidgetItem* parent=0);

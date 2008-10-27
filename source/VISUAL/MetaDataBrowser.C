@@ -42,7 +42,7 @@
 #include <OpenMS/VISUAL/VISUALIZER/IonSourceVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/IonDetectorVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/MassAnalyzerVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/ProcessingMethodVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/DataProcessingVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/ProteinIdentificationVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/ProteinHitVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/PeptideHitVisualizer.h>
@@ -309,8 +309,11 @@ namespace OpenMS
 			visualize_(meta.getProteinIdentifications()[i], item);
 		}
 		
-		//check for ProcessingMethod
-		visualize_(meta.getProcessingMethod(), item);
+		//check for DataProcessing
+		for(UInt i=0; i<meta.getDataProcessing().size(); ++i)    
+		{
+			visualize_(meta.getDataProcessing()[i], item);
+		}
 		
 		//check for Instrument
 		visualize_(meta.getInstrument(), item);
@@ -323,9 +326,6 @@ namespace OpenMS
 		{
 			visualize_(meta.getContacts()[i], item);
 		}
-		
-		//check for Software
-		visualize_(meta.getSoftware(), item);
 		
 		//check for HPLC
 		visualize_(meta.getHPLC(), item);
@@ -711,14 +711,14 @@ namespace OpenMS
 	}
 	
 	
-	//Visualizing ProcessingMethod object
-	void MetaDataBrowser::visualize_(ProcessingMethod& meta, QTreeWidgetItem* parent)
+	//Visualizing DataProcessing object
+	void MetaDataBrowser::visualize_(DataProcessing& meta, QTreeWidgetItem* parent)
 	{
-		ProcessingMethodVisualizer *visualizer = new ProcessingMethodVisualizer(isEditable(), this);  
+		DataProcessingVisualizer *visualizer = new DataProcessingVisualizer(isEditable(), this);  
 		visualizer->load(meta);  
 		
     QStringList labels;
-    labels << "ProcessingMethod" << QString::number(ws_->addWidget(visualizer));
+    labels << "DataProcessing" << QString::number(ws_->addWidget(visualizer));
     
     QTreeWidgetItem* item;
 		if(parent == 0)
@@ -729,6 +729,9 @@ namespace OpenMS
 		{
 			item = new QTreeWidgetItem(parent, labels );
 		}
+
+		//visualize Software object
+		visualize_(meta.getSoftware(), item);
 
 		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		connectVisualizer_(visualizer);

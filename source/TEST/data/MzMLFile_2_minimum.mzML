@@ -23,7 +23,6 @@
 	<dataProcessingList count="1">
 		<dataProcessing softwareRef="ID_2" id="ID_3">
 			<processingMethod order="1"/>
-			<processingMethod order="1"/>
 		</dataProcessing>
 	</dataProcessingList>
 	<run id="ID_9" defaultInstrumentConfigurationRef="ID_1">

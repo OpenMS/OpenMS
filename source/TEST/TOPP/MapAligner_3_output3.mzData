@@ -24,6 +24,8 @@
 				<name></name>
 				<version></version>
 			</software>
+			<processingMethod>
+			</processingMethod>
 		</dataProcessing>
 	</description>
 	<spectrumList count="11">
@@ -32,7 +34,7 @@
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1" mzRangeStart="300" mzRangeStop="1500">
 						<cvParam cvLabel="psi" accession="PSI:1000037" name="Polarity" value="Positive"/>
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="0.05"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="0.0500000007450581"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -48,7 +50,7 @@
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1" mzRangeStart="300" mzRangeStop="1500">
 						<cvParam cvLabel="psi" accession="PSI:1000037" name="Polarity" value="Positive"/>
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="5.11"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="5.1100001335144"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -64,7 +66,7 @@
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1" mzRangeStart="300" mzRangeStop="1500">
 						<cvParam cvLabel="psi" accession="PSI:1000037" name="Polarity" value="Positive"/>
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="10.38"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="10.3800001144409"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -80,7 +82,7 @@
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1" mzRangeStart="300" mzRangeStop="1500">
 						<cvParam cvLabel="psi" accession="PSI:1000037" name="Polarity" value="Positive"/>
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="16.78"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="16.7800006866455"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -96,7 +98,7 @@
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1" mzRangeStart="300" mzRangeStop="1500">
 						<cvParam cvLabel="psi" accession="PSI:1000037" name="Polarity" value="Positive"/>
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="22.45"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="22.4500007629395"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -112,7 +114,7 @@
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1" mzRangeStart="300" mzRangeStop="1500">
 						<cvParam cvLabel="psi" accession="PSI:1000037" name="Polarity" value="Positive"/>
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="28.34"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="28.3400001525879"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -128,7 +130,7 @@
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1" mzRangeStart="300" mzRangeStop="1500">
 						<cvParam cvLabel="psi" accession="PSI:1000037" name="Polarity" value="Positive"/>
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="34.63"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="34.6300010681152"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -144,7 +146,7 @@
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1" mzRangeStart="300" mzRangeStop="1500">
 						<cvParam cvLabel="psi" accession="PSI:1000037" name="Polarity" value="Positive"/>
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="41.09"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="41.0900001525879"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -160,7 +162,7 @@
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1" mzRangeStart="300" mzRangeStop="1500">
 						<cvParam cvLabel="psi" accession="PSI:1000037" name="Polarity" value="Positive"/>
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="47.05"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="47.0499992370605"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -176,7 +178,7 @@
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1" mzRangeStart="300" mzRangeStop="1500">
 						<cvParam cvLabel="psi" accession="PSI:1000037" name="Polarity" value="Positive"/>
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="53.02"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="53.0200004577637"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -192,7 +194,7 @@
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1" mzRangeStart="300" mzRangeStop="1500">
 						<cvParam cvLabel="psi" accession="PSI:1000037" name="Polarity" value="Positive"/>
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="59.09"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="59.0900001525879"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>

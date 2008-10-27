@@ -38,73 +38,72 @@ using namespace std;
 
 namespace OpenMS
 {
-
-//Constructor
-DigestionVisualizer::DigestionVisualizer(bool editable, QWidget *parent) 
-	: BaseVisualizer(editable, parent)
-{
-  type_="Digestion";
 	
-	addLabel("Modify Digestion information");		
-	addSeperator();
-	addLineEdit(treatmenttype_, "Treatment type" );
-	addTextEdit(treatmentcomment_, "Comment" );
-	addLineEdit(digestionenzyme_, "Enzyme" );
-	addDoubleLineEdit(digestiontime_, "Digestion time (in minutes)" );
-	addDoubleLineEdit(digestiontemperature_, "Temperature (in °C)" );
-	addDoubleLineEdit(digestionPH_, "PH" );
-	
-	finishAdding_();
+	DigestionVisualizer::DigestionVisualizer(bool editable, QWidget *parent) 
+		: BaseVisualizer(editable, parent)
+	{
+	  type_="Digestion";
 		
-}
-
-
-
-void DigestionVisualizer::load(Digestion &d)
-{
-  ptr_ = &d;
-	
-	//Copy of current object for restoring the original values
-	tempdig_=d;
-	treatmenttype_->setText(tempdig_.getType().c_str());
-	treatmenttype_->setReadOnly(true);
-	treatmentcomment_->setText(tempdig_.getComment().c_str());
-  digestionenzyme_->setText(tempdig_.getEnzyme().c_str());
-	digestiontime_->setText(String(tempdig_.getDigestionTime()).c_str() );
-  digestiontemperature_->setText(String(tempdig_.getTemperature()).c_str());
-	digestionPH_->setText(String(tempdig_.getPh()).c_str()); 
-	
+		addLabel("Modify Digestion information");		
+		addSeparator();
+		addLineEdit(treatmenttype_, "Treatment type" );
+		addTextEdit(treatmentcomment_, "Comment" );
+		addLineEdit(digestionenzyme_, "Enzyme" );
+		addDoubleLineEdit(digestiontime_, "Digestion time (in minutes)" );
+		addDoubleLineEdit(digestiontemperature_, "Temperature (in °C)" );
+		addDoubleLineEdit(digestionPH_, "PH" );
+		
+		finishAdding_();
 			
-}
-
-void DigestionVisualizer::store_()
-{
-	try
-	{		
-		(*ptr_).setComment(treatmentcomment_->toPlainText().toStdString());
-		(*ptr_).setEnzyme(digestionenzyme_->text().toStdString());
-		(*ptr_).setDigestionTime(digestiontime_->text().toFloat());
-		(*ptr_).setTemperature(digestiontime_->text().toFloat());
-		(*ptr_).setPh(digestiontime_->text().toFloat());
+	}
+	
+	
+	
+	void DigestionVisualizer::load(Digestion &d)
+	{
+	  ptr_ = &d;
 		
-		tempdig_ = (*ptr_);
+		//Copy of current object for restoring the original values
+		tempdig_=d;
+		treatmenttype_->setText(tempdig_.getType().c_str());
+		treatmenttype_->setReadOnly(true);
+		treatmentcomment_->setText(tempdig_.getComment().c_str());
+	  digestionenzyme_->setText(tempdig_.getEnzyme().c_str());
+		digestiontime_->setText(String(tempdig_.getDigestionTime()).c_str() );
+	  digestiontemperature_->setText(String(tempdig_.getTemperature()).c_str());
+		digestionPH_->setText(String(tempdig_.getPh()).c_str()); 
+		
+				
 	}
-	catch(exception& e)
+	
+	void DigestionVisualizer::store_()
 	{
-		std::cout<<"Error while trying to store the new digestion data. "<<e.what()<<endl;
+		try
+		{		
+			ptr_->setComment(treatmentcomment_->toPlainText().toStdString());
+			ptr_->setEnzyme(digestionenzyme_->text().toStdString());
+			ptr_->setDigestionTime(digestiontime_->text().toFloat());
+			ptr_->setTemperature(digestiontime_->text().toFloat());
+			ptr_->setPh(digestiontime_->text().toFloat());
+			
+			tempdig_ = (*ptr_);
+		}
+		catch(exception& e)
+		{
+			std::cout<<"Error while trying to store the new digestion data. "<<e.what()<<endl;
+		}
 	}
-}
-
-void DigestionVisualizer::reject_()
-{
-	try
+	
+	void DigestionVisualizer::reject_()
 	{
-		load(tempdig_);
+		try
+		{
+			load(tempdig_);
+		}
+		catch(exception e)
+		{
+			cout<<"Error while trying to restore original digestion data. "<<e.what()<<endl;
+		} 
 	}
-	catch(exception e)
-	{
-		cout<<"Error while trying to restore original digestion data. "<<e.what()<<endl;
-	} 
-}
 
 }

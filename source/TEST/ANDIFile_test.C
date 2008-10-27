@@ -172,16 +172,16 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
   TEST_EQUAL(tmp, "0000-00-00 00:00:00")
   
   //---------------------------------------------------------------------------
-  // const ProcessingMethod& getProcessingMethod() const;
+  // const DataProcessing& getDataProcessing() const;
   //---------------------------------------------------------------------------
-  TEST_EQUAL(e.getProcessingMethod().getDeisotoping(), false)
-  TEST_EQUAL(e.getProcessingMethod().getChargeDeconvolution(), false)
-  TEST_EQUAL(e.getProcessingMethod().getSpectrumType(), SpectrumSettings::PEAKS)
-  TEST_REAL_EQUAL(e.getProcessingMethod().getIntensityCutoff(), 0)
-  TEST_REAL_EQUAL(e.getProcessingMethod().getMetaValue("ProcessingNumer"), 123.0)
-  TEST_EQUAL(e.getProcessingMethod().getMetaValue("ErrorLog"), "")
-  TEST_EQUAL(e.getProcessingMethod().getMetaValue("CalibrationHistory"), "25262728")
-  TEST_REAL_EQUAL(e.getProcessingMethod().getMetaValue("NumOfCalibrations"), 456.0)
+  TEST_EQUAL(e.getDataProcessing().getDeisotoping(), false)
+  TEST_EQUAL(e.getDataProcessing().getChargeDeconvolution(), false)
+  TEST_EQUAL(e.getDataProcessing().getSpectrumType(), SpectrumSettings::PEAKS)
+  TEST_REAL_EQUAL(e.getDataProcessing().getIntensityCutoff(), 0)
+  TEST_REAL_EQUAL(e.getDataProcessing().getMetaValue("ProcessingNumer"), 123.0)
+  TEST_EQUAL(e.getDataProcessing().getMetaValue("ErrorLog"), "")
+  TEST_EQUAL(e.getDataProcessing().getMetaValue("CalibrationHistory"), "25262728")
+  TEST_REAL_EQUAL(e.getDataProcessing().getMetaValue("NumOfCalibrations"), 456.0)
   
   //---------------------------------------------------------------------------
   // const Instrument& getInstrument() const;

@@ -42,7 +42,6 @@ using namespace std;
 
 namespace OpenMS
 {
-	//Constructor
 	ProteinIdentificationVisualizer::ProteinIdentificationVisualizer(bool editable, QWidget *parent, MetaDataBrowser *caller) : BaseVisualizer(editable, parent)
 	{
 		type_="Identification";
@@ -50,7 +49,7 @@ namespace OpenMS
 	     
 		addLineEdit(identifier_, "Identifier<br>(of corresponding PeptideIdentifications)" );
 		
-		addSeperator();
+		addSeparator();
 		addLineEdit(engine_, "Search engine" );
 		addLineEdit(engine_version_, "Search engine version" );
 		addLineEdit(identification_date_, "Date of search" );
@@ -58,7 +57,7 @@ namespace OpenMS
 		addBooleanComboBox(higher_better_,"Higher score is better"); 
 		addDoubleLineEdit(identification_threshold_, "Protein significance threshold" );	
 		
-		addSeperator();
+		addSeparator();
 		addLabel("Search Parameters:");
 		addLineEdit(db_, "Database name" );
 		addLineEdit(db_version_, "Database version" );
@@ -70,7 +69,7 @@ namespace OpenMS
 		addComboBox(mass_type_, "Mass type" );
 		addComboBox(enzyme_, "Digestion enzyme" );
 		
-		addSeperator();       
+		addSeparator();       
 		addLabel("Show protein hits with score equal or better than a threshold.");
 		QPushButton* button;
 		addLineEditButton("Score threshold", filter_threshold_, button, "Filter");

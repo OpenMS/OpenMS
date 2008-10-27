@@ -35,42 +35,40 @@
 class QLabel;
 class QLineEdit;
 
-namespace OpenMS {
-/**
-@brief Class that displays all meta information for AcquisitionInfo objects
-
-This class provides all functionality to view the meta information of an object of type AcquisitionInfo.
-*/
-	class AcquisitionInfoVisualizer : public BaseVisualizer
+namespace OpenMS
+{
+	/**
+		@brief Class that displays all meta information for AcquisitionInfo objects
+		
+		This class provides all functionality to view the meta information of an object of type AcquisitionInfo.
+	*/
+	class AcquisitionInfoVisualizer
+		: public BaseVisualizer
 	{
 		Q_OBJECT
 
-	public: 
-	   /// Default constructor
-		AcquisitionInfoVisualizer(bool editable= FALSE, QWidget *parent =0);
-		
-		/// Loads the meta data from the object to the viewer.
-		void load(AcquisitionInfo &h);
-
-	private slots:
-	  /// Saves the changes made to the meta data into the object.
-		void store_();
-		/// Deletes all changes made in the viewer and restores the original meta data.
-		void reject_();
-
-	private:  
-		
-		/// Edit field for the method 
-   	QLineEdit *acquisitioninfo_method_;
-		
-		/// Pointer to current object	to keep track of the actual object.
-		AcquisitionInfo *ptr_;
-		/// Copy of current object for restoring the original values
-		AcquisitionInfo tempAcquisitionInfo_;
-		
-		
+		public: 
+		   /// Default constructor
+			AcquisitionInfoVisualizer(bool editable = FALSE, QWidget *parent = 0);
+			/// Loads the meta data from the object to the viewer.
+			void load(AcquisitionInfo &h);
+	
+		private slots:
+		  /// Saves the changes made to the meta data into the object.
+			void store_();
+			/// Deletes all changes made in the viewer and restores the original meta data.
+			void reject_();
+	
+		private:  
+			
+			/// Edit field for the method 
+	   	QLineEdit *acquisitioninfo_method_;
+			
+			/// Pointer to current object	to keep track of the actual object.
+			AcquisitionInfo *ptr_;
+			/// Copy of current object for restoring the original values
+			AcquisitionInfo tempAcquisitionInfo_;
 	};
-
 
 }
 #endif

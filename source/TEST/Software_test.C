@@ -38,9 +38,6 @@ START_TEST(Software, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-DateTime time;
-time.set("2000-10-09 08:07:40");
-
 Software* ptr = 0;
 CHECK(Software())
 	ptr = new Software();
@@ -49,18 +46,6 @@ RESULT
 
 CHECK(~Software())
 	delete ptr;
-RESULT
-
-
-CHECK(const String& getComment() const)
-  Software tmp;
-  TEST_EQUAL(tmp.getComment(),"");
-RESULT
-
-CHECK(void setComment(const String& comment))
-  Software tmp;
-  tmp.setComment("comment");
-  TEST_EQUAL(tmp.getComment(),"comment");
 RESULT
 
 CHECK(const String& getName() const)
@@ -72,25 +57,6 @@ CHECK(void setName(const String& name))
   Software tmp;
   tmp.setName("name");
   TEST_EQUAL(tmp.getName(),"name");  
-RESULT
-
-CHECK(const DateTime& getCompletionTime() const)
-  Software tmp;
-	String str;
-	tmp.getCompletionTime().get(str);
-  TEST_EQUAL(str,"0000-00-00 00:00:00");
-RESULT
-
-CHECK(void setCompletionTime(const DateTime& completion_time))
-  Software tmp;
-  tmp.setCompletionTime(time);
-  TEST_EQUAL(tmp.getCompletionTime()==time,true);
-RESULT
-
-CHECK(void setCompletionTime(const String& completion_time))
-  Software tmp;
-  tmp.setCompletionTime("2000-10-09 08:07:40");
-  TEST_EQUAL(tmp.getCompletionTime()==time,true);
 RESULT
 
 CHECK(const String& getVersion() const)
@@ -108,14 +74,10 @@ CHECK(Software(const Software& source))
   Software tmp;
   tmp.setVersion("0.54");
   tmp.setName("name");
-  tmp.setCompletionTime(time);
-  tmp.setComment("bla");
-
-  Software tmp2(tmp);
-  TEST_EQUAL(tmp.getCompletionTime()==time,true);
-  TEST_EQUAL(tmp.getVersion(),"0.54");
-  TEST_EQUAL(tmp.getName(),"name");
-  TEST_EQUAL(tmp.getComment(),"bla");
+	
+	Software tmp2(tmp);
+  TEST_EQUAL(tmp2.getVersion(),"0.54");
+  TEST_EQUAL(tmp2.getName(),"name");
 RESULT
 
 
@@ -123,21 +85,15 @@ CHECK(Software& operator= (const Software& source))
   Software tmp;
   tmp.setVersion("0.54");
   tmp.setName("name");
-  tmp.setCompletionTime(time);
-  tmp.setComment("bla");
   
   Software tmp2;
   tmp2 = tmp;
-  TEST_EQUAL(tmp.getCompletionTime()==time,true);
   TEST_EQUAL(tmp2.getVersion(),"0.54");
   TEST_EQUAL(tmp2.getName(),"name");
-  TEST_EQUAL(tmp2.getComment(),"bla");
 
   tmp2 = Software();
-  TEST_EQUAL(tmp2.getCompletionTime()==DateTime(),true);
   TEST_EQUAL(tmp2.getVersion(),"");
   TEST_EQUAL(tmp2.getName(),"");
-  TEST_EQUAL(tmp2.getComment(),"");
 RESULT
 
 
@@ -153,14 +109,7 @@ CHECK(bool operator== (const Software& rhs) const)
   edit = empty;
   edit.setName("name");
   TEST_EQUAL(edit==empty,false);
-  
-  edit = empty;
-  edit.setCompletionTime(time);
-  TEST_EQUAL(edit==empty,false);
-  
-  edit = empty;
-  edit.setComment("bla");
-  TEST_EQUAL(edit==empty,false);
+
 RESULT
 
 CHECK(bool operator!= (const Software& rhs) const)
@@ -175,14 +124,7 @@ CHECK(bool operator!= (const Software& rhs) const)
   edit = empty;
   edit.setName("name");
   TEST_EQUAL(edit!=empty,true);
-  
-  edit = empty;
-  edit.setCompletionTime(time);
-  TEST_EQUAL(edit!=empty,true);
-  
-  edit = empty;
-  edit.setComment("bla");
-  TEST_EQUAL(edit!=empty,true);
+
 RESULT
 
 /////////////////////////////////////////////////////////////

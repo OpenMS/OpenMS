@@ -38,7 +38,6 @@ using namespace std;
 namespace OpenMS
 {
 
-	//Constructor
 	ProteinHitVisualizer::ProteinHitVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
 	{
 		addLineEdit(proteinhit_score_, "Score" );

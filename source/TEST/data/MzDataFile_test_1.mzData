@@ -99,14 +99,14 @@
 			<software completionTime="2001-02-03T04:05:06">
 				<name>MS-X</name>
 				<version>1.0</version>
-				<comments>none</comments>
+				<comments>SoftwareComment</comments>
 			</software>
 			<processingMethod>
 				<cvParam cvLabel="psi" name="Deisotoping" accession="PSI:1000033" value="false"/>
 				<cvParam cvLabel="psi" name="ChargeDeconvolution" accession="PSI:1000034" value="false"/>
 				<cvParam cvLabel="psi" accession="PSI:1000035" name="PeakProcessing" value="CentroidMassSpectrum"/>
 				<userParam name="URL" value="www.open-ms.de"/>
-				<userParam name="ProcessingComment" value="Processed"/>
+				<userParam name="comment" value="ProcessingComment"/>
 			</processingMethod>
 		</dataProcessing>
 	</description>

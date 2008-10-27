@@ -34,19 +34,21 @@
 class QLineEdit;
 class QComboBox;
 
-namespace OpenMS {
-/**
-@brief Class that displays all meta information for IonDetector objects
-
-This class provides all functionality to view the meta information of an object of type IonDetector.
-*/
-	class IonDetectorVisualizer : public BaseVisualizer
+namespace OpenMS
+{
+	/**
+		@brief Class that displays all meta information for IonDetector objects
+		
+		This class provides all functionality to view the meta information of an object of type IonDetector.
+	*/
+	class IonDetectorVisualizer
+		: public BaseVisualizer
 	{
 		Q_OBJECT
 
 	public: 
 	  /// Default constructor
-		IonDetectorVisualizer(bool editable= FALSE, QWidget *parent =0);
+		IonDetectorVisualizer(bool editable = FALSE, QWidget *parent = 0);
 		
 		/// Loads the meta data from the object to the viewer.
 		void load(IonDetector &s);
@@ -65,24 +67,18 @@ This class provides all functionality to view the meta information of an object 
 		/// Sets the comboboxes with current values
 		void update_();
 	  	
-		/** @name edit fields to modify properties
-   */
+		///@name edit fields to modify properties
     //@{
 		QLineEdit *iondetector_res_;
 		QLineEdit *iondetector_freq_;
 		//@}
 
 		
-		/** @name Comboboxes to choose properties
-   */
+		///@name Comboboxes to choose properties
     //@{
 		QComboBox *iondetector_type_;
 		QComboBox *iondetector_ac_mode_;
 		//@}
-
-   
-		
-		
 					
 	};
 }

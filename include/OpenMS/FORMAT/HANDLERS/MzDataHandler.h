@@ -388,7 +388,7 @@ namespace OpenMS
 			}
 			else if (current_tag=="version")
 			{
-				exp_->getSoftware().setVersion( sm_.convert(chars) );
+				exp_->getDataProcessing().back().getSoftware().setVersion( sm_.convert(chars) );
 			}
 			else if (current_tag=="institution")
 			{
@@ -421,11 +421,11 @@ namespace OpenMS
 			}
 			else if (current_tag=="name" && parent_tag=="software")
 			{
-				exp_->getSoftware().setName( sm_.convert(chars) );
+				exp_->getDataProcessing().back().getSoftware().setName( sm_.convert(chars) );
 			}
 			else if (current_tag=="comments" && parent_tag=="software")
 			{
-				exp_->getSoftware().setComment( sm_.convert(chars) );
+				exp_->getDataProcessing().back().setMetaValue("#comment", String(sm_.convert(chars)) );
 			}
 			else if (current_tag == "comments" && parent_tag=="spectrumDesc")
 			{
@@ -519,9 +519,10 @@ namespace OpenMS
 			}
 			else if (tag=="software")
 			{
+				exp_->getDataProcessing().resize(1);
 				if (attributes.getIndex(sm_.convert("completionTime"))!=-1)
 				{
-					exp_->getSoftware().setCompletionTime( asDateTime_(sm_.convert(attributes.getValue(sm_.convert("completionTime")))) );
+					exp_->getDataProcessing().back().setCompletionTime( asDateTime_(sm_.convert(attributes.getValue(sm_.convert("completionTime")))) );
 				}
 			}
 			else if (tag=="cvParam")
@@ -585,7 +586,7 @@ namespace OpenMS
 				}
 				else if (parent_tag=="processingMethod")
 				{
-					exp_->getProcessingMethod().setMetaValue(name,value);			
+					exp_->getDataProcessing().back().setMetaValue(name,value);			
 				}
 				else
 				{
@@ -956,40 +957,61 @@ namespace OpenMS
 				writeUserParam_(os, inst);
 				os << "\t\t\t</additional>\n";
 			}
-
-			os << "\t\t</instrument>\n"
-				 << "\t\t<dataProcessing>\n"
-				 << "\t\t\t<software";
-			if (cexp_->getSoftware().getCompletionTime()!=DateTime())
+			os << "\t\t</instrument>\n";
+			
+			if (cexp_->getDataProcessing().size()==0)
 			{
-				String tmp;
-				cexp_->getSoftware().getCompletionTime().get(tmp);
-				String time(tmp);
-				time.substitute(' ','T');
-				os << " completionTime=\"" << time << "\"";
+				os << "\t\t<dataProcessing>\n"
+					 << "\t\t\t<software>\n"
+					 << "\t\t\t\t<name></name>\n"
+					 << "\t\t\t\t<version></version>\n"
+					 << "\t\t\t</software>\n"
+					 << "\t\t</dataProcessing>\n";
 			}
-			os << ">\n"
-				 << "\t\t\t\t<name>" << cexp_->getSoftware().getName() << "</name>\n"
-				 << "\t\t\t\t<version>" << cexp_->getSoftware().getVersion() << "</version>\n";
-			if (cexp_->getSoftware().getComment()!="")
-				os << "\t\t\t\t<comments>none</comments>\n";
-			os << "\t\t\t</software>\n";
-
-			if (cexp_->getProcessingMethod().getSpectrumType()!=0)
+			else
 			{
-				os << "\t\t\t<processingMethod>\n"
-					 << "\t\t\t\t<cvParam cvLabel=\"psi\" name=\"Deisotoping\" accession=\"PSI:1000033\" value=\""
-					 << ((cexp_->getProcessingMethod().getDeisotoping())? "true" : "false")
-					 << "\"/>\n"
-					 << "\t\t\t\t<cvParam cvLabel=\"psi\" name=\"ChargeDeconvolution\" accession=\"PSI:1000034\" value=\""
-					 << ((cexp_->getProcessingMethod().getChargeDeconvolution())? "true" : "false")
-					 << "\"/>\n";
-				writeCVS_(os, cexp_->getProcessingMethod().getSpectrumType(), 7, "1000035", "PeakProcessing");
-				writeUserParam_(os, cexp_->getProcessingMethod());
-				os << "\t\t\t</processingMethod>\n";
+				const DataProcessing& data_processing = cexp_->getDataProcessing()[0];
+				os << "\t\t<dataProcessing>\n"
+					 << "\t\t\t<software";
+				if (data_processing.getCompletionTime()!=DateTime())
+				{
+					String tmp;
+					data_processing.getCompletionTime().get(tmp);
+					tmp.substitute(' ','T');
+					os << " completionTime=\"" << tmp << "\"";
+				}
+				os << ">\n"
+					 << "\t\t\t\t<name>" << data_processing.getSoftware().getName() << "</name>\n"
+					 << "\t\t\t\t<version>" << data_processing.getSoftware().getVersion() << "</version>\n";
+				if (data_processing.metaValueExists("#comment"))
+				{
+					os << "\t\t\t\t<comments>" << data_processing.getMetaValue("#comment").toString() << "</comments>\n";
+				}
+				os << "\t\t\t</software>\n"
+					 << "\t\t\t<processingMethod>\n";
+				if(data_processing.getProcessingActions().count(DataProcessing::DEISOTOPING)==1)
+				{
+					os << "\t\t\t\t<cvParam cvLabel=\"psi\" name=\"Deisotoping\" accession=\"PSI:1000033\" value=\"true\"/>\n";
+				}
+				if(data_processing.getProcessingActions().count(DataProcessing::DECONVOLUTION)==1)
+				{
+					os << "\t\t\t\t<cvParam cvLabel=\"psi\" name=\"ChargeDeconvolution\" accession=\"PSI:1000034\" value=\"true\"/>\n";
+				}
+				if(data_processing.getProcessingActions().count(DataProcessing::PEAK_PICKING)==1)
+				{
+					os << "\t\t\t\t<cvParam cvLabel=\"psi\" name=\"Centroid Mass Spectrum\" accession=\"PSI:1000127\"/>\n";
+				}
+				writeUserParam_(os, data_processing);
+				os << "\t\t\t</processingMethod>\n"
+					 << "\t\t</dataProcessing>\n";
+				
+				//warn if we loose information
+				if (cexp_->getDataProcessing().size()>1)
+				{
+					warning("Warning: The MzData format can store only one dataProcessing instance. Only the first one is stored. The remaining instances are lost!");
+				}
 			}
-			os << "\t\t</dataProcessing>\n"
-				 << "\t</description>\n";
+			os << "\t</description>\n";
 
 			//---------------------------------------------------------------------------------------------------
 			//ACTUAL DATA
@@ -1444,19 +1466,19 @@ namespace OpenMS
 			{
 				if (accession=="PSI:1000033")
 				{
-					exp_->getProcessingMethod().setDeisotoping(asBool_(value));
+					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::DEISOTOPING);
 				}
 				else if (accession=="PSI:1000034")
 				{
-					exp_->getProcessingMethod().setChargeDeconvolution(asBool_(value));
+					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::DECONVOLUTION);
 				}
-				else if (accession=="PSI:1000035")
+				else if (accession=="PSI:1000127")
 				{
-					exp_->getProcessingMethod().setSpectrumType( (SpectrumSettings::SpectrumType)cvStringToEnum_(7, value, "spectrum type"));
+					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::PEAK_PICKING);
 				}
 				else 
 				{
-					error = "DataProcessing.ProcessingMethod.UserParam";
+					error = "DataProcessing.DataProcessing.UserParam";
 				}
 			}
 			else

@@ -34,81 +34,80 @@ using namespace std;
 
 namespace OpenMS
 {
-
-//Constructor
-ContactPersonVisualizer::ContactPersonVisualizer(bool editable, QWidget *parent) 
-	: BaseVisualizer(editable, parent)
-{
-  
-	addLabel("Modify ContactPerson information");		
-	addSeperator();
-	addLineEdit(cp_firstname_, "First name" );
-	addLineEdit(cp_lastname_, "Last name" );
-	addLineEdit(cp_institution_, "Institution" );
-	addLineEdit(cp_email_, "Email" );
-	addLineEdit(cp_contact_info_, "Contact info" );
-	finishAdding_();
 	
-}
-
-
-void ContactPersonVisualizer::load(ContactPerson &h)
-{
-  ptr_ = &h;
-	
-	//Copy of current object for restoring the original values
-	tempContactPerson_=h;
-  cp_firstname_->setText(h.getFirstName().c_str());
-  cp_lastname_->setText(h.getLastName().c_str());
-	cp_institution_->setText(h.getInstitution().c_str() );
-  cp_email_->setText(h.getEmail().c_str() );
-	cp_contact_info_->setText(h.getContactInfo().c_str() );
-		
-	cp_firstname_->adjustSize();		
-	cp_lastname_->adjustSize();		
-	cp_lastname_->adjustSize();		
-	cp_institution_->adjustSize();		
-	cp_email_->adjustSize();		
-	cp_email_->repaint();	
-	cp_email_->show();
-	cp_contact_info_->adjustSize();		
-	
-}
-
-void ContactPersonVisualizer::store_()
-{
-	try
+	ContactPersonVisualizer::ContactPersonVisualizer(bool editable, QWidget *parent) 
+		: BaseVisualizer(editable, parent)
 	{
-				
-		(*ptr_).setFirstName(cp_firstname_->text().toStdString());
-
-		(*ptr_).setLastName(cp_lastname_->text().toStdString());
-				
-		(*ptr_).setInstitution(cp_institution_->text().toStdString());
-		
-		(*ptr_).setEmail(cp_email_->text().toStdString());
-		
-		(*ptr_).setContactInfo(cp_contact_info_->text().toStdString());
-		
-		tempContactPerson_ = (*ptr_);
+	  
+		addLabel("Modify ContactPerson information");		
+		addSeparator();
+		addLineEdit(cp_firstname_, "First name" );
+		addLineEdit(cp_lastname_, "Last name" );
+		addLineEdit(cp_institution_, "Institution" );
+		addLineEdit(cp_email_, "Email" );
+		addLineEdit(cp_contact_info_, "Contact info" );
+		finishAdding_();
 		
 	}
-	catch(exception& e)
+	
+	
+	void ContactPersonVisualizer::load(ContactPerson &h)
 	{
-		std::cout<<"Error while trying to store the new contact person data. "<<e.what()<<endl;
+	  ptr_ = &h;
+		
+		//Copy of current object for restoring the original values
+		tempContactPerson_=h;
+	  cp_firstname_->setText(h.getFirstName().c_str());
+	  cp_lastname_->setText(h.getLastName().c_str());
+		cp_institution_->setText(h.getInstitution().c_str() );
+	  cp_email_->setText(h.getEmail().c_str() );
+		cp_contact_info_->setText(h.getContactInfo().c_str() );
+			
+		cp_firstname_->adjustSize();		
+		cp_lastname_->adjustSize();		
+		cp_lastname_->adjustSize();		
+		cp_institution_->adjustSize();		
+		cp_email_->adjustSize();		
+		cp_email_->repaint();	
+		cp_email_->show();
+		cp_contact_info_->adjustSize();		
+		
 	}
-}
-
-void ContactPersonVisualizer::reject_()
-{
-	try
+	
+	void ContactPersonVisualizer::store_()
 	{
-		load(tempContactPerson_);
+		try
+		{
+					
+			ptr_->setFirstName(cp_firstname_->text().toStdString());
+	
+			ptr_->setLastName(cp_lastname_->text().toStdString());
+					
+			ptr_->setInstitution(cp_institution_->text().toStdString());
+			
+			ptr_->setEmail(cp_email_->text().toStdString());
+			
+			ptr_->setContactInfo(cp_contact_info_->text().toStdString());
+			
+			tempContactPerson_ = (*ptr_);
+			
+		}
+		catch(exception& e)
+		{
+			std::cout<<"Error while trying to store the new contact person data. "<<e.what()<<endl;
+		}
 	}
-	catch(exception e)
+	
+	void ContactPersonVisualizer::reject_()
 	{
-		cout<<"Error while trying to restore original contact person data. "<<e.what()<<endl;
-	} 
-}
+		try
+		{
+			load(tempContactPerson_);
+		}
+		catch(exception e)
+		{
+			cout<<"Error while trying to restore original contact person data. "<<e.what()<<endl;
+		} 
+	}
 
 }

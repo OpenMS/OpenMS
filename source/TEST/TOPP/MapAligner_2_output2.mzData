@@ -24,6 +24,8 @@
 				<name></name>
 				<version></version>
 			</software>
+			<processingMethod>
+			</processingMethod>
 		</dataProcessing>
 	</description>
 	<spectrumList count="143">
@@ -31,7 +33,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1816"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1812.79659435279"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -46,7 +48,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1818.97"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1815.75875889711"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -61,7 +63,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1825.45"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1822.23437417202"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -76,7 +78,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1833.07"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1829.83852819779"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -91,7 +93,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1834.16"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1830.93510832917"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -106,7 +108,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1834.41"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1831.17879280281"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -121,7 +123,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1837.32"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1834.08502976301"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -136,7 +138,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1847.19"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1843.94426387681"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -151,7 +153,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1885.9"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1882.60220898184"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -166,7 +168,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1886.81"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1883.51502705113"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -181,7 +183,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1895.04"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1891.73638191588"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -196,7 +198,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1946.4"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1943.0279687895"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -211,7 +213,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1948.15"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1944.77370837934"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -226,7 +228,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1957.1"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1953.71213476897"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -241,7 +243,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1959.31"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1955.92327175519"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -256,7 +258,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1973.33"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1969.92314450714"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -271,7 +273,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1976.25"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1972.83337629478"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -286,7 +288,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1985.54"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1982.11136301654"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -301,7 +303,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2013.62"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2010.15904644967"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -316,7 +318,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2030.42"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2026.93732168385"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -331,7 +333,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2035.46"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2031.9708042541"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -346,7 +348,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2035.82"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2032.3303387234"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -361,7 +363,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2040.08"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2036.5848299435"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -376,7 +378,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2043.06"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2039.56097638384"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -391,7 +393,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2047.62"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2044.11507966169"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -406,7 +408,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2058.14"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2054.62147582024"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -421,7 +423,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2078.08"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2074.53569059223"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -436,7 +438,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2092.92"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2089.35650038242"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -451,7 +453,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2101.12"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2097.54589662767"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -466,7 +468,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2107.12"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2103.53813778273"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -481,7 +483,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2107.92"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2104.33710327008"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -496,7 +498,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2118.24"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2114.64375805678"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -511,7 +513,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2147.5"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2143.86592075631"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -526,7 +528,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2169.62"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2165.95731648131"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -541,7 +543,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2186.64"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2182.9553072245"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -556,7 +558,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2251.32"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2247.55166687608"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -571,7 +573,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2254.02"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2250.24817539586"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -586,7 +588,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2271.9"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2268.10505403795"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -601,7 +603,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2285.04"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2281.22806216754"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -616,7 +618,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2294.68"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2290.85559629"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -631,7 +633,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2299.52"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2295.68933748842"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -646,7 +648,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2311.04"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2307.19444050614"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -661,7 +663,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2312.16"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2308.31299218842"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -676,7 +678,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2317.66"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2313.8058799139"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -691,7 +693,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2326.14"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2322.27491407972"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -706,7 +708,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2335.42"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2331.54291373288"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -721,7 +723,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2337.12"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2333.24071539348"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -736,7 +738,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2348.6"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2344.70587013684"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -751,7 +753,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2354.4"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2350.49836992007"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -766,7 +768,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2361.14"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2357.22965415092"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -781,7 +783,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2363.04"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2359.12719718336"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -796,7 +798,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2372"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2368.07561064158"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -811,7 +813,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2378.6"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2374.66707591215"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -826,7 +828,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2380.92"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2376.98407582544"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -841,7 +843,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2381.26"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2377.32363615757"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -856,7 +858,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2382.08"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2378.14257578209"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -871,7 +873,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2385.08"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2381.13869635962"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -886,7 +888,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2387.42"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2383.4756704101"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -901,7 +903,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2394.22"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2390.2668770525"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -916,7 +918,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2401.64"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2397.6772819476"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -931,7 +933,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2401.88"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2397.9169715938"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -946,7 +948,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2412.78"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2408.80287635883"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -961,7 +963,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2416.42"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2412.43816932623"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -976,7 +978,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2430.1"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2426.10047915978"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -991,7 +993,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2432.44"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2428.43745321025"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1006,7 +1008,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2433.06"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2429.05665146294"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1021,7 +1023,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2433.1"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2429.09659973731"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1036,7 +1038,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2434.34"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2430.33499624269"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1051,7 +1053,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2444.12"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2440.10234932544"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1066,7 +1068,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2451.62"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2447.59265076927"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1081,7 +1083,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2461.94"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2457.89930555598"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1096,7 +1098,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2479"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2474.93724457354"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1111,7 +1113,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2491.28"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2487.20136480424"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1126,7 +1128,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2491.38"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2487.30123549016"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1141,7 +1143,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2492.4"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2488.31991648652"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1156,7 +1158,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2496.86"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2492.77414907845"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1171,7 +1173,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2502.04"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2497.94745060898"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1186,7 +1188,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2502.44"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2498.34693335266"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1201,7 +1203,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2507.64"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2503.54020902038"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1216,7 +1218,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2508.08"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2503.97964003841"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1231,7 +1233,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2508.14"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2504.03956244996"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1246,7 +1248,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2508.66"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2504.55889001674"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1261,7 +1263,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2508.86"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2504.75863138857"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1276,7 +1278,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2521.3"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2517.18254471674"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1291,7 +1293,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2527.24"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2523.11486346025"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1306,7 +1308,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2532.9"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2528.76754428319"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1321,7 +1323,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2545.52"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2541.37122484601"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1336,7 +1338,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2556.7"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2552.53676753161"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1351,7 +1353,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2557.6"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2553.43560370487"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1366,7 +1368,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2558.42"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2554.25454332939"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1381,7 +1383,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2558.54"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2554.37438815249"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1396,7 +1398,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2558.56"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2554.39436228968"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1411,7 +1413,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2562"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2557.82991388525"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1426,7 +1428,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2566.54"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2562.36404302591"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1441,7 +1443,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2570.36"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2566.17910322797"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1456,7 +1458,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2572.28"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2568.09662039759"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1471,7 +1473,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2579.5"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2575.30728392085"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1486,7 +1488,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2582.38"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2578.18355967528"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1501,7 +1503,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2582.52"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2578.32337863556"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1516,7 +1518,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2583.24"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2579.04244757417"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1531,7 +1533,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2585.46"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2581.25957680154"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1546,7 +1548,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2588.18"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2583.97605945851"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1561,7 +1563,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2591.12"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2586.91225762449"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1576,7 +1578,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2594.6"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2590.38775749442"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1591,7 +1593,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2595.24"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2591.0269298843"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1606,7 +1608,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2595.92"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2591.70605054854"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1621,7 +1623,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2601.54"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2597.31878309711"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1636,7 +1638,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2607.2"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2602.97146392006"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1651,7 +1653,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2608.04"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2603.81037768176"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1666,7 +1668,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2608.12"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2603.8902742305"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1681,7 +1683,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2613.56"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2609.32323954442"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1696,7 +1698,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2614.04"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2609.80261883683"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1711,7 +1713,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2616.22"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2611.97979978983"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1726,7 +1728,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2619.72"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2615.47527379695"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1741,7 +1743,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2623.34"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2619.09059262718"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1756,7 +1758,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2628.62"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2624.36376484363"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1771,7 +1773,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2628.88"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2624.62342862702"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1786,7 +1788,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2637.22"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2632.95264383255"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1801,7 +1803,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2637.96"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2633.69168690835"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1816,7 +1818,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2638.18"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2633.91140241736"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1831,7 +1833,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2644.62"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2640.34307459047"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1846,7 +1848,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2647.54"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2643.25929861926"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1861,7 +1863,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2647.88"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2643.59885895138"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1876,7 +1878,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2663.82"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2659.51824628667"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1891,7 +1893,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2714.14"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2709.77317544046"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1906,7 +1908,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2715.36"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2710.99159780866"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1921,7 +1923,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2716.62"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2712.24996845122"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1936,7 +1938,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2717.14"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2712.76929601799"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1951,7 +1953,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2717.24"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2712.86916670391"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1966,7 +1968,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2720.86"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2716.48448553413"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1981,7 +1983,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2725.54"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2721.15843363508"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -1996,7 +1998,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2729.64"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2725.25313175771"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -2011,7 +2013,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2730.1"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2725.71253691293"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -2026,7 +2028,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2730.72"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2726.33173516562"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -2041,7 +2043,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2732.28"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2727.88971786594"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -2056,7 +2058,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2746.92"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2742.51078628429"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -2071,7 +2073,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2750.02"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2745.60677754774"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -2086,7 +2088,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2750.14"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2745.72662237084"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -2101,7 +2103,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2763.72"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2759.28906151847"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -2116,7 +2118,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2790.4"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2785.93456052131"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -2131,7 +2133,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2790.7"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2786.23417257907"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -2146,7 +2148,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2792.1"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2787.63236218192"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -2161,7 +2163,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="3095.38"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="3090.52017843317"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>

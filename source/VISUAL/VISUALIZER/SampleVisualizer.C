@@ -39,112 +39,111 @@ using namespace std;
 
 namespace OpenMS
 {
-
-//Constructor
-SampleVisualizer::SampleVisualizer(bool editable, QWidget *parent) 
-	: BaseVisualizer(editable, parent)
-{
-	type_="Sample";
-  
-	addLabel("Modify Sample information");		
-	addSeperator();
-  addLineEdit(samplename_, "Name" );
-	addLineEdit(samplenumber_, "Number" );
-	addLineEdit(sampleorganism_, "Organism" );
-  addTextEdit(samplecomment_, "Comment");
 	
-	addComboBox(samplestate_, "State");
-	
-		
-	addDoubleLineEdit(samplemass_,"Mass (in mg)");
-	addDoubleLineEdit(samplevolume_, "Volume (in ml)");
-	addDoubleLineEdit(sampleconcentration_, "Concentration (in mg/ml)");
-	
-	finishAdding_();
-	
-	
-}
-
-
-void SampleVisualizer::load(Sample &s)
-{
-  //Pointer to current object	 to keep track of the actual object
-	ptr_ = &s;
-	
-	//Copy of current object for restoring the original values
-	tempsample_=s;
-		
-	
-	
-  update_();		
-}
-
-void SampleVisualizer::update_()
-{
-	if(! isEditable())
+	SampleVisualizer::SampleVisualizer(bool editable, QWidget *parent) 
+		: BaseVisualizer(editable, parent)
 	{
-		fillComboBox(samplestate_, &tempsample_.NamesOfSampleState[tempsample_.getState()] ,1);
-	}
-	else
-	{
-		fillComboBox(samplestate_, tempsample_.NamesOfSampleState , Sample::SIZE_OF_SAMPLESTATE);
-		samplestate_->setCurrentIndex(tempsample_.getState());
-	}
-	
-	samplename_->setText(tempsample_.getName().c_str());
-	samplenumber_->setText(tempsample_.getNumber().c_str());
-	sampleorganism_->setText(tempsample_.getOrganism().c_str());
-  samplecomment_->setText(tempsample_.getComment().c_str());
-	
-	samplemass_->setText(String(tempsample_.getMass()).c_str()   );
-	samplevolume_->setText(String(tempsample_.getVolume()).c_str());
-	sampleconcentration_->setText(String(tempsample_.getConcentration()).c_str() );
-	
-}
-
-
-void SampleVisualizer::store_()
-{
-	try
-	{
-		(*ptr_).setName(samplename_->text().toStdString());
-		(*ptr_).setNumber(samplenumber_->text().toStdString());
-		(*ptr_).setOrganism(sampleorganism_->text().toStdString());
-		(*ptr_).setComment(samplecomment_-> toPlainText().toStdString());
-				
-		(*ptr_).setState((Sample::SampleState)samplestate_->currentIndex());		
-	
-		String m(samplemass_->text().toStdString());
-		(*ptr_).setMass(m.toFloat());
+		type_="Sample";
+	  
+		addLabel("Modify Sample information");		
+		addSeparator();
+	  addLineEdit(samplename_, "Name" );
+		addLineEdit(samplenumber_, "Number" );
+		addLineEdit(sampleorganism_, "Organism" );
+	  addTextEdit(samplecomment_, "Comment");
 		
-		String v(samplevolume_->text().toStdString()) ;
-		(*ptr_).setVolume(v.toFloat());
+		addComboBox(samplestate_, "State");
 		
-		String c(sampleconcentration_->text().toStdString()) ;
-		(*ptr_).setConcentration(c.toFloat());
+			
+		addDoubleLineEdit(samplemass_,"Mass (in mg)");
+		addDoubleLineEdit(samplevolume_, "Volume (in ml)");
+		addDoubleLineEdit(sampleconcentration_, "Concentration (in mg/ml)");
 		
-		tempsample_=(*ptr_);
+		finishAdding_();
+		
 		
 	}
-	catch(exception& e)
+	
+	
+	void SampleVisualizer::load(Sample &s)
 	{
-		std::cout<<"Error while trying to store the new sample data. "<<e.what()<<endl;
+	  //Pointer to current object	 to keep track of the actual object
+		ptr_ = &s;
+		
+		//Copy of current object for restoring the original values
+		tempsample_=s;
+			
+		
+		
+	  update_();		
 	}
 	
-}
-
-void SampleVisualizer::reject_()
-{
-	
-	try
+	void SampleVisualizer::update_()
 	{
-		update_();
-	}
-	catch(exception e)
-	{
-		cout<<"Error while trying to restore original sample data. "<<e.what()<<endl;
+		if(! isEditable())
+		{
+			fillComboBox(samplestate_, &tempsample_.NamesOfSampleState[tempsample_.getState()] ,1);
+		}
+		else
+		{
+			fillComboBox(samplestate_, tempsample_.NamesOfSampleState , Sample::SIZE_OF_SAMPLESTATE);
+			samplestate_->setCurrentIndex(tempsample_.getState());
+		}
+		
+		samplename_->setText(tempsample_.getName().c_str());
+		samplenumber_->setText(tempsample_.getNumber().c_str());
+		sampleorganism_->setText(tempsample_.getOrganism().c_str());
+	  samplecomment_->setText(tempsample_.getComment().c_str());
+		
+		samplemass_->setText(String(tempsample_.getMass()).c_str()   );
+		samplevolume_->setText(String(tempsample_.getVolume()).c_str());
+		sampleconcentration_->setText(String(tempsample_.getConcentration()).c_str() );
+		
 	}
 	
-}
+	
+	void SampleVisualizer::store_()
+	{
+		try
+		{
+			ptr_->setName(samplename_->text().toStdString());
+			ptr_->setNumber(samplenumber_->text().toStdString());
+			ptr_->setOrganism(sampleorganism_->text().toStdString());
+			ptr_->setComment(samplecomment_-> toPlainText().toStdString());
+					
+			ptr_->setState((Sample::SampleState)samplestate_->currentIndex());		
+		
+			String m(samplemass_->text().toStdString());
+			ptr_->setMass(m.toFloat());
+			
+			String v(samplevolume_->text().toStdString()) ;
+			ptr_->setVolume(v.toFloat());
+			
+			String c(sampleconcentration_->text().toStdString()) ;
+			ptr_->setConcentration(c.toFloat());
+			
+			tempsample_=(*ptr_);
+			
+		}
+		catch(exception& e)
+		{
+			std::cout<<"Error while trying to store the new sample data. "<<e.what()<<endl;
+		}
+		
+	}
+	
+	void SampleVisualizer::reject_()
+	{
+		
+		try
+		{
+			update_();
+		}
+		catch(exception e)
+		{
+			cout<<"Error while trying to restore original sample data. "<<e.what()<<endl;
+		}
+		
+	}
 
 }

@@ -57,7 +57,7 @@ namespace OpenMS
     	/**
     		@brief spectrum type
     		
-    		If set to unknown see SpectrumType of the ProcessingMethod ( in MSExperiment ).
+    		If set to unknown see SpectrumType of the DataProcessing ( in MSExperiment ).
     	*/
     	enum SpectrumType
     	{
@@ -87,13 +87,13 @@ namespace OpenMS
 			/**
 				@brief returns the spectrum type
 				
-				If the type is 'UNKNOWN', a general type for all spectra of an experiment might be stored in the ProcessingMethod instance of an ExperimentalSettings .
+				If the type is 'UNKNOWN', a general type for all spectra of an experiment might be stored in the DataProcessing instance of an ExperimentalSettings .
 			*/
       SpectrumType getType() const;
       /**
 				@brief sets the spectrum type
 				
-				If the type is 'UNKNOWN', a general type for all spectra of an experiment might be stored in the ProcessingMethod instance of an ExperimentalSettings .
+				If the type is 'UNKNOWN', a general type for all spectra of an experiment might be stored in the DataProcessing instance of an ExperimentalSettings .
 			*/
       void setType(SpectrumType type);
 

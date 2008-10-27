@@ -39,7 +39,6 @@ using namespace std;
 namespace OpenMS
 {
 
-	//Constructor
 	PeptideHitVisualizer::PeptideHitVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
 	{
 		addLineEdit(peptidehit_score_, "Score" );

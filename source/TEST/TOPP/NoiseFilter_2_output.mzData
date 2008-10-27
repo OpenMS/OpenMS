@@ -25,9 +25,6 @@
 				<version></version>
 			</software>
 			<processingMethod>
-				<cvParam cvLabel="psi" name="Deisotoping" accession="PSI:1000033" value="false"/>
-				<cvParam cvLabel="psi" name="ChargeDeconvolution" accession="PSI:1000034" value="false"/>
-				<cvParam cvLabel="psi" accession="PSI:1000035" name="PeakProcessing" value="ContinuumMassSpectrum"/>
 			</processingMethod>
 		</dataProcessing>
 	</description>

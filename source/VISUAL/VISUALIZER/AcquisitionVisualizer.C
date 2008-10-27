@@ -38,58 +38,57 @@ using namespace std;
 
 namespace OpenMS
 {
-
-//Constructor
-AcquisitionVisualizer::AcquisitionVisualizer(bool editable, QWidget *parent) 
-	: BaseVisualizer(editable, parent)
-{
-  
-	addLabel("Show Acquisition information");		
-	addSeperator();
-	addIntLineEdit(acquisitionnumber_, "Index/Number of the scan" );
-	acquisitionnumber_->setReadOnly(true);
-		
-	finishAdding_();
 	
-}
-
-
-void AcquisitionVisualizer::load(Acquisition &a)
-{
-  ptr_ = &a;
-	
-	//Copy of current object for restoring the original values
-	tempAcquisition_=a;
-  acquisitionnumber_->setText(String(tempAcquisition_.getNumber()).c_str() );
-				
-}
-
-void AcquisitionVisualizer::store_()
-{
-	try
+	AcquisitionVisualizer::AcquisitionVisualizer(bool editable, QWidget *parent) 
+		: BaseVisualizer(editable, parent)
 	{
-				
-		//(*ptr_).setNumber(String((const char*)acquisitionnumber_->text()).toInt() );
+	  
+		addLabel("Show Acquisition information");		
+		addSeparator();
+		addIntLineEdit(acquisitionnumber_, "Index/Number of the scan" );
+		acquisitionnumber_->setReadOnly(true);
+			
+		finishAdding_();
+		
+	}
+	
+	
+	void AcquisitionVisualizer::load(Acquisition &a)
+	{
+	  ptr_ = &a;
+		
+		//Copy of current object for restoring the original values
+		tempAcquisition_=a;
+	  acquisitionnumber_->setText(String(tempAcquisition_.getNumber()).c_str() );
 					
-		tempAcquisition_ = (*ptr_);
-		
 	}
-	catch(exception& e)
+	
+	void AcquisitionVisualizer::store_()
 	{
-		std::cout<<"Error while trying to store the new Acquisition data. "<<e.what()<<endl;
+		try
+		{
+					
+			//ptr_->setNumber(String((const char*)acquisitionnumber_->text()).toInt() );
+						
+			tempAcquisition_ = (*ptr_);
+			
+		}
+		catch(exception& e)
+		{
+			std::cout<<"Error while trying to store the new Acquisition data. "<<e.what()<<endl;
+		}
 	}
-}
-
-void AcquisitionVisualizer::reject_()
-{
-	try
+	
+	void AcquisitionVisualizer::reject_()
 	{
-		load(tempAcquisition_);
+		try
+		{
+			load(tempAcquisition_);
+		}
+		catch(exception e)
+		{
+			cout<<"Error while trying to restore original Acquisition data. "<<e.what()<<endl;
+		} 
 	}
-	catch(exception e)
-	{
-		cout<<"Error while trying to restore original Acquisition data. "<<e.what()<<endl;
-	} 
-}
 
 }

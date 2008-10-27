@@ -35,12 +35,11 @@ using namespace std;
 namespace OpenMS
 {
 
-	//Constructor
 	DocumentIdentifierVisualizer::DocumentIdentifierVisualizer(bool editable, QWidget *parent) 
 		: BaseVisualizer(editable, parent)
 	{
 		addLabel("Modify DocumentIdentifier information");		
-		addSeperator();
+		addSeparator();
 		addLineEdit(identifier_, "Idenifier");
 		finishAdding_();
 	}

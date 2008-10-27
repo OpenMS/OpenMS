@@ -192,7 +192,7 @@ void DataTable::add2Buttons(QPushButton* &ptr1, const QString &label1, QPushButt
 }
 
 
-void DataTable::addSeperator()
+void DataTable::addSeparator()
 {
 	QLabel* pLabel = new QLabel(this);
 	pLabel->setFrameShape(QFrame::HLine); 

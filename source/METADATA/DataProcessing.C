@@ -1,0 +1,132 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/METADATA/DataProcessing.h>
+
+
+using namespace std;
+
+namespace OpenMS
+{
+
+	DataProcessing::DataProcessing():
+		MetaInfoInterface(),
+		software_(),
+		processing_actions_(),
+		completion_time_()
+	{
+		
+	}
+	
+	DataProcessing::DataProcessing(const DataProcessing& rhs):
+		MetaInfoInterface(rhs),
+		software_(rhs.software_),
+		processing_actions_(rhs.processing_actions_),
+		completion_time_(rhs.completion_time_)
+	{
+	  
+	}
+	
+	DataProcessing::~DataProcessing()
+	{
+	  
+	}
+	
+	DataProcessing& DataProcessing::operator = (const DataProcessing& rhs)
+	{
+	  if (&rhs == this) return *this;
+	  
+	  MetaInfoInterface::operator=(rhs);
+		software_ = rhs.software_;
+		processing_actions_ = rhs.processing_actions_;
+		completion_time_ = rhs.completion_time_;
+	  
+	  return *this;
+	}
+	
+	bool DataProcessing::operator== (const DataProcessing& rhs) const
+	{
+			return 
+				software_ == rhs.software_ &&
+				processing_actions_ == rhs.processing_actions_ &&
+				completion_time_ == rhs.completion_time_ &&
+				MetaInfoInterface::operator==(rhs)
+				;
+	}
+	
+	bool DataProcessing::operator!= (const DataProcessing& rhs) const
+	{
+		return !(operator==(rhs));
+	}
+
+
+	const Software& DataProcessing::getSoftware() const 
+	{
+	  return software_; 
+	}
+	
+	Software& DataProcessing::getSoftware()
+	{
+	  return software_; 
+	}
+	
+	void DataProcessing::setSoftware(const Software& software)
+	{
+	  software_ = software; 
+	}	
+
+	const DateTime& DataProcessing::getCompletionTime() const
+	{
+	  return completion_time_;
+	}
+
+	void DataProcessing::setCompletionTime(const DateTime& completion_time)
+	{
+	  completion_time_ = completion_time;
+	}
+
+	void DataProcessing::setCompletionTime(const String& completion_time)
+	{
+		completion_time_.set(completion_time);
+	}
+
+  const set<DataProcessing::ProcessingAction>& DataProcessing::getProcessingActions() const
+	{
+		return processing_actions_;
+	}
+	
+  set<DataProcessing::ProcessingAction>& DataProcessing::getProcessingActions()
+	{
+		return processing_actions_;
+	}
+	
+  void DataProcessing::setProcessingActions(const set<DataProcessing::ProcessingAction>& processing_actions)
+	{
+		processing_actions_ = processing_actions;
+	}
+
+}
+

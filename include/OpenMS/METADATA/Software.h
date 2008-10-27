@@ -28,14 +28,11 @@
 #define OPENMS_METADATA_SOFTWARE_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 namespace OpenMS 
 {
 	/**
 		@brief Description of the software used for processing
-		
-		 
 		
 		@ingroup Metadata
 	*/
@@ -66,26 +63,10 @@ namespace OpenMS
       const String& getVersion() const;
       /// sets the software version
       void setVersion(const String& version);
-			
-			/// returns the free-text comment
-      const String& getComment() const;
-      /// sets the free-text comment
-      void setComment(const String& comment);
-
-			/// returns the time of completition of the processing
-	    const DateTime& getCompletionTime() const;
-      /// sets the time of completition taking a DateTime object
-      void setCompletionTime(const DateTime& completion_time);
-      /// sets the time of completition taking a String object
-			/// provided for convenience
-      void setCompletionTime(const String& completion_time);
-
 
     protected:
       String name_;
       String version_;
-      String comment_;
-      DateTime completion_time_;
   };
 } // namespace OpenMS
 

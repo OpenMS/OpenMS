@@ -37,54 +37,55 @@ class QLineEdit;
 class QComboBox;
 class QDoubleValidator;
 
-namespace OpenMS {
-/**
-@brief Class that displays all meta information of tagging objects.
-
-This class provides all functionality to view the meta information of an object of type Tagging.
-*/
-	class TaggingVisualizer : public BaseVisualizer
+namespace OpenMS
+{
+	/**
+		@brief Class that displays all meta information of tagging objects.
+		
+		This class provides all functionality to view the meta information of an object of type Tagging.
+	*/
+	class TaggingVisualizer
+		: public BaseVisualizer
 	{
 		Q_OBJECT
 
-	public: 
-	  /// Default constructor
-		TaggingVisualizer(bool editable= FALSE, QWidget *parent =0);
-		/// Loads the meta data from the object to the viewer.
-		void load(Tagging &t);
-
-	private slots:
-	  /// Saves the changes made to the meta data into the object.
-		void store_();
-		/// Deletes all changes made in the viewer and restores the original meta data.
-		void reject_();
-
-	private:  
+		public: 
 			
-		/// Sets the fields and comboboxes with current values
-		void updateTag_();
-		
-		/** @name Edit fields and buttons
-   */
-    //@{
-		QLineEdit *treatmenttype_;
-		QTextEdit *treatmentcomment_;
-		QLineEdit *modificationname_;
-		QLineEdit *modificationmass_;
-		QComboBox *modificationspecificity_;
-		QLineEdit *modificationAA_;
-		QLineEdit *taggingmass_shift_;
-		QComboBox *taggingvariant_;
-		//@}
-		
-		/// Pointer to current object	 to keep track of the actual object.
-		Tagging *ptr_;
-		/// Copy of current object for restoring the original values.
-		Tagging temptag_;
-		
+		  /// Default constructor
+			TaggingVisualizer(bool editable = FALSE, QWidget *parent = 0);
+			/// Loads the meta data from the object to the viewer.
+			void load(Tagging &t);
+	
+		private slots:
+			
+		  /// Saves the changes made to the meta data into the object.
+			void store_();
+			/// Deletes all changes made in the viewer and restores the original meta data.
+			void reject_();
+	
+		private:  
+				
+			/// Sets the fields and comboboxes with current values
+			void updateTag_();
+			
+			///@name Edit fields and buttons
+	    //@{
+			QLineEdit *treatmenttype_;
+			QTextEdit *treatmentcomment_;
+			QLineEdit *modificationname_;
+			QLineEdit *modificationmass_;
+			QComboBox *modificationspecificity_;
+			QLineEdit *modificationAA_;
+			QLineEdit *taggingmass_shift_;
+			QComboBox *taggingvariant_;
+			//@}
+			
+			/// Pointer to current object	 to keep track of the actual object.
+			Tagging *ptr_;
+			/// Copy of current object for restoring the original values.
+			Tagging temptag_;
 		
 	};
-
 
 }
 #endif

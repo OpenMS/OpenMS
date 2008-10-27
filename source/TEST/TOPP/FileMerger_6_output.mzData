@@ -51,9 +51,11 @@
 		</instrument>
 		<dataProcessing>
 			<software>
-				<name>Xcalibur</name>
-				<version>2.0.5</version>
+				<name>ProteoWizard</name>
+				<version>1.0</version>
 			</software>
+			<processingMethod>
+			</processingMethod>
 		</dataProcessing>
 	</description>
 	<spectrumList count="3">
@@ -70,7 +72,7 @@
 					</acqSpecification>
 					<spectrumInstrument msLevel="1" mzRangeStart="400" mzRangeStop="1800">
 						<cvParam cvLabel="psi" accession="PSI:1000036" name="ScanMode" value="MassScan"/>
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="5.8905"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="5.89050006866455"/>
 						<userParam name="name" value="scan1"/>
 					</spectrumInstrument>
 				</spectrumSettings>
@@ -87,7 +89,7 @@
 				<spectrumSettings>
 					<spectrumInstrument msLevel="2" mzRangeStart="110" mzRangeStop="905">
 						<cvParam cvLabel="psi" accession="PSI:1000036" name="ScanMode" value="MassScan"/>
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="5.9905"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="5.99049997329712"/>
 						<userParam name="name" value="scan2"/>
 					</spectrumInstrument>
 				</spectrumSettings>
@@ -117,7 +119,7 @@
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
 						<cvParam cvLabel="psi" accession="PSI:1000036" name="ScanMode" value="MassScan"/>
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="6.0905"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="6.09049987792969"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>

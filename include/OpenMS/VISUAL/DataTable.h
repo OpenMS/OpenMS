@@ -82,8 +82,8 @@ namespace OpenMS
 			/// Adds two buttons in a row.
 			void add2Buttons(QPushButton* &ptr1, const QString &label1, QPushButton* &ptr2, const QString &label2);
 			
-			/// Adds a horizontal line as a seperator.
-			void addSeperator();
+			/// Adds a horizontal line as a separator.
+			void addSeparator();
 			
 					
 			/// Returns if the values are editable

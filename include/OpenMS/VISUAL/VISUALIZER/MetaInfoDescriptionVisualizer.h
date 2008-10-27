@@ -34,47 +34,46 @@
 class QLabel;
 class QLineEdit;
 
-namespace OpenMS {
-/**
-@brief Class that displays all meta information for MetaInfoDescription objects
-
-This class provides all functionality to view the meta information of an object of type MetaInfoDescription.
-*/
-	class MetaInfoDescriptionVisualizer : public BaseVisualizer
+namespace OpenMS
+{
+	/**
+		@brief Class that displays all meta information for MetaInfoDescription objects
+		
+		This class provides all functionality to view the meta information of an object of type MetaInfoDescription.
+	*/
+	class MetaInfoDescriptionVisualizer
+		: public BaseVisualizer
 	{
 		Q_OBJECT
 
-	public: 
-	   /// Default constructor
-		MetaInfoDescriptionVisualizer(bool editable= FALSE, QWidget *parent =0);
-		 
-		/// Loads the meta data from the object to the viewer.
-		void load(MetaInfoDescription &h);
-
-	private slots:
-	  /// Saves the changes made to the meta data into the object.
-		void store_();
-		/// Deletes all changes made in the viewer and restores the original meta data.
-		void reject_();
-
-	private:  
-		
-		/** @name Some edit fields
-		*/
-		//@{
-   	QLineEdit *metainfodescription_name_;
-		QTextEdit *metainfodescription_comment_;
-		//@}
-		
-		
-		/// Pointer to current object	to keep track of the actual object.
-		MetaInfoDescription *ptr_;
-		/// Copy of current object for restoring the original values
-		MetaInfoDescription tempMetaInfoDescription_;
-		
+		public: 
+		   /// Default constructor
+			MetaInfoDescriptionVisualizer(bool editable = FALSE, QWidget *parent = 0);
+			 
+			/// Loads the meta data from the object to the viewer.
+			void load(MetaInfoDescription &h);
+	
+		private slots:
+		  /// Saves the changes made to the meta data into the object.
+			void store_();
+			/// Deletes all changes made in the viewer and restores the original meta data.
+			void reject_();
+	
+		private:  
+			
+	
+			///@name Edit fields and buttons
+			//@{
+	   	QLineEdit *metainfodescription_name_;
+			QTextEdit *metainfodescription_comment_;
+			//@}
+			
+			/// Pointer to current object	to keep track of the actual object.
+			MetaInfoDescription *ptr_;
+			/// Copy of current object for restoring the original values
+			MetaInfoDescription tempMetaInfoDescription_;
 		
 	};
-
 
 }
 #endif

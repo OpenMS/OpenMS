@@ -40,8 +40,7 @@ namespace OpenMS
 		source_file_(),
 		contacts_(),
 		instrument_(),
-		software_(),
-		processing_method_(),
+		data_processing_(),
 		hplc_(),
 		type_(UNKNOWN),
 		date_(),
@@ -58,8 +57,7 @@ namespace OpenMS
 	  source_file_(source.source_file_),
 	  contacts_(source.contacts_),
 	  instrument_(source.instrument_),
-	  software_(source.software_),
-	  processing_method_(source.processing_method_),
+	  data_processing_(source.data_processing_),
 	  hplc_(source.hplc_),
 	  type_(source.type_),
 	  date_(source.date_),
@@ -82,8 +80,7 @@ namespace OpenMS
     source_file_ = source.source_file_;
     contacts_ = source.contacts_;
     instrument_ = source.instrument_;
-    software_ = source.software_;
-    processing_method_ = source.processing_method_;
+    data_processing_ = source.data_processing_;
     hplc_ = source.hplc_;
     type_ = source.type_;
     date_ = source.date_;
@@ -102,8 +99,7 @@ namespace OpenMS
 	    source_file_ == rhs.source_file_ &&
 	    contacts_ == rhs.contacts_ &&
 	    instrument_ == rhs.instrument_ &&
-	    software_ == rhs.software_ &&
-	    processing_method_ == rhs.processing_method_ &&
+	    data_processing_ == rhs.data_processing_ &&
 	    hplc_ == rhs.hplc_ &&
 	    type_ == rhs.type_ &&
 	    date_ == rhs.date_ &&
@@ -179,34 +175,19 @@ namespace OpenMS
 	  instrument_ = instrument; 
 	}
 	
-	const Software& ExperimentalSettings::getSoftware() const 
+	const vector<DataProcessing>& ExperimentalSettings::getDataProcessing() const 
 	{
-	  return software_; 
+	  return data_processing_; 
 	}
 	
-	Software&  ExperimentalSettings::getSoftware()
+	vector<DataProcessing>&  ExperimentalSettings::getDataProcessing()
 	{
-	  return software_; 
+	  return data_processing_; 
 	}
 	
-	void ExperimentalSettings::setSoftware(const Software& software)
+	void ExperimentalSettings::setDataProcessing(const vector<DataProcessing>& processing_method)
 	{
-	  software_ = software; 
-	}
-	
-	const ProcessingMethod& ExperimentalSettings::getProcessingMethod() const 
-	{
-	  return processing_method_; 
-	}
-	
-	ProcessingMethod&  ExperimentalSettings::getProcessingMethod()
-	{
-	  return processing_method_; 
-	}
-	
-	void ExperimentalSettings::setProcessingMethod(const ProcessingMethod& processing_method)
-	{
-	  processing_method_ = processing_method; 
+	  data_processing_ = processing_method; 
 	}
 
 	ExperimentalSettings::ExperimentType ExperimentalSettings::getType() const

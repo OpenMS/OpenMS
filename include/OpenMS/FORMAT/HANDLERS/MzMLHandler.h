@@ -398,6 +398,7 @@ namespace OpenMS
 			}
 			else if (tag=="software")
 			{
+			  //EXTEND Add Software to Instrument
 				current_id_ = attributeAsString_(attributes, s_id);
 			}
 			else if (tag=="softwareParam")
@@ -409,21 +410,18 @@ namespace OpenMS
 
 			else if (tag=="dataProcessing")
 			{
-			  //EXTEND the software should not be set here directly. It is determined through defaultInstrumentConfiguration.
-			  //       As we do not have Software in Instrument yet, this hack is used...
+
+			  //EXTEND the processing should not be set here directly.
+			  //       But where is it definded for the whole run? Ask the PSI people!
 			  //EXTEND "spectrum" and "binaryDataArray" also have a DataProcessingRef. What do we do with it?
 				current_id_ = attributeAsString_(attributes, s_id);
-				exp_->setSoftware(software_[attributeAsString_(attributes, s_software_ref)]);
+				exp_->getDataProcessing().push_back(DataProcessing());
+				exp_->getDataProcessing().back().setSoftware(software_[attributeAsString_(attributes, s_software_ref)]);
 			}
 
 			else if (tag=="processingMethod")
 			{
-			  //EXTEND the processing should not be set here directly.
-			  //       But where is it definded for the whole run? Ask the PSI people!
-			  //       As we do not have Software in Instrument yet, this hack is used...
-				//EXTEND Allow more then one processing step. Currently only the last one is stored
 				//EXTEND Add order
-				
 			}
 			else if (tag=="instrumentConfiguration")
 			{
@@ -1559,7 +1557,8 @@ namespace OpenMS
 				//data processing parameter
 				if (accession=="MS:1000629") //low intensity threshold
 				{
-					exp_->getProcessingMethod().setIntensityCutoff(value.toDouble());
+					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::LOW_INTENSITY_REMOVAL);
+					exp_->getDataProcessing().back().setMetaValue("#intensity_cutoff",value.toDouble());
 				}
 				else if (accession=="MS:1000631") //high intensity threshold
 				{
@@ -1568,40 +1567,40 @@ namespace OpenMS
 				//file format conversion
 				else if (accession=="MS:1000544") //Conversion to mzML
 				{
-					//EXTEND
+					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::CONVERSION_MZML);
 				}
 				else if (accession=="MS:1000545") //Conversion to mzXML
 				{
-					//EXTEND
+					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::CONVERSION_MZXML);
 				}
 				else if (accession=="MS:1000546") //Conversion to mzData
 				{
-					//EXTEND
+					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::CONVERSION_MZDATA);
 				}
 				//data processing action
 				else if (accession=="MS:1000033") //deisotoping
 				{
-					exp_->getProcessingMethod().setDeisotoping(true);
+					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::DEISOTOPING);
 				}
 				else if (accession=="MS:1000034") //charge deconvolution
 				{
-					exp_->getProcessingMethod().setChargeDeconvolution(true);
+					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::DECONVOLUTION);
 				}
 				else if (accession=="MS:1000035") //peak picking
 				{
-					//EXTEND
+					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::PEAK_PICKING);
 				}
 				else if (accession=="MS:1000592") //smoothing
 				{
-					//EXTEND
+					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::SMOOTHING);
 				}
 				else if (accession=="MS:1000593") //baseline reduction
 				{
-					//EXTEND
+					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::BASELINE_REDUCTION);
 				}
 				else if (accession=="MS:1000594") //low intensity data point removal
 				{
-					//EXTEND
+					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::LOW_INTENSITY_REMOVAL);
 				}
 			}
 		}//handleCVParam_
@@ -1707,7 +1706,7 @@ namespace OpenMS
 			}
 			else if (parent_tag=="processingMethod")
 			{
-				exp_->getProcessingMethod().setMetaValue(name,data_value);
+				exp_->getDataProcessing().back().setMetaValue(name,data_value);
 			}
 		}//handleUserParam_
 

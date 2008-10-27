@@ -33,18 +33,14 @@ namespace OpenMS
 
 	Software::Software():
 	  name_(),
-	  version_(),
-	  comment_(),
-		completion_time_()
+	  version_()
 	{
 	  
 	}
 	
-	Software::Software(const Software& source):
-	  name_(source.name_),
-	  version_(source.version_),
-	  comment_(source.comment_),
-	  completion_time_(source.completion_time_)
+	Software::Software(const Software& rhs):
+	  name_(rhs.name_),
+	  version_(rhs.version_)
 	{
 	  
 	}
@@ -54,14 +50,12 @@ namespace OpenMS
 	  
 	}
 	
-	Software& Software::operator = (const Software& source)
+	Software& Software::operator = (const Software& rhs)
 	{
-	  if (&source == this) return *this;
+	  if (&rhs == this) return *this;
 	  
-	  name_ = source.name_;
-	  version_ = source.version_;
-	  comment_ = source.comment_;
-	  completion_time_ = source.completion_time_;
+	  name_ = rhs.name_;
+	  version_ = rhs.version_;
 	  
 	  return *this;
 	}
@@ -70,9 +64,8 @@ namespace OpenMS
 	{
 		return 
 	    name_ == rhs.name_ &&
-	    version_ == rhs.version_ &&
-	    comment_ == rhs.comment_ &&
-	    completion_time_ == rhs.completion_time_;
+	    version_ == rhs.version_
+	    ;
 	}
 	
 	bool Software::operator!= (const Software& rhs) const
@@ -98,31 +91,6 @@ namespace OpenMS
 	void Software::setVersion(const String& version)
 	{
 	  version_ = version; 
-	}
-	
-	const String& Software::getComment() const 
-	{
-	  return comment_; 
-	}
-	
-	void Software::setComment(const String& comment)
-	{
-	  comment_ = comment; 
-	}
-	
-	const DateTime& Software::getCompletionTime() const
-	{
-	  return completion_time_;
-	}
-
-	void Software::setCompletionTime(const DateTime& completion_time)
-	{
-	  completion_time_ = completion_time;
-	}
-
-	void Software::setCompletionTime(const String& completion_time)
-	{
-		completion_time_.set(completion_time);
 	}
 
 }

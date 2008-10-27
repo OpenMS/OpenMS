@@ -34,50 +34,45 @@
 class QLineEdit;
 class QComboBox;
 
-namespace OpenMS {
-/**
-@brief Class that displays all meta information for IonSource objects
-
-This class provides all functionality to view the meta information of an object of type IonSource
-*/
-	
-	class IonSourceVisualizer : public BaseVisualizer
+namespace OpenMS
+{
+	/**
+		@brief Class that displays all meta information for IonSource objects
+		
+		This class provides all functionality to view the meta information of an object of type IonSource
+	*/
+	class IonSourceVisualizer
+		: public BaseVisualizer
 	{
 		Q_OBJECT
 
-	public: 
-	  /// Default constructor
-		IonSourceVisualizer(bool editable= FALSE, QWidget *parent =0);
-		 
-		/// Loads the meta data from the object to the viewer.
-		void load(IonSource &s);
-	  
-	private slots:
-		 /// Saves the changes made to the meta data into the object.
-		void store_();
-		/// Deletes all changes made in the viewer and restores the original meta data.
-		void reject_();
-
-	private:  
-		/// Pointer to current object to keep track of the actual object
-		IonSource *ptr_;
-		/// Copy of current object for restoring the original values
-		IonSource  tempionsource_;
-		/// Fills the comboboxes with current values
-		void update_();
-	  
-		/** @name Comboboxes to choose properties
-   */
-    //@{
-		QComboBox *ionsource_inlet_type_;
-		QComboBox *ionsource_ionization_method_;
-		QComboBox *ionsource_polarity_;
-		 //@}
-
-    
-		
-		
-					
+		public: 
+		  /// Default constructor
+			IonSourceVisualizer(bool editable = FALSE, QWidget *parent = 0);
+			 
+			/// Loads the meta data from the object to the viewer.
+			void load(IonSource &s);
+		  
+		private slots:
+			 /// Saves the changes made to the meta data into the object.
+			void store_();
+			/// Deletes all changes made in the viewer and restores the original meta data.
+			void reject_();
+	
+		private:  
+			/// Pointer to current object to keep track of the actual object
+			IonSource *ptr_;
+			/// Copy of current object for restoring the original values
+			IonSource  tempionsource_;
+			/// Fills the comboboxes with current values
+			void update_();
+		  
+			///@name Edit fields and buttons
+	    //@{
+			QComboBox *ionsource_inlet_type_;
+			QComboBox *ionsource_ionization_method_;
+			QComboBox *ionsource_polarity_;
+			//@}
 	};
 }
 #endif

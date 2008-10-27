@@ -96,10 +96,6 @@ class TOPPBaselineFilter
 		mz_data_file.load(in,exp);
 
 		//check for peak type (raw data required)
-		if (exp.getProcessingMethod().getSpectrumType()==SpectrumSettings::PEAKS)
-		{
-			writeLog_("Warning: The file meta data claims that this is not raw data!");
-		}
 		if (PeakTypeEstimator().estimateType(exp[0].begin(),exp[0].end())==SpectrumSettings::PEAKS)
 		{
 			writeLog_("Warning: OpenMS peak type estimation indicates that this is not raw data!");
@@ -119,7 +115,6 @@ class TOPPBaselineFilter
 		// writing output
 		//-------------------------------------------------------------
 		
-		exp.getProcessingMethod().setSpectrumType(SpectrumSettings::RAWDATA);
 		mz_data_file.store(out,exp);
 
 		return EXECUTION_OK;
