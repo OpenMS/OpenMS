@@ -108,7 +108,7 @@ namespace OpenMS
 				}
 			}
 
-			std::cout << "done" << std::endl;
+			//~ std::cout << "done" << std::endl; //maybe progress handler?
 			// create clustering with ClusterMethod, DistanceMatrix and Data
 			clusterer.cluster(original_distance,cluster_tree,threshold_);
 		}
