@@ -162,26 +162,19 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
   TEST_EQUAL(e.getContacts()[1].getLastName(), "7")
   TEST_EQUAL(e.getContacts()[1].getContactInfo(), "6")
   TEST_EQUAL(e.getContacts()[1].getMetaValue("ContactPosition"), "Dataset owner")
-  
-  //---------------------------------------------------------------------------
-  // const Software& getSoftware() const;
-  //---------------------------------------------------------------------------
-  TEST_EQUAL(e.getSoftware().getName(), "17")
-  String tmp;
-  e.getSoftware().getCompletionTime().get(tmp);
-  TEST_EQUAL(tmp, "0000-00-00 00:00:00")
-  
+    
   //---------------------------------------------------------------------------
   // const DataProcessing& getDataProcessing() const;
   //---------------------------------------------------------------------------
-  TEST_EQUAL(e.getDataProcessing().getDeisotoping(), false)
-  TEST_EQUAL(e.getDataProcessing().getChargeDeconvolution(), false)
-  TEST_EQUAL(e.getDataProcessing().getSpectrumType(), SpectrumSettings::PEAKS)
-  TEST_REAL_EQUAL(e.getDataProcessing().getIntensityCutoff(), 0)
-  TEST_REAL_EQUAL(e.getDataProcessing().getMetaValue("ProcessingNumer"), 123.0)
-  TEST_EQUAL(e.getDataProcessing().getMetaValue("ErrorLog"), "")
-  TEST_EQUAL(e.getDataProcessing().getMetaValue("CalibrationHistory"), "25262728")
-  TEST_REAL_EQUAL(e.getDataProcessing().getMetaValue("NumOfCalibrations"), 456.0)
+  TEST_EQUAL(e.getDataProcessing().size(),1)
+  TEST_EQUAL(e.getDataProcessing().back().getSoftware().getName(), "17")
+  String tmp;
+  e.getDataProcessing().back().getCompletionTime().get(tmp);
+  TEST_EQUAL(tmp, "0000-00-00 00:00:00")
+  TEST_REAL_EQUAL(e.getDataProcessing().back().getMetaValue("ProcessingNumer"), 123.0)
+  TEST_EQUAL(e.getDataProcessing().back().getMetaValue("ErrorLog"), "")
+  TEST_EQUAL(e.getDataProcessing().back().getMetaValue("CalibrationHistory"), "25262728")
+  TEST_REAL_EQUAL(e.getDataProcessing().back().getMetaValue("NumOfCalibrations"), 456.0)
   
   //---------------------------------------------------------------------------
   // const Instrument& getInstrument() const;

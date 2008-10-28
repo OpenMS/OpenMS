@@ -290,20 +290,16 @@ namespace OpenMS
 		contact.setMetaValue(user_params_[CONTACT], String("Dataset owner"));
 		exp_.getContacts().push_back(contact);
  		
-		typedef DataProcessing pm;
-		// Centroided Mass Spectrum, Continuum Mass Spectrum, Library Mass Spectrum
-		int exp_map[] = {SpectrumSettings::PEAKS, SpectrumSettings::RAWDATA, 0};
-		exp_.getDataProcessing().setSpectrumType( (SpectrumSettings::SpectrumType) exp_map[admin_data->experiment_type - expt_centroid]);
-
-		exp_.getSoftware().setName( string_(admin_data->post_expt_program_name) );
-		exp_.getDataProcessing().setMetaValue(user_params_[ANDI_ERROR], string_(admin_data->error_log));
-		exp_.getDataProcessing().setMetaValue(user_params_[PROC], int_(admin_data->number_times_processed));
+ 		exp_.getDataProcessing().resize(1);
+		exp_.getDataProcessing().back().getSoftware().setName( string_(admin_data->post_expt_program_name) );
+		exp_.getDataProcessing().back().setMetaValue(user_params_[ANDI_ERROR], string_(admin_data->error_log));
+		exp_.getDataProcessing().back().setMetaValue(user_params_[PROC], int_(admin_data->number_times_processed));
 	 
 		std::stringstream buffer;
 		buffer << string_(admin_data->calibration_history_0) << string_(admin_data->calibration_history_1)
 					 << string_(admin_data->calibration_history_2) << string_(admin_data->calibration_history_3);
-		exp_.getDataProcessing().setMetaValue(user_params_[CALHIST], String(buffer.str()));	
-		exp_.getDataProcessing().setMetaValue(user_params_[CALTIMES], int_(admin_data->number_times_calibrated));	
+		exp_.getDataProcessing().back().setMetaValue(user_params_[CALHIST], String(buffer.str()));	
+		exp_.getDataProcessing().back().setMetaValue(user_params_[CALTIMES], int_(admin_data->number_times_calibrated));	
 
 		// unused MS_Admin_Data fields: comments, experiment_title, ms_template_revision, netcdf_revision, languages
 		// experiment_date_time, netcdf_date_time, source_file_date_time, pre_expt_program_name

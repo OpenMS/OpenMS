@@ -4,7 +4,7 @@
 file name: FileInfo_8_input.notype
 file type: cdf
 
-peak type (metadata) : Peak data
+peak type (metadata) : Unknown
 peak type (estimated): Raw data
 estimated raw data spacing: 10 (min: 10 max: 10)
 
@@ -20,9 +20,9 @@ Spectra of MS Level 1: 3
 
 -- Meta information --
 
-Document id        : 
-Experiment Type    : Unknown
-Date               : 0000-00-00
+Document id       : 
+Experiment Type   : Unknown
+Date              : 0000-00-00
 
 Sample
   Name             : 
