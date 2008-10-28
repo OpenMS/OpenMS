@@ -28,7 +28,10 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/DelaunayPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 
+#include <gsl/gsl_fit.h>
+
 #include <iostream>
+
 
 namespace OpenMS
 {
@@ -94,7 +97,6 @@ namespace OpenMS
 
 				// run superimposer to find the global transformation 
 	      std::vector<TransformationDescription> si_trafos;
-				//TODO si_trafos.setName("linear");
 	      superimposer.run(input, si_trafos);
 				
 				//apply transformation to consensus feature and contained feature handles
@@ -106,10 +108,7 @@ namespace OpenMS
 					//Set rt of consensus feature centroid
 					input[1][j].setRT(rt);
 					//Set RT of consensus feature handles
-					FeatureHandle tmp = *(input[1][j].begin()); //TODO: make this better!?
-					tmp.setRT(rt);
-					input[1][j].clear();
-					input[1][j].insert(tmp);
+					input[1][j].begin()->asMutable().setRT(rt);
 				}
 				
 	      //run pairfinder fo find pairs
@@ -197,12 +196,9 @@ namespace OpenMS
 					DoubleReal rt = input[1][j].getRT();
 					si_trafos[0].apply(rt);
 					input[1][j].setRT(rt);
-					FeatureHandle tmp = *(input[1][j].begin());  //TODO: make this better!?
-					tmp.setRT(rt);
-					input[1][j].clear();
-					input[1][j].insert(tmp);
+					input[1][j].begin()->asMutable().setRT(rt);
 				}
-				
+
 	      //run pairfinder to find pairs
 				ConsensusMap result;
 				pairfinder.run(input, result);

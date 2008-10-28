@@ -48,6 +48,9 @@ namespace OpenMS
   {
   	
 	 public:
+
+		class FeatureHandleMutable;
+
     ///@name Constructors and destructor
     //@{
 		/// Default constructor
@@ -100,6 +103,23 @@ namespace OpenMS
 		virtual ~FeatureHandle()
 		{
 		}
+		
+		/**@brief Override (most of all) constness.
+
+		We provide this such that you can modify instances FeatureHandle which are
+		stored within a ConsensusFeature.  Note that std::set does not provide
+		non-const iterators, because these could be used to change the relative
+		ordering of the elements, and iterators are (by design/concept) unaware of
+		their containers.  Since ConsensusFeature uses the ordering by IndexLess
+		(which see), you <i>must not</i> modify the map index of element index if
+		there is more than one FeatureHandle stored in a ConsensusFeature.
+		Consequently, we "disable" setMapIndex() or setElementIndex() even within
+		FeatureHandleMutable.  On the other hand, it is perfectly safe to apply
+		FeatureHandle::setRT(), FeatureHandle::setMZ(),
+		FeatureHandle::setIntensity(), FeatureHandle::setCharge(),
+		FeatureHandle::setMetaInfo() etc..
+		*/
+		FeatureHandleMutable& asMutable() const;
     //@}
     
     ///@name Accessors
@@ -174,6 +194,27 @@ namespace OpenMS
 		Int charge_;
   };
 
+	/**@brief Helper class returned by FeatureHandle::asMutable(), which see.
+
+	Note that the mutators for element index and map index are declared private.
+	This is done because these are used by IndexLess comparator.  This way it is
+	a bit harder to use FeatureHandle::asMutable() for illegal purposes ;-)
+	*/
+	class FeatureHandle::FeatureHandleMutable : public FeatureHandle
+	{
+	 private:
+		FeatureHandle::setElementIndex;
+		FeatureHandle::setMapIndex;
+		FeatureHandleMutable();
+		FeatureHandleMutable(const FeatureHandleMutable&);
+	};
+
+	inline FeatureHandle::FeatureHandleMutable& FeatureHandle::asMutable() const
+	{
+		// the const cast is to remove constness, but note that FeatureHandleMutable lacks some mutators
+		return static_cast<FeatureHandleMutable&>(const_cast<FeatureHandle&>(*this));
+	}
+	
   ///Print the contents of a FeatureHandle to a stream.
   std::ostream& operator << (std::ostream& os, const FeatureHandle& cons);
   	

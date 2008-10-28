@@ -194,7 +194,7 @@ namespace OpenMS
 			return;
 		}
 		
-		///Adds all feature handles in @p handle_set to this consensus feature.
+		/// Adds all feature handles in @p handle_set to this consensus feature.
 		void insert(HandleSetType const & handle_set)
 		{
 			for (ConsensusFeature::HandleSetType::const_iterator it = handle_set.begin(); it != handle_set.end(); ++it)
