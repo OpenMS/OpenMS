@@ -220,6 +220,7 @@ namespace OpenMS
 															* PValue_(it2->getRT() - it->getRT(), rt_pair_dist, rt_dev_low, rt_dev_high)
 														);
 					matches.push_back(ConsensusFeature(light_index,it->begin()->getElementIndex(),*it));
+					matches.back().clearMetaInfo();
 					matches.back().insert(heavy_index,it2->begin()->getElementIndex(),*it2);
 					matches.back().setQuality(score);
 					matches.back().setCharge(it->getCharge());
