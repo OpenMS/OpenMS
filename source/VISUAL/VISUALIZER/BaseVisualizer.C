@@ -26,44 +26,7 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 
-#include <QtGui/QPushButton>
-
-using namespace std;
-
 namespace OpenMS
 {
-
-	BaseVisualizer::BaseVisualizer(bool editable, QWidget *parent) 
-	: DataTable(editable, parent)
-	{
-  
-	}
-
 	
-	
-	String BaseVisualizer::getType()
-	{
-		return type_;
-	}
-	
-	void BaseVisualizer::store_()
-	{
-	
-	}
-	
-	void BaseVisualizer::reject_()
-	{
-	
-	}
-	
-	void BaseVisualizer::finishAdding_()
-	{
-		if(isEditable())
-		{	
-			addSeparator();
-			addButton(undobutton_, "Undo");
-			connect(undobutton_, SIGNAL(clicked()), this, SLOT(reject_()) );
-		}
-		addVSpacer();
-	}
 }

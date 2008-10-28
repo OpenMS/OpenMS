@@ -104,7 +104,7 @@ CHECK(void setProcessingActions(const std::set<ProcessingAction>& actions))
   DataProcessing tmp;
   std::set<DataProcessing::ProcessingAction> tmp2;
   tmp2.insert(DataProcessing::DEISOTOPING);
-  tmp2.insert(DataProcessing::DECONVOLUTION);
+  tmp2.insert(DataProcessing::CHARGE_DECONVOLUTION);
   tmp.setProcessingActions(tmp2);
   TEST_EQUAL(tmp.getProcessingActions().size(),2)
 RESULT

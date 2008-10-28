@@ -30,6 +30,7 @@
 //OpenMS
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
 class QLineEdit;
 class QComboBox;
@@ -42,39 +43,37 @@ namespace OpenMS
 		This class provides all functionality to view the meta information of an object of type Precursor.
 	*/
 	class PrecursorVisualizer
-		: public BaseVisualizer
+		: public BaseVisualizerGUI,
+			public BaseVisualizer<Precursor>
 	{
 		Q_OBJECT
 
-		public: 
-		  /// Default constructor
-			PrecursorVisualizer(bool editable = FALSE, QWidget *parent = 0);
+		public:
 			
-			/// Loads the meta data from the object to the viewer.
-			void load(Precursor &s);
-		  
-		private slots:
-		/// Saves the changes made to the meta data into the object.
-			void store_();
-			/// Deletes all changes made in the viewer and restores the original meta data.
-			void reject_();
+		  ///Constructor
+			PrecursorVisualizer(bool editable = false, QWidget* parent = 0);
+			
+		public slots:
+			
+		  //Docu in base class
+			void store();
+		
+		protected slots:
+			
+			///Undo the changes made in the GUI.
+			void undo_();
 	
-		private:  
-			/// Pointer to current object to keep track of the actual object
-			Precursor *ptr_;
-			/// Copy of current object for restoring the original values
-			Precursor  tempprecursor_;
-			/// Fills the comboboxes with current values
-			void update_();
-			
+		protected:  
 			///@name Edit fields and buttons
 	    //@{
-			QComboBox *precursor_activation_method_;
-			QComboBox *precursor_energy_units_;
-			QLineEdit *precursor_activation_energy_;
-			QLineEdit *precursor_window_size_;
+			QComboBox* precursor_activation_method_;
+			QComboBox* precursor_energy_units_;
+			QLineEdit* precursor_activation_energy_;
+			QLineEdit* precursor_window_size_;
 			//@}
-					
+			
+			//Docu in base class
+			void update_();
 	};
 }
 #endif

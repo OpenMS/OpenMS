@@ -28,7 +28,7 @@
 
 //QT
 #include <QtGui/QLineEdit>
-#include <QtGui/QComboBox>
+#include <QtGui/QListWidget>
 
 //STL
 #include <iostream>
@@ -38,74 +38,85 @@ using namespace std;
 namespace OpenMS
 {
 
-	DataProcessingVisualizer::DataProcessingVisualizer(bool editable, QWidget *parent)
-		: BaseVisualizer(editable, parent)
+	DataProcessingVisualizer::DataProcessingVisualizer(bool editable, QWidget* parent)
+		: BaseVisualizerGUI(editable, parent),
+			BaseVisualizer<DataProcessing>()
 	{
-		type_="DataProcessing";
-	  
 		addLabel("Modify data processing information.");	
 		addSeparator();  
 		
-		addLineEdit(software_completion_time_, "Completion time" );
-		
+		addLineEdit(completion_time_, "Completion time" );
+		addListView(actions_,"Processing actions");
 		finishAdding_();
-		
 	}
 	
-	void DataProcessingVisualizer::load(DataProcessing &s)
+	void DataProcessingVisualizer::update_()
 	{
-	  //Pointer to current object to keep track of the actual object
-		ptr_ = &s;
-		
-		//Copy of current object for restoring the original values
-		tempprocessingmethod_=s;
-
+		//time
 	  String str;
-	  s.getCompletionTime().get(str);
-		software_completion_time_->setText(str.c_str()); 
+	  temp_.getCompletionTime().get(str);
+		completion_time_->setText(str.c_str()); 
+		
+		//actions
+		actions_->clear();
+		for (UInt i=0; i<DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
+		{
+			QListWidgetItem* item = new QListWidgetItem(actions_);
+			item->setText(QString::fromStdString(DataProcessing::NamesOfProcessingAction[i]));
+			if (temp_.getProcessingActions().count(DataProcessing::ProcessingAction(i))==1)
+			{
+				item->setCheckState(Qt::Checked);
+			}
+			else
+			{
+				item->setCheckState(Qt::Unchecked);
+			}
+			if (isEditable())
+			{
+				item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
+			}
+			else
+			{
+				item->setFlags(Qt::ItemIsEnabled);
+			}
+			actions_->addItem(item);
+		}
 	}
 	
-	void DataProcessingVisualizer::store_()
+	void DataProcessingVisualizer::store()
 	{
+		DateTime date;
 		try
 		{
-			String m(software_completion_time_->text().toStdString());
-			DateTime date;
 			
-			try
-			{
-				date.set(m);
-				ptr_->setCompletionTime(date);
-			}
-			catch(exception& e)
-			{
-				if(date.isNull())
-				{
-					std::string status= "Format of date in DATAPROCESSING is not correct.";
-					emit sendStatus(status);
-				}
-			}
-			
-			tempprocessingmethod_=(*ptr_);
-			
+			date.set(completion_time_->text().toStdString());
+			ptr_->setCompletionTime(date);
 		}
 		catch(exception& e)
 		{
-			std::cout<<"Error while trying to store the new processing method data. "<<e.what()<<endl;
+			if(date.isNull())
+			{
+				std::string status= "Format of date in DATAPROCESSING is not correct.";
+				emit sendStatus(status);
+			}
 		}
 		
+		//actions
+		ptr_->getProcessingActions().clear();
+		for (UInt i=0; i<DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
+		{
+			if (actions_->item(i)->checkState()==Qt::Checked)
+			{
+				ptr_->getProcessingActions().insert(DataProcessing::ProcessingAction(i));
+			}
+		}
+		
+		temp_=(*ptr_);
 	}
 	
-	void DataProcessingVisualizer::reject_()
+	void DataProcessingVisualizer::undo_()
 	{
-		try
-		{
-			load(tempprocessingmethod_);
-		}
-		catch(exception e)
-		{
-			cout<<"Error while trying to restore original processing method data. "<<e.what()<<endl;
-		}
+		update_();
 	}
 
 }

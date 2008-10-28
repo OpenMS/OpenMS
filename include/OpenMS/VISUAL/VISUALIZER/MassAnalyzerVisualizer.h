@@ -30,6 +30,7 @@
 //OpenMS
 #include <OpenMS/METADATA/MassAnalyzer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
 class QLineEdit;
 class QComboBox;
@@ -42,57 +43,50 @@ namespace OpenMS
 		This class provides all functionality to view the meta information of an object of type MassAnalyzer.
 	*/
 	class MassAnalyzerVisualizer
-		: public BaseVisualizer
+		: public BaseVisualizerGUI,
+			public BaseVisualizer<MassAnalyzer>
 	{
 		Q_OBJECT
 	
-		public: 
-		  /// Default constructor
-			MassAnalyzerVisualizer(bool editable = FALSE, QWidget *parent = 0);
+		public:
 			
-			/// Loads the meta data from the object to the viewer.
-			void load(MassAnalyzer &s);
-		  
-		private slots:
-			/// Saves the changes made to the meta data into the object.
-			void store_();
-			/// Deletes all changes made in the viewer and restores the original meta data.
-			void reject_();
+		  ///Constructor
+			MassAnalyzerVisualizer(bool editable = false, QWidget* parent = 0);
 			
-		private:  
-			/// Pointer to current object to keep track of the actual object
-			MassAnalyzer *ptr_;
-			/// Copy of current object for restoring the original values
-			MassAnalyzer  tempmassanalyzer_;
-			/// Fills the comboboxes with current values
-			void update_();
+		public slots:
 			
+		  //Docu in base class
+			void store();
+		
+		protected slots:
+			
+			///Undo the changes made in the GUI.
+			void undo_();
+			
+		protected:  
 				
 			///@name edit fields to modify properties
 	    //@{
-			QLineEdit *massanalyzer_res_;
-			QLineEdit *massanalyzer_acc_;
-			QLineEdit *massanalyzer_scan_rate_;
-			QLineEdit *massanalyzer_scan_time_;
-			QLineEdit *massanalyzer_TOF_;
-			QLineEdit *massanalyzer_iso_;
-			QLineEdit *massanalyzer_final_MS_;
-			QLineEdit *massanalyzer_magnetic_fs_;
+			QLineEdit* massanalyzer_res_;
+			QLineEdit* massanalyzer_acc_;
+			QLineEdit* massanalyzer_scan_rate_;
+			QLineEdit* massanalyzer_scan_time_;
+			QLineEdit* massanalyzer_TOF_;
+			QLineEdit* massanalyzer_iso_;
+			QLineEdit* massanalyzer_final_MS_;
+			QLineEdit* massanalyzer_magnetic_fs_;
+			QComboBox* massanalyzer_type_;
+			QComboBox* massanalyzer_res_method_;
+			QComboBox* massanalyzer_res_type_;
+			QComboBox* massanalyzer_scan_func_;
+			QComboBox* massanalyzer_scan_dir_;
+			QComboBox* massanalyzer_scan_law_;
+			QComboBox* massanalyzer_tandem_scan_method_;
+			QComboBox* massanalyzer_reflectron_state_;
 			//@}
-	
 			
-			///@name Comboboxes to choose properties
-	    //@{
-			QComboBox *massanalyzer_type_;
-			QComboBox *massanalyzer_res_method_;
-			QComboBox *massanalyzer_res_type_;
-			QComboBox *massanalyzer_scan_func_;
-			QComboBox *massanalyzer_scan_dir_;
-			QComboBox *massanalyzer_scan_law_;
-			QComboBox *massanalyzer_tandem_scan_method_;
-			QComboBox *massanalyzer_reflectron_state_;
-			//@}
-		
+			//Docu in base class
+			void update_();
 	};
 }
 #endif

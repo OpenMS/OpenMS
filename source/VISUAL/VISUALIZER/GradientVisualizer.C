@@ -26,6 +26,7 @@
 
 //OpenMS
 #include <OpenMS/VISUAL/VISUALIZER/GradientVisualizer.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 //QT
 #include <QtGui/QLabel>
@@ -43,20 +44,18 @@ using namespace std;
 namespace OpenMS
 {
 	
-	GradientVisualizer::GradientVisualizer(bool editable, QWidget *parent) 
-		: BaseVisualizer(editable, parent)
+	GradientVisualizer::GradientVisualizer(bool editable, QWidget* parent) 
+		: BaseVisualizerGUI(editable, parent),
+			BaseVisualizer<Gradient>()
 	{
-		
 		nextrow_=0;
 	}
 	
 	
-	void GradientVisualizer::load(Gradient &g)
+	void GradientVisualizer::load(Gradient& g)
 	{
 		ptr_ = &g;
-		
-		//Copy of current object for restoring the original values
-		tempgradient_=g;
+		temp_=g;
 		 
 		addLabel("Modify Gradient information"); 
 		addSeparator();
@@ -78,9 +77,9 @@ namespace OpenMS
 		
 		finishAdding_();
 		addSeparator();
-		connect(add_timepoint_button_, SIGNAL(clicked()), this, SLOT(addTimepoint()) );	
-		connect(add_eluent_button_, SIGNAL(clicked()), this, SLOT(addEluent()) );	
-	  connect(removebutton_, SIGNAL(clicked()), this, SLOT(deleteData()) );	
+		connect(add_timepoint_button_, SIGNAL(clicked()), this, SLOT(addTimepoint_()) );	
+		connect(add_eluent_button_, SIGNAL(clicked()), this, SLOT(addEluent_()) );	
+	  connect(removebutton_, SIGNAL(clicked()), this, SLOT(deleteData_()) );	
 		
 		//Input validator
 		timepoint_vali_= new QIntValidator(new_timepoint_);
@@ -88,24 +87,20 @@ namespace OpenMS
 		
 	}
 	
-	
-	
-	
 	//----------------------------------------------------------------------------
 	//			SLOTS
 	//----------------------------------------------------------------------------
-	void GradientVisualizer::deleteData()
+	void GradientVisualizer::deleteData_()
 	{	
 		//Remove entries from Gradient
-		tempgradient_.clearEluents();
-		tempgradient_.clearTimepoints();
-		tempgradient_.clearPercentages();
+		temp_.clearEluents();
+		temp_.clearTimepoints();
+		temp_.clearPercentages();
 		
 		update_();
 	}
 	
-	
-	void GradientVisualizer::addTimepoint()
+	void GradientVisualizer::addTimepoint_()
 	{
 	  //Check wether new timepoint is in range
 		String m(new_timepoint_->text().toStdString()) ;
@@ -113,22 +108,20 @@ namespace OpenMS
 		
 		if(num_time==0 && m.trim().length() !=0)
 		{
-			tempgradient_.addTimepoint(m.toInt());
+			temp_.addTimepoint(m.toInt());
 			update_();
 		}
 		else
 		{
 			if( m.trim().length() !=0 && timepoints_[num_time-1] < m.toInt())
 			{
-				tempgradient_.addTimepoint(m.toInt());
+				temp_.addTimepoint(m.toInt());
 				update_();
 			}
 		}
-		
 	}
 	
-	
-	void GradientVisualizer::addEluent()
+	void GradientVisualizer::addEluent_()
 	{
 		String m(new_eluent_->text().toStdString()) ;
 		std::vector<String>::iterator iter; 
@@ -143,63 +136,51 @@ namespace OpenMS
 					return;
 				}
 			}
-			tempgradient_.addEluent( m );
+			temp_.addEluent( m );
 			update_();
 		}
-			
 	}
 	
-	
-	void GradientVisualizer::store_()
+	void GradientVisualizer::store()
 	{
-		try
-		{	
-			//Check, whether sum is 100
-			int time_size = timepoints_.size();
-			int elu_size = eluents_.size();
-			int count = 0;
-			int elu_count = 0;
-			int sum_check=0;
-			for(int i=0; i< time_size; ++i )
-			{ 
-				elu_count=i;
-				for(int j=0; j< elu_size; ++j )
-				{
-					String value((gradientdata_[elu_count])->text().toStdString());
-					elu_count  = elu_count+ time_size;
-					sum_check= sum_check + value.toInt();
-					if(j== elu_size-1 && sum_check!=100)
-					{
-						cout<<"The sum does not add up to 100 !"<<endl;
-						cout<<"Please check your values."<<endl;
-						return;
-					}
-				}
-				sum_check = 0;
-			}
-	
-	       
-	        
-			//Store all values into the gradient object
-			for(UInt i=0; i< eluents_.size(); ++i )
+		//Check, whether sum is 100
+		int time_size = timepoints_.size();
+		int elu_size = eluents_.size();
+		int count = 0;
+		int elu_count = 0;
+		int sum_check=0;
+		for(int i=0; i< time_size; ++i )
+		{ 
+			elu_count=i;
+			for(int j=0; j< elu_size; ++j )
 			{
-				for(UInt j=0; j< timepoints_.size(); ++j )
+				String value((gradientdata_[elu_count])->text().toStdString());
+				elu_count  = elu_count+ time_size;
+				sum_check= sum_check + value.toInt();
+				if(j== elu_size-1 && sum_check!=100)
 				{
-					String value((gradientdata_[count+j])->text().toStdString());
-					tempgradient_.setPercentage(eluents_[i], timepoints_[j], value.toInt()  );      
+					cout<<"The sum does not add up to 100 !"<<endl;
+					cout<<"Please check your values."<<endl;
+					return;
 				}
-				count=count+time_size;
-				
 			}
-	
-	    //copy temporary stored data into metainfo object
-			(*ptr_)=tempgradient_;		
+			sum_check = 0;
+		}
+        
+		//Store all values into the gradient object
+		for(UInt i=0; i< eluents_.size(); ++i )
+		{
+			for(UInt j=0; j< timepoints_.size(); ++j )
+			{
+				String value((gradientdata_[count+j])->text().toStdString());
+				temp_.setPercentage(eluents_[i], timepoints_[j], value.toInt()  );      
+			}
+			count=count+time_size;
 			
 		}
-		catch(exception& e)
-		{
-			std::cout<<"Error while trying to store the new gradient data. "<<e.what()<<endl;
-		}
+
+    //copy temporary stored data into metainfo object
+		(*ptr_)=temp_;		
 	}
 	
 	//----------------------------------------------------------------------------
@@ -208,16 +189,15 @@ namespace OpenMS
 	
 	void GradientVisualizer::loadData_()
 	{
-		
 	  nextrow_ =0;
 		
-		eluents_ =    tempgradient_.getEluents();
-	  timepoints_ = tempgradient_.getTimepoints();
-	 	UInt num_timepoints = tempgradient_.getTimepoints().size();	
+		eluents_ =    temp_.getEluents();
+	  timepoints_ = temp_.getTimepoints();
+	 	UInt num_timepoints = temp_.getTimepoints().size();	
 			
 			
 		//Add labels to display eluent-timepoint-percentage-triplets.	
-		QLabel *label = new QLabel("Eluent names\\Timepoints", this);
+		QLabel* label = new QLabel("Eluent names\\Timepoints", this);
 	  viewlayout_->addWidget(label, 0, 0, 1, num_timepoints);
 		label->show();
 		nextrow_++;
@@ -249,7 +229,7 @@ namespace OpenMS
 		  for(UInt j=0; j<timepoints_.size(); ++j)
 			{
 			  percentage_ = new QLineEdit(this);
-				percentage_->setText( String(  tempgradient_.getPercentage( eluents_[i], timepoints_[j]) ).c_str()  );
+				percentage_->setText( String(  temp_.getPercentage( eluents_[i], timepoints_[j]) ).c_str()  );
 				viewlayout_->addWidget(percentage_, nextrow_, j+1);
 				//Store pointers to the QLineEdits
 				gradientdata_.push_back(percentage_);	
@@ -258,83 +238,50 @@ namespace OpenMS
 							
 			nextrow_++;	
 		}
-			
 	}
 	
 	void GradientVisualizer::removeData_()
 	{	
-	  
 		//Remove QLineEdits
 		std::vector<QLineEdit*>::iterator iter2; 
 		
 		for(iter2 = gradientdata_.begin(); iter2 < gradientdata_.end(); iter2++ ) 
 		{			
-					//Delete QLineEdit field from viewlayout_
-					viewlayout_->removeWidget((*iter2));
-					(*iter2)->hide();
-					//Set pointer to 0
-					(*iter2) =0;			
-					//Free memory of the pointer
-					delete (*iter2);
-					
+			//Delete QLineEdit field from viewlayout_
+			viewlayout_->removeWidget((*iter2));
+			(*iter2)->hide();
+			//Set pointer to 0
+			(*iter2) =0;			
+			//Free memory of the pointer
+			delete (*iter2);
 	  }
-		
+
 		//Remove QLabels
 		std::vector<QLabel*>::iterator iter_label; 
 		
 		for(iter_label = gradientlabel_.begin(); iter_label < gradientlabel_.end(); iter_label++ ) 
 		{
-					viewlayout_->removeWidget((*iter_label));
-					(*iter_label)->hide();
-					(*iter_label) =0;	
-					delete (*iter_label);
-							
+			viewlayout_->removeWidget((*iter_label));
+			(*iter_label)->hide();
+			(*iter_label) =0;	
+			delete (*iter_label);
 	  }
 		
 		gradientdata_.clear();
 		gradientlabel_.clear();
-			
-	  //this->repaint();
 	}
 	
 	void GradientVisualizer::update_()
 	{
-		
-		try
-		{
-		  //Delete all data in GUI		
-			removeData_();
-		
-			//Update GUI
-			loadData_();		
-			
-		}
-		catch(exception e)
-		{
-			cout<<"Error while trying to update GUI. "<<e.what()<<endl;
-		}
-		
+		removeData_();
+		loadData_();		
 	}
 	
-	
-	void GradientVisualizer::reject_()
+	void GradientVisualizer::undo_()
 	{ 
-	  
-		try
-		{
-		  
-			//Delete all data in GUI		
-			removeData_();		
-			//Restore original data and refill GUI
-			tempgradient_=(*ptr_);
-			loadData_();		
-					
-		}
-		catch(exception e)
-		{
-			cout<<"Error while trying to restore original gradient data. "<<e.what()<<endl;
-		} 
-		
+		removeData_();	
+		temp_=(*ptr_);
+		loadData_();		
 	}
 
 }

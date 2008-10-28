@@ -31,6 +31,7 @@
 //OpenMS
 #include <OpenMS/METADATA/Tagging.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
 class QLabel;
 class QLineEdit;
@@ -45,46 +46,42 @@ namespace OpenMS
 		This class provides all functionality to view the meta information of an object of type Tagging.
 	*/
 	class TaggingVisualizer
-		: public BaseVisualizer
+		: public BaseVisualizerGUI,
+			public BaseVisualizer<Tagging>
 	{
 		Q_OBJECT
 
-		public: 
+		public:
 			
-		  /// Default constructor
-			TaggingVisualizer(bool editable = FALSE, QWidget *parent = 0);
-			/// Loads the meta data from the object to the viewer.
-			void load(Tagging &t);
+		  ///Constructor
+			TaggingVisualizer(bool editable = false, QWidget* parent = 0);
 	
-		private slots:
+		public slots:
 			
-		  /// Saves the changes made to the meta data into the object.
-			void store_();
-			/// Deletes all changes made in the viewer and restores the original meta data.
-			void reject_();
-	
-		private:  
-				
-			/// Sets the fields and comboboxes with current values
-			void updateTag_();
+		  //Docu in base class
+			void store();
+		
+		protected slots:
+			
+			///Undo the changes made in the GUI.
+			void undo_();
+
+		protected:  
 			
 			///@name Edit fields and buttons
 	    //@{
-			QLineEdit *treatmenttype_;
-			QTextEdit *treatmentcomment_;
-			QLineEdit *modificationname_;
-			QLineEdit *modificationmass_;
-			QComboBox *modificationspecificity_;
-			QLineEdit *modificationAA_;
-			QLineEdit *taggingmass_shift_;
-			QComboBox *taggingvariant_;
+			QLineEdit* treatmenttype_;
+			QTextEdit* treatmentcomment_;
+			QLineEdit* modificationname_;
+			QLineEdit* modificationmass_;
+			QComboBox* modificationspecificity_;
+			QLineEdit* modificationAA_;
+			QLineEdit* taggingmass_shift_;
+			QComboBox* taggingvariant_;
 			//@}
 			
-			/// Pointer to current object	 to keep track of the actual object.
-			Tagging *ptr_;
-			/// Copy of current object for restoring the original values.
-			Tagging temptag_;
-		
+			//Docu in base class
+			void update_();
 	};
 
 }

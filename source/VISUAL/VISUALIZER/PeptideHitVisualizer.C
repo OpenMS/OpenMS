@@ -39,7 +39,9 @@ using namespace std;
 namespace OpenMS
 {
 
-	PeptideHitVisualizer::PeptideHitVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
+	PeptideHitVisualizer::PeptideHitVisualizer(bool editable, QWidget* parent)
+		: BaseVisualizerGUI(editable, parent),
+			BaseVisualizer<PeptideHit>()
 	{
 		addLineEdit(peptidehit_score_, "Score" );
 		addLineEdit(peptidehit_charge_, "Charge" );
@@ -49,43 +51,27 @@ namespace OpenMS
 		finishAdding_();
 	}
 	
-	void PeptideHitVisualizer::load(PeptideHit &h)
+	void PeptideHitVisualizer::update_()
 	{
-	  ptr_ = &h;
-		
-		tempPeptideHit_=h;
-	  peptidehit_score_->setText(String(tempPeptideHit_.getScore()).c_str() );
+	  peptidehit_score_->setText(String(temp_.getScore()).c_str() );
 		peptidehit_score_->setReadOnly(true);
-		peptidehit_charge_->setText(String(tempPeptideHit_.getCharge()).c_str() );
+		peptidehit_charge_->setText(String(temp_.getCharge()).c_str() );
 		peptidehit_charge_->setReadOnly(true);
-	  peptidehit_rank_->setText(String(tempPeptideHit_.getRank()).c_str());
+	  peptidehit_rank_->setText(String(temp_.getRank()).c_str());
 		peptidehit_rank_->setReadOnly(true);
-		peptidehit_sequence_->setText(tempPeptideHit_.getSequence().toString().c_str()); 
+		peptidehit_sequence_->setText(temp_.getSequence().toString().c_str()); 
 		peptidehit_sequence_->setReadOnly(true);			
 	}
 	
-	void PeptideHitVisualizer::store_()
+	void PeptideHitVisualizer::store()
 	{
-		try
-		{
-			(*ptr_) =tempPeptideHit_ ;
-		}
-		catch(exception& e)
-		{
-			std::cout<<"Error while trying to store the new PeptideHit data. "<<e.what()<<endl;
-		}
+		//TODO?
+		(*ptr_) =temp_ ;
 	}
 	
-	void PeptideHitVisualizer::reject_()
+	void PeptideHitVisualizer::undo_()
 	{
-		try
-		{
-			load(tempPeptideHit_);
-		}
-		catch(exception e)
-		{
-			cout<<"Error while trying to restore original PeptideHit data. "<<e.what()<<endl;
-		} 
+		update_();
 	}
 
 }

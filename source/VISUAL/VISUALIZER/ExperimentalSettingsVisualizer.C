@@ -41,11 +41,10 @@ using namespace std;
 namespace OpenMS
 {
 	
-	ExperimentalSettingsVisualizer::ExperimentalSettingsVisualizer(bool editable, QWidget *parent) 
-	: BaseVisualizer(editable, parent)
+	ExperimentalSettingsVisualizer::ExperimentalSettingsVisualizer(bool editable, QWidget* parent) 
+		: BaseVisualizerGUI(editable, parent),
+			BaseVisualizer<ExperimentalSettings>()
 	{
-		type_="ExperimentalSettings";
-	  
 		addLabel("Modify the settings of the experiment.");	
 		addSeparator();  
 		addComboBox(experimentalsettings_type_, "Type of the experiment");
@@ -53,90 +52,53 @@ namespace OpenMS
 		addTextEdit(experimentalsettings_comment_, "Comment");
 		
 		finishAdding_();
-		
-		
-	}
-	
-	
-	
-	void ExperimentalSettingsVisualizer::load(ExperimentalSettings &s)
-	{
-	  //Pointer to current object to keep track of the actual object
-		ptr_ = &s;
-		
-		//Copy of current object for restoring the original values
-		tempexperimentalsettings_=s;
-				
-	  
-			
-		update_();
 	}
 	
 	void ExperimentalSettingsVisualizer::update_()
 	{
-			if(! isEditable())
-			{
-				
-				fillComboBox(experimentalsettings_type_, &tempexperimentalsettings_.NamesOfExperimentType[tempexperimentalsettings_.getType()] ,1); 
-				
-			}
-			else
-			{
-				fillComboBox(experimentalsettings_type_, tempexperimentalsettings_.NamesOfExperimentType , ExperimentalSettings::SIZE_OF_EXPERIMENTTYPE);
-				experimentalsettings_type_->setCurrentIndex(tempexperimentalsettings_.getType()); 
-			}
-			String str;
-	    tempexperimentalsettings_.getDate().get(str);
-		  experimentalsettings_date_->setText(str.c_str()); 
-			experimentalsettings_comment_->setText(tempexperimentalsettings_.getComment().c_str());
-	}
-	
-	void ExperimentalSettingsVisualizer::store_()
-	{
-		try
+		if(! isEditable())
 		{
 			
-			ptr_->setType((ExperimentalSettings::ExperimentType)experimentalsettings_type_->currentIndex());		
-			Date date;
-			String n(experimentalsettings_date_->text().toStdString());
-			try
-			{
-				date.set(n);
-				ptr_->setDate(date);
-			}
-			catch(exception& e)
-			{
-				if(date.isNull())
-				{
-					std::string status= "Format of date in EXPERIMENTALSETTINGS is not correct.";
-					emit sendStatus(status);
-				}
-			}
-			
-			ptr_->setComment(experimentalsettings_comment_->toPlainText().toStdString());
-			
-			tempexperimentalsettings_=(*ptr_);
+			fillComboBox(experimentalsettings_type_,& temp_.NamesOfExperimentType[temp_.getType()] ,1); 
+		}
+		else
+		{
+			fillComboBox(experimentalsettings_type_, temp_.NamesOfExperimentType , ExperimentalSettings::SIZE_OF_EXPERIMENTTYPE);
+			experimentalsettings_type_->setCurrentIndex(temp_.getType()); 
+		}
+		String str;
+    temp_.getDate().get(str);
+	  experimentalsettings_date_->setText(str.c_str()); 
+		experimentalsettings_comment_->setText(temp_.getComment().c_str());
+	}
+	
+	void ExperimentalSettingsVisualizer::store()
+	{
+		ptr_->setType((ExperimentalSettings::ExperimentType)experimentalsettings_type_->currentIndex());		
+		Date date;
+		String n(experimentalsettings_date_->text().toStdString());
+		try
+		{
+			date.set(n);
+			ptr_->setDate(date);
 		}
 		catch(exception& e)
 		{
-			std::cout<<"Error while trying to store the new ExperimentalSettings data. "<<e.what()<<endl;
+			if(date.isNull())
+			{
+				std::string status= "Format of date in EXPERIMENTALSETTINGS is not correct.";
+				emit sendStatus(status);
+			}
 		}
 		
+		ptr_->setComment(experimentalsettings_comment_->toPlainText().toStdString());
+		
+		temp_=(*ptr_);
 	}
 	
-	void ExperimentalSettingsVisualizer::reject_()
+	void ExperimentalSettingsVisualizer::undo_()
 	{
-		
-		try
-		{
-	
-			update_();
-		}
-		catch(exception e)
-		{
-			cout<<"Error while trying to restore original ExperimentalSettings data. "<<e.what()<<endl;
-		}
-		
+		update_();
 	}
 
 }

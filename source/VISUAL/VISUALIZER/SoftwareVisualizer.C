@@ -25,7 +25,6 @@
 // --------------------------------------------------------------------------s
 
 #include <OpenMS/VISUAL/VISUALIZER/SoftwareVisualizer.h>
-#include <OpenMS/VISUAL/MetaDataBrowser.h>
 
 //QT
 #include <QtGui/QTextEdit>
@@ -38,11 +37,10 @@ using namespace std;
 namespace OpenMS
 {
 
-	SoftwareVisualizer::SoftwareVisualizer(bool editable, QWidget *parent)
-		: BaseVisualizer(editable, parent)
+	SoftwareVisualizer::SoftwareVisualizer(bool editable, QWidget* parent)
+		: BaseVisualizerGUI(editable, parent),
+			BaseVisualizer<Software>()
 	{
-		type_="Software";
-	  
 		addLabel("Modify software information.");	
 		addSeparator();        
 		addLineEdit(software_name_, "Name" );
@@ -51,48 +49,23 @@ namespace OpenMS
 		finishAdding_();
 	}
 	
-	
-	
-	void SoftwareVisualizer::load(Software &s)
+	void SoftwareVisualizer::update_()
 	{
-		//Pointer to current object to keep track of the actual object
-		ptr_ = &s;
-		
-		//Copy of current object for restoring the original values
-		tempsoftware_=s;
-				
-	  software_name_->setText(s.getName().c_str());
-		software_version_->setText(s.getVersion().c_str());
+	  software_name_->setText(temp_.getName().c_str());
+		software_version_->setText(temp_.getVersion().c_str());
 	}
 	
-	void SoftwareVisualizer::store_()
+	void SoftwareVisualizer::store()
 	{
-		try
-		{
-			ptr_->setName(software_name_->text().toStdString());
-			ptr_->setVersion(software_version_->text().toStdString());
-			
-			tempsoftware_=(*ptr_);		
-		}
-		catch(exception& e)
-		{
-			std::cout<<"Error while trying to store the new software data. "<<e.what()<<endl;
-		}
+		ptr_->setName(software_name_->text().toStdString());
+		ptr_->setVersion(software_version_->text().toStdString());
 		
+		temp_=(*ptr_);		
 	}
 	
-	void SoftwareVisualizer::reject_()
+	void SoftwareVisualizer::undo_()
 	{
-		
-		try
-		{
-			load(tempsoftware_);
-		}
-		catch(exception e)
-		{
-			cout<<"Error while trying to restore original software data. "<<e.what()<<endl;
-		}
-		
+		update_();
 	}
 
 }

@@ -36,173 +36,177 @@
 #include <QtGui/QGridLayout>
 #include <QtGui/QPushButton>
 #include <QtGui/QHBoxLayout>
+#include <QtGui/QListWidget>
 
-using namespace OpenMS;
-
-//Constructor
-DataTable::DataTable(bool editable, QWidget *parent) 
-	: QWidget(parent),
-		editable_(editable)
+namespace OpenMS
 {
-  //for the actual metadata
-	mainlayout_= new QGridLayout(this);
-	mainlayout_->setMargin(0);
-	row_=0;
-}
-
-
-//protected member functions.
-void DataTable::addLabel_(const QString &labelName, UInt row)
-{
-	QLabel *label = new QLabel(labelName, this);
-	mainlayout_->addWidget(label, row, 0);
 	
-}
-
-//public member functios
-void DataTable::addLabel(const QString &labelName)
-{
-	QLabel *label = new QLabel(labelName, this);
-	mainlayout_->addWidget(label, row_, 0,1,3);
-	//addLabel_(labelName, row_);
-	row_++;
-}
-
-void DataTable::addLineEdit(QLineEdit* &ptr, const QString &label)
-{
-	ptr = new QLineEdit(this);
-	ptr->setMinimumWidth(180);
-	addLabel_(label, row_);
-	mainlayout_->addWidget(ptr, row_, 1, 1, 2);
-	ptr->setReadOnly(!isEditable());
-	row_++;
-	
-}
-
-void DataTable::addIntLineEdit(QLineEdit* &ptr, const QString &label)
-{
-	ptr = new QLineEdit(this);
-	ptr->setMinimumWidth(180);
-	QIntValidator *vali = new QIntValidator(ptr);
-	ptr->setValidator(vali);
-	addLabel_(label, row_);
-	mainlayout_->addWidget(ptr, row_, 1, 1, 2);
-	ptr->setReadOnly(!isEditable());
-	row_++;
-	
-}
-
-void DataTable::addDoubleLineEdit(QLineEdit* &ptr, const QString &label)
-{
-	ptr = new QLineEdit(this);
-	ptr->setMinimumWidth(180);
-	QDoubleValidator *vali = new QDoubleValidator(ptr);
-	ptr->setValidator(vali);
-	addLabel_(label, row_);
-	mainlayout_->addWidget(ptr, row_, 1, 1, 2);
-	ptr->setReadOnly(!isEditable());
-	row_++;
-	
-}
-void DataTable::addLineEditButton(const QString &labelname, QLineEdit* &ptr1, QPushButton* &ptr2, const QString &buttonlabel)
-{
-	QLabel* label = new QLabel(labelname, this);
-	ptr1 = new QLineEdit(this);
-	ptr1->setMinimumWidth ( 180 );
-	ptr2 = new QPushButton(buttonlabel, this);
-	mainlayout_->addWidget(label, row_, 0);
-	mainlayout_->addWidget(ptr1, row_, 1);
-	mainlayout_->addWidget(ptr2, row_, 2);
-	
-	ptr1->setReadOnly(!isEditable());
-	ptr2->setEnabled(isEditable());
-	row_++;
-
-}
-
-
-void DataTable::addTextEdit(QTextEdit* &ptr ,const QString &label)
-{
-	ptr = new QTextEdit(this);
-	addLabel_(label, row_);
-	mainlayout_->addWidget(ptr, row_, 1, 1, 2);
-	ptr->setReadOnly(!isEditable());
-	row_++;
-}
-
-
-void DataTable::addComboBox(QComboBox* &ptr , const QString &label)
-{
-	ptr = new QComboBox(this);
-	addLabel_(label, row_);
-	mainlayout_->addWidget(ptr, row_, 1,1, 2);
-	ptr->blockSignals(true);
-	row_++;	
-}
-
-void DataTable::addBooleanComboBox(QComboBox* &ptr ,  const QString &label)
-{
-	ptr = new QComboBox(this);
-	ptr->insertItem(0,"false");
-	ptr->insertItem(1,"true");
-	addLabel_(label, row_);
-	mainlayout_->addWidget(ptr, row_, 1,1, 2);
-	ptr->blockSignals(true);
-	row_++;
-}
-
-void DataTable::fillComboBox(QComboBox* &ptr , const std::string* items, int agr)
-{
-	for(int i=0; i < agr; ++i)
+	DataTable::DataTable(bool editable, QWidget *parent) 
+		: QWidget(parent),
+			editable_(editable)
 	{
-		ptr->insertItem(i,QString(items[i].c_str()));
-	}	
-}
-
-void DataTable::addButton(QPushButton* &ptr, const QString &label )
-{
-	ptr = new QPushButton(label, this);
-	QHBoxLayout* box = new QHBoxLayout();
-	box->addStretch(1);
-	box->addWidget(ptr);
-	mainlayout_->addLayout(box, row_, 0, 1, 3);
-
-	ptr->setEnabled(isEditable());
-	row_++;	
-}
-
-void DataTable::addVSpacer()
-{
-	mainlayout_->setRowStretch(row_,1);
-	row_++;
-}
-
-
-
-void DataTable::add2Buttons(QPushButton* &ptr1, const QString &label1, QPushButton* &ptr2, const QString &label2 )
-{
-	ptr1 = new QPushButton(label1, this);
-	ptr2 = new QPushButton(label2, this);
-	QHBoxLayout* box = new QHBoxLayout();
-	box->addStretch(1);
-	box->addWidget(ptr1);
-	box->addWidget(ptr2);
-	mainlayout_->addLayout(box, row_, 0, 1, 3);
-	row_++;
-}
-
-
-void DataTable::addSeparator()
-{
-	QLabel* pLabel = new QLabel(this);
-	pLabel->setFrameShape(QFrame::HLine); 
-	mainlayout_->addWidget(pLabel, row_, 0, 1, 3);
-	row_++;
-}
+	  //for the actual metadata
+		mainlayout_= new QGridLayout(this);
+		mainlayout_->setMargin(0);
+		row_=0;
+	}
+	
+	
+	void DataTable::addLabel_(QString label, UInt row)
+	{
+		QLabel *label_item = new QLabel(label, this);
+		mainlayout_->addWidget(label_item, row, 0);
+	}
+	
+	void DataTable::addLabel(QString label)
+	{
+		QLabel *label_item = new QLabel(label, this);
+		mainlayout_->addWidget(label_item, row_, 0,1,3);
+		row_++;
+	}
+	
+	void DataTable::addLineEdit(QLineEdit*& ptr, QString label)
+	{
+		ptr = new QLineEdit(this);
+		ptr->setMinimumWidth(180);
+		addLabel_(label, row_);
+		mainlayout_->addWidget(ptr, row_, 1, 1, 2);
+		ptr->setReadOnly(!isEditable());
+		row_++;
+	}
+	
+	void DataTable::addIntLineEdit(QLineEdit*& ptr, QString label)
+	{
+		ptr = new QLineEdit(this);
+		ptr->setMinimumWidth(180);
+		QIntValidator *vali = new QIntValidator(ptr);
+		ptr->setValidator(vali);
+		addLabel_(label, row_);
+		mainlayout_->addWidget(ptr, row_, 1, 1, 2);
+		ptr->setReadOnly(!isEditable());
+		row_++;
 		
+	}
+	
+	void DataTable::addDoubleLineEdit(QLineEdit*& ptr, QString label)
+	{
+		ptr = new QLineEdit(this);
+		ptr->setMinimumWidth(180);
+		QDoubleValidator *vali = new QDoubleValidator(ptr);
+		ptr->setValidator(vali);
+		addLabel_(label, row_);
+		mainlayout_->addWidget(ptr, row_, 1, 1, 2);
+		ptr->setReadOnly(!isEditable());
+		row_++;
+		
+	}
+	void DataTable::addLineEditButton(QString label, QLineEdit*& ptr1, QPushButton*& ptr2, QString buttonlabel)
+	{
+		QLabel* label_item = new QLabel(label, this);
+		ptr1 = new QLineEdit(this);
+		ptr1->setMinimumWidth ( 180 );
+		ptr2 = new QPushButton(buttonlabel, this);
+		mainlayout_->addWidget(label_item, row_, 0);
+		mainlayout_->addWidget(ptr1, row_, 1);
+		mainlayout_->addWidget(ptr2, row_, 2);
+		
+		ptr1->setReadOnly(!isEditable());
+		ptr2->setEnabled(isEditable());
+		row_++;
+	}
+	
+	void DataTable::addTextEdit(QTextEdit*& ptr, QString label)
+	{
+		ptr = new QTextEdit(this);
+		addLabel_(label, row_);
+		mainlayout_->addWidget(ptr, row_, 1, 1, 2);
+		ptr->setReadOnly(!isEditable());
+		row_++;
+	}
+	
+	
+	void DataTable::addComboBox(QComboBox*& ptr,  QString label)
+	{
+		ptr = new QComboBox(this);
+		addLabel_(label, row_);
+		mainlayout_->addWidget(ptr, row_, 1,1, 2);
+		ptr->blockSignals(true);
+		row_++;	
+	}
+	
+	void DataTable::addBooleanComboBox(QComboBox*& ptr,   QString label)
+	{
+		ptr = new QComboBox(this);
+		ptr->insertItem(0,"false");
+		ptr->insertItem(1,"true");
+		addLabel_(label, row_);
+		mainlayout_->addWidget(ptr, row_, 1,1, 2);
+		ptr->blockSignals(true);
+		row_++;
+	}
+	
+	void DataTable::fillComboBox(QComboBox*& ptr,  const std::string* items, int agr)
+	{
+		for(int i=0; i < agr; ++i)
+		{
+			ptr->insertItem(i,QString(items[i].c_str()));
+		}	
+	}
+	
+	void DataTable::addButton(QPushButton*& ptr, QString label )
+	{
+		ptr = new QPushButton(label, this);
+		QHBoxLayout* box = new QHBoxLayout();
+		box->addStretch(1);
+		box->addWidget(ptr);
+		mainlayout_->addLayout(box, row_, 0, 1, 3);
+	
+		ptr->setEnabled(isEditable());
+		row_++;	
+	}
+	
+	void DataTable::addVSpacer()
+	{
+		mainlayout_->setRowStretch(row_,1);
+		row_++;
+	}
+	
+	
+	
+	void DataTable::add2Buttons(QPushButton*& ptr1, QString label1, QPushButton*& ptr2, QString label2 )
+	{
+		ptr1 = new QPushButton(label1, this);
+		ptr2 = new QPushButton(label2, this);
+		QHBoxLayout* box = new QHBoxLayout();
+		box->addStretch(1);
+		box->addWidget(ptr1);
+		box->addWidget(ptr2);
+		mainlayout_->addLayout(box, row_, 0, 1, 3);
+		row_++;
+	}
+	
+	
+	void DataTable::addSeparator()
+	{
+		QLabel* pLabel = new QLabel(this);
+		pLabel->setFrameShape(QFrame::HLine); 
+		mainlayout_->addWidget(pLabel, row_, 0, 1, 3);
+		row_++;
+	}
+			
 
-bool DataTable::isEditable() const
-{
-	return editable_;
-}
+	bool DataTable::isEditable() const
+	{
+		return editable_;
+	}
 
+
+	void DataTable::addListView(QListWidget*& ptr, QString label)
+	{
+		ptr = new QListWidget(this);
+		addLabel_(label, row_);
+		mainlayout_->addWidget(ptr, row_, 1, 1, 2);
+		row_++;
+	}
+
+} //namespace

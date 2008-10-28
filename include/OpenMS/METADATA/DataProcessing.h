@@ -49,17 +49,22 @@ namespace OpenMS
     	//The different processing types
     	enum ProcessingAction
     	{
-    		DECONVOLUTION, 					///< Charge deconvolution
+    		CHARGE_DECONVOLUTION,		///< Charge deconvolution
     		DEISOTOPING, 						///< Deisotoping
     		SMOOTHING, 							///< Smoothing
     		BASELINE_REDUCTION, 		///< Baseline reduction
     		PEAK_PICKING, 					///< Peak picking (conversion from raw to peak data)
+    		FEATURE_FINDING, 				///< Feature findng (conversion from raw/peak to feature data)
+    		ALIGNMENT, 							///< Retention time alignment of different maps
     		LOW_INTENSITY_REMOVAL,	///< The removal of very low intensity data points
     		CONVERSION_MZDATA,			///< Convertion to mzData format
     		CONVERSION_MZML,				///< Convertion to mzML format
-    		CONVERSION_MZXML				///< Convertion to mzXML format
+    		CONVERSION_MZXML,				///< Convertion to mzXML format
+    		SIZE_OF_PROCESSINGACTION
     	};
-    	
+    	/// Names of inlet types
+			static const std::string NamesOfProcessingAction[SIZE_OF_PROCESSINGACTION];
+			
       /// Constructor
       DataProcessing();
       /// Copy construcor

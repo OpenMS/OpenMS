@@ -30,6 +30,7 @@
 //OpenMS
 #include <OpenMS/METADATA/Sample.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
 class QLineEdit;
 class QComboBox;
@@ -42,45 +43,42 @@ namespace OpenMS
 		This class provides all functionality to view the meta information of an object of type Sample.
 	*/
 	class SampleVisualizer
-		: public BaseVisualizer
+		: public BaseVisualizerGUI,
+			public BaseVisualizer<Sample>
 	{
 		Q_OBJECT
 
-		public: 
-		  /// Default constructor
-			SampleVisualizer(bool editable = FALSE, QWidget *parent = 0);
+		public:
 			
-				/// Loads the meta data from the object to the viewer.
-			void load(Sample &s);
-		  
-		private slots:
-		  /// Saves the changes made to the meta data into the object.
-			void store_();
-			/// Deletes all changes made in the viewer and restores the original meta data.
-			void reject_();
+		  ///Constructor
+			SampleVisualizer(bool editable = false, QWidget* parent = 0);
+			
+		public slots:
+			
+		  //Docu in base class
+			void store();
+		
+		protected slots:
+			
+			///Undo the changes made in the GUI.
+			void undo_();
 	
-		private:  
-			/// Pointer to current object	 to keep track of the actual object.
-			Sample *ptr_;
-			/// Copy of current object for restoring the original values.
-			Sample  tempsample_;
+		protected:  
 		  	
-			/// Sets the comboboxes with current values
-			void update_();
-			
 			///@name Edit fields and buttons
 	    //@{
-			QLineEdit *samplename_;
-			QLineEdit *samplenumber_;
-			QLineEdit *sampleorganism_;
-			QTextEdit *samplecomment_;
-			QComboBox *samplestate_;
-			
-			QLineEdit  *samplemass_;
-			QLineEdit  *samplevolume_;
-			QLineEdit  *sampleconcentration_;
+			QLineEdit* samplename_;
+			QLineEdit* samplenumber_;
+			QLineEdit* sampleorganism_;
+			QTextEdit* samplecomment_;
+			QComboBox* samplestate_;
+			QLineEdit* samplemass_;
+			QLineEdit* samplevolume_;
+			QLineEdit* sampleconcentration_;
 			//@}
-		
+			
+			//Docu in base class
+			void update_();
 	};
 
 }

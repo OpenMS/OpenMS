@@ -38,7 +38,9 @@ using namespace std;
 namespace OpenMS
 {
 
-	ProteinHitVisualizer::ProteinHitVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
+	ProteinHitVisualizer::ProteinHitVisualizer(bool editable, QWidget* parent)
+		: BaseVisualizerGUI(editable, parent),
+			BaseVisualizer<ProteinHit>()
 	{
 		addLineEdit(proteinhit_score_, "Score" );
 		addLineEdit(proteinhit_rank_, "Rank" );
@@ -48,45 +50,27 @@ namespace OpenMS
 		finishAdding_();
 	}
 	
-	
-	
-	void ProteinHitVisualizer::load(ProteinHit &h)
+	void ProteinHitVisualizer::update_()
 	{
-	  ptr_ = &h;
-		
-		tempProteinHit_=h;
-	  proteinhit_score_->setText(String(tempProteinHit_.getScore()).c_str() );
+	  proteinhit_score_->setText(String(temp_.getScore()).c_str() );
 		proteinhit_score_->setReadOnly(true);
-	  proteinhit_rank_->setText(String(tempProteinHit_.getRank()).c_str());
+	  proteinhit_rank_->setText(String(temp_.getRank()).c_str());
 		proteinhit_rank_->setReadOnly(true);
-		proteinhit_accession_->setText(tempProteinHit_.getAccession().c_str());
+		proteinhit_accession_->setText(temp_.getAccession().c_str());
 		proteinhit_accession_->setReadOnly(true);
-		proteinhit_sequence_->setText(tempProteinHit_.getSequence().c_str()); 
+		proteinhit_sequence_->setText(temp_.getSequence().c_str()); 
 		proteinhit_sequence_->setReadOnly(true);
 	}
 	
-	void ProteinHitVisualizer::store_()
+	void ProteinHitVisualizer::store()
 	{
-		try
-		{
-			(*ptr_) =tempProteinHit_ ;
-		}
-		catch(exception& e)
-		{
-			std::cout<<"Error while trying to store the new ProteinHit data. "<<e.what()<<endl;
-		}
+		//TODO?
+		(*ptr_) =temp_ ;
 	}
 	
-	void ProteinHitVisualizer::reject_()
+	void ProteinHitVisualizer::undo_()
 	{
-		try
-		{
-			load(tempProteinHit_);
-		}
-		catch(exception e)
-		{
-			cout<<"Error while trying to restore original ProteinHit data. "<<e.what()<<endl;
-		} 
+		update_();
 	}
 
 }

@@ -30,6 +30,7 @@
 //OpenMS
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
 class QLabel;
 class QLineEdit;
@@ -42,37 +43,36 @@ namespace OpenMS
 		This class provides all functionality to view the meta information of an object of type MetaInfoDescription.
 	*/
 	class MetaInfoDescriptionVisualizer
-		: public BaseVisualizer
+		: public BaseVisualizerGUI,
+			public BaseVisualizer<MetaInfoDescription>
 	{
 		Q_OBJECT
 
-		public: 
-		   /// Default constructor
-			MetaInfoDescriptionVisualizer(bool editable = FALSE, QWidget *parent = 0);
-			 
-			/// Loads the meta data from the object to the viewer.
-			void load(MetaInfoDescription &h);
-	
-		private slots:
-		  /// Saves the changes made to the meta data into the object.
-			void store_();
-			/// Deletes all changes made in the viewer and restores the original meta data.
-			void reject_();
-	
-		private:  
+		public:
 			
+		   ///Constructor
+			MetaInfoDescriptionVisualizer(bool editable = false, QWidget* parent = 0);
+			 
+		public slots:
+			
+		  //Docu in base class
+			void store();
+		
+		protected slots:
+			
+			///Undo the changes made in the GUI.
+			void undo_();
+	
+		protected:  
 	
 			///@name Edit fields and buttons
 			//@{
-	   	QLineEdit *metainfodescription_name_;
-			QTextEdit *metainfodescription_comment_;
+	   	QLineEdit* metainfodescription_name_;
+			QTextEdit* metainfodescription_comment_;
 			//@}
 			
-			/// Pointer to current object	to keep track of the actual object.
-			MetaInfoDescription *ptr_;
-			/// Copy of current object for restoring the original values
-			MetaInfoDescription tempMetaInfoDescription_;
-		
+			//Docu in base class
+			void update_();
 	};
 
 }

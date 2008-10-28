@@ -30,6 +30,7 @@
 //OpenMS
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
 //QT
 class QLabel;
@@ -43,39 +44,39 @@ namespace OpenMS
 		This class provides all functionality to view the meta information of an object of type ContactPerson.
 	*/
 	class ContactPersonVisualizer
-		: public BaseVisualizer
+		: public BaseVisualizerGUI,
+			public BaseVisualizer<ContactPerson>
 	{
 		Q_OBJECT
 
-		public: 
+		public:
 	
-		   /// Default constructor
-			ContactPersonVisualizer(bool editable = FALSE, QWidget *parent = 0);	
-			/// Loads the meta data from the object to the viewer.
-			void load(ContactPerson &h);
+		   ///Constructor
+			ContactPersonVisualizer(bool editable = false, QWidget* parent = 0);	
 	
-		private slots:
+		public slots:
 	
-		  /// Saves the changes made to the meta data into the object.
-			void store_();
-			/// Deletes all changes made in the viewer and restores the original meta data.
-			void reject_();
+		  //Docu in base class
+			void store();
+		
+		protected slots:
+			
+			///Undo the changes made in the GUI.
+			void undo_();
 	
-		private:  
+		protected:  
 					
 			///@name Edit fields and buttons
 	    //@{
-			QLineEdit *cp_firstname_;
-			QLineEdit *cp_lastname_;
-			QLineEdit *cp_institution_;
-			QLineEdit *cp_email_;
-			QLineEdit *cp_contact_info_;
+			QLineEdit* cp_firstname_;
+			QLineEdit* cp_lastname_;
+			QLineEdit* cp_institution_;
+			QLineEdit* cp_email_;
+			QLineEdit* cp_contact_info_;
 			//@}
 			
-			/// Pointer to current object	to keep track of the actual object.
-			ContactPerson* ptr_;
-			/// Copy of current object for restoring the original values
-			ContactPerson tempContactPerson_;
+			//Docu in base class
+			void update_();
 	};
 
 }

@@ -39,10 +39,10 @@ using namespace std;
 namespace OpenMS
 {
 	
-	ModificationVisualizer::ModificationVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
+	ModificationVisualizer::ModificationVisualizer(bool editable, QWidget* parent)
+		: BaseVisualizerGUI(editable, parent),
+			BaseVisualizer<Modification>()
 	{
-		type_="Modification";
-		
 		addLabel("Modify Modification information");		
 		addSeparator();
 		addLineEdit(treatmenttype_, "Treatment type" );
@@ -54,82 +54,49 @@ namespace OpenMS
 		addLineEdit(modificationAA_, "Affected Amino Acids" );
 		
 		finishAdding_();
-		
 	}
 	
-	
-	
-	
-	void ModificationVisualizer::load(Modification &m)
-	{
-	  ptr_ = &m;
-		
-		//Copy of current object for restoring the original values
-		tempmod_=m;
-	  
-		updateMod_();
-				
-	}
-	
-	void ModificationVisualizer::updateMod_()
+	void ModificationVisualizer::update_()
 	{
 		if(! isEditable())
 		{
-			fillComboBox(modificationspecificity_, &tempmod_.NamesOfSpecificityType[tempmod_.getSpecificityType()], 1);
+			fillComboBox(modificationspecificity_,& temp_.NamesOfSpecificityType[temp_.getSpecificityType()], 1);
 		}
 		else
 		{
-			fillComboBox(modificationspecificity_, tempmod_.NamesOfSpecificityType, Modification::SIZE_OF_SPECIFICITYTYPE);
-			modificationspecificity_->setCurrentIndex(tempmod_.getSpecificityType());
+			fillComboBox(modificationspecificity_, temp_.NamesOfSpecificityType, Modification::SIZE_OF_SPECIFICITYTYPE);
+			modificationspecificity_->setCurrentIndex(temp_.getSpecificityType());
 		}
-		treatmenttype_->setText(tempmod_.getType().c_str());
+		treatmenttype_->setText(temp_.getType().c_str());
 		treatmenttype_->setReadOnly(true);
-		treatmentcomment_->setText(tempmod_.getComment().c_str());
-	  modificationname_->setText(tempmod_.getReagentName().c_str());
-		modificationmass_->setText(String(tempmod_.getMass()).c_str() );
-		modificationAA_->setText(tempmod_.getAffectedAminoAcids().c_str() ); 
-	
+		treatmentcomment_->setText(temp_.getComment().c_str());
+	  modificationname_->setText(temp_.getReagentName().c_str());
+		modificationmass_->setText(String(temp_.getMass()).c_str() );
+		modificationAA_->setText(temp_.getAffectedAminoAcids().c_str() ); 
 	}
 	
 	
-	void ModificationVisualizer::store_()
+	void ModificationVisualizer::store()
 	{
-	try
+		try
 		{
 			ptr_->setComment(treatmentcomment_->toPlainText().toStdString());
-			
 			ptr_->setReagentName(modificationname_->text().toStdString());
-					
 			String m(modificationmass_->text().toStdString()) ;
-			
-					
 			ptr_->setMass(m.toFloat() );
-			
 			ptr_->setSpecificityType((Modification::SpecificityType)modificationspecificity_->currentIndex());		
-			
-					
 			ptr_->setAffectedAminoAcids(modificationAA_->text().toStdString());
-			
-			tempmod_ = (*ptr_);
-			
+			temp_ = (*ptr_);
 		}
 		catch(exception& e)
 		{
 			std::cout<<"Error while trying to store the new modification data. "<<e.what()<<endl;
 		}
-		  
 	}
 	
-	void ModificationVisualizer::reject_()
+	void ModificationVisualizer::undo_()
 	{
-		try
-		{
-			updateMod_();
-		}
-		catch(exception e)
-		{
-			cout<<"Error while trying to restore original modification data. "<<e.what()<<endl;
-		}
+		update_();
 	}
 
 }

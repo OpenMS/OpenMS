@@ -30,6 +30,7 @@
 //OpenMS
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
 class QLineEdit;
 class QComboBox;
@@ -44,23 +45,28 @@ namespace OpenMS
 		This class provides all functionality to view the meta information of an object of type PeptideIdentification.		
 	*/
 	class PeptideIdentificationVisualizer
-		: public BaseVisualizer
+		: public BaseVisualizerGUI,
+			public BaseVisualizer<PeptideIdentification>
 	{
 		Q_OBJECT
 
-		public: 
-		  /// Default constructor
-			PeptideIdentificationVisualizer(bool editable= FALSE, QWidget *parent =0, MetaDataBrowser *caller=0);
+		public:
+		  ///Constructor
+			PeptideIdentificationVisualizer(bool editable= FALSE, QWidget* parent =0, MetaDataBrowser* caller=0);
 			
 			/// Loads the meta data from the object to the viewer. Gets the id of the item in the tree as parameter.
-			void load(PeptideIdentification &s, int tree_item_id);
+			void load(PeptideIdentification& s, int tree_item_id);
 			
+		public slots:
 			
-		private slots:
-			/// Save all changes
-			void store_();
-			/// Restore all changes
-			void reject_();
+			//Docu in base class
+			void store();
+
+		protected slots:
+			
+			///Undo the changes made in the GUI.
+			void undo_();
+			
 			/** 
 				@brief Updates the tree by calling MetaDataBrowser::updatePeptideHits(PeptideIdentification, int)
 					
@@ -70,13 +76,9 @@ namespace OpenMS
 			*/
 			void updateTree_();
 			
-		private:  	
-			/// Pointer to current object to keep track of the actual object
-			PeptideIdentification *ptr_;
-			/// Copy of current object for restoring the original values
-			PeptideIdentification  tempidentification_;
+		protected:  	
 		  /// Pointer to MetaDataBrowser
-			MetaDataBrowser *pidv_caller_;
+			MetaDataBrowser* pidv_caller_;
 			/// The id of the item in the tree
 			int tree_id_;
 			
@@ -90,7 +92,6 @@ namespace OpenMS
 	
 	    /// Threshold for foltering by score
 			QLineEdit* filter_threshold_;
-					
 	};
 }
 #endif

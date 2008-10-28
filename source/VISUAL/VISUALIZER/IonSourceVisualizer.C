@@ -37,10 +37,10 @@ using namespace std;
 namespace OpenMS
 {
 	
-	IonSourceVisualizer::IonSourceVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
+	IonSourceVisualizer::IonSourceVisualizer(bool editable, QWidget* parent)
+		: BaseVisualizerGUI(editable, parent),
+			BaseVisualizer<IonSource>()
 	{
-		type_="IonSource";
-	  
 		addLabel("Modify ionsource information.");	
 		addSeparator();  
 		addComboBox(ionsource_inlet_type_, "Inlet type");
@@ -50,71 +50,38 @@ namespace OpenMS
 		finishAdding_();
 	}
 	
-	
-	
-	void IonSourceVisualizer::load(IonSource &s)
-	{
-	  //Pointer to current object to keep track of the actual object
-		ptr_ = &s;
-		
-		//Copy of current object for restoring the original values
-		tempionsource_=s;
-				
-		update_();
-	}
-	
 	void IonSourceVisualizer::update_()
 	{
+		if(! isEditable())
+		{
+			fillComboBox(ionsource_inlet_type_,& temp_.NamesOfInletType[temp_.getInletType()]  , 1);
+			fillComboBox(ionsource_ionization_method_,& temp_.NamesOfIonizationMethod[temp_.getIonizationMethod()] , 1);
+			fillComboBox(ionsource_polarity_,& temp_.NamesOfPolarity[temp_.getPolarity()] , 1);	
+		}
+		else
+		{
+			fillComboBox(ionsource_inlet_type_, temp_.NamesOfInletType  , IonSource::SIZE_OF_INLETTYPE);
+			fillComboBox(ionsource_ionization_method_, temp_.NamesOfIonizationMethod , IonSource::SIZE_OF_IONIZATIONMETHOD);
+			fillComboBox(ionsource_polarity_, temp_.NamesOfPolarity , IonSource::SIZE_OF_POLARITY);
 			
-			if(! isEditable())
-			{
-				fillComboBox(ionsource_inlet_type_, &tempionsource_.NamesOfInletType[tempionsource_.getInletType()]  , 1);
-				fillComboBox(ionsource_ionization_method_, &tempionsource_.NamesOfIonizationMethod[tempionsource_.getIonizationMethod()] , 1);
-				fillComboBox(ionsource_polarity_, &tempionsource_.NamesOfPolarity[tempionsource_.getPolarity()] , 1);	
-			}
-			else
-			{
-				fillComboBox(ionsource_inlet_type_, tempionsource_.NamesOfInletType  , IonSource::SIZE_OF_INLETTYPE);
-				fillComboBox(ionsource_ionization_method_, tempionsource_.NamesOfIonizationMethod , IonSource::SIZE_OF_IONIZATIONMETHOD);
-				fillComboBox(ionsource_polarity_, tempionsource_.NamesOfPolarity , IonSource::SIZE_OF_POLARITY);
-				
-				ionsource_inlet_type_->setCurrentIndex(tempionsource_.getInletType()); 
-				ionsource_ionization_method_->setCurrentIndex(tempionsource_.getIonizationMethod()); 
-				ionsource_polarity_->setCurrentIndex(tempionsource_.getPolarity()); 
-			}
-			
+			ionsource_inlet_type_->setCurrentIndex(temp_.getInletType()); 
+			ionsource_ionization_method_->setCurrentIndex(temp_.getIonizationMethod()); 
+			ionsource_polarity_->setCurrentIndex(temp_.getPolarity()); 
+		}
 	}
 	
-	void IonSourceVisualizer::store_()
+	void IonSourceVisualizer::store()
 	{
-		try
-		{
+		ptr_->setInletType((IonSource::InletType)ionsource_inlet_type_->currentIndex());		
+		ptr_->setIonizationMethod((IonSource::IonizationMethod)ionsource_ionization_method_->currentIndex());		
+		ptr_->setPolarity((IonSource::Polarity)ionsource_polarity_->currentIndex());		
 		
-			ptr_->setInletType((IonSource::InletType)ionsource_inlet_type_->currentIndex());		
-			ptr_->setIonizationMethod((IonSource::IonizationMethod)ionsource_ionization_method_->currentIndex());		
-			ptr_->setPolarity((IonSource::Polarity)ionsource_polarity_->currentIndex());		
-			
-			tempionsource_=(*ptr_);
-		}
-		catch(exception& e)
-		{
-			std::cout<<"Error while trying to store the new ion source data. "<<e.what()<<endl;
-		}
-		
+		temp_=(*ptr_);
 	}
 	
-	void IonSourceVisualizer::reject_()
+	void IonSourceVisualizer::undo_()
 	{
-		
-		try
-		{
-			update_();
-		}
-		catch(exception e)
-		{
-			cout<<"Error while trying to restore original ion source data. "<<e.what()<<endl;
-		}
-		
+		update_();
 	}
 
 }

@@ -38,11 +38,10 @@ using namespace std;
 namespace OpenMS
 {
 	
-	InstrumentSettingsVisualizer::InstrumentSettingsVisualizer(bool editable, QWidget *parent) 
-		: BaseVisualizer(editable, parent)
+	InstrumentSettingsVisualizer::InstrumentSettingsVisualizer(bool editable, QWidget* parent) 
+		: BaseVisualizerGUI(editable, parent),
+			BaseVisualizer<InstrumentSettings>()
 	{
-		type_="InstrumentSettings";
-	  
 		addLabel("Modify the settings of the instrument.");	
 		addSeparator();  
 		addComboBox(instrumentsettings_scan_mode_, "Scan mode");
@@ -51,75 +50,41 @@ namespace OpenMS
 		addDoubleLineEdit(instrumentsettings_mz_range_stop_, "Scan stop (in m/z dimension)");
 			
 		finishAdding_();
-			
 	}
-	
-	
-	
-	void InstrumentSettingsVisualizer::load(InstrumentSettings &is)
-	{
-	  //Pointer to current object to keep track of the actual object
-		ptr_ = &is;
-		
-		//Copy of current object for restoring the original values
-		tempinstrumentsettings_=is;
-			
-		update_();
-	}
-	
+
 	void InstrumentSettingsVisualizer::update_()
 	{
-			if(! isEditable())
-			{
-				fillComboBox(instrumentsettings_scan_mode_, &tempinstrumentsettings_.NamesOfScanMode[tempinstrumentsettings_.getScanMode()] , 1);
-				fillComboBox(instrumentsettings_polarity_, &IonSource::NamesOfPolarity[tempinstrumentsettings_.getPolarity()] , 1);
-			}
-			else
-			{
-				fillComboBox(instrumentsettings_scan_mode_, InstrumentSettings::NamesOfScanMode , InstrumentSettings::SIZE_OF_SCANMODE);
-				fillComboBox(instrumentsettings_polarity_, IonSource::NamesOfPolarity , IonSource::SIZE_OF_POLARITY);
-				
-				instrumentsettings_scan_mode_->setCurrentIndex(tempinstrumentsettings_.getScanMode()); 
-				instrumentsettings_polarity_->setCurrentIndex(tempinstrumentsettings_.getPolarity()); 
-			}
+		if(! isEditable())
+		{
+			fillComboBox(instrumentsettings_scan_mode_,& temp_.NamesOfScanMode[temp_.getScanMode()] , 1);
+			fillComboBox(instrumentsettings_polarity_,& IonSource::NamesOfPolarity[temp_.getPolarity()] , 1);
+		}
+		else
+		{
+			fillComboBox(instrumentsettings_scan_mode_, InstrumentSettings::NamesOfScanMode , InstrumentSettings::SIZE_OF_SCANMODE);
+			fillComboBox(instrumentsettings_polarity_, IonSource::NamesOfPolarity , IonSource::SIZE_OF_POLARITY);
 			
-			
-			instrumentsettings_mz_range_start_->setText(String(tempinstrumentsettings_.getMzRangeStart() ).c_str() );
-			instrumentsettings_mz_range_stop_->setText(String(tempinstrumentsettings_.getMzRangeStop() ).c_str() );
+			instrumentsettings_scan_mode_->setCurrentIndex(temp_.getScanMode()); 
+			instrumentsettings_polarity_->setCurrentIndex(temp_.getPolarity()); 
+		}
+		
+		instrumentsettings_mz_range_start_->setText(String(temp_.getMzRangeStart() ).c_str() );
+		instrumentsettings_mz_range_stop_->setText(String(temp_.getMzRangeStop() ).c_str() );
 	}
 	
-	void InstrumentSettingsVisualizer::store_()
+	void InstrumentSettingsVisualizer::store()
 	{
-		try
-		{
-				
-			ptr_->setScanMode((InstrumentSettings::ScanMode)instrumentsettings_scan_mode_->currentIndex());		
-			ptr_->setPolarity((IonSource::Polarity)instrumentsettings_polarity_->currentIndex());		
-			ptr_->setMzRangeStart(instrumentsettings_mz_range_start_->text().toFloat());
-			ptr_->setMzRangeStop(instrumentsettings_mz_range_stop_->text().toFloat());
-			
-			tempinstrumentsettings_=(*ptr_);
-		}
-		catch(exception& e)
-		{
-			std::cout<<"Error while trying to store the new InstrumentSettings data. "<<e.what()<<endl;
-		}
+		ptr_->setScanMode((InstrumentSettings::ScanMode)instrumentsettings_scan_mode_->currentIndex());		
+		ptr_->setPolarity((IonSource::Polarity)instrumentsettings_polarity_->currentIndex());		
+		ptr_->setMzRangeStart(instrumentsettings_mz_range_start_->text().toFloat());
+		ptr_->setMzRangeStop(instrumentsettings_mz_range_stop_->text().toFloat());
 		
+		temp_=(*ptr_);
 	}
 	
-	void InstrumentSettingsVisualizer::reject_()
+	void InstrumentSettingsVisualizer::undo_()
 	{
-		
-		try
-		{
-	
-			update_();
-		}
-		catch(exception e)
-		{
-			cout<<"Error while trying to restore original InstrumentSettings data. "<<e.what()<<endl;
-		}
-		
+		update_();
 	}
 
 }

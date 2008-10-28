@@ -35,8 +35,9 @@ using namespace std;
 namespace OpenMS
 {
 
-	DocumentIdentifierVisualizer::DocumentIdentifierVisualizer(bool editable, QWidget *parent) 
-		: BaseVisualizer(editable, parent)
+	DocumentIdentifierVisualizer::DocumentIdentifierVisualizer(bool editable, QWidget* parent) 
+		: BaseVisualizerGUI(editable, parent),
+			BaseVisualizer<DocumentIdentifier>()
 	{
 		addLabel("Modify DocumentIdentifier information");		
 		addSeparator();
@@ -45,40 +46,22 @@ namespace OpenMS
 	}
 	
 	
-	void DocumentIdentifierVisualizer::load(DocumentIdentifier &h)
+	void DocumentIdentifierVisualizer::update_()
 	{
-	  ptr_ = &h;
-		
-		//Copy of current object for restoring the original values
-		tempDocumentIdentifier_=h;
-	  identifier_->setText(h.getIdentifier().c_str());
-			
+	  identifier_->setText(temp_.getIdentifier().c_str());
 		identifier_->adjustSize();		
 	}
 	
-	void DocumentIdentifierVisualizer::store_()
+	void DocumentIdentifierVisualizer::store()
 	{
-		try
-		{
-			ptr_->setIdentifier(identifier_->text().toStdString());
-			tempDocumentIdentifier_ = (*ptr_);
-		}
-		catch(exception& e)
-		{
-			std::cout<<"Error while trying to store the new document identifier. "<<e.what()<<endl;
-		}
+		ptr_->setIdentifier(identifier_->text().toStdString());
+		
+		temp_ = (*ptr_);
 	}
 	
-	void DocumentIdentifierVisualizer::reject_()
+	void DocumentIdentifierVisualizer::undo_()
 	{
-		try
-		{
-			load(tempDocumentIdentifier_);
-		}
-		catch(exception e)
-		{
-			cout<<"Error while trying to restore original document identifier.. "<<e.what()<<endl;
-		} 
+		update_();
 	}
 
 }

@@ -1584,7 +1584,7 @@ namespace OpenMS
 				}
 				else if (accession=="MS:1000034") //charge deconvolution
 				{
-					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::DECONVOLUTION);
+					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::CHARGE_DECONVOLUTION);
 				}
 				else if (accession=="MS:1000035") //peak picking
 				{

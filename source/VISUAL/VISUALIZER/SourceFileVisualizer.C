@@ -24,13 +24,10 @@
 // $Maintainer: Marc Sturm   $
 // --------------------------------------------------------------------------
 
-// OpenMS
 #include <OpenMS/VISUAL/VISUALIZER/SourceFileVisualizer.h>
 
-// QT
 #include <QtGui/QLineEdit>
 
-// STL
 #include <iostream>
 
 using namespace std;
@@ -38,7 +35,9 @@ using namespace std;
 namespace OpenMS
 {
 	
-	SourceFileVisualizer::SourceFileVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
+	SourceFileVisualizer::SourceFileVisualizer(bool editable, QWidget* parent)
+		: BaseVisualizerGUI(editable, parent),
+			BaseVisualizer<SourceFile>()
 	{
 		addLabel("Modify source file information");
 		addSeparator();	
@@ -49,55 +48,31 @@ namespace OpenMS
 		addLineEdit(sha1_, "SHA1 hash value" );
 		
 		finishAdding_();
-			
 	}
 	
-	
-	
-	void SourceFileVisualizer::load(SourceFile &s)
+	void SourceFileVisualizer::update_()
 	{
-	  ptr_ = &s;
-		
-		//Copy of current object for restoring the original values
-		tempSourceFile_=s;
-	  name_of_file_->setText(s.getNameOfFile().c_str());
-		path_to_file_->setText(s.getPathToFile().c_str() );
-		file_size_->setText(String(s.getFileSize()).c_str());
-	  file_type_->setText(String(s.getFileType()).c_str());
-		sha1_->setText(String(s.getSha1()).c_str());
-			
+	  name_of_file_->setText(temp_.getNameOfFile().c_str());
+		path_to_file_->setText(temp_.getPathToFile().c_str() );
+		file_size_->setText(String(temp_.getFileSize()).c_str());
+	  file_type_->setText(String(temp_.getFileType()).c_str());
+		sha1_->setText(String(temp_.getSha1()).c_str());
+	}
+	
+	void SourceFileVisualizer::store()
+	{
+		ptr_->setNameOfFile(name_of_file_->text().toStdString());
+		ptr_->setPathToFile(path_to_file_->text().toStdString());
+		ptr_->setFileSize(file_size_->text().toFloat());
+		ptr_->setFileType(file_type_->text().toStdString());
+		ptr_->setSha1(sha1_->text().toStdString());
 				
+		temp_=(*ptr_);
 	}
 	
-	void SourceFileVisualizer::store_()
+	void SourceFileVisualizer::undo_()
 	{
-		try
-		{
-					
-			ptr_->setNameOfFile(name_of_file_->text().toStdString());
-			ptr_->setPathToFile(path_to_file_->text().toStdString());
-			ptr_->setFileSize(file_size_->text().toFloat());
-			ptr_->setFileType(file_type_->text().toStdString());
-			ptr_->setSha1(sha1_->text().toStdString());
-					
-			tempSourceFile_=(*ptr_);
-		}
-		catch(exception& e)
-		{
-			std::cout<<"Error while trying to store the new source file data. "<<e.what()<<endl;
-		}
-	}
-	
-	void SourceFileVisualizer::reject_()
-	{
-		try
-		{
-			load(tempSourceFile_);
-		}
-		catch(exception e)
-		{
-			cout<<"Error while trying to restore original source file data. "<<e.what()<<endl;
-		} 
+		update_();
 	}
 
 }

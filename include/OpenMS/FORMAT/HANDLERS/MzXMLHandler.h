@@ -490,7 +490,7 @@ namespace OpenMS
 				optionalAttributeAsString_(boolean, attributes, s_chargedeconvoluted);
 				if (boolean == "true" || boolean == "1")
 				{
-					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::DECONVOLUTION);
+					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::CHARGE_DECONVOLUTION);
 				}
 				
 				DoubleReal cutoff = 0.0;
@@ -837,7 +837,7 @@ namespace OpenMS
 					os << "\t\t<dataProcessing deisotoped=\""
 						 << data_processing.getProcessingActions().count(DataProcessing::DEISOTOPING)
 						 << "\" chargeDeconvoluted=\""
-						 << data_processing.getProcessingActions().count(DataProcessing::DECONVOLUTION)
+						 << data_processing.getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION)
 						 << "\" centroided=\""
 						 << data_processing.getProcessingActions().count(DataProcessing::PEAK_PICKING)
 						 << "\"";

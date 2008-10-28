@@ -30,6 +30,7 @@
 //OpenMS
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
 class QLineEdit;
 class QComboBox;
@@ -44,22 +45,25 @@ namespace OpenMS
 		This class provides all functionality to view the meta information of an object of type Identification.	
 	*/
 	class ProteinIdentificationVisualizer
-		: public BaseVisualizer
+		: public BaseVisualizerGUI,
+			public BaseVisualizer<ProteinIdentification>
 	{
 		Q_OBJECT
 	
-		public: 
-		  /// Default constructor
-			ProteinIdentificationVisualizer(bool editable= FALSE, QWidget *parent =0, MetaDataBrowser *caller=0);
+		public:
+		  ///Constructor
+			ProteinIdentificationVisualizer(bool editable= FALSE, QWidget* parent =0, MetaDataBrowser* caller=0);
 		
 			/// Loads the meta data from the object to the viewer. Gets the id of the item in the tree as parameter.
-			void load(ProteinIdentification &s, int tree_item_id);
+			void load(ProteinIdentification& s, int tree_item_id);
 		  
-		private slots:
-			/// Save all changes
-			void store_();
-			/// Restore all changes
-			void reject_();
+		public slots:
+			
+			//Docu in base class
+			void store();
+
+		protected slots:
+			
 			/** 
 				@brief Updates the tree by calling MetaDataBrowser::updateProteinHits()
 					
@@ -69,13 +73,13 @@ namespace OpenMS
 			*/
 			void updateTree_();
 			
-		private:  
-			/// Pointer to current object to keep track of the actual object
-			ProteinIdentification *ptr_;
-			/// Copy of current object for restoring the original values
-			ProteinIdentification  tempidentification_;
+			///Undo the changes made in the GUI.
+			void undo_();
+			
+		protected:
+			
 		  /// Pointer to MetaDataBrowser
-			MetaDataBrowser *pidv_caller_;
+			MetaDataBrowser* pidv_caller_;
 			/// The id of the item in the tree
 			int tree_id_;
 			
@@ -102,7 +106,6 @@ namespace OpenMS
 	
 	    /// Threshold for foltering by score
 			QLineEdit* filter_threshold_;
-
 	};
 }
 #endif //OPENMS_VISUAL_VISUALIZER_PROTEINIDENTIFICATIONVISUALIZER_H

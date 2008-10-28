@@ -30,6 +30,7 @@
 //OpenMS
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
 //QT
 class QLabel;
@@ -43,35 +44,34 @@ namespace OpenMS
 		This class provides all functionality to view the meta information of an object of type DocumentIdentifier.
 	*/
 	class DocumentIdentifierVisualizer
-		: public BaseVisualizer
+		: public BaseVisualizerGUI,
+			public BaseVisualizer<DocumentIdentifier>
 	{
 			Q_OBJECT
 	
-		public: 
-		   /// Default constructor
-			DocumentIdentifierVisualizer(bool editable = FALSE, QWidget *parent = 0);
+		public:
+			
+		   ///Constructor
+			DocumentIdentifierVisualizer(bool editable = false, QWidget* parent = 0);
 		
-			/// Loads the meta data from the object to the viewer.
-			void load(DocumentIdentifier& h);
+		public slots:
+			
+		  //Docu in base class
+			void store();
+		
+		protected slots:
+			
+			///Undo the changes made in the GUI.
+			void undo_();
 	
-		private slots:
-		  /// Saves the changes made to the meta data into the object.
-			void store_();
-			/// Deletes all changes made in the viewer and restores the original meta data.
-			void reject_();
-	
-		private:  
-					
-					
+		protected:  
 			///@name Edit fields and buttons
 	    //@{
-			QLineEdit *identifier_;
+			QLineEdit* identifier_;
 			//@}
 			
-			/// Pointer to current object	to keep track of the actual object.
-			DocumentIdentifier* ptr_;
-			/// Copy of current object for restoring the original values
-			DocumentIdentifier tempDocumentIdentifier_;
+			//Docu in base class
+			void update_();
 	};
 }
 #endif

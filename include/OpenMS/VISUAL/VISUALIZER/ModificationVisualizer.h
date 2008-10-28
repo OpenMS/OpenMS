@@ -29,6 +29,7 @@
 
 #include <OpenMS/METADATA/Modification.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
 class QLabel;
 class QLineEdit;
@@ -42,43 +43,40 @@ namespace OpenMS
 		This class provides all functionality to view the meta information of an object of type Modification.
 	*/
 	class ModificationVisualizer
-		: public BaseVisualizer
+		: public BaseVisualizerGUI,
+			public BaseVisualizer<Modification>
 	{
 		Q_OBJECT
 
-		public: 
-		  /// Default constructor
-			ModificationVisualizer(bool editable = FALSE, QWidget *parent = 0);
+		public:
 			
-			/// Loads the meta data from the object to the viewer.
-			void load(Modification &m);
-	
-		private slots:
-		  /// Saves the changes made to the meta data into the object.
-			void store_();
-			/// Deletes all changes made in the viewer and restores the original meta data.
-			void reject_();
-	
-		private:  
+		  ///Constructor
+			ModificationVisualizer(bool editable = false, QWidget* parent = 0);
 			
-			/// Sets the comboboxes with current values
-			void updateMod_();
+		public slots:
+			
+		  //Docu in base class
+			void store();
+		
+		protected slots:
+			
+			///Undo the changes made in the GUI.
+			void undo_();
+	
+		protected:  
 			
 			///@name Edit fields and buttons
 	    //@{
-			QLineEdit *treatmenttype_;
-			QTextEdit *treatmentcomment_;
-			QLineEdit *modificationname_;
-			QLineEdit *modificationmass_;
-			QComboBox *modificationspecificity_;
-			QLineEdit *modificationAA_;
+			QLineEdit* treatmenttype_;
+			QTextEdit* treatmentcomment_;
+			QLineEdit* modificationname_;
+			QLineEdit* modificationmass_;
+			QComboBox* modificationspecificity_;
+			QLineEdit* modificationAA_;
 			//@}
 			
-			/// Pointer to current object	 to keep track of the actual object.
-			Modification *ptr_;
-			/// Copy of current object for restoring the original values.
-			Modification tempmod_;
-		
+			//Docu in base class
+			void update_();
 	};
 
 }

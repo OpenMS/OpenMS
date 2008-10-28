@@ -30,6 +30,7 @@
 //OpenMS
 #include <OpenMS/METADATA/IonDetector.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
 class QLineEdit;
 class QComboBox;
@@ -42,44 +43,38 @@ namespace OpenMS
 		This class provides all functionality to view the meta information of an object of type IonDetector.
 	*/
 	class IonDetectorVisualizer
-		: public BaseVisualizer
+		: public BaseVisualizerGUI,
+			public BaseVisualizer<IonDetector>
 	{
 		Q_OBJECT
 
-	public: 
-	  /// Default constructor
-		IonDetectorVisualizer(bool editable = FALSE, QWidget *parent = 0);
+		public:
+			
+		  ///Constructor
+			IonDetectorVisualizer(bool editable = false, QWidget* parent = 0);
+			
+		public slots:
+			
+		  //Docu in base class
+			void store();
 		
-		/// Loads the meta data from the object to the viewer.
-		void load(IonDetector &s);
-	  
-	private slots:
-		/// Saves the changes made to the meta data into the object.
-		void store_();
-		/// Deletes all changes made in the viewer and restores the original meta data.
-		void reject_();
-
-	private:  
-		/// Pointer to current object to keep track of the actual object
-		IonDetector *ptr_;
-		/// Copy of current object for restoring the original values
-		IonDetector  tempiondetector_;
-		/// Sets the comboboxes with current values
-		void update_();
-	  	
-		///@name edit fields to modify properties
-    //@{
-		QLineEdit *iondetector_res_;
-		QLineEdit *iondetector_freq_;
-		//@}
-
-		
-		///@name Comboboxes to choose properties
-    //@{
-		QComboBox *iondetector_type_;
-		QComboBox *iondetector_ac_mode_;
-		//@}
-					
+		protected slots:
+			
+			///Undo the changes made in the GUI.
+			void undo_();
+	
+		protected:  
+		  	
+			///@name edit fields to modify properties
+	    //@{
+			QLineEdit* iondetector_res_;
+			QLineEdit* iondetector_freq_;
+			QComboBox* iondetector_type_;
+			QComboBox* iondetector_ac_mode_;
+			//@}
+			
+			//Docu in base class
+			void update_();
 	};
 }
 #endif

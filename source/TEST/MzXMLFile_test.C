@@ -153,7 +153,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	  TEST_EQUAL(tmp, "0000-00-00 00:00:00");
 		TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().size(),3)
 		TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
-		TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::DECONVOLUTION),1)
+		TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION),1)
 		TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::PEAK_PICKING),1)
 
 		//---------------------------------------------------------------------------
@@ -279,7 +279,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	  TEST_EQUAL(tmp, "0000-00-00 00:00:00");
 		TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().size(),3)
 		TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
-		TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::DECONVOLUTION),1)
+		TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION),1)
 		TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::PEAK_PICKING),1)
 	
 		//---------------------------------------------------------------------------

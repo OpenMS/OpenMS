@@ -27,56 +27,43 @@
 #ifndef OPENMS_VISUAL_VISUALIZER_BASEVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_BASEVISUALIZER_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/VISUAL/DataTable.h>
-
 namespace OpenMS 
 {
 	/**
 		@brief A base class for all visualizer classes
 		
-		This class is a basic class for all visualizer classes. It is an abstract class.
-		It provides some functions that are implemented in the subclasses. <br>
-		Increases ease of use to store data.
-	*/	
-	class BaseVisualizer 
-		: public DataTable
+		This class provides members and functions that depend on the visualizer type.
+		
+		The GUI components are provided by the BaseVisualizerGUI class.
+		The two classes cannot be merged, as templates and the Qt meta object compiler cannot be combined.
+	*/
+	template<typename ObjectType>
+	class BaseVisualizer
 	{
-		Q_OBJECT
-
 		public:
-			/// Default constructor 
-			BaseVisualizer(bool editable=FALSE, QWidget *parent =0);
-		
-			/// Returns the type of the visualizer class.
-			String getType();
 			
-			///Defines a friend class that can use the functionality of the subclasses.
-			friend class MetaDataBrowser;
-		
-			signals:
-			/// Sends a status message, if date is not in proper format.
-	  	void sendStatus(std::string status); 
+			/// Loads the object that is to be edited.
+			void load(ObjectType& o)
+			{
+				ptr_ = &o;
+				temp_ = o;
+				
+				update_();
+			}
+
+		protected:
+
+		  /// Pointer to the object that is currently edited
+			ObjectType* ptr_;
+			/// Copy of current object used to restore the original values
+			ObjectType temp_;
 			
 		protected:
-			/// Adds buttons common to all visualizers
-			void finishAdding_();
 			
-			///The type of the object to be displayed.
-			String type_;
-			
-	    ///Undo buttons.	
-			QPushButton *undobutton_;		
-			
-		private slots:
-			///Saves the changes made to the object.
-			virtual void store_()=0;
-			
-			///Undo the changes made to the object.
-			virtual void reject_()=0;
-		
-			
-				
+			///Updates the GUI from the temp_ variable.
+			virtual void update_()
+			{
+			}
 	};
 
 

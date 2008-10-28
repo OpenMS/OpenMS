@@ -26,8 +26,6 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/TaggingVisualizer.h>
 
-//QT
-
 #include <QtGui/QComboBox>
 #include <QtGui/QTextEdit>
 #include <QtGui/QLineEdit>
@@ -40,11 +38,10 @@ using namespace std;
 namespace OpenMS
 {
 
-	TaggingVisualizer::TaggingVisualizer(bool editable, QWidget *parent) 
-		: BaseVisualizer(editable, parent)
+	TaggingVisualizer::TaggingVisualizer(bool editable, QWidget* parent) 
+		: BaseVisualizerGUI(editable, parent),
+			BaseVisualizer<Tagging>()
 	{
-		type_="Tagging";
-		
 		addLabel("Modify Tagging information");		
 		addSeparator();
 		addLineEdit(treatmenttype_, "Treatment type" );
@@ -59,82 +56,51 @@ namespace OpenMS
 		addComboBox(taggingvariant_, "Variant");
 		
 		finishAdding_();
-		
-		
 	}
 	
-	
-	
-	void TaggingVisualizer::load(Tagging &t)
-	{
-	  ptr_ = &t;
-		
-		//Copy of current object for restoring the original values
-		temptag_=t;
-	  
-		updateTag_();
-	}
-	
-	void TaggingVisualizer::updateTag_()
+	void TaggingVisualizer::update_()
 	{
 		if(! isEditable())
 		{
-			fillComboBox(modificationspecificity_, &temptag_.NamesOfSpecificityType[temptag_.getSpecificityType()], 1);
-	  	fillComboBox(taggingvariant_, &temptag_.NamesOfIsotopeVariant[temptag_.getVariant()], 1);
+			fillComboBox(modificationspecificity_,& temp_.NamesOfSpecificityType[temp_.getSpecificityType()], 1);
+	  	fillComboBox(taggingvariant_,& temp_.NamesOfIsotopeVariant[temp_.getVariant()], 1);
 		}
 		else
 		{
-			fillComboBox(modificationspecificity_, temptag_.NamesOfSpecificityType, Tagging::SIZE_OF_SPECIFICITYTYPE);
-	  	fillComboBox(taggingvariant_, temptag_.NamesOfIsotopeVariant, Tagging::SIZE_OF_ISOTOPEVARIANT);
-			modificationspecificity_->setCurrentIndex(temptag_.getSpecificityType());
-			taggingvariant_->setCurrentIndex(temptag_.getVariant());			
+			fillComboBox(modificationspecificity_, temp_.NamesOfSpecificityType, Tagging::SIZE_OF_SPECIFICITYTYPE);
+	  	fillComboBox(taggingvariant_, temp_.NamesOfIsotopeVariant, Tagging::SIZE_OF_ISOTOPEVARIANT);
+			modificationspecificity_->setCurrentIndex(temp_.getSpecificityType());
+			taggingvariant_->setCurrentIndex(temp_.getVariant());			
 		}
-		treatmenttype_->setText(temptag_.getType().c_str());
+		treatmenttype_->setText(temp_.getType().c_str());
 		treatmenttype_->setReadOnly(true);
-		treatmentcomment_->setText(temptag_.getComment().c_str());
-		modificationname_->setText(temptag_.getReagentName().c_str());
-		modificationmass_->setText(String(temptag_.getMass()).c_str() );
+		treatmentcomment_->setText(temp_.getComment().c_str());
+		modificationname_->setText(temp_.getReagentName().c_str());
+		modificationmass_->setText(String(temp_.getMass()).c_str() );
 		
-		modificationAA_->setText(temptag_.getAffectedAminoAcids().c_str() ); 
-		taggingmass_shift_->setText(String(temptag_.getMassShift()).c_str());
-		
-	
+		modificationAA_->setText(temp_.getAffectedAminoAcids().c_str() ); 
+		taggingmass_shift_->setText(String(temp_.getMassShift()).c_str());
 	}
 	
-	void TaggingVisualizer::store_()
+	void TaggingVisualizer::store()
 	{
-		try
-		{
-			ptr_->setComment(treatmentcomment_->toPlainText().toStdString());
-			ptr_->setReagentName(modificationname_->text().toStdString());
-					
-			String m(modificationmass_->text().toStdString());
-			ptr_->setMass(m.toFloat());
-					
-			ptr_->setSpecificityType((Modification::SpecificityType)modificationspecificity_->currentIndex());
-			ptr_->setAffectedAminoAcids(modificationAA_->text().toStdString());
-			ptr_->setMassShift(taggingmass_shift_->text().toFloat());
-			ptr_->setVariant((Tagging::IsotopeVariant)taggingvariant_->currentIndex());
-			
-			temptag_ = (*ptr_);
-			
-		}
-		catch(exception& e)
-		{
-			std::cout<<"Error while trying to store the new tagging data. "<<e.what()<<endl;
-		}  
+		ptr_->setComment(treatmentcomment_->toPlainText().toStdString());
+		ptr_->setReagentName(modificationname_->text().toStdString());
+				
+		String m(modificationmass_->text().toStdString());
+		ptr_->setMass(m.toFloat());
+				
+		ptr_->setSpecificityType((Modification::SpecificityType)modificationspecificity_->currentIndex());
+		ptr_->setAffectedAminoAcids(modificationAA_->text().toStdString());
+		ptr_->setMassShift(taggingmass_shift_->text().toFloat());
+		ptr_->setVariant((Tagging::IsotopeVariant)taggingvariant_->currentIndex());
+		
+		temp_ = (*ptr_);
 	}
 	
-	void TaggingVisualizer::reject_()
+	void TaggingVisualizer::undo_()
 	{
-		try
-		{
-			updateTag_();
-		}
-		catch(exception e)
-		{
-			cout<<"Error while trying to restore original tagging data. "<<e.what()<<endl;
-		} 
+		update_();
 	}
 
 }

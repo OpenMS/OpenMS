@@ -30,6 +30,7 @@
 //OpenMS
 #include <OpenMS/METADATA/Instrument.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
 class QLineEdit;
 class QComboBox;
@@ -42,36 +43,38 @@ namespace OpenMS
 		This class provides all functionality to view the meta information of an object of type Instrument.
 	*/
 	class InstrumentVisualizer
-		: public BaseVisualizer
+		: public BaseVisualizerGUI,
+			public BaseVisualizer<Instrument>
 	{
 		Q_OBJECT
 
-		public: 
-		  /// Default constructor
-			InstrumentVisualizer(bool editable = FALSE, QWidget *parent = 0);
+		public:
 			
-			/// Loads the meta data from the object to the viewer.
-			void load(Instrument &s);
-		  
-		private slots:
-			/// Saves the changes made to the meta data into the object.
-			void store_();
-			/// Deletes all changes made in the viewer and restores the original meta data.
-			void reject_();
+		  ///Constructor
+			InstrumentVisualizer(bool editable = false, QWidget* parent = 0);
+			
+		public slots:
+			
+			//Docu in base class
+			void store();
+		
+		protected slots:
+			
+			///Undo the changes made in the GUI.
+			void undo_();
 	
-		private:  
-			/// Pointer to current object to keep track of the actual object
-			Instrument *ptr_;
-			/// Copy of current object for restoring the original values
-			Instrument  tempinstrument_;
-		  
+		protected:  
+
 			///@name Edit fields and buttons
 	    //@{
-			QLineEdit *instrument_name_;
-			QLineEdit *instrument_vendor_;
-			QLineEdit *instrument_model_;
-			QTextEdit *instrument_customizations_;
+			QLineEdit* instrument_name_;
+			QLineEdit* instrument_vendor_;
+			QLineEdit* instrument_model_;
+			QTextEdit* instrument_customizations_;
 	    //@}
+	    
+	    //Docu in base class
+			void update_();
 	};
 }
 #endif

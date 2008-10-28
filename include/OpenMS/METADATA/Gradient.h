@@ -28,13 +28,12 @@
 #define OPENMS_METADATA_GRADIENT_H
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <vector>
 
 namespace OpenMS 
 {
-	class String;
-	
   /**
     @brief Representation of a HPLC gradient
     

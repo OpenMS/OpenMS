@@ -120,7 +120,7 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_EQUAL(exp.getDataProcessing()[1].getSoftware().getVersion(),"2.0.5")
 	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().size(),3)
 	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
-	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().count(DataProcessing::DECONVOLUTION),1)
+	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION),1)
 	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().count(DataProcessing::LOW_INTENSITY_REMOVAL),1)
 	TEST_REAL_EQUAL(DoubleReal(exp.getDataProcessing()[1].getMetaValue("#intensity_cutoff")),5.9)
 	TEST_REAL_EQUAL(DoubleReal(exp.getDataProcessing()[1].getMetaValue("#intensity_cutoff")),5.9)

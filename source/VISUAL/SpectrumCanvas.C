@@ -825,7 +825,7 @@ namespace OpenMS
   	}
   	
   	//if the meta data was modified, set the flag
-    if (dlg.exec())
+    if (modifiable && dlg.exec())
     {
 			modificationStatus_(activeLayerIndex(), true);
     }

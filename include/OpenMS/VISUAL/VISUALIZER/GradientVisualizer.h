@@ -30,6 +30,7 @@
 
 //OpenMS
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 #include <OpenMS/METADATA/Gradient.h>
 
 //STL
@@ -47,38 +48,40 @@ namespace OpenMS
 		Each HPLC objects contains a gradient object. A gradient objects contains a list of eluents, timepoints and percentage values. Values can be added to the list, or the whole list can be deleted.
 	*/
 	class GradientVisualizer
-		: public BaseVisualizer
+		: public BaseVisualizerGUI,
+			public BaseVisualizer<Gradient>
 	{
 		Q_OBJECT
 
-	public: 
-		  /// Default constructor
-			GradientVisualizer(bool editable = FALSE, QWidget *parent = 0);
+		public:
 			
-			/// Loads the meta data from the object to the viewer.
-			void load(Gradient &g);
+		  ///Constructor
+			GradientVisualizer(bool editable = false, QWidget* parent = 0);
+			
+			//Docu in base class
+			void load(Gradient& g);
 		
-		public slots:	
-			/// Add new timepoint to the list
-			void addTimepoint();
-			/// Add new eluent to the list
-			void addEluent();
-			///Delete all data from gradient
-			void deleteData();
-	 
-	 private slots:
-		 	/// Saves the information to Gradient Object.
-			void store_();
-			/// Deletes all changes made in the viewer and restores the original data.
-			void reject_();	
+		public slots:
 			
-		private: 
+		  //Docu in base class
+			void store();
+		
+		protected slots:
+			
+			/// Add new timepoint to the list
+			void addTimepoint_();
+			/// Add new eluent to the list
+			void addEluent_();
+			///Delete all data from gradient
+			void deleteData_();
+			///Undo the changes made in the GUI.
+			void undo_();
+		
+		protected: 
 		  /// Loads a list of eluent, timepoint and percentage triplets.
 			void loadData_();	
 			/// Remove all data from layout
 			void removeData_();
-			/// Updates GUI with new data
-			void update_();
 			
 						
 		  /** @name Edit fields for new eluent-timepoint-percentage-triplets.
@@ -113,20 +116,16 @@ namespace OpenMS
 			QLineEdit* percentage_;
 			
 			/// A validator to check the input for the new timepoint.
-			QIntValidator *timepoint_vali_;		
+			QIntValidator* timepoint_vali_;		
 			
 			/// Counter to keep track of the actual row in the layout.
 			int nextrow_;
 				
 			/// The layout to display the eluents, timepoints and percentages.
 			QGridLayout* viewlayout_;		
-					
-			/// Pointer to current object.
-			Gradient* ptr_;
 			
-			/// Working-Copy of current object. 
-			Gradient tempgradient_;
-		
+			//Docu in base class
+			void update_();
 	};
 
 

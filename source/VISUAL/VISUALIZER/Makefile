@@ -29,8 +29,12 @@ include ../../config_defs.mak
 DIRECTORY=VISUAL/VISUALIZER
 
 
+CPP_SOURCES_NOMOC=\
+	BaseVisualizer.C
+
 CPP_SOURCES=\
 	BaseVisualizer.C\
+	BaseVisualizerGUI.C\
 	SampleVisualizer.C\
 	DigestionVisualizer.C\
 	ModificationVisualizer.C\
@@ -60,7 +64,7 @@ CPP_SOURCES=\
 	DocumentIdentifierVisualizer.C
 
 MOC_SOURCES=\
-	BaseVisualizer_moc.C\
+	BaseVisualizerGUI_moc.C\
 	SampleVisualizer_moc.C\
 	DigestionVisualizer_moc.C\
 	ModificationVisualizer_moc.C\
@@ -89,7 +93,7 @@ MOC_SOURCES=\
 	SpectrumSettingsVisualizer_moc.C\
 	DocumentIdentifierVisualizer_moc.C
 
-SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES)
+SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES) $(CPP_SOURCES_NOMOC)
 OBJECTS 	= $(SOURCES:.C=.o)
 
 -include .Dependencies
@@ -99,7 +103,7 @@ default: echodir $(OBJECTS)
 depend:	$(MOC_SOURCES)
 	@echo "creating dependencies for $(DIRECTORY)..."
 	@echo "" > .Dependencies
-	@$(CXX_MAKEDEPEND) $(MAKEDEP_OPTS) $(CPP_SOURCES) $(MOC_SOURCES) $(OPENMS_INCLUDES)  >.Dependencies
+	@$(CXX_MAKEDEPEND) $(MAKEDEP_OPTS) $(CPP_SOURCES) $(CPP_SOURCES_NOMOC) $(MOC_SOURCES) $(OPENMS_INCLUDES)  >.Dependencies
 
 default_clean:
 	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS) $(MOC_SOURCES)
@@ -116,8 +120,8 @@ include ../../config.mak
 
 HEADER_DIR = $(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
 
-BaseVisualizer_moc.C:  $(HEADER_DIR)/BaseVisualizer.h
-	$(MOC) $(HEADER_DIR)/BaseVisualizer.h -o BaseVisualizer_moc.C	
+BaseVisualizerGUI_moc.C:  $(HEADER_DIR)/BaseVisualizerGUI.h
+	$(MOC) $(HEADER_DIR)/BaseVisualizerGUI.h -o BaseVisualizerGUI_moc.C	
 
 SampleVisualizer_moc.C:  $(HEADER_DIR)/SampleVisualizer.h
 	$(MOC) $(HEADER_DIR)/SampleVisualizer.h -o SampleVisualizer_moc.C

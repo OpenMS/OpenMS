@@ -28,7 +28,7 @@
 //OpenMS
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/VISUAL/VISUALIZER/SampleVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 #include <OpenMS/VISUAL/VISUALIZER/DigestionVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/ModificationVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/TaggingVisualizer.h>
@@ -124,7 +124,11 @@ namespace OpenMS
 		status_list_="";
 		
 	}//end of constructor
-	
+
+	void MetaDataBrowser::connectVisualizer_(BaseVisualizerGUI* ptr)
+	{
+		connect(ptr, SIGNAL(sendStatus(std::string)), this, SLOT(setStatus(std::string))  );			
+	}
 	
 	bool MetaDataBrowser::isEditable()
 	{
@@ -141,13 +145,7 @@ namespace OpenMS
 	{
 	  ws_->setCurrentIndex(item->text(1).toInt());
 	}
-	
-	void MetaDataBrowser::connectVisualizer_(BaseVisualizer* ptr)
-	{
-		connect(ptr, SIGNAL(sendStatus(std::string)), this, SLOT(setStatus(std::string))  );			
-	}
 		
-	//Save all changes
 	void MetaDataBrowser::saveAll_()
 	{
 		try
@@ -155,7 +153,7 @@ namespace OpenMS
 			//call internal store function of all active visualizer objects
 			for (int i = 0; i < ws_->count(); ++i) 
 			{
-			  dynamic_cast<BaseVisualizer*>(ws_->widget(i))->store_();
+			  dynamic_cast<BaseVisualizerGUI*>(ws_->widget(i))->store();
 			}
 			if(status_list_.length() != 0)
 			{

@@ -8,7 +8,7 @@
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
-//  License as published by the Free InstrumentSettings Foundation; either
+//  License as published by the Free Software Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
 //
 //  This library is distributed in the hope that it will be useful,
@@ -23,58 +23,54 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
- 
-#ifndef OPENMS_VISUAL_VISUALIZER_INSTRUMENTSETTINGSVISUALIZER_H
-#define OPENMS_VISUAL_VISUALIZER_INSTRUMENTSETTINGSVISUALIZER_H
 
-//OpenMS
-#include <OpenMS/METADATA/InstrumentSettings.h>
-#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
+#ifndef OPENMS_VISUAL_VISUALIZER_BASEVISUALIZER_QT_H
+#define OPENMS_VISUAL_VISUALIZER_BASEVISUALIZER_QT_H
 
-class QLineEdit;
-class QComboBox;
+#include <OpenMS/VISUAL/DataTable.h>
 
-namespace OpenMS
+class QPushButton;
+
+namespace OpenMS 
 {
 	/**
-		@brief Class that displays all meta information for InstrumentSettings objects
+		@brief A base class for all visualizer classes
 		
-		This class provides all functionality to view the meta information of an object of type InstrumentSettings.
+		This class provides the GUI for part for all visualizers.
+		
+		Several additionl members are provided by the BaseVisualizer class.
+		The two classes cannot be merged, as templates and the Qt meta object compiler cannot be combined.
 	*/
-	class InstrumentSettingsVisualizer
-		: public BaseVisualizerGUI,
-			public BaseVisualizer<InstrumentSettings>
+	class BaseVisualizerGUI
+		: public DataTable
 	{
 		Q_OBJECT
 
 		public:
 			
-		  ///Constructor
-			InstrumentSettingsVisualizer(bool editable = false, QWidget* parent = 0);
+			///Constructor 
+			BaseVisualizerGUI(bool editable=false, QWidget* parent =0);
 			
+		signals:
+		
+			/// Sends a status message, if date is not in proper format.
+	  	void sendStatus(std::string status); 
+
 		public slots:
 			
-		  //Docu in base class
-			void store();
-		
-		protected slots:
+			///Saves the changes made in the GUI to the object.
+			virtual void store()=0;
+
+		protected:
 			
-			///Undo the changes made in the GUI.
-			void undo_();
-	
-		protected:  
-		  
-			///@name Edit fields and buttons
-	    //@{
-	   	QComboBox* instrumentsettings_scan_mode_;
-			QComboBox* instrumentsettings_polarity_;
-			QLineEdit* instrumentsettings_mz_range_start_;
-			QLineEdit* instrumentsettings_mz_range_stop_;
-			//@}
-		
-			//Docu in base class
-			void update_();
+			/// Adds buttons common to all visualizers
+			void finishAdding_();
+						
+	    ///Undo button
+			QPushButton* undo_button_;		
+
 	};
+
+
 }
-#endif
+#endif //OPENMS_VISUAL_VISUALIZER_BASEVISUALIZER_QT_H

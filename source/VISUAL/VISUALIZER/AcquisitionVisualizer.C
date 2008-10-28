@@ -39,8 +39,9 @@ using namespace std;
 namespace OpenMS
 {
 	
-	AcquisitionVisualizer::AcquisitionVisualizer(bool editable, QWidget *parent) 
-		: BaseVisualizer(editable, parent)
+	AcquisitionVisualizer::AcquisitionVisualizer(bool editable, QWidget* parent) 
+		: BaseVisualizerGUI(editable, parent),
+			BaseVisualizer<Acquisition>()
 	{
 	  
 		addLabel("Show Acquisition information");		
@@ -49,46 +50,24 @@ namespace OpenMS
 		acquisitionnumber_->setReadOnly(true);
 			
 		finishAdding_();
-		
 	}
 	
 	
-	void AcquisitionVisualizer::load(Acquisition &a)
+	void AcquisitionVisualizer::update_()
 	{
-	  ptr_ = &a;
-		
-		//Copy of current object for restoring the original values
-		tempAcquisition_=a;
-	  acquisitionnumber_->setText(String(tempAcquisition_.getNumber()).c_str() );
+	  acquisitionnumber_->setText(String(temp_.getNumber()).c_str() );
+	}
+	
+	void AcquisitionVisualizer::store()
+	{
+		ptr_->setNumber(acquisitionnumber_->text().toInt());
 					
+		temp_ = (*ptr_);
 	}
 	
-	void AcquisitionVisualizer::store_()
+	void AcquisitionVisualizer::undo_()
 	{
-		try
-		{
-					
-			//ptr_->setNumber(String((const char*)acquisitionnumber_->text()).toInt() );
-						
-			tempAcquisition_ = (*ptr_);
-			
-		}
-		catch(exception& e)
-		{
-			std::cout<<"Error while trying to store the new Acquisition data. "<<e.what()<<endl;
-		}
-	}
-	
-	void AcquisitionVisualizer::reject_()
-	{
-		try
-		{
-			load(tempAcquisition_);
-		}
-		catch(exception e)
-		{
-			cout<<"Error while trying to restore original Acquisition data. "<<e.what()<<endl;
-		} 
+		update_();
 	}
 
 }

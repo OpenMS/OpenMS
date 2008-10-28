@@ -36,9 +36,10 @@ using namespace std;
 namespace OpenMS
 {
 	
-	MetaInfoDescriptionVisualizer::MetaInfoDescriptionVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
+	MetaInfoDescriptionVisualizer::MetaInfoDescriptionVisualizer(bool editable, QWidget* parent)
+		: BaseVisualizerGUI(editable, parent),
+			BaseVisualizer<MetaInfoDescription>()
 	{
-	  
 		addLabel("Modify MetaInfoDescription information");		
 		addSeparator();
 		addLineEdit(metainfodescription_name_, "Name of peak annotations" );
@@ -47,47 +48,23 @@ namespace OpenMS
 		finishAdding_();
 	}
 	
-	
-	
-	void MetaInfoDescriptionVisualizer::load(MetaInfoDescription &a)
+	void MetaInfoDescriptionVisualizer::update_()
 	{
-	  ptr_ = &a;
-		
-		//Copy of current object for restoring the original values
-		tempMetaInfoDescription_=a;
-		
-	  metainfodescription_name_->setText(tempMetaInfoDescription_.getName().c_str() );
-		metainfodescription_comment_->setText(tempMetaInfoDescription_.getComment().c_str() );
-					
+	  metainfodescription_name_->setText(temp_.getName().c_str() );
+		metainfodescription_comment_->setText(temp_.getComment().c_str() );
 	}
 	
-	void MetaInfoDescriptionVisualizer::store_()
+	void MetaInfoDescriptionVisualizer::store()
 	{
-		try
-		{
+		ptr_->setName(metainfodescription_name_->text().toStdString());
+		ptr_->setComment(metainfodescription_comment_->toPlainText().toStdString());
 					
-			ptr_->setName(metainfodescription_name_->text().toStdString());
-			ptr_->setComment(metainfodescription_comment_->toPlainText().toStdString());
-						
-			tempMetaInfoDescription_ = (*ptr_);
-			
-		}
-		catch(exception& e)
-		{
-			std::cout<<"Error while trying to store the new MetaInfoDescription data. "<<e.what()<<endl;
-		}
+		temp_ = (*ptr_);
 	}
 	
-	void MetaInfoDescriptionVisualizer::reject_()
+	void MetaInfoDescriptionVisualizer::undo_()
 	{
-		try
-		{
-			load(tempMetaInfoDescription_);
-		}
-		catch(exception e)
-		{
-			cout<<"Error while trying to restore original MetaInfoDescription data. "<<e.what()<<endl;
-		} 
+		update_();
 	}
 
 }

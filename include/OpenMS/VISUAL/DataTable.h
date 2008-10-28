@@ -38,6 +38,7 @@ class QGridLayout;
 class QLineEdit;
 class QTextEdit;
 class QComboBox;
+class QListWidget;
 
 namespace OpenMS 
 {
@@ -56,31 +57,33 @@ namespace OpenMS
 			/// Default constructor
 			DataTable(bool editable, QWidget *parent =0);
 			/// Adds a label to the grid layout.
-			void addLabel(const QString &label);
+			void addLabel(QString label);
 		  /// Adds a line edit field with label to the grid layout.
-			void addLineEdit(QLineEdit* &ptr ,  const QString &label);
+			void addLineEdit(QLineEdit*& ptr, QString label);
 			/// Adds a line edit field to the grid layout including a int validator
-			void addIntLineEdit(QLineEdit* &ptr ,  const QString &label);
+			void addIntLineEdit(QLineEdit*& ptr, QString label);
 			/// Adds a line edit field to the grid layout including a double validator
-			void addDoubleLineEdit(QLineEdit* &ptr ,  const QString &label);
+			void addDoubleLineEdit(QLineEdit*& ptr, QString label);
 			/// Adds a line edit field with label and button to the next free position in the grid.
-			void addLineEditButton(const QString &labelname, QLineEdit* &ptr1, QPushButton* &ptr2, const QString &buttonlabel);
-	
+			void addLineEditButton(QString label, QLineEdit*& ptr1, QPushButton*& ptr2,QString buttonlabel);
+
+			/// Adds a list edit field to the grid layout.
+			void addListView(QListWidget*& ptr, QString label);	
 			/// Adds a text edit field to the grid layout.
-			void addTextEdit(QTextEdit* &ptr ,  const QString &label);
+			void addTextEdit(QTextEdit*& ptr, QString label);
 			/// Adds a drop-down field to the grid layout.
-			void addComboBox(QComboBox* &ptr ,  const QString &label);
-			/// Adds a boolean drop-down field to the grid layout ( 'true'=1 , 'false'=0 ).
-			void addBooleanComboBox(QComboBox* &ptr ,  const QString &label);
+			void addComboBox(QComboBox*& ptr, QString label);
+			/// Adds a boolean drop-down field to the grid layout ( 'true'=1,  'false'=0 ).
+			void addBooleanComboBox(QComboBox*& ptr, QString label);
 			/// Fills a combo box with string @p items (the number of strings is determined by @p item_count).
-			void fillComboBox(QComboBox* &ptr , const std::string* items, int item_count);
+			void fillComboBox(QComboBox*& ptr,  const std::string* items, int item_count);
 					
 			/// Adds vertical spacer.
 			void addVSpacer();
 			/// Adds a button to the next free position in the grid.
-			void addButton(QPushButton* &ptr, const QString &label);
+			void addButton(QPushButton*& ptr, QString label);
 			/// Adds two buttons in a row.
-			void add2Buttons(QPushButton* &ptr1, const QString &label1, QPushButton* &ptr2, const QString &label2);
+			void add2Buttons(QPushButton*& ptr1, QString label1, QPushButton*& ptr2, QString label2);
 			
 			/// Adds a horizontal line as a separator.
 			void addSeparator();
@@ -98,9 +101,8 @@ namespace OpenMS
 			UInt row_;
 						
 			/// Adds a label. Helper class to make label adding more convenient.
-			void addLabel_(const QString &labelName, UInt row );
+			void addLabel_(QString label, UInt row );
 
-		private:
 			/// Edit flag
 			bool editable_;
 				

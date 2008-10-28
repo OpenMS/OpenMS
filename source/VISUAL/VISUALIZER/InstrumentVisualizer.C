@@ -40,10 +40,10 @@ using namespace std;
 namespace OpenMS
 {
 	
-	InstrumentVisualizer::InstrumentVisualizer(bool editable, QWidget *parent) : BaseVisualizer(editable, parent)
+	InstrumentVisualizer::InstrumentVisualizer(bool editable, QWidget* parent)
+		: BaseVisualizerGUI(editable, parent),
+			BaseVisualizer<Instrument>()
 	{
-		type_="Instrument";
-	  
 		addLabel("Modify instrument information.");	
 		addSeparator();        
 		addLineEdit(instrument_name_, "Name" );
@@ -54,54 +54,27 @@ namespace OpenMS
 		finishAdding_();
 	}
 	
-	
-	
-	void InstrumentVisualizer::load(Instrument &s)
+	void InstrumentVisualizer::update_()
 	{
-	        //Pointer to current object to keep track of the actual object
-		ptr_ = &s;
-		
-		//Copy of current object for restoring the original values
-		tempinstrument_=s;
-				
-	  instrument_name_->setText(s.getName().c_str());
-		instrument_vendor_->setText(s.getVendor().c_str());
-		instrument_model_->setText(s.getModel().c_str());
-	  instrument_customizations_->setText(s.getCustomizations().c_str()); 
-					
+	  instrument_name_->setText(temp_.getName().c_str());
+		instrument_vendor_->setText(temp_.getVendor().c_str());
+		instrument_model_->setText(temp_.getModel().c_str());
+	  instrument_customizations_->setText(temp_.getCustomizations().c_str()); 
 	}
 	
-	void InstrumentVisualizer::store_()
+	void InstrumentVisualizer::store()
 	{
-		try
-		{
-			
-			ptr_->setName(instrument_name_->text().toStdString());
-			ptr_->setVendor(instrument_vendor_->text().toStdString());
-			ptr_->setModel(instrument_model_->text().toStdString());
-			ptr_->setCustomizations(instrument_customizations_->toPlainText().toStdString());
-			
-			tempinstrument_ = (*ptr_);		
-		}
-		catch(exception& e)
-		{
-			std::cout<<"Error while trying to store the new instrument data. "<<e.what()<<endl;
-		}
+		ptr_->setName(instrument_name_->text().toStdString());
+		ptr_->setVendor(instrument_vendor_->text().toStdString());
+		ptr_->setModel(instrument_model_->text().toStdString());
+		ptr_->setCustomizations(instrument_customizations_->toPlainText().toStdString());
 		
+		temp_ = (*ptr_);		
 	}
 	
-	void InstrumentVisualizer::reject_()
+	void InstrumentVisualizer::undo_()
 	{
-		
-		try
-		{
-			load(tempinstrument_);
-		}
-		catch(exception e)
-		{
-			cout<<"Error while trying to restore original instrument data. "<<e.what()<<endl;
-		}
-		
+		update_();
 	}
 
 }

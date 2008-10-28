@@ -993,7 +993,7 @@ namespace OpenMS
 				{
 					os << "\t\t\t\t<cvParam cvLabel=\"psi\" name=\"Deisotoping\" accession=\"PSI:1000033\" value=\"true\"/>\n";
 				}
-				if(data_processing.getProcessingActions().count(DataProcessing::DECONVOLUTION)==1)
+				if(data_processing.getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION)==1)
 				{
 					os << "\t\t\t\t<cvParam cvLabel=\"psi\" name=\"ChargeDeconvolution\" accession=\"PSI:1000034\" value=\"true\"/>\n";
 				}
@@ -1470,7 +1470,7 @@ namespace OpenMS
 				}
 				else if (accession=="PSI:1000034")
 				{
-					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::DECONVOLUTION);
+					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::CHARGE_DECONVOLUTION);
 				}
 				else if (accession=="PSI:1000127")
 				{

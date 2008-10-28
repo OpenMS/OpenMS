@@ -30,6 +30,7 @@
 //OpenMS
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
 //QT
 class QLineEdit;
@@ -46,37 +47,37 @@ namespace OpenMS
 		This class provides all functionality to view the meta information of an object of type ExperimentalSettings.
 	*/
 	class ExperimentalSettingsVisualizer
-		: public BaseVisualizer
+		: public BaseVisualizerGUI,
+			public BaseVisualizer<ExperimentalSettings>
 	{
 		Q_OBJECT
 
-		public: 
-		  /// Default constructor
-			ExperimentalSettingsVisualizer(bool editable = FALSE, QWidget *parent = 0);
+		public:
 			
-			/// Loads the meta data from the object to the viewer.
-			void load(ExperimentalSettings &s);
-		  
-		private slots:
-			 /// Saves the changes made to the meta data into the object.
-			void store_();
-			/// Deletes all changes made in the viewer and restores the original meta data.
-			void reject_();
+		  ///Constructor
+			ExperimentalSettingsVisualizer(bool editable = false, QWidget* parent = 0);
+			
+		public slots:
+			
+		  //Docu in base class
+			void store();
+		
+		protected slots:
+			
+			///Undo the changes made in the GUI.
+			void undo_();
 	
-		private:  
-			/// Pointer to current object to keep track of the actual object
-			ExperimentalSettings *ptr_;
-			/// Copy of current object for restoring the original values
-			ExperimentalSettings  tempexperimentalsettings_;
-			/// Fills the comboboxes with current values
-			void update_();
+		protected:  
 		  
 			/// The type of this experiment
-	   	QComboBox *experimentalsettings_type_;
+	   	QComboBox* experimentalsettings_type_;
 			/// The date of this experiment
-			QLineEdit *experimentalsettings_date_;		
+			QLineEdit* experimentalsettings_date_;		
 			/// The comment to this experiment
-			QTextEdit *experimentalsettings_comment_;
+			QTextEdit* experimentalsettings_comment_;
+
+			//Docu in base class
+			void update_();
 	};
 }
 #endif

@@ -30,6 +30,7 @@
 //OpenMS
 #include <OpenMS/METADATA/IonSource.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
 class QLineEdit;
 class QComboBox;
@@ -42,37 +43,37 @@ namespace OpenMS
 		This class provides all functionality to view the meta information of an object of type IonSource
 	*/
 	class IonSourceVisualizer
-		: public BaseVisualizer
+		: public BaseVisualizerGUI,
+			public BaseVisualizer<IonSource>
 	{
 		Q_OBJECT
 
-		public: 
-		  /// Default constructor
-			IonSourceVisualizer(bool editable = FALSE, QWidget *parent = 0);
+		public:
+			
+		  ///Constructor
+			IonSourceVisualizer(bool editable = false, QWidget* parent = 0);
 			 
-			/// Loads the meta data from the object to the viewer.
-			void load(IonSource &s);
-		  
-		private slots:
-			 /// Saves the changes made to the meta data into the object.
-			void store_();
-			/// Deletes all changes made in the viewer and restores the original meta data.
-			void reject_();
+		public slots:
+			
+		  //Docu in base class
+			void store();
+		
+		protected slots:
+			
+			///Undo the changes made in the GUI.
+			void undo_();
 	
-		private:  
-			/// Pointer to current object to keep track of the actual object
-			IonSource *ptr_;
-			/// Copy of current object for restoring the original values
-			IonSource  tempionsource_;
-			/// Fills the comboboxes with current values
-			void update_();
-		  
+		protected:
+			
 			///@name Edit fields and buttons
 	    //@{
-			QComboBox *ionsource_inlet_type_;
-			QComboBox *ionsource_ionization_method_;
-			QComboBox *ionsource_polarity_;
+			QComboBox* ionsource_inlet_type_;
+			QComboBox* ionsource_ionization_method_;
+			QComboBox* ionsource_polarity_;
 			//@}
+			
+			//Docu in base class
+			void update_();
 	};
 }
 #endif
