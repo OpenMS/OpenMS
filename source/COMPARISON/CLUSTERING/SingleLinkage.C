@@ -62,6 +62,10 @@ namespace OpenMS
 		}
 
 		cluster_tree.clear();
+		if(threshold<1)
+		{
+			//this should not be
+		}
 
 	//SLINK
 		std::vector<UInt> pi;
