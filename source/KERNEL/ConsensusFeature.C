@@ -62,6 +62,14 @@ namespace OpenMS
       	 << "   m/z: " << precisionWrapper(it->getMZ())  << std::endl
       	 << "   Intensity: " << precisionWrapper(it->getIntensity()) << std::endl;
     }
+
+		os << "Meta information: " << std::endl;
+		std::vector< String > keys;
+		cons.getKeys(keys);
+    for (std::vector< String >::const_iterator it = keys.begin(); it != keys.end(); ++it)
+    {
+			os << "   " << (*it) << ": " << cons.getMetaValue (*it) << std::endl;
+		}
     os << "---------- CONSENSUS ELEMENT END ----------------- " << std::endl;
 
     return os;

@@ -60,6 +60,15 @@ CHECK((RichPeak2D(const RichPeak2D &p)))
 	TEST_EQUAL(copy_of_p.getMetaValue("cluster_id"),DataValue(4711));
 RESULT
 
+CHECK((RichPeak2D(const Peak2D &p)))
+	Peak2D p;
+	p.setIntensity(123.456);
+	
+	RichPeak2D copy_of_p(p);
+
+	TEST_REAL_EQUAL(copy_of_p.getIntensity(), 123.456)
+RESULT		
+		
 CHECK((RichPeak2D& operator=(const RichPeak2D &rhs)))
 	RichPeak2D p;
 	p.setIntensity(123.456);
@@ -71,7 +80,19 @@ CHECK((RichPeak2D& operator=(const RichPeak2D &rhs)))
 	TEST_REAL_EQUAL(copy_of_p.getIntensity(), 123.456)
 	TEST_EQUAL(copy_of_p.getMetaValue("cluster_id"),DataValue(4711));
 RESULT
+		
+CHECK((RichPeak2D& operator=(const Peak2D &rhs)))
+	Peak2D p;
+	p.setIntensity(123.456);
+	
+	RichPeak2D copy_of_p;
+	copy_of_p.setMetaValue("cluster_id",4711);
+	copy_of_p = p;
 
+	TEST_REAL_EQUAL(copy_of_p.getIntensity(), 123.456)
+	TEST_EQUAL(copy_of_p.isMetaEmpty(), true);
+RESULT
+		
 CHECK((bool operator == (const RichPeak2D& rhs) const))
 	RichPeak2D p1, p2;
 	TEST_REAL_EQUAL(p1==p2, true)

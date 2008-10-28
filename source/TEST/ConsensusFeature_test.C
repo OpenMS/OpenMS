@@ -101,6 +101,15 @@ CHECK((ConsensusFeature(const Peak2D &point)))
   TEST_EQUAL(cons.empty(), true)
 RESULT
 
+CHECK((ConsensusFeature(const RichPeak2D &point)))
+  
+  ConsensusFeature cons(tmp_feature);
+  TEST_REAL_EQUAL(cons.getRT(),1)
+  TEST_REAL_EQUAL(cons.getMZ(),2)
+  TEST_REAL_EQUAL(cons.getIntensity(),200)
+  TEST_EQUAL(cons.empty(), true)
+RESULT
+
 CHECK((ConsensusFeature(UInt map_index, UInt element_index, const Feature &element)))
  	ConsensusFeature cons(1,3,tmp_feature);
   DRange<2> pos_range(1,2,1,2);

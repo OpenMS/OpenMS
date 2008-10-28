@@ -29,8 +29,9 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/KERNEL/Peak2D.h>
+#include <OpenMS/KERNEL/RichPeak2D.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <set>
 
@@ -50,7 +51,7 @@ namespace OpenMS
 		@ingroup Kernel
   */
   class ConsensusFeature
-  	: public Peak2D,
+  	: public RichPeak2D,
     	public std::set<FeatureHandle, FeatureHandle::IndexLess>
   {
 	 public:
@@ -88,7 +89,7 @@ namespace OpenMS
 		//@{
 		/// Default constructor
 		ConsensusFeature()
-			: Peak2D(),
+			: RichPeak2D(),
 				HandleSetType(),
 				quality_(0.0),
 				charge_(0)
@@ -97,7 +98,7 @@ namespace OpenMS
       
 		/// Copy constructor
 		ConsensusFeature(const ConsensusFeature& rhs)
-			: Peak2D(rhs),
+			: RichPeak2D(rhs),
 				HandleSetType(rhs),
 				quality_(rhs.quality_),
 				charge_(rhs.charge_)
@@ -105,21 +106,30 @@ namespace OpenMS
 		}
       
 		///Constructor from raw data point
-		ConsensusFeature(const Peak2D& point)
-			: Peak2D(point),
+		ConsensusFeature(const RichPeak2D& point)
+			: RichPeak2D(point),
 				HandleSetType(),
 				quality_(0.0),
 				charge_(0)
 		{
 		}
 
+		///Constructor from raw data point
+		ConsensusFeature(const Peak2D& point)
+			: RichPeak2D(point),
+				HandleSetType(),
+				quality_(0.0),
+				charge_(0)
+		{
+		}
+		
 		/**
 			@brief Constructor with map and element index for a singleton consensus
 			feature. Sets the consensus feature position and intensity to the values
 			of @p element as well.
 		*/
 		ConsensusFeature(UInt map_index,  UInt element_index, const Peak2D& element)
-			: Peak2D(element),
+			: RichPeak2D(element),
 				HandleSetType(),
 				quality_(0.0),
 				charge_(0)
@@ -134,7 +144,7 @@ namespace OpenMS
 			of @p element as well.
 		*/
 		ConsensusFeature(UInt map_index,  UInt element_index, const Feature& element)
-			: Peak2D(element),
+			: RichPeak2D(element),
 				HandleSetType(),
 				quality_(element.getOverallQuality()),
 				charge_(element.getCharge())
@@ -148,7 +158,7 @@ namespace OpenMS
 			of @p element as well.
 		*/
 		ConsensusFeature(UInt map_index,  UInt element_index, const ConsensusFeature& element)
-			: Peak2D(element),
+			: RichPeak2D(element),
 				HandleSetType(),
 				quality_(element.getQuality()),
 				charge_(element.getCharge())
@@ -163,7 +173,7 @@ namespace OpenMS
 			if (&rhs==this) return *this;
 
 			HandleSetType::operator=(rhs);
-			Peak2D::operator=(rhs);
+			RichPeak2D::operator=(rhs);
 			quality_ = rhs.quality_;
 			charge_ = rhs.charge_;
 			
@@ -205,7 +215,7 @@ namespace OpenMS
 		}
 
 		/**
-			@brief Creates an FeatureHandle and adds it
+			@brief Creates a FeatureHandle and adds it
 					
 			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
@@ -215,7 +225,7 @@ namespace OpenMS
 		}
 
 		/**
-			@brief Creates an FeatureHandle and adds it
+			@brief Creates a FeatureHandle and adds it
 					
 			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
@@ -225,7 +235,7 @@ namespace OpenMS
 		}
 		
 		/**
-			@brief Creates an FeatureHandle and adds it
+			@brief Creates a FeatureHandle and adds it
 					
 			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/

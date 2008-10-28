@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////raid/sturm/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.2" id="lsid" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<consensusXML version="1.2" id="lsid" experiment_type="label-free" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<userParam type="string" name="name1" value="value1"/>
 	<userParam type="int" name="name2" value="2"/>
 	<mapList count="2">
@@ -19,6 +19,7 @@
 			<groupedElementList>
 				<element map="0" id="0" rt="1273.27" mz="904.47" it="3.12539e+07"/>
 			</groupedElementList>
+			<userParam type="string" name="peptide_id" value="RefSeq:NC_1234"/>
 		</consensusElement>
 		<consensusElement id="e_1" quality="1.2">
 			<centroid rt="1248.33" mz="897.449" it="2.59179e+07"/>

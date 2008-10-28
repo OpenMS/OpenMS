@@ -46,6 +46,9 @@ namespace OpenMS
 				{
 					consensus_map_->push_back(act_cons_element_);
 				}
+				
+				// indicate that we are outside of an <consensusElement> tag
+				in_consensus_element = false;
 			}
 		}
 
@@ -67,6 +70,7 @@ namespace OpenMS
 			static XMLCh* s_mz = xercesc::XMLString::transcode("mz");
 			static XMLCh* s_it = xercesc::XMLString::transcode("it");
 			static XMLCh* s_id = xercesc::XMLString::transcode("id");
+			static XMLCh* s_experiment_type = xercesc::XMLString::transcode("experiment_type");
 			static XMLCh* s_consensusxml = xercesc::XMLString::transcode("consensusXML");
 			static XMLCh* s_userparam = xercesc::XMLString::transcode("userParam");
 			static XMLCh* s_type = xercesc::XMLString::transcode("type");
@@ -92,6 +96,9 @@ namespace OpenMS
 			}
 			else if (equal_(qname,s_consensuselement))
 			{
+				// indicate that we are inside of an <consensusElement> tag
+				in_consensus_element = true;
+				
 				act_cons_element_ = ConsensusFeature();
 				//set quality
 				DoubleReal quality = 0.0;
@@ -180,6 +187,12 @@ namespace OpenMS
 				{
 					consensus_map_->setIdentifier(id);
 				}
+				//handle experiment type
+				String experiment_type;
+				if (optionalAttributeAsString_(experiment_type, attributes, s_experiment_type))
+				{
+					consensus_map_->getExperimentType() = experiment_type;
+				}
 			}
 			else if (equal_(qname,s_userparam))
 			{
@@ -187,13 +200,20 @@ namespace OpenMS
 				String type = attributeAsString_(attributes,s_type);
 				//determine where to read to
 				MetaInfoInterface* meta;
-				if (consensus_map_->getFileDescriptions().size()==0) //consensus map
-				{
-					meta = consensus_map_;
+				if (in_consensus_element == false)
+				{	
+					if (consensus_map_->getFileDescriptions().size()==0) //consensus map
+					{
+						meta = consensus_map_;
+					}
+					else //last file description
+					{
+						meta = &(consensus_map_->getFileDescriptions()[last_map_]);
+					}
 				}
-				else //last file description
+				else /* (in_consensus_element == true) */
 				{
-					meta = &(consensus_map_->getFileDescriptions()[last_map_]);
+					meta = &act_cons_element_;
 				}
 				//read data
 				if(type=="int")
@@ -229,10 +249,15 @@ namespace OpenMS
 			catch(Exception::FileNotFound&)
 			{
 			}
+			
 			os << "<consensusXML version=\"" << version_ << "\"";
 			if (consensus_map_->getIdentifier()!="")
 			{
 				os << " id=\"" << consensus_map_->getIdentifier() << "\"";
+			}
+			if (consensus_map_->getExperimentType()!="")
+			{
+				os << " experiment_type=\"" << consensus_map_->getExperimentType() << "\"";
 			}
 			os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
@@ -284,6 +309,7 @@ namespace OpenMS
 					os << "/>\n";
 				}
 				os << "\t\t\t</groupedElementList>\n";
+				writeUserParam_("userParam", os, elem, 3);
 				os << "\t\t</consensusElement>\n";
 			}
 			os << "\t</consensusElementList>\n";

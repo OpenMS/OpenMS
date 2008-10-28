@@ -96,7 +96,8 @@ namespace OpenMS
 	      	MetaInfoInterface(),
 					RangeManagerType(),
 					DocumentIdentifier(),
-	        file_description_()
+	        file_description_(),
+					experiment_type_()
 	    {
 	    }
 	
@@ -106,7 +107,8 @@ namespace OpenMS
 	      	MetaInfoInterface(source),
 	      	RangeManagerType(source),
 					DocumentIdentifier(source),
-	        file_description_(source.file_description_)
+	        file_description_(source.file_description_),
+					experiment_type_(source.experiment_type_)
 	    {
 	    }
 	
@@ -121,7 +123,8 @@ namespace OpenMS
 	    		MetaInfoInterface(),
 	      	RangeManagerType(),
 					DocumentIdentifier(),
-	        file_description_()
+	        file_description_(),
+					experiment_type_()
 	    {
 	    }
 	
@@ -135,7 +138,8 @@ namespace OpenMS
 				RangeManagerType::operator=(source);
 				DocumentIdentifier::operator=(source);
 	      file_description_ = source.file_description_;
-	      
+	      experiment_type_ = source.experiment_type_;
+				
 	      return *this;
 	    }
 	
@@ -151,6 +155,18 @@ namespace OpenMS
 	      return file_description_;
 	    }
 
+	    /// Non-mutable access to the experiment type
+	    inline const String& getExperimentType() const
+	    {
+	      return experiment_type_;
+	    }
+
+	    /// Mutable access to the file descriptions
+	    inline String& getExperimentType()
+	    {
+	      return experiment_type_;
+	    }			
+			
 			/**
 				@brief Checks if all map identifiers in FeatureHandles have a filename associated
 				
@@ -276,16 +292,22 @@ namespace OpenMS
 				
 				//swap consensus features
 				Base::swap(from);
+
+				// swap DocumentIdentifier
+				DocumentIdentifier::swap(from);
 				
 				//swap the remaining members
 				std::swap(file_description_, from.file_description_);
-				
-				DocumentIdentifier::swap(from);
+				experiment_type_.swap(from.experiment_type_);
 			}
 			
 	  protected:
 	    /// Map from index to file description
 	  	FileDescriptions file_description_;
+			
+			/// type of experiment (label-free, itraq, ...); see xsd schema
+			String experiment_type_;
+				
 	};
 
   ///Print the contents of a ConsensusMap to a stream.

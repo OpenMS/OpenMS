@@ -97,7 +97,7 @@ namespace OpenMS
 	/// @brief extracts the iTRAQ channels from the MS data and stores intensity values in a consensus map
 	///
 	/// @param ms_exp_data Raw data to read
-	/// @param consensus_map 
+	/// @param consensus_map Output each MS² scan as a consensus feature
 	void ItraqChannelExtractor::run(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map)
 	{
 		MSExperiment<> ms_exp_MS2;
@@ -232,6 +232,8 @@ namespace OpenMS
 		std::cout << "processed " << element_index << " scans" << std::endl;
 		#endif
 
+		consensus_map.getExperimentType() = "itraq";
+			
 		return;
 	}
 

@@ -463,7 +463,8 @@ namespace OpenMS
 
 		}
 
-
+		consensus_map_out.getExperimentType() = "itraq";
+		
 		return;
 	}
 

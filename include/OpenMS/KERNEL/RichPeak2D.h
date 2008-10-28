@@ -62,6 +62,13 @@ namespace OpenMS
 		{
 		}
 
+		/// Copy constructor
+		inline RichPeak2D(const Peak2D& p) 
+			: Peak2D(p),
+				MetaInfoInterface()
+		{
+		}
+		
 		/// Destructor
 		~RichPeak2D() 
 		{
@@ -78,6 +85,17 @@ namespace OpenMS
 			return *this;
 		}
 
+		/// Assignment operator
+		inline RichPeak2D& operator = (const Peak2D& rhs)
+		{
+			if (this==&rhs) return *this;
+			
+			Peak2D::operator = (rhs);
+			clearMetaInfo ();
+			
+			return *this;
+		}
+		
 		/// Equality operator
 		inline bool operator == (const RichPeak2D& rhs) const
 		{

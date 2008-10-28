@@ -21,7 +21,7 @@
 			</xs:attribute>
 			<xs:attribute name="experiment_type">
 				<xs:annotation>
-					<xs:documentation>Type of experiment, e.g. ICAT, label-free</xs:documentation>
+					<xs:documentation>Type of experiment, e.g. icat, label-free</xs:documentation>
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
@@ -136,6 +136,11 @@
 			<xs:sequence>
 				<xs:element ref="centroid"/>
 				<xs:element ref="groupedElementList"/>
+				<xs:element name="userParam" type="userParam" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>user parameters</xs:documentation>
+					</xs:annotation>
+				</xs:element>
 			</xs:sequence>
 			<xs:attribute name="id" type="xs:ID" use="required">
 				<xs:annotation>

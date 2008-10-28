@@ -62,6 +62,7 @@ CHECK((void load(const String &filename, ConsensusMap &map)))
   ConsensusMap cons_map;
   ConsensusXMLFile cons_file;
   cons_file.load("data/ConsensusXMLFile.consensusXML", cons_map);
+	TEST_EQUAL(cons_map.getExperimentType()=="label-free",true)
 	TEST_EQUAL(cons_map.getMetaValue("name1")==DataValue("value1"),true)
 	TEST_EQUAL(cons_map.getMetaValue("name2")==DataValue(2),true)
   TEST_EQUAL(cons_map.getIdentifier(),"lsid");
@@ -87,6 +88,7 @@ CHECK((void load(const String &filename, ConsensusMap &map)))
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().min()[0],3.12539e+07)
   TEST_REAL_EQUAL(cons_feature.getIntensityRange().max()[0],3.12539e+07)
   TEST_REAL_EQUAL(cons_feature.getQuality(),1.1)
+  TEST_EQUAL(cons_feature.getMetaValue("peptide_id")==DataValue("RefSeq:NC_1234"),true)
   ConsensusFeature::HandleSetType::const_iterator it = cons_feature.begin();
   TEST_REAL_EQUAL(it->getIntensity(),3.12539e+07)
   

@@ -54,7 +54,8 @@ namespace OpenMS
         ConsensusXMLHandler(ConsensusMap& consensus_map , const String& filename, const String& version)
             : XMLHandler(filename, version),
             consensus_map_(&consensus_map),
-            act_cons_element_()
+            act_cons_element_(),
+						in_consensus_element(false)
         {
         }
 
@@ -88,6 +89,7 @@ namespace OpenMS
         DPosition<2> pos_;
         DoubleReal it_;
         UInt last_map_;
+				bool in_consensus_element;
         //@}
     };
 

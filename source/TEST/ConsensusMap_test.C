@@ -146,6 +146,7 @@ CHECK((ConsensusMap& operator = (const ConsensusMap& source)))
   cons_map.getFileDescriptions()[0].size = 47;
   cons_map.getFileDescriptions()[0].label = "label";
 	cons_map.getFileDescriptions()[0].setMetaValue("meta",String("meta"));
+	cons_map.getExperimentType() = "itraq";
   vector< FeatureMap<>* > map_vector(4);
   
   ConsensusMap cons_map_copy;
@@ -157,6 +158,7 @@ CHECK((ConsensusMap& operator = (const ConsensusMap& source)))
   TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].label == "label", true)
   TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].size == 47, true)
 	TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].getMetaValue("meta") == "meta", true)
+  TEST_EQUAL(cons_map_copy.getExperimentType() == "itraq", true)
 RESULT
 
 CHECK((ConsensusMap(const ConsensusMap& source)))
@@ -167,6 +169,7 @@ CHECK((ConsensusMap(const ConsensusMap& source)))
   cons_map.getFileDescriptions()[0].size = 47;
   cons_map.getFileDescriptions()[0].label = "label";
 	cons_map.getFileDescriptions()[0].setMetaValue("meta",String("meta"));
+	cons_map.getExperimentType() = "itraq";
   vector< FeatureMap<>* > map_vector(4);
   
   ConsensusMap cons_map_copy(cons_map);
@@ -177,6 +180,7 @@ CHECK((ConsensusMap(const ConsensusMap& source)))
   TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].label == "label", true)
   TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].size == 47, true)
 	TEST_EQUAL(cons_map_copy.getFileDescriptions()[0].getMetaValue("meta") == "meta", true)
+  TEST_EQUAL(cons_map_copy.getExperimentType() == "itraq", true)
 RESULT
 
 CHECK((ConsensusMap(Base::size_type n)))
@@ -191,6 +195,26 @@ CHECK((const FileDescriptions& getFileDescriptions() const ))
   TEST_REAL_EQUAL(cons_map.getFileDescriptions().size(),0)
 RESULT
 
+CHECK((FileDescriptions& getFileDescriptions()))
+  ConsensusMap cons_map;
+	
+  cons_map.getFileDescriptions()[0].filename = "blub";
+  TEST_EQUAL(cons_map.getFileDescriptions()[0].filename == "blub", true)
+RESULT		
+		
+CHECK((const String& getExperimentType() const ))
+  ConsensusMap cons_map;
+
+	TEST_EQUAL(cons_map.getExperimentType() == "", true)	
+RESULT		
+
+CHECK((String& getExperimentType() ))
+  ConsensusMap cons_map;
+
+	cons_map.getExperimentType() = "itraq";
+  TEST_EQUAL(cons_map.getExperimentType() == "itraq", true)
+RESULT		
+		
 CHECK((bool isValid(String& error_message) const))
 	String error_message;
 	ConsensusMap cm;
@@ -230,6 +254,7 @@ CHECK(void swap(ConsensusMap& from))
   map1.getFileDescriptions()[1].filename = "bla";
 	map1.getFileDescriptions()[1].size = 5;
 	map1.setIdentifier("LSID");
+	map1.getExperimentType() = "itraq";
 	
 	map1.swap(map2);
 
@@ -240,6 +265,7 @@ CHECK(void swap(ConsensusMap& from))
 	TEST_EQUAL(map2.size(),1)
 	TEST_EQUAL(map2.getFileDescriptions().size(),1)
 	TEST_EQUAL(map2.getIdentifier(),"LSID")	
+  TEST_EQUAL(map2.getExperimentType() == "itraq", true)
 RESULT
 
 /////////////////////////////////////////////////////////////
