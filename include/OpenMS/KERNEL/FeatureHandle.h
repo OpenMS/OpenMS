@@ -116,8 +116,7 @@ namespace OpenMS
 		Consequently, we "disable" setMapIndex() or setElementIndex() even within
 		FeatureHandleMutable.  On the other hand, it is perfectly safe to apply
 		FeatureHandle::setRT(), FeatureHandle::setMZ(),
-		FeatureHandle::setIntensity(), FeatureHandle::setCharge(),
-		FeatureHandle::setMetaInfo() etc..
+		FeatureHandle::setIntensity(), FeatureHandle::setCharge(), etc..
 		*/
 		FeatureHandleMutable& asMutable() const;
     //@}
