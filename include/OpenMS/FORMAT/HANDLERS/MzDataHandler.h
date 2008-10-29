@@ -1259,7 +1259,15 @@ namespace OpenMS
 				}
 				else if (accession=="PSI:1000041") //Charge
 				{
-					spec_.getPrecursorPeak().setCharge(asInt_(value));		
+					if (spec_.getPrecursorPeak().getCharge() != 0)
+					{
+						warning(String("Multiple precursor charges detected, expected only one! Ignoring this charge setting! accession=\"") + accession + "\", value=\"" + value + "\"");
+						spec_.getPrecursorPeak().setCharge(0);
+					}
+					else
+					{
+						spec_.getPrecursorPeak().setCharge(asInt_(value));
+					}
 				}
 				else if (accession=="PSI:1000042") //Intensity
 				{
