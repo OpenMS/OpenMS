@@ -43,10 +43,10 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<PeptideHit>()
 	{
-		addLineEdit(peptidehit_score_, "Score" );
-		addLineEdit(peptidehit_charge_, "Charge" );
-		addLineEdit(peptidehit_rank_, "Rank" );
-		addTextEdit(peptidehit_sequence_, "Sequence" );
+		addLineEdit_(peptidehit_score_, "Score" );
+		addLineEdit_(peptidehit_charge_, "Charge" );
+		addLineEdit_(peptidehit_rank_, "Rank" );
+		addTextEdit_(peptidehit_sequence_, "Sequence" );
 		
 		finishAdding_();
 	}

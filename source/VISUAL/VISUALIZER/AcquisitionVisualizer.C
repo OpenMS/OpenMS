@@ -44,9 +44,9 @@ namespace OpenMS
 			BaseVisualizer<Acquisition>()
 	{
 	  
-		addLabel("Show Acquisition information");		
-		addSeparator();
-		addIntLineEdit(acquisitionnumber_, "Index/Number of the scan" );
+		addLabel_("Show Acquisition information");		
+		addSeparator_();
+		addIntLineEdit_(acquisitionnumber_, "Index/Number of the scan" );
 		acquisitionnumber_->setReadOnly(true);
 			
 		finishAdding_();

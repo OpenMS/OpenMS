@@ -990,6 +990,24 @@ namespace OpenMS
 		treeview_->expandItem(item);
 	}
 
+	void MetaDataBrowser::add(Feature& feature)
+	{
+		//identifier
+		add(static_cast<MetaInfoInterface&>(feature));
+		//peptide ids
+		for (std::vector<PeptideIdentification>::iterator it=feature.getPeptideIdentifications().begin(); it!=feature.getPeptideIdentifications().end(); ++it)
+		{
+  		add(*it);
+		}
+		treeview_->expandItem( treeview_->findItems(QString::number(0),Qt::MatchExactly , 1).first() );
+	}
+	void MetaDataBrowser::add(ConsensusMap& map)
+	{
+		add(static_cast<DocumentIdentifier&>(map));
+		add(static_cast<MetaInfoInterface&>(map));
+		treeview_->expandItem( treeview_->findItems(QString::number(0),Qt::MatchExactly , 1).first() );
+	}
+
 
 }//end of MetaDataBrowser
 

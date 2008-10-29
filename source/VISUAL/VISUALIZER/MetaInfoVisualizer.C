@@ -53,8 +53,8 @@ namespace OpenMS
 		nextrow_=0;
 		viewlayout_ = new QGridLayout();
 		
-		addLabel("Modify MetaData information.");
-		addSeparator();	
+		addLabel_("Modify MetaData information.");
+		addSeparator_();	
 		mainlayout_->addLayout(viewlayout_, row_, 0, 1 ,3);
 		//increase row counter for mainlayout_.
 		row_++;
@@ -74,12 +74,12 @@ namespace OpenMS
 		  loadData_(keys_[i]);
 		}
 		
-		addSeparator();
-		addLabel("Add new MetaInfo entry.");
-		addLineEdit(newkey_, "Key");
-		addLineEdit(newdescription_, "Description");
-		addLineEdit(newvalue_, "Value");
-		add2Buttons(addbutton_, "Add", clearbutton_, "Clear");
+		addSeparator_();
+		addLabel_("Add new MetaInfo entry.");
+		addLineEdit_(newkey_, "Key");
+		addLineEdit_(newdescription_, "Description");
+		addLineEdit_(newvalue_, "Value");
+		add2Buttons_(addbutton_, "Add", clearbutton_, "Clear");
 		if(!isEditable())
 		{
 			addbutton_->setEnabled(false);

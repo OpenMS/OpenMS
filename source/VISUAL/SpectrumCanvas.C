@@ -803,25 +803,20 @@ namespace OpenMS
     dlg.setWindowTitle("Layer meta data");
 		if (layer.type==LayerData::DT_PEAK)
   	{
-  		dlg.visualize(layer.peaks);
+  		dlg.add(layer.peaks);
 			//Exception for Spectrum1DCanvas, here we add the meta data of the one spectrum
 			if (getName()=="Spectrum1DCanvas")
 			{
-				dlg.visualize(static_cast<SpectrumSettings&>(layer.peaks[0]));
+				dlg.add(layer.peaks[0]);
 			}
   	}
   	else if (layer.type==LayerData::DT_FEATURE)
   	{
-  		dlg.visualize(layer.features);
-			for(UInt i=0; i<layer.features.getProteinIdentifications().size(); ++i)    
-			{
-				dlg.visualize(layer.features.getProteinIdentifications()[i]);
-			}
+  		dlg.add(layer.features);
   	}
   	else if (layer.type==LayerData::DT_CONSENSUS)
   	{
-  		dlg.visualize(static_cast<DocumentIdentifier&>(layer.consensus));
-  		dlg.visualize(static_cast<MetaInfoInterface&>(layer.consensus));
+  		dlg.add(layer.consensus);
   	}
   	
   	//if the meta data was modified, set the flag

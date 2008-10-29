@@ -39,9 +39,9 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<DocumentIdentifier>()
 	{
-		addLabel("Modify DocumentIdentifier information");		
-		addSeparator();
-		addLineEdit(identifier_, "Idenifier");
+		addLabel_("Modify DocumentIdentifier information");		
+		addSeparator_();
+		addLineEdit_(identifier_, "Idenifier");
 		finishAdding_();
 	}
 	

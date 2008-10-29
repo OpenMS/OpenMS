@@ -43,9 +43,9 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<AcquisitionInfo>()
 	{
-		addLabel("Show AcquisitionInfo information");		
-		addSeparator();
-		addIntLineEdit(acquisitioninfo_method_, "Method of combination" );
+		addLabel_("Show AcquisitionInfo information");		
+		addSeparator_();
+		addIntLineEdit_(acquisitioninfo_method_, "Method of combination" );
 		
 		finishAdding_();
 	}

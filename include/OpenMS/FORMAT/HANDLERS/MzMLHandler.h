@@ -54,6 +54,7 @@
 // - chromatograms
 // - acquisitionSettings
 // - isolationWindow
+// - fileContent? (it can hardly be relied on)
 
 //OUR MODEL:
 // - remove ExperimentalSettings::type_ ?

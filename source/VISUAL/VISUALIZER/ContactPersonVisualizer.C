@@ -40,13 +40,13 @@ namespace OpenMS
 			BaseVisualizer<ContactPerson>()
 	{
 	  
-		addLabel("Modify ContactPerson information");		
-		addSeparator();
-		addLineEdit(cp_firstname_, "First name" );
-		addLineEdit(cp_lastname_, "Last name" );
-		addLineEdit(cp_institution_, "Institution" );
-		addLineEdit(cp_email_, "Email" );
-		addLineEdit(cp_contact_info_, "Contact info" );
+		addLabel_("Modify ContactPerson information");		
+		addSeparator_();
+		addLineEdit_(cp_firstname_, "First name" );
+		addLineEdit_(cp_lastname_, "Last name" );
+		addLineEdit_(cp_institution_, "Institution" );
+		addLineEdit_(cp_email_, "Email" );
+		addLineEdit_(cp_contact_info_, "Contact info" );
 		finishAdding_();
 	}
 	

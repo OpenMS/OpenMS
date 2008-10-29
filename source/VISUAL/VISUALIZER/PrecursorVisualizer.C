@@ -42,14 +42,14 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<Precursor>()
 	{
-		addLabel("Modify processing method information.");	
+		addLabel_("Modify processing method information.");	
 		
-		addSeparator();  
+		addSeparator_();  
 		
-		addComboBox(precursor_activation_method_, "Activation method");
-		addDoubleLineEdit(precursor_activation_energy_, "Activation energy");
-		addComboBox(precursor_energy_units_, "Energy unit");
-		addDoubleLineEdit(precursor_window_size_, "Window size");	
+		addComboBox_(precursor_activation_method_, "Activation method");
+		addDoubleLineEdit_(precursor_activation_energy_, "Activation energy");
+		addComboBox_(precursor_energy_units_, "Energy unit");
+		addDoubleLineEdit_(precursor_window_size_, "Window size");	
 		
 		finishAdding_();
 	}
@@ -58,13 +58,13 @@ namespace OpenMS
 	{		
 		if(! isEditable())
 		{
-			fillComboBox(precursor_activation_method_,& temp_.NamesOfActivationMethod[temp_.getActivationMethod()] , 1);
-			fillComboBox(precursor_energy_units_,& temp_.NamesOfEnergyUnits[temp_.getActivationEnergyUnit()] , 1);
+			fillComboBox_(precursor_activation_method_,& temp_.NamesOfActivationMethod[temp_.getActivationMethod()] , 1);
+			fillComboBox_(precursor_energy_units_,& temp_.NamesOfEnergyUnits[temp_.getActivationEnergyUnit()] , 1);
 		}
 		else
 		{
-			fillComboBox(precursor_activation_method_, Precursor::NamesOfActivationMethod , Precursor::SIZE_OF_ACTIVATIONMETHOD);
-			fillComboBox(precursor_energy_units_, Precursor::NamesOfEnergyUnits , Precursor::SIZE_OF_ENERGYUNITS);
+			fillComboBox_(precursor_activation_method_, Precursor::NamesOfActivationMethod , Precursor::SIZE_OF_ACTIVATIONMETHOD);
+			fillComboBox_(precursor_energy_units_, Precursor::NamesOfEnergyUnits , Precursor::SIZE_OF_ENERGYUNITS);
 			precursor_activation_method_->setCurrentIndex(temp_.getActivationMethod()); 
 			precursor_energy_units_->setCurrentIndex(temp_.getActivationEnergyUnit()); 
 		}

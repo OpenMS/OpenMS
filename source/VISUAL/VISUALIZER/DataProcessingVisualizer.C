@@ -42,11 +42,11 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<DataProcessing>()
 	{
-		addLabel("Modify data processing information.");	
-		addSeparator();  
+		addLabel_("Modify data processing information.");	
+		addSeparator_();  
 		
-		addLineEdit(completion_time_, "Completion time" );
-		addListView(actions_,"Processing actions");
+		addLineEdit_(completion_time_, "Completion time" );
+		addListView_(actions_,"Processing actions");
 		finishAdding_();
 	}
 	

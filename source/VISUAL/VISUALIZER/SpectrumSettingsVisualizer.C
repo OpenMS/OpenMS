@@ -42,10 +42,10 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<SpectrumSettings>()
 	{
-		addLabel("Modify the settings of the spectrum.");	
-		addSeparator();  
-		addComboBox(spectrumsettings_type_, "Type of spectrum");
-		addTextEdit(spectrumsettings_comment_, "Comment");
+		addLabel_("Modify the settings of the spectrum.");	
+		addSeparator_();  
+		addComboBox_(spectrumsettings_type_, "Type of spectrum");
+		addTextEdit_(spectrumsettings_comment_, "Comment");
 			
 		finishAdding_();
 	}
@@ -54,11 +54,11 @@ namespace OpenMS
 	{
 		if(! isEditable())
 		{
-			fillComboBox(spectrumsettings_type_,& temp_.NamesOfSpectrumType[temp_.getType()] , 1);
+			fillComboBox_(spectrumsettings_type_,& temp_.NamesOfSpectrumType[temp_.getType()] , 1);
 		}
 		else
 		{
-			fillComboBox(spectrumsettings_type_, temp_.NamesOfSpectrumType , SpectrumSettings::SIZE_OF_SPECTRUMTYPE);
+			fillComboBox_(spectrumsettings_type_, temp_.NamesOfSpectrumType , SpectrumSettings::SIZE_OF_SPECTRUMTYPE);
 			spectrumsettings_type_->setCurrentIndex(temp_.getType()); 
 		}
 		

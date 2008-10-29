@@ -42,18 +42,18 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<Tagging>()
 	{
-		addLabel("Modify Tagging information");		
-		addSeparator();
-		addLineEdit(treatmenttype_, "Treatment type" );
-		addTextEdit(treatmentcomment_, "Comment" );
-		addLineEdit(modificationname_, "Reagent name" );
-		addDoubleLineEdit(modificationmass_, "Mass" );
+		addLabel_("Modify Tagging information");		
+		addSeparator_();
+		addLineEdit_(treatmenttype_, "Treatment type" );
+		addTextEdit_(treatmentcomment_, "Comment" );
+		addLineEdit_(modificationname_, "Reagent name" );
+		addDoubleLineEdit_(modificationmass_, "Mass" );
 		 
-		addComboBox(modificationspecificity_, "Specificity Type");
-		addLineEdit(modificationAA_, "Affected Amino Acids" );
+		addComboBox_(modificationspecificity_, "Specificity Type");
+		addLineEdit_(modificationAA_, "Affected Amino Acids" );
 		
-		addDoubleLineEdit(taggingmass_shift_, "Mass_Shift" );
-		addComboBox(taggingvariant_, "Variant");
+		addDoubleLineEdit_(taggingmass_shift_, "Mass_Shift" );
+		addComboBox_(taggingvariant_, "Variant");
 		
 		finishAdding_();
 	}
@@ -62,13 +62,13 @@ namespace OpenMS
 	{
 		if(! isEditable())
 		{
-			fillComboBox(modificationspecificity_,& temp_.NamesOfSpecificityType[temp_.getSpecificityType()], 1);
-	  	fillComboBox(taggingvariant_,& temp_.NamesOfIsotopeVariant[temp_.getVariant()], 1);
+			fillComboBox_(modificationspecificity_,& temp_.NamesOfSpecificityType[temp_.getSpecificityType()], 1);
+	  	fillComboBox_(taggingvariant_,& temp_.NamesOfIsotopeVariant[temp_.getVariant()], 1);
 		}
 		else
 		{
-			fillComboBox(modificationspecificity_, temp_.NamesOfSpecificityType, Tagging::SIZE_OF_SPECIFICITYTYPE);
-	  	fillComboBox(taggingvariant_, temp_.NamesOfIsotopeVariant, Tagging::SIZE_OF_ISOTOPEVARIANT);
+			fillComboBox_(modificationspecificity_, temp_.NamesOfSpecificityType, Tagging::SIZE_OF_SPECIFICITYTYPE);
+	  	fillComboBox_(taggingvariant_, temp_.NamesOfIsotopeVariant, Tagging::SIZE_OF_ISOTOPEVARIANT);
 			modificationspecificity_->setCurrentIndex(temp_.getSpecificityType());
 			taggingvariant_->setCurrentIndex(temp_.getVariant());			
 		}

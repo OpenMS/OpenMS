@@ -1498,12 +1498,7 @@ namespace OpenMS
 					SpectrumType& spec = currentPeakData_()[result->data().toInt()];
 					MetaDataBrowser dlg(true, this);
 		      dlg.setWindowTitle("View/Edit meta data");
-		    	dlg.visualize(static_cast<SpectrumSettings&>(spec));
-		      //Add MetaInfoDescriptions
-		      for (UInt i=0; i<spec.getMetaDataArrays().size();++i)
-		      {
-		      	dlg.visualize(static_cast<MetaInfoDescription&>(spec.getMetaDataArrays()[i]));
-		      }
+		    	dlg.add(spec);
 		      dlg.exec();
 				}
 			}	
@@ -1553,14 +1548,7 @@ namespace OpenMS
 				{
 					MetaDataBrowser dlg(true, this);
 		      dlg.setWindowTitle("View/Edit meta data");
-		      dlg.visualize(features[result->data().toInt()]);
-		      
-		      vector<PeptideIdentification>& ids = features[result->data().toInt()].getPeptideIdentifications();
-					for (vector<PeptideIdentification>::iterator it=ids.begin(); it!=ids.end(); ++it)
-					{
-		    		dlg.visualize(*it);
-					}
-					
+		      dlg.add(features[result->data().toInt()]);					
 		      dlg.exec();
 				}
 			}

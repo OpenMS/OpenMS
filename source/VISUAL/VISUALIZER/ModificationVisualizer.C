@@ -43,15 +43,15 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<Modification>()
 	{
-		addLabel("Modify Modification information");		
-		addSeparator();
-		addLineEdit(treatmenttype_, "Treatment type" );
-		addTextEdit(treatmentcomment_, "Comment" );
-		addLineEdit(modificationname_, "Reagent name" );
-		addDoubleLineEdit(modificationmass_, "Mass change" );
+		addLabel_("Modify Modification information");		
+		addSeparator_();
+		addLineEdit_(treatmenttype_, "Treatment type" );
+		addTextEdit_(treatmentcomment_, "Comment" );
+		addLineEdit_(modificationname_, "Reagent name" );
+		addDoubleLineEdit_(modificationmass_, "Mass change" );
 		 
-		addComboBox(modificationspecificity_, "Specificity Type");
-		addLineEdit(modificationAA_, "Affected Amino Acids" );
+		addComboBox_(modificationspecificity_, "Specificity Type");
+		addLineEdit_(modificationAA_, "Affected Amino Acids" );
 		
 		finishAdding_();
 	}
@@ -60,11 +60,11 @@ namespace OpenMS
 	{
 		if(! isEditable())
 		{
-			fillComboBox(modificationspecificity_,& temp_.NamesOfSpecificityType[temp_.getSpecificityType()], 1);
+			fillComboBox_(modificationspecificity_,& temp_.NamesOfSpecificityType[temp_.getSpecificityType()], 1);
 		}
 		else
 		{
-			fillComboBox(modificationspecificity_, temp_.NamesOfSpecificityType, Modification::SIZE_OF_SPECIFICITYTYPE);
+			fillComboBox_(modificationspecificity_, temp_.NamesOfSpecificityType, Modification::SIZE_OF_SPECIFICITYTYPE);
 			modificationspecificity_->setCurrentIndex(temp_.getSpecificityType());
 		}
 		treatmenttype_->setText(temp_.getType().c_str());

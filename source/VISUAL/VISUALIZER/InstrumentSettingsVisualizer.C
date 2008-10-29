@@ -42,12 +42,12 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<InstrumentSettings>()
 	{
-		addLabel("Modify the settings of the instrument.");	
-		addSeparator();  
-		addComboBox(instrumentsettings_scan_mode_, "Scan mode");
-		addComboBox(instrumentsettings_polarity_, "Polarity");
-		addDoubleLineEdit(instrumentsettings_mz_range_start_, "Scan begin (in m/z dimension)");
-		addDoubleLineEdit(instrumentsettings_mz_range_stop_, "Scan stop (in m/z dimension)");
+		addLabel_("Modify the settings of the instrument.");	
+		addSeparator_();  
+		addComboBox_(instrumentsettings_scan_mode_, "Scan mode");
+		addComboBox_(instrumentsettings_polarity_, "Polarity");
+		addDoubleLineEdit_(instrumentsettings_mz_range_start_, "Scan begin (in m/z dimension)");
+		addDoubleLineEdit_(instrumentsettings_mz_range_stop_, "Scan stop (in m/z dimension)");
 			
 		finishAdding_();
 	}
@@ -56,13 +56,13 @@ namespace OpenMS
 	{
 		if(! isEditable())
 		{
-			fillComboBox(instrumentsettings_scan_mode_,& temp_.NamesOfScanMode[temp_.getScanMode()] , 1);
-			fillComboBox(instrumentsettings_polarity_,& IonSource::NamesOfPolarity[temp_.getPolarity()] , 1);
+			fillComboBox_(instrumentsettings_scan_mode_,& temp_.NamesOfScanMode[temp_.getScanMode()] , 1);
+			fillComboBox_(instrumentsettings_polarity_,& IonSource::NamesOfPolarity[temp_.getPolarity()] , 1);
 		}
 		else
 		{
-			fillComboBox(instrumentsettings_scan_mode_, InstrumentSettings::NamesOfScanMode , InstrumentSettings::SIZE_OF_SCANMODE);
-			fillComboBox(instrumentsettings_polarity_, IonSource::NamesOfPolarity , IonSource::SIZE_OF_POLARITY);
+			fillComboBox_(instrumentsettings_scan_mode_, InstrumentSettings::NamesOfScanMode , InstrumentSettings::SIZE_OF_SCANMODE);
+			fillComboBox_(instrumentsettings_polarity_, IonSource::NamesOfPolarity , IonSource::SIZE_OF_POLARITY);
 			
 			instrumentsettings_scan_mode_->setCurrentIndex(temp_.getScanMode()); 
 			instrumentsettings_polarity_->setCurrentIndex(temp_.getPolarity()); 

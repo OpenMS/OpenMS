@@ -43,13 +43,13 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<IonDetector>()
 	{
-		addLabel("Modify iondetector information.");	
-		addSeparator();  
+		addLabel_("Modify iondetector information.");	
+		addSeparator_();  
 		
-		addComboBox(iondetector_type_, "Type");
-		addComboBox(iondetector_ac_mode_, "Acquisition mode");
-		addDoubleLineEdit(iondetector_res_, "Resolution (in ns)" );
-		addDoubleLineEdit(iondetector_freq_, "ADC sampling frequency (in MHz)" );
+		addComboBox_(iondetector_type_, "Type");
+		addComboBox_(iondetector_ac_mode_, "Acquisition mode");
+		addDoubleLineEdit_(iondetector_res_, "Resolution (in ns)" );
+		addDoubleLineEdit_(iondetector_freq_, "ADC sampling frequency (in MHz)" );
 		
 		finishAdding_();			
 	}
@@ -58,13 +58,13 @@ namespace OpenMS
 	{
 		if(! isEditable())
 		{
-			fillComboBox(iondetector_type_,& temp_.NamesOfType[temp_.getType()] , 1);
-			fillComboBox(iondetector_ac_mode_,& temp_.NamesOfAcquisitionMode[temp_.getAcquisitionMode()] , 1);
+			fillComboBox_(iondetector_type_,& temp_.NamesOfType[temp_.getType()] , 1);
+			fillComboBox_(iondetector_ac_mode_,& temp_.NamesOfAcquisitionMode[temp_.getAcquisitionMode()] , 1);
 		}
 		else
 		{
-			fillComboBox(iondetector_type_, temp_.NamesOfType , IonDetector::SIZE_OF_TYPE);
-			fillComboBox(iondetector_ac_mode_, temp_.NamesOfAcquisitionMode , IonDetector::SIZE_OF_ACQUISITIONMODE);
+			fillComboBox_(iondetector_type_, temp_.NamesOfType , IonDetector::SIZE_OF_TYPE);
+			fillComboBox_(iondetector_ac_mode_, temp_.NamesOfAcquisitionMode , IonDetector::SIZE_OF_ACQUISITIONMODE);
 			iondetector_type_->setCurrentIndex(temp_.getType()); 
 			iondetector_ac_mode_->setCurrentIndex(temp_.getAcquisitionMode()); 
 		}

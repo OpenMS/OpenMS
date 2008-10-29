@@ -2350,7 +2350,7 @@ namespace OpenMS
 			}
 			MetaDataBrowser dlg(false, this);
 			dlg.setWindowTitle("Meta data");			
-			dlg.visualize(exp);
+			dlg.add(exp);
 	 	 	dlg.exec();			
 		}
 	}
@@ -2381,7 +2381,7 @@ namespace OpenMS
 					}
 					MetaDataBrowser dlg(false, this);
 					dlg.setWindowTitle("Meta data");			
-					dlg.visualize(exp);
+					dlg.add(exp);
 			 	 	dlg.exec();
 				}
 			}

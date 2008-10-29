@@ -44,12 +44,12 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<Instrument>()
 	{
-		addLabel("Modify instrument information.");	
-		addSeparator();        
-		addLineEdit(instrument_name_, "Name" );
-		addLineEdit(instrument_vendor_, "Vendor" );	
-		addLineEdit(instrument_model_, "Model");
-		addTextEdit(instrument_customizations_, "Customizations" );
+		addLabel_("Modify instrument information.");	
+		addSeparator_();        
+		addLineEdit_(instrument_name_, "Name" );
+		addLineEdit_(instrument_vendor_, "Vendor" );	
+		addLineEdit_(instrument_model_, "Model");
+		addTextEdit_(instrument_customizations_, "Customizations" );
 		
 		finishAdding_();
 	}

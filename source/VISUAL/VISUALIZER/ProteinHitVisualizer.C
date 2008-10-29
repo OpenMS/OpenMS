@@ -42,10 +42,10 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<ProteinHit>()
 	{
-		addLineEdit(proteinhit_score_, "Score" );
-		addLineEdit(proteinhit_rank_, "Rank" );
-		addLineEdit(proteinhit_accession_, "Accession" );
-		addTextEdit(proteinhit_sequence_, "Sequence" );
+		addLineEdit_(proteinhit_score_, "Score" );
+		addLineEdit_(proteinhit_rank_, "Rank" );
+		addLineEdit_(proteinhit_accession_, "Accession" );
+		addTextEdit_(proteinhit_sequence_, "Sequence" );
 			
 		finishAdding_();
 	}

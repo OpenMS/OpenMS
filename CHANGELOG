@@ -5,6 +5,7 @@
 New features and improvements of OpenMS:
 - Kernel: replaced comparators NthPositionLess by the comparator(s) RTLess and/or MZLess.
 - Kernel: replaced methods sortByNthPosition() by the method(s) sortByRT() and/or sortByMZ().
+- Improved the whole framework for meta data visualization.
 
 New features and improvements of TOPP:
 - FeatureLinker: Added automated RT parameter estimated for 'labeled' algorithm.

@@ -42,14 +42,14 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<HPLC>()
 	{
-		addLabel("Modify HPLC information");		
-		addSeparator();
-		addLineEdit(hplcinstrument_, "Instrument" );
-		addLineEdit(hplccolumn_, "Column" );
-		addIntLineEdit(hplctemperature_, "Temperature (in °C)" );
-		addIntLineEdit(hplcpressure_, "Pressure (in bar)" );
-		addIntLineEdit(hplcflux_, "Flux (in µl/sec)" );
-		addTextEdit(hplccomment_, "Comment");
+		addLabel_("Modify HPLC information");		
+		addSeparator_();
+		addLineEdit_(hplcinstrument_, "Instrument" );
+		addLineEdit_(hplccolumn_, "Column" );
+		addIntLineEdit_(hplctemperature_, "Temperature (in °C)" );
+		addIntLineEdit_(hplcpressure_, "Pressure (in bar)" );
+		addIntLineEdit_(hplcflux_, "Flux (in µl/sec)" );
+		addTextEdit_(hplccomment_, "Comment");
 			
 		finishAdding_();
 	}

@@ -36,6 +36,8 @@ namespace OpenMS
 		
 		The GUI components are provided by the BaseVisualizerGUI class.
 		The two classes cannot be merged, as templates and the Qt meta object compiler cannot be combined.
+		
+		Visualizers are mainly used by the MetaDataBrowser.
 	*/
 	template<typename ObjectType>
 	class BaseVisualizer

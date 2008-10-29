@@ -41,11 +41,11 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<IonSource>()
 	{
-		addLabel("Modify ionsource information.");	
-		addSeparator();  
-		addComboBox(ionsource_inlet_type_, "Inlet type");
-		addComboBox(ionsource_ionization_method_, "Ionization method");
-		addComboBox(ionsource_polarity_, "Polarity");      
+		addLabel_("Modify ionsource information.");	
+		addSeparator_();  
+		addComboBox_(ionsource_inlet_type_, "Inlet type");
+		addComboBox_(ionsource_ionization_method_, "Ionization method");
+		addComboBox_(ionsource_polarity_, "Polarity");      
 		
 		finishAdding_();
 	}
@@ -54,15 +54,15 @@ namespace OpenMS
 	{
 		if(! isEditable())
 		{
-			fillComboBox(ionsource_inlet_type_,& temp_.NamesOfInletType[temp_.getInletType()]  , 1);
-			fillComboBox(ionsource_ionization_method_,& temp_.NamesOfIonizationMethod[temp_.getIonizationMethod()] , 1);
-			fillComboBox(ionsource_polarity_,& temp_.NamesOfPolarity[temp_.getPolarity()] , 1);	
+			fillComboBox_(ionsource_inlet_type_,& temp_.NamesOfInletType[temp_.getInletType()]  , 1);
+			fillComboBox_(ionsource_ionization_method_,& temp_.NamesOfIonizationMethod[temp_.getIonizationMethod()] , 1);
+			fillComboBox_(ionsource_polarity_,& temp_.NamesOfPolarity[temp_.getPolarity()] , 1);	
 		}
 		else
 		{
-			fillComboBox(ionsource_inlet_type_, temp_.NamesOfInletType  , IonSource::SIZE_OF_INLETTYPE);
-			fillComboBox(ionsource_ionization_method_, temp_.NamesOfIonizationMethod , IonSource::SIZE_OF_IONIZATIONMETHOD);
-			fillComboBox(ionsource_polarity_, temp_.NamesOfPolarity , IonSource::SIZE_OF_POLARITY);
+			fillComboBox_(ionsource_inlet_type_, temp_.NamesOfInletType  , IonSource::SIZE_OF_INLETTYPE);
+			fillComboBox_(ionsource_ionization_method_, temp_.NamesOfIonizationMethod , IonSource::SIZE_OF_IONIZATIONMETHOD);
+			fillComboBox_(ionsource_polarity_, temp_.NamesOfPolarity , IonSource::SIZE_OF_POLARITY);
 			
 			ionsource_inlet_type_->setCurrentIndex(temp_.getInletType()); 
 			ionsource_ionization_method_->setCurrentIndex(temp_.getIonizationMethod()); 

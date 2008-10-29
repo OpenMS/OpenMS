@@ -39,13 +39,13 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<SourceFile>()
 	{
-		addLabel("Modify source file information");
-		addSeparator();	
-		addLineEdit(name_of_file_, "Name of file" );
-		addLineEdit(path_to_file_, "Path to file" );
-		addLineEdit(file_size_, "File size (in MB)" );
-		addLineEdit(file_type_, "File type" );
-		addLineEdit(sha1_, "SHA1 hash value" );
+		addLabel_("Modify source file information");
+		addSeparator_();	
+		addLineEdit_(name_of_file_, "Name of file" );
+		addLineEdit_(path_to_file_, "Path to file" );
+		addLineEdit_(file_size_, "File size (in MB)" );
+		addLineEdit_(file_type_, "File type" );
+		addLineEdit_(sha1_, "SHA1 hash value" );
 		
 		finishAdding_();
 	}

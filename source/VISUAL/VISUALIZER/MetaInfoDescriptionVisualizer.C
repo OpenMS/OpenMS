@@ -40,10 +40,10 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<MetaInfoDescription>()
 	{
-		addLabel("Modify MetaInfoDescription information");		
-		addSeparator();
-		addLineEdit(metainfodescription_name_, "Name of peak annotations" );
-		addTextEdit(metainfodescription_comment_, "Comment" );
+		addLabel_("Modify MetaInfoDescription information");		
+		addSeparator_();
+		addLineEdit_(metainfodescription_name_, "Name of peak annotations" );
+		addTextEdit_(metainfodescription_comment_, "Comment" );
 			
 		finishAdding_();
 	}

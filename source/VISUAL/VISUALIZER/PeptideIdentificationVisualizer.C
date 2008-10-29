@@ -47,17 +47,17 @@ namespace OpenMS
 	{
 		pidv_caller_= caller;
 		
-		addLineEdit(identifier_, "Identifier<br>(of corresponding ProteinIdentification)" );
-		addSeparator();   
+		addLineEdit_(identifier_, "Identifier<br>(of corresponding ProteinIdentification)" );
+		addSeparator_();   
 		
-		addLineEdit(score_type_, "Score type" );
-		addBooleanComboBox(higher_better_,"Higher score is better"); 
-		addDoubleLineEdit(identification_threshold_, "Peptide significance threshold" );	
+		addLineEdit_(score_type_, "Score type" );
+		addBooleanComboBox_(higher_better_,"Higher score is better"); 
+		addDoubleLineEdit_(identification_threshold_, "Peptide significance threshold" );	
 		
-		addSeparator();       
-		addLabel("Show peptide hits with score equal or better than a threshold.");
+		addSeparator_();       
+		addLabel_("Show peptide hits with score equal or better than a threshold.");
 		QPushButton* button;
-		addLineEditButton("Score threshold", filter_threshold_, button, "Filter");
+		addLineEditButton_("Score threshold", filter_threshold_, button, "Filter");
 		connect(button, SIGNAL(clicked()), this, SLOT(updateTree_()) );
 		
 		finishAdding_();

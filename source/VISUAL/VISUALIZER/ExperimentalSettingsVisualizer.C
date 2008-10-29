@@ -45,11 +45,11 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<ExperimentalSettings>()
 	{
-		addLabel("Modify the settings of the experiment.");	
-		addSeparator();  
-		addComboBox(experimentalsettings_type_, "Type of the experiment");
-		addLineEdit(experimentalsettings_date_, "Date of experiment");
-		addTextEdit(experimentalsettings_comment_, "Comment");
+		addLabel_("Modify the settings of the experiment.");	
+		addSeparator_();  
+		addComboBox_(experimentalsettings_type_, "Type of the experiment");
+		addLineEdit_(experimentalsettings_date_, "Date of experiment");
+		addTextEdit_(experimentalsettings_comment_, "Comment");
 		
 		finishAdding_();
 	}
@@ -59,11 +59,11 @@ namespace OpenMS
 		if(! isEditable())
 		{
 			
-			fillComboBox(experimentalsettings_type_,& temp_.NamesOfExperimentType[temp_.getType()] ,1); 
+			fillComboBox_(experimentalsettings_type_,& temp_.NamesOfExperimentType[temp_.getType()] ,1); 
 		}
 		else
 		{
-			fillComboBox(experimentalsettings_type_, temp_.NamesOfExperimentType , ExperimentalSettings::SIZE_OF_EXPERIMENTTYPE);
+			fillComboBox_(experimentalsettings_type_, temp_.NamesOfExperimentType , ExperimentalSettings::SIZE_OF_EXPERIMENTTYPE);
 			experimentalsettings_type_->setCurrentIndex(temp_.getType()); 
 		}
 		String str;

@@ -41,10 +41,10 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<Software>()
 	{
-		addLabel("Modify software information.");	
-		addSeparator();        
-		addLineEdit(software_name_, "Name" );
-		addLineEdit(software_version_, "Version" );	
+		addLabel_("Modify software information.");	
+		addSeparator_();        
+		addLineEdit_(software_name_, "Name" );
+		addLineEdit_(software_version_, "Version" );	
 	
 		finishAdding_();
 	}

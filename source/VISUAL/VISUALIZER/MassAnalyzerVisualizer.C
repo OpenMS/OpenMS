@@ -42,26 +42,26 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<MassAnalyzer>()
 	{
-		addLabel("Modify massanalyzer information.");	
-		addSeparator();  
+		addLabel_("Modify massanalyzer information.");	
+		addSeparator_();  
 		
-		addComboBox(massanalyzer_type_, "Type");
-		addComboBox(massanalyzer_res_method_, "Resolution method");
-		addComboBox(massanalyzer_res_type_, "Resolution type");
-		addComboBox(massanalyzer_scan_func_, "Scan function");
-		addComboBox(massanalyzer_scan_dir_, "Scan direction");
-		addComboBox(massanalyzer_scan_law_, "Scan law");
-		addComboBox(massanalyzer_tandem_scan_method_, "Tandem scan maethod");
-		addComboBox(massanalyzer_reflectron_state_, "Reflectron state");
+		addComboBox_(massanalyzer_type_, "Type");
+		addComboBox_(massanalyzer_res_method_, "Resolution method");
+		addComboBox_(massanalyzer_res_type_, "Resolution type");
+		addComboBox_(massanalyzer_scan_func_, "Scan function");
+		addComboBox_(massanalyzer_scan_dir_, "Scan direction");
+		addComboBox_(massanalyzer_scan_law_, "Scan law");
+		addComboBox_(massanalyzer_tandem_scan_method_, "Tandem scan maethod");
+		addComboBox_(massanalyzer_reflectron_state_, "Reflectron state");
 			
-		addDoubleLineEdit(massanalyzer_res_, "Resolution" );
-		addDoubleLineEdit(massanalyzer_acc_, "Accuracy" );
-		addDoubleLineEdit(massanalyzer_scan_rate_, "Scan rate (in s)" );
-		addDoubleLineEdit(massanalyzer_scan_time_, "Scan time (in s)" );
-		addDoubleLineEdit(massanalyzer_TOF_, "TOF Total path length (in mm)" );
-		addDoubleLineEdit(massanalyzer_iso_, "Isolation width (in m/z)" );
-		addDoubleLineEdit(massanalyzer_final_MS_, "Final MS exponent" );
-		addDoubleLineEdit(massanalyzer_magnetic_fs_, "Magnetic field strength (in T)" );
+		addDoubleLineEdit_(massanalyzer_res_, "Resolution" );
+		addDoubleLineEdit_(massanalyzer_acc_, "Accuracy" );
+		addDoubleLineEdit_(massanalyzer_scan_rate_, "Scan rate (in s)" );
+		addDoubleLineEdit_(massanalyzer_scan_time_, "Scan time (in s)" );
+		addDoubleLineEdit_(massanalyzer_TOF_, "TOF Total path length (in mm)" );
+		addDoubleLineEdit_(massanalyzer_iso_, "Isolation width (in m/z)" );
+		addDoubleLineEdit_(massanalyzer_final_MS_, "Final MS exponent" );
+		addDoubleLineEdit_(massanalyzer_magnetic_fs_, "Magnetic field strength (in T)" );
 		
 		finishAdding_();
 	}
@@ -70,25 +70,25 @@ namespace OpenMS
 	{
 		if(! isEditable())
 		{
-			fillComboBox(massanalyzer_type_,& temp_.NamesOfAnalyzerType[temp_.getType()] , 1);
-			fillComboBox(massanalyzer_res_method_,& temp_.NamesOfResolutionMethod[temp_.getResolutionMethod()] , 1);
-			fillComboBox(massanalyzer_res_type_,& temp_.NamesOfResolutionType[temp_.getResolutionType()] , 1);
-			fillComboBox(massanalyzer_scan_func_,& temp_.NamesOfScanFunction[temp_.getScanFunction()] , 1);
-			fillComboBox(massanalyzer_scan_dir_,& temp_.NamesOfScanDirection[temp_.getScanDirection()] , 1);
-			fillComboBox(massanalyzer_scan_law_,& temp_.NamesOfScanLaw[temp_.getScanLaw()] , 1);
-			fillComboBox(massanalyzer_tandem_scan_method_,& temp_.NamesOfTandemScanningMethod[temp_.getTandemScanMethod()] , 1);
-			fillComboBox(massanalyzer_reflectron_state_,& temp_.NamesOfReflectronState[temp_.getReflectronState()] , 1);
+			fillComboBox_(massanalyzer_type_,& temp_.NamesOfAnalyzerType[temp_.getType()] , 1);
+			fillComboBox_(massanalyzer_res_method_,& temp_.NamesOfResolutionMethod[temp_.getResolutionMethod()] , 1);
+			fillComboBox_(massanalyzer_res_type_,& temp_.NamesOfResolutionType[temp_.getResolutionType()] , 1);
+			fillComboBox_(massanalyzer_scan_func_,& temp_.NamesOfScanFunction[temp_.getScanFunction()] , 1);
+			fillComboBox_(massanalyzer_scan_dir_,& temp_.NamesOfScanDirection[temp_.getScanDirection()] , 1);
+			fillComboBox_(massanalyzer_scan_law_,& temp_.NamesOfScanLaw[temp_.getScanLaw()] , 1);
+			fillComboBox_(massanalyzer_tandem_scan_method_,& temp_.NamesOfTandemScanningMethod[temp_.getTandemScanMethod()] , 1);
+			fillComboBox_(massanalyzer_reflectron_state_,& temp_.NamesOfReflectronState[temp_.getReflectronState()] , 1);
 		}
 		else
 		{
-			fillComboBox(massanalyzer_type_, temp_.NamesOfAnalyzerType , MassAnalyzer::SIZE_OF_ANALYZERTYPE);
-			fillComboBox(massanalyzer_res_method_, temp_.NamesOfResolutionMethod , MassAnalyzer::SIZE_OF_RESOLUTIONMETHOD);
-			fillComboBox(massanalyzer_res_type_, temp_.NamesOfResolutionType , MassAnalyzer::SIZE_OF_RESOLUTIONTYPE);
-			fillComboBox(massanalyzer_scan_func_, temp_.NamesOfScanFunction , MassAnalyzer::SIZE_OF_SCANFUNCTION);
-			fillComboBox(massanalyzer_scan_dir_, temp_.NamesOfScanDirection , MassAnalyzer::SIZE_OF_SCANDIRECTION);
-			fillComboBox(massanalyzer_scan_law_, temp_.NamesOfScanLaw , MassAnalyzer::SIZE_OF_SCANLAW);
-			fillComboBox(massanalyzer_tandem_scan_method_, temp_.NamesOfTandemScanningMethod , MassAnalyzer::SIZE_OF_TANDEMSCANNINGMETHOD);
-			fillComboBox(massanalyzer_reflectron_state_, temp_.NamesOfReflectronState , MassAnalyzer::SIZE_OF_REFLECTRONSTATE);
+			fillComboBox_(massanalyzer_type_, temp_.NamesOfAnalyzerType , MassAnalyzer::SIZE_OF_ANALYZERTYPE);
+			fillComboBox_(massanalyzer_res_method_, temp_.NamesOfResolutionMethod , MassAnalyzer::SIZE_OF_RESOLUTIONMETHOD);
+			fillComboBox_(massanalyzer_res_type_, temp_.NamesOfResolutionType , MassAnalyzer::SIZE_OF_RESOLUTIONTYPE);
+			fillComboBox_(massanalyzer_scan_func_, temp_.NamesOfScanFunction , MassAnalyzer::SIZE_OF_SCANFUNCTION);
+			fillComboBox_(massanalyzer_scan_dir_, temp_.NamesOfScanDirection , MassAnalyzer::SIZE_OF_SCANDIRECTION);
+			fillComboBox_(massanalyzer_scan_law_, temp_.NamesOfScanLaw , MassAnalyzer::SIZE_OF_SCANLAW);
+			fillComboBox_(massanalyzer_tandem_scan_method_, temp_.NamesOfTandemScanningMethod , MassAnalyzer::SIZE_OF_TANDEMSCANNINGMETHOD);
+			fillComboBox_(massanalyzer_reflectron_state_, temp_.NamesOfReflectronState , MassAnalyzer::SIZE_OF_REFLECTRONSTATE);
 			
 			massanalyzer_type_->setCurrentIndex(temp_.getType()); 
 			massanalyzer_res_method_->setCurrentIndex(temp_.getResolutionMethod()); 

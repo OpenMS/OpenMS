@@ -44,16 +44,16 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<Sample>()
 	{
-		addLabel("Modify Sample information");		
-		addSeparator();
-	  addLineEdit(samplename_, "Name" );
-		addLineEdit(samplenumber_, "Number" );
-		addLineEdit(sampleorganism_, "Organism" );
-	  addTextEdit(samplecomment_, "Comment");
-		addComboBox(samplestate_, "State");
-		addDoubleLineEdit(samplemass_,"Mass (in mg)");
-		addDoubleLineEdit(samplevolume_, "Volume (in ml)");
-		addDoubleLineEdit(sampleconcentration_, "Concentration (in mg/ml)");
+		addLabel_("Modify Sample information");		
+		addSeparator_();
+	  addLineEdit_(samplename_, "Name" );
+		addLineEdit_(samplenumber_, "Number" );
+		addLineEdit_(sampleorganism_, "Organism" );
+	  addTextEdit_(samplecomment_, "Comment");
+		addComboBox_(samplestate_, "State");
+		addDoubleLineEdit_(samplemass_,"Mass (in mg)");
+		addDoubleLineEdit_(samplevolume_, "Volume (in ml)");
+		addDoubleLineEdit_(sampleconcentration_, "Concentration (in mg/ml)");
 		
 		finishAdding_();
 	}
@@ -62,11 +62,11 @@ namespace OpenMS
 	{
 		if(! isEditable())
 		{
-			fillComboBox(samplestate_,& temp_.NamesOfSampleState[temp_.getState()] ,1);
+			fillComboBox_(samplestate_,& temp_.NamesOfSampleState[temp_.getState()] ,1);
 		}
 		else
 		{
-			fillComboBox(samplestate_, temp_.NamesOfSampleState , Sample::SIZE_OF_SAMPLESTATE);
+			fillComboBox_(samplestate_, temp_.NamesOfSampleState , Sample::SIZE_OF_SAMPLESTATE);
 			samplestate_->setCurrentIndex(temp_.getState());
 		}
 		

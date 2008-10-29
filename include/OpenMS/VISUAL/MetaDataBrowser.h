@@ -27,7 +27,9 @@
 #ifndef OPENMS_VISUAL_MSMETADATAEXPLORER_H
 #define OPENMS_VISUAL_MSMETADATAEXPLORER_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 //QT
 #include <QtGui/QDialog>
@@ -78,7 +80,7 @@ namespace OpenMS
 		
 		@image html MetaDataBrowser.png
 		
-		It contains a tree view showing all objects of the file to be viewed in hierarchical order.
+		It contains a tree view showing all objects of the meta data to be viewed in hierarchical order.
 		
 		The meta info data of the tree items are shown in the right part of the viewer, when they are selected in the tree.
 		
@@ -95,17 +97,61 @@ namespace OpenMS
     	
 			/// Constructor with flag for edit mode
 			MetaDataBrowser(bool editable = FALSE, QWidget *parent = 0, bool modal = FALSE );
+
+			/// Adds a peak map
+			template <class PeakType>
+			void add(MSExperiment<PeakType>& exp)
+			{
+				add(static_cast<ExperimentalSettings&>(exp));
+				treeview_->expandItem( treeview_->findItems(QString::number(0),Qt::MatchExactly , 1).first() );
+			}
+
+			/// Adds a peak spectrum
+			template <class PeakType, class AllocatorType>
+			void add(MSSpectrum<PeakType, AllocatorType>& spectrum)
+			{
+				//spectrum settings
+				add(static_cast<SpectrumSettings&>(spectrum));
+				//meta info interface
+				add(static_cast<MetaInfoInterface&>(spectrum));
+				//MetaInfoDescriptions
+	      for (UInt i=0; i<spectrum.getMetaDataArrays().size();++i)
+	      {
+	      	// add(static_cast<MetaInfoDescription&>(spec.getMetaDataArrays()[i]));
+	      	add(spectrum.getMetaDataArrays()[i]);
+	      }
+				treeview_->expandItem( treeview_->findItems(QString::number(0),Qt::MatchExactly , 1).first() );
+			}
+
+			/// Adds a feature map
+			template <class FeatureType>
+			void add(FeatureMap<FeatureType>& map)
+			{
+				//identifier
+				add(static_cast<DocumentIdentifier&>(map));
+				//protein ids
+				for(UInt i=0; i<map.getProteinIdentifications().size(); ++i)    
+				{
+					add(map.getProteinIdentifications()[i]);
+				}
+				treeview_->expandItem( treeview_->findItems(QString::number(0),Qt::MatchExactly , 1).first() );
+			}
+			/// Adds a feature
+			void add(Feature& feature);
+
+			/// Adds a consensus map
+			void add(ConsensusMap& map);
 			
 			/**
-				@brief A template function to add classes
+				@brief A generic function to add data.
 					
-				The meta data information of many different objects can be visualized using this function. 
-				The object is passed to one of the type-specific visualize_ methods, managing the visulization of the meta data.
+				The meta data information of all classes that for which a visualize_ method exists can be visualized.
 			*/
-			template <class T> void visualize(T& class_reference) 
+			template <class MetaDataType>
+			void add(MetaDataType& meta_data_object) 
 			{                
-				visualize_(class_reference);
-				treeview_->expandItem(  treeview_->findItems(QString::number(0),Qt::MatchExactly , 1).first() );
+				visualize_(meta_data_object);
+				treeview_->expandItem( treeview_->findItems(QString::number(0),Qt::MatchExactly , 1).first() );
 			}
 			
 			///	 Check if mode is editable or not

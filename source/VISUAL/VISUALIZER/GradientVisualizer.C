@@ -57,8 +57,8 @@ namespace OpenMS
 		ptr_ = &g;
 		temp_=g;
 		 
-		addLabel("Modify Gradient information"); 
-		addSeparator();
+		addLabel_("Modify Gradient information"); 
+		addSeparator_();
 		
 		viewlayout_ = new QGridLayout();
 		mainlayout_->addLayout(viewlayout_, row_, 0, 1 ,3);
@@ -66,17 +66,17 @@ namespace OpenMS
 		//Get the actuall eluent, timepoint and percentage values.
 		loadData_();
 				
-		addSeparator();
+		addSeparator_();
 		
-		addLineEditButton("Add new Eluent", new_eluent_,  add_eluent_button_, "Add Eluent");
-		addLineEditButton( "Add new Timepoint", new_timepoint_, add_timepoint_button_, "Add Timepoint");
-		addLabel("Attention: All percentage values at a certain timepoint must add up to 100.");
-		addSeparator();
-		addLabel("Remove all eluents, timepoints and percentage values.");
-		addButton(removebutton_, "Remove");
+		addLineEditButton_("Add new Eluent", new_eluent_,  add_eluent_button_, "Add Eluent");
+		addLineEditButton_( "Add new Timepoint", new_timepoint_, add_timepoint_button_, "Add Timepoint");
+		addLabel_("Attention: All percentage values at a certain timepoint must add up to 100.");
+		addSeparator_();
+		addLabel_("Remove all eluents, timepoints and percentage values.");
+		addButton_(removebutton_, "Remove");
 		
 		finishAdding_();
-		addSeparator();
+		addSeparator_();
 		connect(add_timepoint_button_, SIGNAL(clicked()), this, SLOT(addTimepoint_()) );	
 		connect(add_eluent_button_, SIGNAL(clicked()), this, SLOT(addEluent_()) );	
 	  connect(removebutton_, SIGNAL(clicked()), this, SLOT(deleteData_()) );	

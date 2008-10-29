@@ -48,32 +48,32 @@ namespace OpenMS
 	{
 		pidv_caller_= caller;
 	     
-		addLineEdit(identifier_, "Identifier<br>(of corresponding PeptideIdentifications)" );
+		addLineEdit_(identifier_, "Identifier<br>(of corresponding PeptideIdentifications)" );
 		
-		addSeparator();
-		addLineEdit(engine_, "Search engine" );
-		addLineEdit(engine_version_, "Search engine version" );
-		addLineEdit(identification_date_, "Date of search" );
-		addLineEdit(score_type_, "Score type" );
-		addBooleanComboBox(higher_better_,"Higher score is better"); 
-		addDoubleLineEdit(identification_threshold_, "Protein significance threshold" );	
+		addSeparator_();
+		addLineEdit_(engine_, "Search engine" );
+		addLineEdit_(engine_version_, "Search engine version" );
+		addLineEdit_(identification_date_, "Date of search" );
+		addLineEdit_(score_type_, "Score type" );
+		addBooleanComboBox_(higher_better_,"Higher score is better"); 
+		addDoubleLineEdit_(identification_threshold_, "Protein significance threshold" );	
 		
-		addSeparator();
-		addLabel("Search Parameters:");
-		addLineEdit(db_, "Database name" );
-		addLineEdit(db_version_, "Database version" );
-		addLineEdit(taxonomy_, "Taxonomy restriction" );
-		addLineEdit(charges_, "Allowed charges" );
-		addIntLineEdit(missed_cleavages_, "Missed Cleavages" );
-		addDoubleLineEdit(peak_tolerance_, "Fragment ion mass tolerance" );
-		addDoubleLineEdit(precursor_tolerance_, "Precursor ion mass tolerance" );
-		addComboBox(mass_type_, "Mass type" );
-		addComboBox(enzyme_, "Digestion enzyme" );
+		addSeparator_();
+		addLabel_("Search Parameters:");
+		addLineEdit_(db_, "Database name" );
+		addLineEdit_(db_version_, "Database version" );
+		addLineEdit_(taxonomy_, "Taxonomy restriction" );
+		addLineEdit_(charges_, "Allowed charges" );
+		addIntLineEdit_(missed_cleavages_, "Missed Cleavages" );
+		addDoubleLineEdit_(peak_tolerance_, "Fragment ion mass tolerance" );
+		addDoubleLineEdit_(precursor_tolerance_, "Precursor ion mass tolerance" );
+		addComboBox_(mass_type_, "Mass type" );
+		addComboBox_(enzyme_, "Digestion enzyme" );
 		
-		addSeparator();       
-		addLabel("Show protein hits with score equal or better than a threshold.");
+		addSeparator_();       
+		addLabel_("Show protein hits with score equal or better than a threshold.");
 		QPushButton* button;
-		addLineEditButton("Score threshold", filter_threshold_, button, "Filter");
+		addLineEditButton_("Score threshold", filter_threshold_, button, "Filter");
 		connect(button, SIGNAL(clicked()), this, SLOT(updateTree_()) );
 	
 		finishAdding_();
@@ -107,13 +107,13 @@ namespace OpenMS
 
 		if(! isEditable())
 		{
-			fillComboBox(mass_type_,& ProteinIdentification::NamesOfPeakMassType[temp_.getSearchParameters().mass_type], 1);
-			fillComboBox(enzyme_,& ProteinIdentification::NamesOfDigestionEnzyme[temp_.getSearchParameters().enzyme], 1);
+			fillComboBox_(mass_type_,& ProteinIdentification::NamesOfPeakMassType[temp_.getSearchParameters().mass_type], 1);
+			fillComboBox_(enzyme_,& ProteinIdentification::NamesOfDigestionEnzyme[temp_.getSearchParameters().enzyme], 1);
 		}
 		else
 		{
-			fillComboBox(mass_type_, ProteinIdentification::NamesOfPeakMassType, ProteinIdentification::SIZE_OF_PEAKMASSTYPE);
-			fillComboBox(enzyme_, ProteinIdentification::NamesOfDigestionEnzyme, ProteinIdentification::SIZE_OF_DIGESTIONENZYME);
+			fillComboBox_(mass_type_, ProteinIdentification::NamesOfPeakMassType, ProteinIdentification::SIZE_OF_PEAKMASSTYPE);
+			fillComboBox_(enzyme_, ProteinIdentification::NamesOfDigestionEnzyme, ProteinIdentification::SIZE_OF_DIGESTIONENZYME);
 			
 			enzyme_->setCurrentIndex(temp_.getSearchParameters().enzyme); 
 			mass_type_->setCurrentIndex(temp_.getSearchParameters().mass_type); 

@@ -43,14 +43,14 @@ namespace OpenMS
 		: BaseVisualizerGUI(editable, parent),
 			BaseVisualizer<Digestion>()
 	{
-		addLabel("Modify Digestion information");		
-		addSeparator();
-		addLineEdit(treatmenttype_, "Treatment type" );
-		addTextEdit(treatmentcomment_, "Comment" );
-		addLineEdit(digestionenzyme_, "Enzyme" );
-		addDoubleLineEdit(digestiontime_, "Digestion time (in minutes)" );
-		addDoubleLineEdit(digestiontemperature_, "Temperature (in °C)" );
-		addDoubleLineEdit(digestionPH_, "PH" );
+		addLabel_("Modify Digestion information");		
+		addSeparator_();
+		addLineEdit_(treatmenttype_, "Treatment type" );
+		addTextEdit_(treatmentcomment_, "Comment" );
+		addLineEdit_(digestionenzyme_, "Enzyme" );
+		addDoubleLineEdit_(digestiontime_, "Digestion time (in minutes)" );
+		addDoubleLineEdit_(digestiontemperature_, "Temperature (in °C)" );
+		addDoubleLineEdit_(digestionPH_, "PH" );
 		
 		finishAdding_();
 	}
