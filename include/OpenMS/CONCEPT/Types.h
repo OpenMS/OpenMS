@@ -196,7 +196,7 @@ namespace OpenMS
 	We have \f$2^{24}/10^{6}=16.777216\f$ and \f$2^{53}/10^{15}=9.007199254740992\f$,
 	so rounding will remove the remaining difference.
 
-	Example:  TODO rewrite for new implementation (Clemens)
+	Example:
 	@code
   #define NUMBER 12345.67890123456789012345678901
   std::cout << NUMBER << '\n'; // default precision, writes: 12345.7
