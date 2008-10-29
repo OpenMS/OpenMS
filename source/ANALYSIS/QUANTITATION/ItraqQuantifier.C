@@ -38,7 +38,6 @@
 
 namespace OpenMS
 {
-	/// Constructor (assuming 4plex)
 	ItraqQuantifier::ItraqQuantifier()
 		:DefaultParamHandler("ItraqQuantifier"),
 		 itraq_type_(FOURPLEX),
@@ -48,7 +47,6 @@ namespace OpenMS
 		setDefaultParams_();
 	}
 	
-	/// Constructor with
 	ItraqQuantifier::ItraqQuantifier(Int itraq_type)
 		:DefaultParamHandler("ItraqQuantifier"),
 		 itraq_type_(itraq_type),
@@ -58,7 +56,6 @@ namespace OpenMS
 		setDefaultParams_();
 	}
 
-	/// Constructor
 	ItraqQuantifier::ItraqQuantifier(Int itraq_type, const Param& param)
 		:DefaultParamHandler("ItraqQuantifier"),
 		 itraq_type_(itraq_type),
@@ -70,7 +67,6 @@ namespace OpenMS
 		updateMembers_();
 	}
 
-	/// copy constructor
 	ItraqQuantifier::ItraqQuantifier(const ItraqQuantifier& cp)
 	: DefaultParamHandler(cp),
 		ItraqConstants(cp),
@@ -78,10 +74,8 @@ namespace OpenMS
     channel_map_(cp.channel_map_),
 		isotope_corrections_(cp.isotope_corrections_)
 	{
-		
 	}
 
-	/// assignment operator
 	ItraqQuantifier& ItraqQuantifier::operator = (const ItraqQuantifier& rhs)
 	{
 		if (this == &rhs) return *this;
@@ -457,8 +451,17 @@ namespace OpenMS
 		// find unique peptides of a protein and use a robust peptide ratio as protein ratio
 		if ((!peptide_ids.empty() && !protein_ids.empty()))
 		{
-			std::cout << "Protein Inference: " << peptide_ids.size() << " peptides (" << (peptide_ids.size() / consensus_map_out.size()) << " per feature) map to " << protein_ids.size() << " proteins" << std::endl;
+			if (peptide_ids.size() != 1 || protein_ids.size() != 1)
+			{
+				std::cout << "WARNING: Only using the first entry for Protein/PeptideIdenfication!\nItraqQuantifier::run() Cannot handle multiple sets of identifications yet! Please contact the maintainer!";
+			}
+			
+			std::cout << "Protein Inference: " << peptide_ids[0].getHits().size() << " peptides (" << (peptide_ids[0].getHits().size() / consensus_map_out.size()) << " per feature) map to " << protein_ids[0].getHits().size() << " proteins" << std::endl;
 
+			
+			//peptide_ids,
+			//protein_ids, 
+				
 			// search for unique peptides!
 
 		}

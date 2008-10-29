@@ -54,13 +54,13 @@ namespace OpenMS {
 		static const double ISOTOPECORRECTIONS_EIGHTPLEX[8][4];
 		static const Int CHANNEL_COUNT[];
 		
-		/// Constructor (assuming 4plex)
+		/// Constructor (assuming 4-plex experiment)
 		ItraqQuantifier();
 		
-		/// Constructor with
+		/// Constructor with iTRAQ-type (either ItraqQuantifier::FOURPLEX or ItraqQuantifier::EIGHTPLEX)
 		ItraqQuantifier(Int itraq_type);
 
-		/// Constructor
+		/// Constructor with iTRAQ-type (either ItraqQuantifier::FOURPLEX or ItraqQuantifier::EIGHTPLEX) and Param
 		ItraqQuantifier(Int itraq_type, const Param& param);
 
 		/// copy constructor

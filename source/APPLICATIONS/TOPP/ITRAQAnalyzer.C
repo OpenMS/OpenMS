@@ -103,8 +103,10 @@ class TOPPITRAQAnalyzer
 		String idxml = getStringOption_("idxml");
 		
 		Int itraq_type = ItraqQuantifier::FOURPLEX;
-		if ((String) getParam_().getValue("algorithm:itraq_type") == "8plex") itraq_type = ItraqQuantifier::EIGHTPLEX;
-
+		if (getParam_().exists("algorithm:itraq_type"))
+		{
+			if ((String) getParam_().getValue("algorithm:itraq_type") == "8plex") itraq_type = ItraqQuantifier::EIGHTPLEX;
+		}
 		//-------------------------------------------------------------
 		// loading input
 		//-------------------------------------------------------------
@@ -141,7 +143,6 @@ class TOPPITRAQAnalyzer
 			itraq_quant.run(consensus_map_raw, consensus_map_quant);
 		}
 		
-		
 		//-------------------------------------------------------------
 		// writing output 
 		//-------------------------------------------------------------
@@ -154,9 +155,6 @@ class TOPPITRAQAnalyzer
 	}
 
 };
-
-
-
 
 int main( int argc, const char** argv )
 {

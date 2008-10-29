@@ -113,7 +113,7 @@ class TOPPFeatureFinder
 		setValidStrings_("type", Factory<FeatureFinderAlgorithm<Peak1D,Feature> >::registeredProducts());
 		addEmptyLine_();
 		addText_("All other options of the Featurefinder depend on the algorithm type used.\n"
-						 "They are set in the 'algorithm' seciton of the INI file.\n");	
+						 "They are set in the 'algorithm' section of the INI file.\n");	
 
 		registerSubsection_("algorithm","Algorithm section");
 	}
