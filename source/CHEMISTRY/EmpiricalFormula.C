@@ -171,10 +171,16 @@ namespace OpenMS
 	String EmpiricalFormula::getString() const
 	{
 		String formula;
-		Map<const Element*, UInt>::ConstIterator it = formula_.begin();
-		for (; it!=formula_.end(); ++it)
+		Map<String, UInt> new_formula;
+		
+		for (Map<const Element*, UInt>::ConstIterator it = formula_.begin(); it!=formula_.end(); ++it)
 		{
-			formula += it->first->getSymbol() + String(it->second);
+			new_formula[it->first->getSymbol()] = it->second;
+		}
+
+		for (Map<String, UInt>::ConstIterator it = new_formula.begin(); it != new_formula.end(); ++it)
+		{						
+			formula += it->first + String(it->second);
 		}
 		return formula;
 	}
@@ -468,10 +474,15 @@ namespace OpenMS
 	
 	ostream& operator << (ostream& os, const EmpiricalFormula& formula)
 	{
-		Map<const Element*, UInt>::ConstIterator it=formula.formula_.begin();
-		for (;it!=formula.formula_.end();++it)
+		Map<String, UInt> new_formula;
+		for (Map<const Element*, UInt>::ConstIterator it = formula.formula_.begin(); it != formula.formula_.end(); ++it)
 		{
-			os << it->first->getSymbol();
+			new_formula[it->first->getSymbol()] = it->second;
+		}
+
+		for (Map<String, UInt>::ConstIterator it = new_formula.begin(); it != new_formula.end(); ++it)
+		{
+			os << it->first;
 			if (it->second > 1)
 			{
 				os << it->second;

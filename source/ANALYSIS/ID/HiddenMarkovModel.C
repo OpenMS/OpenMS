@@ -688,6 +688,9 @@ namespace OpenMS
 
 	void HiddenMarkovModel::setTrainingEmissionProbability(const String& state, double prob)
 	{
+#ifdef SIMPLE_DEBUG2
+		cerr << "setTrainingEmissionProbability(" << state << "(" << name_to_state_[state] << "), " << prob << ")" << endl;
+#endif
 		train_emission_prob_[name_to_state_[state]] = prob;
 	}
 
@@ -796,6 +799,7 @@ namespace OpenMS
 						rsd += abs(all_trans[i] - avg);
 					}
 					cout << "rsd=" << rsd / double(all_trans.size()) / avg;
+					cout << ", avg=" << avg;
 				}
 				
 				cout << endl;

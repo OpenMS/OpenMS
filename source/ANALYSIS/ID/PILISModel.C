@@ -136,16 +136,19 @@ namespace OpenMS
 		hmm_ = model;
 	}
 
-	void PILISModel::init()
+	void PILISModel::init(bool generate_models)
 	{
-		PILISModelGenerator gen;
-		Param gen_param(gen.getParameters());
-		gen_param.setValue("variable_modifications", (StringList)param_.getValue("variable_modifications"));
-		gen_param.setValue("fixed_modifications", (StringList)param_.getValue("fixed_modifications"));
-		gen_param.setValue("model_depth", (UInt)param_.getValue("model_depth"));
-		gen_param.setValue("visible_model_depth", (UInt)param_.getValue("visible_model_depth"));
-		gen.setParameters(gen_param);
-		gen.getModel(hmm_);
+		if (generate_models)
+		{
+			PILISModelGenerator gen;
+			Param gen_param(gen.getParameters());
+			gen_param.setValue("variable_modifications", (StringList)param_.getValue("variable_modifications"));
+			gen_param.setValue("fixed_modifications", (StringList)param_.getValue("fixed_modifications"));
+			gen_param.setValue("model_depth", (UInt)param_.getValue("model_depth"));
+			gen_param.setValue("visible_model_depth", (UInt)param_.getValue("visible_model_depth"));
+			gen.setParameters(gen_param);
+			gen.getModel(hmm_);
+		}
 
 
 		Param pre_param(precursor_model_cr_.getParameters());
@@ -157,40 +160,51 @@ namespace OpenMS
 		pre_param.setValue("ion_name", "p");
 		precursor_model_cr_.setParameters(pre_param);
 		precursor_model_cd_.setParameters(pre_param);
-		
-		precursor_model_cr_.generateModel();
-		precursor_model_cd_.generateModel();
-		
+	
+		if (generate_models)
+		{
+			precursor_model_cr_.generateModel();
+			precursor_model_cd_.generateModel();
+		}
 
 		pre_param.setValue("C_term_H2O_loss", "false");
+		pre_param.setValue("enable_double_losses", "false");
 		pre_param.setValue("ion_name", "b");
 		b_ion_losses_.setParameters(pre_param);
-		b_ion_losses_.generateModel();
+
+		if (generate_models)
+		{
+			b_ion_losses_.generateModel();
+		}
 
 		pre_param.setValue("C_term_H2O_loss", "true");
 		pre_param.setValue("ion_name", "y");
 		y_ion_losses_.setParameters(pre_param);
 		y_ion_losses_.generateModel();
 
-		valid_ = true;
+		if (generate_models)
+		{
+			valid_ = true;
+		}
 	}
 				
 	
 	void PILISModel::readFromFile(const String& filename)
 	{
 		// read the model
-		String new_filename = File::find(filename);
-    if (!File::readable(new_filename))
+    if (!File::readable(filename))
     {
-     	throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, new_filename);
+     	throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
-    if (File::empty(new_filename))
+    if (File::empty(filename))
     {
-     	throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, new_filename);
+     	throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
 
+		init(false);
+		
 		TextFile file;
-		file.load(new_filename, true);
+		file.load(filename, true);
 
 		TextFile::Iterator it_begin(file.begin()), it_end(file.begin());
 		it_begin = file.search(it_begin, "BASE_MODEL_BEGIN");
@@ -1100,7 +1114,7 @@ namespace OpenMS
 
 		// clear peaks from last spectrum
 		peaks_.clear();
-
+		
 		//stringstream peptide_ss;
 		//peptide_ss << peptide;
 		//hmm_.writeGraphMLFile(String("model_graph_train_"+peptide_ss.str()+"_"+String(charge)+".graphml").c_str());
@@ -1111,18 +1125,22 @@ namespace OpenMS
 		double prefix_sum(0), suffix_sum(0);
 		for (UInt i = 0; i != prefixes.size(); ++i)
 		{
-			Map<String, double> prefix_loss;
 			double prefix_int1 = tmp[hmm_.getState(prefix_names1[i])];
+			//cerr << prefix_names1[i] << " " << prefix_int1 << endl;
 			prefix_ints1.push_back(prefix_int1);
+			
 			double prefix_int2 = tmp[hmm_.getState(prefix_names2[i])];
+			//cerr << prefix_names2[i] << " " << prefix_int2 << endl;
 			prefix_sum = prefix_int1 + prefix_int2;
 			//cerr << "prefix loss ints, "<< prefix_names1[i] << " "  << prefix_int1 << " " << prefix_int2 << endl;
 			prefix_ints2.push_back(prefix_int2);
 
-			Map<String, double> suffix_loss;
 			double suffix_int1 = tmp[hmm_.getState(suffix_names1[i])];
+			//cerr << suffix_names1[i] << " " << suffix_int1 << endl;
 			suffix_ints1.push_back(suffix_int1);
+			
 			double suffix_int2 = tmp[hmm_.getState(suffix_names2[i])];
+			//cerr << suffix_names2[i] << " " << suffix_int2 << endl;
 			suffix_sum = suffix_int1 + suffix_int2;
 			suffix_ints2.push_back(suffix_int2);
 			//cerr << "suffix loss ints, " << suffix_names1[i] << " "  << suffix_int1 << " " <<  suffix_int2 << endl;
@@ -1138,13 +1156,14 @@ namespace OpenMS
 	
 		// register name
 		RichPeak1D p;
-		p.metaRegistry().registerName("IonName", "Name of the ion");
+		//p.metaRegistry().registerName("IonName", "Name of the ion");
 		
 		for (UInt i = 0; i != prefixes.size(); ++i)
 		{
 			// prefix
 			double weight = prefixes[i].getMonoWeight(Residue::BIon);
-			id.estimateFromPeptideWeight(weight);
+			//id.estimateFromPeptideWeight(weight);
+			id = prefixes[i].getFormula(Residue::BIon).getIsotopeDistribution(2);
 			
 			// first isotope peak
 			//addPeaks_(weight, 1, 0.0, prefix_ints1[i], spec, id, "b"+String(i+1) + "+");
@@ -1201,7 +1220,8 @@ namespace OpenMS
 
 			// suffix ions
 			weight = suffixes[i].getMonoWeight(Residue::YIon);
-      id.estimateFromPeptideWeight(weight);
+      //id.estimateFromPeptideWeight(weight);
+			id = suffixes[i].getFormula(Residue::YIon).getIsotopeDistribution(2);
 			//addPeaks_(weight, 1, 0.0, suffix_ints1[i], spec, id, suffix_names1[i]);
 			// neutral losses
       vector<RichPeak1D> y_loss_peaks;
@@ -1257,14 +1277,14 @@ namespace OpenMS
 
 		// precursor intensities
 		vector<RichPeak1D> pre_peaks;
-		//cerr << "getSpectrum: bb_sum=" << bb_sum << endl;
+		cerr << peptide << " ->getSpectrum: bb_sum=" << bb_sum << ", charge_remote=" << is_charge_remote<< endl;
 		if (/*(*/is_charge_remote/* && charge < 3 && !(peptide.has("D") && charge == 2)) || peptide[0].getOneLetterCode() == "Q"*/)
 		{
 			precursor_model_cr_.getIons(pre_peaks, peptide, bb_sum);
 		}
 		else
 		{
-			precursor_model_cd_.getIons(pre_peaks, peptide, min(1.0, 1.0 - bb_sum));
+			precursor_model_cd_.getIons(pre_peaks, peptide, max(0.0, 1.0 - bb_sum));
 		}
 		
 		double weight = peptide.getMonoWeight();
@@ -1310,11 +1330,13 @@ namespace OpenMS
 
 		spec.sortByPosition();
 
+		
 		double min_y_int((double)param_.getValue("min_y_ion_intensity"));
 		double min_b_int((double)param_.getValue("min_b_ion_intensity"));
-		double min_a_int((double)param_.getValue("min_a_ion_intensity"));
-		double min_y_loss_int((double)param_.getValue("min_y_loss_intensity"));
-		double min_b_loss_int((double)param_.getValue("min_b_loss_intensity"));
+		//double min_a_int((double)param_.getValue("min_a_ion_intensity"));
+		//double min_y_loss_int((double)param_.getValue("min_y_loss_intensity"));
+		//double min_b_loss_int((double)param_.getValue("min_b_loss_intensity"));
+		
 
 		// TODO switch to enable disable default
 		// TODO consider ++ ions
@@ -1322,12 +1344,12 @@ namespace OpenMS
 		{
 			it->setIntensity(it->getIntensity() / intensity_max);
 
-			/*
 			String ion_name(it->getMetaValue("IonName"));
 			if (ion_name != "")
 			{
 				if (ion_name.hasSubstring("y") && (charge > 2 || !ion_name.hasSubstring("++")))
 				{
+								/*
 					if (ion_name.hasSubstring("H2O") || ion_name.hasSubstring("NH3"))
 					{
 						if (it->getIntensity() < min_y_loss_int)
@@ -1336,16 +1358,17 @@ namespace OpenMS
 						}
 					}
 					else
-					{
+					{*/
 						if (it->getIntensity() < min_y_int)
 						{
 							it->setIntensity(min_y_int);
 						}
-					}
+					//}
 				}
 
 				if (ion_name.hasSubstring("b") && (charge > 2 || !ion_name.hasSubstring("++")))
         {
+								/*
           if (ion_name.hasSubstring("H2O") || ion_name.hasSubstring("NH3"))
           {
 						if (it->getIntensity() < min_b_loss_int)
@@ -1354,23 +1377,23 @@ namespace OpenMS
 						}
           }
           else
-          {
+          {*/
 						if (it->getIntensity() < min_b_int)
 						{
 	            it->setIntensity(min_b_int);
 						}
-          }
+          //}
         }
-
+/*
 				if (ion_name.hasSubstring("a") && (charge > 2 || !ion_name.hasSubstring("++")))
 				{
 					if (it->getIntensity() < min_a_int)
 					{
 						it->setIntensity(min_a_int);
 					}
-				}
+				}*/
 			}
-			*/
+			
 		}
 
 		return;

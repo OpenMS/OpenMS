@@ -101,7 +101,7 @@ namespace OpenMS
 
 
 			// 
-			void init();
+			void init(bool generate_models = true);
 			
 			/// greedy specturm aligner, should be replaced by a better algorithm
 			//void getSpectrumAlignment(Map<UInt, UInt>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2);
