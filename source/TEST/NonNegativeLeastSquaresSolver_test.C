@@ -63,11 +63,11 @@ CHECK((static Int solve(const Matrix< double > &A, const Matrix< double > &b, Ma
 			{5, 1 , 9, 20},
 		};
 	double b_1[3][1] = {{4},{7},{4}};
-	double x_1[3][1] = {{0.931153},{0.36833},{0}};
+	double x_1[4][1] = {{0.931153},{0.36833},{0},{0}};
 
 	Matrix<double> A,b,x;
-	A.setMatrix<4,4>(A_1);
-	b.setMatrix<4,1>(b_1);
+	A.setMatrix<3,4>(A_1);
+	b.setMatrix<3,1>(b_1);
 	x.resize(4,1);
 	
 	PRECISION(0.0005);
