@@ -79,11 +79,25 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_STRING_EQUAL(exp.getContacts()[0].getFirstName(),"William")
 	TEST_STRING_EQUAL(exp.getContacts()[0].getLastName(),"Pennington")
 	TEST_STRING_EQUAL(exp.getContacts()[0].getEmail(),"wpennington@higglesworth.edu")
+	TEST_STRING_EQUAL(exp.getContacts()[0].getURL(),"http://www.higglesworth.edu/")
+	TEST_STRING_EQUAL(exp.getContacts()[0].getAddress(),"Higglesworth University, 12 Higglesworth Avenue, 12045, HI, USA")
+	TEST_STRING_EQUAL(exp.getContacts()[1].getFirstName(),"")
 	TEST_STRING_EQUAL(exp.getContacts()[1].getLastName(),"Drek'Thar")
+	TEST_STRING_EQUAL(exp.getContacts()[1].getEmail(),"")
+	TEST_STRING_EQUAL(exp.getContacts()[1].getURL(),"")
+	TEST_STRING_EQUAL(exp.getContacts()[1].getAddress(),"")
 	//source files
-	TEST_STRING_EQUAL(exp.getSourceFile().getNameOfFile(),"tiny1.RAW")
-	TEST_STRING_EQUAL(exp.getSourceFile().getPathToFile(),"file:///F:/data/Exp01")
-	TEST_STRING_EQUAL(exp.getSourceFile().getSha1(),"71be39fb2700ab2f3c8b2234b91274968b6899b1")
+	TEST_EQUAL(exp.getSourceFiles().size(),2);
+	TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNameOfFile(),"tiny1.RAW")
+	TEST_STRING_EQUAL(exp.getSourceFiles()[0].getPathToFile(),"file:///F:/data/Exp01")
+	TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(),"71be39fb2700ab2f3c8b2234b91274968b6899b1")
+	TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(),SourceFile::SHA1)
+	TEST_STRING_EQUAL(exp.getSourceFiles()[0].getFileType(),"Xcalibur RAW")
+	TEST_STRING_EQUAL(exp.getSourceFiles()[1].getNameOfFile(),"tiny2.RAW")
+	TEST_STRING_EQUAL(exp.getSourceFiles()[1].getPathToFile(),"file:///F:/data/Exp02")
+	TEST_STRING_EQUAL(exp.getSourceFiles()[1].getChecksum(),"71be39fb2700ab2f3c8b2234b91274968b6899b2")
+	TEST_EQUAL(exp.getSourceFiles()[1].getChecksumType(),SourceFile::MD5)
+	TEST_STRING_EQUAL(exp.getSourceFiles()[1].getFileType(),"pkl")
 	//sample
 	TEST_STRING_EQUAL(exp.getSample().getName(),"Sample1")
 	TEST_REAL_EQUAL(exp.getSample().getMass(),11.7)
@@ -110,23 +124,20 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	//processing
 	TEST_EQUAL(exp.getDataProcessing().size(),2)
 	
-	TEST_EQUAL(exp.getDataProcessing()[0].getSoftware().getName(),"ProteoWizard")
-	TEST_EQUAL(exp.getDataProcessing()[0].getSoftware().getVersion(),"1.0")
-	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().size(),1)
-	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().count(DataProcessing::CONVERSION_MZML),1)
-	TEST_EQUAL(exp.getDataProcessing()[0].isMetaEmpty(),true)
+	TEST_EQUAL(exp.getDataProcessing()[1].getSoftware().getName(),"ProteoWizard")
+	TEST_EQUAL(exp.getDataProcessing()[1].getSoftware().getVersion(),"1.0")
+	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().size(),1)
+	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().count(DataProcessing::CONVERSION_MZML),1)
+	TEST_EQUAL(exp.getDataProcessing()[1].isMetaEmpty(),true)
 	
-	TEST_EQUAL(exp.getDataProcessing()[1].getSoftware().getName(),"Xcalibur")
-	TEST_EQUAL(exp.getDataProcessing()[1].getSoftware().getVersion(),"2.0.5")
-	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().size(),3)
-	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
-	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION),1)
-	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().count(DataProcessing::LOW_INTENSITY_REMOVAL),1)
-	TEST_REAL_EQUAL(DoubleReal(exp.getDataProcessing()[1].getMetaValue("#intensity_cutoff")),5.9)
-	TEST_REAL_EQUAL(DoubleReal(exp.getDataProcessing()[1].getMetaValue("#intensity_cutoff")),5.9)
-	TEST_EQUAL(exp.getDataProcessing()[1].isMetaEmpty(),false)
-	TEST_STRING_EQUAL(exp.getDataProcessing()[1].getMetaValue("p1").toString(),"value1")
-	TEST_STRING_EQUAL(exp.getDataProcessing()[1].getMetaValue("p2").toString(),"value2")
+	TEST_EQUAL(exp.getDataProcessing()[0].getSoftware().getName(),"Xcalibur")
+	TEST_EQUAL(exp.getDataProcessing()[0].getSoftware().getVersion(),"2.0.5")
+	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().size(),3)
+	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
+	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION),1)
+	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().count(DataProcessing::LOW_INTENSITY_REMOVAL),1)
+	TEST_REAL_EQUAL(DoubleReal(exp.getDataProcessing()[0].getMetaValue("#intensity_cutoff")),5.9)
+	TEST_EQUAL(exp.getDataProcessing()[0].isMetaEmpty(),false)
 
 	//-------------------------- spectrum 0 --------------------------
 	{
@@ -207,7 +218,8 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 		TEST_EQUAL(spec.getAcquisitionInfo().size(),0)
 		TEST_STRING_EQUAL(spec.getSourceFile().getNameOfFile(),"tiny1.dta")
 		TEST_STRING_EQUAL(spec.getSourceFile().getPathToFile(),"file:///F:/data/Exp01")
-		TEST_STRING_EQUAL(spec.getSourceFile().getSha1(),"81be39fb2700ab2f3c8b2234b91274968b6899b1")
+		TEST_STRING_EQUAL(spec.getSourceFile().getChecksum(),"81be39fb2700ab2f3c8b2234b91274968b6899b1")
+		TEST_EQUAL(spec.getSourceFile().getChecksumType(),SourceFile::SHA1)
 	}
 	
 	//-------------------------- userParam --------------------------
@@ -244,10 +256,19 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_STRING_EQUAL((String)exp[0].getInstrumentSettings().getMetaValue("name"),"scan1")
 	TEST_STRING_EQUAL((String)exp[1].getInstrumentSettings().getMetaValue("name"),"scan2")
 	TEST_STRING_EQUAL((String)exp[2].getInstrumentSettings().getMetaValue("name"),"")
+	//acquisition list
+	TEST_STRING_EQUAL((String)exp[0].getAcquisitionInfo().getMetaValue("name"),"acquisition_list")	
 	//acquisition
 	TEST_STRING_EQUAL((String)exp[0].getAcquisitionInfo()[0].getMetaValue("name"),"acquisition1")
 	TEST_STRING_EQUAL((String)exp[0].getAcquisitionInfo()[1].getMetaValue("name"),"acquisition2")
-	
+	//source file
+	TEST_STRING_EQUAL((String)exp.getSourceFiles()[0].getMetaValue("name"),"sourcefile1")
+	TEST_STRING_EQUAL((String)exp.getSourceFiles()[1].getMetaValue("name"),"sourcefile2")
+	TEST_STRING_EQUAL((String)exp[2].getSourceFile().getMetaValue("name"),"sourcefile4")
+	//data processing
+	TEST_STRING_EQUAL(exp.getDataProcessing()[0].getMetaValue("p1").toString(),"value1")
+	TEST_STRING_EQUAL(exp.getDataProcessing()[0].getMetaValue("p2").toString(),"value2")
+
 	/////////////////////// TESTING SPECIAL CASES ///////////////////////
 	
 	//load a second time to make sure everything is re-initialized correctly
@@ -255,9 +276,9 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	file.load("data/MzMLFile_1.mzML",exp2);
 	TEST_EQUAL(exp==exp2,true)
 	
-	//load minimum file to see if that works
+	//load minimal file to see if that works
 	MSExperiment<> exp3;
-	file.load("data/MzMLFile_2_minimum.mzML",exp3);
+	file.load("data/MzMLFile_2_minimal.mzML",exp3);
 	TEST_EQUAL(exp3.size(),0)
 RESULT
 
@@ -273,7 +294,7 @@ RESULT
 CHECK([EXTRA] bool isValid(const String& filename))
 	MzMLFile file;
 	TEST_EQUAL(file.isValid("data/MzMLFile_1.mzML"),true)
-	TEST_EQUAL(file.isValid("data/MzMLFile_2_minimum.mzML"),true)
+	TEST_EQUAL(file.isValid("data/MzMLFile_2_minimal.mzML"),true)
 RESULT
 
 

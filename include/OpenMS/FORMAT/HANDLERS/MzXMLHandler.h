@@ -258,9 +258,11 @@ namespace OpenMS
 			}
 			else if (tag=="parentFile")
 			{
-				exp_->getSourceFile().setNameOfFile(attributeAsString_(attributes, s_filename));
-				exp_->getSourceFile().setFileType(attributeAsString_(attributes, s_filetype));
-				exp_->getSourceFile().setSha1(attributeAsString_(attributes, s_filesha1));					
+				SourceFile sf;
+				sf.setNameOfFile(attributeAsString_(attributes, s_filename));
+				sf.setFileType(attributeAsString_(attributes, s_filetype));
+				sf.setChecksum(attributeAsString_(attributes, s_filesha1), SourceFile::SHA1);		
+				exp_->getSourceFiles().push_back(sf);			
 			}
 			else if (tag=="software")
 			{
@@ -431,25 +433,17 @@ namespace OpenMS
 				String tmp = "";
 				optionalAttributeAsString_(tmp, attributes,s_email);
 				exp_->getContacts().back().setEmail(tmp);
-				
-				//TODO all other info has to go into misc info field
-				String contact_info;
+
 				tmp = "";
 				optionalAttributeAsString_(tmp, attributes,s_phone);
 				if (tmp != "") 
 				{
-					contact_info = "PHONE: " + tmp;
+					exp_->getContacts().back().setMetaValue("#phone", tmp);
 				}
+				
 				tmp = "";
 				optionalAttributeAsString_(tmp, attributes,s_uri);
-				if (tmp != "") 
-				{
-					contact_info += String(contact_info == "" ? "" : " ") + "URI: " + tmp;
-				}
-				if (contact_info != "")
-				{
-					exp_->getContacts().back().setContactInfo(contact_info);
-				}
+				exp_->getContacts().back().setURL(tmp);
 			}
 			else if (tag=="msManufacturer")
 			{
@@ -687,32 +681,46 @@ namespace OpenMS
 				 << "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
 				 << "xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/mzXML_2.1 "
 				 << "http://sashimi.sourceforge.net/schema_revision/mzXML_2.1/mzXML_idx_2.1.xsd\">\n"
-				 << "\t<msRun scanCount=\"" << count_tmp_ << "\">\n"
-				 << "\t\t<parentFile fileName=\"" << cexp_->getSourceFile().getNameOfFile()
-				 //file type is an enum in mzXML => search for 'raw' string
-				 << "\" fileType=\"";
-				 String tmp_string = cexp_->getSourceFile().getFileType();
-				 tmp_string.toLower();
-				 if (tmp_string.hasSubstring("raw"))
-				 {
-				 	os << "RAWData";
-				 }
-				 else
-				 {
-				 	os << "processedData";
-				 }
-				 //Sha1 checksum must have 40 characters => create a fake if it is unknown
-				 os << "\" fileSha1=\"";
-				 tmp_string = cexp_->getSourceFile().getSha1();
-				 if (cexp_->getSourceFile().getSha1().size()!=40)
-				 {
-				 	 os << "0000000000000000000000000000000000000000";
-				 }
-				 else
-				 {
-				   os << cexp_->getSourceFile().getSha1();
-				 }
-				 os  << "\"/>\n";
+				 << "\t<msRun scanCount=\"" << count_tmp_ << "\">\n";
+			
+			//----------------------------------------------------------------------------------------
+			// parent files
+			//----------------------------------------------------------------------------------------
+			if (cexp_->getSourceFiles().size()==0)
+			{
+					os << "\t\t<parentFile fileName=\"\" fileType=\"processedData\" fileSha1=\"0000000000000000000000000000000000000000\"/>\n";
+			}
+			else 
+			{
+				for (UInt i=0; i< cexp_->getSourceFiles().size(); ++i)
+				{
+					const SourceFile& sf = cexp_->getSourceFiles()[i];
+					os << "\t\t<parentFile fileName=\"" << sf.getNameOfFile() << "\" fileType=\"";
+					//file type is an enum in mzXML => search for 'raw' string
+					String tmp_string = sf.getFileType();
+					tmp_string.toLower();
+					if (tmp_string.hasSubstring("raw"))
+					{
+						os << "RAWData";
+					}
+					else
+					{
+						os << "processedData";
+					}
+					//Sha1 checksum must have 40 characters => create a fake if it is unknown
+					os << "\" fileSha1=\"";
+					tmp_string = sf.getChecksum();
+					if (sf.getChecksum().size()!=40)
+					{
+						os << "0000000000000000000000000000000000000000";
+					}
+					else
+					{
+						os << sf.getChecksum();
+					}
+					os  << "\"/>\n";
+				}
+			}
 
 			//----------------------------------------------------------------------------------------
 			//instrument
@@ -783,29 +791,24 @@ namespace OpenMS
 				{
 					const ContactPerson& cont = cexp_->getContacts()[0];
 					
-					os << "\t\t\t<operator first=\"" << cont.getFirstName() << "\" last=\"" << cont.getLastName();
-					
-					String info = cont.getContactInfo();
-					std::string::size_type phone = info.find("PHONE:");
-					std::string::size_type uri = info.find("URI:");
-					if (phone != std::string::npos)
-					{
-						UInt end = uri != std::string::npos ? uri : info.size();
-						os << "\" phone=\"" << info.substr(phone + 6, end - phone + 6);
-					}
+					os << "\t\t\t<operator first=\"" << cont.getFirstName() << "\" last=\"" << cont.getLastName() <<  "\"" ;
 					
 					if (cont.getEmail() != "")
 					{
-						os << "\" email=\"" << cont.getEmail();
+						os << " email=\"" << cont.getEmail() << "\"";
 					}
 					
-					if (uri != std::string::npos)
+					if (cont.getURL() != "")
 					{
-						UInt uri = info.find("URI:");
-						os << "\" URI=\"" << info.substr(uri+4).trim();
+						os << " URI=\"" << cont.getURL() << "\"";
 					}
 					
-					os << "\"/>\n";
+					if (cont.metaValueExists("#phone"))
+					{
+						os << " phone=\"" << (String)(cont.getMetaValue("#phone")) << "\"";
+					}
+					
+					os << "/>\n";
 				}
 				writeUserParam_(os,inst,3);
 				try

@@ -68,11 +68,13 @@ namespace OpenMS
 					
 			///@name Edit fields and buttons
 	    //@{
-			QLineEdit* cp_firstname_;
-			QLineEdit* cp_lastname_;
-			QLineEdit* cp_institution_;
-			QLineEdit* cp_email_;
-			QLineEdit* cp_contact_info_;
+			QLineEdit* firstname_;
+			QLineEdit* lastname_;
+			QLineEdit* institution_;
+			QLineEdit* email_;
+			QLineEdit* contact_info_;
+			QLineEdit* address_;
+			QLineEdit* url_;
 			//@}
 			
 			//Docu in base class

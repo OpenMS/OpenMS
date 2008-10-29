@@ -32,7 +32,14 @@ namespace OpenMS
 {
 
 	ContactPerson::ContactPerson():
-		MetaInfoInterface()
+		MetaInfoInterface(),
+	  first_name_(),
+	  last_name_(),
+	  institution_(),
+	  email_(),
+	  contact_info_(),
+	  url_(),
+	  address_()
 	{
 	  
 	}
@@ -43,7 +50,9 @@ namespace OpenMS
 	  last_name_(source.last_name_),
 	  institution_(source.institution_),
 	  email_(source.email_),
-	  contact_info_(source.contact_info_)
+	  contact_info_(source.contact_info_),
+	  url_(source.url_),
+	  address_(source.address_)
 	{
 	  
 	}
@@ -62,6 +71,8 @@ namespace OpenMS
     institution_ = source.institution_;
     email_ = source.email_;
     contact_info_ = source.contact_info_;
+    url_ = source.url_;
+    address_ = source.address_;
     MetaInfoInterface::operator=(source);
 	  
 	  return *this;
@@ -75,6 +86,8 @@ namespace OpenMS
 	    institution_ == rhs.institution_ &&
 	    email_ == rhs.email_ &&
 	    contact_info_ == rhs.contact_info_ &&
+	    url_ == rhs.url_ &&
+	    address_ == rhs.address_ &&
   		MetaInfoInterface::operator==(rhs)
   		;
   }
@@ -154,6 +167,26 @@ namespace OpenMS
 	void ContactPerson::setContactInfo(const String& contact_info)
 	{
 	  contact_info_ = contact_info; 
+	}
+
+	const String& ContactPerson::getURL() const 
+	{
+	  return url_; 
+	}
+	
+	void ContactPerson::setURL(const String& url)
+	{
+	  url_ = url; 
+	}
+	
+	const String& ContactPerson::getAddress() const 
+	{
+	  return address_; 
+	}
+	
+	void ContactPerson::setAddress(const String& address)
+	{
+	  address_ = address; 
 	}
 
 }

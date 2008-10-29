@@ -32,40 +32,46 @@ using namespace std;
 
 namespace OpenMS
 {
-	SourceFile::SourceFile():
-	  name_of_file_(),
-	  path_to_file_(),
-		file_size_(),
-	  file_type_(),
-	  sha1_()
+	const std::string SourceFile::NamesOfChecksumType[] = {"Unknown","SHA-1","MD5"};
+
+	SourceFile::SourceFile()
+		: MetaInfoInterface(),
+		  name_of_file_(),
+		  path_to_file_(),
+			file_size_(),
+		  file_type_(),
+		  checksum_(),
+		  checksum_type_()
 	{
 	  
 	}
 	
-	SourceFile::SourceFile(const SourceFile& source):
-	  name_of_file_(source.name_of_file_),
-	  path_to_file_(source.path_to_file_),
-		file_size_(source.file_size_),
-	  file_type_(source.file_type_),
-	  sha1_(source.sha1_)
+	SourceFile::SourceFile(const SourceFile& source)
+		: MetaInfoInterface(source),
+		  name_of_file_(source.name_of_file_),
+		  path_to_file_(source.path_to_file_),
+			file_size_(source.file_size_),
+		  file_type_(source.file_type_),
+		  checksum_(source.checksum_),
+		  checksum_type_(source.checksum_type_)
 	{
-	  
 	}
 	
 	SourceFile::~SourceFile()
 	{
-	  
 	}
 	
 	SourceFile& SourceFile::operator = (const SourceFile& source)
 	{
 	  if (&source == this) return *this;
 	  
+	  MetaInfoInterface::operator=(source);
 	  name_of_file_ = source.name_of_file_;
 	  path_to_file_ = source.path_to_file_;
 	  file_size_ = source.file_size_;
 	  file_type_ = source.file_type_;
-	  sha1_ = source.sha1_;
+	  checksum_ = source.checksum_;
+	  checksum_type_ = source.checksum_type_;
 	  
 	  return *this;
 	}
@@ -73,11 +79,13 @@ namespace OpenMS
 	bool SourceFile::operator== (const SourceFile& rhs) const
 	{
 		return 
+	  	MetaInfoInterface::operator==(rhs) &&
 	    name_of_file_ == rhs.name_of_file_ &&
 	    path_to_file_ == rhs.path_to_file_ &&
 		  file_size_ == rhs.file_size_ &&
 	    file_type_ == rhs.file_type_ &&
-	    sha1_ == rhs.sha1_
+	    checksum_ == rhs.checksum_ &&
+	  	checksum_type_ == rhs.checksum_type_;
 			;
 	}
 	
@@ -127,26 +135,21 @@ namespace OpenMS
 	  file_type_ = file_type; 
 	}
 	
-	const String& SourceFile::getSha1() const
+	const String& SourceFile::getChecksum() const
 	{
-		return sha1_;
+		return checksum_;
+	}
+
+	SourceFile::ChecksumType SourceFile::getChecksumType() const
+	{
+		return checksum_type_;
 	}
 	
-	void SourceFile::setSha1(const String& sha1)
+	void SourceFile::setChecksum(const String& checksum, ChecksumType type)
 	{
-		sha1_ = sha1;
+		checksum_ = checksum;
+		checksum_type_ = type;
 	}
 	
-	bool SourceFile::isFileEmpty() const
-	{
-    return
-    (
-    	name_of_file_.size() == 0 &&
-    	path_to_file_.size() == 0 &&
-    	file_size_ == 0 &&
-    	sha1_ == "" &&
-    	file_type_ == ""
-    );
-	}
 }
 

@@ -48,7 +48,9 @@ namespace OpenMS
   	@brief A class for accessing and storing data in a SQL database
   	
     It can be used to create objects from the DB or store them in the DB.
-   
+		
+		@todo Check if METADATA implementation is complete - especially DataProcessing, AcquisitionInfo, SourceFile, ContactPerson (HiWi)
+		
     @ingroup DatabaseIO
   */
  

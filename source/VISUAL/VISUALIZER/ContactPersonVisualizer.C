@@ -42,38 +42,35 @@ namespace OpenMS
 	  
 		addLabel_("Modify ContactPerson information");		
 		addSeparator_();
-		addLineEdit_(cp_firstname_, "First name" );
-		addLineEdit_(cp_lastname_, "Last name" );
-		addLineEdit_(cp_institution_, "Institution" );
-		addLineEdit_(cp_email_, "Email" );
-		addLineEdit_(cp_contact_info_, "Contact info" );
+		addLineEdit_(firstname_, "First name" );
+		addLineEdit_(lastname_, "Last name" );
+		addLineEdit_(institution_, "Institution" );
+		addLineEdit_(address_, "Address" );
+		addLineEdit_(email_, "Email" );
+		addLineEdit_(url_, "URL" );
+		addLineEdit_(contact_info_, "Contact info" );
 		finishAdding_();
 	}
 	
 	void ContactPersonVisualizer::update_()
 	{
-	  cp_firstname_->setText(temp_.getFirstName().c_str());
-	  cp_lastname_->setText(temp_.getLastName().c_str());
-		cp_institution_->setText(temp_.getInstitution().c_str() );
-	  cp_email_->setText(temp_.getEmail().c_str() );
-		cp_contact_info_->setText(temp_.getContactInfo().c_str() );
-			
-		cp_firstname_->adjustSize();		
-		cp_lastname_->adjustSize();		
-		cp_lastname_->adjustSize();		
-		cp_institution_->adjustSize();		
-		cp_email_->adjustSize();		
-		cp_email_->repaint();	
-		cp_email_->show();
-		cp_contact_info_->adjustSize();		
+	  firstname_->setText(temp_.getFirstName().c_str());
+	  lastname_->setText(temp_.getLastName().c_str());
+		institution_->setText(temp_.getInstitution().c_str() );
+	  email_->setText(temp_.getEmail().c_str() );
+		contact_info_->setText(temp_.getContactInfo().c_str() );
+	  url_->setText(temp_.getURL().c_str() );
+		address_->setText(temp_.getAddress().c_str() );
 	}
 	
 	void ContactPersonVisualizer::store()
 	{
-		ptr_->setLastName(cp_lastname_->text().toStdString());
-		ptr_->setInstitution(cp_institution_->text().toStdString());
-		ptr_->setEmail(cp_email_->text().toStdString());
-		ptr_->setContactInfo(cp_contact_info_->text().toStdString());
+		ptr_->setLastName(lastname_->text().toStdString());
+		ptr_->setInstitution(institution_->text().toStdString());
+		ptr_->setEmail(email_->text().toStdString());
+		ptr_->setContactInfo(contact_info_->text().toStdString());
+		ptr_->setURL(url_->text().toStdString());
+		ptr_->setAddress(address_->text().toStdString());
 		
 		temp_=(*ptr_);
 	}

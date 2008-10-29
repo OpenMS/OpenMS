@@ -361,11 +361,14 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_EQUAL(e.getIdentifier(),"lsid");
   
   //---------------------------------------------------------------------------
-  // const SourceFile& getSourceFile() const;
+  // const vector<SourceFile>& getSourceFiles() const;
   //---------------------------------------------------------------------------
-  TEST_EQUAL(e.getSourceFile().getNameOfFile(), "MzDataFile_test_1.raw");
-  TEST_EQUAL(e.getSourceFile().getPathToFile(), "/share/data/");
-  TEST_EQUAL(e.getSourceFile().getFileType(), "MS");
+  TEST_EQUAL(e.getSourceFiles().size(),1)
+  TEST_STRING_EQUAL(e.getSourceFiles()[0].getNameOfFile(), "MzDataFile_test_1.raw");
+  TEST_STRING_EQUAL(e.getSourceFiles()[0].getPathToFile(), "/share/data/");
+  TEST_STRING_EQUAL(e.getSourceFiles()[0].getFileType(), "MS");
+  TEST_STRING_EQUAL(e.getSourceFiles()[0].getChecksum(), "");
+  TEST_EQUAL(e.getSourceFiles()[0].getChecksumType(), SourceFile::UNKNOWN);
 
   //---------------------------------------------------------------------------
   // const std::vector<ContactPerson>& getContacts() const;
@@ -539,11 +542,14 @@ CHECK(([EXTRA] load with metadata-only flag))
 	TEST_EQUAL(e.size(),0)
 
   //---------------------------------------------------------------------------
-  // const SourceFile& getSourceFile() const;
+  // const vector<SourceFile>& getSourceFiles() const;
   //---------------------------------------------------------------------------
-  TEST_EQUAL(e.getSourceFile().getNameOfFile(), "MzDataFile_test_1.raw");
-  TEST_EQUAL(e.getSourceFile().getPathToFile(), "/share/data/");
-  TEST_EQUAL(e.getSourceFile().getFileType(), "MS");
+  TEST_EQUAL(e.getSourceFiles().size(),1)
+  TEST_STRING_EQUAL(e.getSourceFiles()[0].getNameOfFile(), "MzDataFile_test_1.raw");
+  TEST_STRING_EQUAL(e.getSourceFiles()[0].getPathToFile(), "/share/data/");
+  TEST_STRING_EQUAL(e.getSourceFiles()[0].getFileType(), "MS");
+  TEST_STRING_EQUAL(e.getSourceFiles()[0].getChecksum(), "");
+  TEST_EQUAL(e.getSourceFiles()[0].getChecksumType(), SourceFile::UNKNOWN);
 
   //---------------------------------------------------------------------------
   // const std::vector<ContactPerson>& getContacts() const;
@@ -1028,7 +1034,7 @@ RESULT
 CHECK([EXTRA] loading a minimal file containing one spectrum  - with whitespaces inside the base64 data)
 	MSExperiment<> e;
   MzDataFile f;
-  f.load("data/MzDataFile_test_5.mzData",e);
+  f.load("data/MzDataFile_test_minimal.mzData",e);
   TEST_EQUAL(e.size(),1)
   TEST_EQUAL(e[0].size(),3)
 RESULT

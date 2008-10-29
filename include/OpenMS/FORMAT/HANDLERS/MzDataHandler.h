@@ -400,24 +400,7 @@ namespace OpenMS
 			}
 			else if (current_tag=="name" && parent_tag=="contact")
 			{
-				std::vector<String> tmp;
-				if (String(sm_.convert(chars)).split(',',tmp))
-				{
-					exp_->getContacts().back().setFirstName(tmp[1]);
-					exp_->getContacts().back().setLastName(tmp[0]);
-				}
-				else
-				{
-					if (String(sm_.convert(chars)).split(' ',tmp))
-					{
-						exp_->getContacts().back().setFirstName(tmp[0]);
-						exp_->getContacts().back().setLastName(tmp[1]);
-					}
-					else
-					{
-						exp_->getContacts().back().setLastName(sm_.convert(chars));
-					}
-				}
+				exp_->getContacts().back().setName(sm_.convert(chars));
 			}
 			else if (current_tag=="name" && parent_tag=="software")
 			{
@@ -442,7 +425,7 @@ namespace OpenMS
 			}
 			else if (current_tag=="nameOfFile" && parent_tag == "sourceFile")
 			{
-				exp_->getSourceFile().setNameOfFile( sm_.convert(chars) );
+				exp_->getSourceFiles().back().setNameOfFile( sm_.convert(chars) );
 			}
 			else if (current_tag == "nameOfFile" && parent_tag == "supSourceFile")
 			{
@@ -450,7 +433,7 @@ namespace OpenMS
 			}
 			else if (current_tag=="pathToFile" && parent_tag == "sourceFile")
 			{
-				exp_->getSourceFile().setPathToFile( sm_.convert(chars) );
+				exp_->getSourceFiles().back().setPathToFile( sm_.convert(chars) );
 			}
 			else if (current_tag == "pathToFile" && parent_tag == "supSourceFile")
 			{
@@ -458,7 +441,7 @@ namespace OpenMS
 			}
 			else if (current_tag=="fileType" && parent_tag == "sourceFile")
 			{
-				exp_->getSourceFile().setFileType( sm_.convert(chars) );
+				exp_->getSourceFiles().back().setFileType( sm_.convert(chars) );
 			}
 			else if (current_tag == "fileType" && parent_tag == "supSourceFile")
 			{
@@ -509,6 +492,10 @@ namespace OpenMS
 
 
 			// Do something depending on the tag
+			if (tag=="sourceFile")
+			{
+				exp_->getSourceFiles().push_back(SourceFile());
+			}
 			if (tag=="contact")
 			{
 				exp_->getContacts().resize(exp_->getContacts().size()+1);
@@ -864,14 +851,18 @@ namespace OpenMS
 				os << "\t\t\t</sampleDescription>\n";
 			}
 
-			if (cexp_->getSourceFile().getNameOfFile()!="")
+			if (cexp_->getSourceFiles().size()>=1)
 			{
 				os << "\t\t\t<sourceFile>\n"
-					 << "\t\t\t\t<nameOfFile>" << cexp_->getSourceFile().getNameOfFile() << "</nameOfFile>\n"
-					 << "\t\t\t\t<pathToFile>" << cexp_->getSourceFile().getPathToFile() << "</pathToFile>\n";
-				if (cexp_->getSourceFile().getFileType()!="")
-					os << "\t\t\t\t<fileType>" << cexp_->getSourceFile().getFileType() << "</fileType>\n";
+					 << "\t\t\t\t<nameOfFile>" << cexp_->getSourceFiles()[0].getNameOfFile() << "</nameOfFile>\n"
+					 << "\t\t\t\t<pathToFile>" << cexp_->getSourceFiles()[0].getPathToFile() << "</pathToFile>\n";
+				if (cexp_->getSourceFiles()[0].getFileType()!="")
+					os << "\t\t\t\t<fileType>" << cexp_->getSourceFiles()[0].getFileType() << "</fileType>\n";
 				os << "\t\t\t</sourceFile>\n";
+			}
+			else if (cexp_->getSourceFiles().size()>1)
+			{
+				warning("Warning: The MzData format can store only one sourceFile instance. Only the first one is stored. The remaining instances are lost!");
 			}
 
 			for (UInt i=0; i < cexp_->getContacts().size(); ++i)

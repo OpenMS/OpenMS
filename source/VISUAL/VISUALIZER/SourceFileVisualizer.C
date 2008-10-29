@@ -27,6 +27,7 @@
 #include <OpenMS/VISUAL/VISUALIZER/SourceFileVisualizer.h>
 
 #include <QtGui/QLineEdit>
+#include <QtGui/QComboBox>
 
 #include <iostream>
 
@@ -45,7 +46,8 @@ namespace OpenMS
 		addLineEdit_(path_to_file_, "Path to file" );
 		addLineEdit_(file_size_, "File size (in MB)" );
 		addLineEdit_(file_type_, "File type" );
-		addLineEdit_(sha1_, "SHA1 hash value" );
+		addLineEdit_(checksum_, "Checksum" );
+		addComboBox_(checksum_type_, "Checksum type" );
 		
 		finishAdding_();
 	}
@@ -56,7 +58,18 @@ namespace OpenMS
 		path_to_file_->setText(temp_.getPathToFile().c_str() );
 		file_size_->setText(String(temp_.getFileSize()).c_str());
 	  file_type_->setText(String(temp_.getFileType()).c_str());
-		sha1_->setText(String(temp_.getSha1()).c_str());
+		checksum_->setText(String(temp_.getChecksum()).c_str());
+
+		if(! isEditable())
+		{
+			fillComboBox_(checksum_type_,& temp_.NamesOfChecksumType[temp_.getChecksumType()] , 1);
+		}
+		else
+		{
+			fillComboBox_(checksum_type_, temp_.NamesOfChecksumType , SourceFile::SIZE_OF_CHECKSUMTYPE);
+			checksum_type_->setCurrentIndex(temp_.getChecksumType()); 
+		}
+
 	}
 	
 	void SourceFileVisualizer::store()
@@ -65,8 +78,8 @@ namespace OpenMS
 		ptr_->setPathToFile(path_to_file_->text().toStdString());
 		ptr_->setFileSize(file_size_->text().toFloat());
 		ptr_->setFileType(file_type_->text().toStdString());
-		ptr_->setSha1(sha1_->text().toStdString());
-				
+		ptr_->setChecksum(checksum_->text().toStdString(),(SourceFile::ChecksumType)checksum_type_->currentIndex());
+		
 		temp_=(*ptr_);
 	}
 	

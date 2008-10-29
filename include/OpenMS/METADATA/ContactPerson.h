@@ -39,7 +39,8 @@ namespace OpenMS
 		
 		@ingroup Metadata
 	*/
-  class ContactPerson: public MetaInfoInterface
+  class ContactPerson
+  	: public MetaInfoInterface
   {
     public:
     	/// Constructor
@@ -79,6 +80,16 @@ namespace OpenMS
       const String& getEmail() const;
       /// sets the email address
       void setEmail(const String& email);
+
+			/// returns the email address
+      const String& getURL() const;
+      /// sets the email address
+      void setURL(const String& email);
+
+			/// returns the address
+      const String& getAddress() const;
+      /// sets the address
+      void setAddress(const String& email);
 			
 			/// returns miscellaneous info about the contact person
       const String& getContactInfo() const;
@@ -91,6 +102,8 @@ namespace OpenMS
 			String institution_;
 			String email_;
 			String contact_info_;
+			String url_;
+			String address_;
   };
 } // namespace OpenMS
 

@@ -49,7 +49,6 @@ namespace OpenMS
 	void DocumentIdentifierVisualizer::update_()
 	{
 	  identifier_->setText(temp_.getIdentifier().c_str());
-		identifier_->adjustSize();		
 	}
 	
 	void DocumentIdentifierVisualizer::store()

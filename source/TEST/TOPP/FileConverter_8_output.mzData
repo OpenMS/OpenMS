@@ -13,6 +13,7 @@
 			<sourceFile>
 				<nameOfFile>tiny1.RAW</nameOfFile>
 				<pathToFile>file:///F:/data/Exp01</pathToFile>
+				<fileType>Xcalibur RAW</fileType>
 			</sourceFile>
 			<contact>
 				<name>William Pennington</name>
@@ -51,10 +52,12 @@
 		</instrument>
 		<dataProcessing>
 			<software>
-				<name>ProteoWizard</name>
-				<version>1.0</version>
+				<name>Xcalibur</name>
+				<version>2.0.5</version>
 			</software>
 			<processingMethod>
+				<cvParam cvLabel="psi" name="Deisotoping" accession="PSI:1000033" value="true"/>
+				<userParam name="name" value="processingMethod"/>
 			</processingMethod>
 		</dataProcessing>
 	</description>

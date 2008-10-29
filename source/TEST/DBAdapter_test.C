@@ -305,7 +305,7 @@ if (do_tests)
 		source_file.setPathToFile("/slashdot/");
 		source_file.setFileSize(1.234);
 		source_file.setFileType("RAWDATA");
-		source_file.setSha1("6132b58967cf1ebc05062492c17145e5ee9f82a8");
+		source_file.setChecksum("6132b58967cf1ebc05062492c17145e5ee9f82a8",SourceFile::SHA1);
 		meta_data_array.setSourceFile(source_file);
 		spec.getMetaDataArrays().push_back(meta_data_array);
 		
@@ -454,7 +454,7 @@ if (do_tests)
 	
 			TEST_EQUAL( spec.getSourceFile().getNameOfFile() , exp_original.begin()->getSourceFile().getNameOfFile() )
 			TEST_EQUAL( spec.getSourceFile().getPathToFile() , exp_original.begin()->getSourceFile().getPathToFile() )
-			TEST_EQUAL( spec.getSourceFile().getSha1() , exp_original.begin()->getSourceFile().getSha1() )
+			TEST_EQUAL( spec.getSourceFile().getChecksum() , exp_original.begin()->getSourceFile().getChecksum() )
 			
 			// make sure storing/loading of meta data works for RichPeaks
 			TEST_EQUAL( spec[0].getMetaValue("label"), "peaklabel");

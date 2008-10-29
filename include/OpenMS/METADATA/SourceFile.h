@@ -27,20 +27,30 @@
 #ifndef OPENMS_METADATA_SOURCEFILE_H
 #define OPENMS_METADATA_SOURCEFILE_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 namespace OpenMS 
 {
 	/**
 		@brief Description of a file location, used to store the origin of (meta) data.
 		
-		
-		
 		@ingroup Metadata
 	*/
   class SourceFile
+  	: public MetaInfoInterface
   {
     public:
+    	///Type of the checksum
+    	enum ChecksumType
+    	{
+    		UNKNOWN, ///< Unknown checksum type
+    		SHA1, 	 ///< Secure Hash Algorithm-1
+    		MD5,		 ///< Message-Digest algorithm 5
+    		SIZE_OF_CHECKSUMTYPE
+    	};
+			/// Names of checksum types
+			static const std::string NamesOfChecksumType[SIZE_OF_CHECKSUMTYPE];
+				
     	/// Constructor
       SourceFile();
       /// Copy constructor
@@ -75,20 +85,20 @@ namespace OpenMS
      	/// sets the file type
       void setFileType(const String& file_type);
       
-      /// returns the source file's SHA1 hash value
-      const String& getSha1() const;
-      /// sets the source file's SHA1 hash value
-      void setSha1(const String& sha1);
-
-	    /// returns if the SourceFile is empty
-	    bool isFileEmpty() const;
+      /// returns the file's checksum
+      const String& getChecksum() const;
+      /// sets the file's checksum
+      void setChecksum(const String& checksum, ChecksumType type);
+      /// returns the checksum type
+      ChecksumType getChecksumType() const;
 
     protected:
 			String name_of_file_;
 			String path_to_file_;
 			DoubleReal file_size_;
 			String file_type_;
-			String sha1_;
+			String checksum_;
+			ChecksumType checksum_type_;
   };
 } // namespace OpenMS
 

@@ -70,6 +70,29 @@ CHECK(void setEmail(const String& email))
   TEST_EQUAL(tmp.getEmail(),"bla");
 RESULT
 
+CHECK(const String& getURL() const)
+  ContactPerson tmp;
+  TEST_EQUAL(tmp.getURL(),"");
+RESULT
+
+CHECK(void setURL(const String& email))
+  ContactPerson tmp;
+	tmp.setURL("bla");
+  TEST_EQUAL(tmp.getURL(),"bla");
+RESULT
+
+CHECK(const String& getAddress() const)
+  ContactPerson tmp;
+  TEST_EQUAL(tmp.getAddress(),"");
+RESULT
+
+CHECK(void setAddress(const String& email))
+  ContactPerson tmp;
+	tmp.setAddress("bla");
+  TEST_EQUAL(tmp.getAddress(),"bla");
+RESULT
+
+
 CHECK(const String& getInstitution() const)
   ContactPerson tmp;
   TEST_EQUAL(tmp.getInstitution(),"");
@@ -123,6 +146,8 @@ CHECK(ContactPerson(const ContactPerson& source))
 	tmp.setLastName("Meier");
 	tmp.setInstitution("Uni Tuebingen");
 	tmp.setContactInfo("doo");
+	tmp.setURL("url");
+	tmp.setAddress("street");
 	tmp.setMetaValue("label",String("label"));
 	
 	ContactPerson tmp2(tmp);
@@ -132,6 +157,8 @@ CHECK(ContactPerson(const ContactPerson& source))
   TEST_EQUAL(tmp2.getEmail(),"ich@du.de");
   TEST_EQUAL(tmp2.getInstitution(),"Uni Tuebingen");
   TEST_EQUAL(tmp2.getContactInfo(),"doo");
+  TEST_EQUAL(tmp2.getURL(),"url");
+  TEST_EQUAL(tmp2.getAddress(),"street");
 RESULT
 
 CHECK(ContactPerson& operator= (const ContactPerson& source))
@@ -141,6 +168,8 @@ CHECK(ContactPerson& operator= (const ContactPerson& source))
 	tmp.setLastName("Meier");
 	tmp.setInstitution("Uni Tuebingen");
 	tmp.setContactInfo("doo");
+	tmp.setURL("url");
+	tmp.setAddress("street");
 	tmp.setMetaValue("label",String("label"));
 	
 	//normal assignment
@@ -152,6 +181,8 @@ CHECK(ContactPerson& operator= (const ContactPerson& source))
   TEST_EQUAL(tmp2.getEmail(),"ich@du.de");
   TEST_EQUAL(tmp2.getInstitution(),"Uni Tuebingen");
   TEST_EQUAL(tmp2.getContactInfo(),"doo");
+  TEST_EQUAL(tmp2.getURL(),"url");
+  TEST_EQUAL(tmp2.getAddress(),"street");
 
 	//assignment of empty object
 	tmp2 = ContactPerson();
@@ -161,6 +192,8 @@ CHECK(ContactPerson& operator= (const ContactPerson& source))
   TEST_EQUAL(tmp2.getEmail(),"");
   TEST_EQUAL(tmp2.getInstitution(),"");
   TEST_EQUAL(tmp2.getContactInfo(),"");
+  TEST_EQUAL(tmp2.getURL(),"");
+  TEST_EQUAL(tmp2.getAddress(),"");
 RESULT
 
 CHECK(bool operator!= (const ContactPerson& rhs) const)
@@ -185,6 +218,14 @@ CHECK(bool operator!= (const ContactPerson& rhs) const)
 	
 	tmp2 = tmp;
 	tmp.setContactInfo("doo");
+  TEST_EQUAL(tmp==tmp2, false);
+
+	tmp2 = tmp;
+	tmp.setURL("url");
+  TEST_EQUAL(tmp==tmp2, false);
+
+	tmp2 = tmp;
+	tmp.setAddress("street");
   TEST_EQUAL(tmp==tmp2, false);
 
 	tmp2 = tmp;

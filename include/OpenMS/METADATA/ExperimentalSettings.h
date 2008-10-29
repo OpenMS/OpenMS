@@ -92,11 +92,11 @@ namespace OpenMS
       void setSample(const Sample& sample);
 			
 			/// returns a const reference to the source date file
-      const SourceFile& getSourceFile() const;
+      const std::vector<SourceFile>& getSourceFiles() const;
       /// returns a mutable reference to the source date file
-      SourceFile& getSourceFile();
+      std::vector<SourceFile>& getSourceFiles();
       /// sets the source date file
-      void setSourceFile(const SourceFile& source_file);
+      void setSourceFiles(const std::vector<SourceFile>& source_files);
 			
 			/// returns a const reference to the list of contact persons
       const std::vector<ContactPerson>& getContacts() const;
@@ -152,7 +152,7 @@ namespace OpenMS
 
     protected:
 			Sample sample_;
-			SourceFile source_file_;
+			std::vector<SourceFile> source_files_;
 			std::vector<ContactPerson> contacts_;
 			Instrument instrument_;
 		  std::vector<DataProcessing> data_processing_;

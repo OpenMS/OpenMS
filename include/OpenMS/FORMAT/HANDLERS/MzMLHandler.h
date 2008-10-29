@@ -184,6 +184,8 @@ namespace OpenMS
 			Map<String, Software> software_;
 			/// The data processing list: id => Instrument
 			Map<String, Instrument> instruments_;
+			/// The data processing list: id => Instrument
+			Map<String, DataProcessing> processing_;
 			//@}
 
 			/// Decoder/Encoder for Base64-data in MzML
@@ -254,7 +256,6 @@ namespace OpenMS
 			static const XMLCh* s_sample_ref = xercesc::XMLString::transcode("sampleRef");
 			static const XMLCh* s_software_ref = xercesc::XMLString::transcode("softwareRef");
 			static const XMLCh* s_source_file_ref = xercesc::XMLString::transcode("sourceFileRef");
-			//static const XMLCh* s_order = xercesc::XMLString::transcode("order");
 			static const XMLCh* s_default_instrument_configuration_ref = xercesc::XMLString::transcode("defaultInstrumentConfigurationRef");
 			
 			String tag = sm_.convert(qname);
@@ -373,8 +374,7 @@ namespace OpenMS
 			//EXTEND "acquisition", "precursor" and "acquisition settings" can have a source file too
 			else if(tag=="sourceFileRef" && parent_tag=="sourceFileRefList" && parent_parent_tag=="run")
 			{
-				//EXTEND Store more than one source file. Currently only the last file is stored (ExperimentalSettings)
-				exp_->getSourceFile() = source_files_[ attributeAsString_(attributes, s_ref)];
+				exp_->getSourceFiles().push_back(source_files_[ attributeAsString_(attributes, s_ref)]);
 			}
 			else if (tag=="sample")
 			{
@@ -399,7 +399,6 @@ namespace OpenMS
 			}
 			else if (tag=="software")
 			{
-			  //EXTEND Add Software to Instrument
 				current_id_ = attributeAsString_(attributes, s_id);
 			}
 			else if (tag=="softwareParam")
@@ -408,18 +407,18 @@ namespace OpenMS
 				software_[current_id_].setName(attributeAsString_(attributes, s_name));
 				software_[current_id_].setVersion(attributeAsString_(attributes, s_version));
 			}
-
+			else if (tag=="dataProcessingRef")
+			{
+			  //EXTEND "spectrum", "chromatogram" and "binaryDataArray" have a DataProcessingRef
+			  //Currently this is not implemented as the mzML schema is messed up
+			  //all dataProcessing is handled as global data processing of the whole file!
+			  //See: end of dataProcessingList
+			}
 			else if (tag=="dataProcessing")
 			{
-
-			  //EXTEND the processing should not be set here directly.
-			  //       But where is it definded for the whole run? Ask the PSI people!
-			  //EXTEND "spectrum" and "binaryDataArray" also have a DataProcessingRef. What do we do with it?
 				current_id_ = attributeAsString_(attributes, s_id);
-				exp_->getDataProcessing().push_back(DataProcessing());
-				exp_->getDataProcessing().back().setSoftware(software_[attributeAsString_(attributes, s_software_ref)]);
+				processing_[current_id_].setSoftware(software_[attributeAsString_(attributes, s_software_ref)]);
 			}
-
 			else if (tag=="processingMethod")
 			{
 				//EXTEND Add order
@@ -464,6 +463,7 @@ namespace OpenMS
 			
 			static const XMLCh* s_spectrum = xercesc::XMLString::transcode("spectrum");
 			static const XMLCh* s_spectrum_list = xercesc::XMLString::transcode("spectrumList");
+			static const XMLCh* s_data_processing_list = xercesc::XMLString::transcode("dataProcessingList");
 			static const XMLCh* s_mzml = xercesc::XMLString::transcode("mzML");
 
 			//std::cout << "/TAG: " << open_tags_.back() << std::endl;
@@ -492,6 +492,14 @@ namespace OpenMS
 				samples_.clear();
 				software_.clear();
 				instruments_.clear();
+				processing_.clear();
+			}
+			else if(equal_(qname,s_data_processing_list))
+			{
+				for (std::map<String,DataProcessing>::const_iterator it=processing_.begin(); it!=processing_.end(); ++it)
+				{
+					exp_->getDataProcessing().push_back(it->second);
+				}
 			}
 			
 			sm_.clear();
@@ -700,7 +708,7 @@ namespace OpenMS
 				}
 				else if (accession=="MS:1000511") //ms level
 				{
-					//TODO Does this really belong here, or should it be under "spectrumDescription"
+					//TODO Does this really belong here, or should it be under "spectrumDescription"?
 					spec_.setMSLevel(value.toInt());
 				}
 			}
@@ -913,11 +921,11 @@ namespace OpenMS
 				}
 				else if (accession=="MS:1000587") //contact address
 				{
-					//EXTEND
+					exp_->getContacts().back().setAddress(value);
 				}
 				else if (accession=="MS:1000588") //contact URL
 				{
-					//EXTEND
+					exp_->getContacts().back().setURL(value);
 				}
 				else if (accession=="MS:1000589") //contact email
 				{
@@ -933,55 +941,51 @@ namespace OpenMS
 			{
 				if (accession=="MS:1000569") //SHA-1 checksum
 				{
-					source_files_[current_id_].setSha1(value);
+					source_files_[current_id_].setChecksum(value, SourceFile::SHA1);
 				}
 				else if (accession=="MS:1000568") //MD5 checksum
 				{
-					//EXTEND
-				}
-				else if (accession=="MS:1000561") //data file checksum type
-				{
-					//EXTEND
+					source_files_[current_id_].setChecksum(value, SourceFile::MD5);
 				}
 				else if (accession=="MS:1000562") //wiff file
 				{
-					//EXTEND
+					source_files_[current_id_].setFileType("wiff");
 				}
 				else if (accession=="MS:1000563") //Xcalibur RAW file
 				{
-					//EXTEND
+					source_files_[current_id_].setFileType("Xcalibur RAW");
 				}
 				else if (accession=="MS:1000564") //mzData file
 				{
-					//EXTEND
+					source_files_[current_id_].setFileType("v");
 				}
 				else if (accession=="MS:1000565") //pkl file
 				{
-					//EXTEND
+					source_files_[current_id_].setFileType("pkl");
 				}
 				else if (accession=="MS:1000566") //mzXML file
 				{
-					//EXTEND
+					source_files_[current_id_].setFileType("mzXML");
 				}
 				else if (accession=="MS:1000567") //yep file
 				{
-					//EXTEND
+					source_files_[current_id_].setFileType("yep");
 				}
 				else if (accession=="MS:1000584") //mzML file
 				{
-					//EXTEND
+					source_files_[current_id_].setFileType("mzML");
 				}
 				else if (accession=="MS:1000613") //dta file
 				{
-					//EXTEND
+					source_files_[current_id_].setFileType("dta");
 				}
 				else if (accession=="MS:1000614") //ProteinLynx Global Server mass spectrum XML file
 				{
-					//EXTEND
+					source_files_[current_id_].setFileType("ProteinLynx Global Server mass spectrum XML");
 				}
 				else if (accession=="MS:1000526") //MassLynx raw format
 				{
-					//EXTEND
+					source_files_[current_id_].setFileType("MassLynx raw");
 				}
 			}
 			//------------------------- sample ----------------------------
@@ -1558,8 +1562,8 @@ namespace OpenMS
 				//data processing parameter
 				if (accession=="MS:1000629") //low intensity threshold
 				{
-					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::LOW_INTENSITY_REMOVAL);
-					exp_->getDataProcessing().back().setMetaValue("#intensity_cutoff",value.toDouble());
+					processing_[current_id_].getProcessingActions().insert(DataProcessing::LOW_INTENSITY_REMOVAL);
+					processing_[current_id_].setMetaValue("#intensity_cutoff",value.toDouble());
 				}
 				else if (accession=="MS:1000631") //high intensity threshold
 				{
@@ -1568,45 +1572,43 @@ namespace OpenMS
 				//file format conversion
 				else if (accession=="MS:1000544") //Conversion to mzML
 				{
-					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::CONVERSION_MZML);
+					processing_[current_id_].getProcessingActions().insert(DataProcessing::CONVERSION_MZML);
 				}
 				else if (accession=="MS:1000545") //Conversion to mzXML
 				{
-					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::CONVERSION_MZXML);
+					processing_[current_id_].getProcessingActions().insert(DataProcessing::CONVERSION_MZXML);
 				}
 				else if (accession=="MS:1000546") //Conversion to mzData
 				{
-					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::CONVERSION_MZDATA);
+					processing_[current_id_].getProcessingActions().insert(DataProcessing::CONVERSION_MZDATA);
 				}
 				//data processing action
 				else if (accession=="MS:1000033") //deisotoping
 				{
-					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::DEISOTOPING);
+					processing_[current_id_].getProcessingActions().insert(DataProcessing::DEISOTOPING);
 				}
 				else if (accession=="MS:1000034") //charge deconvolution
 				{
-					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::CHARGE_DECONVOLUTION);
+					processing_[current_id_].getProcessingActions().insert(DataProcessing::CHARGE_DECONVOLUTION);
 				}
 				else if (accession=="MS:1000035") //peak picking
 				{
-					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::PEAK_PICKING);
+					processing_[current_id_].getProcessingActions().insert(DataProcessing::PEAK_PICKING);
 				}
 				else if (accession=="MS:1000592") //smoothing
 				{
-					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::SMOOTHING);
+					processing_[current_id_].getProcessingActions().insert(DataProcessing::SMOOTHING);
 				}
 				else if (accession=="MS:1000593") //baseline reduction
 				{
-					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::BASELINE_REDUCTION);
+					processing_[current_id_].getProcessingActions().insert(DataProcessing::BASELINE_REDUCTION);
 				}
 				else if (accession=="MS:1000594") //low intensity data point removal
 				{
-					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::LOW_INTENSITY_REMOVAL);
+					processing_[current_id_].getProcessingActions().insert(DataProcessing::LOW_INTENSITY_REMOVAL);
 				}
 			}
 		}//handleCVParam_
-
-
 
 		template <typename MapType>
 		void MzMLHandler<MapType>::handleUserParam_(const String& parent_tag, const String& name, const String& type, const String& value)
@@ -1660,7 +1662,7 @@ namespace OpenMS
 			}
 			else if (parent_tag=="sourceFile")
 			{
-				//EXTEND Derive SourceFile from MetaInfoInterface
+				source_files_[current_id_].setMetaValue(name,data_value);
 			}
 			else if (parent_tag=="spectrum")
 			{
@@ -1687,7 +1689,7 @@ namespace OpenMS
 			}
 			else if (parent_tag=="acquisitionList")
 			{
-				//EXTEND Derive AcquisitionInfo from MetaDataInterface
+				spec_.getAcquisitionInfo().setMetaValue(name,data_value);
 			}
 			else if (parent_tag=="acquisition")
 			{
@@ -1707,7 +1709,7 @@ namespace OpenMS
 			}
 			else if (parent_tag=="processingMethod")
 			{
-				exp_->getDataProcessing().back().setMetaValue(name,data_value);
+				processing_[current_id_].setMetaValue(name,data_value);
 			}
 		}//handleUserParam_
 

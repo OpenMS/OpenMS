@@ -304,7 +304,7 @@ namespace OpenMS
 		file.setPathToFile(result.value(1).toString());
 		file.setFileSize(result.value(2).toDouble());
 		file.setFileType(result.value(3).toString());
-		file.setSha1(result.value(4).toString());
+		file.setChecksum(result.value(4).toString(), SourceFile::UNKNOWN);
 	}
 
 	UID DBAdapter::storeFile_(const String& parent_table, UID parent_id, const SourceFile& file)
@@ -316,16 +316,16 @@ namespace OpenMS
 		bool debug = false;
 		UID file_id = 0;
 		
-		// If there is no file to save, set empty reference and return
-		if (file.isFileEmpty())
-		{
-			if (debug) cout << "Empty file for " << parent_table << " given, skipping..." << endl;
-			query.str("");
-			query << "UPDATE " << parent_table << " SET fid_File=NULL";
-			query << " WHERE id=" << String(parent_id);
-			result = db_con_.executeQuery(query.str());
-			return 0;
-		}
+//		// If there is no file to save, set empty reference and return
+//		if (file.isFileEmpty())
+//		{
+//			if (debug) cout << "Empty file for " << parent_table << " given, skipping..." << endl;
+//			query.str("");
+//			query << "UPDATE " << parent_table << " SET fid_File=NULL";
+//			query << " WHERE id=" << String(parent_id);
+//			result = db_con_.executeQuery(query.str());
+//			return 0;
+//		}
 		
 		if (debug) cout << "file given, saving to entry '" << parent_id << "' in table '" << parent_table << endl;
 		query.str("");
@@ -355,7 +355,7 @@ namespace OpenMS
 		query << "FileName='" << file.getNameOfFile() << "',";
 		query << "FilePath='" << file.getPathToFile() << "',";
 		query << "Size=" << file.getFileSize() << ",";
-		query << "sha1='" << file.getSha1() << "',";
+		query << "sha1='" << file.getChecksum() << "',";
 		query << "`Type`='" << file.getFileType() << "'";
 		query << end;
 

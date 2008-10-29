@@ -37,7 +37,7 @@ namespace OpenMS
 		MetaInfoInterface(),
 		DocumentIdentifier(),
 		sample_(),
-		source_file_(),
+		source_files_(),
 		contacts_(),
 		instrument_(),
 		data_processing_(),
@@ -54,7 +54,7 @@ namespace OpenMS
 		MetaInfoInterface(source),
 		DocumentIdentifier(source),
 	  sample_(source.sample_),
-	  source_file_(source.source_file_),
+	  source_files_(source.source_files_),
 	  contacts_(source.contacts_),
 	  instrument_(source.instrument_),
 	  data_processing_(source.data_processing_),
@@ -77,7 +77,7 @@ namespace OpenMS
 	  if (&source == this) return *this;
 	  
     sample_ = source.sample_;
-    source_file_ = source.source_file_;
+    source_files_ = source.source_files_;
     contacts_ = source.contacts_;
     instrument_ = source.instrument_;
     data_processing_ = source.data_processing_;
@@ -96,7 +96,7 @@ namespace OpenMS
   {
   	return  
 	    sample_ == rhs.sample_ &&
-	    source_file_ == rhs.source_file_ &&
+	    source_files_ == rhs.source_files_ &&
 	    contacts_ == rhs.contacts_ &&
 	    instrument_ == rhs.instrument_ &&
 	    data_processing_ == rhs.data_processing_ &&
@@ -130,19 +130,19 @@ namespace OpenMS
 	  sample_ = sample; 
 	}
 	
-	const SourceFile& ExperimentalSettings::getSourceFile() const 
+	const vector<SourceFile>& ExperimentalSettings::getSourceFiles() const 
 	{
-	  return source_file_; 
+	  return source_files_; 
 	}
 	
-	SourceFile&  ExperimentalSettings::getSourceFile()
+	vector<SourceFile>& ExperimentalSettings::getSourceFiles()
 	{
-	  return source_file_; 
+	  return source_files_; 
 	}
 	
-	void ExperimentalSettings::setSourceFile(const SourceFile& source_file)
+	void ExperimentalSettings::setSourceFiles(const vector<SourceFile>& source_file)
 	{
-	  source_file_ = source_file; 
+	  source_files_ = source_file; 
 	}
 	
 	const vector<ContactPerson>& ExperimentalSettings::getContacts() const 

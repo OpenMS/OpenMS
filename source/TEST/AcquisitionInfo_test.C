@@ -65,11 +65,13 @@ CHECK(AcquisitionInfo(const AcquisitionInfo& source))
 	a.setNumber(4711);
 	tmp.push_back(a);
 	tmp.setMethodOfCombination("Combo");
+	tmp.setMetaValue("bla",4.0);
 
 	AcquisitionInfo tmp2(tmp);
 	TEST_EQUAL(tmp2.size(), 1);
 	TEST_EQUAL(tmp2[0].getNumber(), 4711);  
 	TEST_EQUAL(tmp2.getMethodOfCombination(), "Combo");  
+	TEST_REAL_EQUAL((DoubleReal)(tmp2.getMetaValue("bla")), 4.0)
 RESULT
 
 CHECK(AcquisitionInfo& operator= (const AcquisitionInfo& source))
@@ -78,6 +80,7 @@ CHECK(AcquisitionInfo& operator= (const AcquisitionInfo& source))
 	a.setNumber(4711);
 	tmp.push_back(a);
 	tmp.setMethodOfCombination("Combo");
+	tmp.setMetaValue("bla",4.0);
 
 	//normal assignment
 	AcquisitionInfo tmp2;
@@ -85,11 +88,13 @@ CHECK(AcquisitionInfo& operator= (const AcquisitionInfo& source))
 	TEST_EQUAL(tmp2.size(), 1);
 	TEST_EQUAL(tmp2[0].getNumber(), 4711);  
 	TEST_EQUAL(tmp2.getMethodOfCombination(), "Combo");
-	
+	TEST_REAL_EQUAL((DoubleReal)(tmp2.getMetaValue("bla")), 4.0)
+		
 	//assignment of a empty value
 	tmp2 = AcquisitionInfo();
 	TEST_EQUAL(tmp2.size(), 0);
 	TEST_EQUAL(tmp2.getMethodOfCombination(), "");
+	TEST_EQUAL(tmp2.metaValueExists("bla"), false)
 RESULT
 
 CHECK(bool operator== (const AcquisitionInfo& rhs) const)
@@ -99,7 +104,10 @@ CHECK(bool operator== (const AcquisitionInfo& rhs) const)
 	Acquisition a;
 	edit.push_back(a);
 	TEST_EQUAL(empty==edit,false);
-	
+
+	edit.setMetaValue("bla",4.0);
+	TEST_EQUAL(empty==edit,false);
+
 	edit = empty;
 	edit.setMethodOfCombination("Combo");
 	TEST_EQUAL(empty==edit,false);
@@ -112,7 +120,10 @@ CHECK(bool operator!= (const AcquisitionInfo& rhs) const)
 	Acquisition a;
 	edit.push_back(a);
 	TEST_EQUAL(empty!=edit,true);
-	
+
+	edit.setMetaValue("bla",4.0);
+	TEST_EQUAL(empty!=edit,true);
+
 	edit = empty;
 	edit.setMethodOfCombination("Combo");
 	TEST_EQUAL(empty!=edit,true);

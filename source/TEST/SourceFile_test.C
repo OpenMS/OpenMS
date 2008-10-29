@@ -48,22 +48,6 @@ CHECK((~SourceFile()))
 	delete ptr;
 RESULT
 
-CHECK((bool isFileEmpty() const))
-  SourceFile * tmp = new SourceFile();
-  TEST_EQUAL(tmp->isFileEmpty(),true);
-  tmp->setFileSize(1);
-  TEST_EQUAL(tmp->isFileEmpty(),false);
-  tmp = new SourceFile();
-  tmp->setPathToFile("path");
-  TEST_EQUAL(tmp->isFileEmpty(),false);
-  tmp = new SourceFile();
-  tmp->setNameOfFile("name");
-  TEST_EQUAL(tmp->isFileEmpty(),false);
-  tmp = new SourceFile();
-  tmp->setFileType("RAWDATA");
-  TEST_EQUAL(tmp->isFileEmpty(),false);
-RESULT
-
 CHECK((Real getFileSize() const))
   SourceFile tmp;
   TEST_EQUAL(tmp.getFileSize(),0);
@@ -108,29 +92,39 @@ CHECK((void setPathToFile(const String& path_path_to_file)))
   TEST_EQUAL(tmp.getPathToFile(),"/misc/sturm/mp3/");
 RESULT
 
-CHECK((const String& getSha1() const))
+CHECK((const String& getChecksum() const))
   SourceFile tmp;
-  TEST_EQUAL(tmp.getSha1(), "");
+  TEST_EQUAL(tmp.getChecksum(), "");
 RESULT
 
-CHECK((void setSha1(const String& sha1)))
+CHECK(ChecksumType getChecksumType() const)
   SourceFile tmp;
-  tmp.setSha1("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
-  TEST_EQUAL(tmp.getSha1(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+  TEST_EQUAL(tmp.getChecksumType(), SourceFile::UNKNOWN);
 RESULT
+
+CHECK((void setChecksum(const String& checksum, ChecksumType type)))
+  SourceFile tmp;
+  tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12",SourceFile::SHA1);
+  TEST_EQUAL(tmp.getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+  TEST_EQUAL(tmp.getChecksumType(), SourceFile::SHA1);
+RESULT
+
 
 CHECK((SourceFile(const SourceFile& source)))
 	SourceFile tmp;
 	tmp.setFileType("CALIBRATIONINFO");
 	tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
 	tmp.setPathToFile("/misc/sturm/mp3/");
-	tmp.setSha1("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+	tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12", SourceFile::MD5);
+	tmp.setMetaValue("bla",4.0);
 	
 	SourceFile tmp2(tmp);
 	TEST_EQUAL(tmp2.getFileType(), "CALIBRATIONINFO");
 	TEST_EQUAL(tmp2.getNameOfFile(),"The White Stripes - Ball and Biscuit");
 	TEST_EQUAL(tmp2.getPathToFile(),"/misc/sturm/mp3/");
-	TEST_EQUAL(tmp2.getSha1(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+	TEST_EQUAL(tmp2.getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+	TEST_EQUAL(tmp2.getChecksumType(), SourceFile::MD5);
+	TEST_REAL_EQUAL(tmp2.getMetaValue("bla"), 4.0);
 RESULT
 
 CHECK((SourceFile& operator= (const SourceFile& source)))
@@ -138,7 +132,8 @@ CHECK((SourceFile& operator= (const SourceFile& source)))
 	tmp.setFileType("PUBLICATION");
 	tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
 	tmp.setPathToFile("/misc/sturm/mp3/");
-	tmp.setSha1("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+	tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12", SourceFile::MD5);
+	tmp.setMetaValue("bla",4.0);
 	
 	//normal assignment
 	SourceFile tmp2;
@@ -146,14 +141,18 @@ CHECK((SourceFile& operator= (const SourceFile& source)))
 	TEST_EQUAL(tmp2.getFileType(),"PUBLICATION");
 	TEST_EQUAL(tmp2.getNameOfFile(),"The White Stripes - Ball and Biscuit");
 	TEST_EQUAL(tmp2.getPathToFile(),"/misc/sturm/mp3/");
-	TEST_EQUAL(tmp2.getSha1(),"2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+	TEST_EQUAL(tmp2.getChecksum(),"2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+	TEST_EQUAL(tmp2.getChecksumType(), SourceFile::MD5);
+	TEST_REAL_EQUAL(tmp2.getMetaValue("bla"), 4.0);
 	
 	//assignment of empty object
 	tmp2 = SourceFile();
 	TEST_EQUAL(tmp2.getFileType(), "");
 	TEST_EQUAL(tmp2.getNameOfFile(),"");
 	TEST_EQUAL(tmp2.getPathToFile(),"");
-	TEST_EQUAL(tmp2.getSha1(),"");
+	TEST_EQUAL(tmp2.getChecksum(),"");
+	TEST_EQUAL(tmp2.getChecksumType(), SourceFile::UNKNOWN);
+	TEST_EQUAL(tmp2.metaValueExists("bla"), false);
 RESULT
 
 CHECK((bool operator== (const SourceFile& rhs) const))
@@ -169,8 +168,12 @@ CHECK((bool operator== (const SourceFile& rhs) const))
 	TEST_EQUAL(tmp==tmp2, false);
 	
 	tmp2 = tmp;
-	tmp.setSha1("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+	tmp.setChecksum("", SourceFile::MD5);
 	TEST_EQUAL(tmp==tmp2, false);
+
+	tmp2 = tmp;
+	tmp.setMetaValue("bla",4.0);
+	TEST_EQUAL(tmp==tmp2, false);	
 	
 	tmp2 = tmp;	
 	tmp.setPathToFile("/misc/sturm/mp3/");
@@ -190,9 +193,13 @@ CHECK((bool operator!= (const SourceFile& rhs) const))
 	TEST_EQUAL(tmp!=tmp2, true);
 	
 	tmp2 = tmp;
-	tmp.setSha1("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+	tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12", SourceFile::UNKNOWN);
 	TEST_EQUAL(tmp!=tmp2, true);
-	
+
+	tmp2 = tmp;
+	tmp.setMetaValue("bla",4.0);
+	TEST_EQUAL(tmp!=tmp2, true);	
+
 	tmp2 = tmp;	
 	tmp.setPathToFile("/misc/sturm/mp3/");
 	TEST_EQUAL(tmp!=tmp2, true);

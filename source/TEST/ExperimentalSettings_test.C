@@ -80,9 +80,9 @@ CHECK(const Sample& getSample() const)
   TEST_EQUAL(tmp.getSample()==Sample(),true);
 RESULT
 
-CHECK(const SourceFile& getSourceFile() const)
+CHECK(const SourceFile& getSourceFiles() const)
   ExperimentalSettings tmp;
-  TEST_EQUAL(tmp.getSourceFile()==SourceFile(),true);
+  TEST_EQUAL(tmp.getSourceFiles().size(),0);
 RESULT
 
 CHECK((const String& getComment() const))
@@ -173,12 +173,12 @@ CHECK(void setSample(const Sample& sample))
   TEST_EQUAL(tmp.getSample().getName(),"bla3");
 RESULT
 
-CHECK(void setSourceFile(const SourceFile& source_file))
+CHECK(void setSourceFiles(const vector<SourceFile>& source_file))
   ExperimentalSettings tmp;
-  SourceFile dummy;
-  dummy.setNameOfFile("bla4");
-  tmp.setSourceFile(dummy);
-  TEST_EQUAL(tmp.getSourceFile().getNameOfFile(),"bla4");
+  vector<SourceFile> dummy;
+  dummy.resize(1);
+  tmp.setSourceFiles(dummy);
+  TEST_EQUAL(tmp.getSourceFiles().size(),1);
 RESULT
 
 CHECK(void setType(ExperimentType type))
@@ -212,10 +212,10 @@ CHECK(Sample& getSample())
   TEST_EQUAL(tmp.getSample().getName(),"bla2");
 RESULT
 
-CHECK(SourceFile& getSourceFile())
+CHECK(SourceFile& getSourceFiles())
   ExperimentalSettings tmp;
-  tmp.getSourceFile().setNameOfFile("bla4");
-  TEST_EQUAL(tmp.getSourceFile().getNameOfFile(),"bla4");
+  tmp.getSourceFiles().resize(1);
+  TEST_EQUAL(tmp.getSourceFiles().size(),1)
 RESULT
 
 CHECK(std::vector<ContactPerson>& getContacts())
@@ -249,7 +249,7 @@ CHECK(ExperimentalSettings(const ExperimentalSettings& source))
   tmp.getInstrument().setName("bla");
   tmp.getDataProcessing().resize(1);
   tmp.getSample().setName("bla2");
-  tmp.getSourceFile().setNameOfFile("bla4");
+  tmp.getSourceFiles().resize(1);
   tmp.getContacts().resize(1);
   tmp.addProteinIdentification(id);
   tmp.setMetaValue("label",String("label"));
@@ -261,7 +261,7 @@ CHECK(ExperimentalSettings(const ExperimentalSettings& source))
   TEST_EQUAL(tmp2.getInstrument().getName(),"bla");
   TEST_EQUAL(tmp2.getDataProcessing().size(),1);
   TEST_EQUAL(tmp2.getSample().getName(),"bla2");
-  TEST_EQUAL(tmp2.getSourceFile().getNameOfFile(),"bla4");
+  TEST_EQUAL(tmp2.getSourceFiles().size(),1);
   TEST_EQUAL(tmp2.getContacts().size(),1);
   TEST_EQUAL(id == tmp2.getProteinIdentifications()[0], true);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
@@ -286,7 +286,7 @@ CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
   tmp.getInstrument().setName("bla");
   tmp.getDataProcessing().resize(1);
   tmp.getSample().setName("bla2");
-  tmp.getSourceFile().setNameOfFile("bla4");
+  tmp.getSourceFiles().resize(1);
   tmp.getContacts().resize(1);
 	tmp.addProteinIdentification(id);
   tmp.setMetaValue("label",String("label"));
@@ -299,7 +299,7 @@ CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
   TEST_EQUAL(tmp2.getIdentifier(),"lsid");
   TEST_EQUAL(tmp2.getDataProcessing().size(),1);
   TEST_EQUAL(tmp2.getSample().getName(),"bla2");
-  TEST_EQUAL(tmp2.getSourceFile().getNameOfFile(),"bla4");
+  TEST_EQUAL(tmp2.getSourceFiles().size(),1);
   TEST_EQUAL(tmp2.getContacts().size(),1);
   TEST_EQUAL(tmp2.getProteinIdentifications().size(), 1);
   TEST_EQUAL(id == tmp2.getProteinIdentifications()[0], true);
@@ -311,7 +311,7 @@ CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
   TEST_EQUAL(tmp2.getIdentifier(),"");
   TEST_EQUAL(tmp2.getDataProcessing().size(),0);
   TEST_EQUAL(tmp2.getSample().getName(),"");
-  TEST_EQUAL(tmp2.getSourceFile().getNameOfFile(),"");
+  TEST_EQUAL(tmp2.getSourceFiles().size(),0);
   TEST_EQUAL(tmp2.getContacts().size(),0);
   TEST_EQUAL(tmp2.getProteinIdentifications().size(), 0);
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
@@ -348,7 +348,7 @@ CHECK(bool operator== (const ExperimentalSettings& rhs) const)
   TEST_EQUAL(edit==empty,false);
   
   edit = empty;
-  edit.getSourceFile().setNameOfFile("bla4");
+  edit.getSourceFiles().resize(1);
   TEST_EQUAL(edit==empty,false);
   
   edit = empty;
@@ -403,7 +403,7 @@ CHECK(bool operator!= (const ExperimentalSettings& rhs) const)
   TEST_EQUAL(edit!=empty,true);
   
   edit = empty;
-  edit.getSourceFile().setNameOfFile("bla4");
+  edit.getSourceFiles().resize(1);
   TEST_EQUAL(edit!=empty,true);
   
   edit = empty;

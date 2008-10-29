@@ -35,6 +35,7 @@
 
 class QLabel;
 class QLineEdit;
+class QComboBox;
 
 namespace OpenMS
 {
@@ -72,7 +73,8 @@ namespace OpenMS
 			QLineEdit* path_to_file_;
 			QLineEdit* file_size_;
 			QLineEdit* file_type_;
-			QLineEdit* sha1_;
+			QLineEdit* checksum_;
+			QComboBox* checksum_type_;
 			//@}
 			
 			//Docu in base class

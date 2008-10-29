@@ -200,6 +200,7 @@ namespace OpenMS
 			visualize_(meta[i], item);
 		}
 		
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		connectVisualizer_(visualizer);
 	}
 		
@@ -316,8 +317,11 @@ namespace OpenMS
 		//check for Instrument
 		visualize_(meta.getInstrument(), item);
 		
-		//check for SourceFile
-		visualize_(meta.getSourceFile(), item);
+		//check for SourceFiles
+		for(UInt i=0; i<meta.getSourceFiles().size(); ++i)    
+		{
+			visualize_(meta.getSourceFiles()[i], item);
+		}
 		
 		//check for ContactPersons
 		for(UInt i=0; i<meta.getContacts().size(); ++i)    
@@ -861,6 +865,9 @@ namespace OpenMS
 		{
 			item = new QTreeWidgetItem(parent, labels );
 		} 
+		
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+		
 		connectVisualizer_(visualizer);
 	}
 	

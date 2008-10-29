@@ -122,12 +122,19 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 		TEST_EQUAL(e[0].getComment(), "Scan Comment")
 	
 		//---------------------------------------------------------------------------
-	  // const SourceFile& getSourceFile() const;
+	  // const vector<SourceFile>& getSourceFiles() const;
 	  //---------------------------------------------------------------------------
-	  TEST_EQUAL(e.getSourceFile().getNameOfFile(), "File_test_1.raw");
-	  TEST_EQUAL(e.getSourceFile().getPathToFile(), "");
-	  TEST_EQUAL(e.getSourceFile().getFileType(), "RAWData");
-	  TEST_EQUAL(e.getSourceFile().getSha1(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+	  TEST_EQUAL(e.getSourceFiles().size(),2)
+	  TEST_STRING_EQUAL(e.getSourceFiles()[0].getNameOfFile(), "File_test_1.raw");
+	  TEST_STRING_EQUAL(e.getSourceFiles()[0].getPathToFile(), "");
+	  TEST_STRING_EQUAL(e.getSourceFiles()[0].getFileType(), "RAWData");
+	  TEST_STRING_EQUAL(e.getSourceFiles()[0].getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+		TEST_EQUAL(e.getSourceFiles()[0].getChecksumType(),SourceFile::SHA1)
+	  TEST_STRING_EQUAL(e.getSourceFiles()[1].getNameOfFile(), "File_test_2.raw");
+	  TEST_STRING_EQUAL(e.getSourceFiles()[1].getPathToFile(), "");
+	  TEST_STRING_EQUAL(e.getSourceFiles()[1].getFileType(), "processedData");
+	  TEST_STRING_EQUAL(e.getSourceFiles()[1].getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb13");
+		TEST_EQUAL(e.getSourceFiles()[1].getChecksumType(),SourceFile::SHA1)
 	
 		//---------------------------------------------------------------------------
 	  // const vector<DataProcessing>& getDataProcessing() const;
@@ -195,7 +202,19 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 		TEST_EQUAL(inst.getMassAnalyzers()[0].getIsolationWidth(), 0.0f)
 		TEST_EQUAL(inst.getMassAnalyzers()[0].getFinalMSExponent(), 0)
 		TEST_EQUAL(inst.getMassAnalyzers()[0].getMagneticFieldStrength(), 0.0f)
-	
+		
+	  //---------------------------------------------------------------------------
+		// vector<ContactPerson>& getContacts()
+	  //---------------------------------------------------------------------------
+		const vector<ContactPerson>& contacts = e.getContacts();
+		TEST_EQUAL(contacts.size(),1)
+		TEST_STRING_EQUAL(contacts[0].getFirstName(),"FirstName")
+		TEST_STRING_EQUAL(contacts[0].getLastName(),"LastName")
+		TEST_STRING_EQUAL(contacts[0].getMetaValue("#phone"),"0049")
+		TEST_STRING_EQUAL(contacts[0].getEmail(),"a@b.de")
+		TEST_STRING_EQUAL(contacts[0].getURL(),"http://bla.de")
+		TEST_STRING_EQUAL(contacts[0].getContactInfo(),"")
+		
 	  //---------------------------------------------------------------------------
 		// const Sample& getSample()
 	  //---------------------------------------------------------------------------
@@ -250,12 +269,19 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 		TEST_EQUAL(e[0].getComment(), "Scan Comment")
 	
 		//---------------------------------------------------------------------------
-	  // const SourceFile& getSourceFile() const;
+	  // const vector<SourceFile>& getSourceFiles() const;
 	  //---------------------------------------------------------------------------
-	  TEST_EQUAL(e.getSourceFile().getNameOfFile(), "File_test_1.raw");
-	  TEST_EQUAL(e.getSourceFile().getPathToFile(), "");
-	  TEST_EQUAL(e.getSourceFile().getFileType(), "RAWData");
-	  TEST_EQUAL(e.getSourceFile().getSha1(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+	  TEST_EQUAL(e.getSourceFiles().size(),2)
+	  TEST_STRING_EQUAL(e.getSourceFiles()[0].getNameOfFile(), "File_test_1.raw");
+	  TEST_STRING_EQUAL(e.getSourceFiles()[0].getPathToFile(), "");
+	  TEST_STRING_EQUAL(e.getSourceFiles()[0].getFileType(), "RAWData");
+	  TEST_STRING_EQUAL(e.getSourceFiles()[0].getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+		TEST_EQUAL(e.getSourceFiles()[0].getChecksumType(),SourceFile::SHA1)
+	  TEST_STRING_EQUAL(e.getSourceFiles()[1].getNameOfFile(), "File_test_2.raw");
+	  TEST_STRING_EQUAL(e.getSourceFiles()[1].getPathToFile(), "");
+	  TEST_STRING_EQUAL(e.getSourceFiles()[1].getFileType(), "processedData");
+	  TEST_STRING_EQUAL(e.getSourceFiles()[1].getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb13");
+		TEST_EQUAL(e.getSourceFiles()[1].getChecksumType(),SourceFile::SHA1)
 	
 		//---------------------------------------------------------------------------
 	  // const Software& getSoftware() const;
@@ -321,7 +347,19 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 		TEST_EQUAL(inst.getMassAnalyzers()[0].getIsolationWidth(), 0.0f)
 		TEST_EQUAL(inst.getMassAnalyzers()[0].getFinalMSExponent(), 0)
 		TEST_EQUAL(inst.getMassAnalyzers()[0].getMagneticFieldStrength(), 0.0f)
-	
+
+	  //---------------------------------------------------------------------------
+		// vector<ContactPerson>& getContacts()
+	  //---------------------------------------------------------------------------
+		const vector<ContactPerson>& contacts = e.getContacts();
+		TEST_EQUAL(contacts.size(),1)
+		TEST_STRING_EQUAL(contacts[0].getFirstName(),"FirstName")
+		TEST_STRING_EQUAL(contacts[0].getLastName(),"LastName")
+		TEST_STRING_EQUAL(contacts[0].getMetaValue("#phone"),"0049")
+		TEST_STRING_EQUAL(contacts[0].getEmail(),"a@b.de")
+		TEST_STRING_EQUAL(contacts[0].getURL(),"http://bla.de")
+		TEST_STRING_EQUAL(contacts[0].getContactInfo(),"")
+		
 	  //---------------------------------------------------------------------------
 		// const Sample& getSample()
 	  //---------------------------------------------------------------------------
@@ -475,12 +513,19 @@ CHECK(([EXTRA] load with metadata only flag))
 	TEST_EQUAL(e.size(),0)
 	
 	//---------------------------------------------------------------------------
-  // const SourceFile& getSourceFile() const;
+  // const vector<SourceFile>& getSourceFiles() const;
   //---------------------------------------------------------------------------
-  TEST_EQUAL(e.getSourceFile().getNameOfFile(), "File_test_1.raw");
-  TEST_EQUAL(e.getSourceFile().getPathToFile(), "");
-  TEST_EQUAL(e.getSourceFile().getFileType(), "RAWData");
-  TEST_EQUAL(e.getSourceFile().getSha1(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+	  TEST_EQUAL(e.getSourceFiles().size(),2)
+	  TEST_STRING_EQUAL(e.getSourceFiles()[0].getNameOfFile(), "File_test_1.raw");
+	  TEST_STRING_EQUAL(e.getSourceFiles()[0].getPathToFile(), "");
+	  TEST_STRING_EQUAL(e.getSourceFiles()[0].getFileType(), "RAWData");
+	  TEST_STRING_EQUAL(e.getSourceFiles()[0].getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
+		TEST_EQUAL(e.getSourceFiles()[0].getChecksumType(),SourceFile::SHA1)
+	  TEST_STRING_EQUAL(e.getSourceFiles()[1].getNameOfFile(), "File_test_2.raw");
+	  TEST_STRING_EQUAL(e.getSourceFiles()[1].getPathToFile(), "");
+	  TEST_STRING_EQUAL(e.getSourceFiles()[1].getFileType(), "processedData");
+	  TEST_STRING_EQUAL(e.getSourceFiles()[1].getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb13");
+		TEST_EQUAL(e.getSourceFiles()[1].getChecksumType(),SourceFile::SHA1)
 
 	//---------------------------------------------------------------------------
   // const Software& getSoftware() const;
@@ -528,6 +573,19 @@ CHECK(([EXTRA] load with metadata only flag))
 	TEST_EQUAL(inst.getMassAnalyzers()[0].getIsolationWidth(), 0.0f)
 	TEST_EQUAL(inst.getMassAnalyzers()[0].getFinalMSExponent(), 0)
 	TEST_EQUAL(inst.getMassAnalyzers()[0].getMagneticFieldStrength(), 0.0f)
+
+  //---------------------------------------------------------------------------
+	// vector<ContactPerson>& getContacts()
+  //---------------------------------------------------------------------------
+	const vector<ContactPerson>& contacts = e.getContacts();
+	TEST_EQUAL(contacts.size(),1)
+	TEST_STRING_EQUAL(contacts[0].getFirstName(),"FirstName")
+	TEST_STRING_EQUAL(contacts[0].getLastName(),"LastName")
+	TEST_STRING_EQUAL(contacts[0].getMetaValue("#phone"),"0049")
+	TEST_STRING_EQUAL(contacts[0].getEmail(),"a@b.de")
+	TEST_STRING_EQUAL(contacts[0].getURL(),"http://bla.de")
+		TEST_STRING_EQUAL(contacts[0].getContactInfo(),"")
+		
 
   //---------------------------------------------------------------------------
 	// const Sample& getSample()
@@ -743,7 +801,7 @@ RESULT
 CHECK([EXTRA] loading a minimal file containing one spectrum  - with whitespaces inside the base64 data)
 	MSExperiment<> e;
   MzXMLFile f;
-  f.load("data/MzXMLFile_test_5.mzXML",e);
+  f.load("data/MzXMLFile_test_minimal.mzXML",e);
   TEST_EQUAL(e.size(),1)
   TEST_EQUAL(e[0].size(),1)
 RESULT

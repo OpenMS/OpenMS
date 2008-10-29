@@ -29,6 +29,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/Acquisition.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <vector>
 
@@ -43,7 +44,8 @@ namespace OpenMS
 		@ingroup Metadata
 	*/
   class AcquisitionInfo
-  	:public std::vector<Acquisition>
+  	: public std::vector<Acquisition>,
+  		public MetaInfoInterface
   {
     public:
     	/// Constructor

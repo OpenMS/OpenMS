@@ -479,7 +479,7 @@ FileMerger_test: make_fuzzydiff
 	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_5_ini.txt -rt_from_filename -user_ms_level -ms_level 2  -out FileMerger5.tmp)
 	@$(call TEST_FILE_EQUAL,FileMerger5.tmp,FileMerger_5_output.txt)
 
-	@$(ECHO) "- Test 5: 2 mzML Files"
+	@$(ECHO) "- Test 6: 2 mzML Files"
 	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_6_ini.txt -out FileMerger6.tmp)
 	@$(call TEST_FILE_EQUAL,FileMerger6.tmp,FileMerger_6_output.mzData)
 
