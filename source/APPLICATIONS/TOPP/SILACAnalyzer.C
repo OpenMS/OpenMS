@@ -254,6 +254,7 @@ class TOPPSILACAnalyzer
 			all_pairs.getFileDescriptions()[1].filename = in;
 			all_pairs.getFileDescriptions()[1].label = "heavy";
 			all_pairs.getFileDescriptions()[1].size = 0;
+			all_pairs.getExperimentType() = "silac";
 			FeatureMap<> all_cluster_points;
 			
 			//--------------------------------------------------------------

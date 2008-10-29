@@ -29,6 +29,7 @@
 						<xs:enumeration value="labeled_MS2"/>
 						<xs:enumeration value="icat"/>
 						<xs:enumeration value="itraq"/>
+						<xs:enumeration value="silac"/>
 						<xs:enumeration value="label-free"/>
 						<xs:enumeration value="other"/>
 					</xs:restriction>
