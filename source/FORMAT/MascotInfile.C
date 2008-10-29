@@ -631,21 +631,34 @@ namespace OpenMS
 						// test if we have a line like "TITLE= Cmpd 1, +MSn(595.3), 10.9 min"
 						if (line.hasSubstring("min"))
 						{
-							vector<String> split;
-							line.split(',', split);
-							if (split.size() > 0)
+							try 
 							{
-								for (UInt i = 0; i != split.size(); ++i)
+								vector<String> split;
+								line.split(',', split);
+								if (split.size() > 0)
 								{
-									if (split[i].hasSubstring("min"))
+									for (UInt i = 0; i != split.size(); ++i)
 									{
-										vector<String> split2;
-										split[i].trim().split(' ', split2);
-										if (split2.size() > 0)
+										if (split[i].hasSubstring("min"))
 										{
-											rt = split2[0].trim().toDouble() * 60.0;
+											vector<String> split2;
+											split[i].trim().split(' ', split2);
+											if (split2.size() > 0)
+											{
+												rt = split2[0].trim().toDouble() * 60.0;
+											}
 										}
 									}
+								}
+							}
+							catch (Exception::BaseException& /*e*/)
+							{
+								// just do nothing and write the whole title to spec
+								vector<String> split;
+								line.split('=', split);
+								if (split.size() >= 2)
+								{
+									title = split[1];
 								}
 							}
 						}
@@ -653,7 +666,7 @@ namespace OpenMS
 						{
 							vector<String> split;
 							line.split('=', split);
-							if (split.size() == 2)
+							if (split.size() >= 2)
 							{
 								title = split[1];
 							}
