@@ -36,9 +36,9 @@
 namespace OpenMS 
 {
   /**
-    @brief Annotate a MSExperiment instances with ProteinIdentification instances
+    @brief Annotate a spectra of an MSExperiment with PeptideIdentification instances
     
-    The identifications stored in a ProteinIdentification instance can be added to the
+    The identifications stored in a PeptideIdentification instance can be added to the
     corresponding spectrum. Furthermore the annotations that are present
     can be retrieved.
   */
@@ -56,9 +56,13 @@ namespace OpenMS
 		 		be given in the MetaInfoInterface ('MZ' and 'RT').   					
       	
       	The exception MissingInformation is thrown if the MetaInfoInterface of @p identifications does not contain 'MZ' and 'RT'.
+			 
+				@throws Exception::MissingInformation
+				
+				@TODO attach ProteinIdentifications to MSExperiment (as done in IDFeatureMapper)
       */
       template <class PeakT>				
-      UInt annotate(MSExperiment< PeakT >& experiment, const std::vector<PeptideIdentification>& identifications, DoubleReal precision = 0.01f) throw (Exception::MissingInformation)
+      UInt annotate(MSExperiment< PeakT >& experiment, const std::vector<PeptideIdentification>& identifications, DoubleReal precision = 0.01f)
   		{
   			//store mapping of scan RT to index
 				std::multimap<DoubleReal, UInt> experiment_precursors;
@@ -96,7 +100,7 @@ namespace OpenMS
 						{
 							//std::cout << "RT matching (scan/id) " << experiment_iterator->first << " / " << identifications_iterator->first << std::endl;	
 							
-							// testing wheather the m/z fits
+							// testing whether the m/z fits
 							if (fabs((DoubleReal)(identifications[identifications_iterator->second].getMetaValue("MZ")) -  (DoubleReal)(experiment[experiment_iterator->second].getPrecursorPeak().getPosition()[0])) < precision)
 							{
 								//std::cout << "MZ matching (scan/id) " << (DoubleReal)(experiment[experiment_iterator->second].getPrecursorPeak().getPosition()[0]) << " / " << (DoubleReal)(identifications[identifications_iterator->second].getMetaValue("MZ")) << std::endl;	

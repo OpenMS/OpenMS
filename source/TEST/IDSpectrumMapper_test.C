@@ -51,7 +51,7 @@ CHECK((IDSpectrumMapper()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(template <class PeakT> UInt annotate(MSExperiment< PeakT > &experiment, const std::vector< PeptideIdentification > &identifications, DoubleReal precision=0.01f) throw (Exception::MissingInformation))
+CHECK(template <class PeakT> UInt annotate(MSExperiment< PeakT > &experiment, const std::vector< PeptideIdentification > &identifications, DoubleReal precision=0.01f))
 	//load id
 	vector<PeptideIdentification> identifications; 
 	vector<ProteinIdentification> protein_identifications;

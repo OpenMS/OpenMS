@@ -39,6 +39,9 @@ namespace OpenMS
  		
  		The retention time and mass-to-charge ratio of the PeptideIdentification have to 
  		be given in the MetaInfoInterface ('MZ' and 'RT').
+	 
+	  @TODO check if ConvexHull exists and fall back to centroid if its missing (and allow a deviation of xy in that case)
+	 
   */
   class IDFeatureMapper
   {

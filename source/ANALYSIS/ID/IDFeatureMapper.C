@@ -72,7 +72,7 @@ namespace OpenMS
 #endif
 				DPosition<2> id_pos(ids[i].getMetaValue("RT"),ids[i].getMetaValue("MZ"));
 				
-				//check if the ID lies within the bouning box. if it does not => next id
+				//check if the ID lies within the bounding box. if it does not => next id
 				if (!bb.encloses(id_pos))
 				{
 #ifdef DEBUG_ID_MAPPING
