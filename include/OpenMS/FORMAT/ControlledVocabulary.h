@@ -28,9 +28,10 @@
 #define OPENMS_FORMAT_CONTROLLEDVOCABULARY_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <map>
+#include <set>
 
 namespace OpenMS
 {
@@ -49,7 +50,8 @@ namespace OpenMS
 			{
 				String name;									///< Text name
 				String id;										///< Identifier
-				std::vector<String> parents;	///< List of parent IDs
+				std::set<String> parents;	///< List of parent IDs
+				std::set<String> childs;
 				bool obsolete; 								///< Flag that indicates of the term is obsolete
 				
 				///Default constructor
@@ -89,6 +91,17 @@ namespace OpenMS
 			*/
 			const CVTerm& getTerm(const String& id) const;
 
+
+			/// returns all the terms stored in the CV
+			const Map<String, CVTerm>& getTerms() const;
+
+			/**
+				@brief Writes all child terms recursively into terms
+
+				If parent has child this method writes them recursively into the term object
+			*/
+			void getAllChildTerms(std::set<String>& terms, const String& parent) const;
+			
 			/**
 				@brief Returns if @p child is a child of @p parent
 				
@@ -98,7 +111,7 @@ namespace OpenMS
 			
 		protected:
 			///Map from ID to CVTerm
-			std::map<String, CVTerm> terms_;
+			Map<String, CVTerm> terms_;
 			///Name set in the load method
 			String name_;			
 	};

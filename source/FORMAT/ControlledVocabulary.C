@@ -96,7 +96,14 @@ namespace OpenMS
 				}
 				else if (line_wo_spaces.hasPrefix("is_a:"))
 				{
-					term.parents.push_back(line.substr(line.find(':')+1).prefix('!').trim());
+					if (line.has('!'))
+					{
+						term.parents.insert(line.substr(line.find(':')+1).prefix('!').trim());
+					}
+					else
+					{
+						term.parents.insert(line.substr(line.find(':') + 1).trim());
+					}
 				}
 				else if (line_wo_spaces=="is_obsolete:true")
 				{
@@ -113,17 +120,44 @@ namespace OpenMS
 		{
 			terms_[term.id] = term;
 		}
+
+		// now build all child terms
+		for (Map<String, CVTerm>::iterator it = terms_.begin(); it != terms_.end(); ++it)
+		{
+			cerr << it->first << endl;
+			for (set<String>::const_iterator pit = terms_[it->first].parents.begin(); pit != terms_[it->first].parents.end(); ++pit)
+			{
+				cerr << "Parent: " << *pit << endl;
+				terms_[*pit].childs.insert(it->first);
+			}
+		}
 	}
 		
 	const ControlledVocabulary::CVTerm& ControlledVocabulary::getTerm(const String& id) const
 	{
-		map<String, CVTerm>::const_iterator it = terms_.find(id);
+		Map<String, CVTerm>::const_iterator it = terms_.find(id);
 		if (it==terms_.end())
 		{
 			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Inalid CV identifier!",id);
 		}
 		return it->second;
 	}	
+
+	const Map<String, ControlledVocabulary::CVTerm>& ControlledVocabulary::getTerms() const
+	{
+		return terms_;
+	}
+
+	void ControlledVocabulary::getAllChildTerms(set<String>& terms, const String& parent) const
+	{
+		cerr << "Parent: " << parent << endl;
+		const set<String>& childs = terms_[parent].childs;
+		for (set<String>::const_iterator it = childs.begin(); it != childs.end(); ++it)
+		{
+			terms.insert(*it);
+			getAllChildTerms(terms, *it);
+		}
+	}
 
 	bool ControlledVocabulary::exists(const String& id) const
 	{
@@ -139,17 +173,17 @@ namespace OpenMS
 		//cout << "CHECK child:" << child << " parent: " << parent << endl;
 		const CVTerm& ch = getTerm(child);
 		
-		for (UInt i=0; i<ch.parents.size(); ++i)
+		for (set<String>::const_iterator it = ch.parents.begin(); it != ch.parents.end(); ++it)
 		{
 			//cout << "Parent: " << ch.parents[i] << endl;
 			
 			//check if it is a direct parent
-			if (ch.parents[i]==parent)
+			if (*it == parent)
 			{
 				return true;
 			}
 			//check if it is an indirect parent
-			else if (isChildOf(ch.parents[i],parent))
+			else if (isChildOf(*it, parent))
 			{
 				return true;
 			}
@@ -160,12 +194,12 @@ namespace OpenMS
 
 	std::ostream& operator << (std::ostream& os, const ControlledVocabulary& cv)
 	{
-		for (map<String, ControlledVocabulary::CVTerm>::const_iterator it = cv.terms_.begin(); it!=cv.terms_.end(); ++it)
+		for (Map<String, ControlledVocabulary::CVTerm>::const_iterator it = cv.terms_.begin(); it!=cv.terms_.end(); ++it)
 		{
 			os << "[Term]" << endl;
 			os << "id: '" << it->second.id << "'" <<endl;
 			os << "name: '" << it->second.name <<  "'" << endl;
-			for (vector<String>::const_iterator it2 = it->second.parents.begin(); it2!= it->second.parents.end(); ++it2)
+			for (set<String>::const_iterator it2 = it->second.parents.begin(); it2!= it->second.parents.end(); ++it2)
 			{
 				cout << "is_a: '" << *it2 <<  "'" <<endl;
 			}

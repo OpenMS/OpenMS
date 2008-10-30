@@ -148,9 +148,30 @@ namespace OpenMS
 			
 			term.setAccession(attributeAsString_(attributes, "termAccession"));
 			term.setUseTerm(DataValue(attributeAsString_(attributes, "useTerm")).toBool());
-			term.setUseTermName(DataValue(attributeAsString_(attributes, "useTermName")).toBool());
+
+			String use_term_name;
+			optionalAttributeAsString_(use_term_name, attributes, "useTermName");
+			if (use_term_name != "")
+			{
+				term.setUseTermName(DataValue(use_term_name).toBool());
+			}
+			else
+			{
+				term.setUseTermName(false);
+			}
 			term.setTermName(attributeAsString_(attributes, "termName"));
-			term.setIsRepeatable(DataValue(attributeAsString_(attributes, "isRepeatable")).toBool());
+			
+			String is_repeatable;
+			optionalAttributeAsString_(is_repeatable, attributes, "isRepeatable");
+			if (is_repeatable != "")
+			{
+				term.setIsRepeatable(DataValue(is_repeatable).toBool());
+			}
+			else
+			{
+				term.setIsRepeatable(true);
+			}
+			term.setAllowChildren(DataValue(attributeAsString_(attributes, "allowChildren")).toBool());
 			term.setCVIdentifierRef(attributeAsString_(attributes, "cvIdentifierRef"));
 			
 			actual_rule_.addCVTerm(term);
