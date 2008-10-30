@@ -146,11 +146,12 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_EQUAL(e[2].getPrecursor().getWindowSize(), 0)
   
   //---------------------------------------------------------------------------
-  // const SourceFile& getSourceFile() const;
+  // const vector<SourceFile>& getSourceFiles() const;
   //---------------------------------------------------------------------------
-	TEST_EQUAL(e.getSourceFile().getNameOfFile(), "18")
-  TEST_REAL_EQUAL(e.getSourceFile().getFileSize(), 0)
-  TEST_EQUAL(e.getSourceFile().getFileType(), "19")
+  TEST_EQUAL(e.getSourceFiles().size(),1)
+	TEST_EQUAL(e.getSourceFiles()[0].getNameOfFile(), "18")
+  TEST_REAL_EQUAL(e.getSourceFiles()[0].getFileSize(), 0)
+  TEST_EQUAL(e.getSourceFiles()[0].getFileType(), "19")
 
   //---------------------------------------------------------------------------
   // const std::vector<ContactPerson>& getContacts() const;

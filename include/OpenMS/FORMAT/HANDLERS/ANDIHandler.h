@@ -273,16 +273,16 @@ namespace OpenMS
 		int last_slash = file.rfind("/",file.size());
 		int last_backslash = file.rfind("\\",file.size());
 		int cut = (last_slash > last_backslash)? last_slash : last_backslash;
-		exp_.getSourceFile().setNameOfFile( file.substr(cut+1) ); 
-		exp_.getSourceFile().setPathToFile( file.substr(0,cut+1) ); 
-
-		exp_.getSourceFile().setFileType( string_(admin_data->source_file_format) );
-
+		SourceFile sf;
+		sf.setNameOfFile( file.substr(cut+1) ); 
+		sf.setPathToFile( file.substr(0,cut+1) ); 
+		sf.setFileType( string_(admin_data->source_file_format) );
+		exp_.getSourceFiles().push_back(sf);
+		
 		ContactPerson contact;
 		contact.setLastName( string_(admin_data->operator_name) );
 		contact.setMetaValue(user_params_[CONTACT], String("Operator"));
 		exp_.getContacts().push_back(contact);
-
 		
 		contact = ContactPerson();
 		contact.setLastName( string_(admin_data->dataset_owner) );
