@@ -158,6 +158,8 @@ CHECK([EXTRA] static bool isValid(const String& filename))
 	f.load("data/FeatureXMLFile.featureXML",e);
 	f.store(filename, e);	
   TEST_EQUAL(f.isValid(filename),true);
+	
+	TEST_EQUAL(f.isValid("data/FeatureXMLFile.featureXML"),true);	
 RESULT
 
 CHECK( const PeakFileOptions& getOptions() const )

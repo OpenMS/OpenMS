@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2008 rel. 2 sp2 (http://www.altova.com) by Chris Bielow (FU Berlin) -->
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
 	<xs:element name="featureMap">
@@ -22,6 +23,61 @@
 						<xs:attribute name="count" type="xs:integer" use="required">
 							<xs:annotation>
 								<xs:documentation>number of feature to expect in the list</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="ProteinIdentification" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Collection of identified proteins</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="ProteinHit" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Single reported protein hit</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence minOccurs="0">
+										<xs:element name="UserParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
+									</xs:sequence>
+									<xs:attribute name="id" type="xs:ID" use="required">
+										<xs:annotation>
+											<xs:documentation>'id' of the protein hit. Is referenced by peptide hits.</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="accession" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>accession of the protein in the used database.</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="score" type="xs:float" use="required">
+										<xs:annotation>
+											<xs:documentation>score of the hit</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="sequence" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>protein sequences, if known</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="UserParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
+						</xs:sequence>
+						<xs:attribute name="score_type" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>score type of the protein hits, e.g. MOWSE, p-value,...</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="higher_score_better" type="xs:boolean" use="required">
+							<xs:annotation>
+								<xs:documentation>if a higher score is better ('true' or false')</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="significance_threshold" type="xs:float">
+							<xs:annotation>
+								<xs:documentation>significance threshold as calculated by the search engine</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 					</xs:complexType>
@@ -193,6 +249,98 @@
 					<xs:sequence>
 						<xs:element name="feature" type="featureType" minOccurs="0" maxOccurs="unbounded"/>
 					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="PeptideIdentification" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Collections of identified peptides. Typically one for each spectrum or feature.</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="PeptideHit" minOccurs="0" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>single reported peptide hit</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:sequence minOccurs="0">
+									<xs:element name="UserParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
+								</xs:sequence>
+								<xs:attribute name="sequence" type="xs:string" use="required">
+									<xs:annotation>
+										<xs:documentation>peptide sequence</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="charge" type="xs:integer" use="required">
+									<xs:annotation>
+										<xs:documentation>charge of the peptide</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="score" type="xs:float" use="required">
+									<xs:annotation>
+										<xs:documentation>score of the hit</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+								<xs:attribute name="aa_before">
+									<xs:annotation>
+										<xs:documentation>amino acid before the sequence (for DB search)</xs:documentation>
+									</xs:annotation>
+									<xs:simpleType>
+										<xs:restriction base="xs:string">
+											<xs:minLength value="0"/>
+											<xs:maxLength value="1"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+								<xs:attribute name="aa_after">
+									<xs:annotation>
+										<xs:documentation>amino acid after the sequence (for DB search)</xs:documentation>
+									</xs:annotation>
+									<xs:simpleType>
+										<xs:restriction base="xs:string">
+											<xs:minLength value="0"/>
+											<xs:maxLength value="1"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+								<xs:attribute name="protein_refs" type="xs:IDREFS">
+									<xs:annotation>
+										<xs:documentation>References to proteins hits, this peptide occurs in.</xs:documentation>
+									</xs:annotation>
+								</xs:attribute>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="UserParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
+					</xs:sequence>
+					<xs:attribute name="score_type" type="xs:string" use="required">
+						<xs:annotation>
+							<xs:documentation>score type of the protein hits, e.g. MOWSE, p-value,...</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="higher_score_better" type="xs:boolean" use="required">
+						<xs:annotation>
+							<xs:documentation>if a higher score is better ('true' or false')</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="significance_threshold" type="xs:float">
+						<xs:annotation>
+							<xs:documentation>significance threshold as calculated by the search engine</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="spectrum_reference" type="xs:unsignedInt">
+						<xs:annotation>
+							<xs:documentation>Integer reference number of the identified spectrum (or feature)</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="RT" type="xs:float">
+						<xs:annotation>
+							<xs:documentation>Precursor peak retention time of the identified spectrum</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
+					<xs:attribute name="MZ" type="xs:float">
+						<xs:annotation>
+							<xs:documentation>Precursor peak mass-to-charge ratio of the identified spectrum</xs:documentation>
+						</xs:annotation>
+					</xs:attribute>
 				</xs:complexType>
 			</xs:element>
 			<xs:element name="userParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
