@@ -55,20 +55,7 @@ namespace OpenMS
   	: public MetaInfoInterface,
 			public DocumentIdentifier
   {
-    public:
-    	///Type of the experiment
-    	enum ExperimentType 
-    	{
-    		UNKNOWN, ///< Unknown experiment type
-    		MS, ///< MS experiment
-    		MS_MS, ///< Tandem MS experiment
-    		HPLC_MS, ///< HPLC-MS experiment
-    		HPLC_MS_MS, ///< HPLC-MS experiment with tandem MS information
-    		SIZE_OF_EXPERIMENTTYPE ///< Number of experiment types (can be used to iterate over the names)
-    	};
-    	///Names of experiment types                                 
-    	static const std::string NamesOfExperimentType[SIZE_OF_EXPERIMENTTYPE];
-			
+    public:			
 			///Constructor
       ExperimentalSettings();
       ///Copy constructor
@@ -125,12 +112,7 @@ namespace OpenMS
       HPLC& getHPLC();
       /// sets the description of the HPLC run
       void setHPLC(const HPLC& hplc);
-
-      /// returns the experiment type
-    	ExperimentType getType() const;
-    	/// sets the experiment type
-      void setType(ExperimentType type);
-
+      
      	/// returns the date the experiment was performed
     	const Date& getDate() const;
     	/// sets the date the experiment was performed
@@ -157,7 +139,6 @@ namespace OpenMS
 			Instrument instrument_;
 		  std::vector<DataProcessing> data_processing_;
 		  HPLC hplc_;
-		  ExperimentType type_;
 		  Date date_;
 			String comment_;
 			std::vector<ProteinIdentification> protein_identifications_;

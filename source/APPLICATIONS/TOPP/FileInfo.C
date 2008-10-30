@@ -481,7 +481,6 @@ class TOPPFileInfo
 			{
 				
 				cout << "Document id       : " << exp.getIdentifier() << endl
-						 << "Experiment Type   : " << ExperimentalSettings::NamesOfExperimentType[exp.getType()] << endl
 						 << "Date              : " << date << endl;
 
 				//basic info

@@ -32,7 +32,7 @@
 namespace OpenMS 
 {
 	/**
-		@brief Description of a ion source ( Part of a MS Instrument )
+		@brief Description of a ion source (part of a MS Instrument)
 		
 		@ingroup Metadata
 	*/
@@ -131,9 +131,9 @@ namespace OpenMS
       /// Polarity of the ion source
       enum Polarity
       {
-      	POLNULL,	///> Unknown
-      	POSITIVE, ///> Positive polarity
-      	NEGATIVE, ///> Negative polarity
+      	POLNULL,	///< Unknown
+      	POSITIVE, ///< Positive polarity
+      	NEGATIVE, ///< Negative polarity
       	SIZE_OF_POLARITY
       };
 			/// Names of polarity of the ion source

@@ -34,7 +34,6 @@
 
 //QT
 class QLineEdit;
-class QComboBox;
 
 namespace OpenMS 
 {
@@ -69,12 +68,10 @@ namespace OpenMS
 	
 		protected:  
 		  
-			/// The type of this experiment
-	   	QComboBox* experimentalsettings_type_;
 			/// The date of this experiment
-			QLineEdit* experimentalsettings_date_;		
+			QLineEdit* date_;		
 			/// The comment to this experiment
-			QTextEdit* experimentalsettings_comment_;
+			QTextEdit* comment_;
 
 			//Docu in base class
 			void update_();

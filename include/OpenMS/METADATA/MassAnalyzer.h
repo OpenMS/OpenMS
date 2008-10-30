@@ -33,7 +33,7 @@
 namespace OpenMS 
 {
 	/**
-		@brief Descripton of a mass analyzer ( Part of a MS Instrument )
+		@brief Descripton of a mass analyzer (part of a MS Instrument)
 		
 		@ingroup Metadata
 	*/

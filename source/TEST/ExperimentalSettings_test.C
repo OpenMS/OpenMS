@@ -48,11 +48,6 @@ CHECK(~ExperimentalSettings())
 	delete ptr;
 RESULT
 
-CHECK(ExperimentType getType() const)
-  ExperimentalSettings tmp;
-  TEST_EQUAL(tmp.getType(),ExperimentalSettings::UNKNOWN);
-RESULT
-
 CHECK(const Date& getDate() const)
   ExperimentalSettings tmp;
   String s;
@@ -179,12 +174,6 @@ CHECK(void setSourceFiles(const vector<SourceFile>& source_file))
   dummy.resize(1);
   tmp.setSourceFiles(dummy);
   TEST_EQUAL(tmp.getSourceFiles().size(),1);
-RESULT
-
-CHECK(void setType(ExperimentType type))
-  ExperimentalSettings tmp;
-  tmp.setType(ExperimentalSettings::HPLC_MS);
-  TEST_EQUAL(tmp.getType(),ExperimentalSettings::HPLC_MS);
 RESULT
 
 CHECK(HPLC& getHPLC())

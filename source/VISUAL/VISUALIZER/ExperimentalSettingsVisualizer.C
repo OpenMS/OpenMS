@@ -31,7 +31,6 @@
 //QT
 #include <QtGui/QLineEdit>
 #include <QtGui/QTextEdit>
-#include <QtGui/QComboBox>
 
 //STL
 #include <iostream>
@@ -47,36 +46,24 @@ namespace OpenMS
 	{
 		addLabel_("Modify the settings of the experiment.");	
 		addSeparator_();  
-		addComboBox_(experimentalsettings_type_, "Type of the experiment");
-		addLineEdit_(experimentalsettings_date_, "Date of experiment");
-		addTextEdit_(experimentalsettings_comment_, "Comment");
+		addLineEdit_(date_, "Date of experiment");
+		addTextEdit_(comment_, "Comment");
 		
 		finishAdding_();
 	}
 	
 	void ExperimentalSettingsVisualizer::update_()
 	{
-		if(! isEditable())
-		{
-			
-			fillComboBox_(experimentalsettings_type_,& temp_.NamesOfExperimentType[temp_.getType()] ,1); 
-		}
-		else
-		{
-			fillComboBox_(experimentalsettings_type_, temp_.NamesOfExperimentType , ExperimentalSettings::SIZE_OF_EXPERIMENTTYPE);
-			experimentalsettings_type_->setCurrentIndex(temp_.getType()); 
-		}
 		String str;
     temp_.getDate().get(str);
-	  experimentalsettings_date_->setText(str.c_str()); 
-		experimentalsettings_comment_->setText(temp_.getComment().c_str());
+	  date_->setText(str.c_str()); 
+		comment_->setText(temp_.getComment().c_str());
 	}
 	
 	void ExperimentalSettingsVisualizer::store()
 	{
-		ptr_->setType((ExperimentalSettings::ExperimentType)experimentalsettings_type_->currentIndex());		
 		Date date;
-		String n(experimentalsettings_date_->text().toStdString());
+		String n(date_->text().toStdString());
 		try
 		{
 			date.set(n);
@@ -91,7 +78,7 @@ namespace OpenMS
 			}
 		}
 		
-		ptr_->setComment(experimentalsettings_comment_->toPlainText().toStdString());
+		ptr_->setComment(comment_->toPlainText().toStdString());
 		
 		temp_=(*ptr_);
 	}

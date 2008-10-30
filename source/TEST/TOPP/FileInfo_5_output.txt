@@ -21,7 +21,6 @@ Spectra of MS Level 2: 6
 -- Meta information --
 
 Document id       : OpenMS:
-Experiment Type   : Unknown
 Date              : 0000-00-00
 
 Sample

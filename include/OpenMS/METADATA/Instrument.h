@@ -44,7 +44,8 @@ namespace OpenMS
 		
 		@ingroup Metadata
 	*/
-  class Instrument: public MetaInfoInterface
+  class Instrument
+  	: public MetaInfoInterface
   {
     public:
     	/// Constructor

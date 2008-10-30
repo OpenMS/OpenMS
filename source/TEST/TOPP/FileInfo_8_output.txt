@@ -21,7 +21,6 @@ Spectra of MS Level 1: 3
 -- Meta information --
 
 Document id       : 
-Experiment Type   : Unknown
 Date              : 0000-00-00
 
 Sample

@@ -32,7 +32,7 @@
 namespace OpenMS 
 {
 	/**
-		@brief Description of a ion detector ( part of a MS Instrument )
+		@brief Description of a ion detector (part of a MS Instrument)
 		
 		@ingroup Metadata
 	*/

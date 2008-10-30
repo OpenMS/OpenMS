@@ -49,7 +49,7 @@ namespace OpenMS
   	
     It can be used to create objects from the DB or store them in the DB.
 		
-		@todo Check if METADATA implementation is complete - especially DataProcessing, AcquisitionInfo, SourceFile, ContactPerson (HiWi)
+		@todo Check if METADATA implementation is complete - especially DataProcessing, AcquisitionInfo, SourceFile, ContactPerson, Instrument, ExperimentalSettings (HiWi)
 		
     @ingroup DatabaseIO
   */
@@ -190,11 +190,9 @@ namespace OpenMS
 			query << "UPDATE META_MSExperiment SET ";
 			end = " WHERE id='" + String(exp.getPersistenceId()) + "'";
 		}
-		//type
-		query << "Type=" << (1u+exp.getType());
 		//date
 		exp.getDate().get(tmp);
-		query << ",Date='" << tmp << "'";
+		query << "Date='" << tmp << "'";
 		//description
 		query << ",Description='" << exp.getComment() << "'";
 		
@@ -920,7 +918,6 @@ namespace OpenMS
 		result.first();
 		
 		//Experiment meta info
-		exp.setType((ExperimentalSettings::ExperimentType)(result.value(0).toInt()));
 		if (result.value(1).toDate().isValid())
 		{
 			Date d;

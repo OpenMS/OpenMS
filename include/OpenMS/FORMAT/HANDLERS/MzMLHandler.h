@@ -50,11 +50,10 @@
 // - units
 
 //EXTEND:
-// - Handle new enum Types when reading/writing mzXML, mzData and netCDF
+// - Handle new enum Types when reading/writing mzXML and mzData
 // - chromatograms
 // - acquisitionSettings
 // - isolationWindow
-// - fileContent => ExperimentalSettings::type_
 
 namespace OpenMS
 {

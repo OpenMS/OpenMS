@@ -31,8 +31,6 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string ExperimentalSettings::NamesOfExperimentType[] = {"Unknown","MS","MS_MS","HPLC_MS","HPLC_MS_MS"};
-
 	ExperimentalSettings::ExperimentalSettings():
 		MetaInfoInterface(),
 		DocumentIdentifier(),
@@ -42,7 +40,6 @@ namespace OpenMS
 		instrument_(),
 		data_processing_(),
 		hplc_(),
-		type_(UNKNOWN),
 		date_(),
 		comment_(),
 		protein_identifications_()
@@ -59,7 +56,6 @@ namespace OpenMS
 	  instrument_(source.instrument_),
 	  data_processing_(source.data_processing_),
 	  hplc_(source.hplc_),
-	  type_(source.type_),
 	  date_(source.date_),
 	  comment_(source.comment_),
 		protein_identifications_(source.protein_identifications_)
@@ -82,7 +78,6 @@ namespace OpenMS
     instrument_ = source.instrument_;
     data_processing_ = source.data_processing_;
     hplc_ = source.hplc_;
-    type_ = source.type_;
     date_ = source.date_;
     comment_ = source.comment_;
     protein_identifications_ = source.protein_identifications_;
@@ -101,7 +96,6 @@ namespace OpenMS
 	    instrument_ == rhs.instrument_ &&
 	    data_processing_ == rhs.data_processing_ &&
 	    hplc_ == rhs.hplc_ &&
-	    type_ == rhs.type_ &&
 	    date_ == rhs.date_ &&
     	protein_identifications_ == rhs.protein_identifications_ &&
     	comment_ == rhs.comment_ &&
@@ -188,16 +182,6 @@ namespace OpenMS
 	void ExperimentalSettings::setDataProcessing(const vector<DataProcessing>& processing_method)
 	{
 	  data_processing_ = processing_method; 
-	}
-
-	ExperimentalSettings::ExperimentType ExperimentalSettings::getType() const
-	{
-		return type_;
-	}
-	
-	void ExperimentalSettings::setType(ExperimentalSettings::ExperimentType type)
-	{
-		type_ = type;
 	}
 
 	const Date& ExperimentalSettings::getDate() const
