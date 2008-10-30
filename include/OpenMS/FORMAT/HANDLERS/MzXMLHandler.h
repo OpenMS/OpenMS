@@ -159,7 +159,7 @@ namespace OpenMS
 				String char_rest_;
 				//@}
 				
-				/// Flag that indicates that the current spectrum should be skipped
+				/// Flag that indicates wether this spectrum should be skipped (due to options)
 				bool skip_spectrum_;
 				
 				/// spectrum counter (spectra without peaks are not written)
@@ -267,8 +267,6 @@ namespace OpenMS
 			else if (tag=="software")
 			{
 				String& parent_tag = *(open_tags_.end()-2);
-				//TODO dataProcessing - software can occur several times. Can we store that?
-				//     Perhaps we need to adjust our model!
 				if (parent_tag=="dataProcessing")
 				{
 					exp_->getDataProcessing().back().getSoftware().setVersion(attributeAsString_(attributes, s_version));
@@ -642,8 +640,6 @@ namespace OpenMS
 				{
 					exp_->getInstrument().setMetaValue("#Comment" , String(transcoded_chars));
 				}
-				//TODO dataProcessing - comment can occur several times. Can we store that?
-				//     Perhaps we need to adjust our model!
 				else if (parent_tag=="dataProcessing")
 				{
 					//TODO this is currently ignored

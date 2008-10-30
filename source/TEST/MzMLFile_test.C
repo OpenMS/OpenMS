@@ -36,10 +36,19 @@ using namespace std;
 
 ///////////////////////////
 
+DRange<1> makeRange(Real a, Real b)
+{
+	DPosition<1> pa(a), pb(b);
+	return DRange<1>(pa, pb);
+}
+
+///////////////////////////
+
 START_TEST(MzMLFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
 
 MzMLFile* ptr = 0;
 CHECK((MzMLFile()))
@@ -71,7 +80,7 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 
 	//-------------------------- general information --------------------------
   		
-	TEST_EQUAL(exp.size(),3)
+	TEST_EQUAL(exp.size(),4)
 	//id
 	TEST_EQUAL(exp.getIdentifier(),"urn:lsid:psidev.info:mzML.instanceDocuments.tiny.pwiz");
 	//contacts
@@ -154,7 +163,7 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
 		TEST_EQUAL(spec.getMetaDataArrays().size(),0)
 		TEST_EQUAL(spec.getType(),SpectrumSettings::PEAKS)
-		TEST_REAL_EQUAL(spec.getRT(),5.8905)
+		TEST_REAL_EQUAL(spec.getRT(),5.1)
 		TEST_EQUAL(spec.getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
 		TEST_REAL_EQUAL(spec.getInstrumentSettings().getMzRangeStart(),400.0)
 		TEST_REAL_EQUAL(spec.getInstrumentSettings().getMzRangeStop(),1800.0)
@@ -179,13 +188,12 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 		TEST_EQUAL(spec.getMSLevel(),2)
 		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
 		TEST_EQUAL(spec.getType(),SpectrumSettings::PEAKS)
-		TEST_REAL_EQUAL(spec.getRT(),5.9905)
+		TEST_REAL_EQUAL(spec.getRT(),5.2)
 		TEST_EQUAL(spec.getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
 		TEST_REAL_EQUAL(spec.getInstrumentSettings().getMzRangeStart(),110.0)
 		TEST_REAL_EQUAL(spec.getInstrumentSettings().getMzRangeStop(),905.0)
 		TEST_EQUAL(spec.getAcquisitionInfo().getMethodOfCombination(),"")
 		TEST_EQUAL(spec.getAcquisitionInfo().size(),0)
-		TEST_EQUAL(spec.getSourceFile()==SourceFile(),true)
 		//meta data arrays
 		TEST_EQUAL(spec.getMetaDataArrays().size(),2)
 		TEST_STRING_EQUAL(spec.getMetaDataArrays()[0].getName(),"signal to noise")
@@ -195,31 +203,59 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 		//precursor
 		TEST_REAL_EQUAL(spec.getPrecursorPeak().getIntensity(),120053)
 		TEST_EQUAL(spec.getPrecursorPeak().getCharge(),2)
-		TEST_REAL_EQUAL(spec.getPrecursorPeak().getPosition()[0],445.34)
+		TEST_REAL_EQUAL(spec.getPrecursorPeak().getPosition()[0],5.55)
 		TEST_EQUAL(spec.getPrecursor().getActivationMethod(),Precursor::CID)
 		TEST_REAL_EQUAL(spec.getPrecursor().getActivationEnergy(),35)
+		//source file
+		TEST_STRING_EQUAL(spec.getSourceFile().getNameOfFile(),"tiny1.dta")
+		TEST_STRING_EQUAL(spec.getSourceFile().getPathToFile(),"file:///F:/data/Exp01")
+		TEST_STRING_EQUAL(spec.getSourceFile().getChecksum(),"81be39fb2700ab2f3c8b2234b91274968b6899b1")
+		TEST_EQUAL(spec.getSourceFile().getChecksumType(),SourceFile::SHA1)
+		
 	}
 	
 	//-------------------------- spectrum 2 --------------------------
 	{
 		const MSSpectrum<>& spec = exp[2]; 
 		//peaks
-		TEST_EQUAL(spec.size(),0)
-		//general info
+		TEST_EQUAL(spec.size(),15)
+		for (UInt i=0; i<15; ++i)
+		{
+			TEST_REAL_EQUAL(spec[i].getMZ(),i);
+			TEST_REAL_EQUAL(spec[i].getIntensity(),15-i);
+		}
+		//general info		
 		TEST_EQUAL(spec.getMSLevel(),1)
 		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
 		TEST_EQUAL(spec.getMetaDataArrays().size(),0)
+		TEST_EQUAL(spec.getType(),SpectrumSettings::PEAKS)
+		TEST_REAL_EQUAL(spec.getRT(),5.3)
+		TEST_EQUAL(spec.getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
+		TEST_REAL_EQUAL(spec.getInstrumentSettings().getMzRangeStart(),400.0)
+		TEST_REAL_EQUAL(spec.getInstrumentSettings().getMzRangeStop(),1800.0)
+		TEST_STRING_EQUAL(spec.getAcquisitionInfo().getMethodOfCombination(),"median")
+		TEST_EQUAL(spec.getAcquisitionInfo().size(),2)
+		TEST_EQUAL(spec.getAcquisitionInfo()[0].getNumber(),4711)
+		TEST_EQUAL(spec.getAcquisitionInfo()[1].getNumber(),4712)
+		TEST_EQUAL(spec.getSourceFile()==SourceFile(),true)
+	}
+
+	//-------------------------- spectrum 3 (no peaks) --------------------------
+	{
+		const MSSpectrum<>& spec = exp[3]; 
+		//peaks
+		TEST_EQUAL(spec.size(),0)
+		//general info
+		TEST_EQUAL(spec.getMSLevel(),1)
+		TEST_REAL_EQUAL(spec.getRT(),5.4)
+		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
+		TEST_EQUAL(spec.getMetaDataArrays().size(),0)
 		TEST_EQUAL(spec.getType(),SpectrumSettings::UNKNOWN)
-		TEST_REAL_EQUAL(spec.getRT(),-1.0)
 		TEST_EQUAL(spec.getInstrumentSettings().getPolarity(),IonSource::POLNULL)
-		TEST_REAL_EQUAL(spec.getInstrumentSettings().getMzRangeStart(),0.0)
-		TEST_REAL_EQUAL(spec.getInstrumentSettings().getMzRangeStop(),0.0)
+		TEST_REAL_EQUAL(spec.getInstrumentSettings().getMzRangeStart(),110.0)
+		TEST_REAL_EQUAL(spec.getInstrumentSettings().getMzRangeStop(),905.0)
 		TEST_STRING_EQUAL(spec.getAcquisitionInfo().getMethodOfCombination(),"")
 		TEST_EQUAL(spec.getAcquisitionInfo().size(),0)
-		TEST_STRING_EQUAL(spec.getSourceFile().getNameOfFile(),"tiny1.dta")
-		TEST_STRING_EQUAL(spec.getSourceFile().getPathToFile(),"file:///F:/data/Exp01")
-		TEST_STRING_EQUAL(spec.getSourceFile().getChecksum(),"81be39fb2700ab2f3c8b2234b91274968b6899b1")
-		TEST_EQUAL(spec.getSourceFile().getChecksumType(),SourceFile::SHA1)
 	}
 	
 	//-------------------------- userParam --------------------------
@@ -247,6 +283,7 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_STRING_EQUAL((String)exp[0].getMetaValue("name"),"spectrum1")
 	TEST_STRING_EQUAL((String)exp[1].getMetaValue("name"),"spectrum2")
 	TEST_STRING_EQUAL((String)exp[2].getMetaValue("name"),"spectrum3")
+	TEST_STRING_EQUAL((String)exp[3].getMetaValue("name"),"spectrum4")
 	//binaryDataArray
 	TEST_STRING_EQUAL((String)exp[1].getMetaDataArrays()[0].getMetaValue("name"),"binaryDataArray_sn")
 	TEST_STRING_EQUAL((String)exp[1].getMetaDataArrays()[0].getMetaValue("name2"),"binaryDataArray_sn2")
@@ -255,7 +292,8 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	//scan
 	TEST_STRING_EQUAL((String)exp[0].getInstrumentSettings().getMetaValue("name"),"scan1")
 	TEST_STRING_EQUAL((String)exp[1].getInstrumentSettings().getMetaValue("name"),"scan2")
-	TEST_STRING_EQUAL((String)exp[2].getInstrumentSettings().getMetaValue("name"),"")
+	TEST_STRING_EQUAL((String)exp[2].getInstrumentSettings().getMetaValue("name"),"scan3")
+	TEST_STRING_EQUAL((String)exp[3].getInstrumentSettings().getMetaValue("name"),"")
 	//acquisition list
 	TEST_STRING_EQUAL((String)exp[0].getAcquisitionInfo().getMetaValue("name"),"acquisition_list")	
 	//acquisition
@@ -264,7 +302,7 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	//source file
 	TEST_STRING_EQUAL((String)exp.getSourceFiles()[0].getMetaValue("name"),"sourcefile1")
 	TEST_STRING_EQUAL((String)exp.getSourceFiles()[1].getMetaValue("name"),"sourcefile2")
-	TEST_STRING_EQUAL((String)exp[2].getSourceFile().getMetaValue("name"),"sourcefile4")
+	TEST_STRING_EQUAL((String)exp[1].getSourceFile().getMetaValue("name"),"sourcefile4")
 	//data processing
 	TEST_STRING_EQUAL(exp.getDataProcessing()[0].getMetaValue("p1").toString(),"value1")
 	TEST_STRING_EQUAL(exp.getDataProcessing()[0].getMetaValue("p2").toString(),"value2")
@@ -282,6 +320,91 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_EQUAL(exp3.size(),0)
 RESULT
 
+
+CHECK([EXTRA] load only meta data)
+	MzMLFile file;
+	file.getOptions().setMetadataOnly(true);
+	MSExperiment<> exp;
+	file.load("data/MzMLFile_1.mzML",exp);
+
+	TEST_EQUAL(exp.size(),0)
+	TEST_EQUAL(exp.getIdentifier(),"urn:lsid:psidev.info:mzML.instanceDocuments.tiny.pwiz");
+	TEST_EQUAL(exp.getContacts().size(),2)
+	TEST_EQUAL(exp.getSourceFiles().size(),2);
+	TEST_EQUAL(exp.getInstrument().getMassAnalyzers().size(),2)
+	TEST_EQUAL(exp.getDataProcessing().size(),2)
+RESULT
+
+
+CHECK([EXTRA] load with restricted MS levels)
+	MzMLFile file;
+	file.getOptions().addMSLevel(1);
+	MSExperiment<> exp;
+	file.load("data/MzMLFile_1.mzML",exp);
+
+	TEST_EQUAL(exp.size(),3)
+	TEST_REAL_EQUAL(exp[0].getRT(),5.1)
+	TEST_EQUAL((Int)exp[0].getMetaValue("original_spectrum_number"),0)
+	TEST_REAL_EQUAL(exp[1].getRT(),5.3)
+	TEST_EQUAL((Int)exp[1].getMetaValue("original_spectrum_number"),2)
+	TEST_REAL_EQUAL(exp[2].getRT(),5.4)
+	TEST_EQUAL((Int)exp[2].getMetaValue("original_spectrum_number"),3)
+RESULT
+
+
+CHECK([EXTRA] load with restricted RT range)
+	MzMLFile file;
+	file.getOptions().setRTRange(makeRange(5.15,5.35));
+	MSExperiment<> exp;
+	file.load("data/MzMLFile_1.mzML",exp);
+	TEST_EQUAL(exp.size(),2)
+	TEST_REAL_EQUAL(exp[0].getRT(),5.2)
+	TEST_REAL_EQUAL(exp[1].getRT(),5.3)
+RESULT
+
+CHECK([EXTRA] load with restricted m/z range)
+	MzMLFile file;
+	file.getOptions().setMZRange(makeRange(6.5,9.5));
+	MSExperiment<> exp;
+	file.load("data/MzMLFile_1.mzML",exp);
+	
+	TEST_EQUAL(exp.size(),4)
+	TEST_EQUAL(exp[0].size(),3)
+	TEST_REAL_EQUAL(exp[0][0].getMZ(),7.0)
+	TEST_REAL_EQUAL(exp[0][1].getMZ(),8.0)
+	TEST_REAL_EQUAL(exp[0][2].getMZ(),9.0)
+	TEST_EQUAL(exp[1].size(),1)
+	TEST_REAL_EQUAL(exp[1][0].getMZ(),8.0)
+	TEST_EQUAL(exp[2].size(),3)
+	TEST_REAL_EQUAL(exp[2][0].getMZ(),7.0)
+	TEST_REAL_EQUAL(exp[2][1].getMZ(),8.0)
+	TEST_REAL_EQUAL(exp[2][2].getMZ(),9.0)
+	TEST_EQUAL(exp[3].size(),0)
+RESULT
+
+
+
+CHECK([EXTRA] load intensity range)
+	MzMLFile file;
+	file.getOptions().setIntensityRange(makeRange(6.5,9.5));
+	MSExperiment<> exp;
+	file.load("data/MzMLFile_1.mzML",exp);
+
+	TEST_EQUAL(exp.size(),4)
+	TEST_EQUAL(exp[0].size(),3)
+	TEST_REAL_EQUAL(exp[0][0].getIntensity(),9.0)
+	TEST_REAL_EQUAL(exp[0][1].getIntensity(),8.0)
+	TEST_REAL_EQUAL(exp[0][2].getIntensity(),7.0)
+	TEST_EQUAL(exp[1].size(),1)
+	TEST_REAL_EQUAL(exp[1][0].getIntensity(),8.0)
+	TEST_EQUAL(exp[2].size(),3)
+	TEST_REAL_EQUAL(exp[2][0].getIntensity(),9.0)
+	TEST_REAL_EQUAL(exp[2][1].getIntensity(),8.0)
+	TEST_REAL_EQUAL(exp[2][2].getIntensity(),7.0)
+	TEST_EQUAL(exp[3].size(),0)
+RESULT
+
+
 CHECK((template <typename MapType> void store(const String& filename, const MapType& map) const))
 	std::string tmp_filename;
  	NEW_TMP_FILE(tmp_filename);
@@ -290,6 +413,7 @@ CHECK((template <typename MapType> void store(const String& filename, const MapT
 	MSExperiment<> exp;
 	TEST_EXCEPTION(Exception::NotImplemented, file.store(tmp_filename,exp))
 RESULT
+
 
 CHECK([EXTRA] bool isValid(const String& filename))
 	MzMLFile file;

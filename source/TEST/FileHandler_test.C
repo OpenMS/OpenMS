@@ -148,7 +148,7 @@ CHECK((template <class PeakType> bool loadExperiment(const String &filename, MSE
 
   tmp.getOptions() = PeakFileOptions();
   TEST_EQUAL(tmp.loadExperiment("data/MzMLFile_1.mzML",exp), true)	
-	TEST_EQUAL(exp.size(),3)
+	TEST_EQUAL(exp.size(),4)
 
 
 #ifdef ANDIMS_DEF

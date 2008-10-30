@@ -487,7 +487,7 @@ namespace OpenMS
 			String parent_tag;
 			if (open_tags_.size()>1) parent_tag = *(open_tags_.end()-2);
 							
-			//do nothing as until a new spectrum is reached
+			//do nothing until a new spectrum is reached
 			if (tag!="spectrum" && skip_spectrum_) return;
 
 

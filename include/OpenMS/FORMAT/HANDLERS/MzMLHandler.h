@@ -85,7 +85,8 @@ namespace OpenMS
 					default_array_length_(0),
 					in_spectrum_list_(false),
 					decoder_(),
-					logger_(logger)
+					logger_(logger),
+					skip_spectrum_(false)
 	  	{
 	  		cv_.loadFromOBO("psi-ms", File::find("CV/psi-ms.obo"));
 			}
@@ -101,7 +102,8 @@ namespace OpenMS
 					default_array_length_(0),
 					in_spectrum_list_(false),
 					decoder_(),
-					logger_(logger)
+					logger_(logger),
+					skip_spectrum_(false)
   		{
   			cv_.loadFromOBO("psi-ms", File::find("CV/psi-ms.obo"));
 			}
@@ -190,6 +192,9 @@ namespace OpenMS
 			/// Progress logger
 			const ProgressLogger& logger_;
 			
+			/// Flag that indicates wether this spectrum should be skipped (due to options)
+			bool skip_spectrum_;
+			
 			///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
 			ControlledVocabulary cv_;
 			
@@ -210,6 +215,8 @@ namespace OpenMS
 		template <typename MapType>
 		void MzMLHandler<MapType>::characters(const XMLCh* const chars, unsigned int /*length*/)
 		{
+			if (skip_spectrum_) return;
+				
 			char* transcoded_chars = sm_.convert(chars);
 			
 			String& current_tag = open_tags_.back();
@@ -257,17 +264,17 @@ namespace OpenMS
 			String tag = sm_.convert(qname);
 			open_tags_.push_back(tag);
 			
-			//std::cout << "TAG: " << tag << std::endl;
-			
 			//determine parent tag
 			String parent_tag;
 			if (open_tags_.size()>1) parent_tag = *(open_tags_.end()-2);
 
-
 			//determine the parent tag of the parent tag
 			String parent_parent_tag;
 			if (open_tags_.size()>2) parent_parent_tag = *(open_tags_.end()-3);
-			
+
+			//do nothing until a new spectrum is reached
+			if (tag!="spectrum" && skip_spectrum_) return;
+
 			if (tag=="spectrum")
 			{
 				//number of peaks
@@ -462,14 +469,20 @@ namespace OpenMS
 			static const XMLCh* s_data_processing_list = xercesc::XMLString::transcode("dataProcessingList");
 			static const XMLCh* s_mzml = xercesc::XMLString::transcode("mzML");
 
-			//std::cout << "/TAG: " << open_tags_.back() << std::endl;
-						
-			open_tags_.pop_back();			
+			open_tags_.pop_back();
 			
 			if(equal_(qname,s_spectrum))
 			{
-				fillData_();
-				exp_->push_back(spec_);
+				if (!skip_spectrum_)
+				{
+					fillData_();
+					exp_->push_back(spec_);
+					if (options_.hasMSLevels())
+					{
+						exp_->back().setMetaValue("original_spectrum_number", scan_count);
+					}
+				}
+				skip_spectrum_ = false;
 				logger_.setProgress(++scan_count);
 				data_.clear();
 				default_array_length_ = 0;
@@ -706,6 +719,11 @@ namespace OpenMS
 				{
 					//TODO Does this really belong here, or should it be under "spectrumDescription"?
 					spec_.setMSLevel(value.toInt());
+					
+					if (options_.hasMSLevels() && !options_.containsMSLevel(spec_.getMSLevel()))
+					{
+						skip_spectrum_ = true;
+					}
 				}
 			}
 			//------------------------- spectrumDescription ----------------------------
@@ -734,6 +752,11 @@ namespace OpenMS
 				else if (accession=="MS:1000016")//scan time
 				{
 					spec_.setRT(value.toDouble());
+					
+					if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRT())))
+					{
+						skip_spectrum_=true;
+					}
 				}
 				else if (accession=="MS:1000023")//isolation width
 				{

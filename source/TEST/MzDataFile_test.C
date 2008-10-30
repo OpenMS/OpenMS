@@ -33,7 +33,7 @@
 using namespace OpenMS;
 using namespace std;
 
-DRange<1> makeRange(float a, float b)
+DRange<1> makeRange(Real a, Real b)
 {
 	DPosition<1> pa(a), pb(b);
 	return DRange<1>(pa, pb);

@@ -56,8 +56,6 @@ namespace OpenMS
 
 		@todo Add RT model with tailing/fronting (Marc)
 		
-		@experimental This algorithm is work in progress and might change.
-
 		@ingroup FeatureFinder
 	*/
 	template<class PeakType, class FeatureType> class FeatureFinderAlgorithmPicked 
