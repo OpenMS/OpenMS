@@ -266,23 +266,8 @@ namespace OpenMS
 				}
 				else if (parent_tag=="msInstrument")
 				{
-					// not part of METADATA -> putting it into MetaInfo
-					MetaInfo().registry().registerName("#InstSoftware","Instrument software name");
-					exp_->getInstrument().setMetaValue("#InstSoftware", (String)attributeAsString_(attributes, s_name));
-					
-					MetaInfo().registry().registerName("#InstSoftwareVersion","Instrument software version");
-					exp_->getInstrument().setMetaValue("#InstSoftwareVersion", (String)attributeAsString_(attributes, s_version));
-					
-					MetaInfo().registry().registerName("#InstSoftwareType","Instrument software type");
-					exp_->getInstrument().setMetaValue("#InstSoftwareType", (String)attributeAsString_(attributes, s_type));
-					
-					String time;
-					optionalAttributeAsString_(time,attributes,s_completiontime);
-					if (time!="")
-					{
-						MetaInfo().registry().registerName("#InstSoftwareTime","Instrument software completion time");
-						exp_->getInstrument().setMetaValue("#InstSoftwareTime",time);
-					}
+					exp_->getInstrument().getSoftware().setVersion(attributeAsString_(attributes, s_version));
+					exp_->getInstrument().getSoftware().setName(attributeAsString_(attributes, s_name));
 				}
 			}
 			else if (tag=="peaks")
@@ -440,7 +425,8 @@ namespace OpenMS
 			}
 			else if (tag=="msIonisation")
 			{
-				exp_->getInstrument().getIonSource().setIonizationMethod((IonSource::IonizationMethod) cvStringToEnum_(2, attributeAsString_(attributes, s_value), "msIonization") );
+				exp_->getInstrument().getIonSources().resize(1);
+				exp_->getInstrument().getIonSources()[0].setIonizationMethod((IonSource::IonizationMethod) cvStringToEnum_(2, attributeAsString_(attributes, s_value), "msIonization") );
 			}
 			else if (tag=="msMassAnalyzer")
 			{
@@ -449,7 +435,8 @@ namespace OpenMS
 			}
 			else if (tag=="msDetector")
 			{
-				exp_->getInstrument().getIonDetector().setType( (IonDetector::Type) cvStringToEnum_(4, attributeAsString_(attributes, s_value), "msDetector") );
+				exp_->getInstrument().getIonDetectors().resize(1);
+				exp_->getInstrument().getIonDetectors()[0].setType( (IonDetector::Type) cvStringToEnum_(4, attributeAsString_(attributes, s_value), "msDetector") );
 			}
 			else if (tag=="msResolution")
 			{
@@ -708,66 +695,44 @@ namespace OpenMS
 			//----------------------------------------------------------------------------------------
 			//instrument
 			//----------------------------------------------------------------------------------------
-			if (cexp_->getInstrument() != Instrument())
+			if (cexp_->getInstrument() != Instrument() || cexp_->getContacts().size()!=0)
 			{
 				const Instrument& inst = cexp_->getInstrument();
 				os << "\t\t<msInstrument>\n"
-					 << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\""
-					 <<	inst.getVendor() << "\"/>\n"
-					 << "\t\t\t<msModel category=\"msModel\" value=\""
-					 << inst.getModel() << "\"/>\n"
-					 << "\t\t\t<msIonisation category=\"msIonisation\" value=\""
-					 << cv_terms_[2][inst.getIonSource().getIonizationMethod()]
-					 << "\"/>\n";
-	
+					 << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"" <<	inst.getVendor() << "\"/>\n" << "\t\t\t<msModel category=\"msModel\" value=\"" << inst.getModel() << "\"/>\n";
+				if (inst.getIonSources().size()==0 || !inst.getIonSources()[0].getIonizationMethod())
+				{
+					os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"\"/>\n";
+				}
+				else
+				{
+					os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"" << cv_terms_[2][inst.getIonSources()[0].getIonizationMethod()] << "\"/>\n";
+				}
 				const std::vector<MassAnalyzer>& analyzers = inst.getMassAnalyzers();
-				if ( analyzers.size()>0 )
+				if (analyzers.size()==0 || !analyzers[0].getResolutionMethod())
 				{
-					os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\""
-						 << cv_terms_[3][analyzers[0].getType()]  << "\"/>\n";
+					os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"\"/>\n";
 				}
 				else
 				{
-					std::cout << " Warning: mzXML supports only one analyzer! Skipping the other " << (analyzers.size()-1) << "mass analyzers." << std::endl;
+					os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"" << cv_terms_[3][analyzers[0].getType()]  << "\"/>\n";
 				}
-				os << "\t\t\t<msDetector category=\"msDetector\" value=\""
-					 << cv_terms_[4][inst.getIonDetector().getType()] << "\"/>\n";
-				try
+				if (inst.getIonDetectors().size()==0 || !inst.getIonDetectors()[0].getType())
 				{
-					String type = inst.getMetaValue("#InstSoftwareType").toString();
-					//invalid type is resetted to 'processing' as it fits all actions
-					if (type!="acquisition" && type!="conversion" && type!="processing")
-					{
-						type = "processing";
-					}
-					String name = inst.getMetaValue("#InstSoftware").toString();
-					String version = inst.getMetaValue("#InstSoftwareVersion").toString();
-					String str = inst.getMetaValue("#InstSoftwareTime").toString();
-					String time(str);
-					time.substitute(' ', 'T');
-					os << "\t\t\t<software type=\"" << type
-						 << "\" name=\"" << name
-						 << "\" version=\"" << version << "\"";
-					if (time != "")
-					{
-						os << " completionTime=\"" << time << "\"";
-					}
-					os << "/>\n";
-				}
-				catch(Exception::InvalidValue exception)
-				{
-	
-				}
-				
-				if ( analyzers.size()>0 )
-				{
-					if (analyzers[0].getResolutionMethod())
-						os << "\t\t\t<msResolution category=\"msResolution\" value=\""
-					 		 << cv_terms_[5][analyzers[0].getResolutionMethod()] << "\"/>\n";
+					os << "\t\t\t<msDetector category=\"msDetector\" value=\"\"/>\n";
 				}
 				else
 				{
-					std::cout << "Warning: mzXML supports only one analyzer! Skipping the other " << (analyzers.size()-1) << "mass analyzers." << std::endl;
+					os << "\t\t\t<msDetector category=\"msDetector\" value=\"" << cv_terms_[4][inst.getIonDetectors()[0].getType()] << "\"/>\n";					
+				}
+				os << "\t\t\t<software type=\"acquisition\" name=\"" << inst.getSoftware().getName() << "\" version=\"" << inst.getSoftware().getVersion() << "\"/>\n";
+				if (analyzers.size()==0 || !analyzers[0].getResolutionMethod())
+				{
+					os << "\t\t\t<msResolution category=\"msResolution\" value=\"\"/>\n";
+				}
+				else
+				{
+					os << "\t\t\t<msResolution category=\"msResolution\" value=\"" << cv_terms_[5][analyzers[0].getResolutionMethod()] << "\"/>\n";
 				}
 				
 				if ( cexp_->getContacts().size()>0 )

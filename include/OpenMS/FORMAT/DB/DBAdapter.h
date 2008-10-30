@@ -450,7 +450,9 @@ namespace OpenMS
 		//-------------------------------------- IONDETECTOR ------------------------------------- 
 		//----------------------------------------------------------------------------------------
 		
-		const IonDetector& detector = exp.getInstrument().getIonDetector();
+		//TODO Hack: Multiple ion detectors should be supported
+		exp.getInstrument().getIonDetectors().resize(1);
+		const IonDetector& detector = exp.getInstrument().getIonDetectors()[0];
 		query.str("");
 		
 		if (new_entry)
@@ -490,7 +492,9 @@ namespace OpenMS
 		//-------------------------------------- IONSOURCE --------------------------------------- 
 		//----------------------------------------------------------------------------------------
 		
-		const IonSource& source = exp.getInstrument().getIonSource();
+		//TODO Hack: Multiple ion sources should be supported
+		exp.getInstrument().getIonSources().resize(1);
+		const IonSource& source = exp.getInstrument().getIonSources()[0];
 		query.str("");
 		
 		if (new_entry)
@@ -1099,11 +1103,13 @@ namespace OpenMS
 		result = db_con_.executeQuery(query.str());
 		result.first();
 		
-		exp.getInstrument().getIonDetector().setAcquisitionMode((IonDetector::AcquisitionMode) result.value(0).toInt());
-		exp.getInstrument().getIonDetector().setType((IonDetector::Type) result.value(1).toInt());
-		exp.getInstrument().getIonDetector().setResolution(result.value(2).toDouble());
-		exp.getInstrument().getIonDetector().setADCSamplingFrequency(result.value(3).toDouble());
-		loadMetaInfo_(result.value(4).toInt(),exp.getInstrument().getIonDetector());
+		//TODO Hack: Multiple ion detectors should be supported
+		exp.getInstrument().getIonDetectors().resize(1);
+		exp.getInstrument().getIonDetectors()[0].setAcquisitionMode((IonDetector::AcquisitionMode) result.value(0).toInt());
+		exp.getInstrument().getIonDetectors()[0].setType((IonDetector::Type) result.value(1).toInt());
+		exp.getInstrument().getIonDetectors()[0].setResolution(result.value(2).toDouble());
+		exp.getInstrument().getIonDetectors()[0].setADCSamplingFrequency(result.value(3).toDouble());
+		loadMetaInfo_(result.value(4).toInt(),exp.getInstrument().getIonDetectors()[0]);
 		
 		// IonSource
 		query.str("");
@@ -1111,10 +1117,12 @@ namespace OpenMS
 		result = db_con_.executeQuery(query.str());
 		result.first();
 		
-		exp.getInstrument().getIonSource().setInletType((IonSource::InletType) result.value(0).toInt());
-		exp.getInstrument().getIonSource().setIonizationMethod((IonSource::IonizationMethod) result.value(1).toInt());
-		exp.getInstrument().getIonSource().setPolarity((IonSource::Polarity) result.value(2).toDouble());
-		loadMetaInfo_(result.value(3).toInt(),exp.getInstrument().getIonSource());
+		//TODO Hack: Multiple ion sources should be supported
+		exp.getInstrument().getIonSources().resize(1);
+		exp.getInstrument().getIonSources()[0].setInletType((IonSource::InletType) result.value(0).toInt());
+		exp.getInstrument().getIonSources()[0].setIonizationMethod((IonSource::IonizationMethod) result.value(1).toInt());
+		exp.getInstrument().getIonSources()[0].setPolarity((IonSource::Polarity) result.value(2).toDouble());
+		loadMetaInfo_(result.value(3).toInt(),exp.getInstrument().getIonSources()[0]);
 		
 		// MassAnalyzers
 		MassAnalyzer analyzer;

@@ -20,8 +20,8 @@ Spectra of MS Level 2: 6
 
 -- Meta information --
 
-Document id      : 
-Date             : 0000-00-00
+Document id       : 
+Date              : 0000-00-00
 
 Sample
   Name             : 
@@ -32,9 +32,9 @@ Instrument
   Name             : 
   Model            : MS 1
   Vendor           : MS-Vendor
-  Ion source       : Electrospray ionisation
-  Detector         : Faraday cup
-  Mass Analyzer(s) : Quadrupole ion trap, 
+  Ion source(s)    : Electrospray ionisation
+  Mass Analyzer(s) : Quadrupole ion trap
+  Detector(s)      : Faraday cup
 
 Contact Person
   First Name       : FirstName

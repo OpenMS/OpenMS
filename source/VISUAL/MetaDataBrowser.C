@@ -498,21 +498,27 @@ namespace OpenMS
 
 		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
-		//visualize IonSource object
-		visualize_(meta.getIonSource(), item);
-		
-		//visualize IonDetector object
-		visualize_(meta.getIonDetector(), item);
+		//visualize IonSources
+		for(UInt i=0; i<meta.getIonSources().size(); ++i)    
+		{
+			visualize_(meta.getIonSources()[i], item);
+		}
 			
 		//Check for MassAnalyzers
-		vector<MassAnalyzer>& v= meta.getMassAnalyzers();  
-		if(v.size() != 0)
+		for(UInt i=0; i<meta.getMassAnalyzers().size(); ++i)    
 		{
-			for(UInt i=0; i<v.size(); ++i)    
-			{
-				visualize_(v[i], item);
-			}
+			visualize_(meta.getMassAnalyzers()[i], item);
 		}
+
+		//visualize IonDectector
+		for(UInt i=0; i<meta.getIonDetectors().size(); ++i)    
+		{
+			visualize_(meta.getIonDetectors()[i], item);
+		}
+
+		//Software
+		visualize_(meta.getSoftware(), item);
+		
 		connectVisualizer_(visualizer);
 	}
 	
@@ -809,14 +815,9 @@ namespace OpenMS
 		}
 		
 		//Check for subsamples
-		vector<Sample>& v = meta.getSubsamples();  
-		
-		if(v.size() != 0)
+		for(UInt i=0; i<meta.getSubsamples().size(); ++i)    
 		{
-			for(UInt i=0; i<v.size(); ++i)    
-			{
-				visualize_(v[i], item);
-			}
+			visualize_(meta.getSubsamples()[i], item);
 		}
 		
 		//check for metainfo objects

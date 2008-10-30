@@ -230,15 +230,17 @@ if (do_tests)
 		exp_original.getInstrument().setVendor("Porsche K.G. Zuffenhausen");
 		exp_original.getInstrument().setCustomizations("340 PS");
 		exp_original.getInstrument().setMetaValue("label", String("red"));
-		exp_original.getInstrument().getIonDetector().setAcquisitionMode(IonDetector::PULSECOUNTING);
-		exp_original.getInstrument().getIonDetector().setType(IonDetector::PHOTOMULTIPLIER);
-		exp_original.getInstrument().getIonDetector().setResolution(6.7677);
-		exp_original.getInstrument().getIonDetector().setADCSamplingFrequency(7.6766);
-		exp_original.getInstrument().getIonDetector().setMetaValue("label", String("black"));
-		exp_original.getInstrument().getIonSource().setInletType(IonSource::DIRECT);
-		exp_original.getInstrument().getIonSource().setIonizationMethod(IonSource::ESI);
-		exp_original.getInstrument().getIonSource().setPolarity(IonSource::POSITIVE);
-		exp_original.getInstrument().getIonSource().setMetaValue("label", String("blue"));
+		exp_original.getInstrument().getIonDetectors().resize(1);
+		exp_original.getInstrument().getIonDetectors()[0].setAcquisitionMode(IonDetector::PULSECOUNTING);
+		exp_original.getInstrument().getIonDetectors()[0].setType(IonDetector::PHOTOMULTIPLIER);
+		exp_original.getInstrument().getIonDetectors()[0].setResolution(6.7677);
+		exp_original.getInstrument().getIonDetectors()[0].setADCSamplingFrequency(7.6766);
+		exp_original.getInstrument().getIonDetectors()[0].setMetaValue("label", String("black"));
+		exp_original.getInstrument().getIonSources().resize(1);
+		exp_original.getInstrument().getIonSources()[0].setInletType(IonSource::DIRECT);
+		exp_original.getInstrument().getIonSources()[0].setIonizationMethod(IonSource::ESI);
+		exp_original.getInstrument().getIonSources()[0].setPolarity(IonSource::POSITIVE);
+		exp_original.getInstrument().getIonSources()[0].setMetaValue("label", String("blue"));
 			
 		MassAnalyzer analyzer;
 		analyzer.setAccuracy(1.2687);
@@ -599,15 +601,17 @@ if (do_tests)
 			TEST_EQUAL(exp_new.getInstrument().getVendor() , "Porsche K.G. Zuffenhausen" )
 			TEST_EQUAL(exp_new.getInstrument().getCustomizations() , "340 PS" )
 			TEST_EQUAL(exp_new.getInstrument().getMetaValue("label") , "red" )
-			TEST_EQUAL(exp_new.getInstrument().getIonDetector().getType() , IonDetector::PHOTOMULTIPLIER )
-			TEST_EQUAL(exp_new.getInstrument().getIonDetector().getAcquisitionMode() , IonDetector::PULSECOUNTING )
-			TEST_REAL_EQUAL(exp_new.getInstrument().getIonDetector().getResolution() , 6.7677 )
-			TEST_REAL_EQUAL(exp_new.getInstrument().getIonDetector().getADCSamplingFrequency() , 7.6766 )
-			TEST_EQUAL(exp_new.getInstrument().getIonDetector().getMetaValue("label") , "black" )
-			TEST_EQUAL(exp_new.getInstrument().getIonSource().getInletType() , IonSource::DIRECT )
-			TEST_EQUAL(exp_new.getInstrument().getIonSource().getIonizationMethod() , IonSource::ESI )
-			TEST_EQUAL(exp_new.getInstrument().getIonSource().getPolarity() , IonSource::POSITIVE )
-			TEST_EQUAL(exp_new.getInstrument().getIonSource().getMetaValue("label") , "blue" )
+			TEST_EQUAL(exp_new.getInstrument().getIonDetectors().size(),1)
+			TEST_EQUAL(exp_new.getInstrument().getIonDetectors()[0].getType() , IonDetector::PHOTOMULTIPLIER )
+			TEST_EQUAL(exp_new.getInstrument().getIonDetectors()[0].getAcquisitionMode() , IonDetector::PULSECOUNTING )
+			TEST_REAL_EQUAL(exp_new.getInstrument().getIonDetectors()[0].getResolution() , 6.7677 )
+			TEST_REAL_EQUAL(exp_new.getInstrument().getIonDetectors()[0].getADCSamplingFrequency() , 7.6766 )
+			TEST_EQUAL(exp_new.getInstrument().getIonDetectors()[0].getMetaValue("label") , "black" )
+			TEST_EQUAL(exp_new.getInstrument().getIonSources().size(),1)
+			TEST_EQUAL(exp_new.getInstrument().getIonSources()[0].getInletType() , IonSource::DIRECT )
+			TEST_EQUAL(exp_new.getInstrument().getIonSources()[0].getIonizationMethod() , IonSource::ESI )
+			TEST_EQUAL(exp_new.getInstrument().getIonSources()[0].getPolarity() , IonSource::POSITIVE )
+			TEST_EQUAL(exp_new.getInstrument().getIonSources()[0].getMetaValue("label") , "blue" )
 			
 			TEST_REAL_EQUAL(exp_new.getInstrument().getMassAnalyzers()[0].getAccuracy() , 1.2687 )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[0].getFinalMSExponent() , 8 )

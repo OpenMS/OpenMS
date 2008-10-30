@@ -43,9 +43,10 @@ namespace OpenMS
 	  vendor_(source.vendor_),
 	  model_(source.model_),
 	  customizations_(source.customizations_),
-	  ion_source_(source.ion_source_),
+	  ion_sources_(source.ion_sources_),
 	  mass_analyzers_(source.mass_analyzers_),
-	  ion_detector_(source.ion_detector_)
+	  ion_detectors_(source.ion_detectors_),
+	  software_(source.software_)
 	{
 	  
 	}
@@ -59,13 +60,14 @@ namespace OpenMS
 	{
 		if (&source == this) return *this;
 	  
+	  software_ = source.software_;
     name_ = source.name_;
     vendor_ = source.vendor_;
     model_ = source.model_;
     customizations_ = source.customizations_;
-    ion_source_ = source.ion_source_;
+    ion_sources_ = source.ion_sources_;
     mass_analyzers_ = source.mass_analyzers_;
-    ion_detector_ = source.ion_detector_;
+    ion_detectors_ = source.ion_detectors_;
   	MetaInfoInterface::operator=(source);
 	  
 	  return *this;
@@ -73,14 +75,15 @@ namespace OpenMS
 	
 	bool Instrument::operator== (const Instrument& rhs) const
 	{
-		return 
+		return
+	 		software_ == rhs.software_ &&
 	    name_ == rhs.name_ &&
 	    vendor_ == rhs.vendor_ &&
 	    model_ == rhs.model_ &&
 	    customizations_ == rhs.customizations_ &&
-	    ion_source_ == rhs.ion_source_ &&
+	    ion_sources_ == rhs.ion_sources_ &&
 	    mass_analyzers_ == rhs.mass_analyzers_ &&
-	    ion_detector_ == rhs.ion_detector_ &&
+	    ion_detectors_ == rhs.ion_detectors_ &&
 			MetaInfoInterface::operator==(rhs)
 			;
 	}
@@ -130,19 +133,19 @@ namespace OpenMS
 	  customizations_ = customizations; 
 	}
 	
-	const IonSource& Instrument::getIonSource() const 
+	const std::vector<IonSource>& Instrument::getIonSources() const 
 	{
-	  return ion_source_; 
+	  return ion_sources_; 
 	}
 	
-	IonSource&  Instrument::getIonSource()
+	std::vector<IonSource>& Instrument::getIonSources()
 	{
-	  return ion_source_; 
+	  return ion_sources_; 
 	}
 	
-	void Instrument::setIonSource(const IonSource& ion_source)
+	void Instrument::setIonSources(const std::vector<IonSource>& ion_sources)
 	{
-	  ion_source_ = ion_source; 
+	  ion_sources_ = ion_sources; 
 	}
 	
 	const std::vector<MassAnalyzer>& Instrument::getMassAnalyzers() const 
@@ -160,19 +163,34 @@ namespace OpenMS
 	  mass_analyzers_ = mass_analyzers; 
 	}
 	
-	const IonDetector& Instrument::getIonDetector() const 
+	const std::vector<IonDetector>& Instrument::getIonDetectors() const 
 	{
-	  return ion_detector_; 
+	  return ion_detectors_; 
 	}
 	
-	IonDetector&  Instrument::getIonDetector()
+	std::vector<IonDetector>&  Instrument::getIonDetectors()
 	{
-	  return ion_detector_; 
+	  return ion_detectors_; 
 	}
 	
-	void Instrument::setIonDetector(const IonDetector& ion_detector)
+	void Instrument::setIonDetectors(const std::vector<IonDetector>& ion_detectors)
 	{
-	  ion_detector_ = ion_detector; 
+	  ion_detectors_ = ion_detectors; 
+	}
+	
+	const Software& Instrument::getSoftware() const
+	{
+	  return software_;
+	}
+	
+	Software& Instrument::getSoftware()
+	{
+	  return software_;
+	}
+	
+	void Instrument::setSoftware(const Software& software)
+	{
+	  software_ = software;
 	}
 
 }

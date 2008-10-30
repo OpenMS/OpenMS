@@ -117,9 +117,13 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_STRING_EQUAL(exp.getInstrument().getName(),"LCQ Deca")
 	TEST_STRING_EQUAL(exp.getInstrument().getCustomizations(),"Umbau")
 	//ion sources
-	TEST_EQUAL(exp.getInstrument().getIonSource().getOrder(),101)
-	TEST_EQUAL(exp.getInstrument().getIonSource().getInletType(),IonSource::DIRECT)
-	TEST_EQUAL(exp.getInstrument().getIonSource().getIonizationMethod(),IonSource::ESI)
+	TEST_EQUAL(exp.getInstrument().getIonSources().size(),2)
+	TEST_EQUAL(exp.getInstrument().getIonSources()[0].getOrder(),101)
+	TEST_EQUAL(exp.getInstrument().getIonSources()[0].getInletType(),IonSource::DIRECT)
+	TEST_EQUAL(exp.getInstrument().getIonSources()[0].getIonizationMethod(),IonSource::ESI)
+	TEST_EQUAL(exp.getInstrument().getIonSources()[1].getOrder(),102)
+	TEST_EQUAL(exp.getInstrument().getIonSources()[1].getInletType(),IonSource::DIRECT)
+	TEST_EQUAL(exp.getInstrument().getIonSources()[1].getIonizationMethod(),IonSource::FAB)
 	//mass analyzers
 	TEST_EQUAL(exp.getInstrument().getMassAnalyzers().size(),2)
 	TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[0].getOrder(),201)
@@ -129,20 +133,27 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[1].getType(),MassAnalyzer::LIT)
 	TEST_REAL_EQUAL(exp.getInstrument().getMassAnalyzers()[1].getMagneticFieldStrength(),1414.14)
 	//detectors
-	TEST_EQUAL(exp.getInstrument().getIonDetector().getOrder(),301)
-	TEST_EQUAL(exp.getInstrument().getIonDetector().getType(),IonDetector::ELECTRONMULTIPLIER)
-	TEST_EQUAL(exp.getInstrument().getIonDetector().getAcquisitionMode(),IonDetector::TDC)
-	TEST_REAL_EQUAL(exp.getInstrument().getIonDetector().getResolution(),5.1)
-	TEST_REAL_EQUAL(exp.getInstrument().getIonDetector().getADCSamplingFrequency(),1.1)
+	TEST_EQUAL(exp.getInstrument().getIonDetectors().size(),2)
+	TEST_EQUAL(exp.getInstrument().getIonDetectors()[0].getOrder(),301)
+	TEST_EQUAL(exp.getInstrument().getIonDetectors()[0].getType(),IonDetector::ELECTRONMULTIPLIER)
+	TEST_EQUAL(exp.getInstrument().getIonDetectors()[0].getAcquisitionMode(),IonDetector::TDC)
+	TEST_REAL_EQUAL(exp.getInstrument().getIonDetectors()[0].getResolution(),5.1)
+	TEST_REAL_EQUAL(exp.getInstrument().getIonDetectors()[0].getADCSamplingFrequency(),1.1)
+	TEST_EQUAL(exp.getInstrument().getIonDetectors()[1].getOrder(),302)
+	TEST_EQUAL(exp.getInstrument().getIonDetectors()[1].getType(),IonDetector::ELECTRONMULTIPLIER)
+	TEST_EQUAL(exp.getInstrument().getIonDetectors()[1].getAcquisitionMode(),IonDetector::TDC)
+	TEST_REAL_EQUAL(exp.getInstrument().getIonDetectors()[1].getResolution(),6.1)
+	TEST_REAL_EQUAL(exp.getInstrument().getIonDetectors()[1].getADCSamplingFrequency(),1.1)
+	//instrument software
+	TEST_EQUAL(exp.getInstrument().getSoftware().getName(),"Bioworks")
+	TEST_EQUAL(exp.getInstrument().getSoftware().getVersion(),"3.3.1 sp1")
 	//processing
 	TEST_EQUAL(exp.getDataProcessing().size(),2)
-	
 	TEST_EQUAL(exp.getDataProcessing()[1].getSoftware().getName(),"ProteoWizard")
 	TEST_EQUAL(exp.getDataProcessing()[1].getSoftware().getVersion(),"1.0")
 	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().size(),1)
 	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().count(DataProcessing::CONVERSION_MZML),1)
 	TEST_EQUAL(exp.getDataProcessing()[1].isMetaEmpty(),true)
-	
 	TEST_EQUAL(exp.getDataProcessing()[0].getSoftware().getName(),"Xcalibur")
 	TEST_EQUAL(exp.getDataProcessing()[0].getSoftware().getVersion(),"2.0.5")
 	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().size(),3)
@@ -274,10 +285,12 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
   TEST_EQUAL((Int)exp.getMetaValue("int"),5)
 	//instrumentConfiguration
 	TEST_STRING_EQUAL((String)exp.getInstrument().getMetaValue("name"),"instrumentConfiguration")
-	TEST_STRING_EQUAL((String)exp.getInstrument().getIonSource().getMetaValue("name"),"source")
+	TEST_STRING_EQUAL((String)exp.getInstrument().getIonSources()[0].getMetaValue("name"),"source1")
+	TEST_STRING_EQUAL((String)exp.getInstrument().getIonSources()[1].getMetaValue("name"),"source2")
 	TEST_STRING_EQUAL((String)exp.getInstrument().getMassAnalyzers()[0].getMetaValue("name"),"analyzer1")
 	TEST_STRING_EQUAL((String)exp.getInstrument().getMassAnalyzers()[1].getMetaValue("name"),"analyzer2")
-	TEST_STRING_EQUAL((String)exp.getInstrument().getIonDetector().getMetaValue("name"),"detector")
+	TEST_STRING_EQUAL((String)exp.getInstrument().getIonDetectors()[0].getMetaValue("name"),"detector1")
+	TEST_STRING_EQUAL((String)exp.getInstrument().getIonDetectors()[1].getMetaValue("name"),"detector2")
 	//sample
 	TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("name"),"sample")
 	//contact

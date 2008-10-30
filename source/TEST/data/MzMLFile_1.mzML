@@ -76,11 +76,16 @@
       <cvParam cvRef="MS" accession="MS:1000529" name="instrument serial number" value="23433"/>
       <cvParam cvRef="MS" accession="MS:1000032" name="customization" value="Umbau"/>
       <userParam name="name" value="instrumentConfiguration"/>
-      <componentList count="4">
+      <componentList count="6">
         <source order="101">
           <cvParam cvRef="MS" accession="MS:1000056" name="direct inlet" value=""/>
           <cvParam cvRef="MS" accession="MS:1000073" name="electrospray ionization" value=""/>
-          <userParam name="name" value="source"/>
+          <userParam name="name" value="source1"/>
+        </source>
+        <source order="102">
+          <cvParam cvRef="MS" accession="MS:1000056" name="direct inlet" value=""/>
+          <cvParam cvRef="MS" accession="MS:1000074" name="fast atom bombardment ionization" value=""/>
+          <userParam name="name" value="source2"/>
         </source>
         <analyzer order="201">
           <cvParam cvRef="MS" accession="MS:1000082" name="quadrupole ion trap" value=""/>
@@ -97,10 +102,17 @@
           <cvParam cvRef="MS" accession="MS:1000028" name="detector resolution" value="5.1"/>
           <cvParam cvRef="MS" accession="MS:1000029" name="sampling frequency" value="1.1"/>
           <cvParam cvRef="MS" accession="MS:1000119" name="time-digital converter" value=""/>
-          <userParam name="name" value="detector"/>
+          <userParam name="name" value="detector1"/>
+        </detector>
+        <detector order="302">
+          <cvParam cvRef="MS" accession="MS:1000253" name="electron multiplier" value=""/>
+          <cvParam cvRef="MS" accession="MS:1000028" name="detector resolution" value="6.1"/>
+          <cvParam cvRef="MS" accession="MS:1000029" name="sampling frequency" value="1.1"/>
+          <cvParam cvRef="MS" accession="MS:1000119" name="time-digital converter" value=""/>
+          <userParam name="name" value="detector2"/>
         </detector>
       </componentList>
-      <softwareRef ref="Xcalibur"/>
+      <softwareRef ref="Bioworks"/>
     </instrumentConfiguration>
   </instrumentConfigurationList>
   

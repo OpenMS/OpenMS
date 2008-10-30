@@ -334,20 +334,20 @@ namespace OpenMS
 		// Membrane Separator, Capillary Direct, Open Split, Jet Separator, Direct Inlet Probe, Septum, Particle Beam,
 		// Reservoir, Moving Belt, Atmospheric Pressure Chemical Ionization, Flow Injection Analysis, Electrospray,
 		// Infusion, Thermospray, Other Probe, Other
-		typedef IonSource is;
-		IonSource& src = exp_.getInstrument().getIonSource();
-		int inlet_map[] = {is::MEMBRANESEPARATOR, 0, is::OPENSPLIT, is::JETSEPARATOR, is::DIRECT, is::SEPTUM,
-		is::PARTICLEBEAM, is::RESERVOIR, is::MOVINGBELT, 0, is::FLOWINJECTIONANALYSIS, is::ELECTROSPRAYINLET,
-		is::INFUSION, is::THERMOSPRAYINLET, 0, 0};
-		src.setInletType( (is::InletType) inlet_map[test_data->ms_inlet - inlet_membrane]);
+		exp_.getInstrument().getIonSources().resize(1);
+		IonSource& src = exp_.getInstrument().getIonSources()[0];
+		int inlet_map[] = {IonSource::MEMBRANESEPARATOR, 0, IonSource::OPENSPLIT, IonSource::JETSEPARATOR, IonSource::DIRECT, IonSource::SEPTUM,
+		IonSource::PARTICLEBEAM, IonSource::RESERVOIR, IonSource::MOVINGBELT, 0, IonSource::FLOWINJECTIONANALYSIS, IonSource::ELECTROSPRAYINLET,
+		IonSource::INFUSION, IonSource::THERMOSPRAYINLET, 0, 0};
+		src.setInletType( (IonSource::InletType) inlet_map[test_data->ms_inlet - inlet_membrane]);
 		src.setMetaValue(user_params_[INLETTEMP], float_(test_data->ms_inlet_temperature));
 
 		// Electron Impact, Chemical Ionization, Fast Atom Bombardment, Field Desorption, Field Ionization,
 		// Electrospray, Thermospray, Atmospheric Pressure Chemical Ionization, Plasma Desorption,
 		// Laser Desorption, Spark Ionization, Thermal Ionization, Other
-		int ion_map[] = {is::EI, is::CI, is::FAB, is::FD, is::FI, is::ESI, 
-										 is::TSP, is::APCI, is::PD, is::LD, is::SI, is::TI, 0};
-		src.setIonizationMethod( (is::IonizationMethod) ion_map[test_data->ionization_mode - ionization_ei]);
+		int ion_map[] = {IonSource::EI, IonSource::CI, IonSource::FAB, IonSource::FD, IonSource::FI, IonSource::ESI, 
+										 IonSource::TSP, IonSource::APCI, IonSource::PD, IonSource::LD, IonSource::SI, IonSource::TI, 0};
+		src.setIonizationMethod( (IonSource::IonizationMethod) ion_map[test_data->ionization_mode - ionization_ei]);
 
 		std::stringstream buffer;
 		if (test_data->fab_type != NULL) buffer << "FABType=" << test_data->fab_type << " ";
@@ -366,45 +366,43 @@ namespace OpenMS
 
 		// Electron Multiplier, Photomultplier, Focal Plane Array, Faraday Cup, Conversion Dynode Electron Multiplier,
 		// Conversion dynode Photomultiplier, Multicollector, Other
-		typedef IonDetector id;
-		IonDetector& det = exp_.getInstrument().getIonDetector();
-		int detector_map[] = {id::ELECTRONMULTIPLIER, id::PHOTOMULTIPLIER, id::FOCALPLANEARRAY, id::FARADAYCUP,
-													id::CONVERSIONDYNODEELECTRONMULTIPLIER, id::CONVERSIONDYNODEPHOTOMULTIPLIER,
-													id::MULTICOLLECTOR, 0};
-		det.setType( (id::Type) detector_map[test_data->detector_type - detector_em]);
+		exp_.getInstrument().getIonDetectors().resize(1);
+		IonDetector& det = exp_.getInstrument().getIonDetectors()[0];
+		int detector_map[] = {IonDetector::ELECTRONMULTIPLIER, IonDetector::PHOTOMULTIPLIER, IonDetector::FOCALPLANEARRAY, IonDetector::FARADAYCUP,
+													IonDetector::CONVERSIONDYNODEELECTRONMULTIPLIER, IonDetector::CONVERSIONDYNODEPHOTOMULTIPLIER,
+													IonDetector::MULTICOLLECTOR, 0};
+		det.setType( (IonDetector::Type) detector_map[test_data->detector_type - detector_em]);
 		det.setMetaValue(user_params_[DETPOT], float_(test_data->detector_potential));
 		det.setMetaValue(user_params_[DETENTRPOT], float_(test_data->detector_entrance_potential));
 
 
 
-		typedef MassAnalyzer ma;
-		ma analyzer;
-
-		int dir_map[] = {ma::UP, ma::DOWN, 0};
-		analyzer.setScanDirection( (ma::ScanDirection) dir_map[test_data->scan_direction - direction_up]);
+		MassAnalyzer analyzer;
+		int dir_map[] = {MassAnalyzer::UP, MassAnalyzer::DOWN, 0};
+		analyzer.setScanDirection( (MassAnalyzer::ScanDirection) dir_map[test_data->scan_direction - direction_up]);
 		
 		// Linear, Exponential, Quadratic,  Other
-		int law_map[] = {ma::LINEAR, ma::EXPONENTIAL, ma::QUADRATIC, 0};
-		analyzer.setScanLaw( (ma::ScanLaw) law_map[test_data->scan_law - law_linear]);
+		int law_map[] = {MassAnalyzer::LINEAR, MassAnalyzer::EXPONENTIAL, MassAnalyzer::QUADRATIC, 0};
+		analyzer.setScanLaw( (MassAnalyzer::ScanLaw) law_map[test_data->scan_law - law_linear]);
 
 		//Mass Scan, Selected Ion Detection, Other
-		int function_map[] = {ma::MASSSCAN, ma::SELECTEDIONDETECTION, 0};
-		analyzer.setScanFunction( (ma::ScanFunction) function_map[test_data->scan_function - function_scan]);
+		int function_map[] = {MassAnalyzer::MASSSCAN, MassAnalyzer::SELECTEDIONDETECTION, 0};
+		analyzer.setScanFunction( (MassAnalyzer::ScanFunction) function_map[test_data->scan_function - function_scan]);
 
-		analyzer.setResolutionType( (ma::ResolutionType) (test_data->resolution_type - resolution_constant));
+		analyzer.setResolutionType( (MassAnalyzer::ResolutionType) (test_data->resolution_type - resolution_constant));
 		analyzer.setScanTime(test_data->scan_time);
 
 		if (test_data->resolution_method != NULL)
 		{
 			if (String(test_data->resolution_method) == "50% peak height")
 			{
-				analyzer.setResolutionMethod(ma::FWHM);
+				analyzer.setResolutionMethod(MassAnalyzer::FWHM);
 			}
 			else
 			{
 				if (String(test_data->resolution_method) == "10% peak valley") 
 				{
-					analyzer.setResolutionMethod(ma::TENPERCENTVALLEY);
+					analyzer.setResolutionMethod(MassAnalyzer::TENPERCENTVALLEY);
 				}
 			}
 		}

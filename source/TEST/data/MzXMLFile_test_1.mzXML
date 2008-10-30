@@ -9,7 +9,7 @@
 			<msIonisation category="msIonisation" value="ESI"/>
 			<msMassAnalyzer category="msMassAnalyzer" value="Quadrupole Ion Trap"/>
 			<msDetector category="msDetector" value="Faraday Cup"/>
-			<software type="acquisition" name="MS-Y" version="2.0"/>
+			<software type="acquisition" name="MS-Z" version="3.0"/>
 			<msResolution category="msResolution" value="FWHM"/>
 			<operator first="FirstName" last="LastName" phone="0049" email="a@b.de" URI="http://bla.de"/>
 			<nameValue name="URL1" value="www.open-ms.de"/>

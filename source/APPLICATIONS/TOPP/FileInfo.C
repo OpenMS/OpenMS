@@ -496,13 +496,23 @@ class TOPPFileInfo
 						 << "  Name             : " << exp.getInstrument().getName() << endl
 						 << "  Model            : " << exp.getInstrument().getModel()  << endl
 						 << "  Vendor           : " << exp.getInstrument().getVendor()  << endl
-						 << "  Ion source       : " << IonSource::NamesOfIonizationMethod[exp.getInstrument().getIonSource().getIonizationMethod()]  << endl
-						 << "  Detector         : " << IonDetector::NamesOfType[exp.getInstrument().getIonDetector().getType()]  << endl
-						 << "  Mass Analyzer(s) : ";
-	
+						 << "  Ion source(s)    : ";
+				for (UInt i=0; i< exp.getInstrument().getIonSources().size(); ++i)
+				{
+					cout  << IonSource::NamesOfIonizationMethod[exp.getInstrument().getIonSources()[i].getIonizationMethod()];
+					if (i!=exp.getInstrument().getIonSources().size()-1) cout << ", ";
+				}
+				cout << endl << "  Mass Analyzer(s) : ";
 				for (UInt i=0; i< exp.getInstrument().getMassAnalyzers().size(); ++i)
 				{
-					cout  << MassAnalyzer::NamesOfAnalyzerType[exp.getInstrument().getMassAnalyzers()[i].getType()] << ", ";
+					cout  << MassAnalyzer::NamesOfAnalyzerType[exp.getInstrument().getMassAnalyzers()[i].getType()];
+					if (i!=exp.getInstrument().getMassAnalyzers().size()-1) cout << ", ";
+				}
+				cout << endl << "  Detector(s)      : ";
+				for (UInt i=0; i< exp.getInstrument().getIonDetectors().size(); ++i)
+				{
+					cout  << IonDetector::NamesOfType[exp.getInstrument().getIonDetectors()[i].getType()];
+					if (i!=exp.getInstrument().getIonDetectors().size()-1) cout << ", ";
 				}
 				cout << endl << endl;
 	

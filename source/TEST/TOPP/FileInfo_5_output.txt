@@ -32,9 +32,9 @@ Instrument
   Name             : MS-Instrument
   Model            : MS 1
   Vendor           : MS-Vendor
-  Ion source       : Electrospray ionisation
-  Detector         : Faraday cup
-  Mass Analyzer(s) : Quadrupole ion trap, Quadrupole, 
+  Ion source(s)    : Electrospray ionisation
+  Mass Analyzer(s) : Quadrupole ion trap, Quadrupole
+  Detector(s)      : Faraday cup
 
 Contact Person
   First Name       : John

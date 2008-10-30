@@ -48,14 +48,14 @@ CHECK(~Instrument())
 	delete ptr;
 RESULT
 
-CHECK(const IonDetector& getIonDetector() const)
+CHECK(const std::vector<IonDetector>& getIonDetectors() const)
   Instrument tmp;
-  TEST_EQUAL(tmp.getIonDetector()==IonDetector(),true);
+  TEST_EQUAL(tmp.getIonDetectors().size(),0)
 RESULT
 
-CHECK(const IonSource& getIonSource() const)
+CHECK(const std::vector<IonSource>& getIonSources() const)
   Instrument tmp;
-  TEST_EQUAL(tmp.getIonSource()==IonSource(),true);
+  TEST_EQUAL(tmp.getIonSources().size(),0)
 RESULT
 
 CHECK(const String& getCustomizations() const)
@@ -83,26 +83,31 @@ CHECK(const std::vector<MassAnalyzer>& getMassAnalyzers() const)
   TEST_EQUAL(tmp.getMassAnalyzers().size(),0);
 RESULT
 
+CHECK(const Software& getSoftware() const)
+	Instrument tmp;
+  TEST_STRING_EQUAL(tmp.getSoftware().getName(),"");
+RESULT
+
 CHECK(void setCustomizations(const String& customizations))
   Instrument tmp;
   tmp.setCustomizations("Customizations");
   TEST_EQUAL(tmp.getCustomizations(),"Customizations");
 RESULT
 
-CHECK(void setIonDetector(const IonDetector& ion_detector))
+CHECK(void setIonDetectors(const std::vector<IonDetector>& ion_detectors))
   Instrument tmp;
-  IonDetector dummy;
-  dummy.setResolution(47.11); 
-  tmp.setIonDetector(dummy);
-  TEST_REAL_EQUAL(tmp.getIonDetector().getResolution(),47.11);
+  std::vector<IonDetector> dummy;
+  dummy.resize(1); 
+  tmp.setIonDetectors(dummy);
+  TEST_EQUAL(tmp.getIonDetectors().size(),1);
 RESULT
 
-CHECK(void setIonSource(const IonSource& ion_source))
+CHECK(void setIonSources(const std::vector<IonSource>& ion_sources))
   Instrument tmp;
-  IonSource dummy;
-  dummy.setPolarity(IonSource::POSITIVE); 
-  tmp.setIonSource(dummy);
-  TEST_EQUAL(tmp.getIonSource().getPolarity(),IonSource::POSITIVE);
+  std::vector<IonSource> dummy;
+  dummy.resize(1);
+  tmp.setIonSources(dummy);
+  TEST_EQUAL(tmp.getIonSources().size(),1);
 RESULT
 
 CHECK(void setMassAnalyzers(const std::vector<MassAnalyzer>& mass_analyzers))
@@ -137,16 +142,24 @@ CHECK(void setVendor(const String& vendor))
   TEST_EQUAL(tmp.getVendor(),"Vendor");
 RESULT
 
-CHECK(IonDetector& getIonDetector())
-  Instrument tmp;
-  tmp.getIonDetector().setResolution(47.11); 
-  TEST_REAL_EQUAL(tmp.getIonDetector().getResolution(),47.11);
+CHECK(void setSoftware(const Software& software))
+	Instrument tmp;
+	Software s;
+	s.setName("sn");
+	tmp.setSoftware(s);
+  TEST_STRING_EQUAL(tmp.getSoftware().getName(),"sn");
 RESULT
 
-CHECK(IonSource& getIonSource())
+CHECK(std::vector<IonDetector>& getIonDetectors())
   Instrument tmp;
-  tmp.getIonSource().setPolarity(IonSource::POSITIVE); 
-  TEST_EQUAL(tmp.getIonSource().getPolarity(),IonSource::POSITIVE);
+  tmp.getIonDetectors().resize(1);
+  TEST_REAL_EQUAL(tmp.getIonDetectors().size(),1);
+RESULT
+
+CHECK(std::vector<IonSource>& getIonSources())
+  Instrument tmp;
+  tmp.getIonSources().resize(1);
+  TEST_EQUAL(tmp.getIonSources().size(),1);
 RESULT
 
 CHECK(std::vector<MassAnalyzer>& getMassAnalyzers())
@@ -159,38 +172,47 @@ CHECK(std::vector<MassAnalyzer>& getMassAnalyzers())
   TEST_REAL_EQUAL(tmp.getMassAnalyzers()[1].getScanTime(),47.12);
 RESULT
 
+CHECK(Software& getSoftware())
+	Instrument tmp;
+	tmp.getSoftware().setName("sn");
+  TEST_STRING_EQUAL(tmp.getSoftware().getName(),"sn");
+RESULT
+
 CHECK(Instrument(const Instrument& source))
   Instrument tmp;
   tmp.getMassAnalyzers().resize(1);
   tmp.getMassAnalyzers()[0].setScanTime(47.11);
-	tmp.getIonSource().setPolarity(IonSource::POSITIVE);
-	tmp.getIonDetector().setResolution(47.12); 
+	tmp.getIonSources().resize(1);
+	tmp.getIonDetectors().resize(1);
   tmp.setModel("Model");
   tmp.setName("Name");
   tmp.setVendor("Vendor");
   tmp.setMetaValue("label",String("label"));
+  tmp.getSoftware().setName("sn");
   
   Instrument tmp2(tmp);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
   TEST_EQUAL(tmp2.getName(),"Name");
   TEST_EQUAL(tmp2.getModel(),"Model");
   TEST_EQUAL(tmp2.getVendor(),"Vendor");
-  TEST_REAL_EQUAL(tmp2.getIonDetector().getResolution(),47.12);
-  TEST_EQUAL(tmp2.getIonSource().getPolarity(),IonSource::POSITIVE);
+  TEST_EQUAL(tmp2.getIonDetectors().size(),1);
+  TEST_EQUAL(tmp2.getIonSources().size(),1);
   TEST_EQUAL(tmp2.getMassAnalyzers().size(),1);
   TEST_REAL_EQUAL(tmp2.getMassAnalyzers()[0].getScanTime(),47.11);
+  TEST_EQUAL(tmp2.getSoftware().getName(),"sn");
 RESULT
 
 CHECK(Instrument& operator= (const Instrument& source))
   Instrument tmp;
   tmp.getMassAnalyzers().resize(1);
   tmp.getMassAnalyzers()[0].setScanTime(47.11);
-	tmp.getIonSource().setPolarity(IonSource::POSITIVE);
-	tmp.getIonDetector().setResolution(47.12); 
+	tmp.getIonSources().resize(1);
+	tmp.getIonDetectors().resize(1);
   tmp.setModel("Model");
   tmp.setName("Name");
   tmp.setVendor("Vendor");
   tmp.setMetaValue("label",String("label"));
+  tmp.getSoftware().setName("sn");
   
   Instrument tmp2;
   tmp2 = tmp;
@@ -198,19 +220,21 @@ CHECK(Instrument& operator= (const Instrument& source))
   TEST_EQUAL(tmp2.getName(),"Name");
   TEST_EQUAL(tmp2.getModel(),"Model");
   TEST_EQUAL(tmp2.getVendor(),"Vendor");
-  TEST_REAL_EQUAL(tmp2.getIonDetector().getResolution(),47.12);
-  TEST_EQUAL(tmp2.getIonSource().getPolarity(),IonSource::POSITIVE);
+  TEST_EQUAL(tmp2.getIonDetectors().size(),1);
+  TEST_EQUAL(tmp2.getIonSources().size(),1);
   TEST_EQUAL(tmp2.getMassAnalyzers().size(),1);
   TEST_REAL_EQUAL(tmp2.getMassAnalyzers()[0].getScanTime(),47.11);
+  TEST_EQUAL(tmp2.getSoftware().getName(),"sn");
 
   tmp2 = Instrument();
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
   TEST_EQUAL(tmp2.getName(),"");
   TEST_EQUAL(tmp2.getModel(),"");
   TEST_EQUAL(tmp2.getVendor(),"");
-  TEST_REAL_EQUAL(tmp2.getIonDetector().getResolution(),0.0);
-  TEST_EQUAL(tmp2.getIonSource().getPolarity(),IonSource::POLNULL);
+  TEST_EQUAL(tmp2.getIonDetectors().size(),0);
+  TEST_EQUAL(tmp2.getIonSources().size(),0);
   TEST_EQUAL(tmp2.getMassAnalyzers().size(),0);
+  TEST_EQUAL(tmp2.getSoftware().getName(),"");
 RESULT
 
 CHECK(bool operator== (const Instrument& rhs) const)
@@ -222,11 +246,11 @@ CHECK(bool operator== (const Instrument& rhs) const)
   TEST_EQUAL(edit==empty,false);
 	
 	edit = empty;
-	edit.getIonSource().setPolarity(IonSource::POSITIVE);
+	edit.getIonSources().resize(1);
 	TEST_EQUAL(edit==empty,false);
 	
 	edit = empty;
-	edit.getIonDetector().setResolution(47.12); 
+	edit.getIonDetectors().resize(1);
   TEST_EQUAL(edit==empty,false);
   
   edit = empty;
@@ -235,6 +259,10 @@ CHECK(bool operator== (const Instrument& rhs) const)
   
   edit = empty;
   edit.setName("Name");
+  TEST_EQUAL(edit==empty,false);
+  
+  edit = empty;
+  edit.getSoftware().setName("sn");
   TEST_EQUAL(edit==empty,false);
   
   edit = empty;
@@ -255,11 +283,11 @@ CHECK(bool operator!= (const Instrument& rhs) const)
   TEST_EQUAL(edit!=empty,true);
 	
 	edit = empty;
-	edit.getIonSource().setPolarity(IonSource::POSITIVE);
+	edit.getIonSources().resize(1);
 	TEST_EQUAL(edit!=empty,true);
 	
 	edit = empty;
-	edit.getIonDetector().setResolution(47.12); 
+	edit.getIonDetectors().resize(1);
   TEST_EQUAL(edit!=empty,true);
   
   edit = empty;
@@ -273,7 +301,11 @@ CHECK(bool operator!= (const Instrument& rhs) const)
   edit = empty;
   edit.setVendor("Vendor");
   TEST_EQUAL(edit!=empty,true);
-  
+
+  edit = empty;
+  edit.getSoftware().setName("sn");
+  TEST_EQUAL(edit!=empty,true);
+
   edit = empty;
   edit.setMetaValue("label",String("label"));
 	TEST_EQUAL(edit!=empty,true);

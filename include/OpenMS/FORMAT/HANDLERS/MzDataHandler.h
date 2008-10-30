@@ -500,6 +500,14 @@ namespace OpenMS
 			{
 				exp_->getContacts().resize(exp_->getContacts().size()+1);
 			}
+			else if (tag=="source")
+			{
+				exp_->getInstrument().getIonSources().resize(1);
+			}
+			else if (tag=="detector")
+			{
+				exp_->getInstrument().getIonDetectors().resize(1);
+			}
 			else if (tag=="analyzer")
 			{
 				exp_->getInstrument().getMassAnalyzers().resize(exp_->getInstrument().getMassAnalyzers().size()+1);
@@ -553,11 +561,11 @@ namespace OpenMS
 				}
 				else if (parent_tag=="detector")
 				{
-					exp_->getInstrument().getIonDetector().setMetaValue(name,value);
+					exp_->getInstrument().getIonDetectors().back().setMetaValue(name,value);
 				}
 				else if (parent_tag=="source")
 				{
-					exp_->getInstrument().getIonSource().setMetaValue(name,value);
+					exp_->getInstrument().getIonSources().back().setMetaValue(name,value);
 				}
 				else if (parent_tag=="sampleDescription")
 				{
@@ -860,9 +868,9 @@ namespace OpenMS
 					os << "\t\t\t\t<fileType>" << cexp_->getSourceFiles()[0].getFileType() << "</fileType>\n";
 				os << "\t\t\t</sourceFile>\n";
 			}
-			else if (cexp_->getSourceFiles().size()>1)
+			if (cexp_->getSourceFiles().size()>1)
 			{
-				warning("Warning: The MzData format can store only one sourceFile instance. Only the first one is stored. The remaining instances are lost!");
+				warning("Warning: The MzData format can store only one source file. Only the first one is stored. The remaining instances are lost!");
 			}
 
 			for (UInt i=0; i < cexp_->getContacts().size(); ++i)
@@ -888,10 +896,17 @@ namespace OpenMS
 			os << "\t\t<instrument>\n"
 				 << "\t\t\t<instrumentName>" << inst.getName() << "</instrumentName>\n"
 				 << "\t\t\t<source>\n";
-			writeCVS_(os, inst.getIonSource().getInletType(),11, "1000007", "InletType");
-			writeCVS_(os, inst.getIonSource().getIonizationMethod(), 10, "1000008","IonizationType");
-			writeCVS_(os, inst.getIonSource().getPolarity(), 1, "1000009", "IonizationMode");
-			writeUserParam_(os, inst.getIonSource());
+			if (inst.getIonSources().size()>=1)
+			{
+				writeCVS_(os, inst.getIonSources()[0].getInletType(),11, "1000007", "InletType");
+				writeCVS_(os, inst.getIonSources()[0].getIonizationMethod(), 10, "1000008","IonizationType");
+				writeCVS_(os, inst.getIonSources()[0].getPolarity(), 1, "1000009", "IonizationMode");
+				writeUserParam_(os, inst.getIonSources()[0]);
+			}
+			if (inst.getIonSources().size()>1)
+			{
+				warning("Warning: The MzData format can store only one ion source. Only the first one is stored. The remaining instances are lost!");
+			}
 			os << "\t\t\t</source>\n";
 						
 			//no analyzer given => add empty entry as there must be one entry
@@ -932,12 +947,18 @@ namespace OpenMS
 			os << "\t\t\t</analyzerList>\n";
 			
 			os << "\t\t\t<detector>\n";
-			writeCVS_(os, inst.getIonDetector().getType(), 13, "1000026", "DetectorType");
-			writeCVS_(os, inst.getIonDetector().getAcquisitionMode(), 9, "1000027", "DetectorAcquisitionMode");
-			writeCVS_(os, inst.getIonDetector().getResolution(), "1000028", "DetectorResolution");
-			writeCVS_(os, inst.getIonDetector().getADCSamplingFrequency(),
-								"1000029", "ADCSamplingFrequency");
-			writeUserParam_(os, inst.getIonDetector());
+			if (inst.getIonDetectors().size()>=1)
+			{
+				writeCVS_(os, inst.getIonDetectors()[0].getType(), 13, "1000026", "DetectorType");
+				writeCVS_(os, inst.getIonDetectors()[0].getAcquisitionMode(), 9, "1000027", "DetectorAcquisitionMode");
+				writeCVS_(os, inst.getIonDetectors()[0].getResolution(), "1000028", "DetectorResolution");
+				writeCVS_(os, inst.getIonDetectors()[0].getADCSamplingFrequency(), "1000029", "ADCSamplingFrequency");
+				writeUserParam_(os, inst.getIonDetectors()[0]);
+			}
+			if (inst.getIonDetectors().size()>1)
+			{
+				warning("Warning: The MzData format can store only one ion detector. Only the first one is stored. The remaining instances are lost!");
+			}
 			os << "\t\t\t</detector>\n";
 			if (inst.getVendor()!="" || inst.getModel()!="" || inst.getCustomizations()!="")
 			{
@@ -999,7 +1020,7 @@ namespace OpenMS
 				//warn if we loose information
 				if (cexp_->getDataProcessing().size()>1)
 				{
-					warning("Warning: The MzData format can store only one dataProcessing instance. Only the first one is stored. The remaining instances are lost!");
+					warning("Warning: The MzData format can store only one dataProcessing. Only the first one is stored. The remaining instances are lost!");
 				}
 			}
 			os << "\t</description>\n";
@@ -1306,19 +1327,19 @@ namespace OpenMS
 			{
 				if (accession=="PSI:1000026")
 				{
-					exp_->getInstrument().getIonDetector().setType( (IonDetector::Type)cvStringToEnum_(13,value, "detector type") );
+					exp_->getInstrument().getIonDetectors().back().setType( (IonDetector::Type)cvStringToEnum_(13,value, "detector type") );
 				}
 				else if (accession=="PSI:1000028")
 				{
-					exp_->getInstrument().getIonDetector().setResolution( asDouble_(value) );
+					exp_->getInstrument().getIonDetectors().back().setResolution( asDouble_(value) );
 				}
 				else if (accession=="PSI:1000029")
 				{
-					exp_->getInstrument().getIonDetector().setADCSamplingFrequency( asDouble_(value) );
+					exp_->getInstrument().getIonDetectors().back().setADCSamplingFrequency( asDouble_(value) );
 				}
 				else if (accession=="PSI:1000027")
 				{
-					exp_->getInstrument().getIonDetector().setAcquisitionMode((IonDetector::AcquisitionMode)cvStringToEnum_(9, value, "acquisition mode") );
+					exp_->getInstrument().getIonDetectors().back().setAcquisitionMode((IonDetector::AcquisitionMode)cvStringToEnum_(9, value, "acquisition mode") );
 				}
 				else
 				{
@@ -1329,15 +1350,15 @@ namespace OpenMS
 			{
 				if (accession=="PSI:1000008")
 				{
-					exp_->getInstrument().getIonSource().setIonizationMethod( (IonSource::IonizationMethod)cvStringToEnum_(10, value, "ion source") );
+					exp_->getInstrument().getIonSources().back().setIonizationMethod( (IonSource::IonizationMethod)cvStringToEnum_(10, value, "ion source") );
 				}
 				else if (accession=="PSI:1000007")
 				{
-					exp_->getInstrument().getIonSource().setInletType( (IonSource::InletType)cvStringToEnum_(11, value,"inlet type") );
+					exp_->getInstrument().getIonSources().back().setInletType( (IonSource::InletType)cvStringToEnum_(11, value,"inlet type") );
 				}
 				else if (accession=="PSI:1000009")
 				{
-					exp_->getInstrument().getIonSource().setPolarity( (IonSource::Polarity)cvStringToEnum_(1, value,"polarity") );
+					exp_->getInstrument().getIonSources().back().setPolarity( (IonSource::Polarity)cvStringToEnum_(1, value,"polarity") );
 				}
 				else 
 				{

@@ -32,9 +32,9 @@ Instrument
   Name             : i1
   Model            : i4
   Vendor           : i3
-  Ion source       : Electron ionization
-  Detector         : Electron multiplier
-  Mass Analyzer(s) : Unknown, 
+  Ion source(s)    : Electron ionization
+  Mass Analyzer(s) : Unknown
+  Detector(s)      : Electron multiplier
 
 Contact Person
   First Name       : 

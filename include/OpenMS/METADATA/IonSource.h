@@ -176,6 +176,7 @@ namespace OpenMS
 				- one ion source
 				- one or many mass anylyzers
 				- one ion detector
+				
 				For more complex instuments, the order should be defined.
       */
       Int getOrder() const;

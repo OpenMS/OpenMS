@@ -446,8 +446,8 @@ ifeq ($(ANDIMS_SUPPORT),true)
 	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_8_output.txt)
 endif
 
-	@$(ECHO) "- Test 9: mzML test"
-	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_9_input.mzML -no_progress > FileInfo.tmp)
+	@$(ECHO) "- Test 9: mzML test(with meta info)"
+	@$(call RUN_PROG_OPT,FileInfo,-in FileInfo_9_input.mzML -m -no_progress > FileInfo.tmp)
 	@$(call TEST_FILE_EQUAL,FileInfo.tmp,FileInfo_9_output.txt)
 
 
