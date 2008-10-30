@@ -54,10 +54,7 @@
 // - chromatograms
 // - acquisitionSettings
 // - isolationWindow
-// - fileContent? (it can hardly be relied on)
-
-//OUR MODEL:
-// - remove ExperimentalSettings::type_ ?
+// - fileContent => ExperimentalSettings::type_
 
 namespace OpenMS
 {
@@ -409,7 +406,7 @@ namespace OpenMS
 			}
 			else if (tag=="dataProcessingRef")
 			{
-			  //EXTEND "spectrum", "chromatogram" and "binaryDataArray" have a DataProcessingRef
+			  //EXTEND "spectrum", "chromatogram" and "binaryDataArray" can have a DataProcessingRef too
 			  //Currently this is not implemented as the mzML schema is messed up
 			  //all dataProcessing is handled as global data processing of the whole file!
 			  //See: end of dataProcessingList

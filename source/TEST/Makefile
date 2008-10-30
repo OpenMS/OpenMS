@@ -51,6 +51,8 @@ EXECUTABLES_CONCEPT = \
 EXECUTABLES_DATASTRUCTURES = \
 	String_test\
 	StringList_test\
+	IntList_test\
+	DoubleList_test\
 	Date_test\
 	Map_test\
 	DPosition_test\
@@ -70,7 +72,6 @@ EXECUTABLES_DATASTRUCTURES = \
 	SuffixArrayPeptideFinder_test\
 	SparseVector_test\
 	DistanceMatrix_test
-
 
 #METADATA
 

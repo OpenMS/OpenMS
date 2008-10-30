@@ -41,7 +41,7 @@ using namespace std;
 	
 	@brief Evaluation tool for for feature detection algorithms.
 	
-	@todo Handling of truth convex hulls (Marc)
+	@improvement Handling of truth convex hulls (Marc)
 */
 
 // We do not want this class to show up in the docu:

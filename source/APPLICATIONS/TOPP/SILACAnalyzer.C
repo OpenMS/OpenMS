@@ -64,25 +64,22 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-   @page SILACAnalyzer SILACAnalyzer
- 
-   @brief Determines the ratio of peak pairs in LC-MS data.
-
-   (1) data reduction
-   (2) hierarchical clustering in RT-m/Z plane, determine cluster number by maximizing the average silhouette width
-   (3) determine intensity ratios by linear regression for each cluster
- 
-   @ingroup TOPP
+	@page SILACAnalyzer SILACAnalyzer
+	
+	@brief Determines the ratio of peak pairs in LC-MS data.
+	
+	(1) data reduction
+	(2) hierarchical clustering in RT-m/Z plane, determine cluster number by maximizing the average silhouette width
+	(3) determine intensity ratios by linear regression for each cluster
+	
+	@todo Replace Clster 3.0 by our clustering (Hiwi)
+	@todo Remove Cluster 3.0 from contrib and configure (Marc)
+	
+	@ingroup TOPP
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-
-//TODO:
-//- documentation
-//- debug output and gnuplot scripts
-//- automize advanced parameters
-
 
 struct SILACData
 {

@@ -710,7 +710,7 @@ namespace OpenMS
 					//Sha1 checksum must have 40 characters => create a fake if it is unknown
 					os << "\" fileSha1=\"";
 					tmp_string = sf.getChecksum();
-					if (sf.getChecksum().size()!=40)
+					if (sf.getChecksum().size()!=40 || sf.getChecksumType()!=SourceFile::SHA1)
 					{
 						os << "0000000000000000000000000000000000000000";
 					}
