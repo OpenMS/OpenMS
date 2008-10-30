@@ -46,28 +46,28 @@ namespace OpenMS
 	{
 		addLabel_("Modify instrument information.");	
 		addSeparator_();        
-		addLineEdit_(instrument_name_, "Name" );
-		addLineEdit_(instrument_vendor_, "Vendor" );	
-		addLineEdit_(instrument_model_, "Model");
-		addTextEdit_(instrument_customizations_, "Customizations" );
+		addLineEdit_(name_, "Name" );
+		addLineEdit_(vendor_, "Vendor" );	
+		addLineEdit_(model_, "Model");
+		addTextEdit_(customizations_, "Customizations" );
 		
 		finishAdding_();
 	}
 	
 	void InstrumentVisualizer::update_()
 	{
-	  instrument_name_->setText(temp_.getName().c_str());
-		instrument_vendor_->setText(temp_.getVendor().c_str());
-		instrument_model_->setText(temp_.getModel().c_str());
-	  instrument_customizations_->setText(temp_.getCustomizations().c_str()); 
+	  name_->setText(temp_.getName().c_str());
+		vendor_->setText(temp_.getVendor().c_str());
+		model_->setText(temp_.getModel().c_str());
+	  customizations_->setText(temp_.getCustomizations().c_str()); 
 	}
 	
 	void InstrumentVisualizer::store()
 	{
-		ptr_->setName(instrument_name_->text().toStdString());
-		ptr_->setVendor(instrument_vendor_->text().toStdString());
-		ptr_->setModel(instrument_model_->text().toStdString());
-		ptr_->setCustomizations(instrument_customizations_->toPlainText().toStdString());
+		ptr_->setName(name_->text().toStdString());
+		ptr_->setVendor(vendor_->text().toStdString());
+		ptr_->setModel(model_->text().toStdString());
+		ptr_->setCustomizations(customizations_->toPlainText().toStdString());
 		
 		temp_ = (*ptr_);		
 	}

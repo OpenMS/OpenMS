@@ -48,12 +48,16 @@ CHECK((~IonSource()))
 	delete ptr;
 RESULT
 
-    enum InletType{INLETNULL,DIRECT, BATCH, CHROMATOGRAPHY, PARTICLEBEAM, MEMBRANESEPARATOR, OPENSPLIT, JETSEPARATOR, 
-										 SEPTUM, RESERVOIR, MOVINGBELT, MOVINGWIRE, FLOWINJECTIONANALYSIS, ELECTROSPRAYINLET, 
-										 THERMOSPRAYINLET, INFUSION, CONTINUOUSFLOWFASTATOMBOMBARDMENT, INDUCTIVELYCOUPLEDPLASMA};
-	    enum IonizationMethod{IONMETHODNULL,ESI, EI, CI, FAB, TSP, LD, FD, FI, PD, SI, TI, API,
-													ISI, CID, CAD, HN, APCI, APPI, ICP};
-      enum Polarity{POLNULL,POSITIVE, NEGATIVE};
+CHECK(Int getOrder() const)
+	IonSource tmp;
+	TEST_EQUAL(tmp.getOrder(),0)
+RESULT
+
+CHECK(void setOrder(Int order))
+	IonSource tmp;
+	tmp.setOrder(4711);
+	TEST_EQUAL(tmp.getOrder(),4711)
+RESULT
 
 CHECK((InletType getInletType() const))
   IonSource tmp;
@@ -94,12 +98,14 @@ CHECK((IonSource(const IonSource& source)))
   tmp.setIonizationMethod(IonSource::ESI);
   tmp.setPolarity(IonSource::POSITIVE);
   tmp.setMetaValue("label",String("label"));
+  tmp.setOrder(45);
   	
   IonSource tmp2(tmp);
   TEST_EQUAL(tmp2.getPolarity(),IonSource::POSITIVE);
   TEST_EQUAL(tmp2.getInletType(),IonSource::DIRECT);
   TEST_EQUAL(tmp2.getIonizationMethod(),IonSource::ESI);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
+	TEST_EQUAL(tmp2.getOrder(),45)
 RESULT
 
 CHECK((IonSource& operator= (const IonSource& source)))
@@ -108,6 +114,7 @@ CHECK((IonSource& operator= (const IonSource& source)))
   tmp.setIonizationMethod(IonSource::ESI);
   tmp.setPolarity(IonSource::POSITIVE);
   tmp.setMetaValue("label",String("label"));
+  tmp.setOrder(45);
   
   IonSource tmp2;
   tmp2 = tmp;
@@ -115,12 +122,14 @@ CHECK((IonSource& operator= (const IonSource& source)))
   TEST_EQUAL(tmp2.getInletType(),IonSource::DIRECT);
   TEST_EQUAL(tmp2.getIonizationMethod(),IonSource::ESI);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
+	TEST_EQUAL(tmp2.getOrder(),45)
   
   tmp2 = IonSource();
   TEST_EQUAL(tmp2.getPolarity(),IonSource::POLNULL);
   TEST_EQUAL(tmp2.getInletType(),IonSource::INLETNULL);
   TEST_EQUAL(tmp2.getIonizationMethod(),IonSource::IONMETHODNULL);
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
+	TEST_EQUAL(tmp2.getOrder(),0)
 RESULT
 
 CHECK((bool operator== (const IonSource& rhs) const))
@@ -143,6 +152,10 @@ CHECK((bool operator== (const IonSource& rhs) const))
 	edit = empty;
 	edit.setMetaValue("label",String("label"));
 	TEST_EQUAL(edit==empty,false);
+	
+  edit = empty;
+  edit.setOrder(45);
+	TEST_EQUAL(edit==empty,false);
 RESULT
 
 CHECK((bool operator!= (const IonSource& rhs) const))
@@ -164,6 +177,10 @@ CHECK((bool operator!= (const IonSource& rhs) const))
 
 	edit = empty;
 	edit.setMetaValue("label",String("label"));
+	TEST_EQUAL(edit!=empty,true);
+	
+  edit = empty;
+  edit.setOrder(45);
 	TEST_EQUAL(edit!=empty,true);
 RESULT
 

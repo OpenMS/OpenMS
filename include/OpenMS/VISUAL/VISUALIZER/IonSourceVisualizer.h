@@ -67,9 +67,10 @@ namespace OpenMS
 			
 			///@name Edit fields and buttons
 	    //@{
-			QComboBox* ionsource_inlet_type_;
-			QComboBox* ionsource_ionization_method_;
-			QComboBox* ionsource_polarity_;
+	    QLineEdit* order_;
+			QComboBox* inlet_type_;
+			QComboBox* ionization_method_;
+			QComboBox* polarity_;
 			//@}
 			
 			//Docu in base class

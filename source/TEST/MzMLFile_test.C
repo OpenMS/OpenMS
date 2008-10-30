@@ -116,16 +116,20 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	//instrument (general)
 	TEST_STRING_EQUAL(exp.getInstrument().getName(),"LCQ Deca")
 	TEST_STRING_EQUAL(exp.getInstrument().getCustomizations(),"Umbau")
-	//ion source
+	//ion sources
+	TEST_EQUAL(exp.getInstrument().getIonSource().getOrder(),101)
 	TEST_EQUAL(exp.getInstrument().getIonSource().getInletType(),IonSource::DIRECT)
 	TEST_EQUAL(exp.getInstrument().getIonSource().getIonizationMethod(),IonSource::ESI)
 	//mass analyzers
 	TEST_EQUAL(exp.getInstrument().getMassAnalyzers().size(),2)
+	TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[0].getOrder(),201)
 	TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[0].getType(),MassAnalyzer::PAULIONTRAP)
 	TEST_REAL_EQUAL(exp.getInstrument().getMassAnalyzers()[0].getMagneticFieldStrength(),14.56)
+	TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[1].getOrder(),202)
 	TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[1].getType(),MassAnalyzer::LIT)
 	TEST_REAL_EQUAL(exp.getInstrument().getMassAnalyzers()[1].getMagneticFieldStrength(),1414.14)
-	//detector
+	//detectors
+	TEST_EQUAL(exp.getInstrument().getIonDetector().getOrder(),301)
 	TEST_EQUAL(exp.getInstrument().getIonDetector().getType(),IonDetector::ELECTRONMULTIPLIER)
 	TEST_EQUAL(exp.getInstrument().getIonDetector().getAcquisitionMode(),IonDetector::TDC)
 	TEST_REAL_EQUAL(exp.getInstrument().getIonDetector().getResolution(),5.1)

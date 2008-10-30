@@ -156,7 +156,7 @@ namespace OpenMS
 				return xercesc::XMLString::compareString(a,b)==0;
 			}
 
-			///@name General MetaInfo handling (for IdXML, FeatureXML)
+			///@name General MetaInfo handling (for IdXML, FeatureXML, consensusXML)
 			//@{
 			///Writes the content of MetaInfoInterface to the file
 			void writeUserParam_(const String& tag_name, std::ostream& os, const MetaInfoInterface& meta, UInt indent) const;

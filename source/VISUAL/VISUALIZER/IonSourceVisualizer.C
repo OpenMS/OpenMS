@@ -28,6 +28,7 @@
 
 //QT
 #include <QtGui/QComboBox>
+#include <QtGui/QLineEdit>
 
 //STL
 #include <iostream>
@@ -42,10 +43,12 @@ namespace OpenMS
 			BaseVisualizer<IonSource>()
 	{
 		addLabel_("Modify ionsource information.");	
-		addSeparator_();  
-		addComboBox_(ionsource_inlet_type_, "Inlet type");
-		addComboBox_(ionsource_ionization_method_, "Ionization method");
-		addComboBox_(ionsource_polarity_, "Polarity");      
+		addSeparator_();
+		
+		addIntLineEdit_(order_, "Order" );
+		addComboBox_(inlet_type_, "Inlet type");
+		addComboBox_(ionization_method_, "Ionization method");
+		addComboBox_(polarity_, "Polarity");      
 		
 		finishAdding_();
 	}
@@ -54,27 +57,30 @@ namespace OpenMS
 	{
 		if(! isEditable())
 		{
-			fillComboBox_(ionsource_inlet_type_,& temp_.NamesOfInletType[temp_.getInletType()]  , 1);
-			fillComboBox_(ionsource_ionization_method_,& temp_.NamesOfIonizationMethod[temp_.getIonizationMethod()] , 1);
-			fillComboBox_(ionsource_polarity_,& temp_.NamesOfPolarity[temp_.getPolarity()] , 1);	
+			fillComboBox_(inlet_type_,& temp_.NamesOfInletType[temp_.getInletType()]  , 1);
+			fillComboBox_(ionization_method_,& temp_.NamesOfIonizationMethod[temp_.getIonizationMethod()] , 1);
+			fillComboBox_(polarity_,& temp_.NamesOfPolarity[temp_.getPolarity()] , 1);	
 		}
 		else
 		{
-			fillComboBox_(ionsource_inlet_type_, temp_.NamesOfInletType  , IonSource::SIZE_OF_INLETTYPE);
-			fillComboBox_(ionsource_ionization_method_, temp_.NamesOfIonizationMethod , IonSource::SIZE_OF_IONIZATIONMETHOD);
-			fillComboBox_(ionsource_polarity_, temp_.NamesOfPolarity , IonSource::SIZE_OF_POLARITY);
+			fillComboBox_(inlet_type_, temp_.NamesOfInletType  , IonSource::SIZE_OF_INLETTYPE);
+			fillComboBox_(ionization_method_, temp_.NamesOfIonizationMethod , IonSource::SIZE_OF_IONIZATIONMETHOD);
+			fillComboBox_(polarity_, temp_.NamesOfPolarity , IonSource::SIZE_OF_POLARITY);
 			
-			ionsource_inlet_type_->setCurrentIndex(temp_.getInletType()); 
-			ionsource_ionization_method_->setCurrentIndex(temp_.getIonizationMethod()); 
-			ionsource_polarity_->setCurrentIndex(temp_.getPolarity()); 
+			inlet_type_->setCurrentIndex(temp_.getInletType()); 
+			ionization_method_->setCurrentIndex(temp_.getIonizationMethod()); 
+			polarity_->setCurrentIndex(temp_.getPolarity()); 
 		}
+
+		order_->setText(String(temp_.getOrder()).c_str());
 	}
 	
 	void IonSourceVisualizer::store()
 	{
-		ptr_->setInletType((IonSource::InletType)ionsource_inlet_type_->currentIndex());		
-		ptr_->setIonizationMethod((IonSource::IonizationMethod)ionsource_ionization_method_->currentIndex());		
-		ptr_->setPolarity((IonSource::Polarity)ionsource_polarity_->currentIndex());		
+		ptr_->setOrder(order_->text().toInt());
+		ptr_->setInletType((IonSource::InletType)inlet_type_->currentIndex());		
+		ptr_->setIonizationMethod((IonSource::IonizationMethod)ionization_method_->currentIndex());		
+		ptr_->setPolarity((IonSource::Polarity)polarity_->currentIndex());		
 		
 		temp_=(*ptr_);
 	}

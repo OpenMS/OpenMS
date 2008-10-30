@@ -41,29 +41,29 @@ namespace OpenMS
 		MetaInfoInterface(),
 		inlet_type_(INLETNULL),
 		ionization_method_(IONMETHODNULL),
-		polarity_(POLNULL)
+		polarity_(POLNULL),
+		order_(0)
 	{
-		
 	}
 	
 	IonSource::IonSource(const IonSource& source):
 		MetaInfoInterface(source),
 	  inlet_type_(source.inlet_type_),
 	  ionization_method_(source.ionization_method_),
-	  polarity_(source.polarity_)
+	  polarity_(source.polarity_),
+		order_(source.order_)
 	{
-	  
 	}
 	
 	IonSource::~IonSource()
 	{
-	  
 	}
 	
 	IonSource& IonSource::operator = (const IonSource& source)
 	{
 	  if (&source == this) return *this;
 	  
+	  order_ = source.order_;
 	  inlet_type_ = source.inlet_type_;
 	  ionization_method_ = source.ionization_method_;
 	  polarity_ = source.polarity_;
@@ -74,7 +74,8 @@ namespace OpenMS
 
   bool IonSource::operator== (const IonSource& rhs) const
   {
-  	return 
+  	return
+	 		order_ == rhs.order_ &&
 		  inlet_type_ == rhs.inlet_type_ &&
 		  ionization_method_ == rhs.ionization_method_ &&
 		  polarity_ == rhs.polarity_ &&
@@ -117,5 +118,15 @@ namespace OpenMS
 	  polarity_ = polarity; 
 	}
 	
+	Int IonSource::getOrder() const
+  {
+  	return order_;
+  }
+  
+  void IonSource::setOrder(Int order)
+  {
+  	order_ = order;
+  }
+  
 }
 

@@ -49,7 +49,7 @@ namespace OpenMS
   	
     It can be used to create objects from the DB or store them in the DB.
 		
-		@todo Check if METADATA implementation is complete - especially DataProcessing, AcquisitionInfo, SourceFile, ContactPerson, Instrument, ExperimentalSettings (HiWi)
+		@todo Check if METADATA implementation is complete - all members and MetaInfoInterface (HiWi)
 		
     @ingroup DatabaseIO
   */

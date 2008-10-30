@@ -178,20 +178,7 @@ namespace OpenMS
 					{
 						if ( (*it)[0] != '#')  // internally used meta info start with '#'
 						{
-							String name = *it;
-							os << String(indent,'\t') << "<" << tag << " name=\"";
-							if (tag=="processingOperation" && name.find('#')!=std::string::npos)
-							{
-								std::vector<String> parts;
-								name.split('#',parts);
-								os << parts[0] << "\" type=\"" << parts[1];
-							}
-							else
-							{
-								os << name;
-							}
-							os << "\" value=\""
-								 << meta.getMetaValue(*it) << "\"/>\n";
+							os << String(indent,'\t') << "<" << tag << " name=\"" << *it << "\" value=\"" << meta.getMetaValue(*it) << "\"/>\n";
 						}
 					}
 				}

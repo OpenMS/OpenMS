@@ -255,6 +255,7 @@ namespace OpenMS
 			static const XMLCh* s_ref = xercesc::XMLString::transcode("ref");
 			static const XMLCh* s_number = xercesc::XMLString::transcode("number");
 			static const XMLCh* s_version = xercesc::XMLString::transcode("version");
+			static const XMLCh* s_order = xercesc::XMLString::transcode("order");
 			static const XMLCh* s_location = xercesc::XMLString::transcode("location");
 			static const XMLCh* s_sample_ref = xercesc::XMLString::transcode("sampleRef");
 			static const XMLCh* s_software_ref = xercesc::XMLString::transcode("softwareRef");
@@ -439,23 +440,23 @@ namespace OpenMS
 			else if (tag=="source")
 			{
 				//EXTEND Allow several ion sources
-				//EXTEND Add order to instrument components
-				//Int order = attributeAsInt_(attributes, s_order);
-				//...
+
+				//order				
+				instruments_[current_id_].getIonSource().setOrder(attributeAsInt_(attributes, s_order));
 			}
 			else if (tag=="analyzer")
 			{
-				//EXTEND Add order to instrument components
-				//Int order = attributeAsInt_(attributes, s_order);
 				instruments_[current_id_].getMassAnalyzers().push_back(MassAnalyzer());
 				
+				//order				
+				instruments_[current_id_].getMassAnalyzers().back().setOrder(attributeAsInt_(attributes, s_order));
 			}
 			else if (tag=="detector")
 			{
 				//EXTEND Allow several detectors
-				//EXTEND Add order to instrument components
-				//Int order = attributeAsInt_(attributes, s_order);
-				//...
+
+				//order				
+				instruments_[current_id_].getIonDetector().setOrder(attributeAsInt_(attributes, s_order));
 			}
 		}
 

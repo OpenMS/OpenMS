@@ -67,22 +67,23 @@ namespace OpenMS
 				
 			///@name edit fields to modify properties
 	    //@{
-			QLineEdit* massanalyzer_res_;
-			QLineEdit* massanalyzer_acc_;
-			QLineEdit* massanalyzer_scan_rate_;
-			QLineEdit* massanalyzer_scan_time_;
-			QLineEdit* massanalyzer_TOF_;
-			QLineEdit* massanalyzer_iso_;
-			QLineEdit* massanalyzer_final_MS_;
-			QLineEdit* massanalyzer_magnetic_fs_;
-			QComboBox* massanalyzer_type_;
-			QComboBox* massanalyzer_res_method_;
-			QComboBox* massanalyzer_res_type_;
-			QComboBox* massanalyzer_scan_func_;
-			QComboBox* massanalyzer_scan_dir_;
-			QComboBox* massanalyzer_scan_law_;
-			QComboBox* massanalyzer_tandem_scan_method_;
-			QComboBox* massanalyzer_reflectron_state_;
+	    QLineEdit* order_;
+			QLineEdit* res_;
+			QLineEdit* acc_;
+			QLineEdit* scan_rate_;
+			QLineEdit* scan_time_;
+			QLineEdit* TOF_;
+			QLineEdit* iso_;
+			QLineEdit* final_MS_;
+			QLineEdit* magnetic_fs_;
+			QComboBox* type_;
+			QComboBox* res_method_;
+			QComboBox* res_type_;
+			QComboBox* scan_func_;
+			QComboBox* scan_dir_;
+			QComboBox* scan_law_;
+			QComboBox* tandem_scan_method_;
+			QComboBox* reflectron_state_;
 			//@}
 			
 			//Docu in base class

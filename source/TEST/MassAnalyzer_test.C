@@ -48,6 +48,17 @@ CHECK(~MassAnalyzer())
 	delete ptr;
 RESULT
 
+CHECK(Int getOrder() const)
+	MassAnalyzer tmp;
+	TEST_EQUAL(tmp.getOrder(),0)
+RESULT
+
+CHECK(void setOrder(Int order))
+	MassAnalyzer tmp;
+	tmp.setOrder(4711);
+	TEST_EQUAL(tmp.getOrder(),4711)
+RESULT
+
 CHECK(AnalyzerType getType() const)
   MassAnalyzer tmp;
   TEST_EQUAL(tmp.getType(),MassAnalyzer::ANALYZERNULL);
@@ -243,6 +254,7 @@ CHECK(MassAnalyzer(const MassAnalyzer& source))
   tmp.setTOFTotalPathLength(47.17);
   tmp.setTandemScanMethod(MassAnalyzer::PRODUCTIONSCAN);
 	tmp.setMetaValue("label",String("label"));
+  tmp.setOrder(45);
 	
 	MassAnalyzer tmp2(tmp);
 	TEST_EQUAL(tmp.getType(),MassAnalyzer::QUADRUPOLE);
@@ -262,6 +274,7 @@ CHECK(MassAnalyzer(const MassAnalyzer& source))
 	TEST_REAL_EQUAL(tmp.getTOFTotalPathLength(),47.17);
 	TEST_EQUAL(tmp.getTandemScanMethod(),MassAnalyzer::PRODUCTIONSCAN);
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
+	TEST_EQUAL(tmp2.getOrder(),45)
 RESULT
 
 CHECK(MassAnalyzer& operator= (const MassAnalyzer& source))
@@ -284,6 +297,7 @@ CHECK(MassAnalyzer& operator= (const MassAnalyzer& source))
   tmp.setTOFTotalPathLength(47.17);
   tmp.setTandemScanMethod(MassAnalyzer::PRODUCTIONSCAN);
 	tmp.setMetaValue("label",String("label"));
+  tmp.setOrder(45);
 	
 	MassAnalyzer tmp2;
 	tmp2 = tmp;
@@ -304,6 +318,7 @@ CHECK(MassAnalyzer& operator= (const MassAnalyzer& source))
 	TEST_REAL_EQUAL(tmp2.getTOFTotalPathLength(),47.17);
 	TEST_EQUAL(tmp2.getTandemScanMethod(),MassAnalyzer::PRODUCTIONSCAN);
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
+	TEST_EQUAL(tmp2.getOrder(),45)
 
 	tmp2 = MassAnalyzer();
 	TEST_EQUAL(tmp2.getType(),MassAnalyzer::ANALYZERNULL);
@@ -323,6 +338,7 @@ CHECK(MassAnalyzer& operator= (const MassAnalyzer& source))
 	TEST_REAL_EQUAL(tmp2.getTOFTotalPathLength(),0.0);
 	TEST_EQUAL(tmp2.getTandemScanMethod(),MassAnalyzer::TANDEMNULL);
 	TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
+	TEST_EQUAL(tmp2.getOrder(),0)
 RESULT
 
 CHECK(bool operator== (const MassAnalyzer& rhs) const)
@@ -393,6 +409,10 @@ CHECK(bool operator== (const MassAnalyzer& rhs) const)
 	edit=empty;
 	edit.setTandemScanMethod(MassAnalyzer::PRODUCTIONSCAN);
 	edit.setMetaValue("label",String("label"));
+	
+  edit = empty;
+  edit.setOrder(45);
+	TEST_EQUAL(edit==empty,false);
 RESULT
 
 CHECK(bool operator!= (const MassAnalyzer& rhs) const)
@@ -463,6 +483,10 @@ CHECK(bool operator!= (const MassAnalyzer& rhs) const)
 	edit=empty;
 	edit.setTandemScanMethod(MassAnalyzer::PRODUCTIONSCAN);
 	edit.setMetaValue("label",String("label"));
+	
+  edit = empty;
+  edit.setOrder(45);
+	TEST_EQUAL(edit!=empty,true);
 RESULT
 
 

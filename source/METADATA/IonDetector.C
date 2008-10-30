@@ -40,7 +40,8 @@ namespace OpenMS
 		type_(TYPENULL),
 		acquisition_mode_(ACQMODENULL),
 		resolution_(0.0),
-		ADC_sampling_frequency_(0.0)
+		ADC_sampling_frequency_(0.0),
+		order_(0)
 	{
 		
 	}
@@ -50,7 +51,8 @@ namespace OpenMS
 	  type_(source.type_),
 	  acquisition_mode_(source.acquisition_mode_),
 	  resolution_(source.resolution_),
-	  ADC_sampling_frequency_(source.ADC_sampling_frequency_)
+	  ADC_sampling_frequency_(source.ADC_sampling_frequency_),
+		order_(source.order_)
 	{
 	  
 	}
@@ -64,6 +66,7 @@ namespace OpenMS
 	{
 	  if (&source == this) return *this;
 	  
+	  order_ = source.order_;
 	  type_ = source.type_;
 	  acquisition_mode_ = source.acquisition_mode_;
 	  resolution_ = source.resolution_;
@@ -75,7 +78,8 @@ namespace OpenMS
 
   bool IonDetector::operator== (const IonDetector& rhs) const
   {
-  	return 
+  	return
+	 		order_ == rhs.order_ &&
 		  type_ == rhs.type_ &&
 		  acquisition_mode_ == rhs.acquisition_mode_ &&
 		  resolution_ == rhs.resolution_ &&
@@ -128,6 +132,16 @@ namespace OpenMS
 	{
 	  ADC_sampling_frequency_ = ADC_sampling_frequency; 
 	}
-	
+
+  Int IonDetector::getOrder() const
+  {
+  	return order_;
+  }
+  
+  void IonDetector::setOrder(Int order)
+  {
+  	order_ = order;
+  }
+
 }	
 	

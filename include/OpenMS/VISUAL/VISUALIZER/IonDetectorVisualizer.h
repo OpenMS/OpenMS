@@ -67,10 +67,11 @@ namespace OpenMS
 		  	
 			///@name edit fields to modify properties
 	    //@{
-			QLineEdit* iondetector_res_;
-			QLineEdit* iondetector_freq_;
-			QComboBox* iondetector_type_;
-			QComboBox* iondetector_ac_mode_;
+	    QLineEdit* order_;
+			QLineEdit* res_;
+			QLineEdit* freq_;
+			QComboBox* type_;
+			QComboBox* ac_mode_;
 			//@}
 			
 			//Docu in base class

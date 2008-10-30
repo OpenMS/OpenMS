@@ -118,11 +118,25 @@ namespace OpenMS
       /// sets the analog-to-digital converter sampling frequency (in MHz)
       void setADCSamplingFrequency(DoubleReal ADC_sampling_frequency);
 
+			/**
+				@brief returns the position of this part in the whole Instrument. 
+				
+				Order can be ignored, as long the instrument has this default setup:
+				- one ion source
+				- one or many mass anylyzers
+				- one ion detector
+				For more complex instuments, the order should be defined.
+      */
+      Int getOrder() const;
+      /// sets the order
+      void setOrder(Int order);
+
     protected:
 	    Type type_;
 	    AcquisitionMode acquisition_mode_; 
 	    DoubleReal resolution_;
 	    DoubleReal ADC_sampling_frequency_;
+    	Int order_;
     
   };
 } // namespace OpenMS

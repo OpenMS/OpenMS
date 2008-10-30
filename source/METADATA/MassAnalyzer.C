@@ -64,7 +64,8 @@ namespace OpenMS
 		TOF_total_path_length_(0.0),
 		isolation_width_(0.0),
 	  final_MS_exponent_(0),
-		magnetic_field_strength_(0.0)
+		magnetic_field_strength_(0.0),
+		order_(0)
 	{
 		
 	}
@@ -86,7 +87,8 @@ namespace OpenMS
 	  TOF_total_path_length_(source.TOF_total_path_length_),
 	  isolation_width_(source.isolation_width_),
 	  final_MS_exponent_(source.final_MS_exponent_),
-	  magnetic_field_strength_(source.magnetic_field_strength_)
+	  magnetic_field_strength_(source.magnetic_field_strength_),
+		order_(source.order_)
 	{
 	  
 	}
@@ -100,6 +102,7 @@ namespace OpenMS
 	{
 	  if (&source == this) return *this;
 	  
+	  order_ = source.order_;
     type_ = source.type_;
     resolution_method_ = source.resolution_method_;
     resolution_type_ = source.resolution_type_;
@@ -124,6 +127,7 @@ namespace OpenMS
   bool MassAnalyzer::operator== (const MassAnalyzer& rhs) const
   {
   	return 
+	 		order_ == rhs.order_ &&
 	    type_ == rhs.type_ &&
 	    resolution_method_ == rhs.resolution_method_ &&
 	    resolution_type_ == rhs.resolution_type_ &&
@@ -309,6 +313,16 @@ namespace OpenMS
 	{
 	  magnetic_field_strength_ = magnetic_field_strength; 
 	}
-	
+
+	Int MassAnalyzer::getOrder() const
+  {
+  	return order_;
+  }
+  
+  void MassAnalyzer::setOrder(Int order)
+  {
+  	order_ = order;
+  }
+
 }
 

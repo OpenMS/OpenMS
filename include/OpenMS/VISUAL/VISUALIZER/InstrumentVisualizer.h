@@ -67,10 +67,10 @@ namespace OpenMS
 
 			///@name Edit fields and buttons
 	    //@{
-			QLineEdit* instrument_name_;
-			QLineEdit* instrument_vendor_;
-			QLineEdit* instrument_model_;
-			QTextEdit* instrument_customizations_;
+			QLineEdit* name_;
+			QLineEdit* vendor_;
+			QLineEdit* model_;
+			QTextEdit* customizations_;
 	    //@}
 	    
 	    //Docu in base class

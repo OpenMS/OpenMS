@@ -77,22 +77,22 @@
       <cvParam cvRef="MS" accession="MS:1000032" name="customization" value="Umbau"/>
       <userParam name="name" value="instrumentConfiguration"/>
       <componentList count="4">
-        <source order="1">
+        <source order="101">
           <cvParam cvRef="MS" accession="MS:1000056" name="direct inlet" value=""/>
           <cvParam cvRef="MS" accession="MS:1000073" name="electrospray ionization" value=""/>
           <userParam name="name" value="source"/>
         </source>
-        <analyzer order="2">
+        <analyzer order="201">
           <cvParam cvRef="MS" accession="MS:1000082" name="quadrupole ion trap" value=""/>
           <cvParam cvRef="MS" accession="MS:1000025" name="magnetic field strength" value="14.56"/>
           <userParam name="name" value="analyzer1"/>
         </analyzer>
-        <analyzer order="3">
+        <analyzer order="202">
           <cvParam cvRef="MS" accession="MS:1000291" name="linear ion trap" value=""/>
           <cvParam cvRef="MS" accession="MS:1000025" name="magnetic field strength" value="1414.14"/>
           <userParam name="name" value="analyzer2"/>
         </analyzer>
-        <detector order="4">
+        <detector order="301">
           <cvParam cvRef="MS" accession="MS:1000253" name="electron multiplier" value=""/>
           <cvParam cvRef="MS" accession="MS:1000028" name="detector resolution" value="5.1"/>
           <cvParam cvRef="MS" accession="MS:1000029" name="sampling frequency" value="1.1"/>

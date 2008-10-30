@@ -252,6 +252,19 @@ namespace OpenMS
       /// sets the strength of the magnetic field (in T)
       void setMagneticFieldStrength(DoubleReal magnetic_field_strength);
 
+			/**
+				@brief returns the position of this part in the whole Instrument. 
+				
+				Order can be ignored, as long the instrument has this default setup:
+				- one ion source
+				- one or many mass anylyzers
+				- one ion detector
+				For more complex instuments, the order should be defined.
+      */
+      Int getOrder() const;
+      /// sets the order
+      void setOrder(Int order);			
+
     protected:
 			AnalyzerType type_;
 			ResolutionMethod resolution_method_;
@@ -269,6 +282,7 @@ namespace OpenMS
 			DoubleReal isolation_width_;
 			Int final_MS_exponent_;
 			DoubleReal magnetic_field_strength_;
+    	Int order_;
 	};
 } // namespace OpenMS
 

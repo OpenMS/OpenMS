@@ -46,10 +46,11 @@ namespace OpenMS
 		addLabel_("Modify iondetector information.");	
 		addSeparator_();  
 		
-		addComboBox_(iondetector_type_, "Type");
-		addComboBox_(iondetector_ac_mode_, "Acquisition mode");
-		addDoubleLineEdit_(iondetector_res_, "Resolution (in ns)" );
-		addDoubleLineEdit_(iondetector_freq_, "ADC sampling frequency (in MHz)" );
+		addIntLineEdit_(order_, "Order" );
+		addComboBox_(type_, "Type");
+		addComboBox_(ac_mode_, "Acquisition mode");
+		addDoubleLineEdit_(res_, "Resolution (in ns)" );
+		addDoubleLineEdit_(freq_, "ADC sampling frequency (in MHz)" );
 		
 		finishAdding_();			
 	}
@@ -58,29 +59,29 @@ namespace OpenMS
 	{
 		if(! isEditable())
 		{
-			fillComboBox_(iondetector_type_,& temp_.NamesOfType[temp_.getType()] , 1);
-			fillComboBox_(iondetector_ac_mode_,& temp_.NamesOfAcquisitionMode[temp_.getAcquisitionMode()] , 1);
+			fillComboBox_(type_,& temp_.NamesOfType[temp_.getType()] , 1);
+			fillComboBox_(ac_mode_,& temp_.NamesOfAcquisitionMode[temp_.getAcquisitionMode()] , 1);
 		}
 		else
 		{
-			fillComboBox_(iondetector_type_, temp_.NamesOfType , IonDetector::SIZE_OF_TYPE);
-			fillComboBox_(iondetector_ac_mode_, temp_.NamesOfAcquisitionMode , IonDetector::SIZE_OF_ACQUISITIONMODE);
-			iondetector_type_->setCurrentIndex(temp_.getType()); 
-			iondetector_ac_mode_->setCurrentIndex(temp_.getAcquisitionMode()); 
+			fillComboBox_(type_, temp_.NamesOfType , IonDetector::SIZE_OF_TYPE);
+			fillComboBox_(ac_mode_, temp_.NamesOfAcquisitionMode , IonDetector::SIZE_OF_ACQUISITIONMODE);
+			type_->setCurrentIndex(temp_.getType()); 
+			ac_mode_->setCurrentIndex(temp_.getAcquisitionMode()); 
 		}
-		
-		iondetector_res_->setText(String( temp_.getResolution() ).c_str());
-		iondetector_freq_->setText(String( temp_.getADCSamplingFrequency() ).c_str());
+
+		order_->setText(String(temp_.getOrder()).c_str());
+		res_->setText(String( temp_.getResolution() ).c_str());
+		freq_->setText(String( temp_.getADCSamplingFrequency() ).c_str());
 	}
 	
 	void IonDetectorVisualizer::store()
 	{
-		String m(iondetector_res_->text().toStdString());
-		ptr_->setResolution(m.toFloat());
-		String n(iondetector_freq_->text().toStdString());
-		ptr_->setADCSamplingFrequency(n.toFloat());
-		ptr_->setType((IonDetector::Type)iondetector_type_->currentIndex());		
-		ptr_->setAcquisitionMode((IonDetector::AcquisitionMode)iondetector_ac_mode_->currentIndex());		
+		ptr_->setOrder(order_->text().toInt());
+		ptr_->setResolution(res_->text().toDouble());
+		ptr_->setADCSamplingFrequency(freq_->text().toDouble());
+		ptr_->setType((IonDetector::Type)type_->currentIndex());		
+		ptr_->setAcquisitionMode((IonDetector::AcquisitionMode)ac_mode_->currentIndex());		
 		
 		temp_=(*ptr_);
 	}

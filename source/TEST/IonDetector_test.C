@@ -48,6 +48,17 @@ CHECK(~IonDetector())
 	delete ptr;
 RESULT
 
+CHECK(Int getOrder() const)
+	IonDetector tmp;
+	TEST_EQUAL(tmp.getOrder(),0)
+RESULT
+
+CHECK(void setOrder(Int order))
+	IonDetector tmp;
+	tmp.setOrder(4711);
+	TEST_EQUAL(tmp.getOrder(),4711)
+RESULT
+
 CHECK(Type getType() const)
   IonDetector tmp;
   TEST_EQUAL(tmp.getType(),IonDetector::TYPENULL);
@@ -99,6 +110,7 @@ CHECK(IonDetector(const IonDetector& source))
   tmp.setAcquisitionMode(IonDetector::PULSECOUNTING);
   tmp.setType(IonDetector::ELECTRONMULTIPLIER);
   tmp.setMetaValue("label",String("label"));
+  tmp.setOrder(45);
   
   IonDetector tmp2(tmp);	
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
@@ -106,6 +118,7 @@ CHECK(IonDetector(const IonDetector& source))
   TEST_REAL_EQUAL(tmp2.getADCSamplingFrequency(),47.21);
   TEST_EQUAL(tmp2.getAcquisitionMode(),IonDetector::PULSECOUNTING);
   TEST_EQUAL(tmp2.getType(),IonDetector::ELECTRONMULTIPLIER);
+	TEST_EQUAL(tmp2.getOrder(),45)
 RESULT
 
 CHECK(IonDetector& operator= (const IonDetector& source))
@@ -115,6 +128,7 @@ CHECK(IonDetector& operator= (const IonDetector& source))
   tmp.setAcquisitionMode(IonDetector::PULSECOUNTING);
   tmp.setType(IonDetector::ELECTRONMULTIPLIER);
   tmp.setMetaValue("label",String("label"));
+  tmp.setOrder(45);
   
   IonDetector tmp2;
   tmp2 = tmp;	
@@ -123,6 +137,7 @@ CHECK(IonDetector& operator= (const IonDetector& source))
   TEST_REAL_EQUAL(tmp2.getADCSamplingFrequency(),47.21);
   TEST_EQUAL(tmp2.getAcquisitionMode(),IonDetector::PULSECOUNTING);
   TEST_EQUAL(tmp2.getType(),IonDetector::ELECTRONMULTIPLIER);
+	TEST_EQUAL(tmp2.getOrder(),45)
 
   tmp2 = IonDetector();	
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
@@ -130,6 +145,7 @@ CHECK(IonDetector& operator= (const IonDetector& source))
   TEST_REAL_EQUAL(tmp2.getADCSamplingFrequency(),0.0);
   TEST_EQUAL(tmp2.getAcquisitionMode(),IonDetector::ACQMODENULL);
   TEST_EQUAL(tmp2.getType(),IonDetector::TYPENULL);
+	TEST_EQUAL(tmp2.getOrder(),0)
 RESULT
 
 CHECK(bool operator== (const IonDetector& rhs) const)
@@ -155,6 +171,10 @@ CHECK(bool operator== (const IonDetector& rhs) const)
   edit = empty;
   edit.setMetaValue("label",String("label"));
 	TEST_EQUAL(edit==empty,false);
+
+  edit = empty;
+  edit.setOrder(45);
+	TEST_EQUAL(edit==empty,false);
 RESULT
 
 CHECK(bool operator!= (const IonDetector& rhs) const)
@@ -179,6 +199,10 @@ CHECK(bool operator!= (const IonDetector& rhs) const)
   
   edit = empty;
   edit.setMetaValue("label",String("label"));
+	TEST_EQUAL(edit!=empty,true);
+	
+  edit = empty;
+  edit.setOrder(45);
 	TEST_EQUAL(edit!=empty,true);
 RESULT
 
