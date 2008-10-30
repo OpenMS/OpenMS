@@ -54,7 +54,8 @@ CPP_SOURCES=\
 	SuffixArrayTrypticCompressed.C\
 	SuffixArraySeqan.C\
 	SuffixArrayTrypticSeqan.C\
-	SuffixArrayPeptideFinder.C
+	SuffixArrayPeptideFinder.C\
+	CVMappings.C
 
 include ../common.mak
 -include .Dependencies

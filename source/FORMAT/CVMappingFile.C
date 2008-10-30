@@ -1,0 +1,183 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+// 
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Andreas Bertsch $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/FORMAT/CVMappingFile.h>
+#include <OpenMS/SYSTEM/File.h>
+
+using namespace xercesc;
+using namespace std;
+
+namespace OpenMS 
+{
+
+	CVMappingFile::CVMappingFile()
+		: XMLHandler("", 0),
+			XMLFile()
+	{
+	  	
+	}
+	
+	CVMappingFile::~CVMappingFile()
+	{
+	}
+	
+  void CVMappingFile::load(const String& filename, CVMappings& cv_mappings)
+  {
+  	//try to open file
+		if (!File::exists(filename))
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+    }
+		
+		file_ = filename;
+
+		parse_(filename, this);
+
+		cv_mappings.setCVReferences(cv_references_);
+		cv_mappings.setMappingRules(rules_);
+		
+		cv_references_.clear();
+		rules_.clear();
+		
+		return;
+  }
+
+  void CVMappingFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
+  {
+
+    tag_ = String(sm_.convert(qname));
+
+		if (tag_ == "CvReference")
+		{
+			// CvReference cvName="PSI-PI" cvIdentifier="PSI-PI"/>
+			CVMappings::CVReference ref;
+			ref.setName(attributeAsString_(attributes, "cvName"));
+			ref.setIdentifier(attributeAsString_(attributes, "cvIdentifier"));
+			cv_references_.push_back(ref);
+			return;
+		}
+			
+    if (tag_ == "CvMappingRule")
+    {
+			// id="R1" cvElementPath="/psi-pi:AnalysisXML/psi-pi:AnalysisSoftwareList/psi-pi:AnalysisSoftware/pf:ContactRole/pf:role/pf:cvParam" requirementLevel="MUST"  scopePath="" cvTermsCombinationLogic="OR
+			actual_rule_.setIdentifier(attributeAsString_(attributes, "id"));
+			actual_rule_.setElementPath(attributeAsString_(attributes, "cvElementPath"));
+			CVMappings::CVMappingRule::RequirementLevel level = CVMappings::CVMappingRule::MUST;
+			String lvl = attributeAsString_(attributes, "requirementLevel");
+			if (lvl == "MAY")
+			{
+				level = CVMappings::CVMappingRule::MAY;
+			}
+			else
+			{
+				if (lvl == "SHOULD")
+				{
+					level = CVMappings::CVMappingRule::SHOULD;
+				}
+				else
+				{
+					if (lvl == "MUST")
+					{
+						level = CVMappings::CVMappingRule::MUST;
+					}
+					else
+					{
+						// throw Exception
+					}
+				}
+			}
+			
+			actual_rule_.setRequirementLevel(level);
+
+			actual_rule_.setScopePath(attributeAsString_(attributes, "scopePath"));
+			CVMappings::CVMappingRule::CombinationsLogic logic = CVMappings::CVMappingRule::OR;
+			String lgc = attributeAsString_(attributes, "cvTermsCombinationLogic");
+			if (lgc == "OR")
+			{
+				logic = CVMappings::CVMappingRule::OR;
+			}
+			else
+			{
+				if (lgc == "AND")
+				{
+					logic = CVMappings::CVMappingRule::AND;
+				}
+				else
+				{
+					if (lgc == "XOR")
+					{
+						logic = CVMappings::CVMappingRule::XOR;
+					}
+					else
+					{
+						// throw Exception;
+					}
+				}
+			}
+			actual_rule_.setCombinationsLogic(logic);
+			return;
+    }
+
+		if (tag_ == "CvTerm")
+		{
+			// termAccession="PI:00266" useTermName="false" useTerm="false" termName="role type" isRepeatable="true" allowChildren="true" cvIdentifierRef="PSI-PI"
+			CVMappings::CVTerm term;
+			
+			term.setAccession(attributeAsString_(attributes, "termAccession"));
+			term.setUseTerm(DataValue(attributeAsString_(attributes, "useTerm")).toBool());
+			term.setUseTermName(DataValue(attributeAsString_(attributes, "useTermName")).toBool());
+			term.setTermName(attributeAsString_(attributes, "termName"));
+			term.setIsRepeatable(DataValue(attributeAsString_(attributes, "isRepeatable")).toBool());
+			term.setCVIdentifierRef(attributeAsString_(attributes, "cvIdentifierRef"));
+			
+			actual_rule_.addCVTerm(term);
+			return;
+		}
+		
+		return;
+  }
+	
+
+	void CVMappingFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+  {
+    tag_ = String(sm_.convert(qname));
+
+		if (tag_ == "CvMappingRule")
+		{
+			rules_.push_back(actual_rule_);
+			actual_rule_ = CVMappings::CVMappingRule();
+			return;
+		}
+		
+		return;
+  }
+
+  void CVMappingFile::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
+  {
+		// good XML format, nothing to do here
+  }
+  					 
+} // namespace OpenMS

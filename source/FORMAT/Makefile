@@ -78,7 +78,8 @@ CPP_SOURCES=\
 	PepXMLFile.C\
 	ControlledVocabulary.C\
 	TransformationXMLFile.C\
-	LibSVMEncoder.C
+	LibSVMEncoder.C\
+	CVMappingFile.C
 
 MOC_SOURCES=\
 	MascotRemoteQuery_moc.C
