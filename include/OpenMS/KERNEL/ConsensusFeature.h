@@ -32,6 +32,7 @@
 #include <OpenMS/KERNEL/RichPeak2D.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <set>
 
@@ -92,7 +93,8 @@ namespace OpenMS
 			: RichPeak2D(),
 				HandleSetType(),
 				quality_(0.0),
-				charge_(0)
+				charge_(0),
+ 				peptide_identifications_()
 		{
 		}
       
@@ -101,16 +103,18 @@ namespace OpenMS
 			: RichPeak2D(rhs),
 				HandleSetType(rhs),
 				quality_(rhs.quality_),
-				charge_(rhs.charge_)
+				charge_(rhs.charge_),
+ 				peptide_identifications_(rhs.peptide_identifications_)
 		{
 		}
       
-		///Constructor from raw data point
+		/// Constructor from raw data point
 		ConsensusFeature(const RichPeak2D& point)
 			: RichPeak2D(point),
 				HandleSetType(),
 				quality_(0.0),
-				charge_(0)
+				charge_(0),
+ 				peptide_identifications_()
 		{
 		}
 
@@ -119,7 +123,8 @@ namespace OpenMS
 			: RichPeak2D(point),
 				HandleSetType(),
 				quality_(0.0),
-				charge_(0)
+				charge_(0),
+ 				peptide_identifications_()
 		{
 		}
 		
@@ -132,7 +137,8 @@ namespace OpenMS
 			: RichPeak2D(element),
 				HandleSetType(),
 				quality_(0.0),
-				charge_(0)
+				charge_(0),
+ 				peptide_identifications_()
 		{
 			insert(map_index,element_index,element);
 		}
@@ -147,7 +153,8 @@ namespace OpenMS
 			: RichPeak2D(element),
 				HandleSetType(),
 				quality_(element.getOverallQuality()),
-				charge_(element.getCharge())
+				charge_(element.getCharge()),
+ 				peptide_identifications_(element.getPeptideIdentifications())
 		{
 			insert(map_index,element_index,element);
 		}
@@ -311,11 +318,34 @@ namespace OpenMS
 		*/
 		void computeConsensus();
 
+		/// returns a const reference to the PeptideIdentification vector
+		const std::vector<PeptideIdentification>& getPeptideIdentifications() const
+		{
+			return peptide_identifications_;
+		};
+
+		/// returns a mutable reference to the PeptideIdentification vector
+		std::vector<PeptideIdentification>& getPeptideIdentifications()
+		{
+			return peptide_identifications_;
+		};
+
+		/// sets the PeptideIdentification vector
+		void setPeptideIdentifications( const std::vector<PeptideIdentification>& peptide_identifications )
+		{
+			peptide_identifications_ = peptide_identifications;
+		};
+
 	 protected:
-		///Quality of the consensus feature
+		/// Quality of the consensus feature
 		QualityType quality_;
-		///Charge of the consensus feature
+
+ 		/// Charge of the consensus feature
 		Int charge_;
+
+		/// Peptide identifications belonging to the consensus feature
+		std::vector<PeptideIdentification> peptide_identifications_;
+
   };
 
   ///Print the contents of a ConsensusFeature to a stream
