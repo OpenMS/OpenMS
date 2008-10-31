@@ -1,5 +1,6 @@
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
-#include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
+#include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <vector>
 #include <algorithm>
@@ -37,27 +38,18 @@ Int main()
 	}
 
 	LowLevelComparator llc;
-	SingleLinkage sl;
-	vector< vector<UInt> > result; // will be filled
+	CompleteLinkage sl;
+	vector<BinaryTreeNode> tree;
+	DistanceMatrix<Real> dist; // will be filled
 	ClusterHierarchical ch;
 	ch.setThreshold(0.15);
 
 	// clustering
-	ch.clusterForVector<double,LowLevelComparator>(data,llc,sl,result);
-	for(vector< vector<UInt> >::iterator outer_it=result.begin();outer_it!= result.end();++outer_it)
-	{
-		for(vector<UInt>::iterator inner_it=outer_it->begin();inner_it!= outer_it->end();++inner_it)
-		{
-			cout << " | " << *inner_it ;
-		}
-		cout << endl;
-	}
+	ch.cluster<double,LowLevelComparator>(data,llc,sl,tree,dist);
 
-	result.clear();
-
-	ch.setThreshold(1.0);
-	ch.clusterForDendrogramm<double,LowLevelComparator>(data,llc,sl,result,"output/Tutorial_Clustering.den");
-
+	ClusterAnalyzer ca;
+	std::cout << ca.newickTree(tree) << std::endl;
 
 	return 0;
+
 } //end of main
