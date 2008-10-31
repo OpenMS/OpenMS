@@ -28,7 +28,6 @@
 #define OPENMS_FORMAT_HANDLERS_MZMLHANDLER_H
 
 #include <OpenMS/CONCEPT/Exception.h>
-
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/Base64.h>
@@ -42,18 +41,20 @@
 #include <xercesc/sax2/XMLReaderFactory.hpp>
 
 #include <sstream>
-
 #include <iostream>
 
 //TODO:
 // - writing files, add to automatic tmp file validation in tests
 // - units
+// - chromatograms
 
 //EXTEND:
-// - Handle new enum Types when reading/writing mzXML and mzData
-// - chromatograms
-// - acquisitionSettings
-// - isolationWindow
+// - Precursor:
+//   - more than one precursor (isolationWindow, selectedIon, activation)
+//   - charge states
+// - more than one scanWindow per spectrum
+// - Instrument serial number
+// - High intensity removal
 
 namespace OpenMS
 {
@@ -375,7 +376,7 @@ namespace OpenMS
 			{
 				exp_->getContacts().push_back(ContactPerson());
 			}
-			//EXTEND "acquisition", "precursor" and "acquisition settings" can have a source file too
+			//EXTEND "acquisition", "precursor" and "acquisition settings" can have a SourceFile too
 			else if(tag=="sourceFileRef" && parent_tag=="sourceFileRefList" && parent_parent_tag=="run")
 			{
 				exp_->getSourceFiles().push_back(source_files_[ attributeAsString_(attributes, s_ref)]);
@@ -414,7 +415,7 @@ namespace OpenMS
 			}
 			else if (tag=="dataProcessingRef")
 			{
-			  //EXTEND "spectrum", "chromatogram" and "binaryDataArray" can have a DataProcessingRef too
+			  //EXTEND "spectrum", "chromatogram" and "binaryDataArray" can have a DataProcessing too
 			  //Currently this is not implemented as the mzML schema is messed up
 			  //all dataProcessing is handled as global data processing of the whole file!
 			  //See: end of dataProcessingList
@@ -426,7 +427,7 @@ namespace OpenMS
 			}
 			else if (tag=="processingMethod")
 			{
-				//EXTEND Add order?
+				//The order of processing methods is currently ignored
 			}
 			else if (tag=="instrumentConfiguration")
 			{
@@ -613,6 +614,21 @@ namespace OpenMS
 						}
 						//go to next meta data array
 						++meta_array_index;
+					}
+				}
+			}
+			
+			//copy meta data from m/z and intensity binary
+			//We don't have this as a separate location => store it in spectrum
+			for (UInt i=0; i<data_.size(); i++)
+			{
+				if (data_[i].name=="mz" || data_[i].name=="int")
+				{
+					std::vector<UInt> keys;
+					data_[i].meta.getKeys(keys);
+					for (UInt k=0;k<keys.size(); ++k)
+					{
+						spec_.setMetaValue(keys[k],data_[i].meta.getValue(keys[k]));
 					}
 				}
 			}
@@ -1705,18 +1721,12 @@ namespace OpenMS
 			}
 			else if (parent_tag=="binaryDataArray")
 			{
-				if (data_.back().name=="mz" || data_.back().name=="int")
-				{
-					warning(String("Unhandled userParam in m/z or intensity binaryDataArray (name: '") + name + "' value: '" + value + "')");
-				}
-				else
-				{
-					data_.back().meta.setValue(name,data_value);
-				}
+				data_.back().meta.setValue(name,data_value);
 			}
 			else if (parent_tag=="spectrumDescription")
 			{
-				//EXTEND? Where should we put this?
+				//We don't have this as a separate location => store it in spectrum
+				spec_.setMetaValue(name,data_value);
 			}
 			else if (parent_tag=="scan")
 			{
@@ -1732,15 +1742,18 @@ namespace OpenMS
 			}
 			else if (parent_tag=="isolationWindow")
 			{
-				//EXTEND? Where should we put this?
+				//We don't have this as a separate location => store it in the precursor
+				spec_.getPrecursor().setMetaValue(name,data_value);
 			}
 			else if (parent_tag=="selectedIon")
 			{
-				//EXTEND? Where should we put this?
+				//We don't have this as a separate location => store it in the precursor
+				spec_.getPrecursor().setMetaValue(name,data_value);
 			}
 			else if (parent_tag=="activation")
 			{
-				//EXTEND? Where should we put this?
+				//We don't have this as a separate location => store it in the precursor
+				spec_.getPrecursor().setMetaValue(name,data_value);
 			}
 			else if (parent_tag=="processingMethod")
 			{

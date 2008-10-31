@@ -301,6 +301,14 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_STRING_EQUAL((String)exp[1].getMetaValue("name"),"spectrum2")
 	TEST_STRING_EQUAL((String)exp[2].getMetaValue("name"),"spectrum3")
 	TEST_STRING_EQUAL((String)exp[3].getMetaValue("name"),"spectrum4")
+	TEST_STRING_EQUAL((String)exp[0].getMetaValue("sdname"),"spectrumdescription1")
+	TEST_STRING_EQUAL((String)exp[1].getMetaValue("sdname"),"spectrumdescription2")
+	TEST_STRING_EQUAL((String)exp[2].getMetaValue("sdname"),"spectrumdescription3")
+	TEST_STRING_EQUAL((String)exp[3].getMetaValue("sdname"),"spectrumdescription4")
+	TEST_STRING_EQUAL((String)exp[0].getMetaValue("mzname"),"mzarray1")
+	TEST_STRING_EQUAL((String)exp[0].getMetaValue("itname"),"itarray1")
+	TEST_STRING_EQUAL((String)exp[1].getMetaValue("mzname"),"mzarray2")
+	TEST_STRING_EQUAL((String)exp[1].getMetaValue("itname"),"itarray2")
 	//binaryDataArray
 	TEST_STRING_EQUAL((String)exp[1].getMetaDataArrays()[0].getMetaValue("name"),"binaryDataArray_sn")
 	TEST_STRING_EQUAL((String)exp[1].getMetaDataArrays()[0].getMetaValue("name2"),"binaryDataArray_sn2")
@@ -323,7 +331,11 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	//data processing
 	TEST_STRING_EQUAL(exp.getDataProcessing()[0].getMetaValue("p1").toString(),"value1")
 	TEST_STRING_EQUAL(exp.getDataProcessing()[0].getMetaValue("p2").toString(),"value2")
-
+	//precursor
+	TEST_STRING_EQUAL(exp[1].getPrecursor().getMetaValue("iwname").toString(),"isolationwindow1")
+	TEST_STRING_EQUAL(exp[1].getPrecursor().getMetaValue("siname").toString(),"selectedion1")
+	TEST_STRING_EQUAL(exp[1].getPrecursor().getMetaValue("acname").toString(),"activation1")
+	
 	/////////////////////// TESTING SPECIAL CASES ///////////////////////
 	
 	//load a second time to make sure everything is re-initialized correctly
