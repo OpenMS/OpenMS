@@ -3,7 +3,7 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 	<xs:element name="consensusXML">
 		<xs:annotation>
-			<xs:documentation> Schema for a  result of an multiple LC-MS map alignment. </xs:documentation>
+			<xs:documentation> Schema for a result of a multiple LC-MS map alignment. </xs:documentation>
 		</xs:annotation>
 		<xs:complexType>
 			<xs:sequence>
@@ -26,7 +26,7 @@
 								</xs:annotation>
 								<xs:complexType>
 									<xs:sequence minOccurs="0">
-										<xs:element name="UserParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
+										<xs:element name="userParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
 									</xs:sequence>
 									<xs:attribute name="id" type="xs:ID" use="required">
 										<xs:annotation>
@@ -50,7 +50,7 @@
 									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
-							<xs:element name="UserParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
+							<xs:element name="userParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
 						</xs:sequence>
 						<xs:attribute name="score_type" type="xs:string" use="required">
 							<xs:annotation>
@@ -205,7 +205,7 @@
 								</xs:annotation>
 								<xs:complexType>
 									<xs:sequence minOccurs="0">
-										<xs:element name="UserParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
+										<xs:element name="userParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
 									</xs:sequence>
 									<xs:attribute name="sequence" type="xs:string" use="required">
 										<xs:annotation>
@@ -251,7 +251,7 @@
 									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
-							<xs:element name="UserParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
+							<xs:element name="userParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
 						</xs:sequence>
 						<xs:attribute name="score_type" type="xs:string" use="required">
 							<xs:annotation>
