@@ -52,6 +52,8 @@ namespace OpenMS
 		
 		Feature maps are typically created from peak data of 2D runs through the FeatureFinder.
 		
+		@todo Add DataProcessing list (Marc, Chris)
+		
 		@ingroup Kernel
 	*/
 	template <typename FeatureT = Feature >

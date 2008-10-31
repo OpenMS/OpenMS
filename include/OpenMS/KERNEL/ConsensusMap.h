@@ -37,15 +37,17 @@
 namespace OpenMS
 {
 	/**
-	@brief A container for consensus elements.
-    
-	A %ConsensusMap is a container holding 2-dimensional consensus elements (ConsensusFeature)
-	which in turn represent combined elements of 2-dimensional experiments.
-	The map is implemented as a vector of elements.
-    
-	The map indices used in the consensus features should be registered in this class.
- 		
-	@ingroup Kernel
+		@brief A container for consensus elements.
+	    
+		A %ConsensusMap is a container holding 2-dimensional consensus elements (ConsensusFeature)
+		which in turn represent combined elements of 2-dimensional experiments.
+		The map is implemented as a vector of elements.
+	    
+		The map indices used in the consensus features should be registered in this class.
+	 	
+	 	@todo Add DataProcessing list (Marc, Chris)
+	
+		@ingroup Kernel
   */
 	class ConsensusMap 
 		: public std::vector<ConsensusFeature>,

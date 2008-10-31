@@ -93,6 +93,7 @@ namespace OpenMS
   	- hide the derived class in the OpenMS documentation by using doxygen codition macros.
 		
 		@todo Create infrastructure for command line arguments that are lists, use it in all TOPP tools that take lists as arguments e.g. file lists (Hiwi)
+  	@todo Use DataProcessing in all TOPP tools (Marc)
   */
   class TOPPBase
   {
