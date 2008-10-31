@@ -53,7 +53,7 @@ namespace OpenMS
 	map one and pairs of features in map two.  Then, it finds the transformation
 	with most votes.
 
-	@todo Do all the todos in the code, move stuff to .C file (Clemens)
+	@todo Do all the todos in the code, then move stuff to .C file (Clemens)
 
 	@ref PoseClusteringAffineSuperimposer_Parameters are explained on a separate
 	page.

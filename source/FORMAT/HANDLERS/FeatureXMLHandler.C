@@ -21,7 +21,7 @@
 //	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA	02111-1307	USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Marc Sturm, Chris Bielow, Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/FeatureXMLHandler.h>
@@ -330,6 +330,7 @@ namespace OpenMS
 				}
 				os << indent << "\t\t\t</subordinate>\n";
 			}
+
 
 			writeUserParam_("userParam", os, feat, 3+indentation_level);
 

@@ -35,10 +35,11 @@ namespace OpenMS
 
 		void ConsensusXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 		{
-			//std::cout << "END: " << sm_.convert(qname) << std::endl;
-			static XMLCh* s_consensuselement = xercesc::XMLString::transcode("consensusElement");
+			String element = sm_.convert(qname);
+			// debugging
+			// std::cout << "endElement:   /" << element << std::endl;
 
-			if (equal_(qname,s_consensuselement))
+			if ( element == "consensusElement")
 			{
 				if ((!options_.hasRTRange() || options_.getRTRange().encloses(act_cons_element_.getRT()))
 						&&	(!options_.hasMZRange() || options_.getMZRange().encloses(act_cons_element_.getMZ()))
@@ -46,10 +47,33 @@ namespace OpenMS
 				{
 					consensus_map_->push_back(act_cons_element_);
 				}
-				
-				// indicate that we are outside of an <consensusElement> tag
-				in_consensus_element = false;
+				last_meta_ = 0;
 			}
+			//PROTE IDENTIFICATIONS
+			else if (element == "ProteinIdentification")
+			{
+				consensus_map_->getProteinIdentifications().push_back(prot_id_);
+				prot_id_ = ProteinIdentification();
+				last_meta_  = 0;		
+			}
+			else if (element == "ProteinHit")
+			{
+				prot_id_.insertHit(prot_hit_);
+				last_meta_ = &prot_id_;
+			}
+			//PEPTIDES
+			else if (element == "PeptideIdentification")
+			{
+				act_cons_element_.getPeptideIdentifications().push_back(pep_id_);
+				pep_id_ = PeptideIdentification();
+				last_meta_  = 0;
+			}
+			else if (element == "PeptideHit")
+			{
+				pep_id_.insertHit(pep_hit_);
+				last_meta_ = &pep_id_;
+			}
+			return;
 		}
 
 		void ConsensusXMLHandler::characters(const XMLCh* const /*chars*/, unsigned int /*length*/)
@@ -58,90 +82,74 @@ namespace OpenMS
 
 		void ConsensusXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 		{
-			//std::cout << "BEGIN: " << sm_.convert(qname) << std::endl;
-			static XMLCh* s_consensuselement = xercesc::XMLString::transcode("consensusElement");
-			static XMLCh* s_name = xercesc::XMLString::transcode("name");
-			static XMLCh* s_label = xercesc::XMLString::transcode("label");
-			static XMLCh* s_size = xercesc::XMLString::transcode("size");
-			static XMLCh* s_map = xercesc::XMLString::transcode("map");
-			static XMLCh* s_element = xercesc::XMLString::transcode("element");
-			static XMLCh* s_centroid = xercesc::XMLString::transcode("centroid");
-			static XMLCh* s_rt = xercesc::XMLString::transcode("rt");
-			static XMLCh* s_mz = xercesc::XMLString::transcode("mz");
-			static XMLCh* s_it = xercesc::XMLString::transcode("it");
-			static XMLCh* s_id = xercesc::XMLString::transcode("id");
-			static XMLCh* s_experiment_type = xercesc::XMLString::transcode("experiment_type");
-			static XMLCh* s_consensusxml = xercesc::XMLString::transcode("consensusXML");
-			static XMLCh* s_userparam = xercesc::XMLString::transcode("userParam");
-			static XMLCh* s_type = xercesc::XMLString::transcode("type");
-			static XMLCh* s_value = xercesc::XMLString::transcode("value");
-			static XMLCh* s_quality = xercesc::XMLString::transcode("quality");
-			static XMLCh* s_charge = xercesc::XMLString::transcode("charge");
+			String element = sm_.convert(qname);
+			// debugging
+ 			// std::cout << "startElement:  " << element << std::endl;
 
 			String tmp_str;
-			if (equal_(qname,s_map))
+			if ( element == "map" )
 			{
-				last_map_ = attributeAsInt_(attributes,s_id);
-				consensus_map_->getFileDescriptions()[last_map_].filename = attributeAsString_(attributes,s_name);
+				last_map_ = attributeAsInt_(attributes,"id");
+				last_meta_ = &consensus_map_->getFileDescriptions()[last_map_];
+				consensus_map_->getFileDescriptions()[last_map_].filename = attributeAsString_(attributes,"name");
 				String label;
-				if ( XMLHandler::optionalAttributeAsString_(label,attributes,s_label) )
+				if ( XMLHandler::optionalAttributeAsString_(label,attributes,"label") )
 				{
 					consensus_map_->getFileDescriptions()[last_map_].label = label;
 				}
 				UInt size;
-				if ( XMLHandler::optionalAttributeAsUInt_(size,attributes,s_size) )
+				if ( XMLHandler::optionalAttributeAsUInt_(size,attributes,"size") )
 				{
 					consensus_map_->getFileDescriptions()[last_map_].size = size;
 				}
 			}
-			else if (equal_(qname,s_consensuselement))
+			else if ( element == "consensusElement" )
 			{
-				// indicate that we are inside of an <consensusElement> tag
-				in_consensus_element = true;
-				
 				act_cons_element_ = ConsensusFeature();
+				last_meta_ = &act_cons_element_;
 				//set quality
 				DoubleReal quality = 0.0;
-				if (optionalAttributeAsDouble_(quality,attributes,s_quality))
+				if (optionalAttributeAsDouble_(quality,attributes,"quality"))
 				{
 					act_cons_element_.setQuality(quality);
 				}
 				//charge
 				Int charge = 0;
-				if (optionalAttributeAsInt_(charge,attributes,s_charge))
+				if (optionalAttributeAsInt_(charge,attributes,"charge"))
 				{
 					act_cons_element_.setCharge(charge);
 				}
+				last_meta_ = &act_cons_element_;
 			}
-			else if (equal_(qname,s_centroid))
+			else if ( element == "centroid")
 			{
-				tmp_str = attributeAsString_(attributes,s_rt);
+				tmp_str = attributeAsString_(attributes,"rt");
 				if (tmp_str != "")
 				{
 					pos_[Peak2D::RT] = asDouble_(tmp_str);
 				}
 
-				tmp_str = attributeAsString_(attributes,s_mz);
+				tmp_str = attributeAsString_(attributes,"mz");
 				if (tmp_str != "")
 				{
 					pos_[Peak2D::MZ] = asDouble_(tmp_str);
 				}
 
-				tmp_str = attributeAsString_(attributes,s_it);
+				tmp_str = attributeAsString_(attributes,"it");
 				if (tmp_str != "")
 				{
 					it_ = asDouble_(tmp_str);
 				}
 
 			}
-			else if (equal_(qname,s_element))
+			else if ( element == "element" )
 			{
 				FeatureHandle act_index_tuple;
-				tmp_str = attributeAsString_(attributes, s_map);
+				tmp_str = attributeAsString_(attributes, "map");
 				if (tmp_str != "")
 				{
 					UInt map_index = asUInt_(tmp_str);
-					tmp_str = attributeAsString_(attributes, s_id);
+					tmp_str = attributeAsString_(attributes, "id");
 
 					if (tmp_str != "")
 					{
@@ -150,18 +158,18 @@ namespace OpenMS
 						act_index_tuple.setMapIndex(map_index);
 						act_index_tuple.setElementIndex(element_index);
 
-						tmp_str = attributeAsString_(attributes, s_rt);
+						tmp_str = attributeAsString_(attributes, "rt");
 						DPosition<2> pos;
 						pos[0] = asDouble_(tmp_str);
-						tmp_str = attributeAsString_(attributes, s_mz);
+						tmp_str = attributeAsString_(attributes, "mz");
 						pos[1] = asDouble_(tmp_str);
 
 						act_index_tuple.setPosition(pos);
-						act_index_tuple.setIntensity(attributeAsDouble_(attributes,s_it));
+						act_index_tuple.setIntensity(attributeAsDouble_(attributes,"it"));
 
 						//charge
 						Int charge = 0;
-						if (optionalAttributeAsInt_(charge,attributes,s_charge))
+						if (optionalAttributeAsInt_(charge,attributes,"charge"))
 						{
 							act_index_tuple.setCharge(charge);
 						}
@@ -172,7 +180,7 @@ namespace OpenMS
 				act_cons_element_.getPosition() = pos_;
 				act_cons_element_.setIntensity(it_);
 			}
-			else if (equal_(qname,s_consensusxml))
+			else if ( element == "consensusXML" )
 			{
 				//check file version against schema version
 				String file_version="1.0";
@@ -183,56 +191,199 @@ namespace OpenMS
 				}
 				//handle file id
 				String id;
-				if (optionalAttributeAsString_(id, attributes, s_id))
+				if (optionalAttributeAsString_(id, attributes, "id"))
 				{
 					consensus_map_->setIdentifier(id);
 				}
 				//handle experiment type
 				String experiment_type;
-				if (optionalAttributeAsString_(experiment_type, attributes, s_experiment_type))
+				if (optionalAttributeAsString_(experiment_type, attributes, "experiment_type"))
 				{
 					consensus_map_->getExperimentType() = experiment_type;
 				}
+				last_meta_ = consensus_map_;
+				// debugging
+				// std::cout << "consensus_map_: " << typeAsString(consensus_map_) << std::endl;
+				// std::cout << "last_meta_: " << typeAsString(last_meta_) << std::endl;
 			}
-			else if (equal_(qname,s_userparam))
+			else if ( element == "userParam" || element == "UserParam" ) // Support both writings, upon special request by Chris!  DO NOT BLAME Clemens for this nonsense!!!  :-/
 			{
-				String name = attributeAsString_(attributes,s_name);
-				String type = attributeAsString_(attributes,s_type);
-				//determine where to read to
-				MetaInfoInterface* meta;
-				if (in_consensus_element == false)
-				{	
-					if (consensus_map_->getFileDescriptions().size()==0) //consensus map
-					{
-						meta = consensus_map_;
-					}
-					else //last file description
-					{
-						meta = &(consensus_map_->getFileDescriptions()[last_map_]);
-					}
-				}
-				else /* (in_consensus_element == true) */
+				if (last_meta_ == 0)
 				{
-					meta = &act_cons_element_;
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "unexpected userParam!" );
 				}
-				//read data
+				String name = attributeAsString_(attributes,"name");
+				String type = attributeAsString_(attributes,"type");
 				if(type=="int")
 				{
-					meta->setMetaValue(name, attributeAsInt_(attributes,s_value));
+					last_meta_->setMetaValue(name, attributeAsInt_(attributes,"value"));
 				}
 				else if (type=="float")
 				{
-					meta->setMetaValue(name, attributeAsDouble_(attributes,s_value));
+					last_meta_->setMetaValue(name, attributeAsDouble_(attributes,"value"));
 				}
 				else if (type=="string")
 				{
-					meta->setMetaValue(name, (String)attributeAsString_(attributes,s_value));
+					last_meta_->setMetaValue(name, (String)attributeAsString_(attributes,"value"));
 				}
 				else
 				{
 					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invalid userParam type '") + type + "'" );
 				}
 			}
+			else if ( element == "ProteinIdentification" )
+			{
+				prot_id_.setScoreType(attributeAsString_(attributes,"score_type"));
+			
+				//optional significance threshold
+				DoubleReal tmp=0.0;
+				optionalAttributeAsDouble_(tmp,attributes,"significance_threshold");
+				if (tmp!=0.0)
+				{
+					prot_id_.setSignificanceThreshold(tmp);
+				}
+			
+				//score orientation
+				const XMLCh* higher_score_better = attributes.getValue(sm_.convert("higher_score_better"));
+				if (xercesc::XMLString::equals(higher_score_better,sm_.convert("true")))
+				{
+					prot_id_.setHigherScoreBetter(true);	
+				}
+				else if (xercesc::XMLString::equals(higher_score_better,sm_.convert("false")))
+				{
+					prot_id_.setHigherScoreBetter(false);					
+				}
+				else
+				{
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "Invalid value for 'higher_score_better '");				
+				}
+				last_meta_ = &prot_id_;
+			}
+			else if (element == "ProteinHit")
+			{
+				prot_hit_ = ProteinHit();
+				String accession = attributeAsString_(attributes,"accession");
+				prot_hit_.setAccession(accession);
+				prot_hit_.setScore(attributeAsDouble_(attributes,"score"));
+			
+				//sequence
+				String tmp="";
+				optionalAttributeAsString_(tmp,attributes,"sequence");
+				prot_hit_.setSequence(tmp);
+			
+				last_meta_ = &prot_hit_;			
+			
+				//insert id and accession to map
+				proteinid_to_accession_[attributeAsString_(attributes,"id")] = accession;
+			}
+		
+			//PEPTIDES
+			else if (element == "PeptideIdentification")
+			{
+			
+				// set identifier 
+				// TODO Think about what we should do here ... (Nico)
+				// pep_id_.setIdentifier(consensus_map_->getProteinIdentifications().back().getIdentifier());
+			
+				pep_id_.setScoreType(attributeAsString_(attributes,"score_type"));
+			
+				//optional significance threshold
+				DoubleReal tmp=0.0;
+				optionalAttributeAsDouble_(tmp,attributes,"significance_threshold");
+				if (tmp!=0.0)
+				{
+					pep_id_.setSignificanceThreshold(tmp);
+				}
+
+				//score orientation
+				const XMLCh* higher_score_better = attributes.getValue(sm_.convert("higher_score_better"));
+				if (xercesc::XMLString::equals(higher_score_better,sm_.convert("true")))
+				{
+					pep_id_.setHigherScoreBetter(true);	
+				}
+				else if (xercesc::XMLString::equals(higher_score_better,sm_.convert("false")))
+				{
+					pep_id_.setHigherScoreBetter(false);					
+				}
+				else
+				{
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "Invalid value for 'higher_score_better '");				
+				}
+			
+				//MZ
+				DoubleReal tmp2 = - std::numeric_limits<DoubleReal>::max();
+				optionalAttributeAsDouble_(tmp2, attributes,"MZ");
+				if ( tmp2 != - std::numeric_limits<DoubleReal>::max() )
+				{
+					pep_id_.setMetaValue("MZ", tmp2);
+				}
+				//RT
+				tmp2 = - std::numeric_limits<DoubleReal>::max();
+				optionalAttributeAsDouble_(tmp2, attributes,"RT");
+				if ( tmp2 != - std::numeric_limits<DoubleReal>::max())
+				{
+					pep_id_.setMetaValue("RT", tmp2);
+				}
+				Int tmp3 = - std::numeric_limits<Int>::max();
+				optionalAttributeAsInt_(tmp3, attributes,"spectrum_reference");
+				if (tmp3 != - std::numeric_limits<Int>::max())
+				{
+					pep_id_.setMetaValue("spectrum_reference", tmp3);				
+				}
+			
+				last_meta_ = &pep_id_;
+			}
+			else if (element == "PeptideHit")
+			{
+				pep_hit_ = PeptideHit();
+			
+				pep_hit_.setCharge(attributeAsInt_(attributes,"charge"));
+				pep_hit_.setScore(attributeAsDouble_(attributes,"score"));
+				pep_hit_.setSequence(attributeAsString_(attributes,"sequence"));
+			
+				//aa_before
+				String tmp="";
+				optionalAttributeAsString_(tmp,attributes,"aa_before");
+				if (!tmp.empty())
+				{
+					pep_hit_.setAABefore(tmp[0]);
+				}
+				//aa_after
+				tmp="";
+				optionalAttributeAsString_(tmp,attributes,"aa_after");
+				if (!tmp.empty())
+				{
+					pep_hit_.setAAAfter(tmp[0]);
+				}
+			
+				//parse optional protein ids to determine accessions
+				const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs"));
+				if (refs!=0)
+				{
+					String accession_string = sm_.convert(refs);
+					accession_string.trim();
+					std::vector<String> accessions;
+					accession_string.split(' ', accessions);
+					if (accession_string!="" && accessions.size()==0)
+					{
+						accessions.push_back(accession_string);
+					}
+					for(std::vector<String>::const_iterator it = accessions.begin(); it!=accessions.end(); ++it)
+					{
+						std::map<String,String>::const_iterator it2 = proteinid_to_accession_.find(*it);
+						if (it2!=proteinid_to_accession_.end())
+						{
+							pep_hit_.addProteinAccession(it2->second);
+						}
+						else
+						{
+							throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invalid protein reference '") + *it + "'" );
+						}
+					}
+				}
+				last_meta_ = &pep_hit_;
+			}
+			return;
 		}
 
 		void ConsensusXMLHandler::writeTo(std::ostream& os)
@@ -275,11 +426,46 @@ namespace OpenMS
 			}
 			os << "\t</mapList>\n";
 
-			//consensus elements
+			// write ProteinIdentification
+			UInt prot_count = 0;
+			std::map<String,UInt> accession_to_id;
+
+			for ( UInt i = 0; i < consensus_map_->getProteinIdentifications().size(); ++i )
+			{
+				const ProteinIdentification & current_prot_id = consensus_map_->getProteinIdentifications()[i];
+				os << "\t<ProteinIdentification";
+				os << " score_type=\"" << current_prot_id.getScoreType() << "\"";
+				os << " higher_score_better=\"" << ( current_prot_id.isHigherScoreBetter() ? "true" : "false" ) << "\"";
+				os << " significance_threshold=\"" << current_prot_id.getSignificanceThreshold() << "\">" << std::endl;
+			
+				// write protein hits
+				for(UInt j=0; j<current_prot_id.getHits().size(); ++j)
+				{
+					os << "\t\t<ProteinHit";
+
+					// prot_count
+					os << " id=\"PH_" << prot_count << "\"";
+					accession_to_id[current_prot_id.getHits()[j].getAccession()] = prot_count;
+					++prot_count;
+
+					os << " accession=\"" << current_prot_id.getHits()[j].getAccession() << "\"";
+					os << " score=\"" << current_prot_id.getHits()[j].getScore() << "\"";
+					os << " sequence=\"" << current_prot_id.getHits()[j].getSequence() << "\">" << std::endl;
+
+					writeUserParam_("userParam", os, current_prot_id.getHits()[j], 3);
+
+					os << "\t\t</ProteinHit>" << std::endl;
+				}
+			
+				writeUserParam_("userParam", os, current_prot_id, 2);
+				os << "\t</ProteinIdentification>" << std::endl;
+			}
+
+			// write all consensus elements
 			os << "\t<consensusElementList>\n";
 			for (UInt i = 0; i < consensus_map_->size(); ++i)
 			{
-				//consensusElement
+				// write a consensusElement
 				const ConsensusFeature& elem = consensus_map_->operator[](i);
 				os << "\t\t<consensusElement id=\"e_"<< i << "\" quality=\"" << precisionWrapper(elem.getQuality()) << "\"";
 				if (elem.getCharge()!=0)
@@ -287,11 +473,11 @@ namespace OpenMS
 					os << " charge=\"" << elem.getCharge() << "\"";
 				}
 				os << ">\n";
-				//centroid
+				// write centroid
 				os << "\t\t\t<centroid rt=\"" << precisionWrapper(elem.getRT())
 					 << "\" mz=\"" << precisionWrapper(elem.getMZ())
 					 << "\" it=\"" << precisionWrapper(elem.getIntensity()) <<"\"/>\n";
-				//groupedElementList
+				// write groupedElementList
 				os << "\t\t\t<groupedElementList>\n";
 				for (ConsensusFeature::HandleSetType::const_iterator it = elem.begin(); it != elem.end(); ++it)
 				{
@@ -309,10 +495,80 @@ namespace OpenMS
 					os << "/>\n";
 				}
 				os << "\t\t\t</groupedElementList>\n";
+
+				// write PeptideIdentification
+				for ( UInt i = 0; i < elem.getPeptideIdentifications().size(); ++i )
+				{
+					const PeptideIdentification & current_pep_id = elem.getPeptideIdentifications()[i];
+					os << "\t\t\t<PeptideIdentification ";
+					os << "score_type=\"" << current_pep_id.getScoreType() << "\" ";
+					os << "higher_score_better=\"" << ( current_pep_id.isHigherScoreBetter() ? "true" : "false" ) << "\" ";
+					os << "significance_threshold=\"" << current_pep_id.getSignificanceThreshold() << "\" ";
+					//mz
+					DataValue dv = current_pep_id.getMetaValue("MZ");
+					if (dv!=DataValue::EMPTY)
+					{
+						os << "MZ=\"" << dv.toString() << "\" ";
+					}
+					// rt
+					dv = current_pep_id.getMetaValue("RT");
+					if (dv!=DataValue::EMPTY)
+					{
+						os << "RT=\"" << dv.toString() << "\" ";
+					}
+					// spectrum_reference
+					dv = current_pep_id.getMetaValue("spectrum_reference");
+					if (dv!=DataValue::EMPTY)
+					{
+						os << "spectrum_reference=\"" << dv.toString() << "\" ";
+					}
+					os << ">" << std::endl;
+					
+					// write peptide hits
+					for(UInt j=0; j<current_pep_id.getHits().size(); ++j)
+					{
+						os << "\t\t\t\t<PeptideHit";
+						os << " score=\"" << current_pep_id.getHits()[j].getScore() << "\"";
+						os << " sequence=\"" << current_pep_id.getHits()[j].getSequence() << "\"";
+						os << " charge=\"" << current_pep_id.getHits()[j].getCharge() << "\"";
+						if (current_pep_id.getHits()[j].getAABefore()!=' ')
+						{
+							os << " aa_before=\"" << current_pep_id.getHits()[j].getAABefore() << "\"";
+						}
+						if (current_pep_id.getHits()[j].getAAAfter()!=' ')
+						{
+							os << " aa_after=\"" << current_pep_id.getHits()[j].getAAAfter() << "\"";
+						}	
+						if(current_pep_id.getHits()[j].getProteinAccessions().size()!=0)
+						{
+							String accs = "";
+							for (UInt m=0; m<current_pep_id.getHits()[j].getProteinAccessions().size(); ++m)
+							{
+								if (m) accs += " ";
+								accs += "PH_";
+								accs += String(accession_to_id[current_pep_id.getHits()[j].getProteinAccessions()[m]]);
+							}
+							os << " protein_refs=\"" << accs << "\"";
+						}
+						os << ">" << std::endl;
+						writeUserParam_("userParam", os, current_pep_id.getHits()[j], 4);
+						os << "\t\t\t\t</PeptideHit>" << std::endl;
+					}
+					
+					//do not write "RT", "MZ" and "spectrum_reference" as they are written as attributes already
+					MetaInfoInterface tmp = current_pep_id;
+					tmp.removeMetaValue("RT");
+					tmp.removeMetaValue("MZ");
+					tmp.removeMetaValue("spectrum_reference");
+					writeUserParam_("userParam", os, tmp, 4);
+					os << "\t\t\t</PeptideIdentification>" << std::endl;
+				}
+
 				writeUserParam_("userParam", os, elem, 3);
 				os << "\t\t</consensusElement>\n";
 			}
 			os << "\t</consensusElementList>\n";
+
 			os << "</consensusXML>"<< std::endl;
 		}
 

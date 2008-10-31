@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm, Chris Bielow $
+// $Maintainer: Marc Sturm, Chris Bielow, Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_KERNEL_FEATUREMAP_H
@@ -226,7 +226,9 @@ namespace OpenMS
 			void swap(FeatureMap& from)
 			{
 				FeatureMap tmp;
-				
+
+				// TODO use swap for everything!  See ConsensusMap::swap() :-)
+
 				//range information
 				tmp.RangeManagerType::operator=(*this);
 				this->RangeManagerType::operator=(from);

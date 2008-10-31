@@ -152,6 +152,119 @@ CHECK([EXTRA] (bool isValid(const String& filename)))
   TEST_EQUAL(cons_file.isValid("data/ConsensusXMLFile3.consensusXML"),true);
 RESULT
 
+CHECK([EXTRA] ProteinIdentification PeptideIdentification I/O)
+{
+	std::vector<ProteinHit> protein_hits;
+	ProteinHit protein_hit;
+
+	protein_hit.setAccession("urn:lsid:ach0du1schreck2wo3iss4er5denn");
+	protein_hit.setMetaValue("dadada",String("dududu"));
+	protein_hit.setRank(768);
+	protein_hit.setScore(70.3);
+	protein_hit.setSequence("ABCDEFG");
+
+	protein_hits.push_back(protein_hit);
+
+	protein_hit.setAccession("urn:lsid:rumpelstielzchen");
+	protein_hit.setMetaValue("dadada",String("doppeltsogut"));
+	protein_hit.setRank(543);
+	protein_hit.setScore(140.6);
+	protein_hit.setSequence("HIJKLMN");
+
+	protein_hits.push_back(protein_hit);
+
+	ProteinIdentification protein_identification;
+	DateTime date;
+	date.now();
+
+	ConsensusMap cons_map;
+	
+	{
+		ProteinIdentification hits;
+		hits.setDateTime(date);
+		hits.setSignificanceThreshold(56.7643);
+		hits.insertHit(protein_hits[0]);
+		hits.insertHit(protein_hits[1]);
+		hits.setIdentifier("id");
+		hits.setScoreType("score_type");
+		hits.setHigherScoreBetter(true);
+		hits.setSearchEngine("MaxKotzt");
+		hits.setSearchEngineVersion("2.1");
+		ProteinIdentification::SearchParameters param;
+		param.db = "RefSeq";
+		hits.setSearchParameters(param);
+		hits.setMetaValue("pi",3.14159);
+
+		cons_map.getProteinIdentifications().push_back(hits);
+	}
+
+	ConsensusMap::FileDescription file_description;
+	file_description.label = "dummy_label";
+	file_description.size = 19;
+	file_description.filename = "dummy/filename";
+
+	cons_map.getFileDescriptions()[222] = file_description;
+	
+	Peak2D peak2d;
+	peak2d.setMZ(736.53445);
+	peak2d.setRT(66324.47324);
+	peak2d.setIntensity(123123.321);
+	FeatureHandle feat_handle(222,9,peak2d);
+
+	ConsensusFeature cons_feat;
+	cons_feat.insert(feat_handle);
+
+	float peptide_significance_threshold = 42.3;
+	std::vector<PeptideHit> peptide_hits;
+
+	PeptideHit peptide_hit;
+	peptide_hit.setProteinAccessions(std::vector<String>(1,"urn:lsid:rumpelstielzchen"));
+	peptide_hit.setScore(4324.433);
+	peptide_hit.setSequence("HAL");
+	peptide_hit.setCharge(23);
+	peptide_hit.setAABefore('X');
+	peptide_hit.setAAAfter('Y');
+
+	peptide_hits.push_back(peptide_hit);
+
+	{
+		PeptideIdentification hits;
+
+		hits.setHits(peptide_hits);
+
+		hits.setHigherScoreBetter(false);
+		hits.setIdentifier("id");
+		hits.setMetaValue("label",17);
+		hits.setScoreType("score_type");
+		hits.setSignificanceThreshold(peptide_significance_threshold);
+
+		cons_feat.getPeptideIdentifications().push_back(hits);
+	}
+
+	cons_map.push_back(cons_feat);
+
+	ConsensusXMLFile cons_file;
+
+	String tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+
+	cons_file.store(tmp_filename,cons_map);
+	
+	ConsensusMap cons_map_reloaded;
+	cons_file.load(tmp_filename,cons_map_reloaded);
+
+	String tmp_filename_reloaded_then_stored;
+	NEW_TMP_FILE(tmp_filename_reloaded_then_stored);
+
+	cons_file.store(tmp_filename_reloaded_then_stored,cons_map_reloaded);
+
+	TEST_FILE(tmp_filename.c_str(),tmp_filename_reloaded_then_stored.c_str());
+
+	// STATUS("Will intentionally fail on next line so we can have a look at the tmp files");
+	// TEST_EQUAL(0,1);
+}
+RESULT
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

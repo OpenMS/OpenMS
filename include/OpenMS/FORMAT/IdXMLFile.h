@@ -117,7 +117,7 @@ namespace OpenMS
 			ProteinHit prot_hit_;
 			/// Temporary peptide hit
 			PeptideHit pep_hit_;
-			/// 
+			/// Map from protein id to accession
 			std::map<String,String> proteinid_to_accession_;
 			
 			//@}
