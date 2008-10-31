@@ -38,7 +38,8 @@ UTILS_EXECUTABLES=\
 	XMLValidator\
 	FFEval\
 	LabeledEval\
-	HistView
+	HistView\
+	CVInspector
 
 all: $(UTILS_EXECUTABLES)
 

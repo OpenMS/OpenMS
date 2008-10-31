@@ -79,7 +79,9 @@ CPP_SOURCES=\
 	ControlledVocabulary.C\
 	TransformationXMLFile.C\
 	LibSVMEncoder.C\
-	CVMappingFile.C
+	CVMappings.C\
+	CVMappingFile.C\
+	SemanticValidator.C
 
 MOC_SOURCES=\
 	MascotRemoteQuery_moc.C

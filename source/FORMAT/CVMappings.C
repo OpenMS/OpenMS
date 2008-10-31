@@ -24,7 +24,7 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/CVMappings.h>
+#include <OpenMS/FORMAT/CVMappings.h>
 
 using namespace std;
 
