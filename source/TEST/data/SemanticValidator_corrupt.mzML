@@ -383,46 +383,7 @@
       
       
     </spectrumList>
-
-
-
-    <chromatogramList count="2">
-      <chromatogram index="0" id="tic" nativeID="tic native" defaultArrayLength="15" dataProcessingRef="XcaliburProcessing">
-        <cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" value=""/>
-        <binaryDataArrayList count="2">
-          <binaryDataArray encodedLength="160" dataProcessingRef="pwizconversion">
-            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000595" name="time array" value=""/>
-            <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
-          </binaryDataArray>
-          <binaryDataArray encodedLength="160" dataProcessingRef="pwizconversion">
-            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value=""/>
-            <binary>AAAAAAAALkAAAAAAAAAsQAAAAAAAACpAAAAAAAAAKEAAAAAAAAAmQAAAAAAAACRAAAAAAAAAIkAAAAAAAAAgQAAAAAAAABxAAAAAAAAAGEAAAAAAAAAUQAAAAAAAABBAAAAAAAAACEAAAAAAAAAAQAAAAAAAAPA/</binary>
-          </binaryDataArray>
-        </binaryDataArrayList>
-      </chromatogram>
-      <chromatogram index="1" id="sic" nativeID="sic native" defaultArrayLength="10" dataProcessingRef="pwizconversion">
-        <cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" value=""/>
-        <binaryDataArrayList count="2">
-          <binaryDataArray encodedLength="108" dataProcessingRef="pwizconversion">
-            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000595" name="time array" value=""/>
-            <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkA=</binary>
-          </binaryDataArray>
-          <binaryDataArray encodedLength="108" dataProcessingRef="pwizconversion">
-            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value=""/>
-            <binary>AAAAAAAAJEAAAAAAAAAiQAAAAAAAACBAAAAAAAAAHEAAAAAAAAAYQAAAAAAAABRAAAAAAAAAEEAAAAAAAAAIQAAAAAAAAABAAAAAAAAA8D8=</binary>
-          </binaryDataArray>
-        </binaryDataArrayList>
-      </chromatogram>
-    </chromatogramList>
-
+    
 
   </run>
 </mzML>

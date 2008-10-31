@@ -66,6 +66,12 @@ namespace OpenMS
 					
 				///Terms used in the file that are obolete
 				std::vector<ValiationLocation> obsolete_terms;
+				
+				///Terms used in the wrong schema location
+				std::vector<ValiationLocation> invalid_location;
+
+				///Terms used in locations for which no mapping rule exists
+				std::vector<ValiationLocation> no_mapping;
 			};
 			
       /**

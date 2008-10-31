@@ -34,8 +34,8 @@ using namespace std;
 
   
 //TODO:
-// - use of term in wrong location
-// - missing terms (MUST, warning for SHOULD)
+// - ReferenceableParamGroup?
+// - missing terms (AND, MUST, warning for SHOULD)
 // - wrong combination of terms (XOR)
 // - wrong number of repeats
 //   - (isRepeatable)
@@ -84,6 +84,8 @@ namespace OpenMS
 
   bool SemanticValidator::validate(const String& filename, ValidationOutput& output)
   {
+ 		//TODO Check if all required CVs are loaded => Excepetion if not
+ 
 		//try to open file
 		if (!File::exists(filename))
     {
@@ -107,8 +109,7 @@ namespace OpenMS
   void SemanticValidator::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
   {
     String tag = sm_.convert(qname);
-    
-    //TODO Check if all required CVs are loaded => Excpetion if not
+    open_tags_.push_back(tag);    
     
     if (tag==cv_tag_)
     {
@@ -116,6 +117,7 @@ namespace OpenMS
 	    String path;
 	    path.implode(open_tags_.begin(), open_tags_.end(),"/");
 	    path = "/"+path;
+	    path = path+"/@"+accession_att_; //TODO
 	    
 	    //extract accession, name and value
 	    String accession = attributeAsString_(attributes, accession_att_.c_str());
@@ -136,19 +138,60 @@ namespace OpenMS
 				valid_ = false;
 				output_.unknown_terms.push_back(location);
 			}
-			else
+			//check if the term is obsolete
+			else if (cv_.getTerm(accession).obsolete)
 			{
-				const ControlledVocabulary::CVTerm& term = cv_.getTerm(accession);
-				if (term.obsolete)
-				{
-					valid_ = false;
-					output_.obsolete_terms.push_back(location);
-				}
+				valid_ = false;
+				output_.obsolete_terms.push_back(location);
 			}
 			
-    }
-    
-    open_tags_.push_back(tag);
+			//check if the term is allowed in this location
+			//and if there is a mapping rule for this location
+			bool allowed = false;
+			bool rule_found = false;
+			const std::vector<CVMappings::CVMappingRule>& rules = mapping_.getMappingRules();
+			for (UInt r=0;r<rules.size(); ++r) //go thru all rules
+			{
+				if (rules[r].getElementPath()==path) //find those with the right scope
+				{
+					rule_found = true;
+					for (UInt t=0;t<rules[r].getCVTerms().size(); ++t)  //go thru all terms
+					{
+						const CVMappings::CVTerm& term = rules[r].getCVTerms()[t];
+						if (term.getUseTerm() && term.getAccession()==accession) //check if the term itself is allowed
+						{
+							allowed = true;
+							break;
+						}
+						if (term.getAllowChildren()) //check if the term's children are allowed
+						{
+							set<String> child_terms;
+							cv_.getAllChildTerms(child_terms, term.getAccession());
+							for (set<String>::const_iterator it=child_terms.begin(); it!=child_terms.end(); ++it)
+							{
+								if (*it == accession)
+								{
+									allowed = true;
+									break;
+								}
+							}
+						}
+					}
+					if (allowed) break;
+				}
+			}
+			if (!rule_found) //No rule found
+			{
+				valid_ = false;
+				output_.no_mapping.push_back(location);
+			}
+			else if(!allowed) //if rule found and not allowed
+			{
+				valid_ = false;
+				output_.invalid_location.push_back(location);
+			}
+
+		}
   }
 	
 

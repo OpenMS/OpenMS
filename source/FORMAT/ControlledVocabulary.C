@@ -138,7 +138,7 @@ namespace OpenMS
 		Map<String, CVTerm>::const_iterator it = terms_.find(id);
 		if (it==terms_.end())
 		{
-			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Inalid CV identifier!",id);
+			throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid CV identifier!",id);
 		}
 		return it->second;
 	}	

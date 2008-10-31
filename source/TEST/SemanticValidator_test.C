@@ -91,24 +91,51 @@ CHECK(bool validate(const String& filename, ValidationOutput& output))
 	TEST_EQUAL(sv.validate("data/SemanticValidator_valid.mzML", out),true);
 	TEST_EQUAL(out.unknown_terms.size(),0)
 	TEST_EQUAL(out.obsolete_terms.size(),0)
-	
+	TEST_EQUAL(out.invalid_location.size(),0)
+	TEST_EQUAL(out.no_mapping.size(),0)
+
 	//----------------------------------------------------------------------------------------
 	//test of corrupt file
 	TEST_EQUAL(sv.validate("data/SemanticValidator_corrupt.mzML", out),false);
 	
 	//unkonwn
 	TEST_EQUAL(out.unknown_terms.size(),1)
-	TEST_STRING_EQUAL(out.unknown_terms[0].path,"/mzML/fileDescription/sourceFileList/sourceFile")
+	TEST_STRING_EQUAL(out.unknown_terms[0].path,"/mzML/fileDescription/sourceFileList/sourceFile/cvParam/@accession")
 	TEST_STRING_EQUAL(out.unknown_terms[0].accession,"MS:1111569")
 	TEST_STRING_EQUAL(out.unknown_terms[0].name,"SHA-1")
 	TEST_STRING_EQUAL(out.unknown_terms[0].value,"81be39fb2700ab2f3c8b2234b91274968b6899b1")
 	
 	//obsolete
 	TEST_EQUAL(out.obsolete_terms.size(),1)
-	TEST_STRING_EQUAL(out.obsolete_terms[0].path,"/mzML/instrumentConfigurationList/instrumentConfiguration")
+	TEST_STRING_EQUAL(out.obsolete_terms[0].path,"/mzML/instrumentConfigurationList/instrumentConfiguration/cvParam/@accession")
 	TEST_STRING_EQUAL(out.obsolete_terms[0].accession,"MS:1000030")
 	TEST_STRING_EQUAL(out.obsolete_terms[0].name,"vendor")
 	TEST_STRING_EQUAL(out.obsolete_terms[0].value,"Thermo")
+
+	//invalid location
+	TEST_EQUAL(out.invalid_location.size(),9)
+//
+//	for (UInt i=0; i<out.invalid_location.size(); ++i)
+//	{
+//		cout << "loc Element  : " << out.invalid_location[i].path << endl;
+//		cout << "Accession: " << out.invalid_location[i].accession << endl;
+//		cout << "Name     : " << out.invalid_location[i].name << endl;
+//		cout << "Value    : " << out.invalid_location[i].value << endl;
+//		cout << endl;
+//	}
+
+	//no mapping rule found
+	TEST_EQUAL(out.no_mapping.size(),6)
+
+//	for (UInt i=0; i<out.no_mapping.size(); ++i)
+//	{
+//		cout << "map Element  : " << out.no_mapping[i].path << endl;
+//		cout << "Accession: " << out.no_mapping[i].accession << endl;
+//		cout << "Name     : " << out.no_mapping[i].name << endl;
+//		cout << "Value    : " << out.no_mapping[i].value << endl;
+//		cout << endl;
+//	}
+
 
 RESULT
 
