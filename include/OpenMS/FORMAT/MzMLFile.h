@@ -44,7 +44,6 @@ namespace OpenMS
   	  - zlib compression of base64 data
   	  - base64 integer data
   	  - base64 16 bit data
-		- Meta information that does not fit into the %OpenMS object model is ignored.
 		
 		If a critical error occurs, Exception::NotImplemented is thrown.
 		

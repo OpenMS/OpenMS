@@ -86,10 +86,7 @@ namespace OpenMS
 	{
 		ptr_->setComment(treatmentcomment_->toPlainText().toStdString());
 		ptr_->setReagentName(modificationname_->text().toStdString());
-				
-		String m(modificationmass_->text().toStdString());
-		ptr_->setMass(m.toFloat());
-				
+		ptr_->setMass(modificationmass_->text().toDouble());
 		ptr_->setSpecificityType((Modification::SpecificityType)modificationspecificity_->currentIndex());
 		ptr_->setAffectedAminoAcids(modificationAA_->text().toStdString());
 		ptr_->setMassShift(taggingmass_shift_->text().toFloat());

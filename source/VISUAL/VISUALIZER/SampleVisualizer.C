@@ -87,12 +87,9 @@ namespace OpenMS
 		ptr_->setOrganism(sampleorganism_->text().toStdString());
 		ptr_->setComment(samplecomment_-> toPlainText().toStdString());
 		ptr_->setState((Sample::SampleState)samplestate_->currentIndex());		
-		String m(samplemass_->text().toStdString());
-		ptr_->setMass(m.toFloat());
-		String v(samplevolume_->text().toStdString()) ;
-		ptr_->setVolume(v.toFloat());
-		String c(sampleconcentration_->text().toStdString()) ;
-		ptr_->setConcentration(c.toFloat());
+		ptr_->setMass(samplemass_->text().toFloat());
+		ptr_->setVolume(samplevolume_->text().toFloat());
+		ptr_->setConcentration(sampleconcentration_->text().toFloat());
 		
 		temp_=(*ptr_);
 	}

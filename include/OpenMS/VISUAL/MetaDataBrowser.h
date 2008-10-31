@@ -86,6 +86,8 @@ namespace OpenMS
 		
 		If the data has beed modified exec() returns @em true . Otherwise @em false is returned.
 		
+		@improvement Add generic mechanism to add items to data vectors e.g. for Instrument - IonSource (Hiwi)
+		
 		@ingroup Visual
 	*/
   class MetaDataBrowser 

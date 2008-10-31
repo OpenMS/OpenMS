@@ -6,6 +6,7 @@ New features and improvements of OpenMS:
 - Kernel: replaced comparators NthPositionLess by the comparator(s) RTLess and/or MZLess.
 - Kernel: replaced methods sortByNthPosition() by the method(s) sortByRT() and/or sortByMZ().
 - Improved the whole framework for meta data visualization.
+- Meta data: Several extensions to the meta data handling classes for mzML compliance.
 
 New features and improvements of TOPP:
 - FeatureLinker: Added automated RT parameter estimated for 'labeled' algorithm.
@@ -41,8 +42,15 @@ Detailed list of changes to specific OpenMS classes:
   - IntList
   - StringList
 - Changes to classes
-	- DataProcessing: Reimplementation for MzML data.
-	- Software: Reimplementation for MzML data.
+	- DataProcessing: Now contains Software and can handle multiple processing actions.
+	- Software: Only contains name and version now.
+	- SourceFile: Added MetaInfointerface and checksum type
+	- ContactPerson: Added URL and address
+  - Instrument: Now contains multiple detectors, multiple ion sources and Software (mzML)
+  - AcquisitionInfo: Added MetaInfoInterface
+  - ExperimentalSettings
+    - Now contains multiple SourceFiles and DataProcessings
+    - ExperimentType was removed
   - DSpectrum
     - The peaks are no longer stored in a container member, but DSpectrum is derived 
       from std::vector<PeakType>.

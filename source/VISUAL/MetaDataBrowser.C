@@ -496,8 +496,6 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 
-		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-
 		//visualize IonSources
 		for(UInt i=0; i<meta.getIonSources().size(); ++i)    
 		{
@@ -518,7 +516,9 @@ namespace OpenMS
 
 		//Software
 		visualize_(meta.getSoftware(), item);
-		
+
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+
 		connectVisualizer_(visualizer);
 	}
 	

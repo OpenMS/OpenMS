@@ -536,12 +536,11 @@ file formats, data reduction functionality and all other analysis algorithms.
 
   This class holds meta information about the experiment that is valid for the whole experiment:
   - protein identifications
-  - preprocessing performed on the data
   - MS instrument
-  - source file
-  - contact person
+  - source files
+  - contact persons
   - sample description
-  - instrument software
+  - processing performed on the data
   - HPLC settings
 
   @image html ExperimentalSettings.png "Map meta information"
@@ -553,8 +552,8 @@ file formats, data reduction functionality and all other analysis algorithms.
   - spectrum-specific instrument settings
   - peptide and protein identifications
   - precursor information (of MS/MS spectra)
-  - description of the @a MetaInfo present for each data point
   - information on the acquisition
+  - source file
 
   @image html SpectrumSettings.png "Spectrum meta information"
   @image latex SpectrumSettings.png "Spectrum meta information" width=7cm
