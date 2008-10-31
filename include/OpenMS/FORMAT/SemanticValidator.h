@@ -45,21 +45,63 @@ namespace OpenMS
 			public Internal::XMLFile
   {
     public:
-						
-      /// Default constructor
-      SemanticValidator();
+    	/// Description of a CV term and its path in the XML instance file
+			struct ValiationLocation
+			{
+				///Path in the XML instance file
+				String path;
+				/// CV term accession
+				String accession;
+				/// CV term name
+				String name;
+				/// CV term value
+				String value;
+			};
+
+			/// Output container for validation results
+			struct ValidationOutput
+			{
+				///Terms used in the file that are not defined in the CV
+				std::vector<ValiationLocation> unknown_terms;
+					
+				///Terms used in the file that are obolete
+				std::vector<ValiationLocation> obsolete_terms;
+			};
+			
+      /**
+      	@brief Constructor
+      
+				@param mapping The mapping rules
+				@param cv @em All controlled vocabularies required for the mapping 
+			*/
+      SemanticValidator(const CVMappings& mapping, const ControlledVocabulary& cv);
 			
 			/// Destructor
 			virtual ~SemanticValidator();
 		  
 			/**
-				@brief semantically validates an XML file
+				@brief semantically validates an XML file.
 				
-				@param filename The file to validate
-				@param mapping The mapping rules
-				@param cv @em All controlled vocabularies required for the mapping 
+				@param filename The file to validate.s
+				@param output If the validation failed, the errors are listed in this output parameter.
+				
+				@return true if the validation was successfull, false otherwise.
+				
+				@exception Exception::FileNotFound is thrown if the file could not be opened
 			*/
-	    bool validate(const String& filename, const CVMappings& mapping, const ControlledVocabulary& cv);
+	    bool validate(const String& filename, ValidationOutput& output);
+			
+			/// Sets the CV parameter tag name (default: 'cvParam')
+			void setTag(const String& tag);
+			
+			/// Sets the name of the attribute for accessions in the CV parameter tag name (default: 'accession')
+			void setAccessionAttribute(const String& accession);
+
+			/// Sets the name of the attribute for accessions in the CV parameter tag name (default: 'name')
+			void setNameAttribute(const String& name);
+
+			/// Sets the name of the attribute for accessions in the CV parameter tag name (default: 'value')
+			void setValueAttribute(const String& value);
 			
 		protected:
 
@@ -73,6 +115,8 @@ namespace OpenMS
       void characters(const XMLCh* const chars, const unsigned int /*length*/);
 
 		private:
+			/// Not implemented
+			SemanticValidator();
 			
 			/// Not implemented
 			SemanticValidator(const SemanticValidator& rhs);
@@ -80,6 +124,28 @@ namespace OpenMS
 			/// Not implemented
 			SemanticValidator& operator = (const SemanticValidator& rhs);
 
+			/// Reference to the mappings
+			const CVMappings& mapping_;
+			
+			/// Reference to the CVs
+			const ControlledVocabulary& cv_;
+			
+			/// Validation result
+			ValidationOutput output_;
+			
+			/// List of open tags
+			StringList open_tags_;
+			
+			/// Flag that indicates if the instance document is valid
+			bool valid_;
+			
+			///@name Tag and attribute names
+			//@{
+			String cv_tag_;
+			String accession_att_;
+			String name_att_;
+			String value_att_;
+			//@}
   };
  
 } // namespace OpenMS

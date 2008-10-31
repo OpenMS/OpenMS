@@ -30,6 +30,7 @@
 #include <OpenMS/FORMAT/CVMappings.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/SYSTEM/File.h>
 
 ///////////////////////////
 
@@ -41,9 +42,19 @@ START_TEST(SemanticValidator, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
+CVMappings mapping;
+CVMappingFile().load(File::find("/MAPPING/ms-mapping.xml"),mapping);
+
+ControlledVocabulary cv;
+cv.loadFromOBO("PSI",File::find("/CV/psi-ms.obo"));
+cv.loadFromOBO("PATO",File::find("/CV/quality.obo"));
+cv.loadFromOBO("UO",File::find("/CV/unit.obo"));
+cv.loadFromOBO("brenda",File::find("/CV/brenda.obo"));
+cv.loadFromOBO("GO",File::find("/CV/goslim_goa.obo"));
+
 SemanticValidator* ptr = 0;
-CHECK((SemanticValidator()))
-	ptr = new SemanticValidator();
+CHECK(SemanticValidator(const CVMappings& mapping, const ControlledVocabulary& cv))
+	ptr = new SemanticValidator(mapping,cv);
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
@@ -51,19 +62,54 @@ CHECK((virtual ~SemanticValidator()))
 	delete ptr;
 RESULT
 
-CHECK(bool validate(const String& filename, const CVMappings& mapping, const ControlledVocabulary& cv))
-//	CVMappings mapping;
-//	CVMappingFile().load("../../share/OpenMS/MAPPING/ms-mapping.xml",mapping);
-//	
-//	ControlledVocabulary cv;
-//	cv.loadFromOBO("PSI","../../share/OpenMS/CV/psi-ms.obo");
-//	cv.loadFromOBO("PATO","../../share/OpenMS/CV/quality.obo");
-//	cv.loadFromOBO("UO","../../share/OpenMS/CV/unit.obo");
-//	cv.loadFromOBO("brenda","../../share/OpenMS/CV/brenda.obo");
-//	cv.loadFromOBO("GO","../../share/OpenMS/CV/goslim_goa.obo");
-//	
-//	SemanticValidator sv;
-//	TEST_EQUAL(sv.validate("data/MzMLFile_1.mzML", mapping, cv),true);
+CHECK(void setTag(const String& tag))
+	NOT_TESTABLE
+RESULT
+	
+CHECK(void setAccessionAttribute(const String& accession))
+	NOT_TESTABLE
+RESULT
+	
+CHECK(void setNameAttribute(const String& name))
+	NOT_TESTABLE
+RESULT
+	
+CHECK(void setValueAttribute(const String& value))
+	NOT_TESTABLE
+RESULT
+
+CHECK(bool validate(const String& filename, ValidationOutput& output))
+	SemanticValidator::ValidationOutput out;
+	
+	//----------------------------------------------------------------------------------------
+	//test exceptions
+	SemanticValidator sv(mapping, cv);
+	TEST_EXCEPTION(Exception::FileNotFound, sv.validate("/does/not/exist", out));
+
+	//----------------------------------------------------------------------------------------
+	//test of valid file
+	TEST_EQUAL(sv.validate("data/SemanticValidator_valid.mzML", out),true);
+	TEST_EQUAL(out.unknown_terms.size(),0)
+	TEST_EQUAL(out.obsolete_terms.size(),0)
+	
+	//----------------------------------------------------------------------------------------
+	//test of corrupt file
+	TEST_EQUAL(sv.validate("data/SemanticValidator_corrupt.mzML", out),false);
+	
+	//unkonwn
+	TEST_EQUAL(out.unknown_terms.size(),1)
+	TEST_STRING_EQUAL(out.unknown_terms[0].path,"/mzML/fileDescription/sourceFileList/sourceFile")
+	TEST_STRING_EQUAL(out.unknown_terms[0].accession,"MS:1111569")
+	TEST_STRING_EQUAL(out.unknown_terms[0].name,"SHA-1")
+	TEST_STRING_EQUAL(out.unknown_terms[0].value,"81be39fb2700ab2f3c8b2234b91274968b6899b1")
+	
+	//obsolete
+	TEST_EQUAL(out.obsolete_terms.size(),1)
+	TEST_STRING_EQUAL(out.obsolete_terms[0].path,"/mzML/instrumentConfigurationList/instrumentConfiguration")
+	TEST_STRING_EQUAL(out.obsolete_terms[0].accession,"MS:1000030")
+	TEST_STRING_EQUAL(out.obsolete_terms[0].name,"vendor")
+	TEST_STRING_EQUAL(out.obsolete_terms[0].value,"Thermo")
+
 RESULT
 
 /////////////////////////////////////////////////////////////

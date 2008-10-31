@@ -34,54 +34,134 @@ using namespace std;
 
   
 //TODO:
-// - mapping for obsolete terms
-// - term in wrong location
+// - use of term in wrong location
 // - missing terms (MUST, warning for SHOULD)
-// - falsche Kombination von Termen (XOR)
-// - falsche Anzahl von Wiederholungen (isRepeatable)
+// - wrong combination of terms (XOR)
+// - wrong number of repeats
+//   - (isRepeatable)
+//   - the same term twice
 
 namespace OpenMS 
 {
 
-	SemanticValidator::SemanticValidator()
+	SemanticValidator::SemanticValidator(const CVMappings& mapping, const ControlledVocabulary& cv)
 		: XMLHandler("", 0),
-			XMLFile()
+			XMLFile(),
+			mapping_(mapping),
+			cv_(cv),
+			open_tags_(),
+			valid_(true),
+			cv_tag_("cvParam"),
+			accession_att_("accession"),
+			name_att_("name"),
+			value_att_("value")
 	{
-	  	
 	}
 	
 	SemanticValidator::~SemanticValidator()
 	{
 	}
+
+	void SemanticValidator::setTag(const String& tag)
+	{
+		cv_tag_ = tag;
+	}
 	
-  bool SemanticValidator::validate(const String& filename, const CVMappings& mapping, const ControlledVocabulary& cv)
+	void SemanticValidator::setAccessionAttribute(const String& accession)
+	{
+		accession_att_ = accession;
+	}
+	
+	void SemanticValidator::setNameAttribute(const String& name)
+	{
+		name_att_ = name;
+	}
+	
+	void SemanticValidator::setValueAttribute(const String& value)
+	{
+		value_att_ = value;
+	}
+
+  bool SemanticValidator::validate(const String& filename, ValidationOutput& output)
   {
+		//try to open file
+		if (!File::exists(filename))
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+    }
+    
+    //initialize
+    output = output_ = ValidationOutput();
+    valid_ = true;
+    
+    //parse
+		file_ = filename;
+		parse_(filename, this);
 		
-		return true;
+		//set output
+		if (!valid_) output = output_;
+		
+		return valid_;
   }
 
   void SemanticValidator::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
   {
-
     String tag = sm_.convert(qname);
-
-		if (tag == "")
-		{
-		}
+    
+    //TODO Check if all required CVs are loaded => Excpetion if not
+    
+    if (tag==cv_tag_)
+    {
+    	//extract path
+	    String path;
+	    path.implode(open_tags_.begin(), open_tags_.end(),"/");
+	    path = "/"+path;
+	    
+	    //extract accession, name and value
+	    String accession = attributeAsString_(attributes, accession_att_.c_str());
+	    String name = attributeAsString_(attributes, name_att_.c_str());
+	    String value;
+	    optionalAttributeAsString_(value, attributes, value_att_.c_str());
+			
+			//construct location
+			ValiationLocation location;
+			location.path=path;
+			location.accession=accession;
+			location.name=name;
+			location.value=value;
+			
+			//check if the term is unknown
+			if (!cv_.exists(accession))
+			{
+				valid_ = false;
+				output_.unknown_terms.push_back(location);
+			}
+			else
+			{
+				const ControlledVocabulary::CVTerm& term = cv_.getTerm(accession);
+				if (term.obsolete)
+				{
+					valid_ = false;
+					output_.obsolete_terms.push_back(location);
+				}
+			}
+			
+    }
+    
+    open_tags_.push_back(tag);
   }
 	
 
 	void SemanticValidator::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     String tag = sm_.convert(qname);
-
-		if (tag == "")
-		{
-		}
+    
+    open_tags_.pop_back();
   }
 
   void SemanticValidator::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
   {
+  	//nothing to do here
   }
   					 
 } // namespace OpenMS
