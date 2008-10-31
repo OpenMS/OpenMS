@@ -197,7 +197,8 @@ EXECUTABLES_FORMAT = \
 	UnimodXMLFile_test\
 	PepXMLFile_test\
 	ControlledVocabulary_test\
-	TransformationXMLFile_test
+	TransformationXMLFile_test\
+	SemanticValidator_test
 
 #MATH
 

@@ -50,7 +50,7 @@
 
 //EXTEND:
 // - Precursor:
-//   - more than one precursor (isolationWindow, selectedIon, activation)
+//   - more than one precursor (isolationWindow, selectedIon, activation) => Nö, aber warning
 //   - charge states
 // - more than one scanWindow per spectrum
 // - Instrument serial number

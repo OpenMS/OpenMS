@@ -39,6 +39,8 @@ namespace OpenMS
 		@brief Representation of a controlled vocabulary.
 		
 		This represenation only contains the information used for parsing and validation.
+  	
+  	@ingroup Format
 	*/
 	class ControlledVocabulary
 	{
@@ -50,7 +52,7 @@ namespace OpenMS
 			{
 				String name;									///< Text name
 				String id;										///< Identifier
-				std::set<String> parents;	///< List of parent IDs
+				std::set<String> parents;	    ///< List of parent IDs
 				std::set<String> childs;
 				bool obsolete; 								///< Flag that indicates of the term is obsolete
 				

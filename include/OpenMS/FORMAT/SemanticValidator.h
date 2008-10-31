@@ -21,49 +21,45 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_CVMAPPINGFILE_H
-#define OPENMS_FORMAT_CVMAPPINGFILE_H
+#ifndef OPENMS_FORMAT_SEMANTICVALIDATOR_H
+#define OPENMS_FORMAT_SEMANTICVALIDATOR_H
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/FORMAT/CVMappings.h>
-
-#include <vector>
 
 namespace OpenMS 
 {
-	class String;
+	class CVMappings;
+	class ControlledVocabulary;
 	
   /**
-    @brief Used to load CvMapping files
- 
-		This file contains the mapping of CV terms to the schema, which
-		is used by PSI standard formats to semantically validate files.
-  
-  	@ingroup FileIO
+    @brief Semantically validates XML files using a CVMapping 
+
+  	@ingroup Format
   */
-  class CVMappingFile
+  class SemanticValidator
 		: protected Internal::XMLHandler,
 			public Internal::XMLFile
   {
     public:
 						
       /// Default constructor
-      CVMappingFile();
+      SemanticValidator();
 			
 			/// Destructor
-			virtual ~CVMappingFile();
+			virtual ~SemanticValidator();
 		  
 			/**
-				@brief loads CvMappings from the given file
+				@brief semantically validates an XML file
 				
-				@exception Exception::FileNotFound is thrown if the file could not be opened
-				@exception Exception::ParseError is thrown if an error occurs during parsing
+				@param filename The file to validate
+				@param mapping The mapping rules
+				@param cv @em All controlled vocabularies required for the mapping 
 			*/
-	    void load(const String& filename, CVMappings& cv_mappings);
+	    bool validate(const String& filename, const CVMappings& mapping, const ControlledVocabulary& cv);
 			
 		protected:
 
@@ -78,20 +74,12 @@ namespace OpenMS
 
 		private:
 			
-			///Not implemented
-			CVMappingFile(const CVMappingFile& rhs);
+			/// Not implemented
+			SemanticValidator(const SemanticValidator& rhs);
 
-			///Not implemented
-			CVMappingFile& operator = (const CVMappingFile& rhs);
+			/// Not implemented
+			SemanticValidator& operator = (const SemanticValidator& rhs);
 
-			String tag_;
-
-			CVMappings::CVMappingRule actual_rule_;
-
-			std::vector<CVMappings::CVMappingRule> rules_;
-
-			std::vector<CVMappings::CVReference> cv_references_;
-			
   };
  
 } // namespace OpenMS

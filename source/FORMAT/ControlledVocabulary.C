@@ -124,10 +124,10 @@ namespace OpenMS
 		// now build all child terms
 		for (Map<String, CVTerm>::iterator it = terms_.begin(); it != terms_.end(); ++it)
 		{
-			cerr << it->first << endl;
+			//cerr << it->first << endl;
 			for (set<String>::const_iterator pit = terms_[it->first].parents.begin(); pit != terms_[it->first].parents.end(); ++pit)
 			{
-				cerr << "Parent: " << *pit << endl;
+				//cerr << "Parent: " << *pit << endl;
 				terms_[*pit].childs.insert(it->first);
 			}
 		}
@@ -150,7 +150,7 @@ namespace OpenMS
 
 	void ControlledVocabulary::getAllChildTerms(set<String>& terms, const String& parent) const
 	{
-		cerr << "Parent: " << parent << endl;
+		//cerr << "Parent: " << parent << endl;
 		const set<String>& childs = terms_[parent].childs;
 		for (set<String>::const_iterator it = childs.begin(); it != childs.end(); ++it)
 		{

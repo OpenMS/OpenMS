@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework
+//                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -10,7 +10,7 @@
 //  modify it under the terms of the GNU Lesser General Public
 //  License as published by the Free Software Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
-// 
+//
 //  This library is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -24,64 +24,48 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/ClassTest.h>
+
 #include <OpenMS/FORMAT/SemanticValidator.h>
-#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/CVMappings.h>
+#include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 
-using namespace xercesc;
+///////////////////////////
+
+START_TEST(SemanticValidator, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+using namespace OpenMS;
 using namespace std;
 
-  
-//TODO:
-// - mapping for obsolete terms
-// - term in wrong location
-// - missing terms (MUST, warning for SHOULD)
-// - falsche Kombination von Termen (XOR)
-// - falsche Anzahl von Wiederholungen (isRepeatable)
+SemanticValidator* ptr = 0;
+CHECK((SemanticValidator()))
+	ptr = new SemanticValidator();
+	TEST_NOT_EQUAL(ptr, 0)
+RESULT
 
-namespace OpenMS 
-{
+CHECK((virtual ~SemanticValidator()))
+	delete ptr;
+RESULT
 
-	SemanticValidator::SemanticValidator()
-		: XMLHandler("", 0),
-			XMLFile()
-	{
-	  	
-	}
-	
-	SemanticValidator::~SemanticValidator()
-	{
-	}
-	
-  bool SemanticValidator::validate(const String& filename, const CVMappings& mapping, const ControlledVocabulary& cv)
-  {
-		
-		return true;
-  }
+CHECK(bool validate(const String& filename, const CVMappings& mapping, const ControlledVocabulary& cv))
+//	CVMappings mapping;
+//	CVMappingFile().load("../../share/OpenMS/MAPPING/ms-mapping.xml",mapping);
+//	
+//	ControlledVocabulary cv;
+//	cv.loadFromOBO("PSI","../../share/OpenMS/CV/psi-ms.obo");
+//	cv.loadFromOBO("PATO","../../share/OpenMS/CV/quality.obo");
+//	cv.loadFromOBO("UO","../../share/OpenMS/CV/unit.obo");
+//	cv.loadFromOBO("brenda","../../share/OpenMS/CV/brenda.obo");
+//	cv.loadFromOBO("GO","../../share/OpenMS/CV/goslim_goa.obo");
+//	
+//	SemanticValidator sv;
+//	TEST_EQUAL(sv.validate("data/MzMLFile_1.mzML", mapping, cv),true);
+RESULT
 
-  void SemanticValidator::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
-  {
-
-    String tag = sm_.convert(qname);
-
-		if (tag == "")
-		{
-		}
-  }
-	
-
-	void SemanticValidator::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
-  {
-    String tag = sm_.convert(qname);
-
-		if (tag == "")
-		{
-		}
-  }
-
-  void SemanticValidator::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
-  {
-  }
-  					 
-} // namespace OpenMS
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST

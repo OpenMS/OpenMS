@@ -24,8 +24,8 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_CVMAPPINGS_H
-#define OPENMS_DATASTRUCTURES_CVMAPPINGS_H
+#ifndef OPENMS_FORMAT_CVMAPPINGS_H
+#define OPENMS_FORMAT_CVMAPPINGS_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
@@ -35,9 +35,11 @@
 namespace OpenMS
 {
 	/**
-		@brief Representation of controlled vocabulary mapping rules
+		@brief Representation of controlled vocabulary mapping rules (for PSI formats)
 		
-		Further discription
+		@todo Docu (Andreas)
+		
+		@ingroup Format
 	*/
 	class CVMappings
 	{
@@ -226,4 +228,4 @@ namespace OpenMS
 	};
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_CVMAPPINGS_H
+#endif // OPENMS_FORMAT_CVMAPPINGS_H

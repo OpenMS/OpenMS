@@ -1,0 +1,2187 @@
+format-version: 1.0
+date: 20:12:2007 16:24
+saved-by: George Gkoutos
+auto-generated-by: OBO-Edit 1.100-beta22
+default-namespace: unit.ontology
+namespace-id-rule: * UO:$sequence(7,0,9999999)$
+import: http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/quality.obo?revision=1.95
+
+[Term]
+id: UO:0000000
+name: unit
+namespace: unit.ontology
+def: "A unit of measurement is a standardized quantity of a physical quality." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+
+[Term]
+id: UO:0000001
+name: length unit
+namespace: unit.ontology
+def: "A base unit which is a standard measure of the distance between two points." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000045 ! base unit
+relationship: unit_of PATO:0000040 ! distance
+relationship: unit_of PATO:0000119 ! height
+relationship: unit_of PATO:0000122 ! length
+relationship: unit_of PATO:0000915 ! thickness
+relationship: unit_of PATO:0000921 ! width
+relationship: unit_of PATO:0001242 ! wavelength
+relationship: unit_of PATO:0001334 ! diameter
+relationship: unit_of PATO:0001523 ! sound wavelength
+relationship: unit_of PATO:0001595 ! depth
+relationship: unit_of PATO:0001648 ! circumference
+relationship: unit_of PATO:0001711 ! perimeter
+
+[Term]
+id: UO:0000002
+name: mass unit
+namespace: unit.ontology
+def: "A base unit which is a standard measure of the amount of matter/energy of a physical object." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000045 ! base unit
+relationship: unit_of PATO:0000125 ! mass
+relationship: unit_of PATO:0000128 ! weight
+
+[Term]
+id: UO:0000003
+name: time unit
+namespace: unit.ontology
+def: "A base unit which is a standard measure of the dimension in which events occur in sequence." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000045 ! base unit
+relationship: unit_of PATO:0000011 ! age
+relationship: unit_of PATO:0000050 ! life span
+relationship: unit_of PATO:0000081 ! period
+relationship: unit_of PATO:0000165 ! time
+relationship: unit_of PATO:0001309 ! duration
+relationship: unit_of PATO:0001310 ! duration of temperature
+relationship: unit_of PATO:0001486 ! chronological age
+
+[Term]
+id: UO:0000004
+name: electric current unit
+namespace: unit.ontology
+def: "A base unit which is a standard measure of the flow of electric charge." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000045 ! base unit
+
+[Term]
+id: UO:0000005
+name: temperature unit
+namespace: unit.ontology
+def: "A base unit which is a standard measure of the average kinetic energy of the particles in a sample of matter." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000045 ! base unit
+relationship: unit_of PATO:0000146 ! temperature
+relationship: unit_of PATO:0001304 ! variability of temperature
+
+[Term]
+id: UO:0000006
+name: substance unit
+namespace: unit.ontology
+def: "A base unit which is a standardized quantity of an element or compound with uniform composition." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000045 ! base unit
+
+[Term]
+id: UO:0000007
+name: luminous intensity unit
+namespace: unit.ontology
+def: "A base unit which is a standard measure of the wavelength-weighted power emitted by a light source in a particular direction." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000045 ! base unit
+
+[Term]
+id: UO:0000008
+name: meter
+namespace: unit.ontology
+def: "A length unit which is equal to the length of the path traveled by light in vacuum during a time interval of 1/299 792 458 of a second." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "m" []
+is_a: UO:0000001 ! length unit
+
+[Term]
+id: UO:0000009
+name: kilogram
+namespace: unit.ontology
+def: "A mass unit which is equal to the mass of the International Prototype Kilogram kept by the BIPM at Svres, France." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "kg" []
+is_a: UO:0000002 ! mass unit
+
+[Term]
+id: UO:0000010
+name: second
+namespace: unit.ontology
+def: "A time unit which is equal to the duration of 9 192 631 770 periods of the radiation corresponding to the transition between the two hyperfine levels of the ground state of the caesium 133 atom." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "s" []
+is_a: UO:0000003 ! time unit
+
+[Term]
+id: UO:0000011
+name: ampere
+namespace: unit.ontology
+def: "An electric current unit which is equal to the constant current which, if maintained in two straight parallel conductors of infinite length, of negligible circular cross-section, and placed 1 m apart in vacuum, would produce between these conductors a force equal to 2 x 10^[-7] newton per meter of length." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "A" []
+is_a: UO:0000004 ! electric current unit
+
+[Term]
+id: UO:0000012
+name: kelvin
+namespace: unit.ontology
+def: "A thermodynamic temperature unit which is equal to the fraction 1/273.16 of the thermodynamic temperature of the triple point of water." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "K" []
+is_a: UO:0000005 ! temperature unit
+
+[Term]
+id: UO:0000013
+name: mole
+namespace: unit.ontology
+def: "A substance unit which is equal to the amount of substance of a molecular system which contains as many elementary entities as there are atoms in 0.012 kilogram of carbon 12." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "mol" []
+is_a: UO:0000006 ! substance unit
+
+[Term]
+id: UO:0000014
+name: candela
+namespace: unit.ontology
+def: "A luminous intensity unit which equal to the luminous intensity, in a given direction, of a source that emits monochromatic radiation of frequency 540 x 1012 hertz and that has a radiant intensity in that direction of 1/683 watt per steradian." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "cd" []
+is_a: UO:0000007 ! luminous intensity unit
+
+[Term]
+id: UO:0000015
+name: centimeter
+namespace: unit.ontology
+def: "A length unit which is equal to one hundredth of a meter or 10^[-2] m." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "cm" []
+is_a: UO:0000001 ! length unit
+
+[Term]
+id: UO:0000016
+name: millimeter
+namespace: unit.ontology
+def: "A length unit which is equal to one thousandth of a meter or 10^[-3] m." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "mm" []
+is_a: UO:0000001 ! length unit
+
+[Term]
+id: UO:0000017
+name: micrometer
+namespace: unit.ontology
+def: "A length unit which is equal to one millionth of a meter or 10^[-6] m." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "um" []
+is_a: UO:0000001 ! length unit
+
+[Term]
+id: UO:0000018
+name: nanometer
+namespace: unit.ontology
+def: "A length unit which is equal to one thousandth of one millionth of a meter or 10^[-9] m." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "nm" []
+is_a: UO:0000001 ! length unit
+
+[Term]
+id: UO:0000019
+name: angstrom
+namespace: unit.ontology
+def: "A length unit which is equal to 10 [-10] m." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "A" []
+is_a: UO:0000001 ! length unit
+
+[Term]
+id: UO:0000020
+name: picometer
+namespace: unit.ontology
+def: "A length unit which is equal to 10^[-12] m." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "pm" []
+is_a: UO:0000001 ! length unit
+
+[Term]
+id: UO:0000021
+name: gram
+namespace: unit.ontology
+def: "A mass unit which is equal to one thousandth of a kilogram or 10^[-3] kg." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "g" []
+is_a: UO:0000002 ! mass unit
+
+[Term]
+id: UO:0000022
+name: milligram
+namespace: unit.ontology
+def: "A mass unit which is equal to one thousandth of a gram or 10^[-3] g." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "mg" []
+is_a: UO:0000002 ! mass unit
+
+[Term]
+id: UO:0000023
+name: microgram
+namespace: unit.ontology
+def: "A mass unit which is equal to one millionth of a gram or 10^[-6] g." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "ug" []
+is_a: UO:0000002 ! mass unit
+
+[Term]
+id: UO:0000024
+name: nanogram
+namespace: unit.ontology
+def: "A mass unit which is equal to one thousandth of one millionth of a gram or 10^[-9] g." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "ng" []
+is_a: UO:0000002 ! mass unit
+
+[Term]
+id: UO:0000025
+name: picogram
+namespace: unit.ontology
+def: "A mass unit which is equal to 10^[-12] g." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "pg" []
+is_a: UO:0000002 ! mass unit
+
+[Term]
+id: UO:0000026
+name: femtogram
+namespace: unit.ontology
+def: "A mass unit which is equal to 10^[-15] g." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "fg" []
+is_a: UO:0000002 ! mass unit
+
+[Term]
+id: UO:0000027
+name: degree celsius
+namespace: unit.ontology
+def: "A temperature derived unit which is equal to one Kelvin degree. However, they have their zeros at different points. The Centigrade scale has its zero at 273.15 K." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "C" []
+is_a: UO:0000126 ! temperature derived unit
+
+[Term]
+id: UO:0000028
+name: millisecond
+namespace: unit.ontology
+def: "A time unit which is equal to one thousandth of a second or 10^[-3] s." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "ms" []
+is_a: UO:0000003 ! time unit
+
+[Term]
+id: UO:0000029
+name: microsecond
+namespace: unit.ontology
+def: "A time unit which is equal to one millionth of a second or 10^[-6] s." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "us" []
+is_a: UO:0000003 ! time unit
+
+[Term]
+id: UO:0000030
+name: picosecond
+namespace: unit.ontology
+def: "A time unit which is equal to 10^[-12] s." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "ps" []
+is_a: UO:0000003 ! time unit
+
+[Term]
+id: UO:0000031
+name: minute
+namespace: unit.ontology
+def: "A time unit which is equal to 60 seconds." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "min" []
+is_a: UO:0000149 ! time derived unit
+
+[Term]
+id: UO:0000032
+name: hour
+namespace: unit.ontology
+def: "A time unit which is equal to 3600 seconds or 60 minutes." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "h" []
+is_a: UO:0000149 ! time derived unit
+
+[Term]
+id: UO:0000033
+name: day
+namespace: unit.ontology
+def: "A time unit which is equal to 24 hours." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000149 ! time derived unit
+
+[Term]
+id: UO:0000034
+name: week
+namespace: unit.ontology
+def: "A time unit which is equal to 7 days." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000149 ! time derived unit
+
+[Term]
+id: UO:0000035
+name: month
+namespace: unit.ontology
+def: "A time unit which is approximately equal to the length of time of one of cycle of the moon's phases which is science is taken to be equal to 30 days." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000149 ! time derived unit
+
+[Term]
+id: UO:0000036
+name: year
+namespace: unit.ontology
+def: "A time unit which is equal to 12 months which is science is taken to be equal to 365.25 days." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000149 ! time derived unit
+
+[Term]
+id: UO:0000037
+name: milliampere
+namespace: unit.ontology
+def: "An electric current unit current which is equal to one thousandth of an ampere or 10^[-3] A." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "mA" []
+is_a: UO:0000004 ! electric current unit
+
+[Term]
+id: UO:0000038
+name: microampere
+namespace: unit.ontology
+def: "An electric current unit current which is equal to one millionth of an ampere or 10^[-6] A." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "uA" []
+is_a: UO:0000004 ! electric current unit
+
+[Term]
+id: UO:0000039
+name: micromole
+namespace: unit.ontology
+def: "A substance unit equal to a millionth of a mol or 10^[-6] mol." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "umol" []
+is_a: UO:0000006 ! substance unit
+
+[Term]
+id: UO:0000040
+name: millimole
+namespace: unit.ontology
+def: "A substance unit equal to a thousandth of a mol or 10^[-3] mol." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "mmol" []
+is_a: UO:0000006 ! substance unit
+
+[Term]
+id: UO:0000041
+name: nanomole
+namespace: unit.ontology
+def: "A substance unit equal to one thousandth of one millionth of a mole or 10^[-9] mol." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "nmol" []
+is_a: UO:0000006 ! substance unit
+
+[Term]
+id: UO:0000042
+name: picomole
+namespace: unit.ontology
+def: "A substance unit equal to 10^[-12] mol." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "pmol" []
+is_a: UO:0000006 ! substance unit
+
+[Term]
+id: UO:0000043
+name: femtomole
+namespace: unit.ontology
+def: "A substance unit equal to 10^[-15] mol." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "fmol" []
+is_a: UO:0000006 ! substance unit
+
+[Term]
+id: UO:0000044
+name: attomole
+namespace: unit.ontology
+def: "A substance unit equal to 10^[-18] mol." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "amol" []
+is_a: UO:0000006 ! substance unit
+
+[Term]
+id: UO:0000045
+name: base unit
+namespace: unit.ontology
+def: "A unit which is one of a particular measure to which all measures of that type can be related." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+is_a: UO:0000000 ! unit
+
+[Term]
+id: UO:0000046
+name: derived unit
+namespace: unit.ontology
+def: "A unit which is derived from base units." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000000 ! unit
+
+[Term]
+id: UO:0000047
+name: area unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the amount of a 2-dimensional flat surface." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0001323 ! area
+
+[Term]
+id: UO:0000048
+name: acceleration unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the rate of change of velocity in either speed or direction." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0001028 ! acceleration
+
+[Term]
+id: UO:0000049
+name: angular velocity unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the rate of angular movement about an axis; the angle rotated in a given time." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0001413 ! angular velocity
+
+[Term]
+id: UO:0000050
+name: angular acceleration unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the rate of change of angular velocity." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0001350 ! angular acceleration
+
+[Term]
+id: UO:0000051
+name: concentration unit
+namespace: unit.ontology
+def: "A derived unit which represents a standard measurement of how much of a given substance there is mixed with another substance." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0000033 ! concentration
+
+[Term]
+id: UO:0000052
+name: mass density unit
+namespace: unit.ontology
+def: "A density unit which is a standard measure of the mass of a substance in a given volume." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "mass per unit volume" []
+is_a: UO:0000182 ! density unit
+relationship: unit_of PATO:0001353 ! mass density
+relationship: unit_of PATO:0001536 ! solubility
+
+[Term]
+id: UO:0000053
+name: luminance unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the luminous intensity impinging on a given area." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000157 ! light unit
+relationship: unit_of PATO:0001718 ! luminance
+
+[Term]
+id: UO:0000054
+name: area density unit
+namespace: unit.ontology
+def: "A density unit which is a standard measure of the mass exerting an influence on a given area." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "mass per unit area unit" []
+is_a: UO:0000182 ! density unit
+relationship: unit_of PATO:0001351 ! area density
+
+[Term]
+id: UO:0000055
+name: molar mass unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the mass of a homogeneous substance containing 6.02 x 1023 atoms or molecules." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0001681 ! molar mass
+
+[Term]
+id: UO:0000056
+name: molar volume unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the volume of a homogeneous substance containing 6.02 x 1023 atoms or molecules." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0001679 ! specific volume
+relationship: unit_of PATO:0001680 ! molar volume
+
+[Term]
+id: UO:0000057
+name: momentum unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the quantity of motion measured by the product of mass and velocity." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0001022 ! impulse
+relationship: unit_of PATO:0001023 ! momentum
+
+[Term]
+id: UO:0000058
+name: rotational frequency unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the number of rotations in a given time." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0001599 ! rotation
+
+[Term]
+id: UO:0000059
+name: specific volume unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the volume of a given mass of substance (the reciprocal of density)." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000046 ! derived unit
+
+[Term]
+id: UO:0000060
+name: speed/velocity unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the rate of movement. Speed is measured in the same physical units of measurement as velocity, but does not contain the element of direction that velocity has. Speed is thus the magnitude component of velocity." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0000008 ! speed/velocity
+relationship: unit_of PATO:0001522 ! sound speed
+
+[Term]
+id: UO:0000061
+name: unit of molarity
+namespace: unit.ontology
+def: "A derived concentration unit which is a standard measure of the number of moles of a given substance per liter of solution." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000051 ! concentration unit
+
+[Term]
+id: UO:0000062
+name: molar
+namespace: unit.ontology
+def: "A unit of concentration which expresses a concentration of 1 mole of solute per liter of solution (mol/L)." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "M" []
+is_a: UO:0000061 ! unit of molarity
+
+[Term]
+id: UO:0000063
+name: millimolar
+namespace: unit.ontology
+def: "A unit of molarity which is equal to one thousandth of a molar or 10^[-3] M." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "mM" []
+is_a: UO:0000061 ! unit of molarity
+
+[Term]
+id: UO:0000064
+name: micromolar
+namespace: unit.ontology
+def: "A unit of molarity which is equal to one millionth of a molar or 10^[-6] M." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "uM" []
+is_a: UO:0000061 ! unit of molarity
+
+[Term]
+id: UO:0000065
+name: nanomolar
+namespace: unit.ontology
+def: "A unit of molarity which is equal to one thousandth of one millionth of a molar or 10^[-9] M." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "nM" []
+is_a: UO:0000061 ! unit of molarity
+
+[Term]
+id: UO:0000066
+name: picomolar
+namespace: unit.ontology
+def: "A unit of molarity which is equal to 10^[-12] M." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "pM" []
+is_a: UO:0000061 ! unit of molarity
+
+[Term]
+id: UO:0000067
+name: unit of molality
+namespace: unit.ontology
+def: "A derived concentration unit which is a standard measure of the number of moles of a given substance per kilogram of solvent." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000051 ! concentration unit
+
+[Term]
+id: UO:0000068
+name: molal
+namespace: unit.ontology
+def: "A unit of concentration which expresses a concentration of a solution of 1 mole per kilogram of solvent (mol/kg)." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "m" []
+is_a: UO:0000067 ! unit of molality
+
+[Term]
+id: UO:0000069
+name: millimolal
+namespace: unit.ontology
+def: "A molality unit which is equal to one thousandth of a molal or 10^[-3] m." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "mm" []
+is_a: UO:0000067 ! unit of molality
+
+[Term]
+id: UO:0000070
+name: micromolal
+namespace: unit.ontology
+def: "A molality unit which is equal to one millionth of a molal or 10^[-6] m." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "um" []
+is_a: UO:0000067 ! unit of molality
+
+[Term]
+id: UO:0000071
+name: nanomolal
+namespace: unit.ontology
+def: "A molality unit which is equal to one thousandth of one millionth of a molal or 10^[-9] m." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "nm" []
+is_a: UO:0000067 ! unit of molality
+
+[Term]
+id: UO:0000072
+name: picomolal
+namespace: unit.ontology
+def: "A molality unit which is equal to 10^[-12] m." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "pm" []
+is_a: UO:0000067 ! unit of molality
+
+[Term]
+id: UO:0000073
+name: femtomolar
+namespace: unit.ontology
+def: "A unit of molarity which is equal to 10^[-15] M." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "fM" []
+is_a: UO:0000061 ! unit of molarity
+
+[Term]
+id: UO:0000074
+name: unit of normality
+namespace: unit.ontology
+def: "A unit of concentration which highlights the chemical nature of salts." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000051 ! concentration unit
+
+[Term]
+id: UO:0000075
+name: normal
+namespace: unit.ontology
+def: "A unit of concentration which is one gram equivalent of a solute per liter of solution. A gram equivalent weight or equivalent is a measure of the reactive capacity of a given molecule." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "N" []
+is_a: UO:0000074 ! unit of normality
+
+[Term]
+id: UO:0000076
+name: mole fraction
+namespace: unit.ontology
+def: "A concentration unit which denotes the number of moles of solute as a proportion of the total number of moles in a solution." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "(x)" []
+exact_synonym: "chi" []
+is_a: UO:0000051 ! concentration unit
+is_a: UO:0000191 ! fraction
+
+[Term]
+id: UO:0000077
+name: meter per second per second
+namespace: unit.ontology
+def: "An acceleration unit which is equal to the acceleration an object changing its velocity by 1meter/s over a time period that equals one second." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "m/s^[2]" []
+is_a: UO:0000048 ! acceleration unit
+
+[Term]
+id: UO:0000078
+name: radian per second per second
+namespace: unit.ontology
+def: "An angular unit acceleration which is equal to the angular acceleration of an object changing its angular velocity by 1rad/s over a time period that equals one second." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "alpha" []
+exact_synonym: "rad/s^[2]" []
+is_a: UO:0000050 ! angular acceleration unit
+
+[Term]
+id: UO:0000079
+name: radian per second
+namespace: unit.ontology
+def: "An angular unit velocity which is equal to about 9.54930 rpm (revolutions per minute)." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "rad/s" []
+is_a: UO:0000049 ! angular velocity unit
+
+[Term]
+id: UO:0000080
+name: square meter
+namespace: unit.ontology
+def: "An area unit which is equal to an area enclosed by a square with sides each 1 meter long." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "m^[2]" []
+is_a: UO:0000047 ! area unit
+
+[Term]
+id: UO:0000081
+name: square centimeter
+namespace: unit.ontology
+def: "An area unit which is equal to one thousand of square meter or 10^[-3] m^[2]." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "cm^[2]" []
+is_a: UO:0000047 ! area unit
+
+[Term]
+id: UO:0000082
+name: square millimeter
+namespace: unit.ontology
+def: "An area unit which is equal to one millionth of a square meter or 10^[-6] m^[2]." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "mm^[2]" []
+is_a: UO:0000047 ! area unit
+
+[Term]
+id: UO:0000083
+name: kilogram per cubic meter
+namespace: unit.ontology
+def: "A mass unit density which is equal to mass of an object in kilograms divided by the volume in cubic meters." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "kg/m^[3]" []
+is_a: UO:0000052 ! mass density unit
+
+[Term]
+id: UO:0000084
+name: gram per cubic centimeter
+namespace: unit.ontology
+def: "A mass unit density which is equal to mass of an object in grams divided by the volume in cubic centimeters." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "g/cm^[3]" []
+is_a: UO:0000052 ! mass density unit
+
+[Term]
+id: UO:0000085
+name: candela per square meter
+namespace: unit.ontology
+def: "A luminance unit which is equal to a luminous intensity of one candela radiating from a surface whose area is one square meter." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "cd/m^[2]" []
+is_a: UO:0000053 ! luminance unit
+
+[Term]
+id: UO:0000086
+name: kilogram per square meter
+namespace: unit.ontology
+def: "An area density unit which is equal to the mass of an object in kilograms divided by the surface area in meters squared." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "Body Mass Index (BMI)" []
+exact_synonym: "kg/m^[2]" []
+is_a: UO:0000054 ! area density unit
+
+[Term]
+id: UO:0000087
+name: kilogram per mole
+namespace: unit.ontology
+def: "A molar mass unit which is equal to one kilogram of mass of one mole of chemical element or chemical compound." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "kg/mol" []
+is_a: UO:0000055 ! molar mass unit
+
+[Term]
+id: UO:0000088
+name: gram per mole
+namespace: unit.ontology
+def: "A molar mass unit which is equal to one gram of mass of one mole of chemical element or chemical compound." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "g/mol" []
+is_a: UO:0000055 ! molar mass unit
+
+[Term]
+id: UO:0000089
+name: cubic meter per mole
+namespace: unit.ontology
+def: "A molar volume unit which is equal to 1 cubic meter occupied by one mole of a substance in the form of a solid, liquid, or gas." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "m^[3]/mol" []
+is_a: UO:0000056 ! molar volume unit
+
+[Term]
+id: UO:0000090
+name: cubic centimeter per mole
+namespace: unit.ontology
+def: "A molar volume unit which is equal to 1 cubic centimeter occupied by one mole of a substance in the form of a solid, liquid, or gas." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "cm^[3]/mol" []
+is_a: UO:0000056 ! molar volume unit
+
+[Term]
+id: UO:0000091
+name: kilogram meter per second
+namespace: unit.ontology
+def: "A momentum unit which is equal to the momentum of a one kilogram mass object with a speed of one meter per second." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "kg.m/s" []
+is_a: UO:0000057 ! momentum unit
+
+[Term]
+id: UO:0000092
+name: one turn per second
+namespace: unit.ontology
+def: "A rotational frequency unit which is equal to 1 complete turn in a period of time that equals to 1 second." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "1/s" []
+is_a: UO:0000058 ! rotational frequency unit
+
+[Term]
+id: UO:0000093
+name: cubic meter per kilogram
+namespace: unit.ontology
+def: "A specific volume unit which is equal to one cubic meter volume occupied by one kilogram of a particular substance." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "m^[3]/kg" []
+is_a: UO:0000059 ! specific volume unit
+
+[Term]
+id: UO:0000094
+name: meter per second
+namespace: unit.ontology
+def: "A speed/velocity unit which is equal to the speed of an object traveling 1 meter distance in one second." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "m/s" []
+is_a: UO:0000060 ! speed/velocity unit
+
+[Term]
+id: UO:0000095
+name: volume unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the amount of space occupied by any substance, whether solid, liquid, or gas." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0000918 ! volume
+
+[Term]
+id: UO:0000096
+name: cubic meter
+namespace: unit.ontology
+def: "A volume unit which is equal to the volume of a cube with edges one meter in length. One cubic meter equals to 1000 liters." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "m^[3]" []
+is_a: UO:0000095 ! volume unit
+
+[Term]
+id: UO:0000097
+name: cubic centimeter
+namespace: unit.ontology
+def: "A volume unit which is equal to one millionth of a cubic meter or 10^[-9] m^[3], or to 1 ml." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "cc" []
+exact_synonym: "cm^3" []
+is_a: UO:0000095 ! volume unit
+
+[Term]
+id: UO:0000098
+name: milliliter
+namespace: unit.ontology
+def: "A volume unit which is equal to one thousandth of a liter or 10^[-3] L, or to 1 cubic centimeter." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "ml" []
+is_a: UO:0000095 ! volume unit
+
+[Term]
+id: UO:0000099
+name: liter
+namespace: unit.ontology
+def: "A volume unit which is equal to one thousandth of a cubic meter or 10^[-3] m^[3], or to 1 decimeter." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "l" []
+exact_synonym: "L" []
+is_a: UO:0000095 ! volume unit
+
+[Term]
+id: UO:0000100
+name: cubic decimeter
+namespace: unit.ontology
+def: "A volume unit which is equal to one thousand of a cubic meter or 10^[-3] m^[3], or to 1 L." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "dm^[3]" []
+is_a: UO:0000095 ! volume unit
+
+[Term]
+id: UO:0000101
+name: microliter
+namespace: unit.ontology
+def: "A volume unit which is equal to one millionth of a liter or 10^[-6] L." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "ul" []
+is_a: UO:0000095 ! volume unit
+
+[Term]
+id: UO:0000102
+name: nanoliter
+namespace: unit.ontology
+def: "A volume unit which is equal to one thousandth of one millionth of a liter or 10^[-9] L." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "nl" []
+is_a: UO:0000095 ! volume unit
+
+[Term]
+id: UO:0000103
+name: picoliter
+namespace: unit.ontology
+def: "A volume unit which is equal to 10^[-12] L." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "pl" []
+is_a: UO:0000095 ! volume unit
+
+[Term]
+id: UO:0000104
+name: femtoliter
+namespace: unit.ontology
+def: "A volume unit which is equal to 10^[-15] L." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "fl" []
+is_a: UO:0000095 ! volume unit
+
+[Term]
+id: UO:0000105
+name: frequency unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the number of repetitive actions in a particular time." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0000044 ! frequency
+relationship: unit_of PATO:0001520 ! sound frequency
+
+[Term]
+id: UO:0000106
+name: hertz
+namespace: unit.ontology
+def: "A frequency unit which is equal to 1 complete cycle of a recurring phenomenon in 1 second." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "Hz" []
+is_a: UO:0000105 ! frequency unit
+
+[Term]
+id: UO:0000107
+name: force unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the force is applied when a mass is accelerated." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0001035 ! force
+
+[Term]
+id: UO:0000108
+name: newton
+namespace: unit.ontology
+def: "A force unit which is equal to the force required to cause an acceleration of 1m/s2 of a mass of 1 Kg in the direction of the force." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "N" []
+is_a: UO:0000107 ! force unit
+
+[Term]
+id: UO:0000109
+name: pressure unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the force applied to a given area." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0001025 ! pressure
+relationship: unit_of PATO:0001031 ! elasticity
+
+[Term]
+id: UO:0000110
+name: pascal
+namespace: unit.ontology
+def: "A pressure unit which is equal to the pressure or stress on a surface caused by a force of 1 newton spread over a surface of 1 m^[2]." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "Pa" []
+is_a: UO:0000109 ! pressure unit
+
+[Term]
+id: UO:0000111
+name: energy unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the work done by a certain force (gravitational, electric, magnetic, force of inertia, etc)." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0001021 ! energy
+relationship: unit_of PATO:0001026 ! work
+
+[Term]
+id: UO:0000112
+name: joule
+namespace: unit.ontology
+def: "An energy unit which is equal to the energy required when a force of 1 newton moves an object 1 meter in the direction of the force." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "J" []
+is_a: UO:0000111 ! energy unit
+
+[Term]
+id: UO:0000113
+name: power unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure power or the rate of doing work." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0001024 ! power
+
+[Term]
+id: UO:0000114
+name: watt
+namespace: unit.ontology
+def: "A power unit which is equal to the power used when work is done at the rate of 1 joule per second." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "W" []
+is_a: UO:0000113 ! power unit
+
+[Term]
+id: UO:0000115
+name: illuminance unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the luminous flux incident on a unit area." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000157 ! light unit
+
+[Term]
+id: UO:0000116
+name: lux
+namespace: unit.ontology
+def: "An illuminance unit which is equal to the illuminance produced by 1 lumen evenly spread over an area 1 m^[2]." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "lx" []
+is_a: UO:0000115 ! illuminance unit
+
+[Term]
+id: UO:0000117
+name: luminous flux unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the flow of radiant energy." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000157 ! light unit
+relationship: unit_of PATO:0001296 ! luminous flux
+
+[Term]
+id: UO:0000118
+name: lumen
+namespace: unit.ontology
+def: "A luminous flux unit which is equal to the luminous flux emitted into 1 steradian by a point source of 1 candela." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "lm" []
+is_a: UO:0000117 ! luminous flux unit
+
+[Term]
+id: UO:0000119
+name: catalytic activity unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the amount of the action of a catalyst." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0001414 ! catalytic activity
+
+[Term]
+id: UO:0000120
+name: katal
+namespace: unit.ontology
+def: "A catalytic unit activity which is equal to the activity of a catalyst in moles per second, such as the amount of an enzyme needed to transform one mole of substrate per second." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "kat" []
+is_a: UO:0000119 ! catalytic activity unit
+
+[Term]
+id: UO:0000121
+name: angle unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the figure or space formed by the junction of two lines or planes." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0000133 ! angle
+relationship: unit_of PATO:0001599 ! rotation
+
+[Term]
+id: UO:0000122
+name: plane angle unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the angle formed by two straight lines in the same plane." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000121 ! angle unit
+
+[Term]
+id: UO:0000123
+name: radian
+namespace: unit.ontology
+def: "A plane angle unit which is equal to the angle subtended at the center of a circle by an arc equal in length to the radius of the circle, approximately 57 degrees 17 minutes and 44.6 seconds." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "rad" []
+is_a: UO:0000122 ! plane angle unit
+
+[Term]
+id: UO:0000124
+name: solid angle unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the angle formed by three or more planes intersecting at a common point." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000121 ! angle unit
+
+[Term]
+id: UO:0000125
+name: steradian
+namespace: unit.ontology
+def: "A solid angle unit which is equal to the solid angle subtended at the center of a sphere by an area on the surface of the sphere that is equal to the radius squared." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "sr" []
+is_a: UO:0000124 ! solid angle unit
+
+[Term]
+id: UO:0000126
+name: temperature derived unit
+namespace: unit.ontology
+def: "A derived unit which represents a standard measurement of temperature in a particular temperature scale." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0000146 ! temperature
+
+[Term]
+id: UO:0000127
+name: radiation unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the amount of radiation emitted by a given radiation source as well as the amount of radiation absorbed or deposited in a specific material by a radiation source." [OCRBS:OCRBS "http://www.orcbs.msu.edu/"]
+is_a: UO:0000046 ! derived unit
+
+[Term]
+id: UO:0000128
+name: activity (of a radionuclide) unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the transformation (disintegration) rate of a radioactive substance." [DEFRA:DEFRA "http://www.defra.gov.uk/"]
+is_a: UO:0000127 ! radiation unit
+relationship: unit_of PATO:0001740 ! activity (of a radionuclide)
+
+[Term]
+id: UO:0000129
+name: absorbed dose unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the energy imparted by ionizing radiation to unit mass of matter such as tissue." [DEFRA:DEFRA "http://www.defra.gov.uk/"]
+is_a: UO:0000127 ! radiation unit
+relationship: unit_of PATO:0001745 ! radiation absorbed dose
+
+[Term]
+id: UO:0000130
+name: dose equivalent unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the expression of dose in terms of its biological effect." [ORCBS:ORCBS "http://www.orcbs.msu.edu/"]
+is_a: UO:0000127 ! radiation unit
+relationship: unit_of PATO:0001746 ! radiation equivalent dose
+
+[Term]
+id: UO:0000131
+name: exposure unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the quantity that expresses the ability of radiation to ionize air and thereby create electric charges which can be collected and measured." [ORCBS:ORCBS "http://www.orcbs.msu.edu/"]
+is_a: UO:0000127 ! radiation unit
+relationship: unit_of PATO:0001744 ! radiation exposure
+
+[Term]
+id: UO:0000132
+name: becquerel
+namespace: unit.ontology
+def: "An activity (of a radionuclide) unit which is equal to the activity of a quantity of radioactive material in which one nucleus decays per second or there is one atom disintegration per second (dps)." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "Bq" []
+is_a: UO:0000128 ! activity (of a radionuclide) unit
+
+[Term]
+id: UO:0000133
+name: curie
+namespace: unit.ontology
+def: "An activity (of a radionuclide) unit which is equal to the activity of a quantity of radioactive material in which there are 3.7 x 10^[10] atom disintegration per second (dps)." [ORCBS:ORCBS "http://www.orcbs.msu.edu/"]
+exact_synonym: "Ci" []
+is_a: UO:0000128 ! activity (of a radionuclide) unit
+
+[Term]
+id: UO:0000134
+name: gray
+namespace: unit.ontology
+def: "An absorbed dose unit which is equal to the absorption of one joule of radiation energy by one kilogram of matter." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "Gy" []
+is_a: UO:0000129 ! absorbed dose unit
+
+[Term]
+id: UO:0000135
+name: rad
+namespace: unit.ontology
+def: "An absorbed dose unit which is equal to 0.01 gray (Gy)." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "rad" []
+is_a: UO:0000129 ! absorbed dose unit
+
+[Term]
+id: UO:0000136
+name: roentgen
+namespace: unit.ontology
+def: "An exposure unit which is equal to the amount of radiation required to liberate positive and negative charges of one electrostatic unit of charge in 1 cm^[3] of air at standard temperature and pressure (STP). This corresponds to the generation of approximately 2.0810^[9] ion pairs." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "R" []
+is_a: UO:0000131 ! exposure unit
+
+[Term]
+id: UO:0000137
+name: sievert
+namespace: unit.ontology
+def: "A dose equivalent unit which is equal to the absorption of one joule of radiation energy by one kilogram of matter." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "Sv" []
+is_a: UO:0000130 ! dose equivalent unit
+
+[Term]
+id: UO:0000138
+name: millisievert
+namespace: unit.ontology
+def: "A dose equivalent unit which is equal to one thousandth of a sievert or 10^[-3] Sv." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "mSv" []
+is_a: UO:0000130 ! dose equivalent unit
+
+[Term]
+id: UO:0000139
+name: microsievert
+namespace: unit.ontology
+def: "A dose equivalent unit which is equal to one millionth of a sievert or 10^[-6] Sv." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "uSv" []
+is_a: UO:0000130 ! dose equivalent unit
+
+[Term]
+id: UO:0000140
+name: Roentgen equivalent man
+namespace: unit.ontology
+def: "A dose equivalent unit which when multiplied by hundred is equal to one sievert or 1 Sv. 1 Sv is equal to 100 rem." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+comment: Rem = absorbed dose (rad) x quality factor (Q). Q is unique to the type of incident radiation.
+exact_synonym: "rem" []
+is_a: UO:0000130 ! dose equivalent unit
+
+[Term]
+id: UO:0000141
+name: microgray
+namespace: unit.ontology
+def: "An absorbed dose unit which is equal to one millionth of a gray or 10^[-6] Gy." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "uGy" []
+is_a: UO:0000129 ! absorbed dose unit
+
+[Term]
+id: UO:0000142
+name: milligray
+namespace: unit.ontology
+def: "An absorbed dose unit which is equal to one thousandth of a gray or 10^[-3] Gy." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "mGy" []
+is_a: UO:0000129 ! absorbed dose unit
+
+[Term]
+id: UO:0000143
+name: nanogray
+namespace: unit.ontology
+def: "An absorbed dose unit which is equal to one thousandth of a millionth of a gray or 10^[-9] Gy." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "nGy" []
+is_a: UO:0000129 ! absorbed dose unit
+
+[Term]
+id: UO:0000144
+name: nanosievert
+namespace: unit.ontology
+def: "A dose equivalent unit which is equal to one thousandth of a millionth of a sievert or 10^[-9] Sv." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "nSv" []
+is_a: UO:0000130 ! dose equivalent unit
+
+[Term]
+id: UO:0000145
+name: millicurie
+namespace: unit.ontology
+def: "An activity (of a radionuclide) unit which is equal to one thousandth of a curie or 10^[-3] Ci." [ORCBS:ORCBS "http://www.orcbs.msu.edu/"]
+exact_synonym: "mCi" []
+is_a: UO:0000128 ! activity (of a radionuclide) unit
+
+[Term]
+id: UO:0000146
+name: microcurie
+namespace: unit.ontology
+def: "An activity (of a radionuclide) unit which is equal to one millionth of a curie or 10^[-6] Ci." [ORCBS:ORCBS "http://www.orcbs.msu.edu/"]
+exact_synonym: "uCi" []
+is_a: UO:0000128 ! activity (of a radionuclide) unit
+
+[Term]
+id: UO:0000147
+name: disintegrations per minute
+namespace: unit.ontology
+def: "An activity (of a radionuclide) unit which is equal to the activity of a quantity of radioactive material in which one nucleus decays per minute or there is one atom disintegration per minute." [ORCBS:ORCBS "http://www.orcbs.msu.edu/"]
+exact_synonym: "dpm" []
+is_a: UO:0000128 ! activity (of a radionuclide) unit
+
+[Term]
+id: UO:0000148
+name: counts per minute
+namespace: unit.ontology
+def: "An activity (of a radionuclide) unit which is equal to the number of light emissions produced by ionizing radiation in one minute." [ORCBS:ORCBS "http://www.orcbs.msu.edu/"]
+exact_synonym: "cpm" []
+is_a: UO:0000128 ! activity (of a radionuclide) unit
+
+[Term]
+id: UO:0000149
+name: time derived unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the dimension in which events occur in sequence." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0000011 ! age
+relationship: unit_of PATO:0000050 ! life span
+relationship: unit_of PATO:0000081 ! period
+relationship: unit_of PATO:0000165 ! time
+relationship: unit_of PATO:0001309 ! duration
+relationship: unit_of PATO:0001310 ! duration of temperature
+relationship: unit_of PATO:0001486 ! chronological age
+
+[Term]
+id: UO:0000150
+name: nanosecond
+namespace: unit.ontology
+def: "A time unit which is equal to one thousandth of one millionth of a second or 10^[-9] s." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "ns" []
+is_a: UO:0000003 ! time unit
+
+[Term]
+id: UO:0000151
+name: century
+namespace: unit.ontology
+def: "A time unit which is equal to 100 years." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000149 ! time derived unit
+
+[Term]
+id: UO:0000152
+name: half life
+namespace: unit.ontology
+def: "A time unit which represents the period over which the activity or concentration of a specified chemical or element falls to half its original activity or concentration." [MGED:MGED "http://mged.sourceforge.net/ontologies/MGEDontology.php"]
+comment: Typically applied to the half life of radioactive atoms but also applicable to any other situation where the population is of molecules of diminishing concentration or activity.
+is_a: UO:0000149 ! time derived unit
+
+[Term]
+id: UO:0000153
+name: foot candle
+namespace: unit.ontology
+def: "An illuminance unit which is equal to the illuminance produced by 1 lumen evenly spread over an area 1 foot^[2]. One footcandle is equal to 10.76 lux." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "ft-c" []
+is_a: UO:0000115 ! illuminance unit
+
+[Term]
+id: UO:0000154
+name: irradiance unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the power of electromagnetic radiation at a surface, per unit area." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000157 ! light unit
+
+[Term]
+id: UO:0000155
+name: watt per square meter
+namespace: unit.ontology
+def: "An irradiance unit which is equal to 1 watt of radiant power incident per one square meter surface area." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "W/m^[2]" []
+is_a: UO:0000154 ! irradiance unit
+
+[Term]
+id: UO:0000156
+name: einstein per square meter per second
+namespace: unit.ontology
+def: "An irradiance unit which is equal to one einstein per square meter per second. One einstein is one mole of photons, regardless of their frequency. Therefore, the number of photons in an einstein is Avogadro's number." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "einstein/sm^[2]" []
+exact_synonym: "mole per second and square meter mol/sm^2" []
+is_a: UO:0000154 ! irradiance unit
+
+[Term]
+id: UO:0000157
+name: light unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the intensity of light." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+is_a: UO:0000046 ! derived unit
+
+[Term]
+id: UO:0000158
+name: watt per steradian per square meter
+namespace: unit.ontology
+def: "A radiance unit which is equal to one watt of radiant power incident per steradian solid angle per one square meter projected area of the source, as viewed from the given direction." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "W/sr m^[2]" []
+is_a: UO:0000161 ! radiance unit
+
+[Term]
+id: UO:0000159
+name: radiant intensity unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the intensity of electromagnetic radiation." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000157 ! light unit
+relationship: unit_of PATO:0001717 ! radiation emitting intensity quality
+
+[Term]
+id: UO:0000160
+name: microeinstein per square meter per second
+namespace: unit.ontology
+def: "An irradiance unit which is equal to one microeinstein per square meter per second or 10^[-6] microeinstein/sm^[2]." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "micromole per second and square meter mmol/sm^2" []
+exact_synonym: "umicroeinstein/sm^[2]" []
+is_a: UO:0000154 ! irradiance unit
+
+[Term]
+id: UO:0000161
+name: radiance unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the power of electromagnetic radiation through space or through a material medium in the form of electromagnetic waves." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000157 ! light unit
+relationship: unit_of PATO:0001299 ! radiation emitting quality
+
+[Term]
+id: UO:0000162
+name: watt per steradian
+namespace: unit.ontology
+def: "A radiant intensity unit which is equal to one kilogram meter squared per second cubed per steradian." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "W/sr" []
+is_a: UO:0000159 ! radiant intensity unit
+
+[Term]
+id: UO:0000163
+name: mass percentage
+namespace: unit.ontology
+def: "A dimensionless concentration unit which denotes the mass of a substance in a mixture as a percentage of the mass of the entire mixture." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "w/w" []
+exact_synonym: "weight-weight percentage" []
+is_a: UO:0000051 ! concentration unit
+is_a: UO:0000187 ! percent
+
+[Term]
+id: UO:0000164
+name: mass volume percentage
+namespace: unit.ontology
+def: "A dimensionless concentration unit which denotes the mass of the substance in a mixture as a percentage of the volume of the entire mixture." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "(w/v)" []
+exact_synonym: "weight-volume percentage" []
+is_a: UO:0000051 ! concentration unit
+is_a: UO:0000187 ! percent
+
+[Term]
+id: UO:0000165
+name: volume percentage
+namespace: unit.ontology
+def: "A dimensionless concentration unit which denotes the volume of the solute in mL per 100 mL of the resulting solution." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "% (v/v)" []
+is_a: UO:0000187 ! percent
+is_a: UO:0000205 ! volume per unit volume
+
+[Term]
+id: UO:0000166
+name: parts per notation
+namespace: unit.ontology
+def: "A dimensionless concentration notation which describes the amount of one substance in another. It is the ratio of the amount of the substance of interest to the amount of that substance plus the amount of the substance." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000051 ! concentration unit
+is_a: UO:0000186 ! dimensionless unit
+
+[Term]
+id: UO:0000167
+name: parts per hundred
+namespace: unit.ontology
+def: "A dimensionless concentration notation which denotes the amount of a given substance in a total amount of 100 regardless of the units of measure as long as they are the same." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "10^[-2]" []
+exact_synonym: "pph" []
+is_a: UO:0000166 ! parts per notation
+
+[Term]
+id: UO:0000168
+name: parts per thousand
+namespace: unit.ontology
+def: "A dimensionless concentration notation which denotes the amount of a given substance in a total amount of 1000 regardless of the units of measure as long as they are the same." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "10^[-3]" []
+exact_synonym: "ppth" []
+is_a: UO:0000166 ! parts per notation
+
+[Term]
+id: UO:0000169
+name: parts per million
+namespace: unit.ontology
+def: "A dimensionless concentration notation which denotes the amount of a given substance in a total amount of 1,000,000 regardless of the units of measure used as long as they are the same or 1 part in 10^[6]." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "10^[-6]" []
+exact_synonym: "ppm" []
+is_a: UO:0000166 ! parts per notation
+
+[Term]
+id: UO:0000170
+name: parts per billion
+namespace: unit.ontology
+def: "A dimensionless concentration notation which denotes the amount of a given substance in a total amount of 1,000,000,000 regardless of the units of measure as long as they are the same or 1 part in 10^[9]." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "10^[-9]" []
+exact_synonym: "ppb" []
+is_a: UO:0000166 ! parts per notation
+
+[Term]
+id: UO:0000171
+name: parts per trillion
+namespace: unit.ontology
+def: "A dimensionless concentration notation which denotes the amount of a given substance in a total amount of 1,000,000,000 regardless of the units of measure used as long as they are the same or 1 part in 10^[12]." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "10^[-12]" []
+exact_synonym: "ppt" []
+is_a: UO:0000166 ! parts per notation
+
+[Term]
+id: UO:0000172
+name: parts per quadrillion
+namespace: unit.ontology
+def: "A dimensionless concentration notation which denotes the amount of a given substance in a total amount of 1,000,000,000,000 regardless of the units of measure used as long as they are the same or 1 part in 10^[15]." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "10^[-15]" []
+exact_synonym: "ppq" []
+is_a: UO:0000166 ! parts per notation
+
+[Term]
+id: UO:0000173
+name: gram per milliliter
+namespace: unit.ontology
+def: "A mass unit density which is equal to mass of an object in grams divided by the volume in milliliter." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "g/ml" []
+is_a: UO:0000052 ! mass density unit
+
+[Term]
+id: UO:0000174
+name: kilogram per liter
+namespace: unit.ontology
+def: "A mass unit density which is equal to mass of an object in kilograms divided by the volume in liters." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "kg/L" []
+is_a: UO:0000052 ! mass density unit
+
+[Term]
+id: UO:0000175
+name: gram per liter
+namespace: unit.ontology
+def: "A mass unit density which is equal to mass of an object in grams divided by the volume in liters." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "g/L" []
+is_a: UO:0000052 ! mass density unit
+
+[Term]
+id: UO:0000176
+name: milligram per milliliter
+namespace: unit.ontology
+def: "A mass unit density which is equal to mass of an object in milligrams divided by the volume in milliliters." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "mg/ml" []
+is_a: UO:0000052 ! mass density unit
+
+[Term]
+id: UO:0000177
+name: unit per volume unit
+namespace: unit.ontology
+def: "A derived concentration unit which is a standard measure of the number of units, as an agreed arbitrary amount, of a given substance per a specific volume of solution." [Webmd:Webmd "http://www.webmd.com/hw/health_guide_atoz/aa74537.asp"]
+is_a: UO:0000051 ! concentration unit
+
+[Term]
+id: UO:0000178
+name: unit per milliliter
+namespace: unit.ontology
+def: "A unit per milliliter unit which is equal to one unit of an agreed arbitrary amount per one milliliter." [Webmd:Webmd "http://www.webmd.com/hw/health_guide_atoz/aa74537.asp"]
+exact_synonym: "U/ml" []
+is_a: UO:0000177 ! unit per volume unit
+
+[Term]
+id: UO:0000179
+name: unit per liter
+namespace: unit.ontology
+def: "A unit per milliliter unit which is equal to one unit of an agreed arbitrary amount per one liter." [Webmd:Webmd "http://www.webmd.com/hw/health_guide_atoz/aa74537.asp"]
+exact_synonym: "U/l" []
+is_a: UO:0000177 ! unit per volume unit
+
+[Term]
+id: UO:0000180
+name: mass per unit volume
+namespace: unit.ontology
+def: "A concentration unit which is a standard measure of the mass of a substance in a given volume (density)." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+comment: For units and further information look under the mass density unit. For a sample of a specific pure elemental substance, the concentration is directly proportional to the density. However, concentration is not proportional to density in general.
+is_a: UO:0000051 ! concentration unit
+
+[Term]
+id: UO:0000181
+name: enzyme unit
+namespace: unit.ontology
+def: "A catalytic unit activity which is equal to the amount of the enzyme that catalyzes the conversion of 1 micro mole of substrate per minute." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "U" []
+is_a: UO:0000119 ! catalytic activity unit
+
+[Term]
+id: UO:0000182
+name: density unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the influence exerted by some mass." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0001019 ! density
+
+[Term]
+id: UO:0000183
+name: linear density unit
+namespace: unit.ontology
+def: "A density unit which is a standard measure of the mass exerting an influence on a one-dimensional object." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000182 ! density unit
+relationship: unit_of PATO:0001352 ! linear density
+
+[Term]
+id: UO:0000184
+name: kilogram per meter
+namespace: unit.ontology
+def: "An area density unit which is equal to the mass of an object in kilograms divided by one meter." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "kg/m" []
+is_a: UO:0000183 ! linear density unit
+
+[Term]
+id: UO:0000185
+name: degree
+namespace: unit.ontology
+def: "A plane angle unit which is equal to 1/360 of a full rotation or 1.7453310^[-2] rad." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000122 ! plane angle unit
+
+[Term]
+id: UO:0000186
+name: dimensionless unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of physical quantity consisting of only a numerical number without any units." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000046 ! derived unit
+
+[Term]
+id: UO:0000187
+name: percent
+namespace: unit.ontology
+def: "A dimensionless ratio unit which denotes numbers as fractions of 100." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "%" []
+is_a: UO:0000190 ! ratio
+
+[Term]
+id: UO:0000188
+name: pi
+namespace: unit.ontology
+def: "A dimensionless unit which denoted an irrational real number, approximately equal to 3.14159 which is the ratio of a circle's circumference to its diameter in Euclidean geometry." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000186 ! dimensionless unit
+
+[Term]
+id: UO:0000189
+name: count
+namespace: unit.ontology
+def: "A dimensionless unit which denotes a simple count of things." [MGED:MGED "http://mged.sourceforge.net/ontologies/MGEDontology.php"]
+is_a: UO:0000186 ! dimensionless unit
+
+[Term]
+id: UO:0000190
+name: ratio
+namespace: unit.ontology
+def: "A dimensionless unit which denotes an amount or magnitude of one quantity relative to another." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000186 ! dimensionless unit
+
+[Term]
+id: UO:0000191
+name: fraction
+namespace: unit.ontology
+def: "A dimensionless ratio unit which relates the part (the numerator) to the whole (the denominator)." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000190 ! ratio
+
+[Term]
+id: UO:0000192
+name: molecule count
+namespace: unit.ontology
+def: "A dimensionless count unit which denotes the number of molecules." [MGED:MGED "http://mged.sourceforge.net/ontologies/MGEDontology.php"]
+is_a: UO:0000189 ! count
+
+[Term]
+id: UO:0000193
+name: purity percentage
+namespace: unit.ontology
+def: "A dimensionless percent unit which denotes the homogeneity of a biomaterial." [MGED:MGED "http://mged.sourceforge.net/ontologies/MGEDontology.php"]
+comment: An example of a biomaterial could be an e.g. tumor biopsy.
+is_a: UO:0000187 ! percent
+
+[Term]
+id: UO:0000194
+name: confluence percentage
+namespace: unit.ontology
+def: "A dimensionless percent unit which denotes the density of an attached or monolayer culture (e.g., cell culture)." [MGED:MGED "http://mged.sourceforge.net/ontologies/MGEDontology.php"]
+is_a: UO:0000187 ! percent
+
+[Term]
+id: UO:0000195
+name: degree fahrenheit
+namespace: unit.ontology
+def: "A temperature derived unit which is equal to 5/9ths of a kelvin. Negative 40 degrees Fahrenheit is equal to negative 40 degrees Celsius." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+comment: In this scale, the freezing point of water is 32 degrees Fahrenheit and the boiling point is 212 degrees, placing the boiling and freezing points of water 180 degrees apart. -40 degrees Fahrenheit is equal to -40 degrees Celsius.
+exact_synonym: "F" []
+is_a: UO:0000126 ! temperature derived unit
+
+[Term]
+id: UO:0000196
+name: pH
+namespace: unit.ontology
+def: "A dimensionless concentration notation which denotes the acidity of a solution in terms of activity of hydrogen ions (H+)." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000051 ! concentration unit
+is_a: UO:0000186 ! dimensionless unit
+relationship: unit_of PATO:0001428 ! medium acidity
+
+[Term]
+id: UO:0000197
+name: liter per kilogram
+namespace: unit.ontology
+def: "A specific volume unit which is equal to one liter volume occupied by one kilogram of a particular substance." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "l/kg" []
+is_a: UO:0000059 ! specific volume unit
+
+[Term]
+id: UO:0000198
+name: milliliter per kilogram
+namespace: unit.ontology
+def: "A specific volume unit which is equal to a thousandth of a liter per kilogram or 10^[-3] l/kg." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "ml/kg" []
+is_a: UO:0000059 ! specific volume unit
+
+[Term]
+id: UO:0000199
+name: microliter per kilogram
+namespace: unit.ontology
+def: "A specific volume unit which is equal to one millionth of a liter per kilogram or 10^[-6] l/kg." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "ul/kg" []
+is_a: UO:0000059 ! specific volume unit
+
+[Term]
+id: UO:0000200
+name: cell concentration unit
+namespace: unit.ontology
+def: "A concentration unit which denotes the average cell number in a given volume." [Bioedonline:Bioedonline "http://www.bioedonline.org/"]
+is_a: UO:0000051 ! concentration unit
+
+[Term]
+id: UO:0000201
+name: cells per milliliter
+namespace: unit.ontology
+def: "A unit of cell concentration which is equal to one cell in a volume of 1 milliliter." [Bioedonline:Bioedonline "http://www.bioedonline.org/"]
+exact_synonym: "cells per ml" []
+is_a: UO:0000200 ! cell concentration unit
+
+[Term]
+id: UO:0000202
+name: catalytic (activity) concentration unit
+namespace: unit.ontology
+def: "A concentration unit which is a standard measure of the amount of the action of a catalyst in a given volume." [UOC:GVG]
+is_a: UO:0000051 ! concentration unit
+relationship: unit_of PATO:0001674 ! catalytic (activity) concentration
+
+[Term]
+id: UO:0000203
+name: katal per cubic meter
+namespace: unit.ontology
+def: "A catalytic (activity) concentration unit which is equal to 1 katal activity of a catalyst in a given volume of one cubic meter." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "kat/m^[3]" []
+is_a: UO:0000202 ! catalytic (activity) concentration unit
+
+[Term]
+id: UO:0000204
+name: katal per liter
+namespace: unit.ontology
+def: "A catalytic (activity) concentration unit which is equal to 1 katal activity of a catalyst in a given volume of one thousandth of a cubic meter." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "kat/l" []
+is_a: UO:0000202 ! catalytic (activity) concentration unit
+
+[Term]
+id: UO:0000205
+name: volume per unit volume
+namespace: unit.ontology
+def: "A dimensionless concentration unit which denotes the given volume of the solute in the total volume of the resulting solution." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+is_a: UO:0000051 ! concentration unit
+
+[Term]
+id: UO:0000206
+name: milliliter per cubic meter
+namespace: unit.ontology
+def: "A volume per unit volume unit which is equal to one millionth of a liter of solute in one cubic meter of solution." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "ml/m^[3]" []
+is_a: UO:0000205 ! volume per unit volume
+
+[Term]
+id: UO:0000207
+name: milliliter per liter
+namespace: unit.ontology
+def: "A volume per unit volume unit which is equal to one millionth of a liter of solute in one liter of solution." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "ml/l" []
+is_a: UO:0000205 ! volume per unit volume
+
+[Term]
+id: UO:0000208
+name: gram per deciliter
+namespace: unit.ontology
+def: "A mass density unit which is equal to mass of an object in grams divided by the volume in deciliters." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "g/dl" []
+is_a: UO:0000052 ! mass density unit
+
+[Term]
+id: UO:0000209
+name: deciliter
+namespace: unit.ontology
+def: "A volume unit which is equal to one tenth of a liter or 10^[-1] L." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "dl" []
+is_a: UO:0000095 ! volume unit
+
+[Term]
+id: UO:0000210
+name: colony forming unit
+namespace: unit.ontology
+def: "A dimensionless count unit which a measure of viable bacterial numbers." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "cfu" []
+is_a: UO:0000189 ! count
+
+[Term]
+id: UO:0000211
+name: plaque forming unit
+namespace: unit.ontology
+def: "A dimensionless count unit which a measure of plague forming units in a given volume." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "pfu" []
+is_a: UO:0000189 ! count
+
+[Term]
+id: UO:0000212
+name: colony forming unit per volume
+namespace: unit.ontology
+def: "A concentration unit which a measure of viable bacterial numbers in a given volume." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000051 ! concentration unit
+
+[Term]
+id: UO:0000213
+name: colony forming unit per milliliter
+namespace: unit.ontology
+def: "A colony forming unit which a measure of viable bacterial numbers in one milliliter." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "cfu/ml" []
+is_a: UO:0000212 ! colony forming unit per volume
+
+[Term]
+id: UO:0000214
+name: plaque forming unit per volume
+namespace: unit.ontology
+def: "A concentration unit which a measure of plague forming units in a given volume." [UOC:GVG]
+is_a: UO:0000051 ! concentration unit
+
+[Term]
+id: UO:0000215
+name: plaque forming unit per milliliter
+namespace: unit.ontology
+def: "A concentration unit which a measure of plague forming units in one milliliter." [UOC:GVG]
+exact_synonym: "pfu/ml" []
+is_a: UO:0000214 ! plaque forming unit per volume
+
+[Term]
+id: UO:0000216
+name: disintegrations per second
+namespace: unit.ontology
+def: "An activity (of a radionuclide) unit which is equal to the activity of a quantity of radioactive material in which one nucleus decays per second or there is one atom disintegration per second." [ORCBS:ORCBS "http://www.orcbs.msu.edu/"]
+exact_synonym: "dps" []
+is_a: UO:0000128 ! activity (of a radionuclide) unit
+
+[Term]
+id: UO:0000217
+name: electric potential difference
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the work done per unit charge as a charge is moved between two points in an electric field." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0001462 ! membrane potential
+relationship: unit_of PATO:0001463 ! action potential
+relationship: unit_of PATO:0001464 ! electric potential
+
+[Term]
+id: UO:0000218
+name: volt
+namespace: unit.ontology
+def: "An electric potential difference unit which is equal to the work per unit charge. One volt is the potential difference required to move one coulomb of charge between two points in a circuit while using one joule of energy." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "V" []
+is_a: UO:0000217 ! electric potential difference
+
+[Term]
+id: UO:0000219
+name: electric charge
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the quantity of unbalanced electricity in a body (either positive or negative) and construed as an excess or deficiency of electrons." [WordNet:WordNet "http://wordnet.princeton.edu/"]
+is_a: UO:0000046 ! derived unit
+
+[Term]
+id: UO:0000220
+name: coulomb
+namespace: unit.ontology
+def: "An electrical charge unit which is equal to the amount of charge transferred by a current of 1 ampere in 1 second." [WordNet:WordNet "http://wordnet.princeton.edu/"]
+exact_synonym: "C" []
+is_a: UO:0000219 ! electric charge
+
+[Term]
+id: UO:0000221
+name: dalton
+namespace: unit.ontology
+def: "An independently to the base SI units defined mass unit which is equal to one twelfth of the mass of an unbound atom of the carbon-12 nuclide, at rest and in its ground state." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "Da" []
+exact_synonym: "u" []
+exact_synonym: "unified atomic mass unit" []
+is_a: UO:0000002 ! mass unit
+
+[Term]
+id: UO:0000222
+name: kilodalton
+namespace: unit.ontology
+def: "A mass unit which is equal to one thousand daltons." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "kDa" []
+is_a: UO:0000002 ! mass unit
+
+[Term]
+id: UO:0000223
+name: watt-hour
+namespace: unit.ontology
+def: "An energy unit which is equal to the amount of electrical energy equivalent to a one-watt load drawing power for one hour." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "Wh" []
+is_a: UO:0000111 ! energy unit
+
+[Term]
+id: UO:0000224
+name: kilowatt-hour
+namespace: unit.ontology
+def: "An energy unit which is equal to 1,000 watt-hours." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000111 ! energy unit
+
+[Term]
+id: UO:0000225
+name: magnetic flux
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of quantity of magnetism, taking account of the strength and the extent of a magnetic field." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0001682 ! magnetism
+
+[Term]
+id: UO:0000226
+name: weber
+namespace: unit.ontology
+def: "A magnetic flux unit which is equal to the amount of flux that when linked with a single turn of wire for an interval of one second will induce an electromotive force of one volt." [ScienceLobby:ScienceLobby "www.sciencelobby.com/dictionary/w.html"]
+related_synonym: "volt-second" []
+exact_synonym: "V s" []
+exact_synonym: "Wb" []
+is_a: UO:0000225 ! magnetic flux
+
+[Term]
+id: UO:0000227
+name: magnetic flux density
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the strength of a magnetic field." [allnet:allnet "www.all.net/books/standards/remnants/glo.html"]
+exact_synonym: "B" []
+is_a: UO:0000046 ! derived unit
+
+[Term]
+id: UO:0000228
+name: tesla
+namespace: unit.ontology
+def: "A magnetic flux density unit which is equal to one weber per square meter." [WordNet:WordNet "http://wordnet.princeton.edu/"]
+exact_synonym: "T" []
+exact_synonym: "Wb/m2" []
+is_a: UO:0000227 ! magnetic flux density
+
+[Term]
+id: UO:0000229
+name: volt-hour
+namespace: unit.ontology
+def: "A magnetic flux unit which is equal to 3600 Wb." [PATO:GVG]
+exact_synonym: "Vh" []
+is_a: UO:0000225 ! magnetic flux
+
+[Term]
+id: UO:0000230
+name: kilovolt-hour
+namespace: unit.ontology
+def: "A magnetic flux unit which is equal to one thousand volt-hours." [PATO:GVG]
+exact_synonym: "kVh" []
+is_a: UO:0000225 ! magnetic flux
+
+[Term]
+id: UO:0000231
+name: information unit
+namespace: unit.ontology
+def: "A unit which is a standard measure of the amount of information." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000046 ! derived unit
+
+[Term]
+id: UO:0000232
+name: bit
+namespace: unit.ontology
+def: "An information unit which refers to a digit in the binary numeral system, which consists of base 2 digits (ie there are only 2 possible values: 0 or 1)." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000231 ! information unit
+
+[Term]
+id: UO:0000233
+name: byte
+namespace: unit.ontology
+def: "An information unit which is equal to 8 bits." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "B" []
+is_a: UO:0000231 ! information unit
+
+[Term]
+id: UO:0000234
+name: kilobyte
+namespace: unit.ontology
+def: "An information unit which is equal to 1000 bytes." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "kB" []
+is_a: UO:0000231 ! information unit
+
+[Term]
+id: UO:0000235
+name: megabyte
+namespace: unit.ontology
+def: "An information unit which is equal to 1000 kB." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "MB" []
+is_a: UO:0000231 ! information unit
+
+[Term]
+id: UO:0000236
+name: image resolution unit
+namespace: unit.ontology
+def: "An information unit which is a standard measure of the detail an image holds." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000231 ! information unit
+
+[Term]
+id: UO:0000237
+name: chroma sampling unit
+namespace: unit.ontology
+def: "An image resolution unit which is a standard measure of the amount of spatial detail in an image." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000236 ! image resolution unit
+
+[Term]
+id: UO:0000238
+name: dynamic range unit
+namespace: unit.ontology
+def: "An image resolution unit which is a standard measure of the amount of contrast available in a pixel." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000236 ! image resolution unit
+
+[Term]
+id: UO:0000239
+name: spatial resolution unit
+namespace: unit.ontology
+def: "An image resolution unit which is a standard measure of the way luminance and chrominance may be sampled at different levels." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000236 ! image resolution unit
+
+[Term]
+id: UO:0000240
+name: dots per inch
+namespace: unit.ontology
+def: "A spatial resolution unit which is a standard measure of the printing resolution, in particular the number of individual dots of ink a printer or toner can produce within a linear one-inch space." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "dpi" []
+is_a: UO:0000239 ! spatial resolution unit
+
+[Term]
+id: UO:0000241
+name: micron
+namespace: unit.ontology
+def: "A spatial resolution unit which is equal to a pixel size of one micrometer." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "micrometer" []
+is_a: UO:0000239 ! spatial resolution unit
+
+[Term]
+id: UO:0000242
+name: pixels per inch
+namespace: unit.ontology
+def: "A spatial resolution unit which is a standard measure of the resolution of a computer display, related to the size of the display in inches and the total number of pixels in the horizontal and vertical directions." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+exact_synonym: "pixel density" []
+exact_synonym: "ppi" []
+is_a: UO:0000239 ! spatial resolution unit
+
+[Term]
+id: UO:0000243
+name: pixels per millimeter
+namespace: unit.ontology
+def: "A spatial resolution unit which is a standard measure of the number of pixels in one millimeter length or width of a digital image divided by the physical length or width of a printed image." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000239 ! spatial resolution unit
+
+[Term]
+id: UO:0000244
+name: base pair
+namespace: unit.ontology
+def: "A length unit which contains one nucleotide." [UO:GVG]
+exact_synonym: "bp" []
+is_a: UO:0000189 ! count
+
+[Term]
+id: UO:0000245
+name: kibibyte
+namespace: unit.ontology
+def: "An information unit which is equal to 1024 B." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "KiB" []
+is_a: UO:0000231 ! information unit
+
+[Term]
+id: UO:0000246
+name: mebibyte
+namespace: unit.ontology
+def: "An information unit which is equal to 1024 KiB." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "MiB" []
+is_a: UO:0000231 ! information unit
+
+[Term]
+id: UO:0000247
+name: millivolt
+namespace: unit.ontology
+def: "An electric potential difference unit which is equal to one thousandth of a volt or 10^[-3] V." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "mV" []
+is_a: UO:0000217 ! electric potential difference
+
+[Term]
+id: UO:0000248
+name: kilovolt
+namespace: unit.ontology
+def: "An electric potential difference unit which is equal to one thousand volts or 10^[3] V." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "kV" []
+is_a: UO:0000217 ! electric potential difference
+
+[Term]
+id: UO:0000249
+name: microvolt
+namespace: unit.ontology
+def: "An electric potential difference unit which is equal to one millionth of a volt or 10^[-6] V." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "uV" []
+is_a: UO:0000217 ! electric potential difference
+
+[Term]
+id: UO:0000250
+name: nanovolt
+namespace: unit.ontology
+def: "An electric potential difference unit which is equal to one billionth of a volt or 10^[-12] V." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "nV" []
+is_a: UO:0000217 ! electric potential difference
+
+[Term]
+id: UO:0000251
+name: picovolt
+namespace: unit.ontology
+def: "An electric potential difference unit which is equal to one trillionth of a volt or 10^[-12] V." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "pV" []
+is_a: UO:0000217 ! electric potential difference
+
+[Term]
+id: UO:0000252
+name: megavolt
+namespace: unit.ontology
+def: "An electric potential difference unit which is equal to one million volts or 10^[6] V." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "MV" []
+is_a: UO:0000217 ! electric potential difference
+
+[Term]
+id: UO:0000253
+name: surface tension unit
+namespace: unit.ontology
+def: "A unit which is a standard measure of the ability of a liguid to attraction of molecules at its surface as a result of unbalanced molecular cohesive forces." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0001461 ! surface tension
+
+[Term]
+id: UO:0000254
+name: newton per meter
+namespace: unit.ontology
+def: "A surface tension unit which is equal to one newton per meter." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "N/m" []
+is_a: UO:0000253 ! surface tension unit
+
+[Term]
+id: UO:0000255
+name: dyne per cm
+namespace: unit.ontology
+def: "A surface tension unit which is equal to one dyne per centimeter." [Wikipedia:Wikipedia "http://www.wikipedia.org"]
+exact_synonym: "dyn/cm" []
+is_a: UO:0000253 ! surface tension unit
+
+[Term]
+id: UO:0000256
+name: viscosity unit
+namespace: unit.ontology
+def: "A derived unit which is a standard measure of the internal resistance of fluids to flow." [UOC:GVG]
+is_a: UO:0000046 ! derived unit
+relationship: unit_of PATO:0000992 ! viscosity
+
+[Term]
+id: UO:0000257
+name: pascal second
+namespace: unit.ontology
+def: "A viscosity unit which is equal to one pascale per second." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "Pa . s" []
+is_a: UO:0000256 ! viscosity unit
+
+[Term]
+id: UO:0000258
+name: poise
+namespace: unit.ontology
+def: "A viscosity unit which is equal to one dyne second per square centimeter." [Wikipedia:Wikipedia "http://www.wikipedia.org"]
+exact_synonym: "dyne.s/cm^2" []
+exact_synonym: "P" []
+is_a: UO:0000256 ! viscosity unit
+
+[Term]
+id: UO:0000259
+name: decibel
+namespace: unit.ontology
+def: "An ratio unit which is an indicator of sound power per unit area." [techtarget:techtarget "http://searchsmb.techtarget.com/"]
+exact_synonym: "dB" []
+is_a: UO:0000190 ! ratio
+relationship: unit_of PATO:0001521 ! sound amplitude
+
+[Term]
+id: UO:0000260
+name: effective dose unit
+namespace: unit.ontology
+is_a: UO:0000127 ! radiation unit
+relationship: unit_of PATO:0001747 ! radiation effective dose
+
+[Term]
+id: UO:0000261
+name: conduction unit
+namespace: unit.ontology
+def: "A derived unit which represents a standard measurement of the transmission of an entity through a medium." [PATOC:GVG]
+is_a: UO:0000046 ! derived unit
+
+[Term]
+id: UO:0000262
+name: electrical conduction unit
+namespace: unit.ontology
+def: "A derived unit which represents a standard measurement of the movement of electrically charged particles through a transmission medium (electrical conductor)." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000261 ! conduction unit
+relationship: unit_of PATO:0001757 ! electrical conduction
+
+[Term]
+id: UO:0000263
+name: heat conduction unit
+namespace: unit.ontology
+def: "A derived unit which represents a standard measurement of the spontaneous transfer of thermal energy through matter, from a region of higher temperature to a region of lower temperature." [Wikipedia:Wikipedia "http://www.wikipedia.org/"]
+is_a: UO:0000261 ! conduction unit
+relationship: unit_of PATO:0001756 ! heat conduction
+
+[Term]
+id: UO:0000264
+name: siemens
+namespace: unit.ontology
+def: "An electrical conduction unit which is equal to A/V." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+related_synonym: "mho " []
+related_synonym: "S" []
+exact_synonym: "A.V^-1" []
+is_a: UO:0000262 ! electrical conduction unit
+
+[Term]
+id: UO:0000265
+name: watt per meter kelvin
+namespace: unit.ontology
+def: "An heat conduction unit which is equal to one watt divided by meter kelvin." [NIST:NIST "http://physics.nist.gov/cuu/Units/"]
+exact_synonym: "W/m K" []
+is_a: UO:0000263 ! heat conduction unit
+
+[Term]
+id: UO:0000266
+name: electronvolt
+namespace: unit.ontology
+def: "A non-SI unit of energy (eV) defined as the energy acquired by a single unbound electron when it passes through an electrostatic potential difference of one volt. An electronvolt is equal to 1.602 176 53(14) x 10^-19 J." [Wikipedia:Wikipedia"http://www.wikipedia.org/"]
+exact_synonym: "electron volt" []
+exact_synonym: "eV" []
+is_a: UO:0000111 ! energy unit
+
+[Typedef]
+id: is_magnitude_of
+name: is_magnitude_of
+namespace: pato.ontology
+
+[Typedef]
+id: is_measurement_of
+name: is_measurement_of
+namespace: pato.ontology
+
+[Typedef]
+id: unit_of
+name: unit_of
+namespace: pato.ontology
+
+[Typedef]
+id: OBO_REL:part_of
+name: part_of
+is_transitive: true
+
