@@ -13,7 +13,6 @@
 					</xs:annotation>
 				</xs:element>
 				<xs:element ref="mapList"/>
-				<xs:element ref="consensusElementList"/>
 				<xs:element name="ProteinIdentification" minOccurs="0">
 					<xs:annotation>
 						<xs:documentation>Collection of identified proteins</xs:documentation>
@@ -69,6 +68,7 @@
 						</xs:attribute>
 					</xs:complexType>
 				</xs:element>
+				<xs:element ref="consensusElementList"/>
 			</xs:sequence>
 			<xs:attribute name="version" type="xs:string">
 				<xs:annotation>

@@ -43,7 +43,8 @@ using namespace std;
 /**
 	@page QuantIDMerger
 	
-	
+	@TODO throw away code below and use IDFeatureMapper and IDConsensusFeatureMapper; do output as desired
+ *
 */
 
 // We do not want this class to show up in the docu:
@@ -203,6 +204,8 @@ class TOPPQuantIDMerger
 				//print quantitation data
 				if (in_type == FileHandler::CONSENSUSXML)
 				{
+					
+					// TODO: this is wrong!! ConsensusMap does not have quant_data.size() entries (it has only that many featureHandles!)
 					cout << "Consensus feature " << q << ":" << endl;
 					cout << "- rt        : " << consensus_map[q].getRT() << endl;
 					cout << "- mz        : " << consensus_map[q].getMZ() << endl;
