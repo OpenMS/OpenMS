@@ -65,7 +65,8 @@
  			<cvParam cvRef="MS" accession="MS:1000001" name="sample number" value="5"/>
  			<cvParam cvRef="MS" accession="MS:1000005" name="sample volume" value="3.1"/>
  			<cvParam cvRef="MS" accession="MS:1000006" name="sample concentration" value="5.5"/>
- 			<userParam name="name" value="sample"/>
+ 			<cvParam cvRef="MS" accession="MS:1000053" name="sample batch" value="4.4"/>
+      <userParam name="name" value="sample"/>
     </sample>
     <sample id="sample2"/>
   </sampleList>
@@ -75,6 +76,7 @@
       <cvParam cvRef="MS" accession="MS:1000554" name="LCQ Deca" value=""/>
       <cvParam cvRef="MS" accession="MS:1000529" name="instrument serial number" value="23433"/>
       <cvParam cvRef="MS" accession="MS:1000032" name="customization" value="Umbau"/>
+      <cvParam cvRef="MS" accession="MS:1000221" name="magnetic deflection" value=""/>
       <userParam name="name" value="instrumentConfiguration"/>
       <componentList count="6">
         <source order="101">
@@ -138,6 +140,7 @@
       <processingMethod order="1">
         <cvParam cvRef="MS" accession="MS:1000033" name="deisotoping" value=""/>
         <cvParam cvRef="MS" accession="MS:1000629" name="low intensity threshold" value="5.9"/>
+        <cvParam cvRef="MS" accession="MS:1000631" name="high intensity threshold" value="10.9"/>
   			<userParam name="p1" value="value1"/>
       </processingMethod>
       <processingMethod order="2">
@@ -191,8 +194,9 @@
           	<cvParam cvRef="MS" accession="MS:1000573" name="median of spectra"/>
           	<userParam name="name" value="acquisition_list"/>
           	<acquisition number="4711">
+              <cvParam cvRef="MS" accession="MS:1000011" name="mass resolution" value="4.3"/>
         			<userParam name="name" value="acquisition1"/>
-          	</acquisition>
+            </acquisition>
           	<acquisition number="4712">
         			<userParam name="name" value="acquisition2"/>
           	</acquisition>
@@ -258,7 +262,8 @@
               <activation>
                 <cvParam cvRef="MS" accession="MS:1000133" name="collision-induced dissociation" value=""/>
                 <cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="35" unitCvRef="MS" unitAccession="MS:1000137" unitName="electron volt"/>
-        					<userParam name="acname" value="activation1"/>
+                <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="4.2"/>
+                <userParam name="acname" value="activation1"/>
               </activation>
             </precursor>
           </precursorList>
@@ -267,6 +272,7 @@
             <cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.2" unitCvRef="MS" unitAccession="MS:1000038" unitName="minute"/>
             <cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c d Full ms2  445.35@cid35.00 [ 110.00-905.00]"/>
             <cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000011" name="mass resolution" value="4.1"/>
             <userParam name="name" value="scan2"/>
             <scanWindowList count="1">
               <scanWindow>

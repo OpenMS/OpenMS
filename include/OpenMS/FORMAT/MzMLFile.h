@@ -37,7 +37,7 @@ namespace OpenMS
 	/**
 		@brief File adapter for MzML files
 		
-		This is a beta implementation that does not support all functionality of MzML:
+		This is a partial implementation that does not support the whole functionality of MzML:
 		- Currently only reading is supported
   	- Missing features are:
   	  - chromatograms
@@ -47,7 +47,8 @@ namespace OpenMS
 		
 		If a critical error occurs, Exception::NotImplemented is thrown.
 		
-		@todo Semantic Validator: Check if in the CV 'part_of' should be treated just as 'is_a'; Verify CV types -  which ones are allowed (Marc)
+		@todo Finish reading and allow writing (Marc)
+		@todo Semantic Validator: Check if in the CV 'part_of' should be treated just as 'is_a'; Verify CV types -  which ones are allowed? (Marc)
 		@todo Implement Base64 integers, 16 bit and zlib support (Hiwi)
 		
 		@ingroup FileIO

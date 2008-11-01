@@ -156,11 +156,12 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_EQUAL(exp.getDataProcessing()[1].isMetaEmpty(),true)
 	TEST_EQUAL(exp.getDataProcessing()[0].getSoftware().getName(),"Xcalibur")
 	TEST_EQUAL(exp.getDataProcessing()[0].getSoftware().getVersion(),"2.0.5")
-	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().size(),3)
+	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().size(),4)
 	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
 	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION),1)
 	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().count(DataProcessing::LOW_INTENSITY_REMOVAL),1)
-	TEST_REAL_EQUAL(DoubleReal(exp.getDataProcessing()[0].getMetaValue("#intensity_cutoff")),5.9)
+	TEST_REAL_EQUAL(DoubleReal(exp.getDataProcessing()[0].getMetaValue("low_intensity_threshold")),5.9)
+	TEST_REAL_EQUAL(DoubleReal(exp.getDataProcessing()[0].getMetaValue("high_intensity_threshold")),10.9)
 	TEST_EQUAL(exp.getDataProcessing()[0].isMetaEmpty(),false)
 
 	//-------------------------- spectrum 0 --------------------------
@@ -335,7 +336,15 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_STRING_EQUAL(exp[1].getPrecursor().getMetaValue("iwname").toString(),"isolationwindow1")
 	TEST_STRING_EQUAL(exp[1].getPrecursor().getMetaValue("siname").toString(),"selectedion1")
 	TEST_STRING_EQUAL(exp[1].getPrecursor().getMetaValue("acname").toString(),"activation1")
-	
+
+	//-------------------------- cvParam (but no member => meta data)--------------------------
+	//spectrum 1
+	TEST_STRING_EQUAL((String)exp[1].getMetaValue("mass resolution"),"4.1")	
+	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("collision energy"),"4.2")	
+	TEST_STRING_EQUAL((String)exp[0].getAcquisitionInfo()[0].getMetaValue("mass resolution"),"4.3")
+	TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("sample batch"),"4.4")
+	TEST_STRING_EQUAL((String)exp.getInstrument().getMetaValue("ion optics"),"magnetic deflection")
+
 	/////////////////////// TESTING SPECIAL CASES ///////////////////////
 	
 	//load a second time to make sure everything is re-initialized correctly

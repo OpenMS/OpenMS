@@ -41,6 +41,7 @@ using namespace std;
 	@page CVInspector CVInspector
 	
 	@todo Docu (Andreas)
+	@todo Check for terms without children, but with useTerm=false (Andreas)
 */
 
 // We do not want this class to show up in the docu:

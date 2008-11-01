@@ -44,18 +44,18 @@
 #include <iostream>
 
 //TODO:
-// - writing files, add to automatic tmp file validation in tests
-// - units
-// - chromatograms
-
-//EXTEND:
-// - Precursor:
-//   - more than one precursor (isolationWindow, selectedIon, activation) => No, but warning
-//   - charge states
+// - "target"?
+// - spectrum "spectrum type" vs. scan "scanning method"?
+// - Multiple samples?
+// - Precursor: possible charge states
 // - more than one scanWindow per spectrum
-// - Instrument serial number
-// - High intensity removal
-// - Instrument resolution MS:1000011
+// - writing files, add to automatic tmp file validation in tests
+// - DataProcessing of "spectrum", "chromatogram" and "binaryDataArray" (currently not possible due to messed up schema)
+// - units
+//
+//MISSING (AND NOT PLANNED):
+// - more than one Precursor (isolationWindow, selectedIon, activation), but warning if more than one precursor is present
+// - SourceFile of "acquisition", "precursor" and "acquisition settings"
 
 namespace OpenMS
 {
@@ -377,7 +377,6 @@ namespace OpenMS
 			{
 				exp_->getContacts().push_back(ContactPerson());
 			}
-			//EXTEND "acquisition", "precursor" and "acquisition settings" can have a SourceFile too
 			else if(tag=="sourceFileRef" && parent_tag=="sourceFileRefList" && parent_parent_tag=="run")
 			{
 				exp_->getSourceFiles().push_back(source_files_[ attributeAsString_(attributes, s_ref)]);
@@ -443,22 +442,16 @@ namespace OpenMS
 			else if (tag=="source")
 			{
 				instruments_[current_id_].getIonSources().push_back(IonSource());
-
-				//order				
 				instruments_[current_id_].getIonSources().back().setOrder(attributeAsInt_(attributes, s_order));
 			}
 			else if (tag=="analyzer")
 			{
 				instruments_[current_id_].getMassAnalyzers().push_back(MassAnalyzer());
-				
-				//order				
 				instruments_[current_id_].getMassAnalyzers().back().setOrder(attributeAsInt_(attributes, s_order));
 			}
 			else if (tag=="detector")
 			{
 				instruments_[current_id_].getIonDetectors().push_back(IonDetector());
-
-				//order				
 				instruments_[current_id_].getIonDetectors().back().setOrder(attributeAsInt_(attributes, s_order));
 			}
 		}
@@ -673,55 +666,59 @@ namespace OpenMS
 				warning(String("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'");
 			}
 			//------------------------- binaryDataArray ----------------------------
-			if (parent_tag=="binaryDataArray" && in_spectrum_list_)
+			if (parent_tag=="binaryDataArray")
 			{
-				//MS:1000518 ! binary data type
-				if (accession=="MS:1000523") //64-bit float
+				if ( in_spectrum_list_)
 				{
-					data_.back().precision = "64";
-				}
-				else if (accession=="MS:1000522") //64-bit integer
-				{
-					throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-				}
-				else if (accession=="MS:1000521") //32-bit float
-				{
-					data_.back().precision = "32";
-				}
-				else if (accession=="MS:1000519") //32-bit integer
-				{
-					throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-				}
-				else if (accession=="MS:1000520") //16-bit float
-				{
-					throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-				}
-				//MS:1000513 ! binary data array
-				else if (accession=="MS:1000514")//m/z array
-				{
-					data_.back().name = "mz";
-				}
-				else if (accession=="MS:1000515")//intensity array
-				{
-					data_.back().name = "int";
-				}
-				else if (accession=="MS:1000516")//charge array
-				{
-					data_.back().name = "charge";
-				}
-				else if (accession=="MS:1000517")//signal to noise array
-				{
-					data_.back().name = "signal to noise";
-				}
-				//MS:1000572 ! binary data compression type
-				else if (accession=="MS:1000574")//zlib compression
-				{
-					data_.back().compression = "zlib";
-					throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-				}
-				else if (accession=="MS:1000576")// no compression
-				{
-					data_.back().compression = "none";
+					//MS:1000518 ! binary data type
+					if (accession=="MS:1000523") //64-bit float
+					{
+						data_.back().precision = "64";
+					}
+					else if (accession=="MS:1000522") //64-bit integer
+					{
+						throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+					}
+					else if (accession=="MS:1000521") //32-bit float
+					{
+						data_.back().precision = "32";
+					}
+					else if (accession=="MS:1000519") //32-bit integer
+					{
+						throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+					}
+					else if (accession=="MS:1000520") //16-bit float
+					{
+						throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+					}
+					//MS:1000513 ! binary data array
+					else if (accession=="MS:1000514")//m/z array
+					{
+						data_.back().name = "mz";
+					}
+					else if (accession=="MS:1000515")//intensity array
+					{
+						data_.back().name = "int";
+					}
+					else if (accession=="MS:1000516")//charge array
+					{
+						data_.back().name = "charge";
+					}
+					else if (accession=="MS:1000517")//signal to noise array
+					{
+						data_.back().name = "signal to noise";
+					}
+					//MS:1000572 ! binary data compression type
+					else if (accession=="MS:1000574")//zlib compression
+					{
+						data_.back().compression = "zlib";
+						throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+					}
+					else if (accession=="MS:1000576")// no compression
+					{
+						data_.back().compression = "none";
+					}
+					else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 				}
 			}
 			//------------------------- spectrum ----------------------------
@@ -750,7 +747,7 @@ namespace OpenMS
 				}
 				else if (accession=="MS:1000511") //ms level
 				{
-					//TODO Does this really belong here, or should it be under "spectrumDescription"?
+					//This does not belong here, only for compatibility with messed up mzML example files
 					spec_.setMSLevel(value.toInt());
 					
 					if (options_.hasMSLevels() && !options_.containsMSLevel(spec_.getMSLevel()))
@@ -758,6 +755,7 @@ namespace OpenMS
 						skip_spectrum_ = true;
 					}
 				}
+				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- spectrumDescription ----------------------------
 			else if(parent_tag=="spectrumDescription")
@@ -770,17 +768,25 @@ namespace OpenMS
 				{
 					spec_.setType(SpectrumSettings::RAWDATA);
 				}
+				else if (accession=="MS:1000527" || accession=="MS:1000528" || accession=="MS:1000504" || accession=="MS:1000505" || accession=="MS:1000285" )
+				{
+					//allowed but, not needed
+				}
+				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- scan ----------------------------
 			else if(parent_tag=="scan")
 			{
+				//scan attribures
 				if (accession=="MS:1000011")//mass resolution
 				{
-					//EXTEND Currently only stored for each experiment, not for each spectrum => MassAnalyzer
+					//No member => meta data
+					spec_.setMetaValue("mass resolution",value);
 				}
 				else if (accession=="MS:1000015")//scan rate
 				{
-					//EXTEND Currently only stored for each experiment, not for each spectrum => MassAnalyzer
+					//No member => meta data
+					spec_.setMetaValue("scan rate",value);
 				}
 				else if (accession=="MS:1000016")//scan time
 				{
@@ -793,28 +799,59 @@ namespace OpenMS
 				}
 				else if (accession=="MS:1000023")//isolation width
 				{
-					//EXTEND Currently only stored for each experiment, not for each spectrum => MassAnalyzer
+					//No member => meta data
+					spec_.setMetaValue("isolation width",value);
 				}
+				else if (accession=="MS:1000511") //ms level
+				{
+					spec_.setMSLevel(value.toInt());
+					
+					if (options_.hasMSLevels() && !options_.containsMSLevel(spec_.getMSLevel()))
+					{
+						skip_spectrum_ = true;
+					}
+				}
+				else if (accession=="MS:1000512")//filter string
+				{
+					//No member => meta data
+					spec_.setMetaValue("filter string",value);
+				}
+				else if (accession=="MS:1000616")//preset scan configuration
+				{
+					//No member => meta data
+					spec_.setMetaValue("preset scan configuration",String("true"));
+				}
+				
+				//scan direction
 				else if (accession=="MS:1000092")//decreasing m/z scan
 				{
-					//EXTEND Currently only stored for each experiment, not for each spectrum => MassAnalyzer
+					//No member => meta data
+					spec_.setMetaValue("scan direction",String("decreasing"));
 				}
 				else if (accession=="MS:1000093")//increasing m/z scan
 				{
-					//EXTEND Currently only stored for each experiment, not for each spectrum => MassAnalyzer
+					//No member => meta data
+					spec_.setMetaValue("scan direction",String("increasing"));
 				}
+				
+				//scan law
 				else if (accession=="MS:1000094")//scan law: exponential
 				{
-					//EXTEND Currently only stored for each experiment, not for each spectrum => MassAnalyzer
+					//No member => meta data
+					spec_.setMetaValue("scan law",String("exponential"));
 				}
 				else if (accession=="MS:1000095")//scan law: linear
 				{
-					//EXTEND Currently only stored for each experiment, not for each spectrum => MassAnalyzer
+					//No member => meta data
+					spec_.setMetaValue("scan law",String("linear"));
 				}
 				else if (accession=="MS:1000096")//scan law: quadratic
 				{
-					//EXTEND Currently only stored for each experiment, not for each spectrum => MassAnalyzer
+					//No member => meta data
+					spec_.setMetaValue("scan law",String("quadratic"));
 				}
+				
+				//scan polarity
 				else if (accession=="MS:1000129")//negative scan
 				{
 					spec_.getInstrumentSettings().setPolarity(IonSource::NEGATIVE);
@@ -823,6 +860,7 @@ namespace OpenMS
 				{
 					spec_.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
 				}
+				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- scanWindow ----------------------------
 			else if(parent_tag=="scanWindow")
@@ -836,6 +874,7 @@ namespace OpenMS
 				{
 					spec_.getInstrumentSettings().setMzRangeStop(value.toDouble());
 				}
+				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- referenceableParamGroup ----------------------------
 			else if(parent_tag=="referenceableParamGroup")
@@ -845,7 +884,6 @@ namespace OpenMS
 			//------------------------- selectedIon ----------------------------
 			else if(parent_tag=="selectedIon")
 			{
-				//EXTEND parse and store more than one precursor (isolationWindow,selectedIon,activation)
 				if (accession=="MS:1000040") //m/z
 				{
 					spec_.getPrecursorPeak().getPosition()[0] = value.toDouble();
@@ -862,29 +900,35 @@ namespace OpenMS
 				{
 					//EXTEND store possible charge states as well
 				}
+				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- activation ----------------------------
 			else if(parent_tag=="activation")
 			{
 				if (accession=="MS:1000245") //charge stripping
 				{
-					//EXTEND 
+					//No member => meta data
+					spec_.getPrecursor().setMetaValue("charge_stripping",String("true"));
 				}
 				else if (accession=="MS:1000246") //delayed extraction
 				{
-					//EXTEND 
+					//No member => meta data
+					spec_.getPrecursor().setMetaValue("delayed extraction",String("true"));
 				}
 				else if (accession=="MS:1000045") //collision energy
 				{
-					//EXTEND 
+					//No member => meta data
+					spec_.getPrecursor().setMetaValue("collision energy",value); 
 				}
 				else if (accession=="MS:1000412") //buffer gas
 				{
-					//EXTEND 
+					//No member => meta data
+					spec_.getPrecursor().setMetaValue("buffer gas",String("true"));
 				}
 				else if (accession=="MS:1000419") //collision gas
 				{
-					//EXTEND 
+					//No member => meta data
+					spec_.getPrecursor().setMetaValue("collision gas",String("true"));
 				}
 				else if (accession=="MS:1000509") //activation energy
 				{
@@ -942,6 +986,7 @@ namespace OpenMS
 				{
 					spec_.getPrecursor().setActivationMethod(Precursor::PQD);
 				}
+				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- acquisitionList ----------------------------
 			else if(parent_tag=="acquisitionList")
@@ -958,11 +1003,48 @@ namespace OpenMS
 				{
 					spec_.getAcquisitionInfo().setMethodOfCombination("mean");
 				}
+				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- acquisition ----------------------------
 			else if (parent_tag=="acquisition")
 			{
-				//EXTEND? Each acquisition can have all attributes like a scan (children of MS:1000503)
+				//scan attribures
+				if (accession=="MS:1000011")//mass resolution
+				{
+					//No member => meta data
+					spec_.getAcquisitionInfo().back().setMetaValue("mass resolution",value);
+				}
+				else if (accession=="MS:1000015")//scan rate
+				{
+					//No member => meta data
+					spec_.getAcquisitionInfo().back().setMetaValue("scan rate",value);
+				}
+				else if (accession=="MS:1000016")//scan time
+				{
+					//No member => meta data
+					spec_.getAcquisitionInfo().back().setMetaValue("scan time",value);
+				}
+				else if (accession=="MS:1000023")//isolation width
+				{
+					//No member => meta data
+					spec_.getAcquisitionInfo().back().setMetaValue("isolation width",value);
+				}
+				else if (accession=="MS:1000511") //ms level
+				{
+					//No member => meta data
+					spec_.getAcquisitionInfo().back().setMetaValue("ms level",value);
+				}
+				else if (accession=="MS:1000512")//filter string
+				{
+					//No member => meta data
+					spec_.getAcquisitionInfo().back().setMetaValue("filter string",value);
+				}
+				else if (accession=="MS:1000616")//preset scan configuration
+				{
+					//No member => meta data
+					spec_.getAcquisitionInfo().back().setMetaValue("preset scan configuration",String("true"));
+				}
+				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- contact ----------------------------
 			else if (parent_tag=="contact")
@@ -987,6 +1069,7 @@ namespace OpenMS
 				{
 					exp_->getContacts().back().setInstitution(value);
 				}
+				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- sourceFile ----------------------------
 			else if (parent_tag=="sourceFile")
@@ -1039,6 +1122,7 @@ namespace OpenMS
 				{
 					source_files_[current_id_].setFileType("MassLynx raw");
 				}
+				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- sample ----------------------------
 			else if (parent_tag=="sample")
@@ -1061,21 +1145,24 @@ namespace OpenMS
 				}
 				else if (accession=="MS:1000053") //sample batch
 				{
-					//EXTEND
+					//No member => meta data
+					samples_[current_id_].setMetaValue("sample batch",String(value));
 				}
+				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- instrumentConfiguration ----------------------------
 			else if (parent_tag=="instrumentConfiguration")
 			{
 				//instrument model
-				if (cv_.isChildOf(accession,"MS:1000031")) //is this a child of "instrument name"?
+				if (cv_.isChildOf(accession,"MS:1000031")) //instrument name in value
 				{
 					instruments_[current_id_].setName(cv_.getTerm(accession).name);
 				}
 				//instrument attribute
 				else if (accession=="MS:1000529") //instrument serial number
 				{
-					//EXTEND
+					//No member => meta data
+					instruments_[current_id_].setMetaValue("instrument serial number",String(value));
 				}
 				else if (accession=="MS:1000032") //customization
 				{
@@ -1083,70 +1170,83 @@ namespace OpenMS
 				}
 				else if (accession=="MS:1000236") //transmission
 				{
-					//EXTEND
+					//No member => metadata
+					instruments_[current_id_].setMetaValue("transmission",value);
 				}
 				//ion optics type
 				else if (accession=="MS:1000221") //magnetic deflection
 				{
-					//EXTEND
-				}
-				else if (accession=="MS:1000246") //delayed extraction
-				{
-					//EXTEND
+					//No member => metadata
+					instruments_[current_id_].setMetaValue("ion optics",String("magnetic deflection"));
 				}
 				else if (accession=="MS:1000275") //collision quadrupole
 				{
-					//EXTEND
+					//No member => metadata
+					instruments_[current_id_].setMetaValue("ion optics",String("collision quadrupole"));
 				}
 				else if (accession=="MS:1000281") //selected ion flow tube
 				{
-					//EXTEND
+					//No member => metadata
+					instruments_[current_id_].setMetaValue("ion optics",String("selected ion flow tube"));
 				}
 				else if (accession=="MS:1000286") //time lag focusing
 				{
-					//EXTEND
+					//No member => metadata
+					instruments_[current_id_].setMetaValue("ion optics",String("time lag focusing"));
 				}
 				else if (accession=="MS:1000300") //reflectron
 				{
-					//EXTEND
+					//No member => metadata
+					instruments_[current_id_].setMetaValue("ion optics",String("reflectron"));
 				}
 				else if (accession=="MS:1000304") //accelerating voltage
 				{
-					//EXTEND
+					//No member => metadata
+					instruments_[current_id_].setMetaValue("accelerating voltage",value);
 				}
 				else if (accession=="MS:1000307") //einzel lens
 				{
-					//EXTEND
+					//No member => metadata
+					instruments_[current_id_].setMetaValue("ion optics",String("einzel lens"));
 				}
 				else if (accession=="MS:1000309") //first stability region
 				{
-					//EXTEND
+					//No member => metadata
+					instruments_[current_id_].setMetaValue("ion optics",String("first stability region"));
 				}
 				else if (accession=="MS:1000310") //fringing field
 				{
-					//EXTEND
+					//No member => metadata
+					instruments_[current_id_].setMetaValue("ion optics",String("fringing field"));
 				}
 				else if (accession=="MS:1000311") //kinetic energy analyzer
 				{
-					//EXTEND
+					//No member => metadata
+					instruments_[current_id_].setMetaValue("ion optics",String("kinetic energy analyzer"));
 				}
 				else if (accession=="MS:1000320") //static field
 				{
-					//EXTEND
+					//No member => metadata
+					instruments_[current_id_].setMetaValue("ion optics",String("static field"));
 				}
+				
 				//ion optics attribute
 				else if (accession=="MS:1000216") //field-free region
 				{
-					//EXTEND
+					//No member => metadata
+					instruments_[current_id_].setMetaValue("field-free region",String("true"));
 				}
 				else if (accession=="MS:1000308") //electric field strength
 				{
-					//EXTEND
+					//No member => metadata
+					instruments_[current_id_].setMetaValue("electric field strength",value);
 				}
 				else if (accession=="MS:1000319") //space charge effect
 				{
-					//EXTEND
+					//No member => metadata
+					instruments_[current_id_].setMetaValue("space charge effect",String("true"));
 				}
+				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			else if (parent_tag=="source")
 			{
@@ -1404,19 +1504,24 @@ namespace OpenMS
 				{
 					instruments_[current_id_].getIonSources().back().setIonizationMethod(IonSource::SEND);
 				}
+				
 				//source attribute
 				else if (accession=="MS:1000392") //ionization efficiency
 				{
-					//EXTEND
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("ionization efficiency",value);
 				}
 				else if (accession=="MS:1000486") //source potential
 				{
-					//EXTEND
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("source potential",value);
 				}
 				else if (accession=="MS:1000552") //maldi spot identifier
 				{
-					//EXTEND
+					//No member => meta data
+					instruments_[current_id_].getIonSources().back().setMetaValue("maldi spot identifier",value);
 				}
+				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			else if (parent_tag=="analyzer")
 			{
@@ -1498,6 +1603,7 @@ namespace OpenMS
 				{
 					instruments_[current_id_].getMassAnalyzers().back().setReflectronState(MassAnalyzer::ON);
 				}
+				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			else if (parent_tag=="detector")
 			{
@@ -1608,6 +1714,7 @@ namespace OpenMS
 				{
 					instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::TRANSIENTRECORDER);
 				} 
+				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			else if (parent_tag=="processingMethod")
 			{
@@ -1615,11 +1722,12 @@ namespace OpenMS
 				if (accession=="MS:1000629") //low intensity threshold
 				{
 					processing_[current_id_].getProcessingActions().insert(DataProcessing::LOW_INTENSITY_REMOVAL);
-					processing_[current_id_].setMetaValue("#intensity_cutoff",value.toDouble());
+					processing_[current_id_].setMetaValue("low_intensity_threshold",value.toDouble());
 				}
 				else if (accession=="MS:1000631") //high intensity threshold
 				{
-					//EXTEND
+					processing_[current_id_].getProcessingActions().insert(DataProcessing::HIGH_INTENSITY_REMOVAL);
+					processing_[current_id_].setMetaValue("high_intensity_threshold",value.toDouble());
 				}
 				//file format conversion
 				else if (accession=="MS:1000544") //Conversion to mzML
@@ -1659,7 +1767,14 @@ namespace OpenMS
 				{
 					processing_[current_id_].getProcessingActions().insert(DataProcessing::LOW_INTENSITY_REMOVAL);
 				}
+				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
+			else if (parent_tag=="chromatogram" || parent_tag=="fileContent" || parent_tag=="target")
+			{
+				//allowed but, not needed
+			}
+			else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+			
 		}//handleCVParam_
 
 		template <typename MapType>
@@ -1760,6 +1875,8 @@ namespace OpenMS
 			{
 				processing_[current_id_].setMetaValue(name,data_value);
 			}
+			else warning(String("Unhandled userParam '") + name + " in tag '" + parent_tag + "'.");
+			
 		}//handleUserParam_
 
 		template <typename MapType>

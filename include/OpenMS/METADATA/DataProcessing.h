@@ -57,6 +57,7 @@ namespace OpenMS
     		FEATURE_FINDING, 				///< Feature findng (conversion from raw/peak to feature data)
     		ALIGNMENT, 							///< Retention time alignment of different maps
     		LOW_INTENSITY_REMOVAL,	///< The removal of very low intensity data points
+    		HIGH_INTENSITY_REMOVAL,	///< The removal of very high intensity data points
     		CONVERSION_MZDATA,			///< Convertion to mzData format
     		CONVERSION_MZML,				///< Convertion to mzML format
     		CONVERSION_MZXML,				///< Convertion to mzXML format
