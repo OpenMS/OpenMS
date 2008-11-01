@@ -48,6 +48,7 @@
 			<additional>
 				<cvParam cvLabel="psi" accession="PSI:1000032" name="Customization" value="Umbau"/>
 				<userParam name="name" value="instrumentConfiguration"/>
+				<userParam name="instrument serial number" value="23433"/>
 			</additional>
 		</instrument>
 		<dataProcessing>
@@ -58,6 +59,7 @@
 			<processingMethod>
 				<cvParam cvLabel="psi" name="Deisotoping" accession="PSI:1000033" value="true"/>
 				<userParam name="name" value="processingMethod"/>
+				<userParam name="low_intensity_threshold" value="5.9"/>
 			</processingMethod>
 		</dataProcessing>
 	</description>

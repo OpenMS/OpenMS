@@ -44,11 +44,10 @@
 #include <iostream>
 
 //TODO:
-// - "target"?
-// - spectrum "spectrum type" vs. scan "scanning method"?
-// - Multiple samples?
 // - Precursor: possible charge states
 // - more than one scanWindow per spectrum
+// - "targetList" + "target" (==inclusion list)
+// - spectrum "spectrum type" vs. scan "scanning method"?
 // - writing files, add to automatic tmp file validation in tests
 // - DataProcessing of "spectrum", "chromatogram" and "binaryDataArray" (currently not possible due to messed up schema)
 // - units
