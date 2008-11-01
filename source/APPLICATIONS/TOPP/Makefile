@@ -113,6 +113,8 @@ CPP_SOURCES =\
 test:
 	cd ${OPENMS_PATH}/source/TEST/TOPP/ && make
 
+splash.C:
+	convert TOPPView_Splashscreen.png xpm:splash.C && mv splash.C tmp.xpm && cat tmp.xpm | sed 's/static char/const char/' > splash.C && rm tmp.xpm
 
 ### for all the stuff below, Chris is responsible. If you want to have a look at the old Makefile, see SVN-Revision 2501
 
@@ -124,17 +126,17 @@ test:
 
 # special target for GUI apps, as we want to hide the additional & ugly cmd.exe screen on Windows
 
-TOPPView: TOPPView.o
+TOPPView: TOPPView.o splash.o
 	@if [ -f $@_icon.ico -a "$(OS)" = "MINGW32" ]; then \
 		$(ECHO) "Windows & Icon detected ... embedding icon into binary."; \
 		$(MAKE) $@_icon.o; \
-		$(ECHO) $(CXX) $(LDFLAGS) $(LDFLAGS_GUI_MINGW) -o $@ $@.o $@_icon.o $(LIBS); \
-		$(CXX) $(LDFLAGS) $(LDFLAGS_GUI_MINGW) -o $@ $@.o $@_icon.o $(LIBS); \
+		$(ECHO) $(CXX) $(LDFLAGS) $(LDFLAGS_GUI_MINGW) -o $@ $^ $@_icon.o $(LIBS); \
+		$(CXX) $(LDFLAGS) $(LDFLAGS_GUI_MINGW) -o $@ $^ $@_icon.o $(LIBS); \
 		$(ECHO) $(CP) $@ $(PREFIX)/bin/; \
 		$(CP) $@ $(PREFIX)/bin/; \
 	else \
-		$(ECHO) $(CXX) $(LDFLAGS) $(LDFLAGS_GUI_MINGW) -o $@ $@.o $(LIBS); \
-		$(CXX) $(LDFLAGS) $(LDFLAGS_GUI_MINGW) -o $@ $@.o $(LIBS); \
+		$(ECHO) $(CXX) $(LDFLAGS) $(LDFLAGS_GUI_MINGW) -o $@ $^ $(LIBS); \
+		$(CXX) $(LDFLAGS) $(LDFLAGS_GUI_MINGW) -o $@ $^ $(LIBS); \
 		$(ECHO) $(CP) $@ $(PREFIX)/bin/; \
 		$(CP) $@ $(PREFIX)/bin/; \
 	fi;

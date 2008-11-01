@@ -39,9 +39,13 @@
 //QT
 #include <QtGui/QApplication>
 #include <QtGui/QStyleFactory>
+#include <QtGui/QSplashScreen>
+
+#include "splash.h" // include the splashscreen graphics
 
 //OpenMS
 #include <OpenMS/APPLICATIONS/TOPPViewBase.h>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -115,6 +119,11 @@ int main( int argc, const char** argv )
 #endif
 	  QApplication a( argc, const_cast<char**>(argv));
 	  
+		// Create the splashscreen that is displayed while the application loads
+		QPixmap splash_pm(splash);
+		QSplashScreen* splash = new QSplashScreen(splash_pm);
+		splash->show();
+
 	  //set plastique style unless windows / mac style is available
 	  if (QStyleFactory::keys().contains("windowsxp",Qt::CaseInsensitive))
 	  {
@@ -143,6 +152,11 @@ int main( int argc, const char** argv )
 	  }
 	  
 	  a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );
+
+		// We are about to start the application proper, time to 
+		// remove the splashscreen.
+		splash->finish(mw);
+		delete splash;
 
 	  int result = a.exec();
 	  delete(mw);
