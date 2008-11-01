@@ -47,18 +47,7 @@
     </contact>
     
   </fileDescription>
-  
-  <referenceableParamGroupList count="2">
-    <referenceableParamGroup id="CommonMS1SpectrumParams">
-      <cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value=""/>
-      <cvParam cvRef="MS" accession="MS:1000498" name="full scan" value=""/>
-    </referenceableParamGroup>
-    <referenceableParamGroup id="CommonMS2SpectrumParams">
-      <cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value=""/>
-      <cvParam cvRef="MS" accession="MS:1000498" name="full scan" value=""/>
-    </referenceableParamGroup>
-  </referenceableParamGroupList>
-  
+    
   <sampleList count="1">
     <sample id="sample1" name="Sample1">
  			<cvParam cvRef="MS" accession="MS:1000004" name="sample mass" value="11.7"/>
@@ -73,6 +62,7 @@
   <instrumentConfigurationList count="1">
     <instrumentConfiguration id="LCQDeca">
       <cvParam cvRef="MS" accession="MS:1000554" name="LCQ Deca" value=""/>
+      <cvParam cvRef="MS" accession="MS:1000554" name="LCQ Deca2 - invalid repeat" value=""/>
       <cvParam cvRef="MS" accession="MS:1000529" name="instrument serial number" value="23433"/>
       <cvParam cvRef="MS" accession="MS:1000032" name="customization" value="Umbau"/>
       <cvParam cvRef="MS" accession="MS:1000030" name="vendor" value="Thermo"/>
@@ -259,8 +249,7 @@
               </selectedIonList>
               <activation>
                 <cvParam cvRef="MS" accession="MS:1000133" name="collision-induced dissociation" value=""/>
-                <cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="35" unitCvRef="MS" unitAccession="MS:1000137" unitName="electron volt"/>
-        					<userParam name="acname" value="activation1"/>
+                <userParam name="acname" value="activation1"/>
               </activation>
             </precursor>
           </precursorList>

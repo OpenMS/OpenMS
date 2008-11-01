@@ -43,10 +43,10 @@ using namespace OpenMS;
 using namespace std;
 
 CVMappings mapping;
-CVMappingFile().load(File::find("/MAPPING/ms-mapping.xml"),mapping);
+CVMappingFile().load("data/SemanticValidator_mapping.xml",mapping);
 
 ControlledVocabulary cv;
-cv.loadFromOBO("PSI",File::find("/CV/psi-ms.obo"));
+cv.loadFromOBO("PSI","data/SemanticValidator_cv.obo");
 cv.loadFromOBO("PATO",File::find("/CV/quality.obo"));
 cv.loadFromOBO("UO",File::find("/CV/unit.obo"));
 cv.loadFromOBO("brenda",File::find("/CV/brenda.obo"));
@@ -93,6 +93,8 @@ CHECK(bool validate(const String& filename, ValidationOutput& output))
 	TEST_EQUAL(out.obsolete_terms.size(),0)
 	TEST_EQUAL(out.invalid_location.size(),0)
 	TEST_EQUAL(out.no_mapping.size(),0)
+	TEST_EQUAL(out.violated.size(),0)
+	TEST_EQUAL(out.violated_repeats.size(),0)
 
 	//----------------------------------------------------------------------------------------
 	//test of corrupt file
@@ -113,29 +115,27 @@ CHECK(bool validate(const String& filename, ValidationOutput& output))
 	TEST_STRING_EQUAL(out.obsolete_terms[0].value,"Thermo")
 
 	//invalid location
-	TEST_EQUAL(out.invalid_location.size(),9)
-//
-//	for (UInt i=0; i<out.invalid_location.size(); ++i)
-//	{
-//		cout << "loc Element  : " << out.invalid_location[i].path << endl;
-//		cout << "Accession: " << out.invalid_location[i].accession << endl;
-//		cout << "Name     : " << out.invalid_location[i].name << endl;
-//		cout << "Value    : " << out.invalid_location[i].value << endl;
-//		cout << endl;
-//	}
+	TEST_EQUAL(out.invalid_location.size(),2)
+	TEST_STRING_EQUAL(out.invalid_location[0].path,"/mzML/fileDescription/sourceFileList/sourceFile/cvParam/@accession")
+	TEST_STRING_EQUAL(out.invalid_location[0].accession,"MS:1111569")
+	TEST_STRING_EQUAL(out.invalid_location[1].path,"/mzML/instrumentConfigurationList/instrumentConfiguration/cvParam/@accession")
+	TEST_STRING_EQUAL(out.invalid_location[1].accession,"MS:1000030")
 
 	//no mapping rule found
-	TEST_EQUAL(out.no_mapping.size(),6)
+	TEST_EQUAL(out.no_mapping.size(),2)
+	TEST_STRING_EQUAL(out.no_mapping[0].path,"/mzML/acquisitionSettingsList/acquisitionSettings/targetList/target/cvParam/@accession")
+	TEST_STRING_EQUAL(out.no_mapping[0].accession,"MS:1000040")
+	TEST_STRING_EQUAL(out.no_mapping[1].path,"/mzML/acquisitionSettingsList/acquisitionSettings/targetList/target/cvParam/@accession")
+	TEST_STRING_EQUAL(out.no_mapping[1].accession,"MS:1000040")
 
-//	for (UInt i=0; i<out.no_mapping.size(); ++i)
-//	{
-//		cout << "map Element  : " << out.no_mapping[i].path << endl;
-//		cout << "Accession: " << out.no_mapping[i].accession << endl;
-//		cout << "Name     : " << out.no_mapping[i].name << endl;
-//		cout << "Value    : " << out.no_mapping[i].value << endl;
-//		cout << endl;
-//	}
+	//violated rules
+	TEST_EQUAL(out.violated.size(),2)
+	TEST_EQUAL(out.violated[0],"R3")
+	TEST_EQUAL(out.violated[1],"R17a")
 
+	//Repeats
+	TEST_EQUAL(out.violated_repeats.size(),1)
+	TEST_EQUAL(out.violated_repeats[0],"R6a")
 
 RESULT
 

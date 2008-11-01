@@ -47,9 +47,8 @@ namespace OpenMS
 		
 		If a critical error occurs, Exception::NotImplemented is thrown.
 		
-		@improvement Implement mzML semantic validator (Hiwi)
-		@todo Implement and use Base64 integers and 16 bit (Hiwi)
-		@todo Implement and use zlib support (Hiwi)
+		@todo Semantic Validator: Check if in the CV 'part_of' should be treated just as 'is_a'; Verify CV types -  which ones are allowed (Marc)
+		@todo Implement Base64 integers, 16 bit and zlib support (Hiwi)
 		
 		@ingroup FileIO
 	*/

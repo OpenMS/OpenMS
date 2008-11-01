@@ -50,11 +50,12 @@
 
 //EXTEND:
 // - Precursor:
-//   - more than one precursor (isolationWindow, selectedIon, activation) => Nö, aber warning
+//   - more than one precursor (isolationWindow, selectedIon, activation) => No, but warning
 //   - charge states
 // - more than one scanWindow per spectrum
 // - Instrument serial number
 // - High intensity removal
+// - Instrument resolution MS:1000011
 
 namespace OpenMS
 {

@@ -96,4 +96,4 @@ namespace OpenMS
  
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_XTANDEMXMLFILE_H
+#endif // OPENMS_FORMAT_CVMAPPINGFILE_H

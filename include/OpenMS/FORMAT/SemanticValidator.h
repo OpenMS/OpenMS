@@ -29,15 +29,17 @@
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/FORMAT/CVMappings.h>
+
 
 namespace OpenMS 
 {
-	class CVMappings;
 	class ControlledVocabulary;
 	
   /**
-    @brief Semantically validates XML files using a CVMapping 
-
+    @brief Semantically validates XML files using CVMappings and a ControlledVocabulary
+		
   	@ingroup Format
   */
   class SemanticValidator
@@ -57,14 +59,14 @@ namespace OpenMS
 				/// CV term value
 				String value;
 			};
-
+			
 			/// Output container for validation results
 			struct ValidationOutput
 			{
-				///Terms used in the file that are not defined in the CV
+				///Terms used that are not defined in the CV
 				std::vector<ValiationLocation> unknown_terms;
 					
-				///Terms used in the file that are obolete
+				///Obolete terms used
 				std::vector<ValiationLocation> obsolete_terms;
 				
 				///Terms used in the wrong schema location
@@ -72,6 +74,12 @@ namespace OpenMS
 
 				///Terms used in locations for which no mapping rule exists
 				std::vector<ValiationLocation> no_mapping;
+
+				///Identifiers of violated rules (requirement level or combination logic)
+				std::vector<String> violated;
+				
+				///Identifiers of violated rules (number of repeats)
+				std::vector<String> violated_repeats;
 			};
 			
       /**
@@ -120,16 +128,6 @@ namespace OpenMS
       // Docu in base class
       void characters(const XMLCh* const chars, const unsigned int /*length*/);
 
-		private:
-			/// Not implemented
-			SemanticValidator();
-			
-			/// Not implemented
-			SemanticValidator(const SemanticValidator& rhs);
-
-			/// Not implemented
-			SemanticValidator& operator = (const SemanticValidator& rhs);
-
 			/// Reference to the mappings
 			const CVMappings& mapping_;
 			
@@ -145,6 +143,15 @@ namespace OpenMS
 			/// Flag that indicates if the instance document is valid
 			bool valid_;
 			
+			/// Rules (location => rule)
+			Map<String, std::vector<CVMappings::CVMappingRule> > rules_;
+			
+			/// Fulfilled rules (location => rule ID => term ID => term count )
+			/// When a tag is closed, the fulfilled rules of the current location are checked against the required rules
+			/// The fulfilled rules for that location are then deleted.
+			Map<String, Map< String, Map< String, UInt > > > fulfilled_;
+
+
 			///@name Tag and attribute names
 			//@{
 			String cv_tag_;
@@ -152,8 +159,20 @@ namespace OpenMS
 			String name_att_;
 			String value_att_;
 			//@}
+
+		private:
+			
+			/// Not implemented
+			SemanticValidator();
+			
+			/// Not implemented
+			SemanticValidator(const SemanticValidator& rhs);
+
+			/// Not implemented
+			SemanticValidator& operator = (const SemanticValidator& rhs);
+
   };
  
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_XTANDEMXMLFILE_H
+#endif // OPENMS_FORMAT_SEMANTICVALIDATOR_H

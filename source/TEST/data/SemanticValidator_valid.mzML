@@ -247,7 +247,8 @@
                 </selectedIon>
               </selectedIonList>
               <activation>
-        					<userParam name="acname" value="activation1"/>
+                <cvParam cvRef="MS" accession="MS:1000133" name="collision-induced dissociation" value=""/>
+                <userParam name="acname" value="activation1"/>
               </activation>
             </precursor>
           </precursorList>
@@ -353,6 +354,7 @@
         <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value=""/>
         <userParam name="name" value="spectrum4"/>
         <spectrumDescription>
+          <cvParam cvRef="MS" accession="MS:1000128" name="centroid mass spectrum" value=""/>
           <userParam name="sdname" value="spectrumdescription4"/>
         	<scan instrumentConfigurationRef="LCQDeca">
             <cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.4" unitCvRef="MS" unitAccession="MS:1000038" unitName="minute"/>

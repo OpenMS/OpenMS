@@ -26,20 +26,10 @@
 
 #include <OpenMS/FORMAT/SemanticValidator.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/CVMappings.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 
 using namespace xercesc;
 using namespace std;
-
-  
-//TODO:
-// - ReferenceableParamGroup?
-// - missing terms (AND, MUST, warning for SHOULD)
-// - wrong combination of terms (XOR)
-// - wrong number of repeats
-//   - (isRepeatable)
-//   - the same term twice
 
 namespace OpenMS 
 {
@@ -56,7 +46,13 @@ namespace OpenMS
 			name_att_("name"),
 			value_att_("value")
 	{
+		//order rules by location
+		for (UInt r=0;r<mapping_.getMappingRules().size(); ++r)
+		{
+			rules_[mapping_.getMappingRules()[r].getElementPath()].push_back(mapping_.getMappingRules()[r]);
+		}
 	}
+	
 	
 	SemanticValidator::~SemanticValidator()
 	{
@@ -84,7 +80,7 @@ namespace OpenMS
 
   bool SemanticValidator::validate(const String& filename, ValidationOutput& output)
   {
- 		//TODO Check if all required CVs are loaded => Excepetion if not
+ 		// Check if all required CVs are loaded => Excepetion if not
  
 		//try to open file
 		if (!File::exists(filename))
@@ -95,7 +91,7 @@ namespace OpenMS
     //initialize
     output = output_ = ValidationOutput();
     valid_ = true;
-    
+		
     //parse
 		file_ = filename;
 		parse_(filename, this);
@@ -113,12 +109,11 @@ namespace OpenMS
     
     if (tag==cv_tag_)
     {
-    	//extract path
+    	//build up path
 	    String path;
 	    path.implode(open_tags_.begin(), open_tags_.end(),"/");
-	    path = "/"+path;
-	    path = path+"/@"+accession_att_; //TODO
-	    
+	    path = "/"+path+"/@"+accession_att_;
+	    			
 	    //extract accession, name and value
 	    String accession = attributeAsString_(attributes, accession_att_.c_str());
 	    String name = attributeAsString_(attributes, name_att_.c_str());
@@ -147,39 +142,39 @@ namespace OpenMS
 			
 			//check if the term is allowed in this location
 			//and if there is a mapping rule for this location
+			//Also store fulfilled rule term counts - this count is used to check of the MUST/MAY and AND/OR/XOR is fulfilled
 			bool allowed = false;
 			bool rule_found = false;
-			const std::vector<CVMappings::CVMappingRule>& rules = mapping_.getMappingRules();
+			vector<CVMappings::CVMappingRule>& rules = rules_[path];
 			for (UInt r=0;r<rules.size(); ++r) //go thru all rules
 			{
-				if (rules[r].getElementPath()==path) //find those with the right scope
+				rule_found = true;
+				for (UInt t=0;t<rules[r].getCVTerms().size(); ++t)  //go thru all terms
 				{
-					rule_found = true;
-					for (UInt t=0;t<rules[r].getCVTerms().size(); ++t)  //go thru all terms
+					const CVMappings::CVTerm& term = rules[r].getCVTerms()[t];
+					if (term.getUseTerm() && term.getAccession()==accession) //check if the term itself is allowed
 					{
-						const CVMappings::CVTerm& term = rules[r].getCVTerms()[t];
-						if (term.getUseTerm() && term.getAccession()==accession) //check if the term itself is allowed
+						allowed = true;
+						fulfilled_[path][rules[r].getIdentifier()][term.getAccession()]++;
+						break;
+					}
+					if (term.getAllowChildren()) //check if the term's children are allowed
+					{
+						set<String> child_terms;
+						cv_.getAllChildTerms(child_terms, term.getAccession());
+						for (set<String>::const_iterator it=child_terms.begin(); it!=child_terms.end(); ++it)
 						{
-							allowed = true;
-							break;
-						}
-						if (term.getAllowChildren()) //check if the term's children are allowed
-						{
-							set<String> child_terms;
-							cv_.getAllChildTerms(child_terms, term.getAccession());
-							for (set<String>::const_iterator it=child_terms.begin(); it!=child_terms.end(); ++it)
+							if (*it == accession)
 							{
-								if (*it == accession)
-								{
-									allowed = true;
-									break;
-								}
+								allowed = true;
+								fulfilled_[path][rules[r].getIdentifier()][term.getAccession()]++;
+								break;
 							}
 						}
 					}
-					if (allowed) break;
 				}
 			}
+			
 			if (!rule_found) //No rule found
 			{
 				valid_ = false;
@@ -198,8 +193,96 @@ namespace OpenMS
 	void SemanticValidator::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     String tag = sm_.convert(qname);
-    
-    open_tags_.pop_back();
+
+		//build up path
+		String path;
+		path.implode(open_tags_.begin(), open_tags_.end(),"/");
+		path = "/"+path+"/"+cv_tag_+"/@"+accession_att_;
+		//cout << "end " << path << endl;
+		
+		//look up rules and fulfilled rules/terms
+		vector<CVMappings::CVMappingRule>& rules = rules_[path];
+		Map<String , Map<String, UInt> >& fulfilled = fulfilled_[path]; //(rule ID => term ID => term count)
+		
+		//check how offen each term appeared
+		for (UInt r=0; r<rules.size(); ++r)
+		{
+			for (UInt t=0; t<rules[r].getCVTerms().size(); ++t)
+			{
+				if ( !rules[r].getCVTerms()[t].getIsRepeatable() && fulfilled[rules[r].getIdentifier()][rules[r].getCVTerms()[t].getAccession()]>1 )
+				{
+					valid_ = false;
+					output_.violated_repeats.push_back(rules[r].getIdentifier());
+				}
+			}
+		}
+
+		//check if all required rules are fulfilled
+		for (UInt r=0; r<rules.size(); ++r)
+		{
+			//Count the number of distince matched terms
+			UInt terms_count = rules[r].getCVTerms().size();
+			UInt match_count = 0;
+			for (UInt t=0; t<terms_count; ++t)
+			{
+				if ( fulfilled[rules[r].getIdentifier()][rules[r].getCVTerms()[t].getAccession()]>=1)
+				{
+					++match_count;
+				}
+			}
+			
+			//MUST / AND - all terms must be matched
+			if (rules[r].getRequirementLevel()==CVMappings::CVMappingRule::MUST && rules[r].getCombinationsLogic()==CVMappings::CVMappingRule::AND)
+			{
+				if (match_count!=terms_count)
+				{
+					valid_ = false;
+					output_.violated.push_back(rules[r].getIdentifier());
+				}
+			}
+			//MUST / OR - at lest one terms must be matched
+			else if (rules[r].getRequirementLevel()==CVMappings::CVMappingRule::MUST && rules[r].getCombinationsLogic()==CVMappings::CVMappingRule::OR)
+			{
+				if (match_count==0)
+				{
+					valid_ = false;
+					output_.violated.push_back(rules[r].getIdentifier());
+				}
+			}
+			//MUST / XOR - exactly one term must be matched
+			else if (rules[r].getRequirementLevel()==CVMappings::CVMappingRule::MUST && rules[r].getCombinationsLogic()==CVMappings::CVMappingRule::XOR)
+			{
+				if (match_count!=1)
+				{
+					valid_ = false;
+					output_.violated.push_back(rules[r].getIdentifier());
+				}
+			}
+			//MAY(SHOULD) / AND - none or all terms must be matched
+			else if (rules[r].getRequirementLevel()!=CVMappings::CVMappingRule::MUST && rules[r].getCombinationsLogic()==CVMappings::CVMappingRule::AND)
+			{
+				if (match_count!=0 && match_count!=terms_count)
+				{
+					valid_ = false;
+					output_.violated.push_back(rules[r].getIdentifier());
+				}
+			}
+			//MAY(SHOULD) / XOR - zero or one terms must be matched
+			else if (rules[r].getRequirementLevel()!=CVMappings::CVMappingRule::MUST && rules[r].getCombinationsLogic()==CVMappings::CVMappingRule::XOR)
+			{
+				if (match_count>1)
+				{
+					valid_ = false;
+					output_.violated.push_back(rules[r].getIdentifier());
+				}
+			}
+			//MAY(SHOULD) / OR - none to all terms must be matched => always true
+		}
+		
+		//clear fulfilled rules
+		fulfilled_.erase(path);
+			
+		open_tags_.pop_back();
   }
 
   void SemanticValidator::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)

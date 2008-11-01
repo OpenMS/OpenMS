@@ -104,6 +104,11 @@
         <CvMappingRule id="R16" cvElementPath="/mzML/run/spectrumList/spectrum/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/spectrumList/spectrum" cvTermsCombinationLogic="AND">
             <CvTerm termAccession="MS:1000559" useTermName="false" useTerm="false" termName="spectrum type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
+
+        <CvMappingRule id="R16a" cvElementPath="/mzML/run/spectrumList/spectrum/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/run/spectrumList/spectrum" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1000503" useTerm="false" termName="scan attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+
         <!-- end of spectrum -->
 
         <!-- start of spectrum description -->
