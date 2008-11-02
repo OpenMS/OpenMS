@@ -836,7 +836,7 @@ namespace OpenMS
 				end = " WHERE fid_Spectrum='" + String(exp_it->getPersistenceId()) + "'";
 			}
 			//TODO handle several scan windows
-			if (settings.getScanWindows().size()>1)
+			if (settings.getScanWindows().size()>0)
 			{
 				query << "MZRangeBegin=" << settings.getScanWindows()[0].begin << ",";
 				query << "MZRangeEnd=" << settings.getScanWindows()[0].end << ",";

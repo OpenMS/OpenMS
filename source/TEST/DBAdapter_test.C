@@ -282,6 +282,7 @@ if (do_tests)
 		spec.setMSLevel(1);	
 		
 		InstrumentSettings settings;
+		settings.getScanWindows().resize(1);
 		settings.getScanWindows()[0].begin = 3.456;
 		settings.getScanWindows()[0].end = 7.89;
 		settings.setPolarity(IonSource::NEGATIVE);
@@ -711,7 +712,7 @@ if (do_tests)
 			modified_spec.setRT(1.88);
 			modified_spec.setMSLevel(1);
 			modified_spec.getInstrumentSettings().getScanWindows()[0].begin = 3.567;
-			modified_spec.getInstrumentSettings().getScanWindows()[0].begin = 7.91;
+			modified_spec.getInstrumentSettings().getScanWindows()[0].end = 7.91;
 			modified_spec.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
 			modified_spec.getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
 			modified_spec.getInstrumentSettings().setMetaValue("label", String("please bite here"));
