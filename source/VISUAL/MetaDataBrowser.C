@@ -55,6 +55,7 @@
 #include <OpenMS/VISUAL/VISUALIZER/PeptideIdentificationVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/SpectrumSettingsVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/DocumentIdentifierVisualizer.h>
+#include <OpenMS/VISUAL/VISUALIZER/ScanWindowVisualizer.h>
 
 #include <QtGui/QLabel>
 #include <QtGui/QStackedWidget>
@@ -472,6 +473,12 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 
+		//visualize ScanWindows
+		for(UInt i=0; i<meta.getScanWindows().size(); ++i)    
+		{
+			visualize_(meta.getScanWindows()[i], item);
+		}
+
 		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		connectVisualizer_(visualizer);
 	}
@@ -772,7 +779,27 @@ namespace OpenMS
 		
 		connectVisualizer_(visualizer);
 	}
-	
+
+	//Visualizing ProteinHit object
+	void MetaDataBrowser::visualize_(InstrumentSettings::ScanWindow& meta, QTreeWidgetItem* parent)
+	{
+		ScanWindowVisualizer *visualizer = new ScanWindowVisualizer(isEditable(), this);  
+		visualizer->load(meta);  
+		
+    QStringList labels;
+    labels << "Scan window" << QString::number(ws_->addWidget(visualizer));
+    
+    QTreeWidgetItem* item;
+		if(parent == 0)
+		{
+			item = new QTreeWidgetItem(treeview_, labels );
+		}
+		else
+		{
+			item = new QTreeWidgetItem(parent, labels );
+		}
+		connectVisualizer_(visualizer);
+	}
 		
 	//Visualizing sample object
 	void MetaDataBrowser::visualize_(Sample& meta, QTreeWidgetItem* parent )

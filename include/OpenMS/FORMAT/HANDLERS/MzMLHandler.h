@@ -44,13 +44,13 @@
 #include <iostream>
 
 //TODO:
-// - Precursor: possible charge states
-// - more than one scanWindow per spectrum
-// - "targetList" + "target" (==inclusion list)
-// - spectrum "spectrum type" vs. scan "scanning method"?
 // - writing files, add to automatic tmp file validation in tests
-// - DataProcessing of "spectrum", "chromatogram" and "binaryDataArray" (currently not possible due to messed up schema)
+// - "targetList" + "target" (==inclusion list)
 // - units
+//
+//TODO (WHEN FIXED):
+// - spectrum "spectrum type" vs. scan "scanning method"?
+// - DataProcessing of "spectrum", "chromatogram" and "binaryDataArray"
 //
 //MISSING (AND NOT PLANNED):
 // - more than one Precursor (isolationWindow, selectedIon, activation), but warning if more than one precursor is present
@@ -453,6 +453,23 @@ namespace OpenMS
 				instruments_[current_id_].getIonDetectors().push_back(IonDetector());
 				instruments_[current_id_].getIonDetectors().back().setOrder(attributeAsInt_(attributes, s_order));
 			}
+			else if (tag=="precursor")
+			{
+				spec_.getPrecursor() = Precursor();
+				spec_.getPrecursorPeak() = typename SpectrumType::PrecursorPeakType();
+			}
+			else if (tag=="precursorList")
+			{
+				//Warn if more than one precursor is preset
+				if (attributeAsInt_(attributes, s_count)>1)
+				{
+					warning("OpenMS can only handle one precursor ion! Only the last precursor of each spectrum is considered!");
+				}
+			}
+			else if (tag=="scanWindow")
+			{
+				spec_.getInstrumentSettings().getScanWindows().push_back(InstrumentSettings::ScanWindow());
+			}
 		}
 
 		template <typename MapType>
@@ -769,7 +786,7 @@ namespace OpenMS
 				}
 				else if (accession=="MS:1000527" || accession=="MS:1000528" || accession=="MS:1000504" || accession=="MS:1000505" || accession=="MS:1000285" )
 				{
-					//allowed but, not needed
+					//currently ignored
 				}
 				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
@@ -867,11 +884,11 @@ namespace OpenMS
 				//EXTEND parse and store more than one scan window. Currently only the last window is stored.
 				if (accession=="MS:1000501") //scan m/z lower limit
 				{
-					spec_.getInstrumentSettings().setMzRangeStart(value.toDouble());
+					spec_.getInstrumentSettings().getScanWindows().back().begin = value.toDouble();
 				}
 				else if (accession=="MS:1000500") //scan m/z upper limit
 				{
-					spec_.getInstrumentSettings().setMzRangeStop(value.toDouble());
+					spec_.getInstrumentSettings().getScanWindows().back().end = value.toDouble();
 				}
 				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
@@ -897,7 +914,7 @@ namespace OpenMS
 				}
 				else if (accession=="MS:1000633") //possible charge state
 				{
-					//EXTEND store possible charge states as well
+					spec_.getPrecursorPeak().getPossibleChargeStates().push_back(value.toInt());
 				}
 				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}

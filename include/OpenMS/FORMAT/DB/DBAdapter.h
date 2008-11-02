@@ -835,9 +835,16 @@ namespace OpenMS
 				query << "UPDATE META_InstrumentSettings SET ";
 				end = " WHERE fid_Spectrum='" + String(exp_it->getPersistenceId()) + "'";
 			}
-
-			query << "MZRangeBegin=" << settings.getMzRangeStart() << ",";
-			query << "MZRangeEnd=" << settings.getMzRangeStop() << ",";
+			//TODO handle several scan windows
+			if (settings.getScanWindows().size()>1)
+			{
+				query << "MZRangeBegin=" << settings.getScanWindows()[0].begin << ",";
+				query << "MZRangeEnd=" << settings.getScanWindows()[0].end << ",";
+			}
+			else
+			{
+				query << "MZRangeBegin=0.0, MZRangeEnd=0.0,";
+			}
 			query << "Polarity=" << (1u+settings.getPolarity()) << ",";
 			query << "ScanMode=" << (1u+settings.getScanMode());
 			query << end;
@@ -1233,9 +1240,11 @@ namespace OpenMS
 		query << "SELECT MZRangeBegin, MZRangeEnd, Polarity-1, ScanMode-1, fid_MetaInfo FROM META_InstrumentSettings WHERE fid_Spectrum=" << id;
 		result = db_con_.executeQuery(query.str());
 		result.first();
-		
-		settings.setMzRangeStart(result.value(0).toDouble());
-		settings.setMzRangeStop(result.value(1).toDouble());
+
+		InstrumentSettings::ScanWindow window;
+		window.begin = result.value(0).toDouble();
+		window.end = result.value(1).toDouble();
+		settings.getScanWindows().push_back(window);
 		settings.setPolarity((IonSource::Polarity) (result.value(2).toInt()));
 		settings.setScanMode((InstrumentSettings::ScanMode) (result.value(3).toInt()));
 		spec.setInstrumentSettings(settings);

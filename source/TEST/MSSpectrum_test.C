@@ -50,20 +50,20 @@ RESULT
 
 CHECK((MSSpectrum(const MSSpectrum& source)))
   MSSpectrum<> tmp;
-  tmp.getInstrumentSettings().setMzRangeStart(5.1);
+  tmp.getInstrumentSettings().getScanWindows().resize(1);
 	MSSpectrum<>::PeakType peak;
 	peak.getPosition()[0] = 47.11;
 	tmp.push_back(peak);
 	
 	MSSpectrum<> tmp2(tmp);
-	TEST_REAL_EQUAL(tmp2.getInstrumentSettings().getMzRangeStart(),5.1);
+	TEST_EQUAL(tmp2.getInstrumentSettings().getScanWindows().size(),1);
 	TEST_EQUAL(tmp2.size(),1);
 	TEST_REAL_EQUAL(tmp2[0].getPosition()[0],47.11);
 RESULT
 
 CHECK((MSSpectrum& operator= (const MSSpectrum& source)))
   MSSpectrum<> tmp;
-  tmp.getInstrumentSettings().setMzRangeStart(5.1);
+  tmp.getInstrumentSettings().getScanWindows().resize(1);
 	MSSpectrum<>::PeakType peak;
 	peak.getPosition()[0] = 47.11;
 	tmp.push_back(peak);
@@ -71,14 +71,14 @@ CHECK((MSSpectrum& operator= (const MSSpectrum& source)))
 	//normal assignment
 	MSSpectrum<> tmp2;
 	tmp2 = tmp;
-	TEST_REAL_EQUAL(tmp2.getInstrumentSettings().getMzRangeStart(),5.1);
+	TEST_EQUAL(tmp2.getInstrumentSettings().getScanWindows().size(),1);
 	TEST_EQUAL(tmp2.size(),1);
 	TEST_REAL_EQUAL(tmp2[0].getPosition()[0],47.11);
 	
 	//Assignment of empty object
 	//normal assignment
 	tmp2 = MSSpectrum<>();
-	TEST_REAL_EQUAL(tmp2.getInstrumentSettings().getMzRangeStart(),0.0);
+	TEST_EQUAL(tmp2.getInstrumentSettings().getScanWindows().size(),0);
 	TEST_EQUAL(tmp2.size(),0);
 RESULT
 
@@ -87,7 +87,7 @@ CHECK((bool operator== (const MSSpectrum& rhs) const))
   
   TEST_EQUAL(edit==empty,true);
   
-  edit.getInstrumentSettings().setMzRangeStart(5.1);
+  edit.getInstrumentSettings().getScanWindows().resize(1);
 	TEST_EQUAL(edit==empty,false);
 	
 	edit = empty;
@@ -102,7 +102,7 @@ CHECK((bool operator!= (const MSSpectrum& rhs) const))
   
   TEST_EQUAL(edit!=empty,false);
   
-  edit.getInstrumentSettings().setMzRangeStart(5.1);
+  edit.getInstrumentSettings().getScanWindows().resize(1);
 	TEST_EQUAL(edit!=empty,true);
 	
 	edit = empty;

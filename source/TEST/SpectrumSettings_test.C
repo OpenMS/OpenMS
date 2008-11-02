@@ -96,15 +96,15 @@ RESULT
 CHECK((void setInstrumentSettings(const InstrumentSettings& instrument_settings)))
 	SpectrumSettings tmp;
 	InstrumentSettings is;
-	is.setMzRangeStart(47.11);
+	is.getScanWindows().resize(1);
 	tmp.setInstrumentSettings(is);
-	TEST_REAL_EQUAL(tmp.getInstrumentSettings()==InstrumentSettings(), false);
+	TEST_EQUAL(tmp.getInstrumentSettings()==InstrumentSettings(), false);
 RESULT
 
 CHECK((InstrumentSettings& getInstrumentSettings()))
 	SpectrumSettings tmp;
-	tmp.getInstrumentSettings().setMzRangeStart(47.11);
-	TEST_REAL_EQUAL(tmp.getInstrumentSettings()==InstrumentSettings(), false);	
+	tmp.getInstrumentSettings().getScanWindows().resize(1);
+	TEST_EQUAL(tmp.getInstrumentSettings()==InstrumentSettings(), false);	
 RESULT
 
 CHECK((const Precursor& getPrecursor() const))
@@ -117,13 +117,13 @@ CHECK((void setPrecursor(const Precursor& precursor)))
 	Precursor is;
 	is.setActivationEnergy(47.11);
 	tmp.setPrecursor(is);
-	TEST_REAL_EQUAL(tmp.getPrecursor()==Precursor(), false);
+	TEST_EQUAL(tmp.getPrecursor()==Precursor(), false);
 RESULT
 
 CHECK((Precursor& getPrecursor()))
 	SpectrumSettings tmp;
 	tmp.getPrecursor().setActivationEnergy(47.11);
-	TEST_REAL_EQUAL(tmp.getPrecursor()==Precursor(), false);	
+	TEST_EQUAL(tmp.getPrecursor()==Precursor(), false);	
 RESULT
 
 CHECK((SpectrumType getType() const))
@@ -178,7 +178,7 @@ RESULT
 CHECK((SpectrumSettings& operator= (const SpectrumSettings& source)))
   SpectrumSettings tmp;
 	tmp.getAcquisitionInfo().setMethodOfCombination("test");
-	tmp.getInstrumentSettings().setMzRangeStart(47.11);
+	tmp.getInstrumentSettings().getScanWindows().resize(1);
 	tmp.getPrecursor().setActivationEnergy(47.11);
 	tmp.getPeptideIdentifications().resize(1);
 	tmp.setType(SpectrumSettings::PEAKS);
@@ -188,15 +188,15 @@ CHECK((SpectrumSettings& operator= (const SpectrumSettings& source)))
 	TEST_EQUAL(tmp2.getComment(), "bla");
 	TEST_EQUAL(tmp2.getType(), SpectrumSettings::PEAKS);
 	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 1);	
-	TEST_REAL_EQUAL(tmp2.getPrecursor()==Precursor(), false);	
-	TEST_REAL_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);
+	TEST_EQUAL(tmp2.getPrecursor()==Precursor(), false);	
+	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);
 	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);  
 RESULT
 
 CHECK((SpectrumSettings(const SpectrumSettings& source)))
   SpectrumSettings tmp;
 	tmp.getAcquisitionInfo().setMethodOfCombination("test");
-	tmp.getInstrumentSettings().setMzRangeStart(47.11);
+	tmp.getInstrumentSettings().getScanWindows().resize(1);
 	tmp.getPrecursor().setActivationEnergy(47.11);
 	tmp.setType(SpectrumSettings::PEAKS);
 	tmp.setComment("bla");
@@ -206,16 +206,16 @@ CHECK((SpectrumSettings(const SpectrumSettings& source)))
 	tmp2 = tmp;
 	TEST_EQUAL(tmp2.getComment(), "bla");
 	TEST_EQUAL(tmp2.getType(), SpectrumSettings::PEAKS);
-	TEST_REAL_EQUAL(tmp2.getPrecursor()==Precursor(), false);	
-	TEST_REAL_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);	
+	TEST_EQUAL(tmp2.getPrecursor()==Precursor(), false);
+	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);	
 	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);
 	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 1);	
 
 	tmp2 = SpectrumSettings();
 	TEST_EQUAL(tmp2.getComment(), "");
 	TEST_EQUAL(tmp2.getType(), SpectrumSettings::UNKNOWN);
-	TEST_REAL_EQUAL(tmp2.getPrecursor()==Precursor(), true);	
-	TEST_REAL_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), true);	
+	TEST_EQUAL(tmp2.getPrecursor()==Precursor(), true);	
+	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), true);	
 	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), true);
 	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 0);	
 
@@ -230,7 +230,7 @@ CHECK((bool operator== (const SpectrumSettings& rhs) const))
 	TEST_EQUAL(edit==empty, false);
 	
 	edit = empty;
-	edit.getInstrumentSettings().setMzRangeStart(47.11);
+	edit.getInstrumentSettings().getScanWindows().resize(1);
 	TEST_EQUAL(edit==empty, false);
 	
 	edit = empty;
@@ -259,7 +259,7 @@ CHECK((bool operator!= (const SpectrumSettings& rhs) const))
 	TEST_EQUAL(edit!=empty, true);
 	
 	edit = empty;
-	edit.getInstrumentSettings().setMzRangeStart(47.11);
+	edit.getInstrumentSettings().getScanWindows().resize(1);
 	TEST_EQUAL(edit!=empty, true);
 	
 	edit = empty;

@@ -61,7 +61,8 @@ CPP_SOURCES=\
 	PrecursorVisualizer.C\
 	InstrumentSettingsVisualizer.C\
 	SpectrumSettingsVisualizer.C\
-	DocumentIdentifierVisualizer.C
+	DocumentIdentifierVisualizer.C\
+	ScanWindowVisualizer.C
 
 MOC_SOURCES=\
 	BaseVisualizerGUI_moc.C\
@@ -91,7 +92,8 @@ MOC_SOURCES=\
 	InstrumentSettingsVisualizer_moc.C\
 	ProteinIdentificationVisualizer_moc.C\
 	SpectrumSettingsVisualizer_moc.C\
-	DocumentIdentifierVisualizer_moc.C
+	DocumentIdentifierVisualizer_moc.C\
+	ScanWindowVisualizer_moc.C
 
 SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES) $(CPP_SOURCES_NOMOC)
 OBJECTS 	= $(SOURCES:.C=.o)
@@ -203,3 +205,6 @@ SpectrumSettingsVisualizer_moc.C:  $(HEADER_DIR)/SpectrumSettingsVisualizer.h
 
 DocumentIdentifierVisualizer_moc.C:  $(HEADER_DIR)/DocumentIdentifierVisualizer.h
 	$(MOC) $(HEADER_DIR)/DocumentIdentifierVisualizer.h -o DocumentIdentifierVisualizer_moc.C
+
+ScanWindowVisualizer_moc.C:  $(HEADER_DIR)/ScanWindowVisualizer.h
+	$(MOC) $(HEADER_DIR)/ScanWindowVisualizer.h -o ScanWindowVisualizer_moc.C

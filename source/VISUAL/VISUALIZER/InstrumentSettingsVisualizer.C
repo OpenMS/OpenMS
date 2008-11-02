@@ -46,8 +46,6 @@ namespace OpenMS
 		addSeparator_();  
 		addComboBox_(instrumentsettings_scan_mode_, "Scan mode");
 		addComboBox_(instrumentsettings_polarity_, "Polarity");
-		addDoubleLineEdit_(instrumentsettings_mz_range_start_, "Scan begin (in m/z dimension)");
-		addDoubleLineEdit_(instrumentsettings_mz_range_stop_, "Scan stop (in m/z dimension)");
 			
 		finishAdding_();
 	}
@@ -67,17 +65,12 @@ namespace OpenMS
 			instrumentsettings_scan_mode_->setCurrentIndex(temp_.getScanMode()); 
 			instrumentsettings_polarity_->setCurrentIndex(temp_.getPolarity()); 
 		}
-		
-		instrumentsettings_mz_range_start_->setText(String(temp_.getMzRangeStart() ).c_str() );
-		instrumentsettings_mz_range_stop_->setText(String(temp_.getMzRangeStop() ).c_str() );
 	}
 	
 	void InstrumentSettingsVisualizer::store()
 	{
 		ptr_->setScanMode((InstrumentSettings::ScanMode)instrumentsettings_scan_mode_->currentIndex());		
 		ptr_->setPolarity((IonSource::Polarity)instrumentsettings_polarity_->currentIndex());		
-		ptr_->setMzRangeStart(instrumentsettings_mz_range_start_->text().toFloat());
-		ptr_->setMzRangeStop(instrumentsettings_mz_range_stop_->text().toFloat());
 		
 		temp_=(*ptr_);
 	}

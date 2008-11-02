@@ -282,8 +282,8 @@ if (do_tests)
 		spec.setMSLevel(1);	
 		
 		InstrumentSettings settings;
-		settings.setMzRangeStart(3.456);
-		settings.setMzRangeStop(7.89);
+		settings.getScanWindows()[0].begin = 3.456;
+		settings.getScanWindows()[0].end = 7.89;
 		settings.setPolarity(IonSource::NEGATIVE);
 		settings.setScanMode(InstrumentSettings::ZOOM);
 		spec.setInstrumentSettings (settings);
@@ -445,8 +445,8 @@ if (do_tests)
 		  TEST_EQUAL( spec.getRT() , exp_original.begin()->getRT() )
 			TEST_EQUAL( spec.getMSLevel() , exp_original.begin()->getMSLevel() )
 			TEST_EQUAL( spec.size() , exp_original.begin()->size() )
-			TEST_EQUAL( spec.getInstrumentSettings().getMzRangeStart() , exp_original.begin()->getInstrumentSettings().getMzRangeStart() )
-			TEST_EQUAL( spec.getInstrumentSettings().getMzRangeStop() , exp_original.begin()->getInstrumentSettings().getMzRangeStop() )
+			TEST_EQUAL( spec.getInstrumentSettings().getScanWindows()[0].begin , exp_original.begin()->getInstrumentSettings().getScanWindows()[0].begin )
+			TEST_EQUAL( spec.getInstrumentSettings().getScanWindows()[0].end , exp_original.begin()->getInstrumentSettings().getScanWindows()[0].end )
 			TEST_EQUAL( spec.getInstrumentSettings().getPolarity() , exp_original.begin()->getInstrumentSettings().getPolarity() )
 			TEST_EQUAL( spec.getInstrumentSettings().getScanMode() , exp_original.begin()->getInstrumentSettings().getScanMode() )
 			TEST_EQUAL( spec.getAcquisitionInfo().getMethodOfCombination(), "combo");
@@ -710,8 +710,8 @@ if (do_tests)
 			modified_spec[2].getPosition()[0] = 812.1;
 			modified_spec.setRT(1.88);
 			modified_spec.setMSLevel(1);
-			modified_spec.getInstrumentSettings().setMzRangeStart(3.567);
-			modified_spec.getInstrumentSettings().setMzRangeStop(7.91);
+			modified_spec.getInstrumentSettings().getScanWindows()[0].begin = 3.567;
+			modified_spec.getInstrumentSettings().getScanWindows()[0].begin = 7.91;
 			modified_spec.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
 			modified_spec.getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
 			modified_spec.getInstrumentSettings().setMetaValue("label", String("please bite here"));

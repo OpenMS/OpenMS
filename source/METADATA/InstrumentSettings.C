@@ -38,8 +38,7 @@ namespace OpenMS
 		MetaInfoInterface(),
 		scan_mode_(UNKNOWN),
 		polarity_(IonSource::POLNULL),
-		mz_range_start_(0.0),
-		mz_range_stop_(0.0)
+		scan_windows_()
 	{
 	}
 	
@@ -47,8 +46,7 @@ namespace OpenMS
 		MetaInfoInterface(source),
 	  scan_mode_(source.scan_mode_),
 	  polarity_(source.polarity_),
-	  mz_range_start_(source.mz_range_start_),
-	  mz_range_stop_(source.mz_range_stop_)
+		scan_windows_(source.scan_windows_)
 	{
 	}
 	
@@ -62,8 +60,7 @@ namespace OpenMS
 	  
 	  scan_mode_ = source.scan_mode_;
 	  polarity_ = source.polarity_;
-	  mz_range_start_ = source.mz_range_start_;
-	  mz_range_stop_ = source.mz_range_stop_;
+	  scan_windows_ = source.scan_windows_;
 	  MetaInfoInterface::operator=(source);
 	  
 	  return *this;
@@ -74,8 +71,7 @@ namespace OpenMS
   	return 
 	 	  scan_mode_ == rhs.scan_mode_ &&
 		  polarity_ == rhs.polarity_ &&
-		  mz_range_start_ == rhs.mz_range_start_ &&
-		  mz_range_stop_ == rhs.mz_range_stop_ &&
+		  scan_windows_ == rhs.scan_windows_ &&
   		MetaInfoInterface::operator==(rhs)
   		;
   }
@@ -105,24 +101,19 @@ namespace OpenMS
 	  polarity_ = polarity; 
 	}
 	
-	DoubleReal InstrumentSettings::getMzRangeStart() const 
+	const std::vector< InstrumentSettings::ScanWindow >&  InstrumentSettings::getScanWindows() const
 	{
-	  return mz_range_start_; 
+	  return scan_windows_;
 	}
 	
-	void InstrumentSettings::setMzRangeStart(DoubleReal mz_range_start)
+	std::vector< InstrumentSettings::ScanWindow >&  InstrumentSettings::getScanWindows()
 	{
-	  mz_range_start_ = mz_range_start; 
+	  return scan_windows_;
 	}
 	
-	DoubleReal InstrumentSettings::getMzRangeStop() const 
+	void InstrumentSettings::setScanWindows(std::vector< InstrumentSettings::ScanWindow >  scan_windows)
 	{
-	  return mz_range_stop_; 
-	}
-	
-	void InstrumentSettings::setMzRangeStop(DoubleReal mz_range_stop)
-	{
-	  mz_range_stop_ = mz_range_stop; 
+	  scan_windows_ =  scan_windows;
 	}
 	
 }

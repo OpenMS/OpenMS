@@ -452,8 +452,10 @@ namespace OpenMS
 		spectrum.resize(scan_data->points);
 		spectrum.setRT( float_(scan_data->scan_acq_time));
 		spectrum.setMSLevel(1);
-		spectrum.getInstrumentSettings().setMzRangeStart(float_(scan_data->mass_range_min));
-		spectrum.getInstrumentSettings().setMzRangeStop(float_(scan_data->mass_range_max));
+		InstrumentSettings::ScanWindow window;
+		window.begin = float_(scan_data->mass_range_min);
+		window.end = float_(scan_data->mass_range_max);
+		spectrum.getInstrumentSettings().getScanWindows().push_back(window);
 		spectrum.getInstrumentSettings().setPolarity(pol_);
 
 		//check intensity/mass format

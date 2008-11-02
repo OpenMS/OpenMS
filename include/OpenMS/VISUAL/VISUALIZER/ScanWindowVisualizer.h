@@ -8,7 +8,7 @@
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
-//  License as published by the Free InstrumentSettings Foundation; either
+//  License as published by the Free ScanWindow Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
 //
 //  This library is distributed in the hope that it will be useful,
@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
  
-#ifndef OPENMS_VISUAL_VISUALIZER_INSTRUMENTSETTINGSVISUALIZER_H
-#define OPENMS_VISUAL_VISUALIZER_INSTRUMENTSETTINGSVISUALIZER_H
+#ifndef OPENMS_VISUAL_VISUALIZER_SCANWINDOWVISUALIZER_H
+#define OPENMS_VISUAL_VISUALIZER_SCANWINDOWVISUALIZER_H
 
 //OpenMS
 #include <OpenMS/METADATA/InstrumentSettings.h>
@@ -33,29 +33,31 @@
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
 class QLineEdit;
-class QComboBox;
 
 namespace OpenMS
 {
+
+	class MetaDataBrowser;
+	
 	/**
-		@brief Class that displays all meta information for InstrumentSettings objects
+		@brief Class that displays all meta information for ScanWindow objects
 		
-		This class provides all functionality to view the meta information of an object of type InstrumentSettings.
+		This class provides all functionality to view the meta information of an object of type ScanWindow.
 	*/
-	class InstrumentSettingsVisualizer
+	class ScanWindowVisualizer
 		: public BaseVisualizerGUI,
-			public BaseVisualizer<InstrumentSettings>
+			public BaseVisualizer<InstrumentSettings::ScanWindow>
 	{
 		Q_OBJECT
 
 		public:
 			
-		  ///Constructor
-			InstrumentSettingsVisualizer(bool editable = false, QWidget* parent = 0);
-			
+			///Constructor 
+			ScanWindowVisualizer(bool editable = false, QWidget* parent = 0);
+		  
 		public slots:
 			
-		  //Docu in base class
+			//Docu in base class
 			void store();
 		
 		protected slots:
@@ -63,16 +65,16 @@ namespace OpenMS
 			///Undo the changes made in the GUI.
 			void undo_();
 	
-		protected:  
-		  
+		protected:
+			
 			///@name Edit fields and buttons
 	    //@{
-	   	QComboBox* instrumentsettings_scan_mode_;
-			QComboBox* instrumentsettings_polarity_;
-			//@}
-		
+			QLineEdit* begin_;
+			QLineEdit* end_;
+	    //@}
+	    
 			//Docu in base class
 			void update_();
 	};
 }
-#endif
+#endif //OPENMS_VISUAL_VISUALIZER_SCANWINDOWVISUALIZER_H

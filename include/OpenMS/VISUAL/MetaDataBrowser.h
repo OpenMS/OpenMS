@@ -70,6 +70,7 @@ namespace OpenMS
 	class Sample;
 	class SampleTreatment;
 	class Software;
+	struct InstrumentSettings::ScanWindow;
 	class SourceFile;
 	class SpectrumSettings;
 	class Tagging;
@@ -189,7 +190,8 @@ namespace OpenMS
 			void visualize_(Modification& meta, QTreeWidgetItem* parent=0); 
 			void visualize_(Tagging& meta, QTreeWidgetItem* parent=0); 
 			void visualize_(Gradient& meta, QTreeWidgetItem* parent=0); 
-			void visualize_(Software& meta, QTreeWidgetItem* parent=0); 
+			void visualize_(Software& meta, QTreeWidgetItem* parent=0);
+			void visualize_(InstrumentSettings::ScanWindow& meta, QTreeWidgetItem* parent=0); 
 			void visualize_(SourceFile& meta, QTreeWidgetItem* parent=0); 
 			void visualize_(ContactPerson& meta, QTreeWidgetItem* parent=0); 
 			void visualize_(Instrument& meta, QTreeWidgetItem* parent=0); 

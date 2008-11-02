@@ -651,11 +651,13 @@ namespace OpenMS
 			else if (tag=="spectrumInstrument" || tag=="acqInstrument")
 			{
 				spec_.setMSLevel(attributeAsInt_(attributes, s_mslevel));
-				DoubleReal start=0.0, stop=0.0;
-				optionalAttributeAsDouble_(start, attributes, s_mzrangestart);
-				optionalAttributeAsDouble_(stop, attributes, s_mzrangestop);
-				spec_.getInstrumentSettings().setMzRangeStart(start);
-				spec_.getInstrumentSettings().setMzRangeStop(stop);
+				InstrumentSettings::ScanWindow window;
+				optionalAttributeAsDouble_(window.begin, attributes, s_mzrangestart);
+				optionalAttributeAsDouble_(window.end, attributes, s_mzrangestop);
+				if (window.begin!=0.0 || window.end!=0.0)
+				{
+					spec_.getInstrumentSettings().getScanWindows().push_back(window);
+				}
 				
 				if (options_.hasMSLevels() && !options_.containsMSLevel(spec_.getMSLevel()))
 				{
@@ -870,7 +872,7 @@ namespace OpenMS
 			}
 			if (cexp_->getSourceFiles().size()>1)
 			{
-				warning("Warning: The MzData format can store only one source file. Only the first one is stored. The remaining instances are lost!");
+				warning("Warning: The MzData format can store only one source file. Only the first one is stored!");
 			}
 
 			for (UInt i=0; i < cexp_->getContacts().size(); ++i)
@@ -905,7 +907,7 @@ namespace OpenMS
 			}
 			if (inst.getIonSources().size()>1)
 			{
-				warning("Warning: The MzData format can store only one ion source. Only the first one is stored. The remaining instances are lost!");
+				warning("Warning: The MzData format can store only one ion source. Only the first one is stored!");
 			}
 			os << "\t\t\t</source>\n";
 						
@@ -957,7 +959,7 @@ namespace OpenMS
 			}
 			if (inst.getIonDetectors().size()>1)
 			{
-				warning("Warning: The MzData format can store only one ion detector. Only the first one is stored. The remaining instances are lost!");
+				warning("Warning: The MzData format can store only one ion detector. Only the first one is stored!");
 			}
 			os << "\t\t\t</detector>\n";
 			if (inst.getVendor()!="" || inst.getModel()!="" || inst.getCustomizations()!="")
@@ -1020,7 +1022,7 @@ namespace OpenMS
 				//warn if we loose information
 				if (cexp_->getDataProcessing().size()>1)
 				{
-					warning("Warning: The MzData format can store only one dataProcessing. Only the first one is stored. The remaining instances are lost!");
+					warning("Warning: The MzData format can store only one dataProcessing. Only the first one is stored!");
 				}
 			}
 			os << "\t</description>\n";
@@ -1072,11 +1074,13 @@ namespace OpenMS
 						 << "\"";
 	
 					if (spec.getMSLevel()==1) spectrum_ref = spec_write_counter_-1;
-					if (iset.getMzRangeStart() != 0 && iset.getMzRangeStop() != 0)
+					if (iset.getScanWindows().size() > 0)
 					{
-						os << " mzRangeStart=\""
-							 << iset.getMzRangeStart() << "\" mzRangeStop=\""
-							 << iset.getMzRangeStop() << "\"";
+						os << " mzRangeStart=\"" << iset.getScanWindows()[0].begin << "\" mzRangeStop=\"" << iset.getScanWindows()[0].end << "\"";
+					}
+					if (iset.getScanWindows().size() > 1)
+					{
+						warning("Warning: The MzData format can store only one scan window for each scan. Only the first one is stored!");
 					}
 					os << ">\n";
 	

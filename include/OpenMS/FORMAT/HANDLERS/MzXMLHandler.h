@@ -368,19 +368,16 @@ namespace OpenMS
 				peak_count_ = attributeAsInt_(attributes, s_peakscount);
 				exp_->back().reserve(peak_count_);
 				
-				//TODO centroided, chargeDeconvoluted, deisotoped are ignored.
-				//     Should we include them into our model?
+				//TODO centroided, chargeDeconvoluted, deisotoped are ignored
 
 				//other optional attributes
-				DoubleReal tmp = 0.0;
-				optionalAttributeAsDouble_(tmp, attributes, s_startmz);
-				exp_->back().getInstrumentSettings().setMzRangeStart(tmp);
+				InstrumentSettings::ScanWindow window;
+				if ( optionalAttributeAsDouble_(window.begin, attributes, s_startmz) && optionalAttributeAsDouble_(window.end, attributes, s_endmz))
+				{
+					exp_->back().getInstrumentSettings().getScanWindows().push_back(window);
+				}
 				
-				tmp = 0.0;
-				optionalAttributeAsDouble_(tmp, attributes, s_endmz);
-				exp_->back().getInstrumentSettings().setMzRangeStop(tmp);
-
-				tmp = 0.0;
+				DoubleReal tmp = 0.0;
 				optionalAttributeAsDouble_(tmp, attributes, s_collisionenergy);
 				exp_->back().getPrecursor().setActivationEnergy(tmp);
 				
@@ -867,10 +864,14 @@ namespace OpenMS
 				os << "\" retentionTime=\"";
 				if (spec.getRT()<0) os << "-";
 				os << "PT"<< std::fabs(spec.getRT()) << "S\"";
-				if (spec.getInstrumentSettings().getMzRangeStart()!=0)
-					os << " startMz=\"" << spec.getInstrumentSettings().getMzRangeStart() << "\"";
-				if (spec.getInstrumentSettings().getMzRangeStop()!=0)
-					os << " endMz=\"" << spec.getInstrumentSettings().getMzRangeStop() << "\"";
+				if (spec.getInstrumentSettings().getScanWindows().size() > 0)
+				{
+					os << " startMz=\"" << spec.getInstrumentSettings().getScanWindows()[0].begin << "\" endMz=\"" << spec.getInstrumentSettings().getScanWindows()[0].end << "\"";
+				}
+				if (spec.getInstrumentSettings().getScanWindows().size() > 1)
+				{
+					warning("Warning: The MzXML format can store only one scan window for each scan. Only the first one is stored!");
+				}
 				os << ">\n";
 	
 				const PrecursorPeakType& peak = spec.getPrecursorPeak();
@@ -878,16 +879,13 @@ namespace OpenMS
 				{
 					os << String(ms_level+2,'\t') << "<precursorMz precursorIntensity=\""
 						 << peak.getIntensity();
-					if (peak.getCharge()!=0)
-						os << "\" precursorCharge=\"" << peak.getCharge();
-					os << "\">"
-					 	 << peak.getPosition()[0] << "</precursorMz>\n";
+					if (peak.getCharge()!=0) os << "\" precursorCharge=\"" << peak.getCharge();
+					os << "\">" << peak.getPosition()[0] << "</precursorMz>\n";
 				}
 	
 				if (spec.size() > 0)
 				{
-					os << String(ms_level+2,'\t') << "<peaks precision=\"32\""
-						 << " byteOrder=\"network\" pairOrder=\"m/z-int\">";
+					os << String(ms_level+2,'\t') << "<peaks precision=\"32\"" << " byteOrder=\"network\" pairOrder=\"m/z-int\">";
 					
 					//std::cout << "Writing scan " << s << std::endl;
 					std::vector<Real> tmp;
@@ -903,8 +901,7 @@ namespace OpenMS
 				}
 				else
 				{
-					os << String(ms_level+2,'\t') << "<peaks precision=\"32\""
-						 << " byteOrder=\"network\" pairOrder=\"m/z-int\" xsi:nil=\"1\"/>\n";
+					os << String(ms_level+2,'\t') << "<peaks precision=\"32\"" << " byteOrder=\"network\" pairOrder=\"m/z-int\" xsi:nil=\"1\"/>\n";
 				}
 				
 				writeUserParam_(os,spec,ms_level+2);

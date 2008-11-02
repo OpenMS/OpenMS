@@ -49,16 +49,7 @@ namespace OpenMS
 			precursor ions.
 
 			This class is designed for limited use cases, such as storing
-			precursor information from DTA files.  No data processing!
-
-			@internal If you ever think about using it for more than
-			the most trivial tasks, please contact Clemens and/or Marc!
-			We could easily replace DRichPeak with a better class, but
-			at the moment this does not pay off the effort.  Historically,
-			the class has been pulled out of the scope of the DSpectrum class
-			because it does not depend on the container type, only on the dimension.
-			Thus we can avoid unnecessary code duplication and incompatible types,
-			e.g. when raw data and picked data is present during peak picking.
+			precursor information from DTA files. No data processing!
 		*/
 		template < UInt D >
 		class PrecursorPeak
@@ -70,9 +61,6 @@ namespace OpenMS
 
 		 public:
 
-			/// Charge Type
-			typedef Int ChargeType;
-
 			/// Dimensionality
 			enum
 				{
@@ -82,14 +70,16 @@ namespace OpenMS
 			/// Default constructor
 			PrecursorPeak()
 				: Base(),
-					charge_(0)
+					charge_(0),
+					possible_charge_states_()
 			{
 			}
 
 			/// Copy constructor
 			PrecursorPeak(const PrecursorPeak& rhs)
 				: Base(rhs),
-					charge_(rhs.charge_)
+					charge_(rhs.charge_),
+					possible_charge_states_(rhs.possible_charge_states_)
 			{
 			}
 
@@ -97,7 +87,10 @@ namespace OpenMS
 			PrecursorPeak & operator=(const PrecursorPeak& rhs)
 			{
 				Base::operator=(rhs);
+				
 				charge_=rhs.charge_;
+				possible_charge_states_ = rhs.possible_charge_states_;
+				
 				return *this;
 			}
 
@@ -107,21 +100,37 @@ namespace OpenMS
 			}
 
 			/// Non-mutable access to the charge
-			ChargeType const & getCharge() const
+			Int const & getCharge() const
 			{
 				return charge_;
 			}
 
 			/// Mutable access to the charge
-			void setCharge( ChargeType charge )
+			void setCharge( Int charge )
 			{
 				charge_ = charge;
 				return;
 			}
 
+			std::vector<Int>& getPossibleChargeStates()
+			{
+				return possible_charge_states_;
+			}
+			
+			const std::vector<Int>& getPossibleChargeStates() const
+			{
+				return possible_charge_states_;
+			}
+			
+			void setPossibleChargeStates(const std::vector<Int>& possible_charge_states)
+			{
+				possible_charge_states_ = possible_charge_states;
+			}
+			
 		 protected:
 
-			ChargeType charge_;
+			Int charge_;
+		  std::vector<Int> possible_charge_states_;
 
 		};
 
