@@ -83,6 +83,11 @@ namespace OpenMS
 		return protein_hits_;
 	}
 
+	vector<ProteinHit>& ProteinIdentification::getHits()
+	{
+		return protein_hits_;
+	}
+	
 	// retrival of the peptide significance threshold value
   Real ProteinIdentification::getSignificanceThreshold() const
   {

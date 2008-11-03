@@ -30,6 +30,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 ///////////////////////////
 
@@ -85,8 +86,13 @@ CHECK((void run(const ConsensusMap &consensus_map_in, ConsensusMap &consensus_ma
   ConsensusXMLFile cm_file;
 	ConsensusMap cm_in, cm_out;
 	cm_file.load("data/ItraqChannelExtractor.consensusXML",cm_in);
+
+	std::vector<ProteinIdentification> protein_ids;
+	std::vector<PeptideIdentification> peptide_ids;
+	IdXMLFile().load("data/ItraqQuantifier.idXML", protein_ids, peptide_ids);
+	
 	ItraqQuantifier iq;
-	iq.run(cm_in, cm_out);
+	iq.run(cm_in, peptide_ids, protein_ids, cm_out);
 
 	String cm_file_out;// = "data/ItraqQuantifier.consensusXML";
 	NEW_TMP_FILE(cm_file_out);

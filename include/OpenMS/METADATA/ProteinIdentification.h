@@ -155,6 +155,8 @@ namespace OpenMS
 	  	//@{	
 	    /// returns the protein hits
 	    const std::vector<ProteinHit>& getHits() const;
+	    /// returns the protein hits (mutable)
+	    std::vector<ProteinHit>& getHits();
 			/// Appends a protein hit
 	    void insertHit(const ProteinHit& input);
 			/// Sets the peptide and protein hits

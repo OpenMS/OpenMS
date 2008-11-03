@@ -28,7 +28,8 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
 #include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
-
+#include <OpenMS/ANALYSIS/QUANTITATION/ProteinInference.h>
+#include <OpenMS/ANALYSIS/ID/IDConsensusFeatureMapper.h>
 
 #ifdef ITRAQ_NAIVECORRECTION
 #include <gsl/gsl_vector.h>
@@ -272,6 +273,24 @@ namespace OpenMS
 		std::cout << "reference_channel is: " << reference_channel  << std::endl;
 		#endif
 
+		Map <Int, Int> map_to_vectorindex;
+		Int ref_mapid = 0;
+		Int index = 0;
+		for (ConsensusMap::FileDescriptions::const_iterator file_it = consensus_map_out.getFileDescriptions().begin(); 
+			 file_it!=consensus_map_out.getFileDescriptions().end(); 
+			 ++file_it)
+		{
+			if ((Int) file_it->second.getMetaValue ("channel_name") == reference_channel) 
+			{
+				ref_mapid = file_it->first;
+				#ifdef ITRAQ_DEBUG
+				std::cout << "reference_map_id is: " << ref_mapid <<  std::endl;
+				#endif	
+			}
+			map_to_vectorindex[file_it->first] = index;
+			index++;
+		}
+
 		if (channel_map_.has(reference_channel))
 		{
 			std::vector< std::vector<double> > peptide_ratios;
@@ -281,24 +300,6 @@ namespace OpenMS
 			// build mapping of map_index to ratio_array_index
 			peptide_ratios.resize(channel_map_.size());
 			peptide_intensities.resize(channel_map_.size());
-
-			Map <Int, Int> map_to_vectorindex;
-			Int ref_mapid = 0;
-			Int index = 0;
-			for (ConsensusMap::FileDescriptions::const_iterator file_it = consensus_map_out.getFileDescriptions().begin(); 
-				 file_it!=consensus_map_out.getFileDescriptions().end(); 
-				 ++file_it)
-			{
-				if ((Int) file_it->second.getMetaValue ("channel_name") == reference_channel) 
-				{
-					ref_mapid = file_it->first;
-					#ifdef ITRAQ_DEBUG
-					std::cout << "reference_map_id is: " << ref_mapid <<  std::endl;
-					#endif	
-				}
-				map_to_vectorindex[file_it->first] = index;
-				index++;
-			}
 
 			//build up ratios for each peptide of non-reference channels
 			ConsensusFeature::HandleSetType::iterator ref_it;
@@ -451,18 +452,19 @@ namespace OpenMS
 		// find unique peptides of a protein and use a robust peptide ratio as protein ratio
 		if ((!peptide_ids.empty() && !protein_ids.empty()))
 		{
-			if (peptide_ids.size() != 1 || protein_ids.size() != 1)
-			{
-				std::cout << "WARNING: Only using the first entry for Protein/PeptideIdenfication!\nItraqQuantifier::run() Cannot handle multiple sets of identifications yet! Please contact the maintainer!";
-			}
 			
-			std::cout << "Protein Inference: " << peptide_ids[0].getHits().size() << " peptides (" << (peptide_ids[0].getHits().size() / consensus_map_out.size()) << " per feature) map to " << protein_ids[0].getHits().size() << " proteins" << std::endl;
-
+			// annotate consensusMap with identifications
+			IDConsensusFeatureMapper mapper;
+			mapper.annotate(consensus_map_out,
+											peptide_ids,
+											protein_ids,
+											0.0005,
+											0.005,
+											false);
 			
-			//peptide_ids,
-			//protein_ids, 
-				
-			// search for unique peptides!
+			// put quantitative info on Proteins
+			ProteinInference inferrer;
+			inferrer.infer(consensus_map_out, ref_mapid);
 
 		}
 

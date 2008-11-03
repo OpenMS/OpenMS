@@ -33,7 +33,8 @@ include ../../config_defs.mak
 CPP_SOURCES=\
 		ItraqConstants.C\
   	ItraqChannelExtractor.C\
-		ItraqQuantifier.C
+		ItraqQuantifier.C\
+		ProteinInference.C
 
 
 include ../../common.mak

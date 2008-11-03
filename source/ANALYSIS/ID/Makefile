@@ -32,6 +32,7 @@ include ../../config_defs.mak
 CPP_SOURCES=\
   IDSpectrumMapper.C\
 	IDFeatureMapper.C\
+	IDConsensusFeatureMapper.C\
 	ConsensusID.C\
 	ProtonDistributionModel.C\
 	PILISScoring.C\

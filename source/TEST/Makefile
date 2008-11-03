@@ -340,6 +340,7 @@ EXECUTABLES_ANALYSIS_DECHARGING = \
 EXECUTABLES_ANALYSIS_ID =\
 	IDSpectrumMapper_test\
 	IDFeatureMapper_test\
+	IDConsensusFeatureMapper_test\
 	ConsensusID_test\
 	ProtonDistributionModel_test\
 	PILISScoring_test\
