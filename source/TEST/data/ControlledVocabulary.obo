@@ -24,6 +24,9 @@ is_a : OpenMS:1!Auto
 id: OpenMS:4
 name: A-Klasse
 is_a : OpenMS:3 ! Mercedes
+xref: unparsed line 1
+xref: unparsed line 2
+xref: unparsed line 3
 
 [Term]
 id: OpenMS:5

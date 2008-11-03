@@ -76,41 +76,50 @@ CHECK(const CVTerm& getTerm(const String& id) const)
 	TEST_EQUAL(term->name,"Auto")
 	TEST_EQUAL(term->obsolete,false)
 	TEST_EQUAL(term->parents.size(),0)
+	TEST_EQUAL(term->unparsed.size(),0)
 	//Ford
 	term = &(cv.getTerm("OpenMS:2"));
 	TEST_EQUAL(term->id,"OpenMS:2")
 	TEST_EQUAL(term->name,"Ford")
 	TEST_EQUAL(term->obsolete,false)
 	TEST_EQUAL(term->parents.size(),1)
-	//TEST_EQUAL(term->parents[0],"OpenMS:1")
+	TEST_EQUAL(*term->parents.begin(),"OpenMS:1")
+	TEST_EQUAL(term->unparsed.size(),0)
 	//Mercedes
 	term = &(cv.getTerm("OpenMS:3"));
 	TEST_EQUAL(term->id,"OpenMS:3")
 	TEST_EQUAL(term->name,"Mercedes")
 	TEST_EQUAL(term->obsolete,false)
 	TEST_EQUAL(term->parents.size(),1)
-	//TEST_EQUAL(term->parents[0],"OpenMS:1")
+	TEST_EQUAL(*term->parents.begin(),"OpenMS:1")
+	TEST_EQUAL(term->unparsed.size(),0)
 	//A-Klasse
 	term = &(cv.getTerm("OpenMS:4"));
 	TEST_EQUAL(term->id,"OpenMS:4")
 	TEST_EQUAL(term->name,"A-Klasse")
 	TEST_EQUAL(term->obsolete,false)
 	TEST_EQUAL(term->parents.size(),1)
-	//TEST_EQUAL(term->parents[0],"OpenMS:3")
+	TEST_EQUAL(*term->parents.begin(),"OpenMS:3")
+	TEST_EQUAL(term->unparsed.size(),3)
+	TEST_EQUAL(term->unparsed[0],"xref: unparsed line 1")
+	TEST_EQUAL(term->unparsed[1],"xref: unparsed line 2")
+	TEST_EQUAL(term->unparsed[2],"xref: unparsed line 3")
 	//Mustang
 	term = &(cv.getTerm("OpenMS:5"));
 	TEST_EQUAL(term->id,"OpenMS:5")
 	TEST_EQUAL(term->name,"Mustang")
 	TEST_EQUAL(term->obsolete,false)
 	TEST_EQUAL(term->parents.size(),1)
-	//TEST_EQUAL(term->parents[0],"OpenMS:2")
+	TEST_EQUAL(*term->parents.begin(),"OpenMS:2")
+	TEST_EQUAL(term->unparsed.size(),0)
 	//Ka
 	term = &(cv.getTerm("OpenMS:6"));
 	TEST_EQUAL(term->id,"OpenMS:6")
 	TEST_EQUAL(term->name,"Ka")
 	TEST_EQUAL(term->obsolete,true)
 	TEST_EQUAL(term->parents.size(),1)
-	//TEST_EQUAL(term->parents[0],"OpenMS:2")
+	TEST_EQUAL(*term->parents.begin(),"OpenMS:2")
+	TEST_EQUAL(term->unparsed.size(),0)
 	
 	TEST_EXCEPTION(Exception::InvalidValue , cv.getTerm("OpenMS:7"))
 RESULT

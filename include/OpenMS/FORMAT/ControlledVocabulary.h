@@ -27,7 +27,7 @@
 #ifndef OPENMS_FORMAT_CONTROLLEDVOCABULARY_H
 #define OPENMS_FORMAT_CONTROLLEDVOCABULARY_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
@@ -39,6 +39,7 @@ namespace OpenMS
 		@brief Representation of a controlled vocabulary.
 		
 		This represenation only contains the information used for parsing and validation.
+		All other lines are stored in the @em unparsed member of the the CVTerm struct.
   	
   	@ingroup Format
 	*/
@@ -52,16 +53,18 @@ namespace OpenMS
 			{
 				String name;									///< Text name
 				String id;										///< Identifier
-				std::set<String> parents;	    ///< List of parent IDs
-				std::set<String> childs;
+				std::set<String> parents;	    ///< The parent IDs
+				std::set<String> children;    ///< The child IDs
 				bool obsolete; 								///< Flag that indicates of the term is obsolete
+				StringList unparsed;					///< Unparsed lines from the definition file
 				
 				///Default constructor
 				CVTerm()
 					: name(),
 						id(),
 						parents(),
-						obsolete(false)
+						obsolete(false),
+						unparsed()
 				{
 				}
 			};

@@ -61,9 +61,9 @@ namespace OpenMS
 		String line, line_wo_spaces;
 		CVTerm term;
 	    
-	    //parse file
-	    while(getline(is,line,'\n'))
-	    {
+    //parse file
+    while(getline(is,line,'\n'))
+    {
 			line.trim();
 			line_wo_spaces = line;
 			line_wo_spaces.removeWhitespaces();
@@ -75,15 +75,14 @@ namespace OpenMS
 					if (term.id!="") //store last term
 					{
 						terms_[term.id] = term;
-						term.id="";
-						term.name="";
-						term.parents.clear();
-						term.obsolete=false;
 					}
-					else if (term.name!="")
-					{
-						cout << "Warning: Dropping term without identifier!" << endl;
-					}
+
+					//clear temporary term members
+					term.id="";
+					term.name="";
+					term.parents.clear();
+					term.obsolete=false;
+					term.unparsed.clear();
 				}
 				//new id line
 				else if (line_wo_spaces.hasPrefix("id:"))
@@ -111,10 +110,10 @@ namespace OpenMS
 				}
 				else
 				{
-					//cout << "Ignored line: '" << line << "'" << endl;
+					term.unparsed.push_back(line);
 				}
 			}
-		 }
+		}
 
 		if (term.id!="") //store last term
 		{
@@ -128,7 +127,7 @@ namespace OpenMS
 			for (set<String>::const_iterator pit = terms_[it->first].parents.begin(); pit != terms_[it->first].parents.end(); ++pit)
 			{
 				//cerr << "Parent: " << *pit << endl;
-				terms_[*pit].childs.insert(it->first);
+				terms_[*pit].children.insert(it->first);
 			}
 		}
 	}
@@ -151,8 +150,8 @@ namespace OpenMS
 	void ControlledVocabulary::getAllChildTerms(set<String>& terms, const String& parent) const
 	{
 		//cerr << "Parent: " << parent << endl;
-		const set<String>& childs = terms_[parent].childs;
-		for (set<String>::const_iterator it = childs.begin(); it != childs.end(); ++it)
+		const set<String>& children = terms_[parent].children;
+		for (set<String>::const_iterator it = children.begin(); it != children.end(); ++it)
 		{
 			terms.insert(*it);
 			getAllChildTerms(terms, *it);
