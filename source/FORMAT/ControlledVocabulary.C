@@ -78,11 +78,7 @@ namespace OpenMS
 					}
 
 					//clear temporary term members
-					term.id="";
-					term.name="";
-					term.parents.clear();
-					term.obsolete=false;
-					term.unparsed.clear();
+					term = CVTerm();
 				}
 				//new id line
 				else if (line_wo_spaces.hasPrefix("id:"))
