@@ -45,12 +45,12 @@
 
 //TODO:
 // - writing files, add to automatic tmp file validation in tests
-// - "targetList" + "target" (==inclusion list)
 // - units
 //
 //TODO (WHEN FIXED):
 // - spectrum "spectrum type" vs. scan "scanning method"?
 // - DataProcessing of "spectrum", "chromatogram" and "binaryDataArray"
+// - spectrumSettingsList cannot be referenced => where do we put  "targetList" + "target"
 //
 //MISSING (AND NOT PLANNED):
 // - more than one Precursor (isolationWindow, selectedIon, activation), but warning if more than one precursor is present

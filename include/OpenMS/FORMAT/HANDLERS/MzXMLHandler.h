@@ -372,7 +372,9 @@ namespace OpenMS
 
 				//other optional attributes
 				InstrumentSettings::ScanWindow window;
-				if ( optionalAttributeAsDouble_(window.begin, attributes, s_startmz) && optionalAttributeAsDouble_(window.end, attributes, s_endmz))
+				optionalAttributeAsDouble_(window.begin, attributes, s_startmz);
+				optionalAttributeAsDouble_(window.end, attributes, s_endmz);
+				if (window.begin!=0.0 || window.end!=0.0 )
 				{
 					exp_->back().getInstrumentSettings().getScanWindows().push_back(window);
 				}

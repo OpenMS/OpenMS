@@ -215,12 +215,14 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_EQUAL(e[0].getInstrumentSettings().getPolarity(), IonSource::POSITIVE)
 	TEST_EQUAL(e[1].getInstrumentSettings().getPolarity(), IonSource::POSITIVE)
 	TEST_EQUAL(e[2].getInstrumentSettings().getPolarity(), IonSource::NEGATIVE)
-	TEST_REAL_EQUAL(e[0].getInstrumentSettings().getScanWindows()[0].begin, 0)
+	TEST_EQUAL(e[0].getInstrumentSettings().getScanWindows().size(), 0)
+	TEST_EQUAL(e[1].getInstrumentSettings().getScanWindows().size(), 1)
 	TEST_REAL_EQUAL(e[1].getInstrumentSettings().getScanWindows()[0].begin, 110)
+	TEST_REAL_EQUAL(e[1].getInstrumentSettings().getScanWindows()[0].end, 0)
+	TEST_EQUAL(e[2].getInstrumentSettings().getScanWindows().size(), 1)
 	TEST_REAL_EQUAL(e[2].getInstrumentSettings().getScanWindows()[0].begin, 100)
-	TEST_REAL_EQUAL(e[0].getInstrumentSettings().getScanWindows()[0].end, 0)
-	TEST_REAL_EQUAL(e[1].getInstrumentSettings().getScanWindows()[0].end, 130)
 	TEST_REAL_EQUAL(e[2].getInstrumentSettings().getScanWindows()[0].end, 140)
+
 
 
 	TEST_EQUAL(e[0].getAcquisitionInfo().size(), 0)

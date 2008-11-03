@@ -30,7 +30,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-
+#include <OpenMS/METADATA/InstrumentSettings.h>
 //QT
 #include <QtGui/QDialog>
 #include <QtGui/QTreeWidget>
@@ -53,7 +53,6 @@ namespace OpenMS
 	class HPLC;
 	class PeptideIdentification;
 	class Instrument;
-	class InstrumentSettings;
 	class IonDetector;
 	class IonSource;
 	class MassAnalyzer;
@@ -70,7 +69,6 @@ namespace OpenMS
 	class Sample;
 	class SampleTreatment;
 	class Software;
-	struct InstrumentSettings::ScanWindow;
 	class SourceFile;
 	class SpectrumSettings;
 	class Tagging;

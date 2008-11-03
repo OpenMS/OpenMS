@@ -18,10 +18,10 @@
 		<dataProcessing deisotoped="1" chargeDeconvoluted="1" centroided="1" intensityCutoff="2" spotIntegration="1">
 			<software type="processing" name="MS-X" version="1.0" completionTime="2001-02-03T04:05:06"/>
 		</dataProcessing>
-		<scan num="1" msLevel="1" peaksCount="1" polarity="any" scanType="Full" centroided="1" deisotoped="1" chargeDeconvoluted="1" retentionTime="PT60S" ionisationEnergy="10" collisionEnergy="10" collisionGas="1" collisionGasPressure="10" startMz="0" endMz="0" lowMz="0" highMz="100" basePeakMz="10" basePeakIntensity="15" totIonCurrent="8">
+		<scan num="1" msLevel="1" peaksCount="1" polarity="any" scanType="Full" centroided="1" deisotoped="1" chargeDeconvoluted="1" retentionTime="PT60S" ionisationEnergy="10" collisionEnergy="10" collisionGas="1" collisionGasPressure="10" lowMz="0" highMz="100" basePeakMz="10" basePeakIntensity="15" totIonCurrent="8">
 			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QvAAAELIAAA=</peaks>
 		</scan>
-		<scan num="2" msLevel="1" peaksCount="3" polarity="+" scanType="Full" retentionTime="PT120S" startMz="110" endMz="130">
+		<scan num="2" msLevel="1" peaksCount="3" polarity="+" scanType="Full" retentionTime="PT120S" startMz="110">
 			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QtwAAELIAABC8AAAQ0gAAEMCAABCyAAA</peaks>
 		</scan>
 		<scan num="3" msLevel="1" peaksCount="5" polarity="-" scanType="zoom" retentionTime="PT180S" startMz="100" endMz="140">

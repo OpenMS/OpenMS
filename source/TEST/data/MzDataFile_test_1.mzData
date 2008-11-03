@@ -263,7 +263,7 @@
 							<userParam name="AcqComment" value="Acquisition 2"/>
 						</acquisition>
 					</acqSpecification>
-					<spectrumInstrument msLevel="2" mzRangeStart="110" mzRangeStop="130">
+					<spectrumInstrument msLevel="2" mzRangeStart="110">
 						<cvParam cvLabel="psi" accession="PSI:1000036" name="ScanMode" value="MassScan"/>
 						<cvParam cvLabel="psi" accession="PSI:1000037" name="Polarity" value="Positive"/>
 						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="120"/>
