@@ -486,10 +486,10 @@ namespace OpenMS
 		QAction* action = qobject_cast<QAction*>(sender());
 		if (!QDesktopServices::openUrl(QUrl(action->data().toString())))
 		{
-			QMessageBox::error(this, tr("Error"),
-												 tr("Unable to open\n" + 
+			QMessageBox::warning(this, tr("Error"),
+												 tr("Unable to open\n") + 
 														action->data().toString() + 
-														"\n\nPossible reason: security settings or misconfigured Operating System"));
+														tr("\n\nPossible reason: security settings or misconfigured Operating System"));
 		}
 	}
 
