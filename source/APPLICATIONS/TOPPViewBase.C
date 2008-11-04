@@ -2085,7 +2085,16 @@ namespace OpenMS
 													 "Version: %1<BR>"
 													 "<BR>"
 													 "OpenMS and TOPP is free software available under the<BR>"
-													 "Lesser GNU Public License (LGPL)").arg(VersionInfo::getVersion().toQString());
+													 "Lesser GNU Public License (LGPL)<BR>"
+													 "<BR>"
+													 "<BR>"
+													 "<BR>"
+													 "<BR>"
+													 "<BR>"
+													 "Any published work based on TOPP and OpenMS shall cite these papers:<BR>"
+													 "Sturm et al., BMC Bioinformatics (2008), 9, 163<BR>"
+													 "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>"
+													 ).arg(VersionInfo::getVersion().toQString());
 		label = new QLabel(text,dlg);
 		grid->addWidget(label,0,1,Qt::AlignTop | Qt::AlignLeft);
 		

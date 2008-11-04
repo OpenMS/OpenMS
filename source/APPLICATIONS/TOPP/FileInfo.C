@@ -166,36 +166,36 @@ class TOPPFileInfo
 		if (getFlag_("v"))
 		{
 			bool valid = true;
-			cout << endl << "Validating " << fh.typeToName(in_type) << " file";
+			cout << endl << "Validating " << fh.typeToName(in_type) << " file against ";
 			switch(in_type)
 			{
-			case FileHandler::MZDATA :
-				cout << " against schema version " << MzDataFile().getVersion() << endl;
-				valid = MzDataFile().isValid(in);
-				break;
-			case FileHandler::MZML :
-				cout << " against schema version " << MzMLFile().getVersion() << endl;
-				valid = MzMLFile().isValid(in);
-				break;
-			case FileHandler::FEATUREXML :
-				cout << " against schema version " << FeatureXMLFile().getVersion() << endl;
-				valid = FeatureXMLFile().isValid(in);
-				break;
-			case FileHandler::IDXML :
-				cout << " against schema version " << IdXMLFile().getVersion() << endl;
-				valid = IdXMLFile().isValid(in);
-				break;
-			case FileHandler::CONSENSUSXML :
-				cout << " against schema version " << ConsensusXMLFile().getVersion() << endl;
-				valid = ConsensusXMLFile().isValid(in);
-				break;
-			case FileHandler::MZXML :
-				cout << " against schema version " << MzXMLFile().getVersion() << endl;
-				valid = MzXMLFile().isValid(in);
-				break;
-			default:
-				cout << endl << "Aborted: Validation of this file type is not supported!" << endl;
-				return EXECUTION_OK;
+				case FileHandler::MZDATA :
+					cout << " against XML schema version " << MzDataFile().getVersion() << endl;
+					valid = MzDataFile().isValid(in);
+					break;
+				case FileHandler::MZML :
+					cout << " against XML schema version " << MzMLFile().getVersion() << endl;
+					valid = MzMLFile().isValid(in);
+					break;
+				case FileHandler::FEATUREXML :
+					cout << " against XML schema version " << FeatureXMLFile().getVersion() << endl;
+					valid = FeatureXMLFile().isValid(in);
+					break;
+				case FileHandler::IDXML :
+					cout << " against XML schema version " << IdXMLFile().getVersion() << endl;
+					valid = IdXMLFile().isValid(in);
+					break;
+				case FileHandler::CONSENSUSXML :
+					cout << " against XML schema version " << ConsensusXMLFile().getVersion() << endl;
+					valid = ConsensusXMLFile().isValid(in);
+					break;
+				case FileHandler::MZXML :
+					cout << " against XML schema version " << MzXMLFile().getVersion() << endl;
+					valid = MzXMLFile().isValid(in);
+					break;
+				default:
+					cout << endl << "Aborted: Validation of this file type is not supported!" << endl;
+					return EXECUTION_OK;
 			};
 
 			if (valid)
@@ -206,7 +206,30 @@ class TOPPFileInfo
 			{
 				cout << "Failed: errors are listed above!" << endl;
 			}
-
+			
+			if (in_type==FileHandler::MZML)
+			{
+				cout << endl << "Semantically validating " << fh.typeToName(in_type) << " file (CV terms):" << endl;
+				StringList errors, warnings;
+				valid = MzMLFile().isSemanticallyValid(in, errors, warnings);
+				for (UInt i=0; i<warnings.size(); ++i)
+				{
+					cout << "Warning: " << warnings[i] << endl;
+				}
+				for (UInt i=0; i<errors.size(); ++i)
+				{
+					cout << "Error: " << errors[i] << endl;
+				}
+				if (valid)
+				{
+					cout << "Success: fhe file is semantically valid!" << endl;
+				}
+				else
+				{
+					cout << "Failed: errors are listed above!" << endl;
+				}
+			}
+			
 			return EXECUTION_OK;
 		}
 

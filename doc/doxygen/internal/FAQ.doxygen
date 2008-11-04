@@ -313,6 +313,7 @@
 				<OL>
 					<LI> Prepare the platform-independent sources release file:
 						<OL>
+							<LI> Update version number TOPPView splash scree <tt>source/APPLICATIONS/TOPP</tt>
 							<LI> Update version number in <tt>source/configure.ac</tt> (AC_INIT macro)
 							<LI> Update version number in <tt>doc/OpenMS_tutorial/refman_overwrite.tex</tt>
 							<LI> Update version number in <tt>doc/TOPP_tutorial/refman_overwrite.tex</tt>

@@ -22,37 +22,18 @@
 #
 # --------------------------------------------------------------------------
 
-all:	default
+DIRECTORY=FORMAT/VALIDATORS
 
-include ../config_defs.mak
+include ../../config_defs.mak
 
-DIRECTORY=TRANSFORMATIONS
+CPP_SOURCES=\
+	SemanticValidator.C\
+	MzMLValidator.C
 
-
+include ../../common.mak
 -include .Dependencies
 
-# Take care of subdirectories
-
-dummy:
-
-default: $(OBJECTS) dummy
-	@cd RAW2PEAK; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
-	@cd FEATUREFINDER; if $(MAKE) default; then cd .. ; else cd .. ; exit 1 ; fi ;
-
-depend:	dummy
-	@echo "" > .Dependencies
-	@cd RAW2PEAK; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
-	@cd FEATUREFINDER; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1 ; fi ;
-
-default_clean: dummy
-	@-$(RM) -rf .Dependencies *~  core.*
-	@cd RAW2PEAK; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
-	@cd FEATUREFINDER; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1 ; fi ;
-
-collectlib: dummy
-	@cd RAW2PEAK; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
-	@cd FEATUREFINDER; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1 ; fi ;
 
 
-include ../config.mak
+
 

@@ -219,7 +219,7 @@ namespace OpenMS
 			///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
 			ControlledVocabulary cv_;
 			
-			///CV terms with can have a value (term => value type)
+			///CV terms which can have a value (term => value type)
 			Map<String,DataValue::DataType> cv_values_;
 			
 			/// Fills the current spectrum with peaks and meta data
@@ -708,7 +708,7 @@ namespace OpenMS
 				{
 					warning(String("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
 				}
-				//values used in wrong places and wrong types
+				//values used in wrong places and wrong value types
 				if (value!="")
 				{
 					if (!cv_values_.has(accession))
@@ -725,7 +725,7 @@ namespace OpenMS
 							}
 							catch(Exception::ConversionError&)
 							{
-								warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should be a floating-point value. The value is '" + value + "'.");
+								warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have an integer value. The value is '" + value + "'.");
 								return;
 							}
 						}
@@ -737,12 +737,18 @@ namespace OpenMS
 							}
 							catch(Exception::ConversionError&)
 							{
-								warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should be an integer value. The value is '" + value + "'.");
+								warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have a floating-point value. The value is '" + value + "'.");
 								return;
 							}
 						}
 					}
 				}
+				//no value, although there should be a numerical value
+				else if (cv_values_.has(accession) && (cv_values_[accession]==DataValue::INT_VALUE || cv_values_[accession]==DataValue::DOUBLE_VALUE))
+				{
+					warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
+					return;
+	   		}
 			}
 			
 			//------------------------- binaryDataArray ----------------------------

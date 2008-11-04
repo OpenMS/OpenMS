@@ -21,8 +21,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # --------------------------------------------------------------------------
-# $Maintainer:  Early Pearly$
-# --------------------------------------------------------------------------
 
 all:	default
 
@@ -80,8 +78,7 @@ CPP_SOURCES=\
 	TransformationXMLFile.C\
 	LibSVMEncoder.C\
 	CVMappings.C\
-	CVMappingFile.C\
-	SemanticValidator.C
+	CVMappingFile.C
 
 MOC_SOURCES=\
 	MascotRemoteQuery_moc.C
@@ -102,17 +99,20 @@ depend:	dummy $(MOC_SOURCES)
 	@$(CXX_MAKEDEPEND) $(MAKEDEP_OPTS) $(MOC_SOURCES) $(CPP_SOURCES) $(STD_CPP_INCLUDES) $(ADD_INCLUDES) $(OPENMS_INCLUDES)  >.Dependencies
 	@cd DB; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1; fi;
 	@cd HANDLERS; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1; fi;
+	@cd VALIDATORS; if $(MAKE) depend; then cd .. ; else cd .. ; exit 1; fi;
 
 default_clean: dummy
 	@-$(RM) -rf .Dependencies *~  core.* $(OBJECTS) $(EXECUTABLES) $(EXECUTABLE) $(MOC_SOURCES)
 	@cd DB; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1; fi;
 	@cd HANDLERS; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1; fi;
+	@cd VALIDATORS; if $(MAKE) default_clean; then cd .. ; else cd .. ; exit 1; fi;
 
 collectlib:	dummy
 	@echo "collecting objects from $(DIRECTORY)..."
 	@for i in $(OBJECTS); do echo $(DIRECTORY)/$$i >>$(OPENMS_PATH)/source/libOpenMS.objects ; done
 	@cd DB; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1; fi;
 	@cd HANDLERS; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1; fi;
+	@cd VALIDATORS; if $(MAKE) collectlib; then cd .. ; else cd .. ; exit 1; fi;
 
 
 include ../config.mak
@@ -128,5 +128,6 @@ default: $(OBJECTS) dummy
 	@echo "Entering directory $(DIRECTORY) ..."
 	@cd DB; if $(MAKE) default; then cd .. ; else cd .. ; exit 1; fi;
 	@cd HANDLERS; if $(MAKE) default; then cd .. ; else cd .. ; exit 1; fi;
+	@cd VALIDATORS; if $(MAKE) default; then cd .. ; else cd .. ; exit 1; fi;
 
 

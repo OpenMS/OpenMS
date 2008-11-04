@@ -47,8 +47,7 @@ namespace OpenMS
 		
 		If a critical error occurs, Exception::NotImplemented is thrown.
 		
-		@todo Finish reading and allow writing (Marc)
-		@todo Semantic Validator: Check if in the CV 'part_of' should be treated just as 'is_a'; Verify CV types -  which ones are allowed? (Marc)
+		@todo Allow writing (Marc)
 		@todo Implement Base64 integers, 16 bit and zlib support (Hiwi)
 		
 		@ingroup FileIO
@@ -101,7 +100,17 @@ namespace OpenMS
 				handler.setOptions(options_);
 				save_(filename, &handler);
 			}
-			
+
+			/**
+				@brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
+				
+				@param errors Errors during the validation are returned in this output parameter.
+				@param warnings Warnings during the validation are returned in this output parameter.
+				
+				@exception Exception::FileNotFound is thrown if the file could not be opened
+			*/
+			bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings);
+
 		private:
 			
 			/// Options for loading / storing

@@ -276,7 +276,7 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 		TEST_REAL_EQUAL(spec.getRT(),5.4)
 		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
 		TEST_EQUAL(spec.getMetaDataArrays().size(),0)
-		TEST_EQUAL(spec.getType(),SpectrumSettings::UNKNOWN)
+		TEST_EQUAL(spec.getType(),SpectrumSettings::RAWDATA)
 		TEST_EQUAL(spec.getInstrumentSettings().getScanWindows().size(),1)
 		TEST_REAL_EQUAL(spec.getInstrumentSettings().getScanWindows()[0].begin,110.0)
 		TEST_REAL_EQUAL(spec.getInstrumentSettings().getScanWindows()[0].end,905.0)
@@ -469,6 +469,25 @@ CHECK([EXTRA] bool isValid(const String& filename))
 	TEST_EQUAL(file.isValid("data/MzMLFile_2_minimal.mzML"),true)
 RESULT
 
+CHECK( bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings))
+	MzMLFile file;
+	StringList errors, warnings;
+	
+	TEST_EQUAL(file.isSemanticallyValid("data/MzMLFile_3_invalid.mzML", errors, warnings),false)
+	
+	TEST_EQUAL(errors.size(),7)
+	TEST_STRING_EQUAL(errors[0],"CV term should not have a value: 'MS:1000580 - MSn spectrum' (value: '4444') at element '/mzML/run/spectrumList/spectrum'")
+	TEST_STRING_EQUAL(errors[1],"CV term should have a floating-point value: 'MS:1000528 - lowest m/z value' (value: 'abc') at element '/mzML/run/spectrumList/spectrum/spectrumDescription'")
+	TEST_STRING_EQUAL(errors[2],"CV term should have a numerical value: 'MS:1000527 - highest m/z value' (value: '') at element '/mzML/run/spectrumList/spectrum/spectrumDescription'")
+	TEST_STRING_EQUAL(errors[3],"CV term used in invalid element: 'MS:1000133 - collision-induced dissociation' at element '/mzML/run/spectrumList/spectrum/spectrumDescription/precursorList/precursor/activation'")
+	TEST_STRING_EQUAL(errors[4],"CV term used in invalid element: 'MS:1000509 - activation energy' at element '/mzML/run/spectrumList/spectrum/spectrumDescription/precursorList/precursor/activation'")
+	TEST_STRING_EQUAL(errors[5],"CV term used in invalid element: 'MS:1000045 - collision energy' at element '/mzML/run/spectrumList/spectrum/spectrumDescription/precursorList/precursor/activation'")
+	TEST_STRING_EQUAL(errors[6],"Violated mapping rule 'R23' at element '/mzML/run/spectrumList/spectrum/spectrumDescription/precursorList/precursor/activation'")
+	
+	TEST_EQUAL(warnings.size(),2)
+	TEST_STRING_EQUAL(warnings[0],"No mapping rule found for element '/mzML/run/chromatogramList/chromatogram'")
+	TEST_STRING_EQUAL(warnings[1],"No mapping rule found for element '/mzML/run/chromatogramList/chromatogram'")
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

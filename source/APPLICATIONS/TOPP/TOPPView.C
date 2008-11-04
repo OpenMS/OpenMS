@@ -123,7 +123,9 @@ int main( int argc, const char** argv )
 		QPixmap splash_pm(splash);
 		QSplashScreen* splash = new QSplashScreen(splash_pm);
 		splash->show();
-
+		StopWatch stop_watch;
+		stop_watch.start();
+		
 	  //set plastique style unless windows / mac style is available
 	  if (QStyleFactory::keys().contains("windowsxp",Qt::CaseInsensitive))
 	  {
@@ -154,7 +156,8 @@ int main( int argc, const char** argv )
 	  a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );
 
 		// We are about to start the application proper, time to 
-		// remove the splashscreen.
+		// remove the splashscreen, If at least 2 seconds have passed.
+		while(stop_watch.getClockTime()<1.5) {/*wait*/};
 		splash->finish(mw);
 		delete splash;
 

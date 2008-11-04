@@ -40,7 +40,9 @@ namespace OpenMS
 		///Base class for loading/storing XML files that have a handler derived from XMLHandler.
 		class XMLFile
 		{
+			
 			public:
+				
 				///Default constructor
 				XMLFile();
 				/// Constructor that sets the schema location
@@ -51,12 +53,14 @@ namespace OpenMS
 				/**
 					@brief Checks if a file validates against the XML schema
 					
-					@exception Exception::NotImplemented is thrown if there is no schema available for this file type
+			  	@exception Exception::FileNotFound is thrown if the file cannot be found
+					@exception Exception::NotImplemented is thrown if there is no schema available for the file type
 				*/
 				bool isValid(const String& filename);
 				
 				///return the version of the schema
 				const String& getVersion() const;
+			
 			protected:
 				/**
 				  @brief Parses the XML file given by @p filename using the handler given by @p handler.

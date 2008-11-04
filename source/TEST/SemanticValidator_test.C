@@ -26,7 +26,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 
-#include <OpenMS/FORMAT/SemanticValidator.h>
+#include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 #include <OpenMS/FORMAT/CVMappings.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
@@ -40,6 +40,7 @@ START_TEST(SemanticValidator, "$Id$")
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
+using namespace OpenMS::Internal;
 using namespace std;
 
 CVMappings mapping;
@@ -78,64 +79,33 @@ CHECK(void setValueAttribute(const String& value))
 	NOT_TESTABLE
 RESULT
 
-CHECK(bool validate(const String& filename, ValidationOutput& output))
-	SemanticValidator::ValidationOutput out;
+CHECK(bool validate(const String& filename, StringList& output))
+	StringList errors, warnings;
 	
 	//----------------------------------------------------------------------------------------
 	//test exceptions
 	SemanticValidator sv(mapping, cv);
-	TEST_EXCEPTION(Exception::FileNotFound, sv.validate("/does/not/exist", out));
+	TEST_EXCEPTION(Exception::FileNotFound, sv.validate("/does/not/exist", errors, warnings));
 
 	//----------------------------------------------------------------------------------------
 	//test of valid file
-	TEST_EQUAL(sv.validate("data/SemanticValidator_valid.mzML", out),true);
-	TEST_EQUAL(out.unknown_terms.size(),0)
-	TEST_EQUAL(out.obsolete_terms.size(),0)
-	TEST_EQUAL(out.invalid_location.size(),0)
-	TEST_EQUAL(out.no_mapping.size(),0)
-	TEST_EQUAL(out.violated.size(),0)
-	TEST_EQUAL(out.violated_repeats.size(),0)
+	TEST_EQUAL(sv.validate("data/SemanticValidator_valid.mzML", errors, warnings),true);
+	TEST_EQUAL(errors.size(),0)
+	TEST_EQUAL(warnings.size(),0)
 
 	//----------------------------------------------------------------------------------------
 	//test of corrupt file
-	TEST_EQUAL(sv.validate("data/SemanticValidator_corrupt.mzML", out),false);
-	
-	//unkonwn
-	TEST_EQUAL(out.unknown_terms.size(),1)
-	TEST_STRING_EQUAL(out.unknown_terms[0].path,"/mzML/fileDescription/sourceFileList/sourceFile/cvParam/@accession")
-	TEST_STRING_EQUAL(out.unknown_terms[0].accession,"MS:1111569")
-	TEST_STRING_EQUAL(out.unknown_terms[0].name,"SHA-1")
-	TEST_STRING_EQUAL(out.unknown_terms[0].value,"81be39fb2700ab2f3c8b2234b91274968b6899b1")
-	
-	//obsolete
-	TEST_EQUAL(out.obsolete_terms.size(),1)
-	TEST_STRING_EQUAL(out.obsolete_terms[0].path,"/mzML/instrumentConfigurationList/instrumentConfiguration/cvParam/@accession")
-	TEST_STRING_EQUAL(out.obsolete_terms[0].accession,"MS:1000030")
-	TEST_STRING_EQUAL(out.obsolete_terms[0].name,"vendor")
-	TEST_STRING_EQUAL(out.obsolete_terms[0].value,"Thermo")
-
-	//invalid location
-	TEST_EQUAL(out.invalid_location.size(),2)
-	TEST_STRING_EQUAL(out.invalid_location[0].path,"/mzML/fileDescription/sourceFileList/sourceFile/cvParam/@accession")
-	TEST_STRING_EQUAL(out.invalid_location[0].accession,"MS:1111569")
-	TEST_STRING_EQUAL(out.invalid_location[1].path,"/mzML/instrumentConfigurationList/instrumentConfiguration/cvParam/@accession")
-	TEST_STRING_EQUAL(out.invalid_location[1].accession,"MS:1000030")
-
-	//no mapping rule found
-	TEST_EQUAL(out.no_mapping.size(),2)
-	TEST_STRING_EQUAL(out.no_mapping[0].path,"/mzML/acquisitionSettingsList/acquisitionSettings/targetList/target/cvParam/@accession")
-	TEST_STRING_EQUAL(out.no_mapping[0].accession,"MS:1000040")
-	TEST_STRING_EQUAL(out.no_mapping[1].path,"/mzML/acquisitionSettingsList/acquisitionSettings/targetList/target/cvParam/@accession")
-	TEST_STRING_EQUAL(out.no_mapping[1].accession,"MS:1000040")
-
-	//violated rules
-	TEST_EQUAL(out.violated.size(),2)
-	TEST_EQUAL(out.violated[0],"R3")
-	TEST_EQUAL(out.violated[1],"R17a")
-
-	//Repeats
-	TEST_EQUAL(out.violated_repeats.size(),1)
-	TEST_EQUAL(out.violated_repeats[0],"R6a")
+	TEST_EQUAL(sv.validate("data/SemanticValidator_corrupt.mzML", errors, warnings),false);
+	TEST_EQUAL(errors.size(),4)
+	TEST_STRING_EQUAL(errors[0],"Violated mapping rule 'R3' at element '/mzML/fileDescription/sourceFileList/sourceFile'")
+	TEST_STRING_EQUAL(errors[1],"CV term used in invalid element: 'MS:1000030 - vendor' at element '/mzML/instrumentConfigurationList/instrumentConfiguration'")
+	TEST_STRING_EQUAL(errors[2],"Violated mapping rule 'R6a' number of term repeats at element '/mzML/instrumentConfigurationList/instrumentConfiguration'")
+	TEST_STRING_EQUAL(errors[3],"Violated mapping rule 'R17a' at element '/mzML/run/spectrumList/spectrum/spectrumDescription'")
+	TEST_EQUAL(warnings.size(),4)
+	TEST_STRING_EQUAL(warnings[0],"Unknown CV term: 'MS:1111569 - SHA-1' at element '/mzML/fileDescription/sourceFileList/sourceFile'")
+	TEST_STRING_EQUAL(warnings[1],"Obsolete CV term: 'MS:1000030 - vendor' at element '/mzML/instrumentConfigurationList/instrumentConfiguration'")
+	TEST_STRING_EQUAL(warnings[2],"No mapping rule found for element '/mzML/acquisitionSettingsList/acquisitionSettings/targetList/target'")
+	TEST_STRING_EQUAL(warnings[3],"No mapping rule found for element '/mzML/acquisitionSettingsList/acquisitionSettings/targetList/target'")
 
 RESULT
 

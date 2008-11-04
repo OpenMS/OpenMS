@@ -25,6 +25,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
+#include <OpenMS/FORMAT/CVMappingFile.h>
+
 
 namespace OpenMS
 {
@@ -47,6 +50,27 @@ namespace OpenMS
   {
   	return options_;
   }
+
+	bool MzMLFile::isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings)
+	{
+		//load mapping
+		CVMappings mapping;
+		CVMappingFile().load(File::find("/MAPPING/ms-mapping.xml"),mapping);
+		
+		//load cvs
+		ControlledVocabulary cv;
+		cv.loadFromOBO("PSI",File::find("/CV/psi-ms.obo"));
+		cv.loadFromOBO("PATO",File::find("/CV/quality.obo"));
+		cv.loadFromOBO("UO",File::find("/CV/unit.obo"));
+		cv.loadFromOBO("brenda",File::find("/CV/brenda.obo"));
+		cv.loadFromOBO("GO",File::find("/CV/goslim_goa.obo"));
+		
+		//validate
+		Internal::MzMLValidator v(mapping, cv);
+		bool result = v.validate(filename, errors, warnings);
+		
+		return result;
+	}
 
 }// namespace OpenMS
 
