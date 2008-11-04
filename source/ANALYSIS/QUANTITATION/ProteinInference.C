@@ -99,15 +99,21 @@ namespace OpenMS
 				// if several PeptideIdentifications (==Spectra) were assigned to current ConsensusElement
 				// --> take the best (as above), e.g. in SILAC this could happen
 				// TODO better idea?
-				if (sort_by_unique_(peptide_hits, consensus_map[i_cm].getPeptideIdentifications()[0].isHigherScoreBetter() ))
-				{ //found a unique peptide for current ConsensusElement
-					consensus_to_peptide[i_cm] = peptide_hits[0];
-					#ifdef DEBUG_INFERENCE
+				if (peptide_hits.size()>0)
+				{
+					if (sort_by_unique_(peptide_hits, consensus_map[i_cm].getPeptideIdentifications()[0].isHigherScoreBetter() ))
+					{ //found a unique peptide for current ConsensusElement
+						consensus_to_peptide[i_cm] = peptide_hits[0];
+						#ifdef DEBUG_INFERENCE
 					std::cout << "assign peptide " <<  peptide_hits[0].getSequence() << " to Protein " << accession << std::endl;
-					#endif
+						#endif
+					}
 				}
 				
 			} // ! ConsensusMap loop
+			
+			// no peptides found that match current Protein
+			if (consensus_to_peptide.size() == 0) continue;
 			
 			// Use all matching ConsensusElements to derive a quantitation for current protein
 			// build up ratios for every map vs reference
@@ -199,7 +205,7 @@ namespace OpenMS
 			}
 		}
 		
-		//-> lets see it its unique:
+		//-> lets see if its unique:
 		if (peptide_hits_local[0].getProteinAccessions().size()!=1)
 		{
 			// this is a shared peptide --> do not use it
