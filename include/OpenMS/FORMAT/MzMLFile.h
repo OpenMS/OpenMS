@@ -47,7 +47,7 @@ namespace OpenMS
 		
 		If a critical error occurs, Exception::NotImplemented is thrown.
 		
-		@todo Allow writing (Marc)
+		@todo Writing files, add to automatic tmp file validation in tests (Marc)
 		@todo Implement Base64 integers, 16 bit and zlib support (Hiwi)
 		
 		@ingroup FileIO

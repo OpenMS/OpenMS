@@ -44,7 +44,6 @@
 #include <iostream>
 
 //TODO:
-// - writing files, add to automatic tmp file validation in tests
 // - units
 //
 //TODO (WHEN FIXED):
