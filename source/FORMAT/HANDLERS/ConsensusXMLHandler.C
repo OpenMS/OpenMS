@@ -46,6 +46,7 @@ namespace OpenMS
 						&&	(!options_.hasIntensityRange() || options_.getIntensityRange().encloses(act_cons_element_.getIntensity())))
 				{
 					consensus_map_->push_back(act_cons_element_);
+					act_cons_element_.getPeptideIdentifications().clear();
 				}
 				last_meta_ = 0;
 			}
@@ -182,6 +183,15 @@ namespace OpenMS
 			}
 			else if ( element == "consensusXML" )
 			{
+				// clean up - there is no guarantee we are using these the first time
+				// TODO do this in ConsensusXMLFile::load(); but it's another class -> merge!
+				last_meta_ = 0;
+				prot_id_ = ProteinIdentification();
+				pep_id_ = PeptideIdentification();
+				prot_hit_ = ProteinHit();
+				pep_hit_ = PeptideHit();
+				proteinid_to_accession_.clear();
+
 				//check file version against schema version
 				String file_version="1.0";
 				optionalAttributeAsString_(file_version,attributes,"version");

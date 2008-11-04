@@ -35,6 +35,7 @@
 using namespace OpenMS;
 using namespace std;
 
+
 DRange<1> makeRange(float a, float b)
 {
   DPosition<1> pa(a), pb(b);
@@ -42,6 +43,8 @@ DRange<1> makeRange(float a, float b)
 }
 
 START_TEST(ConsensusXMLFile, "$Id$")
+
+#if 0
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -264,6 +267,23 @@ CHECK([EXTRA] ProteinIdentification PeptideIdentification I/O)
 	// TEST_EQUAL(0,1);
 }
 RESULT
+#endif
+
+CHECK([EXTRA] load/store)
+{
+	ConsensusXMLFile cm_file;
+	ConsensusMap cm;
+	cm_file.load("data/ItraqQuantifier.consensusXML",cm);
+    
+	String cm_file_out;// = "data/ItraqQuantifier.consensusXML";
+	NEW_TMP_FILE(cm_file_out);
+	cm_file.store(cm_file_out,cm);
+    
+	FuzzyStringComparator fsc;
+	fsc.setAcceptableAbsolute(0.01);
+	TEST_EQUAL(fsc.compare_files(cm_file_out,"data/ItraqQuantifier.consensusXML"), true);
+}
+RESULT
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -271,3 +291,4 @@ END_TEST
 
 
 
+ 
