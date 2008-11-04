@@ -1,0 +1,105 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Chris Bielow $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+#include <OpenMS/ANALYSIS/QUANTITATION/ProteinInference.h>
+#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+///////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+START_TEST(ProteinInference, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+ProteinInference* ptr = 0;
+CHECK(ProteinInference())
+{
+	ptr = new ProteinInference();
+	TEST_NOT_EQUAL(ptr, 0)
+}
+RESULT
+
+CHECK(~ProteinInference())
+{
+	delete ptr;
+}
+RESULT
+
+CHECK((ProteinInference(const ProteinInference &cp)))
+{
+	NOT_TESTABLE
+	// has no members - this is useless
+}
+RESULT
+
+CHECK((ProteinInference& operator=(const ProteinInference &rhs)))
+{
+	NOT_TESTABLE
+	// has no members - this is useless
+}
+RESULT
+
+CHECK((void infer(ConsensusMap &consensus_map, const UInt reference_map)))
+{
+	
+  ConsensusXMLFile cm_file;
+	ConsensusMap cm;
+	cm_file.load("data/ItraqQuantifier.consensusXML",cm);
+	
+	// delete quantitative info
+	for (size_t i=0; i < cm.getProteinIdentifications()[0].getHits().size(); ++i)
+	{
+		cm.getProteinIdentifications()[0].getHits()[i].clearMetaInfo();
+	}
+	
+	// this should create the quantitation that were in place before deleting them
+	ProteinInference inferrer;
+	inferrer.infer(cm, 0);
+	
+	String cm_file_out;// = "data/ItraqQuantifier.consensusXML";
+	NEW_TMP_FILE(cm_file_out);
+	cm_file.store(cm_file_out,cm);
+	
+	FuzzyStringComparator fsc;
+	fsc.setAcceptableAbsolute(0.01);
+	TEST_EQUAL(fsc.compare_files(cm_file_out,"data/ItraqQuantifier.consensusXML"), true);
+	
+}
+RESULT
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+
+
+

@@ -484,7 +484,13 @@ namespace OpenMS
 	void TOPPViewBase::showURL()
 	{
 		QAction* action = qobject_cast<QAction*>(sender());
-		QDesktopServices::openUrl(QUrl(action->data().toString()));
+		if (!QDesktopServices::openUrl(QUrl(action->data().toString())))
+		{
+			QMessageBox::error(this, tr("Error"),
+												 tr("Unable to open\n" + 
+														action->data().toString() + 
+														"\n\nPossible reason: security settings or misconfigured Operating System"));
+		}
 	}
 
   void TOPPViewBase::addDataDB(UInt db_id, bool show_options, String caption, UInt window_id)

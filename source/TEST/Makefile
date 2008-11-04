@@ -340,6 +340,7 @@ EXECUTABLES_ANALYSIS_ID =\
 	IDFeatureMapper_test\
 	IDConsensusFeatureMapper_test\
 	ConsensusID_test\
+	ProteinInference_test\
 	ProtonDistributionModel_test\
 	PILISScoring_test\
 	HiddenMarkovModel_test\
