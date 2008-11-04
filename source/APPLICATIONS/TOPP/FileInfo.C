@@ -166,7 +166,7 @@ class TOPPFileInfo
 		if (getFlag_("v"))
 		{
 			bool valid = true;
-			cout << endl << "Validating " << fh.typeToName(in_type) << " file against ";
+			cout << endl << "Validating " << fh.typeToName(in_type) << " file";
 			switch(in_type)
 			{
 				case FileHandler::MZDATA :
@@ -209,24 +209,31 @@ class TOPPFileInfo
 			
 			if (in_type==FileHandler::MZML)
 			{
-				cout << endl << "Semantically validating " << fh.typeToName(in_type) << " file (CV terms):" << endl;
-				StringList errors, warnings;
-				valid = MzMLFile().isSemanticallyValid(in, errors, warnings);
-				for (UInt i=0; i<warnings.size(); ++i)
+				if (!valid)
 				{
-					cout << "Warning: " << warnings[i] << endl;
-				}
-				for (UInt i=0; i<errors.size(); ++i)
-				{
-					cout << "Error: " << errors[i] << endl;
-				}
-				if (valid)
-				{
-					cout << "Success: fhe file is semantically valid!" << endl;
+					cout << endl << "Semantic validation is not perfomed due to previous errors! " << endl;
 				}
 				else
 				{
-					cout << "Failed: errors are listed above!" << endl;
+					cout << endl << "Semantically validating " << fh.typeToName(in_type) << " file:" << endl;
+					StringList errors, warnings;
+					valid = MzMLFile().isSemanticallyValid(in, errors, warnings);
+					for (UInt i=0; i<warnings.size(); ++i)
+					{
+						cout << "Warning: " << warnings[i] << endl;
+					}
+					for (UInt i=0; i<errors.size(); ++i)
+					{
+						cout << "Error: " << errors[i] << endl;
+					}
+					if (valid)
+					{
+						cout << "Success: fhe file is semantically valid!" << endl;
+					}
+					else
+					{
+						cout << "Failed: errors are listed above!" << endl;
+					}
 				}
 			}
 			
