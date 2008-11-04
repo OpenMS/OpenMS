@@ -50,7 +50,7 @@
 //TODO (WHEN FIXED):
 // - spectrum "spectrum type" vs. scan "scanning method"?
 // - DataProcessing of "spectrum", "chromatogram" and "binaryDataArray"
-// - spectrumSettingsList cannot be referenced => where do we put  "targetList" + "target"
+// - acquisitionSettingsList cannot be referenced => where do we put "targetList" + "target"
 //
 //MISSING (AND NOT PLANNED):
 // - more than one Precursor (isolationWindow, selectedIon, activation), but warning if more than one precursor is present
@@ -90,6 +90,26 @@ namespace OpenMS
 					skip_spectrum_(false)
 	  	{
 	  		cv_.loadFromOBO("psi-ms", File::find("CV/psi-ms.obo"));
+	  		
+	  		//find and store those cv terms, that can have a value
+	  		for (Map<String,ControlledVocabulary::CVTerm>::const_iterator it=cv_.getTerms().begin(); it!=cv_.getTerms().end(); ++it)
+	  		{
+  				for (UInt i=0; i<it->second.unparsed.size(); ++i)
+  				{
+  					if (it->second.unparsed[i].hasSubstring("value-type:xsd\\:int"))
+  					{
+  						cv_values_[it->first] = DataValue::INT_VALUE;
+  					}
+  					else if (it->second.unparsed[i].hasSubstring("value-type:xsd\\:float"))
+  					{
+  						cv_values_[it->first] = DataValue::DOUBLE_VALUE;
+  					}
+  					else if (it->second.unparsed[i].hasSubstring("value-type:xsd\\:string"))
+  					{
+  						cv_values_[it->first] = DataValue::STRING_VALUE;
+  					}
+  				}
+	  		}
 			}
 
       /// Constructor for a read-only handler
@@ -198,6 +218,9 @@ namespace OpenMS
 			
 			///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
 			ControlledVocabulary cv_;
+			
+			///CV terms with can have a value (term => value type)
+			Map<String,DataValue::DataType> cv_values_;
 			
 			/// Fills the current spectrum with peaks and meta data
 			void fillData_();			
@@ -676,11 +699,52 @@ namespace OpenMS
 		template <typename MapType>
 		void MzMLHandler<MapType>::handleCVParam_(const String& parent_tag, const String& accession, const String& value)
 		{
-			//Warn when using obsolete CV terms
-			if (cv_.exists(accession) && cv_.getTerm(accession).obsolete)
+			//Error checks of CV values
+			if (cv_.exists(accession))
 			{
-				warning(String("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'");
+				const ControlledVocabulary::CVTerm& term = cv_.getTerm(accession);
+				//obsolete CV terms
+				if (term.obsolete)
+				{
+					warning(String("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
+				}
+				//values used in wrong places and wrong types
+				if (value!="")
+				{
+					if (!cv_values_.has(accession))
+					{
+						warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should not have a value. The value is '" + value + "'.");
+					}
+					else
+					{
+						if (cv_values_[accession]==DataValue::INT_VALUE)
+						{
+							try
+							{
+								value.toInt();
+							}
+							catch(Exception::ConversionError&)
+							{
+								warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should be a floating-point value. The value is '" + value + "'.");
+								return;
+							}
+						}
+						else if (cv_values_[accession]==DataValue::DOUBLE_VALUE)
+						{
+							try
+							{
+								value.toDouble();
+							}
+							catch(Exception::ConversionError&)
+							{
+								warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should be an integer value. The value is '" + value + "'.");
+								return;
+							}
+						}
+					}
+				}
 			}
+			
 			//------------------------- binaryDataArray ----------------------------
 			if (parent_tag=="binaryDataArray")
 			{

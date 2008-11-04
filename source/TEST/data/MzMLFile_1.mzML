@@ -155,14 +155,6 @@
       <sourceFileRefList count="1">
         <sourceFileRef ref="sf_parameters"/>
       </sourceFileRefList>
-      <targetList count="2">
-        <target>
-          <cvParam cvRef="MS" accession="MS:1000040" name="m/z" value="1000"/>
-        </target>
-        <target>
-          <cvParam cvRef="MS" accession="MS:1000040" name="m/z" value="1200"/>
-        </target>
-      </targetList>
     </acquisitionSettings>
   </acquisitionSettingsList>
   
