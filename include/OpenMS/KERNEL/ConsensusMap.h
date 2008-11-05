@@ -231,6 +231,19 @@ namespace OpenMS
 				std::sort(Base::begin(), Base::end(), ConsensusFeature::QualityLess()); 
 			}
 		}
+
+		/// Does a stable sort with respect to the size (number of elements)
+		void sortBySize() 
+		{ 
+			std::stable_sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::SizeLess()));
+		}
+
+		/// Does a stable sort with respect to the sets of maps covered by the consensus features (lexicographically).
+		void sortByMaps()
+		{
+			std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::MapsLess());
+		}
+
 		//@}
 
 		/**

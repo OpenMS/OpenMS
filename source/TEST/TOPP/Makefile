@@ -29,7 +29,7 @@ DIRECTORY=TEST/TOPP
 # Tests for individual tools
 TOPP_TOOL_TESTS = \
 	FeatureLinker_test \
-  MapAligner_test \
+	MapAligner_test \
 	ConsensusID_test \
 	MapNormalizer_test \
 	AdditiveSeries_test \
@@ -177,11 +177,11 @@ dv:
 #   NOW HERE COMES AN...
 #
 #   I  M  P  O  R  T  A  N  T     N  O  T  E  :
-#   
+#
 #   1)  READ
 #   2)  UNDERSTAND, AND
 #   3)  ADOPT
-#   
+#
 #   THE FOLLOWING USAGE OF THE TEST_FILE_EQUAL MACRO !!!
 #
 # The TEST_FILE_EQUAL function checks whether two files are equal (up to whitespace).
@@ -198,14 +198,14 @@ dv:
 # defined in CONCEPT/ClassTest.h.  (And don't forget to clean up after the test.)
 #
 # Thank you.
-# 
-# 
+#
+#
 TEST_FILE_EQUAL = \
-  if test "$(suffix $2)" == ".tmp"; \
-  then \
+	if test "$(suffix $2)" == ".tmp"; \
+	then \
 		$(ECHO) ""; \
-    $(ECHO) "WARNING:  Extension .tmp is reserved for generated files.  Maybe the order of arguments in this test is wrong?  Go and fix $@!"; \
-    $(ECHO) ""; \
+		$(ECHO) "WARNING:  Extension .tmp is reserved for generated files.  Maybe the order of arguments in this test is wrong?  Go and fix $@!"; \
+		$(ECHO) ""; \
 	fi; \
 	if $(call DIFF_WITH_OPT,$(if $2,$1,$(basename $1).tmp),$(if $2,$2,$1)); \
 	then \
@@ -603,8 +603,8 @@ RTModel_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,RTModel_4_output.tmp,RTModel_4_output.model)
 	@$(call TEST_FILE_EQUAL,RTModel_4_output.tmp_samples,RTModel_4_output.samples)
 	@$(RM) -rf RTModel_4_output.tmp_additional_parameters RTModel_4_output.tmp_samples points.txt
-	
-	
+
+
 PTModel_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "PTModel:"
@@ -614,7 +614,7 @@ PTModel_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,PTModel_1_output.tmp_samples,PTModel_1_output.samples)
 	@$(call TEST_FILE_EQUAL,PTModel_1_output.tmp_additional_parameters,PTModel_1_output.additional_parameters)
 	@$(RM) -rf PTModel_1_output.tmp_additional_parameters PTModel_1_output.tmp_samples
-	
+
 
 PTPredict_test: make_fuzzydiff
 	@$(ECHO) ""
@@ -777,8 +777,13 @@ TextExporter_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,TextExporter.tmp,TextExporter_1_output.txt)
 
 	@$(ECHO) "- Test 2: ConsensusXML test"
-	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_2_input.consensusXML -no_progress -out TextExporter.tmp)
-	@$(call TEST_FILE_EQUAL,TextExporter.tmp,TextExporter_2_output.txt)
+	@$(call RUN_PROG_OPT,TextExporter,-ini TextExporter_2_parameters.ini)
+	@$(SED) -i 's:\(.*extracted\ from\ \).*$$:\1\ <omitted>:g' TextExporter_2_consensus_centroids.tmp
+	@$(call TEST_FILE_EQUAL,TextExporter_2_consensus_centroids.tmp,TextExporter_2_consensus_centroids.wsv)
+	@$(SED) -i 's:\(.*extracted\ from\ \).*$$:\1\ <omitted>:g' TextExporter_2_consensus_elements.tmp
+	@$(call TEST_FILE_EQUAL,TextExporter_2_consensus_elements.tmp,TextExporter_2_consensus_elements.wsv)
+	@$(SED) -i 's:\(.*extracted\ from\ \).*$$:\1\ <omitted>:g' TextExporter_2_consensus_features.tmp
+	@$(call TEST_FILE_EQUAL,TextExporter_2_consensus_features.tmp,TextExporter_2_consensus_features.wsv)
 
 	@$(ECHO) "- Test 3: IdXML test"
 	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_3_input.idXML -no_progress -out TextExporter3.tmp)
@@ -798,6 +803,7 @@ SILACAnalyzer_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,SILACAnalyzer_1_output.tmp,SILACAnalyzer_1_output.consensusXML)
 
 FeatureFinderMRM_test: make_fuzzydiff
+
 	@$(ECHO) ""
 	@$(ECHO) "FeatureFinderMRM:"
 
@@ -834,5 +840,3 @@ FeatureLinker_test: make_fuzzydiff
 	@$(ECHO) "- Test 5: labeled (with estimation of RT shift)"
 	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_5_parameters.ini -in FeatureLinker_5_input.featureXML)
 	@$(call TEST_FILE_EQUAL,FeatureLinker_5_output.tmp,FeatureLinker_5_output.consensusXML)
-
-

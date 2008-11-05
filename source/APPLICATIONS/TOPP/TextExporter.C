@@ -57,40 +57,128 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-
-// Sorts consensus elements by size
-struct ConsensusElementComparator
+namespace OpenMS
 {
 
-		inline bool operator() (const ConsensusFeature & x, const ConsensusFeature & y)
-		{
-			return x.size() < y.size();
-		}
-};
+	/// Wrapper class to implement printing of FeatureHandle
+	struct FeatureHandlePrinter
+	{
+		FeatureHandlePrinter(const FeatureHandle rhs) : ref_(rhs) {}
+	 	const FeatureHandle &ref_;
+	 private:
+		FeatureHandlePrinter(); // intentionally not implemented
+		FeatureHandlePrinter(const FeatureHandlePrinter&); // intentionally not implemented
+	};
 
+	/// Output operator for a FeatureHandlePrinter.
+	std::ostream & operator << ( std::ostream& os, const FeatureHandlePrinter& rhs)
+	{
+		const UInt exponent_extra_digits = 6;
+		const UInt charge_digits = 5;
+		const unsigned prec_save = os.precision();
+		return os
+			<< std::setprecision(writtenDigits<FeatureHandle::CoordinateType>())
+			<< std::setw(writtenDigits<FeatureHandle::CoordinateType>()+exponent_extra_digits)
+			<< rhs.ref_.getRT()
+			<< ' '
+			<< std::setw(writtenDigits<FeatureHandle::CoordinateType>()+exponent_extra_digits)
+			<< rhs.ref_.getMZ()
+			<< ' '
+			<< std::setprecision(writtenDigits<FeatureHandle::IntensityType>())
+			<< std::setw(writtenDigits<FeatureHandle::IntensityType>()+exponent_extra_digits)
+			<< rhs.ref_.getIntensity()
+			<< ' '
+			<< std::setw(charge_digits)
+			<< rhs.ref_.getCharge()
+			<< std::setprecision(prec_save);
+	}
 
-class TOPPTextExporter
-	: public TOPPBase
-{
-	public:
+	/// Wrapper class to implement printing of ConsensusFeature
+	struct ConsensusFeaturePrinter
+	{
+		ConsensusFeaturePrinter(const ConsensusFeature rhs) : ref_(rhs) {}
+	 	const ConsensusFeature &ref_;
+	 private:
+		ConsensusFeaturePrinter(); // intentionally not implemented
+		ConsensusFeaturePrinter(const ConsensusFeaturePrinter&); // intentionally not implemented
+	};
+
+	/// Output operator for a ConsensusFeaturePrinter.
+	std::ostream & operator << ( std::ostream& os, const ConsensusFeaturePrinter& rhs)
+	{
+		const UInt exponent_extra_digits = 6;
+		const UInt charge_digits = 5;
+		const unsigned prec_save = os.precision();
+		return os
+			<< std::setprecision(writtenDigits<FeatureHandle::CoordinateType>())
+			<< std::setw(writtenDigits<FeatureHandle::CoordinateType>()+exponent_extra_digits)
+			<< rhs.ref_.getRT()
+			<< ' '
+			<< std::setw(writtenDigits<FeatureHandle::CoordinateType>()+exponent_extra_digits)
+			<< rhs.ref_.getMZ()
+			<< ' '
+			<< std::setprecision(writtenDigits<FeatureHandle::IntensityType>())
+			<< std::setw(writtenDigits<FeatureHandle::IntensityType>()+exponent_extra_digits)
+			<< rhs.ref_.getIntensity()
+			<< ' '
+			<< std::setw(charge_digits)
+			<< rhs.ref_.getCharge()
+			<< std::setprecision(prec_save);
+	}
+
+	// // Sorts consensus elements by size
+	// struct ConsensusElementComparator
+	// {
+
+	// 		inline bool operator() (const ConsensusFeature & x, const ConsensusFeature & y)
+	// 		{
+	// 			return x.size() < y.size();
+	// 		}
+	// };
+
+	class TOPPTextExporter
+		: public TOPPBase
+	{
+	 public:
 		TOPPTextExporter()
 			: TOPPBase("TextExporter","Exports various XML formats to a text file.")
 		{
-			
 		}
 	
-	protected:
+	 protected:
 
 		void registerOptionsAndFlags_()
 		{
-      registerInputFile_("in","<file>","","input file ");
+      registerInputFile_("in","<file>","","Input file ");
     	setValidFormats_("in",StringList::create("featureXML,consensusXML,idXML"));
-			registerFlag_("proteins_only", "set this flag if you want only protein information from an idXML file");
-			registerFlag_("peptides_only", "set this flag if you want only peptide information from an idXML file");
-
-      registerOutputFile_("out","<file>","","text file");
+      registerStringOption_("out","<file>","","Output text file. Only used for FeatureXML and IdXML.",false);
+			addEmptyLine_();
+			addText_("Options for IdXML files:");
+			registerFlag_("proteins_only", "Set this flag if you want only protein information from an idXML file");
+			registerFlag_("peptides_only", "Set this flag if you want only peptide information from an idXML file");
+			addEmptyLine_();
+			addText_("Options for ConsensusXML files:");
+			registerStringOption_("consensus_centroids","<file>","","Centroids of consensus features",false);
+			registerStringOption_("consensus_elements","<file>","","Elements of consensus features",false);
+			registerStringOption_("consensus_features","<file>","","Consensus features and contained elements from all maps (writes 'nan's if element is missing)",false);
+			addText_("Each of the consensus_... files is created as requested.");
+			registerStringOption_("sorting_method","<method>","none","Sorting method",false);
+			setValidStrings_("sorting_method",StringList::create("none,RT,MZ,RT_then_MZ,intensity,quality_decreasing,quality_increasing"));
+			registerFlag_("sort_by_maps","Apply a stable sort by the covered maps, lexicographically",false);
+			registerFlag_("sort_by_size","Apply a stable sort by decreasing size (i.e., the number of elements)",false);
+			addText_("Sorting options can be combined.  The precedence is: sort_by_size, sort_by_maps, sorting_method");
+			return;
 		}
 	
+		/*
+
+		An example for ConsensusXML:
+	
+		splot 'consensus_features.wsv' using 1:1:1 w l lw 2, 'consensus_features.wsv' using 1:1:1:($5-$1):(0):(0) with vectors nohead, 'consensus_features.wsv' using 1:1:1:(0):($9-$1):(0) with vectors nohead, 'consensus_features.wsv' using 1:1:1:(0):(0):($13-$1) with vectors nohead, 'consensus_features.wsv' using 5:1:1 w l, 'consensus_features.wsv' using 1:9:1 w l,'consensus_features.wsv' using 1:1:13 w l
+	
+		*/
+
+
 		ExitCodes main_(int , const char**)
 		{
 
@@ -113,7 +201,7 @@ class TOPPTextExporter
       
       if (in_type == FileHandler::FEATUREXML)
       {
-  			 //-------------------------------------------------------------
+				//-------------------------------------------------------------
         // loading input
         //-------------------------------------------------------------
 
@@ -121,13 +209,13 @@ class TOPPTextExporter
         FeatureXMLFile f;
         f.load(in,feature_map);             
   		
-				 // text output
+				// text output
         ofstream outstr( out.c_str() );
 
 				// stores one feature per line
 				outstr << "# rt, mz, intensity, charge, overall_quality, rt_quality, mz_quality, rt_start, rt_end" << endl;
         for (FeatureMap< >::const_iterator citer = feature_map.begin();
-             	citer != feature_map.end();
+						 citer != feature_map.end();
              ++citer)
         {
           outstr << citer->getPosition()[0] << " " << citer->getPosition()[1] << " " << citer->getIntensity();
@@ -152,70 +240,194 @@ class TOPPTextExporter
       }
       else if (in_type == FileHandler::CONSENSUSXML)
       {
-				ConsensusMap cmap;
-				vector<FeatureMap<> > feat_maps(100);
-
-				/// No progress logging implemented for ConsensusXMLFile
-				ConsensusXMLFile().load(in,cmap);
-												
-				// A consensus feature map consisting of many feature maps will often
-				// contain a lot of singleton features (i.e. features detected only in one
-				// LC-MS map). We want to put these features at the end of the text file.
-				// => sort consensus elements by size 
-				sort(cmap.begin(),cmap.end(),ConsensusElementComparator() );
-    
-				ofstream txt_out( out.c_str() );
-				
-				//Write file descriptions
-		 		const ConsensusMap::FileDescriptions& descs = cmap.getFileDescriptions();
-	 			txt_out << "#Source file descriptions:" << endl;
-	 			txt_out << "#" << endl;
-		 		for (ConsensusMap::FileDescriptions::const_iterator it=descs.begin(); it!=descs.end(); ++it)
-		 		{
-					txt_out << "# identifier " << it->first << ": " << endl;
-					txt_out << "#   filename : " << it->second.filename << endl;
-					String label = it->second.label;
-					label.trim();
-					if (label!="") txt_out << "#   label : " << it->second.label << endl;
-					if (it->second.size!=0) txt_out  << "#   size : " << it->second.size << endl;
-					txt_out << "#" << endl;
-		 		}
-				
-				// write header
-				txt_out << "#consensus_rt	consensus_mz	consensus_intensity	quality";
-		 		for (ConsensusMap::FileDescriptions::const_iterator it=descs.begin(); it!=descs.end(); ++it)
-		 		{
-					txt_out << "	intensity_" << it->first;
-				}
-				txt_out << endl;
-				
-				for (ConsensusMap::iterator cmap_it = cmap.begin(); cmap_it != cmap.end();++cmap_it)
+				if ( out != "" )
 				{
-					// write consensus rt and m/z
-					txt_out << cmap_it->getPosition()[0] << "	" << cmap_it->getPosition()[1] << "	" << cmap_it->getIntensity() << "	" << cmap_it->getQuality();
-					
-					//determine present values	
-					Map<UInt,DoubleReal> intensities;			 		 																
-					for ( ConsensusFeature::HandleSetType::const_iterator group_it = cmap_it->begin(); group_it != cmap_it->end(); ++group_it)
-					{
-						intensities[group_it->getMapIndex()] = group_it->getIntensity();
-					}
-					
-					//print all values (0.0 for missing ones)
-					for (ConsensusMap::FileDescriptions::const_iterator it=descs.begin(); it!=descs.end(); ++it)
-			 		{
-						if (intensities.has(it->first))
-						{
-							txt_out << "	" << intensities[it->first];
-						}
-						else
-						{
-							txt_out << "	0.0";
-						}
-					}
-					txt_out << endl;
+					writeLog_("Option 'out' is not functional for Consensusxml.  Use the 'consensus_...' options instead.");
+					printUsage_();
+					return ILLEGAL_PARAMETERS;          
 				}
-				txt_out.close();
+
+				String consensus_centroids = getStringOption_("consensus_centroids");
+				String consensus_elements = getStringOption_("consensus_elements");
+				String consensus_features = getStringOption_("consensus_features");
+				String sorting_method = getStringOption_("sorting_method");
+				bool sort_by_maps = getFlag_("sort_by_maps");
+				bool sort_by_size = getFlag_("sort_by_size");
+
+				ConsensusMap consensus_map;
+				ConsensusXMLFile consensus_xml_file;
+
+				consensus_xml_file.load(in,consensus_map);
+
+				if ( sorting_method == "none" )
+				{
+					// don't sort in this case
+				}
+				else if ( sorting_method == "RT")
+				{
+					consensus_map.sortByRT();
+				}
+				else if ( sorting_method == "MZ")
+				{
+					consensus_map.sortByMZ();
+				}
+				else if ( sorting_method == "RT_then_MZ")
+				{
+					consensus_map.sortByPosition();
+				}
+				else if ( sorting_method == "intensity")
+				{
+					consensus_map.sortByIntensity();
+				}
+				else if ( sorting_method == "quality_decreasing")
+				{
+					consensus_map.sortByQuality(true);
+				}
+				else if ( sorting_method == "quality_increasing")
+				{
+					consensus_map.sortByQuality(false);
+				}
+				else
+				{
+					// wrong sorting methods should already be trapped by setValidStrings_, but who knows...
+					writeLog_(String("Error: unknown sorting method: ")+sorting_method);
+					return PARSE_ERROR;
+				}
+	
+				if ( sort_by_maps )
+				{
+					consensus_map.sortByMaps();
+				}
+
+				if ( sort_by_size )
+				{
+					consensus_map.sortBySize();
+				}
+
+				DateTime date_time;
+				date_time.now();
+				String date_time_now;
+				date_time.get(date_time_now);
+
+				// ----------------------------------------------------------------------
+
+				if ( !consensus_centroids.empty() )
+				{
+					std::ofstream consensus_centroids_file(consensus_centroids.c_str());
+					if (!consensus_centroids_file)
+					{
+						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, consensus_centroids);
+					}
+
+					consensus_centroids_file
+						<< "#  Centroids of consensus features extracted from " << in 
+						<< " on " << date_time_now << std::endl
+						<< "# RT MZ Intensity Charge" << std::endl;
+					for ( ConsensusMap::const_iterator cmit = consensus_map.begin(); cmit != consensus_map.end(); ++cmit )
+					{
+						consensus_centroids_file << ConsensusFeaturePrinter(*cmit) << std::endl;
+					}
+					consensus_centroids_file.close();
+				}
+
+				// ----------------------------------------------------------------------
+			
+				if ( !consensus_elements.empty() )
+				{
+					std::ofstream consensus_elements_file(consensus_elements.c_str());
+					if (!consensus_elements_file)
+					{
+						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, consensus_elements);
+					}
+
+					consensus_elements_file
+						<< "#  Elements of consensus features extracted from " << in
+						<< " on " << date_time_now << std::endl
+						<< "# RT MZ Intensity Charge" << std::endl;
+					for ( ConsensusMap::const_iterator cmit = consensus_map.begin(); cmit != consensus_map.end(); ++cmit )
+					{
+						consensus_elements_file << std::endl;
+						for ( ConsensusFeature::const_iterator cfit = cmit->begin(); cfit != cmit->end(); ++cfit )
+						{
+							consensus_elements_file
+								<< "H " << FeatureHandlePrinter(*cfit)
+								<< "    " << ConsensusFeaturePrinter(*cmit) << std::endl;
+						}
+						// We repeat the first feature handle at the end of the list.
+						// This way you can generate closed line drawings
+						// See Gnuplot set datafile commentschars
+						consensus_elements_file
+							<< "L " << FeatureHandlePrinter(*cmit->begin())
+							<< "    " << ConsensusFeaturePrinter(*cmit) << std::endl;
+					}
+					consensus_elements_file.close();
+				}
+
+				// ----------------------------------------------------------------------
+			
+				if ( !consensus_features.empty() )
+				{
+					std::ofstream consensus_features_file(consensus_features.c_str());
+					if (!consensus_features_file)
+					{
+						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, consensus_features);
+					}
+
+					std::map<UInt,UInt> map_id_to_map_num;
+					std::vector<UInt> map_num_to_map_id;
+					std::vector<FeatureHandle> feature_handles;
+					FeatureHandle feature_handle_NaN;
+					feature_handle_NaN.setRT(std::numeric_limits<FeatureHandle::CoordinateType>::quiet_NaN());
+					feature_handle_NaN.setMZ(std::numeric_limits<FeatureHandle::CoordinateType>::quiet_NaN());
+					feature_handle_NaN.setIntensity(std::numeric_limits<FeatureHandle::IntensityType>::quiet_NaN());
+					// feature_handle_NaN.setCharge(std::numeric_limits<Int>::max());
+
+					for(ConsensusMap::FileDescriptions::const_iterator fdit = consensus_map.getFileDescriptions().begin();
+							fdit != consensus_map.getFileDescriptions().end();
+							++fdit
+						 )
+					{
+						map_id_to_map_num[fdit->first] = map_num_to_map_id.size();
+						map_num_to_map_id.push_back(fdit->first);
+					}
+
+					consensus_features_file
+						<< "#  Consensus features extracted from " << in
+						<< " on " << date_time_now << std::endl
+						<< "# RT_cf MZ_cf Intensity_cf Charge_cf";
+					for ( UInt fhindex = 0; fhindex < map_num_to_map_id.size(); ++fhindex )
+					{
+						const UInt map_id = map_num_to_map_id[fhindex];
+						consensus_features_file
+							<< "    RT_" << map_id
+							<< " MZ_" << map_id
+							<< " Intensity_" << map_id
+							<< " Charge_" << map_id;
+					}
+					consensus_features_file << std::endl;
+
+					for ( ConsensusMap::const_iterator cmit = consensus_map.begin(); cmit != consensus_map.end(); ++cmit )
+					{
+						{
+							// please can anyone explain to me why putting the next two things into one statement doesnt work?
+							std::vector<FeatureHandle> tmp(map_num_to_map_id.size(),feature_handle_NaN);
+							feature_handles.swap(tmp);
+						}
+						consensus_features_file << ConsensusFeaturePrinter(*cmit);
+						for ( ConsensusFeature::const_iterator cfit = cmit->begin(); cfit != cmit->end(); ++cfit )
+						{
+							feature_handles[map_id_to_map_num[cfit->getMapIndex()]] = *cfit;
+						}
+						for ( UInt fhindex = 0; fhindex < feature_handles.size(); ++fhindex )
+						{
+							consensus_features_file << "    " << FeatureHandlePrinter(feature_handles[fhindex]);
+						}
+						consensus_features_file << std::endl;
+					}
+					consensus_features_file.close();
+				}
+
+				return EXECUTION_OK;
       }
 			else if (in_type == FileHandler::IDXML)
 			{
@@ -284,20 +496,20 @@ class TOPPTextExporter
 						txt_out << ", enzyme=";
 						switch (sp.enzyme)
 						{
-							case ProteinIdentification::TRYPSIN:
-								txt_out << "Trypsin";
-								break;
-							case ProteinIdentification::PEPSIN_A:
-								txt_out << "PepsinA";
-								break;
-							case ProteinIdentification::PROTEASE_K:
-								txt_out << "ProteaseK";
-								break;
-							case ProteinIdentification::CHYMOTRYPSIN:
-								txt_out << "ChymoTrypsin";
-								break;
-							default:
-								txt_out << "unknown";
+						case ProteinIdentification::TRYPSIN:
+							txt_out << "Trypsin";
+							break;
+						case ProteinIdentification::PEPSIN_A:
+							txt_out << "PepsinA";
+							break;
+						case ProteinIdentification::PROTEASE_K:
+							txt_out << "ProteaseK";
+							break;
+						case ProteinIdentification::CHYMOTRYPSIN:
+							txt_out << "ChymoTrypsin";
+							break;
+						default:
+							txt_out << "unknown";
 						}
 						txt_out << ", missed_cleavages=" << sp.missed_cleavages 
 										<< ", peak_mass_tolerance=" << sp.peak_mass_tolerance 
@@ -397,8 +609,8 @@ class TOPPTextExporter
 			
 			return EXECUTION_OK;
 		}
-};
-
+	};
+}
 
 int main( int argc, const char** argv )
 {
