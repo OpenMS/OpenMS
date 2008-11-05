@@ -269,7 +269,7 @@ namespace OpenMS
         double hist_mean;
         double hist_stdev;
 
-        // tracks elements in current window, which may vary because of uneven spaced data
+        // tracks elements in current window, which may vary because of unevenly spaced data
         int elements_in_window = 0;
         int window_count = 0;
 
