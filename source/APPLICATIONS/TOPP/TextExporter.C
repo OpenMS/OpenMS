@@ -63,7 +63,7 @@ namespace OpenMS
 	/// Wrapper class to implement printing of FeatureHandle
 	struct FeatureHandlePrinter
 	{
-		FeatureHandlePrinter(const FeatureHandle rhs) : ref_(rhs) {}
+		FeatureHandlePrinter(const FeatureHandle &rhs) : ref_(rhs) {}
 	 	const FeatureHandle &ref_;
 	};
 
@@ -93,7 +93,7 @@ namespace OpenMS
 	/// Wrapper class to implement printing of ConsensusFeature
 	struct ConsensusFeaturePrinter
 	{
-		ConsensusFeaturePrinter(const ConsensusFeature rhs) : ref_(rhs) {}
+		ConsensusFeaturePrinter(const ConsensusFeature &rhs) : ref_(rhs) {}
 	 	const ConsensusFeature &ref_;
 	};
 
@@ -119,16 +119,6 @@ namespace OpenMS
 			<< rhs.ref_.getCharge()
 			<< std::setprecision(prec_save);
 	}
-
-	// // Sorts consensus elements by size
-	// struct ConsensusElementComparator
-	// {
-
-	// 		inline bool operator() (const ConsensusFeature & x, const ConsensusFeature & y)
-	// 		{
-	// 			return x.size() < y.size();
-	// 		}
-	// };
 
 	class TOPPTextExporter
 		: public TOPPBase
