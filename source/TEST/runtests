@@ -115,7 +115,7 @@ for i in $* ; do
 		echo "OK"
 	elif test "$RETVAL" = "24" -o "$RETVAL" = "152"; then
 		# test timed out (SIGXCPU signal ~ 24 (MinGW) ~ 128+24=152 (Linux) )
-		echo "TIMEOUT"	
+		echo "warning: TIMEOUT: "$i	
 	else 
 		# test didn't pass
 		OK=false
