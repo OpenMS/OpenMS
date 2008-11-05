@@ -52,6 +52,7 @@
 // - acquisitionSettingsList cannot be referenced => where do we put "targetList" + "target"
 //
 //MISSING (AND NOT PLANNED):
+// - indexMzML
 // - more than one Precursor (isolationWindow, selectedIon, activation), but warning if more than one precursor is present
 // - SourceFile of "acquisition", "precursor" and "acquisition settings"
 
@@ -212,7 +213,7 @@ namespace OpenMS
 			/// Progress logger
 			const ProgressLogger& logger_;
 			
-			/// Flag that indicates wether this spectrum should be skipped (due to options)
+			/// Flag that indicates whether this spectrum should be skipped (due to options)
 			bool skip_spectrum_;
 			
 			///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)

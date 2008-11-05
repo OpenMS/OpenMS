@@ -71,7 +71,7 @@ namespace OpenMS
 			/// returns the allowed position of the modification
 			ResidueModification::Term_Specificity getTermSpecificity() const;
 
-			/// sets wether this modification definition is fixed or variable (modification must occur vs. can occur)
+			/// sets whether this modification definition is fixed or variable (modification must occur vs. can occur)
 			void setFixedModification(bool fixed);
 
 			/// returns if the modification if fixed true, else false

@@ -48,7 +48,7 @@ namespace OpenMS
 		If a critical error occurs, Exception::NotImplemented is thrown.
 		
 		@todo Writing files, add to automatic tmp file validation in tests (Marc)
-		@todo Implement Base64 integers, 16 bit and zlib support (Hiwi)
+		@todo Implement Base64 integers, 16 bit, zlib support and chromatograms (Hiwi)
 		
 		@ingroup FileIO
 	*/
@@ -102,6 +102,14 @@ namespace OpenMS
 			}
 
 			/**
+				@brief Checks if a file validates against the XML schema.
+				
+		  	@exception Exception::FileNotFound is thrown if the file cannot be found.
+				@exception Exception::NotImplemented is thrown if there is no schema available for the file type.
+			*/
+			bool isValid(const String& filename);
+
+			/**
 				@brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
 				
 				@param errors Errors during the validation are returned in this output parameter.
@@ -115,6 +123,9 @@ namespace OpenMS
 			
 			/// Options for loading / storing
 			PeakFileOptions options_;
+			
+			/// Location of indexed mzML schema
+			String indexed_schema_location_;
 	};
 
 } // namespace OpenMS

@@ -278,7 +278,7 @@ namespace OpenMS
 			UInt match_peak_allowed_error_;///< number of peaks that may lack this test
 			
 			
-			bool show_fragment_ions_;///< wether to display fragment ions
+			bool show_fragment_ions_;///< whether to display fragment ions
 			bool print_duplicate_references_;///< whether all proteins containing a found peptide should be displayed
 			bool remove_precursor_near_peaks_;///< whether peaks near (15 amu) the precursor peak are removed
 			bool mass_type_parent_;///< mass type of the parent peak (0 - monoisotopic; 1 - average)

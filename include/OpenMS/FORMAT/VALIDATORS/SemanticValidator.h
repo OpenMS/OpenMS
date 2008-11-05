@@ -106,13 +106,13 @@ namespace OpenMS
 	      void characters(const XMLCh* const chars, const unsigned int /*length*/);
 				
 				/// Returns the current element path
-				String getPath_(UInt remove_from_end = 0) const;
+				virtual String getPath_(UInt remove_from_end = 0) const;
 				
 				/// Parses the CV term accession (required), name (required) and value (optional) from the XML attributes
-				void getCVTerm_(const xercesc::Attributes& attributes, CVTerm& parsed_term);
+				virtual void getCVTerm_(const xercesc::Attributes& attributes, CVTerm& parsed_term);
 				
 				/// Handling of the term
-				void handleTerm_(const String& path, const CVTerm& parsed_term); 
+				virtual void handleTerm_(const String& path, const CVTerm& parsed_term); 
 
 				/// Reference to the mappings
 				const CVMappings& mapping_;

@@ -102,7 +102,7 @@ namespace OpenMS
 	
 	void GradientVisualizer::addTimepoint_()
 	{
-	  //Check wether new timepoint is in range
+	  //Check whether new timepoint is in range
 		String m(new_timepoint_->text().toStdString()) ;
 		int num_time = timepoints_.size();
 		

@@ -467,12 +467,19 @@ CHECK([EXTRA] bool isValid(const String& filename))
 	MzMLFile file;
 	TEST_EQUAL(file.isValid("data/MzMLFile_1.mzML"),true)
 	TEST_EQUAL(file.isValid("data/MzMLFile_2_minimal.mzML"),true)
+	TEST_EQUAL(file.isValid("data/MzMLFile_4_indexed.mzML"),true)
 RESULT
 
 CHECK( bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings))
 	MzMLFile file;
 	StringList errors, warnings;
 	
+	//valid file
+	TEST_EQUAL(file.isSemanticallyValid("data/MzMLFile_1.mzML", errors, warnings),false)
+	TEST_EQUAL(errors.size(),4)
+	TEST_EQUAL(warnings.size(),2)
+	
+	//invalid file
 	TEST_EQUAL(file.isSemanticallyValid("data/MzMLFile_3_invalid.mzML", errors, warnings),false)
 	
 	TEST_EQUAL(errors.size(),7)
@@ -487,6 +494,12 @@ CHECK( bool isSemanticallyValid(const String& filename, StringList& errors, Stri
 	TEST_EQUAL(warnings.size(),2)
 	TEST_STRING_EQUAL(warnings[0],"No mapping rule found for element '/mzML/run/chromatogramList/chromatogram'")
 	TEST_STRING_EQUAL(warnings[1],"No mapping rule found for element '/mzML/run/chromatogramList/chromatogram'")
+
+	//indexed MzML
+	TEST_EQUAL(file.isSemanticallyValid("data/MzMLFile_4_indexed.mzML", errors, warnings),false)
+	TEST_EQUAL(errors.size(),7)
+	TEST_EQUAL(warnings.size(),2)
+
 RESULT
 
 /////////////////////////////////////////////////////////////

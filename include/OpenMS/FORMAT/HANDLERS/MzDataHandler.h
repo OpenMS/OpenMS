@@ -230,7 +230,7 @@ namespace OpenMS
 			/// spectrum counter (needed because spectra without peaks are not written)
 			UInt spec_write_counter_;
 			
-			/// Flag that indicates wether this spectrum should be skipped (due to options)
+			/// Flag that indicates whether this spectrum should be skipped (due to options)
 			bool skip_spectrum_;
 			
 			/// Progress logger

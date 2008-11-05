@@ -66,22 +66,24 @@ namespace OpenMS
     	/**
     		@brief Constructor with filename
     	
-    		@param filename the filename
-    		@param trim_lines wether or not the lines are trimmed when reading them from file
+    		@param filename The input file name.
+    		@param trim_lines Whether or not the lines are trimmed when reading them from file.
+    		@param first_n If set, only @p first_n lines the lines from the beginning of the file are read.
 
-				@exception Exception::FileNotFound is thrown if the file could not be opened
+				@exception Exception::FileNotFound is thrown if the file could not be opened.
     	*/
-			TextFile(const String& filename, bool trim_lines=false);
+			TextFile(const String& filename, bool trim_lines=false, Int first_n=-1);
 
     	/**
-    		@brief Loads data from file
+    		@brief Loads data from a text file.
     	
-    		@param filename the filename
-    		@param trim_lines wether or not the lines are trimmed when reading them from file
+    		@param filename The input file name.
+    		@param trim_lines Whether or not the lines are trimmed when reading them from file.
+    		@param first_n If set, only @p first_n lines the lines from the beginning of the file are read.
 
-				@exception Exception::FileNotFound is thrown if the file could not be opened
+				@exception Exception::FileNotFound is thrown if the file could not be opened.
     	*/
-			void load(const String& filename, bool trim_lines=false);
+			void load(const String& filename, bool trim_lines=false, Int first_n=-1);
 
     	/**
     		@brief Writes the data to a file
@@ -97,7 +99,7 @@ namespace OpenMS
     		
     		@param start the line to start the search in
     		@param text the text to find
-    		@param trim wether the line is trimmed before
+    		@param trim whether the line is trimmed before
     		@return returns an iterator to the matching line. If no line matches, end() is returned
     	*/
 			Iterator search(const Iterator& start, const String& text, bool trim=false);
@@ -115,7 +117,7 @@ namespace OpenMS
     		
     		@param start the line to start the search in
     		@param text the text to find
-    		@param trim wether the line is trimmed before
+    		@param trim whether the line is trimmed before
     		@return returns an iterator to the matching line. If no line matches, end() is returned
     	*/
 			Iterator searchSuffix(const Iterator& start, const String& text, bool trim=false);
@@ -134,7 +136,7 @@ namespace OpenMS
 
         @param start the line to start the search in
         @param text the text to find
-        @param trim wether the line is trimmed before
+        @param trim whether the line is trimmed before
         @return returns an iterator to the matching line. If no line matches, end() is returned
       */
       ConstIterator search(const ConstIterator& start, const String& text, bool trim=false) const;
@@ -152,7 +154,7 @@ namespace OpenMS
 
         @param start the line to start the search in
         @param text the text to find
-        @param trim wether the line is trimmed before
+        @param trim whether the line is trimmed before
         @return returns an iterator to the matching line. If no line matches, end() is returned
       */
       ConstIterator searchSuffix(const ConstIterator& start, const String& text, bool trim=false) const;

@@ -1026,7 +1026,7 @@ class TOPPSequestAdapter
 
 			if ( exit_code == EXECUTION_OK )
 			{
-				// check the Mz files, get the names for the dtas and check wether they do no already exist
+				// check the Mz files, get the names for the dtas and check whether they do no already exist
 				bool make_dtas = ( sequest_out && !sequest_in ) ? false : true; // if only sequest_out is set, just get the retention times
 				// creating the dta files
 				if ( make_dtas ) writeLog_("creating dta files");

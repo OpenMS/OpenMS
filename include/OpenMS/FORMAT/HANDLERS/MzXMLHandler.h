@@ -159,7 +159,7 @@ namespace OpenMS
 				String char_rest_;
 				//@}
 				
-				/// Flag that indicates wether this spectrum should be skipped (due to options)
+				/// Flag that indicates whether this spectrum should be skipped (due to options)
 				bool skip_spectrum_;
 				
 				/// spectrum counter (spectra without peaks are not written)

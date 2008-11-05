@@ -44,14 +44,14 @@ namespace OpenMS
 	{
 	}
 	
-	TextFile::TextFile(const String& filename, bool trim_lines) 
+	TextFile::TextFile(const String& filename, bool trim_lines, Int first_n) 
 		: vector<String>()
 	{
-		load(filename, trim_lines);
+		load(filename, trim_lines, first_n);
 	}
   
   
-	void TextFile::load(const String& filename, bool trim_lines) 
+	void TextFile::load(const String& filename, bool trim_lines, Int first_n) 
 	{
 		ifstream is(filename.c_str());
     if (!is)
@@ -60,7 +60,7 @@ namespace OpenMS
     }
 
 		clear();
-    
+		
     String str;
     while(getline(is,str,'\n'))
     {
@@ -71,6 +71,11 @@ namespace OpenMS
     	else
     	{
     		push_back(str);
+    	}
+    	
+    	if (first_n>-1 && (Int)(size())==first_n)
+    	{
+    		break;
     	}
     }		
 	}

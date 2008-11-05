@@ -52,16 +52,45 @@ CHECK((~TextFile()))
 	delete ptr;
 RESULT
 
-CHECK((void load(const String& filename, bool trim_lines=false) ))
+CHECK((void load(const String& filename, bool trim_lines=false, Int first_n=-1) ))
 	TextFile file;
 	
 	TEST_EXCEPTION(Exception::FileNotFound, file.load("FileDoesNotExist.txt"))	
 	
 	file.load("data/TextFile_test_infile.txt");
+	TEST_EQUAL(file.size(), 11)
 	TEST_EQUAL(file[0].trim() == "first_line", true)
 	TEST_EQUAL(file[3].trim() == "middle_line", true)
 	TEST_EQUAL(file[10].trim() == "last_line", true)
-	TEST_EQUAL(file.size(), 11)	
+	
+	//trimmed
+	file.load("data/TextFile_test_infile.txt",true);
+	TEST_EQUAL(file.size(), 11)
+	TEST_EQUAL(file[0].trim() == "first_line", true)
+	TEST_EQUAL(file[3].trim() == "middle_line", true)
+	TEST_EQUAL(file[10].trim() == "last_line", true)
+	TEST_EQUAL(file[5].trim() == "space_line", true)
+	TEST_EQUAL(file[6].trim() == "tab_line", true)
+	TEST_EQUAL(file[7].trim() == "back_space_line", true)
+	TEST_EQUAL(file[8].trim() == "back_tab_line", true)
+	
+	//only first few
+	file.load("data/TextFile_test_infile.txt",true,1);
+	TEST_EQUAL(file.size(), 1)
+	TEST_EQUAL(file[0].trim() == "first_line", true)
+	
+	file.load("data/TextFile_test_infile.txt",true,3);
+	TEST_EQUAL(file.size(), 3)
+	TEST_EQUAL(file[0].trim() == "first_line", true)
+	TEST_EQUAL(file[1].trim() == "", true)
+	TEST_EQUAL(file[2].trim() == "", true)
+	
+	file.load("data/TextFile_test_infile.txt",true,4);
+	TEST_EQUAL(file.size(), 4)
+	TEST_EQUAL(file[0].trim() == "first_line", true)
+	TEST_EQUAL(file[1].trim() == "", true)
+	TEST_EQUAL(file[2].trim() == "", true)
+	TEST_EQUAL(file[3].trim() == "middle_line", true)
 RESULT
 
 CHECK((void store(const String& filename) ))
@@ -81,7 +110,7 @@ CHECK((void store(const String& filename) ))
 	TEST_EQUAL(file[2] == "line3",true);
 RESULT
 
-CHECK((TextFile(const String& filename, bool trim_lines=false) ))
+CHECK((TextFile(const String& filename, bool trim_lines=false, Int first_n=-1) ))
 	TextFile file("data/TextFile_test_infile.txt");
 	TEST_EQUAL(file[0].trim() == "first_line", true)
 	TEST_EQUAL(file[3].trim() == "middle_line", true)

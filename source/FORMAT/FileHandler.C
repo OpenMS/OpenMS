@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
 #include <fstream>
 
@@ -176,58 +177,40 @@ namespace OpenMS
 
 	FileHandler::Type FileHandler::getTypeByContent(const String& filename)
 	{
-		ifstream is(filename.c_str());
-    if (!is)
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-    }
-
     //load first 5 lines
-    String one, two, three, four, five;
-    getline(is,one,'\n');
-    one.trim();
-    getline(is,two,'\n');
-    two.trim();
-    getline(is,three,'\n');
-    three.trim();
-    getline(is,four,'\n');
-   	four.trim();
-    getline(is,five,'\n');
-    five.trim();
-    // concatenate trimmed lines
-    String two_five = two + ' ' + three + ' ' + four + ' ' + five;
-    // replace tabs by spaces
+    TextFile file(filename,true,5);
+    file.resize(5); // in case not enough lines are in the file
+    String two_five = file[1] + ' ' + file[2] + ' ' + file[3] + ' ' + file[4];
     two_five.substitute('\t',' ');
-    
-		String all_simple = one + ' ' + two_five;
+		String all_simple = file[0] + ' ' + two_five;
 
 		//mzXML (all lines)
-    if (all_simple.find("<mzXML")!=string::npos) return MZXML;
+    if (all_simple.hasSubstring("<mzXML")) return MZXML;
     
     //mzData (all lines)
-    if (all_simple.find("<mzData")!=string::npos) return MZDATA;
+    if (all_simple.hasSubstring("<mzData")) return MZDATA;
 
     //mzML (all lines)
-    if (all_simple.find("<mzML")!=string::npos) return MZML;
+    if (all_simple.hasSubstring("<mzML")) return MZML;
     
     //feature map (all lines)
-    if (all_simple.find("<featureMap")!=string::npos) return FEATUREXML;
+    if (all_simple.hasSubstring("<featureMap")) return FEATUREXML;
 
     //ANDIMS (first line)
-    if (one.find("CDF")!=string::npos) return ANDIMS;
+    if (file[0].hasSubstring("CDF")) return ANDIMS;
 
     //IdXML (all lines)
-    if (all_simple.find("<IdXML")!=string::npos) return IDXML;
+    if (all_simple.hasSubstring("<IdXML")) return IDXML;
 
     //ConsensusXML (all lines)
-    if (all_simple.find("<consensusXML")!=string::npos) return CONSENSUSXML;
+    if (all_simple.hasSubstring("<consensusXML")) return CONSENSUSXML;
 
     //mzData (all lines)
-    if (all_simple.find("<PARAMETERS")!=string::npos) return PARAM;
+    if (all_simple.hasSubstring("<PARAMETERS")) return PARAM;
 
 
     //mzData (all lines)
-    if (all_simple.find("<TrafoXML")!=string::npos) return TRANSFORMATIONXML;
+    if (all_simple.hasSubstring("<TrafoXML")) return TRANSFORMATIONXML;
 
 		//tokenize lines two to five
 		vector<String> parts;
@@ -276,6 +259,7 @@ namespace OpenMS
 		}
 		else
 		{
+			ifstream is(filename.c_str());
 			String line;
 			while (getline(is, line))
 			{
