@@ -65,9 +65,6 @@ namespace OpenMS
 	{
 		FeatureHandlePrinter(const FeatureHandle rhs) : ref_(rhs) {}
 	 	const FeatureHandle &ref_;
-	 private:
-		FeatureHandlePrinter(); // intentionally not implemented
-		FeatureHandlePrinter(const FeatureHandlePrinter&); // intentionally not implemented
 	};
 
 	/// Output operator for a FeatureHandlePrinter.
@@ -98,9 +95,6 @@ namespace OpenMS
 	{
 		ConsensusFeaturePrinter(const ConsensusFeature rhs) : ref_(rhs) {}
 	 	const ConsensusFeature &ref_;
-	 private:
-		ConsensusFeaturePrinter(); // intentionally not implemented
-		ConsensusFeaturePrinter(const ConsensusFeaturePrinter&); // intentionally not implemented
 	};
 
 	/// Output operator for a ConsensusFeaturePrinter.
