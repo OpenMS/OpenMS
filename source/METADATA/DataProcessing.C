@@ -31,7 +31,7 @@ using namespace std;
 
 namespace OpenMS
 {
-	const std::string DataProcessing::NamesOfProcessingAction[] = {"Charge deconvolution","Deisotoping","Smoothing","Baseline reduction","Peak picking","Feature findng","Retention time alignment","Low intensity data removal","High intensity data removal","Convertion to mzData format","Convertion to mzML format","Convertion to mzXML format"};
+	const std::string DataProcessing::NamesOfProcessingAction[] = {"Charge deconvolution","Deisotoping","Smoothing","Baseline reduction","Peak picking","Feature findng","Retention time alignment","Low intensity data removal","High intensity data removal","Conversion to mzData format","Conversion to mzML format","Conversion to mzXML format","Conversion to DTA format"};
 
 	DataProcessing::DataProcessing():
 		MetaInfoInterface(),

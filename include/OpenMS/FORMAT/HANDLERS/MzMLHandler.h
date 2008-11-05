@@ -1208,6 +1208,14 @@ namespace OpenMS
 				{
 					source_files_[current_id_].setFileType("MassLynx raw");
 				}
+				else if (accession=="MS:1000740") //parameter file
+				{
+					source_files_[current_id_].setFileType("Acquisition parameter file");
+				}
+				else if (accession=="MS:1000742") //Bioworks SRF file
+				{
+					source_files_[current_id_].setFileType("Bioworks SRF");
+				}
 				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- sample ----------------------------
@@ -1827,6 +1835,10 @@ namespace OpenMS
 				else if (accession=="MS:1000546") //Conversion to mzData
 				{
 					processing_[current_id_].getProcessingActions().insert(DataProcessing::CONVERSION_MZDATA);
+				}
+				else if (accession=="MS:1000741") //Conversion to DTA
+				{
+					processing_[current_id_].getProcessingActions().insert(DataProcessing::CONVERSION_DTA);
 				}
 				//data processing action
 				else if (accession=="MS:1000033") //deisotoping

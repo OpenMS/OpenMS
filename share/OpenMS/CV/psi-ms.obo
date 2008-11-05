@@ -4708,6 +4708,24 @@ name: WARP-LC
 def: "Bruker WARP-LC software." [PSI:MS]
 is_a: MS:1000692 ! Bruker software
 
+[Term]
+id: MS:1000740
+name: parameter file
+def: "Parameter file used to configure the acquisition of raw data on the instrument." [PSI:MS]
+is_a: MS:1000560 ! Source File Type
+
+[Term]
+id: MS:1000741
+name: Conversion to dta
+def: "Conversion to dta format." [PSI:MS]
+is_a: MS:1000530 ! file format conversion
+
+[Term]
+id: MS:1000742
+name: Bioworks SRF file
+def: "Thermo Finnigan SRF file format." [PSI:MS]
+is_a: MS:1000560 ! source file type
+
 [Typedef]
 id: has_units
 name: has_units

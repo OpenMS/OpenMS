@@ -59,8 +59,9 @@ namespace OpenMS
     		LOW_INTENSITY_REMOVAL,	///< The removal of very low intensity data points
     		HIGH_INTENSITY_REMOVAL,	///< The removal of very high intensity data points
     		CONVERSION_MZDATA,			///< Convertion to mzData format
-    		CONVERSION_MZML,				///< Convertion to mzML format
-    		CONVERSION_MZXML,				///< Convertion to mzXML format
+    		CONVERSION_MZML,				///< Conversion to mzML format
+    		CONVERSION_MZXML,				///< Conversion to mzXML format
+    		CONVERSION_DTA,         ///< Conversion to DTA format
     		SIZE_OF_PROCESSINGACTION
     	};
     	/// Names of inlet types
