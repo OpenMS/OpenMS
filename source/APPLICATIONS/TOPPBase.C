@@ -96,6 +96,7 @@ namespace OpenMS
 		// prepare options and flags for command line parsing
 		map<String,String> options;
 		map<String,String> flags;
+		map<String,String> multi_options;
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
 		{
 			switch (it->type)
@@ -109,12 +110,19 @@ namespace OpenMS
 				case ParameterInformation::NONE:
 					writeLog_("Warning: undefined type of parameter '" + it->name + "'");
 					break;
+				case ParameterInformation::INPUT_FILE_LIST:
+				case ParameterInformation::OUTPUT_FILE_LIST:
+				case ParameterInformation::INTLIST:
+				case ParameterInformation::DOUBLELIST:
+				case ParameterInformation::STRINGLIST:
+					multi_options[string("-") + it->name] = it->name;
+					break;
 				default:
 					options[string("-") + it->name] = it->name;
 					break;
 			}
 		}
-		param_cmdline_.parseCommandLine(argc,argv,options,flags);
+		param_cmdline_.parseCommandLine(argc,argv,options,flags,multi_options);
 
 		// assign instance number
 		*const_cast<int*>(&instance_number_) = getParamAsInt_("instance",1);
@@ -654,7 +662,7 @@ namespace OpenMS
 			if (parameters_[i].name==name)
 			{
 				//check if the type matches
-				if (parameters_[i].type!=ParameterInformation::STRING)
+				if (parameters_[i].type!=ParameterInformation::STRING && parameters_[i].type!=ParameterInformation::STRINGLIST)
 				{
 					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
@@ -682,7 +690,7 @@ namespace OpenMS
 			if (parameters_[i].name==name)
 			{
 				//check if the type matches
-				if (parameters_[i].type!=ParameterInformation::INPUT_FILE && parameters_[i].type!=ParameterInformation::OUTPUT_FILE)
+				if (parameters_[i].type!=ParameterInformation::INPUT_FILE && parameters_[i].type!=ParameterInformation::OUTPUT_FILE && parameters_[i].type!=ParameterInformation::INPUT_FILE_LIST && parameters_[i].type!=ParameterInformation::OUTPUT_FILE_LIST)
 				{
 					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
@@ -702,7 +710,7 @@ namespace OpenMS
 			if (parameters_[i].name==name)
 			{
 				//check if the type matches
-				if (parameters_[i].type!=ParameterInformation::INT)
+				if (parameters_[i].type!=ParameterInformation::INT && parameters_[i].type!=ParameterInformation::INTLIST)
 				{
 					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
@@ -722,7 +730,7 @@ namespace OpenMS
 			if (parameters_[i].name==name)
 			{
 				//check if the type matches
-				if (parameters_[i].type!=ParameterInformation::INT)
+				if (parameters_[i].type!=ParameterInformation::INT && parameters_[i].type!=ParameterInformation::INTLIST)
 				{
 					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
@@ -742,7 +750,7 @@ namespace OpenMS
 			if (parameters_[i].name==name)
 			{
 				//check if the type matches
-				if (parameters_[i].type!=ParameterInformation::DOUBLE)
+				if (parameters_[i].type!=ParameterInformation::DOUBLE && parameters_[i].type!=ParameterInformation::DOUBLELIST)
 				{
 					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
@@ -762,7 +770,7 @@ namespace OpenMS
 			if (parameters_[i].name==name)
 			{
 				//check if the type matches
-				if (parameters_[i].type!=ParameterInformation::DOUBLE)
+				if (parameters_[i].type!=ParameterInformation::DOUBLE && parameters_[i].type!=ParameterInformation::DOUBLELIST)
 				{
 					throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,name);
 				}
@@ -794,7 +802,57 @@ namespace OpenMS
 	{
 		parameters_.push_back(ParameterInformation(name, ParameterInformation::INT, argument, String(default_value), description, required, advanced));
 	}
-
+	
+	void TOPPBase::registerOutputFileList_( const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced )
+	{
+		String str;
+		str.implode(default_value.begin(),default_value.end(),",");
+		parameters_.push_back(ParameterInformation(name,ParameterInformation::OUTPUT_FILE_LIST,argument,str,description,required,advanced));
+	}
+	
+	void TOPPBase::registerInputFileList_( const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced )
+	{
+		String str;
+		str.implode(default_value.begin(),default_value.end(),",");
+		parameters_.push_back(ParameterInformation(name,ParameterInformation::INPUT_FILE_LIST,argument,str,description,required,advanced));
+	}
+	
+	void TOPPBase::registerStringList_( const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced)
+	{
+		String str;
+		str.implode(default_value.begin(),default_value.end(),",");
+		parameters_.push_back(ParameterInformation(name,ParameterInformation::STRINGLIST,argument,str,description,required,advanced));
+	}
+	
+	void TOPPBase::registerIntList_( const String& name, const String& argument, IntList default_value, const String& description, bool required, bool advanced )
+	{
+		String str;
+		IntList::iterator it = default_value.begin();
+		str = str.append(String(*it));
+		++it;
+		for(; it < default_value.end(); ++it)
+		{
+			str = str.append(",");
+			str = str.append(String(*it));
+		}
+		parameters_.push_back(ParameterInformation(name,ParameterInformation::INTLIST,argument,str,description,required,advanced));
+	}
+	
+	void TOPPBase::registerDoubleList_( const String& name, const String& argument, DoubleList default_value, const String& description, bool required, bool advanced)
+	{
+		String str;
+		DoubleList::iterator it = default_value.begin();
+		str = str.append(String(*it));
+		++it;
+		for(; it < default_value.end(); ++it)
+		{
+			str = str.append(",");
+			str = str.append(String(*it));
+		}
+		parameters_.push_back(ParameterInformation(name,ParameterInformation::DOUBLELIST,argument,str,description,required,advanced));
+	}
+	
+	
 	void TOPPBase::registerFlag_(const String& name, const String& description, bool advanced)
 	{
 		parameters_.push_back(ParameterInformation(name, ParameterInformation::FLAG, "", "", description, false, advanced));
@@ -1011,7 +1069,179 @@ namespace OpenMS
 
 		return tmp;
 	}
+	
+	StringList TOPPBase::getStringList_(const String& name) const
+	{
+		const ParameterInformation& p = findEntry_(name);
+		if (p.type!=ParameterInformation::STRINGLIST && p.type!=ParameterInformation::INPUT_FILE_LIST && p.type!=ParameterInformation::OUTPUT_FILE_LIST)
+		{
+			throw Exception::WrongParameterType(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
+		}
+		if (p.required && !setByUser_(name) )
+		{
+			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
+		}
+		StringList tmp_list = getParamAsStringList_(name, StringList::create(p.default_value));
+		String tmp;
+		for(StringList::iterator it = tmp_list.begin(); it < tmp_list.end(); ++it)
+		{
+			tmp = *it;
+			writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
+			
+			// if required or set by user, do some validity checks
+			if (p.required || ( setByUser_(name) && tmp_list!=StringList::create(p.default_value)))
+			{
+				//check if files are readable/writeable
+				if (p.type==ParameterInformation::INPUT_FILE_LIST)
+				{
+					writeDebug_( "Checking input file '" + name + "': '" + tmp + "'", 2 );
+					inputFileReadable_(tmp);
+				}
+				else if (p.type==ParameterInformation::OUTPUT_FILE_LIST)
+				{
+					writeDebug_( "Checking output file '" + name + "': '" + tmp + "'", 2 );
+					outputFileWritable_(tmp);
+				}
+				
+				//check restrictions
+				if (p.valid_strings.size()!=0)
+				{
+					if (p.type==ParameterInformation::STRINGLIST)
+					{
+						if (find(p.valid_strings.begin(),p.valid_strings.end(),tmp)==p.valid_strings.end())
+						{
+							String valid_strings = "";
+							valid_strings.implode(p.valid_strings.begin(),p.valid_strings.end(),"','");
+							throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for string parameter '" + name + "' given. Valid strings are: '" + valid_strings + "'.");
+						}
+					}
+					else if (p.type==ParameterInformation::INPUT_FILE_LIST)
+					{
+						writeDebug_( "Checking input file '" + name + "': '" + tmp + "'", 2 );
+						inputFileReadable_(tmp);
+						
+						//create upper case list of valid formats
+						StringList formats = p.valid_strings;
+						formats.toUpper();
+						//determine file type as string
+						FileHandler fh;
+						String format = FileHandler::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
+						bool invalid = false;
+						//Wrong or unknown ending
+						if (!formats.contains(format))
+						{
+							if (format=="UNKNOWN") //Unknown ending => check content
+							{
+								format = FileHandler::typeToName(FileHandler::getTypeByContent(tmp)).toUpper();
+								if (!formats.contains(format))
+								{
+									if (format=="UNKNOWN") //Unknown format => warning as this might by the wrong format
+									{
+										writeLog_("Warning: Could not determine format of input file '" + tmp + "'!");
+									}
+									else //Wrong ending => invalid
+									{
+										invalid = true;
+									}
+								}
+							}
+							else //Wrong ending => invalid
+							{
+								invalid = true;
+							}
+						}
+						if (invalid)
+						{
+							String valid_formats = "";
+							valid_formats.implode(p.valid_strings.begin(),p.valid_strings.end(),"','");
+							throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Input file '" + tmp + "' has invalid format '") + format + "'. Valid formats are: '" + valid_formats + "'.");					
+						}
+					}
+					else if (p.type==ParameterInformation::OUTPUT_FILE_LIST)
+					{
+						writeDebug_( "Checking output file '" + name + "': '" + tmp + "'", 2 );
+						outputFileWritable_(tmp);
+	
+						//create upper case list of valid formats
+						StringList formats = p.valid_strings;
+						formats.toUpper();
+						//determine file type as string
+						FileHandler fh;
+						String format = FileHandler::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
+						//Wrong or unknown ending
+						if (!formats.contains(format) && format!="UNKNOWN")
+						{
+							String valid_formats = "";
+							valid_formats.implode(p.valid_strings.begin(),p.valid_strings.end(),"','");
+							throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid output file extension '") + tmp + "'. Valid file extensions are: '" + valid_formats + "'.");					
+						}
+					}
+				}
+			}
+		}
+		return tmp_list;
+	}
+	
+	DoubleList TOPPBase::getDoubleList_(const String& name) const
+	{
+		const ParameterInformation& p = findEntry_(name);
+		if (p.type != ParameterInformation::DOUBLELIST)
+		{
+			throw Exception::WrongParameterType(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
+		}
+		if (p.required && !setByUser_(name) )
+		{
+			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
+		}
+		DoubleList tmp_list = getParamAsDoubleList_(name, DoubleList::create(p.default_value));
+		DoubleReal tmp;
+		for(DoubleList::iterator it = tmp_list.begin(); it < tmp_list.end(); ++it)
+		{
+			tmp = *it;
+			writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
+			//check if in valid range
+			if (p.required || ( setByUser_(name) && tmp_list!=DoubleList::create(p.default_value)))
+			{
+				if (tmp<p.min_float || tmp>p.max_float)
+				{
+					throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for float parameter '" + name + "' given. Out of valid range: '" + p.min_float + "'-'" + p.max_float + "'.");
+				}
+			}
+		}
+		return tmp_list;
+	}
+	
+	IntList TOPPBase::getIntList_(const String& name) const
+	{
+		const ParameterInformation& p = findEntry_(name);
+		if (p.type != ParameterInformation::INTLIST)
+		{
+			throw Exception::WrongParameterType(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
+		}
+		if (p.required && !setByUser_(name) )
+		{
+			throw Exception::RequiredParameterNotGiven(__FILE__,__LINE__,__PRETTY_FUNCTION__, name);
+		}
+		IntList tmp_list = getParamAsIntList_(name, IntList::create(p.default_value));
+		Int tmp;
+		for(IntList::iterator it = tmp_list.begin(); it < tmp_list.end();++it)
+		{
+			tmp = *it;
+			writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
+
+			//check if in valid range
+			if (p.required || ( setByUser_(name) && tmp_list!=IntList::create(p.default_value)))
+			{
+				if (tmp<p.min_int || tmp>p.max_int)
+				{
+					throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for integer parameter '" + name + "' given. Out of valid range: '" + p.min_int + "'-'" + p.max_int + "'.");
+				}
+			}
+		}
+		return tmp_list;
+	}
+	
 	bool TOPPBase::getFlag_(const String& name) const
 	{
 		const ParameterInformation& p = findEntry_(name);
@@ -1095,7 +1325,62 @@ namespace OpenMS
 			return default_value;
 		}
 	}
-
+	
+	StringList TOPPBase::getParamAsStringList_(const String& key, const StringList& default_value) const
+	{
+		const DataValue& tmp = getParam_(key);
+		if(!tmp.isEmpty())
+		{
+			return (StringList)tmp;
+		}
+		else
+		{
+			return default_value;
+		}			
+	}
+	
+	IntList TOPPBase::getParamAsIntList_(const String& key,const IntList& default_value) const
+	{
+		const DataValue& tmp = getParam_(key);
+		if(!tmp.isEmpty())
+		{
+			StringList sl = (StringList)tmp;
+			IntList il;
+			il.resize(sl.size());
+		 	for(UInt i = 0; i < sl.size(); ++i)
+			{
+				il[i] = sl[i].toInt();
+			}
+			
+			return il;
+		}
+		else
+		{
+			return default_value;
+		}		
+	}
+	
+	DoubleList TOPPBase::getParamAsDoubleList_(const String& key,const DoubleList& default_value) const
+	{
+	const DataValue& tmp = getParam_(key);
+		if(!tmp.isEmpty())
+		{
+			StringList sl = (StringList)tmp;
+			DoubleList dl;
+			dl.resize(sl.size());
+		 	for(UInt i = 0; i < sl.size(); ++i)
+			{
+				dl[i] = sl[i].toDouble();
+			}
+			
+			return dl;
+		}
+		else
+		{
+			return default_value;
+		}		
+	}
+	
 	bool TOPPBase::getParamAsBool_(const String& key) const
 	{
 		DataValue tmp = getParam_(key);

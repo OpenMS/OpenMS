@@ -219,6 +219,9 @@ CHECK((operator IntList() const))
 	DataValue d(il);
 	IntList il_op = d;
 	TEST_EQUAL(il_op,d);
+	
+	
+  TEST_EXCEPTION(Exception::ConversionError, (StringList)DataValue("abc,ab"))
 RESULT
 
 CHECK((operator DoubleList() const))

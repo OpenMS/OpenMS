@@ -675,26 +675,6 @@ CHECK((void setValue(const String& key, DoubleReal value, const String& descript
 	TEST_EQUAL(p.hasTag("key","advanced"), true)
 RESULT
 
-CHECK((void setValue(const String& key, DoubleList& value, const String& description="", bool advanced=false)))
-	Param p;
-	DoubleList dl = DoubleList::create("1.2,23.33");
-	p.setValue("key",DoubleList::create("1.2,23.33"),"description",StringList::create("advanced"));
-	TEST_EQUAL(p.exists("key"), true)
-	TEST_EQUAL(p.getValue("key"), dl)
-	TEST_EQUAL(p.getDescription("key"), "description")
-	TEST_EQUAL(p.hasTag("key","advanced"), true)
-RESULT
-
-CHECK((void setValue(const String& key, IntList& value, const String& description="", bool advanced=false)))
-	Param p;
-	IntList il = IntList::create("1,23");
-	p.setValue("key",IntList::create("1.2,23.33"),"description",StringList::create("advanced"));
-	TEST_EQUAL(p.exists("key"), true)
-	TEST_EQUAL(p.getValue("key"), il)
-	TEST_EQUAL(p.getDescription("key"), "description")
-	TEST_EQUAL(p.hasTag("key","advanced"), true)
-RESULT
-
 CHECK(StringList getTags(const String& key) const)
 	Param p;
 	TEST_EXCEPTION(Exception::ElementNotFound, p.getTags("key"))
@@ -1308,14 +1288,18 @@ CHECK((void parseCommandLine(const int argc, const char** argv, String prefix = 
 
 RESULT
 
-CHECK((void parseCommandLine(const int argc, const char** argv, const std::map<String, String>& options_with_argument, const std::map<String, String>& options_without_argument, const String& misc="misc", const String& unknown="unknown")))
-	map<String,String> with,without;
-	with["-a"]="a";
-	with["-b"]="b";
-	with["-c"]="c";
-
+CHECK((void parseCommandLine(const int argc, const char** argv, const std::map<String, String>& options_with_one_argument, const std::map<String, String>& options_without_argument,const std::map<String,String>& options_with_multiple_argument, const String& misc="misc", const String& unknown="unknown")))
+	map<String,String> with_one,without,with_multiple;
+	with_one["-a"]="a";
+	with_one["-b"]="b";
+	with_one["-c"]="c";
+	
+	with_multiple["-d"] = "d";
+	with_multiple["-e"] = "e";
+	with_multiple["-f"] = "f";
+	with_multiple["-g"] = "g";
 	Param p2,p3;
-	p2.parseCommandLine(10,command_line4,with,without,"misc_","unknown_");
+	p2.parseCommandLine(10,command_line4,with_one,without,with_multiple,"misc_","unknown_");
 	p3.setValue("a","-1.0");
 	p3.setValue("b","bv");
 	p3.setValue("c","cv");
@@ -1323,28 +1307,28 @@ CHECK((void parseCommandLine(const int argc, const char** argv, const std::map<S
 	TEST_EQUAL(p2==p3,true)
 	
 	Param p4,p5;
-	p4.parseCommandLine(9,command_line,with,without,"misc_","unknown_");
+	p4.parseCommandLine(9,command_line,with_one,without,with_multiple,"misc_","unknown_");
 	p5.setValue("a","av");
 	p5.setValue("b","bv");
 	p5.setValue("c","cv");
 	p5.setValue("misc_",StringList::create("rv1,rv2"));
 	TEST_EQUAL(p4==p5,true)
 
-	with.clear();
-	with["-a"]="a";
+	with_one.clear();
+	with_one["-a"]="a";
 	without["-b"]="b";
 	
 	Param p40,p50;
-	p40.parseCommandLine(9,command_line,with,without,"misc__","unknown__");
+	p40.parseCommandLine(9,command_line,with_one,without,with_multiple,"misc__","unknown__");
 	p50.setValue("a","av");
 	p50.setValue("b","true");
 	p50.setValue("misc__",StringList::create("bv,cv,rv1,rv2"));
 	p50.setValue("unknown__",StringList::create("-c"));
 	TEST_EQUAL(p40==p50,true)
-
+	TEST_EQUAL(p40,p50)
 	//"executable -a av -b -c cv"	
 	Param p400,p500;
-	p400.parseCommandLine(6,command_line2,with,without,"misc__","unknown__");
+	p400.parseCommandLine(6,command_line2,with_one,without,with_multiple,"misc__","unknown__");
 	p500.setValue("a","av");
 	p500.setValue("b","true");
 	p500.setValue("misc__",StringList::create("cv"));
@@ -1353,12 +1337,52 @@ CHECK((void parseCommandLine(const int argc, const char** argv, const std::map<S
 
 	//"executable -a -b -c cv rv1"
 	Param p4000,p5000;
-	p4000.parseCommandLine(6,command_line3,with,without,"misc__","unknown__");
+	p4000.parseCommandLine(6,command_line3,with_one,without,with_multiple,"misc__","unknown__");
 	p5000.setValue("a","");
 	p5000.setValue("b","true");
 	p5000.setValue("misc__",StringList::create("cv,rv1"));
 	p5000.setValue("unknown__",StringList::create("-c"));
 	TEST_EQUAL(p4000==p5000,true)
+		
+	//"mult -d 1.333 2.23 3 -e 4 -f -g"
+	const char* a1 ="mult";
+	const char* a2 ="-d";
+	const char* a3 ="1.333";
+	const char* a4 ="2.23";
+	const char* a5 ="3";
+	const char* a6 ="-e";
+	const char* a7 ="4";
+	const char* a8 ="-f";
+	const char* a9 ="-g";
+
+	const char* command_line_mult[9];
+	command_line_mult[0] = a1;
+	command_line_mult[1] = a2;
+	command_line_mult[2] = a3;
+	command_line_mult[3] = a4;
+	command_line_mult[4] = a5;
+	command_line_mult[5] = a6;
+	command_line_mult[6] = a7;
+	command_line_mult[7] = a8;
+	command_line_mult[8] = a9;
+	Param p6,p7;
+	p6.parseCommandLine(9,command_line_mult,with_one,without,with_multiple,"misc__","unkown__");
+	p7.setValue("d",StringList::create("1.333,2.23,3"));
+	p7.setValue("e",StringList::create("4"));
+	p7.setValue("f",StringList());
+	p7.setValue("g",StringList());
+	TEST_EQUAL(p6,p7);
+	TEST_EQUAL(StringList(),StringList());
+	const char* command_line_mult1[4];
+	command_line_mult1[0] = a1;
+	command_line_mult1[1] = a2;
+	command_line_mult1[2] = a3;
+	command_line_mult1[3] = a4;
+	Param p8,p9;
+	p9.parseCommandLine(4,command_line_mult,with_one,without,with_multiple,"misc__","unkown__");
+	p8.setValue("d",StringList::create("1.333,2.23"));
+	TEST_EQUAL(p9,p8);
+	
 RESULT
 
 CHECK((void setValidStrings(const String &key, const std::vector< String > &strings) ))

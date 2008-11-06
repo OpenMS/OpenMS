@@ -57,6 +57,9 @@ class TOPPBaseTest
 			registerStringOption_("stringoption","<string>","string default","string description",false);
 			registerIntOption_("intoption","<int>",4711,"int description",false);
 			registerDoubleOption_("doubleoption","<double>",0.4711,"double description",false);
+			registerIntList_("intlist","<intlist>",IntList::create("1,2,3,4"),"intlist description",false);
+			registerDoubleList_("doublelist","<doublelist>",DoubleList::create("0.4711,1.022,4.0"),"doubelist description",false);
+			registerStringList_("stringlist","<stringlist>",StringList::create("abc,def,ghi,jkl"),"stringlist description",false);
 			registerFlag_("flag","flag description");
 		}
 
@@ -74,7 +77,22 @@ class TOPPBaseTest
 		{
 			return getIntOption_(name);
 		}
-
+		
+		StringList getStringList(const String& name) const
+		{
+			return getStringList_(name);
+		}
+		
+		IntList getIntList(const String& name) const
+		{
+			return getIntList_(name);
+		}
+		
+		DoubleList getDoubleList(const String& name) const
+		{
+			return getDoubleList_(name);
+		}
+		
 		Param const& getParam() const
 		{
 			return getParam_();
@@ -140,11 +158,18 @@ class TOPPBaseTestNOP
 			registerIntOption_("intoption","<int>",4711,"int description");
 			registerDoubleOption_("doubleoption","<double>",0.4711,"double description");
 			registerFlag_("flag","flag description");
+			registerStringList_("stringlist","<stringlist>",StringList::create("abc,def,ghi,jkl"),"stringlist description");
+			registerIntList_("intlist","<intlist>",IntList::create("1,2,3,4"),"intlist description");
+			registerDoubleList_("doublelist","<doublelist>",DoubleList::create("0.4711,1.022,4.0"),"doubelist description");
 		}
 
 		String getStringOption(const String& name) const
 		{
 			return getStringOption_(name);
+		}
+		bool setByUser(const String& name) const
+		{
+			return setByUser_(name);
 		}
 
 		double getDoubleOption(const String& name) const
@@ -156,7 +181,21 @@ class TOPPBaseTestNOP
 		{
 			return getIntOption_(name);
 		}
-
+		
+		StringList getStringList(const String& name) const
+		{
+			return getStringList_(name);
+		}
+				IntList getIntList(const String& name) const
+		{
+			return getIntList_(name);
+		}
+		
+		DoubleList getDoubleList(const String& name) const
+		{
+			return getDoubleList_(name);
+		}
+		
 		virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
 		{
 			return EXECUTION_OK;
@@ -196,7 +235,10 @@ const char* a13 ="4.5";
 const char* a14 ="-intoption";
 const char* a15 ="-doubleoption";
 const char* a16 ="4711";
-
+const char* a17 ="-stringlist";
+const char* a18 ="-intlist";
+const char* a19 ="-doublelist";
+const char* a20 ="0.411";
 CHECK(([EXTRA]String const& getIniLocation_() const))
 	//default
 	TOPPBaseTest tmp;
@@ -304,6 +346,79 @@ CHECK(([EXTRA]String getDoubleOption_(const String& name) const))
 	const char* string_cl2[2] = {a1, a11};
 	TOPPBaseTestNOP tmp3(2,string_cl2);
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp3.getDoubleOption("doubleoption"));
+RESULT
+
+CHECK(([EXTRA] String getIntList_(const String& name) const))
+	//default
+	TOPPBaseTest tmp;
+	TEST_EQUAL(tmp.getIntList("intlist"),IntList::create("1,2,3,4"))
+	//command line
+	const char* string_cl[5]={a1, a18, a6 ,a9 ,a16}; //commandline: "TOPPTOPPBaseTest -intlist 6 5 4711"
+	TOPPBaseTest tmp2(5, string_cl);
+	TEST_EQUAL(tmp2.getIntList("intlist"),IntList::create("6,5,4711"))
+	
+	const char* string_cl1[3]={a1, a18, a6}; //commandline: "TOPPTOPPBaseTest -intlist 6"
+	TOPPBaseTest tmp3(3, string_cl1);
+	TEST_EQUAL(tmp3.getIntList("intlist"),IntList::create("6"))
+	
+	TEST_EXCEPTION(Exception::WrongParameterType,tmp2.getIntList("intoption"));
+	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getIntList("imleeewenit"));
+	
+	//missing required parameters
+	const char* string_cl2[2] = {a1, a11};
+	TOPPBaseTestNOP tmp4(2,string_cl2);
+	TEST_EQUAL(false,tmp4.setByUser("intlist"));
+	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp4.getIntList("intlist"));
+RESULT	
+
+CHECK(([EXTRA] String getDoubleList_(const String& name) const))
+	//default
+	TOPPBaseTest tmp;
+	TEST_EQUAL(tmp.getDoubleList("doublelist"),DoubleList::create("0.4711,1.022,4.0"));
+	//command line
+	const char* string_cl[3]={a1, a19, a20}; //commandline:"TOPPTOPPBaseTest -doublelist 0.411"
+	TOPPBaseTest tmp2(3, string_cl);
+	TEST_EQUAL(tmp2.getDoubleList("doublelist"),DoubleList::create("0.411"));
+	const char* a21 = "4.0";
+	const char* string_cl2[5]={a1,a19,a20,a13,a21};//commandline :"TOPPTOPPBaseTest -doublelist 0.411 4.5 4.0
+	TOPPBaseTest tmp3(5,string_cl2);
+	TEST_EQUAL(tmp3.getDoubleList("doublelist"),DoubleList::create("0.411,4.5,4.0"));
+
+			const char* string_cl21[4]={a1,a19,a20,a13};//commandline :"TOPPTOPPBaseTest -doublelist 0.411 4.5
+	TOPPBaseTest tmp31(4,string_cl2);
+	TEST_EQUAL(tmp31.getDoubleList("doublelist"),DoubleList::create("0.411,4.5"));
+			
+	TEST_EXCEPTION(Exception::WrongParameterType,tmp2.getDoubleList("intoption"));
+	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getDoubleList("imleeewenit"));
+	//missing required parameters
+	const char* string_cl3[2] = {a1, a11};
+	TOPPBaseTestNOP tmp4(2,string_cl3);
+	TEST_EQUAL(false,tmp4.setByUser("doublelist"));
+	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp4.getDoubleList("doublelist"));
+RESULT
+	
+CHECK(([EXTRA] String getStringList_(const String& name) const))
+	//default
+	TOPPBaseTest tmp;
+	TEST_EQUAL(tmp.getStringList("stringlist"),StringList::create("abc,def,ghi,jkl"));
+	//command line
+	const char* string_cl[3]={a1,a17,a12};	//commandline: "TOPPTOPPBaseTest -stringlist conmandline"
+	TOPPBaseTest tmp2(3, string_cl);
+	TEST_EQUAL(tmp2.getStringList("stringlist"),StringList::create("commandline"))
+	
+	const char* string_cl2[5]={a1,a17,a12,a7, a8};	//commandline: "TOPPTOPPBaseTest -stringlist conmandline data/TOPPBase_toolcommon.ini data/TOPPBase_common.ini"
+	TOPPBaseTest tmp3(5, string_cl2);
+	TEST_EQUAL(tmp3.getStringList("stringlist"),StringList::create("commandline,data/TOPPBase_toolcommon.ini,data/TOPPBase_common.ini"));
+	
+	TEST_EXCEPTION(Exception::WrongParameterType,tmp2.getStringList("intoption"));
+	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getStringList("imleeewenit"));
+	
+	//missing required parameters
+	const char* string_cl3[2] = {a1, a11};
+	TOPPBaseTestNOP tmp4(2,string_cl3);
+	TEST_EQUAL(false,tmp4.setByUser("stringlist"));
+	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp4.getStringList("stringlist"));
+	
 RESULT
 
 CHECK(([EXTRA]bool getFlag_(const String& name) const))

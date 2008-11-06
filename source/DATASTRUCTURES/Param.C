@@ -368,16 +368,6 @@ namespace OpenMS
 		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
 	}
 
-	void Param::setValue(const String& key, const IntList& value, const String& description, const StringList& tags)
-	{
-		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
-	}
-
-	void Param::setValue(const String& key, const DoubleList& value, const String& description, const StringList& tags)
-	{
-		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
-	}
-	
 	void Param::setValidStrings(const String& key, const std::vector<String>& strings)
 	{
 		ParamEntry& entry = getEntry_(key);
@@ -727,12 +717,6 @@ namespace OpenMS
 					case DataValue::STRING_LIST:
 						os << indentation << "<ITEMLIST name=\"" << it->name << "\" type=\"string\"";
 						break;
-					case DataValue::INT_LIST:
-						os << indentation << "<ITEMLIST name=\"" << it->name << "\" type=\"int\"";
-						break;
-					case DataValue::DOUBLE_LIST:
-						os << indentation << "<ITEMLIST name=\"" << it->name << "\" type=\"double\"";
-						break;
 					default:
 						break;
 				};
@@ -830,29 +814,6 @@ namespace OpenMS
 							os << indentation << "</ITEMLIST>" << endl;	
 						}
 						break;
-					case DataValue::INT_LIST:
-						{
-							os << ">" <<  endl;
-							const IntList& list = it->value;
-							for (UInt i=0; i<list.size();++i)
-							{
-								os << indentation << "  <LISTITEM value=\"" << list[i] << "\"/>" << endl;	
-							}
-							os << indentation << "</ITEMLIST>" << endl;	
-						}
-						break;
-					case DataValue::DOUBLE_LIST:
-						{
-							os << ">" <<  endl;
-							const StringList& list = it->value;
-							for (UInt i=0; i<list.size();++i)
-							{
-								os << indentation << "  <LISTITEM value=\"" << list[i] << "\"/>" << endl;	
-							}
-							os << indentation << "</ITEMLIST>" << endl;	
-						}
-						break;
-					
 					default:
 						break;
 				};
@@ -943,7 +904,7 @@ namespace OpenMS
     }
 	}
 
-	void Param::parseCommandLine(const int argc , const char** argv, const map<String, String>& options_with_argument, const std::map<String, String>& options_without_argument, const String& misc, const String& unknown)
+	void Param::parseCommandLine(const int argc , const char** argv, const map<String, String>& options_with_one_argument, const std::map<String, String>& options_without_argument,const std::map<String,String>& options_with_multiple_argument, const String& misc, const String& unknown)
 	{
 		//determine misc key
     String misc_key = misc;
@@ -972,25 +933,57 @@ namespace OpenMS
     	if (arg1[0]=='-' && arg1[1]!='0' && arg1[1]!='1' && arg1[1]!='2' && arg1[1]!='3' && arg1[1]!='4' && arg1[1]!='5' && arg1[1]!='6' && arg1[1]!='7' && arg1[1]!='8' && arg1[1]!='9') arg1_is_option = true;
     	if (arg[0]=='-' && arg[1]!='0' && arg[1]!='1' && arg[1]!='2' && arg[1]!='3' && arg[1]!='4' && arg[1]!='5' && arg[1]!='6' && arg[1]!='7' && arg[1]!='8' && arg[1]!='9') arg_is_option = true;
     	
-
+			//with multpile argument
+			if(options_with_multiple_argument.find(arg)!=options_with_multiple_argument.end())
+			{
+				//next argument is an option
+				if(arg1_is_option)
+				{
+					root_.insert(ParamEntry("",StringList(),""),options_with_multiple_argument.find(arg)->second);
+				}		
+					//next argument is not an option	
+				else
+				{
+					StringList sl;
+					if(arg1 != String(""))
+					{
+						sl << arg1;
+					}
+					int j=(i+2);
+					if(j< argc)
+					{
+						arg1 = argv[j];
+					}
+					
+					while(j< argc && !(arg1[0]=='-' && arg1[1]!='0' && arg1[1]!='1' && arg1[1]!='2' && arg1[1]!='3' && arg1[1]!='4' && arg1[1]!='5' && arg1[1]!='6' && arg1[1]!='7' && arg1[1]!='8' && arg1[1]!='9'))
+					{
+						sl<<arg1;
+						++j;
+						arg1 = argv[j];
+					}
+					
+					root_.insert(ParamEntry("",sl,""),options_with_multiple_argument.find(arg)->second);
+					i = (j-1);
+				}
+			}
 			//without argument
-			if (options_without_argument.find(arg)!=options_without_argument.end())
+			else if (options_without_argument.find(arg)!=options_without_argument.end())
 			{
 				root_.insert(ParamEntry("",String("true"),""),options_without_argument.find(arg)->second);
 			}
-			//with argument
-			else if (options_with_argument.find(arg)!=options_with_argument.end())
+			//with one argument
+			else if (options_with_one_argument.find(arg)!=options_with_one_argument.end())
 			{
-				//next argument is not a option
+				//next argument is not an option
 				if (!arg1_is_option)
 				{
-					root_.insert(ParamEntry("",arg1,""),options_with_argument.find(arg)->second);
+					root_.insert(ParamEntry("",arg1,""),options_with_one_argument.find(arg)->second);
 					++i;
 				}
-				//next argument is a option
+				//next argument is an option
 				else
 				{
-					root_.insert(ParamEntry("",String(""),""),options_with_argument.find(arg)->second);
+					root_.insert(ParamEntry("",String(""),""),options_with_one_argument.find(arg)->second);
 				}
 			}
 			//unknown option
