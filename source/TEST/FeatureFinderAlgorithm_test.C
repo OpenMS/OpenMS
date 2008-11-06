@@ -94,6 +94,10 @@ CHECK((virtual ~FeatureFinderAlgorithm()))
 	delete ptr;
 RESULT
 
+CHECK([EXTRA] FeatureFinderAlgorithmPicked() - with RichPeak1D)
+	FeatureFinderAlgorithmPicked<RichPeak1D,Feature> ffa;
+RESULT
+
 CHECK(virtual void run())
 	FFA<Peak1D,Feature> ffa;
 	ffa.run();

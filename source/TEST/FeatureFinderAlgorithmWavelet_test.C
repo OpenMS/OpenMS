@@ -48,8 +48,16 @@ FFAW* ptr;
 CHECK(FeatureFinderAlgorithmWavelet())
 	ptr = new FFAW;
 	TEST_NOT_EQUAL(ptr,0)
+RESULT
+
+CHECK((virtual ~FeatureFinderAlgorithmWavelet()))
 	delete ptr;
 RESULT
+
+//TODO: this should work (Clemens, Rene)
+//CHECK([EXTRA] FeatureFinderAlgorithmWavelet() - with RichPeak1D)
+//	FeatureFinderAlgorithmWavelet<RichPeak1D,Feature> ffa;
+//RESULT
 
 CHECK(virtual void run())
 	// dummy subtest

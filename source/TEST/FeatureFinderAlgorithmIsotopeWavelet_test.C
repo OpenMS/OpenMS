@@ -53,6 +53,10 @@ CHECK(virtual ~FeatureFinderAlgorithmIsotopeWavelet())
 	delete ptr;
 RESULT
 
+CHECK([EXTRA] FeatureFinderAlgorithmIsotopeWavelet() - with RichPeak1D)
+	FeatureFinderAlgorithmIsotopeWavelet<RichPeak1D,Feature> ffa;
+RESULT
+
 CHECK(virtual void run())
 	//is tested in TOPP test
 	NOT_TESTABLE

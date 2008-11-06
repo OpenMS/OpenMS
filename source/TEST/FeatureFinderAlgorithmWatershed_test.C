@@ -47,7 +47,14 @@ FFAW* ptr;
 CHECK(FeatureFinderAlgorithmWatershed())
 	ptr = new FFAW;
 	TEST_NOT_EQUAL(ptr,0)
+RESULT
+
+CHECK((virtual ~FeatureFinderAlgorithmWatershed()))
 	delete ptr;
+RESULT
+
+CHECK([EXTRA] FeatureFinderAlgorithmWatershed() - with RichPeak1D)
+	FeatureFinderAlgorithmWatershed<RichPeak1D,Feature> ffa;
 RESULT
 
 CHECK(virtual void run())

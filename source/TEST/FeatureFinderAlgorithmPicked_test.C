@@ -48,9 +48,16 @@ FFPP* ptr;
 CHECK(FeatureFinderAlgorithmPicked())
 	ptr = new FFPP;
 	TEST_NOT_EQUAL(ptr,0)
+RESULT
+
+CHECK((virtual ~FeatureFinderAlgorithmPicked()))
 	delete ptr;
 RESULT
 
+CHECK([EXTRA] FeatureFinderAlgorithmPicked() - with RichPeak1D)
+	FeatureFinderAlgorithmPicked<RichPeak1D,Feature> ffa;
+RESULT
+	
 CHECK((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
 	FeatureFinderAlgorithm<Peak1D,Feature>* ptr2 = FFPP::create();
 	TEST_NOT_EQUAL(ptr2,0)

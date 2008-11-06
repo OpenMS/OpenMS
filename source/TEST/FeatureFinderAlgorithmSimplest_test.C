@@ -47,8 +47,16 @@ FFAS* ptr;
 CHECK(FeatureFinderAlgorithmSimplest())
 	ptr = new FFAS;
 	TEST_NOT_EQUAL(ptr,0)
+RESULT
+
+CHECK((virtual ~FeatureFinderAlgorithmSimplest()))
 	delete ptr;
 RESULT
+
+//TODO: this should work (Clemens)
+//CHECK([EXTRA] FeatureFinderAlgorithmSimplest() - with RichPeak1D)
+//	FeatureFinderAlgorithmSimplest<RichPeak1D,Feature> ffa;
+//RESULT
 
 CHECK(virtual void run())
 	// dummy subtest

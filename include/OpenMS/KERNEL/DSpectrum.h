@@ -137,16 +137,18 @@ namespace OpenMS
 	} // namespace Internal
 
 	/**
-		 @brief Representation of a D-dimensional spectrum.
-
-		 Some meta information about the spectrum (ms-level, precursor peak, ...) is
-		 also stored. If you want to store more meta information
-		 see the MSSpectrum and MSExperiment classes.
-
-		 Additionally an interface for the minimum and maximum position, and the minimum and maximum
-		 intensity of the peaks is provided by RangeManager.
-
-		 @ingroup Kernel
+		@brief Representation of a D-dimensional spectrum.
+		
+		Some meta information about the spectrum (ms-level, precursor peak, ...) is
+		also stored. If you want to store more meta information
+		see the MSSpectrum and MSExperiment classes.
+		
+		Additionally an interface for the minimum and maximum position, and the minimum and maximum
+		intensity of the peaks is provided by RangeManager.
+		
+		@todo Implement sorting methods, that also sort meta data (Hiwi)
+		
+		@ingroup Kernel
 	*/
 	template < typename PeakT = Peak1D, typename AllocT = std::allocator<PeakT> >
 	class DSpectrum

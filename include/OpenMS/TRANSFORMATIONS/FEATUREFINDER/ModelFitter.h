@@ -58,7 +58,9 @@ namespace OpenMS
 	Gaussian with lma optimized parameters) in retention time.
 				
 	For the isotope model, we test different charge states and peaks widths.
-                   
+  
+  @todo Fix problem with other peak types than Peak1D and enable the respective tests for FeatureFinderAlgorithmSimple, FeatureFinderAlgorithmSimplest, FeatureFinderAlgorithmWavelet (Clemens)
+  
 	@ref ModelFitter_Parameters are explained on a separate page.                   
     
 	@ingroup FeatureFinder
