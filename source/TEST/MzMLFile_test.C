@@ -82,7 +82,7 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
   		
 	TEST_EQUAL(exp.size(),4)
 	//id
-	TEST_EQUAL(exp.getIdentifier(),"urn:lsid:psidev.info:mzML.instanceDocuments.tiny.pwiz");
+	TEST_EQUAL(exp.getIdentifier(),"OpenMS_document_id");
 	//contacts
 	TEST_EQUAL(exp.getContacts().size(),2)
 	TEST_STRING_EQUAL(exp.getContacts()[0].getFirstName(),"William")
@@ -376,7 +376,7 @@ CHECK([EXTRA] load only meta data)
 	file.load("data/MzMLFile_1.mzML",exp);
 
 	TEST_EQUAL(exp.size(),0)
-	TEST_EQUAL(exp.getIdentifier(),"urn:lsid:psidev.info:mzML.instanceDocuments.tiny.pwiz");
+	TEST_EQUAL(exp.getIdentifier(),"OpenMS_document_id");
 	TEST_EQUAL(exp.getContacts().size(),2)
 	TEST_EQUAL(exp.getSourceFiles().size(),2);
 	TEST_EQUAL(exp.getInstrument().getMassAnalyzers().size(),2)
@@ -452,17 +452,6 @@ CHECK([EXTRA] load intensity range)
 	TEST_EQUAL(exp[3].size(),0)
 RESULT
 
-
-CHECK((template <typename MapType> void store(const String& filename, const MapType& map) const))
-	std::string tmp_filename;
- 	NEW_TMP_FILE(tmp_filename);
- 	
-	MzMLFile file;
-	MSExperiment<> exp;
-	TEST_EXCEPTION(Exception::NotImplemented, file.store(tmp_filename,exp))
-RESULT
-
-
 CHECK([EXTRA] bool isValid(const String& filename))
 	MzMLFile file;
 	TEST_EQUAL(file.isValid("data/MzMLFile_1.mzML"),true)
@@ -500,6 +489,28 @@ CHECK( bool isSemanticallyValid(const String& filename, StringList& errors, Stri
 	TEST_EQUAL(errors.size(),7)
 	TEST_EQUAL(warnings.size(),2)
 
+RESULT
+
+CHECK((template <typename MapType> void store(const String& filename, const MapType& map) const))
+	MzMLFile file;
+	
+	//load map
+	MSExperiment<> exp;
+	file.load("data/MzMLFile_1.mzML",exp);
+ 	
+ 	//store map
+	std::string tmp_filename;
+ 	NEW_TMP_FILE(tmp_filename);
+	file.store(tmp_filename,exp);
+	
+	//load written map
+	MSExperiment<> exp2;
+	file.load(tmp_filename,exp2);
+	
+	//tests
+	TEST_EQUAL(exp2.getIdentifier(),"OpenMS_document_id");
+	
+	
 RESULT
 
 /////////////////////////////////////////////////////////////

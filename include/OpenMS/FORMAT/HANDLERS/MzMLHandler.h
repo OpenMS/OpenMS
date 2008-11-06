@@ -1978,9 +1978,29 @@ namespace OpenMS
 		}//handleUserParam_
 
 		template <typename MapType>
-		void MzMLHandler<MapType>::writeTo(std::ostream& /*os*/)
+		void MzMLHandler<MapType>::writeTo(std::ostream& os)
 		{
-			throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+			const MapType& exp = *(cexp_);
+			logger_.startProgress(0,exp.size(),"storing mzML file");
+			
+			os	<< "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
+					<< "<mzML xmlns=\"http://psi.hupo.org/schema_revision/mzML_1.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/schema_revision/mzML_1.0.0 mzML1.0.0.xsd\" id=\"" << exp.getIdentifier() << "\" version=\"1.0\">\n";
+			// CV list
+			os	<< "  <cvList count=\"2\">\n"
+					<< "    <cv id=\"MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Ontology\" URI=\"http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\"/>\n"
+					<< "    <cv id=\"UO\" fullName=\"Unit Ontology\" URI=\"http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo\"/>\n"
+					<< "  </cvList>\n";
+			// file description
+			os	<< "  <fileDescription>\n";
+			os	<< "    <fileContent>\n";
+
+			os	<< "    </fileContent>\n";
+			os	<< "  </fileDescription>\n";
+			
+			
+			
+			os	<< "</mzML>";
+			logger_.endProgress();
 		}
 
 	} // namespace Internal

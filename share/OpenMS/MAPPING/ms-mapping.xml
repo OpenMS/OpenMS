@@ -153,10 +153,10 @@
             <CvTerm termAccession="MS:1000460" useTerm="false" termName="unit" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
             <CvTerm termAccession="UO:0000000" useTerm="false" termName="unit" isRepeatable="false" allowChildren="true" cvIdentifierRef="UO"></CvTerm>
         </CvMappingRule>
-        <CvMappingRule id="R26" cvElementPath="/mzML/run/spectrumList/spectrum/spectrumDescription/scan/scanWindowList/scanWindow/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/run/spectrumList/spectrum/spectrumDescription/scan/selectionWindowList/selectionWindow" cvTermsCombinationLogic="OR">
+        <CvMappingRule id="R26" cvElementPath="/mzML/run/spectrumList/spectrum/spectrumDescription/scan/scanWindowList/scanWindow/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/run/spectrumList/spectrum/spectrumDescription/scan/scanWindowList/scanWindow" cvTermsCombinationLogic="OR">
             <CvTerm termAccession="MS:1000549" useTerm="false" termName="selection window attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
-        <CvMappingRule id="R27" cvElementPath="/mzML/run/spectrumList/spectrum/spectrumDescription/scan/scanWindowList/scanWindow/cvParam/@unitAccession" requirementLevel="MAY" scopePath="/mzML/run/spectrumList/spectrum/spectrumDescription/scan/selectionWindowList/selectionWindow/cvParam" cvTermsCombinationLogic="OR">
+        <CvMappingRule id="R27" cvElementPath="/mzML/run/spectrumList/spectrum/spectrumDescription/scan/scanWindowList/scanWindow/cvParam/@unitAccession" requirementLevel="MAY" scopePath="/mzML/run/spectrumList/spectrum/spectrumDescription/scan/scanWindowList/scanWindow/cvParam" cvTermsCombinationLogic="OR">
             <CvTerm termAccession="MS:1000460" useTerm="false" termName="unit" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
             <CvTerm termAccession="UO:0000000" useTerm="false" termName="unit" isRepeatable="false" allowChildren="true" cvIdentifierRef="UO"></CvTerm>
         </CvMappingRule>

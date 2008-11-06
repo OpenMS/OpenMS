@@ -28,7 +28,9 @@
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/CVMappings.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -62,6 +64,7 @@ class TOPPCVInspector
 	{
 		registerInputFile_("OBO_file","<file>","","Ontology file in OBO format where the CV terms are stored");
 		registerInputFile_("mapping_file","<file>","","Mapping file in CVMapping (XML) format, where the mappings are defined", false);
+		registerOutputFile_("html","<file>","","Writes an HTML version of the mapping file with annotated CV terms", false);
 	}	
 	
 	ExitCodes main_(int , const char**)
@@ -71,7 +74,7 @@ class TOPPCVInspector
 	
 		// load cv terms
 		ControlledVocabulary cv;
-		cv.loadFromOBO("PSI-PI", OBO_file);
+		cv.loadFromOBO("PSI-MS", OBO_file);
 //		cv.loadFromOBO("PATO", "quality.obo");
 //		cv.loadFromOBO("UO", "unit.obo");
 //		cv.loadFromOBO("brenda", "brenda.obo");
@@ -83,6 +86,149 @@ class TOPPCVInspector
 		CVMappings mappings;
 		CVMappingFile().load(mapping_file, mappings);
 		cerr << "Loaded " << mappings.getMappingRules().size() << " mapping rules" << endl;
+		
+		//store HTML version of mapping
+		if (getStringOption_("html")!="")
+		{
+			TextFile file;
+			file.push_back("<HTML>");
+			file.push_back("  <HEAD>");
+			file.push_back("    <TITLE>CV mapping file</TITLE>");
+			file.push_back("    <SCRIPT language=javascript type='text/javascript'>");
+			file.push_back("      function toggleDiv(layer_ref,force_state) ");
+			file.push_back("      {");
+			file.push_back("        if (document.getElementById(layer_ref).style.display=='none' || force_state=='true')");
+			file.push_back("        {");
+			file.push_back("          document.getElementById(layer_ref).style.display = 'block';");
+			file.push_back("        }");
+			file.push_back("        else if (document.getElementById(layer_ref).style.display=='block' || force_state=='false')");
+			file.push_back("        {");
+			file.push_back("          document.getElementById(layer_ref).style.display = 'none';");
+			file.push_back("        }");
+			file.push_back("      }");
+			file.push_back("    </SCRIPT>");
+			file.push_back("  </HEAD>");
+			file.push_back("  <BODY>");
+			
+			//count the number of terms and add button to expend/collaps all terms
+			UInt term_count = 0;
+			for (vector<CVMappings::CVMappingRule>::const_iterator it = mappings.getMappingRules().begin(); it != mappings.getMappingRules().end(); ++it)
+			{
+				for (vector<CVMappings::CVTerm>::const_iterator tit = it->getCVTerms().begin(); tit != it->getCVTerms().end(); ++tit)
+				{
+					++term_count;
+				}
+			}
+			String expand_all = "    <a href=\"javascript:toggleDiv('div0','true')";
+			String collapse_all = "    <a href=\"javascript:toggleDiv('div0','false')";
+			for (UInt i=1; i<term_count; ++i)
+			{
+				expand_all += String(";toggleDiv('div") + i + "','true')";
+				collapse_all += String(";toggleDiv('div") + i + "','false')";
+			}			
+			file.push_back(expand_all + "\">Expand all</a><BR>");
+			file.push_back(collapse_all + "\">Collapse all</a>");
+			file.push_back("    <TABLE width=100% border=0>");
+			term_count = -1;
+			for (vector<CVMappings::CVMappingRule>::const_iterator it = mappings.getMappingRules().begin(); it != mappings.getMappingRules().end(); ++it)
+			{
+				//create rule line
+				file.push_back("      <TR><TD colspan=\"2\"><HR></TD></TR>");
+				file.push_back(String("      <TR><TD>Identifier:</TD><TD><B>") + it->getIdentifier() + "</B></TD></TR>");
+				file.push_back(String("      <TR><TD>Element:</TD><TD><B>") + it->getElementPath() + "</B></TD></TR>");
+				if (it->getRequirementLevel()==CVMappings::CVMappingRule::MUST)
+				{
+					file.push_back("      <TR><TD>Requirement level:</TD><TD><FONT color=\"red\">MUST</FONT></TD></TR>");
+				}
+				else if (it->getRequirementLevel()==CVMappings::CVMappingRule::SHOULD)
+				{
+					file.push_back("      <TR><TD>Requirement level:</TD><TD><FONT color=\"yellow\">SHOULD</FONT></TD></TR>");
+				}
+				else if (it->getRequirementLevel()==CVMappings::CVMappingRule::MAY)
+				{
+					file.push_back("      <TR><TD>Requirement level:</TD><TD><FONT color=\"green\">MAY</FONT></TD></TR>");
+				}
+				if (it->getCombinationsLogic()==CVMappings::CVMappingRule::AND)
+				{
+					file.push_back("      <TR><TD>Combination logic:</TD><TD><FONT color=\"red\">AND</FONT></TD></TR>");
+				}
+				else if (it->getCombinationsLogic()==CVMappings::CVMappingRule::XOR)
+				{
+					file.push_back("      <TR><TD>Combination logic:</TD><TD><FONT color=\"yellow\">XOR</FONT></TD></TR>");
+				}
+				else if (it->getCombinationsLogic()==CVMappings::CVMappingRule::OR)
+				{
+					file.push_back("      <TR><TD>Combination logic:</TD><TD><FONT color=\"green\">OR</FONT></TD></TR>");
+				}
+				
+				//create table with terms
+				for (vector<CVMappings::CVTerm>::const_iterator tit = it->getCVTerms().begin(); tit != it->getCVTerms().end(); ++tit)
+				{
+					++term_count;
+					//create term line
+					String term_line = String("      <TR><TD valign=\"top\">Term:</TD><TD>");
+					if (tit->getAllowChildren())
+					{
+						term_line += String("<a href=\"javascript:toggleDiv('div") + term_count + "','')\" style=\"text-decoration:none\" >+</a> ";
+					}
+					else
+					{
+						term_line += "&nbsp;&nbsp;";
+					}
+					term_line += tit->getAccession() + " ! " + tit->getTermName();
+					StringList tags;
+					if (!tit->getUseTerm())
+					{
+						tags.push_back("children only");
+					}
+					if (tit->getIsRepeatable())
+					{
+						tags.push_back("repeatable");
+					}
+					if(cv.exists(tit->getAccession()) && cv.getTerm(tit->getAccession()).obsolete)
+					{
+						tags.push_back("<font color=red>obsolete</font>");
+					}
+					if (tags.size()!=0)
+					{
+						String tags_string;
+						tags_string.implode(tags.begin(),tags.end(),", ");
+						term_line += String(" (") + tags_string + ")";
+					}
+					file.push_back(term_line);
+					
+					// check whether we need the whole tree, or just the term itself
+					if (tit->getAllowChildren())
+					{
+						file.push_back(String("        <div id=\"div") + term_count + "\" style=\"display: none\">");
+						if (cv.exists(tit->getAccession()))
+						{
+							set<String> allowed_terms;
+							cv.getAllChildTerms(allowed_terms, tit->getAccession());
+							for (set<String>::const_iterator atit=allowed_terms.begin(); atit!=allowed_terms.end(); ++atit)
+							{
+								const ControlledVocabulary::CVTerm& child_term = cv.getTerm(*atit);
+								String subterm_string = String("          &nbsp;&nbsp;&nbsp;- ") + child_term.id + " ! " + child_term.name;
+								if (child_term.obsolete) subterm_string += " <font color=red>(obsolete)</font>";
+								file.push_back(subterm_string+  "<BR>");
+							}
+						}
+						else
+						{
+							file.push_back("          &nbsp;&nbsp;&nbsp;- Missing terms, CV not loaded...");
+							cerr << "Warning: no child terms for " << tit->getAccession() << " found!" << endl;
+						}
+						file.push_back("          </div>");
+						file.push_back("        </TD></TD></TR>");
+					}
+				}
+			}
+			file.push_back("    </TABLE>");
+			file.push_back("  </BODY>");
+			file.push_back("</HTML>");
+			file.store(getStringOption_("html"));
+			return EXECUTION_OK;
+		}
 
 		// iterator over all mapping rules and store the mentioned terms
 		set<String> used_terms;
