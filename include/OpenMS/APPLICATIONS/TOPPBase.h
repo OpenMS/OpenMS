@@ -32,6 +32,8 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/IntList.h>
+#include <OpenMS/DATASTRUCTURES/DoubleList.h>
 
 #include <iostream>
 #include <fstream>
@@ -138,6 +140,11 @@ namespace OpenMS
           OUTPUT_FILE,    ///< String parameter that denotes an output file
           DOUBLE,         ///< Floating point number parameter
           INT,            ///< Integer parameter
+          STRINGLIST,     ///< More than one String Parameter
+          INTLIST,        ///< More than one Integer Parameter
+          DOUBLELIST,     ///< More than one String Parameter
+          INPUT_FILE_LIST,///< More than one String Parameter that denotes input files
+          OUTPUT_FILE_LIST,///< More than one String Parameter that denotes output files
           FLAG,           ///< Parameter without argument
           TEXT,           ///< Left aligned text, see addText_
           NEWLINE					///< An empty line, see addEmptyLine_
@@ -297,7 +304,7 @@ namespace OpenMS
       //@{
       /**
       	 @brief Return the value of parameter @p key as a string or @p default_value if this value is not set.
-
+      
       	 @note See getParam_(const String&) const for the order in which parameters are searched.
       */
       String getParamAsString_( const String& key, const String& default_value = "" ) const;
@@ -315,7 +322,28 @@ namespace OpenMS
       	 @note See getParam_(const String&) const for the order in which parameters are searched.
       */
       double getParamAsDouble_( const String& key, double default_value = 0 ) const;
+      
+      /**
+         @brief Return the value of parameter @p key as a StringList or @p default_value if this value is not set
+         
+         @note See getParam_(const String&) const for the order in which parameters are searched.
+      */
+      StringList getParamAsStringList_(const String& key,const StringList& default_value) const;
+      
+      /**
+         @brief Return the value of parameter @p key as a IntList or @p default_value if this value is not set
+         
+         @note See getParam_(const String&) const for the order in which parameters are searched.
+      */
+      IntList getParamAsIntList_(const String& key,const IntList& default_value) const;
 
+      /**
+         @brief Return the value of parameter @p key as a DoubleList or @p default_value if this value is not set
+         
+         @note See getParam_(const String&) const for the order in which parameters are searched.
+      */
+      DoubleList getParamAsDoubleList_(const String& key,const DoubleList& default_value) const;
+      
       /**
       	 @brief Return the value of flag parameter @p key as bool.
 
@@ -326,7 +354,7 @@ namespace OpenMS
       	 @note See getParam_(const String&) const for the order in which parameters are searched.
       */
       bool getParamAsBool_( const String& key) const;
-
+      
       /**
       	 @brief Return the value @p key of parameters as DataValue. DataValue::EMPTY indicates that a parameter was not found.
 
@@ -488,6 +516,67 @@ namespace OpenMS
       */
       void registerIntOption_( const String& name, const String& argument, Int default_value, const String& description, bool required = true, bool advanced = false );
 
+      /**
+      	@brief Registers an a list of integer option.
+
+      	@param name Name of the option in the command line and the INI file
+      	@param argument Argument description text for the help output
+      	@param default_value Default argument
+      	@param description Description of the parameter. Indentation of newline is done automatically.
+      	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      */
+      void registerIntList_( const String& name, const String& argument, IntList default_value, const String& description, bool required = true, bool advanced = false );
+      
+     /**
+      	@brief Registers an a list of double option.
+
+      	@param name Name of the option in the command line and the INI file
+      	@param argument Argument description text for the help output
+      	@param default_value Default argument
+      	@param description Description of the parameter. Indentation of newline is done automatically.
+      	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      */
+      void registerDoubleList_( const String& name, const String& argument, DoubleList default_value, const String& description, bool required = true, bool advanced = false );
+      
+     /**
+      	@brief Registers an a list of String option.
+
+      	@param name Name of the option in the command line and the INI file
+      	@param argument Argument description text for the help output
+      	@param default_value Default argument
+      	@param description Description of the parameter. Indentation of newline is done automatically.
+      	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      */
+      void registerStringList_( const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false );
+
+     /**
+      	@brief Registers an a list of input files option.
+        
+        A list of input files behaves like a StringList, but are automatically checked with inputFileWritable_()
+				when the option is accessed in the TOPP tool.
+        
+      	@param name Name of the option in the command line and the INI file
+      	@param argument Argument description text for the help output
+      	@param default_value Default argument
+      	@param description Description of the parameter. Indentation of newline is done automatically.
+      	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      */
+      void registerInputFileList_( const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false );
+
+     /**
+      	@brief Registers an a list of output files option.
+        
+        A list of output files behaves like a StringList, but are automatically checked with outputFileWritable_()
+				when the option is accessed in the TOPP tool.
+        
+      	@param name Name of the option in the command line and the INI file
+      	@param argument Argument description text for the help output
+      	@param default_value Default argument
+      	@param description Description of the parameter. Indentation of newline is done automatically.
+      	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      */
+      void registerOutputFileList_( const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false );
+      
       /// Registers a flag
       void registerFlag_( const String& name, const String& description, bool advanced = false );
 
@@ -539,7 +628,43 @@ namespace OpenMS
         @exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
       */
       Int getIntOption_( const String& name ) const;
+      
+      /**
+      	@brief Returns the value of a previously registered StringList
 
+      	If you want to find out if a value was really set or is a default value, use the setByUser_(String) method.
+
+        @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
+        @exception Exception::RequiredParameterNotGiven is if a required parameter is not present
+        @exception Exception::WrongParameterType is thrown if the parameter has the wrong type
+        @exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
+      */
+      StringList getStringList_( const String& name ) const;
+
+      /**
+      	@brief Returns the value of a previously registered IntList
+
+      	If you want to find out if a value was really set or is a default value, use the setByUser_(String) method.
+
+        @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
+        @exception Exception::RequiredParameterNotGiven is if a required parameter is not present
+        @exception Exception::WrongParameterType is thrown if the parameter has the wrong type
+        @exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
+      */
+      IntList getIntList_( const String& name ) const;
+      
+      /**
+      	@brief Returns the value of a previously registered DoubleList
+
+      	If you want to find out if a value was really set or is a default value, use the setByUser_(String) method.
+
+        @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
+        @exception Exception::RequiredParameterNotGiven is if a required parameter is not present
+        @exception Exception::WrongParameterType is thrown if the parameter has the wrong type
+        @exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
+      */
+      DoubleList getDoubleList_( const String& name ) const;
+      
       ///Returns the value of a previously registered flag
       bool getFlag_( const String& name ) const;
 
@@ -567,7 +692,7 @@ namespace OpenMS
       /**
       	@brief Checks top-level entries of @p param according to the the information during registration
 
-      	Only top-lvel entries and allowed subsections are checked.
+      	Only top-level entries and allowed subsections are checked.
       	Checking the content of the subsection is the duty of the algorithm it is passed to.
 
       	This method does not abort execution of the tool, but will warn the user through stderr!

@@ -53,6 +53,8 @@ namespace OpenMS
 		
 		Each parameter can be annotated with an arbitrary number of tags. Tags cannot contain comma chracters!
 		@n E.g. the <i>advanced</i> tag indicates if this parameter is shown to all users or in advanced mode only.
+		
+		@todo Add support for int/float lists (Hiwi)
 
 		@see DefaultParamHandler
 		
@@ -283,24 +285,7 @@ namespace OpenMS
 				@param tags list of tags associated to this parameter
 			*/
 			void setValue(const String& key, const StringList& value, const String& description="", const StringList& tags=StringList());
-			/**
-				@brief Set a IntList value.
 
-				@param key String key. Can contain ':' which separates section names
-				@param value The actual value
-				@param description Verbose description of the parameter
-				@param tags list of tags associated to this parameter
-			*/
-			void setValue(const String& key, const IntList& value, const String& description="", const StringList& tags=StringList());
-			/**
-				@brief Set a DoubleList value.
-
-				@param key String key. Can contain ':' which separates section names
-				@param value The actual value
-				@param description Verbose description of the parameter
-				@param tags list of tags associated to this parameter
-			*/
-			void setValue(const String& key, const DoubleList& value, const String& description="", const StringList& tags=StringList());
 			/**
 				@brief Returns a value of a parameter.
 			
@@ -512,12 +497,14 @@ namespace OpenMS
 				
 				 @param argc argc variable from command line
 				 @param argv argv varaible from command line
-				 @param options_with_argument a map of options that are followed by an argument (with key where they are stored)
+				 @param options_with_one_argument a map of options that are followed by one argument (with key where they are stored)
 				 @param options_without_argument a map of options that are not followed by an argument (with key where they are stored). Present options are set to the the string 'true'.
+				 @param options_with_multiple_argument a map of options that are followed by several arguments(with key where they are stored)
 				 @param misc key where a StringList of all non-option arguments are stored
 				 @param unknown key where a StringList of all unknown options are stored
+				 
 			*/
-			void parseCommandLine(const int argc , const char** argv, const std::map<String, String>& options_with_argument, const std::map<String, String>& options_without_argument, const String& misc="misc", const String& unknown="unknown");
+			void parseCommandLine(const int argc , const char** argv, const std::map<String, String>& options_with_one_argument, const std::map<String, String>& options_without_argument,const std::map<String,String>& options_with_multiple_argument, const String& misc="misc", const String& unknown="unknown");
 			//@}
 						
 			///@name File I/O methods
