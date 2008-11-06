@@ -66,7 +66,7 @@ TOPP_TOOL_TESTS = \
 # Tests for processing pipelines using several tools
 
 # Files to remove
-CLEANUP = ${RM} -f *.tmp *.tmp_? *.log core.*
+CLEANUP = ${RM} -f *.tmp *.tmp_ *.tmp_? *.log core.*
 
 # Shortcut to TOPP bin path.
 TOPP = ${PREFIX}/bin/
@@ -778,12 +778,12 @@ TextExporter_test: make_fuzzydiff
 
 	@$(ECHO) "- Test 2: ConsensusXML test"
 	@$(call RUN_PROG_OPT,TextExporter,-ini TextExporter_2_parameters.ini)
-	@$(SED) -i 's:\(.*extracted\ from\ \).*$$:\1\ <omitted>:g' TextExporter_2_consensus_centroids.tmp
-	@$(call TEST_FILE_EQUAL,TextExporter_2_consensus_centroids.tmp,TextExporter_2_consensus_centroids.wsv)
-	@$(SED) -i 's:\(.*extracted\ from\ \).*$$:\1\ <omitted>:g' TextExporter_2_consensus_elements.tmp
-	@$(call TEST_FILE_EQUAL,TextExporter_2_consensus_elements.tmp,TextExporter_2_consensus_elements.wsv)
-	@$(SED) -i 's:\(.*extracted\ from\ \).*$$:\1\ <omitted>:g' TextExporter_2_consensus_features.tmp
-	@$(call TEST_FILE_EQUAL,TextExporter_2_consensus_features.tmp,TextExporter_2_consensus_features.wsv)
+	@$(SED) 's:\(.*extracted\ from\ \).*$$:\1\ <omitted>:g' TextExporter_2_consensus_centroids.tmp > TextExporter_2_consensus_centroids.tmp_
+	@$(call TEST_FILE_EQUAL,TextExporter_2_consensus_centroids.tmp_,TextExporter_2_consensus_centroids.wsv)
+	@$(SED) 's:\(.*extracted\ from\ \).*$$:\1\ <omitted>:g' TextExporter_2_consensus_elements.tmp > TextExporter_2_consensus_elements.tmp_
+	@$(call TEST_FILE_EQUAL,TextExporter_2_consensus_elements.tmp_,TextExporter_2_consensus_elements.wsv)
+	@$(SED) 's:\(.*extracted\ from\ \).*$$:\1\ <omitted>:g' TextExporter_2_consensus_features.tmp > TextExporter_2_consensus_features.tmp_
+	@$(call TEST_FILE_EQUAL,TextExporter_2_consensus_features.tmp_,TextExporter_2_consensus_features.wsv)
 
 	@$(ECHO) "- Test 3: IdXML test"
 	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_3_input.idXML -no_progress -out TextExporter3.tmp)
