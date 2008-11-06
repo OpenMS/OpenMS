@@ -104,6 +104,8 @@ namespace OpenMS
 				@brief Writes all child terms recursively into terms
 
 				If parent has child this method writes them recursively into the term object
+				
+				@exception Exception::InvalidValue is thrown if the term is not present
 			*/
 			void getAllChildTerms(std::set<String>& terms, const String& parent) const;
 			

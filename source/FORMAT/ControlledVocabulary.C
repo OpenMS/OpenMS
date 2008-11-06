@@ -146,21 +146,18 @@ namespace OpenMS
 	void ControlledVocabulary::getAllChildTerms(set<String>& terms, const String& parent) const
 	{
 		//cerr << "Parent: " << parent << endl;
-		const set<String>& children = terms_[parent].children;
+		const set<String>& children = getTerm(parent).children;
 		for (set<String>::const_iterator it = children.begin(); it != children.end(); ++it)
 		{
 			terms.insert(*it);
+			//TODO This is not save for cyclic graphs. Are they allowd in CVs?
 			getAllChildTerms(terms, *it);
 		}
 	}
 
 	bool ControlledVocabulary::exists(const String& id) const
 	{
-		if (terms_.find(id)==terms_.end())
-		{
-			return false;
-		}
-		return true;
+		return terms_.has(id);
 	}	
 	
 	bool ControlledVocabulary::isChildOf(const String& child, const String& parent) const
