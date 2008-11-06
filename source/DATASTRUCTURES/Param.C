@@ -849,32 +849,29 @@ namespace OpenMS
 		}
 		
 		//parse arguments
-    String arg,arg1;
+    String arg,arg1 ;
     for(int i = 1; i < argc; ++i )
-    { 
+    {
       //load the current and next argument:  arg and arg1 ("" at the last argument)
       arg = argv[i];
+      arg1 = "";
       if (i+1<argc)
       {
       	arg1 = argv[i+1];
       }
-    	else
-    	{
-    		arg1 = "";
-    	}
     	
     	//it is a option when it starts with a '-' and the second character is not a number
-    	bool arg1_is_option = false;
     	bool arg_is_option = false;
-    	if (arg1[0]=='-' && arg1[1]!='0' && arg1[1]!='1' && arg1[1]!='2' && arg1[1]!='3' && arg1[1]!='4' && arg1[1]!='5' && arg1[1]!='6' && arg1[1]!='7' && arg1[1]!='8' && arg1[1]!='9') arg1_is_option = true;
-    	if (arg[0]=='-' && arg[1]!='0' && arg[1]!='1' && arg[1]!='2' && arg[1]!='3' && arg[1]!='4' && arg[1]!='5' && arg[1]!='6' && arg[1]!='7' && arg[1]!='8' && arg[1]!='9') arg_is_option = true;
+    	if (arg.size()>=2 && arg[0]=='-' && arg[1]!='0' && arg[1]!='1' && arg[1]!='2' && arg[1]!='3' && arg[1]!='4' && arg[1]!='5' && arg[1]!='6' && arg[1]!='7' && arg[1]!='8' && arg[1]!='9') arg_is_option = true;
+    	bool arg1_is_option = false;
+    	if (arg1.size()>=2 && arg1[0]=='-' && arg1[1]!='0' && arg1[1]!='1' && arg1[1]!='2' && arg1[1]!='3' && arg1[1]!='4' && arg1[1]!='5' && arg1[1]!='6' && arg1[1]!='7' && arg1[1]!='8' && arg1[1]!='9') arg1_is_option = true;
     	
     	//cout << "Parse: '"<< arg << "' '" << arg1 << "'" << endl;
     	
       //flag (option without text argument)
       if(arg_is_option && arg1_is_option)
       {
-	    	root_.insert(ParamEntry(arg,String(""),""),prefix);
+	    	root_.insert(ParamEntry(arg,String(),""),prefix);
       }
       //option with argument
       else if(arg_is_option && !arg1_is_option)
@@ -904,7 +901,7 @@ namespace OpenMS
     }
 	}
 
-	void Param::parseCommandLine(const int argc , const char** argv, const map<String, String>& options_with_one_argument, const std::map<String, String>& options_without_argument,const std::map<String,String>& options_with_multiple_argument, const String& misc, const String& unknown)
+	void Param::parseCommandLine(const int argc , const char** argv,const Map<String, String>& options_with_one_argument,const Map<String, String>& options_without_argument,const Map<String,String>& options_with_multiple_argument, const String& misc, const String& unknown)
 	{
 		//determine misc key
     String misc_key = misc;
@@ -918,61 +915,49 @@ namespace OpenMS
     { 
       //load the current and next argument:  arg and arg1 ("" at the last argument)
       arg = argv[i];
+      arg1 = "";
       if (i+1<argc)
       {
       	arg1 = argv[i+1];
       }
-    	else
-    	{
-    		arg1 = "";
-    	}
-
+      
     	//it is a option when it starts with a '-' and the second character is not a number
-    	bool arg1_is_option = false;
     	bool arg_is_option = false;
-    	if (arg1[0]=='-' && arg1[1]!='0' && arg1[1]!='1' && arg1[1]!='2' && arg1[1]!='3' && arg1[1]!='4' && arg1[1]!='5' && arg1[1]!='6' && arg1[1]!='7' && arg1[1]!='8' && arg1[1]!='9') arg1_is_option = true;
-    	if (arg[0]=='-' && arg[1]!='0' && arg[1]!='1' && arg[1]!='2' && arg[1]!='3' && arg[1]!='4' && arg[1]!='5' && arg[1]!='6' && arg[1]!='7' && arg[1]!='8' && arg[1]!='9') arg_is_option = true;
+    	if (arg.size()>=2 && arg[0]=='-' && arg[1]!='0' && arg[1]!='1' && arg[1]!='2' && arg[1]!='3' && arg[1]!='4' && arg[1]!='5' && arg[1]!='6' && arg[1]!='7' && arg[1]!='8' && arg[1]!='9') arg_is_option = true;
+    	bool arg1_is_option = false;
+    	if (arg1.size()>=2 && arg1[0]=='-' && arg1[1]!='0' && arg1[1]!='1' && arg1[1]!='2' && arg1[1]!='3' && arg1[1]!='4' && arg1[1]!='5' && arg1[1]!='6' && arg1[1]!='7' && arg1[1]!='8' && arg1[1]!='9') arg1_is_option = true;
     	
 			//with multpile argument
-			if(options_with_multiple_argument.find(arg)!=options_with_multiple_argument.end())
+			if(options_with_multiple_argument.has(arg))
 			{
 				//next argument is an option
 				if(arg1_is_option)
 				{
 					root_.insert(ParamEntry("",StringList(),""),options_with_multiple_argument.find(arg)->second);
 				}		
-					//next argument is not an option	
+				//next argument is not an option	
 				else
 				{
 					StringList sl;
-					if(arg1 != String(""))
+					int j=(i+1);
+					while(j< argc && !(arg1.size()>=2 && arg1[0]=='-' && arg1[1]!='0' && arg1[1]!='1' && arg1[1]!='2' && arg1[1]!='3' && arg1[1]!='4' && arg1[1]!='5' && arg1[1]!='6' && arg1[1]!='7' && arg1[1]!='8' && arg1[1]!='9'))
 					{
 						sl << arg1;
-					}
-					int j=(i+2);
-					if(j< argc)
-					{
-						arg1 = argv[j];
-					}
-					
-					while(j< argc && !(arg1[0]=='-' && arg1[1]!='0' && arg1[1]!='1' && arg1[1]!='2' && arg1[1]!='3' && arg1[1]!='4' && arg1[1]!='5' && arg1[1]!='6' && arg1[1]!='7' && arg1[1]!='8' && arg1[1]!='9'))
-					{
-						sl<<arg1;
 						++j;
-						arg1 = argv[j];
+						if (j< argc) arg1 = argv[j];
 					}
 					
 					root_.insert(ParamEntry("",sl,""),options_with_multiple_argument.find(arg)->second);
-					i = (j-1);
+					i = j-1;
 				}
 			}
 			//without argument
-			else if (options_without_argument.find(arg)!=options_without_argument.end())
+			else if (options_without_argument.has(arg))
 			{
 				root_.insert(ParamEntry("",String("true"),""),options_without_argument.find(arg)->second);
 			}
 			//with one argument
-			else if (options_with_one_argument.find(arg)!=options_with_one_argument.end())
+			else if (options_with_one_argument.has(arg))
 			{
 				//next argument is not an option
 				if (!arg1_is_option)
@@ -983,7 +968,7 @@ namespace OpenMS
 				//next argument is an option
 				else
 				{
-					root_.insert(ParamEntry("",String(""),""),options_with_one_argument.find(arg)->second);
+					root_.insert(ParamEntry("",String(),""),options_with_one_argument.find(arg)->second);
 				}
 			}
 			//unknown option

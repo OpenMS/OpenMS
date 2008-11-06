@@ -49,12 +49,14 @@ using namespace std;
 
 int main(int argc, const char** argv)
 {
-	std::map<String,String> options;
+	
+	Map<String,String> option_lists;
+	Map<String,String> options;
 	options["-print"] = "print";
-	std::map<String,String> flags;
+	Map<String,String> flags;
 	flags["--help"] = "help";
 	Param param;
-	param.parseCommandLine(argc, argv, options, flags);
+	param.parseCommandLine(argc, argv, options, flags, option_lists);
 	
 	//catch command line errors
 	if (param.exists("help") //help requested

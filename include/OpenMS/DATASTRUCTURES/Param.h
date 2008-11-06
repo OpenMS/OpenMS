@@ -31,10 +31,10 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 
-#include <map>
 #include <set>
 #include <iostream>
 
@@ -504,7 +504,7 @@ namespace OpenMS
 				 @param unknown key where a StringList of all unknown options are stored
 				 
 			*/
-			void parseCommandLine(const int argc , const char** argv, const std::map<String, String>& options_with_one_argument, const std::map<String, String>& options_without_argument,const std::map<String,String>& options_with_multiple_argument, const String& misc="misc", const String& unknown="unknown");
+			void parseCommandLine(const int argc , const char** argv, const Map<String, String>& options_with_one_argument, const Map<String, String>& options_without_argument,const Map<String,String>& options_with_multiple_argument, const String& misc="misc", const String& unknown="unknown");
 			//@}
 						
 			///@name File I/O methods

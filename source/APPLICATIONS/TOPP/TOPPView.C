@@ -91,12 +91,12 @@ void print_usage()
 int main( int argc, const char** argv )
 {
 	//list of all the valid options
-	map<String,String> valid_options, valid_flags;
+	Map<String,String> valid_options, valid_flags, option_lists;
 	valid_flags["--help"] = "help";
 	valid_options["-ini"] = "ini";
 	
 	Param param;
-	param.parseCommandLine(argc, argv, valid_options, valid_flags);
+	param.parseCommandLine(argc, argv, valid_options, valid_flags, option_lists);
 
 	// '--help' given
 	if (param.exists("help"))

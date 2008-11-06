@@ -94,9 +94,9 @@ namespace OpenMS
 		registerFlag_("-help","Shows this help");
 
 		// prepare options and flags for command line parsing
-		map<String,String> options;
-		map<String,String> flags;
-		map<String,String> multi_options;
+		Map<String,String> options;
+		Map<String,String> flags;
+		Map<String,String> multi_options;
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
 		{
 			switch (it->type)

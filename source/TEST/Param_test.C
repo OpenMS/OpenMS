@@ -1288,8 +1288,8 @@ CHECK((void parseCommandLine(const int argc, const char** argv, String prefix = 
 
 RESULT
 
-CHECK((void parseCommandLine(const int argc, const char** argv, const std::map<String, String>& options_with_one_argument, const std::map<String, String>& options_without_argument,const std::map<String,String>& options_with_multiple_argument, const String& misc="misc", const String& unknown="unknown")))
-	map<String,String> with_one,without,with_multiple;
+CHECK((void parseCommandLine(const int argc, const char** argv, const Map<String, String>& options_with_one_argument, const Map<String, String>& options_without_argument,const Map<String,String>& options_with_multiple_argument, const String& misc="misc", const String& unknown="unknown")))
+	Map<String,String> with_one,without,with_multiple;
 	with_one["-a"]="a";
 	with_one["-b"]="b";
 	with_one["-c"]="c";
