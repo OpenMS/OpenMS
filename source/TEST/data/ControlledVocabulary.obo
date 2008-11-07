@@ -1,4 +1,14 @@
-format-version: 1.0
+format-version: 1.2
+date: 07:07:2008 14:30
+saved-by: Walter Walters
+auto-generated-by: OBO-Edit 1.101
+default-namespace: MS
+remark: namespace: MS
+remark: version: 1.3.0
+remark: release date: 2008-07-07
+remark: coverage: Mass spectrometer output files
+remark: creator: Ich
+remark: publisher: OpenMS project
 
 [Term]
 id  :    OpenMS:1   
@@ -32,3 +42,12 @@ xref: unparsed line 3
 id: OpenMS:5
 name: Mustang
 is_a : OpenMS:2  		  ! 	  Ford
+
+[Typedef]
+id: has_units
+name: has_units
+
+[Typedef]
+id: part_of
+name: part_of
+is_transitive: true

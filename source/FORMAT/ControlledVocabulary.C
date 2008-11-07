@@ -50,6 +50,7 @@ namespace OpenMS
 	
 	void ControlledVocabulary::loadFromOBO(const String& name, const String& filename)
 	{
+		bool in_term = false;
 		name_ = name;
 		
 		ifstream is(filename.c_str());
@@ -68,20 +69,36 @@ namespace OpenMS
 			line_wo_spaces = line;
 			line_wo_spaces.removeWhitespaces();
 			
-			if (line!="") //skip empty lines
+			//do nothing for empty lines
+			if (line=="") continue;
+			
+			//********************************************************************************
+			//stanza line
+			if (line_wo_spaces[0]=='[')
 			{
+				//[term] stanza
 				if (line_wo_spaces.toLower()=="[term]") //new term
 				{
+					in_term = true;
 					if (term.id!="") //store last term
 					{
 						terms_[term.id] = term;
 					}
-
+	
 					//clear temporary term members
 					term = CVTerm();
 				}
-				//new id line
-				else if (line_wo_spaces.hasPrefix("id:"))
+				// other stanza => not in a term
+				else
+				{
+					in_term = false;
+				}
+			}
+			//********************************************************************************
+			//data line
+			else if (in_term)
+			{
+				if (line_wo_spaces.hasPrefix("id:"))
 				{
 					term.id = line.substr(line.find(':')+1).trim();
 				}
@@ -104,7 +121,7 @@ namespace OpenMS
 				{
 					term.obsolete = true;
 				}
-				else
+				else if (line!="")
 				{
 					term.unparsed.push_back(line);
 				}
