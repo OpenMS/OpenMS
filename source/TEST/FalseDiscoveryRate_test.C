@@ -76,7 +76,7 @@ CHECK((void apply(std::vector< PeptideIdentification > &fwd_ids, std::vector< Pe
 			}
 			if (orig_score <= 37.9 + 0.0001 && orig_score >= 37.9 - 0.0001)
 			{
-				TEST_REAL_EQUAL(fdr, 0.0740741)
+				TEST_REAL_EQUAL(fdr, 0.08)
 			}
 		}
 	}

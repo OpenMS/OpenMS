@@ -169,7 +169,7 @@ namespace OpenMS
 			void filterIdentificationsByBestHits(const PeptideIdentification& identification, PeptideIdentification& filtered_identification, bool strict = false);
 
       /// filters a PeptideIdentification corresponding to the given proteins
-			void filterIdentificationsByProteins(const PeptideIdentification& identification, const std::vector< FASTAFile::FASTAEntry >& proteins, PeptideIdentification& filtered_identification);
+			void filterIdentificationsByProteins(const PeptideIdentification& identification, const std::vector< FASTAFile::FASTAEntry >& proteins, PeptideIdentification& filtered_identification, bool no_protein_identifiers = false);
 
       /// filters a ProteinIdentification corresponding to the given proteins only proteins with the same accession
 			void filterIdentificationsByProteins(const ProteinIdentification& identification, const std::vector< FASTAFile::FASTAEntry >& proteins, ProteinIdentification& filtered_identification);
@@ -179,6 +179,9 @@ namespace OpenMS
 																														
 		  /// only peptides having a length equal to or greater than 'length' will be kept
 		  void filterIdentificationsByLength(const PeptideIdentification& identification, UInt length, PeptideIdentification& filtered_identification);
+
+			/// only protein hits in 'identification' which are referenced by a peptide in 'peptide_identifications' are kept
+			void removeUnreferencedProteinHits(const ProteinIdentification& 	identification, const std::vector<PeptideIdentification> peptide_identifications, ProteinIdentification& 	filtered_identification);
 
 		  /**
 				@brief Filters the peptide hits according to their predicted rt p-values

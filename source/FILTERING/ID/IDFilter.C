@@ -137,7 +137,8 @@ namespace OpenMS
 
 	void IDFilter::filterIdentificationsByProteins(const PeptideIdentification& identification, 
 																								 const vector< FASTAFile::FASTAEntry >& proteins,
-																								 PeptideIdentification& filtered_identification)
+																								 PeptideIdentification& filtered_identification,
+																								 bool no_protein_identifiers)
 	{
 		String protein_sequences;
 		String accession_sequences;
@@ -163,7 +164,7 @@ namespace OpenMS
 		
 		for(UInt i = 0; i < identification.getHits().size(); i++)
 		{
-			if (accession_sequences=="*")
+			if (no_protein_identifiers || accession_sequences=="*")
 			{
 		  	if (protein_sequences.find(identification.getHits()[i].getSequence().toUnmodifiedString()) != string::npos)
 		  	{
@@ -236,7 +237,7 @@ namespace OpenMS
 		
 		for(UInt i = 0; i < identification.getHits().size(); i++)
 		{
-	  	if (find(peptides.begin(), peptides.end(), identification.getHits()[i].getSequence().toUnmodifiedString()) == peptides.end())
+	  	if (find(peptides.begin(), peptides.end(), identification.getHits()[i].getSequence().toString()) == peptides.end())
 	  	{
 	  		filtered_peptide_hits.push_back(identification.getHits()[i]);
 	  	}
@@ -300,6 +301,41 @@ namespace OpenMS
   		filtered_identification.setHits(filtered_peptide_hits);		
   		filtered_identification.assignRanks();											
 		}
+	}
+	
+	void IDFilter::removeUnreferencedProteinHits(const ProteinIdentification& 	identification, 
+																							const vector<PeptideIdentification> peptide_identifications, 
+																							ProteinIdentification& 	filtered_identification)
+	{
+		vector<ProteinHit> filtered_protein_hits;
+		const vector<ProteinHit>& temp_protein_hits = identification.getHits();
+		vector<PeptideHit> temp_peptide_hits;
+
+		filtered_identification=identification;
+		filtered_identification.setHits(vector<ProteinHit>());
+		String identifier = identification.getIdentifier();
+		
+		UInt i = 0;		
+		for(UInt j = 0; j < temp_protein_hits.size(); ++j)
+		{
+			bool found = false;
+			i = 0;
+ 			while(i < peptide_identifications.size() && !found) 
+			{
+				if (identifier == peptide_identifications[i].getIdentifier())
+				{
+					temp_peptide_hits.clear();
+					peptide_identifications[i].getReferencingHits(temp_protein_hits[j].getAccession(), temp_peptide_hits);
+					if (temp_peptide_hits.size() > 0)
+					{
+						filtered_protein_hits.push_back(temp_protein_hits[j]);
+						found = true;
+					}
+				}
+				++i;
+			}
+		}
+		filtered_identification.setHits(filtered_protein_hits);
 	}																		 																										 
 		
 } // namespace OpenMS

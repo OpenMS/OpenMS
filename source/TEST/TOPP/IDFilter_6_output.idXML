@@ -8,27 +8,11 @@
 			</ProteinHit>
 			<ProteinHit id="PH_1" accession="AAD30739" score="28.1" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="S53854" score="27.7" sequence="" >
-			</ProteinHit>
-			<ProteinHit id="PH_3" accession="Q872T5" score="27.4" sequence="" >
-			</ProteinHit>
-			<ProteinHit id="PH_4" accession="O13443" score="25.6" sequence="" >
-			</ProteinHit>
-			<ProteinHit id="PH_5" accession="Q8DJX9" score="25.4" sequence="" >
-			</ProteinHit>
-			<ProteinHit id="PH_6" accession="Q8TGW6" score="25.3" sequence="" >
-			</ProteinHit>
-			<ProteinHit id="PH_7" accession="Q9QI95" score="25.1" sequence="" >
-			</ProteinHit>
-			<ProteinHit id="PH_8" accession="O71997" score="25" sequence="" >
-			</ProteinHit>
-			<ProteinHit id="PH_9" accession="Q8SVD3" score="25" sequence="" >
-			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
-			<PeptideHit score="33.85" sequence="LHASGITVTEIPVTATNFK" charge="2" >
+			<PeptideHit score="33.85" sequence="LHASGITVTEIPVTATNFK" charge="2" protein_refs="PH_0" >
 			</PeptideHit>
-			<PeptideHit score="33.85" sequence="MRSLGYVAVISAVATDTDK" charge="2" >
+			<PeptideHit score="33.85" sequence="MRSLGYVAVISAVATDTDK" charge="2" protein_refs="PH_1" >
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

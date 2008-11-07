@@ -37,6 +37,8 @@ UTILS_EXECUTABLES=\
 	FFEval\
 	LabeledEval\
 	HistView\
+	SequenceCoverageCalculator\
+	RTEvaluation\
 	CVInspector
 
 all: $(UTILS_EXECUTABLES)

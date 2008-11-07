@@ -76,6 +76,8 @@ class TOPPIdXMLInfo
 			UInt runs_count = 0;
 			UInt protein_hit_count = 0;
 			String inputfile_name = "";
+			vector<String> peptides;
+			vector<String> proteins;
 			
 			protein_identifications.push_back(ProteinIdentification());
 			//-------------------------------------------------------------
@@ -98,18 +100,36 @@ class TOPPIdXMLInfo
 				{
 					++spectrum_count;
 					peptide_hit_count += identifications[i].getHits().size();
+					const vector<PeptideHit>& temp_hits = identifications[i].getHits();
+					for(UInt j = 0; j < temp_hits.size(); ++j)
+					{
+						if (find(peptides.begin(), peptides.end(), temp_hits[j].getSequence().toString()) == peptides.end())
+						{
+							peptides.push_back(temp_hits[j].getSequence().toString());
+						}
+					}
 				}
 			} 
 			for(UInt i = 0; i < protein_identifications.size(); ++i)
 			{
 				++runs_count;
 				protein_hit_count += protein_identifications[i].getHits().size();
+				const vector<ProteinHit>& temp_hits = protein_identifications[i].getHits();
+				for(UInt j = 0; j < temp_hits.size(); ++j)
+				{
+					if (find(proteins.begin(), proteins.end(), temp_hits[j].getAccession()) == proteins.end())
+					{
+						proteins.push_back(temp_hits[j].getAccession());
+					}
+				}
 			} 
 
 			cout << "Number of spectra: " << spectrum_count << endl;
 			cout << "Number of peptide hits: " << peptide_hit_count << endl;
+			cout << "Number of distinct peptide hits: " << peptides.size() << endl;
 			cout << "Number of runs: " << runs_count << endl;
 			cout << "Number of protein hits: " << protein_hit_count << endl;
+			cout << "Number of distinct protein hits: " << proteins.size() << endl;
 			
 			return EXECUTION_OK;
 		}

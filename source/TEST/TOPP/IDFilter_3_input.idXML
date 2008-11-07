@@ -106,7 +106,7 @@
       </ProteinHit>
     </ProteinIdentification>
     <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
-      <PeptideHit score="33.85" sequence="LHASGITVTEIPVTATNFK" charge="2" >
+      <PeptideHit score="33.85" sequence="LHASGITVTEIPVTATNFK" charge="2" protein_refs="PH_0" >
       </PeptideHit>
       <PeptideHit score="33.85" sequence="MRSLGYVAVISAVATDTDK" charge="2" >
       </PeptideHit>
@@ -118,7 +118,7 @@
       </PeptideHit>
       <PeptideHit score="11.32" sequence="MSLLSNMISIVKVGYNAR" charge="2" >
       </PeptideHit>
-      <PeptideHit score="11.26" sequence="THPYGHAIVAGIERYPSK" charge="2" >
+      <PeptideHit score="11.26" sequence="THPYGHAIVAGIERYPSK" charge="2" protein_refs="PH_1" >
       </PeptideHit>
       <PeptideHit score="11.1" sequence="AITSDFANQAKTVLQNFK" charge="2" >
       </PeptideHit>

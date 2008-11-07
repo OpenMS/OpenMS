@@ -154,9 +154,9 @@ namespace OpenMS
 
 				DoubleReal fdr = 0.;
 
-				if (minimal_fdr >= (DoubleReal)j / (number_of_fwd_scores - i + j))
+				if (minimal_fdr >= (DoubleReal)j / (number_of_fwd_scores - i))
 				{
-					minimal_fdr = (DoubleReal)j / (number_of_fwd_scores - i + j);
+					minimal_fdr = (DoubleReal)j / (number_of_fwd_scores - i);
 				}
 				fdr = minimal_fdr;
 
@@ -184,7 +184,7 @@ namespace OpenMS
 				
 				double fdr(0);
 	
-				fdr = (double)j / (double)(i + 1 + j);
+				fdr = (double)j / (double)(i + 1);
 
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
 				cerr << fdr << endl;
@@ -271,10 +271,8 @@ namespace OpenMS
       }
      	double fdr(0);
 
-      if (j != 0 && i != 0)
-      {
-        fdr = (double)j / (double)(i + j);
-      }
+      fdr = (double)j / ((double)(i) + 1);
+
       score_to_fdr[fwd_scores[i]] = fdr;
     }
 

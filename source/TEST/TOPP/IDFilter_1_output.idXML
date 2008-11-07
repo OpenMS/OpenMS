@@ -6,8 +6,6 @@
 		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Q824A5" score="32.3" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="Q872T5" score="27.4" sequence="" >
-			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
 			<PeptideHit score="11.37" sequence="TEST" charge="2" protein_refs="PH_0" >

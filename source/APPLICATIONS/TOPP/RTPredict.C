@@ -84,7 +84,7 @@ class TOPPRTPredict
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in","<file>","","input file ");
-			setValidFormats_("in",StringList::create("IdXML"));
+			//			setValidFormats_("in",StringList::create("IdXML"));
 			registerOutputFile_("out","<file>","","output file (peptide RT prediction)\n", false);
 			setValidFormats_("out",StringList::create("IdXML"));
 			registerFlag_("textfile_input", "if this flag is set, RTPredict expects a textfile instead of an IdXML file as input which contains one peptide sequence per line output as a textfile is switched on as well");
@@ -434,6 +434,7 @@ class TOPPRTPredict
 									temp_peptide_hits[j].setMetaValue("predicted_RT_p_value_first_dim",temp_p_value);
 								}
 								temp_peptide_hits[j].setMetaValue("predicted_RT_first_dim",temp_rt);
+								performance_retention_times.push_back(identifications[i].getMetaValue("first_dim_rt"));					
 							}
 							else
 							{
@@ -442,8 +443,8 @@ class TOPPRTPredict
 									temp_peptide_hits[j].setMetaValue("predicted_RT_p_value",temp_p_value);
 								}
 								temp_peptide_hits[j].setMetaValue("predicted_RT",temp_rt);
+								performance_retention_times.push_back(identifications[i].getMetaValue("RT"));					
 							}
-							performance_retention_times.push_back(identifications[i].getMetaValue("RT"));					
 						}
 						identifications[i].setHits(temp_peptide_hits);				
 					}

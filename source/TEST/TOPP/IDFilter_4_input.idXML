@@ -8,7 +8,7 @@
       </ProteinHit>
     </ProteinIdentification>
     <PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="250" >
-      <PeptideHit score="33.85" sequence="LHASGITVTEIPVTATNFK" charge="2" >
+      <PeptideHit score="33.85" sequence="LHASGITVTEIPVTATNFK" charge="2" protein_refs="PH_0" >
         <UserParam type="float" name="predicted_RT" value="252.948"/>
         <UserParam type="float" name="predicted_RT_p_value" value="0.05"/>
       </PeptideHit>
