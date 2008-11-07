@@ -186,9 +186,31 @@ class TOPPCVInspector
 					{
 						tags.push_back("repeatable");
 					}
-					if(cv.exists(tit->getAccession()) && cv.getTerm(tit->getAccession()).obsolete)
+					if(cv.exists(tit->getAccession()))
 					{
-						tags.push_back("<font color=red>obsolete</font>");
+						const ControlledVocabulary::CVTerm& term = cv.getTerm(tit->getAccession());
+						if (term.obsolete)
+						{
+							tags.push_back("obsolete");
+						}
+						if (term.unparsed.size()!=0)
+						{
+							for (UInt i=0; i<term.unparsed.size(); ++i)
+							{
+								if (term.unparsed[i].hasSubstring("value-type:xsd\\:int"))
+								{
+									tags.push_back("value:int");
+								}
+								else if (term.unparsed[i].hasSubstring("value-type:xsd\\:float"))
+								{
+									tags.push_back("value:float");
+								}
+								else if (term.unparsed[i].hasSubstring("value-type:xsd\\:string"))
+								{
+									tags.push_back("value:string");
+								}
+							}
+						}
 					}
 					if (tags.size()!=0)
 					{
@@ -209,9 +231,37 @@ class TOPPCVInspector
 							for (set<String>::const_iterator atit=allowed_terms.begin(); atit!=allowed_terms.end(); ++atit)
 							{
 								const ControlledVocabulary::CVTerm& child_term = cv.getTerm(*atit);
-								String subterm_string = String("          &nbsp;&nbsp;&nbsp;- ") + child_term.id + " ! " + child_term.name;
-								if (child_term.obsolete) subterm_string += " <font color=red>(obsolete)</font>";
-								file.push_back(subterm_string+  "<BR>");
+								String subterm_line = String("          &nbsp;&nbsp;&nbsp;- ") + child_term.id + " ! " + child_term.name;
+								StringList tags;
+								if (child_term.obsolete)
+								{
+									tags.push_back("obsolete");
+								}
+								if (child_term.unparsed.size()!=0)
+								{
+									for (UInt i=0; i<child_term.unparsed.size(); ++i)
+									{
+										if (child_term.unparsed[i].hasSubstring("value-type:xsd\\:int"))
+										{
+											tags.push_back("value:int");
+										}
+										else if (child_term.unparsed[i].hasSubstring("value-type:xsd\\:float"))
+										{
+											tags.push_back("value:float");
+										}
+										else if (child_term.unparsed[i].hasSubstring("value-type:xsd\\:string"))
+										{
+											tags.push_back("value:string");
+										}
+									}
+								}
+								if (tags.size()!=0)
+								{
+									String tags_string;
+									tags_string.implode(tags.begin(),tags.end(),", ");
+									subterm_line += String(" (") + tags_string + ")";
+								}
+								file.push_back(subterm_line+  "<BR>");
 							}
 						}
 						else
