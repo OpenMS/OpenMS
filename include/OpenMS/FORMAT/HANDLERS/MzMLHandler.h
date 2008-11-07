@@ -45,16 +45,24 @@
 
 //TODO:
 // - units
+// - Sample: CVs for cellular compartement, source tissue and quality
+// - Instrument: make ion optics an enum
+// - InstrumentConfiguration of Acquisiton and Scan?
 //
 //TODO (WHEN FIXED):
 // - spectrum "spectrum type" vs. scan "scanning method"?
 // - DataProcessing of "spectrum", "chromatogram" and "binaryDataArray"
-// - acquisitionSettingsList cannot be referenced => where do we put "targetList" + "target"
+// - acquisitionSettingsList cannot be referenced => where do we put "targetList" + "target"?
 //
 //MISSING (AND NOT PLANNED):
-// - indexMzML
 // - more than one Precursor (isolationWindow, selectedIon, activation), but warning if more than one precursor is present
 // - SourceFile of "acquisition", "precursor" and "acquisition settings"
+
+
+// xs:id prefix list
+// - sf : sourceFile
+// - sa : sample
+// - ic : instrumentConfiguration
 
 namespace OpenMS
 {
@@ -230,6 +238,12 @@ namespace OpenMS
 
 			/// Handles user terms
 			void handleUserParam_(const String& parent_tag, const String& name, const String& type, const String& value);
+			
+			/// Writes user terms
+			void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent) const;
+			
+			/// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
+			ControlledVocabulary::CVTerm getChildWithName_(const String& parent_accession, const String& name) const;
 		};
 
 
@@ -1168,53 +1182,9 @@ namespace OpenMS
 				{
 					source_files_[current_id_].setChecksum(value, SourceFile::MD5);
 				}
-				else if (accession=="MS:1000562") //wiff file
+				else if (cv_.isChildOf(accession,"MS:1000560")) //file type as string
 				{
-					source_files_[current_id_].setFileType("wiff");
-				}
-				else if (accession=="MS:1000563") //Xcalibur RAW file
-				{
-					source_files_[current_id_].setFileType("Xcalibur RAW");
-				}
-				else if (accession=="MS:1000564") //mzData file
-				{
-					source_files_[current_id_].setFileType("v");
-				}
-				else if (accession=="MS:1000565") //pkl file
-				{
-					source_files_[current_id_].setFileType("pkl");
-				}
-				else if (accession=="MS:1000566") //mzXML file
-				{
-					source_files_[current_id_].setFileType("mzXML");
-				}
-				else if (accession=="MS:1000567") //yep file
-				{
-					source_files_[current_id_].setFileType("yep");
-				}
-				else if (accession=="MS:1000584") //mzML file
-				{
-					source_files_[current_id_].setFileType("mzML");
-				}
-				else if (accession=="MS:1000613") //dta file
-				{
-					source_files_[current_id_].setFileType("dta");
-				}
-				else if (accession=="MS:1000614") //ProteinLynx Global Server mass spectrum XML file
-				{
-					source_files_[current_id_].setFileType("ProteinLynx Global Server mass spectrum XML");
-				}
-				else if (accession=="MS:1000526") //MassLynx raw format
-				{
-					source_files_[current_id_].setFileType("MassLynx raw");
-				}
-				else if (accession=="MS:1000740") //parameter file
-				{
-					source_files_[current_id_].setFileType("Acquisition parameter file");
-				}
-				else if (accession=="MS:1000742") //Bioworks SRF file
-				{
-					source_files_[current_id_].setFileType("Bioworks SRF");
+					source_files_[current_id_].setFileType(cv_.getTerm(accession).name);
 				}
 				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
@@ -1973,10 +1943,57 @@ namespace OpenMS
 			{
 				processing_[current_id_].setMetaValue(name,data_value);
 			}
+			else if (parent_tag=="fileContent")
+			{
+				//currently ignored
+			}
 			else warning(String("Unhandled userParam '") + name + " in tag '" + parent_tag + "'.");
 			
 		}//handleUserParam_
-
+	
+		template <typename MapType>
+		void MzMLHandler<MapType>::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent) const
+		{
+			std::vector<String> keys;
+			meta.getKeys(keys);
+			
+			for (UInt i = 0; i!=keys.size();++i)
+			{
+				os << String(indent,'\t') << "<userParam name=\"" << keys[i] << "\" type=\"";
+				
+				DataValue d = meta.getMetaValue(keys[i]);
+				//determine type
+				if (d.valueType()==DataValue::INT_VALUE)
+				{
+					os << "xsd:integer";
+				}
+				else if (d.valueType()==DataValue::DOUBLE_VALUE)
+				{
+					os << "xsd:double";
+				}
+				else //string or lists are converted to string
+				{
+					os << "xsd:string";
+				}
+				os << "\" value=\"" << (String)(d) << "\"/>" << std::endl;
+			}
+		}
+		
+		template <typename MapType>
+		ControlledVocabulary::CVTerm MzMLHandler<MapType>::getChildWithName_(const String& parent_accession, const String& name) const
+		{
+			std::set<String> terms;
+			cv_.getAllChildTerms(terms, parent_accession);
+			for (std::set<String>::const_iterator it=terms.begin(); it!=terms.end(); ++it)
+			{
+				if (cv_.getTerm(*it).name==name)
+				{
+					return cv_.getTerm(*it);
+				}
+			}
+			return ControlledVocabulary::CVTerm();
+		}
+		
 		template <typename MapType>
 		void MzMLHandler<MapType>::writeTo(std::ostream& os)
 		{
@@ -1985,19 +2002,598 @@ namespace OpenMS
 			
 			os	<< "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
 					<< "<mzML xmlns=\"http://psi.hupo.org/schema_revision/mzML_1.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/schema_revision/mzML_1.0.0 mzML1.0.0.xsd\" id=\"" << exp.getIdentifier() << "\" version=\"1.0\">\n";
+			//--------------------------------------------------------------------------------------------
 			// CV list
-			os	<< "  <cvList count=\"2\">\n"
-					<< "    <cv id=\"MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Ontology\" URI=\"http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\"/>\n"
-					<< "    <cv id=\"UO\" fullName=\"Unit Ontology\" URI=\"http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo\"/>\n"
-					<< "  </cvList>\n";
-			// file description
-			os	<< "  <fileDescription>\n";
-			os	<< "    <fileContent>\n";
+			os	<< "	<cvList count=\"2\">\n"
+					<< "		<cv id=\"MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Ontology\" URI=\"http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\"/>\n"
+					<< "		<cv id=\"UO\" fullName=\"Unit Ontology\" URI=\"http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo\"/>\n"
+					<< "	</cvList>\n";
+			//--------------------------------------------------------------------------------------------
+			// file content
+			os	<< "	<fileDescription>\n";
+			os	<< "		<fileContent>\n";
+			Map<InstrumentSettings::ScanMode, UInt> file_content;
+			for (UInt i=0; i<exp.size(); ++i)
+			{
+				file_content[exp[i].getInstrumentSettings().getScanMode()]++;
+			}
+			if (file_content.has(InstrumentSettings::PRODUCT) || file_content.has(InstrumentSettings::PRECURSOR))
+			{
+				os	<< "			<cvTerm accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
+			}
+			else if (file_content.has(InstrumentSettings::FULL))
+			{
+				os	<< "			<cvTerm accession=\"MS:1000579\" name=\"MS1 spectrum\" />\n";
+			}
+			else if (file_content.has(InstrumentSettings::SIM))
+			{
+				os	<< "			<cvTerm accession=\"MS:1000582\" name=\"SIM spectrum\" />\n";
+			}
+			else if (file_content.has(InstrumentSettings::SRM))
+			{
+				os	<< "			<cvTerm accession=\"MS:1000583\" name=\"SRM spectrum\" />\n";
+			}
+			else if (file_content.has(InstrumentSettings::CRM))
+			{
+				os	<< "			<cvTerm accession=\"MS:1000581\" name=\"CRM spectrum\" />\n";
+			}
+			else //FORCED
+			{
+				os	<< "			<cvTerm accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
+			}
+			os	<< "		</fileContent>\n";
+			//--------------------------------------------------------------------------------------------
+			// source file list
+			if (exp.getSourceFiles().size()!=0)
+			{
+				os	<< "		<sourceFileList count=\"" << exp.getSourceFiles().size() << "\">\n";
+				for (UInt i=0; i<exp.getSourceFiles().size(); ++i)
+				{
+					const SourceFile& sf = exp.getSourceFiles()[i];
+					os	<< "			<sourceFile id=\"sf_" << i << "\" name=\"" << sf.getNameOfFile() << "\" location=\"" << sf.getPathToFile() << "\"> \n";
+					if (sf.getChecksumType()==SourceFile::SHA1)
+					{
+						os  << "				<cvTerm accession=\"MS:1000569\" name=\"SHA-1\" value=\"" << sf.getChecksum() << "\"/>\n";
+					}
+					else if (sf.getChecksumType()==SourceFile::MD5)
+					{
+						os  << "				<cvTerm accession=\"MS:1000568\" name=\"MD5\" value=\"" << sf.getChecksum() << "\"/>\n";
+					}
+					else //FORCED
+					{
+						os  << "				<cvTerm accession=\"MS:1000569\" name=\"SHA-1\" value=\"\"/>\n";
+					}
+					ControlledVocabulary::CVTerm term = getChildWithName_("MS:1000560",sf.getFileType());
+					if (term.id!="")
+					{
+						os  << "				<cvTerm accession=\"" << term.id <<"\" name=\"" << term.name << "\"/>\n";
+					}
+					else //FORCED
+					{
+						os  << "				<cvTerm accession=\"MS:1000564\" name=\"mzData file\"/>\n";
+					}
+					writeUserParam_(os, sf, 4);
+					os	<< "			</sourceFile>\n";
+				}
+				os	<< "		</sourceFileList>\n";
+			}
+			//--------------------------------------------------------------------------------------------
+			// contacts
+			for (UInt i=0; i<exp.getContacts().size(); ++i)
+			{
+				const ContactPerson& cp = exp.getContacts()[i];
+				os  << "		<contact>\n";
+				os  << "			<cvTerm accession=\"MS:1000586\" name=\"contact name\" value=\"" << cp.getLastName() << ", " << cp.getFirstName() << "\"/>\n";
+				os  << "			<cvTerm accession=\"MS:1000587\" name=\"contact address\" value=\"" << cp.getAddress() << "\"/>\n";
+				os  << "			<cvTerm accession=\"MS:1000588\" name=\"contact URL\" value=\"" << cp.getURL() << "\"/>\n";
+				os  << "			<cvTerm accession=\"MS:1000589\" name=\"contact email\" value=\"" << cp.getEmail() << "\"/>\n";
+				os  << "			<cvTerm accession=\"MS:1000590\" name=\"contact organization\" value=\"" << cp.getInstitution() << "\"/>\n";
+				if (cp.getContactInfo()!="")
+				{
+					os  << "			<userParam name=\"contact_info\" type=\"xsd:string\" value=\"" << cp.getContactInfo() << "\"/>\n";
+				}
+				writeUserParam_(os, cp, 3);
+				os << "		</contact>\n"; 
+			}
+			os	<< "	</fileDescription>\n";
+			//--------------------------------------------------------------------------------------------
+			// sample
+			const Sample& sa = exp.getSample();
+			os  << "	<sampleList count=\"1\">\n";
+			os  << "		<sample id=\"sa_0\" name=\"" << sa.getName() << "\">\n";
+			os  << "			<cvTerm accession=\"MS:1000001\" name=\"sample number\" value=\"" << sa.getNumber() << "\"/>\n";
+			os  << "			<cvTerm accession=\"MS:1000004\" name=\"sample mass\" value=\"" << sa.getMass() << "\"/>\n";
+			os  << "			<cvTerm accession=\"MS:1000005\" name=\"sample volume\" value=\"" << sa.getVolume() << "\"/>\n";
+			os  << "			<cvTerm accession=\"MS:1000006\" name=\"sample concentration\" value=\"" << sa.getConcentration() << "\"/>\n";
+			if (sa.getComment()!="")
+			{
+				os  << "			<userParam name=\"comment\" type=\"xsd:string\" value=\"" << sa.getComment() << "\"/>\n";
+			}
+			if (sa.getState()!=Sample::SAMPLENULL)
+			{
+				os  << "			<userParam name=\"state\" type=\"xsd:string\" value=\"" << Sample::NamesOfSampleState[sa.getState()] << "\"/>\n";
+			}
+			writeUserParam_(os, sa, 3);
+			os  << "		</sample>\n";
+			os  << "	</sampleList>\n";
+			//--------------------------------------------------------------------------------------------
+			// instrument configuration (enclosing ion source, mass analyzer and detector)
+			const Instrument& in = exp.getInstrument();
+			os  << "	<instrumentConfigurationList count=\"1\">\n";
+			os  << "		<instrumentConfiguration id=\"ic_0\">\n";
+			ControlledVocabulary::CVTerm term = getChildWithName_("MS:1000031",in.getName());
+			if (term.id!="")
+			{
+				os  << "			<cvTerm accession=\"" << term.id <<"\" name=\"" << term.name << "\"/>\n";
+			}
+			else //FORCED
+			{
+				os  << "			<cvTerm accession=\"MS:1000447\" name=\"LTQ\"/>\n";
+			}
+			
+			if (in.getCustomizations()!="")
+			{
+				os  << "			<cvTerm accession=\"MS:1000032\" name=\"customization\" value=\"" << in.getCustomizations() << "\"/>\n";
+			}
+			writeUserParam_(os, in, 3);
+			//TODO Force at least 3 components
+			os  << "			<componentList count=\"" << in.getIonSources().size() + in.getMassAnalyzers().size() + in.getIonDetectors().size()<< "\">\n";
+			//--------------------------------------------------------------------------------------------
+			// ion source
+			for (UInt i=0; i<in.getIonSources().size(); ++i)
+			{
+				const IonSource& so = in.getIonSources()[i];
+				os  << "				<source order=\"" << so.getOrder() << "\">\n";
+				
+				if(so.getInletType()==IonSource::CONTINUOUSFLOWFASTATOMBOMBARDMENT)
+				{
+					os << "					<cvTerm accession=\"MS:1000055\" name=\"continuous flow fast atom bombardment\"/>\n";
+				}
+				else if(so.getInletType()==IonSource::DIRECT)
+				{
+					os << "					<cvTerm accession=\"MS:1000056\" name=\"direct inlet\"/>\n";
+				}
+				else if(so.getInletType()==IonSource::ELECTROSPRAYINLET)
+				{
+					os << "					<cvTerm accession=\"MS:1000057\" name=\"electrospray inlet\"/>\n";
+				}
+				else if(so.getInletType()==IonSource::FLOWINJECTIONANALYSIS)
+				{
+					os << "					<cvTerm accession=\"MS:1000058\" name=\"flow injection analysis\"/>\n";
+				}
+				else if(so.getInletType()==IonSource::INDUCTIVELYCOUPLEDPLASMA)
+				{
+					os << "					<cvTerm accession=\"MS:1000059\" name=\"inductively coupled plasma\"/>\n";
+				}
+				else if(so.getInletType()==IonSource::INFUSION)
+				{
+					os << "					<cvTerm accession=\"MS:1000060\" name=\"infusion\"/>\n";
+				}
+				else if(so.getInletType()==IonSource::JETSEPARATOR)
+				{
+					os << "					<cvTerm accession=\"MS:1000061\" name=\"jet separator\"/>\n";
+				}
+				else if(so.getInletType()==IonSource::MEMBRANESEPARATOR)
+				{
+					os << "					<cvTerm accession=\"MS:1000062\" name=\"membrane separator\"/>\n";
+				}
+				else if(so.getInletType()==IonSource::MOVINGBELT)
+				{
+					os << "					<cvTerm accession=\"MS:1000063\" name=\"moving belt\"/>\n";
+				}
+				else if(so.getInletType()==IonSource::MOVINGWIRE)
+				{
+					os << "					<cvTerm accession=\"MS:1000064\" name=\"moving wire\"/>\n";
+				}
+				else if(so.getInletType()==IonSource::OPENSPLIT)
+				{
+					os << "					<cvTerm accession=\"MS:1000065\" name=\"open split\"/>\n";
+				}
+				else if(so.getInletType()==IonSource::PARTICLEBEAM)
+				{
+					os << "					<cvTerm accession=\"MS:1000066\" name=\"particle beam\"/>\n";
+				}
+				else if(so.getInletType()==IonSource::RESERVOIR)
+				{
+					os << "					<cvTerm accession=\"MS:1000067\" name=\"reservoir\"/>\n";
+				}
+				else if(so.getInletType()==IonSource::SEPTUM)
+				{
+					os << "					<cvTerm accession=\"MS:1000068\" name=\"septum\"/>\n";
+				}
+				else if(so.getInletType()==IonSource::THERMOSPRAYINLET)
+				{
+					os << "					<cvTerm accession=\"MS:1000069\" name=\"thermospray inlet\"/>\n";
+				}
+				else if(so.getInletType()==IonSource::BATCH)
+				{
+					os << "					<cvTerm accession=\"MS:1000248\" name=\"direct insertion probe\"/>\n";
+				}
+				else if(so.getInletType()==IonSource::CHROMATOGRAPHY)
+				{
+					os << "					<cvTerm accession=\"MS:1000249\" name=\"direct liquid introduction\"/>\n";
+				}
+				else if(so.getInletType()==IonSource::MEMBRANE)
+				{
+					os << "					<cvTerm accession=\"MS:1000396\" name=\"membrane inlet\"/>\n";
+				}
+				else if(so.getInletType()==IonSource::NANOSPRAY)
+				{
+					os << "					<cvTerm accession=\"MS:1000485\" name=\"nanospray inlet\"/>\n";	
+				}
 
-			os	<< "    </fileContent>\n";
-			os	<< "  </fileDescription>\n";
-			
-			
+				if(so.getIonizationMethod()==IonSource::APCI)
+				{
+					os << "					<cvTerm accession=\"MS:1000070\" name=\"atmospheric pressure chemical ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::CI)
+				{
+					os << "					<cvTerm accession=\"MS:1000071\" name=\"chemical ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::ESI)
+				{
+					os << "					<cvTerm accession=\"MS:1000073\" name=\"electrospray ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::FAB)
+				{
+					os << "					<cvTerm accession=\"MS:1000074\" name=\"fast atom bombardment ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::MALDI)
+				{
+					os << "					<cvTerm accession=\"MS:1000075\" name=\"matrix-assisted laser desorption ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::MPI)
+				{
+					os << "					<cvTerm accession=\"MS:1000227\" name=\"multiphoton ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::AP_MALDI)
+				{
+					os << "					<cvTerm accession=\"MS:1000239\" name=\"atmospheric pressure matrix-assisted laser desorption ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::API)
+				{
+					os << "					<cvTerm accession=\"MS:1000240\" name=\"atmospheric pressure ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::DI)
+				{
+					os << "					<cvTerm accession=\"MS:1000247\" name=\"desorption ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::FA)
+				{
+					os << "					<cvTerm accession=\"MS:1000255\" name=\"flowing afterglow\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::FD)
+				{
+					os << "					<cvTerm accession=\"MS:1000257\" name=\"field desorption\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::FI)
+				{
+					os << "					<cvTerm accession=\"MS:1000258\" name=\"field ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::GD_MS)
+				{
+					os << "					<cvTerm accession=\"MS:1000259\" name=\"glow discharge ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::NICI)
+				{
+					os << "					<cvTerm accession=\"MS:1000271\" name=\"Negative ion chemical ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::NRMS)
+				{
+					os << "					<cvTerm accession=\"MS:1000272\" name=\"neutralization reionization mass spectrometry\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::PI)
+				{
+					os << "					<cvTerm accession=\"MS:1000273\" name=\"photoionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::PYMS)
+				{
+					os << "					<cvTerm accession=\"MS:1000274\" name=\"pyrolysis mass spectrometry\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::REMPI)
+				{
+					os << "					<cvTerm accession=\"MS:1000276\" name=\"resonance enhanced multiphoton ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::SELDI)
+				{
+					os << "					<cvTerm accession=\"MS:1000278\" name=\"surface enhanced laser desorption ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::SEND)
+				{
+					os << "					<cvTerm accession=\"MS:1000279\" name=\"surface enhanced neat desorption\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::AI)
+				{
+					os << "					<cvTerm accession=\"MS:1000380\" name=\"adiabatic ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::ASI)
+				{
+					os << "					<cvTerm accession=\"MS:1000381\" name=\"associative ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::APPI)
+				{
+					os << "					<cvTerm accession=\"MS:1000382\" name=\"atmospheric pressure photoionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::AD)
+				{
+					os << "					<cvTerm accession=\"MS:1000383\" name=\"autodetachment\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::AUI)
+				{
+					os << "					<cvTerm accession=\"MS:1000384\" name=\"autoionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::CEI)
+				{
+					os << "					<cvTerm accession=\"MS:1000385\" name=\"charge exchange ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::CHEMI)
+				{
+					os << "					<cvTerm accession=\"MS:1000386\" name=\"chemi-ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::SILI)
+				{
+					os << "					<cvTerm accession=\"MS:1000387\" name=\"desorption/ionization on silicon\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::DISSI)
+				{
+					os << "					<cvTerm accession=\"MS:1000388\" name=\"dissociative ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::EI)
+				{
+					os << "					<cvTerm accession=\"MS:1000389\" name=\"electron ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::LD)
+				{
+					os << "					<cvTerm accession=\"MS:1000393\" name=\"laser desorption ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::LSI)
+				{
+					os << "					<cvTerm accession=\"MS:1000395\" name=\"liquid secondary ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::MESI)
+				{
+					os << "					<cvTerm accession=\"MS:1000397\" name=\"microelectrospray\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::NESI)
+				{
+					os << "					<cvTerm accession=\"MS:1000398\" name=\"nanoelectrospray\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::PEI)
+				{
+					os << "					<cvTerm accession=\"MS:1000399\" name=\"penning ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::PD)
+				{
+					os << "					<cvTerm accession=\"MS:1000400\" name=\"plasma desorption ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::SI)
+				{
+					os << "					<cvTerm accession=\"MS:1000402\" name=\"secondary ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::SOI)
+				{
+					os << "					<cvTerm accession=\"MS:1000403\" name=\"soft ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::SPI)
+				{
+					os << "					<cvTerm accession=\"MS:1000404\" name=\"spark ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::SALDI)
+				{
+					os << "					<cvTerm accession=\"MS:1000405\" name=\"surface-assisted laser desorption ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::SUI)
+				{
+					os << "					<cvTerm accession=\"MS:1000406\" name=\"surface ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::TI)
+				{
+					os << "					<cvTerm accession=\"MS:1000407\" name=\"thermal ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::VI)
+				{
+					os << "					<cvTerm accession=\"MS:1000408\" name=\"vertical ionization\"/>\n";
+				}
+				else if(so.getIonizationMethod()==IonSource::FIB)
+				{
+					os << "					<cvTerm accession=\"MS:1000446\" name=\"fast ion bombardment\"/>\n";
+				}
+					
+				writeUserParam_(os, so, 5);
+				os  << "				</source>\n";				
+			}
+			//--------------------------------------------------------------------------------------------
+			// mass analyzer
+			for (UInt i=0; i<in.getMassAnalyzers().size(); ++i)
+			{
+				const MassAnalyzer& ma = in.getMassAnalyzers()[i];
+				os  << "				<anaylzer order=\"" << ma.getOrder() << "\">\n";
+				
+				os << "					<cvTerm accession=\"MS:1000014\" name=\"accuracy\" value=\"" << ma.getAccuracy() << "\"/>\n";
+				os << "					<cvTerm accession=\"MS:1000022\" name=\"TOF Total Path Length\" value=\"" << ma.getTOFTotalPathLength() << "\"/>\n";
+				os << "					<cvTerm accession=\"MS:1000024\" name=\"final MS exponent\" value=\"" << ma.getFinalMSExponent() << "\"/>\n";
+				os << "					<cvTerm accession=\"MS:1000025\" name=\"magnetic field strength\" value=\"" << ma.getMagneticFieldStrength() << "\"/>\n";
+				
+				if (ma.getReflectronState()==MassAnalyzer::ON)
+				{
+					os << "					<cvTerm accession=\"MS:1000106\" name=\"reflectron on\"/>\n";
+					
+				}
+				else if (ma.getReflectronState()==MassAnalyzer::OFF)
+				{
+					os << "					<cvTerm accession=\"MS:1000105\" name=\"reflectron off\"/>\n";
+				}
+
+				if (ma.getType()==MassAnalyzer::FOURIERTRANSFORM)
+				{
+					os << "					<cvTerm accession=\"MS:1000079\" name=\"fourier transform ion cyclotron resonance mass spectrometer\"/>\n";
+				}
+				else if (ma.getType()==MassAnalyzer::SECTOR)
+				{
+					os << "					<cvTerm accession=\"MS:1000080\" name=\"magnetic sector\"/>\n";
+				}
+				else if (ma.getType()==MassAnalyzer::QUADRUPOLE)
+				{
+					os << "					<cvTerm accession=\"MS:1000081\" name=\"quadrupole\"/>\n";
+				}
+				else if (ma.getType()==MassAnalyzer::TOF)
+				{
+					os << "					<cvTerm accession=\"MS:1000084\" name=\"time-of-flight\"/>\n";
+				}
+				else if (ma.getType()==MassAnalyzer::ESA)
+				{
+					os << "					<cvTerm accession=\"MS:1000254\" name=\"electrostatic energy analyzer\"/>\n";
+				}
+				else if (ma.getType()==MassAnalyzer::IT)
+				{
+					os << "					<cvTerm accession=\"MS:1000264\" name=\"ion trap\"/>\n";
+				}
+				else if (ma.getType()==MassAnalyzer::SWIFT)
+				{
+					os << "					<cvTerm accession=\"MS:1000284\" name=\"stored waveform inverse fourier transform\"/>\n";
+				}
+				else if (ma.getType()==MassAnalyzer::CYCLOTRON)
+				{
+					os << "					<cvTerm accession=\"MS:1000288\" name=\"cyclotron\"/>\n";
+				}
+				else if (ma.getType()==MassAnalyzer::ORBITRAP)
+				{
+					os << "					<cvTerm accession=\"MS:1000484\" name=\"orbitrap\"/>\n";
+				}
+				else if (ma.getType()==MassAnalyzer::AXIALEJECTIONLINEARIONTRAP)
+				{
+					os << "					<cvTerm accession=\"MS:1000078\" name=\"axial ejection linear ion trap\"/>\n";
+				}
+				else if (ma.getType()==MassAnalyzer::PAULIONTRAP)
+				{
+					os << "					<cvTerm accession=\"MS:1000082\" name=\"quadrupole ion trap\"/>\n";
+				}
+				else if (ma.getType()==MassAnalyzer::RADIALEJECTIONLINEARIONTRAP)
+				{
+					os << "					<cvTerm accession=\"MS:1000083\" name=\"radial ejection linear ion trap\"/>\n";
+				}
+				else if (ma.getType()==MassAnalyzer::LIT)
+				{
+					os << "					<cvTerm accession=\"MS:1000291\" name=\"linear ion trap\"/>\n";
+				}
+				
+				writeUserParam_(os, ma, 5);
+				os  << "				</anaylzer>\n";				
+			}
+			//--------------------------------------------------------------------------------------------
+			// ion detector
+			for (UInt i=0; i<in.getIonDetectors().size(); ++i)
+			{
+				const IonDetector& id = in.getIonDetectors()[i];
+				os  << "				<detector order=\"" << id.getOrder() << "\">\n";
+
+				os << "					<cvTerm accession=\"MS:1000028\" name=\"detector resolution\" value=\"" << id.getResolution() << "\"/>\n";
+				os << "					<cvTerm accession=\"MS:1000029\" name=\"sampling frequency\" value=\"" << id.getADCSamplingFrequency() << "\"/>\n";
+
+				if (id.getAcquisitionMode()==IonDetector::ADC)
+				{
+					os << "					<cvTerm accession=\"MS:1000117\" name=\"analog-digital converter\"/>\n";
+				}
+				else if (id.getAcquisitionMode()==IonDetector::PULSECOUNTING)
+				{
+					os << "					<cvTerm accession=\"MS:1000118\" name=\"pulse counting\"/>\n";
+				}
+				else if (id.getAcquisitionMode()==IonDetector::TDC)
+				{
+					os << "					<cvTerm accession=\"MS:1000119\" name=\"time-digital converter\"/>\n";
+				}
+				else if (id.getAcquisitionMode()==IonDetector::TRANSIENTRECORDER)
+				{
+					os << "					<cvTerm accession=\"MS:1000120\" name=\"transient recorder\"/>\n";
+				}
+
+				if (id.getType()==IonDetector::CHANNELTRON)
+				{
+					os << "					<cvTerm accession=\"MS:1000107\" name=\"channeltron\"/>\n";
+				}
+				else if (id.getType()==IonDetector::DALYDETECTOR)
+				{
+					os << "					<cvTerm accession=\"MS:1000110\" name=\"daly detector\"/>\n";
+				}
+				else if (id.getType()==IonDetector::FARADAYCUP)
+				{
+					os << "					<cvTerm accession=\"MS:1000112\" name=\"faraday cup\"/>\n";
+				}
+				else if (id.getType()==IonDetector::MICROCHANNELPLATEDETECTOR)
+				{
+					os << "					<cvTerm accession=\"MS:1000114\" name=\"microchannel plate detector\"/>\n";
+				}
+				else if (id.getType()==IonDetector::MULTICOLLECTOR)
+				{
+					os << "					<cvTerm accession=\"MS:1000115\" name=\"multi-collector\"/>\n";
+				}
+				else if (id.getType()==IonDetector::PHOTOMULTIPLIER)
+				{
+					os << "					<cvTerm accession=\"MS:1000116\" name=\"photomultiplier\"/>\n";
+				}
+				else if (id.getType()==IonDetector::ELECTRONMULTIPLIER)
+				{
+					os << "					<cvTerm accession=\"MS:1000253\" name=\"electron multiplier\"/>\n";
+				}
+				else if (id.getType()==IonDetector::ARRAYDETECTOR)
+				{
+					os << "					<cvTerm accession=\"MS:1000345\" name=\"array detector\"/>\n";
+				}
+				else if (id.getType()==IonDetector::CONVERSIONDYNODE)
+				{
+					os << "					<cvTerm accession=\"MS:1000346\" name=\"conversion dynode\"/>\n";
+				}
+				else if (id.getType()==IonDetector::DYNODE)
+				{
+					os << "					<cvTerm accession=\"MS:1000347\" name=\"dynode\"/>\n";
+				}
+				else if (id.getType()==IonDetector::FOCALPLANECOLLECTOR)
+				{
+					os << "					<cvTerm accession=\"MS:1000348\" name=\"focal plane collector\"/>\n";
+				}
+				else if (id.getType()==IonDetector::IONTOPHOTONDETECTOR)
+				{
+					os << "					<cvTerm accession=\"MS:1000349\" name=\"ion-to-photon detector\"/>\n";
+				}
+				else if (id.getType()==IonDetector::POINTCOLLECTOR)
+				{
+					os << "					<cvTerm accession=\"MS:1000350\" name=\"point collector\"/>\n";
+				}
+				else if (id.getType()==IonDetector::POSTACCELERATIONDETECTOR)
+				{
+					os << "					<cvTerm accession=\"MS:1000351\" name=\"postacceleration detector\"/>\n";
+				}
+				else if (id.getType()==IonDetector::PHOTODIODEARRAYDETECTOR)
+				{
+					os << "					<cvTerm accession=\"MS:1000621\" name=\"photodiode array detector\"/>\n";
+				}
+				else if (id.getType()==IonDetector::INDUCTIVEDETECTOR)
+				{
+					os << "					<cvTerm accession=\"MS:1000624\" name=\"inductive detector\"/>\n";
+				}
+				else if (id.getType()==IonDetector::CONVERSIONDYNODEELECTRONMULTIPLIER)
+				{
+					os << "					<cvTerm accession=\"MS:1000108\" name=\"conversion dynode electron multiplier\"/>\n";
+				}
+				else if (id.getType()==IonDetector::CONVERSIONDYNODEPHOTOMULTIPLIER)
+				{
+					os << "					<cvTerm accession=\"MS:1000109\" name=\"conversion dynode photomultiplier\"/>\n";
+				}
+				else if (id.getType()==IonDetector::ELECTRONMULTIPLIERTUBE)
+				{
+					os << "					<cvTerm accession=\"MS:1000111\" name=\"electron multiplier tube\"/>\n";
+				}
+				else if (id.getType()==IonDetector::FOCALPLANEARRAY)
+				{
+					os << "					<cvTerm accession=\"MS:1000113\" name=\"focal plane array\"/>\n";
+				}
+
+				writeUserParam_(os, id, 5);
+				os  << "				</detector>\n";				
+			}
+			os  << "			</componentList>\n";
+			os  << "		</instrumentConfiguration>\n";
+			os  << "	</instrumentConfigurationList>\n";
 			
 			os	<< "</mzML>";
 			logger_.endProgress();

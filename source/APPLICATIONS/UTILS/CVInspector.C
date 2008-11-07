@@ -228,9 +228,11 @@ class TOPPCVInspector
 						{
 							set<String> allowed_terms;
 							cv.getAllChildTerms(allowed_terms, tit->getAccession());
+							vector<String> parser_strings;
 							for (set<String>::const_iterator atit=allowed_terms.begin(); atit!=allowed_terms.end(); ++atit)
 							{
 								const ControlledVocabulary::CVTerm& child_term = cv.getTerm(*atit);
+								String parser_string = String("os << \"&lt;cvTerm accession=\\\"") + child_term.id + "\\\" name=\\\"" + child_term.name + "\\\"";
 								String subterm_line = String("          &nbsp;&nbsp;&nbsp;- ") + child_term.id + " ! " + child_term.name;
 								StringList tags;
 								if (child_term.obsolete)
@@ -244,25 +246,32 @@ class TOPPCVInspector
 										if (child_term.unparsed[i].hasSubstring("value-type:xsd\\:int"))
 										{
 											tags.push_back("value:int");
+											parser_string += " value=\\\"\" &lt;&lt; &lt;&lt; \"\\\"";
 										}
 										else if (child_term.unparsed[i].hasSubstring("value-type:xsd\\:float"))
 										{
 											tags.push_back("value:float");
+											parser_string += " value=\\\"\" &lt;&lt; &lt;&lt; \"\\\"";
 										}
 										else if (child_term.unparsed[i].hasSubstring("value-type:xsd\\:string"))
 										{
 											tags.push_back("value:string");
+											parser_string += " value=\\\"\" &lt;&lt; &lt;&lt; \"\\\"";
 										}
 									}
 								}
+								parser_string += "/&gt;\\n\";<BR>";
+								parser_strings.push_back(parser_string);
 								if (tags.size()!=0)
 								{
 									String tags_string;
 									tags_string.implode(tags.begin(),tags.end(),", ");
 									subterm_line += String(" (") + tags_string + ")";
 								}
-								file.push_back(subterm_line+  "<BR>");
+								file.push_back(subterm_line + "<BR>");
 							}
+							//THIS IS NEEDED FOR WRITING PARSERS ONLY
+							//file.insert(file.end(), parser_strings.begin(), parser_strings.end());
 						}
 						else
 						{
