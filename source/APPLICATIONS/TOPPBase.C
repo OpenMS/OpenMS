@@ -212,15 +212,15 @@ namespace OpenMS
 					{
 						restricted = true;
 					}
-					if (it->value.valueType()==DataValue::STRING_LIST)
+					else if (it->value.valueType()==DataValue::STRING_LIST || it->value.valueType()==DataValue::INT_LIST || it->value.valueType()==DataValue::DOUBLE_LIST)
 					{
 						restricted = true;
 					}
-					if (it->value.valueType()==DataValue::INT_VALUE && (it->min_int!=-std::numeric_limits<Int>::max() || it->max_int!=std::numeric_limits<Int>::max()))
+					else if (it->value.valueType()==DataValue::INT_VALUE && (it->min_int!=-std::numeric_limits<Int>::max() || it->max_int!=std::numeric_limits<Int>::max()))
 					{
 						restricted = true;
 					}
-					if (it->value.valueType()==DataValue::DOUBLE_VALUE && (it->min_float!=-std::numeric_limits<DoubleReal>::max() || it->max_float!=std::numeric_limits<DoubleReal>::max()))
+					else if (it->value.valueType()==DataValue::DOUBLE_VALUE && (it->min_float!=-std::numeric_limits<DoubleReal>::max() || it->max_float!=std::numeric_limits<DoubleReal>::max()))
 					{
 						restricted = true;
 					}
@@ -249,6 +249,16 @@ namespace OpenMS
 					{
 						os << "              <xs:simpleType>" << endl;
 						if (it->value.valueType()==DataValue::STRING_LIST)
+						{
+							os << "                <xs:restriction base=\"xs:string\">" << endl;
+							os << "                  <xs:pattern value=\"^$|[^,](,[^,]+)*\"/>" << endl;
+						}
+						else if (it->value.valueType()==DataValue::INT_LIST)
+						{
+							os << "                <xs:restriction base=\"xs:string\">" << endl;
+							os << "                  <xs:pattern value=\"^$|[^,](,[^,]+)*\"/>" << endl;
+						}
+						else if (it->value.valueType()==DataValue::DOUBLE_LIST)
 						{
 							os << "                <xs:restriction base=\"xs:string\">" << endl;
 							os << "                  <xs:pattern value=\"^$|[^,](,[^,]+)*\"/>" << endl;

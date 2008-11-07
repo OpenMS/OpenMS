@@ -42,7 +42,8 @@ using namespace std;
 /**
 	@page CVInspector CVInspector
 	
-	@todo Docu (Andreas)
+	@brief A tool for the validation of PSI mapping and CV files
+	
 	@todo Check for terms without children, but with useTerm=false (Andreas)
 */
 
@@ -54,7 +55,7 @@ class TOPPCVInspector
 {
  public:
 	TOPPCVInspector()
-		: TOPPBase("CVInspector","TODO")
+		: TOPPBase("CVInspector","A tool for the validation of PSI mapping and CV files")
 	{
 	}
 	

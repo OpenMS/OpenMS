@@ -793,14 +793,7 @@ namespace OpenMS
 						 << "\"";
 					if (data_processing.metaValueExists("#intensity_cutoff"))
 					{
-						if (data_processing.getMetaValue("#intensity_cutoff").valueType()==DataValue::INT_VALUE)
-						{
-							os  << " intensityCutoff=\"" << (Int)(data_processing.getMetaValue("#intensity_cutoff")) << "\"";
-						}
-						else if (data_processing.getMetaValue("#intensity_cutoff").valueType()==DataValue::DOUBLE_VALUE)
-						{
-							os  << " intensityCutoff=\"" << (DoubleReal)(data_processing.getMetaValue("#intensity_cutoff")) << "\"";							
-						}
+						os  << " intensityCutoff=\"" << data_processing.getMetaValue("#intensity_cutoff").toString() << "\"";
 					}
 					os << ">\n"
 						 << "\t\t\t<software type=\"";

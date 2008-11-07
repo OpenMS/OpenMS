@@ -224,6 +224,7 @@ namespace OpenMS
 				query << "('" << meta_id << "','" << *it;
 				val = &info.getMetaValue(*it);
 				if (debug) cout << *it << "=" << *val << endl;
+				//TODO Handling of int list, double list and string list
 				switch (val->valueType())
 				{
 					case DataValue::STRING_VALUE:

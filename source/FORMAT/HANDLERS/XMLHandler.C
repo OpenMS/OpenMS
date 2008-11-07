@@ -115,18 +115,19 @@ namespace OpenMS
 				
 				DataValue d = meta.getMetaValue(keys[i]);
 				//determine type
-				if (d.valueType()==DataValue::STRING_VALUE)
-				{
-					os << "string\" name=\"" << keys[i] << "\" value=\"" << (String)(d) << "\"/>" << endl;
-				}
 				if (d.valueType()==DataValue::INT_VALUE)
 				{
-					os << "int\" name=\"" << keys[i] << "\" value=\"" << (String)(d) << "\"/>" << endl;
+					os << "int";
 				}
-				if (d.valueType()==DataValue::DOUBLE_VALUE)
+				else if (d.valueType()==DataValue::DOUBLE_VALUE)
 				{
-					os << "float\" name=\"" << keys[i] << "\" value=\"" << (String)(d) << "\"/>" << endl;
+					os << "float";
 				}
+				else //string or lists are converted to string
+				{
+					os << "string"; 
+				}
+				os << "\" name=\"" << keys[i] << "\" value=\"" << (String)(d) << "\"/>" << endl;
 			}
 		}
 		

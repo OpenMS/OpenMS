@@ -94,6 +94,9 @@ namespace OpenMS
 					os << "\t\t<Param  type=\"float\" name=\"" << it->name << "\" value=\"" << it->value.toString() << "\"/>\n";
 					break;
 				case DataValue::STRING_VALUE:
+				case DataValue::STRING_LIST:
+				case DataValue::INT_LIST:
+				case DataValue::DOUBLE_LIST:
 					os << "\t\t<Param  type=\"string\" name=\"" << it->name << "\" value=\"" << it->value.toString() << "\"/>\n";
 					break;
 				default: // no other value types are supported!

@@ -164,9 +164,11 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 		for(Param::ParamIterator it = param.begin(); it != param.end();++it)
 		{
  			restrictions = "";
-			if (it->value.valueType()==DataValue::INT_VALUE )
+			if (it->value.valueType()==DataValue::INT_VALUE || it->value.valueType()==DataValue::INT_LIST)
 			{
 				type = "int";
+				if (it->value.valueType()==DataValue::INT_LIST) type += " list";
+
 				//restrictions
 				bool first = true;
 				if (it->min_int!=-numeric_limits<Int>::max())
@@ -180,9 +182,11 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 					restrictions += String("max: ") + it->max_int;
 				}
 			}
-			if (it->value.valueType()==DataValue::DOUBLE_VALUE )
+			else if (it->value.valueType()==DataValue::DOUBLE_VALUE || it->value.valueType()==DataValue::DOUBLE_LIST)
 			{
 				type = "float";
+				if (it->value.valueType()==DataValue::DOUBLE_LIST) type += " list";
+				
 				//restrictions
 				bool first = true;
 				if (it->min_float!=-numeric_limits<DoubleReal>::max())
@@ -196,9 +200,11 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 					restrictions += String("max: ") + it->max_float;
 				}
 			}
-			if (it->value.valueType()==DataValue::STRING_VALUE )
+			else if (it->value.valueType()==DataValue::STRING_VALUE || it->value.valueType()==DataValue::STRING_LIST)
 			{
 				type = "string";
+				if (it->value.valueType()==DataValue::STRING_LIST) type += " list";
+				
 				//restrictions
 				if (it->valid_strings.size()!=0)
 				{
@@ -257,7 +263,7 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 			if (it->tags.count("advanced")==1) style = "i";
 
 			//final output
-			f <<"<tr><td style=\"vertical-align:top\"><" << style << ">"<< name << "</" << style << "></td><td style=\"vertical-align:top\">" << type << "</td><td style=\"vertical-align:top\">" << value <<  "</td><td style=\"vertical-align:top\">" << restrictions << "</td><td style=\"vertical-align:top\">" << description <<  "</td></tr>" << endl;
+			f <<"<tr><td style=\"vertical-align:top\"><" << style << ">"<< name << "</" << style << "></td><td style=\"vertical-align:top\"><nobr>" << type << "</nobr></td><td style=\"vertical-align:top\">" << value <<  "</td><td style=\"vertical-align:top\">" << restrictions << "</td><td style=\"vertical-align:top\">" << description <<  "</td></tr>" << endl;
 		}
 		f << "</table>" << endl;
 		f << endl << "<b>Note:</b>" << endl;

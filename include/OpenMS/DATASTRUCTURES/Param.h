@@ -54,8 +54,6 @@ namespace OpenMS
 		Each parameter can be annotated with an arbitrary number of tags. Tags cannot contain comma chracters!
 		@n E.g. the <i>advanced</i> tag indicates if this parameter is shown to all users or in advanced mode only.
 		
-		@todo Add support for int/float lists (Hiwi)
-
 		@see DefaultParamHandler
 		
 		@ingroup Datastructures

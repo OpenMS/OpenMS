@@ -42,4 +42,5 @@
   - @subpage LabeledEval
   - @subpage HistView
   - @subpage IdXMLInfo
+  - @subpage CVInspector
 */
