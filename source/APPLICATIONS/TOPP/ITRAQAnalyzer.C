@@ -47,6 +47,8 @@ using namespace std;
 	 Provide an idXML file that you obtained from the same data (e.g. by using InspectAdapter) 
 	 to have protein ratios reported, instead of peptide ratios.
 
+	 @warning This tool is still in experimental status.
+ 
    @ingroup TOPP
 */
 
@@ -65,6 +67,9 @@ class TOPPITRAQAnalyzer
  protected:
 	void registerOptionsAndFlags_()
 	{
+		registerStringOption_("type","<name>","","iTRAQ experiment type\n",true);
+		setValidStrings_("type", StringList::create("4plex,8plex") );
+
 		registerInputFile_("in","<file>","","input raw/picked data file ");
 		setValidFormats_("in",StringList::create("mzData"));
 		registerOutputFile_("out","<file>","","output consensusXML file with quantitative information");
@@ -85,11 +90,11 @@ class TOPPITRAQAnalyzer
 
 	Param getSubsectionDefaults_(const String& /*section*/) const
 	{
+		String type = getStringOption_("type");
+		Int t = (type=="4plex" ?  ItraqQuantifier::FOURPLEX : ItraqQuantifier::EIGHTPLEX );
 	  Param tmp;
-		tmp.insert("Extraction:",ItraqChannelExtractor().getParameters());
-	  tmp.insert("Quantification:",ItraqQuantifier().getParameters());
-		tmp.setValue("itraq_type", "4plex", "type of iTRAQ experiment, either 4plex or 8plex");
-		tmp.setValidStrings("itraq_type", StringList::create("4plex,8plex"));
+		tmp.insert("Extraction:",ItraqChannelExtractor(t).getParameters());
+	  tmp.insert("Quantification:",ItraqQuantifier(t).getParameters());
 	  return tmp;
 	}
 	
@@ -102,11 +107,7 @@ class TOPPITRAQAnalyzer
 		String out = getStringOption_("out");
 		String idxml = getStringOption_("idxml");
 		
-		Int itraq_type = ItraqQuantifier::FOURPLEX;
-		if (getParam_().exists("algorithm:itraq_type"))
-		{
-			if ((String) getParam_().getValue("algorithm:itraq_type") == "8plex") itraq_type = ItraqQuantifier::EIGHTPLEX;
-		}
+		Int itraq_type = (getStringOption_("type")=="4plex" ?  ItraqQuantifier::FOURPLEX : ItraqQuantifier::EIGHTPLEX );
 		//-------------------------------------------------------------
 		// loading input
 		//-------------------------------------------------------------
