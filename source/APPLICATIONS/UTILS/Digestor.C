@@ -140,7 +140,7 @@ class TOPPDigestor
 			String date_time_string = "";
 			date_time.now();
 			
-			date_time.get(date_time_string);
+			date_time_string = date_time.get();
 			protein_identifications[0].setSearchParameters(search_parameters);
 			protein_identifications[0].setDateTime(date_time);
 			protein_identifications[0].setSearchEngine("In-silico digestion");
