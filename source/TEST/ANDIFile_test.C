@@ -172,9 +172,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
   //---------------------------------------------------------------------------
   TEST_EQUAL(e.getDataProcessing().size(),1)
   TEST_EQUAL(e.getDataProcessing().back().getSoftware().getName(), "17")
-  String tmp;
-  e.getDataProcessing().back().getCompletionTime().get(tmp);
-  TEST_EQUAL(tmp, "0000-00-00 00:00:00")
+  TEST_EQUAL(e.getDataProcessing().back().getCompletionTime().get(), "0000-00-00 00:00:00")
   TEST_REAL_EQUAL(e.getDataProcessing().back().getMetaValue("ProcessingNumer"), 123.0)
   TEST_EQUAL(e.getDataProcessing().back().getMetaValue("ErrorLog"), "")
   TEST_EQUAL(e.getDataProcessing().back().getMetaValue("CalibrationHistory"), "25262728")
