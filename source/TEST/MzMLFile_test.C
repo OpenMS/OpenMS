@@ -177,18 +177,26 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 		}
 		//general info		
 		TEST_EQUAL(spec.getMSLevel(),1)
-		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
+		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::FULL)
 		TEST_EQUAL(spec.getMetaDataArrays().size(),0)
 		TEST_EQUAL(spec.getType(),SpectrumSettings::PEAKS)
 		TEST_REAL_EQUAL(spec.getRT(),5.1)
 		TEST_EQUAL(spec.getInstrumentSettings().getScanWindows().size(),1)
 		TEST_REAL_EQUAL(spec.getInstrumentSettings().getScanWindows()[0].begin,400.0)
 		TEST_REAL_EQUAL(spec.getInstrumentSettings().getScanWindows()[0].end,1800.0)
-		TEST_STRING_EQUAL(spec.getAcquisitionInfo().getMethodOfCombination(),"median")
+		TEST_STRING_EQUAL(spec.getAcquisitionInfo().getMethodOfCombination(),"median of spectra")
 		TEST_EQUAL(spec.getAcquisitionInfo().size(),2)
 		TEST_EQUAL(spec.getAcquisitionInfo()[0].getNumber(),4711)
+		TEST_STRING_EQUAL(spec.getAcquisitionInfo()[0].getMetaValue("source_file_name"),"ac.dta")
+		TEST_STRING_EQUAL(spec.getAcquisitionInfo()[0].getMetaValue("source_file_path"),"file:///F:/data/Exp02")
+		TEST_STRING_EQUAL(spec.getAcquisitionInfo()[0].getMetaValue("external_native_id"),"ENI0")
+		TEST_STRING_EQUAL(spec.getAcquisitionInfo()[0].getMetaValue("external_spectrum_id"),"ESI0")
 		TEST_EQUAL(spec.getAcquisitionInfo()[1].getNumber(),4712)
 		TEST_EQUAL(spec.getSourceFile()==SourceFile(),true)
+		//ids
+		TEST_STRING_EQUAL(spec.getMetaValue("id"),"S0")
+		TEST_STRING_EQUAL(spec.getMetaValue("native_id"),"N0")
+		TEST_STRING_EQUAL(spec.getMetaValue("maldi_spot_id"),"M0")
 	}
 	
 	//-------------------------- spectrum 1 --------------------------
@@ -232,11 +240,19 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 		TEST_EQUAL(spec.getPrecursorPeak().getPossibleChargeStates()[0],1)
 		TEST_EQUAL(spec.getPrecursorPeak().getPossibleChargeStates()[1],3)
 		TEST_EQUAL(spec.getPrecursorPeak().getPossibleChargeStates()[2],4)
+		TEST_STRING_EQUAL(spec.getPrecursor().getMetaValue("source_file_name"),"pr.dta")
+		TEST_STRING_EQUAL(spec.getPrecursor().getMetaValue("source_file_path"),"file:///F:/data/Exp03")
+		TEST_STRING_EQUAL(spec.getPrecursor().getMetaValue("external_native_id"),"ENI1")
+		TEST_STRING_EQUAL(spec.getPrecursor().getMetaValue("external_spectrum_id"),"ESI1")
 		//source file
 		TEST_STRING_EQUAL(spec.getSourceFile().getNameOfFile(),"tiny1.dta")
 		TEST_STRING_EQUAL(spec.getSourceFile().getPathToFile(),"file:///F:/data/Exp01")
 		TEST_STRING_EQUAL(spec.getSourceFile().getChecksum(),"81be39fb2700ab2f3c8b2234b91274968b6899b1")
 		TEST_EQUAL(spec.getSourceFile().getChecksumType(),SourceFile::SHA1)
+		//ids
+		TEST_STRING_EQUAL(spec.getMetaValue("id"),"S1")
+		TEST_STRING_EQUAL(spec.getMetaValue("native_id"),"N1")
+		TEST_STRING_EQUAL(spec.getMetaValue("maldi_spot_id"),"M1")
 		
 	}
 	
@@ -252,7 +268,7 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 		}
 		//general info		
 		TEST_EQUAL(spec.getMSLevel(),1)
-		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
+		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::FULL)
 		TEST_EQUAL(spec.getMetaDataArrays().size(),0)
 		TEST_EQUAL(spec.getType(),SpectrumSettings::PEAKS)
 		TEST_REAL_EQUAL(spec.getRT(),5.3)
@@ -260,11 +276,16 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 		TEST_EQUAL(spec.getInstrumentSettings().getScanWindows().size(),1)
 		TEST_REAL_EQUAL(spec.getInstrumentSettings().getScanWindows()[0].begin,400.0)
 		TEST_REAL_EQUAL(spec.getInstrumentSettings().getScanWindows()[0].end,1800.0)
-		TEST_STRING_EQUAL(spec.getAcquisitionInfo().getMethodOfCombination(),"median")
+		//acquisition
+		TEST_STRING_EQUAL(spec.getAcquisitionInfo().getMethodOfCombination(),"median of spectra")
 		TEST_EQUAL(spec.getAcquisitionInfo().size(),2)
 		TEST_EQUAL(spec.getAcquisitionInfo()[0].getNumber(),4711)
 		TEST_EQUAL(spec.getAcquisitionInfo()[1].getNumber(),4712)
 		TEST_EQUAL(spec.getSourceFile()==SourceFile(),true)
+		//ids
+		TEST_STRING_EQUAL(spec.getMetaValue("id"),"S2")
+		TEST_STRING_EQUAL(spec.getMetaValue("native_id"),"N2")
+		TEST_STRING_EQUAL(spec.getMetaValue("maldi_spot_id"),"M2")
 	}
 
 	//-------------------------- spectrum 3 (no peaks) --------------------------
@@ -275,7 +296,7 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 		//general info
 		TEST_EQUAL(spec.getMSLevel(),1)
 		TEST_REAL_EQUAL(spec.getRT(),5.4)
-		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
+		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::FULL)
 		TEST_EQUAL(spec.getMetaDataArrays().size(),0)
 		TEST_EQUAL(spec.getType(),SpectrumSettings::RAWDATA)
 		TEST_EQUAL(spec.getInstrumentSettings().getScanWindows().size(),1)
@@ -283,6 +304,10 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 		TEST_REAL_EQUAL(spec.getInstrumentSettings().getScanWindows()[0].end,905.0)
 		TEST_STRING_EQUAL(spec.getAcquisitionInfo().getMethodOfCombination(),"")
 		TEST_EQUAL(spec.getAcquisitionInfo().size(),0)
+		//ids
+		TEST_STRING_EQUAL(spec.getMetaValue("id"),"S3")
+		TEST_STRING_EQUAL(spec.getMetaValue("native_id"),"N3")
+		TEST_EQUAL(spec.metaValueExists("maldi_spot_id"),false)
 	}
 	
 	//-------------------------- userParam --------------------------
@@ -504,11 +529,15 @@ CHECK((template <typename MapType> void store(const String& filename, const MapT
  	NEW_TMP_FILE(tmp_filename);
 	file.store(tmp_filename,exp);
 	
+	//check if it is valid
+	TEST_EQUAL(file.isValid(tmp_filename),true)
+	
 	//load written map
 	MSExperiment<> exp2;
 	file.load(tmp_filename,exp2);
 	
 	//tests
+	//TODO
 	TEST_EQUAL(exp2.getIdentifier(),"OpenMS_document_id");
 	
 	

@@ -31,6 +31,14 @@
         <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91274968b6899b1"/>
 				<userParam name="name" value="sourcefile4"/>
       </sourceFile>
+      <sourceFile id="sf_ac_0" name="ac.dta" location="file:///F:/data/Exp02">
+        <cvParam cvRef="MS" accession="MS:1000613" name="dta file" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91244968b6899b1"/>
+      </sourceFile>
+      <sourceFile id="sf_pr_0" name="pr.dta" location="file:///F:/data/Exp03">
+        <cvParam cvRef="MS" accession="MS:1000613" name="dta file" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91244968b6899b1"/>
+      </sourceFile>
     </sourceFileList>
     
     <contact>
@@ -175,8 +183,8 @@
     
     <spectrumList count="4">
 
-      <spectrum index="0" id="S19" nativeID="19" defaultArrayLength="15">
-        <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value=""/>
+      <spectrum index="0" id="S0" nativeID="N0" spotID="M0" defaultArrayLength="15">
+        <cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
         <userParam name="name" value="spectrum1"/>
         <spectrumDescription>
           <referenceableParamGroupRef ref="ErrorGroup"/>
@@ -189,7 +197,7 @@
           <acquisitionList count="2">
           	<cvParam cvRef="MS" accession="MS:1000573" name="median of spectra"/>
           	<userParam name="name" value="acquisition_list"/>
-          	<acquisition number="4711">
+          	<acquisition number="4711" sourceFileRef="sf_ac_0" externalNativeID="ENI0" externalSpectrumID="ESI0">
               <cvParam cvRef="MS" accession="MS:1000011" name="mass resolution" value="4.3"/>
         			<userParam name="name" value="acquisition1"/>
             </acquisition>
@@ -230,7 +238,7 @@
       </spectrum>
 
 
-      <spectrum index="1" id="S20" nativeID="20" defaultArrayLength="10" sourceFileRef="sf_spectrum_2">
+      <spectrum index="1" id="S1" nativeID="N1" spotID="M1" defaultArrayLength="10" sourceFileRef="sf_spectrum_2">
         <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value=""/>
         <userParam name="name" value="spectrum2"/>
         <spectrumDescription>
@@ -242,7 +250,7 @@
           <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
           <userParam name="sdname" value="spectrumdescription2"/>
           <precursorList count="1">
-            <precursor spectrumRef="S19">
+            <precursor spectrumRef="S0" sourceFileRef="sf_pr_0" externalNativeID="ENI1" externalSpectrumID="ESI1">
             	<isolationWindow>
         				<userParam name="iwname" value="isolationwindow1"/>
             	</isolationWindow>
@@ -321,8 +329,8 @@
         </binaryDataArrayList>
       </spectrum>
 
-      <spectrum index="2" id="S21" nativeID="19" defaultArrayLength="15">
-        <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value=""/>
+      <spectrum index="2" id="S2" nativeID="N2" spotID="M2" defaultArrayLength="15">
+        <cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
         <userParam name="name" value="spectrum3"/>
         <spectrumDescription>
           <cvParam cvRef="MS" accession="MS:1000127" name="centroid mass spectrum" value=""/>
@@ -372,8 +380,8 @@
         </binaryDataArrayList>
       </spectrum>
 
-      <spectrum index="3" id="S22" nativeID="21" defaultArrayLength="0">
-        <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value=""/>
+      <spectrum index="3" id="S3" nativeID="N3" defaultArrayLength="0">
+        <cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
         <userParam name="name" value="spectrum4"/>
         <spectrumDescription>
           <cvParam cvRef="MS" accession="MS:1000128" name="profile mass spectrum" value=""/>
