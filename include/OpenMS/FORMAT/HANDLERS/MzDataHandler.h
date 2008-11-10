@@ -989,10 +989,7 @@ namespace OpenMS
 					 << "\t\t\t<software";
 				if (data_processing.getCompletionTime()!=DateTime())
 				{
-					String tmp;
-					data_processing.getCompletionTime().get(tmp);
-					tmp.substitute(' ','T');
-					os << " completionTime=\"" << tmp << "\"";
+					os << " completionTime=\"" << data_processing.getCompletionTime().get().substitute(' ','T') << "\"";
 				}
 				os << ">\n"
 					 << "\t\t\t\t<name>" << data_processing.getSoftware().getName() << "</name>\n"

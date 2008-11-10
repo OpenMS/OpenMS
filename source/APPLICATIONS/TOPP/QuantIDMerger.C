@@ -145,13 +145,11 @@ class TOPPQuantIDMerger
 			Map<String, String> engines;
 			for (UInt i=0; i<protein_ids.size(); ++i)
 			{
-				String date_string;
-				protein_ids[i].getDateTime().get(date_string);
 				engines[protein_ids[i].getIdentifier()] = protein_ids[i].getSearchEngine()
 				                                         + " "
 				                                         + protein_ids[i].getSearchEngineVersion()
 				                                         + " "
-				                                         + date_string;
+				                                         + protein_ids[i].getDateTime().get();
 			}
 			
 			//----------------------------------------------------------------

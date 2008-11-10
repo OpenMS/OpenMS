@@ -53,9 +53,7 @@ RESULT
 
 CHECK(const DateTime& getCompletionTime() const)
   DataProcessing tmp;
-	String str;
-	tmp.getCompletionTime().get(str);
-  TEST_EQUAL(str,"0000-00-00 00:00:00");
+  TEST_EQUAL(tmp.getCompletionTime().get(),"0000-00-00 00:00:00");
 RESULT
 
 CHECK(void setCompletionTime(const DateTime& completion_time))

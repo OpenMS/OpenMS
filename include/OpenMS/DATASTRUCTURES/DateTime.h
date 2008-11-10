@@ -137,11 +137,11 @@ namespace OpenMS
 			void clear();
 			
 			/**
-				@brief Fills the argument with the date and time
+				@brief Returns a string representation of the date and time
 			 	
 			 	The format of the string will be yyyy-MM-dd hh:mm:ss
 			*/
-			void get(String& date) const;
+			String get() const;
 			
 			/**
 				@brief Sets date and time

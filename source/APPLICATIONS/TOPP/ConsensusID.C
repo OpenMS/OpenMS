@@ -270,14 +270,12 @@ class TOPPConsensusID
 				PeptideIdentification id;
 				DateTime date;
 				date.now();
-				String date_str;
-				date.get(date_str);
 				for (vector<IDData>::iterator it = prec_data.begin(); it!=prec_data.end(); ++it)
 				{
 					all_ids.push_back(it->ids[0]);
 					all_ids.back().setMetaValue("RT",it->rt);
 					all_ids.back().setMetaValue("MZ",it->mz);
-					all_ids.back().setIdentifier("Consensus_" + date_str);
+					all_ids.back().setIdentifier("Consensus_" + date.get());
 				}
 				
 				//store consensus
@@ -285,7 +283,7 @@ class TOPPConsensusID
 				prot_id_out[0].setDateTime(date);
 				prot_id_out[0].setSearchEngine("OpenMS/ConsensusID");
 				prot_id_out[0].setSearchEngineVersion(VersionInfo::getVersion());
-				prot_id_out[0].setIdentifier("Consensus_" + date_str);
+				prot_id_out[0].setIdentifier("Consensus_" + date.get());
 				ax_file.store(out,prot_id_out,all_ids);
 			}
 			return EXECUTION_OK;

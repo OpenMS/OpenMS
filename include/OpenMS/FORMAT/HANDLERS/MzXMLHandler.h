@@ -242,6 +242,7 @@ namespace OpenMS
 				exp_->reserve(count);
 				logger_.startProgress(0,count,"loading mzXML file");
 				scan_count = 0;
+				//start and end time are xs:duration. This makes no senes => ignore them
 			}
 			else if (tag=="parentFile")
 			{
@@ -811,10 +812,7 @@ namespace OpenMS
 			
 					if (data_processing.getCompletionTime() != DateTime())
 					{
-						String tmp;
-						data_processing.getCompletionTime().get(tmp);
-						tmp.substitute(' ', 'T');
-						os << "\" completionTime=\"" << tmp;
+						os << "\" completionTime=\"" << data_processing.getCompletionTime().get().substitute(' ', 'T');
 					}
 					os << "\"/>\n";
 					writeUserParam_(os,data_processing,3,"processingOperation");

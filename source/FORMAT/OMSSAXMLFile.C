@@ -65,9 +65,7 @@ namespace OpenMS
 
 		DateTime now;
 		now.now();
-		String date_string;
-		now.get(date_string);
-		String identifier("OMSSA_" + date_string);
+		String identifier("OMSSA_" + now.get());
 	
 		// post-processing
 		vector<String> accessions;

@@ -114,9 +114,9 @@ namespace OpenMS
       void setHPLC(const HPLC& hplc);
       
      	/// returns the date the experiment was performed
-    	const Date& getDate() const;
+    	const DateTime& getDateTime() const;
     	/// sets the date the experiment was performed
-      void setDate(const Date& date);   
+      void setDateTime(const DateTime& date);   
 
 			/// returns the free-text comment
       const String& getComment() const;
@@ -139,7 +139,7 @@ namespace OpenMS
 			Instrument instrument_;
 		  std::vector<DataProcessing> data_processing_;
 		  HPLC hplc_;
-		  Date date_;
+		  DateTime datetime_;
 			String comment_;
 			std::vector<ProteinIdentification> protein_identifications_;
   };

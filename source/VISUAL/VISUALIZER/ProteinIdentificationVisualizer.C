@@ -87,9 +87,7 @@ namespace OpenMS
 		// id of the item in the tree
 		tree_id_ = tree_item_id;
 		
-	  String str;
-	  temp_.getDateTime().get(str);
-		identification_date_->setText(str.toQString()); 
+		identification_date_->setText(temp_.getDateTime().get().toQString()); 
 		identification_threshold_->setText(QString::number(temp_.getSignificanceThreshold()));			
 		identifier_->setText(temp_.getIdentifier().toQString());
 		engine_->setText(temp_.getSearchEngine().toQString());

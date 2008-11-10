@@ -490,8 +490,6 @@ class TOPPFileInfo
 		// '-m' show meta info
 		if (getFlag_("m"))
 		{
-			String date;
-			exp.getDate().get(date);
 			//basic info
 			cout << endl
 					 << "-- Meta information --" << endl
@@ -511,7 +509,7 @@ class TOPPFileInfo
 			{
 				
 				cout << "Document id       : " << exp.getIdentifier() << endl
-						 << "Date              : " << date << endl;
+						 << "Date              : " << exp.getDateTime().get() << endl;
 
 				//basic info
 				cout << endl

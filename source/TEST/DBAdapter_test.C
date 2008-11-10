@@ -531,9 +531,7 @@ if (do_tests)
 
 			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchEngine(), "google" )
 			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchEngineVersion(), "beta" )
-			String date;
-			exp_new.getProteinIdentifications()[0].getDateTime().get(date);
-			TEST_EQUAL(date, "2006-12-12 00:00:00" )
+			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getDateTime().get(), "2006-12-12 00:00:00" )
 			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getScoreType(), "Type" )
 			TEST_EQUAL(exp_new.getProteinIdentifications()[0].isHigherScoreBetter(), true )
 			TEST_REAL_EQUAL(exp_new.getProteinIdentifications()[0].getSignificanceThreshold(), 3.456 )

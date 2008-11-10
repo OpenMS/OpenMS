@@ -53,9 +53,7 @@ namespace OpenMS
 	void DataProcessingVisualizer::update_()
 	{
 		//time
-	  String str;
-	  temp_.getCompletionTime().get(str);
-		completion_time_->setText(str.c_str()); 
+		completion_time_->setText(temp_.getCompletionTime().get().c_str()); 
 		
 		//actions
 		actions_->clear();
@@ -88,7 +86,6 @@ namespace OpenMS
 		DateTime date;
 		try
 		{
-			
 			date.set(completion_time_->text().toStdString());
 			ptr_->setCompletionTime(date);
 		}

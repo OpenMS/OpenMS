@@ -69,7 +69,7 @@ namespace OpenMS
 		protected:  
 		  
 			/// The date of this experiment
-			QLineEdit* date_;		
+			QLineEdit* datetime_;		
 			/// The comment to this experiment
 			QTextEdit* comment_;
 

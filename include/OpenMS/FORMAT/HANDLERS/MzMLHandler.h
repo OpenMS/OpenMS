@@ -60,9 +60,12 @@
 
 
 // xs:id prefix list
-// - sf : sourceFile
-// - sa : sample
-// - ic : instrumentConfiguration
+// - sf_ru : sourceFile (run)
+// - sa    : sample
+// - ic    : instrumentConfiguration
+// - so_dp : software (data processing)
+// - so_in : software (instrument)
+// - dp    : dataProcessing
 
 namespace OpenMS
 {
@@ -299,6 +302,7 @@ namespace OpenMS
 			static const XMLCh* s_software_ref = xercesc::XMLString::transcode("softwareRef");
 			static const XMLCh* s_source_file_ref = xercesc::XMLString::transcode("sourceFileRef");
 			static const XMLCh* s_default_instrument_configuration_ref = xercesc::XMLString::transcode("defaultInstrumentConfigurationRef");
+			static const XMLCh* s_start_time_stamp = xercesc::XMLString::transcode("startTimeStamp");
 			
 			String tag = sm_.convert(qname);
 			open_tags_.push_back(tag);
@@ -437,6 +441,12 @@ namespace OpenMS
 				//instrument
 				String instrument_ref = attributeAsString_(attributes, s_default_instrument_configuration_ref);
 				exp_->setInstrument(instruments_[instrument_ref]);
+				//start time
+				String start_time;
+				if (optionalAttributeAsString_(start_time, attributes, s_start_time_stamp))
+				{
+					exp_->setDateTime(asDateTime_(start_time));
+				}
 			}
 			else if (tag=="software")
 			{
@@ -2050,7 +2060,7 @@ namespace OpenMS
 				for (UInt i=0; i<exp.getSourceFiles().size(); ++i)
 				{
 					const SourceFile& sf = exp.getSourceFiles()[i];
-					os	<< "			<sourceFile id=\"sf_" << i << "\" name=\"" << sf.getNameOfFile() << "\" location=\"" << sf.getPathToFile() << "\"> \n";
+					os	<< "			<sourceFile id=\"sf_ru_" << i << "\" name=\"" << sf.getNameOfFile() << "\" location=\"" << sf.getPathToFile() << "\"> \n";
 					if (sf.getChecksumType()==SourceFile::SHA1)
 					{
 						os  << "				<cvTerm accession=\"MS:1000569\" name=\"SHA-1\" value=\"" << sf.getChecksum() << "\"/>\n";
@@ -2063,10 +2073,10 @@ namespace OpenMS
 					{
 						os  << "				<cvTerm accession=\"MS:1000569\" name=\"SHA-1\" value=\"\"/>\n";
 					}
-					ControlledVocabulary::CVTerm term = getChildWithName_("MS:1000560",sf.getFileType());
-					if (term.id!="")
+					ControlledVocabulary::CVTerm sf_term = getChildWithName_("MS:1000560",sf.getFileType());
+					if (sf_term.id!="")
 					{
-						os  << "				<cvTerm accession=\"" << term.id <<"\" name=\"" << term.name << "\"/>\n";
+						os  << "				<cvTerm accession=\"" << sf_term.id <<"\" name=\"" << sf_term.name << "\"/>\n";
 					}
 					else //FORCED
 					{
@@ -2121,10 +2131,10 @@ namespace OpenMS
 			const Instrument& in = exp.getInstrument();
 			os  << "	<instrumentConfigurationList count=\"1\">\n";
 			os  << "		<instrumentConfiguration id=\"ic_0\">\n";
-			ControlledVocabulary::CVTerm term = getChildWithName_("MS:1000031",in.getName());
-			if (term.id!="")
+			ControlledVocabulary::CVTerm in_term = getChildWithName_("MS:1000031",in.getName());
+			if (in_term.id!="")
 			{
-				os  << "			<cvTerm accession=\"" << term.id <<"\" name=\"" << term.name << "\"/>\n";
+				os  << "			<cvTerm accession=\"" << in_term.id <<"\" name=\"" << in_term.name << "\"/>\n";
 			}
 			else //FORCED
 			{
@@ -2136,7 +2146,7 @@ namespace OpenMS
 				os  << "			<cvTerm accession=\"MS:1000032\" name=\"customization\" value=\"" << in.getCustomizations() << "\"/>\n";
 			}
 			writeUserParam_(os, in, 3);
-			//TODO Force at least 3 components
+			//TODO Force at least three
 			os  << "			<componentList count=\"" << in.getIonSources().size() + in.getMassAnalyzers().size() + in.getIonDetectors().size()<< "\">\n";
 			//--------------------------------------------------------------------------------------------
 			// ion source
@@ -2592,8 +2602,120 @@ namespace OpenMS
 				os  << "				</detector>\n";				
 			}
 			os  << "			</componentList>\n";
+			os  << "			<softwareRef ref=\"so_in_0\"/>\n";
 			os  << "		</instrumentConfiguration>\n";
 			os  << "	</instrumentConfigurationList>\n";
+			
+			//--------------------------------------------------------------------------------------------
+			// software
+			os  << "	<softwareList count=\"" << (exp.getDataProcessing().size() +1) << "\">\n";			
+			os  << "		<software id=\"so_in_0\">\n";
+			ControlledVocabulary::CVTerm so_in_term = getChildWithName_("MS:1000531",in.getSoftware().getName());
+			if (so_in_term.id!="")
+			{
+				os  << "			<softwareParam cvRef=\"MS\" accession=\"" << so_in_term.id << "\" name=\"" << so_in_term.name << "\" version=\"" << in.getSoftware().getVersion() << "\" />\n";
+			}
+			else
+			{
+				os  << "			<softwareParam cvRef=\"\" accession=\"\" name=\"" << in.getSoftware().getName() << "\" version=\"" << in.getSoftware().getVersion() << "\" />\n";
+			}
+			os  << "		</software>\n";
+			for (UInt i=0; i<exp.getDataProcessing().size(); ++i)
+			{
+				os  << "		<software id=\"so_dp_" << i << "\">\n";
+				ControlledVocabulary::CVTerm so_dp_term = getChildWithName_("MS:1000531",exp.getDataProcessing()[i].getSoftware().getName());
+				if (so_dp_term.id!="")
+				{
+					os  << "			<softwareParam cvRef=\"MS\" accession=\"" << so_dp_term.id << "\" name=\"" << so_dp_term.name << "\" version=\"" << exp.getDataProcessing()[i].getSoftware().getVersion() << "\" />\n";
+				}
+				else
+				{
+					os  << "			<softwareParam cvRef=\"\" accession=\"\" name=\"" << exp.getDataProcessing()[i].getSoftware().getName() << "\" version=\"" << exp.getDataProcessing()[i].getSoftware().getVersion() << "\" />\n";
+				}
+				os  << "		</software>\n";
+			}
+			os  << "	</softwareList>\n";			
+
+			//--------------------------------------------------------------------------------------------
+			// data processing
+			// TODO force at least one 
+			// TODO store completion time
+			os  << "	<dataProcessingList count=\"" << exp.getDataProcessing().size() << "\">\n";			
+			for (UInt i=0; i<exp.getDataProcessing().size(); ++i)
+			{
+				const DataProcessing& dp = exp.getDataProcessing()[i];
+				os  << "		<dataProcessing id=\"dp_" << i << "\" softwareRef=\"so_dp_" << i << "\">\n";
+				os  << "			<processingMethod order=\"0\">\n";
+				if (dp.getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION)==1)
+				{
+					os << "				<cvTermTerm accession=\"MS:1000034\" name=\"charge deconvolution\"/>\n";
+				}
+				if (dp.getProcessingActions().count(DataProcessing::DEISOTOPING)==1)
+				{
+					os << "				<cvTermTerm accession=\"MS:1000033\" name=\"deisotoping\"/>\n";
+				}
+				if (dp.getProcessingActions().count(DataProcessing::SMOOTHING)==1)
+				{
+					os << "				<cvTermTerm accession=\"MS:1000592\" name=\"smoothing\"/>\n";
+				}
+				if (dp.getProcessingActions().count(DataProcessing::BASELINE_REDUCTION)==1)
+				{
+					os << "				<cvTermTerm accession=\"MS:1000593\" name=\"baseline reduction\"/>\n";
+				}
+				if (dp.getProcessingActions().count(DataProcessing::PEAK_PICKING)==1)
+				{
+					os << "				<cvTermTerm accession=\"MS:1000035\" name=\"peak picking\"/>\n";
+				}
+				if (dp.getProcessingActions().count(DataProcessing::FEATURE_FINDING)==1)
+				{
+					//no CV term for this
+				}
+				if (dp.getProcessingActions().count(DataProcessing::ALIGNMENT)==1)
+				{
+					//TODO
+				}
+				if (dp.getProcessingActions().count(DataProcessing::LOW_INTENSITY_REMOVAL)==1)
+				{
+					os << "				<cvTermTerm accession=\"MS:1000594\" name=\"low intensity data point removal\"/>\n";
+				}
+				if (dp.getProcessingActions().count(DataProcessing::HIGH_INTENSITY_REMOVAL)==1)
+				{
+					//TODO
+				}
+				if (dp.getProcessingActions().count(DataProcessing::CONVERSION_MZDATA)==1)
+				{
+					os << "				<cvTermTerm accession=\"MS:1000546\" name=\"Conversion to mzData\"/>\n";
+				}
+				if (dp.getProcessingActions().count(DataProcessing::CONVERSION_MZML)==1)
+				{
+					os << "				<cvTermTerm accession=\"MS:1000544\" name=\"Conversion to mzML\"/>\n";
+				}
+				if (dp.getProcessingActions().count(DataProcessing::CONVERSION_MZXML)==1)
+				{
+					os << "				<cvTermTerm accession=\"MS:1000545\" name=\"Conversion to mzXML\"/>\n";
+				}
+				if (dp.getProcessingActions().count(DataProcessing::CONVERSION_DTA)==1)
+				{
+					os << "				<cvTermTerm accession=\"MS:1000741\" name=\"Conversion to dta\"/>\n";
+				}
+				writeUserParam_(os, dp, 4);
+				os  << "			</processingMethod>\n";
+				os  << "		</dataProcessing>\n";
+			}
+			os  << "	</dataProcessingList>\n";		
+			//--------------------------------------------------------------------------------------------
+			// acquisitionSettings
+			
+			//--------------------------------------------------------------------------------------------
+			// run
+			os  << "	<run id=\"ru_0\" defaultInstrumentConfigurationRef=\"ic_0\" sampleRef=\"sa_0\"";
+			if (exp.getDateTime()!=DateTime())
+			{
+				os << " startTimeStamp=\"" << exp.getDateTime().get().substitute(' ','T') << "\"";
+			}
+			os  << ">\n";
+			
+			os  << "	</run>\n";		
 			
 			os	<< "</mzML>";
 			logger_.endProgress();

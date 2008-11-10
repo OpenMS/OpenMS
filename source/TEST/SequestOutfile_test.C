@@ -377,8 +377,7 @@ CHECK(void readOutHeader(const String& result_filename, DateTime& datetime, Real
 	String
 	 sequest,
 	 sequest_version,
-	 database_type,
-	 dt;
+	 database_type;
 
 	// test exceptions
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.readOutHeader("a", datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns), "the file 'a' could not be found")
@@ -395,8 +394,7 @@ CHECK(void readOutHeader(const String& result_filename, DateTime& datetime, Real
 	TEST_STRING_EQUAL(sequest, "TurboSEQUEST")
 	TEST_STRING_EQUAL(sequest_version, "v.27 (rev. 12)")
 	TEST_STRING_EQUAL(database_type, "amino acids")
-	datetime.get(dt);
-	TEST_STRING_EQUAL(dt, "2007-01-17 17:29:00")
+	TEST_STRING_EQUAL(datetime.get(), "2007-01-17 17:29:00")
 
 	TEST_EQUAL(charge, 2)
 	TEST_EQUAL(number_column, 0)

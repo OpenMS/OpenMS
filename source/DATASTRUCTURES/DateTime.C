@@ -114,16 +114,13 @@ namespace OpenMS
 		QDateTime::operator=(QDateTime::currentDateTime());
 	}
 
-	void DateTime::get(String& date) const
+	String DateTime::get() const
 	{
 		if (QDateTime::isValid())
 		{
-			date = QDateTime::toString("yyyy-MM-dd hh:mm:ss").toStdString();
+			return QDateTime::toString("yyyy-MM-dd hh:mm:ss");
 		}
-		else
-		{
-			date = "0000-00-00 00:00:00";
-		}
+		return "0000-00-00 00:00:00";
 	}
 	
 	void DateTime::get(UInt& month, UInt& day, UInt& year,

@@ -52,8 +52,6 @@ ProteinIdentification protein_identification;
 vector<PeptideIdentification> peptide_identifications; 
 vector<PeptideIdentification> peptide_identifications2; 
 DateTime date;
-String date_string_1;
-String date_string_2;
 PeptideHit peptide_hit;
 vector<String> references;
 
@@ -82,9 +80,7 @@ CHECK((void load(const String &filename, ProteinIdentification &protein_identifi
 	TEST_REAL_EQUAL(protein_identification.getHits()[0].getScore(), 619)
 	TEST_REAL_EQUAL(protein_identification.getHits()[1].getScore(), 293)
 	TEST_EQUAL(protein_identification.getScoreType(), "Mascot")
-	
-	protein_identification.getDateTime().get(date_string_1);
-	TEST_EQUAL(date_string_1, "2006-03-09 11:31:52")
+	TEST_EQUAL(protein_identification.getDateTime().get(), "2006-03-09 11:31:52")
 	
 	TEST_REAL_EQUAL(peptide_identifications[0].getSignificanceThreshold(), 31.8621)
 	TEST_EQUAL(peptide_identifications[0].getHits().size(), 2)
@@ -152,9 +148,7 @@ CHECK((void load(const String &filename, ProteinIdentification &protein_identifi
 	TEST_REAL_EQUAL(protein_identification.getHits()[0].getScore(), 619)
 	TEST_REAL_EQUAL(protein_identification.getHits()[1].getScore(), 293)
 	TEST_EQUAL(protein_identification.getScoreType(), "Mascot")
-	
-	protein_identification.getDateTime().get(date_string_1);
-	TEST_EQUAL(date_string_1, "2006-03-09 11:31:52")
+	TEST_EQUAL(protein_identification.getDateTime().get(), "2006-03-09 11:31:52")
 	
 	TEST_REAL_EQUAL(peptide_identifications[0].getSignificanceThreshold(), 31.8621)
 	TEST_EQUAL(peptide_identifications[0].getHits().size(), 2)

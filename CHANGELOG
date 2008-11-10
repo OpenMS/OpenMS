@@ -70,6 +70,9 @@ Detailed list of changes to specific OpenMS classes:
   - VersionInfo: Added support for SVN revision info. Slight interface changes.
   - TOPPBase: Print revison info (if meaningful).
   - MetaInfo: uses double precision now.
+  - Date: get() now returns a string instead of modifying a string reference
+  - DateTime: get() now returns a string instead of modifying a string reference
+  - MSExperiment: The date is not a DateTime object
 
 ------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.2                                     ----

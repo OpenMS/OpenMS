@@ -48,11 +48,9 @@ CHECK(~ExperimentalSettings())
 	delete ptr;
 RESULT
 
-CHECK(const Date& getDate() const)
+CHECK(const Date& getDateTime() const)
   ExperimentalSettings tmp;
-  String s;
-  tmp.getDate().get(s);
-  TEST_EQUAL(s,"0000-00-00");
+  TEST_EQUAL(tmp.getDateTime().get(),"0000-00-00 00:00:00");
 RESULT
 
 CHECK(const HPLC& getHPLC() const)
@@ -125,14 +123,12 @@ CHECK(void setContacts(const std::vector<ContactPerson>& contacts))
   TEST_EQUAL(tmp.getContacts()[1].getLastName(),"blubb18");
 RESULT
 
-CHECK(void setDate(const Date& date))
+CHECK(void setDateTime(const Date& date))
   ExperimentalSettings tmp;
-  Date dummy;
-  String s;
-  dummy.set("02/07/2006");
-  tmp.setDate(dummy);
-  tmp.getDate().get(s);
-  TEST_EQUAL(s,"2006-02-07");
+  DateTime dummy;
+  dummy.set("02/07/2006 01:02:03");
+  tmp.setDateTime(dummy);
+  TEST_EQUAL(tmp.getDateTime().get(),"2006-02-07 01:02:03");
 RESULT
 
 CHECK(void setHPLC(const HPLC& hplc))

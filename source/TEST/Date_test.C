@@ -141,28 +141,21 @@ CHECK((void set(const String& date) ))
   TEST_EXCEPTION(Exception::ParseError,date.set("1135-64-3"));
 RESULT
 
-CHECK((void get(String& date) const))
+CHECK((String get() const))
   Date d;
-  String s;
-  d.get(s);
-  TEST_EQUAL(s,"0000-00-00");
+  TEST_EQUAL(d.get(),"0000-00-00");
   d.set("11.12.1977");
-  d.get(s);
-  TEST_EQUAL(s,"1977-12-11");
+  TEST_EQUAL(d.get(),"1977-12-11");
 	d.set("02.01.1999");
-  d.get(s);
-  TEST_EQUAL(s,"1999-01-02");
+  TEST_EQUAL(d.get(),"1999-01-02");
 RESULT
 
 CHECK((void clear()))
   Date d;
-  String s;
   d.set("11.12.1977");
-  d.get(s);
-  TEST_EQUAL(s,"1977-12-11");
+  TEST_EQUAL(d.get(),"1977-12-11");
 	d.clear();
-  d.get(s);
-  TEST_EQUAL(s,"0000-00-00");
+  TEST_EQUAL(d.get(),"0000-00-00");
 RESULT
 
 CHECK((void today()))

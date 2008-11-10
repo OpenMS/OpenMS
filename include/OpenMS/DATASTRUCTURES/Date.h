@@ -81,11 +81,11 @@ namespace OpenMS
 			void today();
 
 			/**
-				@brief Fills the string @p date with the iso/ansi date
+				@brief Returns a string representation of the date
 				
 				Uses the iso/ansi date format: 'yyyy-mm-dd'
 			*/
-			void get(String& date) const;
+			String get() const;
 			
 			/**
 				@brief Fills the arguments with the date

@@ -191,8 +191,8 @@ namespace OpenMS
 			end = " WHERE id='" + String(exp.getPersistenceId()) + "'";
 		}
 		//date
-		exp.getDate().get(tmp);
-		query << "Date='" << tmp << "'";
+		//TODO make sure date and time are stored/loaded correctly
+		query << "Date='" << exp.getDateTime().get() << "'";
 		//description
 		query << ",Description='" << exp.getComment() << "'";
 		
@@ -210,7 +210,6 @@ namespace OpenMS
 		//----------------------------------------------------------------------------------------
 
 		std::vector<ProteinIdentification>& pi = exp.getProteinIdentifications();
-		String date;
 		
 		// first delete all old values, no matter whether we're updating or not
 		// do we have to delete the MetaInfo as well?
@@ -225,8 +224,7 @@ namespace OpenMS
 			query << "fid_MSExperiment='" << exp.getPersistenceId() << "'";
 			query << ",SearchEngine='" << pi_it->getSearchEngine() << "'";
 			query << ",SearchEngineVersion='" << pi_it->getSearchEngineVersion() << "'";
-			pi_it->getDateTime().get(date);
-			query << ",Date='" << date << "'";
+			query << ",Date='" << pi_it->getDateTime().get() << "'";
 			query << ",ScoreType='" << pi_it->getScoreType() << "'";
 			query << ",HigherScoreBetter='" << pi_it->isHigherScoreBetter() << "'";
 			query << ",SignificanceThreshold='" << pi_it->getSignificanceThreshold() << "'";
@@ -931,9 +929,9 @@ namespace OpenMS
 		//Experiment meta info
 		if (result.value(1).toDate().isValid())
 		{
-			Date d;
-			d.set(result.value(1).toDate().toString(Qt::ISODate));
-			exp.setDate(d);
+			DateTime d;
+			d.set(result.value(1).toDateTime().toString(Qt::ISODate));
+			exp.setDateTime(d);
 		}
 		exp.setComment(result.value(3).toString());
 		loadMetaInfo_(result.value(2).toInt(),exp);

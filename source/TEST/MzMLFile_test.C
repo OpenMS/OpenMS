@@ -81,8 +81,9 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	//-------------------------- general information --------------------------
   		
 	TEST_EQUAL(exp.size(),4)
-	//id
-	TEST_EQUAL(exp.getIdentifier(),"OpenMS_document_id");
+	//run
+	TEST_EQUAL(exp.getIdentifier(),"OpenMS_document_id")
+	TEST_EQUAL(exp.getDateTime().get(),"2007-06-27 15:23:45")
 	//contacts
 	TEST_EQUAL(exp.getContacts().size(),2)
 	TEST_STRING_EQUAL(exp.getContacts()[0].getFirstName(),"William")

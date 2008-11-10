@@ -46,7 +46,7 @@ namespace OpenMS
 	{
 		addLabel_("Modify the settings of the experiment.");	
 		addSeparator_();  
-		addLineEdit_(date_, "Date of experiment");
+		addLineEdit_(datetime_, "Date and time of experiment");
 		addTextEdit_(comment_, "Comment");
 		
 		finishAdding_();
@@ -54,20 +54,17 @@ namespace OpenMS
 	
 	void ExperimentalSettingsVisualizer::update_()
 	{
-		String str;
-    temp_.getDate().get(str);
-	  date_->setText(str.c_str()); 
+	  datetime_->setText(temp_.getDateTime().get().c_str()); 
 		comment_->setText(temp_.getComment().c_str());
 	}
 	
 	void ExperimentalSettingsVisualizer::store()
 	{
-		Date date;
-		String n(date_->text().toStdString());
+		DateTime date;
 		try
 		{
-			date.set(n);
-			ptr_->setDate(date);
+			date.set(datetime_->text().toStdString());
+			ptr_->setDateTime(date);
 		}
 		catch(exception& e)
 		{

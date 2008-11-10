@@ -393,9 +393,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_EQUAL(e.getDataProcessing()[0].getMetaValue("URL"), "www.open-ms.de")
 	TEST_EQUAL(e.getDataProcessing()[0].getMetaValue("comment"), "ProcessingComment")
 	TEST_EQUAL(e.getDataProcessing()[0].getMetaValue("#comment"), "SoftwareComment")
-	String tmp;
-	e.getDataProcessing()[0].getCompletionTime().get(tmp);
-  TEST_EQUAL(tmp, "2001-02-03 04:05:06");
+  TEST_EQUAL(e.getDataProcessing()[0].getCompletionTime().get(), "2001-02-03 04:05:06");
 
   TEST_EQUAL(e.getDataProcessing()[0].getSoftware().getName(), "MS-X");
   TEST_EQUAL(e.getDataProcessing()[0].getSoftware().getVersion(), "1.0");
@@ -576,9 +574,7 @@ CHECK(([EXTRA] load with metadata-only flag))
 	TEST_EQUAL(e.getDataProcessing()[0].getMetaValue("URL"), "www.open-ms.de")
 	TEST_EQUAL(e.getDataProcessing()[0].getMetaValue("comment"), "ProcessingComment")
 	TEST_EQUAL(e.getDataProcessing()[0].getMetaValue("#comment"), "SoftwareComment")
-	String tmp;
-	e.getDataProcessing()[0].getCompletionTime().get(tmp);
-  TEST_EQUAL(tmp, "2001-02-03 04:05:06");
+  TEST_EQUAL(e.getDataProcessing()[0].getCompletionTime().get(), "2001-02-03 04:05:06");
 
   TEST_EQUAL(e.getDataProcessing()[0].getSoftware().getName(), "MS-X");
   TEST_EQUAL(e.getDataProcessing()[0].getSoftware().getVersion(), "1.0");

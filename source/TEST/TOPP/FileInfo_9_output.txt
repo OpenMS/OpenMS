@@ -24,8 +24,8 @@ Meta data array: signal to noise (for 1 spectra)
 
 -- Meta information --
 
-Document id       : urn:lsid:psidev.info:mzML.instanceDocuments.tiny.pwiz
-Date              : 0000-00-00
+Document id       : OpenMS_document_id
+Date              : 2007-06-27 15:23:45
 
 Sample
   Name             : Sample1

@@ -275,13 +275,12 @@ class TOPPMascotAdapter
 			bool mascot_out = false;
 			DateTime date_time;
 			String date_time_string;
-			String time_string;
 			String boundary = "";
 			map<String, vector<AASequence> > modified_peptides;
 			DoubleReal first_dim_rt = 0;
 			
 			date_time.now();
-			date_time.get(date_time_string);
+			date_time_string = date_time.get();
 			date_time_string.substitute(':','.'); // Windows does not allow ":" in filenames!
 			date_time_string.split(' ', parts);
 			

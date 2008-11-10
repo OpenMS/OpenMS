@@ -100,16 +100,13 @@ namespace OpenMS
 		QDate::operator=(QDate::currentDate());
 	}
 
-	void Date::get(String& date) const
+	String Date::get() const
 	{
 		if (QDate::isValid())
 		{
-			date = toString("yyyy-MM-dd").toStdString();
+			return toString("yyyy-MM-dd");
 		}
-		else
-		{
-			date = "0000-00-00";
-		}
+		return "0000-00-00";
 	}
 	
 	void Date::get(UInt& month, UInt& day, UInt& year) const

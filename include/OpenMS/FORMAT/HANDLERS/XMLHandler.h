@@ -279,7 +279,7 @@ namespace OpenMS
 				}
 				return false;
 			}
-			/// Conversion of a String to a DataTime value
+			/// Conversion of a xs:datetime string to a DataTime value
 	 		inline DateTime asDateTime_(const String& in)
 			{
 				//std::cout << "IN: " << in << std::endl;

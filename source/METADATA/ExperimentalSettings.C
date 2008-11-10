@@ -40,7 +40,7 @@ namespace OpenMS
 		instrument_(),
 		data_processing_(),
 		hplc_(),
-		date_(),
+		datetime_(),
 		comment_(),
 		protein_identifications_()
 	{
@@ -56,7 +56,7 @@ namespace OpenMS
 	  instrument_(source.instrument_),
 	  data_processing_(source.data_processing_),
 	  hplc_(source.hplc_),
-	  date_(source.date_),
+	  datetime_(source.datetime_),
 	  comment_(source.comment_),
 		protein_identifications_(source.protein_identifications_)
 	{
@@ -78,7 +78,7 @@ namespace OpenMS
     instrument_ = source.instrument_;
     data_processing_ = source.data_processing_;
     hplc_ = source.hplc_;
-    date_ = source.date_;
+    datetime_ = source.datetime_;
     comment_ = source.comment_;
     protein_identifications_ = source.protein_identifications_;
     MetaInfoInterface::operator=(source);
@@ -96,7 +96,7 @@ namespace OpenMS
 	    instrument_ == rhs.instrument_ &&
 	    data_processing_ == rhs.data_processing_ &&
 	    hplc_ == rhs.hplc_ &&
-	    date_ == rhs.date_ &&
+	    datetime_ == rhs.datetime_ &&
     	protein_identifications_ == rhs.protein_identifications_ &&
     	comment_ == rhs.comment_ &&
   		MetaInfoInterface::operator==(rhs) &&
@@ -184,14 +184,14 @@ namespace OpenMS
 	  data_processing_ = processing_method; 
 	}
 
-	const Date& ExperimentalSettings::getDate() const
+	const DateTime& ExperimentalSettings::getDateTime() const
 	{
-		return date_;
+		return datetime_;
 	}
 	
-	void ExperimentalSettings::setDate(const Date& date)
+	void ExperimentalSettings::setDateTime(const DateTime& date)
 	{
-		date_ = date;
+		datetime_ = date;
 	}
 
 

@@ -89,16 +89,10 @@ CHECK((void clear()))
 	TEST_EQUAL(date1 == date2, true)
 RESULT
 
-CHECK((void get(String& date) const))
+CHECK((String get() const))
 	DateTime date_time;
-	String date_time_string("1999-11-24 14:24:31");
-	String output;
-	
-	date_time.set(date_time_string);
-	
-	date_time.get(output);
-	TEST_EQUAL(date_time_string, output)
-
+	date_time.set("1999-11-24 14:24:31");
+	TEST_EQUAL(date_time.get(),"1999-11-24 14:24:31")
 RESULT
 
 CHECK((void get(UInt& month, UInt& day, UInt& year, UInt& hour, UInt& minute, UInt& second) const))
@@ -192,13 +186,8 @@ RESULT
 
 CHECK((void set(const String& date) throw(Exception::ParseError)))
 	DateTime date_time;
-	String date_time_string("1999-11-24 14:24:31");
-	String output;
-	
-	date_time.set(date_time_string);
-	
-	date_time.get(output);
-	TEST_EQUAL(date_time_string, output)
+	date_time.set("1999-11-24 14:24:31");
+	TEST_EQUAL(date_time.get(), "1999-11-24 14:24:31")
 
 	// ISO 8601 extended specification for representations of dates and times
 	date_time.set("2005-11-13T10:58:57");

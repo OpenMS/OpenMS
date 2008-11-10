@@ -290,8 +290,7 @@ namespace OpenMS
 
 				DateTime date_time;
 				date_time.now();
-				String date_time_now;
-				date_time.get(date_time_now);
+				String date_time_now = date_time.get();
 
 				// ----------------------------------------------------------------------
 
