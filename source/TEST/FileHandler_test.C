@@ -92,9 +92,9 @@ RESULT
 
 CHECK((static Type getTypeByContent(const String &filename)))
 	FileHandler tmp;
-	TEST_EQUAL(tmp.getTypeByContent("data/MzDataFile_test_1.mzData"), FileHandler::MZDATA)
+	TEST_EQUAL(tmp.getTypeByContent("data/MzDataFile_1.mzData"), FileHandler::MZDATA)
 	TEST_EQUAL(tmp.getTypeByContent("data/FeatureXMLFile.featureXML"), FileHandler::FEATUREXML)
-	TEST_EQUAL(tmp.getTypeByContent("data/MzXMLFile_test_1.mzXML"), FileHandler::MZXML)
+	TEST_EQUAL(tmp.getTypeByContent("data/MzXMLFile_1.mzXML"), FileHandler::MZXML)
 	TEST_EQUAL(tmp.getTypeByContent("data/MzMLFile_1.mzML"), FileHandler::MZML)
 	TEST_EQUAL(tmp.getTypeByContent("data/DTAFile_test.dta"), FileHandler::DTA)
 	TEST_EQUAL(tmp.getTypeByContent("data/DTA2DFile_test_1.dta2d"), FileHandler::DTA2D)
@@ -123,25 +123,25 @@ CHECK((template <class PeakType> bool loadExperiment(const String &filename, MSE
 	TEST_EQUAL(tmp.loadExperiment("test.bla",exp), false)	
 	TEST_EQUAL(tmp.loadExperiment("data/DTAFile_test.dta",exp), true)
 
-	TEST_EQUAL(tmp.loadExperiment("data/MzDataFile_test_1.mzData",exp), true)	
+	TEST_EQUAL(tmp.loadExperiment("data/MzDataFile_1.mzData",exp), true)	
 	TEST_REAL_EQUAL(exp[1][0].getPosition()[0], 110)
 	TEST_REAL_EQUAL(exp[1][1].getPosition()[0], 120)
 	TEST_REAL_EQUAL(exp[1][2].getPosition()[0], 130)
 
   // starts with 110, so this one should skip the first
   tmp.getOptions().setMZRange(DRange<1> (115, 1000));
-	TEST_EQUAL(tmp.loadExperiment("data/MzDataFile_test_1.mzData",exp), true)	
+	TEST_EQUAL(tmp.loadExperiment("data/MzDataFile_1.mzData",exp), true)	
 	TEST_REAL_EQUAL(exp[1][0].getPosition()[0], 120)
 	TEST_REAL_EQUAL(exp[1][1].getPosition()[0], 130)
 
   tmp.getOptions() = PeakFileOptions();
-  TEST_EQUAL(tmp.loadExperiment("data/MzXMLFile_test_1.mzXML",exp), true)	
+  TEST_EQUAL(tmp.loadExperiment("data/MzXMLFile_1.mzXML",exp), true)	
 	TEST_REAL_EQUAL(exp[2][0].getPosition()[0], 100)
 	TEST_REAL_EQUAL(exp[2][1].getPosition()[0], 110)
 	TEST_REAL_EQUAL(exp[2][2].getPosition()[0], 120)
 
   tmp.getOptions().setMZRange(DRange<1> (115, 1000));
-  TEST_EQUAL(tmp.loadExperiment("data/MzXMLFile_test_1.mzXML",exp), true)	
+  TEST_EQUAL(tmp.loadExperiment("data/MzXMLFile_1.mzXML",exp), true)	
 	TEST_REAL_EQUAL(exp[2][0].getPosition()[0], 120)
 	TEST_REAL_EQUAL(exp[2][1].getPosition()[0], 130)
 	TEST_REAL_EQUAL(exp[2][2].getPosition()[0], 140)

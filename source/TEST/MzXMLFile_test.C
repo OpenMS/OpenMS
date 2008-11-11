@@ -76,14 +76,14 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 
 	//test exception
 	{
-		MSExperiment< Peak1D > e;
+		MSExperiment<> e;
 		TEST_EXCEPTION( Exception::FileNotFound , mzxml.load("dummy/dummy.mzXML",e) )
 	}
 	
 	// first test
 	{
-		MSExperiment< Peak1D > e;
-		mzxml.load("data/MzXMLFile_test_1.mzXML",e);
+		MSExperiment<> e;
+		mzxml.load("data/MzXMLFile_1.mzXML",e);
 	  
 	  //---------------------------------------------------------------------------
 	  // 60 : (120,100)
@@ -94,9 +94,11 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 		TEST_REAL_EQUAL(e[0].getMSLevel(), 1)
 		TEST_REAL_EQUAL(e[1].getMSLevel(), 1)
 		TEST_REAL_EQUAL(e[2].getMSLevel(), 1)
+		TEST_REAL_EQUAL(e[3].getMSLevel(), 2)
 		TEST_REAL_EQUAL(e[0].size(), 1)
 		TEST_REAL_EQUAL(e[1].size(), 3)
 		TEST_REAL_EQUAL(e[2].size(), 5)
+		TEST_REAL_EQUAL(e[3].size(), 5)
 	
 		TEST_REAL_EQUAL(e[0][0].getPosition()[0], 120)
 		TEST_REAL_EQUAL(e[0][0].getIntensity(), 100)
@@ -225,8 +227,8 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	
 	//second test (to see if everything is initialized properly
 	{
-		MSExperiment< Peak1D > e;
-		MzXMLFile().load("data/MzXMLFile_test_1.mzXML",e);
+		MSExperiment<> e;
+		MzXMLFile().load("data/MzXMLFile_1.mzXML",e);
 	  
 	  //---------------------------------------------------------------------------
 	  // 60 : (120,100)
@@ -237,9 +239,11 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 		TEST_REAL_EQUAL(e[0].getMSLevel(), 1)
 		TEST_REAL_EQUAL(e[1].getMSLevel(), 1)
 		TEST_REAL_EQUAL(e[2].getMSLevel(), 1)
+		TEST_REAL_EQUAL(e[3].getMSLevel(), 2)
 		TEST_REAL_EQUAL(e[0].size(), 1)
 		TEST_REAL_EQUAL(e[1].size(), 3)
 		TEST_REAL_EQUAL(e[2].size(), 5)
+		TEST_REAL_EQUAL(e[3].size(), 5)
 	
 		TEST_REAL_EQUAL(e[0][0].getPosition()[0], 120)
 		TEST_REAL_EQUAL(e[0][0].getIntensity(), 100)
@@ -366,8 +370,8 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 
 	// test reading 64 bit data
 
-	MSExperiment< Peak1D > e2;
-	mzxml.load("data/MzXMLFile_test_3.mzXML",e2);
+	MSExperiment<> e2;
+	mzxml.load("data/MzXMLFile_3_64bit.mzXML",e2);
 
   TEST_EQUAL(e2.size(), 3)
 	TEST_REAL_EQUAL(e2[0].getMSLevel(), 1)
@@ -403,35 +407,16 @@ RESULT
 
 CHECK((template<typename MapType> void store(const String& filename, const MapType& map) const ))
 	std::string tmp_filename;
-  MSExperiment< Peak1D > e1, e2;
+  MSExperiment<> e1, e2;
   MzXMLFile f;
 
   NEW_TMP_FILE(tmp_filename);
- 	 f.load("data/MzXMLFile_test_1.mzXML",e1);
+ 	 f.load("data/MzXMLFile_1.mzXML",e1);
 	TEST_EQUAL(e1.size(), 4)
 
 	f.store(tmp_filename,e1);
 	f.load(tmp_filename,e2);
 	TEST_EQUAL(e1==e2, true);
-
-	NEW_TMP_FILE(tmp_filename);
-	f.load("data/MzXMLFile_test_2.mzXML",e1);
-	f.store(tmp_filename,e1);
-	f.load(tmp_filename,e2);
-	TEST_EQUAL(e1==e2,true);
-RESULT
-
-CHECK(([EXTRA] load/store for Float Kernel Traits))
-	std::string tmp_filename;
-	NEW_TMP_FILE(tmp_filename);
-	
-  MSExperiment< Peak1D > e1, e2;
-  MzXMLFile f;
-	
-	f.load("data/MzXMLFile_test_2.mzXML",e1);
-	f.store(tmp_filename,e1);
-	f.load(tmp_filename,e2);
-	TEST_EQUAL(e1==e2,true);
 RESULT
 
 // check for Float Kernel traits
@@ -452,54 +437,15 @@ CHECK(([EXTRA] load/store for empty scans))
 	TEST_EQUAL(e2.getSize(),0);
 RESULT
 
-CHECK(([EXTRA] load with optional attributes))
-	PRECISION(0.01)
-
-	MSExperiment< Peak1D > e;
-	MzXMLFile mzxml;
-	
-	// real test
-	mzxml.load("data/MzXMLFile_test_4.mzXML",e);
-  //---------------------------------------------------------------------------
-  // 60 : (120,100)
-  // 120: (110,100) (120,200) (130,100)
-  // 180: (100,100) (110,200) (120,300) (130,200) (140,100)
-	//--------------------------------------------------------------------------- 
-  TEST_EQUAL(e.size(), 4)
-	TEST_REAL_EQUAL(e[0].getRT(), 60)
-	TEST_REAL_EQUAL(e[1].getRT(), 120)
-	TEST_REAL_EQUAL(e[2].getRT(), 180)
-
-	TEST_EQUAL(e[0].getInstrumentSettings().getPolarity(), IonSource::POLNULL)
-	TEST_EQUAL(e[1].getInstrumentSettings().getPolarity(), IonSource::POSITIVE)
-	TEST_EQUAL(e[2].getInstrumentSettings().getPolarity(), IonSource::NEGATIVE)
-
-	TEST_EQUAL(e[0].getInstrumentSettings().getScanWindows().size(), 0)
-	TEST_EQUAL(e[1].getInstrumentSettings().getScanWindows().size(), 1)
-	TEST_REAL_EQUAL(e[1].getInstrumentSettings().getScanWindows()[0].begin, 110)
-	TEST_REAL_EQUAL(e[1].getInstrumentSettings().getScanWindows()[0].end, 0)
-	TEST_EQUAL(e[2].getInstrumentSettings().getScanWindows().size(), 1)
-	TEST_REAL_EQUAL(e[2].getInstrumentSettings().getScanWindows()[0].begin, 100)
-	TEST_REAL_EQUAL(e[2].getInstrumentSettings().getScanWindows()[0].end, 140)
-	TEST_EQUAL(e[3].getInstrumentSettings().getScanWindows().size(), 0)
-
-	//---------------------------------------------------------------------------
-  // const vector<DataProcessing>& getDataProcessing() const;
-  //---------------------------------------------------------------------------
-	TEST_EQUAL(e.getDataProcessing().size(),1)
-  TEST_EQUAL(e.getDataProcessing().back().getCompletionTime().get(), "2001-02-03 04:05:06");
-
-RESULT
-
 CHECK(([EXTRA] load with metadata only flag))
 	PRECISION(0.01)
 
-	MSExperiment< Peak1D > e;
+	MSExperiment<> e;
 	MzXMLFile mzxml;
 	mzxml.getOptions().setMetadataOnly(true);
 
 	// real test
-	mzxml.load("data/MzXMLFile_test_1.mzXML",e);
+	mzxml.load("data/MzXMLFile_1.mzXML",e);
 	
 	//check number of scans
 	TEST_EQUAL(e.size(),0)
@@ -593,27 +539,27 @@ RESULT
 CHECK(([EXTRA] load with selected MS levels))
 	PRECISION(0.01)
 
-	MSExperiment< Peak1D > e;
+	MSExperiment<> e;
 	MzXMLFile mzxml;
 	
 	// load only MS level 1
 	mzxml.getOptions().addMSLevel(1);
-	mzxml.load("data/MzXMLFile_test_6.mzXML",e);
+	mzxml.load("data/MzXMLFile_1.mzXML",e);
 
 	TEST_EQUAL(e.size(), 3)
 	TEST_REAL_EQUAL(e[0].getMSLevel(), 1)
 	TEST_EQUAL((UInt)(e[0].getMetaValue("original_spectrum_number")),0)
 	TEST_REAL_EQUAL(e[1].getMSLevel(), 1)
-	TEST_EQUAL((UInt)(e[1].getMetaValue("original_spectrum_number")),2)
+	TEST_EQUAL((UInt)(e[1].getMetaValue("original_spectrum_number")),1)
 	TEST_REAL_EQUAL(e[2].getMSLevel(), 1)
-	TEST_EQUAL((UInt)(e[2].getMetaValue("original_spectrum_number")),4)
+	TEST_EQUAL((UInt)(e[2].getMetaValue("original_spectrum_number")),2)
 	TEST_REAL_EQUAL(e[0].size(), 1)
 	TEST_REAL_EQUAL(e[1].size(), 3)
 	TEST_REAL_EQUAL(e[2].size(), 5)
 	
 	// load all levels
 	mzxml.getOptions().clearMSLevels();
-	mzxml.load("data/MzXMLFile_test_1.mzXML",e);
+	mzxml.load("data/MzXMLFile_1.mzXML",e);
 
 	TEST_EQUAL(e.size(), 4)
 RESULT
@@ -621,11 +567,11 @@ RESULT
 CHECK(([EXTRA] load with selected MZ range))
 	PRECISION(0.01)
 
-	MSExperiment< Peak1D > e;
+	MSExperiment<> e;
 	MzXMLFile mzxml;
 
 	mzxml.getOptions().setMZRange(makeRange(115,135));
-	mzxml.load("data/MzXMLFile_test_1.mzXML",e);
+	mzxml.load("data/MzXMLFile_1.mzXML",e);
 	//---------------------------------------------------------------------------
 	// 60 : +(120,100)
 	// 120: -(110,100) +(120,200) +(130,100)
@@ -651,10 +597,10 @@ RESULT
 CHECK(([EXTRA] load with RT range))
 	PRECISION(0.01)
 
-	MSExperiment< Peak1D > e;
+	MSExperiment<> e;
 	MzXMLFile mzxml;
 	mzxml.getOptions().setRTRange(makeRange(100, 200));
-	mzxml.load("data/MzXMLFile_test_2.mzXML",e);
+	mzxml.load("data/MzXMLFile_1.mzXML",e);
 	//---------------------------------------------------------------------------
 	// 120: (110,100) (120,200) (130,100)
 	// 180: (100,100) (110,200) (120,300) (130,200) (140,100)
@@ -684,10 +630,10 @@ RESULT
 CHECK(([EXTRA] load with intensity range))
 	PRECISION(0.01)
 
-	MSExperiment< Peak1D > e;
+	MSExperiment<> e;
 	MzXMLFile mzxml;
 	mzxml.getOptions().setIntensityRange(makeRange(150, 350));
-	mzxml.load("data/MzXMLFile_test_1.mzXML",e);
+	mzxml.load("data/MzXMLFile_1.mzXML",e);
 	//---------------------------------------------------------------------------
 	// 60 : -(120,100)
 	// 120: -(110,100) +(120,200) -(130,100)
@@ -784,7 +730,7 @@ CHECK([EXTRA] static bool isValid(const String& filename))
 
 	//test if fill file is valid
 	NEW_TMP_FILE(tmp_filename);
-	f.load("data/MzXMLFile_test_1.mzXML",e);
+	f.load("data/MzXMLFile_1.mzXML",e);
   f.store(tmp_filename,e);
   TEST_EQUAL(f.isValid(tmp_filename),true);
 RESULT
@@ -792,9 +738,17 @@ RESULT
 CHECK([EXTRA] loading a minimal file containing one spectrum  - with whitespaces inside the base64 data)
 	MSExperiment<> e;
   MzXMLFile f;
-  f.load("data/MzXMLFile_test_minimal.mzXML",e);
+  f.load("data/MzXMLFile_2_minimal.mzXML",e);
   TEST_EQUAL(e.size(),1)
   TEST_EQUAL(e[0].size(),1)
+RESULT
+
+CHECK(([EXTRA] load one extremely long spectrum - tests CDATA splitting))
+	MSExperiment<> e;
+	MzXMLFile f;
+	f.load("data/MzXMLFile_4_long.mzXML",e);
+	TEST_EQUAL(e.size(), 1)
+	TEST_EQUAL(e[0].size(), 997530)
 RESULT
 
 /////////////////////////////////////////////////////////////

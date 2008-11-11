@@ -73,12 +73,12 @@ class TOPPFileConverter
 		registerInputFile_("in","<file>","","input file ");
 		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
 		registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
-		setValidStrings_("in_type",StringList::create("mzData,mzXML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
+		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
 		
 		registerOutputFile_("out","<file>","","output file ");
-		setValidFormats_("out",StringList::create("mzData,mzXML,DTA2D,mgf,featureXML"));
+		setValidFormats_("out",StringList::create("mzData,mzXML,mzML,DTA2D,mgf,featureXML"));
 		registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
-		setValidStrings_("out_type",StringList::create("mzData,mzXML,DTA2D,mgf,featureXML"));
+		setValidStrings_("out_type",StringList::create("mzData,mzXML,mzML,DTA2D,mgf,featureXML"));
 	}
 	
 	ExitCodes main_(int , const char**)
@@ -164,8 +164,13 @@ class TOPPFileConverter
 		//-------------------------------------------------------------
 			
 		writeDebug_(String("Writing output file"), 1);
-			
-		if (out_type == FileHandler::MZDATA)
+		if (out_type == FileHandler::MZML)
+		{
+			MzMLFile f;
+			f.setLogType(log_type_);
+			f.store(out,exp);					
+		}			
+		else if (out_type == FileHandler::MZDATA)
 		{
 			MzDataFile f;
 			f.setLogType(log_type_);

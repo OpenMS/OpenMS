@@ -46,8 +46,8 @@ namespace OpenMS
 		
 		If a critical error occurs due to the missing functionality, Exception::NotImplemented is thrown.
 		
-		@todo Fix open ussues of the format, add to automatic semantic validation in tests (Marc)
-		@todo Implement Base64 integers, 16 bit, zlib support and chromatograms (Hiwi)
+		@todo Fix open ussues of the format, then add to automatic semantic validation to test framework and add semantic validation of written files to class test (Marc)
+		@todo Implement Base64 integers, 16 bit, zlib support and chromatograms and add tests (Hiwi)
 		
 		@ingroup FileIO
 	*/

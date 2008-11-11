@@ -43,4 +43,6 @@
   - @subpage HistView
   - @subpage IdXMLInfo
   - @subpage CVInspector
+  - @subpage RTEvaluation
+	- @subpage SequenceCoverageCalculator 
 */

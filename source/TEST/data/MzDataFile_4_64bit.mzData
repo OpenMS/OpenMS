@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<mzData version="1.05" accessionNumber="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://psidev.sourceforge.net/ms/xml/mzdata/mzdata.xsd">
+	<description>
+		<admin>
+			<sampleName></sampleName>
+			<contact>
+				<name></name>
+				<institution></institution>
+			</contact>
+		</admin>
+		<instrument>
+			<instrumentName/>
+			<source/>
+			<analyzerList count="1">
+				<analyzer></analyzer>
+			</analyzerList>
+			<detector/>
+		</instrument>
+		<dataProcessing>
+			<software>
+				<name></name>
+				<version></version>
+			</software>
+		</dataProcessing>
+	</description>
+	<spectrumList count="1">
+		<spectrum id="1">
+			<spectrumDesc>
+				<spectrumSettings>
+					<spectrumInstrument msLevel="1" mzRangeStart="110" mzRangeStop="130">
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="120"/>
+					</spectrumInstrument>
+				</spectrumSettings>
+			</spectrumDesc>
+			<mzArrayBinary>
+				<data precision="64" endian="little" length="3">AAAAAACAW0AAAAAAAABeQAAAAAAAQGBAAA==</data>
+			</mzArrayBinary>
+			<intenArrayBinary>
+				<data precision="32" endian="little" length="3">AADIQgAASEMAAMhC</data>
+			</intenArrayBinary>
+			<supDataArrayBinary id="1">
+				<arrayName>area</arrayName>
+				<data precision="32" endian="little" length="3">AADIQgAASEMAAMhC</data>
+			</supDataArrayBinary>
+			<supDataArrayBinary id="2">
+				<arrayName>fwhm</arrayName>
+				<data precision="32" endian="little" length="3">AADIQgAASEMAAMhC</data>
+			</supDataArrayBinary>
+			<supDataArrayBinary id="3">
+				<arrayName>leftWidth</arrayName>
+				<data precision="32" endian="little" length="3">AADIQgAASEMAAMhC</data>
+			</supDataArrayBinary>
+			<supDataArrayBinary id="4">
+				<arrayName>rightWidth</arrayName>
+				<data precision="32" endian="little" length="3">AADIQgAASEMAAMhC</data>
+			</supDataArrayBinary>
+			<supDataArrayBinary id="5">
+				<arrayName>charge</arrayName>
+				<data precision="64" endian="little" length="3">AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</data>
+			</supDataArrayBinary>
+			<supDataArrayBinary id="6">
+				<arrayName>signalToNoise</arrayName>
+				<data precision="32" endian="big" length="3">QsgAAENIAABCyAAA</data>
+			</supDataArrayBinary>
+			<supDataArrayBinary id="7">
+				<arrayName>rValue</arrayName>
+				<data precision="64" endian="big" length="3">QFkAAAAAAABAaQAAAAAAAEBZAAAAAAAA</data>
+			</supDataArrayBinary>
+			<supDataArrayBinary id="8">
+				<arrayName>peakShape</arrayName>
+				<data precision="32" endian="little" length="3">AADIQgAASEMAAMhC</data>
+			</supDataArrayBinary>
+		</spectrum>
+	</spectrumList>
+</mzData>

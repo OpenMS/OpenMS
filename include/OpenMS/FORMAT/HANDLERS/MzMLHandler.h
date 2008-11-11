@@ -2084,9 +2084,9 @@ namespace OpenMS
 			{
 				os  << "			<softwareParam cvRef=\"MS\" accession=\"" << so_term.id << "\" name=\"" << so_term.name << "\" version=\"" << software.getVersion() << "\" />\n";
 			}
-			else
+			else //FORCED
 			{
-				os  << "			<softwareParam cvRef=\"\" accession=\"\" name=\"" << software.getName() << "\" version=\"" << software.getVersion() << "\" />\n";
+				os  << "			<softwareParam cvRef=\"MS\" accession=\"\" name=\"" << software.getName() << "\" version=\"" << software.getVersion() << "\" />\n";
 			}
 			os  << "		</software>\n";
 		}
@@ -2259,8 +2259,8 @@ namespace OpenMS
 				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000032\" name=\"customization\" value=\"" << in.getCustomizations() << "\"/>\n";
 			}
 			writeUserParam_(os, in, 3);
-			//TODO Force at least three
-			os  << "			<componentList count=\"" << in.getIonSources().size() + in.getMassAnalyzers().size() + in.getIonDetectors().size()<< "\">\n";
+			UInt component_count = in.getIonSources().size() + in.getMassAnalyzers().size() + in.getIonDetectors().size();
+			os  << "			<componentList count=\"" << std::min((UInt)3,component_count) << "\">\n";
 			//--------------------------------------------------------------------------------------------
 			// ion source
 			//--------------------------------------------------------------------------------------------
@@ -2526,6 +2526,14 @@ namespace OpenMS
 				writeUserParam_(os, so, 5);
 				os  << "				</source>\n";				
 			}
+			//FORCED
+			if (component_count<3 && in.getIonSources().size()==0)
+			{
+				os  << "				<source order=\"1234\">\n";
+				os  << "					<cvParam cvRef=\"MS\" accession=\"MS:1000446\" name=\"fast ion bombardment\"/>\n";
+				os  << "					<userParam name=\"warning\" type=\"xsd:string\" value=\"invented ion source, to fulfill mzML schema\" />\n";
+				os  << "				</source>\n";				
+			}
 			//--------------------------------------------------------------------------------------------
 			// mass analyzer
 			//--------------------------------------------------------------------------------------------
@@ -2603,6 +2611,14 @@ namespace OpenMS
 				}
 				
 				writeUserParam_(os, ma, 5);
+				os  << "				</analyzer>\n";				
+			}
+			//FORCED
+			if (component_count<3 && in.getMassAnalyzers().size()==0)
+			{
+				os  << "				<analyzer order=\"1234\">\n";
+				os << "						<cvParam cvRef=\"MS\" accession=\"MS:1000288\" name=\"cyclotron\"/>\n";
+				os  << "					<userParam name=\"warning\" type=\"xsd:string\" value=\"invented mass analyzer, to fulfill mzML schema\" />\n";
 				os  << "				</analyzer>\n";				
 			}
 			//--------------------------------------------------------------------------------------------
@@ -2717,6 +2733,14 @@ namespace OpenMS
 				writeUserParam_(os, id, 5);
 				os  << "				</detector>\n";				
 			}
+			//FORCED
+			if (component_count<3 && in.getIonDetectors().size()==0)
+			{
+				os  << "				<detector order=\"1234\">\n";
+				os  << "					<cvParam cvRef=\"MS\" accession=\"MS:1000107\" name=\"channeltron\"/>\n";
+				os  << "					<userParam name=\"warning\" type=\"xsd:string\" value=\"invented ion detector, to fulfill mzML schema\" />\n";
+				os  << "				</detector>\n";				
+			}
 			os  << "			</componentList>\n";
 			os  << "			<softwareRef ref=\"so_in_0\"/>\n";
 			os  << "		</instrumentConfiguration>\n";
@@ -2732,14 +2756,18 @@ namespace OpenMS
 			for (UInt i=0; i<exp.getDataProcessing().size(); ++i)
 			{
 				writeSoftware_(os, String("so_dp_") + i, exp.getDataProcessing()[i].getSoftware());
-			}				
+			}
+			//FORCED - for DataProcessing
+			if (exp.getDataProcessing().size()==0)
+			{
+				writeSoftware_(os, "so_dp_0", Software());
+			}
 			os  << "	</softwareList>\n";			
 
 			//--------------------------------------------------------------------------------------------
 			// data processing
-			// TODO force at least one 
 			//--------------------------------------------------------------------------------------------
-			os  << "	<dataProcessingList count=\"" << exp.getDataProcessing().size() << "\">\n";			
+			os  << "	<dataProcessingList count=\"" << std::min((UInt)1,(UInt)exp.getDataProcessing().size()) << "\">\n";			
 			for (UInt i=0; i<exp.getDataProcessing().size(); ++i)
 			{
 				const DataProcessing& dp = exp.getDataProcessing()[i];
@@ -2798,6 +2826,16 @@ namespace OpenMS
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000741\" name=\"Conversion to dta\"/>\n";
 				}
 				writeUserParam_(os, dp, 4);
+				os  << "			</processingMethod>\n";
+				os  << "		</dataProcessing>\n";
+			}
+			//FORCED (also includes a forced software)
+			if (exp.getDataProcessing().size()==0)
+			{
+				os  << "		<dataProcessing id=\"dp_0\" softwareRef=\"so_dp_0\">\n";
+				os  << "			<processingMethod order=\"0\">\n";
+				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000034\" name=\"charge deconvolution\"/>\n";
+				os  << "				<userParam name=\"warning\" type=\"xsd:string\" value=\"invented data processing, to fulfill mzML schema\" />\n";
 				os  << "			</processingMethod>\n";
 				os  << "		</dataProcessing>\n";
 			}
@@ -3034,6 +3072,7 @@ namespace OpenMS
 					os	<< "						<scanWindow>\n";
 					os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan m/z lower limit\" value=\"0\"/>\n";
 					os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan m/z upper limit\" value=\"10000\"/>\n";
+					os  << "							<userParam name=\"warning\" type=\"xsd:string\" value=\"invented scan window, to fulfill mzML schema\" />\n";
 					os	<< "						</scanWindow>\n";
 				}
 				os	<< "						</scanWindowList>\n";
@@ -3046,7 +3085,7 @@ namespace OpenMS
 				{
 					String encoded_string;
 					std::vector<DoubleReal> data_to_encode;
-					os	<< "						<binaryDataArrayList count=\"" << (spec.getMetaDataArrays().size()+2) << "\">\n";
+					os	<< "				<binaryDataArrayList count=\"" << (spec.getMetaDataArrays().size()+2) << "\">\n";
 					//write m/z array
 					data_to_encode.resize(spec.size());
 					for (UInt p=0; p<spec.size(); ++p) data_to_encode[p] = spec[p].getMZ();
@@ -3073,7 +3112,9 @@ namespace OpenMS
 						data_to_encode.resize(array.size());
 						for (UInt p=0; p<array.size(); ++p) data_to_encode[p] = array[p];
 						decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
-						os	<< "							<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\">\n";
+						os	<< "					<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\">\n";
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\"/>\n";
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\"/>\n";
 						ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513",array.getName());
 						if (bi_term.id!="")
 						{
@@ -3082,9 +3123,8 @@ namespace OpenMS
 						else //FORCED
 						{
 							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000617\" name=\"wavelength array\"/>\n";
+							os  << "						<userParam name=\"warning\" type=\"xsd:string\" value=\"invented array type, to fulfill mzML schema\" />\n";
 						}
-						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\"/>\n";
-						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\"/>\n";
 						writeUserParam_(os, array, 8);
 						os	<< "						<binary>" << encoded_string << "</binary>\n";
 						os	<< "					</binaryDataArray>\n";

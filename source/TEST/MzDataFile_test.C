@@ -74,14 +74,14 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
   // test with Peak1D (only peak data is tested, no meta data)
   //---------------------------------------------------------------------------
 
-	MSExperiment< Peak1D > e2;
+	MSExperiment<> e2;
 	MzDataFile mzdata;
 	
 	//test exception
 	TEST_EXCEPTION( Exception::FileNotFound , mzdata.load("dummy/dummy.MzData",e2) )
 	
 	// real test
-	mzdata.load("data/MzDataFile_test_1.mzData",e2);
+	mzdata.load("data/MzDataFile_1.mzData",e2);
   //---------------------------------------------------------------------------
   // 60 : (120,100)
   // 120: (110,100) (120,200) (130,100)
@@ -126,7 +126,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	MSExperiment<> e;
 
 	// real test
-	mzdata.load("data/MzDataFile_test_1.mzData",e);
+	mzdata.load("data/MzDataFile_1.mzData",e);
   //---------------------------------------------------------------------------
   // 60 : (120,100)
   // 120: (110,100) (120,200) (130,100)
@@ -480,10 +480,10 @@ CHECK([EXTRA] load with Peak1D)
   // test with Peak1D (only peak data is tested, no meta data)
   //---------------------------------------------------------------------------
 
-	MSExperiment< Peak1D > e2;
+	MSExperiment<> e2;
 
 	// real test
-	MzDataFile().load("data/MzDataFile_test_1.mzData",e2);
+	MzDataFile().load("data/MzDataFile_1.mzData",e2);
   //---------------------------------------------------------------------------
   // 60 : (120,100)
   // 120: (110,100) (120,200) (130,100)
@@ -538,7 +538,7 @@ CHECK(([EXTRA] load with metadata-only flag))
 	MSExperiment<> e;
 
 	// real test
-	mzdata.load("data/MzDataFile_test_1.mzData",e);
+	mzdata.load("data/MzDataFile_1.mzData",e);
 
 	//check number of scans
 	TEST_EQUAL(e.size(),0)
@@ -657,12 +657,12 @@ RESULT
 CHECK(([EXTRA] load with selected MS levels))
 	PRECISION(0.01)
 
-	MSExperiment< Peak1D > e;
+	MSExperiment<> e;
 	MzDataFile mzdata;
 	
 	// load only MS level 1
 	mzdata.getOptions().addMSLevel(1);
-	mzdata.load("data/MzDataFile_test_1.mzData",e);
+	mzdata.load("data/MzDataFile_1.mzData",e);
 	TEST_EQUAL(e.size(), 2)
 	TEST_EQUAL(e[0].size(), 1)
 	TEST_EQUAL((UInt)(e[0].getMetaValue("original_spectrum_number")),0)
@@ -673,7 +673,7 @@ CHECK(([EXTRA] load with selected MS levels))
 	
 	// load all MS levels
 	mzdata.getOptions().clearMSLevels();
-	mzdata.load("data/MzDataFile_test_1.mzData",e);
+	mzdata.load("data/MzDataFile_1.mzData",e);
 	TEST_EQUAL(e.size(), 3)
 	TEST_EQUAL(e[0].size(), 1)
 	TEST_EQUAL(e[1].size(), 3)
@@ -686,11 +686,11 @@ RESULT
 CHECK(([EXTRA] load with RT range))
 	PRECISION(0.01)
 
-	MSExperiment< Peak1D > e;
+	MSExperiment<> e;
 	MzDataFile mzdata;
 	
 	mzdata.getOptions().setRTRange(makeRange(100, 200));
-	mzdata.load("data/MzDataFile_test_1.mzData",e);
+	mzdata.load("data/MzDataFile_1.mzData",e);
 	//---------------------------------------------------------------------------
 	// 60 : (120,100)
 	// 120: (110,100) (120,200) (130,100)
@@ -706,11 +706,11 @@ RESULT
 CHECK(([EXTRA] load with MZ range))
 	PRECISION(0.01)
 
-	MSExperiment< Peak1D > e;
+	MSExperiment<> e;
 	MzDataFile mzdata;
 	
 	mzdata.getOptions().setMZRange(makeRange(115, 135));
-	mzdata.load("data/MzDataFile_test_1.mzData",e);
+	mzdata.load("data/MzDataFile_1.mzData",e);
 	//---------------------------------------------------------------------------
 	// 60 : +(120,100)
 	// 120: -(110,100) +(120,200) +(130,100)
@@ -741,11 +741,11 @@ RESULT
 CHECK(([EXTRA] load with intensity range))
 	PRECISION(0.01)
 
-	MSExperiment< Peak1D > e;
+	MSExperiment<> e;
 	MzDataFile mzdata;
 	
 	mzdata.getOptions().setIntensityRange(makeRange(150, 350));
-	mzdata.load("data/MzDataFile_test_1.mzData",e);
+	mzdata.load("data/MzDataFile_1.mzData",e);
 	//---------------------------------------------------------------------------
 	// 60 : -(120,100)
 	// 120: -(110,100) +(120,200) -(130,100)
@@ -771,10 +771,10 @@ CHECK(([EXTRA] load with intensity range))
 RESULT
 
 CHECK(([EXTRA] load one extremely long spectrum - tests CDATA splitting))
-	MSExperiment< Peak1D > e;
+	MSExperiment<> e;
 	MzDataFile mzdata;
 	
-	mzdata.load("data/MzDataFile_test_4.mzData",e);
+	mzdata.load("data/MzDataFile_2_long.mzData",e);
 	TEST_EQUAL(e.size(), 1)
 	TEST_EQUAL(e[0].size(), 997530)
 RESULT
@@ -782,7 +782,7 @@ RESULT
 CHECK((template<typename MapType> void store(const String& filename, const MapType& map) const ))
   MSExperiment<> e1, e2;
   MzDataFile f;
-  f.load("data/MzDataFile_test_1.mzData",e1);
+  f.load("data/MzDataFile_1.mzData",e1);
 	TEST_EQUAL(e1.size(), 3)
 
 	std::string tmp_filename;
@@ -796,13 +796,6 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
 	TEST_EQUAL(e1[2].getMetaDataArrays()==e2[2].getMetaDataArrays(),true);
 	NEW_TMP_FILE(tmp_filename);
 	f.store(tmp_filename,e2);
-	
-	MSExperiment< Peak1D > e3, e4;
-	NEW_TMP_FILE(tmp_filename);
-	f.load("data/MzDataFile_test_2.mzData",e3);
-	f.store(tmp_filename,e3);
-	f.load(tmp_filename,e4);
-	TEST_EQUAL(e3==e4,true);
 RESULT
 
 CHECK([EXTRA] load with 64 bit precision and endian conversion )
@@ -812,7 +805,7 @@ CHECK([EXTRA] load with 64 bit precision and endian conversion )
 	MzDataFile mzdata;
 
 	// real test
-	mzdata.load("data/MzDataFile_test_3.mzData",e);
+	mzdata.load("data/MzDataFile_4_64bit.mzData",e);
   //---------------------------------------------------------------------------
   // 120: (110,100) (120,200) (130,100)
 	//---------------------------------------------------------------------------
@@ -865,9 +858,9 @@ CHECK([EXTRA] static bool isValid(const String& filename))
   f.store(tmp_filename,e);
   TEST_EQUAL(f.isValid(tmp_filename),true);
 
-	//test if fill file is valid
+	//test if filled file is valid
 	NEW_TMP_FILE(tmp_filename);
-	f.load("data/MzDataFile_test_1.mzData",e);
+	f.load("data/MzDataFile_1.mzData",e);
   f.store(tmp_filename,e);
   TEST_EQUAL(f.isValid(tmp_filename),true);
 RESULT
@@ -1036,7 +1029,7 @@ RESULT
 CHECK([EXTRA] loading a minimal file containing one spectrum  - with whitespaces inside the base64 data)
 	MSExperiment<> e;
   MzDataFile f;
-  f.load("data/MzDataFile_test_minimal.mzData",e);
+  f.load("data/MzDataFile_3_minimal.mzData",e);
   TEST_EQUAL(e.size(),1)
   TEST_EQUAL(e[0].size(),3)
 RESULT
