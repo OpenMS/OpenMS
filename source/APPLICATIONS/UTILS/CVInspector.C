@@ -195,6 +195,7 @@ class TOPPCVInspector
 						}
 						if (term.unparsed.size()!=0)
 						{
+							// @todo change this to new CVTerm member and use correct xsd types (Andreas, Marc)
 							for (UInt i=0; i<term.unparsed.size(); ++i)
 							{
 								if (term.unparsed[i].hasSubstring("value-type:xsd\\:int"))
