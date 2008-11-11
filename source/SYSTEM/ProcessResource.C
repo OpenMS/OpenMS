@@ -48,7 +48,10 @@ namespace OpenMS
 			JOBOBJECT_EXTENDED_LIMIT_INFORMATION jobli = { 0 }; 
 			
 			// in 100 of nanoseconds
-			jobli.BasicLimitInformation.PerJobUserTimeLimit.QuadPart = seconds * 10000000;
+			
+			LONGLONG ss = seconds;
+			jobli.BasicLimitInformation.PerJobUserTimeLimit.QuadPart = ss * 10000000;
+
 			
 			jobli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_JOB_TIME;
 			SetInformationJobObject(hjob, JobObjectExtendedLimitInformation, &jobli, sizeof(jobli));	
