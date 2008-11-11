@@ -44,7 +44,7 @@ namespace OpenMS
 	{
 	}
 	
-  void CVMappingFile::load(const String& filename, CVMappings& cv_mappings)
+  void CVMappingFile::load(const String& filename, CVMappings& cv_mappings, bool strip_namespaces)
   {
   	//try to open file
 		if (!File::exists(filename))
@@ -53,6 +53,8 @@ namespace OpenMS
     }
 		
 		file_ = filename;
+
+		strip_namespaces_ = strip_namespaces;
 
 		parse_(filename, this);
 
@@ -84,7 +86,43 @@ namespace OpenMS
     {
 			// id="R1" cvElementPath="/psi-pi:AnalysisXML/psi-pi:AnalysisSoftwareList/psi-pi:AnalysisSoftware/pf:ContactRole/pf:role/pf:cvParam" requirementLevel="MUST"  scopePath="" cvTermsCombinationLogic="OR
 			actual_rule_.setIdentifier(attributeAsString_(attributes, "id"));
-			actual_rule_.setElementPath(attributeAsString_(attributes, "cvElementPath"));
+			String element_path = attributeAsString_(attributes, "cvElementPath");
+			if (strip_namespaces_)
+			{
+				vector<String> slash_split;
+				element_path.split('/', slash_split);
+				if (slash_split.size() == 0)
+				{
+					slash_split.push_back(element_path);
+				}
+				element_path = "";
+				for (vector<String>::const_iterator it = slash_split.begin(); it != slash_split.end(); ++it)
+				{
+					if (it->size() == 0)
+					{
+						continue;
+					}
+								
+					vector<String> split;
+					it->split(':', split);
+					if (split.size() == 0)
+					{
+						element_path += "/" + *it;
+					}
+					else
+					{
+						if (split.size() == 2)
+						{
+							element_path += "/" + split[1];
+						}
+						else
+						{
+							throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot parse namespaces of path: '" + element_path + "'", "");
+						}
+					}
+				}
+			}
+			actual_rule_.setElementPath(element_path);
 			CVMappings::CVMappingRule::RequirementLevel level = CVMappings::CVMappingRule::MUST;
 			String lvl = attributeAsString_(attributes, "requirementLevel");
 			if (lvl == "MAY")

@@ -51,21 +51,83 @@ namespace OpenMS
 			/// Representation of a CV term
 			struct CVTerm
 			{
+				/// define xsd types allowed in cv term to specify their value-type
+				enum XRefType
+				{
+					XSD_STRING=0, 						// xsd:string A string 
+					XSD_INTEGER,  						// xsd:integer Any integer 
+					XSD_DECIMAL,  						// xsd:decimal Any real number 
+					XSD_NEGATIVE_INTEGER, 		// xsd:negativeInteger Any negative integer 
+					XSD_POSITIVE_INTEGER, 		// xsd:positiveInteger Any integer > 0 
+					XSD_NON_NEGATIVE_INTEGER, // xsd:nonNegativeInteger Any integer >= 0 
+					XSD_NON_POSITIVE_INTEGER, // xsd:nonPositiveInteger Any integer < 0 
+					XSD_BOOLEAN, 						 	// xsd:boolean True or false 
+					XSD_DATE,								 	// xsd:date An XML-Schema date
+					NONE
+				};
+
+				static String getXRefTypeName(XRefType type)
+				{
+					switch (type)
+					{
+						case XSD_STRING: return "xsd:string";
+						case XSD_INTEGER: return "xsd:integer";
+						case XSD_DECIMAL: return "xsd:decimal";
+						case XSD_NEGATIVE_INTEGER: return "xsd:negativeInteger";
+						case XSD_POSITIVE_INTEGER: return "xsd:positiveInteger";
+						case XSD_NON_NEGATIVE_INTEGER: return "xsd:nonNegativeInteger";
+						case XSD_NON_POSITIVE_INTEGER: return "xsd:nonPositiveInteger";
+						case XSD_BOOLEAN: return "xsd:boolean";
+						case XSD_DATE: return "xsd:date";
+						default: return "none";
+					}
+					return "";
+				}
+							
 				String name;									///< Text name
 				String id;										///< Identifier
 				std::set<String> parents;	    ///< The parent IDs
 				std::set<String> children;    ///< The child IDs
 				bool obsolete; 								///< Flag that indicates of the term is obsolete
 				StringList unparsed;					///< Unparsed lines from the definition file
+				XRefType xref_type;						///< xref value-type for the CV-term
 				
 				///Default constructor
 				CVTerm()
 					: name(),
 						id(),
 						parents(),
+						children(),
 						obsolete(false),
-						unparsed()
+						unparsed(),
+						xref_type(NONE)
 				{
+				}
+
+				CVTerm(const CVTerm& rhs)
+					: name(rhs.name),
+						id(rhs.id),
+						parents(rhs.parents),
+						children(rhs.children),
+						obsolete(rhs.obsolete),
+						unparsed(rhs.unparsed),
+						xref_type(rhs.xref_type)
+				{
+				}
+
+				CVTerm& operator = (const CVTerm& rhs)
+				{
+					if (this != &rhs)
+					{
+						name = rhs.name;
+						id = rhs.id;
+						parents = rhs.parents;
+						children = rhs.children;
+						obsolete = rhs.obsolete;
+						unparsed = rhs.unparsed;
+						xref_type = rhs.xref_type;
+					}
+					return *this;
 				}
 			};
 			

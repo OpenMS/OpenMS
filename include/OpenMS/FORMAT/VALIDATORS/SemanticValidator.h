@@ -85,6 +85,13 @@ namespace OpenMS
 	
 				/// Sets the name of the attribute for accessions in the CV parameter tag name (default: 'value')
 				void setValueAttribute(const String& value);
+
+				/** If set to true, the xsd value types are checked, and errors are given in the cases
+				 		- CVTerm needs value but has none
+						- CVTerm has value but must not have one
+						- CVTerm has value, needs value but value is of wrong type
+				*/
+				void setCheckTermValueTypes(bool check);
 				
 			protected:
 				
@@ -144,6 +151,7 @@ namespace OpenMS
 				String accession_att_;
 				String name_att_;
 				String value_att_;
+				bool check_term_value_types_;
 				//@}
 	
 			private:

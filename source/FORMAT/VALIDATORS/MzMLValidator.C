@@ -38,6 +38,7 @@ namespace OpenMS
 				cv_values_()
 		{
 			//find and store those cv terms, that can have a value
+			// @todo Replace this code by general types of CVTerms (Andreas, Marc)
   		for (Map<String,ControlledVocabulary::CVTerm>::const_iterator it=cv_.getTerms().begin(); it!=cv_.getTerms().end(); ++it)
   		{
 				for (UInt i=0; i<it->second.unparsed.size(); ++i)

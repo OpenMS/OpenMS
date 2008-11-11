@@ -62,8 +62,9 @@ namespace OpenMS
 				
 				@exception Exception::FileNotFound is thrown if the file could not be opened
 				@exception Exception::ParseError is thrown if an error occurs during parsing
+				@param strip_namespaces if enable, namespace definitions of the paths are eliminated, e.g. 'pf:cvParam' -> 'cvParam'
 			*/
-	    void load(const String& filename, CVMappings& cv_mappings);
+	    void load(const String& filename, CVMappings& cv_mappings, bool strip_namespaces = false);
 			
 		protected:
 
@@ -86,6 +87,8 @@ namespace OpenMS
 
 			String tag_;
 
+			bool strip_namespaces_;
+			
 			CVMappings::CVMappingRule actual_rule_;
 
 			std::vector<CVMappings::CVMappingRule> rules_;
