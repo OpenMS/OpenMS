@@ -28,6 +28,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -50,6 +51,13 @@ namespace OpenMS
 				{																																								
 					switch(FileHandler::getType(file_names[i]))					
 					{																																							
+						case FileHandler::MZML:																						
+							if (!MzMLFile().isValid(file_names[i]))								
+							{																																						
+								std::cout << "Error: Invalid mzML file '" << file_names[i] << "' - " << std::endl; 
+								passed = false;																							
+							}
+							break;	
 						case FileHandler::MZDATA:																						
 							if (!MzDataFile().isValid(file_names[i]))								
 							{																																						

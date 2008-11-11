@@ -18,8 +18,8 @@ MS levels: 1, 2
 Spectra of MS Level 1: 3
 Spectra of MS Level 2: 1
 
-Meta data array: charge (for 1 spectra)
-Meta data array: signal to noise (for 1 spectra)
+Meta data array: charge array (for 1 spectra)
+Meta data array: signal to noise array (for 1 spectra)
 
 
 -- Meta information --

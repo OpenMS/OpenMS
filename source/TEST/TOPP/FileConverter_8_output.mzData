@@ -130,11 +130,11 @@
 				<data precision="32" endian="little" length="10">AACgQQAAkEEAAIBBAABgQQAAQEEAACBBAAAAQQAAwEAAAIBAAAAAQA==</data>
 			</intenArrayBinary>
 			<supDataArrayBinary id="1">
-				<arrayName>signal to noise</arrayName>
+				<arrayName>signal to noise array</arrayName>
 				<data precision="32" endian="little" length="10">AACgQQAAkEEAAIBBAABgQQAAQEEAACBBAAAAQQAAwEAAAIBAAAAAQA==</data>
 			</supDataArrayBinary>
 			<supDataArrayBinary id="2">
-				<arrayName>charge</arrayName>
+				<arrayName>charge array</arrayName>
 				<data precision="32" endian="little" length="10">AACgQQAAkEEAAIBBAABgQQAAQEEAACBBAAAAQQAAwEAAAIBAAAAAQA==</data>
 			</supDataArrayBinary>
 		</spectrum>

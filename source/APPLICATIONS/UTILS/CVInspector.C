@@ -233,7 +233,7 @@ class TOPPCVInspector
 							for (set<String>::const_iterator atit=allowed_terms.begin(); atit!=allowed_terms.end(); ++atit)
 							{
 								const ControlledVocabulary::CVTerm& child_term = cv.getTerm(*atit);
-								String parser_string = String("os << \"&lt;cvTerm accession=\\\"") + child_term.id + "\\\" name=\\\"" + child_term.name + "\\\"";
+								String parser_string = String("os << \"&lt;cvParam cvRef=\\\"MS\\\" accession=\\\"") + child_term.id + "\\\" name=\\\"" + child_term.name + "\\\"";
 								String subterm_line = String("          &nbsp;&nbsp;&nbsp;- ") + child_term.id + " ! " + child_term.name;
 								StringList tags;
 								if (child_term.obsolete)

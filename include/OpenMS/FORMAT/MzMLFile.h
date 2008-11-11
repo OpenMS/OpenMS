@@ -37,17 +37,16 @@ namespace OpenMS
 	/**
 		@brief File adapter for MzML files
 		
-		This is a partial implementation that does not support the whole functionality of MzML:
-		- Currently only reading is supported
-  	- Missing features are:
+		This implementation does currently not support the whole functionality of MzML.
+		Some minor features are still missing:
   	  - chromatograms
   	  - zlib compression of base64 data
   	  - base64 integer data
   	  - base64 16 bit data
 		
-		If a critical error occurs, Exception::NotImplemented is thrown.
+		If a critical error occurs due to the missing functionality, Exception::NotImplemented is thrown.
 		
-		@todo Writing files, add to automatic tmp file validation in tests (Marc)
+		@todo Fix open ussues of the format, add to automatic semantic validation in tests (Marc)
 		@todo Implement Base64 integers, 16 bit, zlib support and chromatograms (Hiwi)
 		
 		@ingroup FileIO

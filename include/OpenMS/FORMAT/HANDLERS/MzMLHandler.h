@@ -45,7 +45,7 @@
 
 //TODO:
 // - Instrument: make ion optics an enum
-// - nativeID
+// - nativeID. Check MzData, MzXML
 // - AcquisitionInfo::MethodOfCombination => Enum? Check MzData, MzXML, ANDI/MS
 // - Sample: CVs for cellular compartement, source tissue and quality
 // - units
@@ -509,7 +509,7 @@ namespace OpenMS
 			}
 			else if (tag=="dataProcessingRef")
 			{
-			  //EXTEND "spectrum", "chromatogram" and "binaryDataArray" can have a DataProcessing too
+			  //"spectrum", "chromatogram" and "binaryDataArray" can have a DataProcessing too
 			  //Currently this is not implemented as the mzML schema is messed up
 			  //all dataProcessing is handled as global data processing of the whole file!
 			  //See: end of dataProcessingList
@@ -695,12 +695,12 @@ namespace OpenMS
 			Int int_index = -1;
 			for (UInt i=0; i<data_.size(); i++)
 			{
-				if (data_[i].name=="mz")
+				if (data_[i].name=="m/z array")
 				{
 					mz_index = i;
 					mz_precision_64 = (data_[i].precision=="64");
 				}
-				if (data_[i].name=="int")
+				if (data_[i].name=="intensity array")
 				{
 					int_index = i;
 					int_precision_64 = (data_[i].precision=="64");
@@ -738,7 +738,7 @@ namespace OpenMS
 				UInt meta_array_index = 0;
 				for (UInt i=0; i<data_.size(); i++)
 				{
-					if (data_[i].name!="mz" && data_[i].name!="int")
+					if (data_[i].name!="m/z array" && data_[i].name!="intensity array")
 					{
 						spec_.getMetaDataArrays()[meta_array_index].setName(data_[i].name);
 						spec_.getMetaDataArrays()[meta_array_index].reserve(data_[i].size);
@@ -759,7 +759,7 @@ namespace OpenMS
 			//We don't have this as a separate location => store it in spectrum
 			for (UInt i=0; i<data_.size(); i++)
 			{
-				if (data_[i].name=="mz" || data_[i].name=="int")
+				if (data_[i].name=="m/z array" || data_[i].name=="intensity array")
 				{
 					std::vector<UInt> keys;
 					data_[i].meta.getKeys(keys);
@@ -789,7 +789,7 @@ namespace OpenMS
 					UInt meta_array_index = 0;
 					for (UInt i=0; i<data_.size(); i++)
 					{
-						if (n<data_[i].size && data_[i].name!="mz" && data_[i].name!="int")
+						if (n<data_[i].size && data_[i].name!="m/z array" && data_[i].name!="intensity array")
 						{
 							DoubleReal value = (data_[i].precision=="64") ? data_[i].decoded_64[n] : data_[i].decoded_32[n];
 							spec_.getMetaDataArrays()[meta_array_index].push_back(value);
@@ -882,21 +882,9 @@ namespace OpenMS
 						throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 					}
 					//MS:1000513 ! binary data array
-					else if (accession=="MS:1000514")//m/z array
+					else if (cv_.isChildOf(accession,"MS:1000513")) //array name as string
 					{
-						data_.back().name = "mz";
-					}
-					else if (accession=="MS:1000515")//intensity array
-					{
-						data_.back().name = "int";
-					}
-					else if (accession=="MS:1000516")//charge array
-					{
-						data_.back().name = "charge";
-					}
-					else if (accession=="MS:1000517")//signal to noise array
-					{
-						data_.back().name = "signal to noise";
+						data_.back().name = cv_.getTerm(accession).name;
 					}
 					//MS:1000572 ! binary data compression type
 					else if (accession=="MS:1000574")//zlib compression
@@ -1063,7 +1051,6 @@ namespace OpenMS
 			//------------------------- scanWindow ----------------------------
 			else if(parent_tag=="scanWindow")
 			{
-				//EXTEND parse and store more than one scan window. Currently only the last window is stored.
 				if (accession=="MS:1000501") //scan m/z lower limit
 				{
 					spec_.getInstrumentSettings().getScanWindows().back().begin = value.toDouble();
@@ -1071,6 +1058,10 @@ namespace OpenMS
 				else if (accession=="MS:1000500") //scan m/z upper limit
 				{
 					spec_.getInstrumentSettings().getScanWindows().back().end = value.toDouble();
+				}
+				else if (accession=="MS:1000502") //dwell time
+				{
+					//Currently ignored
 				}
 				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
@@ -2841,13 +2832,13 @@ namespace OpenMS
 			//--------------------------------------------------------------------------------------------
 			//spectrum
 			//--------------------------------------------------------------------------------------------
-			for (UInt i=0; i<exp.size(); ++i)
+			for (UInt s=0; s<exp.size(); ++s)
 			{
-				const SpectrumType& spec = exp[i];
-				os	<< "			<spectrum id=\"sp_" << i << "\" nativeID=\"\" index=\"" << i << "\" defaultArrayLength=\"" << spec.size() << "\"";
+				const SpectrumType& spec = exp[s];
+				os	<< "			<spectrum id=\"sp_" << s << "\" nativeID=\"\" index=\"" << s << "\" defaultArrayLength=\"" << spec.size() << "\"";
 				if (spec.getSourceFile()!=SourceFile())
 				{
-					os << " sourceFileRef=\"sf_sp_" << i << "\"";
+					os << " sourceFileRef=\"sf_sp_" << s << "\"";
 				}
 				os  << ">\n";
 				if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::FULL)
@@ -2908,9 +2899,9 @@ namespace OpenMS
 					//--------------------------------------------------------------------------------------------
 					//acquisition
 					//--------------------------------------------------------------------------------------------
-					for (UInt i_ac=0; i_ac<spec.getAcquisitionInfo().size(); ++i_ac)
+					for (UInt j=0; j<spec.getAcquisitionInfo().size(); ++j)
 					{
-						const Acquisition& ac = spec.getAcquisitionInfo()[i_ac];
+						const Acquisition& ac = spec.getAcquisitionInfo()[j];
 						os	<< "						<acquisition number=\"" << ac.getNumber() << "\">\n";
 						//cvParam: all stored in userParam
 						writeUserParam_(os, ac, 7);
@@ -2939,9 +2930,9 @@ namespace OpenMS
 					os  << "									<cvParam cvRef=\"MS\" accession=\"MS:1000040\" name=\"m/z\" value=\"" << spec.getPrecursorPeak().getMZ() << "\"/>\n";
 					os  << "									<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << spec.getPrecursorPeak().getCharge() << "\"/>\n";
 					os  << "									<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"intensity\" value=\"" << spec.getPrecursorPeak().getIntensity() << "\"/>\n";
-					for (UInt i_cs=0; i_cs<spec.getPrecursorPeak().getPossibleChargeStates().size(); ++i_cs)
+					for (UInt j=0; j<spec.getPrecursorPeak().getPossibleChargeStates().size(); ++j)
 					{
-						os  << "									<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << spec.getPrecursorPeak().getPossibleChargeStates()[i_cs] << "\"/>\n";
+						os  << "									<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << spec.getPrecursorPeak().getPossibleChargeStates()[j] << "\"/>\n";
 					}
 					//userParam: no extra object for it => no user paramters
 					os	<< "								</selectedIon>\n";					
@@ -2951,7 +2942,7 @@ namespace OpenMS
 					//activation
 					//--------------------------------------------------------------------------------------------
 					os	<< "							<activation>\n";
-					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000509\" name=\"activation energy\" value=\"" << spec_.getPrecursor().getActivationEnergy() << "\"/>\n";
+					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000509\" name=\"activation energy\" value=\"" << spec.getPrecursor().getActivationEnergy() << "\"/>\n";
 					if (spec.getPrecursor().getActivationMethod()==Precursor::CID)
 					{
 						os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000133\" name=\"collision-induced dissociation\"/>\n";
@@ -3004,7 +2995,8 @@ namespace OpenMS
 					{
 						os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000599\" name=\"pulsed q dissociation\"/>\n";
 					}
-					//userParam: no extra object for it => no user paramters
+					//as "precursor" has no own user param it's userParam is stored here
+					writeUserParam_(os, spec.getPrecursor(), 8);
 					os	<< "							</activation>\n";
 					os	<< "						</precursor>\n";					
 					os	<< "					</precursorList>\n";
@@ -3012,13 +3004,94 @@ namespace OpenMS
 				//--------------------------------------------------------------------------------------------
 				//scan
 				//--------------------------------------------------------------------------------------------
-				//TODO
-				
+				os	<< "					<scan>\n";
+				os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan time\" value=\"" << spec.getRT() << "\"/>\n";
+				if (spec.getMSLevel()!=0)
+				{
+					os << "						<cvParam cvRef=\"MS\" accession=\"MS:1000511\" name=\"ms level\" value=\"" << spec.getMSLevel() << "\"/>\n";	
+				}
+				if (spec.getInstrumentSettings().getPolarity()==IonSource::NEGATIVE)
+				{
+					os << "						<cvParam cvRef=\"MS\" accession=\"MS:1000129\" name=\"negative scan\"/>\n";
+				}
+				else if (spec.getInstrumentSettings().getPolarity()==IonSource::POSITIVE)
+				{
+					os << "						<cvParam cvRef=\"MS\" accession=\"MS:1000130\" name=\"positive scan\"/>\n";
+				}
+				writeUserParam_(os, spec.getInstrumentSettings(), 6);
+				//scan windows
+				os	<< "						<scanWindowList count=\"" << std::max((Int)1,(Int)spec.getInstrumentSettings().getScanWindows().size()) << "\">\n";
+				for (UInt j=0; j<spec.getInstrumentSettings().getScanWindows().size(); ++j)
+				{
+					os	<< "						<scanWindow>\n";
+					os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan m/z lower limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].begin << "\"/>\n";
+					os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan m/z upper limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].end << "\"/>\n";
+					os	<< "						</scanWindow>\n";
+				}
+				//FORCED
+				if (spec.getInstrumentSettings().getScanWindows().size()==0)
+				{
+					os	<< "						<scanWindow>\n";
+					os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan m/z lower limit\" value=\"0\"/>\n";
+					os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan m/z upper limit\" value=\"10000\"/>\n";
+					os	<< "						</scanWindow>\n";
+				}
+				os	<< "						</scanWindowList>\n";
+				os	<< "					</scan>\n";
 				os	<< "				</spectrumDescription>\n";
 				//--------------------------------------------------------------------------------------------
 				//binary data array list
 				//--------------------------------------------------------------------------------------------
-				//TODO
+				if (spec.size()!=0)
+				{
+					String encoded_string;
+					std::vector<DoubleReal> data_to_encode;
+					os	<< "						<binaryDataArrayList count=\"" << (spec.getMetaDataArrays().size()+2) << "\">\n";
+					//write m/z array
+					data_to_encode.resize(spec.size());
+					for (UInt p=0; p<spec.size(); ++p) data_to_encode[p] = spec[p].getMZ();
+					decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
+					os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\"/>\n";
+					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\"/>\n";
+					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\"/>\n";
+					os	<< "						<binary>" << encoded_string << "</binary>\n";
+					os	<< "					</binaryDataArray>\n";
+					//write intensity array
+					for (UInt p=0; p<spec.size(); ++p) data_to_encode[p] = spec[p].getIntensity();
+					decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
+					os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\"/>\n";
+					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\"/>\n";
+					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\"/>\n";
+					os	<< "						<binary>" << encoded_string << "</binary>\n";
+					os	<< "					</binaryDataArray>\n";
+					//write meta data array
+					for (UInt m=0; m<spec.getMetaDataArrays().size(); ++m)
+					{
+						const typename SpectrumType::MetaDataArray& array = spec.getMetaDataArrays()[m];
+						data_to_encode.resize(array.size());
+						for (UInt p=0; p<array.size(); ++p) data_to_encode[p] = array[p];
+						decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
+						os	<< "							<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\">\n";
+						ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513",array.getName());
+						if (bi_term.id!="")
+						{
+							os  << "						<cvParam cvRef=\"MS\" accession=\"" << bi_term.id <<"\" name=\"" << bi_term.name << "\"/>\n";
+						}
+						else //FORCED
+						{
+							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000617\" name=\"wavelength array\"/>\n";
+						}
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\"/>\n";
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\"/>\n";
+						writeUserParam_(os, array, 8);
+						os	<< "						<binary>" << encoded_string << "</binary>\n";
+						os	<< "					</binaryDataArray>\n";
+					}
+					os	<< "				</binaryDataArrayList>\n";
+				}
+				
 				os	<< "			</spectrum>\n";
 			}
 			os	<< "		</spectrumList>\n";

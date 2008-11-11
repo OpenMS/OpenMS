@@ -70,15 +70,15 @@ void print_usage()
 int main( int argc, const char** argv )
 {
 	//list of all the valid options
-	map<String,String> valid_options, valid_flags;
-	valid_flags["--help"] = "help";
-	valid_flags["-v"] = "v";
-	valid_options["-bins"] = "bins";
-	valid_options["-min"] = "min";
-	valid_options["-max"] = "max";
+	Map<String,String> options, flags, option_lists;
+	flags["--help"] = "help";
+	flags["-v"] = "v";
+	options["-bins"] = "bins";
+	options["-min"] = "min";
+	options["-max"] = "max";
 	
 	Param param;
-	param.parseCommandLine(argc, argv, valid_options, valid_flags);
+	param.parseCommandLine(argc, argv, options, flags, option_lists);
 	
 	// '--help' given
 	if (param.exists("help"))
