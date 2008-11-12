@@ -46,7 +46,7 @@ namespace OpenMS
 		The parts (IonSource, MassAnalyzer, IonDetector) all have a @m order member.
 		The order can be ignored, as long the instrument has this default setup:
 		- one ion source
-		- one or many mass anylyzers
+		- one or many mass analyzers
 		- one ion detector
 		
 		For more complex instuments, the order should be defined.
@@ -56,7 +56,32 @@ namespace OpenMS
   class Instrument
   	: public MetaInfoInterface
   {
+  	
     public:
+ 		
+ 			/// ion optics type
+	    enum IonOpticsType
+	    {
+	    	UNKNOWN, 									///< unknown
+				FIELD_FREE_REGION, 				///< field-free region
+				MAGNETIC_DEFLECTION, 			///< magnetic deflection
+				DELAYED_EXTRACTION, 			///< delayed extraction
+				COLLISION_QUADRUPOLE, 		///< collision quadrupole
+				SELECTED_ION_FLOW_TUBE, 	///< selected ion flow tube
+				TIME_LAG_FOCUSING, 				///< time lag focusing
+				REFLECTRON, 							///< reflectron
+				EINZEL_LENS,							///< einzel lens
+				ELECTRIC_FIELD_STRENGTH, 	///< electric field strength
+				FIRST_STABILITY_REGION, 	///< first stability region
+				FRINGING_FIELD, 					///< fringing field
+				KINETIC_ENERGY_ANALYZER, 	///< kinetic energy analyzer
+				SPACE_CHARGE_EFFECT, 			///< space charge effect
+				STATIC_FIELD,							///< static field
+	    	SIZE_OF_IONOPTICSTYPE
+	    };
+			/// Names of inlet types
+			static const std::string NamesOfIonOpticsType[SIZE_OF_IONOPTICSTYPE];
+
     	/// Constructor
       Instrument();
       /// Copy constructor
@@ -87,9 +112,9 @@ namespace OpenMS
       /// sets the instrument model
       void setModel(const String& model);
 			
-			/// returns a description of constumizations
+			/// returns a description of customizations
       const String& getCustomizations() const;
-      /// sets the a description of constumizations 
+      /// sets the a description of customizations 
       void setCustomizations(const String& customizations);
 			
 			/// returns a const reference to the ion source list 
@@ -119,7 +144,12 @@ namespace OpenMS
       Software& getSoftware();
       /// sets the instrument software
       void setSoftware(const Software& ion_sources);
-
+      
+			/// returns the ion optics type
+      IonOpticsType getIonOptics() const;
+      /// sets the ion optics type
+      void setIonOptics(IonOpticsType ion_optics);
+      
     protected:
 
 		  String name_;
@@ -130,6 +160,7 @@ namespace OpenMS
 		  std::vector<MassAnalyzer> mass_analyzers_;
 		  std::vector<IonDetector> ion_detectors_;
 		  Software software_;
+		  IonOpticsType ion_optics_;
   };
 } // namespace OpenMS
 

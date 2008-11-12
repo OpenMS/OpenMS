@@ -84,11 +84,11 @@ namespace OpenMS
 	
 	void TaggingVisualizer::store()
 	{
-		ptr_->setComment(treatmentcomment_->toPlainText().toStdString());
-		ptr_->setReagentName(modificationname_->text().toStdString());
+		ptr_->setComment(treatmentcomment_->toPlainText());
+		ptr_->setReagentName(modificationname_->text());
 		ptr_->setMass(modificationmass_->text().toDouble());
 		ptr_->setSpecificityType((Modification::SpecificityType)modificationspecificity_->currentIndex());
-		ptr_->setAffectedAminoAcids(modificationAA_->text().toStdString());
+		ptr_->setAffectedAminoAcids(modificationAA_->text());
 		ptr_->setMassShift(taggingmass_shift_->text().toFloat());
 		ptr_->setVariant((Tagging::IsotopeVariant)taggingvariant_->currentIndex());
 		

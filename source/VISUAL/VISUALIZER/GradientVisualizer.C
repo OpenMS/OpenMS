@@ -103,7 +103,7 @@ namespace OpenMS
 	void GradientVisualizer::addTimepoint_()
 	{
 	  //Check whether new timepoint is in range
-		String m(new_timepoint_->text().toStdString()) ;
+		String m(new_timepoint_->text()) ;
 		int num_time = timepoints_.size();
 		
 		if(num_time==0 && m.trim().length() !=0)
@@ -123,7 +123,7 @@ namespace OpenMS
 	
 	void GradientVisualizer::addEluent_()
 	{
-		String m(new_eluent_->text().toStdString()) ;
+		String m(new_eluent_->text()) ;
 		std::vector<String>::iterator iter; 
 		//check if eluent name is empty
 		if(m.trim().length() !=0 )
@@ -154,7 +154,7 @@ namespace OpenMS
 			elu_count=i;
 			for(int j=0; j< elu_size; ++j )
 			{
-				String value((gradientdata_[elu_count])->text().toStdString());
+				String value((gradientdata_[elu_count])->text());
 				elu_count  = elu_count+ time_size;
 				sum_check= sum_check + value.toInt();
 				if(j== elu_size-1 && sum_check!=100)
@@ -172,7 +172,7 @@ namespace OpenMS
 		{
 			for(UInt j=0; j< timepoints_.size(); ++j )
 			{
-				String value((gradientdata_[count+j])->text().toStdString());
+				String value((gradientdata_[count+j])->text());
 				temp_.setPercentage(eluents_[i], timepoints_[j], value.toInt()  );      
 			}
 			count=count+time_size;

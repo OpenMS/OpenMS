@@ -31,8 +31,11 @@ using namespace std;
 namespace OpenMS
 {
 
+const std::string Instrument::NamesOfIonOpticsType[] = {"Unknown","field-free region","magnetic deflection","delayed extraction","collision quadrupole","selected ion flow tube","time lag focusing","reflectron","einzel lens","electric field strength","first stability region","fringing field","kinetic energy analyzer","space charge effect","static field"};
+
 	Instrument::Instrument():
-		MetaInfoInterface()
+		MetaInfoInterface(),
+		ion_optics_(UNKNOWN)
 	{
 	
 	}
@@ -46,7 +49,8 @@ namespace OpenMS
 	  ion_sources_(source.ion_sources_),
 	  mass_analyzers_(source.mass_analyzers_),
 	  ion_detectors_(source.ion_detectors_),
-	  software_(source.software_)
+	  software_(source.software_),
+		ion_optics_(source.ion_optics_)
 	{
 	  
 	}
@@ -60,6 +64,7 @@ namespace OpenMS
 	{
 		if (&source == this) return *this;
 	  
+  	MetaInfoInterface::operator=(source);
 	  software_ = source.software_;
     name_ = source.name_;
     vendor_ = source.vendor_;
@@ -68,7 +73,7 @@ namespace OpenMS
     ion_sources_ = source.ion_sources_;
     mass_analyzers_ = source.mass_analyzers_;
     ion_detectors_ = source.ion_detectors_;
-  	MetaInfoInterface::operator=(source);
+		ion_optics_ = source.ion_optics_;
 	  
 	  return *this;
 	}
@@ -84,6 +89,7 @@ namespace OpenMS
 	    ion_sources_ == rhs.ion_sources_ &&
 	    mass_analyzers_ == rhs.mass_analyzers_ &&
 	    ion_detectors_ == rhs.ion_detectors_ &&
+			ion_optics_ == rhs.ion_optics_ &&
 			MetaInfoInterface::operator==(rhs)
 			;
 	}
@@ -192,6 +198,16 @@ namespace OpenMS
 	{
 	  software_ = software;
 	}
+
+  Instrument::IonOpticsType Instrument::getIonOptics() const
+  {
+  	return ion_optics_;
+  }
+  
+  void Instrument::setIonOptics(Instrument::IonOpticsType ion_optics)
+  {
+  	ion_optics_ = ion_optics;
+  }
 
 }
 

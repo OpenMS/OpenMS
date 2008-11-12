@@ -71,6 +71,7 @@ namespace OpenMS
 			QLineEdit* vendor_;
 			QLineEdit* model_;
 			QTextEdit* customizations_;
+			QComboBox* ion_optics_;
 	    //@}
 	    
 	    //Docu in base class

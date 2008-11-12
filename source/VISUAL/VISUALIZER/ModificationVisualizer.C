@@ -80,11 +80,11 @@ namespace OpenMS
 	{
 		try
 		{
-			ptr_->setComment(treatmentcomment_->toPlainText().toStdString());
-			ptr_->setReagentName(modificationname_->text().toStdString());
+			ptr_->setComment(treatmentcomment_->toPlainText());
+			ptr_->setReagentName(modificationname_->text());
 			ptr_->setMass(modificationmass_->text().toFloat() );
 			ptr_->setSpecificityType((Modification::SpecificityType)modificationspecificity_->currentIndex());		
-			ptr_->setAffectedAminoAcids(modificationAA_->text().toStdString());
+			ptr_->setAffectedAminoAcids(modificationAA_->text());
 			temp_ = (*ptr_);
 		}
 		catch(exception& e)

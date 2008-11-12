@@ -257,7 +257,7 @@ namespace OpenMS
 				
 				Order can be ignored, as long the instrument has this default setup:
 				- one ion source
-				- one or many mass anylyzers
+				- one or many mass analyzers
 				- one ion detector
 				
 				For more complex instuments, the order should be defined.

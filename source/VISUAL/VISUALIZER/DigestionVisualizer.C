@@ -68,8 +68,8 @@ namespace OpenMS
 	
 	void DigestionVisualizer::store()
 	{
-		ptr_->setComment(treatmentcomment_->toPlainText().toStdString());
-		ptr_->setEnzyme(digestionenzyme_->text().toStdString());
+		ptr_->setComment(treatmentcomment_->toPlainText());
+		ptr_->setEnzyme(digestionenzyme_->text());
 		ptr_->setDigestionTime(digestiontime_->text().toFloat());
 		ptr_->setTemperature(digestiontime_->text().toFloat());
 		ptr_->setPh(digestiontime_->text().toFloat());

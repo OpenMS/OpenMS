@@ -50,6 +50,17 @@ CHECK((~SpectrumSettings()))
 	delete ptr;
 RESULT
 
+CHECK(const String& getNativeID() const)
+	SpectrumSettings tmp;
+	TEST_STRING_EQUAL(tmp.getNativeID(),"");
+RESULT
+
+CHECK(void setNativeID(const String& native_id))
+	SpectrumSettings tmp;
+	tmp.setNativeID("nid");
+	TEST_STRING_EQUAL(tmp.getNativeID(),"nid");
+RESULT
+
 CHECK((AcquisitionInfo& getAcquisitionInfo()))
 	SpectrumSettings tmp;
 	TEST_EQUAL(tmp.getAcquisitionInfo()==AcquisitionInfo(), true);
@@ -183,6 +194,7 @@ CHECK((SpectrumSettings& operator= (const SpectrumSettings& source)))
 	tmp.getPeptideIdentifications().resize(1);
 	tmp.setType(SpectrumSettings::PEAKS);
 	tmp.setComment("bla");
+	tmp.setNativeID("nid");
 	
 	SpectrumSettings tmp2(tmp);
 	TEST_EQUAL(tmp2.getComment(), "bla");
@@ -191,6 +203,7 @@ CHECK((SpectrumSettings& operator= (const SpectrumSettings& source)))
 	TEST_EQUAL(tmp2.getPrecursor()==Precursor(), false);	
 	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);
 	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);  
+	TEST_STRING_EQUAL(tmp2.getNativeID(),"nid");
 RESULT
 
 CHECK((SpectrumSettings(const SpectrumSettings& source)))
@@ -201,6 +214,7 @@ CHECK((SpectrumSettings(const SpectrumSettings& source)))
 	tmp.setType(SpectrumSettings::PEAKS);
 	tmp.setComment("bla");
 	tmp.getPeptideIdentifications().resize(1);
+	tmp.setNativeID("nid");
 	
 	SpectrumSettings tmp2;
 	tmp2 = tmp;
@@ -210,6 +224,7 @@ CHECK((SpectrumSettings(const SpectrumSettings& source)))
 	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);	
 	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);
 	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 1);	
+	TEST_STRING_EQUAL(tmp2.getNativeID(),"nid");
 
 	tmp2 = SpectrumSettings();
 	TEST_EQUAL(tmp2.getComment(), "");
@@ -218,6 +233,7 @@ CHECK((SpectrumSettings(const SpectrumSettings& source)))
 	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), true);	
 	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), true);
 	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 0);	
+	TEST_STRING_EQUAL(tmp2.getNativeID(),"");
 
 RESULT
 
@@ -227,6 +243,10 @@ CHECK((bool operator== (const SpectrumSettings& rhs) const))
   TEST_EQUAL(edit==empty, true);
   
 	edit.getAcquisitionInfo().setMethodOfCombination("test");
+	TEST_EQUAL(edit==empty, false);
+	
+	edit = empty;
+	edit.setNativeID("nid");
 	TEST_EQUAL(edit==empty, false);
 	
 	edit = empty;
@@ -256,6 +276,10 @@ CHECK((bool operator!= (const SpectrumSettings& rhs) const))
   TEST_EQUAL(edit!=empty, false);
   
 	edit.getAcquisitionInfo().setMethodOfCombination("test");
+	TEST_EQUAL(edit!=empty, true);
+	
+	edit = empty;
+	edit.setNativeID("nid");
 	TEST_EQUAL(edit!=empty, true);
 	
 	edit = empty;

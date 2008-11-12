@@ -34,6 +34,7 @@
 
 class QLineEdit;
 class QComboBox;
+class QTextEdit;
 
 namespace OpenMS 
 {
@@ -49,6 +50,7 @@ namespace OpenMS
 		Q_OBJECT
 
 		public:
+			
 		  ///Constructor
 			SpectrumSettingsVisualizer(bool editable = false, QWidget* parent = 0);
 		  
@@ -63,11 +65,12 @@ namespace OpenMS
 			void undo_();
 	
 		protected:  
-		  
-			/// The type of this experiment
-	   	QComboBox* spectrumsettings_type_;
 			/// The date of this experiment
-			QTextEdit* spectrumsettings_comment_;
+			QLineEdit* native_id_;
+			/// The type of this experiment
+	   	QComboBox* type_;
+			/// The date of this experiment
+			QTextEdit* comment_;
 			
 			//Docu in base class
 			void update_();

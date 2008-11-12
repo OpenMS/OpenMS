@@ -65,12 +65,12 @@ namespace OpenMS
 	
 	void ContactPersonVisualizer::store()
 	{
-		ptr_->setLastName(lastname_->text().toStdString());
-		ptr_->setInstitution(institution_->text().toStdString());
-		ptr_->setEmail(email_->text().toStdString());
-		ptr_->setContactInfo(contact_info_->text().toStdString());
-		ptr_->setURL(url_->text().toStdString());
-		ptr_->setAddress(address_->text().toStdString());
+		ptr_->setLastName(lastname_->text());
+		ptr_->setInstitution(institution_->text());
+		ptr_->setEmail(email_->text());
+		ptr_->setContactInfo(contact_info_->text());
+		ptr_->setURL(url_->text());
+		ptr_->setAddress(address_->text());
 		
 		temp_=(*ptr_);
 	}

@@ -88,6 +88,17 @@ CHECK(const Software& getSoftware() const)
   TEST_STRING_EQUAL(tmp.getSoftware().getName(),"");
 RESULT
 
+CHECK(IonOpticsType getIonOptics() const)
+	Instrument tmp;
+  TEST_EQUAL(tmp.getIonOptics(),Instrument::UNKNOWN);
+RESULT
+
+CHECK(void setIonOptics(IonOpticsType ion_optics))
+	Instrument tmp;
+	tmp.setIonOptics(Instrument::FIELD_FREE_REGION);
+  TEST_EQUAL(tmp.getIonOptics(),Instrument::FIELD_FREE_REGION);
+RESULT
+
 CHECK(void setCustomizations(const String& customizations))
   Instrument tmp;
   tmp.setCustomizations("Customizations");
@@ -189,6 +200,7 @@ CHECK(Instrument(const Instrument& source))
   tmp.setVendor("Vendor");
   tmp.setMetaValue("label",String("label"));
   tmp.getSoftware().setName("sn");
+	tmp.setIonOptics(Instrument::FIELD_FREE_REGION);
   
   Instrument tmp2(tmp);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
@@ -200,6 +212,7 @@ CHECK(Instrument(const Instrument& source))
   TEST_EQUAL(tmp2.getMassAnalyzers().size(),1);
   TEST_REAL_EQUAL(tmp2.getMassAnalyzers()[0].getScanTime(),47.11);
   TEST_EQUAL(tmp2.getSoftware().getName(),"sn");
+  TEST_EQUAL(tmp2.getIonOptics(),Instrument::FIELD_FREE_REGION);
 RESULT
 
 CHECK(Instrument& operator= (const Instrument& source))
@@ -213,7 +226,8 @@ CHECK(Instrument& operator= (const Instrument& source))
   tmp.setVendor("Vendor");
   tmp.setMetaValue("label",String("label"));
   tmp.getSoftware().setName("sn");
-  
+	tmp.setIonOptics(Instrument::FIELD_FREE_REGION);
+		
   Instrument tmp2;
   tmp2 = tmp;
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
@@ -225,6 +239,7 @@ CHECK(Instrument& operator= (const Instrument& source))
   TEST_EQUAL(tmp2.getMassAnalyzers().size(),1);
   TEST_REAL_EQUAL(tmp2.getMassAnalyzers()[0].getScanTime(),47.11);
   TEST_EQUAL(tmp2.getSoftware().getName(),"sn");
+  TEST_EQUAL(tmp2.getIonOptics(),Instrument::FIELD_FREE_REGION);
 
   tmp2 = Instrument();
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
@@ -235,6 +250,7 @@ CHECK(Instrument& operator= (const Instrument& source))
   TEST_EQUAL(tmp2.getIonSources().size(),0);
   TEST_EQUAL(tmp2.getMassAnalyzers().size(),0);
   TEST_EQUAL(tmp2.getSoftware().getName(),"");
+  TEST_EQUAL(tmp2.getIonOptics(),Instrument::UNKNOWN);
 RESULT
 
 CHECK(bool operator== (const Instrument& rhs) const)
@@ -267,6 +283,10 @@ CHECK(bool operator== (const Instrument& rhs) const)
   
   edit = empty;
   edit.setVendor("Vendor");
+  TEST_EQUAL(edit==empty,false);
+  
+  edit = empty;
+	edit.setIonOptics(Instrument::FIELD_FREE_REGION);
   TEST_EQUAL(edit==empty,false);
   
   edit = empty;
@@ -306,6 +326,10 @@ CHECK(bool operator!= (const Instrument& rhs) const)
   edit.getSoftware().setName("sn");
   TEST_EQUAL(edit!=empty,true);
 
+  edit = empty;
+	edit.setIonOptics(Instrument::FIELD_FREE_REGION);
+  TEST_EQUAL(edit!=empty,true)
+  
   edit = empty;
   edit.setMetaValue("label",String("label"));
 	TEST_EQUAL(edit!=empty,true);

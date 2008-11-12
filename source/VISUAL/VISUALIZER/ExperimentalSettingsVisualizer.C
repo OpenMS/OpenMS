@@ -63,7 +63,7 @@ namespace OpenMS
 		DateTime date;
 		try
 		{
-			date.set(datetime_->text().toStdString());
+			date.set(datetime_->text());
 			ptr_->setDateTime(date);
 		}
 		catch(exception& e)
@@ -75,7 +75,7 @@ namespace OpenMS
 			}
 		}
 		
-		ptr_->setComment(comment_->toPlainText().toStdString());
+		ptr_->setComment(comment_->toPlainText());
 		
 		temp_=(*ptr_);
 	}

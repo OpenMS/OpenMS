@@ -57,8 +57,8 @@ namespace OpenMS
 	
 	void SoftwareVisualizer::store()
 	{
-		ptr_->setName(software_name_->text().toStdString());
-		ptr_->setVersion(software_version_->text().toStdString());
+		ptr_->setName(software_name_->text());
+		ptr_->setVersion(software_version_->text());
 		
 		temp_=(*ptr_);		
 	}

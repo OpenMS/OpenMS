@@ -35,14 +35,20 @@ namespace OpenMS
 	const std::string SpectrumSettings::NamesOfSpectrumType[] = {"Unknown","Peak data","Raw data"};
 
 	SpectrumSettings::SpectrumSettings():
-		type_(UNKNOWN), 
+		type_(UNKNOWN),
+		native_id_(),
+		comment_(),
+		instrument_settings_(),
+		source_file_(),
+		acquisition_info_(),
+		precursor_(),
 		identification_()
 	{
-	  
 	}
-	
+
 	SpectrumSettings::SpectrumSettings(const SpectrumSettings& source):
 		type_(source.type_),
+		native_id_(source.native_id_),
 	  comment_(source.comment_),
 	  instrument_settings_(source.instrument_settings_),
 	  source_file_(source.source_file_),
@@ -63,6 +69,7 @@ namespace OpenMS
 	  if (&source == this) return *this;
 	  
 	  type_ = source.type_;
+	  native_id_ = source.native_id_;
     comment_ = source.comment_;
     instrument_settings_ = source.instrument_settings_;
     acquisition_info_ = source.acquisition_info_;
@@ -77,6 +84,7 @@ namespace OpenMS
   {
   	return
 	   	type_ == rhs.type_ &&
+	 		native_id_ == rhs.native_id_ &&
 	    comment_ == rhs.comment_ &&
 	    instrument_settings_ == rhs.instrument_settings_ &&
 	    acquisition_info_ == rhs.acquisition_info_ &&
@@ -191,7 +199,18 @@ namespace OpenMS
 	void SpectrumSettings::setPeptideIdentifications(const std::vector<PeptideIdentification>& identification)
 	{
 		identification_ = identification;
-	}	
+	}
+
+  const String& SpectrumSettings::getNativeID() const
+	{
+		return native_id_;
+	}
+	
+  void SpectrumSettings::setNativeID(const String& native_id)
+	{
+		native_id_ = native_id;
+	}
+
 }
 
 

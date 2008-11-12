@@ -44,9 +44,6 @@
 #include <iostream>
 
 //TODO:
-// - Instrument: make ion optics an enum
-// - nativeID. Check MzData, MzXML
-// - AcquisitionInfo::MethodOfCombination => Enum? Check MzData, MzXML, ANDI/MS
 // - Sample: CVs for cellular compartement, source tissue and quality
 // - units
 // - InstrumentConfiguration of Acquisiton and Scan?
@@ -57,12 +54,11 @@
 // - acquisitionSettingsList cannot be referenced => where do we put "targetList" + "target"?
 //
 //MISSING (AND NOT PLANNED):
-// - more than one Precursor per spectrum (warning if more than one)
-// - more than one selectedIon per precursos (warning if more than one)
-// - source file of "acquisition settings"
+// - more than one precursor per spectrum (warning if more than one)
+// - more than one selected ion per precursor (warning if more than one)
 
 
-// xs:id prefix list
+// xs:id/xs:idref prefix list
 // - sf_ru : sourceFile (run)
 // - sf_sp : sourceFile (spectrum)
 // - sf_pr : sourceFile (precursor)
@@ -349,7 +345,7 @@ namespace OpenMS
 				//id
 				spec_.setMetaValue("id",(String)attributeAsString_(attributes, s_id));
 				//native id
-				spec_.setMetaValue("native_id",(String)attributeAsString_(attributes, s_native_id));
+				spec_.setNativeID(attributeAsString_(attributes, s_native_id));
 				//maldi spot id
 				String maldi_spot_id;
 				if(optionalAttributeAsString_(maldi_spot_id,attributes, s_spot_id))
@@ -1318,62 +1314,54 @@ namespace OpenMS
 					//No member => metadata
 					instruments_[current_id_].setMetaValue("transmission",value);
 				}
-				//ion optics type
-				else if (accession=="MS:1000221") //magnetic deflection
-				{
-					//No member => metadata
-					instruments_[current_id_].setMetaValue("ion optics",String("magnetic deflection"));
-				}
-				else if (accession=="MS:1000275") //collision quadrupole
-				{
-					//No member => metadata
-					instruments_[current_id_].setMetaValue("ion optics",String("collision quadrupole"));
-				}
-				else if (accession=="MS:1000281") //selected ion flow tube
-				{
-					//No member => metadata
-					instruments_[current_id_].setMetaValue("ion optics",String("selected ion flow tube"));
-				}
-				else if (accession=="MS:1000286") //time lag focusing
-				{
-					//No member => metadata
-					instruments_[current_id_].setMetaValue("ion optics",String("time lag focusing"));
-				}
-				else if (accession=="MS:1000300") //reflectron
-				{
-					//No member => metadata
-					instruments_[current_id_].setMetaValue("ion optics",String("reflectron"));
-				}
 				else if (accession=="MS:1000304") //accelerating voltage
 				{
 					//No member => metadata
 					instruments_[current_id_].setMetaValue("accelerating voltage",value);
 				}
+				//ion optics type
+				else if (accession=="MS:1000221") //magnetic deflection
+				{
+					instruments_[current_id_].setIonOptics(Instrument::MAGNETIC_DEFLECTION);
+				}
+				else if (accession=="MS:1000275") //collision quadrupole
+				{
+					instruments_[current_id_].setIonOptics(Instrument::COLLISION_QUADRUPOLE);
+				}
+				else if (accession=="MS:1000281") //selected ion flow tube
+				{
+					instruments_[current_id_].setIonOptics(Instrument::SELECTED_ION_FLOW_TUBE);
+				}
+				else if (accession=="MS:1000286") //time lag focusing
+				{
+					instruments_[current_id_].setIonOptics(Instrument::TIME_LAG_FOCUSING);
+				}
+				else if (accession=="MS:1000300") //reflectron
+				{
+					instruments_[current_id_].setIonOptics(Instrument::REFLECTRON);
+				}
 				else if (accession=="MS:1000307") //einzel lens
 				{
-					//No member => metadata
-					instruments_[current_id_].setMetaValue("ion optics",String("einzel lens"));
+					instruments_[current_id_].setIonOptics(Instrument::EINZEL_LENS);
 				}
 				else if (accession=="MS:1000309") //first stability region
 				{
-					//No member => metadata
-					instruments_[current_id_].setMetaValue("ion optics",String("first stability region"));
+					instruments_[current_id_].setIonOptics(Instrument::FIRST_STABILITY_REGION);
 				}
 				else if (accession=="MS:1000310") //fringing field
 				{
-					//No member => metadata
-					instruments_[current_id_].setMetaValue("ion optics",String("fringing field"));
+					instruments_[current_id_].setIonOptics(Instrument::FRINGING_FIELD);
 				}
 				else if (accession=="MS:1000311") //kinetic energy analyzer
 				{
-					//No member => metadata
-					instruments_[current_id_].setMetaValue("ion optics",String("kinetic energy analyzer"));
+					instruments_[current_id_].setIonOptics(Instrument::KINETIC_ENERGY_ANALYZER);
 				}
 				else if (accession=="MS:1000320") //static field
 				{
-					//No member => metadata
-					instruments_[current_id_].setMetaValue("ion optics",String("static field"));
+					instruments_[current_id_].setIonOptics(Instrument::STATIC_FIELD);
 				}
+				
+
 				
 				//ion optics attribute
 				else if (accession=="MS:1000216") //field-free region
@@ -2258,6 +2246,65 @@ namespace OpenMS
 			{
 				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000032\" name=\"customization\" value=\"" << in.getCustomizations() << "\"/>\n";
 			}
+
+			//ion optics
+			if (in.getIonOptics()==Instrument::FIELD_FREE_REGION)
+			{
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000216\" name=\"field-free region\"/>\n";
+			}
+			else if (in.getIonOptics()==Instrument::MAGNETIC_DEFLECTION)
+			{
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000221\" name=\"magnetic deflection\"/>\n";
+			}
+			else if (in.getIonOptics()==Instrument::DELAYED_EXTRACTION)
+			{
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000246\" name=\"delayed extraction\"/>\n";
+			}
+			else if (in.getIonOptics()==Instrument::COLLISION_QUADRUPOLE)
+			{
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000275\" name=\"collision quadrupole\"/>\n";
+			}
+			else if (in.getIonOptics()==Instrument::SELECTED_ION_FLOW_TUBE)
+			{
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000281\" name=\"selected ion flow tube\"/>\n";
+			}
+			else if (in.getIonOptics()==Instrument::TIME_LAG_FOCUSING)
+			{
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000286\" name=\"time lag focusing\"/>\n";
+			}
+			else if (in.getIonOptics()==Instrument::REFLECTRON)
+			{
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000300\" name=\"reflectron\"/>\n";
+			}
+			else if (in.getIonOptics()==Instrument::EINZEL_LENS)
+			{
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000307\" name=\"einzel lens\"/>\n";
+			}
+			else if (in.getIonOptics()==Instrument::ELECTRIC_FIELD_STRENGTH)
+			{
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000308\" name=\"electric field strength\"/>\n";
+			}
+			else if (in.getIonOptics()==Instrument::FIRST_STABILITY_REGION)
+			{
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000309\" name=\"first stability region\"/>\n";
+			}
+			else if (in.getIonOptics()==Instrument::FRINGING_FIELD)
+			{
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000310\" name=\"fringing field\"/>\n";
+			}
+			else if (in.getIonOptics()==Instrument::KINETIC_ENERGY_ANALYZER)
+			{
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000311\" name=\"kinetic energy analyzer\"/>\n";
+			}
+			else if (in.getIonOptics()==Instrument::SPACE_CHARGE_EFFECT)
+			{
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000319\" name=\"space charge effect\"/>\n";
+			}
+			else if (in.getIonOptics()==Instrument::STATIC_FIELD)
+			{
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000320\" name=\"static field\"/>\n";
+			}
+
 			writeUserParam_(os, in, 3);
 			UInt component_count = in.getIonSources().size() + in.getMassAnalyzers().size() + in.getIonDetectors().size();
 			os  << "			<componentList count=\"" << std::min((UInt)3,component_count) << "\">\n";
@@ -2873,7 +2920,7 @@ namespace OpenMS
 			for (UInt s=0; s<exp.size(); ++s)
 			{
 				const SpectrumType& spec = exp[s];
-				os	<< "			<spectrum id=\"sp_" << s << "\" nativeID=\"\" index=\"" << s << "\" defaultArrayLength=\"" << spec.size() << "\"";
+				os	<< "			<spectrum id=\"sp_" << s << "\" nativeID=\"" << spec.getNativeID() << "\" index=\"" << s << "\" defaultArrayLength=\"" << spec.size() << "\"";
 				if (spec.getSourceFile()!=SourceFile())
 				{
 					os << " sourceFileRef=\"sf_sp_" << s << "\"";

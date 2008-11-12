@@ -53,7 +53,9 @@ namespace OpenMS
 	*/
   class SpectrumSettings 
   {
+  	
     public:
+    
     	/**
     		@brief spectrum type
     		
@@ -97,6 +99,11 @@ namespace OpenMS
 			*/
       void setType(SpectrumType type);
 
+			/// returns the native identifier for the spectrum, used by the acquisition software.
+      const String& getNativeID() const;
+      /// sets the native identifier for the spectrum, used by the acquisition software.
+      void setNativeID(const String& native_id);
+
 			/// returns the free-text comment
       const String& getComment() const;
       /// sets the free-text comment
@@ -138,7 +145,9 @@ namespace OpenMS
 	    void setPeptideIdentifications(const std::vector<PeptideIdentification>& identifications);	
 
     protected:
+    	
     	SpectrumType type_;
+    	String native_id_;
       String comment_;
       InstrumentSettings instrument_settings_;
       SourceFile source_file_;

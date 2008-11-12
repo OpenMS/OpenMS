@@ -29,6 +29,7 @@
 //QT
 #include <QtGui/QComboBox>
 #include <QtGui/QTextEdit>
+#include <QtGui/QLineEdit>
 
 //STL
 #include <iostream>
@@ -44,8 +45,9 @@ namespace OpenMS
 	{
 		addLabel_("Modify the settings of the spectrum.");	
 		addSeparator_();  
-		addComboBox_(spectrumsettings_type_, "Type of spectrum");
-		addTextEdit_(spectrumsettings_comment_, "Comment");
+		addComboBox_(type_, "Type of spectrum");
+		addLineEdit_(native_id_, "Native ID");
+		addTextEdit_(comment_, "Comment");
 			
 		finishAdding_();
 	}
@@ -54,21 +56,23 @@ namespace OpenMS
 	{
 		if(! isEditable())
 		{
-			fillComboBox_(spectrumsettings_type_,& temp_.NamesOfSpectrumType[temp_.getType()] , 1);
+			fillComboBox_(type_,& temp_.NamesOfSpectrumType[temp_.getType()] , 1);
 		}
 		else
 		{
-			fillComboBox_(spectrumsettings_type_, temp_.NamesOfSpectrumType , SpectrumSettings::SIZE_OF_SPECTRUMTYPE);
-			spectrumsettings_type_->setCurrentIndex(temp_.getType()); 
+			fillComboBox_(type_, temp_.NamesOfSpectrumType , SpectrumSettings::SIZE_OF_SPECTRUMTYPE);
+			type_->setCurrentIndex(temp_.getType()); 
 		}
 		
-		spectrumsettings_comment_->setText(temp_.getComment().c_str());
+		native_id_->setText(temp_.getNativeID().c_str());
+		comment_->setText(temp_.getComment().c_str());
 	}
 	
 	void SpectrumSettingsVisualizer::store()
 	{
-		ptr_->setType((SpectrumSettings::SpectrumType)spectrumsettings_type_->currentIndex());			
-		ptr_->setComment(spectrumsettings_comment_->toPlainText().toStdString());
+		ptr_->setType((SpectrumSettings::SpectrumType)type_->currentIndex());			
+		ptr_->setNativeID(native_id_->text());
+		ptr_->setComment(comment_->toPlainText());
 		
 		temp_=(*ptr_);
 	}
