@@ -64,7 +64,6 @@ using namespace std;
 	to be collected by the column and 'out_negative' is the file
 	of the predicted flowthrough peptides.
 	
-	@todo Reactivate TOPPtest after fixing issue below on MinGW (Niko, Chris)
 */
 
 // We do not want this class to show up in the docu:
