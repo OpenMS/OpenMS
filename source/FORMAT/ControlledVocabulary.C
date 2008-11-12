@@ -123,18 +123,52 @@ namespace OpenMS
 				}
 				else if (line_wo_spaces.hasPrefix("xref:value-type"))
 				{
-					// @todo replace the next line when downstream code is fixed (Andreas, Marc)
-					term.unparsed.push_back(line);
 					line_wo_spaces.remove('\\');
-          if (line_wo_spaces.hasPrefix("xref:value-type:xsd:string")) { term.xref_type = CVTerm::XSD_STRING; continue; }
-          if (line_wo_spaces.hasPrefix("xref:value-type:xsd:integer")) { term.xref_type = CVTerm::XSD_INTEGER; continue; }
-          if (line_wo_spaces.hasPrefix("xref:value-type:xsd:decimal")) { term.xref_type = CVTerm::XSD_DECIMAL; continue; }
-          if (line_wo_spaces.hasPrefix("xref:value-type:xsd:negativeInteger")) { term.xref_type = CVTerm::XSD_NEGATIVE_INTEGER; continue; }
-          if (line_wo_spaces.hasPrefix("xref:value-type:xsd:positiveInteger")) { term.xref_type = CVTerm::XSD_POSITIVE_INTEGER; continue; }
-          if (line_wo_spaces.hasPrefix("xref:value-type:xsd:nonNegativeInteger")) { term.xref_type = CVTerm::XSD_NON_NEGATIVE_INTEGER; continue; }
-          if (line_wo_spaces.hasPrefix("xref:value-type:xsd:nonPositiveInteger")) { term.xref_type = CVTerm::XSD_NON_POSITIVE_INTEGER; continue; }
-          if (line_wo_spaces.hasPrefix("xref:value-type:xsd:boolean")) { term.xref_type = CVTerm::XSD_BOOLEAN; continue; }
-          if (line_wo_spaces.hasPrefix("xref:value-type:xsd:date"))  { term.xref_type = CVTerm::XSD_DATE; continue; }
+          if (line_wo_spaces.hasPrefix("xref:value-type:xsd:string")) 
+					{ 
+						term.xref_type = CVTerm::XSD_STRING; 
+						continue; 
+					}
+          if (line_wo_spaces.hasPrefix("xref:value-type:xsd:integer") || line_wo_spaces.hasPrefix("xref:value-type:xsd:int")) 
+					{ 
+						term.xref_type = CVTerm::XSD_INTEGER; 
+						continue; 
+					}
+          if (line_wo_spaces.hasPrefix("xref:value-type:xsd:decimal") || line_wo_spaces.hasPrefix("xref:value-type:xsd:float")) 
+					{ 
+						term.xref_type = CVTerm::XSD_DECIMAL; 
+						continue; 
+					}
+          if (line_wo_spaces.hasPrefix("xref:value-type:xsd:negativeInteger")) 
+					{ 
+						term.xref_type = CVTerm::XSD_NEGATIVE_INTEGER; 
+						continue; 
+					}
+          if (line_wo_spaces.hasPrefix("xref:value-type:xsd:positiveInteger")) 
+					{ 
+						term.xref_type = CVTerm::XSD_POSITIVE_INTEGER; 
+						continue; 
+					}
+          if (line_wo_spaces.hasPrefix("xref:value-type:xsd:nonNegativeInteger")) 
+					{ 
+						term.xref_type = CVTerm::XSD_NON_NEGATIVE_INTEGER; 
+						continue; 
+					}
+          if (line_wo_spaces.hasPrefix("xref:value-type:xsd:nonPositiveInteger")) 
+					{ 
+						term.xref_type = CVTerm::XSD_NON_POSITIVE_INTEGER; 
+						continue; 
+					}
+          if (line_wo_spaces.hasPrefix("xref:value-type:xsd:boolean") || line_wo_spaces.hasPrefix("xref:value-type:xsd:bool")) 
+					{ 
+						term.xref_type = CVTerm::XSD_BOOLEAN; 
+						continue; 
+					}
+          if (line_wo_spaces.hasPrefix("xref:value-type:xsd:date"))  
+					{ 
+						term.xref_type = CVTerm::XSD_DATE; 
+						continue; 
+					}
 					cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << endl;
 				}
 				else if (line!="")

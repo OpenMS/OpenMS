@@ -34,29 +34,8 @@ namespace OpenMS
   namespace Internal
   {
 		MzMLValidator::MzMLValidator(const CVMappings& mapping, const ControlledVocabulary& cv)
-			: SemanticValidator(mapping, cv),
-				cv_values_()
+			: SemanticValidator(mapping, cv)
 		{
-			//find and store those cv terms, that can have a value
-			// @todo Replace this code by general types of CVTerms (Andreas, Marc)
-  		for (Map<String,ControlledVocabulary::CVTerm>::const_iterator it=cv_.getTerms().begin(); it!=cv_.getTerms().end(); ++it)
-  		{
-				for (UInt i=0; i<it->second.unparsed.size(); ++i)
-				{
-					if (it->second.unparsed[i].hasSubstring("value-type:xsd\\:int"))
-					{
-						cv_values_[it->first] = DataValue::INT_VALUE;
-					}
-					else if (it->second.unparsed[i].hasSubstring("value-type:xsd\\:float"))
-					{
-						cv_values_[it->first] = DataValue::DOUBLE_VALUE;
-					}
-					else if (it->second.unparsed[i].hasSubstring("value-type:xsd\\:string"))
-					{
-						cv_values_[it->first] = DataValue::STRING_VALUE;
-					}
-				}
-  		}
 		}
 		
 		MzMLValidator::~MzMLValidator()
@@ -83,7 +62,9 @@ namespace OpenMS
 	    	const std::vector<CVTerm>& terms = param_groups_[attributeAsString_(attributes,"ref")];
 				for (UInt i=0; i< terms.size(); ++i)
 				{
-					handleTerm_(path, terms[i]);
+					String value;
+					bool has_value_attribute = optionalAttributeAsString_(value, attributes, value_att_.c_str());
+					handleTerm_(path, terms[i], has_value_attribute, value);
 				}
 	  	}
 	    else if (tag==cv_tag_)
@@ -105,53 +86,16 @@ namespace OpenMS
 					warnings_.push_back(String("Obsolete CV term: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
 				}
 				
-				//values used in wrong places and wrong value types
-				if (parsed_term.value!="")
-				{
-					if (!cv_values_.has(parsed_term.accession))
-					{
-						errors_.push_back(String("CV term should not have a value: '") + parsed_term.accession + " - " + parsed_term.name + "' (value: '" + parsed_term.value + "') at element '" + getPath_(1) + "'");
-	    		}
-					else
-					{
-						if (cv_values_[parsed_term.accession]==DataValue::INT_VALUE)
-						{
-							try
-							{
-								parsed_term.value.toInt();
-							}
-							catch(Exception::ConversionError&)
-							{
-								errors_.push_back(String("CV term should have an integer value: '") + parsed_term.accession + " - " + parsed_term.name + "' (value: '" + parsed_term.value + "') at element '" + getPath_(1) + "'");
-							}
-						}
-						else if (cv_values_[parsed_term.accession]==DataValue::DOUBLE_VALUE)
-						{
-							try
-							{
-								parsed_term.value.toDouble();
-							}
-							catch(Exception::ConversionError&)
-							{
-								errors_.push_back(String("CV term should have a floating-point value: '") + parsed_term.accession + " - " + parsed_term.name + "' (value: '" + parsed_term.value + "') at element '" + getPath_(1) + "'");
-							}
-						}
-					}
-				}
-				//no value, although there should be a numerical value
-				else if (cv_values_.has(parsed_term.accession) && (cv_values_[parsed_term.accession]==DataValue::INT_VALUE || cv_values_[parsed_term.accession]==DataValue::DOUBLE_VALUE))
-				{
-					errors_.push_back(String("CV term should have a numerical value: '") + parsed_term.accession + " - " + parsed_term.name + "' (value: '" + parsed_term.value + "') at element '" + getPath_(1) + "'");
-    		}
-				
 				//actual handling of the term
 	    	if (parent_tag=="referenceableParamGroup")
 	    	{
 	    		param_groups_[current_id_].push_back(parsed_term);
 	    	}
 	    	else
-	    	{				
-					handleTerm_(path, parsed_term);
+	    	{	
+					String value;
+					bool has_value_attribute = optionalAttributeAsString_(value, attributes, value_att_.c_str());
+					handleTerm_(path, parsed_term, has_value_attribute, value);
 				}
 			}
 	  }

@@ -119,7 +119,7 @@ namespace OpenMS
 				virtual void getCVTerm_(const xercesc::Attributes& attributes, CVTerm& parsed_term);
 				
 				/// Handling of the term
-				virtual void handleTerm_(const String& path, const CVTerm& parsed_term); 
+				virtual void handleTerm_(const String& path, const CVTerm& parsed_term, bool has_value_attribute, const String& value); 
 
 				/// Reference to the mappings
 				const CVMappings& mapping_;
