@@ -68,7 +68,7 @@ class TOPPFileMerger
  protected:
 	void registerOptionsAndFlags_()
 	{
-		registerInputFile_("file_list","<file>","","a text file containing one input file name per line");		
+		registerStringList_("file_list","<files>",StringList(),"Strings seperated by whitespace representing input files");		
 		registerStringOption_("in_type","<type>","","input file type (default: determined from file extension or content)\n", false);
 		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf"));
 		registerOutputFile_("out","<file>","","output file ");
@@ -76,8 +76,8 @@ class TOPPFileMerger
 		
 		registerFlag_("rt_auto","Assign retention times automatically (integers starting at 1)");
 		registerFlag_("rt_file","Take retention times from file_list.\n"
-														"If this flag is activated, the file list has to contain a filename and a\n"
-														"retention time separated by tab in each line.");
+														"If this flag is activated, the file list has to contain filenames followed by a \n"
+														"retention time.");
 		registerFlag_("rt_from_filename", "If this flag is set FileMerger tries to guess the rt of the spectrum.\n"
 																			"This option is useful for merging DTA file, which should contain the string\n"
 																			"'rt' directly followed by a floating point number:\n"
@@ -95,9 +95,8 @@ class TOPPFileMerger
 		//-------------------------------------------------------------
 		// parameter handling
 		//-------------------------------------------------------------
-	
 		//file list
-		String file_list_name = getStringOption_("file_list");
+		StringList file_list_name = getStringList_("file_list");
 
 		//file type
 		FileHandler fh;
@@ -113,55 +112,35 @@ class TOPPFileMerger
 		bool rt_from_filename = getFlag_("rt_from_filename");
 			
 		//-------------------------------------------------------------
-		// loading input
-		//-------------------------------------------------------------
-		TextFile file_list(file_list_name);
-			
-		//-------------------------------------------------------------
 		// calculations
 		//-------------------------------------------------------------
 		
 		float rt_final,rt_file,rt_auto=0;
-		String line, filename;
-		vector<String> tmp;
+		String filename;
 		MSExperiment<Peak1D> out, in;
-		out.reserve(file_list.size());
+		out.reserve(file_list_name.size());
 		bool first_file = true;
 		
-		for (TextFile::Iterator it = file_list.begin(); it!=file_list.end(); ++it)
+		for(UInt i = 0; i < file_list_name.size();++i)
 		{
-			//parsing of file list
+			filename = file_list_name[i];
 			rt_file = -1;
-			line = *it;
-			line.trim();
-			if (line == "")
+			if(i+1 < file_list_name.size())
 			{
-				continue;
-			}
-			
-			//tab separator
-			if (line.find("	")!=string::npos)
-			{
-				line.split('	',tmp);
-				filename = tmp[0];
-				if (tmp[1].size()!=0)
+				String retention_time = file_list_name[i+1];
+				try 
 				{
-					rt_file = tmp[1].toFloat();
+					++i;
+					rt_file = retention_time.toFloat();
 				}
-			}
-			// space separator
-			else if (line.find(" ")!=string::npos)
-			{
-				line.split(' ',tmp);
-				filename = tmp[0];
-				if (tmp[1].size()!=0)
+				catch (Exception::ConversionError)
 				{
-					rt_file = tmp[1].toFloat();
+					if(rt_from_file)
+					{
+						writeLog_(String("Warning: cannot convert the found paramter in a retention time: '" + retention_time + "'."));
+					}
+					--i;
 				}
-			}
-			else
-			{
-				filename = line;
 			}
 			
 			//load file 
