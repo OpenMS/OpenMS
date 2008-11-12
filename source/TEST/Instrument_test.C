@@ -95,8 +95,8 @@ RESULT
 
 CHECK(void setIonOptics(IonOpticsType ion_optics))
 	Instrument tmp;
-	tmp.setIonOptics(Instrument::FIELD_FREE_REGION);
-  TEST_EQUAL(tmp.getIonOptics(),Instrument::FIELD_FREE_REGION);
+	tmp.setIonOptics(Instrument::REFLECTRON);
+  TEST_EQUAL(tmp.getIonOptics(),Instrument::REFLECTRON);
 RESULT
 
 CHECK(void setCustomizations(const String& customizations))
@@ -200,7 +200,7 @@ CHECK(Instrument(const Instrument& source))
   tmp.setVendor("Vendor");
   tmp.setMetaValue("label",String("label"));
   tmp.getSoftware().setName("sn");
-	tmp.setIonOptics(Instrument::FIELD_FREE_REGION);
+	tmp.setIonOptics(Instrument::REFLECTRON);
   
   Instrument tmp2(tmp);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
@@ -212,7 +212,7 @@ CHECK(Instrument(const Instrument& source))
   TEST_EQUAL(tmp2.getMassAnalyzers().size(),1);
   TEST_REAL_EQUAL(tmp2.getMassAnalyzers()[0].getScanTime(),47.11);
   TEST_EQUAL(tmp2.getSoftware().getName(),"sn");
-  TEST_EQUAL(tmp2.getIonOptics(),Instrument::FIELD_FREE_REGION);
+  TEST_EQUAL(tmp2.getIonOptics(),Instrument::REFLECTRON);
 RESULT
 
 CHECK(Instrument& operator= (const Instrument& source))
@@ -226,7 +226,7 @@ CHECK(Instrument& operator= (const Instrument& source))
   tmp.setVendor("Vendor");
   tmp.setMetaValue("label",String("label"));
   tmp.getSoftware().setName("sn");
-	tmp.setIonOptics(Instrument::FIELD_FREE_REGION);
+	tmp.setIonOptics(Instrument::REFLECTRON);
 		
   Instrument tmp2;
   tmp2 = tmp;
@@ -239,7 +239,7 @@ CHECK(Instrument& operator= (const Instrument& source))
   TEST_EQUAL(tmp2.getMassAnalyzers().size(),1);
   TEST_REAL_EQUAL(tmp2.getMassAnalyzers()[0].getScanTime(),47.11);
   TEST_EQUAL(tmp2.getSoftware().getName(),"sn");
-  TEST_EQUAL(tmp2.getIonOptics(),Instrument::FIELD_FREE_REGION);
+  TEST_EQUAL(tmp2.getIonOptics(),Instrument::REFLECTRON);
 
   tmp2 = Instrument();
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
@@ -286,7 +286,7 @@ CHECK(bool operator== (const Instrument& rhs) const)
   TEST_EQUAL(edit==empty,false);
   
   edit = empty;
-	edit.setIonOptics(Instrument::FIELD_FREE_REGION);
+	edit.setIonOptics(Instrument::REFLECTRON);
   TEST_EQUAL(edit==empty,false);
   
   edit = empty;
@@ -327,7 +327,7 @@ CHECK(bool operator!= (const Instrument& rhs) const)
   TEST_EQUAL(edit!=empty,true);
 
   edit = empty;
-	edit.setIonOptics(Instrument::FIELD_FREE_REGION);
+	edit.setIonOptics(Instrument::REFLECTRON);
   TEST_EQUAL(edit!=empty,true)
   
   edit = empty;

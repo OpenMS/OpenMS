@@ -841,24 +841,38 @@ CHECK( bool isSemanticallyValid(const String& filename, StringList& errors, Stri
 	NEW_TMP_FILE(tmp_filename);
   file.store(tmp_filename,e);
   TEST_EQUAL(file.isSemanticallyValid(tmp_filename, errors, warnings),true);
-
+	TEST_EQUAL(errors.size(),0)
+	for (UInt i=0; i< errors.size(); ++i)
+	{
+		cout << "Error - " << errors[i] << endl;
+	}
+	TEST_EQUAL(warnings.size(),0)
+	
 	//written filled file
 	NEW_TMP_FILE(tmp_filename);
 	file.load("data/MzMLFile_1.mzML",e);
   file.store(tmp_filename,e);
-  TEST_EQUAL(file.isSemanticallyValid(tmp_filename, errors, warnings),false); //TODO
-	
+  TEST_EQUAL(file.isSemanticallyValid(tmp_filename, errors, warnings),true);
+	TEST_EQUAL(errors.size(),0)
+	for (UInt i=0; i< errors.size(); ++i)
+	{
+		cout << "Error - " << errors[i] << endl;
+	}
+	TEST_EQUAL(warnings.size(),0)
+
 	//valid file
-	TEST_EQUAL(file.isSemanticallyValid("data/MzMLFile_1.mzML", errors, warnings),false) //TODO
-	TEST_EQUAL(errors.size(),4)
+	TEST_EQUAL(file.isSemanticallyValid("data/MzMLFile_1.mzML", errors, warnings),true)
+	TEST_EQUAL(errors.size(),0)
+	TEST_EQUAL(warnings.size(),2)
+
+	//indexed MzML
+	TEST_EQUAL(file.isSemanticallyValid("data/MzMLFile_4_indexed.mzML", errors, warnings),true)
+	TEST_EQUAL(errors.size(),0)
 	TEST_EQUAL(warnings.size(),2)
 	
 	//invalid file
 	TEST_EQUAL(file.isSemanticallyValid("data/MzMLFile_3_invalid.mzML", errors, warnings),false)
 	
-	//indexed MzML
-	TEST_EQUAL(file.isSemanticallyValid("data/MzMLFile_4_indexed.mzML", errors, warnings),false) //TODO
-
 RESULT
 
 /////////////////////////////////////////////////////////////

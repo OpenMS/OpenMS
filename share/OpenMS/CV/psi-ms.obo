@@ -156,7 +156,7 @@ relationship: part_of MS:1000441 ! scan
 id: MS:1000021
 name: reflectron state
 def: "Status of the reflectron, turned on or off." [PSI:MS]
-is_a: MS:1000480 ! mass analyzer attribute
+relationship: part_of MS:1000451 ! mass analyzer
 
 [Term]
 id: MS:1000022
@@ -1611,7 +1611,7 @@ id: MS:1000245
 name: charge stripping
 def: "The reaction of a positive ion with an atom or molecule that results in the removal of one or more electrons from the ion." [PSI:MS]
 synonym: "CS" EXACT []
-relationship: part_of MS:1000456 ! precursor activation
+is_a: MS:1000510 ! precursor activation attribute
 
 [Term]
 id: MS:1000246
@@ -1619,7 +1619,6 @@ name: delayed extraction
 def: "The application of the accelerating voltage pulse after a time delay in desorption ionization from a surface. The extraction delay can produce energy focusing in a time-of-flight mass spectrometer." [PSI:MS]
 synonym: "DE" EXACT []
 is_a: MS:1000597 ! ion optics type
-relationship: part_of MS:1000456 ! precursor activation
 
 [Term]
 id: MS:1000247
@@ -3294,7 +3293,7 @@ id: MS:1000511
 name: ms level
 def: "Stages of ms achieved in a multi stage mass spectrometry experiment." [PSI:MS]
 xref: value-type:xsd\:int"The allowed value-type for this CV term."
-is_a: MS:1000503 ! scan attribute
+is_a: MS:1000499 ! spectrum attribute
 
 [Term]
 id: MS:1000512
@@ -4727,7 +4726,7 @@ def: "Thermo Finnigan SRF file format." [PSI:MS]
 is_a: MS:1000560 ! source file type
 
 [Term]
-id: MS:9999900
+id: MS:1000743
 name: mass-to-charge ratio
 def: "Mass-to-charge ratio of the ion selected for fragmentation" [PSI:MS]
 is_a: MS:1000455 ! ion selection attribute
@@ -4735,19 +4734,19 @@ xref: value-type:xsd\:float "The allowed value-type for this CV term."
 relationship: has_units MS:1000040 ! m/z
 
 [Term]
-id: MS:9999901
+id: MS:1000744
 name: retention time alignment
 def: "The correction of the spectrum scan times, as used e.g. in label-free proteomics." [PSI:MS]
 is_a: MS:1000543 ! data processing action
 
 [Term]
-id: MS:9999902
+id: MS:1000745
 name: high intensity data point removal
 def: "The removal of very high intensity data points." [PSI:MS]
 is_a: MS:1000543 ! data processing action
 
 [Term]
-id: MS:9999903
+id: MS:1000746
 name: completion time
 def: "The time that a data processing action was finished." [PSI:MS]
 is_a: MS:1000630 ! data processing parameter
@@ -4761,3 +4760,4 @@ name: has_units
 id: part_of
 name: part_of
 is_transitive: true
+

@@ -104,9 +104,9 @@ class TOPPCVInspector
 	
 		// load cv terms
 		ControlledVocabulary cv;
-		cv.loadFromOBO("PSI", OBO_file);
+		cv.loadFromOBO("PSI-MS", OBO_file);
 //		cv.loadFromOBO("PATO", "quality.obo");
-		cv.loadFromOBO("UO", "unit.obo");
+//		cv.loadFromOBO("UO", "unit.obo");
 //		cv.loadFromOBO("brenda", "brenda.obo");
 //		cv.loadFromOBO("GO", "goslim_goa.obo");
 		Map<String, ControlledVocabulary::CVTerm> terms = cv.getTerms();

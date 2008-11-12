@@ -63,7 +63,6 @@ namespace OpenMS
 	    enum IonOpticsType
 	    {
 	    	UNKNOWN, 									///< unknown
-				FIELD_FREE_REGION, 				///< field-free region
 				MAGNETIC_DEFLECTION, 			///< magnetic deflection
 				DELAYED_EXTRACTION, 			///< delayed extraction
 				COLLISION_QUADRUPOLE, 		///< collision quadrupole

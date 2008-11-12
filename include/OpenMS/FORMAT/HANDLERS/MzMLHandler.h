@@ -49,7 +49,6 @@
 // - InstrumentConfiguration of Acquisiton and Scan?
 //
 //TODO (WHEN FIXED):
-// - spectrum "spectrum type" vs. scan "scanning method"?
 // - DataProcessing of "spectrum", "chromatogram" and "binaryDataArray"
 // - acquisitionSettingsList cannot be referenced => where do we put "targetList" + "target"?
 //
@@ -104,26 +103,6 @@ namespace OpenMS
 					skip_spectrum_(false)
 	  	{
 	  		cv_.loadFromOBO("psi-ms", File::find("CV/psi-ms.obo"));
-	  		
-	  		//find and store those cv terms, that can have a value
-	  		for (Map<String,ControlledVocabulary::CVTerm>::const_iterator it=cv_.getTerms().begin(); it!=cv_.getTerms().end(); ++it)
-	  		{
-  				for (UInt i=0; i<it->second.unparsed.size(); ++i)
-  				{
-  					if (it->second.unparsed[i].hasSubstring("value-type:xsd\\:int"))
-  					{
-  						cv_values_[it->first] = DataValue::INT_VALUE;
-  					}
-  					else if (it->second.unparsed[i].hasSubstring("value-type:xsd\\:float"))
-  					{
-  						cv_values_[it->first] = DataValue::DOUBLE_VALUE;
-  					}
-  					else if (it->second.unparsed[i].hasSubstring("value-type:xsd\\:string"))
-  					{
-  						cv_values_[it->first] = DataValue::STRING_VALUE;
-  					}
-  				}
-	  		}
 			}
 
       /// Constructor for a read-only handler
@@ -232,9 +211,6 @@ namespace OpenMS
 			
 			///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
 			ControlledVocabulary cv_;
-			
-			///CV terms which can have a value (term => value type)
-			Map<String,DataValue::DataType> cv_values_;
 			
 			/// Fills the current spectrum with peaks and meta data
 			void fillData_();			
@@ -811,40 +787,53 @@ namespace OpenMS
 				//values used in wrong places and wrong value types
 				if (value!="")
 				{
-					if (!cv_values_.has(accession))
+					if (term.xref_type==ControlledVocabulary::CVTerm::NONE)
 					{
-						warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should not have a value. The value is '" + value + "'.");
+						warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
 					}
 					else
 					{
-						if (cv_values_[accession]==DataValue::INT_VALUE)
+						switch(term.xref_type)
 						{
-							try
-							{
-								value.toInt();
-							}
-							catch(Exception::ConversionError&)
-							{
-								warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have an integer value. The value is '" + value + "'.");
-								return;
-							}
-						}
-						else if (cv_values_[accession]==DataValue::DOUBLE_VALUE)
-						{
-							try
-							{
-								value.toDouble();
-							}
-							catch(Exception::ConversionError&)
-							{
-								warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have a floating-point value. The value is '" + value + "'.");
-								return;
-							}
+							//string value can be anything
+							case ControlledVocabulary::CVTerm::XSD_STRING:
+								break;
+							//int value => try casting
+							case ControlledVocabulary::CVTerm::XSD_INTEGER:
+							case ControlledVocabulary::CVTerm::XSD_NEGATIVE_INTEGER:
+							case ControlledVocabulary::CVTerm::XSD_POSITIVE_INTEGER:
+							case ControlledVocabulary::CVTerm::XSD_NON_NEGATIVE_INTEGER:
+							case ControlledVocabulary::CVTerm::XSD_NON_POSITIVE_INTEGER:
+								try
+								{
+									value.toInt();
+								}
+								catch(Exception::ConversionError&)
+								{
+									warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have an integer value. The value is '" + value + "'.");
+									return;
+								}
+								break;
+							//double value => try casting
+							case ControlledVocabulary::CVTerm::XSD_DECIMAL:
+								try
+								{
+									value.toDouble();
+								}
+								catch(Exception::ConversionError&)
+								{
+									warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have a floating-point value. The value is '" + value + "'.");
+									return;
+								}
+								break;
+							default:
+								warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' has the unknown value type '" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type) + "'.");
+							break;
 						}
 					}
 				}
 				//no value, although there should be a numerical value
-				else if (cv_values_.has(accession) && (cv_values_[accession]==DataValue::INT_VALUE || cv_values_[accession]==DataValue::DOUBLE_VALUE))
+				else if (term.xref_type!=ControlledVocabulary::CVTerm::NONE && term.xref_type!=ControlledVocabulary::CVTerm::XSD_STRING)
 				{
 					warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
 					return;
@@ -927,16 +916,6 @@ namespace OpenMS
 				{
 					//Currently ignored
 				}
-				else if (accession=="MS:1000511") //ms level
-				{
-					//This does not belong here, only for compatibility with messed up mzML example files
-					spec_.setMSLevel(value.toInt());
-					
-					if (options_.hasMSLevels() && !options_.containsMSLevel(spec_.getMSLevel()))
-					{
-						skip_spectrum_ = true;
-					}
-				}
 				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- spectrumDescription ----------------------------
@@ -953,6 +932,15 @@ namespace OpenMS
 				else if (accession=="MS:1000527" || accession=="MS:1000528" || accession=="MS:1000504" || accession=="MS:1000505" || accession=="MS:1000285" )
 				{
 					//currently ignored
+				}
+				else if (accession=="MS:1000511") //ms level
+				{
+					spec_.setMSLevel(value.toInt());
+					
+					if (options_.hasMSLevels() && !options_.containsMSLevel(spec_.getMSLevel()))
+					{
+						skip_spectrum_ = true;
+					}
 				}
 				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
@@ -983,15 +971,6 @@ namespace OpenMS
 				{
 					//No member => meta data
 					spec_.setMetaValue("isolation width",value);
-				}
-				else if (accession=="MS:1000511") //ms level
-				{
-					spec_.setMSLevel(value.toInt());
-					
-					if (options_.hasMSLevels() && !options_.containsMSLevel(spec_.getMSLevel()))
-					{
-						skip_spectrum_ = true;
-					}
 				}
 				else if (accession=="MS:1000512")//filter string
 				{
@@ -1069,7 +1048,7 @@ namespace OpenMS
 			//------------------------- selectedIon ----------------------------
 			else if(parent_tag=="selectedIon")
 			{
-				if (accession=="MS:1000040") //m/z
+				if (accession=="MS:1000743") //mass-to-charge ratio
 				{
 					spec_.getPrecursorPeak().getPosition()[0] = value.toDouble();
 				}
@@ -1314,11 +1293,6 @@ namespace OpenMS
 					//No member => metadata
 					instruments_[current_id_].setMetaValue("transmission",value);
 				}
-				else if (accession=="MS:1000304") //accelerating voltage
-				{
-					//No member => metadata
-					instruments_[current_id_].setMetaValue("accelerating voltage",value);
-				}
 				//ion optics type
 				else if (accession=="MS:1000221") //magnetic deflection
 				{
@@ -1360,10 +1334,12 @@ namespace OpenMS
 				{
 					instruments_[current_id_].setIonOptics(Instrument::STATIC_FIELD);
 				}
-				
-
-				
 				//ion optics attribute
+				else if (accession=="MS:1000304") //accelerating voltage
+				{
+					//No member => metadata
+					instruments_[current_id_].setMetaValue("accelerating voltage",value);
+				}
 				else if (accession=="MS:1000216") //field-free region
 				{
 					//No member => metadata
@@ -1648,11 +1624,6 @@ namespace OpenMS
 				{
 					//No member => meta data
 					instruments_[current_id_].getIonSources().back().setMetaValue("source potential",value);
-				}
-				else if (accession=="MS:1000552") //maldi spot identifier
-				{
-					//No member => meta data
-					instruments_[current_id_].getIonSources().back().setMetaValue("maldi spot identifier",value);
 				}
 				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
@@ -2192,11 +2163,26 @@ namespace OpenMS
 			{
 				const ContactPerson& cp = exp.getContacts()[i];
 				os  << "		<contact>\n";
-				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000586\" name=\"contact name\" value=\"" << cp.getLastName() << ", " << cp.getFirstName() << "\"/>\n";
-				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000587\" name=\"contact address\" value=\"" << cp.getAddress() << "\"/>\n";
-				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000588\" name=\"contact URL\" value=\"" << cp.getURL() << "\"/>\n";
-				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000589\" name=\"contact email\" value=\"" << cp.getEmail() << "\"/>\n";
-				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000590\" name=\"contact organization\" value=\"" << cp.getInstitution() << "\"/>\n";
+				if (cp.getLastName()!="" || cp.getFirstName()!="")
+				{
+					os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000586\" name=\"contact name\" value=\"" << cp.getLastName() << ", " << cp.getFirstName() << "\"/>\n";
+				}
+				if (cp.getAddress()!="")
+				{
+					os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000587\" name=\"contact address\" value=\"" << cp.getAddress() << "\"/>\n";
+				}
+				if (cp.getURL()!="")
+				{
+					os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000588\" name=\"contact URL\" value=\"" << cp.getURL() << "\"/>\n";
+				}
+				if (cp.getEmail()!="")
+				{
+					os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000589\" name=\"contact email\" value=\"" << cp.getEmail() << "\"/>\n";
+				}
+				if (cp.getInstitution()!="")
+				{
+					os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000590\" name=\"contact organization\" value=\"" << cp.getInstitution() << "\"/>\n";
+				}
 				if (cp.getContactInfo()!="")
 				{
 					os  << "			<userParam name=\"contact_info\" type=\"xsd:string\" value=\"" << cp.getContactInfo() << "\"/>\n";
@@ -2211,7 +2197,10 @@ namespace OpenMS
 			const Sample& sa = exp.getSample();
 			os  << "	<sampleList count=\"1\">\n";
 			os  << "		<sample id=\"sa_0\" name=\"" << sa.getName() << "\">\n";
-			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000001\" name=\"sample number\" value=\"" << sa.getNumber() << "\"/>\n";
+			if (sa.getNumber()!="")
+			{
+				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000001\" name=\"sample number\" value=\"" << sa.getNumber() << "\"/>\n";
+			}
 			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000004\" name=\"sample mass\" value=\"" << sa.getMass() << "\"/>\n";
 			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000005\" name=\"sample volume\" value=\"" << sa.getVolume() << "\"/>\n";
 			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000006\" name=\"sample concentration\" value=\"" << sa.getConcentration() << "\"/>\n";
@@ -2248,11 +2237,7 @@ namespace OpenMS
 			}
 
 			//ion optics
-			if (in.getIonOptics()==Instrument::FIELD_FREE_REGION)
-			{
-				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000216\" name=\"field-free region\"/>\n";
-			}
-			else if (in.getIonOptics()==Instrument::MAGNETIC_DEFLECTION)
+			if (in.getIonOptics()==Instrument::MAGNETIC_DEFLECTION)
 			{
 				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000221\" name=\"magnetic deflection\"/>\n";
 			}
@@ -2964,6 +2949,10 @@ namespace OpenMS
 				{
 					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000128\" name=\"profile mass spectrum\"/>\n";
 				}
+				if (spec.getMSLevel()!=0)
+				{
+					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000511\" name=\"ms level\" value=\"" << spec.getMSLevel() << "\"/>\n";	
+				}
 				//userParam: no MetaInfoInterface for spectrumDescription!
 				//--------------------------------------------------------------------------------------------
 				//acquisition list
@@ -3012,7 +3001,7 @@ namespace OpenMS
 					//--------------------------------------------------------------------------------------------
 					os	<< "							<selectedIonList count=\"1\">\n";
 					os	<< "								<selectedIon>\n";
-					os  << "									<cvParam cvRef=\"MS\" accession=\"MS:1000040\" name=\"m/z\" value=\"" << spec.getPrecursorPeak().getMZ() << "\"/>\n";
+					os  << "									<cvParam cvRef=\"MS\" accession=\"MS:1000743\" name=\"mass-to-charge ratio\" value=\"" << spec.getPrecursorPeak().getMZ() << "\"/>\n";
 					os  << "									<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << spec.getPrecursorPeak().getCharge() << "\"/>\n";
 					os  << "									<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"intensity\" value=\"" << spec.getPrecursorPeak().getIntensity() << "\"/>\n";
 					for (UInt j=0; j<spec.getPrecursorPeak().getPossibleChargeStates().size(); ++j)
@@ -3091,10 +3080,6 @@ namespace OpenMS
 				//--------------------------------------------------------------------------------------------
 				os	<< "					<scan>\n";
 				os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan time\" value=\"" << spec.getRT() << "\"/>\n";
-				if (spec.getMSLevel()!=0)
-				{
-					os << "						<cvParam cvRef=\"MS\" accession=\"MS:1000511\" name=\"ms level\" value=\"" << spec.getMSLevel() << "\"/>\n";	
-				}
 				if (spec.getInstrumentSettings().getPolarity()==IonSource::NEGATIVE)
 				{
 					os << "						<cvParam cvRef=\"MS\" accession=\"MS:1000129\" name=\"negative scan\"/>\n";

@@ -58,14 +58,10 @@
   
   <referenceableParamGroupList count="2">
     <referenceableParamGroup id="CommonMS1SpectrumParams">
-    	<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
       <cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value=""/>
-      <cvParam cvRef="MS" accession="MS:1000498" name="full scan" value=""/>
     </referenceableParamGroup>
     <referenceableParamGroup id="CommonMS2SpectrumParams">
-    	<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2"/>
       <cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value=""/>
-      <cvParam cvRef="MS" accession="MS:1000498" name="full scan" value=""/>
     </referenceableParamGroup>
     <referenceableParamGroup id="ErrorGroup">
     	<cvParam cvRef="MS" accession="MS:1000127" name="centroid mass spectrum" value=""/>
@@ -193,6 +189,7 @@
           <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="445.347"/>
           <cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="120053"/>
           <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
+    			<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
           <userParam name="sdname" value="spectrumdescription1"/>
           <acquisitionList count="2">
           	<cvParam cvRef="MS" accession="MS:1000573" name="median of spectra"/>
@@ -248,6 +245,7 @@
           <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="456.347"/>
           <cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="23433"/>
           <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
+    			<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2"/>
           <userParam name="sdname" value="spectrumdescription2"/>
           <precursorList count="1">
             <precursor spectrumRef="S0" sourceFileRef="sf_pr_0" externalNativeID="ENI1" externalSpectrumID="ESI1">
@@ -256,7 +254,7 @@
             	</isolationWindow>
               <selectedIonList count="1">
                 <selectedIon>
-                  <cvParam cvRef="MS" accession="MS:1000040" name="m/z" value="5.55"/>
+                  <cvParam cvRef="MS" accession="MS:1000743" name="mass-to-charge ratio" value="5.55"/>
                   <cvParam cvRef="MS" accession="MS:1000042" name="intensity" value="120053"/>
                   <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
                   <cvParam cvRef="MS" accession="MS:1000633" name="charge state" value="1"/>
@@ -339,6 +337,7 @@
           <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="445.347"/>
           <cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="120053"/>
           <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
+    			<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
           <userParam name="sdname" value="spectrumdescription3"/>
           <acquisitionList count="2">
           	<cvParam cvRef="MS" accession="MS:1000573" name="median of spectra"/>
@@ -385,10 +384,11 @@
         <userParam name="name" value="spectrum4"/>
         <spectrumDescription>
           <cvParam cvRef="MS" accession="MS:1000128" name="profile mass spectrum" value=""/>
+        	<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
           <userParam name="sdname" value="spectrumdescription4"/>
         	<scan instrumentConfigurationRef="LCQDeca">
-        		<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
             <cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.4" unitCvRef="MS" unitAccession="MS:1000038" unitName="minute"/>
+      			<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value=""/>
             <scanWindowList count="1">
               <scanWindow>
                 <cvParam cvRef="MS" accession="MS:1000501" name="scan m/z lower limit" value="110"/>
