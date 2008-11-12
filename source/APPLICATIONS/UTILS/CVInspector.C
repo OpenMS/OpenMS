@@ -63,9 +63,10 @@ class TOPPCVInspector
 
 	void registerOptionsAndFlags_()
 	{
-		registerInputFile_("OBO_file","<file>","","Ontology file in OBO format where the CV terms are stored");
-		registerInputFile_("mapping_file","<file>","","Mapping file in CVMapping (XML) format, where the mappings are defined", false);
-		registerOutputFile_("html","<file>","","Writes an HTML version of the mapping file with annotated CV terms", false);
+		registerInputFile_("OBO_file", "<file>", "", "Ontology file in OBO format where the CV terms are stored");
+		registerInputFile_("mapping_file", "<file>", "", "Mapping file in CVMapping (XML) format, where the mappings are defined", false);
+		registerStringOption_("ignore_cv", "<list>", "UO,PATO,BTO", "A list of CV namespace which should be ignored, e.g. unit obo", false);
+		registerOutputFile_("html","<file>", "", "Writes an HTML version of the mapping file with annotated CV terms", false);
 	}
 	
 	void writeTermTree_(const String& accession, const ControlledVocabulary& cv, TextFile& file, UInt indent)
@@ -82,29 +83,14 @@ class TOPPCVInspector
 			{
 				tags.push_back("obsolete");
 			}
-			if (child_term.unparsed.size()!=0)
-			{
-				for (UInt i=0; i<child_term.unparsed.size(); ++i)
-				{
-					if (child_term.unparsed[i].hasSubstring("value-type:xsd\\:int"))
-					{
-						tags.push_back("value:int");
-					}
-					else if (child_term.unparsed[i].hasSubstring("value-type:xsd\\:float"))
-					{
-						tags.push_back("value:float");
-					}
-					else if (child_term.unparsed[i].hasSubstring("value-type:xsd\\:string"))
-					{
-						tags.push_back("value:string");
-					}
-				}
-			}
+
+			tags.push_back("value-type=" + ControlledVocabulary::CVTerm::getXRefTypeName(child_term.xref_type));
+			
 			if (tags.size()!=0)
 			{
 				String tags_string;
 				tags_string.implode(tags.begin(),tags.end(),", ");
-				subterm_line += String(" (") + tags_string + ")";
+				subterm_line += String("<FONT color=\"grey\"> (" + tags_string + ")</FONT>"); //String(" (") + tags_string + ")";
 			}
 			file.push_back(subterm_line + "<BR>");
 			writeTermTree_(child_term.id, cv, file, indent+1);
@@ -118,9 +104,9 @@ class TOPPCVInspector
 	
 		// load cv terms
 		ControlledVocabulary cv;
-		cv.loadFromOBO("PSI-MS", OBO_file);
+		cv.loadFromOBO("PSI", OBO_file);
 //		cv.loadFromOBO("PATO", "quality.obo");
-//		cv.loadFromOBO("UO", "unit.obo");
+		cv.loadFromOBO("UO", "unit.obo");
 //		cv.loadFromOBO("brenda", "brenda.obo");
 //		cv.loadFromOBO("GO", "goslim_goa.obo");
 		Map<String, ControlledVocabulary::CVTerm> terms = cv.getTerms();
@@ -236,31 +222,14 @@ class TOPPCVInspector
 						{
 							tags.push_back("obsolete");
 						}
-						if (term.unparsed.size()!=0)
-						{
-							// @todo change this to new CVTerm member and use correct xsd types (Andreas, Marc)
-							for (UInt i=0; i<term.unparsed.size(); ++i)
-							{
-								if (term.unparsed[i].hasSubstring("value-type:xsd\\:int"))
-								{
-									tags.push_back("value:int");
-								}
-								else if (term.unparsed[i].hasSubstring("value-type:xsd\\:float"))
-								{
-									tags.push_back("value:float");
-								}
-								else if (term.unparsed[i].hasSubstring("value-type:xsd\\:string"))
-								{
-									tags.push_back("value:string");
-								}
-							}
-						}
+
+						tags.push_back("value-type=" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type));
 					}
 					if (tags.size()!=0)
 					{
 						String tags_string;
 						tags_string.implode(tags.begin(),tags.end(),", ");
-						term_line += String(" (") + tags_string + ")";
+						term_line += String("<FONT color=\"grey\"> (" + tags_string + ")</FONT>");
 					}
 					file.push_back(term_line);
 					
@@ -288,8 +257,7 @@ class TOPPCVInspector
 								}
 								parser_string += "/&gt;\\n\";<BR>";
 								file.push_back(parser_string);
-							}
-							*/
+							}*/
 						}
 						else
 						{
@@ -309,6 +277,12 @@ class TOPPCVInspector
 		}
 
 		// iterator over all mapping rules and store the mentioned terms
+		StringList ignore_namespaces = StringList::create(getStringOption_("ignore_cv"));
+		set<String> ignore_cv_list;
+		for (StringList::const_iterator it = ignore_namespaces.begin(); it != ignore_namespaces.end(); ++it)
+		{
+			ignore_cv_list.insert(*it);
+		}
 		set<String> used_terms;
 		for (vector<CVMappings::CVMappingRule>::const_iterator it = mappings.getMappingRules().begin(); it != mappings.getMappingRules().end(); ++it)
 		{
@@ -325,7 +299,11 @@ class TOPPCVInspector
 				// check whether we need the whole tree, or just the term itself
 				if (tit->getAllowChildren())
 				{
-					cv.getAllChildTerms(allowed_terms, tit->getAccession());
+					// check whether we want to ignore this term
+					if (!(tit->getAccession().has(':') && ignore_cv_list.find(tit->getAccession().prefix(':')) != ignore_cv_list.end()))
+					{
+						cv.getAllChildTerms(allowed_terms, tit->getAccession());
+					}
 
 					// also add the term itself to the used_terms, because all the children are allowed
 					used_terms.insert(tit->getAccession());

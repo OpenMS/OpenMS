@@ -36,10 +36,11 @@ UTILS_EXECUTABLES=\
 	XMLValidator\
 	FFEval\
 	LabeledEval\
-	HistView\
 	SequenceCoverageCalculator\
 	RTEvaluation\
-	CVInspector
+	CVInspector\
+	HistView\
+	SemanticValidator
 
 all: $(UTILS_EXECUTABLES)
 
