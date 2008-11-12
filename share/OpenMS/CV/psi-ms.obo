@@ -283,12 +283,9 @@ is_obsolete: true
 id: MS:1000040
 name: m/z
 def: "Three-character symbol m/z is used to denote the quantity formed by dividing the mass of an ion in unified atomic mass units by its charge number (regardless of sign). The symbol is written in italicized lower case letters with no spaces. Note 1: The term mass-to-charge-ratio is deprecated. Mass-to-charge ratio has been used for the abscissa of a mass spectrum, although the quantity measured is not the quotient of the ion's mass to its electric charge. The three-character symbol m/z is recommended for the quantity that is the independent variable in a mass spectrum Note 2: The proposed unit thomson (Th) is deprecated." [PSI:MS]
-synonym: "mass-to-charge ratio" EXACT []
 synonym: "Th" EXACT []
 synonym: "thomson" EXACT []
-is_a: MS:1000455 ! ion selection attribute
 is_a: MS:1000460 ! unit
-xref: value-type:xsd\:float "The allowed value-type for this CV term."
 
 [Term]
 id: MS:1000041
@@ -2017,7 +2014,7 @@ id: MS:1000304
 name: accelerating voltage
 def: "The electrical potential used to impart kinetic energy to ions in a mass spectrometer." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
-is_a: MS:1000597 ! ion optics type
+is_a: MS:1000487 ! ion optics attribute
 relationship: has_units UO:0000217 ! electric potential difference
 
 [Term]
@@ -2043,6 +2040,7 @@ id: MS:1000308
 name: electric field strength
 def: "The magnitude of the force per unit charge at a given point in space." [PSI:MS]
 is_a: MS:1000487 ! ion optics attribute
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
 
 [Term]
 id: MS:1000309
@@ -3554,7 +3552,7 @@ is_a: MS:1000690 ! AB SCIEX software
 id: MS:1000552
 name: maldi spot identifier
 def: "Maldi Spot Identifier." [PSI:MS]
-is_a: MS:1000482 ! source attribute
+relationship: part_of MS:1000479 ! purgatory
 
 [Term]
 id: MS:1000553
@@ -3976,12 +3974,14 @@ id: MS:1000618
 name: highest wavelength value
 def: "Highest wavelength value observed in the uv/vis spectum." [PSI:MS]
 is_a: MS:1000499 ! spectrum attribute
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
 
 [Term]
 id: MS:1000619
 name: lowest wavelength value
 def: "Lowest wavelength value observed in the uv/vis spectrum." [PSI:MS]
 is_a: MS:1000499 ! spectrum attribute
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
 
 [Term]
 id: MS:1000620
@@ -4726,6 +4726,33 @@ name: Bioworks SRF file
 def: "Thermo Finnigan SRF file format." [PSI:MS]
 is_a: MS:1000560 ! source file type
 
+[Term]
+id: MS:9999900
+name: mass-to-charge ratio
+def: "Mass-to-charge ratio of the ion selected for fragmentation" [PSI:MS]
+is_a: MS:1000455 ! ion selection attribute
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+relationship: has_units MS:1000040 ! m/z
+
+[Term]
+id: MS:9999901
+name: retention time alignment
+def: "The correction of the spectrum scan times, as used e.g. in label-free proteomics." [PSI:MS]
+is_a: MS:1000543 ! data processing action
+
+[Term]
+id: MS:9999902
+name: high intensity data point removal
+def: "The removal of very high intensity data points." [PSI:MS]
+is_a: MS:1000543 ! data processing action
+
+[Term]
+id: MS:9999903
+name: completion time
+def: "The time that a data processing action was finished." [PSI:MS]
+is_a: MS:1000630 ! data processing parameter
+
+
 [Typedef]
 id: has_units
 name: has_units
@@ -4734,4 +4761,3 @@ name: has_units
 id: part_of
 name: part_of
 is_transitive: true
-
