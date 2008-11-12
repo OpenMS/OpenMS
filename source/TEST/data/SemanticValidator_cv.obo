@@ -222,6 +222,7 @@ is_a: MS:1000481 ! detector attribute
 id: MS:1000030
 name: vendor
 def: "Name of instrument vendor, replaced by MS:1000031 Model From Vendor." [PSI:MS]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_obsolete: true
 
 [Term]
@@ -286,6 +287,7 @@ def: "Three-character symbol m/z is used to denote the quantity formed by dividi
 synonym: "mass-to-charge ratio" EXACT []
 synonym: "Th" EXACT []
 synonym: "thomson" EXACT []
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000455 ! ion selection attribute
 is_a: MS:1000460 ! unit
 
@@ -1896,6 +1898,7 @@ id: MS:1000285
 name: total ion current
 def: "The sum of all the separate ion currents carried by the ions of different m/z contributing to a complete mass spectrum or in a specified m/z range of a mass spectrum." [PSI:MS]
 synonym: "TIC" EXACT []
+xref: value-type:xsd\:integer "The allowed value-type for this CV term."
 is_a: MS:1000499 ! spectrum attribute
 
 [Term]
@@ -3648,12 +3651,14 @@ is_a: MS:1000560 ! source file type
 id: MS:1000568
 name: MD5
 def: "MD5 (Message-Digest algorithm 5) is a cryptographic hash function with a 128-bit hash value used to check the integrity of files." [PSI:MS]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000561 ! data file checksum type
 
 [Term]
 id: MS:1000569
 name: SHA-1
 def: "SHA-1 (Secure Hash Algorithm-1) is a cryptographic hash function designed by the National Security Agency (NSA) and published by the NIST as a U. S. government standard. It is also used to verify file integrity." [PSI:MS]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000561 ! data file checksum type
 
 [Term]
@@ -3766,30 +3771,35 @@ relationship: part_of MS:1000577 ! data file
 id: MS:1000586
 name: contact name
 def: "Name of a contact person." [PSI:MS]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000585 ! contact person attribute
 
 [Term]
 id: MS:1000587
 name: contact address
 def: "Postal address of a contact person." [PSI:MS]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000585 ! contact person attribute
 
 [Term]
 id: MS:1000588
 name: contact URL
 def: "Uniform Resource Locator related to the contact person." [PSI:MS]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000585 ! contact person attribute
 
 [Term]
 id: MS:1000589
 name: contact email
 def: "Email adress of the contact person." [PSI:MS]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000585 ! contact person attribute
 
 [Term]
 id: MS:1000590
 name: contact organization
 def: "Home institution of the contact person." [PSI:MS]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000585 ! contact person attribute
 
 [Term]
@@ -3954,6 +3964,7 @@ id: MS:1000616
 name: preset scan configuration
 def: "A user-defined scan configuration that specifies the instrumental settings in which a spectrum is acquired. An instrument may cycle through a list of preset scan configurations to acquire data. This is a more generic term for the Thermo \"scan event\", which is defined in the Thermo Xcalibur glossary as: a mass spectrometer scan that is defined by choosing the necessary scan parameter settings. Multiple scan events can be defined for each segment of time." [PSI:MS]
 comment: The attribute 'ms level' should be encoded in the homonymous XML attribute of the element 'dx:Spectrum', and not using the CvParam element.
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000503 ! scan attribute
 
 [Term]
