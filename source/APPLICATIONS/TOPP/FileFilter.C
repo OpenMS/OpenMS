@@ -93,7 +93,7 @@ class TOPPFileFilter
       
 			addText_("peak data options:");
       registerDoubleOption_("sn", "<s/n ratio>", 0, "write peaks with S/N > 'sn' values only", false);
-			registerStringOption_("level","i[,j]...","1,2,3","MS levels to extract", false);
+			registerStringList_("level","i j...",StringList::create("1,2,3"),"MS levels to extract", false);
 			registerStringOption_("remove_mode","<mode>","","Remove scans by scan mode\n",false);
 			StringList mode_list;
 			for (UInt i=0; i<InstrumentSettings::SIZE_OF_SCANMODE; ++i)
@@ -147,7 +147,8 @@ class TOPPFileFilter
       FileHandler::Type out_type = in_type;            
 
 			//ranges
-			String mz, rt, it, level, charge, q, tmp;
+			String mz, rt, it, charge, q;
+			StringList level;
 			double mz_l, mz_u, rt_l, rt_u, it_l, it_u, sn, charge_l, charge_u, q_l, q_u;
 			vector<UInt> levels;		
 			//initialize ranges
@@ -157,7 +158,7 @@ class TOPPFileFilter
 			rt = getStringOption_("rt");
 			mz = getStringOption_("mz");
 			it = getStringOption_("int");
-			level = getStringOption_("level");
+			level = getStringList_("level");
 			sn = getDoubleOption_("sn");
 			charge = getStringOption_("charge");
       q = getStringOption_("q");
@@ -178,7 +179,7 @@ class TOPPFileFilter
 				writeDebug_("int lower/upper bound: " + String(it_l) + " / " + String(it_u),1);	
 	
 				//levels
-				tmp = level;
+				/*tmp = level;
 				if (level.has(',')) //several levels given
 				{
 					vector<String> tmp2;
@@ -192,7 +193,11 @@ class TOPPFileFilter
 				{
 					levels.push_back(level.toInt());
 				}
-				
+				*/
+				for(StringList::iterator it = level.begin();it != level.end(); ++it)
+				{
+					levels.push_back(it->toInt());
+				}
 				String tmp3("MS levels: ");
 				tmp3 = tmp3 + *(levels.begin());
 				for (vector<UInt>::iterator it = ++levels.begin(); it != levels.end(); ++it)
@@ -213,6 +218,12 @@ class TOPPFileFilter
 			}
 			catch(Exception::ConversionError&)
 			{
+				String tmp;
+				for(StringList::iterator it = level.begin(); it != level.end();++it)
+				{
+					tmp = tmp.append(*it);
+				}
+				
 				writeLog_(String("Invalid boundary '") + tmp + "' given. Aborting!");
 				printUsage_();
 				return ILLEGAL_PARAMETERS;			
