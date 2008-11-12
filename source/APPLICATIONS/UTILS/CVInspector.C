@@ -66,7 +66,50 @@ class TOPPCVInspector
 		registerInputFile_("OBO_file","<file>","","Ontology file in OBO format where the CV terms are stored");
 		registerInputFile_("mapping_file","<file>","","Mapping file in CVMapping (XML) format, where the mappings are defined", false);
 		registerOutputFile_("html","<file>","","Writes an HTML version of the mapping file with annotated CV terms", false);
-	}	
+	}
+	
+	void writeTermTree_(const String& accession, const ControlledVocabulary& cv, TextFile& file, UInt indent)
+	{
+		const ControlledVocabulary::CVTerm& term = cv.getTerm(accession);
+		for (set<String>::const_iterator it=term.children.begin(); it!=term.children.end(); ++it)
+		{
+			const ControlledVocabulary::CVTerm& child_term = cv.getTerm(*it);
+			String subterm_line;
+			for (UInt i=0; i<4*indent; ++i) subterm_line += "&nbsp;";
+			subterm_line += "- " + child_term.id + " ! " + child_term.name;
+			StringList tags;
+			if (child_term.obsolete)
+			{
+				tags.push_back("obsolete");
+			}
+			if (child_term.unparsed.size()!=0)
+			{
+				for (UInt i=0; i<child_term.unparsed.size(); ++i)
+				{
+					if (child_term.unparsed[i].hasSubstring("value-type:xsd\\:int"))
+					{
+						tags.push_back("value:int");
+					}
+					else if (child_term.unparsed[i].hasSubstring("value-type:xsd\\:float"))
+					{
+						tags.push_back("value:float");
+					}
+					else if (child_term.unparsed[i].hasSubstring("value-type:xsd\\:string"))
+					{
+						tags.push_back("value:string");
+					}
+				}
+			}
+			if (tags.size()!=0)
+			{
+				String tags_string;
+				tags_string.implode(tags.begin(),tags.end(),", ");
+				subterm_line += String(" (") + tags_string + ")";
+			}
+			file.push_back(subterm_line + "<BR>");
+			writeTermTree_(child_term.id, cv, file, indent+1);
+		}
+	}
 	
 	ExitCodes main_(int , const char**)
 	{
@@ -227,52 +270,26 @@ class TOPPCVInspector
 						file.push_back(String("        <div id=\"div") + term_count + "\" style=\"display: none\">");
 						if (cv.exists(tit->getAccession()))
 						{
+							writeTermTree_(tit->getAccession(), cv, file, 1);
+							//BEGIN - THIS IS NEEDED FOR WRITING PARSERS ONLY
+							/*
 							set<String> allowed_terms;
 							cv.getAllChildTerms(allowed_terms, tit->getAccession());
-							vector<String> parser_strings;
 							for (set<String>::const_iterator atit=allowed_terms.begin(); atit!=allowed_terms.end(); ++atit)
 							{
 								const ControlledVocabulary::CVTerm& child_term = cv.getTerm(*atit);
 								String parser_string = String("os << \"&lt;cvParam cvRef=\\\"MS\\\" accession=\\\"") + child_term.id + "\\\" name=\\\"" + child_term.name + "\\\"";
-								String subterm_line = String("          &nbsp;&nbsp;&nbsp;- ") + child_term.id + " ! " + child_term.name;
-								StringList tags;
-								if (child_term.obsolete)
+								for (UInt i=0; i<child_term.unparsed.size(); ++i)
 								{
-									tags.push_back("obsolete");
-								}
-								if (child_term.unparsed.size()!=0)
-								{
-									for (UInt i=0; i<child_term.unparsed.size(); ++i)
+									if (child_term.unparsed[i].hasSubstring("value-type:xsd\\:int") || child_term.unparsed[i].hasSubstring("value-type:xsd\\:float") || child_term.unparsed[i].hasSubstring("value-type:xsd\\:string"))
 									{
-										if (child_term.unparsed[i].hasSubstring("value-type:xsd\\:int"))
-										{
-											tags.push_back("value:int");
-											parser_string += " value=\\\"\" &lt;&lt; &lt;&lt; \"\\\"";
-										}
-										else if (child_term.unparsed[i].hasSubstring("value-type:xsd\\:float"))
-										{
-											tags.push_back("value:float");
-											parser_string += " value=\\\"\" &lt;&lt; &lt;&lt; \"\\\"";
-										}
-										else if (child_term.unparsed[i].hasSubstring("value-type:xsd\\:string"))
-										{
-											tags.push_back("value:string");
-											parser_string += " value=\\\"\" &lt;&lt; &lt;&lt; \"\\\"";
-										}
+										parser_string += " value=\\\"\" &lt;&lt; &lt;&lt; \"\\\"";
 									}
 								}
 								parser_string += "/&gt;\\n\";<BR>";
-								parser_strings.push_back(parser_string);
-								if (tags.size()!=0)
-								{
-									String tags_string;
-									tags_string.implode(tags.begin(),tags.end(),", ");
-									subterm_line += String(" (") + tags_string + ")";
-								}
-								file.push_back(subterm_line + "<BR>");
+								file.push_back(parser_string);
 							}
-							//THIS IS NEEDED FOR WRITING PARSERS ONLY
-							//file.insert(file.end(), parser_strings.begin(), parser_strings.end());
+							*/
 						}
 						else
 						{
