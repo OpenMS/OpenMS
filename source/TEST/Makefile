@@ -196,7 +196,8 @@ EXECUTABLES_FORMAT = \
 	PepXMLFile_test\
 	ControlledVocabulary_test\
 	TransformationXMLFile_test\
-	SemanticValidator_test
+	SemanticValidator_test\
+	MS2File_test
 
 #MATH
 

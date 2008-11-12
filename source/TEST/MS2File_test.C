@@ -1,0 +1,76 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework 
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Andreas Bertsch $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+
+#include <OpenMS/FORMAT/MS2File.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
+using namespace OpenMS;
+using namespace std;
+
+///////////////////////////
+///////////////////////////
+
+START_TEST(MS2File, "$Id: $")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+
+MS2File* ptr = 0;
+CHECK((MS2File()))
+	ptr = new MS2File;
+	TEST_NOT_EQUAL(ptr, 0)
+RESULT
+
+CHECK((~MS2File()))
+	delete ptr;
+RESULT
+
+PRECISION(0.01)
+
+CHECK((template <typename MapType> void load(const String& filename, MapType& map)))
+	MS2File file;
+	PeakMap exp;
+	file.load("data/MS2File_test_spectra.ms2", exp);
+
+	TEST_EQUAL(exp.size(), 2)
+
+	TEST_EQUAL(exp[0].size(), 4)
+	TEST_EQUAL(exp[1].size(), 4)
+	
+	TEST_REAL_EQUAL(exp[0].getPrecursorPeak().getPosition()[0], 444.44)
+	TEST_REAL_EQUAL(exp[1].getPrecursorPeak().getPosition()[0], 555.555)
+	
+RESULT
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
+

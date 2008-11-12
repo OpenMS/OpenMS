@@ -78,7 +78,8 @@ CPP_SOURCES=\
 	TransformationXMLFile.C\
 	LibSVMEncoder.C\
 	CVMappings.C\
-	CVMappingFile.C
+	CVMappingFile.C\
+	MS2File.C
 
 MOC_SOURCES=\
 	MascotRemoteQuery_moc.C

@@ -1,0 +1,19 @@
+H CreationDate  11/11/2008 11:11:11 PM
+H Extractor byHand
+H ExtractorVersion  1.0.0.0.0
+H ExtractorOptions  type_MS2_format
+S 000001  000001   444.44
+Z 1 444.44
+I RTime .1111
+1.0 2.3
+2.0 3.4
+3.0 4.5
+6.0 9.0
+S 000021  000021   555.555
+Z 1 555.555
+I RTime .222
+1.0 2.3
+2.0 3.4
+3.0 4.5
+6.0 9.0
+

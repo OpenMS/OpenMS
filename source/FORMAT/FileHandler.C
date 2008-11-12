@@ -33,7 +33,7 @@ using namespace std;
 
 namespace OpenMS
 {
-	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "Param", "TrafoXML", "mzML"};
+	const std::string FileHandler::NamesOfTypes[] = {"Unknown", "DTA", "DTA2D", "mzData", "mzXML", "FeatureXML", "cdf", "IdXML", "ConsensusXML", "mgf", "Param", "TrafoXML", "mzML", "ms2"};
 
 
 	FileHandler::Type FileHandler::getType(const String& filename)
@@ -111,6 +111,10 @@ namespace OpenMS
 		{
 			return TRANSFORMATIONXML;
 		}
+		else if (tmp == "MS2")
+		{
+			return MS2;
+		}
 
 		return UNKNOWN;
 
@@ -169,6 +173,8 @@ namespace OpenMS
 		case PARAM:
 			return true;
 		case TRANSFORMATIONXML:
+			return true;
+		case MS2:
 			return true;
 		default:
 			return false;
@@ -269,7 +275,15 @@ namespace OpenMS
 				}
 			}
 		}
-		
+
+		// MS2 file format
+		if (all_simple.hasSubstring("CreationDate"))
+		{
+			if (all_simple.size() > 0 && all_simple[0] == 'H')
+			{
+				return MS2;
+			}
+		}
 		return UNKNOWN;
 	}
 
