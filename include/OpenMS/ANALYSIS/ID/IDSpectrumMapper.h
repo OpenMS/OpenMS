@@ -59,7 +59,7 @@ namespace OpenMS
 			 
 				@throws Exception::MissingInformation
 				
-				@TODO attach ProteinIdentifications to MSExperiment (as done in IDFeatureMapper)
+				@todo attach ProteinIdentifications to MSExperiment (as done in IDFeatureMapper) (?) (Nico)
       */
       template <class PeakT>				
       UInt annotate(MSExperiment< PeakT >& experiment, const std::vector<PeptideIdentification>& identifications, DoubleReal precision = 0.01f)

@@ -43,7 +43,7 @@ using namespace std;
 /**
 	@page QuantIDMerger
 	
-	@TODO throw away code below and use IDFeatureMapper and IDConsensusFeatureMapper; do output as desired
+	@todo throw away code below and use IDFeatureMapper and IDConsensusFeatureMapper; do output as desired (Lars, Marc, Chris)
  *
 */
 

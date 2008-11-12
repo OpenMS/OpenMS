@@ -497,7 +497,7 @@ class TOPPMascotAdapter
 				if (!mascot_in)
 				{
 					#ifdef OPENMS_WINDOWSPLATFORM
-					/// @TODO test this with a real mascot version for windows
+					/// @todo test this with a real mascot version for windows
 					writeLog_(QString("The windows platform version of this tool has not been tested yet! If you encounter problems,") +
 										QString(" please write to the OpenMS mailing list (open-ms-general@lists.sourceforge.net)"));
 					#endif
