@@ -64,9 +64,6 @@ namespace OpenMS
 				// Docu in base class
 				virtual String getPath_(UInt remove_from_end = 0) const;
 
-				///CV terms which can have a value (term => value type: int/double/string)
-				Map<String,DataValue::DataType> cv_values_;
-				
 				///CV terms which can have a value (term => value type)
 				Map<String,std::vector<CVTerm> > param_groups_;
 				
