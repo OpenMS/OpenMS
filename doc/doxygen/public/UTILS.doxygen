@@ -45,4 +45,5 @@
   - @subpage CVInspector
   - @subpage RTEvaluation
 	- @subpage SequenceCoverageCalculator 
+  - @subpage IDExtractor
 */
