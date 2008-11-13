@@ -63,9 +63,10 @@ class TOPPCVInspector
 
 	void registerOptionsAndFlags_()
 	{
-		registerInputFile_("OBO_file", "<file>", "", "Ontology file in OBO format where the CV terms are stored");
-		registerInputFile_("mapping_file", "<file>", "", "Mapping file in CVMapping (XML) format, where the mappings are defined", false);
-		registerStringOption_("ignore_cv", "<list>", "UO,PATO,BTO", "A list of CV namespace which should be ignored, e.g. unit obo", false);
+		registerInputFileList_("cv_files", "<files>", StringList(), "List of ontology files in OBO format.");
+		registerStringList_("cv_names", "<names>", StringList(), "List of identifiers (one for each ontology file).");
+		registerInputFile_("mapping_file", "<file>", "", "Mapping file in CVMapping (XML) format.", false);
+		registerStringList_("ignore_cv", "<list>", StringList::create("UO,PATO,BTO"), "A list of CV identifiers which should be ignored.", false);
 		registerOutputFile_("html","<file>", "", "Writes an HTML version of the mapping file with annotated CV terms", false);
 	}
 	
@@ -100,25 +101,28 @@ class TOPPCVInspector
 	
 	ExitCodes main_(int , const char**)
 	{
-		String OBO_file = getStringOption_("OBO_file");
-		String mapping_file = getStringOption_("mapping_file");
+		StringList cv_files = getStringList_("cv_files");
+		StringList cv_names = getStringList_("cv_names");
+		if (cv_files.size()!=cv_names.size())
+		{
+			cerr << "Error: You have to specify an identifier for each CV file. Aborting!" << endl;
+			return ILLEGAL_PARAMETERS;
+		}
 	
 		// load cv terms
 		ControlledVocabulary cv;
-		cv.loadFromOBO("PSI-MS", OBO_file);
-//		cv.loadFromOBO("PATO", "quality.obo");
-//		cv.loadFromOBO("UO", "unit.obo");
-//		cv.loadFromOBO("brenda", "brenda.obo");
-//		cv.loadFromOBO("GO", "goslim_goa.obo");
+		for (UInt i=0; i<cv_files.size(); ++i)
+		{
+			cv.loadFromOBO(cv_names[i], cv_files[i]);
+		}
 		Map<String, ControlledVocabulary::CVTerm> terms = cv.getTerms();
-		cerr << "Loaded " << terms.size() << " terms from file" << endl;
 	
 		// load mappings from mapping file
+		String mapping_file = getStringOption_("mapping_file");
 		CVMappings mappings;
 		CVMappingFile().load(mapping_file, mappings);
-		cerr << "Loaded " << mappings.getMappingRules().size() << " mapping rules" << endl;
 		
-		//store HTML version of mapping
+		//store HTML version of mapping and CV
 		if (getStringOption_("html")!="")
 		{
 			TextFile file;
@@ -281,7 +285,7 @@ class TOPPCVInspector
 		}
 
 		// iterator over all mapping rules and store the mentioned terms
-		StringList ignore_namespaces = StringList::create(getStringOption_("ignore_cv"));
+		StringList ignore_namespaces = getStringList_("ignore_cv");
 		set<String> ignore_cv_list;
 		for (StringList::const_iterator it = ignore_namespaces.begin(); it != ignore_namespaces.end(); ++it)
 		{
