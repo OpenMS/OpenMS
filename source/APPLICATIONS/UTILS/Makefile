@@ -40,7 +40,8 @@ UTILS_EXECUTABLES=\
 	RTEvaluation\
 	CVInspector\
 	HistView\
-	SemanticValidator
+	SemanticValidator\
+	IDExtractor
 
 all: $(UTILS_EXECUTABLES)
 

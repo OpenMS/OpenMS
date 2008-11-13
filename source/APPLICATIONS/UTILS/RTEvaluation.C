@@ -321,6 +321,8 @@ class TOPPRTEvaluation
 			vector<SVMData> samples;
 			ofstream outputfile;
 			
+			rand();
+			
 			//-------------------------------------------------------------
 			// parsing parameters
 			//-------------------------------------------------------------
@@ -892,6 +894,7 @@ class TOPPRTEvaluation
 						debug_string = "Test performance on left out partition: " + String(test_quality) + "\n";
 						writeDebug_(debug_string, 1);
 						test_quality_sum += test_quality;
+						
 					}																									
 					debug_string = "Mean test performance on left out partitions: " 
 						+ String(test_quality_sum / number_of_outer_partitions) + "\n";
