@@ -189,14 +189,5 @@
         </CvMappingRule>
         <!-- end of chromatogram binary data array -->
 
-<!--
-MISSING RULES (ANY IDEA WHAT TERMS SHOULD BE THERE?):
-/mzML/acquisitionSettingsList/acquisitionSettings
-/mzML/acquisitionSettingsList/acquisitionSettings/targetList/target
-/mzML/run
-/mzML/run/spectrumList/spectrum/spectrumDescription/precursorList/precursor/isolationWindow
-/mzML/run/chromatogramList/chromatogram
--->
-
     </CvMappingRuleList>
 </CvMapping>
