@@ -83,9 +83,10 @@ class TOPPCVInspector
 			{
 				tags.push_back("obsolete");
 			}
-
-			tags.push_back("value-type=" + ControlledVocabulary::CVTerm::getXRefTypeName(child_term.xref_type));
-			
+			if (child_term.xref_type!=ControlledVocabulary::CVTerm::NONE)
+			{
+				tags.push_back("value-type=" + ControlledVocabulary::CVTerm::getXRefTypeName(child_term.xref_type));
+			}
 			if (tags.size()!=0)
 			{
 				String tags_string;
@@ -222,8 +223,10 @@ class TOPPCVInspector
 						{
 							tags.push_back("obsolete");
 						}
-
-						tags.push_back("value-type=" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type));
+						if (term.xref_type!=ControlledVocabulary::CVTerm::NONE)
+						{
+							tags.push_back("value-type=" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type));
+						}
 					}
 					if (tags.size()!=0)
 					{
@@ -250,6 +253,7 @@ class TOPPCVInspector
 								String parser_string = String("os << \"&lt;cvParam cvRef=\\\"MS\\\" accession=\\\"") + child_term.id + "\\\" name=\\\"" + child_term.name + "\\\"";
 								for (UInt i=0; i<child_term.unparsed.size(); ++i)
 								{
+									//TODO this does not work anymore. The type is now stored as a member
 									if (child_term.unparsed[i].hasSubstring("value-type:xsd\\:int") || child_term.unparsed[i].hasSubstring("value-type:xsd\\:float") || child_term.unparsed[i].hasSubstring("value-type:xsd\\:string"))
 									{
 										parser_string += " value=\\\"\" &lt;&lt; &lt;&lt; \"\\\"";

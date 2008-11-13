@@ -185,10 +185,7 @@ namespace OpenMS
 			done_identifiers.push_back(protein_ids[i].getIdentifier());
 			
 			os << "\t<IdentificationRun ";
-			String time, date;
-			protein_ids[i].getDateTime().getDate(date);
-			protein_ids[i].getDateTime().getTime(time);
-			os << "date=\"" << date << "T" << time << "\" ";
+			os << "date=\"" << protein_ids[i].getDateTime().getDate() << "T" << protein_ids[i].getDateTime().getTime() << "\" ";
 			os << "search_engine=\"" << protein_ids[i].getSearchEngine() << "\" ";
 			os << "search_engine_version=\"" << protein_ids[i].getSearchEngineVersion() << "\" ";
 			//identifier

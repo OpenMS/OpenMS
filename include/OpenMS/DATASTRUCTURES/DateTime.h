@@ -110,11 +110,11 @@ namespace OpenMS
 			void getDate(UInt& month, UInt& day, UInt& year) const;
 
 			/**
-				@brief Fills the arguments with the date
+				@brief Returns the date as string
 			 	
-				The format of the string will be yyyy-MM-dd
+				The format of the string is yyyy-MM-dd
 			*/
-			void getDate(String& date) const;
+			String getDate() const;
 			
 			/**
 				@brief Fills the arguments with the time
@@ -124,13 +124,13 @@ namespace OpenMS
 			void getTime(UInt& hour, UInt& minute, UInt& second) const;
 			
 			/**
-				@brief Fills the arguments with the time
+				@brief Returns the time as string
 			 	
-				The format of the string will be hh:mm:ss
+				The format of the string is hh:mm:ss
 			*/
-			void getTime(String& time) const;
+			String getTime() const;
 			
-			/// sets instance to actual date and time
+			/// sets the instance to the current date and time
 			void now();
 			
 			///Sets the undefined date: 00/00/0000 00:00:00
@@ -146,7 +146,13 @@ namespace OpenMS
 			/**
 				@brief Sets date and time
 			 	
-			 	The format of the string is yyyy-MM-dd hh:mm:ss or yyyy-MM-ddThh:mm:ss (ISO 8601 format)
+			 	The following formats are supported:
+			 	- MM/dd/yyyy hh:mm:ss
+			 	- dd.MM.yyyy hh:mm:ss
+			 	- yyyy-MM-dd hh:mm:ss
+			 	- yyyy-MM-ddThh:mm:ss (ISO 8601 format)
+			 	- yyyy-MM-ddZ (ISO 8601 format)
+			 	- yyyy-MM-dd+hh:mm (ISO 8601 format)
 			*/
 			void set(const String& date) throw (Exception::ParseError);
 						

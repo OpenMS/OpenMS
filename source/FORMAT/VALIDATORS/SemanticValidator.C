@@ -518,6 +518,18 @@ namespace OpenMS
               errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:boolean: '") + parsed_term.accession + " - " + parsed_term.name + ", value=" + value+ "' at element '" + getPath_(1) + "'");
             }
           }
+          else if (type == ControlledVocabulary::CVTerm::XSD_DATE)
+          {
+      			try
+						{
+							DateTime tmp;
+							tmp.set(value);
+						}
+						catch(Exception::ParseError&)
+						{
+							errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:date: '") + parsed_term.accession + " - " + parsed_term.name + ", value=" + value+ "' at element '" + getPath_(1) + "'");
+						}
+          }
           else
           {
             errors_.push_back(String("Value-type unknown (type #" + String(type) + "): '") + parsed_term.accession + " - " + parsed_term.name + ", value="+ value+ "' at element '" + getPath_(1) + "'");

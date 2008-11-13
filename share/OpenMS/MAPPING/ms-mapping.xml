@@ -18,7 +18,7 @@
         <CvMappingRule id="R2" cvElementPath="/mzML/fileDescription/contact/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/fileDescription/contact/cvParam" cvTermsCombinationLogic="OR" >
             <CvTerm termAccession="MS:1000585" useTermName="false" useTerm="false" termName="contact person attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
         </CvMappingRule>
-        <CvMappingRule id="R3a" cvElementPath="/mzML/fileDescription/sourceFileList/sourceFile/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/fileDescription/sourceFileList/sourceFile" cvTermsCombinationLogic="AND" >
+        <CvMappingRule id="R3" cvElementPath="/mzML/fileDescription/sourceFileList/sourceFile/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/fileDescription/sourceFileList/sourceFile" cvTermsCombinationLogic="AND" >
             <CvTerm termAccession="MS:1000560" useTermName="false" useTerm="false" termName="source file type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
             <CvTerm termAccession="MS:1000561" useTermName="false" useTerm="false" termName="data file checksum type" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
         </CvMappingRule>
@@ -155,9 +155,10 @@
             <CvTerm termAccession="MS:1000465" useTerm="false" termName="scan polarity" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
         <CvMappingRule id="R24b" cvElementPath="/mzML/run/spectrumList/spectrum/spectrumDescription/scan/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/run/spectrumList/spectrum/spectrumDescription/scan" cvTermsCombinationLogic="OR">
-            <CvTerm termAccession="MS:1000019" useTerm="false" termName="scan law" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
             <CvTerm termAccession="MS:1000503" useTerm="false" termName="scan attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
             <CvTerm termAccession="MS:1000018" useTerm="false" termName="scan direction" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000019" useTerm="false" termName="scan law" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000020" useTerm="false" termName="scanning method" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
         <CvMappingRule id="R25" cvElementPath="/mzML/run/spectrumList/spectrum/spectrumDescription/scan/cvParam/@unitAccession" requirementLevel="MAY" scopePath="/mzML/run/spectrumList/spectrum/spectrumDescription/scan/cvParam" cvTermsCombinationLogic="OR">
             <CvTerm termAccession="MS:1000460" useTerm="false" termName="unit" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>

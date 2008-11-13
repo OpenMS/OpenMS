@@ -2301,8 +2301,6 @@ namespace OpenMS
 		//Compose current time string
 		DateTime d;
 		d.now();
-		String time;
-		d.getTime(time);
 		
 		String state_string;
 		switch(state)
@@ -2314,7 +2312,7 @@ namespace OpenMS
 		
 		//update log
 		log_->append("==============================================================================");
-		log_->append((time + " " + state_string + ": " + heading).toQString());
+		log_->append((d.getTime() + " " + state_string + ": " + heading).toQString());
 		log_->append(body.toQString());
 
   	//show log tool window

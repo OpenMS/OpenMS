@@ -51,11 +51,23 @@ namespace OpenMS
 				{																																								
 					switch(FileHandler::getType(file_names[i]))					
 					{																																							
-						case FileHandler::MZML:																						
-							if (!MzMLFile().isValid(file_names[i]))								
-							{																																						
-								std::cout << "Error: Invalid mzML file '" << file_names[i] << "' - " << std::endl; 
-								passed = false;																							
+						case FileHandler::MZML:
+							{																	
+								if (!MzMLFile().isValid(file_names[i]))								
+								{																																						
+									std::cout << "Error: mzML file does not validate against XML schema '" << file_names[i] << "' - " << std::endl; 
+									passed = false;																							
+								}
+								StringList errors, warnings;
+								if (!MzMLFile().isSemanticallyValid(file_names[i], errors, warnings))								
+								{																																						
+									std::cout << "Error: mzML file semantically invalid '" << file_names[i] << "' - " << std::endl;
+									for (UInt j=0; j<errors.size(); ++j)
+									{
+										std::cout << "Error - " << errors[j] << std::endl;
+									}
+									passed = false;																							
+								}
 							}
 							break;	
 						case FileHandler::MZDATA:																						

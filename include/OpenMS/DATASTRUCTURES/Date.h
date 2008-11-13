@@ -64,7 +64,10 @@ namespace OpenMS
 			/**
 				@brief sets data from a string
 				
-				Reads both english, german and iso/ansi date formats: 'mm/dd/yyyy', 'dd.mm.yyyy' or 'yyyy-mm-dd'
+				The following date formats are supoported:
+				- mm/dd/yyyy
+				- dd.mm.yyyy
+				- yyyy-mm-dd
 				
 				@exception Exception::ParseError is thrown if the date is given in the wrong format
 			*/

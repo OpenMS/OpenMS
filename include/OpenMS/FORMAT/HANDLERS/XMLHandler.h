@@ -280,26 +280,24 @@ namespace OpenMS
 				return false;
 			}
 			/// Conversion of a xs:datetime string to a DataTime value
-	 		inline DateTime asDateTime_(const String& in)
+	 		inline DateTime asDateTime_(String date_string)
 			{
-				//std::cout << "IN: " << in << std::endl;
-				DateTime res;
-				if (in!="")
+				DateTime date_time;
+				if (date_string!="")
 				{ 
 					try
 					{
-						// xs::DateTime to OpenMS::DateTime
-						String tmp(in);
-						tmp.substitute('T', ' ');
-						tmp = tmp.substr(0,19);
-						res.set(tmp);
+						//strip away milliseconds
+						date_string.trim();
+						date_string = date_string.substr(0,19);
+						date_time.set(date_string);
 					}
 					catch(Exception::ParseError err)
 					{
-						error(String("DateTime conversion error of \"") + in + "\"");
+						error(String("DateTime conversion error of \"") + date_string + "\"");
 					}
 				}
-				return res;
+				return date_time;
 			}
 			//@}
 		

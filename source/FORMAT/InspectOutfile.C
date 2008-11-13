@@ -80,8 +80,7 @@ namespace OpenMS
 			accession,
 			accession_type,
 			spectrum_file,
-			identifier,
-			dt;
+			identifier;
 			
 		UInt
 			record_number(0),
@@ -106,9 +105,8 @@ namespace OpenMS
 
 		DateTime datetime;
 		datetime.now();
-		datetime.getDate(dt);
-		if ( protein_identification.getSearchEngine().empty() ) identifier = "InsPecT_" + dt;
-		else protein_identification.getSearchEngine() + "_" + dt;
+		if ( protein_identification.getSearchEngine().empty() ) identifier = "InsPecT_" + datetime.getDate();
+		else protein_identification.getSearchEngine() + "_" + datetime.getDate();
 		
 		// to get the precursor retention time and mz values later, save the filename and the numbers of the scans
 		vector< pair< String, vector< pair< UInt, UInt > > > > files_and_peptide_identification_with_scan_number;

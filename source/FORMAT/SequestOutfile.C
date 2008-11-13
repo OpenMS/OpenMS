@@ -125,8 +125,7 @@ namespace OpenMS
 		
 		readOutHeader(result_filename, datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns);
 		
-		datetime.getDate(buffer);
-		identifier = sequest + "_" + buffer;
+		identifier = sequest + "_" + datetime.getDate();
 		
 		// set the search engine and its version and the score type
 		protein_identification.setSearchEngine(sequest);

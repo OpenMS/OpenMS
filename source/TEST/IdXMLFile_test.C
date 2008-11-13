@@ -59,11 +59,8 @@ CHECK(void load(const String& filename, std::vector<ProteinIdentification>& prot
 	TEST_EQUAL(protein_ids[0].isHigherScoreBetter(),true)
 	TEST_EQUAL(protein_ids[0].getSearchEngine(),"Mascot")
 	TEST_EQUAL(protein_ids[0].getSearchEngineVersion(),"2.1.0")
-	String tmp;
-	protein_ids[0].getDateTime().getDate(tmp);
-	TEST_EQUAL(tmp,"2006-01-12")
-	protein_ids[0].getDateTime().getTime(tmp);
-	TEST_EQUAL(tmp,"12:13:14")
+	TEST_EQUAL(protein_ids[0].getDateTime().getDate(),"2006-01-12")
+	TEST_EQUAL(protein_ids[0].getDateTime().getTime(),"12:13:14")
 	TEST_EQUAL(protein_ids[0].getIdentifier(),"Mascot_2006-01-12T12:13:14")
 	TEST_EQUAL(protein_ids[0].getSearchParameters().db,"MSDB")
 	TEST_EQUAL(protein_ids[0].getSearchParameters().db_version,"1.0")
@@ -137,11 +134,8 @@ CHECK(void load(const String& filename, std::vector<ProteinIdentification>& prot
 	TEST_EQUAL(protein_ids[1].isHigherScoreBetter(),true)
 	TEST_EQUAL(protein_ids[1].getSearchEngine(),"Mascot")
 	TEST_EQUAL(protein_ids[1].getSearchEngineVersion(),"2.1.1")
-	tmp="";
-	protein_ids[1].getDateTime().getDate(tmp);
-	TEST_EQUAL(tmp,"2007-01-12")
-	protein_ids[1].getDateTime().getTime(tmp);
-	TEST_EQUAL(tmp,"12:13:14")
+	TEST_EQUAL(protein_ids[1].getDateTime().getDate(),"2007-01-12")
+	TEST_EQUAL(protein_ids[1].getDateTime().getTime(),"12:13:14")
 	TEST_EQUAL(protein_ids[1].getIdentifier(),"Mascot_2007-01-12T12:13:14")
 	TEST_EQUAL(protein_ids[1].getSearchParameters().db,"MSDB")
 	TEST_EQUAL(protein_ids[1].getSearchParameters().db_version,"1.1")
@@ -196,11 +190,8 @@ CHECK(void store(String filename, const std::vector<ProteinIdentification>& prot
 	TEST_EQUAL(protein_ids[0].isHigherScoreBetter(),true)
 	TEST_EQUAL(protein_ids[0].getSearchEngine(),"Mascot")
 	TEST_EQUAL(protein_ids[0].getSearchEngineVersion(),"2.1.0")
-	String tmp;
-	protein_ids[0].getDateTime().getDate(tmp);
-	TEST_EQUAL(tmp,"2006-01-12")
-	protein_ids[0].getDateTime().getTime(tmp);
-	TEST_EQUAL(tmp,"12:13:14")
+	TEST_EQUAL(protein_ids[0].getDateTime().getDate(),"2006-01-12")
+	TEST_EQUAL(protein_ids[0].getDateTime().getTime(),"12:13:14")
 	TEST_EQUAL(protein_ids[0].getIdentifier(),"Mascot_2006-01-12T12:13:14")
 	TEST_EQUAL(protein_ids[0].getSearchParameters().db,"MSDB")
 	TEST_EQUAL(protein_ids[0].getSearchParameters().db_version,"1.0")
@@ -272,11 +263,8 @@ CHECK(void store(String filename, const std::vector<ProteinIdentification>& prot
 	TEST_EQUAL(protein_ids[1].isHigherScoreBetter(),true)
 	TEST_EQUAL(protein_ids[1].getSearchEngine(),"Mascot")
 	TEST_EQUAL(protein_ids[1].getSearchEngineVersion(),"2.1.1")
-	tmp="";
-	protein_ids[1].getDateTime().getDate(tmp);
-	TEST_EQUAL(tmp,"2007-01-12")
-	protein_ids[1].getDateTime().getTime(tmp);
-	TEST_EQUAL(tmp,"12:13:14")
+	TEST_EQUAL(protein_ids[1].getDateTime().getDate(),"2007-01-12")
+	TEST_EQUAL(protein_ids[1].getDateTime().getTime(),"12:13:14")
 	TEST_EQUAL(protein_ids[1].getIdentifier(),"Mascot_2007-01-12T12:13:14")
 	TEST_EQUAL(protein_ids[1].getSearchParameters().db,"MSDB")
 	TEST_EQUAL(protein_ids[1].getSearchParameters().db_version,"1.1")

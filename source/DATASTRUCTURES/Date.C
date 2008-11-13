@@ -63,6 +63,7 @@ namespace OpenMS
 
 	void Date::set(const String& date)
 	{
+		clear();
 		
 		//check for format (german/english)
 		if (date.has('.'))
@@ -77,10 +78,7 @@ namespace OpenMS
 		{
 			QDate::operator=(QDate::fromString(date.c_str(), "yyyy-MM-dd"));
 		}
-		else
-		{
-			throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__, date, "Is no valid german, english or iso date");
-		}
+
 		if (!isValid())
 		{
 			throw Exception::ParseError(__FILE__,__LINE__,__PRETTY_FUNCTION__, date, "Is no valid german, english or iso date");

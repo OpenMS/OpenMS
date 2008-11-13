@@ -129,13 +129,10 @@ CHECK((void getDate(UInt& month, UInt& day, UInt& year) const))
 
 RESULT
 
-CHECK((void getDate(String& date) const))
+CHECK((String getDate() const))
 	DateTime date;
-	String temp;
-	
 	date.set("2006-12-14 21:12:02");
-	date.getDate(temp);
-	TEST_EQUAL(temp, String("2006-12-14"))	
+	TEST_STRING_EQUAL(date.getDate(), String("2006-12-14"))	
 
 RESULT
 
@@ -154,15 +151,10 @@ CHECK((void getTime(UInt& hour, UInt& minute, UInt& second) const))
 
 RESULT
 
-CHECK((void getTime(String& time) const))
+CHECK((String getTime() const))
 	DateTime date;
-	String tmp;
-		
 	date.set("2006-12-14 11:59:58");
-
-	date.getTime(tmp);
-	TEST_EQUAL(tmp, "11:59:58")		
-
+	TEST_STRING_EQUAL(date.getTime(), "11:59:58")		
 RESULT
 
 CHECK((void set(UInt month, UInt day, UInt year, UInt hour, UInt minute, UInt second) throw(Exception::ParseError)))
@@ -189,19 +181,29 @@ CHECK((void set(const String& date) throw(Exception::ParseError)))
 	date_time.set("1999-11-24 14:24:31");
 	TEST_EQUAL(date_time.get(), "1999-11-24 14:24:31")
 
-	// ISO 8601 extended specification for representations of dates and times
+	date_time.set("01.02.2000 14:24:32");
+	TEST_EQUAL(date_time.get(), "2000-02-01 14:24:32")
+
+	date_time.set("01/02/2000 14:24:32");
+	TEST_EQUAL(date_time.get(), "2000-01-02 14:24:32")
+
 	date_time.set("2005-11-13T10:58:57");
+	TEST_EQUAL(date_time.get(), "2005-11-13 10:58:57")
 
-  UInt month, day, year, hour, minute, second;
+	date_time.set("2008-11-13 10:59:57");
+	TEST_EQUAL(date_time.get(), "2008-11-13 10:59:57")
 
-  date_time.get(month, day, year, hour, minute, second);
-	TEST_EQUAL(month, 11)
-	TEST_EQUAL(day, 13)
-	TEST_EQUAL(year, 2005)
-	TEST_EQUAL(hour, 10)
-	TEST_EQUAL(minute, 58)
-	TEST_EQUAL(second, 57)
+	date_time.set("2006-12-14Z");
+	TEST_EQUAL(date_time.get(), "2006-12-14 00:00:00")
 
+	date_time.set("2006-12-14+11:00");
+	TEST_EQUAL(date_time.get(), "2006-12-14 11:00:00")
+	
+	TEST_EXCEPTION(Exception::ParseError, date_time.set("2006ff-12-14+11:00"))
+	TEST_EXCEPTION(Exception::ParseError, date_time.set("2006-12-14-11:00"))
+	TEST_EXCEPTION(Exception::ParseError, date_time.set("2006-12-14Z11:00"))
+	TEST_EXCEPTION(Exception::ParseError, date_time.set("-2006-12-14Z11:00"))
+	
 RESULT
 
 CHECK((void setDate(UInt month, UInt day, UInt year) throw(Exception::ParseError)))

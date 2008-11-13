@@ -810,7 +810,7 @@ namespace OpenMS
 								}
 								catch(Exception::ConversionError&)
 								{
-									warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have an integer value. The value is '" + value + "'.");
+									warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
 									return;
 								}
 								break;
@@ -822,13 +822,26 @@ namespace OpenMS
 								}
 								catch(Exception::ConversionError&)
 								{
-									warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have a floating-point value. The value is '" + value + "'.");
+									warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
 									return;
 								}
 								break;
+							//date string => try conversion
+							case ControlledVocabulary::CVTerm::XSD_DATE:
+								try
+								{
+									DateTime tmp;
+									tmp.set(value);
+								}
+								catch(Exception::ParseError&)
+								{
+									warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
+									return;
+								}
+								break;								
 							default:
 								warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' has the unknown value type '" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type) + "'.");
-							break;
+								break;
 						}
 					}
 				}
@@ -1825,13 +1838,15 @@ namespace OpenMS
 				//data processing parameter
 				if (accession=="MS:1000629") //low intensity threshold
 				{
-					processing_[current_id_].getProcessingActions().insert(DataProcessing::LOW_INTENSITY_REMOVAL);
 					processing_[current_id_].setMetaValue("low_intensity_threshold",value.toDouble());
 				}
 				else if (accession=="MS:1000631") //high intensity threshold
 				{
-					processing_[current_id_].getProcessingActions().insert(DataProcessing::HIGH_INTENSITY_REMOVAL);
 					processing_[current_id_].setMetaValue("high_intensity_threshold",value.toDouble());
+				}
+				else if (accession=="MS:1000747") //completion time
+				{
+					processing_[current_id_].setCompletionTime(asDateTime_(value));
 				}
 				//file format conversion
 				else if (accession=="MS:1000544") //Conversion to mzML
@@ -1874,6 +1889,14 @@ namespace OpenMS
 				else if (accession=="MS:1000594") //low intensity data point removal
 				{
 					processing_[current_id_].getProcessingActions().insert(DataProcessing::LOW_INTENSITY_REMOVAL);
+				}
+				else if (accession=="MS:1000745") //retention time alignment
+				{
+					processing_[current_id_].getProcessingActions().insert(DataProcessing::ALIGNMENT);
+				}
+				else if (accession=="MS:1000746") //high intensity data point removal
+				{
+					processing_[current_id_].getProcessingActions().insert(DataProcessing::HIGH_INTENSITY_REMOVAL);
 				}
 				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
@@ -2831,7 +2854,7 @@ namespace OpenMS
 				}
 				if (dp.getProcessingActions().count(DataProcessing::ALIGNMENT)==1)
 				{
-					//TODO
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000745\" name=\"retention time alignment\"/>\n";
 				}
 				if (dp.getProcessingActions().count(DataProcessing::LOW_INTENSITY_REMOVAL)==1)
 				{
@@ -2839,7 +2862,7 @@ namespace OpenMS
 				}
 				if (dp.getProcessingActions().count(DataProcessing::HIGH_INTENSITY_REMOVAL)==1)
 				{
-					//TODO
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000746\" name=\"high intensity data point removal\"/>\n";
 				}
 				if (dp.getProcessingActions().count(DataProcessing::CONVERSION_MZDATA)==1)
 				{
@@ -2857,6 +2880,12 @@ namespace OpenMS
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000741\" name=\"Conversion to dta\"/>\n";
 				}
+				//data processing attribute
+				if (dp.getCompletionTime().isValid())
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000747\" name=\"completion time\" value=\"" << dp.getCompletionTime().toString("yyyy-MM-dd+hh:mm").toStdString() << "\"/>\n";
+				}
+				
 				writeUserParam_(os, dp, 4);
 				os  << "			</processingMethod>\n";
 				os  << "		</dataProcessing>\n";
@@ -2880,7 +2909,7 @@ namespace OpenMS
 			// run
 			//--------------------------------------------------------------------------------------------
 			os  << "	<run id=\"ru_0\" defaultInstrumentConfigurationRef=\"ic_0\" sampleRef=\"sa_0\"";
-			if (exp.getDateTime()!=DateTime())
+			if (exp.getDateTime().isValid())
 			{
 				os << " startTimeStamp=\"" << exp.getDateTime().get().substitute(' ','T') << "\"";
 			}

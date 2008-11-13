@@ -65,6 +65,8 @@ namespace OpenMS
 
 	void DateTime::set(const String& date) throw (Exception::ParseError)
 	{
+		clear();
+		
 		if (date.has('.'))
 		{
 			QDateTime::operator=(QDateTime::fromString(date.c_str(), "dd.MM.yyyy hh:mm:ss"));
@@ -75,20 +77,24 @@ namespace OpenMS
 		}
 		else if (date.has('-'))
 		{
-			// If the format is Qt::ISODate, the string format corresponds to the ISO 8601 extended specification for representations of dates and times, taking the form YYYY-MM-DDTHH:MM:SS.
 			if (date.has('T'))
 			{
 				QDateTime::operator=(QDateTime::fromString(date.c_str(), "yyyy-MM-ddThh:mm:ss"));
+			}
+			else if (date.has('Z'))
+			{
+				QDateTime::operator=(QDateTime::fromString(date.c_str(), "yyyy-MM-ddZ"));
+			}
+			else if (date.has('+'))
+			{
+				QDateTime::operator=(QDateTime::fromString(date.c_str(), "yyyy-MM-dd+hh:mm"));
 			}
 			else
 			{
 				QDateTime::operator=(QDateTime::fromString(date.c_str(), "yyyy-MM-dd hh:mm:ss"));
 			}
 		}
-		else
-		{
-    	throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, date, "Invalid date time string");			
-		}
+		
 		if (!QDateTime::isValid())
 		{
     	throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, date, "Invalid date time string");			
@@ -215,16 +221,13 @@ namespace OpenMS
 		year = temp_date.year();
 	}
 
-	void DateTime::getDate(String& date) const
+	String DateTime::getDate() const
 	{
 		if (QDateTime::isValid())
 		{
-			date = QDateTime::date().toString("yyyy-MM-dd").toStdString();
+			return QDateTime::date().toString("yyyy-MM-dd");
 		}
-		else
-		{
-			date = "0000-00-00";
-		}
+		return "0000-00-00";
 	}
 
 	void DateTime::getTime(UInt& hour, UInt& minute, UInt& second) const
@@ -236,17 +239,13 @@ namespace OpenMS
 		second = temp_time.second();
 	}
 
-	void DateTime::getTime(String& time) const
+	String DateTime::getTime() const
 	{
 		if (QDateTime::isValid())
 		{
-			time = QDateTime::time().toString("hh:mm:ss").toStdString();
+			return QDateTime::time().toString("hh:mm:ss");
 		}
-		else
-		{
-			time = "00:00:00";
-		}
-			
+		return "00:00:00";
 	}
 			
 } // namespace OpenMS

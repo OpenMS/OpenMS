@@ -67,7 +67,6 @@ namespace OpenMS
 
 		String
 			line,
-			buffer,
 			score_type,
 			version,
 			identifier,
@@ -100,8 +99,7 @@ namespace OpenMS
 			protein_identification.setSearchEngine("PepNovo");
 			protein_identification.setSearchEngineVersion(version);
 		}
-		datetime.getDate(buffer);
-		identifier = protein_identification.getSearchEngine() + "_" + buffer;
+		identifier = protein_identification.getSearchEngine() + "_" + datetime.getDate();
 		protein_identification.setIdentifier(identifier);
 
 		while ( getline(result_file, line) )

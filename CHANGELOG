@@ -74,7 +74,7 @@ Detailed list of changes to specific OpenMS classes:
   - TOPPBase: Print revison info (if meaningful).
   - MetaInfo: uses double precision now.
   - Date: get() now returns a string instead of modifying a string reference
-  - DateTime: get() now returns a string instead of modifying a string reference
+  - DateTime: get(), getDate() and getTime() now return a string instead of modifying a string reference
   - MSExperiment: The date is now a DateTime object
 
 ------------------------------------------------------------------------------------------

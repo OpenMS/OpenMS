@@ -150,6 +150,7 @@
         <cvParam cvRef="MS" accession="MS:1000033" name="deisotoping" value=""/>
         <cvParam cvRef="MS" accession="MS:1000629" name="low intensity threshold" value="5.9"/>
         <cvParam cvRef="MS" accession="MS:1000631" name="high intensity threshold" value="10.9"/>
+        <cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2001-02-03+04:05"/>
   			<userParam name="p1" value="value1"/>
       </processingMethod>
       <processingMethod order="2">
