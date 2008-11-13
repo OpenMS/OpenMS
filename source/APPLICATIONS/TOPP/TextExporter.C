@@ -67,27 +67,47 @@ namespace OpenMS
 	 	const FeatureHandle &ref_;
 	};
 
+	// There is no standard how to print a nan (not-a-number) value.  So we do
+	// this on our own.
+	namespace 
+	{
+		const char nan[] = "nan"; // that's what Linux GCC uses, and gnuplot understands.
+
+		template < typename NumberT >
+		std::ostream & printValueOrNan( std::ostream & os, NumberT thing )
+		{
+			if ( !isnan(thing) )
+			{
+				return os << thing;
+			}
+			else
+			{
+				return os << nan;
+			}
+		}
+	}
+
 	/// Output operator for a FeatureHandlePrinter.
 	std::ostream & operator << ( std::ostream& os, const FeatureHandlePrinter& rhs)
 	{
 		const UInt exponent_extra_digits = 6;
 		const UInt charge_digits = 5;
 		const unsigned prec_save = os.precision();
-		return os
-			<< std::setprecision(writtenDigits<FeatureHandle::CoordinateType>())
-			<< std::setw(writtenDigits<FeatureHandle::CoordinateType>()+exponent_extra_digits)
-			<< rhs.ref_.getRT()
-			<< ' '
-			<< std::setw(writtenDigits<FeatureHandle::CoordinateType>()+exponent_extra_digits)
-			<< rhs.ref_.getMZ()
-			<< ' '
-			<< std::setprecision(writtenDigits<FeatureHandle::IntensityType>())
-			<< std::setw(writtenDigits<FeatureHandle::IntensityType>()+exponent_extra_digits)
-			<< rhs.ref_.getIntensity()
-			<< ' '
-			<< std::setw(charge_digits)
-			<< rhs.ref_.getCharge()
-			<< std::setprecision(prec_save);
+		os << std::setprecision(writtenDigits<FeatureHandle::CoordinateType>())
+			 << std::setw(writtenDigits<FeatureHandle::CoordinateType>()+exponent_extra_digits);
+		printValueOrNan(os,rhs.ref_.getRT());
+		os << ' '
+			 << std::setw(writtenDigits<FeatureHandle::CoordinateType>()+exponent_extra_digits);
+		printValueOrNan(os,rhs.ref_.getMZ());
+		os << ' '
+			 << std::setprecision(writtenDigits<FeatureHandle::IntensityType>())
+			 << std::setw(writtenDigits<FeatureHandle::IntensityType>()+exponent_extra_digits);
+		printValueOrNan(os,rhs.ref_.getIntensity());
+		os << ' '
+			 << std::setw(charge_digits)
+			 << rhs.ref_.getCharge()
+			 << std::setprecision(prec_save);
+		return os;
 	}
 
 	/// Wrapper class to implement printing of ConsensusFeature
@@ -103,21 +123,21 @@ namespace OpenMS
 		const UInt exponent_extra_digits = 6;
 		const UInt charge_digits = 5;
 		const unsigned prec_save = os.precision();
-		return os
-			<< std::setprecision(writtenDigits<FeatureHandle::CoordinateType>())
-			<< std::setw(writtenDigits<FeatureHandle::CoordinateType>()+exponent_extra_digits)
-			<< rhs.ref_.getRT()
-			<< ' '
-			<< std::setw(writtenDigits<FeatureHandle::CoordinateType>()+exponent_extra_digits)
-			<< rhs.ref_.getMZ()
-			<< ' '
-			<< std::setprecision(writtenDigits<FeatureHandle::IntensityType>())
-			<< std::setw(writtenDigits<FeatureHandle::IntensityType>()+exponent_extra_digits)
-			<< rhs.ref_.getIntensity()
-			<< ' '
-			<< std::setw(charge_digits)
-			<< rhs.ref_.getCharge()
-			<< std::setprecision(prec_save);
+		os << std::setprecision(writtenDigits<FeatureHandle::CoordinateType>())
+			 << std::setw(writtenDigits<FeatureHandle::CoordinateType>()+exponent_extra_digits);
+		printValueOrNan(os,rhs.ref_.getRT());
+		os << ' '
+			 << std::setw(writtenDigits<FeatureHandle::CoordinateType>()+exponent_extra_digits);
+		printValueOrNan(os,rhs.ref_.getMZ());
+		os << ' '
+			 << std::setprecision(writtenDigits<FeatureHandle::IntensityType>())
+			 << std::setw(writtenDigits<FeatureHandle::IntensityType>()+exponent_extra_digits);
+		printValueOrNan(os,rhs.ref_.getIntensity());
+		os << ' '
+			 << std::setw(charge_digits)
+			 << rhs.ref_.getCharge()
+			 << std::setprecision(prec_save);
+		return os;
 	}
 
 	class TOPPTextExporter
