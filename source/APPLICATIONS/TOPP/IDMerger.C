@@ -63,7 +63,7 @@ class TOPPIDMerger
  protected:
 	void registerOptionsAndFlags_()
 	{
-		registerStringOption_("in","<files>","","two or more IdXML files separated by comma (without blanks)");
+		registerStringList_("in","<files>",StringList(),"two or more IdXML files separated by blanks");
 		registerOutputFile_("out","<file>","","output file ");
 		setValidFormats_("out",StringList::create("IdXML"));
 	}
@@ -75,10 +75,8 @@ class TOPPIDMerger
 		//-------------------------------------------------------------
 	
 		//file list
-		String file_list = getStringOption_("in");
+		StringList file_names = getStringList_("in");
 		
-		vector<String> file_names;
-		file_list.split(',', file_names);
 		if (file_names.size() < 2)
 		{
 			writeLog_("Less than two filenames given. Aborting!");

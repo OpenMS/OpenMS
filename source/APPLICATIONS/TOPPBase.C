@@ -250,17 +250,17 @@ namespace OpenMS
 						os << "              <xs:simpleType>" << endl;
 						if (it->value.valueType()==DataValue::STRING_LIST)
 						{
-							os << "                <xs:restriction base=\"xs:string\">" << endl;
+							os << "                <xs:restriction base=\"xs:stringlist\">" << endl;
 							os << "                  <xs:pattern value=\"^$|[^,](,[^,]+)*\"/>" << endl;
 						}
 						else if (it->value.valueType()==DataValue::INT_LIST)
 						{
-							os << "                <xs:restriction base=\"xs:string\">" << endl;
+							os << "                <xs:restriction base=\"xs:intlist\">" << endl;
 							os << "                  <xs:pattern value=\"^$|[^,](,[^,]+)*\"/>" << endl;
 						}
 						else if (it->value.valueType()==DataValue::DOUBLE_LIST)
 						{
-							os << "                <xs:restriction base=\"xs:string\">" << endl;
+							os << "                <xs:restriction base=\"xs:doublelist\">" << endl;
 							os << "                  <xs:pattern value=\"^$|[^,](,[^,]+)*\"/>" << endl;
 						}
 						else if (it->value.valueType()==DataValue::STRING_VALUE)

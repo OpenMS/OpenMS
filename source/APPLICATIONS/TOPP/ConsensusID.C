@@ -78,7 +78,7 @@ class TOPPConsensusID
 
 		void registerOptionsAndFlags_()
 		{
-			registerStringOption_("ids","<file>","","one or more IdXML files separated by comma (without blanks)");
+			registerStringList_("ids","<file>",StringList(),"one or more IdXML files separated by blanks");
 			registerOutputFile_("out","<file>","","output file ");
 			setValidFormats_("out",StringList::create("IdXML"));
 			registerInputFile_("features","<file>","","feature input file. If this file is given, all identifications\n"
@@ -96,19 +96,12 @@ class TOPPConsensusID
 			//-------------------------------------------------------------
 			// parameter handling
 			//-------------------------------------------------------------
-			
-			vector<String> ids;
-			String tmp = getStringOption_("ids");
-			tmp.split(',', ids);
-			if (ids.size() == 0)
-			{
-				ids.push_back(tmp);
-			}
+			StringList ids;
+			ids = getStringList_("ids");
 			for(UInt i = 0; i < ids.size(); ++i)
 			{
 				inputFileReadable_(ids[i]);
 			}
-	
 			String out = getStringOption_("out");
 
 			String feature_file = getStringOption_("features");
@@ -135,7 +128,6 @@ class TOPPConsensusID
 			alg_param.setValue("number_of_runs",(UInt)ids.size());
 			writeDebug_("Parameters passed to ConsensusID", alg_param, 3);
 			consensus.setParameters(alg_param);
-
 			IdXMLFile ax_file;
 			vector<ProteinIdentification> prot_ids;
 			vector<PeptideIdentification> all_ids;
