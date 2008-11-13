@@ -104,10 +104,10 @@
       </sourceFileRefList>
       <targetList count="2">
         <target>
-          <cvParam cvRef="MS" accession="MS:1000743" name="mass-to-charge ratio" value="1000"/>
+          <cvParam cvRef="MS" accession="MS:1000744" name="selected m/z" value="1000"/>
         </target>
         <target>
-          <cvParam cvRef="MS" accession="MS:1000743" name="mass-to-charge ratio" value="1200"/>
+          <cvParam cvRef="MS" accession="MS:1000744" name="selected m/z" value="1200"/>
         </target>
       </targetList>
     </acquisitionSettings>

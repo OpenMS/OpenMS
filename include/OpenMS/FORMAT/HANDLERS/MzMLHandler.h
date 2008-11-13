@@ -1048,7 +1048,7 @@ namespace OpenMS
 			//------------------------- selectedIon ----------------------------
 			else if(parent_tag=="selectedIon")
 			{
-				if (accession=="MS:1000743") //mass-to-charge ratio
+				if (accession=="MS:1000744") //selected m/z
 				{
 					spec_.getPrecursorPeak().getPosition()[0] = value.toDouble();
 				}
@@ -3001,7 +3001,7 @@ namespace OpenMS
 					//--------------------------------------------------------------------------------------------
 					os	<< "							<selectedIonList count=\"1\">\n";
 					os	<< "								<selectedIon>\n";
-					os  << "									<cvParam cvRef=\"MS\" accession=\"MS:1000743\" name=\"mass-to-charge ratio\" value=\"" << spec.getPrecursorPeak().getMZ() << "\"/>\n";
+					os  << "									<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected m/z\" value=\"" << spec.getPrecursorPeak().getMZ() << "\"/>\n";
 					os  << "									<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << spec.getPrecursorPeak().getCharge() << "\"/>\n";
 					os  << "									<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"intensity\" value=\"" << spec.getPrecursorPeak().getIntensity() << "\"/>\n";
 					for (UInt j=0; j<spec.getPrecursorPeak().getPossibleChargeStates().size(); ++j)

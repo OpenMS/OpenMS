@@ -10,7 +10,7 @@ remark: coverage: Mass spectrometer output files
 remark: creator: Eric Deutsch <edeutsch@systemsbiology.org>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group
 remark: When appropriate the definition and synonyms of a term are reported exactly as in the chapter 12 of IUPAC orange book. See http://www.iupac.org/projects/2003/2003-056-2-500.html.
-import: unit.obo
+import: http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo
 
 [Term]
 id: MS:0000000
@@ -283,6 +283,7 @@ is_obsolete: true
 id: MS:1000040
 name: m/z
 def: "Three-character symbol m/z is used to denote the quantity formed by dividing the mass of an ion in unified atomic mass units by its charge number (regardless of sign). The symbol is written in italicized lower case letters with no spaces. Note 1: The term mass-to-charge-ratio is deprecated. Mass-to-charge ratio has been used for the abscissa of a mass spectrum, although the quantity measured is not the quotient of the ion's mass to its electric charge. The three-character symbol m/z is recommended for the quantity that is the independent variable in a mass spectrum Note 2: The proposed unit thomson (Th) is deprecated." [PSI:MS]
+synonym: "mass-to-charge ratio" EXACT []
 synonym: "Th" EXACT []
 synonym: "thomson" EXACT []
 is_a: MS:1000460 ! unit
@@ -3463,9 +3464,10 @@ is_a: MS:1000691 ! Applied Biosystems software
 
 [Term]
 id: MS:1000538
-name: Wolf
-def: "A software for converting Waters raw directory format to mzXML or mzML. Wolf was originally developed at the Institute for Systems Biology." [PSI:MS]
+name: massWolf
+def: "A software for converting Waters raw directory format to mzXML or mzML. massWolf was originally developed at the Institute for Systems Biology." [PSI:MS]
 is_a: MS:1000531 ! software
+synonym: "wolf" EXACT []
 
 [Term]
 id: MS:1000539
@@ -4727,26 +4729,32 @@ is_a: MS:1000560 ! source file type
 
 [Term]
 id: MS:1000743
-name: mass-to-charge ratio
+name: TSQ Quantum Ultra AM
+def: "Thermo Scientific TSQ Quantum Ultra AM." [PSI:MS]
+is_a: MS:1000494 ! Thermo Scientific instrument model
+
+[Term]
+id: MS:1000744
+name: selected m/z
 def: "Mass-to-charge ratio of the ion selected for fragmentation" [PSI:MS]
 is_a: MS:1000455 ! ion selection attribute
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 relationship: has_units MS:1000040 ! m/z
 
 [Term]
-id: MS:1000744
+id: MS:1000745
 name: retention time alignment
 def: "The correction of the spectrum scan times, as used e.g. in label-free proteomics." [PSI:MS]
 is_a: MS:1000543 ! data processing action
 
 [Term]
-id: MS:1000745
+id: MS:1000746
 name: high intensity data point removal
 def: "The removal of very high intensity data points." [PSI:MS]
 is_a: MS:1000543 ! data processing action
 
 [Term]
-id: MS:1000746
+id: MS:1000747
 name: completion time
 def: "The time that a data processing action was finished." [PSI:MS]
 is_a: MS:1000630 ! data processing parameter

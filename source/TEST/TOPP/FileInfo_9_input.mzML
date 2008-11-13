@@ -149,10 +149,10 @@
       </sourceFileRefList>
       <targetList count="2">
         <target>
-          <cvParam cvRef="MS" accession="MS:1000743" name="mass-to-charge ratio" value="1000"/>
+          <cvParam cvRef="MS" accession="MS:1000744" name="selected m/z" value="1000"/>
         </target>
         <target>
-          <cvParam cvRef="MS" accession="MS:1000743" name="mass-to-charge ratio" value="1200"/>
+          <cvParam cvRef="MS" accession="MS:1000744" name="selected m/z" value="1200"/>
         </target>
       </targetList>
     </acquisitionSettings>
@@ -237,7 +237,7 @@
             <precursor spectrumRef="S19">
               <selectedIonList count="1">
                 <selectedIon>
-                  <cvParam cvRef="MS" accession="MS:1000743" name="mass-to-charge ratio" value="5.55"/>
+                  <cvParam cvRef="MS" accession="MS:1000744" name="selected m/z" value="5.55"/>
                   <cvParam cvRef="MS" accession="MS:1000042" name="intensity" value="120053"/>
                   <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
                 </selectedIon>
