@@ -82,7 +82,7 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
   		
 	TEST_EQUAL(exp.size(),4)
 	//run
-	TEST_EQUAL(exp.getIdentifier(),"OpenMS_document_id")
+	TEST_EQUAL(exp.getIdentifier(),"document_accession")
 	TEST_EQUAL(exp.getDateTime().get(),"2007-06-27 15:23:45")
 	//contacts
 	TEST_EQUAL(exp.getContacts().size(),2)
@@ -312,6 +312,7 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	
 	//-------------------------- userParam --------------------------
 	//run
+  TEST_STRING_EQUAL(exp.getMetaValue("mzml_id"),"document_id")
   TEST_EQUAL(exp.getMetaValue("flag").valueType(),DataValue::STRING_VALUE)
   TEST_STRING_EQUAL((String)exp.getMetaValue("flag"),"")
   TEST_EQUAL(exp.getMetaValue("string").valueType(),DataValue::STRING_VALUE)
@@ -416,7 +417,7 @@ CHECK([EXTRA] load only meta data)
 	file.load("data/MzMLFile_1.mzML",exp);
 
 	TEST_EQUAL(exp.size(),0)
-	TEST_EQUAL(exp.getIdentifier(),"OpenMS_document_id");
+	TEST_EQUAL(exp.getIdentifier(),"document_accession");
 	TEST_EQUAL(exp.getContacts().size(),2)
 	TEST_EQUAL(exp.getSourceFiles().size(),2);
 	TEST_EQUAL(exp.getInstrument().getMassAnalyzers().size(),2)

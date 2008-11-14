@@ -426,11 +426,17 @@ namespace OpenMS
 				{
 					warning("The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
 				}
+				//handle file accession
+				String accession;
+				if (optionalAttributeAsString_(accession, attributes, s_accession))
+				{
+					exp_->setIdentifier(accession);
+				}
 				//handle file id
 				String id;
 				if (optionalAttributeAsString_(id, attributes, s_id))
 				{
-					exp_->setIdentifier(id);
+					exp_->setMetaValue("mzml_id",id);
 				}
 			}
 			else if (tag=="contact")
@@ -2109,7 +2115,7 @@ namespace OpenMS
 			logger_.startProgress(0,exp.size(),"storing mzML file");
 			
 			os	<< "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
-					<< "<mzML xmlns=\"http://psi.hupo.org/schema_revision/mzML_1.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/schema_revision/mzML_1.0.0 mzML1.0.0.xsd\" id=\"" << exp.getIdentifier() << "\" version=\"1.0\">\n";
+					<< "<mzML xmlns=\"http://psi.hupo.org/schema_revision/mzML_1.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/schema_revision/mzML_1.0.0 mzML1.0.0.xsd\" accession=\"" << exp.getIdentifier() << "\" version=\"1.0\">\n";
 			//--------------------------------------------------------------------------------------------
 			// CV list
 			//--------------------------------------------------------------------------------------------

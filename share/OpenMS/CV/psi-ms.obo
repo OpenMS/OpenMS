@@ -4,10 +4,10 @@ saved-by: David Sparkman
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 1.5.0
-remark: release date: 2008-13-11
+remark: version: 1.7.0
+remark: release date: 2008-13-14
 remark: coverage: Mass spectrometer output files
-remark: creator: Eric Deutsch <edeutsch@systemsbiology.org>
+remark: creator: Matt Chambers <matt.chambers <@> vanderbilt.edu>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group
 remark: When appropriate the definition and synonyms of a term are reported exactly as in the chapter 12 of IUPAC orange book. See http://www.iupac.org/projects/2003/2003-056-2-500.html.
 import: http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo
@@ -156,7 +156,7 @@ relationship: part_of MS:1000441 ! scan
 id: MS:1000021
 name: reflectron state
 def: "Status of the reflectron, turned on or off." [PSI:MS]
-relationship: part_of MS:1000451 ! mass analyzer
+is_a: MS:1000480 ! mass analyzer attribute
 
 [Term]
 id: MS:1000022
@@ -1018,7 +1018,7 @@ is_a: MS:1000125 ! Thermo Finnigan instrument model
 id: MS:1000155
 name: ELEMENT2
 def: "ThermoFinnigan ELEMENT2 MS." [PSI:MS]
-is_a: MS:1000492 ! Thermo Electron instrument model
+relationship: part_of MS:1000479 ! purgatory
 
 [Term]
 id: MS:1000156
@@ -4075,7 +4075,7 @@ is_a: MS:1000126 ! Waters instrument model
 id: MS:1000633
 name: possible charge state
 def: "A possible charge state of the ion in a situation where the charge of an ion is known to be one of several possible values rather than a completely unknown value or determined to be a specific charge with reasonable certainty." [PSI:MS]
-xref: value-type:xsd\:int "The allowed value-type for this CV term."
+xref: value-type:xsd\:int" The allowed value-type for this CV term."
 is_a: MS:1000455 ! ion selection attribute
 
 [Term]
@@ -4759,6 +4759,121 @@ name: completion time
 def: "The time that a data processing action was finished." [PSI:MS]
 is_a: MS:1000630 ! data processing parameter
 xref: value-type:xsd\:date "The allowed value-type for this CV term."
+
+[Term]
+id: MS:1000748
+name: SSQ 7000
+def: "ThermoFinnigan SSQ 7000 MS." [PSI:MS]
+is_a: MS:1000493 ! Finnigan MAT instrument model
+
+[Term]
+id: MS:1000749
+name: TSQ 7000
+def: "ThermoFinnigan TSQ 7000 MS." [PSI:MS]
+is_a: MS:1000493 ! Finnigan MAT instrument model
+
+[Term]
+id: MS:1000750
+name: TSQ
+def: "ThermoFinnigan TSQ MS." [PSI:MS]
+is_a: MS:1000493 ! Finnigan MAT instrument model
+
+[Term]
+id: MS:1000751
+name: TSQ Quantum Ultra
+def: "Thermo Scientific TSQ Quantum Ultra." [PSI:MS]
+is_a: MS:1000494 ! Thermo Scientific instrument model
+
+[Term]
+id: MS:1000752
+name: TOPP software
+def: "TOPP (The OpenMS proteomics pipeline) software." [PSI:MS]
+is_a: MS:1000531 ! software
+
+[Term]
+id: MS:1000753
+name: BaselineFilter
+def: "TOPP tool - Removes the baseline from profile spectra using a top-hat filter." [PSI:MS]
+is_a: MS:1000752 ! TOPP software
+
+[Term]
+id: MS:1000754
+name: DBExporter
+def: "TOPP tool - Exports data from an OpenMS database to a file." [PSI:MS]
+is_a: MS:1000752 ! TOPP software
+
+[Term]
+id: MS:1000755
+name: DBImporter
+def: "TOPP tool - Imports data to an OpenMS database." [PSI:MS]
+is_a: MS:1000752 ! TOPP software
+
+[Term]
+id: MS:1000756
+name: FileConverter
+def: "TOPP tool - Converts between different MS file formats." [PSI:MS]
+is_a: MS:1000752 ! TOPP software
+
+[Term]
+id: MS:1000757
+name: FileFilter
+def: "TOPP tool - Extracts or manipulates portions of data from peak, feature or consensus feature files." [PSI:MS]
+is_a: MS:1000752 ! TOPP software
+
+[Term]
+id: MS:1000758
+name: FileMerger
+def: "TOPP tool - Merges several MS files into one file." [PSI:MS]
+is_a: MS:1000752 ! TOPP software
+
+[Term]
+id: MS:1000759
+name: InternalCalibration
+def: "TOPP tool - Applies an internal calibration." [PSI:MS]
+is_a: MS:1000752 ! TOPP software
+
+[Term]
+id: MS:1000760
+name: MapAligner
+def: "TOPP tool - Corrects retention time distortions between maps." [PSI:MS]
+is_a: MS:1000752 ! TOPP software
+
+[Term]
+id: MS:1000761
+name: MapNormalizer
+def: "TOPP tool - Normalizes peak intensities in an MS run." [PSI:MS]
+is_a: MS:1000752 ! TOPP software
+
+[Term]
+id: MS:1000762
+name: NoiseFilter
+def: "TOPP tool - Removes noise from profile spectra by using different smoothing techniques." [PSI:MS]
+is_a: MS:1000752 ! TOPP software
+
+[Term]
+id: MS:1000763
+name: PeakPicker
+def: "TOPP tool - Finds mass spectrometric peaks in profile mass spectra." [PSI:MS]
+is_a: MS:1000752 ! TOPP software
+
+[Term]
+id: MS:1000764
+name: Resampler
+def: "TOPP tool - Transforms an LC/MS map into a resampled map or a png image." [PSI:MS]
+is_a: MS:1000752 ! TOPP software
+
+[Term]
+id: MS:1000765
+name: SpectraFilter
+def: "TOPP tool - Applies a filter to peak spectra." [PSI:MS]
+is_a: MS:1000752 ! TOPP software
+
+[Term]
+id: MS:1000766
+name: TOFCalibration
+def: "TOPP tool - Applies time of flight calibration." [PSI:MS]
+is_a: MS:1000752 ! TOPP software
+
 
 [Typedef]
 id: has_units
