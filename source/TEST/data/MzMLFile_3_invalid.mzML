@@ -251,9 +251,9 @@
                   <cvParam cvRef="MS" accession="MS:1000744" name="selected m/z" value="5.55"/>
                   <cvParam cvRef="MS" accession="MS:1000042" name="intensity" value="120053"/>
                   <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-                  <cvParam cvRef="MS" accession="MS:1000633" name="charge state" value="1"/>
-                  <cvParam cvRef="MS" accession="MS:1000633" name="charge state" value="3"/>
-                  <cvParam cvRef="MS" accession="MS:1000633" name="charge state" value="4"/>
+                  <cvParam cvRef="MS" accession="MS:1000633" name="possible charge state" value="1"/>
+                  <cvParam cvRef="MS" accession="MS:1000633" name="possible charge" value="3"/>
+                  <cvParam cvRef="MS" accession="MS:1000633" name="possible charge state" value="4"/>
         					<userParam name="siname" value="selectedion1"/>
                 </selectedIon>
               </selectedIonList>

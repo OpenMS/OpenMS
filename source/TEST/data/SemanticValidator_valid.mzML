@@ -354,7 +354,7 @@
         <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value=""/>
         <userParam name="name" value="spectrum4"/>
         <spectrumDescription>
-          <cvParam cvRef="MS" accession="MS:1000128" name="centroid mass spectrum" value=""/>
+          <cvParam cvRef="MS" accession="MS:1000128" name="profile mass spectrum" value=""/>
           <userParam name="sdname" value="spectrumdescription4"/>
         	<scan instrumentConfigurationRef="LCQDeca">
             <cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.4" unitCvRef="MS" unitAccession="MS:1000038" unitName="minute"/>

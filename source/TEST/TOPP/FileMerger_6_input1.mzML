@@ -6,7 +6,7 @@
   </cvList>
   <fileDescription>
     <fileContent>
-      <cvParam cvRef="MS" accession="MS:1000579" name="MSn spectrum" value=""/>
+      <cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
     </fileContent>
     <sourceFileList count="2">
       <sourceFile id="sf1" name="tiny1.RAW" location="file:///F:/data/Exp01">
@@ -122,7 +122,7 @@
     </sourceFileRefList>
     <spectrumList count="1">
       <spectrum index="0" id="S19" nativeID="19" defaultArrayLength="15">
-        <cvParam cvRef="MS" accession="MS:1000579" name="MSn spectrum" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
         <userParam name="name" value="spectrum1"/>
         <spectrumDescription>
         	<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>

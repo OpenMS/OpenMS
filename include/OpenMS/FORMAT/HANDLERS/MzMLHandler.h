@@ -32,6 +32,7 @@
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
@@ -187,7 +188,7 @@ namespace OpenMS
 			/// Id of the current list. Used for referencable param group, source file, sample, software, ...
 			String current_id_;
 			/// The referencable param groups: id => array (accession, value)
-			Map<String, std::vector< std::pair<String,String> > > ref_param_;
+			Map<String, std::vector< SemanticValidator::CVTerm > > ref_param_;
 			/// The source files: id => SourceFile
 			Map<String, SourceFile> source_files_;
 			/// The sample list: id => Sample
@@ -216,7 +217,7 @@ namespace OpenMS
 			void fillData_();			
 
 			/// Handles CV terms
-			void handleCVParam_(const String& parent_tag, const String& accession, const String& value);
+			void handleCVParam_(const String& parent_tag, const String& accession, const String& name, const String& value);
 
 			/// Handles user terms
 			void handleUserParam_(const String& parent_tag, const String& name, const String& type, const String& value);
@@ -353,7 +354,7 @@ namespace OpenMS
 			{
 				String value = "";
 				optionalAttributeAsString_(value, attributes, s_value);
-				handleCVParam_(parent_tag, attributeAsString_(attributes, s_accession), value);
+				handleCVParam_(parent_tag, attributeAsString_(attributes, s_accession), attributeAsString_(attributes, s_name), value);
 			}
 			else if (tag=="userParam")
 			{
@@ -379,7 +380,7 @@ namespace OpenMS
 				String ref = attributeAsString_(attributes, s_ref);
 				for (UInt i=0; i<ref_param_[ref].size(); ++i)
 				{
-					handleCVParam_(parent_tag,ref_param_[ref][i].first,ref_param_[ref][i].second);
+					handleCVParam_(parent_tag,ref_param_[ref][i].accession,ref_param_[ref][i].name,ref_param_[ref][i].value);
 				}
 			}
 			else if (tag=="acquisition")
@@ -779,13 +780,26 @@ namespace OpenMS
 		} //fillData_
 		
 		template <typename MapType>
-		void MzMLHandler<MapType>::handleCVParam_(const String& parent_tag, const String& accession, const String& value)
+		void MzMLHandler<MapType>::handleCVParam_(const String& parent_tag, const String& accession, const String& name, const String& value)
 		{
 			//Error checks of CV values
 			if (cv_.exists(accession))
 			{
 				const ControlledVocabulary::CVTerm& term = cv_.getTerm(accession);
 				//obsolete CV terms
+				if (term.obsolete)
+				{
+					warning(String("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
+				}
+				//check if term name and parsed name match
+				String parsed_name = name;
+				parsed_name.trim();
+				String correct_name = term.name;
+				correct_name.trim();
+				if (parsed_name!=correct_name)
+				{
+					warning(String("Name of CV term not correct: '") + term.id + " - " + parsed_name + "' should be '" + correct_name + "'");
+				}
 				if (term.obsolete)
 				{
 					warning(String("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
@@ -1062,7 +1076,11 @@ namespace OpenMS
 			//------------------------- referenceableParamGroup ----------------------------
 			else if(parent_tag=="referenceableParamGroup")
 			{
-				ref_param_[current_id_].push_back(std::make_pair(accession,value));
+				SemanticValidator::CVTerm term;
+				term.accession = accession;
+				term.name = name;
+				term.value = value;
+				ref_param_[current_id_].push_back(term);
 			}
 			//------------------------- selectedIon ----------------------------
 			else if(parent_tag=="selectedIon")

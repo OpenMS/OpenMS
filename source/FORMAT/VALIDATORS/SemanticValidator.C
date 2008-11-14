@@ -411,8 +411,21 @@ namespace OpenMS
 			{
 				errors_.push_back(String("CV term used in invalid element: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
 			}
+			
+			//check if term accession and term name match
+			if (cv_.exists(parsed_term.accession))
+			{
+				String parsed_name = parsed_term.name;
+				parsed_name.trim();
+				String correct_name = cv_.getTerm(parsed_term.accession).name;
+				correct_name.trim();
+				if (parsed_name!=correct_name)
+				{
+					errors_.push_back(String("Name of CVTerm not correct: '") + parsed_term.accession + " - " + parsed_name + "' should be '" + correct_name + "'");
+				}
+			}
 
-      if (check_term_value_types_)
+      if (check_term_value_types_) //check values
       {
         // get value, if it exists
         if (has_value_attribute && value != "")

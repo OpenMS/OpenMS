@@ -543,10 +543,6 @@ CHECK( bool isSemanticallyValid(const String& filename, StringList& errors, Stri
   file.store(tmp_filename,e);
   TEST_EQUAL(file.isSemanticallyValid(tmp_filename, errors, warnings),true);
 	TEST_EQUAL(errors.size(),0)
-	for (UInt i=0; i< errors.size(); ++i)
-	{
-		cout << "Error - " << errors[i] << endl;
-	}
 	TEST_EQUAL(warnings.size(),0)
 	
 	//written filled file
@@ -555,10 +551,6 @@ CHECK( bool isSemanticallyValid(const String& filename, StringList& errors, Stri
   file.store(tmp_filename,e);
   TEST_EQUAL(file.isSemanticallyValid(tmp_filename, errors, warnings),true);
 	TEST_EQUAL(errors.size(),0)
-	for (UInt i=0; i< errors.size(); ++i)
-	{
-		cout << "Error - " << errors[i] << endl;
-	}
 	TEST_EQUAL(warnings.size(),0)
 
 	//valid file
@@ -573,7 +565,8 @@ CHECK( bool isSemanticallyValid(const String& filename, StringList& errors, Stri
 	
 	//invalid file
 	TEST_EQUAL(file.isSemanticallyValid("data/MzMLFile_3_invalid.mzML", errors, warnings),false)
-	
+	TEST_EQUAL(errors.size(),12)
+	TEST_EQUAL(warnings.size(),2)
 RESULT
 
 /////////////////////////////////////////////////////////////
