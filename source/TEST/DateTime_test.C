@@ -265,13 +265,8 @@ CHECK((void setTime(const String& date) throw(Exception::ParseError)))
 
 RESULT
 
-CHECK((void now()))
-	DateTime date1;
-	DateTime date2;
-	
-	date1.now();
-	TEST_EQUAL(date1 != date2, true)
-
+CHECK(static DateTime now())
+  TEST_EQUAL(DateTime::now().isValid(), true)
 RESULT
 
 CHECK((~DateTime()))

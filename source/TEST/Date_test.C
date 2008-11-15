@@ -158,8 +158,8 @@ CHECK((void clear()))
   TEST_EQUAL(d.get(),"0000-00-00");
 RESULT
 
-CHECK((void today()))
-NOT_TESTABLE
+CHECK((static Date today()))
+  TEST_EQUAL(Date::today().isValid(), true)
 RESULT
 
 /////////////////////////////////////////////////////////////

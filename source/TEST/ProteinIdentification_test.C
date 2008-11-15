@@ -50,10 +50,7 @@ float protein_significance_threshold = 63.2;
 std::vector<ProteinHit> protein_hits;
 ProteinHit protein_hit;
 ProteinIdentification protein_identification;
-DateTime date;
 MascotXMLFile xml_file;
-
-date.now();
 
 protein_hits.push_back(protein_hit);
 
@@ -70,7 +67,7 @@ RESULT
 
 CHECK((ProteinIdentification(const ProteinIdentification &source)))
 	ProteinIdentification hits;
-	hits.setDateTime(date);
+	hits.setDateTime(DateTime::now());
 	hits.setSignificanceThreshold(protein_significance_threshold);
 	hits.insertHit(protein_hit);
 	hits.setMetaValue("label",17);
@@ -102,7 +99,7 @@ RESULT
 
 CHECK((ProteinIdentification& operator=(const ProteinIdentification& source)))
 	ProteinIdentification hits;
-	hits.setDateTime(date);
+	hits.setDateTime(DateTime::now());
 	hits.setSignificanceThreshold(protein_significance_threshold);
 	hits.insertHit(protein_hit);
 	hits.setIdentifier("id");
@@ -134,7 +131,7 @@ CHECK((bool operator == (const ProteinIdentification& rhs) const))
 	ProteinIdentification search2;
 	TEST_EQUAL(search1 == search2, true)
 	
-	search1.setDateTime(date);
+	search1.setDateTime(DateTime::now());
 	TEST_EQUAL(search1 == search2, false)	
 	search1 = search2;
 		
@@ -175,7 +172,7 @@ CHECK((bool operator != (const ProteinIdentification& rhs) const))
 	ProteinIdentification search2;
 	TEST_EQUAL(search1 != search2, false)
 	
-	search1.setDateTime(date);
+	search1.setDateTime(DateTime::now());
 	TEST_EQUAL(search1 != search2, true)	
 
 	//rest does not need to be tested, as it is tested in the operator== test implicitly!
@@ -183,9 +180,10 @@ RESULT
 
 CHECK((const DateTime& getDateTime() const))
 	ProteinIdentification hits;
+	DateTime date = DateTime::now();
 	hits.setDateTime(date);
 	const DateTime& date_time = hits.getDateTime();
-	TEST_EQUAL(date_time == date, true)  
+	TEST_EQUAL(date_time == date, true)
 RESULT
 
 CHECK((Real getSignificanceThreshold() const))
@@ -210,6 +208,7 @@ RESULT
 
 CHECK((void setDateTime(const DateTime& date)))
 	ProteinIdentification hits;
+	DateTime date = DateTime::now();
 	hits.setDateTime(date);
 	TEST_EQUAL(hits.getDateTime() == date, true)
 RESULT

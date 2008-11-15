@@ -93,9 +93,9 @@ namespace OpenMS
 		}
 	}
 
-	void Date::today()
+	Date Date::today()
 	{
-		QDate::operator=(QDate::currentDate());
+		return QDate::currentDate();
 	}
 
 	String Date::get() const

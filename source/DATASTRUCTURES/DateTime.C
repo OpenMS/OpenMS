@@ -115,9 +115,9 @@ namespace OpenMS
 		}
 	}
 
-	void DateTime::now()
+	DateTime DateTime::now()
 	{
-		QDateTime::operator=(QDateTime::currentDateTime());
+		return QDateTime::currentDateTime();
 	}
 
 	String DateTime::get() const

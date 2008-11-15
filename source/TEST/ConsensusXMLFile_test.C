@@ -177,14 +177,12 @@ CHECK([EXTRA] ProteinIdentification PeptideIdentification I/O)
 	protein_hits.push_back(protein_hit);
 
 	ProteinIdentification protein_identification;
-	DateTime date;
-	date.now();
 
 	ConsensusMap cons_map;
 	
 	{
 		ProteinIdentification hits;
-		hits.setDateTime(date);
+		hits.setDateTime(DateTime::now());
 		hits.setSignificanceThreshold(56.7643);
 		hits.insertHit(protein_hits[0]);
 		hits.insertHit(protein_hits[1]);

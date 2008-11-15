@@ -74,8 +74,7 @@ namespace OpenMS
 			sequence,
 			sequence_with_mods;
 
-		DateTime datetime;
-		datetime.now(); // there's no date given from PepNovo
+		DateTime datetime = DateTime::now(); // there's no date given from PepNovo
 		protein_identification.setDateTime(datetime);
 
 		peptide_identifications.clear();

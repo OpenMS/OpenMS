@@ -130,8 +130,8 @@ namespace OpenMS
 			*/
 			String getTime() const;
 			
-			/// sets the instance to the current date and time
-			void now();
+			/// Returns the current date and time
+			static DateTime now();
 			
 			///Sets the undefined date: 00/00/0000 00:00:00
 			void clear();

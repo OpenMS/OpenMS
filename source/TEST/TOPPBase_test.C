@@ -28,6 +28,7 @@
 
 ///////////////////////////
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -128,6 +129,11 @@ class TOPPBaseTest
 			outputFileWritable_(filename);
 		}
 
+		void addDataProcessing(MSExperiment<>& map, const std::set<DataProcessing::ProcessingAction>& actions)
+		{
+			addDataProcessing_(map, actions);
+		}
+		
 		void parseRange(const String& text, double& low, double& high) const
 		{
 			parseRange_(text, low, high);
@@ -489,6 +495,22 @@ CHECK(([EXTRA]Param getParam_( const std::string& prefix ) const))
 
 	TEST_EQUAL(tmp_topp.getParam(), good_params);
 }
+RESULT
+
+CHECK(([EXTRA] template<typename MapType> void addDataProcessing_(MapType& map, const std::set<DataProcessing::ProcessingAction>& actions) const))
+	MSExperiment<> exp;
+	std::set<DataProcessing::ProcessingAction> actions;
+	actions.insert(DataProcessing::ALIGNMENT);
+
+	TOPPBaseTest topp;
+	topp.addDataProcessing(exp, actions);
+	
+	TEST_EQUAL(exp.getDataProcessing().size(),1)
+	TEST_EQUAL(exp.getDataProcessing()[0].getSoftware().getName(),"TOPPBaseTest")
+	TEST_NOT_EQUAL(exp.getDataProcessing()[0].getSoftware().getVersion(),"1.1")
+	TEST_EQUAL(exp.getDataProcessing()[0].getCompletionTime().isValid(),true)
+	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().size(),1)
+	TEST_EQUAL(*(exp.getDataProcessing()[0].getProcessingActions().begin()),DataProcessing::ALIGNMENT)
 RESULT
 
 /////////////////////////////////////////////////////////////

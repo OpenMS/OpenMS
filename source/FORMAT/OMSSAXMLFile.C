@@ -63,8 +63,7 @@ namespace OpenMS
 		parse_(filename, this);
 
 
-		DateTime now;
-		now.now();
+		DateTime now = DateTime::now();
 		String identifier("OMSSA_" + now.get());
 	
 		// post-processing

@@ -103,8 +103,7 @@ namespace OpenMS
 		line.trim();
 		++line_number;
 
-		DateTime datetime;
-		datetime.now();
+		DateTime datetime = DateTime::now();
 		if ( protein_identification.getSearchEngine().empty() ) identifier = "InsPecT_" + datetime.getDate();
 		else protein_identification.getSearchEngine() + "_" + datetime.getDate();
 		

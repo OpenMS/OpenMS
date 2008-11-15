@@ -218,13 +218,10 @@ RESULT
 CHECK(ExperimentalSettings(const ExperimentalSettings& source))
   ExperimentalSettings tmp;
   ProteinIdentification id;
-  DateTime date;
 	ProteinHit protein_hit;
 	Real protein_significance_threshold = 63.2f;
 
-	date.now();
-
-	id.setDateTime(date);
+	id.setDateTime(DateTime::now());
 	id.setSignificanceThreshold(protein_significance_threshold);
 	id.insertHit(protein_hit);
   
@@ -255,13 +252,10 @@ RESULT
 CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
   ExperimentalSettings tmp;
   ProteinIdentification id;
-  DateTime date;
 	ProteinHit protein_hit;
 	Real protein_significance_threshold = 63.2f;
 
-	date.now();
-
-	id.setDateTime(date);
+	id.setDateTime(DateTime::now());
 	id.setSignificanceThreshold(protein_significance_threshold);
 	id.insertHit(protein_hit);
 
@@ -305,13 +299,10 @@ RESULT
 CHECK(bool operator== (const ExperimentalSettings& rhs) const)
   ExperimentalSettings edit, empty;
   ProteinIdentification id;
-  DateTime date;
 	ProteinHit protein_hit;
 	Real protein_significance_threshold = 63.2f;
 
-	date.now();
-
-	id.setDateTime(date);
+	id.setDateTime(DateTime::now());
 	id.setSignificanceThreshold(protein_significance_threshold);
 	id.insertHit(protein_hit);
   
@@ -360,13 +351,10 @@ RESULT
 CHECK(bool operator!= (const ExperimentalSettings& rhs) const)
   ExperimentalSettings edit, empty;
   ProteinIdentification id;
-  DateTime date;
 	ProteinHit protein_hit;
 	Real protein_significance_threshold = 63.2f;
 
-	date.now();
-
-	id.setDateTime(date);
+	id.setDateTime(DateTime::now());
 	id.setSignificanceThreshold(protein_significance_threshold);
 	id.insertHit(protein_hit);
   
@@ -407,13 +395,10 @@ RESULT
 CHECK(const std::vector<ProteinIdentification>& getProteinIdentifications() const)
   ExperimentalSettings settings;
   ProteinIdentification id;
-  DateTime date;
 	ProteinHit protein_hit;
 	Real protein_significance_threshold = 63.2f;
 
-	date.now();
-
-	id.setDateTime(date);
+	id.setDateTime(DateTime::now());
 	id.setSignificanceThreshold(protein_significance_threshold);
 	id.insertHit(protein_hit);
 	
@@ -425,13 +410,10 @@ RESULT
 CHECK(std::vector<ProteinIdentification>& getProteinIdentifications())
   ExperimentalSettings settings;
   ProteinIdentification id;
-  DateTime date;
 	ProteinHit protein_hit;
 	Real protein_significance_threshold = 63.2f;
 
-	date.now();
-
-	id.setDateTime(date);
+	id.setDateTime(DateTime::now());
 	id.setSignificanceThreshold(protein_significance_threshold);
 	id.insertHit(protein_hit);
 	
@@ -443,13 +425,10 @@ RESULT
 CHECK(void addProteinIdentification(ProteinIdentification& protein_identification))
   ExperimentalSettings settings;
   ProteinIdentification id;
-  DateTime date;
 	ProteinHit protein_hit;
 	Real protein_significance_threshold = 63.2f;
 
-	date.now();
-
-	id.setDateTime(date);
+	id.setDateTime(DateTime::now());
 	id.setSignificanceThreshold(protein_significance_threshold);
 	id.insertHit(protein_hit);
 	
@@ -461,14 +440,11 @@ RESULT
 CHECK(void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications))
   ExperimentalSettings settings;
   ProteinIdentification id;
-  DateTime date;
 	ProteinHit protein_hit;
 	Real protein_significance_threshold = 63.2f;
 	vector<ProteinIdentification> ids;
 
-	date.now();
-
-	id.setDateTime(date);
+	id.setDateTime(DateTime::now());
 	id.setSignificanceThreshold(protein_significance_threshold);
 	id.insertHit(protein_hit);
 	ids.push_back(id);

@@ -27,7 +27,6 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/XMLValidator.h>
 

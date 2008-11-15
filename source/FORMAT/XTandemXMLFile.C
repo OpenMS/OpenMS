@@ -66,8 +66,7 @@ namespace OpenMS
 
 		parse_(filename, this);
 
-		DateTime now;
-		now.now();
+		DateTime now = DateTime::now();
 		String date_string;
 		String identifier("XTandem_" + date_string);
 		//vector<String> accessions;

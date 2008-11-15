@@ -192,8 +192,7 @@ namespace OpenMS
 
 	String File::getUniqueName()
 	{
-		DateTime now;
-		now.now();
+		DateTime now = DateTime::now();
 		String pid;
 		#ifdef OPENMS_OS_MINGW32
 			pid = (String)GetCurrentProcessId();

@@ -34,6 +34,8 @@
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/DATASTRUCTURES/IntList.h>
 #include <OpenMS/DATASTRUCTURES/DoubleList.h>
+#include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <iostream>
 #include <fstream>
@@ -758,6 +760,18 @@ namespace OpenMS
 
       ///Type of progress logging
       ProgressLogger::LogType log_type_;
+      
+      ///Helper function that adds a new DataProcessing to a peak, feature or consensus map
+      template<typename MapType>
+      void addDataProcessing_(MapType& map, const std::set<DataProcessing::ProcessingAction>& actions) const
+      {
+        DataProcessing p;
+        p.setProcessingActions(actions);
+        p.getSoftware().setName(tool_name_);
+        p.getSoftware().setVersion(VersionInfo::getVersion());
+        p.setCompletionTime(DateTime::now());
+        map.getDataProcessing().push_back(p);
+      }
   };
 
 

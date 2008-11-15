@@ -80,8 +80,8 @@ namespace OpenMS
 			*/
 			void set(UInt month, UInt day, UInt year);
 		
-			/// sets the date to today
-			void today();
+			/// Returns the current date
+			static Date today();
 
 			/**
 				@brief Returns a string representation of the date
