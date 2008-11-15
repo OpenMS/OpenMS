@@ -42,7 +42,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page IdExtractor IdExtractor
+	@page IDExtractor IDExtractor
 	
 	@brief This application is used to retrieve specific spectrum identifications from IdXML files.
 	
@@ -51,12 +51,12 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPIdExtractor
+class TOPPIDExtractor
 	: public TOPPBase
 {
 	public:
-		TOPPIdExtractor()
-			: TOPPBase("IdExtractor","extracts n peptides randomly or best n from IdXML files")
+		TOPPIDExtractor()
+			: TOPPBase("IDExtractor","extracts n peptides randomly or best n from IdXML files")
 		{
 			
 		}
@@ -139,7 +139,7 @@ class TOPPIdExtractor
 				{
 					identifications_with_scores.push_back(make_pair(identifications[i].getHits()[0].getScore(), identifications[i]));
 				}
-				sort(identifications_with_scores.begin(), identifications_with_scores.end(), TOPPIdExtractor::compareIDsWithScores );
+				sort(identifications_with_scores.begin(), identifications_with_scores.end(), TOPPIDExtractor::compareIDsWithScores );
 				it = identifications_with_scores.begin();
 				while(it != identifications_with_scores.end() && chosen_ids.size() < number_of_peptides)
 				{
@@ -245,7 +245,7 @@ class TOPPIdExtractor
 
 int main( int argc, const char** argv )
 {
-	TOPPIdExtractor tool;
+	TOPPIDExtractor tool;
 	return tool.main(argc,argv);
 }
   

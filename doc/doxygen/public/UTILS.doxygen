@@ -46,4 +46,5 @@
   - @subpage RTEvaluation
 	- @subpage SequenceCoverageCalculator 
   - @subpage IDExtractor
+	- @subpage SemanticValidator
 */

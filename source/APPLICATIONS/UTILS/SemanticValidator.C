@@ -40,21 +40,20 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page CVInspector CVInspector
+	@page SemanticValidator SemanticValidator
 	
 	@todo Docu (Andreas)
-	@todo Check for terms without children, but with useTerm=false (Andreas)
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPCVInspector
+class TOPPSemanticValidator
 	: public TOPPBase
 {
  public:
-	TOPPCVInspector()
-		: TOPPBase("CVInspector","TODO")
+	TOPPSemanticValidator()
+		: TOPPBase("SemanticValidator","TODO")
 	{
 	}
 	
@@ -126,7 +125,7 @@ class TOPPCVInspector
 
 int main( int argc, const char** argv )
 {
-	TOPPCVInspector tool;
+	TOPPSemanticValidator tool;
 	return tool.main(argc,argv);
 }
 
