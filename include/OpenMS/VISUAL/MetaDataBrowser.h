@@ -209,6 +209,16 @@ namespace OpenMS
 			void visualize_(DocumentIdentifier& meta, QTreeWidgetItem* parent=0);
 			//@}
 			
+			/// Visualizes all elements of a container
+			template<typename ContainerType>
+			void visualizeAll_(ContainerType& container, QTreeWidgetItem* parent)
+			{
+				for (typename ContainerType::iterator it=container.begin(); it!=container.end(); ++it)
+				{
+					visualize_(*it, parent);
+				}
+			}
+			
 			/// Connects the Signals of all visualier classes with Slot setStatus()
 			void connectVisualizer_(BaseVisualizerGUI* ptr);
 

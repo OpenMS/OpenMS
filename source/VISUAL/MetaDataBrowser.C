@@ -196,10 +196,7 @@ namespace OpenMS
 		}
 			
 		//Get Aquisition objects
-		for(UInt i=0; i< meta.size(); ++i)
-		{ 
-			visualize_(meta[i], item);
-		}
+		visualizeAll_(meta, item);
 		
 		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		connectVisualizer_(visualizer);
@@ -304,31 +301,19 @@ namespace OpenMS
 		visualize_(meta.getSample(), item);
 		
 		//check for ProteinIdentification
-		for(UInt i=0; i<meta.getProteinIdentifications().size(); ++i)    
-		{
-			visualize_(meta.getProteinIdentifications()[i], item);
-		}
+		visualizeAll_(meta.getProteinIdentifications(), item);
 		
 		//check for DataProcessing
-		for(UInt i=0; i<meta.getDataProcessing().size(); ++i)    
-		{
-			visualize_(meta.getDataProcessing()[i], item);
-		}
+		visualizeAll_(meta.getDataProcessing(), item);
 		
 		//check for Instrument
 		visualize_(meta.getInstrument(), item);
 		
 		//check for SourceFiles
-		for(UInt i=0; i<meta.getSourceFiles().size(); ++i)    
-		{
-			visualize_(meta.getSourceFiles()[i], item);
-		}
+		visualizeAll_(meta.getSourceFiles(), item);
 		
 		//check for ContactPersons
-		for(UInt i=0; i<meta.getContacts().size(); ++i)    
-		{
-			visualize_(meta.getContacts()[i], item);
-		}
+		visualizeAll_(meta.getContacts(), item);
 		
 		//check for HPLC
 		visualize_(meta.getHPLC(), item);
@@ -474,11 +459,8 @@ namespace OpenMS
 		}
 
 		//visualize ScanWindows
-		for(UInt i=0; i<meta.getScanWindows().size(); ++i)    
-		{
-			visualize_(meta.getScanWindows()[i], item);
-		}
-
+		visualizeAll_(meta.getScanWindows(), item);
+		
 		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 		connectVisualizer_(visualizer);
 	}
@@ -504,22 +486,13 @@ namespace OpenMS
 		}
 
 		//visualize IonSources
-		for(UInt i=0; i<meta.getIonSources().size(); ++i)    
-		{
-			visualize_(meta.getIonSources()[i], item);
-		}
+		visualizeAll_(meta.getIonSources(), item);
 			
 		//Check for MassAnalyzers
-		for(UInt i=0; i<meta.getMassAnalyzers().size(); ++i)    
-		{
-			visualize_(meta.getMassAnalyzers()[i], item);
-		}
+		visualizeAll_(meta.getMassAnalyzers(), item);
 
 		//visualize IonDectector
-		for(UInt i=0; i<meta.getIonDetectors().size(); ++i)    
-		{
-			visualize_(meta.getIonDetectors()[i], item);
-		}
+		visualizeAll_(meta.getIonDetectors(), item);
 
 		//Software
 		visualize_(meta.getSoftware(), item);
@@ -842,10 +815,7 @@ namespace OpenMS
 		}
 		
 		//Check for subsamples
-		for(UInt i=0; i<meta.getSubsamples().size(); ++i)    
-		{
-			visualize_(meta.getSubsamples()[i], item);
-		}
+		visualizeAll_(meta.getSubsamples(), item);
 		
 		//check for metainfo objects
 		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
@@ -925,10 +895,7 @@ namespace OpenMS
 		visualize_(meta.getInstrumentSettings(), item);
 		
 		//check for PeptideIdentification
-		for(UInt i=0; i<meta.getPeptideIdentifications().size(); ++i)    
-		{
-			visualize_(meta.getPeptideIdentifications()[i], item);
-		}
+		visualizeAll_(meta.getPeptideIdentifications(), item);
 		
 		//check for Precursor
 		visualize_(meta.getPrecursor(), item);		
