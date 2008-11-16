@@ -68,9 +68,9 @@ public:
 protected: 
 	void registerOptionsAndFlags_()
 	{
-		registerStringOption_("in","<files>","","Comma-separated list of input file names in FeatureXML or mzData format",true);
-		registerStringOption_("out","<files>","","Comma-separated list of output file names in FeatureXML or mzData format");
-		registerStringOption_("transformations","<files>","","Comma-separated list of output files for transformations",false);
+		registerStringList_("in","<files>",StringList(),"list of input file names in FeatureXML or mzData format",true);
+		registerStringList_("out","<files>",StringList(),"list of output file names in FeatureXML or mzData format");
+		registerStringList_("transformations","<files>",StringList(),"list of output files for transformations",false);
 		registerStringOption_("type","<name>","","Map alignment algorithm type",true);
 		setValidStrings_("type",Factory<MapAlignmentAlgorithm>::registeredProducts());
     
@@ -94,30 +94,24 @@ protected:
 		//-------------------------------------------------------------
 		// parameter handling
 		//-------------------------------------------------------------
-		StringList ins;
-		String in = getStringOption_("in");
-		in.split(',',ins);
-		if (ins.size()==0) ins.push_back(in);
+		StringList ins = getStringList_("in");
 
-		StringList outs;
-		String out = getStringOption_("out");
-		out.split(',',outs);
-		if (outs.size()==0) outs.push_back(out);
+		StringList outs = getStringList_("out");
 
-		StringList trafos;		
-		if (setByUser_("transformations") && getStringOption_("transformations")!="")
+		StringList trafos = getStringList_("transformations");		
+		/*if (setByUser_("transformations") && getStringOption_("transformations")!="")
 		{
 			String trafo = getStringOption_("transformations");
 			trafo.split(',',trafos);
 			if (trafos.size()==0) trafos.push_back(trafo);
-		}
+		}*/
 
 		String type = getStringOption_("type");
 		
 		//-------------------------------------------------------------
 		// check for valid input
 		//-------------------------------------------------------------
-		//check whether the numer of input files equals the number of output files
+		//check whether the number of input files equals the number of output files
 		if (ins.size()!=outs.size())
 		{
 			writeLog_("Error: The number of input and output files has to be equal!");

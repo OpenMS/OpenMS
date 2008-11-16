@@ -70,7 +70,7 @@ public:
 protected: 
 	void registerOptionsAndFlags_()
 	{
-		registerStringOption_("in","<files>","","Comma-separated list of input file names in FeatureXML format",true);
+		registerStringList_("in","<files>",StringList(),"list of input file names in FeatureXML format",true);
 		registerStringOption_("out","<file>","","Output file in ConsensusXML format",true);
 		registerStringOption_("type","<name>","","Feature grouping algorithm type",true);
 		setValidStrings_("type",Factory<FeatureGroupingAlgorithm>::registeredProducts());
@@ -89,10 +89,7 @@ protected:
 		//-------------------------------------------------------------
 		// parameter handling
 		//-------------------------------------------------------------
-		StringList ins;
-		String in = getStringOption_("in");
-		in.split(',',ins);
-		if (ins.size()==0) ins.push_back(in);
+		StringList ins = getStringList_("in");
 
 		String out = getStringOption_("out");
 
