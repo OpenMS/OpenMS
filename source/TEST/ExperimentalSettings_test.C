@@ -147,13 +147,12 @@ CHECK(void setInstrument(const Instrument& instrument))
   TEST_EQUAL(tmp.getInstrument().getName(),"bla");
 RESULT
 
-CHECK(void setDataProcessing(const DataProcessing& processing_method))
+CHECK(void setDataProcessing(const DataProcessing& data_processing))
   ExperimentalSettings tmp;
   std::vector<DataProcessing> dummy;
   dummy.resize(1);
-  dummy[0].getProcessingActions().insert(DataProcessing::DEISOTOPING);
   tmp.setDataProcessing(dummy);
-  TEST_EQUAL(tmp.getDataProcessing()[0].getProcessingActions().size(),1);
+  TEST_EQUAL(tmp.getDataProcessing().size(),1);
 RESULT
 
 CHECK(void setSample(const Sample& sample))
@@ -187,8 +186,7 @@ RESULT
 CHECK(DataProcessing& getDataProcessing())
   ExperimentalSettings tmp;
   tmp.getDataProcessing().resize(1);
-  tmp.getDataProcessing()[0].getProcessingActions().insert(DataProcessing::DEISOTOPING);
-  TEST_EQUAL(tmp.getDataProcessing()[0].getProcessingActions().size(),1);
+  TEST_EQUAL(tmp.getDataProcessing().size(),1);
 RESULT
 
 CHECK(Sample& getSample())

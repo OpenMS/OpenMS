@@ -86,6 +86,30 @@ hulls[0].addPoint(DPosition<2>(4.0,1.2));
 hulls[0].addPoint(DPosition<2>(5.0,3.123));
 feature4.setConvexHulls(hulls);
 
+CHECK(const DataProcessing& getDataProcessing() const)
+  FeatureMap<> tmp;
+  TEST_EQUAL(tmp.getDataProcessing().size(),0);
+RESULT
+
+CHECK(const DataProcessing& getDataProcessing() const)
+  FeatureMap<> tmp;
+  TEST_EQUAL(tmp.getDataProcessing().size(),0);
+RESULT
+
+CHECK(DataProcessing& getDataProcessing())
+  FeatureMap<> tmp;
+  tmp.getDataProcessing().resize(1);
+  TEST_EQUAL(tmp.getDataProcessing().size(),1);
+RESULT
+
+CHECK(void setDataProcessing(const DataProcessing& data_processing))
+  FeatureMap<> tmp;
+  std::vector<DataProcessing> dummy;
+  dummy.resize(1);
+  tmp.setDataProcessing(dummy);
+  TEST_EQUAL(tmp.getDataProcessing().size(),1);
+RESULT
+
 CHECK( void updateRanges() )
 	//test without convex hulls
   FeatureMap<> s;
@@ -122,12 +146,14 @@ CHECK((FeatureMap(const FeatureMap& map)))
 	map1.push_back(feature3);
 	map1.updateRanges();
 	map1.setIdentifier("lsid");;
+	map1.getDataProcessing().resize(1);
 		
 	FeatureMap<> map2(map1);
 	
 	TEST_EQUAL(map2.size(),3);
   TEST_REAL_EQUAL(map2.getMaxInt(),1.0)
   TEST_STRING_EQUAL(map2.getIdentifier(),"lsid")
+  TEST_EQUAL(map2.getDataProcessing().size(),1)
 RESULT
 
 CHECK((FeatureMap& operator = (const FeatureMap& rhs)))
@@ -136,7 +162,8 @@ CHECK((FeatureMap& operator = (const FeatureMap& rhs)))
 	map1.push_back(feature2);
 	map1.push_back(feature3);
 	map1.updateRanges();
-	map1.setIdentifier("lsid");;
+	map1.setIdentifier("lsid");
+	map1.getDataProcessing().resize(1);
 	
 	//assignment
 	FeatureMap<> map2;
@@ -145,6 +172,7 @@ CHECK((FeatureMap& operator = (const FeatureMap& rhs)))
 	TEST_EQUAL(map2.size(),3);
   TEST_REAL_EQUAL(map2.getMaxInt(),1.0)
   TEST_STRING_EQUAL(map2.getIdentifier(),"lsid")
+  TEST_EQUAL(map2.getDataProcessing().size(),1)
 	
   //assignment of empty object
    map2 = FeatureMap<>();
@@ -153,6 +181,7 @@ CHECK((FeatureMap& operator = (const FeatureMap& rhs)))
 	TEST_REAL_EQUAL(map2.getMinInt(), numeric_limits<DoubleReal>::max())
 	TEST_REAL_EQUAL(map2.getMaxInt(), -numeric_limits<DoubleReal>::max())
   TEST_STRING_EQUAL(map2.getIdentifier(),"")
+  TEST_EQUAL(map2.getDataProcessing().size(),0)
 RESULT
 
 CHECK((bool operator == (const FeatureMap& rhs) const))
@@ -165,6 +194,10 @@ CHECK((bool operator == (const FeatureMap& rhs) const))
 	
 	edit = empty;
 	edit.push_back(feature1);
+	TEST_EQUAL(empty==edit, false);
+
+	edit = empty;
+	edit.getDataProcessing().resize(1);
 	TEST_EQUAL(empty==edit, false);
 
 	edit = empty;
@@ -187,6 +220,10 @@ CHECK((bool operator != (const FeatureMap& rhs) const))
 	edit.push_back(feature1);
 	TEST_EQUAL(empty!=edit, true);
 
+	edit = empty;
+	edit.getDataProcessing().resize(1);
+	TEST_EQUAL(empty!=edit, true);
+	
 	edit = empty;
 	edit.push_back(feature1);
 	edit.push_back(feature2);
@@ -311,16 +348,19 @@ CHECK(void swap(FeatureMap& from))
 	fm1.push_back(feature1);
 	fm1.push_back(feature2);
 	fm1.updateRanges();
+	fm1.getDataProcessing().resize(1);
 	
 	fm1.swap(fm2);
 	
 	TEST_EQUAL(fm1.getIdentifier(),"")
 	TEST_EQUAL(fm1.size(),0)
 	TEST_REAL_EQUAL(fm1.getMinInt(),DRange<1>().min()[0])
+  TEST_EQUAL(fm1.getDataProcessing().size(),0)
 
 	TEST_EQUAL(fm2.getIdentifier(),"stupid comment")
 	TEST_EQUAL(fm2.size(),2)
 	TEST_REAL_EQUAL(fm2.getMinInt(),0.5)
+  TEST_EQUAL(fm2.getDataProcessing().size(),1)
 	
 RESULT
 

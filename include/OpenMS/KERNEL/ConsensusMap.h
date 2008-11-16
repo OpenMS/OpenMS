@@ -45,7 +45,7 @@ namespace OpenMS
 	    
 		The map indices used in the consensus features should be registered in this class.
 	 	
-	 	@todo Add DataProcessing list (Marc, Chris)
+		@todo Store data processings to file (Marc, Chris)
 	
 		@ingroup Kernel
   */
@@ -101,7 +101,8 @@ namespace OpenMS
 				DocumentIdentifier(),
 				file_description_(),
 				experiment_type_(),
-				protein_identifications_()
+				protein_identifications_(),
+				data_processing_()
 		{
 		}
 	
@@ -113,7 +114,8 @@ namespace OpenMS
 				DocumentIdentifier(source),
 				file_description_(source.file_description_),
 				experiment_type_(source.experiment_type_),
-				protein_identifications_(source.protein_identifications_)
+				protein_identifications_(source.protein_identifications_),
+				data_processing_(source.data_processing_)
 		{
 		}
 	
@@ -130,7 +132,8 @@ namespace OpenMS
 				DocumentIdentifier(),
 				file_description_(),
 				experiment_type_(),
-				protein_identifications_()
+				protein_identifications_(),
+				data_processing_()
 		{
 		}
 	
@@ -146,6 +149,7 @@ namespace OpenMS
 			file_description_ = source.file_description_;
 			experiment_type_ = source.experiment_type_;
 			protein_identifications_ = source.protein_identifications_;
+			data_processing_ = source.data_processing_;
 				
 			return *this;
 		}
@@ -320,6 +324,7 @@ namespace OpenMS
 			std::swap(file_description_, from.file_description_);
 			experiment_type_.swap(from.experiment_type_);
 			protein_identifications_.swap(from.protein_identifications_);
+			data_processing_.swap(from.data_processing_);
 		}
 	
 		/// non-mutable access to the protein identifications
@@ -340,6 +345,25 @@ namespace OpenMS
 			protein_identifications_ = protein_identifications;
 		}
 		
+		/// returns a const reference to the description of the applied data processing 
+		const std::vector<DataProcessing>& getDataProcessing() const
+		{
+			return data_processing_; 
+		}
+
+		/// returns a mutable reference to the description of the applied data processing 
+		std::vector<DataProcessing>& getDataProcessing()
+		{
+			return data_processing_; 
+		}
+		
+		/// sets the description of the applied data processing 
+		void setDataProcessing(const std::vector<DataProcessing>& processing_method)
+		{
+			data_processing_ = processing_method; 
+		}
+		
+		
 	 protected:
 		/// Map from index to file description
 		FileDescriptions file_description_;
@@ -349,6 +373,9 @@ namespace OpenMS
 				
 		/// protein identifications
 		std::vector<ProteinIdentification> protein_identifications_;
+		
+		/// applied data processing
+		std::vector<DataProcessing> data_processing_;
 
 	};
 

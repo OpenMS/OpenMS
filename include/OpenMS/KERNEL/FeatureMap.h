@@ -31,6 +31,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 
@@ -52,7 +53,7 @@ namespace OpenMS
 		
 		Feature maps are typically created from peak data of 2D runs through the FeatureFinder.
 		
-		@todo Add DataProcessing list (Marc, Chris)
+		@todo Store data processings to file (Marc, Chris)
 		
 		@ingroup Kernel
 	*/
@@ -62,7 +63,7 @@ namespace OpenMS
 			public RangeManager<2>,
 			public DocumentIdentifier
 	{
-	 public:
+		public:
 			/**	
 				 @name Type definitions
 			*/
@@ -87,16 +88,18 @@ namespace OpenMS
 				: Base(),
 					RangeManagerType(),
 					DocumentIdentifier(),
-					protein_identifications_()
+					protein_identifications_(),
+					data_processing_()
 			{
 			}
 			
 			/// Copy constructor
-			FeatureMap(const FeatureMap& map) 
-				: Base(map),
-					RangeManagerType(map),
-					DocumentIdentifier(map),
-					protein_identifications_(map.protein_identifications_)
+			FeatureMap(const FeatureMap& source) 
+				: Base(source),
+					RangeManagerType(source),
+					DocumentIdentifier(source),
+					protein_identifications_(source.protein_identifications_),
+					data_processing_(source.data_processing_)
 			{
 			}
 			
@@ -116,6 +119,7 @@ namespace OpenMS
 				RangeManagerType::operator=(rhs);
 				DocumentIdentifier::operator=(rhs);
 				protein_identifications_ = rhs.protein_identifications_;
+				data_processing_ = rhs.data_processing_;
 
 				return *this;
 			}
@@ -127,7 +131,8 @@ namespace OpenMS
 					std::operator==(*this, rhs) &&
 					RangeManagerType::operator==(rhs) &&
 					DocumentIdentifier::operator==(rhs) &&
-					protein_identifications_==rhs.protein_identifications_
+					protein_identifications_==rhs.protein_identifications_ &&
+					data_processing_ == rhs.data_processing_
 					;
 			}
 				
@@ -227,50 +232,71 @@ namespace OpenMS
 			{
 				FeatureMap tmp;
 
-				// TODO use swap for everything!  See ConsensusMap::swap() :-)
-
 				//range information
 				tmp.RangeManagerType::operator=(*this);
 				this->RangeManagerType::operator=(from);
 				from.RangeManagerType::operator=(tmp);
-				
-				//experimental settings
-				tmp.DocumentIdentifier::operator=(*this);
-				this->DocumentIdentifier::operator=(from);
-				from.DocumentIdentifier::operator=(tmp);
-				
-				//protein identifications
-				tmp.setProteinIdentifications(this->getProteinIdentifications());
-				this->setProteinIdentifications(from.getProteinIdentifications());
-				from.setProteinIdentifications(tmp.getProteinIdentifications());
-				
+
 				//swap actual features
 				Base::swap(from);
+				
+				// swap DocumentIdentifier
+				DocumentIdentifier::swap(from);
+				
+				// swap the remaining members
+				protein_identifications_.swap(from.protein_identifications_);
+				data_processing_.swap(from.data_processing_);
 			}
-
+			
+			/// non-mutable access to the protein identifications
 		 	const std::vector<ProteinIdentification>& getProteinIdentifications() const
 		 	{
 		  	return protein_identifications_;	   		
 		 	}	
 		 		    	
+			/// mutable access to the protein identifications
 		  std::vector<ProteinIdentification>& getProteinIdentifications()
 		  {
 		  	return protein_identifications_;	
 		  }
 
+			/// sets the protein identifications
 		  void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)
 		  {
 		  	protein_identifications_ = protein_identifications;
 		  }
 		  
+			/// adds a protein identifications
 		  void addProteinIdentification(ProteinIdentification& protein_identification)
 		  {
 		  	protein_identifications_.push_back(protein_identification);
 		  }
 
+			/// returns a const reference to the description of the applied data processing 
+			const std::vector<DataProcessing>& getDataProcessing() const
+			{
+				return data_processing_; 
+			}
+
+			/// returns a mutable reference to the description of the applied data processing 
+			std::vector<DataProcessing>& getDataProcessing()
+			{
+				return data_processing_; 
+			}
+			
+			/// sets the description of the applied data processing 
+			void setDataProcessing(const std::vector<DataProcessing>& processing_method)
+			{
+				data_processing_ = processing_method; 
+			}
+
 		protected:
 			
+			/// protein identifications
 			std::vector<ProteinIdentification> protein_identifications_;
+			
+			/// applied data processing
+			std::vector<DataProcessing> data_processing_;
 			
 	};
 	
