@@ -761,20 +761,38 @@ namespace OpenMS
       ///Type of progress logging
       ProgressLogger::LogType log_type_;
       
-      ///Helper function that adds a new DataProcessing to a peak, feature or consensus map
+      ///Convenience function that adds a set of processing actions to a peak, feature or consensus map
       template<typename MapType>
       void addDataProcessing_(MapType& map, const std::set<DataProcessing::ProcessingAction>& actions) const
       {
         DataProcessing p;
+        //actions
         p.setProcessingActions(actions);
+        //software
         p.getSoftware().setName(tool_name_);
         p.getSoftware().setVersion(VersionInfo::getVersion());
+        //time
         p.setCompletionTime(DateTime::now());
+        //parameters
+        const Param& param = getParam_();
+        for (Param::ParamIterator it=param.begin(); it!=param.end(); ++it)
+        {
+           p.setMetaValue(String("parameter: ") + it.getName() , it->value);
+        }
+        //add processing to map
         map.getDataProcessing().push_back(p);
       }
+
+      ///Convenience function that add a single processing action to a peak, feature or consensus map
+      template<typename MapType>
+      void addDataProcessing_(MapType& map, DataProcessing::ProcessingAction action) const
+      {
+        std::set<DataProcessing::ProcessingAction> actions;
+        actions.insert(action);
+        addDataProcessing_(map, actions);
+      }
+      
   };
-
-
 
 } // namespace OpenMS
 

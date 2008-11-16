@@ -2339,7 +2339,7 @@ namespace OpenMS
 
 			writeUserParam_(os, in, 3);
 			UInt component_count = in.getIonSources().size() + in.getMassAnalyzers().size() + in.getIonDetectors().size();
-			os  << "			<componentList count=\"" << std::min((UInt)3,component_count) << "\">\n";
+			os  << "			<componentList count=\"" << std::max((UInt)3,component_count) << "\">\n";
 			//--------------------------------------------------------------------------------------------
 			// ion source
 			//--------------------------------------------------------------------------------------------
@@ -2846,7 +2846,7 @@ namespace OpenMS
 			//--------------------------------------------------------------------------------------------
 			// data processing
 			//--------------------------------------------------------------------------------------------
-			os  << "	<dataProcessingList count=\"" << std::min((UInt)1,(UInt)exp.getDataProcessing().size()) << "\">\n";			
+			os  << "	<dataProcessingList count=\"" << std::max((UInt)1,(UInt)exp.getDataProcessing().size()) << "\">\n";			
 			for (UInt i=0; i<exp.getDataProcessing().size(); ++i)
 			{
 				const DataProcessing& dp = exp.getDataProcessing()[i];
@@ -3141,6 +3141,11 @@ namespace OpenMS
 				{
 					os << "						<cvParam cvRef=\"MS\" accession=\"MS:1000130\" name=\"positive scan\"/>\n";
 				}
+				else //FORCED
+				{
+					os << "						<cvParam cvRef=\"MS\" accession=\"MS:1000130\" name=\"positive scan\"/>\n";
+				}
+				
 				writeUserParam_(os, spec.getInstrumentSettings(), 6);
 				//scan windows
 				os	<< "						<scanWindowList count=\"" << std::max((Int)1,(Int)spec.getInstrumentSettings().getScanWindows().size()) << "\">\n";
@@ -3157,7 +3162,6 @@ namespace OpenMS
 					os	<< "						<scanWindow>\n";
 					os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan m/z lower limit\" value=\"0\"/>\n";
 					os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan m/z upper limit\" value=\"10000\"/>\n";
-					os  << "							<userParam name=\"warning\" type=\"xsd:string\" value=\"invented scan window, to fulfill mzML schema\" />\n";
 					os	<< "						</scanWindow>\n";
 				}
 				os	<< "						</scanWindowList>\n";

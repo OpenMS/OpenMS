@@ -159,14 +159,17 @@ class TOPPFileConverter
 		{
 			fh.loadExperiment(in,exp,in_type,log_type_);
 		}
-	
+		
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------
-			
+		
 		writeDebug_(String("Writing output file"), 1);
 		if (out_type == FileHandler::MZML)
 		{
+			//add data processing entry
+			addDataProcessing_(exp, DataProcessing::CONVERSION_MZML);
+			
 			MzMLFile f;
 			f.setLogType(log_type_);
 			f.store(out,exp);					
