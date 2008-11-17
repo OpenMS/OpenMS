@@ -313,18 +313,31 @@ namespace OpenMS
 
 			/// sets the neutral loss formulas 
 			void setLossFormulas(const std::vector<EmpiricalFormula>&);
+
+
+			void addNTermLossFormula(const EmpiricalFormula&);
+			
+			void setNTermLossFormulas(const std::vector<EmpiricalFormula>&);
 			
 			/// returns the neutral loss formula (or just an empty string if there is none)
 			const std::vector<EmpiricalFormula>& getLossFormulas() const;
-	
+
+			const std::vector<EmpiricalFormula>& getNTermLossFormulas() const;
+			
 			/// set the neutral loss molecule name
 			void setLossNames(const std::vector<String>& name);
 
+			void setNTermLossNames(const std::vector<String>& name);
+			
 			/// add netural loss molecule name
 			void addLossName(const String& name);
+		
+			void addNTermLossName(const String& name);
 			
 			/// gets neutral loss name (if there is one, else returns an empty string)
 			const std::vector<String>& getLossNames() const;
+		
+			const std::vector<String>& getNTermLossNames() const;
 			
 			/// set empirical formula of the residue
 			void setFormula(const EmpiricalFormula& formula, ResidueType res_type = Full);
@@ -368,6 +381,8 @@ namespace OpenMS
 			//@{
 			/// true if the residue has neutral loss
 			bool hasNeutralLoss() const;
+			
+			bool hasNTermNeutralLosses() const;
 			
 			/// equality operator
 			bool operator == (const Residue& residue) const;
@@ -460,6 +475,10 @@ namespace OpenMS
 
 			std::vector<EmpiricalFormula> loss_formulas_;
 
+			std::vector<String> NTerm_loss_names_;
+
+			std::vector<EmpiricalFormula> NTerm_loss_formulas_;
+			
 			DoubleReal loss_average_weight_;
 
 			DoubleReal loss_mono_weight_;

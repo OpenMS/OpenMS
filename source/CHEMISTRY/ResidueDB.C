@@ -293,15 +293,28 @@ namespace OpenMS
 				continue;
 			}
 
-			if (key.hasSubstring("Losses:LossName"))
+			if (key.hasSubstring(":Losses:LossName"))
 			{
 				res_ptr->addLossName(value);
 				continue;
 			}
-			if (key.hasSubstring("Losses:LossFormula"))
+			if (key.hasSubstring(":Losses:LossFormula"))
 			{
 				EmpiricalFormula loss(value);
 				res_ptr->addLossFormula(loss);
+				continue;
+			}
+
+			if (key.hasSubstring("NTermLosses:LossName"))
+			{
+				res_ptr->addNTermLossName(value);
+				continue;
+			}
+
+			if (key.hasSubstring("NTermLosses:LossFormula"))
+			{
+				EmpiricalFormula loss(value);
+				res_ptr->addNTermLossFormula(loss);
 				continue;
 			}
 			

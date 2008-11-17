@@ -28,17 +28,14 @@
 #ifndef OPENMS_ANALYSIS_ID_PILISMODEL_H
 #define OPENMS_ANALYSIS_ID_PILISMODEL_H
 
-//#include <OpenMS/CHEMISTRY/Residue.h>
 #include <vector>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>
-//#include <OpenMS/ANALYSIS/ID/HiddenMarkovModelLight.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-//#include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -163,16 +160,14 @@ namespace OpenMS
 																							const Map<UInt, double>& sc_charges,
 																							const AASequence& peptide);
 
+			double getAvailableBackboneCharge_(const AASequence& ion, Residue::ResidueType res_type, int charge);
+
 			/// add peaks to spectrum
 			void addPeaks_(double mz, int charge, double mz_offset, double intensity, RichPeakSpectrum& spectrum, const IsotopeDistribution& id, const String& name);
 		
 			/// parse the base model
 			void parseHMMModel_(const TextFile::ConstIterator& begin, const TextFile::ConstIterator& end, HiddenMarkovModel& hmm);
 		
-			/*
-			/// parse model file of losses and precursor models
-			void parseHMMLightModel_(const TextFile::ConstIterator& begin, const TextFile::ConstIterator& end, HiddenMarkovModelLight& model);
-*/
 			/// base model used
 			HiddenMarkovModel hmm_;
 
@@ -196,9 +191,17 @@ namespace OpenMS
 
 			PILISNeutralLossModel precursor_model_cd_;
 
-			PILISNeutralLossModel b_ion_losses_;
+			PILISNeutralLossModel a_ion_losses_cr_;
+			PILISNeutralLossModel a_ion_losses_cd_;
+			
+			PILISNeutralLossModel b_ion_losses_cr_;
+			PILISNeutralLossModel b_ion_losses_cd_;
 
-			PILISNeutralLossModel y_ion_losses_;
+			PILISNeutralLossModel b2_ion_losses_cr_;
+			PILISNeutralLossModel b2_ion_losses_cd_;
+			
+			PILISNeutralLossModel y_ion_losses_cr_;
+			PILISNeutralLossModel y_ion_losses_cd_;
 
 			void updateMembers_();
 	};

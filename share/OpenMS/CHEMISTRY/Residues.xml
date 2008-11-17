@@ -70,6 +70,10 @@
         <ITEM name="LossName" value="water" type="string" />
         <ITEM name="LossFormula" value="H2O" type="string" />
       </NODE>
+			<NODE name="NTermLosses">
+				<ITEM name="LossName" value="water" type="string" />
+				<ITEM name="LossFormula" value="H2O" type="string" />
+			</NODE>
       <ITEM name="GB_SC" value="790.0" type="string" />
       <ITEM name="GB_BB_L" value="880.10" type="string" />
       <ITEM name="GB_BB_R" value="-0.39" type="string" />
@@ -242,6 +246,10 @@
         <ITEM name="LossName" value="ammonia" type="string" />
         <ITEM name="LossFormula" value="NH3" type="string" />
       </NODE>
+			<NODE name="NTermLosses">
+				<ITEM name="LossName" value="water" type="string" />
+				<ITEM name="LossFormula" value="H2O" type="string" />
+			</NODE>
       <ITEM name="GB_SC" value="865.25" type="string" />
       <ITEM name="GB_BB_L" value="881.50" type="string" />
       <ITEM name="GB_BB_R" value="4.10" type="string" />

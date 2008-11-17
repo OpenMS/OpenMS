@@ -125,7 +125,7 @@ namespace OpenMS
 																								UInt cleavage_site,
 																								bool use_most_basic_site)
 	{
-					
+		//cerr << "calculateProtonDistribution_(" << peptide << ", charge=" << charge	<< ", fixed_proton=" << fixed_proton << ", cleavage_site=" << cleavage_site << ", use_most_basic_site=" << use_most_basic_site << ")" << endl;
 		if (charge > 2)
 		{
 			vector<double> gb_bb, gb_sc;
@@ -324,26 +324,33 @@ namespace OpenMS
 		{
 			// find the most basic site
 			double max_prob(0);
+			//cerr << "bb: ";
 			for (UInt i = 0; i != bb_charge_.size(); ++i)
 			{
+				//cerr << i << ". " << bb_charge_[i] << "; " << endl;
 				if (bb_charge_[i] > max_prob)
 				{
-				max_prob = bb_charge_[i];
-				most_basic_site = i;
+					max_prob = bb_charge_[i];
+					most_basic_site = i;
+				}
 			}
-		}
-		for (UInt i = 0; i != sc_charge_.size(); ++i)
-		{
-			if (sc_charge_[i] > max_prob)
-			{
-				max_prob = sc_charge_[i];
-				most_basic_site = i;
-				most_basic_site_sc = true;
-			}
-		}
 
-		bb_charge_.clear();
-		sc_charge_.clear();
+			//cerr << endl << "sc: ";
+			for (UInt i = 0; i != sc_charge_.size(); ++i)
+			{
+				//cerr << i << ". " << sc_charge_[i] << "; " << endl;
+				if (sc_charge_[i] > max_prob)
+				{
+					max_prob = sc_charge_[i];
+					most_basic_site = i;
+					most_basic_site_sc = true;
+				}
+			}
+			//cerr << endl;
+			
+
+			bb_charge_.clear();
+			sc_charge_.clear();
 		}
 
 		UInt fixed_site(0);
@@ -361,12 +368,16 @@ namespace OpenMS
 
 		const double T(500.0);
 	
-		for (UInt i = 0; i != peptide.size(); ++i)
+		for (UInt i = 0; i != sc_charge_.size(); ++i)
 		{
 			sc_charge_[i] = 0;
+		}
+
+		for (UInt i = 0; i != bb_charge_.size(); ++i)
+		{
 			bb_charge_[i] = 0;
 		}
-		bb_charge_[peptide.size()] = 0;
+		//bb_charge_[peptide.size()] = 0;
 
 		// single charged
 		double q(0), sum_E(0), sum_E_n_term(0), sum_E_c_term(0); // Zustandsumme
@@ -438,7 +449,6 @@ namespace OpenMS
 		// calculate the availabilities
 		for (UInt i = 0; i != peptide.size(); ++i)
 		{
-			//String aa(peptide[i].getOneLetterCode());
 			// backbone
 			if (i == 0)
 			{
@@ -449,32 +459,27 @@ namespace OpenMS
 			}
 			else
 			{
-				//String aal(peptide[i-1].getOneLetterCode());
 				if (i == peptide.size() - 1)
 				{
 					double E(0);
 					
 					if (res_type == Residue::BIon)
 					{
-						//E = -(gb_bb_l_[aa] + gb_bb_r_["b-ion"]);
 						E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_bion);
 					}
 					else
 					{
 						if (res_type == Residue::AIon)
 						{
-							//E = -(gb_bb_l_[aa] + gb_bb_r_["a-ion"]);
 							E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_aion);
 						}
 						else
 						{
-							//E = -(gb_bb_l_[aa] + gb_bb_r_["COOH"]);
 							E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_COOH);
 						}
 					}
 					bb_charge_[i] = exp(-E * 1000/(Constants::R * T))/q;
 					sum_E += exp(-E * 1000/Constants::R/T);
-					//E = -(gb_bb_l_[aal] + gb_bb_r_[aa]);
 					E = -(peptide[i-1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight());
 					bb_charge_[i+1] = exp(-E * 1000 /(Constants::R * T))/q;
 					sum_E += exp(-E * 1000/Constants::R/T);
@@ -482,7 +487,6 @@ namespace OpenMS
 				else
 				{
 					// normal backbone position
-					//double E = -(gb_bb_l_[aal] + gb_bb_r_[aa]);
 					double E = -(peptide[i-1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight());
 					bb_charge_[i] = exp(-E * 1000 /(Constants::R * T))/q;
 					sum_E += exp(-E * 1000/Constants::R/T);
@@ -490,9 +494,8 @@ namespace OpenMS
 			}
 	
 			// side chains
-			if (/*gb_sc_.has(aa)*/peptide[i].getSideChainBasicity() != 0)
+			if (peptide[i].getSideChainBasicity() != 0)
 			{
-				//double E = -gb_sc_[aa];
 				double E = -peptide[i].getSideChainBasicity();
 				sc_charge_[i] = exp(-E * 1000 / (Constants::R * T))/q;
 				sum_E += exp(-E * 1000/Constants::R/T);
@@ -502,7 +505,7 @@ namespace OpenMS
 
 	// fixed proton
 	//
-	// if two proton are available one proton is kept at the cleavage site
+	// if two protons are available one proton is kept at the cleavage site
 	// this is needed for the N/C-terminal charge distribution calculation
 	//
 	// use the fixed proton with precalculated charges of the other proton
@@ -520,20 +523,16 @@ namespace OpenMS
 		{
 			if (fixed_site == 0)
 			{
-				//gb_j = gb_bb_l_["NH2"] + gb_bb_r_[peptide[fixed_site].getOneLetterCode()];
 				gb_j = gb_bb_l_NH2 + peptide[fixed_site].getBackboneBasicityRight();
 			}
 			else
 			{
-				//gb_j	= gb_bb_l_[peptide[fixed_site - 1].getOneLetterCode()] + gb_bb_r_[peptide[fixed_site].getOneLetterCode()];
 				gb_j  = peptide[fixed_site - 1].getBackboneBasicityLeft() + peptide[fixed_site].getBackboneBasicityRight();
 			}
 		}
 		else
 		{
-			//gb_j = gb_sc_[peptide[fixed_site].getOneLetterCode()];
 			gb_j = peptide[fixed_site].getSideChainBasicity();
-
 		}
 		
 		for (UInt i = 0; i <= peptide.size(); ++i)
@@ -542,30 +541,25 @@ namespace OpenMS
       // proton 1 at N-terminus
       if (i == 0 || (i == cleavage_site && use_most_basic_site))
       {
-        //gb_i = gb_bb_l_["NH2"] + gb_bb_r_[peptide[i].getOneLetterCode()];
 				gb_i = gb_bb_l_NH2 + peptide[i].getBackboneBasicityRight();
       }
       else
       {
-        //String aa_i_l(peptide[i-1].getOneLetterCode());
         // proton 1 at N-terminus
         if (i == peptide.size())
         {
 					if (res_type == Residue::BIon)
 					{
-						//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_["b-ion"];
 						gb_i = peptide[i-1].getBackboneBasicityLeft() + gb_bb_r_bion;
 					}
 					else
 					{
 						if (res_type == Residue::AIon)
 						{
-							//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_["a-ion"];
 							gb_i = peptide[i-1].getBackboneBasicityLeft() + gb_bb_r_aion;
 						}
 						else
 						{
-          		//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_["COOH"];
 							gb_i = peptide[i-1].getBackboneBasicityLeft() + gb_bb_r_COOH;
 						}
 					}
@@ -573,7 +567,6 @@ namespace OpenMS
         else
         {
           // proton 1 at backbone
-          //gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_[peptide[i].getOneLetterCode()];
 					gb_i = peptide[i-1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight();
         }
       }
@@ -588,9 +581,8 @@ namespace OpenMS
 					double gb_i_sc(0);
 					if (i != peptide.size())
 					{
-						if (/*gb_sc_.has(peptide[i].getOneLetterCode())*/peptide[i].getSideChainBasicity() != 0)
+						if (peptide[i].getSideChainBasicity() != 0)
 						{
-							//gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
 							gb_i_sc = peptide[i].getSideChainBasicity();
 							q += exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION/(r_ij + 1)) * 1000 /(Constants::R * T) - 500);
 						}
@@ -601,9 +593,8 @@ namespace OpenMS
 					// last chance: the proton i is located at side chain of cleavage site
 					if (i != peptide.size())
 					{
-						if (/*gb_sc_.has(peptide[i].getOneLetterCode())*/peptide[i].getSideChainBasicity() != 0)
+						if (peptide[i].getSideChainBasicity() != 0)
 						{
-							//double gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
 							double gb_i_sc = peptide[i].getSideChainBasicity();
 							q += exp(-(-gb_i - gb_i_sc + COULOMB_REPULSION) * 1000 / (Constants::R * T) - 500);
 						}
@@ -622,7 +613,6 @@ namespace OpenMS
 				if (i != fixed_site && i != peptide.size())
 				{
 					double gb_i_sc(0);
-					//gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
 					gb_i_sc = peptide[i].getSideChainBasicity();
 					q += exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION/(r_ij + 2)) * 1000 /(Constants::R * T) - 500);
 				}
@@ -635,36 +625,30 @@ namespace OpenMS
 			double gb_i(0);
 			if (i == 0 || (i == cleavage_site && use_most_basic_site))
 			{
-				//gb_i = gb_bb_l_["NH2"] + gb_bb_r_[peptide[i].getOneLetterCode()];
 				gb_i = gb_bb_l_NH2 + peptide[i].getBackboneBasicityRight();
 			}
 			else
 			{
-				//String aa_i_l(peptide[i - 1].getOneLetterCode());
 				if (i == peptide.size())
 				{
 					if (res_type == Residue::BIon)
 					{
-						//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_["b-ion"];
 						gb_i = peptide[i-1].getBackboneBasicityLeft() + gb_bb_r_bion;
 					}
 					else
 					{
 						if (res_type == Residue::AIon)
 						{
-							//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_["a-ion"];
 							gb_i = peptide[i-1].getBackboneBasicityLeft() + gb_bb_r_aion;
 						}
 						else
 						{
-							//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_["COOH"];
 							gb_i = peptide[i-1].getBackboneBasicityLeft() + gb_bb_r_COOH;
 						}
 					}
 				}
 				else
 				{
-					//gb_i = gb_bb_l_[aa_i_l] + gb_bb_r_[peptide[i].getOneLetterCode()];
 					gb_i = peptide[i-1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight();
 				}
 			}
@@ -677,7 +661,6 @@ namespace OpenMS
 					double prob = exp(-(-gb_i - gb_j + COULOMB_REPULSION/r_ij) * 1000 / (Constants::R * T) - 500)/q;
 					bb_charge_[i] += prob;
 	
-					//double add_E = exp((-gb_i - gb_j) * prob);
 					double add_E = exp(gb_i * 1000 / Constants::R / T);
 					if (i < fixed_site - 1)
 					{
@@ -691,14 +674,12 @@ namespace OpenMS
 					double gb_i_sc(0);
 					if (i != peptide.size())
 					{
-						if (/*gb_sc_.has(peptide[i].getOneLetterCode())*/peptide[i].getSideChainBasicity() != 0)
+						if (peptide[i].getSideChainBasicity() != 0)
 						{
-							//gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
 							gb_i_sc = peptide[i].getSideChainBasicity();
 							double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION/(r_ij + 1)) * 1000 /(Constants::R * T) - 500)/q;
 							sc_charge_[i] += prob;
 	
-							//double add_E = exp((-gb_i_sc - gb_j) * prob);
 							double add_E = exp(gb_i_sc * 1000 / Constants::R / T);
 							if (i < fixed_site - 1)
  		       		{
@@ -717,14 +698,12 @@ namespace OpenMS
 					{
 						// SC position
 						double gb_i_sc(0);
-						if (/*gb_sc_.has(peptide[i].getOneLetterCode())*/peptide[i].getSideChainBasicity() != 0)
+						if (peptide[i].getSideChainBasicity() != 0)
 						{
-							//gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
 							gb_i_sc = peptide[i].getSideChainBasicity();
 							double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION) * 1000 /(Constants::R * T) - 500)/q;
 							sc_charge_[i] += prob;
 
-							//double add_E = exp((-gb_i_sc - gb_j) * prob);
 							double add_E = exp(gb_i_sc * 1000 / Constants::R / T);
         			if (i < fixed_site - 1)
         			{
@@ -758,9 +737,8 @@ namespace OpenMS
 				if (i != fixed_site && i != peptide.size())
 				{
 					double gb_i_sc(0);
-					if (/*gb_sc_.has(peptide[i].getOneLetterCode())*/peptide[i].getSideChainBasicity() != 0)
+					if (peptide[i].getSideChainBasicity() != 0)
 					{
-						//gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
 						gb_i_sc = peptide[i].getSideChainBasicity();
 						double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION/(r_ij + 2)) * 1000 / (Constants::R * T) - 500)/q;
 						sc_charge_[i] += prob;
@@ -1235,6 +1213,7 @@ namespace OpenMS
 			{
 				// calc proton distribution with one fixed at cleavage site
 				calculateProtonDistribution_(peptide, 2, Residue::Full, true, n_term_ion.size());
+				//calculateProtonDistribution_(peptide, 1, Residue::Full);
 				double p_n(0), p_c(0);
 
 				p_n = E_n_term_ / (E_n_term_ + E_c_term_);
@@ -1247,10 +1226,30 @@ namespace OpenMS
 				{
 					p_c = 0;
 				}
+
+#ifdef CALC_CHARGE_STATES_DEBUG
+				cerr << "E_n_term_=" << E_n_term_ << ", E_c_term_=" << E_c_term_ << ", p_n=" << p_n << ", p_c=" << p_c << endl;
+#endif
+								
 	
 				// calc proton distribution of second proton with other one at most basic site fixed
 				calculateProtonDistribution_(peptide, 2, Residue::Full, false, n_term_ion.size(), true);
 
+#ifdef CALC_CHARGE_STATES_DEBUG
+				cerr << "Distribution of second proton: " << endl;
+				cerr << "BB: ";
+				for (UInt i = 0; i != bb_charge_.size(); ++i)
+				{
+					cerr << "; " << i << ". " << bb_charge_[i];
+				}
+				cerr << "\nSC: ";
+				for (UInt i = 0; i != sc_charge_.size(); ++i)
+				{
+					cerr << "; " << i << ". " << sc_charge_[i];
+				}
+				cerr << endl;
+#endif
+				
 				double singly_charged(0);
 				for (UInt i = 0; i != n_term_ion.size(); ++i)
 				{
@@ -1259,7 +1258,7 @@ namespace OpenMS
 					if (sc_charge_.has(i))
 					{
 						n_term2 += sc_charge_[i] * p_n;
-						singly_charged += sc_charge_[i] * p_c;
+						singly_charged += sc_charge_[i]  * p_c;
 					}
 				}
 
@@ -1269,7 +1268,7 @@ namespace OpenMS
 					singly_charged += bb_charge_[i] * p_n;
 					if (sc_charge_.has(i - 1))
 					{
-						c_term2 += sc_charge_[i - 1] * p_c;
+						c_term2 += sc_charge_[i - 1]  * p_c;
 						singly_charged += sc_charge_[i - 1] * p_n;
 					}
 				}
@@ -1287,7 +1286,9 @@ namespace OpenMS
 				c_term1 /= sum;
 				c_term2 /= sum;
 
-				//cerr << "charge=2, n_term1=" << n_term1 << ", n_term2=" << n_term2 << ", c_term1=" << c_term1 << ", c_term2=" << c_term2 << endl;
+#ifdef CALC_CHARGE_STATES_DEBUG
+				cerr << "CD:     charge=2, " << n_term_ion << "|" << c_term_ion << ", n_term1=" << n_term1 << ", n_term2=" << n_term2 << ", c_term1=" << c_term1 << ", c_term2=" << c_term2 << endl;
+#endif
 			}
 			else
 			{
@@ -1334,7 +1335,9 @@ namespace OpenMS
 					n_term2 /= sum;
 					c_term1 /= sum;
 					c_term2 /= sum;
-						
+#ifdef CALC_CHARGE_STATES_DEBUG
+					cerr << "CR/SC: charge=2, " << n_term_ion << "|" << c_term_ion << ", n_term1=" << n_term1 << ", n_term2=" << n_term2 << ", c_term1=" << c_term1 << ", c_term2=" << c_term2 << endl;
+#endif
 				}
 				else
 				{

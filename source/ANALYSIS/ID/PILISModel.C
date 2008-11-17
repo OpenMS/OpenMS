@@ -25,7 +25,6 @@
 
 
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
-//#include <OpenMS/ANALYSIS/ID/PILISNeutralLossModel.h>
 #include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
 
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
@@ -47,6 +46,11 @@
 
 using namespace std;
 
+// new TODOS
+// CR and CD distinction of loss models
+
+
+// old ones
 // TODO New QXP pathway handling
 // TODO New loss modeling with P's in the sequence, multiple losses, ...
 // TODO New XXD yk-2 enhancement
@@ -69,10 +73,8 @@ namespace OpenMS
 	{	
 		defaults_.setValue("upper_mz", 2000.0, "Max m/z value of product ions in the simulated spectrum");
 		defaults_.setValue("lower_mz", 200.0, "Lowest m/z value of product ions in the simulated spectrum");
-		defaults_.setValue("charge_remote_threshold", 0.2, "If the probability for the proton at the N-terminus is lower than this value, enable charge-remote pathways");
-		defaults_.setValue("charge_directed_threshold", 0.3, "Limit the proton availability at the N-terminus to at least this value for charge-directed pathways");
-		
-		//defaults_.setValue("side_chain_intensity_threshold", 0.0, "Side-chain pathways are active if this threshold is exceeded by the probability of N-terminal proton");
+		defaults_.setValue("charge_remote_threshold", 0.15, "If the probability for the proton at the N-terminus is lower than this value, enable charge-remote pathways");
+		defaults_.setValue("charge_directed_threshold", 0.15, "Limit the proton availability at the N-terminus to at least this value for charge-directed pathways");
 		defaults_.setValue("model_depth", 4, "The number of explicitly modeled backbone cleavages from N-terminus and C-terminus, would be 9 for the default value");
 		defaults_.setValue("visible_model_depth", 30, "The maximal possible size of a peptide to be modeled");
 		defaults_.setValue("precursor_mass_tolerance", 3.0, "Mass tolerance of the precursor peak, used to identify the precursor peak and its loss peaks for training");
@@ -80,15 +82,18 @@ namespace OpenMS
 		defaults_.setValue("variable_modifications", StringList::create("MOD:00719,MOD:09997"), "Modifications which should be included in the model, represented by PSI-MOD accessions.");
 		defaults_.setValue("fixed_modifications", StringList::create(""), "Modifications which should replace the unmodified amino acid, represented by PSI-MOD accessions.");
 						
-		defaults_.setValue("min_y_ion_intensity", 0.20, ".");
-		defaults_.setValue("min_b_ion_intensity", 0.15, ".");
-		defaults_.setValue("min_a_ion_intensity", 0.05, ".");
-		defaults_.setValue("min_y_loss_intensity", 0.05, ".");
-		defaults_.setValue("min_b_loss_intensity", 0.02, ".");
+		defaults_.setValue("min_y_ion_intensity", 0.0, ".");
+		defaults_.setValue("min_b_ion_intensity", 0.0, ".");
+		defaults_.setValue("min_a_ion_intensity", 0.0, ".");
+		defaults_.setValue("min_y_loss_intensity", 0.0, ".");
+		defaults_.setValue("min_b_loss_intensity", 0.0, ".");
 
 		defaults_.setValue("charge_loss_factor", 0.2, "Factor which accounts for the loss of a proton from a ++ ion, the higher the value the more ++ ions loose protons");
+		defaults_.setValue("side_chain_activation", 0.3, "Additional activation of proton sitting at side chain, especially important at lysin and histidine residues");
 		defaults_.setValue("pseudo_counts", 1e-15, "Value which is added for every transition trained of the underlying hidden Markov model");
 		defaults_.setValue("max_isotope", 2, "Maximal isotope peak which is reported by the model, 0 means all isotope peaks are reported");
+		defaults_.setValue("max_fragment_charge", 2, "Maximal charge state allowed for fragment ions");
+		defaults_.setValue("suppress_single_ions", "true", "If set to true, single ions are suppressed, e.g. y1 and b1");
 
 		defaultsToParam_();
 	}
@@ -107,8 +112,18 @@ namespace OpenMS
 			spectra_aligner_(model.spectra_aligner_),
 			precursor_model_cr_(model.precursor_model_cr_),
 			precursor_model_cd_(model.precursor_model_cd_),
-			b_ion_losses_(model.b_ion_losses_),
-			y_ion_losses_(model.y_ion_losses_)
+			
+			a_ion_losses_cr_(model.a_ion_losses_cr_),
+			a_ion_losses_cd_(model.a_ion_losses_cd_),
+			
+			b_ion_losses_cr_(model.b_ion_losses_cr_),
+			b_ion_losses_cd_(model.b_ion_losses_cd_),
+			
+			b2_ion_losses_cr_(model.b2_ion_losses_cr_),
+			b2_ion_losses_cd_(model.b2_ion_losses_cd_),
+			
+			y_ion_losses_cr_(model.y_ion_losses_cr_),
+			y_ion_losses_cd_(model.y_ion_losses_cd_)
 	{
 	}
 
@@ -125,8 +140,18 @@ namespace OpenMS
 			spectra_aligner_ = model.spectra_aligner_;
 			precursor_model_cr_ = model.precursor_model_cr_;
 			precursor_model_cd_ = model.precursor_model_cd_;
-			b_ion_losses_ = model.b_ion_losses_;
-			y_ion_losses_ = model.y_ion_losses_;
+			
+			a_ion_losses_cr_ = model.a_ion_losses_cr_;
+			a_ion_losses_cd_ = model.a_ion_losses_cd_;
+			
+			b_ion_losses_cr_ = model.b_ion_losses_cr_;
+			b_ion_losses_cd_ = model.b_ion_losses_cd_;
+      
+			b2_ion_losses_cr_ = model.b2_ion_losses_cr_;
+			b2_ion_losses_cd_ = model.b2_ion_losses_cd_;
+			
+			y_ion_losses_cr_ = model.y_ion_losses_cr_;
+			y_ion_losses_cd_ = model.y_ion_losses_cd_;
 		}
 		return *this;
 	}
@@ -170,17 +195,45 @@ namespace OpenMS
 		pre_param.setValue("C_term_H2O_loss", "false");
 		pre_param.setValue("enable_double_losses", "false");
 		pre_param.setValue("ion_name", "b");
-		b_ion_losses_.setParameters(pre_param);
-
+		b_ion_losses_cr_.setParameters(pre_param);
+		b_ion_losses_cd_.setParameters(pre_param);
 		if (generate_models)
 		{
-			b_ion_losses_.generateModel();
+			b_ion_losses_cr_.generateModel();
+			b_ion_losses_cd_.generateModel();
 		}
 
+    pre_param.setValue("C_term_H2O_loss", "false");
+    pre_param.setValue("enable_double_losses", "false");
+    pre_param.setValue("ion_name", "b2");
+    b2_ion_losses_cr_.setParameters(pre_param);
+		b2_ion_losses_cd_.setParameters(pre_param);
+    if (generate_models)
+    {
+      b2_ion_losses_cr_.generateModel();
+			b2_ion_losses_cd_.generateModel();
+    }
+
+    pre_param.setValue("C_term_H2O_loss", "false");
+    pre_param.setValue("enable_double_losses", "false");
+    pre_param.setValue("ion_name", "a");
+    a_ion_losses_cr_.setParameters(pre_param);
+		a_ion_losses_cd_.setParameters(pre_param);
+		if (generate_models)
+    {
+      a_ion_losses_cr_.generateModel();
+			a_ion_losses_cd_.generateModel();
+    }
+		
 		pre_param.setValue("C_term_H2O_loss", "true");
 		pre_param.setValue("ion_name", "y");
-		y_ion_losses_.setParameters(pre_param);
-		y_ion_losses_.generateModel();
+		y_ion_losses_cr_.setParameters(pre_param);
+		y_ion_losses_cd_.setParameters(pre_param);
+		if (generate_models)
+		{
+			y_ion_losses_cr_.generateModel();
+			y_ion_losses_cd_.generateModel();
+		}
 
 		if (generate_models)
 		{
@@ -224,25 +277,56 @@ namespace OpenMS
     parseHMMModel_(++it_begin, it_end, precursor_model_cd_hmm);
 		precursor_model_cd_.setHMM(precursor_model_cd_hmm);
 		
-		// loss models
-		it_begin = file.search(it_end, "BION_LOSS_MODEL_BEGIN");
-		it_end = file.search(it_begin, "BION_LOSS_MODEL_END");
-		HiddenMarkovModel b_ion_loss_hmm;
-		parseHMMModel_(++it_begin, it_end, b_ion_loss_hmm);
-		b_ion_losses_.setHMM(b_ion_loss_hmm);
+		// b loss models
+    it_begin = file.search(it_end, "BION_LOSS_MODEL_CR_BEGIN");
+    it_end = file.search(it_begin, "BION_LOSS_MODEL_CR_END");
+    HiddenMarkovModel b_ion_loss_hmm_cr;
+    parseHMMModel_(++it_begin, it_end, b_ion_loss_hmm_cr);
+    b_ion_losses_cr_.setHMM(b_ion_loss_hmm_cr);
 
-		/*
-		it_begin = file.search(it_end, "B2ION_LOSS_MODEL_BEGIN");
-		it_end = file.search(it_begin, "B2ION_LOSS_MODEL_END");
-		parseHMMLightModel_(++it_begin, it_end, hmms_losses_[B2Ion]);
-		*/
+    it_begin = file.search(it_end, "BION_LOSS_MODEL_CD_BEGIN");
+    it_end = file.search(it_begin, "BION_LOSS_MODEL_CD_END");
+    HiddenMarkovModel b_ion_loss_hmm_cd;
+    parseHMMModel_(++it_begin, it_end, b_ion_loss_hmm_cd);
+    b_ion_losses_cd_.setHMM(b_ion_loss_hmm_cd);
+
+		it_begin = file.search(it_end, "B2ION_LOSS_MODEL_CR_BEGIN");
+		it_end = file.search(it_begin, "B2ION_LOSS_MODEL_CR_END");
+		HiddenMarkovModel b2_ion_loss_hmm_cr;
+		parseHMMModel_(++it_begin, it_end, b2_ion_loss_hmm_cr);
+		b2_ion_losses_cr_.setHMM(b2_ion_loss_hmm_cr);
+
+    it_begin = file.search(it_end, "B2ION_LOSS_MODEL_CD_BEGIN");
+    it_end = file.search(it_begin, "B2ION_LOSS_MODEL_CD_END");
+    HiddenMarkovModel b2_ion_loss_hmm_cd;
+    parseHMMModel_(++it_begin, it_end, b2_ion_loss_hmm_cd);
+    b2_ion_losses_cd_.setHMM(b2_ion_loss_hmm_cd);
+	
+		// a-ion loss model
+		it_begin = file.search(it_end, "AION_LOSS_MODEL_CR_BEGIN");
+		it_end = file.search(it_begin, "AION_LOSS_MODEL_CR_END");
+		HiddenMarkovModel a_ion_loss_hmm_cr;
+		parseHMMModel_(++it_begin, it_end, a_ion_loss_hmm_cr);
+		a_ion_losses_cr_.setHMM(a_ion_loss_hmm_cr);
+
+    it_begin = file.search(it_end, "AION_LOSS_MODEL_CD_BEGIN");
+    it_end = file.search(it_begin, "AION_LOSS_MODEL_CD_END");
+    HiddenMarkovModel a_ion_loss_hmm_cd;
+    parseHMMModel_(++it_begin, it_end, a_ion_loss_hmm_cd);
+    a_ion_losses_cd_.setHMM(a_ion_loss_hmm_cd);
 		
 		// y-ion loss model
-		it_begin = file.search(it_end, "YION_LOSS_MODEL_BEGIN");
-		it_end = file.search(it_begin, "YION_LOSS_MODEL_END");
-		HiddenMarkovModel y_ion_loss_hmm;
-		parseHMMModel_(++it_begin, it_end, y_ion_loss_hmm);
-		y_ion_losses_.setHMM(y_ion_loss_hmm);
+		it_begin = file.search(it_end, "YION_LOSS_MODEL_CR_BEGIN");
+		it_end = file.search(it_begin, "YION_LOSS_MODEL_CR_END");
+		HiddenMarkovModel y_ion_loss_hmm_cr;
+		parseHMMModel_(++it_begin, it_end, y_ion_loss_hmm_cr);
+		y_ion_losses_cr_.setHMM(y_ion_loss_hmm_cr);
+
+    it_begin = file.search(it_end, "YION_LOSS_MODEL_CD_BEGIN");
+    it_end = file.search(it_begin, "YION_LOSS_MODEL_CD_END");
+    HiddenMarkovModel y_ion_loss_hmm_cd;
+    parseHMMModel_(++it_begin, it_end, y_ion_loss_hmm_cd);
+    y_ion_losses_cd_.setHMM(y_ion_loss_hmm_cd);
 
 		valid_ = true;
 		return;
@@ -274,19 +358,38 @@ namespace OpenMS
 		precursor_model_cd_.getHMM().write(out);
 		out << "PRECURSOR_MODEL_CD_END" << endl;
 
-		out << "BION_LOSS_MODEL_BEGIN" << endl;
-		b_ion_losses_.getHMM().write(out);
-		out << "BION_LOSS_MODEL_END" << endl;
+		out << "BION_LOSS_MODEL_CR_BEGIN" << endl;
+		b_ion_losses_cr_.getHMM().write(out);
+		out << "BION_LOSS_MODEL_CR_END" << endl;
 
-		/*
-		out << "B2ION_LOSS_MODEL_BEGIN" << endl;
-		hmms_losses_[B2Ion].write(out);
-		out << "B2ION_LOSS_MODEL_END" << endl;
-		*/
+    out << "BION_LOSS_MODEL_CD_BEGIN" << endl;
+    b_ion_losses_cd_.getHMM().write(out);
+    out << "BION_LOSS_MODEL_CD_END" << endl;
+
+		out << "B2ION_LOSS_MODEL_CR_BEGIN" << endl;
+		b2_ion_losses_cr_.getHMM().write(out);
+		out << "B2ION_LOSS_MODEL_CR_END" << endl;
+
+    out << "B2ION_LOSS_MODEL_CD_BEGIN" << endl;
+    b2_ion_losses_cd_.getHMM().write(out);
+    out << "B2ION_LOSS_MODEL_CD_END" << endl;
+
+
+    out << "AION_LOSS_MODEL_CR_BEGIN" << endl;
+    a_ion_losses_cr_.getHMM().write(out);
+    out << "AION_LOSS_MODEL_CR_END" << endl;
+
+    out << "AION_LOSS_MODEL_CD_BEGIN" << endl;
+    a_ion_losses_cd_.getHMM().write(out);
+    out << "AION_LOSS_MODEL_CD_END" << endl;
 		
-		out << "YION_LOSS_MODEL_BEGIN" << endl;
-		y_ion_losses_.getHMM().write(out);
-		out << "YION_LOSS_MODEL_END" << endl;
+		out << "YION_LOSS_MODEL_CR_BEGIN" << endl;
+		y_ion_losses_cr_.getHMM().write(out);
+		out << "YION_LOSS_MODEL_CR_END" << endl;
+
+    out << "YION_LOSS_MODEL_CD_BEGIN" << endl;
+    y_ion_losses_cd_.getHMM().write(out);
+    out << "YION_LOSS_MODEL_CD_END" << endl;
 	
 		return;
 	}
@@ -379,11 +482,12 @@ namespace OpenMS
 		}
 
 		// activation of protons sitting at lysine and histidine side chains
+		double side_chain_activation(param_.getValue("side_chain_activation"));
 		for (UInt i = 0; i != peptide.size(); ++i)
 		{
-			if (peptide[i].getOneLetterCode() == "H" || peptide[i].getOneLetterCode() == "K")
+			if (peptide[i].getOneLetterCode() != "R") // || peptide[i].getOneLetterCode() == "K")
 			{
-				bb_sum += 0.5 * sc_charge_full[i]; // TODO
+				bb_sum += side_chain_activation * sc_charge_full[i]; // TODO
 			}
 		}
 
@@ -666,16 +770,68 @@ namespace OpenMS
 				hmm_.enableTransition(aa2+"_R"+pos_name, "end"+pos_name);
       } 
 
-			double pre_weight = prefix.getMonoWeight(Residue::BIon) + 1.0;
-			b_ion_losses_.train(in_spec, prefix, pre_weight, 1);
+			UInt max_fragment_charge = param_.getValue("max_fragment_charge");
+			for (UInt z = 1; z <= max_fragment_charge; ++z)
+			{
+				double charge_remote_threshold((double)param_.getValue("charge_remote_threshold"));
+				double avail_bb_sum_prefix = getAvailableBackboneCharge_(prefix, Residue::BIon, z);
+				double avail_bb_sum_suffix = getAvailableBackboneCharge_(suffix, Residue::YIon, z);
+			
+				if (prefix.size() != 2)
+				{
+					double pre_weight = prefix.getMonoWeight(Residue::BIon) + 1.0;
 
-			double suf_weight = suffix.getMonoWeight(Residue::YIon) + 1.0;
-			y_ion_losses_.train(in_spec, suffix, suf_weight, 1);
+					if (avail_bb_sum_prefix <= charge_remote_threshold)
+					{
+						//cerr << "Train b-ion losses, CR (avail=" << avail_bb_sum_prefix << ", z=" << z << ", prefix=" << prefix << endl;
+						b_ion_losses_cr_.train(in_spec, prefix, pre_weight, z);
+					}
+					else
+					{
+						//cerr << "Train b-ion losses, CD (avail=" << avail_bb_sum_prefix << ", z=" << z << ", prefix=" << prefix << endl;
+						b_ion_losses_cd_.train(in_spec, prefix, pre_weight, z);
+					}
+				}
+				else
+				{
+					double pre_weight = prefix.getMonoWeight(Residue::BIon) + 1.0;
+
+					if (avail_bb_sum_prefix <= charge_remote_threshold)
+					{
+						b2_ion_losses_cr_.train(in_spec, prefix, pre_weight, z);
+					}
+					else
+					{
+						b2_ion_losses_cd_.train(in_spec, prefix, pre_weight, z);
+					}
+				}
+
+				double a_pre_weight = prefix.getMonoWeight(Residue::AIon) + 1.0;
+				if (avail_bb_sum_prefix <= charge_remote_threshold)
+				{
+					a_ion_losses_cr_.train(in_spec, prefix, a_pre_weight, z);
+				}
+				else
+				{
+					a_ion_losses_cd_.train(in_spec, prefix, a_pre_weight, z);
+				}
+			
+				double suf_weight = suffix.getMonoWeight(Residue::YIon) + 1.0;
+				if (avail_bb_sum_suffix <= charge_remote_threshold)
+				{
+					//cerr << "Train y-ion losses, CR (avail=" << avail_bb_sum_suffix << ", z=" << z << ", suffix=" << suffix << endl;
+					y_ion_losses_cr_.train(in_spec, suffix, suf_weight, z);
+				}
+				else
+				{
+					//cerr << "Train y-ion losses, CD (avail=" << avail_bb_sum_suffix << ", z=" << z << ", suffix=" << suffix << endl;
+					y_ion_losses_cd_.train(in_spec, suffix, suf_weight, z);
+				}
+			}
 		}
-
-		
-		
-		if (is_charge_remote)
+	
+		double charge_remote_threshold((double)param_.getValue("charge_remote_threshold"));
+		if (bb_sum <= charge_remote_threshold)
 		{
 			double peptide_weight((peptide.getMonoWeight() + charge) / (double)charge);
 			precursor_model_cr_.train(in_spec, peptide, peptide_weight, charge);
@@ -785,9 +941,15 @@ namespace OpenMS
 		hmm_.evaluate();
 		precursor_model_cr_.evaluate();
 		precursor_model_cd_.evaluate();
-		b_ion_losses_.evaluate();
-		y_ion_losses_.evaluate();
-
+		a_ion_losses_cr_.evaluate();
+		a_ion_losses_cd_.evaluate();
+		b_ion_losses_cr_.evaluate();
+		b_ion_losses_cd_.evaluate();
+		b2_ion_losses_cr_.evaluate();
+		b2_ion_losses_cd_.evaluate();
+		y_ion_losses_cr_.evaluate();
+		y_ion_losses_cd_.evaluate();
+		
 		hmm_.estimateUntrainedTransitions(); // TODO reimplement in HiddenMarkovModel
 	}
 
@@ -1121,7 +1283,7 @@ namespace OpenMS
 
 		// losses
 		vector<Map<String, double> > prefix_losses, suffix_losses;
-		vector<double> prefix_ints1, prefix_ints2, suffix_ints1, suffix_ints2;
+		vector<double> prefix_ints1, prefix_ints2, suffix_ints1, suffix_ints2, a_ints1;
 		double prefix_sum(0), suffix_sum(0);
 		for (UInt i = 0; i != prefixes.size(); ++i)
 		{
@@ -1135,6 +1297,9 @@ namespace OpenMS
 			//cerr << "prefix loss ints, "<< prefix_names1[i] << " "  << prefix_int1 << " " << prefix_int2 << endl;
 			prefix_ints2.push_back(prefix_int2);
 
+			double a_int1 = tmp[hmm_.getState(a_names1[i])];
+			a_ints1.push_back(a_int1);
+			
 			double suffix_int1 = tmp[hmm_.getState(suffix_names1[i])];
 			//cerr << suffix_names1[i] << " " << suffix_int1 << endl;
 			suffix_ints1.push_back(suffix_int1);
@@ -1158,6 +1323,8 @@ namespace OpenMS
 		RichPeak1D p;
 		//p.metaRegistry().registerName("IonName", "Name of the ion");
 		
+		double charge_remote_threshold((double)param_.getValue("charge_remote_threshold"));
+		bool suppress_single_ions(param_.getValue("suppress_single_ions").toBool());
 		for (UInt i = 0; i != prefixes.size(); ++i)
 		{
 			// prefix
@@ -1169,7 +1336,16 @@ namespace OpenMS
 			//addPeaks_(weight, 1, 0.0, prefix_ints1[i], spec, id, "b"+String(i+1) + "+");
 
       vector<RichPeak1D> b_loss_peaks;
-      b_ion_losses_.getIons(b_loss_peaks, prefixes[i], prefix_ints1[i]);
+
+			double avail_bb_sum_prefix1 = getAvailableBackboneCharge_(prefixes[i], Residue::BIon, 1);
+			if (avail_bb_sum_prefix1 <= charge_remote_threshold)
+			{
+				b_ion_losses_cr_.getIons(b_loss_peaks, prefixes[i], prefix_ints1[i]);
+			}
+			else
+			{
+				b_ion_losses_cd_.getIons(b_loss_peaks, prefixes[i], prefix_ints1[i]);
+			}
       for (vector<RichPeak1D>::const_iterator it = b_loss_peaks.begin(); it != b_loss_peaks.end(); ++it)
       {
 				String b_ion_name = it->getMetaValue("IonName");
@@ -1187,14 +1363,26 @@ namespace OpenMS
 						b_ion_name += split[j];
 					}
 				}
-				b_ion_name += "+";
-        addPeaks_(weight, 1, it->getMZ(), it->getIntensity(), spec, id, b_ion_name);
+
+				if (!suppress_single_ions || (suppress_single_ions && i + 1 > 1))
+				{
+					b_ion_name += "+";
+        	addPeaks_(weight, 1, it->getMZ(), it->getIntensity(), spec, id, b_ion_name);
+				}
       }
 
 			if (charge > 1)
 			{
 				b_loss_peaks.clear();
-				b_ion_losses_.getIons(b_loss_peaks, prefixes[i], prefix_ints2[i]);
+				double avail_bb_sum_prefix2 = getAvailableBackboneCharge_(prefixes[i], Residue::BIon, 2);
+				if (avail_bb_sum_prefix2 <= charge_remote_threshold)
+				{
+					b_ion_losses_cr_.getIons(b_loss_peaks, prefixes[i], prefix_ints2[i]);
+				}
+				else
+				{
+					b_ion_losses_cd_.getIons(b_loss_peaks, prefixes[i], prefix_ints2[i]);
+				}
       	for (vector<RichPeak1D>::const_iterator it = b_loss_peaks.begin(); it != b_loss_peaks.end(); ++it)
       	{
         	String b_ion_name = it->getMetaValue("IonName");
@@ -1212,73 +1400,136 @@ namespace OpenMS
             	b_ion_name += split[j];
           	}
         	}
-					b_ion_name += "++";
-        	addPeaks_(weight, 2, it->getMZ(), it->getIntensity(), spec, id, b_ion_name);
+
+					if (!suppress_single_ions || (suppress_single_ions && i + 1 > 1))
+					{
+						b_ion_name += "++";
+        		addPeaks_(weight, 2, it->getMZ(), it->getIntensity(), spec, id, b_ion_name);
+					}
       	}
 			}
-		
+
+			weight = prefixes[i].getMonoWeight(Residue::AIon);
+      vector<RichPeak1D> a_loss_peaks;
+			if (avail_bb_sum_prefix1 <= charge_remote_threshold)
+			{
+				a_ion_losses_cr_.getIons(a_loss_peaks, prefixes[i], a_ints1[i]);
+			}
+			else
+			{
+				a_ion_losses_cd_.getIons(a_loss_peaks, prefixes[i], a_ints1[i]);
+			}
+      for (vector<RichPeak1D>::const_iterator it = a_loss_peaks.begin(); it != a_loss_peaks.end(); ++it)
+      {
+        String a_ion_name = it->getMetaValue("IonName");
+        vector<String> split;
+        a_ion_name.split('-', split);
+        if (split.size() == 0)
+        {
+          a_ion_name += String(i + 1);
+        }
+        else
+        {
+          a_ion_name = split[0] + String(i + 1) + "-";
+          for (UInt j = 1; j != split.size(); ++j)
+          {
+            a_ion_name += split[j];
+          }
+        }
+
+				if (!suppress_single_ions || (suppress_single_ions && i + 1 > 1))
+				{
+        	a_ion_name += "+";
+	        addPeaks_(weight, 1, it->getMZ(), it->getIntensity(), spec, id, a_ion_name);
+				}
+      }
 
 			// suffix ions
 			weight = suffixes[i].getMonoWeight(Residue::YIon);
       //id.estimateFromPeptideWeight(weight);
 			id = suffixes[i].getFormula(Residue::YIon).getIsotopeDistribution(2);
-			//addPeaks_(weight, 1, 0.0, suffix_ints1[i], spec, id, suffix_names1[i]);
 			// neutral losses
       vector<RichPeak1D> y_loss_peaks;
-      y_ion_losses_.getIons(y_loss_peaks, suffixes[i], suffix_ints1[i]);
+
+			double avail_bb_sum_suffix1 = getAvailableBackboneCharge_(suffixes[i], Residue::YIon, 1);
+			if (avail_bb_sum_suffix1 <= charge_remote_threshold)
+			{
+      	y_ion_losses_cr_.getIons(y_loss_peaks, suffixes[i], suffix_ints1[i]);
+			}
+			else
+			{
+				y_ion_losses_cd_.getIons(y_loss_peaks, suffixes[i], suffix_ints1[i]);
+			}
 			for (vector<RichPeak1D>::const_iterator it = y_loss_peaks.begin(); it != y_loss_peaks.end(); ++it)
 			{
 				String y_ion_name = it->getMetaValue("IonName");
         vector<String> split;
         y_ion_name.split('-', split);
+				UInt num = suffixes.size() - i;
         if (split.size() == 0)
         {
-          y_ion_name += String(suffixes.size() - i);
+          y_ion_name += String(num);
         }
         else
         {
-          y_ion_name = split[0] + String(suffixes.size() - i) + "-";
+          y_ion_name = split[0] + String(num) + "-";
           for (UInt j = 1; j != split.size(); ++j)
           {
             y_ion_name += split[j];
           }
         }
-						
-				y_ion_name += "+";
-				addPeaks_(weight, 1, it->getMZ(), it->getIntensity(), spec, id, y_ion_name);
+					
+				if (!suppress_single_ions || (suppress_single_ions && num > 1))
+				{							
+					y_ion_name += "+";
+					addPeaks_(weight, 1, it->getMZ(), it->getIntensity(), spec, id, y_ion_name);
+				}
 			}
 		
 			if (charge > 1)
 			{
 				y_loss_peaks.clear();
-				y_ion_losses_.getIons(y_loss_peaks, suffixes[i], suffix_ints2[i]);
+				double avail_bb_sum_suffix2 = getAvailableBackboneCharge_(suffixes[i], Residue::YIon, 2);
+				if (avail_bb_sum_suffix2 <= charge_remote_threshold)
+				{
+					y_ion_losses_cr_.getIons(y_loss_peaks, suffixes[i], suffix_ints2[i]);
+				}
+				else
+				{
+					y_ion_losses_cd_.getIons(y_loss_peaks, suffixes[i], suffix_ints2[i]);
+				}
       	for (vector<RichPeak1D>::const_iterator it = y_loss_peaks.begin(); it != y_loss_peaks.end(); ++it)
       	{
         	String y_ion_name = it->getMetaValue("IonName");
         	vector<String> split;
         	y_ion_name.split('-', split);
+					UInt num = suffixes.size() - i;
         	if (split.size() == 0)
         	{
-          	y_ion_name += String(suffixes.size() - i - 1);
+          	y_ion_name += String(num);
         	}
         	else
         	{
-          	y_ion_name = split[0] + String(suffixes.size() - i - 1) + "-";
+          	y_ion_name = split[0] + String(num) + "-";
           	for (UInt j = 1; j != split.size(); ++j)
          		{
             	y_ion_name += split[j];
           	}
         	}
-					y_ion_name += "++";
-	        addPeaks_(weight, 2, it->getMZ(), it->getIntensity(), spec, id, y_ion_name);
+
+					if (!suppress_single_ions || (suppress_single_ions && num > 1))
+					{
+						y_ion_name += "++";
+	        	addPeaks_(weight, 2, it->getMZ(), it->getIntensity(), spec, id, y_ion_name);
+					}
 				}
 			}
 		}
 
 		// precursor intensities
 		vector<RichPeak1D> pre_peaks;
-		cerr << peptide << " ->getSpectrum: bb_sum=" << bb_sum << ", charge_remote=" << is_charge_remote<< endl;
-		if (/*(*/is_charge_remote/* && charge < 3 && !(peptide.has("D") && charge == 2)) || peptide[0].getOneLetterCode() == "Q"*/)
+		//cerr << peptide << " ->getSpectrum: bb_sum=" << bb_sum << ", charge_remote=" << is_charge_remote<< endl;
+		if (bb_sum <= charge_remote_threshold/*(is_charge_remote && charge < 3 && !(peptide.has("D") && charge == 2)) || peptide[0].getOneLetterCode() == "Q"*/)
 		{
 			precursor_model_cr_.getIons(pre_peaks, peptide, bb_sum);
 		}
@@ -1467,6 +1718,41 @@ namespace OpenMS
 		return;
 	}
 
+
+	double PILISModel::getAvailableBackboneCharge_(const AASequence& ion, Residue::ResidueType res_type, int charge)
+	{
+		double bb_sum(0);
+		Map<UInt, double> bb_charges, sc_charges;
+		prot_dist_.getProtonDistribution(bb_charges, sc_charges, ion, charge, res_type);
+
+		for (Map<UInt, double>::ConstIterator it = bb_charges.begin(); it != bb_charges.end(); ++it)
+		{
+			bb_sum += it->second;
+		}
+
+    // activation of protons sitting at lysine and histidine side chains
+    double side_chain_activation(param_.getValue("side_chain_activation"));
+    for (UInt i = 0; i != ion.size(); ++i)
+    {
+      if (ion[i].getOneLetterCode() != "R") // || peptide[i].getOneLetterCode() == "K")
+      {
+        bb_sum += side_chain_activation * sc_charges[i]; // TODO
+      }
+    }
+
+    if  (bb_sum > 1)
+    {
+      bb_sum = 1;
+    }
+
+    if (bb_sum < (double)param_.getValue("charge_directed_threshold") * charge)
+    {
+      bb_sum = (double)param_.getValue("charge_directed_threshold") * charge;
+    }
+		return bb_sum;
+	}
+	
+	
 	bool PILISModel::getInitialTransitionProbabilities_(std::vector<double>& bb_init, 
 																												std::vector<double>& cr_init, 
 																												std::vector<double>& sc_init, 
@@ -1544,8 +1830,8 @@ namespace OpenMS
 			cr_init[i] /= init_prob_sum;
 		}
 		
-		//return is_charge_remote;
-		return true;
+		return is_charge_remote;
+		//return true;
 	}
 
 	void PILISModel::addPeaks_(double mz, int charge, double offset, double intensity, RichPeakSpectrum& /*spectrum*/, const IsotopeDistribution& id, const String& name)
@@ -1643,21 +1929,48 @@ namespace OpenMS
 		hmm_.setPseudoCounts(pseudo_counts);
 
 		// pass parameters to precursor model
-		Param precursor_param(precursor_model_cr_.getParameters());
-		precursor_param.setValue("pseudo_counts", pseudo_counts);
-		precursor_model_cr_.setParameters(precursor_param);
+		Param precursor_param_cr(precursor_model_cr_.getParameters());
+		precursor_param_cr.setValue("pseudo_counts", pseudo_counts);
+		precursor_model_cr_.setParameters(precursor_param_cr);
 
-		precursor_param = precursor_model_cd_.getParameters();
-		precursor_param.setValue("pseudo_counts", pseudo_counts);
-		precursor_model_cd_.setParameters(precursor_param);
+		Param precursor_param_cd = precursor_model_cd_.getParameters();
+		precursor_param_cd.setValue("pseudo_counts", pseudo_counts);
+		precursor_model_cd_.setParameters(precursor_param_cd);
 
-		Param b_ion_losses_param = b_ion_losses_.getParameters();
-		b_ion_losses_param.setValue("pseudo_counts", pseudo_counts);
-		b_ion_losses_.setParameters(b_ion_losses_param);
+		Param b_ion_losses_param_cr = b_ion_losses_cr_.getParameters();
+		b_ion_losses_param_cr.setValue("pseudo_counts", pseudo_counts);
+		b_ion_losses_cr_.setParameters(b_ion_losses_param_cr);
 
-		Param y_ion_losses_param = y_ion_losses_.getParameters();
-    y_ion_losses_param.setValue("pseudo_counts", pseudo_counts);
-    y_ion_losses_.setParameters(y_ion_losses_param);
+    Param b_ion_losses_param_cd = b_ion_losses_cd_.getParameters();
+    b_ion_losses_param_cd.setValue("pseudo_counts", pseudo_counts);
+    b_ion_losses_cd_.setParameters(b_ion_losses_param_cd);
+
+		
+    Param b2_ion_losses_param_cr = b2_ion_losses_cr_.getParameters();
+    b2_ion_losses_param_cr.setValue("pseudo_counts", pseudo_counts);
+    b2_ion_losses_cr_.setParameters(b2_ion_losses_param_cr);
+
+    Param b2_ion_losses_param_cd = b2_ion_losses_cd_.getParameters();
+    b2_ion_losses_param_cd.setValue("pseudo_counts", pseudo_counts);
+    b2_ion_losses_cd_.setParameters(b2_ion_losses_param_cd);
+
+		
+		Param y_ion_losses_param_cr = y_ion_losses_cr_.getParameters();
+    y_ion_losses_param_cr.setValue("pseudo_counts", pseudo_counts);
+    y_ion_losses_cr_.setParameters(y_ion_losses_param_cr);
+
+    Param y_ion_losses_param_cd = y_ion_losses_cd_.getParameters();
+    y_ion_losses_param_cd.setValue("pseudo_counts", pseudo_counts);
+    y_ion_losses_cd_.setParameters(y_ion_losses_param_cd);
+
+		
+		Param a_ion_losses_param_cr = a_ion_losses_cr_.getParameters();
+		a_ion_losses_param_cr.setValue("pseudo_counts", pseudo_counts);
+		a_ion_losses_cr_.setParameters(a_ion_losses_param_cr);
+
+    Param a_ion_losses_param_cd = a_ion_losses_cd_.getParameters();
+    a_ion_losses_param_cd.setValue("pseudo_counts", pseudo_counts);
+    a_ion_losses_cd_.setParameters(a_ion_losses_param_cd);
 	}
 } // namespace OpenMS
 

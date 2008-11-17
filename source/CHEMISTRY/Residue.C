@@ -91,6 +91,8 @@ namespace OpenMS
 			modification_(residue.modification_),
 			loss_names_(residue.loss_names_),
 			loss_formulas_(residue.loss_formulas_),
+			NTerm_loss_names_(residue.NTerm_loss_names_),
+			NTerm_loss_formulas_(residue.NTerm_loss_formulas_),
 			loss_average_weight_(residue.loss_average_weight_),
 			loss_mono_weight_(residue.loss_mono_weight_),
 			low_mass_ions_(residue.low_mass_ions_),
@@ -125,6 +127,8 @@ namespace OpenMS
 			modification_ = residue.modification_;
 			loss_names_ = residue.loss_names_;
 			loss_formulas_ = residue.loss_formulas_;
+			NTerm_loss_names_ = residue.NTerm_loss_names_;
+			NTerm_loss_formulas_ = residue.NTerm_loss_formulas_;
 			loss_average_weight_ = residue.loss_average_weight_;
 			loss_mono_weight_ = residue.loss_mono_weight_;
 			low_mass_ions_ = residue.low_mass_ions_;
@@ -302,6 +306,38 @@ namespace OpenMS
 	{
 		return loss_names_;
 	}
+
+
+  void Residue::setNTermLossFormulas(const vector<EmpiricalFormula>& NTerm_loss_formulas)
+  {
+    NTerm_loss_formulas_ = NTerm_loss_formulas;
+  }
+
+  void Residue::addNTermLossFormula(const EmpiricalFormula& NTerm_loss_formula)
+  {
+    NTerm_loss_formulas_.push_back(NTerm_loss_formula);
+  }
+
+  const vector<EmpiricalFormula>& Residue::getNTermLossFormulas() const
+  {
+    return NTerm_loss_formulas_;
+  }
+
+  void Residue::addNTermLossName(const String& name)
+  {
+    NTerm_loss_names_.push_back(name);
+  }
+
+  void Residue::setNTermLossNames(const vector<String>& names)
+  {
+    NTerm_loss_names_ = names;
+  }
+
+  const vector<String>& Residue::getNTermLossNames() const
+  {
+    return NTerm_loss_names_;
+  }
+	
 	
 	void Residue::setFormula(const EmpiricalFormula& formula, ResidueType res_type)
 	{
@@ -648,6 +684,11 @@ namespace OpenMS
 	{
 		return loss_formulas_.size() != 0;
 	}
+
+	bool Residue::hasNTermNeutralLosses() const
+  {
+		return NTerm_loss_formulas_.size() != 0;
+	}
 	
 	bool Residue::operator == (const Residue& residue) const
 	{
@@ -664,6 +705,8 @@ namespace OpenMS
 						modification_ == residue.modification_ &&
 						loss_names_ == residue.loss_names_ &&
 						loss_formulas_ == residue.loss_formulas_ &&
+						NTerm_loss_names_ == residue.NTerm_loss_names_ &&
+						NTerm_loss_formulas_ == residue.NTerm_loss_formulas_ &&
 						loss_average_weight_ == residue.loss_average_weight_ &&
 						loss_mono_weight_ == residue.loss_mono_weight_ &&
 						low_mass_ions_ == residue.low_mass_ions_ &&
