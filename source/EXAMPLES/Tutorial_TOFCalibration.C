@@ -41,7 +41,7 @@ Int main()
   param.setValue("PeakPicker:thresholds:fwhm_bound",0.1);
   param.setValue("PeakPicker:wavelet_transform:scale",0.12);
   ec.setParameters(param);
-  ec.calibrate(calib_exp,exp_raw,ref_masses);
+  ec.pickAndCalibrate(calib_exp,exp_raw,ref_masses);
 
   return 0;
 } //end of main
