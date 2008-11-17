@@ -98,5 +98,6 @@
 	- @subpage QuantIDMerger - Merges quantitation and identification data.
 	
 	@todo Add the new tool IDFileConverter and remove conversion from the search engine adapters (Andreas, Nico)
-	
+	@todo Add DataProcessing for all TOPP tools (Hiwi)
+	@todo Make mzML the default format of TOPP tools (Hiwi)
 */

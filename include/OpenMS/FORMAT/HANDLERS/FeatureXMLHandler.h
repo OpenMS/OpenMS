@@ -68,7 +68,8 @@ namespace OpenMS
 				 	map_(&map), 
 				 	cmap_(0),	
 				 	in_description_(false),
-					subordinate_feature_level_(0)
+					subordinate_feature_level_(0),
+					last_meta_(0)
 	  		{
 				}
 	      
@@ -78,7 +79,8 @@ namespace OpenMS
 					map_(0), 
 					cmap_(&map),	
 				 	in_description_(false),
-					subordinate_feature_level_(0)
+					subordinate_feature_level_(0),
+					last_meta_(0)
 	  		{
 				}
 	
@@ -133,11 +135,15 @@ namespace OpenMS
 				/// current dimension of the feature position, quality, or convex hull point
 		 		UInt dim_;			
 				
-				/// flag that indicates that the parser in in the description secion
+				//for downward compatibility, all tags in the old description must be ignored
 				bool in_description_;
 				
 				/// level in Feature stack during parsing
 				Int subordinate_feature_level_;
+				
+				/// Pointer to last read object as a MetaInfoInterface, or null.
+				MetaInfoInterface* last_meta_;
+				
 		};
 	} // namespace Internal
 } // namespace OpenMS

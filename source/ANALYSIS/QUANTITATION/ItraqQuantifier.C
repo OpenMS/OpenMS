@@ -468,7 +468,7 @@ namespace OpenMS
 
 		}
 
-		consensus_map_out.getExperimentType() = "itraq";
+		consensus_map_out.setExperimentType("itraq");
 		
 		return;
 	}

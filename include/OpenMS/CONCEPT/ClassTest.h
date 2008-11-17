@@ -575,7 +575,6 @@ int main(int argc, char **argv)																											\
 						}																																					\
 						std::cout << "  creating new temporary filename '" << filename						\
 							<< "' (line " << __LINE__ << ")" << std::endl;													\
-						std::cout << filename	 << ":0:  [start of new tmp file]" << std::endl;		\
 					}
 
 

@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////raid/sturm/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.2" id="lsid" experiment_type="label-free" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<consensusXML version="1.3" id="lsid" experiment_type="label-free" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<userParam type="string" name="name1" value="value1"/>
 	<userParam type="int" name="name2" value="2"/>
+	<dataProcessing completion_time="2001-02-03T04:05:07">
+		<software name="Software1" version="0.91a" />
+		<processingAction name="Deisotoping" />
+	</dataProcessing>
+	<dataProcessing completion_time="2001-02-03T04:05:06">
+		<software name="Software2" version="0.92a" />
+		<processingAction name="Smoothing" />
+		<processingAction name="Baseline reduction" />
+	</dataProcessing>
 	<mapList count="2">
 		<map id="0" name="data/MapAlignmentFeatureMap1.xml" label="label" size="144">
 			<userParam type="string" name="name3" value="value3"/>

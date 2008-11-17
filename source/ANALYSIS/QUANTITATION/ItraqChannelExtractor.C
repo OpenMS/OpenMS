@@ -232,7 +232,7 @@ namespace OpenMS
 		std::cout << "processed " << element_index << " scans" << std::endl;
 		#endif
 
-		consensus_map.getExperimentType() = "itraq";
+		consensus_map.setExperimentType("itraq");
 			
 		return;
 	}

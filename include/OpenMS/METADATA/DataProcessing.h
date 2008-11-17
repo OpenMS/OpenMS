@@ -49,19 +49,21 @@ namespace OpenMS
     	//The different processing types
     	enum ProcessingAction
     	{
-    		CHARGE_DECONVOLUTION,		///< Charge deconvolution
-    		DEISOTOPING, 						///< Deisotoping
-    		SMOOTHING, 							///< Smoothing
-    		BASELINE_REDUCTION, 		///< Baseline reduction
-    		PEAK_PICKING, 					///< Peak picking (conversion from raw to peak data)
-    		FEATURE_FINDING, 				///< Feature findng (conversion from raw/peak to feature data)
-    		ALIGNMENT, 							///< Retention time alignment of different maps
-    		LOW_INTENSITY_REMOVAL,	///< The removal of very low intensity data points
-    		HIGH_INTENSITY_REMOVAL,	///< The removal of very high intensity data points
-    		CONVERSION_MZDATA,			///< Convertion to mzData format
-    		CONVERSION_MZML,				///< Conversion to mzML format
-    		CONVERSION_MZXML,				///< Conversion to mzXML format
-    		CONVERSION_DTA,         ///< Conversion to DTA format
+    		CHARGE_DECONVOLUTION,		  ///< Charge deconvolution
+    		DEISOTOPING, 						  ///< Deisotoping
+    		SMOOTHING, 							  ///< Smoothing
+    		BASELINE_REDUCTION, 		  ///< Baseline reduction
+    		PEAK_PICKING, 					  ///< Peak picking (conversion from raw to peak data)
+    		FEATURE_FINDING, 				  ///< Feature findng (conversion from raw/peak to feature data)
+    		ALIGNMENT, 							  ///< Retention time alignment of different maps
+    		LOW_INTENSITY_REMOVAL,	  ///< The removal of very low intensity data points
+    		HIGH_INTENSITY_REMOVAL,	  ///< The removal of very high intensity data points
+    		CONVERSION_MZDATA,			  ///< Convertion to mzData format
+    		CONVERSION_MZML,				  ///< Conversion to mzML format
+    		CONVERSION_MZXML,				  ///< Conversion to mzXML format
+    		CONVERSION_DTA,           ///< Conversion to DTA format
+        CONVERSION_FEATUREXML,    ///< Conversion to featureXML
+        CONVERSION_CONSENSUSXML,  ///< Conversion to consensusXML
     		SIZE_OF_PROCESSINGACTION
     	};
     	/// Names of inlet types

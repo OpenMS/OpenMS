@@ -166,7 +166,7 @@ CHECK((ConsensusMap& operator = (const ConsensusMap& source)))
   cons_map.getFileDescriptions()[0].label = "label";
 	cons_map.getFileDescriptions()[0].setMetaValue("meta",String("meta"));
 	cons_map.getDataProcessing().resize(1);
-	cons_map.getExperimentType() = "itraq";
+	cons_map.setExperimentType("itraq");
   vector< FeatureMap<>* > map_vector(4);
   
   ConsensusMap cons_map_copy;
@@ -191,7 +191,7 @@ CHECK((ConsensusMap(const ConsensusMap& source)))
   cons_map.getFileDescriptions()[0].label = "label";
 	cons_map.getFileDescriptions()[0].setMetaValue("meta",String("meta"));
 	cons_map.getDataProcessing().resize(1);
-	cons_map.getExperimentType() = "itraq";
+	cons_map.setExperimentType("itraq");
   vector< FeatureMap<>* > map_vector(4);
   
   ConsensusMap cons_map_copy(cons_map);
@@ -227,14 +227,12 @@ RESULT
 		
 CHECK((const String& getExperimentType() const ))
   ConsensusMap cons_map;
-
 	TEST_EQUAL(cons_map.getExperimentType() == "", true)	
 RESULT		
 
-CHECK((String& getExperimentType() ))
+CHECK((void setExperimentType(const String& experiment_type) ))
   ConsensusMap cons_map;
-
-	cons_map.getExperimentType() = "itraq";
+	cons_map.setExperimentType("itraq");
   TEST_EQUAL(cons_map.getExperimentType() == "itraq", true)
 RESULT		
 		
@@ -277,7 +275,7 @@ CHECK(void swap(ConsensusMap& from))
   map1.getFileDescriptions()[1].filename = "bla";
 	map1.getFileDescriptions()[1].size = 5;
 	map1.setIdentifier("LSID");
-	map1.getExperimentType() = "itraq";
+	map1.setExperimentType("itraq");
 	map1.getDataProcessing().resize(1);
 	
 	map1.swap(map2);
@@ -292,6 +290,78 @@ CHECK(void swap(ConsensusMap& from))
 	TEST_EQUAL(map2.getIdentifier(),"LSID")	
   TEST_EQUAL(map2.getExperimentType() == "itraq", true)
   TEST_EQUAL(map2.getDataProcessing().size(),1)
+RESULT
+
+CHECK(bool operator == (const ConsensusMap& rhs) const)
+	ConsensusMap empty,edit;
+	
+	TEST_EQUAL(empty==edit, true);
+	
+	edit.setIdentifier("lsid");;
+	TEST_EQUAL(empty==edit, false);
+	
+	edit = empty;
+	edit.push_back(feature1);
+	TEST_EQUAL(empty==edit, false);
+
+	edit = empty;
+	edit.getDataProcessing().resize(1);
+	TEST_EQUAL(empty==edit, false);
+	
+	edit = empty;
+	edit.setMetaValue("bla", 4.1);
+	TEST_EQUAL(empty==edit, false);
+
+	edit = empty;
+	edit.getFileDescriptions()[0].filename = "bla";
+	TEST_EQUAL(empty==edit, false);
+
+	edit = empty;
+	edit.setExperimentType("bla");
+	TEST_EQUAL(empty==edit, false);
+
+	edit = empty;
+	edit.push_back(feature1);
+	edit.push_back(feature2);
+	edit.updateRanges();
+	edit.clear();
+	TEST_EQUAL(empty==edit, false);
+RESULT
+
+CHECK(bool operator != (const ConsensusMap& rhs) const)
+	ConsensusMap empty,edit;
+	
+	TEST_EQUAL(empty!=edit, false);
+	
+	edit.setIdentifier("lsid");;
+	TEST_EQUAL(empty!=edit, true);
+	
+	edit = empty;
+	edit.push_back(feature1);
+	TEST_EQUAL(empty!=edit, true);
+
+	edit = empty;
+	edit.getDataProcessing().resize(1);
+	TEST_EQUAL(empty!=edit, true);
+
+	edit = empty;
+	edit.setMetaValue("bla", 4.1);
+	TEST_EQUAL(empty!=edit, true);
+
+	edit = empty;
+	edit.getFileDescriptions()[0].filename = "bla";
+	TEST_EQUAL(empty!=edit, true)
+
+	edit = empty;
+	edit.setExperimentType("bla");
+	TEST_EQUAL(empty!=edit, true);
+
+	edit = empty;
+	edit.push_back(feature1);
+	edit.push_back(feature2);
+	edit.updateRanges();
+	edit.clear();
+	TEST_EQUAL(empty!=edit, true);
 RESULT
 
 /////////////////////////////////////////////////////////////

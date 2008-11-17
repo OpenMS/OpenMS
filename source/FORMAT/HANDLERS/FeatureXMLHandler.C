@@ -36,20 +36,25 @@ namespace OpenMS
 		{
 			static const XMLCh* s_dim = xercesc::XMLString::transcode("dim");
 			static const XMLCh* s_name = xercesc::XMLString::transcode("name");
+			static const XMLCh* s_version = xercesc::XMLString::transcode("version");
 			static const XMLCh* s_value = xercesc::XMLString::transcode("value");
 			static const XMLCh* s_type = xercesc::XMLString::transcode("type");
-			static const XMLCh* s_int = xercesc::XMLString::transcode("int");
-			static const XMLCh* s_float = xercesc::XMLString::transcode("float");
-			static const XMLCh* s_string = xercesc::XMLString::transcode("string");
-			static const XMLCh* s_featuremap = xercesc::XMLString::transcode("featureMap");
+			static const XMLCh* s_completion_time = xercesc::XMLString::transcode("completion_time");
 			static const XMLCh* s_id = xercesc::XMLString::transcode("id");
 
 			String tag = sm_.convert(qname);
-			String previous_tag;
-			if (open_tags_.size()!=0) previous_tag = open_tags_.back();
+			String parent_tag;
+			if (open_tags_.size()!=0) parent_tag = open_tags_.back();
 			open_tags_.push_back(tag);
-
-			if (tag=="feature")
+			
+			//for downward compatibility, all tags in the old description must be ignored
+			if (in_description_) return;
+			
+			if (tag=="description")
+			{
+				in_description_ = true;
+			}
+			else if (tag=="feature")
 			{
 				// create new feature at apropriate level
 				updateCurrentFeature_(true);
@@ -86,34 +91,36 @@ namespace OpenMS
 				String value = attributeAsString_(attributes,s_value);
 				if (name != "" && value != "") param_.setValue(name, value);
 			}
-			else if (tag == "userParam" && previous_tag=="feature")
+			else if (tag == "userParam")
 			{
-				const XMLCh* value = attributes.getValue(s_value);
-				const XMLCh* type = attributes.getValue(s_type);
-				String name = sm_.convert(attributes.getValue(s_name));
+				String name = attributeAsString_(attributes,s_name);
+				String type = attributeAsString_(attributes,s_type);
 
-				if(*type==*s_int)
+				if (parent_tag=="feature")
 				{
-					current_feature_->setMetaValue(name, xercesc::XMLString::parseInt(value));
-				}
-				else if (*type==*s_float)
-				{
-					current_feature_->setMetaValue(name, atof(sm_.convert(value)) );
-				}
-				else if (*type==*s_string)
-				{
-					current_feature_->setMetaValue(name, (String)sm_.convert(value));
-				}
-				else
-				{
-					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invalid userParam type '") + sm_.convert(type) + "'" );
+					if(type=="int")
+					{
+						last_meta_->setMetaValue(name, attributeAsInt_(attributes,s_value));
+					}
+					else if (type=="float")
+					{
+						last_meta_->setMetaValue(name, attributeAsDouble_(attributes,s_value));
+					}
+					else if (type=="string")
+					{
+						last_meta_->setMetaValue(name, (String)attributeAsString_(attributes,s_value));
+					}
+					else
+					{
+						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invalid userParam type '") + type + "'" );
+					}
 				}
 			}
-			else if (equal_(qname,s_featuremap))
+			else if (tag=="featureMap")
 			{
 				//check file version against schema version
 				String file_version="1.0"; // default schema is 1.0
-				optionalAttributeAsString_(file_version,attributes,"version");
+				optionalAttributeAsString_(file_version,attributes,s_version);
 				if (file_version.toDouble()>version_.toDouble())
 				{
 					warning(String("The XML file (") + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
@@ -125,17 +132,48 @@ namespace OpenMS
 					map_->setIdentifier(id);
 				}
 			}
+			else if (tag=="dataProcessing")
+			{
+				DataProcessing tmp;
+				tmp.setCompletionTime(asDateTime_(attributeAsString_(attributes, s_completion_time)));
+				map_->getDataProcessing().push_back(tmp);
+				last_meta_ = &(map_->getDataProcessing().back());
+			}
+			else if (tag=="software" && parent_tag=="dataProcessing")
+			{
+				map_->getDataProcessing().back().getSoftware().setName(attributeAsString_(attributes, s_name));
+				map_->getDataProcessing().back().getSoftware().setVersion(attributeAsString_(attributes, s_version));
+			}
+			else if (tag=="processingAction" && parent_tag=="dataProcessing")
+			{
+				String name = attributeAsString_(attributes, s_name);
+				for (UInt i=0; i< DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
+				{
+					if (name == DataProcessing::NamesOfProcessingAction[i])
+					{
+						map_->getDataProcessing().back().getProcessingActions().insert((DataProcessing::ProcessingAction)i);
+					}
+				}
+			}
 		}
 
 		void FeatureXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 		{
 			static const XMLCh* s_feature = xercesc::XMLString::transcode("feature");
 			static const XMLCh* s_model = xercesc::XMLString::transcode("model");
+			static const XMLCh* s_description = xercesc::XMLString::transcode("description");
 			static const XMLCh* s_hullpoint = xercesc::XMLString::transcode("hullpoint");
 			static const XMLCh* s_convexhull = xercesc::XMLString::transcode("convexhull");
 			static const XMLCh* s_subordinate = xercesc::XMLString::transcode("subordinate");
 
 			open_tags_.pop_back();
+			
+			//for downward compatibility, all tags in the old description must be ignored
+			if (equal_(qname,s_description))
+			{
+				in_description_ = false;
+			}
+			if (in_description_) return;
 
 			if (equal_(qname,s_feature))
 			{
@@ -198,8 +236,9 @@ namespace OpenMS
 
 		void FeatureXMLHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
 		{
-			// std::cout << "characters: "	 << sm_.convert(chars) << std::endl;
-
+			//for downward compatibility, all tags in the old description must be ignored
+			if (in_description_) return;
+			
 			String& current_tag = open_tags_.back();
 			if (current_tag == "intensity")
 			{
@@ -239,17 +278,31 @@ namespace OpenMS
 				os << " id=\"" << cmap_->getIdentifier() << "\"";
 			}
 			os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
-			os << "\t<featureList count=\"" << cmap_->size() << "\">\n";
-
+			
+			//write data processing
+			for (UInt i=0; i< cmap_->getDataProcessing().size(); ++i)
+			{
+				const DataProcessing& processing = cmap_->getDataProcessing()[i];
+				os << "\t<dataProcessing completion_time=\"" << processing.getCompletionTime().get() << "\">\n";
+				os << "\t\t<software name=\"" << processing.getSoftware().getName() << "\" version=\"" << processing.getSoftware().getVersion() << "\" />\n";
+				for (std::set<DataProcessing::ProcessingAction>::const_iterator it = processing.getProcessingActions().begin(); it!=processing.getProcessingActions().end(); ++it)
+				{
+					os << "\t\t<processingAction name=\"" << DataProcessing::NamesOfProcessingAction[*it] << "\" />\n";
+				}
+				writeUserParam_ ("userParam", os, processing, 2);
+				os << "\t</dataProcessing>\n";
+			}
+			
 			// write features with their corresponding attributes
+			os << "\t<featureList count=\"" << cmap_->size() << "\">\n";
 			for (UInt s=0; s<cmap_->size(); s++)
 			{
 				const Feature& feat = (*cmap_)[s];
 				writeFeature_(os, feat, "f_", s, 0);
+			}
 
-			} // end for ( features )
-
-			os << "\t</featureList>\n</featureMap>\n";
+			os << "\t</featureList>\n";
+			os << "</featureMap>\n";
 		}
 
 		void FeatureXMLHandler::setOptions(const PeakFileOptions& options)
@@ -345,16 +398,19 @@ namespace OpenMS
 				{
 					map_->push_back(Feature());
 					current_feature_ = &map_->back();
+					last_meta_ =  &map_->back();
 				}
 				else
 				{
 					if (map_->empty())
 					{
 						current_feature_ = 0;
+					last_meta_ =  0;
 					}
 					else
 					{
 						current_feature_ = &map_->back();
+						last_meta_ =  &map_->back();
 					}
 				}
 				return;
@@ -368,6 +424,7 @@ namespace OpenMS
 				// the map_ is empty() now and we cannot assign a current_feature,
 				// because there is none!
 				current_feature_ = 0;
+				last_meta_ = 0;
 				return;
 			}
 			else
@@ -383,6 +440,7 @@ namespace OpenMS
 				if (f1->getSubordinates().empty())
 				{
 					current_feature_ = f1;
+					last_meta_ = f1;
 					return;
 				}
 				f1 = &f1->getSubordinates().back();
@@ -391,6 +449,7 @@ namespace OpenMS
 			{
 				f1->getSubordinates().push_back(Feature());
 				current_feature_ = &f1->getSubordinates().back();
+				last_meta_ = &f1->getSubordinates().back();
 				return;
 			}
 			else
@@ -398,11 +457,13 @@ namespace OpenMS
 				if (f1->getSubordinates().empty())
 				{
 					current_feature_ = 0;
+					last_meta_ = 0;
 					return;
 				}
 				else
 				{
 					current_feature_ = &f1->getSubordinates().back();
+					last_meta_ = &f1->getSubordinates().back();
 					return;
 				}
 			}

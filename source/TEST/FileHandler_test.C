@@ -93,7 +93,7 @@ RESULT
 CHECK((static Type getTypeByContent(const String &filename)))
 	FileHandler tmp;
 	TEST_EQUAL(tmp.getTypeByContent("data/MzDataFile_1.mzData"), FileHandler::MZDATA)
-	TEST_EQUAL(tmp.getTypeByContent("data/FeatureXMLFile.featureXML"), FileHandler::FEATUREXML)
+	TEST_EQUAL(tmp.getTypeByContent("data/FeatureXMLFile_1.featureXML"), FileHandler::FEATUREXML)
 	TEST_EQUAL(tmp.getTypeByContent("data/MzXMLFile_1.mzXML"), FileHandler::MZXML)
 	TEST_EQUAL(tmp.getTypeByContent("data/MzMLFile_1.mzML"), FileHandler::MZML)
 	TEST_EQUAL(tmp.getTypeByContent("data/DTAFile_test.dta"), FileHandler::DTA)
@@ -202,9 +202,9 @@ CHECK((template <class FeatureType> bool loadFeatures(const String &filename, Fe
   FileHandler tmp;
 	FeatureMap<> map;
 	TEST_EQUAL(tmp.loadFeatures("test.bla",map), false)	
-	TEST_EQUAL(tmp.loadFeatures("data/FeatureXMLFile2.featureXML",map), true)
+	TEST_EQUAL(tmp.loadFeatures("data/FeatureXMLFile_2_options.featureXML",map), true)
 	TEST_EQUAL(map.size(),7);
-	TEST_EQUAL(tmp.loadFeatures("data/FeatureXMLFile2.featureXML",map), true)
+	TEST_EQUAL(tmp.loadFeatures("data/FeatureXMLFile_2_options.featureXML",map), true)
 	TEST_EQUAL(map.size(),7);
 	
 RESULT

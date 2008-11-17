@@ -44,8 +44,6 @@ DRange<1> makeRange(float a, float b)
 
 START_TEST(ConsensusXMLFile, "$Id$")
 
-#if 0
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
@@ -64,11 +62,13 @@ PRECISION(0.01)
 CHECK((void load(const String &filename, ConsensusMap &map)))
   ConsensusMap cons_map;
   ConsensusXMLFile cons_file;
-  cons_file.load("data/ConsensusXMLFile.consensusXML", cons_map);
+  cons_file.load("data/ConsensusXMLFile_1.consensusXML", cons_map);
+	//meta data
+  TEST_EQUAL(cons_map.getIdentifier(),"lsid")
 	TEST_EQUAL(cons_map.getExperimentType()=="label-free",true)
 	TEST_EQUAL(cons_map.getMetaValue("name1")==DataValue("value1"),true)
 	TEST_EQUAL(cons_map.getMetaValue("name2")==DataValue(2),true)
-  TEST_EQUAL(cons_map.getIdentifier(),"lsid");
+	//file descriptions
   TEST_EQUAL(cons_map.getFileDescriptions()[0].filename == "data/MapAlignmentFeatureMap1.xml", true)
   TEST_EQUAL(cons_map.getFileDescriptions()[0].label,"label")
   TEST_EQUAL(cons_map.getFileDescriptions()[0].size, 144)
@@ -79,7 +79,20 @@ CHECK((void load(const String &filename, ConsensusMap &map)))
   TEST_EQUAL(cons_map.getFileDescriptions()[1].size, 0)
 	TEST_EQUAL(cons_map.getFileDescriptions()[1].getMetaValue("name5")==DataValue("value5"),true)
 	TEST_EQUAL(cons_map.getFileDescriptions()[1].getMetaValue("name6")==DataValue(6.0),true)
+	//data processing
+	TEST_EQUAL(cons_map.getDataProcessing().size(),2)
+	TEST_STRING_EQUAL(cons_map.getDataProcessing()[0].getSoftware().getName(),"Software1")
+	TEST_STRING_EQUAL(cons_map.getDataProcessing()[0].getSoftware().getVersion(),"0.91a")
+	TEST_EQUAL(cons_map.getDataProcessing()[0].getProcessingActions().size(),1)
+	TEST_EQUAL(cons_map.getDataProcessing()[0].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
+	
+	TEST_STRING_EQUAL(cons_map.getDataProcessing()[1].getSoftware().getName(),"Software2")
+	TEST_STRING_EQUAL(cons_map.getDataProcessing()[1].getSoftware().getVersion(),"0.92a")
+	TEST_EQUAL(cons_map.getDataProcessing()[1].getProcessingActions().size(),2)
+	TEST_EQUAL(cons_map.getDataProcessing()[1].getProcessingActions().count(DataProcessing::SMOOTHING),1)
+	TEST_EQUAL(cons_map.getDataProcessing()[1].getProcessingActions().count(DataProcessing::BASELINE_REDUCTION),1)
 
+	//features
   ConsensusFeature cons_feature = cons_map[0];
   TEST_REAL_EQUAL(cons_feature.getRT(),1273.27)  
   TEST_REAL_EQUAL(cons_feature.getMZ(),904.47)
@@ -115,19 +128,19 @@ CHECK((void load(const String &filename, ConsensusMap &map)))
 	//PeakFileOptions tests
 	
 	cons_file.getOptions().setRTRange(makeRange(815, 818));
-	cons_file.load("data/ConsensusXMLFile3.consensusXML",cons_map);
+	cons_file.load("data/ConsensusXMLFile_2_options.consensusXML",cons_map);
 	TEST_EQUAL(cons_map.size(),1)
 	TEST_REAL_EQUAL(cons_map[0].getRT(), 817.266)
 
 	cons_file.getOptions() = PeakFileOptions();
 	cons_file.getOptions().setMZRange(makeRange(944, 945));
-	cons_file.load("data/ConsensusXMLFile3.consensusXML",cons_map);
+	cons_file.load("data/ConsensusXMLFile_2_options.consensusXML",cons_map);
 	TEST_EQUAL(cons_map.size(),1)
 	TEST_REAL_EQUAL(cons_map[0].getMZ(), 944.96)
 
 	cons_file.getOptions() = PeakFileOptions();
 	cons_file.getOptions().setIntensityRange(makeRange(15000,24000));
-	cons_file.load("data/ConsensusXMLFile3.consensusXML",cons_map);
+	cons_file.load("data/ConsensusXMLFile_2_options.consensusXML",cons_map);
 	TEST_EQUAL(cons_map.size(),1)
 	TEST_REAL_EQUAL(cons_map[0].getIntensity(),23000.238)
 
@@ -138,21 +151,28 @@ CHECK((void store(const String &filename, const ConsensusMap &map)))
   NEW_TMP_FILE(tmp_filename);
   
   ConsensusMap cons_map, cons_map2;
-  ConsensusXMLFile cons_file;
+  ConsensusXMLFile f;
   
-  cons_file.load("data/ConsensusXMLFile2.consensusXML",cons_map);  
-  cons_file.store(tmp_filename,cons_map);
-  cons_file.load(tmp_filename,cons_map2);  
-  TEST_EQUAL(cons_map.size(),cons_map2.size())
-  TEST_EQUAL(cons_map[0]==cons_map2[0],true)
-  TEST_EQUAL(cons_map[1]==cons_map2[1],true)
+  f.load("data/ConsensusXMLFile_1.consensusXML",cons_map);  
+  f.store(tmp_filename, cons_map);
+  f.load(tmp_filename, cons_map2);
+  TEST_EQUAL(cons_map==cons_map2, true)
 RESULT
 
 CHECK([EXTRA] (bool isValid(const String& filename)))
-  ConsensusXMLFile cons_file;
-  TEST_EQUAL(cons_file.isValid("data/ConsensusXMLFile.consensusXML"),true);
-  TEST_EQUAL(cons_file.isValid("data/ConsensusXMLFile2.consensusXML"),true);
-  TEST_EQUAL(cons_file.isValid("data/ConsensusXMLFile3.consensusXML"),true);
+  ConsensusXMLFile f;
+  TEST_EQUAL(f.isValid("data/ConsensusXMLFile_1.consensusXML"),true);
+  TEST_EQUAL(f.isValid("data/ConsensusXMLFile_2_options.consensusXML"),true);
+	
+  //test if written empty file is invalid, so this is not tested :)
+	
+	//test if written full file is valid
+	ConsensusMap m;
+	String tmp_filename;
+	NEW_TMP_FILE(tmp_filename);
+	f.load("data/ConsensusXMLFile_1.consensusXML",m);
+	f.store(tmp_filename, m);	
+  TEST_EQUAL(f.isValid(tmp_filename),true);
 RESULT
 
 CHECK([EXTRA] ProteinIdentification PeptideIdentification I/O)
@@ -260,26 +280,6 @@ CHECK([EXTRA] ProteinIdentification PeptideIdentification I/O)
 	cons_file.store(tmp_filename_reloaded_then_stored,cons_map_reloaded);
 
 	TEST_FILE(tmp_filename.c_str(),tmp_filename_reloaded_then_stored.c_str());
-
-	// STATUS("Will intentionally fail on next line so we can have a look at the tmp files");
-	// TEST_EQUAL(0,1);
-}
-RESULT
-#endif
-
-CHECK([EXTRA] load/store)
-{
-	ConsensusXMLFile cm_file;
-	ConsensusMap cm;
-	cm_file.load("data/ItraqQuantifier.consensusXML",cm);
-    
-	String cm_file_out;// = "data/ItraqQuantifier.consensusXML";
-	NEW_TMP_FILE(cm_file_out);
-	cm_file.store(cm_file_out,cm);
-    
-	FuzzyStringComparator fsc;
-	fsc.setAcceptableAbsolute(0.01);
-	TEST_EQUAL(fsc.compare_files(cm_file_out,"data/ItraqQuantifier.consensusXML"), true);
 }
 RESULT
 

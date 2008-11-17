@@ -74,7 +74,6 @@ class TOPPFileConverter
 		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,ms2"));
 		registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
 		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML,ms2"));
-		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
 		
 		registerOutputFile_("out","<file>","","output file ");
 		setValidFormats_("out",StringList::create("mzData,mzXML,mzML,DTA2D,mgf,featureXML"));
@@ -194,6 +193,9 @@ class TOPPFileConverter
 		}
 		else if (out_type == FileHandler::FEATUREXML)
 		{
+			//add data processing entry
+			addDataProcessing_(exp, DataProcessing::CONVERSION_FEATUREXML);
+			
 			// The feature specific information is only defaulted. Enough reasons to issue a warning!
 			writeLog_("Warning: Converting peaks to features results in incomplete features!");	
 			FeatureMapType feature_map;

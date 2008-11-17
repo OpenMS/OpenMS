@@ -35,11 +35,10 @@ namespace OpenMS
 
 		void ConsensusXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 		{
-			String element = sm_.convert(qname);
-			// debugging
-			// std::cout << "endElement:   /" << element << std::endl;
-
-			if ( element == "consensusElement")
+			String tag = sm_.convert(qname);
+			open_tags_.pop_back();
+			
+			if ( tag == "consensusElement")
 			{
 				if ((!options_.hasRTRange() || options_.getRTRange().encloses(act_cons_element_.getRT()))
 						&&	(!options_.hasMZRange() || options_.getMZRange().encloses(act_cons_element_.getMZ()))
@@ -51,25 +50,25 @@ namespace OpenMS
 				last_meta_ = 0;
 			}
 			//PROTE IDENTIFICATIONS
-			else if (element == "ProteinIdentification")
+			else if (tag == "ProteinIdentification")
 			{
 				consensus_map_->getProteinIdentifications().push_back(prot_id_);
 				prot_id_ = ProteinIdentification();
 				last_meta_  = 0;		
 			}
-			else if (element == "ProteinHit")
+			else if (tag == "ProteinHit")
 			{
 				prot_id_.insertHit(prot_hit_);
 				last_meta_ = &prot_id_;
 			}
 			//PEPTIDES
-			else if (element == "PeptideIdentification")
+			else if (tag == "PeptideIdentification")
 			{
 				act_cons_element_.getPeptideIdentifications().push_back(pep_id_);
 				pep_id_ = PeptideIdentification();
 				last_meta_  = 0;
 			}
-			else if (element == "PeptideHit")
+			else if (tag == "PeptideHit")
 			{
 				pep_id_.insertHit(pep_hit_);
 				last_meta_ = &pep_id_;
@@ -83,12 +82,13 @@ namespace OpenMS
 
 		void ConsensusXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 		{
-			String element = sm_.convert(qname);
-			// debugging
- 			// std::cout << "startElement:  " << element << std::endl;
+			String tag = sm_.convert(qname);
+			String parent_tag;
+			if (open_tags_.size()!=0) parent_tag = open_tags_.back();
+			open_tags_.push_back(tag);
 
 			String tmp_str;
-			if ( element == "map" )
+			if ( tag == "map" )
 			{
 				last_map_ = attributeAsInt_(attributes,"id");
 				last_meta_ = &consensus_map_->getFileDescriptions()[last_map_];
@@ -104,7 +104,7 @@ namespace OpenMS
 					consensus_map_->getFileDescriptions()[last_map_].size = size;
 				}
 			}
-			else if ( element == "consensusElement" )
+			else if ( tag == "consensusElement" )
 			{
 				act_cons_element_ = ConsensusFeature();
 				last_meta_ = &act_cons_element_;
@@ -122,7 +122,7 @@ namespace OpenMS
 				}
 				last_meta_ = &act_cons_element_;
 			}
-			else if ( element == "centroid")
+			else if ( tag == "centroid")
 			{
 				tmp_str = attributeAsString_(attributes,"rt");
 				if (tmp_str != "")
@@ -143,7 +143,7 @@ namespace OpenMS
 				}
 
 			}
-			else if ( element == "element" )
+			else if ( tag == "element" )
 			{
 				FeatureHandle act_index_tuple;
 				tmp_str = attributeAsString_(attributes, "map");
@@ -181,7 +181,7 @@ namespace OpenMS
 				act_cons_element_.getPosition() = pos_;
 				act_cons_element_.setIntensity(it_);
 			}
-			else if ( element == "consensusXML" )
+			else if ( tag == "consensusXML" )
 			{
 				// clean up - there is no guarantee we are using these the first time
 				// TODO do this in ConsensusXMLFile::load(); but it's another class -> merge!
@@ -209,18 +209,18 @@ namespace OpenMS
 				String experiment_type;
 				if (optionalAttributeAsString_(experiment_type, attributes, "experiment_type"))
 				{
-					consensus_map_->getExperimentType() = experiment_type;
+					consensus_map_->setExperimentType(experiment_type);
 				}
 				last_meta_ = consensus_map_;
 				// debugging
 				// std::cout << "consensus_map_: " << typeAsString(consensus_map_) << std::endl;
 				// std::cout << "last_meta_: " << typeAsString(last_meta_) << std::endl;
 			}
-			else if ( element == "userParam" || element == "UserParam" ) // Support both writings, upon special request by Chris!  DO NOT BLAME Clemens for this nonsense!!!  :-/
+			else if ( tag == "userParam")
 			{
 				if (last_meta_ == 0)
 				{
-					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "unexpected userParam!" );
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("unexpected userParam in tag '") + parent_tag + "'" );
 				}
 				String name = attributeAsString_(attributes,"name");
 				String type = attributeAsString_(attributes,"type");
@@ -241,7 +241,7 @@ namespace OpenMS
 					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invalid userParam type '") + type + "'" );
 				}
 			}
-			else if ( element == "ProteinIdentification" )
+			else if ( tag == "ProteinIdentification" )
 			{
 				prot_id_.setScoreType(attributeAsString_(attributes,"score_type"));
 			
@@ -269,7 +269,7 @@ namespace OpenMS
 				}
 				last_meta_ = &prot_id_;
 			}
-			else if (element == "ProteinHit")
+			else if (tag == "ProteinHit")
 			{
 				prot_hit_ = ProteinHit();
 				String accession = attributeAsString_(attributes,"accession");
@@ -288,7 +288,7 @@ namespace OpenMS
 			}
 		
 			//PEPTIDES
-			else if (element == "PeptideIdentification")
+			else if (tag == "PeptideIdentification")
 			{
 			
 				// set identifier 
@@ -343,7 +343,7 @@ namespace OpenMS
 			
 				last_meta_ = &pep_id_;
 			}
-			else if (element == "PeptideHit")
+			else if (tag == "PeptideHit")
 			{
 				pep_hit_ = PeptideHit();
 			
@@ -393,7 +393,29 @@ namespace OpenMS
 				}
 				last_meta_ = &pep_hit_;
 			}
-			return;
+			else if (tag=="dataProcessing")
+			{
+				DataProcessing tmp;
+				tmp.setCompletionTime(asDateTime_(attributeAsString_(attributes, "completion_time")));
+				consensus_map_->getDataProcessing().push_back(tmp);
+				last_meta_ = &(consensus_map_->getDataProcessing().back());
+			}
+			else if (tag=="software" && parent_tag=="dataProcessing")
+			{
+				consensus_map_->getDataProcessing().back().getSoftware().setName(attributeAsString_(attributes, "name"));
+				consensus_map_->getDataProcessing().back().getSoftware().setVersion(attributeAsString_(attributes, "version"));
+			}
+			else if (tag=="processingAction" && parent_tag=="dataProcessing")
+			{
+				String name = attributeAsString_(attributes, "name");
+				for (UInt i=0; i< DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
+				{
+					if (name == DataProcessing::NamesOfProcessingAction[i])
+					{
+						consensus_map_->getDataProcessing().back().getProcessingActions().insert((DataProcessing::ProcessingAction)i);
+					}
+				}
+			}
 		}
 
 		void ConsensusXMLHandler::writeTo(std::ostream& os)
@@ -424,7 +446,21 @@ namespace OpenMS
 
 			//user param
 			writeUserParam_("userParam", os, *consensus_map_, 1);
-
+			
+			//write data processing
+			for (UInt i=0; i< consensus_map_->getDataProcessing().size(); ++i)
+			{
+				const DataProcessing& processing = consensus_map_->getDataProcessing()[i];
+				os << "\t<dataProcessing completion_time=\"" << processing.getCompletionTime().getDate() << 'T' << processing.getCompletionTime().getTime() << "\">\n";
+				os << "\t\t<software name=\"" << processing.getSoftware().getName() << "\" version=\"" << processing.getSoftware().getVersion() << "\" />\n";
+				for (std::set<DataProcessing::ProcessingAction>::const_iterator it = processing.getProcessingActions().begin(); it!=processing.getProcessingActions().end(); ++it)
+				{
+					os << "\t\t<processingAction name=\"" << DataProcessing::NamesOfProcessingAction[*it] << "\" />\n";
+				}
+				writeUserParam_ ("userParam", os, processing, 2);
+				os << "\t</dataProcessing>\n";
+			}
+			
 			//file descriptions
 			const ConsensusMap::FileDescriptions& description_vector = consensus_map_->getFileDescriptions();
 			os << "\t<mapList count=\"" << description_vector.size() << "\">\n";
