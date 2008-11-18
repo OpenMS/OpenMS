@@ -4,8 +4,8 @@
 		<admin>
 			<sampleName></sampleName>
 			<sourceFile>
-				<nameOfFile>file://IMMUNO-LAP-VER/Doktorarbeit/060104_Phosphopeptide/V1_RCC68 + Sorafenib/LCMSMS  (ab 070213) + Autoauswertung/RCC68 W632/vm_070712_rwm.raw</nameOfFile>
-				<pathToFile></pathToFile>
+				<nameOfFile>name</nameOfFile>
+				<pathToFile>path</pathToFile>
 				<fileType>RAWData</fileType>
 			</sourceFile>
 			<contact>

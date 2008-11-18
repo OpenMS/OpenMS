@@ -111,14 +111,14 @@ CHECK(virtual void run())
 	TEST_REAL_EQUAL(output[6].getIntensity(),6561.2);
 	TEST_REAL_EQUAL(output[7].getIntensity(),5024.74);
 	
-	TEST_EQUAL((UInt)(output[0].getMetaValue("rt_apex_spectrum")),89)
-	TEST_EQUAL((UInt)(output[1].getMetaValue("rt_apex_spectrum")),84)
-	TEST_EQUAL((UInt)(output[2].getMetaValue("rt_apex_spectrum")),57)
-	TEST_EQUAL((UInt)(output[3].getMetaValue("rt_apex_spectrum")),50)
-	TEST_EQUAL((UInt)(output[4].getMetaValue("rt_apex_spectrum")),26)
-	TEST_EQUAL((UInt)(output[5].getMetaValue("rt_apex_spectrum")),32)
-	TEST_EQUAL((UInt)(output[6].getMetaValue("rt_apex_spectrum")),21)
-	TEST_EQUAL((UInt)(output[7].getMetaValue("rt_apex_spectrum")),26)
+	TEST_STRING_EQUAL(output[0].getMetaValue("rt_apex_spectrum"),"89")
+	TEST_STRING_EQUAL(output[1].getMetaValue("rt_apex_spectrum"),"84")
+	TEST_STRING_EQUAL(output[2].getMetaValue("rt_apex_spectrum"),"58")
+	TEST_STRING_EQUAL(output[3].getMetaValue("rt_apex_spectrum"),"51")
+	TEST_STRING_EQUAL(output[4].getMetaValue("rt_apex_spectrum"),"27")
+	TEST_STRING_EQUAL(output[5].getMetaValue("rt_apex_spectrum"),"33")
+	TEST_STRING_EQUAL(output[6].getMetaValue("rt_apex_spectrum"),"22")
+	TEST_STRING_EQUAL(output[7].getMetaValue("rt_apex_spectrum"),"27")
 	
 RESULT
 

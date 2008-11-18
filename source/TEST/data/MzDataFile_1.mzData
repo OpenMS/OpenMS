@@ -104,14 +104,13 @@
 			<processingMethod>
 				<cvParam cvLabel="psi" name="Deisotoping" accession="PSI:1000033" value="false"/>
 				<cvParam cvLabel="psi" name="ChargeDeconvolution" accession="PSI:1000034" value="false"/>
-				<cvParam cvLabel="psi" accession="PSI:1000035" name="PeakProcessing" value="CentroidMassSpectrum"/>
 				<userParam name="URL" value="www.open-ms.de"/>
 				<userParam name="comment" value="ProcessingComment"/>
 			</processingMethod>
 		</dataProcessing>
 	</description>
 	<spectrumList count="3">
-		<spectrum id="1">
+		<spectrum id="10">
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
@@ -250,7 +249,7 @@
 				<data precision="32" endian="little" length="1">AADIQg==</data>
 			</supDataArrayBinary>
 		</spectrum>
-		<spectrum id="2">
+		<spectrum id="11">
 			<spectrumDesc>
 				<spectrumSettings>
 					<acqSpecification spectrumType="continuous" methodOfCombination="sum" count="2">
@@ -330,7 +329,7 @@
 				<data precision="32" endian="little" length="3">AADIQgAASEMAAMhC</data>
 			</supDataArrayBinary>
 		</spectrum>
-		<spectrum id="3">
+		<spectrum id="12">
 			<spectrumDesc>
 				<spectrumSettings>
 					<acqSpecification spectrumType="discrete" methodOfCombination="average" count="1">

@@ -67,7 +67,7 @@
 					</spectrumInstrument>
 				</spectrumSettings>
 				<precursorList count="1">
-					<precursor msLevel="2" spectrumRef="2">
+					<precursor msLevel="1" spectrumRef="2">
 						<ionSelection>
 							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="940.368"/>
 							<cvParam cvLabel="psi" accession="PSI:1000042" name="Intensity" value="7817"/>

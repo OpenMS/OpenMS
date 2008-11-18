@@ -55,7 +55,9 @@ Detailed list of changes to specific OpenMS classes:
   - ExperimentalSettings
     - Now contains multiple SourceFiles and DataProcessings
     - ExperimentType was removed
-  - SpectrumSettings: added native ID (from acquisition software)
+  - SpectrumSettings
+    - added nativeID (from acquisition software)
+    - The nativeID is now correctly handled for mzData, mzXML and mzML files
   - DSpectrum
     - The peaks are no longer stored in a container member, but DSpectrum is derived 
       from std::vector<PeakType>.

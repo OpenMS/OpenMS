@@ -597,10 +597,6 @@ namespace OpenMS
 				{
 					fillData_();
 					exp_->push_back(spec_);
-					if (options_.hasMSLevels())
-					{
-						exp_->back().setMetaValue("original_spectrum_number", scan_count);
-					}
 				}
 				skip_spectrum_ = false;
 				logger_.setProgress(++scan_count);

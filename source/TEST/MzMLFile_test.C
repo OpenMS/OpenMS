@@ -433,11 +433,8 @@ CHECK([EXTRA] load with restricted MS levels)
 
 	TEST_EQUAL(exp.size(),3)
 	TEST_REAL_EQUAL(exp[0].getRT(),5.1)
-	TEST_EQUAL((Int)exp[0].getMetaValue("original_spectrum_number"),0)
 	TEST_REAL_EQUAL(exp[1].getRT(),5.3)
-	TEST_EQUAL((Int)exp[1].getMetaValue("original_spectrum_number"),2)
 	TEST_REAL_EQUAL(exp[2].getRT(),5.4)
-	TEST_EQUAL((Int)exp[2].getMetaValue("original_spectrum_number"),3)
 RESULT
 
 

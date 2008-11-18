@@ -29,7 +29,7 @@
 		</dataProcessing>
 	</description>
 	<spectrumList count="2">
-		<spectrum id="1">
+		<spectrum id="6">
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">
@@ -45,7 +45,7 @@
 				<data precision="32" endian="little" length="176">h8QDQxW/hUOqWGxDgcUBRKXGJ0Q42ytDZv4wRHOLRUNZyxFEL60bROIwKkNUcQNEs44FRJlfIEQF3fZDaRfIQxhKBkRO++tDTucTQ9CRGUQzuUZEbnnMQ8Ufh0OV8uRCxl6JRJPahEMo9NlCLjUVQ/bq2UK2wutEjwGRQ580M0NzzOFCNCWQQ4hHDESJ/hBDkjrsQigv3EPXhdBDACe6Q3nbi0NRfgBDy1WURO2Hu0NI1zJDnCjqQvo3fEN3EzpEpvCtQ8IlBUPgU/lCEjENRPbW30P2D6JEt62dQyxq/UMjHzBEAZyBQ1H9pUMmv5tDh/MrRGsZI0RJHUNDptMAROQJcUSpRLFDzLFwQ0Y840PDBOlCQXQcRO0jc0Qbk05EH8BeQ5LR5UIelZVD/3gNRCKTDEQTdRxE2zwIRDW0AENpVHxEC2uNRPe+SUOWMItELbMZQ6mqFETyZD9DSa9sQ+8C8ENnkVhDWbR9Q3P1G0PXqkdD3/ARQ37MAUMKPatDbAYmQ+iCFEQ1ZdZC8uhKQxT2xENYJQxE7LYfQzQl8kPcVZJD8efaQwxIjEO0Q7FDBSgWREpQM0NMojRD0PyRQ77ZFkTI2e1DlYwmRBdo50IY1xZErmHRQmKYxkM4sZFD3LIrQ7DWbEMdaKRDTzl5Q/nyQkPPCTtDRH/ZQ0d/AkM23kdDp5+bQ9RsyULbEohDev4uQ+9OF0Og5RJEw3JnQzJsN0QvEodE59AhQ6Ou2UI0+FhDwY5aQ9iKRUMvMqhDKnkZRNc0FUMDGA5DI0QoRAHvF0N0/xBEWmmTQ7l7rkPlC9hDz4jxQjpMuUMhd9JD9D2LQwhpGUORAqhDEecOQ1eXb0PmXdJCrdiGQxw0/0Io7AtEnS3oQpflk0P1th9DLe8XQzL24kKVzYxD/kFLRAHlE0OE8iBEvWkrQ9hkXEM=</data>
 			</intenArrayBinary>
 		</spectrum>
-		<spectrum id="2">
+		<spectrum id="10">
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">

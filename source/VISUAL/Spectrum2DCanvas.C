@@ -27,7 +27,6 @@
 // OpenMS
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/CONCEPT/TimeStamp.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>

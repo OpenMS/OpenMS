@@ -94,7 +94,8 @@ namespace OpenMS
 			@name MS levels option
 			
 			With this option, MS level filters can be set.
-			When enabled, the original spectrum numbers are stored in the spectrum meta data value @em original_spectrum_number .
+			
+			@note The original spectrum identifiers are stored as the nativeID of the spectrum.
 		*/
 		//@{
 		///sets the desired MS levels for peaks to load

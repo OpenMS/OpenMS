@@ -46,7 +46,6 @@ namespace OpenMS
 {
 	namespace Internal
 	{
-
 		/**
 			@brief XML handler for MzDataFile
 			
@@ -68,7 +67,6 @@ namespace OpenMS
 					peak_count_(0),
 					meta_id_descs_(),
 					decoder_(),
-					spec_write_counter_(1),
 					skip_spectrum_(false),
 					logger_(logger)
 	  	{
@@ -121,7 +119,6 @@ namespace OpenMS
 					peak_count_(0),
 					meta_id_descs_(),
 					decoder_(),
-					spec_write_counter_(1),
 					skip_spectrum_(false),
 					logger_(logger)
   		{
@@ -227,9 +224,6 @@ namespace OpenMS
 			/// Decoder/Encoder for Base64-data in MzData
 			Base64 decoder_;
 
-			/// spectrum counter (needed because spectra without peaks are not written)
-			UInt spec_write_counter_;
-			
 			/// Flag that indicates whether this spectrum should be skipped (due to options)
 			bool skip_spectrum_;
 			
@@ -609,6 +603,7 @@ namespace OpenMS
 			else if (tag=="spectrum")
 			{
 				spec_ = SpectrumType();
+				spec_.setNativeID(attributeAsString_(attributes, s_id));
 			}
 			else if (tag=="spectrumList")
 			{
@@ -715,10 +710,6 @@ namespace OpenMS
 				{
 					fillData_();
 					exp_->push_back(spec_);
-					if (options_.hasMSLevels())
-					{
-						exp_->back().setMetaValue("original_spectrum_number", scan_count);
-					}
 				}
 				skip_spectrum_ = false;
 				logger_.setProgress(++scan_count);
@@ -1028,16 +1019,46 @@ namespace OpenMS
 			//ACTUAL DATA
 			if (cexp_->size()!=0)
 			{
+				//check if the nativeID of all spectra are numbers.
+				//If not we need to renumber all spectra.
+				bool all_numbers = true;
+				bool all_empty = true;
+				for (UInt s=0; s<cexp_->size(); s++)
+				{
+					const SpectrumType& spec = (*cexp_)[s];
+					try
+					{
+						spec.getNativeID().toInt();
+					}
+					catch (Exception::ConversionError&)
+					{
+						all_numbers = false;
+						if (spec.getNativeID()!="")
+						{
+							all_empty = false;
+						}
+					}
+				}
+				//If we need to renumber and the nativeIDs were not empty, warn the user
+				if (!all_numbers && !all_empty)
+				{
+					warning("Warning: Not all spectrum native IDs are numbers. The spectra are renumbered and the native IDs are lost!");
+				}
+				//Map to store the last spectrum ID for each MS level (needed to find precursor spectra)
+				Map<UInt,UInt> level_id; 
+				
 				os << "\t<spectrumList count=\"" << cexp_->size() << "\">\n";
-				int spectrum_ref = -1;
 				for (UInt s=0; s<cexp_->size(); s++)
 				{
 					logger_.setProgress(s);
-					//std::cout << "writing scan" << std::endl;
-					
 					const SpectrumType& spec = (*cexp_)[s];
-	
-					os << "\t\t<spectrum id=\"" << spec_write_counter_++ << "\">\n"
+					
+					UInt spectrum_id = s+1;
+					if (all_numbers)
+					{
+						spectrum_id = spec.getNativeID().toInt();
+					}
+					os << "\t\t<spectrum id=\"" << spectrum_id << "\">\n"
 						 << "\t\t\t<spectrumDesc>\n"
 						 << "\t\t\t\t<spectrumSettings>\n";
 	
@@ -1053,9 +1074,8 @@ namespace OpenMS
 							os << "continuous";
 						}
 	
-						os << "\" methodOfCombination=\""
-							 << spec.getAcquisitionInfo().getMethodOfCombination() << "\" count=\""
-							 << spec.getAcquisitionInfo().size() << "\">\n";
+						os << "\" methodOfCombination=\"" << spec.getAcquisitionInfo().getMethodOfCombination() << "\""
+						   << " count=\"" << spec.getAcquisitionInfo().size() << "\">\n";
 						for (UInt i=0; i<spec.getAcquisitionInfo().size(); ++i)
 						{
 							const Acquisition& ac = spec.getAcquisitionInfo()[i];
@@ -1067,10 +1087,9 @@ namespace OpenMS
 					}
 	
 					const InstrumentSettings& iset = spec.getInstrumentSettings();
-					os << "\t\t\t\t\t<spectrumInstrument msLevel=\"" << spec.getMSLevel()
-						 << "\"";
-	
-					if (spec.getMSLevel()==1) spectrum_ref = spec_write_counter_-1;
+					os << "\t\t\t\t\t<spectrumInstrument msLevel=\"" << spec.getMSLevel() << "\"";
+					level_id[spec.getMSLevel()] = spectrum_id;
+					
 					if (iset.getScanWindows().size() > 0)
 					{
 						os << " mzRangeStart=\"" << iset.getScanWindows()[0].begin << "\" mzRangeStop=\"" << iset.getScanWindows()[0].end << "\"";
@@ -1089,12 +1108,16 @@ namespace OpenMS
 					os 	<< "\t\t\t\t\t</spectrumInstrument>\n\t\t\t\t</spectrumSettings>\n";
 	
 					typedef typename SpectrumType::PrecursorPeakType PrecursorPeak;
-					if (spec.getPrecursorPeak() != PrecursorPeak()
-							|| spec.getPrecursor() != Precursor())
+					if (spec.getPrecursorPeak() != PrecursorPeak() || spec.getPrecursor() != Precursor())
 					{
+						UInt precursor_ms_level = spec.getMSLevel()-1;
+						UInt precursor_id = -1;
+						if (level_id.has(precursor_ms_level))
+						{
+							precursor_id = level_id[precursor_ms_level];
+						}
 						os	<< "\t\t\t\t<precursorList count=\"1\">\n"
-								<< "\t\t\t\t\t<precursor msLevel=\"2\" spectrumRef=\""
-								<< spectrum_ref << "\">\n";
+								<< "\t\t\t\t\t<precursor msLevel=\"" << precursor_ms_level << "\" spectrumRef=\"" << precursor_id << "\">\n";
 						os << "\t\t\t\t\t\t<ionSelection>\n";
 						if (spec.getPrecursorPeak() != PrecursorPeak())
 						{

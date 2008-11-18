@@ -26,18 +26,18 @@
 			<software type="processing" name="MS-Y" version="1.1"/>
 			<processingOperation name="processing 3" type="type 3" value="done 3"/>
 		</dataProcessing>
-		<scan num="1" msLevel="1" peaksCount="1" polarity="any" retentionTime="PT60S">
+		<scan num="10" msLevel="1" peaksCount="1" polarity="any" retentionTime="PT60S">
 			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QvAAAELIAAA=</peaks>
 			<nameValue name="URL1" value="www.open-ms.de"/>
 			<nameValue name="URL2" value="www.uni-tuebingen.de"/>
 			<comment>Scan Comment</comment>
 		</scan>
-		<scan num="2" msLevel="1" peaksCount="3" polarity="any" retentionTime="PT120S">
+		<scan num="11" msLevel="1" peaksCount="3" polarity="any" retentionTime="PT120S">
 			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QtwAAELIAABC8AAAQ0gAAEMCAABCyAAA</peaks>
 		</scan>
-		<scan num="3" msLevel="1" peaksCount="5" polarity="any" retentionTime="PT180S">
+		<scan num="12" msLevel="1" peaksCount="5" polarity="any" retentionTime="PT180S">
 			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QsgAAELIAABC3AAAQ0gAAELwAABDlgAAQwIAAENIAABDDAAAQsgAAA==</peaks>
-			<scan num="4" msLevel="2" peaksCount="5" polarity="any" retentionTime="PT5S">
+			<scan num="13" msLevel="2" peaksCount="5" polarity="any" retentionTime="PT5S">
 				<precursorMz precursorIntensity="0">123.456</precursorMz>
 				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">QsgAAELIAABC3AAAQ0gAAELwAABDlgAAQwIAAENIAABDDAAAQsgAAA==</peaks>
 			</scan>

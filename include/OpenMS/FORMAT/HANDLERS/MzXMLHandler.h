@@ -221,6 +221,7 @@ namespace OpenMS
 	  	static const XMLCh* s_phone = xercesc::XMLString::transcode("phone");
 	  	static const XMLCh* s_email = xercesc::XMLString::transcode("email");
 	  	static const XMLCh* s_uri = xercesc::XMLString::transcode("URI");
+	  	static const XMLCh* s_num = xercesc::XMLString::transcode("num");
 	  	static const XMLCh* s_intensitycutoff = xercesc::XMLString::transcode("intensityCutoff");
 	  	static const XMLCh* s_centroided = xercesc::XMLString::transcode("centroided");
 	  	static const XMLCh* s_deisotoped = xercesc::XMLString::transcode("deisotoped");
@@ -361,15 +362,12 @@ namespace OpenMS
 				exp_->resize(exp_->size()+1);
 				exp_->back().setMSLevel(ms_level);
 				exp_->back().setRT(retention_time);
-				if (options_.hasMSLevels())
-				{
-					exp_->back().setMetaValue("original_spectrum_number", scan_count);
-				}
+				exp_->back().setNativeID(attributeAsString_(attributes, s_num));
 				//peak count == twice the scan size
 				peak_count_ = attributeAsInt_(attributes, s_peakscount);
 				exp_->back().reserve(peak_count_);
 				
-				//TODO centroided, chargeDeconvoluted, deisotoped are ignored
+				//centroided, chargeDeconvoluted, deisotoped are ignored
 
 				//other optional attributes
 				InstrumentSettings::ScanWindow window;
@@ -616,7 +614,7 @@ namespace OpenMS
 				}
 				else if (parent_tag=="dataProcessing")
 				{
-					//TODO this is currently ignored
+					//this is currently ignored
 				}
 				else if (parent_tag=="scan")
 				{
@@ -821,19 +819,50 @@ namespace OpenMS
 				}
 			}
 			
-			std::stack<UInt> open_scans;
+			//check if the nativeID of all spectra are numbers.
+			//If not we need to renumber all spectra.
+			bool all_numbers = true;
+			bool all_empty = true;
+			for (UInt s=0; s<cexp_->size(); s++)
+			{
+				const SpectrumType& spec = (*cexp_)[s];
+				try
+				{
+					spec.getNativeID().toInt();
+				}
+				catch (Exception::ConversionError&)
+				{
+					all_numbers = false;
+					if (spec.getNativeID()!="")
+					{
+						all_empty = false;
+					}
+				}
+			}
+			//If we need to renumber and the nativeIDs were not empty, warn the user
+			if (!all_numbers && !all_empty)
+			{
+				warning("Warning: Not all spectrum native IDs are numbers. The spectra are renumbered and the native IDs are lost!");
+			}
 			
 			// write scans
+			std::stack<UInt> open_scans;
 			for (UInt s=0; s<cexp_->size(); s++)
 			{
 				logger_.setProgress(s);
 				const SpectrumType& spec = (*cexp_)[s];
 							
-				int ms_level = spec.getMSLevel();
+				UInt ms_level = spec.getMSLevel();
 				open_scans.push(ms_level);
-				
+
+				UInt spectrum_id = s+1;
+				if (all_numbers)
+				{
+					spectrum_id = spec.getNativeID().toInt();
+				}
+
 				os << String(ms_level+1,'\t')
-					 << "<scan num=\"" << spec_write_counter_++ << "\" msLevel=\""
+					 << "<scan num=\"" << spectrum_id << "\" msLevel=\""
 					 << ms_level << "\" peaksCount=\""
 					 << spec.size() << "\" polarity=\"";
 				if (spec.getInstrumentSettings().getPolarity()==IonSource::POSITIVE)
@@ -904,7 +933,7 @@ namespace OpenMS
 				}
 				
 				//check MS level of next scan and close scans (scans can be nested)
-				int next_ms_level = 0;
+				UInt next_ms_level = 0;
 				if (s < cexp_->size()-1)
 				{
 					next_ms_level = ((*cexp_)[s+1]).getMSLevel();
@@ -912,7 +941,7 @@ namespace OpenMS
 				//std::cout << "scan: " << s << " this: " << ms_level << " next: " << next_ms_level << std::endl;
 				if (next_ms_level <= ms_level)
 				{
-					for (Int i = 0; i<= ms_level-next_ms_level && !open_scans.empty(); ++i)
+					for (UInt i = 0; i<= ms_level-next_ms_level && !open_scans.empty(); ++i)
 					{
 						os << String(ms_level-i+1,'\t') << "</scan>\n";
 						open_scans.pop();

@@ -31,13 +31,13 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="2">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1023.33"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1023.33099365234"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 				<precursorList count="1">
-					<precursor msLevel="2" spectrumRef="-1">
+					<precursor msLevel="1" spectrumRef="4294967295">
 						<ionSelection>
-							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="500.667"/>
+							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="500.666666666667"/>
 							<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="3"/>
 						</ionSelection>
 						<activation>
@@ -56,13 +56,13 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="2">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2044.33"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="2044.333984375"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 				<precursorList count="1">
-					<precursor msLevel="2" spectrumRef="-1">
+					<precursor msLevel="1" spectrumRef="4294967295">
 						<ionSelection>
-							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="500.667"/>
+							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="500.666666666667"/>
 							<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="3"/>
 						</ionSelection>
 						<activation>
@@ -81,13 +81,13 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="2">
-						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="889.32"/>
+						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="889.320007324219"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 				<precursorList count="1">
-					<precursor msLevel="2" spectrumRef="-1">
+					<precursor msLevel="1" spectrumRef="4294967295">
 						<ionSelection>
-							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="500.667"/>
+							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="500.666666666667"/>
 							<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="3"/>
 						</ionSelection>
 						<activation>
