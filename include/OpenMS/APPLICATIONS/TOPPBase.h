@@ -95,9 +95,6 @@ namespace OpenMS
   	- impelment the registerOptionsAndFlags_ and main_ methods
   	- add a doxygen page for the tool and add the page to TOPP.doxygen
   	- hide the derived class in the OpenMS documentation by using doxygen codition macros.
-		
-		@todo Create infrastructure for command line arguments that are lists, use it in all TOPP tools that take lists as arguments e.g. file lists (Hiwi)
-  	@todo Use DataProcessing in all TOPP tools (Marc)
   */
   class TOPPBase
   {

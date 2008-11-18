@@ -34,33 +34,29 @@ namespace OpenMS
 {
 	
 	/**
-	@brief Metafunction to choose among RichPeak1D respectively RichPeak2D through a
-	template argument.  The result is accessible via typedef Type.
-
-	- @c DRichPeak<1>::Type is @c RichPeak1D
-	- @c DRichPeak<2>::Type is @c RichPeak2D
-	.
-
-	Example:
-  @code
-	template class BaseModel<UInt D>
-	{
-	;;;
-	// BaseModel<D>::PeakType is either RichPeak1D or RichPeak2D, depending on D
-	typedef typename DRichPeak<D>::Type PeakType;
-	;;;
-	};
-	@endcode
-
-	@internal
-
-	*/
-	template <UInt Dimensions>
-	struct DRichPeak
-	{};
+		@brief Metafunction to choose among RichPeak1D respectively RichPeak2D through a template argument.
+		
+		The result is accessible via typedef Type.
+		- @c DRichPeak<1>::Type is @c RichPeak1D
+		- @c DRichPeak<2>::Type is @c RichPeak2D
 	
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-
+		Example:
+	  @code
+		template class BaseModel<UInt D>
+		{
+			// BaseModel<D>::PeakType is either RichPeak1D or RichPeak2D, depending on D
+			typedef typename DRichPeak<D>::Type PeakType;
+		};
+		@endcode
+	*/
+	template <UInt dimensions>
+	struct DRichPeak
+	{
+	};
+	
+	// We do not want these classes to show up in the docu
+	/// @cond HIDDENSTUFF
+	
 	template <>
 	struct DRichPeak <1>
 	{
@@ -73,7 +69,7 @@ namespace OpenMS
 		typedef RichPeak2D Type;
 	};
 	
-#endif
+	/// @endcond
 
 } // namespace OpenMS
 

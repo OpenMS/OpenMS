@@ -49,22 +49,29 @@ namespace OpenMS
 
 		This type is used to specify the kind of parameter that
 		is to be set or retrieved by the set/getParameter methods.
-		
-		SVM_TYPE:  		the svm type cab be NU_SVR or EPSILON_SVR
-	 
-	  KERNEL_TYPE: 	the kernel type
-	 
-   	DEGREE:      	the degree for the polynomial- kernel
-	 
-   	C:           	the C parameter of the svm
-   	NU:          	the nu parameter for nu-SVR
-   	P:           	the epsilon parameter for epsilon-SVR
-   	GAMMA:       	the gamma parameter of the POLY, RBF and SIGMOID kernel
 	*/
-	enum SVM_parameter_type{SVM_TYPE, KERNEL_TYPE, DEGREE, C, NU, P, GAMMA, PROBABILITY, SIGMA, BORDER_LENGTH};
+	enum SVM_parameter_type
+	{
+		SVM_TYPE,				///< the svm type cab be NU_SVR or EPSILON_SVR
+		KERNEL_TYPE,		///< the kernel type
+		DEGREE,					///< the degree for the polynomial- kernel
+		C,							///< the C parameter of the svm
+		NU,							///< the nu parameter for nu-SVR
+		P,							///< the epsilon parameter for epsilon-SVR
+		GAMMA,					///< the gamma parameter of the POLY, RBF and SIGMOID kernel
+		PROBABILITY,		///<
+		SIGMA,					///<
+		BORDER_LENGTH		///<
+	};
 	
-	enum SVM_kernel_type{OLIGO = 19, OLIGO_COMBINED}; /* kernel_type */
+	/// Kernel type
+	enum SVM_kernel_type
+	{
+		OLIGO = 19,
+		OLIGO_COMBINED
+	};
 	
+	/// Data structure used in SVMWrapper
 	struct SVMData
 	{
 		std::vector< std::vector< std::pair<Int, DoubleReal> > > sequences;
@@ -170,7 +177,6 @@ namespace OpenMS
 		choose certain kernel fuctions and additional parameters. Furthermore the models can be saved and 
 		loaded and we support also a new kernel function that was specially designed for learning with
 		small sequences of different lengths.
-    
   */
 	class SVMWrapper
 	{

@@ -45,7 +45,7 @@ namespace OpenMS
 	{
 		public:
 
-			/// represenation of a CV term
+			///Represenation of a CV term used by CVMappings
 			class CVTerm
 			{
 				public:
@@ -103,7 +103,7 @@ namespace OpenMS
 				String cv_identifier_ref_;
 			};
 						
-			/// Representation of a CV Mapping rule
+			/// Representation of a CV Mapping rule used by CVMappings
 			class CVMappingRule
 			{
 				public:
@@ -170,8 +170,7 @@ namespace OpenMS
 
 				std::vector<CVTerm> cv_terms_;
 			};
-		
-			
+
 			class CVReference
 			{
 				public:
@@ -200,25 +199,25 @@ namespace OpenMS
 			};
 			
 		
-		CVMappings();
-
-		CVMappings(const CVMappings& rhs);
-
-		virtual ~CVMappings();
-
-		CVMappings& operator = (const CVMappings& rhs);
-
-		void setMappingRules(const std::vector<CVMappingRule>& cv_mapping_rules);
-
-		const std::vector<CVMappingRule>& getMappingRules() const;
-
-		void addMappingRule(const CVMappingRule& cv_mapping_rule);
-
-		void setCVReferences(const std::vector<CVReference>& cv_references);
-
-		void addCVReference(const CVReference& cv_reference);
-
-		bool hasCVReference(const String& identifier);
+			CVMappings();
+	
+			CVMappings(const CVMappings& rhs);
+	
+			virtual ~CVMappings();
+	
+			CVMappings& operator = (const CVMappings& rhs);
+	
+			void setMappingRules(const std::vector<CVMappingRule>& cv_mapping_rules);
+	
+			const std::vector<CVMappingRule>& getMappingRules() const;
+	
+			void addMappingRule(const CVMappingRule& cv_mapping_rule);
+	
+			void setCVReferences(const std::vector<CVReference>& cv_references);
+	
+			void addCVReference(const CVReference& cv_reference);
+	
+			bool hasCVReference(const String& identifier);
 
 		protected:
 

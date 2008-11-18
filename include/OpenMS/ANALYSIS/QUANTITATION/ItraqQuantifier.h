@@ -36,8 +36,14 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 
-namespace OpenMS {
+namespace OpenMS
+{
 
+	/**
+		@brief
+		
+		@todo Docu (Chris)
+	*/
 	class ItraqQuantifier
 		: public DefaultParamHandler,
 			public ItraqConstants

@@ -33,47 +33,52 @@
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
-namespace OpenMS {
-
+namespace OpenMS
+{
+	/**
+		@brief
+		
+		@todo Docu (Chris)
+	*/
 	class ProteinInference
 	{
 
-	public:
-
-		typedef Peak2D::IntensityType IntensityType;
-		
-		/// Constructor
-		ProteinInference();
-		
-		/// copy constructor
-    ProteinInference(const ProteinInference& cp);
-
-    /// assignment operator
-    ProteinInference& operator = (const ProteinInference& rhs);
-
-		/**
-		 *	@brief given a peptide quantitation, infer protein quantities from it.
-		 *	
-		 *	Infers protein ratios from peptide ratios (currently using unique peptides only).
-		 *	Use IDConsensusFeatureMapper-class to add protein and peptide information to a 
-		 *  quantitative ConsensusMap prior to this step.
-		 *
-		 *	@param consensus_map Peptide quantitation with ProteinIdentifications attached, where
-		 *				 Protein quantitation will be attached
-		 *
-		 *	@throws Exception::MissingInformation if Protein/PeptideIdentifications are missing
-		 */
-		void infer(ConsensusMap& consensus_map,
-							 const UInt reference_map);
-		
-		
-	protected:
-		
-		void infer_(ConsensusMap& consensus_map, 
-								const size_t protein_idenfication_index, 
-								const UInt reference_map);
-		
-		bool sort_by_unique_(std::vector< PeptideHit >& peptide_hits_local, const bool is_higher_score_better );
+		public:
+	
+			typedef Peak2D::IntensityType IntensityType;
+			
+			/// Constructor
+			ProteinInference();
+			
+			/// copy constructor
+	    ProteinInference(const ProteinInference& cp);
+	
+	    /// assignment operator
+	    ProteinInference& operator = (const ProteinInference& rhs);
+	
+			/**
+				@brief given a peptide quantitation, infer protein quantities from it.
+				
+				Infers protein ratios from peptide ratios (currently using unique peptides only).
+				Use IDConsensusFeatureMapper-class to add protein and peptide information to a 
+				quantitative ConsensusMap prior to this step.
+				
+				@param consensus_map Peptide quantitation with ProteinIdentifications attached, where
+							 Protein quantitation will be attached
+				
+				@throws Exception::MissingInformation if Protein/PeptideIdentifications are missing
+			*/
+			void infer(ConsensusMap& consensus_map,
+								 const UInt reference_map);
+			
+			
+		protected:
+			
+			void infer_(ConsensusMap& consensus_map, 
+									const size_t protein_idenfication_index, 
+									const UInt reference_map);
+			
+			bool sort_by_unique_(std::vector< PeptideHit >& peptide_hits_local, const bool is_higher_score_better );
 		
 	}; // !class
 

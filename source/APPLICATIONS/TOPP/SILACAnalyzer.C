@@ -72,8 +72,8 @@ using namespace OpenMS;
 	(2) hierarchical clustering in RT-m/Z plane, determine cluster number by maximizing the average silhouette width
 	(3) determine intensity ratios by linear regression for each cluster
 	
-	@todo Replace Clster 3.0 by our clustering (Hiwi)
-	@todo Remove Cluster 3.0 from contrib and configure (Marc)
+	@todo Replace Cluster 3.0 by our clustering (Hiwi)
+	@todo Remove Cluster 3.0 from contrib as soon as it's not needed anymore (Marc)
 	
 	@ingroup TOPP
 */

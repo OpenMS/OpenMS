@@ -32,8 +32,14 @@
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-namespace OpenMS {
+namespace OpenMS
+{
 
+	/**
+		@brief
+		
+		@todo Docu (Chris)
+	*/
 	class ItraqConstants
 	{
 

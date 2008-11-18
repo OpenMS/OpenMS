@@ -41,10 +41,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page QuantIDMerger
+	@page QuantIDMerger QuantIDMerger
 	
 	@todo throw away code below and use IDFeatureMapper and IDConsensusFeatureMapper; do output as desired (Lars, Marc, Chris)
- *
 */
 
 // We do not want this class to show up in the docu:

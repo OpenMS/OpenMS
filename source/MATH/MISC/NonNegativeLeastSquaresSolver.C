@@ -36,17 +36,6 @@ namespace NNLS_EXTERNAL
 
 namespace OpenMS
 {
-	/**
-	 *	This is a wrapper for the external nnls library for the 
-	 *	non-negative least square problem Ax=b, where x>0
-	 *
-	 *	@param: A Input matrix A of size mxn
-	 *	@param: b Input vector (matrix with one column) b of size mx1
-	 *	@param: x Output vector with non-negative least square solution of size nx1
-	 *	@return: status of solution (either NonNegativeLeastSquaresSolver::SOLVED, NonNegativeLeastSquaresSolver::ITERATION_EXCEEDED)
-	 *
-	 *	@throws: Exception::InvalidParameters if Matrix dimensions do not fit
-	 */
 	Int NonNegativeLeastSquaresSolver::solve(const Matrix<double>& A, const Matrix<double>& b, Matrix<double>& x)
 	{
 		

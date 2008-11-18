@@ -47,7 +47,11 @@
 
 namespace OpenMS
 {
-				
+	/**
+		@brief
+		
+		@todo Docu (Andreas)
+	*/
 	class MascotRemoteQuery 
 		: public QObject,
 			public DefaultParamHandler

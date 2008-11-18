@@ -41,7 +41,6 @@ namespace OpenMS
  		be given in the MetaInfoInterface ('MZ' and 'RT').
 	 
 	  @todo check if ConvexHull exists and fall back to centroid if its missing (and allow a deviation of xy in that case) (Marc)
-	 
   */
   class IDFeatureMapper
   {
