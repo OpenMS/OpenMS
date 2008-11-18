@@ -170,6 +170,7 @@ namespace OpenMS
 			setValidStrings_("sorting_method",StringList::create("none,RT,MZ,RT_then_MZ,intensity,quality_decreasing,quality_increasing"));
 			registerFlag_("sort_by_maps","Apply a stable sort by the covered maps, lexicographically",false);
 			registerFlag_("sort_by_size","Apply a stable sort by decreasing size (i.e., the number of elements)",false);
+			registerFlag_("peptides_only_csv","Set this flag if you want only peptide information from an idXML file in csv format",false);
 			addText_("Sorting options can be combined.  The precedence is: sort_by_size, sort_by_maps, sorting_method");
 			return;
 		}
@@ -192,6 +193,8 @@ namespace OpenMS
 	
 			String in = getStringOption_("in");
 			String out = getStringOption_("out");
+			UInt counter = 0;
+			bool without_header_repetition = getFlag_("peptides_only_csv");
         
       //input file type
       FileHandler::Type in_type = FileHandler::getType(in);
@@ -438,13 +441,13 @@ namespace OpenMS
 				vector<PeptideIdentification> pep_ids;
 				IdXMLFile().load(in, prot_ids, pep_ids);
 				
-				
+				counter = 0;
 				ofstream txt_out(out.c_str());
 
 				for (vector<ProteinIdentification>::const_iterator it = prot_ids.begin(); it != prot_ids.end(); ++it)
 				{
 					String actual_id = it->getIdentifier();
-					if (!getFlag_("peptides_only"))
+					if (!getFlag_("peptides_only") && !getFlag_("peptides_only_csv"))
 					{
 						// protein id header 
 						txt_out << "# Run ID, Score Type, Score Direction, Date/Time, Search Engine Version " << endl;
@@ -541,51 +544,82 @@ namespace OpenMS
 						{
 							if (pit->getIdentifier() == actual_id)
 							{
-								// header of peptide idenfication
-								txt_out << "# RunID, RT, m/z, ScoreType, Score Direction" << endl;
-								txt_out << actual_id << " ";
-								
-								if (pit->metaValueExists("RT"))
+								if (!without_header_repetition)
 								{
-									txt_out << (double)pit->getMetaValue("RT") << " ";
+									// header of peptide idenfication
+									txt_out << "# RunID, RT, m/z, ScoreType, Score Direction" << endl;
+									txt_out << actual_id << " ";
+									
+									if (pit->metaValueExists("RT"))
+									{
+										txt_out << (double)pit->getMetaValue("RT") << " ";
+									}
+									else
+									{
+										txt_out << "-1 ";
+									}
+	
+									if (pit->metaValueExists("MZ"))
+									{
+										txt_out << (double)pit->getMetaValue("MZ") << " ";
+									}
+									else
+									{
+										txt_out << "-1 ";
+									}
+									
+									txt_out	<< pit->getScoreType() << " ";
+									if (pit->isHigherScoreBetter())
+	            		{
+	              		txt_out << "higher-score-better ";
+	            		}
+	            		else
+	            		{
+	              		txt_out << "lower-score-better ";
+	           			}
+									txt_out << endl;
 								}
-								else
-								{
-									txt_out << "-1 ";
-								}
-
-								if (pit->metaValueExists("MZ"))
-								{
-									txt_out << (double)pit->getMetaValue("MZ") << " ";
-								}
-								else
-								{
-									txt_out << "-1 ";
-								}
-								
-								txt_out	<< pit->getScoreType() << " ";
-								if (pit->isHigherScoreBetter())
-            		{
-              		txt_out << "higher-score-better ";
-            		}
-            		else
-            		{
-              		txt_out << "lower-score-better ";
-           			}
-								txt_out << endl;
-
 											
 								// header of peptide hits
-            		txt_out << "# Peptide Hits: Score, Rank, Sequence, Charge, AABefore, AAAfter, Accessions" << endl;
+								if (without_header_repetition && counter == 0)
+								{
+            			txt_out << "RT MZ Score Rank Sequence Charge AABefore AAAfter Accessions" << endl;
+            			++counter;
+            		}
+            		else if (counter == 0)
+            		{
+            			txt_out << "# Peptide Hits: Score, Rank, Sequence, Charge, AABefore, AAAfter, Accessions" << endl;
+            		}
 
             		for (vector<PeptideHit>::const_iterator ppit = pit->getHits().begin(); ppit != pit->getHits().end(); ++ppit)
             		{
+            			if (without_header_repetition)
+            			{
+										if (pit->metaValueExists("RT"))
+										{
+											txt_out << (double)pit->getMetaValue("RT") << " ";
+										}
+										else
+										{
+											txt_out << "-1 ";
+										}
+		
+										if (pit->metaValueExists("MZ"))
+										{
+											txt_out << (double)pit->getMetaValue("MZ") << " ";
+										}
+										else
+										{
+											txt_out << "-1 ";
+										}
+            			}
               		txt_out << ppit->getScore() << " "
                 		      << ppit->getRank() << " "
                   		    << ppit->getSequence() << " "
 													<< ppit->getCharge() << " "
 													<< ppit->getAABefore() << " " 
 													<< ppit->getAAAfter() << " ";
+
 									for (vector<String>::const_iterator ait = ppit->getProteinAccessions().begin(); ait != ppit->getProteinAccessions().end(); ++ait)
 									{
 										if (ait != ppit->getProteinAccessions().begin())
