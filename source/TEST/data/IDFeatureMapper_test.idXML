@@ -14,7 +14,7 @@
       </PeptideHit>
     </PeptideIdentification>
     <PeptideIdentification score_type="" higher_score_better="true" significance_threshold="31.8621" MZ="999" RT="90" >
-      <PeptideHit score="35" sequence="B" charge="3" protein_refs="PH_0" >
+      <PeptideHit score="35" sequence="K" charge="3" protein_refs="PH_0" >
       </PeptideHit>
     </PeptideIdentification>
     <PeptideIdentification score_type="" higher_score_better="true" significance_threshold="31.8621" MZ="1000" RT="85" >
@@ -46,7 +46,7 @@
       </PeptideHit>
     </PeptideIdentification>
     <PeptideIdentification score_type="" higher_score_better="true" significance_threshold="31.8621" MZ="995" RT="90" >
-      <PeptideHit score="35" sequence="J" charge="3" protein_refs="PH_1" >
+      <PeptideHit score="35" sequence="L" charge="3" protein_refs="PH_1" >
       </PeptideHit>
     </PeptideIdentification>
   </IdentificationRun>

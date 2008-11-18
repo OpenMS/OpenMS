@@ -51,17 +51,17 @@ CHECK((IDSpectrumMapper()))
 	TEST_NOT_EQUAL(ptr, 0)
 RESULT
 
-CHECK(template <class PeakT> UInt annotate(MSExperiment< PeakT > &experiment, const std::vector< PeptideIdentification > &identifications, DoubleReal precision=0.01f))
+CHECK((template <typename PeakType> UInt annotate(MSExperiment< PeakType >& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, DoubleReal rt_delta = 0.01, DoubleReal mz_delta = 0.01)))
 	//load id
 	vector<PeptideIdentification> identifications; 
 	vector<ProteinIdentification> protein_identifications;
-	IdXMLFile().load("data/IDSpectrumMapper_test.idXML",
-								protein_identifications, 
-					   		identifications);
-
+	IdXMLFile().load("data/IDSpectrumMapper_test.idXML", protein_identifications, identifications);
+	
+	TEST_EQUAL(identifications.size(),3)
 	TEST_EQUAL(identifications[0].getHits().size(), 2)
 	TEST_EQUAL(identifications[1].getHits().size(), 1)
 	TEST_EQUAL(identifications[2].getHits().size(), 2)
+	TEST_EQUAL(protein_identifications.size(),1)
 	TEST_EQUAL(protein_identifications[0].getHits().size(), 2)
 
 	//create experiment
@@ -83,24 +83,25 @@ CHECK(template <class PeakT> UInt annotate(MSExperiment< PeakT > &experiment, co
 	experiment[2].setPrecursorPeak(peak);
 	
 	//map
-	IDSpectrumMapper().annotate(experiment, identifications, 0.1);
-
+	IDSpectrumMapper().annotate(experiment, identifications, protein_identifications);
+	
+	//test
+	TEST_EQUAL(experiment.getProteinIdentifications().size(), 1)
+	TEST_EQUAL(experiment.getProteinIdentifications()[0].getHits().size(),2)
+	TEST_EQUAL(experiment.getProteinIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
+	TEST_EQUAL(experiment.getProteinIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
 	//scan 1
 	TEST_EQUAL(experiment[0].getPeptideIdentifications().size(), 1)
 	TEST_EQUAL(experiment[0].getPeptideIdentifications()[0].getHits().size(), 2)
 	TEST_EQUAL(experiment[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
 	TEST_EQUAL(experiment[0].getPeptideIdentifications()[0].getHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
-	
 	//scan 2
 	TEST_EQUAL(experiment[1].getPeptideIdentifications().size(), 0)
-	
 	//scan 3
 	TEST_EQUAL(experiment[2].getPeptideIdentifications().size(), 1)	
 	TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits().size(), 1)
 	TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits()[0].getSequence(), "HSKLSAK")
 
-	
-	
 RESULT
 
 /////////////////////////////////////////////////////////////

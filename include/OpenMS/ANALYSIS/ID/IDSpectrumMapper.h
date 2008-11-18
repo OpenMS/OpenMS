@@ -36,11 +36,16 @@
 namespace OpenMS 
 {
   /**
-    @brief Annotate a spectra of an MSExperiment with PeptideIdentification instances
+    @brief Annotates the spectra of an MSExperiment with peptide identifications
     
     The identifications stored in a PeptideIdentification instance can be added to the
     corresponding spectrum. Furthermore the annotations that are present
     can be retrieved.
+
+	  ProteinIdentifications are assigned to the whole map.
+	  
+ 		The retention time and mass-to-charge ratio of the PeptideIdentification have to 
+ 		be given in the MetaInfoInterface ('MZ' and 'RT').
   */
   class IDSpectrumMapper
   {
@@ -55,59 +60,66 @@ namespace OpenMS
 		 		The retention time and mass-to-charge ratio of the PeptideIdentification have to 
 		 		be given in the MetaInfoInterface ('MZ' and 'RT').   					
       	
-      	The exception MissingInformation is thrown if the MetaInfoInterface of @p identifications does not contain 'MZ' and 'RT'.
-			 
-				@throws Exception::MissingInformation
-				
-				@todo attach ProteinIdentifications to MSExperiment (as done in IDFeatureMapper) (?) (Nico)
+			  @param map MSExperiment to receive the identifications
+			  @param ids PeptideIdentification for the ConsensusFeatures
+			  @param protein_ids ProteinIdentification for the ConsensusMap
+			  @param mz_delta Allowed m/z deviation
+			  @param rt_delta Allowed RT deviation
+      	
+				@throws Exception::MissingInformation if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'.
       */
-      template <class PeakT>				
-      UInt annotate(MSExperiment< PeakT >& experiment, const std::vector<PeptideIdentification>& identifications, DoubleReal precision = 0.01f)
+      template <typename PeakType>				
+      void annotate(MSExperiment< PeakType >& map,
+                    const std::vector<PeptideIdentification>& ids,
+		                const std::vector<ProteinIdentification>& protein_ids,
+                    DoubleReal rt_delta = 0.01,
+                    DoubleReal mz_delta = 0.01)
   		{
+				//append protein identifications
+				map.getProteinIdentifications().insert(map.getProteinIdentifications().end(),protein_ids.begin(),protein_ids.end());
+		
   			//store mapping of scan RT to index
 				std::multimap<DoubleReal, UInt> experiment_precursors;
-				for(UInt i = 0; i < experiment.size(); i++)
+				for(UInt i = 0; i < map.size(); i++)
 				{
-					experiment_precursors.insert(std::make_pair(experiment[i].getRT(), i));
+					experiment_precursors.insert(std::make_pair(map[i].getRT(), i));
 				}
 				
 				//store mapping of identification RT to index
 				std::multimap<DoubleReal, UInt> identifications_precursors;
-				for(UInt i = 0; i < identifications.size(); i++)
+				for(UInt i = 0; i < ids.size(); i++)
 				{
-					if (!identifications[i].metaValueExists("RT"))
+					if (!ids[i].metaValueExists("RT"))
 					{
-						throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__, "IDSpectrumMapper: MetaValue 'RT' missing!"); 
+						throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__, "IDSpectrumMapper: meta data value 'RT' missing for peptide identification!"); 
 					}
 
-					if (!identifications[i].metaValueExists("MZ"))
+					if (!ids[i].metaValueExists("MZ"))
 					{
-						throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__, "IDSpectrumMapper: MetaValue 'MZ' missing!"); 
+						throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__, "IDSpectrumMapper: meta data value 'MZ' missing for peptide identification!"); 
 					}
-					identifications_precursors.insert(std::make_pair(identifications[i].getMetaValue("RT"), i));
+					identifications_precursors.insert(std::make_pair(ids[i].getMetaValue("RT"), i));
 				}
 				
 				//calculate the actual mapping
 				std::multimap<DoubleReal, UInt>::iterator experiment_iterator = experiment_precursors.begin();
 				std::multimap<DoubleReal, UInt>::iterator identifications_iterator = identifications_precursors.begin();	
-				UInt counter = 0;				
 				while(experiment_iterator != experiment_precursors.end() && identifications_iterator != identifications_precursors.end())
 				{
 					while(identifications_iterator != identifications_precursors.end())
 					{
 						// testing whether the retention times are within the precision threshold
-						if (fabs(experiment_iterator->first - identifications_iterator->first) < precision)
+						if (fabs(experiment_iterator->first - identifications_iterator->first) < rt_delta)
 						{
 							//std::cout << "RT matching (scan/id) " << experiment_iterator->first << " / " << identifications_iterator->first << std::endl;	
 							
 							// testing whether the m/z fits
-							if (fabs((DoubleReal)(identifications[identifications_iterator->second].getMetaValue("MZ")) -  (DoubleReal)(experiment[experiment_iterator->second].getPrecursorPeak().getPosition()[0])) < precision)
+							if (fabs((DoubleReal)(ids[identifications_iterator->second].getMetaValue("MZ")) -  (DoubleReal)(map[experiment_iterator->second].getPrecursorPeak().getPosition()[0])) < mz_delta)
 							{
-								//std::cout << "MZ matching (scan/id) " << (DoubleReal)(experiment[experiment_iterator->second].getPrecursorPeak().getPosition()[0]) << " / " << (DoubleReal)(identifications[identifications_iterator->second].getMetaValue("MZ")) << std::endl;	
-								if (!(identifications[identifications_iterator->second].empty()))
+								//std::cout << "MZ matching (scan/id) " << (DoubleReal)(map[experiment_iterator->second].getPrecursorPeak().getPosition()[0]) << " / " << (DoubleReal)(ids[identifications_iterator->second].getMetaValue("MZ")) << std::endl;	
+								if (!(ids[identifications_iterator->second].empty()))
 								{
-									experiment[experiment_iterator->second].getPeptideIdentifications().push_back(identifications[identifications_iterator->second]);
-									counter++;
+									map[experiment_iterator->second].getPeptideIdentifications().push_back(ids[identifications_iterator->second]);
 								}
 							}
 						}
@@ -116,7 +128,6 @@ namespace OpenMS
 					identifications_iterator = identifications_precursors.begin();	
 					++experiment_iterator;
 				}
-				return counter;  			
   		}
     
     protected:

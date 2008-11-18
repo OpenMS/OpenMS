@@ -32,23 +32,22 @@ namespace OpenMS
 {
   IDConsensusFeatureMapper::IDConsensusFeatureMapper() 
   {
-    
   }
   
-  void IDConsensusFeatureMapper::annotate(ConsensusMap& cm,
+  void IDConsensusFeatureMapper::annotate(ConsensusMap& map,
 																					const std::vector<PeptideIdentification>& ids,
 																					const std::vector<ProteinIdentification>& protein_ids,
-																					CoordinateType mz_delta,
-																					CoordinateType rt_delta,
+																					DoubleReal mz_delta,
+																					DoubleReal rt_delta,
 																					bool measure_from_subelements)
 	{		
 		//append protein identifications to Map
-		cm.getProteinIdentifications().insert(cm.getProteinIdentifications().end(),protein_ids.begin(),protein_ids.end());
+		map.getProteinIdentifications().insert(map.getProteinIdentifications().end(),protein_ids.begin(),protein_ids.end());
 
 		
 		// store which peptides fit which feature (and avoid double entries)
 		// consensusMap -> {peptide_index}
-		std::vector < std::set< size_t> > mapping(cm.size());
+		std::vector < std::set< size_t> > mapping(map.size());
 		
 		//iterate over the peptide IDs
 		for (size_t i=0; i<ids.size(); ++i)
@@ -60,61 +59,41 @@ namespace OpenMS
 
 			if (!ids[i].metaValueExists("RT"))
 			{
-				throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__, "IDSpectrumMapper: MetaValue 'RT' missing!"); 
+				throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__, "IDConsensusFeatureMapper: meta data value 'RT' missing for peptide identification!"); 
 			}
 
 			if (!ids[i].metaValueExists("MZ"))
 			{
-				throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__, "IDSpectrumMapper: MetaValue 'MZ' missing!"); 
+				throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__, "IDConsensusFeatureMapper: meta data value 'MZ' missing for peptide identification!"); 
 			}
 
-			CoordinateType rt_pep = ids[i].getMetaValue("RT");
-			CoordinateType mz_pep = ids[i].getMetaValue("MZ");
+			DoubleReal rt_pep = ids[i].getMetaValue("RT");
+			DoubleReal mz_pep = ids[i].getMetaValue("MZ");
 
-			#ifdef DEBUG_MAPPER
-			std::cout << "PEP rt:" << rt_pep << " mz:" << mz_pep << "\n";
-			#endif
-			
 			//iterate over the features
-			for(size_t cm_index = 0 ; cm_index<cm.size(); ++cm_index)
+			for(size_t cm_index = 0 ; cm_index<map.size(); ++cm_index)
 			{
-				#ifdef DEBUG_MAPPER
-				std::cout << "CF rt:" << cm[cm_index].getRT() << " mz:" << cm[cm_index].getMZ() << "\n";
-				#endif
-				
 				//check if we compare distance from centroid or subelements
 				if (!measure_from_subelements)
 				{
-					if ( (fabs(rt_pep-cm[cm_index].getRT()) <= rt_delta) &&
-							 (fabs(mz_pep-cm[cm_index].getMZ()) <= mz_delta)  )
+					if ( (fabs(rt_pep-map[cm_index].getRT()) <= rt_delta) && (fabs(mz_pep-map[cm_index].getMZ()) <= mz_delta)  )
 					{
-						#ifdef DEBUG_MAPPER
-						std::cout << "!!! HIT\n";
-						#endif
-						if (mapping[cm_index].count(i) == 0)
-						{
-							cm[cm_index].getPeptideIdentifications().push_back(ids[i]);
-						}
-						mapping[cm_index].insert(i); //add peptide #i to feature #cm_index
+						map[cm_index].getPeptideIdentifications().push_back(ids[i]);
 					}
 				}
 				else
 				{
-					for(ConsensusFeature::HandleSetType::iterator it_handle = cm[cm_index].getFeatures().begin(); 
-							it_handle != cm[cm_index].getFeatures().end(); 
+					for(ConsensusFeature::HandleSetType::iterator it_handle = map[cm_index].getFeatures().begin(); 
+							it_handle != map[cm_index].getFeatures().end(); 
 							++it_handle)
 					{
-						if ( (fabs(rt_pep - it_handle->getRT()) <= rt_delta) &&
-							   (fabs(mz_pep - it_handle->getMZ()) <= mz_delta) )
+						if ( (fabs(rt_pep - it_handle->getRT()) <= rt_delta) && (fabs(mz_pep - it_handle->getMZ()) <= mz_delta) )
 						{
-							#ifdef DEBUG_MAPPER
-							std::cout << "!!! HIT\n";
-							#endif
 							if (mapping[cm_index].count(i) == 0)
 							{
-								cm[cm_index].getPeptideIdentifications().push_back(ids[i]);
+								map[cm_index].getPeptideIdentifications().push_back(ids[i]);
+								mapping[cm_index].insert(i);
 							}
-							mapping[cm_index].insert(i); //add peptide #i to feature #cm_index
 							continue; // we added this peptide already.. no need to check further
 						}
 					}

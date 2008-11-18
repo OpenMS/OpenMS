@@ -55,17 +55,15 @@ CHECK(([EXTRA]~IDFeatureMapper()))
 	delete ptr;
 RESULT
 
-CHECK((void annotate(FeatureMap<> &fm, const std::vector< PeptideIdentification > &ids, const std::vector< ProteinIdentification > &protein_ids) ))
+CHECK((void annotate(FeatureMap<> &fm, const std::vector< PeptideIdentification > &ids, const std::vector< ProteinIdentification >& protein_ids, DoubleReal rt_delta = 0.5, DoubleReal mz_delta = 0.05, bool use_delta = false) ))
 	//load id data
 	vector<PeptideIdentification> identifications; 
 	vector<ProteinIdentification> protein_identifications; 
 	IdXMLFile().load("data/IDFeatureMapper_test.idXML", protein_identifications, identifications);
 	
-	//load feature data
+	//--------------------------------------------------------------------------------------
 	FeatureMap<> fm;
 	FeatureXMLFile().load("data/IDFeatureMapper_test.featureXML", fm);
-	
-	//map
 	IDFeatureMapper().annotate(fm,identifications,protein_identifications);
 	
 	//test protein ids
@@ -76,18 +74,35 @@ CHECK((void annotate(FeatureMap<> &fm, const std::vector< PeptideIdentification 
 	
 	//test peptide ids
 	TEST_EQUAL(fm[0].getPeptideIdentifications().size(),5)
-	TEST_EQUAL(fm[1].getPeptideIdentifications().size(),0)
-	TEST_EQUAL(fm[2].getPeptideIdentifications().size(),0)
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits().size(),1)
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[1].getHits().size(),1)
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[2].getHits().size(),1)
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[3].getHits().size(),1)
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[4].getHits().size(),1)
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),"A")
-	TEST_EQUAL(fm[0].getPeptideIdentifications()[1].getHits()[0].getSequence(),"B")
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[1].getHits()[0].getSequence(),"K")
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[2].getHits()[0].getSequence(),"C")
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[3].getHits()[0].getSequence(),"D")
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[4].getHits()[0].getSequence(),"E")
+	
+	//--------------------------------------------------------------------------------------
+	//TEST MAPPING TO CENTROIDS
+	FeatureMap<> fm2;
+	FeatureXMLFile().load("data/IDFeatureMapper_test.featureXML", fm2);
+	IDFeatureMapper().annotate(fm2,identifications,protein_identifications, 4.0, 1.5, true);
+	
+	//test protein ids
+	TEST_EQUAL(fm2.getProteinIdentifications().size(),1)
+	TEST_EQUAL(fm2.getProteinIdentifications()[0].getHits().size(),2)
+	TEST_EQUAL(fm2.getProteinIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
+	TEST_EQUAL(fm2.getProteinIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
+	
+	//test peptide ids
+	TEST_EQUAL(fm2[0].getPeptideIdentifications().size(),2)
+	TEST_EQUAL(fm2[0].getPeptideIdentifications()[0].getHits().size(),1)
+	TEST_EQUAL(fm2[0].getPeptideIdentifications()[1].getHits().size(),1)
+	TEST_EQUAL(fm2[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),"A")
+	TEST_EQUAL(fm2[0].getPeptideIdentifications()[1].getHits()[0].getSequence(),"K")
 RESULT
 
 /////////////////////////////////////////////////////////////

@@ -30,6 +30,6 @@ namespace OpenMS
 {
   IDSpectrumMapper::IDSpectrumMapper() 
   {
-    
   }
+  
 } // namespace OpenMS

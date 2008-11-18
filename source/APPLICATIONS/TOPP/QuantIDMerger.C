@@ -43,7 +43,7 @@ using namespace std;
 /**
 	@page QuantIDMerger QuantIDMerger
 	
-	@todo throw away code below and use IDFeatureMapper and IDConsensusFeatureMapper; do output as desired (Lars, Marc, Chris)
+	@todo use IDFeatureMapper and IDConsensusFeatureMapper and write output to file (Marc, Chris)
 */
 
 // We do not want this class to show up in the docu:
@@ -104,7 +104,6 @@ class TOPPQuantIDMerger
 			FeatureMap<> feature_map;
 			if (in_type == FileHandler::CONSENSUSXML)
 			{
-				
 				ConsensusXMLFile().load(in_quant,consensus_map);
 				for (UInt i=0; i<consensus_map.size(); ++i)
 				{

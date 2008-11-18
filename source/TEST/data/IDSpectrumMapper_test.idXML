@@ -4,9 +4,9 @@
   </SearchParameters>
   <IdentificationRun date="2006-03-09T11:31:52" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
     <ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-      <ProteinHit id="PH_0" accession="AAN17824" score="0" sequence="" >
+      <ProteinHit id="PH_0" accession="ABCDE" score="0" sequence="" >
       </ProteinHit>
-      <ProteinHit id="PH_1" accession="GN1736" score="0" sequence="" >
+      <ProteinHit id="PH_1" accession="FGHIJ" score="0" sequence="" >
       </ProteinHit>
     </ProteinIdentification>
     <PeptideIdentification score_type="" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="60" >

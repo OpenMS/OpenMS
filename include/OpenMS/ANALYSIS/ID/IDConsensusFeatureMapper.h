@@ -36,42 +36,43 @@
 namespace OpenMS 
 {
   /**
-    @brief Annotates a ConsensusMap instance with PeptideIdentification instances
+    @brief Annotates a ConsensusMap with peptide identifications
  		
 		The mapping of PeptideIdentification to ConsensusFeatures is done by comparing the MZ and RT
 	  coordinates, allowing for a small deviation.
-	  ProteinIdentifications are assigned to the whole ConsensusMap
+	  
+	  If several consensus features lie inside the allowed deviation, the peptide identifications
+	  are mapped to all the features.
+	  
+	  ProteinIdentifications are assigned to the whole map.
 	 
 	  The retention time and mass-to-charge ratio of the PeptideIdentification have to 
  		be given in the MetaInfoInterface ('MZ' and 'RT').
-	 
   */
   class IDConsensusFeatureMapper
   {
     public:
 
-			typedef Peak2D::CoordinateType CoordinateType;
-			
       /// Default constructor
       IDConsensusFeatureMapper();
       
 			/**
 				@brief This method does the actual mapping
 			
-			  @param cm ConsensusMap to receive the identifications
+			  @param map ConsensusMap to receive the identifications
 			  @param ids PeptideIdentification for the ConsensusFeatures
-			  @param ids ProteinIdentification for the ConsensusMap
+			  @param protein_ids ProteinIdentification for the ConsensusMap
 			  @param mz_delta Allowed m/z deviation
 			  @param rt_delta Allowed RT deviation
 			  @param measure_from_subelements Do distance estimate from FeatureHandles instead of Centroid
 			 
 				@exception Exception::MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'
 			*/
-		  void annotate(ConsensusMap& cm,
+		  void annotate(ConsensusMap& map,
 										const std::vector<PeptideIdentification>& ids,
 										const std::vector<ProteinIdentification>& protein_ids,
-										CoordinateType mz_delta=0.05,
-										CoordinateType rt_delta=0.5,
+										DoubleReal mz_delta=0.05,
+										DoubleReal rt_delta=0.5,
 										bool measure_from_subelements=false);      
   };
  

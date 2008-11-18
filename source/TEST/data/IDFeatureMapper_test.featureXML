@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap>
-	<featureList count="3">
+	<featureList count="1">
 		<feature id="1">
 			<position dim="0">90</position>
 			<position dim="1">1000</position>
@@ -45,24 +45,6 @@
 					<hposition dim="1">1097</hposition>
 				</hullpoint>
 			</convexhull>
-		</feature>
-		<feature id="2">
-			<position dim="0">50</position>
-			<position dim="1">900</position>
-			<intensity>100</intensity>
-			<quality dim="0">1</quality>
-			<quality dim="1">1</quality>
-			<overallquality>1</overallquality>
-			<charge>2</charge>
-		</feature>
-		<feature id="3">
-			<position dim="0">150</position>
-			<position dim="1">1200</position>
-			<intensity>100</intensity>
-			<quality dim="0">1</quality>
-			<quality dim="1">1</quality>
-			<overallquality>1</overallquality>
-			<charge>2</charge>
 		</feature>
 	</featureList>
 </featureMap>

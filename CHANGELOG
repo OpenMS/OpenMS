@@ -82,6 +82,7 @@ Detailed list of changes to specific OpenMS classes:
     - get(), getDate() and getTime() now return a string instead of modifying a string reference
     - made now() is static now and returns the current Date instead of modifying the object
   - MSExperiment: The date is now a DateTime object
+  - Unified interface of IDSpectrumMapper, IDFeatureMapper and IDConsensusFeatureMapper
 
 ------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.2                                     ----

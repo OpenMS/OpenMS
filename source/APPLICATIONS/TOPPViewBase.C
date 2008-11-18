@@ -2005,11 +2005,11 @@ namespace OpenMS
 			IdXMLFile().load(name, protein_identifications, identifications);
 			if (layer.type==LayerData::DT_PEAK)
 			{
-				IDSpectrumMapper().annotate(const_cast<LayerData&>(layer).peaks, identifications, 0.1);
+				IDSpectrumMapper().annotate(const_cast<LayerData&>(layer).peaks, identifications, protein_identifications, 0.1, 0.1);
 			}
 			else if (layer.type==LayerData::DT_FEATURE)
 			{
-				IDFeatureMapper().annotate(const_cast<LayerData&>(layer).features,identifications,protein_identifications);
+				IDFeatureMapper().annotate(const_cast<LayerData&>(layer).features,identifications,protein_identifications, 0.1, 0.1);
 			}
 			else
 			{

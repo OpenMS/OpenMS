@@ -52,6 +52,8 @@ using namespace std;
 	(namely featureXML, consensusXML and idXML) to text files.
 	These text files can be easily read using other applications
 	such as R, Matlab, Excel, etc.
+	
+	@todo Add identifications output to featureXML and consensusXML (Chris, Nico, Marc)	
 */
 
 // We do not want this class to show up in the docu:
