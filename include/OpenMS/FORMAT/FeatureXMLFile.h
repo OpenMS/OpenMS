@@ -30,6 +30,9 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/XMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+
+#include <iostream>
 
 namespace OpenMS
 {
@@ -40,20 +43,17 @@ namespace OpenMS
 		
   	@note This format will eventually be replaced by the HUPO-PSI AnalysisXML format!
   	
-  	@note If a feature meta value named 'id' is present, it is stored in the feature 'id' attribute in the file.
-  	      If meta value 'id' is not set, incrementing numbers are used.
-
   	@ingroup FileIO
   */
   class FeatureXMLFile
-  	: public Internal::XMLFile
+  	: protected Internal::XMLHandler,
+  		public Internal::XMLFile
   {
 	
 		public:
 		
 			/** @name Constructors and Destructor */
 			//@{
-			
 			///Default constructor
 			FeatureXMLFile();
 			///Destructor
@@ -73,7 +73,7 @@ namespace OpenMS
 				
 				@exception Exception::UnableToCreateFile is thrown if the file could not be created
 			*/
-			void store(String filename, const FeatureMap<>& feature_map) const;
+			void store(String filename, const FeatureMap<>& feature_map);
 			
       /// Mutable access to the options for loading/storing 
       PeakFileOptions& getOptions();
@@ -82,9 +82,65 @@ namespace OpenMS
       const PeakFileOptions& getOptions() const;
 		
 		protected:
-		
-			/// options for reading / writing
+
+			// Docu in base class
+      virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+			
+			// Docu in base class
+      virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+			
+			// Docu in base class
+      virtual void characters(const XMLCh* const chars, unsigned int length);
+
+			/// Writes a feature body to a stream
+			void writeFeature_(std::ostream& os, const Feature& feat, const String& identifier_prefix, UInt identifier, UInt indentation_level);
+			
+			/** 
+				@brief update the pointer to the current feature
+					
+				@param create If true, a new (empty) Feature is added at the appropriate subordinate_feature_level_
+			*/
+			void updateCurrentFeature_(bool create);
+
+			/// points to the last open <feature> tag (possibly a subordinate feature)
+			Feature* current_feature_;
+			/// Feature map pointer for reading
+			FeatureMap<Feature>* map_;
+			/// Options that can be set				
 			PeakFileOptions options_;
+			
+			/**@name temporary datastructures to hold parsed data */
+	    //@{
+			ModelDescription<2>* model_desc_;
+			Param param_;
+			ConvexHull2D current_chull_;
+			DPosition<2> hull_position_;	
+	    //@}
+			
+			/// current dimension of the feature position, quality, or convex hull point
+	 		UInt dim_;			
+			
+			//for downward compatibility, all tags in the old description must be ignored
+			bool in_description_;
+			
+			/// level in Feature stack during parsing
+			Int subordinate_feature_level_;
+			
+			/// Pointer to last read object as a MetaInfoInterface, or null.
+			MetaInfoInterface* last_meta_;
+			
+			/// Temporary protein ProteinIdentification
+			ProteinIdentification prot_id_;
+			/// Temporary peptide ProteinIdentification
+			PeptideIdentification pep_id_;
+			/// Temporary protein hit
+			ProteinHit prot_hit_;
+			/// Temporary peptide hit
+			PeptideHit pep_hit_;
+			/// Map from protein id to accession
+			std::map<String,String> proteinid_to_accession_;
+			/// 
+			std::map<String,UInt> accession_to_id_;
 
 	};
 

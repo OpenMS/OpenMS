@@ -28,7 +28,10 @@
 #define OPENMS_FORMAT_CONSENSUSXMLFILE_H
 
 #include <OpenMS/FORMAT/XMLFile.h>
-#include <OpenMS/FORMAT/HANDLERS/ConsensusXMLHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/FORMAT/PeakFileOptions.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+
 
 namespace OpenMS
 {
@@ -46,7 +49,8 @@ namespace OpenMS
     @ingroup FileIO
   */
   class ConsensusXMLFile 
-  	: public Internal::XMLFile
+  	: public Internal::XMLHandler,
+  		public Internal::XMLFile
   {
     public:
       ///Default constructor
@@ -61,13 +65,7 @@ namespace OpenMS
 				@exception Exception::FileNotFound is thrown if the file could not be opened
 				@exception Exception::ParseError is thrown if an error occurs during parsing
 			*/
-      void load(const String& filename, ConsensusMap& map)
-      {
-        map.clear(); // clear map
-        Internal::ConsensusXMLHandler handler(map,filename,schema_version_);
-        handler.setOptions(options_);
-        parse_(filename, &handler);
-      }
+      void load(const String& filename, ConsensusMap& map);
 
       /**
       	@brief Stores a staralignment object into consensusXML format.
@@ -75,16 +73,7 @@ namespace OpenMS
       	@exception Exception::UnableToCreateFile is thrown if the file name is not writable
       	@exception Exception::IllegalArgument is thrown if the consensus map is not valid
       */
-      void store(const String& filename, const ConsensusMap& map)
-      {
-      	String error_message;
-      	if (!map.isValid(error_message))
-      	{
-      		throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,String("Invalid consensus map cannot be stored: ") + error_message);
-      	}
-        Internal::ConsensusXMLHandler handler(const_cast<ConsensusMap&>(map),filename,schema_version_);
-        save_(filename, &handler);
-      }
+      void store(const String& filename, const ConsensusMap& consensus_map);
 
       /// Mutable access to the options for loading/storing 
       PeakFileOptions& getOptions();
@@ -93,9 +82,40 @@ namespace OpenMS
       const PeakFileOptions& getOptions() const;
   
 		protected:
-		
-			/// options for reading / writing
+	
+			// Docu in base class
+			virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+
+			// Docu in base class
+			virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+
+			// Docu in base class
+			virtual void characters(const XMLCh* const chars, unsigned int length);
+
+			/// Options that can be set
 			PeakFileOptions options_;
+			
+			///@name Temporary variables for parsing
+			//@{
+			ConsensusMap* consensus_map_;
+			ConsensusFeature act_cons_element_;
+			DPosition<2> pos_;
+			DoubleReal it_;
+			UInt last_map_;
+			//@}
+			
+			/// Pointer to last read object as a MetaInfoInterface, or null.
+			MetaInfoInterface* last_meta_;
+			/// Temporary protein ProteinIdentification
+			ProteinIdentification prot_id_;
+			/// Temporary peptide ProteinIdentification
+			PeptideIdentification pep_id_;
+			/// Temporary protein hit
+			ProteinHit prot_hit_;
+			/// Temporary peptide hit
+			PeptideHit pep_hit_;
+			/// Map from protein id to accession
+			std::map<String,String> proteinid_to_accession_;
 		
   };
 } // namespace OpenMS

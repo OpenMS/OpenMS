@@ -32,10 +32,8 @@ CPP_SOURCES=\
 	MzXMLHandler.C\
 	MzMLHandler.C\
 	ParamXMLHandler.C\
-	FeatureXMLHandler.C\
 	MascotXMLHandler.C\
 	PTMXMLHandler.C\
-	ConsensusXMLHandler.C\
 	XTandemInfileXMLHandler.C\
 	UnimodXMLHandler.C
 

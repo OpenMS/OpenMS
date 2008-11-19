@@ -25,13 +25,20 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/HANDLERS/FeatureXMLHandler.h>
+
+#include <fstream>
+
+using namespace std;
 
 namespace OpenMS 
 {
 	FeatureXMLFile::FeatureXMLFile()
-		: Internal::XMLFile("/SCHEMAS/FeatureXML_1_3.xsd","1.3"),
-			options_()
+		: Internal::XMLHandler("","1.3"),
+			Internal::XMLFile("/SCHEMAS/FeatureXML_1_3.xsd","1.3"),
+		 	map_(0), 
+		 	in_description_(false),
+			subordinate_feature_level_(0),
+			last_meta_(0)
 	{
 	}
 	
@@ -41,16 +48,102 @@ namespace OpenMS
 
 	void FeatureXMLFile::load(String filename, FeatureMap<>& feature_map)
 	{
-		feature_map.clear();
-		Internal::FeatureXMLHandler handler(feature_map,filename,schema_version_);
-		handler.setOptions(options_);
-		parse_(filename, &handler);
+  	//Filename for error messages in XMLHandler
+  	file_ = filename;
+  	
+  	feature_map.clear();
+  	map_ = &feature_map;
+  	
+		parse_(filename,this);
+    
+    //reset members
+		last_meta_ = 0;
+		prot_id_ = ProteinIdentification();
+		pep_id_ = PeptideIdentification();
+		prot_hit_ = ProteinHit();
+		pep_hit_ = PeptideHit();
+		proteinid_to_accession_.clear();
+		map_ = 0;
 	}
 
-	void FeatureXMLFile::store(String filename, const FeatureMap<>& feature_map) const
+	void FeatureXMLFile::store(String filename, const FeatureMap<>& feature_map)
 	{
-		Internal::FeatureXMLHandler handler(feature_map,filename,schema_version_);
-		save_(filename, &handler);
+  	//open stream
+		ofstream os(filename.c_str());	
+		if (!os)
+		{
+			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+		}
+		
+		os.precision(writtenDigits<DoubleReal>());
+		
+		os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
+			 << "<featureMap version=\"" << version_ << "\"";
+		if (feature_map.getIdentifier()!="")
+		{
+			os << " id=\"" << feature_map.getIdentifier() << "\"";
+		}
+		os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+		
+		//write data processing
+		for (UInt i=0; i< feature_map.getDataProcessing().size(); ++i)
+		{
+			const DataProcessing& processing = feature_map.getDataProcessing()[i];
+			os << "\t<dataProcessing completion_time=\"" << processing.getCompletionTime().getDate() << 'T' << processing.getCompletionTime().getTime() << "\">\n";
+			os << "\t\t<software name=\"" << processing.getSoftware().getName() << "\" version=\"" << processing.getSoftware().getVersion() << "\" />\n";
+			for (set<DataProcessing::ProcessingAction>::const_iterator it = processing.getProcessingActions().begin(); it!=processing.getProcessingActions().end(); ++it)
+			{
+				os << "\t\t<processingAction name=\"" << DataProcessing::NamesOfProcessingAction[*it] << "\" />\n";
+			}
+			writeUserParam_ ("userParam", os, processing, 2);
+			os << "\t</dataProcessing>\n";
+		}
+
+		// write ProteinIdentification
+		UInt prot_count = 0;
+		for ( UInt i = 0; i < feature_map.getProteinIdentifications().size(); ++i )
+		{
+			const ProteinIdentification & current_prot_id = feature_map.getProteinIdentifications()[i];
+			os << "\t<ProteinIdentification";
+			os << " score_type=\"" << current_prot_id.getScoreType() << "\"";
+			os << " higher_score_better=\"" << ( current_prot_id.isHigherScoreBetter() ? "true" : "false" ) << "\"";
+			os << " significance_threshold=\"" << current_prot_id.getSignificanceThreshold() << "\">" << endl;
+		
+			// write protein hits
+			for(UInt j=0; j<current_prot_id.getHits().size(); ++j)
+			{
+				os << "\t\t<ProteinHit";
+
+				// prot_count
+				os << " id=\"PH_" << prot_count << "\"";
+				accession_to_id_[current_prot_id.getHits()[j].getAccession()] = prot_count;
+				++prot_count;
+
+				os << " accession=\"" << current_prot_id.getHits()[j].getAccession() << "\"";
+				os << " score=\"" << current_prot_id.getHits()[j].getScore() << "\"";
+				os << " sequence=\"" << current_prot_id.getHits()[j].getSequence() << "\">" << endl;
+
+				writeUserParam_("userParam", os, current_prot_id.getHits()[j], 3);
+
+				os << "\t\t</ProteinHit>" << endl;
+			}
+		
+			writeUserParam_("userParam", os, current_prot_id, 2);
+			os << "\t</ProteinIdentification>" << endl;
+		}
+
+		// write features with their corresponding attributes
+		os << "\t<featureList count=\"" << feature_map.size() << "\">\n";
+		for (UInt s=0; s<feature_map.size(); s++)
+		{
+			writeFeature_(os, feature_map[s], "f_", s, 0);
+		}
+
+		os << "\t</featureList>\n";
+		os << "</featureMap>\n";
+		
+		//Clear members
+		accession_to_id_.clear();
 	}
 
 	PeakFileOptions& FeatureXMLFile::getOptions()
@@ -62,5 +155,633 @@ namespace OpenMS
   {
   	return options_;
   }
+
+	void FeatureXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+	{
+		static const XMLCh* s_dim = xercesc::XMLString::transcode("dim");
+		static const XMLCh* s_name = xercesc::XMLString::transcode("name");
+		static const XMLCh* s_version = xercesc::XMLString::transcode("version");
+		static const XMLCh* s_value = xercesc::XMLString::transcode("value");
+		static const XMLCh* s_type = xercesc::XMLString::transcode("type");
+		static const XMLCh* s_completion_time = xercesc::XMLString::transcode("completion_time");
+		static const XMLCh* s_id = xercesc::XMLString::transcode("id");
+
+		String tag = sm_.convert(qname);
+		String parent_tag;
+		if (open_tags_.size()!=0) parent_tag = open_tags_.back();
+		open_tags_.push_back(tag);
+		
+		//for downward compatibility, all tags in the old description must be ignored
+		if (in_description_) return;
+		
+		if (tag=="description")
+		{
+			in_description_ = true;
+		}
+		else if (tag=="feature")
+		{
+			// create new feature at apropriate level
+			updateCurrentFeature_(true);
+		}
+		else if (tag=="subordinate")
+		{ // this is not safe towards malformed xml!
+			++subordinate_feature_level_;
+		}
+		else if (tag=="featureList")
+		{
+			if (options_.getMetadataOnly()) throw EndParsingSoftly(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+		}
+		else if (tag=="quality" || tag=="hposition" || tag=="position")
+		{
+			dim_ = attributeAsInt_(attributes,s_dim);
+		}
+		else if (tag=="convexhull")
+		{
+			current_chull_ = ConvexHull2D();
+		}
+		else if (tag=="hullpoint")
+		{
+			hull_position_ = DPosition<2>::zero;
+		}
+		else if (tag=="model")
+		{
+			model_desc_ = new ModelDescription<2>();
+			param_.clear();
+			model_desc_->setName(attributeAsString_(attributes,s_name));
+		}
+		else if (tag=="param")
+		{
+			String name = attributeAsString_(attributes,s_name);
+			String value = attributeAsString_(attributes,s_value);
+			if (name != "" && value != "") param_.setValue(name, value);
+		}
+		else if (tag == "userParam")
+		{
+			if (last_meta_ == 0)
+			{
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("unexpected userParam in tag '") + parent_tag + "'" );
+			}
+			
+			String name = attributeAsString_(attributes,s_name);
+			String type = attributeAsString_(attributes,s_type);
+
+			if(type=="int")
+			{
+				last_meta_->setMetaValue(name, attributeAsInt_(attributes,s_value));
+			}
+			else if (type=="float")
+			{
+				last_meta_->setMetaValue(name, attributeAsDouble_(attributes,s_value));
+			}
+			else if (type=="string")
+			{
+				last_meta_->setMetaValue(name, (String)attributeAsString_(attributes,s_value));
+			}
+			else
+			{
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invalid userParam type '") + type + "'" );
+			}
+		}
+		else if (tag=="featureMap")
+		{
+			//check file version against schema version
+			String file_version="1.0"; // default schema is 1.0
+			optionalAttributeAsString_(file_version,attributes,s_version);
+			if (file_version.toDouble()>version_.toDouble())
+			{
+				warning(String("The XML file (") + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
+			}
+			//handle file id
+			String id;
+			if (optionalAttributeAsString_(id, attributes, s_id))
+			{
+				map_->setIdentifier(id);
+			}
+		}
+		else if (tag=="dataProcessing")
+		{
+			DataProcessing tmp;
+			tmp.setCompletionTime(asDateTime_(attributeAsString_(attributes, s_completion_time)));
+			map_->getDataProcessing().push_back(tmp);
+			last_meta_ = &(map_->getDataProcessing().back());
+		}
+		else if (tag=="software" && parent_tag=="dataProcessing")
+		{
+			map_->getDataProcessing().back().getSoftware().setName(attributeAsString_(attributes, s_name));
+			map_->getDataProcessing().back().getSoftware().setVersion(attributeAsString_(attributes, s_version));
+		}
+		else if (tag=="processingAction" && parent_tag=="dataProcessing")
+		{
+			String name = attributeAsString_(attributes, s_name);
+			for (UInt i=0; i< DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
+			{
+				if (name == DataProcessing::NamesOfProcessingAction[i])
+				{
+					map_->getDataProcessing().back().getProcessingActions().insert((DataProcessing::ProcessingAction)i);
+				}
+			}
+		}
+		else if ( tag == "ProteinIdentification" )
+		{
+			prot_id_.setScoreType(attributeAsString_(attributes,"score_type"));
+		
+			//optional significance threshold
+			DoubleReal tmp=0.0;
+			optionalAttributeAsDouble_(tmp,attributes,"significance_threshold");
+			if (tmp!=0.0)
+			{
+				prot_id_.setSignificanceThreshold(tmp);
+			}
+		
+			//score orientation
+			const XMLCh* higher_score_better = attributes.getValue(sm_.convert("higher_score_better"));
+			if (xercesc::XMLString::equals(higher_score_better,sm_.convert("true")))
+			{
+				prot_id_.setHigherScoreBetter(true);	
+			}
+			else if (xercesc::XMLString::equals(higher_score_better,sm_.convert("false")))
+			{
+				prot_id_.setHigherScoreBetter(false);					
+			}
+			else
+			{
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "Invalid value for 'higher_score_better '");				
+			}
+			last_meta_ = &prot_id_;
+		}
+		else if (tag == "ProteinHit")
+		{
+			prot_hit_ = ProteinHit();
+			String accession = attributeAsString_(attributes,"accession");
+			prot_hit_.setAccession(accession);
+			prot_hit_.setScore(attributeAsDouble_(attributes,"score"));
+		
+			//sequence
+			String tmp="";
+			optionalAttributeAsString_(tmp,attributes,"sequence");
+			prot_hit_.setSequence(tmp);
+		
+			last_meta_ = &prot_hit_;			
+		
+			//insert id and accession to map
+			proteinid_to_accession_[attributeAsString_(attributes,"id")] = accession;
+		}
+		else if (tag == "PeptideIdentification")
+		{
+			// set identifier 
+			// TODO Think about what we should do here ... (Nico)
+			// pep_id_.setIdentifier(cmap_->getProteinIdentifications().back().getIdentifier());
+		
+			pep_id_.setScoreType(attributeAsString_(attributes,"score_type"));
+		
+			//optional significance threshold
+			DoubleReal tmp=0.0;
+			optionalAttributeAsDouble_(tmp,attributes,"significance_threshold");
+			if (tmp!=0.0)
+			{
+				pep_id_.setSignificanceThreshold(tmp);
+			}
+
+			//score orientation
+			const XMLCh* higher_score_better = attributes.getValue(sm_.convert("higher_score_better"));
+			if (xercesc::XMLString::equals(higher_score_better,sm_.convert("true")))
+			{
+				pep_id_.setHigherScoreBetter(true);	
+			}
+			else if (xercesc::XMLString::equals(higher_score_better,sm_.convert("false")))
+			{
+				pep_id_.setHigherScoreBetter(false);					
+			}
+			else
+			{
+				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "Invalid value for 'higher_score_better '");				
+			}
+		
+			//MZ
+			DoubleReal tmp2 = - numeric_limits<DoubleReal>::max();
+			optionalAttributeAsDouble_(tmp2, attributes,"MZ");
+			if ( tmp2 != - numeric_limits<DoubleReal>::max() )
+			{
+				pep_id_.setMetaValue("MZ", tmp2);
+			}
+			//RT
+			tmp2 = - numeric_limits<DoubleReal>::max();
+			optionalAttributeAsDouble_(tmp2, attributes,"RT");
+			if ( tmp2 != - numeric_limits<DoubleReal>::max())
+			{
+				pep_id_.setMetaValue("RT", tmp2);
+			}
+			Int tmp3 = - numeric_limits<Int>::max();
+			optionalAttributeAsInt_(tmp3, attributes,"spectrum_reference");
+			if (tmp3 != - numeric_limits<Int>::max())
+			{
+				pep_id_.setMetaValue("spectrum_reference", tmp3);				
+			}
+		
+			last_meta_ = &pep_id_;
+		}
+		else if (tag == "PeptideHit")
+		{
+			pep_hit_ = PeptideHit();
+		
+			pep_hit_.setCharge(attributeAsInt_(attributes,"charge"));
+			pep_hit_.setScore(attributeAsDouble_(attributes,"score"));
+			pep_hit_.setSequence(attributeAsString_(attributes,"sequence"));
+		
+			//aa_before
+			String tmp="";
+			optionalAttributeAsString_(tmp,attributes,"aa_before");
+			if (!tmp.empty())
+			{
+				pep_hit_.setAABefore(tmp[0]);
+			}
+			//aa_after
+			tmp="";
+			optionalAttributeAsString_(tmp,attributes,"aa_after");
+			if (!tmp.empty())
+			{
+				pep_hit_.setAAAfter(tmp[0]);
+			}
+		
+			//parse optional protein ids to determine accessions
+			const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs"));
+			if (refs!=0)
+			{
+				String accession_string = sm_.convert(refs);
+				accession_string.trim();
+				vector<String> accessions;
+				accession_string.split(' ', accessions);
+				if (accession_string!="" && accessions.size()==0)
+				{
+					accessions.push_back(accession_string);
+				}
+				for(vector<String>::const_iterator it = accessions.begin(); it!=accessions.end(); ++it)
+				{
+					map<String,String>::const_iterator it2 = proteinid_to_accession_.find(*it);
+					if (it2!=proteinid_to_accession_.end())
+					{
+						pep_hit_.addProteinAccession(it2->second);
+					}
+					else
+					{
+						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invalid protein reference '") + *it + "'" );
+					}
+				}
+			}
+			last_meta_ = &pep_hit_;
+		}
+	}
+
+	void FeatureXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
+	{
+		String tag = sm_.convert(qname);
+		open_tags_.pop_back();
+		
+		//for downward compatibility, all tags in the old description must be ignored
+		if (tag=="description")
+		{
+			in_description_ = false;
+		}
+		if (in_description_) return;
+
+		if (tag=="feature")
+		{
+			if ((!options_.hasRTRange() || options_.getRTRange().encloses(current_feature_->getRT()))
+					&&	(!options_.hasMZRange() || options_.getMZRange().encloses(current_feature_->getMZ()))
+					&&	(!options_.hasIntensityRange() || options_.getIntensityRange().encloses(current_feature_->getIntensity())))
+			{
+			}
+			else
+			{
+				// this feature does not pass the restrictions --> remove it
+				if (subordinate_feature_level_==0)
+				{
+					map_->pop_back();
+				}
+				else
+				{
+					Feature* f1;
+					if (!map_->empty())
+					{
+						f1 = &(map_->back());
+					}
+					else
+					{
+						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Feature", "<Feature> with unexpected location." );
+					}
+
+					for (Int level = 1; level<subordinate_feature_level_;++level)
+					{
+						f1 = &(f1->getSubordinates().back());
+					}
+					// delete the offending feature
+					f1->getSubordinates().pop_back();
+				}
+			}
+			updateCurrentFeature_(false);
+		}
+		else if (tag=="model")
+		{
+			model_desc_->setParam(param_);
+			current_feature_->setModelDescription(*model_desc_);
+			delete model_desc_;
+		}
+		else if (tag=="hullpoint")
+		{
+			current_chull_.addPoint(hull_position_);
+		}
+		else if (tag=="convexhull")
+		{
+			current_feature_->getConvexHulls().push_back(current_chull_);
+		}
+		else if (tag=="subordinate")
+		{
+			--subordinate_feature_level_;
+			if (subordinate_feature_level_ < 0) throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "subordinate", "Too many closing tags for </subordinate>." );
+			// reset current_feature
+			updateCurrentFeature_(false);
+		}
+		else if (tag == "ProteinIdentification")
+		{
+			map_->getProteinIdentifications().push_back(prot_id_);
+			prot_id_ = ProteinIdentification();
+			last_meta_  = 0;		
+		}
+		else if (tag == "ProteinHit")
+		{
+			prot_id_.insertHit(prot_hit_);
+			last_meta_ = &prot_id_;
+		}
+		else if (tag == "PeptideIdentification")
+		{
+			current_feature_->getPeptideIdentifications().push_back(pep_id_);
+			pep_id_ = PeptideIdentification();
+			last_meta_  = 0;
+		}
+		else if (tag == "PeptideHit")
+		{
+			pep_id_.insertHit(pep_hit_);
+			last_meta_ = &pep_id_;
+		}
+	}
+
+	void FeatureXMLFile::characters(const XMLCh* const chars, unsigned int /*length*/)
+	{
+		//for downward compatibility, all tags in the old description must be ignored
+		if (in_description_) return;
+		
+		String& current_tag = open_tags_.back();
+		if (current_tag == "intensity")
+		{
+			current_feature_->setIntensity(asDouble_(sm_.convert(chars)));
+		}
+		else if (current_tag == "position")
+		{
+			current_feature_->getPosition()[dim_] = asDouble_(sm_.convert(chars));
+		}
+		else if (current_tag == "quality")
+		{
+			current_feature_->setQuality(dim_, asDouble_(sm_.convert(chars)));
+		}
+		else if (current_tag == "overallquality")
+		{
+			current_feature_->setOverallQuality(asDouble_(sm_.convert(chars)));
+		}
+		else if (current_tag == "charge")
+		{
+			current_feature_->setCharge(asInt_(chars));
+		}
+		else if (current_tag == "hposition")
+		{
+			hull_position_[dim_] = asDouble_(sm_.convert(chars));
+		}
+	}
+
+	void FeatureXMLFile::writeFeature_(ostream& os, const Feature& feat, const String& identifier_prefix, UInt identifier, UInt indentation_level)
+	{
+		String indent = String(indentation_level,'\t');
+
+		os << indent << "\t\t<feature id=\"" << identifier_prefix << identifier << "\">\n";
+		for (UInt i=0; i<2;i++)
+		{
+			os << indent <<	"\t\t\t<position dim=\"" << i << "\">" << precisionWrapper(feat.getPosition()[i]) << "</position>\n";
+		}
+		os << indent << "\t\t\t<intensity>" << precisionWrapper(feat.getIntensity()) << "</intensity>\n";
+		for (UInt i=0; i<2;i++)
+		{
+			os << indent << "\t\t\t<quality dim=\"" << i << "\">" << precisionWrapper(feat.getQuality(i)) << "</quality>\n";
+		}
+		os << indent << "\t\t\t<overallquality>" << precisionWrapper(feat.getOverallQuality()) << "</overallquality>\n";
+		os << indent << "\t\t\t<charge>" << feat.getCharge() << "</charge>\n";
+
+		// write model description
+		ModelDescription<2> desc = feat.getModelDescription();
+		if (!desc.getName().empty() || !desc.getParam().empty())
+		{
+			os << indent << "\t\t\t<model name=\"" << desc.getName() << "\">\n";
+			Param modelp = desc.getParam();
+			Param::ParamIterator piter = modelp.begin();
+			while (piter != modelp.end())
+			{
+				os << indent << "\t\t\t\t<param name=\"" << piter.getName() << "\" value=\"" << piter->value << "\"/>\n";
+				piter++;
+			}
+			os << indent << "\t\t\t</model>\n";
+		}
+
+		// write convex hull
+		vector<ConvexHull2D> hulls = feat.getConvexHulls();
+		vector<ConvexHull2D>::iterator citer = hulls.begin();
+
+		UInt hulls_count = hulls.size();
+
+		for (UInt i=0;i<hulls_count; i++)
+		{
+			os << indent << "\t\t\t<convexhull nr=\"" << i << "\">\n";
+
+			ConvexHull2D current_hull = hulls[i];
+			UInt hull_size	= current_hull.getPoints().size();
+
+			for (UInt j=0;j<hull_size;j++)
+			{
+				os << indent << "\t\t\t\t<hullpoint>\n";
+
+				DPosition<2> pos = current_hull.getPoints()[j];
+				UInt pos_size = pos.size();
+				for (UInt k=0; k<pos_size; k++)
+				{
+					os << indent << "\t\t\t\t\t<hposition dim=\"" << k << "\">" << precisionWrapper(pos[k]) << "</hposition>\n";
+				}
+
+				os << indent << "\t\t\t\t</hullpoint>\n";
+			} // end for (..hull_size..)
+
+			os << indent << "\t\t\t</convexhull>\n";
+		} // end	for ( ... hull_count..)
+
+		if (!feat.getSubordinates().empty())
+		{
+			os << indent << "\t\t\t<subordinate>\n";
+			UInt identifier_subordinate = 0;
+			for (size_t i=0;i<feat.getSubordinates().size();++i)
+			{
+				writeFeature_(os, feat.getSubordinates()[i], identifier_prefix+identifier+"_", identifier_subordinate, indentation_level+2);
+				++identifier_subordinate;
+			}
+			os << indent << "\t\t\t</subordinate>\n";
+		}
+
+		// write PeptideIdentification
+		for ( UInt i = 0; i < feat.getPeptideIdentifications().size(); ++i )
+		{
+			const PeptideIdentification & current_pep_id = feat.getPeptideIdentifications()[i];
+			os << "\t\t\t<PeptideIdentification ";
+			os << "score_type=\"" << current_pep_id.getScoreType() << "\" ";
+			os << "higher_score_better=\"" << ( current_pep_id.isHigherScoreBetter() ? "true" : "false" ) << "\" ";
+			os << "significance_threshold=\"" << current_pep_id.getSignificanceThreshold() << "\" ";
+			//mz
+			DataValue dv = current_pep_id.getMetaValue("MZ");
+			if (dv!=DataValue::EMPTY)
+			{
+				os << "MZ=\"" << dv.toString() << "\" ";
+			}
+			// rt
+			dv = current_pep_id.getMetaValue("RT");
+			if (dv!=DataValue::EMPTY)
+			{
+				os << "RT=\"" << dv.toString() << "\" ";
+			}
+			// spectrum_reference
+			dv = current_pep_id.getMetaValue("spectrum_reference");
+			if (dv!=DataValue::EMPTY)
+			{
+				os << "spectrum_reference=\"" << dv.toString() << "\" ";
+			}
+			os << ">" << endl;
+			
+			// write peptide hits
+			for(UInt j=0; j<current_pep_id.getHits().size(); ++j)
+			{
+				os << "\t\t\t\t<PeptideHit";
+				os << " score=\"" << current_pep_id.getHits()[j].getScore() << "\"";
+				os << " sequence=\"" << current_pep_id.getHits()[j].getSequence() << "\"";
+				os << " charge=\"" << current_pep_id.getHits()[j].getCharge() << "\"";
+				if (current_pep_id.getHits()[j].getAABefore()!=' ')
+				{
+					os << " aa_before=\"" << current_pep_id.getHits()[j].getAABefore() << "\"";
+				}
+				if (current_pep_id.getHits()[j].getAAAfter()!=' ')
+				{
+					os << " aa_after=\"" << current_pep_id.getHits()[j].getAAAfter() << "\"";
+				}	
+				if(current_pep_id.getHits()[j].getProteinAccessions().size()!=0)
+				{
+					String accs = "";
+					for (UInt m=0; m<current_pep_id.getHits()[j].getProteinAccessions().size(); ++m)
+					{
+						if (m) accs += " ";
+						accs += "PH_";
+						accs += String(accession_to_id_[current_pep_id.getHits()[j].getProteinAccessions()[m]]);
+					}
+					os << " protein_refs=\"" << accs << "\"";
+				}
+				os << ">" << endl;
+				writeUserParam_("userParam", os, current_pep_id.getHits()[j], 4);
+				os << "\t\t\t\t</PeptideHit>" << endl;
+			}
+			
+			//do not write "RT", "MZ" and "spectrum_reference" as they are written as attributes already
+			MetaInfoInterface tmp = current_pep_id;
+			tmp.removeMetaValue("RT");
+			tmp.removeMetaValue("MZ");
+			tmp.removeMetaValue("spectrum_reference");
+			writeUserParam_("userParam", os, tmp, 4);
+			os << "\t\t\t</PeptideIdentification>" << endl;
+		}
+
+
+		writeUserParam_("userParam", os, feat, 3+indentation_level);
+
+		os << indent << "\t\t</feature>\n";
+	}
+
+	void FeatureXMLFile::updateCurrentFeature_(bool create)
+	{
+		if (subordinate_feature_level_==0)
+		{
+			if (create)
+			{
+				map_->push_back(Feature());
+				current_feature_ = &map_->back();
+				last_meta_ =  &map_->back();
+			}
+			else
+			{
+				if (map_->empty())
+				{
+					current_feature_ = 0;
+				last_meta_ =  0;
+				}
+				else
+				{
+					current_feature_ = &map_->back();
+					last_meta_ =  &map_->back();
+				}
+			}
+			return;
+		}
+
+		Feature* f1 = 0;
+		if (map_->empty())
+		{
+			// do NOT throw an exception here. this is a valid case!	e.g. the
+			// only one feature in a map was discarded during endElement(), thus
+			// the map_ is empty() now and we cannot assign a current_feature,
+			// because there is none!
+			current_feature_ = 0;
+			last_meta_ = 0;
+			return;
+		}
+		else
+		{
+			f1 = &map_->back();
+		}
+
+		for (Int level = 1; level<subordinate_feature_level_;++level)
+		{
+			// if all features of the current level are discarded (due to
+			// range-restrictions etc), then the current feature is the one which
+			// is one level up
+			if (f1->getSubordinates().empty())
+			{
+				current_feature_ = f1;
+				last_meta_ = f1;
+				return;
+			}
+			f1 = &f1->getSubordinates().back();
+		}
+		if (create)
+		{
+			f1->getSubordinates().push_back(Feature());
+			current_feature_ = &f1->getSubordinates().back();
+			last_meta_ = &f1->getSubordinates().back();
+			return;
+		}
+		else
+		{
+			if (f1->getSubordinates().empty())
+			{
+				current_feature_ = 0;
+				last_meta_ = 0;
+				return;
+			}
+			else
+			{
+				current_feature_ = &f1->getSubordinates().back();
+				last_meta_ = &f1->getSubordinates().back();
+				return;
+			}
+		}
+	}
 
 }
