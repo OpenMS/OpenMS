@@ -368,6 +368,16 @@ namespace OpenMS
 		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
 	}
 
+	void Param::setValue(const String& key, const DoubleList& value, const String& description, const StringList& tags)
+	{
+		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
+	}
+
+	void Param::setValue(const String& key, const IntList& value, const String& description, const StringList& tags)
+	{
+		root_.insert(ParamEntry("",DataValue(value),description,tags),key);
+	}
+
 	void Param::setValidStrings(const String& key, const std::vector<String>& strings)
 	{
 		ParamEntry& entry = getEntry_(key);

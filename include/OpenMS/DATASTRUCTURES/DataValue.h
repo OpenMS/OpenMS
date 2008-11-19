@@ -38,13 +38,11 @@ namespace OpenMS
 {
 
 	/**
-		@brief Class to hold a string(-list) or numeric value (UInt, Int, Real, DoubleReal)
-
-		<UL>
-			<LI> To choose one of these types, just use the apropriate constructor.
-			<LI> Automatic conversion is supported and throws Exceptions in case of invalid ones.
-			<LI> An empty objects is created with the default constructor.
-		</UL>
+		@brief Class to hold strings, numeric values, lists of strings and lists of numeric values.
+		
+		- To choose one of these types, just use the apropriate constructor.
+		- Automatic conversion is supported and throws Exceptions in case of invalid conversions.
+		- An empty objects is created with the default constructor.
 
 		@ingroup Datastructures
 	*/
@@ -57,15 +55,16 @@ namespace OpenMS
 			static const DataValue EMPTY;
 
 			/// Supported types for DataValue
-			enum DataType {
-				STRING_VALUE,     ///< String value
-				STRING_LIST,      ///< StringList value
-				INT_VALUE,        ///< UInt/Int value
-				DOUBLE_VALUE,     ///< DoubleReal/Real value
-				EMPTY_VALUE,       ///< Empty value
-				INT_LIST,		///< IntList value
-				DOUBLE_LIST	///< DoubleList value
-				};
+			enum DataType
+			{
+				STRING_VALUE,     ///< string value
+				INT_VALUE,        ///< integer value
+				DOUBLE_VALUE,     ///< double value
+				STRING_LIST,      ///< string list
+				INT_LIST,					///< integer list
+				DOUBLE_LIST,			///< double list
+				EMPTY_VALUE     	///< empty value
+			};
 
 			/// @name Constructors and destructors
 			//@{
@@ -73,21 +72,21 @@ namespace OpenMS
 			DataValue();
 			/// specific constructor for char* (converted to string)
 			DataValue(const char*);
-			/// specific constructor for String
+			/// specific constructor for string values
 			DataValue(const String&);
-			/// specific constructor for StringList
+			/// specific constructor for string lists
 			DataValue(const StringList&);
-			/// specific constructor for DoubleReal
+			/// specific constructor for integer lists
 			DataValue(const IntList&);
-			/// specific constructor for DoubleReal
+			/// specific constructor for double lists
 			DataValue(const DoubleList&);
-			/// specific constructor for DoubleReal
+			/// specific constructor for double values
 			DataValue(DoubleReal);
-			/// specific constructor for Real
+			/// specific constructor for real values
 			DataValue(Real);
-			/// specific constructor for Int
+			/// specific constructor for integer values
 			DataValue(Int);
-			/// specific constructor for UInt
+			/// specific constructor for unsigned integer values
 			DataValue(UInt);
 			/// copy constructor
 			DataValue(const DataValue&);
@@ -106,19 +105,19 @@ namespace OpenMS
 			*/
 			operator std::string() const ;
 			/**
-				@brief conversion operator to StringList
+				@brief conversion operator to string list
 
 				@exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
 			*/
 			operator StringList() const ;
 			/**
-				@brief conversion operator to IntList
+				@brief conversion operator to integer list
 
 				@exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
 			*/
 			operator IntList() const ;
 			/**
-				@brief conversion operator to DoubleList
+				@brief conversion operator to double list
 	
 				@exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
 			*/
@@ -198,6 +197,7 @@ namespace OpenMS
 			friend bool operator!=(const DataValue&, const DataValue&);
 
 		protected:
+			
 			/// Type of the currently stored value
 			DataType value_type_;
 

@@ -522,10 +522,5 @@ clean:	default_clean
 	@$(RM) -rf -- *.o *~ *.log ii_files Templates.DB	SunWS_cache *.TMP *.tmp core a.out region* cut* feature* model* *.vgr *.output $(EXECUTABLES)
 	@cd TOPP && make clean
 
-# Create data files for MzData, MzXML, ANDIFile with variable number of scans
-# Call: format_data [#scans] [filename] (i.e. format_data 100 tmp)
-format_data:	format_data.o
-	$(CXX)	$(LDFLAGS) -o format_data format_data.o $(LIBS)
-
 #creates a .vgr-file with valgrind check output for each test
 valgrind: $(VALGRINDS)

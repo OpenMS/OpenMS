@@ -275,7 +275,7 @@ namespace OpenMS
 			*/
 			void setValue(const String& key, const String& value, const String& description="", const StringList& tags=StringList());
 			/**
-				@brief Set a StringList value.
+				@brief Set a string list value.
 
 				@param key String key. Can contain ':' which separates section names
 				@param value The actual value
@@ -283,6 +283,24 @@ namespace OpenMS
 				@param tags list of tags associated to this parameter
 			*/
 			void setValue(const String& key, const StringList& value, const String& description="", const StringList& tags=StringList());
+			/**
+				@brief Set a integer list value.
+
+				@param key String key. Can contain ':' which separates section names
+				@param value The actual value
+				@param description Verbose description of the parameter
+				@param tags list of tags associated to this parameter
+			*/
+			void setValue(const String& key, const IntList& value, const String& description="", const StringList& tags=StringList());
+			/**
+				@brief Set a double list value.
+
+				@param key String key. Can contain ':' which separates section names
+				@param value The actual value
+				@param description Verbose description of the parameter
+				@param tags list of tags associated to this parameter
+			*/
+			void setValue(const String& key, const DoubleList& value, const String& description="", const StringList& tags=StringList());
 
 			/**
 				@brief Returns a value of a parameter.

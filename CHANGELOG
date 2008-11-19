@@ -44,6 +44,8 @@ Detailed list of changes to specific OpenMS classes:
   - DPeakArray (moved the functionality to the classes that inherited from it)
   - IDSpectrumMapper (replaced by IDMapper)
   - IDFeatureMapper (replaced by IDMapper)
+  - FeatureXMLHandler (merged into FeatureXMLFile)
+  - ConsensusXMLHandler (merged into ConsensusXMLFile)
 - New classes
   - DATASTRUCTURES/IntList
   - DATASTRUCTURES/StringList
@@ -70,12 +72,14 @@ Detailed list of changes to specific OpenMS classes:
     - The container type is no longer a template argument. Peak type and allocator type
       are the new template arguments.
   - LabeledPairFinder: Added automated RT parameter estimation.
-  - GaussFitter: removed several unneeded methods.
-  - GammaDistributionFitter: removed several unneeded methods.
+  - GaussFitter: Removed several unneeded methods.
+  - GammaDistributionFitter: Removed several unneeded methods.
+  - DataValue: Added support for IntList and DoubleList types
   - Param:
     - Added a new remove(key) method, that removed only exact matches.
       The old remove() method was renamed to removeAll(prefix)
     - replaced 'advanced' flag by a generic tagging mechanism
+    - Added support for IntList and DoubleList types
   - File: find(...) now throws an exception, of the file is not found.
   - DPeak and DRichPeak are metafunctions now, e.g. DPeak<1>::Type is a typedef for Peak1D.
   - VersionInfo: Added support for SVN revision info. Slight interface changes.

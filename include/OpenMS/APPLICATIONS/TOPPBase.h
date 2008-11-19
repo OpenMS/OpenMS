@@ -154,7 +154,7 @@ namespace OpenMS
         /// type of the parameter
         ParameterTypes type;
         /// default value of the parameter stored as string
-        String default_value;
+        DataValue default_value;
         /// description of the parameter
         String description;
         /// argument in the description
@@ -173,7 +173,7 @@ namespace OpenMS
 				//@}
 				
         /// Constructor that takes all members in declaration order
-        ParameterInformation( const String& n, ParameterTypes t, const String& arg, const String& def, const String& desc, bool req, bool adv )
+        ParameterInformation( const String& n, ParameterTypes t, const String& arg, const DataValue& def, const String& desc, bool req, bool adv )
         	: name(n),
 	          type(t),
 	          default_value(def),
