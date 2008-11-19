@@ -43,7 +43,7 @@ using namespace std;
 /**
 	@page QuantIDMerger QuantIDMerger
 	
-	@todo use IDFeatureMapper and IDConsensusFeatureMapper and write output to file (Marc, Chris)
+	@todo use IDMapper and write output to file (Marc, Chris)
 */
 
 // We do not want this class to show up in the docu:

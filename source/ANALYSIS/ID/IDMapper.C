@@ -21,26 +21,46 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/ID/IDConsensusFeatureMapper.h>
+#include <OpenMS/ANALYSIS/ID/IDMapper.h>
 
 using namespace std;
 
 namespace OpenMS 
 {
-  IDConsensusFeatureMapper::IDConsensusFeatureMapper() 
-  {
+  IDMapper::IDMapper()
+  	: rt_delta_(0.5),
+  		mz_delta_(0.05)
+  { 
   }
-  
-  void IDConsensusFeatureMapper::annotate(ConsensusMap& map,
-																					const std::vector<PeptideIdentification>& ids,
-																					const std::vector<ProteinIdentification>& protein_ids,
-																					DoubleReal mz_delta,
-																					DoubleReal rt_delta,
-																					bool measure_from_subelements)
-	{		
+
+			
+	DoubleReal IDMapper::getRTDelta() const
+	{
+		return rt_delta_;
+	}
+	
+	void IDMapper::setRTDelta(DoubleReal rt_delta)
+	{
+		rt_delta_ = rt_delta;
+	}
+	
+	DoubleReal IDMapper::getMZDelta() const
+	{
+		return mz_delta_;
+	}
+	
+	void IDMapper::setMZDelta(DoubleReal mz_delta)
+	{
+		mz_delta_ = mz_delta;
+	}
+
+  void IDMapper::annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements)
+	{
+		checkHits_(ids);
+				
 		//append protein identifications to Map
 		map.getProteinIdentifications().insert(map.getProteinIdentifications().end(),protein_ids.begin(),protein_ids.end());
 
@@ -52,20 +72,7 @@ namespace OpenMS
 		//iterate over the peptide IDs
 		for (size_t i=0; i<ids.size(); ++i)
 		{
-			if (ids[i].getHits().size()==0)
-			{
-				continue;
-			}
-
-			if (!ids[i].metaValueExists("RT"))
-			{
-				throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__, "IDConsensusFeatureMapper: meta data value 'RT' missing for peptide identification!"); 
-			}
-
-			if (!ids[i].metaValueExists("MZ"))
-			{
-				throw Exception::MissingInformation(__FILE__,__LINE__,__PRETTY_FUNCTION__, "IDConsensusFeatureMapper: meta data value 'MZ' missing for peptide identification!"); 
-			}
+			if (ids[i].getHits().size()==0) continue;
 
 			DoubleReal rt_pep = ids[i].getMetaValue("RT");
 			DoubleReal mz_pep = ids[i].getMetaValue("MZ");
@@ -76,7 +83,7 @@ namespace OpenMS
 				//check if we compare distance from centroid or subelements
 				if (!measure_from_subelements)
 				{
-					if ( (fabs(rt_pep-map[cm_index].getRT()) <= rt_delta) && (fabs(mz_pep-map[cm_index].getMZ()) <= mz_delta)  )
+					if ( (fabs(rt_pep-map[cm_index].getRT()) <= rt_delta_) && (fabs(mz_pep-map[cm_index].getMZ()) <= mz_delta_)  )
 					{
 						map[cm_index].getPeptideIdentifications().push_back(ids[i]);
 					}
@@ -87,7 +94,7 @@ namespace OpenMS
 							it_handle != map[cm_index].getFeatures().end(); 
 							++it_handle)
 					{
-						if ( (fabs(rt_pep - it_handle->getRT()) <= rt_delta) && (fabs(mz_pep - it_handle->getMZ()) <= mz_delta) )
+						if ( (fabs(rt_pep - it_handle->getRT()) <= rt_delta_) && (fabs(mz_pep - it_handle->getMZ()) <= mz_delta_) )
 						{
 							if (mapping[cm_index].count(i) == 0)
 							{
@@ -98,9 +105,8 @@ namespace OpenMS
 						}
 					}
 				}
-
-			} // ! features loop
-		} // ! peptides loop
-
+			}
+		}
 	}
+
 } // namespace OpenMS

@@ -29,7 +29,7 @@
 #include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ProteinInference.h>
-#include <OpenMS/ANALYSIS/ID/IDConsensusFeatureMapper.h>
+#include <OpenMS/ANALYSIS/ID/IDMapper.h>
 
 #ifdef ITRAQ_NAIVECORRECTION
 #include <gsl/gsl_vector.h>
@@ -454,13 +454,10 @@ namespace OpenMS
 		{
 			
 			// annotate consensusMap with identifications
-			IDConsensusFeatureMapper mapper;
-			mapper.annotate(consensus_map_out,
-											peptide_ids,
-											protein_ids,
-											0.0005,
-											0.005,
-											false);
+			IDMapper mapper;
+			mapper.setRTDelta(0.005);
+			mapper.setMZDelta(0.0005);
+			mapper.annotate(consensus_map_out, peptide_ids, protein_ids, false);
 			
 			// put quantitative info on Proteins
 			ProteinInference inferrer;

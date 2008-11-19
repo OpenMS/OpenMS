@@ -53,8 +53,7 @@
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
-#include <OpenMS/ANALYSIS/ID/IDFeatureMapper.h>
-#include <OpenMS/ANALYSIS/ID/IDSpectrumMapper.h>
+#include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
@@ -2005,15 +2004,15 @@ namespace OpenMS
 			IdXMLFile().load(name, protein_identifications, identifications);
 			if (layer.type==LayerData::DT_PEAK)
 			{
-				IDSpectrumMapper().annotate(const_cast<LayerData&>(layer).peaks, identifications, protein_identifications, 0.1, 0.1);
+				IDMapper().annotate(const_cast<LayerData&>(layer).peaks, identifications, protein_identifications);
 			}
 			else if (layer.type==LayerData::DT_FEATURE)
 			{
-				IDFeatureMapper().annotate(const_cast<LayerData&>(layer).features,identifications,protein_identifications, 0.1, 0.1);
+				IDMapper().annotate(const_cast<LayerData&>(layer).features,identifications,protein_identifications);
 			}
 			else
 			{
-				showLogMessage_(LS_NOTICE,"Cannot annotate consensus feature layer","Please select a peak or feature layer for this operation!");
+				IDMapper().annotate(const_cast<LayerData&>(layer).consensus,identifications,protein_identifications);
 			}
 		}
 	}

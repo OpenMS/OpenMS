@@ -337,9 +337,7 @@ EXECUTABLES_ANALYSIS_DECHARGING = \
 	FeatureDecharger_test
 
 EXECUTABLES_ANALYSIS_ID =\
-	IDSpectrumMapper_test\
-	IDFeatureMapper_test\
-	IDConsensusFeatureMapper_test\
+	IDMapper_test\
 	ConsensusID_test\
 	ProteinInference_test\
 	ProtonDistributionModel_test\

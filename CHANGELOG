@@ -22,13 +22,16 @@ Changes to OpenMS XML formats:
 - ParamXML:
   - Restrictions in Param .ini files are represented by 'min:max' instead
     of 'min-max' now, to avoid issues with small (1e-06) and negative numbers.
-  - replaced 'advanced' attribute by the 'tags' attribute.
+  - replaced 'advanced' attribute by the more general 'tags' attribute.
+  - added support for float, int and string lists
 - featureXML:
   - added tag <subordinate> to store competing features that did not qualify for the final map
   - removed <description> section
   - added document Id
+  - added protein and peptide information
 - consensusXML:
 	- added document Id
+	- added protein and peptide information
 
 Changes to the contrib package:
 - Updated SeqAn package to revision 2666 (this fixes the STL debug error)
@@ -38,10 +41,13 @@ Detailed list of changes to specific OpenMS classes:
   - Renamed MSMetaDataExplorer to MetaDataBrowser
   - Renamed ProcessingMethod to DataProcessing
 - Removed classes
-  - Removed DPeakArray and moved the functionality to the classes that inherited from DPeakArray
+  - DPeakArray (moved the functionality to the classes that inherited from it)
+  - IDSpectrumMapper (replaced by IDMapper)
+  - IDFeatureMapper (replaced by IDMapper)
 - New classes
   - DATASTRUCTURES/IntList
   - DATASTRUCTURES/StringList
+  - ANALYSIS/ID/IDMapper
 - Changes to classes
 	- DataProcessing: Now contains Software and can handle multiple processing actions.
 	- Software: Only contains name and version now.
@@ -82,7 +88,6 @@ Detailed list of changes to specific OpenMS classes:
     - get(), getDate() and getTime() now return a string instead of modifying a string reference
     - made now() is static now and returns the current Date instead of modifying the object
   - MSExperiment: The date is now a DateTime object
-  - Unified interface of IDSpectrumMapper, IDFeatureMapper and IDConsensusFeatureMapper
 
 ------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.2                                     ----

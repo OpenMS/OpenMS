@@ -47,8 +47,8 @@ namespace OpenMS
 	  
 	  When loading PeptideHit instances from a File, the retention time and mass-to-charge ratio
 	  of the precursor spectrum is stored in the MetaInfoInterface using the names 'MZ' and 'RT'.
-	  This information can be used to map the PeptideHits to a MSExperiment or a FeatureMap using
-	  IDSpectrumMapper or IDFeatureMapper.
+	  This information can be used to map the peptide hits to an MSExperiment, a FeatureMap 
+	  or a ConsensusMap using the IDMapper class.
 	  
 		@ingroup Metadata
   */

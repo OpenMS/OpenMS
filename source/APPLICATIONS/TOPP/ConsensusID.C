@@ -29,7 +29,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/ANALYSIS/ID/IDFeatureMapper.h>
+#include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
 
 using namespace OpenMS;
@@ -141,7 +141,7 @@ class TOPPConsensusID
 				feat_file.load(feature_file,features);
 				
 				//map ids to features
-				IDFeatureMapper mapper;
+				IDMapper mapper;
 				for(UInt i = 0; i < ids.size(); ++i)
 				{
 					writeDebug_(String("Mapping ids: ") + ids[i], 2);

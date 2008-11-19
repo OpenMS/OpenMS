@@ -1,0 +1,229 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework 
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Marc Sturm $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+
+#include <iostream>
+
+#include <OpenMS/ANALYSIS/ID/IDMapper.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+
+///////////////////////////
+
+START_TEST(IDMapper, "$Id: IDMapper_test.C 4063 2008-11-18 16:34:42Z marc_sturm $")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+
+IDMapper* ptr = 0;
+CHECK(IDMapper())
+	ptr = new IDMapper();
+	TEST_NOT_EQUAL(ptr, 0)
+RESULT
+
+CHECK(~IDMapper())
+	delete ptr;
+RESULT
+
+CHECK(DoubleReal getRTDelta() const)
+	IDMapper mapper;
+	TEST_REAL_EQUAL(mapper.getRTDelta(),0.5)
+RESULT
+
+CHECK(void setRTDelta(DoubleReal rt_delta))
+	IDMapper mapper;
+	mapper.setRTDelta(1.5);
+	TEST_REAL_EQUAL(mapper.getRTDelta(),1.5)
+RESULT
+
+CHECK(DoubleReal getMZDelta() const)
+	IDMapper mapper;
+	TEST_REAL_EQUAL(mapper.getMZDelta(),0.05)
+RESULT
+
+CHECK(void setMZDelta(DoubleReal mz_delta))
+	IDMapper mapper;
+	mapper.setMZDelta(1.05);
+	TEST_REAL_EQUAL(mapper.getMZDelta(),1.05)
+RESULT
+
+
+CHECK((template <typename PeakType> UInt annotate(MSExperiment< PeakType >& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids)))
+	//load id
+	vector<PeptideIdentification> identifications; 
+	vector<ProteinIdentification> protein_identifications;
+	IdXMLFile().load("data/IDMapper_1.idXML", protein_identifications, identifications);
+	
+	TEST_EQUAL(identifications.size(),3)
+	TEST_EQUAL(identifications[0].getHits().size(), 2)
+	TEST_EQUAL(identifications[1].getHits().size(), 1)
+	TEST_EQUAL(identifications[2].getHits().size(), 2)
+	TEST_EQUAL(protein_identifications.size(),1)
+	TEST_EQUAL(protein_identifications[0].getHits().size(), 2)
+
+	//create experiment
+	MSExperiment<> experiment;
+	MSSpectrum<> spectrum;
+	DSpectrum<>::PrecursorPeakType peak;	
+	peak = spectrum.getPrecursorPeak();
+	peak.setPosition(0);
+	spectrum.setRT(60);
+	experiment.push_back(spectrum);							
+	experiment[0].setPrecursorPeak(peak);
+	peak.setPosition(20);
+	spectrum.setRT(181);
+	experiment.push_back(spectrum);							
+	experiment[1].setPrecursorPeak(peak);
+	peak.setPosition(11);
+	spectrum.setRT(120.0001);
+	experiment.push_back(spectrum);							
+	experiment[2].setPrecursorPeak(peak);
+	
+	//map
+	IDMapper().annotate(experiment, identifications, protein_identifications);
+	
+	//test
+	TEST_EQUAL(experiment.getProteinIdentifications().size(), 1)
+	TEST_EQUAL(experiment.getProteinIdentifications()[0].getHits().size(),2)
+	TEST_EQUAL(experiment.getProteinIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
+	TEST_EQUAL(experiment.getProteinIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
+	//scan 1
+	TEST_EQUAL(experiment[0].getPeptideIdentifications().size(), 1)
+	TEST_EQUAL(experiment[0].getPeptideIdentifications()[0].getHits().size(), 2)
+	TEST_EQUAL(experiment[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
+	TEST_EQUAL(experiment[0].getPeptideIdentifications()[0].getHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
+	//scan 2
+	TEST_EQUAL(experiment[1].getPeptideIdentifications().size(), 0)
+	//scan 3
+	TEST_EQUAL(experiment[2].getPeptideIdentifications().size(), 1)	
+	TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits().size(), 1)
+	TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits()[0].getSequence(), "HSKLSAK")
+RESULT
+
+
+
+CHECK((template <typename FeatureType> void annotate(FeatureMap<FeatureType> &map, const std::vector< PeptideIdentification > &ids, const std::vector< ProteinIdentification >& protein_ids, bool use_delta=false) ))
+	//load id data
+	vector<PeptideIdentification> identifications; 
+	vector<ProteinIdentification> protein_identifications; 
+	IdXMLFile().load("data/IDMapper_2.idXML", protein_identifications, identifications);
+	
+	//--------------------------------------------------------------------------------------
+	FeatureMap<> fm;
+	FeatureXMLFile().load("data/IDMapper_2.featureXML", fm);
+	IDMapper().annotate(fm,identifications,protein_identifications);
+	
+	//test protein ids
+	TEST_EQUAL(fm.getProteinIdentifications().size(),1)
+	TEST_EQUAL(fm.getProteinIdentifications()[0].getHits().size(),2)
+	TEST_EQUAL(fm.getProteinIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
+	TEST_EQUAL(fm.getProteinIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
+	
+	//test peptide ids
+	TEST_EQUAL(fm[0].getPeptideIdentifications().size(),5)
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits().size(),1)
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[1].getHits().size(),1)
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[2].getHits().size(),1)
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[3].getHits().size(),1)
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[4].getHits().size(),1)
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),"A")
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[1].getHits()[0].getSequence(),"K")
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[2].getHits()[0].getSequence(),"C")
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[3].getHits()[0].getSequence(),"D")
+	TEST_EQUAL(fm[0].getPeptideIdentifications()[4].getHits()[0].getSequence(),"E")
+	
+	//--------------------------------------------------------------------------------------
+	//TEST MAPPING TO CENTROIDS
+	FeatureMap<> fm2;
+	IDMapper mapper;
+	FeatureXMLFile().load("data/IDMapper_2.featureXML", fm2);
+	mapper.setRTDelta(4.0);
+	mapper.setMZDelta(1.5);
+	mapper.annotate(fm2,identifications,protein_identifications, true);
+	
+	//test protein ids
+	TEST_EQUAL(fm2.getProteinIdentifications().size(),1)
+	TEST_EQUAL(fm2.getProteinIdentifications()[0].getHits().size(),2)
+	TEST_EQUAL(fm2.getProteinIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
+	TEST_EQUAL(fm2.getProteinIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
+	
+	//test peptide ids
+	TEST_EQUAL(fm2[0].getPeptideIdentifications().size(),2)
+	TEST_EQUAL(fm2[0].getPeptideIdentifications()[0].getHits().size(),1)
+	TEST_EQUAL(fm2[0].getPeptideIdentifications()[1].getHits().size(),1)
+	TEST_EQUAL(fm2[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),"A")
+	TEST_EQUAL(fm2[0].getPeptideIdentifications()[1].getHits()[0].getSequence(),"K")
+RESULT
+
+
+CHECK(void annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements=false))
+{
+	IDMapper mapper;
+	FuzzyStringComparator fsc;
+	fsc.setAcceptableAbsolute(0.01);
+		
+	std::vector<ProteinIdentification> protein_ids;
+	std::vector<PeptideIdentification> peptide_ids;
+	IdXMLFile().load("data/IDMapper_3.idXML", protein_ids, peptide_ids);
+	
+  ConsensusXMLFile cons_file;
+  
+	{
+	  std::string tmp_filename;
+	  NEW_TMP_FILE(tmp_filename);
+		ConsensusMap cons_map;
+		cons_file.load("data/IDMapper_3.consensusXML", cons_map);
+		mapper.annotate(cons_map, peptide_ids, protein_ids);
+		cons_file.store(tmp_filename,cons_map);
+		TEST_EQUAL(fsc.compare_files(tmp_filename,"data/IDMapper_3_out1.consensusXML"), true);
+	}
+
+	{
+	  std::string tmp_filename;
+	  NEW_TMP_FILE(tmp_filename);
+		ConsensusMap cons_map;
+		cons_file.load("data/IDMapper_3.consensusXML", cons_map);
+		mapper.annotate(cons_map, peptide_ids, protein_ids, true);
+		cons_file.store(tmp_filename,cons_map);
+		TEST_EQUAL(fsc.compare_files(tmp_filename,"data/IDMapper_3_out2.consensusXML"), true);
+	}
+	
+}
+RESULT
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+END_TEST
