@@ -144,6 +144,18 @@ namespace OpenMS
 				/// Pointer to last read object as a MetaInfoInterface, or null.
 				MetaInfoInterface* last_meta_;
 				
+				/// Temporary protein ProteinIdentification
+				ProteinIdentification prot_id_;
+				/// Temporary peptide ProteinIdentification
+				PeptideIdentification pep_id_;
+				/// Temporary protein hit
+				ProteinHit prot_hit_;
+				/// Temporary peptide hit
+				PeptideHit pep_hit_;
+				/// Map from protein id to accession
+				std::map<String,String> proteinid_to_accession_;
+				/// 
+				std::map<String,UInt> accession_to_id_;
 		};
 	} // namespace Internal
 } // namespace OpenMS

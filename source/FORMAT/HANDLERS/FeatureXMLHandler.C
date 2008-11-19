@@ -93,31 +93,43 @@ namespace OpenMS
 			}
 			else if (tag == "userParam")
 			{
+				if (last_meta_ == 0)
+				{
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("unexpected userParam in tag '") + parent_tag + "'" );
+				}
+				
 				String name = attributeAsString_(attributes,s_name);
 				String type = attributeAsString_(attributes,s_type);
 
-				if (parent_tag=="feature")
+				if(type=="int")
 				{
-					if(type=="int")
-					{
-						last_meta_->setMetaValue(name, attributeAsInt_(attributes,s_value));
-					}
-					else if (type=="float")
-					{
-						last_meta_->setMetaValue(name, attributeAsDouble_(attributes,s_value));
-					}
-					else if (type=="string")
-					{
-						last_meta_->setMetaValue(name, (String)attributeAsString_(attributes,s_value));
-					}
-					else
-					{
-						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invalid userParam type '") + type + "'" );
-					}
+					last_meta_->setMetaValue(name, attributeAsInt_(attributes,s_value));
+				}
+				else if (type=="float")
+				{
+					last_meta_->setMetaValue(name, attributeAsDouble_(attributes,s_value));
+				}
+				else if (type=="string")
+				{
+					last_meta_->setMetaValue(name, (String)attributeAsString_(attributes,s_value));
+				}
+				else
+				{
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invalid userParam type '") + type + "'" );
 				}
 			}
 			else if (tag=="featureMap")
 			{
+				// clean up - there is no guarantee we are using these the first time
+				// TODO do this in ConsensusXMLFile::load(); but it's another class -> merge!
+				last_meta_ = 0;
+				prot_id_ = ProteinIdentification();
+				pep_id_ = PeptideIdentification();
+				prot_hit_ = ProteinHit();
+				pep_hit_ = PeptideHit();
+				proteinid_to_accession_.clear();
+				accession_to_id_.clear();
+				
 				//check file version against schema version
 				String file_version="1.0"; // default schema is 1.0
 				optionalAttributeAsString_(file_version,attributes,s_version);
@@ -155,27 +167,170 @@ namespace OpenMS
 					}
 				}
 			}
+			else if ( tag == "ProteinIdentification" )
+			{
+				prot_id_.setScoreType(attributeAsString_(attributes,"score_type"));
+			
+				//optional significance threshold
+				DoubleReal tmp=0.0;
+				optionalAttributeAsDouble_(tmp,attributes,"significance_threshold");
+				if (tmp!=0.0)
+				{
+					prot_id_.setSignificanceThreshold(tmp);
+				}
+			
+				//score orientation
+				const XMLCh* higher_score_better = attributes.getValue(sm_.convert("higher_score_better"));
+				if (xercesc::XMLString::equals(higher_score_better,sm_.convert("true")))
+				{
+					prot_id_.setHigherScoreBetter(true);	
+				}
+				else if (xercesc::XMLString::equals(higher_score_better,sm_.convert("false")))
+				{
+					prot_id_.setHigherScoreBetter(false);					
+				}
+				else
+				{
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "Invalid value for 'higher_score_better '");				
+				}
+				last_meta_ = &prot_id_;
+			}
+			else if (tag == "ProteinHit")
+			{
+				prot_hit_ = ProteinHit();
+				String accession = attributeAsString_(attributes,"accession");
+				prot_hit_.setAccession(accession);
+				prot_hit_.setScore(attributeAsDouble_(attributes,"score"));
+			
+				//sequence
+				String tmp="";
+				optionalAttributeAsString_(tmp,attributes,"sequence");
+				prot_hit_.setSequence(tmp);
+			
+				last_meta_ = &prot_hit_;			
+			
+				//insert id and accession to map
+				proteinid_to_accession_[attributeAsString_(attributes,"id")] = accession;
+			}
+			else if (tag == "PeptideIdentification")
+			{
+				// set identifier 
+				// TODO Think about what we should do here ... (Nico)
+				// pep_id_.setIdentifier(cmap_->getProteinIdentifications().back().getIdentifier());
+			
+				pep_id_.setScoreType(attributeAsString_(attributes,"score_type"));
+			
+				//optional significance threshold
+				DoubleReal tmp=0.0;
+				optionalAttributeAsDouble_(tmp,attributes,"significance_threshold");
+				if (tmp!=0.0)
+				{
+					pep_id_.setSignificanceThreshold(tmp);
+				}
+
+				//score orientation
+				const XMLCh* higher_score_better = attributes.getValue(sm_.convert("higher_score_better"));
+				if (xercesc::XMLString::equals(higher_score_better,sm_.convert("true")))
+				{
+					pep_id_.setHigherScoreBetter(true);	
+				}
+				else if (xercesc::XMLString::equals(higher_score_better,sm_.convert("false")))
+				{
+					pep_id_.setHigherScoreBetter(false);					
+				}
+				else
+				{
+					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "Invalid value for 'higher_score_better '");				
+				}
+			
+				//MZ
+				DoubleReal tmp2 = - std::numeric_limits<DoubleReal>::max();
+				optionalAttributeAsDouble_(tmp2, attributes,"MZ");
+				if ( tmp2 != - std::numeric_limits<DoubleReal>::max() )
+				{
+					pep_id_.setMetaValue("MZ", tmp2);
+				}
+				//RT
+				tmp2 = - std::numeric_limits<DoubleReal>::max();
+				optionalAttributeAsDouble_(tmp2, attributes,"RT");
+				if ( tmp2 != - std::numeric_limits<DoubleReal>::max())
+				{
+					pep_id_.setMetaValue("RT", tmp2);
+				}
+				Int tmp3 = - std::numeric_limits<Int>::max();
+				optionalAttributeAsInt_(tmp3, attributes,"spectrum_reference");
+				if (tmp3 != - std::numeric_limits<Int>::max())
+				{
+					pep_id_.setMetaValue("spectrum_reference", tmp3);				
+				}
+			
+				last_meta_ = &pep_id_;
+			}
+			else if (tag == "PeptideHit")
+			{
+				pep_hit_ = PeptideHit();
+			
+				pep_hit_.setCharge(attributeAsInt_(attributes,"charge"));
+				pep_hit_.setScore(attributeAsDouble_(attributes,"score"));
+				pep_hit_.setSequence(attributeAsString_(attributes,"sequence"));
+			
+				//aa_before
+				String tmp="";
+				optionalAttributeAsString_(tmp,attributes,"aa_before");
+				if (!tmp.empty())
+				{
+					pep_hit_.setAABefore(tmp[0]);
+				}
+				//aa_after
+				tmp="";
+				optionalAttributeAsString_(tmp,attributes,"aa_after");
+				if (!tmp.empty())
+				{
+					pep_hit_.setAAAfter(tmp[0]);
+				}
+			
+				//parse optional protein ids to determine accessions
+				const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs"));
+				if (refs!=0)
+				{
+					String accession_string = sm_.convert(refs);
+					accession_string.trim();
+					std::vector<String> accessions;
+					accession_string.split(' ', accessions);
+					if (accession_string!="" && accessions.size()==0)
+					{
+						accessions.push_back(accession_string);
+					}
+					for(std::vector<String>::const_iterator it = accessions.begin(); it!=accessions.end(); ++it)
+					{
+						std::map<String,String>::const_iterator it2 = proteinid_to_accession_.find(*it);
+						if (it2!=proteinid_to_accession_.end())
+						{
+							pep_hit_.addProteinAccession(it2->second);
+						}
+						else
+						{
+							throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invalid protein reference '") + *it + "'" );
+						}
+					}
+				}
+				last_meta_ = &pep_hit_;
+			}
 		}
 
 		void FeatureXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 		{
-			static const XMLCh* s_feature = xercesc::XMLString::transcode("feature");
-			static const XMLCh* s_model = xercesc::XMLString::transcode("model");
-			static const XMLCh* s_description = xercesc::XMLString::transcode("description");
-			static const XMLCh* s_hullpoint = xercesc::XMLString::transcode("hullpoint");
-			static const XMLCh* s_convexhull = xercesc::XMLString::transcode("convexhull");
-			static const XMLCh* s_subordinate = xercesc::XMLString::transcode("subordinate");
-
+			String tag = sm_.convert(qname);
 			open_tags_.pop_back();
 			
 			//for downward compatibility, all tags in the old description must be ignored
-			if (equal_(qname,s_description))
+			if (tag=="description")
 			{
 				in_description_ = false;
 			}
 			if (in_description_) return;
 
-			if (equal_(qname,s_feature))
+			if (tag=="feature")
 			{
 				if ((!options_.hasRTRange() || options_.getRTRange().encloses(current_feature_->getRT()))
 						&&	(!options_.hasMZRange() || options_.getMZRange().encloses(current_feature_->getMZ()))
@@ -211,26 +366,48 @@ namespace OpenMS
 				}
 				updateCurrentFeature_(false);
 			}
-			else if (equal_(qname,s_model))
+			else if (tag=="model")
 			{
 				model_desc_->setParam(param_);
 				current_feature_->setModelDescription(*model_desc_);
 				delete model_desc_;
 			}
-			else if (equal_(qname,s_hullpoint))
+			else if (tag=="hullpoint")
 			{
 				current_chull_.addPoint(hull_position_);
 			}
-			else if (equal_(qname,s_convexhull))
+			else if (tag=="convexhull")
 			{
 				current_feature_->getConvexHulls().push_back(current_chull_);
 			}
-			else if (equal_(qname,s_subordinate))
-			{ // this is not safe towards malformed xml!
+			else if (tag=="subordinate")
+			{
 				--subordinate_feature_level_;
 				if (subordinate_feature_level_ < 0) throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "subordinate", "Too many closing tags for </subordinate>." );
 				// reset current_feature
 				updateCurrentFeature_(false);
+			}
+			else if (tag == "ProteinIdentification")
+			{
+				map_->getProteinIdentifications().push_back(prot_id_);
+				prot_id_ = ProteinIdentification();
+				last_meta_  = 0;		
+			}
+			else if (tag == "ProteinHit")
+			{
+				prot_id_.insertHit(prot_hit_);
+				last_meta_ = &prot_id_;
+			}
+			else if (tag == "PeptideIdentification")
+			{
+				current_feature_->getPeptideIdentifications().push_back(pep_id_);
+				pep_id_ = PeptideIdentification();
+				last_meta_  = 0;
+			}
+			else if (tag == "PeptideHit")
+			{
+				pep_id_.insertHit(pep_hit_);
+				last_meta_ = &pep_id_;
 			}
 		}
 
@@ -283,7 +460,7 @@ namespace OpenMS
 			for (UInt i=0; i< cmap_->getDataProcessing().size(); ++i)
 			{
 				const DataProcessing& processing = cmap_->getDataProcessing()[i];
-				os << "\t<dataProcessing completion_time=\"" << processing.getCompletionTime().get() << "\">\n";
+				os << "\t<dataProcessing completion_time=\"" << processing.getCompletionTime().getDate() << 'T' << processing.getCompletionTime().getTime() << "\">\n";
 				os << "\t\t<software name=\"" << processing.getSoftware().getName() << "\" version=\"" << processing.getSoftware().getVersion() << "\" />\n";
 				for (std::set<DataProcessing::ProcessingAction>::const_iterator it = processing.getProcessingActions().begin(); it!=processing.getProcessingActions().end(); ++it)
 				{
@@ -292,7 +469,40 @@ namespace OpenMS
 				writeUserParam_ ("userParam", os, processing, 2);
 				os << "\t</dataProcessing>\n";
 			}
+
+			// write ProteinIdentification
+			UInt prot_count = 0;
+			for ( UInt i = 0; i < cmap_->getProteinIdentifications().size(); ++i )
+			{
+				const ProteinIdentification & current_prot_id = cmap_->getProteinIdentifications()[i];
+				os << "\t<ProteinIdentification";
+				os << " score_type=\"" << current_prot_id.getScoreType() << "\"";
+				os << " higher_score_better=\"" << ( current_prot_id.isHigherScoreBetter() ? "true" : "false" ) << "\"";
+				os << " significance_threshold=\"" << current_prot_id.getSignificanceThreshold() << "\">" << std::endl;
 			
+				// write protein hits
+				for(UInt j=0; j<current_prot_id.getHits().size(); ++j)
+				{
+					os << "\t\t<ProteinHit";
+
+					// prot_count
+					os << " id=\"PH_" << prot_count << "\"";
+					accession_to_id_[current_prot_id.getHits()[j].getAccession()] = prot_count;
+					++prot_count;
+
+					os << " accession=\"" << current_prot_id.getHits()[j].getAccession() << "\"";
+					os << " score=\"" << current_prot_id.getHits()[j].getScore() << "\"";
+					os << " sequence=\"" << current_prot_id.getHits()[j].getSequence() << "\">" << std::endl;
+
+					writeUserParam_("userParam", os, current_prot_id.getHits()[j], 3);
+
+					os << "\t\t</ProteinHit>" << std::endl;
+				}
+			
+				writeUserParam_("userParam", os, current_prot_id, 2);
+				os << "\t</ProteinIdentification>" << std::endl;
+			}
+
 			// write features with their corresponding attributes
 			os << "\t<featureList count=\"" << cmap_->size() << "\">\n";
 			for (UInt s=0; s<cmap_->size(); s++)
@@ -382,6 +592,74 @@ namespace OpenMS
 					++identifier_subordinate;
 				}
 				os << indent << "\t\t\t</subordinate>\n";
+			}
+
+			// write PeptideIdentification
+			for ( UInt i = 0; i < feat.getPeptideIdentifications().size(); ++i )
+			{
+				const PeptideIdentification & current_pep_id = feat.getPeptideIdentifications()[i];
+				os << "\t\t\t<PeptideIdentification ";
+				os << "score_type=\"" << current_pep_id.getScoreType() << "\" ";
+				os << "higher_score_better=\"" << ( current_pep_id.isHigherScoreBetter() ? "true" : "false" ) << "\" ";
+				os << "significance_threshold=\"" << current_pep_id.getSignificanceThreshold() << "\" ";
+				//mz
+				DataValue dv = current_pep_id.getMetaValue("MZ");
+				if (dv!=DataValue::EMPTY)
+				{
+					os << "MZ=\"" << dv.toString() << "\" ";
+				}
+				// rt
+				dv = current_pep_id.getMetaValue("RT");
+				if (dv!=DataValue::EMPTY)
+				{
+					os << "RT=\"" << dv.toString() << "\" ";
+				}
+				// spectrum_reference
+				dv = current_pep_id.getMetaValue("spectrum_reference");
+				if (dv!=DataValue::EMPTY)
+				{
+					os << "spectrum_reference=\"" << dv.toString() << "\" ";
+				}
+				os << ">" << std::endl;
+				
+				// write peptide hits
+				for(UInt j=0; j<current_pep_id.getHits().size(); ++j)
+				{
+					os << "\t\t\t\t<PeptideHit";
+					os << " score=\"" << current_pep_id.getHits()[j].getScore() << "\"";
+					os << " sequence=\"" << current_pep_id.getHits()[j].getSequence() << "\"";
+					os << " charge=\"" << current_pep_id.getHits()[j].getCharge() << "\"";
+					if (current_pep_id.getHits()[j].getAABefore()!=' ')
+					{
+						os << " aa_before=\"" << current_pep_id.getHits()[j].getAABefore() << "\"";
+					}
+					if (current_pep_id.getHits()[j].getAAAfter()!=' ')
+					{
+						os << " aa_after=\"" << current_pep_id.getHits()[j].getAAAfter() << "\"";
+					}	
+					if(current_pep_id.getHits()[j].getProteinAccessions().size()!=0)
+					{
+						String accs = "";
+						for (UInt m=0; m<current_pep_id.getHits()[j].getProteinAccessions().size(); ++m)
+						{
+							if (m) accs += " ";
+							accs += "PH_";
+							accs += String(accession_to_id_[current_pep_id.getHits()[j].getProteinAccessions()[m]]);
+						}
+						os << " protein_refs=\"" << accs << "\"";
+					}
+					os << ">" << std::endl;
+					writeUserParam_("userParam", os, current_pep_id.getHits()[j], 4);
+					os << "\t\t\t\t</PeptideHit>" << std::endl;
+				}
+				
+				//do not write "RT", "MZ" and "spectrum_reference" as they are written as attributes already
+				MetaInfoInterface tmp = current_pep_id;
+				tmp.removeMetaValue("RT");
+				tmp.removeMetaValue("MZ");
+				tmp.removeMetaValue("spectrum_reference");
+				writeUserParam_("userParam", os, tmp, 4);
+				os << "\t\t\t</PeptideIdentification>" << std::endl;
 			}
 
 

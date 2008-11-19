@@ -79,6 +79,18 @@ CHECK((void load(String filename, FeatureMap<>& feature_map)))
 	TEST_REAL_EQUAL(e[1].getRT(), 0)
 	TEST_REAL_EQUAL(e[1].getMZ(), 35)
 	TEST_REAL_EQUAL(e[1].getIntensity(), 500)
+	//data processing
+	TEST_EQUAL(e.getDataProcessing().size(),2)
+	TEST_STRING_EQUAL(e.getDataProcessing()[0].getSoftware().getName(),"Software1")
+	TEST_STRING_EQUAL(e.getDataProcessing()[0].getSoftware().getVersion(),"0.91a")
+	TEST_EQUAL(e.getDataProcessing()[0].getProcessingActions().size(),1)
+	TEST_EQUAL(e.getDataProcessing()[0].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
+	TEST_STRING_EQUAL(e.getDataProcessing()[0].getMetaValue("name"),"dataProcessing")
+	TEST_STRING_EQUAL(e.getDataProcessing()[1].getSoftware().getName(),"Software2")
+	TEST_STRING_EQUAL(e.getDataProcessing()[1].getSoftware().getVersion(),"0.92a")
+	TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().size(),2)
+	TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::SMOOTHING),1)
+	TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::BASELINE_REDUCTION),1)
 
 	//test of old file with mzData description (version 1.2)
 	//here only the downward-compatibility of the new parser is tested
@@ -177,7 +189,104 @@ CHECK( const PeakFileOptions& getOptions() const )
 	
 	TEST_EQUAL(pfo.getRTRange(),makeRange(1.5, 4.5))
 	TEST_EQUAL(pfo.getIntensityRange(),makeRange(290.0, 310.0))
+RESULT
+
+
+CHECK([EXTRA] peptide and protein identification I/O)
+{
+	std::vector<ProteinHit> protein_hits;
+	ProteinHit protein_hit;
+
+	protein_hit.setAccession("urn:lsid:ach0du1schreck2wo3iss4er5denn");
+	protein_hit.setMetaValue("dadada",String("dududu"));
+	protein_hit.setRank(768);
+	protein_hit.setScore(70.3);
+	protein_hit.setSequence("ABCDEFG");
+
+	protein_hits.push_back(protein_hit);
+
+	protein_hit.setAccession("urn:lsid:rumpelstielzchen");
+	protein_hit.setMetaValue("dadada",String("doppeltsogut"));
+	protein_hit.setRank(543);
+	protein_hit.setScore(140.6);
+	protein_hit.setSequence("HIJKLMN");
+
+	protein_hits.push_back(protein_hit);
+
+	ProteinIdentification protein_identification;
+
+	FeatureMap<> map;
 	
+	{
+		ProteinIdentification hits;
+		hits.setDateTime(DateTime::now());
+		hits.setSignificanceThreshold(56.7643);
+		hits.insertHit(protein_hits[0]);
+		hits.insertHit(protein_hits[1]);
+		hits.setIdentifier("id");
+		hits.setScoreType("score_type");
+		hits.setHigherScoreBetter(true);
+		hits.setSearchEngine("MaxKotzt");
+		hits.setSearchEngineVersion("2.1");
+		ProteinIdentification::SearchParameters param;
+		param.db = "RefSeq";
+		hits.setSearchParameters(param);
+		hits.setMetaValue("pi",3.14159);
+
+		map.getProteinIdentifications().push_back(hits);
+	}
+
+	Feature element;
+	element.setMZ(736.53445);
+	element.setRT(66324.47324);
+	element.setIntensity(123123.321);
+	
+	float peptide_significance_threshold = 42.3;
+	std::vector<PeptideHit> peptide_hits;
+
+	PeptideHit peptide_hit;
+	peptide_hit.setProteinAccessions(std::vector<String>(1,"urn:lsid:rumpelstielzchen"));
+	peptide_hit.setScore(4324.433);
+	peptide_hit.setSequence("HAL");
+	peptide_hit.setCharge(23);
+	peptide_hit.setAABefore('X');
+	peptide_hit.setAAAfter('Y');
+
+	peptide_hits.push_back(peptide_hit);
+
+	{
+		PeptideIdentification hits;
+
+		hits.setHits(peptide_hits);
+
+		hits.setHigherScoreBetter(false);
+		hits.setIdentifier("id");
+		hits.setMetaValue("label",17);
+		hits.setScoreType("score_type");
+		hits.setSignificanceThreshold(peptide_significance_threshold);
+
+		element.getPeptideIdentifications().push_back(hits);
+	}
+
+	map.push_back(element);
+
+	FeatureXMLFile file;
+
+	String tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+
+	file.store(tmp_filename,map);
+	
+	FeatureMap<> map_reloaded;
+	file.load(tmp_filename,map_reloaded);
+	
+	String tmp_filename_reloaded_then_stored;
+	NEW_TMP_FILE(tmp_filename_reloaded_then_stored);
+
+	file.store(tmp_filename_reloaded_then_stored,map_reloaded);
+
+	TEST_FILE(tmp_filename.c_str(),tmp_filename_reloaded_then_stored.c_str());
+}
 RESULT
 
 /////////////////////////////////////////////////////////////

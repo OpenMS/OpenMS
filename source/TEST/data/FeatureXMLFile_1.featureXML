@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.3" id="lsid" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2001-02-03T04:05:07">
+		<software name="Software1" version="0.91a" />
+		<processingAction name="Deisotoping" />
+		<userParam type="string" name="name" value="dataProcessing"/>
+	</dataProcessing>
+	<dataProcessing completion_time="2001-02-03T04:05:06">
+		<software name="Software2" version="0.92a" />
+		<processingAction name="Smoothing" />
+		<processingAction name="Baseline reduction" />
+	</dataProcessing>
 	<featureList count="2">
 		<feature id="f_0">
 			<position dim="0">25</position>

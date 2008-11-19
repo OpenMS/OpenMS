@@ -6,6 +6,7 @@
 	<dataProcessing completion_time="2001-02-03T04:05:07">
 		<software name="Software1" version="0.91a" />
 		<processingAction name="Deisotoping" />
+		<userParam type="string" name="name" value="dataProcessing"/>
 	</dataProcessing>
 	<dataProcessing completion_time="2001-02-03T04:05:06">
 		<software name="Software2" version="0.92a" />

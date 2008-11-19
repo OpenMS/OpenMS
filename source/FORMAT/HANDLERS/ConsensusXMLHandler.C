@@ -49,7 +49,6 @@ namespace OpenMS
 				}
 				last_meta_ = 0;
 			}
-			//PROTE IDENTIFICATIONS
 			else if (tag == "ProteinIdentification")
 			{
 				consensus_map_->getProteinIdentifications().push_back(prot_id_);
@@ -61,7 +60,6 @@ namespace OpenMS
 				prot_id_.insertHit(prot_hit_);
 				last_meta_ = &prot_id_;
 			}
-			//PEPTIDES
 			else if (tag == "PeptideIdentification")
 			{
 				act_cons_element_.getPeptideIdentifications().push_back(pep_id_);
@@ -73,7 +71,6 @@ namespace OpenMS
 				pep_id_.insertHit(pep_hit_);
 				last_meta_ = &pep_id_;
 			}
-			return;
 		}
 
 		void ConsensusXMLHandler::characters(const XMLCh* const /*chars*/, unsigned int /*length*/)
@@ -222,8 +219,10 @@ namespace OpenMS
 				{
 					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("unexpected userParam in tag '") + parent_tag + "'" );
 				}
+				
 				String name = attributeAsString_(attributes,"name");
 				String type = attributeAsString_(attributes,"type");
+				
 				if(type=="int")
 				{
 					last_meta_->setMetaValue(name, attributeAsInt_(attributes,"value"));
@@ -286,11 +285,8 @@ namespace OpenMS
 				//insert id and accession to map
 				proteinid_to_accession_[attributeAsString_(attributes,"id")] = accession;
 			}
-		
-			//PEPTIDES
 			else if (tag == "PeptideIdentification")
 			{
-			
 				// set identifier 
 				// TODO Think about what we should do here ... (Nico)
 				// pep_id_.setIdentifier(consensus_map_->getProteinIdentifications().back().getIdentifier());

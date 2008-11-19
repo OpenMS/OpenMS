@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
+<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <!-- edited with XMLSpy v2008 rel. 2 sp2 (http://www.altova.com) by Chris Bielow (FU Berlin) -->
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
@@ -62,25 +63,6 @@
 						</xs:attribute>
 					</xs:complexType>
 				</xs:element>
-				<xs:element name="featureList">
-					<xs:annotation>
-						<xs:documentation>A list of several features</xs:documentation>
-					</xs:annotation>
-					<xs:complexType>
-						<xs:sequence>
-							<xs:element name="feature" type="featureType" minOccurs="0" maxOccurs="unbounded">
-								<xs:annotation>
-									<xs:documentation>a single feature</xs:documentation>
-								</xs:annotation>
-							</xs:element>
-						</xs:sequence>
-						<xs:attribute name="count" type="xs:integer" use="required">
-							<xs:annotation>
-								<xs:documentation>number of feature to expect in the list</xs:documentation>
-							</xs:annotation>
-						</xs:attribute>
-					</xs:complexType>
-				</xs:element>
 				<xs:element name="ProteinIdentification" minOccurs="0">
 					<xs:annotation>
 						<xs:documentation>Collection of identified proteins</xs:documentation>
@@ -93,7 +75,7 @@
 								</xs:annotation>
 								<xs:complexType>
 									<xs:sequence minOccurs="0">
-										<xs:element name="UserParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
+										<xs:element name="userParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
 									</xs:sequence>
 									<xs:attribute name="id" type="xs:ID" use="required">
 										<xs:annotation>
@@ -117,7 +99,7 @@
 									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
-							<xs:element name="UserParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
+							<xs:element name="userParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
 						</xs:sequence>
 						<xs:attribute name="score_type" type="xs:string" use="required">
 							<xs:annotation>
@@ -132,6 +114,25 @@
 						<xs:attribute name="significance_threshold" type="xs:float">
 							<xs:annotation>
 								<xs:documentation>significance threshold as calculated by the search engine</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="featureList">
+					<xs:annotation>
+						<xs:documentation>A list of several features</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="feature" type="featureType" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>a single feature</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="count" type="xs:integer" use="required">
+							<xs:annotation>
+								<xs:documentation>number of feature to expect in the list</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 					</xs:complexType>
@@ -317,7 +318,7 @@
 							</xs:annotation>
 							<xs:complexType>
 								<xs:sequence minOccurs="0">
-									<xs:element name="UserParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
+									<xs:element name="userParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
 								</xs:sequence>
 								<xs:attribute name="sequence" type="xs:string" use="required">
 									<xs:annotation>
@@ -363,7 +364,7 @@
 								</xs:attribute>
 							</xs:complexType>
 						</xs:element>
-						<xs:element name="UserParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
+						<xs:element name="userParam" type="userParam" minOccurs="0" maxOccurs="unbounded"/>
 					</xs:sequence>
 					<xs:attribute name="score_type" type="xs:string" use="required">
 						<xs:annotation>

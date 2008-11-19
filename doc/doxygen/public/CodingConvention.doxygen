@@ -28,8 +28,6 @@
 
 @page coding_conventions Coding conventions
 
-<CENTER>$Revision$</CENTER>
-
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Formatting</H1>
 
 All %OpenMS files use a tab width of two. Use the command <TT>set tabstop=2</TT> in
