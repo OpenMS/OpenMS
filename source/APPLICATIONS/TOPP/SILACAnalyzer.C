@@ -37,10 +37,11 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 
-extern "C"
-{
-	#include <cluster.h>
-}
+//clustering
+#include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
+#include <OpenMS/COMPARISON/CLUSTERING/AverageLinkage.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 
 //Contrib includes
 #include <gsl/gsl_histogram.h>
@@ -65,16 +66,16 @@ using namespace OpenMS;
 
 /**
 	@page SILACAnalyzer SILACAnalyzer
-	
+
 	@brief Determines the ratio of peak pairs in LC-MS data.
-	
+
 	(1) data reduction
 	(2) hierarchical clustering in RT-m/Z plane, determine cluster number by maximizing the average silhouette width
 	(3) determine intensity ratios by linear regression for each cluster
-	
+
 	@todo Replace Cluster 3.0 by our clustering (Hiwi)
 	@todo Remove Cluster 3.0 from contrib as soon as it's not needed anymore (Marc)
-	
+
 	@ingroup TOPP
 */
 
@@ -93,7 +94,7 @@ struct SILACData
 	DoubleReal int6; // intensity at RT and m/z + envelope_distance + 2*isotope_distance
 	Int cluster_id; // ID number of the cluster the data point belongs to
 	Int cluster_size; // number of points in cluster 'cluster_id'
-			
+
 	SILACData();
 	SILACData(const SILACData &);
 	SILACData(DoubleReal rt_, DoubleReal mz_, DoubleReal int1_, DoubleReal int2_, DoubleReal int3_, DoubleReal int4_, DoubleReal int5_, DoubleReal int6_);
@@ -102,10 +103,10 @@ struct SILACData
 	int operator==(const SILACData &rhs) const;
 	int operator<(const SILACData &rhs) const;
 };
-    
+
 /// Default constructor
 inline SILACData::SILACData()
-{ 
+{
   rt = 0;
   mz = 0;
   int1 = 0;
@@ -119,7 +120,7 @@ inline SILACData::SILACData()
 }
 /// Copy constructor
 inline SILACData::SILACData(const SILACData &copyin)
-{                             
+{
 	rt = copyin.rt;
 	mz = copyin.mz;
 	int1 = copyin.int1;
@@ -133,7 +134,7 @@ inline SILACData::SILACData(const SILACData &copyin)
 }
 /// Detailed constructor
 inline SILACData::SILACData(DoubleReal rt_, DoubleReal mz_, DoubleReal int1_, DoubleReal int2_, DoubleReal int3_, DoubleReal int4_, DoubleReal int5_, DoubleReal int6_)
-{                             
+{
 	rt = rt_;
 	mz = mz_;
 	int1 = int1_;
@@ -145,7 +146,7 @@ inline SILACData::SILACData(DoubleReal rt_, DoubleReal mz_, DoubleReal int1_, Do
 	cluster_id = 0;
 	cluster_size = 0;
 }
-    
+
 SILACData& SILACData::operator=(const SILACData &rhs)
 {
 	this->rt = rhs.rt;
@@ -184,25 +185,25 @@ int SILACData::operator<(const SILACData &rhs) const // required for built-in ST
 }
 
 class TOPPSILACAnalyzer
-      : public TOPPBase
+			: public TOPPBase
 {
-  public:
-    TOPPSILACAnalyzer()
-        : TOPPBase("SILACAnalyzer","Determination of peak ratios in LC-MS data","0.6.2")
-    {
-    }
+	public:
+		TOPPSILACAnalyzer()
+				: TOPPBase("SILACAnalyzer","Determination of peak ratios in LC-MS data","0.6.2")
+		{
+		}
 
-    void registerOptionsAndFlags_()
-    {
-	  	registerInputFile_("in","<file>","","input file");
-	  	setValidFormats_("in",StringList::create("mzData"));
-	  	registerOutputFile_("out","<file>","","output file", false);
-	  	setValidFormats_("out",StringList::create("consensusXML"));
-	  	registerOutputFile_("out_visual","<file>","","output file containing cluster information",false);
-	  	setValidFormats_("out_visual",StringList::create("featureXML"));
-			
+		void registerOptionsAndFlags_()
+		{
+			registerInputFile_("in","<file>","","input file");
+			setValidFormats_("in",StringList::create("mzData"));
+			registerOutputFile_("out","<file>","","output file", false);
+			setValidFormats_("out",StringList::create("consensusXML"));
+			registerOutputFile_("out_visual","<file>","","output file containing cluster information",false);
+			setValidFormats_("out_visual",StringList::create("featureXML"));
+
 			registerFlag_("silac_debug","Enables writing of debug information",true);
-									
+
 			registerDoubleOption_("mass_separation","<dist>",6.0202,"m/z gap between light and heavy isotopic envelopes, [Da]",false);
 			registerIntOption_("charge_min","<min>",2,"Charge state range begin",false);
 			setMinInt_("charge_min",1);
@@ -214,35 +215,39 @@ class TOPPSILACAnalyzer
 			setMinFloat_("mz_step_width",0.0);
 			registerDoubleOption_("rt_scaling","<double>",0.05,"scaling factor of retention times (Cluster height [s] an\ncluster width [Th] should be of the same order. The clustering algorithms work better for\nsymmetric clusters.)",false,true);
 			setMinFloat_("rt_scaling",0.0);
-			registerDoubleOption_("cluster_number_scaling","<double>",1.0,"scaling factor of the number of clusters (The average-silhouette-width\nalgorithm returns an 'optimal' number of clusters. This number might need\nto be adjusted by this factor.)",false,true);
+			registerDoubleOption_("blurred_partition_chooser","<double>",0.0,"partition with the most clusters is chosen from those that deviate from the maximum average silhouette width at most by percentage given by blurred_silhouettewidth_chooser",false,true);
+			setMinFloat_("blurred_partition_chooser",0.0);
+			setMaxFloat_("blurred_partition_chooser",100.0);
+			registerDoubleOption_("cluster_number_scaling","<double>",1.0,"scaling factor of the number of clusters (The average-silhouette-width\nalgorithm returns an 'optimal' number of clusters. This number might need\nto be adjusted by this factor.)",false,true); //still needed with blurred partition chooser?
 			setMinFloat_("cluster_number_scaling",0.0);
 			registerIntOption_("cluster_min","<min>",0,"Start of the clusters range to be plotted by the gnuplot script", false,true);
 			setMinInt_("cluster_min",0);
 			registerIntOption_("cluster_max","<max>",2,"End of the clusters range to be plotted by the gnuplot script", false,true);
 			setMinInt_("cluster_max",0);
 		}
-    
-    ExitCodes main_(int , const char**)
-    {
-      //-------------------------------------------------------------
-      // parameter handling
-      //-------------------------------------------------------------
-      DoubleReal mass_separation = getDoubleOption_("mass_separation");
+
+			ExitCodes main_(int , const char**)
+		{
+			//-------------------------------------------------------------
+			// parameter handling
+			//-------------------------------------------------------------
+			DoubleReal mass_separation = getDoubleOption_("mass_separation");
 
 			UInt charge_min = getIntOption_("charge_min");
 			UInt charge_max = getIntOption_("charge_max");
 
-      DoubleReal mz_step_width = getDoubleOption_("mz_step_width");
-      DoubleReal intensity_cutoff = getDoubleOption_("intensity_cutoff");
-      DoubleReal rt_scaling = getDoubleOption_("rt_scaling");
-      DoubleReal cluster_number_scaling = getDoubleOption_("cluster_number_scaling");
+			DoubleReal mz_step_width = getDoubleOption_("mz_step_width");
+			DoubleReal intensity_cutoff = getDoubleOption_("intensity_cutoff");
+			DoubleReal rt_scaling = getDoubleOption_("rt_scaling");
+			DoubleReal blurred_partition_chooser = getDoubleOption_("blurred_partition_chooser");
+			DoubleReal cluster_number_scaling = getDoubleOption_("cluster_number_scaling");
 			int cluster_min = getIntOption_("cluster_min");
 			int cluster_max = getIntOption_("cluster_max");
-      
-      String in = getStringOption_("in");
+
+			String in = getStringOption_("in");
 			String out = getStringOption_("out");
 			String out_visual = getStringOption_("out_visual");
-			
+
 			//output variables
 			ConsensusMap all_pairs;
 			all_pairs.getFileDescriptions()[0].filename = in;
@@ -253,22 +258,22 @@ class TOPPSILACAnalyzer
 			all_pairs.getFileDescriptions()[1].size = 0;
 			all_pairs.setExperimentType("silac");
 			FeatureMap<> all_cluster_points;
-			
+
 			//--------------------------------------------------------------
-	    // determine file name for debug output
-      //--------------------------------------------------------------
-      String debug_trunk = in;
-      //std::cout << "in=" << in << std::endl;
-      if (in.has('.'))
-      {
-      	//std::cout << "yes" << std::endl;      	
-      	debug_trunk = in.substr(0,-in.suffix('.').length()-1);
-      	//std::cout << debug_trunk << std::endl;      	
+			// determine file name for debug output
+			//--------------------------------------------------------------
+			String debug_trunk = in;
+			//std::cout << "in=" << in << std::endl;
+			if (in.has('.'))
+			{
+				//std::cout << "yes" << std::endl;
+				debug_trunk = in.substr(0,-in.suffix('.').length()-1);
+				//std::cout << debug_trunk << std::endl;
 			}
-			
+
 			// number of clusters found for each charge state (filled with best_n, need to remember for gnuplot script)
-			int cluster_number[] = {1,1,1,1,1,1,1,1,1,1};
-      
+			int cluster_number[] = {1,1,1,1,1,1,1,1,1,1}; // maybe though with a vector even if more that 10 charge states are doubtfull?
+
 			//iterate over all charge states
 			for (UInt charge=charge_min; charge<=charge_max; ++charge)
 			{
@@ -278,27 +283,27 @@ class TOPPSILACAnalyzer
 				// For each charge state run the experimental data (exp) are loaded again. Either the raw data (exp) or the distance matrix (distance_matrix) are in memory which keeps the memory footprint low.
 
 				//-------------------------------------------------------------
-  	    // loading input
-  	    //-------------------------------------------------------------
-  	    MzDataFile file;
-  	    MSExperiment<Peak1D> exp;
-      
-  	    file.setLogType(log_type_);
-  	    file.load(in,exp);
-			
-	      //-------------------------------------------------------------
-	      // build SILACData structure
-	      //-------------------------------------------------------------		
-	      ProgressLogger logger_;
-	      std::vector<SILACData> data;
-	      
+				// loading input
+				//-------------------------------------------------------------
+				MzDataFile file;
+				MSExperiment<Peak1D> exp;
+
+				file.setLogType(log_type_);
+				file.load(in,exp);
+
+				//-------------------------------------------------------------
+				// build SILACData structure
+				//-------------------------------------------------------------
+				ProgressLogger logger_;
+				std::vector<SILACData> data;
+
 				logger_.setLogType(log_type_);
 				logger_.startProgress(0,exp.size(),"reducing raw data");
 
-		    // scan over the entire experiment and write to data structure
-		    for (MSExperiment<>::Iterator rt_it=exp.begin(); rt_it!=exp.end(); ++rt_it)
-			  {
-			  	logger_.setProgress(rt_it-exp.begin());
+				// scan over the entire experiment and write to data structure
+				for (MSExperiment<>::Iterator rt_it=exp.begin(); rt_it!=exp.end(); ++rt_it)
+				{
+					logger_.setProgress(rt_it-exp.begin());
 					Int number_data_points = rt_it->size();
 					// read one OpenMS spectrum into GSL structure
 					std::vector<DoubleReal> mz_vec;
@@ -316,14 +321,14 @@ class TOPPSILACAnalyzer
 					DoubleReal mz_max = mz_vec[number_data_points-1];
 					// linear interpolation
 					// used for the detection of pairs (spline overestimates at noise level)
-	     		gsl_interp_accel *acc = gsl_interp_accel_alloc();
-	     		gsl_spline *spline = gsl_spline_alloc(gsl_interp_linear, number_data_points);
-	     		gsl_spline_init(spline, &*mz_vec.begin(), &*intensity_vec.begin(), number_data_points);
+					gsl_interp_accel *acc = gsl_interp_accel_alloc();
+					gsl_spline *spline = gsl_spline_alloc(gsl_interp_linear, number_data_points);
+					gsl_spline_init(spline, &*mz_vec.begin(), &*intensity_vec.begin(), number_data_points);
 					// spline interpolation
 					// used for exact ratio calculation (more accurate when real peak pairs are present)
-	     		gsl_interp_accel *acc2 = gsl_interp_accel_alloc();
-	     		gsl_spline *spline2 = gsl_spline_alloc(gsl_interp_cspline, number_data_points);
-	     		gsl_spline_init(spline2, &*mz_vec.begin(), &*intensity_vec.begin(), number_data_points);
+					gsl_interp_accel *acc2 = gsl_interp_accel_alloc();
+					gsl_spline *spline2 = gsl_spline_alloc(gsl_interp_cspline, number_data_points);
+					gsl_spline_init(spline2, &*mz_vec.begin(), &*intensity_vec.begin(), number_data_points);
 					for (DoubleReal mz=mz_min+isotope_distance; mz<mz_max-envelope_distance-3*isotope_distance; mz+=mz_step_width)
 					{
 						DoubleReal int_lin1 = gsl_spline_eval (spline, mz, acc);
@@ -338,7 +343,7 @@ class TOPPSILACAnalyzer
 						DoubleReal int_spline4 = gsl_spline_eval (spline2, mz+envelope_distance+isotope_distance, acc2);
 						DoubleReal int_spline5 = gsl_spline_eval (spline2, mz+2*isotope_distance, acc2);
 						DoubleReal int_spline6 = gsl_spline_eval (spline2, mz+envelope_distance+2*isotope_distance, acc2);
-	
+
 						bool cond1 = (int_lin1 >= intensity_cutoff) && (int_lin2 >= intensity_cutoff) && (int_lin3 >= intensity_cutoff) && (int_lin4 >= intensity_cutoff) && (int_lin5 >= intensity_cutoff) && (int_lin6 >= intensity_cutoff); // all six intensities peak simultaneously
 						bool cond2 = (int_spline3 <= int_spline1) && (int_spline5 <= int_spline3) && (int_spline4 <= int_spline2) && (int_spline6 <= int_spline4); // isotopic peaks within one envelop decrease
 						if (cond1 && cond2)
@@ -349,123 +354,103 @@ class TOPPSILACAnalyzer
 				}
 				exp.clear();
 				logger_.endProgress();
-				Int size = data.size(); // number of data points after the reduction
-				
-	      //-------------------------------------------------------------
-	      // generate distance matrix
-	      //-------------------------------------------------------------
-	      std::vector< std::vector<DoubleReal> > distance_matrix;
-				for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
+
+				//-------------------------------------------------------------
+				// generate distance matrix and copy distance matrix
+				//-------------------------------------------------------------
+				DistanceMatrix<Real> distance_matrix;
+				distance_matrix.resize(data.size(),1);
+				for(UInt i=0; i < data.size(); ++i)
 				{
-				  std::vector<DoubleReal> vec;
-					for (std::vector<SILACData>::iterator it2=data.begin(); it2!= data.end(); ++it2)
+					for(UInt j=0; j < i; ++j)
 					{
-						vec.push_back( sqrt( (it->rt-(*it2).rt)*(it->rt-(*it2).rt)*rt_scaling*rt_scaling+(it->mz-(*it2).mz)*(it->mz-(*it2).mz) ) ); // shrink RT by factor rt_scaling in order to make clusters more symmetric
+						// shrink RT by factor rt_scaling in order to make clusters more symmetric
+						distance_matrix.setValueQuick(i,j, sqrt( (data[i].rt-data[j].rt)*(data[i].rt-data[j].rt)*rt_scaling*rt_scaling+(data[i].mz-data[j].mz)*(data[i].mz-data[j].mz) ) );
 					}
-					distance_matrix.push_back(vec);
 				}
-				
-	      //-------------------------------------------------------------
-	      // copy distance matrix
-	      //-------------------------------------------------------------
-				double** distance_matrix_copy; // distance matrix for the clustering algorithm (will be messed up when tree is generated)
-				distance_matrix_copy = (double**) malloc(size*sizeof(double*));
-			  for (int i = 0; i < size; i++)
-			  {
-	  			distance_matrix_copy[i] = (double*) malloc(size*sizeof(double));
-	  		}
-	  		for (Int i = 0; i < size; i++)
-	  		{
-	  			for (Int j = 0; j < size; j++)
-	  			{
-	  				distance_matrix_copy[i][j] = distance_matrix[i][j];
-	  			}
-	  		}
-				
-	      //--------------------------------------------------------------
-	      // generate tree
-	      //--------------------------------------------------------------
-				Node* tree = treecluster(size,size,0,0,0,0,'e','a',distance_matrix_copy); // e=EuclideanMetric a=ArithmeticMean=AverageLinkage
-	  		int* clusterid = (int*) malloc(size*sizeof(int));
-	  		
-	      //-----------------------------------------------------------------
-	      // find number of clusters which maximizes average silhouette width
-	      //-----------------------------------------------------------------
-				logger_.setLogType(log_type_);
-				logger_.startProgress(0,size/10,"determining number of clusters");
-	  		std::vector<DoubleReal> s(size,0); // average silhoutte width for each number of clusters
-	  		for (Int i = 1; i < (Int) size/10; i++) // iterate through (number of clusters)/10 (method not perfect, hence 1/10)
+
+				DistanceMatrix<Real> distance_matrix_copy(distance_matrix); //clustering method will mess with input matrix
+
+				//-------------------------------------------------------------
+				// conduct clustering
+				//-------------------------------------------------------------
+				ClusterHierarchical ch;
+				AverageLinkage al;
+				std::vector< BinaryTreeNode > tree;
+				ClusterAnalyzer ca;
+				al.cluster(distance_matrix_copy,tree,DBL_MAX);
+
+				//-----------------------------------------------------------------
+				// find number of clusters which maximizes average silhouette width
+				//-----------------------------------------------------------------
+
+				//choose asw that deviates at most the given percentage (blurred_partition_chooser) from the max asw and contains the most clusters
+				std::vector< Real >asw = ca.averageSilhouetteWidth(tree,distance_matrix);
+				std::vector< Real >::iterator max_el(max_element(asw.begin(),asw.end()));
+				//~ std::vector< Real >::iterator max_el(max_element((asw.end()-((Int)data.size()/10) ),asw.end()));//only the first size/10 steps are reviewed
+				size_t best_n = tree.size();
+				Real max_deviation((*max_el)*(blurred_partition_chooser/100));
+				for(UInt i = 0; i < asw.size(); ++i)
 				{
-					logger_.setProgress(i);
-	  			cuttree(size, tree, i, clusterid);
-	  			std::vector<Int> cluster_size(i,0); // number of points per cluster
-	  			for (Int j = 0; j < size; j++)// iterate through all points
-	  			{
-	  				cluster_size[clusterid[j]]++; // count the number of points per cluster
-	  			}
-	  			for (Int j = 0; j < size; j++)// iterate through all points
-		  		{
-		  			std::vector<DoubleReal> c(i,0); // average distance of point j to each cluster
-	  				for (Int k = 0; k < size; k++)// iterate again through all points
-	  				{
-	  					c[clusterid[k]] += distance_matrix[j][k];
-	  				}
-	  				for (Int k = 0; k < i; k++)
-	  				{
-	  					c[k] = c[k]/cluster_size[k];
-	  				}
-	  				DoubleReal a = c[clusterid[j]];
-	  				DoubleReal b = 0;
-	  				for (Int k = 0; k < i; k++)// iterate over all clusters
-	  				{
-	  					if (b == 0 || (c[k] < b && k!=clusterid[j])) b = c[k]; // find the nearest one to point j
-	  				}
-	  				if (cluster_size[clusterid[j]]>1) s[i] += (b-a)/std::max(a,b); // add the silhouette width of point j (if j is the only point in its cluster then silhouette width =0 by definition)
-	  			}
-	  			s[i] = s[i]/size;
-	  		}
-				logger_.endProgress();   
-	  		
-	  		DoubleReal s_max = -1;
-	  		Int best_n = 1; // optimal number of clusters
-	  		for (Int i = 1; i < (Int) size/10; ++i)
-	  		{
-	  			if (s[i]>s_max)
-	  			{
-	  				s_max = s[i];
-	  				best_n = i;
-	  			}			
-	  		}
-	  		best_n = UInt(cluster_number_scaling * best_n); // slightly increase cluster number
-	  		cuttree(size, tree, best_n, clusterid);
-	  		cluster_number[charge] = best_n;
-	  		
-	      //-------------------------------------------------------------
-	      // count data points in each cluster
-	      //-------------------------------------------------------------  		
+					if(std::fabs(asw[i]-(*max_el))<=max_deviation)
+					{
+						best_n = tree.size() - i;
+						break;
+					}
+				}
+
+				//~ debug output
+				//~ for(UInt j = 0; j < asw.size(); ++j)
+				//~ {
+					//~ std::cout << "asw(" << j << "): " << asw[j] << std::endl;
+				//~ }
+				//~ std::cout << "best_n: " << best_n << std::endl;
+
+				//~ dunn indices nogood here, if not only the the last half considered
+				//~ std::vector<Real>dunn = ca.dunnIndices(tree,distance_matrix);
+				//~ for(UInt j = 0; j < dunn.size(); ++j)
+				//~ {
+					//~ std::cout << "dunn: " << dunn[j] << std::endl;
+				//~ }
+				//~ max_el = (max_element(dunn.begin(),dunn.end()));
+				//~ best_n = tree.size() - (max_el-dunn.begin());
+
+				//-------------------------------------------------------------
+				// choose appropriate(best) partition of data from best_n
+				//-------------------------------------------------------------
+				best_n = UInt(cluster_number_scaling * best_n); // slightly increase cluster number
+				std::vector< std::vector<UInt> > best_n_clusters;
+				ca.cut(best_n,best_n_clusters,tree);
+				cluster_number[charge] = best_n;
+
+				//-------------------------------------------------------------
+				// count data points in each cluster
+				//-------------------------------------------------------------
 				std::vector<Int> cluster_size(best_n,0); // number of points per cluster
-				for (Int j = 0; j < size; ++j)// iterate through all points
+				for(UInt i=0; i < cluster_size.size(); ++i)
 				{
-					cluster_size[clusterid[j]]++; // count the number of points per cluster
+					cluster_size[i] = best_n_clusters[i].size();
 				}
-	
-	      //--------------------------------------------------------------
-	      // fill in cluster_id and cluster_size in SILACData structure
-	      //--------------------------------------------------------------
-	  		Int k = 0;
-				for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
+
+				//--------------------------------------------------------------
+				// fill in cluster_id and cluster_size in SILACData structure
+				//--------------------------------------------------------------
+				for(UInt i=0; i < best_n_clusters.size(); ++i)
 				{
-					it->cluster_id = clusterid[k];
-					it->cluster_size = cluster_size[clusterid[k]];
-					++k;
+					for(UInt j=0; j < best_n_clusters[i].size(); ++j)
+					{
+						data[best_n_clusters[i][j]].cluster_id = i;
+						data[best_n_clusters[i][j]].cluster_size = best_n_clusters[i].size();
+					}
 				}
-	  		std::sort(data.begin(),data.end());
-	  		std::reverse(data.begin(),data.end()); // largest clusters first
-	  		
-	      //--------------------------------------------------------------
-	      // update cluster_id
-	      //--------------------------------------------------------------
-				k = -1;
+				std::sort(data.begin(),data.end());
+				std::reverse(data.begin(),data.end()); // largest clusters first
+
+//~ /*
+				//--------------------------------------------------------------
+				// update cluster_id
+				//--------------------------------------------------------------
+				Int k = -1;
 				Int new_id = best_n-1;
 				for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
 				{
@@ -477,23 +462,24 @@ class TOPPSILACAnalyzer
 				{
 					it->cluster_id = it->cluster_id - best_n;
 				}
-				
-	      //--------------------------------------------------------------
-	      // update cluster_size
-	      //--------------------------------------------------------------
-	      cluster_size = std::vector<Int>(best_n,0);
-	      k = -1;
+
+				//--------------------------------------------------------------
+				// update cluster_size
+				//--------------------------------------------------------------
+				cluster_size = std::vector<Int>(best_n,0);
+				k = -1;
 				for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
 				{
 					++cluster_size[it->cluster_id];
 				}
-				
+//~ */
+
 				//--------------------------------------------------------------
 				//create consensus features
 				//--------------------------------------------------------------
 				if (out!="")
 				{
-		      for (Int i=0; i<best_n;++i)
+					for (UInt i=0; i<best_n; ++i)
 					{
 						DoubleReal rt = 0.0;
 						DoubleReal mz = 0.0;
@@ -503,7 +489,7 @@ class TOPPSILACAnalyzer
 						std::vector<DoubleReal> i1(3*cluster_size[i]);
 						std::vector<DoubleReal> i2(3*cluster_size[i]);
 						UInt j=0;
-			   		for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
+						for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
 						{
 							if (it->cluster_id==i)
 							{
@@ -513,7 +499,7 @@ class TOPPSILACAnalyzer
 								i2[3*j+1] = it->int5;
 								i1[3*j+2] = it->int3;
 								i2[3*j+2] = it->int6;
-								
+
 								rt += it->rt;
 								if (it->int1>int_l)
 								{
@@ -573,6 +559,8 @@ class TOPPSILACAnalyzer
 						all_pairs.push_back(pair);
 					}
 				}
+
+
 				//--------------------------------------------------------------
 				//create features (for visualization)
 				//--------------------------------------------------------------
@@ -611,7 +599,11 @@ class TOPPSILACAnalyzer
 						all_cluster_points.push_back(cluster_point);
 					}
 				}
-				
+
+
+
+
+
 				//-------------------------------------------------------------
   	    // generate debug output
   	    //-------------------------------------------------------------
@@ -621,7 +613,7 @@ class TOPPSILACAnalyzer
   	    	// names of dat files
   	    	String debug_dat = debug_trunk + debug_suffix + ".dat";
   	    	String debug_clusters_dat = debug_trunk + debug_suffix + "_clusters.dat";
-  	    
+
   	    	// write all cluster data points to *_clusters.dat
 					std::ofstream stream_clusters(debug_clusters_dat.c_str());
 					stream_clusters << "cluster_id cluster_size rt mz int1 int2 int3 int4 int5 int6" << std::endl;
@@ -633,11 +625,11 @@ class TOPPSILACAnalyzer
 						current_id = it->cluster_id;
 					}
 	      	stream_clusters.close();
-	      
+
 	      	// write ratios of all cluster to *.dat
 					std::ofstream stream_ratios(debug_dat.c_str());
-					stream_ratios << "cluster_id cluster_size rt mz ratio" << std::endl;	      
-	      	for (Int i=0; i<best_n;++i)
+					stream_ratios << "cluster_id cluster_size rt mz ratio" << std::endl;
+	      	for (UInt i=0; i<best_n;++i)
 					{
 						DoubleReal rt = 0.0;
 						DoubleReal mz = 0.0;
@@ -657,7 +649,7 @@ class TOPPSILACAnalyzer
 								i2[3*j+1] = it->int5;
 								i1[3*j+2] = it->int3;
 								i2[3*j+2] = it->int6;
-								
+
 								rt += it->rt;
 								if (it->int1>int_l)
 								{
@@ -692,12 +684,14 @@ class TOPPSILACAnalyzer
 						rt /= (DoubleReal)(cluster_size[i]); // average retention time
 						Math::LinearRegression linear_reg;
 						linear_reg.computeRegressionNoIntercept(0.95,i1.begin(),i1.end(),i2.begin());
-						stream_ratios << i << " " << cluster_size[i] << " " << rt << " " << mz << " " << linear_reg.getSlope() << std::endl;	      
+						stream_ratios << i << " " << cluster_size[i] << " " << rt << " " << mz << " " << linear_reg.getSlope() << std::endl;
 					}
 					stream_ratios.close();
 				}
-  		}
-  		
+
+			} //end iterate over all charge states
+
+
 			//--------------------------------------------------------------
 			//Store output
 			//--------------------------------------------------------------
@@ -706,19 +700,19 @@ class TOPPSILACAnalyzer
 	  		ConsensusXMLFile c_file;
 	  		c_file.store(out,all_pairs);
   		}
-  		
+
   		if (out_visual!="")
   		{
   			FeatureXMLFile f_file;
   			f_file.store(out_visual,all_cluster_points);
       }
-      
+
 			//--------------------------------------------------------------
 			//write gnuplot script
-			//--------------------------------------------------------------  		
+			//--------------------------------------------------------------
 			if (getFlag_("silac_debug"))
 			{
-				// first lines of the gnuplot script		
+				// first lines of the gnuplot script
 				String debug_gnuplotscript = debug_trunk + ".input";
 				std::ofstream stream_gnuplotscript(debug_gnuplotscript.c_str());
 				stream_gnuplotscript << "set terminal postscript eps enhanced colour" << std::endl;
@@ -738,7 +732,7 @@ class TOPPSILACAnalyzer
   	    	String debug_Clusters = debug_trunk + debug_suffix + "_Clusters.eps";
   	    	String debug_clustersInt = debug_trunk + debug_suffix + "_clustersInt.eps";
   	    	String debug_ClustersInt = debug_trunk + debug_suffix + "_ClustersInt.eps";
-  	    	
+
   	    	// write *_clusters.eps
 					stream_gnuplotscript << "set output \"" + debug_clusters + "\"" << std::endl;
 					stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << ", mass separation = " << String(0.01*floor(mass_separation*100+0.5)) << " Da, charge = " << charge << "+, intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
@@ -750,7 +744,7 @@ class TOPPSILACAnalyzer
 		  			if (i != 0) stream_gnuplotscript << ",";
 		  			stream_gnuplotscript << " \'" + debug_clusters_dat + "\' index " + String(i+1) +" using 4:3 title \"cluster " + String(i) + "\"";
 		  		}
-					stream_gnuplotscript << std::endl;		  		
+					stream_gnuplotscript << std::endl;
 
   	    	// write *_Clusters.eps
 					stream_gnuplotscript << "set output \"" + debug_Clusters + "\"" << std::endl;
@@ -763,7 +757,7 @@ class TOPPSILACAnalyzer
 		  			if (i != 0) stream_gnuplotscript << ",";
 		  			stream_gnuplotscript << " \'" + debug_clusters_dat + "\' index " + String(i+1) +" using 4:3 title \"cluster " + String(i) + "\"";
 		  		}
-					stream_gnuplotscript << std::endl;		  		
+					stream_gnuplotscript << std::endl;
 
   	    	// write *_clustersInt.eps
 					stream_gnuplotscript << "set output \"" + debug_clustersInt + "\"" << std::endl;
@@ -776,7 +770,7 @@ class TOPPSILACAnalyzer
 		  			if (i != 0) stream_gnuplotscript << ",";
 		  			stream_gnuplotscript << " \'" + debug_clusters_dat + "\' index " + String(i+1) +" using 5:8 title \"cluster " + String(i) + "\"";
 		  		}
-					stream_gnuplotscript << std::endl;		  		
+					stream_gnuplotscript << std::endl;
 
   	    	// write *_ClustersInt.eps
 					stream_gnuplotscript << "set output \"" + debug_ClustersInt + "\"" << std::endl;
@@ -789,7 +783,7 @@ class TOPPSILACAnalyzer
 		  			if (i != 0) stream_gnuplotscript << ",";
 		  			stream_gnuplotscript << " \'" + debug_clusters_dat + "\' index " + String(i+1) +" using 5:8 with lines title \"cluster " + String(i) + "\"";
 		  		}
-					stream_gnuplotscript << std::endl;		  		
+					stream_gnuplotscript << std::endl;
 
   	    	// write *_ratios.eps
 					stream_gnuplotscript << "set output \"" + debug_ratios + "\"" << std::endl;
@@ -799,7 +793,7 @@ class TOPPSILACAnalyzer
 					stream_gnuplotscript << "set ylabel \'ratio\'" << std::endl;
 					stream_gnuplotscript << "plot \'" + debug_dat + "\' using 4:5";
 					stream_gnuplotscript << std::endl;
-						  		
+
   	    	// write *_sizes.eps
 					stream_gnuplotscript << "set output \"" + debug_sizes + "\"" << std::endl;
 					stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << ", mass separation = " << String(0.01*floor(mass_separation*100+0.5)) << " Da, charge = " << charge << "+, intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
@@ -811,6 +805,9 @@ class TOPPSILACAnalyzer
 				}
 				stream_gnuplotscript.close();
 			}
+
+
+
 
       return EXECUTION_OK;
     }
