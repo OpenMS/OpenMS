@@ -58,12 +58,11 @@ TOPP_TOOL_TESTS = \
 	FeatureFinderMRM_test\
 	TextExporter_test\
 	SILACAnalyzer_test\
-	RTPredict_test \
-	RTModel_test \
-	PTModel_test \
-	PTPredict_test
-
-# Tests for processing pipelines using several tools
+	RTPredict_test\
+	RTModel_test\
+	PTModel_test\
+	PTPredict_test\
+	IDMapper_test
 
 # Files to remove
 CLEANUP = ${RM} -f *.tmp *.tmp_ *.tmp_? *.log core.*
@@ -840,3 +839,15 @@ FeatureLinker_test: make_fuzzydiff
 	@$(ECHO) "- Test 5: labeled (with estimation of RT shift)"
 	@$(call RUN_PROG_OPT,FeatureLinker,-ini FeatureLinker_5_parameters.ini -in FeatureLinker_5_input.featureXML)
 	@$(call TEST_FILE_EQUAL,FeatureLinker_5_output.tmp,FeatureLinker_5_output.consensusXML)
+
+IDMapper_test: make_fuzzydiff
+	@$(ECHO) ""
+	@$(ECHO) "IDMapper:"
+
+	@$(ECHO) "- Test 1: featureXML"
+	@$(call RUN_PROG_OPT,IDMapper,-in IDMapper_1_input.featureXML -out IDMapper_1_output.tmp -id IDMapper_1_input.idXML)
+	@$(call TEST_FILE_EQUAL,IDMapper_1_output.featureXML)
+	
+	@$(ECHO) "- Test 2: consensusXML"
+	@$(call RUN_PROG_OPT,IDMapper,-in IDMapper_2_input.consensusXML -out IDMapper_2_output.tmp -id IDMapper_2_input.idXML)
+	@$(call TEST_FILE_EQUAL,IDMapper_2_output.consensusXML)

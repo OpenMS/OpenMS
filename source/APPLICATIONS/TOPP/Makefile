@@ -70,7 +70,7 @@ TOPP_EXECUTABLES=\
 	MascotAdapterOnline\
 	SILACAnalyzer\
 	ITRAQAnalyzer\
-	QuantIDMerger
+	IDMapper
 				
 
 # Those executables not derived from TOPPBase (they are left out when writing the ini files)

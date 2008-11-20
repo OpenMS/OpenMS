@@ -95,7 +95,7 @@
   <b>Misc</b>
   - @subpage TOPPView - A viewer for mass spectrometry data
 	- @subpage INIFileEditor - An editor for %OpenMS configuration files.
-	- @subpage QuantIDMerger - Merges quantitation and identification data.
+	- @subpage IDMapper_TOPP - Assigns protein/peptide identifications to feature or consensus features.
 	
 	@todo Add the new tool IDFileConverter and remove conversion from the search engine adapters (Andreas, Nico)
 	@todo Add DataProcessing for all TOPP tools (Hiwi)

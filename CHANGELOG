@@ -5,16 +5,19 @@
 New features and improvements of OpenMS:
 - Kernel: Replaced comparators NthPositionLess by the comparator(s) RTLess and/or MZLess.
 - Kernel: Replaced methods sortByNthPosition() by the method(s) sortByRT() and/or sortByMZ().
-- Improved The whole framework for meta data visualization.
+- Improved the framework for meta data visualization.
 - Finalized MzML implementation: previously unsupported parts, index MzML, semantic validation
 - Meta data: Several extensions to the meta data handling classes for mzML compliance.
 
 New features and improvements of TOPP:
+- Added SILACAnalyzer: A specialized tool for quantitation of SILAC experiments (contributed by Lars Nilse).
+- Added ITRAQAnalyzer: A specialized tool for quantitation of ITRAQ experiments.
+- Added IDMapper: Assigns protein/peptide identifications to features or consensus features.
 - FeatureLinker: Added automated RT parameter estimated for 'labeled' algorithm.
-- Added new Tools: SILACAnalyzer, IDQuantMerger, ITRAQAnalyzer
-- Resampler: This tool is now used for resampling raw data instead of NoiseFilter or BaselineFilter
-- FileInfo: The option '-v' now also does a semantic validation of MzML files
+- Resampler: This tool is now used for resampling raw data instead of resampling in NoiseFilter or BaselineFilter.
+- FileInfo: The option '-v' now also does a semantic validation of MzML files.
 - FileMerger: Improved interface
+- ConsensusID: Now also supports consensus identification of features and consensus features.
 
 New features and improvements of TOPPView:
 - Added functionality for editing feature data
