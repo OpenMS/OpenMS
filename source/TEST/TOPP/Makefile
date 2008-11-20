@@ -62,7 +62,8 @@ TOPP_TOOL_TESTS = \
 	RTModel_test\
 	PTModel_test\
 	PTPredict_test\
-	IDMapper_test
+	IDMapper_test\
+	IDRTCalibration
 
 # Files to remove
 CLEANUP = ${RM} -f *.tmp *.tmp_ *.tmp_? *.log core.*
@@ -480,6 +481,14 @@ FileMerger_test: make_fuzzydiff
 	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_6_input1.mzML FileMerger_6_input2.mzML -out FileMerger6.tmp)
 	@$(call TEST_FILE_EQUAL,FileMerger6.tmp,FileMerger_6_output.mzData)
 
+IDRTCalibration_test: make_fuzzydiff
+	@$(ECHO) ""
+	@$(ECHO) "IDRTCalibration:"
+
+	@$(ECHO) "- Test 1: sequence file"
+	@$(call RUN_PROG_OPT,IDRTCalibration,-in IDRTCalibration_1_input.IdXML -out IDRTCalibration_1_output.tmp -calibrant_1_input 10 -calibrant_2_input 90)
+	@$(call TEST_FILE_EQUAL,IDRTCalibration_1_output.IdXML)
+
 IDFilter_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "IDFilter:"
@@ -833,7 +842,7 @@ IDMapper_test: make_fuzzydiff
 	@$(ECHO) "- Test 1: featureXML"
 	@$(call RUN_PROG_OPT,IDMapper,-in IDMapper_1_input.featureXML -out IDMapper_1_output.tmp -id IDMapper_1_input.idXML)
 	@$(call TEST_FILE_EQUAL,IDMapper_1_output.featureXML)
-	
+
 	@$(ECHO) "- Test 2: consensusXML"
 	@$(call RUN_PROG_OPT,IDMapper,-in IDMapper_2_input.consensusXML -out IDMapper_2_output.tmp -id IDMapper_2_input.idXML)
 	@$(call TEST_FILE_EQUAL,IDMapper_2_output.consensusXML)

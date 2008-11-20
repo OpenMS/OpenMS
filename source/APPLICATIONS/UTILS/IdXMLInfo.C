@@ -126,10 +126,10 @@ class TOPPIdXMLInfo
 
 			cout << "Number of spectra: " << spectrum_count << endl;
 			cout << "Number of peptide hits: " << peptide_hit_count << endl;
-			cout << "Number of distinct peptide hits: " << peptides.size() << endl;
+			cout << "Number of unique peptide hits: " << peptides.size() << endl;
 			cout << "Number of runs: " << runs_count << endl;
 			cout << "Number of protein hits: " << protein_hit_count << endl;
-			cout << "Number of distinct protein hits: " << proteins.size() << endl;
+			cout << "Number of unique protein hits: " << proteins.size() << endl;
 			
 			return EXECUTION_OK;
 		}

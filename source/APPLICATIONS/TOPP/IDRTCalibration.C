@@ -1,0 +1,145 @@
+// -*- mode: C++; tab-width: 2; -*-
+// vi: set ts=2:
+//
+// --------------------------------------------------------------------------
+//                   OpenMS Mass Spectrometry Framework
+// --------------------------------------------------------------------------
+//  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Nico Pfeifer $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+using namespace OpenMS;
+using namespace std;
+
+//-------------------------------------------------------------
+//Doxygen docu
+//-------------------------------------------------------------
+
+/**
+	@page IDRTCalibration IDRTCalibration
+	
+	@brief Can be used to calibrate RTs of peptide hits linearly to standards.
+	
+	
+*/
+
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+
+class TOPPIDRTCalibration
+	: public TOPPBase
+{
+ public:
+	TOPPIDRTCalibration()
+		: TOPPBase("IDRTCalibration","Can be used to calibrate RTs of peptide hits linearly to standards.")
+	{
+			
+	}
+	
+ protected:
+	void registerOptionsAndFlags_()
+	{
+		registerInputFile_("in","<file>","", "input file ");
+		setValidFormats_("in",StringList::create("IdXML"));
+		registerOutputFile_("out","<file>","","output file ");
+		setValidFormats_("out",StringList::create("IdXML"));
+		registerDoubleOption_("calibrant_1_reference","<RT>",0.1,"The RT of the first calibrant in the reference file", false);	
+		registerDoubleOption_("calibrant_2_reference","<RT>",0.9,"The RT of the second calibrant in the reference file", false);	
+		registerDoubleOption_("calibrant_1_input","<RT>",0.0,"The RT of the first calibrant in the input file");	
+		registerDoubleOption_("calibrant_2_input","<RT>",0.0,"The RT of the second calibrant in the input file");	
+	}
+	
+	ExitCodes main_(int , const char**)
+	{
+		//-------------------------------------------------------------
+		// parameter handling
+		//-------------------------------------------------------------
+	
+		String in_file = getStringOption_("in");
+		String out_file = getStringOption_("out");
+
+		DoubleReal rt_calibrant_1_input = getDoubleOption_("calibrant_1_input");
+		DoubleReal rt_calibrant_2_input =  getDoubleOption_("calibrant_2_input");
+		DoubleReal rt_calibrant_1_reference =  getDoubleOption_("calibrant_1_reference");
+		DoubleReal rt_calibrant_2_reference =  getDoubleOption_("calibrant_2_reference");
+				
+		//-------------------------------------------------------------
+		// testing whether input and output files are accessible
+		//-------------------------------------------------------------
+
+		inputFileReadable_(in_file);
+		
+		if (rt_calibrant_1_input > rt_calibrant_2_input)
+		{
+			DoubleReal temp = rt_calibrant_1_input;
+			rt_calibrant_1_input = rt_calibrant_2_input;
+			rt_calibrant_2_input = temp;
+		}
+		if (rt_calibrant_1_reference > rt_calibrant_2_reference)
+		{
+			DoubleReal temp = rt_calibrant_1_reference;
+			rt_calibrant_1_reference = rt_calibrant_2_reference;
+			rt_calibrant_2_reference = temp;
+		}
+
+		//-------------------------------------------------------------
+		// calculations
+		//-------------------------------------------------------------
+		IdXMLFile file;
+		vector<ProteinIdentification> 	protein_identifications;
+		vector<PeptideIdentification> identifications;
+		
+		file.load(in_file, protein_identifications, identifications);
+
+		for(UInt i = 0; i < identifications.size(); ++i)
+		{
+			if (identifications[i].metaValueExists("RT"))
+			{
+				DoubleReal temp_rt = identifications[i].getMetaValue("RT");
+				temp_rt = (temp_rt - rt_calibrant_1_input) / (rt_calibrant_2_input - rt_calibrant_1_input)
+					* (rt_calibrant_2_reference - rt_calibrant_1_reference) + rt_calibrant_1_reference;
+				identifications[i].setMetaValue("RT", temp_rt);
+			}
+		}
+																				
+		//-------------------------------------------------------------
+		// writing output
+		//-------------------------------------------------------------
+			
+		file.store(out_file, 
+							protein_identifications, 
+							identifications);
+			
+		return EXECUTION_OK;
+	}
+};
+
+
+int main( int argc, const char** argv )
+{
+	TOPPIDRTCalibration tool;
+	return tool.main(argc,argv);
+}
+
+/// @endcond

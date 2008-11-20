@@ -82,6 +82,7 @@
  	- @subpage XTandemAdapter - Annotates MS/MS spectra using XTandem.
 	- @subpage FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
 	- @subpage IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy.
+ 	- @subpage IDRTCalibration - Can be used to calibrate RTs of peptide hits linearly to standards.
 
 	<b>Peptide property prediction</b>
  	- @subpage RTPredict - Predicts retention times for peptides using a model trained by RTModel.
