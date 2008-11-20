@@ -166,7 +166,7 @@ namespace OpenMS
 				}
 			}
 			//int
-			if (field=="Charge")
+			if (field=="Charge" || field=="Size")
 			{
 				QIntValidator v(this);
 				if (v.validate(value,tmp)==QValidator::Invalid)
@@ -181,6 +181,7 @@ namespace OpenMS
 		if (field=="Intensity") filter_.field = DataFilters::INTENSITY;
 		else if (field=="Quality") filter_.field = DataFilters::QUALITY;
 		else if (field=="Charge") filter_.field = DataFilters::CHARGE;
+		else if (field=="Size") filter_.field = DataFilters::SIZE;
 		else if (field=="Meta data") 
 		{
 			filter_.field = DataFilters::META_DATA;
@@ -203,7 +204,7 @@ namespace OpenMS
 		else if (op=="exists") filter_.op = DataFilters::EXISTS;
 
 		if (field=="Intensity" || field=="Quality") filter_.value = value.toDouble();
-		else if (field=="Charge")  filter_.value = value.toInt();
+		else if (field=="Charge" || field=="Size")  filter_.value = value.toInt();
 		
 		accept();	
   }

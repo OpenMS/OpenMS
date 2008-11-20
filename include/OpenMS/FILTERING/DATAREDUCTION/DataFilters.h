@@ -59,6 +59,7 @@ namespace OpenMS
 				INTENSITY,		///< Filter the intensity value
 				QUALITY,		  ///< Filter the overall quality value
 				CHARGE,				///< Filter the charge value
+				SIZE,         ///< Filter the number of subordinates/elements
 				META_DATA			///< Filter meta data
 			};
 			///Filter operation

@@ -83,7 +83,7 @@ namespace OpenMS
     	//@{
     	//Feature map type
     	typedef LayerData::FeatureMapType FeatureMapType;
-    	//Feature map type
+    	//Consensus feature map type
     	typedef LayerData::ConsensusMapType ConsensusMapType;
     	//Peak map type
     	typedef LayerData::ExperimentType ExperimentType;
