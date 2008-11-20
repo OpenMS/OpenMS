@@ -775,7 +775,7 @@ namespace OpenMS
 			}
 		}
 		// check whether the columns are available in the table header
-		if ( (number_column == -1) || (rank_sp_column == -1) ||  (id_column == -1) || (mh_column == -1) || (delta_cn_column == -1) || (xcorr_column == -1) || (sp_column == -1) || (ions_column == -1) || (reference_column == -1) || (peptide_column == -1) )
+		if ( (number_column == -1) || (rank_sp_column == -1) || /* (id_column == -1) ||*/ (mh_column == -1) || (delta_cn_column == -1) || (xcorr_column == -1) || (sp_column == -1) || (ions_column == -1) || (reference_column == -1) || (peptide_column == -1) )
 		{
 			result_file.close();
 			result_file.clear();
