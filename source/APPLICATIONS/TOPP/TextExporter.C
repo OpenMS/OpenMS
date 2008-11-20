@@ -163,6 +163,7 @@ namespace OpenMS
 			addText_("Options for IdXML files:");
 			registerFlag_("proteins_only", "Set this flag if you want only protein information from an idXML file");
 			registerFlag_("peptides_only", "Set this flag if you want only peptide information from an idXML file");
+			registerFlag_("peptides_only_csv","Set this flag if you want only peptide information from an idXML file in csv format",false);
 			addEmptyLine_();
 			addText_("Options for ConsensusXML files:");
 			registerOutputFile_("consensus_centroids","<file>","","Centroids of consensus features",false);
@@ -173,7 +174,6 @@ namespace OpenMS
 			setValidStrings_("sorting_method",StringList::create("none,RT,MZ,RT_then_MZ,intensity,quality_decreasing,quality_increasing"));
 			registerFlag_("sort_by_maps","Apply a stable sort by the covered maps, lexicographically",false);
 			registerFlag_("sort_by_size","Apply a stable sort by decreasing size (i.e., the number of elements)",false);
-			registerFlag_("peptides_only_csv","Set this flag if you want only peptide information from an idXML file in csv format",false);
 			addText_("Sorting options can be combined.  The precedence is: sort_by_size, sort_by_maps, sorting_method");
 			return;
 		}
@@ -587,12 +587,12 @@ namespace OpenMS
 								// header of peptide hits
 								if (without_header_repetition && counter == 0)
 								{
-            			txt_out << "RT MZ Score Rank Sequence Charge AABefore AAAfter Accessions" << endl;
+            			txt_out << "RT MZ Score Rank Sequence Charge AABefore AAAfter Accessions predicted_RT" << endl;
             			++counter;
             		}
             		else if (counter == 0)
             		{
-            			txt_out << "# Peptide Hits: Score, Rank, Sequence, Charge, AABefore, AAAfter, Accessions" << endl;
+            			txt_out << "# Peptide Hits: Score, Rank, Sequence, Charge, AABefore, AAAfter, Accessions, predicted_RT" << endl;
             		}
 
             		for (vector<PeptideHit>::const_iterator ppit = pit->getHits().begin(); ppit != pit->getHits().end(); ++ppit)
@@ -631,6 +631,10 @@ namespace OpenMS
 											txt_out << ";";
 										}
 										txt_out << *ait;
+									}
+									if (ppit->metaValueExists("predicted_RT"))
+									{
+										txt_out << " " << ppit->getMetaValue("predicted_RT");
 									}
 									txt_out << endl;
 								}
