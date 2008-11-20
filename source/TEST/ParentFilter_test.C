@@ -43,50 +43,50 @@ START_TEST(ParentFilter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ParentFilter* e_ptr = 0;
-CHECK((ParentFilter()))
+START_SECTION((ParentFilter()))
 	e_ptr = new ParentFilter;
 	TEST_NOT_EQUAL(e_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~ParentFilter()))
+START_SECTION((~ParentFilter()))
 	delete e_ptr;
-RESULT
+END_SECTION
 
 e_ptr = new ParentFilter();
 
-CHECK((ParentFilter(const ParentFilter& source)))
+START_SECTION((ParentFilter(const ParentFilter& source)))
 	ParentFilter copy(*e_ptr);
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK((ParentFilter& operator = (const ParentFilter& source)))
+START_SECTION((ParentFilter& operator = (const ParentFilter& source)))
 	ParentFilter copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
+START_SECTION((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
 	
 	double filter = e_ptr->apply(spec);
 
-	TEST_REAL_EQUAL(filter, 2)
-RESULT
+	TEST_REAL_SIMILAR(filter, 2)
+END_SECTION
 
-CHECK((static FilterFunctor* create()))
+START_SECTION((static FilterFunctor* create()))
 	FilterFunctor* ff = ParentFilter::create();
 	ParentFilter filter;
 	TEST_EQUAL(ff->getParameters(), filter.getParameters())
 	TEST_EQUAL(ff->getName(), filter.getName())
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(e_ptr->getProductName(), "ParentFilter")
-RESULT
+END_SECTION
 
 delete e_ptr;
 

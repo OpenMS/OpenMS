@@ -43,31 +43,31 @@ using std::stringstream;
 
 // default ctor
 GaussModel* ptr = 0;
-CHECK((GaussModel()))
+START_SECTION((GaussModel()))
 	ptr = new GaussModel();
   TEST_EQUAL(ptr->getName(), "GaussModel")
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
 // destructor
-CHECK((virtual ~GaussModel()))
+START_SECTION((virtual ~GaussModel()))
 	delete ptr;
-RESULT
+END_SECTION
 
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(GaussModel::getProductName(),"GaussModel")
 	TEST_EQUAL(GaussModel().getProductName(),"GaussModel")
-RESULT
+END_SECTION
 
-CHECK(static BaseModel<1>* create())
+START_SECTION(static BaseModel<1>* create())
 	BaseModel<1>* ptr = GaussModel::create();
 	TEST_EQUAL(ptr->getName(), "GaussModel")
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
 // assignment operator
-CHECK((virtual GaussModel& operator=(const GaussModel &source)))
+START_SECTION((virtual GaussModel& operator=(const GaussModel &source)))
 	GaussModel gm1;
 	BasicStatistics<>  stat;
 	stat.setMean(680.1);
@@ -92,10 +92,10 @@ CHECK((virtual GaussModel& operator=(const GaussModel &source)))
 
   gm1 = GaussModel();
 	TEST_EQUAL(gm3.getParameters(), gm2.getParameters())
-RESULT
+END_SECTION
 
 // copy ctor
-CHECK((GaussModel(const GaussModel& source)))
+START_SECTION((GaussModel(const GaussModel& source)))
 	GaussModel gm1;
 	BasicStatistics<>  stat;
 	stat.setMean(680.1);
@@ -118,10 +118,10 @@ CHECK((GaussModel(const GaussModel& source)))
 
   	gm1 = GaussModel();
 	TEST_EQUAL(gm3.getParameters(), gm2.getParameters())
-RESULT
+END_SECTION
 
-CHECK([EXTRA] DefaultParamHandler::setParameters(...))
-	PRECISION(0.001)
+START_SECTION([EXTRA] DefaultParamHandler::setParameters(...))
+	TOLERANCE_ABSOLUTE(0.001)
 	GaussModel gm1;
 	
 	gm1.setScalingFactor(10.0);
@@ -134,7 +134,7 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	gm1.setParameters(tmp);
 	gm1.setOffset(680.0);
 
-	TEST_REAL_EQUAL(gm1.getCenter(), 680.2)
+	TEST_REAL_SIMILAR(gm1.getCenter(), 680.2)
 
 	GaussModel gm2;
 	gm2.setParameters( gm1.getParameters() );
@@ -144,17 +144,17 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	gm1.getSamples(dpa1);
 	gm2.getSamples(dpa2);
 
-	PRECISION(0.0000001)
+	TOLERANCE_ABSOLUTE(0.0000001)
 	TEST_EQUAL(dpa1.size(),dpa2.size())
 	ABORT_IF(dpa1.size()!=dpa2.size());
 	for (UInt i=0; i<dpa1.size(); ++i)
 	{
-		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
-		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
+		TEST_REAL_SIMILAR(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
+		TEST_REAL_SIMILAR(dpa1[i].getIntensity(),dpa2[i].getIntensity())
 	}
-RESULT
+END_SECTION
 
-CHECK(([EXTRA]void setParam(const BasicStatistics&,CoordinateType,CoordinateType)))
+START_SECTION(([EXTRA]void setParam(const BasicStatistics&,CoordinateType,CoordinateType)))
 	GaussModel gm1;
 	BasicStatistics<>  stat;
 	stat.setMean(0.0);
@@ -168,35 +168,35 @@ CHECK(([EXTRA]void setParam(const BasicStatistics&,CoordinateType,CoordinateType
 	tmp.setValue("statistics:mean",stat.mean() );			
 	gm1.setParameters(tmp);	
 
-	TEST_REAL_EQUAL(gm1.getCenter(), 0.0)
+	TEST_REAL_SIMILAR(gm1.getCenter(), 0.0)
 
-	PRECISION(0.001)
-	TEST_REAL_EQUAL(gm1.getIntensity(-1.0), 0.24197072);
-	TEST_REAL_EQUAL(gm1.getIntensity(0.0), 0.39894228);
-	TEST_REAL_EQUAL(gm1.getIntensity(1.0), 0.24197072);
-	TEST_REAL_EQUAL(gm1.getIntensity(2.0), 0.05399097);
+	TOLERANCE_ABSOLUTE(0.001)
+	TEST_REAL_SIMILAR(gm1.getIntensity(-1.0), 0.24197072);
+	TEST_REAL_SIMILAR(gm1.getIntensity(0.0), 0.39894228);
+	TEST_REAL_SIMILAR(gm1.getIntensity(1.0), 0.24197072);
+	TEST_REAL_SIMILAR(gm1.getIntensity(2.0), 0.05399097);
 
 	gm1.setInterpolationStep(0.2);
 	gm1.setSamples();
 
-	TEST_REAL_EQUAL(gm1.getIntensity(-1.0), 0.24197072);
-	TEST_REAL_EQUAL(gm1.getIntensity(0.0), 0.39894228);
-	TEST_REAL_EQUAL(gm1.getIntensity(1.0), 0.24197072);
-	TEST_REAL_EQUAL(gm1.getIntensity(2.0), 0.05399097);
+	TEST_REAL_SIMILAR(gm1.getIntensity(-1.0), 0.24197072);
+	TEST_REAL_SIMILAR(gm1.getIntensity(0.0), 0.39894228);
+	TEST_REAL_SIMILAR(gm1.getIntensity(1.0), 0.24197072);
+	TEST_REAL_SIMILAR(gm1.getIntensity(2.0), 0.05399097);
 
 	gm1.setScalingFactor(10.0);
 	gm1.setSamples();
 
-	TEST_REAL_EQUAL(gm1.getIntensity(-1.0), 2.4197072);
-	TEST_REAL_EQUAL(gm1.getIntensity(0.0), 3.9894228);
-	TEST_REAL_EQUAL(gm1.getIntensity(1.0), 2.4197072);
-	TEST_REAL_EQUAL(gm1.getIntensity(2.0), 0.5399097);
-RESULT
+	TEST_REAL_SIMILAR(gm1.getIntensity(-1.0), 2.4197072);
+	TEST_REAL_SIMILAR(gm1.getIntensity(0.0), 3.9894228);
+	TEST_REAL_SIMILAR(gm1.getIntensity(1.0), 2.4197072);
+	TEST_REAL_SIMILAR(gm1.getIntensity(2.0), 0.5399097);
+END_SECTION
 
 
-CHECK((void setOffset(CoordinateType offset)))
+START_SECTION((void setOffset(CoordinateType offset)))
 
-	PRECISION(0.001)
+	TOLERANCE_ABSOLUTE(0.001)
 	GaussModel gm1;
 	
 	gm1.setScalingFactor(10.0);
@@ -209,12 +209,12 @@ CHECK((void setOffset(CoordinateType offset)))
 	gm1.setParameters(tmp);
 	gm1.setOffset(680.0);
 
-	TEST_REAL_EQUAL(gm1.getCenter(), 680.2)
+	TEST_REAL_SIMILAR(gm1.getCenter(), 680.2)
 
-RESULT
+END_SECTION
 
-CHECK( CoordinateType getCenter() const )
-	PRECISION(0.001)
+START_SECTION( CoordinateType getCenter() const )
+	TOLERANCE_ABSOLUTE(0.001)
 	GaussModel gm1;
 	
 	gm1.setScalingFactor(10.0);
@@ -226,8 +226,8 @@ CHECK( CoordinateType getCenter() const )
 	tmp.setValue("statistics:mean",679.1);			
 	gm1.setParameters(tmp);
 
-	TEST_REAL_EQUAL(gm1.getCenter(), 679.1)	
-RESULT
+	TEST_REAL_SIMILAR(gm1.getCenter(), 679.1)	
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -42,31 +42,31 @@ START_TEST(SpectrumPrecursorComparator, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SpectrumPrecursorComparator* e_ptr = 0;
-CHECK(SpectrumPrecursorComparator())
+START_SECTION(SpectrumPrecursorComparator())
 	e_ptr = new SpectrumPrecursorComparator;
 	TEST_NOT_EQUAL(e_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~SpectrumPrecursorComparator())
+START_SECTION(~SpectrumPrecursorComparator())
 	delete e_ptr;
-RESULT
+END_SECTION
 
 e_ptr = new SpectrumPrecursorComparator();
 
-CHECK(SpectrumPrecursorComparator(const SpectrumPrecursorComparator& source))
+START_SECTION(SpectrumPrecursorComparator(const SpectrumPrecursorComparator& source))
 	SpectrumPrecursorComparator copy(*e_ptr);
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
-RESULT
+END_SECTION
 
-CHECK(SpectrumPrecursorComparator& operator = (const SpectrumPrecursorComparator& source))
+START_SECTION(SpectrumPrecursorComparator& operator = (const SpectrumPrecursorComparator& source))
 	SpectrumPrecursorComparator copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
-RESULT
+END_SECTION
 
-CHECK(double operator () (const PeakSpectrum& a, const PeakSpectrum& b) const)
+START_SECTION(double operator () (const PeakSpectrum& a, const PeakSpectrum& b) const)
 	DTAFile dta_file;
 	PeakSpectrum spec1;
 	dta_file.load("data/Transformers_tests.dta", spec1);
@@ -77,32 +77,32 @@ CHECK(double operator () (const PeakSpectrum& a, const PeakSpectrum& b) const)
 
 	double score = (*e_ptr)(spec1, spec2);
 
-	TEST_REAL_EQUAL(score, 1.7685)
+	TEST_REAL_SIMILAR(score, 1.7685)
 
 	score = (*e_ptr)(spec1, spec1);
 
-	TEST_REAL_EQUAL(score, 2)
-RESULT
+	TEST_REAL_SIMILAR(score, 2)
+END_SECTION
 
-CHECK(double operator () (const PeakSpectrum& a) const)
+START_SECTION(double operator () (const PeakSpectrum& a) const)
 	DTAFile dta_file;
 	PeakSpectrum spec1;
 	dta_file.load("data/Transformers_tests.dta", spec1);
 
-	TEST_REAL_EQUAL((*e_ptr)(spec1), 2.0)
+	TEST_REAL_SIMILAR((*e_ptr)(spec1), 2.0)
 
-RESULT
+END_SECTION
 
-CHECK(static PeakSpectrumCompareFunctor* create())
+START_SECTION(static PeakSpectrumCompareFunctor* create())
 	PeakSpectrumCompareFunctor* cf = SpectrumPrecursorComparator::create();
 	SpectrumPrecursorComparator pre_comp;
 	TEST_EQUAL(cf->getName(), pre_comp.getName())
 	TEST_EQUAL(cf->getParameters(), pre_comp.getParameters())
-RESULT
+END_SECTION
 
-CHECK(static const String getProductName())
+START_SECTION(static const String getProductName())
 	TEST_EQUAL(e_ptr->getProductName(), "SpectrumPrecursorComparator")
-RESULT
+END_SECTION
 
 delete e_ptr;
 

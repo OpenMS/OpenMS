@@ -42,20 +42,20 @@ using namespace OpenMS;
 using namespace std;
 
 MSExperiment<>* ptr = 0;
-CHECK((MSExperiment()))
+START_SECTION((MSExperiment()))
 {
 	ptr = new MSExperiment<>;
 	TEST_NOT_EQUAL(ptr, 0);
 }
-RESULT
+END_SECTION
 
-CHECK(([EXTRA]~MSExperiment()))
+START_SECTION(([EXTRA]~MSExperiment()))
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((MSExperiment(const MSExperiment& source)))
+START_SECTION((MSExperiment(const MSExperiment& source)))
 {
   MSExperiment<> tmp;
   tmp.getContacts().resize(1);
@@ -67,9 +67,9 @@ CHECK((MSExperiment(const MSExperiment& source)))
   TEST_EQUAL(tmp2.getContacts()[0].getFirstName(),"Name");
   TEST_EQUAL(tmp2.size(),1);
 }
-RESULT
+END_SECTION
 
-CHECK((MSExperiment& operator= (const MSExperiment& source)))
+START_SECTION((MSExperiment& operator= (const MSExperiment& source)))
   MSExperiment<> tmp;
   tmp.getContacts().resize(1);
   tmp.getContacts()[0].setFirstName("Name");
@@ -86,15 +86,15 @@ CHECK((MSExperiment& operator= (const MSExperiment& source)))
   TEST_EQUAL(tmp2.getContacts().size(),1);
   TEST_EQUAL(tmp2.getContacts()[0].getFirstName(),"Name");
   TEST_EQUAL(tmp2.size(),1);
-	TEST_REAL_EQUAL(tmp2.getMinMZ(),5.0);
-	TEST_REAL_EQUAL(tmp2.getMaxMZ(),10.0);
+	TEST_REAL_SIMILAR(tmp2.getMinMZ(),5.0);
+	TEST_REAL_SIMILAR(tmp2.getMaxMZ(),10.0);
 
   tmp2 = MSExperiment<>();
   TEST_EQUAL(tmp2.getContacts().size(),0);
   TEST_EQUAL(tmp2.size(),0);
-RESULT
+END_SECTION
 
-CHECK((bool operator== (const MSExperiment& rhs) const))
+START_SECTION((bool operator== (const MSExperiment& rhs) const))
   MSExperiment<> edit,empty;
 
 	TEST_EQUAL(edit==empty, true);
@@ -105,9 +105,9 @@ CHECK((bool operator== (const MSExperiment& rhs) const))
 	edit = empty;
   edit.resize(1);
 	TEST_EQUAL(edit==empty, false);
-RESULT
+END_SECTION
 
-CHECK((bool operator!= (const MSExperiment& rhs) const))
+START_SECTION((bool operator!= (const MSExperiment& rhs) const))
   MSExperiment<> edit,empty;
 
 	TEST_EQUAL(edit!=empty, false);
@@ -118,9 +118,9 @@ CHECK((bool operator!= (const MSExperiment& rhs) const))
 	edit = empty;
   edit.resize(1);
 	TEST_EQUAL(edit!=empty, true);
-RESULT
+END_SECTION
 
-CHECK((template<class Container> void get2DData(Container& cont) const))
+START_SECTION((template<class Container> void get2DData(Container& cont) const))
 	MSExperiment<> exp;
 	MSExperiment<>::SpectrumType spec;
 	MSExperiment<>::PeakType peak;
@@ -175,46 +175,46 @@ CHECK((template<class Container> void get2DData(Container& cont) const))
 	exp.get2DData(a);
 
 	//Tests
-	TEST_REAL_EQUAL(a.size(),5);
-	TEST_REAL_EQUAL(a[0].getRT(),11.1);
-	TEST_REAL_EQUAL(a[0].getMZ(),5);
-	TEST_REAL_EQUAL(a[0].getIntensity(),47.11);
-	TEST_REAL_EQUAL(a[1].getRT(),11.1);
-	TEST_REAL_EQUAL(a[1].getMZ(),10);
-	TEST_REAL_EQUAL(a[1].getIntensity(),48.11);
-	TEST_REAL_EQUAL(a[2].getRT(),11.1);
-	TEST_REAL_EQUAL(a[2].getMZ(),15);
-	TEST_REAL_EQUAL(a[3].getRT(),12.2);
-	TEST_REAL_EQUAL(a[3].getMZ(),20);
-	TEST_REAL_EQUAL(a[4].getRT(),12.2);
-	TEST_REAL_EQUAL(a[4].getMZ(),25);
+	TEST_REAL_SIMILAR(a.size(),5);
+	TEST_REAL_SIMILAR(a[0].getRT(),11.1);
+	TEST_REAL_SIMILAR(a[0].getMZ(),5);
+	TEST_REAL_SIMILAR(a[0].getIntensity(),47.11);
+	TEST_REAL_SIMILAR(a[1].getRT(),11.1);
+	TEST_REAL_SIMILAR(a[1].getMZ(),10);
+	TEST_REAL_SIMILAR(a[1].getIntensity(),48.11);
+	TEST_REAL_SIMILAR(a[2].getRT(),11.1);
+	TEST_REAL_SIMILAR(a[2].getMZ(),15);
+	TEST_REAL_SIMILAR(a[3].getRT(),12.2);
+	TEST_REAL_SIMILAR(a[3].getMZ(),20);
+	TEST_REAL_SIMILAR(a[4].getRT(),12.2);
+	TEST_REAL_SIMILAR(a[4].getMZ(),25);
 
 	//Convert
 	std::vector<Peak2D> list;
 	exp.get2DData(list);
 
 	//Tests
-	TEST_REAL_EQUAL(list.size(),5);
+	TEST_REAL_SIMILAR(list.size(),5);
 	std::vector<Peak2D>::const_iterator it = list.begin();
-	TEST_REAL_EQUAL(it->getRT(),11.1);
-	TEST_REAL_EQUAL(it->getMZ(),5);
-	TEST_REAL_EQUAL(it->getIntensity(),47.11);
+	TEST_REAL_SIMILAR(it->getRT(),11.1);
+	TEST_REAL_SIMILAR(it->getMZ(),5);
+	TEST_REAL_SIMILAR(it->getIntensity(),47.11);
 	++it;
-	TEST_REAL_EQUAL(it->getRT(),11.1);
-	TEST_REAL_EQUAL(it->getMZ(),10);
-	TEST_REAL_EQUAL(it->getIntensity(),48.11);
+	TEST_REAL_SIMILAR(it->getRT(),11.1);
+	TEST_REAL_SIMILAR(it->getMZ(),10);
+	TEST_REAL_SIMILAR(it->getIntensity(),48.11);
 	++it;
-	TEST_REAL_EQUAL(it->getRT(),11.1);
-	TEST_REAL_EQUAL(it->getMZ(),15);
+	TEST_REAL_SIMILAR(it->getRT(),11.1);
+	TEST_REAL_SIMILAR(it->getMZ(),15);
 	++it;
-	TEST_REAL_EQUAL(it->getRT(),12.2);
-	TEST_REAL_EQUAL(it->getMZ(),20);
+	TEST_REAL_SIMILAR(it->getRT(),12.2);
+	TEST_REAL_SIMILAR(it->getMZ(),20);
 	++it;
-	TEST_REAL_EQUAL(it->getRT(),12.2);
-	TEST_REAL_EQUAL(it->getMZ(),25);
-RESULT
+	TEST_REAL_SIMILAR(it->getRT(),12.2);
+	TEST_REAL_SIMILAR(it->getMZ(),25);
+END_SECTION
 
-CHECK((template<class Container> void set2DData(const Container& cont)))
+START_SECTION((template<class Container> void set2DData(const Container& cont)))
 	MSExperiment<> exp;
 
 	// create sample data
@@ -250,55 +250,55 @@ CHECK((template<class Container> void set2DData(const Container& cont)))
 	input.push_back(p1);
 	TEST_EXCEPTION(Exception::Precondition,exp.set2DData(input));
 
-RESULT
+END_SECTION
 
-CHECK(([EXTRA] MSExperiment<Peak1D >()))
+START_SECTION(([EXTRA] MSExperiment<Peak1D >()))
 	MSExperiment<Peak1D > tmp;
 	tmp.resize(1);
 	tmp[0].resize(1);
 	tmp[0][0].getPosition()[0] = 47.11;
-	TEST_REAL_EQUAL(tmp[0][0].getPosition()[0],47.11)
-RESULT
+	TEST_REAL_SIMILAR(tmp[0][0].getPosition()[0],47.11)
+END_SECTION
 
-CHECK((CoordinateType getMinMZ() const))
+START_SECTION((CoordinateType getMinMZ() const))
 	MSExperiment<Peak1D > tmp;
-	TEST_REAL_EQUAL(tmp.getMinMZ(),numeric_limits<DPosition<2>::CoordinateType>::max())
-RESULT
+	TEST_REAL_SIMILAR(tmp.getMinMZ(),numeric_limits<DPosition<2>::CoordinateType>::max())
+END_SECTION
 
-CHECK((CoordinateType getMaxMZ() const))
+START_SECTION((CoordinateType getMaxMZ() const))
 	MSExperiment<Peak1D > tmp;
-	TEST_REAL_EQUAL(tmp.getMaxMZ(),-numeric_limits<DPosition<2>::CoordinateType>::max())
-RESULT
+	TEST_REAL_SIMILAR(tmp.getMaxMZ(),-numeric_limits<DPosition<2>::CoordinateType>::max())
+END_SECTION
 
-CHECK((CoordinateType getMinRT() const))
+START_SECTION((CoordinateType getMinRT() const))
 	MSExperiment<Peak1D > tmp;
-	TEST_REAL_EQUAL(tmp.getMinRT(),numeric_limits<DPosition<2>::CoordinateType>::max())
-RESULT
+	TEST_REAL_SIMILAR(tmp.getMinRT(),numeric_limits<DPosition<2>::CoordinateType>::max())
+END_SECTION
 
-CHECK((CoordinateType getMaxRT() const))
+START_SECTION((CoordinateType getMaxRT() const))
 	MSExperiment<Peak1D > tmp;
-	TEST_REAL_EQUAL(tmp.getMaxRT(),-numeric_limits<DPosition<2>::CoordinateType>::max())
-RESULT
+	TEST_REAL_SIMILAR(tmp.getMaxRT(),-numeric_limits<DPosition<2>::CoordinateType>::max())
+END_SECTION
 
-CHECK((const std::vector<UInt>& getMSLevels() const))
+START_SECTION((const std::vector<UInt>& getMSLevels() const))
 	MSExperiment<Peak1D > tmp;
 	TEST_EQUAL(tmp.getMSLevels().size(),0)
-RESULT
+END_SECTION
 
-CHECK((UInt getSize() const))
+START_SECTION((UInt getSize() const))
 	MSExperiment<Peak1D > tmp;
 	TEST_EQUAL(tmp.getSize(),0)
-RESULT
+END_SECTION
 
-CHECK((const AreaType& getDataRange() const))
+START_SECTION((const AreaType& getDataRange() const))
 	MSExperiment<Peak1D > tmp;
-	TEST_REAL_EQUAL(tmp.getDataRange().min()[1],numeric_limits<DPosition<2>::CoordinateType>::max())
-	TEST_REAL_EQUAL(tmp.getDataRange().max()[1],-numeric_limits<DPosition<2>::CoordinateType>::max())
-	TEST_REAL_EQUAL(tmp.getDataRange().min()[0],numeric_limits<DPosition<2>::CoordinateType>::max())
-	TEST_REAL_EQUAL(tmp.getDataRange().max()[0],-numeric_limits<DPosition<2>::CoordinateType>::max())
-RESULT
+	TEST_REAL_SIMILAR(tmp.getDataRange().min()[1],numeric_limits<DPosition<2>::CoordinateType>::max())
+	TEST_REAL_SIMILAR(tmp.getDataRange().max()[1],-numeric_limits<DPosition<2>::CoordinateType>::max())
+	TEST_REAL_SIMILAR(tmp.getDataRange().min()[0],numeric_limits<DPosition<2>::CoordinateType>::max())
+	TEST_REAL_SIMILAR(tmp.getDataRange().max()[0],-numeric_limits<DPosition<2>::CoordinateType>::max())
+END_SECTION
 
-CHECK((virtual void updateRanges()))
+START_SECTION((virtual void updateRanges()))
 	MSExperiment< Peak1D > tmp;
 	MSSpectrum< Peak1D > s;
 	Peak1D p;
@@ -337,28 +337,28 @@ CHECK((virtual void updateRanges()))
 	tmp.updateRanges();
 	tmp.updateRanges(); //second time to check the initialization
 
-	TEST_REAL_EQUAL(tmp.getMinMZ(),5.0)
-	TEST_REAL_EQUAL(tmp.getMaxMZ(),10.0)
-	TEST_REAL_EQUAL(tmp.getMinInt(),-10.0)
-	TEST_REAL_EQUAL(tmp.getMaxInt(),-5.0)
-	TEST_REAL_EQUAL(tmp.getMinRT(),30.0)
-	TEST_REAL_EQUAL(tmp.getMaxRT(),50.0)
+	TEST_REAL_SIMILAR(tmp.getMinMZ(),5.0)
+	TEST_REAL_SIMILAR(tmp.getMaxMZ(),10.0)
+	TEST_REAL_SIMILAR(tmp.getMinInt(),-10.0)
+	TEST_REAL_SIMILAR(tmp.getMaxInt(),-5.0)
+	TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
+	TEST_REAL_SIMILAR(tmp.getMaxRT(),50.0)
 	TEST_EQUAL(tmp.getMSLevels().size(),2)
 	TEST_EQUAL(tmp.getMSLevels()[0],1)
 	TEST_EQUAL(tmp.getMSLevels()[1],3)
 	TEST_EQUAL(tmp.getSize(),4)
 	tmp.updateRanges();
-	TEST_REAL_EQUAL(tmp.getMinMZ(),5.0)
-	TEST_REAL_EQUAL(tmp.getMaxMZ(),10.0)
-	TEST_REAL_EQUAL(tmp.getMinInt(),-10.0)
-	TEST_REAL_EQUAL(tmp.getMaxInt(),-5.0)
-	TEST_REAL_EQUAL(tmp.getMinRT(),30.0)
-	TEST_REAL_EQUAL(tmp.getMaxRT(),50.0)
+	TEST_REAL_SIMILAR(tmp.getMinMZ(),5.0)
+	TEST_REAL_SIMILAR(tmp.getMaxMZ(),10.0)
+	TEST_REAL_SIMILAR(tmp.getMinInt(),-10.0)
+	TEST_REAL_SIMILAR(tmp.getMaxInt(),-5.0)
+	TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
+	TEST_REAL_SIMILAR(tmp.getMaxRT(),50.0)
 
-	TEST_REAL_EQUAL(tmp.getDataRange().min()[1],5.0)
-	TEST_REAL_EQUAL(tmp.getDataRange().max()[1],10.0)
-	TEST_REAL_EQUAL(tmp.getDataRange().min()[0],30.0)
-	TEST_REAL_EQUAL(tmp.getDataRange().max()[0],50.0)
+	TEST_REAL_SIMILAR(tmp.getDataRange().min()[1],5.0)
+	TEST_REAL_SIMILAR(tmp.getDataRange().max()[1],10.0)
+	TEST_REAL_SIMILAR(tmp.getDataRange().min()[0],30.0)
+	TEST_REAL_SIMILAR(tmp.getDataRange().max()[0],50.0)
 
 	TEST_EQUAL(tmp.getMSLevels().size(),2)
 	TEST_EQUAL(tmp.getMSLevels()[0],1)
@@ -370,22 +370,22 @@ CHECK((virtual void updateRanges()))
 
 	tmp.updateRanges(1);
 	tmp.updateRanges(1);
-	TEST_REAL_EQUAL(tmp.getMinMZ(),5.0)
-	TEST_REAL_EQUAL(tmp.getMaxMZ(),7.0)
-	TEST_REAL_EQUAL(tmp.getMinInt(),-7.0)
-	TEST_REAL_EQUAL(tmp.getMaxInt(),-5.0)
-	TEST_REAL_EQUAL(tmp.getMinRT(),30.0)
-	TEST_REAL_EQUAL(tmp.getMaxRT(),40.0)
+	TEST_REAL_SIMILAR(tmp.getMinMZ(),5.0)
+	TEST_REAL_SIMILAR(tmp.getMaxMZ(),7.0)
+	TEST_REAL_SIMILAR(tmp.getMinInt(),-7.0)
+	TEST_REAL_SIMILAR(tmp.getMaxInt(),-5.0)
+	TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
+	TEST_REAL_SIMILAR(tmp.getMaxRT(),40.0)
 	TEST_EQUAL(tmp.getMSLevels().size(),1)
 	TEST_EQUAL(tmp.getMSLevels()[0],1)
 	TEST_EQUAL(tmp.getSize(),2)
 	tmp.updateRanges(1);
-	TEST_REAL_EQUAL(tmp.getMinMZ(),5.0)
-	TEST_REAL_EQUAL(tmp.getMaxMZ(),7.0)
-	TEST_REAL_EQUAL(tmp.getMinInt(),-7.0)
-	TEST_REAL_EQUAL(tmp.getMaxInt(),-5.0)
-	TEST_REAL_EQUAL(tmp.getMinRT(),30.0)
-	TEST_REAL_EQUAL(tmp.getMaxRT(),40.0)
+	TEST_REAL_SIMILAR(tmp.getMinMZ(),5.0)
+	TEST_REAL_SIMILAR(tmp.getMaxMZ(),7.0)
+	TEST_REAL_SIMILAR(tmp.getMinInt(),-7.0)
+	TEST_REAL_SIMILAR(tmp.getMaxInt(),-5.0)
+	TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
+	TEST_REAL_SIMILAR(tmp.getMaxRT(),40.0)
 	TEST_EQUAL(tmp.getMSLevels().size(),1)
 	TEST_EQUAL(tmp.getMSLevels()[0],1)
 	TEST_EQUAL(tmp.getSize(),2)
@@ -403,24 +403,24 @@ CHECK((virtual void updateRanges()))
 	tmp2.push_back(s2);
 
 	tmp2.updateRanges();
-	TEST_REAL_EQUAL(tmp2.getMinMZ(),5.0)
-	TEST_REAL_EQUAL(tmp2.getMaxMZ(),5.0)
-	TEST_REAL_EQUAL(tmp2.getMinInt(),-5.0)
-	TEST_REAL_EQUAL(tmp2.getMaxInt(),-5.0)
-	TEST_REAL_EQUAL(tmp2.getMinRT(),30.0)
-	TEST_REAL_EQUAL(tmp2.getMaxRT(),30.0)
+	TEST_REAL_SIMILAR(tmp2.getMinMZ(),5.0)
+	TEST_REAL_SIMILAR(tmp2.getMaxMZ(),5.0)
+	TEST_REAL_SIMILAR(tmp2.getMinInt(),-5.0)
+	TEST_REAL_SIMILAR(tmp2.getMaxInt(),-5.0)
+	TEST_REAL_SIMILAR(tmp2.getMinRT(),30.0)
+	TEST_REAL_SIMILAR(tmp2.getMaxRT(),30.0)
 
 	tmp2.updateRanges(1);
-	TEST_REAL_EQUAL(tmp2.getMinMZ(),5.0)
-	TEST_REAL_EQUAL(tmp2.getMaxMZ(),5.0)
-	TEST_REAL_EQUAL(tmp2.getMinInt(),-5.0)
-	TEST_REAL_EQUAL(tmp2.getMaxInt(),-5.0)
-	TEST_REAL_EQUAL(tmp2.getMinRT(),30.0)
-	TEST_REAL_EQUAL(tmp2.getMaxRT(),30.0)
+	TEST_REAL_SIMILAR(tmp2.getMinMZ(),5.0)
+	TEST_REAL_SIMILAR(tmp2.getMaxMZ(),5.0)
+	TEST_REAL_SIMILAR(tmp2.getMinInt(),-5.0)
+	TEST_REAL_SIMILAR(tmp2.getMaxInt(),-5.0)
+	TEST_REAL_SIMILAR(tmp2.getMinRT(),30.0)
+	TEST_REAL_SIMILAR(tmp2.getMaxRT(),30.0)
 
-RESULT
+END_SECTION
 
-CHECK((void updateRanges(Int ms_level)))
+START_SECTION((void updateRanges(Int ms_level)))
 	MSExperiment< Peak1D > tmp;
 	MSSpectrum< Peak1D > s;
 	Peak1D p;
@@ -460,22 +460,22 @@ CHECK((void updateRanges(Int ms_level)))
 
 	tmp.updateRanges(1);
 	tmp.updateRanges(1);
-	TEST_REAL_EQUAL(tmp.getMinMZ(),5.0)
-	TEST_REAL_EQUAL(tmp.getMaxMZ(),7.0)
-	TEST_REAL_EQUAL(tmp.getMinInt(),-7.0)
-	TEST_REAL_EQUAL(tmp.getMaxInt(),-5.0)
-	TEST_REAL_EQUAL(tmp.getMinRT(),30.0)
-	TEST_REAL_EQUAL(tmp.getMaxRT(),40.0)
+	TEST_REAL_SIMILAR(tmp.getMinMZ(),5.0)
+	TEST_REAL_SIMILAR(tmp.getMaxMZ(),7.0)
+	TEST_REAL_SIMILAR(tmp.getMinInt(),-7.0)
+	TEST_REAL_SIMILAR(tmp.getMaxInt(),-5.0)
+	TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
+	TEST_REAL_SIMILAR(tmp.getMaxRT(),40.0)
 	TEST_EQUAL(tmp.getMSLevels().size(),1)
 	TEST_EQUAL(tmp.getMSLevels()[0],1)
 	TEST_EQUAL(tmp.getSize(),2)
 	tmp.updateRanges(1);
-	TEST_REAL_EQUAL(tmp.getMinMZ(),5.0)
-	TEST_REAL_EQUAL(tmp.getMaxMZ(),7.0)
-	TEST_REAL_EQUAL(tmp.getMinInt(),-7.0)
-	TEST_REAL_EQUAL(tmp.getMaxInt(),-5.0)
-	TEST_REAL_EQUAL(tmp.getMinRT(),30.0)
-	TEST_REAL_EQUAL(tmp.getMaxRT(),40.0)
+	TEST_REAL_SIMILAR(tmp.getMinMZ(),5.0)
+	TEST_REAL_SIMILAR(tmp.getMaxMZ(),7.0)
+	TEST_REAL_SIMILAR(tmp.getMinInt(),-7.0)
+	TEST_REAL_SIMILAR(tmp.getMaxInt(),-5.0)
+	TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
+	TEST_REAL_SIMILAR(tmp.getMaxRT(),40.0)
 	TEST_EQUAL(tmp.getMSLevels().size(),1)
 	TEST_EQUAL(tmp.getMSLevels()[0],1)
 	TEST_EQUAL(tmp.getSize(),2)
@@ -493,20 +493,20 @@ CHECK((void updateRanges(Int ms_level)))
 	tmp2.push_back(s2);
 
 	tmp2.updateRanges(1);
-	TEST_REAL_EQUAL(tmp2.getMinMZ(),5.0)
-	TEST_REAL_EQUAL(tmp2.getMaxMZ(),5.0)
-	TEST_REAL_EQUAL(tmp2.getMinInt(),-5.0)
-	TEST_REAL_EQUAL(tmp2.getMaxInt(),-5.0)
-	TEST_REAL_EQUAL(tmp2.getMinRT(),30.0)
-	TEST_REAL_EQUAL(tmp2.getMaxRT(),30.0)
+	TEST_REAL_SIMILAR(tmp2.getMinMZ(),5.0)
+	TEST_REAL_SIMILAR(tmp2.getMaxMZ(),5.0)
+	TEST_REAL_SIMILAR(tmp2.getMinInt(),-5.0)
+	TEST_REAL_SIMILAR(tmp2.getMaxInt(),-5.0)
+	TEST_REAL_SIMILAR(tmp2.getMinRT(),30.0)
+	TEST_REAL_SIMILAR(tmp2.getMaxRT(),30.0)
 
-RESULT
+END_SECTION
 
-CHECK((ConstAreaIterator areaEndConst() const))
+START_SECTION((ConstAreaIterator areaEndConst() const))
 NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz) const))
+START_SECTION((ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz) const))
 	std::vector< Peak2D> plist;
 
 	Peak2D p1;
@@ -542,13 +542,13 @@ CHECK((ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType ma
 	TEST_EXCEPTION(Exception::Precondition,exp.areaBeginConst(0,15,15,0));
 	TEST_EXCEPTION(Exception::Precondition,exp.areaBeginConst(15,0,15,0));
 
-RESULT
+END_SECTION
 
-CHECK((AreaIterator areaEnd()))
+START_SECTION((AreaIterator areaEnd()))
 NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz)))
+START_SECTION((AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz)))
 	std::vector< Peak2D> plist;
 
 	Peak2D p1;
@@ -586,9 +586,9 @@ CHECK((AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, Coor
 	TEST_EXCEPTION(Exception::Precondition,exp.areaBegin(0,15,15,0));
 	TEST_EXCEPTION(Exception::Precondition,exp.areaBegin(15,0,15,0));
 
-RESULT
+END_SECTION
 
-CHECK((Iterator RTBegin(CoordinateType rt)))
+START_SECTION((Iterator RTBegin(CoordinateType rt)))
 	MSExperiment< Peak1D > tmp;
 	MSSpectrum< Peak1D > s;
 	Peak1D p;
@@ -605,15 +605,15 @@ CHECK((Iterator RTBegin(CoordinateType rt)))
 	MSExperiment< Peak1D >::Iterator it;
 
 	it = tmp.RTBegin(20.0);
-	TEST_REAL_EQUAL(it->getRT(),30.0)
+	TEST_REAL_SIMILAR(it->getRT(),30.0)
 	it = tmp.RTBegin(30.0);
-	TEST_REAL_EQUAL(it->getRT(),30.0)
+	TEST_REAL_SIMILAR(it->getRT(),30.0)
 	it = tmp.RTBegin(31.0);
-	TEST_REAL_EQUAL(it->getRT(),40.0)
+	TEST_REAL_SIMILAR(it->getRT(),40.0)
 	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true)
-RESULT
+END_SECTION
 
-CHECK((Iterator RTEnd(CoordinateType rt)))
+START_SECTION((Iterator RTEnd(CoordinateType rt)))
 	MSExperiment< Peak1D > tmp;
 	MSSpectrum< Peak1D > s;
 	Peak1D p;
@@ -630,15 +630,15 @@ CHECK((Iterator RTEnd(CoordinateType rt)))
 	MSExperiment< Peak1D >::Iterator it;
 
 	it = tmp.RTEnd(20.0);
-	TEST_REAL_EQUAL(it->getRT(),30.0)
+	TEST_REAL_SIMILAR(it->getRT(),30.0)
 	it = tmp.RTEnd(30.0);
-	TEST_REAL_EQUAL(it->getRT(),40.0)
+	TEST_REAL_SIMILAR(it->getRT(),40.0)
 	it = tmp.RTEnd(31.0);
-	TEST_REAL_EQUAL(it->getRT(),40.0)
+	TEST_REAL_SIMILAR(it->getRT(),40.0)
 	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true)
-RESULT
+END_SECTION
 
-CHECK((ConstIterator RTBegin(CoordinateType rt) const))
+START_SECTION((ConstIterator RTBegin(CoordinateType rt) const))
 	MSExperiment< Peak1D > tmp;
 	MSSpectrum< Peak1D > s;
 	Peak1D p;
@@ -655,15 +655,15 @@ CHECK((ConstIterator RTBegin(CoordinateType rt) const))
 	MSExperiment< Peak1D >::Iterator it;
 
 	it = tmp.RTBegin(20.0);
-	TEST_REAL_EQUAL(it->getRT(),30.0)
+	TEST_REAL_SIMILAR(it->getRT(),30.0)
 	it = tmp.RTBegin(30.0);
-	TEST_REAL_EQUAL(it->getRT(),30.0)
+	TEST_REAL_SIMILAR(it->getRT(),30.0)
 	it = tmp.RTBegin(31.0);
-	TEST_REAL_EQUAL(it->getRT(),40.0)
+	TEST_REAL_SIMILAR(it->getRT(),40.0)
 	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true)
-RESULT
+END_SECTION
 
-CHECK((ConstIterator RTEnd(CoordinateType rt) const))
+START_SECTION((ConstIterator RTEnd(CoordinateType rt) const))
 	MSExperiment< Peak1D > tmp;
 	MSSpectrum< Peak1D > s;
 	Peak1D p;
@@ -680,15 +680,15 @@ CHECK((ConstIterator RTEnd(CoordinateType rt) const))
 	MSExperiment< Peak1D >::Iterator it;
 
 	it = tmp.RTEnd(20.0);
-	TEST_REAL_EQUAL(it->getRT(),30.0)
+	TEST_REAL_SIMILAR(it->getRT(),30.0)
 	it = tmp.RTEnd(30.0);
-	TEST_REAL_EQUAL(it->getRT(),40.0)
+	TEST_REAL_SIMILAR(it->getRT(),40.0)
 	it = tmp.RTEnd(31.0);
-	TEST_REAL_EQUAL(it->getRT(),40.0)
+	TEST_REAL_SIMILAR(it->getRT(),40.0)
 	TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true)
-RESULT
+END_SECTION
 
-CHECK((void sortSpectra(bool sort_mz = true)))
+START_SECTION((void sortSpectra(bool sort_mz = true)))
 	std::vector< Peak2D> plist;
 
 	Peak2D p1;
@@ -716,13 +716,13 @@ CHECK((void sortSpectra(bool sort_mz = true)))
 
 	exp.sortSpectra(true);
 
-	TEST_REAL_EQUAL(exp[0][0].getMZ(),3.0);
-	TEST_REAL_EQUAL(exp[0][1].getMZ(),5.0);
-	TEST_REAL_EQUAL(exp[1][0].getMZ(),11.0);
-	TEST_REAL_EQUAL(exp[1][1].getMZ(),14.0);
-RESULT
+	TEST_REAL_SIMILAR(exp[0][0].getMZ(),3.0);
+	TEST_REAL_SIMILAR(exp[0][1].getMZ(),5.0);
+	TEST_REAL_SIMILAR(exp[1][0].getMZ(),11.0);
+	TEST_REAL_SIMILAR(exp[1][1].getMZ(),14.0);
+END_SECTION
 
-CHECK((void reset()))
+START_SECTION((void reset()))
 	std::vector< Peak2D> plist;
 
 	Peak2D p;
@@ -740,28 +740,28 @@ CHECK((void reset()))
 	exp.reset();
 
 	TEST_EQUAL(exp==MSExperiment<>(),true);
-RESULT
+END_SECTION
 
-CHECK((const ExperimentalSettings& getExperimentalSettings() const))
+START_SECTION((const ExperimentalSettings& getExperimentalSettings() const))
 	MSExperiment<> exp;
 	exp.setComment("test");
 	TEST_EQUAL(exp.getExperimentalSettings().getComment(),"test");
-RESULT
+END_SECTION
 
-CHECK((ExperimentalSettings& getExperimentalSettings()))
+START_SECTION((ExperimentalSettings& getExperimentalSettings()))
 	MSExperiment<> exp;
 	exp.getExperimentalSettings().setComment("test");
 	TEST_EQUAL(exp.getExperimentalSettings().getComment(),"test");
-RESULT
+END_SECTION
 
-CHECK((MSExperiment& operator=(const ExperimentalSettings &source)))
+START_SECTION((MSExperiment& operator=(const ExperimentalSettings &source)))
 	MSExperiment<> exp,exp2;
 	exp.getExperimentalSettings().setComment("test");
 	exp2 = exp.getExperimentalSettings();
 	TEST_EQUAL(exp2.getExperimentalSettings().getComment(),"test");
-RESULT
+END_SECTION
 
-CHECK((ConstIterator getPrecursorSpectrum(ConstIterator iterator) const))
+START_SECTION((ConstIterator getPrecursorSpectrum(ConstIterator iterator) const))
 	MSExperiment<> exp;
 	exp.resize(10);
 	exp[0].setMSLevel(1);
@@ -790,18 +790,18 @@ CHECK((ConstIterator getPrecursorSpectrum(ConstIterator iterator) const))
 	TEST_EQUAL(exp.getPrecursorSpectrum(exp.begin()+4)==exp.end(),true)
 	TEST_EQUAL(exp.getPrecursorSpectrum(exp.end())==exp.end(),true)
 
-RESULT
+END_SECTION
 
-CHECK((bool clearMetaDataArrays()))
+START_SECTION((bool clearMetaDataArrays()))
 	MSExperiment<> exp;
 	exp.resize(5);
 	exp[0].getMetaDataArrays().resize(5);
 	TEST_EQUAL(exp[0].getMetaDataArrays().size(),5)
 	exp.clearMetaDataArrays();
 	TEST_EQUAL(exp[0].getMetaDataArrays().size(),0)
-RESULT
+END_SECTION
 
-CHECK((void swap(MSExperiment &from)))
+START_SECTION((void swap(MSExperiment &from)))
 	MSExperiment<> exp1, exp2;
 	exp1.setComment("stupid comment");
 	exp1.resize(1);
@@ -815,17 +815,17 @@ CHECK((void swap(MSExperiment &from)))
 	
 	TEST_EQUAL(exp1.getComment(),"")
 	TEST_EQUAL(exp1.size(),0)
-	TEST_REAL_EQUAL(exp1.getMinInt(),DRange<1>().min()[0])
+	TEST_REAL_SIMILAR(exp1.getMinInt(),DRange<1>().min()[0])
 	TEST_EQUAL(exp1.getMSLevels().size(),0)
 	TEST_EQUAL(exp1.getSize(),0);
 	
 	TEST_EQUAL(exp2.getComment(),"stupid comment")
 	TEST_EQUAL(exp2.size(),1)
-	TEST_REAL_EQUAL(exp2.getMinInt(),0.5)
+	TEST_REAL_SIMILAR(exp2.getMinInt(),0.5)
 	TEST_EQUAL(exp2.getMSLevels().size(),1)
 	TEST_EQUAL(exp2.getSize(),2);
 	
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -212,19 +212,19 @@ class TOPPBaseTestNOP
 /////////////////////////////////////////////////////////////
 
 TOPPBaseTest* ptr = 0;
-CHECK((TOPPBase(const String& tool_name, const String& tool_description)))
+START_SECTION((TOPPBase(const String& tool_name, const String& tool_description)))
 	ptr = new TOPPBaseTest();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~TOPPBase()))
+START_SECTION((~TOPPBase()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(ExitCodes main(int argc, const char**argv))
+START_SECTION(ExitCodes main(int argc, const char**argv))
 	NOT_TESTABLE
 	// is tested implicitly in all tests
-RESULT
+END_SECTION
 
 //parts to build command lines
 const char* a1 ="TOPPBaseTest";
@@ -245,7 +245,7 @@ const char* a17 ="-stringlist";
 const char* a18 ="-intlist";
 const char* a19 ="-doublelist";
 const char* a20 ="0.411";
-CHECK(([EXTRA]String const& getIniLocation_() const))
+START_SECTION(([EXTRA]String const& getIniLocation_() const))
 	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getIniLocation(),"TOPPBaseTest:1:")
@@ -253,9 +253,9 @@ CHECK(([EXTRA]String const& getIniLocation_() const))
 	const char* instance_cl[3] = {a1, a5, a9}; //command line: "TOPPBaseTest -instance 5"
 	TOPPBaseTest tmp2(3,instance_cl);
 	TEST_EQUAL(tmp2.getIniLocation(),"TOPPBaseTest:5:")
-RESULT
+END_SECTION
 
-CHECK([EXTRA] bool setByUser_(const String& name) const)
+START_SECTION([EXTRA] bool setByUser_(const String& name) const)
 	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.setByUser("intoption"),false);
@@ -275,9 +275,9 @@ CHECK([EXTRA] bool setByUser_(const String& name) const)
 	TEST_EQUAL(tmp3.setByUser("intoption"),false);
 	TEST_EQUAL(tmp3.setByUser("stringoption"),true);
 	TEST_EQUAL(tmp3.setByUser("doubleoption"),false);
-RESULT
+END_SECTION
 
-CHECK(([EXTRA]String getStringOption_(const String& name) const))
+START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getStringOption("stringoption"),"string default");
@@ -316,9 +316,9 @@ CHECK(([EXTRA]String getStringOption_(const String& name) const))
 	const char* string_cl2[2] = {a1, a11};
 	TOPPBaseTestNOP tmp8(2,string_cl2);
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp8.getStringOption("stringoption"));
-RESULT
+END_SECTION
 
-CHECK(([EXTRA]String getIntOption_(const String& name) const))
+START_SECTION(([EXTRA]String getIntOption_(const String& name) const))
 	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getIntOption("intoption"),4711);
@@ -334,16 +334,16 @@ CHECK(([EXTRA]String getIntOption_(const String& name) const))
 	const char* string_cl2[2] = {a1, a11};
 	TOPPBaseTestNOP tmp3(2,string_cl2);
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp3.getIntOption("intoption"));
-RESULT
+END_SECTION
 
-CHECK(([EXTRA]String getDoubleOption_(const String& name) const))
+START_SECTION(([EXTRA]String getDoubleOption_(const String& name) const))
 	//default
 	TOPPBaseTest tmp;
-	TEST_REAL_EQUAL(tmp.getDoubleOption("doubleoption"),0.4711);
+	TEST_REAL_SIMILAR(tmp.getDoubleOption("doubleoption"),0.4711);
 	//command line
 	const char* string_cl[3] = {a1, a15, a13}; //command line: "TOPPBaseTest -doubleoption 4.5"
 	TOPPBaseTest tmp2(3,string_cl);
-	TEST_REAL_EQUAL(tmp2.getDoubleOption("doubleoption"),4.5);
+	TEST_REAL_SIMILAR(tmp2.getDoubleOption("doubleoption"),4.5);
 
 	TEST_EXCEPTION(Exception::WrongParameterType,tmp2.getDoubleOption("intoption"));
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getDoubleOption("imleeewenit"));
@@ -352,9 +352,9 @@ CHECK(([EXTRA]String getDoubleOption_(const String& name) const))
 	const char* string_cl2[2] = {a1, a11};
 	TOPPBaseTestNOP tmp3(2,string_cl2);
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp3.getDoubleOption("doubleoption"));
-RESULT
+END_SECTION
 
-CHECK(([EXTRA] String getIntList_(const String& name) const))
+START_SECTION(([EXTRA] String getIntList_(const String& name) const))
 	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getIntList("intlist"),IntList::create("1,2,3,4"))
@@ -375,9 +375,9 @@ CHECK(([EXTRA] String getIntList_(const String& name) const))
 	TOPPBaseTestNOP tmp4(2,string_cl2);
 	TEST_EQUAL(false,tmp4.setByUser("intlist"));
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp4.getIntList("intlist"));
-RESULT	
+END_SECTION	
 
-CHECK(([EXTRA] String getDoubleList_(const String& name) const))
+START_SECTION(([EXTRA] String getDoubleList_(const String& name) const))
 	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getDoubleList("doublelist"),DoubleList::create("0.4711,1.022,4.0"));
@@ -401,9 +401,9 @@ CHECK(([EXTRA] String getDoubleList_(const String& name) const))
 	TOPPBaseTestNOP tmp4(2,string_cl3);
 	TEST_EQUAL(false,tmp4.setByUser("doublelist"));
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp4.getDoubleList("doublelist"));
-RESULT
+END_SECTION
 	
-CHECK(([EXTRA] String getStringList_(const String& name) const))
+START_SECTION(([EXTRA] String getStringList_(const String& name) const))
 	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getStringList("stringlist"),StringList::create("abc,def,ghi,jkl"));
@@ -425,9 +425,9 @@ CHECK(([EXTRA] String getStringList_(const String& name) const))
 	TEST_EQUAL(false,tmp4.setByUser("stringlist"));
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp4.getStringList("stringlist"));
 	
-RESULT
+END_SECTION
 
-CHECK(([EXTRA]bool getFlag_(const String& name) const))
+START_SECTION(([EXTRA]bool getFlag_(const String& name) const))
 	//default
 	TOPPBaseTest tmp;
 	TEST_EQUAL(tmp.getFlag("flag"),false);
@@ -438,24 +438,24 @@ CHECK(([EXTRA]bool getFlag_(const String& name) const))
 
 	TEST_EXCEPTION(Exception::WrongParameterType,tmp2.getFlag("doubleoption"));
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getFlag("imleeewenit"));
-RESULT
+END_SECTION
 
-CHECK(([EXTRA]void inputFileReadable_(const String& filename) const))
+START_SECTION(([EXTRA]void inputFileReadable_(const String& filename) const))
 	TOPPBaseTest tmp;
 	TEST_EXCEPTION(Exception::FileNotFound,tmp.inputFileReadable("/this/file/does/not/exist.txt"));
 	TEST_EXCEPTION(Exception::FileEmpty,tmp.inputFileReadable("data/TOPPBase_empty.txt"));
 	tmp.inputFileReadable("data/TOPPBase_common.ini");
-RESULT
+END_SECTION
 
-CHECK(([EXTRA]void outputFileWritable_(const String& filename) const))
+START_SECTION(([EXTRA]void outputFileWritable_(const String& filename) const))
 	TEST_EXCEPTION(Exception::UnableToCreateFile,TOPPBaseTest().outputFileWritable("/this/file/cannot/be/written/does_not_exists.txt"));
 
 	String filename;
 	NEW_TMP_FILE(filename);
 	TOPPBaseTest().outputFileWritable(filename);
-RESULT
+END_SECTION
 
-CHECK(([EXTRA]void parseRange_(const String& text, double& low, double& high) const))
+START_SECTION(([EXTRA]void parseRange_(const String& text, double& low, double& high) const))
 	TOPPBaseTest topp;
 	double a = -1.0;
 	double b = -1.0;
@@ -463,26 +463,26 @@ CHECK(([EXTRA]void parseRange_(const String& text, double& low, double& high) co
 
 	s = ":";
 	topp.parseRange(s,a,b);
-	TEST_REAL_EQUAL(a,-1.0);
-	TEST_REAL_EQUAL(b,-1.0);
+	TEST_REAL_SIMILAR(a,-1.0);
+	TEST_REAL_SIMILAR(b,-1.0);
 
 	s = "4.5:";
 	topp.parseRange(s,a,b);
-	TEST_REAL_EQUAL(a,4.5);
-	TEST_REAL_EQUAL(b,-1.0);
+	TEST_REAL_SIMILAR(a,4.5);
+	TEST_REAL_SIMILAR(b,-1.0);
 
 	s = ":5.5";
 	topp.parseRange(s,a,b);
-	TEST_REAL_EQUAL(a,4.5);
-	TEST_REAL_EQUAL(b,5.5);
+	TEST_REAL_SIMILAR(a,4.5);
+	TEST_REAL_SIMILAR(b,5.5);
 
 	s = "6.5:7.5";
 	topp.parseRange(s,a,b);
-	TEST_REAL_EQUAL(a,6.5);
-	TEST_REAL_EQUAL(b,7.5);
-RESULT
+	TEST_REAL_SIMILAR(a,6.5);
+	TEST_REAL_SIMILAR(b,7.5);
+END_SECTION
 
-CHECK(([EXTRA]Param getParam_( const std::string& prefix ) const))
+START_SECTION(([EXTRA]Param getParam_( const std::string& prefix ) const))
 {
 	//ini file
 	const char* tmp_argv[] = {a1, a3, a7}; //command line: "TOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
@@ -495,9 +495,9 @@ CHECK(([EXTRA]Param getParam_( const std::string& prefix ) const))
 
 	TEST_EQUAL(tmp_topp.getParam(), good_params);
 }
-RESULT
+END_SECTION
 
-CHECK(([EXTRA] template<typename MapType> void addDataProcessing_(MapType& map, const std::set<DataProcessing::ProcessingAction>& actions) const))
+START_SECTION(([EXTRA] template<typename MapType> void addDataProcessing_(MapType& map, const std::set<DataProcessing::ProcessingAction>& actions) const))
 	MSExperiment<> exp;
 	std::set<DataProcessing::ProcessingAction> actions;
 	actions.insert(DataProcessing::ALIGNMENT);
@@ -511,7 +511,7 @@ CHECK(([EXTRA] template<typename MapType> void addDataProcessing_(MapType& map, 
 	TEST_EQUAL(exp.getDataProcessing()[0].getCompletionTime().isValid(),true)
 	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().size(),1)
 	TEST_EQUAL(*(exp.getDataProcessing()[0].getProcessingActions().begin()),DataProcessing::ALIGNMENT)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

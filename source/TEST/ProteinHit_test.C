@@ -51,25 +51,25 @@ String accession = "PROOE34";
 
 
 ProteinHit* ptr = 0;	
-CHECK(ProteinHit())
+START_SECTION(ProteinHit())
 	ptr = new ProteinHit();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~ProteinHit())
+START_SECTION(~ProteinHit())
 	ptr = new ProteinHit();	
   delete ptr;
-RESULT
+END_SECTION
 
-CHECK((ProteinHit(DoubleReal score, UInt rank, String accession, String sequence)))
+START_SECTION((ProteinHit(DoubleReal score, UInt rank, String accession, String sequence)))
 	ProteinHit hit(score, rank, accession, sequence);
 	TEST_EQUAL(hit.getScore(), score)
 	TEST_EQUAL(hit.getRank(), rank)
 	TEST_EQUAL(hit.getAccession(), accession)
 	TEST_EQUAL(hit.getSequence(), sequence)
-RESULT
+END_SECTION
 
-CHECK(ProteinHit(const ProteinHit& source))
+START_SECTION(ProteinHit(const ProteinHit& source))
 	ProteinHit source;
 	source.setScore(score);
 	source.setRank(rank);
@@ -84,9 +84,9 @@ CHECK(ProteinHit(const ProteinHit& source))
 	TEST_EQUAL(hit.getAccession(), accession)
 	TEST_EQUAL(hit.getSequence(), sequence)
 	TEST_EQUAL((UInt)hit.getMetaValue("label"),17)
-RESULT
+END_SECTION
 
-CHECK(ProteinHit& operator=(const ProteinHit& source))
+START_SECTION(ProteinHit& operator=(const ProteinHit& source))
 	ProteinHit hit;
 	ProteinHit hit2(score, rank, accession, sequence);
 	hit2.setMetaValue("label",17);
@@ -98,9 +98,9 @@ CHECK(ProteinHit& operator=(const ProteinHit& source))
 	TEST_EQUAL(hit.getAccession(), accession)
 	TEST_EQUAL(hit.getSequence(), sequence)
 	TEST_EQUAL((UInt)hit.getMetaValue("label"),17)
-RESULT
+END_SECTION
 
-CHECK(bool operator == (const ProteinHit& rhs) const)
+START_SECTION(bool operator == (const ProteinHit& rhs) const)
   ProteinHit hit, hit2;
   TEST_EQUAL(hit==hit2,true);
   
@@ -123,9 +123,9 @@ CHECK(bool operator == (const ProteinHit& rhs) const)
 	hit.setMetaValue("label",17);
   TEST_EQUAL(hit==hit2,false);
 	hit = hit2;
-RESULT
+END_SECTION
 
-CHECK(bool operator != (const ProteinHit& rhs) const)
+START_SECTION(bool operator != (const ProteinHit& rhs) const)
   ProteinHit hit, hit2;
   TEST_EQUAL(hit!=hit2,false);
   
@@ -148,51 +148,51 @@ CHECK(bool operator != (const ProteinHit& rhs) const)
 	hit.setMetaValue("label",17);
   TEST_EQUAL(hit!=hit2,true);
 	hit = hit2;
-RESULT
+END_SECTION
 
-CHECK(const String& getAccession() const)
+START_SECTION(const String& getAccession() const)
 	ProteinHit hit(score, rank, accession, sequence);
 	TEST_EQUAL(hit.getAccession(), accession)
-RESULT
+END_SECTION
 
-CHECK(const String& getSequence() const)
+START_SECTION(const String& getSequence() const)
 	ProteinHit hit(score, rank, accession, sequence);
 	TEST_EQUAL(hit.getSequence(), sequence)
-RESULT
+END_SECTION
 
-CHECK(Real getScore() const)
+START_SECTION(Real getScore() const)
 	ProteinHit hit(score, rank, accession, sequence);
 	TEST_EQUAL(hit.getScore(), score)
-RESULT
+END_SECTION
 
-CHECK(UInt getRank() const)
+START_SECTION(UInt getRank() const)
 	ProteinHit hit(score, rank, accession, sequence);
 	TEST_EQUAL(hit.getRank(), rank)
-RESULT
+END_SECTION
 
-CHECK(void setRank(UInt newrank))
+START_SECTION(void setRank(UInt newrank))
 	ProteinHit hit;
 	hit.setRank(rank);
 	TEST_EQUAL(hit.getRank(), rank)	
-RESULT
+END_SECTION
 
-CHECK(void setScore(DoubleReal score))
+START_SECTION(void setScore(DoubleReal score))
 	ProteinHit hit;
 	hit.setScore(score);
 	TEST_EQUAL(hit.getScore(), score);
-RESULT
+END_SECTION
 
-CHECK(void setSequence(const String& sequence))
+START_SECTION(void setSequence(const String& sequence))
 	ProteinHit hit;
 	hit.setSequence(sequence);
 	TEST_EQUAL(hit.getSequence(), sequence)
-RESULT
+END_SECTION
 
-CHECK(void setAccession(const String& accession))
+START_SECTION(void setAccession(const String& accession))
 	ProteinHit hit;
 	hit.setAccession(accession);
 	TEST_EQUAL(hit.getAccession(), accession)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

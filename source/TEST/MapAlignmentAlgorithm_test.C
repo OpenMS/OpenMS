@@ -44,37 +44,37 @@ START_TEST(MapAlignmentAlgorithm, "$Id$")
 
 
 MapAlignmentAlgorithm* ptr = 0;
-CHECK((MapAlignmentAlgorithm()))
+START_SECTION((MapAlignmentAlgorithm()))
 	ptr = new MapAlignmentAlgorithm();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~MapAlignmentAlgorithm()))
+START_SECTION((virtual ~MapAlignmentAlgorithm()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::vector< TransformationDescription > &)))
+START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::vector< TransformationDescription > &)))
   MapAlignmentAlgorithm ma;
   std::vector< MSExperiment<> > maps;
   std::vector<TransformationDescription> transformations;
   TEST_EXCEPTION(Exception::NotImplemented, ma.alignPeakMaps(maps,transformations));
-RESULT
+END_SECTION
 
-CHECK((virtual void alignFeatureMaps(std::vector< FeatureMap<> > &, std::vector< TransformationDescription > &)))
+START_SECTION((virtual void alignFeatureMaps(std::vector< FeatureMap<> > &, std::vector< TransformationDescription > &)))
   MapAlignmentAlgorithm ma;
   std::vector< FeatureMap<> > maps;
   std::vector<TransformationDescription> transformations;
   TEST_EXCEPTION(Exception::NotImplemented, ma.alignFeatureMaps(maps,transformations));
-RESULT
+END_SECTION
 
-CHECK((static void registerChildren()))
+START_SECTION((static void registerChildren()))
 {
   // I do not know why the classes show up in this particular order.
   TEST_STRING_EQUAL(Factory<MapAlignmentAlgorithm>::registeredProducts()[0],MapAlignmentAlgorithmPoseClustering::getProductName());
   TEST_STRING_EQUAL(Factory<MapAlignmentAlgorithm>::registeredProducts()[1],MapAlignmentAlgorithmSpectrumAlignment::getProductName());
   TEST_EQUAL(Factory<MapAlignmentAlgorithm>::registeredProducts().size(),2)
 }
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

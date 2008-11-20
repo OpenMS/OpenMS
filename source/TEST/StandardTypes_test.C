@@ -40,34 +40,31 @@ START_TEST(StandardTypes, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-CHECK(StandardTypes)
+START_SECTION(StandardTypes)
 
 	STATUS("Note: Here we only check whether the typedefs (as such) are fine.")
+	NOT_TESTABLE;
 
-RESULT
+END_SECTION
 
 // super duper macro
-
-#define CHECK_A_TYPEDEF(Type)												\
-{																										\
-	Type* ptr = 0;																		\
-  CHECK(Type())																			\
-    ptr = new Type;																	\
-    TEST_NOT_EQUAL(ptr, 0)													\
-  RESULT																						\
-  CHECK(~Type())																		\
-    delete ptr;																			\
-  RESULT																						\
+#define GOOD_TYPEDEF(Type)											\
+{																								\
+	Type* ptr = 0;																\
+  START_SECTION(Type())																	\
+    ptr = new Type;															\
+    TEST_NOT_EQUAL(ptr, 0)											\
+END_SECTION																					\
+  START_SECTION(~Type())																\
+    delete ptr;																	\
+END_SECTION																					\
 }
 
-
-CHECK_A_TYPEDEF(PeakSpectrum)
-CHECK_A_TYPEDEF(PeakMap)
-CHECK_A_TYPEDEF(PeakSpectrum)
-CHECK_A_TYPEDEF(PeakMap)
+GOOD_TYPEDEF(PeakSpectrum)
+GOOD_TYPEDEF(PeakMap)
+GOOD_TYPEDEF(PeakSpectrum)
+GOOD_TYPEDEF(PeakMap)
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-

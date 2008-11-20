@@ -43,14 +43,14 @@ START_TEST(Element, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Element* e_ptr = 0;
-CHECK(Element())
+START_SECTION(Element())
 	e_ptr = new Element;
 	TEST_NOT_EQUAL(e_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~Element())
+START_SECTION(~Element())
 	delete e_ptr;
-RESULT
+END_SECTION
 
 IsotopeDistribution dist;
 String name("Name"), symbol("Symbol");
@@ -59,91 +59,91 @@ DoubleReal average_weight(0.12345);
 DoubleReal mono_weight(0.123456789);
 
 e_ptr = 0;
-CHECK((Element(const String& name, const String& symbol, UInt atomic_number, DoubleReal average_weight, DoubleReal mono_weight, const IsotopeDistribution& isotopes)))
+START_SECTION((Element(const String& name, const String& symbol, UInt atomic_number, DoubleReal average_weight, DoubleReal mono_weight, const IsotopeDistribution& isotopes)))
 	e_ptr = new Element(name, symbol, atomic_number, average_weight, mono_weight, dist);	
 	TEST_NOT_EQUAL(e_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(Element(const Element& element))
+START_SECTION(Element(const Element& element))
 	Element copy(*e_ptr);
 	TEST_EQUAL(*e_ptr == copy, true)
-RESULT
+END_SECTION
 
 delete e_ptr;
 e_ptr = new Element;
 
-CHECK(void setAtomicNumber(UInt atomic_number))
+START_SECTION(void setAtomicNumber(UInt atomic_number))
 	e_ptr->setAtomicNumber(atomic_number);
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(UInt getAtomicNumber() const)
+START_SECTION(UInt getAtomicNumber() const)
 	TEST_EQUAL(e_ptr->getAtomicNumber(), atomic_number)
-RESULT
+END_SECTION
 
-CHECK(void setName(const String& name))
+START_SECTION(void setName(const String& name))
 	e_ptr->setName(name);
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(const String& getName() const)
+START_SECTION(const String& getName() const)
 	TEST_EQUAL(e_ptr->getName(), name)
-RESULT
+END_SECTION
 
-CHECK(void setSymbol(const String& symbol))
+START_SECTION(void setSymbol(const String& symbol))
 	e_ptr->setSymbol(symbol);
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(const String& getSymbol() const)
+START_SECTION(const String& getSymbol() const)
 	TEST_EQUAL(e_ptr->getSymbol(), symbol)
-RESULT
+END_SECTION
 
-CHECK(void setIsotopeDistribution(const IsotopeDistribution& isotopes))
+START_SECTION(void setIsotopeDistribution(const IsotopeDistribution& isotopes))
 	e_ptr->setIsotopeDistribution(dist);
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((const IsotopeDistribution& getIsotopeDistribution() const))
+START_SECTION((const IsotopeDistribution& getIsotopeDistribution() const))
 	TEST_EQUAL(e_ptr->getIsotopeDistribution() == dist, true)
-RESULT
+END_SECTION
 
-CHECK(void setAverageWeight(DoubleReal weight))
+START_SECTION(void setAverageWeight(DoubleReal weight))
 	e_ptr->setAverageWeight(average_weight);
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(DoubleReal getAverageWeight() const)
-	TEST_REAL_EQUAL(e_ptr->getAverageWeight(), average_weight)
-RESULT
+START_SECTION(DoubleReal getAverageWeight() const)
+	TEST_REAL_SIMILAR(e_ptr->getAverageWeight(), average_weight)
+END_SECTION
 
-CHECK(void setMonoWeight(DoubleReal weight))
+START_SECTION(void setMonoWeight(DoubleReal weight))
 	e_ptr->setMonoWeight(2.333);
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(DoubleReal getMonoWeight() const)
-	TEST_REAL_EQUAL(e_ptr->getMonoWeight(), 2.333)
-RESULT
+START_SECTION(DoubleReal getMonoWeight() const)
+	TEST_REAL_SIMILAR(e_ptr->getMonoWeight(), 2.333)
+END_SECTION
 
-CHECK(Element& operator = (const Element& element))
+START_SECTION(Element& operator = (const Element& element))
 	Element e = *e_ptr;
 	TEST_EQUAL(e == *e_ptr, true)
-RESULT
+END_SECTION
 
-CHECK(bool operator != (const Element& element) const)
+START_SECTION(bool operator != (const Element& element) const)
 	Element e(*e_ptr);
 	TEST_EQUAL(e != *e_ptr, false)
 	e.setAverageWeight(0.54321);
 	TEST_EQUAL(e != *e_ptr, true)
-RESULT
+END_SECTION
 
-CHECK(bool operator == (const Element& element) const)
+START_SECTION(bool operator == (const Element& element) const)
 	Element e(*e_ptr);
 	TEST_EQUAL(e == *e_ptr, true)
 	e.setAverageWeight(0.54321);
 	TEST_EQUAL(e == *e_ptr, false)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

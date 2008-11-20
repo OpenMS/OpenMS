@@ -42,55 +42,55 @@ START_TEST(ResidueDB, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ResidueDB* ptr = 0;
-CHECK(ResidueDB* getInstance())
+START_SECTION(ResidueDB* getInstance())
 	ptr = ResidueDB::getInstance();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(virtual ~ResidueDB())
+START_SECTION(virtual ~ResidueDB())
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((const Residue* getResidue(const String &name) const))
+START_SECTION((const Residue* getResidue(const String &name) const))
   TEST_EQUAL(ptr->getResidue("C")->getOneLetterCode(), "C")
-RESULT
+END_SECTION
 
-CHECK((bool hasResidue(const String &name) const))
+START_SECTION((bool hasResidue(const String &name) const))
   TEST_EQUAL(ptr->hasResidue("BLUBB"), false)
 	TEST_EQUAL(ptr->hasResidue("LYS"), true)
 	TEST_EQUAL(ptr->hasResidue("K"), true)
-RESULT
+END_SECTION
 
-CHECK(UInt getNumberOfResidues() const)
+START_SECTION(UInt getNumberOfResidues() const)
 	TEST_EQUAL(ptr->getNumberOfResidues(), 21);
-RESULT
+END_SECTION
 
-CHECK(const Residue* getModifiedResidue(const String &name))
+START_SECTION(const Residue* getModifiedResidue(const String &name))
 	const Residue* mod_res = ptr->getModifiedResidue("MOD:00720"); // ox methionine
 	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
 	TEST_STRING_EQUAL(mod_res->getModification(), "MOD:00720")
-RESULT
+END_SECTION
 
-CHECK(const Residue* getModifiedResidue(const Residue *residue, const String &name))
+START_SECTION(const Residue* getModifiedResidue(const Residue *residue, const String &name))
 	const Residue* mod_res = ptr->getModifiedResidue(ptr->getResidue("M"), "MOD:00720");
 	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
 	TEST_STRING_EQUAL(mod_res->getModification(), "MOD:00720")
-RESULT
+END_SECTION
     
-CHECK(const std::set<const Residue*>& getResidues() const)
+START_SECTION(const std::set<const Residue*>& getResidues() const)
 	set<const Residue*> residues = ptr->getResidues(ResidueDB::ALL);
 	TEST_EQUAL(residues.size(), 21)
 	residues = ptr->getResidues(ResidueDB::NATURAL_20);
 	TEST_EQUAL(residues.size(), 20)
 	residues = ptr->getResidues(ResidueDB::NATURAL_19);
 	TEST_EQUAL(residues.size(), 19)
-RESULT
+END_SECTION
 
-CHECK(void setResidues(const String &filename))
+START_SECTION(void setResidues(const String &filename))
 	NOT_TESTABLE // this method is hard to test, just provided for convenience
-RESULT
+END_SECTION
     
-CHECK(void addResidue(const Residue &residue))
+START_SECTION(void addResidue(const Residue &residue))
 	TEST_EQUAL(ptr->hasResidue("UGU"), false)
 	TEST_EQUAL(ptr->hasResidue("$"), false)
 	Residue res;
@@ -102,9 +102,9 @@ CHECK(void addResidue(const Residue &residue))
 	ptr->addResidue(res);
 	TEST_EQUAL(ptr->hasResidue("UGU"), true)
 	TEST_EQUAL(ptr->hasResidue("$"), true)
-RESULT
+END_SECTION
 
-CHECK(ResidueIterator beginResidue())
+START_SECTION(ResidueIterator beginResidue())
 	ResidueDB::ResidueIterator it = ptr->beginResidue();
 	UInt count(0);
 	while (it != ptr->endResidue())
@@ -114,13 +114,13 @@ CHECK(ResidueIterator beginResidue())
 	}
 
 	TEST_EQUAL(count, 22)
-RESULT
+END_SECTION
   
-CHECK(ResidueIterator endResidue())
+START_SECTION(ResidueIterator endResidue())
 	NOT_TESTABLE // tested above
-RESULT
+END_SECTION
 
-CHECK(ResidueConstIterator beginResidue() const)
+START_SECTION(ResidueConstIterator beginResidue() const)
 	const ResidueDB* const_ptr = ptr;
 	ResidueDB::ResidueConstIterator it = const_ptr->beginResidue();
 	UInt count(0);
@@ -130,17 +130,17 @@ CHECK(ResidueConstIterator beginResidue() const)
 		++count;
 	}
 	TEST_EQUAL(count, 22)
-RESULT
+END_SECTION
 
-CHECK(ResidueConstIterator endResidue() const)
+START_SECTION(ResidueConstIterator endResidue() const)
 	NOT_TESTABLE // tested above
-RESULT
+END_SECTION
 
-CHECK(UInt getNumberOfModifiedResidues() const)
+START_SECTION(UInt getNumberOfModifiedResidues() const)
 	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 1)
 	const Residue* mod_res = ptr->getModifiedResidue("MOD:01214");
 	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 2)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

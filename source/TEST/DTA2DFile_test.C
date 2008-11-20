@@ -50,28 +50,28 @@ START_TEST(DTAFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 DTA2DFile* ptr = 0;
-CHECK((DTA2DFile()))
+START_SECTION((DTA2DFile()))
 	ptr = new DTA2DFile;
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~DTA2DFile()))
+START_SECTION((~DTA2DFile()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(const PeakFileOptions& getOptions() const)
+START_SECTION(const PeakFileOptions& getOptions() const)
 	DTA2DFile file;
 	TEST_EQUAL(file.getOptions().hasMSLevels(),false)
-RESULT
+END_SECTION
 
-CHECK(PeakFileOptions& getOptions())
+START_SECTION(PeakFileOptions& getOptions())
 	DTA2DFile file;
 	file.getOptions().addMSLevel(1);
 	TEST_EQUAL(file.getOptions().hasMSLevels(),true);
-RESULT
+END_SECTION
 
-CHECK((template<typename MapType> void load(const String& filename, MapType& map) ))
-	PRECISION(0.01)
+START_SECTION((template<typename MapType> void load(const String& filename, MapType& map) ))
+	TOLERANCE_ABSOLUTE(0.01)
 
 	MSExperiment<> e;
 	DTA2DFile dta;
@@ -85,49 +85,49 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	ABORT_IF(e.size() != 9)
 
 	MSExperiment<>::const_iterator it(e.begin());
-	TEST_REAL_EQUAL((*it)[0].getPosition()[0], 230.02)
-	TEST_REAL_EQUAL(it->getRT(), 4711.1)
-	TEST_REAL_EQUAL((*it)[0].getIntensity(), 47218.89)
+	TEST_REAL_SIMILAR((*it)[0].getPosition()[0], 230.02)
+	TEST_REAL_SIMILAR(it->getRT(), 4711.1)
+	TEST_REAL_SIMILAR((*it)[0].getIntensity(), 47218.89)
 	++it;
 
-	TEST_REAL_EQUAL((*it)[0].getPosition()[0], 231.51)
-	TEST_REAL_EQUAL(it->getRT(), 4711.2)
-	TEST_REAL_EQUAL((*it)[0].getIntensity(), 89935.22)
+	TEST_REAL_SIMILAR((*it)[0].getPosition()[0], 231.51)
+	TEST_REAL_SIMILAR(it->getRT(), 4711.2)
+	TEST_REAL_SIMILAR((*it)[0].getIntensity(), 89935.22)
 	++it;
 		
-	TEST_REAL_EQUAL((*it)[0].getPosition()[0], 139.42)
-	TEST_REAL_EQUAL(it->getRT(), 4711.3)
-	TEST_REAL_EQUAL((*it)[0].getIntensity(), 318.52)
+	TEST_REAL_SIMILAR((*it)[0].getPosition()[0], 139.42)
+	TEST_REAL_SIMILAR(it->getRT(), 4711.3)
+	TEST_REAL_SIMILAR((*it)[0].getIntensity(), 318.52)
 	++it;
 
-	TEST_REAL_EQUAL((*it)[0].getPosition()[0], 149.93)
-	TEST_REAL_EQUAL(it->getRT(), 4711.4)
-	TEST_REAL_EQUAL((*it)[0].getIntensity(), 61870.99)
+	TEST_REAL_SIMILAR((*it)[0].getPosition()[0], 149.93)
+	TEST_REAL_SIMILAR(it->getRT(), 4711.4)
+	TEST_REAL_SIMILAR((*it)[0].getIntensity(), 61870.99)
 	++it;
 		
-	TEST_REAL_EQUAL((*it)[0].getPosition()[0], 169.65)
-	TEST_REAL_EQUAL(it->getRT(), 4711.5)
-	TEST_REAL_EQUAL((*it)[0].getIntensity(), 62074.22)
+	TEST_REAL_SIMILAR((*it)[0].getPosition()[0], 169.65)
+	TEST_REAL_SIMILAR(it->getRT(), 4711.5)
+	TEST_REAL_SIMILAR((*it)[0].getIntensity(), 62074.22)
 	++it;
 		
-	TEST_REAL_EQUAL((*it)[0].getPosition()[0], 189.30)
-	TEST_REAL_EQUAL(it->getRT(), 4711.6)
-	TEST_REAL_EQUAL((*it)[0].getIntensity(), 53737.85)
+	TEST_REAL_SIMILAR((*it)[0].getPosition()[0], 189.30)
+	TEST_REAL_SIMILAR(it->getRT(), 4711.6)
+	TEST_REAL_SIMILAR((*it)[0].getIntensity(), 53737.85)
 	++it;
 
-	TEST_REAL_EQUAL((*it)[0].getPosition()[0], 202.28)
-	TEST_REAL_EQUAL(it->getRT(), 4711.7)
-	TEST_REAL_EQUAL((*it)[0].getIntensity(), 49410.25)
+	TEST_REAL_SIMILAR((*it)[0].getPosition()[0], 202.28)
+	TEST_REAL_SIMILAR(it->getRT(), 4711.7)
+	TEST_REAL_SIMILAR((*it)[0].getIntensity(), 49410.25)
 	++it;
 		
-	TEST_REAL_EQUAL((*it)[0].getPosition()[0], 207.82)
-	TEST_REAL_EQUAL(it->getRT(), 4711.8)
-	TEST_REAL_EQUAL((*it)[0].getIntensity(), 17038.71)
+	TEST_REAL_SIMILAR((*it)[0].getPosition()[0], 207.82)
+	TEST_REAL_SIMILAR(it->getRT(), 4711.8)
+	TEST_REAL_SIMILAR((*it)[0].getIntensity(), 17038.71)
 	++it;
 		
-	TEST_REAL_EQUAL((*it)[0].getPosition()[0], 219.72)
-	TEST_REAL_EQUAL(it->getRT(), 4711.9)
-	TEST_REAL_EQUAL((*it)[0].getIntensity(), 73629.98)
+	TEST_REAL_SIMILAR((*it)[0].getPosition()[0], 219.72)
+	TEST_REAL_SIMILAR(it->getRT(), 4711.9)
+	TEST_REAL_SIMILAR((*it)[0].getIntensity(), 73629.98)
 
 
 	dta.load("data/DTA2DFile_test_2.dta2d",e);
@@ -138,59 +138,59 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 
 	std::vector<Peak2D>::const_iterator it2 = array.begin();
 
-	TEST_REAL_EQUAL(it2->getMZ(), 230.02)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.1)
-	TEST_REAL_EQUAL(it2->getIntensity(), 47218.89)
+	TEST_REAL_SIMILAR(it2->getMZ(), 230.02)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.1)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 47218.89)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getMZ(), 430.02)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.1)
-	TEST_REAL_EQUAL(it2->getIntensity(), 47219.89)
+	TEST_REAL_SIMILAR(it2->getMZ(), 430.02)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.1)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 47219.89)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getMZ(), 630.02)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.1)
-	TEST_REAL_EQUAL(it2->getIntensity(), 47210.89)
+	TEST_REAL_SIMILAR(it2->getMZ(), 630.02)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.1)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 47210.89)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getMZ(), 231.51)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.2)
-	TEST_REAL_EQUAL(it2->getIntensity(), 89935.22)
+	TEST_REAL_SIMILAR(it2->getMZ(), 231.51)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.2)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 89935.22)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getMZ(), 139.42)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.3)
-	TEST_REAL_EQUAL(it2->getIntensity(), 318.52)
+	TEST_REAL_SIMILAR(it2->getMZ(), 139.42)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.3)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 318.52)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getMZ(), 149.93)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.4)
-	TEST_REAL_EQUAL(it2->getIntensity(), 61870.99)
+	TEST_REAL_SIMILAR(it2->getMZ(), 149.93)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.4)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 61870.99)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getMZ(), 169.65)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.5)
-	TEST_REAL_EQUAL(it2->getIntensity(), 62074.22)
+	TEST_REAL_SIMILAR(it2->getMZ(), 169.65)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.5)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 62074.22)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getMZ(), 189.30)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.6)
-	TEST_REAL_EQUAL(it2->getIntensity(), 53737.85)
+	TEST_REAL_SIMILAR(it2->getMZ(), 189.30)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.6)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 53737.85)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getMZ(), 202.28)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.7)
-	TEST_REAL_EQUAL(it2->getIntensity(), 49410.25)
+	TEST_REAL_SIMILAR(it2->getMZ(), 202.28)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.7)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 49410.25)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getMZ(), 207.82)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.8)
-	TEST_REAL_EQUAL(it2->getIntensity(), 17038.71)
+	TEST_REAL_SIMILAR(it2->getMZ(), 207.82)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.8)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 17038.71)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getMZ(), 219.72)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.9)
-	TEST_REAL_EQUAL(it2->getIntensity(), 73629.98)
+	TEST_REAL_SIMILAR(it2->getMZ(), 219.72)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.9)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 73629.98)
 
 	// ---
 
@@ -202,69 +202,69 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	MSExperiment<Peak1D >::const_iterator it3(e3.begin());
 	TEST_EQUAL(it3->size(), 3);
 	ABORT_IF(it3->size() != 3)
-	TEST_REAL_EQUAL(it3->getRT(), 4711.1)
-	TEST_REAL_EQUAL((*it3)[0].getPosition()[0], 230.02)
-	TEST_REAL_EQUAL((*it3)[0].getIntensity(), 47218.89)
-	TEST_REAL_EQUAL((*it3)[1].getPosition()[0], 430.02)
-	TEST_REAL_EQUAL((*it3)[1].getIntensity(), 47219.89)
-	TEST_REAL_EQUAL((*it3)[2].getPosition()[0], 630.02)
-	TEST_REAL_EQUAL((*it3)[2].getIntensity(), 47210.89)
+	TEST_REAL_SIMILAR(it3->getRT(), 4711.1)
+	TEST_REAL_SIMILAR((*it3)[0].getPosition()[0], 230.02)
+	TEST_REAL_SIMILAR((*it3)[0].getIntensity(), 47218.89)
+	TEST_REAL_SIMILAR((*it3)[1].getPosition()[0], 430.02)
+	TEST_REAL_SIMILAR((*it3)[1].getIntensity(), 47219.89)
+	TEST_REAL_SIMILAR((*it3)[2].getPosition()[0], 630.02)
+	TEST_REAL_SIMILAR((*it3)[2].getIntensity(), 47210.89)
 	++it3;
 
-	TEST_REAL_EQUAL((*it3)[0].getPosition()[0], 231.51)
-	TEST_REAL_EQUAL(it3->getRT(), 4711.2)
-	TEST_REAL_EQUAL((*it3)[0].getIntensity(), 89935.22)
+	TEST_REAL_SIMILAR((*it3)[0].getPosition()[0], 231.51)
+	TEST_REAL_SIMILAR(it3->getRT(), 4711.2)
+	TEST_REAL_SIMILAR((*it3)[0].getIntensity(), 89935.22)
 	++it3;
 		
-	TEST_REAL_EQUAL((*it3)[0].getPosition()[0], 139.42)
-	TEST_REAL_EQUAL(it3->getRT(), 4711.3)
-	TEST_REAL_EQUAL((*it3)[0].getIntensity(), 318.52)
+	TEST_REAL_SIMILAR((*it3)[0].getPosition()[0], 139.42)
+	TEST_REAL_SIMILAR(it3->getRT(), 4711.3)
+	TEST_REAL_SIMILAR((*it3)[0].getIntensity(), 318.52)
 	++it3;
 
-	TEST_REAL_EQUAL((*it3)[0].getPosition()[0], 149.93)
-	TEST_REAL_EQUAL(it3->getRT(), 4711.4)
-	TEST_REAL_EQUAL((*it3)[0].getIntensity(), 61870.99)
+	TEST_REAL_SIMILAR((*it3)[0].getPosition()[0], 149.93)
+	TEST_REAL_SIMILAR(it3->getRT(), 4711.4)
+	TEST_REAL_SIMILAR((*it3)[0].getIntensity(), 61870.99)
 	++it3;
 		
-	TEST_REAL_EQUAL((*it3)[0].getPosition()[0], 169.65)
-	TEST_REAL_EQUAL(it3->getRT(), 4711.5)
-	TEST_REAL_EQUAL((*it3)[0].getIntensity(), 62074.22)
+	TEST_REAL_SIMILAR((*it3)[0].getPosition()[0], 169.65)
+	TEST_REAL_SIMILAR(it3->getRT(), 4711.5)
+	TEST_REAL_SIMILAR((*it3)[0].getIntensity(), 62074.22)
 	++it3;
 		
-	TEST_REAL_EQUAL((*it3)[0].getPosition()[0], 189.30)
-	TEST_REAL_EQUAL(it3->getRT(), 4711.6)
-	TEST_REAL_EQUAL((*it3)[0].getIntensity(), 53737.85)
+	TEST_REAL_SIMILAR((*it3)[0].getPosition()[0], 189.30)
+	TEST_REAL_SIMILAR(it3->getRT(), 4711.6)
+	TEST_REAL_SIMILAR((*it3)[0].getIntensity(), 53737.85)
 	++it3;
 
-	TEST_REAL_EQUAL((*it3)[0].getPosition()[0], 202.28)
-	TEST_REAL_EQUAL(it3->getRT(), 4711.7)
-	TEST_REAL_EQUAL((*it3)[0].getIntensity(), 49410.25)
+	TEST_REAL_SIMILAR((*it3)[0].getPosition()[0], 202.28)
+	TEST_REAL_SIMILAR(it3->getRT(), 4711.7)
+	TEST_REAL_SIMILAR((*it3)[0].getIntensity(), 49410.25)
 	++it3;
 		
-	TEST_REAL_EQUAL((*it3)[0].getPosition()[0], 207.82)
-	TEST_REAL_EQUAL(it3->getRT(), 4711.8)
-	TEST_REAL_EQUAL((*it3)[0].getIntensity(), 17038.71)
+	TEST_REAL_SIMILAR((*it3)[0].getPosition()[0], 207.82)
+	TEST_REAL_SIMILAR(it3->getRT(), 4711.8)
+	TEST_REAL_SIMILAR((*it3)[0].getIntensity(), 17038.71)
 	++it3;
 		
-	TEST_REAL_EQUAL((*it3)[0].getPosition()[0], 219.72)
-	TEST_REAL_EQUAL(it3->getRT(), 4711.9)
-	TEST_REAL_EQUAL((*it3)[0].getIntensity(), 73629.98)
+	TEST_REAL_SIMILAR((*it3)[0].getPosition()[0], 219.72)
+	TEST_REAL_SIMILAR(it3->getRT(), 4711.9)
+	TEST_REAL_SIMILAR((*it3)[0].getIntensity(), 73629.98)
 
 
   MSExperiment<> e4;
 
   dta.load("data/DTA2DFile_test_3.dta2d",e4);
   TEST_EQUAL(e4.size(),9)
-	TEST_REAL_EQUAL(e4[0].getRT(), 282666)
-	TEST_REAL_EQUAL(e4[1].getRT(), 282672)
-	TEST_REAL_EQUAL(e4[2].getRT(), 282678)
-	TEST_REAL_EQUAL(e4[3].getRT(), 282684)
-	TEST_REAL_EQUAL(e4[4].getRT(), 282690)
+	TEST_REAL_SIMILAR(e4[0].getRT(), 282666)
+	TEST_REAL_SIMILAR(e4[1].getRT(), 282672)
+	TEST_REAL_SIMILAR(e4[2].getRT(), 282678)
+	TEST_REAL_SIMILAR(e4[3].getRT(), 282684)
+	TEST_REAL_SIMILAR(e4[4].getRT(), 282690)
 	
-RESULT
+END_SECTION
 
-CHECK((template<typename MapType> void store(const String& filename, const MapType& map) const ))
-	PRECISION(0.1)
+START_SECTION((template<typename MapType> void store(const String& filename, const MapType& map) const ))
+	TOLERANCE_ABSOLUTE(0.1)
 	std::string tmp_filename;
   MSExperiment<> e;
   DTA2DFile f;
@@ -282,59 +282,59 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
 
 	std::vector<Peak2D>::const_iterator it2 = array.begin();
 
-	TEST_REAL_EQUAL(it2->getMZ(), 230.02)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.1)
-	TEST_REAL_EQUAL(it2->getIntensity(), 47218.89)
+	TEST_REAL_SIMILAR(it2->getMZ(), 230.02)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.1)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 47218.89)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getMZ(), 430.02)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.1)
-	TEST_REAL_EQUAL(it2->getIntensity(), 47219.89)
+	TEST_REAL_SIMILAR(it2->getMZ(), 430.02)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.1)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 47219.89)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getMZ(), 630.02)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.1)
-	TEST_REAL_EQUAL(it2->getIntensity(), 47210.89)
+	TEST_REAL_SIMILAR(it2->getMZ(), 630.02)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.1)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 47210.89)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getMZ(), 231.51)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.2)
-	TEST_REAL_EQUAL(it2->getIntensity(), 89935.22)
+	TEST_REAL_SIMILAR(it2->getMZ(), 231.51)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.2)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 89935.22)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getMZ(), 139.42)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.3)
-	TEST_REAL_EQUAL(it2->getIntensity(), 318.52)
+	TEST_REAL_SIMILAR(it2->getMZ(), 139.42)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.3)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 318.52)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getMZ(), 149.93)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.4)
-	TEST_REAL_EQUAL(it2->getIntensity(), 61870.99)
+	TEST_REAL_SIMILAR(it2->getMZ(), 149.93)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.4)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 61870.99)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getMZ(), 169.65)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.5)
-	TEST_REAL_EQUAL(it2->getIntensity(), 62074.22)
+	TEST_REAL_SIMILAR(it2->getMZ(), 169.65)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.5)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 62074.22)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getMZ(), 189.30)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.6)
-	TEST_REAL_EQUAL(it2->getIntensity(), 53737.85)
+	TEST_REAL_SIMILAR(it2->getMZ(), 189.30)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.6)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 53737.85)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getMZ(), 202.28)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.7)
-	TEST_REAL_EQUAL(it2->getIntensity(), 49410.25)
+	TEST_REAL_SIMILAR(it2->getMZ(), 202.28)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.7)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 49410.25)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getMZ(), 207.82)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.8)
-	TEST_REAL_EQUAL(it2->getIntensity(), 17038.71)
+	TEST_REAL_SIMILAR(it2->getMZ(), 207.82)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.8)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 17038.71)
 	++it2;
 
-	TEST_REAL_EQUAL(it2->getMZ(), 219.72)
-	TEST_REAL_EQUAL(it2->getRT(), 4711.9)
-	TEST_REAL_EQUAL(it2->getIntensity(), 73629.98)
+	TEST_REAL_SIMILAR(it2->getMZ(), 219.72)
+	TEST_REAL_SIMILAR(it2->getRT(), 4711.9)
+	TEST_REAL_SIMILAR(it2->getIntensity(), 73629.98)
 
 	MSExperiment< Peak1D > e3;
 	f.load(tmp_filename,e3);
@@ -345,78 +345,78 @@ CHECK((template<typename MapType> void store(const String& filename, const MapTy
 
 	std::vector<Peak2D >::const_iterator it3 = array2.begin();
 
-	TEST_REAL_EQUAL(it3->getMZ(), 230.02)
-	TEST_REAL_EQUAL(it3->getRT(), 4711.1)
-	TEST_REAL_EQUAL(it3->getIntensity(), 47218.89)
+	TEST_REAL_SIMILAR(it3->getMZ(), 230.02)
+	TEST_REAL_SIMILAR(it3->getRT(), 4711.1)
+	TEST_REAL_SIMILAR(it3->getIntensity(), 47218.89)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getMZ(), 430.02)
-	TEST_REAL_EQUAL(it3->getRT(), 4711.1)
-	TEST_REAL_EQUAL(it3->getIntensity(), 47219.89)
+	TEST_REAL_SIMILAR(it3->getMZ(), 430.02)
+	TEST_REAL_SIMILAR(it3->getRT(), 4711.1)
+	TEST_REAL_SIMILAR(it3->getIntensity(), 47219.89)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getMZ(), 630.02)
-	TEST_REAL_EQUAL(it3->getRT(), 4711.1)
-	TEST_REAL_EQUAL(it3->getIntensity(), 47210.89)
+	TEST_REAL_SIMILAR(it3->getMZ(), 630.02)
+	TEST_REAL_SIMILAR(it3->getRT(), 4711.1)
+	TEST_REAL_SIMILAR(it3->getIntensity(), 47210.89)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getMZ(), 231.51)
-	TEST_REAL_EQUAL(it3->getRT(), 4711.2)
-	TEST_REAL_EQUAL(it3->getIntensity(), 89935.22)
+	TEST_REAL_SIMILAR(it3->getMZ(), 231.51)
+	TEST_REAL_SIMILAR(it3->getRT(), 4711.2)
+	TEST_REAL_SIMILAR(it3->getIntensity(), 89935.22)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getMZ(), 139.42)
-	TEST_REAL_EQUAL(it3->getRT(), 4711.3)
-	TEST_REAL_EQUAL(it3->getIntensity(), 318.52)
+	TEST_REAL_SIMILAR(it3->getMZ(), 139.42)
+	TEST_REAL_SIMILAR(it3->getRT(), 4711.3)
+	TEST_REAL_SIMILAR(it3->getIntensity(), 318.52)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getMZ(), 149.93)
-	TEST_REAL_EQUAL(it3->getRT(), 4711.4)
-	TEST_REAL_EQUAL(it3->getIntensity(), 61870.99)
+	TEST_REAL_SIMILAR(it3->getMZ(), 149.93)
+	TEST_REAL_SIMILAR(it3->getRT(), 4711.4)
+	TEST_REAL_SIMILAR(it3->getIntensity(), 61870.99)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getMZ(), 169.65)
-	TEST_REAL_EQUAL(it3->getRT(), 4711.5)
-	TEST_REAL_EQUAL(it3->getIntensity(), 62074.22)
+	TEST_REAL_SIMILAR(it3->getMZ(), 169.65)
+	TEST_REAL_SIMILAR(it3->getRT(), 4711.5)
+	TEST_REAL_SIMILAR(it3->getIntensity(), 62074.22)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getMZ(), 189.30)
-	TEST_REAL_EQUAL(it3->getRT(), 4711.6)
-	TEST_REAL_EQUAL(it3->getIntensity(), 53737.85)
+	TEST_REAL_SIMILAR(it3->getMZ(), 189.30)
+	TEST_REAL_SIMILAR(it3->getRT(), 4711.6)
+	TEST_REAL_SIMILAR(it3->getIntensity(), 53737.85)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getMZ(), 202.28)
-	TEST_REAL_EQUAL(it3->getRT(), 4711.7)
-	TEST_REAL_EQUAL(it3->getIntensity(), 49410.25)
+	TEST_REAL_SIMILAR(it3->getMZ(), 202.28)
+	TEST_REAL_SIMILAR(it3->getRT(), 4711.7)
+	TEST_REAL_SIMILAR(it3->getIntensity(), 49410.25)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getMZ(), 207.82)
-	TEST_REAL_EQUAL(it3->getRT(), 4711.8)
-	TEST_REAL_EQUAL(it3->getIntensity(), 17038.71)
+	TEST_REAL_SIMILAR(it3->getMZ(), 207.82)
+	TEST_REAL_SIMILAR(it3->getRT(), 4711.8)
+	TEST_REAL_SIMILAR(it3->getIntensity(), 17038.71)
 	++it3;
 
-	TEST_REAL_EQUAL(it3->getMZ(), 219.72)
-	TEST_REAL_EQUAL(it3->getRT(), 4711.9)
-	TEST_REAL_EQUAL(it3->getIntensity(), 73629.98)
+	TEST_REAL_SIMILAR(it3->getMZ(), 219.72)
+	TEST_REAL_SIMILAR(it3->getRT(), 4711.9)
+	TEST_REAL_SIMILAR(it3->getIntensity(), 73629.98)
 
 
-RESULT
+END_SECTION
 
-CHECK(([EXTRA] load with RT range))
-	PRECISION(0.01)
+START_SECTION(([EXTRA] load with RT range))
+	TOLERANCE_ABSOLUTE(0.01)
 
 	MSExperiment<> e;
 	DTA2DFile dta;
 
 	dta.getOptions().setRTRange(makeRange(282670, 282685));
 	dta.load("data/DTA2DFile_test_3.dta2d",e);
-	TEST_REAL_EQUAL(e[0].getRT(), 282672)
-	TEST_REAL_EQUAL(e[1].getRT(), 282678)
-	TEST_REAL_EQUAL(e[2].getRT(), 282684)
-RESULT
+	TEST_REAL_SIMILAR(e[0].getRT(), 282672)
+	TEST_REAL_SIMILAR(e[1].getRT(), 282678)
+	TEST_REAL_SIMILAR(e[2].getRT(), 282684)
+END_SECTION
 
-CHECK(([EXTRA] load with MZ range))
-	PRECISION(0.01)
+START_SECTION(([EXTRA] load with MZ range))
+	TOLERANCE_ABSOLUTE(0.01)
 
 	MSExperiment<> e;
 	DTA2DFile dta;
@@ -425,23 +425,23 @@ CHECK(([EXTRA] load with MZ range))
 	dta.load("data/DTA2DFile_test_1.dta2d",e);
 
 	MSExperiment<>::const_iterator it(e.begin());
-	TEST_REAL_EQUAL((*it)[0].getPosition()[0], 169.65)
+	TEST_REAL_SIMILAR((*it)[0].getPosition()[0], 169.65)
 	++it;
 
-	TEST_REAL_EQUAL((*it)[0].getPosition()[0], 189.30)
+	TEST_REAL_SIMILAR((*it)[0].getPosition()[0], 189.30)
 	++it;
 
-	TEST_REAL_EQUAL((*it)[0].getPosition()[0], 202.28)
+	TEST_REAL_SIMILAR((*it)[0].getPosition()[0], 202.28)
 	++it;
 
-	TEST_REAL_EQUAL((*it)[0].getPosition()[0], 207.82)
+	TEST_REAL_SIMILAR((*it)[0].getPosition()[0], 207.82)
 	++it;
 
-	TEST_REAL_EQUAL((*it)[0].getPosition()[0], 219.72)
-RESULT
+	TEST_REAL_SIMILAR((*it)[0].getPosition()[0], 219.72)
+END_SECTION
 
-CHECK(([EXTRA] load with intensity range))
-	PRECISION(0.01)
+START_SECTION(([EXTRA] load with intensity range))
+	TOLERANCE_ABSOLUTE(0.01)
 
 	MSExperiment<> e;
 	DTA2DFile dta;
@@ -450,20 +450,20 @@ CHECK(([EXTRA] load with intensity range))
 	dta.load("data/DTA2DFile_test_1.dta2d",e);
 
 	MSExperiment<>::const_iterator it(e.begin());
-	TEST_REAL_EQUAL((*it)[0].getIntensity(), 47218.89)
+	TEST_REAL_SIMILAR((*it)[0].getIntensity(), 47218.89)
 	++it;
 
-	TEST_REAL_EQUAL((*it)[0].getIntensity(), 61870.99)
+	TEST_REAL_SIMILAR((*it)[0].getIntensity(), 61870.99)
 	++it;
 
-	TEST_REAL_EQUAL((*it)[0].getIntensity(), 62074.22)
+	TEST_REAL_SIMILAR((*it)[0].getIntensity(), 62074.22)
 	++it;
 
-	TEST_REAL_EQUAL((*it)[0].getIntensity(), 53737.85)
+	TEST_REAL_SIMILAR((*it)[0].getIntensity(), 53737.85)
 	++it;
 
-	TEST_REAL_EQUAL((*it)[0].getIntensity(), 49410.25)
-RESULT
+	TEST_REAL_SIMILAR((*it)[0].getIntensity(), 49410.25)
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

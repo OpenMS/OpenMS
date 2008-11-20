@@ -42,77 +42,77 @@ using namespace OpenMS;
 
 // default ctor
 DataValue* dv_ptr = 0;
-CHECK((DataValue()))
+START_SECTION((DataValue()))
 	dv_ptr = new DataValue;
 	TEST_NOT_EQUAL(dv_ptr, 0)
-RESULT
+END_SECTION
 
 // destructor
-CHECK((virtual ~DataValue()))
+START_SECTION((virtual ~DataValue()))
 	delete dv_ptr;
-RESULT
+END_SECTION
 
 // ctor for all supported types a DataValue object can hold
 
-CHECK((DataValue(DoubleReal)))
+START_SECTION((DataValue(DoubleReal)))
 	DoubleReal x = -3.0;
 	DataValue d(x);
-	TEST_REAL_EQUAL((DoubleReal)d, -3.0)
-RESULT
+	TEST_REAL_SIMILAR((DoubleReal)d, -3.0)
+END_SECTION
 
-CHECK((DataValue(Real)))
+START_SECTION((DataValue(Real)))
 	Real x = 3.0;
 	DataValue d(x);
-	TEST_REAL_EQUAL((Real)d, 3.0)
-RESULT
+	TEST_REAL_SIMILAR((Real)d, 3.0)
+END_SECTION
 
-CHECK((DataValue(Int)))
+START_SECTION((DataValue(Int)))
 	Int n = -3000;
 	DataValue d(n);
 	TEST_EQUAL((Int)d, -3000)
-RESULT
+END_SECTION
 
-CHECK((DataValue(UInt)))
+START_SECTION((DataValue(UInt)))
 	UInt n = 3000u;
 	DataValue d(n);
 	TEST_EQUAL((UInt)d, 3000u)
-RESULT
+END_SECTION
 
-CHECK((DataValue(const char*)))
+START_SECTION((DataValue(const char*)))
 	const char* s = "test char";
 	DataValue d(s);
 	TEST_EQUAL((std::string)d, "test char")
-RESULT
+END_SECTION
 
-CHECK((DataValue(const String&)))
+START_SECTION((DataValue(const String&)))
 	String s = "test string";
 	DataValue d(s);
 	TEST_EQUAL((String)d, "test string")
-RESULT
+END_SECTION
 
-CHECK((DataValue(const StringList &)))
+START_SECTION((DataValue(const StringList &)))
 	StringList sl;
 	sl << "test string" << "test String 2";
 	DataValue d(sl);
 	TEST_EQUAL((StringList)d, sl)
-RESULT
+END_SECTION
 
-CHECK((DataValue(const IntList &)))
+START_SECTION((DataValue(const IntList &)))
 	IntList il;
 	il << 1 <<2 ;
 	DataValue d(il);
 	TEST_EQUAL((IntList)d,il)
-RESULT
+END_SECTION
 
-CHECK((DataValue(const DoubleList &)))
+START_SECTION((DataValue(const DoubleList &)))
 	DoubleList dl;
 	dl << 1.2 << 22.3333;
 	DataValue d(dl);
 	TEST_EQUAL((DoubleList)d,dl);
-RESULT
+END_SECTION
 // copy ctor
 
-CHECK((DataValue(const DataValue&)))
+START_SECTION((DataValue(const DataValue&)))
 	DataValue p1((DoubleReal) 1.23);
 	DataValue p3((Real) 1.23);
 	DataValue p4((Int) -3);
@@ -133,21 +133,21 @@ CHECK((DataValue(const DataValue&)))
 	DataValue copy_of_p9(p9);
 	DataValue copy_of_p10(p10);
 	DataValue copy_of_p11(p11);
-	TEST_REAL_EQUAL( (DoubleReal) copy_of_p1, 1.23)
-	TEST_REAL_EQUAL( (Real) copy_of_p3, 1.23)
+	TEST_REAL_SIMILAR( (DoubleReal) copy_of_p1, 1.23)
+	TEST_REAL_SIMILAR( (Real) copy_of_p3, 1.23)
 	TEST_EQUAL( (Int) copy_of_p4, -3)
-	TEST_REAL_EQUAL( (UInt) copy_of_p5, 123)
+	TEST_REAL_SIMILAR( (UInt) copy_of_p5, 123)
 	TEST_EQUAL( (std::string) copy_of_p6, "test char")
 	TEST_EQUAL( (std::string) copy_of_p7, "test string")
 	TEST_EQUAL( (StringList) copy_of_p8, StringList::create("test string,string2,last string"))
 	TEST_EQUAL( (copy_of_p9.isEmpty()),true)
 	TEST_EQUAL((IntList)copy_of_p10,IntList::create("1,2,3,4,5"))
 	TEST_EQUAL((DoubleList)copy_of_p11,DoubleList::create("1.2,2.3,3.4"))
-RESULT
+END_SECTION
 
 // assignment operator
 
-CHECK((DataValue& operator = (const DataValue&)))
+START_SECTION((DataValue& operator = (const DataValue&)))
 	DataValue p1((DoubleReal) 1.23);
 	DataValue p3((Real) 1.23);
 	DataValue p4((Int) -3);
@@ -160,13 +160,13 @@ CHECK((DataValue& operator = (const DataValue&)))
 	DataValue p11(DoubleList::create("1.2,2.3,3.4"));
 	DataValue copy_of_p;
 	copy_of_p = p1;
-	TEST_REAL_EQUAL( (DoubleReal) copy_of_p, 1.23)
+	TEST_REAL_SIMILAR( (DoubleReal) copy_of_p, 1.23)
 	copy_of_p = p3;
-	TEST_REAL_EQUAL( (Real) copy_of_p, 1.23)
+	TEST_REAL_SIMILAR( (Real) copy_of_p, 1.23)
 	copy_of_p = p4;
 	TEST_EQUAL( (Int) copy_of_p, -3)
 	copy_of_p = p5;
-	TEST_REAL_EQUAL( (UInt) copy_of_p, 123)
+	TEST_REAL_SIMILAR( (UInt) copy_of_p, 123)
 	copy_of_p = p6;
 	TEST_EQUAL( (std::string) copy_of_p, "test char")
 	copy_of_p = p7;
@@ -179,41 +179,41 @@ CHECK((DataValue& operator = (const DataValue&)))
 	TEST_EQUAL((IntList)copy_of_p,IntList::create("1,2,3,4,5"))
 	copy_of_p = p11;
 	TEST_EQUAL((DoubleList)copy_of_p,DoubleList::create("1.2,2.3,3.4"))
-RESULT
+END_SECTION
 
 // Is DataValue object empty?
 
-CHECK((bool isEmpty() const))
+START_SECTION((bool isEmpty() const))
 	DataValue p1;
 	bool res1 =  p1.isEmpty();
 	TEST_NOT_EQUAL( res1, 0)
 	DataValue p2((Real)1.2);
 	bool res2 =  p2.isEmpty();
 	TEST_EQUAL( res2, 0)
-	TEST_REAL_EQUAL( (Real) p2, 1.2)
+	TEST_REAL_SIMILAR( (Real) p2, 1.2)
 	DataValue p4("2");
 	bool res4 =  p4.isEmpty();
 	TEST_EQUAL( res4, 0)
 	TEST_EQUAL( (std::string) p4, "2")
-RESULT
+END_SECTION
 
 // conversion operators
 
-CHECK((operator std::string() const))
+START_SECTION((operator std::string() const))
 	DataValue d((std::string) "test string");
 	std::string k = d;
 	TEST_EQUAL(k,"test string")
-RESULT
+END_SECTION
 
-CHECK((operator StringList() const))
+START_SECTION((operator StringList() const))
 	StringList sl;
 	sl << "test string list";
 	DataValue d(sl);
 	StringList sl_op = d;
 	TEST_EQUAL(sl_op, d)
-RESULT
+END_SECTION
 
-CHECK((operator IntList() const))
+START_SECTION((operator IntList() const))
 	IntList il;
 	il << 1<< 2;
 	DataValue d(il);
@@ -222,50 +222,50 @@ CHECK((operator IntList() const))
 	
 	
   TEST_EXCEPTION(Exception::ConversionError, (StringList)DataValue("abc,ab"))
-RESULT
+END_SECTION
 
-CHECK((operator DoubleList() const))
+START_SECTION((operator DoubleList() const))
 	DoubleList dl;
 	dl<< 1.2 <<22.34455;
 	DataValue d(dl);
 	DoubleList dl_op = d;
 	TEST_EQUAL(dl_op,d);
-RESULT
+END_SECTION
 
-CHECK((operator DoubleReal() const))
+START_SECTION((operator DoubleReal() const))
 	DataValue d((DoubleReal) 5.5);
 	DoubleReal k = d;
-	TEST_REAL_EQUAL(k,5.5)
+	TEST_REAL_SIMILAR(k,5.5)
 
   TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55))
-RESULT
+END_SECTION
 
-CHECK((operator Real() const))
+START_SECTION((operator Real() const))
 	DataValue d((Real) 5.45);
 	Real k = d;
-	TEST_REAL_EQUAL(k,5.45)
+	TEST_REAL_SIMILAR(k,5.45)
 
   TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55))
-RESULT
+END_SECTION
 
-CHECK((operator Int() const))
+START_SECTION((operator Int() const))
 	DataValue d((Int) 55);
 	int k = d;
 	TEST_EQUAL(k,55)
 
   TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55.4))
-RESULT
+END_SECTION
 
-CHECK((operator UInt() const))
+START_SECTION((operator UInt() const))
 	DataValue d((Int) 55);
 	UInt k = d;
 	TEST_EQUAL(k,55)
 	
   TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55))
   TEST_EXCEPTION(Exception::ConversionError, (UInt)DataValue(-55.4))
-RESULT
+END_SECTION
 
-CHECK(([EXTRA] friend bool operator==(const DataValue&, const DataValue&)))
+START_SECTION(([EXTRA] friend bool operator==(const DataValue&, const DataValue&)))
   DataValue a(5.0);
   DataValue b(5.0);
   TEST_EQUAL(a==b,true);
@@ -287,9 +287,9 @@ CHECK(([EXTRA] friend bool operator==(const DataValue&, const DataValue&)))
   a = DataValue((Real)15.13);
   b = DataValue((Real)(15.13001));
   TEST_EQUAL(a==b,false);
-RESULT
+END_SECTION
 
-CHECK(([EXTRA] friend bool operator!=(const DataValue&, const DataValue&)))
+START_SECTION(([EXTRA] friend bool operator!=(const DataValue&, const DataValue&)))
   DataValue a(5.0);
   DataValue b(5.1);
   TEST_EQUAL(a!=b,true);
@@ -297,18 +297,18 @@ CHECK(([EXTRA] friend bool operator!=(const DataValue&, const DataValue&)))
   b = DataValue((DoubleReal)15.13);
   TEST_EQUAL(a!=b,true);
 
-RESULT
+END_SECTION
 
-CHECK((const char* toChar() const))
+START_SECTION((const char* toChar() const))
 	DataValue a;
   TEST_EQUAL(a.toChar() == NULL, true)  
   a = DataValue("hello");
   TEST_EQUAL(a.toChar(),std::string("hello"))
 	a = DataValue(5);
   TEST_EXCEPTION(Exception::ConversionError, a.toChar() )
-RESULT
+END_SECTION
 
-CHECK((String toString() const))
+START_SECTION((String toString() const))
 	DataValue a;
   TEST_EQUAL(a.toString(), "")  
   a = DataValue("hello");
@@ -325,9 +325,9 @@ CHECK((String toString() const))
   TEST_EQUAL(a.toString(),"[1, 2, 3, 4, 5]")
   a= DataValue(DoubleList::create("1.2,23.3333"));
   TEST_EQUAL(a.toString(),"[1.2, 23.3333]")
-RESULT
+END_SECTION
 
-CHECK((bool toBool() const))
+START_SECTION((bool toBool() const))
 	//valid cases
 	DataValue a("true");
 	TEST_EQUAL(a.toBool(),true)
@@ -343,9 +343,9 @@ CHECK((bool toBool() const))
 	TEST_EXCEPTION(Exception::ConversionError, a.toBool() )
 	a = DataValue(34.45);
 	TEST_EXCEPTION(Exception::ConversionError, a.toBool() )
-RESULT
+END_SECTION
 
-CHECK((QString toQString() const))
+START_SECTION((QString toQString() const))
 	DataValue a;
   TEST_EQUAL(a.toQString().toStdString(), "")  
   a = DataValue("hello");
@@ -362,16 +362,16 @@ CHECK((QString toQString() const))
   TEST_EQUAL(a.toQString().toStdString(), "[1, 2, 3]")
   a = DataValue(DoubleList::create("1.22,43.23232"));
   TEST_EQUAL(a.toQString().toStdString(),"[1.22, 43.2323]")
-RESULT
+END_SECTION
 
-CHECK(([EXTRA] friend std::ostream& operator<<(std::ostream&, const DataValue&)))
+START_SECTION(([EXTRA] friend std::ostream& operator<<(std::ostream&, const DataValue&)))
 	DataValue a((Int)5), b((UInt)100), c((DoubleReal)1.111), d((Real)1.1), e("hello "), f(std::string("world")), g;
 	std::ostringstream os;
   os << a << b << c << d << e << f << g;
   TEST_EQUAL(os.str(),"51001.1111.1hello world")
-RESULT
+END_SECTION
 
-CHECK((DataType valueType() const))
+START_SECTION((DataType valueType() const))
 	DataValue a;
 	TEST_EQUAL(a.valueType(), DataValue::EMPTY_VALUE);
 
@@ -398,7 +398,7 @@ CHECK((DataType valueType() const))
 	
 	DataValue a8(DoubleList::create("1.2,32.4567"));
 	TEST_EQUAL(a8.valueType(),DataValue::DOUBLE_LIST);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

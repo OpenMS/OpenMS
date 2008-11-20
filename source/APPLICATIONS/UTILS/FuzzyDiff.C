@@ -108,7 +108,7 @@ class TOPPFuzzyDiff
 		fsc.setTabWidth(tab_width);
 		fsc.setFirstColumn(first_column);
 
-		if ( fsc.compare_files(in1,in2) )
+		if ( fsc.compareFiles(in1,in2) )
 		{
 			return EXECUTION_OK;
 		}

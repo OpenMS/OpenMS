@@ -43,15 +43,15 @@ START_TEST(BiGaussFitter1D, "$Id$")
 /////////////////////////////////////////////////////////////
 
 BiGaussFitter1D* ptr = 0;
-CHECK(BiGaussFitter1D())
+START_SECTION(BiGaussFitter1D())
 {
   ptr = new BiGaussFitter1D();
   TEST_EQUAL(ptr->getName(), "BiGaussFitter1D")
   TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK((BiGaussFitter1D(const  BiGaussFitter1D &source)))
+START_SECTION((BiGaussFitter1D(const  BiGaussFitter1D &source)))
 {
 	BiGaussFitter1D bgf1;
 	
@@ -70,15 +70,15 @@ CHECK((BiGaussFitter1D(const  BiGaussFitter1D &source)))
   bgf1 = BiGaussFitter1D();
 	TEST_EQUAL(bgf3.getParameters(), bgf2.getParameters())
 }
-RESULT
+END_SECTION
 
-CHECK((virtual ~BiGaussFitter1D()))
+START_SECTION((virtual ~BiGaussFitter1D()))
 {
   delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((virtual BiGaussFitter1D& operator=(const  BiGaussFitter1D &source)))
+START_SECTION((virtual BiGaussFitter1D& operator=(const  BiGaussFitter1D &source)))
 {
   BiGaussFitter1D bgf1;
 	
@@ -100,27 +100,27 @@ CHECK((virtual BiGaussFitter1D& operator=(const  BiGaussFitter1D &source)))
   bgf1 = BiGaussFitter1D();
 	TEST_EQUAL(bgf3.getParameters(), bgf2.getParameters())
 }
-RESULT
+END_SECTION
 
-CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
+START_SECTION((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
 	// dummy subtest
 	TEST_EQUAL(1,1)
-RESULT
+END_SECTION
 
-CHECK((Fitter1D* create()))
+START_SECTION((Fitter1D* create()))
 {
   Fitter1D* ptr = BiGaussFitter1D::create();
   TEST_EQUAL(ptr->getName(), "BiGaussFitter1D")
   TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK((const String getProductName()))
+START_SECTION((const String getProductName()))
 {
   TEST_EQUAL(BiGaussFitter1D::getProductName(),"BiGaussFitter1D")
   TEST_EQUAL(BiGaussFitter1D().getName(),"BiGaussFitter1D")
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

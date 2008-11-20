@@ -44,7 +44,7 @@ using namespace OpenMS;
 using namespace std;
 
 Matrix<int>* ptr = 0;
-CHECK((Matrix()))
+START_SECTION((Matrix()))
 {
 	ptr = new Matrix<int>;
 	TEST_NOT_EQUAL(ptr, 0);
@@ -56,17 +56,17 @@ CHECK((Matrix()))
 	TEST_EQUAL(mi1.empty(),true);
   STATUS("mi1:\n"<< mi1);
 }
-RESULT;
+END_SECTION;
 
-CHECK((~Matrix()))
+START_SECTION((~Matrix()))
 {
 	delete ptr;
 }
-RESULT;
+END_SECTION;
 
 Matrix<int> mi;
 
-CHECK((void resize(size_type i, size_type j, value_type value = value_type())))
+START_SECTION((void resize(size_type i, size_type j, value_type value = value_type())))
 {
 	mi.resize(2,2,3);
   STATUS("mi1:\n"<< mi);
@@ -79,9 +79,9 @@ CHECK((void resize(size_type i, size_type j, value_type value = value_type())))
 	TEST_EQUAL(mi(1,1),7);
 	TEST_EQUAL(mi(1,2),7);
 }
-RESULT
+END_SECTION
 
-CHECK((void resize(std::pair<UInt,UInt> const & size_pair, value_type value = value_type())))
+START_SECTION((void resize(std::pair<UInt,UInt> const & size_pair, value_type value = value_type())))
 {
 	std::pair<UInt,UInt> const sizepair(2,2);
 	mi.resize(sizepair,3);
@@ -95,9 +95,9 @@ CHECK((void resize(std::pair<UInt,UInt> const & size_pair, value_type value = va
 	TEST_EQUAL(mi(1,1),7);
 	TEST_EQUAL(mi(1,2),7);
 }
-RESULT
+END_SECTION
 
-CHECK((Matrix(const Matrix & source)))
+START_SECTION((Matrix(const Matrix & source)))
 {
   Matrix<int> mi2(mi);
   STATUS("mi2:\n"<< mi2);
@@ -110,9 +110,9 @@ CHECK((Matrix(const Matrix & source)))
 	TEST_EQUAL(mi2(1,1),7);
 	TEST_EQUAL(mi2(1,2),7);
 }
-RESULT
+END_SECTION
 
-CHECK((Matrix& operator = (const Matrix & rhs)))
+START_SECTION((Matrix& operator = (const Matrix & rhs)))
 {
 	Matrix<int> mi3;
   STATUS("mi3:\n"<<mi3);
@@ -127,27 +127,27 @@ CHECK((Matrix& operator = (const Matrix & rhs)))
 	TEST_EQUAL(mi3(1,1),7);
 	TEST_EQUAL(mi3(1,2),7);
 }
-RESULT
+END_SECTION
 
 mi(1,1)=17;
 
-CHECK((const_reference getValue(size_type const i, size_type const j) const))
+START_SECTION((const_reference getValue(size_type const i, size_type const j) const))
 {
 	Matrix<int> const & micr = mi;
   STATUS("micr:\n"<<micr);
 	TEST_EQUAL(micr.getValue(1,1),17);
 }
-RESULT
+END_SECTION
 
-CHECK((const_reference operator() (size_type const i, size_type const j) const))
+START_SECTION((const_reference operator() (size_type const i, size_type const j) const))
 {
 	Matrix<int> const & micr = mi;
   STATUS("micr:\n"<<micr);
 	TEST_EQUAL(micr(1,1),17);
 }
-RESULT
+END_SECTION
 
-CHECK((reference getValue(size_type const i, size_type const j)))
+START_SECTION((reference getValue(size_type const i, size_type const j)))
 {
 	STATUS(mi.getValue(1,2));
 	mi.getValue(1,2)=33;
@@ -155,9 +155,9 @@ CHECK((reference getValue(size_type const i, size_type const j)))
 	Matrix<int> const & micr = mi;
 	TEST_EQUAL(micr.getValue(1,2),33);
 }
-RESULT
+END_SECTION
 
-CHECK((reference operator() (size_type const i, size_type const j)))
+START_SECTION((reference operator() (size_type const i, size_type const j)))
 {
 	STATUS(mi.getValue(1,0));
 	mi.getValue(1,0)=44;
@@ -165,9 +165,9 @@ CHECK((reference operator() (size_type const i, size_type const j)))
 	Matrix<int> const & micr = mi;
 	TEST_EQUAL(micr.getValue(1,0),44);
 }
-RESULT
+END_SECTION
 
-CHECK((void clear()))
+START_SECTION((void clear()))
 {
 	Matrix<int> mi4(mi);
   STATUS("mi4:\n"<<mi4);
@@ -175,74 +175,74 @@ CHECK((void clear()))
   STATUS("mi4:\n"<<mi4);
   TEST_EQUAL(mi4.empty(),true);
 }
-RESULT
+END_SECTION
 
-CHECK((void setValue(size_type const i, size_type const j, value_type value)))
+START_SECTION((void setValue(size_type const i, size_type const j, value_type value)))
 {
 	mi.setValue(1,1,18);
 	STATUS("mi:\n"<<mi);
 	TEST_EQUAL(mi(1,1),18);
 }
-RESULT;
+END_SECTION;
 
 Matrix<int> mi5(4,5,6);
 
-CHECK((Matrix(const SizeType rows, const SizeType cols, ValueType value = ValueType())))
+START_SECTION((Matrix(const SizeType rows, const SizeType cols, ValueType value = ValueType())))
 {
   STATUS("mi5:\n"<<mi5);
 	TEST_EQUAL(mi5.size(),20);
 }
-RESULT;
+END_SECTION;
 
-CHECK((SizeType cols() const))
+START_SECTION((SizeType cols() const))
 {
 	TEST_EQUAL(mi5.rows(),4);
 }
-RESULT;
+END_SECTION;
 
-CHECK((SizeType rows() const))
+START_SECTION((SizeType rows() const))
 {
 	TEST_EQUAL(mi5.cols(),5);
 }
-RESULT;
+END_SECTION;
 
 Matrix<float> mf(6,7,8);
 
-CHECK((SizeType colIndex(SizeType index) const))
+START_SECTION((SizeType colIndex(SizeType index) const))
 {
 	TEST_EQUAL(mf.colIndex(30),2);
 }
-RESULT;
+END_SECTION;
 
-CHECK((SizeType const index(SizeType row, SizeType col) const))
+START_SECTION((SizeType const index(SizeType row, SizeType col) const))
 {
 	TEST_EQUAL(mf.index(5,5),40);
 }
-RESULT;
+END_SECTION;
 
-CHECK((SizeType rowIndex(SizeType index) const))
+START_SECTION((SizeType rowIndex(SizeType index) const))
 {
   TEST_EQUAL(mf.rowIndex(30),4);
 }
-RESULT;
+END_SECTION;
 
-CHECK((std::pair<UInt,UInt> const indexPair(UInt index) const))
+START_SECTION((std::pair<UInt,UInt> const indexPair(UInt index) const))
 {
 	std::pair<UInt,UInt> result = mf.indexPair(30);
   TEST_EQUAL(result.first,4);
 	TEST_EQUAL(result.second,2);
 }
-RESULT
+END_SECTION
 
-CHECK((std::pair<UInt,UInt> sizePair() const))
+START_SECTION((std::pair<UInt,UInt> sizePair() const))
 {
 	Matrix<float> const mf(6,7,8);
 	TEST_EQUAL(mf.sizePair().first,6);
 	TEST_EQUAL(mf.sizePair().second,7);
 }
-RESULT
+END_SECTION
 
-CHECK((bool operator == ( Matrix const & rhs ) const throw (Exception::Precondition)))
+START_SECTION((bool operator == ( Matrix const & rhs ) const throw (Exception::Precondition)))
 {
 	Matrix<int> mi1(4,5,6);
 	mi1(2,3)=17;
@@ -258,9 +258,9 @@ CHECK((bool operator == ( Matrix const & rhs ) const throw (Exception::Precondit
 	TEST_EXCEPTION(Exception::Precondition,mi1==mi4);
 	TEST_EXCEPTION(Exception::Precondition,mi1==mi5);
 }
-RESULT
+END_SECTION
 
-CHECK((bool operator < ( Matrix const & rhs ) const throw (Exception::Precondition)))
+START_SECTION((bool operator < ( Matrix const & rhs ) const throw (Exception::Precondition)))
 {
 	Matrix<int> mi1(4,5,6);
 	TEST_EQUAL(mi1<mi1,false);
@@ -279,9 +279,9 @@ CHECK((bool operator < ( Matrix const & rhs ) const throw (Exception::Preconditi
 	TEST_EXCEPTION(Exception::Precondition,mi1==mi4);
 	TEST_EXCEPTION(Exception::Precondition,mi1==mi5);
 }
-RESULT
+END_SECTION
 
-CHECK((template <int ROWS, int COLS> void setMatrix (const ValueType matrix[ROWS][COLS])))
+START_SECTION((template <int ROWS, int COLS> void setMatrix (const ValueType matrix[ROWS][COLS])))
 {
 	double test_matrix[4][4] = {
 		{0, 2.5,   3, 0.1},		
@@ -301,10 +301,10 @@ CHECK((template <int ROWS, int COLS> void setMatrix (const ValueType matrix[ROWS
 	}	
 
 }
-RESULT
+END_SECTION
 
 
-CHECK((gsl_matrix* Matrix<double>::toGslMatrix()))
+START_SECTION((gsl_matrix* Matrix<double>::toGslMatrix()))
 {
 	Matrix<double> mi(2,3,6);
 	mi(1,2)=112;
@@ -321,9 +321,9 @@ CHECK((gsl_matrix* Matrix<double>::toGslMatrix()))
 	}
 	gsl_matrix_free (gsl_m);
 }
-RESULT
+END_SECTION
 
-CHECK((template <typename Value> std::ostream & operator<<(std::ostream &os, const Matrix< Value > &matrix)))
+START_SECTION((template <typename Value> std::ostream & operator<<(std::ostream &os, const Matrix< Value > &matrix)))
 {
 	Matrix<int> mi(2,3,6);
 	mi(1,2)=112;
@@ -338,7 +338,7 @@ CHECK((template <typename Value> std::ostream & operator<<(std::ostream &os, con
 	"     6    111    112 \n";
 	TEST_EQUAL(os.str(),matrix_dump);
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

@@ -40,34 +40,34 @@ START_TEST(EnzymaticDigestion, "$Id$")
 /////////////////////////////////////////////////////////////
 
 EnzymaticDigestion* e_ptr = 0;
-CHECK(EnzymaticDigestion())
+START_SECTION(EnzymaticDigestion())
 	e_ptr = new EnzymaticDigestion;
 	TEST_NOT_EQUAL(e_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK([EXTRA] ~EnzymaticDigestion())
+START_SECTION([EXTRA] ~EnzymaticDigestion())
 	delete e_ptr;
-RESULT
+END_SECTION
 
-CHECK(UInt getMissedCleavages() const)
+START_SECTION(UInt getMissedCleavages() const)
 	TEST_EQUAL(EnzymaticDigestion().getMissedCleavages(),0)
-RESULT
+END_SECTION
 
-CHECK(Enzyme getEnzyme() const)
+START_SECTION(Enzyme getEnzyme() const)
 	TEST_EQUAL(EnzymaticDigestion().getEnzyme(),EnzymaticDigestion::TRYPSIN)
-RESULT
+END_SECTION
 
-CHECK(void setMissedCleavages(UInt missed_cleavages))
+START_SECTION(void setMissedCleavages(UInt missed_cleavages))
 	EnzymaticDigestion ed;
 	ed.setMissedCleavages(5);
 	TEST_EQUAL(ed.getMissedCleavages(),5)
-RESULT
+END_SECTION
 
-CHECK(void setEnzyme(Enzyme enzyme))
+START_SECTION(void setEnzyme(Enzyme enzyme))
 	//can be tested as soon as there is a second enzyme
-RESULT
+END_SECTION
 
-CHECK(UInt peptideCount(const AASequence& protein))
+START_SECTION(UInt peptideCount(const AASequence& protein))
 	EnzymaticDigestion ed;
 	UInt tmp = ed.peptideCount(String("ACDE"));
 	TEST_EQUAL(tmp,1)
@@ -93,9 +93,9 @@ CHECK(UInt peptideCount(const AASequence& protein))
 	TEST_EQUAL(ed.peptideCount(String("ACRDE")),3)
 	TEST_EQUAL(ed.peptideCount(String("ARCDRE")),6)
 	TEST_EQUAL(ed.peptideCount(String("RKR")),6)
-RESULT
+END_SECTION
 
-CHECK(void digest(const AASequence& protein, std::vector<AASequence>& output))
+START_SECTION(void digest(const AASequence& protein, std::vector<AASequence>& output))
 	EnzymaticDigestion ed;
 	vector<AASequence> out;
 	
@@ -193,7 +193,7 @@ CHECK(void digest(const AASequence& protein, std::vector<AASequence>& output))
 //	TEST_EQUAL(out[5],"RKR")
 
 
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

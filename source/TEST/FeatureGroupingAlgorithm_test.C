@@ -56,30 +56,30 @@ START_TEST(FeatureGroupingAlgorithm, "$Id FeatureFinder_test.C 139 2006-07-14 10
 /////////////////////////////////////////////////////////////
 
 FGA* ptr = 0;
-CHECK((FeatureGroupingAlgorithm()))
+START_SECTION((FeatureGroupingAlgorithm()))
 	ptr = new FGA();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~FeatureGroupingAlgorithm()))
+START_SECTION((virtual ~FeatureGroupingAlgorithm()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((virtual void group(const std::vector< FeatureMap<> > &maps, ConsensusMap &out)=0))
+START_SECTION((virtual void group(const std::vector< FeatureMap<> > &maps, ConsensusMap &out)=0))
 	FGA fga;
 	std::vector< FeatureMap<> > in;
 	ConsensusMap map; 
 	fga.group(in,map);
 	TEST_EQUAL(map.getFileDescriptions()[0].filename, "bla")
-RESULT
+END_SECTION
 
-CHECK((static void registerChildren()))
+START_SECTION((static void registerChildren()))
 {
 	TEST_STRING_EQUAL(Factory<FeatureGroupingAlgorithm>::registeredProducts()[0],FeatureGroupingAlgorithmLabeled::getProductName());
 	TEST_STRING_EQUAL(Factory<FeatureGroupingAlgorithm>::registeredProducts()[1],FeatureGroupingAlgorithmUnlabeled::getProductName());
 	TEST_EQUAL(Factory<FeatureGroupingAlgorithm>::registeredProducts().size(),2)
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

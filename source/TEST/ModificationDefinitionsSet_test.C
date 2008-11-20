@@ -39,14 +39,14 @@ START_TEST(ModificationDefinitionsSet, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ModificationDefinitionsSet* ptr = 0;
-CHECK(ModificationDefinitionsSet())
+START_SECTION(ModificationDefinitionsSet())
 {
 	ptr = new ModificationDefinitionsSet();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK((ModificationDefinitionsSet(const ModificationDefinitionsSet &rhs)))
+START_SECTION((ModificationDefinitionsSet(const ModificationDefinitionsSet &rhs)))
 {
   ModificationDefinitionsSet mod_set;
 	mod_set.setMaxModifications(2);
@@ -60,9 +60,9 @@ CHECK((ModificationDefinitionsSet(const ModificationDefinitionsSet &rhs)))
 
 	TEST_EQUAL(mod_set == mod_set2, true)
 }
-RESULT
+END_SECTION
 
-CHECK((ModificationDefinitionsSet(const String &fixed_modifications, const String &variable_modifications="")))
+START_SECTION((ModificationDefinitionsSet(const String &fixed_modifications, const String &variable_modifications="")))
 {
   ModificationDefinitionsSet mod_set("MOD:00046,MOD:00047,MOD:00048", "MOD:01214");
 	set<String> fixed_mods;
@@ -76,15 +76,15 @@ CHECK((ModificationDefinitionsSet(const String &fixed_modifications, const Strin
 	TEST_EQUAL(mod_set.getFixedModificationNames() == fixed_mods, true)
 	TEST_EQUAL(mod_set.getVariableModificationNames() == var_mods, true)
 }
-RESULT
+END_SECTION
 
-CHECK((virtual ~ModificationDefinitionsSet()))
+START_SECTION((virtual ~ModificationDefinitionsSet()))
 {
   delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((void setMaxModifications(UInt max_mod)))
+START_SECTION((void setMaxModifications(UInt max_mod)))
 {
   ModificationDefinitionsSet mod_set;
 	mod_set.setMaxModifications(1);
@@ -92,16 +92,16 @@ CHECK((void setMaxModifications(UInt max_mod)))
 	mod_set.setMaxModifications(2);
 	TEST_EQUAL(mod_set.getMaxModifications(), 2)
 }
-RESULT
+END_SECTION
 
-CHECK((UInt getMaxModifications() const ))
+START_SECTION((UInt getMaxModifications() const ))
 {
   // tested above
 	NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((UInt getNumberOfModifications() const ))
+START_SECTION((UInt getNumberOfModifications() const ))
 {
   ModificationDefinitionsSet mod_set("MOD:00046,MOD:00047,MOD:00048", "MOD:01214");
 	TEST_EQUAL(mod_set.getNumberOfModifications(), 4)
@@ -111,9 +111,9 @@ CHECK((UInt getNumberOfModifications() const ))
 	ModificationDefinitionsSet mod_set3("MOD:00046");
 	TEST_EQUAL(mod_set3.getNumberOfModifications(), 1)
 }
-RESULT
+END_SECTION
 
-CHECK((UInt getNumberOfFixedModifications() const ))
+START_SECTION((UInt getNumberOfFixedModifications() const ))
 {
   ModificationDefinitionsSet mod_set("MOD:00046,MOD:00047,MOD:00048", "MOD:01214");
   TEST_EQUAL(mod_set.getNumberOfFixedModifications(), 3)
@@ -123,9 +123,9 @@ CHECK((UInt getNumberOfFixedModifications() const ))
   ModificationDefinitionsSet mod_set3("MOD:00046");
   TEST_EQUAL(mod_set3.getNumberOfFixedModifications(), 1)
 }
-RESULT
+END_SECTION
 
-CHECK((UInt getNumberOfVariableModifications() const ))
+START_SECTION((UInt getNumberOfVariableModifications() const ))
 {
   ModificationDefinitionsSet mod_set("MOD:00046,MOD:00047", "MOD:01214,MOD:00048");
   TEST_EQUAL(mod_set.getNumberOfVariableModifications(), 2)
@@ -135,9 +135,9 @@ CHECK((UInt getNumberOfVariableModifications() const ))
   ModificationDefinitionsSet mod_set3("MOD:00046");
   TEST_EQUAL(mod_set3.getNumberOfVariableModifications(), 0)
 }
-RESULT
+END_SECTION
 
-CHECK((void addModification(const ModificationDefinition& mod_def)))
+START_SECTION((void addModification(const ModificationDefinition& mod_def)))
 {
   ModificationDefinition mod_def;
 	mod_def.setModification("MOD:00048");
@@ -167,9 +167,9 @@ CHECK((void addModification(const ModificationDefinition& mod_def)))
 	TEST_EQUAL(mod_set3.getNumberOfFixedModifications(), 1)
 	TEST_EQUAL(mod_set3.getNumberOfVariableModifications(), 1)
 }
-RESULT
+END_SECTION
 
-CHECK((void setModifications(const std::set<ModificationDefinition>& mod_defs)))
+START_SECTION((void setModifications(const std::set<ModificationDefinition>& mod_defs)))
 {
   ModificationDefinition mod_def1, mod_def2;
 	mod_def1.setModification("MOD:00047");
@@ -186,9 +186,9 @@ CHECK((void setModifications(const std::set<ModificationDefinition>& mod_defs)))
 	TEST_EQUAL(mod_set.getNumberOfFixedModifications(), 1)
 	TEST_EQUAL(mod_set.getNumberOfVariableModifications(), 1)
 }
-RESULT
+END_SECTION
 
-CHECK((void setModifications(const String& fixed_modifications, const String& variable_modifications)))
+START_SECTION((void setModifications(const String& fixed_modifications, const String& variable_modifications)))
 {
   ModificationDefinitionsSet mod_set1("MOD:00046,MOD:00047,MOD:00048", "MOD:01214");
 	ModificationDefinitionsSet mod_set2;
@@ -204,9 +204,9 @@ CHECK((void setModifications(const String& fixed_modifications, const String& va
 	TEST_EQUAL(mod_set1.getNumberOfFixedModifications(), 1)
 	TEST_EQUAL(mod_set1.getNumberOfVariableModifications(), 1)
 }
-RESULT
+END_SECTION
 
-CHECK((std::set<ModificationDefinition> getModifications() const ))
+START_SECTION((std::set<ModificationDefinition> getModifications() const ))
 {
   ModificationDefinitionsSet mod_set1("MOD:00046,MOD:00047,MOD:00048", "MOD:01214");
 	set<String> fixed_mods, var_mods;
@@ -229,9 +229,9 @@ CHECK((std::set<ModificationDefinition> getModifications() const ))
 	}
 
 }
-RESULT
+END_SECTION
 
-CHECK(const std::set<ModificationDefinition>& getFixedModifications() const)
+START_SECTION(const std::set<ModificationDefinition>& getFixedModifications() const)
 	ModificationDefinitionsSet mod_set1("MOD:00046,MOD:00047,MOD:00048", "MOD:01214");
   set<String> fixed_mods;
   fixed_mods.insert("MOD:00046");
@@ -245,9 +245,9 @@ CHECK(const std::set<ModificationDefinition>& getFixedModifications() const)
 		TEST_EQUAL(it->isFixedModification(), true)
 		TEST_EQUAL(fixed_mods.find(it->getModification()) != fixed_mods.end(), true)
   }
-RESULT
+END_SECTION
 
-CHECK(const std::set<ModificationDefinition>& getVariableModifications() const)
+START_SECTION(const std::set<ModificationDefinition>& getVariableModifications() const)
 	ModificationDefinitionsSet mod_set1("MOD:00046,MOD:00047,MOD:00048", "MOD:01214,MOD:00046");
   set<String> mods;
   mods.insert("MOD:00046");
@@ -260,10 +260,10 @@ CHECK(const std::set<ModificationDefinition>& getVariableModifications() const)
     TEST_EQUAL(it->isFixedModification(), false)
     TEST_EQUAL(mods.find(it->getModification()) != mods.end(), true)
   }
-RESULT
+END_SECTION
 
 
-CHECK((std::set<String> getModificationNames() const ))
+START_SECTION((std::set<String> getModificationNames() const ))
 {
   ModificationDefinitionsSet mod_set1("MOD:00046,MOD:00047,MOD:00048", "MOD:01214");
   set<String> mods;
@@ -274,9 +274,9 @@ CHECK((std::set<String> getModificationNames() const ))
 
 	TEST_EQUAL(mod_set1.getModificationNames() == mods, true)
 }
-RESULT
+END_SECTION
 
-CHECK((std::set<String> getFixedModificationNames() const ))
+START_SECTION((std::set<String> getFixedModificationNames() const ))
 {
   ModificationDefinitionsSet mod_set1("MOD:00046,MOD:00047,MOD:00048", "MOD:01214");
   set<String> mods;
@@ -285,9 +285,9 @@ CHECK((std::set<String> getFixedModificationNames() const ))
   mods.insert("MOD:00048");
 	TEST_EQUAL(mod_set1.getFixedModificationNames() == mods, true)
 }
-RESULT
+END_SECTION
 
-CHECK((std::set<String> getVariableModificationNames() const ))
+START_SECTION((std::set<String> getVariableModificationNames() const ))
 {
   ModificationDefinitionsSet mod_set1("MOD:00046,MOD:00047", "MOD:00048,MOD:01214");
   set<String> mods;
@@ -296,9 +296,9 @@ CHECK((std::set<String> getVariableModificationNames() const ))
 
 	TEST_EQUAL(mod_set1.getVariableModificationNames() == mods, true)
 }
-RESULT
+END_SECTION
 
-CHECK((ModificationDefinitionsSet& operator=(const ModificationDefinitionsSet& element)))
+START_SECTION((ModificationDefinitionsSet& operator=(const ModificationDefinitionsSet& element)))
 {
   ModificationDefinitionsSet mod_set1, mod_set2;
 	mod_set1.setModifications("MOD:00046,MOD:00047,MOD:00048", "");
@@ -316,9 +316,9 @@ CHECK((ModificationDefinitionsSet& operator=(const ModificationDefinitionsSet& e
 	mod_set2 = mod_set1;
 	TEST_EQUAL(mod_set1 == mod_set2, true)
 }
-RESULT
+END_SECTION
 
-CHECK((bool operator==(const ModificationDefinitionsSet& rhs) const))
+START_SECTION((bool operator==(const ModificationDefinitionsSet& rhs) const))
 {
   ModificationDefinitionsSet mod_set1, mod_set2;
   mod_set1.setModifications("MOD:00046,MOD:00047,MOD:00048", "");
@@ -336,9 +336,9 @@ CHECK((bool operator==(const ModificationDefinitionsSet& rhs) const))
   mod_set2 = mod_set1;
   TEST_EQUAL(mod_set1 == mod_set2, true)
 }
-RESULT
+END_SECTION
 
-CHECK((bool operator!=(const ModificationDefinitionsSet& rhs) const))
+START_SECTION((bool operator!=(const ModificationDefinitionsSet& rhs) const))
 {
   ModificationDefinitionsSet mod_set1, mod_set2;
   mod_set1.setModifications("MOD:00046,MOD:00047,MOD:00048", "");
@@ -356,7 +356,7 @@ CHECK((bool operator!=(const ModificationDefinitionsSet& rhs) const))
   mod_set2 = mod_set1;
   TEST_EQUAL(mod_set1 != mod_set2, false)
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

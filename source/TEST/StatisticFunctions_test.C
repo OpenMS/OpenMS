@@ -57,19 +57,19 @@ START_TEST( StatisticFunctions, "$Id$" );
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CHECK([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType meanSquareError( IteratorType1 begin_a, const IteratorType1 end_a, IteratorType2 begin_b, const IteratorType2 end_b )))
+START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType meanSquareError( IteratorType1 begin_a, const IteratorType1 end_a, IteratorType2 begin_b, const IteratorType2 end_b )))
 {
 	std::list<DoubleReal> numbers1(20, 1.5);
 	std::list<DoubleReal> numbers2(20, 1.3);
 	DoubleReal result = 0;
 
-	PRECISION(0.000001);
+	TOLERANCE_ABSOLUTE(0.000001);
 	result = Math::meanSquareError(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end());
-	TEST_REAL_EQUAL(result, 0.04);
+	TEST_REAL_SIMILAR(result, 0.04);
 }
-RESULT
+END_SECTION
 
-CHECK([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType classificationRate( IteratorType1 begin_a, const IteratorType1 end_a, IteratorType2 begin_b, const IteratorType2 end_b )))
+START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType classificationRate( IteratorType1 begin_a, const IteratorType1 end_a, IteratorType2 begin_b, const IteratorType2 end_b )))
 {
 	std::vector<DoubleReal> numbers1(20, 1);
 	std::vector<DoubleReal> numbers2(20, 1);
@@ -90,11 +90,11 @@ CHECK([EXTRA](template< typename IteratorType1, typename IteratorType2 > static 
 	numbers1[37] = 1;
 
 	result = Math::classificationRate(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end());
-	TEST_REAL_EQUAL(result, 0.75);
+	TEST_REAL_SIMILAR(result, 0.75);
 }
-RESULT
+END_SECTION
 
-CHECK([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType pearsonCorrelationCoefficient( const IteratorType1 begin_a, const IteratorType1 end_a, const IteratorType2 begin_b, const IteratorType2 end_b )))
+START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType pearsonCorrelationCoefficient( const IteratorType1 begin_a, const IteratorType1 end_a, const IteratorType2 begin_b, const IteratorType2 end_b )))
 {
 	std::vector<DoubleReal> numbers1(20, 1.5);
 	std::vector<DoubleReal> numbers2(20, 1.3);
@@ -112,7 +112,7 @@ CHECK([EXTRA](template< typename IteratorType1, typename IteratorType2 > static 
 	numbers2[4] = 4.0;
 	
 	result = Math::pearsonCorrelationCoefficient(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end());
-	TEST_REAL_EQUAL(result, 0.897811);
+	TEST_REAL_SIMILAR(result, 0.897811);
 	
 // ************ TEST for nan *****************	
 	std::vector<Real> vv1,vv2;
@@ -131,7 +131,7 @@ CHECK([EXTRA](template< typename IteratorType1, typename IteratorType2 > static 
 	result = Math::pearsonCorrelationCoefficient(vv1.begin(), vv1.end(), vv2.begin(), vv2.end());
 	if (isnan(result) ) result = -1.0;
 
-	TEST_REAL_EQUAL(result, -1.0);
+	TEST_REAL_SIMILAR(result, -1.0);
 // ************ TEST for nan *****************	
 
 	std::vector<Real> v1,v2;
@@ -147,7 +147,7 @@ CHECK([EXTRA](template< typename IteratorType1, typename IteratorType2 > static 
 	v2.push_back(4);
 	v2.push_back(5);
 
-	TEST_REAL_EQUAL(Math::pearsonCorrelationCoefficient(v1.begin(), v1.end(), v2.begin(), v2.end()),1);
+	TEST_REAL_SIMILAR(Math::pearsonCorrelationCoefficient(v1.begin(), v1.end(), v2.begin(), v2.end()),1);
 
 	v2.clear();
 	v2.push_back(-1);
@@ -157,7 +157,7 @@ CHECK([EXTRA](template< typename IteratorType1, typename IteratorType2 > static 
 	v2.push_back(-5);
 
 
-	TEST_REAL_EQUAL(Math::pearsonCorrelationCoefficient(v1.begin(), v1.end(), v2.begin(), v2.end()),-1);
+	TEST_REAL_SIMILAR(Math::pearsonCorrelationCoefficient(v1.begin(), v1.end(), v2.begin(), v2.end()),-1);
 
 
 	v1.clear();
@@ -205,7 +205,7 @@ CHECK([EXTRA](template< typename IteratorType1, typename IteratorType2 > static 
 	v2.push_back(-0.3518961);
 	v2.push_back(-0.3034039);
 
-	TEST_REAL_EQUAL(Math::pearsonCorrelationCoefficient(v1.begin(), v1.end(), v2.begin(), v2.end()),0);
+	TEST_REAL_SIMILAR(Math::pearsonCorrelationCoefficient(v1.begin(), v1.end(), v2.begin(), v2.end()),0);
 
 	v1.clear();
 	v2.clear();
@@ -252,11 +252,11 @@ CHECK([EXTRA](template< typename IteratorType1, typename IteratorType2 > static 
 	v2.push_back(0.6282377);
 	v2.push_back(0.3455929);
 
-	TEST_REAL_EQUAL(Math::pearsonCorrelationCoefficient(v1.begin(), v1.end(), v2.begin(), v2.end()),0);
+	TEST_REAL_SIMILAR(Math::pearsonCorrelationCoefficient(v1.begin(), v1.end(), v2.begin(), v2.end()),0);
 }
-RESULT
+END_SECTION
 
-CHECK([EXTRA](static void computeRank(std::vector<DoubleReal>& w)))
+START_SECTION([EXTRA](static void computeRank(std::vector<DoubleReal>& w)))
 {
   std::vector<DoubleReal> numbers1(10, 1.5);
 
@@ -267,21 +267,21 @@ CHECK([EXTRA](static void computeRank(std::vector<DoubleReal>& w)))
   numbers1[4] = 3.2;
   numbers1[5] = 2.2;
   
-  TEST_REAL_EQUAL(numbers1[0], 1.4);
-  TEST_REAL_EQUAL(numbers1[5], 2.2);
+  TEST_REAL_SIMILAR(numbers1[0], 1.4);
+  TEST_REAL_SIMILAR(numbers1[5], 2.2);
   
   Math::computeRank(numbers1);
   
-  TEST_REAL_EQUAL(numbers1[0], 0);
-  TEST_REAL_EQUAL(numbers1[1], 1);
-  TEST_REAL_EQUAL(numbers1[2], 2);
-  TEST_REAL_EQUAL(numbers1[3], 3);
-  TEST_REAL_EQUAL(numbers1[4], 4);
-  TEST_REAL_EQUAL(numbers1[5], 5);
+  TEST_REAL_SIMILAR(numbers1[0], 0);
+  TEST_REAL_SIMILAR(numbers1[1], 1);
+  TEST_REAL_SIMILAR(numbers1[2], 2);
+  TEST_REAL_SIMILAR(numbers1[3], 3);
+  TEST_REAL_SIMILAR(numbers1[4], 4);
+  TEST_REAL_SIMILAR(numbers1[5], 5);
 }
-RESULT        
+END_SECTION        
     
-CHECK([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType rankCorrelationCoefficient( const IteratorType1 begin_a, const IteratorType1 end_a, const IteratorType2 begin_b, const IteratorType2 end_b )))
+START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType rankCorrelationCoefficient( const IteratorType1 begin_a, const IteratorType1 end_a, const IteratorType2 begin_b, const IteratorType2 end_b )))
 {
   std::vector<DoubleReal> numbers1(10, 1.5);
   std::vector<DoubleReal> numbers2(10, 1.3);
@@ -301,9 +301,9 @@ CHECK([EXTRA](template< typename IteratorType1, typename IteratorType2 > static 
   numbers2[5] = 3.0;
   
   result = Math::rankCorrelationCoefficient(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end());
-  TEST_REAL_EQUAL(result, 0.953125);
+  TEST_REAL_SIMILAR(result, 0.953125);
 }
-RESULT    
+END_SECTION    
 
 
 /////////////////////////////////////////////////////////////

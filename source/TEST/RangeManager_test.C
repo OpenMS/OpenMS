@@ -119,110 +119,110 @@ START_TEST(RangeManager, "RangeManager")
 /////////////////////////////////////////////////////////////
 
 RM* ptr;
-CHECK((RangeManager()))
+START_SECTION((RangeManager()))
 	ptr = new RM();
   TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~RangeManager()))
+START_SECTION((virtual ~RangeManager()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((const PositionType& getMin() const))
+START_SECTION((const PositionType& getMin() const))
 	TEST_EQUAL(RM().getMin(), RM::PositionType::max)
-RESULT
+END_SECTION
 
-CHECK((const PositionType& getMax() const))
+START_SECTION((const PositionType& getMax() const))
 	TEST_EQUAL(RM().getMax(), RM::PositionType::min_negative)
-RESULT
+END_SECTION
 
-CHECK((DoubleReal getMinInt() const ))
-	TEST_REAL_EQUAL(RM().getMinInt(), numeric_limits<DoubleReal>::max())
-RESULT
+START_SECTION((DoubleReal getMinInt() const ))
+	TEST_REAL_SIMILAR(RM().getMinInt(), numeric_limits<DoubleReal>::max())
+END_SECTION
 
-CHECK((DoubleReal getMaxInt() const ))
-	TEST_REAL_EQUAL(RM().getMaxInt(), -numeric_limits<DoubleReal>::max())
-RESULT
+START_SECTION((DoubleReal getMaxInt() const ))
+	TEST_REAL_SIMILAR(RM().getMaxInt(), -numeric_limits<DoubleReal>::max())
+END_SECTION
 
-CHECK((virtual void updateRanges()=0))
+START_SECTION((virtual void updateRanges()=0))
 	RM rm;
 	
 	rm.updateRanges();
 	rm.updateRanges(); //second time to check the initialization
 	
-	TEST_REAL_EQUAL(rm.getMin()[0], 2.0)
-	TEST_REAL_EQUAL(rm.getMin()[1], 500.0)
-	TEST_REAL_EQUAL(rm.getMax()[0], 100.0)
-	TEST_REAL_EQUAL(rm.getMax()[1], 1300.0)
-	TEST_REAL_EQUAL(rm.getMinInt(), 1.0)
-	TEST_REAL_EQUAL(rm.getMaxInt(), 47110.0)	
+	TEST_REAL_SIMILAR(rm.getMin()[0], 2.0)
+	TEST_REAL_SIMILAR(rm.getMin()[1], 500.0)
+	TEST_REAL_SIMILAR(rm.getMax()[0], 100.0)
+	TEST_REAL_SIMILAR(rm.getMax()[1], 1300.0)
+	TEST_REAL_SIMILAR(rm.getMinInt(), 1.0)
+	TEST_REAL_SIMILAR(rm.getMaxInt(), 47110.0)	
 
 	//test with only one point
 	rm.updateRanges2(); //second time to check the initialization
 	
-	TEST_REAL_EQUAL(rm.getMin()[0], 2.0)
-	TEST_REAL_EQUAL(rm.getMin()[1], 500.0)
-	TEST_REAL_EQUAL(rm.getMax()[0], 2.0)
-	TEST_REAL_EQUAL(rm.getMax()[1], 500.0)
-	TEST_REAL_EQUAL(rm.getMinInt(), 1.0)
-	TEST_REAL_EQUAL(rm.getMaxInt(), 1.0)	
-RESULT
+	TEST_REAL_SIMILAR(rm.getMin()[0], 2.0)
+	TEST_REAL_SIMILAR(rm.getMin()[1], 500.0)
+	TEST_REAL_SIMILAR(rm.getMax()[0], 2.0)
+	TEST_REAL_SIMILAR(rm.getMax()[1], 500.0)
+	TEST_REAL_SIMILAR(rm.getMinInt(), 1.0)
+	TEST_REAL_SIMILAR(rm.getMaxInt(), 1.0)	
+END_SECTION
 
-CHECK((void clearRanges()))
+START_SECTION((void clearRanges()))
 	RM rm;
 	rm.updateRanges();
-	TEST_REAL_EQUAL(rm.getMin()[0], 2.0)
-	TEST_REAL_EQUAL(rm.getMin()[1], 500.0)
-	TEST_REAL_EQUAL(rm.getMax()[0], 100.0)
-	TEST_REAL_EQUAL(rm.getMax()[1], 1300.0)
-	TEST_REAL_EQUAL(rm.getMinInt(), 1.0)
-	TEST_REAL_EQUAL(rm.getMaxInt(), 47110.0)
+	TEST_REAL_SIMILAR(rm.getMin()[0], 2.0)
+	TEST_REAL_SIMILAR(rm.getMin()[1], 500.0)
+	TEST_REAL_SIMILAR(rm.getMax()[0], 100.0)
+	TEST_REAL_SIMILAR(rm.getMax()[1], 1300.0)
+	TEST_REAL_SIMILAR(rm.getMinInt(), 1.0)
+	TEST_REAL_SIMILAR(rm.getMaxInt(), 47110.0)
 	
 	rm.clearRanges();
 	TEST_EQUAL(RM().getMin(), RM::PositionType::max)
 	TEST_EQUAL(RM().getMax(), RM::PositionType::min_negative)
-	TEST_REAL_EQUAL(RM().getMinInt(), numeric_limits<DoubleReal>::max())
-	TEST_REAL_EQUAL(RM().getMaxInt(), -numeric_limits<DoubleReal>::max())
-RESULT
+	TEST_REAL_SIMILAR(RM().getMinInt(), numeric_limits<DoubleReal>::max())
+	TEST_REAL_SIMILAR(RM().getMaxInt(), -numeric_limits<DoubleReal>::max())
+END_SECTION
 
-CHECK((RangeManager(const RangeManager& rhs)))
+START_SECTION((RangeManager(const RangeManager& rhs)))
 	RM rm0;
 	rm0.updateRanges();
 	RM rm(rm0);
-	TEST_REAL_EQUAL(rm.getMin()[0], 2.0)
-	TEST_REAL_EQUAL(rm.getMin()[1], 500.0)
-	TEST_REAL_EQUAL(rm.getMax()[0], 100.0)
-	TEST_REAL_EQUAL(rm.getMax()[1], 1300.0)
-	TEST_REAL_EQUAL(rm.getMinInt(), 1.0)
-	TEST_REAL_EQUAL(rm.getMaxInt(), 47110.0)		
-RESULT
+	TEST_REAL_SIMILAR(rm.getMin()[0], 2.0)
+	TEST_REAL_SIMILAR(rm.getMin()[1], 500.0)
+	TEST_REAL_SIMILAR(rm.getMax()[0], 100.0)
+	TEST_REAL_SIMILAR(rm.getMax()[1], 1300.0)
+	TEST_REAL_SIMILAR(rm.getMinInt(), 1.0)
+	TEST_REAL_SIMILAR(rm.getMaxInt(), 47110.0)		
+END_SECTION
 
-CHECK((RangeManager& operator = (const RangeManager& rhs)))
+START_SECTION((RangeManager& operator = (const RangeManager& rhs)))
 	RM rm0;
 	rm0.updateRanges();
 	RM rm;
 	rm = rm0;
-	TEST_REAL_EQUAL(rm.getMin()[0], 2.0)
-	TEST_REAL_EQUAL(rm.getMin()[1], 500.0)
-	TEST_REAL_EQUAL(rm.getMax()[0], 100.0)
-	TEST_REAL_EQUAL(rm.getMax()[1], 1300.0)
-	TEST_REAL_EQUAL(rm.getMinInt(), 1.0)
-	TEST_REAL_EQUAL(rm.getMaxInt(), 47110.0)	
-RESULT
+	TEST_REAL_SIMILAR(rm.getMin()[0], 2.0)
+	TEST_REAL_SIMILAR(rm.getMin()[1], 500.0)
+	TEST_REAL_SIMILAR(rm.getMax()[0], 100.0)
+	TEST_REAL_SIMILAR(rm.getMax()[1], 1300.0)
+	TEST_REAL_SIMILAR(rm.getMinInt(), 1.0)
+	TEST_REAL_SIMILAR(rm.getMaxInt(), 47110.0)	
+END_SECTION
 
-CHECK((bool operator == (const RangeManager& rhs) const))
+START_SECTION((bool operator == (const RangeManager& rhs) const))
 	RM rm0 , rm;
 	TEST_EQUAL(rm==rm0, true);
 	rm0.updateRanges();
 	TEST_EQUAL(rm==rm0, false);
-RESULT
+END_SECTION
 
-CHECK((bool operator != (const RangeManager& rhs) const))
+START_SECTION((bool operator != (const RangeManager& rhs) const))
 	RM rm0 , rm;
 	TEST_EQUAL(rm!=rm0, false);
 	rm0.updateRanges();
 	TEST_EQUAL(rm!=rm0, true);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

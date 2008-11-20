@@ -277,18 +277,36 @@ class TOPPFileInfo
 			ConsensusXMLFile().load(in,cons);
 			cons.updateRanges();
 
-			cout << "Number of conensus features: " << cons.size() << endl
-					 << endl
-					 << "retention time range: " << cons.getMin()[Peak2D::RT] << " / " << cons.getMax()[Peak2D::RT] << endl
-					 << "m/z range: " << cons.getMin()[Peak2D::MZ] << " / " << cons.getMax()[Peak2D::MZ] << endl
-					 << "intensity range: " << cons.getMinInt() << " / " << cons.getMaxInt() << endl
-					 << endl;
+			std::map<UInt,UInt> num_consfeat_of_size;
+			for ( ConsensusMap::const_iterator cmit = cons.begin(); cmit != cons.end(); ++cmit )
+			{
+				++num_consfeat_of_size[cmit->size()];
+			}
+
+			std::cout << 
+				"\n"
+				"Number of consensus features:" << std::endl;
+			for ( std::map<UInt,UInt>::const_reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i )
+			{
+				std::cout << "  of size " << std::setw(2) << i->first << ": " << std::setw(6) << i->second << '\n';
+			}
+			std::cout << "  total:      " << std::setw(6) << cons.size() << '\n';
+
+			std::cout <<
+				"\n"
+				"Ranges:\n"
+				"  retention time:  " << precisionWrapper(cons.getMin()[Peak2D::RT]) << " : " << precisionWrapper(cons.getMax()[Peak2D::RT]) << "\n"
+				"  mass-to-charge:  " << precisionWrapper(cons.getMin()[Peak2D::MZ]) << " : " << precisionWrapper(cons.getMax()[Peak2D::MZ]) << "\n"
+				"  intensity:       " << precisionWrapper(cons.getMinInt()) << " : " << precisionWrapper(cons.getMaxInt()) <<
+				std::endl;
 
 			//file descriptions
 			const ConsensusMap::FileDescriptions& descs = cons.getFileDescriptions();
 			if (descs.size()!=0)
 			{
-				cout << "File descriptions" << endl;
+				cout <<
+					"\n"
+					"File descriptions:\n";
 				for (ConsensusMap::FileDescriptions::const_iterator it=descs.begin(); it!=descs.end(); ++it)
 				{
 					cout << " - " << it->second.filename << endl

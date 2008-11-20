@@ -40,66 +40,66 @@ START_TEST(Peak1D<D>, "$Id$")
 using namespace OpenMS;
 
 Peak1D* d10_ptr = 0;
-CHECK((Peak1D()))
+START_SECTION((Peak1D()))
 	d10_ptr = new Peak1D;
 	TEST_NOT_EQUAL(d10_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~Peak1D()))
+START_SECTION((~Peak1D()))
 	delete d10_ptr;
-RESULT
+END_SECTION
 
-CHECK((IntensityType getIntensity() const))
-	TEST_REAL_EQUAL(Peak1D().getIntensity(), 0.0)
-RESULT
+START_SECTION((IntensityType getIntensity() const))
+	TEST_REAL_SIMILAR(Peak1D().getIntensity(), 0.0)
+END_SECTION
 
-CHECK((PositionType const& getPosition() const))
-	TEST_REAL_EQUAL(Peak1D().getPosition()[0], 0.0)
-RESULT
+START_SECTION((PositionType const& getPosition() const))
+	TEST_REAL_SIMILAR(Peak1D().getPosition()[0], 0.0)
+END_SECTION
 
-CHECK((CoordinateType getMZ() const))
-	TEST_REAL_EQUAL(Peak1D().getMZ(), 0.0)
-RESULT
+START_SECTION((CoordinateType getMZ() const))
+	TEST_REAL_SIMILAR(Peak1D().getMZ(), 0.0)
+END_SECTION
 
-CHECK((CoordinateType getPos() const))
-	TEST_REAL_EQUAL(Peak1D().getPos(), 0.0)
-RESULT
+START_SECTION((CoordinateType getPos() const))
+	TEST_REAL_SIMILAR(Peak1D().getPos(), 0.0)
+END_SECTION
 
-CHECK((void setIntensity(IntensityType intensity)))
+START_SECTION((void setIntensity(IntensityType intensity)))
 	Peak1D p;
  	p.setIntensity(17.8);
- 	TEST_REAL_EQUAL(p.getIntensity(), 17.8)
-RESULT
+ 	TEST_REAL_SIMILAR(p.getIntensity(), 17.8)
+END_SECTION
 
-CHECK((void setPosition(PositionType const &position)))
+START_SECTION((void setPosition(PositionType const &position)))
 	Peak1D::PositionType pos;
 	pos[0] = 1.0;
 	Peak1D p;
 	p.setPosition(pos);
-	TEST_REAL_EQUAL(p.getPosition()[0], 1.0)
-RESULT
+	TEST_REAL_SIMILAR(p.getPosition()[0], 1.0)
+END_SECTION
 
-CHECK((PositionType& getPosition()))
+START_SECTION((PositionType& getPosition()))
 	Peak1D::PositionType pos;
 	pos[0] = 1.0;
 	Peak1D p;
 	p.getPosition() = pos;
-	TEST_REAL_EQUAL(p.getPosition()[0], 1.0)
-RESULT
+	TEST_REAL_SIMILAR(p.getPosition()[0], 1.0)
+END_SECTION
 
-CHECK((void setMZ(CoordinateTypemz)))
+START_SECTION((void setMZ(CoordinateTypemz)))
 	Peak1D p;
 	p.setMZ(5.0);
-	TEST_REAL_EQUAL(p.getMZ(), 5.0)
-RESULT
+	TEST_REAL_SIMILAR(p.getMZ(), 5.0)
+END_SECTION
 
-CHECK((void setPos(CoordinateTypepos)))
+START_SECTION((void setPos(CoordinateTypepos)))
 	Peak1D p;
 	p.setPos(5.0);
-	TEST_REAL_EQUAL(p.getPos(), 5.0)
-RESULT
+	TEST_REAL_SIMILAR(p.getPos(), 5.0)
+END_SECTION
 
-CHECK((Peak1D(const Peak1D& p)))
+START_SECTION((Peak1D(const Peak1D& p)))
 	Peak1D::PositionType pos;
 	pos[0] = 21.21;
 	Peak1D p;
@@ -112,12 +112,12 @@ CHECK((Peak1D(const Peak1D& p)))
 	
 	i2 = copy_of_p.getIntensity();
 	pos2 = copy_of_p.getPosition();
-	TEST_REAL_EQUAL(i2, 123.456)
+	TEST_REAL_SIMILAR(i2, 123.456)
 
-	TEST_REAL_EQUAL(pos2[0], 21.21)
-RESULT
+	TEST_REAL_SIMILAR(pos2[0], 21.21)
+END_SECTION
 
-CHECK((Peak1D& operator = (const Peak1D& rhs)))
+START_SECTION((Peak1D& operator = (const Peak1D& rhs)))
 	Peak1D::PositionType pos;
 	pos[0] = 21.21;
 	Peak1D p;
@@ -131,44 +131,44 @@ CHECK((Peak1D& operator = (const Peak1D& rhs)))
 	
 	i2 = copy_of_p.getIntensity();
 	pos2 = copy_of_p.getPosition();
-	TEST_REAL_EQUAL(i2, 123.456)
+	TEST_REAL_SIMILAR(i2, 123.456)
 
-	TEST_REAL_EQUAL(pos2[0], 21.21)
-RESULT
+	TEST_REAL_SIMILAR(pos2[0], 21.21)
+END_SECTION
 
-CHECK((bool operator == (const Peak1D& rhs) const))
+START_SECTION((bool operator == (const Peak1D& rhs) const))
 	Peak1D p1;
 	Peak1D p2(p1);
-	TEST_REAL_EQUAL(p1==p2, true)
+	TEST_EQUAL(p1==p2, true)
 	
 	p1.setIntensity(5);
-	TEST_REAL_EQUAL(p1==p2, false)
+	TEST_EQUAL(p1==p2, false)
 	p2.setIntensity(5);
-	TEST_REAL_EQUAL(p1==p2, true)
+	TEST_EQUAL(p1==p2, true)
 	
 	p1.getPosition()[0]=5;
-	TEST_REAL_EQUAL(p1==p2, false)
+	TEST_EQUAL(p1==p2, false)
 	p2.getPosition()[0]=5;
-	TEST_REAL_EQUAL(p1==p2, true)
-RESULT
+	TEST_EQUAL(p1==p2, true)
+END_SECTION
 
-CHECK((bool operator != (const Peak1D& rhs) const))
+START_SECTION((bool operator != (const Peak1D& rhs) const))
 	Peak1D p1;
 	Peak1D p2(p1);
-	TEST_REAL_EQUAL(p1!=p2, false)
+	TEST_EQUAL(p1!=p2, false)
 	
 	p1.setIntensity(5);
-	TEST_REAL_EQUAL(p1!=p2, true)
+	TEST_EQUAL(p1!=p2, true)
 	p2.setIntensity(5);
-	TEST_REAL_EQUAL(p1!=p2, false)
+	TEST_EQUAL(p1!=p2, false)
 	
 	p1.getPosition()[0]=5;
-	TEST_REAL_EQUAL(p1!=p2, true)
+	TEST_EQUAL(p1!=p2, true)
 	p2.getPosition()[0]=5;
-	TEST_REAL_EQUAL(p1!=p2, false)
-RESULT
+	TEST_EQUAL(p1!=p2, false)
+END_SECTION
 
-CHECK([EXTRA] class PositionLess)
+START_SECTION([EXTRA] class PositionLess)
 	std::vector<Peak1D > v;
 	Peak1D p;
 	
@@ -182,12 +182,12 @@ CHECK([EXTRA] class PositionLess)
 	v.push_back(p);
 	
 	std::sort(v.begin(), v.end(), Peak1D::PositionLess());
-	TEST_REAL_EQUAL(v[0].getPosition()[0], 1.0)
-	TEST_REAL_EQUAL(v[1].getPosition()[0], 2.0)
-	TEST_REAL_EQUAL(v[2].getPosition()[0], 3.0)
-RESULT
+	TEST_REAL_SIMILAR(v[0].getPosition()[0], 1.0)
+	TEST_REAL_SIMILAR(v[1].getPosition()[0], 2.0)
+	TEST_REAL_SIMILAR(v[2].getPosition()[0], 3.0)
+END_SECTION
 
-CHECK([EXTRA] struct IntensityLess)
+START_SECTION([EXTRA] struct IntensityLess)
 	std::vector<Peak1D > v;
 	Peak1D p;
 	
@@ -201,17 +201,17 @@ CHECK([EXTRA] struct IntensityLess)
 	v.push_back(p);
 	
 	std::sort(v.begin(), v.end(), Peak1D::IntensityLess());
-	TEST_REAL_EQUAL(v[0].getIntensity(), 1.5)
-	TEST_REAL_EQUAL(v[1].getIntensity(), 2.5)
-	TEST_REAL_EQUAL(v[2].getIntensity(), 3.5)
+	TEST_REAL_SIMILAR(v[0].getIntensity(), 1.5)
+	TEST_REAL_SIMILAR(v[1].getIntensity(), 2.5)
+	TEST_REAL_SIMILAR(v[2].getIntensity(), 3.5)
 
 	v[0]=v[2];
 	v[2]=p;
 	std::sort(v.begin(), v.end(), Peak1D::IntensityLess());
-	TEST_REAL_EQUAL(v[0].getIntensity(), 1.5)
-	TEST_REAL_EQUAL(v[1].getIntensity(), 2.5)
-	TEST_REAL_EQUAL(v[2].getIntensity(), 3.5)
-RESULT
+	TEST_REAL_SIMILAR(v[0].getIntensity(), 1.5)
+	TEST_REAL_SIMILAR(v[1].getIntensity(), 2.5)
+	TEST_REAL_SIMILAR(v[2].getIntensity(), 3.5)
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

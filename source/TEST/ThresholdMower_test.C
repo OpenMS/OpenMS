@@ -43,31 +43,31 @@ START_TEST(ThresholdMower, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ThresholdMower* e_ptr = 0;
-CHECK((ThresholdMower()))
+START_SECTION((ThresholdMower()))
 	e_ptr = new ThresholdMower;
 	TEST_NOT_EQUAL(e_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~ThresholdMower()))
+START_SECTION((~ThresholdMower()))
 	delete e_ptr;
-RESULT
+END_SECTION
 
 e_ptr = new ThresholdMower();
 
-CHECK((ThresholdMower(const ThresholdMower& source)))
+START_SECTION((ThresholdMower(const ThresholdMower& source)))
 	ThresholdMower copy(*e_ptr);
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK((ThresholdMower& operator=(const ThresholdMower& source)))
+START_SECTION((ThresholdMower& operator=(const ThresholdMower& source)))
 	ThresholdMower copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName());
-RESULT
+END_SECTION
 
-CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
+START_SECTION((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -86,20 +86,20 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 
 	e_ptr->filterSpectrum(spec);
 	TEST_EQUAL(spec.size(), 14)
-RESULT
+END_SECTION
 
-CHECK((static PreprocessingFunctor* create()))
+START_SECTION((static PreprocessingFunctor* create()))
 	PreprocessingFunctor* ppf = ThresholdMower::create();
 	ThresholdMower mower;
 	TEST_EQUAL(ppf->getParameters(), mower.getParameters())
 	TEST_EQUAL(ppf->getName(), mower.getName())
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(e_ptr->getProductName(), "ThresholdMower")
-RESULT
+END_SECTION
 
-CHECK((void filterPeakMap(PeakMap& exp)))
+START_SECTION((void filterPeakMap(PeakMap& exp)))
 	DTAFile dta_file;
   PeakSpectrum spec;
   dta_file.load("data/Transformers_tests.dta", spec);
@@ -121,9 +121,9 @@ CHECK((void filterPeakMap(PeakMap& exp)))
   e_ptr->filterPeakMap(pm);
   TEST_EQUAL(pm.begin()->size(), 14)
 
-RESULT
+END_SECTION
 
-CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
+START_SECTION((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   DTAFile dta_file;
   PeakSpectrum spec;
   dta_file.load("data/Transformers_tests.dta", spec);
@@ -141,7 +141,7 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 	e_ptr->setParameters(p);
   e_ptr->filterPeakSpectrum(spec);
   TEST_EQUAL(spec.size(), 14)
-RESULT
+END_SECTION
 
 delete e_ptr;
 

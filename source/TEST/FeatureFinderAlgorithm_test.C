@@ -85,30 +85,30 @@ START_TEST(FeatureFinderAlgorithm, "$Id FeatureFinder_test.C 139 2006-07-14 10:0
 /////////////////////////////////////////////////////////////
 
 FFA<Peak1D,Feature>* ptr = 0;
-CHECK((FeatureFinderAlgorithm()))
+START_SECTION((FeatureFinderAlgorithm()))
 	ptr = new FFA<Peak1D,Feature>();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~FeatureFinderAlgorithm()))
+START_SECTION((virtual ~FeatureFinderAlgorithm()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK([EXTRA] FeatureFinderAlgorithmPicked() - with RichPeak1D)
+START_SECTION([EXTRA] FeatureFinderAlgorithmPicked() - with RichPeak1D)
 	FeatureFinderAlgorithmPicked<RichPeak1D,Feature> ffa;
-RESULT
+END_SECTION
 
-CHECK(virtual void run())
+START_SECTION(virtual void run())
 	FFA<Peak1D,Feature> ffa;
 	ffa.run();
-RESULT
+END_SECTION
 
-CHECK(virtual Param getDefaultParameters() const)
+START_SECTION(virtual Param getDefaultParameters() const)
 	FFA<Peak1D,Feature> ffa;
 	TEST_EQUAL(String(ffa.getDefaultParameters().getValue("bla")),"bluff")
-RESULT
+END_SECTION
 
-CHECK(void setData(const MapType& map, FeatureMapType& features, FeatureFinder& ff))
+START_SECTION(void setData(const MapType& map, FeatureMapType& features, FeatureFinder& ff))
 	FFA<Peak1D,Feature> ffa;
 	TEST_EQUAL(ffa.getMap(),0)
 	TEST_EQUAL(ffa.getFeatures(),0)
@@ -122,7 +122,7 @@ CHECK(void setData(const MapType& map, FeatureMapType& features, FeatureFinder& 
 	TEST_NOT_EQUAL(ffa.getMap(),0)
 	TEST_NOT_EQUAL(ffa.getFeatures(),0)
 	TEST_NOT_EQUAL(ffa.getFF(),0)	
-RESULT
+END_SECTION
 		
 
 /////////////////////////////////////////////////////////////

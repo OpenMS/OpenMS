@@ -43,16 +43,16 @@ START_TEST(FeatureDecharger, "$Id$")
 /////////////////////////////////////////////////////////////
 
 FeatureDecharger* ptr = 0;
-CHECK((FeatureDecharger()))
+START_SECTION((FeatureDecharger()))
 	ptr = new FeatureDecharger();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~FeatureDecharger()))
+START_SECTION((virtual ~FeatureDecharger()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((FeatureDecharger(const FeatureDecharger &source)))
+START_SECTION((FeatureDecharger(const FeatureDecharger &source)))
   FeatureDecharger fdc;
 
   Param p = fdc.getParameters();
@@ -65,9 +65,9 @@ CHECK((FeatureDecharger(const FeatureDecharger &source)))
   
   TEST_EQUAL((double) p_copy.getValue("cluster_rt_mz_relation"), 12345.0);
   
-RESULT
+END_SECTION
 
-CHECK((FeatureDecharger& operator=(const FeatureDecharger &source)))
+START_SECTION((FeatureDecharger& operator=(const FeatureDecharger &source)))
   FeatureDecharger fdc;
 
   Param p = fdc.getParameters();
@@ -81,14 +81,14 @@ CHECK((FeatureDecharger& operator=(const FeatureDecharger &source)))
   TEST_EQUAL((double) p_copy.getValue("cluster_rt_mz_relation"), 12345.0);
   
   
-RESULT
+END_SECTION
 
-CHECK((void compute(FeatureMapType &map)))
+START_SECTION((void compute(FeatureMapType &map)))
 	//tested in getFeatureMap()
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((const FeatureMapType& getFeatureMap() const))
+START_SECTION((const FeatureMapType& getFeatureMap() const))
   FeatureMap<> map;
 
   // load a feature map
@@ -99,20 +99,20 @@ CHECK((const FeatureMapType& getFeatureMap() const))
   map = fdc.getFeatureMap();
   
   // combined feature
-  TEST_REAL_EQUAL(map[0].getRT(), 144.576);
-  //TEST_REAL_EQUAL(map[0].getMZ(), 1332.470);
-  TEST_REAL_EQUAL(map[0].getIntensity(), 20000);
+  TEST_REAL_SIMILAR(map[0].getRT(), 144.576);
+  //TEST_REAL_SIMILAR(map[0].getMZ(), 1332.470);
+  TEST_REAL_SIMILAR(map[0].getIntensity(), 20000);
   
   // bad feature - but resolved
-  TEST_REAL_EQUAL(map[2].getRT(), 151.897);
-  TEST_REAL_EQUAL(map[2].getMZ(), 789.812);
-  TEST_REAL_EQUAL(map[2].getIntensity(), 55761);
+  TEST_REAL_SIMILAR(map[2].getRT(), 151.897);
+  TEST_REAL_SIMILAR(map[2].getMZ(), 789.812);
+  TEST_REAL_SIMILAR(map[2].getIntensity(), 55761);
 
-  TEST_REAL_EQUAL(map[1].getRT(), 151.6);
-  TEST_REAL_EQUAL(map[1].getMZ(), 793.812);
-  TEST_REAL_EQUAL(map[1].getIntensity(), 55761);
+  TEST_REAL_SIMILAR(map[1].getRT(), 151.6);
+  TEST_REAL_SIMILAR(map[1].getMZ(), 793.812);
+  TEST_REAL_SIMILAR(map[1].getIntensity(), 55761);
 
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

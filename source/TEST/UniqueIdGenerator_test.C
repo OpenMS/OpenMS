@@ -39,16 +39,16 @@ START_TEST(UniqueIdGenerator, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-CHECK(static UniqueIdGenerator& instance())
+START_SECTION(static UniqueIdGenerator& instance())
 	UniqueIdGenerator::instance();
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(UID getUID())
+START_SECTION(UID getUID())
 	TEST_EQUAL(UniqueIdGenerator::instance().getUID(),0);
 	TEST_EQUAL(UniqueIdGenerator::instance().getUID(),1);
 	TEST_EQUAL(UniqueIdGenerator::instance().getUID(),2);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

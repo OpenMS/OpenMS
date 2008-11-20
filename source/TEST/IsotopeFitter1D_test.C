@@ -41,15 +41,15 @@ START_TEST(IsotopeFitter1D, "$Id$")
 /////////////////////////////////////////////////////////////
 
 IsotopeFitter1D* ptr = 0;
-CHECK(IsotopeFitter1D())
+START_SECTION(IsotopeFitter1D())
 {
 	ptr = new IsotopeFitter1D();
   TEST_EQUAL(ptr->getName(), "IsotopeFitter1D")
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK((IsotopeFitter1D(const  IsotopeFitter1D &source)))
+START_SECTION((IsotopeFitter1D(const  IsotopeFitter1D &source)))
 	IsotopeFitter1D isof1;
 	
 	Param param;
@@ -67,13 +67,13 @@ CHECK((IsotopeFitter1D(const  IsotopeFitter1D &source)))
 	isof3.setParameters(param);
   isof1 = IsotopeFitter1D();
 	TEST_EQUAL(isof3.getParameters(), isof2.getParameters())
-RESULT
+END_SECTION
 
-CHECK((virtual ~IsotopeFitter1D()))
+START_SECTION((virtual ~IsotopeFitter1D()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((virtual IsotopeFitter1D& operator=(const  IsotopeFitter1D &source)))
+START_SECTION((virtual IsotopeFitter1D& operator=(const  IsotopeFitter1D &source)))
  	IsotopeFitter1D isof1;
 	
 	Param param;
@@ -94,25 +94,25 @@ CHECK((virtual IsotopeFitter1D& operator=(const  IsotopeFitter1D &source)))
 
   isof1 = IsotopeFitter1D();
 	TEST_EQUAL(isof3.getParameters(), isof3.getParameters())
-RESULT
+END_SECTION
 
-CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
+START_SECTION((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
 	// dummy subtest 
 	IsotopeFitter1D if1;
 	if1 = IsotopeFitter1D();
 	TEST_EQUAL(if1.getParameters(), if1.getParameters())
-RESULT
+END_SECTION
 
-CHECK((Fitter1D* create()))
+START_SECTION((Fitter1D* create()))
   Fitter1D* ptr = IsotopeFitter1D::create();
   TEST_EQUAL(ptr->getName(), "IsotopeFitter1D")
   TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((const String getProductName()))
+START_SECTION((const String getProductName()))
   TEST_EQUAL(IsotopeFitter1D::getProductName(),"IsotopeFitter1D")
   TEST_EQUAL(IsotopeFitter1D().getName(),"IsotopeFitter1D")
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

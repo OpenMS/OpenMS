@@ -45,24 +45,24 @@ using namespace std;
 	
 ///constructor and destructor test
 DataFilters* ptr;
-CHECK((DataFilters()))
+START_SECTION((DataFilters()))
 	ptr = new DataFilters();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~DataFilters()))
+START_SECTION((~DataFilters()))
 	delete ptr;	
-RESULT
+END_SECTION
 
 DataFilters::DataFilter* ptr2;
-CHECK((DataFilters::DataFilter()))
+START_SECTION((DataFilters::DataFilter()))
 	ptr2 = new DataFilters::DataFilter();
 	TEST_NOT_EQUAL(ptr2, 0)
-RESULT
+END_SECTION
 
-CHECK((~DataFilters::DataFilter()))
+START_SECTION((~DataFilters::DataFilter()))
 	delete ptr2;	
-RESULT
+END_SECTION
 
 
 DataFilters::DataFilter filter_1;
@@ -79,7 +79,7 @@ DataFilters::DataFilter filter_11;
 DataFilters::DataFilter filter_12;
 
 
-CHECK ((void DataFilter::fromString(const String& filter) ))
+START_SECTION((void DataFilter::fromString(const String& filter) ))
 
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString(""), "The value '' was used but is not valid! Invalid filter format.")
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("not_enough_arguments"), "The value 'not_enough_arguments' was used but is not valid! Invalid filter format.")
@@ -107,10 +107,10 @@ CHECK ((void DataFilter::fromString(const String& filter) ))
 	filter_11.fromString("Meta::unknown_metavalue = 5");
 	filter_12.fromString("Meta::test_dummy2 exists");
 	
-RESULT
+END_SECTION
 
 
-CHECK ((String DataFilter::toString() const))
+START_SECTION((String DataFilter::toString() const))
 	
 	TEST_STRING_EQUAL(filter_1.toString(), "Intensity <= 201.334")
 	TEST_STRING_EQUAL(filter_2.toString(), "Intensity >= 1000")
@@ -122,30 +122,30 @@ CHECK ((String DataFilter::toString() const))
 	TEST_STRING_EQUAL(filter_8.toString(), "Meta::test_dummy exists")
 	TEST_STRING_EQUAL(filter_9.toString(), "Meta::test_string >= \"a string\"")
 
-RESULT
+END_SECTION
 
 
-CHECK ((bool DataFilter::operator==(const DataFilter& rhs) const))
+START_SECTION((bool DataFilter::operator==(const DataFilter& rhs) const))
 
 	TEST_EQUAL(filter_10 == filter_7, true)
 	TEST_EQUAL(filter_1 == filter_2, false)
 	TEST_EQUAL(filter_3 == filter_3, true)
 
-RESULT
+END_SECTION
 
 
-CHECK ((bool DataFilter::operator!=(const DataFilter& rhs) const))
+START_SECTION((bool DataFilter::operator!=(const DataFilter& rhs) const))
 
 	TEST_EQUAL(filter_10 != filter_7, false)
 	TEST_EQUAL(filter_3 != filter_4, true)
 	TEST_EQUAL(filter_4 != filter_4, false)
 	
-RESULT
+END_SECTION
 
 
 DataFilters filters;
 
-CHECK ((void add(const DataFilter& filter)))
+START_SECTION((void add(const DataFilter& filter)))
 
 	filters.add(filter_1);
 	filters.add(filter_2);
@@ -155,20 +155,20 @@ CHECK ((void add(const DataFilter& filter)))
 	TEST_EQUAL(filters[1] == filter_2, true)
 	TEST_EQUAL(filters[2] == filter_3, true)
 	
-RESULT
+END_SECTION
 
 
-CHECK ((const DataFilter& operator[](UInt index) const ))
+START_SECTION((const DataFilter& operator[](UInt index) const ))
 	
 	TEST_EXCEPTION(Exception::IndexOverflow, filters[3])
 	filters.add(filter_1);
 	TEST_EQUAL(filters[0] == filters[3], true)
 	filters.remove(3);
 	
-RESULT
+END_SECTION
 
 
-CHECK ((UInt size() const))
+START_SECTION((UInt size() const))
 
 	TEST_EQUAL(filters.size(), 3)
 	filters.add(filter_4);
@@ -184,10 +184,10 @@ CHECK ((UInt size() const))
 	filters.remove(0);
 	TEST_EQUAL(filters.size(), 7)
 
-RESULT
+END_SECTION
 
 
-CHECK ((void remove(UInt index) ))
+START_SECTION((void remove(UInt index) ))
 
 	TEST_EXCEPTION(Exception::IndexOverflow, filters.remove(7))
 	filters.remove(0);
@@ -195,10 +195,10 @@ CHECK ((void remove(UInt index) ))
 	filters.remove(0);
 	TEST_EQUAL(filters[0] == filter_5, true)
 	
-RESULT
+END_SECTION
 
 
-CHECK ((void replace(UInt index, const DataFilter& filter) ))
+START_SECTION((void replace(UInt index, const DataFilter& filter) ))
 	
 	TEST_EXCEPTION(Exception::IndexOverflow, filters.replace(10, filter_1))
 	//at the moment: filters[0] == filter_5, ..., filters[4] == filter_9
@@ -214,15 +214,15 @@ CHECK ((void replace(UInt index, const DataFilter& filter) ))
 	TEST_EQUAL(filters[4] == filter_5, true)
 	TEST_EQUAL(filters.size(), 5)
 	
-RESULT
+END_SECTION
 
 
-CHECK ((void clear()))
+START_SECTION((void clear()))
 	
 	filters.clear();
 	TEST_EQUAL(filters.size(), 0)
 
-RESULT
+END_SECTION
 
 
 ///construct some test features
@@ -294,7 +294,7 @@ mdas[1][2] = 100.01;
 mdas[2].setName("test_dummy");
 mdas[2].resize(3);
 
-CHECK ((template<class PeakType> bool passes(const MSSpectrum<PeakType>& spectrum, UInt peak_index) const))
+START_SECTION((template<class PeakType> bool passes(const MSSpectrum<PeakType>& spectrum, UInt peak_index) const))
 
 	filters.add(filter_1); // "Intensity <= 201.334"
 	TEST_EQUAL(filters.passes(spec,0), true) // 201.334
@@ -336,10 +336,10 @@ CHECK ((template<class PeakType> bool passes(const MSSpectrum<PeakType>& spectru
 	TEST_EQUAL(filters.passes(spec,1), true)
 	TEST_EQUAL(filters.passes(spec,2), false)
 
-RESULT
+END_SECTION
 
 
-CHECK ((bool passes(const Feature& feature) const))
+START_SECTION((bool passes(const Feature& feature) const))
 
 	filters.clear();
 	filters.add(filter_3); // "Charge = 4"
@@ -380,9 +380,9 @@ CHECK ((bool passes(const Feature& feature) const))
 	TEST_EQUAL(filters.passes(feature_2), false) // 10
 	TEST_EQUAL(filters.passes(feature_3), true) // 0
 
-RESULT
+END_SECTION
 
-CHECK (bool passes(const ConsensusFeature& consensus_feature) const)
+START_SECTION(bool passes(const ConsensusFeature& consensus_feature) const)
 
 	filters.clear();
 	filters.add(filter_3); // "Charge = 4"
@@ -406,7 +406,7 @@ CHECK (bool passes(const ConsensusFeature& consensus_feature) const)
 	TEST_EQUAL(filters.passes(c_feature_2), false) // 122.01
 	TEST_EQUAL(filters.passes(c_feature_3), false) // 55.0
 
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -45,30 +45,30 @@ using std::stringstream;
 
 // default ctor
 ExtendedIsotopeModel* ptr = 0;
-CHECK((ExtendedIsotopeModel()))
+START_SECTION((ExtendedIsotopeModel()))
 	ptr = new ExtendedIsotopeModel();
   TEST_EQUAL(ptr->getName(), "ExtendedIsotopeModel")
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
 // destructor
-CHECK((virtual ~ExtendedIsotopeModel()))
+START_SECTION((virtual ~ExtendedIsotopeModel()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(static BaseModel<1>* create())
+START_SECTION(static BaseModel<1>* create())
 	BaseModel<1>* ptr = ExtendedIsotopeModel::create();
 	TEST_EQUAL(ptr->getName(), "ExtendedIsotopeModel")
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(ExtendedIsotopeModel::getProductName(),"ExtendedIsotopeModel")
 	TEST_EQUAL(ExtendedIsotopeModel().getName(),"ExtendedIsotopeModel")
-RESULT
+END_SECTION
 
 // assignment operator
-CHECK((virtual ExtendedIsotopeModel& operator=(const ExtendedIsotopeModel &source)))
+START_SECTION((virtual ExtendedIsotopeModel& operator=(const ExtendedIsotopeModel &source)))
 	ExtendedIsotopeModel im1;
 	
 	Param tmp;
@@ -85,10 +85,10 @@ CHECK((virtual ExtendedIsotopeModel& operator=(const ExtendedIsotopeModel &sourc
 
   im1 = ExtendedIsotopeModel();
 	TEST_EQUAL(im3.getParameters(), im2.getParameters())
-RESULT
+END_SECTION
 
 // copy ctor
-CHECK((ExtendedIsotopeModel(const ExtendedIsotopeModel& source)))
+START_SECTION((ExtendedIsotopeModel(const ExtendedIsotopeModel& source)))
 	ExtendedIsotopeModel im1;
 	
 	Param tmp;
@@ -103,10 +103,10 @@ CHECK((ExtendedIsotopeModel(const ExtendedIsotopeModel& source)))
 
   im1 = ExtendedIsotopeModel();
 	TEST_EQUAL(im3.getParameters(), im2.getParameters())
-RESULT
+END_SECTION
 
-CHECK([EXTRA] DefaultParamHandler::setParameters(...))
-	PRECISION(0.001)
+START_SECTION([EXTRA] DefaultParamHandler::setParameters(...))
+	TOLERANCE_ABSOLUTE(0.001)
 	ExtendedIsotopeModel im1;
 	Param tmp;
 	tmp.setValue("charge", 3);
@@ -122,30 +122,30 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	im1.getSamples(dpa1);
 	im2.getSamples(dpa2);
 
-	PRECISION(0.00001)
+	TOLERANCE_ABSOLUTE(0.00001)
 	TEST_EQUAL(dpa1.size(),dpa2.size())
 	ABORT_IF(dpa1.size()!=dpa2.size());
 	for (UInt i=0; i<dpa1.size(); ++i)
 	{
-		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
-		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
+		TEST_REAL_SIMILAR(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
+		TEST_REAL_SIMILAR(dpa1[i].getIntensity(),dpa2[i].getIntensity())
 	}
-RESULT
+END_SECTION
 
-CHECK(UInt getCharge() )
+START_SECTION(UInt getCharge() )
 	// can only reliably be tested after fitting, only sanity check here
 	ExtendedIsotopeModel im1;
 	TEST_EQUAL(im1.getCharge() == 1, true)		// default charge is 1
-RESULT
+END_SECTION
 
-CHECK( CoordinateType getCenter() const )
+START_SECTION( CoordinateType getCenter() const )
 	// can only reliably be tested after fitting, only sanity check here
 	ExtendedIsotopeModel im1;
   TEST_EQUAL(im1.getCenter() == 1, true) // default charge is 1 and hence center mus be 1
-RESULT
+END_SECTION
 
-CHECK( void setOffset(CoordinateType offset) )
-	PRECISION(0.1)
+START_SECTION( void setOffset(CoordinateType offset) )
+	TOLERANCE_ABSOLUTE(0.1)
 	ExtendedIsotopeModel im1;
 	Param tmp;
 	tmp.setValue("charge", 3);
@@ -167,13 +167,13 @@ CHECK( void setOffset(CoordinateType offset) )
 	ABORT_IF(dpa1.size()!=dpa2.size());
 	for (UInt i=0; i<dpa1.size(); ++i)
 	{
-		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
-		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
+		TEST_REAL_SIMILAR(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
+		TEST_REAL_SIMILAR(dpa1[i].getIntensity(),dpa2[i].getIntensity())
 	}
-RESULT
+END_SECTION
 
-CHECK( CoordinateType getOffset() )
-	PRECISION(0.1)
+START_SECTION( CoordinateType getOffset() )
+	TOLERANCE_ABSOLUTE(0.1)
 	ExtendedIsotopeModel im1;
 	Param tmp;
 	tmp.setValue("charge", 3);
@@ -195,17 +195,17 @@ CHECK( CoordinateType getOffset() )
 	ABORT_IF(dpa1.size()!=dpa2.size());
 	for (UInt i=0; i<dpa1.size(); ++i)
 	{
-		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
-		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
+		TEST_REAL_SIMILAR(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
+		TEST_REAL_SIMILAR(dpa1[i].getIntensity(),dpa2[i].getIntensity())
 	}	
-RESULT
+END_SECTION
 
-CHECK((void setSamples()))
+START_SECTION((void setSamples()))
 {
   // dummy subtest
 	TEST_EQUAL(1,1)
 }
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

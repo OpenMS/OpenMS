@@ -42,24 +42,24 @@ START_TEST(MapAlignmentAlgorithmSpectrumAlignment, "$Id$")
 
 
 MapAlignmentAlgorithmSpectrumAlignment* ptr = 0;
-CHECK((MapAlignmentAlgorithmSpectrumAlignment()))
+START_SECTION((MapAlignmentAlgorithmSpectrumAlignment()))
 	ptr = new MapAlignmentAlgorithmSpectrumAlignment();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~MapAlignmentAlgorithmSpectrumAlignment()))
+START_SECTION((virtual ~MapAlignmentAlgorithmSpectrumAlignment()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((static MapAlignmentAlgorithm* create()))
+START_SECTION((static MapAlignmentAlgorithm* create()))
 	TEST_NOT_EQUAL(MapAlignmentAlgorithmSpectrumAlignment::create(),0)
-RESULT
+END_SECTION
 
-CHECK((static String getProductName()))
+START_SECTION((static String getProductName()))
 	TEST_EQUAL(MapAlignmentAlgorithmSpectrumAlignment::getProductName(), "spectrum_alignment")
-RESULT
+END_SECTION
 
-CHECK((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::vector< TransformationDescription > &)))
+START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::vector< TransformationDescription > &)))
   MapAlignmentAlgorithmSpectrumAlignment ma;
   std::vector< MSExperiment<> > maps;
 	PeakMap map1;
@@ -118,15 +118,15 @@ CHECK((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::vector< 
 	  	}
 		}
   }
-	TEST_REAL_EQUAL(counter, 0)
-RESULT
+	TEST_REAL_SIMILAR(counter, 0)
+END_SECTION
 
-CHECK([EXTRA] void alignFeatureMaps(std::vector< FeatureMap<> >&))
+START_SECTION([EXTRA] void alignFeatureMaps(std::vector< FeatureMap<> >&))
   MapAlignmentAlgorithmSpectrumAlignment ma;
   std::vector< FeatureMap<> > maps;
 	std::vector<TransformationDescription> transformations;
   TEST_EXCEPTION(Exception::NotImplemented, ma.alignFeatureMaps(maps,transformations));
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

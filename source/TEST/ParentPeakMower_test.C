@@ -43,31 +43,31 @@ START_TEST(ParentPeakMower, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ParentPeakMower* e_ptr = 0;
-CHECK((ParentPeakMower()))
+START_SECTION((ParentPeakMower()))
 	e_ptr = new ParentPeakMower;
 	TEST_NOT_EQUAL(e_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~ParentPeakMower()))
+START_SECTION((~ParentPeakMower()))
 	delete e_ptr;
-RESULT
+END_SECTION
 
 e_ptr = new ParentPeakMower();
 
-CHECK((ParentPeakMower(const ParentPeakMower& source)))
+START_SECTION((ParentPeakMower(const ParentPeakMower& source)))
 	ParentPeakMower copy(*e_ptr);
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK((ParentPeakMower& operator = (const ParentPeakMower& source)))
+START_SECTION((ParentPeakMower& operator = (const ParentPeakMower& source)))
 	ParentPeakMower copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
+START_SECTION((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -75,7 +75,7 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	
 	spec.sortByPosition();
 
-	TEST_REAL_EQUAL((spec.begin() + 40)->getIntensity(), 37.5)
+	TEST_REAL_SIMILAR((spec.begin() + 40)->getIntensity(), 37.5)
 
 	double window_size(2.0);
 	Param p(e_ptr->getParameters());
@@ -93,36 +93,36 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 		{	
 			if (fabs(it->getPosition()[0] - pre_1_pos / double(z)) <= window_size)
 			{
-				TEST_REAL_EQUAL(it->getIntensity(), 0.0);
+				TEST_REAL_SIMILAR(it->getIntensity(), 0.0);
 			}
 
 			// test if NH3 loss is correct removed
 			if (fabs(it->getPosition()[0] - (pre_1_pos - 17.0) / double(z)) <= window_size)
 			{
-				TEST_REAL_EQUAL(it->getIntensity(), 0.0);
+				TEST_REAL_SIMILAR(it->getIntensity(), 0.0);
 			}
 
 			if (fabs(it->getPosition()[0] - (pre_1_pos - 18.0) / double(z)) <= window_size)
 			{
-				TEST_REAL_EQUAL(it->getIntensity(), 0.0);
+				TEST_REAL_SIMILAR(it->getIntensity(), 0.0);
 			}
 		}
 	}
 	
-RESULT
+END_SECTION
 
-CHECK((static PreprocessingFunctor* create()))
+START_SECTION((static PreprocessingFunctor* create()))
 	PreprocessingFunctor* ppf = ParentPeakMower::create();
 	ParentPeakMower ppm;
 	TEST_EQUAL(ppf->getParameters(), ppm.getParameters())
 	TEST_EQUAL(ppf->getName(), ppm.getName())
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(e_ptr->getProductName(), "ParentPeakMower")
-RESULT
+END_SECTION
 
-CHECK((void filterPeakMap(PeakMap& exp)))
+START_SECTION((void filterPeakMap(PeakMap& exp)))
   DTAFile dta_file;
   PeakSpectrum spec;
   dta_file.load("data/Transformers_tests.dta", spec);
@@ -134,7 +134,7 @@ CHECK((void filterPeakMap(PeakMap& exp)))
 
   pm.begin()->sortByPosition();
 
-  TEST_REAL_EQUAL((pm.begin()->begin() + 40)->getIntensity(), 37.5)
+  TEST_REAL_SIMILAR((pm.begin()->begin() + 40)->getIntensity(), 37.5)
 
   double window_size(2.0);
 	Param p(e_ptr->getParameters());
@@ -152,26 +152,26 @@ CHECK((void filterPeakMap(PeakMap& exp)))
     {
       if (fabs(it->getPosition()[0] - pre_1_pos / double(z)) <= window_size)
       {
-        TEST_REAL_EQUAL(it->getIntensity(), 0.0);
+        TEST_REAL_SIMILAR(it->getIntensity(), 0.0);
       }
 
       // test if NH3 loss is correct removed
       if (fabs(it->getPosition()[0] - (pre_1_pos - 17.0) / double(z)) <= window_size)
       {
-        TEST_REAL_EQUAL(it->getIntensity(), 0.0);
+        TEST_REAL_SIMILAR(it->getIntensity(), 0.0);
       }
 
       if (fabs(it->getPosition()[0] - (pre_1_pos - 18.0) / double(z)) <= window_size)
       {
-        TEST_REAL_EQUAL(it->getIntensity(), 0.0);
+        TEST_REAL_SIMILAR(it->getIntensity(), 0.0);
       }
     }
   }
 
 
-RESULT
+END_SECTION
 
-CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
+START_SECTION((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   DTAFile dta_file;
   PeakSpectrum spec;
   dta_file.load("data/Transformers_tests.dta", spec);
@@ -179,7 +179,7 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 
   spec.sortByPosition();
 
-  TEST_REAL_EQUAL((spec.begin() + 40)->getIntensity(), 37.5)
+  TEST_REAL_SIMILAR((spec.begin() + 40)->getIntensity(), 37.5)
 
   double window_size(2.0);
 	Param p(e_ptr->getParameters());
@@ -197,24 +197,24 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
     {
       if (fabs(it->getPosition()[0] - pre_1_pos / double(z)) <= window_size)
       {
-        TEST_REAL_EQUAL(it->getIntensity(), 0.0);
+        TEST_REAL_SIMILAR(it->getIntensity(), 0.0);
       }
 
       // test if NH3 loss is correct removed
       if (fabs(it->getPosition()[0] - (pre_1_pos - 17.0) / double(z)) <= window_size)
       {
-        TEST_REAL_EQUAL(it->getIntensity(), 0.0);
+        TEST_REAL_SIMILAR(it->getIntensity(), 0.0);
       }
 
       if (fabs(it->getPosition()[0] - (pre_1_pos - 18.0) / double(z)) <= window_size)
       {
-        TEST_REAL_EQUAL(it->getIntensity(), 0.0);
+        TEST_REAL_SIMILAR(it->getIntensity(), 0.0);
       }
     }
   }
 
 	
-RESULT
+END_SECTION
 
 delete e_ptr;
 

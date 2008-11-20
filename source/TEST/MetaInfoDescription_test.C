@@ -39,57 +39,57 @@ START_TEST(MetaInfoDescription, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MetaInfoDescription* ptr = 0;
-CHECK(MetaInfoDescription())
+START_SECTION(MetaInfoDescription())
 	ptr = new MetaInfoDescription();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~MetaInfoDescription())
+START_SECTION(~MetaInfoDescription())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(const SourceFile& getSourceFile() const)
+START_SECTION(const SourceFile& getSourceFile() const)
   MetaInfoDescription tmp;
   TEST_EQUAL(tmp.getSourceFile()==SourceFile(),true);
-RESULT
+END_SECTION
 
-CHECK(void setSourceFile(const SourceFile& source_file))
+START_SECTION(void setSourceFile(const SourceFile& source_file))
   MetaInfoDescription tmp;
 	SourceFile sf;
 	sf.setFileType("rm");
 	tmp.setSourceFile(sf);
   TEST_EQUAL(tmp.getSourceFile().getFileType(),"rm");
-RESULT
+END_SECTION
 
-CHECK(SourceFile& getSourceFile())
+START_SECTION(SourceFile& getSourceFile())
   MetaInfoDescription tmp;
 	tmp.getSourceFile().setFileType("rm");
   TEST_EQUAL(tmp.getSourceFile().getFileType(),"rm");
-RESULT
+END_SECTION
 
-CHECK(const String& getComment() const)
+START_SECTION(const String& getComment() const)
   MetaInfoDescription tmp;
   TEST_EQUAL(tmp.getComment(),"");
-RESULT
+END_SECTION
 
-CHECK(void setComment(const String& comment))
+START_SECTION(void setComment(const String& comment))
   MetaInfoDescription tmp;
   tmp.setComment("comment");
   TEST_EQUAL(tmp.getComment(),"comment");
-RESULT
+END_SECTION
 
-CHECK(const String& getName() const)
+START_SECTION(const String& getName() const)
   MetaInfoDescription tmp;
   TEST_EQUAL(tmp.getName(),"");
-RESULT
+END_SECTION
 
-CHECK(void setName(const String& name))
+START_SECTION(void setName(const String& name))
   MetaInfoDescription tmp;
   tmp.setName("name");
   TEST_EQUAL(tmp.getName(),"name");
-RESULT
+END_SECTION
 
-CHECK(MetaInfoDescription(const MetaInfoDescription& source))
+START_SECTION(MetaInfoDescription(const MetaInfoDescription& source))
   MetaInfoDescription tmp;
   tmp.getSourceFile().setFileType("wma");
   tmp.setComment("bla");
@@ -101,9 +101,9 @@ CHECK(MetaInfoDescription(const MetaInfoDescription& source))
   TEST_EQUAL(tmp2.getComment(),"bla");
   TEST_EQUAL(tmp2.getName(),"bla2");
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
-RESULT
+END_SECTION
 
-CHECK(MetaInfoDescription& operator= (const MetaInfoDescription& source))
+START_SECTION(MetaInfoDescription& operator= (const MetaInfoDescription& source))
   MetaInfoDescription tmp;
   tmp.getSourceFile().setFileType("wma");
   tmp.setComment("bla");
@@ -122,9 +122,9 @@ CHECK(MetaInfoDescription& operator= (const MetaInfoDescription& source))
   TEST_EQUAL(tmp2.getComment(),"");
   TEST_EQUAL(tmp2.getName(),"");
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
-RESULT
+END_SECTION
 
-CHECK(bool operator== (const MetaInfoDescription& rhs) const)
+START_SECTION(bool operator== (const MetaInfoDescription& rhs) const)
   MetaInfoDescription edit, empty;
   
   TEST_EQUAL(edit==empty, true);
@@ -143,7 +143,7 @@ CHECK(bool operator== (const MetaInfoDescription& rhs) const)
   edit = empty;
   edit.setMetaValue("label",String("label"));
   TEST_EQUAL(edit==empty, false);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

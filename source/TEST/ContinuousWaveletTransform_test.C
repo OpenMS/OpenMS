@@ -39,44 +39,44 @@ START_TEST(ContinuousWaveletTransform, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ContinuousWaveletTransform* ptr = 0;
-CHECK((ContinuousWaveletTransform()))
+START_SECTION((ContinuousWaveletTransform()))
   ptr = new ContinuousWaveletTransform();
   TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~ContinuousWaveletTransform()))
+START_SECTION((~ContinuousWaveletTransform()))
   delete ptr;
-RESULT
+END_SECTION
 
 
-CHECK((std::vector<Peak1D >& getSignal()))
+START_SECTION((std::vector<Peak1D >& getSignal()))
   ContinuousWaveletTransform cwt;
   
   std::vector<Peak1D > signal(2);
   cwt.getSignal() = signal;
   
   TEST_EQUAL(cwt.getSignal() == signal, true)
-RESULT
+END_SECTION
 
-CHECK((const std::vector<Peak1D >& getSignal() const))
+START_SECTION((const std::vector<Peak1D >& getSignal() const))
  ContinuousWaveletTransform cwt;
  
  TEST_EQUAL(cwt.getSignal().size() == 0, true)
-RESULT
+END_SECTION
 
-CHECK((DoubleReal getScale() const))
+START_SECTION((DoubleReal getScale() const))
   ContinuousWaveletTransform cwt;
   
-  TEST_REAL_EQUAL(cwt.getScale(), 0)
-RESULT
+  TEST_REAL_SIMILAR(cwt.getScale(), 0)
+END_SECTION
 
-CHECK((DoubleReal getSpacing() const))
+START_SECTION((DoubleReal getSpacing() const))
   ContinuousWaveletTransform cwt;
   
-  TEST_REAL_EQUAL(cwt.getSpacing(), 0)
-RESULT
+  TEST_REAL_SIMILAR(cwt.getSpacing(), 0)
+END_SECTION
 
-CHECK((double operator[](unsigned int i) const ))
+START_SECTION((double operator[](unsigned int i) const ))
   ContinuousWaveletTransform cwt;
   
   std::vector<Peak1D > signal(1);
@@ -84,54 +84,54 @@ CHECK((double operator[](unsigned int i) const ))
   
   ContinuousWaveletTransform const cwt_const(cwt);
   
-  TEST_REAL_EQUAL(cwt_const[0],0)
-RESULT
+  TEST_REAL_SIMILAR(cwt_const[0],0)
+END_SECTION
 
-CHECK((Int getLeftPaddingIndex() const))
+START_SECTION((Int getLeftPaddingIndex() const))
   ContinuousWaveletTransform cwt;
   
-  TEST_REAL_EQUAL(cwt.getLeftPaddingIndex(), 0)
-RESULT
+  TEST_REAL_SIMILAR(cwt.getLeftPaddingIndex(), 0)
+END_SECTION
 
-CHECK((Int getRightPaddingIndex() const))
+START_SECTION((Int getRightPaddingIndex() const))
   ContinuousWaveletTransform cwt;
   
-  TEST_REAL_EQUAL(cwt.getRightPaddingIndex(), 0)
-RESULT
+  TEST_REAL_SIMILAR(cwt.getRightPaddingIndex(), 0)
+END_SECTION
 
-CHECK((Int getSignalLength() const))
+START_SECTION((Int getSignalLength() const))
   ContinuousWaveletTransform cwt;
   
-  TEST_REAL_EQUAL(cwt.getSignalLength(), 0)
-RESULT
+  TEST_REAL_SIMILAR(cwt.getSignalLength(), 0)
+END_SECTION
 
-CHECK((int getSize() const))
+START_SECTION((int getSize() const))
   ContinuousWaveletTransform cwt;
   
-  TEST_REAL_EQUAL(cwt.getSize(), 0)
-RESULT
+  TEST_REAL_SIMILAR(cwt.getSize(), 0)
+END_SECTION
 
-CHECK((const std::vector<double>& getWavelet() const))
+START_SECTION((const std::vector<double>& getWavelet() const))
   ContinuousWaveletTransform cwt;
   
-  TEST_REAL_EQUAL(cwt.getWavelet().size(), 0)
-RESULT
+  TEST_REAL_SIMILAR(cwt.getWavelet().size(), 0)
+END_SECTION
 
-CHECK((double& getScale()))
+START_SECTION((double& getScale()))
   ContinuousWaveletTransform cwt;
   cwt.getScale() = 0.2;
   
-  TEST_REAL_EQUAL(cwt.getScale(), 0.2)
-RESULT
+  TEST_REAL_SIMILAR(cwt.getScale(), 0.2)
+END_SECTION
 
-CHECK((double& getSpacing()))
+START_SECTION((double& getSpacing()))
   ContinuousWaveletTransform cwt;
   cwt.getSpacing() = 0.2;
   
-  TEST_REAL_EQUAL(cwt.getSpacing(), 0.2)
-RESULT
+  TEST_REAL_SIMILAR(cwt.getSpacing(), 0.2)
+END_SECTION
 
-CHECK((double operator[](unsigned int i)))
+START_SECTION((double operator[](unsigned int i)))
   std::vector<Peak1D > signal;
   Peak1D rp;
   rp.setIntensity(100);
@@ -141,30 +141,30 @@ CHECK((double operator[](unsigned int i)))
   cwt.getSignal() = signal;
   
   TEST_EQUAL(cwt[0],100)
-RESULT
+END_SECTION
 
-CHECK((int& getLeftPaddingIndex()))
+START_SECTION((int& getLeftPaddingIndex()))
   ContinuousWaveletTransform cwt;
   cwt.getLeftPaddingIndex() = 2;
   
-  TEST_REAL_EQUAL(cwt.getLeftPaddingIndex(), 2)
-RESULT
+  TEST_REAL_SIMILAR(cwt.getLeftPaddingIndex(), 2)
+END_SECTION
 
-CHECK((int& getRightPaddingIndex()))
+START_SECTION((int& getRightPaddingIndex()))
   ContinuousWaveletTransform cwt;
   cwt.getRightPaddingIndex() = 2;
   
-  TEST_REAL_EQUAL(cwt.getRightPaddingIndex(), 2)
-RESULT
+  TEST_REAL_SIMILAR(cwt.getRightPaddingIndex(), 2)
+END_SECTION
 
-CHECK((int& getSignalLength()))
+START_SECTION((int& getSignalLength()))
   ContinuousWaveletTransform cwt;
   cwt.getSignalLength() = 2;
   
-  TEST_REAL_EQUAL(cwt.getSignalLength(), 2)
-RESULT
+  TEST_REAL_SIMILAR(cwt.getSignalLength(), 2)
+END_SECTION
 
-CHECK((std::vector<double>& getWavelet()))
+START_SECTION((std::vector<double>& getWavelet()))
   vector<double> w(1);
   w[0] = 0.5;
   
@@ -172,65 +172,65 @@ CHECK((std::vector<double>& getWavelet()))
   cwt.getWavelet() = w;
   
   TEST_EQUAL(cwt.getWavelet() == w, true)
-RESULT
+END_SECTION
 
 
 
-CHECK((virtual void init(double scale, double spacing)))
+START_SECTION((virtual void init(double scale, double spacing)))
   ContinuousWaveletTransform cwt;
   double scale = 0.2;
   double spacing = 2.3;
   cwt.init(scale,spacing);
   
-  TEST_REAL_EQUAL(cwt.getSpacing(),spacing)
-  TEST_REAL_EQUAL(cwt.getScale(),scale)
-RESULT
+  TEST_REAL_SIMILAR(cwt.getSpacing(),spacing)
+  TEST_REAL_SIMILAR(cwt.getScale(),scale)
+END_SECTION
 
-CHECK((void setLeftPaddingIndex(const int end_left_padding)))
+START_SECTION((void setLeftPaddingIndex(const int end_left_padding)))
   ContinuousWaveletTransform cwt;
   cwt.setLeftPaddingIndex(2);
   
-  TEST_REAL_EQUAL(cwt.getLeftPaddingIndex(), 2)
-RESULT
+  TEST_REAL_SIMILAR(cwt.getLeftPaddingIndex(), 2)
+END_SECTION
 
-CHECK((void setRightPaddingIndex(const int begin_right_padding)))
+START_SECTION((void setRightPaddingIndex(const int begin_right_padding)))
   ContinuousWaveletTransform cwt;
   cwt.setRightPaddingIndex(2);
   
   TEST_EQUAL(cwt.getRightPaddingIndex(), 2)
-RESULT
+END_SECTION
 
-CHECK((void setScale(DoubleReal scale)))
+START_SECTION((void setScale(DoubleReal scale)))
   ContinuousWaveletTransform cwt;
   cwt.setScale(0.2);
   
-  TEST_REAL_EQUAL(cwt.getScale(), 0.2)
-RESULT
+  TEST_REAL_SIMILAR(cwt.getScale(), 0.2)
+END_SECTION
 
-CHECK((void setSignal(const std::vector<Peak1D >& signal)))
+START_SECTION((void setSignal(const std::vector<Peak1D >& signal)))
   ContinuousWaveletTransform cwt;
   
   std::vector<Peak1D > signal(2);
   cwt.setSignal(signal);
   
   TEST_EQUAL(cwt.getSignal() == signal, true)
-RESULT
+END_SECTION
 
-CHECK((void setSignalLength(const int signal_length)))
+START_SECTION((void setSignalLength(const int signal_length)))
   ContinuousWaveletTransform cwt;
   cwt.setSignalLength(2);
   
   TEST_EQUAL(cwt.getSignalLength(), 2)
-RESULT
+END_SECTION
 
-CHECK((void setSpacing(double spacing)))
+START_SECTION((void setSpacing(double spacing)))
   ContinuousWaveletTransform cwt;
   cwt.setSpacing(0.2);
   
-  TEST_REAL_EQUAL(cwt.getSpacing(), 0.2)
-RESULT
+  TEST_REAL_SIMILAR(cwt.getSpacing(), 0.2)
+END_SECTION
 
-CHECK((void setWavelet(const std::vector<double>& wavelet)))
+START_SECTION((void setWavelet(const std::vector<double>& wavelet)))
   vector<double> w(1);
   w[0] = 0.5;
   
@@ -238,7 +238,7 @@ CHECK((void setWavelet(const std::vector<double>& wavelet)))
   cwt.getWavelet() = w;
   
   TEST_EQUAL(cwt.getWavelet() == w, true)
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

@@ -46,18 +46,18 @@ using namespace std;
 UnimodXMLFile xml_file;
 UnimodXMLFile* ptr;
 
-CHECK((UnimodXMLFile()))
+START_SECTION((UnimodXMLFile()))
 	ptr = new UnimodXMLFile();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~UnimodXMLFile())
+START_SECTION(~UnimodXMLFile())
 	delete ptr;
-RESULT
+END_SECTION
 
 ptr = new UnimodXMLFile();
 
-CHECK(void load(const String& filename, vector<ResidueModification*>& modifications) const)
+START_SECTION(void load(const String& filename, vector<ResidueModification*>& modifications) const)
 	vector<ResidueModification*> modifications;
 	ptr->load("CHEMISTRY/unimod.xml", modifications);
 
@@ -68,7 +68,7 @@ CHECK(void load(const String& filename, vector<ResidueModification*>& modificati
 	//}
 
 	TEST_EQUAL(modifications.size(), 891)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

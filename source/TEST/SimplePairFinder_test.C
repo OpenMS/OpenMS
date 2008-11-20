@@ -45,28 +45,28 @@ START_TEST(SimplePairFinder, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SimplePairFinder* ptr = 0;
-CHECK((SimplePairFinder()))
+START_SECTION((SimplePairFinder()))
 	ptr = new SimplePairFinder();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~SimplePairFinder()))
+START_SECTION((virtual ~SimplePairFinder()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((static BaseGroupFinder* create()))
+START_SECTION((static BaseGroupFinder* create()))
 	BaseGroupFinder* base_ptr = 0;
 	base_ptr = SimplePairFinder::create();
 	TEST_NOT_EQUAL(base_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
   SimplePairFinder spf;
   
   TEST_EQUAL(spf.getName() == "simple",true)
-RESULT
+END_SECTION
 
-CHECK((virtual void run(const std::vector< ConsensusMap > &input_maps, ConsensusMap &result_map)))
+START_SECTION((virtual void run(const std::vector< ConsensusMap > &input_maps, ConsensusMap &result_map)))
   FeatureMap<> scene;
   Feature feat1;
   Feature feat2;
@@ -146,7 +146,7 @@ CHECK((virtual void run(const std::vector< ConsensusMap > &input_maps, Consensus
   STATUS(*it);
 	STATUS(ind6);
   TEST_EQUAL(*(it) == ind6, true)
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

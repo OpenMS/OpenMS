@@ -43,38 +43,38 @@ START_TEST(PeakMarker, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PeakMarker* e_ptr = 0;
-CHECK((PeakMarker()))
+START_SECTION((PeakMarker()))
 	e_ptr = new PeakMarker;
 	TEST_NOT_EQUAL(e_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~PeakMarker()))
+START_SECTION((~PeakMarker()))
 	delete e_ptr;
-RESULT
+END_SECTION
 
 e_ptr = new PeakMarker();
 
-CHECK((PeakMarker(const PeakMarker& source)))
+START_SECTION((PeakMarker(const PeakMarker& source)))
 	PeakMarker copy(*e_ptr);
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK((template<typename SpectrumType> void apply(std::map<double, bool>&, SpectrumType&)))
+START_SECTION((template<typename SpectrumType> void apply(std::map<double, bool>&, SpectrumType&)))
 	// only the derived classes implement this function properly
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(static const String getProductName())
+START_SECTION(static const String getProductName())
 	TEST_EQUAL(e_ptr->getProductName(), "PeakMarker")
-RESULT
+END_SECTION
 
-CHECK((PeakMarker& operator = (const PeakMarker& source)))
+START_SECTION((PeakMarker& operator = (const PeakMarker& source)))
 	PeakMarker copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
   TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
 delete e_ptr;
 

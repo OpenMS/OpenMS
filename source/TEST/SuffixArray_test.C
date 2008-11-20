@@ -39,113 +39,113 @@ START_TEST(SuffixArray, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SuffixArray* ptr = 0;
-CHECK(SuffixArray())
+START_SECTION(SuffixArray())
 {
 	NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((SuffixArray(const String &st, const String &filename)))
+START_SECTION((SuffixArray(const String &st, const String &filename)))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((SuffixArray(const SuffixArray &sa)))
+START_SECTION((SuffixArray(const SuffixArray &sa)))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual ~SuffixArray()=0))
+START_SECTION((virtual ~SuffixArray()=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual String toString()=0))
+START_SECTION((virtual String toString()=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >, float > > > &candidates, const std::vector< double > &spec)=0))
+START_SECTION((virtual void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >, float > > > &candidates, const std::vector< double > &spec)=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual bool save(const String &filename)=0))
+START_SECTION((virtual bool save(const String &filename)=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual bool open(const String &filename)=0))
+START_SECTION((virtual bool open(const String &filename)=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual void setTolerance(double t)=0))
+START_SECTION((virtual void setTolerance(double t)=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual double getTolerance() const =0))
+START_SECTION((virtual double getTolerance() const =0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual bool isDigestingEnd(const char aa1, const char aa2) const =0))
+START_SECTION((virtual bool isDigestingEnd(const char aa1, const char aa2) const =0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual void setTags(const std::vector< String > &tags)=0))
+START_SECTION((virtual void setTags(const std::vector< String > &tags)=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual const std::vector<String>& getTags()=0))
+START_SECTION((virtual const std::vector<String>& getTags()=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual void setUseTags(bool use_tags)=0))
+START_SECTION((virtual void setUseTags(bool use_tags)=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual bool getUseTags()=0))
+START_SECTION((virtual bool getUseTags()=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual void setNumberOfModifications(unsigned int number_of_mods)=0))
+START_SECTION((virtual void setNumberOfModifications(unsigned int number_of_mods)=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual unsigned int getNumberOfModifications()=0))
+START_SECTION((virtual unsigned int getNumberOfModifications()=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual void printStatistic()=0))
+START_SECTION((virtual void printStatistic()=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

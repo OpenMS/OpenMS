@@ -43,29 +43,29 @@ using namespace std;
 
 PILISScoring* ptr = 0;
 String filename("data/IDFilter_test2.idXML");
-CHECK(PILISScoring())
+START_SECTION(PILISScoring())
 	ptr = new PILISScoring();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~PILISScoring())
+START_SECTION(~PILISScoring())
 	delete ptr;
-RESULT
+END_SECTION
 
 ptr = new PILISScoring();
 
-CHECK(PILISScoring(const PILISScoring& source))
+START_SECTION(PILISScoring(const PILISScoring& source))
 	PILISScoring copy(*ptr);
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
-RESULT
+END_SECTION
 
-CHECK(PILISScoring& operator = (const PILISScoring& source))
+START_SECTION(PILISScoring& operator = (const PILISScoring& source))
 	PILISScoring copy;
 	copy = *ptr;
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
-RESULT
+END_SECTION
 
-CHECK(void getScores(std::vector<PeptideIdentification>& ids))
+START_SECTION(void getScores(std::vector<PeptideIdentification>& ids))
 	vector<PeptideIdentification> ids;
 	vector<ProteinIdentification> prot_ids;
 	IdXMLFile().load(filename, prot_ids, ids);
@@ -74,15 +74,15 @@ CHECK(void getScores(std::vector<PeptideIdentification>& ids))
 	{
 		TEST_EQUAL(it->getScoreType(), "PILIS-E-value")
 	}
-RESULT
+END_SECTION
 
-CHECK(void getScore(PeptideIdentification& id))
+START_SECTION(void getScore(PeptideIdentification& id))
 	vector<PeptideIdentification> ids;
 	vector<ProteinIdentification> prot_ids;
 	IdXMLFile().load(filename, prot_ids, ids);
 	ptr->getScore(ids[0]);
-	TEST_REAL_EQUAL(ids[0].getHits().begin()->getScore(), 33.85)
-RESULT
+	TEST_REAL_SIMILAR(ids[0].getHits().begin()->getScore(), 33.85)
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

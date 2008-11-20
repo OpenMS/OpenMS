@@ -46,19 +46,19 @@ START_TEST(FeatureMap<D>, "$Id$")
 
 
 FeatureMap<>* pl_ptr = 0;
-CHECK((FeatureMap()))
+START_SECTION((FeatureMap()))
 	pl_ptr = new FeatureMap<>();
 	TEST_NOT_EQUAL(pl_ptr, 0)
 
 	TEST_EQUAL(pl_ptr->getMin(), FeatureMap<>::PositionType::max)
 	TEST_EQUAL(pl_ptr->getMax(), FeatureMap<>::PositionType::min_negative)
-	TEST_REAL_EQUAL(pl_ptr->getMinInt(), numeric_limits<DoubleReal>::max())
-	TEST_REAL_EQUAL(pl_ptr->getMaxInt(), -numeric_limits<DoubleReal>::max())
-RESULT
+	TEST_REAL_SIMILAR(pl_ptr->getMinInt(), numeric_limits<DoubleReal>::max())
+	TEST_REAL_SIMILAR(pl_ptr->getMaxInt(), -numeric_limits<DoubleReal>::max())
+END_SECTION
 
-CHECK((~FeatureMap()))
+START_SECTION((~FeatureMap()))
 	delete pl_ptr;
-RESULT
+END_SECTION
 
 Feature feature1;
 feature1.getPosition()[0] = 2.0;
@@ -86,31 +86,31 @@ hulls[0].addPoint(DPosition<2>(4.0,1.2));
 hulls[0].addPoint(DPosition<2>(5.0,3.123));
 feature4.setConvexHulls(hulls);
 
-CHECK(const DataProcessing& getDataProcessing() const)
+START_SECTION(const DataProcessing& getDataProcessing() const)
   FeatureMap<> tmp;
   TEST_EQUAL(tmp.getDataProcessing().size(),0);
-RESULT
+END_SECTION
 
-CHECK(const DataProcessing& getDataProcessing() const)
+START_SECTION(const DataProcessing& getDataProcessing() const)
   FeatureMap<> tmp;
   TEST_EQUAL(tmp.getDataProcessing().size(),0);
-RESULT
+END_SECTION
 
-CHECK(DataProcessing& getDataProcessing())
+START_SECTION(DataProcessing& getDataProcessing())
   FeatureMap<> tmp;
   tmp.getDataProcessing().resize(1);
   TEST_EQUAL(tmp.getDataProcessing().size(),1);
-RESULT
+END_SECTION
 
-CHECK(void setDataProcessing(const DataProcessing& data_processing))
+START_SECTION(void setDataProcessing(const DataProcessing& data_processing))
   FeatureMap<> tmp;
   std::vector<DataProcessing> dummy;
   dummy.resize(1);
   tmp.setDataProcessing(dummy);
   TEST_EQUAL(tmp.getDataProcessing().size(),1);
-RESULT
+END_SECTION
 
-CHECK( void updateRanges() )
+START_SECTION( void updateRanges() )
 	//test without convex hulls
   FeatureMap<> s;
   s.push_back(feature1);
@@ -120,26 +120,26 @@ CHECK( void updateRanges() )
   s.updateRanges();
   s.updateRanges(); //second time to check the initialization
    
-  TEST_REAL_EQUAL(s.getMaxInt(),1.0)
-  TEST_REAL_EQUAL(s.getMinInt(),0.01)
-  TEST_REAL_EQUAL(s.getMax()[0],10.5)
-  TEST_REAL_EQUAL(s.getMax()[1],3.0)
-  TEST_REAL_EQUAL(s.getMin()[0],0.0)
-  TEST_REAL_EQUAL(s.getMin()[1],0.0)
+  TEST_REAL_SIMILAR(s.getMaxInt(),1.0)
+  TEST_REAL_SIMILAR(s.getMinInt(),0.01)
+  TEST_REAL_SIMILAR(s.getMax()[0],10.5)
+  TEST_REAL_SIMILAR(s.getMax()[1],3.0)
+  TEST_REAL_SIMILAR(s.getMin()[0],0.0)
+  TEST_REAL_SIMILAR(s.getMin()[1],0.0)
   
   //test with convex hull
   s.push_back(feature4);
   s.updateRanges();
-  TEST_REAL_EQUAL(s.getMaxInt(),1.0)
-  TEST_REAL_EQUAL(s.getMinInt(),0.01)
-  TEST_REAL_EQUAL(s.getMax()[0],10.5)
-  TEST_REAL_EQUAL(s.getMax()[1],3.123)
-  TEST_REAL_EQUAL(s.getMin()[0],-1.0)
-  TEST_REAL_EQUAL(s.getMin()[1],0.0)
+  TEST_REAL_SIMILAR(s.getMaxInt(),1.0)
+  TEST_REAL_SIMILAR(s.getMinInt(),0.01)
+  TEST_REAL_SIMILAR(s.getMax()[0],10.5)
+  TEST_REAL_SIMILAR(s.getMax()[1],3.123)
+  TEST_REAL_SIMILAR(s.getMin()[0],-1.0)
+  TEST_REAL_SIMILAR(s.getMin()[1],0.0)
 	
-RESULT
+END_SECTION
 
-CHECK((FeatureMap(const FeatureMap& map)))
+START_SECTION((FeatureMap(const FeatureMap& map)))
 	FeatureMap<> map1;
 	map1.push_back(feature1);
 	map1.push_back(feature2);
@@ -151,12 +151,12 @@ CHECK((FeatureMap(const FeatureMap& map)))
 	FeatureMap<> map2(map1);
 	
 	TEST_EQUAL(map2.size(),3);
-  TEST_REAL_EQUAL(map2.getMaxInt(),1.0)
+  TEST_REAL_SIMILAR(map2.getMaxInt(),1.0)
   TEST_STRING_EQUAL(map2.getIdentifier(),"lsid")
   TEST_EQUAL(map2.getDataProcessing().size(),1)
-RESULT
+END_SECTION
 
-CHECK((FeatureMap& operator = (const FeatureMap& rhs)))
+START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
 	FeatureMap<> map1;
 	map1.push_back(feature1);
 	map1.push_back(feature2);
@@ -170,7 +170,7 @@ CHECK((FeatureMap& operator = (const FeatureMap& rhs)))
 	map2 = map1;
 	
 	TEST_EQUAL(map2.size(),3);
-  TEST_REAL_EQUAL(map2.getMaxInt(),1.0)
+  TEST_REAL_SIMILAR(map2.getMaxInt(),1.0)
   TEST_STRING_EQUAL(map2.getIdentifier(),"lsid")
   TEST_EQUAL(map2.getDataProcessing().size(),1)
 	
@@ -178,13 +178,13 @@ CHECK((FeatureMap& operator = (const FeatureMap& rhs)))
    map2 = FeatureMap<>();
 	
 	TEST_EQUAL(map2.size(),0);
-	TEST_REAL_EQUAL(map2.getMinInt(), numeric_limits<DoubleReal>::max())
-	TEST_REAL_EQUAL(map2.getMaxInt(), -numeric_limits<DoubleReal>::max())
+	TEST_REAL_SIMILAR(map2.getMinInt(), numeric_limits<DoubleReal>::max())
+	TEST_REAL_SIMILAR(map2.getMaxInt(), -numeric_limits<DoubleReal>::max())
   TEST_STRING_EQUAL(map2.getIdentifier(),"")
   TEST_EQUAL(map2.getDataProcessing().size(),0)
-RESULT
+END_SECTION
 
-CHECK((bool operator == (const FeatureMap& rhs) const))
+START_SECTION((bool operator == (const FeatureMap& rhs) const))
 	FeatureMap<> empty,edit;
 	
 	TEST_EQUAL(empty==edit, true);
@@ -206,9 +206,9 @@ CHECK((bool operator == (const FeatureMap& rhs) const))
 	edit.updateRanges();
 	edit.clear();
 	TEST_EQUAL(empty==edit, false);
-RESULT
+END_SECTION
 
-CHECK((bool operator != (const FeatureMap& rhs) const))
+START_SECTION((bool operator != (const FeatureMap& rhs) const))
 	FeatureMap<> empty,edit;
 	
 	TEST_EQUAL(empty!=edit, false);
@@ -230,10 +230,10 @@ CHECK((bool operator != (const FeatureMap& rhs) const))
 	edit.updateRanges();
 	edit.clear();
 	TEST_EQUAL(empty!=edit, true);
-RESULT
+END_SECTION
 
 
-CHECK((void sortByIntensity(bool reverse=false)))
+START_SECTION((void sortByIntensity(bool reverse=false)))
 	
 	FeatureMap<> to_be_sorted;
 	
@@ -262,9 +262,9 @@ CHECK((void sortByIntensity(bool reverse=false)))
 	TEST_EQUAL(to_be_sorted[1].getIntensity(),5);
 	TEST_EQUAL(to_be_sorted[2].getIntensity(),3);
 	
-RESULT
+END_SECTION
 
-CHECK((void sortByPosition()))
+START_SECTION((void sortByPosition()))
 	
 	FeatureMap<> to_be_sorted;
 	
@@ -286,9 +286,9 @@ CHECK((void sortByPosition()))
 	TEST_EQUAL(to_be_sorted[1].getPosition()[0],5);
 	TEST_EQUAL(to_be_sorted[2].getPosition()[0],10);
 	
-RESULT
+END_SECTION
 
-CHECK(void sortByMZ())
+START_SECTION(void sortByMZ())
 	
 	FeatureMap<> to_be_sorted;
 	
@@ -313,9 +313,9 @@ CHECK(void sortByMZ())
 	TEST_EQUAL(to_be_sorted[1].getPosition()[1],15);
 	TEST_EQUAL(to_be_sorted[2].getPosition()[1],25);
 	
-RESULT
+END_SECTION
 
-CHECK(void sortByRT())
+START_SECTION(void sortByRT())
 	
 	FeatureMap<> to_be_sorted;
 	
@@ -340,9 +340,9 @@ CHECK(void sortByRT())
 	TEST_EQUAL(to_be_sorted[1].getPosition()[0],5);
 	TEST_EQUAL(to_be_sorted[2].getPosition()[0],10);
 	
-RESULT
+END_SECTION
 
-CHECK(void swap(FeatureMap& from))
+START_SECTION(void swap(FeatureMap& from))
 	FeatureMap<> fm1, fm2;
 	fm1.setIdentifier("stupid comment");
 	fm1.push_back(feature1);
@@ -354,17 +354,17 @@ CHECK(void swap(FeatureMap& from))
 	
 	TEST_EQUAL(fm1.getIdentifier(),"")
 	TEST_EQUAL(fm1.size(),0)
-	TEST_REAL_EQUAL(fm1.getMinInt(),DRange<1>().min()[0])
+	TEST_REAL_SIMILAR(fm1.getMinInt(),DRange<1>().min()[0])
   TEST_EQUAL(fm1.getDataProcessing().size(),0)
 
 	TEST_EQUAL(fm2.getIdentifier(),"stupid comment")
 	TEST_EQUAL(fm2.size(),2)
-	TEST_REAL_EQUAL(fm2.getMinInt(),0.5)
+	TEST_REAL_SIMILAR(fm2.getMinInt(),0.5)
   TEST_EQUAL(fm2.getDataProcessing().size(),1)
 	
-RESULT
+END_SECTION
 
-CHECK(void sortByOverallQuality() )
+START_SECTION(void sortByOverallQuality() )
 	
 	FeatureMap<> to_be_sorted;
 	
@@ -396,7 +396,7 @@ CHECK(void sortByOverallQuality() )
 	TEST_EQUAL(to_be_sorted[1].getOverallQuality(),20);
 	TEST_EQUAL(to_be_sorted[2].getOverallQuality(),30);
 
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

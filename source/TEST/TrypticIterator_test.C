@@ -40,16 +40,16 @@ START_TEST(TrypticIterator, "$Id$")
 typedef std::pair <String, String> FASTAEntry;
 
 TrypticIterator* ptr = 0;
-CHECK(TrypticIterator())
+START_SECTION(TrypticIterator())
 	ptr = new TrypticIterator();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~TrypticIterator())
+START_SECTION(~TrypticIterator())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(TrypticIterator(const TrypticIterator &))
+START_SECTION(TrypticIterator(const TrypticIterator &))
 	ptr = new TrypticIterator();
 	ptr->setFastaFile("data/TrypticIterator_test.fasta");
 	ptr->begin();
@@ -58,32 +58,32 @@ CHECK(TrypticIterator(const TrypticIterator &))
 	TEST_EQUAL ((*ptr).getFastaFile(),(copy).getFastaFile());
 	TEST_EQUAL ((**ptr).first,(*copy).first);
 	TEST_EQUAL ((**ptr).second,(*copy).second);
-RESULT
+END_SECTION
 
-CHECK(virtual void setFastaFile(const String &f))
+START_SECTION(virtual void setFastaFile(const String &f))
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::FileNotFound,ptr->setFastaFile("FileThatNotExists"));
 	TEST_EXCEPTION (Exception::FileNotFound,ptr->setFastaFile(""));
 	ptr->setFastaFile("data/TrypticIterator_test.fasta");
-RESULT
+END_SECTION
 
-CHECK(virtual String getFastaFile())
+START_SECTION(virtual String getFastaFile())
 	ptr = new TrypticIterator();
 	ptr->setFastaFile("data/TrypticIterator_test.fasta");
 	TEST_EQUAL(ptr->getFastaFile(),"data/TrypticIterator_test.fasta");
-RESULT
+END_SECTION
 
-CHECK(static const String getProductName())
+START_SECTION(static const String getProductName())
 	ptr = new TrypticIterator();
 	TEST_EQUAL(ptr->getProductName(),"TrypticIterator");
-RESULT
+END_SECTION
 
-CHECK(static PepIterator* create())
+START_SECTION(static PepIterator* create())
 	ptr = new TrypticIterator();
 	TEST_NOT_EQUAL(ptr->create(),0);
-RESULT
+END_SECTION
 
-CHECK(virtual FASTAEntry operator *())
+START_SECTION(virtual FASTAEntry operator *())
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator,**ptr);
 	ptr->setFastaFile("data/TrypticIterator_test.fasta");
@@ -119,10 +119,10 @@ CHECK(virtual FASTAEntry operator *())
 	fe = **ptr;
 	TEST_EQUAL(fe.first,">Entry 4");
 	TEST_EQUAL(fe.second,"EEEEEK");
-RESULT
+END_SECTION
 
 
-CHECK(virtual PepIterator& operator++())
+START_SECTION(virtual PepIterator& operator++())
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, ++(*ptr));
 	ptr->setFastaFile("data/TrypticIterator_test.fasta");
@@ -133,9 +133,9 @@ CHECK(virtual PepIterator& operator++())
 	pepIt = ++(*ptr);
 	TEST_EQUAL ((*pepIt).first,(**ptr).first);
 	TEST_EQUAL ((*pepIt).second,(**ptr).second);
-RESULT
+END_SECTION
 
-CHECK(virtual PepIterator* operator++(int i))
+START_SECTION(virtual PepIterator* operator++(int i))
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, (*ptr)++);
 	ptr->setFastaFile("data/TrypticIterator_test.fasta");
@@ -144,9 +144,9 @@ CHECK(virtual PepIterator* operator++(int i))
 	PepIterator * pepIt = (*ptr)++;
 	TEST_EQUAL ((**pepIt).first,fe.first);
 	TEST_EQUAL ((**pepIt).second,fe.second);
-RESULT
+END_SECTION
 
-CHECK(virtual bool begin())
+START_SECTION(virtual bool begin())
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, (*ptr).begin());
 	ptr->setFastaFile("data/TrypticIterator_test.fasta");
@@ -154,9 +154,9 @@ CHECK(virtual bool begin())
 	FASTAEntry fe = **ptr;
 	TEST_EQUAL(fe.first,">Entry 1");
 	TEST_EQUAL(fe.second,"AAAAAK");
-RESULT
+END_SECTION
 
-CHECK(virtual bool isAtEnd())
+START_SECTION(virtual bool isAtEnd())
 	ptr = new TrypticIterator();
 	ptr->setFastaFile("data/TrypticIterator_test.fasta");
 	ptr->begin();
@@ -166,38 +166,38 @@ CHECK(virtual bool isAtEnd())
 		++(*ptr);
 	}
 	TEST_EQUAL(ptr->isAtEnd(),1);
-RESULT
+END_SECTION
 
 
-CHECK(virtual void setSpectrum(const std::vector< float > &))
+START_SECTION(virtual void setSpectrum(const std::vector< float > &))
 	ptr = new TrypticIterator();
 	const std::vector<float> spec;
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).setSpectrum(spec));
-RESULT
+END_SECTION
 
-CHECK(virtual const std::vector<float>& getSpectrum())
+START_SECTION(virtual const std::vector<float>& getSpectrum())
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).getSpectrum());
-RESULT
+END_SECTION
 
-CHECK(virtual void setTolerance(float))
+START_SECTION(virtual void setTolerance(float))
 	ptr = new TrypticIterator();
 	float t = 0.5;
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).setTolerance(t));
-RESULT
+END_SECTION
 
-CHECK(virtual float getTolerance())
+START_SECTION(virtual float getTolerance())
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).getTolerance());
-RESULT
+END_SECTION
 
-CHECK(virtual bool isDigestingEnd(char aa1, char aa2))
+START_SECTION(virtual bool isDigestingEnd(char aa1, char aa2))
 	ptr = new TrypticIterator();
 	TEST_EQUAL (ptr->isDigestingEnd('R','C'),1);
 	TEST_EQUAL (ptr->isDigestingEnd('K','C'),1);
 	TEST_EQUAL (ptr->isDigestingEnd('R','P'),0);
 	TEST_EQUAL (ptr->isDigestingEnd('K','P'),0);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

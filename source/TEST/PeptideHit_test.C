@@ -50,24 +50,24 @@ std::string sequence2 = "  ARRAY  ";
 Int charge;
 
 PeptideHit* ptr = 0;
-CHECK((PeptideHit()))
+START_SECTION((PeptideHit()))
 	ptr = new PeptideHit();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~PeptideHit()))
+START_SECTION((virtual ~PeptideHit()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((PeptideHit(DoubleReal score, UInt rank, Int charge, const AASequence &sequence)))
+START_SECTION((PeptideHit(DoubleReal score, UInt rank, Int charge, const AASequence &sequence)))
 	PeptideHit hit(score, rank, charge, sequence);
 	TEST_EQUAL(hit.getScore(), score)
 	TEST_EQUAL(hit.getRank(), rank)
 	TEST_EQUAL(hit.getCharge(), charge)
 	TEST_EQUAL(hit.getSequence(), sequence)
-RESULT
+END_SECTION
 
-CHECK((PeptideHit& operator=(const PeptideHit& source)))
+START_SECTION((PeptideHit& operator=(const PeptideHit& source)))
 	PeptideHit hit;
 	PeptideHit hit2(score, rank, charge, sequence);
 	hit2.setMetaValue("label",17);
@@ -79,9 +79,9 @@ CHECK((PeptideHit& operator=(const PeptideHit& source)))
 	TEST_EQUAL(hit.getCharge(), charge)
 	TEST_EQUAL(hit.getSequence(), sequence)
 	TEST_EQUAL((UInt)hit.getMetaValue("label"),17)
-RESULT
+END_SECTION
 
-CHECK((PeptideHit(const PeptideHit& source)))
+START_SECTION((PeptideHit(const PeptideHit& source)))
 	PeptideHit source;
 	source.setScore(score);
 	source.setRank(rank);
@@ -94,9 +94,9 @@ CHECK((PeptideHit(const PeptideHit& source)))
 	TEST_EQUAL(hit.getRank(), source.getRank())
 	TEST_EQUAL(hit.getSequence(), source.getSequence())
 	TEST_EQUAL((UInt)hit.getMetaValue("label"),17) 
-RESULT
+END_SECTION
 
-CHECK((bool operator == (const PeptideHit& rhs) const))
+START_SECTION((bool operator == (const PeptideHit& rhs) const))
   PeptideHit hit, hit2;
   TEST_EQUAL(hit==hit2,true);
 
@@ -115,9 +115,9 @@ CHECK((bool operator == (const PeptideHit& rhs) const))
 	hit.setMetaValue("label",17);
   TEST_EQUAL(hit==hit2,false);
 	hit=hit2;
-RESULT
+END_SECTION
 
-CHECK((bool operator != (const PeptideHit& rhs) const))
+START_SECTION((bool operator != (const PeptideHit& rhs) const))
   PeptideHit hit, hit2;
   TEST_EQUAL(hit!=hit2,false);
 
@@ -136,45 +136,45 @@ CHECK((bool operator != (const PeptideHit& rhs) const))
 	hit.setMetaValue("label",17);
   TEST_EQUAL(hit!=hit2,true);
 	hit=hit2;
-RESULT
+END_SECTION
 
-CHECK((Real getScore() const))
+START_SECTION((Real getScore() const))
 	PeptideHit hit(score, rank, charge, sequence);
 	TEST_EQUAL(hit.getScore(), score)
-RESULT
+END_SECTION
 
-CHECK((UInt getRank() const))
+START_SECTION((UInt getRank() const))
 	PeptideHit hit(score, rank, charge, sequence);
 	TEST_EQUAL(hit.getRank(), rank)
-RESULT
+END_SECTION
 
-CHECK((const AASequence& getSequence() const))
+START_SECTION((const AASequence& getSequence() const))
 	PeptideHit hit(score, rank, charge, sequence);
 	TEST_EQUAL(hit.getSequence(), sequence)
-RESULT
+END_SECTION
 
-CHECK((void setRank(UInt newrank)))
+START_SECTION((void setRank(UInt newrank)))
 	PeptideHit hit;
 	hit.setRank(rank);
 	TEST_EQUAL(hit.getRank(), rank)
-RESULT
+END_SECTION
 
-CHECK((void setScore(DoubleReal score)))
+START_SECTION((void setScore(DoubleReal score)))
 	PeptideHit hit;
 	hit.setScore(score);
 	TEST_EQUAL(hit.getScore(), score)
-RESULT
+END_SECTION
 
-CHECK((void setSequence(const AASequence& sequence)))
+START_SECTION((void setSequence(const AASequence& sequence)))
 	PeptideHit hit;
 	hit.setSequence(sequence);
 	TEST_EQUAL(hit.getSequence(), sequence)
 	//hit.setSequence(sequence2);
 	// @todo std::string interface?
 	TEST_EQUAL(hit.getSequence(), sequence)	
-RESULT
+END_SECTION
 
-CHECK((void addProteinAccession(const String& accession)))
+START_SECTION((void addProteinAccession(const String& accession)))
 	String date;
 	vector<String> indices;
 
@@ -187,9 +187,9 @@ CHECK((void addProteinAccession(const String& accession)))
 	TEST_EQUAL(indices.size(), 2)
 	TEST_EQUAL(indices[0] == String("ACC392"), true)
 	TEST_EQUAL(indices[1] == String("ACD392"), true)
-RESULT
+END_SECTION
 
-CHECK((void setProteinAccessions(const std::vector< String > &accessions)))
+START_SECTION((void setProteinAccessions(const std::vector< String > &accessions)))
 	vector<String> vec;
 	vec.push_back("ACC392");
 	vec.push_back("ACD392");
@@ -197,55 +197,55 @@ CHECK((void setProteinAccessions(const std::vector< String > &accessions)))
 	hit.addProteinAccession("ACC392");
 	hit.addProteinAccession("ACD392");
 	TEST_EQUAL(vec == hit.getProteinAccessions(), true)
-RESULT
+END_SECTION
 
-CHECK((const std::vector<String>& getProteinAccessions() const))
+START_SECTION((const std::vector<String>& getProteinAccessions() const))
 	PeptideHit hit;
 	hit.addProteinAccession("ACC392");
 	hit.addProteinAccession("ACD392");
 	TEST_EQUAL(hit.getProteinAccessions().size(), 2)
 	TEST_EQUAL(hit.getProteinAccessions()[0], "ACC392")
 	TEST_EQUAL(hit.getProteinAccessions()[1], "ACD392")
-RESULT
+END_SECTION
 
-CHECK((Int getCharge() const))
+START_SECTION((Int getCharge() const))
 	PeptideHit hit;
 	
 	hit.setCharge(-43);
 	TEST_EQUAL(-43, hit.getCharge())
-RESULT
+END_SECTION
 
-CHECK((void setCharge(Int charge)))
+START_SECTION((void setCharge(Int charge)))
 	PeptideHit hit;
 	
 	hit.setCharge(-43);
 	TEST_EQUAL(-43, hit.getCharge())
-RESULT
+END_SECTION
 
-CHECK(void setAABefore(char acid))
+START_SECTION(void setAABefore(char acid))
 	PeptideHit hit;
 	
 	hit.setAABefore('R');
 	TEST_EQUAL(hit.getAABefore(), 'R')
-RESULT
-CHECK(char getAABefore() const)
+END_SECTION
+START_SECTION(char getAABefore() const)
 	PeptideHit hit;
 	
 	hit.setAABefore('R');
 	TEST_EQUAL(hit.getAABefore(), 'R')
-RESULT
-CHECK(void setAAAfter(char acid))
+END_SECTION
+START_SECTION(void setAAAfter(char acid))
 	PeptideHit hit;
 	
 	hit.setAAAfter('R');
 	TEST_EQUAL(hit.getAAAfter(), 'R')
-RESULT
-CHECK(char getAAAfter() const)
+END_SECTION
+START_SECTION(char getAAAfter() const)
 	PeptideHit hit;
 	
 	hit.setAAAfter('R');
 	TEST_EQUAL(hit.getAAAfter(), 'R')
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

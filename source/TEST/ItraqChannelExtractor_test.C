@@ -28,7 +28,6 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqChannelExtractor.h>
-#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 
@@ -43,29 +42,29 @@ START_TEST(ItraqChannelExtractor, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ItraqChannelExtractor* ptr = 0;
-CHECK(ItraqChannelExtractor())
+START_SECTION(ItraqChannelExtractor())
 {
 	ptr = new ItraqChannelExtractor();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~ItraqChannelExtractor())
+START_SECTION(~ItraqChannelExtractor())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((ItraqChannelExtractor(Int itraq_type)))
+START_SECTION((ItraqChannelExtractor(Int itraq_type)))
 {
   ItraqChannelExtractor ice(ItraqChannelExtractor::EIGHTPLEX);
 	TEST_EQUAL((String) ice.getParameters().getValue("channel_active"), "113:myReference");
   ItraqChannelExtractor ice2(ItraqChannelExtractor::FOURPLEX);
 	TEST_EQUAL((String) ice2.getParameters().getValue("channel_active"), "114:myReference");
 }
-RESULT
+END_SECTION
 
-CHECK((ItraqChannelExtractor(Int itraq_type, const Param &param)))
+START_SECTION((ItraqChannelExtractor(Int itraq_type, const Param &param)))
 {
 	Param p;
 	p.setValue("reporter_mass_deviation", 0.1234);
@@ -78,9 +77,9 @@ CHECK((ItraqChannelExtractor(Int itraq_type, const Param &param)))
 	p.setValue("channel_active", "120:channel non existant");	
 	TEST_EXCEPTION(Exception::InvalidParameter, ItraqChannelExtractor ice2(ItraqChannelExtractor::EIGHTPLEX, p));	
 }
-RESULT
+END_SECTION
 
-CHECK((void run(const MSExperiment< Peak1D > &ms_exp_data, ConsensusMap &consensus_map)))
+START_SECTION((void run(const MSExperiment< Peak1D > &ms_exp_data, ConsensusMap &consensus_map)))
 {
 	MzDataFile mz_data_file;
 	MSExperiment<Peak1D > exp;
@@ -96,11 +95,10 @@ CHECK((void run(const MSExperiment< Peak1D > &ms_exp_data, ConsensusMap &consens
 	NEW_TMP_FILE(cm_file_out);
 	cm_file.store(cm_file_out,cm_out);
 	
-	FuzzyStringComparator fsc;
-	TEST_EQUAL(fsc.compare_files(cm_file_out,"data/ItraqChannelExtractor.consensusXML"), true);
+	TEST_FILE_SIMILAR(cm_file_out,"data/ItraqChannelExtractor.consensusXML");
 	
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

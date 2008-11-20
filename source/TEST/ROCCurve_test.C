@@ -51,12 +51,12 @@ using namespace OpenMS::Math;
 
 ROCCurve* rcp;
 
-CHECK((ROCCurve()))
+START_SECTION((ROCCurve()))
   rcp = new ROCCurve();
   TEST_NOT_EQUAL(rcp, 0)
-RESULT
+END_SECTION
 
-CHECK((void insertPair(double score, bool clas)))
+START_SECTION((void insertPair(double score, bool clas)))
   srand((unsigned)time(NULL));
   for (UInt i = 0; i < 1000; ++i)
   {
@@ -65,52 +65,52 @@ CHECK((void insertPair(double score, bool clas)))
     rcp->insertPair(score, clas);
   }
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
 #ifdef OPENMS_HAS_CGAL 
 
-CHECK((double AUC()))
+START_SECTION((double AUC()))
   double auc = rcp->AUC();
   bool inBounds = ( auc >= 0 && auc <= 1 );
   TEST_EQUAL(inBounds,1)
-RESULT
+END_SECTION
 
 #endif
 
-CHECK((std::vector<std::pair<double, double> > curve(UInt resolution = 10)))
+START_SECTION((std::vector<std::pair<double, double> > curve(UInt resolution = 10)))
   vector<pair<double,double> > curvePoints = rcp->curve(100);
   TEST_EQUAL(curvePoints.size(),100)
-RESULT
+END_SECTION
 
-CHECK((double cutoffPos(double fraction=0.95)))
+START_SECTION((double cutoffPos(double fraction=0.95)))
   double cop = rcp->cutoffPos();
   bool inBounds( cop >=0 && cop <= 1 );
   TEST_EQUAL(inBounds,1)
-RESULT
+END_SECTION
 
-CHECK((double cutoffNeg(double fraction=0.95)))
+START_SECTION((double cutoffNeg(double fraction=0.95)))
   double con = rcp->cutoffNeg();
   bool inBounds( con >=0 && con <= 1 );
   TEST_EQUAL(inBounds,1)
-RESULT
+END_SECTION
 
-CHECK((ROCCurve(const ROCCurve& source)))
+START_SECTION((ROCCurve(const ROCCurve& source)))
   ROCCurve crc(*rcp);
   double ccop = crc.cutoffPos();
   double cop = rcp->cutoffPos();
-  TEST_REAL_EQUAL(ccop,cop)
-RESULT
+  TEST_REAL_SIMILAR(ccop,cop)
+END_SECTION
 
-CHECK((ROCCurve& operator = (const ROCCurve& source)))
+START_SECTION((ROCCurve& operator = (const ROCCurve& source)))
   ROCCurve crc = *rcp;
   double ccop = crc.cutoffPos();
   double cop = rcp->cutoffPos();
-  TEST_REAL_EQUAL(cop,ccop)
-RESULT
+  TEST_REAL_SIMILAR(cop,ccop)
+END_SECTION
 
-CHECK((virtual ~ROCCurve()))
+START_SECTION((virtual ~ROCCurve()))
   delete rcp;
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

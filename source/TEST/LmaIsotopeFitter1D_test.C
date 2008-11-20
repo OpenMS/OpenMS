@@ -42,15 +42,15 @@ START_TEST(LmaIsotopeFitter1D, "$Id$")
 
 
 LmaIsotopeFitter1D* ptr = 0;
-CHECK(LmaIsotopeFitter1D())
+START_SECTION(LmaIsotopeFitter1D())
 {
   ptr = new LmaIsotopeFitter1D();
   TEST_EQUAL(ptr->getName(), "LmaIsotopeFitter1D")
   TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK((LmaIsotopeFitter1D(const  LmaIsotopeFitter1D &source)))
+START_SECTION((LmaIsotopeFitter1D(const  LmaIsotopeFitter1D &source)))
 	LmaIsotopeFitter1D lisof1;
 	
 	Param param;
@@ -71,13 +71,13 @@ CHECK((LmaIsotopeFitter1D(const  LmaIsotopeFitter1D &source)))
 	lisof3.setParameters(param);
   lisof1 = LmaIsotopeFitter1D();
 	TEST_EQUAL(lisof3.getParameters(), lisof2.getParameters())
-RESULT
+END_SECTION
 
-CHECK((virtual ~LmaIsotopeFitter1D()))
+START_SECTION((virtual ~LmaIsotopeFitter1D()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((virtual LmaIsotopeFitter1D& operator=(const  LmaIsotopeFitter1D &source)))
+START_SECTION((virtual LmaIsotopeFitter1D& operator=(const  LmaIsotopeFitter1D &source)))
 	LmaIsotopeFitter1D lisof1;
 	
 	Param param;
@@ -101,27 +101,27 @@ CHECK((virtual LmaIsotopeFitter1D& operator=(const  LmaIsotopeFitter1D &source))
 
   lisof1 = LmaIsotopeFitter1D();
 	TEST_EQUAL(lisof3.getParameters(), lisof3.getParameters())
-RESULT
+END_SECTION
 
-CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
+START_SECTION((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
 	// dummy subtest
 	TEST_EQUAL(1,1)
-RESULT
+END_SECTION
 
-CHECK((Fitter1D* create()))
+START_SECTION((Fitter1D* create()))
 {
   Fitter1D* ptr = LmaIsotopeFitter1D::create();
   TEST_EQUAL(ptr->getName(), "LmaIsotopeFitter1D")
   TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK((const String getProductName()))
+START_SECTION((const String getProductName()))
 {
   TEST_EQUAL(LmaIsotopeFitter1D::getProductName(),"LmaIsotopeFitter1D")
   TEST_EQUAL(LmaIsotopeFitter1D().getName(),"LmaIsotopeFitter1D")
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

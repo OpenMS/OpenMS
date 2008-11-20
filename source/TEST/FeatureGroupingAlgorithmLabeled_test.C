@@ -41,27 +41,27 @@ START_TEST(FeatureGroupingAlgorithmLabeled, "$Id FeatureFinder_test.C 139 2006-0
 /////////////////////////////////////////////////////////////
 
 FeatureGroupingAlgorithmLabeled* ptr = 0;
-CHECK((FeatureGroupingAlgorithmLabeled()))
+START_SECTION((FeatureGroupingAlgorithmLabeled()))
 	ptr = new FeatureGroupingAlgorithmLabeled();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~FeatureGroupingAlgorithmLabeled()))
+START_SECTION((virtual ~FeatureGroupingAlgorithmLabeled()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((static FeatureGroupingAlgorithm* create()))
+START_SECTION((static FeatureGroupingAlgorithm* create()))
 	FeatureGroupingAlgorithm* ptr2 = 0;
 	ptr2 = FeatureGroupingAlgorithmLabeled::create();
 	TEST_NOT_EQUAL(ptr2, 0)
-RESULT
+END_SECTION
 
-CHECK((static String getProductName()))
+START_SECTION((static String getProductName()))
 	TEST_EQUAL(FeatureGroupingAlgorithmLabeled::getProductName(),"labeled")
-RESULT
+END_SECTION
 
-CHECK((virtual void group(const std::vector< FeatureMap<> > &maps, ConsensusMap &out)))
-	PRECISION(0.001)
+START_SECTION((virtual void group(const std::vector< FeatureMap<> > &maps, ConsensusMap &out)))
+	TOLERANCE_ABSOLUTE(0.001)
 	
 	FeatureGroupingAlgorithmLabeled fga;
 	std::vector< FeatureMap<> > in;
@@ -147,15 +147,15 @@ CHECK((virtual void group(const std::vector< FeatureMap<> > &maps, ConsensusMap 
 	fga.group(in,out);
 	
 	TEST_EQUAL(out.size(),1)
-	TEST_REAL_EQUAL(out[0].getQuality(),0.959346);
+	TEST_REAL_SIMILAR(out[0].getQuality(),0.959346);
 	TEST_EQUAL(out[0].size(),2)
 	ConsensusFeature::HandleSetType::const_iterator it = out[0].begin();
-	TEST_REAL_EQUAL(it->getMZ(),1.0f);
-	TEST_REAL_EQUAL(it->getRT(),1.0f);
+	TEST_REAL_SIMILAR(it->getMZ(),1.0f);
+	TEST_REAL_SIMILAR(it->getRT(),1.0f);
 	++it;
-	TEST_REAL_EQUAL(it->getMZ(),5.0f);
-	TEST_REAL_EQUAL(it->getRT(),1.5f);
-RESULT
+	TEST_REAL_SIMILAR(it->getMZ(),5.0f);
+	TEST_REAL_SIMILAR(it->getRT(),1.5f);
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

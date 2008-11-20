@@ -40,20 +40,20 @@ START_TEST(AveragePosition, "$Id$")
 /////////////////////////////////////////////////////////////
 
 AveragePosition<3>* ptr = 0;
-CHECK(AveragePosition())
+START_SECTION(AveragePosition())
 {
 	ptr = new AveragePosition<3>();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~AveragePosition())
+START_SECTION(~AveragePosition())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((AveragePosition(AveragePosition const &rhs)))
+START_SECTION((AveragePosition(AveragePosition const &rhs)))
 {
 	DPosition<4> pos1;
 	pos1[0] = 1.0;
@@ -73,15 +73,15 @@ CHECK((AveragePosition(AveragePosition const &rhs)))
 
 	AveragePosition<4> avg_cpy = avg;
 	
-	TEST_REAL_EQUAL(avg.getPosition()[0],avg_cpy.getPosition()[0]);
-	TEST_REAL_EQUAL(avg.getPosition()[1],avg_cpy.getPosition()[1]);
-	TEST_REAL_EQUAL(avg.getPosition()[2],avg_cpy.getPosition()[2]);
-	TEST_REAL_EQUAL(avg.getPosition()[3],avg_cpy.getPosition()[3]);
-	TEST_REAL_EQUAL(avg.getWeight(),avg_cpy.getWeight());
+	TEST_REAL_SIMILAR(avg.getPosition()[0],avg_cpy.getPosition()[0]);
+	TEST_REAL_SIMILAR(avg.getPosition()[1],avg_cpy.getPosition()[1]);
+	TEST_REAL_SIMILAR(avg.getPosition()[2],avg_cpy.getPosition()[2]);
+	TEST_REAL_SIMILAR(avg.getPosition()[3],avg_cpy.getPosition()[3]);
+	TEST_REAL_SIMILAR(avg.getWeight(),avg_cpy.getWeight());
 }
-RESULT
+END_SECTION
 
-CHECK((PositionType const& getPosition() const))
+START_SECTION((PositionType const& getPosition() const))
 {
 	DPosition<4> pos1;
 	pos1[0] = 1.0;
@@ -99,39 +99,39 @@ CHECK((PositionType const& getPosition() const))
 	avg.add(pos1,-1);
 	avg.add(pos2);
 
-	TEST_REAL_EQUAL(avg.getPosition()[0],0);
-	TEST_REAL_EQUAL(avg.getPosition()[1],0);
-	TEST_REAL_EQUAL(avg.getPosition()[2],0);
-	TEST_REAL_EQUAL(avg.getPosition()[3],0);
-	TEST_REAL_EQUAL(avg.getWeight(),0);
+	TEST_REAL_SIMILAR(avg.getPosition()[0],0);
+	TEST_REAL_SIMILAR(avg.getPosition()[1],0);
+	TEST_REAL_SIMILAR(avg.getPosition()[2],0);
+	TEST_REAL_SIMILAR(avg.getPosition()[3],0);
+	TEST_REAL_SIMILAR(avg.getWeight(),0);
 
 	avg.add(pos1,4);
 	avg.add(pos2);
 
-	TEST_REAL_EQUAL(avg.getPosition()[0],5.8);
-	TEST_REAL_EQUAL(avg.getPosition()[1],5.2);
-	TEST_REAL_EQUAL(avg.getPosition()[2],4.6);
-	TEST_REAL_EQUAL(avg.getPosition()[3],4);
-	TEST_REAL_EQUAL(avg.getWeight(),5);
+	TEST_REAL_SIMILAR(avg.getPosition()[0],5.8);
+	TEST_REAL_SIMILAR(avg.getPosition()[1],5.2);
+	TEST_REAL_SIMILAR(avg.getPosition()[2],4.6);
+	TEST_REAL_SIMILAR(avg.getPosition()[3],4);
+	TEST_REAL_SIMILAR(avg.getWeight(),5);
 }
-RESULT
+END_SECTION
 
-CHECK((CoordinateType const& getWeight() const))
+START_SECTION((CoordinateType const& getWeight() const))
 {
 	AveragePosition<1> avg;
 	avg.add(DPosition<1>(9),2);
-	TEST_REAL_EQUAL(avg.getWeight(),2);
-	TEST_REAL_EQUAL(avg.getPosition()[0],9);
+	TEST_REAL_SIMILAR(avg.getWeight(),2);
+	TEST_REAL_SIMILAR(avg.getPosition()[0],9);
 	avg.add(DPosition<1>(9),3);
-	TEST_REAL_EQUAL(avg.getWeight(),5);
-	TEST_REAL_EQUAL(avg.getPosition()[0],9);
+	TEST_REAL_SIMILAR(avg.getWeight(),5);
+	TEST_REAL_SIMILAR(avg.getPosition()[0],9);
 	avg.add(DPosition<1>(6),10);
-	TEST_REAL_EQUAL(avg.getWeight(),15);
-	TEST_REAL_EQUAL(avg.getPosition()[0],7);
+	TEST_REAL_SIMILAR(avg.getWeight(),15);
+	TEST_REAL_SIMILAR(avg.getPosition()[0],7);
 }
-RESULT
+END_SECTION
 
-CHECK((void clear()))
+START_SECTION((void clear()))
 {
 	DPosition<4> pos1;
 	pos1[0] = 1.0;
@@ -141,19 +141,19 @@ CHECK((void clear()))
 	AveragePosition<4> avg;
 	avg.add(pos1,2);
 	TEST_EQUAL(avg.getPosition(),pos1);
-	TEST_REAL_EQUAL(avg.getWeight(),2);
+	TEST_REAL_SIMILAR(avg.getWeight(),2);
 	avg.clear();
 	TEST_EQUAL(avg.getPosition(),DPosition<4>::zero);
 	TEST_EQUAL(avg.getWeight(),0);
 }
-RESULT
+END_SECTION
 
-CHECK((void add(PositionType position, CoordinateType const weight=1)))
+START_SECTION((void add(PositionType position, CoordinateType const weight=1)))
 {
 	// already tested above
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

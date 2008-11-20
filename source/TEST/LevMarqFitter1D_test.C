@@ -116,29 +116,29 @@ class TestModel : public LevMarqFitter1D
 
 
 TestModel* ptr = 0;
-CHECK((LevMarqFitter1D()))
+START_SECTION((LevMarqFitter1D()))
 	ptr = new TestModel();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((LevMarqFitter1D(const  LevMarqFitter1D &source)))
+START_SECTION((LevMarqFitter1D(const  LevMarqFitter1D &source)))
 	TestModel tm1;	
   
   TestModel tm2(tm1);
 	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
-RESULT
+END_SECTION
 
-CHECK((virtual ~LevMarqFitter1D()))
+START_SECTION((virtual ~LevMarqFitter1D()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((virtual LevMarqFitter1D& operator=(const  LevMarqFitter1D &source)))
+START_SECTION((virtual LevMarqFitter1D& operator=(const  LevMarqFitter1D &source)))
 	TestModel tm1;
   TestModel tm2;
   
   tm2 = tm1;
 	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

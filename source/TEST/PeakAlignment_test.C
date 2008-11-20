@@ -41,38 +41,38 @@ START_TEST(PeakAlignment, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PeakAlignment* ptr = 0;
-CHECK(PeakAlignment())
+START_SECTION(PeakAlignment())
 {
 	ptr = new PeakAlignment();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~PeakAlignment())
+START_SECTION(~PeakAlignment())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((PeakAlignment(const PeakAlignment &source)))
+START_SECTION((PeakAlignment(const PeakAlignment &source)))
 {
 	ptr = new PeakAlignment();
 	PeakAlignment copy(*ptr);
 	TEST_EQUAL(copy.getName(), ptr->getName());
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters());
 }
-RESULT
+END_SECTION
 
-CHECK((PeakAlignment& operator=(const PeakAlignment &source)))
+START_SECTION((PeakAlignment& operator=(const PeakAlignment &source)))
 {
 	PeakAlignment copy;
 	copy = *ptr;
 	TEST_EQUAL(copy.getName(), ptr->getName());
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters());
 }
-RESULT
+END_SECTION
 
-CHECK((double operator()(const PeakSpectrum &spec1, const PeakSpectrum &spec2) const ))
+START_SECTION((double operator()(const PeakSpectrum &spec1, const PeakSpectrum &spec2) const ))
 {
 	PeakAlignment pa;
 	PeakSpectrum s1, s2;
@@ -80,20 +80,20 @@ CHECK((double operator()(const PeakSpectrum &spec1, const PeakSpectrum &spec2) c
 	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s2);
 	s2.pop_back();
 	double score = pa(s1, s2);
-	TEST_REAL_EQUAL(score, 0.997477)
+	TEST_REAL_SIMILAR(score, 0.997477)
 }
-RESULT
+END_SECTION
 
-CHECK((double operator()(const PeakSpectrum &spec) const ))
+START_SECTION((double operator()(const PeakSpectrum &spec) const ))
 {
   PeakSpectrum s1;
   DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
   double score = (*ptr)(s1);
-  TEST_REAL_EQUAL(score, 1);
+  TEST_REAL_SIMILAR(score, 1);
 }
-RESULT
+END_SECTION
 
-CHECK((vector< pair<UInt,UInt> > getAlignmentTraceback(const PeakSpectrum &spec1, const PeakSpectrum &spec2) const ))
+START_SECTION((vector< pair<UInt,UInt> > getAlignmentTraceback(const PeakSpectrum &spec1, const PeakSpectrum &spec2) const ))
 {
 	PeakAlignment pa;
 	PeakSpectrum s1, s2;
@@ -111,22 +111,22 @@ CHECK((vector< pair<UInt,UInt> > getAlignmentTraceback(const PeakSpectrum &spec1
 		TEST_EQUAL(tester.at(i).first,result.at(i).first)
 	}
 }
-RESULT
+END_SECTION
 
-CHECK((static PeakSpectrumCompareFunctor* create()))
+START_SECTION((static PeakSpectrumCompareFunctor* create()))
 {
 	PeakSpectrumCompareFunctor* psf = PeakAlignment::create();
 	PeakAlignment pa;
 	TEST_EQUAL(psf->getParameters(), pa.getParameters())
 	TEST_EQUAL(psf->getName(), pa.getName())
 }
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 {
 	TEST_EQUAL(ptr->getProductName(), "PeakAlignment")
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

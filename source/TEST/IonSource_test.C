@@ -39,60 +39,60 @@ START_TEST(IonSource, "$Id$")
 /////////////////////////////////////////////////////////////
 
 IonSource* ptr = 0;
-CHECK((IonSource()))
+START_SECTION((IonSource()))
 	ptr = new IonSource();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~IonSource()))
+START_SECTION((~IonSource()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(Int getOrder() const)
+START_SECTION(Int getOrder() const)
 	IonSource tmp;
 	TEST_EQUAL(tmp.getOrder(),0)
-RESULT
+END_SECTION
 
-CHECK(void setOrder(Int order))
+START_SECTION(void setOrder(Int order))
 	IonSource tmp;
 	tmp.setOrder(4711);
 	TEST_EQUAL(tmp.getOrder(),4711)
-RESULT
+END_SECTION
 
-CHECK((InletType getInletType() const))
+START_SECTION((InletType getInletType() const))
   IonSource tmp;
   TEST_EQUAL(tmp.getInletType(),IonSource::INLETNULL);
-RESULT
+END_SECTION
 
-CHECK((void setInletType(InletType inlet_type)))
+START_SECTION((void setInletType(InletType inlet_type)))
   IonSource tmp;
   tmp.setInletType(IonSource::DIRECT);
   TEST_EQUAL(tmp.getInletType(),IonSource::DIRECT);
-RESULT
+END_SECTION
 
-CHECK((IonizationMethod getIonizationMethod() const))
+START_SECTION((IonizationMethod getIonizationMethod() const))
   IonSource tmp;
   TEST_EQUAL(tmp.getIonizationMethod(),IonSource::IONMETHODNULL);
-RESULT
+END_SECTION
 
-CHECK((void setIonizationMethod(IonizationMethod ionization_type)))
+START_SECTION((void setIonizationMethod(IonizationMethod ionization_type)))
   IonSource tmp;
   tmp.setIonizationMethod(IonSource::ESI);
   TEST_EQUAL(tmp.getIonizationMethod(),IonSource::ESI);
-RESULT
+END_SECTION
 
-CHECK((Polarity getPolarity() const))
+START_SECTION((Polarity getPolarity() const))
   IonSource tmp;
   TEST_EQUAL(tmp.getPolarity(),IonSource::POLNULL);
-RESULT
+END_SECTION
 
-CHECK((void setPolarity(Polarity polarity)))
+START_SECTION((void setPolarity(Polarity polarity)))
 	IonSource tmp;
   tmp.setPolarity(IonSource::POSITIVE);
   TEST_EQUAL(tmp.getPolarity(),IonSource::POSITIVE);
-RESULT
+END_SECTION
 
-CHECK((IonSource(const IonSource& source)))
+START_SECTION((IonSource(const IonSource& source)))
   IonSource tmp;
   tmp.setInletType(IonSource::DIRECT);
   tmp.setIonizationMethod(IonSource::ESI);
@@ -106,9 +106,9 @@ CHECK((IonSource(const IonSource& source)))
   TEST_EQUAL(tmp2.getIonizationMethod(),IonSource::ESI);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 	TEST_EQUAL(tmp2.getOrder(),45)
-RESULT
+END_SECTION
 
-CHECK((IonSource& operator= (const IonSource& source)))
+START_SECTION((IonSource& operator= (const IonSource& source)))
   IonSource tmp;
   tmp.setInletType(IonSource::DIRECT);
   tmp.setIonizationMethod(IonSource::ESI);
@@ -130,9 +130,9 @@ CHECK((IonSource& operator= (const IonSource& source)))
   TEST_EQUAL(tmp2.getIonizationMethod(),IonSource::IONMETHODNULL);
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
 	TEST_EQUAL(tmp2.getOrder(),0)
-RESULT
+END_SECTION
 
-CHECK((bool operator== (const IonSource& rhs) const))
+START_SECTION((bool operator== (const IonSource& rhs) const))
   IonSource edit,empty;
   
   TEST_EQUAL(edit==empty,true);
@@ -156,9 +156,9 @@ CHECK((bool operator== (const IonSource& rhs) const))
   edit = empty;
   edit.setOrder(45);
 	TEST_EQUAL(edit==empty,false);
-RESULT
+END_SECTION
 
-CHECK((bool operator!= (const IonSource& rhs) const))
+START_SECTION((bool operator!= (const IonSource& rhs) const))
   IonSource edit,empty;
   
   TEST_EQUAL(edit!=empty,false);
@@ -182,7 +182,7 @@ CHECK((bool operator!= (const IonSource& rhs) const))
   edit = empty;
   edit.setOrder(45);
 	TEST_EQUAL(edit!=empty,true);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

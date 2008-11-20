@@ -43,20 +43,20 @@ START_TEST(TopHatFilter<D>, "$Id$")
 using namespace OpenMS;
 
 TopHatFilter* tophat_ptr = 0;
-CHECK((TopHatFilter()))
+START_SECTION((TopHatFilter()))
   tophat_ptr = new TopHatFilter;
   TEST_NOT_EQUAL(tophat_ptr, 0) 
-RESULT
+END_SECTION
 
-CHECK((virtual ~TopHatFilter()))
+START_SECTION((virtual ~TopHatFilter()))
   delete tophat_ptr;
-RESULT
+END_SECTION
 
 
 Param param;
 param.setValue("struc_elem_length",3.0);
 
-CHECK((template <typename InputPeakContainer, typename OutputPeakContainer> void filter(const InputPeakContainer &input_peak_container, OutputPeakContainer &baseline_filtered_container)))
+START_SECTION((template <typename InputPeakContainer, typename OutputPeakContainer> void filter(const InputPeakContainer &input_peak_container, OutputPeakContainer &baseline_filtered_container)))
     MSSpectrum<Peak1D > raw_data;
     int i;
     for (i=0; i < 24; ++i)
@@ -83,12 +83,12 @@ CHECK((template <typename InputPeakContainer, typename OutputPeakContainer> void
     std::vector<Peak1D >::const_iterator it=tophat_data.begin();
     for (int i=0; i<24; ++i)
     {
-      TEST_REAL_EQUAL(it->getIntensity(), 0)
+      TEST_REAL_SIMILAR(it->getIntensity(), 0)
     }
-RESULT
+END_SECTION
 
 
-CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& baseline_filtered_container)))
+START_SECTION((template<typename InputPeakIterator, typename OutputPeakContainer  > void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& baseline_filtered_container)))
     std::vector<Peak1D > raw_data;
     int i;
     for (i=0; i<8; ++i)
@@ -118,11 +118,11 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
      std::vector<Peak1D >::const_iterator it=tophat_data.begin();
      for (int i=0; i < 8; ++i)
        {
-         TEST_REAL_EQUAL(it->getIntensity(), 0)
+         TEST_REAL_SIMILAR(it->getIntensity(), 0)
        }
-RESULT
+END_SECTION
 
-CHECK((template <typename PeakType> void filterExperiment(MSExperiment<PeakType>& map)))
+START_SECTION((template <typename PeakType> void filterExperiment(MSExperiment<PeakType>& map)))
   MSExperiment<Peak1D> exp;
   exp.resize(4);
 	
@@ -152,10 +152,10 @@ CHECK((template <typename PeakType> void filterExperiment(MSExperiment<PeakType>
 
 	for (UInt i=0; i<exp[0].size(); ++i)
 	{
-		TEST_REAL_EQUAL(exp[0][i].getIntensity(), 0.0)
-		TEST_REAL_EQUAL(exp[1][i].getIntensity(), 0.0)
+		TEST_REAL_SIMILAR(exp[0][i].getIntensity(), 0.0)
+		TEST_REAL_SIMILAR(exp[1][i].getIntensity(), 0.0)
 	}
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

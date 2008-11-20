@@ -40,20 +40,20 @@ START_TEST(GammaDistributionFitter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 GammaDistributionFitter* ptr = 0;
-CHECK(GammaDistributionFitter())
+START_SECTION(GammaDistributionFitter())
 {
 	ptr = new GammaDistributionFitter();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(virtual ~GammaDistributionFitter())
+START_SECTION(virtual ~GammaDistributionFitter())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((GammaDistributionFitResult fit(std::vector< DPosition< 2 > > & points)))
+START_SECTION((GammaDistributionFitResult fit(std::vector< DPosition< 2 > > & points)))
 {
 	/*
 	DPosition<2> pos;
@@ -75,14 +75,14 @@ CHECK((GammaDistributionFitResult fit(std::vector< DPosition< 2 > > & points)))
   ptr = new GammaDistributionFitter;
   GammaDistributionFitter::GammaDistributionFitResult result = ptr->fit(points);
 
-  PRECISION(0.1)
-  TEST_REAL_EQUAL(result.b, 1.0)
-  TEST_REAL_EQUAL(result.p, 0.3)
+  TOLERANCE_ABSOLUTE(0.1)
+  TEST_REAL_SIMILAR(result.b, 1.0)
+  TEST_REAL_SIMILAR(result.p, 0.3)
 	*/
 }
-RESULT
+END_SECTION
 
-CHECK((void setInitialParameters(const GammaDistributionFitResult & result)))
+START_SECTION((void setInitialParameters(const GammaDistributionFitResult & result)))
 {
   GammaDistributionFitter f1;
   GammaDistributionFitter::GammaDistributionFitResult result;
@@ -90,11 +90,11 @@ CHECK((void setInitialParameters(const GammaDistributionFitResult & result)))
 	
 	NOT_TESTABLE //implicitly tested in fit method
 }
-RESULT
+END_SECTION
 
-CHECK((const String& getGnuplotFormula() const ))
+START_SECTION((const String& getGnuplotFormula() const ))
 	// TODO
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

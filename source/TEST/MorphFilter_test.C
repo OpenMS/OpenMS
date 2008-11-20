@@ -41,16 +41,16 @@ START_TEST(MorphFilter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MorphFilter* ptr = 0;
-CHECK((MorphFilter()))
+START_SECTION((MorphFilter()))
   ptr = new MorphFilter();
   TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~MorphFilter()))
+START_SECTION((virtual ~MorphFilter()))
   delete ptr;
-RESULT
+END_SECTION
 
-CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void dilatation(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& result, int l)))
+START_SECTION((template< typename InputPeakIterator, typename OutputPeakContainer > void dilatation(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& result, int l)))
   std::vector<Peak1D > raw(5);
   raw[0].setIntensity(0);
   raw[1].setIntensity(1);
@@ -76,9 +76,9 @@ CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void
   TEST_EQUAL(filtered[2].getIntensity(), 1)
   TEST_EQUAL(filtered[3].getIntensity(), 1)
   TEST_EQUAL(filtered[4].getIntensity(), 1)    
-RESULT
+END_SECTION
 
-CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void erosion(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& result, int l)))
+START_SECTION((template< typename InputPeakIterator, typename OutputPeakContainer > void erosion(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& result, int l)))
   std::vector<Peak1D > raw(5);
   raw[0].setIntensity(0);
   raw[1].setIntensity(1);
@@ -104,7 +104,7 @@ CHECK((template< typename InputPeakIterator, typename OutputPeakContainer > void
   TEST_EQUAL(filtered[2].getIntensity(), 1)
   TEST_EQUAL(filtered[3].getIntensity(), 0)
   TEST_EQUAL(filtered[4].getIntensity(), 0)    
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

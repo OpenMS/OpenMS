@@ -39,129 +39,129 @@ START_TEST(SparseVector, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SparseVector<double>* ptr = 0;
-CHECK(SparseVector())
+START_SECTION(SparseVector())
 {
 	ptr = new SparseVector<double>();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~SparseVector())
+START_SECTION(~SparseVector())
 {
   delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((SparseVector(Value se)))
+START_SECTION((SparseVector(Value se)))
 {
 	SparseVector<double> sv(3.0);
 	sv.push_back(3.0);
 	TEST_EQUAL(sv.size(), 1)
 	TEST_EQUAL(sv.nonzero_size(), 0)
 }
-RESULT
+END_SECTION
 
 SparseVector<double> sv(8,0,3.0);
 
-CHECK((SparseVector(size_type size, Value value, Value se=0)))
+START_SECTION((SparseVector(size_type size, Value value, Value se=0)))
 {
 	TEST_EQUAL(sv.size(), 8)
 	TEST_EQUAL(sv.nonzero_size(), 8)
 }
-RESULT
+END_SECTION
 
 
 SparseVector<double> sv2(sv);
 
-CHECK((SparseVector(const SparseVector &source)))
+START_SECTION((SparseVector(const SparseVector &source)))
 {
 	TEST_EQUAL(sv2.size(), 8)
 }
-RESULT
+END_SECTION
 
-CHECK((void resize(size_type newsize)))
+START_SECTION((void resize(size_type newsize)))
 {
 	sv2.resize(10);
 	TEST_EQUAL(sv2.size(),10)
 }
-RESULT
+END_SECTION
 
-CHECK((SparseVector& operator=(const SparseVector &source)))
+START_SECTION((SparseVector& operator=(const SparseVector &source)))
 {
 	sv2=sv;
 	TEST_EQUAL(sv2.size(), 8)
 }
-RESULT
+END_SECTION
 
 
-CHECK((bool operator==(const SparseVector &rhs) const ))
+START_SECTION((bool operator==(const SparseVector &rhs) const ))
 {
 	SparseVector<double> sv3(sv);
 	TEST_EQUAL((sv3==sv), true)
 }
-RESULT
+END_SECTION
 
-CHECK((bool operator<(const SparseVector &rhs) const ))
+START_SECTION((bool operator<(const SparseVector &rhs) const ))
 {
 	SparseVector<double> sv3(sv);
 	sv3[0]=-1.23;
 	TEST_EQUAL((sv3<sv), true)
 }
-RESULT
+END_SECTION
 
 
-CHECK((void push_back(Value value)))
+START_SECTION((void push_back(Value value)))
 {
 	sv2.push_back(666);
 	TEST_EQUAL(sv2.size(), 9)
 	TEST_EQUAL(sv2.at(8), 666)
 }
-RESULT
+END_SECTION
 
-CHECK((ValueProxy operator[](size_type pos)))
+START_SECTION((ValueProxy operator[](size_type pos)))
 {
 	sv2[8]=3;
 	TEST_EQUAL((double)sv2[8],3)
 	TEST_EQUAL(sv2.size(), 9)
 	TEST_EQUAL(sv2.nonzero_size(), 8)
 }
-RESULT
+END_SECTION
 
-CHECK((const Value operator[](size_type pos) const ))
+START_SECTION((const Value operator[](size_type pos) const ))
 {
 	const SparseVector<double> sv3 = sv2;
 	TEST_EQUAL((double)sv3[8],3)
 }
-RESULT
+END_SECTION
 
 
-CHECK((Value at(size_type pos) const))
+START_SECTION((Value at(size_type pos) const))
 {
 	TEST_EQUAL(sv2.at(8), 3)
 	TEST_EQUAL(sv2.at(0), 0)
 }
-RESULT
+END_SECTION
 
-CHECK((size_type size() const ))
+START_SECTION((size_type size() const ))
 {
 	TEST_EQUAL(sv2.size(), 9)
 }
-RESULT
+END_SECTION
 
-CHECK((size_type nonzero_size() const ))
+START_SECTION((size_type nonzero_size() const ))
 {
 	TEST_EQUAL(sv2.nonzero_size(), 8)
 }
-RESULT
+END_SECTION
 
-CHECK((void clear()))
+START_SECTION((void clear()))
 {
 	sv2.clear();
 	TEST_EQUAL(sv2.size(), 0)
 }
-RESULT
+END_SECTION
 
-CHECK((void erase(SparseVectorIterator it)))
+START_SECTION((void erase(SparseVectorIterator it)))
 {
 	sv.erase(sv.begin()+5);
 	TEST_EQUAL(sv.size(),7)
@@ -192,9 +192,9 @@ CHECK((void erase(SparseVectorIterator it)))
 	TEST_EQUAL(sv2.at(0),1.1)
 	TEST_EQUAL(sv2.at(1),1.2)
 }
-RESULT
+END_SECTION
 
-CHECK((void erase(SparseVectorIterator first, SparseVectorIterator last)))
+START_SECTION((void erase(SparseVectorIterator first, SparseVectorIterator last)))
 {
 	sv[4]=3;
 	sv.erase(sv.begin()+5,sv.end());
@@ -231,17 +231,17 @@ CHECK((void erase(SparseVectorIterator first, SparseVectorIterator last)))
 	TEST_EQUAL(sv2.size(),1)
 	TEST_EQUAL(sv2.at(0),1.2)
 }
-RESULT
+END_SECTION
 
-CHECK((SparseVectorIterator getMinElement()))
+START_SECTION((SparseVectorIterator getMinElement()))
 {
 	sv[2]=1;
 	sv.erase(sv.begin());
 	TEST_EQUAL((double)*(sv.getMinElement()),0)
 }
-RESULT
+END_SECTION
 
-CHECK((iterator begin()))
+START_SECTION((iterator begin()))
 {
 	double i = 0;
 	for (SparseVector<double>::iterator vit = sv.begin(); vit != sv.end();++vit)
@@ -305,16 +305,16 @@ CHECK((iterator begin()))
 	TEST_EQUAL(sv.begin()>=sv.begin(),true)
 	TEST_EQUAL(sv.end()<= sv.end(),true)
 }
-RESULT
+END_SECTION
 
-CHECK((iterator end()))
+START_SECTION((iterator end()))
 {
 	NOT_TESTABLE
   // tested above
 }
-RESULT
+END_SECTION
 
-CHECK((const_iterator begin() const ))
+START_SECTION((const_iterator begin() const ))
 {
 	double i = 0;
 	for (SparseVector<double>::const_iterator cvit = sv.begin(); cvit != sv.end();++cvit)
@@ -376,16 +376,16 @@ CHECK((const_iterator begin() const ))
 	TEST_EQUAL(sv.begin()>=sv.begin(),true)
 	TEST_EQUAL(sv.end()<= sv.end(),true)
 }
-RESULT
+END_SECTION
 
-CHECK((const_iterator end() const ))
+START_SECTION((const_iterator end() const ))
 {
 	NOT_TESTABLE
 	//tested above
 }
-RESULT
+END_SECTION
 
-CHECK((reverse_iterator rbegin()))
+START_SECTION((reverse_iterator rbegin()))
 {
 	double i = 0;
 	for (SparseVector<double>::reverse_iterator rvit = sv.rbegin(); rvit != sv.rend();++rvit)
@@ -443,16 +443,16 @@ CHECK((reverse_iterator rbegin()))
 	rvit.rhop();
 	TEST_EQUAL(rvit==sv.rend(),true)
 }
-RESULT
+END_SECTION
 
-CHECK((reverse_iterator rend()))
+START_SECTION((reverse_iterator rend()))
 {
   NOT_TESTABLE
 	//tested above
 }
-RESULT
+END_SECTION
 
-CHECK((const_reverse_iterator rbegin() const ))
+START_SECTION((const_reverse_iterator rbegin() const ))
 {
 	double i = 0;
 	for (SparseVector<double>::const_reverse_iterator rvit = sv.rbegin(); rvit != sv.rend();++rvit)
@@ -510,20 +510,20 @@ CHECK((const_reverse_iterator rbegin() const ))
 
 	TEST_EQUAL(sv.rend()-sv.rbegin(),4)
 }
-RESULT
+END_SECTION
 
-CHECK((const_reverse_iterator rend() const ))
+START_SECTION((const_reverse_iterator rend() const ))
 {
   NOT_TESTABLE
 	//tested above
 }
-RESULT
+END_SECTION
 
-CHECK((void print() const))
+START_SECTION((void print() const))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

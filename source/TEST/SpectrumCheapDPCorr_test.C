@@ -42,31 +42,31 @@ START_TEST(SpectrumCheapDPCorr, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SpectrumCheapDPCorr* e_ptr = 0;
-CHECK(SpectrumCheapDPCorr())
+START_SECTION(SpectrumCheapDPCorr())
 	e_ptr = new SpectrumCheapDPCorr;
 	TEST_NOT_EQUAL(e_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~SpectrumCheapDPCorr())
+START_SECTION(~SpectrumCheapDPCorr())
 	delete e_ptr;
-RESULT
+END_SECTION
 
 e_ptr = new SpectrumCheapDPCorr();
 
-CHECK(SpectrumCheapDPCorr(const SpectrumCheapDPCorr& source))
+START_SECTION(SpectrumCheapDPCorr(const SpectrumCheapDPCorr& source))
 	SpectrumCheapDPCorr copy(*e_ptr);
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK(SpectrumCheapDPCorr& operator = (const SpectrumCheapDPCorr& source))
+START_SECTION(SpectrumCheapDPCorr& operator = (const SpectrumCheapDPCorr& source))
 	SpectrumCheapDPCorr copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK(double operator () (const PeakSpectrum& a, const PeakSpectrum& b) const)
+START_SECTION(double operator () (const PeakSpectrum& a, const PeakSpectrum& b) const)
 	DTAFile dta_file;
 	PeakSpectrum spec1;
 	dta_file.load("data/Transformers_tests.dta", spec1);
@@ -77,58 +77,58 @@ CHECK(double operator () (const PeakSpectrum& a, const PeakSpectrum& b) const)
 
 	double score = (*e_ptr)(spec1, spec2);
 
-	PRECISION(0.1)
-	TEST_REAL_EQUAL(score, 10145.4)
+	TOLERANCE_ABSOLUTE(0.1)
+	TEST_REAL_SIMILAR(score, 10145.4)
 
 	score = (*e_ptr)(spec1, spec1);
 
-	TEST_REAL_EQUAL(score, 12295.5)
+	TEST_REAL_SIMILAR(score, 12295.5)
 	
 	SpectrumCheapDPCorr corr;
 	score = corr(spec1, spec2);
-	TEST_REAL_EQUAL(score, 10145.4)
+	TEST_REAL_SIMILAR(score, 10145.4)
 
 	score = corr(spec1, spec1);
 
-	TEST_REAL_EQUAL(score, 12295.5)
+	TEST_REAL_SIMILAR(score, 12295.5)
 	
-RESULT
+END_SECTION
 
-CHECK(const PeakSpectrum& lastconsensus() const)
+START_SECTION(const PeakSpectrum& lastconsensus() const)
 	TEST_EQUAL(e_ptr->lastconsensus().size(), 121)
-RESULT
+END_SECTION
 
-CHECK((Map<UInt, UInt> getPeakMap() const))
+START_SECTION((Map<UInt, UInt> getPeakMap() const))
 	TEST_EQUAL(e_ptr->getPeakMap().size(), 121)
-RESULT
+END_SECTION
 
-CHECK(double operator () (const PeakSpectrum& a) const)
+START_SECTION(double operator () (const PeakSpectrum& a) const)
   DTAFile dta_file;
   PeakSpectrum spec1;
   dta_file.load("data/Transformers_tests.dta", spec1);
 
   double score = (*e_ptr)(spec1);
 
-  TEST_REAL_EQUAL(score, 12295.5)
+  TEST_REAL_SIMILAR(score, 12295.5)
 
-RESULT
+END_SECTION
 
-CHECK(static PeakSpectrumCompareFunctor* create())
+START_SECTION(static PeakSpectrumCompareFunctor* create())
 	PeakSpectrumCompareFunctor* cf = SpectrumCheapDPCorr::create();
 	SpectrumCheapDPCorr corr;
 	TEST_EQUAL(cf->getParameters(), corr.getParameters())
 	TEST_EQUAL(cf->getName(), corr.getName())
-RESULT
+END_SECTION
 
-CHECK(static const String getProductName())
+START_SECTION(static const String getProductName())
 	TEST_EQUAL(SpectrumCheapDPCorr::getProductName(), "SpectrumCheapDPCorr")
-RESULT
+END_SECTION
 
-CHECK(void setFactor(double f))
+START_SECTION(void setFactor(double f))
 	e_ptr->setFactor(0.3);
 
 	TEST_EXCEPTION(Exception::OutOfRange, e_ptr->setFactor(1.1))
-RESULT
+END_SECTION
 
 delete e_ptr;
 

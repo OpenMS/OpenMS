@@ -40,21 +40,21 @@ START_TEST(GaussFitter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 GaussFitter* ptr = 0;
-CHECK(GaussFitter())
+START_SECTION(GaussFitter())
 {
 	ptr = new GaussFitter();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK((virtual ~GaussFitter()))
+START_SECTION((virtual ~GaussFitter()))
 {
   delete ptr;
 	NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((GaussFitResult fit(std::vector< DPosition< 2 > >& points)))
+START_SECTION((GaussFitResult fit(std::vector< DPosition< 2 > >& points)))
 {
   DPosition<2> pos;
 	pos.setX(0.0);
@@ -80,14 +80,14 @@ CHECK((GaussFitResult fit(std::vector< DPosition< 2 > >& points)))
 	ptr = new GaussFitter;
 	GaussFitter::GaussFitResult result = ptr->fit(points);
 
-	PRECISION(0.1)
-	TEST_REAL_EQUAL(result.A, 1.0)
-	TEST_REAL_EQUAL(result.x0, 0.3)
-	TEST_REAL_EQUAL(result.sigma, 0.2)
+	TOLERANCE_ABSOLUTE(0.1)
+	TEST_REAL_SIMILAR(result.A, 1.0)
+	TEST_REAL_SIMILAR(result.x0, 0.3)
+	TEST_REAL_SIMILAR(result.sigma, 0.2)
 }
-RESULT
+END_SECTION
 
-CHECK((void setInitialParameters(const GaussFitResult& result)))
+START_SECTION((void setInitialParameters(const GaussFitResult& result)))
 {
   GaussFitter f1;
   GaussFitter::GaussFitResult result;
@@ -95,9 +95,9 @@ CHECK((void setInitialParameters(const GaussFitResult& result)))
 	
 	NOT_TESTABLE //implicitly tested in fit method
 }
-RESULT
+END_SECTION
 
-CHECK((const String& getGnuplotFormula() const ))
+START_SECTION((const String& getGnuplotFormula() const ))
 {
   String formula = ptr->getGnuplotFormula();
 	// f(x)=1.01775 * exp(-(x - 0.300549) ** 2 / 2 / (0.136341) ** 2
@@ -106,7 +106,7 @@ CHECK((const String& getGnuplotFormula() const ))
 	TEST_EQUAL(formula.hasSubstring(") ** 2 / 2 / (0.1"), true)
 	TEST_EQUAL(formula.hasSubstring(") ** 2"), true)
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

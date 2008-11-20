@@ -45,27 +45,27 @@ using namespace std;
 
 
 // Factory is singleton, therefore we don't test the constructor
-CHECK(static FactoryProduct* create(const String& name))
+START_SECTION(static FactoryProduct* create(const String& name))
 	FilterFunctor* p = Factory<FilterFunctor>::create("TICFilter");
 	TICFilter reducer;
 	TEST_EQUAL(*p,reducer);
-RESULT
+END_SECTION
 
-CHECK( static void registerProduct(const String& name, const FunctionType creator) )
+START_SECTION( static void registerProduct(const String& name, const FunctionType creator) )
 	Factory<FilterFunctor>::registerProduct(TICFilter::getProductName(), &TICFilter::create);
 	FilterFunctor* ext = Factory<FilterFunctor>::create("TICFilter");
 	TEST_NOT_EQUAL(ext, 0)
-RESULT
+END_SECTION
 
-CHECK(static bool isRegistered(const String& name))
+START_SECTION(static bool isRegistered(const String& name))
 	TEST_EQUAL(Factory<FilterFunctor>::isRegistered("TICFilter"), true)
 	TEST_EQUAL(Factory<FilterFunctor>::isRegistered("TICFilter_bla_bluff"), false)
-RESULT
+END_SECTION
 
-CHECK(static std::vector<String> registeredProducts())
+START_SECTION(static std::vector<String> registeredProducts())
 	vector<String> list = Factory<FilterFunctor>::registeredProducts();
 	TEST_EQUAL(list.size(),7)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -94,18 +94,18 @@ START_TEST( BasicStatistics, "$Id$" );
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-CHECK((BasicStatistics()))
+START_SECTION((BasicStatistics()))
 {
 
 	BasicStatistics <> stats;
 	stats.update( &*dvector_data, dvector_data + num_numbers );
 
 	TEST_EQUAL(num_numbers,195);
-	PRECISION(0.1);
+	TOLERANCE_ABSOLUTE(0.1);
 	STATUS( stats );
-	TEST_REAL_EQUAL( stats.sum(), 15228.2 );
-	TEST_REAL_EQUAL( stats.mean(), 96.4639 );
-	TEST_REAL_EQUAL( stats.variance(), 3276.51 );
+	TEST_REAL_SIMILAR( stats.sum(), 15228.2 );
+	TEST_REAL_SIMILAR( stats.mean(), 96.4639 );
+	TEST_REAL_SIMILAR( stats.variance(), 3276.51 );
 
 	float fvector_coord[195];
 
@@ -115,184 +115,184 @@ CHECK((BasicStatistics()))
 	stats2.update( &*dvector_data, dvector_data + num_numbers, &*fvector_coord );
 
 	STATUS( stats );
-	TEST_REAL_EQUAL( stats2.sum(), stats.sum() );
-	TEST_REAL_EQUAL( stats2.mean(), 1000. - stats.mean() );
-	TEST_REAL_EQUAL( stats2.variance(), 3276.51 );
+	TEST_REAL_SIMILAR( stats2.sum(), stats.sum() );
+	TEST_REAL_SIMILAR( stats2.mean(), 1000. - stats.mean() );
+	TEST_REAL_SIMILAR( stats2.variance(), 3276.51 );
 
 }
-RESULT
+END_SECTION
 //-----------------------------------------------------------
-CHECK((BasicStatistics(BasicStatistics const &arg)))
+START_SECTION((BasicStatistics(BasicStatistics const &arg)))
 {
 	BasicStatistics <> stats;
 	stats.update( &*dvector_data, dvector_data + num_numbers );
 
 	TEST_EQUAL(num_numbers,195);
-	PRECISION(0.1);
+	TOLERANCE_ABSOLUTE(0.1);
 
 	BasicStatistics<> const & stats_cref = stats;
 
 	BasicStatistics<> stats_copy (stats_cref);
 
-	TEST_REAL_EQUAL( stats_copy.sum(), stats.sum() );
-	TEST_REAL_EQUAL( stats_copy.mean(), stats.mean() );
-	TEST_REAL_EQUAL( stats_copy.variance(), stats.variance() );
+	TEST_REAL_SIMILAR( stats_copy.sum(), stats.sum() );
+	TEST_REAL_SIMILAR( stats_copy.mean(), stats.mean() );
+	TEST_REAL_SIMILAR( stats_copy.variance(), stats.variance() );
 }
-RESULT
+END_SECTION
 //-----------------------------------------------------------
-CHECK((BasicStatistics& operator=(BasicStatistics const &arg)))
+START_SECTION((BasicStatistics& operator=(BasicStatistics const &arg)))
 {
 	BasicStatistics <> stats;
 	stats.update( &*dvector_data, dvector_data + num_numbers );
 
 	TEST_EQUAL(num_numbers,195);
-	PRECISION(0.1);
+	TOLERANCE_ABSOLUTE(0.1);
 
 	BasicStatistics<> const & stats_cref = stats;
 
 	BasicStatistics<> stats_copy;
 	stats_copy = stats_cref;
 
-	TEST_REAL_EQUAL( stats_copy.sum(), stats.sum() );
-	TEST_REAL_EQUAL( stats_copy.mean(), stats.mean() );
-	TEST_REAL_EQUAL( stats_copy.variance(), stats.variance() );
+	TEST_REAL_SIMILAR( stats_copy.sum(), stats.sum() );
+	TEST_REAL_SIMILAR( stats_copy.mean(), stats.mean() );
+	TEST_REAL_SIMILAR( stats_copy.variance(), stats.variance() );
 
 }
-RESULT
+END_SECTION
 //-----------------------------------------------------------
-CHECK((void clear()))
+START_SECTION((void clear()))
 {
 	BasicStatistics <> stats;
 	stats.update( &*dvector_data, dvector_data + num_numbers );
 
-	PRECISION(0.1);
-	TEST_REAL_EQUAL( stats.sum(), 15228.2 );
-	TEST_REAL_EQUAL( stats.mean(), 96.4639 );
-	TEST_REAL_EQUAL( stats.variance(), 3276.51 );
+	TOLERANCE_ABSOLUTE(0.1);
+	TEST_REAL_SIMILAR( stats.sum(), 15228.2 );
+	TEST_REAL_SIMILAR( stats.mean(), 96.4639 );
+	TEST_REAL_SIMILAR( stats.variance(), 3276.51 );
 	stats.clear();
-	TEST_REAL_EQUAL( stats.sum(), 0. );
-	TEST_REAL_EQUAL( stats.mean(), 0. );
-	TEST_REAL_EQUAL( stats.variance(), 0. );
+	TEST_REAL_SIMILAR( stats.sum(), 0. );
+	TEST_REAL_SIMILAR( stats.mean(), 0. );
+	TEST_REAL_SIMILAR( stats.variance(), 0. );
 }
-RESULT
+END_SECTION
 //-----------------------------------------------------------
-CHECK((template <typename ProbabilityIterator> void update(ProbabilityIterator probability_begin, ProbabilityIterator const probability_end)))
+START_SECTION((template <typename ProbabilityIterator> void update(ProbabilityIterator probability_begin, ProbabilityIterator const probability_end)))
 {
 	BasicStatistics<> stats;
-	TEST_REAL_EQUAL( stats.sum(), 0. );
-	TEST_REAL_EQUAL( stats.mean(), 0. );
-	TEST_REAL_EQUAL( stats.variance(), 0. );
+	TEST_REAL_SIMILAR( stats.sum(), 0. );
+	TEST_REAL_SIMILAR( stats.mean(), 0. );
+	TEST_REAL_SIMILAR( stats.variance(), 0. );
 	stats.update( &*dvector_data, dvector_data + num_numbers );
-	PRECISION(0.1);
-	TEST_REAL_EQUAL( stats.sum(), 15228.2 );
-	TEST_REAL_EQUAL( stats.mean(), 96.4639 );
-	TEST_REAL_EQUAL( stats.variance(), 3276.51 );
+	TOLERANCE_ABSOLUTE(0.1);
+	TEST_REAL_SIMILAR( stats.sum(), 15228.2 );
+	TEST_REAL_SIMILAR( stats.mean(), 96.4639 );
+	TEST_REAL_SIMILAR( stats.variance(), 3276.51 );
 }
-RESULT
+END_SECTION
 //-----------------------------------------------------------
-CHECK((template <typename ProbabilityIterator, typename CoordinateIterator> void update(ProbabilityIterator const probability_begin, ProbabilityIterator const probability_end, CoordinateIterator const coordinate_begin)))
+START_SECTION((template <typename ProbabilityIterator, typename CoordinateIterator> void update(ProbabilityIterator const probability_begin, ProbabilityIterator const probability_end, CoordinateIterator const coordinate_begin)))
 {
 	BasicStatistics<> stats;
-	TEST_REAL_EQUAL( stats.sum(), 0. );
-	TEST_REAL_EQUAL( stats.mean(), 0. );
-	TEST_REAL_EQUAL( stats.variance(), 0. );
+	TEST_REAL_SIMILAR( stats.sum(), 0. );
+	TEST_REAL_SIMILAR( stats.mean(), 0. );
+	TEST_REAL_SIMILAR( stats.variance(), 0. );
 
 	float fvector_coord[195];
 	for ( int i = 0; i < 195; fvector_coord[i] = 1000 - i, ++i ) ;
 
 	stats.update( &*dvector_data, dvector_data + num_numbers, &*fvector_coord );
 
-	PRECISION(0.1);
-	TEST_REAL_EQUAL( stats.sum(), 15228.2 );
-	TEST_REAL_EQUAL( stats.mean(), 1000.-96.4639 );
-	TEST_REAL_EQUAL( stats.variance(), 3276.51 );
+	TOLERANCE_ABSOLUTE(0.1);
+	TEST_REAL_SIMILAR( stats.sum(), 15228.2 );
+	TEST_REAL_SIMILAR( stats.mean(), 1000.-96.4639 );
+	TEST_REAL_SIMILAR( stats.variance(), 3276.51 );
 }
-RESULT;
+END_SECTION;
 //-----------------------------------------------------------
 
 BasicStatistics<double> bid;
 
-CHECK((RealType mean() const))
+START_SECTION((RealType mean() const))
 {
 	TEST_EQUAL(bid.mean(),0.);
 	// continued below
 }
-RESULT
+END_SECTION
 
-CHECK((void setMean(RealType const &mean)))
+START_SECTION((void setMean(RealType const &mean)))
 {
 	TEST_EQUAL(bid.mean(),0.);
 	bid.setMean(17.);
 	TEST_EQUAL(bid.mean(),17.);
 }
-RESULT
+END_SECTION
 
-CHECK((RealType variance() const))
+START_SECTION((RealType variance() const))
 {
 	TEST_EQUAL(bid.variance(),0.);
 	// continued below
 }
-RESULT
+END_SECTION
 
-CHECK((void setVariance(RealType const &variance)))
+START_SECTION((void setVariance(RealType const &variance)))
 {
 	TEST_EQUAL(bid.variance(),0.);
 	bid.setVariance(18.);
 	TEST_EQUAL(bid.variance(),18.);
 }
-RESULT
+END_SECTION
 
-CHECK((RealType sum() const))
+START_SECTION((RealType sum() const))
 {
 	TEST_EQUAL(bid.sum(),0.);
 	// continued below
 }
-RESULT
+END_SECTION
 
-CHECK((void setSum(RealType const &sum)))
+START_SECTION((void setSum(RealType const &sum)))
 {
 	TEST_EQUAL(bid.sum(),0.);
 	bid.setSum(19.);
 	TEST_EQUAL(bid.sum(),19.);
 }
-RESULT
+END_SECTION
 
 //-----------------------------------------------------------
 
-CHECK((static RealType sqrt2pi()))
+START_SECTION((static RealType sqrt2pi()))
 {
 	TEST_EQUAL(BasicStatistics<>::sqrt2pi(),2.50662827463100050240);
 }
-RESULT
+END_SECTION
 
-CHECK((RealType normalDensity_sqrt2pi(RealType coordinate) const))
+START_SECTION((RealType normalDensity_sqrt2pi(RealType coordinate) const))
 {
 	bid.clear();
 	bid.setMean(10.);
 	bid.setVariance(3.);
-	PRECISION(.0001);
-	TEST_REAL_EQUAL(bid.normalDensity_sqrt2pi(10.),1.);
-	TEST_REAL_EQUAL(bid.normalDensity_sqrt2pi(7.),.22313016014842982893);
-	TEST_REAL_EQUAL(bid.normalDensity_sqrt2pi(9.),.84648172489061407405);
-	TEST_REAL_EQUAL(bid.normalDensity_sqrt2pi(11.),.84648172489061407405);
+	TOLERANCE_ABSOLUTE(.0001);
+	TEST_REAL_SIMILAR(bid.normalDensity_sqrt2pi(10.),1.);
+	TEST_REAL_SIMILAR(bid.normalDensity_sqrt2pi(7.),.22313016014842982893);
+	TEST_REAL_SIMILAR(bid.normalDensity_sqrt2pi(9.),.84648172489061407405);
+	TEST_REAL_SIMILAR(bid.normalDensity_sqrt2pi(11.),.84648172489061407405);
 }
-RESULT
+END_SECTION
 
-CHECK((RealType normalDensity(RealType const coordinate) const))
+START_SECTION((RealType normalDensity(RealType const coordinate) const))
 {
 	bid.clear();
 	bid.setMean(10.);
 	bid.setVariance(3.);
-	PRECISION(.0001);
-	TEST_REAL_EQUAL(bid.normalDensity(10.),1./2.50662827463100050240);
-	TEST_REAL_EQUAL(bid.normalDensity(7.),.22313016014842982893/2.50662827463100050240);
-	TEST_REAL_EQUAL(bid.normalDensity(9.),.84648172489061407405/2.50662827463100050240);
-	TEST_REAL_EQUAL(bid.normalDensity(11.),.84648172489061407405/2.50662827463100050240);
+	TOLERANCE_ABSOLUTE(.0001);
+	TEST_REAL_SIMILAR(bid.normalDensity(10.),1./2.50662827463100050240);
+	TEST_REAL_SIMILAR(bid.normalDensity(7.),.22313016014842982893/2.50662827463100050240);
+	TEST_REAL_SIMILAR(bid.normalDensity(9.),.84648172489061407405/2.50662827463100050240);
+	TEST_REAL_SIMILAR(bid.normalDensity(11.),.84648172489061407405/2.50662827463100050240);
 }
-RESULT
+END_SECTION
 
 //-----------------------------------------------------------
-CHECK((void normalApproximation(probability_container &probability, typename probability_container::size_type const size)))
+START_SECTION((void normalApproximation(probability_container &probability, typename probability_container::size_type const size)))
 {
 
 	double dvector2_data[] =
@@ -310,15 +310,15 @@ CHECK((void normalApproximation(probability_container &probability, typename pro
 	stats.update( &*dvector2_data, dvector2_data + num2_numbers );
 
 	TEST_EQUAL(num2_numbers,5);
-	PRECISION(0.1);
+	TOLERANCE_ABSOLUTE(0.1);
 	STATUS( stats );
-	TEST_REAL_EQUAL( stats.sum(), 6. );
-	TEST_REAL_EQUAL( stats.mean(), 13. / 6. );
-	TEST_REAL_EQUAL( stats.variance(), 17. / 36. );
+	TEST_REAL_SIMILAR( stats.sum(), 6. );
+	TEST_REAL_SIMILAR( stats.mean(), 13. / 6. );
+	TEST_REAL_SIMILAR( stats.variance(), 17. / 36. );
 
-	PRECISION(0.000001);
-	TEST_REAL_EQUAL( stats.sqrt2pi(), 2.50662827463100050240 );
-	PRECISION(0.1);
+	TOLERANCE_ABSOLUTE(0.000001);
+	TEST_REAL_SIMILAR( stats.sqrt2pi(), 2.50662827463100050240 );
+	TOLERANCE_ABSOLUTE(0.1);
 
 	for ( double pos = -2.; pos < 6.; pos += .25 )
 	{
@@ -341,30 +341,30 @@ CHECK((void normalApproximation(probability_container &probability, typename pro
 	for ( UInt i = 0; i < probs.size(); ++i )
 	{
 		// STATUS( std::showpoint << "i:" << i << "  probs[i]:" << probs[i] << '\n');
-		TEST_REAL_EQUAL( probs[i], good_probs[i] );
+		TEST_REAL_SIMILAR( probs[i], good_probs[i] );
 	}
 
-	// testing CHECK((void normalApproximation(probability_container &probability)))
+	// testing START_SECTION((void normalApproximation(probability_container &probability)))
 	std::vector < double > probs2(6);
 	stats.normalApproximation ( probs2 );
 
 	for ( UInt i = 0; i < probs2.size(); ++i )
 	{
 		// STATUS( std::showpoint << "i:" << i << "  probs[i]:" << probs[i] << '\n');
-		TEST_REAL_EQUAL( probs2[i], good_probs[i] );
+		TEST_REAL_SIMILAR( probs2[i], good_probs[i] );
 	}
 
 }
-RESULT
+END_SECTION
 //-----------------------------------------------------------
-CHECK((void normalApproximation(probability_container &probability)))
+START_SECTION((void normalApproximation(probability_container &probability)))
 {
-	// already tested in CHECK((void normalApproximation(probability_container &probability, typename probability_container::size_type const size)))
+	// already tested in START_SECTION((void normalApproximation(probability_container &probability, typename probability_container::size_type const size)))
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 //-----------------------------------------------------------
-CHECK((void normalApproximation(probability_container &probability, coordinate_container const &coordinate)))
+START_SECTION((void normalApproximation(probability_container &probability, coordinate_container const &coordinate)))
 {
 
 	double magic1 = 200, magic2 = 100;
@@ -381,10 +381,10 @@ CHECK((void normalApproximation(probability_container &probability, coordinate_c
 	STATUS( stats );
 	STATUS( stats2 );
 
-	PRECISION(0.1);
-	TEST_REAL_EQUAL( stats.sum(), stats2.sum() );
-	TEST_REAL_EQUAL( stats.mean(), stats2.mean() );
-	TEST_REAL_EQUAL( stats.variance(), stats2.variance() );
+	TOLERANCE_ABSOLUTE(0.1);
+	TEST_REAL_SIMILAR( stats.sum(), stats2.sum() );
+	TEST_REAL_SIMILAR( stats.mean(), stats2.mean() );
+	TEST_REAL_SIMILAR( stats.variance(), stats2.variance() );
 
 	std::vector < double > pos2;
 	for ( double i = 0; i < fit.size(); pos2.push_back(i), i += 1./magic2 ) ;
@@ -393,13 +393,13 @@ CHECK((void normalApproximation(probability_container &probability, coordinate_c
 	stats2.update ( fit2.begin(), fit2.end() );
 	STATUS( stats  );
 	STATUS( stats2 );
-	TEST_REAL_EQUAL( stats.sum(), stats2.sum() );
-	TEST_REAL_EQUAL( stats.mean(), stats2.mean() / magic2 );
-	TEST_REAL_EQUAL( stats.variance(), stats2.variance() / magic2 / magic2 );
+	TEST_REAL_SIMILAR( stats.sum(), stats2.sum() );
+	TEST_REAL_SIMILAR( stats.mean(), stats2.mean() / magic2 );
+	TEST_REAL_SIMILAR( stats.variance(), stats2.variance() / magic2 / magic2 );
 
 
 }
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

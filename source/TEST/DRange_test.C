@@ -59,72 +59,72 @@ std::cout.precision(writtenDigits<DoubleReal>());
 std::cerr.precision(writtenDigits<DoubleReal>());
 
 DRange<2>* ptr = 0;
-CHECK(DRange())
+START_SECTION(DRange())
 	ptr = new DRange<2>;
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~DRange())
+START_SECTION(~DRange())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(DRange(const PositionType& lower, const PositionType& upper))
+START_SECTION(DRange(const PositionType& lower, const PositionType& upper))
 	DRange<2> r(p1,p2);
-	TEST_REAL_EQUAL(r.min()[0],-1.0f);
-	TEST_REAL_EQUAL(r.min()[1],-2.0f);
-	TEST_REAL_EQUAL(r.max()[0],3.0f);
-	TEST_REAL_EQUAL(r.max()[1],4.0f);
-RESULT
+	TEST_REAL_SIMILAR(r.min()[0],-1.0f);
+	TEST_REAL_SIMILAR(r.min()[1],-2.0f);
+	TEST_REAL_SIMILAR(r.max()[0],3.0f);
+	TEST_REAL_SIMILAR(r.max()[1],4.0f);
+END_SECTION
 
 //do not modify this range, it is used in many tests
 DRange<2> r(p1,p2);
 //do not modify this range, it is used in many tests
 
-CHECK(DRange(const DRange& range))
+START_SECTION(DRange(const DRange& range))
 	DRange<2> r2(r);
-	TEST_REAL_EQUAL(r2.min()[0],-1.0f);
-	TEST_REAL_EQUAL(r2.min()[1],-2.0f);
-	TEST_REAL_EQUAL(r2.max()[0],3.0f);
-	TEST_REAL_EQUAL(r2.max()[1],4.0f);
-RESULT
+	TEST_REAL_SIMILAR(r2.min()[0],-1.0f);
+	TEST_REAL_SIMILAR(r2.min()[1],-2.0f);
+	TEST_REAL_SIMILAR(r2.max()[0],3.0f);
+	TEST_REAL_SIMILAR(r2.max()[1],4.0f);
+END_SECTION
 
-CHECK(DRange(const Base& range))
+START_SECTION(DRange(const Base& range))
 	Internal::DIntervalBase<2> ib(r);
 	DRange<2> r2(ib);
-	TEST_REAL_EQUAL(r2.min()[0],-1.0f);
-	TEST_REAL_EQUAL(r2.min()[1],-2.0f);
-	TEST_REAL_EQUAL(r2.max()[0],3.0f);
-	TEST_REAL_EQUAL(r2.max()[1],4.0f);
-RESULT
+	TEST_REAL_SIMILAR(r2.min()[0],-1.0f);
+	TEST_REAL_SIMILAR(r2.min()[1],-2.0f);
+	TEST_REAL_SIMILAR(r2.max()[0],3.0f);
+	TEST_REAL_SIMILAR(r2.max()[1],4.0f);
+END_SECTION
 
-CHECK(DRange& operator=(const Base& rhs))
+START_SECTION(DRange& operator=(const Base& rhs))
 	Internal::DIntervalBase<2> ib(r);
 	DRange<2> r2;
 	r2 = ib;
-	TEST_REAL_EQUAL(r2.min()[0],-1.0f);
-	TEST_REAL_EQUAL(r2.min()[1],-2.0f);
-	TEST_REAL_EQUAL(r2.max()[0],3.0f);
-	TEST_REAL_EQUAL(r2.max()[1],4.0f);
-RESULT
+	TEST_REAL_SIMILAR(r2.min()[0],-1.0f);
+	TEST_REAL_SIMILAR(r2.min()[1],-2.0f);
+	TEST_REAL_SIMILAR(r2.max()[0],3.0f);
+	TEST_REAL_SIMILAR(r2.max()[1],4.0f);
+END_SECTION
 
-CHECK(DRange& operator=(const DRange& rhs))
+START_SECTION(DRange& operator=(const DRange& rhs))
 	DRange<2> r2;
 	r2 = r;
-	TEST_REAL_EQUAL(r2.min()[0],-1.0f);
-	TEST_REAL_EQUAL(r2.min()[1],-2.0f);
-	TEST_REAL_EQUAL(r2.max()[0],3.0f);
-	TEST_REAL_EQUAL(r2.max()[1],4.0f);
-RESULT
+	TEST_REAL_SIMILAR(r2.min()[0],-1.0f);
+	TEST_REAL_SIMILAR(r2.min()[1],-2.0f);
+	TEST_REAL_SIMILAR(r2.max()[0],3.0f);
+	TEST_REAL_SIMILAR(r2.max()[1],4.0f);
+END_SECTION
 
-CHECK(DRange(CoordinateType minx, CoordinateType miny, CoordinateType maxx, CoordinateType maxy))
+START_SECTION(DRange(CoordinateType minx, CoordinateType miny, CoordinateType maxx, CoordinateType maxy))
 	DRange<2> r2(1.0f,2.0f,3.0f,4.0f);
-	TEST_REAL_EQUAL(r2.min()[0],1.0f);
-	TEST_REAL_EQUAL(r2.min()[1],2.0f);
-	TEST_REAL_EQUAL(r2.max()[0],3.0f);
-	TEST_REAL_EQUAL(r2.max()[1],4.0f);
-RESULT
+	TEST_REAL_SIMILAR(r2.min()[0],1.0f);
+	TEST_REAL_SIMILAR(r2.min()[1],2.0f);
+	TEST_REAL_SIMILAR(r2.max()[0],3.0f);
+	TEST_REAL_SIMILAR(r2.max()[1],4.0f);
+END_SECTION
 
-CHECK(bool operator == (const DRange& rhs) const )
+START_SECTION(bool operator == (const DRange& rhs) const )
 	DRange<2> r2(r);
 	TEST_EQUAL(r==r2,true);
 	r2.setMinX(0.0f);
@@ -135,9 +135,9 @@ CHECK(bool operator == (const DRange& rhs) const )
 	TEST_EQUAL(r==r2,false);
 	r2.setMaxY(r.max()[1]);
 	TEST_EQUAL(r==r2,true);
-RESULT
+END_SECTION
 
-CHECK(bool operator == (const Base& rhs) const )
+START_SECTION(bool operator == (const Base& rhs) const )
 	Internal::DIntervalBase<2> r2(r);
 	TEST_EQUAL(r==r2,true);
 	r2.setMinX(0.0f);
@@ -148,9 +148,9 @@ CHECK(bool operator == (const Base& rhs) const )
 	TEST_EQUAL(r==r2,false);
 	r2.setMaxY(r.max()[1]);
 	TEST_EQUAL(r==r2,true);
-RESULT
+END_SECTION
 
-CHECK(bool encloses(const PositionType& position) const)
+START_SECTION(bool encloses(const PositionType& position) const)
 	DRange<2> r2(p1,p2);
 	DPosition<2> p;
 	p[0]=0.0f;
@@ -180,9 +180,9 @@ CHECK(bool encloses(const PositionType& position) const)
 	p[0]=5.0f;
 	p[1]=-3.0f;
 	TEST_EQUAL(r2.encloses(p),false);
-RESULT
+END_SECTION
 
-CHECK(DRangeIntersection intersects(const DRange& range) const)
+START_SECTION(DRangeIntersection intersects(const DRange& range) const)
 	DRange<2> r2(p1,p2);
 	DRange<2> r3(r2);
 	TEST_EQUAL(r2.intersects(r3),DRange<2>::Inside)
@@ -275,9 +275,9 @@ CHECK(DRangeIntersection intersects(const DRange& range) const)
 	r3.setMaxX(5.0f);
 	r3.setMaxY(5.0f);
 	TEST_EQUAL(r2.intersects(r3),DRange<2>::Intersects)		
-RESULT
+END_SECTION
 
-CHECK(bool isIntersected(const DRange& range) const)
+START_SECTION(bool isIntersected(const DRange& range) const)
 	DRange<2> r2(p1,p2);
 	DRange<2> r3(r2);
 	TEST_EQUAL(r2.isIntersected(r3),true)
@@ -370,9 +370,9 @@ CHECK(bool isIntersected(const DRange& range) const)
 	r3.setMaxX(5.0f);
 	r3.setMaxY(5.0f);
 	TEST_EQUAL(r2.isIntersected(r3),true)		
-RESULT
+END_SECTION
 
-CHECK(bool encloses(CoordinateType x, CoordinateType y) const)
+START_SECTION(bool encloses(CoordinateType x, CoordinateType y) const)
 	DRange<2> r2(p1,p2);
 	TEST_EQUAL(r2.encloses(0.0f,0.0f),true);
 	TEST_EQUAL(r2.encloses(-3.0f,-3.0f),false);
@@ -383,16 +383,16 @@ CHECK(bool encloses(CoordinateType x, CoordinateType y) const)
 	TEST_EQUAL(r2.encloses(5.0f,5.0f),false);
 	TEST_EQUAL(r2.encloses(5.0f,0.0f),false);
 	TEST_EQUAL(r2.encloses(5.0f,-3.0f),false);
-RESULT
+END_SECTION
 
-CHECK(bool isEmpty() const)
+START_SECTION(bool isEmpty() const)
 	DRange<2> tmp;
 	TEST_EQUAL(tmp.isEmpty(), true);
 	tmp = DRange<2>::zero;
 	TEST_EQUAL(tmp.isEmpty(), true);
 	tmp = DRange<2>(p1,p2);		
 	TEST_EQUAL(tmp.isEmpty(), false);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

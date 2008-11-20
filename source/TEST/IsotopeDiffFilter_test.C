@@ -43,55 +43,55 @@ START_TEST(IsotopeDiffFilter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 IsotopeDiffFilter* e_ptr = 0;
-CHECK((IsotopeDiffFilter()))
+START_SECTION((IsotopeDiffFilter()))
 	e_ptr = new IsotopeDiffFilter;
 	TEST_NOT_EQUAL(e_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~IsotopeDiffFilter()))
+START_SECTION((~IsotopeDiffFilter()))
 	delete e_ptr;
-RESULT
+END_SECTION
 
 e_ptr = new IsotopeDiffFilter();
 
-CHECK((IsotopeDiffFilter(const IsotopeDiffFilter& source)))
+START_SECTION((IsotopeDiffFilter(const IsotopeDiffFilter& source)))
 	IsotopeDiffFilter copy(*e_ptr);
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK((IsotopeDiffFilter& operator = (const IsotopeDiffFilter& source)))
+START_SECTION((IsotopeDiffFilter& operator = (const IsotopeDiffFilter& source)))
 	IsotopeDiffFilter copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
+START_SECTION((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
 
 	double filter = e_ptr->apply(spec);
-	TEST_REAL_EQUAL(filter, 0.0)
+	TEST_REAL_SIMILAR(filter, 0.0)
 
 	Param p(e_ptr->getParameters());
 	p.setValue("tolerance", 10.0);
 	e_ptr->setParameters(p);
 	filter = e_ptr->apply(spec);
-	TEST_REAL_EQUAL(filter, 2162)
-RESULT
+	TEST_REAL_SIMILAR(filter, 2162)
+END_SECTION
 
-CHECK((static FilterFunctor* create()))
+START_SECTION((static FilterFunctor* create()))
 	FilterFunctor* ff = IsotopeDiffFilter::create();
 	IsotopeDiffFilter filter;
 	TEST_EQUAL(ff->getParameters(), filter.getParameters())
 	TEST_EQUAL(ff->getName(), filter.getName())
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(e_ptr->getProductName(), "IsotopeDiffFilter")
-RESULT
+END_SECTION
 
 delete e_ptr;
 

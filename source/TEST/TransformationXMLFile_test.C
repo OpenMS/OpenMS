@@ -41,14 +41,14 @@ using namespace OpenMS;
 using namespace std;
 
 TransformationXMLFile* ptr;
-CHECK((TransformationXMLFile()))
+START_SECTION((TransformationXMLFile()))
 {
 	ptr = new TransformationXMLFile();
 	TEST_NOT_EQUAL(ptr,0);
 }
-RESULT
+END_SECTION
 
-CHECK([EXTRA] static bool isValid(const String& filename))
+START_SECTION([EXTRA] static bool isValid(const String& filename))
 {
 	TransformationXMLFile f;
 	TEST_EQUAL(f.isValid("data/TransformationXMLFile_1.trafoXML"),true);	
@@ -56,10 +56,10 @@ CHECK([EXTRA] static bool isValid(const String& filename))
 	TEST_EQUAL(f.isValid("data/TransformationXMLFile_3.trafoXML"),false);	
 	TEST_EQUAL(f.isValid("data/TransformationXMLFile_4.trafoXML"),true);	
 }
-RESULT
+END_SECTION
 
 
-CHECK(void load(const String& filename, TransformationDescription& transformation))
+START_SECTION(void load(const String& filename, TransformationDescription& transformation))
 {
 	TransformationDescription trafo;
 	TransformationXMLFile trafo_xml;
@@ -71,23 +71,23 @@ CHECK(void load(const String& filename, TransformationDescription& transformatio
 	trafo_xml.load("data/TransformationXMLFile_2.trafoXML",trafo);
 	TEST_STRING_EQUAL(trafo.getName(),"linear");
 	TEST_EQUAL(trafo.getParameters().size(),2);
-	TEST_REAL_EQUAL(trafo.getParam("slope"),3.141592653589793238);
-	TEST_REAL_EQUAL(trafo.getParam("intercept"),2.718281828459045235);
+	TEST_REAL_SIMILAR(trafo.getParam("slope"),3.141592653589793238);
+	TEST_REAL_SIMILAR(trafo.getParam("intercept"),2.718281828459045235);
 
 	trafo_xml.load("data/TransformationXMLFile_4.trafoXML",trafo);
 	TEST_STRING_EQUAL(trafo.getName(),"pairs");
 	TEST_EQUAL(trafo.getParameters().size(),0);
 	TEST_EQUAL(trafo.getPairs().size(),3);
-	TEST_REAL_EQUAL(trafo.getPairs()[0].first,1.2);
-	TEST_REAL_EQUAL(trafo.getPairs()[1].first,2.2);
-	TEST_REAL_EQUAL(trafo.getPairs()[2].first,3.2);
-	TEST_REAL_EQUAL(trafo.getPairs()[0].second,5.2);
-	TEST_REAL_EQUAL(trafo.getPairs()[1].second,6.25);
-	TEST_REAL_EQUAL(trafo.getPairs()[2].second,7.3);
+	TEST_REAL_SIMILAR(trafo.getPairs()[0].first,1.2);
+	TEST_REAL_SIMILAR(trafo.getPairs()[1].first,2.2);
+	TEST_REAL_SIMILAR(trafo.getPairs()[2].first,3.2);
+	TEST_REAL_SIMILAR(trafo.getPairs()[0].second,5.2);
+	TEST_REAL_SIMILAR(trafo.getPairs()[1].second,6.25);
+	TEST_REAL_SIMILAR(trafo.getPairs()[2].second,7.3);
 }
-RESULT
+END_SECTION
 
-CHECK(void store(String filename, const TransformationDescription& transformation))
+START_SECTION(void store(String filename, const TransformationDescription& transformation))
 {
 	TransformationDescription trafo,trafo2;
 	TransformationXMLFile trafo_xml;
@@ -114,8 +114,8 @@ CHECK(void store(String filename, const TransformationDescription& transformatio
 	trafo_xml.load(tmp_file_linear,trafo2);
 	TEST_STRING_EQUAL(trafo.getName(),"linear");
 	TEST_EQUAL(trafo2.getParameters().size(),2);
-	TEST_REAL_EQUAL(trafo2.getParam("slope"),3.141592653589793238);
-	TEST_REAL_EQUAL(trafo2.getParam("intercept"),2.718281828459045235);
+	TEST_REAL_SIMILAR(trafo2.getParam("slope"),3.141592653589793238);
+	TEST_REAL_SIMILAR(trafo2.getParam("intercept"),2.718281828459045235);
 
 	String tmp_file_pairs;
 	NEW_TMP_FILE(tmp_file_pairs);
@@ -131,14 +131,14 @@ CHECK(void store(String filename, const TransformationDescription& transformatio
 	TEST_STRING_EQUAL(trafo2.getName(),"pairs");
 	TEST_EQUAL(trafo2.getParameters().size(),0);
 	TEST_EQUAL(trafo2.getPairs().size(),3);
-	TEST_REAL_EQUAL(trafo2.getPairs()[0].first,1.2);
-	TEST_REAL_EQUAL(trafo2.getPairs()[1].first,2.2);
-	TEST_REAL_EQUAL(trafo2.getPairs()[2].first,3.2);
-	TEST_REAL_EQUAL(trafo2.getPairs()[0].second,5.2);
-	TEST_REAL_EQUAL(trafo2.getPairs()[1].second,6.25);
-	TEST_REAL_EQUAL(trafo2.getPairs()[2].second,7.3);
+	TEST_REAL_SIMILAR(trafo2.getPairs()[0].first,1.2);
+	TEST_REAL_SIMILAR(trafo2.getPairs()[1].first,2.2);
+	TEST_REAL_SIMILAR(trafo2.getPairs()[2].first,3.2);
+	TEST_REAL_SIMILAR(trafo2.getPairs()[0].second,5.2);
+	TEST_REAL_SIMILAR(trafo2.getPairs()[1].second,6.25);
+	TEST_REAL_SIMILAR(trafo2.getPairs()[2].second,7.3);
 }
-RESULT
+END_SECTION
 
 
 

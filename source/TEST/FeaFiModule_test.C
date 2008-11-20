@@ -44,14 +44,14 @@ using namespace OpenMS;
 using namespace std;
 
 FeaFiModule<Peak1D,Feature>* ptr = 0;
-CHECK((FeaFiModule(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff)))
+START_SECTION((FeaFiModule(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff)))
 	ptr = new FeaFiModule<Peak1D,Feature>(0,0,0);
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~FeaFiModule()))
+START_SECTION((virtual ~FeaFiModule()))
 	delete ptr;
-RESULT
+END_SECTION
 
 //create dummy MSExperiment
 MSExperiment<Peak1D> exp;
@@ -79,34 +79,34 @@ p.setMZ(1000.0);
 p.setIntensity(1001.0);
 exp[1].push_back(p);
 
-CHECK(IntensityType getPeakIntensity(const FeatureFinderDefs::IndexPair& index) const)
+START_SECTION(IntensityType getPeakIntensity(const FeatureFinderDefs::IndexPair& index) const)
 	FeaFiModule<Peak1D,Feature> t(&exp,0,0);
-	TEST_REAL_EQUAL(t.getPeakIntensity(make_pair(0,0)), 501.0)
-	TEST_REAL_EQUAL(t.getPeakIntensity(make_pair(0,1)), 701.0)
-	TEST_REAL_EQUAL(t.getPeakIntensity(make_pair(0,2)), 901.0)
-	TEST_REAL_EQUAL(t.getPeakIntensity(make_pair(1,0)), 601.0)
-	TEST_REAL_EQUAL(t.getPeakIntensity(make_pair(1,1)), 1001.0)
-RESULT
+	TEST_REAL_SIMILAR(t.getPeakIntensity(make_pair(0,0)), 501.0)
+	TEST_REAL_SIMILAR(t.getPeakIntensity(make_pair(0,1)), 701.0)
+	TEST_REAL_SIMILAR(t.getPeakIntensity(make_pair(0,2)), 901.0)
+	TEST_REAL_SIMILAR(t.getPeakIntensity(make_pair(1,0)), 601.0)
+	TEST_REAL_SIMILAR(t.getPeakIntensity(make_pair(1,1)), 1001.0)
+END_SECTION
 
-CHECK(CoordinateType getPeakMz(const FeatureFinderDefs::IndexPair& index) const)
+START_SECTION(CoordinateType getPeakMz(const FeatureFinderDefs::IndexPair& index) const)
 	FeaFiModule<Peak1D,Feature> t(&exp,0,0);
-	TEST_REAL_EQUAL(t.getPeakMz(make_pair(0,0)), 500.0)
-	TEST_REAL_EQUAL(t.getPeakMz(make_pair(0,1)), 700.0)
-	TEST_REAL_EQUAL(t.getPeakMz(make_pair(0,2)), 900.0)
-	TEST_REAL_EQUAL(t.getPeakMz(make_pair(1,0)), 600.0)
-	TEST_REAL_EQUAL(t.getPeakMz(make_pair(1,1)), 1000.0)
-RESULT
+	TEST_REAL_SIMILAR(t.getPeakMz(make_pair(0,0)), 500.0)
+	TEST_REAL_SIMILAR(t.getPeakMz(make_pair(0,1)), 700.0)
+	TEST_REAL_SIMILAR(t.getPeakMz(make_pair(0,2)), 900.0)
+	TEST_REAL_SIMILAR(t.getPeakMz(make_pair(1,0)), 600.0)
+	TEST_REAL_SIMILAR(t.getPeakMz(make_pair(1,1)), 1000.0)
+END_SECTION
 
-CHECK(CoordinateType getPeakRt(const FeatureFinderDefs::IndexPair& index) const)
+START_SECTION(CoordinateType getPeakRt(const FeatureFinderDefs::IndexPair& index) const)
 	FeaFiModule<Peak1D,Feature> t(&exp,0,0);
-	TEST_REAL_EQUAL(t.getPeakRt(make_pair(0,0)), 1.1)
-	TEST_REAL_EQUAL(t.getPeakRt(make_pair(0,1)), 1.1)
-	TEST_REAL_EQUAL(t.getPeakRt(make_pair(0,2)), 1.1)
-	TEST_REAL_EQUAL(t.getPeakRt(make_pair(1,0)), 2.2)
-	TEST_REAL_EQUAL(t.getPeakRt(make_pair(1,1)), 2.2)
-RESULT
+	TEST_REAL_SIMILAR(t.getPeakRt(make_pair(0,0)), 1.1)
+	TEST_REAL_SIMILAR(t.getPeakRt(make_pair(0,1)), 1.1)
+	TEST_REAL_SIMILAR(t.getPeakRt(make_pair(0,2)), 1.1)
+	TEST_REAL_SIMILAR(t.getPeakRt(make_pair(1,0)), 2.2)
+	TEST_REAL_SIMILAR(t.getPeakRt(make_pair(1,1)), 2.2)
+END_SECTION
 
-CHECK(void getNextMz(FeatureFinderDefs::IndexPair& index) const )
+START_SECTION(void getNextMz(FeatureFinderDefs::IndexPair& index) const )
 	FeaFiModule<Peak1D,Feature> t(&exp,0,0);
 	//scan one
 	FeatureFinderDefs::IndexPair i = make_pair(0,0);
@@ -130,9 +130,9 @@ CHECK(void getNextMz(FeatureFinderDefs::IndexPair& index) const )
 	TEST_EXCEPTION(Exception::Precondition, t.getNextMz(i));
 	i = make_pair(1,5);
 	TEST_EXCEPTION(Exception::Precondition, t.getNextMz(i));
-RESULT
+END_SECTION
 
-CHECK(void getPrevMz(FeatureFinderDefs::IndexPair& index) const )
+START_SECTION(void getPrevMz(FeatureFinderDefs::IndexPair& index) const )
 	FeaFiModule<Peak1D,Feature> t(&exp,0,0);
 	//scan one
 	FeatureFinderDefs::IndexPair i = make_pair(0,2);
@@ -155,9 +155,9 @@ CHECK(void getPrevMz(FeatureFinderDefs::IndexPair& index) const )
 	TEST_EXCEPTION(Exception::Precondition, t.getPrevMz(i));
 	i = make_pair(1,5);
 	TEST_EXCEPTION(Exception::Precondition, t.getPrevMz(i));
-RESULT
+END_SECTION
 
-CHECK(void getNextRt(FeatureFinderDefs::IndexPair& index) )
+START_SECTION(void getNextRt(FeatureFinderDefs::IndexPair& index) )
 
 	MSExperiment<Peak1D> exp2 = exp;
 	exp2.resize(3);
@@ -229,9 +229,9 @@ CHECK(void getNextRt(FeatureFinderDefs::IndexPair& index) )
 	i = make_pair(1,5);
 	TEST_EXCEPTION(Exception::Precondition, t.getNextRt(i));
 #endif
-RESULT
+END_SECTION
 
-CHECK(void getPrevRt(FeatureFinderDefs::IndexPair& index) )
+START_SECTION(void getPrevRt(FeatureFinderDefs::IndexPair& index) )
 	MSExperiment<Peak1D> exp2 = exp;
 	exp2[1].resize(4);
 	exp2[1][0].setMZ(599.0);
@@ -277,9 +277,9 @@ CHECK(void getPrevRt(FeatureFinderDefs::IndexPair& index) )
 	i = make_pair(1,5);
 	TEST_EXCEPTION(Exception::Precondition, t.getPrevRt(i));
 #endif
-RESULT
+END_SECTION
 
-CHECK(void addConvexHull(const FeatureFinderDefs::IndexSet& set, Feature& feature) const)
+START_SECTION(void addConvexHull(const FeatureFinderDefs::IndexSet& set, Feature& feature) const)
 	Peak2D p;
 	std::vector<Peak2D> peak_array;
 	p.getPosition()[0] = 1240.54;   p.getPosition()[1] = 687.6;     peak_array.push_back(p);
@@ -329,7 +329,7 @@ CHECK(void addConvexHull(const FeatureFinderDefs::IndexSet& set, Feature& featur
 	Feature f;
 	t.addConvexHull(set,f);
 	ConvexHull2D& hull = f.getConvexHulls()[0];
-	TEST_REAL_EQUAL(hull.getPoints().size(), 9);
+	TEST_REAL_SIMILAR(hull.getPoints().size(), 9);
 	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1237.27, 691)) != hull.getPoints().end(), true);
 	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1237.93, 688.4)) != hull.getPoints().end(), true);
 	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1240.54, 687.6)) != hull.getPoints().end(), true);
@@ -339,7 +339,7 @@ CHECK(void addConvexHull(const FeatureFinderDefs::IndexSet& set, Feature& featur
 	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1251.07, 695.4)) != hull.getPoints().end(), true);
 	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1239.9, 695.4)) != hull.getPoints().end(), true);
 	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1237.27, 692)) != hull.getPoints().end(), true);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

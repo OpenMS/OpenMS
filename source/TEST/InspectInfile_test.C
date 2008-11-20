@@ -43,16 +43,16 @@ START_TEST(InspectInfile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 InspectInfile* ptr = 0;
-CHECK(InspectInfile())
+START_SECTION(InspectInfile())
 	ptr = new InspectInfile();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~InspectInfile())
+START_SECTION(~InspectInfile())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((InspectInfile& operator=(const InspectInfile &inspect_infile)))
+START_SECTION((InspectInfile& operator=(const InspectInfile &inspect_infile)))
 	InspectInfile inspect_infile1;
 	inspect_infile1.setSpectra("dummy");
 	InspectInfile inspect_infile2 = inspect_infile1;
@@ -62,9 +62,9 @@ CHECK((InspectInfile& operator=(const InspectInfile &inspect_infile)))
 	TEST_EQUAL(( inspect_infile2 == inspect_infile3 ), true)
 	InspectInfile inspect_infile4;
 	TEST_EQUAL(( inspect_infile1 == inspect_infile4 ), true)
-RESULT
+END_SECTION
 
-CHECK((InspectInfile(const InspectInfile &inspect_infile)))
+START_SECTION((InspectInfile(const InspectInfile &inspect_infile)))
 	InspectInfile inspect_infile1;
 	inspect_infile1.setSpectra("dummy");
 	InspectInfile inspect_infile2(inspect_infile1);
@@ -74,48 +74,48 @@ CHECK((InspectInfile(const InspectInfile &inspect_infile)))
 	TEST_EQUAL(( inspect_infile2 == inspect_infile3 ), true)
 	InspectInfile inspect_infile4;
 	TEST_EQUAL(( inspect_infile1 == inspect_infile4 ), true)
-RESULT
+END_SECTION
 
-CHECK((bool operator==(const InspectInfile &inspect_infile) const))
+START_SECTION((bool operator==(const InspectInfile &inspect_infile) const))
 	InspectInfile inspect_infile1;
 	inspect_infile1.setSpectra("dummy");
 	InspectInfile inspect_infile2;
 	inspect_infile2.setSpectra("dummy");
 	TEST_EQUAL(( inspect_infile1 == inspect_infile2 ), true)
-RESULT
+END_SECTION
 
 InspectInfile file;
 
-CHECK(void setSpectra(const String& spectra))
+START_SECTION(void setSpectra(const String& spectra))
 	file.setSpectra("dummy4712");
 	TEST_STRING_EQUAL(file.getSpectra(), "dummy4712")
-RESULT
+END_SECTION
 
-CHECK((const String& getSpectra() const))
+START_SECTION((const String& getSpectra() const))
 	TEST_STRING_EQUAL(file.getSpectra(), "dummy4712")
-RESULT
+END_SECTION
 
 
-CHECK(void setDb(const String& db))
+START_SECTION(void setDb(const String& db))
 	file.setDb("dummy4711");
 	TEST_STRING_EQUAL(file.getDb(), "dummy4711");
-RESULT
+END_SECTION
 
-CHECK((const String& getDb() const))
+START_SECTION((const String& getDb() const))
 	TEST_STRING_EQUAL(file.getDb(), "dummy4711");
-RESULT
+END_SECTION
 
 
-CHECK(void setEnzyme(const String& enzyme))
+START_SECTION(void setEnzyme(const String& enzyme))
 	file.setEnzyme("Trypsin");
 	TEST_STRING_EQUAL(file.getEnzyme(), "Trypsin")
-RESULT
+END_SECTION
 
-CHECK((const String& getEnzyme() const))
+START_SECTION((const String& getEnzyme() const))
 	TEST_STRING_EQUAL(file.getEnzyme(), "Trypsin")
-RESULT
+END_SECTION
 
-CHECK(void handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic))
+START_SECTION(void handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic))
 
 	// test exceptions
 	String modification_line = "Phosphorylation";
@@ -222,9 +222,9 @@ CHECK(void handlePTMs(const String& modification_line, const String& modificatio
 			}
 		}
 	}
-RESULT
+END_SECTION
 
-CHECK((const Map< String, std::vector< String > >& getModifications() const))
+START_SECTION((const Map< String, std::vector< String > >& getModifications() const))
 	String modification_line = "10.3+,KRLNH,fix:+16,C:16-,cterm:-16,nterm";
 // 	"10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
 
@@ -286,98 +286,98 @@ CHECK((const Map< String, std::vector< String > >& getModifications() const))
 			}
 		}
 	}
-RESULT
+END_SECTION
 
 
-CHECK(void setModificationsPerPeptide(Int modifications_per_peptide))
+START_SECTION(void setModificationsPerPeptide(Int modifications_per_peptide))
 	file.setModificationsPerPeptide(2);
 	TEST_EQUAL(file.getModificationsPerPeptide(), 2)
-RESULT
+END_SECTION
 
-CHECK((Int getModificationsPerPeptide() const))
+START_SECTION((Int getModificationsPerPeptide() const))
 	TEST_EQUAL(file.getModificationsPerPeptide(), 2)
-RESULT
+END_SECTION
 
 
-CHECK(void setBlind(UInt blind))
+START_SECTION(void setBlind(UInt blind))
 	file.setBlind(1);
 	TEST_EQUAL(file.getBlind(), 1)
-RESULT
+END_SECTION
 
-CHECK((UInt getBlind() const))
+START_SECTION((UInt getBlind() const))
 	TEST_EQUAL(file.getBlind(), 1)
-RESULT
+END_SECTION
 
 
-CHECK(void setMaxPTMsize(Real maxptmsize))
+START_SECTION(void setMaxPTMsize(Real maxptmsize))
 	file.setMaxPTMsize(250);
 	TEST_EQUAL(file.getMaxPTMsize(), 250)
-RESULT
+END_SECTION
 
-CHECK((Real getMaxPTMsize() const))
+START_SECTION((Real getMaxPTMsize() const))
 	TEST_EQUAL(file.getMaxPTMsize(), 250)
-RESULT
+END_SECTION
 
 
-CHECK(void setPrecursorMassTolerance(Real precursor_mass_tolerance))
+START_SECTION(void setPrecursorMassTolerance(Real precursor_mass_tolerance))
 	file.setPrecursorMassTolerance(1.3);
-	TEST_REAL_EQUAL(file.getPrecursorMassTolerance(), 1.3)
-RESULT
+	TEST_REAL_SIMILAR(file.getPrecursorMassTolerance(), 1.3)
+END_SECTION
 
-CHECK((Real getPrecursorMassTolerance() const))
-	TEST_REAL_EQUAL(file.getPrecursorMassTolerance(), 1.3)
-RESULT
+START_SECTION((Real getPrecursorMassTolerance() const))
+	TEST_REAL_SIMILAR(file.getPrecursorMassTolerance(), 1.3)
+END_SECTION
 
 
-CHECK(void setPeakMassTolerance(Real peak_mass_tolerance))
+START_SECTION(void setPeakMassTolerance(Real peak_mass_tolerance))
 	file.setPeakMassTolerance(0.3);
-	TEST_REAL_EQUAL(file.getPeakMassTolerance(), 0.3)
-RESULT
+	TEST_REAL_SIMILAR(file.getPeakMassTolerance(), 0.3)
+END_SECTION
 
-CHECK((Real getPeakMassTolerance() const))
-	TEST_REAL_EQUAL(file.getPeakMassTolerance(), 0.3)
-RESULT
+START_SECTION((Real getPeakMassTolerance() const))
+	TEST_REAL_SIMILAR(file.getPeakMassTolerance(), 0.3)
+END_SECTION
 
 
-CHECK(void setMulticharge(UInt multicharge))
+START_SECTION(void setMulticharge(UInt multicharge))
 	file.setMulticharge(1);
 	TEST_EQUAL(file.getMulticharge(), 1)
-RESULT
+END_SECTION
 
-CHECK((UInt getMulticharge() const))
+START_SECTION((UInt getMulticharge() const))
 	TEST_EQUAL(file.getMulticharge(), 1)
-RESULT
+END_SECTION
 
 
-CHECK(void setInstrument(const String& instrument))
+START_SECTION(void setInstrument(const String& instrument))
 	file.setInstrument("ESI-ION-TRAP");
 	TEST_STRING_EQUAL(file.getInstrument(), "ESI-ION-TRAP")
-RESULT
+END_SECTION
 
-CHECK((const String& getInstrument() const))
+START_SECTION((const String& getInstrument() const))
 	TEST_STRING_EQUAL(file.getInstrument(), "ESI-ION-TRAP")
-RESULT
+END_SECTION
 
 
-CHECK(void setTagCount(Int TagCount))
+START_SECTION(void setTagCount(Int TagCount))
 	file.setTagCount(1);
 	TEST_EQUAL(file.getTagCount(), 1)
-RESULT
+END_SECTION
 
-CHECK((Int getTagCount() const))
+START_SECTION((Int getTagCount() const))
 	TEST_EQUAL(file.getTagCount(), 1)
-RESULT
+END_SECTION
 
 
-CHECK(void store(const String& filename))
+START_SECTION(void store(const String& filename))
 	String filename;
 	NEW_TMP_FILE(filename)
 	
 // 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.store("data/Inspect_unreadable_unwriteable.txt"), "the file `data/Inspect_unreadable_unwriteable.txt' could not be created")
 	
 	file.store(filename);
-	TEST_FILE(filename.c_str(), "data/InspectInfile_test_template1.txt")
-RESULT
+	TEST_FILE_EQUAL(filename.c_str(), "data/InspectInfile_test_template1.txt")
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

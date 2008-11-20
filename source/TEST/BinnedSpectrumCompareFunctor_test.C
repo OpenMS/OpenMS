@@ -38,45 +38,45 @@ START_TEST(BinnedSpectrumCompareFunctor, "$Id$")
 /////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 
-CHECK(BinnedSpectrumCompareFunctor())
+START_SECTION(BinnedSpectrumCompareFunctor())
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK(~BinnedSpectrumCompareFunctor())
+START_SECTION(~BinnedSpectrumCompareFunctor())
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
 //interface class is not testable
 
-CHECK((BinnedSpectrumCompareFunctor(const BinnedSpectrumCompareFunctor &source)))
+START_SECTION((BinnedSpectrumCompareFunctor(const BinnedSpectrumCompareFunctor &source)))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((BinnedSpectrumCompareFunctor& operator=(const BinnedSpectrumCompareFunctor &source)))
+START_SECTION((BinnedSpectrumCompareFunctor& operator=(const BinnedSpectrumCompareFunctor &source)))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual double operator()(const BinnedSpectrum &spec1, const BinnedSpectrum &spec2) const =0))
+START_SECTION((virtual double operator()(const BinnedSpectrum &spec1, const BinnedSpectrum &spec2) const =0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual double operator()(const BinnedSpectrum &spec) const =0))
+START_SECTION((virtual double operator()(const BinnedSpectrum &spec) const =0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((static void registerChildren()))
+START_SECTION((static void registerChildren()))
 {
   BinnedSpectrumCompareFunctor* c1 = Factory<BinnedSpectrumCompareFunctor>::create("BinnedSharedPeakCount");
   TEST_EQUAL(c1->getName(), "BinnedSharedPeakCount")
@@ -85,13 +85,13 @@ CHECK((static void registerChildren()))
   c1 = Factory<BinnedSpectrumCompareFunctor>::create("BinnedSumAgreeingIntensities");
   TEST_EQUAL(c1->getName(), "BinnedSumAgreeingIntensities")
 }
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 {
 	TEST_EQUAL(BinnedSpectrumCompareFunctor::getProductName(), "BinnedSpectrumCompareFunctor")
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

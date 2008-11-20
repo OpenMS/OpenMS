@@ -45,24 +45,24 @@ using namespace OpenMS;
 using namespace std;
 
 
-CHECK(static FactoryBase* getFactory(const String& name))
+START_SECTION(static FactoryBase* getFactory(const String& name))
 	Factory<FilterFunctor>::create("TICFilter");
 	String myName = typeid(Factory<FilterFunctor>).name();
 
 	TEST_NOT_EQUAL(SingletonRegistry::getFactory(myName), 0)
-RESULT
+END_SECTION
 
 
-CHECK(static void registerFactory(const String& name, FactoryBase* instance))
+START_SECTION(static void registerFactory(const String& name, FactoryBase* instance))
 	String myName = typeid(FactoryBase).name();
 	FactoryBase* fb = new FactoryBase;
 	SingletonRegistry::registerFactory(myName, fb);
 	TEST_NOT_EQUAL(SingletonRegistry::getFactory(myName), 0)
-RESULT
+END_SECTION
 
-CHECK(static bool isRegistered(String name))
+START_SECTION(static bool isRegistered(String name))
 	TEST_EQUAL(SingletonRegistry::isRegistered(typeid(Factory<FilterFunctor>).name()), true)
-RESULT
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

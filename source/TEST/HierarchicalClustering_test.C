@@ -41,16 +41,16 @@ START_TEST(HierarchicalClustering, "$Id$")
 /////////////////////////////////////////////////////////////
 
 HierarchicalClustering<>* ptr = 0;
-CHECK((HierarchicalClustering()))
+START_SECTION((HierarchicalClustering()))
         ptr = new HierarchicalClustering<>;
         TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~HierarchicalClustering()))
+START_SECTION((virtual ~HierarchicalClustering()))
         delete ptr;
-RESULT
+END_SECTION
 
-CHECK((HierarchicalClustering(const HierarchicalClustering &source)))
+START_SECTION((HierarchicalClustering(const HierarchicalClustering &source)))
   HierarchicalClustering<> hc;
 
   Param p = hc.getParameters();
@@ -63,9 +63,9 @@ CHECK((HierarchicalClustering(const HierarchicalClustering &source)))
   
   TEST_EQUAL((double) p_copy.getValue("cluster_cutoff"), 41.5);
   
-RESULT
+END_SECTION
 
-CHECK((HierarchicalClustering& operator=(const HierarchicalClustering &source)))
+START_SECTION((HierarchicalClustering& operator=(const HierarchicalClustering &source)))
   HierarchicalClustering<> hc;
 
   Param p = hc.getParameters();
@@ -77,10 +77,10 @@ CHECK((HierarchicalClustering& operator=(const HierarchicalClustering &source)))
   Param p_copy = hc_copy.getParameters();
   
   TEST_EQUAL((double) p_copy.getValue("cluster_cutoff"), 41.5);
-RESULT
+END_SECTION
 
 
-CHECK((const ClusterIdxVectorType& getClusters() const))
+START_SECTION((const ClusterIdxVectorType& getClusters() const))
   //create some data ...
   
   std::vector< HierarchicalClustering<>::ClusterPointType> points(4);
@@ -109,17 +109,17 @@ CHECK((const ClusterIdxVectorType& getClusters() const))
       
   hc.printStatistics(std::cout);
   
-RESULT
+END_SECTION
 
-CHECK((void compute(const std::vector< ClusterPointType > &points) throw (Exception::NotImplemented)))
+START_SECTION((void compute(const std::vector< ClusterPointType > &points) throw (Exception::NotImplemented)))
   // all done above... no need to do it again; its hard to split those three
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((void printStatistics(std::ostream &os)))
+START_SECTION((void printStatistics(std::ostream &os)))
   // all done above... no need to do it again; its hard to split those three
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

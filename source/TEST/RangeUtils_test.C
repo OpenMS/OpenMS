@@ -44,16 +44,16 @@ using namespace std;
 //InRTRange
 
 InRTRange<DSpectrum<> >* ptr = 0;
-CHECK((InRTRange(double min, double max, bool reverse = false)))
+START_SECTION((InRTRange(double min, double max, bool reverse = false)))
 	ptr = new InRTRange<DSpectrum<> >(5,10,false);
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(([EXTRA]~InRTRange()))
+START_SECTION(([EXTRA]~InRTRange()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((bool operator()(const SpectrumType& s) const))
+START_SECTION((bool operator()(const SpectrumType& s) const))
 	InRTRange<DSpectrum<> > r(5,10,false);
 	InRTRange<DSpectrum<> > r2(5,10,true);
 	DSpectrum<> s;
@@ -72,23 +72,23 @@ CHECK((bool operator()(const SpectrumType& s) const))
 	s.setRT(10.1);
 	TEST_EQUAL(r(s), false);
 	TEST_EQUAL(r2(s), true);	
-RESULT
+END_SECTION
 
 
 //MSLevelRange
 
 InMSLevelRange<DSpectrum<> >* ptr2 = 0;
-CHECK((MSLevelRange(const std::vector<UInt>& levels, bool reverse = false)))
+START_SECTION((MSLevelRange(const std::vector<UInt>& levels, bool reverse = false)))
 	vector<UInt> tmp;
 	ptr2 = new InMSLevelRange<DSpectrum<> >(tmp,false);
 	TEST_NOT_EQUAL(ptr2, 0)
-RESULT
+END_SECTION
 
-CHECK(([EXTRA]~InMSLevelRange()))
+START_SECTION(([EXTRA]~InMSLevelRange()))
 	delete ptr2;
-RESULT
+END_SECTION
 
-CHECK((bool operator()(const SpectrumType& s) const))
+START_SECTION((bool operator()(const SpectrumType& s) const))
 	vector<UInt> tmp;
 	tmp.push_back(2);
 	tmp.push_back(3);
@@ -111,21 +111,21 @@ CHECK((bool operator()(const SpectrumType& s) const))
 	s.setMSLevel(5);
 	TEST_EQUAL(r(s), false);
 	TEST_EQUAL(r2(s), true);	
-RESULT
+END_SECTION
 
 //HasScanMode
 
 HasScanMode<MSSpectrum<> >* ptr2_1 = 0;
-CHECK((HasScanMode(Int mode, bool reverse = false)))
+START_SECTION((HasScanMode(Int mode, bool reverse = false)))
 	ptr2_1 = new HasScanMode<MSSpectrum<> >(1,false);
 	TEST_NOT_EQUAL(ptr2, 0)
-RESULT
+END_SECTION
 
-CHECK(([EXTRA]~HasScanMode()))
+START_SECTION(([EXTRA]~HasScanMode()))
 	delete ptr2_1;
-RESULT
+END_SECTION
 
-CHECK((bool operator()(const SpectrumType& s) const))
+START_SECTION((bool operator()(const SpectrumType& s) const))
 	HasScanMode<MSSpectrum<> > r(1,false);
 	HasScanMode<MSSpectrum<> > r2(2,true);
 	MSSpectrum<> s;
@@ -135,21 +135,21 @@ CHECK((bool operator()(const SpectrumType& s) const))
 	s.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
 	TEST_EQUAL(r(s), false);
 	TEST_EQUAL(r2(s), false);
-RESULT
+END_SECTION
 
 //InMzRange
 
 InMzRange<Peak1D >* ptr3 = 0;
-CHECK((InMzRange(double min, double max, bool reverse = false)))
+START_SECTION((InMzRange(double min, double max, bool reverse = false)))
 	ptr3 = new InMzRange<Peak1D >(5.0,10.0,false);
 	TEST_NOT_EQUAL(ptr3, 0)
-RESULT
+END_SECTION
 
-CHECK(([EXTRA]~InMzRange()))
+START_SECTION(([EXTRA]~InMzRange()))
 	delete ptr3;
-RESULT
+END_SECTION
 
-CHECK((bool operator()(const PeakType& p) const))
+START_SECTION((bool operator()(const PeakType& p) const))
 	InMzRange<Peak1D > r(5.0,10.0,false);
 	InMzRange<Peak1D > r2(5.0,10.0,true);
 	Peak1D p;
@@ -168,21 +168,21 @@ CHECK((bool operator()(const PeakType& p) const))
 	p.getPosition()[0] = 10.1;
 	TEST_EQUAL(r(p), false);
 	TEST_EQUAL(r2(p), true);	
-RESULT
+END_SECTION
 
 //IntensityRange
 
 InIntensityRange<Peak1D >* ptr4 = 0;
-CHECK((IntensityRange(double min, double max, bool reverse = false)))
+START_SECTION((IntensityRange(double min, double max, bool reverse = false)))
 	ptr4 = new InIntensityRange<Peak1D >(5.0,10.0,false);
 	TEST_NOT_EQUAL(ptr4, 0)
-RESULT
+END_SECTION
 
-CHECK(([EXTRA]~InIntensityRange()))
+START_SECTION(([EXTRA]~InIntensityRange()))
 	delete ptr4;
-RESULT
+END_SECTION
 
-CHECK((bool operator()(const PeakType& p) const))
+START_SECTION((bool operator()(const PeakType& p) const))
 	InIntensityRange<Peak1D > r(5.0,10.0,false);
 	InIntensityRange<Peak1D > r2(5.0,10.0,true);
 	Peak1D p;
@@ -201,22 +201,22 @@ CHECK((bool operator()(const PeakType& p) const))
 	p.setIntensity(10.1);
 	TEST_EQUAL(r(p), false);
 	TEST_EQUAL(r2(p), true);	
-RESULT
+END_SECTION
 
 
 //IsEmptySpectrum
 
 IsEmptySpectrum<DSpectrum<> >* ptr47 = 0;
-CHECK((IsEmptySpectrum(bool reverse = false)))
+START_SECTION((IsEmptySpectrum(bool reverse = false)))
 	ptr47 = new IsEmptySpectrum<DSpectrum<> >();
 	TEST_NOT_EQUAL(ptr47, 0)
-RESULT
+END_SECTION
 
-CHECK(([EXTRA]~IsEmptySpectrum()))
+START_SECTION(([EXTRA]~IsEmptySpectrum()))
 	delete ptr47;
-RESULT
+END_SECTION
 
-CHECK((bool operator()(const SpectrumType& s) const))
+START_SECTION((bool operator()(const SpectrumType& s) const))
 	IsEmptySpectrum<DSpectrum<> > s;
 	IsEmptySpectrum<DSpectrum<> > s2(true);
 	DSpectrum<> spec;
@@ -225,7 +225,7 @@ CHECK((bool operator()(const SpectrumType& s) const))
 	spec.resize(5);
 	TEST_EQUAL(s(spec), false);
 	TEST_EQUAL(s2(spec), true);	
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

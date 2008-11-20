@@ -40,17 +40,17 @@ START_TEST(OptimizePeakDeconvolution, "$Id$")
 /////////////////////////////////////////////////////////////
 
 OptimizePeakDeconvolution* ptr = 0;
-CHECK((OptimizePeakDeconvolution   ( )))
+START_SECTION((OptimizePeakDeconvolution   ( )))
 	ptr = new OptimizePeakDeconvolution();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~OptimizePeakDeconvolution()))
+START_SECTION((~OptimizePeakDeconvolution()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((OptimizePeakDeconvolution& operator=(const OptimizePeakDeconvolution& opt)))
-  PRECISION(0.0001)
+START_SECTION((OptimizePeakDeconvolution& operator=(const OptimizePeakDeconvolution& opt)))
+  TOLERANCE_ABSOLUTE(0.0001)
   OptimizePeakDeconvolution opt_deconv;
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties;
   opt_deconv.setPenalties(penalties);
@@ -62,19 +62,19 @@ CHECK((OptimizePeakDeconvolution& operator=(const OptimizePeakDeconvolution& opt
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties_copy = opt_deconv_copy.getPenalties();
  
   double charge = opt_deconv_copy.getCharge();
-  TEST_REAL_EQUAL(penalties.pos,penalties_copy.pos)
-  TEST_REAL_EQUAL(penalties.lWidth,penalties_copy.lWidth)
-  TEST_REAL_EQUAL(penalties.rWidth,penalties_copy.rWidth)
-  TEST_REAL_EQUAL(penalties.height,penalties_copy.height)
+  TEST_REAL_SIMILAR(penalties.pos,penalties_copy.pos)
+  TEST_REAL_SIMILAR(penalties.lWidth,penalties_copy.lWidth)
+  TEST_REAL_SIMILAR(penalties.rWidth,penalties_copy.rWidth)
+  TEST_REAL_SIMILAR(penalties.height,penalties_copy.height)
     
 
 	TEST_EQUAL(charge == 2, true)
  
-RESULT
+END_SECTION
 
 
-CHECK((OptimizePeakDeconvolution(const OptimizePeakDeconvolution& opt)))
-  PRECISION(0.0001)
+START_SECTION((OptimizePeakDeconvolution(const OptimizePeakDeconvolution& opt)))
+  TOLERANCE_ABSOLUTE(0.0001)
   OptimizePeakDeconvolution opt_deconv;
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties;
   opt_deconv.setPenalties(penalties);
@@ -83,17 +83,17 @@ CHECK((OptimizePeakDeconvolution(const OptimizePeakDeconvolution& opt)))
   OptimizePeakDeconvolution opt_deconv_copy(opt_deconv);
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties_copy = opt_deconv_copy.getPenalties();
   double charge = opt_deconv_copy.getCharge();
-  TEST_REAL_EQUAL(penalties.pos,penalties_copy.pos)
-  TEST_REAL_EQUAL(penalties.lWidth,penalties_copy.lWidth)
-  TEST_REAL_EQUAL(penalties.rWidth,penalties_copy.rWidth)
-  TEST_REAL_EQUAL(penalties.height,penalties_copy.height)
+  TEST_REAL_SIMILAR(penalties.pos,penalties_copy.pos)
+  TEST_REAL_SIMILAR(penalties.lWidth,penalties_copy.lWidth)
+  TEST_REAL_SIMILAR(penalties.rWidth,penalties_copy.rWidth)
+  TEST_REAL_SIMILAR(penalties.height,penalties_copy.height)
     
 	TEST_EQUAL(charge == 2, true)
  
-RESULT
+END_SECTION
 
 
-CHECK((bool optimize(std::vector<PeakShape>& peaks,int failure)))
+START_SECTION((bool optimize(std::vector<PeakShape>& peaks,int failure)))
 	std::vector<PeakShape> peak_shapes(1);
 	PeakShape peak_shape;
   peak_shape.mz_position = 500;
@@ -122,35 +122,35 @@ CHECK((bool optimize(std::vector<PeakShape>& peaks,int failure)))
  	OptimizePeakDeconvolution opt_deconv;
   opt_deconv.setParameters(param.copy("deconvolution:fitting:",true));
  	opt_deconv.optimize(peak_shapes,1);
- 	TEST_REAL_EQUAL(peak_shape.mz_position,500)
- 	TEST_REAL_EQUAL(peak_shape.left_width,2.5)
- 	TEST_REAL_EQUAL(peak_shape.right_width,2.5)
- 	TEST_REAL_EQUAL(peak_shape.area,100)
- 	TEST_REAL_EQUAL(peak_shape.height,400)
-RESULT
+ 	TEST_REAL_SIMILAR(peak_shape.mz_position,500)
+ 	TEST_REAL_SIMILAR(peak_shape.left_width,2.5)
+ 	TEST_REAL_SIMILAR(peak_shape.right_width,2.5)
+ 	TEST_REAL_SIMILAR(peak_shape.area,100)
+ 	TEST_REAL_SIMILAR(peak_shape.height,400)
+END_SECTION
 
 
-CHECK((void setCharge(const int charge)))
+START_SECTION((void setCharge(const int charge)))
   int charge = 2;
    
   OptimizePeakDeconvolution opt_deconv;
   opt_deconv.setCharge(charge);
     
  	TEST_EQUAL(charge == opt_deconv.getCharge(), true)
-RESULT
+END_SECTION
 
-CHECK((int getCharge() const))
+START_SECTION((int getCharge() const))
   int charge = 2;
    
   OptimizePeakDeconvolution opt_deconv;
   opt_deconv.setCharge(charge);
     
  	TEST_EQUAL(charge == opt_deconv.getCharge(), true)
-RESULT
+END_SECTION
 	
 
-CHECK((void setPenalties(const OptimizationFunctions::PenaltyFactorsIntensity& penalties)))
-  PRECISION(0.0001)
+START_SECTION((void setPenalties(const OptimizationFunctions::PenaltyFactorsIntensity& penalties)))
+  TOLERANCE_ABSOLUTE(0.0001)
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties;
   penalties.pos = 0;
   penalties.lWidth = 1;
@@ -159,14 +159,14 @@ CHECK((void setPenalties(const OptimizationFunctions::PenaltyFactorsIntensity& p
 
   OptimizePeakDeconvolution opt_deconv;
   opt_deconv.setPenalties(penalties);
-  TEST_REAL_EQUAL(penalties.pos,opt_deconv.getPenalties().pos)
-  TEST_REAL_EQUAL(penalties.lWidth,opt_deconv.getPenalties().lWidth)
-  TEST_REAL_EQUAL(penalties.rWidth,opt_deconv.getPenalties().rWidth)
-	TEST_REAL_EQUAL(penalties.height,opt_deconv.getPenalties().height)
-RESULT
+  TEST_REAL_SIMILAR(penalties.pos,opt_deconv.getPenalties().pos)
+  TEST_REAL_SIMILAR(penalties.lWidth,opt_deconv.getPenalties().lWidth)
+  TEST_REAL_SIMILAR(penalties.rWidth,opt_deconv.getPenalties().rWidth)
+	TEST_REAL_SIMILAR(penalties.height,opt_deconv.getPenalties().height)
+END_SECTION
 
-CHECK(( const OptimizationFunctions::PenaltyFactorsIntensity& getPenalties() const))
-  PRECISION(0.0001)
+START_SECTION(( const OptimizationFunctions::PenaltyFactorsIntensity& getPenalties() const))
+  TOLERANCE_ABSOLUTE(0.0001)
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties;
   penalties.pos = 0;
   penalties.lWidth = 1;
@@ -175,11 +175,11 @@ CHECK(( const OptimizationFunctions::PenaltyFactorsIntensity& getPenalties() con
 
   OptimizePeakDeconvolution opt_deconv;
   opt_deconv.setPenalties(penalties);
-  TEST_REAL_EQUAL(penalties.pos,opt_deconv.getPenalties().pos)
-  TEST_REAL_EQUAL(penalties.lWidth,opt_deconv.getPenalties().lWidth)
-  TEST_REAL_EQUAL(penalties.rWidth,opt_deconv.getPenalties().rWidth)
-	TEST_REAL_EQUAL(penalties.height,opt_deconv.getPenalties().height)
-RESULT
+  TEST_REAL_SIMILAR(penalties.pos,opt_deconv.getPenalties().pos)
+  TEST_REAL_SIMILAR(penalties.lWidth,opt_deconv.getPenalties().lWidth)
+  TEST_REAL_SIMILAR(penalties.rWidth,opt_deconv.getPenalties().rWidth)
+	TEST_REAL_SIMILAR(penalties.height,opt_deconv.getPenalties().height)
+END_SECTION
 	
 
 /////////////////////////////////////////////////////////////

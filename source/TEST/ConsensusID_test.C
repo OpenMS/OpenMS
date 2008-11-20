@@ -41,14 +41,14 @@ START_TEST(ResidueDB, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ConsensusID* ptr = 0;
-CHECK(ConsensusID())
+START_SECTION(ConsensusID())
 	ptr = new ConsensusID();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~ConsensusID())
+START_SECTION(~ConsensusID())
 	delete(ptr);
-RESULT
+END_SECTION
 
 // PeptideIdentification with 3 id runs is created
 vector<PeptideIdentification> ids(3);
@@ -117,8 +117,8 @@ hits[9].setSequence("K");
 hits[9].setScore(1);
 ids[2].setHits(hits);
 
-CHECK(void apply(std::vector<PeptideIdentification>& ids))
-	PRECISION(0.01)
+START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
+	TOLERANCE_ABSOLUTE(0.01)
 	
 	// ***** Ranked ********
 	
@@ -138,31 +138,31 @@ CHECK(void apply(std::vector<PeptideIdentification>& ids))
 	
 	TEST_EQUAL(hits[0].getRank(),1);
 	TEST_EQUAL(hits[0].getSequence(),"C");
-	TEST_REAL_EQUAL(hits[0].getScore(),80.0f);
+	TEST_REAL_SIMILAR(hits[0].getScore(),80.0f);
 	
 	TEST_EQUAL(hits[1].getRank(),2);
 	TEST_EQUAL(hits[1].getSequence(),"A");
-	TEST_REAL_EQUAL(hits[1].getScore(),60.0f);
+	TEST_REAL_SIMILAR(hits[1].getScore(),60.0f);
 	
 	TEST_EQUAL(hits[2].getRank(),3);
 	TEST_EQUAL(hits[2].getSequence(),"B");
-	TEST_REAL_EQUAL(hits[2].getScore(),53.33f);
+	TEST_REAL_SIMILAR(hits[2].getScore(),53.33f);
 	
 	TEST_EQUAL(hits[3].getRank(),4);
 	TEST_EQUAL(hits[3].getSequence(),"F");
-	TEST_REAL_EQUAL(hits[3].getScore(),33.333f);
+	TEST_REAL_SIMILAR(hits[3].getScore(),33.333f);
 	
 	TEST_EQUAL(hits[4].getRank(),5);
 	TEST_EQUAL(hits[4].getSequence(),"D");
-	TEST_REAL_EQUAL(hits[4].getScore(),26.666f);
+	TEST_REAL_SIMILAR(hits[4].getScore(),26.666f);
 	
 	TEST_EQUAL(hits[5].getRank(),6);
 	TEST_EQUAL(hits[5].getSequence(),"G");
-	TEST_REAL_EQUAL(hits[5].getScore(),20.0f);
+	TEST_REAL_SIMILAR(hits[5].getScore(),20.0f);
 	
 	TEST_EQUAL(hits[6].getRank(),7);
 	TEST_EQUAL(hits[6].getSequence(),"E");
-	TEST_REAL_EQUAL(hits[6].getScore(),6.666f);
+	TEST_REAL_SIMILAR(hits[6].getScore(),6.666f);
 
 	// ***** Merge ********
 
@@ -181,31 +181,31 @@ CHECK(void apply(std::vector<PeptideIdentification>& ids))
 	
 	TEST_EQUAL(hits[0].getRank(),1);
 	TEST_EQUAL(hits[0].getSequence(),"F");
-	TEST_REAL_EQUAL(hits[0].getScore(),81.0f);
+	TEST_REAL_SIMILAR(hits[0].getScore(),81.0f);
 	
 	TEST_EQUAL(hits[1].getRank(),2);
 	TEST_EQUAL(hits[1].getSequence(),"C");
-	TEST_REAL_EQUAL(hits[1].getScore(),60.0f);
+	TEST_REAL_SIMILAR(hits[1].getScore(),60.0f);
 	
 	TEST_EQUAL(hits[2].getRank(),3);
 	TEST_EQUAL(hits[2].getSequence(),"G");
-	TEST_REAL_EQUAL(hits[2].getScore(),50.0f);
+	TEST_REAL_SIMILAR(hits[2].getScore(),50.0f);
 	
 	TEST_EQUAL(hits[3].getRank(),4);
 	TEST_EQUAL(hits[3].getSequence(),"D");
-	TEST_REAL_EQUAL(hits[3].getScore(),40.0f);
+	TEST_REAL_SIMILAR(hits[3].getScore(),40.0f);
 	
 	TEST_EQUAL(hits[4].getRank(),5);
 	TEST_EQUAL(hits[4].getSequence(),"A");
-	TEST_REAL_EQUAL(hits[4].getScore(),31.0f);
+	TEST_REAL_SIMILAR(hits[4].getScore(),31.0f);
 	
 	TEST_EQUAL(hits[5].getRank(),6);
 	TEST_EQUAL(hits[5].getSequence(),"B");
-	TEST_REAL_EQUAL(hits[5].getScore(),29.0f);
+	TEST_REAL_SIMILAR(hits[5].getScore(),29.0f);
 	
 	TEST_EQUAL(hits[6].getRank(),7);
 	TEST_EQUAL(hits[6].getSequence(),"E");
-	TEST_REAL_EQUAL(hits[6].getScore(),5.0f);
+	TEST_REAL_SIMILAR(hits[6].getScore(),5.0f);
 
 	// ***** Average ********
 
@@ -224,27 +224,27 @@ CHECK(void apply(std::vector<PeptideIdentification>& ids))
 	
 	TEST_EQUAL(hits[0].getRank(),1);
 	TEST_EQUAL(hits[0].getSequence(),"C");
-	TEST_REAL_EQUAL(hits[0].getScore(),36.333f);
+	TEST_REAL_SIMILAR(hits[0].getScore(),36.333f);
 	
 	TEST_EQUAL(hits[1].getRank(),2);
 	TEST_EQUAL(hits[1].getSequence(),"F");
-	TEST_REAL_EQUAL(hits[1].getScore(),27.0f);
+	TEST_REAL_SIMILAR(hits[1].getScore(),27.0f);
 	
 	TEST_EQUAL(hits[2].getRank(),3);
 	TEST_EQUAL(hits[2].getSequence(),"A");
-	TEST_REAL_EQUAL(hits[2].getScore(),20.333f);
+	TEST_REAL_SIMILAR(hits[2].getScore(),20.333f);
 	
 	TEST_EQUAL(hits[3].getRank(),4);
 	TEST_EQUAL(hits[3].getSequence(),"B");
-	TEST_REAL_EQUAL(hits[3].getScore(),19.0f);
+	TEST_REAL_SIMILAR(hits[3].getScore(),19.0f);
 	
 	TEST_EQUAL(hits[4].getRank(),5);
 	TEST_EQUAL(hits[4].getSequence(),"G");
-	TEST_REAL_EQUAL(hits[4].getScore(),16.666f);
+	TEST_REAL_SIMILAR(hits[4].getScore(),16.666f);
 	
 	TEST_EQUAL(hits[5].getRank(),6);
 	TEST_EQUAL(hits[5].getSequence(),"D");
-	TEST_REAL_EQUAL(hits[5].getScore(),15.666f);
+	TEST_REAL_SIMILAR(hits[5].getScore(),15.666f);
 
 	// ***** Average, Inverse Order ********
 
@@ -267,15 +267,15 @@ CHECK(void apply(std::vector<PeptideIdentification>& ids))
 	
 	TEST_EQUAL(hits[0].getRank(),1);
 	TEST_EQUAL(hits[0].getSequence(),"K");
-	TEST_REAL_EQUAL(hits[0].getScore(),0.333f);
+	TEST_REAL_SIMILAR(hits[0].getScore(),0.333f);
 	
 	TEST_EQUAL(hits[1].getRank(),2);
 	TEST_EQUAL(hits[1].getSequence(),"E");
-	TEST_REAL_EQUAL(hits[1].getScore(),1.0f);
+	TEST_REAL_SIMILAR(hits[1].getScore(),1.0f);
 	
 	TEST_EQUAL(hits[2].getRank(),3);
 	TEST_EQUAL(hits[2].getSequence(),"B");
-	TEST_REAL_EQUAL(hits[2].getScore(),9.666f);
+	TEST_REAL_SIMILAR(hits[2].getScore(),9.666f);
 	
 	// ***** probability ********
 
@@ -294,33 +294,33 @@ CHECK(void apply(std::vector<PeptideIdentification>& ids))
 	
 	TEST_EQUAL(hits[0].getRank(),1);
 	TEST_EQUAL(hits[0].getSequence(),"C");
-	TEST_REAL_EQUAL(hits[0].getScore(),32640.0f);
+	TEST_REAL_SIMILAR(hits[0].getScore(),32640.0f);
 	
 	TEST_EQUAL(hits[1].getRank(),2);
 	TEST_EQUAL(hits[1].getSequence(),"B");
-	TEST_REAL_EQUAL(hits[1].getScore(),20300.0f);
+	TEST_REAL_SIMILAR(hits[1].getScore(),20300.0f);
 	
 	TEST_EQUAL(hits[2].getRank(),3);
 	TEST_EQUAL(hits[2].getSequence(),"A");
-	TEST_REAL_EQUAL(hits[2].getScore(),930.0f);
+	TEST_REAL_SIMILAR(hits[2].getScore(),930.0f);
 	
 	TEST_EQUAL(hits[3].getRank(),4);
 	TEST_EQUAL(hits[3].getSequence(),"D");
-	TEST_REAL_EQUAL(hits[3].getScore(),280.0f);
+	TEST_REAL_SIMILAR(hits[3].getScore(),280.0f);
 	
 	TEST_EQUAL(hits[4].getRank(),5);
 	TEST_EQUAL(hits[4].getSequence(),"F");
-	TEST_REAL_EQUAL(hits[4].getScore(),81.0f);
+	TEST_REAL_SIMILAR(hits[4].getScore(),81.0f);
 	
 	TEST_EQUAL(hits[5].getRank(),6);
 	TEST_EQUAL(hits[5].getSequence(),"G");
-	TEST_REAL_EQUAL(hits[5].getScore(),50.0f);
+	TEST_REAL_SIMILAR(hits[5].getScore(),50.0f);
 	
 
 	// ***** Exception ********
 	param.setValue("algorithm","Bla4711");
 	TEST_EXCEPTION(Exception::InvalidParameter,consensus.setParameters(param));
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

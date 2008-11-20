@@ -43,70 +43,70 @@ START_TEST(TOFCalibration, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TOFCalibration* ptr = 0;
-CHECK((TOFCalibration()))
+START_SECTION((TOFCalibration()))
   ptr = new TOFCalibration;
   TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~TOFCalibration()))
+START_SECTION((~TOFCalibration()))
   delete ptr;
-RESULT
+END_SECTION
 
 TOFCalibration tc;
 
-CHECK((const std::vector<double>& getML1s() const))
+START_SECTION((const std::vector<double>& getML1s() const))
   std::vector<double> vec;
   vec.push_back(0.1);
   vec.push_back(0.3);
   tc.setML1s(vec);
   TEST_EQUAL(tc.getML1s()== vec,true)
-RESULT
+END_SECTION
 
-CHECK((const std::vector<double>& getML2s() const))
+START_SECTION((const std::vector<double>& getML2s() const))
   std::vector<double> vec;
   vec.push_back(0.1);
   vec.push_back(0.3);
   tc.setML2s(vec);
   TEST_EQUAL(tc.getML2s()== vec,true)
-RESULT
+END_SECTION
 
-CHECK((const std::vector<double>& getML3s() const))
+START_SECTION((const std::vector<double>& getML3s() const))
   std::vector<double> vec;
   vec.push_back(0.1);
   vec.push_back(0.3);
   tc.setML3s(vec);
   TEST_EQUAL(tc.getML3s()== vec,true)
-RESULT  
+END_SECTION  
 
   
-CHECK((void setML1s(const std::vector< double > &ml1s)))
+START_SECTION((void setML1s(const std::vector< double > &ml1s)))
   std::vector<double> vec;
   vec.push_back(0.1);
   vec.push_back(0.3);
   tc.setML1s(vec);
   TEST_EQUAL(tc.getML1s()== vec,true)
-RESULT
+END_SECTION
 
-CHECK((void setML2s(const std::vector< double > &ml2s)))
+START_SECTION((void setML2s(const std::vector< double > &ml2s)))
   std::vector<double> vec;
   vec.push_back(0.1);
   vec.push_back(0.3);
   tc.setML2s(vec);
   TEST_EQUAL(tc.getML2s()== vec,true)
-RESULT
+END_SECTION
 
-CHECK((void setML3s(const std::vector< double > &ml3s)))
+START_SECTION((void setML3s(const std::vector< double > &ml3s)))
   std::vector<double> vec;
   vec.push_back(0.1);
   vec.push_back(0.3);
   tc.setML3s(vec);
   TEST_EQUAL(tc.getML3s()== vec,true)
-RESULT
+END_SECTION
   
 
 
-CHECK((template<typename PeakType> void pickAndCalibrate(MSExperiment< Peak1D > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
-  PRECISION(0.000001)
+START_SECTION((template<typename PeakType> void pickAndCalibrate(MSExperiment< Peak1D > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
+  TOLERANCE_ABSOLUTE(0.000001)
   std::cout.precision(writtenDigits<DoubleReal>());
   MSExperiment<Peak1D> calib_exp;
   MSExperiment<Peak1D> exp,res_exp;
@@ -146,22 +146,22 @@ CHECK((template<typename PeakType> void pickAndCalibrate(MSExperiment< Peak1D > 
   tc.setParameters(param);
   tc.pickAndCalibrate(calib_exp,exp,ref_masses);
 	
-PRECISION(0.01)
+TOLERANCE_ABSOLUTE(0.01)
   TEST_EQUAL(exp.size()==res_exp.size(),true)
 	for (UInt i=0; i<exp.size(); ++i)
 	{
 		for (UInt j=0; j<exp[i].size(); ++j)
 		{
-			TEST_REAL_EQUAL(exp[i][j].getPos(),res_exp[i][j].getPos())
-			TEST_REAL_EQUAL(exp[i][j].getIntensity(),res_exp[i][j].getIntensity())
+			TEST_REAL_SIMILAR(exp[i][j].getPos(),res_exp[i][j].getPos())
+			TEST_REAL_SIMILAR(exp[i][j].getIntensity(),res_exp[i][j].getIntensity())
 		}
 	}
-RESULT
+END_SECTION
 
 tc = TOFCalibration();
 
-CHECK((template<typename PeakType> void calibrate(MSExperiment<Peak1D> &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
-  PRECISION(0.000001)
+START_SECTION((template<typename PeakType> void calibrate(MSExperiment<Peak1D> &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
+  TOLERANCE_ABSOLUTE(0.000001)
 std::cout.precision(writtenDigits<DoubleReal>());
   MSExperiment<> calib_exp;
   MSExperiment<> exp,res_exp;
@@ -200,18 +200,18 @@ std::cout.precision(writtenDigits<DoubleReal>());
 
   tc.calibrate(calib_exp,exp,ref_masses);
 
-	PRECISION(0.01)
+	TOLERANCE_ABSOLUTE(0.01)
   TEST_EQUAL(exp.size()==res_exp.size(),true)
 	for (UInt i=0; i<exp.size(); ++i)
 	{
 		for (UInt j=0; j<exp[i].size(); ++j)
 		{
-			TEST_REAL_EQUAL(res_exp[i][j].getPos(),exp[i][j].getPos())
-			TEST_REAL_EQUAL(res_exp[i][j].getIntensity(),exp[i][j].getIntensity())
+			TEST_REAL_SIMILAR(res_exp[i][j].getPos(),exp[i][j].getPos())
+			TEST_REAL_SIMILAR(res_exp[i][j].getIntensity(),exp[i][j].getIntensity())
 		}
 	}
 
-RESULT	
+END_SECTION	
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

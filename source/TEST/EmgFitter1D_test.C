@@ -41,15 +41,15 @@ START_TEST(EmgFitter1D, "$Id$")
 /////////////////////////////////////////////////////////////
 
 EmgFitter1D* ptr = 0;
-CHECK(EmgFitter1D())
+START_SECTION(EmgFitter1D())
 {
   ptr = new EmgFitter1D();
   TEST_EQUAL(ptr->getName(), "EmgFitter1D")
   TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK((EmgFitter1D(const  EmgFitter1D &source)))
+START_SECTION((EmgFitter1D(const  EmgFitter1D &source)))
 	EmgFitter1D emgf1;
 	
 	Param param;
@@ -67,13 +67,13 @@ CHECK((EmgFitter1D(const  EmgFitter1D &source)))
 	emgf3.setParameters(param);
   emgf1 = EmgFitter1D();
 	TEST_EQUAL(emgf3.getParameters(), emgf2.getParameters())
-RESULT
+END_SECTION
 
-CHECK((virtual ~EmgFitter1D()))
+START_SECTION((virtual ~EmgFitter1D()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((virtual EmgFitter1D& operator=(const  EmgFitter1D &source)))
+START_SECTION((virtual EmgFitter1D& operator=(const  EmgFitter1D &source)))
 	EmgFitter1D emgf1;
 	
 	Param param;
@@ -94,29 +94,29 @@ CHECK((virtual EmgFitter1D& operator=(const  EmgFitter1D &source)))
 
   emgf1 = EmgFitter1D();
 	TEST_EQUAL(emgf3.getParameters(), emgf2.getParameters())
-RESULT
+END_SECTION
 
-CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
+START_SECTION((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
 	// dummy subtest 
 	EmgFitter1D ef1;
 	ef1 = EmgFitter1D();
 	TEST_EQUAL(ef1.getParameters(), ef1.getParameters())
-RESULT
+END_SECTION
 
-CHECK((Fitter1D* create()))
+START_SECTION((Fitter1D* create()))
 {
   Fitter1D* ptr = EmgFitter1D::create();
   TEST_EQUAL(ptr->getName(), "EmgFitter1D")
   TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK((const String getProductName()))
+START_SECTION((const String getProductName()))
 {
   TEST_EQUAL(EmgFitter1D::getProductName(),"EmgFitter1D")
   TEST_EQUAL(EmgFitter1D().getName(),"EmgFitter1D")
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

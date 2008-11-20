@@ -44,30 +44,30 @@ using std::stringstream;
 
 // default ctor
 BiGaussModel* ptr = 0;
-CHECK((BiGaussModel()))
+START_SECTION((BiGaussModel()))
 	ptr = new BiGaussModel();
         TEST_EQUAL(ptr->getName(), "BiGaussModel")
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
 // destructor
-CHECK((virtual ~BiGaussModel()))
+START_SECTION((virtual ~BiGaussModel()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(BiGaussModel::getProductName(),"BiGaussModel")
 	TEST_EQUAL(BiGaussModel().getName(),"BiGaussModel")
-RESULT
+END_SECTION
 
-CHECK( static BaseModel<1>* create() )
+START_SECTION( static BaseModel<1>* create() )
 	BaseModel<1>* ptr = BiGaussModel::create();
 	TEST_EQUAL(ptr->getName(), "BiGaussModel")
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
 // assignment operator
-CHECK((virtual BiGaussModel& operator=(const BiGaussModel &source)))
+START_SECTION((virtual BiGaussModel& operator=(const BiGaussModel &source)))
 	BiGaussModel bgm1;
 	bgm1.setScalingFactor(10.0);
 	bgm1.setInterpolationStep(0.3);
@@ -90,10 +90,10 @@ CHECK((virtual BiGaussModel& operator=(const BiGaussModel &source)))
 
   bgm1 = BiGaussModel();
 	TEST_EQUAL(bgm3.getParameters(), bgm2.getParameters())
-RESULT
+END_SECTION
 
 // copy ctor
-CHECK((BiGaussModel(const BiGaussModel& source)))
+START_SECTION((BiGaussModel(const BiGaussModel& source)))
 	BiGaussModel bgm1;
 	BasicStatistics<>  stat;
 	bgm1.setScalingFactor(10.0);
@@ -114,10 +114,10 @@ CHECK((BiGaussModel(const BiGaussModel& source)))
 	bgm3.setParameters(tmp);
   bgm1 = BiGaussModel();
 	TEST_EQUAL(bgm3.getParameters(), bgm2.getParameters())
-RESULT
+END_SECTION
 
-CHECK([EXTRA] DefaultParamHandler::setParameters(...))
-	PRECISION(0.001)
+START_SECTION([EXTRA] DefaultParamHandler::setParameters(...))
+	TOLERANCE_ABSOLUTE(0.001)
 	BiGaussModel bgm1;
 	
 	Param tmp;
@@ -131,24 +131,24 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 
 	BiGaussModel bgm2;
 	bgm2.setParameters(bgm1.getParameters());
-	TEST_REAL_EQUAL(bgm1.getCenter(), 681.2)
+	TEST_REAL_SIMILAR(bgm1.getCenter(), 681.2)
 
 	std::vector<Peak1D> dpa1;
 	std::vector<Peak1D> dpa2;
 	bgm1.getSamples(dpa1);
 	bgm2.getSamples(dpa2);
 
-	PRECISION(0.0001)
+	TOLERANCE_ABSOLUTE(0.0001)
 	TEST_EQUAL(dpa1.size(),dpa2.size())
 	ABORT_IF(dpa1.size()!=dpa2.size());
 	for (UInt i=0; i<dpa1.size(); ++i)
 	{
-		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
-		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
+		TEST_REAL_SIMILAR(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
+		TEST_REAL_SIMILAR(dpa1[i].getIntensity(),dpa2[i].getIntensity())
 	}
-RESULT
+END_SECTION
 
-CHECK((void setOffset(CoordinateType offset)))
+START_SECTION((void setOffset(CoordinateType offset)))
 	BiGaussModel bgm1;
 	
 	Param tmp;
@@ -169,21 +169,21 @@ CHECK((void setOffset(CoordinateType offset)))
 	bgm2.setParameters(tmp);
 
 	TEST_EQUAL(bgm1.getParameters(), bgm2.getParameters())
-	TEST_REAL_EQUAL(bgm1.getCenter(), bgm2.getCenter())
-	TEST_REAL_EQUAL(bgm1.getCenter(), 682.1)
+	TEST_REAL_SIMILAR(bgm1.getCenter(), bgm2.getCenter())
+	TEST_REAL_SIMILAR(bgm1.getCenter(), 682.1)
 
 	std::vector<Peak1D> dpa1;
 	std::vector<Peak1D> dpa2;
 	bgm1.getSamples(dpa1);
 	bgm2.getSamples(dpa2);
 
-	PRECISION(0.001)
+	TOLERANCE_ABSOLUTE(0.001)
 	TEST_EQUAL(dpa1.size(),dpa2.size())
 	ABORT_IF(dpa1.size()!=dpa2.size());
 	for (UInt i=0; i<dpa1.size(); ++i)
 	{
-		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
-		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
+		TEST_REAL_SIMILAR(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
+		TEST_REAL_SIMILAR(dpa1[i].getIntensity(),dpa2[i].getIntensity())
 	}
 
 	tmp.setValue("bounding_box:min", -4.0);
@@ -193,19 +193,19 @@ CHECK((void setOffset(CoordinateType offset)))
 	tmp.setValue("statistics:variance2", 0.81 );
 	bgm1.setParameters(tmp);
 	bgm1.setOffset(0.123);
-	TEST_REAL_EQUAL(bgm1.getCenter(), 4.123)
+	TEST_REAL_SIMILAR(bgm1.getCenter(), 4.123)
 
-	PRECISION(0.001)
-	TEST_REAL_EQUAL(bgm1.getIntensity(4.123), 0.4432692);
-	TEST_REAL_EQUAL(bgm1.getIntensity(4.223), bgm1.getIntensity(4.023));
-	TEST_REAL_EQUAL(bgm1.getIntensity(3.123), bgm1.getIntensity(5.123));
+	TOLERANCE_ABSOLUTE(0.001)
+	TEST_REAL_SIMILAR(bgm1.getIntensity(4.123), 0.4432692);
+	TEST_REAL_SIMILAR(bgm1.getIntensity(4.223), bgm1.getIntensity(4.023));
+	TEST_REAL_SIMILAR(bgm1.getIntensity(3.123), bgm1.getIntensity(5.123));
 
-RESULT
+END_SECTION
 
-CHECK( CoordinateType getCenter() const )
+START_SECTION( CoordinateType getCenter() const )
 	
 	// already test above, but just for the sake of it
-	PRECISION(0.001)
+	TOLERANCE_ABSOLUTE(0.001)
 	BiGaussModel bgm1;
 	
 	Param tmp;
@@ -216,9 +216,9 @@ CHECK( CoordinateType getCenter() const )
 	tmp.setValue("statistics:variance2", 5.0 );
 	bgm1.setParameters(tmp);
 	bgm1.setOffset(680.0);
-	TEST_REAL_EQUAL(bgm1.getCenter(), 681.2)
+	TEST_REAL_SIMILAR(bgm1.getCenter(), 681.2)
 
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

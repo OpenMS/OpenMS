@@ -44,18 +44,18 @@ START_TEST(MS2File, "$Id: $")
 
 
 MS2File* ptr = 0;
-CHECK((MS2File()))
+START_SECTION((MS2File()))
 	ptr = new MS2File;
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~MS2File()))
+START_SECTION((~MS2File()))
 	delete ptr;
-RESULT
+END_SECTION
 
-PRECISION(0.01)
+TOLERANCE_ABSOLUTE(0.01)
 
-CHECK((template <typename MapType> void load(const String& filename, MapType& map)))
+START_SECTION((template <typename MapType> void load(const String& filename, MapType& map)))
 	MS2File file;
 	PeakMap exp;
 	file.load("data/MS2File_test_spectra.ms2", exp);
@@ -65,10 +65,10 @@ CHECK((template <typename MapType> void load(const String& filename, MapType& ma
 	TEST_EQUAL(exp[0].size(), 4)
 	TEST_EQUAL(exp[1].size(), 4)
 	
-	TEST_REAL_EQUAL(exp[0].getPrecursorPeak().getPosition()[0], 444.44)
-	TEST_REAL_EQUAL(exp[1].getPrecursorPeak().getPosition()[0], 555.555)
+	TEST_REAL_SIMILAR(exp[0].getPrecursorPeak().getPosition()[0], 444.44)
+	TEST_REAL_SIMILAR(exp[1].getPrecursorPeak().getPosition()[0], 555.555)
 	
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

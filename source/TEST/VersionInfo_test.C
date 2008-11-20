@@ -42,15 +42,15 @@ START_TEST(VersionInfo, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-CHECK(static String getVersionAndTime())
+START_SECTION(static String getVersionAndTime())
 {
 	STATUS(VersionInfo::getVersionAndTime());
 	STATUS(PACKAGE_VERSION);
 	TEST_EQUAL(VersionInfo::getVersionAndTime().hasPrefix(String(PACKAGE_VERSION).trim()),true);
 }
-RESULT
+END_SECTION
 
-CHECK(static String getRevision() )
+START_SECTION(static String getRevision() )
 {
 	// just to call the method
 	STATUS("If you have compiled from an SVN sandbox, then this should print a revision number, or a range of revisions followed by \"M\", or something similar.");
@@ -58,27 +58,27 @@ CHECK(static String getRevision() )
 	STATUS(VersionInfo::getRevision());
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
-CHECK(static String getVersion() )
+START_SECTION(static String getVersion() )
 {
 	TEST_STRING_EQUAL(VersionInfo::getVersion(),String(PACKAGE_VERSION).trim());
 }
-RESULT
+END_SECTION
 
-CHECK(static Int getMajorVersion())
+START_SECTION(static Int getMajorVersion())
 {
 	STATUS("We might need to update this for a new release, oops!");
 	TEST_EQUAL(VersionInfo::getMajorVersion(), 1);
 }
-RESULT
+END_SECTION
 
-CHECK(static Int getMinorVersion())
+START_SECTION(static Int getMinorVersion())
 {
 	STATUS("We might need to update this for a new release, oops!");
 	TEST_EQUAL(VersionInfo::getMinorVersion(), 2);
 }
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

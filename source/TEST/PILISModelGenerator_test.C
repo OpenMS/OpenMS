@@ -42,35 +42,35 @@ using namespace OpenMS;
 using namespace std;
 
 PILISModelGenerator* ptr = 0;
-CHECK(PILISModelGenerator())
+START_SECTION(PILISModelGenerator())
 	ptr = new PILISModelGenerator();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~PILISModelGenerator())
+START_SECTION(~PILISModelGenerator())
 	delete ptr;
-RESULT
+END_SECTION
 
 ptr = new PILISModelGenerator();
 
-CHECK(PILISModelGenerator(const PILISModelGenerator& model))
+START_SECTION(PILISModelGenerator(const PILISModelGenerator& model))
 	PILISModelGenerator copy(*ptr);
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
-RESULT
+END_SECTION
 
-CHECK(PILISModelGenerator& operator = (const PILISModelGenerator& mode))
+START_SECTION(PILISModelGenerator& operator = (const PILISModelGenerator& mode))
 	PILISModelGenerator copy;
 	copy = *ptr;
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
-RESULT
+END_SECTION
 
-CHECK(const PILISModel& getModel())
+START_SECTION(const PILISModel& getModel())
 	PILISModel model;
 	model = ptr->getModel();
 	RichPeakSpectrum spec;
 	model.getSpectrum(spec, AASequence("DFPIANGER"), 1);
 	TEST_EQUAL(spec.size(), 90);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

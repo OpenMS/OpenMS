@@ -42,31 +42,31 @@ START_TEST(FastaIterator, "$Id$")
 typedef std::pair <String, String> FASTAEntry;
 
 FastaIterator* ptr = 0;
-CHECK(FastaIterator())
+START_SECTION(FastaIterator())
 	ptr = new FastaIterator();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~FastaIterator())
+START_SECTION(~FastaIterator())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(virtual void setFastaFile(const String &f))
+START_SECTION(virtual void setFastaFile(const String &f))
 	ptr = new FastaIterator();
 	TEST_EXCEPTION (Exception::FileNotFound,ptr->setFastaFile("FileThatNotExists"));
 	TEST_EXCEPTION (Exception::FileNotFound,ptr->setFastaFile(""));
 	ptr->setFastaFile("data/FastaIterator_test.fasta");
-RESULT
+END_SECTION
 
-CHECK(String getFastaFile ())
+START_SECTION(String getFastaFile ())
 	ptr = new FastaIterator();
 	TEST_EQUAL (ptr->getFastaFile(),"");
 	ptr->setFastaFile("data/FastaIterator_test.fasta");
 	TEST_EQUAL (ptr->getFastaFile(),"data/FastaIterator_test.fasta");
-RESULT
+END_SECTION
 
 
-CHECK(virtual FASTAEntry operator *())
+START_SECTION(virtual FASTAEntry operator *())
 	ptr = new FastaIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator,**ptr);
 	ptr->setFastaFile("data/FastaIterator_test.fasta");
@@ -74,9 +74,9 @@ CHECK(virtual FASTAEntry operator *())
 	FASTAEntry fe = **ptr;
 	TEST_EQUAL(fe.first,">Entry 1");
 	TEST_EQUAL(fe.second,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-RESULT
+END_SECTION
 
-CHECK(virtual PepIterator& operator++())
+START_SECTION(virtual PepIterator& operator++())
 	ptr = new FastaIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, ++(*ptr));
 	ptr->setFastaFile("data/FastaIterator_test.fasta");
@@ -87,9 +87,9 @@ CHECK(virtual PepIterator& operator++())
 	pepIt = ++(*ptr);
 	TEST_EQUAL ((*pepIt).first,(**ptr).first);
 	TEST_EQUAL ((*pepIt).second,(**ptr).second);
-RESULT
+END_SECTION
 
-CHECK(virtual PepIterator* operator++(int i))
+START_SECTION(virtual PepIterator* operator++(int i))
 	ptr = new FastaIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, (*ptr)++);
 	ptr->setFastaFile("data/FastaIterator_test.fasta");
@@ -98,9 +98,9 @@ CHECK(virtual PepIterator* operator++(int i))
 	PepIterator * pepIt = (*ptr)++;
 	TEST_EQUAL ((**pepIt).first,fe.first);
 	TEST_EQUAL ((**pepIt).second,fe.second);
-RESULT
+END_SECTION
 
-CHECK(virtual bool begin())
+START_SECTION(virtual bool begin())
 	ptr = new FastaIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, (*ptr).begin());
 	ptr->setFastaFile("data/FastaIterator_test.fasta");
@@ -108,9 +108,9 @@ CHECK(virtual bool begin())
 	FASTAEntry fe = **ptr;
 	TEST_EQUAL(fe.first,">Entry 1");
 	TEST_EQUAL(fe.second,"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-RESULT
+END_SECTION
 
-CHECK(virtual bool isAtEnd())
+START_SECTION(virtual bool isAtEnd())
 	ptr = new FastaIterator();
 	ptr->setFastaFile("data/FastaIterator_test.fasta");
 	ptr->begin();
@@ -120,9 +120,9 @@ CHECK(virtual bool isAtEnd())
 		++(*ptr);
 	}
 	TEST_EQUAL(ptr->isAtEnd(),1);
-RESULT
+END_SECTION
 
-CHECK(FastaIterator(const FastaIterator &))
+START_SECTION(FastaIterator(const FastaIterator &))
 	ptr = new FastaIterator();
 	ptr->setFastaFile("data/FastaIterator_test.fasta");
 	ptr->begin();
@@ -132,37 +132,37 @@ CHECK(FastaIterator(const FastaIterator &))
 	TEST_EQUAL((**ptr).first,(*copy).first);
 	TEST_EQUAL((**ptr).second,(*copy).second);
 	TEST_EQUAL((*ptr).getFastaFile(),(copy).getFastaFile());
-RESULT
+END_SECTION
 
 
 
-CHECK(virtual void setSpectrum(const std::vector< float > &))
+START_SECTION(virtual void setSpectrum(const std::vector< float > &))
 	const std::vector<float> spec;
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).setSpectrum(spec));
-RESULT
+END_SECTION
 
-CHECK(virtual const std::vector<float>& getSpectrum())
+START_SECTION(virtual const std::vector<float>& getSpectrum())
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).getSpectrum());
-RESULT
+END_SECTION
 
-CHECK(virtual void setTolerance(float))
+START_SECTION(virtual void setTolerance(float))
 	float t = 0.5;
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).setTolerance(t));
-RESULT
+END_SECTION
 
-CHECK(virtual float getTolerance())
+START_SECTION(virtual float getTolerance())
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).getTolerance());
-RESULT
+END_SECTION
 
-CHECK(static const String getProductName())
+START_SECTION(static const String getProductName())
 	ptr = new FastaIterator();
 	TEST_EQUAL(ptr->getProductName(),"FastaIterator");
-RESULT
+END_SECTION
 
-CHECK(static PepIterator* create())
+START_SECTION(static PepIterator* create())
 	ptr = new FastaIterator();
 	TEST_NOT_EQUAL(ptr->create(),0);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

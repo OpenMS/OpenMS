@@ -44,157 +44,157 @@ START_TEST(Histogram, "$Id$")
 
 Histogram<float,float>* dis_ptr = 0;
 
-CHECK((Histogram()))
+START_SECTION((Histogram()))
 	dis_ptr = new Histogram<float,float>();
 	TEST_NOT_EQUAL(dis_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~Histogram()))
+START_SECTION((~Histogram()))
 	delete dis_ptr;
-RESULT
+END_SECTION
 
 Histogram<float,float> d(0, 10, 1);
 
-CHECK((Histogram(const Histogram& histogram)))
+START_SECTION((Histogram(const Histogram& histogram)))
 	Histogram<float, float> d2(d);
 	TEST_EQUAL(d == d2, true)
-RESULT
+END_SECTION
 
-CHECK((BinSizeType min() const))
-	TEST_REAL_EQUAL(d.min(), 0.0)
-RESULT
+START_SECTION((BinSizeType min() const))
+	TEST_REAL_SIMILAR(d.min(), 0.0)
+END_SECTION
 
-CHECK((BinSizeType max() const))
-	TEST_REAL_EQUAL(d.max(), 10.0)
-RESULT
+START_SECTION((BinSizeType max() const))
+	TEST_REAL_SIMILAR(d.max(), 10.0)
+END_SECTION
 
-CHECK((BinSizeType binSize() const))
-	TEST_REAL_EQUAL(d.binSize(), 1)
-RESULT
+START_SECTION((BinSizeType binSize() const))
+	TEST_REAL_SIMILAR(d.binSize(), 1)
+END_SECTION
 
-CHECK((UInt size() const))
+START_SECTION((UInt size() const))
 	TEST_EQUAL(d.size(), 10)
-RESULT
+END_SECTION
 
-CHECK((Histogram(BinSizeType min, BinSizeType max, BinSizeType bin_size) ))
+START_SECTION((Histogram(BinSizeType min, BinSizeType max, BinSizeType bin_size) ))
 	Histogram<float, float> d3(5.5, 7.7, 0.2);
-	TEST_REAL_EQUAL(d3.min(), 5.5)
-	TEST_REAL_EQUAL(d3.max(), 7.7)
-	TEST_REAL_EQUAL(d3.binSize(), 0.2)
-RESULT
+	TEST_REAL_SIMILAR(d3.min(), 5.5)
+	TEST_REAL_SIMILAR(d3.max(), 7.7)
+	TEST_REAL_SIMILAR(d3.binSize(), 0.2)
+END_SECTION
 
-CHECK((ValueType minValue() const))
-	TEST_REAL_EQUAL(d.minValue(), 0.0)
-RESULT
+START_SECTION((ValueType minValue() const))
+	TEST_REAL_SIMILAR(d.minValue(), 0.0)
+END_SECTION
 
-CHECK((ValueType maxValue() const))
-	TEST_REAL_EQUAL(d.maxValue(), 0.0)
-RESULT
+START_SECTION((ValueType maxValue() const))
+	TEST_REAL_SIMILAR(d.maxValue(), 0.0)
+END_SECTION
 
-CHECK((ValueType operator [] (UInt index) const ))
+START_SECTION((ValueType operator [] (UInt index) const ))
 	d.reset(4, 14, 2);
 	TEST_EQUAL(d.size(),5);
-	TEST_REAL_EQUAL(d[0],0.0);
-	TEST_REAL_EQUAL(d[1],0.0);
-	TEST_REAL_EQUAL(d[2],0.0);
-	TEST_REAL_EQUAL(d[3],0.0);
-	TEST_REAL_EQUAL(d[4],0.0);
+	TEST_REAL_SIMILAR(d[0],0.0);
+	TEST_REAL_SIMILAR(d[1],0.0);
+	TEST_REAL_SIMILAR(d[2],0.0);
+	TEST_REAL_SIMILAR(d[3],0.0);
+	TEST_REAL_SIMILAR(d[4],0.0);
 	TEST_EXCEPTION(Exception::IndexOverflow, d[5])
-RESULT
+END_SECTION
 
-CHECK((void inc(BinSizeType val, ValueType increment=1) ))
+START_SECTION((void inc(BinSizeType val, ValueType increment=1) ))
 	TEST_EXCEPTION(Exception::OutOfRange, d.inc(3.9, 250.3))
 	TEST_EXCEPTION(Exception::OutOfRange, d.inc(14.1, 250.3))
 	d.inc(4, 1.0);
 	d.inc(5.9, 1.0);
-	TEST_REAL_EQUAL(d[0],2.0);
-	TEST_REAL_EQUAL(d[1],0.0);
-	TEST_REAL_EQUAL(d[2],0.0);
-	TEST_REAL_EQUAL(d[3],0.0);
-	TEST_REAL_EQUAL(d[4],0.0);
+	TEST_REAL_SIMILAR(d[0],2.0);
+	TEST_REAL_SIMILAR(d[1],0.0);
+	TEST_REAL_SIMILAR(d[2],0.0);
+	TEST_REAL_SIMILAR(d[3],0.0);
+	TEST_REAL_SIMILAR(d[4],0.0);
 	
 	d.inc(8.0, 45.0);
 	d.inc(8.1, 1.0);
 	d.inc(9.9, 4.0);
 
-	TEST_REAL_EQUAL(d[0],2.0);
-	TEST_REAL_EQUAL(d[1],0.0);
-	TEST_REAL_EQUAL(d[2],50.0);
-	TEST_REAL_EQUAL(d[3],0.0);
-	TEST_REAL_EQUAL(d[4],0.0);
+	TEST_REAL_SIMILAR(d[0],2.0);
+	TEST_REAL_SIMILAR(d[1],0.0);
+	TEST_REAL_SIMILAR(d[2],50.0);
+	TEST_REAL_SIMILAR(d[3],0.0);
+	TEST_REAL_SIMILAR(d[4],0.0);
 
 	d.inc(12.0, 1.0);
 	d.inc(13.1, 2.0);
 	d.inc(14.0, 3.0);	
 
-	TEST_REAL_EQUAL(d[0],2.0);
-	TEST_REAL_EQUAL(d[1],0.0);
-	TEST_REAL_EQUAL(d[2],50.0);
-	TEST_REAL_EQUAL(d[3],0.0);
-	TEST_REAL_EQUAL(d[4],6.0);
-RESULT
+	TEST_REAL_SIMILAR(d[0],2.0);
+	TEST_REAL_SIMILAR(d[1],0.0);
+	TEST_REAL_SIMILAR(d[2],50.0);
+	TEST_REAL_SIMILAR(d[3],0.0);
+	TEST_REAL_SIMILAR(d[4],6.0);
+END_SECTION
 
-CHECK((ConstIterator begin() const))
+START_SECTION((ConstIterator begin() const))
 	Histogram<float,float>::ConstIterator it = d.begin();
-	TEST_REAL_EQUAL(*it, 2.0)
-RESULT
+	TEST_REAL_SIMILAR(*it, 2.0)
+END_SECTION
 
-CHECK((ConstIterator end() const))
+START_SECTION((ConstIterator end() const))
 	Histogram<float,float>::ConstIterator it = d.begin();
-	TEST_REAL_EQUAL(*it,2.0);
+	TEST_REAL_SIMILAR(*it,2.0);
 	++it;
-	TEST_REAL_EQUAL(*it,0.0);
+	TEST_REAL_SIMILAR(*it,0.0);
 	++it;
-	TEST_REAL_EQUAL(*it,50.0);
+	TEST_REAL_SIMILAR(*it,50.0);
 	++it;
-	TEST_REAL_EQUAL(*it,0.0);
+	TEST_REAL_SIMILAR(*it,0.0);
 	++it;
-	TEST_REAL_EQUAL(*it,6.0);
+	TEST_REAL_SIMILAR(*it,6.0);
 	++it;
 	TEST_EQUAL(it==d.end(),true);
-RESULT
+END_SECTION
 
-CHECK((ValueType binValue(BinSizeType val) const ))
+START_SECTION((ValueType binValue(BinSizeType val) const ))
 	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(3.9))
-	TEST_REAL_EQUAL(d.binValue(4.0),2.0);
-	TEST_REAL_EQUAL(d.binValue(5.9),2.0);
-	TEST_REAL_EQUAL(d.binValue(6.0),0.0);
-	TEST_REAL_EQUAL(d.binValue(7.9),0.0);
-	TEST_REAL_EQUAL(d.binValue(8.0),50.0);
-	TEST_REAL_EQUAL(d.binValue(9.9),50.0);
-	TEST_REAL_EQUAL(d.binValue(10.0),0.0);
-	TEST_REAL_EQUAL(d.binValue(11.9),0.0);
-	TEST_REAL_EQUAL(d.binValue(12.0),6.0);
-	TEST_REAL_EQUAL(d.binValue(14.0),6.0);
+	TEST_REAL_SIMILAR(d.binValue(4.0),2.0);
+	TEST_REAL_SIMILAR(d.binValue(5.9),2.0);
+	TEST_REAL_SIMILAR(d.binValue(6.0),0.0);
+	TEST_REAL_SIMILAR(d.binValue(7.9),0.0);
+	TEST_REAL_SIMILAR(d.binValue(8.0),50.0);
+	TEST_REAL_SIMILAR(d.binValue(9.9),50.0);
+	TEST_REAL_SIMILAR(d.binValue(10.0),0.0);
+	TEST_REAL_SIMILAR(d.binValue(11.9),0.0);
+	TEST_REAL_SIMILAR(d.binValue(12.0),6.0);
+	TEST_REAL_SIMILAR(d.binValue(14.0),6.0);
 	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(14.1))
-RESULT
+END_SECTION
 	
-CHECK((void reset(BinSizeType min, BinSizeType max, BinSizeType bin_size) ))
+START_SECTION((void reset(BinSizeType min, BinSizeType max, BinSizeType bin_size) ))
 	d.reset(1, 11, 2);
-	TEST_REAL_EQUAL(d.min(), 1)
-	TEST_REAL_EQUAL(d.max(), 11)
-	TEST_REAL_EQUAL(d.size(), 5)
-	TEST_REAL_EQUAL(d.binSize(), 2)
-RESULT
+	TEST_REAL_SIMILAR(d.min(), 1)
+	TEST_REAL_SIMILAR(d.max(), 11)
+	TEST_REAL_SIMILAR(d.size(), 5)
+	TEST_REAL_SIMILAR(d.binSize(), 2)
+END_SECTION
 
-CHECK((bool operator == (const Histogram& histogram) const))
+START_SECTION((bool operator == (const Histogram& histogram) const))
 	Histogram<float, float> dist(1, 11, 2);
 	TEST_EQUAL(d == dist, true)
-RESULT
+END_SECTION
 
-CHECK((bool operator != (const Histogram& histogram) const))
+START_SECTION((bool operator != (const Histogram& histogram) const))
 	Histogram<float, float> dist(1, 12, 2);
 	TEST_EQUAL(d != dist, true)
-RESULT
+END_SECTION
 
-CHECK((Histogram& operator = (const Histogram& histogram)))
+START_SECTION((Histogram& operator = (const Histogram& histogram)))
 	Histogram<float, float> dist;
 	dist = d;
 	TEST_EQUAL(d == dist, true)
-RESULT
+END_SECTION
 
-CHECK((void applyLogTransformation(Real multiplier)))
-	PRECISION(0.01)
+START_SECTION((void applyLogTransformation(Real multiplier)))
+	TOLERANCE_ABSOLUTE(0.01)
 	Histogram<float, float> dist(0,5,1);
 	dist.inc(0.5,1);
 	dist.inc(1.5,10);
@@ -202,27 +202,27 @@ CHECK((void applyLogTransformation(Real multiplier)))
 	dist.inc(3.5,1000);
 	dist.inc(4.5,10000);
 	dist.applyLogTransformation(1.0);
-	TEST_REAL_EQUAL(dist.binValue(0.5),0.6931);
-	TEST_REAL_EQUAL(dist.binValue(1.5),2.3979);
-	TEST_REAL_EQUAL(dist.binValue(2.5),4.61512);
-	TEST_REAL_EQUAL(dist.binValue(3.5),6.90875);
-	TEST_REAL_EQUAL(dist.binValue(4.5),9.21044);
-RESULT
+	TEST_REAL_SIMILAR(dist.binValue(0.5),0.6931);
+	TEST_REAL_SIMILAR(dist.binValue(1.5),2.3979);
+	TEST_REAL_SIMILAR(dist.binValue(2.5),4.61512);
+	TEST_REAL_SIMILAR(dist.binValue(3.5),6.90875);
+	TEST_REAL_SIMILAR(dist.binValue(4.5),9.21044);
+END_SECTION
 
-CHECK((BinSizeType centerOfBin(UInt bin_index) const  ))
+START_SECTION((BinSizeType centerOfBin(UInt bin_index) const  ))
 	Histogram<float, float> dist(0,5,1);
 	dist.inc(0.5,1);
 	dist.inc(1.5,10);
 	dist.inc(2.5,100);
 	dist.inc(3.5,1000);
 	dist.inc(4.5,10000);
-	TEST_REAL_EQUAL(dist.centerOfBin(0),0.5);
-	TEST_REAL_EQUAL(dist.centerOfBin(1),1.5);
-	TEST_REAL_EQUAL(dist.centerOfBin(2),2.5);
-	TEST_REAL_EQUAL(dist.centerOfBin(3),3.5);
-	TEST_REAL_EQUAL(dist.centerOfBin(4),4.5);
+	TEST_REAL_SIMILAR(dist.centerOfBin(0),0.5);
+	TEST_REAL_SIMILAR(dist.centerOfBin(1),1.5);
+	TEST_REAL_SIMILAR(dist.centerOfBin(2),2.5);
+	TEST_REAL_SIMILAR(dist.centerOfBin(3),3.5);
+	TEST_REAL_SIMILAR(dist.centerOfBin(4),4.5);
 	TEST_EXCEPTION(Exception::IndexOverflow, dist.centerOfBin(5))
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

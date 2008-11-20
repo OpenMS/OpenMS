@@ -39,26 +39,26 @@ using namespace OpenMS;
 using namespace std;
 
 ControlledVocabulary* ptr = 0;
-CHECK((ControlledVocabulary()))
+START_SECTION((ControlledVocabulary()))
 	ptr = new ControlledVocabulary();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~ControlledVocabulary()))
+START_SECTION((~ControlledVocabulary()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(const String& name() const)
+START_SECTION(const String& name() const)
 	TEST_EQUAL(ControlledVocabulary().name(),"")
-RESULT
+END_SECTION
 
 ControlledVocabulary cv;
-CHECK(void loadFromOBO(const String &name, const String &filename))
+START_SECTION(void loadFromOBO(const String &name, const String &filename))
 	cv.loadFromOBO("bla","data/ControlledVocabulary.obo");
 	TEST_EQUAL(cv.name(),"bla")
-RESULT
+END_SECTION
 
-CHECK(bool exists(const String& id) const)
+START_SECTION(bool exists(const String& id) const)
 	TEST_EQUAL(cv.exists("OpenMS:1"),true)
 	TEST_EQUAL(cv.exists("OpenMS:2"),true)
 	TEST_EQUAL(cv.exists("OpenMS:3"),true)
@@ -66,9 +66,9 @@ CHECK(bool exists(const String& id) const)
 	TEST_EQUAL(cv.exists("OpenMS:5"),true)
 	TEST_EQUAL(cv.exists("OpenMS:6"),true)
 	TEST_EQUAL(cv.exists("OpenMS:7"),false)
-RESULT
+END_SECTION
 
-CHECK(const CVTerm& getTerm(const String& id) const)
+START_SECTION(const CVTerm& getTerm(const String& id) const)
 	const ControlledVocabulary::CVTerm* term=0;
 	//Auto
 	term = &(cv.getTerm("OpenMS:1"));
@@ -122,9 +122,9 @@ CHECK(const CVTerm& getTerm(const String& id) const)
 	TEST_EQUAL(term->unparsed.size(),0)
 	
 	TEST_EXCEPTION(Exception::InvalidValue , cv.getTerm("OpenMS:7"))
-RESULT
+END_SECTION
 
-CHECK(bool isChildOf(const String& child, const String& parent) const)
+START_SECTION(bool isChildOf(const String& child, const String& parent) const)
 	TEST_EQUAL(cv.isChildOf("OpenMS:6","OpenMS:2"),true)
 	TEST_EQUAL(cv.isChildOf("OpenMS:5","OpenMS:2"),true)
 	TEST_EQUAL(cv.isChildOf("OpenMS:2","OpenMS:1"),true)
@@ -135,7 +135,7 @@ CHECK(bool isChildOf(const String& child, const String& parent) const)
 	TEST_EQUAL(cv.isChildOf("OpenMS:2","OpenMS:6"),false)
 	TEST_EQUAL(cv.isChildOf("OpenMS:2","OpenMS:3"),false)
 	TEST_EXCEPTION(Exception::InvalidValue, cv.isChildOf("OpenMS:7","OpenMS:3"))
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

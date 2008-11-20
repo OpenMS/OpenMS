@@ -39,18 +39,18 @@ START_TEST(FactoryBase, "$Id$")
 /////////////////////////////////////////////////////////////
 
 FactoryBase* ptr = 0;
-CHECK(FactoryBase())
+START_SECTION(FactoryBase())
 {
         ptr = new FactoryBase();
         TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~FactoryBase())
+START_SECTION(~FactoryBase())
 {
         delete ptr;
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

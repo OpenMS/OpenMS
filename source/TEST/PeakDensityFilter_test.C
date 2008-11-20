@@ -43,49 +43,49 @@ START_TEST(PeakDensityFilter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PeakDensityFilter* e_ptr = 0;
-CHECK((PeakDensityFilter()))
+START_SECTION((PeakDensityFilter()))
 	e_ptr = new PeakDensityFilter;
 	TEST_NOT_EQUAL(e_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~PeakDensityFilter()))
+START_SECTION((~PeakDensityFilter()))
 	delete e_ptr;
-RESULT
+END_SECTION
 
 e_ptr = new PeakDensityFilter();
 
-CHECK((PeakDensityFilter(const PeakDensityFilter& source)))
+START_SECTION((PeakDensityFilter(const PeakDensityFilter& source)))
 	PeakDensityFilter copy(*e_ptr);
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK((PeakDensityFilter& operator = (const PeakDensityFilter& source)))
+START_SECTION((PeakDensityFilter& operator = (const PeakDensityFilter& source)))
 	PeakDensityFilter copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
+START_SECTION((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
 
 	double filter = e_ptr->apply(spec);
-	TEST_REAL_EQUAL(filter, 0.326687)
-RESULT
+	TEST_REAL_SIMILAR(filter, 0.326687)
+END_SECTION
 
-CHECK((static FilterFunctor* create()))
+START_SECTION((static FilterFunctor* create()))
 	FilterFunctor* ff = PeakDensityFilter::create();
 	PeakDensityFilter filter;
 	TEST_EQUAL(ff->getParameters(), filter.getParameters())
 	TEST_EQUAL(ff->getName(), filter.getName())
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(e_ptr->getProductName(), "PeakDensityFilter");
-RESULT
+END_SECTION
 
 delete e_ptr;
 

@@ -46,35 +46,35 @@ PILISIdentification* ptr = 0;
 RichPeakSpectrum spec;
 DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", spec);
 spec.setMSLevel(2);
-CHECK(PILISIdentification())
+START_SECTION(PILISIdentification())
 	ptr = new PILISIdentification();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~PILISIdentification())
+START_SECTION(~PILISIdentification())
 	delete ptr;
-RESULT
+END_SECTION
 
 ptr = new PILISIdentification();
 
-CHECK(PILISIdentification(const PILISIdentification& source))
+START_SECTION(PILISIdentification(const PILISIdentification& source))
 	PILISIdentification copy(*ptr);
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
-RESULT
+END_SECTION
 
-CHECK(PILISIdentification& operator = (const PILISIdentification& source))
+START_SECTION(PILISIdentification& operator = (const PILISIdentification& source))
 	PILISIdentification copy;
 	copy = *ptr;
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
-RESULT
+END_SECTION
 
-CHECK(void setModel(PILISModel* hmm_model))
+START_SECTION(void setModel(PILISModel* hmm_model))
 	PILISModel* model = new PILISModel();
 	model->readFromFile("PILIS/PILIS_default_model.dat");
 	ptr->setModel(model);
-RESULT
+END_SECTION
 
-CHECK(void getIdentification(const std::map<String, UInt>& candidates, PeptideIdentification& id, const RichPeakSpectrum& spectrum))
+START_SECTION(void getIdentification(const std::map<String, UInt>& candidates, PeptideIdentification& id, const RichPeakSpectrum& spectrum))
 	map<String, UInt> candidates;
 	candidates["DDFPIVIVGNKADIENQR"] = 2;
 	candidates["DFPIANGER"] = 1;
@@ -83,9 +83,9 @@ CHECK(void getIdentification(const std::map<String, UInt>& candidates, PeptideId
 	ptr->getIdentification(candidates, id, spec);
 	TEST_EQUAL(id.getHits().size(), 3)
 	TEST_EQUAL(id.getHits().begin()->getSequence(), "DFPIANGER")
-RESULT
+END_SECTION
 
-CHECK(void getIdentifications(const std::vector<std::map<String, UInt> >& candidates, std::vector<PeptideIdentification>& ids, const RichPeakMap& exp))
+START_SECTION(void getIdentifications(const std::vector<std::map<String, UInt> >& candidates, std::vector<PeptideIdentification>& ids, const RichPeakMap& exp))
 
 	map<String, UInt> cand;
 	cand["DDFPIVIVGNKADIENQR"] = 2;
@@ -101,7 +101,7 @@ CHECK(void getIdentifications(const std::vector<std::map<String, UInt> >& candid
 	TEST_EQUAL(ids.size(), map.size())
 	TEST_EQUAL(ids.begin()->getHits().size(), 3)
 	TEST_EQUAL(ids.begin()->getHits().begin()->getSequence(), "DFPIANGER")
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -39,103 +39,103 @@ START_TEST(HPLC, "$Id$")
 /////////////////////////////////////////////////////////////
 
 HPLC* ptr = 0;
-CHECK(HPLC())
+START_SECTION(HPLC())
 	ptr = new HPLC();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~HPLC())
+START_SECTION(~HPLC())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(Gradient& getGradient())
+START_SECTION(Gradient& getGradient())
   HPLC tmp;
   TEST_EQUAL(tmp.getGradient().getEluents().size(),0);
-RESULT
+END_SECTION
 
-CHECK(void setGradient(const Gradient& gradient))
+START_SECTION(void setGradient(const Gradient& gradient))
   HPLC tmp;
   Gradient g;
   g.addEluent("A");
   tmp.setGradient(g);
   TEST_EQUAL(tmp.getGradient().getEluents().size(),1);
   TEST_EQUAL(tmp.getGradient().getEluents()[0],"A");
-RESULT
+END_SECTION
 
-CHECK(const Gradient& getGradient() const)
+START_SECTION(const Gradient& getGradient() const)
   HPLC tmp;
   tmp.getGradient().addEluent("A");
   TEST_EQUAL(tmp.getGradient().getEluents().size(),1);
   TEST_EQUAL(tmp.getGradient().getEluents()[0],"A");
-RESULT
+END_SECTION
 
-CHECK(UInt getFlux() const)
+START_SECTION(UInt getFlux() const)
   HPLC tmp;
   TEST_EQUAL(tmp.getFlux(),0);  
-RESULT
+END_SECTION
 
-CHECK(void setFlux(UInt flux))
+START_SECTION(void setFlux(UInt flux))
   HPLC tmp;
   tmp.setFlux(5);
   TEST_EQUAL(tmp.getFlux(),5);  
-RESULT
+END_SECTION
 
-CHECK(UInt getPressure() const)
+START_SECTION(UInt getPressure() const)
   HPLC tmp;
   TEST_EQUAL(tmp.getPressure(),0);  
-RESULT
+END_SECTION
 
-CHECK(void setPressure(UInt pressure))
+START_SECTION(void setPressure(UInt pressure))
   HPLC tmp;
   tmp.setPressure(5);
   TEST_EQUAL(tmp.getPressure(),5);  
-RESULT
+END_SECTION
 
-CHECK(Int getTemperature() const)
+START_SECTION(Int getTemperature() const)
   HPLC tmp;
   TEST_EQUAL(tmp.getTemperature(),21);  
-RESULT
+END_SECTION
 
-CHECK(void setTemperature(Int temperature))
+START_SECTION(void setTemperature(Int temperature))
   HPLC tmp;
   tmp.setTemperature(5);
   TEST_EQUAL(tmp.getTemperature(),5);  
-RESULT
+END_SECTION
 
-CHECK(String getComment() const)
+START_SECTION(String getComment() const)
   HPLC tmp;
   TEST_EQUAL(tmp.getComment(),"");  
-RESULT
+END_SECTION
 
-CHECK(void setComment(String comment))
+START_SECTION(void setComment(String comment))
   HPLC tmp;
   tmp.setComment("comment");
   TEST_EQUAL(tmp.getComment(),"comment");  
-RESULT
+END_SECTION
 
-CHECK(const String& getInstrument() const)
+START_SECTION(const String& getInstrument() const)
   HPLC tmp;
   TEST_EQUAL(tmp.getInstrument(),"");  
-RESULT
+END_SECTION
 
-CHECK(void setInstrument(const String& instrument))
+START_SECTION(void setInstrument(const String& instrument))
   HPLC tmp;
   tmp.setInstrument("instrument");
   TEST_EQUAL(tmp.getInstrument(),"instrument");  
-RESULT
+END_SECTION
 
-CHECK(const String& getColumn() const)
+START_SECTION(const String& getColumn() const)
   HPLC tmp;
   TEST_EQUAL(tmp.getColumn(),"");  
-RESULT
+END_SECTION
 
-CHECK(void setColumn(const String& column))
+START_SECTION(void setColumn(const String& column))
   HPLC tmp;
   tmp.setColumn("column");
   TEST_EQUAL(tmp.getColumn(),"column");  
-RESULT
+END_SECTION
 
-CHECK(HPLC(const HPLC& source))
+START_SECTION(HPLC(const HPLC& source))
   HPLC tmp;
   tmp.setInstrument("instrument");
   tmp.setComment("comment");
@@ -151,9 +151,9 @@ CHECK(HPLC(const HPLC& source))
   TEST_EQUAL(tmp2.getPressure(),5);
   TEST_EQUAL(tmp2.getFlux(),6);
   TEST_EQUAL(tmp2.getTemperature(),7);
-RESULT
+END_SECTION
 
-CHECK(HPLC& operator = (const HPLC& source))
+START_SECTION(HPLC& operator = (const HPLC& source))
   HPLC tmp;
   tmp.setInstrument("instrument");
   tmp.setComment("comment");
@@ -177,9 +177,9 @@ CHECK(HPLC& operator = (const HPLC& source))
   TEST_EQUAL(tmp2.getPressure(),0);
   TEST_EQUAL(tmp2.getFlux(),0);
   TEST_EQUAL(tmp2.getTemperature(),21);  
-RESULT
+END_SECTION
 
-CHECK(bool operator == (const HPLC& source) const)
+START_SECTION(bool operator == (const HPLC& source) const)
   HPLC edit, empty;
   
   TEST_EQUAL(edit==empty,true);  
@@ -206,9 +206,9 @@ CHECK(bool operator == (const HPLC& source) const)
   edit = empty;
   edit.setTemperature(7);
   TEST_EQUAL(edit==empty,false); 
-RESULT
+END_SECTION
 
-CHECK(bool operator != (const HPLC& source) const)
+START_SECTION(bool operator != (const HPLC& source) const)
   HPLC edit, empty;
   
   TEST_EQUAL(edit!=empty,false);  
@@ -235,7 +235,7 @@ CHECK(bool operator != (const HPLC& source) const)
   edit = empty;
   edit.setTemperature(7);
   TEST_EQUAL(edit!=empty,true); 
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

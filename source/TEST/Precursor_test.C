@@ -39,60 +39,60 @@ START_TEST(Precursor, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Precursor* ptr = 0;
-CHECK(Precursor())
+START_SECTION(Precursor())
 	ptr = new Precursor();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~Precursor())
+START_SECTION(~Precursor())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(float getActivationEnergy() const)
+START_SECTION(float getActivationEnergy() const)
   Precursor tmp;
   TEST_EQUAL(tmp.getActivationEnergy(),0);
-RESULT
+END_SECTION
 
-CHECK(void setActivationEnergy(float activation_energy))
+START_SECTION(void setActivationEnergy(float activation_energy))
   Precursor tmp;
   tmp.setActivationEnergy(47.11);
-  TEST_REAL_EQUAL(tmp.getActivationEnergy(),47.11);
-RESULT
+  TEST_REAL_SIMILAR(tmp.getActivationEnergy(),47.11);
+END_SECTION
 
-CHECK(ActivationMethod getActivationMethod() const)
+START_SECTION(ActivationMethod getActivationMethod() const)
   Precursor tmp;
   TEST_EQUAL(tmp.getActivationMethod(),Precursor::ACTMETHNULL);
-RESULT
+END_SECTION
 
-CHECK(void setActivationMethod(ActivationMethod activation_method))
+START_SECTION(void setActivationMethod(ActivationMethod activation_method))
   Precursor tmp;
   tmp.setActivationMethod(Precursor::CID);
   TEST_EQUAL(tmp.getActivationMethod(),Precursor::CID);
-RESULT
+END_SECTION
 
-CHECK(EnergyUnits getActivationEnergyUnit() const)
+START_SECTION(EnergyUnits getActivationEnergyUnit() const)
   Precursor tmp;
   TEST_EQUAL(tmp.getActivationEnergyUnit(),Precursor::UNITSNULL);
-RESULT
+END_SECTION
 
-CHECK(void setActivationEnergyUnit(EnergyUnits activation_energy_unit))
+START_SECTION(void setActivationEnergyUnit(EnergyUnits activation_energy_unit))
   Precursor tmp;
   tmp.setActivationEnergyUnit(Precursor::EV);
   TEST_EQUAL(tmp.getActivationEnergyUnit(),Precursor::EV);
-RESULT
+END_SECTION
 
-CHECK(float getWindowSize() const)
+START_SECTION(float getWindowSize() const)
   Precursor tmp;
-  TEST_REAL_EQUAL(tmp.getWindowSize(), 0);
-RESULT
+  TEST_REAL_SIMILAR(tmp.getWindowSize(), 0);
+END_SECTION
 
-CHECK(void setWindowSize(float size))
+START_SECTION(void setWindowSize(float size))
   Precursor tmp;
   tmp.setWindowSize(22.7);
-  TEST_REAL_EQUAL(tmp.getWindowSize(), 22.7);
-RESULT
+  TEST_REAL_SIMILAR(tmp.getWindowSize(), 22.7);
+END_SECTION
 
-CHECK(Precursor(const Precursor& source))
+START_SECTION(Precursor(const Precursor& source))
 	Precursor tmp;
 	tmp.setActivationEnergy(47.11);
 	tmp.setActivationMethod(Precursor::CID);
@@ -104,11 +104,11 @@ CHECK(Precursor(const Precursor& source))
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 	TEST_EQUAL(tmp2.getActivationMethod(),Precursor::CID);
 	TEST_EQUAL(tmp2.getActivationEnergyUnit(),Precursor::EV);
-	TEST_REAL_EQUAL(tmp2.getWindowSize(), 22.7);
-	TEST_REAL_EQUAL(tmp2.getActivationEnergy(),47.11);
-RESULT
+	TEST_REAL_SIMILAR(tmp2.getWindowSize(), 22.7);
+	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),47.11);
+END_SECTION
 
-CHECK(Precursor& operator= (const Precursor& source))
+START_SECTION(Precursor& operator= (const Precursor& source))
 	Precursor tmp;
 	tmp.setActivationEnergy(47.11);
 	tmp.setActivationMethod(Precursor::CID);
@@ -122,19 +122,19 @@ CHECK(Precursor& operator= (const Precursor& source))
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 	TEST_EQUAL(tmp2.getActivationMethod(),Precursor::CID);
 	TEST_EQUAL(tmp2.getActivationEnergyUnit(),Precursor::EV);
-	TEST_REAL_EQUAL(tmp2.getWindowSize(), 22.7);
-	TEST_REAL_EQUAL(tmp2.getActivationEnergy(),47.11);
+	TEST_REAL_SIMILAR(tmp2.getWindowSize(), 22.7);
+	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),47.11);
 		
 	//assignment of empty object
 	tmp2 = Precursor();
 	TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
 	TEST_EQUAL(tmp2.getActivationMethod(),Precursor::ACTMETHNULL);
 	TEST_EQUAL(tmp2.getActivationEnergyUnit(),Precursor::UNITSNULL);
-	TEST_REAL_EQUAL(tmp2.getWindowSize(), 0.0);
-	TEST_REAL_EQUAL(tmp2.getActivationEnergy(),0.0);
-RESULT
+	TEST_REAL_SIMILAR(tmp2.getWindowSize(), 0.0);
+	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),0.0);
+END_SECTION
 
-CHECK(bool operator== (const Precursor& rhs) const)
+START_SECTION(bool operator== (const Precursor& rhs) const)
 	Precursor tmp,tmp2;
 	
 	TEST_EQUAL(tmp==tmp2, true);
@@ -157,9 +157,9 @@ CHECK(bool operator== (const Precursor& rhs) const)
 	tmp2 = tmp;
 	tmp.setMetaValue("label",String("label"));
 	TEST_EQUAL(tmp==tmp2, false);
-RESULT
+END_SECTION
 
-CHECK(bool operator!= (const Precursor& rhs) const)
+START_SECTION(bool operator!= (const Precursor& rhs) const)
 	Precursor tmp,tmp2;
 	
 	TEST_EQUAL(tmp!=tmp2, false);
@@ -182,7 +182,7 @@ CHECK(bool operator!= (const Precursor& rhs) const)
 	tmp2 = tmp;
 	tmp.setMetaValue("label",String("label"));
 	TEST_EQUAL(tmp!=tmp2, true);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

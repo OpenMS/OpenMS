@@ -39,56 +39,56 @@ START_TEST(InstrumentSettings, "$Id$")
 /////////////////////////////////////////////////////////////
 
 InstrumentSettings* ptr = 0;
-CHECK(InstrumentSettings())
+START_SECTION(InstrumentSettings())
 	ptr = new InstrumentSettings();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~InstrumentSettings())
+START_SECTION(~InstrumentSettings())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(IonSource::Polarity getPolarity() const)
+START_SECTION(IonSource::Polarity getPolarity() const)
 	InstrumentSettings tmp;
 	TEST_EQUAL(tmp.getPolarity(),IonSource::POLNULL);
-RESULT
+END_SECTION
 
-CHECK(void setPolarity(IonSource::Polarity polarity))
+START_SECTION(void setPolarity(IonSource::Polarity polarity))
 	InstrumentSettings tmp;
 	tmp.setPolarity(IonSource::NEGATIVE);
 	TEST_EQUAL(tmp.getPolarity(),IonSource::NEGATIVE);
-RESULT
+END_SECTION
 
-CHECK(const std::vector< ScanWindow >&  getScanWindows() const)
+START_SECTION(const std::vector< ScanWindow >&  getScanWindows() const)
 	InstrumentSettings tmp;
   TEST_EQUAL(tmp.getScanWindows().size(),0);
-RESULT
+END_SECTION
 
-CHECK(std::vector< ScanWindow >&  getScanWindows();)
+START_SECTION(std::vector< ScanWindow >&  getScanWindows();)
 	InstrumentSettings tmp;
   tmp.getScanWindows().resize(1);
   TEST_EQUAL(tmp.getScanWindows().size(),1);
-RESULT
+END_SECTION
 
-CHECK(void setScanWindows(std::vector< ScanWindow >  scan_windows))
+START_SECTION(void setScanWindows(std::vector< ScanWindow >  scan_windows))
 	InstrumentSettings tmp;
   vector<InstrumentSettings::ScanWindow> vec(17);
   tmp.setScanWindows(vec);
   TEST_EQUAL(tmp.getScanWindows().size(),17);
-RESULT
+END_SECTION
 
-CHECK(ScanMode getScanMode() const)
+START_SECTION(ScanMode getScanMode() const)
 	InstrumentSettings tmp;
 	TEST_EQUAL(tmp.getScanMode(),InstrumentSettings::UNKNOWN);
-RESULT
+END_SECTION
 
-CHECK(void setScanMode(ScanMode scan_mode))
+START_SECTION(void setScanMode(ScanMode scan_mode))
 	InstrumentSettings tmp;
 	tmp.setScanMode(InstrumentSettings::ZOOM);
 	TEST_EQUAL(tmp.getScanMode(),InstrumentSettings::ZOOM);
-RESULT
+END_SECTION
 
-CHECK(InstrumentSettings(const InstrumentSettings& source))
+START_SECTION(InstrumentSettings(const InstrumentSettings& source))
   InstrumentSettings tmp;
   tmp.setScanMode(InstrumentSettings::ZOOM);
   tmp.getScanWindows().resize(1);
@@ -100,9 +100,9 @@ CHECK(InstrumentSettings(const InstrumentSettings& source))
   TEST_EQUAL(tmp2.getScanWindows().size(),1);
   TEST_EQUAL(tmp2.getPolarity(),IonSource::NEGATIVE);  
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
-RESULT
+END_SECTION
 
-CHECK(InstrumentSettings& operator= (const InstrumentSettings& source))
+START_SECTION(InstrumentSettings& operator= (const InstrumentSettings& source))
   InstrumentSettings tmp;
   tmp.setScanMode(InstrumentSettings::ZOOM);
   tmp.getScanWindows().resize(1);
@@ -121,9 +121,9 @@ CHECK(InstrumentSettings& operator= (const InstrumentSettings& source))
   TEST_EQUAL(tmp2.getScanWindows().size(),0);
   TEST_EQUAL(tmp2.getPolarity(),IonSource::POLNULL);  
 	TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
-RESULT
+END_SECTION
 
-CHECK(bool operator== (const InstrumentSettings& rhs) const)
+START_SECTION(bool operator== (const InstrumentSettings& rhs) const)
   InstrumentSettings edit, empty;
   
   TEST_EQUAL(edit==empty,true);
@@ -142,9 +142,9 @@ CHECK(bool operator== (const InstrumentSettings& rhs) const)
 	edit = empty;
 	edit.setMetaValue("label",String("label"));
 	TEST_EQUAL(edit==empty,false);
-RESULT
+END_SECTION
 
-CHECK(bool operator!= (const InstrumentSettings& rhs) const)
+START_SECTION(bool operator!= (const InstrumentSettings& rhs) const)
   InstrumentSettings edit, empty;
   
   TEST_EQUAL(edit!=empty,false);
@@ -163,7 +163,7 @@ CHECK(bool operator!= (const InstrumentSettings& rhs) const)
 	edit = empty;
 	edit.setMetaValue("label",String("label"));
 	TEST_EQUAL(edit!=empty,true);
-RESULT
+END_SECTION
 
 
 

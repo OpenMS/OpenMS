@@ -46,14 +46,14 @@ using namespace OpenMS;
 using namespace std;
 
 FASTAFile* ptr;
-CHECK((FASTAFile()))
+START_SECTION((FASTAFile()))
 	ptr = new FASTAFile();
 	TEST_EQUAL(ptr == 0, false)
-RESULT
+END_SECTION
 
-CHECK((~FASTAFile()))
+START_SECTION((~FASTAFile()))
   delete(ptr);
-RESULT
+END_SECTION
 
 FASTAFile file();
 vector< FASTAFile::FASTAEntry > sequences;
@@ -71,7 +71,7 @@ temp_entry.sequence = 		String("GDREQLLQRARLAEQAERYDDMASAMKAVTEL") +
 sequences.push_back(temp_entry);	
 
 
-CHECK((void load(const String& filename, std::vector< FASTAEntry > &data)))
+START_SECTION((void load(const String& filename, std::vector< FASTAEntry > &data)))
 	vector<FASTAFile::FASTAEntry> data;
 	FASTAFile file;
 	
@@ -94,9 +94,9 @@ CHECK((void load(const String& filename, std::vector< FASTAEntry > &data)))
 		String("VLELLDKYLILNATQAESKVFYLKMKGDYFRYLSEVASGENKQTTVSNSQQAYQEAFEISKKEMQ") + 
 		String("PTHPIRLGLALNFSVFYYEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLT") + 
 		String("LWTSENQGDEGDAGEGEN"))
-RESULT
+END_SECTION
 
-CHECK((void store(const String& filename, const std::vector< FASTAEntry > &data) const))
+START_SECTION((void store(const String& filename, const std::vector< FASTAEntry > &data) const))
 	vector<FASTAFile::FASTAEntry> data, data2;
 	String tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
@@ -108,7 +108,7 @@ CHECK((void store(const String& filename, const std::vector< FASTAEntry > &data)
 	file.store(tmp_filename,data);
 	file.load(tmp_filename,data2);
 	TEST_EQUAL(data==data2,true);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

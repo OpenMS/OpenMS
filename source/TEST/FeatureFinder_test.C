@@ -44,16 +44,16 @@ START_TEST(FeatureFinder, "$Id FeatureFinder_test.C 139 2006-07-14 10:08:39Z ole
 /////////////////////////////////////////////////////////////
 
 FeatureFinder* ptr = 0;
-CHECK((FeatureFinder()))
+START_SECTION((FeatureFinder()))
 	ptr = new FeatureFinder();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~FeatureFinder()))
+START_SECTION((virtual ~FeatureFinder()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((template <class PeakType, class FeatureType> void run(const String &algorithm_name, MSExperiment< PeakType > const &input_map, FeatureMap< FeatureType > &features, const Param &param)))
+START_SECTION((template <class PeakType, class FeatureType> void run(const String &algorithm_name, MSExperiment< PeakType > const &input_map, FeatureMap< FeatureType > &features, const Param &param)))
 	FeatureFinder ff;
 	FeatureMap<Feature> features;
 	
@@ -76,9 +76,9 @@ CHECK((template <class PeakType, class FeatureType> void run(const String &algor
 	map[0].setMSLevel(2);
 	map.updateRanges();
 	TEST_EXCEPTION(Exception::IllegalArgument, ff.run("none", map, features, Param()))
-RESULT
+END_SECTION
 
-CHECK((const Flag& getPeakFlag(const IndexPair& index) const))
+START_SECTION((const Flag& getPeakFlag(const IndexPair& index) const))
 	FeatureFinder ff;
 	FeatureMap<Feature> features;
 	MSExperiment<Peak1D> map;
@@ -89,9 +89,9 @@ CHECK((const Flag& getPeakFlag(const IndexPair& index) const))
 	ff.run("none", map, features, Param());
 	TEST_EQUAL(ff.getPeakFlag(make_pair(0,0)),FeatureFinderDefs::UNUSED)
 	TEST_EQUAL(ff.getPeakFlag(make_pair(1,0)),FeatureFinderDefs::UNUSED)
-RESULT
+END_SECTION
 
-CHECK((Flag& getPeakFlag(const IndexPair& index)))
+START_SECTION((Flag& getPeakFlag(const IndexPair& index)))
 	FeatureFinder ff;
 	FeatureMap<Feature> features;
 	MSExperiment<Peak1D> map;
@@ -103,13 +103,13 @@ CHECK((Flag& getPeakFlag(const IndexPair& index)))
 	ff.getPeakFlag(make_pair(0,0)) = FeatureFinderDefs::USED;
 	TEST_EQUAL(ff.getPeakFlag(make_pair(0,0)),FeatureFinderDefs::USED)
 	TEST_EQUAL(ff.getPeakFlag(make_pair(1,0)),FeatureFinderDefs::UNUSED)
-RESULT
+END_SECTION
 
-CHECK((Param getParameters(const String& algorithm_name) const))
+START_SECTION((Param getParameters(const String& algorithm_name) const))
 	FeatureFinder ff;
 	TEST_EQUAL(ff.getParameters("none")==Param(),true)
 	TEST_EQUAL(ff.getParameters("simple")==Param(),false)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

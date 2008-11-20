@@ -47,22 +47,22 @@ using namespace std;
 PTMXMLFile* ptr = 0;
 PTMXMLFile xml_file;
 
-CHECK((PTMXMLFile()))
+START_SECTION((PTMXMLFile()))
 	ptr = new PTMXMLFile();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((void load(const String& filename, std::map< String, std::pair< String, String > >& ptm_informations)))
+START_SECTION((void load(const String& filename, std::map< String, std::pair< String, String > >& ptm_informations)))
 
 	map< String, pair< String, String > > ptm_informations;
 	xml_file.load("data/PTMs.xml", ptm_informations);
 	
 	TEST_EQUAL(ptm_informations["TEST"].first, "N2O2-CH3")
 	TEST_EQUAL(ptm_informations["TEST"].second, "KLR")
-RESULT
+END_SECTION
 
 
-CHECK((void store(String filename, std::map< String, std::pair< String, String > > &ptm_informations) const))
+START_SECTION((void store(String filename, std::map< String, std::pair< String, String > > &ptm_informations) const))
 
 	map< String, pair< String, String > > ptm_informations;
 	xml_file.load("data/PTMs.xml", ptm_informations);
@@ -74,7 +74,7 @@ CHECK((void store(String filename, std::map< String, std::pair< String, String >
 	
 	TEST_EQUAL(ptm_informations["TEST"].first, "N2O2-CH3")
 	TEST_EQUAL(ptm_informations["TEST"].second, "KLR")
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -43,28 +43,28 @@ START_TEST(DelaunayPairFinder, "$Id$")
 /////////////////////////////////////////////////////////////
 
 DelaunayPairFinder* ptr = 0;
-CHECK((DelaunayPairFinder()))
+START_SECTION((DelaunayPairFinder()))
 	ptr = new DelaunayPairFinder();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~DelaunayPairFinder()))
+START_SECTION((virtual ~DelaunayPairFinder()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((static BaseGroupFinder* create()))
+START_SECTION((static BaseGroupFinder* create()))
 	BaseGroupFinder* base_ptr = 0;
 	base_ptr = DelaunayPairFinder::create();
 	TEST_NOT_EQUAL(base_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 	DelaunayPairFinder dpf;
 	
   TEST_EQUAL(dpf.getName() == "delaunay",true)
-RESULT
+END_SECTION
 
-CHECK((void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &result_map)))
+START_SECTION((void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &result_map)))
 {
 	
   std::vector<ConsensusMap> input(2);
@@ -154,7 +154,7 @@ CHECK((void run(const std::vector<ConsensusMap>& input_maps, ConsensusMap &resul
 	STATUS(ind6);
   TEST_EQUAL(*(it) == ind6, true)
 }
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

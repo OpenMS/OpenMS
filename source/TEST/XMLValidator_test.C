@@ -41,16 +41,16 @@ using namespace OpenMS;
 using namespace std;
 
 XMLValidator* ptr = 0;
-CHECK((XMLValidator()))
+START_SECTION((XMLValidator()))
 	ptr = new XMLValidator;
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(([EXTRA]~XMLValidator()))
+START_SECTION(([EXTRA]~XMLValidator()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((bool isValid(const String &filename, const String &schema) ))
+START_SECTION((bool isValid(const String &filename, const String &schema) ))
 	XMLValidator v;
 	
 	TEST_EQUAL(v.isValid("data/XMLValidator_valid.xml","data/XMLValidator.xsd"), true);
@@ -66,7 +66,7 @@ CHECK((bool isValid(const String &filename, const String &schema) ))
 	
 	//test exception
 	TEST_EXCEPTION(Exception::FileNotFound, v.isValid("data/this_file_does_not_exist.for_sure","data/XMLValidator.xsd"));
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -41,16 +41,16 @@ START_TEST(GaussFilter<D>, "$Id$")
 using namespace OpenMS;
 
 GaussFilter* dgauss_ptr = 0;
-CHECK((GaussFilter()))
+START_SECTION((GaussFilter()))
   dgauss_ptr = new GaussFilter;
   TEST_NOT_EQUAL(dgauss_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~GaussFilter()))
+START_SECTION((virtual ~GaussFilter()))
     delete dgauss_ptr;
-RESULT
+END_SECTION
 
-CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container)))
+START_SECTION((template<typename InputPeakIterator, typename OutputPeakContainer  > void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& smoothed_data_container)))
   MSSpectrum<Peak1D> raw;
 	raw.resize(5);
   MSSpectrum<Peak1D> filtered;
@@ -68,22 +68,22 @@ CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void
   gauss.setParameters(param);
   gauss.filter(raw.begin(),raw.end(),filtered);
   it=filtered.begin();
-  TEST_REAL_EQUAL(it->getIntensity(),1.0)
+  TEST_REAL_SIMILAR(it->getIntensity(),1.0)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),1.0)
+  TEST_REAL_SIMILAR(it->getIntensity(),1.0)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),1.0)
+  TEST_REAL_SIMILAR(it->getIntensity(),1.0)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),1.0)
+  TEST_REAL_SIMILAR(it->getIntensity(),1.0)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),1.0)
+  TEST_REAL_SIMILAR(it->getIntensity(),1.0)
   param.setValue( "gaussian_width", 0.1);
   gauss.setParameters(param);
   filtered.clear();
   TEST_EXCEPTION(Exception::IllegalArgument,gauss.filter(raw.begin(),raw.end(),filtered);)
-RESULT 
+END_SECTION 
 
-CHECK((template <typename PeakType> void filterExperiment(MSExperiment<PeakType>& map)))
+START_SECTION((template <typename PeakType> void filterExperiment(MSExperiment<PeakType>& map)))
 	MSExperiment<Peak1D> exp;
   exp.resize(4);
   
@@ -116,7 +116,7 @@ CHECK((template <typename PeakType> void filterExperiment(MSExperiment<PeakType>
   gauss.setParameters(param);
   TEST_EXCEPTION(Exception::IllegalArgument,gauss.filterExperiment(exp))
 	
-	PRECISION(0.01)
+	TOLERANCE_ABSOLUTE(0.01)
 	
 	//real test
 	param.setValue("gaussian_width", 0.2);
@@ -129,28 +129,28 @@ CHECK((template <typename PeakType> void filterExperiment(MSExperiment<PeakType>
 	TEST_EQUAL(exp[2].size(),1)
 	TEST_EQUAL(exp[3].size(),0)
 
-	TEST_REAL_EQUAL(exp[0][0].getIntensity(),0.000734827)	
-	TEST_REAL_EQUAL(exp[0][1].getIntensity(),0.0543746)
-	TEST_REAL_EQUAL(exp[0][2].getIntensity(),0.298025)
-	TEST_REAL_EQUAL(exp[0][3].getIntensity(),0.707691)
-	TEST_REAL_EQUAL(exp[0][4].getIntensity(),0.8963)
-	TEST_REAL_EQUAL(exp[0][5].getIntensity(),0.799397)
-	TEST_REAL_EQUAL(exp[0][6].getIntensity(),0.352416)
-	TEST_REAL_EQUAL(exp[0][7].getIntensity(),0.065132)
-	TEST_REAL_EQUAL(exp[0][8].getIntensity(),0.000881793)
+	TEST_REAL_SIMILAR(exp[0][0].getIntensity(),0.000734827)	
+	TEST_REAL_SIMILAR(exp[0][1].getIntensity(),0.0543746)
+	TEST_REAL_SIMILAR(exp[0][2].getIntensity(),0.298025)
+	TEST_REAL_SIMILAR(exp[0][3].getIntensity(),0.707691)
+	TEST_REAL_SIMILAR(exp[0][4].getIntensity(),0.8963)
+	TEST_REAL_SIMILAR(exp[0][5].getIntensity(),0.799397)
+	TEST_REAL_SIMILAR(exp[0][6].getIntensity(),0.352416)
+	TEST_REAL_SIMILAR(exp[0][7].getIntensity(),0.065132)
+	TEST_REAL_SIMILAR(exp[0][8].getIntensity(),0.000881793)
 
-	TEST_REAL_EQUAL(exp[1][0].getIntensity(),0.000734827)	
-	TEST_REAL_EQUAL(exp[1][1].getIntensity(),0.0543746)
-	TEST_REAL_EQUAL(exp[1][2].getIntensity(),0.298025)
-	TEST_REAL_EQUAL(exp[1][3].getIntensity(),0.707691)
-	TEST_REAL_EQUAL(exp[1][4].getIntensity(),0.8963)
-	TEST_REAL_EQUAL(exp[1][5].getIntensity(),0.799397)
-	TEST_REAL_EQUAL(exp[1][6].getIntensity(),0.352416)
-	TEST_REAL_EQUAL(exp[1][7].getIntensity(),0.065132)
-	TEST_REAL_EQUAL(exp[1][8].getIntensity(),0.000881793)
+	TEST_REAL_SIMILAR(exp[1][0].getIntensity(),0.000734827)	
+	TEST_REAL_SIMILAR(exp[1][1].getIntensity(),0.0543746)
+	TEST_REAL_SIMILAR(exp[1][2].getIntensity(),0.298025)
+	TEST_REAL_SIMILAR(exp[1][3].getIntensity(),0.707691)
+	TEST_REAL_SIMILAR(exp[1][4].getIntensity(),0.8963)
+	TEST_REAL_SIMILAR(exp[1][5].getIntensity(),0.799397)
+	TEST_REAL_SIMILAR(exp[1][6].getIntensity(),0.352416)
+	TEST_REAL_SIMILAR(exp[1][7].getIntensity(),0.065132)
+	TEST_REAL_SIMILAR(exp[1][8].getIntensity(),0.000881793)
 
-	TEST_REAL_EQUAL(exp[2][0].getIntensity(),0.0)
-RESULT
+	TEST_REAL_SIMILAR(exp[2][0].getIntensity(),0.0)
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

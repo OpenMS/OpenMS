@@ -46,28 +46,28 @@ START_TEST(String, "$Id$")
 /////////////////////////////////////////////////////////////
 
 String* s_ptr = 0;
-CHECK((String()))
+START_SECTION((String()))
 	s_ptr = new String;
 	TEST_NOT_EQUAL(s_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(([EXTRA] ~String()))
+START_SECTION(([EXTRA] ~String()))
 	delete s_ptr;
-RESULT
+END_SECTION
 
-CHECK((String(const QString &s)))
+START_SECTION((String(const QString &s)))
 	QString qs("bla");
 	String s(qs);
 	TEST_EQUAL(s=="bla",true)
-RESULT
+END_SECTION
 
-CHECK((QString toQString() const))
+START_SECTION((QString toQString() const))
 	QString qs("bla");
 	String s("bla");
 	TEST_EQUAL(s.toQString()==qs,true)
-RESULT
+END_SECTION
 
-CHECK((String(const char* s, SizeType length)))
+START_SECTION((String(const char* s, SizeType length)))
 	String s("abcdedfg",5);
 	TEST_EQUAL(s,"abcde")
 
@@ -79,95 +79,95 @@ CHECK((String(const char* s, SizeType length)))
 
 	String s4("abcdedfg",15);
 	TEST_EQUAL(s4,"abcdedfg")
-RESULT
+END_SECTION
 
-CHECK((String(const DataValue& d)))
+START_SECTION((String(const DataValue& d)))
 	TEST_EQUAL(String(DataValue(1.4)),"1.4")
 	TEST_EQUAL(String(DataValue("bla")),"bla")
 	TEST_EQUAL(String(DataValue(4711)),"4711")
-RESULT
+END_SECTION
 
-CHECK((String(const std::string& s)))
+START_SECTION((String(const std::string& s)))
 	String s(string("blablabla"));
 	TEST_EQUAL(s,"blablabla")
-RESULT
+END_SECTION
 
-CHECK((String(const char* s)))
+START_SECTION((String(const char* s)))
 	String s("blablabla");
 	TEST_EQUAL(s,"blablabla")
-RESULT
+END_SECTION
 
-CHECK((String(size_t len, char c)))
+START_SECTION((String(size_t len, char c)))
 	String s(17,'b');
 	TEST_EQUAL(s,"bbbbbbbbbbbbbbbbb")
-RESULT
+END_SECTION
 
-CHECK((String(const char c)))
+START_SECTION((String(const char c)))
 	String s('v');
 	TEST_EQUAL(s,"v")
-RESULT
+END_SECTION
 
-CHECK((String(int i)))
+START_SECTION((String(int i)))
 	String s(int (-17));
 	TEST_EQUAL(s,"-17")
-RESULT
+END_SECTION
 
-CHECK((String(unsigned int i)))
+START_SECTION((String(unsigned int i)))
 	String s((unsigned int) (17));
 	TEST_EQUAL(s,"17")
-RESULT
+END_SECTION
 
-CHECK((String(long int i)))
+START_SECTION((String(long int i)))
 	String s((long int)(-17));
 	TEST_EQUAL(s,"-17")
-RESULT
+END_SECTION
 
-CHECK((String(long unsigned int i)))
+START_SECTION((String(long unsigned int i)))
 	String s((long unsigned int)(17));
 	TEST_EQUAL(s,"17")
-RESULT
+END_SECTION
 
-CHECK((String(short int i)))
+START_SECTION((String(short int i)))
 	String s((short int)(-17));
 	TEST_EQUAL(s,"-17")
-RESULT
+END_SECTION
 
-CHECK((String(short unsigned int i)))
+START_SECTION((String(short unsigned int i)))
 	String s((short unsigned int)(17));
 	TEST_EQUAL(s,"17")
-RESULT
+END_SECTION
 
-CHECK((String(float f)))
+START_SECTION((String(float f)))
 	String s(float(17.0123));
 	TEST_EQUAL(s,"17.0123")
-RESULT
+END_SECTION
 
-CHECK((String(double d)))
+START_SECTION((String(double d)))
 	String s(double(17.012345));
 	TEST_EQUAL(s,"17.012345")
-RESULT
+END_SECTION
 
-CHECK((String(long double d)))
+START_SECTION((String(long double d)))
 	String s(17.012345L); // suffix L indicates long double
 	TEST_EQUAL(s,"17.012345")
-RESULT
+END_SECTION
 
-CHECK((String(long long unsigned int i)))
+START_SECTION((String(long long unsigned int i)))
 	String s((long long unsigned int)(12345678));
 	TEST_EQUAL(s,"12345678")
-RESULT
+END_SECTION
 
-CHECK((static String numberLength(DoubleReal d, UInt n)))
+START_SECTION((static String numberLength(DoubleReal d, UInt n)))
 	TEST_EQUAL(String::numberLength(12345678.9123,11),"12345678.91")
 	TEST_EQUAL(String::numberLength(-12345678.9123,11),"-12345678.9")
 	TEST_EQUAL(String::numberLength(12345678.9123,10),"12345678.9")
 	TEST_EQUAL(String::numberLength(-12345678.9123,10),"-1234.5e04")
 	TEST_EQUAL(String::numberLength(12345678.9123,9),"1234.5e04")
 	TEST_EQUAL(String::numberLength(-12345678.9123,9),"-123.4e05")
-RESULT
+END_SECTION
 
 
-CHECK((static String number(DoubleReal d, UInt n)))
+START_SECTION((static String number(DoubleReal d, UInt n)))
 	TEST_EQUAL(String::number(123.1234,0),"123")
 	TEST_EQUAL(String::number(123.1234,1),"123.1")
 	TEST_EQUAL(String::number(123.1234,2),"123.12")
@@ -175,10 +175,10 @@ CHECK((static String number(DoubleReal d, UInt n)))
 	TEST_EQUAL(String::number(123.1234,4),"123.1234")
 	TEST_EQUAL(String::number(123.1234,5),"123.12340")
 	TEST_EQUAL(String::number(0.0,5),"0.00000")
-RESULT
+END_SECTION
 
 
-CHECK((template<class InputIterator> String(InputIterator first, InputIterator last)))
+START_SECTION((template<class InputIterator> String(InputIterator first, InputIterator last)))
 	String s("ABCDEFGHIJKLMNOP");
 	String::Iterator i = s.begin();
 	String::Iterator j = s.end();
@@ -201,77 +201,77 @@ CHECK((template<class InputIterator> String(InputIterator first, InputIterator l
 	s2 = String(i,j);
 	TEST_EQUAL(s2,"")
 	TEST_EQUAL(s2.size(),0)
-RESULT
+END_SECTION
 
 String s("ACDEFGHIKLMNPQRSTVWY");
-CHECK((bool hasPrefix(const String& string) const))
+START_SECTION((bool hasPrefix(const String& string) const))
 	TEST_EQUAL(s.hasPrefix(""), true);
 	TEST_EQUAL(s.hasPrefix("ACDEF"), true);
 	TEST_EQUAL(s.hasPrefix("ACDEFGHIKLMNPQRSTVWY"), true);
 	TEST_EQUAL(s.hasPrefix("ABCDEF"), false);
 	TEST_EQUAL(s.hasPrefix("ACDEFGHIKLMNPQRSTVWYACDEF"), false);
-RESULT
+END_SECTION
 
-CHECK((bool hasSuffix(const String& string) const))
+START_SECTION((bool hasSuffix(const String& string) const))
 	TEST_EQUAL(s.hasSuffix(""), true);
 	TEST_EQUAL(s.hasSuffix("TVWY"), true);
 	TEST_EQUAL(s.hasSuffix("ACDEFGHIKLMNPQRSTVWY"), true);
 	TEST_EQUAL(s.hasSuffix("WXYZ"), false);
 	TEST_EQUAL(s.hasSuffix("ACDEFACDEFGHIKLMNPQRSTVWY"), false);
-RESULT
+END_SECTION
 
-CHECK((bool hasSubstring(const String& string) const))
+START_SECTION((bool hasSubstring(const String& string) const))
 	TEST_EQUAL(s.hasSubstring(""), true);
 	TEST_EQUAL(s.hasSubstring("GHIKLM"), true);
 	TEST_EQUAL(s.hasSubstring("ACDEFGHIKLMNPQRSTVWY"), true);
 	TEST_EQUAL(s.hasSubstring("MLKIGH"), false);
 	TEST_EQUAL(s.hasSubstring("ACDEFGHIKLMNPQRSTVWYACDEF"), false);
-RESULT
+END_SECTION
 
-CHECK((bool has(Byte byte) const))
+START_SECTION((bool has(Byte byte) const))
 	TEST_EQUAL(s.has('A'), true);
 	TEST_EQUAL(s.has('O'), false);
-RESULT
+END_SECTION
 
-CHECK((String prefix(Int length) const))
+START_SECTION((String prefix(Int length) const))
 	TEST_EQUAL(s.prefix((Int)4), "ACDE");
 	TEST_EQUAL(s.prefix((Int)0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.prefix(s.size()+1));
 	TEST_EXCEPTION(Exception::IndexUnderflow, s.prefix(-1));
-RESULT
+END_SECTION
 
-CHECK((String suffix(Int length) const))
+START_SECTION((String suffix(Int length) const))
 	TEST_EQUAL(s.suffix((Int)4), "TVWY");
 	TEST_EQUAL(s.suffix((Int)0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.suffix(s.size()+1));
 	TEST_EXCEPTION(Exception::IndexUnderflow, s.suffix(-1));
-RESULT
+END_SECTION
 
-CHECK((String prefix(SizeType length) const))
+START_SECTION((String prefix(SizeType length) const))
 	TEST_EQUAL(s.prefix((String::SizeType)4), "ACDE");
 	TEST_EQUAL(s.prefix((String::SizeType)0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.prefix(s.size()+1));
-RESULT
+END_SECTION
 
-CHECK((String suffix(SizeType length) const))
+START_SECTION((String suffix(SizeType length) const))
 	TEST_EQUAL(s.suffix((String::SizeType)4), "TVWY");
 	TEST_EQUAL(s.suffix((String::SizeType)0), "");
 	TEST_EXCEPTION(Exception::IndexOverflow, s.suffix(s.size()+1));
-RESULT
+END_SECTION
 
-CHECK((String prefix(char delim) const))
+START_SECTION((String prefix(char delim) const))
 	TEST_EQUAL(s.prefix('F'), "ACDE");
 	TEST_EQUAL(s.prefix('A'), "");
 	TEST_EXCEPTION(Exception::ElementNotFound, s.suffix('Z'));
-RESULT
+END_SECTION
 
-CHECK((String suffix(char delim) const))
+START_SECTION((String suffix(char delim) const))
 	TEST_EQUAL(s.suffix('S'), "TVWY");
 	TEST_EQUAL(s.suffix('Y'), "");
 	TEST_EXCEPTION(Exception::ElementNotFound, s.suffix('Z'));
-RESULT
+END_SECTION
 
-CHECK((String substr(Int start, Int n) const))
+START_SECTION((String substr(Int start, Int n) const))
 	String s("abcdef");
 	//std::string functionality
 	TEST_EQUAL(s.substr(0,4),"abcd");
@@ -299,9 +299,9 @@ CHECK((String substr(Int start, Int n) const))
 	TEST_EQUAL(s.substr(-3,-1),"de")
 	TEST_EQUAL(s.substr(-3,-1),"de")
 	TEST_EQUAL(s.substr(-19,-9),"")
-RESULT
+END_SECTION
 
-CHECK((String substr(Int start) const))
+START_SECTION((String substr(Int start) const))
 	String s("abcdef");
 	TEST_EQUAL(s.substr(0),"abcdef");
 	TEST_EQUAL(s.substr(1),"bcdef")
@@ -310,17 +310,17 @@ CHECK((String substr(Int start) const))
 	TEST_EQUAL(s.substr(-2),"ef")
 	TEST_EQUAL(s.substr(-3),"def");
 	TEST_EQUAL(s.substr(-9),"abcdef");
-RESULT
+END_SECTION
 
-CHECK((String& reverse()))
+START_SECTION((String& reverse()))
 	s.reverse();
 	TEST_EQUAL(s, "YWVTSRQPNMLKIHGFEDCA");
 	s = "";
 	s.reverse();
 	TEST_EQUAL(s, "");
-RESULT
+END_SECTION
 
-CHECK((String& trim()))
+START_SECTION((String& trim()))
 	String s("\n\r\t test \n\r\t");
 	s.trim();	
 	TEST_EQUAL(s,"test");
@@ -338,9 +338,9 @@ CHECK((String& trim()))
 	s = "\t\r\n ";
 	s.trim();	
 	TEST_EQUAL(s,"");
-RESULT
+END_SECTION
 
-CHECK((String& simplify()))
+START_SECTION((String& simplify()))
 	String s("\n\r\t te\tst \n\r\t");
 	s.simplify();
 	TEST_EQUAL(s," te st ");
@@ -358,10 +358,10 @@ CHECK((String& simplify()))
 	s = "\t\r\n ";
 	s.simplify();
 	TEST_EQUAL(s," ");
-RESULT
+END_SECTION
 
 
-CHECK((String& fillLeft(char c, UInt size)))
+START_SECTION((String& fillLeft(char c, UInt size)))
 	String s("TEST");
 	s.fillLeft('x',4);
 	TEST_EQUAL(s,"TEST")
@@ -369,9 +369,9 @@ CHECK((String& fillLeft(char c, UInt size)))
 	TEST_EQUAL(s,"yTEST")
 	s.fillLeft('z',7);
 	TEST_EQUAL(s,"zzyTEST")
-RESULT
+END_SECTION
 
-CHECK((String& fillRight(char c, UInt size)))
+START_SECTION((String& fillRight(char c, UInt size)))
 	String s("TEST");
 	s.fillRight('x',4);
 	TEST_EQUAL(s,"TEST")
@@ -379,9 +379,9 @@ CHECK((String& fillRight(char c, UInt size)))
 	TEST_EQUAL(s,"TESTy")
 	s.fillRight('z',7);
 	TEST_EQUAL(s,"TESTyzz")	
-RESULT
+END_SECTION
 
-CHECK((Int toInt() const))
+START_SECTION((Int toInt() const))
 	String s;
 	s = "123.456";
 	TEST_EQUAL(s.toInt(),123);
@@ -390,48 +390,48 @@ CHECK((Int toInt() const))
 	s = "123.9";
 	TEST_EQUAL(s.toInt(),123);
 	s = "73629.00";
-	TEST_REAL_EQUAL(s.toInt(),73629);
+	TEST_REAL_SIMILAR(s.toInt(),73629);
 	s = "73629.50";
-	TEST_REAL_EQUAL(s.toInt(),73629);
+	TEST_REAL_SIMILAR(s.toInt(),73629);
 	s = "73629.99";
-	TEST_REAL_EQUAL(s.toInt(),73629);
-RESULT
+	TEST_REAL_SIMILAR(s.toInt(),73629);
+END_SECTION
 
-CHECK((Real toFloat() const))
+START_SECTION((Real toFloat() const))
 	String s;
 	s = "123.456";
-	TEST_REAL_EQUAL(s.toFloat(),123.456);
+	TEST_REAL_SIMILAR(s.toFloat(),123.456);
 	s = "-123.456";
-	TEST_REAL_EQUAL(s.toFloat(),-123.456);
+	TEST_REAL_SIMILAR(s.toFloat(),-123.456);
 	s = "123.9";
-	TEST_REAL_EQUAL(s.toFloat(),123.9);
+	TEST_REAL_SIMILAR(s.toFloat(),123.9);
 	s = "73629.9";
 	TEST_EQUAL(String(s.toFloat()),"73629.9");
 	s = "47218.8";
 	TEST_EQUAL(String(s.toFloat()),"47218.8");
-RESULT
+END_SECTION
 
-CHECK((DoubleReal toDouble() const))
+START_SECTION((DoubleReal toDouble() const))
 	String s;
 	s = "123.456";
-	TEST_REAL_EQUAL(s.toDouble(),123.456);
+	TEST_REAL_SIMILAR(s.toDouble(),123.456);
 	s = "-123.4567890123";
-	TEST_REAL_EQUAL(s.toDouble(),-123.4567890123);
+	TEST_REAL_SIMILAR(s.toDouble(),-123.4567890123);
 	s = "123.99999";
-	TEST_REAL_EQUAL(s.toDouble(),123.99999);
+	TEST_REAL_SIMILAR(s.toDouble(),123.99999);
 	s = "73629.980123";
 	TEST_EQUAL(String(s.toDouble()),"73629.980123");
 	s = "47218.890000001";
 	TEST_EQUAL(String(s.toDouble()),"47218.890000001");
-RESULT
+END_SECTION
 
-CHECK((static String random(UInt length)))
+START_SECTION((static String random(UInt length)))
 	String s;
 	String s2 = s.random(10);
 	TEST_EQUAL(s2.size(),10);
-RESULT
+END_SECTION
 
-CHECK((bool split(char splitter, std::vector<String>& substrings) const))
+START_SECTION((bool split(char splitter, std::vector<String>& substrings) const))
 	String s(";1;2;3;4;5;");
 	vector<String> split;
 	bool result = s.split(';',split);
@@ -468,9 +468,9 @@ CHECK((bool split(char splitter, std::vector<String>& substrings) const))
 	TEST_EQUAL(split.size(),0);
 	
 
-RESULT
+END_SECTION
 
-CHECK((template<class StringIterator> void implode(StringIterator first, StringIterator last, const String& glue = "")))
+START_SECTION((template<class StringIterator> void implode(StringIterator first, StringIterator last, const String& glue = "")))
 	vector<String> split;
 	String("1;2;3;4;5").split(';',split);
 	String s;
@@ -487,9 +487,9 @@ CHECK((template<class StringIterator> void implode(StringIterator first, StringI
 	
 	s.implode(split.begin(),split.end(),"_");
 	TEST_EQUAL(s,"");
-RESULT
+END_SECTION
 
-CHECK((String& toUpper()))
+START_SECTION((String& toUpper()))
 	String s;
 	s = "test45%#.,";
 	s.toUpper();
@@ -497,9 +497,9 @@ CHECK((String& toUpper()))
 	s = "";
 	s.toUpper();
 	TEST_EQUAL(s,"");
-RESULT
+END_SECTION
 
-CHECK((String& toLower()))
+START_SECTION((String& toLower()))
 	String s;
 	s = "TEST45%#.,";
 	s.toLower();
@@ -507,9 +507,9 @@ CHECK((String& toLower()))
 	s = "";
 	s.toLower();
 	TEST_EQUAL(s,"");
-RESULT
+END_SECTION
 
-CHECK((String& firstToUpper()))
+START_SECTION((String& firstToUpper()))
 	String s;
 	s = "test45%#.,";
 	s.firstToUpper();
@@ -520,9 +520,9 @@ CHECK((String& firstToUpper()))
 	s = "";
 	s.firstToUpper();
 	TEST_EQUAL(s,"");
-RESULT
+END_SECTION
 
-CHECK((String& substitute(char from, char to)))
+START_SECTION((String& substitute(char from, char to)))
 	String s = "abcdefg";
 
 	s.substitute('a','x');
@@ -541,9 +541,9 @@ CHECK((String& substitute(char from, char to)))
 	s = ".....";
 	s.substitute(',','.');
 	TEST_EQUAL(s,".....")
-RESULT
+END_SECTION
 
-CHECK((String& substitute(const String& from, const String& to)))
+START_SECTION((String& substitute(const String& from, const String& to)))
 	//single occurence
 	String s = "abcdefg";
 
@@ -572,9 +572,9 @@ CHECK((String& substitute(const String& from, const String& to)))
 
 	s.substitute("x","");
 	TEST_EQUAL(s,"cdefgcdefgcdefg")
-RESULT
+END_SECTION
 
-CHECK((String& remove(char what)))
+START_SECTION((String& remove(char what)))
 	String s = "abcabc";
 
 	s.remove('a');
@@ -585,9 +585,9 @@ CHECK((String& remove(char what)))
 	
 	s.remove('b');
 	TEST_EQUAL(s, "");
-RESULT
+END_SECTION
 
-CHECK((String& ensureLastChar(char end)))
+START_SECTION((String& ensureLastChar(char end)))
 	String s = "/";
 	s.ensureLastChar('/');
 	TEST_EQUAL("/", s)
@@ -600,9 +600,9 @@ CHECK((String& ensureLastChar(char end)))
 
 	s.ensureLastChar('/');
 	TEST_EQUAL("/\\/", s)
-RESULT
+END_SECTION
 
-CHECK((String& removeWhitespaces()))
+START_SECTION((String& removeWhitespaces()))
 	String s;
 	
 	s.removeWhitespaces();	
@@ -615,123 +615,123 @@ CHECK((String& removeWhitespaces()))
 	s = "\n\r\t te \n\r\tst \n\r\t";
 	s.removeWhitespaces();	
 	TEST_EQUAL(s,"test");
-RESULT
+END_SECTION
 
 
 const String fixed("test");
 
-CHECK((String operator+ (int i) const))
+START_SECTION((String operator+ (int i) const))
 	TEST_EQUAL(fixed + (int)(4), "test4")
-RESULT
+END_SECTION
 
-CHECK((String operator+ (unsigned int i) const))
+START_SECTION((String operator+ (unsigned int i) const))
 	TEST_EQUAL(fixed + (unsigned int)(4), "test4")
-RESULT
+END_SECTION
 
-CHECK((String operator+ (short int i) const))
+START_SECTION((String operator+ (short int i) const))
 	TEST_EQUAL(fixed + (short int)(4), "test4")
-RESULT
+END_SECTION
 
-CHECK((String operator+ (short unsigned int i) const))
+START_SECTION((String operator+ (short unsigned int i) const))
 	TEST_EQUAL(fixed + (short unsigned int)(4), "test4")
-RESULT
+END_SECTION
 
-CHECK((String operator+ (long int i) const))
+START_SECTION((String operator+ (long int i) const))
 	TEST_EQUAL(fixed + (long int)(4), "test4")
-RESULT
+END_SECTION
 
-CHECK((String operator+ (long unsigned int i) const))
+START_SECTION((String operator+ (long unsigned int i) const))
 	TEST_EQUAL(fixed + (long unsigned int)(4), "test4")
-RESULT
+END_SECTION
 
-CHECK((String operator+ (long long unsigned int i) const))
+START_SECTION((String operator+ (long long unsigned int i) const))
 	TEST_EQUAL(fixed + (long long unsigned int)(4), "test4")
-RESULT
+END_SECTION
 
-CHECK((String operator+ (float f) const))
+START_SECTION((String operator+ (float f) const))
 	TEST_EQUAL(fixed + (float)(4), "test4")
-RESULT
+END_SECTION
 
-CHECK((String operator+ (double d) const))
+START_SECTION((String operator+ (double d) const))
 	TEST_EQUAL(fixed + (double)(4), "test4")
-RESULT
+END_SECTION
 
-CHECK((String operator+ (long double d) const))
+START_SECTION((String operator+ (long double d) const))
 	TEST_EQUAL(fixed + (long double)(4), "test4")
-RESULT
+END_SECTION
 
-CHECK((String operator+ (char c) const))
+START_SECTION((String operator+ (char c) const))
 	TEST_EQUAL(fixed + '4', "test4")
-RESULT
+END_SECTION
 
-CHECK((String operator+ (const char* s) const))
+START_SECTION((String operator+ (const char* s) const))
 	TEST_EQUAL(fixed + "bla4", "testbla4")
-RESULT
+END_SECTION
 
-CHECK((String operator+ (const String& s) const))
+START_SECTION((String operator+ (const String& s) const))
 	TEST_EQUAL(fixed + String("bla4"), "testbla4")
-RESULT
+END_SECTION
 
-CHECK((String operator+ (const std::string& s) const))
+START_SECTION((String operator+ (const std::string& s) const))
 	TEST_EQUAL(fixed + std::string("bla4"), "testbla4")
-RESULT
+END_SECTION
 
 
-CHECK((String& operator+= (int i)))
+START_SECTION((String& operator+= (int i)))
 	String s = "test";
 	s += (int)(7);
 	TEST_EQUAL(s, "test7")
-RESULT
+END_SECTION
 
-CHECK((String& operator+= (unsigned int i)))
+START_SECTION((String& operator+= (unsigned int i)))
 	String s = "test";
 	s += (unsigned int)(7);
 	TEST_EQUAL(s, "test7")
-RESULT
+END_SECTION
 
-CHECK((String& operator+= (short int i)))
+START_SECTION((String& operator+= (short int i)))
 	String s = "test";
 	s += (short int)(7);
 	TEST_EQUAL(s, "test7")
-RESULT
+END_SECTION
 
-CHECK((String& operator+= (short unsigned int i)))
+START_SECTION((String& operator+= (short unsigned int i)))
 	String s = "test";
 	s += (short unsigned int)(7);
 	TEST_EQUAL(s, "test7")
-RESULT
+END_SECTION
 
-CHECK((String& operator+= (long int i)))
+START_SECTION((String& operator+= (long int i)))
 	String s = "test";
 	s += (long int)(7);
 	TEST_EQUAL(s, "test7")
-RESULT
+END_SECTION
 
-CHECK((String& operator+= (long unsigned int i)))
+START_SECTION((String& operator+= (long unsigned int i)))
 	String s = "test";
 	s += (long unsigned int)(7);
 	TEST_EQUAL(s, "test7")
-RESULT
+END_SECTION
 
-CHECK((String& operator+= (long long unsigned int i)))
+START_SECTION((String& operator+= (long long unsigned int i)))
 	String s = "test";
 	s += (long long unsigned int)(7);
 	TEST_EQUAL(s, "test7")
-RESULT
+END_SECTION
 
-CHECK((String& operator+= (float f)))
+START_SECTION((String& operator+= (float f)))
 	String s = "test";
 	s += (float)(7.4);
 	TEST_EQUAL(s, "test7.4")
-RESULT
+END_SECTION
 
-CHECK((String& operator+= (double d)))
+START_SECTION((String& operator+= (double d)))
 	String s = "test";
 	s += (double)(7.4);
 	TEST_EQUAL(s, "test7.4")
-RESULT
+END_SECTION
 
-CHECK((String& operator+= (long double d)))
+START_SECTION((String& operator+= (long double d)))
 {
 	/*
 	NOTE (by Clemens): Windows platforms do not really support long double.  See
@@ -786,31 +786,31 @@ CHECK((String& operator+= (long double d)))
 	s += x;
 	TEST_EQUAL(s, "test7.4");
 }
-RESULT
+END_SECTION
 
-CHECK((String& operator+= (char c)))
+START_SECTION((String& operator+= (char c)))
 	String s = "test";
 	s += 'x';
 	TEST_EQUAL(s, "testx")
-RESULT
+END_SECTION
 
-CHECK((String& operator+= (const char* s)))
+START_SECTION((String& operator+= (const char* s)))
 	String s = "test";
 	s += 7;
 	TEST_EQUAL(s, "test7")
-RESULT
+END_SECTION
 
-CHECK((String& operator+= (const String& s)))
+START_SECTION((String& operator+= (const String& s)))
 	String s = "test";
 	s += String("7");
 	TEST_EQUAL(s, "test7")
-RESULT
+END_SECTION
 
-CHECK((String& operator+= (const std::string& s)))
+START_SECTION((String& operator+= (const std::string& s)))
 	String s = "test";
 	s += std::string("7");
 	TEST_EQUAL(s, "test7")
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

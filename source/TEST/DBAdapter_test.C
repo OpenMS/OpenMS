@@ -101,30 +101,30 @@ if (do_tests)
 	
 	DBAdapter* ptr = 0;
 
-	CHECK((DBAdapter(DBConnection& db_con)))
+	START_SECTION((DBAdapter(DBConnection& db_con)))
 		ptr = new DBAdapter(con);
 		TEST_NOT_EQUAL(ptr, 0)
-	RESULT
+END_SECTION
 		
-	CHECK((~DBAdapter()))
+	START_SECTION((~DBAdapter()))
 		delete ptr;
-	RESULT
+END_SECTION
 
-	CHECK((void createDB()))
+	START_SECTION((void createDB()))
   	DBAdapter a(con);
 		a.createDB();
 		
 		QSqlQuery result = con.executeQuery("SELECT id FROM META_MSExperiment");
 	  TEST_EQUAL(result.size(),0)
-	RESULT
+END_SECTION
 
 	//check if the DB is up-to-date
 	bool db_up_to_date;
-	CHECK((bool checkDBVersion(bool warning)))
+	START_SECTION((bool checkDBVersion(bool warning)))
 		DBAdapter a(con);
 		db_up_to_date = a.checkDBVersion(true);
 		TEST_EQUAL(db_up_to_date,true)
-	RESULT
+END_SECTION
 	
 	if (db_up_to_date)
 	{
@@ -415,7 +415,7 @@ if (do_tests)
 		
 		// save newly created experiments - should be added to database.
 		// success is implicitly checked later when loading from database.
-	CHECK((template<class ExperimentType> void storeExperiment(ExperimentType& exp)))
+	START_SECTION((template<class ExperimentType> void storeExperiment(ExperimentType& exp)))
 	  DBAdapter a(con);
 	  a.storeExperiment(exp_original);
 	  a.storeExperiment(exp_peak1d);
@@ -425,7 +425,7 @@ if (do_tests)
 		spec_tmp_id2 = exp_peak1d[0].getPersistenceId();
 		QSqlQuery result = con.executeQuery("SELECT id FROM META_MSExperiment");
 	  TEST_EQUAL(result.size(),2)
-	RESULT
+END_SECTION
 	
 	// add another experiment to the database (for TOPPView tests etc.)
 	DBAdapter a(con);
@@ -436,7 +436,7 @@ if (do_tests)
 	
 	
 	// check if first spectrum of the first saved experiment can be loaded correctly
-	CHECK((template <class SpectrumType> void loadSpectrum(UID id, SpectrumType &spec)))
+	START_SECTION((template <class SpectrumType> void loadSpectrum(UID id, SpectrumType &spec)))
 	  	DBAdapter a(con);
 	  	DBAdapter a2(con2);
 		  
@@ -447,8 +447,8 @@ if (do_tests)
 			TEST_EQUAL( spec.getMSLevel() , exp_original.begin()->getMSLevel() )
 			TEST_EQUAL( spec.size() , exp_original.begin()->size() )
 			TEST_EQUAL( spec.getInstrumentSettings().getScanWindows().size(),1)
-			TEST_REAL_EQUAL( spec.getInstrumentSettings().getScanWindows()[0].begin , exp_original.begin()->getInstrumentSettings().getScanWindows()[0].begin )
-			TEST_REAL_EQUAL( spec.getInstrumentSettings().getScanWindows()[0].end , exp_original.begin()->getInstrumentSettings().getScanWindows()[0].end )
+			TEST_REAL_SIMILAR( spec.getInstrumentSettings().getScanWindows()[0].begin , exp_original.begin()->getInstrumentSettings().getScanWindows()[0].begin )
+			TEST_REAL_SIMILAR( spec.getInstrumentSettings().getScanWindows()[0].end , exp_original.begin()->getInstrumentSettings().getScanWindows()[0].end )
 			TEST_EQUAL( spec.getInstrumentSettings().getPolarity() , exp_original.begin()->getInstrumentSettings().getPolarity() )
 			TEST_EQUAL( spec.getInstrumentSettings().getScanMode() , exp_original.begin()->getInstrumentSettings().getScanMode() )
 			TEST_EQUAL( spec.getAcquisitionInfo().getMethodOfCombination(), "combo");
@@ -467,12 +467,12 @@ if (do_tests)
 			TEST_EQUAL( meta_data_arrays[0].getComment(), "little icon with colors and stuff" )
 			TEST_EQUAL( meta_data_arrays[0].getSourceFile().getNameOfFile(), "this is the filename" )
 			TEST_EQUAL( meta_data_arrays[0].getSourceFile().getPathToFile(), "/slashdot/" )
-			TEST_REAL_EQUAL( meta_data_arrays[0].getSourceFile().getFileSize(), 1.234 )
+			TEST_REAL_SIMILAR( meta_data_arrays[0].getSourceFile().getFileSize(), 1.234 )
 			TEST_EQUAL( meta_data_arrays[0].getSourceFile().getFileType(), "RAWDATA" )
 			TEST_EQUAL( meta_data_arrays[0].getMetaValue("icon"), "an icon is an icon is an icon" )
-			TEST_REAL_EQUAL( meta_data_arrays[0][0], 3.14 )
-			TEST_REAL_EQUAL( meta_data_arrays[0][1], 3.1 )
-			TEST_REAL_EQUAL( meta_data_arrays[0][2], 3 )
+			TEST_REAL_SIMILAR( meta_data_arrays[0][0], 3.14 )
+			TEST_REAL_SIMILAR( meta_data_arrays[0][1], 3.1 )
+			TEST_REAL_SIMILAR( meta_data_arrays[0][2], 3 )
 
 			
 			TEST_EQUAL( spec.getSourceFile().getNameOfFile(), "westberlin" )
@@ -480,8 +480,8 @@ if (do_tests)
 			
 			for (UInt i=0; i<3; ++i)
 			{
-				TEST_REAL_EQUAL( spec[i].getIntensity() , exp_original.begin()->operator[](i).getIntensity() )
-				TEST_REAL_EQUAL( spec[i].getPosition()[0] , exp_original.begin()->operator[](i).getPosition()[0] )
+				TEST_REAL_SIMILAR( spec[i].getIntensity() , exp_original.begin()->operator[](i).getIntensity() )
+				TEST_REAL_SIMILAR( spec[i].getPosition()[0] , exp_original.begin()->operator[](i).getPosition()[0] )
 			}
 
 			PeakFileOptions options;
@@ -490,8 +490,8 @@ if (do_tests)
 			a.loadSpectrum(spec_tmp_id, spec);
 			
 			// check if the Intensity restriction worked - first peak (565) should have been skipped
-			TEST_REAL_EQUAL( spec[0].getIntensity() , 620 )
-			TEST_REAL_EQUAL( spec[1].getIntensity() , 701 )
+			TEST_REAL_SIMILAR( spec[0].getIntensity() , 620 )
+			TEST_REAL_SIMILAR( spec[1].getIntensity() , 701 )
 
 			options = PeakFileOptions();
 			options.setMZRange(DRange<1> (650, 1000));
@@ -499,17 +499,17 @@ if (do_tests)
 			a.loadSpectrum(spec_tmp_id, spec);
 
 			// check if the MZ restriction worked - first peak (600.1) should have been skipped
-			TEST_REAL_EQUAL( spec[0].getPosition()[0] , 700.1 )
-			TEST_REAL_EQUAL( spec[1].getPosition()[0] , 800.1 )
+			TEST_REAL_SIMILAR( spec[0].getPosition()[0] , 700.1 )
+			TEST_REAL_SIMILAR( spec[1].getPosition()[0] , 800.1 )
 
 			// testing concurrent DB connections
 			a2.loadSpectrum(spec_tmp_id, spec);
-			TEST_REAL_EQUAL( spec[0].getIntensity() , 565 )
-	RESULT
+			TEST_REAL_SIMILAR( spec[0].getIntensity() , 565 )
+END_SECTION
 		
 	// load first two experiments from database
 	// (this implicitly checks if the new experiments were stored correctly)
-	CHECK((template <class ExperimentType> void loadExperiment(UID id, ExperimentType &exp)))
+	START_SECTION((template <class ExperimentType> void loadExperiment(UID id, ExperimentType &exp)))
 		  DBAdapter a(con);
 		  RichPeakMap exp_new;
 		  std::map<String, MetaInfoDescription> descriptions;
@@ -520,27 +520,27 @@ if (do_tests)
 			
 			TEST_EQUAL(exp_new.getSample().getName(), "fruity loops" )
 			TEST_EQUAL(exp_new.getSample().getNumber(), "007" )
-			TEST_REAL_EQUAL(exp_new.getSample().getMass(), 30.1 )
-			TEST_REAL_EQUAL(exp_new.getSample().getSubsamples()[0].getVolume(), 60.1 )
-			TEST_REAL_EQUAL(exp_new.getSample().getSubsamples()[0].getConcentration(), 101.1 )
+			TEST_REAL_SIMILAR(exp_new.getSample().getMass(), 30.1 )
+			TEST_REAL_SIMILAR(exp_new.getSample().getSubsamples()[0].getVolume(), 60.1 )
+			TEST_REAL_SIMILAR(exp_new.getSample().getSubsamples()[0].getConcentration(), 101.1 )
 			const Digestion* digestion = dynamic_cast<const Digestion*>(&exp_new.getSample().getSubsamples()[0].getTreatment(0));
 			TEST_EQUAL(digestion->getEnzyme(), "dhdh" )
-			TEST_REAL_EQUAL(digestion->getDigestionTime(), 36.6 )
-			TEST_REAL_EQUAL(digestion->getPh(), 7.2 )
-			TEST_REAL_EQUAL(digestion->getTemperature(), 37.7 )
+			TEST_REAL_SIMILAR(digestion->getDigestionTime(), 36.6 )
+			TEST_REAL_SIMILAR(digestion->getPh(), 7.2 )
+			TEST_REAL_SIMILAR(digestion->getTemperature(), 37.7 )
 
 			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchEngine(), "google" )
 			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getSearchEngineVersion(), "beta" )
 			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getDateTime().get(), "2006-12-12 00:00:00" )
 			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getScoreType(), "Type" )
 			TEST_EQUAL(exp_new.getProteinIdentifications()[0].isHigherScoreBetter(), true )
-			TEST_REAL_EQUAL(exp_new.getProteinIdentifications()[0].getSignificanceThreshold(), 3.456 )
+			TEST_REAL_SIMILAR(exp_new.getProteinIdentifications()[0].getSignificanceThreshold(), 3.456 )
 			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getHits()[0].getAccession(), "0110110" )
-			TEST_REAL_EQUAL(exp_new.getProteinIdentifications()[0].getHits()[1].getScore(), 4.567 )
+			TEST_REAL_SIMILAR(exp_new.getProteinIdentifications()[0].getHits()[1].getScore(), 4.567 )
 			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getHits()[1].getAccession(), "1001001" )
 			TEST_EQUAL(exp_new.getProteinIdentifications()[0].getHits()[1].getSequence(), "ZXY" )
 
-			TEST_REAL_EQUAL(exp_new[0].getPeptideIdentifications()[0].getSignificanceThreshold(), 1.235 )	
+			TEST_REAL_SIMILAR(exp_new[0].getPeptideIdentifications()[0].getSignificanceThreshold(), 1.235 )	
 			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getScoreType(), "ScoreType" )
 			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].isHigherScoreBetter(), true )
 // needs getter and setter methods first
@@ -548,7 +548,7 @@ if (do_tests)
 //			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getSourceFile().getPathToFile(), "/testen/" )
 			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[1].isHigherScoreBetter(), false )
 
-			TEST_REAL_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getScore(), 2.345 )	
+			TEST_REAL_SIMILAR(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getScore(), 2.345 )	
 			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), "AACD" )	
 			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getCharge(), 7 )	
 			TEST_EQUAL(exp_new[0].getPeptideIdentifications()[0].getHits()[0].getAABefore(), 'b' )	
@@ -562,10 +562,10 @@ if (do_tests)
 			TEST_EQUAL(modification->getReagentName(), "reagent" )
 			TEST_EQUAL(modification->getAffectedAminoAcids(), "123" )
 			TEST_EQUAL(modification->getSpecificityType(), Modification::CTERM )
-			TEST_REAL_EQUAL(modification->getMass(), 12.3 )
+			TEST_REAL_SIMILAR(modification->getMass(), 12.3 )
 			const Tagging* tagging = dynamic_cast<const Tagging*>(&exp_new.getSample().getSubsamples()[1].getTreatment(1));
 			TEST_EQUAL(tagging->getReagentName(), "tagging" )
-			TEST_REAL_EQUAL(tagging->getMassShift(), 0.123 )
+			TEST_REAL_SIMILAR(tagging->getMassShift(), 0.123 )
 			TEST_EQUAL(tagging->getVariant(), Tagging::HEAVY )
 
 			TEST_EQUAL(exp_new.getSample().getSubsamples()[2].getComment(), "nice" )
@@ -604,8 +604,8 @@ if (do_tests)
 			TEST_EQUAL(exp_new.getInstrument().getIonDetectors().size(),1)
 			TEST_EQUAL(exp_new.getInstrument().getIonDetectors()[0].getType() , IonDetector::PHOTOMULTIPLIER )
 			TEST_EQUAL(exp_new.getInstrument().getIonDetectors()[0].getAcquisitionMode() , IonDetector::PULSECOUNTING )
-			TEST_REAL_EQUAL(exp_new.getInstrument().getIonDetectors()[0].getResolution() , 6.7677 )
-			TEST_REAL_EQUAL(exp_new.getInstrument().getIonDetectors()[0].getADCSamplingFrequency() , 7.6766 )
+			TEST_REAL_SIMILAR(exp_new.getInstrument().getIonDetectors()[0].getResolution() , 6.7677 )
+			TEST_REAL_SIMILAR(exp_new.getInstrument().getIonDetectors()[0].getADCSamplingFrequency() , 7.6766 )
 			TEST_EQUAL(exp_new.getInstrument().getIonDetectors()[0].getMetaValue("label") , "black" )
 			TEST_EQUAL(exp_new.getInstrument().getIonSources().size(),1)
 			TEST_EQUAL(exp_new.getInstrument().getIonSources()[0].getInletType() , IonSource::DIRECT )
@@ -613,21 +613,21 @@ if (do_tests)
 			TEST_EQUAL(exp_new.getInstrument().getIonSources()[0].getPolarity() , IonSource::POSITIVE )
 			TEST_EQUAL(exp_new.getInstrument().getIonSources()[0].getMetaValue("label") , "blue" )
 			
-			TEST_REAL_EQUAL(exp_new.getInstrument().getMassAnalyzers()[0].getAccuracy() , 1.2687 )
+			TEST_REAL_SIMILAR(exp_new.getInstrument().getMassAnalyzers()[0].getAccuracy() , 1.2687 )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[0].getFinalMSExponent() , 8 )
-			TEST_REAL_EQUAL(exp_new.getInstrument().getMassAnalyzers()[0].getIsolationWidth() , 8.456 )
-			TEST_REAL_EQUAL(exp_new.getInstrument().getMassAnalyzers()[0].getMagneticFieldStrength() , 9.999 )
+			TEST_REAL_SIMILAR(exp_new.getInstrument().getMassAnalyzers()[0].getIsolationWidth() , 8.456 )
+			TEST_REAL_SIMILAR(exp_new.getInstrument().getMassAnalyzers()[0].getMagneticFieldStrength() , 9.999 )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[0].getReflectronState() , MassAnalyzer::NONE )
-			TEST_REAL_EQUAL(exp_new.getInstrument().getMassAnalyzers()[0].getResolution() , 7.444 )
+			TEST_REAL_SIMILAR(exp_new.getInstrument().getMassAnalyzers()[0].getResolution() , 7.444 )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[0].getResolutionMethod() , MassAnalyzer::FWHM )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[0].getResolutionType() , MassAnalyzer::CONSTANT )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getScanDirection() , MassAnalyzer::UP )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getScanFunction() , MassAnalyzer::MASSSCAN )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getScanLaw() , MassAnalyzer::LINEAR )
-			TEST_REAL_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getScanRate() , 5.555 )
-			TEST_REAL_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getScanTime() , 6.666 )
+			TEST_REAL_SIMILAR(exp_new.getInstrument().getMassAnalyzers()[1].getScanRate() , 5.555 )
+			TEST_REAL_SIMILAR(exp_new.getInstrument().getMassAnalyzers()[1].getScanTime() , 6.666 )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getTandemScanMethod() , MassAnalyzer::PRODUCTIONSCAN )
-			TEST_REAL_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getTOFTotalPathLength() , 7.777 )
+			TEST_REAL_SIMILAR(exp_new.getInstrument().getMassAnalyzers()[1].getTOFTotalPathLength() , 7.777 )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getType() , MassAnalyzer::TOF )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getMetaValue("label") , "pink" )
 			
@@ -642,8 +642,8 @@ if (do_tests)
 			TEST_EQUAL( itn->size() , ito->size() )
 			for (UInt i=0; i<3; ++i)
 			{
-				TEST_REAL_EQUAL( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
-				TEST_REAL_EQUAL( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
+				TEST_REAL_SIMILAR( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
+				TEST_REAL_SIMILAR( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
 			}
 		
 			//SPECTRUM 2
@@ -656,18 +656,18 @@ if (do_tests)
 			TEST_EQUAL( itn->getPrecursorPeak().getIntensity() , ito->getPrecursorPeak().getIntensity() )
 			TEST_EQUAL( itn->getPrecursorPeak().getCharge() , ito->getPrecursorPeak().getCharge() )
 			TEST_EQUAL( itn->getPrecursor().getMetaValue("icon") , "Precursor" )
-			TEST_REAL_EQUAL( itn->getPrecursor().getWindowSize() , 0.1456)
+			TEST_REAL_SIMILAR( itn->getPrecursor().getWindowSize() , 0.1456)
 	
 			TEST_EQUAL( itn->getComment() , "bla" )
 			TEST_EQUAL( itn->size() , ito->size() )
 			for (UInt i=0; i<3; ++i)
 			{
-				TEST_REAL_EQUAL( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
-				TEST_REAL_EQUAL( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
+				TEST_REAL_SIMILAR( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
+				TEST_REAL_SIMILAR( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
 			}
 			
 			//META INFO
-			TEST_REAL_EQUAL((double)exp_new.getMetaValue("label"),5.55)
+			TEST_REAL_SIMILAR((double)exp_new.getMetaValue("label"),5.55)
 			TEST_EQUAL((string)exp_new.getMetaValue("icon"),"MSExperiment")
 			TEST_EQUAL((int)exp_new.getMetaValue("color"),5)
 			TEST_EQUAL((string)exp_new[0].getMetaValue("icon"),"Spectrum1")
@@ -681,7 +681,7 @@ if (do_tests)
 			a.loadExperiment(tmp_id, exp_new);
 
 			// check if the RT restriction worked - first spectrum should have been skipped
-			TEST_REAL_EQUAL( exp_new[0][0].getPosition()[0] , 100.155 )
+			TEST_REAL_SIMILAR( exp_new[0][0].getPosition()[0] , 100.155 )
 
 			exp_new = RichPeakMap();
 			options = PeakFileOptions();
@@ -692,12 +692,12 @@ if (do_tests)
 			a.loadExperiment(tmp_id, exp_new);
 
 			// check if the MSLevel restriction worked - first spectrum should have been skipped
-			TEST_REAL_EQUAL( exp_new[0][0].getPosition()[0] , 100.155 )
-		RESULT
+			TEST_REAL_SIMILAR( exp_new[0][0].getPosition()[0] , 100.155 )
+END_SECTION
 	
 		// save modified version of already existing experiment - old records should be updated.
 		// no checks are run, results are implicitly checked later when loading
-		CHECK([EXTRA] updating of an existing dataset)
+		START_SECTION([EXTRA] updating of an existing dataset)
 			exp_original.setComment("blubb");
 	
 			// modify first spectrum
@@ -775,8 +775,8 @@ if (do_tests)
 			TEST_EQUAL( itn->getAcquisitionInfo()[1].getMetaValue("label"), "yet another label");
 			for (UInt i=0; i<3; ++i)
 			{
-				TEST_REAL_EQUAL( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
-				TEST_REAL_EQUAL( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
+				TEST_REAL_SIMILAR( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
+				TEST_REAL_SIMILAR( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
 			}
 		
 			//SPECTRUM 2
@@ -793,12 +793,12 @@ if (do_tests)
 			TEST_EQUAL( itn->size() , ito->size() )
 			for (UInt i=0; i<3; ++i)
 			{
-				TEST_REAL_EQUAL( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
-				TEST_REAL_EQUAL( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
+				TEST_REAL_SIMILAR( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
+				TEST_REAL_SIMILAR( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
 			}
 			
 			//META INFO
-			TEST_REAL_EQUAL((double)exp_new.getMetaValue("label"),5.55)
+			TEST_REAL_SIMILAR((double)exp_new.getMetaValue("label"),5.55)
 			TEST_EQUAL((string)exp_new.getMetaValue("icon"),"MSExperiment")
 			TEST_EQUAL((int)exp_new.getMetaValue("color"),5)
 			TEST_EQUAL((string)exp_new[0].getMetaValue("icon"),"Spectrum1")
@@ -816,39 +816,39 @@ if (do_tests)
 			//test if values are correct
 			for(int i = 0; i < 3; i++)
 			{
-				TEST_REAL_EQUAL( spec2[i].getIntensity(), spec2_original[i].getIntensity() )
-				TEST_REAL_EQUAL( spec2[i].getPosition()[0], spec2_original[i].getPosition()[0] )
+				TEST_REAL_SIMILAR( spec2[i].getIntensity(), spec2_original[i].getIntensity() )
+				TEST_REAL_SIMILAR( spec2[i].getPosition()[0], spec2_original[i].getPosition()[0] )
 			}
 						
-		RESULT
+END_SECTION
 	
-		CHECK(([EXTRA] load and store of empty map))
+		START_SECTION(([EXTRA] load and store of empty map))
 			DBAdapter a(con);
 		  RichPeakMap in, out;
 		  a.storeExperiment(in);
 			a.loadExperiment(in.getPersistenceId(),out);
 			TEST_EQUAL(in==out, true)
-		RESULT
+END_SECTION
 
-	CHECK((const PeakFileOptions& getOptions() const))
+	START_SECTION((const PeakFileOptions& getOptions() const))
 			DBAdapter a(con);
 			TEST_EQUAL(a.getOptions().hasMSLevels(),false)
-		RESULT
+END_SECTION
 		
-	CHECK((PeakFileOptions& getOptions()))
+	START_SECTION((PeakFileOptions& getOptions()))
 			DBAdapter a(con);
 			a.getOptions().addMSLevel(1);
 			TEST_EQUAL(a.getOptions().hasMSLevels(),true);
-		RESULT
+END_SECTION
 
 	//extra test with an empty spectrum
-	CHECK(([EXTRA] template<class ExperimentType> void storeExperiment(ExperimentType& exp)))
+	START_SECTION(([EXTRA] template<class ExperimentType> void storeExperiment(ExperimentType& exp)))
 		  RichPeakMap exp_tmp;
 		  exp_tmp.resize(1);
 		  DBAdapter a(con);
 		  a.storeExperiment(exp_tmp);
 		  TEST_NOT_EQUAL(exp_tmp[0].getPersistenceId(),0);
-		RESULT		
+END_SECTION		
 
 	} // DB up-to-date
 

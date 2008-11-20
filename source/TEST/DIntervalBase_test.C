@@ -44,26 +44,26 @@ using namespace std;
 //1D check
 DIntervalBase<1>* ptr1 = 0;
 
-CHECK((DIntervalBase()))
+START_SECTION((DIntervalBase()))
 	ptr1 = new DIntervalBase<1>;
 	TEST_NOT_EQUAL(ptr1, 0)
-RESULT
+END_SECTION
 
-CHECK((~DIntervalBase()))
+START_SECTION((~DIntervalBase()))
 	delete ptr1;
-RESULT
+END_SECTION
 
 //2D check
 DIntervalBase<2>* ptr2 = 0;
 
-CHECK([EXTRA] DIntervalBase())
+START_SECTION([EXTRA] DIntervalBase())
 	ptr2 = new DIntervalBase<2>;
 	TEST_NOT_EQUAL(ptr2, 0)
-RESULT
+END_SECTION
 
-CHECK([EXTRA] ~DIntervalBase())
+START_SECTION([EXTRA] ~DIntervalBase())
 	delete ptr2;
-RESULT
+END_SECTION
 
 //misc stuff for testing
 typedef DIntervalBase<2> I2;
@@ -76,88 +76,88 @@ I2Pos p2;
 p2[0]=65.0;
 p2[1]=-57.5;
 
-CHECK((PositionType const& max() const))
+START_SECTION((PositionType const& max() const))
   TEST_EQUAL(empty.max(),I2Pos::min_negative);
-RESULT
+END_SECTION
 
-CHECK((PositionType const& min() const))
+START_SECTION((PositionType const& min() const))
   TEST_EQUAL(empty.min(),I2Pos::max);
-RESULT
+END_SECTION
 
-CHECK([EXTRA] empty)
+START_SECTION([EXTRA] empty)
   TEST_EQUAL(empty.max(),I2Pos::min_negative);
   TEST_EQUAL(empty.min(),I2Pos::max);
-RESULT
+END_SECTION
 
-CHECK([EXTRA] zero)
+START_SECTION([EXTRA] zero)
   TEST_EQUAL(I2::zero.max(),I2Pos::zero);
   TEST_EQUAL(I2::zero.min(),I2Pos::zero);
-RESULT
+END_SECTION
 
-CHECK((void setMinMax(PositionType const & min, PositionType const & max)))
+START_SECTION((void setMinMax(PositionType const & min, PositionType const & max)))
   I2 tmp(empty);
   tmp.setMinMax(p1,p2);
-  TEST_REAL_EQUAL(tmp.min()[0],5.0);
-  TEST_REAL_EQUAL(tmp.min()[1],-57.5);
-  TEST_REAL_EQUAL(tmp.max()[0],65.0);
-  TEST_REAL_EQUAL(tmp.max()[1],17.5);
-RESULT
+  TEST_REAL_SIMILAR(tmp.min()[0],5.0);
+  TEST_REAL_SIMILAR(tmp.min()[1],-57.5);
+  TEST_REAL_SIMILAR(tmp.max()[0],65.0);
+  TEST_REAL_SIMILAR(tmp.max()[1],17.5);
+END_SECTION
 
-CHECK((void setMin(PositionType const & position)))
+START_SECTION((void setMin(PositionType const & position)))
   I2 tmp(empty);
   tmp.setMin(p1);
   TEST_EQUAL(tmp.min(),p1);
   TEST_EQUAL(tmp.max(),p1);
   tmp.setMin(p2);
-  TEST_REAL_EQUAL(tmp.min()[0],65.0);
-  TEST_REAL_EQUAL(tmp.min()[1],-57.5);
-  TEST_REAL_EQUAL(tmp.max()[0],65.0);
-  TEST_REAL_EQUAL(tmp.max()[1],17.5);
-RESULT
+  TEST_REAL_SIMILAR(tmp.min()[0],65.0);
+  TEST_REAL_SIMILAR(tmp.min()[1],-57.5);
+  TEST_REAL_SIMILAR(tmp.max()[0],65.0);
+  TEST_REAL_SIMILAR(tmp.max()[1],17.5);
+END_SECTION
 
-CHECK((void setMax(PositionType const & position)))
+START_SECTION((void setMax(PositionType const & position)))
   I2 tmp(empty);
   tmp.setMax(p1);
   TEST_EQUAL(tmp.min(),p1);
   TEST_EQUAL(tmp.max(),p1);
   tmp.setMax(p2);
-  TEST_REAL_EQUAL(tmp.min()[0],5.0);
-  TEST_REAL_EQUAL(tmp.min()[1],-57.5);
-  TEST_REAL_EQUAL(tmp.max()[0],65.0);
-  TEST_REAL_EQUAL(tmp.max()[1],-57.5);
-RESULT
+  TEST_REAL_SIMILAR(tmp.min()[0],5.0);
+  TEST_REAL_SIMILAR(tmp.min()[1],-57.5);
+  TEST_REAL_SIMILAR(tmp.max()[0],65.0);
+  TEST_REAL_SIMILAR(tmp.max()[1],-57.5);
+END_SECTION
 
-CHECK((bool operator==(const DIntervalBase &rhs) const ))
+START_SECTION((bool operator==(const DIntervalBase &rhs) const ))
 	I2 tmp;
 	TEST_EQUAL(tmp==tmp,true);
 	TEST_EQUAL(tmp==empty,true);
 	
 	tmp.setMax(p1);
 	TEST_EQUAL(tmp==empty,false);
-RESULT
+END_SECTION
 
-CHECK((bool operator!=(const DIntervalBase &rhs) const ))
+START_SECTION((bool operator!=(const DIntervalBase &rhs) const ))
 	I2 tmp;
 	TEST_EQUAL(tmp!=tmp,false);
 	TEST_EQUAL(tmp!=empty,false);
 	
 	tmp.setMax(p1);
 	TEST_EQUAL(tmp!=empty,true);
-RESULT
+END_SECTION
 
-CHECK((DIntervalBase(const DIntervalBase& rhs)))
+START_SECTION((DIntervalBase(const DIntervalBase& rhs)))
 	I2 tmp(p1,p2);
 	I2 tmp2(tmp);
 	TEST_EQUAL(tmp==tmp2,true);
-RESULT
+END_SECTION
 
-CHECK((DIntervalBase( PositionType const & minimum, PositionType const & maximum )))
+START_SECTION((DIntervalBase( PositionType const & minimum, PositionType const & maximum )))
 	I2 tmp(p1,p2);
 	I2 tmp2(tmp.min(), tmp.max());
 	TEST_EQUAL(tmp==tmp2,true);
-RESULT
+END_SECTION
 
-CHECK((DIntervalBase& operator=(const DIntervalBase & rhs)))
+START_SECTION((DIntervalBase& operator=(const DIntervalBase & rhs)))
 	I2 tmp(p1,p2);
 	I2 tmp2;
 	TEST_EQUAL(tmp==tmp2,false);
@@ -166,88 +166,88 @@ CHECK((DIntervalBase& operator=(const DIntervalBase & rhs)))
 	tmp2 = tmp = empty;
 	TEST_EQUAL(tmp==tmp2,true);
 	TEST_EQUAL(tmp==empty,true);
-RESULT
+END_SECTION
 
-CHECK((void clear()))
+START_SECTION((void clear()))
 	I2 tmp;
 	TEST_EQUAL(tmp==empty,true);
 	tmp.setMax(p1);
 	TEST_EQUAL(tmp==empty,false);
 	tmp.clear();
 	TEST_EQUAL(tmp==empty,true);
-RESULT
+END_SECTION
 
-CHECK((PositionType center() const))
+START_SECTION((PositionType center() const))
   I2 tmp(p1,p2);
   I2Pos pos(tmp.center());
-  TEST_REAL_EQUAL(pos[0],35.0);
-  TEST_REAL_EQUAL(pos[1],-20.0);
-RESULT
+  TEST_REAL_SIMILAR(pos[0],35.0);
+  TEST_REAL_SIMILAR(pos[1],-20.0);
+END_SECTION
 
-CHECK((PositionType diagonal() const))
+START_SECTION((PositionType diagonal() const))
   I2 tmp(p1,p2);
   I2Pos pos(tmp.diagonal());
-  TEST_REAL_EQUAL(pos[0],60.0);
-  TEST_REAL_EQUAL(pos[1],75.0);
-RESULT
+  TEST_REAL_SIMILAR(pos[0],60.0);
+  TEST_REAL_SIMILAR(pos[1],75.0);
+END_SECTION
 
-CHECK((CoordinateType width() const))
+START_SECTION((CoordinateType width() const))
 	I2 tmp(p1,p2);
-	TEST_REAL_EQUAL(tmp.width(),60.0)
-RESULT
+	TEST_REAL_SIMILAR(tmp.width(),60.0)
+END_SECTION
 
-CHECK((CoordinateType height() const))
+START_SECTION((CoordinateType height() const))
 	I2 tmp(p1,p2);
-	TEST_REAL_EQUAL(tmp.height(),75.0)
-RESULT
+	TEST_REAL_SIMILAR(tmp.height(),75.0)
+END_SECTION
 
-CHECK((CoordinateType maxX() const))
+START_SECTION((CoordinateType maxX() const))
 	I2 tmp(p1,p2);
-	TEST_REAL_EQUAL(tmp.maxX(),65.0)
-RESULT
+	TEST_REAL_SIMILAR(tmp.maxX(),65.0)
+END_SECTION
 
-CHECK((CoordinateType maxY() const))
+START_SECTION((CoordinateType maxY() const))
 	I2 tmp(p1,p2);
-	TEST_REAL_EQUAL(tmp.maxY(),17.5)
-RESULT
+	TEST_REAL_SIMILAR(tmp.maxY(),17.5)
+END_SECTION
 
-CHECK((CoordinateType minX() const))
+START_SECTION((CoordinateType minX() const))
 	I2 tmp(p1,p2);
-	TEST_REAL_EQUAL(tmp.minX(),5.0)
-RESULT
+	TEST_REAL_SIMILAR(tmp.minX(),5.0)
+END_SECTION
 
-CHECK((CoordinateType minY() const))
+START_SECTION((CoordinateType minY() const))
 	I2 tmp(p1,p2);
-	TEST_REAL_EQUAL(tmp.minY(),-57.5)
-RESULT
+	TEST_REAL_SIMILAR(tmp.minY(),-57.5)
+END_SECTION
 
-CHECK((void setMinX(CoordinateType const c)))
+START_SECTION((void setMinX(CoordinateType const c)))
 	I2 tmp(p1,p2);
 	tmp.setMinX(57.67);
-	TEST_REAL_EQUAL(tmp.minX(),57.67)
-RESULT
+	TEST_REAL_SIMILAR(tmp.minX(),57.67)
+END_SECTION
 
-CHECK((void setMaxX(CoordinateType const c)))
+START_SECTION((void setMaxX(CoordinateType const c)))
 	I2 tmp(p1,p2);
 	tmp.setMaxX(57.67);
-	TEST_REAL_EQUAL(tmp.maxX(),57.67)
-RESULT
+	TEST_REAL_SIMILAR(tmp.maxX(),57.67)
+END_SECTION
 
-CHECK((void setMinY(CoordinateType const c)))
+START_SECTION((void setMinY(CoordinateType const c)))
 	I2 tmp(p1,p2);
 	tmp.setMinY(57.67);
-	TEST_REAL_EQUAL(tmp.minY(),57.67)
-RESULT
+	TEST_REAL_SIMILAR(tmp.minY(),57.67)
+END_SECTION
 
-CHECK((void setMaxY(CoordinateType const c)))
+START_SECTION((void setMaxY(CoordinateType const c)))
 	I2 tmp(p1,p2);
 	tmp.setMaxY(57.67);
-	TEST_REAL_EQUAL(tmp.maxY(),57.67)
-RESULT
+	TEST_REAL_SIMILAR(tmp.maxY(),57.67)
+END_SECTION
 
 
 
-CHECK((template <UInt D2> void assign(const DIntervalBase< D2 > rhs)))
+START_SECTION((template <UInt D2> void assign(const DIntervalBase< D2 > rhs)))
 DIntervalBase<2>::PositionType p1;
 p1[0]=5.0;
 p1[1]=17.5;
@@ -258,16 +258,16 @@ DIntervalBase<2> i2(p1,p2);
 
 DIntervalBase<3> tmp;
 tmp.assign(i2);
-TEST_REAL_EQUAL(tmp.min()[0],5.0);
-TEST_REAL_EQUAL(tmp.min()[1],-57.5);
-TEST_REAL_EQUAL(tmp.max()[0],65.0);
-TEST_REAL_EQUAL(tmp.max()[1],17.5);
+TEST_REAL_SIMILAR(tmp.min()[0],5.0);
+TEST_REAL_SIMILAR(tmp.min()[1],-57.5);
+TEST_REAL_SIMILAR(tmp.max()[0],65.0);
+TEST_REAL_SIMILAR(tmp.max()[1],17.5);
 
 DIntervalBase<1> tmp2;
 tmp2.assign(i2);
-TEST_REAL_EQUAL(tmp2.min()[0],5.0);
-TEST_REAL_EQUAL(tmp2.max()[0],65.0);
-RESULT
+TEST_REAL_SIMILAR(tmp2.min()[0],5.0);
+TEST_REAL_SIMILAR(tmp2.max()[0],65.0);
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

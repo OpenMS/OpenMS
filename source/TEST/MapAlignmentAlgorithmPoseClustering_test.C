@@ -41,36 +41,36 @@ START_TEST(MapAlignmentAlgorithmPoseClustering, "$Id$")
 
 
 MapAlignmentAlgorithmPoseClustering* ptr = 0;
-CHECK((MapAlignmentAlgorithmPoseClustering()))
+START_SECTION((MapAlignmentAlgorithmPoseClustering()))
 	ptr = new MapAlignmentAlgorithmPoseClustering();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~MapAlignmentAlgorithmPoseClustering()))
+START_SECTION((virtual ~MapAlignmentAlgorithmPoseClustering()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((static MapAlignmentAlgorithm* create()))
+START_SECTION((static MapAlignmentAlgorithm* create()))
 	TEST_NOT_EQUAL(MapAlignmentAlgorithmPoseClustering::create(),0)
-RESULT
+END_SECTION
 
-CHECK((static String getProductName()))
+START_SECTION((static String getProductName()))
 	TEST_EQUAL(MapAlignmentAlgorithmPoseClustering::getProductName(), "pose_clustering_affine")
-RESULT
+END_SECTION
 
-CHECK((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::vector< TransformationDescription > &)))
+START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::vector< TransformationDescription > &)))
 {
   // Tested extensively in TEST/TOPP.  See MapAligner_test.
   NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
-CHECK((virtual void alignFeatureMaps(std::vector< FeatureMap<> > &, std::vector< TransformationDescription > &)))
+START_SECTION((virtual void alignFeatureMaps(std::vector< FeatureMap<> > &, std::vector< TransformationDescription > &)))
 {
   // Tested extensively in TEST/TOPP.  See MapAligner_test.
   NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

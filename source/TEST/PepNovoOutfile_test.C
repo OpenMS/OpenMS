@@ -43,42 +43,42 @@ START_TEST(String, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PepNovoOutfile* ptr = 0;
-CHECK(PepNovoOutfile())
+START_SECTION(PepNovoOutfile())
 	ptr = new PepNovoOutfile();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~PepNovoOutfile())
+START_SECTION(~PepNovoOutfile())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((PepNovoOutfile& operator=(const PepNovoOutfile &pepnovo_outfile)))
+START_SECTION((PepNovoOutfile& operator=(const PepNovoOutfile &pepnovo_outfile)))
 	PepNovoOutfile pepnovo_outfile1;
   PepNovoOutfile pepnovo_outfile2;
 	pepnovo_outfile2 = pepnovo_outfile1;
 	PepNovoOutfile pepnovo_outfile3;
 	pepnovo_outfile1 = PepNovoOutfile();
 	TEST_EQUAL(( pepnovo_outfile2 == pepnovo_outfile3 ), true)
-RESULT
+END_SECTION
 
-CHECK((PepNovoOutfile(const PepNovoOutfile &pepnovo_outfile)))
+START_SECTION((PepNovoOutfile(const PepNovoOutfile &pepnovo_outfile)))
 	PepNovoOutfile pepnovo_outfile1;
 	PepNovoOutfile pepnovo_outfile2(pepnovo_outfile1);
 	PepNovoOutfile pepnovo_outfile3;
 	pepnovo_outfile1 = PepNovoOutfile();
 	TEST_EQUAL(( pepnovo_outfile2 == pepnovo_outfile3 ), true)
-RESULT
+END_SECTION
 
-CHECK((bool operator==(const PepNovoOutfile &pepnovo_outfile) const))
+START_SECTION((bool operator==(const PepNovoOutfile &pepnovo_outfile) const))
 	PepNovoOutfile pepnovo_outfile1;
 	PepNovoOutfile pepnovo_outfile2;
 	TEST_EQUAL(( pepnovo_outfile1 == pepnovo_outfile2 ), true)
-RESULT
+END_SECTION
 
 PepNovoOutfile file;
 
 
-CHECK(void load(const std::string& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real& p_value_threshold, const std::map< String, Real >& dta_filenames_and_precursor_retention_times))
+START_SECTION(void load(const std::string& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real& p_value_threshold, const std::map< String, Real >& dta_filenames_and_precursor_retention_times))
 	
 	std::vector< PeptideIdentification > peptide_identifications;
 	ProteinIdentification protein_identification;
@@ -103,15 +103,15 @@ CHECK(void load(const std::string& result_filename, std::vector< PeptideIdentifi
 	{
 		TEST_EQUAL(peptide_identifications[0].getHits().size(), 2)
 		TEST_EQUAL(peptide_identifications[0].getScoreType(), "PepNovo2")
-		TEST_REAL_EQUAL(peptide_identifications[0].getSignificanceThreshold(), 0.915)
+		TEST_REAL_SIMILAR(peptide_identifications[0].getSignificanceThreshold(), 0.915)
 		if( peptide_identifications[0].getHits().size() == 2)
 		{
-			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), -12.997)
+			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), -12.997)
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "CKPTDN")
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getCharge(), 2)
 			
-			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[1].getScore(), -12.997)
+			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[1].getScore(), -12.997)
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "KCPTDN")
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getRank(), 2)
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getCharge(), 2)
@@ -125,33 +125,33 @@ CHECK(void load(const std::string& result_filename, std::vector< PeptideIdentifi
 	{
 		TEST_EQUAL(peptide_identifications[0].getHits().size(), 4)
 		TEST_EQUAL(peptide_identifications[0].getScoreType(), "PepNovo2")
-		TEST_REAL_EQUAL(peptide_identifications[0].getSignificanceThreshold(), 0.94)
+		TEST_REAL_SIMILAR(peptide_identifications[0].getSignificanceThreshold(), 0.94)
 		if( peptide_identifications[0].getHits().size() == 4)
 		{
-			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), -12.997)
+			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), -12.997)
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "CKPTDN")
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getCharge(), 2)
 			
-			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[1].getScore(), -12.997)
+			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[1].getScore(), -12.997)
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), "KCPTDN")
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getRank(), 2)
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getCharge(), 2)
 			
-			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[2].getScore(), -12.997)
+			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[2].getScore(), -12.997)
 			TEST_EQUAL(peptide_identifications[0].getHits()[2].getSequence(), "KCPTND")
 			TEST_EQUAL(peptide_identifications[0].getHits()[2].getRank(), 3)
 			TEST_EQUAL(peptide_identifications[0].getHits()[2].getCharge(), 2)
 			
-			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[3].getScore(), -12.997)
+			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[3].getScore(), -12.997)
 			TEST_EQUAL(peptide_identifications[0].getHits()[3].getSequence(), "CKPTND")
 			TEST_EQUAL(peptide_identifications[0].getHits()[3].getRank(), 4)
 			TEST_EQUAL(peptide_identifications[0].getHits()[3].getCharge(), 2)
 		}
 	}
-RESULT
+END_SECTION
 
-CHECK(void getSearchEngineAndVersion(const String& pepnovo_output_without_parameters_filename, ProteinIdentification& protein_identification))
+START_SECTION(void getSearchEngineAndVersion(const String& pepnovo_output_without_parameters_filename, ProteinIdentification& protein_identification))
 	ProteinIdentification protein_identification;
 	
 	// test exceptions
@@ -162,7 +162,7 @@ CHECK(void getSearchEngineAndVersion(const String& pepnovo_output_without_parame
 	file.getSearchEngineAndVersion("data/PepNovoOutfile_version_file.txt", protein_identification);
 	TEST_EQUAL(protein_identification.getSearchEngine(), "PepNovo");
 	TEST_EQUAL(protein_identification.getSearchEngineVersion(), "v2.00");
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

@@ -40,63 +40,63 @@ START_TEST(EuclideanSimilarity, "$Id$")
 /////////////////////////////////////////////////////////////
 
 EuclideanSimilarity* ptr = 0;
-CHECK(EuclideanSimilarity())
+START_SECTION(EuclideanSimilarity())
 {
 	ptr = new EuclideanSimilarity();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~EuclideanSimilarity())
+START_SECTION(~EuclideanSimilarity())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((EuclideanSimilarity(const EuclideanSimilarity &source)))
+START_SECTION((EuclideanSimilarity(const EuclideanSimilarity &source)))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((EuclideanSimilarity& operator=(const EuclideanSimilarity &source)))
+START_SECTION((EuclideanSimilarity& operator=(const EuclideanSimilarity &source)))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((double operator()(const std::pair< double, double > &a, const std::pair< double, double > &b) const ))
+START_SECTION((double operator()(const std::pair< double, double > &a, const std::pair< double, double > &b) const ))
 {
 			EuclideanSimilarity es;
-			PRECISION(0.0001);
-			TEST_REAL_EQUAL(es(make_pair(2,2),make_pair(4,4)), 1-sqrt(8));
-			TEST_REAL_EQUAL(es(make_pair(9,0.1),make_pair(2.8,2)), 1-sqrt(42.05));
-			TEST_REAL_EQUAL(es(make_pair(12,0),make_pair(2,0)), 1-sqrt(100));
+			TOLERANCE_ABSOLUTE(0.0001);
+			TEST_REAL_SIMILAR(es(make_pair(2,2),make_pair(4,4)), 1-sqrt(8));
+			TEST_REAL_SIMILAR(es(make_pair(9,0.1),make_pair(2.8,2)), 1-sqrt(42.05));
+			TEST_REAL_SIMILAR(es(make_pair(12,0),make_pair(2,0)), 1-sqrt(100));
 			es.setScale(sqrt(233.28));
 }
-RESULT
+END_SECTION
 
-CHECK((double operator()(const std::pair< double, double > &c) const ))
+START_SECTION((double operator()(const std::pair< double, double > &c) const ))
 {
 			EuclideanSimilarity es;
-			PRECISION(0.0001);
-			TEST_REAL_EQUAL(es(make_pair(9,0.1)), 1-0);
-			TEST_REAL_EQUAL(es(make_pair(2.8,2)), 1-0);
+			TOLERANCE_ABSOLUTE(0.0001);
+			TEST_REAL_SIMILAR(es(make_pair(9,0.1)), 1-0);
+			TEST_REAL_SIMILAR(es(make_pair(2.8,2)), 1-0);
 }
-RESULT
+END_SECTION
 
-CHECK((void setScale(UInt x)))
+START_SECTION((void setScale(UInt x)))
 {
 			EuclideanSimilarity es;
 			es.setScale(10);
-			PRECISION(0.0001);
-			TEST_REAL_EQUAL(es(make_pair(2,2),make_pair(4,4)), 1-(sqrt(8)/10));
-			TEST_REAL_EQUAL(es(make_pair(9,0.1),make_pair(2.8,2)), 1-(sqrt(42.05)/10));
-			TEST_REAL_EQUAL(es(make_pair(12,0),make_pair(2,0)), 1-(sqrt(100)/10));
+			TOLERANCE_ABSOLUTE(0.0001);
+			TEST_REAL_SIMILAR(es(make_pair(2,2),make_pair(4,4)), 1-(sqrt(8)/10));
+			TEST_REAL_SIMILAR(es(make_pair(9,0.1),make_pair(2.8,2)), 1-(sqrt(42.05)/10));
+			TEST_REAL_SIMILAR(es(make_pair(12,0),make_pair(2,0)), 1-(sqrt(100)/10));
 			es.setScale(sqrt(233.28));
-			TEST_REAL_EQUAL(es(make_pair(0.1,0.1),make_pair(10.9,10.9)), 1-1);
+			TEST_REAL_SIMILAR(es(make_pair(0.1,0.1),make_pair(10.9,10.9)), 1-1);
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

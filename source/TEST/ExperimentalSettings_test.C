@@ -39,73 +39,73 @@ START_TEST(ExperimentalSettings, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ExperimentalSettings* ptr = 0;
-CHECK(ExperimentalSettings())
+START_SECTION(ExperimentalSettings())
 	ptr = new ExperimentalSettings();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~ExperimentalSettings())
+START_SECTION(~ExperimentalSettings())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(const Date& getDateTime() const)
+START_SECTION(const Date& getDateTime() const)
   ExperimentalSettings tmp;
   TEST_EQUAL(tmp.getDateTime().get(),"0000-00-00 00:00:00");
-RESULT
+END_SECTION
 
-CHECK(const HPLC& getHPLC() const)
+START_SECTION(const HPLC& getHPLC() const)
   ExperimentalSettings tmp;
   TEST_EQUAL(tmp.getHPLC()==HPLC(),true);
-RESULT
+END_SECTION
 
-CHECK(const Instrument& getInstrument() const)
+START_SECTION(const Instrument& getInstrument() const)
   ExperimentalSettings tmp;
   TEST_EQUAL(tmp.getInstrument()==Instrument(),true);
-RESULT
+END_SECTION
 
-CHECK(const DataProcessing& getDataProcessing() const)
+START_SECTION(const DataProcessing& getDataProcessing() const)
   ExperimentalSettings tmp;
   TEST_EQUAL(tmp.getDataProcessing().size(),0);
-RESULT
+END_SECTION
 
-CHECK(const Sample& getSample() const)
+START_SECTION(const Sample& getSample() const)
   ExperimentalSettings tmp;
   TEST_EQUAL(tmp.getSample()==Sample(),true);
-RESULT
+END_SECTION
 
-CHECK(const SourceFile& getSourceFiles() const)
+START_SECTION(const SourceFile& getSourceFiles() const)
   ExperimentalSettings tmp;
   TEST_EQUAL(tmp.getSourceFiles().size(),0);
-RESULT
+END_SECTION
 
-CHECK((const String& getComment() const))
+START_SECTION((const String& getComment() const))
 	ExperimentalSettings tmp;
 	TEST_EQUAL(tmp.getComment(), "");
-RESULT
+END_SECTION
 
-CHECK((void setComment(const String& comment)))
+START_SECTION((void setComment(const String& comment)))
 	ExperimentalSettings tmp;
 	tmp.setComment("bla");
 	TEST_EQUAL(tmp.getComment(), "bla");
-RESULT
+END_SECTION
 
-CHECK((const String& getIdentifier() const))
+START_SECTION((const String& getIdentifier() const))
 	ExperimentalSettings tmp;
 	TEST_EQUAL(tmp.getIdentifier(), "");
-RESULT
+END_SECTION
 
-CHECK((void setIdentifier(const String& identifier)))
+START_SECTION((void setIdentifier(const String& identifier)))
 	ExperimentalSettings tmp;
 	tmp.setIdentifier("bla");
 	TEST_EQUAL(tmp.getIdentifier(), "bla");
-RESULT
+END_SECTION
 
-CHECK(const std::vector<ContactPerson>& getContacts() const)
+START_SECTION(const std::vector<ContactPerson>& getContacts() const)
   ExperimentalSettings tmp;
   TEST_EQUAL(tmp.getContacts().size(),0);
-RESULT
+END_SECTION
 
-CHECK(void setContacts(const std::vector<ContactPerson>& contacts))
+START_SECTION(void setContacts(const std::vector<ContactPerson>& contacts))
   ExperimentalSettings tmp;
   std::vector<ContactPerson> dummy;
   ContactPerson c;
@@ -121,87 +121,87 @@ CHECK(void setContacts(const std::vector<ContactPerson>& contacts))
   TEST_EQUAL(tmp.getContacts()[1].getFirstName(),"bla18");
   TEST_EQUAL(tmp.getContacts()[0].getLastName(),"blubb17");
   TEST_EQUAL(tmp.getContacts()[1].getLastName(),"blubb18");
-RESULT
+END_SECTION
 
-CHECK(void setDateTime(const Date& date))
+START_SECTION(void setDateTime(const Date& date))
   ExperimentalSettings tmp;
   DateTime dummy;
   dummy.set("02/07/2006 01:02:03");
   tmp.setDateTime(dummy);
   TEST_EQUAL(tmp.getDateTime().get(),"2006-02-07 01:02:03");
-RESULT
+END_SECTION
 
-CHECK(void setHPLC(const HPLC& hplc))
+START_SECTION(void setHPLC(const HPLC& hplc))
   ExperimentalSettings tmp;
   HPLC dummy;
   dummy.setFlux(5);
   tmp.setHPLC(dummy);
   TEST_EQUAL(tmp.getHPLC().getFlux(),5);
-RESULT
+END_SECTION
 
-CHECK(void setInstrument(const Instrument& instrument))
+START_SECTION(void setInstrument(const Instrument& instrument))
   ExperimentalSettings tmp;
   Instrument dummy;
   dummy.setName("bla");
   tmp.setInstrument(dummy);
   TEST_EQUAL(tmp.getInstrument().getName(),"bla");
-RESULT
+END_SECTION
 
-CHECK(void setDataProcessing(const DataProcessing& data_processing))
+START_SECTION(void setDataProcessing(const DataProcessing& data_processing))
   ExperimentalSettings tmp;
   std::vector<DataProcessing> dummy;
   dummy.resize(1);
   tmp.setDataProcessing(dummy);
   TEST_EQUAL(tmp.getDataProcessing().size(),1);
-RESULT
+END_SECTION
 
-CHECK(void setSample(const Sample& sample))
+START_SECTION(void setSample(const Sample& sample))
   ExperimentalSettings tmp;
   Sample dummy;
   dummy.setName("bla3");
   tmp.setSample(dummy);
   TEST_EQUAL(tmp.getSample().getName(),"bla3");
-RESULT
+END_SECTION
 
-CHECK(void setSourceFiles(const vector<SourceFile>& source_file))
+START_SECTION(void setSourceFiles(const vector<SourceFile>& source_file))
   ExperimentalSettings tmp;
   vector<SourceFile> dummy;
   dummy.resize(1);
   tmp.setSourceFiles(dummy);
   TEST_EQUAL(tmp.getSourceFiles().size(),1);
-RESULT
+END_SECTION
 
-CHECK(HPLC& getHPLC())
+START_SECTION(HPLC& getHPLC())
   ExperimentalSettings tmp;
   tmp.getHPLC().setFlux(5);
   TEST_EQUAL(tmp.getHPLC().getFlux(),5);
-RESULT
+END_SECTION
 
-CHECK(Instrument& getInstrument())
+START_SECTION(Instrument& getInstrument())
   ExperimentalSettings tmp;
   tmp.getInstrument().setName("bla55");
   TEST_EQUAL(tmp.getInstrument().getName(),"bla55");
-RESULT
+END_SECTION
 
-CHECK(DataProcessing& getDataProcessing())
+START_SECTION(DataProcessing& getDataProcessing())
   ExperimentalSettings tmp;
   tmp.getDataProcessing().resize(1);
   TEST_EQUAL(tmp.getDataProcessing().size(),1);
-RESULT
+END_SECTION
 
-CHECK(Sample& getSample())
+START_SECTION(Sample& getSample())
   ExperimentalSettings tmp;
   tmp.getSample().setName("bla2");
   TEST_EQUAL(tmp.getSample().getName(),"bla2");
-RESULT
+END_SECTION
 
-CHECK(SourceFile& getSourceFiles())
+START_SECTION(SourceFile& getSourceFiles())
   ExperimentalSettings tmp;
   tmp.getSourceFiles().resize(1);
   TEST_EQUAL(tmp.getSourceFiles().size(),1)
-RESULT
+END_SECTION
 
-CHECK(std::vector<ContactPerson>& getContacts())
+START_SECTION(std::vector<ContactPerson>& getContacts())
   ExperimentalSettings tmp;
   ContactPerson c;
   c.setFirstName("bla17");
@@ -211,9 +211,9 @@ CHECK(std::vector<ContactPerson>& getContacts())
   TEST_EQUAL(tmp.getContacts().size(),2);
   TEST_EQUAL(tmp.getContacts()[0].getFirstName(),"bla17");
   TEST_EQUAL(tmp.getContacts()[1].getFirstName(),"bla18");
-RESULT
+END_SECTION
 
-CHECK(ExperimentalSettings(const ExperimentalSettings& source))
+START_SECTION(ExperimentalSettings(const ExperimentalSettings& source))
   ExperimentalSettings tmp;
   ProteinIdentification id;
 	ProteinHit protein_hit;
@@ -245,9 +245,9 @@ CHECK(ExperimentalSettings(const ExperimentalSettings& source))
   TEST_EQUAL(tmp2.getContacts().size(),1);
   TEST_EQUAL(id == tmp2.getProteinIdentifications()[0], true);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
-RESULT
+END_SECTION
 
-CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
+START_SECTION(ExperimentalSettings& operator= (const ExperimentalSettings& source))
   ExperimentalSettings tmp;
   ProteinIdentification id;
 	ProteinHit protein_hit;
@@ -292,9 +292,9 @@ CHECK(ExperimentalSettings& operator= (const ExperimentalSettings& source))
   TEST_EQUAL(tmp2.getContacts().size(),0);
   TEST_EQUAL(tmp2.getProteinIdentifications().size(), 0);
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
-RESULT
+END_SECTION
 
-CHECK(bool operator== (const ExperimentalSettings& rhs) const)
+START_SECTION(bool operator== (const ExperimentalSettings& rhs) const)
   ExperimentalSettings edit, empty;
   ProteinIdentification id;
 	ProteinHit protein_hit;
@@ -344,9 +344,9 @@ CHECK(bool operator== (const ExperimentalSettings& rhs) const)
 	edit = empty;
 	edit.setMetaValue("label",String("label"));
 	TEST_EQUAL(edit==empty,false);
-RESULT
+END_SECTION
 
-CHECK(bool operator!= (const ExperimentalSettings& rhs) const)
+START_SECTION(bool operator!= (const ExperimentalSettings& rhs) const)
   ExperimentalSettings edit, empty;
   ProteinIdentification id;
 	ProteinHit protein_hit;
@@ -388,9 +388,9 @@ CHECK(bool operator!= (const ExperimentalSettings& rhs) const)
 	edit = empty;
 	edit.setMetaValue("label",String("label"));
 	TEST_EQUAL(edit!=empty,true);
-RESULT
+END_SECTION
 
-CHECK(const std::vector<ProteinIdentification>& getProteinIdentifications() const)
+START_SECTION(const std::vector<ProteinIdentification>& getProteinIdentifications() const)
   ExperimentalSettings settings;
   ProteinIdentification id;
 	ProteinHit protein_hit;
@@ -403,9 +403,9 @@ CHECK(const std::vector<ProteinIdentification>& getProteinIdentifications() cons
 	settings.addProteinIdentification(id);
 	const ProteinIdentification& test_id = settings.getProteinIdentifications()[0];
 	TEST_EQUAL(id == test_id, true)
-RESULT
+END_SECTION
 
-CHECK(std::vector<ProteinIdentification>& getProteinIdentifications())
+START_SECTION(std::vector<ProteinIdentification>& getProteinIdentifications())
   ExperimentalSettings settings;
   ProteinIdentification id;
 	ProteinHit protein_hit;
@@ -418,9 +418,9 @@ CHECK(std::vector<ProteinIdentification>& getProteinIdentifications())
 	settings.addProteinIdentification(id);
 	ProteinIdentification& test_id = settings.getProteinIdentifications()[0];
 	TEST_EQUAL(id == test_id, true)
-RESULT
+END_SECTION
 
-CHECK(void addProteinIdentification(ProteinIdentification& protein_identification))
+START_SECTION(void addProteinIdentification(ProteinIdentification& protein_identification))
   ExperimentalSettings settings;
   ProteinIdentification id;
 	ProteinHit protein_hit;
@@ -433,9 +433,9 @@ CHECK(void addProteinIdentification(ProteinIdentification& protein_identificatio
 	settings.addProteinIdentification(id);
 	ProteinIdentification& test_id = settings.getProteinIdentifications()[0];
 	TEST_EQUAL(id == test_id, true)
-RESULT
+END_SECTION
 
-CHECK(void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications))
+START_SECTION(void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications))
   ExperimentalSettings settings;
   ProteinIdentification id;
 	ProteinHit protein_hit;
@@ -450,7 +450,7 @@ CHECK(void setProteinIdentifications(const std::vector<ProteinIdentification>& p
 	ids.push_back(id);
 	settings.setProteinIdentifications(ids);
 	TEST_EQUAL(ids == settings.getProteinIdentifications(), true)
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

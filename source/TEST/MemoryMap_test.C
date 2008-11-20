@@ -43,36 +43,36 @@ START_TEST(MemoryMap, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MemoryMap* ptr = 0;
-CHECK(MemoryMap())
+START_SECTION(MemoryMap())
 {
 	ptr = new MemoryMap();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~MemoryMap())
+START_SECTION(~MemoryMap())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((static std::size_t OpenMS_getFileBlocksize(void)))
+START_SECTION((static std::size_t OpenMS_getFileBlocksize(void)))
 {
   std::size_t page;
 	page = MemoryMap::OpenMS_getFileBlocksize();
 	// architecture dependent, usually its 4KB on unix and 64KB on windows
 	NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
 void* mapping = 0;
 
 #ifdef OPENMS_WINDOWSPLATFORM
 HANDLE h;
-CHECK([EXTRA](static void* OpenMS_mmap (const std::size_t& size, const HANDLE& handle, const Offset64Int& file_offset)))
+START_SECTION([EXTRA](static void* OpenMS_mmap (const std::size_t& size, const HANDLE& handle, const Offset64Int& file_offset)))
 #else
 long h;
-CHECK([EXTRA](static void* OpenMS_mmap (const std::size_t& size, const int& fileHandle, const Offset64Int& file_offset)))
+START_SECTION([EXTRA](static void* OpenMS_mmap (const std::size_t& size, const int& fileHandle, const Offset64Int& file_offset)))
 #endif
 {
 	String filename;
@@ -83,16 +83,16 @@ CHECK([EXTRA](static void* OpenMS_mmap (const std::size_t& size, const int& file
   
 	TEST_NOT_EQUAL(mapping, 0);
 }
-RESULT
+END_SECTION
 
-CHECK((static int OpenMS_unmap (void* p, const std::size_t& bytes)))
+START_SECTION((static int OpenMS_unmap (void* p, const std::size_t& bytes)))
 {
   int r = MemoryMap::OpenMS_unmap(mapping, 1000);
 	TEST_NOT_EQUAL(r, OPENMS_MUNMAP_FAILURE);
 	
 	File::closeSwapFileHandle(h);
 }
-RESULT
+END_SECTION
 
 
 

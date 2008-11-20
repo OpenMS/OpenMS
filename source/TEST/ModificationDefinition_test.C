@@ -39,22 +39,22 @@ START_TEST(ModificationDefinition, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ModificationDefinition* ptr = 0;
-CHECK(ModificationDefinition())
+START_SECTION(ModificationDefinition())
 {
 	ptr = new ModificationDefinition();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK((virtual ~ModificationDefinition()))
+START_SECTION((virtual ~ModificationDefinition()))
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
 ptr = new ModificationDefinition();
 
-CHECK((ModificationDefinition(const ModificationDefinition &rhs)))
+START_SECTION((ModificationDefinition(const ModificationDefinition &rhs)))
 {
   ModificationDefinition mod_def;
 	mod_def.setTermSpecificity(ResidueModification::C_TERM);
@@ -69,9 +69,9 @@ CHECK((ModificationDefinition(const ModificationDefinition &rhs)))
 	TEST_EQUAL(mod_def.getTermSpecificity(), copy2.getTermSpecificity())
 	TEST_EQUAL(mod_def.isFixedModification(), copy2.isFixedModification())
 }
-RESULT
+END_SECTION
 
-CHECK((ModificationDefinition(const String &mod)))
+START_SECTION((ModificationDefinition(const String &mod)))
 {
 	ModificationDefinition mod1("MOD:00323");
 	TEST_EQUAL(mod1.getModification(), "MOD:00323");
@@ -80,57 +80,57 @@ CHECK((ModificationDefinition(const String &mod)))
 	ModificationDefinition mod3("MOD:01061");
 	TEST_EQUAL(mod3.getModification(), "MOD:01061");	
 }
-RESULT
+END_SECTION
 
-CHECK((void setTermSpecificity(ResidueModification::Term_Specificity pos)))
+START_SECTION((void setTermSpecificity(ResidueModification::Term_Specificity pos)))
 {
   ptr->setTermSpecificity(ResidueModification::ANYWHERE);
 	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::ANYWHERE);
 	ptr->setTermSpecificity(ResidueModification::C_TERM);
 	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::C_TERM);
 }
-RESULT
+END_SECTION
 
-CHECK((ResidueModification::Term_Specificity getTermSpecificity() const ))
+START_SECTION((ResidueModification::Term_Specificity getTermSpecificity() const ))
 {
   ptr->setTermSpecificity(ResidueModification::N_TERM);
 	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::N_TERM)
 }
-RESULT
+END_SECTION
 
-CHECK((void setFixedModification(bool fixed)))
+START_SECTION((void setFixedModification(bool fixed)))
 {
   ptr->setFixedModification(true);
 	TEST_EQUAL(ptr->isFixedModification(), true)
 	ptr->setFixedModification(false);
 	TEST_EQUAL(ptr->isFixedModification(), false)
 }
-RESULT
+END_SECTION
 
-CHECK((bool isFixedModification() const ))
+START_SECTION((bool isFixedModification() const ))
 {
 	// tested above
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((void setMaxOccurences(UInt num)))
+START_SECTION((void setMaxOccurences(UInt num)))
 {
   ptr->setMaxOccurences(1);
 	TEST_EQUAL(ptr->getMaxOccurences(), 1)
 	ptr->setMaxOccurences(1000);
 	TEST_EQUAL(ptr->getMaxOccurences(), 1000)
 }
-RESULT
+END_SECTION
 
-CHECK((UInt getMaxOccurences() const ))
+START_SECTION((UInt getMaxOccurences() const ))
 {
 	// tested above
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((String getModification() const ))
+START_SECTION((String getModification() const ))
 {
 	ModificationDefinition mod1;
 	mod1.setModification("MOD:00323");
@@ -138,16 +138,16 @@ CHECK((String getModification() const ))
   mod1.setModification("MOD:00719");
   TEST_EQUAL(mod1.getModification(), "MOD:00719")
 }
-RESULT
+END_SECTION
 
-CHECK((void setModification(const String &modification)))
+START_SECTION((void setModification(const String &modification)))
 {
 	// tested above
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((ModificationDefinition& operator=(const ModificationDefinition &element)))
+START_SECTION((ModificationDefinition& operator=(const ModificationDefinition &element)))
 {
   ModificationDefinition mod_def;
   mod_def.setTermSpecificity(ResidueModification::C_TERM);
@@ -163,9 +163,9 @@ CHECK((ModificationDefinition& operator=(const ModificationDefinition &element))
   TEST_EQUAL(mod_def.isFixedModification(), ptr->isFixedModification())
   
 }
-RESULT
+END_SECTION
 
-CHECK((bool operator==(const ModificationDefinition &rhs) const ))
+START_SECTION((bool operator==(const ModificationDefinition &rhs) const ))
 {
   ModificationDefinition m1, m2;
 	TEST_EQUAL(m1 == m2, true)
@@ -182,9 +182,9 @@ CHECK((bool operator==(const ModificationDefinition &rhs) const ))
 	m1.setTermSpecificity(ResidueModification::N_TERM);
 	TEST_EQUAL(m1 == m2, false)
 }
-RESULT
+END_SECTION
 
-CHECK((bool operator!=(const ModificationDefinition &rhs) const ))
+START_SECTION((bool operator!=(const ModificationDefinition &rhs) const ))
 {
   ModificationDefinition m1, m2;
   TEST_EQUAL(m1 != m2, false)
@@ -201,9 +201,9 @@ CHECK((bool operator!=(const ModificationDefinition &rhs) const ))
 	m1.setTermSpecificity(ResidueModification::N_TERM);
 	TEST_EQUAL(m1 != m2, true)
 }
-RESULT
+END_SECTION
 
-CHECK((bool operator<(const OpenMS::ModificationDefinition &) const ))
+START_SECTION((bool operator<(const OpenMS::ModificationDefinition &) const ))
 {
   ModificationDefinition m1, m2;
 	m1.setModification("MOD:00720");
@@ -212,7 +212,7 @@ CHECK((bool operator<(const OpenMS::ModificationDefinition &) const ))
 	TEST_EQUAL(m1 < m1, false)
 	TEST_EQUAL(m2 < m1, true)
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

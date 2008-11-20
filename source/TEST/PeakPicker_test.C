@@ -39,17 +39,17 @@ START_TEST(PeakPicker, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PeakPicker* ptr = 0;
-CHECK((PeakPicker()))
+START_SECTION((PeakPicker()))
   ptr = new PeakPicker();
   TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~PeakPicker()))
+START_SECTION((~PeakPicker()))
   delete ptr;
-RESULT
+END_SECTION
 
 
-CHECK((PeakPicker(const PeakPicker& pp)))
+START_SECTION((PeakPicker(const PeakPicker& pp)))
   Param param;
   param.setValue("thresholds:signal_to_noise",7.0);
   param.setValue("thresholds:peak_bound",100.0);
@@ -60,7 +60,7 @@ CHECK((PeakPicker(const PeakPicker& pp)))
   
   PeakPicker p_copy(p);
   TEST_EQUAL(p_copy.getParameters() == param, true)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

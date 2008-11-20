@@ -58,17 +58,17 @@ peptide_hits.push_back(peptide_hit);
 
 
 PeptideIdentification* ptr = 0;
-CHECK((PeptideIdentification()))
+START_SECTION((PeptideIdentification()))
 	ptr = new PeptideIdentification();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~PeptideIdentification()))
+START_SECTION((virtual ~PeptideIdentification()))
 	PeptideIdentification hits;
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((PeptideIdentification(const PeptideIdentification& source)))
+START_SECTION((PeptideIdentification(const PeptideIdentification& source)))
 	PeptideIdentification hits;
 	hits.setSignificanceThreshold(peptide_significance_threshold);
 	hits.setHits(peptide_hits);
@@ -86,9 +86,9 @@ CHECK((PeptideIdentification(const PeptideIdentification& source)))
 	TEST_EQUAL(hits.getIdentifier(),"id")
 	TEST_EQUAL(hits.getScoreType(),"score_type")
 	TEST_EQUAL(hits.isHigherScoreBetter(),false)
-RESULT
+END_SECTION
 
-CHECK((PeptideIdentification& operator=(const PeptideIdentification& source)))
+START_SECTION((PeptideIdentification& operator=(const PeptideIdentification& source)))
 	PeptideIdentification hits;
 	hits.setSignificanceThreshold(peptide_significance_threshold);
 	hits.setHits(peptide_hits);
@@ -107,9 +107,9 @@ CHECK((PeptideIdentification& operator=(const PeptideIdentification& source)))
 	TEST_EQUAL(hits.getIdentifier(),"id")
 	TEST_EQUAL(hits.getScoreType(),"score_type")
 	TEST_EQUAL(hits.isHigherScoreBetter(),false)
-RESULT
+END_SECTION
 
-CHECK((bool operator == (const PeptideIdentification& rhs) const))
+START_SECTION((bool operator == (const PeptideIdentification& rhs) const))
 	PeptideIdentification search1, search2;
 	TEST_EQUAL(search1 == search2, true)
 	
@@ -132,10 +132,10 @@ CHECK((bool operator == (const PeptideIdentification& rhs) const))
 	search2.setHigherScoreBetter(false);
 	TEST_EQUAL(search1 == search2, false)	
 	search1 = search2;
-RESULT
+END_SECTION
 
 
-CHECK((bool operator != (const PeptideIdentification& rhs) const))
+START_SECTION((bool operator != (const PeptideIdentification& rhs) const))
 	PeptideIdentification search1, search2;
 	TEST_EQUAL(search1 != search2, false)	
 
@@ -144,75 +144,75 @@ CHECK((bool operator != (const PeptideIdentification& rhs) const))
 	search1 = search2;
 	
 	//rest does not need to be tested, as it is tested in the operator== test implicitly!
-RESULT
+END_SECTION
 
 
-CHECK((Real getSignificanceThreshold() const))
+START_SECTION((Real getSignificanceThreshold() const))
 	PeptideIdentification hits;
 	hits.setSignificanceThreshold(peptide_significance_threshold);
 	TEST_EQUAL(hits.getSignificanceThreshold(), peptide_significance_threshold)
-RESULT
+END_SECTION
 
-CHECK((const std::vector<PeptideHit>& getHits() const))
+START_SECTION((const std::vector<PeptideHit>& getHits() const))
 	PeptideIdentification hits;
 	hits.insertHit(peptide_hit);
 	TEST_EQUAL(hits.getHits().size() == 1, true)
 	TEST_EQUAL(hits.getHits()[0] == peptide_hit, true)	
-RESULT
+END_SECTION
 
-CHECK((void insertHit(const PeptideHit &hit)))
+START_SECTION((void insertHit(const PeptideHit &hit)))
 	PeptideIdentification hits;
 	hits.insertHit(peptide_hit);
 	TEST_EQUAL(hits.getHits().size() == 1, true)
 	TEST_EQUAL(*(hits.getHits().begin()) == peptide_hit, true)	
-RESULT
+END_SECTION
 
-CHECK((void setHits(const std::vector< PeptideHit > &hits)))
+START_SECTION((void setHits(const std::vector< PeptideHit > &hits)))
 	PeptideIdentification hits;
 	hits.setHits(peptide_hits);
 	TEST_EQUAL(hits.getHits() == peptide_hits, true)
-RESULT
+END_SECTION
 
-CHECK((void setSignificanceThreshold(Real value)))
+START_SECTION((void setSignificanceThreshold(Real value)))
 	PeptideIdentification hits;
 	hits.setSignificanceThreshold(peptide_significance_threshold);
 	TEST_EQUAL(hits.getSignificanceThreshold(), peptide_significance_threshold)
-RESULT
+END_SECTION
 
-CHECK((String getScoreType() const))
+START_SECTION((String getScoreType() const))
 	PeptideIdentification hits;
 	TEST_EQUAL(hits.getScoreType(),"")
-RESULT
+END_SECTION
 
-CHECK((void setScoreType(const String& type)))
+START_SECTION((void setScoreType(const String& type)))
 	PeptideIdentification hits;
 	hits.setScoreType("bla");
 	TEST_EQUAL(hits.getScoreType(),"bla")
-RESULT
+END_SECTION
 
-CHECK((bool isHigherScoreBetter() const))
+START_SECTION((bool isHigherScoreBetter() const))
 	PeptideIdentification hits;
 	TEST_EQUAL(hits.isHigherScoreBetter(),true)
-RESULT
+END_SECTION
 
-CHECK((void setHigherScoreBetter(bool value)))
+START_SECTION((void setHigherScoreBetter(bool value)))
 	PeptideIdentification hits;
 	hits.setHigherScoreBetter(false);
 	TEST_EQUAL(hits.isHigherScoreBetter(),false)
-RESULT
+END_SECTION
 
-CHECK((const String& getIdentifier() const))
+START_SECTION((const String& getIdentifier() const))
 	PeptideIdentification hits;
 	TEST_EQUAL(hits.getIdentifier(),"")
-RESULT
+END_SECTION
 
-CHECK((void setIdentifier(const String& id)))
+START_SECTION((void setIdentifier(const String& id)))
 	PeptideIdentification hits;
 	hits.setIdentifier("bla");
 	TEST_EQUAL(hits.getIdentifier(),"bla")
-RESULT
+END_SECTION
 
-CHECK((bool empty() const))
+START_SECTION((bool empty() const))
 	PeptideIdentification hits;
 	TEST_EQUAL(hits.empty(), true)
 	hits.setSignificanceThreshold(1);
@@ -220,9 +220,9 @@ CHECK((bool empty() const))
 	hits.setSignificanceThreshold(0);
 	hits.insertHit(peptide_hit);
 	TEST_EQUAL(hits.empty(), false)
-RESULT
+END_SECTION
 
-CHECK((void sort()))
+START_SECTION((void sort()))
 	PeptideIdentification id;
 	PeptideHit hit;
 	hit.setScore(23);
@@ -256,9 +256,9 @@ CHECK((void sort()))
 	TEST_EQUAL(id.getHits()[1].getScore(), 23)
 	TEST_EQUAL(id.getHits()[2].getScore(), 45)
 
-RESULT
+END_SECTION
 
-CHECK((void assignRanks()))
+START_SECTION((void assignRanks()))
 	PeptideIdentification id;
 	PeptideHit hit;
 	hit.setScore(23);
@@ -279,9 +279,9 @@ CHECK((void assignRanks()))
 	TEST_EQUAL(id.getHits()[0].getRank(), 1)	
 	TEST_EQUAL(id.getHits()[1].getRank(), 2)
 	TEST_EQUAL(id.getHits()[2].getRank(), 3)
-RESULT
+END_SECTION
 
-CHECK(void getReferencingHits(const String &protein_accession, std::vector< PeptideHit > &peptide_hits) const)
+START_SECTION(void getReferencingHits(const String &protein_accession, std::vector< PeptideHit > &peptide_hits) const)
 	PeptideIdentification id;
 	PeptideHit hit;
 	vector< PeptideHit > peptide_hits;
@@ -308,9 +308,9 @@ CHECK(void getReferencingHits(const String &protein_accession, std::vector< Pept
 	TEST_EQUAL(peptide_hits[0].getSequence(), String("SECONDPROTEIN"))
 	TEST_EQUAL(peptide_hits[1].getSequence(), String("THIRDPROTEIN"))
 	
-RESULT
+END_SECTION
 
-CHECK(void getReferencingHits(const std::vector< String > &accessions, std::vector< PeptideHit > &peptide_hits) const)
+START_SECTION(void getReferencingHits(const std::vector< String > &accessions, std::vector< PeptideHit > &peptide_hits) const)
 	PeptideIdentification id;
 	PeptideHit hit;
 	vector< PeptideHit > peptide_hits;
@@ -340,9 +340,9 @@ CHECK(void getReferencingHits(const std::vector< String > &accessions, std::vect
 	TEST_EQUAL(peptide_hits.size(), 2)
 	TEST_EQUAL(peptide_hits[0].getSequence(), String("SECONDPROTEIN"))
 	TEST_EQUAL(peptide_hits[1].getSequence(), String("THIRDPROTEIN"))	
-RESULT
+END_SECTION
 
-CHECK(void getReferencingHits(const std::vector< ProteinHit > &protein_hits, std::vector< PeptideHit > &peptide_hits) const)
+START_SECTION(void getReferencingHits(const std::vector< ProteinHit > &protein_hits, std::vector< PeptideHit > &peptide_hits) const)
 	PeptideIdentification id;
 	PeptideHit hit;
 	vector< PeptideHit > peptide_hits;
@@ -375,9 +375,9 @@ CHECK(void getReferencingHits(const std::vector< ProteinHit > &protein_hits, std
 	TEST_EQUAL(peptide_hits.size(), 2)
 	TEST_EQUAL(peptide_hits[0].getSequence(), String("SECONDPROTEIN"))
 	TEST_EQUAL(peptide_hits[1].getSequence(), String("THIRDPROTEIN"))	
-RESULT
+END_SECTION
 
-CHECK(void getNonReferencingHits(const String &protein_accession, std::vector< PeptideHit > &peptide_hits) const)
+START_SECTION(void getNonReferencingHits(const String &protein_accession, std::vector< PeptideHit > &peptide_hits) const)
 	PeptideIdentification id;
 	PeptideHit hit;
 	vector< PeptideHit > peptide_hits;
@@ -402,9 +402,9 @@ CHECK(void getNonReferencingHits(const String &protein_accession, std::vector< P
 	id.getNonReferencingHits("TEST_PROTEIN2", peptide_hits);
 	TEST_EQUAL(peptide_hits.size(), 1)
 	TEST_EQUAL(peptide_hits[0].getSequence(), String("FIRSTPROTEIN"))
-RESULT
+END_SECTION
 
-CHECK(void getNonReferencingHits(const std::vector< String > &accessions, std::vector< PeptideHit > &peptide_hits) const)
+START_SECTION(void getNonReferencingHits(const std::vector< String > &accessions, std::vector< PeptideHit > &peptide_hits) const)
 	PeptideIdentification id;
 	PeptideHit hit;
 	vector< PeptideHit > peptide_hits;
@@ -434,9 +434,9 @@ CHECK(void getNonReferencingHits(const std::vector< String > &accessions, std::v
 	TEST_EQUAL(peptide_hits.size(), 1)
 	TEST_EQUAL(peptide_hits[0].getSequence(), String("FIRSTPROTEIN"))
 
-RESULT
+END_SECTION
 
-CHECK(void getNonReferencingHits(const std::vector< ProteinHit > &protein_hits, std::vector< PeptideHit > &peptide_hits) const)
+START_SECTION(void getNonReferencingHits(const std::vector< ProteinHit > &protein_hits, std::vector< PeptideHit > &peptide_hits) const)
 	PeptideIdentification id;
 	PeptideHit hit;
 	vector< PeptideHit > peptide_hits;
@@ -468,7 +468,7 @@ CHECK(void getNonReferencingHits(const std::vector< ProteinHit > &protein_hits, 
 	id.getNonReferencingHits(protein_hits, peptide_hits);
 	TEST_EQUAL(peptide_hits.size(), 1)
 	TEST_EQUAL(peptide_hits[0].getSequence(), String("FIRSTPROTEIN"))
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

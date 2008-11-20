@@ -43,18 +43,18 @@ using std::string;
 // default ctor
 Base64* ptr = 0;
 
-CHECK((Base64()))
+START_SECTION((Base64()))
 	ptr = new Base64;
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
 // destructor
-CHECK((~Base64()))
+START_SECTION((~Base64()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(( template <typename FromType> void encode(std::vector<FromType>& in, ByteOrder to_byte_order, std::string& out)))
-  PRECISION(0.001)
+START_SECTION(( template <typename FromType> void encode(std::vector<FromType>& in, ByteOrder to_byte_order, std::string& out)))
+  TOLERANCE_ABSOLUTE(0.001)
 
 	Base64 b64;
   std::vector<Real> data;
@@ -86,10 +86,10 @@ CHECK(( template <typename FromType> void encode(std::vector<FromType>& in, Byte
   data_double.push_back(304.6);
 	b64.encode(data_double, Base64::BYTEORDER_BIGENDIAN, dest);
 	TEST_EQUAL(dest, "QHLCZmZmZmZAcv/3ztkWh0BzCZmZmZma");
-RESULT
+END_SECTION
 
-CHECK(( template <typename ToType> void decode(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out)))
-  PRECISION(0.001)
+START_SECTION(( template <typename ToType> void decode(const std::string& in, ByteOrder from_byte_order, std::vector<ToType>& out)))
+  TOLERANCE_ABSOLUTE(0.001)
 
 	Base64 b64;
 	string src;
@@ -101,36 +101,36 @@ CHECK(( template <typename ToType> void decode(const std::string& in, ByteOrder 
 
 	src = "QvAAAELIAA==";
   b64.decode(src, Base64::BYTEORDER_BIGENDIAN, res);
-	TEST_REAL_EQUAL(res[0], 120)
-	TEST_REAL_EQUAL(res[1], 100)
+	TEST_REAL_SIMILAR(res[0], 120)
+	TEST_REAL_SIMILAR(res[1], 100)
 
 	src = "Q+vIuEec9YBD7TgoR/HTgEPt23hHA8UA";
   b64.decode(src, Base64::BYTEORDER_BIGENDIAN, res);
-	TEST_REAL_EQUAL(res[0], 471.568)
-	TEST_REAL_EQUAL(res[1], 80363)
-	TEST_REAL_EQUAL(res[2], 474.439)
-	TEST_REAL_EQUAL(res[3], 123815)
-	TEST_REAL_EQUAL(res[4], 475.715)
-	TEST_REAL_EQUAL(res[5], 33733)
+	TEST_REAL_SIMILAR(res[0], 471.568)
+	TEST_REAL_SIMILAR(res[1], 80363)
+	TEST_REAL_SIMILAR(res[2], 474.439)
+	TEST_REAL_SIMILAR(res[3], 123815)
+	TEST_REAL_SIMILAR(res[4], 475.715)
+	TEST_REAL_SIMILAR(res[5], 33733)
 
 	src = "JhOWQ8b/l0PMTJhD";
   b64.decode(src, Base64::BYTEORDER_LITTLEENDIAN, res);
-	TEST_REAL_EQUAL(res[0], 300.15)
-	TEST_REAL_EQUAL(res[1], 303.998)
-	TEST_REAL_EQUAL(res[2], 304.6)
+	TEST_REAL_SIMILAR(res[0], 300.15)
+	TEST_REAL_SIMILAR(res[1], 303.998)
+	TEST_REAL_SIMILAR(res[2], 304.6)
 
 	src = "QGYTSADLaUgAAABA";
   b64.decode(src, Base64::BYTEORDER_LITTLEENDIAN, res);
-	TEST_REAL_EQUAL(res[0], 150937)
-	TEST_REAL_EQUAL(res[1], 239404)
-	TEST_REAL_EQUAL(res[2], 2)
+	TEST_REAL_SIMILAR(res[0], 150937)
+	TEST_REAL_SIMILAR(res[1], 239404)
+	TEST_REAL_SIMILAR(res[2], 2)
 
 	src = "QHLCZmZmZmZAcv/3ztkWh0BzCZmZmZma";
   b64.decode(src, Base64::BYTEORDER_BIGENDIAN, res_double);
-	TEST_REAL_EQUAL(res_double[0], 300.15)
-	TEST_REAL_EQUAL(res_double[1], 303.998)
-	TEST_REAL_EQUAL(res_double[2], 304.6)
-RESULT
+	TEST_REAL_SIMILAR(res_double[0], 300.15)
+	TEST_REAL_SIMILAR(res_double[1], 303.998)
+	TEST_REAL_SIMILAR(res_double[2], 304.6)
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

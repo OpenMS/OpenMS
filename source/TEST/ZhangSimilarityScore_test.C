@@ -46,31 +46,31 @@ using namespace std;
 
 ZhangSimilarityScore* ptr = 0;
 
-CHECK(ZhangSimilarityScore())
+START_SECTION(ZhangSimilarityScore())
 	ptr = new ZhangSimilarityScore();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~ZhangSimilarityScore())
+START_SECTION(~ZhangSimilarityScore())
 	delete ptr;
-RESULT
+END_SECTION
 
 ptr = new ZhangSimilarityScore();
 
-CHECK(ZhangSimilarityScore(const ZhangSimilarityScore& source))
+START_SECTION(ZhangSimilarityScore(const ZhangSimilarityScore& source))
 	ZhangSimilarityScore copy(*ptr);
 	TEST_EQUAL(copy.getName(), ptr->getName());
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters());
-RESULT
+END_SECTION
 
-CHECK(ZhangSimilarityScore& operator = (const ZhangSimilarityScore& source))
+START_SECTION(ZhangSimilarityScore& operator = (const ZhangSimilarityScore& source))
 	ZhangSimilarityScore copy;
 	copy = *ptr;
 	TEST_EQUAL(copy.getName(), ptr->getName());
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters());
-RESULT
+END_SECTION
 
-CHECK(double operator () (const PeakSpectrum& spec) const)
+START_SECTION(double operator () (const PeakSpectrum& spec) const)
 	PeakSpectrum s1;
   DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
 
@@ -81,10 +81,10 @@ CHECK(double operator () (const PeakSpectrum& spec) const)
   normalizer.filterSpectrum(s1);
 
   double score = (*ptr)(s1);
-  TEST_REAL_EQUAL(score, 1.82682);
-RESULT
+  TEST_REAL_SIMILAR(score, 1.82682);
+END_SECTION
 
-CHECK(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)
+START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)
   PeakSpectrum s1, s2;
   DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
   DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s2);
@@ -96,29 +96,29 @@ CHECK(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) 
   normalizer.filterSpectrum(s1);
   normalizer.filterSpectrum(s2);
 
-  PRECISION(0.01)
+  TOLERANCE_ABSOLUTE(0.01)
 
   double score = (*ptr)(s1, s2);
-  TEST_REAL_EQUAL(score, 1.82682)
+  TEST_REAL_SIMILAR(score, 1.82682)
 
   s2.resize(100);
 
   score = (*ptr)(s1, s2);
 
   normalizer.filterSpectrum(s2);
-  TEST_REAL_EQUAL(score, 0.328749)
-RESULT
+  TEST_REAL_SIMILAR(score, 0.328749)
+END_SECTION
 
-CHECK(static PeakSpectrumCompareFunctor* create())
+START_SECTION(static PeakSpectrumCompareFunctor* create())
 	PeakSpectrumCompareFunctor* psf = ZhangSimilarityScore::create();
 	ZhangSimilarityScore zhang;
 	TEST_EQUAL(psf->getParameters(), zhang.getParameters())
 	TEST_EQUAL(psf->getName(), zhang.getName())
-RESULT
+END_SECTION
 
-CHECK(static const String getProductName())
+START_SECTION(static const String getProductName())
 	TEST_EQUAL(ptr->getProductName(), "ZhangSimilarityScore")
-RESULT
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

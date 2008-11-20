@@ -29,7 +29,6 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -48,18 +47,18 @@ START_TEST(ConsensusXMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ConsensusXMLFile* ptr = 0;
-CHECK((ConsensusXMLFile()))
+START_SECTION((ConsensusXMLFile()))
 	ptr = new ConsensusXMLFile();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~ConsensusXMLFile()))
+START_SECTION((~ConsensusXMLFile()))
 	delete ptr;
-RESULT
+END_SECTION
 
-PRECISION(0.01)
+TOLERANCE_ABSOLUTE(0.01)
 
-CHECK((void load(const String &filename, ConsensusMap &map)))
+START_SECTION((void load(const String &filename, ConsensusMap &map)))
   ConsensusMap map;
   ConsensusXMLFile file;
   file.load("data/ConsensusXMLFile_1.consensusXML", map);
@@ -94,35 +93,35 @@ CHECK((void load(const String &filename, ConsensusMap &map)))
 
 	//features
   ConsensusFeature cons_feature = map[0];
-  TEST_REAL_EQUAL(cons_feature.getRT(),1273.27)  
-  TEST_REAL_EQUAL(cons_feature.getMZ(),904.47)
-  TEST_REAL_EQUAL(cons_feature.getIntensity(),3.12539e+07)
-  TEST_REAL_EQUAL(cons_feature.getPositionRange().min()[0],1273.27)
-  TEST_REAL_EQUAL(cons_feature.getPositionRange().max()[0],1273.27)
-  TEST_REAL_EQUAL(cons_feature.getPositionRange().min()[1],904.47)
-  TEST_REAL_EQUAL(cons_feature.getPositionRange().max()[1],904.47)
-  TEST_REAL_EQUAL(cons_feature.getIntensityRange().min()[0],3.12539e+07)
-  TEST_REAL_EQUAL(cons_feature.getIntensityRange().max()[0],3.12539e+07)
-  TEST_REAL_EQUAL(cons_feature.getQuality(),1.1)
+  TEST_REAL_SIMILAR(cons_feature.getRT(),1273.27)  
+  TEST_REAL_SIMILAR(cons_feature.getMZ(),904.47)
+  TEST_REAL_SIMILAR(cons_feature.getIntensity(),3.12539e+07)
+  TEST_REAL_SIMILAR(cons_feature.getPositionRange().min()[0],1273.27)
+  TEST_REAL_SIMILAR(cons_feature.getPositionRange().max()[0],1273.27)
+  TEST_REAL_SIMILAR(cons_feature.getPositionRange().min()[1],904.47)
+  TEST_REAL_SIMILAR(cons_feature.getPositionRange().max()[1],904.47)
+  TEST_REAL_SIMILAR(cons_feature.getIntensityRange().min()[0],3.12539e+07)
+  TEST_REAL_SIMILAR(cons_feature.getIntensityRange().max()[0],3.12539e+07)
+  TEST_REAL_SIMILAR(cons_feature.getQuality(),1.1)
   TEST_EQUAL(cons_feature.getMetaValue("peptide_id")==DataValue("RefSeq:NC_1234"),true)
   ConsensusFeature::HandleSetType::const_iterator it = cons_feature.begin();
-  TEST_REAL_EQUAL(it->getIntensity(),3.12539e+07)
+  TEST_REAL_SIMILAR(it->getIntensity(),3.12539e+07)
   
   cons_feature = map[5];
-  TEST_REAL_EQUAL(cons_feature.getRT(),1194.82)  
-  TEST_REAL_EQUAL(cons_feature.getMZ(),777.101)
-  TEST_REAL_EQUAL(cons_feature.getIntensity(),1.78215e+07)
-  TEST_REAL_EQUAL(cons_feature.getPositionRange().min()[0],1194.82)
-  TEST_REAL_EQUAL(cons_feature.getPositionRange().max()[0],1194.82)
-  TEST_REAL_EQUAL(cons_feature.getPositionRange().min()[1],777.101)
-  TEST_REAL_EQUAL(cons_feature.getPositionRange().max()[1],777.101)
-  TEST_REAL_EQUAL(cons_feature.getIntensityRange().min()[0],1.78215e+07)
-  TEST_REAL_EQUAL(cons_feature.getIntensityRange().max()[0],1.78215e+07)
-  TEST_REAL_EQUAL(cons_feature.getQuality(),0.0)
+  TEST_REAL_SIMILAR(cons_feature.getRT(),1194.82)  
+  TEST_REAL_SIMILAR(cons_feature.getMZ(),777.101)
+  TEST_REAL_SIMILAR(cons_feature.getIntensity(),1.78215e+07)
+  TEST_REAL_SIMILAR(cons_feature.getPositionRange().min()[0],1194.82)
+  TEST_REAL_SIMILAR(cons_feature.getPositionRange().max()[0],1194.82)
+  TEST_REAL_SIMILAR(cons_feature.getPositionRange().min()[1],777.101)
+  TEST_REAL_SIMILAR(cons_feature.getPositionRange().max()[1],777.101)
+  TEST_REAL_SIMILAR(cons_feature.getIntensityRange().min()[0],1.78215e+07)
+  TEST_REAL_SIMILAR(cons_feature.getIntensityRange().max()[0],1.78215e+07)
+  TEST_REAL_SIMILAR(cons_feature.getQuality(),0.0)
   it = cons_feature.begin();
-  TEST_REAL_EQUAL(it->getIntensity(),1.78215e+07)
+  TEST_REAL_SIMILAR(it->getIntensity(),1.78215e+07)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),1.78215e+07)
+  TEST_REAL_SIMILAR(it->getIntensity(),1.78215e+07)
 
 
 	//PeakFileOptions tests
@@ -130,23 +129,23 @@ CHECK((void load(const String &filename, ConsensusMap &map)))
 	file.getOptions().setRTRange(makeRange(815, 818));
 	file.load("data/ConsensusXMLFile_2_options.consensusXML",map);
 	TEST_EQUAL(map.size(),1)
-	TEST_REAL_EQUAL(map[0].getRT(), 817.266)
+	TEST_REAL_SIMILAR(map[0].getRT(), 817.266)
 
 	file.getOptions() = PeakFileOptions();
 	file.getOptions().setMZRange(makeRange(944, 945));
 	file.load("data/ConsensusXMLFile_2_options.consensusXML",map);
 	TEST_EQUAL(map.size(),1)
-	TEST_REAL_EQUAL(map[0].getMZ(), 944.96)
+	TEST_REAL_SIMILAR(map[0].getMZ(), 944.96)
 
 	file.getOptions() = PeakFileOptions();
 	file.getOptions().setIntensityRange(makeRange(15000,24000));
 	file.load("data/ConsensusXMLFile_2_options.consensusXML",map);
 	TEST_EQUAL(map.size(),1)
-	TEST_REAL_EQUAL(map[0].getIntensity(),23000.238)
+	TEST_REAL_SIMILAR(map[0].getIntensity(),23000.238)
 
-RESULT
+END_SECTION
 
-CHECK((void store(const String &filename, const ConsensusMap &map)))
+START_SECTION((void store(const String &filename, const ConsensusMap &map)))
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   
@@ -157,9 +156,9 @@ CHECK((void store(const String &filename, const ConsensusMap &map)))
   f.store(tmp_filename, map);
   f.load(tmp_filename, map2);
   TEST_EQUAL(map==map2, true)
-RESULT
+END_SECTION
 
-CHECK([EXTRA] (bool isValid(const String& filename)))
+START_SECTION([EXTRA] (bool isValid(const String& filename)))
   ConsensusXMLFile f;
   TEST_EQUAL(f.isValid("data/ConsensusXMLFile_1.consensusXML"),true);
   TEST_EQUAL(f.isValid("data/ConsensusXMLFile_2_options.consensusXML"),true);
@@ -173,9 +172,9 @@ CHECK([EXTRA] (bool isValid(const String& filename)))
 	f.load("data/ConsensusXMLFile_1.consensusXML",m);
 	f.store(tmp_filename, m);	
   TEST_EQUAL(f.isValid(tmp_filename),true);
-RESULT
+END_SECTION
 
-CHECK([EXTRA] peptide and protein identification I/O)
+START_SECTION([EXTRA] peptide and protein identification I/O)
 {
 	std::vector<ProteinHit> protein_hits;
 	ProteinHit protein_hit;
@@ -279,9 +278,9 @@ CHECK([EXTRA] peptide and protein identification I/O)
 
 	file.store(tmp_filename_reloaded_then_stored,map_reloaded);
 
-	TEST_FILE(tmp_filename.c_str(),tmp_filename_reloaded_then_stored.c_str());
+	TEST_FILE_EQUAL(tmp_filename.c_str(),tmp_filename_reloaded_then_stored.c_str());
 }
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -39,78 +39,78 @@ START_TEST(SourceFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SourceFile* ptr = 0;
-CHECK((SourceFile()))
+START_SECTION((SourceFile()))
 	ptr = new SourceFile();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~SourceFile()))
+START_SECTION((~SourceFile()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((Real getFileSize() const))
+START_SECTION((Real getFileSize() const))
   SourceFile tmp;
   TEST_EQUAL(tmp.getFileSize(),0);
-RESULT
+END_SECTION
 
-CHECK((void setFileSize(Real file_size)))
+START_SECTION((void setFileSize(Real file_size)))
   SourceFile tmp;
 	tmp.setFileSize(1.667);
-  TEST_REAL_EQUAL(tmp.getFileSize(),1.667);
-RESULT
+  TEST_REAL_SIMILAR(tmp.getFileSize(),1.667);
+END_SECTION
 
-CHECK((const String& getFileType() const))
+START_SECTION((const String& getFileType() const))
   SourceFile tmp;
   TEST_EQUAL(tmp.getFileType(), "");
-RESULT
+END_SECTION
 
-CHECK((void setFileType(const String& file_type)))
+START_SECTION((void setFileType(const String& file_type)))
   SourceFile tmp;
 	tmp.setFileType("PEAKDATA");
   TEST_EQUAL(tmp.getFileType(), "PEAKDATA");
-RESULT
+END_SECTION
 
-CHECK((const String& getNameOfFile() const))
+START_SECTION((const String& getNameOfFile() const))
   SourceFile tmp;
   TEST_EQUAL(tmp.getNameOfFile(),"");
-RESULT
+END_SECTION
 
-CHECK((void setNameOfFile(const String& name_of_file)))
+START_SECTION((void setNameOfFile(const String& name_of_file)))
   SourceFile tmp;
   tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
   TEST_EQUAL(tmp.getNameOfFile(),"The White Stripes - Ball and Biscuit");
-RESULT
+END_SECTION
 
-CHECK((const String& getPathToFile() const))
+START_SECTION((const String& getPathToFile() const))
   SourceFile tmp;
   TEST_EQUAL(tmp.getPathToFile(),"");
-RESULT
+END_SECTION
 
-CHECK((void setPathToFile(const String& path_path_to_file)))
+START_SECTION((void setPathToFile(const String& path_path_to_file)))
   SourceFile tmp;
   tmp.setPathToFile("/misc/sturm/mp3/");
   TEST_EQUAL(tmp.getPathToFile(),"/misc/sturm/mp3/");
-RESULT
+END_SECTION
 
-CHECK((const String& getChecksum() const))
+START_SECTION((const String& getChecksum() const))
   SourceFile tmp;
   TEST_EQUAL(tmp.getChecksum(), "");
-RESULT
+END_SECTION
 
-CHECK(ChecksumType getChecksumType() const)
+START_SECTION(ChecksumType getChecksumType() const)
   SourceFile tmp;
   TEST_EQUAL(tmp.getChecksumType(), SourceFile::UNKNOWN);
-RESULT
+END_SECTION
 
-CHECK((void setChecksum(const String& checksum, ChecksumType type)))
+START_SECTION((void setChecksum(const String& checksum, ChecksumType type)))
   SourceFile tmp;
   tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12",SourceFile::SHA1);
   TEST_EQUAL(tmp.getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
   TEST_EQUAL(tmp.getChecksumType(), SourceFile::SHA1);
-RESULT
+END_SECTION
 
 
-CHECK((SourceFile(const SourceFile& source)))
+START_SECTION((SourceFile(const SourceFile& source)))
 	SourceFile tmp;
 	tmp.setFileType("CALIBRATIONINFO");
 	tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
@@ -124,10 +124,10 @@ CHECK((SourceFile(const SourceFile& source)))
 	TEST_EQUAL(tmp2.getPathToFile(),"/misc/sturm/mp3/");
 	TEST_EQUAL(tmp2.getChecksum(), "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
 	TEST_EQUAL(tmp2.getChecksumType(), SourceFile::MD5);
-	TEST_REAL_EQUAL(tmp2.getMetaValue("bla"), 4.0);
-RESULT
+	TEST_REAL_SIMILAR(tmp2.getMetaValue("bla"), 4.0);
+END_SECTION
 
-CHECK((SourceFile& operator= (const SourceFile& source)))
+START_SECTION((SourceFile& operator= (const SourceFile& source)))
 	SourceFile tmp;
 	tmp.setFileType("PUBLICATION");
 	tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
@@ -143,7 +143,7 @@ CHECK((SourceFile& operator= (const SourceFile& source)))
 	TEST_EQUAL(tmp2.getPathToFile(),"/misc/sturm/mp3/");
 	TEST_EQUAL(tmp2.getChecksum(),"2fd4e1c67a2d28fced849ee1bb76e7391b93eb12");
 	TEST_EQUAL(tmp2.getChecksumType(), SourceFile::MD5);
-	TEST_REAL_EQUAL(tmp2.getMetaValue("bla"), 4.0);
+	TEST_REAL_SIMILAR(tmp2.getMetaValue("bla"), 4.0);
 	
 	//assignment of empty object
 	tmp2 = SourceFile();
@@ -153,9 +153,9 @@ CHECK((SourceFile& operator= (const SourceFile& source)))
 	TEST_EQUAL(tmp2.getChecksum(),"");
 	TEST_EQUAL(tmp2.getChecksumType(), SourceFile::UNKNOWN);
 	TEST_EQUAL(tmp2.metaValueExists("bla"), false);
-RESULT
+END_SECTION
 
-CHECK((bool operator== (const SourceFile& rhs) const))
+START_SECTION((bool operator== (const SourceFile& rhs) const))
 	SourceFile tmp,tmp2;
 	
 	TEST_EQUAL(tmp==tmp2, true);
@@ -178,9 +178,9 @@ CHECK((bool operator== (const SourceFile& rhs) const))
 	tmp2 = tmp;	
 	tmp.setPathToFile("/misc/sturm/mp3/");
 	TEST_EQUAL(tmp==tmp2, false);
-RESULT
+END_SECTION
 
-CHECK((bool operator!= (const SourceFile& rhs) const))
+START_SECTION((bool operator!= (const SourceFile& rhs) const))
 	SourceFile tmp,tmp2;
 	
 	TEST_EQUAL(tmp!=tmp2, false);
@@ -203,7 +203,7 @@ CHECK((bool operator!= (const SourceFile& rhs) const))
 	tmp2 = tmp;	
 	tmp.setPathToFile("/misc/sturm/mp3/");
 	TEST_EQUAL(tmp!=tmp2, true);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

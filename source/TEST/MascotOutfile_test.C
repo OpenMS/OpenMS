@@ -47,12 +47,12 @@ DateTime date;
 date.set("27.01.2005 17:47:41");
 MascotOutfile* ptr = 0;
 
-CHECK((MascotOutfile()))
+START_SECTION((MascotOutfile()))
 	ptr = new MascotOutfile();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((void load(String filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &peptide_identifications, Real p=0.05)))
+START_SECTION((void load(String filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &peptide_identifications, Real p=0.05)))
 	ptr = new MascotOutfile();
 	vector<PeptideIdentification> peptide_identifications;
 	ProteinIdentification protein_identification;
@@ -64,34 +64,34 @@ CHECK((void load(String filename, ProteinIdentification &protein_identification,
 	TEST_EQUAL(peptide_identifications[1].getHits().size(), 1)	
 	TEST_EQUAL(peptide_identifications[2].getHits().size(), 10)	
 	TEST_EQUAL(peptide_identifications[3].getHits().size(), 10)	
-	TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), 19.1f)	
+	TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), 19.1f)	
 	TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), "NSSEA")	
 	TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)	
-	TEST_REAL_EQUAL(peptide_identifications[1].getHits()[0].getScore(), 0.93f)	
+	TEST_REAL_SIMILAR(peptide_identifications[1].getHits()[0].getScore(), 0.93f)	
 	TEST_EQUAL(peptide_identifications[1].getHits()[0].getSequence(), "FGASK")	
 	TEST_EQUAL(peptide_identifications[1].getHits()[0].getRank(), 1)	
-	TEST_REAL_EQUAL(peptide_identifications[2].getHits()[0].getScore(), 9.72f)	
+	TEST_REAL_SIMILAR(peptide_identifications[2].getHits()[0].getScore(), 9.72f)	
 	TEST_EQUAL(peptide_identifications[2].getHits()[0].getSequence(), "AGGNAK")	
 	TEST_EQUAL(peptide_identifications[2].getHits()[0].getRank(), 1)	
-	TEST_REAL_EQUAL(peptide_identifications[2].getHits()[1].getScore(), 8.77f)	
+	TEST_REAL_SIMILAR(peptide_identifications[2].getHits()[1].getScore(), 8.77f)	
 	TEST_EQUAL(peptide_identifications[2].getHits()[1].getSequence(), "KGANK")	
 	TEST_EQUAL(peptide_identifications[2].getHits()[1].getRank(), 2)	
-	TEST_REAL_EQUAL(peptide_identifications[2].getHits()[2].getScore(), 8.77f)	
+	TEST_REAL_SIMILAR(peptide_identifications[2].getHits()[2].getScore(), 8.77f)	
 	TEST_EQUAL(peptide_identifications[2].getHits()[2].getSequence(), "KXANK")	
 	TEST_EQUAL(peptide_identifications[2].getScoreType(), "Mascot")	
 	TEST_EQUAL(peptide_identifications[2].getHits()[2].getRank(), 3)	
 		
-  TEST_REAL_EQUAL((float)peptide_identifications[0].getMetaValue("RT"), 88.3466f)
-  TEST_REAL_EQUAL((float)peptide_identifications[1].getMetaValue("RT"), 96.9993f)
-  TEST_REAL_EQUAL((float)peptide_identifications[2].getMetaValue("RT"), 105.615f)
-  TEST_REAL_EQUAL((float)peptide_identifications[3].getMetaValue("RT"), 105.615f)
+  TEST_REAL_SIMILAR((float)peptide_identifications[0].getMetaValue("RT"), 88.3466f)
+  TEST_REAL_SIMILAR((float)peptide_identifications[1].getMetaValue("RT"), 96.9993f)
+  TEST_REAL_SIMILAR((float)peptide_identifications[2].getMetaValue("RT"), 105.615f)
+  TEST_REAL_SIMILAR((float)peptide_identifications[3].getMetaValue("RT"), 105.615f)
 
-	TEST_REAL_EQUAL((float)peptide_identifications[0].getMetaValue("MZ"), 508.119f)	
-	TEST_REAL_EQUAL((float)peptide_identifications[1].getMetaValue("MZ"), 508.458f)	
-	TEST_REAL_EQUAL((float)peptide_identifications[2].getMetaValue("MZ"), 517.267f)	
-	TEST_REAL_EQUAL((float)peptide_identifications[3].getMetaValue("MZ"), 517.324f)	
+	TEST_REAL_SIMILAR((float)peptide_identifications[0].getMetaValue("MZ"), 508.119f)	
+	TEST_REAL_SIMILAR((float)peptide_identifications[1].getMetaValue("MZ"), 508.458f)	
+	TEST_REAL_SIMILAR((float)peptide_identifications[2].getMetaValue("MZ"), 517.267f)	
+	TEST_REAL_SIMILAR((float)peptide_identifications[3].getMetaValue("MZ"), 517.324f)	
 
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

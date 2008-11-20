@@ -53,36 +53,36 @@ enum
 };
 
 ModelFitterType* ptr = 0;
-CHECK((ModelFitter(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff)))
+START_SECTION((ModelFitter(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff)))
 	MSExperiment<PeakType> input;
 	FeatureMap<FeatureType> features;
 	FeatureFinder ff;
 	ptr = new ModelFitterType(&input,&features,&ff);
   TEST_EQUAL(ptr->getName(), "ModelFitter")
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~ModelFitter()))
+START_SECTION((virtual ~ModelFitter()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((void setMonoIsotopicMass(CoordinateType mz)))
+START_SECTION((void setMonoIsotopicMass(CoordinateType mz)))
 {
   // dummy subtest
 	TEST_EQUAL(1,1)
 }
-RESULT
+END_SECTION
 
-CHECK([EXTRA](static const String getName()))
+START_SECTION([EXTRA](static const String getName()))
 	MSExperiment<PeakType> input;
 	FeatureMap<FeatureType> features;
 	FeatureFinder ff;
 	ModelFitterType model_fitter(&input,&features,&ff);
 	TEST_EQUAL(model_fitter.getName(),"ModelFitter");
-RESULT
+END_SECTION
 
 #if 1
-CHECK(([EXTRA]void ModelFitter::setParameters(const Param& param)))
+START_SECTION(([EXTRA]void ModelFitter::setParameters(const Param& param)))
 {
 	MSExperiment<PeakType> input;
 	FeatureMap<FeatureType> features;
@@ -123,10 +123,10 @@ CHECK(([EXTRA]void ModelFitter::setParameters(const Param& param)))
 	TEST_EQUAL(p3.getValue("isotope_model:stdev:last"),DataValue(0.12f))
 	TEST_EQUAL(p3.getValue("isotope_model:stdev:step"),DataValue(0.02f))
 }
-RESULT
+END_SECTION
 #endif
 
-CHECK(Feature fit(const ChargedIndexSet& index_set))
+START_SECTION(Feature fit(const ChargedIndexSet& index_set))
 {
 	// Test BiGauss Fitting (mz/rt)
 
@@ -135,7 +135,7 @@ CHECK(Feature fit(const ChargedIndexSet& index_set))
 	FeatureFinder ff;
 
 	const double default_precision = 0.1;
-	PRECISION(default_precision);
+	TOLERANCE_ABSOLUTE(default_precision);
 
 	double mzs[] = {675, 675.5, 676, 676.5, 677, 677.5, 678};
 	const UInt mz_num = 7;
@@ -198,28 +198,28 @@ CHECK(Feature fit(const ChargedIndexSet& index_set))
 	}
 	FeatureType feature = model_fitter.fit(set);
 
-	TEST_REAL_EQUAL(feature.getMZ(), mean[MZ]);
-	TEST_REAL_EQUAL(feature.getRT(), mean[RT]);
-	TEST_REAL_EQUAL(feature.getIntensity(), 79820.9);
+	TEST_REAL_SIMILAR(feature.getMZ(), mean[MZ]);
+	TEST_REAL_SIMILAR(feature.getRT(), mean[RT]);
+	TEST_REAL_SIMILAR(feature.getIntensity(), 79820.9);
 	TEST_EQUAL(feature.getCharge(), 0);
-	PRECISION(0.01)
-	TEST_REAL_EQUAL(feature.getOverallQuality(), 0.99);
+	TOLERANCE_ABSOLUTE(0.01)
+	TEST_REAL_SIMILAR(feature.getOverallQuality(), 0.99);
 
 	ProductModel<2>* model = static_cast< ProductModel<2>* >
 													(feature.getModelDescription().createModel());
 
 	BaseModel<1>* mz_model = model->getModel(MZ);
-	TEST_REAL_EQUAL(mz_model->getParameters().getValue("statistics:mean"),mean[MZ]);
-	PRECISION(stdev[MZ]*stdev[MZ]*0.05)		// Variances can differ by 5%
-	TEST_REAL_EQUAL(mz_model->getParameters().getValue("statistics:variance"),stdev[MZ]*stdev[MZ]);
-	PRECISION(default_precision)
+	TEST_REAL_SIMILAR(mz_model->getParameters().getValue("statistics:mean"),mean[MZ]);
+	TOLERANCE_ABSOLUTE(stdev[MZ]*stdev[MZ]*0.05)		// Variances can differ by 5%
+	TEST_REAL_SIMILAR(mz_model->getParameters().getValue("statistics:variance"),stdev[MZ]*stdev[MZ]);
+	TOLERANCE_ABSOLUTE(default_precision)
 
 	BaseModel<1>* rt_model = model->getModel(RT);
-	TEST_REAL_EQUAL(rt_model->getParameters().getValue("statistics:mean"),mean[RT]);
-	PRECISION(stdev[RT]*stdev[RT]*0.05)		// Variances can differ by 5%
-	TEST_REAL_EQUAL(rt_model->getParameters().getValue("statistics:variance1"),stdev[RT]*stdev[RT]);
-	TEST_REAL_EQUAL(rt_model->getParameters().getValue("statistics:variance2"),stdev[RT]*stdev[RT]);
-	PRECISION(default_precision)
+	TEST_REAL_SIMILAR(rt_model->getParameters().getValue("statistics:mean"),mean[RT]);
+	TOLERANCE_ABSOLUTE(stdev[RT]*stdev[RT]*0.05)		// Variances can differ by 5%
+	TEST_REAL_SIMILAR(rt_model->getParameters().getValue("statistics:variance1"),stdev[RT]*stdev[RT]);
+	TEST_REAL_SIMILAR(rt_model->getParameters().getValue("statistics:variance2"),stdev[RT]*stdev[RT]);
+	TOLERANCE_ABSOLUTE(default_precision)
 
 	// test predicted intensities
 	DPosition<2> pos;
@@ -227,19 +227,19 @@ CHECK(Feature fit(const ChargedIndexSet& index_set))
 	{
 	 	pos[MZ] = mzs[mz];
 		pos[RT] = rts[rt];
-		PRECISION(intens[mz*rt_num+rt]*0.1);		// Intensities can differ by 10%
-		TEST_REAL_EQUAL(model->getIntensity(pos),intens[mz*rt_num+rt]);
+		TOLERANCE_ABSOLUTE(intens[mz*rt_num+rt]*0.1);		// Intensities can differ by 10%
+		TEST_REAL_SIMILAR(model->getIntensity(pos),intens[mz*rt_num+rt]);
 	}
 }
-RESULT
+END_SECTION
 
 #if 1
-CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit)))
+START_SECTION(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit)))
 {
 	// Test Isotope/Bigauss Fitting (mz/rt)
 
 	const double default_precision = 0.1;
-	PRECISION(default_precision)
+	TOLERANCE_ABSOLUTE(default_precision)
 
 	double mzs[] = {338, 338.1, 338.2, 338.3,	338.4, 338.5, 338.6, 338.7, 338.8,
 		338.9, 339, 339.1, 339.2, 339.3, 339.4,	339.5, 339.6, 339.7, 339.8, 339.9,
@@ -300,13 +300,13 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit))
 	}
 	Feature feature = model_fitter.fit(set);
 
-	PRECISION(2.0);
+	TOLERANCE_ABSOLUTE(2.0);
 		
-	TEST_REAL_EQUAL(feature.getMZ(), mean[MZ]);
-	TEST_REAL_EQUAL(feature.getRT(), mean[RT]);
-	TEST_REAL_EQUAL(feature.getIntensity(), 252787);
+	TEST_REAL_SIMILAR(feature.getMZ(), mean[MZ]);
+	TEST_REAL_SIMILAR(feature.getRT(), mean[RT]);
+	TEST_REAL_SIMILAR(feature.getIntensity(), 252787);
 	TEST_EQUAL(feature.getCharge(), 2);
-	TEST_REAL_EQUAL(feature.getOverallQuality(), 0.9);
+	TEST_REAL_SIMILAR(feature.getOverallQuality(), 0.9);
 
 	ProductModel<2>* model = static_cast< ProductModel<2>* >
 													(feature.getModelDescription().createModel());
@@ -314,16 +314,16 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit))
 	// std::cout << model->getParameters() << std::endl;
 	
 	BaseModel<1>* rt_model = model->getModel(RT);
-	PRECISION(mean[RT]*0.01)		// Mean can differ by 1%
-	TEST_REAL_EQUAL(rt_model->getParameters().getValue("statistics:mean"),mean[RT]);
-	PRECISION(stdev[1]*0.15)		// Variances can differ by 15%
-	TEST_REAL_EQUAL(sqrt(double(rt_model->getParameters().getValue("statistics:variance1"))),stdev[1]);
-	PRECISION(stdev[0]*0.15)		// Variances can differ by 15%
-	TEST_REAL_EQUAL(sqrt(double(rt_model->getParameters().getValue("statistics:variance2"))),stdev[0]);
-	PRECISION(default_precision)
+	TOLERANCE_ABSOLUTE(mean[RT]*0.01)		// Mean can differ by 1%
+	TEST_REAL_SIMILAR(rt_model->getParameters().getValue("statistics:mean"),mean[RT]);
+	TOLERANCE_ABSOLUTE(stdev[1]*0.15)		// Variances can differ by 15%
+	TEST_REAL_SIMILAR(sqrt(double(rt_model->getParameters().getValue("statistics:variance1"))),stdev[1]);
+	TOLERANCE_ABSOLUTE(stdev[0]*0.15)		// Variances can differ by 15%
+	TEST_REAL_SIMILAR(sqrt(double(rt_model->getParameters().getValue("statistics:variance2"))),stdev[0]);
+	TOLERANCE_ABSOLUTE(default_precision)
 
 	BaseModel<1>* mz_model = model->getModel(MZ);
-	TEST_REAL_EQUAL(mz_model->getParameters().getValue("isotope:stdev"),stdev[2]);
+	TEST_REAL_SIMILAR(mz_model->getParameters().getValue("isotope:stdev"),stdev[2]);
 
 	// test predicted intensities
 	DPosition<2> pos;
@@ -333,21 +333,21 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit))
 	{
 	 	pos[MZ] = mzs[mz];
 		pos[RT] = rts[rt];
-		PRECISION(intens[rt*mz_num+mz]*0.50)		// individual Intensities can differ by 50%
-		TEST_REAL_EQUAL(model->getIntensity(pos),intens[rt*mz_num+mz])
+		TOLERANCE_ABSOLUTE(intens[rt*mz_num+mz]*0.50)		// individual Intensities can differ by 50%
+		TEST_REAL_SIMILAR(model->getIntensity(pos),intens[rt*mz_num+mz])
 	}
 }
-RESULT
+END_SECTION
 #endif
 
 // "monster test" (?)
 #if 0
-CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit)))
+START_SECTION(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit)))
 {
 	// Test Isotope/Bigauss Fitting (mz/rt)
 
 	const double default_precision = 0.1;
-	PRECISION(default_precision)
+	TOLERANCE_ABSOLUTE(default_precision)
 
 	double mzs[] = {675, 675.5, 676, 676.5, 677, 677.5, 678};
 	const UInt mz_num = sizeof(mzs) / sizeof(*mzs); // currently 7 
@@ -408,26 +408,26 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit))
 
 	Feature feature = model_fitter.fit(set);
 
-	TEST_REAL_EQUAL(feature.getMZ(), mean[MZ]);
-	TEST_REAL_EQUAL(feature.getRT(), mean[RT]);
-	TEST_REAL_EQUAL(feature.getIntensity(), 78602.6);
+	TEST_REAL_SIMILAR(feature.getMZ(), mean[MZ]);
+	TEST_REAL_SIMILAR(feature.getRT(), mean[RT]);
+	TEST_REAL_SIMILAR(feature.getIntensity(), 78602.6);
 	TEST_EQUAL(feature.getCharge(), 0);
-	PRECISION(0.01)
-	TEST_REAL_EQUAL(feature.getOverallQuality(), 0.99);
+	TOLERANCE_ABSOLUTE(0.01)
+	TEST_REAL_SIMILAR(feature.getOverallQuality(), 0.99);
 		
 	ProductModel<2>* model = dynamic_cast< ProductModel<2>* > (feature.getModelDescription().createModel());
 
 	BaseModel<1>* mz_model = model->getModel(MZ);
-	TEST_REAL_EQUAL(mz_model->getParameters().getValue("statistics:mean"),mean[MZ]);
-	PRECISION(stdev[MZ]*stdev[MZ]*0.05)		// Variances can differ by 5%
-	TEST_REAL_EQUAL(mz_model->getParameters().getValue("statistics:variance"),stdev[MZ]*stdev[MZ]);
-	PRECISION(default_precision)
+	TEST_REAL_SIMILAR(mz_model->getParameters().getValue("statistics:mean"),mean[MZ]);
+	TOLERANCE_ABSOLUTE(stdev[MZ]*stdev[MZ]*0.05)		// Variances can differ by 5%
+	TEST_REAL_SIMILAR(mz_model->getParameters().getValue("statistics:variance"),stdev[MZ]*stdev[MZ]);
+	TOLERANCE_ABSOLUTE(default_precision)
 
 	BaseModel<1>* rt_model = model->getModel(RT);
-	TEST_REAL_EQUAL(rt_model->getParameters().getValue("statistics:mean"),mean[RT]);
-	PRECISION(stdev[RT]*stdev[RT])
-	TEST_REAL_EQUAL(rt_model->getParameters().getValue("statistics:variance"),stdev[RT]*stdev[RT]);
-	PRECISION(default_precision)
+	TEST_REAL_SIMILAR(rt_model->getParameters().getValue("statistics:mean"),mean[RT]);
+	TOLERANCE_ABSOLUTE(stdev[RT]*stdev[RT])
+	TEST_REAL_SIMILAR(rt_model->getParameters().getValue("statistics:variance"),stdev[RT]*stdev[RT]);
+	TOLERANCE_ABSOLUTE(default_precision)
 	
 	// test predicted intensities
 	DPosition<2> pos;
@@ -435,17 +435,17 @@ CHECK(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (UnableToFit))
 	{
 	 	pos[MZ] = mzs[mz];
 		pos[RT] = rts[rt];
-		PRECISION(intens[mz*rt_num+rt]*0.08)		// Intensities can differ by 8%
-		TEST_REAL_EQUAL(model->getIntensity(pos),intens[mz*rt_num+rt])
+		TOLERANCE_ABSOLUTE(intens[mz*rt_num+rt]*0.08)		// Intensities can differ by 8%
+		TEST_REAL_SIMILAR(model->getIntensity(pos),intens[mz*rt_num+rt])
 	}
 
 }
-RESULT
+END_SECTION
 #endif
 
 // "monster test"
 #if 0
-CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
+START_SECTION(([EXTRA]void ExtendedModelFitter::optimize()))
 {
 	// *************************************************
 	// *** check parameter optimization at EMG model ***
@@ -515,10 +515,10 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 		model_fitter.optimize();
 
 		// test
-		TEST_REAL_EQUAL(model_fitter.getSymmetry(), symmetry_); 
-		TEST_REAL_EQUAL(model_fitter.getHeight(), height_);
-		TEST_REAL_EQUAL(model_fitter.getWidth(), width_);
-		TEST_REAL_EQUAL(model_fitter.getRT(), retention_);
+		TEST_REAL_SIMILAR(model_fitter.getSymmetry(), symmetry_); 
+		TEST_REAL_SIMILAR(model_fitter.getHeight(), height_);
+		TEST_REAL_SIMILAR(model_fitter.getWidth(), width_);
+		TEST_REAL_SIMILAR(model_fitter.getRT(), retention_);
 		TEST_EQUAL(model_fitter.getGSLStatus(), "success");
 
 		symmetry_ += 0.5;
@@ -604,10 +604,10 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 	// optimize parameter with Levenberg-Maruardt algorithm
 	fitter2.optimize();
 	// test
-	PRECISION(0.5)
-		TEST_REAL_EQUAL(fitter2.getSymmetry(), 1.3); 
-	TEST_REAL_EQUAL(fitter2.getWidth(), 2);
-	TEST_REAL_EQUAL(fitter2.getRT(), 700);
+	TOLERANCE_ABSOLUTE(0.5)
+		TEST_REAL_SIMILAR(fitter2.getSymmetry(), 1.3); 
+	TEST_REAL_SIMILAR(fitter2.getWidth(), 2);
+	TEST_REAL_SIMILAR(fitter2.getRT(), 700);
 	TEST_EQUAL(fitter2.getGSLStatus(), "success");
 
 	// clear vector
@@ -674,12 +674,12 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 
 	// test
 	TEST_EQUAL(fitter3.getGSLStatus(), "success");
-	PRECISION(50.0)
-		TEST_REAL_EQUAL(fitter3.getHeight(), 850.0);
-	PRECISION(1.0)
-		TEST_REAL_EQUAL(fitter3.getWidth(), 20.0);
-	TEST_REAL_EQUAL(fitter3.getSymmetry(), 1.5);
-	TEST_REAL_EQUAL(fitter3.getRT(), 30.0);
+	TOLERANCE_ABSOLUTE(50.0)
+		TEST_REAL_SIMILAR(fitter3.getHeight(), 850.0);
+	TOLERANCE_ABSOLUTE(1.0)
+		TEST_REAL_SIMILAR(fitter3.getWidth(), 20.0);
+	TEST_REAL_SIMILAR(fitter3.getSymmetry(), 1.5);
+	TEST_REAL_SIMILAR(fitter3.getRT(), 30.0);
 
 	// clear vector
 	dpa3.clear();
@@ -759,9 +759,9 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 			fitter4.optimize();
 
 			// test
-			TEST_REAL_EQUAL(fitter4.getExpectedValue(), expected_value); 
-			TEST_REAL_EQUAL(fitter4.getStandardDeviation(), standard_deviation);
-			TEST_REAL_EQUAL(fitter4.getScaleFactor(), scale_factor);
+			TEST_REAL_SIMILAR(fitter4.getExpectedValue(), expected_value); 
+			TEST_REAL_SIMILAR(fitter4.getStandardDeviation(), standard_deviation);
+			TEST_REAL_SIMILAR(fitter4.getScaleFactor(), scale_factor);
 			TEST_EQUAL(fitter4.getGSLStatus(), "success");
 
 			standard_deviation += 2;
@@ -775,7 +775,7 @@ CHECK(([EXTRA]void ExtendedModelFitter::optimize()))
 		expected_value += 5;
 	} 
 }
-RESULT
+END_SECTION
 #endif 
 
 

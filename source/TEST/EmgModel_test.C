@@ -43,30 +43,30 @@ using std::stringstream;
 
 // default ctor
 EmgModel* ptr = 0;
-CHECK((EmgModel()))
+START_SECTION((EmgModel()))
 	ptr = new EmgModel();
   	TEST_EQUAL(ptr->getName(), "EmgModel")
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
 // destructor
-CHECK((virtual ~EmgModel()))
+START_SECTION((virtual ~EmgModel()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(EmgModel::getProductName(),"EmgModel")
 	TEST_EQUAL(EmgModel().getName(),"EmgModel")
-RESULT
+END_SECTION
 
-CHECK((static BaseModel<1>* create()))
+START_SECTION((static BaseModel<1>* create()))
 	BaseModel<1>* ptr = EmgModel::create();
 	TEST_EQUAL(ptr->getName(), "EmgModel")
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
 // assignment operator
-CHECK((virtual EmgModel& operator=(const EmgModel &source)))
+START_SECTION((virtual EmgModel& operator=(const EmgModel &source)))
 	EmgModel em1;
 	em1.setInterpolationStep(0.2);
 
@@ -88,10 +88,10 @@ CHECK((virtual EmgModel& operator=(const EmgModel &source)))
 	em3.setInterpolationStep(0.2);
 	em3.setParameters(tmp);
   	TEST_EQUAL(em3.getParameters(), em2.getParameters())
-RESULT
+END_SECTION
 
 // copy ctor
-CHECK((EmgModel(const EmgModel& source)))
+START_SECTION((EmgModel(const EmgModel& source)))
 	EmgModel em1;
 	em1.setInterpolationStep(0.2);
 
@@ -113,12 +113,12 @@ CHECK((EmgModel(const EmgModel& source)))
 
  	em1 = EmgModel();
 	TEST_EQUAL(em3.getParameters(), em2.getParameters())
-RESULT
+END_SECTION
 
 
-CHECK([EXTRA] DefaultParamHandler::setParameters(...))
+START_SECTION([EXTRA] DefaultParamHandler::setParameters(...))
 
-	PRECISION(0.001)
+	TOLERANCE_ABSOLUTE(0.001)
 	EmgModel em1;
 
 	Param tmp;
@@ -133,7 +133,7 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	em1.setParameters(tmp);
 	em1.setOffset(680.0);
 
-	TEST_REAL_EQUAL(em1.getCenter(), 680.2)
+	TEST_REAL_SIMILAR(em1.getCenter(), 680.2)
 
 	EmgModel em3;
 	em3.setParameters(em1.getParameters());
@@ -143,13 +143,13 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	em1.getSamples(dpa1);
 	em3.getSamples(dpa2);
 
-	PRECISION(0.0001)
+	TOLERANCE_ABSOLUTE(0.0001)
 	TEST_EQUAL(dpa1.size(),dpa2.size())
 	ABORT_IF(dpa1.size()!=dpa2.size());
 	for (UInt i=0; i<dpa1.size(); ++i)
 	{
-		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
-		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
+		TEST_REAL_SIMILAR(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
+		TEST_REAL_SIMILAR(dpa1[i].getIntensity(),dpa2[i].getIntensity())
 	}
 
 	EmgModel em2;
@@ -165,21 +165,21 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	tmp.setValue("emg:retention", 3.0);
 	em2.setParameters(tmp);
 
-	TEST_REAL_EQUAL(em2.getCenter(), 0.0)
+	TEST_REAL_SIMILAR(em2.getCenter(), 0.0)
 
-	PRECISION(0.01)
-	TEST_REAL_EQUAL(em2.getIntensity(-1.0), 0.0497198);
-	TEST_REAL_EQUAL(em2.getIntensity(0.0), 0.164882);
-	TEST_REAL_EQUAL(em2.getIntensity(1.0), 0.54166);
-	TEST_REAL_EQUAL(em2.getIntensity(2.0), 1.69364);
+	TOLERANCE_ABSOLUTE(0.01)
+	TEST_REAL_SIMILAR(em2.getIntensity(-1.0), 0.0497198);
+	TEST_REAL_SIMILAR(em2.getIntensity(0.0), 0.164882);
+	TEST_REAL_SIMILAR(em2.getIntensity(1.0), 0.54166);
+	TEST_REAL_SIMILAR(em2.getIntensity(2.0), 1.69364);
 
 	em2.setInterpolationStep(0.2);
 	em2.setSamples();
 
-	TEST_REAL_EQUAL(em2.getIntensity(-1.0), 0.0497198);
-	TEST_REAL_EQUAL(em2.getIntensity(0.0), 0.164882);
-	TEST_REAL_EQUAL(em2.getIntensity(1.0), 0.54166);
-	TEST_REAL_EQUAL(em2.getIntensity(2.0), 1.69364);
+	TEST_REAL_SIMILAR(em2.getIntensity(-1.0), 0.0497198);
+	TEST_REAL_SIMILAR(em2.getIntensity(0.0), 0.164882);
+	TEST_REAL_SIMILAR(em2.getIntensity(1.0), 0.54166);
+	TEST_REAL_SIMILAR(em2.getIntensity(2.0), 1.69364);
 
 
 	// checked small values of parameter symmetry
@@ -193,7 +193,7 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	tmp.setValue("emg:retention", 3.0);
 	em2.setParameters(tmp);
 
-	TEST_REAL_EQUAL(em2.getIntensity(2.0), 747203);
+	TEST_REAL_SIMILAR(em2.getIntensity(2.0), 747203);
 
 	tmp.setValue("emg:symmetry", 0.1);
 	em2.setParameters(tmp);
@@ -211,9 +211,9 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	em2.setParameters(tmp);
 	ABORT_IF(!std::isinf(em2.getIntensity(2.0)))
 
-RESULT
+END_SECTION
 
-CHECK((void setOffset(CoordinateType offset)))
+START_SECTION((void setOffset(CoordinateType offset)))
 	EmgModel em1;
 	
 	Param tmp;
@@ -233,26 +233,26 @@ CHECK((void setOffset(CoordinateType offset)))
 	em2.setOffset(680.9);
 
 	TEST_EQUAL(em1.getParameters(), em2.getParameters())
-	TEST_REAL_EQUAL(em1.getCenter(), em2.getCenter())
-	TEST_REAL_EQUAL(em1.getCenter(), 682.1)
+	TEST_REAL_SIMILAR(em1.getCenter(), em2.getCenter())
+	TEST_REAL_SIMILAR(em1.getCenter(), 682.1)
 
 	std::vector<Peak1D> dpa1;
 	std::vector<Peak1D> dpa2;
 	em1.getSamples(dpa1);
 	em2.getSamples(dpa2);
 
-	PRECISION(0.01)
+	TOLERANCE_ABSOLUTE(0.01)
 	TEST_EQUAL(dpa1.size(),dpa2.size())
 	ABORT_IF(dpa1.size()!=dpa2.size());
 	for (UInt i=0; i<dpa1.size(); ++i)
 	{
-		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
-		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
+		TEST_REAL_SIMILAR(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
+		TEST_REAL_SIMILAR(dpa1[i].getIntensity(),dpa2[i].getIntensity())
 	}
-RESULT
+END_SECTION
 
-CHECK((CoordinateType getCenter() const))
-	PRECISION(0.001)
+START_SECTION((CoordinateType getCenter() const))
+	TOLERANCE_ABSOLUTE(0.001)
 	EmgModel em1;
 	
 	Param tmp;
@@ -266,16 +266,16 @@ CHECK((CoordinateType getCenter() const))
 	tmp.setValue("emg:retention",  725.0);
 	em1.setParameters(tmp);
 	em1.setOffset(680.0);
-	TEST_REAL_EQUAL(em1.getCenter(), 681.2)
+	TEST_REAL_SIMILAR(em1.getCenter(), 681.2)
 
-RESULT
+END_SECTION
 
-CHECK((void setSamples()))
+START_SECTION((void setSamples()))
 {
   // dummy subtest
 	TEST_EQUAL(1,1)
 }
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

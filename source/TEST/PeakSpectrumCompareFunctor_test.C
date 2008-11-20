@@ -43,31 +43,31 @@ START_TEST(PeakSpectrumCompareFunctor, "$Id$")
 
 // pure interface class cannot test this
 
-CHECK(PeakSpectrumCompareFunctor())
+START_SECTION(PeakSpectrumCompareFunctor())
   NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(PeakSpectrumCompareFunctor(const PeakSpectrumCompareFunctor& source))
+START_SECTION(PeakSpectrumCompareFunctor(const PeakSpectrumCompareFunctor& source))
   NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(~PeakSpectrumCompareFunctor())
+START_SECTION(~PeakSpectrumCompareFunctor())
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(PeakSpectrumCompareFunctor& operator = (const PeakSpectrumCompareFunctor& source))
+START_SECTION(PeakSpectrumCompareFunctor& operator = (const PeakSpectrumCompareFunctor& source))
   NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(double operator () (const PeakSpectrum& a, const PeakSpectrum& b) const)
+START_SECTION(double operator () (const PeakSpectrum& a, const PeakSpectrum& b) const)
   NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(double operator () (const PeakSpectrum& a) const)
+START_SECTION(double operator () (const PeakSpectrum& a) const)
   NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(static void registerChildren())
+START_SECTION(static void registerChildren())
   PeakSpectrumCompareFunctor* c1 = Factory<PeakSpectrumCompareFunctor>::create("SpectrumCheapDPCorr");
   c1 = Factory<PeakSpectrumCompareFunctor>::create("SpectrumPrecursorComparator");
 	TEST_EQUAL(c1->getName(), "SpectrumPrecursorComparator")
@@ -77,11 +77,11 @@ CHECK(static void registerChildren())
 	TEST_EQUAL(c1->getName(), "SteinScottImproveScore");
 	c1 = Factory<PeakSpectrumCompareFunctor>::create("CompareFouriertransform");
 	TEST_EQUAL(c1->getName(), "CompareFouriertransform")
-RESULT
+END_SECTION
 
-CHECK(static const String getProductName())
+START_SECTION(static const String getProductName())
 	TEST_EQUAL(PeakSpectrumCompareFunctor::getProductName(), "PeakSpectrumCompareFunctor")
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

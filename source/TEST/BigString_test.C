@@ -42,19 +42,19 @@ typedef std::pair <String, String> FASTAEntry;
 
 BigString* ptr = 0;
 
-CHECK(BigString())
+START_SECTION(BigString())
 	ptr = new BigString();
 	TEST_EQUAL (ptr->getBigString(),"$");
 	TEST_EQUAL (ptr->size(),1);
 	TEST_EQUAL (ptr->length(),1);
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~BigString())
+START_SECTION(~BigString())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(void add(FASTAEntry const &new_entry))
+START_SECTION(void add(FASTAEntry const &new_entry))
 	ptr = new BigString();
 	const FASTAEntry fe ("ENTRY 1","AAAAA");
 	ptr->add(fe);
@@ -64,22 +64,22 @@ CHECK(void add(FASTAEntry const &new_entry))
 	TEST_EQUAL (ptr->getBigString(),"$AAAAA$BBBBB$");
 	TEST_EQUAL (ptr->size(),3);
 	TEST_EQUAL (ptr->length(),13);
-RESULT
+END_SECTION
 
-CHECK(void setSeparator(const char sep))
+START_SECTION(void setSeparator(const char sep))
 	ptr = new BigString();
 	ptr->setSeparator('&');
 	TEST_EQUAL(ptr->getSeparator(),'&');
-RESULT
+END_SECTION
 
-CHECK(char getSeparator())
+START_SECTION(char getSeparator())
 	ptr = new BigString();
 	TEST_EQUAL(ptr->getSeparator(),'$');
 	ptr->setSeparator('&');
 	TEST_EQUAL(ptr->getSeparator(),'&');
-RESULT
+END_SECTION
 
-CHECK(BigString(const BigString &bs))
+START_SECTION(BigString(const BigString &bs))
 	ptr = new BigString();
 	const FASTAEntry fe ("ENTRY 1","AAAAA");
 	ptr->add(fe);
@@ -97,9 +97,9 @@ CHECK(BigString(const BigString &bs))
 	ptr->getPeptide(ptr_result, 2, 2);
 	TEST_EQUAL (ptr_result.first, result.first);
 	TEST_EQUAL (ptr_result.second, result.second);
-RESULT
+END_SECTION
 
-CHECK(const String& getBigString() const )
+START_SECTION(const String& getBigString() const )
 	ptr = new BigString();
 	const FASTAEntry fe ("ENTRY 1","AAAAA");
 	ptr->add(fe);
@@ -107,9 +107,9 @@ CHECK(const String& getBigString() const )
 	const FASTAEntry fe2 ("ENTRY 2","BBBBB");
 	ptr->add(fe2);
 	TEST_EQUAL (ptr->getBigString(),"$AAAAA$BBBBB$");
-RESULT
+END_SECTION
 
-CHECK(unsigned int size())
+START_SECTION(unsigned int size())
 	ptr = new BigString();
 	TEST_EQUAL (ptr->size(),1);
 	const FASTAEntry fe ("ENTRY 1","AAAAA");
@@ -118,9 +118,9 @@ CHECK(unsigned int size())
 		ptr->add(fe);
 		TEST_EQUAL (ptr->size(),i+1);
 	}
-RESULT
+END_SECTION
 
-CHECK(unsigned int length())
+START_SECTION(unsigned int length())
 	ptr = new BigString();
 	TEST_EQUAL (ptr->length(),1);
 	const FASTAEntry fe ("ENTRY 1","AAAAA");
@@ -129,9 +129,9 @@ CHECK(unsigned int length())
 		ptr->add(fe);
 		TEST_EQUAL (ptr->length(), i * 6 + 1);
 	}
-RESULT
+END_SECTION
 
-CHECK(void getPeptide(FASTAEntry& entry, unsigned int start, unsigned int length))
+START_SECTION(void getPeptide(FASTAEntry& entry, unsigned int start, unsigned int length))
 	ptr = new BigString();
 	const FASTAEntry fe ("ENTRY 1","AAAAA");
 	ptr->add(fe);
@@ -160,7 +160,7 @@ CHECK(void getPeptide(FASTAEntry& entry, unsigned int start, unsigned int length
 	TEST_EQUAL(res.first,"ENTRY 4");
 	TEST_EQUAL(res.second,"DD");
 	TEST_EXCEPTION(Exception::InvalidValue, ptr->getPeptide(res, 1,10));
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -40,16 +40,16 @@ START_TEST(IntList, "$Id$")
 /////////////////////////////////////////////////////////////
 
 IntList* ptr = 0;
-CHECK(IntList())
+START_SECTION(IntList())
 	ptr = new IntList;
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~IntList())
+START_SECTION(~IntList())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(static IntList create(const String& list))
+START_SECTION(static IntList create(const String& list))
 	IntList list = IntList::create("1,5");
 	TEST_EQUAL(list.size(),2);
 	TEST_EQUAL(list[0],1);
@@ -61,17 +61,17 @@ CHECK(static IntList create(const String& list))
 
 	IntList list3 = IntList::create("");
 	TEST_EQUAL(list3.size(),0);
-RESULT
+END_SECTION
 
-CHECK(IntList(const IntList& rhs))
+START_SECTION(IntList(const IntList& rhs))
 	IntList list = IntList::create("1,3");
 	IntList list2(list);
 	TEST_EQUAL(list2.size(),2);
 	TEST_EQUAL(list2[0],1);
 	TEST_EQUAL(list2[1],3);
-RESULT
+END_SECTION
 
-CHECK(IntList(const std::vector<Int>& rhs))
+START_SECTION(IntList(const std::vector<Int>& rhs))
 	std::vector<Int> list;
 	list.push_back(1);
 	list.push_back(3);
@@ -79,9 +79,9 @@ CHECK(IntList(const std::vector<Int>& rhs))
 	TEST_EQUAL(list2.size(),2);
 	TEST_EQUAL(list2[0],1);
 	TEST_EQUAL(list2[1],3);
-RESULT
+END_SECTION
 
-CHECK(IntList(const std::vector<UInt>& rhs))
+START_SECTION(IntList(const std::vector<UInt>& rhs))
 	std::vector<UInt> list;
 	list.push_back(1);
 	list.push_back(2);
@@ -90,9 +90,9 @@ CHECK(IntList(const std::vector<UInt>& rhs))
 	TEST_EQUAL(list2[0],1);
 	TEST_EQUAL(list2[1],2);
 
-RESULT
+END_SECTION
 
-CHECK(IntList& operator=(const IntList& rhs))
+START_SECTION(IntList& operator=(const IntList& rhs))
 	IntList list = IntList::create("1,3");
 	IntList list2;
 	list2 = list;
@@ -100,9 +100,9 @@ CHECK(IntList& operator=(const IntList& rhs))
 	TEST_EQUAL(list2[0],1);
 	TEST_EQUAL(list2[1],3);
 
-RESULT
+END_SECTION
 
-CHECK(IntList& operator=(const std::vector<Int>& rhs))
+START_SECTION(IntList& operator=(const std::vector<Int>& rhs))
 	std::vector<Int> list;
 	list.push_back(1);
 	list.push_back(3);
@@ -112,9 +112,9 @@ CHECK(IntList& operator=(const std::vector<Int>& rhs))
 	TEST_EQUAL(list2[0],1);
 	TEST_EQUAL(list2[1],3);
 
-RESULT
+END_SECTION
 
-CHECK((template<typename IntType> IntList& operator<<(IntType value)))
+START_SECTION((template<typename IntType> IntList& operator<<(IntType value)))
 	IntList list;
 	list << 1 << 2 << 3 << 1;
 	TEST_EQUAL(list.size(),4);
@@ -122,16 +122,16 @@ CHECK((template<typename IntType> IntList& operator<<(IntType value)))
 	TEST_EQUAL(list[1],2);
 	TEST_EQUAL(list[2],3);
 	TEST_EQUAL(list[3],1);
-RESULT
+END_SECTION
 
-CHECK(bool contains(const String& s) const)
+START_SECTION(bool contains(const String& s) const)
 	IntList list = IntList::create("1,3");
 	TEST_EQUAL(list.contains(1),true)
 	TEST_EQUAL(list.contains(3),true)
 	TEST_EQUAL(list.contains(4),false)	
 	TEST_EQUAL(list.contains(2),false)
 	TEST_EQUAL(list.contains(0),false)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

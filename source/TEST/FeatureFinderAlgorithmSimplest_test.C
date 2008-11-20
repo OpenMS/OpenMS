@@ -44,41 +44,41 @@ using namespace std;
 typedef FeatureFinderAlgorithmSimplest<Peak1D,Feature> FFAS;
 
 FFAS* ptr;
-CHECK(FeatureFinderAlgorithmSimplest())
+START_SECTION(FeatureFinderAlgorithmSimplest())
 	ptr = new FFAS;
 	TEST_NOT_EQUAL(ptr,0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~FeatureFinderAlgorithmSimplest()))
+START_SECTION((virtual ~FeatureFinderAlgorithmSimplest()))
 	delete ptr;
-RESULT
+END_SECTION
 
 //TODO: this should work (Clemens)
-//CHECK([EXTRA] FeatureFinderAlgorithmSimplest() - with RichPeak1D)
+//START_SECTION([EXTRA] FeatureFinderAlgorithmSimplest() - with RichPeak1D)
 //	FeatureFinderAlgorithmSimplest<RichPeak1D,Feature> ffa;
-//RESULT
+//END_SECTION
 
-CHECK(virtual void run())
+START_SECTION(virtual void run())
 	// dummy subtest
 	TEST_EQUAL(1,1)
-RESULT
+END_SECTION
 
-CHECK((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
+START_SECTION((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
 	FeatureFinderAlgorithm<Peak1D,Feature>* ptr2 = FFAS::create();
 	TEST_NOT_EQUAL(ptr2,0)
 	delete ptr2;
-RESULT
+END_SECTION
 
-CHECK(static const String getProductName())
+START_SECTION(static const String getProductName())
 	TEST_EQUAL(FFAS::getProductName(),"simplest")
-RESULT
+END_SECTION
 
-CHECK((virtual Param getDefaultParameters() const))
+START_SECTION((virtual Param getDefaultParameters() const))
 {
   // dummy subtest
 	TEST_EQUAL(1,1)
 }
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

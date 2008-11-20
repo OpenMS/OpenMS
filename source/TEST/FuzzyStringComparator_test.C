@@ -45,110 +45,110 @@ START_TEST(FuzzyStringComparator, "$Id$")
 /////////////////////////////////////////////////////////////
 
 FuzzyStringComparator* inst_ptr = 0;
-CHECK((FuzzyStringComparator()))
+START_SECTION((FuzzyStringComparator()))
 {
 	inst_ptr = new FuzzyStringComparator;
 	TEST_NOT_EQUAL(inst_ptr, 0);
 }
-RESULT
+END_SECTION
 
-CHECK((~FuzzyStringComparator()))
+START_SECTION((~FuzzyStringComparator()))
 {
 	delete inst_ptr;
 }
-RESULT
+END_SECTION
 
-CHECK(FuzzyStringComparator& operator=(const FuzzyStringComparator& rhs))
+START_SECTION(FuzzyStringComparator& operator=(const FuzzyStringComparator& rhs))
 {
   // Not implemented
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
-CHECK(FuzzyStringComparator(const FuzzyStringComparator& rhs))
+START_SECTION(FuzzyStringComparator(const FuzzyStringComparator& rhs))
 {
   // Not implemented
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
 //------------------------------------------------------------
  
-CHECK(const double& getAcceptableAbsolute() const)
+START_SECTION(const double& getAcceptableAbsolute() const)
 {
 	// tested along with set-method
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
-CHECK(const double& getAcceptableRelative() const)
+START_SECTION(const double& getAcceptableRelative() const)
 {
 	// tested along with set-method
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
-CHECK(const int& getVerboseLevel() const)
+START_SECTION(const int& getVerboseLevel() const)
 {
 	// tested along with set-method
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
-CHECK(const int& getTabWidth() const)
+START_SECTION(const int& getTabWidth() const)
 {
 	// tested along with set-method
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
-CHECK(const int& getFirstColumn() const)
+START_SECTION(const int& getFirstColumn() const)
 {
 	// tested along with set-method
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
-CHECK(std::ostream& getLogDestination() const)
+START_SECTION(std::ostream& getLogDestination() const)
 {
 	// tested along with set-method
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
-CHECK(void setAcceptableAbsolute(const double rhs))
+START_SECTION(void setAcceptableAbsolute(const double rhs))
 {
 	FuzzyStringComparator fsc;
 	fsc.setAcceptableAbsolute(2345.6789);
-	TEST_REAL_EQUAL(fsc.getAcceptableAbsolute(),2345.6789);
+	TEST_REAL_SIMILAR(fsc.getAcceptableAbsolute(),2345.6789);
 }
-RESULT
+END_SECTION
 
-CHECK(void setAcceptableRelative(const double rhs))
+START_SECTION(void setAcceptableRelative(const double rhs))
 {
 	FuzzyStringComparator fsc;
 	fsc.setAcceptableRelative(6789.2345);
-	TEST_REAL_EQUAL(fsc.getAcceptableRelative(),6789.2345);
+	TEST_REAL_SIMILAR(fsc.getAcceptableRelative(),6789.2345);
 }
-RESULT
+END_SECTION
 
-CHECK(void setTabWidth(const int rhs))
+START_SECTION(void setTabWidth(const int rhs))
 {
 	FuzzyStringComparator fsc;
 	fsc.setTabWidth(1452);
-	TEST_REAL_EQUAL(fsc.getTabWidth(),1452);
+	TEST_REAL_SIMILAR(fsc.getTabWidth(),1452);
 }
-RESULT
+END_SECTION
 
-CHECK(void setFirstColumn(const int rhs))
+START_SECTION(void setFirstColumn(const int rhs))
 {
 	FuzzyStringComparator fsc;
 	fsc.setFirstColumn(4321235);
-	TEST_REAL_EQUAL(fsc.getFirstColumn(),4321235);
+	TEST_REAL_SIMILAR(fsc.getFirstColumn(),4321235);
 }
-RESULT
+END_SECTION
 
-CHECK(void setLogDestination(std::ostream & rhs))
+START_SECTION(void setLogDestination(std::ostream & rhs))
 {
 	FuzzyStringComparator fsc;
 	// TODO: The default should be to send log output to std::cout, but
@@ -162,9 +162,9 @@ CHECK(void setLogDestination(std::ostream & rhs))
 	TEST_NOT_EQUAL(fsc.getLogDestination(),std::cerr);
 	TEST_EQUAL(fsc.getLogDestination(),std::cout);
 }
-RESULT
+END_SECTION
 
-CHECK(void setVerboseLevel(const int rhs))
+START_SECTION(void setVerboseLevel(const int rhs))
 {
 	FuzzyStringComparator fsc;
 	// default should be 2
@@ -174,12 +174,12 @@ CHECK(void setVerboseLevel(const int rhs))
 	fsc.setVerboseLevel(-21);
 	TEST_EQUAL(fsc.getVerboseLevel(),-21);
 }
-RESULT
+END_SECTION
 
 
 //------------------------------------------------------------
 
-CHECK((bool compareStrings( std::string const & lhs, std::string const & rhs )))
+START_SECTION((bool compareStrings( std::string const & lhs, std::string const & rhs )))
 {
 	std::ostringstream log;
 	//------------------------------
@@ -330,9 +330,9 @@ CHECK((bool compareStrings( std::string const & lhs, std::string const & rhs )))
 		TEST_STRING_EQUAL(substrings[192],"FAILED: 'line from input_1 is shorter than line from input_2'");
 	}
 }
-RESULT
+END_SECTION
 
-CHECK((bool compareStreams( std::istream & input_1, std::istream & input_2 )))
+START_SECTION((bool compareStreams( std::istream & input_1, std::istream & input_2 )))
 {
 	std::ostringstream log;
 	{
@@ -360,9 +360,9 @@ CHECK((bool compareStreams( std::istream & input_1, std::istream & input_2 )))
 		TEST_STRING_EQUAL(substrings[192],"FAILED: 'line from input_1 is shorter than line from input_2'");
 	}
 }
-RESULT
+END_SECTION
 
-CHECK((bool compare_files( const std::string & filename_1, const std::string & filename_2)))
+START_SECTION((bool compareFiles( const std::string & filename_1, const std::string & filename_2)))
 {
 	std::ostringstream log;
 	{
@@ -383,7 +383,7 @@ CHECK((bool compare_files( const std::string & filename_1, const std::string & f
 			file1.close();
 			file2.close();
 		}
-		fsc.compare_files(filename1,filename2);
+		fsc.compareFiles(filename1,filename2);
 		std::vector<OpenMS::String> substrings;
 		OpenMS::String(log.str()).split('\n',substrings);
 		// STATUS(log.str());
@@ -399,22 +399,22 @@ CHECK((bool compare_files( const std::string & filename_1, const std::string & f
 		TEST_STRING_EQUAL(substrings[192],"FAILED: 'line from input_1 is shorter than line from input_2'");
 	}
 }
-RESULT
+END_SECTION
 
 //------------------------------------------------------------
 
-// CHECK(void reportFailure_( char const * const message ) const throw(Failure))
+// START_SECTION(void reportFailure_( char const * const message ) const throw(Failure))
 // {
-// 	// Tested in compare_...() methods
+// 	// Tested in compare...() methods
 //   NOT_TESTABLE;
 // }
-// RESULT
+// END_SECTION
 
-// CHECK(void reportSuccess_() const)
+// START_SECTION(void reportSuccess_() const)
 // {
-// 	// Tested in compare_...() methods
+// 	// Tested in compare...() methods
 //   NOT_TESTABLE;
 // }
-// RESULT
+// END_SECTION
 
 END_TEST

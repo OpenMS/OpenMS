@@ -34,7 +34,6 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 
 ///////////////////////////
 
@@ -48,39 +47,39 @@ using namespace std;
 
 
 IDMapper* ptr = 0;
-CHECK(IDMapper())
+START_SECTION(IDMapper())
 	ptr = new IDMapper();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~IDMapper())
+START_SECTION(~IDMapper())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(DoubleReal getRTDelta() const)
+START_SECTION(DoubleReal getRTDelta() const)
 	IDMapper mapper;
-	TEST_REAL_EQUAL(mapper.getRTDelta(),0.5)
-RESULT
+	TEST_REAL_SIMILAR(mapper.getRTDelta(),0.5)
+END_SECTION
 
-CHECK(void setRTDelta(DoubleReal rt_delta))
+START_SECTION(void setRTDelta(DoubleReal rt_delta))
 	IDMapper mapper;
 	mapper.setRTDelta(1.5);
-	TEST_REAL_EQUAL(mapper.getRTDelta(),1.5)
-RESULT
+	TEST_REAL_SIMILAR(mapper.getRTDelta(),1.5)
+END_SECTION
 
-CHECK(DoubleReal getMZDelta() const)
+START_SECTION(DoubleReal getMZDelta() const)
 	IDMapper mapper;
-	TEST_REAL_EQUAL(mapper.getMZDelta(),0.05)
-RESULT
+	TEST_REAL_SIMILAR(mapper.getMZDelta(),0.05)
+END_SECTION
 
-CHECK(void setMZDelta(DoubleReal mz_delta))
+START_SECTION(void setMZDelta(DoubleReal mz_delta))
 	IDMapper mapper;
 	mapper.setMZDelta(1.05);
-	TEST_REAL_EQUAL(mapper.getMZDelta(),1.05)
-RESULT
+	TEST_REAL_SIMILAR(mapper.getMZDelta(),1.05)
+END_SECTION
 
 
-CHECK((template <typename PeakType> UInt annotate(MSExperiment< PeakType >& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids)))
+START_SECTION((template <typename PeakType> UInt annotate(MSExperiment< PeakType >& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids)))
 	//load id
 	vector<PeptideIdentification> identifications; 
 	vector<ProteinIdentification> protein_identifications;
@@ -130,11 +129,11 @@ CHECK((template <typename PeakType> UInt annotate(MSExperiment< PeakType >& map,
 	TEST_EQUAL(experiment[2].getPeptideIdentifications().size(), 1)	
 	TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits().size(), 1)
 	TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits()[0].getSequence(), "HSKLSAK")
-RESULT
+END_SECTION
 
 
 
-CHECK((template <typename FeatureType> void annotate(FeatureMap<FeatureType> &map, const std::vector< PeptideIdentification > &ids, const std::vector< ProteinIdentification >& protein_ids, bool use_delta=false) ))
+START_SECTION((template <typename FeatureType> void annotate(FeatureMap<FeatureType> &map, const std::vector< PeptideIdentification > &ids, const std::vector< ProteinIdentification >& protein_ids, bool use_delta=false) ))
 	//load id data
 	vector<PeptideIdentification> identifications; 
 	vector<ProteinIdentification> protein_identifications; 
@@ -185,14 +184,13 @@ CHECK((template <typename FeatureType> void annotate(FeatureMap<FeatureType> &ma
 	TEST_EQUAL(fm2[0].getPeptideIdentifications()[1].getHits().size(),1)
 	TEST_EQUAL(fm2[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),"A")
 	TEST_EQUAL(fm2[0].getPeptideIdentifications()[1].getHits()[0].getSequence(),"K")
-RESULT
+END_SECTION
 
 
-CHECK(void annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements=false))
+START_SECTION(void annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements=false))
 {
 	IDMapper mapper;
-	FuzzyStringComparator fsc;
-	fsc.setAcceptableAbsolute(0.01);
+	TOLERANCE_ABSOLUTE(0.01);
 		
 	std::vector<ProteinIdentification> protein_ids;
 	std::vector<PeptideIdentification> peptide_ids;
@@ -207,7 +205,7 @@ CHECK(void annotate(ConsensusMap& map, const std::vector<PeptideIdentification>&
 		cons_file.load("data/IDMapper_3.consensusXML", cons_map);
 		mapper.annotate(cons_map, peptide_ids, protein_ids);
 		cons_file.store(tmp_filename,cons_map);
-		TEST_EQUAL(fsc.compare_files(tmp_filename,"data/IDMapper_3_out1.consensusXML"), true);
+		TEST_FILE_SIMILAR(tmp_filename,"data/IDMapper_3_out1.consensusXML");
 	}
 
 	{
@@ -217,11 +215,11 @@ CHECK(void annotate(ConsensusMap& map, const std::vector<PeptideIdentification>&
 		cons_file.load("data/IDMapper_3.consensusXML", cons_map);
 		mapper.annotate(cons_map, peptide_ids, protein_ids, true);
 		cons_file.store(tmp_filename,cons_map);
-		TEST_EQUAL(fsc.compare_files(tmp_filename,"data/IDMapper_3_out2.consensusXML"), true);
+		TEST_FILE_SIMILAR(tmp_filename,"data/IDMapper_3_out2.consensusXML");
 	}
 	
 }
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

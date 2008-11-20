@@ -40,41 +40,41 @@ START_TEST(String, "$Id$")
 
 
 InspectOutfile* ptr = 0;
-CHECK(InspectOutfile())
+START_SECTION(InspectOutfile())
 	ptr = new InspectOutfile();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~InspectOutfile())
+START_SECTION(~InspectOutfile())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((InspectOutfile& operator=(const InspectOutfile &inspect_outfile)))
+START_SECTION((InspectOutfile& operator=(const InspectOutfile &inspect_outfile)))
 	InspectOutfile inspect_outfile1;
   InspectOutfile inspect_outfile2;
 	inspect_outfile2 = inspect_outfile1;
 	InspectOutfile inspect_outfile3;
 	inspect_outfile1 = InspectOutfile();
 	TEST_EQUAL( (inspect_outfile2 == inspect_outfile3 ), true)
-RESULT
+END_SECTION
 
-CHECK((InspectOutfile(const InspectOutfile &inspect_outfile)))
+START_SECTION((InspectOutfile(const InspectOutfile &inspect_outfile)))
 	InspectOutfile inspect_outfile1;
 	InspectOutfile inspect_outfile2(inspect_outfile1);
 	InspectOutfile inspect_outfile3;
 	inspect_outfile1 = InspectOutfile();
 	TEST_EQUAL( (inspect_outfile2 == inspect_outfile3 ), true)
-RESULT
+END_SECTION
 
-CHECK((bool operator==(const InspectOutfile &inspect_outfile) const))
+START_SECTION((bool operator==(const InspectOutfile &inspect_outfile) const))
 	InspectOutfile inspect_outfile1;
 	InspectOutfile inspect_outfile2;
 	TEST_EQUAL(( inspect_outfile1 == inspect_outfile2 ), true)
-RESULT
+END_SECTION
 
 InspectOutfile file;
 
-CHECK(std::vector< UInt > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, const String& database_filename = ""))
+START_SECTION(std::vector< UInt > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, const String& database_filename = ""))
 	vector< PeptideIdentification > peptide_identifications;
 	ProteinIdentification protein_identification;
 	
@@ -98,10 +98,10 @@ CHECK(std::vector< UInt > load(const String& result_filename, std::vector< Pepti
 	{
 		TEST_EQUAL(peptide_identifications[0].getHits().size(), 1)
 		TEST_STRING_EQUAL(peptide_identifications[0].getScoreType(), "Inspect")
-		TEST_REAL_EQUAL(peptide_identifications[0].getSignificanceThreshold(), 0.001)
+		TEST_REAL_SIMILAR(peptide_identifications[0].getSignificanceThreshold(), 0.001)
 		if( peptide_identifications[0].getHits().size() == 1)
 		{
-			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), -257)
+			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), -257)
 			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence().toString(), "KKLE")
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getAABefore(), 'E')
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getAAAfter(), 'K')
@@ -123,10 +123,10 @@ std::cout << "MARTIN" << std::endl;
 	{
 		TEST_EQUAL(peptide_identifications[0].getHits().size(), 2)
 		TEST_STRING_EQUAL(peptide_identifications[0].getScoreType(), "Inspect")
-		TEST_REAL_EQUAL(peptide_identifications[0].getSignificanceThreshold(), 0.01)
+		TEST_REAL_SIMILAR(peptide_identifications[0].getSignificanceThreshold(), 0.01)
 		if( peptide_identifications[0].getHits().size() == 2 )
 		{
-			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), -257)
+			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), -257)
 			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence().toString(), "KKLE")
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getAABefore(), 'E')
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getAAAfter(), 'K')
@@ -137,7 +137,7 @@ std::cout << "MARTIN" << std::endl;
 			{
 				TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions()[0], "P68509")
 			}
-			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[1].getScore(), -1456)
+			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[1].getScore(), -1456)
 			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getSequence().toString(), "EKIE")
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getAABefore(), 'R')
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getAAAfter(), 'K')
@@ -158,9 +158,9 @@ std::cout << "MARTIN" << std::endl;
 	{
 		TEST_EQUAL(file.load("data/InspectOutfile.out1", peptide_identifications, protein_identification, 0.01)[0], 2)
 	}
-RESULT
+END_SECTION
 
-CHECK(void generateTrieDB(const std::String& source_database_filename, const std::String& database_filename, const std::String& index_filename, bool append = false, const std::String species = ""))
+START_SECTION(void generateTrieDB(const std::String& source_database_filename, const std::String& database_filename, const std::String& index_filename, bool append = false, const std::String species = ""))
 	// test exceptions
 	// test file not found for input file
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.generateTrieDB("a", "", ""), "the file 'a' could not be found")
@@ -176,19 +176,19 @@ CHECK(void generateTrieDB(const std::String& source_database_filename, const std
 
 	// test the actual program
 	file.generateTrieDB("data/Inspect_test.fasta", "InspectOutfile_test.trie", "InspectOutfile_test.index");
-	TEST_FILE("InspectOutfile_test.trie", "data/Inspect_test.trie")
-	TEST_FILE("InspectOutfile_test.index", "data/Inspect_test.index")
+	TEST_FILE_EQUAL("InspectOutfile_test.trie", "data/Inspect_test.trie")
+	TEST_FILE_EQUAL("InspectOutfile_test.index", "data/Inspect_test.index")
 	remove("InspectOutfile_test.trie");
 	remove("InspectOutfile_test.index");
 	
 	file.generateTrieDB("data/Inspect_test2.fasta", "InspectOutfile_test.trie", "InspectOutfile_test.index");
-	TEST_FILE("InspectOutfile_test.trie", "data/Inspect_test2.trie")
-	TEST_FILE("InspectOutfile_test.index", "data/Inspect_test2.index")
+	TEST_FILE_EQUAL("InspectOutfile_test.trie", "data/Inspect_test2.trie")
+	TEST_FILE_EQUAL("InspectOutfile_test.index", "data/Inspect_test2.index")
 	remove("InspectOutfile_test.trie");
 	remove("InspectOutfile_test.index");
-RESULT
+END_SECTION
 
-CHECK(void compressTrieDB(const String& database_filename, const String& index_filename, std::vector< UInt >& wanted_records, const String& snd_database_filename, const String& snd_index_filename, bool append = false))
+START_SECTION(void compressTrieDB(const String& database_filename, const String& index_filename, std::vector< UInt >& wanted_records, const String& snd_database_filename, const String& snd_index_filename, bool append = false))
 	vector< UInt > wanted_records(1, 0);
 
 	// test exceptions
@@ -239,15 +239,15 @@ CHECK(void compressTrieDB(const String& database_filename, const String& index_f
 	remove("InspectOutfile_test.trie");
 	remove("InspectOutfile_test.index");
 
-	TEST_FILE("InspectOutfile_test2.trie", "data/Inspect_test.trie")
-	TEST_FILE("InspectOutfile_test2.index", "data/Inspect_test.index")
+	TEST_FILE_EQUAL("InspectOutfile_test2.trie", "data/Inspect_test.trie")
+	TEST_FILE_EQUAL("InspectOutfile_test2.index", "data/Inspect_test.index")
 
 	remove("InspectOutfile_test2.trie");
 	remove("InspectOutfile_test2.index");
-RESULT
+END_SECTION
 
 
-CHECK(std::vector< UInt > getSequences(const String& database_filename, const std::map< UInt, UInt >& wanted_records, std::vector< String >& sequences))
+START_SECTION(std::vector< UInt > getSequences(const String& database_filename, const std::map< UInt, UInt >& wanted_records, std::vector< String >& sequences))
 	map< UInt, UInt > rn_position_map;
 	rn_position_map[0] = 0;
 	rn_position_map[1] = 1;
@@ -274,9 +274,9 @@ CHECK(std::vector< UInt > getSequences(const String& database_filename, const st
 	rn_position_map.clear();
 	sequences.clear();
 	found_sequences.clear();
-RESULT
+END_SECTION
 
-CHECK(void getACAndACType(String line, String& accession, String& accession_type))
+START_SECTION(void getACAndACType(String line, String& accession, String& accession_type))
 	String accession, accession_type;
 	file.getACAndACType(">sp|P02666|CASB_BOVIN Beta-casein precursor - Bos taurus (Bovine).", accession, accession_type);
 	TEST_STRING_EQUAL(accession, "P02666")
@@ -325,9 +325,9 @@ CHECK(void getACAndACType(String line, String& accession, String& accession_type
 	file.getACAndACType(">ACBLA (P68509) F_BOVIN", accession, accession_type);
 	TEST_STRING_EQUAL(accession, "P68509")
 	TEST_STRING_EQUAL(accession_type, "SwissProt")
-RESULT
+END_SECTION
 
-CHECK(void getPrecursorRTandMZ(const vector< pair< String, vector< pair < UInt, UInt > > > >& files_and_peptide_identification_with_scan_number, std::vector< PeptideIdentification >& ids))
+START_SECTION(void getPrecursorRTandMZ(const vector< pair< String, vector< pair < UInt, UInt > > > >& files_and_peptide_identification_with_scan_number, std::vector< PeptideIdentification >& ids))
 	vector< pair< String, vector< pair< UInt, UInt > > > > files_and_peptide_identification_with_scan_number;
 	vector< PeptideIdentification > ids, ids_found;
 
@@ -353,13 +353,13 @@ CHECK(void getPrecursorRTandMZ(const vector< pair< String, vector< pair < UInt, 
 	
 	file.getPrecursorRTandMZ(files_and_peptide_identification_with_scan_number, ids_found);
 	
-	TEST_REAL_EQUAL(ids_found.front().getMetaValue("RT"), ids.front().getMetaValue("RT"));
-	TEST_REAL_EQUAL(ids_found.front().getMetaValue("MZ"), ids.front().getMetaValue("MZ"));
-	TEST_REAL_EQUAL(ids_found.back().getMetaValue("RT"), ids.back().getMetaValue("RT"));
-	TEST_REAL_EQUAL(ids_found.back().getMetaValue("MZ"), ids.back().getMetaValue("MZ"));
-RESULT
+	TEST_REAL_SIMILAR(ids_found.front().getMetaValue("RT"), ids.front().getMetaValue("RT"));
+	TEST_REAL_SIMILAR(ids_found.front().getMetaValue("MZ"), ids.front().getMetaValue("MZ"));
+	TEST_REAL_SIMILAR(ids_found.back().getMetaValue("RT"), ids.back().getMetaValue("RT"));
+	TEST_REAL_SIMILAR(ids_found.back().getMetaValue("MZ"), ids.back().getMetaValue("MZ"));
+END_SECTION
 
-CHECK(void getLabels(const String& source_database_filename, String& ac_label, String& sequence_start_label, String& sequence_end_label, String& comment_label, String& species_label))
+START_SECTION(void getLabels(const String& source_database_filename, String& ac_label, String& sequence_start_label, String& sequence_end_label, String& comment_label, String& species_label))
 	String ac_label, sequence_start_label, sequence_end_label, comment_label, species_label;
 
 	// test exceptions
@@ -374,9 +374,9 @@ CHECK(void getLabels(const String& source_database_filename, String& ac_label, S
 	TEST_STRING_EQUAL(sequence_end_label, ">")
 	TEST_STRING_EQUAL(comment_label, ";")
 	TEST_STRING_EQUAL(species_label, ">")
-RESULT
+END_SECTION
 
-CHECK(vector< UInt > getWantedRecords(const String& result_filename, Real p_value_threshold))
+START_SECTION(vector< UInt > getWantedRecords(const String& result_filename, Real p_value_threshold))
 
 	// test exceptions
 	TEST_EXCEPTION(Exception::IllegalArgument, file.getWantedRecords("", 2.0))
@@ -392,9 +392,9 @@ CHECK(vector< UInt > getWantedRecords(const String& result_filename, Real p_valu
 	vector< UInt > wanted_records = file.getWantedRecords("data/InspectOutfile.out", 0.01);
 	TEST_EQUAL (wanted_records.size(), 1)
 	if ( !wanted_records.empty() ) TEST_EQUAL (wanted_records.front(), 0)
-RESULT
+END_SECTION
 
-CHECK(template< typename PeakT > void getExperiment(MSExperiment< PeakT >& exp, String& type, const String& in_filename))
+START_SECTION(template< typename PeakT > void getExperiment(MSExperiment< PeakT >& exp, String& type, const String& in_filename))
 	MSExperiment< > exp;
 	String type;
 
@@ -407,9 +407,9 @@ CHECK(template< typename PeakT > void getExperiment(MSExperiment< PeakT >& exp, 
 	TEST_STRING_EQUAL(type, "mzXML")
 	file.getExperiment(exp, type, "TOPP/Inspect.mzData");
 	TEST_STRING_EQUAL(type, "mzData")
-RESULT
+END_SECTION
 
-CHECK(void getSearchEngineAndVersion(const String& inspect_output_without_parameters_filename, ProteinIdentification& protein_identification) )
+START_SECTION(void getSearchEngineAndVersion(const String& inspect_output_without_parameters_filename, ProteinIdentification& protein_identification) )
 	ProteinIdentification protein_identification;
 
 	// test exceptions
@@ -422,9 +422,9 @@ CHECK(void getSearchEngineAndVersion(const String& inspect_output_without_parame
 	file.getSearchEngineAndVersion("data/InspectOutfile_version_file.txt", protein_identification);
 	TEST_STRING_EQUAL(protein_identification.getSearchEngine(), "InsPecT");
 	TEST_STRING_EQUAL(protein_identification.getSearchEngineVersion(), "20060907");
-RESULT
+END_SECTION
 
-CHECK(void readOutHeader(const String& filename, const String& header_line, Int& spectrum_file_column, Int& scan_column, Int& peptide_column, Int& protein_column, Int& charge_column, Int& MQ_score_column, Int& p_value_column, Int& record_number_column, Int& DB_file_pos_column, Int& spec_file_pos_column, UInt &number_of_columns))
+START_SECTION(void readOutHeader(const String& filename, const String& header_line, Int& spectrum_file_column, Int& scan_column, Int& peptide_column, Int& protein_column, Int& charge_column, Int& MQ_score_column, Int& p_value_column, Int& record_number_column, Int& DB_file_pos_column, Int& spec_file_pos_column, UInt &number_of_columns))
 		
 	String header_line = "#SpectrumFile	Scan#	Annotation	Protein	Charge	MQScore	Length	TotalPRMScore	MedianPRMScore	FractionY	FractionB	Intensity	NTT	p-value	F-Score	DeltaScore	DeltaScoreOther	RecordNumber	DBFilePos	";
 	
@@ -450,6 +450,6 @@ CHECK(void readOutHeader(const String& filename, const String& header_line, Int&
 	TEST_EQUAL(DB_file_pos_column, 18)
 	TEST_EQUAL(spec_file_pos_column, 19)
 	TEST_EQUAL(number_of_columns, 20)
-RESULT
+END_SECTION
 
 END_TEST

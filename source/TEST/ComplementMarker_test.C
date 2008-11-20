@@ -45,31 +45,31 @@ START_TEST(ComplementMarker, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ComplementMarker* e_ptr = 0;
-CHECK((ComplementMarker()))
+START_SECTION((ComplementMarker()))
 	e_ptr = new ComplementMarker;
 	TEST_NOT_EQUAL(e_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~ComplementMarker()))
+START_SECTION((~ComplementMarker()))
 	delete e_ptr;
-RESULT
+END_SECTION
 
 e_ptr = new ComplementMarker();
 
-CHECK((ComplementMarker(const ComplementMarker& source)))
+START_SECTION((ComplementMarker(const ComplementMarker& source)))
 	ComplementMarker copy(*e_ptr);
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK((ComplementMarker& operator = (const ComplementMarker& source)))
+START_SECTION((ComplementMarker& operator = (const ComplementMarker& source)))
 	ComplementMarker copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK((template<typename SpectrumType> void apply(std::map<double, bool> marked, SpectrumType& spectrum)))
+START_SECTION((template<typename SpectrumType> void apply(std::map<double, bool> marked, SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -87,18 +87,18 @@ CHECK((template<typename SpectrumType> void apply(std::map<double, bool> marked,
 	e_ptr->apply(marked, spec);
 	TEST_EQUAL(marked.size(), 0)
 
-RESULT
+END_SECTION
 
-CHECK((static PeakMarker* create()))
+START_SECTION((static PeakMarker* create()))
 	PeakMarker* pm = ComplementMarker::create();
 	ComplementMarker cm;
 	TEST_EQUAL(pm->getParameters(), cm.getParameters())
 	TEST_EQUAL(pm->getName(), cm.getName())
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(e_ptr->getProductName(), "ComplementMarker")
-RESULT
+END_SECTION
 
 delete e_ptr;
 

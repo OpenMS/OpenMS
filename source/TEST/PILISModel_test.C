@@ -46,56 +46,56 @@ using namespace std;
 
 PILISModel* ptr = 0;
 const AASequence peptide("DFPIANGER");
-CHECK(PILISModel())
+START_SECTION(PILISModel())
 	ptr = new PILISModel();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~PILISModel())
+START_SECTION(~PILISModel())
 	delete ptr;
-RESULT
+END_SECTION
 
 ptr = new PILISModel();
 
-CHECK(PILISModel(const PILISModel& model))
+START_SECTION(PILISModel(const PILISModel& model))
 	PILISModel copy(*ptr);
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
-RESULT
+END_SECTION
 
-CHECK(PILISModel& operator = (const PILISModel& mode))
+START_SECTION(PILISModel& operator = (const PILISModel& mode))
 	PILISModel copy;
 	copy = *ptr;
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
-RESULT
+END_SECTION
 
-CHECK(void writeGraphMLFile(const String& filename))
-RESULT
+START_SECTION(void writeGraphMLFile(const String& filename))
+END_SECTION
 
-CHECK(void readFromFile(const String& filename))
+START_SECTION(void readFromFile(const String& filename))
 	ptr->readFromFile("PILIS/PILIS_default_model.dat");
-RESULT
+END_SECTION
 
-CHECK(void writeToFile(const String& filename))
+START_SECTION(void writeToFile(const String& filename))
 	String temp_filename("data/PILISModel_model.dat");
 	NEW_TMP_FILE(temp_filename)
 	ptr->writeToFile(temp_filename);
-RESULT
+END_SECTION
 
-CHECK(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, UInt charge))
+START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, UInt charge))
 	RichPeakSpectrum spec;
 	ptr->getSpectrum(spec, peptide, 1);
 	TEST_EQUAL(spec.size(), 90)
-RESULT
+END_SECTION
 
-CHECK(void train(const RichPeakSpectrum&, const AASequence& peptide, UInt charge))
+START_SECTION(void train(const RichPeakSpectrum&, const AASequence& peptide, UInt charge))
 	RichPeakSpectrum spec;
 	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", spec);
 	ptr->train(spec, peptide, 1);
-RESULT
+END_SECTION
 
-CHECK(void evaluate())
+START_SECTION(void evaluate())
 	ptr->evaluate();
-RESULT
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

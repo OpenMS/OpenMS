@@ -45,68 +45,68 @@ using namespace std;
 
 TheoreticalSpectrumGenerator* ptr = 0;
 
-CHECK(TheoreticalSpectrumGenerator())
+START_SECTION(TheoreticalSpectrumGenerator())
 	ptr = new TheoreticalSpectrumGenerator();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& source))
+START_SECTION(TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& source))
 	TheoreticalSpectrumGenerator copy(*ptr);
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
-RESULT
+END_SECTION
 
-CHECK(~TheoreticalSpectrumGenerator())
+START_SECTION(~TheoreticalSpectrumGenerator())
 	delete ptr;
-RESULT
+END_SECTION
 
 ptr = new TheoreticalSpectrumGenerator();
 AASequence peptide("IFSQVGK");
 
-CHECK(TheoreticalSpectrumGenerator& operator = (const TheoreticalSpectrumGenerator& tsg))
+START_SECTION(TheoreticalSpectrumGenerator& operator = (const TheoreticalSpectrumGenerator& tsg))
 	TheoreticalSpectrumGenerator copy;
 	copy = *ptr;
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
-RESULT
+END_SECTION
 
-CHECK(void addPeaks(RichPeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, Int charge = 1))
+START_SECTION(void addPeaks(RichPeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, Int charge = 1))
 	RichPeakSpectrum y_spec, b_spec, a_spec;
 	ptr->addPeaks(y_spec, peptide, Residue::YIon, 1);
 	ptr->addPeaks(b_spec, peptide, Residue::BIon, 1);
 	ptr->addPeaks(a_spec, peptide, Residue::AIon, 1);
-	PRECISION(0.001)
+	TOLERANCE_ABSOLUTE(0.001)
 	double y_result[] = {147.113, 204.135, 303.203, 431.262, 518.294, 665.362};
 	for (unsigned int i = 0; i != y_spec.size(); ++i)
 	{
-		TEST_REAL_EQUAL(y_spec[i].getPosition()[0], y_result[i])
+		TEST_REAL_SIMILAR(y_spec[i].getPosition()[0], y_result[i])
 	}
 	double b_result[] = {115.1, 261.16, 348.192, 476.251, 575.319, 632.341};
 	for (unsigned int i = 0; i != b_spec.size(); ++i)
 	{
-		TEST_REAL_EQUAL(b_spec[i].getPosition()[0], b_result[i])
+		TEST_REAL_SIMILAR(b_spec[i].getPosition()[0], b_result[i])
 	}
 
 	double a_result[] = {87.1048, 233.165, 320.197, 448.256, 547.324, 604.346};
 	for (unsigned int i = 0; i != a_spec.size(); ++i)
 	{
-		TEST_REAL_EQUAL(a_spec[i].getPosition()[0], a_result[i])
+		TEST_REAL_SIMILAR(a_spec[i].getPosition()[0], a_result[i])
 	}
 
 	RichPeakSpectrum y_spec2;
 	ptr->addPeaks(y_spec2, peptide, Residue::YIon, 2);
-	PRECISION(0.01)
+	TOLERANCE_ABSOLUTE(0.01)
 	for (unsigned int i = 0; i != y_spec2.size(); ++i)
 	{
-		TEST_REAL_EQUAL(y_spec2[i].getPosition()[0], (y_result[i]+1.0)/2.0)
+		TEST_REAL_SIMILAR(y_spec2[i].getPosition()[0], (y_result[i]+1.0)/2.0)
 	}
-RESULT
+END_SECTION
 
-CHECK(void addPrecursorPeaks(RichPeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
+START_SECTION(void addPrecursorPeaks(RichPeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
 	RichPeakSpectrum spec;
 	ptr->addPrecursorPeaks(spec, peptide, 1);
 	double result[] = {778.916, 760.901, 761.885};
 	for (unsigned int i = 0; i != spec.size(); ++i)
 	{
-		TEST_REAL_EQUAL(spec[i].getPosition()[0], result[i])
+		TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
 	}
 
 	RichPeakSpectrum spec2;
@@ -114,28 +114,28 @@ CHECK(void addPrecursorPeaks(RichPeakSpectrum& spec, const AASequence& peptide, 
 	double result2[] = {389.962, 380.954, 381.447};
 	for (unsigned int i = 0; i != spec2.size(); ++i)
 	{
-		TEST_REAL_EQUAL(spec2[i].getPosition()[0], result2[i])
+		TEST_REAL_SIMILAR(spec2[i].getPosition()[0], result2[i])
 	}
 	
-RESULT
+END_SECTION
 
-CHECK(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
+START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
 	RichPeakSpectrum spec;
 	ptr->getSpectrum(spec, peptide, 1);
 	TEST_EQUAL(spec.size(), 12)
 
-	PRECISION(0.001)
+	TOLERANCE_ABSOLUTE(0.001)
 
 	double result[] = {115.1, 147.113, 204.135, 261.16, 303.203, 348.192, 431.262, 476.251, 518.294, 575.319, 632.341, 665.362};
 	for (unsigned int i = 0; i != spec.size(); ++i)
 	{
-		TEST_REAL_EQUAL(spec[i].getPosition()[0], result[i])
+		TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
 	}
 
 	spec.clear();
 	ptr->getSpectrum(spec, peptide, 2);
 	TEST_EQUAL(spec.size(), 24)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

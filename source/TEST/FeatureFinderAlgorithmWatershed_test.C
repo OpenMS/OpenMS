@@ -44,20 +44,20 @@ using namespace std;
 typedef FeatureFinderAlgorithmWatershed<Peak1D,Feature> FFAW;
 
 FFAW* ptr;
-CHECK(FeatureFinderAlgorithmWatershed())
+START_SECTION(FeatureFinderAlgorithmWatershed())
 	ptr = new FFAW;
 	TEST_NOT_EQUAL(ptr,0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~FeatureFinderAlgorithmWatershed()))
+START_SECTION((virtual ~FeatureFinderAlgorithmWatershed()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK([EXTRA] FeatureFinderAlgorithmWatershed() - with RichPeak1D)
+START_SECTION([EXTRA] FeatureFinderAlgorithmWatershed() - with RichPeak1D)
 	FeatureFinderAlgorithmWatershed<RichPeak1D,Feature> ffa;
-RESULT
+END_SECTION
 
-CHECK(virtual void run())
+START_SECTION(virtual void run())
   //create input
 	MSExperiment<> input;
 	input.reserve(500);
@@ -106,8 +106,8 @@ CHECK(virtual void run())
 	ffaw.setData(input, output, ff);
   ffaw.run();
 	TEST_EQUAL(output.size(),1);
-	TEST_REAL_EQUAL(output[0].getRT(),250.0);
-	TEST_REAL_EQUAL(output[0].getMZ(),749.5);
+	TEST_REAL_SIMILAR(output[0].getRT(),250.0);
+	TEST_REAL_SIMILAR(output[0].getMZ(),749.5);
 	//MzDataFile().store(String("ff_in_")+test_number,input);
 	//FeatureXMLFile().store(String("ff_out_")+(test_number++),output);
 	
@@ -119,27 +119,27 @@ CHECK(virtual void run())
 	ffaw.setData(input, output, ff);
   ffaw.run();
 	TEST_EQUAL(output.size(),3);
-	TEST_REAL_EQUAL(output[0].getRT(),125.0);
-	TEST_REAL_EQUAL(output[0].getMZ(),874.5);
-	TEST_REAL_EQUAL(output[1].getRT(),250.0);
-	TEST_REAL_EQUAL(output[1].getMZ(),749.5);
-	TEST_REAL_EQUAL(output[2].getRT(),125.0);
-	TEST_REAL_EQUAL(output[2].getMZ(),625.5);
+	TEST_REAL_SIMILAR(output[0].getRT(),125.0);
+	TEST_REAL_SIMILAR(output[0].getMZ(),874.5);
+	TEST_REAL_SIMILAR(output[1].getRT(),250.0);
+	TEST_REAL_SIMILAR(output[1].getMZ(),749.5);
+	TEST_REAL_SIMILAR(output[2].getRT(),125.0);
+	TEST_REAL_SIMILAR(output[2].getMZ(),625.5);
 
 	//MzDataFile().store(String("ff_in_")+test_number,input);
 	//FeatureXMLFile().store(String("ff_out_")+(test_number++),output);
 
-RESULT
+END_SECTION
 
-CHECK((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
+START_SECTION((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
 	FeatureFinderAlgorithm<Peak1D,Feature>* ptr2 = FFAW::create();
 	TEST_NOT_EQUAL(ptr2,0)
 	delete ptr2;
-RESULT
+END_SECTION
 
-CHECK(static const String getProductName())
+START_SECTION(static const String getProductName())
 	TEST_EQUAL(FFAW::getProductName(),"watershed")
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

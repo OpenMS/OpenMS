@@ -70,7 +70,7 @@ START_TEST( BilinearInterpolation, "$Id$" )
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-CHECK([EXTRA] typedefs )
+START_SECTION([EXTRA] typedefs )
 {
 	typedef BilinearInterpolation < float, double > BIFD;
 	BIFD::ValueType     * value;
@@ -83,32 +83,27 @@ CHECK([EXTRA] typedefs )
 	containerValue = 0;
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
 typedef BilinearInterpolation < float, double > BIFD;
 
-//-----------------------------------------------------------
-// Please do not remove the {} inside the CHECK...RESULT blocks.
-// Emacs will completely mess up the indentation otherwise.
-//-----------------------------------------------------------
-
 BIFD * bifd_ptr = 0;
 
-CHECK(BilinearInterpolation())
+START_SECTION(BilinearInterpolation())
 {
 	BIFD bifd;
 	bifd_ptr = new BIFD;
 	TEST_NOT_EQUAL(bifd_ptr,0);
 }
-RESULT
+END_SECTION
 
-CHECK(~BilinearInterpolation())
+START_SECTION(~BilinearInterpolation())
 {
 	delete bifd_ptr;
 }
-RESULT
+END_SECTION
 
-CHECK(BilinearInterpolation& operator= ( BilinearInterpolation const & arg ))
+START_SECTION(BilinearInterpolation& operator= ( BilinearInterpolation const & arg ))
 {
 	BIFD::ContainerType v;
 	v.resize(2,3);
@@ -129,21 +124,21 @@ CHECK(BilinearInterpolation& operator= ( BilinearInterpolation const & arg ))
 	// do it
 	bifd2 = bifd;
 
-	TEST_REAL_EQUAL(bifd2.getScale_0(), 20);
-	TEST_REAL_EQUAL(bifd2.getScale_1(), 400);
-	TEST_REAL_EQUAL(bifd2.getOffset_0(), -30);
-	TEST_REAL_EQUAL(bifd2.getOffset_1(), -3900);
-	TEST_REAL_EQUAL(bifd2.getInsideReferencePoint_0(), 13);
-	TEST_REAL_EQUAL(bifd2.getOutsideReferencePoint_0(), 230);
-	TEST_REAL_EQUAL(bifd2.getInsideReferencePoint_1(), 15);
-	TEST_REAL_EQUAL(bifd2.getOutsideReferencePoint_1(), 2100);
+	TEST_REAL_SIMILAR(bifd2.getScale_0(), 20);
+	TEST_REAL_SIMILAR(bifd2.getScale_1(), 400);
+	TEST_REAL_SIMILAR(bifd2.getOffset_0(), -30);
+	TEST_REAL_SIMILAR(bifd2.getOffset_1(), -3900);
+	TEST_REAL_SIMILAR(bifd2.getInsideReferencePoint_0(), 13);
+	TEST_REAL_SIMILAR(bifd2.getOutsideReferencePoint_0(), 230);
+	TEST_REAL_SIMILAR(bifd2.getInsideReferencePoint_1(), 15);
+	TEST_REAL_SIMILAR(bifd2.getOutsideReferencePoint_1(), 2100);
 	for ( UInt i = 0; i < v.rows(); ++i )
 		for ( UInt j = 0; j < v.cols(); ++j )
 			TEST_EQUAL(bifd2.getData()(i,j),v(i,j));
 }
-RESULT
+END_SECTION
 
-CHECK(BilinearInterpolation( BilinearInterpolation const & arg ))
+START_SECTION(BilinearInterpolation( BilinearInterpolation const & arg ))
 {
 	BIFD::ContainerType v;
 	v.resize(2,3);
@@ -162,21 +157,21 @@ CHECK(BilinearInterpolation( BilinearInterpolation const & arg ))
 	// do it
 	BIFD bifd2 = bifd;
 
-	TEST_REAL_EQUAL(bifd2.getScale_0(), 20);
-	TEST_REAL_EQUAL(bifd2.getScale_1(), 400);
-	TEST_REAL_EQUAL(bifd2.getOffset_0(), -30);
-	TEST_REAL_EQUAL(bifd2.getOffset_1(), -3900);
-	TEST_REAL_EQUAL(bifd2.getInsideReferencePoint_0(), 13);
-	TEST_REAL_EQUAL(bifd2.getOutsideReferencePoint_0(), 230);
-	TEST_REAL_EQUAL(bifd2.getInsideReferencePoint_1(), 15);
-	TEST_REAL_EQUAL(bifd2.getOutsideReferencePoint_1(), 2100);
+	TEST_REAL_SIMILAR(bifd2.getScale_0(), 20);
+	TEST_REAL_SIMILAR(bifd2.getScale_1(), 400);
+	TEST_REAL_SIMILAR(bifd2.getOffset_0(), -30);
+	TEST_REAL_SIMILAR(bifd2.getOffset_1(), -3900);
+	TEST_REAL_SIMILAR(bifd2.getInsideReferencePoint_0(), 13);
+	TEST_REAL_SIMILAR(bifd2.getOutsideReferencePoint_0(), 230);
+	TEST_REAL_SIMILAR(bifd2.getInsideReferencePoint_1(), 15);
+	TEST_REAL_SIMILAR(bifd2.getOutsideReferencePoint_1(), 2100);
 	for ( UInt i = 0; i < v.rows(); ++i )
 		for ( UInt j = 0; j < v.cols(); ++j )
 			TEST_EQUAL(bifd2.getData()(i,j),v(i,j));
 }
-RESULT
+END_SECTION
 
-CHECK(ContainerType& getData())
+START_SECTION(ContainerType& getData())
 {
   BIFD bifd;
 	bifd.getData().resize(2,3);
@@ -185,20 +180,20 @@ CHECK(ContainerType& getData())
 	bifd.getData()(1,0) = 10010;
 
 	BIFD const & bifd_cr(bifd);
-	TEST_REAL_EQUAL(bifd_cr.getData()(1,2),10012);
-	TEST_REAL_EQUAL(bifd_cr.getData()(0,0),10000);
-	TEST_REAL_EQUAL(bifd_cr.getData()(1,0),10010);
+	TEST_REAL_SIMILAR(bifd_cr.getData()(1,2),10012);
+	TEST_REAL_SIMILAR(bifd_cr.getData()(0,0),10000);
+	TEST_REAL_SIMILAR(bifd_cr.getData()(1,0),10010);
 }
-RESULT
+END_SECTION
 
-CHECK(ContainerType const& getData() const)
+START_SECTION(ContainerType const& getData() const)
 {
   // see above,  ContainerType& getData()
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
-CHECK(template< typename SourceContainer > void setData( SourceContainer const & data ))
+START_SECTION(template< typename SourceContainer > void setData( SourceContainer const & data ))
 {
   BIFD bifd;
 	bifd.getData().resize(2,3);
@@ -217,103 +212,103 @@ CHECK(template< typename SourceContainer > void setData( SourceContainer const &
 	bifd3.getData().resize(2,3);
 	TEST_NOT_EQUAL(bifd.getData(),bifd3.getData());
 }
-RESULT
+END_SECTION
 
 
 // Lots of methods with _0 and _1.
 // I'll deal with the _0 case first,
 // then copy/rename this for _1
 
-CHECK((void setMapping_0( KeyType const & inside_low, KeyType const & outside_low, KeyType const & inside_high, KeyType const & outside_high )))
+START_SECTION((void setMapping_0( KeyType const & inside_low, KeyType const & outside_low, KeyType const & inside_high, KeyType const & outside_high )))
 {
 	BIFD bifd;
 	bifd.setMapping_0(1,2,3,8);
-	TEST_REAL_EQUAL(bifd.getScale_0(),3);
-	TEST_REAL_EQUAL(bifd.getOffset_0(),-1);
-	TEST_REAL_EQUAL(bifd.getScale_1(),1);
-	TEST_REAL_EQUAL(bifd.getOffset_1(),0);
+	TEST_REAL_SIMILAR(bifd.getScale_0(),3);
+	TEST_REAL_SIMILAR(bifd.getOffset_0(),-1);
+	TEST_REAL_SIMILAR(bifd.getScale_1(),1);
+	TEST_REAL_SIMILAR(bifd.getOffset_1(),0);
 }
-RESULT
+END_SECTION
 
-CHECK((void setMapping_0( KeyType const & scale, KeyType const & inside_low, KeyType const & outside_low )))
+START_SECTION((void setMapping_0( KeyType const & scale, KeyType const & inside_low, KeyType const & outside_low )))
 {
 	BIFD bifd;
 	bifd.setMapping_0(3,1,2);
-	TEST_REAL_EQUAL(bifd.getScale_0(),3);
-	TEST_REAL_EQUAL(bifd.getOffset_0(),-1);
-	TEST_REAL_EQUAL(bifd.getScale_1(),1);
-	TEST_REAL_EQUAL(bifd.getOffset_1(),0);
+	TEST_REAL_SIMILAR(bifd.getScale_0(),3);
+	TEST_REAL_SIMILAR(bifd.getOffset_0(),-1);
+	TEST_REAL_SIMILAR(bifd.getScale_1(),1);
+	TEST_REAL_SIMILAR(bifd.getOffset_1(),0);
 }
-RESULT
+END_SECTION
 
-CHECK(void setOffset_0( KeyType const & offset ))
+START_SECTION(void setOffset_0( KeyType const & offset ))
 {
 	BIFD bifd;
 	bifd.setOffset_0(987);
 	BIFD const& bifd_cr(bifd);
-	TEST_REAL_EQUAL(bifd_cr.getOffset_0(),987);
+	TEST_REAL_SIMILAR(bifd_cr.getOffset_0(),987);
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType const& getOffset_0() const)
+START_SECTION(KeyType const& getOffset_0() const)
 {
   // see above,  void setOffset_0( KeyType const & offset )
 	NOT_TESTABLE;
 }
-RESULT
-CHECK(void setScale_0( KeyType const & scale ))
+END_SECTION
+START_SECTION(void setScale_0( KeyType const & scale ))
 {
 	BIFD bifd;
 	bifd.setScale_0(987);
 	BIFD const& bifd_cr(bifd);
-	TEST_REAL_EQUAL(bifd_cr.getScale_0(),987);
+	TEST_REAL_SIMILAR(bifd_cr.getScale_0(),987);
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType const& getScale_0() const)
+START_SECTION(KeyType const& getScale_0() const)
 {
   // see above,  void setScale_0( KeyType const & scale )
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType const& getInsideReferencePoint_0() const)
+START_SECTION(KeyType const& getInsideReferencePoint_0() const)
 {
  	BIFD bifd;
 	bifd.setMapping_0(1,4,3,8);
-	TEST_REAL_EQUAL(bifd.getInsideReferencePoint_0(),1);
-	TEST_REAL_EQUAL(bifd.getOutsideReferencePoint_0(),4);
-	TEST_REAL_EQUAL(bifd.getInsideReferencePoint_1(),0);
-	TEST_REAL_EQUAL(bifd.getOutsideReferencePoint_1(),0);
+	TEST_REAL_SIMILAR(bifd.getInsideReferencePoint_0(),1);
+	TEST_REAL_SIMILAR(bifd.getOutsideReferencePoint_0(),4);
+	TEST_REAL_SIMILAR(bifd.getInsideReferencePoint_1(),0);
+	TEST_REAL_SIMILAR(bifd.getOutsideReferencePoint_1(),0);
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType const& getOutsideReferencePoint_0() const)
+START_SECTION(KeyType const& getOutsideReferencePoint_0() const)
 {
   // see above,  getInsideReferencePoint_0()
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType index2key_0( KeyType pos ) const)
+START_SECTION(KeyType index2key_0( KeyType pos ) const)
 {
  	BIFD bifd;
 	bifd.setMapping_0(3,1,2);
-	TEST_REAL_EQUAL(bifd.index2key_0(0),-1);
-	TEST_REAL_EQUAL(bifd.index2key_1(0),0);
+	TEST_REAL_SIMILAR(bifd.index2key_0(0),-1);
+	TEST_REAL_SIMILAR(bifd.index2key_1(0),0);
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType key2index_0( KeyType pos ) const)
+START_SECTION(KeyType key2index_0( KeyType pos ) const)
 {
  	BIFD bifd;
 	bifd.setMapping_0(3,1,2);
-	TEST_REAL_EQUAL(bifd.key2index_0(-1),0);
-	TEST_REAL_EQUAL(bifd.key2index_1(0),0);
+	TEST_REAL_SIMILAR(bifd.key2index_0(-1),0);
+	TEST_REAL_SIMILAR(bifd.key2index_1(0),0);
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType supportMax_0() const)
+START_SECTION(KeyType supportMax_0() const)
 {
  	BIFD bifd;
 
@@ -322,121 +317,121 @@ CHECK(KeyType supportMax_0() const)
 
 	bifd.getData().resize(2,3);
 
-	TEST_REAL_EQUAL(bifd.index2key_0(0),-1);
-	TEST_REAL_EQUAL(bifd.index2key_0(1),2);
-	TEST_REAL_EQUAL(bifd.supportMin_0(),-4);
-	TEST_REAL_EQUAL(bifd.supportMax_0(),5);
+	TEST_REAL_SIMILAR(bifd.index2key_0(0),-1);
+	TEST_REAL_SIMILAR(bifd.index2key_0(1),2);
+	TEST_REAL_SIMILAR(bifd.supportMin_0(),-4);
+	TEST_REAL_SIMILAR(bifd.supportMax_0(),5);
 
-	TEST_REAL_EQUAL(bifd.index2key_1(0),-11);
-	TEST_REAL_EQUAL(bifd.index2key_1(2),-1);
-	TEST_REAL_EQUAL(bifd.supportMin_1(),-16);
-	TEST_REAL_EQUAL(bifd.supportMax_1(),4);
+	TEST_REAL_SIMILAR(bifd.index2key_1(0),-11);
+	TEST_REAL_SIMILAR(bifd.index2key_1(2),-1);
+	TEST_REAL_SIMILAR(bifd.supportMin_1(),-16);
+	TEST_REAL_SIMILAR(bifd.supportMax_1(),4);
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType supportMin_0() const)
+START_SECTION(KeyType supportMin_0() const)
 {
   // see above,  supportMax_0
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
 
 
 // here is the same stuff with _1 and _0 exchanged
 
 
-CHECK((void setMapping_1( KeyType const & inside_low, KeyType const & outside_low, KeyType const & inside_high, KeyType const & outside_high )))
+START_SECTION((void setMapping_1( KeyType const & inside_low, KeyType const & outside_low, KeyType const & inside_high, KeyType const & outside_high )))
 {
 	BIFD bifd;
 	bifd.setMapping_1(1,2,3,8);
-	TEST_REAL_EQUAL(bifd.getScale_1(),3);
-	TEST_REAL_EQUAL(bifd.getOffset_1(),-1);
-	TEST_REAL_EQUAL(bifd.getScale_0(),1);
-	TEST_REAL_EQUAL(bifd.getOffset_0(),0);
+	TEST_REAL_SIMILAR(bifd.getScale_1(),3);
+	TEST_REAL_SIMILAR(bifd.getOffset_1(),-1);
+	TEST_REAL_SIMILAR(bifd.getScale_0(),1);
+	TEST_REAL_SIMILAR(bifd.getOffset_0(),0);
 }
-RESULT
+END_SECTION
 
-CHECK((void setMapping_1( KeyType const & scale, KeyType const & inside_low, KeyType const & outside_low )))
+START_SECTION((void setMapping_1( KeyType const & scale, KeyType const & inside_low, KeyType const & outside_low )))
 {
 	BIFD bifd;
 	bifd.setMapping_1(3,1,2);
-	TEST_REAL_EQUAL(bifd.getScale_1(),3);
-	TEST_REAL_EQUAL(bifd.getOffset_1(),-1);
-	TEST_REAL_EQUAL(bifd.getScale_0(),1);
-	TEST_REAL_EQUAL(bifd.getOffset_0(),0);
+	TEST_REAL_SIMILAR(bifd.getScale_1(),3);
+	TEST_REAL_SIMILAR(bifd.getOffset_1(),-1);
+	TEST_REAL_SIMILAR(bifd.getScale_0(),1);
+	TEST_REAL_SIMILAR(bifd.getOffset_0(),0);
 }
-RESULT
+END_SECTION
 
-CHECK(void setOffset_1( KeyType const & offset ))
+START_SECTION(void setOffset_1( KeyType const & offset ))
 {
 	BIFD bifd;
 	bifd.setOffset_1(987);
 	BIFD const& bifd_cr(bifd);
-	TEST_REAL_EQUAL(bifd_cr.getOffset_1(),987);
+	TEST_REAL_SIMILAR(bifd_cr.getOffset_1(),987);
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType const& getOffset_1() const)
+START_SECTION(KeyType const& getOffset_1() const)
 {
   // see above,  void setOffset_1( KeyType const & offset )
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
-CHECK(void setScale_1( KeyType const & scale ))
+START_SECTION(void setScale_1( KeyType const & scale ))
 {
 	BIFD bifd;
 	bifd.setScale_1(987);
 	BIFD const& bifd_cr(bifd);
-	TEST_REAL_EQUAL(bifd_cr.getScale_1(),987);
+	TEST_REAL_SIMILAR(bifd_cr.getScale_1(),987);
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType const& getScale_1() const)
+START_SECTION(KeyType const& getScale_1() const)
 {
   // see above,  void setScale_1( KeyType const & scale )
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType const& getInsideReferencePoint_1() const)
+START_SECTION(KeyType const& getInsideReferencePoint_1() const)
 {
  	BIFD bifd;
 	bifd.setMapping_1(1,4,3,8);
-	TEST_REAL_EQUAL(bifd.getInsideReferencePoint_1(),1);
-	TEST_REAL_EQUAL(bifd.getOutsideReferencePoint_1(),4);
-	TEST_REAL_EQUAL(bifd.getInsideReferencePoint_0(),0);
-	TEST_REAL_EQUAL(bifd.getOutsideReferencePoint_0(),0);
+	TEST_REAL_SIMILAR(bifd.getInsideReferencePoint_1(),1);
+	TEST_REAL_SIMILAR(bifd.getOutsideReferencePoint_1(),4);
+	TEST_REAL_SIMILAR(bifd.getInsideReferencePoint_0(),0);
+	TEST_REAL_SIMILAR(bifd.getOutsideReferencePoint_0(),0);
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType const& getOutsideReferencePoint_1() const)
+START_SECTION(KeyType const& getOutsideReferencePoint_1() const)
 {
   // see above,  getInsideReferencePoint_1()
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType index2key_1( KeyType pos ) const)
+START_SECTION(KeyType index2key_1( KeyType pos ) const)
 {
  	BIFD bifd;
 	bifd.setMapping_1(3,1,2);
-	TEST_REAL_EQUAL(bifd.index2key_1(0),-1);
-	TEST_REAL_EQUAL(bifd.index2key_0(0),0);
+	TEST_REAL_SIMILAR(bifd.index2key_1(0),-1);
+	TEST_REAL_SIMILAR(bifd.index2key_0(0),0);
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType key2index_1( KeyType pos ) const)
+START_SECTION(KeyType key2index_1( KeyType pos ) const)
 {
  	BIFD bifd;
 	bifd.setMapping_1(3,1,2);
-	TEST_REAL_EQUAL(bifd.key2index_1(-1),0);
-	TEST_REAL_EQUAL(bifd.key2index_0(0),0);
+	TEST_REAL_SIMILAR(bifd.key2index_1(-1),0);
+	TEST_REAL_SIMILAR(bifd.key2index_0(0),0);
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType supportMax_1() const)
+START_SECTION(KeyType supportMax_1() const)
 {
  	BIFD bifd;
 
@@ -445,26 +440,26 @@ CHECK(KeyType supportMax_1() const)
 
 	bifd.getData().resize(3,2);
 
-	TEST_REAL_EQUAL(bifd.index2key_1(0),-1);
-	TEST_REAL_EQUAL(bifd.index2key_1(1),2);
-	TEST_REAL_EQUAL(bifd.supportMin_1(),-4);
-	TEST_REAL_EQUAL(bifd.supportMax_1(),5);
+	TEST_REAL_SIMILAR(bifd.index2key_1(0),-1);
+	TEST_REAL_SIMILAR(bifd.index2key_1(1),2);
+	TEST_REAL_SIMILAR(bifd.supportMin_1(),-4);
+	TEST_REAL_SIMILAR(bifd.supportMax_1(),5);
 
-	TEST_REAL_EQUAL(bifd.index2key_0(0),-11);
-	TEST_REAL_EQUAL(bifd.index2key_0(2),-1);
-	TEST_REAL_EQUAL(bifd.supportMin_0(),-16);
-	TEST_REAL_EQUAL(bifd.supportMax_0(),4);
+	TEST_REAL_SIMILAR(bifd.index2key_0(0),-11);
+	TEST_REAL_SIMILAR(bifd.index2key_0(2),-1);
+	TEST_REAL_SIMILAR(bifd.supportMin_0(),-16);
+	TEST_REAL_SIMILAR(bifd.supportMax_0(),4);
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType supportMin_1() const)
+START_SECTION(KeyType supportMin_1() const)
 {
   // see above,  supportMax_1
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
-CHECK(bool empty() const)
+START_SECTION(bool empty() const)
 {
 	BIFD bifd;
 	TEST_EQUAL(bifd.empty(),true);
@@ -485,14 +480,14 @@ CHECK(bool empty() const)
 	bifd.getData().clear();
 	TEST_EQUAL(bifd.empty(),true);
 }
-RESULT
+END_SECTION
 
 
 
 
 
 
-CHECK((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType arg_value )))
+START_SECTION((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType arg_value )))
 {
 
 #define verbose(a)
@@ -543,11 +538,11 @@ CHECK((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType arg_value 
 #undef verbose
 
 }
-RESULT
+END_SECTION
 
 
 
-CHECK((ValueType value( KeyType arg_pos_0, KeyType arg_pos_1 ) const))
+START_SECTION((ValueType value( KeyType arg_pos_0, KeyType arg_pos_1 ) const))
 {
 #define verbose(a)
 	// #define verbose(a) a
@@ -556,7 +551,7 @@ CHECK((ValueType value( KeyType arg_pos_0, KeyType arg_pos_1 ) const))
 	// least reproducible)
 	srand(2007);
 
-	PRECISION(0.01);
+	TOLERANCE_ABSOLUTE(0.01);
 
 	BIFD bifd_small;
 	BIFD bifd_big;
@@ -594,7 +589,7 @@ CHECK((ValueType value( KeyType arg_pos_0, KeyType arg_pos_1 ) const))
 			verbose(STATUS("i: " << i));
 			verbose(STATUS("j: " << j));
 
-			TEST_REAL_EQUAL(bifd_small.value(p,q),bifd_big.value(p,q));
+			TEST_REAL_SIMILAR(bifd_small.value(p,q),bifd_big.value(p,q));
 
 			interpolated(i+50,j+50) = int(bifd_small.value(p,q));
 		}
@@ -606,7 +601,7 @@ CHECK((ValueType value( KeyType arg_pos_0, KeyType arg_pos_1 ) const))
 #undef verbose
 
 }
-RESULT
+END_SECTION
 
 
 //-----------------------------------------------------------

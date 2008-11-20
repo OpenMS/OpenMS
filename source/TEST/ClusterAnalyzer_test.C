@@ -41,28 +41,28 @@ START_TEST(ClusterAnalyzer, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ClusterAnalyzer* ptr = 0;
-CHECK(ClusterAnalyzer())
+START_SECTION(ClusterAnalyzer())
 {
 	ptr = new ClusterAnalyzer();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~ClusterAnalyzer())
+START_SECTION(~ClusterAnalyzer())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((ClusterAnalyzer(const ClusterAnalyzer &source)))
+START_SECTION((ClusterAnalyzer(const ClusterAnalyzer &source)))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
 	ptr = new ClusterAnalyzer();
 
-CHECK((std::vector< Real > averageSilhouetteWidth(std::vector< BinaryTreeNode > &tree, DistanceMatrix< Real > &original)))
+START_SECTION((std::vector< Real > averageSilhouetteWidth(std::vector< BinaryTreeNode > &tree, DistanceMatrix< Real > &original)))
 {
 	DistanceMatrix<Real> matrix(6,666);
 	matrix.setValue(1,0,0.5);
@@ -98,14 +98,14 @@ CHECK((std::vector< Real > averageSilhouetteWidth(std::vector< BinaryTreeNode > 
 	TEST_EQUAL(result.size(), asw.size());
 	for (UInt i = 0; i < result.size(); ++i)
 	{
-			PRECISION(0.001);
-			TEST_REAL_EQUAL(result[i], asw[i]);
+			TOLERANCE_ABSOLUTE(0.001);
+			TEST_REAL_SIMILAR(result[i], asw[i]);
 	}
 
 }
-RESULT
+END_SECTION
 
-CHECK((std::vector< Real > dunnIndices(std::vector< BinaryTreeNode > &tree, DistanceMatrix< Real > &original, bool tree_from_singlelinkage)))
+START_SECTION((std::vector< Real > dunnIndices(std::vector< BinaryTreeNode > &tree, DistanceMatrix< Real > &original, bool tree_from_singlelinkage)))
 {
 	DistanceMatrix<Real> matrix(6,666);
 	matrix.setValue(1,0,0.5);
@@ -136,20 +136,20 @@ CHECK((std::vector< Real > dunnIndices(std::vector< BinaryTreeNode > &tree, Dist
 	TEST_EQUAL(result.size(), di.size());
 	for (UInt i = 0; i < result.size(); ++i)
 	{
-			PRECISION(0.001);
-			TEST_REAL_EQUAL(result[i], di[i]);
+			TOLERANCE_ABSOLUTE(0.001);
+			TEST_REAL_SIMILAR(result[i], di[i]);
 	}
 	result = ptr->dunnIndices(tree, matrix, true);
 	TEST_EQUAL(result.size(), di.size());
 	for (UInt i = 0; i < result.size(); ++i)
 	{
-			PRECISION(0.001);
-			TEST_REAL_EQUAL(result[i], di[i]);
+			TOLERANCE_ABSOLUTE(0.001);
+			TEST_REAL_SIMILAR(result[i], di[i]);
 	}
 }
-RESULT
+END_SECTION
 
-CHECK((void cut(std::vector< BinaryTreeNode > &tree, std::vector< std::vector< UInt > > &clusters, size_t cluster_quantity)))
+START_SECTION((void cut(std::vector< BinaryTreeNode > &tree, std::vector< std::vector< UInt > > &clusters, size_t cluster_quantity)))
 {
 	DistanceMatrix<Real> matrix(6,666);
 	matrix.setValue(1,0,0.5);
@@ -193,9 +193,9 @@ CHECK((void cut(std::vector< BinaryTreeNode > &tree, std::vector< std::vector< U
 		}
 	}
 }
-RESULT
+END_SECTION
 
-CHECK((std::vector< Real > cohesion(std::vector< std::vector< UInt > > &clusters, DistanceMatrix< Real > &original)))
+START_SECTION((std::vector< Real > cohesion(std::vector< std::vector< UInt > > &clusters, DistanceMatrix< Real > &original)))
 {
 	DistanceMatrix<Real> matrix(6,666);
 	matrix.setValue(1,0,0.5);
@@ -232,9 +232,9 @@ CHECK((std::vector< Real > cohesion(std::vector< std::vector< UInt > > &clusters
 		TEST_EQUAL(cohesions[i], result[i]);
 	}
 }
-RESULT
+END_SECTION
 
-CHECK((Real averagePopulationAberration(size_t cluster_quantity, std::vector< BinaryTreeNode > &tree)))
+START_SECTION((Real averagePopulationAberration(size_t cluster_quantity, std::vector< BinaryTreeNode > &tree)))
 {
 	vector< BinaryTreeNode > tree;
 	tree.push_back(BinaryTreeNode(1,2,0.3));
@@ -244,11 +244,11 @@ CHECK((Real averagePopulationAberration(size_t cluster_quantity, std::vector< Bi
 	tree.push_back(BinaryTreeNode(0,1,0.7));
 
 	Real result = ptr->averagePopulationAberration(3, tree);
-	TEST_REAL_EQUAL(2.0/3.0, result);
+	TEST_REAL_SIMILAR(2.0/3.0, result);
 }
-RESULT
+END_SECTION
 
-CHECK((String newickTree(std::vector< BinaryTreeNode > &tree, bool include_distance)))
+START_SECTION((String newickTree(std::vector< BinaryTreeNode > &tree, bool include_distance)))
 {
 	vector< BinaryTreeNode > tree;
 	tree.push_back(BinaryTreeNode(1,2,0.3));
@@ -262,7 +262,7 @@ CHECK((String newickTree(std::vector< BinaryTreeNode > &tree, bool include_dista
 	result = ptr->newickTree(tree,true);
 	TEST_EQUAL("( ( ( 0:0.5 , ( 1:0.3 , 2:0.3 ):0.5 ):0.6 , ( 3:0.4 , 4:0.4 ):0.6 ):0.7 , 5:0.7 )", result);
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

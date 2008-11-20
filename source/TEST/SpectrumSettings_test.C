@@ -41,131 +41,131 @@ START_TEST(SpectrumSettings, "$Id$")
 
 SpectrumSettings* ptr = 0;
 
-CHECK((SpectrumSettings()))
+START_SECTION((SpectrumSettings()))
 	ptr = new SpectrumSettings();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~SpectrumSettings()))
+START_SECTION((~SpectrumSettings()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(const String& getNativeID() const)
+START_SECTION(const String& getNativeID() const)
 	SpectrumSettings tmp;
 	TEST_STRING_EQUAL(tmp.getNativeID(),"");
-RESULT
+END_SECTION
 
-CHECK(void setNativeID(const String& native_id))
+START_SECTION(void setNativeID(const String& native_id))
 	SpectrumSettings tmp;
 	tmp.setNativeID("nid");
 	TEST_STRING_EQUAL(tmp.getNativeID(),"nid");
-RESULT
+END_SECTION
 
-CHECK((AcquisitionInfo& getAcquisitionInfo()))
+START_SECTION((AcquisitionInfo& getAcquisitionInfo()))
 	SpectrumSettings tmp;
 	TEST_EQUAL(tmp.getAcquisitionInfo()==AcquisitionInfo(), true);
-RESULT
+END_SECTION
 
-CHECK((void setAcquisitionInfo(const AcquisitionInfo& acquisition_info)))
+START_SECTION((void setAcquisitionInfo(const AcquisitionInfo& acquisition_info)))
 	SpectrumSettings tmp;
 	AcquisitionInfo ai;
 	ai.setMethodOfCombination("test");
 	tmp.setAcquisitionInfo(ai);
 	TEST_EQUAL(tmp.getAcquisitionInfo()==AcquisitionInfo(), false);
-RESULT
+END_SECTION
 
-CHECK((const AcquisitionInfo& getAcquisitionInfo() const))
+START_SECTION((const AcquisitionInfo& getAcquisitionInfo() const))
 	SpectrumSettings tmp;
 	tmp.getAcquisitionInfo().setMethodOfCombination("test");
 	TEST_EQUAL(tmp.getAcquisitionInfo()==AcquisitionInfo(), false);
-RESULT
+END_SECTION
 
-CHECK((SourceFile& getSourceFile()))
+START_SECTION((SourceFile& getSourceFile()))
 	SpectrumSettings tmp;
 	TEST_EQUAL(tmp.getSourceFile()==SourceFile(), true);
-RESULT
+END_SECTION
 
-CHECK((void setSourceFile(const SourceFile& source_file)))
+START_SECTION((void setSourceFile(const SourceFile& source_file)))
 	SpectrumSettings tmp;
 	SourceFile sf;
 	sf.setNameOfFile("test");
 	tmp.setSourceFile(sf);
 	TEST_EQUAL(tmp.getSourceFile()==SourceFile(), false);
-RESULT
+END_SECTION
 
-CHECK((const SourceFile& getSourceFile() const))
+START_SECTION((const SourceFile& getSourceFile() const))
 	SpectrumSettings tmp;
 	tmp.getSourceFile().setNameOfFile("test");
 	TEST_EQUAL(tmp.getSourceFile()==SourceFile(), false);
-RESULT
+END_SECTION
 
-CHECK((const InstrumentSettings& getInstrumentSettings() const))
+START_SECTION((const InstrumentSettings& getInstrumentSettings() const))
 	SpectrumSettings tmp;
 	TEST_EQUAL(tmp.getInstrumentSettings()==InstrumentSettings(), true);	  
-RESULT
+END_SECTION
 
-CHECK((void setInstrumentSettings(const InstrumentSettings& instrument_settings)))
+START_SECTION((void setInstrumentSettings(const InstrumentSettings& instrument_settings)))
 	SpectrumSettings tmp;
 	InstrumentSettings is;
 	is.getScanWindows().resize(1);
 	tmp.setInstrumentSettings(is);
 	TEST_EQUAL(tmp.getInstrumentSettings()==InstrumentSettings(), false);
-RESULT
+END_SECTION
 
-CHECK((InstrumentSettings& getInstrumentSettings()))
+START_SECTION((InstrumentSettings& getInstrumentSettings()))
 	SpectrumSettings tmp;
 	tmp.getInstrumentSettings().getScanWindows().resize(1);
 	TEST_EQUAL(tmp.getInstrumentSettings()==InstrumentSettings(), false);	
-RESULT
+END_SECTION
 
-CHECK((const Precursor& getPrecursor() const))
+START_SECTION((const Precursor& getPrecursor() const))
 	SpectrumSettings tmp;
 	TEST_EQUAL(tmp.getPrecursor()==Precursor(), true);	  
-RESULT
+END_SECTION
 
-CHECK((void setPrecursor(const Precursor& precursor)))
+START_SECTION((void setPrecursor(const Precursor& precursor)))
 	SpectrumSettings tmp;
 	Precursor is;
 	is.setActivationEnergy(47.11);
 	tmp.setPrecursor(is);
 	TEST_EQUAL(tmp.getPrecursor()==Precursor(), false);
-RESULT
+END_SECTION
 
-CHECK((Precursor& getPrecursor()))
+START_SECTION((Precursor& getPrecursor()))
 	SpectrumSettings tmp;
 	tmp.getPrecursor().setActivationEnergy(47.11);
 	TEST_EQUAL(tmp.getPrecursor()==Precursor(), false);	
-RESULT
+END_SECTION
 
-CHECK((SpectrumType getType() const))
+START_SECTION((SpectrumType getType() const))
 	SpectrumSettings tmp;
 	TEST_EQUAL(tmp.getType(), SpectrumSettings::UNKNOWN);	  
-RESULT
+END_SECTION
 
-CHECK((void setType(SpectrumType type)))
+START_SECTION((void setType(SpectrumType type)))
 	SpectrumSettings tmp;
 	tmp.setType(SpectrumSettings::PEAKS);
 	TEST_EQUAL(tmp.getType(), SpectrumSettings::PEAKS);
-RESULT
+END_SECTION
 
-CHECK((const String& getComment() const))
+START_SECTION((const String& getComment() const))
 	SpectrumSettings tmp;
 	TEST_EQUAL(tmp.getComment(), "");
-RESULT
+END_SECTION
 
-CHECK((void setComment(const String& comment)))
+START_SECTION((void setComment(const String& comment)))
 	SpectrumSettings tmp;
 	tmp.setComment("bla");
 	TEST_EQUAL(tmp.getComment(), "bla");
-RESULT
+END_SECTION
 
-CHECK((const std::vector<PeptideIdentification>& getPeptideIdentifications() const))
+START_SECTION((const std::vector<PeptideIdentification>& getPeptideIdentifications() const))
 	SpectrumSettings tmp;
 	vector<PeptideIdentification> vec(tmp.getPeptideIdentifications());
 	TEST_EQUAL(vec.size(),0);
-RESULT
+END_SECTION
 
-CHECK((void setPeptideIdentifications(const std::vector<PeptideIdentification>& identifications)))
+START_SECTION((void setPeptideIdentifications(const std::vector<PeptideIdentification>& identifications)))
 	SpectrumSettings tmp;
 	vector<PeptideIdentification> vec;
 	
@@ -176,17 +176,17 @@ CHECK((void setPeptideIdentifications(const std::vector<PeptideIdentification>& 
 	vec.push_back(dbs);
 	tmp.setPeptideIdentifications(vec);
 	TEST_EQUAL(tmp.getPeptideIdentifications().size(),1);
-RESULT
+END_SECTION
 
-CHECK((std::vector<PeptideIdentification>& getPeptideIdentifications()))
+START_SECTION((std::vector<PeptideIdentification>& getPeptideIdentifications()))
 	SpectrumSettings tmp;
 	vector<PeptideIdentification> vec;
 	
 	tmp.getPeptideIdentifications().resize(1);
 	TEST_EQUAL(tmp.getPeptideIdentifications().size(),1);
-RESULT
+END_SECTION
 
-CHECK((SpectrumSettings& operator= (const SpectrumSettings& source)))
+START_SECTION((SpectrumSettings& operator= (const SpectrumSettings& source)))
   SpectrumSettings tmp;
 	tmp.getAcquisitionInfo().setMethodOfCombination("test");
 	tmp.getInstrumentSettings().getScanWindows().resize(1);
@@ -204,9 +204,9 @@ CHECK((SpectrumSettings& operator= (const SpectrumSettings& source)))
 	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);
 	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);  
 	TEST_STRING_EQUAL(tmp2.getNativeID(),"nid");
-RESULT
+END_SECTION
 
-CHECK((SpectrumSettings(const SpectrumSettings& source)))
+START_SECTION((SpectrumSettings(const SpectrumSettings& source)))
   SpectrumSettings tmp;
 	tmp.getAcquisitionInfo().setMethodOfCombination("test");
 	tmp.getInstrumentSettings().getScanWindows().resize(1);
@@ -235,9 +235,9 @@ CHECK((SpectrumSettings(const SpectrumSettings& source)))
 	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 0);	
 	TEST_STRING_EQUAL(tmp2.getNativeID(),"");
 
-RESULT
+END_SECTION
 
-CHECK((bool operator== (const SpectrumSettings& rhs) const))
+START_SECTION((bool operator== (const SpectrumSettings& rhs) const))
   SpectrumSettings edit, empty;
   
   TEST_EQUAL(edit==empty, true);
@@ -268,9 +268,9 @@ CHECK((bool operator== (const SpectrumSettings& rhs) const))
 	edit = empty;
 	edit.getPeptideIdentifications().resize(1);
 	TEST_EQUAL(edit==empty, false);
-RESULT
+END_SECTION
 
-CHECK((bool operator!= (const SpectrumSettings& rhs) const))
+START_SECTION((bool operator!= (const SpectrumSettings& rhs) const))
   SpectrumSettings edit, empty;
   
   TEST_EQUAL(edit!=empty, false);
@@ -301,7 +301,7 @@ CHECK((bool operator!= (const SpectrumSettings& rhs) const))
 	edit = empty;
 	edit.getPeptideIdentifications().resize(1);
 	TEST_EQUAL(edit!=empty, true);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

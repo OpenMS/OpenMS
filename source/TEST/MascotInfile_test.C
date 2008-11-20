@@ -55,133 +55,133 @@ for (UInt i=1;i<10;i+=1)
 }
 
 MascotInfile* ptr = 0;
-CHECK((MascotInfile()))
+START_SECTION((MascotInfile()))
 	ptr = new MascotInfile();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~MascotInfile()))
+START_SECTION((virtual ~MascotInfile()))
 	delete ptr;
-RESULT
+END_SECTION
 
 MascotInfile file;
 file.setCharges(charges);
 
-CHECK((void setBoundary(const String &boundary)))
+START_SECTION((void setBoundary(const String &boundary)))
 	file.setBoundary("ABCDEFGHIJKMNOPQRSTUVWXYZ");
 	TEST_EQUAL(file.getBoundary() , "ABCDEFGHIJKMNOPQRSTUVWXYZ")
-RESULT
+END_SECTION
 
-CHECK((const String& getBoundary()))
+START_SECTION((const String& getBoundary()))
 	TEST_EQUAL(file.getBoundary() , "ABCDEFGHIJKMNOPQRSTUVWXYZ")
-RESULT
+END_SECTION
 
-CHECK((void store(const String &filename, const PeakSpectrum& spec, DoubleReal mz, DoubleReal retention_time, String search_title)))
+START_SECTION((void store(const String &filename, const PeakSpectrum& spec, DoubleReal mz, DoubleReal retention_time, String search_title)))
 
 	// here a fixed name has to be used as it has to be in the template
 	file.store("MascotInfile_test.txt", spec, 1998.0f, 25.379, "TestTitle");
-	TEST_FILE("MascotInfile_test.txt", "data/MascotInfile_test_template1.txt");
+	TEST_FILE_EQUAL("MascotInfile_test.txt", "data/MascotInfile_test_template1.txt");
 	remove("MascotInfile_test.txt");
-RESULT
+END_SECTION
 
-CHECK((void setDB(const String &db)))
+START_SECTION((void setDB(const String &db)))
 	file.setDB("DB_TEST");
 	TEST_EQUAL(file.getDB() , "DB_TEST")
-RESULT
+END_SECTION
 
-CHECK((const String& getDB()))
+START_SECTION((const String& getDB()))
 	TEST_EQUAL(file.getDB() , "DB_TEST")
-RESULT
+END_SECTION
 
-CHECK((void setSearchType(const String &search_type)))
+START_SECTION((void setSearchType(const String &search_type)))
 	file.setSearchType("SearchType_TEST");
 	TEST_EQUAL(file.getSearchType() , "SearchType_TEST")
-RESULT
+END_SECTION
 
-CHECK((const String& getSearchType()))
+START_SECTION((const String& getSearchType()))
 	TEST_EQUAL(file.getSearchType() , "SearchType_TEST")
-RESULT
+END_SECTION
 
-CHECK((void setHits(const String &hits)))
+START_SECTION((void setHits(const String &hits)))
 	file.setHits("Hits_TEST");
 	TEST_EQUAL(file.getHits() , "Hits_TEST")
-RESULT
+END_SECTION
 
-CHECK((const String& getHits()))
+START_SECTION((const String& getHits()))
 	TEST_EQUAL(file.getHits() , "Hits_TEST")
-RESULT
+END_SECTION
 
-CHECK((void setCleavage(const String &cleavage)))
+START_SECTION((void setCleavage(const String &cleavage)))
 	file.setCleavage("Cleavage_TEST");
 	TEST_EQUAL(file.getCleavage() , "Cleavage_TEST")
-RESULT
+END_SECTION
 
-CHECK((const String& getCleavage()))
+START_SECTION((const String& getCleavage()))
 	TEST_EQUAL(file.getCleavage() , "Cleavage_TEST")
-RESULT
+END_SECTION
 
-CHECK((void setMassType(const String &mass_type)))
+START_SECTION((void setMassType(const String &mass_type)))
 	file.setMassType("MassType_TEST");
 	TEST_EQUAL(file.getMassType() , "MassType_TEST")
-RESULT
+END_SECTION
 
-CHECK((const String& getMassType()))
+START_SECTION((const String& getMassType()))
 	TEST_EQUAL(file.getMassType() , "MassType_TEST")
-RESULT
+END_SECTION
 
-CHECK((void setInstrument(const String &instrument)))
+START_SECTION((void setInstrument(const String &instrument)))
 	file.setInstrument("Instrument_TEST");
 	TEST_EQUAL(file.getInstrument() , "Instrument_TEST")
-RESULT
+END_SECTION
 
-CHECK((const String& getInstrument()))
+START_SECTION((const String& getInstrument()))
 	TEST_EQUAL(file.getInstrument() , "Instrument_TEST")
-RESULT
+END_SECTION
 
-CHECK((void setMissedCleavages(UInt missed_cleavages)))
+START_SECTION((void setMissedCleavages(UInt missed_cleavages)))
 	file.setMissedCleavages(4711);
 	TEST_EQUAL(file.getMissedCleavages() , 4711)
-RESULT
+END_SECTION
 
-CHECK((UInt getMissedCleavages()))
+START_SECTION((UInt getMissedCleavages()))
 	TEST_EQUAL(file.getMissedCleavages() , 4711)
-RESULT
+END_SECTION
 
-CHECK((void setPrecursorMassTolerance(Real precursor_mass_tolerance)))
+START_SECTION((void setPrecursorMassTolerance(Real precursor_mass_tolerance)))
 	file.setPrecursorMassTolerance(4711.1f);
-	TEST_REAL_EQUAL(file.getPrecursorMassTolerance() , 4711.1f)
-RESULT
+	TEST_REAL_SIMILAR(file.getPrecursorMassTolerance() , 4711.1f)
+END_SECTION
 
-CHECK((Real getPrecursorMassTolerance()))
-	TEST_REAL_EQUAL(file.getPrecursorMassTolerance() , 4711.1f)
-RESULT
+START_SECTION((Real getPrecursorMassTolerance()))
+	TEST_REAL_SIMILAR(file.getPrecursorMassTolerance() , 4711.1f)
+END_SECTION
 
-CHECK((void setPeakMassTolerance(Real ion_mass_tolerance)))
+START_SECTION((void setPeakMassTolerance(Real ion_mass_tolerance)))
 	file.setPeakMassTolerance(4711.2f);
-	TEST_REAL_EQUAL(file.getPeakMassTolerance() , 4711.2f)
-RESULT
+	TEST_REAL_SIMILAR(file.getPeakMassTolerance() , 4711.2f)
+END_SECTION
 
-CHECK((Real getPeakMassTolerance()))
-	TEST_REAL_EQUAL(file.getPeakMassTolerance() , 4711.2f)
-RESULT
+START_SECTION((Real getPeakMassTolerance()))
+	TEST_REAL_SIMILAR(file.getPeakMassTolerance() , 4711.2f)
+END_SECTION
 
-CHECK((void setTaxonomy(const String &taxonomy)))
+START_SECTION((void setTaxonomy(const String &taxonomy)))
 	file.setTaxonomy("Taxonomy_TEST");
 	TEST_EQUAL(file.getTaxonomy() , "Taxonomy_TEST")
-RESULT
+END_SECTION
 
-CHECK((const String& getTaxonomy()))
+START_SECTION((const String& getTaxonomy()))
 	TEST_EQUAL(file.getTaxonomy() , "Taxonomy_TEST")
-RESULT
+END_SECTION
 
-CHECK((void setFormVersion(const String &form_version)))
+START_SECTION((void setFormVersion(const String &form_version)))
 	file.setFormVersion("FormVersion_TEST");
 	TEST_EQUAL(file.getFormVersion() , "FormVersion_TEST")
-RESULT
+END_SECTION
 
-CHECK((const String& getFormVersion()))
+START_SECTION((const String& getFormVersion()))
 	TEST_EQUAL(file.getFormVersion() , "FormVersion_TEST")
-RESULT
+END_SECTION
 
 vector<String> mods;
 mods.push_back("Modifiactions_TEST_1");
@@ -190,43 +190,43 @@ vector<String> vmods;
 vmods.push_back("Variable_Modifiactions_TEST_1");
 vmods.push_back("Variable_Modifiactions_TEST_2");
 
-CHECK((void setModifications(const std::vector<String>& mods)))
+START_SECTION((void setModifications(const std::vector<String>& mods)))
 	file.setModifications(mods);
 	TEST_EQUAL(file.getModifications() == mods, true)
-RESULT
+END_SECTION
 
-CHECK((const std::vector<String>& getModifications()))
+START_SECTION((const std::vector<String>& getModifications()))
 	TEST_EQUAL(file.getModifications() == mods, true)
-RESULT
+END_SECTION
 
-CHECK((void setVariableModifications(const std::vector<String>& mods)))
+START_SECTION((void setVariableModifications(const std::vector<String>& mods)))
 	file.setVariableModifications(vmods);
 	TEST_EQUAL(file.getVariableModifications() == vmods, true)
-RESULT
+END_SECTION
 
-CHECK((const std::vector<String>& getVariableModifications()))
+START_SECTION((const std::vector<String>& getVariableModifications()))
 	TEST_EQUAL(file.getVariableModifications() == vmods, true)
-RESULT
+END_SECTION
 
-CHECK([EXTRA] void store(const std::string& filename, const PeakSpectrum& spec, double mz, double retention_time, std::string search_title))
+START_SECTION([EXTRA] void store(const std::string& filename, const PeakSpectrum& spec, double mz, double retention_time, std::string search_title))
 	// here a fixed name has to be used as it has to be in the tamplate
 	file.store("MascotInfile_test.txt", spec, 1998.0f, 25.379, "TestTitle");
-	TEST_FILE("MascotInfile_test.txt", "data/MascotInfile_test_template2.txt");
+	TEST_FILE_EQUAL("MascotInfile_test.txt", "data/MascotInfile_test_template2.txt");
 	remove("MascotInfile_test.txt");
-RESULT
+END_SECTION
 
-CHECK((void setCharges(std::vector<Int>& charges)))
+START_SECTION((void setCharges(std::vector<Int>& charges)))
 	charges.push_back(3);
 	charges.push_back(1);
 	file.setCharges(charges);
 	TEST_EQUAL(file.getCharges(), "1+, 2+ and 3+")
-RESULT
+END_SECTION
 
-CHECK((const String& getCharges()))
+START_SECTION((const String& getCharges()))
 	TEST_EQUAL(file.getCharges(), "1+, 2+ and 3+")
-RESULT
+END_SECTION
 
-CHECK((void store(const String &filename, const MSExperiment<> &experiment, String search_title)))
+START_SECTION((void store(const String &filename, const MSExperiment<> &experiment, String search_title)))
 	MSExperiment<> exp;
 	MSExperiment<>::SpectrumType spec;
 	MSExperiment<>::PeakType peak;
@@ -279,40 +279,40 @@ CHECK((void store(const String &filename, const MSExperiment<> &experiment, Stri
 	exp.push_back(spec);	
 
 	file.store("MascotInfile_test.txt", exp, "Experiment");
-	TEST_FILE("MascotInfile_test.txt", "data/MascotInfile_test_template3.txt");
+	TEST_FILE_EQUAL("MascotInfile_test.txt", "data/MascotInfile_test_template3.txt");
 	remove("MascotInfile_test.txt");
-RESULT
+END_SECTION
 
-CHECK(template <typename MapType> void load(const String &filename, MapType &exp))
+START_SECTION(template <typename MapType> void load(const String &filename, MapType &exp))
 	MascotInfile infile;
 	MSExperiment<> experiment;
 	MSExperiment<>::SpectrumType spectrum;
 	
 	infile.load("data/MascotInfile_test.mascot_in", experiment);
 	spectrum = experiment[0];
-	TEST_REAL_EQUAL(spectrum.getRT(), 25.379)
-	TEST_REAL_EQUAL(spectrum.getPrecursorPeak().getPosition()[0], 1998) 
+	TEST_REAL_SIMILAR(spectrum.getRT(), 25.379)
+	TEST_REAL_SIMILAR(spectrum.getPrecursorPeak().getPosition()[0], 1998) 
 	TEST_EQUAL(spectrum.getMetaValue("TITLE"), "Testtitle");
 
-	TEST_REAL_EQUAL(spectrum[0].getIntensity(), 1)
-	TEST_REAL_EQUAL(spectrum[0].getMZ(), 1)
-	TEST_REAL_EQUAL(spectrum[1].getIntensity(), 4)
-	TEST_REAL_EQUAL(spectrum[1].getMZ(), 2)
-	TEST_REAL_EQUAL(spectrum[2].getIntensity(), 9)
-	TEST_REAL_EQUAL(spectrum[2].getMZ(), 3)
-	TEST_REAL_EQUAL(spectrum[3].getIntensity(), 16)
-	TEST_REAL_EQUAL(spectrum[3].getMZ(), 4)
-	TEST_REAL_EQUAL(spectrum[4].getIntensity(), 25)
-	TEST_REAL_EQUAL(spectrum[4].getMZ(), 5)
-	TEST_REAL_EQUAL(spectrum[5].getIntensity(), 36)
-	TEST_REAL_EQUAL(spectrum[5].getMZ(), 6)
-	TEST_REAL_EQUAL(spectrum[6].getIntensity(), 49)
-	TEST_REAL_EQUAL(spectrum[6].getMZ(), 7)
-	TEST_REAL_EQUAL(spectrum[7].getIntensity(), 64)
-	TEST_REAL_EQUAL(spectrum[7].getMZ(), 8)
-	TEST_REAL_EQUAL(spectrum[8].getIntensity(), 81)
-	TEST_REAL_EQUAL(spectrum[8].getMZ(), 9)
-RESULT
+	TEST_REAL_SIMILAR(spectrum[0].getIntensity(), 1)
+	TEST_REAL_SIMILAR(spectrum[0].getMZ(), 1)
+	TEST_REAL_SIMILAR(spectrum[1].getIntensity(), 4)
+	TEST_REAL_SIMILAR(spectrum[1].getMZ(), 2)
+	TEST_REAL_SIMILAR(spectrum[2].getIntensity(), 9)
+	TEST_REAL_SIMILAR(spectrum[2].getMZ(), 3)
+	TEST_REAL_SIMILAR(spectrum[3].getIntensity(), 16)
+	TEST_REAL_SIMILAR(spectrum[3].getMZ(), 4)
+	TEST_REAL_SIMILAR(spectrum[4].getIntensity(), 25)
+	TEST_REAL_SIMILAR(spectrum[4].getMZ(), 5)
+	TEST_REAL_SIMILAR(spectrum[5].getIntensity(), 36)
+	TEST_REAL_SIMILAR(spectrum[5].getMZ(), 6)
+	TEST_REAL_SIMILAR(spectrum[6].getIntensity(), 49)
+	TEST_REAL_SIMILAR(spectrum[6].getMZ(), 7)
+	TEST_REAL_SIMILAR(spectrum[7].getIntensity(), 64)
+	TEST_REAL_SIMILAR(spectrum[7].getMZ(), 8)
+	TEST_REAL_SIMILAR(spectrum[8].getIntensity(), 81)
+	TEST_REAL_SIMILAR(spectrum[8].getMZ(), 9)
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

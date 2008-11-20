@@ -39,32 +39,32 @@ START_TEST(DPeak<D>, "$Id$")
 /////////////////////////////////////////////////////////////
 
 DPeak<1>::Type* ptr1 = 0;
-CHECK(DPeak())
+START_SECTION(DPeak())
 {
 	ptr1 = new DPeak<1>::Type();
 	TEST_NOT_EQUAL(ptr1, 0);
 }
-RESULT
+END_SECTION
 
-CHECK(~DPeak())
+START_SECTION(~DPeak())
 {
 	delete ptr1;
 }
-RESULT
+END_SECTION
 
 DPeak<2>::Type* ptr2 = 0;
-CHECK([EXTRA]DPeak())
+START_SECTION([EXTRA]DPeak())
 {
 	ptr2 = new DPeak<2>::Type();
 	TEST_NOT_EQUAL(ptr2, 0);
 }
-RESULT
+END_SECTION
 
-CHECK([EXTRA]~DPeak())
+START_SECTION([EXTRA]~DPeak())
 {
 	delete ptr2;
 }
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

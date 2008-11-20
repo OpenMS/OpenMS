@@ -46,16 +46,16 @@ START_TEST(SequestInfile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SequestInfile* ptr = 0;
-CHECK(SequestInfile())
+START_SECTION(SequestInfile())
 	ptr = new SequestInfile();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~SequestInfile())
+START_SECTION(~SequestInfile())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((SequestInfile& operator=(const SequestInfile &sequest_infile)))
+START_SECTION((SequestInfile& operator=(const SequestInfile &sequest_infile)))
 	SequestInfile sequest_infile1;
 	sequest_infile1.setDatabase("dummy");
 	SequestInfile sequest_infile2 = sequest_infile1;
@@ -65,9 +65,9 @@ CHECK((SequestInfile& operator=(const SequestInfile &sequest_infile)))
 	TEST_EQUAL(( sequest_infile2 == sequest_infile3 ), true)
 	SequestInfile sequest_infile4;
 	TEST_EQUAL(( sequest_infile1 == sequest_infile4 ), true)
-RESULT
+END_SECTION
 
-CHECK((SequestInfile(const SequestInfile &sequest_infile)))
+START_SECTION((SequestInfile(const SequestInfile &sequest_infile)))
 	SequestInfile sequest_infile1;
 	sequest_infile1.setDatabase("dummy");
 	SequestInfile sequest_infile2(sequest_infile1);
@@ -77,15 +77,15 @@ CHECK((SequestInfile(const SequestInfile &sequest_infile)))
 	TEST_EQUAL(( sequest_infile2 == sequest_infile3 ), true)
 	SequestInfile sequest_infile4;
 	TEST_EQUAL(( sequest_infile1 == sequest_infile4 ), true)
-RESULT
+END_SECTION
 
-CHECK((bool operator==(const SequestInfile &sequest_infile) const))
+START_SECTION((bool operator==(const SequestInfile &sequest_infile) const))
 	SequestInfile sequest_infile1;
 	sequest_infile1.setDatabase("dummy");
 	SequestInfile sequest_infile2;
 	sequest_infile2.setDatabase("dummy");
 	TEST_EQUAL(( sequest_infile1 == sequest_infile2 ), true)
-RESULT
+END_SECTION
 
 SequestInfile file;
 
@@ -109,11 +109,11 @@ ss << "14.  Trypsin                 1     KRLNH         -" << endl;
 ss << "15.  Trypsin/Chymo           1     KRLFWYN       -" << endl;
 ss << "16.  Trypsin_Strict          1     KR            -" << endl;
 
-CHECK((const String getEnzymeInfoAsString() const))
+START_SECTION((const String getEnzymeInfoAsString() const))
 	TEST_STRING_EQUAL(file.getEnzymeInfoAsString(), ss.str())
-RESULT
+END_SECTION
 
-CHECK(void addEnzymeInfo(std::vector< String >& enzyme_info))
+START_SECTION(void addEnzymeInfo(std::vector< String >& enzyme_info))
 	std::vector< String > e_info;
 	e_info.push_back("Z_TestEnzyme");
 	e_info.push_back("1");
@@ -123,9 +123,9 @@ CHECK(void addEnzymeInfo(std::vector< String >& enzyme_info))
 	e_info.clear();
 	ss << "17.  Z_TestEnzyme            1     RMW           -" << endl;
 	TEST_STRING_EQUAL(file.getEnzymeInfoAsString(), ss.str())
-RESULT
+END_SECTION
 
-CHECK(void handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic))
+START_SECTION(void handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic))
 
 	// test exceptions
 	String modification_line = "Phosphorylation";
@@ -249,9 +249,9 @@ CHECK(void handlePTMs(const String& modification_line, const String& modificatio
 			}
 		}
 	}
-RESULT
+END_SECTION
 
-CHECK((const std::map< String, std::vector< String > >& getModifications() const))
+START_SECTION((const std::map< String, std::vector< String > >& getModifications() const))
 	String modification_line = "10.3+,KRLNH,fix:+16,C:16-,cterm,opt:-16,nterm,fix:17-,cterm_prot:-17,nterm_prot,fix";
 // 	"10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm,opt:-16,nterm,fix:17-,cterm_prot:-17,nterm_prot,fix";
 
@@ -329,250 +329,250 @@ CHECK((const std::map< String, std::vector< String > >& getModifications() const
 			}
 		}
 	}
-RESULT
+END_SECTION
 
 
-CHECK(void setDatabase(const String& database))
+START_SECTION(void setDatabase(const String& database))
 	file.setDatabase("\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta");
 	TEST_STRING_EQUAL(file.getDatabase() , "\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta")
-RESULT
+END_SECTION
 
-CHECK((const String& getDatabase() const))
+START_SECTION((const String& getDatabase() const))
 	TEST_STRING_EQUAL(file.getDatabase() , "\\\\bude\\langwisc\\sequest_test\\Analysis.mzXML.fasta")
-RESULT
+END_SECTION
 
-CHECK(void setNeutralLossesForIons(const String& neutral_losses_for_ions))
+START_SECTION(void setNeutralLossesForIons(const String& neutral_losses_for_ions))
 	file.setNeutralLossesForIons("0 1 1");
 	TEST_STRING_EQUAL(file.getNeutralLossesForIons() , "0 1 1")
-RESULT
+END_SECTION
 
-CHECK((const String& getNeutralLossesForIons() const))
+START_SECTION((const String& getNeutralLossesForIons() const))
 	TEST_STRING_EQUAL(file.getNeutralLossesForIons() , "0 1 1")
-RESULT
+END_SECTION
 
-CHECK(void setIonSeriesWeights(const String& ion_series_weights))
+START_SECTION(void setIonSeriesWeights(const String& ion_series_weights))
 	file.setIonSeriesWeights("0 1.0 0 0 0 0 0 1.0 0");
 	TEST_STRING_EQUAL(file.getIonSeriesWeights() , "0 1.0 0 0 0 0 0 1.0 0")
-RESULT
+END_SECTION
 
-CHECK((const String& getIonSeriesWeights() const))
+START_SECTION((const String& getIonSeriesWeights() const))
 	TEST_STRING_EQUAL(file.getIonSeriesWeights() , "0 1.0 0 0 0 0 0 1.0 0")
-RESULT
+END_SECTION
 
-CHECK(void setPartialSequence(const String& partial_sequence))
+START_SECTION(void setPartialSequence(const String& partial_sequence))
 	file.setPartialSequence("SEQVEST TEST");
 	TEST_STRING_EQUAL(file.getPartialSequence() , "SEQVEST TEST")
-RESULT
+END_SECTION
 
-CHECK((const String& getPartialSequence() const))
+START_SECTION((const String& getPartialSequence() const))
 	TEST_STRING_EQUAL(file.getPartialSequence() , "SEQVEST TEST")
-RESULT
+END_SECTION
 
-CHECK(void setSequenceHeaderFilter(const String& sequence_header_filter))
+START_SECTION(void setSequenceHeaderFilter(const String& sequence_header_filter))
 	file.setSequenceHeaderFilter("homo~sapiens !mus musculus");
 	TEST_STRING_EQUAL(file.getSequenceHeaderFilter() , "homo~sapiens !mus musculus")
-RESULT
+END_SECTION
 
-CHECK((const String& getSequenceHeaderFilter() const))
+START_SECTION((const String& getSequenceHeaderFilter() const))
 	TEST_STRING_EQUAL(file.getSequenceHeaderFilter() , "homo~sapiens !mus musculus")
-RESULT
+END_SECTION
 
 
-CHECK(void setPrecursorMassTolerance(Real precursor_mass_tolerance))
+START_SECTION(void setPrecursorMassTolerance(Real precursor_mass_tolerance))
 	file.setPrecursorMassTolerance(1.3);
-	TEST_REAL_EQUAL(file.getPrecursorMassTolerance() , 1.3)
-RESULT
+	TEST_REAL_SIMILAR(file.getPrecursorMassTolerance() , 1.3)
+END_SECTION
 
-CHECK((Real getPrecursorMassTolerance() const))
-	TEST_REAL_EQUAL(file.getPrecursorMassTolerance() , 1.3)
-RESULT
+START_SECTION((Real getPrecursorMassTolerance() const))
+	TEST_REAL_SIMILAR(file.getPrecursorMassTolerance() , 1.3)
+END_SECTION
 
-CHECK(void setPeakMassTolerance(Real peak_mass_tolerance))
+START_SECTION(void setPeakMassTolerance(Real peak_mass_tolerance))
 	file.setPeakMassTolerance(0.3);
-	TEST_REAL_EQUAL(file.getPeakMassTolerance() , 0.3)
-RESULT
+	TEST_REAL_SIMILAR(file.getPeakMassTolerance() , 0.3)
+END_SECTION
 
-CHECK((Real getPeakMassTolerance() const))
-	TEST_REAL_EQUAL(file.getPeakMassTolerance() , 0.3)
-RESULT
+START_SECTION((Real getPeakMassTolerance() const))
+	TEST_REAL_SIMILAR(file.getPeakMassTolerance() , 0.3)
+END_SECTION
 
-CHECK(void setMatchPeakTolerance(Real match_peak_tolerance))
+START_SECTION(void setMatchPeakTolerance(Real match_peak_tolerance))
 	file.setMatchPeakTolerance(1.2);
-	TEST_REAL_EQUAL(file.getMatchPeakTolerance() , 1.2)
-RESULT
+	TEST_REAL_SIMILAR(file.getMatchPeakTolerance() , 1.2)
+END_SECTION
 
-CHECK((Real getMatchPeakTolerance() const))
-	TEST_REAL_EQUAL(file.getMatchPeakTolerance() , 1.2)
-RESULT
+START_SECTION((Real getMatchPeakTolerance() const))
+	TEST_REAL_SIMILAR(file.getMatchPeakTolerance() , 1.2)
+END_SECTION
 
-CHECK(void setIonCutoffPercentage(Real ion_cutoff_percentage))
+START_SECTION(void setIonCutoffPercentage(Real ion_cutoff_percentage))
 	file.setIonCutoffPercentage(0.3);
-	TEST_REAL_EQUAL(file.getIonCutoffPercentage() , 0.3)
-RESULT
+	TEST_REAL_SIMILAR(file.getIonCutoffPercentage() , 0.3)
+END_SECTION
 
-CHECK((Real getIonCutoffPercentage() const))
-	TEST_REAL_EQUAL(file.getIonCutoffPercentage() , 0.3)
-RESULT
+START_SECTION((Real getIonCutoffPercentage() const))
+	TEST_REAL_SIMILAR(file.getIonCutoffPercentage() , 0.3)
+END_SECTION
 
-CHECK(void setProteinMassFilter(const String& protein_mass_filter))
+START_SECTION(void setProteinMassFilter(const String& protein_mass_filter))
 	file.setProteinMassFilter("30.2 0");
 	TEST_STRING_EQUAL(file.getProteinMassFilter() , "30.2 0")
-RESULT
+END_SECTION
 
-CHECK((const String& getProteinMassFilter() const))
+START_SECTION((const String& getProteinMassFilter() const))
 	TEST_STRING_EQUAL(file.getProteinMassFilter() , "30.2 0")
-RESULT
+END_SECTION
 
-CHECK(void setPeptideMassUnit(UInt peptide_mass_unit))
+START_SECTION(void setPeptideMassUnit(UInt peptide_mass_unit))
 	file.setPeptideMassUnit(0);
 	TEST_EQUAL(file.getPeptideMassUnit() , 0)
-RESULT
+END_SECTION
 
-CHECK((UInt getPeptideMassUnit() const))
+START_SECTION((UInt getPeptideMassUnit() const))
 	TEST_EQUAL(file.getPeptideMassUnit() , 0)
-RESULT
+END_SECTION
 
-CHECK(void setOutputLines(UInt output_lines))
+START_SECTION(void setOutputLines(UInt output_lines))
 	file.setOutputLines(10);
 	TEST_EQUAL(file.getOutputLines() , 10)
-RESULT
+END_SECTION
 
-CHECK((UInt getOutputLines() const))
+START_SECTION((UInt getOutputLines() const))
 	TEST_EQUAL(file.getOutputLines() , 10)
-RESULT
+END_SECTION
 
-CHECK(UInt setEnzyme(String enzyme_name))
+START_SECTION(UInt setEnzyme(String enzyme_name))
 	TEST_EQUAL(file.setEnzyme("i_dont_exist_enzyme"), 18)
 	TEST_EQUAL(file.setEnzyme("Trypsin"), 0)
 	TEST_EQUAL(file.getEnzymeNumber() , 14)
-RESULT
+END_SECTION
 
-CHECK((String getEnzymeName() const))
+START_SECTION((String getEnzymeName() const))
 	TEST_STRING_EQUAL(file.getEnzymeName(), "Trypsin")
-RESULT
+END_SECTION
 
-CHECK((UInt getEnzymeNumber() const))
+START_SECTION((UInt getEnzymeNumber() const))
 	TEST_EQUAL(file.getEnzymeNumber() , 14)
-RESULT
+END_SECTION
 
-CHECK(void setMaxAAPerModPerPeptide(UInt max_aa_per_mod_per_peptide))
+START_SECTION(void setMaxAAPerModPerPeptide(UInt max_aa_per_mod_per_peptide))
 	file.setMaxAAPerModPerPeptide(4);
 	TEST_EQUAL(file.getMaxAAPerModPerPeptide() , 4)
-RESULT
+END_SECTION
 
-CHECK((UInt getMaxAAPerModPerPeptide() const))
+START_SECTION((UInt getMaxAAPerModPerPeptide() const))
 	TEST_EQUAL(file.getMaxAAPerModPerPeptide() , 4)
-RESULT
+END_SECTION
 
-CHECK(void setMaxModsPerPeptide(UInt max_mods_per_peptide))
+START_SECTION(void setMaxModsPerPeptide(UInt max_mods_per_peptide))
 	file.setMaxModsPerPeptide(3);
 	TEST_EQUAL(file.getMaxModsPerPeptide() , 3)
-RESULT
+END_SECTION
 
-CHECK((UInt getMaxModsPerPeptide() const))
+START_SECTION((UInt getMaxModsPerPeptide() const))
 	TEST_EQUAL(file.getMaxModsPerPeptide() , 3)
-RESULT
+END_SECTION
 
-CHECK(void setNucleotideReadingFrame(UInt nucleotide_reading_frame))
+START_SECTION(void setNucleotideReadingFrame(UInt nucleotide_reading_frame))
 	file.setNucleotideReadingFrame(0);
 	TEST_EQUAL(file.getNucleotideReadingFrame() , 0)
-RESULT
+END_SECTION
 
-CHECK((UInt getNucleotideReadingFrame() const))
+START_SECTION((UInt getNucleotideReadingFrame() const))
 	TEST_EQUAL(file.getNucleotideReadingFrame() , 0)
-RESULT
+END_SECTION
 
-CHECK(void setMaxInternalCleavageSites(UInt max_internal_cleavage_sites))
+START_SECTION(void setMaxInternalCleavageSites(UInt max_internal_cleavage_sites))
 	file.setMaxInternalCleavageSites(2);
 	TEST_EQUAL(file.getMaxInternalCleavageSites() , 2)
-RESULT
+END_SECTION
 
-CHECK((UInt getMaxInternalCleavageSites() const))
+START_SECTION((UInt getMaxInternalCleavageSites() const))
 	TEST_EQUAL(file.getMaxInternalCleavageSites() , 2)
-RESULT
+END_SECTION
 
-CHECK(void setMatchPeakCount(UInt match_peak_count))
+START_SECTION(void setMatchPeakCount(UInt match_peak_count))
 	file.setMatchPeakCount(5);
 	TEST_EQUAL(file.getMatchPeakCount() , 5)
-RESULT
+END_SECTION
 
-CHECK((UInt getMatchPeakCount() const))
+START_SECTION((UInt getMatchPeakCount() const))
 	TEST_EQUAL(file.getMatchPeakCount() , 5)
-RESULT
+END_SECTION
 
-CHECK(void setMatchPeakAllowedError(UInt match_peak_allowed_error))
+START_SECTION(void setMatchPeakAllowedError(UInt match_peak_allowed_error))
 	file.setMatchPeakAllowedError(4);
 	TEST_EQUAL(file.getMatchPeakAllowedError() , 4)
-RESULT
+END_SECTION
 
-CHECK((UInt getMatchPeakAllowedError() const))
+START_SECTION((UInt getMatchPeakAllowedError() const))
 	TEST_EQUAL(file.getMatchPeakAllowedError() , 4)
-RESULT
+END_SECTION
 
-CHECK(void setShowFragmentIons(bool show_fragments))
+START_SECTION(void setShowFragmentIons(bool show_fragments))
 	file.setShowFragmentIons(true);
 	TEST_EQUAL(file.getShowFragmentIons() , true)
-RESULT
+END_SECTION
 
-CHECK((bool getShowFragmentIons() const))
+START_SECTION((bool getShowFragmentIons() const))
 	TEST_EQUAL(file.getShowFragmentIons() , true)
-RESULT
+END_SECTION
 
-CHECK(void setPrintDuplicateReferences(bool print_duplicate_references))
+START_SECTION(void setPrintDuplicateReferences(bool print_duplicate_references))
 	file.setPrintDuplicateReferences(true);
 	TEST_EQUAL(file.getPrintDuplicateReferences() , true)
-RESULT
+END_SECTION
 
-CHECK((bool getPrintDuplicateReferences() const))
+START_SECTION((bool getPrintDuplicateReferences() const))
 	TEST_EQUAL(file.getPrintDuplicateReferences() , true)
-RESULT
+END_SECTION
 
-CHECK(void setRemovePrecursorNearPeaks(bool remove_precursor_near_peaks))
+START_SECTION(void setRemovePrecursorNearPeaks(bool remove_precursor_near_peaks))
 	file.setRemovePrecursorNearPeaks(true);
 	TEST_EQUAL(file.getRemovePrecursorNearPeaks() , true)
-RESULT
+END_SECTION
 
-CHECK((bool getRemovePrecursorNearPeaks() const))
+START_SECTION((bool getRemovePrecursorNearPeaks() const))
 	TEST_EQUAL(file.getRemovePrecursorNearPeaks() , true)
-RESULT
+END_SECTION
 
-CHECK(void setMassTypeParent(bool mass_type_parent))
+START_SECTION(void setMassTypeParent(bool mass_type_parent))
 	file.setMassTypeParent(true);
 	TEST_EQUAL(file.getMassTypeParent() , true)
-RESULT
+END_SECTION
 
-CHECK((bool getMassTypeParent() const))
+START_SECTION((bool getMassTypeParent() const))
 	TEST_EQUAL(file.getMassTypeParent() , true)
-RESULT
+END_SECTION
 
-CHECK(void setMassTypeFragment(bool mass_type_fragment))
+START_SECTION(void setMassTypeFragment(bool mass_type_fragment))
 	file.setMassTypeFragment(true);
 	TEST_EQUAL(file.getMassTypeFragment() , true)
-RESULT
+END_SECTION
 
-CHECK((bool getMassTypeFragment() const))
+START_SECTION((bool getMassTypeFragment() const))
 	TEST_EQUAL(file.getMassTypeFragment() , true)
-RESULT
+END_SECTION
 
-CHECK(void setNormalizeXcorr(bool normalize_xcorr))
+START_SECTION(void setNormalizeXcorr(bool normalize_xcorr))
 	file.setNormalizeXcorr(true);
 	TEST_EQUAL(file.getNormalizeXcorr() , true)
-RESULT
+END_SECTION
 
-CHECK((bool getNormalizeXcorr() const))
+START_SECTION((bool getNormalizeXcorr() const))
 	TEST_EQUAL(file.getNormalizeXcorr() , true)
-RESULT
+END_SECTION
 
-CHECK(void setResiduesInUpperCase(bool residues_in_upper_case))
+START_SECTION(void setResiduesInUpperCase(bool residues_in_upper_case))
 	file.setResiduesInUpperCase(true);
 	TEST_EQUAL(file.getResiduesInUpperCase() , true)
-RESULT
+END_SECTION
 
-CHECK((bool getResiduesInUpperCase() const))
+START_SECTION((bool getResiduesInUpperCase() const))
 	TEST_EQUAL(file.getResiduesInUpperCase() , true)
-RESULT
+END_SECTION
 
-CHECK(void store(const String& filename))
+START_SECTION(void store(const String& filename))
 	String filename;
 	NEW_TMP_FILE(filename)
 
@@ -581,8 +581,8 @@ CHECK(void store(const String& filename))
 
 	// test actual program
 	file.store(filename);
-	TEST_FILE(filename.c_str(), "data/SequestInfile_test_template1.txt");
-RESULT
+	TEST_FILE_EQUAL(filename.c_str(), "data/SequestInfile_test_template1.txt");
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

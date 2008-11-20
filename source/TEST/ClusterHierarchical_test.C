@@ -157,45 +157,45 @@ START_TEST(ClusterHierarchical, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ClusterHierarchical* ptr = 0;
-CHECK(ClusterHierarchical())
+START_SECTION(ClusterHierarchical())
 {
 	ptr = new ClusterHierarchical();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~ClusterHierarchical())
+START_SECTION(~ClusterHierarchical())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((ClusterHierarchical(const ClusterHierarchical &source)))
+START_SECTION((ClusterHierarchical(const ClusterHierarchical &source)))
 {
 	ClusterHierarchical ch;
 	ch.setThreshold(66.6);
 	ClusterHierarchical copy(ch);
 	TEST_EQUAL(copy.getThreshold(), 66.6);
 }
-RESULT
+END_SECTION
 
-CHECK((double getThreshold()))
+START_SECTION((double getThreshold()))
 {
 	ClusterHierarchical ch;
 	ch.setThreshold(0.666);
 	TEST_EQUAL(ch.getThreshold(),0.666);
 }
-RESULT
+END_SECTION
 
-CHECK((void setThreshold(double x)))
+START_SECTION((void setThreshold(double x)))
 {
 	ClusterHierarchical ch;
 	ch.setThreshold(0.666);
 	TEST_EQUAL(ch.getThreshold(),0.666);
 }
-RESULT
+END_SECTION
 
-CHECK((template <typename Data, typename SimilarityComparator> void cluster(vector< Data > &data, const SimilarityComparator &comparator, const ClusterFunctor &clusterer, vector<BinaryTreeNode>& cluster_tree)))
+START_SECTION((template <typename Data, typename SimilarityComparator> void cluster(vector< Data > &data, const SimilarityComparator &comparator, const ClusterFunctor &clusterer, vector<BinaryTreeNode>& cluster_tree)))
 {
 	vector<UInt> d(6,0);
 	for(UInt i = 0; i<d.size(); ++i)
@@ -219,15 +219,15 @@ CHECK((template <typename Data, typename SimilarityComparator> void cluster(vect
 	TEST_EQUAL(tree.size(), result.size());
 	for (UInt i = 0; i < tree.size(); ++i)
 	{
-			PRECISION(0.0001);
+			TOLERANCE_ABSOLUTE(0.0001);
 			TEST_EQUAL(tree[i].left_child, result[i].left_child);
 			TEST_EQUAL(tree[i].right_child, result[i].right_child);
-			TEST_REAL_EQUAL(tree[i].distance, result[i].distance);
+			TEST_REAL_SIMILAR(tree[i].distance, result[i].distance);
 	}
 }
-RESULT
+END_SECTION
 
-CHECK((void cluster(std::vector<PeakSpectrum>& data, const BinnedSpectrumCompareFunctor& comparator, double sz, UInt sp, const ClusterFunctor& clusterer, std::vector<BinaryTreeNode>& cluster_tree, DistanceMatrix<Real>& original_distance)))
+START_SECTION((void cluster(std::vector<PeakSpectrum>& data, const BinnedSpectrumCompareFunctor& comparator, double sz, UInt sp, const ClusterFunctor& clusterer, std::vector<BinaryTreeNode>& cluster_tree, DistanceMatrix<Real>& original_distance)))
 {
 
 	PeakSpectrum s1, s2, s3;
@@ -261,13 +261,13 @@ CHECK((void cluster(std::vector<PeakSpectrum>& data, const BinnedSpectrumCompare
 	TEST_EQUAL(tree.size(), result.size());
 	for (UInt i = 0; i < tree.size(); ++i)
 	{
-			PRECISION(0.0001);
+			TOLERANCE_ABSOLUTE(0.0001);
 			TEST_EQUAL(tree[i].left_child, result[i].left_child);
 			TEST_EQUAL(tree[i].right_child, result[i].right_child);
-			TEST_REAL_EQUAL(tree[i].distance, result[i].distance);
+			TEST_REAL_SIMILAR(tree[i].distance, result[i].distance);
 	}
 }
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

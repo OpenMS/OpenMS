@@ -40,21 +40,21 @@ START_TEST(Gradient, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Gradient* ptr = 0;
-CHECK((Gradient()))
+START_SECTION((Gradient()))
 	ptr = new Gradient();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~Gradient()))
+START_SECTION((~Gradient()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((const std::vector<String>& getEluents() const))
+START_SECTION((const std::vector<String>& getEluents() const))
   Gradient tmp;
   TEST_EQUAL(tmp.getEluents().size(),0);
-RESULT
+END_SECTION
 
-CHECK((void addEluent(const String& eluent) ))
+START_SECTION((void addEluent(const String& eluent) ))
   Gradient tmp;
 
   tmp.addEluent("A");
@@ -67,22 +67,22 @@ CHECK((void addEluent(const String& eluent) ))
   TEST_EQUAL(tmp.getEluents()[1],"B");
   
   TEST_EXCEPTION(Exception::InvalidValue,tmp.addEluent("B"))
-RESULT
+END_SECTION
 
-CHECK((void clearEluents()))
+START_SECTION((void clearEluents()))
   Gradient tmp;
 
   tmp.addEluent("A");
   tmp.clearEluents();
   TEST_EQUAL(tmp.getEluents().size(),0);
-RESULT
+END_SECTION
 
-CHECK((const std::vector<Int>& getTimepoints() const))
+START_SECTION((const std::vector<Int>& getTimepoints() const))
   Gradient tmp;
   TEST_EQUAL(tmp.getTimepoints().size(),0);
-RESULT
+END_SECTION
 
-CHECK((void addTimepoint(Int timepoint) ))
+START_SECTION((void addTimepoint(Int timepoint) ))
   Gradient tmp;
 
   tmp.addTimepoint(5);
@@ -97,17 +97,17 @@ CHECK((void addTimepoint(Int timepoint) ))
   TEST_EXCEPTION(Exception::OutOfRange,tmp.addTimepoint(6));
   TEST_EXCEPTION(Exception::OutOfRange,tmp.addTimepoint(7));
   tmp.addTimepoint(8);
-RESULT
+END_SECTION
 
-CHECK((void clearTimepoints()))
+START_SECTION((void clearTimepoints()))
   Gradient tmp;
 
   tmp.addTimepoint(5);
   tmp.clearTimepoints();
   TEST_EQUAL(tmp.getTimepoints().size(),0);
-RESULT
+END_SECTION
 
-CHECK((const std::vector< std::vector< UInt > > & getPercentages() const))
+START_SECTION((const std::vector< std::vector< UInt > > & getPercentages() const))
   Gradient tmp;
   tmp.addTimepoint(5);
   tmp.addTimepoint(7);
@@ -124,9 +124,9 @@ CHECK((const std::vector< std::vector< UInt > > & getPercentages() const))
   TEST_EQUAL(tmp.getPercentages()[1][1],0);
   TEST_EQUAL(tmp.getPercentages()[2][0],0);
   TEST_EQUAL(tmp.getPercentages()[2][1],0);
-RESULT
+END_SECTION
 
-CHECK((void setPercentage(const String& eluent, Int timepoint, UInt percentage) ))
+START_SECTION((void setPercentage(const String& eluent, Int timepoint, UInt percentage) ))
   Gradient tmp;
   tmp.addTimepoint(5);
   tmp.addTimepoint(7);
@@ -155,9 +155,9 @@ CHECK((void setPercentage(const String& eluent, Int timepoint, UInt percentage) 
   TEST_EXCEPTION(Exception::InvalidValue,tmp.setPercentage("D",7,20));
   TEST_EXCEPTION(Exception::InvalidValue,tmp.setPercentage("C",9,20));
   TEST_EXCEPTION(Exception::InvalidValue,tmp.setPercentage("C",7,101));
-RESULT
+END_SECTION
 
-CHECK((UInt getPercentage(const String& eluent, Int timepoint) const ))
+START_SECTION((UInt getPercentage(const String& eluent, Int timepoint) const ))
   Gradient tmp;
   tmp.addTimepoint(5);
   tmp.addTimepoint(7);
@@ -181,9 +181,9 @@ CHECK((UInt getPercentage(const String& eluent, Int timepoint) const ))
   
   TEST_EXCEPTION(Exception::InvalidValue,tmp.getPercentage("D",7));
   TEST_EXCEPTION(Exception::InvalidValue,tmp.getPercentage("C",9));
-RESULT
+END_SECTION
 
-CHECK((void clearPercentages()))
+START_SECTION((void clearPercentages()))
   Gradient tmp;
   tmp.addTimepoint(5);
   tmp.addTimepoint(7);
@@ -210,9 +210,9 @@ CHECK((void clearPercentages()))
   TEST_EQUAL(tmp.getPercentages()[1][1],0);
   TEST_EQUAL(tmp.getPercentages()[2][0],0);
   TEST_EQUAL(tmp.getPercentages()[2][1],0);
-RESULT
+END_SECTION
 
-CHECK((bool isValid() const))
+START_SECTION((bool isValid() const))
   Gradient tmp;
   TEST_EQUAL(tmp.isValid(),true);
   tmp.addTimepoint(5);
@@ -250,9 +250,9 @@ CHECK((bool isValid() const))
   TEST_EQUAL(tmp.isValid(),false);
   tmp.setPercentage("A",7,30);
   TEST_EQUAL(tmp.isValid(),true);
-RESULT
+END_SECTION
 
-CHECK((Gradient(const Gradient& source)))
+START_SECTION((Gradient(const Gradient& source)))
   Gradient tmp;
   tmp.addTimepoint(5);
   tmp.addEluent("A");
@@ -266,9 +266,9 @@ CHECK((Gradient(const Gradient& source)))
   TEST_EQUAL(tmp2.getPercentages()[1].size(),1);
   TEST_EQUAL(tmp2.getPercentage("A",5),90);
   TEST_EQUAL(tmp2.getPercentage("B",5),10);
-RESULT
+END_SECTION
 
-CHECK((Gradient& operator = (const Gradient& source)))
+START_SECTION((Gradient& operator = (const Gradient& source)))
   Gradient tmp;
   tmp.addTimepoint(5);
   tmp.addEluent("A");
@@ -288,9 +288,9 @@ CHECK((Gradient& operator = (const Gradient& source)))
   TEST_EQUAL(tmp2.getPercentages().size(),0);
 	TEST_EQUAL(tmp2.getTimepoints().size(),0);
 	TEST_EQUAL(tmp2.getEluents().size(),0);
-RESULT
+END_SECTION
 
-CHECK((bool operator == (const Gradient& source) const))
+START_SECTION((bool operator == (const Gradient& source) const))
   Gradient base;
   base.addTimepoint(5);
   base.addEluent("A");
@@ -311,9 +311,9 @@ CHECK((bool operator == (const Gradient& source) const))
 	edit = base;
 	edit.setPercentage("B",5,11);
 	TEST_EQUAL(edit==base,false);
-RESULT
+END_SECTION
 
-CHECK((bool operator != (const Gradient& source) const))
+START_SECTION((bool operator != (const Gradient& source) const))
   Gradient base;
   base.addTimepoint(5);
   base.addEluent("A");
@@ -334,7 +334,7 @@ CHECK((bool operator != (const Gradient& source) const))
 	edit = base;
 	edit.setPercentage("B",5,11);
 	TEST_EQUAL(edit!=base,true);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

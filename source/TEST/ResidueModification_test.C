@@ -43,78 +43,78 @@ START_TEST(Residue, "$Id$")
 
 // Modification tests
 ResidueModification* ptr = 0;
-CHECK(ResidueModification())
+START_SECTION(ResidueModification())
   ptr = new ResidueModification();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~ResidueModification())
+START_SECTION(~ResidueModification())
 	delete ptr;
-RESULT
+END_SECTION
 
 ptr = new ResidueModification();
 
-CHECK(ResidueModification(const ResidueModification& modification))
+START_SECTION(ResidueModification(const ResidueModification& modification))
   ResidueModification m(*ptr);
 	TEST_EQUAL(m == *ptr, true)
-RESULT
+END_SECTION
 
-CHECK(ResidueModification& operator = (const ResidueModification& modification))
+START_SECTION(ResidueModification& operator = (const ResidueModification& modification))
 	ResidueModification m;
 	m = *ptr;
 	TEST_EQUAL(m == *ptr, true)
-RESULT
+END_SECTION
 
-CHECK(void setId(const String &id))
+START_SECTION(void setId(const String &id))
 	ptr->setId("blubb_new_id");
 	TEST_STRING_EQUAL(ptr->getId(), "blubb_new_id")
-RESULT
+END_SECTION
 
-CHECK(const String& getId() const)
+START_SECTION(const String& getId() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setFullName(const String &full_name))
+START_SECTION(void setFullName(const String &full_name))
 	ptr->setFullName("blubb_new_full_name");
 	TEST_STRING_EQUAL(ptr->getFullName(), "blubb_new_full_name")
-RESULT
+END_SECTION
 
-CHECK(const String& getFullName() const)
+START_SECTION(const String& getFullName() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setName(const String &name))
+START_SECTION(void setName(const String &name))
 	ptr->setName("blubb_new_name");
 	TEST_STRING_EQUAL(ptr->getName(), "blubb_new_name")
-RESULT
+END_SECTION
 
-CHECK(const String& getName() const)
+START_SECTION(const String& getName() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setTermSpecificity(Term_Specificity term_spec))
+START_SECTION(void setTermSpecificity(Term_Specificity term_spec))
 	ptr->setTermSpecificity(ResidueModification::ANYWHERE);
 	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::ANYWHERE)
 	ptr->setTermSpecificity(ResidueModification::C_TERM);
 	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::C_TERM)
 	ptr->setTermSpecificity(ResidueModification::N_TERM);
 	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::N_TERM)
-RESULT
+END_SECTION
 
-CHECK(void setTermSpecificity(const String &name))
+START_SECTION(void setTermSpecificity(const String &name))
 	ptr->setTermSpecificity("C-term");
 	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::C_TERM)
 	ptr->setTermSpecificity("N-term");
 	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::N_TERM)
 	ptr->setTermSpecificity("none");
 	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::ANYWHERE)
-RESULT
+END_SECTION
 
-CHECK(Term_Specificity getTermSpecificity() const)
+START_SECTION(Term_Specificity getTermSpecificity() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(String getTermSpecificityName(Term_Specificity=NUMBER_OF_TERM_SPECIFICITY) const)
+START_SECTION(String getTermSpecificityName(Term_Specificity=NUMBER_OF_TERM_SPECIFICITY) const)
 	ptr->setTermSpecificity(ResidueModification::C_TERM);
 	TEST_STRING_EQUAL(ptr->getTermSpecificityName(), "C-term")
 	ptr->setTermSpecificity(ResidueModification::N_TERM);
@@ -124,40 +124,40 @@ CHECK(String getTermSpecificityName(Term_Specificity=NUMBER_OF_TERM_SPECIFICITY)
 	TEST_STRING_EQUAL(ptr->getTermSpecificityName(ResidueModification::C_TERM), "C-term")
 	TEST_STRING_EQUAL(ptr->getTermSpecificityName(ResidueModification::N_TERM), "N-term")
 	TEST_STRING_EQUAL(ptr->getTermSpecificityName(ResidueModification::ANYWHERE), "none")
-RESULT
+END_SECTION
 
-CHECK(void setOrigin(const String &origin))
+START_SECTION(void setOrigin(const String &origin))
 	ptr->setOrigin("blubb_new_origin");
 	TEST_STRING_EQUAL(ptr->getOrigin(), "blubb_new_origin")
-RESULT
+END_SECTION
 
-CHECK(const String& getOrigin() const)
+START_SECTION(const String& getOrigin() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setSourceClassification(Source_Classification classification))
+START_SECTION(void setSourceClassification(Source_Classification classification))
 	ptr->setSourceClassification(ResidueModification::ARTIFACT);
 	TEST_EQUAL(ptr->getSourceClassification(), ResidueModification::ARTIFACT)
 	ptr->setSourceClassification(ResidueModification::NATURAL);
 	TEST_EQUAL(ptr->getSourceClassification(), ResidueModification::NATURAL)
 	ptr->setSourceClassification(ResidueModification::HYPOTHETICAL);
 	TEST_EQUAL(ptr->getSourceClassification(), ResidueModification::HYPOTHETICAL)
-RESULT
+END_SECTION
 
-CHECK(void setSourceClassification(const String &classification))
+START_SECTION(void setSourceClassification(const String &classification))
 	ptr->setSourceClassification("Artifact");
 	TEST_EQUAL(ptr->getSourceClassification(), ResidueModification::ARTIFACT)
 	ptr->setSourceClassification("Natural");
 	TEST_EQUAL(ptr->getSourceClassification(), ResidueModification::NATURAL)
 	ptr->setSourceClassification("Hypothetical");
 	TEST_EQUAL(ptr->getSourceClassification(), ResidueModification::HYPOTHETICAL)
-RESULT
+END_SECTION
 
-CHECK(Source_Classification getSourceClassification() const)
+START_SECTION(Source_Classification getSourceClassification() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(String getSourceClassificationName(Source_Classification classification=NUMBER_OF_SOURCE_CLASSIFICATIONS) const)
+START_SECTION(String getSourceClassificationName(Source_Classification classification=NUMBER_OF_SOURCE_CLASSIFICATIONS) const)
 	ptr->setSourceClassification(ResidueModification::ARTIFACT);
 	TEST_STRING_EQUAL(ptr->getSourceClassificationName(), "Artifact")
 	ptr->setSourceClassification(ResidueModification::NATURAL);
@@ -167,80 +167,80 @@ CHECK(String getSourceClassificationName(Source_Classification classification=NU
 	TEST_STRING_EQUAL(ptr->getSourceClassificationName(ResidueModification::ARTIFACT), "Artifact")
 	TEST_STRING_EQUAL(ptr->getSourceClassificationName(ResidueModification::NATURAL), "Natural")
 	TEST_STRING_EQUAL(ptr->getSourceClassificationName(ResidueModification::HYPOTHETICAL), "Hypothetical")
-RESULT
+END_SECTION
 
-CHECK(void setAverageMass(double mass))
+START_SECTION(void setAverageMass(double mass))
 	ptr->setAverageMass(2.0);
-	TEST_REAL_EQUAL(ptr->getAverageMass(), 2.0)
-RESULT
+	TEST_REAL_SIMILAR(ptr->getAverageMass(), 2.0)
+END_SECTION
 
-CHECK(double getAverageMass() const)
+START_SECTION(double getAverageMass() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setMonoMass(double mass))
+START_SECTION(void setMonoMass(double mass))
 	ptr->setMonoMass(3.0);
-	TEST_REAL_EQUAL(ptr->getMonoMass(), 3.0)
-RESULT
+	TEST_REAL_SIMILAR(ptr->getMonoMass(), 3.0)
+END_SECTION
 
-CHECK(double getMonoMass() const)
+START_SECTION(double getMonoMass() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setDiffAverageMass(double mass))
+START_SECTION(void setDiffAverageMass(double mass))
 	ptr->setDiffAverageMass(4.0);
-	TEST_REAL_EQUAL(ptr->getDiffAverageMass(), 4.0)
-RESULT
+	TEST_REAL_SIMILAR(ptr->getDiffAverageMass(), 4.0)
+END_SECTION
 
-CHECK(double getDiffAverageMass() const)
+START_SECTION(double getDiffAverageMass() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setDiffMonoMass(double mass))
+START_SECTION(void setDiffMonoMass(double mass))
 	ptr->setDiffMonoMass(5.0);
-	TEST_REAL_EQUAL(ptr->getDiffMonoMass(), 5.0)
-RESULT
+	TEST_REAL_SIMILAR(ptr->getDiffMonoMass(), 5.0)
+END_SECTION
 
-CHECK(double getDiffMonoMass() const)
+START_SECTION(double getDiffMonoMass() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setFormula(const String &composition))
+START_SECTION(void setFormula(const String &composition))
 	ptr->setFormula("blubb_new_formula");
 	TEST_STRING_EQUAL(ptr->getFormula(), "blubb_new_formula")
-RESULT
+END_SECTION
 
-CHECK(const String& getFormula() const)
+START_SECTION(const String& getFormula() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setDiffFormula(const String &diff_formula))
+START_SECTION(void setDiffFormula(const String &diff_formula))
 	ptr->setDiffFormula("blubb_new_diff_formula");
 	TEST_STRING_EQUAL(ptr->getDiffFormula(), "blubb_new_diff_formula")
-RESULT
+END_SECTION
 
-CHECK(const String& getDiffFormula() const)
+START_SECTION(const String& getDiffFormula() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setSynonyms(const std::set< String > &synonyms))
+START_SECTION(void setSynonyms(const std::set< String > &synonyms))
 	set<String> synonyms;
 	synonyms.insert("blubb_syn1");
 	synonyms.insert("blubb_syn2");
 	ptr->setSynonyms(synonyms);
 	TEST_EQUAL(ptr->getSynonyms() == synonyms, true)
-RESULT
+END_SECTION
 
-CHECK(void addSynonym(const String &synonym))
+START_SECTION(void addSynonym(const String &synonym))
 	ptr->addSynonym("blubb_syn3");
 	TEST_EQUAL(ptr->getSynonyms().size(), 3)
-RESULT
+END_SECTION
 
-CHECK(const std::set<String>& getSynonyms() const)
+START_SECTION(const std::set<String>& getSynonyms() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(bool operator==(const ResidueModification &modification) const)
+START_SECTION(bool operator==(const ResidueModification &modification) const)
 	ResidueModification mod1, mod2;
 	mod1.setId("Id");
 	TEST_EQUAL(mod1 == mod2, false)
@@ -306,9 +306,9 @@ CHECK(bool operator==(const ResidueModification &modification) const)
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.addSynonym("new_syn");
 	TEST_EQUAL(mod1 == mod2, true)
-RESULT
+END_SECTION
 
-CHECK(bool operator!=(const ResidueModification &modification) const)
+START_SECTION(bool operator!=(const ResidueModification &modification) const)
 	ResidueModification mod1, mod2;
   mod1.setId("Id");
   TEST_EQUAL(mod1 != mod2, true)
@@ -375,7 +375,7 @@ CHECK(bool operator!=(const ResidueModification &modification) const)
   TEST_EQUAL(mod1 != mod2, true)
   mod2.addSynonym("new_syn");
   TEST_EQUAL(mod1 != mod2, false)
-RESULT
+END_SECTION
 
 
 END_TEST

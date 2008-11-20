@@ -54,24 +54,24 @@ String date_string_1;
 String date_string_2;
 PeptideHit peptide_hit;
 
-CHECK((OMSSAXMLFile()))
+START_SECTION((OMSSAXMLFile()))
 	ptr = new OMSSAXMLFile();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~OMSSAXMLFile())
+START_SECTION(~OMSSAXMLFile())
 	delete ptr;
-RESULT
+END_SECTION
 
 ptr = new OMSSAXMLFile();
 
-CHECK(void setModificationDefinitionsSet(const ModificationDefinitionsSet &rhs))
+START_SECTION(void setModificationDefinitionsSet(const ModificationDefinitionsSet &rhs))
 	ModificationDefinitionsSet mod_set("", "MOD:01214,MOD:00719,MOD:01061");
 	ptr->setModificationDefinitionsSet(mod_set);
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, bool load_proteins=true))
+START_SECTION(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, bool load_proteins=true))
 
 	xml_file.load("data/OMSSAXMLFile_test_1.xml",	protein_identification, peptide_identifications);
 	OMSSAXMLFile xml_file;
@@ -79,7 +79,7 @@ CHECK(void load(const String& filename, ProteinIdentification& protein_identific
 	TEST_EQUAL(protein_identification.getHits().size(), 4)
 	TEST_EQUAL(peptide_identifications.size(), 1)
 
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

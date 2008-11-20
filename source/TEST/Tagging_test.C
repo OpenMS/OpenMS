@@ -42,50 +42,50 @@ START_TEST(Tagging, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-PRECISION(0.001)
+TOLERANCE_ABSOLUTE(0.001)
 
 // default ctor
 Tagging* dv_ptr = 0;
-CHECK(Tagging())
+START_SECTION(Tagging())
 	dv_ptr = new Tagging;
 	TEST_NOT_EQUAL(dv_ptr, 0)
-RESULT
+END_SECTION
 
 // destructor
-CHECK(~Tagging())
+START_SECTION(~Tagging())
 	delete dv_ptr;
-RESULT
+END_SECTION
 
-CHECK(const IsotopeVariant& getVariant() const)
+START_SECTION(const IsotopeVariant& getVariant() const)
 	Tagging s;
 	TEST_EQUAL(s.getVariant(),Tagging::LIGHT)
-RESULT
+END_SECTION
 
-CHECK(float getMassShift() const)
+START_SECTION(float getMassShift() const)
 	Tagging s;
-	TEST_REAL_EQUAL(s.getMassShift(),0.0)
-RESULT
+	TEST_REAL_SIMILAR(s.getMassShift(),0.0)
+END_SECTION
 
-CHECK(void setMassShift(float mass_shift))
+START_SECTION(void setMassShift(float mass_shift))
 	Tagging s;
 	s.setMassShift(4711.2);
-	TEST_REAL_EQUAL(s.getMassShift(),4711.2)
-RESULT
+	TEST_REAL_SIMILAR(s.getMassShift(),4711.2)
+END_SECTION
 
-CHECK(void setVariant(const IsotopeVariant& variant))
+START_SECTION(void setVariant(const IsotopeVariant& variant))
 	Tagging s;
 	s.setVariant(Tagging::HEAVY);
 	TEST_EQUAL(s.getVariant(),Tagging::HEAVY)
-RESULT
+END_SECTION
 
 //getType
-CHECK([EXTRA] getType)
+START_SECTION([EXTRA] getType)
 	Tagging s;
 	TEST_EQUAL(s.getType(),"Tagging")
-RESULT
+END_SECTION
 
 //copy ctr
-CHECK(Tagging(const Tagging&))
+START_SECTION(Tagging(const Tagging&))
 	Tagging s;
 	//set
 	s.setMassShift(4711.2);
@@ -96,13 +96,13 @@ CHECK(Tagging(const Tagging&))
 	Tagging s2(s);
 
 	//get
-	TEST_REAL_EQUAL(s2.getMassShift(),4711.2)
+	TEST_REAL_SIMILAR(s2.getMassShift(),4711.2)
 	TEST_EQUAL(s2.getVariant(),Tagging::LIGHT)
-	TEST_REAL_EQUAL(s2.getMass(),23.4)
-RESULT
+	TEST_REAL_SIMILAR(s2.getMass(),23.4)
+END_SECTION
 
 //assignment operator
-CHECK(Tagging& operator=(const Tagging&))
+START_SECTION(Tagging& operator=(const Tagging&))
 	Tagging s,s2;
 	//set
 	s.setMassShift(4711.2);
@@ -113,13 +113,13 @@ CHECK(Tagging& operator=(const Tagging&))
 	s2 = s;
 
 	//get
-	TEST_REAL_EQUAL(s2.getMassShift(),4711.2)
+	TEST_REAL_SIMILAR(s2.getMassShift(),4711.2)
 	TEST_EQUAL(s2.getVariant(),Tagging::LIGHT)
-	TEST_REAL_EQUAL(s2.getMass(),23.4)
-RESULT
+	TEST_REAL_SIMILAR(s2.getMass(),23.4)
+END_SECTION
 
 //clone
-CHECK(SampleTreatment* clone() const)
+START_SECTION(SampleTreatment* clone() const)
 	Tagging s;
 	SampleTreatment* st1;
 	SampleTreatment* st;
@@ -136,12 +136,12 @@ CHECK(SampleTreatment* clone() const)
 	dp = dynamic_cast<Tagging*>(st);
 	
 	//get
-	TEST_REAL_EQUAL(dp->getMassShift(),4711.2)
+	TEST_REAL_SIMILAR(dp->getMassShift(),4711.2)
 	TEST_EQUAL(dp->getVariant(),Tagging::LIGHT)
-	TEST_REAL_EQUAL(dp->getMass(),23.4)
-RESULT
+	TEST_REAL_SIMILAR(dp->getMass(),23.4)
+END_SECTION
 
-CHECK(bool operator== (const SampleTreatment& rhs) const)
+START_SECTION(bool operator== (const SampleTreatment& rhs) const)
 	Tagging empty,edit;
 	
 	TEST_EQUAL(edit==empty, true);
@@ -168,7 +168,7 @@ CHECK(bool operator== (const SampleTreatment& rhs) const)
 	
 	Modification m;
 	TEST_EQUAL(m==empty, false);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

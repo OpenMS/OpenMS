@@ -49,27 +49,27 @@ const String text = "$AAARAA$ARARP$";
 
 SuffixArrayTrypticSeqan* sa = new SuffixArrayTrypticSeqan(text,"");
 
-CHECK(SuffixArrayTrypticSeqan(const String &st, const String &filename))
+START_SECTION(SuffixArrayTrypticSeqan(const String &st, const String &filename))
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArrayTrypticSeqan("A",""));
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArrayTrypticSeqan("$A",""));
 	ptr = new SuffixArrayTrypticSeqan("$","");
 	TEST_NOT_EQUAL(ptr, 0);
 	TEST_EXCEPTION (Exception::FileNotFound,new SuffixArrayTrypticSeqan(text,"FileThatNotExists"));
 	
-RESULT
+END_SECTION
 
-CHECK(bool isDigestingEnd(const char aa1, const char aa2) const)
+START_SECTION(bool isDigestingEnd(const char aa1, const char aa2) const)
 	TEST_EQUAL (sa->isDigestingEnd('R','R'),true);
 	TEST_EQUAL (sa->isDigestingEnd('K','K'),true);
 	TEST_EQUAL (sa->isDigestingEnd('R','K'),true);
 	TEST_EQUAL (sa->isDigestingEnd('R','P'),false);
 	TEST_EQUAL (sa->isDigestingEnd('K','P'),false);
 	TEST_EQUAL (sa->isDigestingEnd('A','R'),false);
-RESULT
+END_SECTION
 
 
 
-CHECK([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec ))
+START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec ))
 	double masse[255];
 	ResidueDB* rdb = ResidueDB::getInstance();
 		
@@ -140,7 +140,7 @@ CHECK([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec )
 		}
 	}
 
-	PRECISION(0.55)
+	TOLERANCE_ABSOLUTE(0.55)
 	sa->setTolerance(0.5);
 	// checking if the mass of the found candidates is correct
 	// checking if the next character is not a P
@@ -157,7 +157,7 @@ CHECK([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec )
 			{
 				m += masse[(int)seq[k]];
 			}
-			TEST_REAL_EQUAL(m,specc_new.at(i));
+			TEST_REAL_SIMILAR(m,specc_new.at(i));
 		}
 	}
 	// getting all candidates with tags 
@@ -246,10 +246,10 @@ CHECK([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<float> & spec )
 				m += masse[(int)seq[k]];
 			}
 			
-			TEST_REAL_EQUAL(m + res[i][j].second, specc_new[i]);
+			TEST_REAL_SIMILAR(m + res[i][j].second, specc_new[i]);
 		}
 	}
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

@@ -40,81 +40,81 @@ START_TEST(StopWatch, "$Id$")
 
 using namespace OpenMS;
 
-CHECK(StopWatch& operator = (const StopWatch& stop_watch))
+START_SECTION(StopWatch& operator = (const StopWatch& stop_watch))
   // ???
-RESULT
+END_SECTION
 
-CHECK(StopWatch())
+START_SECTION(StopWatch())
   // ???
-RESULT
+END_SECTION
 
-CHECK(StopWatch(const StopWatch& stop_watch))
+START_SECTION(StopWatch(const StopWatch& stop_watch))
   // ???
-RESULT
+END_SECTION
 
-CHECK(bool isRunning() const )
+START_SECTION(bool isRunning() const )
   // ???
-RESULT
+END_SECTION
 
-CHECK(bool operator != (const StopWatch& stop_watch) const )
+START_SECTION(bool operator != (const StopWatch& stop_watch) const )
   // ???
-RESULT
+END_SECTION
 
-CHECK(bool operator < (const StopWatch& stop_watch) const )
+START_SECTION(bool operator < (const StopWatch& stop_watch) const )
   // ???
-RESULT
+END_SECTION
 
-CHECK(bool operator <= (const StopWatch& stop_watch) const )
+START_SECTION(bool operator <= (const StopWatch& stop_watch) const )
   // ???
-RESULT
+END_SECTION
 
-CHECK(bool operator == (const StopWatch& stop_watch) const)
+START_SECTION(bool operator == (const StopWatch& stop_watch) const)
   // ???
-RESULT
+END_SECTION
 
-CHECK(bool operator > (const StopWatch& stop_watch) const )
+START_SECTION(bool operator > (const StopWatch& stop_watch) const )
   // ???
-RESULT
+END_SECTION
 
-CHECK(bool operator >= (const StopWatch& stop_watch) const )
+START_SECTION(bool operator >= (const StopWatch& stop_watch) const )
   // ???
-RESULT
+END_SECTION
 
-CHECK(bool start())
+START_SECTION(bool start())
   // ???
-RESULT
+END_SECTION
 
-CHECK(bool stop())
+START_SECTION(bool stop())
   // ???
-RESULT
+END_SECTION
 
-CHECK(double getCPUTime() const )
+START_SECTION(double getCPUTime() const )
   // ???
-RESULT
+END_SECTION
 
-CHECK(double getClockTime() const)
+START_SECTION(double getClockTime() const)
   // ???
-RESULT
+END_SECTION
 
-CHECK(double getSystemTime() const)
+START_SECTION(double getSystemTime() const)
   // ???
-RESULT
+END_SECTION
 
-CHECK(double getUserTime() const)
+START_SECTION(double getUserTime() const)
   // ???
-RESULT
+END_SECTION
 
-CHECK(void clear())
+START_SECTION(void clear())
   // ???
-RESULT
+END_SECTION
 
-CHECK(void reset())
+START_SECTION(void reset())
   // ???
-RESULT
+END_SECTION
 
-CHECK(~StopWatch())
+START_SECTION(~StopWatch())
   // ???
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

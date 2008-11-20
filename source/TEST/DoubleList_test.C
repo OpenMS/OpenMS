@@ -40,81 +40,81 @@ START_TEST(DoubleList, "$Id$")
 /////////////////////////////////////////////////////////////
 
 DoubleList* ptr = 0;
-CHECK(DoubleList())
+START_SECTION(DoubleList())
 	ptr = new DoubleList;
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~DoubleList())
+START_SECTION(~DoubleList())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(static DoubleList create(const String& list))
+START_SECTION(static DoubleList create(const String& list))
 	DoubleList list = DoubleList::create("1.222,5.33789");
 	TEST_EQUAL(list.size(),2);
-	TEST_REAL_EQUAL(list[0],1.222);
-	TEST_REAL_EQUAL(list[1],5.33789);
+	TEST_REAL_SIMILAR(list[0],1.222);
+	TEST_REAL_SIMILAR(list[1],5.33789);
 
 	DoubleList list2 = DoubleList::create("2.33334");
 	TEST_EQUAL(list2.size(),1);
-	TEST_REAL_EQUAL(list2[0],2.33334);
+	TEST_REAL_SIMILAR(list2[0],2.33334);
 
 	DoubleList list3 = DoubleList::create("");
 	TEST_EQUAL(list3.size(),0);
-RESULT
+END_SECTION
 
-CHECK(DoubleList(const DoubleList& rhs))
+START_SECTION(DoubleList(const DoubleList& rhs))
 	DoubleList list = DoubleList::create("1.2,3.4");
 	DoubleList list2(list);
 	TEST_EQUAL(list2.size(),2);
-	TEST_REAL_EQUAL(list2[0],1.2);
-	TEST_REAL_EQUAL(list2[1],3.4);
-RESULT
+	TEST_REAL_SIMILAR(list2[0],1.2);
+	TEST_REAL_SIMILAR(list2[1],3.4);
+END_SECTION
 
-CHECK(DoubleList(const std::vector<DoubleReal>& rhs))
+START_SECTION(DoubleList(const std::vector<DoubleReal>& rhs))
 	std::vector<DoubleReal> list;
 	list.push_back(1.2345);
 	list.push_back(3.45678);
 	DoubleList list2(list);
 	TEST_EQUAL(list2.size(),2);
-	TEST_REAL_EQUAL(list2[0],1.2345);
-	TEST_REAL_EQUAL(list2[1],3.45678);
-RESULT
+	TEST_REAL_SIMILAR(list2[0],1.2345);
+	TEST_REAL_SIMILAR(list2[1],3.45678);
+END_SECTION
 
-CHECK(DoubleList(const std::vector<Real>& rhs))
+START_SECTION(DoubleList(const std::vector<Real>& rhs))
 	std::vector<Real> list;
 	list.push_back(1.234);
 	list.push_back(2.345);
 	DoubleList list2(list);
 	TEST_EQUAL(list2.size(),2);
-	TEST_REAL_EQUAL(list2[0],1.234);
-	TEST_REAL_EQUAL(list2[1],2.345);
+	TEST_REAL_SIMILAR(list2[0],1.234);
+	TEST_REAL_SIMILAR(list2[1],2.345);
 
-RESULT
+END_SECTION
 
-CHECK(DoubleList& operator=(const DoubleList& rhs))
+START_SECTION(DoubleList& operator=(const DoubleList& rhs))
 	DoubleList list = DoubleList::create("1.22,3.33");
 	DoubleList list2;
 	list2 = list;
 	TEST_EQUAL(list2.size(),2);
-	TEST_REAL_EQUAL(list2[0],1.22);
-	TEST_REAL_EQUAL(list2[1],3.33);
+	TEST_REAL_SIMILAR(list2[0],1.22);
+	TEST_REAL_SIMILAR(list2[1],3.33);
 
-RESULT
+END_SECTION
 
-CHECK(DoubleList& operator=(const std::vector<DoubleReal>& rhs))
+START_SECTION(DoubleList& operator=(const std::vector<DoubleReal>& rhs))
 	std::vector<DoubleReal> list;
 	list.push_back(1.22);
 	list.push_back(3.67);
 	DoubleList list2;
 	list2 = list;
 	TEST_EQUAL(list2.size(),2);
-	TEST_REAL_EQUAL(list2[0],1.22);
-	TEST_REAL_EQUAL(list2[1],3.67);
+	TEST_REAL_SIMILAR(list2[0],1.22);
+	TEST_REAL_SIMILAR(list2[1],3.67);
 
-RESULT
+END_SECTION
 
-CHECK((template<typename DoubleType> DoubleList& operator<<(DoubleType value)))
+START_SECTION((template<typename DoubleType> DoubleList& operator<<(DoubleType value)))
 	DoubleList list;
 	list << 1.2 << 2.3456 << 3.5678999 << 1.2;
 	TEST_EQUAL(list.size(),4);
@@ -122,16 +122,16 @@ CHECK((template<typename DoubleType> DoubleList& operator<<(DoubleType value)))
 	TEST_EQUAL(list[1],2.3456);
 	TEST_EQUAL(list[2],3.5678999);
 	TEST_EQUAL(list[3],1.2);
-RESULT
+END_SECTION
 
-CHECK(bool contains(const String& s) const)
+START_SECTION(bool contains(const String& s) const)
 	DoubleList list = DoubleList::create("1.2,3.4");
 	TEST_EQUAL(list.contains(1.2),true)
 	TEST_EQUAL(list.contains(3.4),true)
 	TEST_EQUAL(list.contains(4.2),false)	
 	TEST_EQUAL(list.contains(2),false)
 	TEST_EQUAL(list.contains(0),false)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

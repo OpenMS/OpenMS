@@ -28,7 +28,6 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
-#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
@@ -43,20 +42,20 @@ START_TEST(ItraqQuantifier, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ItraqQuantifier* ptr = 0;
-CHECK(ItraqQuantifier())
+START_SECTION(ItraqQuantifier())
 {
 	ptr = new ItraqQuantifier();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~ItraqQuantifier())
+START_SECTION(~ItraqQuantifier())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((ItraqQuantifier(Int itraq_type)))
+START_SECTION((ItraqQuantifier(Int itraq_type)))
 {
   ItraqQuantifier iq(ItraqQuantifier::EIGHTPLEX);
 	TEST_EQUAL((String) iq.getParameters().getValue("isotope_correction")=="true", true);
@@ -65,9 +64,9 @@ CHECK((ItraqQuantifier(Int itraq_type)))
 	TEST_EQUAL((String) iq2.getParameters().getValue("isotope_correction")=="true", true);
 	TEST_EQUAL((Int) iq2.getParameters().getValue("channel_reference"), 114);
 }
-RESULT
+END_SECTION
 
-CHECK((ItraqQuantifier(Int itraq_type, const Param &param)))
+START_SECTION((ItraqQuantifier(Int itraq_type, const Param &param)))
 {
 	Param p;
 	p.setValue("isotope_correction_values", "114:0/0.3/4/0 , 116:0.1/0.3/3/0.2");
@@ -79,9 +78,9 @@ CHECK((ItraqQuantifier(Int itraq_type, const Param &param)))
 	TEST_EXCEPTION(Exception::InvalidParameter, ItraqQuantifier iq2(ItraqQuantifier::EIGHTPLEX, p));	
 
 }
-RESULT
+END_SECTION
 
-CHECK((void run(const ConsensusMap &consensus_map_in, ConsensusMap &consensus_map_out)))
+START_SECTION((void run(const ConsensusMap &consensus_map_in, ConsensusMap &consensus_map_out)))
 {
   ConsensusXMLFile cm_file;
 	ConsensusMap cm_in, cm_out;
@@ -98,18 +97,18 @@ CHECK((void run(const ConsensusMap &consensus_map_in, ConsensusMap &consensus_ma
 	NEW_TMP_FILE(cm_file_out);
 	cm_file.store(cm_file_out,cm_out);
 	
-	FuzzyStringComparator fsc;
-	fsc.setAcceptableAbsolute(0.01);
-	TEST_EQUAL(fsc.compare_files(cm_file_out,"data/ItraqQuantifier.consensusXML"), true);
+	// TOLERANCE_ABSOLUTE(was: 0.01); // TODO   I want to see if default tolerances are good enough.  If these fail, you are welcome to uncomment this.  (Clemens)
+	// TOLERANCE_RELATIVE(your choice ????);  TODO ????
+	TEST_FILE_SIMILAR(cm_file_out,"data/ItraqQuantifier.consensusXML");
 }
-RESULT
+END_SECTION
 
-CHECK((void run(const ConsensusMap &consensus_map_in, const std::vector< PeptideIdentification > &peptide_ids, const std::vector< ProteinIdentification > &protein_ids, ConsensusMap &consensus_map_out)))
+START_SECTION((void run(const ConsensusMap &consensus_map_in, const std::vector< PeptideIdentification > &peptide_ids, const std::vector< ProteinIdentification > &protein_ids, ConsensusMap &consensus_map_out)))
 {
 	NOT_TESTABLE
 	//not implemented yet!
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

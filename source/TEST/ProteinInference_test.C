@@ -28,7 +28,6 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/QUANTITATION/ProteinInference.h>
-#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 ///////////////////////////
 
@@ -41,34 +40,34 @@ START_TEST(ProteinInference, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ProteinInference* ptr = 0;
-CHECK(ProteinInference())
+START_SECTION(ProteinInference())
 {
 	ptr = new ProteinInference();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~ProteinInference())
+START_SECTION(~ProteinInference())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((ProteinInference(const ProteinInference &cp)))
+START_SECTION((ProteinInference(const ProteinInference &cp)))
 {
 	NOT_TESTABLE
 	// has no members - this is useless
 }
-RESULT
+END_SECTION
 
-CHECK((ProteinInference& operator=(const ProteinInference &rhs)))
+START_SECTION((ProteinInference& operator=(const ProteinInference &rhs)))
 {
 	NOT_TESTABLE
 	// has no members - this is useless
 }
-RESULT
+END_SECTION
 
-CHECK((void infer(ConsensusMap &consensus_map, const UInt reference_map)))
+START_SECTION((void infer(ConsensusMap &consensus_map, const UInt reference_map)))
 {
 	
   ConsensusXMLFile cm_file;
@@ -89,12 +88,11 @@ CHECK((void infer(ConsensusMap &consensus_map, const UInt reference_map)))
 	NEW_TMP_FILE(cm_file_out);
 	cm_file.store(cm_file_out,cm);
 	
-	FuzzyStringComparator fsc;
-	fsc.setAcceptableAbsolute(0.01);
-	TEST_EQUAL(fsc.compare_files(cm_file_out,"data/ItraqQuantifier.consensusXML"), true);
+	// TOLERANCE_ABSOLUTE(0.01);
+	TEST_FILE_SIMILAR(cm_file_out,"data/ItraqQuantifier.consensusXML");
 	
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

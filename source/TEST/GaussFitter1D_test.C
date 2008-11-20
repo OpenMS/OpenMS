@@ -41,15 +41,15 @@ START_TEST(GaussFitter1D, "$Id$")
 /////////////////////////////////////////////////////////////
 
 GaussFitter1D* ptr = 0;
-CHECK(GaussFitter1D())
+START_SECTION(GaussFitter1D())
 {
 	ptr = new GaussFitter1D();
   TEST_EQUAL(ptr->getName(), "GaussFitter1D")
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK((GaussFitter1D(const  GaussFitter1D &source)))
+START_SECTION((GaussFitter1D(const  GaussFitter1D &source)))
 	GaussFitter1D gf1;
 	
 	Param param;
@@ -64,13 +64,13 @@ CHECK((GaussFitter1D(const  GaussFitter1D &source)))
 	gf3.setParameters(param);
   gf1 = GaussFitter1D();
 	TEST_EQUAL(gf3.getParameters(), gf2.getParameters())
-RESULT
+END_SECTION
 
-CHECK((virtual ~GaussFitter1D()))
+START_SECTION((virtual ~GaussFitter1D()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((virtual GaussFitter1D& operator=(const  GaussFitter1D &source)))
+START_SECTION((virtual GaussFitter1D& operator=(const  GaussFitter1D &source)))
  	GaussFitter1D gf1;
 	
 	Param param;
@@ -88,27 +88,27 @@ CHECK((virtual GaussFitter1D& operator=(const  GaussFitter1D &source)))
 
   gf1 = GaussFitter1D();
 	TEST_EQUAL(gf3.getParameters(), gf2.getParameters())
-RESULT
+END_SECTION
 
-CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
+START_SECTION((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
 	// dummy subtest
 	TEST_EQUAL(1,1)
-RESULT
+END_SECTION
 
-CHECK((Fitter1D* create()))
+START_SECTION((Fitter1D* create()))
 {
   Fitter1D* ptr = GaussFitter1D::create();
   TEST_EQUAL(ptr->getName(), "GaussFitter1D")
   TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK((const String getProductName()))
+START_SECTION((const String getProductName()))
 {
   TEST_EQUAL(GaussFitter1D::getProductName(),"GaussFitter1D")
   TEST_EQUAL(GaussFitter1D().getName(),"GaussFitter1D")
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

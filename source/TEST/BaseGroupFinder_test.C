@@ -53,22 +53,22 @@ START_TEST(BaseGroupFinder, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TestPairFinder* ptr = 0;
-CHECK((BaseGroupFinder()))
+START_SECTION((BaseGroupFinder()))
 	ptr = new TestPairFinder();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~BaseGroupFinder()))
+START_SECTION((virtual ~BaseGroupFinder()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((static void registerChildren()))
+START_SECTION((static void registerChildren()))
   NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((virtual void run(const std::vector< ConsensusMap > &input, ConsensusMap &result)=0))
+START_SECTION((virtual void run(const std::vector< ConsensusMap > &input, ConsensusMap &result)=0))
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

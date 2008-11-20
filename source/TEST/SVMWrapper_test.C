@@ -47,22 +47,22 @@ using namespace std;
 SVMWrapper* ptr;
 SVMWrapper svm;
 
-CHECK((SVMWrapper()))
+START_SECTION((SVMWrapper()))
 	ptr = new SVMWrapper();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((DoubleReal getDoubleParameter(SVM_parameter_type type)))
+START_SECTION((DoubleReal getDoubleParameter(SVM_parameter_type type)))
 	svm.setParameter(C, 1.0043);
 	svm.setParameter(NU, 0.0523);
 	svm.setParameter(P, 1.2319);
 	
-	TEST_REAL_EQUAL(svm.getDoubleParameter(C), 1.0043)
-	TEST_REAL_EQUAL(svm.getDoubleParameter(NU), 0.0523)
-	TEST_REAL_EQUAL(svm.getDoubleParameter(P), 1.2319)
-RESULT
+	TEST_REAL_SIMILAR(svm.getDoubleParameter(C), 1.0043)
+	TEST_REAL_SIMILAR(svm.getDoubleParameter(NU), 0.0523)
+	TEST_REAL_SIMILAR(svm.getDoubleParameter(P), 1.2319)
+END_SECTION
 
-CHECK((DoubleReal getSVRProbability()))
+START_SECTION((DoubleReal getSVRProbability()))
 	LibSVMEncoder encoder;
 	vector< vector< pair<Int, DoubleReal> > > vectors;		
 	vector< pair<Int, DoubleReal> > temp_vector;
@@ -89,9 +89,9 @@ CHECK((DoubleReal getSVRProbability()))
 	svm.setParameter(PROBABILITY, 1);
 	svm.train(problem);
 	TEST_EQUAL(svm.getSVRProbability() == 0, false)
-RESULT
+END_SECTION
 
-CHECK((Int getIntParameter(SVM_parameter_type type)))
+START_SECTION((Int getIntParameter(SVM_parameter_type type)))
 	svm.setParameter(SVM_TYPE, EPSILON_SVR);
 	svm.setParameter(KERNEL_TYPE, LINEAR);
 	svm.setParameter(DEGREE, 2);
@@ -99,9 +99,9 @@ CHECK((Int getIntParameter(SVM_parameter_type type)))
 	TEST_EQUAL(svm.getIntParameter(SVM_TYPE), EPSILON_SVR);
 	TEST_EQUAL(svm.getIntParameter(KERNEL_TYPE), LINEAR);
 	TEST_EQUAL(svm.getIntParameter(DEGREE), 2);
-RESULT
+END_SECTION
 
-CHECK((Int train(struct svm_problem *problem)))
+START_SECTION((Int train(struct svm_problem *problem)))
 	svm_problem* problem = new svm_problem();
 	UInt count = 4;
 	svm_node** nodes = new svm_node*[count];
@@ -117,9 +117,9 @@ CHECK((Int train(struct svm_problem *problem)))
 	problem->l = count;
 	problem->y = labels;
 	TEST_EQUAL(svm.train(problem), 1)
-RESULT
+END_SECTION
 
-CHECK((static void getLabels(svm_problem *problem, std::vector< DoubleReal > &labels)))
+START_SECTION((static void getLabels(svm_problem *problem, std::vector< DoubleReal > &labels)))
 	svm_problem* problem = new svm_problem();
 	UInt count = 4;
 	svm_node** nodes = new svm_node*[count];
@@ -142,12 +142,12 @@ CHECK((static void getLabels(svm_problem *problem, std::vector< DoubleReal > &la
 	TEST_EQUAL(label_vector1.size(), label_vector2.size())
 	for(UInt i = 0; i < label_vector2.size(); i++)
 	{
-		TEST_REAL_EQUAL(label_vector1[i], label_vector2[i])
+		TEST_REAL_SIMILAR(label_vector1[i], label_vector2[i])
 	}	
 	delete problem;
-RESULT
+END_SECTION
 
-CHECK((static void createRandomPartitions(svm_problem *problem, UInt number, std::vector< svm_problem * > &partitions)))
+START_SECTION((static void createRandomPartitions(svm_problem *problem, UInt number, std::vector< svm_problem * > &partitions)))
 	 svm_problem* problem = new svm_problem();
 	UInt count = 4;
 	 svm_node** nodes = new svm_node*[count];
@@ -168,9 +168,9 @@ CHECK((static void createRandomPartitions(svm_problem *problem, UInt number, std
 	TEST_EQUAL(partitions.size(), 2)
 	TEST_EQUAL(partitions[0]->l, 2)
 	TEST_EQUAL(partitions[1]->l, 2)
-RESULT
+END_SECTION
 
-CHECK((static svm_problem* mergePartitions(const std::vector< svm_problem * > &problems, UInt except)))
+START_SECTION((static svm_problem* mergePartitions(const std::vector< svm_problem * > &problems, UInt except)))
 	 svm_problem* problem = new svm_problem();
 	 svm_problem* problem2;
 	 UInt count = 10;
@@ -204,14 +204,14 @@ CHECK((static svm_problem* mergePartitions(const std::vector< svm_problem * > &p
 		UInt j = 0;
 		while(problem->x[i][j].index != -1 && problem2->x[i][j].index != -1)
 		{
-			TEST_REAL_EQUAL(partitions[i / partition_size]->x[i % partition_size][j].value, problem2->x[i][j].value)
+			TEST_REAL_SIMILAR(partitions[i / partition_size]->x[i % partition_size][j].value, problem2->x[i][j].value)
 			++j;
 		}
-		TEST_REAL_EQUAL(partitions[i / partition_size]->y[i % partition_size], problem2->y[i])
+		TEST_REAL_SIMILAR(partitions[i / partition_size]->y[i % partition_size], problem2->y[i])
 	}
-RESULT
+END_SECTION
 
-CHECK((static void calculateGaussTable(UInt border_length, DoubleReal sigma, std::vector<DoubleReal>& gauss_table)))
+START_SECTION((static void calculateGaussTable(UInt border_length, DoubleReal sigma, std::vector<DoubleReal>& gauss_table)))
   UInt border_length = 5;
   DoubleReal sigma = 2;
   DoubleReal sigma_square = sigma * sigma;
@@ -221,13 +221,13 @@ CHECK((static void calculateGaussTable(UInt border_length, DoubleReal sigma, std
   TEST_EQUAL(gauss_table.size(), 5)
   TEST_EQUAL(gauss_table[0], 1)
   /* changed to REAL_EQUAL, as it fails otherwise under windows. Assigning the RHS to a DoubleReal before comparison would help as well. */
-  TEST_REAL_EQUAL(gauss_table[1], exp((-1 / (4.0 * sigma_square)) * 1))
-  TEST_REAL_EQUAL(gauss_table[2], exp((-1 / (4.0 * sigma_square)) * 4))
-  TEST_REAL_EQUAL(gauss_table[3], exp((-1 / (4.0 * sigma_square)) * 9))
-  TEST_REAL_EQUAL(gauss_table[4], exp((-1 / (4.0 * sigma_square)) * 16))	
-RESULT
+  TEST_REAL_SIMILAR(gauss_table[1], exp((-1 / (4.0 * sigma_square)) * 1))
+  TEST_REAL_SIMILAR(gauss_table[2], exp((-1 / (4.0 * sigma_square)) * 4))
+  TEST_REAL_SIMILAR(gauss_table[3], exp((-1 / (4.0 * sigma_square)) * 9))
+  TEST_REAL_SIMILAR(gauss_table[4], exp((-1 / (4.0 * sigma_square)) * 16))	
+END_SECTION
 
-CHECK((DoubleReal performCrossValidation(svm_problem *problem, const std::map< SVM_parameter_type, DoubleReal > &start_values, const std::map< SVM_parameter_type, DoubleReal > &step_sizes, const std::map< SVM_parameter_type, DoubleReal > &end_values, UInt number_of_partitions, UInt number_of_runs, std::map< SVM_parameter_type, DoubleReal > &best_parameters, bool additive_step_size=true, bool output=false, String performances_file_name="performances.txt", bool mcc_as_performance_measure=false)))
+START_SECTION((DoubleReal performCrossValidation(svm_problem *problem, const std::map< SVM_parameter_type, DoubleReal > &start_values, const std::map< SVM_parameter_type, DoubleReal > &step_sizes, const std::map< SVM_parameter_type, DoubleReal > &end_values, UInt number_of_partitions, UInt number_of_runs, std::map< SVM_parameter_type, DoubleReal > &best_parameters, bool additive_step_size=true, bool output=false, String performances_file_name="performances.txt", bool mcc_as_performance_measure=false)))
 	map<SVM_parameter_type, DoubleReal> start_values;
 	map<SVM_parameter_type, DoubleReal> step_sizes;
 	map<SVM_parameter_type, DoubleReal> end_values;
@@ -271,9 +271,9 @@ CHECK((DoubleReal performCrossValidation(svm_problem *problem, const std::map< S
 
 	cv_quality = svm.performCrossValidation(problem, start_values, step_sizes, end_values, 2, 1, parameters, true, false);
 	TEST_NOT_EQUAL(parameters.size(), 0)
-RESULT
+END_SECTION
 
-CHECK((void predict(struct svm_problem *predictProblem, std::vector< DoubleReal > &predicted_rts)))
+START_SECTION((void predict(struct svm_problem *predictProblem, std::vector< DoubleReal > &predicted_rts)))
  	LibSVMEncoder encoder;
 	vector< vector< pair<Int, DoubleReal> > > vectors;		
 	vector< pair<Int, DoubleReal> > temp_vector;
@@ -301,9 +301,9 @@ CHECK((void predict(struct svm_problem *predictProblem, std::vector< DoubleReal 
 	svm.train(problem);
 	svm.predict(problem, predicted_labels);
 	TEST_NOT_EQUAL(predicted_labels.size(), 0)
-RESULT
+END_SECTION
 
-CHECK((svm_problem* computeKernelMatrix(svm_problem* problem1, svm_problem* problem2)))
+START_SECTION((svm_problem* computeKernelMatrix(svm_problem* problem1, svm_problem* problem2)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
 	String output;
@@ -326,13 +326,13 @@ CHECK((svm_problem* computeKernelMatrix(svm_problem* problem1, svm_problem* prob
 	kernel_matrix = svm.computeKernelMatrix(data, data);
 	svm.train(data);
 
-	PRECISION(0.0001)
-	TEST_REAL_EQUAL(kernel_matrix->x[0][0].value, 1)
-	TEST_REAL_EQUAL(kernel_matrix->x[0][1].value, 19.7156)
-	TEST_REAL_EQUAL(kernel_matrix->x[0][2].value, 21.1308)
-	TEST_REAL_EQUAL(kernel_matrix->x[1][0].value, 2)
-	TEST_REAL_EQUAL(kernel_matrix->x[1][1].value, 21.1308)
-	TEST_REAL_EQUAL(kernel_matrix->x[1][2].value, 27.2309)
+	TOLERANCE_ABSOLUTE(0.0001)
+	TEST_REAL_SIMILAR(kernel_matrix->x[0][0].value, 1)
+	TEST_REAL_SIMILAR(kernel_matrix->x[0][1].value, 19.7156)
+	TEST_REAL_SIMILAR(kernel_matrix->x[0][2].value, 21.1308)
+	TEST_REAL_SIMILAR(kernel_matrix->x[1][0].value, 2)
+	TEST_REAL_SIMILAR(kernel_matrix->x[1][1].value, 21.1308)
+	TEST_REAL_SIMILAR(kernel_matrix->x[1][2].value, 27.2309)
 	TEST_EQUAL(kernel_matrix->x[0][0].index, 0)
 	TEST_EQUAL(kernel_matrix->x[0][1].index, 1)
 	TEST_EQUAL(kernel_matrix->x[0][2].index, 2)
@@ -342,9 +342,9 @@ CHECK((svm_problem* computeKernelMatrix(svm_problem* problem1, svm_problem* prob
 	TEST_EQUAL(kernel_matrix->y[0], 1)
 	TEST_EQUAL(kernel_matrix->y[1], 2)
 
-RESULT
+END_SECTION
 
-CHECK((static DoubleReal kernelOligo(const svm_node *x, const svm_node *y, const std::vector< DoubleReal > &gauss_table, DoubleReal sigma_square=0, UInt max_distance=50)))
+START_SECTION((static DoubleReal kernelOligo(const svm_node *x, const svm_node *y, const std::vector< DoubleReal > &gauss_table, DoubleReal sigma_square=0, UInt max_distance=50)))
   vector<DoubleReal> labels;
 	String sequence = "ACNNGTATCA";
 	String allowed_characters = "ACNGT";
@@ -367,12 +367,12 @@ CHECK((static DoubleReal kernelOligo(const svm_node *x, const svm_node *y, const
   sequences.push_back("AACNNGTACCA");
 	data = encoder.encodeLibSVMProblemWithOligoBorderVectors(sequences, labels, 1, allowed_characters, border_length);
 	result = SVMWrapper::kernelOligo(data->x[0], data->x[1], gauss_table);
-	PRECISION(0.0001)
-	TEST_REAL_EQUAL(result, 21.1308)
+	TOLERANCE_ABSOLUTE(0.0001)
+	TEST_REAL_SIMILAR(result, 21.1308)
 	delete data;
-RESULT
+END_SECTION
 
-CHECK((void getDecisionValues(svm_problem* data, std::vector<DoubleReal>& decision_values)))
+START_SECTION((void getDecisionValues(svm_problem* data, std::vector<DoubleReal>& decision_values)))
  	LibSVMEncoder encoder;
 	vector< vector< pair<Int, DoubleReal> > > vectors;		
 	vector< pair<Int, DoubleReal> > temp_vector;
@@ -437,9 +437,9 @@ CHECK((void getDecisionValues(svm_problem* data, std::vector<DoubleReal>& decisi
 							|| (predicted_labels[i] > 0 && decision_values[i] > 0), true)
 	}
 
-RESULT
+END_SECTION
 
-CHECK((void scaleData(svm_problem* data, Int max_scale_value = -1)))
+START_SECTION((void scaleData(svm_problem* data, Int max_scale_value = -1)))
  	LibSVMEncoder encoder;
 	vector< vector< pair<Int, DoubleReal> > > vectors;		
 	vector< pair<Int, DoubleReal> > temp_vector;
@@ -469,121 +469,121 @@ CHECK((void scaleData(svm_problem* data, Int max_scale_value = -1)))
 	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.scaleData(problem, 2);
 
-	TEST_REAL_EQUAL(problem->x[0][0].value, 0)
-	TEST_REAL_EQUAL(problem->x[0][1].value, 0)
-	TEST_REAL_EQUAL(problem->x[0][2].value, 0)
-	TEST_REAL_EQUAL(problem->x[0][3].value, 0)
-	TEST_REAL_EQUAL(problem->x[0][4].value, 0)
-	TEST_REAL_EQUAL(problem->x[1][0].value, 0.2857)
-	TEST_REAL_EQUAL(problem->x[1][1].value, 0.2857)
-	TEST_REAL_EQUAL(problem->x[1][2].value, 0.2857)
-	TEST_REAL_EQUAL(problem->x[1][3].value, 0.2857)
-	TEST_REAL_EQUAL(problem->x[1][4].value, 0.2857)
-	TEST_REAL_EQUAL(problem->x[2][0].value, 0.5714)
-	TEST_REAL_EQUAL(problem->x[2][1].value, 0.5714)
-	TEST_REAL_EQUAL(problem->x[2][2].value, 0.5714)
-	TEST_REAL_EQUAL(problem->x[2][3].value, 0.5714)
-	TEST_REAL_EQUAL(problem->x[2][4].value, 0.5714)
-	TEST_REAL_EQUAL(problem->x[3][0].value, 0.8571)
-	TEST_REAL_EQUAL(problem->x[3][1].value, 0.8571)
-	TEST_REAL_EQUAL(problem->x[3][2].value, 0.8571)
-	TEST_REAL_EQUAL(problem->x[3][3].value, 0.8571)
-	TEST_REAL_EQUAL(problem->x[3][4].value, 0.8571)
-	TEST_REAL_EQUAL(problem->x[4][0].value, 1.1429)
-	TEST_REAL_EQUAL(problem->x[4][1].value, 1.1429)
-	TEST_REAL_EQUAL(problem->x[4][2].value, 1.1429)
-	TEST_REAL_EQUAL(problem->x[4][3].value, 1.1429)
-	TEST_REAL_EQUAL(problem->x[4][4].value, 1.1429)
-	TEST_REAL_EQUAL(problem->x[5][0].value, 1.4286)
-	TEST_REAL_EQUAL(problem->x[5][1].value, 1.4286)
-	TEST_REAL_EQUAL(problem->x[5][2].value, 1.4286)
-	TEST_REAL_EQUAL(problem->x[5][3].value, 1.4286)
-	TEST_REAL_EQUAL(problem->x[5][4].value, 1.4286)
-	TEST_REAL_EQUAL(problem->x[6][0].value, 1.7143)
-	TEST_REAL_EQUAL(problem->x[6][1].value, 1.7143)
-	TEST_REAL_EQUAL(problem->x[6][2].value, 1.7143)
-	TEST_REAL_EQUAL(problem->x[6][3].value, 1.7143)
-	TEST_REAL_EQUAL(problem->x[6][4].value, 1.7143)
-	TEST_REAL_EQUAL(problem->x[7][0].value, 2)
-	TEST_REAL_EQUAL(problem->x[7][1].value, 2)
-	TEST_REAL_EQUAL(problem->x[7][2].value, 2)
-	TEST_REAL_EQUAL(problem->x[7][3].value, 2)
-	TEST_REAL_EQUAL(problem->x[7][4].value, 2)
+	TEST_REAL_SIMILAR(problem->x[0][0].value, 0)
+	TEST_REAL_SIMILAR(problem->x[0][1].value, 0)
+	TEST_REAL_SIMILAR(problem->x[0][2].value, 0)
+	TEST_REAL_SIMILAR(problem->x[0][3].value, 0)
+	TEST_REAL_SIMILAR(problem->x[0][4].value, 0)
+	TEST_REAL_SIMILAR(problem->x[1][0].value, 0.2857)
+	TEST_REAL_SIMILAR(problem->x[1][1].value, 0.2857)
+	TEST_REAL_SIMILAR(problem->x[1][2].value, 0.2857)
+	TEST_REAL_SIMILAR(problem->x[1][3].value, 0.2857)
+	TEST_REAL_SIMILAR(problem->x[1][4].value, 0.2857)
+	TEST_REAL_SIMILAR(problem->x[2][0].value, 0.5714)
+	TEST_REAL_SIMILAR(problem->x[2][1].value, 0.5714)
+	TEST_REAL_SIMILAR(problem->x[2][2].value, 0.5714)
+	TEST_REAL_SIMILAR(problem->x[2][3].value, 0.5714)
+	TEST_REAL_SIMILAR(problem->x[2][4].value, 0.5714)
+	TEST_REAL_SIMILAR(problem->x[3][0].value, 0.8571)
+	TEST_REAL_SIMILAR(problem->x[3][1].value, 0.8571)
+	TEST_REAL_SIMILAR(problem->x[3][2].value, 0.8571)
+	TEST_REAL_SIMILAR(problem->x[3][3].value, 0.8571)
+	TEST_REAL_SIMILAR(problem->x[3][4].value, 0.8571)
+	TEST_REAL_SIMILAR(problem->x[4][0].value, 1.1429)
+	TEST_REAL_SIMILAR(problem->x[4][1].value, 1.1429)
+	TEST_REAL_SIMILAR(problem->x[4][2].value, 1.1429)
+	TEST_REAL_SIMILAR(problem->x[4][3].value, 1.1429)
+	TEST_REAL_SIMILAR(problem->x[4][4].value, 1.1429)
+	TEST_REAL_SIMILAR(problem->x[5][0].value, 1.4286)
+	TEST_REAL_SIMILAR(problem->x[5][1].value, 1.4286)
+	TEST_REAL_SIMILAR(problem->x[5][2].value, 1.4286)
+	TEST_REAL_SIMILAR(problem->x[5][3].value, 1.4286)
+	TEST_REAL_SIMILAR(problem->x[5][4].value, 1.4286)
+	TEST_REAL_SIMILAR(problem->x[6][0].value, 1.7143)
+	TEST_REAL_SIMILAR(problem->x[6][1].value, 1.7143)
+	TEST_REAL_SIMILAR(problem->x[6][2].value, 1.7143)
+	TEST_REAL_SIMILAR(problem->x[6][3].value, 1.7143)
+	TEST_REAL_SIMILAR(problem->x[6][4].value, 1.7143)
+	TEST_REAL_SIMILAR(problem->x[7][0].value, 2)
+	TEST_REAL_SIMILAR(problem->x[7][1].value, 2)
+	TEST_REAL_SIMILAR(problem->x[7][2].value, 2)
+	TEST_REAL_SIMILAR(problem->x[7][3].value, 2)
+	TEST_REAL_SIMILAR(problem->x[7][4].value, 2)
 
 	svm.scaleData(problem);
 
-	TEST_REAL_EQUAL(problem->x[0][0].value, -1)
-	TEST_REAL_EQUAL(problem->x[0][1].value, -1)
-	TEST_REAL_EQUAL(problem->x[0][2].value, -1)
-	TEST_REAL_EQUAL(problem->x[0][3].value, -1)
-	TEST_REAL_EQUAL(problem->x[0][4].value, -1)
-	TEST_REAL_EQUAL(problem->x[1][0].value, -0.7143)
-	TEST_REAL_EQUAL(problem->x[1][1].value, -0.7143)
-	TEST_REAL_EQUAL(problem->x[1][2].value, -0.7143)
-	TEST_REAL_EQUAL(problem->x[1][3].value, -0.7143)
-	TEST_REAL_EQUAL(problem->x[1][4].value, -0.7143)
-	TEST_REAL_EQUAL(problem->x[2][0].value, -0.4286)
-	TEST_REAL_EQUAL(problem->x[2][1].value, -0.4286)
-	TEST_REAL_EQUAL(problem->x[2][2].value, -0.4286)
-	TEST_REAL_EQUAL(problem->x[2][3].value, -0.4286)
-	TEST_REAL_EQUAL(problem->x[2][4].value, -0.4286)
-	TEST_REAL_EQUAL(problem->x[3][0].value, -0.1429)
-	TEST_REAL_EQUAL(problem->x[3][1].value, -0.1429)
-	TEST_REAL_EQUAL(problem->x[3][2].value, -0.1429)
-	TEST_REAL_EQUAL(problem->x[3][3].value, -0.1429)
-	TEST_REAL_EQUAL(problem->x[3][4].value, -0.1429)
-	TEST_REAL_EQUAL(problem->x[4][0].value, 0.1429)
-	TEST_REAL_EQUAL(problem->x[4][1].value, 0.1429)
-	TEST_REAL_EQUAL(problem->x[4][2].value, 0.1429)
-	TEST_REAL_EQUAL(problem->x[4][3].value, 0.1429)
-	TEST_REAL_EQUAL(problem->x[4][4].value, 0.1429)
-	TEST_REAL_EQUAL(problem->x[5][0].value, 0.4286)
-	TEST_REAL_EQUAL(problem->x[5][1].value, 0.4286)
-	TEST_REAL_EQUAL(problem->x[5][2].value, 0.4286)
-	TEST_REAL_EQUAL(problem->x[5][3].value, 0.4286)
-	TEST_REAL_EQUAL(problem->x[5][4].value, 0.4286)
-	TEST_REAL_EQUAL(problem->x[6][0].value, 0.7143)
-	TEST_REAL_EQUAL(problem->x[6][1].value, 0.7143)
-	TEST_REAL_EQUAL(problem->x[6][2].value, 0.7143)
-	TEST_REAL_EQUAL(problem->x[6][3].value, 0.7143)
-	TEST_REAL_EQUAL(problem->x[6][4].value, 0.7143)
-	TEST_REAL_EQUAL(problem->x[7][0].value, 1)
-	TEST_REAL_EQUAL(problem->x[7][1].value, 1)
-	TEST_REAL_EQUAL(problem->x[7][2].value, 1)
-	TEST_REAL_EQUAL(problem->x[7][3].value, 1)
-	TEST_REAL_EQUAL(problem->x[7][4].value, 1)
+	TEST_REAL_SIMILAR(problem->x[0][0].value, -1)
+	TEST_REAL_SIMILAR(problem->x[0][1].value, -1)
+	TEST_REAL_SIMILAR(problem->x[0][2].value, -1)
+	TEST_REAL_SIMILAR(problem->x[0][3].value, -1)
+	TEST_REAL_SIMILAR(problem->x[0][4].value, -1)
+	TEST_REAL_SIMILAR(problem->x[1][0].value, -0.7143)
+	TEST_REAL_SIMILAR(problem->x[1][1].value, -0.7143)
+	TEST_REAL_SIMILAR(problem->x[1][2].value, -0.7143)
+	TEST_REAL_SIMILAR(problem->x[1][3].value, -0.7143)
+	TEST_REAL_SIMILAR(problem->x[1][4].value, -0.7143)
+	TEST_REAL_SIMILAR(problem->x[2][0].value, -0.4286)
+	TEST_REAL_SIMILAR(problem->x[2][1].value, -0.4286)
+	TEST_REAL_SIMILAR(problem->x[2][2].value, -0.4286)
+	TEST_REAL_SIMILAR(problem->x[2][3].value, -0.4286)
+	TEST_REAL_SIMILAR(problem->x[2][4].value, -0.4286)
+	TEST_REAL_SIMILAR(problem->x[3][0].value, -0.1429)
+	TEST_REAL_SIMILAR(problem->x[3][1].value, -0.1429)
+	TEST_REAL_SIMILAR(problem->x[3][2].value, -0.1429)
+	TEST_REAL_SIMILAR(problem->x[3][3].value, -0.1429)
+	TEST_REAL_SIMILAR(problem->x[3][4].value, -0.1429)
+	TEST_REAL_SIMILAR(problem->x[4][0].value, 0.1429)
+	TEST_REAL_SIMILAR(problem->x[4][1].value, 0.1429)
+	TEST_REAL_SIMILAR(problem->x[4][2].value, 0.1429)
+	TEST_REAL_SIMILAR(problem->x[4][3].value, 0.1429)
+	TEST_REAL_SIMILAR(problem->x[4][4].value, 0.1429)
+	TEST_REAL_SIMILAR(problem->x[5][0].value, 0.4286)
+	TEST_REAL_SIMILAR(problem->x[5][1].value, 0.4286)
+	TEST_REAL_SIMILAR(problem->x[5][2].value, 0.4286)
+	TEST_REAL_SIMILAR(problem->x[5][3].value, 0.4286)
+	TEST_REAL_SIMILAR(problem->x[5][4].value, 0.4286)
+	TEST_REAL_SIMILAR(problem->x[6][0].value, 0.7143)
+	TEST_REAL_SIMILAR(problem->x[6][1].value, 0.7143)
+	TEST_REAL_SIMILAR(problem->x[6][2].value, 0.7143)
+	TEST_REAL_SIMILAR(problem->x[6][3].value, 0.7143)
+	TEST_REAL_SIMILAR(problem->x[6][4].value, 0.7143)
+	TEST_REAL_SIMILAR(problem->x[7][0].value, 1)
+	TEST_REAL_SIMILAR(problem->x[7][1].value, 1)
+	TEST_REAL_SIMILAR(problem->x[7][2].value, 1)
+	TEST_REAL_SIMILAR(problem->x[7][3].value, 1)
+	TEST_REAL_SIMILAR(problem->x[7][4].value, 1)
 
-RESULT
+END_SECTION
 
-CHECK((void getSignificanceBorders(svm_problem *data, std::pair< DoubleReal, DoubleReal > &borders, DoubleReal confidence=0.95, UInt number_of_runs=10, UInt number_of_partitions=5, DoubleReal step_size=0.01, UInt max_iterations=1000000)))
+START_SECTION((void getSignificanceBorders(svm_problem *data, std::pair< DoubleReal, DoubleReal > &borders, DoubleReal confidence=0.95, UInt number_of_runs=10, UInt number_of_partitions=5, DoubleReal step_size=0.01, UInt max_iterations=1000000)))
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((DoubleReal getPValue(DoubleReal sigma1, DoubleReal sigma2, std::pair<DoubleReal, DoubleReal> point)))
+START_SECTION((DoubleReal getPValue(DoubleReal sigma1, DoubleReal sigma2, std::pair<DoubleReal, DoubleReal> point)))
 
 	pair<DoubleReal, DoubleReal> point;
 	
 	point.first = 0.447934;
 	point.second = 0.404208;
 
-	TEST_REAL_EQUAL(svm.getPValue(0.18, 1.06, point), 0.327505)
-RESULT
+	TEST_REAL_SIMILAR(svm.getPValue(0.18, 1.06, point), 0.327505)
+END_SECTION
 
-CHECK((void setTrainingSample(svm_problem* training_sample)))
+START_SECTION((void setTrainingSample(svm_problem* training_sample)))
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((void setParameter(SVM_parameter_type type, DoubleReal value)))
+START_SECTION((void setParameter(SVM_parameter_type type, DoubleReal value)))
  	svm.setParameter(C, 1.0043);
 	svm.setParameter(NU, 0.0523);
 	svm.setParameter(P, 1.2319);
 	
-	TEST_REAL_EQUAL(svm.getDoubleParameter(C), 1.0043)
-	TEST_REAL_EQUAL(svm.getDoubleParameter(NU), 0.0523)
-	TEST_REAL_EQUAL(svm.getDoubleParameter(P), 1.2319)
-RESULT
+	TEST_REAL_SIMILAR(svm.getDoubleParameter(C), 1.0043)
+	TEST_REAL_SIMILAR(svm.getDoubleParameter(NU), 0.0523)
+	TEST_REAL_SIMILAR(svm.getDoubleParameter(P), 1.2319)
+END_SECTION
 
-CHECK((void setParameter(SVM_parameter_type type, Int value)))
+START_SECTION((void setParameter(SVM_parameter_type type, Int value)))
 	svm.setParameter(SVM_TYPE, EPSILON_SVR);
 	svm.setParameter(KERNEL_TYPE, LINEAR);
 	svm.setParameter(DEGREE, 2);
@@ -595,13 +595,13 @@ CHECK((void setParameter(SVM_parameter_type type, Int value)))
 	TEST_EQUAL(svm.getIntParameter(DEGREE), 2);
 	TEST_EQUAL((int) svm.getDoubleParameter(C), 23);
 	TEST_EQUAL(svm.getIntParameter(PROBABILITY), 1)
-RESULT
+END_SECTION
 
-CHECK((~SVMWrapper()))
+START_SECTION((~SVMWrapper()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((void loadModel(std::string modelFilename)))
+START_SECTION((void loadModel(std::string modelFilename)))
 	LibSVMEncoder encoder;
 	svm.setParameter(KERNEL_TYPE, POLY);
 	vector< vector< pair<Int, DoubleReal> > > vectors;		
@@ -641,11 +641,11 @@ CHECK((void loadModel(std::string modelFilename)))
 	TEST_EQUAL(predicted_labels1.size(), predicted_labels2.size())
 	for(UInt i = 0; i < predicted_labels1.size(); i++)
 	{
-		TEST_REAL_EQUAL(predicted_labels1[i], predicted_labels2[i])
+		TEST_REAL_SIMILAR(predicted_labels1[i], predicted_labels2[i])
 	}
-RESULT
+END_SECTION
 
-CHECK((void saveModel(std::string modelFilename) const throw(Exception::UnableToCreateFile)))
+START_SECTION((void saveModel(std::string modelFilename) const throw(Exception::UnableToCreateFile)))
 	LibSVMEncoder encoder;
 	svm.setParameter(KERNEL_TYPE, POLY);
 	vector< vector< pair<Int, DoubleReal> > > vectors;		
@@ -687,11 +687,11 @@ CHECK((void saveModel(std::string modelFilename) const throw(Exception::UnableTo
 
 	for(UInt i = 0; i < predicted_labels1.size(); i++)
 	{
-		TEST_REAL_EQUAL(predicted_labels1[i], predicted_labels2[i])
+		TEST_REAL_SIMILAR(predicted_labels1[i], predicted_labels2[i])
 	}
-RESULT
+END_SECTION
 
-CHECK((void predict(const std::vector< svm_node * > &vectors, std::vector< DoubleReal > &predicted_rts)))
+START_SECTION((void predict(const std::vector< svm_node * > &vectors, std::vector< DoubleReal > &predicted_rts)))
 	LibSVMEncoder encoder;
 	vector< vector< pair<Int, DoubleReal> > > vectors;		
 	vector< pair<Int, DoubleReal> > temp_vector;
@@ -719,13 +719,13 @@ CHECK((void predict(const std::vector< svm_node * > &vectors, std::vector< Doubl
 	svm.predict(encoded_vectors, predicted_labels);
 	TEST_NOT_EQUAL(predicted_labels.size(), 0)
 	
-RESULT
+END_SECTION
 
-CHECK(void setWeights(const std::vector< Int > &weight_labels, const std::vector< DoubleReal > &weights))
+START_SECTION(void setWeights(const std::vector< Int > &weight_labels, const std::vector< DoubleReal > &weights))
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void getSVCProbabilities(struct svm_problem *problem, std::vector< DoubleReal > &probabilities, std::vector< DoubleReal > &prediction_labels))
+START_SECTION(void getSVCProbabilities(struct svm_problem *problem, std::vector< DoubleReal > &probabilities, std::vector< DoubleReal > &prediction_labels))
  	LibSVMEncoder encoder;
 	vector< vector< pair<Int, DoubleReal> > > vectors;		
 	vector< pair<Int, DoubleReal> > temp_vector;
@@ -779,7 +779,7 @@ CHECK(void getSVCProbabilities(struct svm_problem *problem, std::vector< DoubleR
 							|| (predicted_labels[i] > 0 && probabilities[i] > 0.5), true)
 	}
 	
-RESULT
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

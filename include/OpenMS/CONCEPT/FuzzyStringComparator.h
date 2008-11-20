@@ -39,13 +39,26 @@
 
 namespace OpenMS
 {
+	namespace Internal
+	{
+		namespace ClassTest
+		{
+			bool isStringSimilar( const std::string &, const std::string & );
+			bool isFileSimilar( const std::string &, const std::string & );
+		}
+	}
+
 	/**
 	@brief Fuzzy comparison of strings, tolerates numeric differences.
 
 	*/
 	class FuzzyStringComparator
 	{
-		/// Internal exeption class.
+		
+		friend bool Internal::ClassTest::isStringSimilar( const std::string & , const std::string & );
+		friend bool Internal::ClassTest::isFileSimilar( const std::string & , const std::string & );
+
+		/// %Internal exeption class.
 		struct AbortComparison{};
 		
 	 public:
@@ -70,28 +83,28 @@ namespace OpenMS
 		/// Acceptable relative error (a number >= 1.0)
 		const double & getAcceptableRelative() const
 		{
-			return ratio_max__allowed_;
+			return ratio_max_allowed_;
 		}
 
 		/// Acceptable relative error (a number >= 1.0)
 		void setAcceptableRelative(const double rhs)
 		{
-			this->ratio_max__allowed_ = rhs;
-			if ( ratio_max__allowed_ < 1.0 ) ratio_max__allowed_ = 1/ratio_max__allowed_;
+			this->ratio_max_allowed_ = rhs;
+			if ( ratio_max_allowed_ < 1.0 ) ratio_max_allowed_ = 1/ratio_max_allowed_;
 
 		}
 
 		/// Acceptable absolute difference (a number >= 0.0)
 		const double & getAcceptableAbsolute() const
 		{
-			return absdiff_max__allowed_;
+			return absdiff_max_allowed_;
 		}
 
 		/// Acceptable absolute difference (a number >= 0.0)
 		void setAcceptableAbsolute(const double rhs)
 		{
-			this->absdiff_max__allowed_ = rhs;
-			if ( absdiff_max__allowed_ < 0.0 ) absdiff_max__allowed_ = -absdiff_max__allowed_;
+			this->absdiff_max_allowed_ = rhs;
+			if ( absdiff_max_allowed_ < 0.0 ) absdiff_max_allowed_ = -absdiff_max_allowed_;
 		}
 
 		/**@brief verbose level
@@ -162,12 +175,10 @@ namespace OpenMS
 
 		The default is std::cout.  Use std::ostringstream etc. to save the output
 		in a string.
-		
-		@todo: default for log destination should be std::cout, but strangely this
-		doesn't work with Windows, thus I commented out the first subtest. Maybe a
-		problem with static initializers? (see FuzzyStringComparator_test.C:
-		TEST_EQUAL(fsc.getLogDestination(),std::cout); ) (Clemens, 2008-03-28)
 
+		@internal There seems to be an issue with this under Windows, see comment
+		in FuzzyStringComparator_test.C
+		
 		*/
 		void setLogDestination(std::ostream & rhs)
 		{
@@ -200,11 +211,11 @@ namespace OpenMS
 		@param filename_2 second input file
 		@return A non-zero exit status indicates that errors were found.  For the meaning of other numbers, see the code.
 
-		@sa acceptable_ratio
-		@sa acceptable_absdiff
+		@sa ratio_max_allowed_
+		@sa absdiff_max_allowed_
 		@sa verbose_level_
 		*/
-		bool compare_files( const std::string & filename_1, const std::string & filename_2);
+		bool compareFiles( const std::string & filename_1, const std::string & filename_2);
 
 	 protected:
 
@@ -216,8 +227,8 @@ namespace OpenMS
 		returns true in case of success
 		*/
 		bool compareLines_( std::string const & line_str_1,
-												 std::string const & line_str_2
-											 );
+												std::string const & line_str_2
+											);
 
 		/// Report good news.
  		void reportSuccess_() const;
@@ -236,19 +247,19 @@ namespace OpenMS
 		std::stringstream line_1_;
 		std::stringstream line_2_;
 
-		std::ios::pos_type line_1__pos_;
-		std::ios::pos_type line_2__pos_;
+		std::ios::pos_type line_1_pos_;
+		std::ios::pos_type line_2_pos_;
 
-		/// Maximum ratio of numbers allowed
-		double ratio_max__allowed_;
+		/// Maximum ratio of numbers allowed, see #ratio_max_.
+		double ratio_max_allowed_;
 
-		/// Maximum ratio of numbers observed so far
+		/// Maximum ratio of numbers observed so far, see #ratio_max_allowed_.
 		double ratio_max_;
 
-		/// Maximum absolute difference of numbers allowed
-		double absdiff_max__allowed_;
+		/// Maximum absolute difference of numbers allowed, see #absdiff_max_.
+		double absdiff_max_allowed_;
 
-		/// Maximum difference of numbers observed so far
+		/// Maximum difference of numbers observed so far, see #absdiff_max_allowed_.
 		double absdiff_max_;
 
 		double number_1_;
@@ -266,8 +277,8 @@ namespace OpenMS
 		int line_num_1_;
 		int line_num_2_;
 
-		int line_num_1__max_;
-		int line_num_2__max_;
+		int line_num_1_max_;
+		int line_num_2_max_;
 
 		int verbose_level_;
 		int tab_width_;
@@ -280,6 +291,9 @@ namespace OpenMS
 
 		std::string line_str_1_max_;
 		std::string line_str_2_max_;
+
+		/// use a prefix when reporting
+		bool use_prefix_;
 
 	}; // class FuzzyStringComparator
 

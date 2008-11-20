@@ -45,16 +45,16 @@ START_TEST(EdwardsLippertIteratorTryptic, "$Id$")
 /////////////////////////////////////////////////////////////
 
 EdwardsLippertIteratorTryptic* ptr = 0;
-CHECK(EdwardsLippertIteratorTryptic())
+START_SECTION(EdwardsLippertIteratorTryptic())
 	ptr = new EdwardsLippertIteratorTryptic();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~EdwardsLippertIteratorTryptic())
+START_SECTION(~EdwardsLippertIteratorTryptic())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(EdwardsLippertIteratorTryptic(const EdwardsLippertIteratorTryptic& rhs))
+START_SECTION(EdwardsLippertIteratorTryptic(const EdwardsLippertIteratorTryptic& rhs))
   ptr = new EdwardsLippertIteratorTryptic();
   ptr->setFastaFile("data/EdwardsLippertIterator_test_2.fasta");
 	vector<float> specc;
@@ -68,9 +68,9 @@ CHECK(EdwardsLippertIteratorTryptic(const EdwardsLippertIteratorTryptic& rhs))
   TEST_EQUAL ((*ptr).getTolerance(),(copy).getTolerance());
   TEST_EQUAL ((**ptr).first,(*copy).first);
   TEST_EQUAL ((**ptr).second,(*copy).second);
-RESULT
+END_SECTION
 
-CHECK(EdwardsLippertIteratorTryptic& operator=(const EdwardsLippertIteratorTryptic &rhs))
+START_SECTION(EdwardsLippertIteratorTryptic& operator=(const EdwardsLippertIteratorTryptic &rhs))
 	ptr = new EdwardsLippertIteratorTryptic();
   ptr->setFastaFile("data/EdwardsLippertIterator_test_2.fasta");
   vector<float> specc;
@@ -85,18 +85,18 @@ CHECK(EdwardsLippertIteratorTryptic& operator=(const EdwardsLippertIteratorTrypt
   TEST_EQUAL ((*ptr).getTolerance(),(copy).getTolerance());
   TEST_EQUAL ((**ptr).first,(*copy).first);
   TEST_EQUAL ((**ptr).second,(*copy).second);				
-RESULT
+END_SECTION
 
-CHECK (virtual bool isDigestingEnd(char aa1,char aa2))
+START_SECTION(virtual bool isDigestingEnd(char aa1,char aa2))
 	ptr = new EdwardsLippertIteratorTryptic();
 	TEST_EQUAL(ptr->isDigestingEnd('R','S'),1)
 	TEST_EQUAL(ptr->isDigestingEnd('K','S'),1)
 	TEST_EQUAL(ptr->isDigestingEnd('R','P'),0)
 	TEST_EQUAL(ptr->isDigestingEnd('K','P'),0)
 	TEST_EQUAL(ptr->isDigestingEnd('S','S'),0)
-RESULT
+END_SECTION
 
-CHECK ([EXTRA] FASTAEntry operator*())
+START_SECTION([EXTRA] FASTAEntry operator*())
 	vector<float> spec;
 	spec.push_back(178.1864);
 	spec.push_back(441.4806);
@@ -154,15 +154,15 @@ CHECK ([EXTRA] FASTAEntry operator*())
 		TEST_EQUAL (isCorrect, 1);
 		++*ptr;
 	}
-RESULT
+END_SECTION
 
-CHECK(static const String getProductName())
+START_SECTION(static const String getProductName())
 	TEST_STRING_EQUAL(EdwardsLippertIteratorTryptic::getProductName(), "EdwardsLippertIteratorTryptic")
-RESULT
+END_SECTION
 			
-CHECK(static PepIterator* create())
+START_SECTION(static PepIterator* create())
 	TEST_NOT_EQUAL(EdwardsLippertIterator::create(), 0)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

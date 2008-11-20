@@ -50,19 +50,19 @@ using namespace std;
 
 // pure interface, hardly testable
 
-CHECK(FilterFunctor())
+START_SECTION(FilterFunctor())
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(FilterFunctor(const FilterFunctor& source))
+START_SECTION(FilterFunctor(const FilterFunctor& source))
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(FilterFunctor& operator = (const FilterFunctor& source))
+START_SECTION(FilterFunctor& operator = (const FilterFunctor& source))
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(static void registerChildren())
+START_SECTION(static void registerChildren())
 	FilterFunctor* ff = Factory<FilterFunctor>::create("ComplementFilter");
 	TEST_EQUAL(ff->getName(), "ComplementFilter")
 	ff = Factory<FilterFunctor>::create("IntensityBalanceFilter");
@@ -76,15 +76,15 @@ CHECK(static void registerChildren())
 	ff = Factory<FilterFunctor>::create("PeakDensityFilter");
 	TEST_EQUAL(ff->getName(), "PeakDensityFilter")
 
-RESULT
+END_SECTION
 
-CHECK(template<typename SpectrumType> double apply(SpectrumType&))
+START_SECTION(template<typename SpectrumType> double apply(SpectrumType&))
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(~FilterFunctor())
+START_SECTION(~FilterFunctor())
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

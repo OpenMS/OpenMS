@@ -39,16 +39,16 @@ START_TEST(Map, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Map<int, int>* map_ptr;
-CHECK((Map()))
+START_SECTION((Map()))
 	map_ptr = new Map<int, int>;
 	TEST_NOT_EQUAL(map_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~Map()))
+START_SECTION((~Map()))
 	delete map_ptr;
-RESULT
+END_SECTION
 
-CHECK((T& operator [] (const Key& key)))
+START_SECTION((T& operator [] (const Key& key)))
 	Map<int, int> hm;
 	hm[0] = 0;
 	hm[0] = 1;
@@ -64,9 +64,9 @@ CHECK((T& operator [] (const Key& key)))
 	TEST_EQUAL(hm[3], 8)
 	TEST_EQUAL(hm[4], 16)
 	TEST_EQUAL(hm[5], 32)
-RESULT
+END_SECTION
 
-CHECK((const T & operator[](const Key &key) const ))
+START_SECTION((const T & operator[](const Key &key) const ))
 	Map<int, int> hm;
 	hm[0] = 0;
 	hm[0] = 1;
@@ -85,16 +85,16 @@ CHECK((const T & operator[](const Key &key) const ))
 	TEST_EQUAL(const_map[5], 32)
 	typedef Map<int,int> MyMap; // otherwise next line wont work
 	TEST_EXCEPTION(MyMap::IllegalKey, const_map[6])
-RESULT
+END_SECTION
 
-CHECK((bool has(const Key& key) const))
+START_SECTION((bool has(const Key& key) const))
 	Map<int, int> hm;
 	hm.insert(Map<int, int>::ValueType(0, 0));
 	hm.insert(Map<int, int>::ValueType(1, 1));
 	TEST_EQUAL(hm.has(0), true)
 	TEST_EQUAL(hm.has(1), true)
 	TEST_EQUAL(hm.has(2), false)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

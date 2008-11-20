@@ -42,7 +42,7 @@ START_TEST(SampleTreatment, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-PRECISION(0.001)
+TOLERANCE_ABSOLUTE(0.001)
 
 class Test: public SampleTreatment
 {
@@ -91,32 +91,32 @@ class Test: public SampleTreatment
 };
 
 Test* dv_ptr = 0;
-CHECK((SampleTreatment(const String& type)))
+START_SECTION((SampleTreatment(const String& type)))
 	dv_ptr = new Test;
 	TEST_NOT_EQUAL(dv_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~SampleTreatment()))
+START_SECTION((~SampleTreatment()))
 	delete dv_ptr;
-RESULT
+END_SECTION
 
-CHECK(const String& getType() const)
+START_SECTION(const String& getType() const)
 	Test s;
 	TEST_EQUAL(s.getType(),"Test")
-RESULT
+END_SECTION
 
-CHECK((const String& getComment() const))
+START_SECTION((const String& getComment() const))
 	Test s;
 	TEST_EQUAL(s.getComment(),"")
-RESULT
+END_SECTION
 
-CHECK(void setComment(const String& comment))
+START_SECTION(void setComment(const String& comment))
 	Test s;
 	s.setComment("blubb");
 	TEST_EQUAL(s.getComment(),"blubb");
-RESULT
+END_SECTION
 
-CHECK([EXTRA] MetaInfo)
+START_SECTION([EXTRA] MetaInfo)
 	Test s;
 	//empty
 	TEST_EQUAL(s.isMetaEmpty(),true)
@@ -125,10 +125,10 @@ CHECK([EXTRA] MetaInfo)
 	s.setMetaValue("size",1.0);
 	TEST_EQUAL(s.isMetaEmpty(),false)
 	TEST_EQUAL(String(s.getMetaValue("origin")),"cow")
-	TEST_REAL_EQUAL(double(s.getMetaValue("size")),1.0)
-RESULT
+	TEST_REAL_SIMILAR(double(s.getMetaValue("size")),1.0)
+END_SECTION
 
-CHECK((SampleTreatment(const SampleTreatment&)))
+START_SECTION((SampleTreatment(const SampleTreatment&)))
 	Test s;
 	//set
 	s.setComment("TTEST");
@@ -138,9 +138,9 @@ CHECK((SampleTreatment(const SampleTreatment&)))
 	//get
 	TEST_EQUAL(s2.getComment(),"TTEST")
 	TEST_EQUAL("horse",s.getMetaValue("origin"))
-RESULT
+END_SECTION
 
-CHECK((SampleTreatment& operator=(const SampleTreatment&)))
+START_SECTION((SampleTreatment& operator=(const SampleTreatment&)))
 	Test s,s2;
 	//set
 	s.setComment("TTEST");
@@ -150,9 +150,9 @@ CHECK((SampleTreatment& operator=(const SampleTreatment&)))
 	//get
 	TEST_EQUAL(s2.getComment(),"TTEST")
 	TEST_EQUAL("horse",s.getMetaValue("origin"))
-RESULT
+END_SECTION
 
-CHECK((virtual SampleTreatment* clone() const=0))
+START_SECTION((virtual SampleTreatment* clone() const=0))
 	Test s;
 	SampleTreatment* st1;
 	SampleTreatment* st;
@@ -170,9 +170,9 @@ CHECK((virtual SampleTreatment* clone() const=0))
 	//get
 	TEST_EQUAL(dp->getComment(),"TTEST")
 	TEST_EQUAL("horse",dp->getMetaValue("origin"))
-RESULT
+END_SECTION
 
-CHECK((bool operator== (const SampleTreatment& rhs) const))
+START_SECTION((bool operator== (const SampleTreatment& rhs) const))
 	Test edit,empty;
 	
 	edit.setComment("bla");
@@ -187,7 +187,7 @@ CHECK((bool operator== (const SampleTreatment& rhs) const))
 	
 	Tagging t;
 	TEST_EQUAL(t==empty, false);	
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

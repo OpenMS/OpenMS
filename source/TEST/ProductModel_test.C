@@ -58,30 +58,30 @@ p2.setValue("bounding_box:max",6.0f);
 p2.setValue("statistics:mean",7.0f);
 p2.setValue("statistics:variance",0.3f);
 
-PRECISION(0.0001)
+TOLERANCE_ABSOLUTE(0.0001)
 
 // default ctor
 ProductModel* ptr = 0;
-CHECK((ProductModel()))
+START_SECTION((ProductModel()))
 	ptr = new ProductModel();
 	TEST_EQUAL(ptr->getName(), "ProductModel2D")
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
 // destructor
-CHECK((virtual ~ProductModel()))
+START_SECTION((virtual ~ProductModel()))
 delete ptr;
-RESULT
+END_SECTION
 
-CHECK( static const String getProductName() )
+START_SECTION( static const String getProductName() )
 	ptr = new ProductModel();
 	TEST_EQUAL(ptr->getName(), "ProductModel2D")
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
 
 // assignment operator
-CHECK((virtual ProductModel& operator=(const ProductModel &source)))
+START_SECTION((virtual ProductModel& operator=(const ProductModel &source)))
 GaussModel* gm1 = new GaussModel();
 gm1->setParameters(p1);
 GaussModel* gm2 = new GaussModel();
@@ -105,11 +105,11 @@ pm3.setModel(1,gm4);
 pm1 = ProductModel();
 
 TEST_EQUAL(pm2.getParameters(), pm3.getParameters())
-RESULT
+END_SECTION
 
 
 // copy ctor
-CHECK((ProductModel(const ProductModel& source)))
+START_SECTION((ProductModel(const ProductModel& source)))
 GaussModel* gm1 = new GaussModel();
 gm1->setParameters(p1);
 GaussModel* gm2 = new GaussModel();
@@ -130,10 +130,10 @@ pm3.setModel(1,gm4);
 
 pm1 = ProductModel();
 TEST_EQUAL(pm3.getParameters(), pm2.getParameters())
-RESULT
+END_SECTION
 
 // ModelDescription
-CHECK((static BaseModel<D>* create()))
+START_SECTION((static BaseModel<D>* create()))
 GaussModel* gm1 = new GaussModel();
 GaussModel* gm2 = new GaussModel();
 GaussModel* gm3 = new GaussModel();
@@ -176,12 +176,12 @@ TEST_EQUAL(tmp1, tmp2)
 DPosition<2> pos;
 pos[0] = 3.5;
 pos[1] = 7.5;
-TEST_REAL_EQUAL(pm3.getIntensity(pos), pm2->getIntensity(pos))
-RESULT
+TEST_REAL_SIMILAR(pm3.getIntensity(pos), pm2->getIntensity(pos))
+END_SECTION
 
-CHECK( IntensityType getIntensity(const PositionType &pos) const )
+START_SECTION( IntensityType getIntensity(const PositionType &pos) const )
 
-	PRECISION(0.1)	
+	TOLERANCE_ABSOLUTE(0.1)	
 	GaussModel* gm1 = new GaussModel();
 	GaussModel* gm2 = new GaussModel();
 	gm1->setParameters(p1);
@@ -196,16 +196,16 @@ CHECK( IntensityType getIntensity(const PositionType &pos) const )
 	DPosition<2> pos;
 	pos[0] = 2.5;
 	pos[1] = 5.9;
-	TEST_REAL_EQUAL(pm1.getIntensity(pos), 8.52587)
+	TEST_REAL_SIMILAR(pm1.getIntensity(pos), 8.52587)
 	pos[0] = 2.0;
 	pos[1] = 5.9;
-	TEST_REAL_EQUAL(pm1.getIntensity(pos), 0.200509)
+	TEST_REAL_SIMILAR(pm1.getIntensity(pos), 0.200509)
 	pos[0] = 1.8;
 	pos[1] = 5.9;
-	TEST_REAL_EQUAL(pm1.getIntensity(pos), 0.0222171)
-RESULT
+	TEST_REAL_SIMILAR(pm1.getIntensity(pos), 0.0222171)
+END_SECTION
 
-CHECK( void getSamples(SamplesType &cont) const )
+START_SECTION( void getSamples(SamplesType &cont) const )
 {
 	GaussModel* gm1 = new GaussModel();
 	gm1->setParameters(p1);
@@ -233,25 +233,25 @@ CHECK( void getSamples(SamplesType &cont) const )
 	ABORT_IF(dpa1.size()!=dpa2.size());
 	for (UInt i=0; i<dpa1.size(); ++i)
 	{
-		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0]);
-		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity());
+		TEST_REAL_SIMILAR(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0]);
+		TEST_REAL_SIMILAR(dpa1[i].getIntensity(),dpa2[i].getIntensity());
 	}
 }
-RESULT
+END_SECTION
 
-CHECK( void setScale(IntensityType scale) )
+START_SECTION( void setScale(IntensityType scale) )
 		ProductModel pm1;
 		pm1.setScale(3.0);
-		TEST_REAL_EQUAL(pm1.getScale(),3.0)	
-RESULT
+		TEST_REAL_SIMILAR(pm1.getScale(),3.0)	
+END_SECTION
 
-CHECK( IntensityType getScale() const )
+START_SECTION( IntensityType getScale() const )
 		ProductModel pm1;
 		pm1.setScale(66.6);
-		TEST_REAL_EQUAL(pm1.getScale(),66.6)	
-RESULT
+		TEST_REAL_SIMILAR(pm1.getScale(),66.6)	
+END_SECTION
 
-CHECK( ProductModel& setModel(UInt dim, BaseModel< 1 > *dist) )
+START_SECTION( ProductModel& setModel(UInt dim, BaseModel< 1 > *dist) )
 	GaussModel* gm1 = new GaussModel();
 	gm1->setParameters(p1);
 	GaussModel* gm2 = new GaussModel();
@@ -264,9 +264,9 @@ CHECK( ProductModel& setModel(UInt dim, BaseModel< 1 > *dist) )
 	TEST_EQUAL( pm1.getModel(0) == gm1, true)
 	TEST_EQUAL( pm1.getModel(1) == gm2, true)
 		
-RESULT
+END_SECTION
 
-CHECK( BaseModel<1>* getModel(UInt dim) const )
+START_SECTION( BaseModel<1>* getModel(UInt dim) const )
 	GaussModel* gm1 = new GaussModel();
 	gm1->setParameters(p1);
 	GaussModel* gm2 = new GaussModel();
@@ -279,7 +279,7 @@ CHECK( BaseModel<1>* getModel(UInt dim) const )
 	TEST_EQUAL( pm1.getModel(0) == gm1, true)
 	TEST_EQUAL( pm1.getModel(1) == gm2, true)
 		
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

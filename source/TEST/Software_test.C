@@ -39,38 +39,38 @@ START_TEST(Software, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Software* ptr = 0;
-CHECK(Software())
+START_SECTION(Software())
 	ptr = new Software();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~Software())
+START_SECTION(~Software())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(const String& getName() const)
+START_SECTION(const String& getName() const)
   Software tmp;
   TEST_EQUAL(tmp.getName(),"");
-RESULT
+END_SECTION
 
-CHECK(void setName(const String& name))
+START_SECTION(void setName(const String& name))
   Software tmp;
   tmp.setName("name");
   TEST_EQUAL(tmp.getName(),"name");  
-RESULT
+END_SECTION
 
-CHECK(const String& getVersion() const)
+START_SECTION(const String& getVersion() const)
   Software tmp;
   TEST_EQUAL(tmp.getVersion(),"");
-RESULT
+END_SECTION
 
-CHECK(void setVersion(const String& version))
+START_SECTION(void setVersion(const String& version))
   Software tmp;
   tmp.setVersion("0.54");
   TEST_EQUAL(tmp.getVersion(),"0.54");
-RESULT
+END_SECTION
 
-CHECK(Software(const Software& source))
+START_SECTION(Software(const Software& source))
   Software tmp;
   tmp.setVersion("0.54");
   tmp.setName("name");
@@ -78,10 +78,10 @@ CHECK(Software(const Software& source))
 	Software tmp2(tmp);
   TEST_EQUAL(tmp2.getVersion(),"0.54");
   TEST_EQUAL(tmp2.getName(),"name");
-RESULT
+END_SECTION
 
 
-CHECK(Software& operator= (const Software& source))
+START_SECTION(Software& operator= (const Software& source))
   Software tmp;
   tmp.setVersion("0.54");
   tmp.setName("name");
@@ -94,10 +94,10 @@ CHECK(Software& operator= (const Software& source))
   tmp2 = Software();
   TEST_EQUAL(tmp2.getVersion(),"");
   TEST_EQUAL(tmp2.getName(),"");
-RESULT
+END_SECTION
 
 
-CHECK(bool operator== (const Software& rhs) const)
+START_SECTION(bool operator== (const Software& rhs) const)
   Software edit, empty;
   
   TEST_EQUAL(edit==empty,true);
@@ -110,9 +110,9 @@ CHECK(bool operator== (const Software& rhs) const)
   edit.setName("name");
   TEST_EQUAL(edit==empty,false);
 
-RESULT
+END_SECTION
 
-CHECK(bool operator!= (const Software& rhs) const)
+START_SECTION(bool operator!= (const Software& rhs) const)
   Software edit, empty;
   
   TEST_EQUAL(edit!=empty,false);
@@ -125,7 +125,7 @@ CHECK(bool operator!= (const Software& rhs) const)
   edit.setName("name");
   TEST_EQUAL(edit!=empty,true);
 
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

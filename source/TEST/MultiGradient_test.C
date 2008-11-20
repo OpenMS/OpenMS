@@ -42,43 +42,43 @@ START_TEST(MultiGradient, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MultiGradient* d10_ptr = 0;
-CHECK((MultiGradient()))
+START_SECTION((MultiGradient()))
 	d10_ptr = new MultiGradient();
 	TEST_NOT_EQUAL(d10_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~MultiGradient()))
+START_SECTION((~MultiGradient()))
 	delete d10_ptr;
-RESULT
+END_SECTION
 
-CHECK((InterpolationMode getInterpolationMode() const ))
+START_SECTION((InterpolationMode getInterpolationMode() const ))
 	TEST_EQUAL(MultiGradient().getInterpolationMode(),MultiGradient::IM_LINEAR)
-RESULT
+END_SECTION
 
-CHECK((void setInterpolationMode(InterpolationMode mode)))
+START_SECTION((void setInterpolationMode(InterpolationMode mode)))
 	MultiGradient mg;
 	mg.setInterpolationMode(MultiGradient::IM_STAIRS);
 	TEST_EQUAL(mg.getInterpolationMode(),MultiGradient::IM_STAIRS)
-RESULT
+END_SECTION
 
-CHECK((UInt size() const))
+START_SECTION((UInt size() const))
 	MultiGradient mg;
 	TEST_EQUAL(mg.size(),2);
-RESULT
+END_SECTION
 
-CHECK((UInt position(UInt index)))
+START_SECTION((UInt position(UInt index)))
 	MultiGradient mg;
 	TEST_EQUAL(mg.position(0),0);
 	TEST_EQUAL(mg.position(1),100);
-RESULT
+END_SECTION
 
-CHECK((const QColor& color(UInt index)))
+START_SECTION((const QColor& color(UInt index)))
 	MultiGradient mg;
 	TEST_EQUAL(mg.color(0)==Qt::white,true);
 	TEST_EQUAL(mg.color(1)==Qt::black,true);
-RESULT
+END_SECTION
 
-CHECK((void insert(Int position, const QColor& color)))
+START_SECTION((void insert(Int position, const QColor& color)))
 	MultiGradient mg;
 	mg.insert(50,Qt::red);
 	TEST_EQUAL(mg.size(),3);
@@ -123,9 +123,9 @@ CHECK((void insert(Int position, const QColor& color)))
 	TEST_EQUAL(mg.color(3)==Qt::blue,true);
 	TEST_EQUAL(mg.color(4)==Qt::magenta,true);
 	TEST_EQUAL(mg.color(5)==Qt::black,true);
-RESULT
+END_SECTION
 
-CHECK((bool remove(Int position)))
+START_SECTION((bool remove(Int position)))
 	MultiGradient mg;
 	mg.insert(25,Qt::green);
 	mg.insert(50,Qt::red);
@@ -154,9 +154,9 @@ CHECK((bool remove(Int position)))
 	TEST_EQUAL(mg.position(1),100);
 	TEST_EQUAL(mg.color(0)==Qt::white,true);
 	TEST_EQUAL(mg.color(1)==Qt::black,true);
-RESULT
+END_SECTION
 
-CHECK((bool exists(Int position)))
+START_SECTION((bool exists(Int position)))
 	MultiGradient mg;
 	mg.insert(25,Qt::green);
 	mg.insert(50,Qt::red);
@@ -170,9 +170,9 @@ CHECK((bool exists(Int position)))
 	TEST_EQUAL(mg.exists(75),true);
 	TEST_EQUAL(mg.exists(99),false);
 	TEST_EQUAL(mg.exists(100),true);
-RESULT
+END_SECTION
 
-CHECK((QColor interpolatedColorAt(DoubleReal position) const))
+START_SECTION((QColor interpolatedColorAt(DoubleReal position) const))
 	MultiGradient mg;
 	TEST_EQUAL(mg.interpolatedColorAt(0)==Qt::white,true);
 	TEST_EQUAL(mg.interpolatedColorAt(25)==QColor(191,191,191),true);
@@ -210,9 +210,9 @@ CHECK((QColor interpolatedColorAt(DoubleReal position) const))
 	TEST_EQUAL(mg2.interpolatedColorAt(51)==Qt::red,true);
 	TEST_EQUAL(mg2.interpolatedColorAt(99)==Qt::red,true);
 	TEST_EQUAL(mg2.interpolatedColorAt(100)==Qt::black,true);	
-RESULT
+END_SECTION
 
-CHECK((QColor interpolatedColorAt(DoubleReal position, DoubleReal min, DoubleReal max) const))
+START_SECTION((QColor interpolatedColorAt(DoubleReal position, DoubleReal min, DoubleReal max) const))
 	MultiGradient mg;
 	mg.insert(50,Qt::red);
 	TEST_EQUAL(mg.interpolatedColorAt(0,0,100)==Qt::white,true);
@@ -230,13 +230,13 @@ CHECK((QColor interpolatedColorAt(DoubleReal position, DoubleReal min, DoubleRea
 	TEST_EQUAL(mg2.interpolatedColorAt(51)==Qt::red,true);
 	TEST_EQUAL(mg2.interpolatedColorAt(99)==Qt::red,true);
 	TEST_EQUAL(mg2.interpolatedColorAt(100)==Qt::black,true);	
-RESULT
+END_SECTION
 
-CHECK((void activatePrecalculationMode(DoubleReal min, DoubleReal max, UInt steps)))
+START_SECTION((void activatePrecalculationMode(DoubleReal min, DoubleReal max, UInt steps)))
 NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((const QColor& precalculatedColorAt(DoubleReal position) const))
+START_SECTION((const QColor& precalculatedColorAt(DoubleReal position) const))
 	MultiGradient mg;
 	mg.insert(0,Qt::white);
 	mg.insert(100,Qt::blue);
@@ -262,24 +262,24 @@ CHECK((const QColor& precalculatedColorAt(DoubleReal position) const))
 	TEST_EQUAL(mg.precalculatedColorAt(50.0).red(),2);
 	TEST_EQUAL(mg.precalculatedColorAt(50.0).green(),2);
 	TEST_EQUAL(mg.precalculatedColorAt(50.0).blue(),255);
-RESULT
+END_SECTION
 
-CHECK((void deactivatePrecalculationMode()))
+START_SECTION((void deactivatePrecalculationMode()))
 	MultiGradient mg;
 	mg.activatePrecalculationMode(-50,50,100);
 	mg.deactivatePrecalculationMode();
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((std::string toString() const))
+START_SECTION((std::string toString() const))
 	MultiGradient mg;
 	TEST_EQUAL(mg.toString(),"Linear|0,#ffffff;100,#000000")
 	mg.setInterpolationMode(MultiGradient::IM_STAIRS);
 	mg.insert(50,Qt::red);
 	TEST_EQUAL(mg.toString(),"Stairs|0,#ffffff;50,#ff0000;100,#000000")
-RESULT
+END_SECTION
 
-CHECK((void fromString(const std::string& gradient)))
+START_SECTION((void fromString(const std::string& gradient)))
 	MultiGradient mg;
 	mg.fromString("Linear|0,#ff0000;100,#000000");
 	TEST_EQUAL(mg.getInterpolationMode(),MultiGradient::IM_LINEAR)
@@ -297,7 +297,7 @@ CHECK((void fromString(const std::string& gradient)))
 	TEST_EQUAL(mg.position(0), 0);
 	TEST_EQUAL(mg.position(1), 50);
 	TEST_EQUAL(mg.position(2), 100);
-RESULT
+END_SECTION
 
 
 

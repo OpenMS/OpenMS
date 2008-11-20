@@ -42,18 +42,18 @@ using namespace std;
 
 // default ctor
 SimpleSeeder<Peak1D,Feature>* ptr = 0;
-CHECK(SimpleSeeder(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff))
+START_SECTION(SimpleSeeder(const MSExperiment<PeakType>* map, FeatureMap<FeatureType>* features, FeatureFinder* ff))
 	MSExperiment<Peak1D> exp;
 	ptr = new SimpleSeeder<Peak1D,Feature>(&exp,0,0);
   TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(virtual ~SimpleSeeder())
+START_SECTION(virtual ~SimpleSeeder())
 	delete ptr;
-RESULT
+END_SECTION
 
 
-CHECK(IndexPair nextSeed())
+START_SECTION(IndexPair nextSeed())
 
 	//create map
 	MSExperiment<Peak1D> exp;
@@ -158,7 +158,7 @@ CHECK(IndexPair nextSeed())
 	//	TEST_EXCEPTION( FeatureFinderDefs::NoSuccessor , seeder.nextSeed() )		
 	}
 	
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

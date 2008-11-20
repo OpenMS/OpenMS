@@ -40,38 +40,38 @@ START_TEST(PeakPickerCWT, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PeakPickerCWT* ptr = 0;
-CHECK((PeakPickerCWT()))
+START_SECTION((PeakPickerCWT()))
   ptr = new PeakPickerCWT();
   TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~PeakPickerCWT()))
+START_SECTION((virtual ~PeakPickerCWT()))
   delete ptr;
-RESULT
+END_SECTION
 
 MzDataFile mz_data_file;
 MSExperiment<Peak1D > exp_raw;
 mz_data_file.load("data/PeakPicker_test.mzData",exp_raw);
-CHECK((template<typename InputPeakContainer, typename OutputPeakContainer > void pick(const InputPeakContainer& input_peak_container, OutputPeakContainer& picked_peaks_container, int ms_level = 1)))
+START_SECTION((template<typename InputPeakContainer, typename OutputPeakContainer > void pick(const InputPeakContainer& input_peak_container, OutputPeakContainer& picked_peaks_container, int ms_level = 1)))
   MSSpectrum<> peaks;
   PeakPickerCWT pp;
     
   pp.pick(exp_raw[0],peaks);
   MSSpectrum<>::const_iterator it = peaks.begin();
-RESULT
+END_SECTION
 
-CHECK((template<typename InputPeakIterator, typename OutputPeakContainer  > void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)))
+START_SECTION((template<typename InputPeakIterator, typename OutputPeakContainer  > void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)))
   MSSpectrum<> peaks;
   PeakPickerCWT pp;
   
   pp.pick(exp_raw[0].begin(),exp_raw[0].end(),peaks,1);
   MSSpectrum<>::const_iterator it = peaks.begin();
-RESULT
+END_SECTION
 
 Param param;
 param.setValue("thresholds:peak_bound",1500.0);
 
-CHECK((template<typename InputPeakType, typename OutputPeakType > void pickExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_peaks)))
+START_SECTION((template<typename InputPeakType, typename OutputPeakType > void pickExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_peaks)))
   MSExperiment<> peaks;
   PeakPickerCWT pp;
   pp.setParameters(param);
@@ -81,10 +81,10 @@ CHECK((template<typename InputPeakType, typename OutputPeakType > void pickExper
   TEST_EQUAL((peaks[0].size() + peaks[1].size()), 9)
   ExperimentalSettings e = peaks;
   TEST_EQUAL(e == exp_raw, true)
-RESULT
+END_SECTION
 
 		
-CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void pickExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_peaks)))
+START_SECTION((template<typename InputSpectrumIterator, typename OutputPeakType > void pickExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_peaks)))
 	MSExperiment<Peak1D > exp_raw_ext;
   mz_data_file.load("data/PeakPicker_test.mzData",exp_raw_ext);
 	MSExperiment<> peaks;
@@ -94,7 +94,7 @@ CHECK((template<typename InputSpectrumIterator, typename OutputPeakType > void p
   pp.pickExperiment(exp_raw_ext.begin(),exp_raw_ext.end(),peaks);
   TEST_EQUAL(peaks.size() == exp_raw_ext.size(), true)   
   TEST_EQUAL((peaks[0].size() + peaks[1].size()), 9)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

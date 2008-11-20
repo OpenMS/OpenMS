@@ -39,94 +39,94 @@ START_TEST(ContactPerson, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ContactPerson* ptr = 0;
-CHECK(ContactPerson())
+START_SECTION(ContactPerson())
 	ptr = new ContactPerson();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~ContactPerson())
+START_SECTION(~ContactPerson())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(const String& getContactInfo() const)
+START_SECTION(const String& getContactInfo() const)
   ContactPerson tmp;
   TEST_EQUAL(tmp.getContactInfo(),"");
-RESULT
+END_SECTION
 
-CHECK(void setContactInfo(const String& contact_info))
+START_SECTION(void setContactInfo(const String& contact_info))
   ContactPerson tmp;
 	tmp.setContactInfo("bla");
   TEST_EQUAL(tmp.getContactInfo(),"bla");
-RESULT
+END_SECTION
 
-CHECK(const String& getEmail() const)
+START_SECTION(const String& getEmail() const)
   ContactPerson tmp;
   TEST_EQUAL(tmp.getEmail(),"");
-RESULT
+END_SECTION
 
-CHECK(void setEmail(const String& email))
+START_SECTION(void setEmail(const String& email))
   ContactPerson tmp;
 	tmp.setEmail("bla");
   TEST_EQUAL(tmp.getEmail(),"bla");
-RESULT
+END_SECTION
 
-CHECK(const String& getURL() const)
+START_SECTION(const String& getURL() const)
   ContactPerson tmp;
   TEST_EQUAL(tmp.getURL(),"");
-RESULT
+END_SECTION
 
-CHECK(void setURL(const String& email))
+START_SECTION(void setURL(const String& email))
   ContactPerson tmp;
 	tmp.setURL("bla");
   TEST_EQUAL(tmp.getURL(),"bla");
-RESULT
+END_SECTION
 
-CHECK(const String& getAddress() const)
+START_SECTION(const String& getAddress() const)
   ContactPerson tmp;
   TEST_EQUAL(tmp.getAddress(),"");
-RESULT
+END_SECTION
 
-CHECK(void setAddress(const String& email))
+START_SECTION(void setAddress(const String& email))
   ContactPerson tmp;
 	tmp.setAddress("bla");
   TEST_EQUAL(tmp.getAddress(),"bla");
-RESULT
+END_SECTION
 
 
-CHECK(const String& getInstitution() const)
+START_SECTION(const String& getInstitution() const)
   ContactPerson tmp;
   TEST_EQUAL(tmp.getInstitution(),"");
-RESULT
+END_SECTION
 
-CHECK(void setInstitution(const String& institution))
+START_SECTION(void setInstitution(const String& institution))
   ContactPerson tmp;
 	tmp.setInstitution("Uni Tuebingen");
   TEST_EQUAL(tmp.getInstitution(),"Uni Tuebingen");
-RESULT
+END_SECTION
 
-CHECK(const String& getFirstName() const)
+START_SECTION(const String& getFirstName() const)
   ContactPerson tmp;
   TEST_EQUAL(tmp.getFirstName(),"");
-RESULT
+END_SECTION
 
-CHECK(void setFirstName(const String& name))
+START_SECTION(void setFirstName(const String& name))
   ContactPerson tmp;
 	tmp.setFirstName("Meike");
   TEST_EQUAL(tmp.getFirstName(),"Meike");
-RESULT
+END_SECTION
 
-CHECK(const String& getLastName() const)
+START_SECTION(const String& getLastName() const)
   ContactPerson tmp;
   TEST_EQUAL(tmp.getLastName(),"");
-RESULT
+END_SECTION
 
-CHECK(void setLastName(const String& name))
+START_SECTION(void setLastName(const String& name))
   ContactPerson tmp;
 	tmp.setLastName("Meier");
   TEST_EQUAL(tmp.getLastName(),"Meier");
-RESULT
+END_SECTION
 
-CHECK(void setName(const String& name))
+START_SECTION(void setName(const String& name))
   ContactPerson tmp;
 	tmp.setName("Diddl Maus");
   TEST_EQUAL(tmp.getFirstName(),"Diddl");
@@ -137,9 +137,9 @@ CHECK(void setName(const String& name))
 	tmp.setName("Meiser, Hans F.");
   TEST_EQUAL(tmp.getFirstName(),"Hans F.");
   TEST_EQUAL(tmp.getLastName(),"Meiser");
-RESULT
+END_SECTION
 
-CHECK(ContactPerson(const ContactPerson& source))
+START_SECTION(ContactPerson(const ContactPerson& source))
 	ContactPerson tmp;
 	tmp.setEmail("ich@du.de");
 	tmp.setFirstName("Meike");
@@ -159,9 +159,9 @@ CHECK(ContactPerson(const ContactPerson& source))
   TEST_EQUAL(tmp2.getContactInfo(),"doo");
   TEST_EQUAL(tmp2.getURL(),"url");
   TEST_EQUAL(tmp2.getAddress(),"street");
-RESULT
+END_SECTION
 
-CHECK(ContactPerson& operator= (const ContactPerson& source))
+START_SECTION(ContactPerson& operator= (const ContactPerson& source))
  	ContactPerson tmp;
 	tmp.setEmail("ich@du.de");
 	tmp.setFirstName("Meike");
@@ -194,9 +194,9 @@ CHECK(ContactPerson& operator= (const ContactPerson& source))
   TEST_EQUAL(tmp2.getContactInfo(),"");
   TEST_EQUAL(tmp2.getURL(),"");
   TEST_EQUAL(tmp2.getAddress(),"");
-RESULT
+END_SECTION
 
-CHECK(bool operator!= (const ContactPerson& rhs) const)
+START_SECTION(bool operator!= (const ContactPerson& rhs) const)
 	ContactPerson tmp,tmp2;
 	
 	TEST_EQUAL(tmp==tmp2, true);
@@ -231,9 +231,9 @@ CHECK(bool operator!= (const ContactPerson& rhs) const)
 	tmp2 = tmp;
 	tmp.setMetaValue("label",String("label"));
   TEST_EQUAL(tmp==tmp2, false);
-RESULT
+END_SECTION
 
-CHECK(bool operator== (const ContactPerson& rhs) const)
+START_SECTION(bool operator== (const ContactPerson& rhs) const)
 	ContactPerson tmp,tmp2;
 	
 	TEST_EQUAL(tmp!=tmp2, false);
@@ -260,7 +260,7 @@ CHECK(bool operator== (const ContactPerson& rhs) const)
 	tmp2 = tmp;
 	tmp.setMetaValue("label",String("label"));
   TEST_EQUAL(tmp!=tmp2, true);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

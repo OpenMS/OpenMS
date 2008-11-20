@@ -44,48 +44,48 @@ START_TEST(SqrtMower, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SqrtMower* e_ptr = 0;
-CHECK((SqrtMower()))
+START_SECTION((SqrtMower()))
 	e_ptr = new SqrtMower;
 	TEST_NOT_EQUAL(e_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~SqrtMower()))
+START_SECTION((~SqrtMower()))
 	delete e_ptr;
-RESULT
+END_SECTION
 
 e_ptr = new SqrtMower();
 
-CHECK((SqrtMower(const SqrtMower& source)))
+START_SECTION((SqrtMower(const SqrtMower& source)))
 	SqrtMower copy(*e_ptr);
 	TEST_EQUAL(*e_ptr == copy, true)
-RESULT
+END_SECTION
 
-CHECK((SqrtMower& operator=(const SqrtMower& source)))
+START_SECTION((SqrtMower& operator=(const SqrtMower& source)))
 	SqrtMower copy;
 	copy = *e_ptr;
 	TEST_EQUAL(*e_ptr == copy, true)
-RESULT
+END_SECTION
 
-CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
+START_SECTION((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
 	
-	TEST_REAL_EQUAL((spec.begin() + 40)->getIntensity(), 37.5)
+	TEST_REAL_SIMILAR((spec.begin() + 40)->getIntensity(), 37.5)
 
 	e_ptr->filterSpectrum(spec);
-	TEST_REAL_EQUAL((spec.begin() + 40)->getIntensity(), sqrt(37.5))
-RESULT
+	TEST_REAL_SIMILAR((spec.begin() + 40)->getIntensity(), sqrt(37.5))
+END_SECTION
 
-CHECK((static PreprocessingFunctor* create()))
+START_SECTION((static PreprocessingFunctor* create()))
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(e_ptr->getProductName(), "SqrtMower")
-RESULT
+END_SECTION
 
-CHECK((void filterPeakMap(PeakMap& exp)))
+START_SECTION((void filterPeakMap(PeakMap& exp)))
 	DTAFile dta_file;
   PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -93,22 +93,22 @@ CHECK((void filterPeakMap(PeakMap& exp)))
 	PeakMap pm;
 	pm.push_back(spec);
 
-	TEST_REAL_EQUAL((pm.begin()->begin() + 40)->getIntensity(), 37.5)
+	TEST_REAL_SIMILAR((pm.begin()->begin() + 40)->getIntensity(), 37.5)
 
 	e_ptr->filterPeakMap(pm);
-	TEST_REAL_EQUAL((pm.begin()->begin() + 40)->getIntensity(), sqrt(37.5))
-RESULT
+	TEST_REAL_SIMILAR((pm.begin()->begin() + 40)->getIntensity(), sqrt(37.5))
+END_SECTION
 
-CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
+START_SECTION((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 	DTAFile dta_file;
   PeakSpectrum spec;
   dta_file.load("data/Transformers_tests.dta", spec);
 
-	TEST_REAL_EQUAL((spec.begin() + 40)->getIntensity(), 37.5)
+	TEST_REAL_SIMILAR((spec.begin() + 40)->getIntensity(), 37.5)
 
 	e_ptr->filterPeakSpectrum(spec);
-	TEST_REAL_EQUAL((spec.begin() + 40)->getIntensity(), sqrt(37.5))
-RESULT
+	TEST_REAL_SIMILAR((spec.begin() + 40)->getIntensity(), sqrt(37.5))
+END_SECTION
 
 delete e_ptr;
 

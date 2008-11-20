@@ -41,48 +41,48 @@ using namespace OpenMS;
 using namespace std;
 
 MetaInfoRegistry* test;
-CHECK((MetaInfoRegistry()))
+START_SECTION((MetaInfoRegistry()))
 	test = new MetaInfoRegistry;
 	TEST_NOT_EQUAL(test, 0)
-RESULT
+END_SECTION
 
 
-CHECK((~MetaInfoRegistry()))
+START_SECTION((~MetaInfoRegistry()))
 	delete test;
-RESULT
+END_SECTION
 
 MetaInfoRegistry mir;
 
-CHECK((UInt registerName(const String& name, const String& description, const String& unit="") const))
+START_SECTION((UInt registerName(const String& name, const String& description, const String& unit="") const))
 	UInt testname = mir.registerName("testname","this is just a test");
 	TEST_EQUAL(1024,testname)
 	UInt retention_time = mir.registerName("retention time","this is just another test","sec");
 	TEST_EQUAL(1025,retention_time)
 	UInt another_testname = mir.registerName("another testname", "i will be set later", "so am i");
 	TEST_EQUAL(1026,another_testname);
-RESULT
+END_SECTION
 
-CHECK((void setDescription(UInt index, const String& description) ))
+START_SECTION((void setDescription(UInt index, const String& description) ))
 	mir.setDescription(1026, "foo");
 	TEST_EQUAL(mir.getDescription(1026), "foo")
-RESULT
+END_SECTION
 
-CHECK((void setDescription(const String& name, const String& description) ))
+START_SECTION((void setDescription(const String& name, const String& description) ))
 	mir.setDescription("another testname", "bar");
 	TEST_EQUAL(mir.getDescription(1026), "bar")
-RESULT
+END_SECTION
 
-CHECK((void setUnit(UInt index, const String& unit) ))
+START_SECTION((void setUnit(UInt index, const String& unit) ))
 	mir.setUnit(1026, "foo");
 	TEST_EQUAL(mir.getUnit(1026), "foo")
-RESULT
+END_SECTION
 
-CHECK((void setUnit(const String& name, const String& unit) ))
+START_SECTION((void setUnit(const String& name, const String& unit) ))
 	mir.setUnit("another testname", "bar");
 	TEST_EQUAL(mir.getUnit(1026), "bar")
-RESULT
+END_SECTION
 
-CHECK((UInt getIndex(const String& name) const))
+START_SECTION((UInt getIndex(const String& name) const))
 	UInt tmp;
 	tmp = mir.getIndex ("testname");
 	TEST_EQUAL(1024,tmp)
@@ -98,9 +98,9 @@ CHECK((UInt getIndex(const String& name) const))
 	TEST_EQUAL(1028,tmp)
 	tmp = mir.getIndex ("unregistered name");
 	TEST_EQUAL(1027,tmp)
-RESULT
+END_SECTION
 
-CHECK((String getName(UInt index) const ))
+START_SECTION((String getName(UInt index) const ))
 	string tmp;
 	tmp = mir.getName (1);
 	TEST_EQUAL("isotopic_range",tmp)
@@ -114,9 +114,9 @@ CHECK((String getName(UInt index) const ))
 	TEST_EQUAL("testname",tmp)
 	tmp = mir.getName (1025);
 	TEST_EQUAL("retention time",tmp)
-RESULT
+END_SECTION
 
-CHECK((String getDescription(UInt index) const ))
+START_SECTION((String getDescription(UInt index) const ))
 	string tmp;
 	tmp = mir.getDescription(1024);
 	TEST_EQUAL(tmp,string("this is just a test"))
@@ -126,9 +126,9 @@ CHECK((String getDescription(UInt index) const ))
 	TEST_EQUAL(tmp,string("consecutive numbering of the peaks in an isotope pattern. 0 is the monoisotopic peak"))
 	tmp = mir.getDescription(2);
 	TEST_EQUAL(tmp,string("consecutive numbering of isotope clusters in a spectrum"))
-RESULT
+END_SECTION
 
-CHECK((String getDescription(const String& name) const ))
+START_SECTION((String getDescription(const String& name) const ))
 	string tmp;
 	tmp = mir.getDescription("testname");
 	TEST_EQUAL(tmp,string("this is just a test"))
@@ -138,9 +138,9 @@ CHECK((String getDescription(const String& name) const ))
 	TEST_EQUAL(tmp,string("consecutive numbering of the peaks in an isotope pattern. 0 is the monoisotopic peak"))
 	tmp = mir.getDescription("cluster_id");
 	TEST_EQUAL(tmp,string("consecutive numbering of isotope clusters in a spectrum"))	
-RESULT
+END_SECTION
 
-CHECK((String getUnit(UInt index) const ))
+START_SECTION((String getUnit(UInt index) const ))
 	string tmp;
 	tmp = mir.getUnit(1024);
 	TEST_EQUAL(tmp,string(""))
@@ -150,9 +150,9 @@ CHECK((String getUnit(UInt index) const ))
 	TEST_EQUAL(tmp,string(""))
 	tmp = mir.getUnit(2);
 	TEST_EQUAL(tmp,string(""))
-RESULT
+END_SECTION
 
-CHECK((String getUnit(const String& name) const ))
+START_SECTION((String getUnit(const String& name) const ))
 	string tmp;
 	tmp = mir.getUnit("testname");
 	TEST_EQUAL(tmp,string(""))
@@ -162,9 +162,9 @@ CHECK((String getUnit(const String& name) const ))
 	TEST_EQUAL(tmp,string(""))
 	tmp = mir.getUnit("cluster_id");
 	TEST_EQUAL(tmp,string(""))	
-RESULT
+END_SECTION
 
-CHECK((MetaInfoRegistry(const MetaInfoRegistry& rhs)))
+START_SECTION((MetaInfoRegistry(const MetaInfoRegistry& rhs)))
 	MetaInfoRegistry mir2(mir);
 	TEST_EQUAL(1024,mir2.getIndex ("testname"))
 	TEST_EQUAL(1025,mir2.getIndex ("retention time"))
@@ -179,9 +179,9 @@ CHECK((MetaInfoRegistry(const MetaInfoRegistry& rhs)))
 	TEST_EQUAL(mir2.getUnit(1025),string("sec"))
 	TEST_EQUAL(mir2.getUnit("testname"),string(""))
 	TEST_EQUAL(mir2.getUnit("retention time"),string("sec"))	
-RESULT
+END_SECTION
 
-CHECK((MetaInfoRegistry& operator = (const MetaInfoRegistry& rhs)))
+START_SECTION((MetaInfoRegistry& operator = (const MetaInfoRegistry& rhs)))
 	MetaInfoRegistry mir2;
 	mir2 = mir;
 	TEST_EQUAL(1024,mir2.getIndex ("testname"))
@@ -197,7 +197,7 @@ CHECK((MetaInfoRegistry& operator = (const MetaInfoRegistry& rhs)))
 	TEST_EQUAL(mir2.getUnit(1025),string("sec"))
 	TEST_EQUAL(mir2.getUnit("testname"),string(""))
 	TEST_EQUAL(mir2.getUnit("retention time"),string("sec"))	
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

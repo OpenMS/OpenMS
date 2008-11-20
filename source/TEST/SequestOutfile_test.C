@@ -36,42 +36,42 @@ START_TEST(String, "$Id$")
 
 
 SequestOutfile* ptr = 0;
-CHECK(SequestOutfile())
+START_SECTION(SequestOutfile())
 	ptr = new SequestOutfile();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~SequestOutfile())
+START_SECTION(~SequestOutfile())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((SequestOutfile& operator=(const SequestOutfile &sequest_outfile)))
+START_SECTION((SequestOutfile& operator=(const SequestOutfile &sequest_outfile)))
 	SequestOutfile sequest_outfile1;
   SequestOutfile sequest_outfile2;
 	sequest_outfile2 = sequest_outfile1;
 	SequestOutfile sequest_outfile3;
 	sequest_outfile1 = SequestOutfile();
 	TEST_EQUAL(( sequest_outfile2 == sequest_outfile3 ), true)
-RESULT
+END_SECTION
 
-CHECK((SequestOutfile(const SequestOutfile &sequest_outfile)))
+START_SECTION((SequestOutfile(const SequestOutfile &sequest_outfile)))
 	SequestOutfile sequest_outfile1;
 	SequestOutfile sequest_outfile2(sequest_outfile1);
 	SequestOutfile sequest_outfile3;
 	sequest_outfile1 = SequestOutfile();
 	TEST_EQUAL(( sequest_outfile2 == sequest_outfile3 ), true)
-RESULT
+END_SECTION
 
-CHECK((bool operator==(const SequestOutfile &sequest_outfile) const))
+START_SECTION((bool operator==(const SequestOutfile &sequest_outfile) const))
 	SequestOutfile sequest_outfile1;
 	SequestOutfile sequest_outfile2;
 	TEST_EQUAL(( sequest_outfile1 == sequest_outfile2 ), true)
-RESULT
+END_SECTION
 
 
 SequestOutfile file;
 
-CHECK(void load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, std::vector< Real >& pvalues, const String& database=""))
+START_SECTION(void load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const Real p_value_threshold, std::vector< Real >& pvalues, const String& database=""))
 	vector< PeptideIdentification > peptide_identifications;
 	ProteinIdentification protein_identification;
 	vector< Real > pvalues;
@@ -99,10 +99,10 @@ CHECK(void load(const String& result_filename, std::vector< PeptideIdentificatio
 		TEST_EQUAL(peptide_identifications[0].getHits().size(), 4)
 		TEST_STRING_EQUAL(peptide_identifications[0].getScoreType(), "SEQUEST")
 		TEST_STRING_EQUAL(peptide_identifications[0].getIdentifier(), "TurboSEQUEST_2004-03-16")
-		TEST_REAL_EQUAL(peptide_identifications[0].getSignificanceThreshold(), 1.0)
+		TEST_REAL_SIMILAR(peptide_identifications[0].getSignificanceThreshold(), 1.0)
 		if ( peptide_identifications[0].getHits().size() == 4 )
 		{
-			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), 0.05)
+			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), 0.05)
 			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence().toString(), "ETQAWSIATILETLYDL")
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getAABefore(), 'C')
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getAAAfter(), '-')
@@ -115,7 +115,7 @@ CHECK(void load(const String& result_filename, std::vector< PeptideIdentificatio
 				TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions()[1], "2136928")
 				TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions()[2], "L10605")
 			}
-			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[1].getScore(), 0.04)
+			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[1].getScore(), 0.04)
 			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getSequence().toString(), "QVLNPLLVLIFIPLFDL")
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getAABefore(), 'M')
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getAAAfter(), 'V')
@@ -127,7 +127,7 @@ CHECK(void load(const String& result_filename, std::vector< PeptideIdentificatio
 				TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getProteinAccessions()[0], "P46029")
 				TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getProteinAccessions()[1], "U32507")
 			}
-			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[2].getScore(), 0.02)
+			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[2].getScore(), 0.02)
 			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[2].getSequence().toString(), "WVELGPSVLAGVGVMVLLI")
 			TEST_EQUAL(peptide_identifications[0].getHits()[2].getAABefore(), 'L')
 			TEST_EQUAL(peptide_identifications[0].getHits()[2].getAAAfter(), 'P')
@@ -138,7 +138,7 @@ CHECK(void load(const String& result_filename, std::vector< PeptideIdentificatio
 			{
 				TEST_STRING_EQUAL(peptide_identifications[0].getHits()[2].getProteinAccessions()[0], "e148876")
 			}
-			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[3].getScore(), 0.14)
+			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[3].getScore(), 0.14)
 			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[3].getSequence().toString(), "FDEITAMTGDGVNDAPALK")
 			TEST_EQUAL(peptide_identifications[0].getHits()[3].getAABefore(), 'S')
 			TEST_EQUAL(peptide_identifications[0].getHits()[3].getAAAfter(), 'K')
@@ -172,10 +172,10 @@ CHECK(void load(const String& result_filename, std::vector< PeptideIdentificatio
 		TEST_STRING_EQUAL(peptide_identifications[0].getScoreType(), "SEQUEST")
 		TEST_STRING_EQUAL(peptide_identifications[0].getIdentifier(), "TurboSEQUEST_2004-03-16")
 		TEST_EQUAL(peptide_identifications[0].getHits().size(), 2)
-		TEST_REAL_EQUAL(peptide_identifications[0].getSignificanceThreshold(), 0.01)
+		TEST_REAL_SIMILAR(peptide_identifications[0].getSignificanceThreshold(), 0.01)
 		if ( peptide_identifications[0].getHits().size() == 2 )
 		{
-			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[0].getScore(), 0.05)
+			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), 0.05)
 			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getSequence().toString(), "ETQAWSIATILETLYDL")
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getAABefore(), 'C')
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getAAAfter(), '-')
@@ -188,7 +188,7 @@ CHECK(void load(const String& result_filename, std::vector< PeptideIdentificatio
 				TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions()[1], "2136928")
 				TEST_STRING_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions()[2], "L10605")
 			}
-			TEST_REAL_EQUAL(peptide_identifications[0].getHits()[1].getScore(), 0.04)
+			TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[1].getScore(), 0.04)
 			TEST_STRING_EQUAL(peptide_identifications[0].getHits()[1].getSequence().toString(), "QVLNPLLVLIFIPLFDL")
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getAABefore(), 'M')
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getAAAfter(), 'V')
@@ -207,9 +207,9 @@ CHECK(void load(const String& result_filename, std::vector< PeptideIdentificatio
 	TEST_STRING_EQUAL(protein_identification.getSearchEngine(), "TurboSEQUEST")
 	TEST_STRING_EQUAL(protein_identification.getSearchEngineVersion(), "v.27 (rev. 12)")
 	TEST_STRING_EQUAL(protein_identification.getIdentifier(), "TurboSEQUEST_2004-03-16")
-RESULT
+END_SECTION
 
-CHECK(bool getColumns(const String& line, vector< String >& substrings, UInt number_of_columns, UInt reference_column))
+START_SECTION(bool getColumns(const String& line, vector< String >& substrings, UInt number_of_columns, UInt reference_column))
 	String line = "  1.   1/80          0 1967.0013  0.0000  1.5789   310.3 0.05    0 18/64 gi|544379|sp|P35574|GDE RABIT   +2   C.ETQAWSIATILETLYDL.-";
 	vector< String > substrings, columns;
 	columns.push_back("1.");
@@ -236,9 +236,9 @@ CHECK(bool getColumns(const String& line, vector< String >& substrings, UInt num
 	TEST_EQUAL(file.getColumns(line, substrings, 12, 10), true)
 	columns[10] = "gi|544379|sp|P35574|GDE RABIT +X";
 	TEST_EQUAL((columns == substrings), true)
-RESULT
+END_SECTION
 
-CHECK(void getSequences(const String& database_filename, const map< String, UInt >& ac_position_map, vector< String >& sequences, vector< pair< String, UInt > >& found, map< String, UInt >& not_found))
+START_SECTION(void getSequences(const String& database_filename, const map< String, UInt >& ac_position_map, vector< String >& sequences, vector< pair< String, UInt > >& found, map< String, UInt >& not_found))
 	map< String, UInt > ac_position_map, not_found;
 	vector< String > sequences, found_sequences;
 	vector< pair< String, UInt > > found;
@@ -294,9 +294,9 @@ CHECK(void getSequences(const String& database_filename, const map< String, UInt
 	found_sequences.clear();
 	found.clear();
 	not_found.clear();
-RESULT
+END_SECTION
 
-CHECK(void getACAndACType(String line, String& accession, String& accession_type))
+START_SECTION(void getACAndACType(String line, String& accession, String& accession_type))
 	String accession, accession_type;
 	file.getACAndACType(">sp|P02666|CASB_BOVIN Beta-casein precursor - Bos taurus (Bovine).", accession, accession_type);
 	TEST_STRING_EQUAL(accession, "P02666")
@@ -345,9 +345,9 @@ CHECK(void getACAndACType(String line, String& accession, String& accession_type
 	file.getACAndACType(">ACBLA (P68509) F_BOVIN", accession, accession_type);
 	TEST_STRING_EQUAL(accession, "P68509")
 	TEST_STRING_EQUAL(accession_type, "SwissProt")
-RESULT
+END_SECTION
 
-CHECK(void readOutHeader(const String& result_filename, DateTime& datetime, Real& precursor_mz_value, Int& charge, UInt& precursor_mass_type, UInt& ion_mass_type, UInt& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, UInt& number_of_columns))
+START_SECTION(void readOutHeader(const String& result_filename, DateTime& datetime, Real& precursor_mz_value, Int& charge, UInt& precursor_mass_type, UInt& ion_mass_type, UInt& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, UInt& number_of_columns))
 	
 	String result_filename = "TOPP/tmp/Sequest.mzXML.13.1.d.out";
 	DateTime datetime;
@@ -388,8 +388,8 @@ CHECK(void readOutHeader(const String& result_filename, DateTime& datetime, Real
 	// test the actual program
 	file.readOutHeader(result_filename, datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns);
 	
-	PRECISION(0.0001)
-	TEST_REAL_EQUAL(precursor_mz_value, 866.606)
+	TOLERANCE_ABSOLUTE(0.0001)
+	TEST_REAL_SIMILAR(precursor_mz_value, 866.606)
 
 	TEST_STRING_EQUAL(sequest, "TurboSEQUEST")
 	TEST_STRING_EQUAL(sequest_version, "v.27 (rev. 12)")
@@ -413,6 +413,6 @@ CHECK(void readOutHeader(const String& result_filename, DateTime& datetime, Real
 	TEST_EQUAL(precursor_mass_type, 0)
 	TEST_EQUAL(ion_mass_type, 0)
 	TEST_EQUAL(displayed_peptides, 2)
-RESULT
+END_SECTION
 
 END_TEST

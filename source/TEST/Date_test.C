@@ -42,24 +42,24 @@ START_TEST(Date, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Date* s_ptr = 0;
-CHECK((Date()))
+START_SECTION((Date()))
 	s_ptr = new Date();
 	TEST_NOT_EQUAL(s_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(([EXTRA]~Date()))
+START_SECTION(([EXTRA]~Date()))
 	delete s_ptr;
-RESULT
+END_SECTION
 
-CHECK(Date(const QDate &date))
+START_SECTION(Date(const QDate &date))
 	QDate qd(1999,12,24);
 	Date d(qd);
 	TEST_EQUAL(d.year(),1999)
 	TEST_EQUAL(d.month(),12)
 	TEST_EQUAL(d.day(),24)
-RESULT
+END_SECTION
 
-CHECK((void get(UInt& month, UInt& day, UInt& year) const))
+START_SECTION((void get(UInt& month, UInt& day, UInt& year) const))
   Date date;
   UInt d,m,y;
   date.set("2007-12-03");
@@ -67,9 +67,9 @@ CHECK((void get(UInt& month, UInt& day, UInt& year) const))
   TEST_EQUAL(m,12);
   TEST_EQUAL(d,3);
   TEST_EQUAL(y,2007);
-RESULT
+END_SECTION
 
-CHECK((void set(UInt month, UInt day, UInt year) ))
+START_SECTION((void set(UInt month, UInt day, UInt year) ))
   Date date;
   UInt d,m,y;
   date.set(12,1,1977);
@@ -84,24 +84,24 @@ CHECK((void set(UInt month, UInt day, UInt year) ))
   TEST_EXCEPTION(Exception::ParseError,date.set(1,32,1977));
   TEST_EXCEPTION(Exception::ParseError,date.set(13,1,1977));
 	TEST_EXCEPTION(Exception::ParseError,date.set(02,29,2100));
-RESULT
+END_SECTION
 
-CHECK((Date& operator= (const Date& source)))
+START_SECTION((Date& operator= (const Date& source)))
   Date date, date2;
   date.set(12,1,1977);
   TEST_EQUAL(date==date2,false);
 	date2 = date;
 	TEST_EQUAL(date==date2,true);
-RESULT
+END_SECTION
 
-CHECK((Date(const Date& date)))
+START_SECTION((Date(const Date& date)))
   Date date;
   date.set(12,1,1977);
 	Date date2(date);
 	TEST_EQUAL(date==date2,true);
-RESULT
+END_SECTION
 
-CHECK((void set(const String& date) ))
+START_SECTION((void set(const String& date) ))
   Date date;
   //german
   date.set("01.12.1977");
@@ -139,28 +139,28 @@ CHECK((void set(const String& date) ))
   TEST_EXCEPTION(Exception::ParseError,date.set("01.1x.1977"));
   TEST_EXCEPTION(Exception::ParseError,date.set("01.12.i135"));
   TEST_EXCEPTION(Exception::ParseError,date.set("1135-64-3"));
-RESULT
+END_SECTION
 
-CHECK((String get() const))
+START_SECTION((String get() const))
   Date d;
   TEST_EQUAL(d.get(),"0000-00-00");
   d.set("11.12.1977");
   TEST_EQUAL(d.get(),"1977-12-11");
 	d.set("02.01.1999");
   TEST_EQUAL(d.get(),"1999-01-02");
-RESULT
+END_SECTION
 
-CHECK((void clear()))
+START_SECTION((void clear()))
   Date d;
   d.set("11.12.1977");
   TEST_EQUAL(d.get(),"1977-12-11");
 	d.clear();
   TEST_EQUAL(d.get(),"0000-00-00");
-RESULT
+END_SECTION
 
-CHECK((static Date today()))
+START_SECTION((static Date today()))
   TEST_EQUAL(Date::today().isValid(), true)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

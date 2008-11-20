@@ -45,31 +45,31 @@ START_TEST(NeutralLossMarker, "$Id$")
 /////////////////////////////////////////////////////////////
 
 NeutralLossMarker* e_ptr = 0;
-CHECK((NeutralLossMarker()))
+START_SECTION((NeutralLossMarker()))
 	e_ptr = new NeutralLossMarker;
 	TEST_NOT_EQUAL(e_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~NeutralLossMarker()))
+START_SECTION((~NeutralLossMarker()))
 	delete e_ptr;
-RESULT
+END_SECTION
 
 e_ptr = new NeutralLossMarker();
 
-CHECK((NeutralLossMarker(const NeutralLossMarker& source)))
+START_SECTION((NeutralLossMarker(const NeutralLossMarker& source)))
 	NeutralLossMarker copy(*e_ptr);
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK((NeutralLossMarker& operator = (const NeutralLossMarker& source)))
+START_SECTION((NeutralLossMarker& operator = (const NeutralLossMarker& source)))
 	NeutralLossMarker copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK((template<typename SpectrumType> void apply(std::map<double, bool>& marked, SpectrumType& spectrum)))
+START_SECTION((template<typename SpectrumType> void apply(std::map<double, bool>& marked, SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -86,18 +86,18 @@ CHECK((template<typename SpectrumType> void apply(std::map<double, bool>& marked
 	marked.clear();
 	e_ptr->apply(marked, spec);
 	TEST_EQUAL(marked.size(), 49)
-RESULT
+END_SECTION
 
-CHECK((static PeakMarker* create()))
+START_SECTION((static PeakMarker* create()))
 	PeakMarker* pm = NeutralLossMarker::create();
 	NeutralLossMarker marker;
 	TEST_EQUAL(pm->getParameters(), marker.getParameters())
 	TEST_EQUAL(pm->getName(), marker.getName())
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(e_ptr->getProductName(), "NeutralLossMarker")
-RESULT
+END_SECTION
 
 delete e_ptr;
 

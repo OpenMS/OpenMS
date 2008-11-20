@@ -114,31 +114,31 @@ class TestModel : public MaxLikeliFitter1D
 /////////////////////////////////////////////////////////////
 
 TestModel* ptr = 0;
-CHECK(MaxLikeliFitter1D())
+START_SECTION(MaxLikeliFitter1D())
 {
 	ptr = new TestModel();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK((MaxLikeliFitter1D(const  MaxLikeliFitter1D &source)))
+START_SECTION((MaxLikeliFitter1D(const  MaxLikeliFitter1D &source)))
 	TestModel tm1;	
   
   TestModel tm2(tm1);
 	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
-RESULT
+END_SECTION
 
-CHECK((virtual ~MaxLikeliFitter1D()))
+START_SECTION((virtual ~MaxLikeliFitter1D()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((virtual MaxLikeliFitter1D& operator=(const  MaxLikeliFitter1D &source)))
+START_SECTION((virtual MaxLikeliFitter1D& operator=(const  MaxLikeliFitter1D &source)))
 	TestModel tm1;
   TestModel tm2;
   
   tm2 = tm1;
 	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

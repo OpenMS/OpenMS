@@ -54,32 +54,32 @@ cv.loadFromOBO("brenda",File::find("/CV/brenda.obo"));
 cv.loadFromOBO("GO",File::find("/CV/goslim_goa.obo"));
 
 SemanticValidator* ptr = 0;
-CHECK(SemanticValidator(const CVMappings& mapping, const ControlledVocabulary& cv))
+START_SECTION(SemanticValidator(const CVMappings& mapping, const ControlledVocabulary& cv))
 	ptr = new SemanticValidator(mapping,cv);
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~SemanticValidator()))
+START_SECTION((virtual ~SemanticValidator()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(void setTag(const String& tag))
+START_SECTION(void setTag(const String& tag))
 	NOT_TESTABLE
-RESULT
+END_SECTION
 	
-CHECK(void setAccessionAttribute(const String& accession))
+START_SECTION(void setAccessionAttribute(const String& accession))
 	NOT_TESTABLE
-RESULT
+END_SECTION
 	
-CHECK(void setNameAttribute(const String& name))
+START_SECTION(void setNameAttribute(const String& name))
 	NOT_TESTABLE
-RESULT
+END_SECTION
 	
-CHECK(void setValueAttribute(const String& value))
+START_SECTION(void setValueAttribute(const String& value))
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(bool validate(const String& filename, StringList& output))
+START_SECTION(bool validate(const String& filename, StringList& output))
 	StringList errors, warnings;
 	
 	//----------------------------------------------------------------------------------------
@@ -108,7 +108,7 @@ CHECK(bool validate(const String& filename, StringList& output))
 	TEST_STRING_EQUAL(warnings[2],"No mapping rule found for element '/mzML/acquisitionSettingsList/acquisitionSettings/targetList/target'")
 	TEST_STRING_EQUAL(warnings[3],"No mapping rule found for element '/mzML/acquisitionSettingsList/acquisitionSettings/targetList/target'")
 
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

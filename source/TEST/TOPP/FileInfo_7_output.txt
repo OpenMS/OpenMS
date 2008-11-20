@@ -3,13 +3,17 @@
 
 file name: FileInfo_7_input.consensusXML
 file type: ConsensusXML
-Number of conensus features: 5
 
-retention time range: 10 / 15
-m/z range: 530 / 566
-intensity range: 9 / 1111
+Number of consensus features:
+  of size  2:      5
+  total:           5
 
-File descriptions
+Ranges:
+  retention time:  10 : 15
+  mass-to-charge:  530 : 566
+  intensity:       9 : 1111
+
+File descriptions:
  - FeatureLinker_1_input.featureXML
    identifier: 0
    label     : light
@@ -21,7 +25,8 @@ File descriptions
 
 -- Meta information --
 
-Document id      : cons
+Document id       : cons
+
 
 -- Statistics --
 

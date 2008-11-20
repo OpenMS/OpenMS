@@ -39,27 +39,27 @@ START_TEST(ContinuousWaveletTransformNumIntegration, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ContinuousWaveletTransformNumIntegration* ptr = 0;
-CHECK((ContinuousWaveletTransformNumIntegration()))
+START_SECTION((ContinuousWaveletTransformNumIntegration()))
   ptr = new ContinuousWaveletTransformNumIntegration();
   TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~ContinuousWaveletTransformNumIntegration()))
+START_SECTION((virtual ~ContinuousWaveletTransformNumIntegration()))
   delete ptr;
-RESULT
+END_SECTION
 
-CHECK((virtual void init(double scale, double spacing)))
+START_SECTION((virtual void init(double scale, double spacing)))
   ContinuousWaveletTransformNumIntegration transformer;
   float scale = 0.5;
   float spacing = 0.1;
   
   transformer.init(scale,spacing);
-  TEST_REAL_EQUAL(transformer.getWavelet()[0],1.)
-  TEST_REAL_EQUAL(transformer.getScale(),scale)
-  TEST_REAL_EQUAL(transformer.getSpacing(),spacing)
-RESULT
+  TEST_REAL_SIMILAR(transformer.getWavelet()[0],1.)
+  TEST_REAL_SIMILAR(transformer.getScale(),scale)
+  TEST_REAL_SIMILAR(transformer.getSpacing(),spacing)
+END_SECTION
 
-CHECK((template <typename InputPeakIterator> void transform(InputPeakIterator begin_input, InputPeakIterator end_input, float resolution, unsigned int zeros=0)))
+START_SECTION((template <typename InputPeakIterator> void transform(InputPeakIterator begin_input, InputPeakIterator end_input, float resolution, unsigned int zeros=0)))
   ContinuousWaveletTransformNumIntegration transformer;
   float scale = 0.5;
   float spacing = 0.1;
@@ -68,11 +68,11 @@ CHECK((template <typename InputPeakIterator> void transform(InputPeakIterator be
   std::vector<Peak1D > raw_data(9);
   raw_data[4].setIntensity(1);
   transformer.transform(raw_data.begin(),raw_data.end(),1.);
-  TEST_REAL_EQUAL(transformer[4],0)
-  TEST_REAL_EQUAL(transformer.getWavelet()[0],1.)
-  TEST_REAL_EQUAL(transformer.getScale(),scale)
-  TEST_REAL_EQUAL(transformer.getSpacing(),spacing)
-RESULT
+  TEST_REAL_SIMILAR(transformer[4],0)
+  TEST_REAL_SIMILAR(transformer.getWavelet()[0],1.)
+  TEST_REAL_SIMILAR(transformer.getScale(),scale)
+  TEST_REAL_SIMILAR(transformer.getSpacing(),spacing)
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

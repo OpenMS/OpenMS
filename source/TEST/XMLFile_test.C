@@ -42,28 +42,28 @@ using namespace OpenMS::Internal;
 using namespace std;
 
 XMLFile* ptr;
-CHECK(XMLFile())
+START_SECTION(XMLFile())
 	ptr = new XMLFile();
 	TEST_NOT_EQUAL(ptr,0)
-RESULT
+END_SECTION
 
-CHECK(~XMLFile())
+START_SECTION(~XMLFile())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(XMLFile(const String &schema_location, const String &version))
+START_SECTION(XMLFile(const String &schema_location, const String &version))
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(bool isValid(const String &filename) )
+START_SECTION(bool isValid(const String &filename) )
 	XMLFile f("","");
 	TEST_EXCEPTION(Exception::NotImplemented, f.isValid(""))
-RESULT
+END_SECTION
 
-CHECK(const String& getVersion() const)
+START_SECTION(const String& getVersion() const)
 	XMLFile f("","1.567");
 	TEST_EQUAL( f.getVersion(),"1.567")
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

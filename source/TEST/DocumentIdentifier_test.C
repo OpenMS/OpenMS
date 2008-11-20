@@ -39,68 +39,68 @@ START_TEST(DocumentIdentifier, "$Id$")
 /////////////////////////////////////////////////////////////
 
 DocumentIdentifier* ptr = 0;
-CHECK(DocumentIdentifier())
+START_SECTION(DocumentIdentifier())
 {
 	ptr = new DocumentIdentifier();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~DocumentIdentifier())
+START_SECTION(~DocumentIdentifier())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((DocumentIdentifier(const DocumentIdentifier &source)))
+START_SECTION((DocumentIdentifier(const DocumentIdentifier &source)))
 {
   DocumentIdentifier di1;
 	di1.setIdentifier("this is a test");
 	DocumentIdentifier di2(di1);
 	TEST_EQUAL(di2.getIdentifier(), "this is a test")
 }
-RESULT
+END_SECTION
 
-CHECK((DocumentIdentifier& operator=(const DocumentIdentifier &source)))
+START_SECTION((DocumentIdentifier& operator=(const DocumentIdentifier &source)))
 {
   DocumentIdentifier di1;
 	di1.setIdentifier("this is a test");
 	DocumentIdentifier di2 = di1;
 	TEST_EQUAL(di2.getIdentifier(), "this is a test")
 }
-RESULT
+END_SECTION
 
-CHECK((bool operator==(const DocumentIdentifier &rhs) const))
+START_SECTION((bool operator==(const DocumentIdentifier &rhs) const))
 {
   DocumentIdentifier di1;
 	di1.setIdentifier("this is a test");
 	DocumentIdentifier di2(di1);
 	TEST_EQUAL(di1==di2, true)
 }
-RESULT
+END_SECTION
 
-CHECK((virtual ~DocumentIdentifier()))
+START_SECTION((virtual ~DocumentIdentifier()))
 {
 	NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((void setIdentifier(const String &id)))
+START_SECTION((void setIdentifier(const String &id)))
 {
   DocumentIdentifier di1;
 	di1.setIdentifier("this is a test");
 	TEST_EQUAL(di1.getIdentifier(), "this is a test")
 }
-RESULT
+END_SECTION
 
-CHECK((const String& getIdentifier() const))
+START_SECTION((const String& getIdentifier() const))
 {
 	// tested above	
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((void swap(DocumentIdentifier& from)))
+START_SECTION((void swap(DocumentIdentifier& from)))
 {
   DocumentIdentifier di1;
 	di1.setIdentifier("this is a test");
@@ -109,7 +109,7 @@ CHECK((void swap(DocumentIdentifier& from)))
 	TEST_EQUAL(di1.getIdentifier() == "", true)					
 	TEST_EQUAL(di2.getIdentifier() == "this is a test", true)
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

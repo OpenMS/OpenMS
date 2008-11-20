@@ -40,34 +40,34 @@ START_TEST(SignalToNoiseEstimatorMedian, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SignalToNoiseEstimatorMedian< >* ptr = 0;
-CHECK((SignalToNoiseEstimatorMedian()))
+START_SECTION((SignalToNoiseEstimatorMedian()))
 	ptr = new SignalToNoiseEstimatorMedian<>;
 	TEST_NOT_EQUAL(ptr, 0)
 	SignalToNoiseEstimatorMedian<> sne;
-RESULT
+END_SECTION
 
-CHECK((SignalToNoiseEstimatorMedian& operator=(const SignalToNoiseEstimatorMedian &source)))
+START_SECTION((SignalToNoiseEstimatorMedian& operator=(const SignalToNoiseEstimatorMedian &source)))
   MSSpectrum < > raw_data;
   SignalToNoiseEstimatorMedian<> sne;
 	sne.init(raw_data);
   SignalToNoiseEstimatorMedian<> sne2 = sne;
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((SignalToNoiseEstimatorMedian(const SignalToNoiseEstimatorMedian &source)))
+START_SECTION((SignalToNoiseEstimatorMedian(const SignalToNoiseEstimatorMedian &source)))
   MSSpectrum < > raw_data;
   SignalToNoiseEstimatorMedian<> sne;
 	sne.init(raw_data);
   SignalToNoiseEstimatorMedian<> sne2(sne);
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((virtual ~SignalToNoiseEstimatorMedian()))
+START_SECTION((virtual ~SignalToNoiseEstimatorMedian()))
 	delete ptr;
-RESULT
+END_SECTION
 
 
-CHECK([EXTRA](virtual void init(const PeakIterator& it_begin, const PeakIterator& it_end)))
+START_SECTION([EXTRA](virtual void init(const PeakIterator& it_begin, const PeakIterator& it_end)))
 
   MSSpectrum < > raw_data;
   MSSpectrum< >::const_iterator it;
@@ -88,7 +88,7 @@ CHECK([EXTRA](virtual void init(const PeakIterator& it_begin, const PeakIterator
   int i = 0;
   for (it=raw_data.begin();it!=raw_data.end(); ++it)
   {
-    TEST_REAL_EQUAL (stn_data[i].getIntensity(), sne.getSignalToNoise(it));
+    TEST_REAL_SIMILAR (stn_data[i].getIntensity(), sne.getSignalToNoise(it));
         
     
     //Peak1D peak = (*it);
@@ -99,10 +99,10 @@ CHECK([EXTRA](virtual void init(const PeakIterator& it_begin, const PeakIterator
 
   //dta_file.store("./data/SignalToNoiseEstimatorMedian_test.tmp", stn_data);
   
-  //TEST_FILE("./data/SignalToNoiseEstimatorMedian_test.tmp", "./data/SignalToNoiseEstimatorMedian_test.out");
+  //TEST_FILE_EQUAL("./data/SignalToNoiseEstimatorMedian_test.tmp", "./data/SignalToNoiseEstimatorMedian_test.out");
 
 
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

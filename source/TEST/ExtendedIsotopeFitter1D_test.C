@@ -41,15 +41,15 @@ START_TEST(ExtendedIsotopeFitter1D, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ExtendedIsotopeFitter1D* ptr = 0;
-CHECK(ExtendedIsotopeFitter1D())
+START_SECTION(ExtendedIsotopeFitter1D())
 {
 	ptr = new ExtendedIsotopeFitter1D();
         TEST_EQUAL(ptr->getName(), "ExtendedIsotopeFitter1D")
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK((ExtendedIsotopeFitter1D(const  ExtendedIsotopeFitter1D &source)))
+START_SECTION((ExtendedIsotopeFitter1D(const  ExtendedIsotopeFitter1D &source)))
 	ExtendedIsotopeFitter1D eisof1;
 	
 	Param param;
@@ -68,13 +68,13 @@ CHECK((ExtendedIsotopeFitter1D(const  ExtendedIsotopeFitter1D &source)))
   eisof1 = ExtendedIsotopeFitter1D();
 	TEST_EQUAL(eisof3.getParameters(), eisof2.getParameters())
 
-RESULT
+END_SECTION
 
-CHECK((virtual ~ExtendedIsotopeFitter1D()))
+START_SECTION((virtual ~ExtendedIsotopeFitter1D()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((virtual ExtendedIsotopeFitter1D& operator=(const  ExtendedIsotopeFitter1D &source)))
+START_SECTION((virtual ExtendedIsotopeFitter1D& operator=(const  ExtendedIsotopeFitter1D &source)))
 	ExtendedIsotopeFitter1D eisof1;
 	
 	Param param;
@@ -95,23 +95,23 @@ CHECK((virtual ExtendedIsotopeFitter1D& operator=(const  ExtendedIsotopeFitter1D
 
   eisof1 = ExtendedIsotopeFitter1D();
 	TEST_EQUAL(eisof3.getParameters(), eisof3.getParameters())
-RESULT
+END_SECTION
 
-CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
+START_SECTION((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
 	// dummy subtest TODO
 	TEST_EQUAL(1,1)
-RESULT
+END_SECTION
 
-CHECK((Fitter1D* create()))
+START_SECTION((Fitter1D* create()))
   Fitter1D* ptr = ExtendedIsotopeFitter1D::create();
   TEST_EQUAL(ptr->getName(), "ExtendedIsotopeFitter1D")
   TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((const String getProductName()))
+START_SECTION((const String getProductName()))
   TEST_EQUAL(ExtendedIsotopeFitter1D::getProductName(),"ExtendedIsotopeFitter1D")
   TEST_EQUAL(ExtendedIsotopeFitter1D().getName(),"ExtendedIsotopeFitter1D")
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

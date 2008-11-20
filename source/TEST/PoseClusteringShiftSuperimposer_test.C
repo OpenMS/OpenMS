@@ -42,29 +42,29 @@ START_TEST(PoseClusteringShiftSuperimposer, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PoseClusteringShiftSuperimposer* ptr = 0;
-CHECK((PoseClusteringShiftSuperimposer()))
+START_SECTION((PoseClusteringShiftSuperimposer()))
 	ptr = new PoseClusteringShiftSuperimposer();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~PoseClusteringShiftSuperimposer()))
+START_SECTION((virtual ~PoseClusteringShiftSuperimposer()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((static BaseSuperimposer* create()))
+START_SECTION((static BaseSuperimposer* create()))
   BaseSuperimposer* base_ptr = 0;
 	base_ptr = PoseClusteringShiftSuperimposer::create();
 	TEST_NOT_EQUAL(base_ptr, 0)
   delete (base_ptr);
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
   PoseClusteringShiftSuperimposer pcsi;
   
   TEST_EQUAL(pcsi.getName() == "poseclustering_shift",true)
-RESULT
+END_SECTION
 
-CHECK((virtual void run(const std::vector<ElementMapType>& maps, std::vector<TransformationDescription>& transformations)))
+START_SECTION((virtual void run(const std::vector<ElementMapType>& maps, std::vector<TransformationDescription>& transformations)))
   std::vector<ConsensusMap> input(2);
   Feature feat1;
   Feature feat2;
@@ -96,9 +96,9 @@ CHECK((virtual void run(const std::vector<ElementMapType>& maps, std::vector<Tra
 	TEST_EQUAL(transformations.size(),1)
   TEST_STRING_EQUAL(transformations[0].getName(),"linear")
 	TEST_EQUAL(transformations[0].getParameters().size(),2)
-  TEST_REAL_EQUAL(transformations[0].getParameters().getValue("slope"),1.0)
-  TEST_REAL_EQUAL(transformations[0].getParameters().getValue("intercept"),-20.4)
-RESULT
+  TEST_REAL_SIMILAR(transformations[0].getParameters().getValue("slope"),1.0)
+  TEST_REAL_SIMILAR(transformations[0].getParameters().getValue("intercept"),-20.4)
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

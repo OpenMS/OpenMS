@@ -81,30 +81,30 @@ class TestProduct1
 };
 
 FactoryProduct* ptr = 0;
-CHECK((FactoryProduct(const String& name)))
+START_SECTION((FactoryProduct(const String& name)))
 	ptr = new FactoryProduct("TEST");
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK([EXTRA] ~FactoryProduct())
+START_SECTION([EXTRA] ~FactoryProduct())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK([EXTRA] const String& getName() const)
+START_SECTION([EXTRA] const String& getName() const)
 	TestProduct1 s;
   TEST_EQUAL(s.getName(), "TestProduct1")
-RESULT
+END_SECTION
 
-CHECK([EXTRA] const Param& getParameters() const)
+START_SECTION([EXTRA] const Param& getParameters() const)
 	TestProduct1 s;
   Param p;
   p.setValue("value",1);
 	p.setValue("check",0);
   TEST_EQUAL(s.getParameters(), p)
-RESULT
+END_SECTION
 
 
-CHECK([EXTRA] void setParameters(const Param& p))
+START_SECTION([EXTRA] void setParameters(const Param& p))
 	TestProduct1 s;
   Param p;
 	p.setValue("value",1);
@@ -116,9 +116,9 @@ CHECK([EXTRA] void setParameters(const Param& p))
 	s.setParameters(q);
 	q.setValue("check",0);
   TEST_EQUAL(s.getParameters(), q)
-RESULT
+END_SECTION
 
-CHECK((FactoryProduct& operator = (const FactoryProduct& source)))
+START_SECTION((FactoryProduct& operator = (const FactoryProduct& source)))
 	TestProduct1 fp1;
   Param p;
   p.setValue("check",1);
@@ -128,9 +128,9 @@ CHECK((FactoryProduct& operator = (const FactoryProduct& source)))
   fp2 = fp1;
 	
 	TEST_EQUAL(fp1,fp2)
-RESULT
+END_SECTION
 
-CHECK((FactoryProduct(const FactoryProduct& source)))
+START_SECTION((FactoryProduct(const FactoryProduct& source)))
 	TestProduct1 fp1;
   Param p;
   p.setValue("check",1);
@@ -139,9 +139,9 @@ CHECK((FactoryProduct(const FactoryProduct& source)))
   TestProduct1 fp2(fp1);
 
 	TEST_EQUAL(fp1, fp2)
-RESULT
+END_SECTION
  
-CHECK((bool operator == (const FactoryProduct& rhs) const))
+START_SECTION((bool operator == (const FactoryProduct& rhs) const))
 	TestProduct1 s,t;
   Param p;
   p.setValue("check",1);
@@ -151,7 +151,7 @@ CHECK((bool operator == (const FactoryProduct& rhs) const))
   s.setParameters(p);
 
   TEST_EQUAL(s==t, false)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

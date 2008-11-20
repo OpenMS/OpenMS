@@ -42,73 +42,73 @@ DateTime time;
 time.set("2000-10-09 08:07:40");
 
 DataProcessing* ptr = 0;
-CHECK(DataProcessing())
+START_SECTION(DataProcessing())
 	ptr = new DataProcessing();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~DataProcessing())
+START_SECTION(~DataProcessing())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(const DateTime& getCompletionTime() const)
+START_SECTION(const DateTime& getCompletionTime() const)
   DataProcessing tmp;
   TEST_EQUAL(tmp.getCompletionTime().get(),"0000-00-00 00:00:00");
-RESULT
+END_SECTION
 
-CHECK(void setCompletionTime(const DateTime& completion_time))
+START_SECTION(void setCompletionTime(const DateTime& completion_time))
   DataProcessing tmp;
   tmp.setCompletionTime(time);
   TEST_EQUAL(tmp.getCompletionTime()==time,true);
-RESULT
+END_SECTION
 
-CHECK(void setCompletionTime(const String& completion_time))
+START_SECTION(void setCompletionTime(const String& completion_time))
   DataProcessing tmp;
   tmp.setCompletionTime("2000-10-09 08:07:40");
   TEST_EQUAL(tmp.getCompletionTime()==time,true);
-RESULT
+END_SECTION
 
-CHECK(Software& getSoftware())
+START_SECTION(Software& getSoftware())
   DataProcessing tmp;
   TEST_EQUAL(tmp.getSoftware()==Software(),true)
-RESULT
+END_SECTION
 
-CHECK(const Software& getSoftware() const)
+START_SECTION(const Software& getSoftware() const)
   DataProcessing tmp;
   tmp.getSoftware().setName("name");
   TEST_STRING_EQUAL(tmp.getSoftware().getName(),"name")
-RESULT
+END_SECTION
 
-CHECK(void setSoftware(const Software& software))
+START_SECTION(void setSoftware(const Software& software))
   DataProcessing tmp;
   Software tmp2;
   tmp2.setName("name");
   tmp.setSoftware(tmp2);
   TEST_STRING_EQUAL(tmp.getSoftware().getName(),"name")
-RESULT
+END_SECTION
 
-CHECK(const std::set<ProcessingAction>& getProcessingActions() const)
+START_SECTION(const std::set<ProcessingAction>& getProcessingActions() const)
   DataProcessing tmp;
   TEST_EQUAL(tmp.getProcessingActions().size(),0)
-RESULT
+END_SECTION
 
-CHECK(std::set<ProcessingAction>& getProcessingActions())
+START_SECTION(std::set<ProcessingAction>& getProcessingActions())
   DataProcessing tmp;
   tmp.getProcessingActions().insert(DataProcessing::DEISOTOPING);
   TEST_EQUAL(tmp.getProcessingActions().size(),1)
-RESULT
+END_SECTION
 
-CHECK(void setProcessingActions(const std::set<ProcessingAction>& actions))
+START_SECTION(void setProcessingActions(const std::set<ProcessingAction>& actions))
   DataProcessing tmp;
   std::set<DataProcessing::ProcessingAction> tmp2;
   tmp2.insert(DataProcessing::DEISOTOPING);
   tmp2.insert(DataProcessing::CHARGE_DECONVOLUTION);
   tmp.setProcessingActions(tmp2);
   TEST_EQUAL(tmp.getProcessingActions().size(),2)
-RESULT
+END_SECTION
 
 
-CHECK(DataProcessing& operator= (const DataProcessing& source))
+START_SECTION(DataProcessing& operator= (const DataProcessing& source))
   DataProcessing tmp;
   tmp.setCompletionTime(time);
   tmp.getProcessingActions().insert(DataProcessing::DEISOTOPING);
@@ -121,9 +121,9 @@ CHECK(DataProcessing& operator= (const DataProcessing& source))
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
   TEST_EQUAL(tmp2.getProcessingActions().size(),1)
   TEST_STRING_EQUAL(tmp2.getSoftware().getName(),"name")
-RESULT
+END_SECTION
 
-CHECK(DataProcessing(const DataProcessing& source))
+START_SECTION(DataProcessing(const DataProcessing& source))
   DataProcessing tmp;
   tmp.setCompletionTime(time);
   tmp.getProcessingActions().insert(DataProcessing::DEISOTOPING);
@@ -136,9 +136,9 @@ CHECK(DataProcessing(const DataProcessing& source))
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
   TEST_EQUAL(tmp2.getProcessingActions().size(),1)
   TEST_STRING_EQUAL(tmp2.getSoftware().getName(),"name")
-RESULT
+END_SECTION
 
-CHECK(bool operator== (const DataProcessing& rhs) const)
+START_SECTION(bool operator== (const DataProcessing& rhs) const)
   DataProcessing edit, empty;
   
   TEST_EQUAL(edit==empty, true);
@@ -157,9 +157,9 @@ CHECK(bool operator== (const DataProcessing& rhs) const)
   edit = empty;
   edit.setMetaValue("label",String("label"));
 	TEST_EQUAL(edit==empty, false);
-RESULT
+END_SECTION
 
-CHECK(bool operator!= (const DataProcessing& rhs) const)
+START_SECTION(bool operator!= (const DataProcessing& rhs) const)
   DataProcessing edit, empty;
   
   TEST_EQUAL(edit!=empty, false);
@@ -178,7 +178,7 @@ CHECK(bool operator!= (const DataProcessing& rhs) const)
   edit = empty;
   edit.setMetaValue("label",String("label"));
 	TEST_EQUAL(edit!=empty, true);
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

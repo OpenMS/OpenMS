@@ -42,35 +42,35 @@ START_TEST(PeakIndex, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PeakIndex* ptr = 0;
-CHECK((PeakIndex()))
+START_SECTION((PeakIndex()))
 {
 	ptr = new PeakIndex();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK((~PeakIndex()))
+START_SECTION((~PeakIndex()))
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((PeakIndex(UInt peak)))
+START_SECTION((PeakIndex(UInt peak)))
 {
   PeakIndex i(17);
 	TEST_EQUAL(i.peak,17)
 }
-RESULT
+END_SECTION
 
-CHECK((PeakIndex(UInt spectrum, UInt peak)))
+START_SECTION((PeakIndex(UInt spectrum, UInt peak)))
 {
   PeakIndex i(5,17);
 	TEST_EQUAL(i.peak,17)
   TEST_EQUAL(i.spectrum,5)
 }
-RESULT
+END_SECTION
 
-CHECK((bool isValid() const))
+START_SECTION((bool isValid() const))
 {
   PeakIndex i;
 	TEST_EQUAL(i.isValid(),false)
@@ -78,9 +78,9 @@ CHECK((bool isValid() const))
 	i.spectrum = 17;
 	TEST_EQUAL(i.isValid(),true)
 }
-RESULT
+END_SECTION
 
-CHECK((void clear()))
+START_SECTION((void clear()))
 {
   PeakIndex i(5,17);
 	TEST_EQUAL(i.isValid(),true)
@@ -89,9 +89,9 @@ CHECK((void clear()))
 	TEST_NOT_EQUAL(i.peak,17)
 	TEST_NOT_EQUAL(i.spectrum,5)
 }
-RESULT
+END_SECTION
 
-CHECK((bool operator==(const PeakIndex &rhs) const))
+START_SECTION((bool operator==(const PeakIndex &rhs) const))
 {
   PeakIndex i1, i2;
 	TEST_EQUAL(i1==i2, true)
@@ -104,9 +104,9 @@ CHECK((bool operator==(const PeakIndex &rhs) const))
 	i2.spectrum = 2;
 	TEST_EQUAL(i1==i2, true)
 }
-RESULT
+END_SECTION
 
-CHECK((bool operator!=(const PeakIndex &rhs) const))
+START_SECTION((bool operator!=(const PeakIndex &rhs) const))
 {
   PeakIndex i1, i2;
 	TEST_EQUAL(i1!=i2, false)
@@ -119,7 +119,7 @@ CHECK((bool operator!=(const PeakIndex &rhs) const))
 	i2.spectrum = 2;
 	TEST_EQUAL(i1!=i2, false)
 }
-RESULT
+END_SECTION
 
 FeatureMap<> map;
 map.resize(5);
@@ -137,20 +137,20 @@ c_map[2].setMZ(3.1);
 c_map[3].setMZ(4.1);
 c_map[4].setMZ(5.1);
 
-CHECK((template <typename FeatureMapType> const FeatureMapType::value_type& getFeature(const FeatureMapType &map) const ))
+START_SECTION((template <typename FeatureMapType> const FeatureMapType::value_type& getFeature(const FeatureMapType &map) const ))
 {
   PeakIndex i;
 	TEST_EXCEPTION(Exception::Precondition,i.getFeature(map))
 	i.peak = 4;
-	TEST_REAL_EQUAL(i.getFeature(map).getMZ(),5.0)
-	TEST_REAL_EQUAL(i.getFeature(c_map).getMZ(),5.1)
+	TEST_REAL_SIMILAR(i.getFeature(map).getMZ(),5.0)
+	TEST_REAL_SIMILAR(i.getFeature(c_map).getMZ(),5.1)
 	i.peak = 0;
-	TEST_REAL_EQUAL(i.getFeature(map).getMZ(),1.0)
-	TEST_REAL_EQUAL(i.getFeature(c_map).getMZ(),1.1)
+	TEST_REAL_SIMILAR(i.getFeature(map).getMZ(),1.0)
+	TEST_REAL_SIMILAR(i.getFeature(c_map).getMZ(),1.1)
 	i.peak = 5;
 	TEST_EXCEPTION(Exception::Precondition,i.getFeature(map))
 }
-RESULT
+END_SECTION
 
 MSExperiment<> exp;
 exp.resize(3);
@@ -164,38 +164,38 @@ exp[2][1].setMZ(2.0);
 exp[2][2].setMZ(3.0);
 
 
-CHECK((template <typename PeakMapType> const PeakMapType::SpectrumType& getSpectrum(const PeakMapType &map) const ))
+START_SECTION((template <typename PeakMapType> const PeakMapType::SpectrumType& getSpectrum(const PeakMapType &map) const ))
 {
   PeakIndex i;
 	TEST_EXCEPTION(Exception::Precondition,i.getSpectrum(exp))
 	i.spectrum = 0;
-	TEST_REAL_EQUAL(i.getSpectrum(exp).getRT(),1.0)
+	TEST_REAL_SIMILAR(i.getSpectrum(exp).getRT(),1.0)
 	i.spectrum = 2;
-	TEST_REAL_EQUAL(i.getSpectrum(exp).getRT(),3.0)
+	TEST_REAL_SIMILAR(i.getSpectrum(exp).getRT(),3.0)
 	i.spectrum = 3;
 	TEST_EXCEPTION(Exception::Precondition,i.getSpectrum(exp))
 }
-RESULT
+END_SECTION
 
-CHECK((template <typename PeakMapType> const PeakMapType::PeakType& getPeak(const PeakMapType &map) const ))
+START_SECTION((template <typename PeakMapType> const PeakMapType::PeakType& getPeak(const PeakMapType &map) const ))
 {
   PeakIndex i;
 	TEST_EXCEPTION(Exception::Precondition,i.getPeak(exp))
 	i.peak = 0;
 	i.spectrum = 0;
-	TEST_REAL_EQUAL(i.getPeak(exp).getMZ(),0.0)
+	TEST_REAL_SIMILAR(i.getPeak(exp).getMZ(),0.0)
 	i.peak = 0;
 	i.spectrum = 2;
-	TEST_REAL_EQUAL(i.getPeak(exp).getMZ(),1.0)
+	TEST_REAL_SIMILAR(i.getPeak(exp).getMZ(),1.0)
 	i.peak = 2;
-	TEST_REAL_EQUAL(i.getPeak(exp).getMZ(),3.0)
+	TEST_REAL_SIMILAR(i.getPeak(exp).getMZ(),3.0)
 	i.peak = 16;
 	TEST_EXCEPTION(Exception::Precondition,i.getPeak(exp))
 	i.peak = 0;
 	i.spectrum = 3;
 	TEST_EXCEPTION(Exception::Precondition,i.getPeak(exp))
 }
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

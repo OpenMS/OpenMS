@@ -41,20 +41,20 @@ START_TEST(SavitzkyGolayFilter<D>, "$Id$")
 using namespace OpenMS;
 
 SavitzkyGolayFilter* dsg_ptr = 0;
-CHECK((SavitzkyGolayFilter()))
+START_SECTION((SavitzkyGolayFilter()))
   dsg_ptr = new SavitzkyGolayFilter;
   TEST_NOT_EQUAL(dsg_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~SavitzkyGolayFilter()))
+START_SECTION((virtual ~SavitzkyGolayFilter()))
   delete dsg_ptr;
-RESULT
+END_SECTION
 
 Param param;
 param.setValue("polynomial_order",2);
 param.setValue("frame_length",3);
 
-CHECK((template <typename InputPeakIterator, typename OutputPeakContainer> void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer &smoothed_data_container)))
+START_SECTION((template <typename InputPeakIterator, typename OutputPeakContainer> void filter(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer &smoothed_data_container)))
   MSSpectrum<Peak1D> raw;
   raw.resize(5);
   MSSpectrum<Peak1D> filtered;
@@ -73,20 +73,20 @@ CHECK((template <typename InputPeakIterator, typename OutputPeakContainer> void 
 	sgolay.setParameters(param);
   sgolay.filter(raw.begin(),raw.end(),filtered);
   it=filtered.begin();
-  TEST_REAL_EQUAL(it->getIntensity(),0.0)
+  TEST_REAL_SIMILAR(it->getIntensity(),0.0)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0.0)
+  TEST_REAL_SIMILAR(it->getIntensity(),0.0)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),1.0)
+  TEST_REAL_SIMILAR(it->getIntensity(),1.0)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0.0)
+  TEST_REAL_SIMILAR(it->getIntensity(),0.0)
   ++it;
-  TEST_REAL_EQUAL(it->getIntensity(),0.0)
-RESULT 
+  TEST_REAL_SIMILAR(it->getIntensity(),0.0)
+END_SECTION 
 
 
-CHECK((template <typename PeakType> void filterExperiment(MSExperiment<PeakType>& map)))
-	PRECISION(0.01)
+START_SECTION((template <typename PeakType> void filterExperiment(MSExperiment<PeakType>& map)))
+	TOLERANCE_ABSOLUTE(0.01)
 
 	param.setValue("frame_length",4);
 
@@ -124,29 +124,29 @@ CHECK((template <typename PeakType> void filterExperiment(MSExperiment<PeakType>
 	TEST_EQUAL(exp[2].size(),1)
 	TEST_EQUAL(exp[3].size(),0)
 
-	TEST_REAL_EQUAL(exp[0][0].getIntensity(),0.0)	
-	TEST_REAL_EQUAL(exp[0][1].getIntensity(),0.0571429)
-	TEST_REAL_EQUAL(exp[0][2].getIntensity(),0.274286)
-	TEST_REAL_EQUAL(exp[0][3].getIntensity(),0.657143)
-	TEST_REAL_EQUAL(exp[0][4].getIntensity(),1.14286)
-	TEST_REAL_EQUAL(exp[0][5].getIntensity(),0.771429)
-	TEST_REAL_EQUAL(exp[0][6].getIntensity(),0.342857)
-	TEST_REAL_EQUAL(exp[0][7].getIntensity(),0.0914286)
-	TEST_REAL_EQUAL(exp[0][8].getIntensity(),0.0)
+	TEST_REAL_SIMILAR(exp[0][0].getIntensity(),0.0)	
+	TEST_REAL_SIMILAR(exp[0][1].getIntensity(),0.0571429)
+	TEST_REAL_SIMILAR(exp[0][2].getIntensity(),0.274286)
+	TEST_REAL_SIMILAR(exp[0][3].getIntensity(),0.657143)
+	TEST_REAL_SIMILAR(exp[0][4].getIntensity(),1.14286)
+	TEST_REAL_SIMILAR(exp[0][5].getIntensity(),0.771429)
+	TEST_REAL_SIMILAR(exp[0][6].getIntensity(),0.342857)
+	TEST_REAL_SIMILAR(exp[0][7].getIntensity(),0.0914286)
+	TEST_REAL_SIMILAR(exp[0][8].getIntensity(),0.0)
 
-	TEST_REAL_EQUAL(exp[1][0].getIntensity(),0.0)
-	TEST_REAL_EQUAL(exp[1][1].getIntensity(),0.0571429)
-	TEST_REAL_EQUAL(exp[1][2].getIntensity(),0.274286)
-	TEST_REAL_EQUAL(exp[1][3].getIntensity(),0.657143)
-	TEST_REAL_EQUAL(exp[1][4].getIntensity(),1.14286)
-	TEST_REAL_EQUAL(exp[1][5].getIntensity(),0.771429)
-	TEST_REAL_EQUAL(exp[1][6].getIntensity(),0.342857)
-	TEST_REAL_EQUAL(exp[1][7].getIntensity(),0.0914286)
-	TEST_REAL_EQUAL(exp[1][8].getIntensity(),0.0)
+	TEST_REAL_SIMILAR(exp[1][0].getIntensity(),0.0)
+	TEST_REAL_SIMILAR(exp[1][1].getIntensity(),0.0571429)
+	TEST_REAL_SIMILAR(exp[1][2].getIntensity(),0.274286)
+	TEST_REAL_SIMILAR(exp[1][3].getIntensity(),0.657143)
+	TEST_REAL_SIMILAR(exp[1][4].getIntensity(),1.14286)
+	TEST_REAL_SIMILAR(exp[1][5].getIntensity(),0.771429)
+	TEST_REAL_SIMILAR(exp[1][6].getIntensity(),0.342857)
+	TEST_REAL_SIMILAR(exp[1][7].getIntensity(),0.0914286)
+	TEST_REAL_SIMILAR(exp[1][8].getIntensity(),0.0)
 
-	TEST_REAL_EQUAL(exp[2][0].getIntensity(),0.0)
+	TEST_REAL_SIMILAR(exp[2][0].getIntensity(),0.0)
 
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

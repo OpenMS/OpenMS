@@ -83,48 +83,48 @@ class TestHandler
 };
 
 DefaultParamHandler* ptr = 0;
-CHECK((DefaultParamHandler(const String& name)))
+START_SECTION((DefaultParamHandler(const String& name)))
 	ptr = new DefaultParamHandler("dummy");
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~DefaultParamHandler()))
+START_SECTION((~DefaultParamHandler()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((const String& getName() const))
+START_SECTION((const String& getName() const))
 	DefaultParamHandler s("dummy2");
   TEST_EQUAL(s.getName(), "dummy2")
-RESULT
+END_SECTION
 
-CHECK((void setName(const String& name)))
+START_SECTION((void setName(const String& name)))
 	DefaultParamHandler s("dummy2");
 	s.setName("SetName");
   TEST_EQUAL(s.getName(), "SetName")
-RESULT
+END_SECTION
 
-CHECK((const std::vector<String>& getSubsections() const))
+START_SECTION((const std::vector<String>& getSubsections() const))
 	DefaultParamHandler s("dummy2");
   TEST_EQUAL(s.getSubsections().size(),0)
-RESULT
+END_SECTION
 
-CHECK((const Param& getDefaults() const))
+START_SECTION((const Param& getDefaults() const))
 	DefaultParamHandler s("dummy2");
   TEST_EQUAL(s.getDefaults().size(),0)
 	TestHandler t("dummy2");
   TEST_EQUAL(t.getDefaults().size(),2)
-RESULT
+END_SECTION
 
-CHECK((const Param& getParameters() const))
+START_SECTION((const Param& getParameters() const))
 	TestHandler s("dummy");
 	Param empty;
   TEST_EQUAL(s.getParameters().size(),2)
   TEST_EQUAL((int)(s.getParameters().getValue("int")),0)
   TEST_EQUAL((string)(s.getParameters().getValue("string")),"default")
   TEST_EQUAL(s.string_var, "default")
-RESULT
+END_SECTION
 
-CHECK((void setParameters(const Param &param)))
+START_SECTION((void setParameters(const Param &param)))
 	Param p;
 	p.setValue("int",1);
 	p.setValue("string","test");
@@ -136,9 +136,9 @@ CHECK((void setParameters(const Param &param)))
   TEST_EQUAL((int)(s.getParameters().getValue("int")), 1)
 	TEST_EQUAL((string)(s.getParameters().getValue("string")), "test")
 	TEST_EQUAL(s.string_var, "test")
-RESULT
+END_SECTION
 
-CHECK((bool operator == (const DefaultParamHandler& rhs) const))
+START_SECTION((bool operator == (const DefaultParamHandler& rhs) const))
 	TestHandler empty("dummy");
   TestHandler h("dummy");
   TEST_EQUAL(empty==h,true);
@@ -147,9 +147,9 @@ CHECK((bool operator == (const DefaultParamHandler& rhs) const))
 	p.setValue("int",1);
   h.setParameters(p);
 	TEST_EQUAL(empty==h,false);
-RESULT
+END_SECTION
 
-CHECK((DefaultParamHandler & operator=(const DefaultParamHandler &rhs)))
+START_SECTION((DefaultParamHandler & operator=(const DefaultParamHandler &rhs)))
 	Param p;
 	p.setValue("int",1);
 	p.setValue("string","test");
@@ -166,9 +166,9 @@ CHECK((DefaultParamHandler & operator=(const DefaultParamHandler &rhs)))
 	
 	s2 = TestHandler("dummy");
 	TEST_EQUAL(s2==TestHandler("dummy"),true)
-RESULT
+END_SECTION
 
-CHECK((DefaultParamHandler(const DefaultParamHandler &rhs)))
+START_SECTION((DefaultParamHandler(const DefaultParamHandler &rhs)))
 	Param p;
 	p.setValue("int",1);
 	p.setValue("string","test");
@@ -182,7 +182,7 @@ CHECK((DefaultParamHandler(const DefaultParamHandler &rhs)))
   TEST_EQUAL((int)(s2.getParameters().getValue("int")), 1)
 	TEST_EQUAL((string)(s2.getParameters().getValue("string")), "test")
 	TEST_EQUAL(s2.string_var, "test")
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

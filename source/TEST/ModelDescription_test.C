@@ -44,21 +44,21 @@ using namespace OpenMS;
 using std::stringstream;
 
 ModelDescription<2>* ptr = 0;
-CHECK((ModelDescription()))
+START_SECTION((ModelDescription()))
 	ptr = new ModelDescription<2>();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~ModelDescription()))
+START_SECTION((virtual ~ModelDescription()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(BaseModel<D>* createModel())
+START_SECTION(BaseModel<D>* createModel())
 	BaseModel<2>* ptr = ModelDescription<2>().createModel();
 	TEST_EQUAL(ptr, 0)	// no name is set, should be zero pointer
-RESULT
+END_SECTION
 
-CHECK( virtual bool operator==(const ModelDescription &rhs) const )
+START_SECTION( virtual bool operator==(const ModelDescription &rhs) const )
 	ModelDescription<2> fp1,fp2;	
 	TEST_EQUAL(fp1==fp2,true)
   
@@ -75,9 +75,9 @@ CHECK( virtual bool operator==(const ModelDescription &rhs) const )
   
 	fp2.setParam(param);
   TEST_EQUAL(fp1==fp2,true)
-RESULT
+END_SECTION
 
-CHECK( virtual bool operator!=(const ModelDescription &rhs) const )
+START_SECTION( virtual bool operator!=(const ModelDescription &rhs) const )
 	ModelDescription<2> fp1, fp2;
 	TEST_EQUAL(fp1!=fp2,false)
 	
@@ -86,9 +86,9 @@ CHECK( virtual bool operator!=(const ModelDescription &rhs) const )
 
   fp2.setName("halligalli2000");
 	TEST_EQUAL(fp1!=fp2,false)
-RESULT
+END_SECTION
 
-CHECK((virtual ModelDescription& operator=(const ModelDescription &source)))
+START_SECTION((virtual ModelDescription& operator=(const ModelDescription &source)))
 	ModelDescription<2> tm1;
   tm1.setName("halligalli");
 	Param param;
@@ -99,9 +99,9 @@ CHECK((virtual ModelDescription& operator=(const ModelDescription &source)))
   tm2 = tm1;
 
 	TEST_EQUAL(tm1==tm2,true)
-RESULT
+END_SECTION
 
-CHECK((ModelDescription(const ModelDescription &source)))
+START_SECTION((ModelDescription(const ModelDescription &source)))
 	ModelDescription<2> tm1;
   tm1.setName("halligalli");
 	Param param;
@@ -111,60 +111,60 @@ CHECK((ModelDescription(const ModelDescription &source)))
   ModelDescription<2> tm2(tm1);
 
 	TEST_EQUAL(tm1==tm2,true)
-RESULT
+END_SECTION
 
-CHECK( ModelDescription(const BaseModel< D > *model) )
+START_SECTION( ModelDescription(const BaseModel< D > *model) )
 	const BaseModel<1> * bm = new IsotopeModel();
 
   ModelDescription<1> md(bm);
 	
 	BaseModel<1>* ptr = md.createModel();
 	TEST_EQUAL( *ptr == *bm, true)	
- RESULT
+END_SECTION
 
-CHECK((const String& getName() const ))
+START_SECTION((const String& getName() const ))
   const ModelDescription<2> m;
   TEST_EQUAL(m.getName(), "")
-RESULT
+END_SECTION
 
-CHECK((void setName(const String &name)))
+START_SECTION((void setName(const String &name)))
   ModelDescription<2> m;
 	m.setName("halligalli2006");
   TEST_EQUAL(m.getName(), "halligalli2006")
-RESULT
+END_SECTION
 
-CHECK((const Param& getParam() const ))
+START_SECTION((const Param& getParam() const ))
   ModelDescription<2> m;
 	Param p;
 	p.setValue("x1",1.0);
 	p.setValue("x2",2.0);
 	m.setParam(p);
   TEST_EQUAL(m.getParam(), p)
-RESULT
+END_SECTION
 
-CHECK( String& getName() )
+START_SECTION( String& getName() )
   ModelDescription<2> m;
 	m.setName("halligalli2006");
   TEST_EQUAL(m.getName(), "halligalli2006")
-RESULT
+END_SECTION
 
-CHECK( Param& getParam() )
+START_SECTION( Param& getParam() )
 	ModelDescription<2> m;
 	Param p;
 	p.setValue("x1",1.0);
 	p.setValue("x2",2.0);
 	m.setParam(p);
   TEST_EQUAL(m.getParam(), p)
-RESULT
+END_SECTION
 
-CHECK( void setParam(const Param &param) )
+START_SECTION( void setParam(const Param &param) )
 	ModelDescription<2> m;
 	Param p;
 	p.setValue("x1",1.0);
 	p.setValue("x2",2.0);
 	m.setParam(p);
   TEST_EQUAL(m.getParam(), p)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

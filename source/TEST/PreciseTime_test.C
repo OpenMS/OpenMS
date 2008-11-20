@@ -48,28 +48,28 @@ using namespace std;
 	double x = 0.0;  for (int i = 0; i < 20000000; i++, x += rand());
 
 PreciseTime* t_ptr;
-CHECK(PreciseTime::PreciseTime())
+START_SECTION(PreciseTime::PreciseTime())
 	t_ptr = new PreciseTime;
 	TEST_NOT_EQUAL(t_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(PreciseTime::~PreciseTime())
+START_SECTION(PreciseTime::~PreciseTime())
 	delete t_ptr;
-RESULT
+END_SECTION
 
-CHECK(PreciseTime::getSeconds() const )
+START_SECTION(PreciseTime::getSeconds() const )
 	PreciseTime t;
 	TEST_EQUAL(t.getSeconds(), 0)
-RESULT
+END_SECTION
 
 
-CHECK(PreciseTime::getMicroSeconds() const )
+START_SECTION(PreciseTime::getMicroSeconds() const )
 	PreciseTime t;
 	TEST_EQUAL(t.getMicroSeconds(), 0)
-RESULT
+END_SECTION
 
 
-CHECK(PreciseTime::set(long secs, long usecs) )
+START_SECTION(PreciseTime::set(long secs, long usecs) )
 	PreciseTime t;
 	TEST_EQUAL(t.getSeconds(), 0)
 	TEST_EQUAL(t.getMicroSeconds(), 0)
@@ -79,38 +79,38 @@ CHECK(PreciseTime::set(long secs, long usecs) )
 	t.set(9999,12345);
 	TEST_EQUAL(t.getSeconds(), 9999)
 	TEST_EQUAL(t.getMicroSeconds(), 12345)
-RESULT
+END_SECTION
 
 
-CHECK(PreciseTime::PreciseTime(const PreciseTime& time))
+START_SECTION(PreciseTime::PreciseTime(const PreciseTime& time))
 	PreciseTime t1;
 	t1.set(12345678, 456789);
 	PreciseTime t2(t1);
 	TEST_EQUAL(t2, t1)
 	TEST_EQUAL(t2.getSeconds(), 12345678)
 	TEST_EQUAL(t2.getMicroSeconds(), 456789)
-RESULT
+END_SECTION
 
-CHECK(PreciseTime::set(const PreciseTime& time) )	
+START_SECTION(PreciseTime::set(const PreciseTime& time) )	
 	PreciseTime t1, t2;
 	t1.set(12345678, 456789);
 	t2.set(t1);
 	TEST_EQUAL(t2, t1)
 	TEST_EQUAL(t2.getSeconds(), 12345678)
 	TEST_EQUAL(t2.getMicroSeconds(), 456789)
-RESULT
+END_SECTION
 
 
-CHECK(PreciseTime::PreciseTime& operator = (const PreciseTime& time) )
+START_SECTION(PreciseTime::PreciseTime& operator = (const PreciseTime& time) )
 	PreciseTime t1, t2;
 	t1.set(12345678, 456789);
 	t2 = t1;
 	TEST_EQUAL(t2, t1)
 	TEST_EQUAL(t2.getSeconds(), 12345678)
 	TEST_EQUAL(t2.getMicroSeconds(), 456789)
-RESULT
+END_SECTION
 
-CHECK(void PreciseTime::clear() )
+START_SECTION(void PreciseTime::clear() )
 	PreciseTime t1;
 	PreciseTime t2;
 	TEST_EQUAL(t1, t2)
@@ -121,10 +121,10 @@ CHECK(void PreciseTime::clear() )
 	TEST_EQUAL(t1.getMicroSeconds(), 23456)
 	t1.clear();
 	TEST_EQUAL(t1, t2)
-RESULT
+END_SECTION
 
 
-CHECK(PreciseTime::bool operator < (const PreciseTime& time) const  )
+START_SECTION(PreciseTime::bool operator < (const PreciseTime& time) const  )
 	PreciseTime t1, t2;
 	t1.set(12345678, 456789);
 	t2.set(12345679, 456789);
@@ -136,10 +136,10 @@ CHECK(PreciseTime::bool operator < (const PreciseTime& time) const  )
 	t2.set(12345678, 2345);
 	TEST_EQUAL((t2 < t1), true)
 	TEST_EQUAL((t1 < t2), false)
-RESULT
+END_SECTION
 
 
-CHECK(PreciseTime::bool operator > (const PreciseTime& time) const  )
+START_SECTION(PreciseTime::bool operator > (const PreciseTime& time) const  )
 	PreciseTime t1, t2;
 	t1.set(12345678, 456789);
 	t2.set(12345679, 456789);
@@ -151,10 +151,10 @@ CHECK(PreciseTime::bool operator > (const PreciseTime& time) const  )
 	t2.set(12345678, 2345);
 	TEST_EQUAL((t2 > t1), false)
 	TEST_EQUAL((t1 > t2), true)
-RESULT
+END_SECTION
 
 
-CHECK(PreciseTime::bool operator == (const PreciseTime& time) const  )
+START_SECTION(PreciseTime::bool operator == (const PreciseTime& time) const  )
 	PreciseTime t1, t2;
 	t1.set(12345678, 456789);
 	t2.set(12345679, 456789);
@@ -166,10 +166,10 @@ CHECK(PreciseTime::bool operator == (const PreciseTime& time) const  )
 	t2.set(12345678, 2345);
 	TEST_EQUAL((t2 == t1), false)
 	TEST_EQUAL((t1 == t2), false)
-RESULT
+END_SECTION
 
 
-CHECK(PreciseTime::now())
+START_SECTION(PreciseTime::now())
 	PreciseTime t1(PreciseTime::now());
 	TEST_NOT_EQUAL(t1.getSeconds(), 0)
 	TEST_NOT_EQUAL(t1.getMicroSeconds(), 0)
@@ -181,9 +181,9 @@ CHECK(PreciseTime::now())
 	STATUS(t2.getSeconds() << "/" << t2.getMicroSeconds())
 	TEST_EQUAL((t1 < t2), true)
 	TEST_EQUAL((t1 == t2), false)
-RESULT
+END_SECTION
 
-CHECK(ostream& operator << (ostream& os, const PreciseTime& time))
+START_SECTION(ostream& operator << (ostream& os, const PreciseTime& time))
 	PreciseTime t(12345678, 456789);
 	string filename;
 	NEW_TMP_FILE(filename);
@@ -191,8 +191,8 @@ CHECK(ostream& operator << (ostream& os, const PreciseTime& time))
 	of << t << std::endl;
 	of.close();
 	// ???? This still has to be ported from BALL
-	// TEST_FILE_REGEXP(filename.c_str(), "data/PreciseTime_test.txt")
-RESULT
+	// TEST_FILE_EQUAL_REGEXP(filename.c_str(), "data/PreciseTime_test.txt")
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

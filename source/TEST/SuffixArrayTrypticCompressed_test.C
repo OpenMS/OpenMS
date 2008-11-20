@@ -48,7 +48,7 @@ const String text = "$AAARAA$ARARP$";
 
 SuffixArrayTrypticCompressed* sa = new SuffixArrayTrypticCompressed(text, "");
 
-CHECK(SuffixArrayTrypticCompressed(const String &st, const String &filename))
+START_SECTION(SuffixArrayTrypticCompressed(const String &st, const String &filename))
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArrayTrypticCompressed("A",""));
 	TEST_EXCEPTION (Exception::InvalidValue,new SuffixArrayTrypticCompressed("$A",""));
 	ptr = new SuffixArrayTrypticCompressed("$","");
@@ -62,56 +62,56 @@ CHECK(SuffixArrayTrypticCompressed(const String &st, const String &filename))
 	TEST_EQUAL(skip,"1210");
 	TEST_NOT_EQUAL(ptr, 0);
 	TEST_EXCEPTION (Exception::FileNotFound,ptr = new SuffixArrayTrypticCompressed(text,"FileThatNotExists"));
-RESULT
+END_SECTION
 
-CHECK(SuffixArrayTrypticCompressed(const SuffixArrayTrypticCompressed & sa))
+START_SECTION(SuffixArrayTrypticCompressed(const SuffixArrayTrypticCompressed & sa))
         SuffixArrayTrypticCompressed sa2 (*sa);
 	TEST_EQUAL (sa->toString(),sa2.toString());
-RESULT
+END_SECTION
 
-CHECK(~SuffixArrayTrypticCompressed())
+START_SECTION(~SuffixArrayTrypticCompressed())
         delete ptr;
-RESULT
+END_SECTION
 
-CHECK(bool isDigestingEnd(const char aa1, const char aa2) const )
+START_SECTION(bool isDigestingEnd(const char aa1, const char aa2) const )
 	TEST_EQUAL (sa->isDigestingEnd('R','R'),true);
 	TEST_EQUAL (sa->isDigestingEnd('K','K'),true);
 	TEST_EQUAL (sa->isDigestingEnd('R','K'),true);
 	TEST_EQUAL (sa->isDigestingEnd('R','P'),false);
 	TEST_EQUAL (sa->isDigestingEnd('K','P'),false);
 	TEST_EQUAL (sa->isDigestingEnd('A','R'),false);
-RESULT
+END_SECTION
 
-CHECK(double getTolerance () const)
-	TEST_REAL_EQUAL (sa->getTolerance(),0.5);
+START_SECTION(double getTolerance () const)
+	TEST_REAL_SIMILAR (sa->getTolerance(),0.5);
 	sa->setTolerance(0.1);
-	TEST_REAL_EQUAL (sa->getTolerance(),0.1);
+	TEST_REAL_SIMILAR (sa->getTolerance(),0.1);
 	sa->setTolerance(0.5);
-RESULT
+END_SECTION
 
-CHECK(void setTolerance(double t))
-	TEST_REAL_EQUAL (sa->getTolerance(),0.5);
+START_SECTION(void setTolerance(double t))
+	TEST_REAL_SIMILAR (sa->getTolerance(),0.5);
 	sa->setTolerance(0.1);
-	TEST_REAL_EQUAL (sa->getTolerance(),0.1);
+	TEST_REAL_SIMILAR (sa->getTolerance(),0.1);
 	sa->setTolerance(0.5);
 	TEST_EXCEPTION(Exception::InvalidValue,sa->setTolerance(-0.5));
-RESULT
+END_SECTION
 
-CHECK(unsigned int getNumberOfModifications())
+START_SECTION(unsigned int getNumberOfModifications())
 	TEST_EQUAL (sa->getNumberOfModifications(),0);
 	sa->setNumberOfModifications(1);
 	TEST_EQUAL (sa->getNumberOfModifications(),1);
 	sa->setNumberOfModifications(0);
-RESULT
+END_SECTION
 
-CHECK(void setNumberOfModifications(unsigned int number_of_mods))
+START_SECTION(void setNumberOfModifications(unsigned int number_of_mods))
 	TEST_EQUAL (sa->getNumberOfModifications(),0);
 	sa->setNumberOfModifications(1);
 	TEST_EQUAL (sa->getNumberOfModifications(),1);
 	sa->setNumberOfModifications(0);
-RESULT
+END_SECTION
 
-CHECK(void setTags(const std::vector< String > &tags))
+START_SECTION(void setTags(const std::vector< String > &tags))
 	SuffixArrayTrypticCompressed * satc = new SuffixArrayTrypticCompressed(text,"");
 	vector<String> tags;
 	tags.push_back("AAA");
@@ -121,9 +121,9 @@ CHECK(void setTags(const std::vector< String > &tags))
 	vector<String> res = satc->getTags();
 	TEST_EQUAL(res.at(0),tags.at(0));
 	TEST_EQUAL(res.at(1),tags.at(1));
-RESULT
+END_SECTION
 
-CHECK(const std::vector<String>& getTags())
+START_SECTION(const std::vector<String>& getTags())
 	SuffixArrayTrypticCompressed * satc = new SuffixArrayTrypticCompressed(text,"");
 	TEST_EQUAL(satc->getTags().size(),0);
 	TEST_EQUAL(satc->getUseTags(),0);
@@ -136,9 +136,9 @@ CHECK(const std::vector<String>& getTags())
 	vector<String> res = satc->getTags();
 	TEST_EQUAL(res.at(0),tags.at(0));
 	TEST_EQUAL(res.at(1),tags.at(1));
-RESULT
+END_SECTION
 
-CHECK(void setUseTags(bool use_tags))
+START_SECTION(void setUseTags(bool use_tags))
 	SuffixArrayTrypticCompressed * satc = new SuffixArrayTrypticCompressed(text,"");
 	TEST_EQUAL(satc->getUseTags(),0);
 	satc->setUseTags(1);
@@ -151,9 +151,9 @@ CHECK(void setUseTags(bool use_tags))
 	TEST_EQUAL(satc->getUseTags(),1);
 	satc->setUseTags(0);
 	TEST_EQUAL(satc->getUseTags(),0);
-RESULT
+END_SECTION
 
-CHECK(bool getUseTags())
+START_SECTION(bool getUseTags())
 	SuffixArrayTrypticCompressed * satc = new SuffixArrayTrypticCompressed(text,"");
 	TEST_EQUAL(satc->getUseTags(),0);
 	satc->setUseTags(1);
@@ -166,9 +166,9 @@ CHECK(bool getUseTags())
 	TEST_EQUAL(satc->getUseTags(),1);
 	satc->setUseTags(0);
 	TEST_EQUAL(satc->getUseTags(),0);
-RESULT
+END_SECTION
 
-CHECK(bool open(const String &file_name))
+START_SECTION(bool open(const String &file_name))
 	TEST_EXCEPTION (Exception::FileNotFound,sa->open("FileThatNotExists"));
 	sa = new SuffixArrayTrypticCompressed(text,"");
 	NEW_TMP_FILE(String("SuffixArrayTrypticCompressed_test_save.lcp2"))
@@ -178,9 +178,9 @@ CHECK(bool open(const String &file_name))
 	SuffixArrayTrypticCompressed * sa2 = new SuffixArrayTrypticCompressed(text,"");
 	sa2->open("SuffixArrayTrypticCompressed_test_save");
 	TEST_EQUAL(sa->toString(),sa2->toString());
-RESULT
+END_SECTION
 
-CHECK(bool save(const String &file_name))
+START_SECTION(bool save(const String &file_name))
 	//TEST_EXCEPTION (Exception::UnableToCreateFile,sa->save("/usr/WhereIHaveNoRigths"));
 	sa = new SuffixArrayTrypticCompressed(text,"");
 	NEW_TMP_FILE(String("SuffixArrayTrypticCompressed_test_save.lcp2"))
@@ -189,9 +189,9 @@ CHECK(bool save(const String &file_name))
 	sa->save("SuffixArrayTrypticCompressed_test_save");
 	SuffixArrayTrypticCompressed * sa2 = new SuffixArrayTrypticCompressed(text,"SuffixArrayTrypticCompressed_test_save");
 	TEST_EQUAL(sa->toString(),sa2->toString());
-RESULT
+END_SECTION
 
-CHECK(String toString())
+START_SECTION(String toString())
 	ptr = new SuffixArrayTrypticCompressed("$","");
 	TEST_EQUAL(ptr->toString(),"lcp: 0\nskip: 0");
 	String s = sa->toString();
@@ -201,14 +201,14 @@ CHECK(String toString())
 	TEST_EQUAL(sTree,"AA\nAAARAA\nARARP\nARP");
 	TEST_EQUAL(lcp,"2120");
 	TEST_EQUAL(skip,"1210");
-RESULT
+END_SECTION
 
-CHECK(void printStatistic())
+START_SECTION(void printStatistic())
 	NOT_TESTABLE
 	//only for internal use
-RESULT
+END_SECTION
 
-CHECK((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >, float > > > &candidates, const std::vector< double > &spec)))
+START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >, float > > > &candidates, const std::vector< double > &spec)))
 	double masse[255];
 	ResidueDB* rdb = ResidueDB::getInstance();
 		
@@ -285,7 +285,7 @@ CHECK((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >,
 		}
 	}
 
-	PRECISION(0.55)
+	TOLERANCE_ABSOLUTE(0.55)
 	sa->setTolerance(0.5);
 		
 	// checking if the mass of the found candidates is correct
@@ -304,7 +304,7 @@ CHECK((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >,
 			if (txt[res.at(i).at(j).first.first-1]!='$') TEST_NOT_EQUAL(seq[0],'P');
 			if (txt[res.at(i).at(j).first.first+res.at(i).at(j).first.second]!='$') TEST_EQUAL(seq[seq.length()-1]=='R'||seq[seq.length()-1]=='K',true)
 			
-			TEST_REAL_EQUAL(m,specc_new.at(i));
+			TEST_REAL_SIMILAR(m,specc_new.at(i));
 		}
 	}
 	// getting all candidates with tags 
@@ -396,7 +396,7 @@ CHECK((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >,
 				//std::cout<<"hasP:"<<seq<<std::endl;
 			//}
 			TEST_NOT_EQUAL(txt[res.at(i).at(j).first.first+res.at(i).at(j).first.second],'P');
-			TEST_REAL_EQUAL(m+res.at(i).at(j).second,specc_new.at(i));
+			TEST_REAL_SIMILAR(m+res.at(i).at(j).second,specc_new.at(i));
 			
 		}
 	}
@@ -416,7 +416,7 @@ CHECK((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >,
 		TEST_EQUAL(res.at(0).at(j).first.second,res.at(1).at(j).first.second);
 		TEST_EQUAL(res.at(0).at(j).second,res.at(1).at(j).second);
 	}
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

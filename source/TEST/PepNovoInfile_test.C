@@ -43,41 +43,41 @@ START_TEST(String, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PepNovoInfile* ptr = 0;
-CHECK(PepNovoInfile())
+START_SECTION(PepNovoInfile())
 	ptr = new PepNovoInfile();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~PepNovoInfile())
+START_SECTION(~PepNovoInfile())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((PepNovoInfile& operator=(const PepNovoInfile& pepnovo_infile)))
+START_SECTION((PepNovoInfile& operator=(const PepNovoInfile& pepnovo_infile)))
 	PepNovoInfile pepnovo_infile1;
   PepNovoInfile pepnovo_infile2;
 	pepnovo_infile2 = pepnovo_infile1;
 	PepNovoInfile pepnovo_infile3;
 	pepnovo_infile1 = PepNovoInfile();
 	TEST_EQUAL(( pepnovo_infile2 == pepnovo_infile3 ), true)
-RESULT
+END_SECTION
 
-CHECK((PepNovoInfile(const PepNovoInfile &pepnovo_infile)))
+START_SECTION((PepNovoInfile(const PepNovoInfile &pepnovo_infile)))
 	PepNovoInfile pepnovo_infile1;
 	PepNovoInfile pepnovo_infile2(pepnovo_infile1);
 	PepNovoInfile pepnovo_infile3;
 	pepnovo_infile1 = PepNovoInfile();
 	TEST_EQUAL(( pepnovo_infile2 == pepnovo_infile3 ), true)
-RESULT
+END_SECTION
 
-CHECK((bool operator==(const PepNovoInfile &pepnovo_infile) const))
+START_SECTION((bool operator==(const PepNovoInfile &pepnovo_infile) const))
 	PepNovoInfile pepnovo_infile1;
 	PepNovoInfile pepnovo_infile2;
 	TEST_EQUAL(( pepnovo_infile1 == pepnovo_infile2 ), true)
-RESULT
+END_SECTION
 
 PepNovoInfile file;
 
-CHECK(void handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic))
+START_SECTION(void handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic))
 
 	// test exceptions
 	String modification_line = "Phosphorylation";
@@ -184,9 +184,9 @@ CHECK(void handlePTMs(const String& modification_line, const String& modificatio
 			}
 		}
 	}
-RESULT
+END_SECTION
 
-CHECK((const std::map< String, std::vector< String > >& getModifications() const))
+START_SECTION((const std::map< String, std::vector< String > >& getModifications() const))
 	String modification_line = "10.3+,KRLNH,fix:+16,C:16-,cterm:-16,nterm";
 // 	"10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm:-16,nterm";
 
@@ -248,9 +248,9 @@ CHECK((const std::map< String, std::vector< String > >& getModifications() const
 			}
 		}
 	}
-RESULT
+END_SECTION
 
-CHECK(String store(const String& filename))
+START_SECTION(String store(const String& filename))
 	String filename;
 	NEW_TMP_FILE(filename)
 
@@ -260,8 +260,8 @@ CHECK(String store(const String& filename))
 	
 	// test actual program
 	file.store(filename);
-	TEST_FILE(filename.c_str(), "data/PepNovoInfile_test_template.txt");
-RESULT
+	TEST_FILE_EQUAL(filename.c_str(), "data/PepNovoInfile_test_template.txt");
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

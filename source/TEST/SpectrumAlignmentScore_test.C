@@ -46,12 +46,12 @@ using namespace std;
 
 SpectrumAlignmentScore* ptr = 0;
 
-CHECK(SpectrumAlignmentScore())
+START_SECTION(SpectrumAlignmentScore())
 	ptr = new SpectrumAlignmentScore();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)
+START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)
 	PeakSpectrum s1, s2;
 	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
 	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s2);
@@ -63,26 +63,26 @@ CHECK(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) 
 	normalizer.filterSpectrum(s1);
 	normalizer.filterSpectrum(s2);
 	
-	PRECISION(0.01)
+	TOLERANCE_ABSOLUTE(0.01)
 
 	double score = (*ptr)(s1, s2);
-	TEST_REAL_EQUAL(score, 1.48268)
+	TEST_REAL_SIMILAR(score, 1.48268)
 
 	s2.resize(100);
 
 	score = (*ptr)(s1, s2);
 
 	normalizer.filterSpectrum(s2);
-	TEST_REAL_EQUAL(score, 3.82472)
-RESULT
+	TEST_REAL_SIMILAR(score, 3.82472)
+END_SECTION
 
-CHECK(virtual ~SpectrumAlignmentScore())
+START_SECTION(virtual ~SpectrumAlignmentScore())
 	delete ptr;
-RESULT
+END_SECTION
 
 ptr = new SpectrumAlignmentScore();
 
-CHECK(SpectrumAlignmentScore(const SpectrumAlignmentScore &source))
+START_SECTION(SpectrumAlignmentScore(const SpectrumAlignmentScore &source))
 	SpectrumAlignmentScore sas1;
 	Param p(sas1.getParameters());
 	p.setValue("tolerance", 0.2);
@@ -93,10 +93,10 @@ CHECK(SpectrumAlignmentScore(const SpectrumAlignmentScore &source))
 	TEST_EQUAL(sas1.getName(), sas2.getName())
 	TEST_EQUAL(sas1.getParameters(), sas2.getParameters())
 
-RESULT
+END_SECTION
 
 
-CHECK(SpectrumAlignmentScore& operator=(const SpectrumAlignmentScore &source))
+START_SECTION(SpectrumAlignmentScore& operator=(const SpectrumAlignmentScore &source))
   SpectrumAlignmentScore sas1;
   Param p(sas1.getParameters());
   p.setValue("tolerance", 0.2);
@@ -108,9 +108,9 @@ CHECK(SpectrumAlignmentScore& operator=(const SpectrumAlignmentScore &source))
 
   TEST_EQUAL(sas1.getName(), sas2.getName())
   TEST_EQUAL(sas1.getParameters(), sas2.getParameters())
-RESULT
+END_SECTION
 
-CHECK(double operator()(const PeakSpectrum &spec) const)
+START_SECTION(double operator()(const PeakSpectrum &spec) const)
 	PeakSpectrum s1;
 	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
 
@@ -121,21 +121,21 @@ CHECK(double operator()(const PeakSpectrum &spec) const)
   normalizer.filterSpectrum(s1);
 
 	double score = (*ptr)(s1);
-	TEST_REAL_EQUAL(score, 1.48268);
+	TEST_REAL_SIMILAR(score, 1.48268);
 	
-RESULT
+END_SECTION
 
 
-CHECK(static PeakSpectrumCompareFunctor* create())
+START_SECTION(static PeakSpectrumCompareFunctor* create())
 	PeakSpectrumCompareFunctor* pscf = SpectrumAlignmentScore::create();
 	SpectrumAlignmentScore sas;
 	TEST_EQUAL(pscf->getParameters(), sas.getParameters())
 	TEST_EQUAL(pscf->getName(), sas.getName())
-RESULT
+END_SECTION
 
-CHECK(static const String getProductName())
+START_SECTION(static const String getProductName())
 	TEST_STRING_EQUAL(SpectrumAlignmentScore::getProductName(), "SpectrumAlignmentScore")
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

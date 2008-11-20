@@ -40,42 +40,42 @@ START_TEST(BinnedSpectrum, "$Id$")
 /////////////////////////////////////////////////////////////
 
 BinnedSpectrum* ptr = 0;
-CHECK(BinnedSpectrum())
+START_SECTION(BinnedSpectrum())
 {
 	ptr = new BinnedSpectrum();
 	TEST_NOT_EQUAL(ptr, 0)
   TEST_EXCEPTION(BinnedSpectrum::NoSpectrumIntegrated,ptr->setBinning();)
 }
-RESULT
+END_SECTION
 
-CHECK(~BinnedSpectrum())
+START_SECTION(~BinnedSpectrum())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
   BinnedSpectrum* bs1;
   DTAFile dtafile;
   PeakSpectrum s1;
   DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
 
-CHECK((BinnedSpectrum(Real size, UInt spread, PeakSpectrum ps)))
+START_SECTION((BinnedSpectrum(Real size, UInt spread, PeakSpectrum ps)))
 {
   bs1 = new BinnedSpectrum(1.5,2,s1);
   TEST_NOT_EQUAL(bs1,0)
 }
-RESULT
+END_SECTION
 
-CHECK((BinnedSpectrum(const BinnedSpectrum &source)))
+START_SECTION((BinnedSpectrum(const BinnedSpectrum &source)))
 {
   BinnedSpectrum copy(*bs1);
   TEST_EQUAL(copy.getName(), bs1->getName());
   TEST_EQUAL(copy.getBinSize(), bs1->getBinSize());
   TEST_EQUAL((UInt)copy.getPrecursorPeak().getPosition()[0],(UInt)bs1->getPrecursorPeak().getPosition()[0]);
 }
-RESULT
+END_SECTION
 
-CHECK((BinnedSpectrum& operator=(const BinnedSpectrum &source)))
+START_SECTION((BinnedSpectrum& operator=(const BinnedSpectrum &source)))
 {
   BinnedSpectrum copy(*bs1);
   bs1 = new BinnedSpectrum(1.5,2,s1);
@@ -83,9 +83,9 @@ CHECK((BinnedSpectrum& operator=(const BinnedSpectrum &source)))
   TEST_EQUAL(copy.getBinSize(), bs1->getBinSize());
   TEST_EQUAL((UInt)copy.getPrecursorPeak().getPosition()[0],(UInt)bs1->getPrecursorPeak().getPosition()[0]);
 }
-RESULT
+END_SECTION
 
-CHECK((BinnedSpectrum& operator=(const PeakSpectrum &source)))
+START_SECTION((BinnedSpectrum& operator=(const PeakSpectrum &source)))
 {
   bs1 = new BinnedSpectrum();
   *bs1 = s1;
@@ -93,72 +93,72 @@ CHECK((BinnedSpectrum& operator=(const PeakSpectrum &source)))
   bs1->setBinSize(1.5);
   bs1->setBinSpread(2);
 }
-RESULT
+END_SECTION
 
-CHECK((bool operator==(const BinnedSpectrum &rhs) const ))
+START_SECTION((bool operator==(const BinnedSpectrum &rhs) const ))
 {
 	BinnedSpectrum copy = *bs1;
 	TEST_EQUAL((*bs1==copy),true)
 }
-RESULT
+END_SECTION
 
-CHECK((bool operator!=(const BinnedSpectrum &rhs) const ))
+START_SECTION((bool operator!=(const BinnedSpectrum &rhs) const ))
 {
 	BinnedSpectrum copy = *bs1;
 	TEST_EQUAL((*bs1!=copy),false)
 }
-RESULT
+END_SECTION
 
-CHECK((bool operator==(const PeakSpectrum &rhs) const ))
+START_SECTION((bool operator==(const PeakSpectrum &rhs) const ))
 {
 	TEST_EQUAL((*bs1==s1),true)
 }
-RESULT
+END_SECTION
 
-CHECK((bool operator!=(const PeakSpectrum &rhs) const ))
+START_SECTION((bool operator!=(const PeakSpectrum &rhs) const ))
 {
 	BinnedSpectrum copy = *bs1;
 	TEST_EQUAL((*bs1!=s1),false)
 }
-RESULT
+END_SECTION
 
-CHECK((double getBinSize() const ))
+START_SECTION((double getBinSize() const ))
 {
 	TEST_EQUAL(bs1->getBinSize(),1.5)
 }
-RESULT
+END_SECTION
 
-CHECK((UInt getBinSpread() const ))
+START_SECTION((UInt getBinSpread() const ))
 {
 	TEST_EQUAL(bs1->getBinSpread(),2)
 }
-RESULT
+END_SECTION
 
-CHECK((UInt getBinNumber() const ))
+START_SECTION((UInt getBinNumber() const ))
 {
 	TEST_EQUAL(bs1->getBinNumber(),659)
 }
-RESULT
+END_SECTION
 
-CHECK((UInt getFilledBinNumber() const ))
+START_SECTION((UInt getFilledBinNumber() const ))
 {
 	TEST_EQUAL(bs1->getFilledBinNumber(),347)
 }
-RESULT
+END_SECTION
 
-CHECK((const SparseVector<Real>& getBins() const))
+START_SECTION((const SparseVector<Real>& getBins() const))
 {
 	TEST_EQUAL(bs1->getBins().at(658),501645)
 }
-RESULT
+END_SECTION
 
-CHECK((SparseVector<Real>& getBins()))
+START_SECTION((SparseVector<Real>& getBins()))
 {
 	TEST_EQUAL(bs1->getBins().at(658),501645)
 }
-RESULT
+END_SECTION
 
-CHECK((const_bin_iterator begin() const ))
+START_SECTION((const_bin_iterator begin() const ))
 {
 	UInt c(0);
 	for (BinnedSpectrum::const_bin_iterator it1 = bs1->begin(); it1 != bs1->end(); ++it1)
@@ -167,16 +167,16 @@ CHECK((const_bin_iterator begin() const ))
 	}
 	TEST_EQUAL(bs1->getBinNumber(),c)
 }
-RESULT
+END_SECTION
 
-CHECK((const_bin_iterator end() const ))
+START_SECTION((const_bin_iterator end() const ))
 {
 	NOT_TESTABLE
 	//tested above
 }
-RESULT
+END_SECTION
 
-CHECK((bin_iterator begin()))
+START_SECTION((bin_iterator begin()))
 {
 	UInt c(0);
 	for (BinnedSpectrum::bin_iterator it1 = bs1->begin(); it1 != bs1->end(); ++it1)
@@ -185,39 +185,39 @@ CHECK((bin_iterator begin()))
 	}
 	TEST_EQUAL(bs1->getBinNumber(),c)
 }
-RESULT
+END_SECTION
 
-CHECK((bin_iterator end()))
+START_SECTION((bin_iterator end()))
 {
   NOT_TESTABLE
 	//tested above
 }
-RESULT
+END_SECTION
 
-CHECK((void setBinSize(double s)))
+START_SECTION((void setBinSize(double s)))
 {
 	TEST_EQUAL(bs1->getBinSize(),1.5)
 }
-RESULT
+END_SECTION
 
-CHECK((void setBinSpread(UInt s)))
+START_SECTION((void setBinSpread(UInt s)))
 {
 	TEST_EQUAL(bs1->getBinSpread(),2)
 }
-RESULT
+END_SECTION
 
-CHECK((void setBinning()))
+START_SECTION((void setBinning()))
 {
 	NOT_TESTABLE
 	//tested within another test
 }
-RESULT
+END_SECTION
 
-CHECK((bool checkCompliance(const BinnedSpectrum &bs) const ))
+START_SECTION((bool checkCompliance(const BinnedSpectrum &bs) const ))
 {
 	TEST_EQUAL(bs1->checkCompliance(BinnedSpectrum()),false)
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

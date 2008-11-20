@@ -42,20 +42,20 @@ START_TEST(DateTime, "$Id$")
 /////////////////////////////////////////////////////////////
 
 DateTime* ptr = 0;
-CHECK((DateTime& operator= (const DateTime& source)))
+START_SECTION((DateTime& operator= (const DateTime& source)))
   DateTime date, date2;
   date.set("2006-12-12 11:59:59");
   TEST_EQUAL(date==date2,false);
 	date2 = date;
 	TEST_EQUAL(date==date2,true);
-RESULT
+END_SECTION
 
-CHECK((DateTime()))
+START_SECTION((DateTime()))
 	ptr = new DateTime();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((DateTime(const DateTime& date)))
+START_SECTION((DateTime(const DateTime& date)))
 	DateTime date1;
 	DateTime date2;
 	DateTime date3;
@@ -63,9 +63,9 @@ CHECK((DateTime(const DateTime& date)))
 	date1.set("2006-12-12 11:59:59");
 	date2 = DateTime(date1);
 	TEST_EQUAL(date1 == date2, true)
-RESULT
+END_SECTION
 
-CHECK((DateTime(const QDateTime& date)))
+START_SECTION((DateTime(const QDateTime& date)))
 	QDateTime date3;
 	DateTime date2;
 	QTime time;
@@ -79,23 +79,23 @@ CHECK((DateTime(const QDateTime& date)))
 	DateTime date1(date3);
 	
 	TEST_EQUAL(date1 == date2, true)
-RESULT
+END_SECTION
 
-CHECK((void clear()))
+START_SECTION((void clear()))
 	DateTime date1;
 	DateTime date2;
 	date1.set("2006-12-12 11:59:59");
 	date1.clear();
 	TEST_EQUAL(date1 == date2, true)
-RESULT
+END_SECTION
 
-CHECK((String get() const))
+START_SECTION((String get() const))
 	DateTime date_time;
 	date_time.set("1999-11-24 14:24:31");
 	TEST_EQUAL(date_time.get(),"1999-11-24 14:24:31")
-RESULT
+END_SECTION
 
-CHECK((void get(UInt& month, UInt& day, UInt& year, UInt& hour, UInt& minute, UInt& second) const))
+START_SECTION((void get(UInt& month, UInt& day, UInt& year, UInt& hour, UInt& minute, UInt& second) const))
 	DateTime date;
 	UInt month;
 	UInt day;
@@ -112,9 +112,9 @@ CHECK((void get(UInt& month, UInt& day, UInt& year, UInt& hour, UInt& minute, UI
 	TEST_EQUAL(hour, 11)	
 	TEST_EQUAL(minute, 59)	
 	TEST_EQUAL(second, 58)		
-RESULT
+END_SECTION
 
-CHECK((void getDate(UInt& month, UInt& day, UInt& year) const))
+START_SECTION((void getDate(UInt& month, UInt& day, UInt& year) const))
 	DateTime date;
 	UInt month;
 	UInt day;
@@ -127,16 +127,16 @@ CHECK((void getDate(UInt& month, UInt& day, UInt& year) const))
 	TEST_EQUAL(day, 14)	
 	TEST_EQUAL(year, 2006)	
 
-RESULT
+END_SECTION
 
-CHECK((String getDate() const))
+START_SECTION((String getDate() const))
 	DateTime date;
 	date.set("2006-12-14 21:12:02");
 	TEST_STRING_EQUAL(date.getDate(), String("2006-12-14"))	
 
-RESULT
+END_SECTION
 
-CHECK((void getTime(UInt& hour, UInt& minute, UInt& second) const))
+START_SECTION((void getTime(UInt& hour, UInt& minute, UInt& second) const))
 	DateTime date;
 	UInt hour; 
 	UInt minute; 
@@ -149,15 +149,15 @@ CHECK((void getTime(UInt& hour, UInt& minute, UInt& second) const))
 	TEST_EQUAL(minute, 59)	
 	TEST_EQUAL(second, 58)		
 
-RESULT
+END_SECTION
 
-CHECK((String getTime() const))
+START_SECTION((String getTime() const))
 	DateTime date;
 	date.set("2006-12-14 11:59:58");
 	TEST_STRING_EQUAL(date.getTime(), "11:59:58")		
-RESULT
+END_SECTION
 
-CHECK((void set(UInt month, UInt day, UInt year, UInt hour, UInt minute, UInt second) throw(Exception::ParseError)))
+START_SECTION((void set(UInt month, UInt day, UInt year, UInt hour, UInt minute, UInt second) throw(Exception::ParseError)))
 	DateTime date;
 	UInt month = 12;
 	UInt day = 14;
@@ -174,9 +174,9 @@ CHECK((void set(UInt month, UInt day, UInt year, UInt hour, UInt minute, UInt se
 	TEST_EQUAL(hour, 11)	
 	TEST_EQUAL(minute, 59)	
 	TEST_EQUAL(second, 58)		
-RESULT
+END_SECTION
 
-CHECK((void set(const String& date) throw(Exception::ParseError)))
+START_SECTION((void set(const String& date) throw(Exception::ParseError)))
 	DateTime date_time;
 	date_time.set("1999-11-24 14:24:31");
 	TEST_EQUAL(date_time.get(), "1999-11-24 14:24:31")
@@ -204,9 +204,9 @@ CHECK((void set(const String& date) throw(Exception::ParseError)))
 	TEST_EXCEPTION(Exception::ParseError, date_time.set("2006-12-14Z11:00"))
 	TEST_EXCEPTION(Exception::ParseError, date_time.set("-2006-12-14Z11:00"))
 	
-RESULT
+END_SECTION
 
-CHECK((void setDate(UInt month, UInt day, UInt year) throw(Exception::ParseError)))
+START_SECTION((void setDate(UInt month, UInt day, UInt year) throw(Exception::ParseError)))
 	DateTime date;
 	UInt month = 12;
 	UInt day = 14;
@@ -219,9 +219,9 @@ CHECK((void setDate(UInt month, UInt day, UInt year) throw(Exception::ParseError
 	TEST_EQUAL(day, 14)	
 	TEST_EQUAL(year, 2006)	
 
-RESULT
+END_SECTION
 
-CHECK((void setDate(const String& date) throw(Exception::ParseError)))
+START_SECTION((void setDate(const String& date) throw(Exception::ParseError)))
 	DateTime date;
 	UInt month;
 	UInt day;
@@ -233,9 +233,9 @@ CHECK((void setDate(const String& date) throw(Exception::ParseError)))
 	TEST_EQUAL(month, 12)	
 	TEST_EQUAL(day, 14)	
 	TEST_EQUAL(year, 2006)	
-RESULT
+END_SECTION
 
-CHECK((void setTime(UInt hour, UInt minute, UInt second) throw(Exception::ParseError)))
+START_SECTION((void setTime(UInt hour, UInt minute, UInt second) throw(Exception::ParseError)))
 	DateTime date;
 	UInt hour; 
 	UInt minute; 
@@ -248,9 +248,9 @@ CHECK((void setTime(UInt hour, UInt minute, UInt second) throw(Exception::ParseE
 	TEST_EQUAL(minute, 59)	
 	TEST_EQUAL(second, 58)		
 
-RESULT
+END_SECTION
 
-CHECK((void setTime(const String& date) throw(Exception::ParseError)))
+START_SECTION((void setTime(const String& date) throw(Exception::ParseError)))
 	DateTime date;
 	UInt hour; 
 	UInt minute; 
@@ -263,16 +263,16 @@ CHECK((void setTime(const String& date) throw(Exception::ParseError)))
 	TEST_EQUAL(minute, 59)	
 	TEST_EQUAL(second, 58)		
 
-RESULT
+END_SECTION
 
-CHECK(static DateTime now())
+START_SECTION(static DateTime now())
   TEST_EQUAL(DateTime::now().isValid(), true)
-RESULT
+END_SECTION
 
-CHECK((~DateTime()))
+START_SECTION((~DateTime()))
 	ptr = new DateTime();
 	delete ptr;
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

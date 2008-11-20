@@ -27,6 +27,8 @@
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <sstream>
 
+
+
 namespace OpenMS
 {
   
@@ -38,11 +40,11 @@ namespace OpenMS
     line_1_(),
     line_2_(),
     // Maximum ratio of numbers allowed
-    ratio_max__allowed_(1.0),
+    ratio_max_allowed_(1.0),
     // Maximum ratio of numbers observed so far
     ratio_max_(1.0),
     // Maximum absolute difference of numbers allowed
-    absdiff_max__allowed_(0.0),
+    absdiff_max_allowed_(0.0),
     // Maximum difference of numbers observed so far
     absdiff_max_(0.0),
     number_1_(0),
@@ -56,15 +58,16 @@ namespace OpenMS
     is_absdiff_small_(false), 
     line_num_1_(0),
     line_num_2_(0),
-    line_num_1__max_(-1),
-    line_num_2__max_(-1),
+    line_num_1_max_(-1),
+    line_num_2_max_(-1),
     // default == 2,  -q == 1,  -Q == 0,  continue after failure == 3
     verbose_level_(2),
 		tab_width_(8),
 		first_column_(1),
     is_status_success_(true),
     line_str_1_max_(),
-    line_str_2_max_()
+    line_str_2_max_(),
+		use_prefix_(false)
   {
 	}
 
@@ -80,75 +83,81 @@ namespace OpenMS
 
     if ( verbose_level_ >= 1 )
     {
- 			int line_1__col = 0;
+ 			int line_1_col = 0;
 			OpenMS::String pre1(line_1_.str());
-			pre1 = pre1.prefix(size_t(line_1__pos_));
+			pre1 = pre1.prefix(size_t(line_1_pos_));
 			OpenMS::String pre1_white(pre1);
 			for ( String::iterator iter = pre1_white.begin(); iter != pre1_white.end(); ++iter )
 			{
 				if ( *iter != '\t' )
 				{
 					*iter = ' ';
-					++line_1__col;
+					++line_1_col;
 				}
 				else
 				{
-					line_1__col = (line_1__col/tab_width_+1)*tab_width_;
+					line_1_col = (line_1_col/tab_width_+1)*tab_width_;
 				}
 			}
-			line_1__col += first_column_;
+			line_1_col += first_column_;
 
-			int line_2__col = 0;
+			int line_2_col = 0;
 			OpenMS::String pre2(line_2_.str());
-			pre2 = pre2.prefix(size_t(line_2__pos_));
+			pre2 = pre2.prefix(size_t(line_2_pos_));
 			OpenMS::String pre2_white(pre2);
 			for ( String::iterator iter = pre2_white.begin(); iter != pre2_white.end(); ++iter )
 			{
 				if ( *iter != '\t' )
 				{
 					*iter = ' ';
-					++line_2__col;
+					++line_2_col;
 				}
 				else
 				{
-					line_2__col = (line_2__col/tab_width_+1)*tab_width_;
+					line_2_col = (line_2_col/tab_width_+1)*tab_width_;
 				}
 			}
-			line_2__col += first_column_;
+			line_2_col += first_column_;
+
+			std::string prefix;
+			if ( use_prefix_ )
+			{
+				prefix = "   :|:  ";
+			}
 
 			*log_dest_ << std::boolalpha <<
-				"FAILED: '" << message <<
-				"'\n\n"
-				"  input:\tin1\tin2\n"
-				"  line:\t" << line_num_1_ << '\t' << line_num_2_ << "\n"
-				"  pos/col:\t" << line_1__pos_ << '/' << line_1__col << '\t' << line_2__pos_ << '/' << line_2__col << "\n"
-				" --------------------------------\n"
-				"  is_number:\t" << is_number_1_ << '\t' << is_number_2_ << "\n"
-				"  numbers:\t" << number_1_ << '\t' << number_2_ << "\n"
-				"  is_space:\t" << is_space_1_ << '\t' << is_space_2_ << "\n"
-				"  is_letter:\t" << (!is_number_1_&&!is_space_1_) << '\t' << (!is_number_2_&&!is_space_2_) << "\n"
-				"  letters:\t\"" << letter_1_ << "\"\t\"" << letter_2_ << "\"\n"
-				"  char_codes:\t" << static_cast<UInt>(letter_1_) << "\t" << static_cast<UInt>(letter_2_) << "\n"
-				" --------------------------------\n"
-				"  relative_max:        " << ratio_max_ << "\n"
-				"  relative_acceptable: " << ratio_max__allowed_ << "\n"
-				" --------------------------------\n"
-				"  absolute_max:        " << absdiff_max_ << "\n" 
-				"  absolute_acceptable: " << absdiff_max__allowed_ <<
-				"\n\n"
-				"Offending lines:\t\t\t(tab_width_ = " << tab_width_ << ", first_column_ = " << first_column_ << ")\n"
-				"\n"
-				"in1:  " << input_1_name_ << "   (line: " << line_num_1_ << ", position/column: " << line_1__pos_ << '/' << line_1__col << ")\n" <<
-				pre1 << "!\n" << 
-				pre1_white << OpenMS::String(line_1_.str()).suffix(line_1_.str().size()-pre1.size()) << "\n\n"
-				"in2:  " << input_2_name_ << "   (line: " << line_num_2_ << ", position/column: " << line_2__pos_ << '/' << line_2__col << ")\n" <<
-				pre2 << "!\n" <<
-				pre2_white << OpenMS::String(line_2_.str()).suffix(line_2_.str().size()-pre2.size()) << "\n"
-				"\n" <<
-				input_1_name_ << ':' << line_num_1_ << ":" << line_1__col << ":\n" <<
-				input_2_name_ << ':' << line_num_2_ << ":" << line_2__col << ":\n" <<
+				prefix << "FAILED: '" << message << "'\n" <<
+				prefix << "\n" <<
+				prefix << "  input:\tin1\tin2\n" <<
+				prefix << "  line:\t" << line_num_1_ << '\t' << line_num_2_ << "\n" <<
+				prefix << "  pos/col:\t" << line_1_pos_ << '/' << line_1_col << '\t' << line_2_pos_ << '/' << line_2_col << "\n" <<
+				prefix << " --------------------------------\n" <<
+				prefix << "  is_number:\t" << is_number_1_ << '\t' << is_number_2_ << "\n" <<
+				prefix << "  numbers:\t" << number_1_ << '\t' << number_2_ << "\n" <<
+				prefix << "  is_space:\t" << is_space_1_ << '\t' << is_space_2_ << "\n" <<
+				prefix << "  is_letter:\t" << (!is_number_1_&&!is_space_1_) << '\t' << (!is_number_2_&&!is_space_2_) << "\n" <<
+				prefix << "  letters:\t\"" << letter_1_ << "\"\t\"" << letter_2_ << "\"\n" <<
+				prefix << "  char_codes:\t" << static_cast<UInt>(letter_1_) << "\t" << static_cast<UInt>(letter_2_) << "\n" <<
+				prefix << " --------------------------------\n" <<
+				prefix << "  relative_max:        " << ratio_max_ << "\n" <<
+				prefix << "  relative_acceptable: " << ratio_max_allowed_ << "\n" <<
+				prefix << " --------------------------------\n" <<
+				prefix << "  absolute_max:        " << absdiff_max_ << "\n" <<
+				prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << "\n" <<
+				prefix << "\n" <<
+				prefix << "Offending lines:\t\t\t(tab_width = " << tab_width_ << ", first_column = " << first_column_ << ")\n" <<
+				prefix << "\n" <<
+				prefix << "in1:  " << input_1_name_ << "   (line: " << line_num_1_ << ", position/column: " << line_1_pos_ << '/' << line_1_col << ")\n" <<
+				prefix << pre1 << "!\n" <<
+				prefix << pre1_white << OpenMS::String(line_1_.str()).suffix(line_1_.str().size()-pre1.size()) << "\n" <<
+				prefix <<  "\n" <<
+				prefix << "in2:  " << input_2_name_ << "   (line: " << line_num_2_ << ", position/column: " << line_2_pos_ << '/' << line_2_col << ")\n" <<
+				prefix << pre2 << "!\n" <<
+				prefix << pre2_white << OpenMS::String(line_2_.str()).suffix(line_2_.str().size()-pre2.size()) << "\n" <<
+				prefix << "\n" <<
+				input_1_name_ << ':' << line_num_1_ << ":" << line_1_col << ":\n" <<
+				input_2_name_ << ':' << line_num_2_ << ":" << line_2_col << ":\n" <<
 				std::endl;
-			
 		}
 
 		// If verbose level is low, report only the first error.
@@ -164,31 +173,41 @@ namespace OpenMS
   {
     if (  is_status_success_ && verbose_level_ >= 2 )
     {
-      *log_dest_ <<
-				"PASSED.\n\n"
-				"  relative_max:        " << ratio_max_ << "\n"
-				"  relative_acceptable: " << ratio_max__allowed_ << "\n\n"
-				"  absolute_max:        " << absdiff_max_ << "\n" 
-				"  absolute_acceptable: " << absdiff_max__allowed_ << "\n" <<
-				std::endl;
+			std::string prefix;
+			if ( use_prefix_ )
+			{
+				prefix = "   :|:  ";
+			}
 
-      if ( line_num_1__max_ == -1 && line_num_2__max_ == -1 )
+      *log_dest_ <<
+				prefix << "PASSED.\n" <<
+				prefix << '\n' <<
+				prefix << "  relative_max:        " << ratio_max_ << '\n' <<
+				prefix << "  relative_acceptable: " << ratio_max_allowed_ << '\n' <<
+				prefix << '\n' <<
+				prefix << "  absolute_max:        " << absdiff_max_ << '\n' <<
+				prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << '\n' <<
+				prefix << std::endl;
+
+      if ( line_num_1_max_ == -1 && line_num_2_max_ == -1 )
       {
-				*log_dest_ << "No numeric differences were found.\n" << std::endl;
+				*log_dest_ <<
+					prefix << "No numeric differences were found.\n" <<
+					prefix << std::endl;
       }
       else
       {
 				*log_dest_ <<
-					"Maximum relative error was attained at these lines, enclosed in \"\":\n"
-					"\n" <<
-					input_1_name_ << ':' << line_num_1__max_ << ":\n" <<
-					"\""<< line_str_1_max_ << "\"\n"
-					"\n" <<
-					input_2_name_ << ':' << line_num_2__max_ << ":\n" <<
+					prefix << "Maximum relative error was attained at these lines, enclosed in \"\":\n" <<
+					prefix << '\n' <<
+					input_1_name_ << ':' << line_num_1_max_ << ":\n" <<
+					"\""<< line_str_1_max_ << "\"\n" <<
+					'\n' <<
+					input_2_name_ << ':' << line_num_2_max_ << ":\n" <<
 					"\""<< line_str_2_max_ << "\"\n" <<
 					std::endl;
       }
-    } // if verbose_level_
+    }
     return;
   }
   
@@ -218,30 +237,30 @@ namespace OpenMS
 				number_1_ = std::numeric_limits<double>::quiet_NaN();
 				number_2_ = std::numeric_limits<double>::quiet_NaN();
 
-				line_1__pos_ = line_1_.tellg(); // save current reading position
+				line_1_pos_ = line_1_.tellg(); // save current reading position
 				line_1_ >> letter_1_; // read letter
-				// std::cout << ":::" << letter_1_ << line_1__pos_ << std::endl;
+				// std::cout << ":::" << letter_1_ << line_1_pos_ << std::endl;
 				if ( ( is_space_1_ = isspace(letter_1_) ) ) // is whitespace?
 				{
 					line_1_ >> std::ws; // skip over further whitespace
 				}
 				else
 				{
-					line_1_.seekg(line_1__pos_); // rewind to saved position
+					line_1_.seekg(line_1_pos_); // rewind to saved position
 					if ( ( is_number_1_ = ( line_1_ >> number_1_ ) ) ) // is a number?
 					{
 						// letter_1_ = '\0';
-						// std::cout << line_1__pos_ << std::endl;
+						// std::cout << line_1_pos_ << std::endl;
 					}
 					else
 					{
 						line_1_.clear(); // reset status
-						line_1_.seekg(line_1__pos_); // rewind to saved position
+						line_1_.seekg(line_1_pos_); // rewind to saved position
 						line_1_ >> letter_1_; // read letter
 					}
 				}
 
-				line_2__pos_ = line_2_.tellg(); // save current reading position
+				line_2_pos_ = line_2_.tellg(); // save current reading position
 				line_2_ >> letter_2_; // read letter
 				if ( ( is_space_2_ = isspace(letter_2_) ) ) // is whitespace?
 				{
@@ -249,7 +268,7 @@ namespace OpenMS
 				}
 				else
 				{
-					line_2_.seekg(line_2__pos_); // rewind to saved position
+					line_2_.seekg(line_2_pos_); // rewind to saved position
 					if ( ( is_number_2_ = ( line_2_ >> number_2_ ) ) ) // is a number?
 					{
 						// letter_2_ = '\0';
@@ -257,7 +276,7 @@ namespace OpenMS
 					else
 					{
 						line_2_.clear(); // reset status
-						line_2_.seekg(line_2__pos_); // rewind to saved position
+						line_2_.seekg(line_2_pos_); // rewind to saved position
 						line_2_ >> letter_2_; // read letter
 					}
 				}
@@ -283,7 +302,7 @@ namespace OpenMS
 						// not an error, if relative error is small.  We do not jump out of
 						// the case distinction here because we want to record the relative
 						// error even in case of a successful comparison.
-						is_absdiff_small_ = ( absdiff <= absdiff_max__allowed_ );
+						is_absdiff_small_ = ( absdiff <= absdiff_max_allowed_ );
 					
 						if ( !number_1_ )
 						{ // number_1_ is zero
@@ -331,11 +350,11 @@ namespace OpenMS
 									if ( ratio > ratio_max_ )
 									{ // update running max
 										ratio_max_ = ratio;
-										line_num_1__max_ = line_num_1_;
-										line_num_2__max_ = line_num_2_;
+										line_num_1_max_ = line_num_1_;
+										line_num_2_max_ = line_num_2_;
 										line_str_1_max_ = line_str_1;
 										line_str_2_max_ = line_str_2;
-										if ( ratio_max_ > ratio_max__allowed_ )
+										if ( ratio_max_ > ratio_max_allowed_ )
 										{
 											if ( !is_absdiff_small_ )
 											{
@@ -487,17 +506,16 @@ namespace OpenMS
 			for ( line_str_1.clear(); ++line_num_1_, std::getline(input_1,line_str_1); )
 			{
 				if ( line_str_1.empty() ) continue; // shortcut
-				if ( line_str_1.find("<?xml-stylesheet")!=std::string::npos ) continue; // XML stylesheet
+				if ( line_str_1.find("<?xml-stylesheet")!=std::string::npos ) continue; // XML stylesheet TODO this is the wrong member function to check this!  Do this in compareLines_ instead!!!!
 				std::string::const_iterator iter = line_str_1.begin(); // loop initialization
 				for ( ; iter != line_str_1.end() && isspace(*iter); ++iter ) ; // skip over whitespace
 				if ( iter != line_str_1.end() ) break; // line is not empty or whitespace only
-				
 			}
 
 			for ( line_str_2.clear(); ++line_num_2_, std::getline(input_2,line_str_2); )
 			{
 				if ( line_str_2.empty() ) continue; // shortcut
-				if ( line_str_2.find("<?xml-stylesheet")!=std::string::npos ) continue; // XML stylesheet
+				if ( line_str_2.find("<?xml-stylesheet")!=std::string::npos ) continue; // XML stylesheet TODO this is the wrong member function to check this!  Do this in compareLines_ instead!!!!
 				std::string::const_iterator iter = line_str_2.begin(); // loop initialization
 				for ( ; iter != line_str_2.end() && isspace(*iter); ++iter ) ; // skip over whitespace
 				if ( iter != line_str_2.end() ) break; // line is not empty or whitespace only
@@ -514,7 +532,7 @@ namespace OpenMS
 
   } // compareStreams()
 
-	bool FuzzyStringComparator::compare_files(const std::string & filename_1, const std::string & filename_2)
+	bool FuzzyStringComparator::compareFiles(const std::string & filename_1, const std::string & filename_2)
   {
 
 		input_1_name_ = filename_1;
@@ -551,6 +569,6 @@ namespace OpenMS
 
 		return is_status_success_;
 
-	} // compare_files()
+	} // compareFiles()
 
 } //namespace OpenMS

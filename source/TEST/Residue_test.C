@@ -43,316 +43,316 @@ START_TEST(Residue, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Residue* e_ptr = 0;
-CHECK((Residue()))
+START_SECTION((Residue()))
 	e_ptr = new Residue();
 	TEST_NOT_EQUAL(e_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~Residue()))
+START_SECTION((virtual ~Residue()))
 	delete e_ptr;
-RESULT
+END_SECTION
 
 ResidueDB* db = ResidueDB::getInstance();
 e_ptr = new Residue(*db->getResidue("LYS"));
 
 EmpiricalFormula h2o("H2O");
 
-CHECK((static const EmpiricalFormula& getInternalToFull()))
+START_SECTION((static const EmpiricalFormula& getInternalToFull()))
 	TEST_EQUAL(e_ptr->getInternalToFull(), h2o)
-RESULT
+END_SECTION
 
 
-CHECK((static DoubleReal getInternalToFullAverageWeight()))
+START_SECTION((static DoubleReal getInternalToFullAverageWeight()))
 	TEST_EQUAL(e_ptr->getInternalToFullAverageWeight(), h2o.getAverageWeight())
-RESULT
+END_SECTION
 
-CHECK((static DoubleReal getInternalToFullMonoWeight()))
-	PRECISION(0.001)
-	TEST_REAL_EQUAL(e_ptr->getInternalToFullMonoWeight(), 18.0106)
-RESULT
+START_SECTION((static DoubleReal getInternalToFullMonoWeight()))
+	TOLERANCE_ABSOLUTE(0.001)
+	TEST_REAL_SIMILAR(e_ptr->getInternalToFullMonoWeight(), 18.0106)
+END_SECTION
 
-CHECK((static const EmpiricalFormula& getNTerminalToFull()))
+START_SECTION((static const EmpiricalFormula& getNTerminalToFull()))
 	TEST_EQUAL(e_ptr->getNTerminalToFull() == EmpiricalFormula("OH"), true)
-RESULT
+END_SECTION
 
-CHECK((static DoubleReal getNTerminalToFullAverageWeight()))
-	TEST_REAL_EQUAL(e_ptr->getNTerminalToFullAverageWeight(), 17.0073)
-RESULT
+START_SECTION((static DoubleReal getNTerminalToFullAverageWeight()))
+	TEST_REAL_SIMILAR(e_ptr->getNTerminalToFullAverageWeight(), 17.0073)
+END_SECTION
 
-CHECK((static DoubleReal getNTerminalToFullMonoWeight()))
-	TEST_REAL_EQUAL(e_ptr->getNTerminalToFullMonoWeight(), 17.0027)
-RESULT
+START_SECTION((static DoubleReal getNTerminalToFullMonoWeight()))
+	TEST_REAL_SIMILAR(e_ptr->getNTerminalToFullMonoWeight(), 17.0027)
+END_SECTION
 
-CHECK((static const EmpiricalFormula& getCTerminalToFull()))
+START_SECTION((static const EmpiricalFormula& getCTerminalToFull()))
 	TEST_EQUAL(e_ptr->getCTerminalToFull() == EmpiricalFormula("H"), true)
-RESULT
+END_SECTION
 
-CHECK((static DoubleReal getCTerminalToFullAverageWeight()))
-	TEST_REAL_EQUAL(e_ptr->getCTerminalToFullAverageWeight(), 1.00794)
-RESULT
+START_SECTION((static DoubleReal getCTerminalToFullAverageWeight()))
+	TEST_REAL_SIMILAR(e_ptr->getCTerminalToFullAverageWeight(), 1.00794)
+END_SECTION
 
-CHECK((static DoubleReal getCTerminalToFullMonoWeight()))
-	TEST_REAL_EQUAL(e_ptr->getCTerminalToFullMonoWeight(), 1.00783)
-RESULT
+START_SECTION((static DoubleReal getCTerminalToFullMonoWeight()))
+	TEST_REAL_SIMILAR(e_ptr->getCTerminalToFullMonoWeight(), 1.00783)
+END_SECTION
 
-CHECK((static const EmpiricalFormula& getBIonToFull()))
+START_SECTION((static const EmpiricalFormula& getBIonToFull()))
 	TEST_EQUAL(e_ptr->getBIonToFull(), EmpiricalFormula("OH"))
-RESULT
+END_SECTION
 
-CHECK((static DoubleReal getBIonToFullAverageWeight()))
-	TEST_REAL_EQUAL(e_ptr->getBIonToFullAverageWeight(), 17.0073)
-RESULT
+START_SECTION((static DoubleReal getBIonToFullAverageWeight()))
+	TEST_REAL_SIMILAR(e_ptr->getBIonToFullAverageWeight(), 17.0073)
+END_SECTION
 
-CHECK((static DoubleReal getBIonToFullMonoWeight()))
-	TEST_REAL_EQUAL(e_ptr->getBIonToFullMonoWeight(), 17.0027)
-RESULT
+START_SECTION((static DoubleReal getBIonToFullMonoWeight()))
+	TEST_REAL_SIMILAR(e_ptr->getBIonToFullMonoWeight(), 17.0027)
+END_SECTION
 
-CHECK((static const EmpiricalFormula& getAIonToFull()))
+START_SECTION((static const EmpiricalFormula& getAIonToFull()))
 	TEST_EQUAL(e_ptr->getAIonToFull(), EmpiricalFormula("O2HC"))
-RESULT
+END_SECTION
 
-CHECK((static DoubleReal getAIonToFullAverageWeight()))
-	TEST_REAL_EQUAL(e_ptr->getAIonToFullAverageWeight(), 45.0174)
-RESULT
+START_SECTION((static DoubleReal getAIonToFullAverageWeight()))
+	TEST_REAL_SIMILAR(e_ptr->getAIonToFullAverageWeight(), 45.0174)
+END_SECTION
 
-CHECK((static DoubleReal getAIonToFullMonoWeight()))
-	TEST_REAL_EQUAL(e_ptr->getAIonToFullMonoWeight(), 44.9976)
-RESULT
+START_SECTION((static DoubleReal getAIonToFullMonoWeight()))
+	TEST_REAL_SIMILAR(e_ptr->getAIonToFullMonoWeight(), 44.9976)
+END_SECTION
 
-CHECK((static const EmpiricalFormula& getYIonToFull()))
+START_SECTION((static const EmpiricalFormula& getYIonToFull()))
 	TEST_EQUAL(e_ptr->getYIonToFull(), EmpiricalFormula(""))
-RESULT
+END_SECTION
 
-CHECK((static DoubleReal getYIonToFullAverageWeight()))
-	TEST_REAL_EQUAL(e_ptr->getYIonToFullAverageWeight(), 0)
-RESULT
+START_SECTION((static DoubleReal getYIonToFullAverageWeight()))
+	TEST_REAL_SIMILAR(e_ptr->getYIonToFullAverageWeight(), 0)
+END_SECTION
 
-CHECK((static DoubleReal getYIonToFullMonoWeight()))
-	TEST_REAL_EQUAL(e_ptr->getYIonToFullMonoWeight(), 0)
-RESULT
+START_SECTION((static DoubleReal getYIonToFullMonoWeight()))
+	TEST_REAL_SIMILAR(e_ptr->getYIonToFullMonoWeight(), 0)
+END_SECTION
 
-CHECK((static const EmpiricalFormula& getCIonToFull()))
+START_SECTION((static const EmpiricalFormula& getCIonToFull()))
 	TEST_EQUAL(e_ptr->getCIonToFull(), EmpiricalFormula(""))
-RESULT
+END_SECTION
 
-CHECK((static DoubleReal getCIonToFullAverageWeight()))
+START_SECTION((static DoubleReal getCIonToFullAverageWeight()))
 	TEST_EQUAL(e_ptr->getCIonToFullAverageWeight(), 0)
-RESULT
+END_SECTION
 
-CHECK((static DoubleReal getCIonToFullMonoWeight()))
+START_SECTION((static DoubleReal getCIonToFullMonoWeight()))
 	TEST_EQUAL(e_ptr->getCIonToFullMonoWeight(), 0)
-RESULT
+END_SECTION
 
-CHECK((static const EmpiricalFormula& getXIonToFull()))
+START_SECTION((static const EmpiricalFormula& getXIonToFull()))
 	TEST_EQUAL(e_ptr->getXIonToFull(), EmpiricalFormula("OCH"))
-RESULT
+END_SECTION
 
-CHECK((static DoubleReal getXIonToFullAverageWeight()))
-	TEST_REAL_EQUAL(e_ptr->getXIonToFullAverageWeight(), 29.018)
-RESULT
+START_SECTION((static DoubleReal getXIonToFullAverageWeight()))
+	TEST_REAL_SIMILAR(e_ptr->getXIonToFullAverageWeight(), 29.018)
+END_SECTION
 
-CHECK((static DoubleReal getXIonToFullMonoWeight()))
-	TEST_REAL_EQUAL(e_ptr->getXIonToFullMonoWeight(), 29.0027)
-RESULT
+START_SECTION((static DoubleReal getXIonToFullMonoWeight()))
+	TEST_REAL_SIMILAR(e_ptr->getXIonToFullMonoWeight(), 29.0027)
+END_SECTION
 
-CHECK((static const EmpiricalFormula& getZIonToFull()))
+START_SECTION((static const EmpiricalFormula& getZIonToFull()))
 	TEST_EQUAL(e_ptr->getZIonToFull(), EmpiricalFormula("NH2"))
-RESULT
+END_SECTION
 
-CHECK((static DoubleReal getZIonToFullAverageWeight()))
-	TEST_REAL_EQUAL(e_ptr->getZIonToFullAverageWeight(), 16.0226)
-RESULT
+START_SECTION((static DoubleReal getZIonToFullAverageWeight()))
+	TEST_REAL_SIMILAR(e_ptr->getZIonToFullAverageWeight(), 16.0226)
+END_SECTION
 
-CHECK((static DoubleReal getZIonToFullMonoWeight()))
-	TEST_REAL_EQUAL(e_ptr->getZIonToFullMonoWeight(), 16.0187)
-RESULT
+START_SECTION((static DoubleReal getZIonToFullMonoWeight()))
+	TEST_REAL_SIMILAR(e_ptr->getZIonToFullMonoWeight(), 16.0187)
+END_SECTION
 
-CHECK(Residue(const Residue &residue))
+START_SECTION(Residue(const Residue &residue))
 	Residue copy(*e_ptr);
 	TEST_EQUAL(copy, *e_ptr)
-RESULT
+END_SECTION
 
-CHECK(Residue(const String &name, const String &three_letter_code, const String &one_letter_code, const EmpiricalFormula &formula, const EmpiricalFormula &neutral_loss))
+START_SECTION(Residue(const String &name, const String &three_letter_code, const String &one_letter_code, const EmpiricalFormula &formula, const EmpiricalFormula &neutral_loss))
 	Residue copy(e_ptr->getName(), e_ptr->getThreeLetterCode(), e_ptr->getOneLetterCode(), e_ptr->getFormula());
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 	TEST_EQUAL(copy.getThreeLetterCode(), e_ptr->getThreeLetterCode())
 	TEST_EQUAL(copy.getOneLetterCode(), e_ptr->getOneLetterCode())
 	TEST_EQUAL(copy.getFormula(), e_ptr->getFormula())
-RESULT
+END_SECTION
 
-CHECK(Residue& operator=(const Residue &residue))
+START_SECTION(Residue& operator=(const Residue &residue))
 	Residue copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy, *e_ptr)
-RESULT
+END_SECTION
 
-CHECK(void setName(const String &name))
+START_SECTION(void setName(const String &name))
 	Residue copy(*e_ptr);
 	e_ptr->setName("BLUBB");
 	TEST_NOT_EQUAL(copy, *e_ptr)
-RESULT
+END_SECTION
 
-CHECK(const String& getName() const)
+START_SECTION(const String& getName() const)
 	TEST_EQUAL(e_ptr->getName(), "BLUBB")
-RESULT
+END_SECTION
 
-CHECK(void setShortName(const String &short_name))
+START_SECTION(void setShortName(const String &short_name))
 	Residue copy(*e_ptr);
 	e_ptr->setShortName("BB");
 	TEST_NOT_EQUAL(copy, *e_ptr)
-RESULT
+END_SECTION
 
-CHECK(const String& getShortName() const)
+START_SECTION(const String& getShortName() const)
 	TEST_EQUAL(e_ptr->getShortName(), "BB")
-RESULT
+END_SECTION
 
-CHECK(void setSynonyms(const std::set< String > &synonyms))
+START_SECTION(void setSynonyms(const std::set< String > &synonyms))
 	Residue copy(*e_ptr);
 	set<String> syn;
 	syn.insert("BLI");
 	syn.insert("BLA");
 	e_ptr->setSynonyms(syn);
 	TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT 
+END_SECTION 
 
-CHECK(void addSynonym(const String &synonym))
+START_SECTION(void addSynonym(const String &synonym))
 	Residue copy(*e_ptr);
 	e_ptr->addSynonym("BLUFF");
 	TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT
+END_SECTION
 
-CHECK(const std::set<String>& getSynonyms() const)
+START_SECTION(const std::set<String>& getSynonyms() const)
 	TEST_EQUAL(e_ptr->getSynonyms().size(), 3)
-RESULT
+END_SECTION
 
-CHECK(void setThreeLetterCode(const String &three_letter_code))
+START_SECTION(void setThreeLetterCode(const String &three_letter_code))
 	Residue copy(*e_ptr);
 	e_ptr->setThreeLetterCode("BLA");
 	TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT
+END_SECTION
 
-CHECK(const String& getThreeLetterCode() const)
+START_SECTION(const String& getThreeLetterCode() const)
 	TEST_EQUAL(e_ptr->getThreeLetterCode(), "BLA")
-RESULT
+END_SECTION
 
-CHECK(void setOneLetterCode(const String &one_letter_code))
+START_SECTION(void setOneLetterCode(const String &one_letter_code))
 	Residue copy(*e_ptr);
 	e_ptr->setOneLetterCode("B");
 	TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT
+END_SECTION
 
-CHECK(const String& getOneLetterCode() const)
+START_SECTION(const String& getOneLetterCode() const)
 	TEST_EQUAL(e_ptr->getOneLetterCode(), "B")
-RESULT
+END_SECTION
 
-CHECK(void addLossFormula(const EmpiricalFormula&))
+START_SECTION(void addLossFormula(const EmpiricalFormula&))
 	Residue copy(*e_ptr);
 	TEST_EQUAL(*e_ptr, copy)
 	e_ptr->addLossFormula(EmpiricalFormula("H2O"));
 	TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT
+END_SECTION
 
-CHECK(void setLossFormulas(const std::vector<EmpiricalFormula> &))
+START_SECTION(void setLossFormulas(const std::vector<EmpiricalFormula> &))
 	Residue copy(*e_ptr);
 	TEST_EQUAL(*e_ptr, copy)
 	vector<EmpiricalFormula> losses;
 	losses.push_back(EmpiricalFormula("H2O"));
 	e_ptr->setLossFormulas(losses);
 	TEST_NOT_EQUAL(*e_ptr == copy, true)
-RESULT
+END_SECTION
 
-CHECK(const std::vector<EmpiricalFormula>& getLossFormulas() const)
+START_SECTION(const std::vector<EmpiricalFormula>& getLossFormulas() const)
 	vector<EmpiricalFormula> losses;
 	losses.push_back(EmpiricalFormula("H2O"));
 	TEST_EQUAL(e_ptr->getLossFormulas() == losses, true)
-RESULT
+END_SECTION
 
-CHECK(void setLossNames(const std::vector<String> &name))
+START_SECTION(void setLossNames(const std::vector<String> &name))
 	Residue copy(*e_ptr);
 	TEST_EQUAL(*e_ptr, copy)
 	vector<String> names;
 	names.push_back("Waesserchen");
 	e_ptr->setLossNames(names);
 	TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT
+END_SECTION
 
-CHECK(const std::vector<String>& getLossName() const)
+START_SECTION(const std::vector<String>& getLossName() const)
 	vector<String> names;
 	names.push_back("Waesserchen");
 	TEST_EQUAL(e_ptr->getLossNames() == names, true)
-RESULT
+END_SECTION
 
-CHECK(void addLossName(const String&))
+START_SECTION(void addLossName(const String&))
 	Residue copy(*e_ptr);
 	TEST_EQUAL(*e_ptr, copy)
 	copy.addLossName("Waesserchen2");
 	TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT
+END_SECTION
 
-CHECK(void setFormula(const EmpiricalFormula &formula, ResidueType res_type=Full))
+START_SECTION(void setFormula(const EmpiricalFormula &formula, ResidueType res_type=Full))
 	Residue copy(*e_ptr);
 	e_ptr->setFormula(EmpiricalFormula("C2H6O"));
 	TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT
+END_SECTION
 
-CHECK(EmpiricalFormula getFormula(ResidueType res_type=Full) const)
+START_SECTION(EmpiricalFormula getFormula(ResidueType res_type=Full) const)
 	TEST_EQUAL(e_ptr->getFormula(), EmpiricalFormula("C2H6O"))
-RESULT
+END_SECTION
 
-CHECK(void setAverageWeight(DoubleReal weight, ResidueType res_type=Full))
+START_SECTION(void setAverageWeight(DoubleReal weight, ResidueType res_type=Full))
 	Residue copy(*e_ptr);
 	e_ptr->setAverageWeight(123.4);
 	TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT
+END_SECTION
 
-CHECK(DoubleReal getAverageWeight(ResidueType res_type=Full) const)
-	TEST_REAL_EQUAL(e_ptr->getAverageWeight(), 123.4)
-RESULT
+START_SECTION(DoubleReal getAverageWeight(ResidueType res_type=Full) const)
+	TEST_REAL_SIMILAR(e_ptr->getAverageWeight(), 123.4)
+END_SECTION
     
-CHECK(void setMonoWeight(DoubleReal weight, ResidueType res_type=Full))
+START_SECTION(void setMonoWeight(DoubleReal weight, ResidueType res_type=Full))
 	Residue copy(*e_ptr);
 	e_ptr->setMonoWeight(1234.5);
 	TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT
+END_SECTION
 
-CHECK(DoubleReal getMonoWeight(ResidueType res_type=Full) const)
-	TEST_REAL_EQUAL(e_ptr->getMonoWeight(), 1234.5)
-RESULT
+START_SECTION(DoubleReal getMonoWeight(ResidueType res_type=Full) const)
+	TEST_REAL_SIMILAR(e_ptr->getMonoWeight(), 1234.5)
+END_SECTION
  
 
-CHECK(void setModification(const String& name))
+START_SECTION(void setModification(const String& name))
 	e_ptr->setOneLetterCode("M"); // we need M for this mod
 	e_ptr->setModification("MOD:00720");
 	TEST_EQUAL(e_ptr->getModification(), "MOD:00720")
 	e_ptr->setOneLetterCode("B");
-RESULT
+END_SECTION
 
 
-CHECK(const String& getModification() const)
+START_SECTION(const String& getModification() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
  
-CHECK(void setLowMassIons(const std::vector< EmpiricalFormula > &low_mass_ions))
+START_SECTION(void setLowMassIons(const std::vector< EmpiricalFormula > &low_mass_ions))
 	Residue copy(*e_ptr);
 	vector<EmpiricalFormula> ions;
 	ions.push_back(EmpiricalFormula("NH3"));
 	ions.push_back(EmpiricalFormula("PO4"));
 	e_ptr->setLowMassIons(ions);
 	TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT
+END_SECTION
 
-CHECK(const std::vector<EmpiricalFormula>& getLowMassIons() const)
+START_SECTION(const std::vector<EmpiricalFormula>& getLowMassIons() const)
 	TEST_EQUAL(e_ptr->getLowMassIons()[0], EmpiricalFormula("NH3"))
-RESULT
+END_SECTION
 
-CHECK(bool hasNeutralLoss() const)
+START_SECTION(bool hasNeutralLoss() const)
 	Residue res;
 	TEST_EQUAL(res.hasNeutralLoss(), false)
 	res.addLossFormula(EmpiricalFormula("H2O"));
 	TEST_EQUAL(res.hasNeutralLoss(), true)
-RESULT
+END_SECTION
 
-CHECK(bool operator==(const Residue &residue) const)
+START_SECTION(bool operator==(const Residue &residue) const)
 	Residue r;
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
@@ -447,9 +447,9 @@ CHECK(bool operator==(const Residue &residue) const)
 	TEST_EQUAL(r == *e_ptr, true)
 	r.setBackboneBasicityRight(11123.45);
 	TEST_EQUAL(r == *e_ptr, false)
-RESULT
+END_SECTION
     
-CHECK(bool operator!=(const Residue &residue) const)
+START_SECTION(bool operator!=(const Residue &residue) const)
   Residue r;
   r = *e_ptr;
   TEST_EQUAL(r != *e_ptr, false)
@@ -541,91 +541,91 @@ CHECK(bool operator!=(const Residue &residue) const)
   r.setBackboneBasicityRight(11123.45);
   TEST_EQUAL(r != *e_ptr, true)
 				
-RESULT
+END_SECTION
 
-CHECK(bool operator==(char one_letter_code) const)
+START_SECTION(bool operator==(char one_letter_code) const)
 	TEST_EQUAL(*e_ptr == 'B', true)
-RESULT
+END_SECTION
     
-CHECK(bool operator!=(char one_letter_code) const)
+START_SECTION(bool operator!=(char one_letter_code) const)
 	TEST_EQUAL(*e_ptr != 'C', true)
-RESULT
+END_SECTION
 
-CHECK(void setPka(DoubleReal value))
+START_SECTION(void setPka(DoubleReal value))
 	Residue copy(*e_ptr);
 	e_ptr->setPka(345.5);
 	TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT
+END_SECTION
 
-CHECK(DoubleReal getPka() const)
-	TEST_REAL_EQUAL(e_ptr->getPka(), 345.5)
-RESULT
+START_SECTION(DoubleReal getPka() const)
+	TEST_REAL_SIMILAR(e_ptr->getPka(), 345.5)
+END_SECTION
 
-CHECK(void setPkb(DoubleReal value))
+START_SECTION(void setPkb(DoubleReal value))
 	Residue copy(*e_ptr);
 	e_ptr->setPkb(675.8);
   TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT
+END_SECTION
 
-CHECK(DoubleReal getPkb() const)
-	TEST_REAL_EQUAL(e_ptr->getPkb(), 675.8)
-RESULT
+START_SECTION(DoubleReal getPkb() const)
+	TEST_REAL_SIMILAR(e_ptr->getPkb(), 675.8)
+END_SECTION
 
-CHECK(void setPkc(DoubleReal value))
+START_SECTION(void setPkc(DoubleReal value))
 	Residue copy(*e_ptr);
 	e_ptr->setPkc(9329.0);
   TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT
+END_SECTION
 
-CHECK(DoubleReal getPkc() const)
-	TEST_REAL_EQUAL(e_ptr->getPkc(), 9329.0)
-RESULT
+START_SECTION(DoubleReal getPkc() const)
+	TEST_REAL_SIMILAR(e_ptr->getPkc(), 9329.0)
+END_SECTION
 
-CHECK(DoubleReal getPiValue() const)
-	TEST_REAL_EQUAL(e_ptr->getPiValue(), 4837.25)
-RESULT
+START_SECTION(DoubleReal getPiValue() const)
+	TEST_REAL_SIMILAR(e_ptr->getPiValue(), 4837.25)
+END_SECTION
 
-CHECK(void setSideChainBasicity(DoubleReal gb_sc))
+START_SECTION(void setSideChainBasicity(DoubleReal gb_sc))
 	Residue copy(*e_ptr);
 	e_ptr->setSideChainBasicity(654.3);
   TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT
+END_SECTION
 
-CHECK(DoubleReal getSideChainBasicity() const)
-	TEST_REAL_EQUAL(e_ptr->getSideChainBasicity(), 654.3)
-RESULT
+START_SECTION(DoubleReal getSideChainBasicity() const)
+	TEST_REAL_SIMILAR(e_ptr->getSideChainBasicity(), 654.3)
+END_SECTION
 
 
-CHECK(void setBackboneBasicityLeft(DoubleReal gb_bb_l))
+START_SECTION(void setBackboneBasicityLeft(DoubleReal gb_bb_l))
 	Residue copy(*e_ptr);
 	e_ptr->setBackboneBasicityLeft(123.6);
   TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT
+END_SECTION
 
-CHECK(DoubleReal getBackboneBasicityLeft() const)
-	TEST_REAL_EQUAL(e_ptr->getBackboneBasicityLeft(), 123.6)
-RESULT
+START_SECTION(DoubleReal getBackboneBasicityLeft() const)
+	TEST_REAL_SIMILAR(e_ptr->getBackboneBasicityLeft(), 123.6)
+END_SECTION
 
 
-CHECK(void setBackboneBasicityRight(DoubleReal gb_bb_r))
+START_SECTION(void setBackboneBasicityRight(DoubleReal gb_bb_r))
 	Residue copy(*e_ptr);
 	e_ptr->setBackboneBasicityRight(12345.6);
   TEST_NOT_EQUAL(*e_ptr, copy)
-RESULT
+END_SECTION
 
 
-CHECK(DoubleReal getBackboneBasicityRight() const)
-	TEST_REAL_EQUAL(e_ptr->getBackboneBasicityRight(), 12345.6)
-RESULT
+START_SECTION(DoubleReal getBackboneBasicityRight() const)
+	TEST_REAL_SIMILAR(e_ptr->getBackboneBasicityRight(), 12345.6)
+END_SECTION
 
 /*
-CHECK(bool isModified() const)
+START_SECTION(bool isModified() const)
 	ResidueModification mod;
 	Residue res;
 	TEST_EQUAL(res.isModified(), false)
 	res.setModification(&mod);
 	TEST_EQUAL(res.isModified(), true)
-RESULT
+END_SECTION
 */
 
 END_TEST

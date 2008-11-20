@@ -46,31 +46,31 @@ using namespace std;
 
 CompareFouriertransform* ptr = 0;
 
-CHECK(CompareFouriertransform())
+START_SECTION(CompareFouriertransform())
 	ptr = new CompareFouriertransform();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(virtual ~CompareFouriertransform())
+START_SECTION(virtual ~CompareFouriertransform())
 	delete ptr;
-RESULT
+END_SECTION
 
 ptr = new CompareFouriertransform();
 
-CHECK(CompareFouriertransform(const CompareFouriertransform& source))
+START_SECTION(CompareFouriertransform(const CompareFouriertransform& source))
 CompareFouriertransform copy(*ptr);
 	TEST_EQUAL(copy.getName(), ptr->getName());
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters());
-RESULT
+END_SECTION
 
-CHECK(CompareFouriertransform& operator = (const CompareFouriertransform& source))
+START_SECTION(CompareFouriertransform& operator = (const CompareFouriertransform& source))
 CompareFouriertransform copy;
 	copy = *ptr;
 	TEST_EQUAL(copy.getName(), ptr->getName());
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters());
-RESULT
+END_SECTION
 
-CHECK(double operator () (const PeakSpectrum& spec) const)
+START_SECTION(double operator () (const PeakSpectrum& spec) const)
 	
 	MSSpectrum<> spectrum;
 	spectrum.setRT(1);
@@ -87,10 +87,10 @@ CHECK(double operator () (const PeakSpectrum& spec) const)
 		    }
   double score = (*ptr)(spectrum);
 	  
-	TEST_REAL_EQUAL(score, 0);
-RESULT
+	TEST_REAL_SIMILAR(score, 0);
+END_SECTION
 
-CHECK(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)
+START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)
 	MSSpectrum<> spectrum1,spectrum2;
 	spectrum1.setRT(1);
 	spectrum2.setRT(1);
@@ -109,19 +109,19 @@ CHECK(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) 
 	ptr->transform(spectrum2);
 
    double score = ptr->operator()(spectrum1, spectrum2);
-   TEST_REAL_EQUAL(score, 1.0)
-RESULT
+   TEST_REAL_SIMILAR(score, 1.0)
+END_SECTION
 
-CHECK(static PeakSpectrumCompareFunctor* create())
+START_SECTION(static PeakSpectrumCompareFunctor* create())
 	PeakSpectrumCompareFunctor* psf = CompareFouriertransform::create();
   CompareFouriertransform cft;
 	TEST_EQUAL(psf->getParameters(), cft.getParameters())
 	TEST_EQUAL(psf->getName(), cft.getName())
-RESULT
+END_SECTION
 
-CHECK(static const String getProductName())
+START_SECTION(static const String getProductName())
 	TEST_EQUAL(ptr->getProductName(), "CompareFouriertransform")
-RESULT
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

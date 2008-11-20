@@ -44,33 +44,33 @@ using namespace std;
 typedef FeatureFinderAlgorithmIsotopeWavelet<Peak1D,Feature> FFASS;
 
 FFASS* ptr;
-CHECK(FeatureFinderAlgorithmIsotopeWavelet())
+START_SECTION(FeatureFinderAlgorithmIsotopeWavelet())
 	ptr = new FFASS;
 	TEST_NOT_EQUAL(ptr,0)
-RESULT
+END_SECTION
 
-CHECK(virtual ~FeatureFinderAlgorithmIsotopeWavelet())
+START_SECTION(virtual ~FeatureFinderAlgorithmIsotopeWavelet())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK([EXTRA] FeatureFinderAlgorithmIsotopeWavelet() - with RichPeak1D)
+START_SECTION([EXTRA] FeatureFinderAlgorithmIsotopeWavelet() - with RichPeak1D)
 	FeatureFinderAlgorithmIsotopeWavelet<RichPeak1D,Feature> ffa;
-RESULT
+END_SECTION
 
-CHECK(virtual void run())
+START_SECTION(virtual void run())
 	//is tested in TOPP test
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
+START_SECTION((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
 	FeatureFinderAlgorithm<Peak1D,Feature>* ptr2 = FFASS::create();
 	TEST_NOT_EQUAL(ptr2,0)
 	delete ptr2;
-RESULT
+END_SECTION
 
-CHECK(static const String getProductName())
+START_SECTION(static const String getProductName())
 	TEST_EQUAL(FFASS::getProductName(),"isotope_wavelet_nofit")
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -40,20 +40,20 @@ START_TEST(FalseDiscoveryRate, "$Id$")
 /////////////////////////////////////////////////////////////
 
 FalseDiscoveryRate* ptr = 0;
-CHECK(FalseDiscoveryRate())
+START_SECTION(FalseDiscoveryRate())
 {
 	ptr = new FalseDiscoveryRate();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~FalseDiscoveryRate())
+START_SECTION(~FalseDiscoveryRate())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((void apply(std::vector< PeptideIdentification > &fwd_ids, std::vector< PeptideIdentification > &rev_ids)))
+START_SECTION((void apply(std::vector< PeptideIdentification > &fwd_ids, std::vector< PeptideIdentification > &rev_ids)))
 {
   ptr = new FalseDiscoveryRate();
 	vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids;
@@ -61,7 +61,7 @@ CHECK((void apply(std::vector< PeptideIdentification > &fwd_ids, std::vector< Pe
 	IdXMLFile().load("data/XTandem_fwd_ids.idXML", fwd_prot_ids, fwd_pep_ids);
 	IdXMLFile().load("data/XTandem_rev_ids.idXML", rev_prot_ids, rev_pep_ids);
 	ptr->apply(fwd_pep_ids, rev_pep_ids);
-	PRECISION(0.0001)
+	TOLERANCE_ABSOLUTE(0.0001)
 	for (vector<PeptideIdentification>::const_iterator it = fwd_pep_ids.begin(); it != fwd_pep_ids.end(); ++it)
 	{
 		if (it->getHits().size() > 0)
@@ -72,25 +72,25 @@ CHECK((void apply(std::vector< PeptideIdentification > &fwd_ids, std::vector< Pe
 
 			if (orig_score >= 39.4)
 			{
-				TEST_REAL_EQUAL(fdr, 0)
+				TEST_REAL_SIMILAR(fdr, 0)
 			}
 			if (orig_score <= 37.9 + 0.0001 && orig_score >= 37.9 - 0.0001)
 			{
-				TEST_REAL_EQUAL(fdr, 0.08)
+				TEST_REAL_SIMILAR(fdr, 0.08)
 			}
 		}
 	}
 }
-RESULT
+END_SECTION
 
-CHECK((void apply(std::vector< ProteinIdentification > &fwd_ids, std::vector< ProteinIdentification > &rev_ids)))
+START_SECTION((void apply(std::vector< ProteinIdentification > &fwd_ids, std::vector< ProteinIdentification > &rev_ids)))
 {
   vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids;
   vector<PeptideIdentification> fwd_pep_ids, rev_pep_ids;
   IdXMLFile().load("data/XTandem_fwd_ids.idXML", fwd_prot_ids, fwd_pep_ids);
   IdXMLFile().load("data/XTandem_rev_ids.idXML", rev_prot_ids, rev_pep_ids);
   ptr->apply(fwd_prot_ids, rev_prot_ids);
-  PRECISION(0.001)
+  TOLERANCE_ABSOLUTE(0.001)
 	
 	for (vector<ProteinIdentification>::const_iterator prot_it = fwd_prot_ids.begin(); prot_it != fwd_prot_ids.end(); ++prot_it)
 	{
@@ -104,17 +104,17 @@ CHECK((void apply(std::vector< ProteinIdentification > &fwd_ids, std::vector< Pr
 
 				if (orig_score < -1.8)
 				{
-					TEST_REAL_EQUAL(fdr, 0)
+					TEST_REAL_SIMILAR(fdr, 0)
 				}
 				if ((orig_score == -1.7))
 				{
-					TEST_REAL_EQUAL(fdr, 0.0617284)
+					TEST_REAL_SIMILAR(fdr, 0.0617284)
 				}
 			}
 		}
 	}
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

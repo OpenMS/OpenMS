@@ -80,27 +80,27 @@ START_TEST(PersistentObject, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Dummy* ptr = 0;
-CHECK((PersistentObject()))
+START_SECTION((PersistentObject()))
 	ptr = new Dummy();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~PersistentObject()))
+START_SECTION((~PersistentObject()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((const UID& getPersistenceId() const))
+START_SECTION((const UID& getPersistenceId() const))
   Dummy tmp;
   TEST_EQUAL(tmp.getPersistenceId(),0)
-RESULT
+END_SECTION
 
-CHECK((void setPersistenceId(const UID& persistence_id)))
+START_SECTION((void setPersistenceId(const UID& persistence_id)))
   Dummy tmp;
   tmp.setPersistenceId(4711);
   TEST_EQUAL(tmp.getPersistenceId(),4711)
-RESULT
+END_SECTION
 
-CHECK((void clearId(bool deep = true)))
+START_SECTION((void clearId(bool deep = true)))
   Dummy tmp;
   tmp.setPersistenceId(4711);
   tmp.clearId(false);
@@ -111,9 +111,9 @@ CHECK((void clearId(bool deep = true)))
   tmp.clearId(true);
   TEST_EQUAL(tmp.getPersistenceId(),0)
   TEST_EQUAL(tmp.subobjectsClear(),true)
-RESULT
+END_SECTION
 
-CHECK((PersistentObject& operator= (const PersistentObject& rhs)))
+START_SECTION((PersistentObject& operator= (const PersistentObject& rhs)))
   Dummy tmp;
   tmp.clearId(true);
   tmp.setPersistenceId(4711);
@@ -126,7 +126,7 @@ CHECK((PersistentObject& operator= (const PersistentObject& rhs)))
   tmp2 = Dummy();
   TEST_EQUAL(tmp2.getPersistenceId(),0)
   TEST_EQUAL(tmp2.subobjectsClear(),false)
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

@@ -40,17 +40,17 @@ START_TEST(ANDIFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ANDIFile* ptr = 0;
-CHECK((ANDIFile()))
+START_SECTION((ANDIFile()))
 	ptr = new ANDIFile;
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~ANDIFile()))
+START_SECTION((~ANDIFile()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((template<typename MapType> void load(const String& filename, MapType& map) ))
-	PRECISION(0.01)
+START_SECTION((template<typename MapType> void load(const String& filename, MapType& map) ))
+	TOLERANCE_ABSOLUTE(0.01)
 
 	MSExperiment< Peak1D > e2;
 	ANDIFile andi;
@@ -66,34 +66,34 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	// 180: (100,100) (110,200) (120,300) (130,200) (140,100) 
 	//---------------------------------------------------------------------------
   TEST_EQUAL(e2.size(), 3)
-	TEST_REAL_EQUAL(e2[0].getMSLevel(), 1)
-	TEST_REAL_EQUAL(e2[1].getMSLevel(), 1)
-	TEST_REAL_EQUAL(e2[2].getMSLevel(), 1)
-	TEST_REAL_EQUAL(e2[0].getRT(), 60)
-	TEST_REAL_EQUAL(e2[1].getRT(), 120)
-	TEST_REAL_EQUAL(e2[2].getRT(), 180)
-	TEST_REAL_EQUAL(e2[0].size(), 1)
-	TEST_REAL_EQUAL(e2[1].size(), 3)
-	TEST_REAL_EQUAL(e2[2].size(), 5)
+	TEST_REAL_SIMILAR(e2[0].getMSLevel(), 1)
+	TEST_REAL_SIMILAR(e2[1].getMSLevel(), 1)
+	TEST_REAL_SIMILAR(e2[2].getMSLevel(), 1)
+	TEST_REAL_SIMILAR(e2[0].getRT(), 60)
+	TEST_REAL_SIMILAR(e2[1].getRT(), 120)
+	TEST_REAL_SIMILAR(e2[2].getRT(), 180)
+	TEST_REAL_SIMILAR(e2[0].size(), 1)
+	TEST_REAL_SIMILAR(e2[1].size(), 3)
+	TEST_REAL_SIMILAR(e2[2].size(), 5)
 
-	TEST_REAL_EQUAL(e2[0][0].getPosition()[0], 120)
-	TEST_REAL_EQUAL(e2[0][0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e2[1][0].getPosition()[0], 110)
-	TEST_REAL_EQUAL(e2[1][0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e2[1][1].getPosition()[0], 120)
-	TEST_REAL_EQUAL(e2[1][1].getIntensity(), 200)
-	TEST_REAL_EQUAL(e2[1][2].getPosition()[0], 130)
-	TEST_REAL_EQUAL(e2[1][2].getIntensity(), 100)
-	TEST_REAL_EQUAL(e2[2][0].getPosition()[0], 100)
-	TEST_REAL_EQUAL(e2[2][0].getIntensity(), 100)
-	TEST_REAL_EQUAL(e2[2][1].getPosition()[0], 110)
-	TEST_REAL_EQUAL(e2[2][1].getIntensity(), 200)
-	TEST_REAL_EQUAL(e2[2][2].getPosition()[0], 120)
-	TEST_REAL_EQUAL(e2[2][2].getIntensity(), 300)
-	TEST_REAL_EQUAL(e2[2][3].getPosition()[0], 130)
-	TEST_REAL_EQUAL(e2[2][3].getIntensity(), 200)
-	TEST_REAL_EQUAL(e2[2][4].getPosition()[0], 140)
-	TEST_REAL_EQUAL(e2[2][4].getIntensity(), 100)
+	TEST_REAL_SIMILAR(e2[0][0].getPosition()[0], 120)
+	TEST_REAL_SIMILAR(e2[0][0].getIntensity(), 100)
+	TEST_REAL_SIMILAR(e2[1][0].getPosition()[0], 110)
+	TEST_REAL_SIMILAR(e2[1][0].getIntensity(), 100)
+	TEST_REAL_SIMILAR(e2[1][1].getPosition()[0], 120)
+	TEST_REAL_SIMILAR(e2[1][1].getIntensity(), 200)
+	TEST_REAL_SIMILAR(e2[1][2].getPosition()[0], 130)
+	TEST_REAL_SIMILAR(e2[1][2].getIntensity(), 100)
+	TEST_REAL_SIMILAR(e2[2][0].getPosition()[0], 100)
+	TEST_REAL_SIMILAR(e2[2][0].getIntensity(), 100)
+	TEST_REAL_SIMILAR(e2[2][1].getPosition()[0], 110)
+	TEST_REAL_SIMILAR(e2[2][1].getIntensity(), 200)
+	TEST_REAL_SIMILAR(e2[2][2].getPosition()[0], 120)
+	TEST_REAL_SIMILAR(e2[2][2].getIntensity(), 300)
+	TEST_REAL_SIMILAR(e2[2][3].getPosition()[0], 130)
+	TEST_REAL_SIMILAR(e2[2][3].getIntensity(), 200)
+	TEST_REAL_SIMILAR(e2[2][4].getPosition()[0], 140)
+	TEST_REAL_SIMILAR(e2[2][4].getIntensity(), 100)
 	
 	// meta data:
 	
@@ -102,9 +102,9 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
   
   TEST_EQUAL(e.size(), 3)
   
-  TEST_REAL_EQUAL(e[0].getRT(), 60)
-  TEST_REAL_EQUAL(e[1].getRT(), 120)
-  TEST_REAL_EQUAL(e[2].getRT(), 180)
+  TEST_REAL_SIMILAR(e[0].getRT(), 60)
+  TEST_REAL_SIMILAR(e[1].getRT(), 120)
+  TEST_REAL_SIMILAR(e[2].getRT(), 180)
   
   //---------------------------------------------------------------------------
   // RT = 60
@@ -113,8 +113,8 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_EQUAL(e[0].getInstrumentSettings().getScanMode(), InstrumentSettings::UNKNOWN)
 	TEST_EQUAL(e[0].getInstrumentSettings().getPolarity(), IonSource::POSITIVE)
 	TEST_EQUAL(e[0].getInstrumentSettings().getScanWindows().size(), 1)
-	TEST_REAL_EQUAL(e[0].getInstrumentSettings().getScanWindows()[0].begin, 0)
-	TEST_REAL_EQUAL(e[0].getInstrumentSettings().getScanWindows()[0].end, 0)
+	TEST_REAL_SIMILAR(e[0].getInstrumentSettings().getScanWindows()[0].begin, 0)
+	TEST_REAL_SIMILAR(e[0].getInstrumentSettings().getScanWindows()[0].end, 0)
 	TEST_EQUAL(e[0].getPrecursor().getActivationMethod(), Precursor::ACTMETHNULL)
 	TEST_EQUAL(e[0].getPrecursor().getActivationEnergy(), 0)
 	TEST_EQUAL(e[0].getPrecursor().getActivationEnergyUnit(), Precursor::UNITSNULL)
@@ -127,8 +127,8 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_EQUAL(e[1].getInstrumentSettings().getScanMode(), InstrumentSettings::UNKNOWN)
 	TEST_EQUAL(e[1].getInstrumentSettings().getPolarity(), IonSource::POSITIVE)
 	TEST_EQUAL(e[1].getInstrumentSettings().getScanWindows().size(), 1)
-	TEST_REAL_EQUAL(e[1].getInstrumentSettings().getScanWindows()[0].begin, 0)
-	TEST_REAL_EQUAL(e[1].getInstrumentSettings().getScanWindows()[0].end, 0)
+	TEST_REAL_SIMILAR(e[1].getInstrumentSettings().getScanWindows()[0].begin, 0)
+	TEST_REAL_SIMILAR(e[1].getInstrumentSettings().getScanWindows()[0].end, 0)
 	TEST_EQUAL(e[1].getPrecursor().getActivationMethod(), Precursor::ACTMETHNULL)
 	TEST_EQUAL(e[1].getPrecursor().getActivationEnergy(), 0)
 	TEST_EQUAL(e[1].getPrecursor().getActivationEnergyUnit(), Precursor::UNITSNULL)
@@ -141,8 +141,8 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_EQUAL(e[2].getInstrumentSettings().getScanMode(), InstrumentSettings::UNKNOWN)
 	TEST_EQUAL(e[2].getInstrumentSettings().getPolarity(), IonSource::POSITIVE)
 	TEST_EQUAL(e[2].getInstrumentSettings().getScanWindows().size(), 1)
-	TEST_REAL_EQUAL(e[2].getInstrumentSettings().getScanWindows()[0].begin, 0)
-	TEST_REAL_EQUAL(e[2].getInstrumentSettings().getScanWindows()[0].end, 0)
+	TEST_REAL_SIMILAR(e[2].getInstrumentSettings().getScanWindows()[0].begin, 0)
+	TEST_REAL_SIMILAR(e[2].getInstrumentSettings().getScanWindows()[0].end, 0)
 	TEST_EQUAL(e[2].getPrecursor().getActivationMethod(), Precursor::ACTMETHNULL)
 	TEST_EQUAL(e[2].getPrecursor().getActivationEnergy(), 0)
 	TEST_EQUAL(e[2].getPrecursor().getActivationEnergyUnit(), Precursor::UNITSNULL)
@@ -153,7 +153,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
   //---------------------------------------------------------------------------
   TEST_EQUAL(e.getSourceFiles().size(),1)
 	TEST_EQUAL(e.getSourceFiles()[0].getNameOfFile(), "18")
-  TEST_REAL_EQUAL(e.getSourceFiles()[0].getFileSize(), 0)
+  TEST_REAL_SIMILAR(e.getSourceFiles()[0].getFileSize(), 0)
   TEST_EQUAL(e.getSourceFiles()[0].getFileType(), "19")
 
   //---------------------------------------------------------------------------
@@ -173,10 +173,10 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
   TEST_EQUAL(e.getDataProcessing().size(),1)
   TEST_EQUAL(e.getDataProcessing().back().getSoftware().getName(), "17")
   TEST_EQUAL(e.getDataProcessing().back().getCompletionTime().get(), "0000-00-00 00:00:00")
-  TEST_REAL_EQUAL(e.getDataProcessing().back().getMetaValue("ProcessingNumer"), 123.0)
+  TEST_REAL_SIMILAR(e.getDataProcessing().back().getMetaValue("ProcessingNumer"), 123.0)
   TEST_EQUAL(e.getDataProcessing().back().getMetaValue("ErrorLog"), "")
   TEST_EQUAL(e.getDataProcessing().back().getMetaValue("CalibrationHistory"), "25262728")
-  TEST_REAL_EQUAL(e.getDataProcessing().back().getMetaValue("NumOfCalibrations"), 456.0)
+  TEST_REAL_SIMILAR(e.getDataProcessing().back().getMetaValue("NumOfCalibrations"), 456.0)
   
   //---------------------------------------------------------------------------
   // const Instrument& getInstrument() const;
@@ -196,17 +196,17 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_EQUAL(inst.getIonSources()[0].getIonizationMethod(), IonSource::EI)
 	TEST_EQUAL(inst.getIonSources()[0].getInletType(), IonSource::MEMBRANESEPARATOR)
 	TEST_EQUAL(inst.getIonSources()[0].getPolarity(), IonSource::POLNULL)
-	TEST_REAL_EQUAL(inst.getIonSources()[0].getMetaValue("InletTemp"), 2.7)
+	TEST_REAL_SIMILAR(inst.getIonSources()[0].getMetaValue("InletTemp"), 2.7)
 	TEST_EQUAL(inst.getIonSources()[0].getMetaValue("IonModeAdd"), "FABType=44 FABMatrix=45 ReagentGas=43 ReagentGasPressure=12.3 ElectronEnergy=23.56 LaserWaveLength=56.23 FilamentCurrent=2.3 EmissionCurrent=3.4 ")
-	TEST_REAL_EQUAL(inst.getIonSources()[0].getMetaValue("SrcTemp"), 1.2)
-	TEST_REAL_EQUAL(inst.getIonSources()[0].getMetaValue("AccPot"), 4.5)
+	TEST_REAL_SIMILAR(inst.getIonSources()[0].getMetaValue("SrcTemp"), 1.2)
+	TEST_REAL_SIMILAR(inst.getIonSources()[0].getMetaValue("AccPot"), 4.5)
 	TEST_EQUAL(inst.getIonDetectors().size(),1)
 	TEST_EQUAL(inst.getIonDetectors()[0].getType(), IonDetector::ELECTRONMULTIPLIER)
 	TEST_EQUAL(inst.getIonDetectors()[0].getAcquisitionMode(), IonDetector::ACQMODENULL)
 	TEST_EQUAL(inst.getIonDetectors()[0].getResolution(), 0)
 	TEST_EQUAL(inst.getIonDetectors()[0].getADCSamplingFrequency(), 0)
-	TEST_REAL_EQUAL(inst.getIonDetectors()[0].getMetaValue("DetPot"), 5.6)
-	TEST_REAL_EQUAL(inst.getIonDetectors()[0].getMetaValue("DetEntrPot"), 6.7)
+	TEST_REAL_SIMILAR(inst.getIonDetectors()[0].getMetaValue("DetPot"), 5.6)
+	TEST_REAL_SIMILAR(inst.getIonDetectors()[0].getMetaValue("DetEntrPot"), 6.7)
   TEST_EQUAL(inst.getMassAnalyzers().size(), 1)
   ABORT_IF(inst.getMassAnalyzers().size() != 1);
 	TEST_EQUAL(inst.getMassAnalyzers()[0].getType(), MassAnalyzer::ANALYZERNULL)
@@ -233,7 +233,7 @@ CHECK((template<typename MapType> void load(const String& filename, MapType& map
 	TEST_EQUAL(e.getHPLC().getPressure(), 0)
 	TEST_EQUAL(e.getHPLC().getFlux(), 0)
   
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

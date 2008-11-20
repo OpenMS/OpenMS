@@ -42,14 +42,14 @@ using namespace Math;
 using namespace std;
 
 LinearRegression* ptr;
-CHECK(LinearRegression())
+START_SECTION(LinearRegression())
   ptr = new LinearRegression;
   TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~LinearRegression()))
+START_SECTION((virtual ~LinearRegression()))
   delete ptr;
-RESULT
+END_SECTION
 
 // Create a test data set
 vector<double> x_axis(10);
@@ -64,76 +64,76 @@ for (int i=0; i < 10; ++i)
 
 LinearRegression lin_reg;
 
-CHECK((bool computeRegression(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin)))
+START_SECTION((bool computeRegression(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin)))
   lin_reg.computeRegression(0.95,x_axis.begin(),x_axis.end(),y_axis.begin());
 
-  TEST_REAL_EQUAL(lin_reg.getSlope(),2.0)
-  TEST_REAL_EQUAL(lin_reg.getIntercept(),4.0)
-RESULT
+  TEST_REAL_SIMILAR(lin_reg.getSlope(),2.0)
+  TEST_REAL_SIMILAR(lin_reg.getIntercept(),4.0)
+END_SECTION
 
-CHECK((int computeRegressionWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin)))
+START_SECTION((int computeRegressionWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin)))
   lin_reg.computeRegressionWeighted(0.95,x_axis.begin(),x_axis.end(),y_axis.begin(),weight.begin());
-RESULT
+END_SECTION
 
-CHECK((DoubleReal getChiSquared() const))
-  TEST_REAL_EQUAL(lin_reg.getChiSquared(),0)
-RESULT
+START_SECTION((DoubleReal getChiSquared() const))
+  TEST_REAL_SIMILAR(lin_reg.getChiSquared(),0)
+END_SECTION
 
-CHECK((DoubleReal getIntercept() const))
-  TEST_REAL_EQUAL(lin_reg.getIntercept(),4.0)
-RESULT
+START_SECTION((DoubleReal getIntercept() const))
+  TEST_REAL_SIMILAR(lin_reg.getIntercept(),4.0)
+END_SECTION
 
-CHECK((DoubleReal getLower() const))
-  TEST_REAL_EQUAL(lin_reg.getLower(),-2.0)
-RESULT
+START_SECTION((DoubleReal getLower() const))
+  TEST_REAL_SIMILAR(lin_reg.getLower(),-2.0)
+END_SECTION
 
-CHECK((DoubleReal getUpper() const))
-  TEST_REAL_EQUAL(lin_reg.getUpper(),-2.0)
-RESULT
+START_SECTION((DoubleReal getUpper() const))
+  TEST_REAL_SIMILAR(lin_reg.getUpper(),-2.0)
+END_SECTION
 
-CHECK((DoubleReal getSlope() const))
-  TEST_REAL_EQUAL(lin_reg.getSlope(),2.0)
-RESULT
+START_SECTION((DoubleReal getSlope() const))
+  TEST_REAL_SIMILAR(lin_reg.getSlope(),2.0)
+END_SECTION
 
-CHECK((DoubleReal getStandDevRes() const))
-  TEST_REAL_EQUAL(lin_reg.getStandDevRes(),0.0)
-RESULT
+START_SECTION((DoubleReal getStandDevRes() const))
+  TEST_REAL_SIMILAR(lin_reg.getStandDevRes(),0.0)
+END_SECTION
 
-CHECK((DoubleReal getStandErrSlope() const))
-  TEST_REAL_EQUAL(lin_reg.getStandErrSlope(),0.0)
-RESULT
+START_SECTION((DoubleReal getStandErrSlope() const))
+  TEST_REAL_SIMILAR(lin_reg.getStandErrSlope(),0.0)
+END_SECTION
 
-CHECK((DoubleReal getRSquared() const))
-  TEST_REAL_EQUAL(lin_reg.getRSquared(),1.0)
-RESULT
+START_SECTION((DoubleReal getRSquared() const))
+  TEST_REAL_SIMILAR(lin_reg.getRSquared(),1.0)
+END_SECTION
 
-CHECK((DoubleReal getTValue() const))
-  TEST_REAL_EQUAL(lin_reg.getTValue(),2.306)
-RESULT
+START_SECTION((DoubleReal getTValue() const))
+  TEST_REAL_SIMILAR(lin_reg.getTValue(),2.306)
+END_SECTION
 
-CHECK((DoubleReal getXIntercept() const))
-  TEST_REAL_EQUAL(lin_reg.getXIntercept(),-2.0)
-RESULT
+START_SECTION((DoubleReal getXIntercept() const))
+  TEST_REAL_SIMILAR(lin_reg.getXIntercept(),-2.0)
+END_SECTION
 
-CHECK((DoubleReal getRSD() const))
-  TEST_REAL_EQUAL(lin_reg.getRSD(),0.0)
-RESULT
+START_SECTION((DoubleReal getRSD() const))
+  TEST_REAL_SIMILAR(lin_reg.getRSD(),0.0)
+END_SECTION
 
-CHECK((DoubleReal getMeanRes() const))
-  TEST_REAL_EQUAL(lin_reg.getMeanRes(),0.0)
-RESULT
+START_SECTION((DoubleReal getMeanRes() const))
+  TEST_REAL_SIMILAR(lin_reg.getMeanRes(),0.0)
+END_SECTION
 
 //test with no intercept
 for (int i=0; i < 10; ++i)
 {
   y_axis[i]=2*i;
 }
-CHECK((template <typename Iterator> bool computeRegressionNoIntercept(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin);))
+START_SECTION((template <typename Iterator> bool computeRegressionNoIntercept(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin);))
   lin_reg.computeRegressionNoIntercept(0.95,x_axis.begin(),x_axis.end(),y_axis.begin());
 
-  TEST_REAL_EQUAL(lin_reg.getSlope(),2.0)
-  TEST_REAL_EQUAL(lin_reg.getIntercept(),0.0)
-RESULT
+  TEST_REAL_SIMILAR(lin_reg.getSlope(),2.0)
+  TEST_REAL_SIMILAR(lin_reg.getIntercept(),0.0)
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

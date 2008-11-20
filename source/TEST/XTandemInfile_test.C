@@ -54,185 +54,185 @@ String date_string_1;
 String date_string_2;
 PeptideHit peptide_hit;
 
-CHECK((XTandemInfile()))
+START_SECTION((XTandemInfile()))
 	ptr = new XTandemInfile();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~XTandemInfile())
+START_SECTION(~XTandemInfile())
 	delete ptr;
-RESULT
+END_SECTION
 
 ptr = new XTandemInfile();
 
-CHECK(void setFragmentMassTolerance(double tolerance))
+START_SECTION(void setFragmentMassTolerance(double tolerance))
 	ptr->setFragmentMassTolerance(13.0);
-	TEST_REAL_EQUAL(ptr->getFragmentMassTolerance(), 13.0)
-RESULT
+	TEST_REAL_SIMILAR(ptr->getFragmentMassTolerance(), 13.0)
+END_SECTION
  
-CHECK(double getFragmentMassTolerance() const)
+START_SECTION(double getFragmentMassTolerance() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setPrecursorMassTolerancePlus(double tol))
+START_SECTION(void setPrecursorMassTolerancePlus(double tol))
 	ptr->setPrecursorMassTolerancePlus(14.0);
-	TEST_REAL_EQUAL(ptr->getPrecursorMassTolerancePlus(), 14.0)
-RESULT
+	TEST_REAL_SIMILAR(ptr->getPrecursorMassTolerancePlus(), 14.0)
+END_SECTION
 
-CHECK(double getPrecursorMassTolerancePlus() const)
+START_SECTION(double getPrecursorMassTolerancePlus() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setPrecursorMassToleranceMinus(double tol))
+START_SECTION(void setPrecursorMassToleranceMinus(double tol))
 	ptr->setPrecursorMassToleranceMinus(15.0);
-	TEST_REAL_EQUAL(ptr->getPrecursorMassToleranceMinus(), 15.0)
-RESULT
+	TEST_REAL_SIMILAR(ptr->getPrecursorMassToleranceMinus(), 15.0)
+END_SECTION
 
-CHECK(double getPrecursorMassToleranceMinus() const)
+START_SECTION(double getPrecursorMassToleranceMinus() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setPrecursorMassErrorUnit(ErrorUnit unit))
+START_SECTION(void setPrecursorMassErrorUnit(ErrorUnit unit))
 	ptr->setPrecursorMassErrorUnit(XTandemInfile::DALTONS);
 	TEST_EQUAL(ptr->getPrecursorMassErrorUnit(), XTandemInfile::DALTONS)
 	ptr->setPrecursorMassErrorUnit(XTandemInfile::PPM);
 	TEST_EQUAL(ptr->getPrecursorMassErrorUnit(), XTandemInfile::PPM)
-RESULT
+END_SECTION
 
-CHECK(ErrorUnit getPrecursorMassErrorUnit() const)
+START_SECTION(ErrorUnit getPrecursorMassErrorUnit() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
   
-CHECK(void setNumberOfThreads(UInt threads))
+START_SECTION(void setNumberOfThreads(UInt threads))
 	ptr->setNumberOfThreads(16);
 	TEST_EQUAL(ptr->getNumberOfThreads(), 16)
-RESULT
+END_SECTION
 
-CHECK(UInt getNumberOfThreads() const)
+START_SECTION(UInt getNumberOfThreads() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setModifications(const ModificationDefinitionsSet &mods))
+START_SECTION(void setModifications(const ModificationDefinitionsSet &mods))
 	ModificationDefinitionsSet sets("MOD:00720,MOD:00719", "MOD:01061,MOD:01060");
 	ptr->setModifications(sets);
 	TEST_EQUAL(ptr->getModifications() == sets, true)
-RESULT
+END_SECTION
 
-CHECK(void setOutputFilename(const String &output))
+START_SECTION(void setOutputFilename(const String &output))
 	ptr->setOutputFilename("blubb_new_outputfilename");
 	TEST_STRING_EQUAL(ptr->getOutputFilename(), "blubb_new_outputfilename")
-RESULT
+END_SECTION
 
-CHECK(const String& getOutputFilename() const)
+START_SECTION(const String& getOutputFilename() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setInputFilename(const String &input_file))
+START_SECTION(void setInputFilename(const String &input_file))
 	ptr->setInputFilename("blubb_new_inputfilename");
 	TEST_STRING_EQUAL(ptr->getInputFilename(), "blubb_new_inputfilename")
-RESULT
+END_SECTION
 
-CHECK(const String& getInputFilename() const)
+START_SECTION(const String& getInputFilename() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setTaxonomyFilename(const String &filename))
+START_SECTION(void setTaxonomyFilename(const String &filename))
 	ptr->setTaxonomyFilename("blubb_new_taxonomy_file");
 	TEST_STRING_EQUAL(ptr->getTaxonomyFilename(), "blubb_new_taxonomy_file")
-RESULT
+END_SECTION
 
-CHECK(const String& getTaxonomyFilename() const)
+START_SECTION(const String& getTaxonomyFilename() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setDefaultParametersFilename(const String &filename))
+START_SECTION(void setDefaultParametersFilename(const String &filename))
 	ptr->setDefaultParametersFilename("blubb_new_default_parameters_file");
 	TEST_STRING_EQUAL(ptr->getDefaultParametersFilename(), "blubb_new_default_parameters_file")
-RESULT
+END_SECTION
 
-CHECK(const String& getDefaultParametersFilename() const)
+START_SECTION(const String& getDefaultParametersFilename() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setTaxon(const String &taxon))
+START_SECTION(void setTaxon(const String &taxon))
 	ptr->setTaxon("blubb_taxon");
 	TEST_STRING_EQUAL(ptr->getTaxon(), "blubb_taxon")
-RESULT
+END_SECTION
 
-CHECK(const String& getTaxon() const)
+START_SECTION(const String& getTaxon() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setMaxPrecursorCharge(Int max_charge))
+START_SECTION(void setMaxPrecursorCharge(Int max_charge))
 	ptr->setMaxPrecursorCharge(17);
 	TEST_EQUAL(ptr->getMaxPrecursorCharge(), 17)
-RESULT
+END_SECTION
 
-CHECK(Int getMaxPrecursorCharge() const)
+START_SECTION(Int getMaxPrecursorCharge() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setNumberOfMissedCleavages(UInt missed_cleavages))
+START_SECTION(void setNumberOfMissedCleavages(UInt missed_cleavages))
 	ptr->setNumberOfMissedCleavages(18);
 	TEST_EQUAL(ptr->getNumberOfMissedCleavages(), 18)
-RESULT
+END_SECTION
 
-CHECK(UInt getNumberOfMissedCleavages() const)
+START_SECTION(UInt getNumberOfMissedCleavages() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setMaxValidEValue(double value))
+START_SECTION(void setMaxValidEValue(double value))
 	ptr->setMaxValidEValue(19.0);
-	TEST_REAL_EQUAL(ptr->getMaxValidEValue(), 19.0)
-RESULT
+	TEST_REAL_SIMILAR(ptr->getMaxValidEValue(), 19.0)
+END_SECTION
 
-CHECK(double getMaxValidEValue() const)
+START_SECTION(double getMaxValidEValue() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setPrecursorErrorType(MassType mono_isotopic))
+START_SECTION(void setPrecursorErrorType(MassType mono_isotopic))
 	XTandemInfile::MassType mono = XTandemInfile::MONOISOTOPIC;
 	XTandemInfile::MassType average = XTandemInfile::AVERAGE;
 	ptr->setPrecursorErrorType(mono);
 	TEST_EQUAL(ptr->getPrecursorErrorType(), mono)
 	ptr->setPrecursorErrorType(average);
 	TEST_EQUAL(ptr->getPrecursorErrorType(), average)
-RESULT
+END_SECTION
 
-CHECK(MassType getPrecursorErrorType() const)
+START_SECTION(MassType getPrecursorErrorType() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void setFragmentMassErrorUnit(ErrorUnit unit))
+START_SECTION(void setFragmentMassErrorUnit(ErrorUnit unit))
 	XTandemInfile::ErrorUnit daltons = XTandemInfile::DALTONS;
 	XTandemInfile::ErrorUnit ppm = XTandemInfile::PPM;
 	ptr->setFragmentMassErrorUnit(daltons);
 	TEST_EQUAL(ptr->getFragmentMassErrorUnit(), daltons)
 	ptr->setFragmentMassErrorUnit(ppm);
 	TEST_EQUAL(ptr->getFragmentMassErrorUnit(), ppm)
-RESULT
+END_SECTION
 
-CHECK(ErrorUnit getFragmentMassErrorUnit() const)
+START_SECTION(ErrorUnit getFragmentMassErrorUnit() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(const ModificationDefinitionsSet& getModifications() const)
+START_SECTION(const ModificationDefinitionsSet& getModifications() const)
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void write(const String &filename))
+START_SECTION(void write(const String &filename))
 	string filename("XTandemInfile_test.tmp");
 	NEW_TMP_FILE(filename);
 	ptr->write(filename);
 	XTandemInfile file;
 	file.load(filename);
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void load(const String &filename))
+START_SECTION(void load(const String &filename))
 	ptr->load("data/XTandemInfile_test.xml");
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

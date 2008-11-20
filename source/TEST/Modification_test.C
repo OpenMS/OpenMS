@@ -42,72 +42,72 @@ START_TEST(Modification, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-PRECISION(0.001)
+TOLERANCE_ABSOLUTE(0.001)
 
 // default ctor
 Modification* dv_ptr = 0;
-CHECK(Modification())
+START_SECTION(Modification())
 	dv_ptr = new Modification;
 	TEST_NOT_EQUAL(dv_ptr, 0)
-RESULT
+END_SECTION
 
 // destructor
-CHECK(~Modification())
+START_SECTION(~Modification())
 	delete dv_ptr;
-RESULT
+END_SECTION
 
-CHECK(const String& getReagentName() const)
+START_SECTION(const String& getReagentName() const)
 	Modification s;
 	TEST_EQUAL(s.getReagentName(),"")
-RESULT
+END_SECTION
 
-CHECK(float getMass() const)
+START_SECTION(float getMass() const)
 	Modification s;
-	TEST_REAL_EQUAL(s.getMass(),0.0)
-RESULT
+	TEST_REAL_SIMILAR(s.getMass(),0.0)
+END_SECTION
 
-CHECK(const SpecificityType& getSpecificityType() const)
+START_SECTION(const SpecificityType& getSpecificityType() const)
 	Modification s;
 	TEST_EQUAL(s.getSpecificityType(),Modification::AA)
-RESULT
+END_SECTION
 
-CHECK(const String& getAffectedAminoAcids() const)
+START_SECTION(const String& getAffectedAminoAcids() const)
 	Modification s;
 	TEST_EQUAL(s.getAffectedAminoAcids(),"")
-RESULT
+END_SECTION
 
-CHECK(void setReagentName(const String& reagent_name))
+START_SECTION(void setReagentName(const String& reagent_name))
 	Modification s;
 	s.setReagentName("TTEST");
 	TEST_EQUAL(s.getReagentName(),"TTEST")
-RESULT
+END_SECTION
 
-CHECK(void setMass(float mass))
+START_SECTION(void setMass(float mass))
 	Modification s;
 	s.setMass(11.9);
-	TEST_REAL_EQUAL(s.getMass(),11.9)
-RESULT
+	TEST_REAL_SIMILAR(s.getMass(),11.9)
+END_SECTION
 
-CHECK(void setSpecificityType(const SpecificityType& specificity_type))
+START_SECTION(void setSpecificityType(const SpecificityType& specificity_type))
 	Modification s;
 	s.setSpecificityType(Modification::CTERM);
 	TEST_EQUAL(s.getSpecificityType(),Modification::CTERM)
-RESULT
+END_SECTION
 
-CHECK(void setAffectedAminoAcids(const String& affected_amino_acids))
+START_SECTION(void setAffectedAminoAcids(const String& affected_amino_acids))
 	Modification s;
 	s.setAffectedAminoAcids("ABCDE");
 	TEST_EQUAL(s.getAffectedAminoAcids(),"ABCDE")
-RESULT
+END_SECTION
 
 //getType
-CHECK([EXTRA] getType)
+START_SECTION([EXTRA] getType)
 	Modification s;
 	TEST_EQUAL(s.getType(),"Modification")
-RESULT
+END_SECTION
 
 //copy ctr
-CHECK(Modification(const Modification&))
+START_SECTION(Modification(const Modification&))
 	Modification s;
 	//set
 	s.setReagentName("TTEST");
@@ -121,15 +121,15 @@ CHECK(Modification(const Modification&))
 
 	//get
 	TEST_EQUAL(s.getReagentName(),"TTEST")
-	TEST_REAL_EQUAL(s.getMass(),11.9)
+	TEST_REAL_SIMILAR(s.getMass(),11.9)
 	TEST_EQUAL(s.getSpecificityType(),Modification::AA)
 	TEST_EQUAL(s.getAffectedAminoAcids(),"ABCDE")
 	TEST_EQUAL(String(s.getMetaValue("color")),"red")
 	
-RESULT
+END_SECTION
 
 //assignment operator
-CHECK(Modification& operator=(const Modification&))
+START_SECTION(Modification& operator=(const Modification&))
 	Modification s,s2;
 	//set
 	s.setReagentName("TTEST");
@@ -143,14 +143,14 @@ CHECK(Modification& operator=(const Modification&))
 
 	//get
 	TEST_EQUAL(s.getReagentName(),"TTEST")
-	TEST_REAL_EQUAL(s.getMass(),11.9)
+	TEST_REAL_SIMILAR(s.getMass(),11.9)
 	TEST_EQUAL(s.getSpecificityType(),Modification::AA)
 	TEST_EQUAL(s.getAffectedAminoAcids(),"ABCDE")
 	TEST_EQUAL(String(s.getMetaValue("color")),"red")
-RESULT
+END_SECTION
 
 //clone
-CHECK(SampleTreatment* clone() const)
+START_SECTION(SampleTreatment* clone() const)
 	Modification s;
 	SampleTreatment* st1;
 	SampleTreatment* st;
@@ -170,13 +170,13 @@ CHECK(SampleTreatment* clone() const)
 
 	//get
 	TEST_EQUAL(dp->getReagentName(),"TTEST")
-	TEST_REAL_EQUAL(dp->getMass(),11.9)
+	TEST_REAL_SIMILAR(dp->getMass(),11.9)
 	TEST_EQUAL(dp->getSpecificityType(),Modification::AA)
 	TEST_EQUAL(dp->getAffectedAminoAcids(),"ABCDE")
 	TEST_EQUAL(String(dp->getMetaValue("color")),"red")
-RESULT
+END_SECTION
 
-CHECK(bool operator== (const SampleTreatment& rhs) const)
+START_SECTION(bool operator== (const SampleTreatment& rhs) const)
 	Modification empty,edit;
 	
 	TEST_EQUAL(edit==empty, true);
@@ -203,7 +203,7 @@ CHECK(bool operator== (const SampleTreatment& rhs) const)
 	
 	Tagging m;
 	TEST_EQUAL(m==empty, false);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

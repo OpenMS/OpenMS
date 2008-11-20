@@ -41,32 +41,32 @@ START_TEST(IDDecoyProbability, "$Id$")
 /////////////////////////////////////////////////////////////
 
 IDDecoyProbability* ptr = 0;
-CHECK(IDDecoyProbability())
+START_SECTION(IDDecoyProbability())
 {
 	ptr = new IDDecoyProbability();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(virtual ~IDDecoyProbability())
+START_SECTION(virtual ~IDDecoyProbability())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((IDDecoyProbability(const IDDecoyProbability &rhs)))
+START_SECTION((IDDecoyProbability(const IDDecoyProbability &rhs)))
 {
  	NOT_TESTABLE 
 }
-RESULT
+END_SECTION
 
-CHECK((IDDecoyProbability& operator=(const IDDecoyProbability &rhs)))
+START_SECTION((IDDecoyProbability& operator=(const IDDecoyProbability &rhs)))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((void apply(std::vector<PeptideIdentification>& prob_ids, const std::vector< PeptideIdentification > &fwd_ids, const std::vector< PeptideIdentification > &rev_ids)))
+START_SECTION((void apply(std::vector<PeptideIdentification>& prob_ids, const std::vector< PeptideIdentification > &fwd_ids, const std::vector< PeptideIdentification > &rev_ids)))
 {
   IDDecoyProbability decoy;
 	vector<ProteinIdentification> prot_ids_fwd, prot_ids_rev;
@@ -97,12 +97,12 @@ CHECK((void apply(std::vector<PeptideIdentification>& prob_ids, const std::vecto
 		}
 	}
 }
-RESULT
+END_SECTION
 
 
-CHECK(void generateDistributionImage(const Map< double, double > &ids, const String &formula, const String &filename))
+START_SECTION(void generateDistributionImage(const Map< double, double > &ids, const String &formula, const String &filename))
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

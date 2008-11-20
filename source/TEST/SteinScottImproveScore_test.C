@@ -46,31 +46,31 @@ using namespace std;
 
 SteinScottImproveScore* ptr = 0;
 
-CHECK(SteinScottImproveScore())
+START_SECTION(SteinScottImproveScore())
 	ptr = new SteinScottImproveScore();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(virtual ~SteinScottImproveScore())
+START_SECTION(virtual ~SteinScottImproveScore())
 	delete ptr;
-RESULT
+END_SECTION
 
 ptr = new SteinScottImproveScore();
 
-CHECK(SteinScottImproveScore(const SteinScottImproveScore& source))
+START_SECTION(SteinScottImproveScore(const SteinScottImproveScore& source))
 SteinScottImproveScore copy(*ptr);
 	TEST_EQUAL(copy.getName(), ptr->getName());
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters());
-RESULT
+END_SECTION
 
-CHECK(SteinScottImproveScore& operator = (const SteinScottImproveScore& source))
+START_SECTION(SteinScottImproveScore& operator = (const SteinScottImproveScore& source))
 SteinScottImproveScore copy;
 	copy = *ptr;
 	TEST_EQUAL(copy.getName(), ptr->getName());
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters());
-RESULT
+END_SECTION
 
-CHECK(double operator () (const PeakSpectrum& spec) const)
+START_SECTION(double operator () (const PeakSpectrum& spec) const)
 	
 	MSSpectrum<> spectrum;
 	spectrum.setRT(1);
@@ -87,10 +87,10 @@ CHECK(double operator () (const PeakSpectrum& spec) const)
 		    }
   double score = (*ptr)(spectrum);
 	if(score >0.99) score =1;  
-	TEST_REAL_EQUAL(score, 1);
-RESULT
+	TEST_REAL_SIMILAR(score, 1);
+END_SECTION
 
-CHECK(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)
+START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)
 	MSSpectrum<> spectrum1,spectrum2;
 	spectrum1.setRT(1);
 	spectrum2.setRT(1);
@@ -108,19 +108,19 @@ CHECK(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) 
 	
   double score = (*ptr)(spectrum1, spectrum2);
 	if(score >0.99) score =1;
-  TEST_REAL_EQUAL(score, 1.0)
-RESULT
+  TEST_REAL_SIMILAR(score, 1.0)
+END_SECTION
 
-CHECK(static PeakSpectrumCompareFunctor* create())
+START_SECTION(static PeakSpectrumCompareFunctor* create())
 	PeakSpectrumCompareFunctor* psf = SteinScottImproveScore::create();
 	SteinScottImproveScore stein;
 	TEST_EQUAL(psf->getParameters(), stein.getParameters())
 	TEST_EQUAL(psf->getName(), stein.getName())
-RESULT
+END_SECTION
 
-CHECK(static const String getProductName())
+START_SECTION(static const String getProductName())
 	TEST_EQUAL(ptr->getProductName(), "SteinScottImproveScore")
-RESULT
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

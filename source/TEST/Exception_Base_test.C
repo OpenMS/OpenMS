@@ -36,43 +36,43 @@ START_TEST(Exception::Base, "$Id$")
 using namespace OpenMS;
 
 Exception::BaseException* e_ptr = 0;
-CHECK(Base() )
+START_SECTION(Base() )
 	e_ptr = new Exception::BaseException;
 	TEST_NOT_EQUAL(e_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~Base() )
+START_SECTION(~Base() )
 	delete e_ptr;
-RESULT
+END_SECTION
 
 
-CHECK(Base(const Base& exception) )
+START_SECTION(Base(const Base& exception) )
   // ???
-RESULT
+END_SECTION
 
-CHECK((Base(const char* file, int line, const char* function) ))
+START_SECTION((Base(const char* file, int line, const char* function) ))
   // ???
-RESULT
+END_SECTION
 
-CHECK((Base(const char* file, int line, const char* function, const std::string& name, const std::string& message) ))
+START_SECTION((Base(const char* file, int line, const char* function, const std::string& name, const std::string& message) ))
   // ???
-RESULT
+END_SECTION
 
-CHECK(const char* getFile() const )
+START_SECTION(const char* getFile() const )
   // ???
-RESULT
+END_SECTION
 
-CHECK(const char* getName() const )
+START_SECTION(const char* getName() const )
   // ???
-RESULT
+END_SECTION
 
-CHECK(const char* what() const )
+START_SECTION(const char* what() const )
   // ???
-RESULT
+END_SECTION
 
-CHECK(int getLine() const )
+START_SECTION(int getLine() const )
   // ???
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

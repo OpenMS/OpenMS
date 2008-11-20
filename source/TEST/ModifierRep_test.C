@@ -46,42 +46,42 @@ typedef std::pair <String, String> FASTAEntry;
 
 ModifierRep* ptr = 0;
 
-CHECK(ModifierRep())
+START_SECTION(ModifierRep())
 	ptr = new ModifierRep();
 	TEST_NOT_EQUAL(ptr, 0);
-RESULT
+END_SECTION
 
-CHECK(~ModifierRep())
+START_SECTION(~ModifierRep())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(ModifierRep(const ModifierRep &source))
+START_SECTION(ModifierRep(const ModifierRep &source))
 	ptr = new ModifierRep();
 	ptr->setNumberOfModifications(2);
 	ModifierRep * new_ptr = new ModifierRep(*ptr);
 	TEST_EQUAL (ptr->getNumberOfModifications(),new_ptr->getNumberOfModifications());
 	TEST_EQUAL (ptr->getModificationTable().size(),new_ptr->getModificationTable().size());
-RESULT
+END_SECTION
 
-CHECK(void setNumberOfModifications(UInt i))
+START_SECTION(void setNumberOfModifications(UInt i))
 	ptr = new ModifierRep();
 	TEST_EQUAL (0,ptr->getNumberOfModifications());
 	ptr->setNumberOfModifications(1);
 	TEST_EQUAL (1,ptr->getNumberOfModifications());
-RESULT
+END_SECTION
 
-CHECK(UInt getNumberOfModifications() const )
+START_SECTION(UInt getNumberOfModifications() const )
 	ptr = new ModifierRep();
 	ptr->setNumberOfModifications(1);
 	TEST_EQUAL (1,ptr->getNumberOfModifications());
 	ptr->setNumberOfModifications(2);
 	TEST_EQUAL (2,ptr->getNumberOfModifications());
 
-RESULT
+END_SECTION
 
 
 
-CHECK(const std::vector<std::vector<double> >& getModificationTable())
+START_SECTION(const std::vector<std::vector<double> >& getModificationTable())
 				/*
 	ptr = new ModifierRep();
 	std::vector<std::vector<double> > mod_table = ptr->getModificationTable();
@@ -118,9 +118,9 @@ CHECK(const std::vector<std::vector<double> >& getModificationTable())
 			//std::cout<<aa[i]<<" : "<<del_mass<<std::endl;
 		}
 	}*/
-RESULT
+END_SECTION
 
-CHECK(UInt getMaxModificationMasses())
+START_SECTION(UInt getMaxModificationMasses())
 	ptr = new ModifierRep();
 	TEST_EQUAL(0,ptr->getMaxModificationMasses());
 	std::vector<std::vector<double> > mod_table = ptr->getModificationTable();
@@ -134,9 +134,9 @@ CHECK(UInt getMaxModificationMasses())
 	}
 	ptr->setNumberOfModifications(1);
 	TEST_EQUAL(mod_masses_set.size(),ptr->getMaxModificationMasses());
-RESULT
+END_SECTION
 
-CHECK(void refreshModificationList(std::map< double, int > &mod_map, const char &c))
+START_SECTION(void refreshModificationList(std::map< double, int > &mod_map, const char &c))
 				/*
 	ptr = new ModifierRep();
 	std::map<double,int> mods;
@@ -161,9 +161,9 @@ CHECK(void refreshModificationList(std::map< double, int > &mod_map, const char 
 	const char aa2 = 'X';
 	ptr->refreshModificationList(mods,aa2);
 	TEST_EQUAL (mods.size(),5);*/
-RESULT
+END_SECTION
 
-CHECK(std::vector<String> getModificationsForMass(double &m))
+START_SECTION(std::vector<String> getModificationsForMass(double &m))
 	ptr = new ModifierRep();
 	std::vector<std::vector<double> > mod_table = ptr->getModificationTable();
 	ptr->setNumberOfModifications(2);
@@ -188,10 +188,10 @@ CHECK(std::vector<String> getModificationsForMass(double &m))
 			}
 		}
 	}
-RESULT
+END_SECTION
 
 
-CHECK(std::vector<String> getModificationsForMass(double &m, const String &seq))
+START_SECTION(std::vector<String> getModificationsForMass(double &m, const String &seq))
 	ptr = new ModifierRep();
 	std::vector<std::vector<double> > mod_table = ptr->getModificationTable();
 	ptr->setNumberOfModifications(2);
@@ -209,7 +209,7 @@ CHECK(std::vector<String> getModificationsForMass(double &m, const String &seq))
 			}
 		}
 	}
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

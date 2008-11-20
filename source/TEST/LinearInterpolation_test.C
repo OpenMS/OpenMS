@@ -64,7 +64,7 @@ START_TEST( LinearInterpolation, "$Id$" )
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-CHECK([EXTRA] typedefs )
+START_SECTION([EXTRA] typedefs )
 {
 	typedef LinearInterpolation < float, double > LIFD;
 	LIFD::ValueType     * value;
@@ -77,13 +77,13 @@ CHECK([EXTRA] typedefs )
 	containerValue = 0;
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
 typedef LinearInterpolation < float, double > LIFD;
 
 //-----------------------------------------------------------
 // Without these extra parens, check_test will not recognize this test...
-CHECK((LinearInterpolation(KeyType scale=1., KeyType offset=0.)))
+START_SECTION((LinearInterpolation(KeyType scale=1., KeyType offset=0.)))
 {
 	LIFD lifd0;
 	LIFD lifd1 ( 1.125 );
@@ -98,18 +98,18 @@ CHECK((LinearInterpolation(KeyType scale=1., KeyType offset=0.)))
 	TEST_EQUAL ( lifd2.getScale(), 1.125 );
 	TEST_EQUAL ( lifd2.getOffset(), 3.5 );
 }
-RESULT
+END_SECTION
 
-CHECK(~LinearInterpolation())
+START_SECTION(~LinearInterpolation())
 {
 	LIFD * lifd_ptr = 0;
 	lifd_ptr = new LIFD;
 	TEST_NOT_EQUAL(lifd_ptr,0);
 	delete lifd_ptr;
 }
-RESULT
+END_SECTION
 
-CHECK(ContainerType const& getData() const )
+START_SECTION(ContainerType const& getData() const )
 {
 	LIFD lifd;
 	std::vector < LIFD::ValueType > v;
@@ -122,16 +122,16 @@ CHECK(ContainerType const& getData() const )
 	for ( UInt i = 0; i < v.size(); ++i )
 		TEST_EQUAL(lifd.getData()[i],v[i]);
 }
-RESULT
+END_SECTION
 
-CHECK(template< typename SourceContainer > void setData( SourceContainer const & data ) )
+START_SECTION(template< typename SourceContainer > void setData( SourceContainer const & data ) )
 {
 	// see above, getData()
 	NOT_TESTABLE;
 }
-RESULT
+END_SECTION
 
-CHECK(ContainerType& getData() )
+START_SECTION(ContainerType& getData() )
 {
 	LIFD lifd;
 	std::vector < LIFD::ValueType > v;
@@ -145,9 +145,9 @@ CHECK(ContainerType& getData() )
 	for ( UInt i = 0; i < v.size(); ++i )
 		TEST_EQUAL(lifd_cr.getData()[i],v[i]);
 }
-RESULT
+END_SECTION
 
-CHECK(bool empty() const )
+START_SECTION(bool empty() const )
 {
 	LIFD lifd;
 	TEST_EQUAL(lifd.getData().empty(),true);
@@ -160,81 +160,81 @@ CHECK(bool empty() const )
 	lifd.getData().clear();
 	TEST_EQUAL(lifd.getData().empty(),true);
 }
-RESULT
+END_SECTION
 
-CHECK((void setMapping( KeyType const & scale, KeyType const & inside, KeyType const & outside )))
+START_SECTION((void setMapping( KeyType const & scale, KeyType const & inside, KeyType const & outside )))
 {
 	LIFD lifd;
 	lifd.setMapping( 13, 23, 53 );
-	TEST_REAL_EQUAL(lifd.getScale(), 13)
-	TEST_REAL_EQUAL(lifd.getInsideReferencePoint(), 23)
-	TEST_REAL_EQUAL(lifd.getOutsideReferencePoint(), 53)
+	TEST_REAL_SIMILAR(lifd.getScale(), 13)
+	TEST_REAL_SIMILAR(lifd.getInsideReferencePoint(), 23)
+	TEST_REAL_SIMILAR(lifd.getOutsideReferencePoint(), 53)
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType const& getScale() const )
+START_SECTION(KeyType const& getScale() const )
 {
 	LIFD lifd;
 	lifd.setMapping( 13, 23, 53 );
-	TEST_REAL_EQUAL(lifd.getScale(), 13.F);
+	TEST_REAL_SIMILAR(lifd.getScale(), 13.F);
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType const& getInsideReferencePoint() const )
+START_SECTION(KeyType const& getInsideReferencePoint() const )
 {
 	LIFD lifd;
 	lifd.setMapping( 13, 23, 53 );
-	TEST_REAL_EQUAL(lifd.getInsideReferencePoint(), 23.F)
+	TEST_REAL_SIMILAR(lifd.getInsideReferencePoint(), 23.F)
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType const& getOutsideReferencePoint() const )
+START_SECTION(KeyType const& getOutsideReferencePoint() const )
 {
 	LIFD lifd;
 	lifd.setMapping( 13, 23, 53 );
-	TEST_REAL_EQUAL(lifd.getOutsideReferencePoint(), 53.F)
+	TEST_REAL_SIMILAR(lifd.getOutsideReferencePoint(), 53.F)
 }
-RESULT
+END_SECTION
 
-CHECK(void setScale( KeyType const & scale ) )
+START_SECTION(void setScale( KeyType const & scale ) )
 {
 	LIFD lifd;
 	lifd.setMapping( 13, 23, 53 );
-	TEST_REAL_EQUAL(lifd.getScale(), 13.F);
+	TEST_REAL_SIMILAR(lifd.getScale(), 13.F);
 	lifd.setScale(88.88);
-	TEST_REAL_EQUAL(lifd.getScale(), 88.88F);
+	TEST_REAL_SIMILAR(lifd.getScale(), 88.88F);
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType const& getOffset() const )
+START_SECTION(KeyType const& getOffset() const )
 {
 	LIFD lifd ( 1.125, 3.5 );
 	TEST_EQUAL ( lifd.getOffset(), 3.5F );
 }
-RESULT
+END_SECTION
 
-CHECK(void setOffset( KeyType const & offset ) )
+START_SECTION(void setOffset( KeyType const & offset ) )
 {
 	LIFD lifd ( 1.125, 3.5 );
 	TEST_EQUAL ( lifd.getOffset(), 3.5F );
 	lifd.setOffset(88.88);
 	TEST_EQUAL ( lifd.getOffset(), 88.88F );
 }
-RESULT
+END_SECTION
 
-CHECK((void setMapping( KeyType const & inside_low, KeyType const & outside_low, KeyType const & inside_high, KeyType const & outside_high )))
+START_SECTION((void setMapping( KeyType const & inside_low, KeyType const & outside_low, KeyType const & inside_high, KeyType const & outside_high )))
 {
 	LIFD lifd;
 
 	lifd.setMapping( 13, 130, 14, 140 );
-	TEST_REAL_EQUAL(lifd.getScale(), 10)
-	TEST_REAL_EQUAL(lifd.getInsideReferencePoint(), 13)
-	TEST_REAL_EQUAL(lifd.getOutsideReferencePoint(), 130)
+	TEST_REAL_SIMILAR(lifd.getScale(), 10)
+	TEST_REAL_SIMILAR(lifd.getInsideReferencePoint(), 13)
+	TEST_REAL_SIMILAR(lifd.getOutsideReferencePoint(), 130)
 }
-RESULT
+END_SECTION
 
 
-CHECK(LinearInterpolation( LinearInterpolation const & arg ))
+START_SECTION(LinearInterpolation( LinearInterpolation const & arg ))
 {
 	LIFD lifd;
 	lifd.setMapping( 13, 130, 14, 140 );
@@ -246,15 +246,15 @@ CHECK(LinearInterpolation( LinearInterpolation const & arg ))
 	lifd.setData(v);
 
 	LIFD lifd2 = lifd;
-	TEST_REAL_EQUAL(lifd2.getScale(), 10);
-	TEST_REAL_EQUAL(lifd2.getInsideReferencePoint(), 13);
-	TEST_REAL_EQUAL(lifd2.getOutsideReferencePoint(), 130);
+	TEST_REAL_SIMILAR(lifd2.getScale(), 10);
+	TEST_REAL_SIMILAR(lifd2.getInsideReferencePoint(), 13);
+	TEST_REAL_SIMILAR(lifd2.getOutsideReferencePoint(), 130);
 	for ( UInt i = 0; i < v.size(); ++i )
 		TEST_EQUAL(lifd2.getData()[i],v[i]);
 }
-RESULT
+END_SECTION
 
-CHECK(LinearInterpolation& operator= ( LinearInterpolation const & arg ))
+START_SECTION(LinearInterpolation& operator= ( LinearInterpolation const & arg ))
 {
 	LIFD lifd;
 	lifd.setMapping( 13, 130, 14, 140 );
@@ -267,68 +267,68 @@ CHECK(LinearInterpolation& operator= ( LinearInterpolation const & arg ))
 
 	LIFD lifd2;
 	lifd2 = lifd;
-	TEST_REAL_EQUAL(lifd2.getScale(), 10);
-	TEST_REAL_EQUAL(lifd2.getInsideReferencePoint(), 13);
-	TEST_REAL_EQUAL(lifd2.getOutsideReferencePoint(), 130);
+	TEST_REAL_SIMILAR(lifd2.getScale(), 10);
+	TEST_REAL_SIMILAR(lifd2.getInsideReferencePoint(), 13);
+	TEST_REAL_SIMILAR(lifd2.getOutsideReferencePoint(), 130);
 	for ( UInt i = 0; i < v.size(); ++i )
 		TEST_EQUAL(lifd2.getData()[i],v[i]);
 
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType index2key( KeyType pos ) const )
+START_SECTION(KeyType index2key( KeyType pos ) const )
 {
 	LIFD lifd(100,3456);
 
-	TEST_REAL_EQUAL(lifd.index2key(0),3456);
-	TEST_REAL_EQUAL(lifd.index2key(-1),3356);
-	TEST_REAL_EQUAL(lifd.index2key(1),3556);
+	TEST_REAL_SIMILAR(lifd.index2key(0),3456);
+	TEST_REAL_SIMILAR(lifd.index2key(-1),3356);
+	TEST_REAL_SIMILAR(lifd.index2key(1),3556);
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType key2index( KeyType pos ) const )
+START_SECTION(KeyType key2index( KeyType pos ) const )
 {
 	LIFD lifd(100,3456);
 
-	TEST_REAL_EQUAL(lifd.key2index(3456),0);
-	TEST_REAL_EQUAL(lifd.key2index(3356),-1);
-	TEST_REAL_EQUAL(lifd.key2index(3556),1);
+	TEST_REAL_SIMILAR(lifd.key2index(3456),0);
+	TEST_REAL_SIMILAR(lifd.key2index(3356),-1);
+	TEST_REAL_SIMILAR(lifd.key2index(3556),1);
 
 	lifd.setScale(0);
-	TEST_REAL_EQUAL(lifd.key2index(3456),0);
-	TEST_REAL_EQUAL(lifd.key2index(3356),0);
-	TEST_REAL_EQUAL(lifd.key2index(3556),0);
+	TEST_REAL_SIMILAR(lifd.key2index(3456),0);
+	TEST_REAL_SIMILAR(lifd.key2index(3356),0);
+	TEST_REAL_SIMILAR(lifd.key2index(3556),0);
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType supportMin() const )
+START_SECTION(KeyType supportMin() const )
 {
 	LIFD lifd ( 1.125, 3.5 );
-	TEST_REAL_EQUAL ( lifd.supportMin(), 3.5 );
+	TEST_REAL_SIMILAR ( lifd.supportMin(), 3.5 );
 	lifd.getData().push_back(11111);
-	TEST_REAL_EQUAL ( lifd.supportMin(), 3.5-1.125 );
+	TEST_REAL_SIMILAR ( lifd.supportMin(), 3.5-1.125 );
 	lifd.getData().push_back(99999);
-	TEST_REAL_EQUAL ( lifd.supportMin(), 3.5-1.125 );
+	TEST_REAL_SIMILAR ( lifd.supportMin(), 3.5-1.125 );
 	lifd.getData().clear();
-	TEST_REAL_EQUAL ( lifd.supportMin(), 3.5 );
+	TEST_REAL_SIMILAR ( lifd.supportMin(), 3.5 );
 }
-RESULT
+END_SECTION
 
-CHECK(KeyType supportMax() const )
+START_SECTION(KeyType supportMax() const )
 {
 	LIFD lifd ( 1.125, 3.5 );
-	TEST_REAL_EQUAL ( lifd.supportMax(), 3.5 );
+	TEST_REAL_SIMILAR ( lifd.supportMax(), 3.5 );
 	lifd.getData().push_back(11111);
-	TEST_REAL_EQUAL ( lifd.supportMax(), 3.5+1.125 );
+	TEST_REAL_SIMILAR ( lifd.supportMax(), 3.5+1.125 );
 	lifd.getData().push_back(99999);
-	TEST_REAL_EQUAL ( lifd.supportMax(), 3.5+2*1.125 );
+	TEST_REAL_SIMILAR ( lifd.supportMax(), 3.5+2*1.125 );
 	lifd.getData().clear();
-	TEST_REAL_EQUAL ( lifd.supportMax(), 3.5 );
+	TEST_REAL_SIMILAR ( lifd.supportMax(), 3.5 );
 }
-RESULT
+END_SECTION
 
 //-----------------------------------------------------------
-CHECK(ValueType value( KeyType arg_pos ) const )
+START_SECTION(ValueType value( KeyType arg_pos ) const )
 {
 	LIFD lifd0;
 
@@ -356,13 +356,13 @@ CHECK(ValueType value( KeyType arg_pos ) const )
 
 	for ( int i = 0; i < num_values+4; ++i )
 	{
-		TEST_REAL_EQUAL ( lifd0.value ( i-2 ), inter_values[4*i] );
+		TEST_REAL_SIMILAR ( lifd0.value ( i-2 ), inter_values[4*i] );
 	}
 
 	int const num_inter_values = sizeof (inter_values) / sizeof (*inter_values);
 	for ( int i = 0; i < num_inter_values; ++i )
 	{
-		TEST_REAL_EQUAL ( lifd0.value ( (i-8.)/4. ), inter_values[i] );
+		TEST_REAL_SIMILAR ( lifd0.value ( (i-8.)/4. ), inter_values[i] );
 	}
 
 	LIFD lifd1 (lifd0);
@@ -375,18 +375,18 @@ CHECK(ValueType value( KeyType arg_pos ) const )
 	for ( int i = -8; i < num_inter_values-8; ++i )
 	{
 		double pos = i/4.;
-		TEST_REAL_EQUAL ( lifd1.key2index(lifd1.index2key(pos)), pos );
+		TEST_REAL_SIMILAR ( lifd1.key2index(lifd1.index2key(pos)), pos );
 	}
 
 	for ( int i = -8; i < num_inter_values-8; ++i )
 	{
 		double pos = i/4.;
-		TEST_REAL_EQUAL ( lifd1.value ( pos*scale+offset ), lifd0.value ( pos ) ) ;
+		TEST_REAL_SIMILAR ( lifd1.value ( pos*scale+offset ), lifd0.value ( pos ) ) ;
 	}
 
 	{
 
-		PRECISION(0.001);
+		TOLERANCE_ABSOLUTE(0.001);
 
 		LIFD lifd_small;
 		lifd_small.getData().resize(5,0);
@@ -407,7 +407,7 @@ CHECK(ValueType value( KeyType arg_pos ) const )
 		{
 			float pos = i / 10.;
 			STATUS(i);
-			TEST_REAL_EQUAL(lifd_small.value(pos),lifd_big.value(pos));
+			TEST_REAL_SIMILAR(lifd_small.value(pos),lifd_big.value(pos));
 		}
 
 	}
@@ -415,9 +415,9 @@ CHECK(ValueType value( KeyType arg_pos ) const )
 
 
 }
-RESULT
+END_SECTION
 //-----------------------------------------------------------
-CHECK(ValueType derivative( KeyType arg_pos ) const )
+START_SECTION(ValueType derivative( KeyType arg_pos ) const )
 {
 	typedef LinearInterpolation < float, double > LIFD;
 
@@ -451,13 +451,13 @@ CHECK(ValueType derivative( KeyType arg_pos ) const )
 		double key = i/4.;
 		int index = i+8;
 		STATUS( "key:" << key << "  index:" << index << '\n')
-		TEST_REAL_EQUAL ( lifd0.derivative ( key ), inter_values[index] );
+		TEST_REAL_SIMILAR ( lifd0.derivative ( key ), inter_values[index] );
 	}
 
 }
-RESULT
+END_SECTION
 //-----------------------------------------------------------
-CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) ))
+START_SECTION((void addValue( KeyType arg_pos, ValueType arg_value ) ))
 {
 
 	{
@@ -469,8 +469,8 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) ))
 		{
 			STATUS(i << ": " << lininterpol.getData()[i]);
 		}
-		TEST_REAL_EQUAL(lininterpol.getData()[2],7);
-		TEST_REAL_EQUAL(lininterpol.getData()[3],3);
+		TEST_REAL_SIMILAR(lininterpol.getData()[2],7);
+		TEST_REAL_SIMILAR(lininterpol.getData()[3],3);
 	}
 
 	{
@@ -482,8 +482,8 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) ))
 		{
 			STATUS(i << ": " << lininterpol.getData()[i]);
 		}
-		TEST_REAL_EQUAL(lininterpol.getData()[0],7);
-		TEST_REAL_EQUAL(lininterpol.getData()[1],3);
+		TEST_REAL_SIMILAR(lininterpol.getData()[0],7);
+		TEST_REAL_SIMILAR(lininterpol.getData()[1],3);
 	}
 
 	{
@@ -495,7 +495,7 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) ))
 		{
 			STATUS(i << ": " << lininterpol.getData()[i]);
 		}
-		TEST_REAL_EQUAL(lininterpol.getData()[0],3);
+		TEST_REAL_SIMILAR(lininterpol.getData()[0],3);
 	}
 
 	{
@@ -507,7 +507,7 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) ))
 		{
 			STATUS(i << ": " << lininterpol.getData()[i]);
 		}
-		TEST_REAL_EQUAL(lininterpol.getData()[0],0);
+		TEST_REAL_SIMILAR(lininterpol.getData()[0],0);
 	}
 
 	{
@@ -519,8 +519,8 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) ))
 		{
 			STATUS(i << ": " << lininterpol.getData()[i])
 				}
-		TEST_REAL_EQUAL(lininterpol.getData()[3],7);
-		TEST_REAL_EQUAL(lininterpol.getData()[4],3);
+		TEST_REAL_SIMILAR(lininterpol.getData()[3],7);
+		TEST_REAL_SIMILAR(lininterpol.getData()[4],3);
 	}
 
 	{
@@ -532,7 +532,7 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) ))
 		{
 			STATUS(i << ": " << lininterpol.getData()[i]);
 		}
-		TEST_REAL_EQUAL(lininterpol.getData()[4],7);
+		TEST_REAL_SIMILAR(lininterpol.getData()[4],7);
 	}
 
 	{
@@ -544,7 +544,7 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) ))
 		{
 			STATUS(i << ": " << lininterpol.getData()[i]);
 		}
-		TEST_REAL_EQUAL(lininterpol.getData()[4],0);
+		TEST_REAL_SIMILAR(lininterpol.getData()[4],0);
 	}
 
 	{
@@ -576,7 +576,7 @@ CHECK((void addValue( KeyType arg_pos, ValueType arg_value ) ))
 	}
 
 }
-RESULT
+END_SECTION
 //-----------------------------------------------------------
 
 /////////////////////////////////////////////////////////////

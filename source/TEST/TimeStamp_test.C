@@ -45,18 +45,18 @@ using namespace OpenMS;
 using namespace std;
 
 TimeStamp* ts = 0;
-CHECK(TimeStamp())
+START_SECTION(TimeStamp())
 	ts = new TimeStamp;
 	TEST_NOT_EQUAL(ts, 0)
-RESULT
+END_SECTION
 
 
-CHECK(~TimeStamp())
+START_SECTION(~TimeStamp())
 	delete ts;
-RESULT
+END_SECTION
 
 
-CHECK(getTime() const  )
+START_SECTION(getTime() const  )
   TimeStamp* t1 = new TimeStamp;	
 	t1->stamp();
 	STATUS(*t1)
@@ -69,9 +69,9 @@ CHECK(getTime() const  )
 	TEST_EQUAL((t1->getTime() > t2->getTime()), false)
 	delete t1;
 	delete t2;
-RESULT
+END_SECTION
 
-CHECK(isNewerThan(const Time& time) const  )
+START_SECTION(isNewerThan(const Time& time) const  )
 	TimeStamp* ts1 = new TimeStamp;
 	ts1->stamp();
 	STATUS(*ts1)
@@ -85,10 +85,10 @@ CHECK(isNewerThan(const Time& time) const  )
 	TEST_EQUAL(ts2->isNewerThan(ts2->getTime()), false)
 	delete ts1;
 	delete ts2;
-RESULT
+END_SECTION
 
 
-CHECK(isOlderThan(const Time& time) const  )
+START_SECTION(isOlderThan(const Time& time) const  )
 	TimeStamp* ts1 = new TimeStamp;
 	ts1->stamp();
 	STATUS(*ts1)
@@ -102,10 +102,10 @@ CHECK(isOlderThan(const Time& time) const  )
 	TEST_EQUAL(ts2->isOlderThan(ts2->getTime()), false)
 	delete ts1;
 	delete ts2;
-RESULT
+END_SECTION
 
 
-CHECK(isNewerThan(const TimeStamp& stamp) const  )
+START_SECTION(isNewerThan(const TimeStamp& stamp) const  )
 	TimeStamp* ts1 = new TimeStamp;
 	ts1->stamp();
 	STATUS(*ts1)
@@ -119,10 +119,10 @@ CHECK(isNewerThan(const TimeStamp& stamp) const  )
 	TEST_EQUAL(ts2->isNewerThan(*ts2), false)
 	delete ts1;
 	delete ts2;
-RESULT
+END_SECTION
 
 
-CHECK(isOlderThan(const TimeStamp& stamp) const  )
+START_SECTION(isOlderThan(const TimeStamp& stamp) const  )
 	TimeStamp* ts1 = new TimeStamp;
 	ts1->stamp();
 	STATUS(*ts1)
@@ -136,10 +136,10 @@ CHECK(isOlderThan(const TimeStamp& stamp) const  )
 	TEST_EQUAL(ts2->isOlderThan(*ts2), false)
 	delete ts1;
 	delete ts2;
-RESULT
+END_SECTION
 
 
-CHECK(stamp(const Time& time = ZERO) )
+START_SECTION(stamp(const Time& time = ZERO) )
   TimeStamp* ts1 = new TimeStamp;
 	ts1->stamp();
 	STATUS(*ts1)
@@ -159,9 +159,9 @@ CHECK(stamp(const Time& time = ZERO) )
 	TEST_EQUAL(ts2->isNewerThan(*ts2), false)
 	delete ts1;
 	delete ts2;
-RESULT
+END_SECTION
 
-CHECK(operator << (std::ostream& os, const TimeStamp& ts))
+START_SECTION(operator << (std::ostream& os, const TimeStamp& ts))
 	TimeStamp t;
 	// a very nasty way to break the encapsulation, but simplifies
 	// things a great deal....!
@@ -172,7 +172,7 @@ CHECK(operator << (std::ostream& os, const TimeStamp& ts))
 	String time_str = str.str();
 	TEST_EQUAL(time_str.hasPrefix("1970052"), true)
 	TEST_EQUAL(time_str.hasSuffix("456789"), true)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -39,36 +39,36 @@ START_TEST(Acquisition, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Acquisition* ptr = 0;
-CHECK(Acquisition())
+START_SECTION(Acquisition())
 	ptr = new Acquisition();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~Acquisition())
+START_SECTION(~Acquisition())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(Int getNumber() const)
+START_SECTION(Int getNumber() const)
   Acquisition tmp;
   TEST_EQUAL(tmp.getNumber(), -1);
-RESULT
+END_SECTION
 
-CHECK(void setNumber(Int number))
+START_SECTION(void setNumber(Int number))
 	Acquisition tmp;
 	tmp.setNumber(5);
   TEST_EQUAL(tmp.getNumber(), 5);
-RESULT
+END_SECTION
 
-CHECK(Acquisition(const Acquisition& source))
+START_SECTION(Acquisition(const Acquisition& source))
 	Acquisition tmp;
 	tmp.setNumber(5);
 	tmp.setMetaValue("label",String("label"));
 	Acquisition tmp2(tmp);
 	TEST_EQUAL(tmp2.getNumber(), 5);
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
-RESULT
+END_SECTION
 
-CHECK(Acquisition& operator= (const Acquisition& source))
+START_SECTION(Acquisition& operator= (const Acquisition& source))
 	Acquisition tmp,tmp2,tmp3;
 	// assignment of a modified object
 	tmp2.setNumber(5);
@@ -81,9 +81,9 @@ CHECK(Acquisition& operator= (const Acquisition& source))
 	tmp = tmp3;
 	TEST_EQUAL(tmp.getNumber(), -1);
 	TEST_EQUAL(tmp.isMetaEmpty(), true);	
-RESULT
+END_SECTION
 
-CHECK(bool operator== (const Acquisition& rhs) const)
+START_SECTION(bool operator== (const Acquisition& rhs) const)
 	Acquisition tmp,tmp2;
 	
 	TEST_EQUAL(tmp==tmp2, true);
@@ -94,9 +94,9 @@ CHECK(bool operator== (const Acquisition& rhs) const)
 	tmp2 = tmp;
 	tmp.setMetaValue("label",String("label"));
 	TEST_EQUAL(tmp==tmp2, false);
-RESULT
+END_SECTION
 
-CHECK(bool operator!= (const Acquisition& rhs) const)
+START_SECTION(bool operator!= (const Acquisition& rhs) const)
 	Acquisition tmp,tmp2;
 	
 	TEST_EQUAL(tmp!=tmp2, false);
@@ -107,7 +107,7 @@ CHECK(bool operator!= (const Acquisition& rhs) const)
 	tmp2 = tmp;
 	tmp.setMetaValue("label",String("label"));
 	TEST_EQUAL(tmp!=tmp2, true);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

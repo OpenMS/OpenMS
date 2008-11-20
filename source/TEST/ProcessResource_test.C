@@ -39,20 +39,20 @@ START_TEST(ProcessResource, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ProcessResource* ptr = 0;
-CHECK(ProcessResource())
+START_SECTION(ProcessResource())
 {
 	ptr = new ProcessResource();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~ProcessResource())
+START_SECTION(~ProcessResource())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((static void LimitCPUTime(const Int &seconds)))
+START_SECTION((static void LimitCPUTime(const Int &seconds)))
 {
   // this is quite impossible to test, as on success, the programm will just terminate without throwing an exception.
 	// There is a workaround for linux (involving Sig-Handlers), but none for Windows that I know of
@@ -61,7 +61,7 @@ CHECK((static void LimitCPUTime(const Int &seconds)))
 	ProcessResource::LimitCPUTime(19);
 	NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

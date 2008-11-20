@@ -39,32 +39,32 @@ START_TEST(DRichPeak<D>, "$Id$")
 /////////////////////////////////////////////////////////////
 
 DRichPeak<1>::Type* ptr1 = 0;
-CHECK(DRichPeak())
+START_SECTION(DRichPeak())
 {
 	ptr1 = new DRichPeak<1>::Type();
 	TEST_NOT_EQUAL(ptr1, 0);
 }
-RESULT
+END_SECTION
 
-CHECK(~DRichPeak())
+START_SECTION(~DRichPeak())
 {
 	delete ptr1;
 }
-RESULT
+END_SECTION
 
 DRichPeak<2>::Type* ptr2 = 0;
-CHECK([EXTRA]DRichPeak())
+START_SECTION([EXTRA]DRichPeak())
 {
 	ptr2 = new DRichPeak<2>::Type();
 	TEST_NOT_EQUAL(ptr2, 0);
 }
-RESULT
+END_SECTION
 
-CHECK([EXTRA]~DRichPeak())
+START_SECTION([EXTRA]~DRichPeak())
 {
 	delete ptr2;
 }
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -43,46 +43,46 @@ START_TEST(TICFilter, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TICFilter* e_ptr = 0;
-CHECK((TICFilter()))
+START_SECTION((TICFilter()))
 	e_ptr = new TICFilter;
 	TEST_NOT_EQUAL(e_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~TICFilter()))
+START_SECTION((~TICFilter()))
 	delete e_ptr;
-RESULT
+END_SECTION
 
 e_ptr = new TICFilter();
 
-CHECK((TICFilter(const TICFilter& source)))
+START_SECTION((TICFilter(const TICFilter& source)))
 	TICFilter copy(*e_ptr);
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters());
 	TEST_EQUAL(copy.getName(), e_ptr->getName());
-RESULT
+END_SECTION
 
-CHECK((TICFilter& operator=(const TICFilter& source)))
+START_SECTION((TICFilter& operator=(const TICFilter& source)))
 	TICFilter copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters());
 	TEST_EQUAL(copy.getName(), e_ptr->getName());
-RESULT
+END_SECTION
 
-CHECK((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
+START_SECTION((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
 
 	double filter  = e_ptr->apply(spec);
-	TEST_REAL_EQUAL(filter, 533.5)
-RESULT
+	TEST_REAL_SIMILAR(filter, 533.5)
+END_SECTION
 
-CHECK((static FilterFunctor* create()))
+START_SECTION((static FilterFunctor* create()))
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(e_ptr->getProductName(), "TICFilter")
-RESULT
+END_SECTION
 
 delete e_ptr;
 

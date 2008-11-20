@@ -43,38 +43,38 @@ START_TEST(SignalToNoiseEstimatorMeanIterative, "$Id$")
 /////////////////////////////////////////////////////////////
 
 SignalToNoiseEstimatorMeanIterative< >* ptr = 0;
-CHECK((SignalToNoiseEstimatorMeanIterative()))
+START_SECTION((SignalToNoiseEstimatorMeanIterative()))
         ptr = new SignalToNoiseEstimatorMeanIterative<>;
         TEST_NOT_EQUAL(ptr, 0)
         SignalToNoiseEstimatorMeanIterative<> sne;
-RESULT
+END_SECTION
 
 
 
-CHECK((SignalToNoiseEstimatorMeanIterative& operator=(const SignalToNoiseEstimatorMeanIterative &source)))
+START_SECTION((SignalToNoiseEstimatorMeanIterative& operator=(const SignalToNoiseEstimatorMeanIterative &source)))
   MSSpectrum < > raw_data;
   SignalToNoiseEstimatorMeanIterative<> sne;
 	sne.init(raw_data);
   SignalToNoiseEstimatorMeanIterative<> sne2 = sne;
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((SignalToNoiseEstimatorMeanIterative(const SignalToNoiseEstimatorMeanIterative &source)))
+START_SECTION((SignalToNoiseEstimatorMeanIterative(const SignalToNoiseEstimatorMeanIterative &source)))
   MSSpectrum < > raw_data;
   SignalToNoiseEstimatorMeanIterative<> sne;
 	sne.init(raw_data);
   SignalToNoiseEstimatorMeanIterative<> sne2(sne);
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((virtual ~SignalToNoiseEstimatorMeanIterative()))
+START_SECTION((virtual ~SignalToNoiseEstimatorMeanIterative()))
   delete ptr;
-RESULT
+END_SECTION
 
 
-CHECK([EXTRA](virtual void init(const PeakIterator& it_begin, const PeakIterator& it_end)))
+START_SECTION([EXTRA](virtual void init(const PeakIterator& it_begin, const PeakIterator& it_end)))
 
-	PRECISION(0.5)
+	TOLERANCE_ABSOLUTE(0.5)
 
   MSSpectrum < > raw_data;
   MSSpectrum< >::const_iterator it;
@@ -100,7 +100,7 @@ CHECK([EXTRA](virtual void init(const PeakIterator& it_begin, const PeakIterator
   int i = 0;
   for (it=raw_data.begin();it!=raw_data.end(); ++it)
   {
-    TEST_REAL_EQUAL (stn_data[i].getIntensity(), sne.getSignalToNoise(it));
+    TEST_REAL_SIMILAR (stn_data[i].getIntensity(), sne.getSignalToNoise(it));
 #ifdef DEBUG_TEST    
     Peak1D peak = (*it);
     peak.setIntensity(stn_data[i].getIntensity() / sne.getSignalToNoise(it));
@@ -113,7 +113,7 @@ CHECK([EXTRA](virtual void init(const PeakIterator& it_begin, const PeakIterator
   dta_file.store("./data/SignalToNoiseEstimatorMeanIterative_test.debug", stn_data__);
 #endif  
   
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

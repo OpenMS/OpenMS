@@ -127,29 +127,29 @@ class TestModel : public InterpolationModel
 
 // default ctor
 TestModel* ptr = 0;
-CHECK((InterpolationModel()))
+START_SECTION((InterpolationModel()))
 	ptr = new TestModel();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
 // destructor
-CHECK((virtual ~InterpolationModel()))
+START_SECTION((virtual ~InterpolationModel()))
 	delete ptr;
-RESULT
+END_SECTION
 
 // assignment operator
-CHECK((virtual InterpolationModel& operator=(const InterpolationModel &source)))
+START_SECTION((virtual InterpolationModel& operator=(const InterpolationModel &source)))
 	TestModel tm1;
   TestModel tm2;
   
   tm1.setCutOff(3.3);
   tm2 = tm1;
-	TEST_REAL_EQUAL(tm1.getCutOff(),tm2.getCutOff())
-	TEST_REAL_EQUAL(tm1.getScalingFactor(),tm2.getScalingFactor())
-RESULT
+	TEST_REAL_SIMILAR(tm1.getCutOff(),tm2.getCutOff())
+	TEST_REAL_SIMILAR(tm1.getScalingFactor(),tm2.getScalingFactor())
+END_SECTION
 
 // copy constructor
-CHECK((InterpolationModel(const InterpolationModel &source)))
+START_SECTION((InterpolationModel(const InterpolationModel &source)))
 	TestModel fp1;	
   fp1.setCutOff(0.1);
 
@@ -160,50 +160,50 @@ CHECK((InterpolationModel(const InterpolationModel &source)))
 
   fp1 = TestModel();
 	TEST_EQUAL(fp2, fp3)
-RESULT
+END_SECTION
 
-CHECK(([EXTRA]IntensityType getCutOff() const))
+START_SECTION(([EXTRA]IntensityType getCutOff() const))
   const TestModel s;
-  TEST_REAL_EQUAL(s.getCutOff(), TestModel::IntensityType(0))
-RESULT
+  TEST_REAL_SIMILAR(s.getCutOff(), TestModel::IntensityType(0))
+END_SECTION
 
-CHECK(([EXTRA]void setCutOff(IntensityType cut_off)))
+START_SECTION(([EXTRA]void setCutOff(IntensityType cut_off)))
 	TestModel s;
 	s.setCutOff(4.4);
-  TEST_REAL_EQUAL(s.getCutOff(), 4.4)
-RESULT
+  TEST_REAL_SIMILAR(s.getCutOff(), 4.4)
+END_SECTION
 
-CHECK(([EXTRA]const String& getName() const))
+START_SECTION(([EXTRA]const String& getName() const))
 	TestModel s;
   TEST_EQUAL(s.getName(), "TestModel")
-RESULT
+END_SECTION
 
-CHECK((IntensityType getIntensity(const PositionType& pos) const))
+START_SECTION((IntensityType getIntensity(const PositionType& pos) const))
 	const TestModel s;
   TestModel::PositionType pos;
   pos[0]=0.1;
-  TEST_REAL_EQUAL(s.getIntensity(pos), 0.3)
-RESULT
+  TEST_REAL_SIMILAR(s.getIntensity(pos), 0.3)
+END_SECTION
 
-CHECK(([EXTRA]bool isContained(const PositionType& pos) const))
+START_SECTION(([EXTRA]bool isContained(const PositionType& pos) const))
 	TestModel s;
   s.setCutOff(0.9);
   TestModel::PositionType pos;
   pos[0]=0.1;
   const TestModel& t = s;
-  TEST_REAL_EQUAL(t.isContained(pos), false)
-RESULT
+  TEST_EQUAL(t.isContained(pos), false)
+END_SECTION
 
-CHECK(([EXTRA]void fillIntensity(PeakType& peak) const))
+START_SECTION(([EXTRA]void fillIntensity(PeakType& peak) const))
 	const TestModel t;
   TestModel::PeakType p;
   p.getPosition()[0]=0.1;
   p.setIntensity(0.1);
   t.fillIntensity(p);
-  TEST_REAL_EQUAL(p.getIntensity(), 0.3)
-RESULT
+  TEST_REAL_SIMILAR(p.getIntensity(), 0.3)
+END_SECTION
 
-CHECK(([EXTRA]void  fillIntensities(PeakIterator beg, PeakIterator end) const))
+START_SECTION(([EXTRA]void  fillIntensities(PeakIterator beg, PeakIterator end) const))
 	const TestModel t;
   std::vector< TestModel::PeakType > vec(4);
   for (UInt i=0; i<4; ++i)
@@ -216,74 +216,74 @@ CHECK(([EXTRA]void  fillIntensities(PeakIterator beg, PeakIterator end) const))
   TEST_EQUAL(vec[1].getIntensity(), 3.0)
   TEST_EQUAL(vec[2].getIntensity(), 6.0)
   TEST_EQUAL(vec[3].getIntensity(), -0.5)
-RESULT
+END_SECTION
 
-CHECK( virtual CoordinateType getCenter() const) 
+START_SECTION( virtual CoordinateType getCenter() const) 
 	const TestModel t;
- TEST_REAL_EQUAL(t.getCenter(),10.0);
-RESULT
+ TEST_REAL_SIMILAR(t.getCenter(),10.0);
+END_SECTION
 
-CHECK([EXTRA] DefaultParmHandler::setParameters(...))
+START_SECTION([EXTRA] DefaultParmHandler::setParameters(...))
 	Param p;
 	p.setValue("cutoff",17.0);
 	TestModel m;
 	m.setParameters(p);
-	TEST_REAL_EQUAL(m.getParameters().getValue("cutoff"), 17.0)
-RESULT
+	TEST_REAL_SIMILAR(m.getParameters().getValue("cutoff"), 17.0)
+END_SECTION
 
-CHECK( void setScalingFactor(CoordinateType scaling) )
+START_SECTION( void setScalingFactor(CoordinateType scaling) )
 	TestModel tm;
 	tm.setScalingFactor(2.0);
 	
-	TEST_REAL_EQUAL(tm.getParameters().getValue("intensity_scaling"),2.0)
-	TEST_REAL_EQUAL(tm.getScalingFactor(),2.0)		
-RESULT
+	TEST_REAL_SIMILAR(tm.getParameters().getValue("intensity_scaling"),2.0)
+	TEST_REAL_SIMILAR(tm.getScalingFactor(),2.0)		
+END_SECTION
 
-CHECK( void setInterpolationStep(CoordinateType interpolation_step) )
+START_SECTION( void setInterpolationStep(CoordinateType interpolation_step) )
 	TestModel tm;
 	tm.setInterpolationStep( 10.5 );
 	
-	TEST_REAL_EQUAL(tm.getParameters().getValue("interpolation_step"), 10.5 )
-RESULT
+	TEST_REAL_SIMILAR(tm.getParameters().getValue("interpolation_step"), 10.5 )
+END_SECTION
 
-CHECK( virtual void setSamples() )
+START_SECTION( virtual void setSamples() )
 	// not much to be tested here
-RESULT
+END_SECTION
 
-CHECK( void getSamples(SamplesType &cont) const )
+START_SECTION( void getSamples(SamplesType &cont) const )
 	// not much to be tested here
-RESULT
+END_SECTION
 
-CHECK( virtual void setOffset(CoordinateType offset) )
+START_SECTION( virtual void setOffset(CoordinateType offset) )
 
-RESULT
+END_SECTION
 
-CHECK( CoordinateType getScalingFactor() const )
+START_SECTION( CoordinateType getScalingFactor() const )
 	TestModel tm;
 	tm.setScalingFactor(666.0);
 	
-	TEST_REAL_EQUAL(tm.getParameters().getValue("intensity_scaling"),666.0)
-	TEST_REAL_EQUAL(tm.getScalingFactor(),666.0)		
-RESULT
+	TEST_REAL_SIMILAR(tm.getParameters().getValue("intensity_scaling"),666.0)
+	TEST_REAL_SIMILAR(tm.getScalingFactor(),666.0)		
+END_SECTION
 
-CHECK( const LinearInterpolation& getInterpolation() const )
+START_SECTION( const LinearInterpolation& getInterpolation() const )
 	TestModel tm;
 	InterpolationModel::LinearInterpolation interpol1;
 	InterpolationModel::LinearInterpolation interpol2 = tm.getInterpolation();
 	
 	// compare models
-	TEST_REAL_EQUAL(interpol1.getScale(), interpol2.getScale());
-	TEST_REAL_EQUAL(interpol1.getInsideReferencePoint(), interpol2.getInsideReferencePoint());
-	TEST_REAL_EQUAL(interpol1.getOutsideReferencePoint(), interpol2.getOutsideReferencePoint() );
+	TEST_REAL_SIMILAR(interpol1.getScale(), interpol2.getScale());
+	TEST_REAL_SIMILAR(interpol1.getInsideReferencePoint(), interpol2.getInsideReferencePoint());
+	TEST_REAL_SIMILAR(interpol1.getOutsideReferencePoint(), interpol2.getOutsideReferencePoint() );
 	
-RESULT
+END_SECTION
 
-CHECK( IntensityType getIntensity(CoordinateType coord) const )
+START_SECTION( IntensityType getIntensity(CoordinateType coord) const )
 	const TestModel s;
   TestModel::PositionType pos;
   pos[0]=0.1;
-  TEST_REAL_EQUAL(s.getIntensity(pos), 0.3)
-RESULT
+  TEST_REAL_SIMILAR(s.getIntensity(pos), 0.3)
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

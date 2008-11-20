@@ -39,36 +39,36 @@ START_TEST(ExternalAllocator, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ExternalAllocator<int>* ptr = 0;
-CHECK(ExternalAllocator())
+START_SECTION(ExternalAllocator())
 {
 	ptr = new ExternalAllocator<int>();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~ExternalAllocator())
+START_SECTION(~ExternalAllocator())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((pointer address(reference value) const ))
+START_SECTION((pointer address(reference value) const ))
 {
 	int i = 123;
 	ExternalAllocator<int> extalloc;
   TEST_EQUAL(extalloc.address(i), &i);
 }
-RESULT
+END_SECTION
 
-CHECK((const_pointer address(const_reference value) const))
+START_SECTION((const_pointer address(const_reference value) const))
 {
 	const int i = 123;
 	ExternalAllocator<int> extalloc;
   TEST_EQUAL(extalloc.address(i), &i);
 }
-RESULT
+END_SECTION
 
-CHECK((ExternalAllocator(const String &filename=File::getUniqueName(), const Offset64Int &filesize=1)))
+START_SECTION((ExternalAllocator(const String &filename=File::getUniqueName(), const Offset64Int &filesize=1)))
 {
 	// this should work
   ExternalAllocator<int> extalloc;
@@ -76,32 +76,32 @@ CHECK((ExternalAllocator(const String &filename=File::getUniqueName(), const Off
 	// this should NOT work
 	TEST_EXCEPTION(Exception::UnableToCreateFile, ExternalAllocator<int> extalloc("this/file/does/not/exist", 10000) )
 }
-RESULT
+END_SECTION
 
-CHECK((ExternalAllocator(const ExternalAllocator &rhs)))
+START_SECTION((ExternalAllocator(const ExternalAllocator &rhs)))
 {
   ExternalAllocator<int> extalloc;
 	ExternalAllocator<int> extalloc2(extalloc);
 	NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((template <class U> ExternalAllocator(const ExternalAllocator< U > &rhs)))
+START_SECTION((template <class U> ExternalAllocator(const ExternalAllocator< U > &rhs)))
 {
   ExternalAllocator<double> extalloc;
 	ExternalAllocator<int> extalloc2(extalloc);
 	NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((size_type max_size() const))
+START_SECTION((size_type max_size() const))
 {
 	String filename;
 	NEW_TMP_FILE(filename);
   ExternalAllocator<int> extalloc(filename, 10000);
 	TEST_EQUAL(extalloc.max_size(), 10000/sizeof(int))
 }
-RESULT
+END_SECTION
 
 
 String filename;
@@ -109,14 +109,14 @@ NEW_TMP_FILE(filename);
 ExternalAllocator<int> extalloc(filename, 10000);
 ExternalAllocator<int>::pointer p;
 
-CHECK((pointer allocate(size_type num, const void *=0)))
+START_SECTION((pointer allocate(size_type num, const void *=0)))
 {
   p = extalloc.allocate(4);
 	TEST_EQUAL(extalloc.getMappingSize(), (Offset64Int) MemoryMap::OpenMS_getFileBlocksize())
 }
-RESULT
+END_SECTION
 
-CHECK((void construct(pointer p, const T &value)))
+START_SECTION((void construct(pointer p, const T &value)))
 {
 	extalloc.construct(p  , 123456);
 	extalloc.construct(p+1, 23456);
@@ -129,9 +129,9 @@ CHECK((void construct(pointer p, const T &value)))
 	TEST_EQUAL(*(p+3), 456)
   
 }
-RESULT
+END_SECTION
 
-CHECK((void destroy(pointer)))
+START_SECTION((void destroy(pointer)))
 {
 	extalloc.destroy(p);
 	extalloc.destroy(p+1);
@@ -139,20 +139,20 @@ CHECK((void destroy(pointer)))
 	extalloc.destroy(p+3);
 	NOT_TESTABLE	
 }
-RESULT
+END_SECTION
 
-CHECK(Offset64Int getMappingSize())
+START_SECTION(Offset64Int getMappingSize())
 {
 	TEST_EQUAL(extalloc.getMappingSize(), (Offset64Int) MemoryMap::OpenMS_getFileBlocksize())
 }
-RESULT
+END_SECTION
 
-CHECK((void deallocate(pointer p, size_type num)))
+START_SECTION((void deallocate(pointer p, size_type num)))
 {
   extalloc.deallocate(p, 4);
 	TEST_EQUAL(extalloc.getMappingSize(), 0);
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

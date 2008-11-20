@@ -40,30 +40,30 @@ START_TEST(InternalCalibration, "$Id$")
 /////////////////////////////////////////////////////////////
 
 InternalCalibration* ptr = 0;
-CHECK(InternalCalibration())
+START_SECTION(InternalCalibration())
 {
 	ptr = new InternalCalibration();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~InternalCalibration())
+START_SECTION(~InternalCalibration())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
 ptr = new InternalCalibration();
 
-CHECK((InternalCalibration(InternalCalibration &obj)))
+START_SECTION((InternalCalibration(InternalCalibration &obj)))
 {
   InternalCalibration copy(*ptr);
   TEST_EQUAL(copy.getPeaks()== ptr->getPeaks(),true)
   TEST_EQUAL(copy.getMonoisotopicPeaks()==ptr->getMonoisotopicPeaks(),true )
 }
-RESULT
+END_SECTION
 
-CHECK((InternalCalibration& operator=(const InternalCalibration &obj)))
+START_SECTION((InternalCalibration& operator=(const InternalCalibration &obj)))
 {
   InternalCalibration copy;
   copy = *ptr;
@@ -71,11 +71,11 @@ CHECK((InternalCalibration& operator=(const InternalCalibration &obj)))
   TEST_EQUAL(copy.getMonoisotopicPeaks()==ptr->getMonoisotopicPeaks(),true )
 
 }
-RESULT
+END_SECTION
 
-CHECK((template <typename InputPeakType> void calibrate(MSExperiment< InputPeakType > &exp, std::vector< double > &ref_masses, bool peak_data=false)))
+START_SECTION((template <typename InputPeakType> void calibrate(MSExperiment< InputPeakType > &exp, std::vector< double > &ref_masses, bool peak_data=false)))
 {
-    PRECISION(0.000001)
+    TOLERANCE_ABSOLUTE(0.000001)
   MSExperiment<Peak1D> exp;
   MSExperiment<> exp_peaks;
   MzDataFile file;
@@ -103,15 +103,15 @@ CHECK((template <typename InputPeakType> void calibrate(MSExperiment< InputPeakT
   peak.setMZ(1296.68476942);
   MSExperiment<>::SpectrumType::Iterator it = lower_bound(exp_peaks[0].begin(),exp_peaks[0].end(),peak,Peak1D::PositionLess());
   --it;
-  TEST_REAL_EQUAL(it->getMZ(),1296.68476942)
+  TEST_REAL_SIMILAR(it->getMZ(),1296.68476942)
   peak.setMZ(2465.19833942);
   it = lower_bound(exp_peaks[0].begin(),exp_peaks[0].end(),peak,Peak1D::PositionLess());
   --it;
-  TEST_REAL_EQUAL(it->getMZ(),2465.19833942)
+  TEST_REAL_SIMILAR(it->getMZ(),2465.19833942)
 }
-RESULT
+END_SECTION
 
-CHECK((const MSExperiment<>& getPeaks() const))
+START_SECTION((const MSExperiment<>& getPeaks() const))
 {
   MSExperiment<> exp;
   MSSpectrum<> spec;
@@ -124,9 +124,9 @@ CHECK((const MSExperiment<>& getPeaks() const))
   ptr->setPeaks(exp);
   TEST_EQUAL(ptr->getPeaks()== exp,true)
 }
-RESULT
+END_SECTION
 
-CHECK((void setPeaks(const MSExperiment<> &exp_peaks)))
+START_SECTION((void setPeaks(const MSExperiment<> &exp_peaks)))
 {
   MSExperiment<> exp;
   MSSpectrum<> spec;
@@ -141,19 +141,19 @@ CHECK((void setPeaks(const MSExperiment<> &exp_peaks)))
   TEST_EQUAL(ptr->getPeaks()==exp,true)
 
 }
-RESULT
+END_SECTION
 
 
-CHECK(( DoubleReal getWindowLength() const))
-  TEST_REAL_EQUAL(ptr->getWindowLength(),5.0)  
-RESULT
+START_SECTION(( DoubleReal getWindowLength() const))
+  TEST_REAL_SIMILAR(ptr->getWindowLength(),5.0)  
+END_SECTION
 
-CHECK(( void setWindowLength(const DoubleReal window_length) ))
+START_SECTION(( void setWindowLength(const DoubleReal window_length) ))
   ptr->setWindowLength(10.);
-  TEST_REAL_EQUAL(ptr->getWindowLength(),10.0)  
-RESULT
+  TEST_REAL_SIMILAR(ptr->getWindowLength(),10.0)  
+END_SECTION
 
-CHECK((const std::vector<std::vector<UInt> >& getMonoisotopicPeaks() const))
+START_SECTION((const std::vector<std::vector<UInt> >& getMonoisotopicPeaks() const))
 {
   std::vector<std::vector<UInt> > p;
   std::vector<UInt> vec;
@@ -166,9 +166,9 @@ CHECK((const std::vector<std::vector<UInt> >& getMonoisotopicPeaks() const))
   ptr->setMonoisotopicPeaks(p);
   TEST_EQUAL(ptr->getMonoisotopicPeaks()== p,true)
 }
-RESULT
+END_SECTION
 
-CHECK((void setMonoisotopicPeaks(const std::vector< std::vector< UInt > > &monoiso_peaks)))
+START_SECTION((void setMonoisotopicPeaks(const std::vector< std::vector< UInt > > &monoiso_peaks)))
 {
   std::vector<std::vector<UInt> > p;
   std::vector<UInt> vec;
@@ -179,7 +179,7 @@ CHECK((void setMonoisotopicPeaks(const std::vector< std::vector< UInt > > &monoi
   ptr->setMonoisotopicPeaks(p);
   TEST_EQUAL(ptr->getMonoisotopicPeaks()==p,true)
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

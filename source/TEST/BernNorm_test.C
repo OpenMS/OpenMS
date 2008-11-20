@@ -43,31 +43,31 @@ START_TEST(BernNorm, "$Id$")
 /////////////////////////////////////////////////////////////
 
 BernNorm* e_ptr = 0;
-CHECK((BernNorm()))
+START_SECTION((BernNorm()))
 	e_ptr = new BernNorm;
 	TEST_NOT_EQUAL(e_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~BernNorm()))
+START_SECTION((~BernNorm()))
 	delete e_ptr;
-RESULT
+END_SECTION
 
 e_ptr = new BernNorm();
 
-CHECK((BernNorm(const BernNorm& source)))
+START_SECTION((BernNorm(const BernNorm& source)))
 	BernNorm copy(*e_ptr);
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK((BernNorm& operator=(const BernNorm& source)))
+START_SECTION((BernNorm& operator=(const BernNorm& source)))
 	BernNorm copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
+START_SECTION((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -85,20 +85,20 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 
 	TEST_EQUAL(spec.size(), 28)
 
-RESULT
+END_SECTION
 
-CHECK((static PreprocessingFunctor* create()))
+START_SECTION((static PreprocessingFunctor* create()))
 	PreprocessingFunctor* ppf = BernNorm::create();
 	BernNorm bern;
 	TEST_EQUAL(ppf->getParameters(), bern.getParameters())
 	TEST_EQUAL(ppf->getName(), bern.getName())
-RESULT
+END_SECTION
   
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(e_ptr->getProductName(), "BernNorm")
-RESULT
+END_SECTION
 
-CHECK((void filterPeakMap(PeakMap& exp)))
+START_SECTION((void filterPeakMap(PeakMap& exp)))
 	delete e_ptr;
 	e_ptr = new BernNorm();
 
@@ -123,9 +123,9 @@ CHECK((void filterPeakMap(PeakMap& exp)))
   TEST_EQUAL(pm.begin()->size(), 28)
 
 
-RESULT
+END_SECTION
 			
-CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
+START_SECTION((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 	delete e_ptr;
 	e_ptr = new BernNorm();
 
@@ -145,7 +145,7 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   e_ptr->filterPeakSpectrum(spec);
 
   TEST_EQUAL(spec.size(), 28)
-RESULT
+END_SECTION
 
 delete e_ptr;
 

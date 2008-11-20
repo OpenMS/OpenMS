@@ -55,17 +55,17 @@ MascotXMLFile xml_file;
 protein_hits.push_back(protein_hit);
 
 ProteinIdentification* ptr = 0;
-CHECK((ProteinIdentification()))
+START_SECTION((ProteinIdentification()))
 	ptr = new ProteinIdentification();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~ProteinIdentification()))
+START_SECTION((virtual ~ProteinIdentification()))
 	ProteinIdentification hits;
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((ProteinIdentification(const ProteinIdentification &source)))
+START_SECTION((ProteinIdentification(const ProteinIdentification &source)))
 	ProteinIdentification hits;
 	hits.setDateTime(DateTime::now());
 	hits.setSignificanceThreshold(protein_significance_threshold);
@@ -94,10 +94,10 @@ CHECK((ProteinIdentification(const ProteinIdentification &source)))
 	TEST_EQUAL(hits.getSearchEngine(), "Mascot")
 	TEST_EQUAL(hits.getSearchEngineVersion(), "2.1")
 	TEST_EQUAL(hits.getSearchParameters()==param, true)
-RESULT
+END_SECTION
 
 
-CHECK((ProteinIdentification& operator=(const ProteinIdentification& source)))
+START_SECTION((ProteinIdentification& operator=(const ProteinIdentification& source)))
 	ProteinIdentification hits;
 	hits.setDateTime(DateTime::now());
 	hits.setSignificanceThreshold(protein_significance_threshold);
@@ -124,9 +124,9 @@ CHECK((ProteinIdentification& operator=(const ProteinIdentification& source)))
 	TEST_EQUAL(hits.getSearchEngine(), "Mascot")
 	TEST_EQUAL(hits.getSearchEngineVersion(), "2.1")
 	TEST_EQUAL(hits.getSearchParameters()==param, true)
-RESULT
+END_SECTION
 
-CHECK((bool operator == (const ProteinIdentification& rhs) const))
+START_SECTION((bool operator == (const ProteinIdentification& rhs) const))
 	ProteinIdentification search1;
 	ProteinIdentification search2;
 	TEST_EQUAL(search1 == search2, true)
@@ -165,9 +165,9 @@ CHECK((bool operator == (const ProteinIdentification& rhs) const))
 	TEST_EQUAL(search1 == search2, false)	
 	search1 = search2;
 
-RESULT
+END_SECTION
 
-CHECK((bool operator != (const ProteinIdentification& rhs) const))
+START_SECTION((bool operator != (const ProteinIdentification& rhs) const))
 	ProteinIdentification search1;
 	ProteinIdentification search2;
 	TEST_EQUAL(search1 != search2, false)
@@ -176,50 +176,50 @@ CHECK((bool operator != (const ProteinIdentification& rhs) const))
 	TEST_EQUAL(search1 != search2, true)	
 
 	//rest does not need to be tested, as it is tested in the operator== test implicitly!
-RESULT
+END_SECTION
 
-CHECK((const DateTime& getDateTime() const))
+START_SECTION((const DateTime& getDateTime() const))
 	ProteinIdentification hits;
 	DateTime date = DateTime::now();
 	hits.setDateTime(date);
 	const DateTime& date_time = hits.getDateTime();
 	TEST_EQUAL(date_time == date, true)
-RESULT
+END_SECTION
 
-CHECK((Real getSignificanceThreshold() const))
+START_SECTION((Real getSignificanceThreshold() const))
 	ProteinIdentification hits;
 	hits.setSignificanceThreshold(protein_significance_threshold);
 	TEST_EQUAL(hits.getSignificanceThreshold(), protein_significance_threshold)	
-RESULT
+END_SECTION
 
-CHECK((const std::vector<ProteinHit>& getHits() const))
+START_SECTION((const std::vector<ProteinHit>& getHits() const))
 	ProteinIdentification hits;
 	hits.insertHit(protein_hit);
 	TEST_EQUAL(hits.getHits().size() == 1, true)
 	TEST_EQUAL(*(hits.getHits().begin()) == protein_hit, true)	
-RESULT
+END_SECTION
 
-CHECK((void insertHit(const ProteinHit& input)))
+START_SECTION((void insertHit(const ProteinHit& input)))
 	ProteinIdentification hits;
 	hits.insertHit(protein_hit);
 	TEST_EQUAL(hits.getHits().size() == 1, true)
 	TEST_EQUAL(*(hits.getHits().begin()) == protein_hit, true)
-RESULT
+END_SECTION
 
-CHECK((void setDateTime(const DateTime& date)))
+START_SECTION((void setDateTime(const DateTime& date)))
 	ProteinIdentification hits;
 	DateTime date = DateTime::now();
 	hits.setDateTime(date);
 	TEST_EQUAL(hits.getDateTime() == date, true)
-RESULT
+END_SECTION
 
-CHECK((void setSignificanceThreshold(Real value)))
+START_SECTION((void setSignificanceThreshold(Real value)))
 	ProteinIdentification hits;
 	hits.setSignificanceThreshold(protein_significance_threshold);
 	TEST_EQUAL(hits.getSignificanceThreshold(), protein_significance_threshold)
-RESULT
+END_SECTION
 
-CHECK((void setHits(const std::vector< ProteinHit > &hits)))
+START_SECTION((void setHits(const std::vector< ProteinHit > &hits)))
 	ProteinHit hit_1;
 	ProteinHit hit_2;
 	ProteinHit hit_3;
@@ -239,77 +239,77 @@ CHECK((void setHits(const std::vector< ProteinHit > &hits)))
 	TEST_EQUAL(id.getHits()[2].getAccession(), "FIRSTPROTEIN")
 	TEST_EQUAL(id.getHits()[0].getAccession(), "SECONDPROTEIN")
 	TEST_EQUAL(id.getHits()[1].getAccession(), "THIRDPROTEIN")
-RESULT
+END_SECTION
 
-CHECK((const String& getScoreType() const))
+START_SECTION((const String& getScoreType() const))
 	ProteinIdentification hits;
 	TEST_EQUAL(hits.getScoreType(),"")
-RESULT
+END_SECTION
 
-CHECK((void setScoreType(const String& type)))
+START_SECTION((void setScoreType(const String& type)))
 	ProteinIdentification hits;
 	hits.setScoreType("bla");
 	TEST_EQUAL(hits.getScoreType(),"bla")
-RESULT
+END_SECTION
 
-CHECK((bool isHigherScoreBetter() const))
+START_SECTION((bool isHigherScoreBetter() const))
 	ProteinIdentification hits;
 	TEST_EQUAL(hits.isHigherScoreBetter(),true)
-RESULT
+END_SECTION
 
-CHECK((void setHigherScoreBetter(bool higher_is_better)))
+START_SECTION((void setHigherScoreBetter(bool higher_is_better)))
 	ProteinIdentification hits;
 	hits.setHigherScoreBetter(false);
 	TEST_EQUAL(hits.isHigherScoreBetter(),false)
-RESULT
+END_SECTION
 
-CHECK((const String& getIdentifier() const))
+START_SECTION((const String& getIdentifier() const))
 	ProteinIdentification hits;
 	TEST_EQUAL(hits.getIdentifier(),"")
-RESULT
+END_SECTION
 
-CHECK((void setIdentifier(const String& id)))
+START_SECTION((void setIdentifier(const String& id)))
 	ProteinIdentification hits;
 	hits.setIdentifier("bla");
 	TEST_EQUAL(hits.getIdentifier(),"bla")
-RESULT
+END_SECTION
 
-CHECK((const String& getSearchEngine() const))
+START_SECTION((const String& getSearchEngine() const))
 	ProteinIdentification hits;
 	TEST_EQUAL(hits.getSearchEngine(),"")
-RESULT
+END_SECTION
 
-CHECK((void setSearchEngine(const String &search_engine)))
+START_SECTION((void setSearchEngine(const String &search_engine)))
 	ProteinIdentification hits;
 	hits.setIdentifier("bla");
 	TEST_EQUAL(hits.getIdentifier(),"bla")
-RESULT
+END_SECTION
 
-CHECK((const String& getSearchEngineVersion() const))
+START_SECTION((const String& getSearchEngineVersion() const))
 	ProteinIdentification hits;
 	TEST_EQUAL(hits.getSearchEngineVersion(),"")
-RESULT
+END_SECTION
 
-CHECK((void setSearchEngineVersion(const String &search_engine_version)))
+START_SECTION((void setSearchEngineVersion(const String &search_engine_version)))
 	ProteinIdentification hits;
 	hits.setSearchEngineVersion("bla");
 	TEST_EQUAL(hits.getSearchEngineVersion(),"bla")
-RESULT
+END_SECTION
 
-CHECK((const SearchParameters& getSearchParameters() const))
+START_SECTION((const SearchParameters& getSearchParameters() const))
 	ProteinIdentification hits;
 	TEST_EQUAL(hits.getSearchParameters()==ProteinIdentification::SearchParameters(),true)
-RESULT
+END_SECTION
 
-CHECK((void setSearchParameters(const SearchParameters &search_parameters)))
+START_SECTION((void setSearchParameters(const SearchParameters &search_parameters)))
 	ProteinIdentification hits;
 	ProteinIdentification::SearchParameters param;
 	param.db="Mascot";
 	hits.setSearchParameters(param);
 	TEST_EQUAL(hits.getSearchParameters()==ProteinIdentification::SearchParameters(),false)
-RESULT
+END_SECTION
 
-CHECK((void sort()))
+START_SECTION((void sort()))
 	ProteinIdentification id;
 	ProteinHit hit;
 	hit.setScore(23);
@@ -342,9 +342,9 @@ CHECK((void sort()))
 	TEST_EQUAL(id.getHits()[0].getScore(), 7)	
 	TEST_EQUAL(id.getHits()[1].getScore(), 23)
 	TEST_EQUAL(id.getHits()[2].getScore(), 45)
-RESULT
+END_SECTION
 
-CHECK((void assignRanks()))
+START_SECTION((void assignRanks()))
 	ProteinIdentification id;
 	ProteinHit hit;
 	hit.setScore(23);
@@ -365,7 +365,7 @@ CHECK((void assignRanks()))
 	TEST_EQUAL(id.getHits()[0].getRank(), 1)	
 	TEST_EQUAL(id.getHits()[1].getRank(), 2)
 	TEST_EQUAL(id.getHits()[2].getRank(), 3)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

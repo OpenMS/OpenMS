@@ -40,91 +40,91 @@ START_TEST(PepIterator, "$Id$")
 /////////////////////////////////////////////////////////////
 
 PepIterator* ptr = 0;
-CHECK(PepIterator())
+START_SECTION(PepIterator())
 {
 	NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual ~PepIterator()))
+START_SECTION((virtual ~PepIterator()))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((PepIterator(const PepIterator &source)))
+START_SECTION((PepIterator(const PepIterator &source)))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual FASTAEntry operator *()=0))
+START_SECTION((virtual FASTAEntry operator *()=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual PepIterator& operator++()=0))
+START_SECTION((virtual PepIterator& operator++()=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual PepIterator* operator++(int)=0))
+START_SECTION((virtual PepIterator* operator++(int)=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual void setFastaFile(const String &f)=0))
+START_SECTION((virtual void setFastaFile(const String &f)=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual String getFastaFile()=0))
+START_SECTION((virtual String getFastaFile()=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual void setSpectrum(const std::vector< float > &s)=0))
+START_SECTION((virtual void setSpectrum(const std::vector< float > &s)=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual const std::vector<float>& getSpectrum()=0))
+START_SECTION((virtual const std::vector<float>& getSpectrum()=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual void setTolerance(float t)=0))
+START_SECTION((virtual void setTolerance(float t)=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual float getTolerance()=0))
+START_SECTION((virtual float getTolerance()=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual bool begin()=0))
+START_SECTION((virtual bool begin()=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual bool isAtEnd()=0))
+START_SECTION((virtual bool isAtEnd()=0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((void registerChildren()))
+START_SECTION((void registerChildren()))
 {
 	PepIterator* p1 = Factory<PepIterator>::create("EdwardsLippertIterator");
 	TEST_STRING_EQUAL(p1->getName(), "EdwardsLippertIterator")
@@ -137,11 +137,11 @@ CHECK((void registerChildren()))
 	p1 = Factory<PepIterator>::create("FastaIteratorIntern");
 	TEST_STRING_EQUAL(p1->getName(), "FastaIteratorIntern")
 }
-RESULT
+END_SECTION
 
-CHECK(String getProductName())
+START_SECTION(String getProductName())
 	TEST_STRING_EQUAL(PepIterator::getProductName(), "PepIterator")
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

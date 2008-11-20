@@ -54,29 +54,29 @@ String date_string_1;
 String date_string_2;
 PeptideHit peptide_hit;
 
-CHECK((XTandemXMLFile()))
+START_SECTION((XTandemXMLFile()))
 	ptr = new XTandemXMLFile();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~XTandemXMLFile())
+START_SECTION(~XTandemXMLFile())
 	delete ptr;
-RESULT
+END_SECTION
 
 ptr = new XTandemXMLFile();
 
-CHECK(void setModificationDefinitionsSet(const ModificationDefinitionsSet &rhs))
+START_SECTION(void setModificationDefinitionsSet(const ModificationDefinitionsSet &rhs))
 	ModificationDefinitionsSet mod_set("", "MOD:01214,MOD:00719,MOD:01061");
 
 	ptr->setModificationDefinitionsSet(mod_set);
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data))
+START_SECTION(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data))
 	ptr->load("data/XTandemXMLFile_test.xml", protein_identification, peptide_identifications);
 	TEST_EQUAL(peptide_identifications.size(), 303)
 	TEST_EQUAL(protein_identification.getHits().size(), 497)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

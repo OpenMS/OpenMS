@@ -46,18 +46,18 @@ using namespace std;
 
 SpectrumAlignment* ptr = 0;
 
-CHECK(SpectrumAlignment())
+START_SECTION(SpectrumAlignment())
 	ptr = new SpectrumAlignment();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(virtual ~SpectrumAlignment())
+START_SECTION(virtual ~SpectrumAlignment())
 	delete ptr;
-RESULT
+END_SECTION
 
 ptr = new SpectrumAlignment();
 
-CHECK(SpectrumAlignment(const SpectrumAlignment &source))
+START_SECTION(SpectrumAlignment(const SpectrumAlignment &source))
   SpectrumAlignment sas1;
   Param p(sas1.getParameters());
   p.setValue("tolerance", 0.2);
@@ -67,9 +67,9 @@ CHECK(SpectrumAlignment(const SpectrumAlignment &source))
 
   TEST_EQUAL(sas1.getName(), sas2.getName())
   TEST_EQUAL(sas1.getParameters(), sas2.getParameters())
-RESULT
+END_SECTION
 
-CHECK(SpectrumAlignment& operator=(const SpectrumAlignment &source))
+START_SECTION(SpectrumAlignment& operator=(const SpectrumAlignment &source))
   SpectrumAlignment sas1;
   Param p(sas1.getParameters());
   p.setValue("tolerance", 0.2);
@@ -82,14 +82,14 @@ CHECK(SpectrumAlignment& operator=(const SpectrumAlignment &source))
   TEST_EQUAL(sas1.getName(), sas2.getName())
   TEST_EQUAL(sas1.getParameters(), sas2.getParameters())
 
-RESULT
+END_SECTION
 		    
-CHECK(template <typename SpectrumType> void getSpectrumAlignment(std::vector< std::pair< UInt, UInt > > &alignment, const SpectrumType &s1, const SpectrumType &s2) const)
+START_SECTION(template <typename SpectrumType> void getSpectrumAlignment(std::vector< std::pair< UInt, UInt > > &alignment, const SpectrumType &s1, const SpectrumType &s2) const)
 	PeakSpectrum s1, s2;
   DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
   DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s2);
 
-  PRECISION(0.01)
+  TOLERANCE_ABSOLUTE(0.01)
 
 	SpectrumAlignment sas1;
 	vector<pair<UInt, UInt > > alignment;
@@ -101,16 +101,16 @@ CHECK(template <typename SpectrumType> void getSpectrumAlignment(std::vector< st
 	}
 
 
-  TEST_REAL_EQUAL(alignment.size(), s1.size())
+  TEST_REAL_SIMILAR(alignment.size(), s1.size())
 
   s2.resize(100);
 
 	alignment.clear();
   sas1.getSpectrumAlignment(alignment, s1, s2);
 
-  TEST_REAL_EQUAL(alignment.size(), 100)
+  TEST_REAL_SIMILAR(alignment.size(), 100)
 
-RESULT
+END_SECTION
 
 ptr = new SpectrumAlignment();
 

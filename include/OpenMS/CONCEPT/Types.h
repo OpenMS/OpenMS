@@ -241,6 +241,37 @@ namespace OpenMS
 		return std::numeric_limits<double>::digits10;
 	}
 	
+	/// We do not want to bother people who unintentionally provide an int argument to this.
+	template <> inline Int writtenDigits <int> (const int & )
+	{
+		return std::numeric_limits<int>::digits10;
+	}
+
+	/// We do not want to bother people who unintentionally provide an unsigned int argument to this.
+	template <> inline Int writtenDigits <unsigned int> (const unsigned int & )
+	{
+		return std::numeric_limits<unsigned int>::digits10;
+	}
+
+	/// We do not want to bother people who unintentionally provide a long int argument to this.
+	template <> inline Int writtenDigits <long int> (const long int & )
+	{
+		return std::numeric_limits<int>::digits10;
+	}
+
+	/// We do not want to bother people who unintentionally provide an unsigned long int argument to this.
+	template <> inline Int writtenDigits <unsigned long int> (const unsigned long int & )
+	{
+		return std::numeric_limits<unsigned int>::digits10;
+	}
+
+	class DataValue;
+	/// DataValue will be printed like double.
+	template <> inline Int writtenDigits <DataValue> (const DataValue & )
+	{
+		return std::numeric_limits<double>::digits10;
+	}
+
 	/*
 	META-COMMENT:  DO NOT INTRODUCE ANY LINEBREAKS BELOW IN
 	"<code>std::numeric_limits<long double>::digits10 == 18</code>".

@@ -42,30 +42,30 @@ using std::stringstream;
 
 // default ctor
 LmaGaussModel* ptr = 0;
-CHECK((LmaGaussModel()))
+START_SECTION((LmaGaussModel()))
 	ptr = new LmaGaussModel();
   TEST_EQUAL(ptr->getName(), "LmaGaussModel")
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
 // destructor
-CHECK((virtual ~LmaGaussModel()))
+START_SECTION((virtual ~LmaGaussModel()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(LmaGaussModel::getProductName(),"LmaGaussModel")
 	TEST_EQUAL(LmaGaussModel().getName(),"LmaGaussModel")
-RESULT
+END_SECTION
 
-CHECK((static BaseModel<1>* create()))
+START_SECTION((static BaseModel<1>* create()))
 	BaseModel<1>* ptr = LmaGaussModel::create();
 	TEST_EQUAL(ptr->getName(), "LmaGaussModel")
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
 // assignment operator
-CHECK((virtual LmaGaussModel& operator=(const LmaGaussModel &source)))
+START_SECTION((virtual LmaGaussModel& operator=(const LmaGaussModel &source)))
 	LmaGaussModel lm1;
 	lm1.setInterpolationStep(0.3);
 
@@ -87,10 +87,10 @@ CHECK((virtual LmaGaussModel& operator=(const LmaGaussModel &source)))
 	lm3.setParameters(tmp);
 	
 	TEST_EQUAL(lm3.getParameters(), lm2.getParameters())
-RESULT
+END_SECTION
 
 // copy ctor
-CHECK((LmaGaussModel(const LmaGaussModel& source)))
+START_SECTION((LmaGaussModel(const LmaGaussModel& source)))
 	LmaGaussModel lm1;
 	lm1.setInterpolationStep(0.3);
 
@@ -110,10 +110,10 @@ CHECK((LmaGaussModel(const LmaGaussModel& source)))
 	lm3.setParameters(tmp);
 
 	TEST_EQUAL(lm3.getParameters(), lm2.getParameters())
-RESULT
+END_SECTION
 
-CHECK([EXTRA] DefaultParamHandler::setParameters(...))
-	PRECISION(0.001)
+START_SECTION([EXTRA] DefaultParamHandler::setParameters(...))
+	TOLERANCE_ABSOLUTE(0.001)
 	LmaGaussModel lm1;
 	
 	Param tmp;
@@ -127,7 +127,7 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	lm1.setParameters(tmp);
 	lm1.setOffset(680.0);
 
-	TEST_REAL_EQUAL(lm1.getCenter(), 680.2)
+	TEST_REAL_SIMILAR(lm1.getCenter(), 680.2)
 
 	LmaGaussModel lm2;
 	lm2.setParameters(lm1.getParameters());
@@ -137,17 +137,17 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	lm1.getSamples(dpa1);
 	lm2.getSamples(dpa2);
 
-	PRECISION(0.0001)
+	TOLERANCE_ABSOLUTE(0.0001)
 	TEST_EQUAL(dpa1.size(),dpa2.size())
 	ABORT_IF(dpa1.size()!=dpa2.size());
 	for (UInt i=0; i<dpa1.size(); ++i)
 	{
-		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
-		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
+		TEST_REAL_SIMILAR(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
+		TEST_REAL_SIMILAR(dpa1[i].getIntensity(),dpa2[i].getIntensity())
 	}
-RESULT
+END_SECTION
 
-CHECK([EXTRA] DefaultParamHandler::setParameters(...))
+START_SECTION([EXTRA] DefaultParamHandler::setParameters(...))
 	LmaGaussModel lm1;
 	
 	Param tmp;
@@ -160,34 +160,34 @@ CHECK([EXTRA] DefaultParamHandler::setParameters(...))
 	tmp.setValue("lma:expected_value", 3.0);
 	lm1.setParameters(tmp);
 
-	TEST_REAL_EQUAL(lm1.getCenter(), 0.0)
+	TEST_REAL_SIMILAR(lm1.getCenter(), 0.0)
 
-	PRECISION(0.001)
-	TEST_REAL_EQUAL(lm1.getIntensity(-1.0), 0.0269955);
-	TEST_REAL_EQUAL(lm1.getIntensity(0.0), 0.0647588);
-	TEST_REAL_EQUAL(lm1.getIntensity(1.0), 0.120985);
-	TEST_REAL_EQUAL(lm1.getIntensity(2.0), 0.176033);
+	TOLERANCE_ABSOLUTE(0.001)
+	TEST_REAL_SIMILAR(lm1.getIntensity(-1.0), 0.0269955);
+	TEST_REAL_SIMILAR(lm1.getIntensity(0.0), 0.0647588);
+	TEST_REAL_SIMILAR(lm1.getIntensity(1.0), 0.120985);
+	TEST_REAL_SIMILAR(lm1.getIntensity(2.0), 0.176033);
 
 	lm1.setInterpolationStep(0.2);
 	lm1.setSamples();
 
-	TEST_REAL_EQUAL(lm1.getIntensity(-1.0), 0.0269955);
-	TEST_REAL_EQUAL(lm1.getIntensity(0.0), 0.0647588);
-	TEST_REAL_EQUAL(lm1.getIntensity(1.0), 0.120985);
-	TEST_REAL_EQUAL(lm1.getIntensity(2.0), 0.176033);
+	TEST_REAL_SIMILAR(lm1.getIntensity(-1.0), 0.0269955);
+	TEST_REAL_SIMILAR(lm1.getIntensity(0.0), 0.0647588);
+	TEST_REAL_SIMILAR(lm1.getIntensity(1.0), 0.120985);
+	TEST_REAL_SIMILAR(lm1.getIntensity(2.0), 0.176033);
 
-	PRECISION(0.1)
+	TOLERANCE_ABSOLUTE(0.1)
 	tmp.setValue("lma:scale_factor", 10.0);
 	lm1.setParameters(tmp);
 	lm1.setSamples();
 	
-	TEST_REAL_EQUAL(lm1.getIntensity(-1.0), 0.269955);
-	TEST_REAL_EQUAL(lm1.getIntensity(0.0), 0.647588);
-	TEST_REAL_EQUAL(lm1.getIntensity(1.0), 1.20985);
-	TEST_REAL_EQUAL(lm1.getIntensity(2.0), 1.76033);
-RESULT
+	TEST_REAL_SIMILAR(lm1.getIntensity(-1.0), 0.269955);
+	TEST_REAL_SIMILAR(lm1.getIntensity(0.0), 0.647588);
+	TEST_REAL_SIMILAR(lm1.getIntensity(1.0), 1.20985);
+	TEST_REAL_SIMILAR(lm1.getIntensity(2.0), 1.76033);
+END_SECTION
 
-CHECK((void setOffset(CoordinateType offset)))
+START_SECTION((void setOffset(CoordinateType offset)))
 
 	LmaGaussModel lm1;
 
@@ -207,28 +207,28 @@ CHECK((void setOffset(CoordinateType offset)))
 	lm2.setOffset(680.9);
 
 	TEST_EQUAL(lm1.getParameters(), lm2.getParameters())
-	TEST_REAL_EQUAL(lm1.getCenter(), lm2.getCenter())
-	TEST_REAL_EQUAL(lm1.getCenter(), 682.1)
+	TEST_REAL_SIMILAR(lm1.getCenter(), lm2.getCenter())
+	TEST_REAL_SIMILAR(lm1.getCenter(), 682.1)
 
 	std::vector<Peak1D> dpa1;
 	std::vector<Peak1D> dpa2;
 	lm1.getSamples(dpa1);
 	lm2.getSamples(dpa2);
 
-	PRECISION(0.01)
+	TOLERANCE_ABSOLUTE(0.01)
 	TEST_EQUAL(dpa1.size(),dpa2.size())
 	ABORT_IF(dpa1.size()!=dpa2.size());
 	for (UInt i=0; i<dpa1.size(); ++i)
 	{
-		TEST_REAL_EQUAL(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
-		TEST_REAL_EQUAL(dpa1[i].getIntensity(),dpa2[i].getIntensity())
+		TEST_REAL_SIMILAR(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
+		TEST_REAL_SIMILAR(dpa1[i].getIntensity(),dpa2[i].getIntensity())
 	}
 
-RESULT
+END_SECTION
 
-CHECK((CoordinateType getCenter() const))
+START_SECTION((CoordinateType getCenter() const))
 	// already test above, but just for the sake of it
-	PRECISION(0.001)
+	TOLERANCE_ABSOLUTE(0.001)
 	LmaGaussModel lm1;
 	
 	Param tmp;
@@ -242,16 +242,16 @@ CHECK((CoordinateType getCenter() const))
 	lm1.setParameters(tmp);
 	lm1.setOffset(680.0);
 
-	TEST_REAL_EQUAL(lm1.getCenter(), 681.2)
+	TEST_REAL_SIMILAR(lm1.getCenter(), 681.2)
 
-RESULT
+END_SECTION
 
-CHECK((void setSamples()))
+START_SECTION((void setSamples()))
 {
   // dummy subtest
 	TEST_EQUAL(1,1)
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

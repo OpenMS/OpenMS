@@ -39,20 +39,20 @@ START_TEST(NonNegativeLeastSquaresSolver, "$Id$")
 /////////////////////////////////////////////////////////////
 
 NonNegativeLeastSquaresSolver* ptr = 0;
-CHECK(NonNegativeLeastSquaresSolver())
+START_SECTION(NonNegativeLeastSquaresSolver())
 {
 	ptr = new NonNegativeLeastSquaresSolver();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~NonNegativeLeastSquaresSolver())
+START_SECTION(~NonNegativeLeastSquaresSolver())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((static Int solve(const Matrix< double > &A, const Matrix< double > &b, Matrix< double > &x)))
+START_SECTION((static Int solve(const Matrix< double > &A, const Matrix< double > &b, Matrix< double > &x)))
 {
 	
 	// CASE 1	
@@ -70,12 +70,12 @@ CHECK((static Int solve(const Matrix< double > &A, const Matrix< double > &b, Ma
 	b.setMatrix<3,1>(b_1);
 	x.resize(4,1);
 	
-	PRECISION(0.0005);
+	TOLERANCE_ABSOLUTE(0.0005);
 	
 	NonNegativeLeastSquaresSolver::solve(A,b,x);
 	for (size_t i=0;i<x.rows();++i)
 	{
-		TEST_REAL_EQUAL(x(i,0), x_1[i][0]);
+		TEST_REAL_SIMILAR(x(i,0), x_1[i][0]);
 	}	
 	
 	
@@ -98,11 +98,11 @@ CHECK((static Int solve(const Matrix< double > &A, const Matrix< double > &b, Ma
 	NonNegativeLeastSquaresSolver::solve(A,b,x);
 	for (size_t i=0;i<x.rows();++i)
 	{
-		TEST_REAL_EQUAL(x(i,0), x_2[i][0]);
+		TEST_REAL_SIMILAR(x(i,0), x_2[i][0]);
 	}	
 	
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

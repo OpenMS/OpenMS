@@ -42,81 +42,81 @@ START_TEST(Digestion, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-PRECISION(0.001)
+TOLERANCE_ABSOLUTE(0.001)
 
 // default ctor
 Digestion* dv_ptr = 0;
-CHECK(Digestion())
+START_SECTION(Digestion())
 	dv_ptr = new Digestion;
 	TEST_NOT_EQUAL(dv_ptr, 0)
-RESULT
+END_SECTION
 
 // destructor
-CHECK(~Digestion())
+START_SECTION(~Digestion())
 	delete dv_ptr;
-RESULT
+END_SECTION
 
 //basic accessors
-CHECK(const String& getEnzyme() const)
+START_SECTION(const String& getEnzyme() const)
 	Digestion s;
 	TEST_EQUAL(s.getEnzyme(),"")
-RESULT
+END_SECTION
 
 //basic accessors
-CHECK(float getDigestionTime() const)
+START_SECTION(float getDigestionTime() const)
 	Digestion s;
-	TEST_REAL_EQUAL(s.getDigestionTime(),0.0)
-RESULT
+	TEST_REAL_SIMILAR(s.getDigestionTime(),0.0)
+END_SECTION
 
 //basic accessors
-CHECK(float getTemperature() const)
+START_SECTION(float getTemperature() const)
 	Digestion s;
-	TEST_REAL_EQUAL(s.getTemperature(),0.0)
-RESULT
+	TEST_REAL_SIMILAR(s.getTemperature(),0.0)
+END_SECTION
 
 //basic accessors
-CHECK(float getPh() const)
+START_SECTION(float getPh() const)
 	Digestion s;
-	TEST_REAL_EQUAL(s.getPh(),0.0)
-RESULT
+	TEST_REAL_SIMILAR(s.getPh(),0.0)
+END_SECTION
 
 //basic accessors
-CHECK(void setEnzyme(const String& enzyme))
+START_SECTION(void setEnzyme(const String& enzyme))
 	Digestion s;
 	s.setEnzyme("TTEST");
 	TEST_EQUAL(s.getEnzyme(),"TTEST")
-RESULT
+END_SECTION
 
 //basic accessors
-CHECK(void setDigestionTime(float digestion_time))
+START_SECTION(void setDigestionTime(float digestion_time))
 	Digestion s;
 	//set
 	s.setDigestionTime(4711.2);
-	TEST_REAL_EQUAL(s.getDigestionTime(),4711.2)
-RESULT
+	TEST_REAL_SIMILAR(s.getDigestionTime(),4711.2)
+END_SECTION
 
 //basic accessors
-CHECK(void setTemperature(float temperature))
+START_SECTION(void setTemperature(float temperature))
 	Digestion s;
 	s.setTemperature(4711.3);
-	TEST_REAL_EQUAL(s.getTemperature(),4711.3)
-RESULT
+	TEST_REAL_SIMILAR(s.getTemperature(),4711.3)
+END_SECTION
 
 //basic accessors
-CHECK(void setPh(float ph))
+START_SECTION(void setPh(float ph))
 	Digestion s;
 	s.setPh(4711.4);
-	TEST_REAL_EQUAL(s.getPh(),4711.4)
-RESULT
+	TEST_REAL_SIMILAR(s.getPh(),4711.4)
+END_SECTION
 
 //getType
-CHECK([EXTRA] getType)
+START_SECTION([EXTRA] getType)
 	Digestion s;
 	TEST_EQUAL(s.getType(),"Digestion")
-RESULT
+END_SECTION
 
 //copy ctr
-CHECK(Digestion(const Digestion&))
+START_SECTION(Digestion(const Digestion&))
 	Digestion s;
 	//set
 	s.setEnzyme("TTEST");
@@ -130,13 +130,13 @@ CHECK(Digestion(const Digestion&))
 
 	//get
 	TEST_EQUAL(s2.getEnzyme(),"TTEST")
-	TEST_REAL_EQUAL(s2.getDigestionTime(),4711.2)
-	TEST_REAL_EQUAL(s2.getTemperature(),4711.3)
-	TEST_REAL_EQUAL(s2.getPh(),4711.4)
+	TEST_REAL_SIMILAR(s2.getDigestionTime(),4711.2)
+	TEST_REAL_SIMILAR(s2.getTemperature(),4711.3)
+	TEST_REAL_SIMILAR(s2.getPh(),4711.4)
 	TEST_EQUAL(string(s.getMetaValue("color")),"red")
-RESULT
+END_SECTION
 
-CHECK(Digestion& operator=(const Digestion&))
+START_SECTION(Digestion& operator=(const Digestion&))
 	Digestion s,s2;
 	//set
 	s.setEnzyme("TTEST");
@@ -150,13 +150,13 @@ CHECK(Digestion& operator=(const Digestion&))
 
 	//get
 	TEST_EQUAL(s2.getEnzyme(),"TTEST")
-	TEST_REAL_EQUAL(s2.getDigestionTime(),4711.2)
-	TEST_REAL_EQUAL(s2.getTemperature(),4711.3)
-	TEST_REAL_EQUAL(s2.getPh(),4711.4)
+	TEST_REAL_SIMILAR(s2.getDigestionTime(),4711.2)
+	TEST_REAL_SIMILAR(s2.getTemperature(),4711.3)
+	TEST_REAL_SIMILAR(s2.getPh(),4711.4)
 	TEST_EQUAL(string(s.getMetaValue("color")),"red")
-RESULT
+END_SECTION
 
-CHECK(SampleTreatment* clone() const)
+START_SECTION(SampleTreatment* clone() const)
 	Digestion s;
 	SampleTreatment* st1;
 	SampleTreatment* st;
@@ -176,13 +176,13 @@ CHECK(SampleTreatment* clone() const)
 	
 	//get
 	TEST_EQUAL(dp->getEnzyme(),"TTEST")
-	TEST_REAL_EQUAL(dp->getDigestionTime(),4711.2)
-	TEST_REAL_EQUAL(dp->getTemperature(),4711.3)
-	TEST_REAL_EQUAL(dp->getPh(),4711.4)
+	TEST_REAL_SIMILAR(dp->getDigestionTime(),4711.2)
+	TEST_REAL_SIMILAR(dp->getTemperature(),4711.3)
+	TEST_REAL_SIMILAR(dp->getPh(),4711.4)
 	TEST_EQUAL(string(dp->getMetaValue("color")),"red")
-RESULT
+END_SECTION
 
-CHECK(bool operator== (const SampleTreatment& rhs) const)
+START_SECTION(bool operator== (const SampleTreatment& rhs) const)
 	Digestion empty,edit;
 	
 	TEST_EQUAL(edit==empty, true);
@@ -214,7 +214,7 @@ CHECK(bool operator== (const SampleTreatment& rhs) const)
 	
 	Modification m;
 	TEST_EQUAL(m==empty, false);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

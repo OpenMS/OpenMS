@@ -41,29 +41,29 @@ START_TEST(FeatureGroupingAlgorithmUnlabeled, "$Id FeatureFinder_test.C 139 2006
 /////////////////////////////////////////////////////////////
 
 FeatureGroupingAlgorithmUnlabeled* ptr = 0;
-CHECK((FeatureGroupingAlgorithmUnlabeled()))
+START_SECTION((FeatureGroupingAlgorithmUnlabeled()))
 	ptr = new FeatureGroupingAlgorithmUnlabeled();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((virtual ~FeatureGroupingAlgorithmUnlabeled()))
+START_SECTION((virtual ~FeatureGroupingAlgorithmUnlabeled()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((static FeatureGroupingAlgorithm* create()))
+START_SECTION((static FeatureGroupingAlgorithm* create()))
 	FeatureGroupingAlgorithm* ptr2 = 0;
 	ptr2 = FeatureGroupingAlgorithmUnlabeled::create();
 	TEST_NOT_EQUAL(ptr2, 0)
-RESULT
+END_SECTION
 
-CHECK((static String getProductName()))
+START_SECTION((static String getProductName()))
 	TEST_EQUAL(FeatureGroupingAlgorithmUnlabeled::getProductName(),"unlabeled")
-RESULT
+END_SECTION
 
-CHECK((virtual void group(const std::vector< FeatureMap<> > &maps, ConsensusMap &out)))
+START_SECTION((virtual void group(const std::vector< FeatureMap<> > &maps, ConsensusMap &out)))
 	// This is tested extensively in TEST/TOPP. See FeatureLinker_test.
 	NOT_TESTABLE;
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

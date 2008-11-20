@@ -44,31 +44,31 @@ START_TEST(MarkerMower, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MarkerMower* e_ptr = 0;
-CHECK((MarkerMower()))
+START_SECTION((MarkerMower()))
 	e_ptr = new MarkerMower;
 	TEST_NOT_EQUAL(e_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~MarkerMower()))
+START_SECTION((~MarkerMower()))
 	delete e_ptr;
-RESULT
+END_SECTION
 
 e_ptr = new MarkerMower();
 
-CHECK((MarkerMower(const MarkerMower& source)))
+START_SECTION((MarkerMower(const MarkerMower& source)))
 	MarkerMower copy(*e_ptr);
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK((MarkerMower& operator = (const MarkerMower& source)))
+START_SECTION((MarkerMower& operator = (const MarkerMower& source)))
 	MarkerMower copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
+START_SECTION((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -79,20 +79,20 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 	e_ptr->setParameters(p);
 	e_ptr->filterSpectrum(spec);
 	TEST_EQUAL(spec.size(), 0)
-RESULT
+END_SECTION
 
-CHECK((static PreprocessingFunctor* create()))
+START_SECTION((static PreprocessingFunctor* create()))
 	PreprocessingFunctor* ppf = MarkerMower::create();
 	MarkerMower mower;
 	TEST_EQUAL(ppf->getParameters(), mower.getParameters())
 	TEST_EQUAL(ppf->getName(), mower.getName())
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(e_ptr->getProductName(), "MarkerMower")
-RESULT
+END_SECTION
 
-CHECK((void filterPeakMap(PeakMap& exp)))
+START_SECTION((void filterPeakMap(PeakMap& exp)))
 	delete e_ptr;
 	e_ptr = new MarkerMower();
   DTAFile dta_file;
@@ -109,9 +109,9 @@ CHECK((void filterPeakMap(PeakMap& exp)))
 	e_ptr->setParameters(p);
   e_ptr->filterPeakMap(pm);
   TEST_EQUAL(pm.begin()->size(), 0)
-RESULT
+END_SECTION
 
-CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
+START_SECTION((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 	delete e_ptr;
 	e_ptr = new MarkerMower();
   DTAFile dta_file;
@@ -124,14 +124,14 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 	e_ptr->setParameters(p);
   e_ptr->filterPeakSpectrum(spec);
   TEST_EQUAL(spec.size(), 0)
-RESULT
+END_SECTION
 			
-CHECK((void insertmarker(PeakMarker* peak_marker)))
+START_SECTION((void insertmarker(PeakMarker* peak_marker)))
 	IsotopeMarker marker;
 	e_ptr->insertmarker(&marker);
 	// this function is not really testable, as there are no accessors
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
 delete e_ptr;
 

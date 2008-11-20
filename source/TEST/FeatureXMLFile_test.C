@@ -48,17 +48,17 @@ START_TEST(FeatureXMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 FeatureXMLFile* ptr = 0;
-CHECK((FeatureXMLFile()))
+START_SECTION((FeatureXMLFile()))
 	ptr = new FeatureXMLFile();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~FeatureXMLFile()))
+START_SECTION((~FeatureXMLFile()))
 	delete ptr;
-RESULT
+END_SECTION
  
-CHECK((void load(String filename, FeatureMap<>& feature_map)))
-	PRECISION(0.01)
+START_SECTION((void load(String filename, FeatureMap<>& feature_map)))
+	TOLERANCE_ABSOLUTE(0.01)
 	
 	FeatureMap<> e;
 	FeatureXMLFile dfmap_file;
@@ -70,15 +70,15 @@ CHECK((void load(String filename, FeatureMap<>& feature_map)))
 	dfmap_file.load("data/FeatureXMLFile_1.featureXML",e);
 	TEST_EQUAL(e.getIdentifier(),"lsid");
 	TEST_EQUAL(e.size(),2)
-	TEST_REAL_EQUAL(e[0].getRT(), 25)
-	TEST_REAL_EQUAL(e[0].getMZ(), 0)
-	TEST_REAL_EQUAL(e[0].getIntensity(), 300)
+	TEST_REAL_SIMILAR(e[0].getRT(), 25)
+	TEST_REAL_SIMILAR(e[0].getMZ(), 0)
+	TEST_REAL_SIMILAR(e[0].getIntensity(), 300)
 	TEST_EQUAL(e[0].getMetaValue("stringparametername"),"stringparametervalue")
 	TEST_EQUAL((UInt)e[0].getMetaValue("intparametername"),4)
-	TEST_REAL_EQUAL((DoubleReal)e[0].getMetaValue("floatparametername"),4.551)
-	TEST_REAL_EQUAL(e[1].getRT(), 0)
-	TEST_REAL_EQUAL(e[1].getMZ(), 35)
-	TEST_REAL_EQUAL(e[1].getIntensity(), 500)
+	TEST_REAL_SIMILAR((DoubleReal)e[0].getMetaValue("floatparametername"),4.551)
+	TEST_REAL_SIMILAR(e[1].getRT(), 0)
+	TEST_REAL_SIMILAR(e[1].getMZ(), 35)
+	TEST_REAL_SIMILAR(e[1].getIntensity(), 500)
 	//data processing
 	TEST_EQUAL(e.getDataProcessing().size(),2)
 	TEST_STRING_EQUAL(e.getDataProcessing()[0].getSoftware().getName(),"Software1")
@@ -102,30 +102,30 @@ CHECK((void load(String filename, FeatureMap<>& feature_map)))
 	dfmap_file.getOptions().setRTRange(makeRange(0, 10));
 	dfmap_file.load("data/FeatureXMLFile_1.featureXML",e);
 	TEST_EQUAL(e.size(),1)
-	TEST_REAL_EQUAL(e[0].getRT(), 0)
-	TEST_REAL_EQUAL(e[0].getMZ(), 35)
-	TEST_REAL_EQUAL(e[0].getIntensity(), 500)
+	TEST_REAL_SIMILAR(e[0].getRT(), 0)
+	TEST_REAL_SIMILAR(e[0].getMZ(), 35)
+	TEST_REAL_SIMILAR(e[0].getIntensity(), 500)
 
 	dfmap_file.getOptions() = PeakFileOptions();
 	dfmap_file.getOptions().setMZRange(makeRange(10, 50));
 	dfmap_file.load("data/FeatureXMLFile_1.featureXML",e);
 	TEST_EQUAL(e.size(),1)
-	TEST_REAL_EQUAL(e[0].getRT(), 0)
-	TEST_REAL_EQUAL(e[0].getMZ(), 35)
-	TEST_REAL_EQUAL(e[0].getIntensity(), 500)
+	TEST_REAL_SIMILAR(e[0].getRT(), 0)
+	TEST_REAL_SIMILAR(e[0].getMZ(), 35)
+	TEST_REAL_SIMILAR(e[0].getIntensity(), 500)
 
 	dfmap_file.getOptions() = PeakFileOptions();
 	dfmap_file.getOptions().setIntensityRange(makeRange(400, 600));
 	dfmap_file.load("data/FeatureXMLFile_1.featureXML",e);
 	TEST_EQUAL(e.size(),1)
-	TEST_REAL_EQUAL(e[0].getRT(), 0)
-	TEST_REAL_EQUAL(e[0].getMZ(), 35)
-	TEST_REAL_EQUAL(e[0].getIntensity(), 500)
+	TEST_REAL_SIMILAR(e[0].getRT(), 0)
+	TEST_REAL_SIMILAR(e[0].getMZ(), 35)
+	TEST_REAL_SIMILAR(e[0].getIntensity(), 500)
 	
 
-RESULT
+END_SECTION
 
-CHECK((void store(String filename, const FeatureMap<>& feature_map) const))
+START_SECTION((void store(String filename, const FeatureMap<>& feature_map) const))
   
   std::string tmp_filename;
   FeatureMap<> e;
@@ -134,11 +134,11 @@ CHECK((void store(String filename, const FeatureMap<>& feature_map) const))
   NEW_TMP_FILE(tmp_filename);
   f.load("data/FeatureXMLFile_1.featureXML",e);
   f.store(tmp_filename,e);
-  TEST_FILE(tmp_filename.c_str(),"data/FeatureXMLFile_1.featureXML");
+  TEST_FILE_EQUAL(tmp_filename.c_str(),"data/FeatureXMLFile_1.featureXML");
 
-RESULT
+END_SECTION
 
-CHECK( PeakFileOptions& getOptions() )
+START_SECTION( PeakFileOptions& getOptions() )
 	FeatureXMLFile f;
   FeatureMap<> e;
 	f.getOptions().setRTRange(makeRange(1.5, 4.5));
@@ -157,9 +157,9 @@ CHECK( PeakFileOptions& getOptions() )
 	f.load("data/FeatureXMLFile_2_options.featureXML",e);
 	TEST_EQUAL(e.getIdentifier(), "lsid2")
 	TEST_EQUAL(e.size(), 0)
-RESULT
+END_SECTION
 
-CHECK([EXTRA] static bool isValid(const String& filename))
+START_SECTION([EXTRA] static bool isValid(const String& filename))
   FeatureXMLFile f;
 	TEST_EQUAL(f.isValid("data/FeatureXMLFile_1.featureXML"),true);	
 	TEST_EQUAL(f.isValid("data/FeatureXMLFile_2_options.featureXML"),true);	
@@ -177,9 +177,9 @@ CHECK([EXTRA] static bool isValid(const String& filename))
 	f.load("data/FeatureXMLFile_1.featureXML",e);
 	f.store(filename, e);	
   TEST_EQUAL(f.isValid(filename),true);
-RESULT
+END_SECTION
 
-CHECK( const PeakFileOptions& getOptions() const )
+START_SECTION( const PeakFileOptions& getOptions() const )
 	FeatureXMLFile f;
  	FeatureMap<> e;
 	f.getOptions().setRTRange(makeRange(1.5, 4.5));
@@ -189,10 +189,10 @@ CHECK( const PeakFileOptions& getOptions() const )
 	
 	TEST_EQUAL(pfo.getRTRange(),makeRange(1.5, 4.5))
 	TEST_EQUAL(pfo.getIntensityRange(),makeRange(290.0, 310.0))
-RESULT
+END_SECTION
 
 
-CHECK([EXTRA] peptide and protein identification I/O)
+START_SECTION([EXTRA] peptide and protein identification I/O)
 {
 	std::vector<ProteinHit> protein_hits;
 	ProteinHit protein_hit;
@@ -285,9 +285,9 @@ CHECK([EXTRA] peptide and protein identification I/O)
 
 	file.store(tmp_filename_reloaded_then_stored,map_reloaded);
 
-	TEST_FILE(tmp_filename.c_str(),tmp_filename_reloaded_then_stored.c_str());
+	TEST_FILE_EQUAL(tmp_filename.c_str(),tmp_filename_reloaded_then_stored.c_str());
 }
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

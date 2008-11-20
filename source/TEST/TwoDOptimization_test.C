@@ -38,16 +38,16 @@ START_TEST(TwoDOptimization, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TwoDOptimization* ptr = 0;
-CHECK((TwoDOptimization   ( )))
+START_SECTION((TwoDOptimization   ( )))
 	ptr = new TwoDOptimization();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~TwoDOptimization()))
+START_SECTION((~TwoDOptimization()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((TwoDOptimization& operator=(const TwoDOptimization& opt)))
+START_SECTION((TwoDOptimization& operator=(const TwoDOptimization& opt)))
   TwoDOptimization opt_2d;
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties;
   penalties.pos = 2;
@@ -65,18 +65,18 @@ CHECK((TwoDOptimization& operator=(const TwoDOptimization& opt)))
   unsigned int number = opt_2d_copy.getMaxIterations();
   double abs_err = opt_2d_copy.getMaxAbsError();
   double rel_err = opt_2d_copy.getMaxRelError();
-  TEST_REAL_EQUAL(penalties.pos,penalties_copy.pos)
-  TEST_REAL_EQUAL(penalties.lWidth,penalties_copy.lWidth)
-  TEST_REAL_EQUAL(penalties.rWidth,penalties_copy.rWidth)
-  TEST_REAL_EQUAL(penalties.height,penalties_copy.height)
+  TEST_REAL_SIMILAR(penalties.pos,penalties_copy.pos)
+  TEST_REAL_SIMILAR(penalties.lWidth,penalties_copy.lWidth)
+  TEST_REAL_SIMILAR(penalties.rWidth,penalties_copy.rWidth)
+  TEST_REAL_SIMILAR(penalties.height,penalties_copy.height)
     
   TEST_EQUAL(number == 10, true)
-  TEST_REAL_EQUAL(abs_err, 0.01)
-  TEST_REAL_EQUAL(rel_err, 0.001)
-RESULT
+  TEST_REAL_SIMILAR(abs_err, 0.01)
+  TEST_REAL_SIMILAR(rel_err, 0.001)
+END_SECTION
 
-CHECK((TwoDOptimization(const TwoDOptimization& opt)))
-  PRECISION(0.001)
+START_SECTION((TwoDOptimization(const TwoDOptimization& opt)))
+  TOLERANCE_ABSOLUTE(0.001)
   TwoDOptimization opt_2d;
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties;
   opt_2d.setPenalties(penalties);
@@ -89,18 +89,18 @@ CHECK((TwoDOptimization(const TwoDOptimization& opt)))
   unsigned int number = opt_2d_copy.getMaxIterations();
   double abs_err = opt_2d_copy.getMaxAbsError();
   double rel_err = opt_2d_copy.getMaxRelError();
-  TEST_REAL_EQUAL(penalties.pos,penalties_copy.pos)
-  TEST_REAL_EQUAL(penalties.lWidth,penalties_copy.lWidth)
-  TEST_REAL_EQUAL(penalties.rWidth,penalties_copy.rWidth)
-  TEST_REAL_EQUAL(penalties.height,penalties_copy.height)
+  TEST_REAL_SIMILAR(penalties.pos,penalties_copy.pos)
+  TEST_REAL_SIMILAR(penalties.lWidth,penalties_copy.lWidth)
+  TEST_REAL_SIMILAR(penalties.rWidth,penalties_copy.rWidth)
+  TEST_REAL_SIMILAR(penalties.height,penalties_copy.height)
     
   TEST_EQUAL(number == 10, true)
-  TEST_REAL_EQUAL(abs_err, 0.01)
-  TEST_REAL_EQUAL(rel_err, 0.001)
-RESULT
+  TEST_REAL_SIMILAR(abs_err, 0.01)
+  TEST_REAL_SIMILAR(rel_err, 0.001)
+END_SECTION
 
 
-CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void optimize(InputSpectrumIterator& first,InputSpectrumIterator& last,MSExperiment< OutputPeakType >& ms_exp,bool real2D=true)))
+START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType>  void optimize(InputSpectrumIterator& first,InputSpectrumIterator& last,MSExperiment< OutputPeakType >& ms_exp,bool real2D=true)))
   //******************************************************************
   //test exception with unequal number of scans
   {
@@ -128,7 +128,7 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
   
   //******************************************************************
 // test for 2D optimization
-  PRECISION(0.01)
+  TOLERANCE_ABSOLUTE(0.01)
   MSSpectrum<> peaks;
   peaks.getMetaDataArrays().resize(6);
   peaks.getMetaDataArrays()[1].setName("maximumIntensity");
@@ -241,128 +241,128 @@ CHECK(( template <typename InputSpectrumIterator,typename OutputPeakType>  void 
   TwoDOptimization opt_2d;
  	opt_2d.setParameters(param);
   opt_2d.optimize(first,last,ms_exp,true);
-  TEST_REAL_EQUAL(ms_exp[0][0].getMZ(),500)
- 	TEST_REAL_EQUAL(ms_exp[0].getMetaDataArrays()[3][0],2.5)
- 	TEST_REAL_EQUAL(ms_exp[0].getMetaDataArrays()[4][0],2.5)
- 	TEST_REAL_EQUAL(ms_exp[0].getMetaDataArrays()[1][0],100)
-	TEST_REAL_EQUAL(ms_exp[0][1].getMZ(),501)
- 	TEST_REAL_EQUAL(ms_exp[0].getMetaDataArrays()[3][1],2.5)
- 	TEST_REAL_EQUAL(ms_exp[0].getMetaDataArrays()[4][1],2.5)
- 	TEST_REAL_EQUAL(ms_exp[0].getMetaDataArrays()[1][1],100)
-	TEST_REAL_EQUAL(ms_exp[1][0].getMZ(),500)
- 	TEST_REAL_EQUAL(ms_exp[1].getMetaDataArrays()[3][0],2.5)
- 	TEST_REAL_EQUAL(ms_exp[1].getMetaDataArrays()[4][0],2.5)
- 	TEST_REAL_EQUAL(ms_exp[1].getMetaDataArrays()[1][0],100)
-	TEST_REAL_EQUAL(ms_exp[1][1].getMZ(),501)
- 	TEST_REAL_EQUAL(ms_exp[1].getMetaDataArrays()[3][1],2.5)
- 	TEST_REAL_EQUAL(ms_exp[1].getMetaDataArrays()[4][1],2.5)
- 	TEST_REAL_EQUAL(ms_exp[1].getMetaDataArrays()[1][1],100)
+  TEST_REAL_SIMILAR(ms_exp[0][0].getMZ(),500)
+ 	TEST_REAL_SIMILAR(ms_exp[0].getMetaDataArrays()[3][0],2.5)
+ 	TEST_REAL_SIMILAR(ms_exp[0].getMetaDataArrays()[4][0],2.5)
+ 	TEST_REAL_SIMILAR(ms_exp[0].getMetaDataArrays()[1][0],100)
+	TEST_REAL_SIMILAR(ms_exp[0][1].getMZ(),501)
+ 	TEST_REAL_SIMILAR(ms_exp[0].getMetaDataArrays()[3][1],2.5)
+ 	TEST_REAL_SIMILAR(ms_exp[0].getMetaDataArrays()[4][1],2.5)
+ 	TEST_REAL_SIMILAR(ms_exp[0].getMetaDataArrays()[1][1],100)
+	TEST_REAL_SIMILAR(ms_exp[1][0].getMZ(),500)
+ 	TEST_REAL_SIMILAR(ms_exp[1].getMetaDataArrays()[3][0],2.5)
+ 	TEST_REAL_SIMILAR(ms_exp[1].getMetaDataArrays()[4][0],2.5)
+ 	TEST_REAL_SIMILAR(ms_exp[1].getMetaDataArrays()[1][0],100)
+	TEST_REAL_SIMILAR(ms_exp[1][1].getMZ(),501)
+ 	TEST_REAL_SIMILAR(ms_exp[1].getMetaDataArrays()[3][1],2.5)
+ 	TEST_REAL_SIMILAR(ms_exp[1].getMetaDataArrays()[4][1],2.5)
+ 	TEST_REAL_SIMILAR(ms_exp[1].getMetaDataArrays()[1][1],100)
 
-RESULT
+END_SECTION
 
-CHECK((void setMaxAbsError(double eps_abs)))
-  PRECISION(0.0001)
+START_SECTION((void setMaxAbsError(double eps_abs)))
+  TOLERANCE_ABSOLUTE(0.0001)
   double abs_err = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxAbsError(abs_err);
     
- 	TEST_REAL_EQUAL(abs_err, opt_2d.getMaxAbsError())
-RESULT
+ 	TEST_REAL_SIMILAR(abs_err, opt_2d.getMaxAbsError())
+END_SECTION
 
-CHECK((void setMaxRelError(double eps_rel)))
-  PRECISION(0.0001)
+START_SECTION((void setMaxRelError(double eps_rel)))
+  TOLERANCE_ABSOLUTE(0.0001)
   double rel_err = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxRelError(rel_err);
     
- 	TEST_REAL_EQUAL(rel_err, opt_2d.getMaxRelError())
-RESULT
+ 	TEST_REAL_SIMILAR(rel_err, opt_2d.getMaxRelError())
+END_SECTION
 	
-CHECK((DoubleReal getMaxAbsError() const))
-  PRECISION(0.0001)
+START_SECTION((DoubleReal getMaxAbsError() const))
+  TOLERANCE_ABSOLUTE(0.0001)
   double abs_err = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxAbsError(abs_err);
     
- 	TEST_REAL_EQUAL(abs_err, opt_2d.getMaxAbsError())
-RESULT
+ 	TEST_REAL_SIMILAR(abs_err, opt_2d.getMaxAbsError())
+END_SECTION
 
-CHECK((DoubleReal getMaxRelError() const))
-  PRECISION(0.0001)
+START_SECTION((DoubleReal getMaxRelError() const))
+  TOLERANCE_ABSOLUTE(0.0001)
   double rel_err = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxRelError(rel_err);
     
- 	TEST_REAL_EQUAL(rel_err, opt_2d.getMaxRelError())
-RESULT
+ 	TEST_REAL_SIMILAR(rel_err, opt_2d.getMaxRelError())
+END_SECTION
 	
-CHECK((void setMaxPeakDistance(double max_peak_distance)))
-  PRECISION(0.0001)
+START_SECTION((void setMaxPeakDistance(double max_peak_distance)))
+  TOLERANCE_ABSOLUTE(0.0001)
   double max_peak_distance = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxPeakDistance(max_peak_distance);
     
- 	TEST_REAL_EQUAL(max_peak_distance, opt_2d.getMaxPeakDistance())
-RESULT
+ 	TEST_REAL_SIMILAR(max_peak_distance, opt_2d.getMaxPeakDistance())
+END_SECTION
 
-CHECK((DoubleReal getMaxPeakDistance() const))
-  PRECISION(0.0001)
+START_SECTION((DoubleReal getMaxPeakDistance() const))
+  TOLERANCE_ABSOLUTE(0.0001)
   double max_peak_distance = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxPeakDistance(max_peak_distance);
     
- 	TEST_REAL_EQUAL(max_peak_distance, opt_2d.getMaxPeakDistance())
-RESULT
+ 	TEST_REAL_SIMILAR(max_peak_distance, opt_2d.getMaxPeakDistance())
+END_SECTION
 
 
 
-CHECK((void setMZTolerance(double tolerance_mz)))
-  PRECISION(0.0001)
+START_SECTION((void setMZTolerance(double tolerance_mz)))
+  TOLERANCE_ABSOLUTE(0.0001)
   double mz_tolerance = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMZTolerance(mz_tolerance);
     
- 	TEST_REAL_EQUAL(mz_tolerance, opt_2d.getMZTolerance())
-RESULT
+ 	TEST_REAL_SIMILAR(mz_tolerance, opt_2d.getMZTolerance())
+END_SECTION
 
-CHECK((DoubleReal getMZTolerance() const))
-  PRECISION(0.0001)
+START_SECTION((DoubleReal getMZTolerance() const))
+  TOLERANCE_ABSOLUTE(0.0001)
   double mz_tolerance = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMZTolerance(mz_tolerance);
     
- 	TEST_REAL_EQUAL(mz_tolerance, opt_2d.getMZTolerance())
-RESULT
+ 	TEST_REAL_SIMILAR(mz_tolerance, opt_2d.getMZTolerance())
+END_SECTION
 
-CHECK((void setMaxIterations(int max_iteration)))
+START_SECTION((void setMaxIterations(int max_iteration)))
   int number = 20;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxIterations(number);
     
  	TEST_EQUAL(number == opt_2d.getMaxIterations(), true)
-RESULT
+END_SECTION
 
-CHECK((Int getMaxIterations() const))
+START_SECTION((Int getMaxIterations() const))
   int number = 20;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxIterations(number);
     
  	TEST_EQUAL(number == opt_2d.getMaxIterations(), true)
-RESULT
+END_SECTION
 
 	
-CHECK((void setPenalties(OptimizationFunctions::PenaltyFactorsIntensity& penalties)))
-  PRECISION(0.0001)
+START_SECTION((void setPenalties(OptimizationFunctions::PenaltyFactorsIntensity& penalties)))
+  TOLERANCE_ABSOLUTE(0.0001)
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties;
   penalties.pos = 0;
   penalties.lWidth = 1;
@@ -371,14 +371,14 @@ CHECK((void setPenalties(OptimizationFunctions::PenaltyFactorsIntensity& penalti
 
   TwoDOptimization opt_2d;
   opt_2d.setPenalties(penalties);
-  TEST_REAL_EQUAL(penalties.pos,opt_2d.getPenalties().pos)
-  TEST_REAL_EQUAL(penalties.lWidth,opt_2d.getPenalties().lWidth)
-  TEST_REAL_EQUAL(penalties.rWidth,opt_2d.getPenalties().rWidth)
-	TEST_REAL_EQUAL(penalties.height,opt_2d.getPenalties().height)
-RESULT
+  TEST_REAL_SIMILAR(penalties.pos,opt_2d.getPenalties().pos)
+  TEST_REAL_SIMILAR(penalties.lWidth,opt_2d.getPenalties().lWidth)
+  TEST_REAL_SIMILAR(penalties.rWidth,opt_2d.getPenalties().rWidth)
+	TEST_REAL_SIMILAR(penalties.height,opt_2d.getPenalties().height)
+END_SECTION
 
-CHECK((const OptimizationFunctions::PenaltyFactorsIntensity& getPenalties() const))
-  PRECISION(0.0001)
+START_SECTION((const OptimizationFunctions::PenaltyFactorsIntensity& getPenalties() const))
+  TOLERANCE_ABSOLUTE(0.0001)
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties;
   penalties.pos = 0;
   penalties.lWidth = 1;
@@ -387,11 +387,11 @@ CHECK((const OptimizationFunctions::PenaltyFactorsIntensity& getPenalties() cons
 
   TwoDOptimization opt_2d;
   opt_2d.setPenalties(penalties);
-  TEST_REAL_EQUAL(penalties.pos,opt_2d.getPenalties().pos)
-  TEST_REAL_EQUAL(penalties.lWidth,opt_2d.getPenalties().lWidth)
-  TEST_REAL_EQUAL(penalties.rWidth,opt_2d.getPenalties().rWidth)
-	TEST_REAL_EQUAL(penalties.height,opt_2d.getPenalties().height)
-RESULT
+  TEST_REAL_SIMILAR(penalties.pos,opt_2d.getPenalties().pos)
+  TEST_REAL_SIMILAR(penalties.lWidth,opt_2d.getPenalties().lWidth)
+  TEST_REAL_SIMILAR(penalties.rWidth,opt_2d.getPenalties().rWidth)
+	TEST_REAL_SIMILAR(penalties.height,opt_2d.getPenalties().height)
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

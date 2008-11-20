@@ -42,37 +42,37 @@ START_TEST(CompleteLinkage, "$Id$")
 /////////////////////////////////////////////////////////////
 
 CompleteLinkage* ptr = 0;
-CHECK(CompleteLinkage())
+START_SECTION(CompleteLinkage())
 {
 	ptr = new CompleteLinkage();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~CompleteLinkage())
+START_SECTION(~CompleteLinkage())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
 ptr = new CompleteLinkage();
 
-CHECK((CompleteLinkage(const CompleteLinkage &source)))
+START_SECTION((CompleteLinkage(const CompleteLinkage &source)))
 {
   CompleteLinkage copy(*ptr);
 	TEST_EQUAL(copy.getName(), ptr->getName());
 }
-RESULT
+END_SECTION
 
-CHECK((CompleteLinkage& operator=(const CompleteLinkage &source)))
+START_SECTION((CompleteLinkage& operator=(const CompleteLinkage &source)))
 {
 	CompleteLinkage copy;
 	copy = *ptr;
 	TEST_EQUAL(copy.getName(), ptr->getName());
 }
-RESULT
+END_SECTION
 
-CHECK((void cluster(DistanceMatrix< Real > &original_distance, std::vector<BinaryTreeNode>& cluster_tree, const Real threshold=1) const))
+START_SECTION((void cluster(DistanceMatrix< Real > &original_distance, std::vector<BinaryTreeNode>& cluster_tree, const Real threshold=1) const))
 {
 	DistanceMatrix<Real> matrix(6,666);
 	matrix.setValue(1,0,0.5);
@@ -104,10 +104,10 @@ CHECK((void cluster(DistanceMatrix< Real > &original_distance, std::vector<Binar
 	TEST_EQUAL(tree.size(), result.size());
 	for (UInt i = 0; i < result.size(); ++i)
 	{
-			PRECISION(0.0001);
-			TEST_REAL_EQUAL(tree[i].left_child, result[i].left_child);
-			TEST_REAL_EQUAL(tree[i].right_child, result[i].right_child);
-			TEST_REAL_EQUAL(tree[i].distance, result[i].distance);
+			TOLERANCE_ABSOLUTE(0.0001);
+			TEST_REAL_SIMILAR(tree[i].left_child, result[i].left_child);
+			TEST_REAL_SIMILAR(tree[i].right_child, result[i].right_child);
+			TEST_REAL_SIMILAR(tree[i].distance, result[i].distance);
 	}
 
 	Real th(0.7);
@@ -124,27 +124,27 @@ CHECK((void cluster(DistanceMatrix< Real > &original_distance, std::vector<Binar
 	TEST_EQUAL(tree.size(), result.size());
 	for (UInt i = 0; i < result.size(); ++i)
 	{
-			PRECISION(0.0001);
-			TEST_REAL_EQUAL(tree[i].left_child, result[i].left_child);
-			TEST_REAL_EQUAL(tree[i].right_child, result[i].right_child);
-			TEST_REAL_EQUAL(tree[i].distance, result[i].distance);
+			TOLERANCE_ABSOLUTE(0.0001);
+			TEST_REAL_SIMILAR(tree[i].left_child, result[i].left_child);
+			TEST_REAL_SIMILAR(tree[i].right_child, result[i].right_child);
+			TEST_REAL_SIMILAR(tree[i].distance, result[i].distance);
 	}
 }
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 {
   TEST_EQUAL(ptr->getProductName(), "CompleteLinkage")
 }
-RESULT
+END_SECTION
 
-CHECK((static ClusterFunctor* create()))
+START_SECTION((static ClusterFunctor* create()))
 {
 	ClusterFunctor* cf = CompleteLinkage::create();
 	CompleteLinkage cl;
 	TEST_EQUAL(cf->getName(), cl.getName())
 }
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

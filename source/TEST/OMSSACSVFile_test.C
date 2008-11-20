@@ -54,22 +54,22 @@ String date_string_1;
 String date_string_2;
 PeptideHit peptide_hit;
 
-CHECK((OMSSACSVFile()))
+START_SECTION((OMSSACSVFile()))
 	ptr = new OMSSACSVFile();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~OMSSACSVFile())
+START_SECTION(~OMSSACSVFile())
 	delete ptr;
-RESULT
+END_SECTION
 
 ptr = new OMSSACSVFile();
 
-CHECK(void load(const String &filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &id_data) const)
+START_SECTION(void load(const String &filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &id_data) const)
 	ptr->load("data/OMSSACSVFile_test_1.csv", protein_identification, peptide_identifications);
 	TEST_EQUAL(protein_identification.getHits().size(), 0)
 	TEST_EQUAL(peptide_identifications.size(), 1)
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

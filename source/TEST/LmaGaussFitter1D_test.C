@@ -41,13 +41,13 @@ START_TEST(LmaGaussFitter1D, "$Id$")
 /////////////////////////////////////////////////////////////
 
 LmaGaussFitter1D* ptr = 0;
-CHECK(LmaGaussFitter1D())
+START_SECTION(LmaGaussFitter1D())
 	ptr = new LmaGaussFitter1D();
   TEST_EQUAL(ptr->getName(), "LmaGaussFitter1D")
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((LmaGaussFitter1D(const  LmaGaussFitter1D &source)))
+START_SECTION((LmaGaussFitter1D(const  LmaGaussFitter1D &source)))
 	LmaGaussFitter1D gf1;
 	
 	Param param;
@@ -64,13 +64,14 @@ CHECK((LmaGaussFitter1D(const  LmaGaussFitter1D &source)))
   LmaGaussFitter1D gf3;
 	gf3.setParameters(param);
   gf1 = LmaGaussFitter1D();
-	TEST_EQUAL(gf3.getParameters(), gf2.getParameters())RESULT
+	TEST_EQUAL(gf3.getParameters(), gf2.getParameters())
+END_SECTION
 
-CHECK((virtual ~LmaGaussFitter1D()))
+START_SECTION((virtual ~LmaGaussFitter1D()))
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK((virtual LmaGaussFitter1D& operator=(const  LmaGaussFitter1D &source)))
+START_SECTION((virtual LmaGaussFitter1D& operator=(const  LmaGaussFitter1D &source)))
 	LmaGaussFitter1D gf1;
 	
 	Param param;
@@ -91,25 +92,25 @@ CHECK((virtual LmaGaussFitter1D& operator=(const  LmaGaussFitter1D &source)))
 
   gf1 = LmaGaussFitter1D();
 	TEST_EQUAL(gf3.getParameters(), gf2.getParameters())
-RESULT
+END_SECTION
 
-CHECK((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *& model)))
+START_SECTION((QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *& model)))
 	// dummy subtest 
 	LmaGaussFitter1D gf1;
 	gf1 = LmaGaussFitter1D();
 	TEST_EQUAL(gf1.getParameters(), gf1.getParameters())
-RESULT
+END_SECTION
 
-CHECK((Fitter1D* create()))
+START_SECTION((Fitter1D* create()))
   Fitter1D* ptr = LmaGaussFitter1D::create();
   TEST_EQUAL(ptr->getName(), "LmaGaussFitter1D")
   TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((const String getProductName()))
+START_SECTION((const String getProductName()))
   TEST_EQUAL(LmaGaussFitter1D::getProductName(),"LmaGaussFitter1D")
   TEST_EQUAL(LmaGaussFitter1D().getName(),"LmaGaussFitter1D")
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

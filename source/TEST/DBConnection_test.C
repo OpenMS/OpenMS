@@ -42,14 +42,14 @@ START_TEST(DBConnection, "$Id$")
 /////////////////////////////////////////////////////////////
 
 DBConnection* ptr = 0;
-CHECK((DBConnection()))
+START_SECTION((DBConnection()))
 	ptr = new DBConnection();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~DBConnection()))
+START_SECTION((~DBConnection()))
 	delete ptr;
-RESULT
+END_SECTION
 
 // check for credentials
 // if they are not present, abort the test (successfully)
@@ -85,79 +85,79 @@ for (TextFile::iterator it = credentials.begin(); it!= credentials.end(); ++it)
 
 if (do_tests)
 {
-CHECK((void connect(const String &db, const String &user, const String &password, const String &host="localhost", UInt port=3306, const String &QTDBDriver=DB_PLUGIN, const String &connection_name="OpenMS_default_connection")))
+START_SECTION((void connect(const String &db, const String &user, const String &password, const String &host="localhost", UInt port=3306, const String &QTDBDriver=DB_PLUGIN, const String &connection_name="OpenMS_default_connection")))
 	  DBConnection con;
 	  TEST_EXCEPTION(DBConnection::InvalidQuery,con.connect("doesnotexist",user,password,host, port.toInt()))
 	  con.connect(db,user,password,host, port.toInt());
-	RESULT
+END_SECTION
 
-CHECK((String DBName() const ))
+START_SECTION((String DBName() const ))
 		DBConnection con;
 	  TEST_EQUAL(con.DBName(),"");
 	  con.connect(db,user,password,host, port.toInt());
 	  TEST_EQUAL(con.DBName(),db);
-	RESULT
+END_SECTION
 
-CHECK((bool isConnected() const))
+START_SECTION((bool isConnected() const))
 		DBConnection con;
 	  TEST_EQUAL(con.isConnected(),false);
 	  con.connect(db,user,password,host, port.toInt());
 	  TEST_EQUAL(con.isConnected(),true);
-	RESULT
+END_SECTION
 
-CHECK((void disconnect()))
+START_SECTION((void disconnect()))
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 	  con.disconnect();
 	  TEST_EQUAL(con.DBName(),"");
 	  TEST_EQUAL(con.isConnected(),false);
-	RESULT
+END_SECTION
 
-CHECK((QSqlQuery executeQuery(const String &query)))
+START_SECTION((QSqlQuery executeQuery(const String &query)))
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 	  con.executeQuery("DROP TABLE IF EXISTS Dummy");
 	  con.executeQuery("CREATE TABLE Dummy (id int,text varchar(5),number float )");
 	  QSqlQuery result = con.executeQuery("INSERT INTO Dummy values (5,'bla','45.11'),(4711,'bluff','471.123')");
 	  TEST_EQUAL(result.numRowsAffected(),2)
-	RESULT
+END_SECTION
 
-CHECK((String getStringValue(const String &table, const String &column, const String &id)))
+START_SECTION((String getStringValue(const String &table, const String &column, const String &id)))
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 		TEST_EQUAL("bla",con.getStringValue("Dummy","text","5"));
 		TEST_EQUAL("bluff",con.getStringValue("Dummy","text","4711"));
 		TEST_EXCEPTION(DBConnection::InvalidQuery, con.getStringValue("Dummy2","text56","4711"))
 		TEST_EXCEPTION(Exception::ConversionError, con.getStringValue("Dummy","id","sdfsdfsdf"))
-	RESULT
+END_SECTION
 
-CHECK((Int getIntValue(const String &table, const String &column, const String &id)))
+START_SECTION((Int getIntValue(const String &table, const String &column, const String &id)))
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 		TEST_EQUAL(5,con.getIntValue("Dummy","id","5"));
 		TEST_EQUAL(4711,con.getIntValue("Dummy","id","4711"));
 		TEST_EXCEPTION(DBConnection::InvalidQuery, con.getIntValue("Dummy2","text56","4711"))
 		TEST_EXCEPTION(Exception::ConversionError, con.getIntValue("Dummy","text","sdfsdf"))
-	RESULT
+END_SECTION
 
-CHECK((double getDoubleValue(const String &table, const String &column, const String &id)))
+START_SECTION((double getDoubleValue(const String &table, const String &column, const String &id)))
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
-		TEST_REAL_EQUAL(45.11,con.getDoubleValue("Dummy","number","5"));
-		TEST_REAL_EQUAL(471.123,con.getDoubleValue("Dummy","number","4711"));
+		TEST_REAL_SIMILAR(45.11,con.getDoubleValue("Dummy","number","5"));
+		TEST_REAL_SIMILAR(471.123,con.getDoubleValue("Dummy","number","4711"));
 		TEST_EXCEPTION(DBConnection::InvalidQuery, con.getDoubleValue("Dummy2","text56","4711"))
 		TEST_EXCEPTION(Exception::ConversionError, con.getDoubleValue("Dummy","text","sdfsdf"))
-	RESULT
+END_SECTION
 
-CHECK((UInt getId(const String &table, const String &column, const String &value)))
+START_SECTION((UInt getId(const String &table, const String &column, const String &value)))
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 		TEST_EQUAL(5,con.getId("Dummy","text","bla"));
 		TEST_EQUAL(4711,con.getId("Dummy","text","bluff"));
 		TEST_EXCEPTION(DBConnection::InvalidQuery, con.getId("Dummy2","text56","4711"))		
-	RESULT
+END_SECTION
 
-CHECK((void render(QSqlQuery &result, std::ostream &out=std::cout, const String &separator=" | ", const String &line_begin="", const String &line_end="\n")))
+START_SECTION((void render(QSqlQuery &result, std::ostream &out=std::cout, const String &separator=" | ", const String &line_begin="", const String &line_end="\n")))
 		DBConnection con;
 		con.connect(db,user,password,host, port.toInt());
 		QSqlQuery result = con.executeQuery("SELECT * FROM Dummy");
@@ -167,9 +167,9 @@ CHECK((void render(QSqlQuery &result, std::ostream &out=std::cout, const String 
 		stringstream s2;
 		con.render(result,s2,"x","","; ");
 		TEST_EQUAL(s2.str(),"idxtextxnumber; 5xblax45.11; 4711xbluffx471.123; ")
-	RESULT
+END_SECTION
 
-CHECK((template<class StringListType> void executeQueries(const StringListType& queries)))
+START_SECTION((template<class StringListType> void executeQueries(const StringListType& queries)))
 	  vector<String> qs;
 	  qs.push_back("DROP TABLE IF EXISTS Dummy");
 	  qs.push_back("CREATE TABLE Dummy (id int,text varchar(5))");
@@ -185,10 +185,10 @@ CHECK((template<class StringListType> void executeQueries(const StringListType& 
 		stringstream s2;
 		con.render(result,s2,"x","",";");
 		TEST_EQUAL(s2.str(),"idxtext;1xbla;2xbluff;")	  	  
-	RESULT
+END_SECTION
 
 
-CHECK((UInt getAutoId()))
+START_SECTION((UInt getAutoId()))
 		DBConnection con;
 	  con.connect(db,user,password,host, port.toInt());
 		con.executeQuery("DROP TABLE IF EXISTS Dummy");
@@ -197,7 +197,7 @@ CHECK((UInt getAutoId()))
 	  TEST_EQUAL(con.getAutoId(),1)
 	  con.executeQuery("INSERT INTO `Dummy` ( `id` ) VALUES ( NULL );");
 	  TEST_EQUAL(con.getAutoId(),2)
-	RESULT
+END_SECTION
 
 //remove Dummy table in the end
 DBConnection con;

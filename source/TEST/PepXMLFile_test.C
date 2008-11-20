@@ -40,20 +40,20 @@ START_TEST(PepXMLFile, "$Id$")
 
 PepXMLFile* ptr = 0;
 PepXMLFile file;
-CHECK(PepXMLFile())
+START_SECTION(PepXMLFile())
 {
         ptr = new PepXMLFile();
         TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~PepXMLFile())
+START_SECTION(~PepXMLFile())
 {
         delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK(void load(const String& filename,  std::map<String, std::vector<AASequence> >& peptides))
+START_SECTION(void load(const String& filename,  std::map<String, std::vector<AASequence> >& peptides))
 {
 	std::map<String, std::vector<AASequence> > peptides;
 	std::map<String, std::vector<AASequence> >::iterator it;
@@ -113,7 +113,7 @@ CHECK(void load(const String& filename,  std::map<String, std::vector<AASequence
 	TEST_EQUAL(temp_sequences[6].toUnmodifiedString(), "QTLAGRMVVQK")
 	TEST_EQUAL(temp_sequences[6].toString(), "Q(MOD:00137)TLAGRMVVQ(MOD:00137)K")				
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

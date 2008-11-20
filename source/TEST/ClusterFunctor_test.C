@@ -39,39 +39,39 @@ START_TEST(ClusterFunctor, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CHECK(ClusterFunctor())
+START_SECTION(ClusterFunctor())
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK(~ClusterFunctor())
+START_SECTION(~ClusterFunctor())
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
 //interface class is not testable
 
-CHECK((ClusterFunctor(const ClusterFunctor &source)))
+START_SECTION((ClusterFunctor(const ClusterFunctor &source)))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((ClusterFunctor& operator=(const ClusterFunctor &source)))
+START_SECTION((ClusterFunctor& operator=(const ClusterFunctor &source)))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((virtual void cluster(const DistanceMatrix< double > &original_distance, DistanceMatrix< double > &actual_distance, vector< vector< UInt > > &clusters, const String filepath="", const double threshold=1) const =0))
+START_SECTION((virtual void cluster(const DistanceMatrix< double > &original_distance, DistanceMatrix< double > &actual_distance, vector< vector< UInt > > &clusters, const String filepath="", const double threshold=1) const =0))
 {
   NOT_TESTABLE
 }
-RESULT
+END_SECTION
 
-CHECK((static void registerChildren()))
+START_SECTION((static void registerChildren()))
 {
   ClusterFunctor* cfp = Factory<ClusterFunctor>::create("AverageLinkage");
 	TEST_EQUAL( cfp->getName() , "AverageLinkage")
@@ -80,13 +80,13 @@ CHECK((static void registerChildren()))
   cfp = Factory<ClusterFunctor>::create("CompleteLinkage");
 	TEST_EQUAL( cfp->getName() , "CompleteLinkage")
 }
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 {
   TEST_EQUAL(ClusterFunctor::getProductName(),"ClusterFunctor")
 }
-RESULT
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////

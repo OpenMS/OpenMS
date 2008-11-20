@@ -82,34 +82,34 @@ START_TEST(AsymmetricStatistics, "$Id$")
 /////////////////////////////////////////////////////////////
 
 AsymmetricStatistics<double>* ptr = 0;
-CHECK(AsymmetricStatistics())
+START_SECTION(AsymmetricStatistics())
 {
 	ptr = new AsymmetricStatistics<double>();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~AsymmetricStatistics())
+START_SECTION(~AsymmetricStatistics())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
-CHECK((RealType variance1() const))
+START_SECTION((RealType variance1() const))
 {
   // summy subtest
 	TEST_EQUAL(0, 0)
 }
-RESULT
+END_SECTION
 
-CHECK((RealType variance2() const))
+START_SECTION((RealType variance2() const))
 {
    // summy subtest
 	TEST_EQUAL(0, 0)
 }
-RESULT
+END_SECTION
 
-CHECK((template <typename ProbabilityIterator, typename CoordinateIterator> void update(ProbabilityIterator const probability_begin, ProbabilityIterator const probability_end, CoordinateIterator const coordinate_begin)))
+START_SECTION((template <typename ProbabilityIterator, typename CoordinateIterator> void update(ProbabilityIterator const probability_begin, ProbabilityIterator const probability_end, CoordinateIterator const coordinate_begin)))
 {
 
 	// set the beginning of coordinates
@@ -121,41 +121,41 @@ CHECK((template <typename ProbabilityIterator, typename CoordinateIterator> void
 	stats2.update( &*dvector_data, dvector_data + num_numbers, &*fvector_coord );
 
 	TEST_EQUAL(num_numbers,90);	
-	PRECISION(0.1);
+	TOLERANCE_ABSOLUTE(0.1);
 	STATUS( stats2 );
 
-	TEST_REAL_EQUAL( stats2.sum(), 7096.78 );
-	TEST_REAL_EQUAL( stats2.mean(), 954.86 );
-	TEST_REAL_EQUAL( stats2.variance(), 638.663 );
+	TEST_REAL_SIMILAR( stats2.sum(), 7096.78 );
+	TEST_REAL_SIMILAR( stats2.mean(), 954.86 );
+	TEST_REAL_SIMILAR( stats2.variance(), 638.663 );
 
 	AsymmetricStatistics < double > asy;
 
 	// test default values for variance1 and variance2
-	TEST_REAL_EQUAL( asy.variance1(), 0 );
-	TEST_REAL_EQUAL( asy.variance2(), 0 );
+	TEST_REAL_SIMILAR( asy.variance1(), 0 );
+	TEST_REAL_SIMILAR( asy.variance2(), 0 );
 
 	// compute variance1 and variance2
 	asy.update(&*dvector_data, dvector_data + num_numbers, &*fvector_coord);
 
 	// test basic statistics
-	TEST_REAL_EQUAL( asy.sum(), 7096.78 );
-	TEST_REAL_EQUAL( asy.mean(), 954.86 );
-	TEST_REAL_EQUAL( asy.variance(), 638.663 );
+	TEST_REAL_SIMILAR( asy.sum(), 7096.78 );
+	TEST_REAL_SIMILAR( asy.mean(), 954.86 );
+	TEST_REAL_SIMILAR( asy.variance(), 638.663 );
 
 	// test advanced statistics, computed in method update
 	//
  	// Note: Marcel had some other numbers here,
 	// but Clemens changed the algorithm since then.
 	// Not clear what's right here, but anyway we could detect way-off errors.
-	TEST_REAL_EQUAL( asy.variance1(), 612.229 );
-	TEST_REAL_EQUAL( asy.variance2() , 665.783 );
+	TEST_REAL_SIMILAR( asy.variance1(), 612.229 );
+	TEST_REAL_SIMILAR( asy.variance2() , 665.783 );
 
 }
-RESULT
+END_SECTION
 
 
 // The following test might explain and check a bit more thoroughly how the asy stats are computed.
-CHECK([EXTRA](template <typename ProbabilityIterator, typename CoordinateIterator> void update(ProbabilityIterator const probability_begin, ProbabilityIterator const probability_end, CoordinateIterator const coordinate_begin)))
+START_SECTION([EXTRA](template <typename ProbabilityIterator, typename CoordinateIterator> void update(ProbabilityIterator const probability_begin, ProbabilityIterator const probability_end, CoordinateIterator const coordinate_begin)))
 {
 	AsymmetricStatistics < double > asy;
 
@@ -168,15 +168,15 @@ CHECK([EXTRA](template <typename ProbabilityIterator, typename CoordinateIterato
 		asy.update(&*vector_data, vector_data + num_numbers, &*vector_coord);
 
 		// test basic statistics
-		TEST_REAL_EQUAL( asy.sum(), 1000 );
+		TEST_REAL_SIMILAR( asy.sum(), 1000 );
 
-		PRECISION(1E-10);
-		TEST_REAL_EQUAL( asy.mean(), 4 );
-		TEST_REAL_EQUAL( asy.variance(), .006 );
+		TOLERANCE_ABSOLUTE(1E-10);
+		TEST_REAL_SIMILAR( asy.mean(), 4 );
+		TEST_REAL_SIMILAR( asy.variance(), .006 );
 
 		// test advanced statistics, computed in method update
-		TEST_REAL_EQUAL( asy.variance1(), 2.*2./1001. );
-		TEST_REAL_EQUAL( asy.variance2(), 2.*4./999. );
+		TEST_REAL_SIMILAR( asy.variance1(), 2.*2./1001. );
+		TEST_REAL_SIMILAR( asy.variance2(), 2.*4./999. );
 	}
 
 	{
@@ -186,19 +186,19 @@ CHECK([EXTRA](template <typename ProbabilityIterator, typename CoordinateIterato
 		asy.update(&*vector_data, vector_data + num_numbers, &*vector_coord);
 
 		// test basic statistics
-		TEST_REAL_EQUAL( asy.sum(), 1000 );
+		TEST_REAL_SIMILAR( asy.sum(), 1000 );
 
-		PRECISION(1E-10);
-		TEST_REAL_EQUAL( asy.mean(), 4 );
-		TEST_REAL_EQUAL( asy.variance(), .030 );
+		TOLERANCE_ABSOLUTE(1E-10);
+		TEST_REAL_SIMILAR( asy.mean(), 4 );
+		TEST_REAL_SIMILAR( asy.variance(), .030 );
 
 		// test advanced statistics, computed in method update
-		TEST_REAL_EQUAL( asy.variance1(), (5.*1.)/(994./2.+5.) );
-		TEST_REAL_EQUAL( asy.variance2(), (25.*1.)/(994./2.+1.) );
+		TEST_REAL_SIMILAR( asy.variance1(), (5.*1.)/(994./2.+5.) );
+		TEST_REAL_SIMILAR( asy.variance2(), (25.*1.)/(994./2.+1.) );
 	}
 
 }
-RESULT
+END_SECTION
 
 //-----------------------------------------------------------
 

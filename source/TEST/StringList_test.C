@@ -40,16 +40,16 @@ START_TEST(StringList, "$Id$")
 /////////////////////////////////////////////////////////////
 
 StringList* ptr = 0;
-CHECK(StringList())
+START_SECTION(StringList())
 	ptr = new StringList;
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~StringList())
+START_SECTION(~StringList())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(static StringList create(const String& list))
+START_SECTION(static StringList create(const String& list))
 	StringList list = StringList::create("yes,no");
 	TEST_EQUAL(list.size(),2);
 	TEST_STRING_EQUAL(list[0],"yes");
@@ -61,17 +61,17 @@ CHECK(static StringList create(const String& list))
 
 	StringList list3 = StringList::create("");
 	TEST_EQUAL(list3.size(),0);
-RESULT
+END_SECTION
 
-CHECK(StringList(const StringList& rhs))
+START_SECTION(StringList(const StringList& rhs))
 	StringList list = StringList::create("yes,no");
 	StringList list2(list);
 	TEST_EQUAL(list2.size(),2);
 	TEST_STRING_EQUAL(list2[0],"yes");
 	TEST_STRING_EQUAL(list2[1],"no");
-RESULT
+END_SECTION
 
-CHECK(StringList(const std::vector<String>& rhs))
+START_SECTION(StringList(const std::vector<String>& rhs))
 	std::vector<String> list;
 	list.push_back("yes");
 	list.push_back("no");
@@ -79,9 +79,9 @@ CHECK(StringList(const std::vector<String>& rhs))
 	TEST_EQUAL(list2.size(),2);
 	TEST_STRING_EQUAL(list2[0],"yes");
 	TEST_STRING_EQUAL(list2[1],"no");
-RESULT
+END_SECTION
 
-CHECK(StringList(const std::vector<std::string>& rhs))
+START_SECTION(StringList(const std::vector<std::string>& rhs))
 	std::vector<string> list;
 	list.push_back("yes");
 	list.push_back("no");
@@ -90,9 +90,9 @@ CHECK(StringList(const std::vector<std::string>& rhs))
 	TEST_STRING_EQUAL(list2[0],"yes");
 	TEST_STRING_EQUAL(list2[1],"no");
 
-RESULT
+END_SECTION
 
-CHECK(StringList& operator=(const StringList& rhs))
+START_SECTION(StringList& operator=(const StringList& rhs))
 	StringList list = StringList::create("yes,no");
 	StringList list2;
 	list2 = list;
@@ -100,9 +100,9 @@ CHECK(StringList& operator=(const StringList& rhs))
 	TEST_STRING_EQUAL(list2[0],"yes");
 	TEST_STRING_EQUAL(list2[1],"no");
 
-RESULT
+END_SECTION
 
-CHECK(StringList& operator=(const std::vector<String>& rhs))
+START_SECTION(StringList& operator=(const std::vector<String>& rhs))
 	std::vector<String> list;
 	list.push_back("yes");
 	list.push_back("no");
@@ -112,9 +112,9 @@ CHECK(StringList& operator=(const std::vector<String>& rhs))
 	TEST_STRING_EQUAL(list2[0],"yes");
 	TEST_STRING_EQUAL(list2[1],"no");
 
-RESULT
+END_SECTION
 
-CHECK(StringList& operator=(const std::vector<std::string>& rhs))
+START_SECTION(StringList& operator=(const std::vector<std::string>& rhs))
 	std::vector<string> list;
 	list.push_back("yes");
 	list.push_back("no");
@@ -124,9 +124,9 @@ CHECK(StringList& operator=(const std::vector<std::string>& rhs))
 	TEST_STRING_EQUAL(list2[0],"yes");
 	TEST_STRING_EQUAL(list2[1],"no");
 
-RESULT
+END_SECTION
 
-CHECK((template<typename StringType> StringList& operator<<(const StringType& string)))
+START_SECTION((template<typename StringType> StringList& operator<<(const StringType& string)))
 	StringList list;
 	list << "a" << "b" << "c" << "a";
 	TEST_EQUAL(list.size(),4);
@@ -134,30 +134,30 @@ CHECK((template<typename StringType> StringList& operator<<(const StringType& st
 	TEST_STRING_EQUAL(list[1],"b");
 	TEST_STRING_EQUAL(list[2],"c");
 	TEST_STRING_EQUAL(list[3],"a");
-RESULT
+END_SECTION
 
-CHECK(bool contains(const String& s) const)
+START_SECTION(bool contains(const String& s) const)
 	StringList list = StringList::create("yes,no");
 	TEST_EQUAL(list.contains("yes"),true)
 	TEST_EQUAL(list.contains("no"),true)
 	TEST_EQUAL(list.contains("jup"),false)	
 	TEST_EQUAL(list.contains(""),false)
 	TEST_EQUAL(list.contains("noe"),false)
-RESULT
+END_SECTION
 
-CHECK(void toUpper())
+START_SECTION(void toUpper())
 	StringList list = StringList::create("yes,no");
 	list.toUpper();
 	TEST_EQUAL(list[0],"YES")
 	TEST_EQUAL(list[1],"NO")
-RESULT
+END_SECTION
 
-CHECK(void toLower())
+START_SECTION(void toLower())
 	StringList list = StringList::create("yES,nO");
 	list.toLower();
 	TEST_EQUAL(list[0],"yes")
 	TEST_EQUAL(list[1],"no")
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

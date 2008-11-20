@@ -76,59 +76,59 @@ START_TEST(SignalToNoiseEstimator, "$Id$")
 /////////////////////////////////////////////////////////////
 
 TestSignalToNoiseEstimator* ptr = 0;
-CHECK((SignalToNoiseEstimator()))
+START_SECTION((SignalToNoiseEstimator()))
 	ptr = new TestSignalToNoiseEstimator();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
 
-CHECK((SignalToNoiseEstimator(const SignalToNoiseEstimator &source)))
+START_SECTION((SignalToNoiseEstimator(const SignalToNoiseEstimator &source)))
   TestSignalToNoiseEstimator sne;
   MSSpectrum<> spec;
   sne.init(spec.begin(), spec.end());
   TestSignalToNoiseEstimator sne_copy(sne);
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
 
-CHECK((SignalToNoiseEstimator& operator=(const SignalToNoiseEstimator &source)))
+START_SECTION((SignalToNoiseEstimator& operator=(const SignalToNoiseEstimator &source)))
   TestSignalToNoiseEstimator sne;
   MSSpectrum<> spec;
   sne.init(spec.begin(), spec.end());
   TestSignalToNoiseEstimator sne_copy;
   sne_copy = sne;
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
 
-CHECK((virtual ~SignalToNoiseEstimator()))
+START_SECTION((virtual ~SignalToNoiseEstimator()))
 	delete ptr;
-RESULT
+END_SECTION
 
 
-CHECK((virtual void init(const PeakIterator& it_begin, const PeakIterator& it_end)))
+START_SECTION((virtual void init(const PeakIterator& it_begin, const PeakIterator& it_end)))
   TestSignalToNoiseEstimator sne;
   MSSpectrum<> spec;
   sne.init(spec.begin(), spec.end());
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((virtual void init(const Container& c)))
+START_SECTION((virtual void init(const Container& c)))
   TestSignalToNoiseEstimator sne;
   MSSpectrum<> spec;
   sne.init(spec);
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((virtual double getSignalToNoise(const PeakIterator& data_point)))
+START_SECTION((virtual double getSignalToNoise(const PeakIterator& data_point)))
   // hard to do without implementing computeSTN_ properly
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
-CHECK((virtual double getSignalToNoise(const PeakType &data_point)))
+START_SECTION((virtual double getSignalToNoise(const PeakType &data_point)))
   // hard to do without implementing computeSTN_ properly
 	NOT_TESTABLE
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

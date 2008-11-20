@@ -43,31 +43,31 @@ START_TEST(Normalizer, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Normalizer* e_ptr = 0;
-CHECK((Normalizer()))
+START_SECTION((Normalizer()))
 	e_ptr = new Normalizer;
 	TEST_NOT_EQUAL(e_ptr, 0)
-RESULT
+END_SECTION
 
-CHECK((~Normalizer()))
+START_SECTION((~Normalizer()))
 	delete e_ptr;
-RESULT
+END_SECTION
 
 e_ptr = new Normalizer();
 
-CHECK((Normalizer(const Normalizer& source)))
+START_SECTION((Normalizer(const Normalizer& source)))
 	Normalizer copy(*e_ptr);
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK((Normalizer& operator = (const Normalizer& source)))
+START_SECTION((Normalizer& operator = (const Normalizer& source)))
 	Normalizer copy;
 	copy = *e_ptr;
 	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
-RESULT
+END_SECTION
 
-CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
+START_SECTION((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
 	dta_file.load("data/Transformers_tests.dta", spec);
@@ -93,21 +93,21 @@ CHECK((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectru
 		sum += it->getIntensity();
 	}
 
-	TEST_REAL_EQUAL(sum, 1.0);	
-RESULT
+	TEST_REAL_SIMILAR(sum, 1.0);	
+END_SECTION
 
-CHECK((static PreprocessingFunctor* create()))
+START_SECTION((static PreprocessingFunctor* create()))
 	PreprocessingFunctor* ppf = Normalizer::create();
 	Normalizer norm;
 	TEST_EQUAL(ppf->getParameters(), norm.getParameters())
 	TEST_EQUAL(ppf->getName(), norm.getName())
-RESULT
+END_SECTION
 
-CHECK((static const String getProductName()))
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(e_ptr->getProductName(), "Normalizer")
-RESULT
+END_SECTION
 	
-CHECK((void filterPeakMap(PeakMap& exp)))
+START_SECTION((void filterPeakMap(PeakMap& exp)))
 	delete e_ptr;
 	e_ptr = new Normalizer();
 
@@ -139,10 +139,10 @@ CHECK((void filterPeakMap(PeakMap& exp)))
     sum += it->getIntensity();
   }
 
-  TEST_REAL_EQUAL(sum, 1.0);	
-RESULT
+  TEST_REAL_SIMILAR(sum, 1.0);	
+END_SECTION
 
-CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
+START_SECTION((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 	delete e_ptr;
 	e_ptr = new Normalizer();
 
@@ -171,8 +171,8 @@ CHECK((void filterPeakSpectrum(PeakSpectrum& spectrum)))
     sum += it->getIntensity();
   }
 
-  TEST_REAL_EQUAL(sum, 1.0);	
-RESULT
+  TEST_REAL_SIMILAR(sum, 1.0);	
+END_SECTION
 
 delete e_ptr;
 

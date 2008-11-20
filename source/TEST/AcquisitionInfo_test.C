@@ -39,27 +39,27 @@ START_TEST(AcquisitionInfo, "$Id$")
 /////////////////////////////////////////////////////////////
 
 AcquisitionInfo* ptr = 0;
-CHECK(AcquisitionInfo())
+START_SECTION(AcquisitionInfo())
 	ptr = new AcquisitionInfo();
 	TEST_NOT_EQUAL(ptr, 0)
-RESULT
+END_SECTION
 
-CHECK(~AcquisitionInfo())
+START_SECTION(~AcquisitionInfo())
 	delete ptr;
-RESULT
+END_SECTION
 
-CHECK(const String& getMethodOfCombination() const)
+START_SECTION(const String& getMethodOfCombination() const)
   AcquisitionInfo tmp;
   TEST_EQUAL(tmp.getMethodOfCombination(),"");
-RESULT
+END_SECTION
 
-CHECK(void setMethodOfCombination(const String& method_of_combination))
+START_SECTION(void setMethodOfCombination(const String& method_of_combination))
   AcquisitionInfo tmp;
   tmp.setMethodOfCombination("TEST");
   TEST_EQUAL(tmp.getMethodOfCombination(),"TEST");
-RESULT
+END_SECTION
 
-CHECK(AcquisitionInfo(const AcquisitionInfo& source))
+START_SECTION(AcquisitionInfo(const AcquisitionInfo& source))
 	AcquisitionInfo tmp;
 	Acquisition a;
 	a.setNumber(4711);
@@ -71,10 +71,10 @@ CHECK(AcquisitionInfo(const AcquisitionInfo& source))
 	TEST_EQUAL(tmp2.size(), 1);
 	TEST_EQUAL(tmp2[0].getNumber(), 4711);  
 	TEST_EQUAL(tmp2.getMethodOfCombination(), "Combo");  
-	TEST_REAL_EQUAL((DoubleReal)(tmp2.getMetaValue("bla")), 4.0)
-RESULT
+	TEST_REAL_SIMILAR((DoubleReal)(tmp2.getMetaValue("bla")), 4.0)
+END_SECTION
 
-CHECK(AcquisitionInfo& operator= (const AcquisitionInfo& source))
+START_SECTION(AcquisitionInfo& operator= (const AcquisitionInfo& source))
 	AcquisitionInfo tmp;
 	Acquisition a;
 	a.setNumber(4711);
@@ -88,16 +88,16 @@ CHECK(AcquisitionInfo& operator= (const AcquisitionInfo& source))
 	TEST_EQUAL(tmp2.size(), 1);
 	TEST_EQUAL(tmp2[0].getNumber(), 4711);  
 	TEST_EQUAL(tmp2.getMethodOfCombination(), "Combo");
-	TEST_REAL_EQUAL((DoubleReal)(tmp2.getMetaValue("bla")), 4.0)
+	TEST_REAL_SIMILAR((DoubleReal)(tmp2.getMetaValue("bla")), 4.0)
 		
 	//assignment of a empty value
 	tmp2 = AcquisitionInfo();
 	TEST_EQUAL(tmp2.size(), 0);
 	TEST_EQUAL(tmp2.getMethodOfCombination(), "");
 	TEST_EQUAL(tmp2.metaValueExists("bla"), false)
-RESULT
+END_SECTION
 
-CHECK(bool operator== (const AcquisitionInfo& rhs) const)
+START_SECTION(bool operator== (const AcquisitionInfo& rhs) const)
   AcquisitionInfo empty,edit;
 	TEST_EQUAL(empty==edit,true);
 	
@@ -111,9 +111,9 @@ CHECK(bool operator== (const AcquisitionInfo& rhs) const)
 	edit = empty;
 	edit.setMethodOfCombination("Combo");
 	TEST_EQUAL(empty==edit,false);
-RESULT
+END_SECTION
 
-CHECK(bool operator!= (const AcquisitionInfo& rhs) const)
+START_SECTION(bool operator!= (const AcquisitionInfo& rhs) const)
   AcquisitionInfo empty,edit;
 	TEST_EQUAL(empty!=edit,false);
 	
@@ -127,7 +127,7 @@ CHECK(bool operator!= (const AcquisitionInfo& rhs) const)
 	edit = empty;
 	edit.setMethodOfCombination("Combo");
 	TEST_EQUAL(empty!=edit,true);
-RESULT
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
