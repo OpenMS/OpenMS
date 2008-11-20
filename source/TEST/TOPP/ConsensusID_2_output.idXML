@@ -8,7 +8,7 @@
 		<PeptideIdentification score_type="Consensus_averaged (Mascot)" higher_score_better="true" significance_threshold="0" MZ="1.5" RT="1.5" >
 			<PeptideHit score="5" sequence="A" charge="0" >
 			</PeptideHit>
-			<PeptideHit score="2.5" sequence="B" charge="0" >
+			<PeptideHit score="2.5" sequence="E" charge="0" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Consensus_averaged (Mascot)" higher_score_better="true" significance_threshold="0" MZ="3.5" RT="3.5" >

@@ -53,7 +53,7 @@ using namespace std;
 	These text files can be easily read using other applications
 	such as R, Matlab, Excel, etc.
 	
-	@todo Add identifications output to featureXML and consensusXML (Chris, Nico, Marc)	
+	@todo Add identifications output to featureXML and consensusXML and consider no_ids flag (Andreas, Clemens, Chris, Nico, Marc)	
 */
 
 // We do not want this class to show up in the docu:
@@ -158,6 +158,7 @@ namespace OpenMS
       registerInputFile_("in","<file>","","Input file ");
     	setValidFormats_("in",StringList::create("featureXML,consensusXML,idXML"));
       registerOutputFile_("out","<file>","","Output file. Only used for FeatureXML and IdXML.",false);
+      registerFlag_("no_ids","Suppresses output of identification data for consensusXML and featureXML");
 			addEmptyLine_();
 			addText_("Options for IdXML files:");
 			registerFlag_("proteins_only", "Set this flag if you want only protein information from an idXML file");
@@ -197,6 +198,7 @@ namespace OpenMS
 			String out = getStringOption_("out");
 			UInt counter = 0;
 			bool without_header_repetition = getFlag_("peptides_only_csv");
+      bool no_ids = getFlag_("no_ids");
         
       //input file type
       FileHandler::Type in_type = FileHandler::getType(in);

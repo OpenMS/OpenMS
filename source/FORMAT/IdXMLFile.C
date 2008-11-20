@@ -378,43 +378,42 @@ namespace OpenMS
 			param_.peak_mass_tolerance = attributeAsDouble_(attributes,"peak_mass_tolerance");
 			param_.precursor_tolerance = attributeAsDouble_(attributes,"precursor_peak_tolerance");
 			//mass type
-			const XMLCh* mass_type = attributes.getValue(sm_.convert("mass_type"));
-			if (xercesc::XMLString::equals(mass_type,sm_.convert("monoisotopic")))
+			
+			String mass_type = attributeAsString_(attributes,"mass_type");
+			if (mass_type=="monoisotopic")
 			{
 				param_.mass_type = ProteinIdentification::MONOISOTOPIC;
 			}
-			else if (xercesc::XMLString::equals(mass_type,sm_.convert("average")))
+			else if (mass_type=="average")
 			{
 				param_.mass_type = ProteinIdentification::AVERAGE;
 			}
 			//enzyme
-			const XMLCh* enzyme = attributes.getValue(sm_.convert("enzyme"));
-			if (enzyme!=0)
+			String enzyme;
+			optionalAttributeAsString_(enzyme,attributes,"enzyme");
+			if (enzyme == "trypsin")
 			{
-				if (xercesc::XMLString::equals(enzyme,sm_.convert("trypsin")))
-				{
-					param_.enzyme = ProteinIdentification::TRYPSIN;
-				}
-				else if (xercesc::XMLString::equals(enzyme,sm_.convert("pepsin_a")))
-				{
-					param_.enzyme = ProteinIdentification::PEPSIN_A;
-				}
-				else if (xercesc::XMLString::equals(enzyme,sm_.convert("protease_k")))
-				{
-					param_.enzyme = ProteinIdentification::PROTEASE_K;
-				}
-				else if (xercesc::XMLString::equals(enzyme,sm_.convert("chymotrypsin")))
-				{
-					param_.enzyme = ProteinIdentification::CHYMOTRYPSIN;
-				}			 
-				else if (xercesc::XMLString::equals(enzyme,sm_.convert("no_enzyme")))
-				{
-					param_.enzyme = ProteinIdentification::NO_ENZYME;
-				}
-				else if (xercesc::XMLString::equals(enzyme,sm_.convert("unknown_enzyme")))
-				{
-					param_.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
-				}
+				param_.enzyme = ProteinIdentification::TRYPSIN;
+			}
+			else if (enzyme == "pepsin_a")
+			{
+				param_.enzyme = ProteinIdentification::PEPSIN_A;
+			}
+			else if (enzyme == "protease_k")
+			{
+				param_.enzyme = ProteinIdentification::PROTEASE_K;
+			}
+			else if (enzyme == "chymotrypsin")
+			{
+				param_.enzyme = ProteinIdentification::CHYMOTRYPSIN;
+			}			 
+			else if (enzyme == "no_enzyme")
+			{
+				param_.enzyme = ProteinIdentification::NO_ENZYME;
+			}
+			else if (enzyme == "unknown_enzyme")
+			{
+				param_.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
 			}
 			last_meta_ = &param_;	
 		}
@@ -469,19 +468,8 @@ namespace OpenMS
 			}
 			
 			//score orientation
-			const XMLCh* higher_score_better = attributes.getValue(sm_.convert("higher_score_better"));
-			if (xercesc::XMLString::equals(higher_score_better,sm_.convert("true")))
-			{
-				prot_id_.setHigherScoreBetter(true);	
-			}
-			else if (xercesc::XMLString::equals(higher_score_better,sm_.convert("false")))
-			{
-				prot_id_.setHigherScoreBetter(false);					
-			}
-			else
-			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "Invalid value for 'higher_score_better '");				
-			}
+			prot_id_.setHigherScoreBetter(asBool_(attributeAsString_(attributes,"higher_score_better")));
+
 			last_meta_ = &prot_id_;
 		}
 		else if (element == "ProteinHit")
@@ -520,19 +508,7 @@ namespace OpenMS
 			}
 
 			//score orientation
-			const XMLCh* higher_score_better = attributes.getValue(sm_.convert("higher_score_better"));
-			if (xercesc::XMLString::equals(higher_score_better,sm_.convert("true")))
-			{
-				pep_id_.setHigherScoreBetter(true);	
-			}
-			else if (xercesc::XMLString::equals(higher_score_better,sm_.convert("false")))
-			{
-				pep_id_.setHigherScoreBetter(false);					
-			}
-			else
-			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "Invalid value for 'higher_score_better '");				
-			}
+			pep_id_.setHigherScoreBetter(asBool_(attributeAsString_(attributes,"higher_score_better")));
 			
 			//MZ
 			DoubleReal tmp2=-numeric_limits<DoubleReal>::max();

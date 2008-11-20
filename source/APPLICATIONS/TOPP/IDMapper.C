@@ -41,7 +41,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page IDMapper_TOPP IDMapper_TOPP
+	@page IDMapper_TOPP IDMapper
 	
 	Assigns protein/peptide identifications to feature or consensus features.
 */
@@ -87,18 +87,21 @@ class TOPPIDMapper
 				
 			//----------------------------------------------------------------
 			// load idXML
+			//----------------------------------------------------------------
 			vector<ProteinIdentification> protein_ids;
 			vector<PeptideIdentification> peptide_ids;
 			IdXMLFile().load(getStringOption_("id"),protein_ids,peptide_ids);
 
 			//----------------------------------------------------------------
 			//create mapper
+			//----------------------------------------------------------------
 			IDMapper mapper;
 			mapper.setRTDelta(getDoubleOption_("rt_delta"));
 			mapper.setMZDelta(getDoubleOption_("mz_delta"));
 
 			//----------------------------------------------------------------
 			// consensusXML
+			//----------------------------------------------------------------
 			if (in_type == FileHandler::CONSENSUSXML)
 			{
 				ConsensusXMLFile file;
@@ -110,6 +113,7 @@ class TOPPIDMapper
 			
 			//----------------------------------------------------------------
 			// featureXML
+			//----------------------------------------------------------------
 			if (in_type == FileHandler::FEATUREXML)
 			{
 				FeatureMap<> map;

@@ -294,19 +294,8 @@ namespace OpenMS
 			}
 		
 			//score orientation
-			const XMLCh* higher_score_better = attributes.getValue(sm_.convert("higher_score_better"));
-			if (xercesc::XMLString::equals(higher_score_better,sm_.convert("true")))
-			{
-				prot_id_.setHigherScoreBetter(true);	
-			}
-			else if (xercesc::XMLString::equals(higher_score_better,sm_.convert("false")))
-			{
-				prot_id_.setHigherScoreBetter(false);					
-			}
-			else
-			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "Invalid value for 'higher_score_better '");				
-			}
+			prot_id_.setHigherScoreBetter(asBool_(attributeAsString_(attributes,"higher_score_better")));
+
 			last_meta_ = &prot_id_;
 		}
 		else if (tag == "ProteinHit")
@@ -343,19 +332,7 @@ namespace OpenMS
 			}
 
 			//score orientation
-			const XMLCh* higher_score_better = attributes.getValue(sm_.convert("higher_score_better"));
-			if (xercesc::XMLString::equals(higher_score_better,sm_.convert("true")))
-			{
-				pep_id_.setHigherScoreBetter(true);	
-			}
-			else if (xercesc::XMLString::equals(higher_score_better,sm_.convert("false")))
-			{
-				pep_id_.setHigherScoreBetter(false);					
-			}
-			else
-			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "Invalid value for 'higher_score_better '");				
-			}
+			pep_id_.setHigherScoreBetter(asBool_(attributeAsString_(attributes,"higher_score_better")));
 		
 			//MZ
 			DoubleReal tmp2 = - numeric_limits<DoubleReal>::max();
