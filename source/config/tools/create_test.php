@@ -86,29 +86,29 @@ START_TEST(<? print $class; ?>, "$Id$")
 /////////////////////////////////////////////////////////////
 
 <? print $class; ?>* ptr = 0;
-CHECK(<? print $class; ?>())
+START_SECTION(<? print $class; ?>())
 {
 	ptr = new <? print $class; ?>();
 	TEST_NOT_EQUAL(ptr, 0)
 }
-RESULT
+END_SECTION
 
-CHECK(~<? print $class; ?>())
+START_SECTION(~<? print $class; ?>())
 {
 	delete ptr;
 }
-RESULT
+END_SECTION
 
 <?
 foreach ($class_info["public-long"] as $c)
 {
 	if (trim($c) != $class_info["classname"]."()")
 	{
-		print "CHECK(($c))\n";
+		print "START_SECTION(($c))\n";
 		print "{\n";
 		print "  // TODO\n";
 		print "}\n";
-		print "RESULT\n";
+		print "END_SECTION\n";
 		print "\n";
 	}
 }

@@ -339,7 +339,7 @@ function parseTestFile($filename)
 	foreach ($tmp as $line)
 	{	
 		$line = trim($line);
-		if (beginsWith($line,"CHECK(") || beginsWith($line,"CHECK (") || beginsWith($line,"CHECK	("))
+		if (beginsWith($line,"START_SECTION(") || beginsWith($line,"START_SECTION (") || beginsWith($line,"START_SECTION	("))
 		{
 			# strip brackets
 			$function = trim(substr($line,5));
@@ -356,7 +356,7 @@ function parseTestFile($filename)
 			}
 			$in_test = true;
 		}
-		else if (beginsWith($line,"RESULT"))
+		else if (beginsWith($line,"END_SECTION"))
 		{
 			$in_test = false;
 		}
