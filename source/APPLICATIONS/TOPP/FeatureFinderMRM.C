@@ -94,9 +94,9 @@ class TOPPFeatureFinderMRM
  
 	void registerOptionsAndFlags_()
 	{
-		registerInputFile_("in","<file>","","input file ");
+		registerInputFile_("in","<file>","","input file");
 		setValidFormats_("in",StringList::create("mzData"));
-		registerOutputFile_("out","<file>","","output feature list ");
+		registerOutputFile_("out","<file>","","output file");
 		setValidFormats_("out",StringList::create("featureXML"));
 		
 		registerDoubleOption_("p_mz_tol","<float>",50.0,"Precursor m/z tolerance (in ppm)",false);		

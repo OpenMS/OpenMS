@@ -3,17 +3,18 @@
 ------------------------------------------------------------------------------------------
 
 New features and improvements of OpenMS:
-- Kernel: replaced comparators NthPositionLess by the comparator(s) RTLess and/or MZLess.
-- Kernel: replaced methods sortByNthPosition() by the method(s) sortByRT() and/or sortByMZ().
-- Improved the whole framework for meta data visualization.
+- Kernel: Replaced comparators NthPositionLess by the comparator(s) RTLess and/or MZLess.
+- Kernel: Replaced methods sortByNthPosition() by the method(s) sortByRT() and/or sortByMZ().
+- Improved The whole framework for meta data visualization.
 - Finalized MzML implementation: previously unsupported parts, index MzML, semantic validation
 - Meta data: Several extensions to the meta data handling classes for mzML compliance.
 
 New features and improvements of TOPP:
 - FeatureLinker: Added automated RT parameter estimated for 'labeled' algorithm.
 - Added new Tools: SILACAnalyzer, IDQuantMerger, ITRAQAnalyzer
-- Resampler: this tool is now used for resampling raw data instead of NoiseFilter or BaselineFilter
+- Resampler: This tool is now used for resampling raw data instead of NoiseFilter or BaselineFilter
 - FileInfo: The option '-v' now also does a semantic validation of MzML files
+- FileMerger: Improved interface
 
 New features and improvements of TOPPView:
 - Added functionality for editing feature data
@@ -22,16 +23,16 @@ Changes to OpenMS XML formats:
 - ParamXML:
   - Restrictions in Param .ini files are represented by 'min:max' instead
     of 'min-max' now, to avoid issues with small (1e-06) and negative numbers.
-  - replaced 'advanced' attribute by the more general 'tags' attribute.
-  - added support for float, int and string lists
+  - Replaced 'advanced' attribute by the more general 'tags' attribute.
+  - Added support for float, int and string lists
 - featureXML:
-  - added tag <subordinate> to store competing features that did not qualify for the final map
-  - removed <description> section
-  - added document Id
-  - added protein and peptide information
+  - Added tag <subordinate> to store competing features that did not qualify for the final map
+  - Removed <description> section
+  - Added document Id
+  - Added protein and peptide information
 - consensusXML:
-	- added document Id
-	- added protein and peptide information
+	- Added document Id
+	- Added protein and peptide information
 
 Changes to the contrib package:
 - Updated SeqAn package to revision 2666 (this fixes the STL debug error)
@@ -64,7 +65,7 @@ Detailed list of changes to specific OpenMS classes:
     - Now contains multiple SourceFiles and DataProcessings
     - ExperimentType was removed
   - SpectrumSettings
-    - added nativeID (from acquisition software)
+    - Added nativeID (from acquisition software)
     - The nativeID is now correctly handled for mzData, mzXML and mzML files
   - DSpectrum
     - The peaks are no longer stored in a container member, but DSpectrum is derived 
@@ -78,19 +79,19 @@ Detailed list of changes to specific OpenMS classes:
   - Param:
     - Added a new remove(key) method, that removed only exact matches.
       The old remove() method was renamed to removeAll(prefix)
-    - replaced 'advanced' flag by a generic tagging mechanism
+    - Replaced 'advanced' flag by a generic tagging mechanism
     - Added support for IntList and DoubleList types
   - File: find(...) now throws an exception, of the file is not found.
   - DPeak and DRichPeak are metafunctions now, e.g. DPeak<1>::Type is a typedef for Peak1D.
   - VersionInfo: Added support for SVN revision info. Slight interface changes.
   - TOPPBase: Print revison info (if meaningful).
-  - MetaInfo: uses double precision now.
+  - MetaInfo: Uses double precision now.
   - Date
     - get() now returns a string instead of modifying a string reference
-    - made today() is static now and returns the current DateTime instead of modifying the object
+    - Made today() is static now and returns the current DateTime instead of modifying the object
   - DateTime
     - get(), getDate() and getTime() now return a string instead of modifying a string reference
-    - made now() is static now and returns the current Date instead of modifying the object
+    - Made now() is static now and returns the current Date instead of modifying the object
   - MSExperiment: The date is now a DateTime object
 
 ------------------------------------------------------------------------------------------

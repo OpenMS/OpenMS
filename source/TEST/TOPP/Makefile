@@ -453,18 +453,18 @@ FileMerger_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "FileMerger:"
 
-	@$(ECHO) "- Test 1: 3 Files (-rt_file)"
-	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_1_input1.dta2d	1 FileMerger_1_input2.dta 2 FileMerger_1_input3.dta2d	3 -out FileMerger.tmp -rt_file)
+	@$(ECHO) "- Test 1: 3 Files (-rt_custom)"
+	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_1_input1.dta2d FileMerger_1_input2.dta FileMerger_1_input3.dta2d -out FileMerger.tmp -rt_custom 1 2 3)
 	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type mzData -out FileMerger2.tmp -out_type DTA2D)
 	@$(call TEST_FILE_EQUAL,FileMerger2.tmp,FileMerger_1_output.txt)
 
-	@$(ECHO) "- Test 2: 2 Files (-rt_file -in_type)"
-	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_2_input1.txt	5 FileMerger_2_input2.txt	10 -in_type DTA -out FileMerger.tmp -rt_file)
+	@$(ECHO) "- Test 2: 2 Files (-rt_custom -in_type)"
+	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_2_input1.txt FileMerger_2_input2.txt -in_type DTA -out FileMerger.tmp -rt_custom 5 10)
 	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type mzData -out FileMerger2.tmp -out_type DTA2D)
 	@$(call TEST_FILE_EQUAL,FileMerger2.tmp,FileMerger_2_output.txt)
 
 	@$(ECHO) "- Test 3: 2 Files (-rt_auto)"
-	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_3_input1.dta	5 FileMerger_3_input2.dta	10 -out FileMerger.tmp -rt_auto)
+	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_3_input1.dta FileMerger_3_input2.dta -out FileMerger.tmp -rt_auto)
 	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type mzData -out FileMerger2.tmp -out_type DTA2D)
 	@$(call TEST_FILE_EQUAL,FileMerger2.tmp,FileMerger_3_output.txt)
 
@@ -473,8 +473,8 @@ FileMerger_test: make_fuzzydiff
 	@$(call RUN_PROG_OPT,FileConverter,-in FileMerger.tmp -in_type mzData -out FileMerger2.tmp -out_type DTA2D)
 	@$(call TEST_FILE_EQUAL,FileMerger2.tmp,FileMerger_4_output.txt)
 
-	@$(ECHO) "- Test 5: 3 Files (guess rt from filename, -rt_from_filename, -user_ms_level, -ms_level)"
-	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_5_input_rt1023.331.dta FileMerger_5_input_rt2044.334.dta FileMerger_5_input_rt889.32.dta -rt_from_filename -user_ms_level -ms_level 2  -out FileMerger5.tmp)
+	@$(ECHO) "- Test 5: 3 Files (-rt_filename, -user_ms_level, -ms_level)"
+	@$(call RUN_PROG_OPT,FileMerger,-file_list FileMerger_5_input_rt1023.331.dta FileMerger_5_input_rt2044.334.dta FileMerger_5_input_rt889.32.dta -rt_filename -user_ms_level -ms_level 2  -out FileMerger5.tmp)
 	@$(call TEST_FILE_EQUAL,FileMerger5.tmp,FileMerger_5_output.txt)
 
 	@$(ECHO) "- Test 6: 2 mzML Files"

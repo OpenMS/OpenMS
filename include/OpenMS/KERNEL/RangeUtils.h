@@ -31,6 +31,7 @@
 #include <algorithm>
 #include <vector>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/IntList.h>
 
 namespace OpenMS 
 {	
@@ -136,7 +137,7 @@ namespace OpenMS
 				@param levels an array of MS levels
 				@param reverse if @p reverse is true, operator() return true if the spectrum lies outside the set
 			*/
-			InMSLevelRange(const std::vector<UInt>& levels, bool reverse = false)
+			InMSLevelRange(const IntList& levels, bool reverse = false)
 				: 
 				levels_(levels),
 				reverse_(reverse)
@@ -155,7 +156,7 @@ namespace OpenMS
 			}
 		
 		protected:
-			std::vector<UInt> levels_;
+			IntList levels_;
 			bool reverse_;
 	};
 

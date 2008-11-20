@@ -68,9 +68,11 @@ public:
 protected: 
 	void registerOptionsAndFlags_()
 	{
-		registerStringList_("in","<files>",StringList(),"list of input file names in FeatureXML or mzData format",true);
-		registerStringList_("out","<files>",StringList(),"list of output file names in FeatureXML or mzData format");
-		registerStringList_("transformations","<files>",StringList(),"list of output files for transformations",false);
+		registerInputFileList_("in","<files>",StringList(),"input files separated by blank",true);
+		setValidFormats_("in",StringList::create("mzData,featureXML"));
+		registerOutputFileList_("out","<files>",StringList(),"output files separated by blank");
+		setValidFormats_("out",StringList::create("mzData,featureXML"));
+		registerOutputFileList_("transformations","<files>",StringList(),"transformation output files separated by blank",false);
 		registerStringOption_("type","<name>","","Map alignment algorithm type",true);
 		setValidStrings_("type",Factory<MapAlignmentAlgorithm>::registeredProducts());
     
@@ -99,12 +101,6 @@ protected:
 		StringList outs = getStringList_("out");
 
 		StringList trafos = getStringList_("transformations");		
-		/*if (setByUser_("transformations") && getStringOption_("transformations")!="")
-		{
-			String trafo = getStringOption_("transformations");
-			trafo.split(',',trafos);
-			if (trafos.size()==0) trafos.push_back(trafo);
-		}*/
 
 		String type = getStringOption_("type");
 		

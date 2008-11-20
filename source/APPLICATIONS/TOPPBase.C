@@ -540,7 +540,7 @@ namespace OpenMS
 				case ParameterInformation::DOUBLELIST:
 					{
 						String tmp = it->default_value.toString();
-						if (tmp!="")
+						if (tmp!="" && tmp!="[]")
 						{
 							addons.push_back(String("default: '") + tmp + "'");
 						}

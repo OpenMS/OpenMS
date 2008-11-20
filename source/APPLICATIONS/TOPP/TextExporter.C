@@ -157,16 +157,16 @@ namespace OpenMS
 		{
       registerInputFile_("in","<file>","","Input file ");
     	setValidFormats_("in",StringList::create("featureXML,consensusXML,idXML"));
-      registerStringOption_("out","<file>","","Output text file. Only used for FeatureXML and IdXML.",false);
+      registerOutputFile_("out","<file>","","Output file. Only used for FeatureXML and IdXML.",false);
 			addEmptyLine_();
 			addText_("Options for IdXML files:");
 			registerFlag_("proteins_only", "Set this flag if you want only protein information from an idXML file");
 			registerFlag_("peptides_only", "Set this flag if you want only peptide information from an idXML file");
 			addEmptyLine_();
 			addText_("Options for ConsensusXML files:");
-			registerStringOption_("consensus_centroids","<file>","","Centroids of consensus features",false);
-			registerStringOption_("consensus_elements","<file>","","Elements of consensus features",false);
-			registerStringOption_("consensus_features","<file>","","Consensus features and contained elements from all maps (writes 'nan's if element is missing)",false);
+			registerOutputFile_("consensus_centroids","<file>","","Centroids of consensus features",false);
+			registerOutputFile_("consensus_elements","<file>","","Elements of consensus features",false);
+			registerOutputFile_("consensus_features","<file>","","Consensus features and contained elements from all maps (writes 'nan's if element is missing)",false);
 			addText_("Each of the consensus_... files is created as requested.");
 			registerStringOption_("sorting_method","<method>","none","Sorting method",false);
 			setValidStrings_("sorting_method",StringList::create("none,RT,MZ,RT_then_MZ,intensity,quality_decreasing,quality_increasing"));

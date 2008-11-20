@@ -68,20 +68,20 @@ class TOPPFileMerger
  protected:
 	void registerOptionsAndFlags_()
 	{
-		registerStringList_("file_list","<files>",StringList(),"Strings seperated by whitespace representing input files");		
+		registerInputFileList_("file_list","<files>",StringList(),"Input files separated by blank");
+		setValidFormats_("file_list",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf"));	
 		registerStringOption_("in_type","<type>","","input file type (default: determined from file extension or content)\n", false);
 		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf"));
-		registerOutputFile_("out","<file>","","output file ");
+		registerOutputFile_("out","<file>","","output file");
 		setValidFormats_("out",StringList::create("mzData"));
 		
 		registerFlag_("rt_auto","Assign retention times automatically (integers starting at 1)");
-		registerFlag_("rt_file","Take retention times from file_list.\n"
-														"If this flag is activated, the file list has to contain filenames followed by a \n"
-														"retention time.");
-		registerFlag_("rt_from_filename", "If this flag is set FileMerger tries to guess the rt of the spectrum.\n"
-																			"This option is useful for merging DTA file, which should contain the string\n"
-																			"'rt' directly followed by a floating point number:\n"
-																			"i.e. my_spectrum_rt2795.15.dta"); 
+		registerDoubleList_("rt_custom","<rt>",DoubleList(),"List of custom retention times that are assigned to the files.\n"
+		                                "The number of given retention times must be equal to the number of given input file.", false);
+		registerFlag_("rt_filename", "If this flag is set FileMerger tries to guess the rt of the file name.\n"
+																 "This option is useful for merging DTA file, which should contain the string\n"
+																 "'rt' directly followed by a floating point number:\n"
+																 "i.e. my_spectrum_rt2795.15.dta"); 
 		registerIntOption_("ms_level", "<num>", 2, "this option is useful for use with DTA files which does not \n"
 																								"contain MS level information. The given level is assigned to the spectra.", false);
 		registerFlag_("user_ms_level", "If this flag is set, the MS level given above is used");
@@ -96,7 +96,7 @@ class TOPPFileMerger
 		// parameter handling
 		//-------------------------------------------------------------
 		//file list
-		StringList file_list_name = getStringList_("file_list");
+		StringList file_list = getStringList_("file_list");
 
 		//file type
 		FileHandler fh;
@@ -105,80 +105,65 @@ class TOPPFileMerger
 		//output file names and types
 		String out_file = getStringOption_("out");
 
-		//auto numbering
-		bool auto_number = getFlag_("rt_auto");
-		bool rt_from_file = getFlag_("rt_file");
+		//rt 
+		bool rt_auto_number = getFlag_("rt_auto");
+		bool rt_filename = getFlag_("rt_filename");
+		bool rt_custom = false;
+		DoubleList custom_rts = getDoubleList_("rt_custom");
+		if (custom_rts.size()!=0)
+		{
+			rt_custom = true;
+			if (custom_rts.size()!=file_list.size())
+			{
+				writeLog_("Custom retention time list must have as many elements as there are input files!");
+				printUsage_();
+				return ILLEGAL_PARAMETERS;
+			}
+		}
+		
+		//ms level
 		bool user_ms_level = getFlag_("user_ms_level");
-		bool rt_from_filename = getFlag_("rt_from_filename");
 			
 		//-------------------------------------------------------------
 		// calculations
 		//-------------------------------------------------------------
 		
-		float rt_final,rt_file,rt_auto=0;
-		String filename;
-		MSExperiment<Peak1D> out, in;
-		out.reserve(file_list_name.size());
-		bool first_file = true;
-		
-		for(UInt i = 0; i < file_list_name.size();++i)
+		MSExperiment<> out;
+		out.reserve(file_list.size());
+		UInt rt_auto=0;
+		for(UInt i = 0; i < file_list.size();++i)
 		{
-			filename = file_list_name[i];
-			rt_file = -1;
-			if(i+1 < file_list_name.size())
-			{
-				String retention_time = file_list_name[i+1];
-				try 
-				{
-					++i;
-					rt_file = retention_time.toFloat();
-				}
-				catch (Exception::ConversionError)
-				{
-					if(rt_from_file)
-					{
-						writeLog_(String("Warning: cannot convert the found paramter in a retention time: '" + retention_time + "'."));
-					}
-					--i;
-				}
-			}
+			String filename = file_list[i];
 			
-			//load file 
+			//load file
+			MSExperiment<> in;
 			fh.loadExperiment(filename,in,force_type,log_type_);
 			if (in.size()==0)
 			{
 				writeLog_(String("Warning: Empty file '") + filename +"'!");
 				continue;
 			}
-			else if (in.size()>1)
+			out.reserve(out.size()+in.size());
+			
+			//warn if custom RT and more than one scan in input file
+			if (rt_custom && in.size()>1)
 			{
-				out.reserve(out.size()+in.size());
-				if (rt_from_file)
-				{
-					writeLog_(String("Warning: More than one scan in file '") + filename +"'! All scans will have the same retention time!");
-				}
+				writeLog_(String("Warning: More than one scan in file '") + filename +"'! All scans will have the same retention time!");
 			}
 			
-			for (MSExperiment<Peak1D>::const_iterator it2 = in.begin(); it2!=in.end(); ++it2)
+			for (MSExperiment<>::const_iterator it2 = in.begin(); it2!=in.end(); ++it2)
 			{ 
 				//handle rt
-				++rt_auto;
-				rt_final = -1;
-				if (auto_number)
+				Real rt_final = it2->getRT();
+				if (rt_auto_number)
 				{
-					rt_final = rt_auto;
+					rt_final = ++rt_auto;
 				}
-				else if (rt_from_file) 
+				else if (rt_custom) 
 				{
-					rt_final = rt_file;
+					rt_final = custom_rts[i];
 				}
-				else
-				{
-					rt_final = it2->getRT();
-				}
-	
-				// guess the retention time from filename
-				if (rt_from_filename)
+				else if (rt_filename)
 				{
 					if (!filename.hasSubstring("rt"))
 					{
@@ -231,10 +216,9 @@ class TOPPFileMerger
 			}
 
 			// copy experimental settings from first file
-			if (first_file)
+			if (i==0)
 			{
 				out.ExperimentalSettings::operator=(in);
-				first_file = false;
 			}
 		}
 			

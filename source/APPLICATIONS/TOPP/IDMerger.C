@@ -63,7 +63,8 @@ class TOPPIDMerger
  protected:
 	void registerOptionsAndFlags_()
 	{
-		registerStringList_("in","<files>",StringList(),"two or more IdXML files separated by blanks");
+		registerInputFileList_("in","<files>",StringList(),"two or more input files separated by blank");
+		setValidFormats_("in",StringList::create("IdXML"));
 		registerOutputFile_("out","<file>","","output file ");
 		setValidFormats_("out",StringList::create("IdXML"));
 	}

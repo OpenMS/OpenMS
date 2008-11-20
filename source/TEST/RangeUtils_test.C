@@ -78,8 +78,8 @@ END_SECTION
 //MSLevelRange
 
 InMSLevelRange<DSpectrum<> >* ptr2 = 0;
-START_SECTION((MSLevelRange(const std::vector<UInt>& levels, bool reverse = false)))
-	vector<UInt> tmp;
+START_SECTION((MSLevelRange(const IntList& levels, bool reverse = false)))
+	IntList tmp;
 	ptr2 = new InMSLevelRange<DSpectrum<> >(tmp,false);
 	TEST_NOT_EQUAL(ptr2, 0)
 END_SECTION

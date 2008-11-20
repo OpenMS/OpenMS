@@ -107,7 +107,7 @@ class TOPPFeatureFinder
 	{
 		registerInputFile_("in","<file>","","input file ");
 		setValidFormats_("in",StringList::create("mzData"));
-		registerOutputFile_("out","<file>","","output feature list ");
+		registerOutputFile_("out","<file>","","output file");
 		setValidFormats_("out",StringList::create("featureXML"));
 		registerStringOption_("type","<name>","","FeatureFinder algorithm type\n",true);
 		setValidStrings_("type", Factory<FeatureFinderAlgorithm<Peak1D,Feature> >::registeredProducts());

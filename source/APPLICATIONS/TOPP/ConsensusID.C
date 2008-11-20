@@ -78,7 +78,8 @@ class TOPPConsensusID
 
 		void registerOptionsAndFlags_()
 		{
-			registerStringList_("ids","<file>",StringList(),"one or more IdXML files separated by blanks");
+			registerInputFileList_("ids","<file>",StringList(),"one or more input files separated by blank");
+			setValidFormats_("ids",StringList::create("IdXML"));
 			registerOutputFile_("out","<file>","","output file ");
 			setValidFormats_("out",StringList::create("IdXML"));
 			registerInputFile_("features","<file>","","feature input file. If this file is given, all identifications\n"

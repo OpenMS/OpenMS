@@ -70,8 +70,10 @@ public:
 protected: 
 	void registerOptionsAndFlags_()
 	{
-		registerStringList_("in","<files>",StringList(),"list of input file names in FeatureXML format",true);
-		registerStringOption_("out","<file>","","Output file in ConsensusXML format",true);
+		registerInputFileList_("in","<files>",StringList(),"input files seperated by blanks",true);
+		setValidFormats_("in",StringList::create("featureXML"));
+		registerOutputFile_("out","<file>","","Output file",true);
+		setValidFormats_("out",StringList::create("consensusXML"));
 		registerStringOption_("type","<name>","","Feature grouping algorithm type",true);
 		setValidStrings_("type",Factory<FeatureGroupingAlgorithm>::registeredProducts());
     

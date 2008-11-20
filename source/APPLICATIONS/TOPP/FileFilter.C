@@ -93,7 +93,7 @@ class TOPPFileFilter
       
 			addText_("peak data options:");
       registerDoubleOption_("sn", "<s/n ratio>", 0, "write peaks with S/N > 'sn' values only", false);
-			registerStringList_("level","i j...",StringList::create("1,2,3"),"MS levels to extract", false);
+			registerIntList_("level","i j...",IntList::create("1,2,3"),"MS levels to extract", false);
 			registerStringOption_("remove_mode","<mode>","","Remove scans by scan mode\n",false);
 			StringList mode_list;
 			for (UInt i=0; i<InstrumentSettings::SIZE_OF_SCANMODE; ++i)
@@ -148,9 +148,8 @@ class TOPPFileFilter
 
 			//ranges
 			String mz, rt, it, charge, q;
-			StringList level;
+			IntList levels;
 			double mz_l, mz_u, rt_l, rt_u, it_l, it_u, sn, charge_l, charge_u, q_l, q_u;
-			vector<UInt> levels;		
 			//initialize ranges
 			mz_l = rt_l = it_l = charge_l = q_l = -1 * numeric_limits<double>::max();
 			mz_u = rt_u = it_u = charge_u = q_u = numeric_limits<double>::max();
@@ -158,7 +157,7 @@ class TOPPFileFilter
 			rt = getStringOption_("rt");
 			mz = getStringOption_("mz");
 			it = getStringOption_("int");
-			level = getStringList_("level");
+			levels = getIntList_("level");
 			sn = getDoubleOption_("sn");
 			charge = getStringOption_("charge");
       q = getStringOption_("q");
@@ -179,28 +178,9 @@ class TOPPFileFilter
 				writeDebug_("int lower/upper bound: " + String(it_l) + " / " + String(it_u),1);	
 	
 				//levels
-				/*tmp = level;
-				if (level.has(',')) //several levels given
-				{
-					vector<String> tmp2;
-					level.split(',',tmp2);
-					for (vector<String>::iterator it = tmp2.begin(); it != tmp2.end(); ++it)
-					{
-						levels.push_back(it->toInt());
-					}
-				}
-				else //one level given
-				{
-					levels.push_back(level.toInt());
-				}
-				*/
-				for(StringList::iterator it = level.begin();it != level.end(); ++it)
-				{
-					levels.push_back(it->toInt());
-				}
 				String tmp3("MS levels: ");
 				tmp3 = tmp3 + *(levels.begin());
-				for (vector<UInt>::iterator it = ++levels.begin(); it != levels.end(); ++it)
+				for (IntList::iterator it = ++levels.begin(); it != levels.end(); ++it)
 				{
 					tmp3 = tmp3 + ", " + *it;
 				}
@@ -219,9 +199,9 @@ class TOPPFileFilter
 			catch(Exception::ConversionError&)
 			{
 				String tmp;
-				for(StringList::iterator it = level.begin(); it != level.end();++it)
+				for(IntList::iterator it = levels.begin(); it != levels.end();++it)
 				{
-					tmp = tmp.append(*it);
+					tmp += *it;
 				}
 				
 				writeLog_(String("Invalid boundary '") + tmp + "' given. Aborting!");
