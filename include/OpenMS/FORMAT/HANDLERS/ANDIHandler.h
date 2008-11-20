@@ -41,7 +41,7 @@ namespace OpenMS
 	namespace Internal
 	{
 	  /**
-	  	@brief Read-only File handler for ANDIFile (Version 1.0)
+	  	@brief Read-only File handler for ANDI/MS format (Version 1.0)
 	
 			MapType has to be a MSExperiment or have the same interface.
 	  	
