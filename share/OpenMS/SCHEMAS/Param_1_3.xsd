@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
+<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
 	<xs:element name="PARAMETERS">
 		<xs:annotation>
@@ -127,11 +128,13 @@
 			</xs:attribute>
 			<xs:attribute name="type" use="required">
 				<xs:annotation>
-					<xs:documentation>Type of the parameter: 'string'.</xs:documentation>
+					<xs:documentation>Type of the parameter: 'string', 'int' or 'float'.</xs:documentation>
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
 						<xs:enumeration value="string"/>
+						<xs:enumeration value="int"/>
+						<xs:enumeration value="float"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
