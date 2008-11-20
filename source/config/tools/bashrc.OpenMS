@@ -639,8 +639,8 @@ function godev
 ## A few not-so-nicely-self-documented functions follow below.  Will adapt
 ## them to the framework when time permits. -- Clemens
 
-a d='dirs -v | sed s:\ \\\([0-9]\\\)\ :\ \\o033[31m\ \\1\ \\o033[0\;0m:g;'
-a dirs_v='echo $(dirs -v | sed s:\ \\\([0-9]\\\)\ :\ \\o033[31m\ \\1\ \\o033[0\;0m:g;)'
+alias d='dirs -v | sed s:\\\([0-9][0-9]*\\\)\ :\ \\o033[31m\ \\1\ \\o033[0\;0m:g;'
+alias dirs_v='echo $(dirs -v | sed s:\\\([0-9][0-9]*\\\)\ :\ \\o033[31m\ \\1\ \\o033[0\;0m:g;)'
 
 ## all you need to maintain a stack of directories
 function g ()
