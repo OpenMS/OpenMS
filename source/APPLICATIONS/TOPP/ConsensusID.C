@@ -170,93 +170,77 @@ class TOPPConsensusID
 				
 				// writing output
 				pep_ids.clear();
-				DateTime date;
-				date.now();
 				for (vector<IDData>::iterator it = prec_data.begin(); it!=prec_data.end(); ++it)
 				{
 					pep_ids.push_back(it->ids[0]);
 					pep_ids.back().setMetaValue("RT",it->rt);
 					pep_ids.back().setMetaValue("MZ",it->mz);
-					pep_ids.back().setIdentifier("Consensus_" + date.get());
 				}
 				
-				//store consensus
+				//create new identification run
 				vector< ProteinIdentification > prot_id_out(1);
-				prot_id_out[0].setDateTime(date);
+				prot_id_out[0].setDateTime(DateTime::now());
 				prot_id_out[0].setSearchEngine("OpenMS/ConsensusID");
 				prot_id_out[0].setSearchEngineVersion(VersionInfo::getVersion());
-				prot_id_out[0].setIdentifier("Consensus_" + date.get());
+				
+				//store consensus
 				IdXMLFile().store(out,prot_id_out,pep_ids);
 			}
 			
 			//----------------------------------------------------------------
 			// featureXML
 			//----------------------------------------------------------------
-//			if (in_type == FileHandler::FEATUREXML)
-//			{
-//				//load features
-//				FeatureMap<> features;
-//				FeatureXMLFile feat_file;
-//				feat_file.load(feature_file,features);
-//				
-//				//map ids to features
-//				IDMapper mapper;
-//				for(UInt i = 0; i < ids.size(); ++i)
-//				{
-//					writeDebug_(String("Mapping ids: ") + ids[i], 2);
-//					IdXMLFile().load(ids[i],prot_ids, all_ids);
-//					mapper.annotate(features,all_ids,prot_ids);
-//				}
-//				
-//				//do consensus
-//				for (UInt i = 0; i < features.size(); ++i)
-//				{
-//					//cout << "ConsensusID -- Feature " << features[i].getRT() << " / " << features[i].getMZ() << " ("<< i+1 << ")" << endl;
-//					consensus.apply(features[i].getPeptideIdentifications());
-//				}
-//				
-//				// writing output
-//				all_ids.clear();
-//				for (UInt i = 0; i < features.size(); ++i)
-//				{
-//
-//					for (vector<PeptideIdentification>::const_iterator id_it = features[i].getPeptideIdentifications().begin(); 
-//							 id_it != features[i].getPeptideIdentifications().end(); 
-//							 ++id_it)
-//					{
-//						all_ids.push_back(*id_it);
-//						all_ids.back().setMetaValue("RT",features[i].getRT());
-//						all_ids.back().setMetaValue("MZ",features[i].getMZ());
-//					}
-//				}
-//				vector< ProteinIdentification > prot_id_out(1);
-//				DateTime date;
-//				date.now();
-//				prot_id_out[0].setDateTime(date);
-//				prot_id_out[0].setSearchEngine("OpenMS/ConsensusID");
-//				prot_id_out[0].setSearchEngineVersion(VersionInfo::getVersion());
-//				IdXMLFile().store(out,prot_id_out,all_ids);
-//				
-//				//write output features (those with IDs)
-//				if (feature_out_file!="")
-//				{
-//					FeatureMap<> features_out;
-//					for (UInt i = 0; i < features.size(); ++i)
-//					{
-//						if (features[i].getPeptideIdentifications().size()!=0 && features[i].getPeptideIdentifications()[0].getHits().size()!=0)
-//						{
-//							features_out.push_back(features[i]);
-//						}
-//					}
-//					feat_file.store(feature_out_file,features_out);
-//				}
-//			}
+			if (in_type == FileHandler::FEATUREXML)
+			{
+				//load map
+				FeatureMap<> map;
+				FeatureXMLFile().load(in,map);
+				
+				//compute consensus
+				alg_param.setValue("number_of_runs",(UInt)map.getProteinIdentifications().size());
+				consensus.setParameters(alg_param);
+				for (UInt i = 0; i < map.size(); ++i)
+				{
+					consensus.apply(map[i].getPeptideIdentifications());
+				}
+				
+				//create new identification run
+				map.getProteinIdentifications().clear();
+				map.getProteinIdentifications().resize(1);
+				map.getProteinIdentifications()[0].setDateTime(DateTime::now());
+				map.getProteinIdentifications()[0].setSearchEngine("OpenMS/ConsensusID");
+				map.getProteinIdentifications()[0].setSearchEngineVersion(VersionInfo::getVersion());
+				
+				//store consensus
+				FeatureXMLFile().store(out,map);
+			}
 
 			//----------------------------------------------------------------
 			// consensusXML
 			//----------------------------------------------------------------
 			if (in_type == FileHandler::CONSENSUSXML)
 			{
+				//load map
+				ConsensusMap map;
+				ConsensusXMLFile().load(in,map);
+				
+				//compute consensus
+				alg_param.setValue("number_of_runs",(UInt)map.getProteinIdentifications().size());
+				consensus.setParameters(alg_param);
+				for (UInt i = 0; i < map.size(); ++i)
+				{
+					consensus.apply(map[i].getPeptideIdentifications());
+				}
+				
+				//create new identification run
+				map.getProteinIdentifications().clear();
+				map.getProteinIdentifications().resize(1);
+				map.getProteinIdentifications()[0].setDateTime(DateTime::now());
+				map.getProteinIdentifications()[0].setSearchEngine("OpenMS/ConsensusID");
+				map.getProteinIdentifications()[0].setSearchEngineVersion(VersionInfo::getVersion());
+				
+				//store consensus
+				ConsensusXMLFile().store(out,map);
 			}
 
 			return EXECUTION_OK;

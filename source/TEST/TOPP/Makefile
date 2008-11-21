@@ -858,12 +858,17 @@ ConsensusID_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "ConsensusID:"
 
-	@$(ECHO) "- Test 1: Map consensus"
+	@$(ECHO) "- Test 1: idXML"
 	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_1_parameters.ini -out ConsensusID_1_output.tmp_)
 	@$(SED) 's/^.*IdentificationRun date.*$$/#Run removed because of date/g' ConsensusID_1_output.tmp_ > ConsensusID_1_output.tmp
 	@$(call TEST_FILE_EQUAL,ConsensusID_1_output.tmp,ConsensusID_1_output.idXML)
 
-	@$(ECHO) "- Test 2: Feature consensus"
-#	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_2_parameters.ini -out ConsensusID_2_output.tmp_ -in ConsensusID_2_features.featureXML)
-#	@$(SED) 's/^.*IdentificationRun date.*$$/#Run removed because of date/g' ConsensusID_2_output.tmp_ > ConsensusID_2_output.tmp
-#	@$(call TEST_FILE_EQUAL,ConsensusID_2_output.tmp,ConsensusID_2_output.idXML)
+	@$(ECHO) "- Test 2: featureXML"
+	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_2_parameters.ini -out ConsensusID_2_output.tmp_ -in ConsensusID_2_input.featureXML)
+	@$(SED) 's/^.*IdentificationRun id.*$$/#Run removed because of date/g' ConsensusID_2_output.tmp_ > ConsensusID_2_output.tmp
+	@$(call TEST_FILE_EQUAL,ConsensusID_2_output.tmp,ConsensusID_2_output.featureXML)
+
+	@$(ECHO) "- Test 2: consensusXML"
+	@$(call RUN_PROG_OPT,ConsensusID,-ini ConsensusID_3_parameters.ini -out ConsensusID_3_output.tmp_ -in ConsensusID_3_input.consensusXML)
+	@$(SED) 's/^.*IdentificationRun id.*$$/#Run removed because of date/g' ConsensusID_3_output.tmp_ > ConsensusID_3_output.tmp
+	@$(call TEST_FILE_EQUAL,ConsensusID_3_output.tmp,ConsensusID_3_output.consensusXML)
