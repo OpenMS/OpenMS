@@ -73,7 +73,6 @@ using namespace OpenMS;
 	(2) hierarchical clustering in RT-m/Z plane, determine cluster number by maximizing the average silhouette width
 	(3) determine intensity ratios by linear regression for each cluster
 
-	@todo Replace Cluster 3.0 by our clustering (Hiwi)
 	@todo Remove Cluster 3.0 from contrib as soon as it's not needed anymore (Marc)
 
 	@ingroup TOPP
@@ -215,9 +214,9 @@ class TOPPSILACAnalyzer
 			setMinFloat_("mz_step_width",0.0);
 			registerDoubleOption_("rt_scaling","<double>",0.05,"scaling factor of retention times (Cluster height [s] an\ncluster width [Th] should be of the same order. The clustering algorithms work better for\nsymmetric clusters.)",false,true);
 			setMinFloat_("rt_scaling",0.0);
-			registerDoubleOption_("blurred_partition_chooser","<double>",0.0,"partition with the most clusters is chosen from those that deviate from the maximum average silhouette width at most by percentage given by blurred_silhouettewidth_chooser",false,true);
-			setMinFloat_("blurred_partition_chooser",0.0);
-			setMaxFloat_("blurred_partition_chooser",100.0);
+			registerDoubleOption_("optimal_silhouette_tolerance","<double>",0.0,"The partition with most clusters is chosen, which deviates from the optimal silhouette width at most by this percentage.",false,true);
+			setMinFloat_("optimal_silhouette_tolerance",0.0);
+			setMaxFloat_("optimal_silhouette_tolerance",100.0);
 			registerDoubleOption_("cluster_number_scaling","<double>",1.0,"scaling factor of the number of clusters (The average-silhouette-width\nalgorithm returns an 'optimal' number of clusters. This number might need\nto be adjusted by this factor.)",false,true); //still needed with blurred partition chooser?
 			setMinFloat_("cluster_number_scaling",0.0);
 			registerIntOption_("cluster_min","<min>",0,"Start of the clusters range to be plotted by the gnuplot script", false,true);
@@ -239,7 +238,7 @@ class TOPPSILACAnalyzer
 			DoubleReal mz_step_width = getDoubleOption_("mz_step_width");
 			DoubleReal intensity_cutoff = getDoubleOption_("intensity_cutoff");
 			DoubleReal rt_scaling = getDoubleOption_("rt_scaling");
-			DoubleReal blurred_partition_chooser = getDoubleOption_("blurred_partition_chooser");
+			DoubleReal optimal_silhouette_tolerance = getDoubleOption_("optimal_silhouette_tolerance");
 			DoubleReal cluster_number_scaling = getDoubleOption_("cluster_number_scaling");
 			int cluster_min = getIntOption_("cluster_min");
 			int cluster_max = getIntOption_("cluster_max");
@@ -384,12 +383,12 @@ class TOPPSILACAnalyzer
 				// find number of clusters which maximizes average silhouette width
 				//-----------------------------------------------------------------
 
-				//choose asw that deviates at most the given percentage (blurred_partition_chooser) from the max asw and contains the most clusters
+				//choose asw that deviates at most the given percentage (optimal_silhouette_tolerance) from the max asw and contains the most clusters
 				std::vector< Real >asw = ca.averageSilhouetteWidth(tree,distance_matrix);
 				std::vector< Real >::iterator max_el(max_element(asw.begin(),asw.end()));
 				//~ std::vector< Real >::iterator max_el(max_element((asw.end()-((Int)data.size()/10) ),asw.end()));//only the first size/10 steps are reviewed
 				size_t best_n = tree.size();
-				Real max_deviation((*max_el)*(blurred_partition_chooser/100));
+				Real max_deviation((*max_el)*(optimal_silhouette_tolerance/100));
 				for(UInt i = 0; i < asw.size(); ++i)
 				{
 					if(std::fabs(asw[i]-(*max_el))<=max_deviation)
@@ -491,7 +490,7 @@ class TOPPSILACAnalyzer
 						UInt j=0;
 						for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
 						{
-							if (it->cluster_id==i)
+							if ((UInt)it->cluster_id==i)
 							{
 								i1[3*j] = it->int1;
 								i2[3*j] = it->int4;
@@ -641,7 +640,7 @@ class TOPPSILACAnalyzer
 						UInt j=0;
 		   			for (std::vector<SILACData>::iterator it=data.begin(); it!= data.end(); ++it)
 						{
-							if (it->cluster_id==i)
+							if ((UInt)it->cluster_id==i)
 							{
 								i1[3*j] = it->int1;
 								i2[3*j] = it->int4;
