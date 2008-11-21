@@ -317,7 +317,7 @@ namespace OpenMS
 		{
 			if (find(done_identifiers.begin(), done_identifiers.end(), peptide_ids[i].getIdentifier())==done_identifiers.end())
 			{
-				cerr << "Warning (IdXMLFile): Omitting peptide identification because of missing ProteinIdentification with identifier '" << peptide_ids[i].getIdentifier() << "'!" << endl;
+				warning(String("Warning: Omitting peptide identification because of missing ProteinIdentification with identifier '") + peptide_ids[i].getIdentifier() + "'!");
 			}
 		}
 		//write footer
@@ -343,12 +343,10 @@ namespace OpenMS
   
 	void IdXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 	{		
-		String element = sm_.convert(qname);
-		
-		//cout << "Start: " << element << endl;
+		String tag = sm_.convert(qname);
 		
 		//START
-		if (element == "IdXML")
+		if (tag =="IdXML")
 		{
 			//check file version against schema version
 			String file_version="1.0";
@@ -360,7 +358,7 @@ namespace OpenMS
 		}
 		
 		//SEARCH PARAMETERS
-		else if (element == "SearchParameters")
+		else if (tag =="SearchParameters")
 		{
 			//store id
 			id_ =  attributeAsString_(attributes,"id");
@@ -417,13 +415,13 @@ namespace OpenMS
 			}
 			last_meta_ = &param_;	
 		}
-		else if (element == "FixedModification")
+		else if (tag =="FixedModification")
 		{
 			param_.fixed_modifications.push_back(attributeAsString_(attributes,"name"));
 			//change this line as soon as there is a MetaInfoInterface for modifications (Andreas)
 			last_meta_ = 0;
 		}
-		else if (element == "VariableModification")
+		else if (tag =="VariableModification")
 		{
 			param_.variable_modifications.push_back(attributeAsString_(attributes,"name"));
 			//change this line as soon as there is a MetaInfoInterface for modifications (Andreas)
@@ -431,7 +429,7 @@ namespace OpenMS
 		}
 		
 		// RUN
-		else if (element == "IdentificationRun")
+		else if (tag =="IdentificationRun")
 		{
 			pep_id_ = PeptideIdentification();
 			prot_id_ = ProteinIdentification();
@@ -455,7 +453,7 @@ namespace OpenMS
 		}
 		
 		//PROTE ProteinIdentification
-		else if (element == "ProteinIdentification")
+		else if (tag =="ProteinIdentification")
 		{
 			prot_id_.setScoreType(attributeAsString_(attributes,"score_type"));
 			
@@ -472,7 +470,7 @@ namespace OpenMS
 
 			last_meta_ = &prot_id_;
 		}
-		else if (element == "ProteinHit")
+		else if (tag =="ProteinHit")
 		{
 			prot_hit_ = ProteinHit();
 			String accession = attributeAsString_(attributes,"accession");
@@ -491,7 +489,7 @@ namespace OpenMS
 		}
 		
 		//PEPTIDES
-		else if (element == "PeptideIdentification")
+		else if (tag =="PeptideIdentification")
 		{
 			
 			//set identifier
@@ -533,7 +531,7 @@ namespace OpenMS
 			
 			last_meta_ = &pep_id_;
 		}
-		else if (element == "PeptideHit")
+		else if (tag =="PeptideHit")
 		{
 			pep_hit_ = PeptideHit();
 			
@@ -585,7 +583,7 @@ namespace OpenMS
 		}
 		
 		//USERPARAM
-		else if (element == "UserParam")
+		else if (tag =="UserParam")
 		{
 			if (last_meta_ == 0)
 			{
@@ -624,59 +622,55 @@ namespace OpenMS
 	
 	void IdXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
 	{
-		String element = sm_.convert(qname);
-		
-		//cout << "End: " << element << endl;
+		String tag = sm_.convert(qname);
 		
 		//START
-		if (element == "IdXML")
+		if (tag =="IdXML")
 		{
-			
 		}
-
 		///SEARCH PARAMETERS
-		else if (element == "SearchParameters")
+		else if (tag =="SearchParameters")
 		{
 			last_meta_ = 0;
 			parameters_[id_] = param_;
 		}		
-		else if (element == "FixedModification")
+		else if (tag =="FixedModification")
 		{
 			last_meta_ = &param_;
 		}
-		else if (element == "VariableModification")
+		else if (tag =="VariableModification")
 		{
 			
 			last_meta_ = &param_;
 		}
 		
 		// RUN
-		else if (element == "IdentificationRun")
+		else if (tag =="IdentificationRun")
 		{
 
 		}
 		
 		//PROTE IDENTIFICATIONS
-		else if (element == "ProteinIdentification")
+		else if (tag =="ProteinIdentification")
 		{
 			prot_ids_->push_back(prot_id_);
 			prot_id_ = ProteinIdentification();
 			last_meta_  = 0;		
 		}
-		else if (element == "ProteinHit")
+		else if (tag =="ProteinHit")
 		{
 			prot_id_.insertHit(prot_hit_);
 			last_meta_ = &prot_id_;
 		}
 		
 		//PEPTIDES
-		else if (element == "PeptideIdentification")
+		else if (tag =="PeptideIdentification")
 		{
 			pep_ids_->push_back(pep_id_);
 			pep_id_ = PeptideIdentification();
 			last_meta_  = 0;
 		}
-		else if (element == "PeptideHit")
+		else if (tag =="PeptideHit")
 		{
 			pep_id_.insertHit(pep_hit_);
 			last_meta_ = &pep_id_;

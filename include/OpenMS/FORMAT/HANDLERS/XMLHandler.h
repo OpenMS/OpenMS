@@ -262,7 +262,12 @@ namespace OpenMS
 				}
 				return res;
 			}
-			/// Conversion of a String to a bool value
+			/**
+				@brief Conversion of a string to a boolean value
+				
+				'true', 'false', '1' and '0' are accpeted.
+				@n For all other values a parse error is produced.
+			*/
 	 		inline bool asBool_(const String& in)
 			{
 				if (in == "true" || in == "TRUE" || in == "True" || in == "1") 

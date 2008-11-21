@@ -213,10 +213,24 @@ START_SECTION([EXTRA] peptide and protein identification I/O)
 
 	protein_hits.push_back(protein_hit);
 
-	ProteinIdentification protein_identification;
-
-	FeatureMap<> map;
+	ProteinIdentification::SearchParameters search_param;
+	search_param.db="DB";
+	search_param.db_version="1.2.3";
+	search_param.taxonomy="wolpertinger";
+	search_param.charges="+1,+2,-3";
+	search_param.mass_type=ProteinIdentification::MONOISOTOPIC;
+	search_param.fixed_modifications.push_back("bli");
+	search_param.variable_modifications.push_back("bla");
+	search_param.variable_modifications.push_back("bluff");
+	search_param.enzyme=ProteinIdentification::TRYPSIN;
+	search_param.missed_cleavages=2;
+	search_param.peak_mass_tolerance=0.3;
+	search_param.precursor_tolerance=0.1;
 	
+	ProteinIdentification protein_identification;
+	protein_identification.setSearchParameters(search_param);
+	
+	FeatureMap<> map;
 	{
 		ProteinIdentification hits;
 		hits.setDateTime(DateTime::now());
