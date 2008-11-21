@@ -852,7 +852,7 @@ namespace OpenMS
 				if (map_->empty())
 				{
 					current_feature_ = 0;
-				last_meta_ =  0;
+					last_meta_ =  0;
 				}
 				else
 				{

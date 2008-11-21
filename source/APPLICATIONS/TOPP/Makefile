@@ -70,7 +70,8 @@ TOPP_EXECUTABLES=\
 	MascotAdapterOnline\
 	SILACAnalyzer\
 	ITRAQAnalyzer\
-	IDMapper
+	IDMapper\
+	IDRTCalibration
 				
 
 # Those executables not derived from TOPPBase (they are left out when writing the ini files)
