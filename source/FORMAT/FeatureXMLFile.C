@@ -110,7 +110,7 @@ namespace OpenMS
 			identifier_id_[current_prot_id.getIdentifier()] = String("PI_") + i;
 			os << "date=\"" << current_prot_id.getDateTime().getDate() << "T" << current_prot_id.getDateTime().getTime() << "\" ";
 			os << "search_engine=\"" << current_prot_id.getSearchEngine() << "\" ";
-			os << "search_engine_version=\"" << current_prot_id.getSearchEngineVersion() << "\">" << endl;
+			os << "search_engine_version=\"" << current_prot_id.getSearchEngineVersion() << "\">\n";
 
 			//write search parameters
 			const ProteinIdentification::SearchParameters& search_param = current_prot_id.getSearchParameters();
@@ -154,29 +154,29 @@ namespace OpenMS
 			os << "missed_cleavages=\"" << search_param.missed_cleavages << "\" "
 				 << "precursor_peak_tolerance=\"" << search_param.precursor_tolerance << "\" "
 				 << "peak_mass_tolerance=\"" << search_param.peak_mass_tolerance << "\" "
-				 << ">" << endl;
+				 << ">\n";
 			
 			//modifications
 			for (UInt j=0; j!=search_param.fixed_modifications.size(); ++j)
 			{
-				os << "\t\t\t<FixedModification name=\"" << search_param.fixed_modifications[j] << "\" />" << endl;
+				os << "\t\t\t<FixedModification name=\"" << search_param.fixed_modifications[j] << "\" />\n";
 				//Add MetaInfo, when modifications has it (Andreas)
 			}
 			for (UInt j=0; j!=search_param.variable_modifications.size(); ++j)
 			{
-				os << "\t\t\t<VariableModification name=\"" << search_param.variable_modifications[j] << "\" />" << endl;
+				os << "\t\t\t<VariableModification name=\"" << search_param.variable_modifications[j] << "\" />\n";
 				//Add MetaInfo, when modifications has it (Andreas)
 			}
 			
 			writeUserParam_("UserParam", os, search_param, 4);
 			
-			os << "\t\t</SearchParameters>" << endl;
+			os << "\t\t</SearchParameters>\n";
 			
 			//write protein identifications
 			os << "\t\t<ProteinIdentification";
 			os << " score_type=\"" << current_prot_id.getScoreType() << "\"";
 			os << " higher_score_better=\"" << ( current_prot_id.isHigherScoreBetter() ? "true" : "false" ) << "\"";
-			os << " significance_threshold=\"" << current_prot_id.getSignificanceThreshold() << "\">" << endl;
+			os << " significance_threshold=\"" << current_prot_id.getSignificanceThreshold() << "\">\n";
 			
 			// write protein hits
 			for(UInt j=0; j<current_prot_id.getHits().size(); ++j)
@@ -190,16 +190,16 @@ namespace OpenMS
 
 				os << " accession=\"" << current_prot_id.getHits()[j].getAccession() << "\"";
 				os << " score=\"" << current_prot_id.getHits()[j].getScore() << "\"";
-				os << " sequence=\"" << current_prot_id.getHits()[j].getSequence() << "\">" << endl;
+				os << " sequence=\"" << current_prot_id.getHits()[j].getSequence() << "\">\n";
 
 				writeUserParam_("userParam", os, current_prot_id.getHits()[j], 4);
 
-				os << "\t\t\t</ProteinHit>" << endl;
+				os << "\t\t\t</ProteinHit>\n";
 			}
 		
 			writeUserParam_("userParam", os, current_prot_id, 3);
-			os << "\t\t</ProteinIdentification>" << endl;
-			os << "\t</IdentificationRun>" << endl;
+			os << "\t\t</ProteinIdentification>\n";
+			os << "\t</IdentificationRun>\n";
 		}
 
 		// write features with their corresponding attributes
@@ -465,6 +465,7 @@ namespace OpenMS
 				warning(String("Warning: Peptide identification without ProteinIdentification found (id: '") + id + "')!");
 			}
 			pep_id_.setIdentifier(id_identifier_[id]);
+			
 			pep_id_.setScoreType(attributeAsString_(attributes,"score_type"));
 		
 			//optional significance threshold
@@ -788,7 +789,7 @@ namespace OpenMS
 			{
 				os << "spectrum_reference=\"" << dv.toString() << "\" ";
 			}
-			os << ">" << endl;
+			os << ">\n";
 			
 			// write peptide hits
 			for(UInt j=0; j<current_pep_id.getHits().size(); ++j)
@@ -816,9 +817,9 @@ namespace OpenMS
 					}
 					os << " protein_refs=\"" << accs << "\"";
 				}
-				os << ">" << endl;
+				os << ">\n";
 				writeUserParam_("userParam", os, current_pep_id.getHits()[j], 4);
-				os << "\t\t\t\t</PeptideHit>" << endl;
+				os << "\t\t\t\t</PeptideHit>\n";
 			}
 			
 			//do not write "RT", "MZ" and "spectrum_reference" as they are written as attributes already
@@ -827,7 +828,7 @@ namespace OpenMS
 			tmp.removeMetaValue("MZ");
 			tmp.removeMetaValue("spectrum_reference");
 			writeUserParam_("userParam", os, tmp, 4);
-			os << "\t\t\t</PeptideIdentification>" << endl;
+			os << "\t\t\t</PeptideIdentification>\n";
 		}
 
 

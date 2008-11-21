@@ -71,11 +71,15 @@ namespace OpenMS
 			}
 			last_meta_ = 0;
 		}
-		else if (tag == "ProteinIdentification")
+		else if (tag == "IdentificationRun")
 		{
 			consensus_map_->getProteinIdentifications().push_back(prot_id_);
 			prot_id_ = ProteinIdentification();
 			last_meta_  = 0;		
+		}
+		else if (tag == "SearchParameters")
+		{
+			prot_id_.setSearchParameters(search_param_);
 		}
 		else if (tag == "ProteinHit")
 		{
@@ -222,9 +226,6 @@ namespace OpenMS
 				consensus_map_->setExperimentType(experiment_type);
 			}
 			last_meta_ = consensus_map_;
-			// debugging
-			// cout << "consensus_map_: " << typeAsString(consensus_map_) << endl;
-			// cout << "last_meta_: " << typeAsString(last_meta_) << endl;
 		}
 		else if ( tag == "userParam")
 		{
@@ -253,6 +254,77 @@ namespace OpenMS
 				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invalid userParam type '") + type + "'" );
 			}
 		}
+		else if (tag == "IdentificationRun")
+		{
+			prot_id_.setSearchEngine(attributeAsString_(attributes,"search_engine"));
+			prot_id_.setSearchEngineVersion(attributeAsString_(attributes,"search_engine_version"));
+			prot_id_.setDateTime(DateTime::fromString(String(attributeAsString_(attributes,"date")).toQString(),"yyyy-MM-ddThh:mm:ss"));
+			//set identifier
+			String identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes,"date");
+			prot_id_.setIdentifier(identifier);
+			id_identifier_[attributeAsString_(attributes,"id")] = identifier;
+		}
+		else if (tag =="SearchParameters")
+		{
+			//load parameters
+			search_param_.db = attributeAsString_(attributes,"db");
+			search_param_.db_version = attributeAsString_(attributes,"db_version");
+			optionalAttributeAsString_(search_param_.taxonomy, attributes,"taxonomy");
+			search_param_.charges = attributeAsString_(attributes,"charges");
+			optionalAttributeAsUInt_(search_param_.missed_cleavages, attributes,"missed_cleavages");
+			search_param_.peak_mass_tolerance = attributeAsDouble_(attributes,"peak_mass_tolerance");
+			search_param_.precursor_tolerance = attributeAsDouble_(attributes,"precursor_peak_tolerance");
+			//mass type
+			String mass_type = attributeAsString_(attributes,"mass_type");
+			if (mass_type=="monoisotopic")
+			{
+				search_param_.mass_type = ProteinIdentification::MONOISOTOPIC;
+			}
+			else if (mass_type=="average")
+			{
+				search_param_.mass_type = ProteinIdentification::AVERAGE;
+			}
+			//enzyme
+			String enzyme;
+			optionalAttributeAsString_(enzyme,attributes,"enzyme");
+			if (enzyme == "trypsin")
+			{
+				search_param_.enzyme = ProteinIdentification::TRYPSIN;
+			}
+			else if (enzyme == "pepsin_a")
+			{
+				search_param_.enzyme = ProteinIdentification::PEPSIN_A;
+			}
+			else if (enzyme == "protease_k")
+			{
+				search_param_.enzyme = ProteinIdentification::PROTEASE_K;
+			}
+			else if (enzyme == "chymotrypsin")
+			{
+				search_param_.enzyme = ProteinIdentification::CHYMOTRYPSIN;
+			}			 
+			else if (enzyme == "no_enzyme")
+			{
+				search_param_.enzyme = ProteinIdentification::NO_ENZYME;
+			}
+			else if (enzyme == "unknown_enzyme")
+			{
+				search_param_.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
+			}
+			last_meta_ = &search_param_;	
+		}
+		else if (tag =="FixedModification")
+		{
+			search_param_.fixed_modifications.push_back(attributeAsString_(attributes,"name"));
+			//change this line as soon as there is a MetaInfoInterface for modifications (Andreas)
+			last_meta_ = 0;
+		}
+		else if (tag =="VariableModification")
+		{
+			search_param_.variable_modifications.push_back(attributeAsString_(attributes,"name"));
+			//change this line as soon as there is a MetaInfoInterface for modifications (Andreas)
+			last_meta_ = 0;
+		}
 		else if ( tag == "ProteinIdentification" )
 		{
 			prot_id_.setScoreType(attributeAsString_(attributes,"score_type"));
@@ -267,7 +339,7 @@ namespace OpenMS
 		
 			//score orientation
 			prot_id_.setHigherScoreBetter(asBool_(attributeAsString_(attributes,"higher_score_better")));
-			
+
 			last_meta_ = &prot_id_;
 		}
 		else if (tag == "ProteinHit")
@@ -289,10 +361,13 @@ namespace OpenMS
 		}
 		else if (tag == "PeptideIdentification")
 		{
-			// set identifier 
-			// TODO Think about what we should do here ... (Nico)
-			// pep_id_.setIdentifier(consensus_map_->getProteinIdentifications().back().getIdentifier());
-		
+			String id = attributeAsString_(attributes,"identification_run_ref");
+			if (!id_identifier_.has(id))
+			{
+				warning(String("Warning: Peptide identification without ProteinIdentification found (id: '") + id + "')!");
+			}
+			pep_id_.setIdentifier(id_identifier_[id]);
+			
 			pep_id_.setScoreType(attributeAsString_(attributes,"score_type"));
 		
 			//optional significance threshold
@@ -366,7 +441,7 @@ namespace OpenMS
 				}
 				for(vector<String>::const_iterator it = accessions.begin(); it!=accessions.end(); ++it)
 				{
-					map<String,String>::const_iterator it2 = proteinid_to_accession_.find(*it);
+					Map<String,String>::const_iterator it2 = proteinid_to_accession_.find(*it);
 					if (it2!=proteinid_to_accession_.end())
 					{
 						pep_hit_.addProteinAccession(it2->second);
@@ -453,7 +528,111 @@ namespace OpenMS
 			writeUserParam_ ("userParam", os, processing, 2);
 			os << "\t</dataProcessing>\n";
 		}
+
+		// write identification run
+		UInt prot_count = 0;
+		Map<String,UInt> accession_to_id;
+
+		for ( UInt i = 0; i < consensus_map.getProteinIdentifications().size(); ++i )
+		{
+			const ProteinIdentification& current_prot_id = consensus_map.getProteinIdentifications()[i];
+			os << "\t<IdentificationRun ";
+			os << "id=\"PI_" << i << "\" ";
+			identifier_id_[current_prot_id.getIdentifier()] = String("PI_") + i;
+			os << "date=\"" << current_prot_id.getDateTime().getDate() << "T" << current_prot_id.getDateTime().getTime() << "\" ";
+			os << "search_engine=\"" << current_prot_id.getSearchEngine() << "\" ";
+			os << "search_engine_version=\"" << current_prot_id.getSearchEngineVersion() << "\">\n";
+
+			//write search parameters
+			const ProteinIdentification::SearchParameters& search_param = current_prot_id.getSearchParameters();
+			os << "\t\t<SearchParameters "
+				 << "db=\"" << search_param.db << "\" "
+				 << "db_version=\"" << search_param.db_version << "\" "
+				 << "taxonomy=\"" << search_param.taxonomy << "\" ";
+			if (search_param.mass_type == ProteinIdentification::MONOISOTOPIC)
+			{ 
+				os << "mass_type=\"monoisotopic\" ";
+			}
+			else if (search_param.mass_type == ProteinIdentification::AVERAGE)
+			{ 
+				os << "mass_type=\"average\" ";
+			}
+			os << "charges=\"" << search_param.charges << "\" ";
+			if (search_param.enzyme == ProteinIdentification::TRYPSIN)
+			{ 
+				os << "enzyme=\"trypsin\" ";
+			}
+			if (search_param.enzyme == ProteinIdentification::PEPSIN_A)
+			{ 
+				os << "enzyme=\"pepsin_a\" ";
+			}
+			if (search_param.enzyme == ProteinIdentification::PROTEASE_K)
+			{ 
+				os << "enzyme=\"protease_k\" ";
+			}
+			if (search_param.enzyme == ProteinIdentification::CHYMOTRYPSIN)
+			{ 
+				os << "enzyme=\"chymotrypsin\" ";
+			}
+			else if (search_param.enzyme == ProteinIdentification::NO_ENZYME)
+			{ 
+				os << "enzyme=\"no_enzyme\" ";
+			}
+			else if (search_param.enzyme == ProteinIdentification::UNKNOWN_ENZYME)
+			{ 
+				os << "enzyme=\"unknown_enzyme\" ";
+			}
+			os << "missed_cleavages=\"" << search_param.missed_cleavages << "\" "
+				 << "precursor_peak_tolerance=\"" << search_param.precursor_tolerance << "\" "
+				 << "peak_mass_tolerance=\"" << search_param.peak_mass_tolerance << "\" "
+				 << ">\n";
+			
+			//modifications
+			for (UInt j=0; j!=search_param.fixed_modifications.size(); ++j)
+			{
+				os << "\t\t\t<FixedModification name=\"" << search_param.fixed_modifications[j] << "\" />\n";
+				//Add MetaInfo, when modifications has it (Andreas)
+			}
+			for (UInt j=0; j!=search_param.variable_modifications.size(); ++j)
+			{
+				os << "\t\t\t<VariableModification name=\"" << search_param.variable_modifications[j] << "\" />\n";
+				//Add MetaInfo, when modifications has it (Andreas)
+			}
+			
+			writeUserParam_("UserParam", os, search_param, 4);
+			
+			os << "\t\t</SearchParameters>\n";
+			
+			//write protein identifications
+			os << "\t\t<ProteinIdentification";
+			os << " score_type=\"" << current_prot_id.getScoreType() << "\"";
+			os << " higher_score_better=\"" << ( current_prot_id.isHigherScoreBetter() ? "true" : "false" ) << "\"";
+			os << " significance_threshold=\"" << current_prot_id.getSignificanceThreshold() << "\">\n";
 		
+			// write protein hits
+			for(UInt j=0; j<current_prot_id.getHits().size(); ++j)
+			{
+				os << "\t\t\t<ProteinHit";
+
+				// prot_count
+				os << " id=\"PH_" << prot_count << "\"";
+				accession_to_id[current_prot_id.getHits()[j].getAccession()] = prot_count;
+				++prot_count;
+
+				os << " accession=\"" << current_prot_id.getHits()[j].getAccession() << "\"";
+				os << " score=\"" << current_prot_id.getHits()[j].getScore() << "\"";
+				os << " sequence=\"" << current_prot_id.getHits()[j].getSequence() << "\">\n";
+
+				writeUserParam_("userParam", os, current_prot_id.getHits()[j], 4);
+
+				os << "\t\t\t</ProteinHit>\n";
+			}
+		
+			writeUserParam_("userParam", os, current_prot_id, 3);
+			os << "\t\t</ProteinIdentification>\n";
+			os << "\t</IdentificationRun>\n";
+		}
+
 		//file descriptions
 		const ConsensusMap::FileDescriptions& description_vector = consensus_map.getFileDescriptions();
 		os << "\t<mapList count=\"" << description_vector.size() << "\">\n";
@@ -464,41 +643,6 @@ namespace OpenMS
 			os << "\t\t</map>\n";
 		}
 		os << "\t</mapList>\n";
-
-		// write ProteinIdentification
-		UInt prot_count = 0;
-		map<String,UInt> accession_to_id;
-
-		for ( UInt i = 0; i < consensus_map.getProteinIdentifications().size(); ++i )
-		{
-			const ProteinIdentification & current_prot_id = consensus_map.getProteinIdentifications()[i];
-			os << "\t<ProteinIdentification";
-			os << " score_type=\"" << current_prot_id.getScoreType() << "\"";
-			os << " higher_score_better=\"" << ( current_prot_id.isHigherScoreBetter() ? "true" : "false" ) << "\"";
-			os << " significance_threshold=\"" << current_prot_id.getSignificanceThreshold() << "\">" << endl;
-		
-			// write protein hits
-			for(UInt j=0; j<current_prot_id.getHits().size(); ++j)
-			{
-				os << "\t\t<ProteinHit";
-
-				// prot_count
-				os << " id=\"PH_" << prot_count << "\"";
-				accession_to_id[current_prot_id.getHits()[j].getAccession()] = prot_count;
-				++prot_count;
-
-				os << " accession=\"" << current_prot_id.getHits()[j].getAccession() << "\"";
-				os << " score=\"" << current_prot_id.getHits()[j].getScore() << "\"";
-				os << " sequence=\"" << current_prot_id.getHits()[j].getSequence() << "\">" << endl;
-
-				writeUserParam_("userParam", os, current_prot_id.getHits()[j], 3);
-
-				os << "\t\t</ProteinHit>" << endl;
-			}
-		
-			writeUserParam_("userParam", os, current_prot_id, 2);
-			os << "\t</ProteinIdentification>" << endl;
-		}
 
 		// write all consensus elements
 		os << "\t<consensusElementList>\n";
@@ -538,8 +682,14 @@ namespace OpenMS
 			// write PeptideIdentification
 			for ( UInt i = 0; i < elem.getPeptideIdentifications().size(); ++i )
 			{
-				const PeptideIdentification & current_pep_id = elem.getPeptideIdentifications()[i];
+				const PeptideIdentification& current_pep_id = elem.getPeptideIdentifications()[i];
+				if (!identifier_id_.has(current_pep_id.getIdentifier()))
+				{
+					warning(String("Warning: Omitting peptide identification because of missing ProteinIdentification with identifier '") + current_pep_id.getIdentifier() + "'!");
+					continue;
+				}
 				os << "\t\t\t<PeptideIdentification ";
+				os << "identification_run_ref=\"" << identifier_id_[current_pep_id.getIdentifier()] << "\" ";
 				os << "score_type=\"" << current_pep_id.getScoreType() << "\" ";
 				os << "higher_score_better=\"" << ( current_pep_id.isHigherScoreBetter() ? "true" : "false" ) << "\" ";
 				os << "significance_threshold=\"" << current_pep_id.getSignificanceThreshold() << "\" ";
@@ -561,7 +711,7 @@ namespace OpenMS
 				{
 					os << "spectrum_reference=\"" << dv.toString() << "\" ";
 				}
-				os << ">" << endl;
+				os << ">\n";
 				
 				// write peptide hits
 				for(UInt j=0; j<current_pep_id.getHits().size(); ++j)
@@ -589,9 +739,9 @@ namespace OpenMS
 						}
 						os << " protein_refs=\"" << accs << "\"";
 					}
-					os << ">" << endl;
+					os << ">\n";
 					writeUserParam_("userParam", os, current_pep_id.getHits()[j], 4);
-					os << "\t\t\t\t</PeptideHit>" << endl;
+					os << "\t\t\t\t</PeptideHit>\n";
 				}
 				
 				//do not write "RT", "MZ" and "spectrum_reference" as they are written as attributes already
@@ -600,7 +750,7 @@ namespace OpenMS
 				tmp.removeMetaValue("MZ");
 				tmp.removeMetaValue("spectrum_reference");
 				writeUserParam_("userParam", os, tmp, 4);
-				os << "\t\t\t</PeptideIdentification>" << endl;
+				os << "\t\t\t</PeptideIdentification>\n";
 			}
 
 			writeUserParam_("userParam", os, elem, 3);
@@ -608,7 +758,10 @@ namespace OpenMS
 		}
 		os << "\t</consensusElementList>\n";
 
-		os << "</consensusXML>"<< endl;
+		os << "</consensusXML>\n";;
+
+		//Clear members
+		identifier_id_.clear();
 	}
 
   void ConsensusXMLFile::load(const String& filename, ConsensusMap& map)
@@ -629,6 +782,7 @@ namespace OpenMS
 		prot_hit_ = ProteinHit();
 		pep_hit_ = PeptideHit();
 		proteinid_to_accession_.clear();
+		id_identifier_.clear();
   }
 
 

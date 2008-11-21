@@ -115,7 +115,13 @@ namespace OpenMS
 			/// Temporary peptide hit
 			PeptideHit pep_hit_;
 			/// Map from protein id to accession
-			std::map<String,String> proteinid_to_accession_;
+			Map<String,String> proteinid_to_accession_;
+			/// Map from identification run identifier to file xs:id (for linking peptide identifications to the corresponding run)
+			Map<String,String> identifier_id_;
+			/// Map from file xs:id to identification run identifier (for linking peptide identifications to the corresponding run)
+			Map<String,String> id_identifier_;
+			/// Temporary search parameters file
+			ProteinIdentification::SearchParameters search_param_;
 		
   };
 } // namespace OpenMS

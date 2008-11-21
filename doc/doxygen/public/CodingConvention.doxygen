@@ -646,9 +646,9 @@ The name of suplementary files has to begin with the name of the tested class.
 
 <UL>
 	<LI><TT>START_TEST(class_name, version)</TT><BR> Start of a class test file (initialization)
-	<LI><TT>END_TEST</TT><BR> End of a class test file (cleanup)
-	<LI><TT>CHECK(name)</TT><BR> Start of a method test. If the name starts with '[EXTRA]' it does not have to match a methods name.
-	<LI><TT>RESULT</TT><BR> End of a single test
+	<LI><TT>END_TEST()</TT><BR> End of a class test file (cleanup)
+	<LI><TT>START_SECTION(name)</TT><BR> Start of a method test. If the name starts with '[EXTRA]' it does not have to match a methods name.
+	<LI><TT>END_SECTION()</TT><BR> End of a single test
 	<LI><TT>STATUS(message)</TT><BR> Shows a status message e.g. used to show the progress of a test preparations that take a while
 	<LI><TT>ABORT_IF(condition)</TT><BR> Skip remainder of substest if condition holds
 </UL>
@@ -658,12 +658,15 @@ The name of suplementary files has to begin with the name of the tested class.
 <UL>
 	<LI><TT>TEST_EQUAL(a, b)</TT><BR> Tests if two expressions are equal
 	<LI><TT>TEST_NOT_EQUAL(a, b)</TT><BR> Tests if two expressions are not equal
-	<LI><TT>TEST_REAL_EQUAL(a, b)</TT><BR> Tests if two real numbers are equal (within a margin)
-	<LI><TT>TEST_STRING_EQUAL(a, b)</TT><BR> Tests if <TT>a</TT> and <TT>b</TT> are equal as strings
-	<LI><TT>PRECISION(double)</TT><BR> Sets the absolute difference allowed in TEST_REAL_EQUAL(a, b)
+	<LI><TT>TEST_REAL_SIMILAR(a, b)</TT><BR> Tests if two real numbers are equal (within a margin)
+	<LI><TT>TEST_STRING_EQUAL(a, b)</TT><BR> Tests if @em a and @em b are equal as strings
+	<LI><TT>TEST_STRING_SIMILAR(a, b)</TT><BR> Tests if @em a and @em b are similar as strings - allowing numerical deviations and differing whitespaces
+	<LI><TT>TOLERANCE_ABSOLUTE(double)</TT><BR> Sets the absolute difference allowed when testing floating point numbers
+	<LI><TT>TOLERANCE_RELATIVE(double)</TT><BR> Sets the relative difference allowed when testing floating point numbers
 	<LI><TT>TEST_EXCEPTION(exception, expression)</TT><BR> Tests if the expression throws the exception
 	<LI><TT>TEST_EXCEPTION_WITH_MESSAGE(exception, expression, message)</TT><BR> Tests if the expression throws the exception and if the exception has the message
-	<LI><TT>TEST_FILE(file, template_file)</TT><BR> Tests if two files are identical
+	<LI><TT>TEST_FILE_EQUAL(file, template_file)</TT><BR> Tests if two files are identical
+	<LI><TT>TEST_FILE_SIMILAR(file, template_file)</TT><BR> Tests if two files are similar - allowing numerical deviations and differing whitespaces
 </UL>
 
 Do not use methods with side-effects inside the comparison macros i.e. *(it++). The expressions

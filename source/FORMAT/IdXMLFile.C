@@ -82,17 +82,17 @@ namespace OpenMS
 		os.precision(writtenDigits<DoubleReal>());
 		
 		//write header
-		os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
+		os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 		//add XSLT file if it can be found
 		try
 		{
 			String xslt_file =  File::find("XSL/IdXML.xsl");
-			os << "<?xml-stylesheet type=\"text/xsl\" href=\"file:///" << xslt_file << "\"?>" << endl;
+			os << "<?xml-stylesheet type=\"text/xsl\" href=\"file:///" << xslt_file << "\"?>\n";
 		}
 		catch(Exception::FileNotFound&)
 		{
 		}
-		os << "<IdXML version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/IdXML_1_1.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" << endl;
+		os << "<IdXML version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/IdXML_1_1.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 		
 		
 		//look up different search parameters
@@ -149,28 +149,28 @@ namespace OpenMS
 			os << "missed_cleavages=\"" << params[i].missed_cleavages << "\" "
 				 << "precursor_peak_tolerance=\"" << params[i].precursor_tolerance << "\" "
 				 << "peak_mass_tolerance=\"" << params[i].peak_mass_tolerance << "\" "
-				 << ">" << endl;
+				 << ">\n";
 			
 			//modifications
 			for (UInt j=0; j!=params[i].fixed_modifications.size(); ++j)
 			{
-				os << "\t\t<FixedModification name=\"" << params[i].fixed_modifications[j] << "\" />" << endl;
+				os << "\t\t<FixedModification name=\"" << params[i].fixed_modifications[j] << "\" />\n";
 				//Add MetaInfo, when modifications has it (Andreas)
 			}
 			for (UInt j=0; j!=params[i].variable_modifications.size(); ++j)
 			{
-				os << "\t\t<VariableModification name=\"" << params[i].variable_modifications[j] << "\" />" << endl;
+				os << "\t\t<VariableModification name=\"" << params[i].variable_modifications[j] << "\" />\n";
 				//Add MetaInfo, when modifications has it (Andreas)
 			}
 			
 			writeUserParam_("UserParam", os, params[i], 4);
 			
-			os << "\t</SearchParameters>" << endl;
+			os << "\t</SearchParameters>\n";
 		}
 		//empty search parameters
 		if (params.size()==0)
 		{
-			os << "<SearchParameters charges=\"+0, +0\" id=\"ID_1\" db_version=\"0\" mass_type=\"monoisotopic\" peak_mass_tolerance=\"0.0\" precursor_peak_tolerance=\"0.0\" db=\"Unknown\"/>" << endl;
+			os << "<SearchParameters charges=\"+0, +0\" id=\"ID_1\" db_version=\"0\" mass_type=\"monoisotopic\" peak_mass_tolerance=\"0.0\" precursor_peak_tolerance=\"0.0\" db=\"Unknown\"/>\n";
 		}
 		
 		UInt prot_count = 0;
@@ -197,7 +197,7 @@ namespace OpenMS
 					break;
 				}
 			}
-			os << ">" << endl;
+			os << ">\n";
 			os << "\t\t<ProteinIdentification ";
 			os << "score_type=\"" << protein_ids[i].getScoreType() << "\" ";
 			if (protein_ids[i].isHigherScoreBetter())
@@ -208,7 +208,7 @@ namespace OpenMS
 			{
 				os << "higher_score_better=\"false\" ";	
 			}
-			os << "significance_threshold=\"" << protein_ids[i].getSignificanceThreshold() << "\" >" << endl;
+			os << "significance_threshold=\"" << protein_ids[i].getSignificanceThreshold() << "\" >\n";
 			
 			//write protein hits
 			for(UInt j=0; j<protein_ids[i].getHits().size(); ++j)
@@ -218,13 +218,13 @@ namespace OpenMS
 				accession_to_id[protein_ids[i].getHits()[j].getAccession()] = prot_count++;
 				os << "accession=\"" << protein_ids[i].getHits()[j].getAccession() << "\" ";
 				os << "score=\"" << protein_ids[i].getHits()[j].getScore() << "\" ";
-				os << "sequence=\"" << protein_ids[i].getHits()[j].getSequence() << "\" >" << endl;
+				os << "sequence=\"" << protein_ids[i].getHits()[j].getSequence() << "\" >\n";
 				writeUserParam_("UserParam", os, protein_ids[i].getHits()[j], 4);
-				os << "\t\t\t</ProteinHit>" << endl;
+				os << "\t\t\t</ProteinHit>\n";
 			}
 			
 			writeUserParam_("UserParam", os, protein_ids[i], 3);
-			os << "\t\t</ProteinIdentification>" << endl;
+			os << "\t\t</ProteinIdentification>\n";
 
 			//write PeptideIdentifications
 			for (UInt l=0; l<peptide_ids.size(); ++l)
@@ -260,7 +260,7 @@ namespace OpenMS
 					{
 						os << "spectrum_reference=\"" << dv.toString() << "\" ";
 					}
-					os << ">" << endl;
+					os << ">\n";
 					
 					//write peptide hits
 					for(UInt j=0; j<peptide_ids[l].getHits().size(); ++j)
@@ -290,9 +290,9 @@ namespace OpenMS
 							}
 							os << "protein_refs=\"" << accs << "\" ";
 						}
-						os << ">" << endl;
+						os << ">\n";
 						writeUserParam_("UserParam", os, peptide_ids[l].getHits()[j], 4);
-						os << "\t\t\t</PeptideHit>" << endl;
+						os << "\t\t\t</PeptideHit>\n";
 					}
 					
 					//do not write "RT", "MZ" and "spectrum_reference" as they are written as attributes already
@@ -301,16 +301,16 @@ namespace OpenMS
 					tmp.removeMetaValue("MZ");
 					tmp.removeMetaValue("spectrum_reference");
 					writeUserParam_("UserParam", os, tmp, 3);
-					os << "\t\t</PeptideIdentification>" << endl;
+					os << "\t\t</PeptideIdentification>\n";
 				}
 			}
 
-			os << "\t</IdentificationRun>" << endl;
+			os << "\t</IdentificationRun>\n";
 		}
 		//empty protein ids  parameters
 		if (protein_ids.size()==0)
 		{
-			os << "<IdentificationRun date=\"1900-01-01T01:01:01.0Z\" search_engine=\"Unknown\" search_parameters_ref=\"ID_1\" search_engine_version=\"0\"/>" << endl;
+			os << "<IdentificationRun date=\"1900-01-01T01:01:01.0Z\" search_engine=\"Unknown\" search_parameters_ref=\"ID_1\" search_engine_version=\"0\"/>\n";
 		}
 
 		for (UInt i=0; i<peptide_ids.size(); ++i)
@@ -321,7 +321,7 @@ namespace OpenMS
 			}
 		}
 		//write footer
-		os << "</IdXML>" << endl;
+		os << "</IdXML>\n";
 		
 		//close stream
 		os.close();
