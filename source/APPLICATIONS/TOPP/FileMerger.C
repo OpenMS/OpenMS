@@ -66,8 +66,8 @@ class TOPPFileMerger
  protected:
 	void registerOptionsAndFlags_()
 	{
-		registerInputFileList_("file_list","<files>",StringList(),"Input files separated by blank");
-		setValidFormats_("file_list",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf"));	
+		registerInputFileList_("in","<files>",StringList(),"Input files separated by blank");
+		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf"));	
 		registerStringOption_("in_type","<type>","","input file type (default: determined from file extension or content)\n", false);
 		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf"));
 		registerOutputFile_("out","<file>","","output file");
@@ -94,7 +94,7 @@ class TOPPFileMerger
 		// parameter handling
 		//-------------------------------------------------------------
 		//file list
-		StringList file_list = getStringList_("file_list");
+		StringList file_list = getStringList_("in");
 
 		//file type
 		FileHandler fh;

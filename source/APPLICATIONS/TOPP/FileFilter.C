@@ -167,34 +167,14 @@ class TOPPFileFilter
 			{
 				//rt
 				parseRange_(rt,rt_l,rt_u);
-				writeDebug_("rt lower/upper bound: " + String(rt_l) + " / " + String(rt_u),1);	
-				
 				//mz
 				parseRange_(mz,mz_l,mz_u);
-				writeDebug_("mz lower/upper bound: " + String(mz_l) + " / " + String(mz_u),1);	
-				
 				//int
 				parseRange_(it,it_l,it_u);
-				writeDebug_("int lower/upper bound: " + String(it_l) + " / " + String(it_u),1);	
-	
-				//levels
-				String tmp3("MS levels: ");
-				tmp3 = tmp3 + *(levels.begin());
-				for (IntList::iterator it = ++levels.begin(); it != levels.end(); ++it)
-				{
-					tmp3 = tmp3 + ", " + *it;
-				}
-				writeDebug_(tmp3,1);	
-
-
         //charge (features only)
         parseRange_(charge,charge_l,charge_u);
-        writeDebug_("charge lower/upper bound: " + String(charge_l) + " / " + String(charge_u),1); 
-
         //charge (features only)
         parseRange_(q,q_l,q_u);
-        writeDebug_("quality lower/upper bound: " + String(q_l) + " / " + String(q_u),1); 
-
 			}
 			catch(Exception::ConversionError&)
 			{

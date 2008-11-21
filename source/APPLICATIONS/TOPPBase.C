@@ -1311,7 +1311,14 @@ namespace OpenMS
 		const DataValue& tmp = getParam_(key);
 		if (!tmp.isEmpty())
 		{
-			return tmp.toString().toInt();
+			try
+			{
+				return tmp.toString().toInt();
+			}
+			catch(Exception::ConversionError&)
+			{
+				throw InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,String("Invalid value '") + tmp.toString() + "' for integer parameter '" + key + "' given.");
+			}
 		}
 		else
 		{
@@ -1324,7 +1331,14 @@ namespace OpenMS
 		const DataValue& tmp = getParam_(key);
 		if (!tmp.isEmpty())
 		{
-			return tmp.toString().toDouble();
+			try
+			{
+				return tmp.toString().toDouble();
+			}
+			catch(Exception::ConversionError&)
+			{
+				throw InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,String("Invalid value '") + tmp.toString() + "' for double parameter '" + key + "' given.");
+			}
 		}
 		else
 		{
@@ -1355,7 +1369,14 @@ namespace OpenMS
 			il.resize(sl.size());
 		 	for(UInt i = 0; i < sl.size(); ++i)
 			{
-				il[i] = sl[i].toInt();
+				try
+				{
+					il[i] = sl[i].toInt();
+				}
+				catch(Exception::ConversionError&)
+				{
+					throw InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,String("Invalid value '") + sl[i] + "' in integer list parameter '" + key + "' given.");
+				}
 			}
 			
 			return il;
@@ -1368,7 +1389,7 @@ namespace OpenMS
 	
 	DoubleList TOPPBase::getParamAsDoubleList_(const String& key,const DoubleList& default_value) const
 	{
-	const DataValue& tmp = getParam_(key);
+		const DataValue& tmp = getParam_(key);
 		if(!tmp.isEmpty())
 		{
 			StringList sl = (StringList)tmp;
@@ -1376,7 +1397,14 @@ namespace OpenMS
 			dl.resize(sl.size());
 		 	for(UInt i = 0; i < sl.size(); ++i)
 			{
-				dl[i] = sl[i].toDouble();
+				try
+				{
+					dl[i] = sl[i].toDouble();
+				}
+				catch(Exception::ConversionError&)
+				{
+					throw InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,String("Invalid value '") + sl[i] + "' in double list parameter '" + key + "' given.");
+				}
 			}
 			
 			return dl;
@@ -1405,7 +1433,6 @@ namespace OpenMS
 				return true;
 			}
 		}
-		
 		throw InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,String("Invalid value '") + tmp.toString() + "' for flag parameter '" + key +"'. Valid values are 'true' and 'false' only.");
 	}
 
