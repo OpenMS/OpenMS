@@ -50,7 +50,7 @@ using namespace std;
 	is an svm model and an IdXML
 	file with peptide identifications. The svm model file is specified
 	by the <b>svm_model</b> parameter in the command line or the ini file. 
-	This file should have been produced by the PTModel application. 
+	This file should have been produced by the @ref PTModel application. 
 */
 
 // We do not want this class to show up in the docu:

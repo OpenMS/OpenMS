@@ -54,7 +54,7 @@ using namespace std;
 	The Gaussian is a peak area preserving low-pass filter and is characterized by narrow bandwidths,
 	sharp cutoffs, and low passband ripple.
 	
-	@note The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the @b Resampler tool).
+	@note The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the @ref Resampler tool).
 	      The Gaussian filter works for uniform as well as for non-uniform data.
 	
 	@ingroup TOPP

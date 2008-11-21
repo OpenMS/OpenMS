@@ -44,6 +44,8 @@ using namespace std;
 	@page IDMapper_TOPP IDMapper
 	
 	Assigns protein/peptide identifications to feature or consensus features.
+	
+	This tool is typically used before @ref ConsensusID_TOPP.
 */
 
 // We do not want this class to show up in the docu:

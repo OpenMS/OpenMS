@@ -44,7 +44,7 @@ using namespace std;
 	If only one dataset is exported, it is stored with the given name.
 	If several datasets are exported, the given name is prefixed with the DB id and an underscore.
 	
-	In order to create a new %OpenMS database, please use the 'init' flag of the DBImporter.
+	In order to create a new %OpenMS database, use the @ref DBImporter.
 
 */
 

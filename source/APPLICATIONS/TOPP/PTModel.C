@@ -128,7 +128,7 @@ using namespace std;
 	</ol>
 			
 	<br>	
-	The model can be used in PTPredict, to predict the likelihood  
+	The model can be used in @ref PTPredict, to predict the likelihood  
 	for peptides to be proteotypic.
 
 */

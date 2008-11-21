@@ -51,7 +51,7 @@ using namespace std;
 	is an svm model and an IdXML
 	file with peptide identifications. The svm model file is specified
 	by the <b>svm_model</b> parameter in the command line or the ini file. 
-	This file should have been produced by the RTModel application. 
+	This file should have been produced by the @ref RTModel application. 
 	<br>
 	For retention time prediction the peptide sequences are extracted 
 	from the IdXML inputfile 

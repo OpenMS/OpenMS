@@ -141,7 +141,7 @@ using namespace std;
 	</ol>
 			
 	<br>	
-	The model can be used in RTPredict, to predict retention times 
+	The model can be used in @ref RTPredict, to predict retention times 
 	for peptides or peptide separation depending on how you trained 
 	the model.
 

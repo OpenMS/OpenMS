@@ -84,6 +84,8 @@ using namespace std;
 		</tr>
 	</table>
 	
+	In order to impove the results of the peak detection @ref NoiseFilter and @ref BaselineFilter can be applied.
+	
 	@ingroup TOPP
 */
 

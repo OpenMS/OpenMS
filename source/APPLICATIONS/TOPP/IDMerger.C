@@ -42,6 +42,8 @@ using namespace std;
 	@brief Merges several IdXML files into one IdXML file.
 	
 	You can merge an unlimited number of files into one IdXML file.
+	
+	This tool is typically applied before @ref ConsensusID_TOPP or @ref IDMapper_TOPP.
 */
 
 // We do not want this class to show up in the docu:

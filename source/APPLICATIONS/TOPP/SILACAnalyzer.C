@@ -812,6 +812,8 @@ class TOPPSILACAnalyzer
     }
 };
 
+//@endcond
+
 int main(int argc, const char** argv )
 {
   TOPPSILACAnalyzer tool;

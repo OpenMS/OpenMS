@@ -85,7 +85,7 @@ using namespace std;
 			<b>rt_filtering</b>:<br> To filter identifications according to their 
 			predicted retention times you have to set this flag. You can set the used significance level
 			by setting the 'p_value' parameter.<br>  
-			This filter can only be applied to IdXML files produced by RTPredict.
+			This filter can only be applied to IdXML files produced by @ref RTPredict.
 		</li>
 		<li>
 			<b>exclusion peptides</b>:<br> For this option you specify an IdXML file.

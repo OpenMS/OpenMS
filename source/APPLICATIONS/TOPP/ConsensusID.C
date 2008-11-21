@@ -44,9 +44,9 @@ using namespace std;
 	
 	@brief Computes a consensus identification from peptide identification engines.
 	
-	The input file can contain several searches, e.g. from several identification engines.
-	
-	@see IDMerger
+	The input file can contain several searches, e.g. from several identification engines. 
+	You can combine several searches with @ref IDMerger. Identification runs can be mapped
+	to featureXML and consensusXML with the @ref IDMapper_TOPP tool.
 	
 	For a detailed description of the algorithms and parameters see the documentation of
 	the %OpenMS ConsensusID class.

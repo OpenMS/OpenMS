@@ -37,21 +37,23 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-   @page BaselineFilter BaselineFilter
-
-   @brief Executes the top-hat filter to remove the baseline of an MS experiment.
-
-   This nonlinear filter, known as the top-hat operator in morphological mathematics
-   (see Soille, ''Morphological Image Analysis''), is independent of the underlying baseline shape.
-   It is able to detect an over brightness even if the environment is not uniform.
-   The principle is based on the subtraction of a signal from its opening (erosion followed by a dilation).
-   The size the structuring element (here a flat line) being conditioned by the width of the lineament
-   (in our case the maximum width of a mass spectrometric peak) to be detected.
-
-   @note The length (given in Thomson) of the structuring element should be wider than the
-	 maximum peak width in the raw data.
-
-   @ingroup TOPP
+	@page BaselineFilter BaselineFilter
+	
+	@brief Executes the top-hat filter to remove the baseline of an MS experiment.
+	
+	This nonlinear filter, known as the top-hat operator in morphological mathematics
+	(see Soille, ''Morphological Image Analysis''), is independent of the underlying baseline shape.
+	It is able to detect an over brightness even if the environment is not uniform.
+	The principle is based on the subtraction of a signal from its opening (erosion followed by a dilation).
+	The size the structuring element (here a flat line) being conditioned by the width of the lineament
+	(in our case the maximum width of a mass spectrometric peak) to be detected.
+	
+	Before basline filtering the @ref NoiseFilter is often applied.
+		
+	@note The length (given in Thomson) of the structuring element should be wider than the
+	maximum peak width in the raw data.
+	
+	@ingroup TOPP
 */
 
 // We do not want this class to show up in the docu:

@@ -43,13 +43,11 @@ using namespace std;
 	
 	@brief Merges several files into an mzData file.
 	
-	Input is a text file containing a list of file names and (optional) retention times.
-	Output is a mzData file that contains the merged scans.
+	The meta information that is valid for the whole experiment (e.g. MS instrument and sample) 
+	is taken from the first file.
 	
-	The meta information that is valid for the whole experiment is taken from the first file.
-	
-	The retention times for the individual scans are taken from the input file(s) meta data,
-	from the input file names or are generated.
+	The retention times for the individual scans are taken from the input file meta data,
+	from the input file names or are auto-generated.
 */
 
 // We do not want this class to show up in the docu:

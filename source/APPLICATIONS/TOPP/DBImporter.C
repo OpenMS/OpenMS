@@ -38,8 +38,9 @@ using namespace std;
 	@brief Imports an mzData file to an %OpenMS database.
 	
 	Besides the file to import, only the connection data has to be given.
+	The data can then be retrieved by the @ref DBExporter.
 	
-	Please use the 'init' flag in order to create a new %OpenMS database.
+	The @em init flag can be used to create a new %OpenMS database.
 */
 
 // We do not want this class to show up in the docu -> cond

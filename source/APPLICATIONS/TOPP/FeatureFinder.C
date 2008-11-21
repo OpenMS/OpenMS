@@ -86,8 +86,11 @@ using namespace std;
 			<td>0.04</td>
 			<td>0.005</td>
 		</tr>
-
 	</table>
+	
+	For the @em picked_peak algorithm peak data is needed. In order to create peak data from raw data use the @ref PeakPicker.
+	
+	Specialized tools are available for some experimental techniques: @ref SILACAnalyzer, @ref ITRAQAnalyzer.
 */
 
 // We do not want this class to show up in the docu:

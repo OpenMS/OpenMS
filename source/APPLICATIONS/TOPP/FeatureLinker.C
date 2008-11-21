@@ -49,7 +49,11 @@ using namespace std;
 	 It takes one or several feaure maps and stores the corresponding features in a ConsensusXML files.
 	 
 	 It is assumed that major retention time distortions are corrected before applying this tool.
-	 Please use MapAligner to do that on the peak or feature level.
+	 Please use @ref MapAligner to do that on the peak or feature level.
+	 
+	 In order to create feature data from peak data use the @ref FeatureFinder.
+	 
+	 @todo Add support for features annotated with protein/peptide identifications (Marc, Clemens)
 	 
 	 @ingroup TOPP
 */
