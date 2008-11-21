@@ -63,7 +63,7 @@ TOPP_TOOL_TESTS = \
 	PTModel_test\
 	PTPredict_test\
 	IDMapper_test\
-	IDRTCalibration
+	IDRTCalibration_test
 
 # Files to remove
 CLEANUP = ${RM} -f *.tmp *.tmp_ *.tmp_? *.log core.*
