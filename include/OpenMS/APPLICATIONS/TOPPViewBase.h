@@ -68,7 +68,7 @@ namespace OpenMS
   	@brief Main window of TOPPView tool
 		
 		@todo Add meta data browsing for consensus features. e.g. to show annotated peptide identifications (Hiwi)
-    @improvement Paint only highest point per pixel, paint only part of the data when moving (Marc)
+    @improvement Paint only highest point per pixel, paint only part of the data when moving (Hiwi)
 		
     @ingroup TOPPView_elements
   */
