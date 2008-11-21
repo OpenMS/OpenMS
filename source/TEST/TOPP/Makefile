@@ -787,6 +787,13 @@ TextExporter_test: make_fuzzydiff
 	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_3_input.idXML -no_progress -out TextExporter3.tmp -peptides_only)
 	@$(call TEST_FILE_EQUAL,TextExporter3.tmp,TextExporter_3_output_peptides.txt)
 
+	@$(ECHO) "- Test 4: IdXML test (CSV)"
+	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_4_input.idXML -no_progress -out TextExporter4.tmp -peptides_only_csv)
+	@$(call TEST_FILE_EQUAL,TextExporter4.tmp,TextExporter_4_output.txt)
+
+	@$(ECHO) "- Test 5: IdXML test (CSV and first_dim_rt)"
+	@$(call RUN_PROG_OPT,TextExporter,-in TextExporter_5_input.idXML -no_progress -out TextExporter5.tmp -peptides_only_csv -first_dim_rt)
+	@$(call TEST_FILE_EQUAL,TextExporter5.tmp,TextExporter_5_output.txt)
 
 SILACAnalyzer_test: make_fuzzydiff
 	@$(ECHO) ""

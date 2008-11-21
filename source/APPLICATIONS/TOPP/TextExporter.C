@@ -175,6 +175,7 @@ namespace OpenMS
 			registerFlag_("sort_by_maps","Apply a stable sort by the covered maps, lexicographically",false);
 			registerFlag_("sort_by_size","Apply a stable sort by decreasing size (i.e., the number of elements)",false);
 			addText_("Sorting options can be combined.  The precedence is: sort_by_size, sort_by_maps, sorting_method");
+			registerFlag_("first_dim_rt","If this flag is set the first_dim RT of the peptide hits will also be printed (if present).");
 			return;
 		}
 	
@@ -199,6 +200,7 @@ namespace OpenMS
 			UInt counter = 0;
 			bool without_header_repetition = getFlag_("peptides_only_csv");
       bool no_ids = getFlag_("no_ids");
+      bool first_dim_rt = getFlag_("first_dim_rt");
         
       //input file type
       FileHandler::Type in_type = FileHandler::getType(in);
@@ -587,7 +589,14 @@ namespace OpenMS
 								// header of peptide hits
 								if (without_header_repetition && counter == 0)
 								{
-            			txt_out << "RT MZ Score Rank Sequence Charge AABefore AAAfter Accessions predicted_RT" << endl;
+									if (first_dim_rt)
+									{
+            				txt_out << "RT MZ Score Rank Sequence Charge AABefore AAAfter Accessions predicted_RT RT_first_dim predicted_RT_first_dim" << endl;
+									}
+									else
+									{
+            				txt_out << "RT MZ Score Rank Sequence Charge AABefore AAAfter Accessions predicted_RT" << endl;
+            			}
             			++counter;
             		}
             		else if (counter == 0)
@@ -635,6 +644,29 @@ namespace OpenMS
 									if (ppit->metaValueExists("predicted_RT"))
 									{
 										txt_out << " " << ppit->getMetaValue("predicted_RT");
+									}
+									else
+									{
+										txt_out << " -1";
+									}
+									if (first_dim_rt)
+									{
+										if (pit->metaValueExists("first_dim_rt"))
+										{
+											txt_out << " " << pit->getMetaValue("first_dim_rt");
+										}
+										else
+										{
+											txt_out << " -1";
+										}
+										if (ppit->metaValueExists("predicted_RT_first_dim"))
+										{
+											txt_out << " " << ppit->getMetaValue("predicted_RT_first_dim");
+										}
+										else
+										{
+											txt_out << " -1";
+										}										
 									}
 									txt_out << endl;
 								}

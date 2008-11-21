@@ -41,7 +41,14 @@ using namespace std;
 	
 	@brief Can be used to calibrate RTs of peptide hits linearly to standards.
 	
-	
+	This tool can be used to linearly align RTs of the IdXML-File to a reference. If only calibrant_1_input and
+  calibrant_2_input are given, the first calibrant will result at RT 0.1 and calibrant_2_input will be at 0.9.
+	If one wants to align the RTs of this IdXML file to the IDs of a reference file one can also give the RTs 
+	of the same calibrant in the reference file (calibrant_1_reference, calibrant_2_reference). If these calibrants
+	are given, the linear transformation (shift and scale) will be calculated such that calibrant_1_input will
+	be at the same RT as calibrant_1_reference and calibrant_2_input will
+	be at the same RT as calibrant_2_reference. This only applies if calibrant_1* has a smaller RT than calibrant_2*.
+	Otherwise the values are swapped.
 */
 
 // We do not want this class to show up in the docu:
@@ -83,7 +90,18 @@ class TOPPIDRTCalibration
 		DoubleReal rt_calibrant_2_input =  getDoubleOption_("calibrant_2_input");
 		DoubleReal rt_calibrant_1_reference =  getDoubleOption_("calibrant_1_reference");
 		DoubleReal rt_calibrant_2_reference =  getDoubleOption_("calibrant_2_reference");
-				
+		
+		if (rt_calibrant_1_input == rt_calibrant_2_input)
+		{
+			cout << "rt_calibrant_1_input and rt_calibrant_2_input must not have the same value";
+			return ILLEGAL_PARAMETERS;
+		}
+		if (rt_calibrant_1_reference == rt_calibrant_2_reference)
+		{
+			cout << "rt_calibrant_1_reference and rt_calibrant_2_reference must not have the same value";
+			return ILLEGAL_PARAMETERS;
+		}
+		
 		//-------------------------------------------------------------
 		// testing whether input and output files are accessible
 		//-------------------------------------------------------------
