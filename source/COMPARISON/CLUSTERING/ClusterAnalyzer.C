@@ -81,12 +81,12 @@ namespace OpenMS
 			}
 		}
 
-		#ifdef OPENMS_DEBUG
+		/* to manually retrace
 		for(UInt i = 0; i < original.dimensionsize(); ++i)
 		{
 			std::cout << interdist_i[i] << " | " << cluster_with_interdist[i] << " | " << intradist_i[i] << std::endl;
 		}
-		#endif
+		*/
 
 		//initial cluster state
 		std::vector< std::vector < UInt > > clusters(original.dimensionsize());
@@ -246,7 +246,7 @@ namespace OpenMS
 				}
 			}
 
-			#ifdef OPENMS_DEBUG
+			/* to manually retrace
 			for(UInt x = 0; x < clusters.size();++x)
 			{
 				for(UInt y = 0; y < clusters[x].size();++y)
@@ -264,7 +264,7 @@ namespace OpenMS
 
 			}
 			std::cout << "---------" << std::endl;
-			#endif
+			*/
 
 			//calculate average silhouette width for clusters and then overall average silhouette width for cluster step
 			Real average_overall_silhouette(0); // from cluster step
@@ -279,20 +279,20 @@ namespace OpenMS
 						if(interdist_i[clusters[g][h]]!=0)
 						{
 							average_overall_silhouette += (interdist_i[clusters[g][h]] - intradist_i[clusters[g][h]]) / std::max(interdist_i[clusters[g][h]],intradist_i[clusters[g][h]]);
-							#ifdef OPENMS_DEBUG
+							/* to manually retrace
 								silhouettes[clusters[g][h]] = (interdist_i[clusters[g][h]] - intradist_i[clusters[g][h]]) / std::max(interdist_i[clusters[g][h]],intradist_i[clusters[g][h]]);
-							#endif
+							*/
 						}
 					}
 				}
 			}
-			#ifdef OPENMS_DEBUG
+			/* to manually retrace
 				for(UInt i = 0; i < silhouettes.size(); ++i)
 				{
 					std::cout << "s(" <<  (i) << ") = " << silhouettes[i] << std::endl;
 				}
 				std::cout << "---------" << std::endl;
-			#endif
+			*/
 			average_silhouette_widths.push_back(average_overall_silhouette/(Real)original.dimensionsize());
 		}
 		average_silhouette_widths.push_back(0.0);
@@ -377,11 +377,11 @@ namespace OpenMS
 				}
 			}
 
-				#ifdef OPENMS_DEBUG
+			/* to manually retrace
 				std::cout << min_intercluster_distance << std::endl;
 				std::cout << clusters_with_min_intercluster_dist.first << " , " << clusters_with_min_intercluster_dist.second << std::endl;
 				std::cout << max_intracluster_distance << std::endl;
-				#endif
+			*/
 
 			//find max dunn index and deduct the corresponding cluster step
 			Real dunn_index;
@@ -539,33 +539,6 @@ namespace OpenMS
 
 		return clusters[0];
 	}
-
-	/*
-	BinnedSpectrum createConsensus(const std::vector<PeakSpectrum>& spectra_list)
-	{
-		double sum_precursor_mass(0);
-		double sum_precursor_intens(0);
-		PeakSpectrum pre_consens();
-		//for all i in spectra_list
-		for(UInt i = 0; i< spectra_list.size(); ++i)
-		{
-			sum_precursor_mass += spectra_list[i].getPrecursorPeak().
-			sum_precursor_intens += spectra_list[i].getPrecursorPeak().getPosition()[0];
-			for(PeakSpectrum::iterator j = spectra_list[i].begin(); j != spectra_list[i].end(); ++j)
-			{
-				pre_consens.push_back(*j);
-			}
-		}
-		//precursormass of preConsens spectrum is irrelevant?
-		spectra_list[i].getPrecursorPeak().setIntensity(sum_precursor_intens/(double)spectra_list.size());
-		spectra_list[i].getPrecursorPeak().getPosition()[0] = sum_precursor_mass/(double)spectra_list.size();
-		//make binnedSpectrum consens from preConsens spectrum binsize 0.5 binspread 1,
-		BinnedSpectrum consens(0.5,1,pre_consens);
-		//adjust intensity (peak probability see ms2grouper)
-		//filter weak peaks (top5 out of 100da)
-	}
-	*/
-
 
 	bool compareBinaryTreeNode(const BinaryTreeNode& x, const BinaryTreeNode& y)
 	{
