@@ -350,6 +350,11 @@ class TOPPSILACAnalyzer
 			  			data.push_back(SILACData(rt_it->getRT(),mz,int_spline1,int_spline3,int_spline5,int_spline2,int_spline4,int_spline6));
 						}
 					}
+
+					gsl_spline_free(spline);
+					gsl_interp_accel_free(acc);
+					gsl_spline_free(spline2);
+					gsl_interp_accel_free(acc2);
 				}
 				exp.clear();
 				logger_.endProgress();
