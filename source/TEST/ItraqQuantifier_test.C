@@ -99,6 +99,7 @@ START_SECTION((void run(const ConsensusMap &consensus_map_in, ConsensusMap &cons
 	
 	// TOLERANCE_ABSOLUTE(was: 0.01); // TODO   I want to see if default tolerances are good enough.  If these fail, you are welcome to uncomment this.  (Clemens)
 	// TOLERANCE_RELATIVE(your choice ????);  TODO ????
+	WHITELIST("<?xml-stylesheet");
 	TEST_FILE_SIMILAR(cm_file_out,"data/ItraqQuantifier.consensusXML");
 }
 END_SECTION

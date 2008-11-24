@@ -89,6 +89,7 @@ START_SECTION((void infer(ConsensusMap &consensus_map, const UInt reference_map)
 	cm_file.store(cm_file_out,cm);
 	
 	// TOLERANCE_ABSOLUTE(0.01);
+	WHITELIST("<?xml-stylesheet");
 	TEST_FILE_SIMILAR(cm_file_out,"data/ItraqQuantifier.consensusXML");
 	
 }

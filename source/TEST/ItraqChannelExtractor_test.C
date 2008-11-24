@@ -94,7 +94,7 @@ START_SECTION((void run(const MSExperiment< Peak1D > &ms_exp_data, ConsensusMap 
 	String cm_file_out;
 	NEW_TMP_FILE(cm_file_out);
 	cm_file.store(cm_file_out,cm_out);
-	
+	WHITELIST("<?xml-stylesheet");
 	TEST_FILE_SIMILAR(cm_file_out,"data/ItraqChannelExtractor.consensusXML");
 	
 }

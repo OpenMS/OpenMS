@@ -29,6 +29,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 
 #include <cstdlib> // for strtod()
 #include <fstream>
@@ -36,6 +37,7 @@
 #include <ctype.h> // for isspace()
 #include <limits> // for NaN
 #include <sstream>
+#include <map>
 
 namespace OpenMS
 {
@@ -107,10 +109,29 @@ namespace OpenMS
 			if ( absdiff_max_allowed_ < 0.0 ) absdiff_max_allowed_ = -absdiff_max_allowed_;
 		}
 
+		/// White list.  If both lines contain the same element from this list, they are skipped over.
+		const StringList & getWhitelist() const
+		{
+			return whitelist;
+		}
+
+		/// White list.  If both lines contain the same element from this list, they are skipped over.
+		StringList & getWhitelist()
+		{
+			return whitelist;
+		}
+
+		/// White list.  If both lines contain the same element from this list, they are skipped over.
+		void setWhitelist(const StringList& rhs)
+		{
+			whitelist = rhs;
+		}
+
+
 		/**@brief verbose level
 
-		- 0 = very quiet mode (absolutely no output) (was: -Q)
-		- 1 = quiet mode (no output unless differences detected) (was: -q)
+		- 0 = very quiet mode (absolutely no output)
+		- 1 = quiet mode (no output unless differences detected)
 		- 2 = default (include summary at end)
 		- 3 = continue after errors
 		.
@@ -122,8 +143,8 @@ namespace OpenMS
 
 		/**@brief verbose level
 
-		- 0 = very quiet mode (absolutely no output) (was: -Q)
-		- 1 = quiet mode (no output unless differences detected) (was: -q)
+		- 0 = very quiet mode (absolutely no output)
+		- 1 = quiet mode (no output unless differences detected)
 		- 2 = default (include summary at end)
 		- 3 = continue after errors
 		.
@@ -191,7 +212,7 @@ namespace OpenMS
 
 		returns true in case of success
 		*/
-		bool compareStrings( std::string const & lhs, std::string const & rhs );
+		Int compareStrings( std::string const & lhs, std::string const & rhs );
 		
 		/**@brief Compare two streams of input.
 		
@@ -200,7 +221,7 @@ namespace OpenMS
 
 		returns true in case of success
 		*/
-		bool compareStreams( std::istream & input_1, std::istream & input_2 );
+		Int compareStreams( std::istream & input_1, std::istream & input_2 );
 		
 		/**@brief Simple diff-like application to compare two input files.
 		Numeric differences are tolerated up to a certain ratio or absolute
@@ -215,7 +236,7 @@ namespace OpenMS
 		@sa absdiff_max_allowed_
 		@sa verbose_level_
 		*/
-		bool compareFiles( const std::string & filename_1, const std::string & filename_2);
+		Int compareFiles( const std::string & filename_1, const std::string & filename_2);
 
 	 protected:
 
@@ -224,9 +245,9 @@ namespace OpenMS
 		This implements the core functionality.  Intended to be used for a single
 		line of input.
 
-		returns true in case of success
+		returns true (non-zero) in case of success
 		*/
-		bool compareLines_( std::string const & line_str_1,
+		Int compareLines_( std::string const & line_str_1,
 												std::string const & line_str_2
 											);
 
@@ -294,6 +315,9 @@ namespace OpenMS
 
 		/// use a prefix when reporting
 		bool use_prefix_;
+
+		StringList whitelist;
+		std::map<String,UInt> whitelist_cases;
 
 	}; // class FuzzyStringComparator
 

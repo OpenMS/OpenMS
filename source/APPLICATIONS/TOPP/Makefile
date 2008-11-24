@@ -72,7 +72,6 @@ TOPP_EXECUTABLES=\
 	ITRAQAnalyzer\
 	IDMapper\
 	IDRTCalibration
-				
 
 # Those executables not derived from TOPPBase (they are left out when writing the ini files)
 OTHER_EXECUTABLES=\

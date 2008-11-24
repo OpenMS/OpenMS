@@ -27,8 +27,6 @@
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <sstream>
 
-
-
 namespace OpenMS
 {
   
@@ -39,13 +37,9 @@ namespace OpenMS
     input_2_name_("input_2"),
     line_1_(),
     line_2_(),
-    // Maximum ratio of numbers allowed
     ratio_max_allowed_(1.0),
-    // Maximum ratio of numbers observed so far
     ratio_max_(1.0),
-    // Maximum absolute difference of numbers allowed
     absdiff_max_allowed_(0.0),
-    // Maximum difference of numbers observed so far
     absdiff_max_(0.0),
     number_1_(0),
     letter_1_(0),
@@ -60,14 +54,15 @@ namespace OpenMS
     line_num_2_(0),
     line_num_1_max_(-1),
     line_num_2_max_(-1),
-    // default == 2,  -q == 1,  -Q == 0,  continue after failure == 3
     verbose_level_(2),
 		tab_width_(8),
 		first_column_(1),
     is_status_success_(true),
     line_str_1_max_(),
     line_str_2_max_(),
-		use_prefix_(false)
+		use_prefix_(false),
+		whitelist(),
+		whitelist_cases()
   {
 	}
 
@@ -143,7 +138,33 @@ namespace OpenMS
 				prefix << "  relative_acceptable: " << ratio_max_allowed_ << "\n" <<
 				prefix << " --------------------------------\n" <<
 				prefix << "  absolute_max:        " << absdiff_max_ << "\n" <<
-				prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << "\n" <<
+				prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << std::endl;
+
+			if ( !whitelist_cases.empty() )
+			{
+				*log_dest_ <<
+					prefix << '\n' <<
+					prefix << "  whitelist cases:\n";
+				UInt length = 0;
+				for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases.begin();
+							wlcit != whitelist_cases.end();
+							++wlcit
+						)
+				{
+					if ( wlcit->first.size() > length) length = wlcit->first.size();
+				}
+				for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases.begin();
+							wlcit != whitelist_cases.end();
+							++wlcit
+						)
+				{
+					*log_dest_ <<
+						prefix << "    " << std::setw(length+3) << std::left << ( "\"" + wlcit->first + "\"" ) << 
+						std::setw(3) << std::right << wlcit->second << "x\n";
+				}
+			}
+
+			*log_dest_ <<
 				prefix << "\n" <<
 				prefix << "Offending lines:\t\t\t(tab_width = " << tab_width_ << ", first_column = " << first_column_ << ")\n" <<
 				prefix << "\n" <<
@@ -186,8 +207,33 @@ namespace OpenMS
 				prefix << "  relative_acceptable: " << ratio_max_allowed_ << '\n' <<
 				prefix << '\n' <<
 				prefix << "  absolute_max:        " << absdiff_max_ << '\n' <<
-				prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << '\n' <<
-				prefix << std::endl;
+				prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << std::endl;
+
+				if ( !whitelist_cases.empty() )
+				{
+					*log_dest_ <<
+						prefix << '\n' <<
+						prefix << "  whitelist cases:\n";
+					UInt length = 0;
+					for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases.begin();
+								wlcit != whitelist_cases.end();
+								++wlcit
+							)
+					{
+						if ( wlcit->first.size() > length) length = wlcit->first.size();
+					}
+					for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases.begin();
+								wlcit != whitelist_cases.end();
+								++wlcit
+							)
+					{
+						*log_dest_ <<
+							prefix << "    " << std::setw(length+3) << std::left << ( "\"" + wlcit->first + "\"" ) << 
+							std::setw(3) << std::right << wlcit->second << "x\n";
+					}
+				}
+
+				*log_dest_ << prefix << std::endl;
 
       if ( line_num_1_max_ == -1 && line_num_2_max_ == -1 )
       {
@@ -211,9 +257,24 @@ namespace OpenMS
     return;
   }
   
-  bool FuzzyStringComparator::compareLines_( std::string const & line_str_1, std::string const & line_str_2 )
+  Int FuzzyStringComparator::compareLines_( std::string const & line_str_1, std::string const & line_str_2 )
   {
 		
+		for ( StringList::const_iterator slit = whitelist.begin();
+					slit != whitelist.end();
+					++slit
+				)
+		{
+			if ( line_str_1.find(*slit)!=std::string::npos && 
+					 line_str_2.find(*slit)!=std::string::npos
+				 )
+			{
+				++whitelist_cases[*slit];
+				// *log_dest_ << "whitelist case: " << *slit << '\n';
+				return is_status_success_;
+			}
+		}
+
     line_1_.str(line_str_1);
     line_1_.seekp(0);
     line_1_.clear();
@@ -449,7 +510,7 @@ namespace OpenMS
     return is_status_success_;
   } // compareLines_()
 
-  bool FuzzyStringComparator::compareStrings( std::string const & lhs, std::string const & rhs )
+  Int FuzzyStringComparator::compareStrings( std::string const & lhs, std::string const & rhs )
   {
 		std::istringstream input_1(lhs);
 		std::istringstream input_2(rhs);
@@ -490,7 +551,7 @@ namespace OpenMS
 
   } // compareStrings()
 
-  bool FuzzyStringComparator::compareStreams( std::istream & input_1, std::istream & input_2 )
+  Int FuzzyStringComparator::compareStreams( std::istream & input_1, std::istream & input_2 )
   {
     std::string line_str_1;
     std::string line_str_2;
@@ -506,7 +567,6 @@ namespace OpenMS
 			for ( line_str_1.clear(); ++line_num_1_, std::getline(input_1,line_str_1); )
 			{
 				if ( line_str_1.empty() ) continue; // shortcut
-				if ( line_str_1.find("<?xml-stylesheet")!=std::string::npos ) continue; // XML stylesheet TODO this is the wrong member function to check this!  Do this in compareLines_ instead!!!!
 				std::string::const_iterator iter = line_str_1.begin(); // loop initialization
 				for ( ; iter != line_str_1.end() && isspace(*iter); ++iter ) ; // skip over whitespace
 				if ( iter != line_str_1.end() ) break; // line is not empty or whitespace only
@@ -515,7 +575,6 @@ namespace OpenMS
 			for ( line_str_2.clear(); ++line_num_2_, std::getline(input_2,line_str_2); )
 			{
 				if ( line_str_2.empty() ) continue; // shortcut
-				if ( line_str_2.find("<?xml-stylesheet")!=std::string::npos ) continue; // XML stylesheet TODO this is the wrong member function to check this!  Do this in compareLines_ instead!!!!
 				std::string::const_iterator iter = line_str_2.begin(); // loop initialization
 				for ( ; iter != line_str_2.end() && isspace(*iter); ++iter ) ; // skip over whitespace
 				if ( iter != line_str_2.end() ) break; // line is not empty or whitespace only
@@ -532,7 +591,7 @@ namespace OpenMS
 
   } // compareStreams()
 
-	bool FuzzyStringComparator::compareFiles(const std::string & filename_1, const std::string & filename_2)
+	Int FuzzyStringComparator::compareFiles(const std::string & filename_1, const std::string & filename_2)
   {
 
 		input_1_name_ = filename_1;

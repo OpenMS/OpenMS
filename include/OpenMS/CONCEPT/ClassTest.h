@@ -74,7 +74,6 @@
 
 namespace OpenMS
 {
-
 	namespace Internal
 	{
 		/// Auxilary namespace for class tests.  Used by the macros in module @ref ClassTest.
@@ -116,6 +115,9 @@ namespace OpenMS
 
 			/// print the text, each line gets a prefix, the marked line number gets a special prefix
 			void printWithPrefix(const std::string & text, const int marked = -1);
+
+			/// set the whitelist
+			void setWhitelist(const char * const /* file */, const int line, const std::string& whitelist);
 
 			/// Maximum ratio of numbers allowed, see #TOLERANCE_RELATIVE.
 			extern double ratio_max_allowed;
@@ -934,6 +936,27 @@ int main(int argc, char **argv)																									\
 		}																																		\
 	}
 
+/**	@brief Define the relative tolerance for floating point comparisons.
+
+	@sa #TEST_REAL_SIMILAR, #TEST_STRING_SIMILAR, #TEST_FILE_SIMILAR
+
+	Several macros consider two numbers sufficiently "close" if <b>the ratio of
+	the larger and the smaller</b> is bounded by the value supplied by
+	#TOLERANCE_RELATIVE.  The default value is @f$ 1 + 10^{-5} @f$.  It is
+	possible to redefine the relative tolerance by calling #TOLERANCE_RELATIVE
+	with the new value.
+
+	 @hideinitializer
+*/
+#define TOLERANCE_RELATIVE(a)																						\
+	TEST::ratio_max_allowed = (a);																				\
+	if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))	\
+	{																																			\
+		TEST::initialNewline();																							\
+	std__cout << "    (line " << __LINE__ <<															\
+		":  TOLERANCE_RELATIVE(" << 	TEST::ratio_max_allowed <<						\
+		")   (\""#a"\")" << std::endl;																			\
+	}
 
 /**	@brief Define the absolute tolerance for floating point comparisons.
 
@@ -956,27 +979,13 @@ int main(int argc, char **argv)																									\
 			")   (\""#a"\")" << std::endl;																		\
 	}
 
-/**	@brief Define the absolute tolerance for floating point comparisons.
+/** @brief Define the whitelist used by #TEST_STRING_SIMILAR and #TEST_FILE_SIMILAR.
 
-	@sa #TEST_REAL_SIMILAR, #TEST_STRING_SIMILAR, #TEST_FILE_SIMILAR
-
-	Several macros consider two numbers sufficiently "close" if <b>the ratio of
-	the larger and the smaller</b> is bounded by the value supplied by
-	#TOLERANCE_RELATIVE.  The default value is @f$ 1 + 10^{-5} @f$.  It is
-	possible to redefine the relative tolerance by calling #TOLERANCE_RELATIVE
-	with the new value.
-
-	 @hideinitializer
+	If both lines contain the same element from this list, they are skipped
+	over. (See #FuzzyStringComparator.)
 */
-#define TOLERANCE_RELATIVE(a)																						\
-	TEST::ratio_max_allowed = (a);																				\
-	if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))	\
-	{																																			\
-		TEST::initialNewline();																							\
-	std__cout << "    (line " << __LINE__ <<															\
-		":  TOLERANCE_RELATIVE(" << 	TEST::ratio_max_allowed <<						\
-		")   (\""#a"\")" << std::endl;																			\
-	}
+#define WHITELIST(a)														\
+	TEST::setWhitelist(__FILE__,__LINE__,(a));
 
 /**	@brief Exception test macro.
 

@@ -27,6 +27,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -69,11 +70,25 @@ namespace OpenMS
 			std::string fuzzy_message;
 			std::string test_name = "";
 			std::vector<std::string> tmp_file_list;
+			StringList whitelist;
 		}
 		
 		namespace ClassTest
 		{
 			
+			void setWhitelist(const char * const /* file */, const int line, const std::string& whitelist)
+			{
+				TEST::whitelist = StringList::create(whitelist);
+
+				if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))	
+				{
+					TEST::initialNewline();	
+					std__cout << "    (line " << line <<															
+						":  WHITELIST(\"" << whitelist << "\"):   whitelist is: " << TEST::whitelist << std::endl;																			
+				}
+				return;
+			}
+
 			void initialNewline()
 			{
 				if (!newline)
@@ -311,8 +326,7 @@ namespace OpenMS
 				fsc.setAcceptableAbsolute(absdiff_max_allowed);
 				fsc.setAcceptableRelative(ratio_max_allowed);
 				fsc.setVerboseLevel(2);
-				// fsc.setTabWidth(8); // (==default) YES EIGHT because there is NO WAY to set the tab width for terminals.  Would have been a better choice for OpenMS anyway! :-P Clemens
-				// fsc.setFirstColumn(1); // (==default) Most editors seem to count columns starting from one.  So this just works.
+				fsc.setWhitelist(whitelist);
 				std::ostringstream os;
 				fsc.setLogDestination(os);
 				fsc.use_prefix_ = true;
@@ -335,8 +349,7 @@ namespace OpenMS
 				fsc.setAcceptableAbsolute(absdiff_max_allowed);
 				fsc.setAcceptableRelative(ratio_max_allowed);
 				fsc.setVerboseLevel(2);
-				// fsc.setTabWidth(8); // (==default) YES EIGHT because there is NO WAY to set the tab width for terminals.  Would have been a better choice for OpenMS anyway! :-P Clemens
-				// fsc.setFirstColumn(1); // (==default) Most editors seem to count columns starting from one.  So this just works.
+				fsc.setWhitelist(whitelist);
 				std::ostringstream os;
 				fsc.setLogDestination(os);
 				fsc.use_prefix_ = true;

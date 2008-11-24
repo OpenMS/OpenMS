@@ -59,28 +59,34 @@ class TOPPFuzzyDiff
 	{
 		addEmptyLine_();
 		addText_("Input files:");
-		registerInputFile_("in1","<file>","","first input file",true);
-		registerInputFile_("in2","<file>","","second input file",true);
+		registerInputFile_("in1","<file>","","first input file",true,false);
+		registerInputFile_("in2","<file>","","second input file",true,false);
 		addEmptyLine_();
 		addText_("Allowed numeric differences:");
-		registerDoubleOption_("ratio","<double>",1,"acceptable relative error",false);
+		registerDoubleOption_("ratio","<double>",1,"acceptable relative error",false,false);
 		setMinFloat_("ratio",1);
-		registerDoubleOption_("absdiff","<double>",0,"acceptable absolute difference",false);
+		registerDoubleOption_("absdiff","<double>",0,"acceptable absolute difference",false,false);
 		setMinFloat_("absdiff",0);
 		addText_("Only one of the criteria has to be satisfied.  Use \"absdiff\" to deal with cases like \"zero vs. epsilon\".");
+		addEmptyLine_();
+		// TODO  Support for string lists  is currently (2008-11-21) experimental.
+		registerStringList_("whitelist","<string list>",StringList::create("<?xml-stylesheet"),"Lines containing one of these strings are skipped over",false,true);
+		// registerStringList_("whitelist","<string list>",StringList::create("&lt;?xml-stylesheet"),"Lines containing one of these strings are skipped over",false,true);
+		// registerStringList_("whitelist","<string list>",StringList(),"Lines containing one of these strings are skipped over",false,true);
 		addEmptyLine_();
 		addText_("Output style:");
 		registerIntOption_("verbose","<int>",2,"set verbose level:\n"
 											 "0 = very quiet mode (absolutely no output)\n"
 											 "1 = quiet mode (no output unless differences detected)\n"
 											 "2 = default (include summary at end)\n"
-											 "3 = continue after errors\n",false
+											 "3 = continue after errors\n",
+											 false,false
 											);
 		setMinInt_("verbose",0);
 		setMaxInt_("verbose",3);
-		registerIntOption_("tab_width","<int>",8,"tabulator width, used for calculation of column numbers",false);
+		registerIntOption_("tab_width","<int>",8,"tabulator width, used for calculation of column numbers",false,false);
 		setMinInt_("tab_width",1);
-		registerIntOption_("first_column","<int>",1,"number of first column, used for calculation of column numbers",false);
+		registerIntOption_("first_column","<int>",1,"number of first column, used for calculation of column numbers",false,false);
 		setMinInt_("first_column",0);
 		addText_("In the diff output, \"position\" refers to the characters in the string, whereas \"column\" is meant for the text editor.");
 	}
@@ -96,14 +102,19 @@ class TOPPFuzzyDiff
 		String in2 = getStringOption_("in2");
 		double acceptable_ratio = getDoubleOption_("ratio");
 		double acceptable_absdiff = getDoubleOption_("absdiff");
+		StringList whitelist = getStringList_("whitelist");
 		int verbose_level = getIntOption_("verbose");
 		int tab_width = getIntOption_("tab_width");
 		int first_column = getIntOption_("first_column");
+
+		// This is for debugging the parsing of whitelist from cmdline or ini file.  Converting StringList back to String is intentional.
+		writeDebug_(String("whitelist: ") + String(whitelist) + " (size: " + whitelist.size() + ")", 1);
 
 		OpenMS::FuzzyStringComparator fsc;
 		
 		fsc.setAcceptableRelative(acceptable_ratio);
 		fsc.setAcceptableAbsolute(acceptable_absdiff);
+		fsc.setWhitelist(whitelist);
 		fsc.setVerboseLevel(verbose_level);
 		fsc.setTabWidth(tab_width);
 		fsc.setFirstColumn(first_column);

@@ -205,6 +205,7 @@ START_SECTION(void annotate(ConsensusMap& map, const std::vector<PeptideIdentifi
 		cons_file.load("data/IDMapper_3.consensusXML", cons_map);
 		mapper.annotate(cons_map, peptide_ids, protein_ids);
 		cons_file.store(tmp_filename,cons_map);
+		WHITELIST("<?xml-stylesheet");
 		TEST_FILE_SIMILAR(tmp_filename,"data/IDMapper_3_out1.consensusXML");
 	}
 
@@ -215,6 +216,7 @@ START_SECTION(void annotate(ConsensusMap& map, const std::vector<PeptideIdentifi
 		cons_file.load("data/IDMapper_3.consensusXML", cons_map);
 		mapper.annotate(cons_map, peptide_ids, protein_ids, true);
 		cons_file.store(tmp_filename,cons_map);
+		WHITELIST("<?xml-stylesheet");
 		TEST_FILE_SIMILAR(tmp_filename,"data/IDMapper_3_out2.consensusXML");
 	}
 	
