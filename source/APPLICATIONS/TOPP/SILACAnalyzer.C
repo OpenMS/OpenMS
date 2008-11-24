@@ -65,7 +65,7 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-	@page SILACAnalyzer SILACAnalyzer
+	@page TOPP_SILACAnalyzer SILACAnalyzer
 
 	@brief Determines the ratio of peak pairs in LC-MS data.
 
@@ -75,7 +75,7 @@ using namespace OpenMS;
 
 	@todo Remove Cluster 3.0 from contrib as soon as it's not needed anymore (Marc)
 
-	@ingroup TOPP
+	The @subpage TOPP_SILACAnalyzer_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:
@@ -188,7 +188,7 @@ class TOPPSILACAnalyzer
 {
 	public:
 		TOPPSILACAnalyzer()
-				: TOPPBase("SILACAnalyzer","Determination of peak ratios in LC-MS data","0.6.2")
+				: TOPPBase("SILACAnalyzer","Determination of peak ratios in LC-MS data",true,"0.6.2")
 		{
 		}
 

@@ -46,14 +46,16 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page TextExporter TextExporter
+	@page TOPP_TextExporter TextExporter
 	
 	@brief This application converts several %OpenMS XML formats
 	(namely featureXML, consensusXML and idXML) to text files.
 	These text files can be easily read using other applications
 	such as R, Matlab, Excel, etc.
 	
-	@todo Add identifications output to featureXML and consensusXML and consider no_ids flag (Andreas, Clemens, Chris, Nico)	
+	@todo Add identifications output to featureXML and consensusXML and consider no_ids flag (Andreas, Clemens, Chris, Nico)
+	
+	The @subpage TOPP_TextExporter_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

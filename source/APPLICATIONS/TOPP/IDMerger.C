@@ -37,13 +37,15 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page IDMerger IDMerger
+	@page TOPP_IDMerger IDMerger
 	
 	@brief Merges several IdXML files into one IdXML file.
 	
 	You can merge an unlimited number of files into one IdXML file.
 	
-	This tool is typically applied before @ref ConsensusID_TOPP or @ref IDMapper_TOPP.
+	This tool is typically applied before @ref TOPP_ConsensusID or @ref TOPP_IDMapper.
+	
+	The @subpage TOPP_IDMerger_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

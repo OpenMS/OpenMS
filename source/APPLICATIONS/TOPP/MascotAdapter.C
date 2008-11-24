@@ -51,7 +51,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page MascotAdapter MascotAdapter
+	@page TOPP_MascotAdapter MascotAdapter
 	
 	@brief Identifies peptides in MS/MS spectra via Mascot.
 	
@@ -172,6 +172,7 @@ using namespace std;
 		</ul>
 	</ul>		
 	
+	The @subpage TOPP_MascotAdapter_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

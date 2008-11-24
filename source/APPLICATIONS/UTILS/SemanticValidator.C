@@ -53,7 +53,7 @@ class TOPPSemanticValidator
 {
  public:
 	TOPPSemanticValidator()
-		: TOPPBase("SemanticValidator","TODO")
+		: TOPPBase("SemanticValidator","TODO",false)
 	{
 	}
 	

@@ -40,7 +40,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page FileConverter FileConverter
+	@page TOPP_FileConverter FileConverter
 	
 	@brief Converts between different MS file formats.
 	
@@ -51,6 +51,8 @@ using namespace std;
 	In these cases a warning is shown. 
 
 	@improvement Implement support for writing MGF (Andreas) 
+	
+	The @subpage TOPP_FileConverter_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

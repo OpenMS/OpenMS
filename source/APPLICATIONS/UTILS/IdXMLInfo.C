@@ -54,7 +54,7 @@ class TOPPIdXMLInfo
 {
 	public:
 		TOPPIdXMLInfo()
-			: TOPPBase("IdXMLInfo","prints information about IdXML files")
+			: TOPPBase("IdXMLInfo","prints information about IdXML files",false)
 		{
 			
 		}

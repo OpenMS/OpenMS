@@ -39,19 +39,19 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	 @page InternalCalibration InternalCalibration
-
-   @brief Performs an internal calibration on an MS experiment.
-
-	 This is a simple calibration method: given a list of reference masses and an MS experiment, 
-	 the relative errors of the peaks in the data are approximated by linear interpolation and
-	 subtracted from the data. This is done scanwise, i.e. at least two reference masses need to
-	 be present in each scan, otherwise the scan can't be calibrated. If the input file contains
-	 raw data, an additional peak picking step is performed.
-
-	 @note The default input is raw data, if you have peak data, please use the flag peak_data.
-	 
-   @ingroup TOPP
+	@page TOPP_InternalCalibration InternalCalibration
+	
+	@brief Performs an internal calibration on an MS experiment.
+	
+	This is a simple calibration method: given a list of reference masses and an MS experiment, 
+	the relative errors of the peaks in the data are approximated by linear interpolation and
+	subtracted from the data. This is done scanwise, i.e. at least two reference masses need to
+	be present in each scan, otherwise the scan can't be calibrated. If the input file contains
+	raw data, an additional peak picking step is performed.
+	
+	@note The default input is raw data, if you have peak data, please use the flag peak_data.
+	
+	The @subpage TOPP_InternalCalibration_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

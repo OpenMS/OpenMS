@@ -55,7 +55,7 @@ class TOPPDigestor
 {
 	public:
 		TOPPDigestor()
-			: TOPPBase("Digestor","digests a protein database in-silico")
+			: TOPPBase("Digestor","digests a protein database in-silico",false)
 		{
 			
 		}

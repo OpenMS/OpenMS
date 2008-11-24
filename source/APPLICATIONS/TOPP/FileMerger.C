@@ -39,7 +39,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page FileMerger FileMerger
+	@page TOPP_FileMerger FileMerger
 	
 	@brief Merges several files into an mzData file.
 	
@@ -48,6 +48,8 @@ using namespace std;
 	
 	The retention times for the individual scans are taken from the input file meta data,
 	from the input file names or are auto-generated.
+	
+	The @subpage TOPP_FileMerger_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

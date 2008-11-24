@@ -40,16 +40,16 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-   @page MapAligner MapAligner
- 
-	 @brief Corrects retention time distortions between maps.
+	@page TOPP_MapAligner MapAligner
+	
+	@brief Corrects retention time distortions between maps.
+	
+	This tool provides several different algorithms to correct for retention time shifts
+	and distortions.
+	
+	@todo write map alignment algorithm that takes TrafoXML and applies it (Clemens)
 	 
-	 This tool provides several different algorithms to correct for retention time shifts
-	 and distortions.
-	 
-	 @todo write map alignment algorithm that takes TrafoXML and applies it (Clemens)
-	 
-	 @ingroup TOPP
+	The @subpage TOPP_MapAligner_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

@@ -52,7 +52,7 @@ typedef LCMSmap::SpectrumType Spectrum;
 //-------------------------------------------------------------
 
 /**
-	@page FeatureFinderMRM FeatureFinderMRM
+	@page TOPP_FeatureFinderMRM FeatureFinderMRM
 	
 	@brief Peptide quantitation based on Multiple-Reaction-Monitoring (MRM).
 	
@@ -75,7 +75,7 @@ typedef LCMSmap::SpectrumType Spectrum;
 	It performs a quantitation as explained above and writes a list of peptide features 
 	with the estimate abundance.
 	
-	@todo Add "blind" mode. (Ole).
+	The @subpage TOPP_FeatureFinderMRM_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

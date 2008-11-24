@@ -41,7 +41,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page PTPredict PTPredict
+	@page TOPP_PTPredict PTPredict
 	
 	@brief This application is used to predict the likelihood 
 				 of peptides to be proteotypic.
@@ -50,7 +50,9 @@ using namespace std;
 	is an svm model and an IdXML
 	file with peptide identifications. The svm model file is specified
 	by the <b>svm_model</b> parameter in the command line or the ini file. 
-	This file should have been produced by the @ref PTModel application. 
+	This file should have been produced by the @ref TOPP_PTModel application.
+	
+	The @subpage TOPP_PTPredict_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

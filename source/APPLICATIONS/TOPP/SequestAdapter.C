@@ -53,7 +53,7 @@ using namespace std;
 
 
 /**
-	@page SequestAdapter SequestAdapter
+	@page TOPP_SequestAdapter SequestAdapter
 
 	@brief Identifies peptides in MS/MS spectra via Sequest.
 
@@ -92,6 +92,8 @@ using namespace std;
 				This mode is selected by the <b>-sequest_out</b> option in the command line.
 				</li>
 	</ol>
+	
+	The @subpage TOPP_SequestAdapter_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu -> cond

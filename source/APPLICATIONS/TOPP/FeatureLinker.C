@@ -39,23 +39,23 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-   @page FeatureLinker FeatureLinker
- 
-	 @brief Groups corresponding features in one map or across maps. 
+	@page TOPP_FeatureLinker FeatureLinker
+	
+	@brief Groups corresponding features in one map or across maps. 
+	
+	This tool provides several algorithms for grouping correpsonding features in isotope-labeled 
+	and label-free experiments.
+	
+	It takes one or several feaure maps and stores the corresponding features in a ConsensusXML files.
+	
+	It is assumed that major retention time distortions are corrected before applying this tool.
+	Please use @ref TOPP_MapAligner to do that on the peak or feature level.
+	
+	In order to create feature data from peak data use the @ref TOPP_FeatureFinder.
+	
+	@todo Add support for features annotated with protein/peptide identifications (Marc, Clemens)
 	 
-	 This tool provides several algorithms for grouping correpsonding features in isotope-labeled 
-	 and label-free experiments.
-	 
-	 It takes one or several feaure maps and stores the corresponding features in a ConsensusXML files.
-	 
-	 It is assumed that major retention time distortions are corrected before applying this tool.
-	 Please use @ref MapAligner to do that on the peak or feature level.
-	 
-	 In order to create feature data from peak data use the @ref FeatureFinder.
-	 
-	 @todo Add support for features annotated with protein/peptide identifications (Marc, Clemens)
-	 
-	 @ingroup TOPP
+	The @subpage TOPP_FeatureLinker_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

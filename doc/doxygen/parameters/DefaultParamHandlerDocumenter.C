@@ -86,7 +86,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPicker.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
@@ -350,7 +349,6 @@ int main (int argc , char** argv)
 	DOCME(PILISScoring);
 	DOCME(ParentPeakMower);
 	DOCME(PeakAlignment);
-	DOCME(PeakPicker);
 	DOCME(PeakPickerCWT);
 	DOCME(PoseClusteringAffineSuperimposer);
 	DOCME(PoseClusteringShiftSuperimposer);

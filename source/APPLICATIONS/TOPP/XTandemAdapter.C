@@ -46,9 +46,11 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page XTandemAdapter XTandemAdapter
+	@page TOPP_XTandemAdapter XTandemAdapter
 	
 	@brief Identifies peptides in MS/MS spectra via XTandem.
+	
+	The @subpage TOPP_XTandemAdapter_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

@@ -221,6 +221,11 @@ START_SECTION((~TOPPBase()))
 	delete ptr;
 END_SECTION
 
+START_SECTION(static StringList getToolList())
+	TEST_EQUAL(TOPPBaseTest::getToolList().contains("FileInfo"),true)
+	TEST_EQUAL(TOPPBaseTest::getToolList().contains("ImaginaryTool"),false)
+END_SECTION
+
 START_SECTION(ExitCodes main(int argc, const char**argv))
 	NOT_TESTABLE
 	// is tested implicitly in all tests

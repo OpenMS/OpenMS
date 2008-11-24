@@ -48,7 +48,7 @@ typedef Feature::CoordinateType CoordinateType;
 //-------------------------------------------------------------
 
 /**
-	@page AdditiveSeries AdditiveSeries
+	@page TOPP_AdditiveSeries AdditiveSeries
 	
 	@brief Computes an additive series to quantify a peptide in a set of samples.
 	
@@ -61,6 +61,8 @@ typedef Feature::CoordinateType CoordinateType;
 	series as a ratio of the intensities of two different peptides.
 	One of these peptides serves as internal standard for
 	calibration.
+	
+	The @subpage TOPP_AdditiveSeries_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

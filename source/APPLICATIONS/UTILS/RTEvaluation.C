@@ -157,7 +157,7 @@ class TOPPRTEvaluation
 {
 	public:
 		TOPPRTEvaluation()
-			: TOPPBase("RTEvaluation","Trains a model for the retention time prediction of peptides from a training set.")
+			: TOPPBase("RTEvaluation","Trains a model for the retention time prediction of peptides from a training set.",false)
 		{
 			
 		}

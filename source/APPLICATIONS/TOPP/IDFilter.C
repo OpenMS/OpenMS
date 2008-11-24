@@ -43,7 +43,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page IDFilter_TOPP IDFilter
+	@page TOPP_IDFilter IDFilter
 	
 	@brief Filters ProteinIdentification engine results by different criteria.
 	
@@ -85,7 +85,7 @@ using namespace std;
 			<b>rt_filtering</b>:<br> To filter identifications according to their 
 			predicted retention times you have to set this flag. You can set the used significance level
 			by setting the 'p_value' parameter.<br>  
-			This filter can only be applied to IdXML files produced by @ref RTPredict.
+			This filter can only be applied to IdXML files produced by @ref TOPP_RTPredict.
 		</li>
 		<li>
 			<b>exclusion peptides</b>:<br> For this option you specify an IdXML file.
@@ -104,6 +104,8 @@ using namespace std;
 			<b>best_n_protein_hits</b>:<br> Only the best n protein hits of a spectrum are kept.
 		</li>
 	</ul>
+	
+	The @subpage TOPP_IDFilter_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

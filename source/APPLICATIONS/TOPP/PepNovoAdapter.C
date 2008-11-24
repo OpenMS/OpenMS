@@ -52,7 +52,7 @@ using namespace std;
 
 
 /**
-	@page PepNovoAdapter PepNovoAdapter
+	@page TOPP_PepNovoAdapter PepNovoAdapter
 
 	@brief Identifies peptides in MS/MS spectra via PepNovo.
 
@@ -88,8 +88,7 @@ using namespace std;
 				</li>
 	</ol>
 
-
-
+	The @subpage TOPP_PepNovoAdapter_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu -> cond

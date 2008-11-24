@@ -42,7 +42,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page RTPredict RTPredict
+	@page TOPP_RTPredict RTPredict
 	
 	@brief This application is used to predict retention times 
 				 for peptides or peptide separation.
@@ -51,7 +51,7 @@ using namespace std;
 	is an svm model and an IdXML
 	file with peptide identifications. The svm model file is specified
 	by the <b>svm_model</b> parameter in the command line or the ini file. 
-	This file should have been produced by the @ref RTModel application. 
+	This file should have been produced by the @ref TOPP_RTModel application. 
 	<br>
 	For retention time prediction the peptide sequences are extracted 
 	from the IdXML inputfile 
@@ -64,6 +64,7 @@ using namespace std;
 	to be collected by the column and 'out_negative' is the file
 	of the predicted flowthrough peptides.
 	
+	The @subpage TOPP_RTPredict_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

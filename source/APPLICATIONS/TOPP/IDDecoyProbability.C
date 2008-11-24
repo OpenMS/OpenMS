@@ -33,7 +33,7 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-	@page IDDecoyProbability IDDecoyProbability
+	@page TOPP_IDDecoyProbability IDDecoyProbability
 	
 	@brief Tool to estimate probability of peptide hits
 
@@ -42,6 +42,8 @@ using namespace std;
 	The probabilities are calculated using bayes law, similar to PeptideProphet.
 	This implementation is much simpler than that of PeptideProphet, however it is
 	more robust and can deal with more search engines!
+	
+	The @subpage TOPP_IDDecoyProbability_CLI is shown on a separate page.
 */
 
 

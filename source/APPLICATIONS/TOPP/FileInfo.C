@@ -48,7 +48,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page FileInfo FileInfo
+	@page TOPP_FileInfo FileInfo
 
 	@brief Shows basic information about the data in a file.
 
@@ -58,6 +58,8 @@ using namespace std;
 	- show an overview of the metadata
 	- validate several XML formats against their XML schema
 	- check for corrupt data in a file (e.g. dupliacte spectra)
+	
+	The @subpage TOPP_FileInfo_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

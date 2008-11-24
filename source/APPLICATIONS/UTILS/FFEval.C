@@ -52,7 +52,7 @@ class TOPPFFEVal
 {
  public:
 	TOPPFFEVal()
-		: TOPPBase("FFEVal","Evaluation tool for feature detection algorithms.")
+		: TOPPBase("FFEVal","Evaluation tool for feature detection algorithms.",false)
 	{
 	}
 	

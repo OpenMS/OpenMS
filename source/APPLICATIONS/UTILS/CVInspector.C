@@ -53,7 +53,7 @@ class TOPPCVInspector
 {
  public:
 	TOPPCVInspector()
-		: TOPPBase("CVInspector","A tool for the validation of PSI mapping and CV files")
+		: TOPPBase("CVInspector","A tool for the validation of PSI mapping and CV files",false)
 	{
 	}
 	

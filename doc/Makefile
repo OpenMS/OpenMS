@@ -51,12 +51,13 @@ help:
 paramdoc: dummy
 	@echo "";
 	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
-	@echo "Creating the algorithm parameter documentation";
+	@echo "Creating the algorithm parameter and TOPP parameter documentation";
 	@echo "";
-	@echo "Note: A functioning OpenMS installation and a running X-server is required for this step!";
+	@echo "Note: A functioning OpenMS/TOPP installation and a running X-server is required for this step!";
 	@echo "      If this step fails the rest of the documentation is created nevertheless.";
 	@echo "";
 	@-make paramdoc_try 
+	@-make toppdoc_try 
 
 # the actual paramdoc is created in this target to make sure the above text is printed without the config.mak file
 paramdoc_try: doxygen/parameters/DefaultParamHandlerDocumenter.C ../source/config.mak dummy
@@ -66,6 +67,14 @@ paramdoc_try: doxygen/parameters/DefaultParamHandlerDocumenter.C ../source/confi
 	 ./DefaultParamHandlerDocumenter;
 	@echo "[ DefaultParamHandlerDocumenter: ok ]"
 	@touch doxygen/parameters/DefaultParameters.doxygen
+
+toppdoc_try: doxygen/parameters/TOPPDocumenter.C ../source/config.mak dummy
+	@cd doxygen/parameters/ && \
+	 $(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(LIB_CXXFLAGS) $(OPENMS_INCLUDES) $(ADD_INCLUDES) -c TOPPDocumenter.C -o TOPPDocumenter.o && \
+	 $(CXX) $(LDFLAGS) -o TOPPDocumenter TOPPDocumenter.o $(LIBS) && \
+	 ./TOPPDocumenter;
+	@echo "[ TOPPDocumenter: ok ]"
+	@touch doxygen/parameters/TOPPParameters.doxygen
 
 #######################################################################
 # creates the documentation
@@ -124,7 +133,7 @@ dotdoc:
 
 #######################################################################
 # Creates the internal documentation without class documentation.
-noclassdoc:
+noclassdoc: toppdoc_try
 	@echo "";
 	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 	@echo "Creating the internal documentation with out class documentation";

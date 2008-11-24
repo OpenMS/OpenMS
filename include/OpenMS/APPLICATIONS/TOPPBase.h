@@ -118,15 +118,29 @@ namespace OpenMS
         INTERNAL_ERROR
     	};
 
-      /// Construtor
-      TOPPBase( const String& tool_name, const String& tool_description, const String& version="");
+      /**
+      	@brief Constructor
+      	
+      	@param name Tool name.
+      	@param description Short description of the tool (one line).
+      	@param official If this is an official TOPP tool contained in the OpenMS/TOPP release.
+      	                If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
+      	@param version Optional version of the tools (if empty, the version of OpenMS/TOPP is used).
+      */
+      TOPPBase(const String& name, const String& description, bool official=true, const String& version="");
 
       /// Destructor
       virtual ~TOPPBase();
 
       /// Main routine of all TOPP applications
       ExitCodes main(int argc, const char** argv);
-
+			
+			/// Returns the list of official TOPP tools contained in the OpenMS/TOPP release.
+			static StringList getToolList()
+			{
+				return StringList::create("AdditiveSeries,BaselineFilter,ConsensusID,DBExporter,DBImporter,DTAExtractor,Decharger,FalseDiscoveryRate,FeatureFinder,FeatureFinderMRM,FeatureLinker,FileConverter,FileFilter,FileInfo,FileMerger,IDDecoyProbability,IDFilter,IDMapper,IDMerger,IDRTCalibration,ITRAQAnalyzer,InspectAdapter,InternalCalibration,MapAligner,MapNormalizer,MascotAdapter,MascotAdapterOnline,NoiseFilter,OMSSAAdapter,PILISIdentification,PILISModel,PTModel,PTPredict,PeakPicker,PepNovoAdapter,RTModel,RTPredict,Resampler,SILACAnalyzer,SequestAdapter,SpectraFilter,TOFCalibration,TextExporter,XTandemAdapter");
+			}
+			
       ///Stuct that captures all information of a parameter
       struct ParameterInformation
       {

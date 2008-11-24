@@ -43,11 +43,13 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page OMSSAAdapter OMSSAAdapter
+	@page TOPP_OMSSAAdapter OMSSAAdapter
 	
 	@brief Identifies peptides in MS/MS spectra via OMSSA (Open Mass Spectrometry Search Algorithm).
 	
 	@improvement modes to read OMSSA output data and save in idXML format (Andreas)
+	
+	The @subpage TOPP_OMSSAAdapter_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

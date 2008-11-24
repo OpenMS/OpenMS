@@ -45,7 +45,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page InspectAdapter InspectAdapter
+	@page TOPP_InspectAdapter InspectAdapter
 
 	@brief Identifies peptides in MS/MS spectra via Inspect.
 
@@ -96,6 +96,8 @@ using namespace std;
 				This mode is selected by the <b>-inspect_out</b> option in the command line.
 				</li>
 	</ol>
+	
+	The @subpage TOPP_InspectAdapter_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu -> cond

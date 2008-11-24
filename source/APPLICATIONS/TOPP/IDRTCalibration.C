@@ -37,7 +37,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page IDRTCalibration IDRTCalibration
+	@page TOPP_IDRTCalibration IDRTCalibration
 	
 	@brief Can be used to calibrate RTs of peptide hits linearly to standards.
 	
@@ -49,6 +49,8 @@ using namespace std;
 	be at the same RT as calibrant_1_reference and calibrant_2_input will
 	be at the same RT as calibrant_2_reference. This only applies if calibrant_1* has a smaller RT than calibrant_2*.
 	Otherwise the values are swapped.
+	
+	The @subpage TOPP_IDRTCalibration_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

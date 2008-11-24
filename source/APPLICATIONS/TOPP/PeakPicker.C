@@ -37,7 +37,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page PeakPicker PeakPicker
+	@page TOPP_PeakPicker PeakPicker
 	
 	@brief A tool for peak detection in raw data
 	
@@ -84,9 +84,9 @@ using namespace std;
 		</tr>
 	</table>
 	
-	In order to impove the results of the peak detection @ref NoiseFilter and @ref BaselineFilter can be applied.
+	In order to impove the results of the peak detection @ref TOPP_NoiseFilter and @ref TOPP_BaselineFilter can be applied.
 	
-	@ingroup TOPP
+	The @subpage TOPP_PeakPicker_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

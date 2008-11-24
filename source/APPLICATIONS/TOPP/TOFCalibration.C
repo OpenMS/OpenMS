@@ -39,21 +39,21 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	 @page TOFCalibration TOFCalibration
-	 
-   @brief Performs an external calibration for tof spectra.
-
-	 Given one or more calibrant spectra containing flight times, the instrument's calibration constants and the
-	 expected masses the quadratic function y_i = a + b*x_i + c*x_i^2 is fitted, where x_i is the ith flight time.
-	 If there are more than one calibrant spectra the coefficients a, b and c are averaged. The fitted function is
-	 then used to convert the flight times of the given experiment to m/z-values.
-
-	 You can choose to calibrate picked or raw data. If you use picked data, set the flag peak_data. If you have
-	 raw data an additional peak picking step for the calibrant spectra is needed, the parameters for the
-	 peak picker can be set in the ini-file.
+	@page TOPP_TOFCalibration TOFCalibration
+	
+	@brief Performs an external calibration for tof spectra.
+	
+	Given one or more calibrant spectra containing flight times, the instrument's calibration constants and the
+	expected masses the quadratic function y_i = a + b*x_i + c*x_i^2 is fitted, where x_i is the ith flight time.
+	If there are more than one calibrant spectra the coefficients a, b and c are averaged. The fitted function is
+	then used to convert the flight times of the given experiment to m/z-values.
+	
+	You can choose to calibrate picked or raw data. If you use picked data, set the flag peak_data. If you have
+	raw data an additional peak picking step for the calibrant spectra is needed, the parameters for the
+	peak picker can be set in the ini-file.
 
 	
-   @ingroup TOPP
+	The @subpage TOPP_TOFCalibration_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

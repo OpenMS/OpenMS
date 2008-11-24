@@ -33,7 +33,7 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-	@page FalseDiscoveryRate FalseDiscoveryRate
+	@page TOPP_FalseDiscoveryRate FalseDiscoveryRate
 	
 	@brief Tool to estimate the false discovery rate on peptide and protein level
 
@@ -45,6 +45,7 @@ using namespace std;
 	in the reversed search) over the number of false and correct discoveries (the hits 
 	in both databases) given a score.
 
+	The @subpage TOPP_FalseDiscoveryRate_CLI is shown on a separate page.
 */
 
 

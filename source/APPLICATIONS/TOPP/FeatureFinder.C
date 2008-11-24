@@ -37,7 +37,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page FeatureFinder FeatureFinder
+	@page TOPP_FeatureFinder FeatureFinder
 	
 	@brief The feature detection application (quantitation)
 	
@@ -88,9 +88,11 @@ using namespace std;
 		</tr>
 	</table>
 	
-	For the @em picked_peak algorithm peak data is needed. In order to create peak data from raw data use the @ref PeakPicker.
+	For the @em picked_peak algorithm peak data is needed. In order to create peak data from raw data use the @ref TOPP_PeakPicker.
 	
-	Specialized tools are available for some experimental techniques: @ref SILACAnalyzer, @ref ITRAQAnalyzer.
+	Specialized tools are available for some experimental techniques: @ref TOPP_SILACAnalyzer, @ref TOPP_ITRAQAnalyzer.
+	
+	The @subpage TOPP_FeatureFinder_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

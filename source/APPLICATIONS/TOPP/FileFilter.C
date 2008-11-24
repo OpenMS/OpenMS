@@ -43,7 +43,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page FileFilter FileFilter
+	@page TOPP_FileFilter FileFilter
 	
 	@brief Extracts portions of the data from an mzData, featureXML or consensusXML file.
 	
@@ -61,6 +61,8 @@ using namespace std;
 	
 	@todo MS2 and higher spectra should be filtered according to precursor m/z and RT.
 	      The MzMLFile, MzDataFile, MzXMLFile have to be changed for that (Hiwi)
+	
+	The @subpage TOPP_FileFilter_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

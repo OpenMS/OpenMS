@@ -40,16 +40,18 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page ConsensusID_TOPP ConsensusID
+	@page TOPP_ConsensusID ConsensusID
 	
 	@brief Computes a consensus identification from peptide identification engines.
 	
 	The input file can contain several searches, e.g. from several identification engines. 
-	You can combine several searches with @ref IDMerger. Identification runs can be mapped
-	to featureXML and consensusXML with the @ref IDMapper_TOPP tool.
+	You can combine several searches with @ref TOPP_IDMerger. Identification runs can be mapped
+	to featureXML and consensusXML with the @ref TOPP_IDMapper tool.
 	
 	For a detailed description of the algorithms and parameters see the documentation of
 	the %OpenMS ConsensusID class.
+	
+	The @subpage TOPP_ConsensusID_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

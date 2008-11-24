@@ -38,7 +38,7 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-	@page SpectraFilter SpectraFilter
+	@page TOPP_SpectraFilter SpectraFilter
 	
 	@brief Applies different spectrum modification filters to the data.
 	
@@ -55,6 +55,8 @@ using namespace std;
 
 	Parameters of the different filters are documented at the class documentation of each filter
 	respectively.
+	
+	The @subpage TOPP_SpectraFilter_CLI is shown on a separate page.
 */
 
 

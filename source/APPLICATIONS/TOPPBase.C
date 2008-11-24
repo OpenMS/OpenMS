@@ -38,9 +38,9 @@ namespace OpenMS
 {
 	using namespace Exception;
 	
-  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, const String& version)
-  	: tool_name_(tool_name),
-  		tool_description_(tool_description),
+  TOPPBase::TOPPBase(const String& name, const String& description, bool official, const String& version)
+  	: tool_name_(name),
+  		tool_description_(description),
 			instance_number_(-1),
 			debug_level_(-1),
 			version_(version),
@@ -55,6 +55,12 @@ namespace OpenMS
 		if ( !VersionInfo::getRevision().empty() && VersionInfo::getRevision() != "exported" )
 		{
 			version_ += String(", Revision: ") + VersionInfo::getRevision() + "";
+		}
+		
+		//check if tool is in official tools list
+		if (official && !getToolList().contains(tool_name_))
+		{
+			writeLog_("Message to maintainer: If this is an official TOPP tools, add it to the TOPPBase tools list. If it is not, set the 'official' bool of the TOPPBase constructor to false.");
 		}
 	}
 

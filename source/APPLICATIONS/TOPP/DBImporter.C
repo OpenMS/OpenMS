@@ -33,14 +33,16 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-	@page DBImporter DBImporter
+	@page TOPP_DBImporter DBImporter
 	
 	@brief Imports an mzData file to an %OpenMS database.
 	
 	Besides the file to import, only the connection data has to be given.
-	The data can then be retrieved by the @ref DBExporter.
+	The data can then be retrieved by the @ref TOPP_DBExporter.
 	
 	The @em init flag can be used to create a new %OpenMS database.
+	
+	The @subpage TOPP_DBImporter_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu -> cond

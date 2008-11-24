@@ -43,7 +43,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page RTModel RTModel
+	@page TOPP_RTModel RTModel
 	
 	@brief Used to train a prediction model for peptide retention 
 				 time prediction or peptide separation prediction.
@@ -141,10 +141,11 @@ using namespace std;
 	</ol>
 			
 	<br>	
-	The model can be used in @ref RTPredict, to predict retention times 
+	The model can be used in @ref TOPP_RTPredict, to predict retention times 
 	for peptides or peptide separation depending on how you trained 
 	the model.
 
+	The @subpage TOPP_RTModel_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:

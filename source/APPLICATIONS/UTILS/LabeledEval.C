@@ -51,7 +51,7 @@ class TOPPLabeledEval
 {
  public:
 	TOPPLabeledEval()
-		: TOPPBase("LabeledEval"," Evaluation tool for isotope-labeled quantitation experiments.")
+		: TOPPBase("LabeledEval"," Evaluation tool for isotope-labeled quantitation experiments.",false)
 	{
 	}
 	

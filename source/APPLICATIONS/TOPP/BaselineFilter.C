@@ -37,7 +37,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-	@page BaselineFilter BaselineFilter
+	@page TOPP_BaselineFilter BaselineFilter
 	
 	@brief Executes the top-hat filter to remove the baseline of an MS experiment.
 	
@@ -48,12 +48,12 @@ using namespace std;
 	The size the structuring element (here a flat line) being conditioned by the width of the lineament
 	(in our case the maximum width of a mass spectrometric peak) to be detected.
 	
-	Before basline filtering the @ref NoiseFilter is often applied.
+	Before basline filtering the @ref TOPP_NoiseFilter is often applied.
 		
 	@note The length (given in Thomson) of the structuring element should be wider than the
 	maximum peak width in the raw data.
 	
-	@ingroup TOPP
+	The @subpage TOPP_BaselineFilter_CLI is shown on a separate page.
 */
 
 // We do not want this class to show up in the docu:
