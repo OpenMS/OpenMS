@@ -202,6 +202,40 @@ namespace OpenMS
 			if (p_value != pvalues.end() && (*p_value) <= p_value_threshold)
 			{
 				peptide_hit.setScore(atof(substrings[score_column].c_str()));
+				
+				if (rank_sp_column != (-1))
+				{
+					peptide_hit.setMetaValue("RankSp", substrings[rank_sp_column] );
+				}
+				if (id_column != (-1))
+				{
+					peptide_hit.setMetaValue("SequestId", atoi(substrings[id_column].c_str()) );
+				}
+				if (mh_column != (-1))
+				{
+					peptide_hit.setMetaValue("MH", atof(substrings[mh_column].c_str()) );
+				}
+				if (delta_cn_column != (-1))
+				{
+					peptide_hit.setMetaValue("DeltCn", atof(substrings[delta_cn_column].c_str()) );
+				}
+				if (xcorr_column != (-1))
+				{
+					peptide_hit.setMetaValue("XCorr", atof(substrings[xcorr_column].c_str()) );
+				}
+				if (sp_column != (-1))
+				{
+					peptide_hit.setMetaValue("Sp", atof(substrings[sp_column].c_str()) );
+				}
+				if (sf_column != (-1))
+				{
+					peptide_hit.setMetaValue("Sf", atof(substrings[sf_column].c_str()) );
+				}
+				if (ions_column != (-1))
+				{
+					peptide_hit.setMetaValue("Ions", substrings[ions_column] );
+				}
+				
 				peptide_hit.setCharge(charge);
 				
 				String sequence_with_mods = substrings[peptide_column];
@@ -775,7 +809,7 @@ namespace OpenMS
 			}
 		}
 		// check whether the columns are available in the table header
-		if ( (number_column == -1) || (rank_sp_column == -1) || /* (id_column == -1) ||*/ (mh_column == -1) || (delta_cn_column == -1) || (xcorr_column == -1) || (sp_column == -1) || (ions_column == -1) || (reference_column == -1) || (peptide_column == -1) )
+		if ( (number_column == -1) || (rank_sp_column == -1) ||  (id_column == -1) || (mh_column == -1) || (delta_cn_column == -1) || (xcorr_column == -1) || (sp_column == -1) || (ions_column == -1) || (reference_column == -1) || (peptide_column == -1) )
 		{
 			result_file.close();
 			result_file.clear();
