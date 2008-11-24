@@ -41,7 +41,8 @@ UTILS_EXECUTABLES=\
 	CVInspector\
 	HistView\
 	SemanticValidator\
-	IDExtractor
+	IDExtractor\
+	DecoyDatabase
 
 all: $(UTILS_EXECUTABLES)
 
