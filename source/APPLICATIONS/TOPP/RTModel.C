@@ -203,23 +203,23 @@ class TOPPRTModel
 			setMinInt_("number_of_partitions", 2);
 			registerIntOption_("degree_start","<int>",1,"starting point of degree",false);
 			setMinInt_("degree_start", 1);
-			registerIntOption_("degree_step_size","<int>",1,"step size point of degree",false);
+			registerIntOption_("degree_step_size","<int>",2,"step size point of degree",false);
 			registerIntOption_("degree_stop","<int>",4,"stopping point of degree",false);
 			registerDoubleOption_("p_start","<float>",1,"starting point of p",false);
-			registerDoubleOption_("p_step_size","<float>",100,"step size point of p",false);
+			registerDoubleOption_("p_step_size","<float>",10,"step size point of p",false);
 			registerDoubleOption_("p_stop","<float>",1000,"stopping point of p",false);
 			registerDoubleOption_("c_start","<float>",1,"starting point of c",false);
-			registerDoubleOption_("c_step_size","<float>",100,"step size of c",false);
+			registerDoubleOption_("c_step_size","<float>",10,"step size of c",false);
 			registerDoubleOption_("c_stop","<float>",1000,"stopping point of c",false);
-			registerDoubleOption_("nu_start","<float>",0.1,"starting point of nu",false);
+			registerDoubleOption_("nu_start","<float>",0.3,"starting point of nu",false);
 			setMinFloat_("nu_start", 0);
 			setMaxFloat_("nu_start", 1);
-			registerDoubleOption_("nu_step_size","<float>",0.1,"step size of nu",false);
-			registerDoubleOption_("nu_stop","<float>",0.9,"stopping point of nu",false);
+			registerDoubleOption_("nu_step_size","<float>",1.2,"step size of nu",false);
+			registerDoubleOption_("nu_stop","<float>",0.7,"stopping point of nu",false);
 			setMinFloat_("nu_stop", 0);
 			setMaxFloat_("nu_stop", 1);
 			registerDoubleOption_("sigma_start","<float>",1,"starting point of sigma",false);
-			registerDoubleOption_("sigma_step_size","<float>",1,"step size of sigma",false);
+			registerDoubleOption_("sigma_step_size","<float>",1.3,"step size of sigma",false);
 			registerDoubleOption_("sigma_stop","<float>",15,"stopping point of sigma",false);
 		}
 		
@@ -340,6 +340,7 @@ class TOPPRTModel
 			}			
 			String outputfile_name = getStringOption_("out");
 			textfile_input = getFlag_("textfile_input");
+			additive_cv = getFlag_("additive_cv");
 
 			Real total_gradient_time = getDoubleOption_("total_gradient_time");
 			max_std = getDoubleOption_("max_std");
@@ -408,7 +409,6 @@ class TOPPRTModel
 			
 			//parameters		
 			svm.setParameter(C, getDoubleOption_("c"));
-			svm.setParameter(DEGREE, getIntOption_("degree"));
  			if (svm.getIntParameter(SVM_TYPE) == NU_SVR || svm.getIntParameter(SVM_TYPE) == NU_SVC)
  			{
 				svm.setParameter(NU, getDoubleOption_("nu"));
@@ -420,50 +420,65 @@ class TOPPRTModel
 			
 			//grid search parameters
 			UInt degree_start = 0;
-			if (setByUser_("degree_start"))
-			{
-				degree_start = getIntOption_("degree_start");
-			}
 			UInt degree_step_size = 0;
-			if (setByUser_("degree_step_size"))
-			{
-				degree_step_size = getIntOption_("degree_step_size");
-			}
 			UInt degree_stop = 0;
-			if (setByUser_("degree_stop"))
+			if (svm.getIntParameter(KERNEL_TYPE) == POLY)
 			{
-				degree_stop = getIntOption_("degree_stop");
-			}
-			if (setByUser_("degree_start") && setByUser_("degree_step_size") && setByUser_("degree_stop"))
-			{
-				start_values.insert(make_pair(DEGREE, degree_start));
-				step_sizes.insert(make_pair(DEGREE, degree_step_size));
-				end_values.insert(make_pair(DEGREE, degree_stop));	
-			}
-			
+				svm.setParameter(DEGREE, getIntOption_("degree"));
+				if (setByUser_("degree_start"))
+				{
+					degree_start = getIntOption_("degree_start");
+				}
+				if (setByUser_("degree_step_size"))
+				{
+					degree_step_size = getIntOption_("degree_step_size");
+					if (!additive_cv && degree_step_size <= 1)
+					{
+						writeLog_("Step size of degree <= 1 and additive_cv is false. Aborting!");
+						return ILLEGAL_PARAMETERS;
+					}
+				}
+				if (setByUser_("degree_stop"))
+				{
+					degree_stop = getIntOption_("degree_stop");
+				}
+				if (setByUser_("degree_start") && setByUser_("degree_step_size") && setByUser_("degree_stop"))
+				{
+					start_values.insert(make_pair(DEGREE, degree_start));
+					step_sizes.insert(make_pair(DEGREE, degree_step_size));
+					end_values.insert(make_pair(DEGREE, degree_stop));	
+				}
+			}			
 			DoubleReal p_start = 0.;
 			DoubleReal p_step_size = 0.;
 			DoubleReal p_stop = 0.;
-			if (setByUser_("p_start"))
+			if (svm.getIntParameter(SVM_TYPE) == EPSILON_SVR)
 			{
-				p_start = getDoubleOption_("p_start");
+				if (setByUser_("p_start"))
+				{
+					p_start = getDoubleOption_("p_start");
+				}
+				if (setByUser_("p_step_size"))
+				{
+					p_step_size = getDoubleOption_("p_step_size");
+					if (!additive_cv && p_step_size <= 1)
+					{
+						writeLog_("Step size of p <= 1 and additive_cv is false. Aborting!");
+						return ILLEGAL_PARAMETERS;
+					}
+				}
+				if (setByUser_("p_stop"))
+				{
+					p_stop = getDoubleOption_("p_stop");
+				}
+							
+				if (setByUser_("p_start") && setByUser_("p_step_size") && setByUser_("p_stop"))
+				{
+					start_values.insert(make_pair(P, p_start));
+					step_sizes.insert(make_pair(P, p_step_size));
+					end_values.insert(make_pair(P, p_stop));	
+				}
 			}
-			if (setByUser_("p_step_size"))
-			{
-				p_step_size = getDoubleOption_("p_step_size");
-			}
-			if (setByUser_("p_stop"))
-			{
-				p_stop = getDoubleOption_("p_stop");
-			}
-						
-			if (setByUser_("p_start") && setByUser_("p_step_size") && setByUser_("p_stop") && svm.getIntParameter(SVM_TYPE) == EPSILON_SVR)
-			{
-				start_values.insert(make_pair(P, p_start));
-				step_sizes.insert(make_pair(P, p_step_size));
-				end_values.insert(make_pair(P, p_stop));	
-			}
-			
 			DoubleReal c_start = 0.;
 			DoubleReal c_step_size = 0.;
 			DoubleReal c_stop = 0.;
@@ -474,6 +489,11 @@ class TOPPRTModel
 			if (setByUser_("c_step_size"))
 			{
 				c_step_size = getDoubleOption_("c_step_size");
+				if (!additive_cv && c_step_size <= 1)
+				{
+					writeLog_("Step size of c <= 1 and additive_cv is false. Aborting!");
+					return ILLEGAL_PARAMETERS;
+				}
 			}
 			if (setByUser_("c_stop"))
 			{
@@ -489,27 +509,33 @@ class TOPPRTModel
 			DoubleReal nu_start = 0.;
 			DoubleReal nu_step_size = 0.;
 			DoubleReal nu_stop = 0.;
-			if (setByUser_("nu_start"))
+			if (svm.getIntParameter(SVM_TYPE) == NU_SVR || svm.getIntParameter(SVM_TYPE) == NU_SVC)
 			{
-				nu_start = getDoubleOption_("nu_start");
+				if (setByUser_("nu_start"))
+				{
+					nu_start = getDoubleOption_("nu_start");
+				}
+				if (setByUser_("nu_step_size"))
+				{
+					nu_step_size = getDoubleOption_("nu_step_size");
+					if (!additive_cv && nu_step_size <= 1)
+					{
+						writeLog_("Step size of nu <= 1 and additive_cv is false. Aborting!");
+						return ILLEGAL_PARAMETERS;
+					}
+				}
+				if (setByUser_("nu_stop"))
+				{
+					nu_stop = getDoubleOption_("nu_stop");
+				}
+				if (setByUser_("nu_start") && setByUser_("nu_step_size") && setByUser_("nu_stop"))
+				{
+					start_values.insert(make_pair(NU, nu_start));
+					step_sizes.insert(make_pair(NU, nu_step_size));
+					end_values.insert(make_pair(NU, nu_stop));	
+				}			
 			}
-			if (setByUser_("nu_step_size"))
-			{
-				nu_step_size = getDoubleOption_("nu_step_size");
-			}
-			if (setByUser_("nu_stop"))
-			{
-				nu_stop = getDoubleOption_("nu_stop");
-			}
-			if (setByUser_("nu_start") && setByUser_("nu_step_size") && setByUser_("nu_stop") 
-					&& (svm.getIntParameter(SVM_TYPE) == NU_SVR || svm.getIntParameter(SVM_TYPE) == NU_SVC))
-			{
-				start_values.insert(make_pair(NU, nu_start));
-				step_sizes.insert(make_pair(NU, nu_step_size));
-				end_values.insert(make_pair(NU, nu_stop));	
-			}			
-
-			if (setByUser_("border_length"))
+			if (svm.getIntParameter(KERNEL_TYPE) == OLIGO && setByUser_("border_length"))
 			{
  				border_length = getIntOption_("border_length");
  			}
@@ -553,41 +579,45 @@ class TOPPRTModel
 			sigma_start = 0.;
 			sigma_step_size = 0.;
 			sigma_stop = 0.;
-			if (setByUser_("sigma_start"))
+			if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
 			{
-				sigma_start = getDoubleOption_("sigma_start");
+				if (setByUser_("sigma_start"))
+				{
+					sigma_start = getDoubleOption_("sigma_start");
+				}
+				if (setByUser_("sigma_step_size"))
+				{
+					sigma_step_size = getDoubleOption_("sigma_step_size");
+					if (!additive_cv && sigma_step_size <= 1)
+					{
+						writeLog_("Step size of sigma <= 1 and additive_cv is false. Aborting!");
+						return ILLEGAL_PARAMETERS;
+					}
+				}
+				if (setByUser_("sigma_stop"))
+				{
+					sigma_stop = getDoubleOption_("sigma_stop");
+				}
+	
+				if (setByUser_("sigma_start") && setByUser_("sigma_step_size") && setByUser_("sigma_stop"))
+				{
+					start_values.insert(make_pair(SIGMA, sigma_start));
+					step_sizes.insert(make_pair(SIGMA, sigma_step_size));
+					end_values.insert(make_pair(SIGMA, sigma_stop));
+					
+					debug_string = "CV from sigma = " + String(sigma_start) +
+						 " to sigma = " + String(sigma_stop) + " with step size " + 
+						 String(sigma_step_size);
+					writeDebug_(debug_string, 1);			
+				}			
 			}
-			if (setByUser_("sigma_step_size"))
-			{
-				sigma_step_size = getDoubleOption_("sigma_step_size");
-			}
-			if (setByUser_("sigma_stop"))
-			{
-				sigma_stop = getDoubleOption_("sigma_stop");
-			}
-
-			if (setByUser_("sigma_start") && setByUser_("sigma_step_size") && setByUser_("sigma_stop")
-					&& svm.getIntParameter(KERNEL_TYPE) == OLIGO)
-			{
-				start_values.insert(make_pair(SIGMA, sigma_start));
-				step_sizes.insert(make_pair(SIGMA, sigma_step_size));
-				end_values.insert(make_pair(SIGMA, sigma_stop));
-				
-				debug_string = "CV from sigma = " + String(sigma_start) +
-					 " to sigma = " + String(sigma_stop) + " with step size " + 
-					 String(sigma_step_size);
-				writeDebug_(debug_string, 1);			
-			}			
-
 			if (start_values.size() > 0)
 			{
  				number_of_runs = getIntOption_("number_of_runs");
 				writeDebug_(String("Number of CV runs: ") + String(number_of_runs), 1);
 
  				number_of_partitions = getIntOption_("number_of_partitions");
-				writeDebug_(String("Number of CV partitions: ") + String(number_of_partitions), 1);
-				
-				additive_cv = getFlag_("additive_cv");
+				writeDebug_(String("Number of CV partitions: ") + String(number_of_partitions), 1);				
 			}
 			
 			first_dim_rt = getFlag_("first_dim_rt");
