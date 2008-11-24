@@ -53,7 +53,7 @@ using namespace std;
 	These text files can be easily read using other applications
 	such as R, Matlab, Excel, etc.
 	
-	@todo Add identifications output to featureXML and consensusXML and consider no_ids flag (Andreas, Clemens, Chris, Nico, Marc)	
+	@todo Add identifications output to featureXML and consensusXML and consider no_ids flag (Andreas, Clemens, Chris, Nico)	
 */
 
 // We do not want this class to show up in the docu:

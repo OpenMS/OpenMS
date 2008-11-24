@@ -393,7 +393,6 @@ EXECUTABLES_TRANSFORMATIONS_FEATUREFINDER = \
 EXECUTABLES_TRANSFORMATIONS_PEAKPICKER = \
 	ContinuousWaveletTransform_test\
 	PeakShape_test\
-	PeakPicker_test\
 	ContinuousWaveletTransformNumIntegration_test\
 	OptimizePick_test\
 	PeakPickerCWT_test\

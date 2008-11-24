@@ -50,6 +50,7 @@ Detailed list of changes to specific OpenMS classes:
   - IDFeatureMapper (replaced by IDMapper)
   - FeatureXMLHandler (merged into FeatureXMLFile)
   - ConsensusXMLHandler (merged into ConsensusXMLFile)
+  - PeakPicker (merged into PeakPickerCWT)
 - New classes
   - DATASTRUCTURES/IntList
   - DATASTRUCTURES/StringList

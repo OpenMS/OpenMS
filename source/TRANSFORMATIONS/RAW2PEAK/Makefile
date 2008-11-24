@@ -30,7 +30,6 @@ include ../../config_defs.mak
 
 CPP_SOURCES= \
 	OptimizePick.C\
-	PeakPicker.C\
 	ContinuousWaveletTransform.C\
 	ContinuousWaveletTransformNumIntegration.C\
 	PeakShape.C\

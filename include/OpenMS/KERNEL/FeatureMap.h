@@ -53,6 +53,8 @@ namespace OpenMS
 		
 		Feature maps are typically created from peak data of 2D runs through the FeatureFinder.
 		
+		@improvement Add list of unassigned peptide features; allow loading and storing; change IDMapper; add to TextExport (Hiwi)
+		
 		@ingroup Kernel
 	*/
 	template <typename FeatureT = Feature >

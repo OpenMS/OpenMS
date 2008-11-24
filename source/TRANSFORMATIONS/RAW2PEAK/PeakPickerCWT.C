@@ -33,7 +33,7 @@ using namespace std;
 namespace OpenMS
 {
   PeakPickerCWT::PeakPickerCWT()
-		: PeakPicker(),
+		: DefaultParamHandler("PeakPickerCWT"),
 			radius_(0),
       scale_(0.0),
       peak_bound_cwt_(0.0),
@@ -42,6 +42,15 @@ namespace OpenMS
       noise_level_(0.0),
       optimization_(false)
   {
+  	defaults_.setValue("thresholds:signal_to_noise",1.0,"Minimal signal to noise ratio for a peak to be picked.");
+		defaults_.setMinFloat("thresholds:signal_to_noise",0.0);
+		defaults_.setValue("thresholds:peak_bound",10.0,"Minimal peak intensity.");
+		defaults_.setMinFloat("thresholds:peak_bound",0.0);
+  	defaults_.setValue("thresholds:peak_bound_ms2_level",10.0,"Minimal peak intensity for MS/MS peaks.");
+		defaults_.setMinFloat("thresholds:peak_bound_ms2_level",0.0);
+  	defaults_.setValue("thresholds:fwhm_bound",0.2,"Minimal peak width");
+		defaults_.setMinFloat("thresholds:fwhm_bound",0.0);
+		
     // if a peak picking parameter is missed in the param object the value should be substituted by a default value
   	defaults_.setValue("centroid_percentage",0.8,"Percentage of the maximum height that the raw data points must exceed to be taken into account for the calculation of the centroid. "\
 											 "If it is 1 the centroid position corresponds to the position of the highest intensity.");
@@ -141,7 +150,6 @@ namespace OpenMS
 
   void PeakPickerCWT::updateMembers_()
   {
-
 		signal_to_noise_ = (float)param_.getValue("thresholds:signal_to_noise");
 		peak_bound_ = (float)param_.getValue("thresholds:peak_bound");
 		peak_bound_ms2_level_ = (float)param_.getValue("thresholds:peak_bound_ms2_level");
@@ -149,22 +157,20 @@ namespace OpenMS
     peak_corr_bound_ = (float)param_.getValue("thresholds:correlation");
     String opt = param_.getValue("optimization").toString();
     if (opt=="one_dimensional")
-			{
-				optimization_ = true;
-				two_d_optimization_ = false;
-			}
+		{
+			optimization_ = true;
+			two_d_optimization_ = false;
+		}
     else if (opt=="two_dimensional")
-			{
-				two_d_optimization_ = true;
-				optimization_ = false;
-			}
+		{
+			two_d_optimization_ = true;
+			optimization_ = false;
+		}
     else 
-			{
-				optimization_ = false;
-				two_d_optimization_ = false;
-    	
-			}
-
+		{
+			optimization_ = false;
+			two_d_optimization_ = false;
+		}
 
     scale_ = (float)param_.getValue("wavelet_transform:scale");
     noise_level_ = (float)param_.getValue("thresholds:noise_level");
@@ -172,7 +178,6 @@ namespace OpenMS
 		signal_to_noise_ = (float)param_.getValue("thresholds:signal_to_noise");
 
 		deconvolution_ = param_.getValue("deconvolution:deconvolution").toBool();
-		
 	}
 	
 

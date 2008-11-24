@@ -44,7 +44,9 @@ namespace OpenMS
 		The map is implemented as a vector of elements.
 	    
 		The map indices used in the consensus features should be registered in this class.
-	 	
+		
+	 	@improvement Add list of unassigned peptide features; allow loading and storing; change IDMapper; add to TextExport (Hiwi)
+		
 		@ingroup Kernel
   */
 	class ConsensusMap 

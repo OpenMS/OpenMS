@@ -27,7 +27,6 @@
 #ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERCWT_H
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERCWT_H
 
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPicker.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
@@ -35,6 +34,8 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <math.h>
 #include <vector>
@@ -47,30 +48,34 @@
 namespace OpenMS
 {
   /**
-	@brief This class implements a peak picking algorithm using wavelet techniques
-		
-	The algorithm is descripted in detail in Lange et al. (2006) Proc. PSB-06.
-		
-	This peak picking algorithm uses the continuous wavelet transform of a raw data signal to detect mass peaks.
-	Afterwards a given asymmetric peak function is fitted to the raw data and important peak parameters (e.g. fwhm)
-	are extracted.
-	In an optional step these parameters can be optimized using a non-linear opimization method.
-		
-	The peak parameters are stored in the meta data arrays of the spectra (see DSpectrum) in this order:
-	- rValue
-	- area
-	- fwhm
-	- leftWidth
-	- rightWidth
-	- peakShape
-	- SignalToNoise
-	.
-
-	@ref PeakPickerCWT_Parameters are explained on a separate page.
-    
-	@ingroup PeakPicking
+		@brief This class implements a peak picking algorithm using wavelet techniques
+			
+		The algorithm is descripted in detail in Lange et al. (2006) Proc. PSB-06.
+			
+		This peak picking algorithm uses the continuous wavelet transform of a raw data signal to detect mass peaks.
+		Afterwards a given asymmetric peak function is fitted to the raw data and important peak parameters (e.g. fwhm)
+		are extracted.
+		In an optional step these parameters can be optimized using a non-linear opimization method.
+			
+		The peak parameters are stored in the meta data arrays of the spectra (see DSpectrum) in this order:
+		- rValue
+		- area
+		- fwhm
+		- leftWidth
+		- rightWidth
+		- peakShape
+		- SignalToNoise
+		.
+	
+		@ref PeakPickerCWT_Parameters are explained on a separate page.
+	  
+	  @todo Write a PeakPicker for high-resolution data - determine position through a spline based on @em n points around local maximum, which has to have a certain @m s/n ratio (HiWi)
+	    
+		@ingroup PeakPicking
   */
-  class PeakPickerCWT : public PeakPicker
+  class PeakPickerCWT
+  	: public DefaultParamHandler, 
+  		public ProgressLogger
   {
 	 public:
 
@@ -83,12 +88,6 @@ namespace OpenMS
     /// Position type
     typedef DPosition<1> PositionType;
 
-
-    using PeakPicker::peak_bound_;
-    using PeakPicker::peak_bound_ms2_level_;
-    using PeakPicker::signal_to_noise_;
-    using PeakPicker::fwhm_bound_;
-
     /// Constructor
     PeakPickerCWT();
 
@@ -96,17 +95,17 @@ namespace OpenMS
     virtual ~PeakPickerCWT();
 
     /** 
-		@brief Applies the peak picking algorithm to an given iterator range.
-        
-		Picks the peaks in the given iterator intervall [first,last) and writes the
-		resulting peaks to the picked_peak_container.
-		The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
-        
-		@note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<Peak1D>::const_iterator)
-		points to a data point of type Peak1D or any other class derived from Peak1D.
-        
-		@note The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<>)
-		can be of type Peak1D or any other class derived from Peak1D.
+			@brief Applies the peak picking algorithm to an given iterator range.
+	        
+			Picks the peaks in the given iterator intervall [first,last) and writes the
+			resulting peaks to the picked_peak_container.
+			The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
+	        
+			@note This method assumes that the InputPeakIterator (e.g. of type MSSpectrum<Peak1D>::const_iterator)
+			points to a data point of type Peak1D or any other class derived from Peak1D.
+	        
+			@note The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<>)
+			can be of type Peak1D or any other class derived from Peak1D.
     */
     template <typename InputPeakIterator, typename OutputPeakContainer  >
     void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)
@@ -459,18 +458,18 @@ namespace OpenMS
     }
 
     /** 
-		@brief Applies the peak picking algorithm to a raw data point container.
-        
-		Picks the peaks in the input container (e.g. of type MSSpectrum<Peak1D >) 
-		and writes the resulting peaks to the picked_peak_container (e.g. MSSpectrum<>).
-
-		The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
-        
-		@note This method assumes that the input_peak_container contains data points of type 
-		Peak1D or any other class derived from Peak1D. 
-              
-		@note The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<>)
-		can be of type Peak1D or any other class derived from Peak1D.
+			@brief Applies the peak picking algorithm to a raw data point container.
+	        
+			Picks the peaks in the input container (e.g. of type MSSpectrum<Peak1D >) 
+			and writes the resulting peaks to the picked_peak_container (e.g. MSSpectrum<>).
+	
+			The ms_level should be one if the spectrum is a normal mass spectrum, or two if it is a tandem mass spectrum.
+	        
+			@note This method assumes that the input_peak_container contains data points of type 
+			Peak1D or any other class derived from Peak1D. 
+	              
+			@note The resulting peaks in the picked_peak_container (e.g. of type MSSpectrum<>)
+			can be of type Peak1D or any other class derived from Peak1D.
     */
     template <typename InputPeakContainer, typename OutputPeakContainer >
     void pick(const InputPeakContainer& input_peak_container, OutputPeakContainer& picked_peaks_container, int ms_level = 1)
@@ -483,16 +482,16 @@ namespace OpenMS
 
 
     /** 
-		@brief Picks the peaks in a range of MSSpectra.
-        
-		Picks the peaks successive in every scan in the intervall [first,last).
-		The detected peaks are stored in a MSExperiment.
-              
-		@note The InputSpectrumIterator should point to a MSSpectrum.
-		Elements of the input spectra should be of type Peak1D 
-		or any other derived class of Peak1D.
-
-		@note You have to copy the ExperimentalSettings of the raw data by your own.  
+			@brief Picks the peaks in a range of MSSpectra.
+	        
+			Picks the peaks successive in every scan in the intervall [first,last).
+			The detected peaks are stored in a MSExperiment.
+	              
+			@note The InputSpectrumIterator should point to a MSSpectrum.
+			Elements of the input spectra should be of type Peak1D 
+			or any other derived class of Peak1D.
+	
+			@note You have to copy the ExperimentalSettings of the raw data by your own.  
     */
     template <typename InputSpectrumIterator, typename OutputPeakType >
     void pickExperiment(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp_peaks)
@@ -546,12 +545,12 @@ namespace OpenMS
     }
 
     /** 
-		@brief Picks the peaks in a MSExperiment.
-        
-		Picks the peaks on every scan in the MSExperiment.
-		The detected peaks are stored in a MSExperiment.
-              
-		@note The input peaks should be of type Peak1D or any other derived class of Peak1D.
+			@brief Picks the peaks in a MSExperiment.
+	        
+			Picks the peaks on every scan in the MSExperiment.
+			The detected peaks are stored in a MSExperiment.
+	              
+			@note The input peaks should be of type Peak1D or any other derived class of Peak1D.
     */
     template <typename InputPeakType, typename OutputPeakType >
     void pickExperiment(const MSExperiment< InputPeakType >& ms_exp_raw, MSExperiment<OutputPeakType>& ms_exp_peaks)
@@ -563,6 +562,19 @@ namespace OpenMS
     }
 
 	 protected:
+
+    /// Threshold for the peak height in the MS 1 level
+    float peak_bound_;
+
+    /// Threshold for the peak height in the MS 2 level
+    float peak_bound_ms2_level_;
+
+    /// Signal to noise threshold
+    float signal_to_noise_;
+
+    /// The minimal full width at half maximum
+    float fwhm_bound_;
+
     /// Container the determined peak shapes
     std::vector<PeakShape> peak_shapes_;
 
@@ -607,10 +619,10 @@ namespace OpenMS
 
 
     /**
-		@brief Class for the internal peak representation
-        
-		A regularData-Object which contents some additional useful informations
-		for analysing peaks and their properties
+			@brief Class for the internal peak representation
+	        
+			A regularData-Object which contents some additional useful informations
+			for analysing peaks and their properties
     */
     class PeakArea_
     {
@@ -645,52 +657,52 @@ namespace OpenMS
     PeakShape fitPeakShape_(const PeakArea_& area, bool enable_centroid_fit);
 
     /** 
-		@brief Returns the squared pearson coefficient.
-
-		Computes the correlation of the peak and the original data given by the peak enpoints area.left and area.right.
-		If the value is near 1, the fitted peakshape and the raw data are expected to be very similar. 
+			@brief Returns the squared pearson coefficient.
+	
+			Computes the correlation of the peak and the original data given by the peak enpoints area.left and area.right.
+			If the value is near 1, the fitted peakshape and the raw data are expected to be very similar. 
     */
     double correlate_(const PeakShape& peak, const PeakArea_& area, int direction=0) const;
 
 
     /** 
-		@brief Finds the next maximum position in the wavelet transform wt.
-        
-		If the maximum is greater than peak_bound_cwt we search for the corresponding maximum in the raw data interval [first,last)
-		given a predefined search radius radius. Only peaks with intensities greater than peak_bound_ 
-		are relevant. If no peak is detected the method return false.
-		For direction=1, the method runs from first to last given direction=-1 it runs the other way around.
+			@brief Finds the next maximum position in the wavelet transform wt.
+	        
+			If the maximum is greater than peak_bound_cwt we search for the corresponding maximum in the raw data interval [first,last)
+			given a predefined search radius radius. Only peaks with intensities greater than peak_bound_ 
+			are relevant. If no peak is detected the method return false.
+			For direction=1, the method runs from first to last given direction=-1 it runs the other way around.
     */
     bool getMaxPosition_(PeakIterator first, PeakIterator last, const ContinuousWaveletTransform& wt, PeakArea_& area, int distance_from_scan_border, int ms_level, int direction=1);
 
 
     /** 
-		@brief Determines a peaks's endpoints.
-      
-		The algorithm does the following:
-		- let x_m be the position of the maximum in the data and let (x_l, x_r) be
-			the left and right neighbours
-    -	(1) starting from x_l', walk left until one of the following happens
-			- the new point is lower than the original bound => we found our left endpoint
-			- the new point is larger than the last, but the point left from
-				the new point is smaller. In that case, we either ran into another
-				peak, or we encounter some noise. Therefore we now look in the cwt
-				at the position corresponding to this value. If the cwt here is
-				monotonous, we consider the point as noise and continue further to the
-				left. Otherwise, we probably found the beginning of a new peak and
-				therefore stop here.
+			@brief Determines a peaks's endpoints.
+	      
+			The algorithm does the following:
+			- let x_m be the position of the maximum in the data and let (x_l, x_r) be
+				the left and right neighbours
+	    -	(1) starting from x_l', walk left until one of the following happens
+				- the new point is lower than the original bound => we found our left endpoint
+				- the new point is larger than the last, but the point left from
+					the new point is smaller. In that case, we either ran into another
+					peak, or we encounter some noise. Therefore we now look in the cwt
+					at the position corresponding to this value. If the cwt here is
+					monotonous, we consider the point as noise and continue further to the
+					left. Otherwise, we probably found the beginning of a new peak and
+					therefore stop here.
+				.
+			-	(2) analogous procedure to the right of x_r
 			.
-		-	(2) analogous procedure to the right of x_r
-		.
     */
     bool getPeakEndPoints_(PeakIterator first, PeakIterator last,  PeakArea_ &area, int distance_from_scan_border, int& peak_left_index, int& peak_right_index);
 
 
     /** 
-		@brief Estimates a peak's centroid position.
-
-		Computes the centroid position of the peak using all raw data points which are greater than 
-		60% of the most intensive raw data point.
+			@brief Estimates a peak's centroid position.
+	
+			Computes the centroid position of the peak using all raw data points which are greater than 
+			60% of the most intensive raw data point.
     */
     void getPeakCentroid_(PeakArea_& area);
 
@@ -698,13 +710,13 @@ namespace OpenMS
     double lorentz_(double height, double lambda, double pos, double x);
 
     /** 
-		@brief Computes the threshold for the peak height in the wavelet transform and initializes the wavelet transform.
-
-		Given the threshold for the peak height a corresponding value peak_bound_cwt can be computed
-		for the continious wavelet transform. 
-		Therefore we compute a theoretical lorentzian peakshape with height=peak_bound_ and a width which 
-		is similar to the width of the wavelet. Taking the maximum in the wavelet transform of the
-		lorentzian peak we have a peak bound in the wavelet transform. 
+			@brief Computes the threshold for the peak height in the wavelet transform and initializes the wavelet transform.
+	
+			Given the threshold for the peak height a corresponding value peak_bound_cwt can be computed
+			for the continious wavelet transform. 
+			Therefore we compute a theoretical lorentzian peakshape with height=peak_bound_ and a width which 
+			is similar to the width of the wavelet. Taking the maximum in the wavelet transform of the
+			lorentzian peak we have a peak bound in the wavelet transform. 
     */
     void initializeWT_();
 
@@ -713,10 +725,10 @@ namespace OpenMS
     //@{
 		
 		/** 
-		@brief Separates overlapping peaks.
-
-		It determines the number of peaks lying underneath the initial peak using the cwt with different scales.
-		Then a nonlinear optimzation procedure is applied to optimize the peak parameters.
+			@brief Separates overlapping peaks.
+	
+			It determines the number of peaks lying underneath the initial peak using the cwt with different scales.
+			Then a nonlinear optimzation procedure is applied to optimize the peak parameters.
 		*/
     bool deconvolutePeak_(PeakShape& shape);
 
