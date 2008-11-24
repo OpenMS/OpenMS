@@ -47,4 +47,5 @@
 	- @subpage SequenceCoverageCalculator 
   - @subpage IDExtractor
 	- @subpage SemanticValidator
+	- @subpage DecoyDatabase
 */

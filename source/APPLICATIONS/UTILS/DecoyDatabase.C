@@ -51,7 +51,7 @@ class TOPPDecoyDatabase
 {
 	public:
 		TOPPDecoyDatabase()
-			: TOPPBase("DecoyDatabase","Create decoy databases from normal ones")
+			: TOPPBase("DecoyDatabase","Create decoy databases from normal ones", false)
 		{
 			
 		}
