@@ -46,6 +46,7 @@ namespace OpenMS
     retrieved via the load function.
 
   	@todo Handle Modifications (Andreas)
+		@todo Complete rewrite of the parser (and those of InsPecT and PepNovo), the code is bullshit... (Andreas)
   	
   	@ingroup FileIO
   */
