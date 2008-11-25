@@ -52,7 +52,6 @@ using namespace std;
 	raw data an additional peak picking step for the calibrant spectra is needed, the parameters for the
 	peak picker can be set in the ini-file.
 
-
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_TOFCalibration.cli
 */

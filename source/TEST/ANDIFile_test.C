@@ -52,55 +52,51 @@ END_SECTION
 START_SECTION((template<typename MapType> void load(const String& filename, MapType& map) ))
 	TOLERANCE_ABSOLUTE(0.01)
 
-	MSExperiment< Peak1D > e2;
-	ANDIFile andi;
+	ANDIFile file;
+	MSExperiment<> e;
 
 	//test exception
-	TEST_EXCEPTION( Exception::FileNotFound , andi.load("dummy/dummy.cdf",e2) )
-
-	// real test
-	andi.load("data/ANDIFile_test.cdf",e2);
+	TEST_EXCEPTION( Exception::FileNotFound , file.load("dummy/dummy.cdf",e) )
+	
+  file.load("data/ANDIFile_test.cdf",e);
+  
   //---------------------------------------------------------------------------
   // 60 : (120,100) 
   // 120: (110,100) (120,200) (130,100)
 	// 180: (100,100) (110,200) (120,300) (130,200) (140,100) 
 	//---------------------------------------------------------------------------
-  TEST_EQUAL(e2.size(), 3)
-	TEST_REAL_SIMILAR(e2[0].getMSLevel(), 1)
-	TEST_REAL_SIMILAR(e2[1].getMSLevel(), 1)
-	TEST_REAL_SIMILAR(e2[2].getMSLevel(), 1)
-	TEST_REAL_SIMILAR(e2[0].getRT(), 60)
-	TEST_REAL_SIMILAR(e2[1].getRT(), 120)
-	TEST_REAL_SIMILAR(e2[2].getRT(), 180)
-	TEST_REAL_SIMILAR(e2[0].size(), 1)
-	TEST_REAL_SIMILAR(e2[1].size(), 3)
-	TEST_REAL_SIMILAR(e2[2].size(), 5)
-
-	TEST_REAL_SIMILAR(e2[0][0].getPosition()[0], 120)
-	TEST_REAL_SIMILAR(e2[0][0].getIntensity(), 100)
-	TEST_REAL_SIMILAR(e2[1][0].getPosition()[0], 110)
-	TEST_REAL_SIMILAR(e2[1][0].getIntensity(), 100)
-	TEST_REAL_SIMILAR(e2[1][1].getPosition()[0], 120)
-	TEST_REAL_SIMILAR(e2[1][1].getIntensity(), 200)
-	TEST_REAL_SIMILAR(e2[1][2].getPosition()[0], 130)
-	TEST_REAL_SIMILAR(e2[1][2].getIntensity(), 100)
-	TEST_REAL_SIMILAR(e2[2][0].getPosition()[0], 100)
-	TEST_REAL_SIMILAR(e2[2][0].getIntensity(), 100)
-	TEST_REAL_SIMILAR(e2[2][1].getPosition()[0], 110)
-	TEST_REAL_SIMILAR(e2[2][1].getIntensity(), 200)
-	TEST_REAL_SIMILAR(e2[2][2].getPosition()[0], 120)
-	TEST_REAL_SIMILAR(e2[2][2].getIntensity(), 300)
-	TEST_REAL_SIMILAR(e2[2][3].getPosition()[0], 130)
-	TEST_REAL_SIMILAR(e2[2][3].getIntensity(), 200)
-	TEST_REAL_SIMILAR(e2[2][4].getPosition()[0], 140)
-	TEST_REAL_SIMILAR(e2[2][4].getIntensity(), 100)
-	
-	// meta data:
-	
-	MSExperiment<> e;
-  andi.load("data/ANDIFile_test.cdf",e);
-  
   TEST_EQUAL(e.size(), 3)
+	TEST_REAL_SIMILAR(e[0].getMSLevel(), 1)
+	TEST_REAL_SIMILAR(e[1].getMSLevel(), 1)
+	TEST_REAL_SIMILAR(e[2].getMSLevel(), 1)
+	TEST_REAL_SIMILAR(e[0].getRT(), 60)
+	TEST_REAL_SIMILAR(e[1].getRT(), 120)
+	TEST_REAL_SIMILAR(e[2].getRT(), 180)
+	TEST_REAL_SIMILAR(e[0].size(), 1)
+	TEST_REAL_SIMILAR(e[1].size(), 3)
+	TEST_REAL_SIMILAR(e[2].size(), 5)
+	TEST_STRING_EQUAL(e[0].getNativeID(), "index=0")
+	TEST_STRING_EQUAL(e[1].getNativeID(), "index=1")
+	TEST_STRING_EQUAL(e[2].getNativeID(), "index=2")
+
+	TEST_REAL_SIMILAR(e[0][0].getPosition()[0], 120)
+	TEST_REAL_SIMILAR(e[0][0].getIntensity(), 100)
+	TEST_REAL_SIMILAR(e[1][0].getPosition()[0], 110)
+	TEST_REAL_SIMILAR(e[1][0].getIntensity(), 100)
+	TEST_REAL_SIMILAR(e[1][1].getPosition()[0], 120)
+	TEST_REAL_SIMILAR(e[1][1].getIntensity(), 200)
+	TEST_REAL_SIMILAR(e[1][2].getPosition()[0], 130)
+	TEST_REAL_SIMILAR(e[1][2].getIntensity(), 100)
+	TEST_REAL_SIMILAR(e[2][0].getPosition()[0], 100)
+	TEST_REAL_SIMILAR(e[2][0].getIntensity(), 100)
+	TEST_REAL_SIMILAR(e[2][1].getPosition()[0], 110)
+	TEST_REAL_SIMILAR(e[2][1].getIntensity(), 200)
+	TEST_REAL_SIMILAR(e[2][2].getPosition()[0], 120)
+	TEST_REAL_SIMILAR(e[2][2].getIntensity(), 300)
+	TEST_REAL_SIMILAR(e[2][3].getPosition()[0], 130)
+	TEST_REAL_SIMILAR(e[2][3].getIntensity(), 200)
+	TEST_REAL_SIMILAR(e[2][4].getPosition()[0], 140)
+	TEST_REAL_SIMILAR(e[2][4].getIntensity(), 100)
   
   TEST_REAL_SIMILAR(e[0].getRT(), 60)
   TEST_REAL_SIMILAR(e[1].getRT(), 120)
@@ -232,7 +228,18 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e.getHPLC().getTemperature(), 21)
 	TEST_EQUAL(e.getHPLC().getPressure(), 0)
 	TEST_EQUAL(e.getHPLC().getFlux(), 0)
-  
+
+	/////////////////////// TESTING SPECIAL CASES ///////////////////////
+
+	//load a second time to make sure everything is re-initialized correctly
+	MSExperiment<> e2;
+	file.load("data/ANDIFile_test.cdf",e2);
+	TEST_EQUAL(e==e2,true)
+	
+	//test if it works with different peak types
+	MSExperiment<RichPeak1D> e_rich;
+  file.load("data/ANDIFile_test.cdf",e_rich);
+
 END_SECTION
 
 /////////////////////////////////////////////////////////////

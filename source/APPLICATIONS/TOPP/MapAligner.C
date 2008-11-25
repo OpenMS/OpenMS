@@ -48,7 +48,8 @@ using namespace std;
 	and distortions.
 	
 	@todo write map alignment algorithm that takes TrafoXML and applies it (Clemens)
-	 	<B>The command line parameters of this tool are:</B>
+	
+	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_MapAligner.cli
 */
 

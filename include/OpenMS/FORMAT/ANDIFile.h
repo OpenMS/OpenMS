@@ -69,7 +69,10 @@ namespace OpenMS
 		    {
 		      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		    }
-
+				
+				map.reset();
+				map.setNativeIDType(ExperimentalSettings::MULTIPLE_PEAK_LISTS);
+				
 				Internal::ANDIHandler<MapType> handler(map,*this);
 				handler.parse(filename);
       }

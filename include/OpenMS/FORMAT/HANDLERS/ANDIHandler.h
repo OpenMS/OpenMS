@@ -90,7 +90,7 @@ namespace OpenMS
 				void getInstrumentData_(MS_Instrument_Data* inst_data);
 		
 				/// fill scan data with @p scan_data and @p global_data
-				void getRawPerScan_(MS_Raw_Per_Scan* scan_data, MS_Raw_Data_Global* global_data);
+				void getRawPerScan_(UInt scan_number, MS_Raw_Per_Scan* scan_data, MS_Raw_Data_Global* global_data);
 		    //@}
 		
 				/// map pointer for reading
@@ -254,7 +254,7 @@ namespace OpenMS
 			else
 			{
 				//parse data
-				getRawPerScan_(&ms_raw,&ms_raw_global);
+				getRawPerScan_(index, &ms_raw,&ms_raw_global);
 			}	
 			//clean up
 			ms_init_per_scan( 1, &ms_raw, &ms_lib);					
@@ -428,7 +428,7 @@ namespace OpenMS
 	}
 
 	template <typename MapType>
-	void ANDIHandler<MapType>::getRawPerScan_(MS_Raw_Per_Scan* scan_data, MS_Raw_Data_Global* global_data)
+	void ANDIHandler<MapType>::getRawPerScan_(UInt scan_number, MS_Raw_Per_Scan* scan_data, MS_Raw_Data_Global* global_data)
 	{
 		float mass_factor = float_(global_data->mass_factor, 1.0f);
 		float intens_factor = float_(global_data->intensity_factor, 1.0f);
@@ -451,6 +451,7 @@ namespace OpenMS
 		typename MapType::SpectrumType& spectrum = exp_.back();
 		spectrum.resize(scan_data->points);
 		spectrum.setRT( float_(scan_data->scan_acq_time));
+		spectrum.setNativeID(String("index=")+ scan_number);
 		spectrum.setMSLevel(1);
 		InstrumentSettings::ScanWindow window;
 		window.begin = float_(scan_data->mass_range_min);
