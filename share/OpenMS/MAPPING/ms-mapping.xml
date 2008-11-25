@@ -13,8 +13,12 @@
 
     <CvMappingRuleList>
         <!-- start of file description -->
-        <CvMappingRule id="R1" cvElementPath="/mzML/fileDescription/fileContent/cvParam/@accession" requirementLevel="MUST"  scopePath="/mzML/fileDescription/fileContent" cvTermsCombinationLogic="OR">
-            <CvTerm termAccession="MS:1000524" useTermName="false" useTerm="false" termName="data file content" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
+        <CvMappingRule id="R1a" cvElementPath="/mzML/fileDescription/fileContent/cvParam/@accession" requirementLevel="MUST"  scopePath="/mzML/fileDescription/fileContent" cvTermsCombinationLogic="AND">
+            <CvTerm termAccession="MS:1000524" useTermName="false" useTerm="false" termName="data file content" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
+            <CvTerm termAccession="MS:1000767" useTermName="false" useTerm="false" termName="native spectrum identifier format" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
+        </CvMappingRule>
+        <CvMappingRule id="R1b" cvElementPath="/mzML/fileDescription/fileContent/cvParam/@accession" requirementLevel="MAY"  scopePath="/mzML/fileDescription/fileContent" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1000525" useTerm="false" termName="spectrum representation" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
         <CvMappingRule id="R2" cvElementPath="/mzML/fileDescription/contact/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/fileDescription/contact/cvParam" cvTermsCombinationLogic="OR" >
             <CvTerm termAccession="MS:1000585" useTermName="false" useTerm="false" termName="contact person attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />

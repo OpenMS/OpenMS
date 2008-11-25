@@ -32,8 +32,6 @@
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 #include <OpenMS/METADATA/Digestion.h>
 
-class QLabel;
-class QLineEdit;
 
 namespace OpenMS
 {

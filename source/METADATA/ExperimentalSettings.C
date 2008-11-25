@@ -31,9 +31,13 @@ using namespace std;
 namespace OpenMS
 {
 
+	const std::string ExperimentalSettings::NamesOfNativeIDType[] = {"Unknown","Thermo","Waters","WIFF","Bruker/Agilent","Bruker BAF","Bruker FID","multiple peak lists","single peak list","scan number","spectrum identifier"};
+
+
 	ExperimentalSettings::ExperimentalSettings():
 		MetaInfoInterface(),
 		DocumentIdentifier(),
+		native_id_type_(UNKNOWN),
 		sample_(),
 		source_files_(),
 		contacts_(),
@@ -44,12 +48,12 @@ namespace OpenMS
 		comment_(),
 		protein_identifications_()
 	{
-	  
 	}
 	
 	ExperimentalSettings::ExperimentalSettings(const ExperimentalSettings& source):
 		MetaInfoInterface(source),
 		DocumentIdentifier(source),
+		native_id_type_(source.native_id_type_),
 	  sample_(source.sample_),
 	  source_files_(source.source_files_),
 	  contacts_(source.contacts_),
@@ -60,18 +64,17 @@ namespace OpenMS
 	  comment_(source.comment_),
 		protein_identifications_(source.protein_identifications_)
 	{
-	  
 	}
 	
 	ExperimentalSettings::~ExperimentalSettings()
 	{
-	  
 	}
 	
 	ExperimentalSettings& ExperimentalSettings::operator = (const ExperimentalSettings& source)
 	{
 	  if (&source == this) return *this;
 	  
+	  native_id_type_ = source.native_id_type_;
     sample_ = source.sample_;
     source_files_ = source.source_files_;
     contacts_ = source.contacts_;
@@ -89,7 +92,8 @@ namespace OpenMS
 
   bool ExperimentalSettings::operator== (const ExperimentalSettings& rhs) const
   {
-  	return  
+  	return
+  		native_id_type_ == rhs.native_id_type_ &&
 	    sample_ == rhs.sample_ &&
 	    source_files_ == rhs.source_files_ &&
 	    contacts_ == rhs.contacts_ &&
@@ -245,6 +249,16 @@ namespace OpenMS
 	void ExperimentalSettings::setComment(const String& comment)
 	{
 	  comment_ = comment; 
+	}
+
+  ExperimentalSettings::NativeIDType ExperimentalSettings::getNativeIDType() const
+	{
+		return native_id_type_;
+	}
+	
+  void ExperimentalSettings::setNativeIDType(ExperimentalSettings::NativeIDType type)
+	{
+		native_id_type_ = type;
 	}
 
 }

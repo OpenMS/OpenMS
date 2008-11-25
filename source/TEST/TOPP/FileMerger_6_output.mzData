@@ -64,7 +64,7 @@
 		</dataProcessing>
 	</description>
 	<spectrumList count="3">
-		<spectrum id="19">
+		<spectrum id="0">
 			<spectrumDesc>
 				<spectrumSettings>
 					<acqSpecification spectrumType="discrete" methodOfCombination="" count="2">
@@ -89,7 +89,7 @@
 				<data precision="32" endian="little" length="15">AABwQQAAYEEAAFBBAABAQQAAMEEAACBBAAAQQQAAAEEAAOBAAADAQAAAoEAAAIBAAABAQAAAAEAAAIA/</data>
 			</intenArrayBinary>
 		</spectrum>
-		<spectrum id="20">
+		<spectrum id="1">
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="2" mzRangeStart="110" mzRangeStop="905">
@@ -99,7 +99,7 @@
 					</spectrumInstrument>
 				</spectrumSettings>
 				<precursorList count="1">
-					<precursor msLevel="1" spectrumRef="19">
+					<precursor msLevel="1" spectrumRef="0">
 						<ionSelection>
 							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="445.34"/>
 							<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="2"/>
@@ -119,7 +119,7 @@
 				<data precision="32" endian="little" length="10">AACgQQAAkEEAAIBBAABgQQAAQEEAACBBAAAAQQAAwEAAAIBAAAAAQA==</data>
 			</intenArrayBinary>
 		</spectrum>
-		<spectrum id="21">
+		<spectrum id="2">
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1">

@@ -36,8 +36,6 @@
 #include <vector>
 #include <utility>
 
-class QLabel;
-class QLineEdit;
 class QAbstractButton;
 class QButtonGroup;
 

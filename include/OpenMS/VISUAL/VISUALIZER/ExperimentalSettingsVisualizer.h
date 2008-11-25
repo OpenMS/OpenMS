@@ -32,9 +32,6 @@
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
-//QT
-class QLineEdit;
-
 namespace OpenMS 
 {
 
@@ -67,7 +64,8 @@ namespace OpenMS
 			void undo_();
 	
 		protected:  
-		  
+		  /// Native ID type of the spectra
+		  QComboBox* native_id_type_;
 			/// The date of this experiment
 			QLineEdit* datetime_;		
 			/// The comment to this experiment

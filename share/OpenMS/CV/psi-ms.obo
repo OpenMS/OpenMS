@@ -4,13 +4,13 @@ saved-by: David Sparkman
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 1.7.0
-remark: release date: 2008-13-14
+remark: version: 1.8.1
+remark: release date: 2008-11-21
 remark: coverage: Mass spectrometer output files
 remark: creator: Matt Chambers <matt.chambers <@> vanderbilt.edu>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group
 remark: When appropriate the definition and synonyms of a term are reported exactly as in the chapter 12 of IUPAC orange book. See http://www.iupac.org/projects/2003/2003-056-2-500.html.
-import: http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo
+import: http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo?revision=1.15
 
 [Term]
 id: MS:0000000
@@ -4874,6 +4874,78 @@ name: TOFCalibration
 def: "TOPP tool - Applies time of flight calibration." [PSI:MS]
 is_a: MS:1000752 ! TOPP software
 
+[Term]
+id: MS:1000767
+name: native spectrum identifier format
+def: "Describes how the native spectrum identifiers are formated." [PSI:MS]
+synonym: "nativeID format" EXACT []
+relationship: part_of MS:1000577 ! data file
+
+[Term]
+id: MS:1000768
+name: Thermo nativeID format
+def: "controller=xsd:nonNegativeInteger scan=xsd:positiveInteger." [PSI:MS]
+comment: controller=0 is usually the mass spectrometer
+is_a: MS:1000767 ! native spectrum identifier format
+
+[Term]
+id: MS:1000769
+name: Waters nativeID format
+def: "function=xsd:positiveInteger process=xsd:nonNegativeInteger scan=xsd:nonNegativeInteger." [PSI:MS]
+is_a: MS:1000767 ! native spectrum identifier format
+
+[Term]
+id: MS:1000770
+name: WIFF nativeID format
+def: "sample=xsd:nonNegativeInteger period=xsd:nonNegativeInteger cycle=xsd:nonNegativeInteger experiment=xsd:nonNegativeInteger." [PSI:MS]
+is_a: MS:1000767 ! native spectrum identifier format
+
+[Term]
+id: MS:1000771
+name: Bruker/Agilent YEP nativeID format
+def: "scan=xsd:nonNegativeInteger." [PSI:MS]
+is_a: MS:1000767 ! native spectrum identifier format
+
+[Term]
+id: MS:1000772
+name: Bruker BAF nativeID format
+def: "scan=xsd:nonNegativeInteger." [PSI:MS]
+is_a: MS:1000767 ! native spectrum identifier format
+
+[Term]
+id: MS:1000773
+name: Bruker FID nativeID format
+def: "file=xsd:IDREF" [PSI:MS]
+comment: The nativeID must be the same as the source file ID.
+is_a: MS:1000767 ! native spectrum identifier format
+
+[Term]
+id: MS:1000774
+name: multiple peak list nativeID format
+def: "index=xsd:nonNegativeInteger" [PSI:MS]
+comment: Used for conversion of peak list files with multiple spectra, i.e. MGF, PKL, merged DTA files. Index is the spectrum number in the file, starting from 0.
+is_a: MS:1000767 ! native spectrum identifier format
+
+[Term]
+id: MS:1000775
+name: single peak list nativeID format
+def: "file=xsd:IDREF" [PSI:MS]
+comment: The nativeID must be the same as the source file ID. Used for conversion of peak list files with one spectrum per file, typically folder of PKL or DTAs, each sourceFileRef is different.
+is_a: MS:1000767 ! native spectrum identifier format
+
+[Term]
+id: MS:1000776
+name: scan number only nativeID format
+def: "scan=xsd:nonNegativeInteger" [PSI:MS]
+comment: Used for conversion from mzXML, or DTA folder where native scan numbers can be derived.
+is_a: MS:1000767 ! native spectrum identifier format
+
+[Term]
+id: MS:1000777
+name: spectrum identifier nativeID format
+def: "spectrum=xsd:nonNegativeInteger" [PSI:MS]
+comment: Used for conversion from mzData. The spectrum id attribute is referenced.
+is_a: MS:1000767 ! native spectrum identifier format
 
 [Typedef]
 id: has_units

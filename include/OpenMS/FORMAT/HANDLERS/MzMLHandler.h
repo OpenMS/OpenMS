@@ -1920,7 +1920,59 @@ namespace OpenMS
 				}
 				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
-			else if (parent_tag=="chromatogram" || parent_tag=="fileContent" || parent_tag=="target")
+			else if (parent_tag=="fileContent")
+			{
+				if (accession=="MS:1000768") //Thermo nativeID format
+				{
+					exp_->setNativeIDType(ExperimentalSettings::THERMO);
+				}
+				else if (accession=="MS:1000769") //Waters nativeID format
+				{
+					exp_->setNativeIDType(ExperimentalSettings::WATERS);
+				}
+				else if (accession=="MS:1000770") //WIFF nativeID format
+				{
+					exp_->setNativeIDType(ExperimentalSettings::WIFF);
+				}
+				else if (accession=="MS:1000771") //Bruker/Agilent YEP nativeID format
+				{
+					exp_->setNativeIDType(ExperimentalSettings::BRUKER_AGILENT);
+				}
+				else if (accession=="MS:1000772") //Bruker BAF nativeID format
+				{
+					exp_->setNativeIDType(ExperimentalSettings::BRUKER_BAF);
+				}
+				else if (accession=="MS:1000773") //Bruker FID nativeID format
+				{
+					exp_->setNativeIDType(ExperimentalSettings::BRUKER_FID);
+				}
+				else if (accession=="MS:1000774") //multiple peak list nativeID format
+				{
+					exp_->setNativeIDType(ExperimentalSettings::MULTIPLE_PEAK_LISTS);
+				}
+				else if (accession=="MS:1000775") //single peak list nativeID format
+				{
+					exp_->setNativeIDType(ExperimentalSettings::SINGLE_PEAK_LIST);
+				}
+				else if (accession=="MS:1000776") //scan number only nativeID format
+				{
+					exp_->setNativeIDType(ExperimentalSettings::SCAN_NUMBER);
+				}
+				else if (accession=="MS:1000777") //spectrum identifier nativeID format
+				{
+					exp_->setNativeIDType(ExperimentalSettings::SPECTRUM_IDENTIFIER);
+				}
+				else if (cv_.isChildOf(accession,"MS:1000524")) //data file content
+				{
+					//ignored
+				}
+				else if (cv_.isChildOf(accession,"MS:1000525")) //spectrum representation
+				{
+					//ignored
+				}
+				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+			}
+			else if (parent_tag=="chromatogram" || parent_tag=="target")
 			{
 				//allowed but, not needed
 			}
@@ -2171,6 +2223,52 @@ namespace OpenMS
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
 			}
+			//native ID format
+			if (exp.getNativeIDType()==ExperimentalSettings::THERMO)
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000768\" name=\"Thermo nativeID format\" />\n";
+			}
+			else if (exp.getNativeIDType()==ExperimentalSettings::WATERS)
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000769\" name=\"Waters nativeID format\" />\n";
+			}
+			else if (exp.getNativeIDType()==ExperimentalSettings::WIFF)
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000770\" name=\"WIFF nativeID format\" />\n";
+			}
+			else if (exp.getNativeIDType()==ExperimentalSettings::BRUKER_AGILENT)
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000771\" name=\"Bruker/Agilent YEP nativeID format\" />\n";
+			}
+			else if (exp.getNativeIDType()==ExperimentalSettings::BRUKER_BAF)
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000772\" name=\"Bruker BAF nativeID format\" />\n";
+			}
+			else if (exp.getNativeIDType()==ExperimentalSettings::BRUKER_FID)
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000773\" name=\"Bruker FID nativeID format\" />\n";
+			}
+			else if (exp.getNativeIDType()==ExperimentalSettings::MULTIPLE_PEAK_LISTS)
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000774\" name=\"multiple peak list nativeID format\" />\n";
+			}
+			else if (exp.getNativeIDType()==ExperimentalSettings::SINGLE_PEAK_LIST)
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000775\" name=\"single peak list nativeID format\" />\n";
+			}
+			else if (exp.getNativeIDType()==ExperimentalSettings::SCAN_NUMBER)
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000776\" name=\"scan number only nativeID format\" />\n";
+			}
+			else if (exp.getNativeIDType()==ExperimentalSettings::SPECTRUM_IDENTIFIER)
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000777\" name=\"spectrum identifier nativeID format\" />\n";
+			}
+			else //FORCED
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000774\" name=\"multiple peak list nativeID format\" />\n";
+			}
+
 			os	<< "		</fileContent>\n";
 			//--------------------------------------------------------------------------------------------
 			// source file list

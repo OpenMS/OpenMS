@@ -31,6 +31,7 @@
 //QT
 #include <QtGui/QLineEdit>
 #include <QtGui/QTextEdit>
+#include <QtGui/QComboBox>
 
 //STL
 #include <iostream>
@@ -45,7 +46,8 @@ namespace OpenMS
 			BaseVisualizer<ExperimentalSettings>()
 	{
 		addLabel_("Modify the settings of the experiment.");	
-		addSeparator_();  
+		addSeparator_();
+		addComboBox_(native_id_type_, "Native ID type of spectra");
 		addLineEdit_(datetime_, "Date and time of experiment");
 		addTextEdit_(comment_, "Comment");
 		
@@ -54,12 +56,24 @@ namespace OpenMS
 	
 	void ExperimentalSettingsVisualizer::update_()
 	{
+		if(! isEditable())
+		{
+			fillComboBox_(native_id_type_,& temp_.NamesOfNativeIDType[temp_.getNativeIDType()] , 1);
+		}
+		else
+		{
+			fillComboBox_(native_id_type_, temp_.NamesOfNativeIDType , ExperimentalSettings::SIZE_OF_NATIVEIDTYPE);
+			native_id_type_->setCurrentIndex(temp_.getNativeIDType()); 
+		}
+		
 	  datetime_->setText(temp_.getDateTime().get().c_str()); 
 		comment_->setText(temp_.getComment().c_str());
 	}
 	
 	void ExperimentalSettingsVisualizer::store()
 	{
+		ptr_->setNativeIDType((ExperimentalSettings::NativeIDType)native_id_type_->currentIndex());			
+		
 		DateTime date;
 		try
 		{

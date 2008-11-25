@@ -95,10 +95,10 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[1].size(), 3)
 	TEST_EQUAL(e[2].size(), 5)
 	TEST_EQUAL(e[3].size(), 5)
-	TEST_STRING_EQUAL(e[0].getNativeID(),"10")
-	TEST_STRING_EQUAL(e[1].getNativeID(),"11")
-	TEST_STRING_EQUAL(e[2].getNativeID(),"12")
-	TEST_STRING_EQUAL(e[3].getNativeID(),"13")
+	TEST_STRING_EQUAL(e[0].getNativeID(),"scan=10")
+	TEST_STRING_EQUAL(e[1].getNativeID(),"scan=11")
+	TEST_STRING_EQUAL(e[2].getNativeID(),"scan=12")
+	TEST_STRING_EQUAL(e[3].getNativeID(),"scan=13")
 
 	TEST_REAL_SIMILAR(e[0][0].getPosition()[0], 120)
 	TEST_REAL_SIMILAR(e[0][0].getIntensity(), 100)
@@ -122,6 +122,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[0].getMetaValue("URL1"), "www.open-ms.de")
 	TEST_EQUAL(e[0].getMetaValue("URL2"), "www.uni-tuebingen.de")
 	TEST_EQUAL(e[0].getComment(), "Scan Comment")
+	TEST_EQUAL(e.getNativeIDType(),ExperimentalSettings::SCAN_NUMBER)
 
 	//---------------------------------------------------------------------------
   // const vector<SourceFile>& getSourceFiles() const;
@@ -321,9 +322,9 @@ START_SECTION(([EXTRA] load with selected MS levels))
 	TEST_EQUAL(e[0].size(), 1)
 	TEST_EQUAL(e[1].size(), 3)
 	TEST_EQUAL(e[2].size(), 5)
-	TEST_STRING_EQUAL(e[0].getNativeID(),"10")
-	TEST_STRING_EQUAL(e[1].getNativeID(),"11")
-	TEST_STRING_EQUAL(e[2].getNativeID(),"12")
+	TEST_STRING_EQUAL(e[0].getNativeID(),"scan=10")
+	TEST_STRING_EQUAL(e[1].getNativeID(),"scan=11")
+	TEST_STRING_EQUAL(e[2].getNativeID(),"scan=12")
 	
 	// load all levels
 	file.getOptions().clearMSLevels();

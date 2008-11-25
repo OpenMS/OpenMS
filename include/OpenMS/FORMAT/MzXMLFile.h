@@ -69,6 +69,8 @@ namespace OpenMS
 			void load(const String& filename, MapType& map)
 			{
 				map.reset();
+				map.setNativeIDType(ExperimentalSettings::SCAN_NUMBER);
+					
 				Internal::MzXMLHandler<MapType> handler(map,filename,schema_version_,*this);
 				handler.setOptions(options_);
 				parse_(filename, &handler);

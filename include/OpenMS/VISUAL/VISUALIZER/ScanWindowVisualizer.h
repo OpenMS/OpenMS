@@ -32,7 +32,6 @@
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
-class QLineEdit;
 
 namespace OpenMS
 {

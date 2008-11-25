@@ -31,9 +31,6 @@
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
-class QLabel;
-class QLineEdit;
-class QComboBox;
 
 namespace OpenMS
 {

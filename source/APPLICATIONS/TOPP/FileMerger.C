@@ -60,13 +60,14 @@ class TOPPFileMerger
 	: public TOPPBase
 {
  public:
+	
 	TOPPFileMerger()
 		: TOPPBase("FileMerger","Merges several MS files into one file.")
 	{
-			
 	}
 	
  protected:
+ 	
 	void registerOptionsAndFlags_()
 	{
 		registerInputFileList_("in","<files>",StringList(),"Input files separated by blank");
@@ -131,7 +132,8 @@ class TOPPFileMerger
 		
 		MSExperiment<> out;
 		out.reserve(file_list.size());
-		UInt rt_auto=0;
+		UInt rt_auto = 0;
+		UInt native_id = 0;
 		for(UInt i = 0; i < file_list.size();++i)
 		{
 			String filename = file_list[i];
@@ -153,7 +155,7 @@ class TOPPFileMerger
 			}
 			
 			for (MSExperiment<>::const_iterator it2 = in.begin(); it2!=in.end(); ++it2)
-			{ 
+			{
 				//handle rt
 				Real rt_final = it2->getRT();
 				if (rt_auto_number)
@@ -210,10 +212,12 @@ class TOPPFileMerger
 				
 				out.push_back(*it2);
 				out.back().setRT(rt_final);
+				out.back().setNativeID(native_id);
 				if (user_ms_level)
 				{
 					out.back().setMSLevel((int)getIntOption_("ms_level"));
 				}
+				++native_id;
 			}
 
 			// copy experimental settings from first file
@@ -222,7 +226,10 @@ class TOPPFileMerger
 				out.ExperimentalSettings::operator=(in);
 			}
 		}
-			
+
+		//set native ID type
+		out.setNativeIDType(ExperimentalSettings::MULTIPLE_PEAK_LISTS);
+
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------

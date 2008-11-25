@@ -31,6 +31,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/METADATA/ExperimentalSettings.h>
 
 #include <fstream>
 #include <iostream>
@@ -98,13 +99,14 @@ namespace OpenMS
 			}
 
 			map.reset();
+			map.setNativeIDType(ExperimentalSettings::MULTIPLE_PEAK_LISTS);
 
 			// temporary variables to store the data in
 			std::vector<String> strings(3);
 			typename MapType::SpectrumType spec;
-			spec.setRT(-1.0);
+			spec.setRT(-1.0); //to make sure the first RT is different from the the initialized value
 			typename MapType::SpectrumType::PeakType p;
-			typename MapType::SpectrumType::PeakType::CoordinateType rt(0.0);
+			DoubleReal rt(0.0);
 			char delimiter;
 
 			// default dimension of the data
@@ -117,7 +119,10 @@ namespace OpenMS
 
 			// string to store the current line in
 			String line;
-
+			
+			// native ID (numbers from 0)
+			UInt native_id = 0;
+			
 			while (getline(is,line,'\n'))
 			{
 				line.trim();
@@ -181,7 +186,7 @@ namespace OpenMS
 					}
 					continue;
 				}
-
+				
 				try
 				{
 					line.split(delimiter,strings);
@@ -189,20 +194,9 @@ namespace OpenMS
 					{
 						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line: \"")+line+"\"" ,filename);
 					}
-					//std::cout <<"'"<< strings[0] << "' '" << strings[1] << "' '" << strings[2] << "'"<< std::endl;
-					//fill peak
-					DoubleReal mz = strings[mz_dim].toDouble();
-					DoubleReal intensity = strings[int_dim].toDouble();
-					p.setIntensity(intensity);
-					p.setPosition(mz);
+					p.setIntensity(strings[int_dim].toDouble());
+					p.setMZ(strings[mz_dim].toDouble());
 					rt = (strings[rt_dim].toDouble()) * (time_in_minutes ? 60.0 : 1.0);
-
-					if ((options_.hasMZRange() && !options_.getMZRange().encloses(DPosition<1>(mz)))
-							|| (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(rt)))
-							|| (options_.hasIntensityRange() && !options_.getIntensityRange().encloses(DPosition<1>(intensity))))
-					{
-						continue; // if peak is out of specified range
-					}
 				}
 				// conversion to double or something else could have gone wrong
 				catch ( Exception::BaseException & e )
@@ -211,23 +205,42 @@ namespace OpenMS
 				}
 
 				// Retention time changed -> new Spectrum
-				//std::cout << "rt: " << rt << " spec: " <<  spec.getRT() << "test: "<< rt-spec.getRT()<< std::endl;
 				if (rt != spec.getRT())
 				{
-					if (spec.getRT() >= 0) // if not initial Spectrum
+					if ( spec.size()!=0
+						 	 && 
+						 	 (!options_.hasRTRange() || options_.getRTRange().encloses(DPosition<1>(spec.getRT())))) // RT restriction fulfilled
 					{
 						map.push_back(spec);
-						setProgress(0);
-						//std::cout << "NEW SPEC"<< std::endl;
 					}
+					setProgress(0);
 					spec.clear();
 					spec.setRT(rt);
+					spec.setNativeID(String("index=")+native_id);
+					++native_id;
 				}
-				//insert peak into the spectrum
-				spec.push_back(p);
+				
+				//Skip peaks with invalid m/z or intensity value
+				if (
+						(!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(p.getMZ())))
+						&&
+						(!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(p.getIntensity())))
+					 )
+				{
+					spec.push_back(p);
+				}
 			}
-
-			if (spec.getRT() >= 0) map.push_back(spec);  // add last Spectrum
+			
+			// add last Spectrum
+			if ( 
+				  spec.size()!=0
+				 	&& 
+				 	(!options_.hasRTRange() || options_.getRTRange().encloses(DPosition<1>(spec.getRT()))) // RT restriction fulfilled
+				 )
+			{
+				map.push_back(spec); 
+			}
+			
 			is.close();
 			endProgress();
 		}

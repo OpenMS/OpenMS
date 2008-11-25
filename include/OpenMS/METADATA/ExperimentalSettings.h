@@ -56,6 +56,26 @@ namespace OpenMS
 			public DocumentIdentifier
   {
     public:			
+
+    	///Native ID type
+    	enum NativeIDType
+    	{
+    		UNKNOWN,							///< Unknown native ID type
+    		THERMO,								///< controller=xsd:nonNegativeInteger scan=xsd:positiveInteger
+    		WATERS,								///< function=xsd:positiveInteger process=xsd:nonNegativeInteger scan=xsd:nonNegativeInteger
+    		WIFF,									///< sample=xsd:nonNegativeInteger period=xsd:nonNegativeInteger cycle=xsd:nonNegativeInteger experiment=xsd:nonNegativeInteger
+    		BRUKER_AGILENT,				///< scan=xsd:nonNegativeInteger
+    		BRUKER_BAF,						///< scan=xsd:nonNegativeInteger
+    		BRUKER_FID,						///< file=xsd:IDREF
+    		MULTIPLE_PEAK_LISTS,	///< index=xsd:nonNegativeInteger @n Used for conversion of peak list files with multiple spectra, i.e. MGF, PKL, merged DTA files. Index is the spectrum number in the file, starting from 0.
+    		SINGLE_PEAK_LIST,			///< file=xsd:IDREF @n The nativeID must be the same as the source file ID. Used for conversion of peak list files with one spectrum per file, typically folder of PKL or DTAs, each sourceFileRef is different.
+    		SCAN_NUMBER,					///< scan=xsd:nonNegativeInteger @n Used for conversion from mzXML, or DTA folder where native scan numbers can be derived.
+    		SPECTRUM_IDENTIFIER,	///< spectrum=xsd:nonNegativeInteger @n Used for conversion from mzData. The spectrum id attribute is referenced.
+    		SIZE_OF_NATIVEIDTYPE
+    	};
+			/// Names of native ID types
+			static const std::string NamesOfNativeIDType[SIZE_OF_NATIVEIDTYPE];
+
 			///Constructor
       ExperimentalSettings();
       ///Copy constructor
@@ -70,6 +90,11 @@ namespace OpenMS
       bool operator== (const ExperimentalSettings& rhs) const;      
       /// Equality operator
       bool operator!= (const ExperimentalSettings& rhs) const;
+			
+			/// Returns the native ID type of the spectra
+  		NativeIDType getNativeIDType() const;
+			/// Sets the native ID type of the spectra
+  		void setNativeIDType(NativeIDType type);
 
 	    /// returns a const reference to the sample description
       const Sample& getSample() const;
@@ -133,6 +158,7 @@ namespace OpenMS
 		  void addProteinIdentification(ProteinIdentification& protein_identification);
 
     protected:
+    	NativeIDType native_id_type_;
 			Sample sample_;
 			std::vector<SourceFile> source_files_;
 			std::vector<ContactPerson> contacts_;

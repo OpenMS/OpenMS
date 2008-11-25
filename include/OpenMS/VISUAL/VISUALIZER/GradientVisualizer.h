@@ -36,8 +36,6 @@
 //STL
 #include <vector>
 
-class QLabel;
-class QLineEdit;
 class QIntValidator;
 
 namespace OpenMS

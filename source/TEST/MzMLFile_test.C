@@ -82,6 +82,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   		
 	TEST_EQUAL(exp.size(),4)
 	//run
+	TEST_EQUAL(exp.getNativeIDType(),ExperimentalSettings::MULTIPLE_PEAK_LISTS)
 	TEST_EQUAL(exp.getIdentifier(),"document_accession")
 	TEST_EQUAL(exp.getDateTime().get(),"2007-06-27 15:23:45")
 	//contacts
@@ -195,7 +196,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(spec.getSourceFile()==SourceFile(),true)
 		//ids
 		TEST_STRING_EQUAL(spec.getMetaValue("id"),"S0")
-		TEST_STRING_EQUAL(spec.getNativeID(),"N0")
+		TEST_STRING_EQUAL(spec.getNativeID(),"index=0")
 		TEST_STRING_EQUAL(spec.getMetaValue("maldi_spot_id"),"M0")
 	}
 	
@@ -251,7 +252,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(spec.getSourceFile().getChecksumType(),SourceFile::SHA1)
 		//ids
 		TEST_STRING_EQUAL(spec.getMetaValue("id"),"S1")
-		TEST_STRING_EQUAL(spec.getNativeID(),"N1")
+		TEST_STRING_EQUAL(spec.getNativeID(),"index=1")
 		TEST_STRING_EQUAL(spec.getMetaValue("maldi_spot_id"),"M1")
 		
 	}
@@ -284,7 +285,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(spec.getSourceFile()==SourceFile(),true)
 		//ids
 		TEST_STRING_EQUAL(spec.getMetaValue("id"),"S2")
-		TEST_STRING_EQUAL(spec.getNativeID(),"N2")
+		TEST_STRING_EQUAL(spec.getNativeID(),"index=2")
 		TEST_STRING_EQUAL(spec.getMetaValue("maldi_spot_id"),"M2")
 	}
 
@@ -306,7 +307,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(spec.getAcquisitionInfo().size(),0)
 		//ids
 		TEST_STRING_EQUAL(spec.getMetaValue("id"),"S3")
-		TEST_STRING_EQUAL(spec.getNativeID(),"N3")
+		TEST_STRING_EQUAL(spec.getNativeID(),"index=3")
 		TEST_EQUAL(spec.metaValueExists("maldi_spot_id"),false)
 	}
 	

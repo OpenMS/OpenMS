@@ -126,7 +126,7 @@
 				</hullpoint>
 			</convexhull>
 			<userParam type="int" name="label" value="0"/>
-			<userParam type="string" name="rt_apex_spectrum" value="89"/>
+			<userParam type="string" name="rt_apex_spectrum" value="spectrum=89"/>
 		</feature>
 		<feature id="f_1">
 			<position dim="0">4389.14996611289</position>
@@ -287,7 +287,7 @@
 				</hullpoint>
 			</convexhull>
 			<userParam type="int" name="label" value="1"/>
-			<userParam type="string" name="rt_apex_spectrum" value="84"/>
+			<userParam type="string" name="rt_apex_spectrum" value="spectrum=84"/>
 		</feature>
 		<feature id="f_2">
 			<position dim="0">4301.0164159552</position>
@@ -402,7 +402,7 @@
 				</hullpoint>
 			</convexhull>
 			<userParam type="int" name="label" value="2"/>
-			<userParam type="string" name="rt_apex_spectrum" value="58"/>
+			<userParam type="string" name="rt_apex_spectrum" value="spectrum=58"/>
 		</feature>
 		<feature id="f_3">
 			<position dim="0">4278.27226637007</position>
@@ -501,7 +501,7 @@
 				</hullpoint>
 			</convexhull>
 			<userParam type="int" name="label" value="3"/>
-			<userParam type="string" name="rt_apex_spectrum" value="51"/>
+			<userParam type="string" name="rt_apex_spectrum" value="spectrum=51"/>
 		</feature>
 		<feature id="f_4">
 			<position dim="0">4201.85145544348</position>
@@ -586,7 +586,7 @@
 				</hullpoint>
 			</convexhull>
 			<userParam type="int" name="label" value="4"/>
-			<userParam type="string" name="rt_apex_spectrum" value="27"/>
+			<userParam type="string" name="rt_apex_spectrum" value="spectrum=27"/>
 		</feature>
 		<feature id="f_5">
 			<position dim="0">4221.99410900417</position>
@@ -671,7 +671,7 @@
 				</hullpoint>
 			</convexhull>
 			<userParam type="int" name="label" value="5"/>
-			<userParam type="string" name="rt_apex_spectrum" value="33"/>
+			<userParam type="string" name="rt_apex_spectrum" value="spectrum=33"/>
 		</feature>
 		<feature id="f_6">
 			<position dim="0">4183.14935404619</position>
@@ -756,7 +756,7 @@
 				</hullpoint>
 			</convexhull>
 			<userParam type="int" name="label" value="6"/>
-			<userParam type="string" name="rt_apex_spectrum" value="22"/>
+			<userParam type="string" name="rt_apex_spectrum" value="spectrum=22"/>
 		</feature>
 		<feature id="f_7">
 			<position dim="0">4201.88132087087</position>
@@ -849,7 +849,7 @@
 				</hullpoint>
 			</convexhull>
 			<userParam type="int" name="label" value="7"/>
-			<userParam type="string" name="rt_apex_spectrum" value="27"/>
+			<userParam type="string" name="rt_apex_spectrum" value="spectrum=27"/>
 		</feature>
 	</featureList>
 </featureMap>

@@ -8,6 +8,7 @@
   
     <fileContent>
       <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value=""/>
+      <cvParam cvRef="MS" accession="MS:1000774" name="multiple peak list nativeID format" value=""/>
     </fileContent>
     
     <sourceFileList count="2">

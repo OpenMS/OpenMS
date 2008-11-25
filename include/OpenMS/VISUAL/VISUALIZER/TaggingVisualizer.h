@@ -33,9 +33,6 @@
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
-class QLabel;
-class QLineEdit;
-class QComboBox;
 class QDoubleValidator;
 
 namespace OpenMS

@@ -362,7 +362,7 @@ namespace OpenMS
 				exp_->resize(exp_->size()+1);
 				exp_->back().setMSLevel(ms_level);
 				exp_->back().setRT(retention_time);
-				exp_->back().setNativeID(attributeAsString_(attributes, s_num));
+				exp_->back().setNativeID(String("scan=") + attributeAsString_(attributes, s_num));
 				//peak count == twice the scan size
 				peak_count_ = attributeAsInt_(attributes, s_peakscount);
 				exp_->back().reserve(peak_count_);
@@ -819,21 +819,31 @@ namespace OpenMS
 				}
 			}
 			
-			//check if the nativeID of all spectra are numbers.
+			//check if the nativeID of all spectra are numbers or numbers prefixed with 'scan='
 			//If not we need to renumber all spectra.
 			bool all_numbers = true;
 			bool all_empty = true;
+			bool all_prefixed_numbers = true;
 			for (UInt s=0; s<cexp_->size(); s++)
 			{
-				const SpectrumType& spec = (*cexp_)[s];
+				String native_id = (*cexp_)[s].getNativeID();
+				if (!native_id.hasPrefix("scan="))
+				{
+					all_prefixed_numbers = false;
+				}
+				else
+				{
+					native_id = native_id.substr(5);
+				}
 				try
 				{
-					spec.getNativeID().toInt();
+					native_id.toInt();
 				}
 				catch (Exception::ConversionError&)
 				{
 					all_numbers = false;
-					if (spec.getNativeID()!="")
+					all_prefixed_numbers = false;
+					if (native_id!="")
 					{
 						all_empty = false;
 					}
@@ -842,7 +852,7 @@ namespace OpenMS
 			//If we need to renumber and the nativeIDs were not empty, warn the user
 			if (!all_numbers && !all_empty)
 			{
-				warning("Warning: Not all spectrum native IDs are numbers. The spectra are renumbered and the native IDs are lost!");
+				warning("Warning: Not all spectrum native IDs are numbers or correctly prefixed with 'scan='. The spectra are renumbered and the native IDs are lost!");
 			}
 			
 			// write scans
@@ -856,7 +866,11 @@ namespace OpenMS
 				open_scans.push(ms_level);
 
 				UInt spectrum_id = s+1;
-				if (all_numbers)
+				if (all_prefixed_numbers)
+				{
+					spectrum_id = spec.getNativeID().substr(5).toInt();
+				}
+				else if (all_numbers)
 				{
 					spectrum_id = spec.getNativeID().toInt();
 				}

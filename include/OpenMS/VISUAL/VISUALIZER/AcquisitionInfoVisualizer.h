@@ -33,8 +33,6 @@
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
 //QT
-class QLabel;
-class QLineEdit;
 
 namespace OpenMS
 {

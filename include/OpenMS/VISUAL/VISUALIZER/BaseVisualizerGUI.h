@@ -38,6 +38,7 @@ class QLineEdit;
 class QTextEdit;
 class QComboBox;
 class QListWidget;
+class QLabel;
 
 namespace OpenMS 
 {

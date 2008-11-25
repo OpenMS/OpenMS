@@ -69,6 +69,7 @@ namespace OpenMS
 			void load(const String& filename, MapType& map)
 			{
 				map.reset();
+				map.setNativeIDType(ExperimentalSettings::SPECTRUM_IDENTIFIER);
 				
 				Internal::MzDataHandler<MapType> handler(map,filename,schema_version_,*this);
 				handler.setOptions(options_);
