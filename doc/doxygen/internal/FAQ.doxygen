@@ -362,7 +362,7 @@
 			
 				<p>
 				Each maintainer must check his/her classes and TOPP tools.
-				Keep in mind that missing documenation scares off potential users!
+				Keep in mind that missing documention scares off potential users!
 				<p>
 				Here is a list of what is to do: 
 				<OL>
@@ -462,6 +462,7 @@
 			<LI><B>What do i have to do to add a new TOPP tool?</B>
 			<OL>
 				<LI> Write the new tool ;)
+				<LI> Add your tool to getToolList() in include/OpenMS/APPLICATIONS/TOPPView.h
 				<LI> Add it to the TOPP docu page (in @a doc/doxygen/public/TOPP.doxygen)
 				<LI> Add the executable to the ignore list if the directory (@a svn @a propedit @a svn:ignore @a source/APPLICATION/TOPP/)
 			</OL>

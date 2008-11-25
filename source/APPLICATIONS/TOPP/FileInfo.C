@@ -289,7 +289,7 @@ class TOPPFileInfo
 			std::cout << 
 				"\n"
 				"Number of consensus features:" << std::endl;
-			for ( std::map<UInt,UInt>::const_reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i )
+			for ( std::map<UInt,UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i )
 			{
 				std::cout << "  of size " << std::setw(2) << i->first << ": " << std::setw(6) << i->second << '\n';
 			}
