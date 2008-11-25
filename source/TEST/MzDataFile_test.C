@@ -481,6 +481,11 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_REAL_SIMILAR(e5[0].getMetaDataArrays()[0][2], 100)
 	TEST_REAL_SIMILAR(e5[0].getMetaDataArrays()[7][2], 100)
 	TEST_EQUAL(e5[0].getMetaDataArrays()[6][2], 100)
+	
+	//test if it works with different peak types
+	MSExperiment<RichPeak1D> e_rich;
+  file.load("data/MzDataFile_1.mzData",e_rich);
+	
 END_SECTION
 
 START_SECTION(([EXTRA] load with metadata-only flag))

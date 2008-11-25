@@ -277,6 +277,10 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	file.load("data/MzXMLFile_4_long.mzXML",e5);
 	TEST_EQUAL(e5.size(), 1)
 	TEST_EQUAL(e5[0].size(), 997530)
+
+	//test if it works with different peak types
+	MSExperiment<RichPeak1D> e_rich;
+  file.load("data/MzXMLFile_1.mzXML",e_rich);
 END_SECTION
 
 START_SECTION(([EXTRA] load with metadata only flag))

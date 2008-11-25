@@ -409,6 +409,11 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_EQUAL(exp5[1].size(),10)
 	TEST_EQUAL(exp5[2].size(),15)
 	TEST_EQUAL(exp5[3].size(),0)
+	
+	//test if it works with different peak types
+	MSExperiment<RichPeak1D> e_rich;
+  file.load("data/MzMLFile_1.mzML",e_rich);
+	
 END_SECTION
 
 START_SECTION([EXTRA] load only meta data)
