@@ -43,7 +43,7 @@ namespace OpenMS
 		
 		It contains information like vendor, model, ion source(s), mass analyzer(s), and ion detector(s).
 		
-		The parts (IonSource, MassAnalyzer, IonDetector) all have a @m order member.
+		The parts (IonSource, MassAnalyzer, IonDetector) all have a @em order member.
 		The order can be ignored, as long the instrument has this default setup:
 		- one ion source
 		- one or many mass analyzers

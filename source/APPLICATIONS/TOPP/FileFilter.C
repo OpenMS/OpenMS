@@ -61,8 +61,9 @@ using namespace std;
 	
 	@todo MS2 and higher spectra should be filtered according to precursor m/z and RT.
 	      The MzMLFile, MzDataFile, MzXMLFile have to be changed for that (Hiwi)
-	
-	The @subpage TOPP_FileFilter_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_FileFilter.cli
 */
 
 // We do not want this class to show up in the docu:

@@ -85,8 +85,9 @@ using namespace std;
 	</table>
 	
 	In order to impove the results of the peak detection @ref TOPP_NoiseFilter and @ref TOPP_BaselineFilter can be applied.
-	
-	The @subpage TOPP_PeakPicker_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_PeakPicker.cli
 */
 
 // We do not want this class to show up in the docu:

@@ -171,8 +171,9 @@ using namespace std;
 			</li>
 		</ul>
 	</ul>		
-	
-	The @subpage TOPP_MascotAdapter_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_MascotAdapter.cli
 */
 
 // We do not want this class to show up in the docu:

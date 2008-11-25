@@ -93,7 +93,7 @@ namespace OpenMS
     @note The input and output data of this algorithm should consist of type Peak1D or a derived class.
           Normally it is applied to MSExperiment and MSSpectrum instances.
     
-		@ref SavitzkyGolayFilter_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_SavitzkyGolayFilter.parameters
     
     @ingroup SignalProcessing
   */

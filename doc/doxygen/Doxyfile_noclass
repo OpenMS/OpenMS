@@ -19,7 +19,6 @@ INPUT                  = ../include/OpenMS/ \
                          ./OpenMS_tutorial/OpenMS_Tutorial.doxygen \
                          ./TOPP_tutorial/TOPP_Tutorial.doxygen \
                          ./TOPP_tutorial/TOPPView_Tutorial.doxygen \
-                         ./doxygen/parameters/TOPPParameters.doxygen \
                          ./doxygen/public/ \
                          ./doxygen/internal/ \
                          ./doxygen/install/

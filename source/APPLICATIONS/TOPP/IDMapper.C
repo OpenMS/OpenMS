@@ -46,8 +46,9 @@ using namespace std;
 	Assigns protein/peptide identifications to feature or consensus features.
 	
 	This tool is typically used before @ref TOPP_ConsensusID.
-	
-	The @subpage TOPP_IDMapper_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_IDMapper.cli
 */
 
 // We do not want this class to show up in the docu:

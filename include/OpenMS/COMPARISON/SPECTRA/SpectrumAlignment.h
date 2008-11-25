@@ -46,7 +46,7 @@ namespace OpenMS
   /**
 	  @brief Aligns the peaks of two spectra
 		 
-		@ref SpectrumAlignment_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_SpectrumAlignment.parameters
 		
 		@ingroup SpectraComparison
   */

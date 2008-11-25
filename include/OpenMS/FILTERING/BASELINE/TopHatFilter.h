@@ -50,7 +50,7 @@ namespace OpenMS
     
     @note This filter works only for uniform raw data!
     
-    @ref TopHatFilter_Parameters are explained on a separate page.
+    @htmlinclude OpenMS_TopHatFilter.parameters
     
 		@ingroup SignalProcessing
   */

@@ -50,8 +50,9 @@ using namespace std;
 	raw data, an additional peak picking step is performed.
 	
 	@note The default input is raw data, if you have peak data, please use the flag peak_data.
-	
-	The @subpage TOPP_InternalCalibration_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_InternalCalibration.cli
 */
 
 // We do not want this class to show up in the docu:

@@ -37,7 +37,7 @@ namespace OpenMS
   /**
     @brief total intensity of peak pairs that could result from complementing fragments of charge state 1
 		 
-		@ref ComplementFilter_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_ComplementFilter.parameters
 
 		@ingroup SpectraFilter
   */

@@ -54,7 +54,7 @@ namespace OpenMS
 
     @note If more than 20 percent of windows have less than <i>min_required_elements</i> of elements, a warning is issued to <i>stderr</i> and noise estimates in those windows are set to the constant <i>noise_for_empty_window</i>. 
     
-    @ref SignalToNoiseEstimatorMeanIterative_Parameters are explained on a separate page.
+    @htmlinclude OpenMS_SignalToNoiseEstimatorMeanIterative.parameters
     
     @ingroup SignalProcessing
   */

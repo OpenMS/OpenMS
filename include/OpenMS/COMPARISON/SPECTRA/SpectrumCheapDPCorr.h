@@ -42,7 +42,7 @@ namespace OpenMS
 	  Peaks get a score depending on the difference in position and the heights of the peaks <br>
 	  pairs with positions that differ more than some limit get score 0
   	
-		@ref SpectrumCheapDPCorr_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_SpectrumCheapDPCorr.parameters
 
 		@ingroup SpectraComparison
   */

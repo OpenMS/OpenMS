@@ -39,7 +39,7 @@ namespace OpenMS
 
 		@improvement read paper and try to confirm implementation (andreas)
 	
-		@ref BernNorm_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_BernNorm.parameters
 	
 		@ingroup SpectraPreprocessers
   */

@@ -45,7 +45,7 @@ namespace OpenMS
 
 		The alignment is done according to the Needleman-Wunsch Algorithm (local alignment considering gaps).
 
-		@ref PeakAlignment_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_PeakAlignment.parameters
 
 		@ingroup SpectraComparison
 	*/

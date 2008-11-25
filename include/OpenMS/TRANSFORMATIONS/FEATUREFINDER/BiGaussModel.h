@@ -39,7 +39,7 @@ namespace OpenMS
 		Asymmetric distribution realized via two normal distributions with
 		different variances combined at the mean.
 
-    @ref BiGaussModel_Parameters are explained on a separate page.
+    @htmlinclude OpenMS_BiGaussModel.parameters
 	*/
 	class BiGaussModel
   : public InterpolationModel

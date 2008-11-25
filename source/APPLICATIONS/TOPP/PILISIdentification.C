@@ -51,8 +51,9 @@ using namespace std;
 	used,given in the peptide_db_file parameter. This should contain a 
 	peptide in a separate line, either only the sequence or additionally 
 	with weight and charge in the second and third column.
-	
-	The @subpage TOPP_PILISIdentification_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_PILISIdentification.cli
 */
 
 

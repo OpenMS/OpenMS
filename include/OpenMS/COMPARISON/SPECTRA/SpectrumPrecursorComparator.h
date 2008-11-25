@@ -35,7 +35,7 @@ namespace OpenMS
   /**	
   	@brief SpectrumPrecursorComparator compares just the parent mass of two spectra
 		 
-		@ref SpectrumPrecursorComparator_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_SpectrumPrecursorComparator.parameters
 
 		@ingroup SpectraComparison
   */

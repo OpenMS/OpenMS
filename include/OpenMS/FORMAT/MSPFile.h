@@ -38,7 +38,7 @@ namespace OpenMS
 		@brief File adapter for MSP files (NIST spectra library)
 
 
-		@ref MSPFile_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_MSPFile.parameters
 		
 		@ingroup FileIO
 	*/

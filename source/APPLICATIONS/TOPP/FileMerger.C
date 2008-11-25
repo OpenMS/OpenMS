@@ -48,8 +48,9 @@ using namespace std;
 	
 	The retention times for the individual scans are taken from the input file meta data,
 	from the input file names or are auto-generated.
-	
-	The @subpage TOPP_FileMerger_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_FileMerger.cli
 */
 
 // We do not want this class to show up in the docu:

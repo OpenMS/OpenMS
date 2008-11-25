@@ -39,8 +39,9 @@ using namespace std;
 	@page TOPP_MapNormalizer MapNormalizer
 	
 	@brief Normalizes peak intensities to the percentage of the maximum intensity in the HPLC-MS map.
-	
-	The @subpage TOPP_MapNormalizer_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_MapNormalizer.cli
 */
 
 // We do not want this class to show up in the docu:

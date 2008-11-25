@@ -64,8 +64,9 @@ using namespace std;
 	
 	This wrapper application serves for getting peptide identifications
 	for MS/MS spectra.
-	
-	The @subpage TOPP_MascotAdapterOnline_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_MascotAdapterOnline.cli
 */
 
 // We do not want this class to show up in the docu:

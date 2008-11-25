@@ -50,8 +50,9 @@ using namespace std;
 	
 	For a detailed description of the algorithms and parameters see the documentation of
 	the %OpenMS ConsensusID class.
-	
-	The @subpage TOPP_ConsensusID_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_ConsensusID.cli
 */
 
 // We do not want this class to show up in the docu:

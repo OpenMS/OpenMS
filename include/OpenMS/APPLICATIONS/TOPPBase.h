@@ -431,6 +431,7 @@ namespace OpenMS
       	@param default_value Default argument
       	@param description Description of the parameter. Indentation of newline is done automatically.
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      	@param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
       */
       void registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
 			
@@ -453,6 +454,7 @@ namespace OpenMS
       	@param default_value Default argument
       	@param description Description of the parameter. Indentation of newline is done automatically.
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      	@param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
       */
       void registerInputFile_( const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false );
 
@@ -467,6 +469,7 @@ namespace OpenMS
       	@param default_value Default argument
       	@param description Description of the parameter. Indentation of newline is done automatically.
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      	@param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
       */
       void registerOutputFile_( const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false );
 
@@ -490,6 +493,7 @@ namespace OpenMS
       	@param default_value Default argument
       	@param description Description of the parameter. Indentation of newline is done automatically.
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      	@param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
       */
       void registerDoubleOption_( const String& name, const String& argument, double default_value, const String& description, bool required = true, bool advanced = false );
 
@@ -526,6 +530,7 @@ namespace OpenMS
       	@param default_value Default argument
       	@param description Description of the parameter. Indentation of newline is done automatically.
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      	@param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
       */
       void registerIntOption_( const String& name, const String& argument, Int default_value, const String& description, bool required = true, bool advanced = false );
 
@@ -537,6 +542,8 @@ namespace OpenMS
       	@param default_value Default argument
       	@param description Description of the parameter. Indentation of newline is done automatically.
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      	@param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
+
       */
       void registerIntList_( const String& name, const String& argument, IntList default_value, const String& description, bool required = true, bool advanced = false );
       
@@ -548,6 +555,7 @@ namespace OpenMS
       	@param default_value Default argument
       	@param description Description of the parameter. Indentation of newline is done automatically.
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      	@param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
       */
       void registerDoubleList_( const String& name, const String& argument, DoubleList default_value, const String& description, bool required = true, bool advanced = false );
       
@@ -559,6 +567,7 @@ namespace OpenMS
       	@param default_value Default argument
       	@param description Description of the parameter. Indentation of newline is done automatically.
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      	@param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
       */
       void registerStringList_( const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false );
 
@@ -573,6 +582,7 @@ namespace OpenMS
       	@param default_value Default argument
       	@param description Description of the parameter. Indentation of newline is done automatically.
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      	@param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
       */
       void registerInputFileList_( const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false );
 
@@ -587,6 +597,7 @@ namespace OpenMS
       	@param default_value Default argument
       	@param description Description of the parameter. Indentation of newline is done automatically.
       	@param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      	@param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
       */
       void registerOutputFileList_( const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false );
       

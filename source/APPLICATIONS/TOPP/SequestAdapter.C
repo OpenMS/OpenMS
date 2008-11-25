@@ -92,8 +92,9 @@ using namespace std;
 				This mode is selected by the <b>-sequest_out</b> option in the command line.
 				</li>
 	</ol>
-	
-	The @subpage TOPP_SequestAdapter_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_SequestAdapter.cli
 */
 
 // We do not want this class to show up in the docu -> cond

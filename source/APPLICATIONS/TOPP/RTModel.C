@@ -144,8 +144,8 @@ using namespace std;
 	The model can be used in @ref TOPP_RTPredict, to predict retention times 
 	for peptides or peptide separation depending on how you trained 
 	the model.
-
-	The @subpage TOPP_RTModel_CLI is shown on a separate page.
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_RTModel.cli
 */
 
 // We do not want this class to show up in the docu:

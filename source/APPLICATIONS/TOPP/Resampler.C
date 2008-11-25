@@ -54,8 +54,9 @@ using namespace std;
 	bilinear forward resampling.  Then the content of the matrix is written to
 	a PNG file.  The output has a uniform spacing in both dimensions regardless
 	of the input.
-	
-	The @subpage TOPP_Resampler_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_Resampler.cli
 */
 
 // We do not want this class to show up in the docu:

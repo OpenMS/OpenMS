@@ -36,8 +36,6 @@ namespace OpenMS
   /**
 	@brief Abstract base class for all D-dimensional models.
 
-	@ref BaseModel_Parameters are explained on a separate page.
-
 	Every derived class has to implement the static functions
 	"T* create()" and "const String getProductName()" (see FactoryProduct for details)
   */

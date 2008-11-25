@@ -55,8 +55,7 @@ namespace OpenMS
 
 	@todo Do all the todos in the code, then move stuff to .C file (Clemens)
 
-	@ref PoseClusteringAffineSuperimposer_Parameters are explained on a separate
-	page.
+	@htmlinclude OpenMS_PoseClusteringAffineSuperimposer.parameters
 
 	@ingroup MapAlignment
 	*/

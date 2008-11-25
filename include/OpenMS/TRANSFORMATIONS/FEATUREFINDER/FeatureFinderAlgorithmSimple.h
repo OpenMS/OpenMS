@@ -44,7 +44,7 @@ namespace OpenMS
 	or LmaGaussModel (parameter optimization using Levenberg-Marquardt
 	algorithm) in dimension of mz).
 
-	@ref FeatureFinderAlgorithmSimple_Parameters are explained on a separate page.
+	@htmlinclude OpenMS_FeatureFinderAlgorithmSimple.parameters
 
 	@ingroup FeatureFinder
 	*/

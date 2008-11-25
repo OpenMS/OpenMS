@@ -67,9 +67,9 @@ namespace OpenMS
 		- SignalToNoise
 		.
 	
-		@ref PeakPickerCWT_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_PeakPickerCWT.parameters
 	  
-	  @todo Write a PeakPicker for high-resolution data - determine position through a spline based on @em n points around local maximum, which has to have a certain @m s/n ratio (HiWi)
+	  @todo Write a PeakPicker for high-resolution data - determine position through a spline based on @em n points around local maximum, which has to have a certain @em s/n ratio (HiWi)
 	    
 		@ingroup PeakPicking
   */

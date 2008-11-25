@@ -91,8 +91,9 @@ using namespace std;
 	For the @em picked_peak algorithm peak data is needed. In order to create peak data from raw data use the @ref TOPP_PeakPicker.
 	
 	Specialized tools are available for some experimental techniques: @ref TOPP_SILACAnalyzer, @ref TOPP_ITRAQAnalyzer.
-	
-	The @subpage TOPP_FeatureFinder_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_FeatureFinder.cli
 */
 
 // We do not want this class to show up in the docu:

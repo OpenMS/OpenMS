@@ -65,16 +65,12 @@ paramdoc_try: doxygen/parameters/DefaultParamHandlerDocumenter.C ../source/confi
 	 $(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(LIB_CXXFLAGS) $(OPENMS_INCLUDES) $(ADD_INCLUDES) -c DefaultParamHandlerDocumenter.C -o DefaultParamHandlerDocumenter.o && \
 	 $(CXX) $(LDFLAGS) -o DefaultParamHandlerDocumenter DefaultParamHandlerDocumenter.o $(LIBS) && \
 	 ./DefaultParamHandlerDocumenter;
-	@echo "[ DefaultParamHandlerDocumenter: ok ]"
-	@touch doxygen/parameters/DefaultParameters.doxygen
 
 toppdoc_try: doxygen/parameters/TOPPDocumenter.C ../source/config.mak dummy
 	@cd doxygen/parameters/ && \
 	 $(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(LIB_CXXFLAGS) $(OPENMS_INCLUDES) $(ADD_INCLUDES) -c TOPPDocumenter.C -o TOPPDocumenter.o && \
 	 $(CXX) $(LDFLAGS) -o TOPPDocumenter TOPPDocumenter.o $(LIBS) && \
 	 ./TOPPDocumenter;
-	@echo "[ TOPPDocumenter: ok ]"
-	@touch doxygen/parameters/TOPPParameters.doxygen
 
 #######################################################################
 # creates the documentation
@@ -190,7 +186,7 @@ clean:
 	@rm -rf html html-dot doxygen/xml_output/ doxygen/doxygen-error.log
 	@rm -rf OpenMS_tutorial/latex_output/ OpenMS_tutorial.pdf OpenMS_tutorial/doxygen-error.log
 	@rm -rf TOPP_tutorial/latex_output/ TOPP_tutorial.pdf TOPP_tutorial/doxygen-error.log
-	@rm -rf doxygen/parameters/DefaultParamHandlerDocumenter doxygen/parameters/DefaultParamHandlerDocumenter.o
-
+	@rm -rf doxygen/parameters/DefaultParamHandlerDocumenter doxygen/parameters/DefaultParamHandlerDocumenter.o doxygen/parameters/output/OpenMS_*.parameters
+	@rm -rf doxygen/parameters/TOPPDocumenter doxygen/parameters/TOPPDocumenter.o doxygen/parameters/output/TOPP_*.cli
 
 dummy:

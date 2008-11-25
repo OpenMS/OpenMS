@@ -35,38 +35,18 @@ using namespace OpenMS;
 
 int main (int , char** )
 {
-	bool all_calls_worked = true;
-	
-	ofstream f;
-	f.open("TOPPParameters.doxygen");
-	
 	StringList tools = TOPPBase::getToolList();
 	for (UInt i=0; i<tools.size(); ++i)
 	{
-		String tool = tools[i];
-		f << "/**" << endl;
-		f << " @page TOPP_" << tool << "_CLI " << tool << " command line interface" << endl;
-		f << "Command line interface of the TOPP tool @ref TOPP_" << tool << " :\n";
-		
+		//start process
 		QProcess process;
 		process.setProcessChannelMode(QProcess::MergedChannels);
-		process.start((tool + " --help").toQString());
+		process.start((tools[i] + " --help").toQString());
 		process.waitForFinished();
-		String output = QString(process.readAllStandardOutput());
-		//abort of call did not work
-		if (process.exitStatus()!=QProcess::NormalExit)
-		{
-			all_calls_worked = false;
-		}
-		f << " @verbatim " << output << " @endverbatim" << endl;
-		f << "*/" << endl;
-		f << endl;
+		//write output
+		ofstream f((String("output/TOPP_") + tools[i] + ".cli").c_str());
+		f << QString(process.readAllStandardOutput()).toStdString();
 	}
 	
-	if (!all_calls_worked)
-	{
-		cerr << "TOPPDocumenter: Not all tools could be called successfully!" << endl;
-		return 1;	
-  }
   return 0;
 }

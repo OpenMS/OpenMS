@@ -53,7 +53,7 @@ namespace OpenMS
     <li>cluster consists of several charge variants -> dispose cluster</li>
     </ul>
 		 
-		@ref FeatureDecharger_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_FeatureDecharger.parameters
     
     @ingroup Analysis
   */

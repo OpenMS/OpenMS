@@ -36,7 +36,7 @@ namespace OpenMS
 	/** 
 		@brief Normal distribution approximated using linear interpolation
 	
-		@ref GaussModel_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_GaussModel.parameters
 	*/
 	class GaussModel
 		: public InterpolationModel

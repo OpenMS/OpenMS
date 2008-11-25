@@ -46,7 +46,7 @@ namespace OpenMS
 		This class simply sorts the peaks according to intensity and proposes
 		the highest peak, which is not yet included in a feature, as next seed.
 
-		@ref SimpleSeeder_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_SimpleSeeder.parameters
 
 		@ingroup FeatureFinder
 	*/

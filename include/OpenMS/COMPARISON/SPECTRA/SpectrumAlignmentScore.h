@@ -46,7 +46,7 @@ namespace OpenMS
 
 		A binned version of this scoring is implemented in the ZhangSimilarityScoring class.
 		 
-		@ref SpectrumAlignmentScore_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_SpectrumAlignmentScore.parameters
 		
 		@ingroup SpectraComparison
   */

@@ -110,6 +110,7 @@ namespace OpenMS
 			/**
 				@brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
 				
+				@param filename File name of the file to be checked.
 				@param errors Errors during the validation are returned in this output parameter.
 				@param warnings Warnings during the validation are returned in this output parameter.
 				

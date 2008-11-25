@@ -271,16 +271,16 @@ namespace OpenMS
 		std::ios::pos_type line_1_pos_;
 		std::ios::pos_type line_2_pos_;
 
-		/// Maximum ratio of numbers allowed, see #ratio_max_.
+		/// Maximum ratio of numbers allowed, see @em ratio_max_.
 		double ratio_max_allowed_;
 
-		/// Maximum ratio of numbers observed so far, see #ratio_max_allowed_.
+		/// Maximum ratio of numbers observed so far, see @em ratio_max_allowed_.
 		double ratio_max_;
 
-		/// Maximum absolute difference of numbers allowed, see #absdiff_max_.
+		/// Maximum absolute difference of numbers allowed, see @em absdiff_max_.
 		double absdiff_max_allowed_;
 
-		/// Maximum difference of numbers observed so far, see #absdiff_max_allowed_.
+		/// Maximum difference of numbers observed so far, see @em absdiff_max_allowed_.
 		double absdiff_max_;
 
 		double number_1_;

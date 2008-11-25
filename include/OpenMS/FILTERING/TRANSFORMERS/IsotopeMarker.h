@@ -41,7 +41,7 @@ namespace OpenMS
   /**
 	  @brief IsotopeMarker marks peak pairs which could represent an ion and its isotope
 
-		@ref IsotopeMarker_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_IsotopeMarker.parameters
 
 		@ingroup PeakMarker
   */

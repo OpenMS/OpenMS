@@ -46,8 +46,9 @@ using namespace std;
 	If several peptides with the same charge variant are grouped (which is clearly not allowed), a heuristic is used:
 	- cluster consists of only one charge variant (but several peptides) -> split cluster into single elements
 	- cluster consists of several charge variants -> dispose cluster
-	
-	The @subpage TOPP_Decharger_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_Decharger.cli
 */
 
 // We do not want this class to show up in the docu:

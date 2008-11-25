@@ -473,7 +473,7 @@ namespace OpenMS
 		}
 	}
 
-	void Spectrum2DCanvas::paintConsensusElement_(UInt layer_index, const ConsensusFeature& cf, QPainter& p, const bool use_buffer)
+	void Spectrum2DCanvas::paintConsensusElement_(UInt layer_index, const ConsensusFeature& cf, QPainter& p, bool use_buffer)
 	{
 		Int image_width = buffer_.width();
 		Int image_height = buffer_.height();

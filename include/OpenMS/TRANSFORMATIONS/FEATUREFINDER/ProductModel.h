@@ -39,7 +39,7 @@ namespace OpenMS
 	
 		The predicted intensity is simply the product of the intensities in each dimension
 	
-		@ref ProductModel_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_ProductModel.parameters
 	
 	@todo This class provides new member functions, which makes
 	Factory<BaseModel<2> >::create("ProductModel2D") pretty much useless!  (Clemens)

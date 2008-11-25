@@ -42,7 +42,7 @@ namespace OpenMS
 		one run containing both (with marks) can be used to annotate
 		each of the peptide hits with a FDR.
 		
-		@ref FalseDiscoveryRate_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_FalseDiscoveryRate.parameters
 
 		@ingroup Analysis_ID
   */

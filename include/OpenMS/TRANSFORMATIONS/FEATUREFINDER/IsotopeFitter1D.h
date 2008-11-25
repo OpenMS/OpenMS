@@ -35,7 +35,7 @@ namespace OpenMS
     /** 
       @brief Isotope distribution fitter (1-dim.) approximated using linear interpolation.
                  
-      @ref IsotopeFitter1D_Parameters are explained on a separate page.                   
+      @htmlinclude OpenMS_IsotopeFitter1D.parameters                 
      */
     class IsotopeFitter1D
     : public MaxLikeliFitter1D

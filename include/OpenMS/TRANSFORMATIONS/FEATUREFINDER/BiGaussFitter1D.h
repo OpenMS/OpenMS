@@ -38,7 +38,7 @@ namespace OpenMS
     /** 
       @brief Bigaussian distribution fitter (1-dim.) approximated using linear interpolation.
                  
-      @ref BiGaussFitter1D_Parameters are explained on a separate page.  
+      @htmlinclude OpenMS_BiGaussFitter1D.parameters
     */
     class BiGaussFitter1D
     : public MaxLikeliFitter1D

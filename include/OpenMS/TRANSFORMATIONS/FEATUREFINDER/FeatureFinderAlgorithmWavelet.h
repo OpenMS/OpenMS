@@ -51,7 +51,7 @@ namespace OpenMS
 		recommend to use a noise or intensity filter to remove spurious points and to speed-up 
 		the feature detection process.
 
-    @ref FeatureFinderAlgorithmWavelet_Parameters are explained on a separate page.
+    @htmlinclude OpenMS_FeatureFinderAlgorithmWavelet.parameters
 	
     @ingroup FeatureFinder
    */

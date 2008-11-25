@@ -54,7 +54,7 @@ namespace OpenMS
 		Amanda Paulovich, Mark Flory, Hookeun Lee, Ruedi Aebersold,
 		and Benno Schwikowski
 		
-		@ref SteinScottImproveScore_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_SteinScottImproveScore.parameters
 		
 		@ingroup SpectraComparison
 	*/

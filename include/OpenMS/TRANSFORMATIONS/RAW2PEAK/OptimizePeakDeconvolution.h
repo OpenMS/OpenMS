@@ -92,7 +92,7 @@ namespace OpenMS
 		mass rule, e.g. two consecutive isotopic peaks are 1.003/charge away from each other. Besides the
 		peaks have all the same left and right width, respectively.
 		
-		@ref OptimizePeakDeconvolution_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_OptimizePeakDeconvolution.parameters
 	*/
   class OptimizePeakDeconvolution : public DefaultParamHandler
   {

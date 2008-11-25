@@ -41,8 +41,9 @@ using namespace std;
 	The data can then be retrieved by the @ref TOPP_DBExporter.
 	
 	The @em init flag can be used to create a new %OpenMS database.
-	
-	The @subpage TOPP_DBImporter_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_DBImporter.cli
 */
 
 // We do not want this class to show up in the docu -> cond

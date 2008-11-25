@@ -44,7 +44,7 @@ namespace OpenMS
 		similarity index to spectral contrast angle. Journal of the American Society
 		for Mass Spectrometry, 13(1):85{88, January 2002.
 
-		@ref BinnedSharedPeakCount_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_BinnedSharedPeakCount.parameters
 
 		@see BinnedSpectrumCompareFunctor @see BinnedSpectrum
 

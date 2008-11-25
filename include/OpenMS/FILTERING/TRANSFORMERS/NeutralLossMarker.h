@@ -37,7 +37,7 @@ namespace OpenMS
   /**
   	@brief NeutralLossMarker marks peak pairs which could represent an ion an its neutral loss (water, ammonia)
 		 
-		@ref NeutralLossMarker_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_NeutralLossMarker.parameters
 
 		@ingroup PeakMarker
   */

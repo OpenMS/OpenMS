@@ -38,7 +38,7 @@ namespace OpenMS
   /**
   	@brief GoodDiffFilter counts the number ob peak pairs whose m/z difference can be explained by a amino acid loss
 		 
-		@ref GoodDiffFilter_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_GoodDiffFilter.parameters
 
 		@ingroup SpectraFilter
   */

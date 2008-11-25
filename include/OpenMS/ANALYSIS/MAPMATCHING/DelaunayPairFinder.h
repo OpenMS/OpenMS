@@ -40,7 +40,7 @@ namespace OpenMS
 	  To speed up the search for element pairs an consensus elements, the %DelaunayPairFinder
 	  uses the CGAL delaunay triangulation for the nearest neighbour search.
 		
-	  @ref DelaunayPairFinder_Parameters are explained on a separate page.  
+	  @htmlinclude OpenMS_DelaunayPairFinder.parameters
 	
 	  @ingroup FeatureGrouping
   */

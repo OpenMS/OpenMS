@@ -40,7 +40,7 @@ namespace OpenMS
 
     SimpleSeeder, SimpleExtender, ModelFitter (using BiGaussModel in RT dimension and IsotopeModel (charge does not equal zero) or GaussModel in dimension of mz).
 
-    @ref FeatureFinderAlgorithmSimplest_Parameters are explained on a separate page.
+    @htmlinclude OpenMS_FeatureFinderAlgorithmSimplest.parameters
 	
 		@ingroup FeatureFinder
 	*/

@@ -37,7 +37,7 @@ namespace OpenMS
 		It takes many maps and searches for corresponding features.
 		The corresponding features must be aligned, but may have small position deviations.
 
-	  @ref FeatureGroupingAlgorithmUnlabeled_Parameters are explained on a separate page.  
+	  @htmlinclude OpenMS_FeatureGroupingAlgorithmUnlabeled.parameters
 	  
 		@ingroup FeatureGrouping
 	*/

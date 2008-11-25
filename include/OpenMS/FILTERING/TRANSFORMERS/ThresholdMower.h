@@ -34,7 +34,7 @@ namespace OpenMS
   /**
   	@brief ThresholdMower removes all peaks below a Threshold
    	
-   	@ref ThresholdMower_Parameters are explained on a separate page.
+   	@htmlinclude OpenMS_ThresholdMower.parameters
 
 		@ingroup SpectraPreprocessers
   */

@@ -63,8 +63,9 @@ using namespace std;
 	'out_positive' is the filename of the peptides which are predicted
 	to be collected by the column and 'out_negative' is the file
 	of the predicted flowthrough peptides.
-	
-	The @subpage TOPP_RTPredict_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_RTPredict.cli
 */
 
 // We do not want this class to show up in the docu:

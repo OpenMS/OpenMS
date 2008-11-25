@@ -34,7 +34,7 @@ namespace OpenMS
   /**
   	@brief TICFilter calculates TIC
 		 
-		@ref TICFilter_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_TICFilter.parameters
   
 		@ingroup SpectraFilter
   */

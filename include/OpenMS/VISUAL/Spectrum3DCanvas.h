@@ -47,7 +47,7 @@ namespace OpenMS
 		
 		@image html Spectrum3DWidget.png
 		
-		@ref Spectrum3DCanvas_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_Spectrum3DCanvas.parameters
 		
     @ingroup SpectrumWidgets
   */	

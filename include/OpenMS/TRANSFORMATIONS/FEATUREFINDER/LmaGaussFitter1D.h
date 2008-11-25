@@ -34,7 +34,7 @@ namespace OpenMS
     /** 
       @brief Gaussian distribution fitter (1-dim.) using Levenberg-Marquardt algorithm (GSL implementation) for parameter optimization.
                  
-      @ref LmaGaussFitter1D_Parameters are explained on a separate page.                   
+      @htmlinclude OpenMS_LmaGaussFitter1D.parameters                 
     */
     class LmaGaussFitter1D 
     : public LevMarqFitter1D

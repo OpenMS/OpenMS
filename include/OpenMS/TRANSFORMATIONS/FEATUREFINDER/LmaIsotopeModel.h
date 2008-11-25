@@ -35,7 +35,7 @@ namespace OpenMS
   /** 
     @brief Isotope distribution approximated using linear interpolation.
 
-    @ref LmaIsotopeModel_Parameters are explained on a separate page.
+    @htmlinclude OpenMS_LmaIsotopeModel.parameters
    */
     class LmaIsotopeModel
     : public InterpolationModel

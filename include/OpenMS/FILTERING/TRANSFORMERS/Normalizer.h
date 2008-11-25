@@ -35,7 +35,7 @@ namespace OpenMS
   /**
   	@brief Normalizer normalizes the peak intensities
 		 
-		@ref Normalizer_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_Normalizer.parameters
 		
 		@ingroup SpectraPreprocessers
   */

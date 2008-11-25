@@ -68,7 +68,7 @@ namespace OpenMS
 	The following image illustrates the influence of these parameters:
 	\image html SimplePairFinder.png "Influence of the parameters intercept and exponent"
 	
-	@ref SimplePairFinder_Parameters are explained on a separate page.
+	@htmlinclude OpenMS_SimplePairFinder.parameters
 	
 	@ingroup FeatureGrouping
   */

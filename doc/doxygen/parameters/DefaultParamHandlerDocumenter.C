@@ -30,6 +30,10 @@
 // Documentation is in .C files:
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
+#include <OpenMS/ANALYSIS/ID/PILISModel.h>
+#include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
+#include <OpenMS/ANALYSIS/ID/PILISNeutralLossModel.h>
+#include <OpenMS/ANALYSIS/ID/PILISIdentification.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
@@ -49,6 +53,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumPrecursorComparator.h>
 #include <OpenMS/COMPARISON/SPECTRA/SteinScottImproveScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
+#include <OpenMS/COMPARISON/SPECTRA/CompareFouriertransform.h>
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
@@ -66,7 +71,6 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
@@ -95,7 +99,6 @@
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSumAgreeingIntensities.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakAlignment.h>
-
 
 // Documentation is in .h files:
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDecharger.h>
@@ -126,151 +129,124 @@ using namespace OpenMS;
 //**********************************************************************************
 //Helper method - use this method to generate the actual parameter documentation
 //**********************************************************************************
-void writeParameters(std::ofstream& f, const String& class_name, const Param& param)
+void writeParameters(const String& class_name, const Param& param)
 {
-	static vector<String> class_names;
-	if (class_name=="CREATE_MAIN_PAGE")
+	ofstream f((String("output/OpenMS_") + class_name + ".parameters").c_str());
+	
+	f << "<B>Parameters of this class are:</B><BR><BR>\n";
+	f << "<table border=\"1\" style=\"border-style:solid; border-collapse:collapse; border-color:#c0c0c0;\" width=\"100%\" cellpadding=\"4\">" << endl;
+	f <<"<tr style=\"border-bottom:1px solid black; background:#fffff0\"><th>Name</th><th>Type</th><th>Default</th><th>Restrictions</th><th>Description</th></tr>" << endl;
+	String type, description, restrictions;
+	for(Param::ParamIterator it = param.begin(); it != param.end();++it)
 	{
-		//sort classes
-		sort(class_names.begin(), class_names.end());
-		f << "/**" << endl;
-		f << " @page Parameters_Main_Page Class parameters summary" << endl;
-
-		for (vector<String>::const_iterator it = class_names.begin(); it!= class_names.end(); ++it)
+		restrictions = "";
+		if (it->value.valueType()==DataValue::INT_VALUE || it->value.valueType()==DataValue::INT_LIST)
 		{
-			f << " - @subpage " << *it << "_Parameters" << endl;
+			type = "int";
+			if (it->value.valueType()==DataValue::INT_LIST) type += " list";
+
+			//restrictions
+			bool first = true;
+			if (it->min_int!=-numeric_limits<Int>::max())
+			{
+				restrictions += String("min: ") + it->min_int;
+				first = false;
+			}
+			if (it->max_int!=numeric_limits<Int>::max())
+			{
+				if (!first) restrictions += ' ';
+				restrictions += String("max: ") + it->max_int;
+			}
+		}
+		else if (it->value.valueType()==DataValue::DOUBLE_VALUE || it->value.valueType()==DataValue::DOUBLE_LIST)
+		{
+			type = "float";
+			if (it->value.valueType()==DataValue::DOUBLE_LIST) type += " list";
+			
+			//restrictions
+			bool first = true;
+			if (it->min_float!=-numeric_limits<DoubleReal>::max())
+			{
+				restrictions += String("min: ") + it->min_float;
+				first = false;
+			}
+			if (it->max_float!=numeric_limits<DoubleReal>::max())
+			{
+				if (!first) restrictions += ' ';
+				restrictions += String("max: ") + it->max_float;
+			}
+		}
+		else if (it->value.valueType()==DataValue::STRING_VALUE || it->value.valueType()==DataValue::STRING_LIST)
+		{
+			type = "string";
+			if (it->value.valueType()==DataValue::STRING_LIST) type += " list";
+			
+			//restrictions
+			if (it->valid_strings.size()!=0)
+			{
+				String valid_strings;
+				valid_strings.implode(it->valid_strings.begin(),it->valid_strings.end(),", ");
+				restrictions += valid_strings;
+			}
+		}
+		if (restrictions=="")
+		{
+			restrictions="&nbsp;";
+		}
+		//replace #, @ and newline in description
+		description = param.getDescription(it.getName());
+		description.substitute("@","XXnot_containedXX");
+		description.substitute("XXnot_containedXX","@@");
+		description.substitute("#","XXnot_containedXX");
+		description.substitute("XXnot_containedXX","@#");
+		description.substitute("\n","<BR>");
+
+		//create tooltips for sections if they are documented
+		String name = it.getName();
+		vector<String> parts;
+		name.split(':', parts);
+		String prefix = "";
+		for (UInt i=0; i+1< parts.size(); ++i)
+		{
+			if (i==0)
+			{
+				prefix = parts[i];
+			}
+			else
+			{
+				prefix = prefix + ":" + parts[i];
+			}
+			String docu = param.getSectionDescription(prefix);
+			if (docu!="")
+			{
+				parts[i] = String("<span title=\"") + docu + "\">" + parts[i] + "</span>";
+			}
+		}
+		if (parts.size()!=0)
+		{
+			name.implode(parts.begin(), parts.end(), ":");
 		}
 
-		f << "*/" << endl;
-		f << endl;
+		//replace # and @ in values
+		String value = it->value;
+		value.substitute("@","XXnot_containedXX");
+		value.substitute("XXnot_containedXX","@@");
+		value.substitute("#","XXnot_containedXX");
+		value.substitute("XXnot_containedXX","@#");
+
+		//make the advanced parameters cursive, the normal ones bold
+		String style = "b";
+		if (it->tags.count("advanced")==1) style = "i";
+
+		//final output
+		f <<"<tr><td style=\"vertical-align:top\"><" << style << ">"<< name << "</" << style << "></td><td style=\"vertical-align:top\">" << type << "</td><td style=\"vertical-align:top\">" << value <<  "</td><td style=\"vertical-align:top\">" << restrictions << "</td><td style=\"vertical-align:top\">" << description <<  "</td></tr>" << endl;
 	}
-	else
-	{
-		class_names.push_back(class_name);
-
-		f << "/**" << endl;
-		f << " @page " << class_name << "_Parameters " << class_name << " Parameters" << endl;
-
-		// Manually create a link to the class documentation.  Doxygen just won't do this with @link or @sa.
-		String class_doc = "./class";
-		if ( !class_name.hasPrefix("OpenMS::") ) class_doc += "OpenMS::";
-		class_doc += class_name;
-		class_doc.substitute("::","_1_1");
-		f << "Parameters of <a href=\"" << class_doc << ".html\">" << class_name << "</a> class:<BR><BR>\n";
-		f << "<table border=\"1\" style=\"border-style:solid; border-collapse:collapse; border-color:#c0c0c0;\" width=\"100%\" cellpadding=\"4\">" << endl;
-		f <<"<tr style=\"border-bottom:1px solid black; background:#fffff0\"><th>Name</th><th>Type</th><th>Default</th><th>Restrictions</th><th>Description</th></tr>" << endl;
-		String type, description, restrictions;
-		for(Param::ParamIterator it = param.begin(); it != param.end();++it)
-		{
- 			restrictions = "";
-			if (it->value.valueType()==DataValue::INT_VALUE || it->value.valueType()==DataValue::INT_LIST)
-			{
-				type = "int";
-				if (it->value.valueType()==DataValue::INT_LIST) type += " list";
-
-				//restrictions
-				bool first = true;
-				if (it->min_int!=-numeric_limits<Int>::max())
-				{
-					restrictions += String("min: ") + it->min_int;
-					first = false;
-				}
-				if (it->max_int!=numeric_limits<Int>::max())
-				{
-					if (!first) restrictions += ' ';
-					restrictions += String("max: ") + it->max_int;
-				}
-			}
-			else if (it->value.valueType()==DataValue::DOUBLE_VALUE || it->value.valueType()==DataValue::DOUBLE_LIST)
-			{
-				type = "float";
-				if (it->value.valueType()==DataValue::DOUBLE_LIST) type += " list";
-				
-				//restrictions
-				bool first = true;
-				if (it->min_float!=-numeric_limits<DoubleReal>::max())
-				{
-					restrictions += String("min: ") + it->min_float;
-					first = false;
-				}
-				if (it->max_float!=numeric_limits<DoubleReal>::max())
-				{
-					if (!first) restrictions += ' ';
-					restrictions += String("max: ") + it->max_float;
-				}
-			}
-			else if (it->value.valueType()==DataValue::STRING_VALUE || it->value.valueType()==DataValue::STRING_LIST)
-			{
-				type = "string";
-				if (it->value.valueType()==DataValue::STRING_LIST) type += " list";
-				
-				//restrictions
-				if (it->valid_strings.size()!=0)
-				{
-					String valid_strings;
-					valid_strings.implode(it->valid_strings.begin(),it->valid_strings.end(),", ");
-					restrictions += valid_strings;
-				}
-			}
-			if (restrictions=="")
-			{
-				restrictions="&nbsp;";
-			}
-			//replace #, @ and newline in description
-			description = param.getDescription(it.getName());
-			description.substitute("@","XXnot_containedXX");
-			description.substitute("XXnot_containedXX","@@");
-			description.substitute("#","XXnot_containedXX");
-			description.substitute("XXnot_containedXX","@#");
-			description.substitute("\n","@n ");
-
-			//create tooltips for sections if they are documented
-			String name = it.getName();
-			vector<String> parts;
-			name.split(':', parts);
-			String prefix = "";
-			for (UInt i=0; i+1< parts.size(); ++i)
-			{
-				if (i==0)
-				{
-					prefix = parts[i];
-				}
-				else
-				{
-					prefix = prefix + ":" + parts[i];
-				}
-				String docu = param.getSectionDescription(prefix);
-				if (docu!="")
-				{
-					parts[i] = String("<span title=\"") + docu + "\">" + parts[i] + "</span>";
-				}
-			}
-			if (parts.size()!=0)
-			{
-				name.implode(parts.begin(), parts.end(), ":");
-			}
-
-			//replace # and @ in values
-			String value = it->value;
-			value.substitute("@","XXnot_containedXX");
-			value.substitute("XXnot_containedXX","@@");
-			value.substitute("#","XXnot_containedXX");
-			value.substitute("XXnot_containedXX","@#");
-
-			//make the advanced parameters cursive, the normal ones bold
-			String style = "b";
-			if (it->tags.count("advanced")==1) style = "i";
-
-			//final output
-			f <<"<tr><td style=\"vertical-align:top\"><" << style << ">"<< name << "</" << style << "></td><td style=\"vertical-align:top\">" << type << "</td><td style=\"vertical-align:top\">" << value <<  "</td><td style=\"vertical-align:top\">" << restrictions << "</td><td style=\"vertical-align:top\">" << description <<  "</td></tr>" << endl;
-		}
-		f << "</table>" << endl;
-		f << endl << "<b>Note:</b>" << endl;
-		f << "- If a section name is documented, the documentation is displayed as tooltip." << endl;
-		f << "- Advanced parameter names are italic." << endl;
-		f << "*/" << endl;
-		f << endl;
-	}
+	f << "</table>" << endl;
+	f << endl << "<b>Note:</b>" << endl;
+	f << "<UL>" << endl;
+	f << "  <LI> If a section name is documented, the documentation is displayed as tooltip." << endl;
+	f << "  <LI> Advanced parameter names are italic." << endl;
+	f << "</UL>" << endl;
 }
 
 //**********************************************************************************
@@ -279,13 +255,13 @@ void writeParameters(std::ofstream& f, const String& class_name, const Param& pa
 
 // For classes that have a default-constructor, simply use this macro with the
 // class name
-#define DOCME(class_name)																				\
-	writeParameters(f,""#class_name ,class_name().getDefaults());
+#define DOCME(class_name) \
+	writeParameters(""#class_name ,class_name().getDefaults());
 
 // For class templates and classes without default constructor use this macro
 // with (1.) the class name and (2.) a class instance.
-#define DOCME2(class_template_name,instantiation)												\
-	writeParameters(f,""#class_template_name,(instantiation).getDefaults());
+#define DOCME2(class_template_name,instantiation) \
+	writeParameters(""#class_template_name,(instantiation).getDefaults());
 
 //**********************************************************************************
 //Main method - add your class here
@@ -294,9 +270,6 @@ int main (int argc , char** argv)
 {
 	// some classes require a QApplication
 	QApplication app(argc,argv);
-
-	ofstream f;
-	f.open("DefaultParameters.doxygen");
 
 	//////////////////////////////////
 	// Simple cases
@@ -347,6 +320,10 @@ int main (int argc , char** argv)
 	DOCME(Normalizer);
 	DOCME(OptimizePeakDeconvolution);
 	DOCME(PILISScoring);
+	DOCME(PILISModel);
+	DOCME(PILISNeutralLossModel);
+	DOCME(PILISModelGenerator);
+	DOCME(PILISIdentification);
 	DOCME(ParentPeakMower);
 	DOCME(PeakAlignment);
 	DOCME(PeakPickerCWT);
@@ -367,6 +344,7 @@ int main (int argc , char** argv)
 	DOCME(TwoDOptimization);
 	DOCME(WindowMower);
 	DOCME(ZhangSimilarityScore);
+	DOCME(CompareFouriertransform);
 
 	//////////////////////////////////
 	// More complicated cases
@@ -387,9 +365,6 @@ int main (int argc , char** argv)
 	DOCME2(Spectrum1DCanvas,Spectrum1DCanvas(Param(),0));
 	DOCME2(Spectrum2DCanvas,Spectrum2DCanvas(Param(),0));
 	DOCME2(Spectrum3DCanvas,Spectrum3DCanvas(Param(),0));
-
-	//create main page for all parameter documentations
-	writeParameters(f,"CREATE_MAIN_PAGE",Param());
 
   return 0;
 }

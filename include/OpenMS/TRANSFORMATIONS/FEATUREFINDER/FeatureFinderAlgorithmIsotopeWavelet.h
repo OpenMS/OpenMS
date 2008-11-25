@@ -36,16 +36,17 @@
 
 namespace OpenMS
 {
-	/** @brief Implements the isotope wavelet feature finder.
-	 *
-	 * 	The FeatureFinderAlgorithmIsotopeWavelet class has been designed for finding features in 1D or 2D MS data sets using the isotope wavelet.
-	 * 	In the case of two dimensional data, the class provides additionally the sweep line algorithm. Please note that in
-	 * 	its current implementation the isotope wavelet feature finder is only applicable to raw data (not to picked data). 
-	 *
-	 * 	@ref FeatureFinderAlgorithmIsotopeWavelet_Parameters are explained on a separate page.
-	 *
-	 *	@ingroup FeatureFinder
-	 */
+	/**
+		@brief Implements the isotope wavelet feature finder.
+
+		The FeatureFinderAlgorithmIsotopeWavelet class has been designed for finding features in 1D or 2D MS data sets using the isotope wavelet.
+		In the case of two dimensional data, the class provides additionally the sweep line algorithm. Please note that in
+		its current implementation the isotope wavelet feature finder is only applicable to raw data (not to picked data). 
+		
+		@htmlinclude OpenMS_FeatureFinderAlgorithmIsotopeWavelet.parameters
+		
+		@ingroup FeatureFinder
+	*/
 	template <typename PeakType, typename FeatureType>
 	class FeatureFinderAlgorithmIsotopeWavelet : public FeatureFinderAlgorithm<PeakType, FeatureType> 
 	{

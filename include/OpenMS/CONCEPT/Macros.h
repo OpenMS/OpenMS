@@ -42,7 +42,7 @@
 	These macros are enabled if debug info is enabled and optimization is disabled in configure.
 	Otherwise they are replaced by an empty string, so they won't cost any performance.
 
-	The macros throw @ref Exception::Precondition or @ref Exception::Postcondition respectively if the condition fails.
+	The macros throw Exception::Precondition or Exception::Postcondition respectively if the condition fails.
 
 	@ingroup Concept
 

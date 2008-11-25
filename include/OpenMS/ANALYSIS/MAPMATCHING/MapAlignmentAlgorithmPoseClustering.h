@@ -43,7 +43,7 @@ namespace OpenMS
 		@n A Geometric Approach for the Alignment of Liquid Chromatography-Mass Spectrometry Data
 		@n ISMB/ECCB 2007 
 
-	  @ref MapAlignmentAlgorithmPoseClustering_Parameters are explained on a separate page.  
+	  @htmlinclude OpenMS_MapAlignmentAlgorithmPoseClustering.parameters
 
 		@ingroup MapAlignment
 

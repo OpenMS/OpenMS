@@ -35,7 +35,7 @@ namespace OpenMS
 	/**
 	@brief Extended isotope distribution fitter (1-dim.) approximated using linear interpolation.
 
-	@ref ExtendedIsotopeFitter1D_Parameters are explained on a separate page.
+	@htmlinclude OpenMS_ExtendedIsotopeFitter1D.parameters
 	*/
 	class ExtendedIsotopeFitter1D
 		: public MaxLikeliFitter1D

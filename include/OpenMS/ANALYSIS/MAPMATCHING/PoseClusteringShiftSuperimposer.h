@@ -48,7 +48,7 @@ namespace OpenMS
 		
 		@todo remove m/z correction and parameters; consider full rewrite (Clemens)
 		
-		@ref PoseClusteringShiftSuperimposer_Parameters are explained on a separate page.      
+		@htmlinclude OpenMS_PoseClusteringShiftSuperimposer.parameters    
 
 		@ingroup MapAlignment
   */

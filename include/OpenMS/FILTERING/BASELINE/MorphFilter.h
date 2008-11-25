@@ -47,7 +47,7 @@ namespace OpenMS
 		
 		Erosion and dilatation are implemented using van Herk's method.
 		 
-		@ref MorphFilter_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_MorphFilter.parameters
 */
 
   class MorphFilter 

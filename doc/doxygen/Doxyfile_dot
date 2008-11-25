@@ -42,7 +42,6 @@ WARN_LOGFILE           = ./doxygen/doxygen-dot-error.log
 INPUT                  = ../include/OpenMS/ \
                          ../source/ \
                          ./OpenMS_tutorial/OpenMS_Tutorial.doxygen \
-                         ./doxygen/parameters/DefaultParameters.doxygen \
                          ./TOPP_tutorial/TOPP_Tutorial.doxygen \
                          ./TOPP_tutorial/TOPPView_Tutorial.doxygen \
                          ./doxygen/public/ \

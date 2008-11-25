@@ -40,7 +40,7 @@ namespace OpenMS
 		Z. Zhang, Prediction of Low-Energy Collision-Induced Dissociation Spectra of Peptides,
 		Anal. Chem., 76 (14), 3908 - 3922, 2004
 
-		@ref ZhangSimilarityScore_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_ZhangSimilarityScore.parameters
 		
 		@ingroup SpectraComparison
   */

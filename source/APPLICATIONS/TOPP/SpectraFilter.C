@@ -55,8 +55,9 @@ using namespace std;
 
 	Parameters of the different filters are documented at the class documentation of each filter
 	respectively.
-	
-	The @subpage TOPP_SpectraFilter_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_SpectraFilter.cli
 */
 
 

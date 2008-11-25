@@ -52,7 +52,7 @@ namespace OpenMS
 	/** 
 		@brief FeatureFinderAlgorithm for picked peaks.
 
-    @ref FeatureFinderAlgorithmPicked_Parameters are explained on a separate page.
+    @htmlinclude OpenMS_FeatureFinderAlgorithmPicked.parameters
 
 		@todo Add RT model with tailing/fronting (Marc)
 		

@@ -48,7 +48,7 @@ namespace OpenMS
 		@note Use this method only for high resoluted data (< 0.1 Th between two adjacent raw data points).
 		     The resampling rate should be >= the precision.
 		 
-		@ref LinearResampler_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_LinearResampler.parameters
 	*/
 	class LinearResampler 
 		: public DefaultParamHandler, 

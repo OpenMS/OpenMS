@@ -39,7 +39,7 @@ namespace OpenMS
 		Model wrapping LinearInterpolation for speed-up in calculation of predicted intensities
 		Derived classes have to implement setSamples()
 		
-    @ref InterpolationModel_Parameters are explained on a separate page.
+    @htmlinclude OpenMS_InterpolationModel.parameters
 
 		@ingroup FeatureFinder
 

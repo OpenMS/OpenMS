@@ -37,7 +37,7 @@ namespace OpenMS
   /**
     @brief ComplementMarker marks peak pairs which could represent y - b ion pairs
     
-		@ref ComplementMarker_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_ComplementMarker.parameters
 
 		@ingroup PeakMarker
   */

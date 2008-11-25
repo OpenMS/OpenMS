@@ -54,8 +54,9 @@ using namespace std;
 	such as R, Matlab, Excel, etc.
 	
 	@todo Add identifications output to featureXML and consensusXML and consider no_ids flag (Andreas, Clemens, Chris, Nico)
-	
-	The @subpage TOPP_TextExporter_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_TextExporter.cli
 */
 
 // We do not want this class to show up in the docu:

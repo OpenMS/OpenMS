@@ -102,7 +102,7 @@ namespace OpenMS
 			*/
 			void updateCurrentFeature_(bool create);
 
-			/// points to the last open <feature> tag (possibly a subordinate feature)
+			/// points to the last open &lt;feature&gt; tag (possibly a subordinate feature)
 			Feature* current_feature_;
 			/// Feature map pointer for reading
 			FeatureMap<Feature>* map_;

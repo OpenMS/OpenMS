@@ -62,7 +62,8 @@ typedef Feature::CoordinateType CoordinateType;
 	One of these peptides serves as internal standard for
 	calibration.
 	
-	The @subpage TOPP_AdditiveSeries_CLI is shown on a separate page.
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_AdditiveSeries.cli
 */
 
 // We do not want this class to show up in the docu:

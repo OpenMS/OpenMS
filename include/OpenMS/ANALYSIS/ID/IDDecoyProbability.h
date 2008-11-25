@@ -44,7 +44,7 @@ namespace OpenMS
 		in peptide prophet the forward distribution is modeled using a gaussian 
 		distribution the reverse scores are modeled using a famma distribution.
 
-		@ref IDDecoyProbability_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_IDDecoyProbability.parameters
 
     @ingroup Analysis_ID
   */

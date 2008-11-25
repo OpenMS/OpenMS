@@ -97,8 +97,6 @@ INPUT                  = ../include/OpenMS/ \
                          ../source/APPLICATIONS/TOPP/ \
                          ../source/APPLICATIONS/UTILS/ \
                          ./OpenMS_tutorial/OpenMS_Tutorial.doxygen \
-                         ./doxygen/parameters/DefaultParameters.doxygen \
-                         ./doxygen/parameters/TOPPParameters.doxygen \
                          ./TOPP_tutorial/TOPP_Tutorial.doxygen \
                          ./TOPP_tutorial/TOPPView_Tutorial.doxygen \
 												 ./doxygen/public/ \
@@ -114,7 +112,8 @@ EXCLUDE_PATTERNS       = */.svn/* \
                          *_moc* \
                          */UIC/* \
                          */contrib/*
-EXAMPLE_PATH           = ../source/EXAMPLES/
+EXAMPLE_PATH           = ../source/EXAMPLES/ \
+												 doxygen/parameters/output/
 EXAMPLE_PATTERNS       = 
 EXAMPLE_RECURSIVE      = NO
 IMAGE_PATH             = ./doxygen/images/ ./OpenMS_tutorial/images/ ./TOPP_tutorial/images/

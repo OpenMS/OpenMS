@@ -51,8 +51,9 @@ using namespace std;
 	the default file stored in /data/PILIS/ or a custom modelfile with already trained 
 	parameters. The trained parameters are written into the file trained_model_file. This parameter
 	file can be used with @ref TOPP_PILISIdentification to generate identifications of MS/MS spectra.
-	
-	The @subpage TOPP_PILISModel_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_PILISModel.cli
 */
 
 

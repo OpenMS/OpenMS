@@ -130,8 +130,8 @@ using namespace std;
 	<br>	
 	The model can be used in @ref TOPP_PTPredict, to predict the likelihood  
 	for peptides to be proteotypic.
-
-	The @subpage TOPP_PTModel_CLI is shown on a separate page.
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_PTModel.cli
 */
 
 // We do not want this class to show up in the docu:

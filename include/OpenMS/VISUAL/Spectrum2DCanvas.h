@@ -49,7 +49,7 @@ namespace OpenMS
 		
 		The example image shows %Spectrum2DCanvas displaying a peak layer and a feature layer. 
   	
-		@ref Spectrum2DCanvas_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_Spectrum2DCanvas.parameters
 
     @improvement Support different peak icons - cross, star, square, ... (HiWi)
 		
@@ -145,7 +145,7 @@ namespace OpenMS
       /**
       	@brief Paints convex hulls (one for each mass trace) of a features layer.
       	
-      	@param layer_index Int of the layer.
+      	@param layer_index Index of the layer.
       	@param p The QPainter to paint on.
       */
       void paintTraceConvexHulls_(UInt layer_index, QPainter& p);
@@ -153,7 +153,7 @@ namespace OpenMS
       /**
       	@brief Paints the convex hulls (one for each feature) of a features layer.
       	
-      	@param layer_index Int of the layer.
+      	@param layer_index Index of the layer.
       	@param p The QPainter to paint on.
       */
       void paintFeatureConvexHulls_(UInt layer_index, QPainter& p);
@@ -161,7 +161,7 @@ namespace OpenMS
       /**
       	@brief Paints the consensus elements of a consensus features layer.
       	
-      	@param layer_index Int of the layer.
+      	@param layer_index Index of the layer.
       	@param p The QPainter to paint on.
       */
       void paintConsensusElements_(UInt layer_index, QPainter& p);
@@ -169,14 +169,17 @@ namespace OpenMS
       /**
       	@brief Paints one consensus element of a consensus features layer.
       	
-      	@param layer_index Int of the layer.
+      	@param layer_index Index of the layer.
+      	@param cf Reference to the feature to be painted.
       	@param p The QPainter to paint on.
+      	@param use_buffer Flag to switch between painting on the buffer and screen.
       */		
-			void paintConsensusElement_(UInt layer_index, const ConsensusFeature& cf, QPainter& p, const bool use_buffer);
+			void paintConsensusElement_(UInt layer_index, const ConsensusFeature& cf, QPainter& p, bool use_buffer);
 			
       /**
       	@brief checks if any element of a consensus feature is currently visible.
       	
+      	@param layer_index Index of the layer.
       	@param ce The ConsensusFeature that needs checking
       */
 			bool isConsensusFeatureVisible_(const ConsensusFeature& ce, UInt layer_index);

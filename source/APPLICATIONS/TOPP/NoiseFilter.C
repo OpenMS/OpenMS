@@ -56,8 +56,9 @@ using namespace std;
 	
 	@note The Savitzky Golay filter works only on uniform data (to generate equally spaced data use the @ref TOPP_Resampler tool).
 	      The Gaussian filter works for uniform as well as for non-uniform data.
-	
-	The @subpage TOPP_NoiseFilter_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_NoiseFilter.cli
 */
 
 // We do not want this class to show up in the docu:

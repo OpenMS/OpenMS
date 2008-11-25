@@ -36,7 +36,7 @@ namespace OpenMS
     /** 
       @brief Gaussian distribution fitter (1-dim.) approximated using linear interpolation.
                  
-      @ref GaussFitter1D_Parameters are explained on a separate page.                 
+      @htmlinclude OpenMS_GaussFitter1D.parameters               
     */
     class GaussFitter1D
     : public MaxLikeliFitter1D

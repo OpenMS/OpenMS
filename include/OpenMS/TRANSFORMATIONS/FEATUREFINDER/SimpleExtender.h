@@ -64,7 +64,7 @@ namespace OpenMS
 
 		@image html SimpleExtender.png
 
-		@ref SimpleExtender_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_SimpleExtender.parameters
 
 		@ingroup FeatureFinder
 	*/

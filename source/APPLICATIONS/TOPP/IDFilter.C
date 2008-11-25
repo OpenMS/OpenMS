@@ -104,8 +104,9 @@ using namespace std;
 			<b>best_n_protein_hits</b>:<br> Only the best n protein hits of a spectrum are kept.
 		</li>
 	</ul>
-	
-	The @subpage TOPP_IDFilter_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_IDFilter.cli
 */
 
 // We do not want this class to show up in the docu:

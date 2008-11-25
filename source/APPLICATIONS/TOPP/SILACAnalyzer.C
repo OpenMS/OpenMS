@@ -74,8 +74,8 @@ using namespace OpenMS;
 	(3) determine intensity ratios by linear regression for each cluster
 
 	@todo Remove Cluster 3.0 from contrib as soon as it's not needed anymore (Marc)
-
-	The @subpage TOPP_SILACAnalyzer_CLI is shown on a separate page.
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_SILACAnalyzer.cli
 */
 
 // We do not want this class to show up in the docu:

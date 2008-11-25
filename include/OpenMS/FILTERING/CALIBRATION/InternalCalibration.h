@@ -44,7 +44,7 @@ namespace OpenMS
      the relative errors of the peaks in the data are approximated by linear interpolation and
      subtracted from the data. If the input data is raw data peak picking is done first.
 
-	   @ref InternalCalibration_Parameters are explained on a separate page.
+	   @htmlinclude OpenMS_InternalCalibration.parameters
 	   
 	   @ingroup SignalProcessing
   */

@@ -44,8 +44,8 @@ using namespace std;
 	The false discovery rate is defined as the number of false discoveries (the hits
 	in the reversed search) over the number of false and correct discoveries (the hits 
 	in both databases) given a score.
-
-	The @subpage TOPP_FalseDiscoveryRate_CLI is shown on a separate page.
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_FalseDiscoveryRate.cli
 */
 
 

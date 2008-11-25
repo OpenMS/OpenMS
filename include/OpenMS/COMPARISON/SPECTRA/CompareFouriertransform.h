@@ -24,7 +24,7 @@ namespace OpenMS
 		Only use this method of transformation, if you are sure there exists enough free memory. This is a fast estimation, but it only gives one or
 		zero back.
 		
-		@ref CompareFouriertransform_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_CompareFouriertransform.parameters
 		
 		@ingroup SpectraComparison
 		

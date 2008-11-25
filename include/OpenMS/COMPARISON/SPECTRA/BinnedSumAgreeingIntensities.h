@@ -43,7 +43,7 @@ namespace OpenMS
 		Witold E Wolski , Maciej Lalowski* , Peter Martus* , Ralf Herwig* , Patrick Giavalisco , Johan Gobom , Albert Sickmann , Hans Lehrach and Knut Reinert*
 		BMC Bioinformatics 2005, 6:285     doi:10.1186/1471-2105-6-285
 
-		@ref BinnedSumAgreeingIntensities_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_BinnedSumAgreeingIntensities.parameters
 
 		@see BinnedSpectrumCompareFunctor @see BinnedSpectrum
 

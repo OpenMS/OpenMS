@@ -35,7 +35,7 @@ namespace OpenMS
   /** 
 		@brief Extended isotope distribution approximated using linear interpolation.
 
-		@ref ExtendedIsotopeModel_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_ExtendedIsotopeModel.parameters
 	*/
 	class ExtendedIsotopeModel
   : public InterpolationModel

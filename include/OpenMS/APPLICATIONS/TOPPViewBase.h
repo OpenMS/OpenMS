@@ -260,8 +260,9 @@ namespace OpenMS
   		/**
   			@brief Adds a peak or feature map to the viewer
   			
-  			@param feature_map The feature data (empty if peak data)
-  			@param peak_map The peak data (empty if feature data)
+  			@param feature_map The feature data (empty if not feature data)
+  			@param consensus_map The consensus feature data (empty if not consensus feature data)
+  			@param peak_map The peak data (empty if not peak data)
   			@param is_feature Flag that indicates the actual data type
   			@param is_2D If more that one MS1 spectrum is contained in peak data
   			@param show_options If the options dialog should be shown (otherwise the defaults are used)

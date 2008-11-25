@@ -247,15 +247,25 @@
 	    <li><b>Where can i add a new module?</b><br>
 	    @a OpenMS/doc/doxygen/public/Modules.doxygen
 	    
-	    <li><b>Why don't a get a subpage for the parameters of my class that is derived from DefaultParamHandler?</b><br>
+	    <li><b>How is the parameter documentation for classes derived from DefaultParamHandler created?</b><br>
 				You have to add your class to the program @a OpenMS/doc/doxygen/parameters/DefaultParamHandlerDocumenter.C. 
-				This program generates a doxygen subpage for the parameters. The subpage can than be included into the 
+				This program generates a html table with the parameters. This table can then be included into the 
 				class documentation using the following doxygen command:
 				@code
-@ref <class name>_Parameters
+@htmlinclude OpenMS_<class name>.parameters
 				@endcode
 				You can test if everything worked by calling @a make @a paramdoc in @a OpenMS/doc/.
-				The parameters documentation is written to @a OpenMS/doc/doxygen/parameters/DefaultParameters.doxygen.
+				The parameters documentation is written to @a OpenMS/doc/doxygen/parameters/output/.
+
+	    <li><b>How is the command line documentation for TOPP tools created?</b><br>
+				The program @a OpenMS/doc/doxygen/parameters/TOPPDocumenter.C creates the comnmand line documentation
+				for all classes that are included in the static TOPPBase tools list.
+				It can be included into the documentation using the following doxygen command:
+				@code
+@verbinclude TOPP_<tool name>.cli
+				@endcode
+				You can test if everything worked by calling @a make @a toppdoc in @a OpenMS/doc/.
+				The comand line documentation is written to @a OpenMS/doc/doxygen/parameters/output/.
 		
 	    <li><b>What are the important files for adding a new tutorial section?</b><br>
 		    %OpenMS tutorial:

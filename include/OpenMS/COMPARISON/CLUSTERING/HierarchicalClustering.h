@@ -46,7 +46,7 @@ namespace OpenMS
         
     The result is an STL vector of vectors. Each inner vector respresents one cluster, holding the indices of the input elements.
 		 
-		@ref HierarchicalClustering_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_HierarchicalClustering.parameters
         
     @ingroup Comparison
   */

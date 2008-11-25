@@ -89,21 +89,21 @@ namespace OpenMS
 			/// Creates a temporary file name from the test name and the line
 			std::string tmpFileName(const std::string& file, int line);
 
-			/** @brief Compare floating point numbers using #absdiff_max_allowed and
-			#ratio_max_allowed.
+			/** @brief Compare floating point numbers using @em absdiff_max_allowed and
+			@em ratio_max_allowed.
 
 			Side effects: Updates #fuzzy_message.
 			*/
 			bool isRealSimilar(double number_1, double number_2);
 
-			/**@brief Compare strings using #absdiff_max_allowed and #ratio_max_allowed.
+			/**@brief Compare strings using @em absdiff_max_allowed and @em ratio_max_allowed.
 
 			Side effects: Updates #absdiff, #ratio, #fuzzy_message, #line_num_1_max
 			and #line_num_2_max.
 			*/
 			bool isStringSimilar( const std::string & string_1, const std::string & string_2);
 				
-			/**@brief Compare files using #absdiff_max_allowed and #ratio_max_allowed.
+			/**@brief Compare files using @em absdiff_max_allowed and @em ratio_max_allowed.
 
 			Side effects: Updates #absdiff, #ratio, #fuzzy_message, #line_num_1_max
 			and #line_num_2_max.
@@ -843,7 +843,7 @@ int main(int argc, char **argv)																									\
 
 /**	@brief String similarity macro.
 
-	Compares the two strings using #FuzzyStringComparator with the settings of
+	Compares the two strings using @em FuzzyStringComparator with the settings of
 	#TOLERANCE_ABSOLUTE and #TOLERANCE_RELATIVE.
 
 	@note This macro evaluates its arguments once or twice, depending on verbosity settings.
@@ -894,7 +894,7 @@ int main(int argc, char **argv)																									\
 
 /**	@brief File similarity macro.
 
-	Compares the two files using #FuzzyStringComparator with the settings of
+	Compares the two files using @em FuzzyStringComparator with the settings of
 	#TOLERANCE_ABSOLUTE and #TOLERANCE_RELATIVE.
 
 	@note This macro evaluates its arguments once or twice, depending on verbosity settings.
@@ -982,7 +982,7 @@ int main(int argc, char **argv)																									\
 /** @brief Define the whitelist used by #TEST_STRING_SIMILAR and #TEST_FILE_SIMILAR.
 
 	If both lines contain the same element from this list, they are skipped
-	over. (See #FuzzyStringComparator.)
+	over. (See @em FuzzyStringComparator.)
 */
 #define WHITELIST(a)														\
 	TEST::setWhitelist(__FILE__,__LINE__,(a));
@@ -1229,7 +1229,7 @@ int main(int argc, char **argv)																									\
 	
 	Please use this macro only if the method cannot be tested at all or cannot be
 	tested properly on its own. In the later case, the method must however be tested
-	in tests of related methods.  See also #test_count.
+	in tests of related methods.  See also @em test_count.
 
 	@hideinitializer
 */

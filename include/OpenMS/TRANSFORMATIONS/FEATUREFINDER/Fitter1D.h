@@ -40,8 +40,6 @@ namespace OpenMS
 	/**
 	@brief Abstract base class for all 1D-dimensional model fitter.
 
-	@ref Fitter1D_Parameters are explained on a separate page.
-
 	Every derived class has to implement the static functions
 	"T* create()" and "const String getProductName()" (see FactoryProduct for details)
 		  

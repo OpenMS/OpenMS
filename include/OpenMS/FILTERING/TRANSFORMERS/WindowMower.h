@@ -36,7 +36,7 @@ namespace OpenMS
   /**
   	@brief WindowMower augments the highest peaks in a sliding window
 		 
-		@ref WindowMower_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_WindowMower.parameters
 
 		@ingroup SpectraPreprocessers
   */

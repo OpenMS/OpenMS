@@ -49,8 +49,9 @@ using namespace std;
 	be at the same RT as calibrant_1_reference and calibrant_2_input will
 	be at the same RT as calibrant_2_reference. This only applies if calibrant_1* has a smaller RT than calibrant_2*.
 	Otherwise the values are swapped.
-	
-	The @subpage TOPP_IDRTCalibration_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_IDRTCalibration.cli
 */
 
 // We do not want this class to show up in the docu:

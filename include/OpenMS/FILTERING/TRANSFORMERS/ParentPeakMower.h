@@ -36,7 +36,7 @@ namespace OpenMS
   /**
   	@brief ParentPeakMower gets rid of high peaks that could stem from unfragmented precursor ions
 		 
-		@ref ParentPeakMower_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_ParentPeakMower.parameters
 
 		@ingroup SpectraPreprocessers
   */

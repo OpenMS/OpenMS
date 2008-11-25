@@ -39,7 +39,7 @@ namespace OpenMS
     
     This class combines several ID runs using one of several, available algorithms.
 		
-		@ref ConsensusID_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_ConsensusID.parameters
 
 		@ingroup Analysis_ID
   */

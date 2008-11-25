@@ -61,7 +61,7 @@ namespace OpenMS
   
   @todo Fix problem with other peak types than Peak1D and enable the respective tests for FeatureFinderAlgorithmSimple, FeatureFinderAlgorithmSimplest, FeatureFinderAlgorithmWavelet (Clemens)
   
-	@ref ModelFitter_Parameters are explained on a separate page.                   
+	@htmlinclude OpenMS_ModelFitter.parameters                 
     
 	@ingroup FeatureFinder
 	*/

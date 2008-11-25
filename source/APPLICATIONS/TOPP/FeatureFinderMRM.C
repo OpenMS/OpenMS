@@ -74,8 +74,9 @@ typedef LCMSmap::SpectrumType Spectrum;
 	The input to this program consists of a list of precursor m/zs and fragment ion m/zs.
 	It performs a quantitation as explained above and writes a list of peptide features 
 	with the estimate abundance.
-	
-	The @subpage TOPP_FeatureFinderMRM_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_FeatureFinderMRM.cli
 */
 
 // We do not want this class to show up in the docu:

@@ -38,7 +38,7 @@ namespace OpenMS
 		
 		Finds feature pairs that have a defined distance in RT and m/z in the same map.
 	
-		@ref LabeledPairFinder_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_LabeledPairFinder.parameters
 		
 		@ingroup FeatureGrouping
 	*/

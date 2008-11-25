@@ -54,8 +54,8 @@ using namespace std;
 	In order to create feature data from peak data use the @ref TOPP_FeatureFinder.
 	
 	@todo Add support for features annotated with protein/peptide identifications (Marc, Clemens)
-	 
-	The @subpage TOPP_FeatureLinker_CLI is shown on a separate page.
+	 	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_FeatureLinker.cli
 */
 
 // We do not want this class to show up in the docu:

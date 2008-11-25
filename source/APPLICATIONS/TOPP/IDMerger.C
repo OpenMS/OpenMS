@@ -44,8 +44,9 @@ using namespace std;
 	You can merge an unlimited number of files into one IdXML file.
 	
 	This tool is typically applied before @ref TOPP_ConsensusID or @ref TOPP_IDMapper.
-	
-	The @subpage TOPP_IDMerger_CLI is shown on a separate page.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude TOPP_IDMerger.cli
 */
 
 // We do not want this class to show up in the docu:

@@ -81,7 +81,7 @@ namespace OpenMS
 		 
 		 @todo Works only with defined types due to pointers to the data in the optimization namespace! Change that or remove templates (Alexandra)
 		 
-		 @ref TwoDOptimization_Parameters are explained on a separate page.
+		 @htmlinclude OpenMS_TwoDOptimization.parameters
 	*/
 	class TwoDOptimization : public DefaultParamHandler
 	{

@@ -377,9 +377,9 @@ namespace OpenMS
 	@code
 	SomeType instance;
 	string what_type_1 = typeAsString(instance);
-	string what_type_2 = typeAsString<SomeType>();
+	string what_type_2 = typeAsString< SomeType >();
 	@endcode
-	The %typeAsString<SomeType>() version seems to go a bit deeper.
+	The %typeAsString< SomeType >() version seems to go a bit deeper.
 	Sometimes the results
 	depend on how the %typeAsString() is instantiated in the first place.
   The argument given to the function is never used, it only serves to infer the type.

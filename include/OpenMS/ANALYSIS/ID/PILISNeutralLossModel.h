@@ -47,11 +47,12 @@ namespace OpenMS
 		from a peptide. The spectrum generator can be accessed via the getSpectrum
 		method.
 		 
-		@ref PILISNeutralLossModel_Parameters are explained on a separate page.
+		@htmlinclude OpenMS_PILISNeutralLossModel.parameters
 
 		@ingroup Analysis_ID
 	*/	
-	class PILISNeutralLossModel : public DefaultParamHandler
+	class PILISNeutralLossModel
+		: public DefaultParamHandler
 	{
 		friend class PILISNeutralLossModelGenerator;
 
