@@ -53,7 +53,7 @@ namespace OpenMS
 		
 		Each parameter can be annotated with an arbitrary number of tags. Tags cannot contain comma chracters!
 		@n E.g. the <i>advanced</i> tag indicates if this parameter is shown to all users or in advanced mode only.
-		
+ 
 		@see DefaultParamHandler
 		
 		@ingroup Datastructures
@@ -430,7 +430,9 @@ namespace OpenMS
 				- If a parameter is present for which no default value is specified, a warning is issued to @p os.
 				- If the type of a parameter and its default do not match, an exception is thrown.
 				- If a string parameter contains an invalid string, an exception is thrown.
+				-	If parameter entry is a string list, an exception is thrown, if one or more list members are invalid strings
 				- If a numeric parameter is out of the valid range, an exception is thrown.
+				- If entry is a numeric list an exception is thrown, if one or more list members are out of the valid range
 				
 				@param name The name that is used in error messages.
 				@param defaults The default values. 
@@ -520,6 +522,7 @@ namespace OpenMS
 				 @param unknown key where a StringList of all unknown options are stored
 				 
 			*/
+
 			void parseCommandLine(const int argc , const char** argv, const Map<String, String>& options_with_one_argument, const Map<String, String>& options_without_argument,const Map<String,String>& options_with_multiple_argument, const String& misc="misc", const String& unknown="unknown");
 			//@}
 						

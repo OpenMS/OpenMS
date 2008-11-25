@@ -382,7 +382,7 @@ namespace OpenMS
 	{
 		ParamEntry& entry = getEntry_(key);
 		//check if correct parameter type
-		if (entry.value.valueType()!=DataValue::STRING_VALUE) 
+		if (entry.value.valueType()!=DataValue::STRING_VALUE && entry.value.valueType() != DataValue::STRING_LIST) 
 		{
 			throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
 		}
@@ -400,7 +400,7 @@ namespace OpenMS
 	void Param::setMinInt(const String& key, Int min)
 	{
 		ParamEntry& entry = getEntry_(key);
-		if (entry.value.valueType()!=DataValue::INT_VALUE) 
+		if (entry.value.valueType()!=DataValue::INT_VALUE && entry.value.valueType()!=DataValue::INT_LIST) 
 		{
 			throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
 		}
@@ -410,7 +410,7 @@ namespace OpenMS
 	void Param::setMaxInt(const String& key, Int max)
 	{
 		ParamEntry& entry = getEntry_(key);
-		if (entry.value.valueType()!=DataValue::INT_VALUE) 
+		if (entry.value.valueType()!=DataValue::INT_VALUE && entry.value.valueType()!=DataValue::INT_LIST) 
 		{
 			throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
 		}
@@ -420,7 +420,7 @@ namespace OpenMS
 	void Param::setMinFloat(const String& key, DoubleReal min)
 	{
 		ParamEntry& entry = getEntry_(key);
-		if (entry.value.valueType()!=DataValue::DOUBLE_VALUE) 
+		if (entry.value.valueType()!=DataValue::DOUBLE_VALUE && entry.value.valueType() !=DataValue::DOUBLE_LIST) 
 		{
 			throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
 		}
@@ -430,7 +430,7 @@ namespace OpenMS
 	void Param::setMaxFloat(const String& key, DoubleReal max)
 	{
 		ParamEntry& entry = getEntry_(key);
-		if (entry.value.valueType()!=DataValue::DOUBLE_VALUE) 
+		if (entry.value.valueType()!=DataValue::DOUBLE_VALUE && entry.value.valueType() !=DataValue::DOUBLE_LIST) 
 		{
 			throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
 		}
@@ -495,16 +495,16 @@ namespace OpenMS
 					addTag(name,*tag_it);
 				}
 				//copy restrictions
-				if (it->value.valueType()==DataValue::STRING_VALUE)
+				if (it->value.valueType()==DataValue::STRING_VALUE || it->value.valueType()==DataValue::STRING_LIST)
 				{
 					setValidStrings(name,it->valid_strings);
 				}
-				else if (it->value.valueType()==DataValue::INT_VALUE)
+				else if (it->value.valueType()==DataValue::INT_VALUE || it->value.valueType() == DataValue::INT_LIST)
 				{
 					setMinInt(name,it->min_int);
 					setMaxInt(name,it->max_int);
 				}
-				else if (it->value.valueType()==DataValue::DOUBLE_VALUE)
+				else if (it->value.valueType()==DataValue::DOUBLE_VALUE || it->value.valueType()==DataValue::DOUBLE_LIST)
 				{
 					setMinFloat(name,it->min_float);
 					setMaxFloat(name,it->max_float);
@@ -727,6 +727,12 @@ namespace OpenMS
 					case DataValue::STRING_LIST:
 						os << indentation << "<ITEMLIST name=\"" << it->name << "\" type=\"string\"";
 						break;
+					case DataValue::INT_LIST:
+						os << indentation << " <ITEMLIST name=\"" << it->name << "\" type=\"int\"";
+						break;
+					case DataValue::DOUBLE_LIST:
+						os << indentation << " <ITEMLIST name=\"" << it->name << "\" type=\"float\"";
+						break;
 					default:
 						break;
 				};
@@ -756,6 +762,7 @@ namespace OpenMS
 				switch(value_type)
 				{
 					case DataValue::INT_VALUE:
+					case DataValue::INT_LIST:	
 						{
 							bool min_set = (it->min_int!=-numeric_limits<Int>::max());
 							bool max_set = (it->max_int!=numeric_limits<Int>::max());
@@ -774,6 +781,7 @@ namespace OpenMS
 						}
 						break;
 					case DataValue::DOUBLE_VALUE:
+					case DataValue::DOUBLE_LIST:
 						{
 							bool min_set = (it->min_float!=-numeric_limits<DoubleReal>::max());
 							bool max_set = (it->max_float!=numeric_limits<DoubleReal>::max());
@@ -792,6 +800,7 @@ namespace OpenMS
 						}
 						break;
 					case DataValue::STRING_VALUE:
+					case DataValue::STRING_LIST:
 						if (it->valid_strings.size()!=0)
 						{
 							restrictions.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
@@ -817,6 +826,28 @@ namespace OpenMS
 						{
 							os << ">" <<  endl;
 							const StringList& list = it->value;
+							for (UInt i=0; i<list.size();++i)
+							{
+								os << indentation << "  <LISTITEM value=\"" << list[i] << "\"/>" << endl;	
+							}
+							os << indentation << "</ITEMLIST>" << endl;	
+						}
+						break;
+					case DataValue::INT_LIST:
+						{
+							os << ">" <<  endl;
+							const IntList& list = it->value;
+							for (UInt i=0; i<list.size();++i)
+							{
+								os << indentation << "  <LISTITEM value=\"" << list[i] << "\"/>" << endl;	
+							}
+							os << indentation << "</ITEMLIST>" << endl;	
+						}
+						break;
+					case DataValue::DOUBLE_LIST:
+						{
+							os << ">" <<  endl;
+							const DoubleList& list = it->value;
 							for (UInt i=0; i<list.size();++i)
 							{
 								os << indentation << "  <LISTITEM value=\"" << list[i] << "\"/>" << endl;	
@@ -911,6 +942,7 @@ namespace OpenMS
     }
 	}
 
+
 	void Param::parseCommandLine(const int argc , const char** argv,const Map<String, String>& options_with_one_argument,const Map<String, String>& options_without_argument,const Map<String,String>& options_with_multiple_argument, const String& misc, const String& unknown)
 	{
 		//determine misc key
@@ -937,6 +969,7 @@ namespace OpenMS
     	bool arg1_is_option = false;
     	if (arg1.size()>=2 && arg1[0]=='-' && arg1[1]!='0' && arg1[1]!='1' && arg1[1]!='2' && arg1[1]!='3' && arg1[1]!='4' && arg1[1]!='5' && arg1[1]!='6' && arg1[1]!='7' && arg1[1]!='8' && arg1[1]!='9') arg1_is_option = true;
     	
+
 			//with multpile argument
 			if(options_with_multiple_argument.has(arg))
 			{
@@ -962,12 +995,14 @@ namespace OpenMS
 				}
 			}
 			//without argument
+
 			else if (options_without_argument.has(arg))
 			{
 				root_.insert(ParamEntry("",String("true"),""),options_without_argument.find(arg)->second);
 			}
 			//with one argument
 			else if (options_with_one_argument.has(arg))
+
 			{
 				//next argument is not an option
 				if (!arg1_is_option)
@@ -978,6 +1013,7 @@ namespace OpenMS
 				//next argument is an option
 				else
 				{
+
 					root_.insert(ParamEntry("",String(),""),options_with_one_argument.find(arg)->second);
 				}
 			}
@@ -1080,15 +1116,15 @@ namespace OpenMS
 			if (default_value->value.valueType()!=it->value.valueType())
 			{
 				String d_type;
-				if (default_value->value.valueType()==DataValue::STRING_VALUE) d_type = "string";
+				if (default_value->value.valueType()==DataValue::STRING_VALUE || default_value->value.valueType()==DataValue::STRING_LIST) d_type = "string";
 				if (default_value->value.valueType()==DataValue::EMPTY_VALUE) d_type = "empty";
-				if (default_value->value.valueType()==DataValue::INT_VALUE) d_type = "integer";
-				if (default_value->value.valueType()==DataValue::DOUBLE_VALUE) d_type = "float";
+				if (default_value->value.valueType()==DataValue::INT_VALUE || default_value->value.valueType()==DataValue::INT_LIST) d_type = "integer";
+				if (default_value->value.valueType()==DataValue::DOUBLE_VALUE || default_value->value.valueType()==DataValue::DOUBLE_LIST) d_type = "float";
 				String p_type;
-				if (it->value.valueType()==DataValue::STRING_VALUE) p_type = "string";
+				if (it->value.valueType()==DataValue::STRING_VALUE || it->value.valueType()==DataValue::STRING_LIST) p_type = "string";
 				if (it->value.valueType()==DataValue::EMPTY_VALUE) p_type = "empty";
-				if (it->value.valueType()==DataValue::INT_VALUE) p_type = "integer";
-				if (it->value.valueType()==DataValue::DOUBLE_VALUE) p_type = "float";				
+				if (it->value.valueType()==DataValue::INT_VALUE || it->value.valueType()==DataValue::INT_LIST) p_type = "integer";
+				if (it->value.valueType()==DataValue::DOUBLE_VALUE || it->value.valueType()==DataValue::DOUBLE_LIST) p_type = "float";				
 
 				throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Wrong parameter type '"+p_type+"' for "+d_type+" parameter '"+it.getName()+"' given!");
 			}
@@ -1102,12 +1138,41 @@ namespace OpenMS
 					throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Invalid string parameter value '"+(String)it->value+"' for parameter '"+it.getName()+"' given! Valid values are: '"+valid+"'.");
 				}
 			}
+			else if(it->value.valueType()==DataValue::STRING_LIST)
+			{
+				String str_value;
+				StringList ls_value = (StringList) it->value;
+				for(UInt i = 0; i < ls_value.size(); ++i)
+				{
+						str_value = ls_value[i];
+					
+					if (default_value->valid_strings.size()!=0 && std::find(default_value->valid_strings.begin(),default_value->valid_strings.end(), str_value) == default_value->valid_strings.end())
+					{
+						String valid;
+						valid.implode(default_value->valid_strings.begin(),default_value->valid_strings.end(),",");
+						throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Invalid string parameter value '"+str_value+"' for parameter '"+it.getName()+"' given! Valid values are: '"+valid+"'.");
+					}
+				}	
+			}
 			else if (it->value.valueType()==DataValue::INT_VALUE)
 			{
 				Int tmp = it->value;
 				if ((default_value->min_int != -std::numeric_limits<Int>::max() && tmp < default_value->min_int) || (default_value->max_int!=std::numeric_limits<Int>::max() && tmp > default_value->max_int))
 				{
 					throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Invalid integer parameter value '"+(Int)it->value+"' for parameter '"+it.getName()+"' given! The valid range is: ["+default_value->min_int+":"+default_value->max_int+"].");
+				}
+			}
+			else if(it->value.valueType()==DataValue::INT_LIST)
+			{
+				Int int_value;
+				IntList ls_value =(IntList) it->value;
+				for(UInt i = 0; i < ls_value.size(); ++i)
+				{
+					int_value = ls_value[i];
+					if ((default_value->min_int != -std::numeric_limits<Int>::max() && int_value < default_value->min_int) || (default_value->max_int!=std::numeric_limits<Int>::max() && int_value > default_value->max_int))
+					{
+						throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Invalid integer parameter value '"+int_value+"' for parameter '"+it.getName()+"' given! The valid range is: ["+default_value->min_int+":"+default_value->max_int+"].");
+					}
 				}
 			}
 			else if (it->value.valueType()==DataValue::DOUBLE_VALUE)
@@ -1117,7 +1182,20 @@ namespace OpenMS
 				{
 					throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Invalid double parameter value '"+(DoubleReal)it->value+"' for parameter '"+it.getName()+"' given! The valid range is: ["+default_value->min_int+":"+default_value->max_int+"].");
 				}
-			}			
+			}
+			else if(it->value.valueType()==DataValue::DOUBLE_LIST)
+			{
+				DoubleReal dou_value; 
+				DoubleList ls_value = (DoubleList)it->value;
+				for(UInt i = 0; i < ls_value.size(); ++i)
+				{
+					dou_value = ls_value[i];
+					if ((default_value->min_float!=-std::numeric_limits<DoubleReal>::max() && dou_value < default_value->min_float) || (default_value->max_float!=std::numeric_limits<DoubleReal>::max() && dou_value > default_value->max_float))
+					{
+						throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Invalid double parameter value '"+dou_value+"' for parameter '"+it.getName()+"' given! The valid range is: ["+default_value->min_int+":"+default_value->max_int+"].");
+					}	
+				}
+			}
 		}
 	}
 

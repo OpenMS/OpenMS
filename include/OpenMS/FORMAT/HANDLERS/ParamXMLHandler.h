@@ -70,9 +70,13 @@ namespace OpenMS
       {
         String name;
         String type;
-        StringList list;
+        StringList stringlist;
+        IntList intlist;
+        DoubleList doublelist;
         StringList tags;
         String description;
+        String restrictions;
+        Int restrictions_index;
       } list_;
 
 		private:

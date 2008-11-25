@@ -675,6 +675,33 @@ START_SECTION((void setValue(const String& key, DoubleReal value, const String& 
 	TEST_EQUAL(p.hasTag("key","advanced"), true)
 END_SECTION
 
+START_SECTION((void setValue(const String& key, StringList value, const String& description="", bool advanced=false)))
+	Param p;
+	p.setValue("key",StringList::create("a,b,c,d"),"description",StringList::create("advanced"));
+	TEST_EQUAL(p.exists("key"), true)
+	TEST_EQUAL(p.getValue("key"), StringList::create("a,b,c,d"))
+	TEST_EQUAL(p.getDescription("key"), "description")
+	TEST_EQUAL(p.hasTag("key","advanced"), true)
+END_SECTION
+
+START_SECTION((void setValue(const String& key, IntList value, const String& description="", bool advanced=false)))
+	Param p;
+	p.setValue("key",IntList::create("1,2,3"),"description",StringList::create("advanced"));
+	TEST_EQUAL(p.exists("key"), true)
+	TEST_EQUAL(p.getValue("key"), IntList::create("1,2,3"))
+	TEST_EQUAL(p.getDescription("key"), "description")
+	TEST_EQUAL(p.hasTag("key","advanced"), true)
+END_SECTION
+
+START_SECTION((void setValue(const String& key, DoubleList value, const String& description="", bool advanced=false)))
+	Param p;
+	p.setValue("key",DoubleList::create("11.5,3.44"),"description",StringList::create("advanced"));
+	TEST_EQUAL(p.exists("key"), true)
+	TEST_EQUAL(p.getValue("key"), DoubleList::create("11.5,3.44"))
+	TEST_EQUAL(p.getDescription("key"), "description")
+	TEST_EQUAL(p.hasTag("key","advanced"), true)
+END_SECTION
+
 START_SECTION(StringList getTags(const String& key) const)
 	Param p;
 	TEST_EXCEPTION(Exception::ElementNotFound, p.getTags("key"))
@@ -1115,7 +1142,7 @@ START_SECTION((void store(const String& filename) const ))
 	p5.setValue("int_min_max",5);
 	p5.setMinInt("int_min_max",0);
 	p5.setMaxInt("int_min_max",10);
-
+	
 	p5.setValue("float",5.1);
 	p5.setValue("float_min",5.1);
 	p5.setMinFloat("float_min",4.1);
@@ -1132,10 +1159,39 @@ START_SECTION((void store(const String& filename) const ))
 	p5.setValue("string_2","bla");
 	p5.setValidStrings("string_2",strings);
 	
+		//list restrictions
+	vector<String> strings2;
+	strings2.push_back("xml");
+	strings2.push_back("txt");
+	p5.setValue("stringlist2",StringList::create("a.txt,b.xml,c.pdf"));
+	p5.setValue("stringlist",StringList::create("aa.C,bb.h,c.doxygen"));
+	p5.setValidStrings("stringlist2",strings2);
+	
+	p5.setValue("intlist",IntList::create("2,5,10"));
+	p5.setValue("intlist2",IntList::create("2,5,10"));
+	p5.setValue("intlist3",IntList::create("2,5,10"));
+	p5.setValue("intlist4",IntList::create("2,5,10"));
+	p5.setMinInt("intlist2",1);
+	p5.setMaxInt("intlist3",11);
+	p5.setMinInt("intlist4",0);
+	p5.setMaxInt("intlist4",15);
+	
+	p5.setValue("doublelist",DoubleList::create("1.2,3.33,4.44"));
+	p5.setValue("doublelist2",DoubleList::create("1.2,3.33,4.44"));
+	p5.setValue("doublelist3",DoubleList::create("1.2,3.33,4.44"));
+	p5.setValue("doublelist4",DoubleList::create("1.2,3.33,4.44"));			
+	
+	p5.setMinFloat("doublelist2",1.1);
+	p5.setMaxFloat("doublelist3",4.45);
+	p5.setMinFloat("doublelist4",0.1);
+	p5.setMaxFloat("doublelist4",5.8);
+	
+	
 	p5.store(filename);
 	TEST_EQUAL(p5.isValid(filename),true)
 	Param p6;
 	p6.load(filename);
+	
 	
 	TEST_EQUAL(p6.getEntry("int").min_int, -numeric_limits<Int>::max())
 	TEST_EQUAL(p6.getEntry("int").max_int, numeric_limits<Int>::max())
@@ -1160,6 +1216,30 @@ START_SECTION((void store(const String& filename) const ))
 	TEST_EQUAL(p6.getEntry("string_2").valid_strings[0],"bla")
 	TEST_EQUAL(p6.getEntry("string_2").valid_strings[1],"bluff")
 
+
+	
+	TEST_EQUAL(p6.getEntry("stringlist").valid_strings.size(),0)
+	TEST_EQUAL(p6.getEntry("stringlist2").valid_strings.size(),2)
+	TEST_EQUAL(p6.getEntry("stringlist2").valid_strings[0],"xml")
+	TEST_EQUAL(p6.getEntry("stringlist2").valid_strings[1],"txt")
+	
+	TEST_EQUAL(p6.getEntry("intlist").min_int, -numeric_limits<Int>::max())
+	TEST_EQUAL(p6.getEntry("intlist").max_int, numeric_limits<Int>::max())
+	TEST_EQUAL(p6.getEntry("intlist2").min_int, 1)
+	TEST_EQUAL(p6.getEntry("intlist2").max_int, numeric_limits<Int>::max())
+	TEST_EQUAL(p6.getEntry("intlist3").min_int, -numeric_limits<Int>::max())
+	TEST_EQUAL(p6.getEntry("intlist3").max_int, 11)
+	TEST_EQUAL(p6.getEntry("intlist4").min_int, 0)
+	TEST_EQUAL(p6.getEntry("intlist4").max_int, 15)
+	
+	TEST_REAL_SIMILAR(p6.getEntry("doublelist").min_float, -numeric_limits<DoubleReal>::max())
+	TEST_REAL_SIMILAR(p6.getEntry("doublelist").max_float, numeric_limits<DoubleReal>::max())
+	TEST_REAL_SIMILAR(p6.getEntry("doublelist2").min_float, 1.1)
+	TEST_REAL_SIMILAR(p6.getEntry("doublelist2").max_float, numeric_limits<DoubleReal>::max())
+	TEST_REAL_SIMILAR(p6.getEntry("doublelist3").min_float, -numeric_limits<DoubleReal>::max())
+	TEST_REAL_SIMILAR(p6.getEntry("doublelist3").max_float, 4.45)
+	TEST_REAL_SIMILAR(p6.getEntry("doublelist4").min_float, 0.1)
+	TEST_REAL_SIMILAR(p6.getEntry("doublelist4").max_float, 5.8)
 	//Test if an empty Param written to a file validates against the schema
 	NEW_TMP_FILE(filename);
 	Param p4;
@@ -1175,6 +1255,13 @@ START_SECTION((void setDefaults(const Param& defaults, String prefix="", bool sh
 	defaults.setValue("string","default string1","string");
 	defaults.setValue("string2","default string2","string2");
 	defaults.setValue("PATH:onlyfordescription",45.2);
+	
+	defaults.setValue("stringlist",StringList::create("a,b,c"),"stringlist");
+	defaults.setValue("stringlist2",StringList::create("d,e,f"),"stringlist2");
+	defaults.setValue("intlist",IntList::create("1,2,3"),"intlist");
+	defaults.setValue("intlist2",IntList::create("11,22,33"),"intlist2");
+	defaults.setValue("doublelist",DoubleList::create("1.2,2.3"),"doublelist");
+	defaults.setValue("doublelist2",DoubleList::create("11.22,22.33"),"doublelist2");
 	defaults.setSectionDescription("PATH","PATHdesc");
 	Param p2;
 	p2.setValue("PATH:float",-1.0f,"PATH:float");
@@ -1182,10 +1269,17 @@ START_SECTION((void setDefaults(const Param& defaults, String prefix="", bool sh
 	p2.setValue("float",-2.0f,"float");
 	p2.setValue("string","other string","string");
 	
-	TEST_EQUAL(p2.size(),4);
+	p2.setValue("PATH:stringlist",StringList::create("d,a,v,i,d"),"PATH:stringlist");
+	p2.setValue("stringlist",StringList::create("r,o,c,k,s"),"stringlist");
+	p2.setValue("PATH:intlist2",IntList::create("14,9"),"PATH:intlist2");
+	p2.setValue("intlist", IntList::create("16,9"),"intlist");
+	p2.setValue("PATH:doublelist2",DoubleList::create("6.66,6.16"),"PATH:doublelist2");
+	p2.setValue("doublelist",DoubleList::create("1.2,5.55"),"doublelist");
+	
+	TEST_EQUAL(p2.size(),10);
 	
 	p2.setDefaults(defaults);
-	TEST_EQUAL(p2.size(),7);
+	TEST_EQUAL(p2.size(),16);
 	TEST_REAL_SIMILAR(float(p2.getValue("float")),-2.0);
 	TEST_STRING_EQUAL(p2.getDescription("float"),"float");
 	TEST_REAL_SIMILAR(float(p2.getValue("float2")),2.0);
@@ -1195,11 +1289,19 @@ START_SECTION((void setDefaults(const Param& defaults, String prefix="", bool sh
 	TEST_EQUAL(string(p2.getValue("string2")),"default string2");
 	TEST_STRING_EQUAL(p2.getDescription("string2"),"string2");
 	TEST_STRING_EQUAL(p2.getSectionDescription("PATH"),"PATHdesc");
-
-
+	
+	TEST_EQUAL(p2.getValue("stringlist"), StringList::create("r,o,c,k,s"))
+	TEST_EQUAL(p2.getValue("intlist"),IntList::create("16,9"))
+	TEST_EQUAL(p2.getValue("doublelist"),DoubleList::create("1.2,5.55"))
+	TEST_EQUAL(p2.getValue("stringlist2"),StringList::create("d,e,f"))
+	TEST_EQUAL(p2.getValue("intlist2"),IntList::create("11,22,33"))
+	TEST_EQUAL(p2.getValue("doublelist2"),DoubleList::create("11.22,22.33"))
+	
+	
+	
 	p2.setDefaults(defaults,"PATH");
 
-	TEST_EQUAL(p2.size(),10);
+	TEST_EQUAL(p2.size(),22);
 	TEST_REAL_SIMILAR(float(p2.getValue("PATH:float")),-1.0);
 	TEST_STRING_EQUAL(p2.getDescription("PATH:float"),"PATH:float");
 	TEST_REAL_SIMILAR(float(p2.getValue("PATH:float2")),2.0);
@@ -1210,6 +1312,11 @@ START_SECTION((void setDefaults(const Param& defaults, String prefix="", bool sh
 	TEST_STRING_EQUAL(p2.getDescription("PATH:string2"),"string2");
 	TEST_STRING_EQUAL(p2.getSectionDescription("PATH"),"PATHdesc");
 	TEST_STRING_EQUAL(p2.getSectionDescription("PATH:PATH"),"PATHdesc");
+	
+	TEST_EQUAL(p2.getValue("PATH:stringlist"),StringList::create("d,a,v,i,d"))
+	TEST_EQUAL(p2.getValue("PATH:intlist"), IntList::create("1,2,3"))
+	TEST_EQUAL(p2.getValue("PATH:doublelist"),DoubleList::create("1.2,2.3"))
+	
 END_SECTION
 
 const char* a1 ="executable";
@@ -1288,7 +1395,9 @@ START_SECTION((void parseCommandLine(const int argc, const char** argv, String p
 
 END_SECTION
 
+
 START_SECTION((void parseCommandLine(const int argc, const char** argv, const Map<String, String>& options_with_one_argument, const Map<String, String>& options_without_argument,const Map<String,String>& options_with_multiple_argument, const String& misc="misc", const String& unknown="unknown")))
+
 	Map<String,String> with_one,without,with_multiple;
 	with_one["-a"]="a";
 	with_one["-b"]="b";
@@ -1298,6 +1407,7 @@ START_SECTION((void parseCommandLine(const int argc, const char** argv, const Ma
 	with_multiple["-e"] = "e";
 	with_multiple["-f"] = "f";
 	with_multiple["-g"] = "g";
+
 	Param p2,p3;
 	p2.parseCommandLine(10,command_line4,with_one,without,with_multiple,"misc_","unknown_");
 	p3.setValue("a","-1.0");
@@ -1526,6 +1636,20 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, Str
 	p.setValue("doublev2",4.1);
 	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
 	
+	//check list restrictions
+	vector<String> s_rest1;
+	s_rest1.push_back("a");
+	s_rest1.push_back("b");
+	s_rest1.push_back("c");
+	d.setValue("stringlist",StringList::create("aaa,abc,cab"),"desc");
+	d.setValidStrings("stringlist", s_rest);
+	p.clear();
+	p.setValue("stringlist",StringList::create("a,c"));
+	p.checkDefaults("Param_test",d,"",os);
+	p.setValue("stringlist",StringList::create("aa,dd,cc"));
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os))
+	
+	
 	//wrong type
 	p.clear();
 	p.setValue("doublev",4);
@@ -1576,11 +1700,17 @@ END_SECTION
 START_SECTION([EXTRA] loading and storing of lists)
 	Param p;
 	p.setValue("stringlist", StringList::create("a,bb,ccc"));
+	p.setValue("intlist", IntList::create("1,22,333"));
 	p.setValue("item", String("bla"));
 	p.setValue("stringlist2", StringList::create(""));
+	p.setValue("intlist2", IntList::create(""));
 	p.setValue("item1", 7);
+	p.setValue("intlist3", IntList::create("1"));	
 	p.setValue("stringlist3", StringList::create("1"));
 	p.setValue("item3", 7.6);
+	p.setValue("doublelist",DoubleList::create("1.22,2.33,4.55"));
+	p.setValue("doublelist2",DoubleList::create(""));
+	p.setValue("doublelist3",DoubleList::create("1.4"));
 	//store
 	String filename;
 	NEW_TMP_FILE(filename);
@@ -1589,7 +1719,7 @@ START_SECTION([EXTRA] loading and storing of lists)
 	Param p2;
 	p2.load(filename);
 	
-	TEST_EQUAL(p2.size(),6);
+	TEST_EQUAL(p2.size(),12);
 	
 	TEST_EQUAL(p2.getValue("stringlist").valueType(), DataValue::STRING_LIST)
 	StringList list = p2.getValue("stringlist");
@@ -1606,7 +1736,39 @@ START_SECTION([EXTRA] loading and storing of lists)
 	list = p2.getValue("stringlist3");
 	TEST_EQUAL(list.size(),1)
 	TEST_EQUAL(list[0],"1")
-
+	
+	TEST_EQUAL(p2.getValue("intlist").valueType(), DataValue::INT_LIST)
+	IntList intlist = p2.getValue("intlist");
+	TEST_EQUAL(intlist.size(),3);
+	TEST_EQUAL(intlist[0], 1)
+	TEST_EQUAL(intlist[1], 22)
+	TEST_EQUAL(intlist[2], 333)
+	
+	TEST_EQUAL(p2.getValue("intlist2").valueType(),DataValue::INT_LIST)
+	intlist = p2.getValue("intlist2");
+	TEST_EQUAL(intlist.size(),0)
+	
+	TEST_EQUAL(p2.getValue("intlist3").valueType(),DataValue::INT_LIST)
+	intlist = p2.getValue("intlist3");
+	TEST_EQUAL(intlist.size(),1)
+	TEST_EQUAL(intlist[0],1)
+	
+		TEST_EQUAL(p2.getValue("doublelist").valueType(), DataValue::DOUBLE_LIST)
+	DoubleList doublelist = p2.getValue("doublelist");
+	TEST_EQUAL(doublelist.size(),3);
+	TEST_EQUAL(doublelist[0], 1.22)
+	TEST_EQUAL(doublelist[1], 2.33)
+	TEST_EQUAL(doublelist[2], 4.55)
+	
+	TEST_EQUAL(p2.getValue("doublelist2").valueType(),DataValue::DOUBLE_LIST)
+	doublelist = p2.getValue("doublelist2");
+	TEST_EQUAL(doublelist.size(),0)
+	
+	TEST_EQUAL(p2.getValue("doublelist3").valueType(),DataValue::DOUBLE_LIST)
+	doublelist = p2.getValue("doublelist3");
+	TEST_EQUAL(doublelist.size(),1)
+	TEST_EQUAL(doublelist[0],1.4)
+	
 END_SECTION
 
 
