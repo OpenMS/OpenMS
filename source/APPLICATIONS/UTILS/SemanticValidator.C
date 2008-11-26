@@ -80,6 +80,7 @@ class TOPPSemanticValidator
 		cv.loadFromOBO("UO",File::find("/CV/unit.obo"));
 		cv.loadFromOBO("brenda",File::find("/CV/brenda.obo"));
 		cv.loadFromOBO("GO",File::find("/CV/goslim_goa.obo"));
+		cv.loadFromOBO("UNIMOD",File::find("/CV/unimod.obo"));
 		//cv.loadFromOBO("NCBITaxon", "ncbi_taxonomy.obo");
 
 		// check cv params
