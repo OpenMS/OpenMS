@@ -669,13 +669,26 @@ namespace OpenMS
 
 	void Param::store(const String& filename) const
 	{
+
 		//open file
-		ofstream os;
-		os.open (filename.c_str(), ofstream::out);
-		if(!os)
+		ofstream os_;
+		ostream* os_ptr;
+		if ( filename != "-" )
 		{
-			 throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+			os_.open (filename.c_str(), ofstream::out);
+			if(!os_)
+			{
+				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+			}
+			os_ptr = &os_;
 		}
+		else
+		{
+			os_ptr = &std::cout;
+		}
+
+		ostream &os = *os_ptr;
+
 		os.precision(writtenDigits<DoubleReal>());
 		
   	os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
@@ -871,7 +884,7 @@ namespace OpenMS
 		}
 		
 		os << "</PARAMETERS>\n";
-    os.close();
+    os_.close();
 	}
 	
 	void Param::load(const String& filename)
