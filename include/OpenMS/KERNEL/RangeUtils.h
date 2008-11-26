@@ -147,7 +147,7 @@ namespace OpenMS
 		
 			inline bool operator()(const SpectrumType& s) const
 			{
-				UInt tmp = s.getMSLevel();
+				Int tmp = s.getMSLevel();
 				if (reverse_)
 				{
 					return ( std::find(levels_.begin(), levels_.end(), tmp) == levels_.end() ); 

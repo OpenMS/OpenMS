@@ -77,6 +77,12 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
 	msp_file.load("data/MSPFile_test.msp", ids, exp);
 	TEST_EQUAL(exp.size(), 5)
 	TEST_EQUAL(ids.size(), 5)
+	
+	TEST_STRING_EQUAL(exp[0].getNativeID(), "index=0")
+	TEST_STRING_EQUAL(exp[1].getNativeID(), "index=1")
+	TEST_STRING_EQUAL(exp[2].getNativeID(), "index=2")
+	TEST_STRING_EQUAL(exp[3].getNativeID(), "index=3")
+	TEST_STRING_EQUAL(exp[4].getNativeID(), "index=4")
 
 	Param p(msp_file.getParameters());
 	p.setValue("instrument", "qtof");
@@ -87,6 +93,9 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
 	TEST_EQUAL(exp.size(), 2)
 	TEST_EQUAL(ids.size(), 2)
 
+	TEST_STRING_EQUAL(exp[0].getNativeID(), "index=0")
+	TEST_STRING_EQUAL(exp[1].getNativeID(), "index=1")
+	
 	p.setValue("instrument", "it");
 	msp_file.setParameters(p);
 	ids.clear();
@@ -94,6 +103,11 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
 	msp_file.load("data/MSPFile_test.msp", ids, exp);
 	TEST_EQUAL(exp.size(), 3)
 	TEST_EQUAL(ids.size(), 3)
+
+	TEST_STRING_EQUAL(exp[0].getNativeID(), "index=2")
+	TEST_STRING_EQUAL(exp[1].getNativeID(), "index=3")
+	TEST_STRING_EQUAL(exp[2].getNativeID(), "index=4")
+
 END_SECTION
 
 START_SECTION(void store(const String &, const RichPeakMap &) const)

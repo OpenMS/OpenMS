@@ -71,17 +71,20 @@ namespace OpenMS
 			*/
 			template <typename MapType> void load(const String& filename, MapType& exp)
       {
-				exp.reset();
 				if (!File::exists(filename))
 				{
 					throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 				}
+
+				exp.reset();
+				exp.setNativeIDType(ExperimentalSettings::MULTIPLE_PEAK_LISTS);
 
 				std::ifstream is(filename.c_str());
 				std::vector<std::pair<double, double> > spec;
 				UInt charge(0);
 				double pre_mz(0), pre_int(0), rt(-1);
 				String title;
+				UInt spectrum_number = 0;
 				while (getNextSpectrum_(is, spec, charge, pre_mz, pre_int, rt, title))
 				{
 					typename MapType::SpectrumType spectrum;
@@ -103,6 +106,7 @@ namespace OpenMS
 						title = "";
 					}
 
+					spectrum.setNativeID(String("index=")+(spectrum_number++));
 					exp.push_back(spectrum);
 					
 					// clean up

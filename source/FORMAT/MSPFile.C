@@ -83,6 +83,10 @@ namespace OpenMS
     {
       throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
+
+		exp.reset();
+		exp.setNativeIDType(ExperimentalSettings::MULTIPLE_PEAK_LISTS);
+
     String line;
     ifstream is(filename.c_str());
 
@@ -110,6 +114,7 @@ namespace OpenMS
 		bool parse_peakinfo(param_.getValue("parse_peakinfo").toBool());
 		String instrument((String)param_.getValue("instrument"));
 		bool inst_type_correct(true);
+		UInt spectrum_number = 0;
 		
 		while (getline(is, line))
     {
@@ -253,10 +258,11 @@ namespace OpenMS
 						}
           	spec.push_back(peak);
         	}
-
+					spec.setNativeID(String("index=")+spectrum_number);
        		exp.push_back(spec);
         	spec.clear();
       	}
+      	spectrum_number++;
 			}
     }
   }

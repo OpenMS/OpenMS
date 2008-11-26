@@ -77,8 +77,12 @@ namespace OpenMS
 					throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 				}
 
+				exp.reset();
+				exp.setNativeIDType(ExperimentalSettings::MULTIPLE_PEAK_LISTS);
+
 				std::ifstream in(filename.c_str());
 
+				UInt spectrum_number = 0;
 				typename MapType::SpectrumType spec;
       	typename MapType::SpectrumType::PeakType p;
 
@@ -99,7 +103,9 @@ namespace OpenMS
 					if (line[0] == 'S')
 					{
 						if (!first_spec)
-						{
+						{	
+							spec.setMSLevel(2);
+							spec.setNativeID(String("index=")+(spectrum_number++));
 							exp.push_back(spec);
 						}
 						else
@@ -148,13 +154,13 @@ namespace OpenMS
 					// TODO catch exceptions
 					p.setPosition(split[0].toDouble());
 					p.setIntensity(split[1].toDouble());
-					spec.setMSLevel(2);
 					spec.push_back(p);
 				}
 
 				if (!first_spec)
 				{
 					spec.setMSLevel(2);
+					spec.setNativeID(String("index=")+(spectrum_number++));
 					exp.push_back(spec);
 				}
 			}
