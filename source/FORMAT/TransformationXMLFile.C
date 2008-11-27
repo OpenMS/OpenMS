@@ -113,7 +113,7 @@ namespace OpenMS
 			os << "\t\t<Pairs count=\"" << pairs_size << "\">\n";
 			for (UInt i=0; i<pairs_size; ++i)
 			{
-				os << "\t\t<Pair from=\"" << transformation.getPairs()[i].first << "\" to=\"" << transformation.getPairs()[i].second << "\"/>\n";
+				os << "\t\t\t<Pair from=\"" << transformation.getPairs()[i].first << "\" to=\"" << transformation.getPairs()[i].second << "\"/>\n";
 			}
 			os << "\t\t</Pairs>\n";
 		}

@@ -28,42 +28,42 @@ DIRECTORY=TEST/TOPP
 
 # Tests for individual tools
 TOPP_TOOL_TESTS = \
-	FeatureLinker_test \
-	MapAligner_test \
-	ConsensusID_test \
-	MapNormalizer_test \
 	AdditiveSeries_test \
-	IDMerger_test \
 	BaselineFilter_test \
-	DBImporter_test \
+	ConsensusID_test \
 	DBExporter_test \
-	Decharger_test \
+	DBImporter_test \
 	DTAExtractor_test \
+	Decharger_test \
+	FeatureFinderMRM_test\
+	FeatureFinder_test\
+	FeatureLinker_test \
 	FileConverter_test \
 	FileFilter_test \
 	FileInfo_test \
 	FileMerger_test \
 	IDFilter_test \
-	MascotAdapter_test \
-	SequestAdapter_test\
+	IDMapper_test\
+	IDMerger_test \
+	IDRTCalibration_test \
 	InspectAdapter_test\
-	PepNovoAdapter_test\
-	NoiseFilter_test \
-	PeakPicker_test \
-	Resampler_test \
-	SpectraFilter_test \
 	InternalCalibration_test\
-	TOFCalibration_test\
-	FeatureFinder_test\
-	FeatureFinderMRM_test\
-	TextExporter_test\
-	SILACAnalyzer_test\
-	RTPredict_test\
-	RTModel_test\
+	MapAligner_test \
+	MapNormalizer_test \
+	MascotAdapter_test \
+	NoiseFilter_test \
 	PTModel_test\
 	PTPredict_test\
-	IDMapper_test\
-	IDRTCalibration_test
+	PeakPicker_test \
+	PepNovoAdapter_test\
+	RTModel_test\
+	RTPredict_test\
+	Resampler_test \
+	SILACAnalyzer_test\
+	SequestAdapter_test\
+	SpectraFilter_test \
+	TOFCalibration_test\
+	TextExporter_test\
 
 # Files to remove
 CLEANUP = ${RM} -f *.tmp *.tmp_ *.tmp_? *.log core.*
@@ -521,7 +521,7 @@ MapAligner_test: make_fuzzydiff
 	@$(ECHO) ""
 	@$(ECHO) "MapAligner:"
 
-	@$(ECHO) "- Test 1: pose_clustering feature files"
+	@$(ECHO) "- Test 1: pose_clustering, feature files"
 	@$(call RUN_PROG_OPT,MapAligner,-ini MapAligner_1_parameters.ini)
 	@$(call TEST_FILE_EQUAL,MapAligner_1_output1.tmp,MapAligner_1_output1.featureXML)
 	@$(call TEST_FILE_EQUAL,MapAligner_1_output2.tmp,MapAligner_1_output2.featureXML)
@@ -530,17 +530,26 @@ MapAligner_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,MapAligner_1_trafo2.tmp,MapAligner_1_trafo2.trafoXML)
 	@$(call TEST_FILE_EQUAL,MapAligner_1_trafo3.tmp,MapAligner_1_trafo3.trafoXML)
 
-	@$(ECHO) "- Test 2: pose_clustering peak files"
+	@$(ECHO) "- Test 2: pose_clustering, peak files"
 	@$(call RUN_PROG_OPT,MapAligner,-ini MapAligner_2_parameters.ini)
 	@$(call TEST_FILE_EQUAL,MapAligner_2_output1.tmp,MapAligner_2_output1.mzData)
 	@$(call TEST_FILE_EQUAL,MapAligner_2_output2.tmp,MapAligner_2_output2.mzData)
 	@$(call TEST_FILE_EQUAL,MapAligner_2_output3.tmp,MapAligner_2_output3.mzData)
 
-	@$(ECHO) "- Test 3: spectrum_alignment peak files"
+	@$(ECHO) "- Test 3: spectrum_alignment, peak files"
 	@$(call RUN_PROG_OPT,MapAligner,-ini MapAligner_3_parameters.ini)
 	@$(call TEST_FILE_EQUAL,MapAligner_3_output1.tmp,MapAligner_3_output1.mzData)
 	@$(call TEST_FILE_EQUAL,MapAligner_3_output2.tmp,MapAligner_3_output2.mzData)
 	@$(call TEST_FILE_EQUAL,MapAligner_3_output3.tmp,MapAligner_3_output3.mzData)
+
+	@$(ECHO) "- Test 4: apply_given_trafo, feature files"
+	@$(call RUN_PROG_OPT,MapAligner,-type apply_given_trafo -in MapAligner_4_input.featureXML MapAligner_4_input.featureXML -given_transformations MapAligner_4_trafo1.trafoXML MapAligner_4_trafo2.trafoXML -out MapAligner_4_output1.tmp MapAligner_4_output2.tmp)
+	@$(call TEST_FILE_EQUAL,MapAligner_4_output1.tmp,MapAligner_4_output1.featureXML)
+	@$(call TEST_FILE_EQUAL,MapAligner_4_output2.tmp,MapAligner_4_output2.featureXML)
+
+	@$(ECHO) "- Test 5: apply_given_trafo, peak files"
+	@$(call RUN_PROG_OPT,MapAligner,-type apply_given_trafo -in MapAligner_5_input.mzData -given_transformations MapAligner_5_trafo.trafoXML -out MapAligner_5_output.tmp)
+	@$(call TEST_FILE_EQUAL,MapAligner_5_output.tmp,MapAligner_5_output.mzData)
 
 MascotAdapter_test: make_fuzzydiff
 	@$(ECHO) ""

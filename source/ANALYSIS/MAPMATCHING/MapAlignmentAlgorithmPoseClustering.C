@@ -226,9 +226,12 @@ namespace OpenMS
 				for (UInt j = 0; j < maps[i].size(); ++j)
 				{
 					DoubleReal rt = maps[i][j].getRT();
+					// DoubleReal rt_old = rt;
 					transformations[i].apply(rt);
 					maps[i][j].setRT(rt);
+					// transformations[i].getPairs().push_back(TransformationDescription::PairVector::value_type(rt_old,rt));
 				}
+				// std::sort(transformations[i].getPairs().begin(),transformations[i].getPairs().end());
 			}
 		}
 		//set no transformation for reference map

@@ -71,12 +71,129 @@ namespace OpenMS
 		trafo_ = 0;
 	}
 
+	struct TransformationDescription::None_ : TransformationDescription::Trafo_
+	{
+		None_(const TransformationDescription& rhs)
+			: Trafo_(rhs)
+		{
+			return;
+		}
+
+		virtual void operator ()(DoubleReal& ) const
+		{
+			return;
+		}
+	};
+	
+	struct TransformationDescription::Linear_ : TransformationDescription::Trafo_
+	{
+		Linear_(const TransformationDescription& rhs)
+			: Trafo_(rhs)
+		{
+			if (!rhs.param_.exists("slope"))
+			{
+				throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"parameter 'slope' for 'linear' transformation not given");
+			}
+			slope_ = rhs.param_.getValue("slope");
+
+			if (!rhs.param_.exists("intercept"))
+			{
+				throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"parameter 'intercept' for 'linear' transformation not given");
+			}
+			intercept_ = rhs.param_.getValue("intercept");
+			return;
+		}
+
+		virtual void operator ()(DoubleReal& value) const
+		{
+			value *= slope_;
+			value += intercept_;
+			return;
+		}
+
+	 protected:
+		DoubleReal slope_;
+		DoubleReal intercept_;
+	};
+		
+	struct TransformationDescription::InterpolatedLinear_ : TransformationDescription::Trafo_
+	{
+		InterpolatedLinear_(const TransformationDescription& rhs)
+			: Trafo_(rhs)
+		{
+			if ( rhs.pairs_.size() < 2 )
+			{
+				throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"less than two pairs for 'interpolated_linear' transformation given");
+			}
+			pairs_ = rhs.pairs_;
+			std::sort(pairs_.begin(),pairs_.end());
+			return;
+		}
+		
+		virtual void operator() (DoubleReal& value) const
+		{
+			if ( value <= pairs_.front().first )
+			{
+				DoubleReal slope = ( pairs_.back().second - pairs_.front().second ) / ( pairs_.back().first - pairs_.front().first );
+				value = pairs_.front().second + ( value - pairs_.front().first ) * slope;
+			}
+			else if ( value >= pairs_.back().first )
+			{
+				DoubleReal slope = ( pairs_.back().second - pairs_.front().second ) / ( pairs_.back().first - pairs_.front().first );
+				value = pairs_.back().second + ( value - pairs_.back().first ) * slope;
+			}
+			else
+			{
+				PairVector::const_iterator right =
+					std::lower_bound( pairs_.begin(),
+														pairs_.end(),
+														PairVector::value_type( value,
+																										- std::numeric_limits<PairVector::value_type::second_type>::max()
+																									)
+													);
+				PairVector::const_iterator left = right;
+				--left;
+				DoubleReal slope = ( right->second - left->second ) / ( right->first - left->first );
+				value = left->second + ( value - left->first ) * slope;
+			}
+			return;
+		}
+
+	 protected:
+		PairVector pairs_;
+	};
+
+	void TransformationDescription::init_()
+	{
+		if ( trafo_ ) delete trafo_;
+		trafo_ = 0;
+		if (name_=="none")
+		{
+			trafo_ = new None_(*this);
+		}
+		else if (name_=="linear")
+		{
+			trafo_ = new Linear_(*this);
+		}
+		else if (name_=="interpolated_linear")
+		{
+			trafo_ = new InterpolatedLinear_(*this);
+		}
+		else
+		{
+			throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,(String("unknown transformation name '") + name_ + "'").c_str());
+		}
+	}
+
+
+
+
 	std::ostream& operator<<(std::ostream& os, TransformationDescription const & td)
 	{
 		return os <<
 		" -- TransformationDescription  BEGIN --\n"
 		"name: " << td.getName() << "\n"
-		"parameters: " << td.getParameters() <<
+		"parameters:\n" << td.getParameters() <<
 		" -- TransformationDescription END --" <<
 		std::endl;
 	}

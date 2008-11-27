@@ -28,21 +28,21 @@ DIRECTORY=ANALYSIS/MAPMATCHING
 include ../../config_defs.mak
 
 CPP_SOURCES=\
-	MapAlignmentAlgorithm.C\
-	FeatureGroupingAlgorithm.C\
-	FeatureGroupingAlgorithmUnlabeled.C\
-	FeatureGroupingAlgorithmLabeled.C\
-	MapAlignmentAlgorithmSpectrumAlignment.C\
-	MapAlignmentAlgorithmPoseClustering.C\
-	TransformationDescription.C\
-	BaseSuperimposer.C\
-	PoseClusteringShiftSuperimposer.C\
-	PoseClusteringAffineSuperimposer.C\
 	BaseGroupFinder.C\
-	SimplePairFinder.C\
+	BaseSuperimposer.C\
+	DelaunayPairFinder.C\
+	FeatureGroupingAlgorithm.C\
+	FeatureGroupingAlgorithmLabeled.C\
+	FeatureGroupingAlgorithmUnlabeled.C\
 	LabeledPairFinder.C\
-	DelaunayPairFinder.C
-
+	MapAlignmentAlgorithm.C\
+	MapAlignmentAlgorithmApplyGivenTrafo.C\
+	MapAlignmentAlgorithmPoseClustering.C\
+	MapAlignmentAlgorithmSpectrumAlignment.C\
+	PoseClusteringAffineSuperimposer.C\
+	PoseClusteringShiftSuperimposer.C\
+	SimplePairFinder.C\
+	TransformationDescription.C
 
 include ../../common.mak
 -include .Dependencies

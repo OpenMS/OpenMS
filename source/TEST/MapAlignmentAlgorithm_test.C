@@ -28,8 +28,9 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmApplyGivenTrafo.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 
 using namespace std;
 using namespace OpenMS;
@@ -70,9 +71,10 @@ END_SECTION
 START_SECTION((static void registerChildren()))
 {
   // I do not know why the classes show up in this particular order.
-  TEST_STRING_EQUAL(Factory<MapAlignmentAlgorithm>::registeredProducts()[0],MapAlignmentAlgorithmPoseClustering::getProductName());
-  TEST_STRING_EQUAL(Factory<MapAlignmentAlgorithm>::registeredProducts()[1],MapAlignmentAlgorithmSpectrumAlignment::getProductName());
-  TEST_EQUAL(Factory<MapAlignmentAlgorithm>::registeredProducts().size(),2)
+	TEST_STRING_EQUAL(Factory<MapAlignmentAlgorithm>::registeredProducts()[0],MapAlignmentAlgorithmApplyGivenTrafo::getProductName());
+	TEST_STRING_EQUAL(Factory<MapAlignmentAlgorithm>::registeredProducts()[1],MapAlignmentAlgorithmPoseClustering::getProductName());
+	TEST_STRING_EQUAL(Factory<MapAlignmentAlgorithm>::registeredProducts()[2],MapAlignmentAlgorithmSpectrumAlignment::getProductName());
+  TEST_EQUAL(Factory<MapAlignmentAlgorithm>::registeredProducts().size(),3)
 }
 END_SECTION
 

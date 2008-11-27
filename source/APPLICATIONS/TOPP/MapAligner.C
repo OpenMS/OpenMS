@@ -69,13 +69,17 @@ public:
 protected: 
 	void registerOptionsAndFlags_()
 	{
-		registerInputFileList_("in","<files>",StringList(),"input files separated by blank",true);
+		registerInputFileList_("in","<files>",StringList(),"input files separated by blanks",true);
 		setValidFormats_("in",StringList::create("mzData,featureXML"));
-		registerOutputFileList_("out","<files>",StringList(),"output files separated by blank");
+		registerOutputFileList_("out","<files>",StringList(),"output files separated by blanks",false);
 		setValidFormats_("out",StringList::create("mzData,featureXML"));
-		registerOutputFileList_("transformations","<files>",StringList(),"transformation output files separated by blank",false);
+		registerOutputFileList_("transformations","<files>",StringList(),"transformation output files separated by blanks",false);
 		registerStringOption_("type","<name>","","Map alignment algorithm type",true);
 		setValidStrings_("type",Factory<MapAlignmentAlgorithm>::registeredProducts());
+
+		// TODO  Remove this hack when StringList when become available in INIFileEditor.
+		registerInputFileList_("given_transformations","<files>",StringList(),"given transformations separated by blanks. [This is a workaround used by algorithm type apply_given_trafo until StringList is supported by INIFileEditor.]",false);
+		setValidFormats_("given_transformations",StringList::create("trafoXML"));
     
     addEmptyLine_();
 		addText_("This tool takes N input files, aligns them and writes them to the output files.");
@@ -83,12 +87,16 @@ protected:
 		registerSubsection_("algorithm","Algorithm parameters section");
 	}
 	
-	Param getSubsectionDefaults_(const String& /*section*/) const
+	Param getSubsectionDefaults_(const String& /* section */ ) const
 	{
 		String type = getStringOption_("type");
-		MapAlignmentAlgorithm* alignment = Factory<MapAlignmentAlgorithm>::create(type);
-		Param tmp = alignment->getParameters();
-		delete alignment;
+		MapAlignmentAlgorithm* algo = Factory<MapAlignmentAlgorithm>::create(type);
+		Param tmp = algo->getParameters();
+
+		// TODO  Remove this hack when StringList when become available in INIFileEditor.
+		tmp.setValue("transformations",getStringList_("given_transformations"));
+
+		delete algo;
 		return tmp;
 	}   
 
@@ -136,6 +144,13 @@ protected:
     //-------------------------------------------------------------
     MapAlignmentAlgorithm* alignment = Factory<MapAlignmentAlgorithm>::create(type);
 		Param alignment_param = getParam_().copy("algorithm:", true);
+
+		// TODO  Remove this hack when StringList when become available in INIFileEditor.
+		if (type == "apply_given_trafo")
+		{
+			alignment_param.setValue("transformations",getStringList_("given_transformations"));
+		}
+
 		writeDebug_("Used alignment parameters", alignment_param, 3);
 		alignment->setParameters(alignment_param);
 
@@ -165,7 +180,7 @@ protected:
 				return INTERNAL_ERROR;
 			}
 			
-			//write output
+			// write output
 			for (UInt i=0; i<outs.size(); ++i)
 			{		 		
 		    f.store(outs[i], peak_maps[i]);
