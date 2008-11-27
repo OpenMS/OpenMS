@@ -118,13 +118,6 @@ int main( int argc, const char** argv )
 	{
 #endif
 	  QApplication a( argc, const_cast<char**>(argv));
-	  
-		// Create the splashscreen that is displayed while the application loads
-		QPixmap splash_pm(splash);
-		QSplashScreen* splash = new QSplashScreen(splash_pm);
-		splash->show();
-		StopWatch stop_watch;
-		stop_watch.start();
 		
 	  //set plastique style unless windows / mac style is available
 	  if (QStyleFactory::keys().contains("windowsxp",Qt::CaseInsensitive))
@@ -141,26 +134,33 @@ int main( int argc, const char** argv )
 	  }
 
 	  TOPPViewBase* mw = new TOPPViewBase();
+	  mw->show();
+
+		// Create the splashscreen that is displayed while the application loads
+		QSplashScreen* splash_screen = new QSplashScreen(QPixmap(splash),Qt::WindowStaysOnTopHint | Qt::X11BypassWindowManagerHint);
+		splash_screen->showMessage("Loading parameters");
+		splash_screen->show();
+		StopWatch stop_watch;
+		stop_watch.start();
+
 	  if (param.exists("ini"))
 	  {
 	  	mw->loadPreferences((String)param.getValue("ini"));
 	  }
-	  mw->show();
-	  
+
 	  //load command line files
 	  if (param.exists("misc"))
 	  {
-	  	mw->loadFiles((StringList)(param.getValue("misc")));
+	  	mw->loadFiles((StringList)(param.getValue("misc")), splash_screen);
 	  }
-	  
-	  a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );
 
-		// We are about to start the application proper, time to 
-		// remove the splashscreen, If at least 2 seconds have passed.
+		// We are about to show the application. 
+		// Proper time to  remove the splashscreen, if at least 1.5 seconds have passed...
 		while(stop_watch.getClockTime()<1.5) {/*wait*/};
-		splash->finish(mw);
-		delete splash;
+		splash_screen->close();
+		delete splash_screen;
 
+	  a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );
 	  int result = a.exec();
 	  delete(mw);
 	  return result;

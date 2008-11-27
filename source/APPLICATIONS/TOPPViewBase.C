@@ -81,6 +81,7 @@
 #include <QtGui/QCloseEvent>
 #include <QtGui/QDesktopServices>
 #include <QtCore/QUrl>
+#include <QtGui/QSplashScreen>
 
 //intensity modes
 #include "../VISUAL/ICONS/lin.xpm"
@@ -2219,7 +2220,7 @@ namespace OpenMS
   }
 
 
-  void TOPPViewBase::loadFiles(const StringList& list)
+  void TOPPViewBase::loadFiles(const StringList& list, QSplashScreen* splash_screen)
   {
 		bool last_was_plus = false;
     for (StringList::const_iterator it=list.begin(); it!=list.end(); ++it)
@@ -2285,10 +2286,16 @@ namespace OpenMS
     	}
     	else if (!last_was_plus || !activeWindow_())
     	{
+    		splash_screen->showMessage((String("Loading file: ") + *it).toQString());
+    		splash_screen->repaint();
+    		QApplication::processEvents();
     		addDataFile(*it,false,true);
     	}
     	else 
     	{
+    		splash_screen->showMessage((String("Loading file: ") + *it).toQString());
+    		splash_screen->repaint();
+    		QApplication::processEvents();
     		last_was_plus = false;
     		addDataFile(*it,false,true,"",activeWindow_()->window_id);
     	}

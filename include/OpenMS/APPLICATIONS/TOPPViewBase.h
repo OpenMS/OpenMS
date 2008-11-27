@@ -54,6 +54,7 @@ class QToolButton;
 class QCloseEvent;
 class QTextEdit;
 class QCheckBox;
+class QSplashScreen;
 
 namespace OpenMS
 {
@@ -121,7 +122,7 @@ namespace OpenMS
       void addDataDB(UInt db_id, bool show_options, String caption="", UInt window_id=0);
 
       /// opens all the files that are inside the handed over string list
-      void loadFiles(const StringList& list);
+      void loadFiles(const StringList& list, QSplashScreen* splash_screen);
 
       /**
       	@brief Loads the preferences from the filename given.
