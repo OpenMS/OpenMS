@@ -126,13 +126,13 @@ namespace OpenMS
 		 */
 		//@{
 		/// Default constructor
-		inline Peak2D() 
+		Peak2D() 
       : position_(), 
         intensity_(0) 
     {
     }
 		/// Copy constructor
-		inline Peak2D(const Peak2D& p) 
+		Peak2D(const Peak2D& p) 
 			: position_(p.position_), 
         intensity_(p.intensity_)
 		{
@@ -155,51 +155,51 @@ namespace OpenMS
 		 */
 		//@{
 		/// Non-mutable access to the data point intensity (height)
-		inline IntensityType getIntensity() const
+		IntensityType getIntensity() const
 		{
 			return intensity_;
 		}
 
 		/// Non-mutable access to the data point intensity (height)
-		inline void setIntensity(IntensityType intensity)
+		void setIntensity(IntensityType intensity)
 		{
 			intensity_ = intensity;
 		}
 
 		/// Non-mutable access to the position
-		inline PositionType const & getPosition() const 
+		PositionType const & getPosition() const 
     { 
       return position_; 
     }
 		/// Mutable access to the position
-		inline PositionType& getPosition() 
+		PositionType& getPosition() 
     {
       return position_; 
     }
 		/// Mutable access to the position
-		inline void setPosition(const PositionType& position) 
+		void setPosition(const PositionType& position) 
     { 
       position_ = position; 
     }
 
     /// Returns the m/z coordinate (index 1)
-    inline CoordinateType getMZ() const 
+		CoordinateType getMZ() const 
     { 
       return position_[1]; 
     }
     /// Mutable access to the m/z coordinate (index 1)
-    inline void setMZ(CoordinateType coordinate) 
+		void setMZ(CoordinateType coordinate) 
     { 
       position_[1] = coordinate; 
     }
 
     /// Returns the RT coordinate (index 0)
-    inline CoordinateType getRT() const 
+		CoordinateType getRT() const 
     { 
       return position_[0]; 
     }
     /// Mutable access to the RT coordinate (index 0)
-    inline void setRT(CoordinateType coordinate) 
+		void setRT(CoordinateType coordinate) 
     { 
       position_[0] = coordinate; 
     }
@@ -207,7 +207,7 @@ namespace OpenMS
 		//@}
 
 		/// Assignment operator
-		inline Peak2D& operator = (const Peak2D& rhs)
+		Peak2D& operator = (const Peak2D& rhs)
 		{
 			if (this==&rhs) return *this;
 		
@@ -218,13 +218,13 @@ namespace OpenMS
 		}
 				
 		/// Equality operator
-		inline bool operator == (const Peak2D& rhs) const
+		bool operator == (const Peak2D& rhs) const
 		{
 			return  intensity_ == rhs.intensity_ && position_ == rhs.position_ ;
 		}
 
 		/// Equality operator
-		inline bool operator != (const Peak2D& rhs) const
+		bool operator != (const Peak2D& rhs) const
 		{
 			return !( operator==(rhs) );
 		}
@@ -239,19 +239,19 @@ namespace OpenMS
 		struct IntensityLess
 			: std::binary_function < Peak2D, Peak2D, bool >
 		{
-			inline bool operator () ( const Peak2D& left, const Peak2D& right ) const
+			bool operator () ( const Peak2D& left, const Peak2D& right ) const
 			{
 				return ( left.getIntensity() < right.getIntensity() );
 			}
-			inline bool operator () ( const Peak2D& left, IntensityType right ) const
+			bool operator () ( const Peak2D& left, IntensityType right ) const
 			{
 				return ( left.getIntensity() < right );
 			}
-			inline bool operator () ( IntensityType left, const Peak2D& right ) const
+			bool operator () ( IntensityType left, const Peak2D& right ) const
 			{
 				return ( left< right.getIntensity() );
 			}
-			inline bool operator () ( IntensityType left, IntensityType right ) const
+			bool operator () ( IntensityType left, IntensityType right ) const
 			{
 				return ( left < right );
 			}
@@ -261,19 +261,19 @@ namespace OpenMS
 		struct RTLess
 			: std::binary_function <Peak2D, Peak2D, bool>
 		{
-			inline bool operator () (const Peak2D& left, const Peak2D& right ) const 
+			bool operator () (const Peak2D& left, const Peak2D& right ) const 
 			{
 				return (left.getRT() < right.getRT());
 			}
-			inline bool operator () ( const Peak2D& left, CoordinateType right ) const 
+			bool operator () ( const Peak2D& left, CoordinateType right ) const 
 			{
 				return (left.getRT() < right );
 			}
-			inline bool operator () ( CoordinateType left, const Peak2D& right ) const 
+			bool operator () ( CoordinateType left, const Peak2D& right ) const 
 			{
 				return (left < right.getRT() );
 			}
-			inline bool operator () ( CoordinateType left, CoordinateType right ) const 
+			bool operator () ( CoordinateType left, CoordinateType right ) const 
 			{
 				return (left < right );
 			}
@@ -283,19 +283,19 @@ namespace OpenMS
 		struct MZLess
 			: std::binary_function <Peak2D, Peak2D, bool>
 		{
-			inline bool operator () ( const Peak2D& left, const Peak2D& right ) const 
+			bool operator () ( const Peak2D& left, const Peak2D& right ) const 
 			{
 				return (left.getMZ() < right.getMZ());
 			}
-			inline bool operator () ( const Peak2D& left, CoordinateType right ) const 
+			bool operator () ( const Peak2D& left, CoordinateType right ) const 
 			{
 				return (left.getMZ() < right );
 			}
-			inline bool operator () ( CoordinateType left, const Peak2D& right ) const 
+			bool operator () ( CoordinateType left, const Peak2D& right ) const 
 			{
 				return (left < right.getMZ() );
 			}
-			inline bool operator () ( CoordinateType left, CoordinateType right ) const 
+			bool operator () ( CoordinateType left, CoordinateType right ) const 
 			{
 				return (left < right );
 			}
@@ -304,19 +304,19 @@ namespace OpenMS
 		struct PositionLess
 			: public std::binary_function <Peak2D, Peak2D, bool>
 		{
-			inline bool operator () ( const Peak2D& left, const Peak2D& right) const
+			bool operator () ( const Peak2D& left, const Peak2D& right) const
 			{
 				return (left.getPosition() < right.getPosition());
 			}
-			inline bool operator () ( const Peak2D& left, const PositionType& right ) const 
+			bool operator () ( const Peak2D& left, const PositionType& right ) const 
 			{
 				return (left.getPosition() < right );
 			}
-			inline bool operator () ( const PositionType& left, const Peak2D& right ) const 
+			bool operator () ( const PositionType& left, const Peak2D& right ) const 
 			{
 				return (left < right.getPosition() );
 			}
-			inline bool operator () ( const PositionType& left, const PositionType& right ) const 
+			bool operator () ( const PositionType& left, const PositionType& right ) const 
 			{
 				return (left < right );
 			}

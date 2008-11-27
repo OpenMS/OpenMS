@@ -12,12 +12,15 @@ New features and improvements of OpenMS:
   - semantic validation
   - correctly handling of nativeID for all formats
 - Meta data: Several extensions to the meta data handling classes for mzML compliance.
+- The macros used for unit testing in source/TEST have been revised.
+- More consistent handling of single vs. double numeric precision, esp. in file output.
 
 New features and improvements of TOPP:
 - Added SILACAnalyzer: A specialized tool for quantitation of SILAC experiments (contributed by Lars Nilse).
 - Added ITRAQAnalyzer: A specialized tool for quantitation of ITRAQ experiments.
 - Added IDMapper: Assigns protein/peptide identifications to features or consensus features.
 - FeatureLinker: Added automated RT parameter estimation for 'labeled' algorithm.
+- MapAligner: Added spectrum_alignment and apply_given_trafo
 - Resampler: This tool is now used for resampling raw data instead of resampling in NoiseFilter or BaselineFilter.
 - FileInfo: The option '-v' now also does a semantic validation of MzML files.
 - FileMerger: Improved interface
@@ -59,6 +62,8 @@ Detailed list of changes to specific OpenMS classes:
   - DATASTRUCTURES/IntList
   - DATASTRUCTURES/StringList
   - ANALYSIS/ID/IDMapper
+	- ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmApplyGivenTrafo
+	- ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment
 - Changes to classes
 	- DataProcessing: Now contains Software and can handle multiple processing actions.
 	- Software: Only contains name and version now.

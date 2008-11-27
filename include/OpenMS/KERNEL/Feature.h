@@ -63,8 +63,6 @@ namespace OpenMS
 	 public:
 		///@name Type definitions
 		//@{
-		///Dimensionality of the feature
-		enum { DIMENSION = 2 };
 		///Type of the quality values
 		typedef	 DoubleReal QualityType;
 		///Charge type

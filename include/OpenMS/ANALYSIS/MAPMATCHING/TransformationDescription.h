@@ -55,10 +55,11 @@ namespace OpenMS
 	*/
 	class TransformationDescription
 	{
-		
+		friend class MapAlignmentAlgorithmApplyGivenTrafo;
+
 	 public:
 			
-		///Coordnate pair vector type
+		/// Coordnate pair vector type
 		typedef std::vector< std::pair<Real,Real> > PairVector;
 			
 		/// Constructor
@@ -79,7 +80,7 @@ namespace OpenMS
 		{
 			return name_;
 		}
-		///Sets the name
+		/// Sets the name
 		void setName(const String& name)
 		{
 			delete trafo_;
@@ -87,13 +88,13 @@ namespace OpenMS
 			name_ = name;
 		}
 			
-		///Non-mutable access to the parameters
+		/// Non-mutable access to the parameters
 		const Param& getParameters() const
 		{
 			return param_;
 		}
 			
-		///Sets the name
+		/// Sets the name
 		void setParameters(const Param& param)
 		{
 			delete trafo_;
@@ -101,13 +102,18 @@ namespace OpenMS
 			param_ = param;
 		}
 			
-		///Returns the pairs
+		/// Returns the pairs
 		const PairVector& getPairs() const
 		{
 			return pairs_;
 		}
+		/// Returns the pairs
+		PairVector& getPairs()
+		{
+			return pairs_;
+		}
 			
-		///Sets the pairs
+		/// Sets the pairs
 		void setPairs(const PairVector& pairs)
 		{
 			pairs_ = pairs;
@@ -132,145 +138,75 @@ namespace OpenMS
 		}
 				
 		/**
-		@brief Apply the transformation to @p value .
+		@brief Apply the transformation to @p value.
 					 
 		@exception Exception::IllegalArgument is thrown if the transformation cannot be initialized according to the given name and parameters.
 		*/
-		void apply(DoubleReal& value)
+		void apply(DoubleReal& value) const
 		{
-			//initialize transformation (if unset)
-			if (!trafo_) init_();
+			// Initialize transformation (if unset).
+			if (!trafo_) const_cast<TransformationDescription&>(*this).init_();
 			//apply transformation
 			trafo_->operator()(value);
 		}
 				
 	 protected:
 			
-		///Base class for all transformations
+		/**@brief Base class for all transformations
+
+		Derived classes are:
+		<ul>
+
+		<li>None_ : No transformation (i.e. identity) </li>
+
+		<li>Linear_ : Linear transformation that actually applies an affine
+		transformation ;-) </li>
+
+		<li>InterpolatedLinear_ : Piecewise linear transformation.  In between the
+		pairs, the interpolation uses the neighboring pairs.  Outside the range
+		spanned by the pairs, we extrapolate using a line through the first and
+		the last pair. (Each time this is applied, a binary search is performed.
+		We could precompute slopes for each segment, but it is not clear if this
+		will pay off.)  </li>
+
+		</ul>
+
+		(The derived classes are defined in TransformationDescription.C .)
+		*/
 		struct Trafo_
 		{
+			Trafo_(const TransformationDescription&) {}
 			virtual void operator ()(DoubleReal& value) const = 0;
+		 private:			
+			Trafo_(const Trafo_&) {}
 		};
 			
-		///Tranformation name
-		String name_;
-		///Tranformation parameters
-		Param param_;
-		///Pairs of corrensponding values
-		PairVector pairs_;
-		///Poiter to actual transformation functor
-		Trafo_ * trafo_;
-				
-		/// No transformation (i.e. identity)
-		struct None_ : Trafo_
-		{
-			None_()
-			{
-			}
-			virtual void operator ()(DoubleReal& ) const
-			{
-			}
-		};
-			
-		///@brief Linear transformation that actually applies an affine transformation ;-)
-		struct Linear_ : Trafo_
-		{
-			Linear_(DoubleReal slope, DoubleReal intercept)
-				: slope_(slope),
-					intercept_(intercept)
-			{
-			}
-			virtual void operator ()(DoubleReal& value) const
-			{
-				value *= slope_;
-				value += intercept_;
-			}
-			DoubleReal slope_;
-			DoubleReal intercept_;
-		};
-		
-		///@brief Piecewise linear transformation.
-		/**
-		In between the pairs, the interpolation uses the neighboring pairs.
-		Outside the range spanned by the pairs, we extrapolate using a line
-		through the first and the last pair.
-
-		Each time this is applied, a binary search is performed.  We could
-		precompute slopes for each segment, but it is not clear if this will pay
-		off.
-		*/
-		struct InterpolatedLinear_ : Trafo_
-		{
-			InterpolatedLinear_(PairVector const& pairs)
-				: pairs_(pairs)
-			{
-				if ( pairs_.size() < 2 )
-				{
-					throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"less than two pairs for 'interpolated_linear' transformation given");
-				}
-				std::sort(pairs_.begin(),pairs_.end());
-			}
-			virtual void operator ()(DoubleReal& value) const
-			{
-				if ( value <= pairs_.front().first )
-				{
-					DoubleReal slope = ( pairs_.back().second - pairs_.front().second ) / ( pairs_.back().first - pairs_.front().first );
-					value = pairs_.front().second + ( value - pairs_.front().first ) * slope;
-				}
-				else if ( value >= pairs_.back().first )
-				{
-					DoubleReal slope = ( pairs_.back().second - pairs_.front().second ) / ( pairs_.back().first - pairs_.front().first );
-					value = pairs_.back().second + ( value - pairs_.back().first ) * slope;
-				}
-				else
-				{
-					PairVector::value_type value_as_pair(value,0);
-					PairVector::const_iterator right = std::lower_bound( pairs_.begin(), pairs_.end(), value_as_pair );
-					PairVector::const_iterator left = right;
-					--left;
-					DoubleReal slope = ( right->second - left->second ) / ( right->first - left->first );
-					value = left->second + ( value - left->first ) * slope;
-				}
-				return;
-			}
-			PairVector pairs_;
-		};
-		
 		/**
 		@brief Initialize the transformation according to the name and parameters.
 		
-		@exception Exception::IllegalArgument is thrown if the transformation cannot be initialized according to the name and parameters.
+		@exception Exception::IllegalArgument is thrown if the transformation
+		cannot be initialized according to the name and parameters.
 		*/
-		void init_()
-		{
-			if ( trafo_ ) delete trafo_;
-			trafo_ = 0;
-			if (name_=="none")
-			{
-				trafo_ = new None_();
-			}
-			else if (name_=="linear")
-			{
-				if (!param_.exists("slope"))
-				{
-					throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"parameter 'slope' for 'linear' transformation not given");
-				}
-				if (!param_.exists("intercept"))
-				{
-					throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"parameter 'intercept' for 'linear' transformation not given");
-				}
-				trafo_ = new Linear_(param_.getValue("slope"),param_.getValue("intercept"));
-			}
-			else if (name_=="interpolated_linear")
-			{
-				trafo_ = new InterpolatedLinear_(pairs_);
-			}
-			else
-			{
-				throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,(String("unknown transformation name '") + name_ + "'").c_str());
-			}
-		}
+		void init_();
+		
+		/// Transformation name
+		String name_;
+		/// Transformation parameters
+		Param param_;
+		/// Pairs of corresponding values
+		PairVector pairs_;
+		/// Pointer to actual transformation functor
+		Trafo_ * trafo_;
+				
+		/// See Trafo_ for documentation.
+		struct None_;
 			
+		/// See Trafo_ for documentation
+		struct Linear_;
+		
+		/// See Trafo_ for documentation
+		struct InterpolatedLinear_;
+		
 	};
 
 	std::ostream& operator<<(std::ostream& os, TransformationDescription const & td);
