@@ -62,8 +62,25 @@ class TOPPBaseTest
 			registerDoubleList_("doublelist","<doublelist>",DoubleList::create("0.4711,1.022,4.0"),"doubelist description",false);
 			registerStringList_("stringlist","<stringlist>",StringList::create("abc,def,ghi,jkl"),"stringlist description",false);
 			registerFlag_("flag","flag description");
+			
+			//for testing write_ini parameter (and with it setDefaults)
+			registerStringList_("stringlist2","<stringlist>",StringList::create("1,2,3"),"stringlist with restrictions",false);
+			vector<String> rest;
+			rest.push_back("hopla");
+			rest.push_back("dude");
+			setValidStrings_("stringlist2",rest);
+			
+			registerIntList_("intlist2","<int>",IntList::create("3,4,5"),"intlist with restrictions",false);
+			setMinInt_("intlist2",2);
+			setMaxInt_("intlist2",6);
+			
+			registerDoubleList_("doublelist2","<double>",DoubleList::create("1.2,2.33"),"doublelist with restrictions",false);
+			setMinFloat_("doublelist2",0.2);
+			setMaxFloat_("doublelist2",5.4);
+			
 		}
-
+		
+		
 		String getStringOption(const String& name) const
 		{
 			return getStringOption_(name);
@@ -250,6 +267,7 @@ const char* a17 ="-stringlist";
 const char* a18 ="-intlist";
 const char* a19 ="-doublelist";
 const char* a20 ="0.411";
+const char* a21 = "-write_ini";
 START_SECTION(([EXTRA]String const& getIniLocation_() const))
 	//default
 	TOPPBaseTest tmp;
@@ -321,6 +339,47 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	const char* string_cl2[2] = {a1, a11};
 	TOPPBaseTestNOP tmp8(2,string_cl2);
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp8.getStringOption("stringoption"));
+	
+	//test option write_ini
+	String filename;
+	NEW_TMP_FILE(filename);
+	const char* f_name = filename.c_str();
+	const char* write_ini[3]={a1, a21, f_name};
+	
+	TOPPBaseTest tmp9(3, write_ini);
+	Param p1, p2;
+	p1.load(filename);
+	
+	//every parameter except for help,ini.instance, write_ini and write_wsdl
+	//toolname : TOPPBaseTest
+	p2.setValue("TOPPBaseTest:1:stringoption","string default","string description");
+	p2.setValue("TOPPBaseTest:1:intoption",4711,"int description");
+	p2.setValue("TOPPBaseTest:1:doubleoption",0.4711,"double description");
+	p2.setValue("TOPPBaseTest:1:intlist",IntList::create("1,2,3,4"),"intlist description");
+	p2.setValue("TOPPBaseTest:1:doublelist",DoubleList::create("0.4711,1.022,4.0"),"doubelist description");
+	p2.setValue("TOPPBaseTest:1:stringlist",StringList::create("abc,def,ghi,jkl"),"stringlist description");
+	p2.setValue("TOPPBaseTest:1:flag","false","flag description");
+	p2.setValue("TOPPBaseTest:1:log","TOPP.log","Location of the log file");
+	p2.setValue("TOPPBaseTest:1:debug",0,"Sets the debug level");
+	p2.setValue("TOPPBaseTest:1:no_progress","false","Disables progress logging to command line");
+	//with restriction
+	p2.setValue("TOPPBaseTest:1:stringlist2",StringList::create("1,2,3"),"stringlist with restrictions");
+		vector<String> rest;
+		rest.push_back("hopla");
+		rest.push_back("dude");
+		String stringlist2 = "TOPPBaseTest:1:stringlist2";
+	p2.setValidStrings(stringlist2,rest);
+	String intlist2 = "TOPPBaseTest:1:intlist2";
+	String doublelist2 = "TOPPBaseTest:1:doublelist2";
+	p2.setValue(intlist2,IntList::create("3,4,5"),"intlist with restriction");
+		p2.setMinInt(intlist2,2);
+		p2.setMaxInt(intlist2,6);
+	p2.setValue(doublelist2,DoubleList::create("1.2,2.33"),"doubelist with restrictions");		
+		p2.setMinFloat(doublelist2,0.2);
+		p2.setMaxFloat(doublelist2,5.4);
+	
+	TEST_EQUAL(p1,p2)
+
 END_SECTION
 
 START_SECTION(([EXTRA]String getIntOption_(const String& name) const))

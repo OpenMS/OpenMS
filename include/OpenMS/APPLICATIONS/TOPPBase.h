@@ -408,7 +408,7 @@ namespace OpenMS
       	registerIntOption_ and registerFlag_ in order to register parameters in registerOptionsAndFlags_.
 
       	To access the values of registered parameters in the main_ method use methods
-      	getStringOption_ (also for input and output files), getDoubleOption_, getIntOption_ and getFlag_.
+      	getStringOption_ (also for input and output files), getDoubleOption_, getIntOption_,getStringList_(also for input and output file lists),getIntList_,getDoubleList_, and getFlag_.
 
 				The values of the certain options can be restricted using: setMinInt_, setMaxInt_, setMinFloat_, 
 				setMaxFloat_, setValidStrings_ and setValidFormats_.
@@ -436,7 +436,7 @@ namespace OpenMS
       void registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
 			
 			/**
-				@brief Sets the valid strings for a string option
+				@brief Sets the valid strings for a string option or a hole string list
 				
 				@exception Exception::ElementNotFound is thrown if the parameter is unset or not a string parameter
 				@exception Exception::InvalidParameter is thrown if the valid strings contain comma characters
@@ -474,7 +474,7 @@ namespace OpenMS
       void registerOutputFile_( const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false );
 
 			/**
-				@brief Sets the formats for a input/output file option
+				@brief Sets the formats for a input/output file option or for all members of an input/output file lists
 				
 				Setting the formats causes a check for the right file format (input file) or the right file extension (output file).
 				This check is performed only, when the option is accessed in the TOPP tool.				
@@ -498,25 +498,25 @@ namespace OpenMS
       void registerDoubleOption_( const String& name, const String& argument, double default_value, const String& description, bool required = true, bool advanced = false );
 
 			/**
-				@brief Sets the minimum value for the integer parameter @p name. 
+				@brief Sets the minimum value for the integer parameter(can be a list of integers,too) @p name. 
 				
 				@exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
 			*/			
 			void setMinInt_(const String& name, Int min);
 			/**
-				@brief Sets the maximum value for the integer parameter @p name. 
+				@brief Sets the maximum value for the integer parameter(can be a list of integers,too) @p name. 
 				
 					@exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
 		*/
 			void setMaxInt_(const String& name, Int max);
 			/**
-				@brief Sets the minimum value for the floating point parameter @p name. 
+				@brief Sets the minimum value for the floating point parameter(can be a list of floating points,too) @p name. 
 				
 				@exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
 			*/
 			void setMinFloat_(const String& name, DoubleReal min);
 			/**
-				@brief Sets the maximum value for the floating point parameter @p name. 
+				@brief Sets the maximum value for the floating point parameter(can be a list of floating points,too) @p name. 
 				
 				@exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
 			*/

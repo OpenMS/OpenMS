@@ -38,9 +38,9 @@ namespace OpenMS
 {
 	using namespace Exception;
 	
-  TOPPBase::TOPPBase(const String& name, const String& description, bool official, const String& version)
-  	: tool_name_(name),
-  		tool_description_(description),
+  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, const String& version)
+  	: tool_name_(tool_name),
+  		tool_description_(tool_description),
 			instance_number_(-1),
 			debug_level_(-1),
 			version_(version),
@@ -55,12 +55,6 @@ namespace OpenMS
 		if ( !VersionInfo::getRevision().empty() && VersionInfo::getRevision() != "exported" )
 		{
 			version_ += String(", Revision: ") + VersionInfo::getRevision() + "";
-		}
-		
-		//check if tool is in official tools list
-		if (official && !getToolList().contains(tool_name_))
-		{
-			writeLog_("Message to maintainer: If this is an official TOPP tools, add it to the TOPPBase tools list. If it is not, set the 'official' bool of the TOPPBase constructor to false.");
 		}
 	}
 
@@ -562,18 +556,23 @@ namespace OpenMS
 				case ParameterInformation::STRING:
 				case ParameterInformation::INPUT_FILE:
 				case ParameterInformation::OUTPUT_FILE:
+				case ParameterInformation::STRINGLIST:
+				case ParameterInformation::INPUT_FILE_LIST:
+				case ParameterInformation::OUTPUT_FILE_LIST:
 					if (it->valid_strings.size()!=0)
 					{
 						String tmp;
 						tmp.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
 	
 						String add = "";
-						if (it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE) add = " formats";
+						if (it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE ||
+								it->type == ParameterInformation::INPUT_FILE_LIST || it->type == ParameterInformation::OUTPUT_FILE_LIST) add = " formats";
 	
 						addons.push_back(String("valid") + add + ": '" + tmp + "'");
 					}
 					break;
 				case ParameterInformation::INT:
+				case ParameterInformation::INTLIST:
 						if (it->min_int!=-std::numeric_limits<Int>::max())
 					{
 						addons.push_back(String("min: '") + it->min_int + "'");
@@ -584,6 +583,7 @@ namespace OpenMS
 					}
 					break;
 				case ParameterInformation::DOUBLE:
+				case ParameterInformation::DOUBLELIST:
 					if (it->min_float!=-std::numeric_limits<DoubleReal>::max())
 					{
 						addons.push_back(String("min: '") + it->min_float + "'");
@@ -593,21 +593,7 @@ namespace OpenMS
 						addons.push_back(String("max: '") + it->max_float + "'");
 					}
 					break;
-				case ParameterInformation::STRINGLIST:
-					//TODO DAVID
-					break;
-				case ParameterInformation::INTLIST:
-					//TODO DAVID
-					break;
-				case ParameterInformation::DOUBLELIST:
-					//TODO DAVID
-					break;
-				case ParameterInformation::INPUT_FILE_LIST:
-					//TODO DAVID
-					break;
-				case ParameterInformation::OUTPUT_FILE_LIST:
-					//TODO DAVID
-					break;
+	
 				default:
 					break;
 			}
@@ -1657,6 +1643,8 @@ namespace OpenMS
 				String name = loc + it->name;
 				StringList tags;
 				if (it->advanced) tags.push_back("advanced");
+				if(it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::INPUT_FILE_LIST) tags.push_back("input file");
+				if(it->type == ParameterInformation::OUTPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE_LIST) tags.push_back("output file");
 				switch(it->type)
 				{
 					case ParameterInformation::STRING:

@@ -456,7 +456,7 @@ namespace OpenMS
 			*/
 			void setValidStrings(const String& key, const std::vector<String>& strings);
 			/**
-				@brief Sets the minimum value for the integer parameter @p key. 
+				@brief Sets the minimum value for the integer or integer list parameter @p key. 
 				
 				It is only checked in checkDefaults(). 
 				
@@ -464,7 +464,7 @@ namespace OpenMS
 			*/			
 			void setMinInt(const String& key, Int min);
 			/**
-				@brief Sets the maximum value for the integer parameter @p key. 
+				@brief Sets the maximum value for the integer or integer list parameter @p key. 
 				
 				It is only checked in checkDefaults().
 				
@@ -472,7 +472,7 @@ namespace OpenMS
 			*/
 			void setMaxInt(const String& key, Int max);
 			/**
-				@brief Sets the minimum value for the floating point parameter @p key. 
+				@brief Sets the minimum value for the floating point or floating point list parameter @p key. 
 				
 				It is only checked in checkDefaults(). 
 				
@@ -480,7 +480,7 @@ namespace OpenMS
 			*/
 			void setMinFloat(const String& key, DoubleReal min);
 			/**
-				@brief Sets the maximum value for the floating point parameter @p key. 
+				@brief Sets the maximum value for the floating point or floating point list parameter @p key. 
 				
 				It is only checked in checkDefaults(). 
 				
