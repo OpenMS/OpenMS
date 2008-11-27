@@ -35,6 +35,7 @@ namespace OpenMS
 	ConsensusXMLFile::ConsensusXMLFile()
 		: XMLHandler("", "1.3"),
 			XMLFile("/SCHEMAS/ConsensusXML_1_3.xsd","1.3"),
+			ProgressLogger(),
 			consensus_map_(0),
 			act_cons_element_(),
 			last_meta_(0)
@@ -97,6 +98,10 @@ namespace OpenMS
 			pep_id_.insertHit(pep_hit_);
 			last_meta_ = &pep_id_;
 		}
+		else if (tag == "consensusXML")
+		{
+			endProgress();
+		}
 	}
 
 	void ConsensusXMLFile::characters(const XMLCh* const /*chars*/, unsigned int /*length*/)
@@ -113,6 +118,7 @@ namespace OpenMS
 		String tmp_str;
 		if ( tag == "map" )
 		{
+			setProgress(++progress_);
 			last_map_ = attributeAsInt_(attributes,"id");
 			last_meta_ = &consensus_map_->getFileDescriptions()[last_map_];
 			consensus_map_->getFileDescriptions()[last_map_].filename = attributeAsString_(attributes,"name");
@@ -129,6 +135,7 @@ namespace OpenMS
 		}
 		else if ( tag == "consensusElement" )
 		{
+			setProgress(++progress_);
 			act_cons_element_ = ConsensusFeature();
 			last_meta_ = &act_cons_element_;
 			//set quality
@@ -206,6 +213,9 @@ namespace OpenMS
 		}
 		else if ( tag == "consensusXML" )
 		{
+			startProgress(0,0,"loading consensusXML file");
+			progress_ = 0;
+			setProgress(++progress_);
 			//check file version against schema version
 			String file_version="1.0";
 			optionalAttributeAsString_(file_version,attributes,"version");
@@ -256,6 +266,7 @@ namespace OpenMS
 		}
 		else if (tag == "IdentificationRun")
 		{
+			setProgress(++progress_);
 			prot_id_.setSearchEngine(attributeAsString_(attributes,"search_engine"));
 			prot_id_.setSearchEngineVersion(attributeAsString_(attributes,"search_engine_version"));
 			prot_id_.setDateTime(DateTime::fromString(String(attributeAsString_(attributes,"date")).toQString(),"yyyy-MM-ddThh:mm:ss"));
@@ -344,6 +355,7 @@ namespace OpenMS
 		}
 		else if (tag == "ProteinHit")
 		{
+			setProgress(++progress_);
 			prot_hit_ = ProteinHit();
 			String accession = attributeAsString_(attributes,"accession");
 			prot_hit_.setAccession(accession);
@@ -406,8 +418,8 @@ namespace OpenMS
 		}
 		else if (tag == "PeptideHit")
 		{
+			setProgress(++progress_);
 			pep_hit_ = PeptideHit();
-		
 			pep_hit_.setCharge(attributeAsInt_(attributes,"charge"));
 			pep_hit_.setScore(attributeAsDouble_(attributes,"score"));
 			pep_hit_.setSequence(attributeAsString_(attributes,"sequence"));
@@ -456,6 +468,7 @@ namespace OpenMS
 		}
 		else if (tag=="dataProcessing")
 		{
+			setProgress(++progress_);
 			DataProcessing tmp;
 			tmp.setCompletionTime(asDateTime_(attributeAsString_(attributes, "completion_time")));
 			consensus_map_->getDataProcessing().push_back(tmp);
@@ -481,8 +494,12 @@ namespace OpenMS
 	
   void ConsensusXMLFile::store(const String& filename, const ConsensusMap& consensus_map)
   {
+		startProgress(0,0,"storing consensusXML file");
+		progress_ = 0;
+		setProgress(++progress_);
+
   	//open stream
-		ofstream os(filename.c_str());	
+		ofstream os(filename.c_str());
 		if (!os)
 		{
 			throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
@@ -490,6 +507,7 @@ namespace OpenMS
 		
 		os.precision(writtenDigits<DoubleReal>());
 		
+		setProgress(++progress_);
 		os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
 		//add XSLT file if it can be found
 		try
@@ -501,6 +519,7 @@ namespace OpenMS
 		{
 		}
 		
+		setProgress(++progress_);
 		os << "<consensusXML version=\"" << version_ << "\"";
 		if (consensus_map.getIdentifier()!="")
 		{
@@ -514,6 +533,7 @@ namespace OpenMS
 
 		//user param
 		writeUserParam_("userParam", os, consensus_map, 1);
+		setProgress(++progress_);
 		
 		//write data processing
 		for (UInt i=0; i< consensus_map.getDataProcessing().size(); ++i)
@@ -528,6 +548,7 @@ namespace OpenMS
 			writeUserParam_ ("userParam", os, processing, 2);
 			os << "\t</dataProcessing>\n";
 		}
+		setProgress(++progress_);
 
 		// write identification run
 		UInt prot_count = 0;
@@ -535,6 +556,7 @@ namespace OpenMS
 
 		for ( UInt i = 0; i < consensus_map.getProteinIdentifications().size(); ++i )
 		{
+			setProgress(++progress_);
 			const ProteinIdentification& current_prot_id = consensus_map.getProteinIdentifications()[i];
 			os << "\t<IdentificationRun ";
 			os << "id=\"PI_" << i << "\" ";
@@ -638,6 +660,7 @@ namespace OpenMS
 		os << "\t<mapList count=\"" << description_vector.size() << "\">\n";
 		for (Map<UInt,ConsensusMap::FileDescription>::const_iterator it=description_vector.begin(); it!=description_vector.end(); ++it)
 		{
+			setProgress(++progress_);
 			os << "\t\t<map id=\"" << it->first << "\" name=\"" << it->second.filename << "\" label=\"" << it->second.label << "\" size=\"" << it->second.size << "\">\n";
 			writeUserParam_("userParam", os, it->second, 3);
 			os << "\t\t</map>\n";
@@ -648,6 +671,7 @@ namespace OpenMS
 		os << "\t<consensusElementList>\n";
 		for (UInt i = 0; i < consensus_map.size(); ++i)
 		{
+			setProgress(++progress_);
 			// write a consensusElement
 			const ConsensusFeature& elem = consensus_map[i];
 			os << "\t\t<consensusElement id=\"e_"<< i << "\" quality=\"" << precisionWrapper(elem.getQuality()) << "\"";
@@ -682,6 +706,7 @@ namespace OpenMS
 			// write PeptideIdentification
 			for ( UInt i = 0; i < elem.getPeptideIdentifications().size(); ++i )
 			{
+				setProgress(++progress_);
 				const PeptideIdentification& current_pep_id = elem.getPeptideIdentifications()[i];
 				if (!identifier_id_.has(current_pep_id.getIdentifier()))
 				{
@@ -716,6 +741,7 @@ namespace OpenMS
 				// write peptide hits
 				for(UInt j=0; j<current_pep_id.getHits().size(); ++j)
 				{
+					setProgress(++progress_);
 					os << "\t\t\t\t<PeptideHit";
 					os << " score=\"" << current_pep_id.getHits()[j].getScore() << "\"";
 					os << " sequence=\"" << current_pep_id.getHits()[j].getSequence() << "\"";
@@ -749,6 +775,7 @@ namespace OpenMS
 				tmp.removeMetaValue("RT");
 				tmp.removeMetaValue("MZ");
 				tmp.removeMetaValue("spectrum_reference");
+				setProgress(++progress_);
 				writeUserParam_("userParam", os, tmp, 4);
 				os << "\t\t\t</PeptideIdentification>\n";
 			}
@@ -762,6 +789,7 @@ namespace OpenMS
 
 		//Clear members
 		identifier_id_.clear();
+		endProgress();
 	}
 
   void ConsensusXMLFile::load(const String& filename, ConsensusMap& map)

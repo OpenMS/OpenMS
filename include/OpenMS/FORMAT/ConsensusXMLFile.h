@@ -27,100 +27,103 @@
 #ifndef OPENMS_FORMAT_CONSENSUSXMLFILE_H
 #define OPENMS_FORMAT_CONSENSUSXMLFILE_H
 
-#include <OpenMS/FORMAT/XMLFile.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
+#include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-
 
 namespace OpenMS
 {
   /**
-    @brief This class provides Input functionality for ConsensusMaps and Output functionality for 
-    alignments and quantitation.
+	@brief This class provides Input functionality for ConsensusMaps and Output functionality for 
+	alignments and quantitation.
      
-		This class can be used to load the content of a consensusXML file into a ConsensusMap 
-		or to save the content of an ConsensusMap object into an XML file.
+	This class can be used to load the content of a consensusXML file into a ConsensusMap 
+	or to save the content of an ConsensusMap object into an XML file.
 		
-		A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
+	A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
 		
-    @ingroup FileIO
+	@ingroup FileIO
   */
   class ConsensusXMLFile 
   	: public Internal::XMLHandler,
-  		public Internal::XMLFile
+  		public Internal::XMLFile,
+			public ProgressLogger
   {
-    public:
-      ///Default constructor
-      ConsensusXMLFile();
-      ///Destructor
-      ~ConsensusXMLFile();
+	 public:
+		///Default constructor
+		ConsensusXMLFile();
+		///Destructor
+		~ConsensusXMLFile();
 
 
-			/**
-				@brief Loads a consenus map from a ConsensusXML file.
+		/**
+		@brief Loads a consenus map from a ConsensusXML file.
 			
-				@exception Exception::FileNotFound is thrown if the file could not be opened
-				@exception Exception::ParseError is thrown if an error occurs during parsing
-			*/
-      void load(const String& filename, ConsensusMap& map);
+		@exception Exception::FileNotFound is thrown if the file could not be opened
+		@exception Exception::ParseError is thrown if an error occurs during parsing
+		*/
+		void load(const String& filename, ConsensusMap& map);
 
-      /**
-      	@brief Stores a staralignment object into consensusXML format.
+		/**
+		@brief Stores a staralignment object into consensusXML format.
       
-      	@exception Exception::UnableToCreateFile is thrown if the file name is not writable
-      	@exception Exception::IllegalArgument is thrown if the consensus map is not valid
-      */
-      void store(const String& filename, const ConsensusMap& consensus_map);
+		@exception Exception::UnableToCreateFile is thrown if the file name is not writable
+		@exception Exception::IllegalArgument is thrown if the consensus map is not valid
+		*/
+		void store(const String& filename, const ConsensusMap& consensus_map);
 
-      /// Mutable access to the options for loading/storing 
-      PeakFileOptions& getOptions();
+		/// Mutable access to the options for loading/storing 
+		PeakFileOptions& getOptions();
 
-      /// Non-mutable access to the options for loading/storing 
-      const PeakFileOptions& getOptions() const;
+		/// Non-mutable access to the options for loading/storing 
+		const PeakFileOptions& getOptions() const;
   
-		protected:
+	 protected:
 	
-			// Docu in base class
-			virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+		// Docu in base class
+		virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
 
-			// Docu in base class
-			virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+		// Docu in base class
+		virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
-			// Docu in base class
-			virtual void characters(const XMLCh* const chars, unsigned int length);
+		// Docu in base class
+		virtual void characters(const XMLCh* const chars, unsigned int length);
 
-			/// Options that can be set
-			PeakFileOptions options_;
+		/// Options that can be set
+		PeakFileOptions options_;
 			
-			///@name Temporary variables for parsing
-			//@{
-			ConsensusMap* consensus_map_;
-			ConsensusFeature act_cons_element_;
-			DPosition<2> pos_;
-			DoubleReal it_;
-			UInt last_map_;
-			//@}
+		///@name Temporary variables for parsing
+		//@{
+		ConsensusMap* consensus_map_;
+		ConsensusFeature act_cons_element_;
+		DPosition<2> pos_;
+		DoubleReal it_;
+		UInt last_map_;
+		//@}
 			
-			/// Pointer to last read object as a MetaInfoInterface, or null.
-			MetaInfoInterface* last_meta_;
-			/// Temporary protein ProteinIdentification
-			ProteinIdentification prot_id_;
-			/// Temporary peptide ProteinIdentification
-			PeptideIdentification pep_id_;
-			/// Temporary protein hit
-			ProteinHit prot_hit_;
-			/// Temporary peptide hit
-			PeptideHit pep_hit_;
-			/// Map from protein id to accession
-			Map<String,String> proteinid_to_accession_;
-			/// Map from identification run identifier to file xs:id (for linking peptide identifications to the corresponding run)
-			Map<String,String> identifier_id_;
-			/// Map from file xs:id to identification run identifier (for linking peptide identifications to the corresponding run)
-			Map<String,String> id_identifier_;
-			/// Temporary search parameters file
-			ProteinIdentification::SearchParameters search_param_;
+		/// Pointer to last read object as a MetaInfoInterface, or null.
+		MetaInfoInterface* last_meta_;
+		/// Temporary protein ProteinIdentification
+		ProteinIdentification prot_id_;
+		/// Temporary peptide ProteinIdentification
+		PeptideIdentification pep_id_;
+		/// Temporary protein hit
+		ProteinHit prot_hit_;
+		/// Temporary peptide hit
+		PeptideHit pep_hit_;
+		/// Map from protein id to accession
+		Map<String,String> proteinid_to_accession_;
+		/// Map from identification run identifier to file xs:id (for linking peptide identifications to the corresponding run)
+		Map<String,String> identifier_id_;
+		/// Map from file xs:id to identification run identifier (for linking peptide identifications to the corresponding run)
+		Map<String,String> id_identifier_;
+		/// Temporary search parameters file
+		ProteinIdentification::SearchParameters search_param_;
 		
+		UInt progress_;
+
   };
 } // namespace OpenMS
 
