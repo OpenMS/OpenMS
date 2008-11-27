@@ -47,6 +47,9 @@ using namespace std;
 	This tool provides several different algorithms to correct for retention time shifts
 	and distortions.
 	
+	@todo do TODOs related to 'given_transformations' (Clemens)
+	@todo allow application of RT trafos to idXML (Marc, Clemens)
+	
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_MapAligner.cli
 */

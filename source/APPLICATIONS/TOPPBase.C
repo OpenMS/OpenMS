@@ -56,6 +56,12 @@ namespace OpenMS
 		{
 			version_ += String(", Revision: ") + VersionInfo::getRevision() + "";
 		}
+
+		//check if tool is in official tools list
+		if (official && !getToolList().contains(tool_name_))
+		{
+			writeLog_("Error: Message to maintainer - If this is an official TOPP tools, add it to the TOPPBase tools list. If it is not, set the 'official' bool of the TOPPBase constructor to false.");
+		}
 	}
 
 	TOPPBase::~TOPPBase()
