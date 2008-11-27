@@ -817,8 +817,8 @@ namespace OpenMS
 		//Check for subsamples
 		visualizeAll_(meta.getSubsamples(), item);
 		
-		//check for metainfo objects
 		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+
 		connectVisualizer_(visualizer);
 	}
 	
@@ -841,6 +841,9 @@ namespace OpenMS
 		{
 			item = new QTreeWidgetItem(parent, labels );
 		}
+		
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+		
 		connectVisualizer_(visualizer);
 	}
 

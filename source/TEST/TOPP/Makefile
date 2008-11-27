@@ -27,12 +27,13 @@ include ../../config_defs.mak
 DIRECTORY=TEST/TOPP
 
 # Tests for individual tools
+# @Clemens: DO NOT SORT THESE TEST ALPHABETICALLY - THE ORDER MATTERS - I FIXED THAT TWO TIMES SO FAR (Marc)
 TOPP_TOOL_TESTS = \
 	AdditiveSeries_test \
 	BaselineFilter_test \
 	ConsensusID_test \
-	DBExporter_test \
 	DBImporter_test \
+	DBExporter_test \
 	DTAExtractor_test \
 	Decharger_test \
 	FeatureFinderMRM_test\

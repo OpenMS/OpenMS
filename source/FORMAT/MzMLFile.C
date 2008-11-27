@@ -35,8 +35,8 @@ namespace OpenMS
 {
 
 	MzMLFile::MzMLFile()
-		: XMLFile("/SCHEMAS/mzML_1_00.xsd","1.00"),
-			indexed_schema_location_("/SCHEMAS/mzML_idx_1_00.xsd")
+		: XMLFile("/SCHEMAS/mzML_1_10.xsd","1.10"),
+			indexed_schema_location_("/SCHEMAS/mzML_idx_1_10.xsd")
 	{
 	}
 

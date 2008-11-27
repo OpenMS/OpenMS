@@ -31,29 +31,29 @@ using namespace std;
 namespace OpenMS
 {
 
-	Software::Software():
-	  name_(),
-	  version_()
+	Software::Software()
+		: MetaInfoInterface(),
+	  	name_(),
+	  	version_()
 	{
-	  
 	}
 	
-	Software::Software(const Software& rhs):
-	  name_(rhs.name_),
-	  version_(rhs.version_)
+	Software::Software(const Software& rhs)
+		: MetaInfoInterface(rhs),
+	  	name_(rhs.name_),
+	  	version_(rhs.version_)
 	{
-	  
 	}
 	
 	Software::~Software()
 	{
-	  
 	}
 	
 	Software& Software::operator = (const Software& rhs)
 	{
 	  if (&rhs == this) return *this;
 	  
+	  MetaInfoInterface::operator=(rhs);
 	  name_ = rhs.name_;
 	  version_ = rhs.version_;
 	  
@@ -62,7 +62,8 @@ namespace OpenMS
 	
 	bool Software::operator== (const Software& rhs) const
 	{
-		return 
+		return
+			MetaInfoInterface::operator==(rhs) &&
 	    name_ == rhs.name_ &&
 	    version_ == rhs.version_
 	    ;

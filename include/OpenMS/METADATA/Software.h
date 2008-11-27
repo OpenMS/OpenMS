@@ -28,6 +28,7 @@
 #define OPENMS_METADATA_SOFTWARE_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 namespace OpenMS 
 {
@@ -37,6 +38,7 @@ namespace OpenMS
 		@ingroup Metadata
 	*/
   class Software
+  	: public MetaInfoInterface
   {
     public:
     	/// Constructor

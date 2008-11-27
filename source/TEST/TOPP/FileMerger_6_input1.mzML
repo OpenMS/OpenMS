@@ -73,26 +73,22 @@
     </instrumentConfiguration>
   </instrumentConfigurationList>
   <softwareList count="3">
-    <software id="Bioworks">
-      <softwareParam cvRef="MS" accession="MS:1000533" name="Bioworks" version="3.3.1 sp1"/>
+    <software id="Bioworks" version="3.3.1 sp1">
+      <cvParam cvRef="MS" accession="MS:1000533" name="Bioworks"/>
     </software>
-    <software id="pwiz">
-      <softwareParam cvRef="MS" accession="MS:1000615" name="ProteoWizard" version="1.0"/>
+    <software id="pwiz" version="1.0">
+      <cvParam cvRef="MS" accession="MS:1000615" name="ProteoWizard"/>
     </software>
-    <software id="Xcalibur">
-      <softwareParam cvRef="MS" accession="MS:1000532" name="Xcalibur" version="2.0.5"/>
+    <software id="Xcalibur" version="2.0.5">
+      <cvParam cvRef="MS" accession="MS:1000532" name="Xcalibur"/>
     </software>
   </softwareList>
-  <dataProcessingList count="2">
-    <dataProcessing id="pwizconversion" softwareRef="pwiz">
-      <processingMethod order="2">
-        <cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" value=""/>
-      </processingMethod>
-    </dataProcessing>
-    <dataProcessing id="XcaliburProcessing" softwareRef="Xcalibur">
-      <processingMethod order="1">
+  <dataProcessingList count="3">
+    <dataProcessing id="XcaliburProcessing">
+      <processingMethod order="1" softwareRef="Xcalibur">
         <cvParam cvRef="MS" accession="MS:1000033" name="deisotoping" value=""/>
         <cvParam cvRef="MS" accession="MS:1000629" name="low intensity threshold" value="5.9"/>
+        <cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" value=""/>
   			<userParam name="name" value="processingMethod"/>
       </processingMethod>
     </dataProcessing>
@@ -120,10 +116,8 @@
     <sourceFileRefList count="1">
       <sourceFileRef ref="sf1"/>
     </sourceFileRefList>
-    <spectrumList count="1">
+    <spectrumList count="1" defaultDataProcessingRef="XcaliburProcessing">
       <spectrum index="0" id="S19" nativeID="19" defaultArrayLength="15">
-        <cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
-        <userParam name="name" value="spectrum1"/>
         <spectrumDescription>
         	<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
           <cvParam cvRef="MS" accession="MS:1000127" name="centroid mass spectrum" value=""/>
@@ -132,6 +126,12 @@
           <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="445.347"/>
           <cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="120053"/>
           <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
+          <cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.8905" unitCvRef="MS" unitAccession="MS:1000038" unitName="minute"/>
+          <cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
+          <cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="3"/>
+		      <cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+		      <userParam name="name" value="spectrum1"/>
+      		<userParam name="name" value="scan1"/>
           <acquisitionList count="2">
           	<acquisition number="4711">
         			<userParam name="name" value="acquisition1"/>
@@ -140,18 +140,12 @@
         			<userParam name="name" value="acquisition2"/>
           	</acquisition>
           </acquisitionList>
-          <scan instrumentConfigurationRef="LCQDeca">
-            <cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.8905" unitCvRef="MS" unitAccession="MS:1000038" unitName="minute"/>
-            <cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
-            <cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="3"/>
-        		<userParam name="name" value="scan1"/>
-            <scanWindowList count="1">
-              <scanWindow>
-                <cvParam cvRef="MS" accession="MS:1000501" name="scan m/z lower limit" value="400"/>
-                <cvParam cvRef="MS" accession="MS:1000500" name="scan m/z upper limit" value="1800"/>
-              </scanWindow>
-            </scanWindowList>
-          </scan>
+          <scanWindowList count="1">
+            <scanWindow>
+              <cvParam cvRef="MS" accession="MS:1000501" name="scan m/z lower limit" value="400"/>
+              <cvParam cvRef="MS" accession="MS:1000500" name="scan m/z upper limit" value="1800"/>
+            </scanWindow>
+          </scanWindowList>
         </spectrumDescription>
         <binaryDataArrayList count="2">
           <binaryDataArray encodedLength="160" dataProcessingRef="XcaliburProcessing">

@@ -78,7 +78,6 @@
 					<spectrumInstrument msLevel="1" mzRangeStart="400" mzRangeStop="1800">
 						<cvParam cvLabel="psi" accession="PSI:1000036" name="ScanMode" value="MassScan"/>
 						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="5.8905"/>
-						<userParam name="name" value="scan1"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 			</spectrumDesc>
@@ -95,7 +94,6 @@
 					<spectrumInstrument msLevel="2" mzRangeStart="110" mzRangeStop="905">
 						<cvParam cvLabel="psi" accession="PSI:1000036" name="ScanMode" value="MassScan"/>
 						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="5.9905"/>
-						<userParam name="name" value="scan2"/>
 					</spectrumInstrument>
 				</spectrumSettings>
 				<precursorList count="1">

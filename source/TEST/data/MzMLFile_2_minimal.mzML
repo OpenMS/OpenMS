@@ -3,9 +3,11 @@
 	<cvList count="1">
     <cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" version="2.0.2" URI="http://psidev.sourceforge.net/ms/xml/mzdata/psi-ms.2.0.2.obo"/>
 	</cvList>
+	
 	<fileDescription>
 		<fileContent/>
 	</fileDescription>
+	
 	<instrumentConfigurationList count="1">
 		<instrumentConfiguration id="ID_1">
 			<componentList count="1">
@@ -15,17 +17,20 @@
 			</componentList>
 		</instrumentConfiguration>
 	</instrumentConfigurationList>
+	
 	<softwareList count="1">
-		<software id="ID_2">
-      <softwareParam cvRef="MS" accession="MS:1000533" name="Bioworks" version="3.3.1 sp1"/>
+		<software id="ID_2" version="3.3.1 sp1">
+      <cvParam cvRef="MS" accession="MS:1000533" name="Bioworks"/>
 		</software>
 	</softwareList>
+	
 	<dataProcessingList count="1">
-		<dataProcessing softwareRef="ID_2" id="ID_3">
-			<processingMethod order="1"/>
+		<dataProcessing id="ID_3">
+			<processingMethod order="1" softwareRef="ID_2"/>
 		</dataProcessing>
 	</dataProcessingList>
+	
 	<run id="ID_9" defaultInstrumentConfigurationRef="ID_1">
-		<spectrumList count="0"/>
+		<spectrumList count="0" defaultDataProcessingRef="ID_3" />
 	</run>
 </mzML>

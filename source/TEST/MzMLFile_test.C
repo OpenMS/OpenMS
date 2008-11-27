@@ -151,11 +151,6 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_EQUAL(exp.getInstrument().getSoftware().getVersion(),"3.3.1 sp1")
 	//processing
 	TEST_EQUAL(exp.getDataProcessing().size(),2)
-	TEST_EQUAL(exp.getDataProcessing()[1].getSoftware().getName(),"ProteoWizard")
-	TEST_EQUAL(exp.getDataProcessing()[1].getSoftware().getVersion(),"1.0")
-	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().size(),1)
-	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().count(DataProcessing::CONVERSION_MZML),1)
-	TEST_EQUAL(exp.getDataProcessing()[1].isMetaEmpty(),true)
 	TEST_EQUAL(exp.getDataProcessing()[0].getSoftware().getName(),"Xcalibur")
 	TEST_EQUAL(exp.getDataProcessing()[0].getSoftware().getVersion(),"2.0.5")
 	TEST_EQUAL(exp.getDataProcessing()[0].getProcessingActions().size(),2)
@@ -165,6 +160,11 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_REAL_SIMILAR(DoubleReal(exp.getDataProcessing()[0].getMetaValue("low_intensity_threshold")),5.9)
 	TEST_REAL_SIMILAR(DoubleReal(exp.getDataProcessing()[0].getMetaValue("high_intensity_threshold")),10.9)
 	TEST_EQUAL(exp.getDataProcessing()[0].isMetaEmpty(),false)
+	TEST_EQUAL(exp.getDataProcessing()[1].getSoftware().getName(),"ProteoWizard")
+	TEST_EQUAL(exp.getDataProcessing()[1].getSoftware().getVersion(),"1.0")
+	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().size(),1)
+	TEST_EQUAL(exp.getDataProcessing()[1].getProcessingActions().count(DataProcessing::CONVERSION_MZML),1)
+	TEST_EQUAL(exp.getDataProcessing()[1].isMetaEmpty(),false)
 
 	//-------------------------- spectrum 0 --------------------------
 	{
@@ -337,10 +337,6 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL((String)exp.getContacts()[0].getMetaValue("name"),"contact1")
 	TEST_STRING_EQUAL((String)exp.getContacts()[1].getMetaValue("name"),"contact2")
 	//spectrum
-	TEST_STRING_EQUAL((String)exp[0].getMetaValue("name"),"spectrum1")
-	TEST_STRING_EQUAL((String)exp[1].getMetaValue("name"),"spectrum2")
-	TEST_STRING_EQUAL((String)exp[2].getMetaValue("name"),"spectrum3")
-	TEST_STRING_EQUAL((String)exp[3].getMetaValue("name"),"spectrum4")
 	TEST_STRING_EQUAL((String)exp[0].getMetaValue("sdname"),"spectrumdescription1")
 	TEST_STRING_EQUAL((String)exp[1].getMetaValue("sdname"),"spectrumdescription2")
 	TEST_STRING_EQUAL((String)exp[2].getMetaValue("sdname"),"spectrumdescription3")
@@ -354,11 +350,6 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL((String)exp[1].getMetaDataArrays()[0].getMetaValue("name2"),"binaryDataArray_sn2")
 	TEST_STRING_EQUAL((String)exp[1].getMetaDataArrays()[1].getMetaValue("name"),"binaryDataArray_c")
 	TEST_STRING_EQUAL((String)exp[1].getMetaDataArrays()[1].getMetaValue("name2"),"")
-	//scan
-	TEST_STRING_EQUAL((String)exp[0].getInstrumentSettings().getMetaValue("name"),"scan1")
-	TEST_STRING_EQUAL((String)exp[1].getInstrumentSettings().getMetaValue("name"),"scan2")
-	TEST_STRING_EQUAL((String)exp[2].getInstrumentSettings().getMetaValue("name"),"scan3")
-	TEST_STRING_EQUAL((String)exp[3].getInstrumentSettings().getMetaValue("name"),"")
 	//acquisition list
 	TEST_STRING_EQUAL((String)exp[0].getAcquisitionInfo().getMetaValue("name"),"acquisition_list")	
 	//acquisition
@@ -370,7 +361,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL((String)exp[1].getSourceFile().getMetaValue("name"),"sourcefile4")
 	//data processing
 	TEST_STRING_EQUAL(exp.getDataProcessing()[0].getMetaValue("p1").toString(),"value1")
-	TEST_STRING_EQUAL(exp.getDataProcessing()[0].getMetaValue("p2").toString(),"value2")
+	TEST_STRING_EQUAL(exp.getDataProcessing()[1].getMetaValue("p2").toString(),"value2")
 	//precursor
 	TEST_STRING_EQUAL(exp[1].getPrecursor().getMetaValue("iwname").toString(),"isolationwindow1")
 	TEST_STRING_EQUAL(exp[1].getPrecursor().getMetaValue("siname").toString(),"selectedion1")
@@ -568,7 +559,7 @@ START_SECTION( bool isSemanticallyValid(const String& filename, StringList& erro
 	
 	//invalid file
 	TEST_EQUAL(file.isSemanticallyValid("data/MzMLFile_3_invalid.mzML", errors, warnings),false)
-	TEST_EQUAL(errors.size(),12)
+	TEST_EQUAL(errors.size(),8)
 	TEST_EQUAL(warnings.size(),2)
 END_SECTION
 
