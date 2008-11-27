@@ -118,7 +118,8 @@ int main( int argc, const char** argv )
 	{
 #endif
 	  QApplication a( argc, const_cast<char**>(argv));
-		
+	  a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );
+	  		
 	  //set plastique style unless windows / mac style is available
 	  if (QStyleFactory::keys().contains("windowsxp",Qt::CaseInsensitive))
 	  {
@@ -138,8 +139,9 @@ int main( int argc, const char** argv )
 
 		// Create the splashscreen that is displayed while the application loads
 		QSplashScreen* splash_screen = new QSplashScreen(QPixmap(splash),Qt::WindowStaysOnTopHint | Qt::X11BypassWindowManagerHint);
-		splash_screen->showMessage("Loading parameters");
 		splash_screen->show();
+		splash_screen->showMessage("Loading parameters");
+		QApplication::processEvents();
 		StopWatch stop_watch;
 		stop_watch.start();
 
@@ -157,10 +159,10 @@ int main( int argc, const char** argv )
 		// We are about to show the application. 
 		// Proper time to  remove the splashscreen, if at least 1.5 seconds have passed...
 		while(stop_watch.getClockTime()<1.5) {/*wait*/};
+		stop_watch.stop();
 		splash_screen->close();
 		delete splash_screen;
-
-	  a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );
+		
 	  int result = a.exec();
 	  delete(mw);
 	  return result;
