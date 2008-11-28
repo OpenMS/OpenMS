@@ -7,32 +7,27 @@
   This document addresses %OpenMS users and explains the
   installation procedure. It especially considers the installation
   of several libraries which are required by %OpenMS. Most of these 
-  libraries are made available in our "contrib-package" (see below). All
-  installations are explained from sources, but you should consider
-  using precompiled packages suited for your system.
-  <br>
-  <br>
+  libraries are made available in our "contrib-package" (see below).
   
   <b>Required applications</b>
   
-  <p>
   In order to compile %OpenMS, several applications need to be installed:
-  <UL>
-  	<LI>Compiler: An ANSI-compatible C++ compiler is required.
-  			 <BR>Currently g++ 4.1.0 or higher is supported. 
-  			 <BR>Older versions might still work, but are not actively maintained.
-				 <BR>g++ is part of the GNU Compiler Collection (GCC).
-  	<LI>Autoconf 2.9 or higher is required
-  	<LI>GNU make is required
-  </UL>
+	 - Compiler: An ANSI-compatible C++ compiler is required. <BR>Currently g++ 4.1.0 or higher is supported.  <BR>Older versions might still work, but are not actively maintained. <BR>g++ is part of the GNU Compiler Collection (GCC).
+	 - Autoconf 2.9 or higher is required
+	 - GNU make is required
   
   <p>
-  	If your %OpenMS version is a development version from SVN, the following 
-    applications are needed in order to create the %OpenMS documentation:
-  <UL>
-  	<LI>doxygen (We recommend version 1.5.4)
-  	<LI>pdflatex
-  </UL>
+  If your %OpenMS version is a development version from SVN, the following 
+  applications are needed in order to create the %OpenMS documentation:
+		- doxygen (We recommend version 1.5.4)
+  	- pdflatex
+
+  <p>
+  Depending on your linux distribution, you might have to install the following packages (names may vary):
+  	- build-essential (Ubuntu)
+  	- qt4-devel
+  	- x11-devel
+  	- libXmu-devel
 
   @section install_linux_required Installing required dependency libraries
   
@@ -83,13 +78,11 @@
   installation of the required libraries easier, we composed a
   "contrib-package" containing the libraries ANDI/MS, NetCDF, GSL, CGAL, libSVM, SeqAn and XERCES-C. 
   This contrib package has several advantages over manual installation
-  <ul>
-    <li>you get all the libraries in versions tested with %OpenMS.</li>
-    <li>it contains a configure script that builds all the libraries in one step.</li>
-    <li>you don't have to spend hours reading installation instructions of all the libraries.</li>
-    <li>we applied some patches to the libraries to fix some bugs. 
-    		<BR><b> These bugs may be fatal if you do not use the contrib package.</b></li>
-  </ul>
+  - you get all the libraries in versions tested with %OpenMS.
+  - it contains a configure script that builds all the libraries in one step.
+  - you don't have to spend hours reading installation instructions of all the libraries.
+  - we applied some patches to the libraries to fix some bugs. <BR><b>These bugs may be fatal if you do not use the contrib package.</b>
+
   We recommend using the contrib package! Qt and MySQL are not
   contained in the contrib package as they are installed on most
   systems anyway. If they are not installed on your system, you
@@ -195,9 +188,7 @@
     <br>
     It contains the libraries needed by %OpenMS.
     <br>
-    This directory should be added to your LD_LIBRARY_PATH
-    variable.</li>
-
+    This directory should be added to your LD_LIBRARY_PATH variable.</li>
 
     <li>'include/'
     <br>
