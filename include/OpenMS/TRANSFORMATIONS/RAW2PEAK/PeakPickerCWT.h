@@ -69,8 +69,6 @@ namespace OpenMS
 	
 		@htmlinclude OpenMS_PeakPickerCWT.parameters
 	  
-	  @todo Write a PeakPicker for high-resolution data - determine position through a spline based on @em n points around local maximum, which has to have a certain @em s/n ratio (HiWi)
-	    
 		@ingroup PeakPicking
   */
   class PeakPickerCWT

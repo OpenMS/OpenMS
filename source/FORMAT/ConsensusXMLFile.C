@@ -710,7 +710,7 @@ namespace OpenMS
 				const PeptideIdentification& current_pep_id = elem.getPeptideIdentifications()[i];
 				if (!identifier_id_.has(current_pep_id.getIdentifier()))
 				{
-					warning(String("Warning: Omitting peptide identification because of missing ProteinIdentification with identifier '") + current_pep_id.getIdentifier() + "'!");
+					cerr << String("Warning: Omitting peptide identification because of missing ProteinIdentification with identifier '") + current_pep_id.getIdentifier() + "' while writing '" + filename + "'!" << endl;
 					continue;
 				}
 				os << "\t\t\t<PeptideIdentification ";

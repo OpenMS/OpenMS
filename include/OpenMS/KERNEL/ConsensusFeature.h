@@ -39,25 +39,23 @@
 namespace OpenMS
 {
 	/**
-	@brief A 2-dimensional consensus feature.
-
-	A consensus feature represents corresponding features in multiple feature
-	maps. The corresponding features are represented a set of @ref
-	FeatureHandle instances.  Each ConsensusFeature "contains" zero or more
-	FeatureHandles.
-
-	@see ConsensusMap
-
-	@ingroup Kernel
+		@brief A 2-dimensional consensus feature.
+	
+		A consensus feature represents corresponding features in multiple feature
+		maps. The corresponding features are represented a set of @ref
+		FeatureHandle instances.  Each ConsensusFeature "contains" zero or more
+		FeatureHandles.
+	
+		@see ConsensusMap
+	
+		@ingroup Kernel
 	*/
 	class ConsensusFeature
 		: public RichPeak2D,
 			public std::set<FeatureHandle, FeatureHandle::IndexLess>
 	{
 	 public:
-		/**
-		@name Type definitions
-		*/
+		///Type definitions
 		//@{
 		typedef DoubleReal QualityType;
 		typedef std::set<FeatureHandle, FeatureHandle::IndexLess> HandleSetType;
@@ -160,10 +158,20 @@ namespace OpenMS
 		{
 		}
 
+		///Constructor from raw data point
+		ConsensusFeature(const Feature& feature)
+			: RichPeak2D(feature),
+				HandleSetType(),
+				quality_(0.0),
+				charge_(0),
+				peptide_identifications_(feature.getPeptideIdentifications())
+		{
+		}
+
 		/**
-		@brief Constructor with map and element index for a singleton consensus
-		feature. Sets the consensus feature position and intensity to the values
-		of @p element as well.
+			@brief Constructor with map and element index for a singleton consensus
+			feature. Sets the consensus feature position and intensity to the values
+			of @p element as well.
 		*/
 		ConsensusFeature(UInt map_index,	UInt element_index, const Peak2D& element)
 			: RichPeak2D(element),
@@ -177,30 +185,31 @@ namespace OpenMS
 
 
 		/**
-		@brief Constructor with map and element index for a singleton consensus
-		feature. Sets the consensus feature position, intensity, charge and quality to the values
-		of @p element as well.
+			@brief Constructor with map and element index for a singleton consensus
+			feature. Sets the consensus feature position, intensity, charge and quality to the values
+			of @p element as well.
 		*/
 		ConsensusFeature(UInt map_index,	UInt element_index, const Feature& element)
 			: RichPeak2D(element),
 				HandleSetType(),
 				quality_(element.getOverallQuality()),
 				charge_(element.getCharge()),
-				peptide_identifications_(element.getPeptideIdentifications())
+				peptide_identifications_()
 		{
 			insert(map_index,element_index,element);
 		}
 
 		/**
-		@brief Constructor with map and element index for a singleton consensus
-		feature. Sets the consensus feature position, intensity, charge and quality to the values
-		of @p element as well.
+			@brief Constructor with map and element index for a singleton consensus
+			feature. Sets the consensus feature position, intensity, charge and quality to the values
+			of @p element as well.
 		*/
 		ConsensusFeature(UInt map_index,	UInt element_index, const ConsensusFeature& element)
 			: RichPeak2D(element),
 				HandleSetType(),
 				quality_(element.getQuality()),
-				charge_(element.getCharge())
+				charge_(element.getCharge()),
+				peptide_identifications_()
 		{
 			insert(map_index,element_index,element);
 		}
@@ -215,7 +224,8 @@ namespace OpenMS
 			RichPeak2D::operator=(rhs);
 			quality_ = rhs.quality_;
 			charge_ = rhs.charge_;
-
+			peptide_identifications_ =  rhs.peptide_identifications_;
+			
 			return *this;
 		}
 
@@ -233,30 +243,28 @@ namespace OpenMS
 
 		@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
-		void insert(FeatureHandle const & handle)
+		void insert(const FeatureHandle& handle)
 		{
 			if (!(HandleSetType::insert(handle).second))
 			{
 				String key = String("map") + handle.getMapIndex() + "/feature" + handle.getElementIndex();
 				throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"The set already contained an element with this key.",key) ;
 			}
-			return;
 		}
 
 		/// Adds all feature handles in @p handle_set to this consensus feature.
-		void insert(HandleSetType const & handle_set)
+		void insert(const HandleSetType& handle_set)
 		{
 			for (ConsensusFeature::HandleSetType::const_iterator it = handle_set.begin(); it != handle_set.end(); ++it)
 			{
 				insert(*it);
 			}
-			return;
 		}
 
 		/**
-		@brief Creates a FeatureHandle and adds it
-
-		@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
+			@brief Creates a FeatureHandle and adds it
+	
+			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
 		void insert(UInt map_index, UInt element_index, const Peak2D& element)
 		{
@@ -264,23 +272,25 @@ namespace OpenMS
 		}
 
 		/**
-		@brief Creates a FeatureHandle and adds it
-
-		@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
+			@brief Creates a FeatureHandle and adds it
+	
+			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
 		void insert(UInt map_index, UInt element_index, const Feature& element)
 		{
 			insert(FeatureHandle(map_index,element_index,element));
+			peptide_identifications_.insert(peptide_identifications_.end(), element.getPeptideIdentifications().begin(), element.getPeptideIdentifications().end());
 		}
 
 		/**
-		@brief Creates a FeatureHandle and adds it
-
-		@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
+			@brief Creates a FeatureHandle and adds it
+	
+			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
 		void insert(UInt map_index, UInt element_index, const ConsensusFeature& element)
 		{
 			insert(FeatureHandle(map_index,element_index,element));
+			peptide_identifications_.insert(peptide_identifications_.end(), element.getPeptideIdentifications().begin(), element.getPeptideIdentifications().end());
 		}
 
 		/// Non-mutable access to the contained feature handles

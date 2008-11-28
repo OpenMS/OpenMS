@@ -120,7 +120,7 @@ namespace OpenMS
 		
 		@image html ParamEditor.png
 		
-		@todo Add support for string/int/float lists, Add support for tags? (Hiwi)
+		@todo Add support for string/int/float lists, Add input/output file dialogs (Hiwi)
 		
 		@ingroup Visual
 	*/

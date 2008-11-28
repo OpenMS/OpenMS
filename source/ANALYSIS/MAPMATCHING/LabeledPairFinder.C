@@ -249,6 +249,12 @@ namespace OpenMS
 			}
 		}
 		
+		//Add protein identifications to result map
+		for (UInt i=0; i<input_maps.size(); ++i)
+		{
+			result_map.getProteinIdentifications().insert(result_map.getProteinIdentifications().end(),input_maps[i].getProteinIdentifications().begin(), input_maps[i].getProteinIdentifications().end());
+		}
+		
 		// Very useful for checking the results, and the ids have no real meaning anyway
 		result_map.sortByMZ();
 	}

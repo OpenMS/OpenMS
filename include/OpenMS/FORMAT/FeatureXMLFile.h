@@ -93,7 +93,7 @@ namespace OpenMS
       virtual void characters(const XMLCh* const chars, unsigned int length);
 
 			/// Writes a feature body to a stream
-			void writeFeature_(std::ostream& os, const Feature& feat, const String& identifier_prefix, UInt identifier, UInt indentation_level);
+			void writeFeature_(const String& filename, std::ostream& os, const Feature& feat, const String& identifier_prefix, UInt identifier, UInt indentation_level);
 			
 			/** 
 				@brief update the pointer to the current feature

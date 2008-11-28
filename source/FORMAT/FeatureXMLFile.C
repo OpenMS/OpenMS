@@ -206,7 +206,7 @@ namespace OpenMS
 		os << "\t<featureList count=\"" << feature_map.size() << "\">\n";
 		for (UInt s=0; s<feature_map.size(); s++)
 		{
-			writeFeature_(os, feature_map[s], "f_", s, 0);
+			writeFeature_(filename, os, feature_map[s], "f_", s, 0);
 		}
 
 		os << "\t</featureList>\n";
@@ -683,7 +683,7 @@ namespace OpenMS
 		}
 	}
 
-	void FeatureXMLFile::writeFeature_(ostream& os, const Feature& feat, const String& identifier_prefix, UInt identifier, UInt indentation_level)
+	void FeatureXMLFile::writeFeature_(const String& filename, ostream& os, const Feature& feat, const String& identifier_prefix, UInt identifier, UInt indentation_level)
 	{
 		String indent = String(indentation_level,'\t');
 
@@ -751,7 +751,7 @@ namespace OpenMS
 			UInt identifier_subordinate = 0;
 			for (size_t i=0;i<feat.getSubordinates().size();++i)
 			{
-				writeFeature_(os, feat.getSubordinates()[i], identifier_prefix+identifier+"_", identifier_subordinate, indentation_level+2);
+				writeFeature_(filename, os, feat.getSubordinates()[i], identifier_prefix+identifier+"_", identifier_subordinate, indentation_level+2);
 				++identifier_subordinate;
 			}
 			os << indent << "\t\t\t</subordinate>\n";
@@ -763,7 +763,7 @@ namespace OpenMS
 			const PeptideIdentification& current_pep_id = feat.getPeptideIdentifications()[i];
 			if (!identifier_id_.has(current_pep_id.getIdentifier()))
 			{
-				warning(String("Warning: Omitting peptide identification because of missing ProteinIdentification with identifier '") + current_pep_id.getIdentifier() + "'!");
+				cerr << String("Warning: Omitting peptide identification because of missing ProteinIdentification with identifier '") + current_pep_id.getIdentifier() + "' while writing '" + filename + "'!" << endl;
 				continue;
 			}
 			os << "\t\t\t<PeptideIdentification ";

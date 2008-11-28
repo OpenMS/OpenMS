@@ -317,7 +317,7 @@ namespace OpenMS
 		{
 			if (find(done_identifiers.begin(), done_identifiers.end(), peptide_ids[i].getIdentifier())==done_identifiers.end())
 			{
-				warning(String("Warning: Omitting peptide identification because of missing ProteinIdentification with identifier '") + peptide_ids[i].getIdentifier() + "'!");
+				cerr << String("Warning: Omitting peptide identification because of missing ProteinIdentification with identifier '") + peptide_ids[i].getIdentifier() + "' while writing '" + filename + "'!" << endl;
 			}
 		}
 		//write footer

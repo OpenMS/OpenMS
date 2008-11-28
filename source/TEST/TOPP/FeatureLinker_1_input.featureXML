@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<IdentificationRun id="PI_0" date="2006-03-09T11:31:52" search_engine="Mascot" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="ABCDE" score="0" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="FGHIJ" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
 	<featureList count="2">
 		
 		<!-- FRAME FOR VIEWER -->
@@ -52,6 +62,10 @@
 					<hposition dim="1">558</hposition>
 				</hullpoint>
 			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+				<PeptideHit score="35" sequence="A" charge="3" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
 		</feature>	
 
 		<feature id="f_4">
@@ -92,6 +106,10 @@
 			<quality dim="1">1</quality>
 			<overallquality>6</overallquality>
 			<charge>1</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+				<PeptideHit score="35" sequence="E" charge="3" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
 		</feature>		
 
 		<feature id="f_8">
@@ -114,6 +132,10 @@
 			<quality dim="1">1</quality>
 			<overallquality>8</overallquality>
 			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+				<PeptideHit score="35" sequence="C" charge="3" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
 		</feature>	
 
 		<feature id="f_10">
@@ -134,6 +156,10 @@
 			<quality dim="1">1</quality>
 			<overallquality>10</overallquality>
 			<charge>2</charge>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="31.8621006011963" MZ="1001" RT="90" >
+				<PeptideHit score="35" sequence="D" charge="3" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
 		</feature>		
 
 		<feature id="f_12">

@@ -253,13 +253,13 @@ namespace OpenMS
 			//@}
 
 			/**
-			@brief Convert any (random access) container of features to a ConsensusMap.  Each
-			ConsensusFeature contains a map index, so this has to be given as well.
-			The previous content of output_map is cleared.
-			
-			@param input_map_index The index of the input map.
-			@param input_map The container to be converted.  (Must support size() and operator[].)
-			@param output_map The resulting ConsensusMap.
+				@brief Convert any (random access) container of features to a ConsensusMap.  Each
+				ConsensusFeature contains a map index, so this has to be given as well.
+				The previous content of output_map is cleared.
+				
+				@param input_map_index The index of the input map.
+				@param input_map The container to be converted.  (Must support size() and operator[].)
+				@param output_map The resulting ConsensusMap.
 			*/
 			template <typename ContainerT>
 			static void convert( UInt const input_map_index, ContainerT const & input_map, ConsensusMap& output_map )
@@ -272,15 +272,18 @@ namespace OpenMS
 				}
 					
 				output_map.getFileDescriptions()[input_map_index].size = input_map.size();
+
+				output_map.getProteinIdentifications().insert(output_map.getProteinIdentifications().end(),input_map.getProteinIdentifications().begin(), input_map.getProteinIdentifications().end());
+
 			}
 				
 			/**
-			@brief Similar to convert, but copies only the @p n most intense elements from an MSExperiment.
-			
-			@param input_map_index The index of the input map.
-			@param input_map The input map to be converted.
-			@param output_map The resulting ConsensusMap.
-			@param n The maximum number of elements to be copied.
+				@brief Similar to convert, but copies only the @p n most intense elements from an MSExperiment.
+				
+				@param input_map_index The index of the input map.
+				@param input_map The input map to be converted.
+				@param output_map The resulting ConsensusMap.
+				@param n The maximum number of elements to be copied.
 			*/
 			static void convert( UInt const input_map_index, MSExperiment<> & input_map, ConsensusMap& output_map, UInt n )
 			{
