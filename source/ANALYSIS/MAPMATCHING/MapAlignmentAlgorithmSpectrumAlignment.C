@@ -31,22 +31,24 @@ namespace OpenMS
 {
 
 	MapAlignmentAlgorithmSpectrumAlignment::MapAlignmentAlgorithmSpectrumAlignment()
-	:MapAlignmentAlgorithm(),ProgressLogger()
+		: MapAlignmentAlgorithm(),
+			ProgressLogger(),
+			c1_(0)
 	{
 		setName("MapAlignmentAlgorithmSpectrumAlignment");
-		defaults_.setValue("gapcost",1," This Parameter stands for the cost of opining a gap in the Alignment. A Gap means that one Spectrum can not be aligned directly to another Spectrum in the Map. This happens, when the similarity of both spectra a too low or even not present. Imagen as a insert or delete of the spectrum in the map. The gap is necessary for aligning, if we open a gap there is a possibility that an another spectrum can be correct aligned with a higher score as before without gap. But to open a gap is a negative event and has to be punished a bit, so such only in case  it 's a good choice to open a gap, if the score is bad enough. The Parameter is to giving as a positive number, the implementation convert it to a negative number.");
+		defaults_.setValue("gapcost",1.0," This Parameter stands for the cost of opining a gap in the Alignment. A Gap means that one Spectrum can not be aligned directly to another Spectrum in the Map. This happens, when the similarity of both spectra a too low or even not present. Imagen as a insert or delete of the spectrum in the map. The gap is necessary for aligning, if we open a gap there is a possibility that an another spectrum can be correct aligned with a higher score as before without gap. But to open a gap is a negative event and has to be punished a bit, so such only in case  it 's a good choice to open a gap, if the score is bad enough. The Parameter is to giving as a positive number, the implementation convert it to a negative number.");
 		defaults_.setValue("affinegapcost", 0.5," This Parameter controls the cost of extension a already open gap. The idea behind the affine gapcost lies under the assumption, that it is better to get a long distance of connected gaps than to have a structure gap match gap match.  There for the punishment for the extension of a gap has to be lower than the normal gapcost. If the the result of the aligmnet show high compression, it is a good idea to lower the affine gapcost or the normal gapcost.");
 		defaults_.setValue("cutoffScore",0.70,"The Parameter defines the threshold which filtered Spectra, these Spectra are high potential candidate for deciding the interval of a sub-alignment.  Only those pair of Spectra are selected, which has a score higher or same of the threshold.",StringList::create("advanced"));
 		defaults_.setValue("bucketsize",10,"Defines the numbers of buckets. It is a quantize of the interval of those points, which defines the main alignment(match points). These points have to filtered, to reduce the amount of points for the calculating a smoother spline curve.",StringList::create("advanced"));
 		defaults_.setValue("anchorpoints",10,"Defines the percent of numbers of match points which a selected from one bucket. The high score pairs are previously selected. The reduction of match points helps to get a smoother spline curve.",StringList::create("advanced"));
-		defaults_.setValue("debug","FALSE","active the debug mode, there a files written starting with debug prefix.",StringList::create("advanced"));
-		defaults_.setValue("mismatchscore",-1,"Defines the score of two Spectra if they have no similarity to each other. ",StringList::create("advanced"));
-		//defaults_.setValue("para",1,"para",StringList::create("advanced"));
+		defaults_.setValue("debug","false","active the debug mode, there a files written starting with debug prefix.",StringList::create("advanced"));
+		defaults_.setValidStrings("debug",StringList::create("true,false"));
+		defaults_.setValue("mismatchscore",-1.0,"Defines the score of two Spectra if they have no similarity to each other. ",StringList::create("advanced"));
 		defaults_.setValue("scorefunction","SteinScottImproveScore"," The score function is the core of an alignment. The success of an alignment depends mostly of the elected score function. The score function return the similarity of two Spectrum back. The score influence defines later the way of possible traceback. There exist many way of algorithm to calculate the score.");
 		defaults_.setValidStrings("scorefunction",Factory<PeakSpectrumCompareFunctor>::registeredProducts());
-		setLogType(CMD);
-		c1_=NULL;		
 		defaultsToParam_();
+
+		setLogType(CMD);
 	}
 
 	MapAlignmentAlgorithmSpectrumAlignment::~MapAlignmentAlgorithmSpectrumAlignment()
@@ -77,21 +79,21 @@ namespace OpenMS
 			throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);	
 		}
 	}
+	
 	/**
-	 @brief A function to prepare the sequence for the alignment. It calls intern the main function for the alignment.
-     
-	This function takes two arguments. These Arguments type are two MSExperiments. 
-	The first argument should have been filtered, so such only type of MSLevel 1 exist in the Sequence. 
-	The second arguments doesn't have to full fill these restriction. It's going to be filter automatically. 
-	With these two arguments a precalculation is done, to find some corresponding data points(maximum 4) for building alignments blocks.
-	After the alignment a retransformation is done, the new Retention Times appears in the original data.      
-
-	The parameters are MSExperiments.
-	@param pattern is the template MSExperiment.
-	@param aligned is the sequence which has to be align(also MSExperiment).
-	@see MapAlignmentAlgorithmSpectrumAlignment();
+		@brief A function to prepare the sequence for the alignment. It calls intern the main function for the alignment.
+		 
+		This function takes two arguments. These Arguments type are two MSExperiments. 
+		The first argument should have been filtered, so such only type of MSLevel 1 exist in the Sequence. 
+		The second arguments doesn't have to full fill these restriction. It's going to be filter automatically. 
+		With these two arguments a precalculation is done, to find some corresponding data points(maximum 4) for building alignments blocks.
+		After the alignment a retransformation is done, the new Retention Times appears in the original data.      
+		
+		The parameters are MSExperiments.
+		@param pattern is the template MSExperiment.
+		@param aligned is the sequence which has to be align(also MSExperiment).
+		@see MapAlignmentAlgorithmSpectrumAlignment();
 	*/	
-
 	void MapAlignmentAlgorithmSpectrumAlignment::prepareAlign_(const std::vector<MSSpectrum<>* >& pattern, MSExperiment<>& aligned,std::vector<TransformationDescription>& transformation)
 	{
 		//tempalign ->container for holding only MSSpectrums with MS-Level 1
@@ -1379,11 +1381,10 @@ namespace OpenMS
 		cutoffScore_=(Real)param_.getValue("cutoffScore");
 		bucketsize_=(Int)param_.getValue("bucketsize");
 		mismatchscore_=(Real)param_.getValue("mismatchscore");
-//		para_ =(Int)param_.getValue("para");
 		anchorPoints_=(Int)param_.getValue("anchorpoints");
 		if(anchorPoints_ > 100) anchorPoints_ =100;
 		String tmp=(String)param_.getValue("debug");
-		if(tmp=="TRUE")
+		if(tmp=="true")
 		{
 			debug_=true;
 		}

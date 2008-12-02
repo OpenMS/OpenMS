@@ -45,12 +45,17 @@ namespace OpenMS
 	  @htmlinclude OpenMS_MapAlignmentAlgorithmSpectrumAlignment.parameters
 	  
 		@experimental This algorithm is work in progress and might change.
-
+		
+		@todo Add restrictions to paramters (Vipul)
+		@todo Rename paramters: all lower case with underscores for separation (Vipul)
+		@todo Remove doxygen docu from C-file (Vipul)
+		@todo Fix indentation of C-file (Vipul)
+		
 		@ingroup MapAlignment
 	*/
 	class MapAlignmentAlgorithmSpectrumAlignment
 	 : public MapAlignmentAlgorithm, 
-	 	public ProgressLogger
+	   public ProgressLogger
 	{
 		public:
 			/// Default constructor
@@ -90,11 +95,16 @@ namespace OpenMS
 			*/
 			class Compare
 			{
-				bool flag;
+				protected:
+					bool flag;
+				
 				public:
 					
 					/// Default constructor with an order flag
-					Compare(bool b=false):flag(b){}
+					Compare(bool b=false)
+					 : flag(b)
+					{
+					}
 					///overloaded operator() for comparing maps of maps std::pair<std::pair<Int,Real>,Real>. If flag is false the second argument of the outer map is selected. The output is an ascending order. If the order flag is true, the first argument of the inner class is selected to get a descending oder.
 					inline bool operator()(const std::pair<std::pair<Int,Real>,Real>& c1, const std::pair<std::pair<Int,Real>,Real>& c2 )
 					{
@@ -119,7 +129,8 @@ namespace OpenMS
 							return c1.first < c2.first;
 						}
 					}
-				};
+			};
+			
 			/**
 				@brief A function to prepare the sequence for the alignment. It calls intern the main function for the alignment.
 		   
@@ -135,8 +146,8 @@ namespace OpenMS
 				@param transformation std::vector<TransformationDescription> Container for rebuilding the alignment only by specific data-points
 				@see MapAlignmentAlgorithmSpectrumAlignment()
 			*/	
+			void prepareAlign_(const std::vector< MSSpectrum<>* >& pattern, MSExperiment<>& aligned,std::vector<TransformationDescription>& transformation );
 			
-				void prepareAlign_(const std::vector< MSSpectrum<>* >& pattern, MSExperiment<>& aligned,std::vector<TransformationDescription>& transformation );
 			/**
 			  @brief filtered the MSLevel to gain only MSLevel 1 
 			
@@ -148,8 +159,8 @@ namespace OpenMS
 				@exception Exception::IllegalArgument is thrown if no spectra are contained in @p peakmap
 				@see MapAlignmentAlgorithmSpectrumAlignment()
 			*/		
-		
 			void msFilter_(MSExperiment<>& peakmap,std::vector<MSSpectrum<>* >& spectrum_pointer_container);
+			
 			/**
 				@brief does the transformation if the Discrete Cosines Fourier Transformation is selected.
 		
@@ -157,8 +168,8 @@ namespace OpenMS
 				@param spectrum_pointer_container is the sequence which has to be transform
 				@see MapAlignmentAlgorithmSpectrumAlignment()
 			*/			
-			
 			void fourierActivation_(std::vector<MSSpectrum<>* >& spectrum_pointer_container);
+			
 			/**
 		  	@brief calculate the Discrete Cosines Fourier Transformation.
 		     				
@@ -168,8 +179,8 @@ namespace OpenMS
 		   	@param spec  MSSpectrum 
 				@see MapAlignmentAlgorithmSpectrumAlignment()
 		  */			
-			
 			void transform_(MSSpectrum<> & spec);
+
 			/**
 				@brief function for the test if cell i,j of the grid is inside the band
 
@@ -200,6 +211,7 @@ namespace OpenMS
 			 	@see MapAlignmentAlgorithmSpectrumAlignment()
 			*/			
 			void calculateSpline_(std::vector<int>& x,std::vector<double>& y, std::vector<MSSpectrum<>* >& aligned,UInt begin, UInt end,std::vector<TransformationDescription>& transformation);
+		  
 		  /**
 			 	@brief calculate the size of the band for the alignment for two given Sequence
 			   		
@@ -217,6 +229,7 @@ namespace OpenMS
 				@see MapAlignmentAlgorithmSpectrumAlignment()	
     	*/			
 			Int bestk_(const std::vector<MSSpectrum<>* >& pattern, std::vector<MSSpectrum<>* >& aligned,std::map<UInt, std::map<UInt,Real> > & buffer,bool column_row_orientation, UInt xbegin,UInt xend, UInt ybegin, UInt yend);
+			
 			/**
 				@brief calculate the score of two given MSSpectrums calls intern scoring_
 
@@ -235,6 +248,7 @@ namespace OpenMS
 				@see MapAlignmentAlgorithmSpectrumAlignment()	
 			*/
 			Real scoreCalculation_(UInt i,Int j, UInt patternbegin, UInt alignbegin ,const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::map<UInt, std::map<UInt,Real> > & buffer,bool column_row_orientation);
+			
 			/**
 				@brief return the score of two given MSSpectrums by calling the scorefunction
 		 		
@@ -243,6 +257,7 @@ namespace OpenMS
 				@see MapAlignmentAlgorithmSpectrumAlignment()	
 			*/			
 			Real scoring_(const MSSpectrum<>& a, MSSpectrum<>& b);
+			
 			/**
 				@brief affine gap cost Alignment
 
@@ -267,6 +282,7 @@ namespace OpenMS
 				@see MapAlignmentAlgorithmSpectrumAlignment()	
 			*/
 			void affineGapalign_(UInt xbegin, UInt ybegin, UInt xend,UInt yend, const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::vector<int>& xcoordinate, std::vector<double>&ycoordinate, std::vector<int>& xcoordinatepattern);
+			
 			/**
 				@brief  preparation function of data points to construct later the  spline function.
 
@@ -282,6 +298,7 @@ namespace OpenMS
 				@see MapAlignmentAlgorithmSpectrumAlignment()	
 			*/
 			void bucketFilter_(const std::vector<MSSpectrum<>* >& pattern,std::vector<MSSpectrum<>* >& aligned,std::vector<int> & xcoordinate, std::vector<double> & ycoordinate, std::vector<int>&xcoordinatepattern);
+			
 			/**
 				@brief Creates files for the debugging
 
@@ -292,6 +309,7 @@ namespace OpenMS
 				@see MapAlignmentAlgorithmSpectrumAlignment()	
 			*/
 			void debugFileCreator_(const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned);
+			
 			/**
 				@brief Delete entries of the MetaDataArray with was made from CompareFouriertransform 
 
@@ -324,10 +342,8 @@ namespace OpenMS
 			std::vector<std::vector<Real> >debugscorematrix_;
 			///Container holding the path of the traceback
 			std::vector<std::pair<Real,Real> >debugtraceback_;
-			
-			//Int para_;
+			//docu in base class
 			void updateMembers_();
-
 	};
 	 
 	
