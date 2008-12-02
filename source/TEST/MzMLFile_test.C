@@ -559,7 +559,7 @@ START_SECTION( bool isSemanticallyValid(const String& filename, StringList& erro
 	
 	//invalid file
 	TEST_EQUAL(file.isSemanticallyValid("data/MzMLFile_3_invalid.mzML", errors, warnings),false)
-	TEST_EQUAL(errors.size(),8)
+	TEST_EQUAL(errors.size(),5)
 	TEST_EQUAL(warnings.size(),2)
 END_SECTION
 

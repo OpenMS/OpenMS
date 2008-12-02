@@ -91,6 +91,7 @@ namespace OpenMS
 				bool obsolete; 								///< Flag that indicates of the term is obsolete
 				StringList unparsed;					///< Unparsed lines from the definition file
 				XRefType xref_type;						///< xref value-type for the CV-term
+				std::set<String> units;       ///< unit accession ids, defined by relationship has units
 				
 				///Default constructor
 				CVTerm()
@@ -111,7 +112,8 @@ namespace OpenMS
 						children(rhs.children),
 						obsolete(rhs.obsolete),
 						unparsed(rhs.unparsed),
-						xref_type(rhs.xref_type)
+						xref_type(rhs.xref_type),
+						units(rhs.units)
 				{
 				}
 
@@ -126,6 +128,7 @@ namespace OpenMS
 						obsolete = rhs.obsolete;
 						unparsed = rhs.unparsed;
 						xref_type = rhs.xref_type;
+						units = rhs.units;
 					}
 					return *this;
 				}

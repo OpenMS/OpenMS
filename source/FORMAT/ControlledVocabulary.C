@@ -117,6 +117,19 @@ namespace OpenMS
 						term.parents.insert(line.substr(line.find(':') + 1).trim());
 					}
 				}
+				else if (line_wo_spaces.hasPrefix("relationship:has_units:"))
+				{
+					String unit_id;
+					if (line.has('!'))
+					{
+						unit_id = line.suffix(':').prefix('!').trim();
+					}
+					else
+					{
+						unit_id = line.suffix(':').trim();
+					}
+					term.units.insert(unit_id);
+				}
 				else if (line_wo_spaces=="is_obsolete:true")
 				{
 					term.obsolete = true;

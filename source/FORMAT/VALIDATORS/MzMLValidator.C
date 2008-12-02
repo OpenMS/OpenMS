@@ -62,9 +62,7 @@ namespace OpenMS
 	    	const std::vector<CVTerm>& terms = param_groups_[attributeAsString_(attributes,"ref")];
 				for (UInt i=0; i< terms.size(); ++i)
 				{
-					String value;
-					bool has_value_attribute = optionalAttributeAsString_(value, attributes, value_att_.c_str());
-					handleTerm_(path, terms[i], has_value_attribute, value);
+					handleTerm_(path, terms[i]);
 				}
 	  	}
 	    else if (tag==cv_tag_)
@@ -93,9 +91,7 @@ namespace OpenMS
 	    	}
 	    	else
 	    	{	
-					String value;
-					bool has_value_attribute = optionalAttributeAsString_(value, attributes, value_att_.c_str());
-					handleTerm_(path, parsed_term, has_value_attribute, value);
+					handleTerm_(path, parsed_term);
 				}
 			}
 	  }

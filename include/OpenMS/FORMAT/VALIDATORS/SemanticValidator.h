@@ -92,6 +92,18 @@ namespace OpenMS
 						- CVTerm has value, needs value but value is of wrong type
 				*/
 				void setCheckTermValueTypes(bool check);
+
+				/** If set to true additional checks for CVTerms are performed:
+				 		- CVTerm that must have a unit, but has none
+						- CVTerm that has a wrong unit
+				*/
+				void setCheckUnits(bool check);
+
+				/// Sets the name of the unit accession attribute (default: 'unitAccession')
+				void setUnitAccessionAttribute(const String& accession);
+
+				/// Sets the name of the unit name attribute (default: 'unitName')
+				void setUnitNameAttribute(const String& name);
 				
 			protected:
 				
@@ -101,6 +113,11 @@ namespace OpenMS
 					String accession;
 					String name;
 					String value;
+					bool has_value;
+					String unit_accession;
+					bool has_unit_accession;
+					String unit_name;
+					bool has_unit_name;
 				};
 					
 				// Docu in base class
@@ -119,7 +136,7 @@ namespace OpenMS
 				virtual void getCVTerm_(const xercesc::Attributes& attributes, CVTerm& parsed_term);
 				
 				/// Handling of the term
-				virtual void handleTerm_(const String& path, const CVTerm& parsed_term, bool has_value_attribute, const String& value); 
+				virtual void handleTerm_(const String& path, const CVTerm& parsed_term); 
 
 				/// Reference to the mappings
 				const CVMappings& mapping_;
@@ -151,7 +168,10 @@ namespace OpenMS
 				String accession_att_;
 				String name_att_;
 				String value_att_;
+				String unit_accession_att_;
+				String unit_name_att_;
 				bool check_term_value_types_;
+				bool check_units_;
 				//@}
 	
 			private:

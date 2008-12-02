@@ -86,8 +86,9 @@ class TOPPSemanticValidator
 		// check cv params
 		Internal::SemanticValidator semantic_validator(mappings, cv);
 		semantic_validator.setCheckTermValueTypes(true);
+		semantic_validator.setCheckUnits(true);
 		StringList errors, warnings;
-		bool valid = semantic_validator.validate(in_file, errors, warnings);
+		/*bool valid =*/ semantic_validator.validate(in_file, errors, warnings);
     for (UInt i=0; i<warnings.size(); ++i)
     {
     	cout << "Warning: " << warnings[i] << endl;
@@ -97,6 +98,7 @@ class TOPPSemanticValidator
       cout << "Error: " << errors[i] << endl;
     }
 
+		/*
 		// check units cv
 		Internal::SemanticValidator semantic_validator_u(mappings, cv);
 		semantic_validator_u.setAccessionAttribute("unitAccession");
@@ -118,7 +120,7 @@ class TOPPSemanticValidator
     	{
       	cout << "Error: " << errors_u[i] << endl;
     	}
-		}
+		}*/
 	
 		return EXECUTION_OK;
 	}
