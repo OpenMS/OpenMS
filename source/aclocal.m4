@@ -697,7 +697,7 @@ AC_DEFUN(CF_GXX_OPTIONS, [
     DYNAROPTS="${DYNAROPTS} -G -fPIC -o"
   else 
     if test "${OS}" == Darwin ; then
-      DYNAROPTS="${DYNAROPTS} -single_module -framework QtSql -framework QtCore -framework OpenGL -framework QtGui -framework QtOpenGl -framework QtNetwork -L${OPENMS_PATH}/contrib/lib -lxerces-c -lnetcdf -lnetcdf_c++ -lCGAL -lgsl -lsvm.o -lcluster.o ${OPENMS_PATH}/contrib/lib/ms10lib.a -dynamiclib -fPIC -o"
+      DYNAROPTS="${DYNAROPTS} -single_module -framework QtSql -framework QtCore -framework OpenGL -framework QtGui -framework QtOpenGl -framework QtNetwork -L${OPENMS_PATH}/contrib/lib -lxerces-c -lnetcdf -lnetcdf_c++ -lCGAL -lgsl -lsvm.o ${OPENMS_PATH}/contrib/lib/ms10lib.a -dynamiclib -fPIC -o"
     else  
 		  if test "${OS}" != "CYGWIN" -a "${OS}" != "MINGW32" ; then
   	      DYNAROPTS="${DYNAROPTS} -shared -fPIC -o"
@@ -2557,112 +2557,6 @@ AC_DEFUN(CF_LIBSVM, [
       AC_MSG_RESULT()
       AC_MSG_RESULT([Cannot link against svm.o . Please check config.log and])
       AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-libsvm-lib/incl).])
-      CF_ERROR
-    else
-      AC_MSG_RESULT(yes)
-    fi
-
-  else
-    AC_MSG_RESULT(disabled)
-  fi
-  
-])
-
-dnl
-dnl   Cluster 3.0 support
-dnl
-AC_DEFUN(CF_CLUSTER, [
-  AC_MSG_CHECKING(Checking for Cluster support)
-  dnl
-  dnl  variable substitutions required for CLUSTER support
-  dnl
-  AC_SUBST(CLUSTER_SUPPORT)
-  AC_SUBST(CLUSTER_OBJECT)
-
-  dnl
-  dnl Check for the CLUSTER headers
-  dnl
-  if test "${CLUSTER_SUPPORT}" = "true" ; then 
-    AC_MSG_RESULT(enabled)
-
-    AC_DEFINE(OPENMS_HAS_CLUSTER)
-    AC_DEFINE(OPENMS_HAS_CLUSTER_H)
-
-    AC_MSG_CHECKING(for CLUSTER header file)
-    if test "${CLUSTER_INCPATH}" = "" ; then
-      AC_MSG_RESULT([Please specify the path to <cluster.h>])
-      AC_MSG_RESULT([by passing the option --with-cluster-incl=DIR to configure.])
-      AC_MSG_RESULT()
-      AC_MSG_RESULT([CLUSTER is needed for clustering of data.])
-      AC_MSG_RESULT()
-      CF_ERROR
-    fi
-    
-    CF_FIND_HEADER(CLUSTER_DIR, cluster.h, ${CLUSTER_INCPATH})
-    if test "${CLUSTER_DIR}" = "" ; then
-      AC_MSG_RESULT()
-      AC_MSG_RESULT()
-      AC_MSG_RESULT([The Cluster headers could not be found. Please specify the path to <cluster.h>])
-      AC_MSG_RESULT([by passing the option --with-cluster-incl=DIR to configure.])
-      AC_MSG_RESULT()
-      AC_MSG_RESULT([CLUSTER is needed for retention time predition.])
-      AC_MSG_RESULT()
-      CF_ERROR
-    else
-      AC_MSG_RESULT((${CLUSTER_DIR}))
-      OPENMS_INCLUDES="${OPENMS_INCLUDES} -I${CLUSTER_DIR}"
-    fi
-
-  dnl
-  dnl Check for the CLUSTER lib
-  dnl
-    AC_MSG_CHECKING(for CLUSTER object file)
-
-    CF_FIND_LIB(CLUSTER_DIR2, cluster, ${CLUSTER_LIBPATH})
-    if test "${CLUSTER_DIR2}" = "" ; then
-      AC_MSG_RESULT((not found!))
-      AC_MSG_RESULT()
-      AC_MSG_RESULT([The Cluster object file could not be found. Please specify the path to <cluster.o>])
-      AC_MSG_RESULT([by passing the option --with-cluster-libs=DIR to configure.])
-      AC_MSG_RESULT()
-      AC_MSG_RESULT([CLUSTER is needed for retention time predition.])
-      AC_MSG_RESULT()
-      CF_ERROR
-      CF_ERROR
-    else
-      AC_MSG_RESULT((${CLUSTER_DIR2}))
-      OPENMS_LIBS="${OPENMS_LIBS} ${CLUSTER_DIR2}/cluster.o" 
-    fi
-
-
-  dnl
-  dnl Linking against the Cluster lib
-  dnl
-
-    AC_MSG_CHECKING(linking against Cluster)
-    SAVE_LIBS=${LIBS}
-    SAVE_LDFLAGS=${LDFLAGS}
-    LIBS=" ${CLUSTER_DIR2}/cluster.o "
-    LDFLAGS=" -I${CLUSTER_DIR} "
-    CLUSTER_LINKING_OK=0
-    AC_TRY_LINK([
-									#include <vector>
-									extern "C"
-									{
-                  	#include <cluster.h>
-                  };
-                ],
-                [
-                  double** dm;
-                  Node* test = treecluster(0,0,0,0,0,0,0,0,dm);
-                ], CLUSTER_LINKING_OK=1)
-    LIBS=${SAVE_LIBS}
-    LDFLAGS=${SAVE_LDFLAGS}
-    if test "${CLUSTER_LINKING_OK}" != "1" ; then
-      AC_MSG_RESULT(no)
-      AC_MSG_RESULT()
-      AC_MSG_RESULT([Cannot link against cluster.o . Please check config.log and])
-      AC_MSG_RESULT([specify appropriate options to configure (e.g. --with-cluster-lib/incl).])
       CF_ERROR
     else
       AC_MSG_RESULT(yes)

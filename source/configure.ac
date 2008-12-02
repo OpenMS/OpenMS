@@ -51,8 +51,6 @@ AC_ARG_WITH(netcdf-libs,       [  --with-netcdf-libs=DIR  specify the location o
 AC_ARG_ENABLE(andims,          [  --disable-andims        disable the use of ANDI/MS (a library for a data format based on NetCDF)])
 AC_ARG_WITH(andims-incl,       [  --with-andims-incl=DIR  specify the location of the ANDI/MS header file "ms10.h"])
 AC_ARG_WITH(andims-libs,       [  --with-andims-libs=DIR  specify the location of the ANDI/MS archive file "ms10lib.a"])
-AC_ARG_WITH(cluster-incl,      [  --with-cluster-incl=DIR specify the location of the Cluster 3.0 header file "cluster.h"])
-AC_ARG_WITH(cluster-libs,      [  --with-cluster-libs=DIR specify the location of the Cluster 3.0 object file "cluster.o"])
 AC_ARG_WITH(gsl-incl,          [  --with-gsl-incl=DIR     specify the location of the directory containing "gsl/gsl_version.h"])
 AC_ARG_WITH(gsl-libs,          [  --with-gsl-libs=DIR     specify the location of the GSL library files "libgsl.so" and "libgslcblas.so"])
 AC_ARG_WITH(libsvm-incl,       [  --with-libsvm-incl=DIR  specify the location of the libSVM directory containing "svm.h"])
@@ -300,21 +298,6 @@ else
   LIBSVM_LIBPATH=$DEFAULT_LIB_PATH
 fi
 
-# support for Cluster 3.0
-CLUSTER_SUPPORT=true
-AC_DEFINE(CLUSTER_SUPPORT_DEF)
-if test "$with_cluster_incl" != "" ; then
-  CLUSTER_INCPATH="${with_cluster_incl}"
-else
-  CLUSTER_INCPATH=$DEFAULT_INCL_PATH
-fi
-
-if test "$with_cluster_libs" != "" ; then
-	CLUSTER_LIBPATH="${with_cluster_libs}"
-else
-  CLUSTER_LIBPATH=$DEFAULT_LIB_PATH
-fi
-
 # support for XERCES
 XERCES_SUPPORT=true
 AC_DEFINE(XERCES_DEF)
@@ -558,11 +541,6 @@ dnl
 dnl Check for XERCES (a XML parser)
 dnl
 CF_XERCES
-
-dnl
-dnl Check for Cluster 3.0 (a C library for clustering)
-dnl
-CF_CLUSTER
 
 dnl
 dnl Check for the visualization/GUI stuff (QT-dependent).
