@@ -122,11 +122,11 @@ namespace OpenMS
 					String unit_id;
 					if (line.has('!'))
 					{
-						unit_id = line.suffix(':').prefix('!').trim();
+						unit_id = "UO:" + line.suffix(':').prefix('!').trim();
 					}
 					else
 					{
-						unit_id = line.suffix(':').trim();
+						unit_id = "UO:" + line.suffix(':').trim();
 					}
 					term.units.insert(unit_id);
 				}
