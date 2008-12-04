@@ -209,7 +209,7 @@ class TOPPSILACAnalyzer
 			setMinInt_("charge_max",1);
 			registerDoubleOption_("intensity_cutoff","<double>",5000,"intensity cutoff",false,true);
 			setMinFloat_("intensity_cutoff",0.0);
-			registerDoubleOption_("mz_step_width","<double>",0.01,"step width with which the (interpolated) spectrum is scanned, [m/Z]=Th",false,true);
+			registerDoubleOption_("mz_step_width","<double>",0.01,"step width with which the (interpolated) spectrum is scanned, m/Z (Th)",false,true);
 			setMinFloat_("mz_step_width",0.0);
 			registerDoubleOption_("rt_scaling","<double>",0.05,"scaling factor of retention times (Cluster height [s] an\ncluster width [Th] should be of the same order. The clustering algorithms work better for\nsymmetric clusters.)",false,true);
 			setMinFloat_("rt_scaling",0.0);
@@ -305,7 +305,6 @@ class TOPPSILACAnalyzer
 					Int number_data_points = rt_it->size();
 					// spectra with less than 10 data points are being ignored
 					if (number_data_points>=10) {
-					  std::cout << "number of data points per spectrum: " << number_data_points << std::endl;
 					  // read one OpenMS spectrum into GSL structure
 					  std::vector<DoubleReal> mz_vec;
 					  std::vector<DoubleReal> intensity_vec;
@@ -743,8 +742,8 @@ class TOPPSILACAnalyzer
   	    	// write *_clusters.eps
 					stream_gnuplotscript << "set output \"" + debug_clusters + "\"" << std::endl;
 					stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << ", mass separation = " << String(0.01*floor(mass_separation*100+0.5)) << " Da, charge = " << charge << "+, intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
-					stream_gnuplotscript << "set xlabel \'[m/Z]=Th\'" << std::endl;
-					stream_gnuplotscript << "set ylabel \'[RT]=s\'" << std::endl;
+					stream_gnuplotscript << "set xlabel \'m/Z (Th)\'" << std::endl;
+					stream_gnuplotscript << "set ylabel \'RT (s)\'" << std::endl;
 					stream_gnuplotscript << "plot";
 		  		for (int i = 0; i < cluster_number[charge]; i++)// iterate over clusters
 		  		{
@@ -756,8 +755,8 @@ class TOPPSILACAnalyzer
   	    	// write *_Clusters.eps
 					stream_gnuplotscript << "set output \"" + debug_Clusters + "\"" << std::endl;
 					stream_gnuplotscript << "set title \"SILACAnalyzer " << version_ << ", sample = " << debug_trunk << ", mass separation = " << String(0.01*floor(mass_separation*100+0.5)) << " Da, charge = " << charge << "+, intensity cutoff = " << intensity_cutoff << ", rt scaling = " + String(0.01*floor(rt_scaling*100+0.5)) + ", cluster number scaling = " + String(0.01*floor(cluster_number_scaling*100+0.5)) + "\"" << std::endl;
-					stream_gnuplotscript << "set xlabel \'[m/Z]=Th\'" << std::endl;
-					stream_gnuplotscript << "set ylabel \'[RT]=s\'" << std::endl;
+					stream_gnuplotscript << "set xlabel \'m/Z (Th)\'" << std::endl;
+					stream_gnuplotscript << "set ylabel \'RT (s)\'" << std::endl;
 					stream_gnuplotscript << "plot";
 		  		for (int i = cluster_min; i <= cluster_max; i++)// iterate over clusters
 		  		{
