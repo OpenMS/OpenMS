@@ -52,37 +52,40 @@ namespace OpenMS
 	
 		void XMLHandler::fatalError(const SAXParseException& exception)
 		{
-			fatalError(sm_.convert(exception.getMessage()),exception.getLineNumber(),exception.getColumnNumber());
+			fatalError(LOAD, sm_.convert(exception.getMessage()),exception.getLineNumber(),exception.getColumnNumber());
 		}
 	
 		void XMLHandler::error(const SAXParseException& exception)
 		{
-			error(sm_.convert(exception.getMessage()),exception.getLineNumber(),exception.getColumnNumber());
+			error(LOAD, sm_.convert(exception.getMessage()),exception.getLineNumber(),exception.getColumnNumber());
 		}
 		
 		void XMLHandler::warning(const SAXParseException& exception)
 		{
-			warning(sm_.convert(exception.getMessage()),exception.getLineNumber(),exception.getColumnNumber());
+			warning(LOAD, sm_.convert(exception.getMessage()),exception.getLineNumber(),exception.getColumnNumber());
 		}
 		
-		void XMLHandler::fatalError(const String& msg, UInt line, UInt column) const
+		void XMLHandler::fatalError(ActionMode mode, const String& msg, UInt line, UInt column) const
 		{
-			error_message_ = String("Fatal error while parsing '") + file_ + "': " + msg;
+			if (mode==LOAD)  error_message_ =  String("Fatal error while loading '") + file_ + "': " + msg;
+			if (mode==STORE) error_message_ =  String("Fatal error while storing '") + file_ + "': " + msg;
 			if (line!=0 || column!=0) error_message_ += String("( in line ") + line + " column " + column + ")";
 			cerr << error_message_ << endl;
 			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, error_message_);
 		}
 	
-		void XMLHandler::error(const String& msg, UInt line, UInt column) const
+		void XMLHandler::error(ActionMode mode, const String& msg, UInt line, UInt column) const
 		{
-			error_message_ = String("Non-fatal error while parsing '") + file_ + "': " + msg;
+			if (mode==LOAD)  error_message_ =  String("Non-fatal error while loading '") + file_ + "': " + msg;
+			if (mode==STORE) error_message_ =  String("Non-fatal error while storing '") + file_ + "': " + msg;
 			if (line!=0 || column!=0) error_message_ += String("( in line ") + line + " column " + column + ")";
 			cerr << error_message_ << endl;
 		}
 		
-		void XMLHandler::warning(const String& msg, UInt line, UInt column) const
+		void XMLHandler::warning(ActionMode mode, const String& msg, UInt line, UInt column) const
 		{
-			error_message_ = String("Warning while parsing '") + file_ + "': " + msg;
+			if (mode==LOAD)  error_message_ =  String("Warning while loading '") + file_ + "': " + msg;
+			if (mode==STORE) error_message_ =  String("Warning while storing '") + file_ + "': " + msg;
 			if (line!=0 || column!=0) error_message_ += String("( in line ") + line + " column " + column + ")";
 			cerr << error_message_ << endl;
 		}

@@ -273,7 +273,7 @@ namespace OpenMS
 			{
 				String transcoded_chars2 = transcoded_chars;
 				transcoded_chars2.trim();
-				if (transcoded_chars2!="") warning(String("Unhandled character content in tag '") + current_tag + "': " + transcoded_chars2);
+				if (transcoded_chars2!="") warning(LOAD, String("Unhandled character content in tag '") + current_tag + "': " + transcoded_chars2);
 			}
 		}
 
@@ -436,11 +436,11 @@ namespace OpenMS
 				}
 				catch(...)
 				{
-					warning("Could not convert the mzML version string '" + file_version +"' to a double.");
+					warning(LOAD, "Could not convert the mzML version string '" + file_version +"' to a double.");
 				}
 				if (double_version>version_.toDouble())
 				{
-					warning("The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
+					warning(LOAD, "The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
 				}
 				//handle file accession
 				String accession;
@@ -568,7 +568,7 @@ namespace OpenMS
 				//Warn if more than one precursor is present
 				if (attributeAsInt_(attributes, s_count)>1)
 				{
-					warning("OpenMS can only handle one precursor ion! Only the last precursor of each spectrum is loaded!");
+					warning(LOAD, "OpenMS can only handle one precursor ion! Only the last precursor of each spectrum is loaded!");
 				}
 			}
 			else if (tag=="selectedIon")
@@ -580,7 +580,7 @@ namespace OpenMS
 				//Warn if more than one selected ion is present
 				if (attributeAsInt_(attributes, s_count)>1)
 				{
-					warning("OpenMS can only handle one selection ion as precursor! Only the last ion is loaded!");
+					warning(LOAD, "OpenMS can only handle one selection ion as precursor! Only the last ion is loaded!");
 				}
 			}
 			else if (tag=="scanWindow" && parent_parent_tag=="spectrumDescription")
@@ -691,7 +691,7 @@ namespace OpenMS
 				//if defaultArrayLength > 0 : warn that no m/z or int arrays is present
 				if (default_array_length_!=0)
 				{
-					warning(String("The m/z or intensity array of spectrum ") + exp_->size() + " is missing and default_array_length_ is " + default_array_length_ + ".");
+					warning(LOAD, String("The m/z or intensity array of spectrum ") + exp_->size() + " is missing and default_array_length_ is " + default_array_length_ + ".");
 				}
 				return;
 			}
@@ -700,12 +700,12 @@ namespace OpenMS
 			UInt mz_size = mz_precision_64 ? data_[mz_index].decoded_64.size() : data_[mz_index].decoded_32.size();
 			if (default_array_length_!=mz_size)
 			{
-				warning(String("The base64-decoded m/z array of spectrum ") + exp_->size() + " has the size " + mz_size + ", but it should have the size " + default_array_length_ + " (defaultArrayLength).");
+				warning(LOAD, String("The base64-decoded m/z array of spectrum ") + exp_->size() + " has the size " + mz_size + ", but it should have the size " + default_array_length_ + " (defaultArrayLength).");
 			}
 			UInt int_size = int_precision_64 ? data_[int_index].decoded_64.size() : data_[int_index].decoded_32.size();
 			if (default_array_length_!=int_size)
 			{
-				warning(String("The base64-decoded intensity array of spectrum ") + exp_->size() + " has the size " + int_size + ", but it should have the size " + default_array_length_ + " (defaultArrayLength).");
+				warning(LOAD, String("The base64-decoded intensity array of spectrum ") + exp_->size() + " has the size " + int_size + ", but it should have the size " + default_array_length_ + " (defaultArrayLength).");
 			}
 			
 			//create meta data arrays if necessary
@@ -788,7 +788,7 @@ namespace OpenMS
 				//obsolete CV terms
 				if (term.obsolete)
 				{
-					warning(String("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
+					warning(LOAD, String("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
 				}
 				//check if term name and parsed name match
 				String parsed_name = name;
@@ -797,18 +797,18 @@ namespace OpenMS
 				correct_name.trim();
 				if (parsed_name!=correct_name)
 				{
-					warning(String("Name of CV term not correct: '") + term.id + " - " + parsed_name + "' should be '" + correct_name + "'");
+					warning(LOAD, String("Name of CV term not correct: '") + term.id + " - " + parsed_name + "' should be '" + correct_name + "'");
 				}
 				if (term.obsolete)
 				{
-					warning(String("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
+					warning(LOAD, String("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
 				}
 				//values used in wrong places and wrong value types
 				if (value!="")
 				{
 					if (term.xref_type==ControlledVocabulary::CVTerm::NONE)
 					{
-						warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
+						warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
 					}
 					else
 					{
@@ -829,7 +829,7 @@ namespace OpenMS
 								}
 								catch(Exception::ConversionError&)
 								{
-									warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
+									warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
 									return;
 								}
 								break;
@@ -841,7 +841,7 @@ namespace OpenMS
 								}
 								catch(Exception::ConversionError&)
 								{
-									warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
+									warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
 									return;
 								}
 								break;
@@ -854,12 +854,12 @@ namespace OpenMS
 								}
 								catch(Exception::ParseError&)
 								{
-									warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
+									warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
 									return;
 								}
 								break;								
 							default:
-								warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' has the unknown value type '" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type) + "'.");
+								warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' has the unknown value type '" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type) + "'.");
 								break;
 						}
 					}
@@ -867,7 +867,7 @@ namespace OpenMS
 				//no value, although there should be a numerical value
 				else if (term.xref_type!=ControlledVocabulary::CVTerm::NONE && term.xref_type!=ControlledVocabulary::CVTerm::XSD_STRING)
 				{
-					warning(String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
+					warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
 					return;
 	   		}
 			}
@@ -913,7 +913,7 @@ namespace OpenMS
 					{
 						data_.back().compression = "none";
 					}
-					else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+					else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 				}
 			}
 			//------------------------- spectrumDescription ----------------------------
@@ -1044,7 +1044,7 @@ namespace OpenMS
 				{
 					spec_.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
 				}
-				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- scanWindow ----------------------------
 			else if(parent_tag=="scanWindow" && parent_parent_parent_tag=="spectrumDescription")
@@ -1061,7 +1061,7 @@ namespace OpenMS
 				{
 					//Currently ignored
 				}
-				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- referenceableParamGroup ----------------------------
 			else if(parent_tag=="referenceableParamGroup")
@@ -1091,7 +1091,7 @@ namespace OpenMS
 				{
 					spec_.getPrecursorPeak().getPossibleChargeStates().push_back(value.toInt());
 				}
-				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- activation ----------------------------
 			else if(parent_tag=="activation")
@@ -1177,7 +1177,7 @@ namespace OpenMS
 				{
 					spec_.getPrecursor().setActivationMethod(Precursor::PQD);
 				}
-				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- acquisitionList ----------------------------
 			else if(parent_tag=="acquisitionList")
@@ -1186,7 +1186,7 @@ namespace OpenMS
 				{
 					spec_.getAcquisitionInfo().setMethodOfCombination(cv_.getTerm(accession).name);
 				}
-				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- acquisition ----------------------------
 			else if (parent_tag=="acquisition")
@@ -1227,7 +1227,7 @@ namespace OpenMS
 					//No member => meta data
 					spec_.getAcquisitionInfo().back().setMetaValue("preset scan configuration",String("true"));
 				}
-				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- contact ----------------------------
 			else if (parent_tag=="contact")
@@ -1252,7 +1252,7 @@ namespace OpenMS
 				{
 					exp_->getContacts().back().setInstitution(value);
 				}
-				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- sourceFile ----------------------------
 			else if (parent_tag=="sourceFile")
@@ -1269,7 +1269,7 @@ namespace OpenMS
 				{
 					source_files_[current_id_].setFileType(cv_.getTerm(accession).name);
 				}
-				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- sample ----------------------------
 			else if (parent_tag=="sample")
@@ -1319,7 +1319,7 @@ namespace OpenMS
 				{
 					samples_[current_id_].setState(Sample::SUSPENSION);
 				}
-				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- instrumentConfiguration ----------------------------
 			else if (parent_tag=="instrumentConfiguration")
@@ -1406,7 +1406,7 @@ namespace OpenMS
 					//No member => metadata
 					instruments_[current_id_].setMetaValue("space charge effect",String("true"));
 				}
-				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			else if (parent_tag=="source")
 			{
@@ -1676,7 +1676,7 @@ namespace OpenMS
 					//No member => meta data
 					instruments_[current_id_].getIonSources().back().setMetaValue("source potential",value);
 				}
-				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			else if (parent_tag=="analyzer")
 			{
@@ -1758,7 +1758,7 @@ namespace OpenMS
 				{
 					instruments_[current_id_].getMassAnalyzers().back().setReflectronState(MassAnalyzer::ON);
 				}
-				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			else if (parent_tag=="detector")
 			{
@@ -1869,7 +1869,7 @@ namespace OpenMS
 				{
 					instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::TRANSIENTRECORDER);
 				} 
-				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			else if (parent_tag=="processingMethod")
 			{
@@ -1952,7 +1952,7 @@ namespace OpenMS
 				{
 					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::HIGH_INTENSITY_REMOVAL);
 				}
-				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			else if (parent_tag=="fileContent")
 			{
@@ -2004,7 +2004,7 @@ namespace OpenMS
 				{
 					//ignored
 				}
-				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			else if (parent_tag=="software")
 			{
@@ -2016,7 +2016,7 @@ namespace OpenMS
 			{
 				//allowed but, not needed
 			}
-			else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+			else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			
 		}
 
@@ -2117,7 +2117,7 @@ namespace OpenMS
 			{
 				//currently ignored
 			}
-			else warning(String("Unhandled userParam '") + name + " in tag '" + parent_tag + "'.");
+			else warning(LOAD, String("Unhandled userParam '") + name + " in tag '" + parent_tag + "'.");
 			
 		}
 	

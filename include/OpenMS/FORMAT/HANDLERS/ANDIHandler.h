@@ -71,7 +71,7 @@ namespace OpenMS
 		    }
 		    //@}
 
-				/// read the ANDIFile using the ANDI/MS-NETCDF library
+				/// read the ANDI/MS file using the ANDI/MS and NETCDF libraries
 				void parse(std::string file_name);
 
     	protected:
@@ -164,7 +164,7 @@ namespace OpenMS
 	{
 		if (file=="") return;
 	 
-		char* file_name = (char*) file.c_str();
+		char* file_name = (char*) file_.c_str();
 		
 		std::ifstream infile(file_name);
 		if (!infile)
@@ -184,14 +184,14 @@ namespace OpenMS
 		
 		if (file_id == MS_ERROR)
 		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,file_name,"Error: could not open ANDI/MS file. Invalid file!");
+			error(LOAD, "Could not read file content. Probably invalid file.");
 		}
 		
 		ms_init_global( 0, &ms_admin, &ms_sample, &ms_test, &ms_raw_global);
 		
 		if (ms_read_global( file_id, &ms_admin, &ms_sample, &ms_test, &ms_raw_global) == MS_ERROR) 
 		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,file_name,"Error: could not read global data of ANDI/MS file. Invalid file!");
+			error(LOAD, "Could not read global data. Probably invalid file.");
 		}
 		
 		// Global Data
@@ -216,7 +216,7 @@ namespace OpenMS
 
 			if (ms_read_instrument( file_id, &ms_inst) == MS_ERROR)
 			{
-				std::cerr << "Warning: could not read instrument data of ANDI/MS file '" << file <<"'." << std::endl;
+				warining("Could not read instrument data");
 			}
 			else
 			{
@@ -249,7 +249,7 @@ namespace OpenMS
 			
 			if (err_code == MS_ERROR)
 			{
-				std::cerr << "Warning: could not read scan " << index << " of ANDI/MS file '" << file << "'." << std::endl;
+				warning(LOAD, "Could not read scan " << index << ".");
 			}
 			else
 			{
@@ -463,12 +463,12 @@ namespace OpenMS
 		std::string intensity_format = ms_enum_to_string(global_data->intensity_format);
 	  if (intensity_format!= "Short" && intensity_format!= "Long" && intensity_format!= "Float" && intensity_format!= "Double")
 	  {
-	  	throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"","ANDI/MS file parse error. Unknown intensity format '"+intensity_format+"'.");
+	  	fatalError(LOAD, String("Unknown intensity format '")+intensity_format+"'.");
 		}
 		std::string mass_format = ms_enum_to_string(global_data->mass_format);
 	  if (mass_format!= "Short" && mass_format!= "Long" && mass_format!= "Float" && mass_format!= "Double")
 	  {
-	  	throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,"", "ANDI/MS file parse error. Unknown mass format '"+mass_format+"'.");
+	  	fatalError(LOAD, String("Unknown mass format '")+mass_format+"'.");
 		}
 		
 		//load peak data

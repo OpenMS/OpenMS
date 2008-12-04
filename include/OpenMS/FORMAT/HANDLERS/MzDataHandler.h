@@ -104,7 +104,7 @@ namespace OpenMS
 				// EnergyUnits
 				String(";eV;Percent").split(';',cv_terms_[15]);
 				// ScanMode
-				String(";SelectedIonDetection;MassScan").split(';',cv_terms_[16]);
+				String(";Zoom;MassScan;SelectedIonDetection;SelectedReactionMonitoring;ConsecutiveReactionMonitoring;ConstantNeutralGainScan;ConstantNeutralLossScan;ProductIonScan;PrecursorIonScan;EnhancedResolutionScan").split(';',cv_terms_[16]);
 				// Polarity
 				String(";Positive;Negative").split(';',cv_terms_[17]);
 				// ActivationMethod
@@ -156,7 +156,7 @@ namespace OpenMS
 				// EnergyUnits
 				String(";eV;Percent").split(';',cv_terms_[15]);
 				// ScanMode
-				String(";SelectedIonDetection;MassScan").split(';',cv_terms_[16]);
+				String(";Zoom;MassScan;SelectedIonDetection;SelectedReactionMonitoring;ConsecutiveReactionMonitoring;ConstantNeutralGainScan;ConstantNeutralLossScan;ProductIonScan;PrecursorIonScan;EnhancedResolutionScan").split(';',cv_terms_[16]);
 				// Polarity
 				String(";Positive;Negative").split(';',cv_terms_[17]);
 				// ActivationMethod
@@ -290,13 +290,13 @@ namespace OpenMS
 				//abort when receiving a wrong map index
 				if (map>=cv_terms_.size())
 				{
-					warning(String("Cannot find map '") + map + "' needed to write CV term '" + name + "' with accession '" + acc + "'.");
+					warning(STORE, String("Cannot find map '") + map + "' needed to write CV term '" + name + "' with accession '" + acc + "'.");
 					return;
 				}
 				//abort when receiving a wrong term index
 				if (value>=cv_terms_[map].size())
 				{
-					warning(String("Cannot find value '") + value + "' needed to write CV term '" + name + "' with accession '" + acc + "'.");
+					warning(STORE, String("Cannot find value '") + value + "' needed to write CV term '" + name + "' with accession '" + acc + "'.");
 					return;
 				}
 				writeCVS_(os, cv_terms_[map][value], acc, name, indent);
@@ -447,7 +447,7 @@ namespace OpenMS
 				trimmed_transcoded_chars.trim();
 				if (trimmed_transcoded_chars!="")
 				{
-					warning(String("Unhandled character content in tag '") + current_tag + "': " + trimmed_transcoded_chars);
+					warning(LOAD, String("Unhandled character content in tag '") + current_tag + "': " + trimmed_transcoded_chars);
 				}
 			}
 		}
@@ -579,7 +579,7 @@ namespace OpenMS
 				}
 				else
 				{
-					warning("Invalid userParam: name=\"" + name + ", value=\"" + value + "\"");
+					warning(LOAD, "Invalid userParam: name=\"" + name + ", value=\"" + value + "\"");
 				}
 			}
 			else if (tag=="supDataArrayBinary")
@@ -633,7 +633,7 @@ namespace OpenMS
 				else
 				{
 					spec_.setType(SpectrumSettings::UNKNOWN);
-					warning(String("Invalid MzData/SpectrumList/Spectrum/SpectrumDescription/SpectrumSettings/acqSpecification/SpectrumType '") + tmp_type + "'.");
+					warning(LOAD, String("Invalid spectrum type '") + tmp_type + "'.");
 				}
 				
 				spec_.getAcquisitionInfo().setMethodOfCombination(attributeAsString_(attributes, s_methodofcombination));
@@ -863,7 +863,7 @@ namespace OpenMS
 			}
 			if (cexp_->getSourceFiles().size()>1)
 			{
-				warning("Warning: The MzData format can store only one source file. Only the first one is stored!");
+				warning(STORE, "The MzData format can store only one source file. Only the first one is stored!");
 			}
 
 			for (UInt i=0; i < cexp_->getContacts().size(); ++i)
@@ -898,7 +898,7 @@ namespace OpenMS
 			}
 			if (inst.getIonSources().size()>1)
 			{
-				warning("Warning: The MzData format can store only one ion source. Only the first one is stored!");
+				warning(STORE, "The MzData format can store only one ion source. Only the first one is stored!");
 			}
 			os << "\t\t\t</source>\n";
 						
@@ -950,7 +950,7 @@ namespace OpenMS
 			}
 			if (inst.getIonDetectors().size()>1)
 			{
-				warning("Warning: The MzData format can store only one ion detector. Only the first one is stored!");
+				warning(STORE, "The MzData format can store only one ion detector. Only the first one is stored!");
 			}
 			os << "\t\t\t</detector>\n";
 			if (inst.getVendor()!="" || inst.getModel()!="" || inst.getCustomizations()!="")
@@ -1010,7 +1010,7 @@ namespace OpenMS
 				//warn if we loose information
 				if (cexp_->getDataProcessing().size()>1)
 				{
-					warning("Warning: The MzData format can store only one dataProcessing. Only the first one is stored!");
+					warning(STORE, "The MzData format can store only one dataProcessing. Only the first one is stored!");
 				}
 			}
 			os << "\t</description>\n";
@@ -1052,7 +1052,7 @@ namespace OpenMS
 				//If we need to renumber and the nativeIDs were not empty, warn the user
 				if (!all_numbers && !all_empty)
 				{
-					warning("Warning: Not all spectrum native IDs are numbers or correctly prefixed with 'spectrum='. The spectra are renumbered and the native IDs are lost!");
+					warning(STORE, "Not all spectrum native IDs are numbers or correctly prefixed with 'spectrum='. The spectra are renumbered and the native IDs are lost!");
 				}
 				//Map to store the last spectrum ID for each MS level (needed to find precursor spectra)
 				Map<UInt,UInt> level_id; 
@@ -1110,7 +1110,7 @@ namespace OpenMS
 					}
 					if (iset.getScanWindows().size() > 1)
 					{
-						warning("Warning: The MzData format can store only one scan window for each scan. Only the first one is stored!");
+						warning(STORE, "The MzData format can store only one scan window for each scan. Only the first one is stored!");
 					}
 					os << ">\n";
 	
@@ -1223,7 +1223,7 @@ namespace OpenMS
 							//check if spectrum and meta data array have the same length
 							if (mda.size()!=spec.size())
 							{
-								error(String("Length of meta data array (index:'")+i+"' name:'"+mda.getName()+"') differs from spectrum length. meta data array: " + mda.size() + " / spectrum: " + spec.size() +" .");
+								error(LOAD, String("Length of meta data array (index:'")+i+"' name:'"+mda.getName()+"') differs from spectrum length. meta data array: " + mda.size() + " / spectrum: " + spec.size() +" .");
 							}
 							//encode meta data array
 							data_to_encode_.clear();
@@ -1311,7 +1311,7 @@ namespace OpenMS
 				{
 					if (spec_.getPrecursorPeak().getCharge() != 0)
 					{
-						warning(String("Multiple precursor charges detected, expected only one! Ignoring this charge setting! accession=\"") + accession + "\", value=\"" + value + "\"");
+						warning(LOAD, String("Multiple precursor charges detected, expected only one! Ignoring this charge setting! accession=\"") + accession + "\", value=\"" + value + "\"");
 						spec_.getPrecursorPeak().setCharge(0);
 					}
 					else
@@ -1541,12 +1541,12 @@ namespace OpenMS
 			}
 			else
 			{
-				warning(String("Unexpected cvParam: accession=\"") + accession + ", value=\"" + value + "\" in tag " + parent_tag);
+				warning(LOAD, String("Unexpected cvParam: accession=\"") + accession + ", value=\"" + value + "\" in tag " + parent_tag);
 			}
 
 			if (error != "")
 			{
-				warning(String("Invalid cvParam: accession=\"") + accession + ", value=\"" + value + "\" in " + error);
+				warning(LOAD, String("Invalid cvParam: accession=\"") + accession + ", value=\"" + value + "\" in " + error);
 			}
 			//std::cout << "End of MzDataHander::cvParam_" << std::endl;
 		}

@@ -221,7 +221,7 @@ namespace OpenMS
 			optionalAttributeAsString_(file_version,attributes,"version");
 			if (file_version.toDouble()>version_.toDouble())
 			{
-				warning("The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
+				warning(LOAD, "The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
 			}
 			//handle file id
 			String id;
@@ -376,7 +376,7 @@ namespace OpenMS
 			String id = attributeAsString_(attributes,"identification_run_ref");
 			if (!id_identifier_.has(id))
 			{
-				warning(String("Warning: Peptide identification without ProteinIdentification found (id: '") + id + "')!");
+				warning(LOAD, String("Peptide identification without ProteinIdentification found (id: '") + id + "')!");
 			}
 			pep_id_.setIdentifier(id_identifier_[id]);
 			

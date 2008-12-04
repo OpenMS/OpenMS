@@ -74,7 +74,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="1" mzRangeStart="3.456" mzRangeStop="7.89">
-						<cvParam cvLabel="psi" accession="PSI:1000036" name="ScanMode" value="SelectedIonDetection"/>
+						<cvParam cvLabel="psi" accession="PSI:1000036" name="ScanMode" value="MassScan"/>
 						<cvParam cvLabel="psi" accession="PSI:1000037" name="Polarity" value="Negative"/>
 						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="1.98"/>
 					</spectrumInstrument>
@@ -91,7 +91,7 @@
 			<spectrumDesc>
 				<spectrumSettings>
 					<spectrumInstrument msLevel="2" mzRangeStart="3.456" mzRangeStop="7.89">
-						<cvParam cvLabel="psi" accession="PSI:1000036" name="ScanMode" value="SelectedIonDetection"/>
+						<cvParam cvLabel="psi" accession="PSI:1000036" name="ScanMode" value="MassScan"/>
 						<cvParam cvLabel="psi" accession="PSI:1000037" name="Polarity" value="Negative"/>
 						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="3.96"/>
 					</spectrumInstrument>

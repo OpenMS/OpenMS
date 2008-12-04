@@ -844,6 +844,7 @@ namespace OpenMS
 				query << "MZRangeBegin=0.0, MZRangeEnd=0.0,";
 			}
 			query << "Polarity=" << (1u+settings.getPolarity()) << ",";
+			//TODO handle all types!!!
 			query << "ScanMode=" << (1u+settings.getScanMode());
 			query << end;
 			

@@ -87,7 +87,7 @@ namespace OpenMS
 			}
 			else
 			{
-				warning(String("Ignoring entry '") + name + "' because of unknown type '" + type + "'");
+				warning(LOAD, String("Ignoring entry '") + name + "' because of unknown type '" + type + "'");
 			}
 			
 			//restrictions
@@ -193,7 +193,7 @@ namespace OpenMS
 			optionalAttributeAsString_(file_version,attributes,"version");
 			if (file_version.toDouble()>version_.toDouble())
 			{
-				warning("The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
+				warning(LOAD, "The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
 			}
 		}
 	}
@@ -260,7 +260,7 @@ namespace OpenMS
 			}
 			else
 			{
-				warning(String("Ignoring list entry '") + list_.name + "' because of unknown type '" + list_.type + "'");				
+				warning(LOAD, String("Ignoring list entry '") + list_.name + "' because of unknown type '" + list_.type + "'");				
 			}
 			list_.stringlist.clear();
 			list_.intlist.clear();

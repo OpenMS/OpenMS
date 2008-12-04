@@ -54,6 +54,7 @@ namespace OpenMS
       	CNL,							///< Constant neutral loss scan
       	PRODUCT,					///< Product ion scan
       	PRECURSOR,				///< Precursor ion scan
+      	ER,								///< Enhanced resolution scan
       	SIZE_OF_SCANMODE
       };
 			

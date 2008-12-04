@@ -353,7 +353,7 @@ namespace OpenMS
 			optionalAttributeAsString_(file_version,attributes,"version");
 			if (file_version.toDouble()>version_.toDouble())
 			{
-				warning("The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
+				warning(LOAD, "The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
 			}
 		}
 		

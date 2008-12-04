@@ -71,7 +71,7 @@ namespace OpenMS
 	  			//Polarity
 					String("any;+;-").split(';',cv_terms_[0]);
 					//Scan type
-					String(";zoom;Full;SIM;SRM;CRM").split(';',cv_terms_[1]);
+					String(";zoom;Full;SIM;SRM;CRM;CNG;CNL;PRODUCT;PRECURSOR;ER").split(';',cv_terms_[1]);
 					//Ionization method
 					String(";ESI;EI;CI;FAB;TSP;MALDI;FD;FI;PD;SI;TI;API;ISI;CID;CAD;HN;APCI;APPI;ICP").split(';',cv_terms_[2]);
 					//Mass analyzer
@@ -98,7 +98,7 @@ namespace OpenMS
 	  			//Polarity
 					String("any;+;-").split(';',cv_terms_[0]);
 					//Scan type
-					String(";zoom;Full;SIM;SRM;CRM").split(';',cv_terms_[1]);
+					String(";zoom;Full;SIM;SRM;CRM;CNG;CNL;PRODUCT;PRECURSOR;ER").split(';',cv_terms_[1]);
 					//Ionization method
 					String(";ESI;EI;CI;FAB;TSP;MALDI;FD;FI;PD;SI;TI;API;ISI;CID;CAD;HN;APCI;APPI;ICP").split(';',cv_terms_[2]);
 					//Mass analyzer
@@ -108,7 +108,7 @@ namespace OpenMS
 					//Resolution method
 					String(";FWHM;TenPercentValley;Baseline").split(';',cv_terms_[5]);
 				}
-	
+
 	  		/// Destructor
 	      virtual ~MzXMLHandler()
 	      {
@@ -277,19 +277,19 @@ namespace OpenMS
 				precision_ = attributeAsString_(attributes, s_precision);
 				if (precision_!="32" && precision_!="64")
 				{
-					error(String("Invalid precision '") + precision_ + "' in element 'peaks'");
+					error(LOAD, String("Invalid precision '") + precision_ + "' in element 'peaks'");
 				}
 				String byte_order;
 				optionalAttributeAsString_(byte_order, attributes, s_byteorder);
 				if (byte_order!="network")
 				{
-					error(String("Invalid or missing byte order '") + byte_order + "' in element 'peaks'. Must be 'network'!");
+					error(LOAD, String("Invalid or missing byte order '") + byte_order + "' in element 'peaks'. Must be 'network'!");
 				}
 				String pair_order;
 				optionalAttributeAsString_(pair_order, attributes, s_pairorder);
 				if (pair_order!="m/z-int")
 				{
-					error(String("Invalid or missing pair order '") + pair_order + "' in element 'peaks'. Must be 'm/z-int'!");
+					error(LOAD, String("Invalid or missing pair order '") + pair_order + "' in element 'peaks'. Must be 'm/z-int'!");
 				}
 			}
 			else if (tag=="precursorMz")
@@ -300,7 +300,7 @@ namespace OpenMS
 				}
 				catch (Exception::ParseError& e)
 				{
-					std::cerr << "Error: MzXMLHandler: mandatory attribute precursorMz not found! Setting precursor intensity to 0; trying to continue;" << std::endl;
+					error(LOAD, "Mandatory attribute precursorMz not found! Setting precursor intensity to 0 - trying to continue");
 					exp_->back().getPrecursorPeak().setIntensity(0.0);
 				}
 				
@@ -388,6 +388,8 @@ namespace OpenMS
 				
 				String type = "";
 				optionalAttributeAsString_(type, attributes, s_scantype);
+				if (type=="EMS") type=""; //Enhanced MS (ABI - Sashimi converter)
+				if (type=="EPI") type=""; //Enhanced Product Ion (ABI - Sashimi converter)
 				exp_->back().getInstrumentSettings().setScanMode( (InstrumentSettings::ScanMode) cvStringToEnum_(1,type,"scanType") );
 				
 				++scan_count;
@@ -622,14 +624,13 @@ namespace OpenMS
 				}
 				else if (String(transcoded_chars).trim()!="")
 				{
-					std::cerr << "Unhandled comment '" << transcoded_chars << "' in element '" << open_tags_.back() << "'" << std::endl;
+					warning(LOAD, String("Unhandled comment '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
 				}
 			}
 			else if (String(transcoded_chars).trim()!="")
 			{
-					std::cerr << "Unhandled character content '" << transcoded_chars << "' in tag '" << open_tags_.back() << "'" << std::endl;
+				warning(LOAD, String("Unhandled character content '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
 			}
-	  	//std::cout << " -- !Chars -- " << std::endl;
 	  }
 	
 		template <typename MapType>
@@ -852,7 +853,7 @@ namespace OpenMS
 			//If we need to renumber and the nativeIDs were not empty, warn the user
 			if (!all_numbers && !all_empty)
 			{
-				warning("Warning: Not all spectrum native IDs are numbers or correctly prefixed with 'scan='. The spectra are renumbered and the native IDs are lost!");
+				warning(STORE, "Not all spectrum native IDs are numbers or correctly prefixed with 'scan='. The spectra are renumbered and the native IDs are lost!");
 			}
 			
 			// write scans
@@ -892,10 +893,9 @@ namespace OpenMS
 					os << "any";
 				}
 				
-				if (spec.getInstrumentSettings().getScanMode()!=0 && spec.getInstrumentSettings().getScanMode()<6)
+				if (spec.getInstrumentSettings().getScanMode()!=0)
 				{
-					os << "\" scanType=\""
-						 << cv_terms_[1][spec.getInstrumentSettings().getScanMode()];
+					os << "\" scanType=\"" << cv_terms_[1][spec.getInstrumentSettings().getScanMode()];
 				}
 				os << "\" retentionTime=\"";
 				if (spec.getRT()<0) os << "-";
@@ -906,7 +906,7 @@ namespace OpenMS
 				}
 				if (spec.getInstrumentSettings().getScanWindows().size() > 1)
 				{
-					warning("Warning: The MzXML format can store only one scan window for each scan. Only the first one is stored!");
+					warning(STORE, "The MzXML format can store only one scan window for each scan. Only the first one is stored!");
 				}
 				os << ">\n";
 	

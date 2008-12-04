@@ -387,7 +387,7 @@ FileFilter_test: make_fuzzydiff
 	@$(call TEST_FILE_EQUAL,FileFilter_3_out.tmp,FileFilter_3_output.mzData)
 
 	@$(ECHO) "- Test 4: removing zoom scans"
-	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_4_input.mzData -out FileFilter_4_out.tmp -remove_mode SelectedIonDetection)
+	@$(call RUN_PROG_OPT,FileFilter,-in FileFilter_4_input.mzData -out FileFilter_4_out.tmp -remove_mode Zoom)
 	@$(call TEST_FILE_EQUAL,FileFilter_4_out.tmp,FileFilter_4_output.mzData)
 
 	@$(ECHO) "- Test 5: featureXML (upper bound)"

@@ -163,7 +163,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[2].getInstrumentSettings().metaValueExists("SpecComment"), false)
 	TEST_EQUAL(e[0].getInstrumentSettings().getScanMode(), InstrumentSettings::FULL)
 	TEST_EQUAL(e[1].getInstrumentSettings().getScanMode(), InstrumentSettings::FULL)
-	TEST_EQUAL(e[2].getInstrumentSettings().getScanMode(), InstrumentSettings::ZOOM)
+	TEST_EQUAL(e[2].getInstrumentSettings().getScanMode(), InstrumentSettings::SIM)
 	TEST_EQUAL(e[0].getInstrumentSettings().getPolarity(), IonSource::POSITIVE)
 	TEST_EQUAL(e[1].getInstrumentSettings().getPolarity(), IonSource::POSITIVE)
 	TEST_EQUAL(e[2].getInstrumentSettings().getPolarity(), IonSource::NEGATIVE)
