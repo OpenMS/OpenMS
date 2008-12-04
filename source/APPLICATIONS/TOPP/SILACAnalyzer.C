@@ -303,57 +303,61 @@ class TOPPSILACAnalyzer
 				{
 					logger_.setProgress(rt_it-exp.begin());
 					Int number_data_points = rt_it->size();
-					// read one OpenMS spectrum into GSL structure
-					std::vector<DoubleReal> mz_vec;
-					std::vector<DoubleReal> intensity_vec;
-					mz_vec.resize(number_data_points);
-					intensity_vec.resize(number_data_points);
-					Int j = 0;
-					for (MSSpectrum<>::Iterator mz_it=rt_it->begin(); mz_it!=rt_it->end(); ++mz_it)
-					{
-						mz_vec[j] = mz_it->getMZ();
-						intensity_vec[j] = mz_it->getIntensity();
-						++j;
-					}
-					DoubleReal mz_min = mz_vec[0];
-					DoubleReal mz_max = mz_vec[number_data_points-1];
-					// linear interpolation
-					// used for the detection of pairs (spline overestimates at noise level)
-					gsl_interp_accel *acc = gsl_interp_accel_alloc();
-					gsl_spline *spline = gsl_spline_alloc(gsl_interp_linear, number_data_points);
-					gsl_spline_init(spline, &*mz_vec.begin(), &*intensity_vec.begin(), number_data_points);
-					// spline interpolation
-					// used for exact ratio calculation (more accurate when real peak pairs are present)
-					gsl_interp_accel *acc2 = gsl_interp_accel_alloc();
-					gsl_spline *spline2 = gsl_spline_alloc(gsl_interp_cspline, number_data_points);
-					gsl_spline_init(spline2, &*mz_vec.begin(), &*intensity_vec.begin(), number_data_points);
-					for (DoubleReal mz=mz_min+isotope_distance; mz<mz_max-envelope_distance-3*isotope_distance; mz+=mz_step_width)
-					{
-						DoubleReal int_lin1 = gsl_spline_eval (spline, mz, acc);
-						DoubleReal int_lin2 = gsl_spline_eval (spline, mz+envelope_distance, acc);
-						DoubleReal int_lin3 = gsl_spline_eval (spline, mz+isotope_distance, acc);
-						DoubleReal int_lin4 = gsl_spline_eval (spline, mz+envelope_distance+isotope_distance, acc);
-						DoubleReal int_lin5 = gsl_spline_eval (spline, mz+2*isotope_distance, acc);
-						DoubleReal int_lin6 = gsl_spline_eval (spline, mz+envelope_distance+2*isotope_distance, acc);
-						DoubleReal int_spline1 = gsl_spline_eval (spline2, mz, acc2);
-						DoubleReal int_spline2 = gsl_spline_eval (spline2, mz+envelope_distance, acc2);
-						DoubleReal int_spline3 = gsl_spline_eval (spline2, mz+isotope_distance, acc2);
-						DoubleReal int_spline4 = gsl_spline_eval (spline2, mz+envelope_distance+isotope_distance, acc2);
-						DoubleReal int_spline5 = gsl_spline_eval (spline2, mz+2*isotope_distance, acc2);
-						DoubleReal int_spline6 = gsl_spline_eval (spline2, mz+envelope_distance+2*isotope_distance, acc2);
+					// spectra with less than 10 data points are being ignored
+					if (number_data_points>=10) {
+					  std::cout << "number of data points per spectrum: " << number_data_points << std::endl;
+					  // read one OpenMS spectrum into GSL structure
+					  std::vector<DoubleReal> mz_vec;
+					  std::vector<DoubleReal> intensity_vec;
+					  mz_vec.resize(number_data_points);
+					  intensity_vec.resize(number_data_points);
+					  Int j = 0;
+					  for (MSSpectrum<>::Iterator mz_it=rt_it->begin(); mz_it!=rt_it->end(); ++mz_it)
+					  {
+						  mz_vec[j] = mz_it->getMZ();
+						  intensity_vec[j] = mz_it->getIntensity();
+						  ++j;
+					  }
+					  DoubleReal mz_min = mz_vec[0];
+					  DoubleReal mz_max = mz_vec[number_data_points-1];
+					  // linear interpolation
+					  // used for the detection of pairs (spline overestimates at noise level)
+					  gsl_interp_accel *acc = gsl_interp_accel_alloc();
+					  gsl_spline *spline = gsl_spline_alloc(gsl_interp_linear, number_data_points);
+					  gsl_spline_init(spline, &*mz_vec.begin(), &*intensity_vec.begin(), number_data_points);
+					  // spline interpolation
+					  // used for exact ratio calculation (more accurate when real peak pairs are present)
+					  gsl_interp_accel *acc2 = gsl_interp_accel_alloc();
+					  gsl_spline *spline2 = gsl_spline_alloc(gsl_interp_cspline, number_data_points);
+					  gsl_spline_init(spline2, &*mz_vec.begin(), &*intensity_vec.begin(), number_data_points);
+					  for (DoubleReal mz=mz_min+isotope_distance; mz<mz_max-envelope_distance-3*isotope_distance; mz+=mz_step_width)
+					  {
+						  DoubleReal int_lin1 = gsl_spline_eval (spline, mz, acc);
+						  DoubleReal int_lin2 = gsl_spline_eval (spline, mz+envelope_distance, acc);
+						  DoubleReal int_lin3 = gsl_spline_eval (spline, mz+isotope_distance, acc);
+  						DoubleReal int_lin4 = gsl_spline_eval (spline, mz+envelope_distance+isotope_distance, acc);
+	  					DoubleReal int_lin5 = gsl_spline_eval (spline, mz+2*isotope_distance, acc);
+		  				DoubleReal int_lin6 = gsl_spline_eval (spline, mz+envelope_distance+2*isotope_distance, acc);
+			  			DoubleReal int_spline1 = gsl_spline_eval (spline2, mz, acc2);
+				  		DoubleReal int_spline2 = gsl_spline_eval (spline2, mz+envelope_distance, acc2);
+					  	DoubleReal int_spline3 = gsl_spline_eval (spline2, mz+isotope_distance, acc2);
+						  DoubleReal int_spline4 = gsl_spline_eval (spline2, mz+envelope_distance+isotope_distance, acc2);
+  						DoubleReal int_spline5 = gsl_spline_eval (spline2, mz+2*isotope_distance, acc2);
+	  					DoubleReal int_spline6 = gsl_spline_eval (spline2, mz+envelope_distance+2*isotope_distance, acc2);
 
-						bool cond1 = (int_lin1 >= intensity_cutoff) && (int_lin2 >= intensity_cutoff) && (int_lin3 >= intensity_cutoff) && (int_lin4 >= intensity_cutoff) && (int_lin5 >= intensity_cutoff) && (int_lin6 >= intensity_cutoff); // all six intensities peak simultaneously
-						bool cond2 = (int_spline3 <= int_spline1) && (int_spline5 <= int_spline3) && (int_spline4 <= int_spline2) && (int_spline6 <= int_spline4); // isotopic peaks within one envelop decrease
-						if (cond1 && cond2)
-						{
-			  			data.push_back(SILACData(rt_it->getRT(),mz,int_spline1,int_spline3,int_spline5,int_spline2,int_spline4,int_spline6));
-						}
-					}
+		  				bool cond1 = (int_lin1 >= intensity_cutoff) && (int_lin2 >= intensity_cutoff) && (int_lin3 >= intensity_cutoff) && (int_lin4 >= intensity_cutoff) && (int_lin5 >= intensity_cutoff) && (int_lin6 >= intensity_cutoff); // all six intensities peak simultaneously
+			  			bool cond2 = (int_spline3 <= int_spline1) && (int_spline5 <= int_spline3) && (int_spline4 <= int_spline2) && (int_spline6 <= int_spline4); // isotopic peaks within one envelop decrease
+				  		if (cond1 && cond2)
+					  	{
+			  		  	data.push_back(SILACData(rt_it->getRT(),mz,int_spline1,int_spline3,int_spline5,int_spline2,int_spline4,int_spline6));
+						  }
+					  }
 
-					gsl_spline_free(spline);
-					gsl_interp_accel_free(acc);
-					gsl_spline_free(spline2);
-					gsl_interp_accel_free(acc2);
+					  gsl_spline_free(spline);
+  					gsl_interp_accel_free(acc);
+	  				gsl_spline_free(spline2);
+		  			gsl_interp_accel_free(acc2);
+					}
 				}
 				exp.clear();
 				logger_.endProgress();
