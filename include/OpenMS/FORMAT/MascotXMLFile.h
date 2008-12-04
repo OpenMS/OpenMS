@@ -30,13 +30,10 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-
-#include <vector>
+#include <OpenMS/FORMAT/XMLFile.h>
 
 namespace OpenMS 
 {
-	class String;
-	
   /**
     @brief Used to load MascotXML files
     
@@ -46,6 +43,7 @@ namespace OpenMS
   	@ingroup FileIO
   */
   class MascotXMLFile
+  	: public Internal::XMLFile
   {
     public:
       /// Constructor
@@ -63,7 +61,7 @@ namespace OpenMS
 		    This method serves to read in a MascotXML file. The information can be 
 		    retrieved via the load function.      
 		  */
-	    void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data) const;
+	    void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data);
       					 
 		  /**
 		    @brief loads data from a MascotXML file
@@ -78,7 +76,7 @@ namespace OpenMS
 		    This method serves to read in a MascotXML file. The information can be 
 		    retrieved via the load function.      
 		  */
-	    void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, std::map< String, std::vector<AASequence> >& peptides) const;
+	    void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, std::map< String, std::vector<AASequence> >& peptides);
       					 
   };
  

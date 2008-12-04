@@ -84,11 +84,6 @@ START_SECTION(ScanDirection getScanDirection() const)
   TEST_EQUAL(tmp.getScanDirection(),MassAnalyzer::SCANDIRNULL);
 END_SECTION
 
-START_SECTION(ScanFunction getScanFunction() const)
-  MassAnalyzer tmp;
-  TEST_EQUAL(tmp.getScanFunction(),MassAnalyzer::SCANFCTNULL);
-END_SECTION
-
 START_SECTION(ScanLaw getScanLaw() const)
   MassAnalyzer tmp;
   TEST_EQUAL(tmp.getScanLaw(),MassAnalyzer::SCANLAWNULL);
@@ -199,12 +194,6 @@ START_SECTION(void setScanDirection(ScanDirection scan_direction))
   TEST_EQUAL(tmp.getScanDirection(),MassAnalyzer::UP);
 END_SECTION
 
-START_SECTION(void setScanFunction(ScanFunction scan_function))
-  MassAnalyzer tmp;
-  tmp.setScanFunction(MassAnalyzer::MASSSCAN);
-  TEST_EQUAL(tmp.getScanFunction(),MassAnalyzer::MASSSCAN);
-END_SECTION
-
 START_SECTION(void setScanLaw(ScanLaw scan_law))
   MassAnalyzer tmp;
   tmp.setScanLaw(MassAnalyzer::LINEAR);
@@ -247,7 +236,6 @@ START_SECTION(MassAnalyzer(const MassAnalyzer& source))
   tmp.setResolutionMethod(MassAnalyzer::FWHM);
   tmp.setResolutionType(MassAnalyzer::CONSTANT);
   tmp.setScanDirection(MassAnalyzer::UP);
-  tmp.setScanFunction(MassAnalyzer::MASSSCAN);
   tmp.setScanLaw(MassAnalyzer::LINEAR);
   tmp.setScanRate(47.15);
   tmp.setScanTime(47.16);
@@ -267,7 +255,6 @@ START_SECTION(MassAnalyzer(const MassAnalyzer& source))
 	TEST_EQUAL(tmp.getResolutionMethod(),MassAnalyzer::FWHM);
 	TEST_EQUAL(tmp.getResolutionType(),MassAnalyzer::CONSTANT);
 	TEST_EQUAL(tmp.getScanDirection(),MassAnalyzer::UP);
-	TEST_EQUAL(tmp.getScanFunction(),MassAnalyzer::MASSSCAN);
 	TEST_EQUAL(tmp.getScanLaw(),MassAnalyzer::LINEAR);
 	TEST_REAL_SIMILAR(tmp.getScanRate(),47.15);
 	TEST_REAL_SIMILAR(tmp.getScanTime(),47.16);
@@ -290,7 +277,6 @@ START_SECTION(MassAnalyzer& operator= (const MassAnalyzer& source))
   tmp.setResolutionMethod(MassAnalyzer::FWHM);
   tmp.setResolutionType(MassAnalyzer::CONSTANT);
   tmp.setScanDirection(MassAnalyzer::UP);
-  tmp.setScanFunction(MassAnalyzer::MASSSCAN);
   tmp.setScanLaw(MassAnalyzer::LINEAR);
   tmp.setScanRate(47.15);
   tmp.setScanTime(47.16);
@@ -311,7 +297,6 @@ START_SECTION(MassAnalyzer& operator= (const MassAnalyzer& source))
 	TEST_EQUAL(tmp2.getResolutionMethod(),MassAnalyzer::FWHM);
 	TEST_EQUAL(tmp2.getResolutionType(),MassAnalyzer::CONSTANT);
 	TEST_EQUAL(tmp2.getScanDirection(),MassAnalyzer::UP);
-	TEST_EQUAL(tmp2.getScanFunction(),MassAnalyzer::MASSSCAN);
 	TEST_EQUAL(tmp2.getScanLaw(),MassAnalyzer::LINEAR);
 	TEST_REAL_SIMILAR(tmp2.getScanRate(),47.15);
 	TEST_REAL_SIMILAR(tmp2.getScanTime(),47.16);
@@ -331,7 +316,6 @@ START_SECTION(MassAnalyzer& operator= (const MassAnalyzer& source))
 	TEST_EQUAL(tmp2.getResolutionMethod(),MassAnalyzer::RESMETHNULL);
 	TEST_EQUAL(tmp2.getResolutionType(),MassAnalyzer::RESTYPENULL);
 	TEST_EQUAL(tmp2.getScanDirection(),MassAnalyzer::SCANDIRNULL);
-	TEST_EQUAL(tmp2.getScanFunction(),MassAnalyzer::SCANFCTNULL);
 	TEST_EQUAL(tmp2.getScanLaw(),MassAnalyzer::SCANLAWNULL);
 	TEST_REAL_SIMILAR(tmp2.getScanRate(),0.0);
 	TEST_REAL_SIMILAR(tmp2.getScanTime(),0.0);
@@ -384,10 +368,6 @@ START_SECTION(bool operator== (const MassAnalyzer& rhs) const)
 	
 	edit=empty;
 	edit.setScanDirection(MassAnalyzer::UP);
-	TEST_EQUAL(edit==empty,false);
-	
-	edit=empty;
-	edit.setScanFunction(MassAnalyzer::MASSSCAN);
 	TEST_EQUAL(edit==empty,false);
 	
 	edit=empty;
@@ -458,10 +438,6 @@ START_SECTION(bool operator!= (const MassAnalyzer& rhs) const)
 	
 	edit=empty;
 	edit.setScanDirection(MassAnalyzer::UP);
-	TEST_EQUAL(edit!=empty,true);
-	
-	edit=empty;
-	edit.setScanFunction(MassAnalyzer::MASSSCAN);
 	TEST_EQUAL(edit!=empty,true);
 	
 	edit=empty;

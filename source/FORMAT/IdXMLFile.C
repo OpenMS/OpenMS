@@ -441,7 +441,7 @@ namespace OpenMS
 			String ref = attributeAsString_(attributes,"search_parameters_ref");
 			if (parameters_.find(ref)==parameters_.end())
 			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invalid search parameters reference '") + ref + "'" );
+				fatalError(LOAD, String("Invalid search parameters reference '") + ref + "'" );
 			}
 			prot_id_.setSearchParameters(parameters_[ref]);
 			
@@ -575,7 +575,7 @@ namespace OpenMS
 					}
 					else
 					{
-						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invalid protein reference '") + *it + "'" );
+						fatalError(LOAD, String("Invalid protein reference '") + *it + "'" );
 					}
 				}
 			}
@@ -587,7 +587,7 @@ namespace OpenMS
 		{
 			if (last_meta_ == 0)
 			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "UserParam unexpected!" );
+				fatalError(LOAD, "Unexpected tag 'UserParam'!");
 			}
 
 			static const XMLCh* s_name = xercesc::XMLString::transcode("name");
@@ -615,7 +615,7 @@ namespace OpenMS
 			}
 			else
 			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invlid UserParam type '") + sm_.convert(type) + "'" );
+				fatalError(LOAD, String("Invlid UserParam type '") + sm_.convert(type) + "' of parameter '" + name +"'");
 			}
 		}
 	}

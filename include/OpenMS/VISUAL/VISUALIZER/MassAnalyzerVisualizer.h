@@ -77,7 +77,6 @@ namespace OpenMS
 			QComboBox* type_;
 			QComboBox* res_method_;
 			QComboBox* res_type_;
-			QComboBox* scan_func_;
 			QComboBox* scan_dir_;
 			QComboBox* scan_law_;
 			QComboBox* tandem_scan_method_;

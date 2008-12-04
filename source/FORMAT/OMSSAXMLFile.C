@@ -47,13 +47,7 @@ namespace OpenMS
 	}
 	
   void OMSSAXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_identifications, bool load_proteins)
-  {
-  	//try to open file
-		if (!File::exists(filename))
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-    }
-		
+  {		
 		//Filename for error messages in XMLHandler
     file_ = filename;
 
@@ -368,7 +362,7 @@ namespace OpenMS
 			{
 				if (split.size() < 2)
 				{
-					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "parse mapping file line: '" + *it + "'", "");
+					fatalError(LOAD, String("Invalid mapping file line: '") + *it + "'");
 				}
 				vector<ResidueModification> mods;
 				for (UInt i = 2; i != split.size(); ++i)

@@ -28,9 +28,6 @@
 #include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <xercesc/sax2/SAX2XMLReader.hpp>
-#include <xercesc/framework/LocalFileInputSource.hpp>
-#include <xercesc/sax2/XMLReaderFactory.hpp>
 
 using namespace xercesc;
 using namespace std;
@@ -39,13 +36,13 @@ namespace OpenMS
 {
 
 	MascotXMLFile::MascotXMLFile()
+		: Internal::XMLFile()
 	{
-	  	
 	}
 
   void MascotXMLFile::load(const String& filename, 
 						      					ProteinIdentification& protein_identification, 
-						      					vector<PeptideIdentification>& id_data) const
+						      					vector<PeptideIdentification>& id_data)
   {
   	map<String, vector<AASequence> > peptides;
   	
@@ -55,52 +52,15 @@ namespace OpenMS
   void MascotXMLFile::load(const String& filename, 
 						      					ProteinIdentification& protein_identification, 
 						      					vector<PeptideIdentification>& id_data,
-						      					map<String, vector<AASequence> >& peptides) const
+						      					map<String, vector<AASequence> >& peptides)
   {
-  	//try to open file
-		if (!File::exists(filename))
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-    }
-		
-		// initialize parser
-		try 
-		{
-			XMLPlatformUtils::Initialize();
-		}
-		catch (const XMLException& toCatch) 
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-	  }
-
+  	//clear
 		protein_identification = ProteinIdentification();
 		id_data.clear();
 
-		SAX2XMLReader* parser = XMLReaderFactory::createXMLReader();
-		parser->setFeature(XMLUni::fgSAX2CoreNameSpaces,false);
-		parser->setFeature(XMLUni::fgSAX2CoreNameSpacePrefixes,false);
-
 		Internal::MascotXMLHandler handler(protein_identification, id_data, filename, peptides);
-
-
-		parser->setContentHandler(&handler);
-		parser->setErrorHandler(&handler);
-		
-		LocalFileInputSource source( Internal::StringManager().convert(filename.c_str()) );
-		try 
-    {
-    	parser->parse(source);
-    	delete(parser);
-    }
-    catch (const XMLException& toCatch) 
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-    }
-    catch (const SAXException& toCatch) 
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-    }
-		
+		parse_(filename, &handler);
+				
 		// Since the mascot xml can contain "peptides" without sequences the identifications 
 		// without any real peptide hit are removed
   	vector<PeptideHit> peptide_hits;

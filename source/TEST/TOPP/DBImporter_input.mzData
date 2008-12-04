@@ -40,7 +40,6 @@
 					<cvParam cvLabel="psi" accession="PSI:1000010" name="AnalyzerType" value="TOF"/>
 					<cvParam cvLabel="psi" accession="PSI:1000015" name="ScanRate" value="5.555"/>
 					<cvParam cvLabel="psi" accession="PSI:1000016" name="ScanTime" value="6.666"/>
-					<cvParam cvLabel="psi" accession="PSI:1000017" name="ScanFunction" value="MassScan"/>
 					<cvParam cvLabel="psi" accession="PSI:1000018" name="ScanDirection" value="Up"/>
 					<cvParam cvLabel="psi" accession="PSI:1000019" name="ScanLaw" value="Linear"/>
 					<cvParam cvLabel="psi" accession="PSI:1000020" name="TandemScanningMethod" value="ProductIonScan"/>

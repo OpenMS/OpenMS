@@ -37,10 +37,6 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 
-#include <xercesc/sax2/SAX2XMLReader.hpp>
-#include <xercesc/framework/MemBufInputSource.hpp>
-#include <xercesc/sax2/XMLReaderFactory.hpp>
-
 #include <sstream>
 #include <iostream>
 
@@ -438,7 +434,11 @@ namespace OpenMS
 				{
 					warning(LOAD, "Could not convert the mzML version string '" + file_version +"' to a double.");
 				}
-				if (double_version>version_.toDouble())
+				if (double_version<1.1)
+				{
+					fatalError(LOAD, "MzML 1.0 is not supported!");
+				}
+				else if (double_version>version_.toDouble())
 				{
 					warning(LOAD, "The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
 				}
@@ -2217,7 +2217,7 @@ namespace OpenMS
 			logger_.startProgress(0,exp.size(),"storing mzML file");
 			
 			os	<< "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
-					<< "<mzML xmlns=\"http://psi.hupo.org/schema_revision/mzML_1.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/schema_revision/mzML_1.0.0 mzML1.0.0.xsd\" accession=\"" << exp.getIdentifier() << "\" version=\"1.0\">\n";
+					<< "<mzML xmlns=\"http://psi.hupo.org/schema_revision/mzML_1.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/schema_revision/mzML_1.0.0 mzML1.0.0.xsd\" accession=\"" << exp.getIdentifier() << "\" version=\"1.1\">\n";
 			//--------------------------------------------------------------------------------------------
 			// CV list
 			//--------------------------------------------------------------------------------------------

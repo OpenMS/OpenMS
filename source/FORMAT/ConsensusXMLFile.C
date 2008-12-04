@@ -241,7 +241,7 @@ namespace OpenMS
 		{
 			if (last_meta_ == 0)
 			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("unexpected userParam in tag '") + parent_tag + "'" );
+				fatalError(LOAD, String("Unexpected userParam in tag '") + parent_tag + "'" );
 			}
 			
 			String name = attributeAsString_(attributes,"name");
@@ -261,7 +261,7 @@ namespace OpenMS
 			}
 			else
 			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invalid userParam type '") + type + "'" );
+				fatalError(LOAD, String("Invalid userParam type '") + type + "'" );
 			}
 		}
 		else if (tag == "IdentificationRun")
@@ -460,7 +460,7 @@ namespace OpenMS
 					}
 					else
 					{
-						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invalid protein reference '") + *it + "'" );
+						fatalError(LOAD, String("Invalid protein reference '") + *it + "'" );
 					}
 				}
 			}

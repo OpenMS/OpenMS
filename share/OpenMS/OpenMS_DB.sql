@@ -528,7 +528,6 @@ CREATE TABLE META_MassAnalyzer (
   ResolutionMethod enum('UNKNOWN','FWHM','TENPERCENTVALLEY','BASELINE') NOT NULL default 'UNKNOWN',
   ResolutionType enum('UNKNOWN','CONSTANT','PROPORTIONAL') NOT NULL default 'UNKNOWN',
   ScanDirection enum('UNKNOWN','UP','DOWN') NOT NULL default 'UNKNOWN',
-  ScanFunction enum('UNKNOWN','SELECTEDIONDETECTION','MASSSCAN') NOT NULL default 'UNKNOWN',
   ScanLaw enum('UNKNOWN','EXPONENTIAL','LINEAR','QUADRATIC') NOT NULL default 'UNKNOWN',
   ScanRate float default NULL,
   ScanTime float default NULL,

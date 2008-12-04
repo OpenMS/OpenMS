@@ -46,7 +46,6 @@
 					<cvParam cvLabel="psi" accession="PSI:1000014" name="Accuracy" value="33.44"/>
 					<cvParam cvLabel="psi" accession="PSI:1000015" name="ScanRate" value="44.55"/>
 					<cvParam cvLabel="psi" accession="PSI:1000016" name="ScanTime" value="55.66"/>
-					<cvParam cvLabel="psi" accession="PSI:1000017" name="ScanFunction" value="MassScan"/>
 					<cvParam cvLabel="psi" accession="PSI:1000018" name="ScanDirection" value="Up"/>
 					<cvParam cvLabel="psi" accession="PSI:1000019" name="ScanLaw" value="Linear"/>
 					<cvParam cvLabel="psi" accession="PSI:1000020" name="TandemScanningMethod" value="PrecursorIonScan"/>
@@ -66,7 +65,6 @@
 					<cvParam cvLabel="psi" accession="PSI:1000014" name="Accuracy" value="13.4"/>
 					<cvParam cvLabel="psi" accession="PSI:1000015" name="ScanRate" value="14.5"/>
 					<cvParam cvLabel="psi" accession="PSI:1000016" name="ScanTime" value="15.6"/>
-					<cvParam cvLabel="psi" accession="PSI:1000017" name="ScanFunction" value="SelectedIonDetection"/>
 					<cvParam cvLabel="psi" accession="PSI:1000018" name="ScanDirection" value="Down"/>
 					<cvParam cvLabel="psi" accession="PSI:1000019" name="ScanLaw" value="Exponential"/>
 					<cvParam cvLabel="psi" accession="PSI:1000020" name="TandemScanningMethod" value="ProductIonScan"/>

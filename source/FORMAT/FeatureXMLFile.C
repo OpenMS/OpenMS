@@ -290,7 +290,7 @@ namespace OpenMS
 		{
 			if (last_meta_ == 0)
 			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("unexpected userParam in tag '") + parent_tag + "'" );
+				fatalError(LOAD, String("unexpected userParam in tag '") + parent_tag + "'" );
 			}
 			
 			String name = attributeAsString_(attributes,s_name);
@@ -310,7 +310,7 @@ namespace OpenMS
 			}
 			else
 			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invalid userParam type '") + type + "'" );
+				fatalError(LOAD, String("Invalid userParam type '") + type + "'" );
 			}
 		}
 		else if (tag=="featureMap")
@@ -546,7 +546,7 @@ namespace OpenMS
 					}
 					else
 					{
-						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Invalid protein reference '") + *it + "'" );
+						fatalError(LOAD, String("Invalid protein reference '") + *it + "'" );
 					}
 				}
 			}
@@ -589,7 +589,7 @@ namespace OpenMS
 					}
 					else
 					{
-						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Feature", "<Feature> with unexpected location." );
+						fatalError(LOAD, "Feature with unexpected location.");
 					}
 
 					for (Int level = 1; level<subordinate_feature_level_;++level)
@@ -619,7 +619,6 @@ namespace OpenMS
 		else if (tag=="subordinate")
 		{
 			--subordinate_feature_level_;
-			if (subordinate_feature_level_ < 0) throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "subordinate", "Too many closing tags for </subordinate>." );
 			// reset current_feature
 			updateCurrentFeature_(false);
 		}

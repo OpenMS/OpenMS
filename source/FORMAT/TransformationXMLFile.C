@@ -100,7 +100,7 @@ namespace OpenMS
 					os << "\t\t<Param  type=\"string\" name=\"" << it->name << "\" value=\"" << it->value.toString() << "\"/>\n";
 					break;
 				default: // no other value types are supported!
-					throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"unsupported parameter type");
+					fatalError(STORE, String("Unsupported parameter type of parameter '") + it->name + "' with value '" + it->value.toString() +"'");
 					break;
 				};
 			}

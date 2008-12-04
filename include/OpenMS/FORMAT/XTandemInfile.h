@@ -30,9 +30,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/HANDLERS/XTandemInfileXMLHandler.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
-
-#include <vector>
-#include <fstream>
+#include <OpenMS/FORMAT/XMLFile.h>
 
 namespace OpenMS
 {
@@ -44,6 +42,7 @@ namespace OpenMS
   	@ingroup FileIO
 	*/
   class XTandemInfile
+  	: public Internal::XMLFile
   {
     public:
 

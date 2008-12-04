@@ -37,8 +37,6 @@ namespace OpenMS
 
 	const std::string MassAnalyzer::NamesOfResolutionType[] = {"Unknown","Constant","Proportional"};
 
-	const std::string MassAnalyzer::NamesOfScanFunction[] = {"Unknown","Selected ion detection","Mass scan"};
-
 	const std::string MassAnalyzer::NamesOfScanDirection[] = {"Unknown","Up","Down"};
 
 	const std::string MassAnalyzer::NamesOfScanLaw[] = {"Unknown","Exponential","Linar","Quadratic"};
@@ -52,7 +50,6 @@ namespace OpenMS
 		type_(ANALYZERNULL),
 		resolution_method_(RESMETHNULL), 
 		resolution_type_(RESTYPENULL),
-		scan_function_(SCANFCTNULL),
 		scan_direction_(SCANDIRNULL),
 		scan_law_(SCANLAWNULL),
 		tandem_scan_method_(TANDEMNULL),
@@ -75,7 +72,6 @@ namespace OpenMS
 	  type_(source.type_),
 	  resolution_method_(source.resolution_method_),
 	  resolution_type_(source.resolution_type_),
-	  scan_function_(source.scan_function_),
 	  scan_direction_(source.scan_direction_),
 	  scan_law_(source.scan_law_),
 	  tandem_scan_method_(source.tandem_scan_method_),
@@ -106,7 +102,6 @@ namespace OpenMS
     type_ = source.type_;
     resolution_method_ = source.resolution_method_;
     resolution_type_ = source.resolution_type_;
-    scan_function_ = source.scan_function_;
     scan_direction_ = source.scan_direction_;
     scan_law_ = source.scan_law_;
     tandem_scan_method_ = source.tandem_scan_method_;
@@ -131,7 +126,6 @@ namespace OpenMS
 	    type_ == rhs.type_ &&
 	    resolution_method_ == rhs.resolution_method_ &&
 	    resolution_type_ == rhs.resolution_type_ &&
-	    scan_function_ == rhs.scan_function_ &&
 	    scan_direction_ == rhs.scan_direction_ &&
 	    scan_law_ == rhs.scan_law_ &&
 	    tandem_scan_method_ == rhs.tandem_scan_method_ &&
@@ -182,16 +176,6 @@ namespace OpenMS
 	void MassAnalyzer::setResolutionType(MassAnalyzer::ResolutionType resolution_type)
 	{
 	  resolution_type_ = resolution_type; 
-	}
-	
-	MassAnalyzer::ScanFunction MassAnalyzer::getScanFunction() const 
-	{
-	  return scan_function_; 
-	}
-	
-	void MassAnalyzer::setScanFunction(MassAnalyzer::ScanFunction scan_function)
-	{
-	  scan_function_ = scan_function; 
 	}
 	
 	MassAnalyzer::ScanDirection MassAnalyzer::getScanDirection() const 

@@ -87,10 +87,7 @@ namespace OpenMS
 			}
 			if (peptide_identification_index_ > id_data_.size())
 			{
-				throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, ".mascotXML", 
-																		"No header information present: use "
-																		"the show_header=1 option in the "
-																		"./export_dat.pl script");  			
+				fatalError(LOAD, "No header information present: use  the show_header=1 option in the ./export_dat.pl script");  			
   		}			
 		}
 	}

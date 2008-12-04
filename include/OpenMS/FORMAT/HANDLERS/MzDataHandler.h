@@ -36,10 +36,6 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 
-#include <xercesc/sax2/SAX2XMLReader.hpp>
-#include <xercesc/framework/MemBufInputSource.hpp>
-#include <xercesc/sax2/XMLReaderFactory.hpp>
-
 #include <sstream>
 
 namespace OpenMS
@@ -80,7 +76,7 @@ namespace OpenMS
 				// ResolutionType
 				String(";Constant;Proportional").split(';',cv_terms_[3]);
 				// ScanFunction
-				String(";SelectedIonDetection;MassScan").split(';',cv_terms_[4]);
+				// is no longer used cv_terms_[4] is empty now
 				// ScanDirection
 				String(";Up;Down").split(';',cv_terms_[5]);
 				// ScanLaw
@@ -132,7 +128,7 @@ namespace OpenMS
 				// ResolutionType
 				String(";Constant;Proportional").split(';',cv_terms_[3]);
 				// ScanFunction
-				String(";SelectedIonDetection;MassScan").split(';',cv_terms_[4]);
+				// is no longer used cv_terms_[4] is empty now
 				// ScanDirection
 				String(";Up;Down").split(';',cv_terms_[5]);
 				// ScanLaw
@@ -924,7 +920,6 @@ namespace OpenMS
 					writeCVS_(os, ana.getAccuracy(), "1000014", "Accuracy",5);
 					writeCVS_(os, ana.getScanRate(), "1000015", "ScanRate",5);
 					writeCVS_(os, ana.getScanTime(), "1000016", "ScanTime",5);
-					writeCVS_(os, ana.getScanFunction(), 4,	"1000017", "ScanFunction",5);
 					writeCVS_(os, ana.getScanDirection(), 5,	"1000018", "ScanDirection",5);
 					writeCVS_(os, ana.getScanLaw(), 6, "1000019", "ScanLaw",5);
 					writeCVS_(os, ana.getTandemScanMethod(), 12,"1000020", "TandemScanningMethod",5);
@@ -1459,10 +1454,6 @@ namespace OpenMS
 				else if (accession=="PSI:1000016")
 				{
 					exp_->getInstrument().getMassAnalyzers().back().setScanTime( asDouble_(value) );
-				}
-				else if (accession=="PSI:1000017")
-				{
-					exp_->getInstrument().getMassAnalyzers().back().setScanFunction( (MassAnalyzer::ScanFunction)cvStringToEnum_(4, value, "scan function"));
 				}
 				else if (accession=="PSI:1000018")
 				{

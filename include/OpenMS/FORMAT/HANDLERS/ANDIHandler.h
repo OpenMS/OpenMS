@@ -385,10 +385,6 @@ namespace OpenMS
 		int law_map[] = {MassAnalyzer::LINEAR, MassAnalyzer::EXPONENTIAL, MassAnalyzer::QUADRATIC, 0};
 		analyzer.setScanLaw( (MassAnalyzer::ScanLaw) law_map[test_data->scan_law - law_linear]);
 
-		//Mass Scan, Selected Ion Detection, Other
-		int function_map[] = {MassAnalyzer::MASSSCAN, MassAnalyzer::SELECTEDIONDETECTION, 0};
-		analyzer.setScanFunction( (MassAnalyzer::ScanFunction) function_map[test_data->scan_function - function_scan]);
-
 		analyzer.setResolutionType( (MassAnalyzer::ResolutionType) (test_data->resolution_type - resolution_constant));
 		analyzer.setScanTime(test_data->scan_time);
 

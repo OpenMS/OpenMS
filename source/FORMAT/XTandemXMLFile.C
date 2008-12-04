@@ -56,14 +56,9 @@ namespace OpenMS
 	
   void XTandemXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_ids)
   {
-  	//try to open file
-		if (!File::exists(filename))
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-    }
-		
+  	//File name for error message in XMLHandler
 		file_ = filename;
-
+		
 		parse_(filename, this);
 
 		DateTime now = DateTime::now();

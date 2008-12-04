@@ -49,7 +49,6 @@ namespace OpenMS
 		addComboBox_(type_, "Type");
 		addComboBox_(res_method_, "Resolution method");
 		addComboBox_(res_type_, "Resolution type");
-		addComboBox_(scan_func_, "Scan function");
 		addComboBox_(scan_dir_, "Scan direction");
 		addComboBox_(scan_law_, "Scan law");
 		addComboBox_(tandem_scan_method_, "Tandem scan maethod");
@@ -74,7 +73,6 @@ namespace OpenMS
 			fillComboBox_(type_,& temp_.NamesOfAnalyzerType[temp_.getType()] , 1);
 			fillComboBox_(res_method_,& temp_.NamesOfResolutionMethod[temp_.getResolutionMethod()] , 1);
 			fillComboBox_(res_type_,& temp_.NamesOfResolutionType[temp_.getResolutionType()] , 1);
-			fillComboBox_(scan_func_,& temp_.NamesOfScanFunction[temp_.getScanFunction()] , 1);
 			fillComboBox_(scan_dir_,& temp_.NamesOfScanDirection[temp_.getScanDirection()] , 1);
 			fillComboBox_(scan_law_,& temp_.NamesOfScanLaw[temp_.getScanLaw()] , 1);
 			fillComboBox_(tandem_scan_method_,& temp_.NamesOfTandemScanningMethod[temp_.getTandemScanMethod()] , 1);
@@ -85,7 +83,6 @@ namespace OpenMS
 			fillComboBox_(type_, temp_.NamesOfAnalyzerType , MassAnalyzer::SIZE_OF_ANALYZERTYPE);
 			fillComboBox_(res_method_, temp_.NamesOfResolutionMethod , MassAnalyzer::SIZE_OF_RESOLUTIONMETHOD);
 			fillComboBox_(res_type_, temp_.NamesOfResolutionType , MassAnalyzer::SIZE_OF_RESOLUTIONTYPE);
-			fillComboBox_(scan_func_, temp_.NamesOfScanFunction , MassAnalyzer::SIZE_OF_SCANFUNCTION);
 			fillComboBox_(scan_dir_, temp_.NamesOfScanDirection , MassAnalyzer::SIZE_OF_SCANDIRECTION);
 			fillComboBox_(scan_law_, temp_.NamesOfScanLaw , MassAnalyzer::SIZE_OF_SCANLAW);
 			fillComboBox_(tandem_scan_method_, temp_.NamesOfTandemScanningMethod , MassAnalyzer::SIZE_OF_TANDEMSCANNINGMETHOD);
@@ -94,7 +91,6 @@ namespace OpenMS
 			type_->setCurrentIndex(temp_.getType()); 
 			res_method_->setCurrentIndex(temp_.getResolutionMethod()); 
 			res_type_->setCurrentIndex(temp_.getResolutionType()); 
-			scan_func_->setCurrentIndex(temp_.getScanFunction()); 
 			scan_dir_->setCurrentIndex(temp_.getScanDirection()); 
 			scan_law_->setCurrentIndex(temp_.getScanLaw()); 
 			tandem_scan_method_->setCurrentIndex(temp_.getTandemScanMethod()); 
@@ -118,7 +114,6 @@ namespace OpenMS
 		ptr_->setType((MassAnalyzer::AnalyzerType)type_->currentIndex());		
 		ptr_->setResolutionMethod((MassAnalyzer::ResolutionMethod)res_method_->currentIndex());		
 		ptr_->setResolutionType((MassAnalyzer::ResolutionType)res_type_->currentIndex());		
-		ptr_->setScanFunction((MassAnalyzer::ScanFunction)scan_func_->currentIndex());		
 		ptr_->setScanDirection((MassAnalyzer::ScanDirection)scan_dir_->currentIndex());		
 		ptr_->setScanLaw((MassAnalyzer::ScanLaw)scan_law_->currentIndex());		
 		ptr_->setTandemScanMethod((MassAnalyzer::TandemScanningMethod)	tandem_scan_method_->currentIndex());		

@@ -46,12 +46,7 @@ namespace OpenMS
 	
   void CVMappingFile::load(const String& filename, CVMappings& cv_mappings, bool strip_namespaces)
   {
-  	//try to open file
-		if (!File::exists(filename))
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-    }
-		
+  	//File name for error messages in XMLHandler
 		file_ = filename;
 
 		strip_namespaces_ = strip_namespaces;
@@ -117,7 +112,7 @@ namespace OpenMS
 						}
 						else
 						{
-							throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot parse namespaces of path: '" + element_path + "'", "");
+							fatalError(LOAD, String("Cannot parse namespaces of path: '") + element_path + "'");
 						}
 					}
 				}

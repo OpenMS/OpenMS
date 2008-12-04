@@ -28,18 +28,17 @@
 #define OPENMS_FORMAT_UNIMODXMLFILE_H
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
-#include <vector>
+#include <OpenMS/FORMAT/XMLFile.h>
 
 namespace OpenMS 
 {
-	class String;
-	
   /**
     @brief Used to load XML files from unimod.org files
     
   	@ingroup FileIO
   */
   class UnimodXMLFile
+  	: public Internal::XMLFile
   {
     public:
 						
@@ -58,12 +57,13 @@ namespace OpenMS
 				
 		  	@ingroup FileIO
 		  */
-	    void load(const String& filename, std::vector<ResidueModification*>& modifications) const;
+	    void load(const String& filename, std::vector<ResidueModification*>& modifications);
 
-		protected:
-
+		private:
+			
+			///Not implemented
 			UnimodXMLFile(const UnimodXMLFile& rhs);
-
+			///Not implemented
 			UnimodXMLFile& operator = (const UnimodXMLFile& rhs);
       					 
   };

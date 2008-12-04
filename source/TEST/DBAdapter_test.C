@@ -254,7 +254,6 @@ END_SECTION
 		exp_original.getInstrument().getMassAnalyzers().push_back(analyzer);	
 		analyzer = MassAnalyzer();
 		analyzer.setScanDirection(MassAnalyzer::UP);
-		analyzer.setScanFunction(MassAnalyzer::MASSSCAN);
 		analyzer.setScanLaw(MassAnalyzer::LINEAR);
 		analyzer.setScanRate(5.555);
 		analyzer.setScanTime(6.666);
@@ -622,7 +621,6 @@ END_SECTION
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[0].getResolutionMethod() , MassAnalyzer::FWHM )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[0].getResolutionType() , MassAnalyzer::CONSTANT )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getScanDirection() , MassAnalyzer::UP )
-			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getScanFunction() , MassAnalyzer::MASSSCAN )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getScanLaw() , MassAnalyzer::LINEAR )
 			TEST_REAL_SIMILAR(exp_new.getInstrument().getMassAnalyzers()[1].getScanRate() , 5.555 )
 			TEST_REAL_SIMILAR(exp_new.getInstrument().getMassAnalyzers()[1].getScanTime() , 6.666 )

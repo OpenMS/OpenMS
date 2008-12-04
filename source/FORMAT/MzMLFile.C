@@ -57,11 +57,6 @@ namespace OpenMS
 	//reimplemented in order to handle index MzML
 	bool MzMLFile::isValid(const String& filename) 
 	{
-		if (schema_location_.empty())
-		{
-			throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-		}
-		
 		//determine if this is indexed mzML or not
 		bool indexed = false;
 		TextFile file(filename,true,4);

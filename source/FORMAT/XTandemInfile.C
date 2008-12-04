@@ -30,11 +30,8 @@
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
-#include <xercesc/sax2/SAX2XMLReader.hpp>
-#include <xercesc/framework/LocalFileInputSource.hpp>
-#include <xercesc/sax2/XMLReaderFactory.hpp>
-
 #include <set>
+#include <fstream>
 
 using namespace xercesc;
 using namespace std;
@@ -43,7 +40,8 @@ namespace OpenMS
 {
 
 	XTandemInfile::XTandemInfile()
-		: fragment_mass_tolerance_(0.3),
+		: Internal::XMLFile(),
+			fragment_mass_tolerance_(0.3),
 			precursor_mass_tolerance_plus_(2.0),
 			precursor_mass_tolerance_minus_(2.0),
       precursor_mass_type_(XTandemInfile::MONOISOTOPIC),
@@ -74,45 +72,8 @@ namespace OpenMS
 	
   void XTandemInfile::load(const String& filename)
   {
-  	//try to open file
-		if (!File::exists(filename))
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
-    }
-		
-		// initialize parser
-		try 
-		{
-			XMLPlatformUtils::Initialize();
-		}
-		catch (const XMLException& toCatch) 
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-	  }
-
-		SAX2XMLReader* parser = XMLReaderFactory::createXMLReader();
-		parser->setFeature(XMLUni::fgSAX2CoreNameSpaces,false);
-		parser->setFeature(XMLUni::fgSAX2CoreNameSpacePrefixes,false);
-
 		Internal::XTandemInfileXMLHandler handler(filename, notes_, this);
-
-		parser->setContentHandler(&handler);
-		parser->setErrorHandler(&handler);
-		
-		LocalFileInputSource source(Internal::StringManager().convert(filename.c_str()));
-		try 
-    {
-    	parser->parse(source);
-    	delete(parser);
-    }
-    catch (const XMLException& toCatch) 
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-    }
-    catch (const SAXException& toCatch) 
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-    }
+		parse_(filename, &handler);
 	}
 		
 	void XTandemInfile::write(const String& filename)

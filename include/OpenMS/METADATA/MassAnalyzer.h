@@ -91,17 +91,6 @@ namespace OpenMS
 			/// Names of resulution type
 			static const std::string NamesOfResolutionType[SIZE_OF_RESOLUTIONTYPE];
 			
-			/// Scan function
-			enum ScanFunction
-			{
-				SCANFCTNULL,					///< Unknown
-				SELECTEDIONDETECTION,	///< Selected ion detection
-				MASSSCAN,							///< Mass scan
-				SIZE_OF_SCANFUNCTION
-			};
-			/// Names of scan functions
-			static const std::string NamesOfScanFunction[SIZE_OF_SCANFUNCTION];
-				
 			/// direction of scanning
 			enum ScanDirection
 			{
@@ -178,24 +167,19 @@ namespace OpenMS
       /// sets the method used for determination of the resolution
       void setResolutionMethod(ResolutionMethod resolution_method);
 			
-			/// returns the 
+			/// returns the resolution type
       ResolutionType getResolutionType() const;
-      /// sets the 
+      /// sets the resolution type
       void setResolutionType(ResolutionType resolution_type);
-			
-			/// returns the 
-      ScanFunction getScanFunction() const;
-      /// sets the 
-      void setScanFunction(ScanFunction scan_function);
 			
 			/// returns the direction of scanning
       ScanDirection getScanDirection() const;
       /// sets the direction of scanning
       void setScanDirection(ScanDirection scan_direction);
 			
-			/// returns the 
+			/// returns the scan law
       ScanLaw getScanLaw() const;
-      /// sets the 
+      /// sets the scan law
       void setScanLaw(ScanLaw scan_law);
 			
 			/// returns the MS/MS scanning method
@@ -270,7 +254,6 @@ namespace OpenMS
 			AnalyzerType type_;
 			ResolutionMethod resolution_method_;
 			ResolutionType resolution_type_;
-			ScanFunction scan_function_;
 			ScanDirection scan_direction_;
 			ScanLaw scan_law_;
 			TandemScanningMethod tandem_scan_method_;

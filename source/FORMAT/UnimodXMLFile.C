@@ -30,9 +30,6 @@
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
-#include <xercesc/sax2/SAX2XMLReader.hpp>
-#include <xercesc/framework/LocalFileInputSource.hpp>
-#include <xercesc/sax2/XMLReaderFactory.hpp>
 
 using namespace xercesc;
 using namespace std;
@@ -41,6 +38,7 @@ namespace OpenMS
 {
 
 	UnimodXMLFile::UnimodXMLFile()
+		: Internal::XMLFile()
 	{
 	  	
 	}
@@ -49,43 +47,12 @@ namespace OpenMS
 	{
 	}
 	
-  void UnimodXMLFile::load(const String& filename, vector<ResidueModification*>& modifications) const
+  void UnimodXMLFile::load(const String& filename, vector<ResidueModification*>& modifications)
   {
 		String file = File::find(filename);
 		
-		// initialize parser
-		try 
-		{
-			XMLPlatformUtils::Initialize();
-		}
-		catch (const XMLException& toCatch) 
-		{
-			throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-	  }
-
-		SAX2XMLReader* parser = XMLReaderFactory::createXMLReader();
-		parser->setFeature(XMLUni::fgSAX2CoreNameSpaces,false);
-		parser->setFeature(XMLUni::fgSAX2CoreNameSpacePrefixes,false);
-
 		Internal::UnimodXMLHandler handler(modifications, file);
-		
-		parser->setContentHandler(&handler);
-		parser->setErrorHandler(&handler);
-		
-		LocalFileInputSource source(Internal::StringManager().convert(file.c_str()));
-		try 
-    {
-    	parser->parse(source);
-    	delete(parser);
-    }
-    catch (const XMLException& toCatch) 
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-    }
-    catch (const SAXException& toCatch) 
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + Internal::StringManager().convert(toCatch.getMessage()) );
-    }
+		parse_(file, &handler);
   }  					 
   					 
 } // namespace OpenMS
