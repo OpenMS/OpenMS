@@ -256,7 +256,7 @@ namespace OpenMS
 					}
 					else
 					{
-						cerr << "MascotXMLFile: Error Cannot parse fixed modification '" << *it << "'" << endl;
+						error(LOAD, String("Cannot parse fixed modification '") + *it  + "'");
 					}
 				}
 			}
@@ -323,7 +323,7 @@ namespace OpenMS
 						}
 						else
 						{
-							cerr << "MascotXMLFile: Error: Cannot parse modification '" << temp_modification << "'" << endl;
+							error(LOAD, String("Cannot parse fixed modification '") + temp_modification  + "'");
 						}
 					}
 				}
@@ -357,7 +357,7 @@ namespace OpenMS
 				
 				if (temp_hits.size() != temp_peptide_hits.size())
 				{
-					cerr << "MascotXMLHandler: Warning: pepXML hits and Mascot hits are not the same" << endl;
+					warning(LOAD, "pepXML hits and Mascot hits are not the same");
 				}
 
 				// pepXML can contain more hits than MascotXML; hence we try to match all of them...

@@ -55,11 +55,6 @@ namespace OpenMS
 
 		tag_ = String(sm_.convert(qname));
 		
-		//cerr << "start_local_name: " << String(sm_.convert(local_name)) << endl;
-		//cerr << "start_uri: " << String(sm_.convert(uri)) << endl;
-
-		//cerr << "startElement tag_: " << tag_ << endl;
-
 		// new modification?
 		if (tag_ == "umod:mod" || tag_ == "mod")
 		{
@@ -116,7 +111,7 @@ namespace OpenMS
 							}
 							else
 							{
-								cerr << "UnimodXMLHandler: I don't nothing about allowed position called: '" << pos  << "', setting to anywhere" << endl;
+								warning(LOAD, String("Don't know allowed position called: '") + pos  + "' - setting to anywhere");
 							}
 						}
 					}

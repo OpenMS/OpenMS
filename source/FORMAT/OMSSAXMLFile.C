@@ -174,7 +174,7 @@ namespace OpenMS
 			{
 				if (mods_map_[actual_mod_type_.toInt()].size() > 1)
 				{
-					cerr << "OMSSAXMLFile: Warning: cannot determine exact type of modification of position " << actual_mod_site_ << " in sequence " << actual_peptide_hit_.getSequence() << " using modification " << actual_mod_type_ << ", using first possibility!" << endl;
+					warning(STORE, String("Cannot determine exact type of modification of position ") + actual_mod_site_ + " in sequence " + actual_peptide_hit_.getSequence().toString() + " using modification " + actual_mod_type_ + " - using first possibility!");
 				}
 				AASequence pep = actual_peptide_hit_.getSequence();
 				pep.setModification(actual_mod_site_, mods_map_[actual_mod_type_.toInt()].begin()->getFullName());
@@ -182,8 +182,7 @@ namespace OpenMS
 			}
 			else
 			{
-				cerr << "OMSSAXMLFile: Warning: cannot find PSI-MOD mapping for mod, ingoring!: " << actual_mod_type_ << endl;
-				//new_mod = actual_mod_type_ + "@" + actual_mod_site_;
+				warning(STORE, String("Cannot find PSI-MOD mapping for mod -  ingoring '") + actual_mod_type_ + "'");
 			}
 		}
 		

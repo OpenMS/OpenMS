@@ -184,7 +184,7 @@ namespace OpenMS
 				}
 				else
 				{
-					cerr << "PepXMLFile: Error: Cannot parse modification '" << it->first << "@" << it->second << "'" << endl;
+					error(LOAD, String("Cannot parse modification '") + it->first + "@" + it->second + "'");
 				}
 			}
 
@@ -224,7 +224,7 @@ namespace OpenMS
 				}
 				else
 				{
-					cerr << "PepXMLFile: Error Cannot parse fixed modification '" << *it << "'" << endl;
+					error(LOAD, String("Cannot parse fixed modification '") + *it + "'");
 				}
 			}
 
