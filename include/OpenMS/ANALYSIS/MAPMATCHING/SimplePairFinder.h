@@ -44,8 +44,8 @@ namespace OpenMS
 	The similarity value should express our confidence that one element might
 	possibly be matched to the other.  Larger quality values are better, the
 	maximal similarity is one.  Let \f$\Delta_\textit{RT}\f$ and
-	\f$\Delta_\textit{MZ}\f$ be the RT and MZ differences in the data.  Then the
-	similarity value is
+	\f$\Delta_\textit{MZ}\f$ be the absolute values of the RT and MZ differences
+	in the data.  Then the similarity value is
 	\f[
 	\frac{1}{
 	\big( 1 + \Delta_\textit{RT} \cdot \textit{diff\_intercept\_RT} \big)^\textit{diff\_exponent\_RT}

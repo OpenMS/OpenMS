@@ -36,63 +36,67 @@ class QProgressDialog;
 namespace OpenMS
 {
 	/**
-		@brief Base class for all classes that want to report their progess.
+	@brief Base class for all classes that want to report their progess.
 
-		Per default the progress log is disabled. Use setLogType to enable it
+	Per default the progress log is disabled. Use setLogType to enable it
 
-		Use startProgress, setProgress and endProgress for the actual logging.
+	Use startProgress, setProgress and endProgress for the actual logging.
 
-		@note All methods are const, so it can be used through a const reference or in const methods as well!
+	@note All methods are const, so it can be used through a const reference or in const methods as well!
 	*/
 	class ProgressLogger
 	{
-		public:
-			/// Constructor
-			ProgressLogger();
+	 public:
+		/// Constructor
+		ProgressLogger();
 
-			/// Destructor
-			~ProgressLogger();
+		/// Destructor
+		~ProgressLogger();
 
-			///Possible log types
-			enum LogType
+		///Possible log types
+		enum LogType
 			{
 				CMD,    ///< Command line progress
 				GUI,      ///< Progress dialog
 				NONE  ///< No progress logging
 			};
 
-			///Sets the progress log that should be used. The default type is NONE!
-			void setLogType(LogType type) const;
+		/// Sets the progress log that should be used. The default type is NONE!
+		void setLogType(LogType type) const;
 
-			/**
-				@brief Initializes the progress display
+		/// Returns the type of progress log being used.
+		LogType getLogType() const;
 
-				Sets the progress range from @p begin to @p end.
-				If @p begin equals @p end, setProgress only indicates that
-				the program is still running, but without showing any absolute progress value.
+		/**
+		@brief Initializes the progress display
 
-				Sets the label to @p label.
+		Sets the progress range from @p begin to @p end.
+		If @p begin equals @p end, setProgress only indicates that
+		the program is still running, but without showing any absolute progress value.
 
-				@note Make sure to call setLogType first!
-			*/
-			void startProgress(UInt begin, UInt end, const String& label) const;
+		Sets the label to @p label.
 
-			/// Sets the current progress
-			void setProgress(UInt value) const;
+		@note Make sure to call setLogType first!
+		*/
+		void startProgress(UInt begin, UInt end, const String& label) const;
 
-			/// Ends the progress display
-			void endProgress() const;
+		/// Sets the current progress
+		void setProgress(UInt value) const;
 
-		protected:
-			mutable LogType type_;
-			mutable UInt begin_;
-			mutable UInt end_;
-			mutable UInt value_;
-			mutable QProgressDialog* dlg_;
-			mutable StopWatch stop_watch_;
+		/// Ends the progress display
+		void endProgress() const;
+
+	 protected:
+		mutable LogType type_;
+		mutable UInt begin_;
+		mutable UInt end_;
+		mutable UInt value_;
+		mutable QProgressDialog* dlg_;
+		mutable StopWatch stop_watch_;
+		static UInt recursion_depth_;
 	};
 
-}//namespace OpenMS
+} // namespace OpenMS
 
 #endif //OPENMS_CONCEPT_PROGRESSLOGGER_H
 

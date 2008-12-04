@@ -28,6 +28,7 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_BASEGROUPFINDER_H
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 
 #include <utility>
@@ -48,7 +49,8 @@ namespace OpenMS
 		input maps. The map indices of the result consensus features are are the indices in the input map vector.
   */
   class BaseGroupFinder
-  	: public FactoryProduct
+  	: public FactoryProduct,
+			public ProgressLogger
   {
 	  public:
 	    /// Default constructor

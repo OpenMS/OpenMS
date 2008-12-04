@@ -36,6 +36,8 @@ using namespace std;
 
 namespace OpenMS
 {
+	UInt ProgressLogger::recursion_depth_ = 0;
+
 	ProgressLogger::ProgressLogger()
 		:	type_(NONE),
 			begin_(0),
@@ -44,7 +46,6 @@ namespace OpenMS
 			dlg_(0),
 			stop_watch_()
 	{
-		
 	}
 
 	ProgressLogger::~ProgressLogger()
@@ -57,16 +58,22 @@ namespace OpenMS
 		type_ = type;
 	}
 	
+	ProgressLogger::LogType ProgressLogger::getLogType() const
+	{
+		return type_;
+	}
+
+
 	void ProgressLogger::startProgress(UInt begin, UInt end, const String& label) const
 	{
 		OPENMS_PRECONDITION(begin <= end, "ProgressLogger::init : invalid range!");
-		
 		switch (type_)
 		{
 			case CMD:
 				begin_ = begin;
 				end_ = end;
-				cout << "Progress of '" << label << "':" << endl;		
+				if ( recursion_depth_ ) cout << '\n';
+				cout << string(2*recursion_depth_,' ') << "Progress of '" << label << "':" << endl;
 				stop_watch_.reset();
 				stop_watch_.start();
 				break;
@@ -81,7 +88,9 @@ namespace OpenMS
 				break;
 			case NONE:
 				break;
-		};	
+		};
+		++recursion_depth_;
+		return;
 	}
 	
 	void ProgressLogger::setProgress(UInt value) const
@@ -100,7 +109,7 @@ namespace OpenMS
 				}
 				else
 				{
-					cout << '\r' <<QString::number(Real(value -begin_) / Real(end_ - begin_) * 100.0,'f',2).toStdString()  << " %               ";
+					cout << '\r' << string(2*recursion_depth_,' ') << QString::number(Real(value -begin_) / Real(end_ - begin_) * 100.0,'f',2).toStdString()  << " %               ";
 					cout << flush;
 				}
 				break;
@@ -126,17 +135,19 @@ namespace OpenMS
 	
 	void ProgressLogger::endProgress() const
 	{
+		if (recursion_depth_) --recursion_depth_;
 		switch (type_)
 		{
 			case CMD:
 				stop_watch_.stop();
 				if (begin_==end_)
 				{
-					cout << endl << " -- done (took " << String::number(stop_watch_.getCPUTime(),3) << " s) --" << endl;
+					if ( recursion_depth_ ) cout << '\n';
+					cout << endl << string(2*recursion_depth_,' ') << "-- done (took " << String::number(stop_watch_.getCPUTime(),3) << " s) -- " << endl;
 				}
 				else
 				{
-					cout << "\r -- done (took " << String::number(stop_watch_.getCPUTime(),3) << " s) --" << endl;
+					cout << '\r' << string(2*recursion_depth_,' ') << "-- done (took " << String::number(stop_watch_.getCPUTime(),3) << " s) -- " << endl;
 				}
 				break;
 			case GUI:

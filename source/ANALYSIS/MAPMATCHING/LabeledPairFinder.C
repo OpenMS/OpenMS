@@ -210,15 +210,16 @@ namespace OpenMS
 			RefMap::const_iterator it2 = lower_bound(model_ref.begin(),model_ref.end(),it->getRT()+rt_pair_dist - rt_dev_low, ConsensusFeature::RTLess());
 			while (it2!=model_ref.end() && it2->getRT() <= it->getRT()+rt_pair_dist + rt_dev_high)
 			{
-				if (it2->getCharge() == it->getCharge()
-					&& it2->getMZ() >=it->getMZ()+mz_pair_dist/it->getCharge()-mz_dev  
-					&& it2->getMZ() <=it->getMZ()+mz_pair_dist/it->getCharge()+mz_dev)
+				if ( it2->getCharge() == it->getCharge() &&
+						 it2->getMZ() >=it->getMZ()+mz_pair_dist/it->getCharge()-mz_dev &&
+						 it2->getMZ() <=it->getMZ()+mz_pair_dist/it->getCharge()+mz_dev
+					 )
 				{
 					
 					DoubleReal score = sqrt(
-															  PValue_(it2->getMZ() - it->getMZ(), mz_pair_dist/it->getCharge(), mz_dev, mz_dev)
-															* PValue_(it2->getRT() - it->getRT(), rt_pair_dist, rt_dev_low, rt_dev_high)
-														);
+																	PValue_(it2->getMZ() - it->getMZ(), mz_pair_dist/it->getCharge(), mz_dev, mz_dev) *
+																	PValue_(it2->getRT() - it->getRT(), rt_pair_dist, rt_dev_low, rt_dev_high)
+																 );
 					matches.push_back(ConsensusFeature(light_index,it->begin()->getElementIndex(),*it));
 					matches.back().clearMetaInfo();
 					matches.back().insert(heavy_index,it2->begin()->getElementIndex(),*it2);

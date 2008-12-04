@@ -107,6 +107,8 @@ namespace OpenMS
 			// clear the hash table for parameters of affine transformation
 			rt_hash_.clear();
 
+			startProgress(0,120,"affine pose clustering");
+			setProgress(0);
 			//************************************************************************************
 			// Preprocessing
 
@@ -123,10 +125,14 @@ namespace OpenMS
 			if (model_map_ini.size()>num_used_points) model_map_ini.resize(num_used_points);
 			model_map_ini.sortByComparator(Peak2D::MZLess());
 
+			setProgress(2);
+
 			PeakPointerArray scene_map_ini(maps[1].begin(),maps[1].end());
 			scene_map_ini.sortByIntensity(true);
 			if (scene_map_ini.size()>num_used_points) scene_map_ini.resize(num_used_points);
 			scene_map_ini.sortByComparator(Peak2D::MZLess());
+
+			setProgress(4);
 
 			// No more changes after this point (we tend to have annoying issues
 			// with const_iterator versus iterator)
@@ -140,11 +146,15 @@ namespace OpenMS
 				total_int_model_map += model_map[i].getIntensity();
 			}
 
+			setProgress(6);
+
 			DoubleReal total_int_scene_map = 0;
 			for (UInt i = 0; i < scene_map.size(); ++i)
 			{
 				total_int_scene_map += scene_map[i].getIntensity();
 			}
+
+			setProgress(8);
 
 			// Compute shift_bucket_size_ and num_buckets.
 			DPosition<1> diagonal_shift = shift_bounding_box_.diagonal();
@@ -154,6 +164,8 @@ namespace OpenMS
 			num_buckets_scaling_ = (int)(ceil(diagonal_scaling[0]/scaling_bucket_size_));
 			shift_bucket_size_ = diagonal_shift[0] / (DoubleReal)num_buckets_shift_;
 			scaling_bucket_size_ = diagonal_scaling[0] / (DoubleReal)num_buckets_scaling_;
+
+			setProgress(10);
 
 			//************************************************************************************
 			// Hashing
@@ -171,6 +183,8 @@ namespace OpenMS
 						++i
 					)
 			{
+				setProgress(10+Real(i)/model_map_size*100.f);
+
 				// Adjust window in scene map
 				while ( k_low < scene_map_size &&
 								scene_map[k_low].getMZ() < model_map[i].getMZ() - mz_bucket_size_
@@ -253,6 +267,8 @@ namespace OpenMS
 				} // k
 			} // i 
 
+			setProgress(110);
+
 			//************************************************************************************
 			// Estimate transform
 
@@ -267,6 +283,8 @@ namespace OpenMS
 					act_max_rt = it->second;
 				}
 			}
+
+			setProgress(112);
 
 			// Compute a weighted average of the transformation parameters nearby the max_element_index.
 			DoubleReal rt_shift = 0.0;
@@ -299,12 +317,19 @@ namespace OpenMS
 				throw Exception::DivisionByZero(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 			}
 
+			setProgress(116);
+
 			// set trafo
 			transformations.clear();
 			transformations.resize(1);
 			transformations[0].setName("linear");
 			transformations[0].setParam("intercept",rt_shift / quality_sum * shift_bucket_size_ + shift_bounding_box_.min()[0]);
 			transformations[0].setParam("slope",rt_scale / quality_sum * scaling_bucket_size_ + scaling_bounding_box_.min()[0]);
+
+			setProgress(120);
+			endProgress();
+
+			return;
 		}
 
 		/// Returns an instance of this class

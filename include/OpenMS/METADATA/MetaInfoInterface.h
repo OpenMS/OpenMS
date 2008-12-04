@@ -39,11 +39,13 @@ namespace OpenMS
 	class String;
 	
 	/**
-		@brief Interface for classes that can store arbitrary meta information (Type-Name-Value tupels).
+		@brief Interface for classes that can store arbitrary meta information
+		(Type-Name-Value tuples).
 		
-		MetaInfoInterface is a base class for all classes that use one MetaInfo object as member.
-		If you want to add meta information to a class, let it publically inherit the MetaInfoInterface.
-		Meta information is an array of Type-Name-Value tupels.
+		MetaInfoInterface is a base class for all classes that use one MetaInfo
+		object as member.  If you want to add meta information to a class, let it
+		publically inherit the MetaInfoInterface.  Meta information is an array of
+		Type-Name-Value tupels.
 		
 		@ingroup Metadata
 	*/
@@ -108,7 +110,7 @@ namespace OpenMS
 			void removeMetaValue(UInt index);		
 			
 			/// retuns a reference to the MetaInfoRegistry
-			MetaInfoRegistry& metaRegistry() const;
+		  static MetaInfoRegistry& metaRegistry();
 	
 	    /// fills the given vector with a list of all keys for which a value is set
 	    void getKeys(std::vector<String>& keys) const;

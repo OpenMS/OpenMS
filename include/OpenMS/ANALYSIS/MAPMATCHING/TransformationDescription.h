@@ -145,7 +145,7 @@ namespace OpenMS
 		void apply(DoubleReal& value) const
 		{
 			// Initialize transformation (if unset).
-			if (!trafo_) const_cast<TransformationDescription&>(*this).init_();
+			if (!trafo_) init_();
 			//apply transformation
 			trafo_->operator()(value);
 		}
@@ -184,10 +184,13 @@ namespace OpenMS
 		/**
 		@brief Initialize the transformation according to the name and parameters.
 		
+		This is declared a const method for usability, but in fact it changes
+		"hidden" state.
+
 		@exception Exception::IllegalArgument is thrown if the transformation
 		cannot be initialized according to the name and parameters.
 		*/
-		void init_();
+		void init_() const;
 		
 		/// Transformation name
 		String name_;

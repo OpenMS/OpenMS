@@ -36,7 +36,6 @@ TOPP_TOOL_TESTS = \
 	DBExporter_test \
 	DTAExtractor_test \
 	Decharger_test \
-	FeatureFinderMRM_test\
 	FeatureFinder_test\
 	FeatureLinker_test \
 	FileConverter_test \
@@ -65,6 +64,9 @@ TOPP_TOOL_TESTS = \
 	SpectraFilter_test \
 	TOFCalibration_test\
 	TextExporter_test\
+	\
+	FeatureFinderMRM_test\
+
 
 # Files to remove
 CLEANUP = ${RM} -f *.tmp *.tmp_ *.tmp_? *.log core.*

@@ -52,11 +52,55 @@ namespace OpenMS
 		virtual ~MapAlignmentAlgorithmApplyGivenTrafo();
 
 		// Docu in base class
-		virtual void alignPeakMaps(std::vector< MSExperiment<> >&, std::vector<TransformationDescription>&);
-				
+		virtual void alignPeakMaps( std::vector< MSExperiment<> >&, std::vector<TransformationDescription>& );
+
 		// Docu in base class
-		virtual void alignFeatureMaps(std::vector< FeatureMap<> >&, std::vector<TransformationDescription>&);
-			
+		virtual void alignFeatureMaps( std::vector< FeatureMap<> >&, std::vector<TransformationDescription>& );
+
+		// Docu in base class
+		virtual void alignPeptideIdentifications( std::vector< std::vector< PeptideIdentification > >&, std::vector<TransformationDescription>& );
+
+		/// Applies the <i>given</i> transformations to peak maps
+		static void transformPeakMaps( std::vector< MSExperiment<> >& maps, const std::vector<TransformationDescription>& given_trafos );
+
+		/// Applies the <i>given</i> transformations to feature maps
+		static void transformFeatureMaps( std::vector< FeatureMap<> >& maps, const std::vector<TransformationDescription>& given_trafos );
+		
+		/// Applies the <i>given</i> transformations to peptide identifications
+		static void transformPeptideIdentifications( std::vector< std::vector< PeptideIdentification > >&, const std::vector<TransformationDescription>& given_trafos );
+		
+		/**@brief Reads the "given transformations" from files that were set in the parameters.
+
+		Note that this bypasses the factory concept, since this method is not
+		defined in the base class.  It is provided here for "direct use" of this
+		class.
+		*/
+		void readGivenTrafos();
+
+		/**@brief Assign the given transformations.  This takes an internal copy.
+
+		Note that this bypasses the factory concept, since this method is not
+		defined in the base class.  It is provided here for "direct use" of this
+		class.
+		*/
+		void setGivenTrafos(const std::vector<TransformationDescription>& given_trafos);
+
+		/**@brief Returns the given transformations.
+
+		Note that this bypasses the factory concept, since this method is not
+		defined in the base class.  It is provided here for "direct use" of this
+		class.
+		*/
+		std::vector<TransformationDescription>& getGivenTrafos();
+		
+		/**@brief Returns the given transformations.
+
+		Note that this bypasses the factory concept, since this method is not
+		defined in the base class.  It is provided here for "direct use" of this
+		class.
+		*/
+		const std::vector<TransformationDescription>& getGivenTrafos() const;
+
 		/// Creates a new instance of this class (for Factory)
 		static MapAlignmentAlgorithm* create()
 		{
@@ -68,17 +112,15 @@ namespace OpenMS
 		{
 			return "apply_given_trafo";
 		}
+
 			
 	 protected:
-
-		/// Reads the given transformations from files, does some checks.
-		void readGivenTrafos_();
 
 		static void applyToFeature_( const std::vector<Feature>::iterator &iter,
 																 TransformationDescription::Trafo_ const& trafo
 															 );
 
-		std::vector<TransformationDescription> given_trafos;
+		std::vector<TransformationDescription> given_trafos_;
 		
 	 private:
 

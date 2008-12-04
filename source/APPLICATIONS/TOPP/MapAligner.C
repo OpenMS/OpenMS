@@ -25,6 +25,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
@@ -47,7 +48,6 @@ using namespace std;
 	This tool provides several different algorithms to correct for retention time shifts
 	and distortions.
 	
-	@todo Add progress log to pose clustering alignment (Clemens)
 	@todo Add processing of idXML (Clemens)
 	
 	<B>The command line parameters of this tool are:</B>
@@ -71,9 +71,9 @@ protected:
 	void registerOptionsAndFlags_()
 	{
 		registerInputFileList_("in","<files>",StringList(),"input files separated by blanks",true);
-		setValidFormats_("in",StringList::create("mzData,featureXML"));
+		setValidFormats_("in",StringList::create("mzData,featureXML,idXML"));
 		registerOutputFileList_("out","<files>",StringList(),"output files separated by blanks",false);
-		setValidFormats_("out",StringList::create("mzData,featureXML"));
+		setValidFormats_("out",StringList::create("mzData,featureXML,idXML"));
 		registerOutputFileList_("transformations","<files>",StringList(),"transformation output files separated by blanks",false);
 		registerStringOption_("type","<name>","","Map alignment algorithm type",true);
 		setValidStrings_("type",Factory<MapAlignmentAlgorithm>::registeredProducts());
@@ -117,6 +117,9 @@ protected:
 
 		String type = getStringOption_("type");
 		
+		ProgressLogger progresslogger;
+		progresslogger.setLogType(log_type_);
+
 		//-------------------------------------------------------------
 		// check for valid input
 		//-------------------------------------------------------------
@@ -157,6 +160,8 @@ protected:
 
 		writeDebug_("Used alignment parameters", alignment_param, 3);
 		alignment->setParameters(alignment_param);
+		alignment->setLogType(log_type_);
+
 
     //-------------------------------------------------------------
     // perform peak alignment
@@ -180,7 +185,7 @@ protected:
 			}
 			catch (Exception::NotImplemented&)
 			{
-				writeLog_("Error: The algorithm '" + type + "' can only be used for feature data!");
+				writeLog_("Error: The algorithm '" + type + "' cannot be used for peak data!");
 				return INTERNAL_ERROR;
 			}
 			
@@ -193,15 +198,20 @@ protected:
     //-------------------------------------------------------------
     // perform feature alignment
     //-------------------------------------------------------------
-		else
+		else if (in_type == FileHandler::FEATUREXML)
 		{
 			// load input
 			std::vector< FeatureMap<> > feat_maps(ins.size());
 			FeatureXMLFile f;
+			// f.setLogType(log_type_); // TODO
+			progresslogger.startProgress(0,ins.size(),"loading input files (data)");
 			for (UInt i=0; i<ins.size(); ++i)
-			{		 		
+			{
+				progresslogger.setProgress(i);
 		    f.load(ins[i], feat_maps[i]);
 			}
+			progresslogger.setProgress(ins.size());
+			progresslogger.endProgress();
 
 			// try to align
 			try
@@ -210,25 +220,81 @@ protected:
 			}
 			catch (Exception::NotImplemented&)
 			{
-				writeLog_("Error: The algorithm '" + type + "' can only be used for peak data!");
+				writeLog_("Error: The algorithm '" + type + "' cannot be used for feature data!");
 				return INTERNAL_ERROR;
 			}
 			
 			// write output
+			progresslogger.startProgress(0,outs.size(),"writing output files (data)");
 			for (UInt i=0; i<outs.size(); ++i)
 			{		 		
+				progresslogger.setProgress(i);
 		    f.store(outs[i], feat_maps[i]);
 			}
+			progresslogger.setProgress(outs.size());
+			progresslogger.endProgress();
+		}
+    //-------------------------------------------------------------
+    // perform peptide alignment
+    //-------------------------------------------------------------
+		else if (in_type == FileHandler::IDXML)
+		{
+			// load input
+			std::vector<  std::vector<ProteinIdentification> > protein_ids_vec(ins.size());
+			std::vector<  std::vector<PeptideIdentification> > peptide_ids_vec(ins.size());
+			
+			IdXMLFile f;
+			// f.setLogType_(log_type_);
+
+			progresslogger.startProgress(0,ins.size(),"loading input files (data)");
+			for (UInt i=0; i<ins.size(); ++i)
+			{
+				progresslogger.setProgress(i);
+		    f.load( ins[i], protein_ids_vec[i], peptide_ids_vec[i] );
+			}
+			progresslogger.setProgress(ins.size());
+			progresslogger.endProgress();
+
+			// try to align
+			try
+			{
+				alignment->alignPeptideIdentifications(peptide_ids_vec,transformations);
+			}
+			catch (Exception::NotImplemented&)
+			{
+				writeLog_("Error: The algorithm '" + type + "' cannot be used for peptide data!");
+				return INTERNAL_ERROR;
+			}
+			
+			// write output
+			progresslogger.startProgress(0,outs.size(),"writing output files (data)");
+			for (UInt i=0; i<outs.size(); ++i)
+			{		 		
+				progresslogger.setProgress(i);
+		    f.store( outs[i], protein_ids_vec[i], peptide_ids_vec[i] );
+			}
+			progresslogger.setProgress(outs.size());
+			progresslogger.endProgress();
+		}
+		else
+		{
+			// TODO can this really happen? I think it is tested above. Otherwise
+			// throw an appropriate exception?
+			return ILLEGAL_PARAMETERS;
 		}
 		
 		delete alignment;
 		
 		if (trafos.size()!=0)
 		{
+			progresslogger.startProgress(0,transformations.size(),"writing output files (transformations)");
 			for (UInt i=0; i<transformations.size(); ++i)
 			{
+				progresslogger.setProgress(i);
 				TransformationXMLFile().store(trafos[i],transformations[i]);
 			}
+			progresslogger.setProgress(transformations.size());
+			progresslogger.endProgress();
 		}
 		
 		return EXECUTION_OK;

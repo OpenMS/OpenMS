@@ -154,6 +154,8 @@ namespace OpenMS
 		// prepare transformations for output
 		transformations.clear();
 		transformations.resize(maps.size());
+
+		startProgress(0, 10 * maps.size(),"aligning feature maps");
 		
 		const bool symmetric_regression = param_.getValue("symmetric_regression").toBool();
 
@@ -176,19 +178,24 @@ namespace OpenMS
 		// init superimposer and pairfinder with model and parameters
 		PoseClusteringAffineSuperimposer superimposer;
     superimposer.setParameters(param_.copy("superimposer:",true));
+		superimposer.setLogType(getLogType());
     
     DelaunayPairFinder pairfinder;
     pairfinder.setParameters(param_.copy("pairfinder:",true));
+		pairfinder.setLogType(getLogType());
 
     for (UInt i = 0; i < maps.size(); ++i)
 		{
+			setProgress(10*i);
 			if (i != reference_map_index)
 			{
 				ConsensusMap::convert(i,maps[i],input[1]);
+				setProgress(10*i+1);
 
 				// run superimposer to find the global transformation
 	      std::vector<TransformationDescription> si_trafos;
 	      superimposer.run(input, si_trafos);
+				setProgress(10*i+2);
 
 				// apply transformation
 				for (UInt j=0; j<input[1].size(); ++j)
@@ -198,10 +205,13 @@ namespace OpenMS
 					input[1][j].setRT(rt);
 					input[1][j].begin()->asMutable().setRT(rt);
 				}
+				setProgress(10*i+3);
 
 	      //run pairfinder to find pairs
 				ConsensusMap result;
 				pairfinder.run(input, result);
+
+				setProgress(10*i+4);
 
 				// calculate the small local transformation
 				TransformationDescription trafo;
@@ -216,6 +226,8 @@ namespace OpenMS
 					trafo.setParam("slope",1.0);
 					trafo.setParam("intercept",0.0);
 				}
+
+				setProgress(10*i+5);
 
 				// combine the two transformations
 				transformations[i].setName("linear");
@@ -232,10 +244,15 @@ namespace OpenMS
 					// transformations[i].getPairs().push_back(TransformationDescription::PairVector::value_type(rt_old,rt));
 				}
 				// std::sort(transformations[i].getPairs().begin(),transformations[i].getPairs().end());
+				setProgress(10*i+6);
 			}
 		}
 		//set no transformation for reference map
 		transformations[reference_map_index].setName("none");
+
+		setProgress(10*maps.size());
+		endProgress();
+		return;
 	}
 
 	TransformationDescription MapAlignmentAlgorithmPoseClustering::calculateRegression_(UInt const index_x_map, UInt const index_y_map, ConsensusMap const& consensus_map, bool const symmetric_regression) const

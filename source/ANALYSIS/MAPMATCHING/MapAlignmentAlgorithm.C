@@ -36,13 +36,14 @@ namespace OpenMS
 	//register products here
 	void MapAlignmentAlgorithm::registerChildren()
 	{
-		Factory<MapAlignmentAlgorithm>::registerProduct ( MapAlignmentAlgorithmPoseClustering::getProductName(), &MapAlignmentAlgorithmPoseClustering::create );
-		Factory<MapAlignmentAlgorithm>::registerProduct ( MapAlignmentAlgorithmSpectrumAlignment::getProductName(), &MapAlignmentAlgorithmSpectrumAlignment::create );
-		Factory<MapAlignmentAlgorithm>::registerProduct ( MapAlignmentAlgorithmApplyGivenTrafo::getProductName(), &MapAlignmentAlgorithmApplyGivenTrafo::create );
+		Factory<MapAlignmentAlgorithm>::registerProduct ( MapAlignmentAlgorithmPoseClustering::    getProductName(), &MapAlignmentAlgorithmPoseClustering::    create );
+		Factory<MapAlignmentAlgorithm>::registerProduct ( MapAlignmentAlgorithmSpectrumAlignment:: getProductName(), &MapAlignmentAlgorithmSpectrumAlignment:: create );
+		Factory<MapAlignmentAlgorithm>::registerProduct ( MapAlignmentAlgorithmApplyGivenTrafo::   getProductName(), &MapAlignmentAlgorithmApplyGivenTrafo::   create );
 	}
 
 	MapAlignmentAlgorithm::MapAlignmentAlgorithm()
-		: FactoryProduct("MapAlignmentAlgorithm")
+		: FactoryProduct("MapAlignmentAlgorithm"),
+			ProgressLogger()
 	{
 	}
 
@@ -56,6 +57,11 @@ namespace OpenMS
 	}
 
 	void MapAlignmentAlgorithm::alignFeatureMaps(std::vector< FeatureMap<> >&, std::vector<TransformationDescription>&)
+	{
+		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);				
+	}
+
+	void MapAlignmentAlgorithm::alignPeptideIdentifications(std::vector< std::vector< PeptideIdentification > >&, std::vector<TransformationDescription>&)
 	{
 		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);				
 	}

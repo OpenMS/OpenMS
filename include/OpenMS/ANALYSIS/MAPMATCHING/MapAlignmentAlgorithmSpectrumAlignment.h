@@ -29,7 +29,6 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <iostream>
 #include <fstream>
@@ -54,8 +53,7 @@ namespace OpenMS
 		@ingroup MapAlignment
 	*/
 	class MapAlignmentAlgorithmSpectrumAlignment
-	 : public MapAlignmentAlgorithm, 
-	   public ProgressLogger
+	 : public MapAlignmentAlgorithm
 	{
 		public:
 			/// Default constructor

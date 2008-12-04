@@ -56,7 +56,7 @@ namespace OpenMS
 	 	}
 		Int number_of_considered_element_pairs = 0;
 
-    // For each element in map 0, find his/her best friend in map 1
+    // For each element in map 0, find its best friend in map 1
     std::vector<UInt>        best_companion_index_0(input_maps[0].size(),UInt(-1));
     std::vector<DoubleReal> best_companion_quality_0(input_maps[0].size(),0);
     for ( UInt fi0 = 0; fi0 < input_maps[0].size(); ++fi0 )
@@ -81,7 +81,7 @@ namespace OpenMS
 			best_companion_quality_0[fi0] = best_quality;
     }
 
-		// For each element in map 1, find his/her best friend in map 0
+		// For each element in map 1, find its best friend in map 0
 		std::vector<UInt>        best_companion_index_1(input_maps[1].size(),UInt(-1));
     std::vector<DoubleReal> best_companion_quality_1(input_maps[1].size(),0);
     for ( UInt fi1 = 0; fi1 < input_maps[1].size(); ++fi1 )

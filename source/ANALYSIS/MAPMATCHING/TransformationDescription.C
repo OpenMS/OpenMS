@@ -163,21 +163,24 @@ namespace OpenMS
 		PairVector pairs_;
 	};
 
-	void TransformationDescription::init_()
+	void TransformationDescription::init_() const
 	{
-		if ( trafo_ ) delete trafo_;
-		trafo_ = 0;
+		// workaround: init_() is const, but in fact it changes "hidden" state.
+		Trafo_ * & trafo = const_cast<Trafo_*&>(trafo_);
+
+		if ( trafo ) delete trafo;
+		trafo = 0;
 		if (name_=="none")
 		{
-			trafo_ = new None_(*this);
+			trafo = new None_(*this);
 		}
 		else if (name_=="linear")
 		{
-			trafo_ = new Linear_(*this);
+			trafo = new Linear_(*this);
 		}
 		else if (name_=="interpolated_linear")
 		{
-			trafo_ = new InterpolatedLinear_(*this);
+			trafo = new InterpolatedLinear_(*this);
 		}
 		else
 		{

@@ -29,6 +29,7 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_BASESUPERIMPOSER_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
@@ -45,14 +46,16 @@ namespace OpenMS
 	elements of the maps as near as possible to each other.
 	*/
 	class BaseSuperimposer
-		: public FactoryProduct
+		: public FactoryProduct,
+			public ProgressLogger
 	{
 
 	 public:
 
 		/// Constructor
 		BaseSuperimposer()
-			: FactoryProduct("BaseSuperimposer")
+			: FactoryProduct("BaseSuperimposer"),
+				ProgressLogger()
 		{
 		}
 

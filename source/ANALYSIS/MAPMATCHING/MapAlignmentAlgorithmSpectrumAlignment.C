@@ -32,7 +32,6 @@ namespace OpenMS
 
 	MapAlignmentAlgorithmSpectrumAlignment::MapAlignmentAlgorithmSpectrumAlignment()
 		: MapAlignmentAlgorithm(),
-			ProgressLogger(),
 			c1_(0)
 	{
 		setName("MapAlignmentAlgorithmSpectrumAlignment");

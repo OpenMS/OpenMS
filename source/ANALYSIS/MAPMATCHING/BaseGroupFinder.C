@@ -45,9 +45,9 @@ namespace OpenMS
 
 	void BaseGroupFinder::registerChildren()
   {
-    Factory< BaseGroupFinder>::registerProduct(SimplePairFinder::getProductName(), &SimplePairFinder::create);
-    Factory< BaseGroupFinder>::registerProduct(DelaunayPairFinder::getProductName(), &DelaunayPairFinder::create);
-    Factory< BaseGroupFinder>::registerProduct(LabeledPairFinder::getProductName(), &LabeledPairFinder::create);
+    Factory< BaseGroupFinder>::registerProduct(SimplePairFinder::   getProductName(), &SimplePairFinder::   create);
+    Factory< BaseGroupFinder>::registerProduct(DelaunayPairFinder:: getProductName(), &DelaunayPairFinder:: create);
+    Factory< BaseGroupFinder>::registerProduct(LabeledPairFinder::  getProductName(), &LabeledPairFinder::  create);
   }
 
 	void BaseGroupFinder::checkIds_(const std::vector<ConsensusMap>& maps) const

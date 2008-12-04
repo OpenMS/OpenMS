@@ -30,19 +30,22 @@ DIRECTORY=APPLICATIONS/UTILS
 HEADER_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
 
 UTILS_EXECUTABLES=\
-	FuzzyDiff\
-	Digestor\
-	IdXMLInfo\
-	XMLValidator\
-	FFEval\
-	LabeledEval\
-	SequenceCoverageCalculator\
-	RTEvaluation\
+	CAAP_eval\
+	CAAP_groundtruth_to_consensusXML\
 	CVInspector\
+	DecoyDatabase\
+	Digestor\
+	FFEval\
+	FuzzyDiff\
 	HistView\
-	SemanticValidator\
 	IDExtractor\
-	DecoyDatabase
+	IdXMLInfo\
+	LabeledEval\
+	RTEvaluation\
+	SemanticValidator\
+	SequenceCoverageCalculator\
+	XMLValidator\
+
 
 all: $(UTILS_EXECUTABLES)
 
