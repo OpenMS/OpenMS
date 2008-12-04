@@ -73,6 +73,7 @@
  			<cvParam cvRef="MS" accession="MS:1000005" name="sample volume" value="3.1"/>
  			<cvParam cvRef="MS" accession="MS:1000006" name="sample concentration" value="5.5"/>
  			<cvParam cvRef="MS" accession="MS:1000053" name="sample batch" value="4.4"/>
+ 			<cvParam cvRef="MS" accession="MS:1000052" name="suspension"/>
       <userParam name="name" value="sample"/>
     </sample>
     <sample id="sample2"/>

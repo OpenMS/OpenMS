@@ -4,8 +4,8 @@ saved-by: David Sparkman
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 1.8.1
-remark: release date: 2008-11-21
+remark: version: 1.9.1
+remark: release date: 2008-12-04
 remark: coverage: Mass spectrometer output files
 remark: creator: Matt Chambers <matt.chambers <@> vanderbilt.edu>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group
@@ -34,7 +34,7 @@ relationship: part_of MS:1000479 ! purgatory
 id: MS:1000003
 name: sample state
 def: "The chemical phase of a pure sample, or the state of a mixed sample." [PSI:MS]
-relationship: part_of MS:1000479 ! purgatory
+is_a: MS:1000548 ! sample attribute
 
 [Term]
 id: MS:1000004
@@ -3293,8 +3293,8 @@ relationship: part_of MS:1000456 ! precursor activation
 id: MS:1000511
 name: ms level
 def: "Stages of ms achieved in a multi stage mass spectrometry experiment." [PSI:MS]
-xref: value-type:xsd\:int "The allowed value-type for this CV term."
-is_a: MS:1000499 ! spectrum attribute
+xref: value-type:xsd\:int" The allowed value-type for this CV term."
+is_a: MS:1000503 ! scan attribute
 
 [Term]
 id: MS:1000512
@@ -3809,7 +3809,7 @@ is_a: MS:1000531 ! software
 [Term]
 id: MS:1000592
 name: smoothing
-def: "Application of Lowess smoothing or filters to preserve high frequency components of a peak while reducing the noise." [PSI:MS]
+def: "A process of reducing spikes of intensity in order to reduce noise while preserving real peak signal. Many algorithms can be applied for this process." [PSI:MS]
 is_a: MS:1000543 ! data processing action
 
 [Term]
@@ -4793,85 +4793,85 @@ is_a: MS:1000531 ! software
 [Term]
 id: MS:1000753
 name: BaselineFilter
-def: "TOPP tool - Removes the baseline from profile spectra using a top-hat filter." [PSI:MS]
+def: "Removes the baseline from profile spectra using a top-hat filter." [PSI:MS]
 is_a: MS:1000752 ! TOPP software
 
 [Term]
 id: MS:1000754
 name: DBExporter
-def: "TOPP tool - Exports data from an OpenMS database to a file." [PSI:MS]
+def: "Exports data from an OpenMS database to a file." [PSI:MS]
 is_a: MS:1000752 ! TOPP software
 
 [Term]
 id: MS:1000755
 name: DBImporter
-def: "TOPP tool - Imports data to an OpenMS database." [PSI:MS]
+def: "Imports data to an OpenMS database." [PSI:MS]
 is_a: MS:1000752 ! TOPP software
 
 [Term]
 id: MS:1000756
 name: FileConverter
-def: "TOPP tool - Converts between different MS file formats." [PSI:MS]
+def: "Converts between different MS file formats." [PSI:MS]
 is_a: MS:1000752 ! TOPP software
 
 [Term]
 id: MS:1000757
 name: FileFilter
-def: "TOPP tool - Extracts or manipulates portions of data from peak, feature or consensus feature files." [PSI:MS]
+def: "Extracts or manipulates portions of data from peak, feature or consensus feature files." [PSI:MS]
 is_a: MS:1000752 ! TOPP software
 
 [Term]
 id: MS:1000758
 name: FileMerger
-def: "TOPP tool - Merges several MS files into one file." [PSI:MS]
+def: "Merges several MS files into one file." [PSI:MS]
 is_a: MS:1000752 ! TOPP software
 
 [Term]
 id: MS:1000759
 name: InternalCalibration
-def: "TOPP tool - Applies an internal calibration." [PSI:MS]
+def: "Applies an internal calibration." [PSI:MS]
 is_a: MS:1000752 ! TOPP software
 
 [Term]
 id: MS:1000760
 name: MapAligner
-def: "TOPP tool - Corrects retention time distortions between maps." [PSI:MS]
+def: "Corrects retention time distortions between maps." [PSI:MS]
 is_a: MS:1000752 ! TOPP software
 
 [Term]
 id: MS:1000761
 name: MapNormalizer
-def: "TOPP tool - Normalizes peak intensities in an MS run." [PSI:MS]
+def: "Normalizes peak intensities in an MS run." [PSI:MS]
 is_a: MS:1000752 ! TOPP software
 
 [Term]
 id: MS:1000762
 name: NoiseFilter
-def: "TOPP tool - Removes noise from profile spectra by using different smoothing techniques." [PSI:MS]
+def: "Removes noise from profile spectra by using different smoothing techniques." [PSI:MS]
 is_a: MS:1000752 ! TOPP software
 
 [Term]
 id: MS:1000763
 name: PeakPicker
-def: "TOPP tool - Finds mass spectrometric peaks in profile mass spectra." [PSI:MS]
+def: "Finds mass spectrometric peaks in profile mass spectra." [PSI:MS]
 is_a: MS:1000752 ! TOPP software
 
 [Term]
 id: MS:1000764
 name: Resampler
-def: "TOPP tool - Transforms an LC/MS map into a resampled map or a png image." [PSI:MS]
+def: "Transforms an LC/MS map into a resampled map or a png image." [PSI:MS]
 is_a: MS:1000752 ! TOPP software
 
 [Term]
 id: MS:1000765
 name: SpectraFilter
-def: "TOPP tool - Applies a filter to peak spectra." [PSI:MS]
+def: "Applies a filter to peak spectra." [PSI:MS]
 is_a: MS:1000752 ! TOPP software
 
 [Term]
 id: MS:1000766
 name: TOFCalibration
-def: "TOPP tool - Applies time of flight calibration." [PSI:MS]
+def: "Applies time of flight calibration." [PSI:MS]
 is_a: MS:1000752 ! TOPP software
 
 [Term]
@@ -4946,6 +4946,81 @@ name: spectrum identifier nativeID format
 def: "spectrum=xsd:nonNegativeInteger" [PSI:MS]
 comment: Used for conversion from mzData. The spectrum id attribute is referenced.
 is_a: MS:1000767 ! native spectrum identifier format
+
+[Term]
+id: MS:1000778
+name: charge state calculation
+def: "A process that infers the charge state of an MSn spectrum's precursor(s) by the application of some algorithm." [PSI:MS]
+is_a: MS:1000543 ! data processing action
+
+[Term]
+id: MS:1000779
+name: below precursor intensity dominance charge state calculation
+def: "Infers charge state as single or amibiguously multiple by determining the fraction of intensity below the precursor m/z." [PSI:MS]
+is_a: MS:1000778 ! charge state calculation
+
+[Term]
+id: MS:1000780
+name: precursor recalculation
+def: "A process that recalculates existing precursor selected ions with one or more algorithmically determined precursor selected ions." [PSI:MS]
+is_a: MS:1000543 ! data processing action
+
+[Term]
+id: MS:1000781
+name: msPrefix precursor recalculation
+def: "Recalculates one or more precursor selected ions by peak detection in the isolation windows of high accuracy MS precursor scans." [PSI:MS]
+is_a: MS:1000780 ! precursor recalculation
+
+[Term]
+id: MS:1000782
+name: Savitzky-Golay smoothing
+def: "Reduces intensity spikes by applying local polynomial regression (of degree k) on a distribution (of at least k+1 equally spaced points) to determine the smoothed value for each point. It tends to preserve features of the distribution such as relative maxima, minima and width, which are usually 'flattened' by other adjacent averaging techniques." [PSI:MS]
+is_a: MS:1000592 ! smoothing
+
+[Term]
+id: MS:1000783
+name: LOWESS smoothing
+def: "Reduces intensity spikes by applying a modeling method known as locally weighted polynomial regression. At each point in the data set a low-degree polynomial is fit to a subset of the data, with explanatory variable values near the point whose response is being estimated. The polynomial is fit using weighted least squares, giving more weight to points near the point whose response is being estimated and less weight to points further away. The value of the regression function for the point is then obtained by evaluating the local polynomial using the explanatory variable values for that data point. The LOESS fit is complete after regression function values have been computed for each of the n data points. Many of the details of this method, such as the degree of the polynomial model and the weights, are flexible." [PSI:MS]
+is_a: MS:1000592 ! smoothing
+
+[Term]
+id: MS:1000784
+name: Gaussian smoothing
+def: "Reduces intensity spikes by convolving the data with a one-dimensional Gaussian function." [PSI:MS]
+synonym: "Weierstrass transform" EXACT []
+synonym: "binomial smoothing" EXACT []
+is_a: MS:1000592 ! smoothing
+
+[Term]
+id: MS:1000785
+name: moving average smoothing
+def: "Reduces intensity spikes by averaging each point with two or more adjacent points. The more adjacent points that used, the stronger the smoothing effect." [PSI:MS]
+synonym: "box smoothing" EXACT []
+synonym: "boxcar smoothing" EXACT []
+synonym: "sliding average smoothing" EXACT []
+is_a: MS:1000592 ! smoothing
+
+[Term]
+id: MS:1000786
+name: non-standard data array
+def: "A data array that contains data not covered by any other term in this group. Please do not use this term, if the binary data array type might be commonly used - contact the PSI-MS working group in order to have another CV term added. If available, the name of the data array should be stored in the cvParam 'name'." [PSI:MS]
+is_a: MS:1000513 ! binary data array 
+
+[Term]
+id: MS:1000787
+name: inclusive low intensity threshold
+def: "Threshold at or below which some action is taken." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000630 ! data processing parameter
+relationship: has_units MS:1000460 ! intensity unit
+
+[Term]
+id: MS:1000788
+name: inclusive high intensity threshold
+def: "Threshold at or above which some action is taken." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000630 ! data processing parameter
+relationship: has_units MS:1000460 ! intensity unit 
 
 [Typedef]
 id: has_units

@@ -34,7 +34,7 @@ using namespace std;
 namespace OpenMS
 {
 	
-	const std::string Sample::NamesOfSampleState[] = {"Unknown","SOLID","LIQUID","GAS","SOLUTION","EULSION","SUSPENSION"};
+	const std::string Sample::NamesOfSampleState[] = {"Unknown","solid","liquid","gas","solution","emulsion","suspension"};
 	
 	Sample::Sample() : 
 		MetaInfoInterface(),

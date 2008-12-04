@@ -51,7 +51,9 @@ namespace OpenMS
     	{
     		CHARGE_DECONVOLUTION,		  ///< Charge deconvolution
     		DEISOTOPING, 						  ///< Deisotoping
-    		SMOOTHING, 							  ///< Smoothing
+    		SMOOTHING, 							  ///< Smoothing of the signal to reduce noise
+    		CHARGE_CALCULATION,       ///< Determination of the peak charge
+    		PRECURSOR_RECALCULATION,	///< Recalculation of precursor m/z
     		BASELINE_REDUCTION, 		  ///< Baseline reduction
     		PEAK_PICKING, 					  ///< Peak picking (conversion from raw to peak data)
     		FEATURE_FINDING, 				  ///< Feature findng (conversion from raw/peak to feature data)

@@ -115,6 +115,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL(exp.getSample().getNumber(),"5")
 	TEST_REAL_SIMILAR(exp.getSample().getVolume(),3.1)
 	TEST_REAL_SIMILAR(exp.getSample().getConcentration(),5.5)
+	TEST_EQUAL(exp.getSample().getState(),Sample::SUSPENSION)
 	//instrument (general)
 	TEST_STRING_EQUAL(exp.getInstrument().getName(),"LCQ Deca")
 	TEST_STRING_EQUAL(exp.getInstrument().getCustomizations(),"Umbau")

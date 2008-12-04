@@ -1295,6 +1295,30 @@ namespace OpenMS
 					//No member => meta data
 					samples_[current_id_].setMetaValue("sample batch",String(value));
 				}
+				else if (accession=="MS:1000047") //emulsion
+				{
+					samples_[current_id_].setState(Sample::EMULSION);
+				}
+				else if (accession=="MS:1000048") //gas
+				{
+					samples_[current_id_].setState(Sample::GAS);
+				}
+				else if (accession=="MS:1000049") //liquid
+				{
+					samples_[current_id_].setState(Sample::LIQUID);
+				}
+				else if (accession=="MS:1000050") //solid
+				{
+					samples_[current_id_].setState(Sample::SOLID);
+				}
+				else if (accession=="MS:1000051") //solution
+				{
+					samples_[current_id_].setState(Sample::SOLUTION);
+				}
+				else if (accession=="MS:1000052") //suspension
+				{
+					samples_[current_id_].setState(Sample::SUSPENSION);
+				}
 				else warning(String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- instrumentConfiguration ----------------------------
@@ -1858,6 +1882,14 @@ namespace OpenMS
 				{
 					processing_[current_id_].back().setMetaValue("high_intensity_threshold",value.toDouble());
 				}
+				if (accession=="MS:1000787") //inclusive low intensity threshold
+				{
+					processing_[current_id_].back().setMetaValue("inclusive_low_intensity_threshold",value.toDouble());
+				}
+				else if (accession=="MS:1000788") //inclusive high intensity threshold
+				{
+					processing_[current_id_].back().setMetaValue("inclusive_high_intensity_threshold",value.toDouble());
+				}
 				else if (accession=="MS:1000747") //completion time
 				{
 					processing_[current_id_].back().setCompletionTime(asDateTime_(value));
@@ -1892,9 +1924,17 @@ namespace OpenMS
 				{
 					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::PEAK_PICKING);
 				}
-				else if (accession=="MS:1000592") //smoothing
+				else if (accession=="MS:1000592" || cv_.isChildOf(accession,"MS:1000592")) //smoothing (or child terms, we make no difference
 				{
 					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::SMOOTHING);
+				}
+				else if (accession=="MS:1000778" || cv_.isChildOf(accession,"MS:1000778")) //charge state calculation (or child terms, we make no difference
+				{
+					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::CHARGE_CALCULATION);
+				}
+				else if (accession=="MS:1000780" || cv_.isChildOf(accession,"MS:1000780")) //precursor recalculation (or child terms, we make no difference
+				{
+					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::PRECURSOR_RECALCULATION);
 				}
 				else if (accession=="MS:1000593") //baseline reduction
 				{
@@ -2345,10 +2385,31 @@ namespace OpenMS
 			{
 				os  << "			<userParam name=\"comment\" type=\"xsd:string\" value=\"" << sa.getComment() << "\"/>\n";
 			}
-			if (sa.getState()!=Sample::SAMPLENULL)
+			if (sa.getState()==Sample::EMULSION)
 			{
-				os  << "			<userParam name=\"state\" type=\"xsd:string\" value=\"" << Sample::NamesOfSampleState[sa.getState()] << "\"/>\n";
+				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000047\" name=\"emulsion\" />\n";
 			}
+			else if (sa.getState()==Sample::GAS)
+			{
+				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000048\" name=\"gas\" />\n";
+			}
+			else if (sa.getState()==Sample::LIQUID)
+			{
+				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000049\" name=\"liquid\" />\n";
+			}
+			else if (sa.getState()==Sample::SOLID)
+			{
+				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000050\" name=\"solid\" />\n";
+			}
+			else if (sa.getState()==Sample::SOLUTION)
+			{
+				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000051\" name=\"solution\" />\n";
+			}
+			else if (sa.getState()==Sample::SUSPENSION)
+			{
+				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000052\" name=\"suspension\" />\n";
+			}
+
 			writeUserParam_(os, sa, 3);
 			os  << "		</sample>\n";
 			os  << "	</sampleList>\n";
@@ -2954,6 +3015,14 @@ namespace OpenMS
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000592\" name=\"smoothing\"/>\n";
 				}
+				if (dp.getProcessingActions().count(DataProcessing::CHARGE_CALCULATION)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000778\" name=\"charge state calculation\"/>\n";
+				}
+				if (dp.getProcessingActions().count(DataProcessing::PRECURSOR_RECALCULATION)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000780\" name=\"precursor recalculation\"/>\n";
+				}
 				if (dp.getProcessingActions().count(DataProcessing::BASELINE_REDUCTION)==1)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000593\" name=\"baseline reduction\"/>\n";
@@ -3285,9 +3354,9 @@ namespace OpenMS
 						{
 							os  << "						<cvParam cvRef=\"MS\" accession=\"" << bi_term.id <<"\" name=\"" << bi_term.name << "\"/>\n";
 						}
-						else //FORCED
+						else
 						{
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000617\" name=\"wavelength array\"/>\n";
+							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\"/>\n";
 							os  << "						<userParam name=\"warning\" type=\"xsd:string\" value=\"invented array type, to fulfill mzML schema\" />\n";
 						}
 						writeUserParam_(os, array, 8);
