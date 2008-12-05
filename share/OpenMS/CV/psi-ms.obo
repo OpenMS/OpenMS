@@ -4051,6 +4051,7 @@ name: low intensity threshold
 def: "Threshold below which some action is taken." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000630 ! data processing parameter
+relationship: has_units MS:1000460 ! intensity unit 
 
 [Term]
 id: MS:1000630
@@ -4064,6 +4065,7 @@ name: high intensity threshold
 def: "Threshold above which some action is taken." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000630 ! data processing parameter
+relationship: has_units MS:1000460 ! intensity unit 
 
 [Term]
 id: MS:1000632

@@ -309,7 +309,7 @@
           <binaryDataArray encodedLength="108" >
             <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
             <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000516" name="charge array" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="user-defined name"/>
         		<userParam name="name" value="binaryDataArray_c"/>
             <binary>AAAAAAAANEAAAAAAAAAyQAAAAAAAADBAAAAAAAAALEAAAAAAAAAoQAAAAAAAACRAAAAAAAAAIEAAAAAAAAAYQAAAAAAAABBAAAAAAAAAAEA=</binary>
           </binaryDataArray>
