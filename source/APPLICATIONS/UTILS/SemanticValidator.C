@@ -98,6 +98,13 @@ class TOPPSemanticValidator
       cout << "Error: " << errors[i] << endl;
     }
 
+		if (warnings.size() == 0 && errors.size() == 0)
+		{
+			cout << "Congratulations, the file is valid!" << endl;
+		}
+
+						
+
 		/*
 		// check units cv
 		Internal::SemanticValidator semantic_validator_u(mappings, cv);
