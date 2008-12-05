@@ -899,8 +899,13 @@ namespace OpenMS
 						throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 					}
 					//MS:1000513 ! binary data array
-					else if (cv_.isChildOf(accession,"MS:1000513")) //array name as string
+					else if (accession=="MS:1000786") // non-standard binary data array (with name as value)
 					{
+						data_.back().name = value;
+					}
+					else if (cv_.isChildOf(accession,"MS:1000513")) //other array names as string
+					{
+						
 						data_.back().name = cv_.getTerm(accession).name;
 					}
 					//MS:1000572 ! binary data compression type
@@ -1882,7 +1887,7 @@ namespace OpenMS
 				{
 					processing_[current_id_].back().setMetaValue("high_intensity_threshold",value.toDouble());
 				}
-				if (accession=="MS:1000787") //inclusive low intensity threshold
+				else if (accession=="MS:1000787") //inclusive low intensity threshold
 				{
 					processing_[current_id_].back().setMetaValue("inclusive_low_intensity_threshold",value.toDouble());
 				}
@@ -3356,8 +3361,7 @@ namespace OpenMS
 						}
 						else
 						{
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\"/>\n";
-							os  << "						<userParam name=\"warning\" type=\"xsd:string\" value=\"invented array type, to fulfill mzML schema\" />\n";
+							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\"/>\n";
 						}
 						writeUserParam_(os, array, 8);
 						os	<< "						<binary>" << encoded_string << "</binary>\n";

@@ -30,8 +30,6 @@ DIRECTORY=APPLICATIONS/UTILS
 HEADER_DIR=$(OPENMS_PATH)/include/OpenMS/$(DIRECTORY)
 
 UTILS_EXECUTABLES=\
-	CAAP_eval\
-	CAAP_groundtruth_to_consensusXML\
 	CVInspector\
 	DecoyDatabase\
 	Digestor\

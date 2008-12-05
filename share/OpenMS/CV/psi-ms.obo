@@ -5003,8 +5003,9 @@ is_a: MS:1000592 ! smoothing
 [Term]
 id: MS:1000786
 name: non-standard data array
-def: "A data array that contains data not covered by any other term in this group. Please do not use this term, if the binary data array type might be commonly used - contact the PSI-MS working group in order to have another CV term added. If available, the name of the data array should be stored in the cvParam 'name'." [PSI:MS]
+def: "A data array that contains data not covered by any other term in this group. Please do not use this term, if the binary data array type might be commonly used - contact the PSI-MS working group in order to have another CV term added." [PSI:MS]
 is_a: MS:1000513 ! binary data array 
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 
 [Term]
 id: MS:1000787

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
+<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <!-- Created with Liquid XML Studio 1.0.8.0 (http://www.liquid-technologies.com) -->
 <xs:schema xmlns:dx="http://psi.hupo.org/schema_revision/mzML_1.0.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://psi.hupo.org/schema_revision/mzML_1.0.0" elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0.0">
 	<xs:element name="mzML" type="dx:mzMLType">

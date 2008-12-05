@@ -230,7 +230,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(spec.getMetaDataArrays().size(),2)
 		TEST_STRING_EQUAL(spec.getMetaDataArrays()[0].getName(),"signal to noise array")
 		TEST_EQUAL(spec.getMetaDataArrays()[0].size(),10)
-		TEST_STRING_EQUAL(spec.getMetaDataArrays()[1].getName(),"charge array")
+		TEST_STRING_EQUAL(spec.getMetaDataArrays()[1].getName(),"user-defined name")
 		TEST_EQUAL(spec.getMetaDataArrays()[1].size(),10)
 		//precursor
 		TEST_REAL_SIMILAR(spec.getPrecursorPeak().getIntensity(),120053)
