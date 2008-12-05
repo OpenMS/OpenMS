@@ -42,6 +42,7 @@
 
 //TODO:
 // - Check CV terms of spectrumDescription and acquisitions as soon as they are settled
+// - Check CV terms of spectrum type, scanning method and file content as soon as they are settled
 // - scanWindow for acquisition
 // - DataProcessing of binaryDataArray
 // - Sample: CVs for cellular compartement, source tissue and quality
@@ -55,7 +56,7 @@
 // - acquisitionSettingsList cannot be referenced => where do we put "targetList" + "target"?
 //
 //ADDITIONS TO STANDARD:
-// - scanWindow for spectrumDescription
+// - scanWindow for spectrumDescription/spectrum
 //
 //MISSING (AND NOT PLANNED):
 // - more than one precursor per spectrum (warning if more than one)
