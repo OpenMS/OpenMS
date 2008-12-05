@@ -20,7 +20,7 @@ New features and improvements of TOPP:
 - Added ITRAQAnalyzer: A specialized tool for quantitation of ITRAQ experiments.
 - Added IDMapper: Assigns protein/peptide identifications to features or consensus features.
 - FeatureLinker: Added automated RT parameter estimation for 'labeled' algorithm.
-- MapAligner: Added spectrum_alignment and apply_given_trafo
+- MapAligner: Added spectrum_alignment and apply_given_trafo, IdXML is supported
 - Resampler: This tool is now used for resampling raw data instead of resampling in NoiseFilter or BaselineFilter.
 - FileInfo: The option '-v' now also does a semantic validation of MzML files.
 - FileMerger: Improved interface
@@ -99,13 +99,14 @@ Detailed list of changes to specific OpenMS classes:
   - TOPPBase: Print revison info (if meaningful).
   - MetaInfo: Uses double precision now.
   - Date
-    - get() now returns a string instead of modifying a string reference
-    - Made today() is static now and returns the current DateTime instead of modifying the object
+    - get() now returns a string instead of modifying a string reference.
+    - Made today() is static now and returns the current DateTime instead of modifying the object.
   - DateTime
-    - get(), getDate() and getTime() now return a string instead of modifying a string reference
-    - Made now() is static now and returns the current Date instead of modifying the object
-  - MSExperiment: The date is now a DateTime object
-
+    - get(), getDate() and getTime() now return a string instead of modifying a string reference.
+    - Made now() is static now and returns the current Date instead of modifying the object.
+  - MSExperiment: The date is now a DateTime object.
+  - ProgressLogger: Nested application uses indentation.
+	
 ------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.2                                     ----
 ------------------------------------------------------------------------------------------

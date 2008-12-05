@@ -43,6 +43,7 @@ UTILS_EXECUTABLES=\
 	SemanticValidator\
 	SequenceCoverageCalculator\
 	XMLValidator\
+	CaapConvert\
 
 
 all: $(UTILS_EXECUTABLES)

@@ -48,4 +48,6 @@
   - @subpage IDExtractor
 	- @subpage SemanticValidator
 	- @subpage DecoyDatabase
+	- @subpage CaapConvert
+
 */

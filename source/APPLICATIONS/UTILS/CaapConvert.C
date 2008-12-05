@@ -30,6 +30,35 @@
 #include <fstream>
 #include <sstream>
 
+//-------------------------------------------------------------
+//Doxygen docu
+//-------------------------------------------------------------
+
+/**
+@page CaapConvert CaapConvert
+
+@brief Convert a CAAP ground truth file into consensusXML format.
+
+<pre>
+Usage:  CaapConvert input output [-v]
+
+where:
+  input    is a ground truth file as described on the CAAP web page
+  output   is the result in consensusXML format as described in the OpenMS docu.
+  [supply optional third argument -v for verbose output]
+</pre>
+
+<br>
+See the paper<br>
+Eva Lange, Ralf Tautenhahn, Steffen Neumann, Clemens Gröpl:<br>
+"Critical assessment of alignment procedures for LC-MS proteomics and metabolomics measurements".<br>
+BMC Bioinformatics 2008, 9:375.<br>
+<a href="http://dx.doi.org/10.1186/1471-2105-9-375">http://dx.doi.org/10.1186/1471-2105-9-375</a>.<br>
+Supplementary web page: <a href="http://msbi.ipb-halle.de/msbi/caap">http://msbi.ipb-halle.de/msbi/caap</a>.<br>
+
+*/
+
+
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
@@ -49,7 +78,7 @@ int main( int argc, const char** argv )
 			"\"Critical assessment of alignment procedures for LC-MS proteomics and metabolomics measurements\"\n"
 			"Eva Lange, Ralf Tautenhahn, Steffen Neumann, Clemens Groepl\n"
 			"BMC Bioinformatics 2008, 9:375.\n"
-			"doi:10.1186/1471-2105-9-375\n"
+			"http://dx.doi.org/10.1186/1471-2105-9-375\n"
 			;
 		return 1;
 	}
