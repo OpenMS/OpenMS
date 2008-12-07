@@ -44,6 +44,8 @@
 #include "../VISUAL/ICONS/cursor_zoom.xpm"
 #include "../VISUAL/ICONS/cursor_move.xpm"
 
+#include <iostream>
+
 using namespace std;
 
 namespace OpenMS
@@ -258,9 +260,9 @@ namespace OpenMS
 	
 	void SpectrumCanvas::resetZoom(bool repaint)
 	{
-		zoomClear_();
 		AreaType tmp;
 		tmp.assign(overall_data_range_);
+		zoomClear_();
 		changeVisibleArea_(tmp,repaint,true);
 	}
 	
@@ -346,6 +348,7 @@ namespace OpenMS
 			for (std::vector<double>::const_iterator it = spectrum_widget_->yAxis()->gridLines()[j].begin(); it != spectrum_widget_->yAxis()->gridLines()[j].end(); it++) 
 			{
 				y = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->yAxis()->getAxisMinimum(), spectrum_widget_->yAxis()->getAxisMaximum(), yl, yh));
+				
 				painter.drawLine(xl, y, xh, y);
 			}
 		}
@@ -360,7 +363,7 @@ namespace OpenMS
 
 	bool SpectrumCanvas::addLayer(ExperimentType& map, const String& filename)
 	{	
-		layers_.resize(getLayerCount()+1);
+		layers_.resize(layers_.size()+1);
 		layers_.back().param = param_;
 		layers_.back().filename = filename;
 		layers_.back().peaks.swap(map);

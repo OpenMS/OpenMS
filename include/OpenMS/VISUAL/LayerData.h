@@ -32,6 +32,8 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
+#include <OpenMS/VISUAL/Annotations1DContainer.h>
+
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
 
 namespace OpenMS 
@@ -76,6 +78,7 @@ namespace OpenMS
 		/// Default constructor
 		LayerData()
 			: visible(true),
+				flipped(false),
 				type(DT_UNKNOWN),
 				name(),
 				filename(),
@@ -88,12 +91,15 @@ namespace OpenMS
 				param(),
 				gradient(),
 				filters(),
+				annotations_1d(),
 				modified(false)
 		{
 		}
 		
 		/// if this layer is visible
 		bool visible;
+		/// if this layer is flipped (1d mirror view)
+		mutable bool flipped;
 		/// data type (peak of feature data)
 		DataType type;
 		/// layer name
@@ -122,6 +128,9 @@ namespace OpenMS
 		
 		///Filters to apply before painting
 		DataFilters filters;
+				
+		///Annotations for the 1D view
+		mutable Annotations1DContainer annotations_1d;
 		
 		///Flag that indicates that the input data was modified since loading it
 		bool modified;

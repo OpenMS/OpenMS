@@ -29,6 +29,7 @@
 
 // STL
 #include <vector>
+#include <utility>
 
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
@@ -49,6 +50,7 @@ namespace OpenMS
 		
 		@ingroup SpectrumWidgets
 	*/
+	
 	class Spectrum1DCanvas 
 		: public SpectrumCanvas
 	{
@@ -81,19 +83,50 @@ namespace OpenMS
 	
 			/// Sets draw mode of the current layer
 			void setDrawMode(DrawModes mode);
-	
+			
 			// Docu in base class
 			virtual void showCurrentLayerPreferences();
 
 			// Docu in base class
 			virtual void saveCurrentLayer(bool visible);
 	
+			/// Returns whether flipped layers exist or not
+			bool flippedLayersExist();
+			
+			/// Returns whether this widget is currently in mirror mode
+			inline bool mirrorModeActive()
+			{
+				return mirror_mode_;
+			}
+			
+			/// Sets whether this widget is currently in mirror mode
+			inline void setMirrorModeActive(bool b)
+			{
+				mirror_mode_ = b;
+				update_buffer_ = true;
+				update_(__PRETTY_FUNCTION__);
+			}
+			
+			/// Calls dataToWidget_() but takes snap_factors_ and percentage_factor_ into account.
+			void dataToWidget(const PeakType& peak, QPoint& point, bool flipped = false);
+			
+			/// Calls SpectrumCanvas::dataToWidget_() but takes mirror mode into account
+			void dataToWidget(float x, float y, QPoint& point, bool flipped = false);
+			
+			/// Calls SpectrumCanvas::widgetToData_() but takes mirror mode into account
+			PointType widgetToData(const QPoint& pos);
+			
+			/// Calls SpectrumCanvas::widgetToData_() but takes mirror mode into account
+			PointType widgetToData(float x, float y);
+			
+			/// Draws all annotation items of @p layer on @p painter
+			void drawAnnotations(const LayerData& layer, QPainter& painter);
+			
 		public slots:
 			// Docu in base class
 			void activateLayer(int layer_index);
 			// Docu in base class
 			void removeLayer(int layer_index);
-			
 			/**
 				@brief Sets the visible area.
 				
@@ -115,8 +148,11 @@ namespace OpenMS
 			*/
 			void changeVisibleArea_(double lo, double hi, bool repaint = true, bool add_to_stack = false);  
 			
-			/// Calls dataToWidget_(const PointType&, QPoint& point) but takes snap_factors_ and percentage_factor_ into account.
-			void dataToWidget_(const PeakType& peak, QPoint& point);
+			/// Draws a highlighted peak; if draw_elongation is true, the elongation line is drawn (for measuring)
+			void drawHighlightedPeak_(UInt layer_index, const PeakIndex& peak, QPainter& painter, bool draw_elongation = false);
+			
+			/// Draws a dashed line using the highlighted peak color parameter
+			void drawDashedLine_(const QPoint& from, const QPoint& to, QPainter& painter);
 			
 			/**
 				@brief Sets the visible area
@@ -140,8 +176,17 @@ namespace OpenMS
 			std::vector<DrawModes> draw_modes_; 
 			/// Iterator on peak next to mouse position
 			PeakIndex selected_peak_;
+			/// start peak of measuring mode
+      PeakIndex measurement_start_;
+      /// start point of "ruler" for measure mode
+      QPoint measurement_start_point_;
+      /// Indicates whether this widget is currently in mirror mode
+			bool mirror_mode_;
+			/// Indicates whether the lower or upper half is currently active (only relevant in mirror mode)
+			bool lower_half_active_;
+      
 			/// Find peak next to the given position
-			PeakIndex findPeakAtPosition_(QPoint);  
+			PeakIndex findPeakAtPosition_(QPoint);
 	
 	    /** @name Reimplemented QT events */
 	    //@{
@@ -149,6 +194,8 @@ namespace OpenMS
 			void mousePressEvent(QMouseEvent* e);
 			void mouseReleaseEvent(QMouseEvent* e);
 			void mouseMoveEvent(QMouseEvent* e);
+			void keyPressEvent(QKeyEvent* e);
+
 			void contextMenuEvent(QContextMenuEvent* e);
 	    //@}
 			
@@ -158,7 +205,6 @@ namespace OpenMS
 			virtual void translateLeft_();
 			//docu in base class
 			virtual void translateRight_();
-
 	};
 } // namespace OpenMS
 

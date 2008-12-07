@@ -179,6 +179,26 @@ namespace OpenMS
 			return true;
 		}
 		
+		/// Returns the smallest range containing this range and @p other_range
+		DRange united(const DRange<D>& other_range) const
+		{
+			PositionType united_min;
+			PositionType united_max;
+			DRange<D> united_range = DRange<D>::empty;
+			
+			PositionType other_min = other_range.min();
+			PositionType other_max = other_range.max();
+			
+			for (UInt i = 0; i != D; ++i)
+			{
+				united_min[i] = min_[i] < other_min[i] ? min_[i] : other_min[i];
+				united_max[i] = max_[i] > other_max[i] ? max_[i] : other_max[i];
+			}
+			united_range.setMinMax(united_min, united_max);
+			
+			return united_range;
+		}
+		
 		/**
 			 @brief Checks how this range intersects with another @p range.
 			 

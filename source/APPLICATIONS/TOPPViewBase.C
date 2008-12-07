@@ -32,13 +32,14 @@
 #include <OpenMS/VISUAL/DIALOGS/DataFilterDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/DBOpenDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
+#include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
+#include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/Spectrum2DWidget.h>
 #include <OpenMS/VISUAL/Spectrum3DWidget.h>
-#include <OpenMS/VISUAL/Spectrum1DWidget.h>
-#include <OpenMS/VISUAL/Spectrum2DWidget.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -58,11 +59,19 @@
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 
 //Qt
 #include <QtGui/QToolBar>
 #include <QtGui/QDockWidget>
 #include <QtGui/QListWidget>
+#include <QtGui/QListWidgetItem>
+#include <QtGui/QTreeWidget>
+#include <QtGui/QTreeWidgetItem>
 #include <QtGui/QMenu>
 #include <QtGui/QMenuBar>
 #include <QtGui/QStatusBar>
@@ -110,6 +119,7 @@
 #include "../VISUAL/ICONS/Oesterberg.xpm"
 
 #include <algorithm>
+#include <utility>
 
 using namespace std;
 
@@ -148,6 +158,7 @@ namespace OpenMS
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateToolBar()));
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateTabBar(QWidget*)));
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateLayerBar()));
+    connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateSpectrumBar()));
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateFilterBar()));
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateMenu()));
  
@@ -193,6 +204,8 @@ namespace OpenMS
     tools->addAction("Rerun TOPP tool", this, SLOT(rerunTOPPTool()),Qt::Key_F4);
     tools->addSeparator();
     tools->addAction("&Annotate with identifiction", this, SLOT(annotateWithID()), Qt::CTRL+Qt::Key_I);
+    tools->addAction("Align spectra", this, SLOT(showSpectrumAlignmentDialog()));
+    tools->addAction("Generate theoretical spectrum", this, SLOT(showSpectrumGenerationDialog()));
 
     //Layer menu
     QMenu* layer = new QMenu("&Layer",this);
@@ -379,6 +392,22 @@ namespace OpenMS
     
     windows->addAction("&Show layer window",layer_bar,SLOT(show()));
 		
+    //spectrum selection
+    QDockWidget* spectrum_bar = new QDockWidget("Spectra", this);
+    addDockWidget(Qt::RightDockWidgetArea, spectrum_bar);
+    spectrum_selection_ = new QTreeWidget(spectrum_bar);
+    spectrum_selection_->setWhatsThis("Spectrum selection bar<BR><BR>Here all spectra of the current experiment are shown. Left-click on a spectrum to open it.");
+    spectrum_selection_->setColumnCount(3);
+  	QStringList header_labels;
+  	header_labels.append(QString("MS level"));
+  	header_labels.append(QString("RT"));
+  	header_labels.append(QString("m/z"));
+  	spectrum_selection_->setHeaderLabels(header_labels);
+    spectrum_bar->setWidget(spectrum_selection_);
+    connect(spectrum_selection_,SIGNAL(itemClicked(QTreeWidgetItem*, int)),this,SLOT(spectrumSelectionChange(QTreeWidgetItem*, int)));
+    
+    windows->addAction("&Show spectrum selection window",spectrum_bar,SLOT(show()));
+        
     //data filters
     QDockWidget* filter_bar = new QDockWidget("Data filters", this);
     addDockWidget(Qt::RightDockWidgetArea, filter_bar);
@@ -780,8 +809,8 @@ namespace OpenMS
 		TOPPViewOpenDialog dialog(caption, as_new_window, maps_as_2d, use_mower, this);
 		//disable opening in new window when
 		if (open_window==0 // there is no active window
-			  || (is_2D && qobject_cast<Spectrum1DWidget*>(open_window)!=0) //2D data is to opened, but the current window is a 1D window
-			  || (is_feature && qobject_cast<Spectrum3DWidget*>(open_window)!=0)) //feature data is to opened, but the current window is a 3D window
+			  || (is_2D && qobject_cast<Spectrum1DWidget*>(open_window)!=0) //2D data is to be opened, but the current window is a 1D window
+			  || (is_feature && qobject_cast<Spectrum3DWidget*>(open_window)!=0)) //feature data is to be opened, but the current window is a 3D window
 		{
 			dialog.disableLocation(true);
 		}
@@ -819,7 +848,7 @@ namespace OpenMS
   	Int merge_layer = dialog.getMergeLayer();
   	
 		//determine the window to open the data in
-  	if (as_new_window) //new window
+		if (as_new_window) //new window
     {
       if (!is_2D) //1d
       {
@@ -827,15 +856,15 @@ namespace OpenMS
       }
       else if (maps_as_2d || is_feature) //2d or features
       {
-        open_window = new Spectrum2DWidget(getSpectrumParameters_(2), ws_);
-        open_window->canvas()->setAdditionalContextMenu(add_2d_context_);
-      }
+      	open_window = new Spectrum2DWidget(getSpectrumParameters_(2), ws_);
+      	open_window->canvas()->setAdditionalContextMenu(add_2d_context_);
+      } 
       else //3d
       {
-        open_window = new Spectrum3DWidget(getSpectrumParameters_(3), ws_);
+      	open_window = new Spectrum3DWidget(getSpectrumParameters_(3), ws_);
       }
     }
-
+		
     if (merge_layer==-1) //add data to the window
     {
 	    if (is_feature) //features and consensus features
@@ -888,8 +917,8 @@ namespace OpenMS
     {
     	showAsWindow_(open_window,caption);
 		}
-		
 		updateLayerBar();
+		updateSpectrumBar();
 		updateFilterBar();
   	updateMenu();
 	}
@@ -1262,11 +1291,18 @@ namespace OpenMS
     }
 		layer_manager_->blockSignals(true);
 		QListWidgetItem* item = 0;
+		QString name;
     for (UInt i = 0; i<cc->getLayerCount(); ++i)
     {
     	const LayerData& layer = cc->getLayer(i);
     	//add item
     	item = new QListWidgetItem( layer_manager_ );
+			name = layer.name.toQString();
+			if (layer.flipped)
+			{
+				name += " (flipped)";
+			}
+			item->setText(name);
     	if (layer.visible)
     	{
     		item->setCheckState(Qt::Checked);
@@ -1275,7 +1311,6 @@ namespace OpenMS
     	{
     		item->setCheckState(Qt::Unchecked);
     	}
-    	item->setText(layer.name.toQString());
     	if (layer.modified)
     	{
     		item->setText(item->text() + '*');
@@ -1285,8 +1320,125 @@ namespace OpenMS
     	{
 				layer_manager_->setCurrentItem(item);
     	}
-    }
+		}
 		layer_manager_->blockSignals(false);
+  }
+  
+  void TOPPViewBase::updateSpectrumBar()
+  {		
+  	SpectrumCanvas* cc = activeCanvas_();
+  	int layer_row = layer_manager_->currentRow();
+  	if (layer_row == -1 || cc == 0)
+  	{
+  		return;
+  	}
+  	
+  	spectrum_selection_->clear();
+  	spectrum_selection_->blockSignals(true);
+  	const LayerData& cl = cc->getCurrentLayer();
+  	QTreeWidgetItem* item = 0;
+
+  	if(cl.type == LayerData::DT_PEAK)
+  	{
+  		std::vector<QTreeWidgetItem*> parent_stack;
+  		parent_stack.push_back(0);
+  		bool fail = false;
+  		
+			for (UInt i = 0; i < cl.peaks.size(); ++i)
+			{
+				if (i > 0)
+				{
+					if (cl.peaks[i].getMSLevel() == cl.peaks[i-1].getMSLevel() + 1)
+					{
+						item = new QTreeWidgetItem(parent_stack.back());
+						parent_stack.resize(parent_stack.size()+1);
+					}
+					else if (cl.peaks[i].getMSLevel() == cl.peaks[i-1].getMSLevel())
+					{
+						if (parent_stack.size() == 1)
+						{
+							item = new QTreeWidgetItem((QTreeWidget*)0);
+						}
+						else
+						{
+							item = new QTreeWidgetItem(*(parent_stack.end()-2));
+						}
+					}
+					else if (cl.peaks[i].getMSLevel() < cl.peaks[i-1].getMSLevel())
+					{
+						int level_diff = cl.peaks[i-1].getMSLevel() - cl.peaks[i].getMSLevel();
+						int parent_index = 0;
+						QTreeWidgetItem* parent = 0;
+						if (parent_stack.size() - level_diff >= 2)
+						{
+							parent_index = parent_stack.size() - level_diff - 1;
+							parent = parent_stack[parent_index];
+
+							item = new QTreeWidgetItem(parent, parent_stack[parent_index+1]);
+						}
+						else
+						{
+							item = new QTreeWidgetItem((QTreeWidget*)0);
+						}
+						parent_stack.resize(parent_index+1);
+					}
+					else
+					{
+						std::cerr << "Cannot build treelike view for spectrum browser, generating flat list instead." << std::endl;
+						fail = true;
+						break;
+					}
+				}
+				else
+				{
+					item = new QTreeWidgetItem((QTreeWidget*)0);
+				}
+				
+				parent_stack.back() = item;
+				if (parent_stack.size() == 1)
+				{
+					spectrum_selection_->addTopLevelItem(item);
+				}
+				
+				item->setText(0, QString("MS") + QString::number(cl.peaks[i].getMSLevel()));
+				item->setText(1, QString::number(cl.peaks[i].getRT()));
+				item->setText(2, QString::number(cl.peaks[i].getPrecursorPeak().getPosition()[0]));
+				item->setText(3, QString::number(i));
+			}
+			if (fail)
+			{
+				// generate flat list instead
+				spectrum_selection_->clear();
+				for (UInt i = 0; i < cl.peaks.size(); ++i)
+				{
+					item = new QTreeWidgetItem((QTreeWidget*)0);
+					item->setText(0, QString("MS") + QString::number(cl.peaks[i].getMSLevel()));
+					item->setText(1, QString::number(cl.peaks[i].getRT()));
+					item->setText(2, QString::number(cl.peaks[i].getPrecursorPeak().getPosition()[0]));
+					item->setText(3, QString::number(i));
+					spectrum_selection_->addTopLevelItem(item);
+				}
+			}
+  	}
+  	else
+  	{
+  		item = new QTreeWidgetItem((QTreeWidget*)0);
+  		item->setText(0, QString("Feature map"));
+  		item->setText(1, QString("-"));
+  		item->setText(2, QString("-"));
+  		item->setText(3, QString::number(0));
+			item->setFlags(!Qt::ItemIsEnabled);
+			spectrum_selection_->addTopLevelItem(item);
+			return; // leave signals blocked
+  	}
+  	
+  	if (cl.peaks.size() == 1)
+  	{
+  		item->setFlags(!Qt::ItemIsEnabled);
+  		return; // leave signals blocked
+  	}
+  	
+  	spectrum_selection_->blockSignals(false);
   }
 
 	void TOPPViewBase::layerSelectionChange(int i)
@@ -1295,7 +1447,25 @@ namespace OpenMS
 		{
 			activeCanvas_()->activateLayer(i);
 			updateFilterBar();
+			updateSpectrumBar();
 		}
+	}
+	
+	void TOPPViewBase::spectrumSelectionChange(QTreeWidgetItem* item, int /*column*/)
+	{
+		SpectrumCanvas* cc = activeCanvas_();
+		const LayerData& cl = cc->getCurrentLayer();
+		
+		int index = item->text(3).toInt();
+		
+		FeatureMapType f_dummy;
+		ConsensusMapType c_dummy;
+		ExperimentType exp;
+		exp.resize(1);
+		exp[0] = cl.peaks[index];
+		addData_(f_dummy, c_dummy, exp, false, false, true, cl.filename, cl.name + " (" + QString::number(cl.peaks[index].getRT()) + ")");
+			
+		//updateSpectrumBar();
 	}
 
 	void TOPPViewBase::layerContextMenu(const QPoint & pos)
@@ -1303,10 +1473,24 @@ namespace OpenMS
 		QListWidgetItem* item = layer_manager_->itemAt(pos);
 		if (item)
 		{
+			QAction* new_action = 0;
 			int layer = layer_manager_->row(item);
 			QMenu* context_menu = new QMenu(layer_manager_);
 			context_menu->addAction("Rename");
 			context_menu->addAction("Delete");
+			
+			if (activeCanvas_()->getLayer(layer).flipped)
+			{
+				new_action = context_menu->addAction("Flip upwards (1D)");
+			}
+			else
+			{
+				new_action = context_menu->addAction("Flip downwards (1D)");
+			}
+			if (!active1DWindow_())
+			{
+				new_action->setEnabled(false);
+			}
 			QAction* selected = context_menu->exec(layer_manager_->mapToGlobal(pos));
 			//delete layer
 			if (selected!=0 && selected->text()=="Delete")
@@ -1319,8 +1503,20 @@ namespace OpenMS
 				QString name = QInputDialog::getText(this,"Rename layer","Name:");
 				if (name!="")
 				{
-					activeCanvas_()->setLayerName(layer,name);
+					activeCanvas_()->setLayerName(layer, name);
 				}
+			}
+			// flip layer up/downwards
+			else if (selected != 0 && selected->text() == "Flip downwards (1D)")
+			{
+				activeCanvas_()->getLayer(layer).flipped = true;
+				active1DWindow_()->canvas()->setMirrorModeActive(true);
+			}
+			else if (selected != 0 && selected->text() == "Flip upwards (1D)")
+			{
+				activeCanvas_()->getLayer(layer).flipped = false;
+				bool b = active1DWindow_()->canvas()->flippedLayersExist();
+				active1DWindow_()->canvas()->setMirrorModeActive(b);
 			}
 			
 			//Update tab bar and window title
@@ -1334,9 +1530,10 @@ namespace OpenMS
 				tab_bar_->setTabText(tab_bar_->currentIndex(),"empty");
 				activeWindow_()->setWindowTitle("empty");
 			}
-			
-			//Update filter bar and layer bar
+					
+			//Update filter bar, spectrum bar and layer bar
 			updateLayerBar();
+			updateSpectrumBar();
 			updateFilterBar();
 			updateMenu();
 			
@@ -1465,16 +1662,18 @@ namespace OpenMS
 
 	void TOPPViewBase::layerVisibilityChange(QListWidgetItem* item)
 	{
-		int layer = layer_manager_->row(item);
-		bool visible = activeCanvas_()->getLayer(layer).visible;
+		int layer;
+		bool visible;
+		layer = layer_manager_->row(item);
+		visible = activeCanvas_()->getLayer(layer).visible;
 		
 		if (item->checkState()==Qt::Unchecked && visible)
 		{
-			activeCanvas_()->changeVisibility(layer,false);
+			activeCanvas_()->changeVisibility(layer, false);
 		}
 		else if (item->checkState()==Qt::Checked && !visible)
 		{
-			activeCanvas_()->changeVisibility(layer,true);
+			activeCanvas_()->changeVisibility(layer, true);
 		}
 	}
 
@@ -1549,6 +1748,7 @@ namespace OpenMS
   {
   	ws_->addWindow(sw);
     connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateToolBar()));
+    connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateSpectrumBar()));
     connect(sw->canvas(),SIGNAL(layerModficationChange(UInt,bool)),this,SLOT(updateLayerBar()));
     connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
     connect(sw,SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
@@ -1615,7 +1815,7 @@ namespace OpenMS
 		if (!w) return 0;
 		return w;
   }
-
+  
   Spectrum2DWidget* TOPPViewBase::active2DWindow_() const
   {
 		Spectrum2DWidget* w = qobject_cast<Spectrum2DWidget*>(activeWindow_());
@@ -2018,6 +2218,146 @@ namespace OpenMS
 		}
 	}
 
+	void TOPPViewBase::showSpectrumGenerationDialog()
+	{
+		TheoreticalSpectrumGenerationDialog spec_gen_dialog;
+		if (spec_gen_dialog.exec())
+		{
+			String seq_string(spec_gen_dialog.line_edit->text());
+			if (seq_string == "")
+			{
+				QMessageBox::warning(this, "Error", "You must enter a peptide sequence!");
+				return;
+			}
+			AASequence aa_sequence(seq_string);
+			
+			Int charge = spec_gen_dialog.spin_box->value();
+			
+			if (aa_sequence.isValid())
+			{
+				RichPeakSpectrum rich_spec;
+				TheoreticalSpectrumGenerator generator;
+				Param p;
+
+				bool losses = (spec_gen_dialog.list_widget->item(7)->checkState() == Qt::Checked); // "Neutral losses"
+				p.setValue("add_losses", losses, "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
+				bool isotopes = (spec_gen_dialog.list_widget->item(8)->checkState() == Qt::Checked); // "Isotope clusters"
+				p.setValue("add_isotopes", isotopes, "If set to 1 isotope peaks of the product ion peaks are added");
+				p.setValue("a_intensity", spec_gen_dialog.a_intensity->value(), "Intensity of the a-ions");
+				p.setValue("b_intensity", spec_gen_dialog.b_intensity->value(), "Intensity of the b-ions");
+				p.setValue("c_intensity", spec_gen_dialog.c_intensity->value(), "Intensity of the c-ions");
+				p.setValue("x_intensity", spec_gen_dialog.x_intensity->value(), "Intensity of the x-ions");
+				p.setValue("y_intensity", spec_gen_dialog.y_intensity->value(), "Intensity of the y-ions");
+				p.setValue("z_intensity", spec_gen_dialog.z_intensity->value(), "Intensity of the z-ions");
+				DoubleReal rel_loss_int = (DoubleReal)(spec_gen_dialog.rel_loss_intensity->value()) / 100.0;
+				p.setValue("relative_loss_intensity", rel_loss_int, "Intensity of loss ions, in relation to the intact ion intensity");
+				generator.setParameters(p);
+
+				if (spec_gen_dialog.list_widget->item(0)->checkState() == Qt::Checked) // "A-ions"
+				{
+					generator.addPeaks(rich_spec, aa_sequence, Residue::AIon, charge);
+				}
+				if (spec_gen_dialog.list_widget->item(1)->checkState() == Qt::Checked) // "B-ions"
+				{
+					generator.addPeaks(rich_spec, aa_sequence, Residue::BIon, charge);
+				}
+				if (spec_gen_dialog.list_widget->item(2)->checkState() == Qt::Checked) // "C-ions"
+				{
+					generator.addPeaks(rich_spec, aa_sequence, Residue::CIon, charge);
+				}
+				if (spec_gen_dialog.list_widget->item(3)->checkState() == Qt::Checked) // "X-ions"
+				{
+					generator.addPeaks(rich_spec, aa_sequence, Residue::XIon, charge);
+				}
+				if (spec_gen_dialog.list_widget->item(4)->checkState() == Qt::Checked) // "Y-ions"
+				{
+					generator.addPeaks(rich_spec, aa_sequence, Residue::YIon, charge); 
+				}
+				if (spec_gen_dialog.list_widget->item(5)->checkState() == Qt::Checked) // "Z-ions"
+				{
+					generator.addPeaks(rich_spec, aa_sequence, Residue::ZIon, charge); 
+				}
+				if (spec_gen_dialog.list_widget->item(6)->checkState() == Qt::Checked) // "Precursor"
+				{
+					generator.addPrecursorPeaks(rich_spec, aa_sequence, charge);
+				}
+				
+				PeakSpectrum new_spec;
+				for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
+				{
+					new_spec.push_back(static_cast<Peak1D>(*it));
+				}
+				
+				PeakMap new_exp;
+				new_exp.push_back(new_spec);
+				
+				FeatureMapType f_dummy;
+				ConsensusMapType c_dummy;
+				addData_(f_dummy, c_dummy, new_exp, false, false, true, "", seq_string + QString(" (theoretical)"));
+	      
+	      // ensure spectrum is drawn as sticks
+	      draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
+				setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
+			}
+			else
+			{
+				QMessageBox::warning(this, "Error", "The entered peptide sequence is invalid!");
+			}
+		}
+	}
+	
+	void TOPPViewBase::showSpectrumAlignmentDialog()
+	{
+		SpectrumAlignmentDialog spec_align_dialog;
+		if (spec_align_dialog.exec())
+		{
+// 			Spectrum1DMirrorWidget* active_1d_mirror_window = active1DMirrorWindow_();
+// 			// only possible in mirror mode:
+// 			if (active_1d_mirror_window)
+// 			{
+// 				SpectrumAlignment aligner;
+// 				Param param;
+// 				DoubleReal tolerance = spec_align_dialog.tolerance_spinbox->value();
+// 				param.setValue("tolerance", tolerance, "Defines the absolut (in Da) or relative (in ppm) tolerance", false);
+// 				String unit_is_ppm = spec_align_dialog.ppm->isChecked() ? "true" : "false";
+// 				param.setValue("is_relative_tolerance", unit_is_ppm, "If true, the 'tolerance' is interpreted as ppm-value", false);
+// 				aligner.setParameters(param);
+// 				
+// 				// TODO JJ
+// 				
+// 				const LayerData& current_layer_1 = active_1d_mirror_window->canvas()->getCurrentLayer();
+// 				const LayerData& current_layer_2 = active_1d_mirror_window->flippedCanvas()->getCurrentLayer();
+// 				const ExperimentType& map_1 = current_layer_1.peaks;
+// 				const ExperimentType& map_2 = current_layer_2.peaks;
+// 				const ExperimentType::SpectrumType& spectrum_1 = *(map_1.begin());
+// 				const ExperimentType::SpectrumType& spectrum_2 = *(map_2.begin());
+// 				std::vector<std::pair<UInt, UInt> > alignment;
+// 
+// 				aligner.getSpectrumAlignment(alignment, spectrum_1, spectrum_2);
+// 				
+// 				std::vector<std::pair<DoubleReal, DoubleReal > > alignment_lines;
+// 				
+// 				for (UInt i = 0; i < alignment.size(); ++i)
+// 				{
+// 					DoubleReal line_begin_mz = spectrum_1[alignment[i].first].getMZ();
+// 					DoubleReal line_end_mz = spectrum_2[alignment[i].second].getMZ();
+// 					alignment_lines.push_back(std::make_pair(line_begin_mz, line_end_mz));
+// 				}
+// 				active_1d_mirror_window->setAlignmentLines(alignment_lines);
+// 				
+// 				SpectrumAlignmentScore scorer;
+// 				scorer.setParameters(param);
+// 				double score = scorer(spectrum_1, spectrum_2);
+// 				
+// 				QMessageBox::information(this, "Alignment performed", QString("Aligned %1 pairs of peaks (Score: %2).").arg(alignment_lines.size()).arg(score));
+// 			}
+// 			else
+// 			{
+// 				QMessageBox::warning(this, "Not supported", "Here be some description.");
+// 			}
+		}
+	}
+	
 	void TOPPViewBase::showCurrentPeaksAs3D()
 	{
     const LayerData& layer = activeCanvas_()->getCurrentLayer();
@@ -2038,6 +2378,7 @@ namespace OpenMS
 			w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
       showAsWindow_(w,caption);
 	    updateLayerBar();
+	    updateSpectrumBar();
 			updateFilterBar();
 			updateMenu();	
 		}
@@ -2049,12 +2390,11 @@ namespace OpenMS
 
 	void TOPPViewBase::showSpectrumAs1D(int index)
 	{
-    const LayerData& layer = activeCanvas_()->getCurrentLayer();  		
-		
+		const LayerData& layer = activeCanvas_()->getCurrentLayer();
 		//copy spectrum
 		ExperimentType exp;
 		exp.resize(1);
-		exp[0] = activeCanvas_()->getCurrentLayer().peaks[index];
+		exp[0] = layer.peaks[index];
 		//open new 1D widget
 		Spectrum1DWidget* w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
     
@@ -2063,10 +2403,13 @@ namespace OpenMS
   	{
   		return;
   	}
-		String caption = layer.name + " (RT: " + String(activeCanvas_()->getCurrentLayer().peaks[index].getRT()) + ")";
+    
+		String caption = layer.name + " (RT: " + String(layer.peaks[index].getRT()) + ")";
 		w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
+		
     showAsWindow_(w,caption);
     updateLayerBar();
+    updateSpectrumBar();
 		updateFilterBar();
 		updateMenu();
 	}
@@ -2163,7 +2506,11 @@ namespace OpenMS
 		{
 			topp_running = true;
 		}
-  	
+  	bool mirror_mode = false;
+  	if (active1DWindow_() && active1DWindow_()->canvas()->mirrorModeActive())
+  	{
+  		mirror_mode = true;
+  	}
 		QList<QAction*> actions = this->findChildren<QAction*>("");
 		for (int i=0; i<actions.count(); ++i)
 		{
@@ -2204,6 +2551,14 @@ namespace OpenMS
 			{
 				actions[i]->setEnabled(false);
 				if (canvas_exists && layer_exists)
+				{
+					actions[i]->setEnabled(true);
+				}
+			}
+			else if (text=="Align spectra")
+			{
+				actions[i]->setEnabled(false);
+				if (mirror_mode)
 				{
 					actions[i]->setEnabled(true);
 				}

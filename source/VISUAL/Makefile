@@ -54,7 +54,12 @@ CPP_SOURCES=\
 	Spectrum3DCanvas.C\
 	Spectrum3DOpenGLCanvas.C\
 	Spectrum3DWidget.C\
-	ParamEditor.C
+	ParamEditor.C\
+	Annotations1DContainer.C\
+	Annotation1DItem.C\
+	Annotation1DDistanceItem.C\
+	Annotation1DTextItem.C\
+	Annotation1DPeakItem.C\
 
 
 MOC_SOURCES=\
@@ -73,7 +78,7 @@ MOC_SOURCES=\
 	Spectrum3DCanvas_moc.C\
 	Spectrum3DOpenGLCanvas_moc.C\
 	Spectrum3DWidget_moc.C\
-	ParamEditor_moc.C
+	ParamEditor_moc.C\
 
 SOURCES		= $(CPP_SOURCES) $(MOC_SOURCES)
 OBJECTS 	= $(SOURCES:.C=.o)
@@ -172,8 +177,7 @@ MetaDataBrowser_moc.C:  $(HEADER_DIR)/MetaDataBrowser.h
 
 ParamEditor_moc.C:  $(HEADER_DIR)/ParamEditor.h
 	$(MOC) $(HEADER_DIR)/ParamEditor.h -o ParamEditor_moc.C
-
-
+	
 
 # UIC headers
 

@@ -118,6 +118,9 @@ namespace OpenMS
 			/// Hides x-axis and y-axis
 			void hideAxes();
 			
+			/// Saves the widget's content as image file
+			void saveAsImage();
+			
 			/// Widget id used as identifier
 			Int window_id;
 			
