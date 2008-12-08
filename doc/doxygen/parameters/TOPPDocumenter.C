@@ -34,7 +34,8 @@ using namespace std;
 using namespace OpenMS;
 
 int main (int , char** )
-{
+{	
+	//TOPP tools
 	StringList tools = TOPPBase::getToolList();
 	for (UInt i=0; i<tools.size(); ++i)
 	{
@@ -45,6 +46,20 @@ int main (int , char** )
 		process.waitForFinished();
 		//write output
 		ofstream f((String("output/TOPP_") + tools[i] + ".cli").c_str());
+		f << QString(process.readAllStandardOutput()).toStdString();
+	}
+	
+	//UTILS
+	tools = StringList::create("CaapConvert,CVInspector,DecoyDatabase,Digestor,FFEval,FuzzyDiff,HistView,IDExtractor,IdXMLInfo,LabeledEval,RTEvaluation,SemanticValidator,SequenceCoverageCalculator,XMLValidator");
+	for (UInt i=0; i<tools.size(); ++i)
+	{
+		//start process
+		QProcess process;
+		process.setProcessChannelMode(QProcess::MergedChannels);
+		process.start((tools[i] + " --help").toQString());
+		process.waitForFinished();
+		//write output
+		ofstream f((String("output/UTILS_") + tools[i] + ".cli").c_str());
 		f << QString(process.readAllStandardOutput()).toStdString();
 	}
 	

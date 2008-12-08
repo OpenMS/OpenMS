@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading ui file 'TheoreticalSpectrumGenerationDialog.ui'
 **
-** Created: Sun Dec 7 22:10:29 2008
+** Created: Mon Dec 8 07:46:26 2008
 **      by: Qt User Interface Compiler version 4.4.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling ui file!

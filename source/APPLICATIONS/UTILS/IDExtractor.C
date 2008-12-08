@@ -45,7 +45,9 @@ using namespace std;
 	@page IDExtractor IDExtractor
 	
 	@brief This application is used to retrieve specific spectrum identifications from IdXML files.
-	
+  	
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_IDExtractor.cli
 */
 
 // We do not want this class to show up in the docu:

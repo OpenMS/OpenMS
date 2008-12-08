@@ -38,8 +38,6 @@
 #include <QtCore/QRectF>
 #include <QtGui/QPainter>
 
-class Spectrum1DCanvas;
-
 namespace OpenMS
 {
 

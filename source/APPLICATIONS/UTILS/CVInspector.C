@@ -43,6 +43,10 @@ using namespace std;
 	@page CVInspector CVInspector
 	
 	@brief A tool for the validation of PSI mapping and CV files
+	
+	
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_CVInspector.cli
 */
 
 // We do not want this class to show up in the docu:
@@ -76,7 +80,15 @@ class TOPPCVInspector
 			const ControlledVocabulary::CVTerm& child_term = cv.getTerm(*it);
 			String subterm_line;
 			for (UInt i=0; i<4*indent; ++i) subterm_line += "&nbsp;";
-			subterm_line += "- " + child_term.id + " ! " + child_term.name;
+			String description = child_term.description;
+			if (child_term.synonyms.size()!=0)
+			{
+				String synonyms;
+				synonyms.implode(child_term.synonyms.begin(),child_term.synonyms.end(),"', '");
+				synonyms = String(" -- Synonyms: '") + synonyms + "'";
+				description += synonyms;
+			}
+			subterm_line += "- <span title=\"" + description + "\">" + child_term.id + " ! " + child_term.name + "</span>";
 			StringList tags;
 			if (child_term.obsolete)
 			{
@@ -90,7 +102,7 @@ class TOPPCVInspector
 			{
 				String tags_string;
 				tags_string.implode(tags.begin(),tags.end(),", ");
-				subterm_line += String("<FONT color=\"grey\"> (" + tags_string + ")</FONT>"); //String(" (") + tags_string + ")";
+				subterm_line += String("<FONT color=\"grey\"> (" + tags_string + ")</FONT>");
 			}
 			file.push_back(subterm_line + "<BR>");
 			writeTermTree_(child_term.id, cv, file, indent+1);
@@ -206,9 +218,29 @@ class TOPPCVInspector
 					}
 					else
 					{
-						term_line += "&nbsp;&nbsp;";
+						term_line += String("&nbsp;&nbsp;");
+					}
+					//add Term accession, name and description (as popup)
+					if (cv.exists(tit->getAccession()))
+					{
+						const ControlledVocabulary::CVTerm& child_term = cv.getTerm(tit->getAccession());
+
+						String description = child_term.description;
+						if (child_term.synonyms.size()!=0)
+						{
+							String synonyms;
+							synonyms.implode(child_term.synonyms.begin(),child_term.synonyms.end(),"', '");
+							synonyms = String(" -- Synonyms: '") + synonyms + "'";
+							description += synonyms;
+						}
+						term_line += "<span title=\"" + description + "\">";
 					}
 					term_line += tit->getAccession() + " ! " + tit->getTermName();
+					if (cv.exists(tit->getAccession()))
+					{
+						term_line += "</span>";
+					}
+					//tags
 					StringList tags;
 					if (!tit->getUseTerm())
 					{

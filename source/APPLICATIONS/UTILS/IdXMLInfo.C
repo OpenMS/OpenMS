@@ -43,7 +43,9 @@ using namespace std;
 	@page IdXMLInfo IdXMLInfo
 	
 	@brief This application is used to retrieve information about IdXML files.
-	
+		
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_IdXMLInfo.cli
 */
 
 // We do not want this class to show up in the docu:

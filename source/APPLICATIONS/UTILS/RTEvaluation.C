@@ -146,6 +146,8 @@ using namespace std;
 	for peptides or peptide separation depending on how you trained 
 	the model.
 
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_RTEvaluation.cli
 */
 
 // We do not want this class to show up in the docu:

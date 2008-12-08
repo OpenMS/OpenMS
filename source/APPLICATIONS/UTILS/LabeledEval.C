@@ -41,6 +41,9 @@ using namespace std;
 	@page LabeledEval LabeledEval
 	
 	@brief Evaluation tool for isotope-labeled quantitation experiments.
+
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_LabeledEval.cli
 */
 
 // We do not want this class to show up in the docu:

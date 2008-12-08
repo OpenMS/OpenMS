@@ -25,9 +25,12 @@
 // --------------------------------------------------------------------------
 
 /**
-  @page HistView HistView
+	@page HistView HistView
   
-  HistView is a viewer for Histograms.
+	HistView is a viewer for Histograms.
+  	
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_HistView.cli
 */
 
 //QT

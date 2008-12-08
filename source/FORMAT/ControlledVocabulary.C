@@ -130,6 +130,22 @@ namespace OpenMS
 					}
 					term.units.insert(unit_id);
 				}
+				else if (line_wo_spaces.hasPrefix("def:"))
+				{
+					String description = line.substr(line.find('"')+1);
+					description.trim();
+					description = description.substr(0,description.find('"'));
+					description.trim();
+					term.description = description;
+				}
+				else if (line_wo_spaces.hasPrefix("synonym:"))
+				{
+					String synonym = line.substr(line.find('"')+1);
+					synonym.trim();
+					synonym = synonym.substr(0,synonym.find('"'));
+					synonym.trim();
+					term.synonyms.push_back(synonym);
+				}
 				else if (line_wo_spaces=="is_obsolete:true")
 				{
 					term.obsolete = true;

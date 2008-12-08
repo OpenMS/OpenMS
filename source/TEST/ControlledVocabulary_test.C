@@ -74,9 +74,13 @@ START_SECTION(const CVTerm& getTerm(const String& id) const)
 	term = &(cv.getTerm("OpenMS:1"));
 	TEST_EQUAL(term->id,"OpenMS:1")
 	TEST_EQUAL(term->name,"Auto")
+	TEST_EQUAL(term->description,"Auto desc")
 	TEST_EQUAL(term->obsolete,false)
 	TEST_EQUAL(term->parents.size(),0)
 	TEST_EQUAL(term->unparsed.size(),0)
+	TEST_EQUAL(term->synonyms.size(),2)
+	TEST_STRING_EQUAL(term->synonyms[0],"Kutsche")
+	TEST_STRING_EQUAL(term->synonyms[1],"Karre")
 	//Ford
 	term = &(cv.getTerm("OpenMS:2"));
 	TEST_EQUAL(term->id,"OpenMS:2")
@@ -85,6 +89,7 @@ START_SECTION(const CVTerm& getTerm(const String& id) const)
 	TEST_EQUAL(term->parents.size(),1)
 	TEST_EQUAL(*term->parents.begin(),"OpenMS:1")
 	TEST_EQUAL(term->unparsed.size(),0)
+	TEST_EQUAL(term->synonyms.size(),0)
 	//Mercedes
 	term = &(cv.getTerm("OpenMS:3"));
 	TEST_EQUAL(term->id,"OpenMS:3")
@@ -92,11 +97,12 @@ START_SECTION(const CVTerm& getTerm(const String& id) const)
 	TEST_EQUAL(term->obsolete,false)
 	TEST_EQUAL(term->parents.size(),1)
 	TEST_EQUAL(*term->parents.begin(),"OpenMS:1")
-	TEST_EQUAL(term->unparsed.size(),0)
+	TEST_STRING_EQUAL(term->synonyms[0],"Zedes")
 	//A-Klasse
 	term = &(cv.getTerm("OpenMS:4"));
 	TEST_EQUAL(term->id,"OpenMS:4")
 	TEST_EQUAL(term->name,"A-Klasse")
+	TEST_EQUAL(term->description,"A-Klasse desc")
 	TEST_EQUAL(term->obsolete,false)
 	TEST_EQUAL(term->parents.size(),1)
 	TEST_EQUAL(*term->parents.begin(),"OpenMS:3")
@@ -104,6 +110,7 @@ START_SECTION(const CVTerm& getTerm(const String& id) const)
 	TEST_EQUAL(term->unparsed[0],"xref: unparsed line 1")
 	TEST_EQUAL(term->unparsed[1],"xref: unparsed line 2")
 	TEST_EQUAL(term->unparsed[2],"xref: unparsed line 3")
+	TEST_EQUAL(term->synonyms.size(),0)
 	//Mustang
 	term = &(cv.getTerm("OpenMS:5"));
 	TEST_EQUAL(term->id,"OpenMS:5")
@@ -112,14 +119,17 @@ START_SECTION(const CVTerm& getTerm(const String& id) const)
 	TEST_EQUAL(term->parents.size(),1)
 	TEST_EQUAL(*term->parents.begin(),"OpenMS:2")
 	TEST_EQUAL(term->unparsed.size(),0)
+	TEST_EQUAL(term->synonyms.size(),0)
 	//Ka
 	term = &(cv.getTerm("OpenMS:6"));
 	TEST_EQUAL(term->id,"OpenMS:6")
 	TEST_EQUAL(term->name,"Ka")
+	TEST_EQUAL(term->description,"Ka desc")
 	TEST_EQUAL(term->obsolete,true)
 	TEST_EQUAL(term->parents.size(),1)
 	TEST_EQUAL(*term->parents.begin(),"OpenMS:2")
 	TEST_EQUAL(term->unparsed.size(),0)
+	TEST_EQUAL(term->synonyms.size(),0)
 	
 	TEST_EXCEPTION(Exception::InvalidValue , cv.getTerm("OpenMS:7"))
 END_SECTION

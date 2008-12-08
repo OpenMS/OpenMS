@@ -41,6 +41,9 @@ using namespace std;
 
 /**
 	@page SemanticValidator SemanticValidator
+		
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_SemanticValidator.cli
 	
 	@todo Docu (Andreas)
 */

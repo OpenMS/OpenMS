@@ -4,8 +4,8 @@ saved-by: David Sparkman
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 1.9.1
-remark: release date: 2008-12-04
+remark: version: 1.9.2
+remark: release date: 2008-12-08
 remark: coverage: Mass spectrometer output files
 remark: creator: Matt Chambers <matt.chambers <@> vanderbilt.edu>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group
@@ -2129,7 +2129,7 @@ is_a: MS:1000294 ! mass spectrum
 [Term]
 id: MS:1000323
 name: constant neutral loss scan
-def: "A scan procedure for a tandem mass spectrometer designed to produce a constant neutral loss spectrum of different precursor ions by detection of the corresponding product ions produced by metastable ion fragmentation or collision-induced dissociation. Synonymous terms are constant neutral mass loss scan and fixed neutral fragment scan." [PSI:MS]
+def: "Spectrum of all precursor ions that undergo a selected m/z decrement." [PSI:MS]
 synonym: "constant neutral mass loss scan" RELATED []
 synonym: "fixed neutral fragment scan" RELATED []
 is_a: MS:1000479 ! purgatory
@@ -2137,7 +2137,7 @@ is_a: MS:1000479 ! purgatory
 [Term]
 id: MS:1000324
 name: constant neutral gain scan
-def: "Scan procedure for a tandem mass spectrometer designed to produce a constant neutral mass gain spectrum of different precursor ions by detection of the corresponding product ions of ion/molecule reactions with a gas in acollision cell." [PSI:MS]
+def: "Spectrum of all precursor ions that undergo a selected m/z increment." [PSI:MS]
 synonym: "Constant Neutral Mass Gain Scan" EXACT []
 is_a: MS:1000479 ! purgatory
 
@@ -3724,6 +3724,9 @@ id: MS:1000579
 name: MS1 spectrum
 def: "MS1 refers to single-stage MS/MS experiments designed to record the first stage of the product ion spectra." [PSI:MS]
 synonym: "Single-Stage Mass Spectrometry" EXACT []
+synonym: "Q1 spectrum" EXACT []
+synonym: "Q3 spectrum" EXACT []
+synonym: "full spectrum" EXACT []
 is_a: MS:1000524 ! data file content
 is_a: MS:1000559 ! spectrum type
 
@@ -3734,6 +3737,7 @@ def: "MSn refers to multi-stage MS/MS experiments designed to record product ion
 synonym: "multiple-stage mass spectrometry spectrum" EXACT []
 is_a: MS:1000524 ! data file content
 is_a: MS:1000559 ! spectrum type
+synonym: "product ion spectrum" EXACT []
 
 [Term]
 id: MS:1000581
@@ -3748,6 +3752,9 @@ name: SIM spectrum
 def: "Spectrum obtained with the operation of a mass spectrometer in which the abundances of one ion or several ions of specific m/z values are recorded rather than the entire mass spectrum (Selected Ion Monitoring)." [PSI:MS]
 is_a: MS:1000524 ! data file content
 is_a: MS:1000559 ! spectrum type
+synonym: "MIM spectrum" EXACT []
+synonym: "multiple ion monitoring spectrum" EXACT []
+synonym: "selected ion monitoring spectrum" EXACT []
 
 [Term]
 id: MS:1000583
@@ -3755,6 +3762,10 @@ name: SRM spectrum
 def: "Spectrum obtained when data are acquired from specific product ions corresponding to m/z values of selected precursor ions a recorded via two or more stages of mass spectrometry. The precursor/product ion pair is called a transition pair.  Data can be obtained for a single transition pair or multiple transition pairs.  Multiple time segments of different transition pairs can exist in a single file. Single precursor ions can have multiple product ions consitituting multiple transition pairs.  Selected reaction monitoring can be performed as tandem mass spectrometry in time or tandem mass spectrometry in space." [PSI:MS]
 is_a: MS:1000524 ! data file content
 is_a: MS:1000559 ! spectrum type
+synonym: "MRM spectrum" EXACT []
+synonym: "multiple reaction monitoring spectrum" EXACT []
+synonym: "selected reaction monitoring spectrum" EXACT []
+
 
 [Term]
 id: MS:1000584
@@ -4054,7 +4065,7 @@ name: low intensity threshold
 def: "Threshold below which some action is taken." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000630 ! data processing parameter
-relationship: has_units MS:1000460 ! intensity unit 
+relationship: has_units MS:1000043 ! intensity unit 
 
 [Term]
 id: MS:1000630
@@ -4068,7 +4079,7 @@ name: high intensity threshold
 def: "Threshold above which some action is taken." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000630 ! data processing parameter
-relationship: has_units MS:1000460 ! intensity unit 
+relationship: has_units MS:1000043 ! intensity unit 
 
 [Term]
 id: MS:1000632
@@ -5018,7 +5029,7 @@ name: inclusive low intensity threshold
 def: "Threshold at or below which some action is taken." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000630 ! data processing parameter
-relationship: has_units MS:1000460 ! intensity unit
+relationship: has_units MS:1000043 ! intensity unit
 
 [Term]
 id: MS:1000788
@@ -5026,7 +5037,7 @@ name: inclusive high intensity threshold
 def: "Threshold at or above which some action is taken." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000630 ! data processing parameter
-relationship: has_units MS:1000460 ! intensity unit 
+relationship: has_units MS:1000043 ! intensity unit 
 
 [Term]
 id: MS:1000789
@@ -5041,6 +5052,12 @@ name: time-delayed fragmentation spectrum
 def: "MS2 spectrum in which the product ions are collected after a time delay, which allows the observation of lower energy fragmentation processes after precursor ion activation" [PSI:MS]
 is_a: MS:1000524 ! data file content
 is_a: MS:1000559 ! spectrum type
+
+[Term]
+id: MS:1000791
+name: enhanced resolution scan
+def: "Scan with enhanced resolution." [PSI:MS]
+is_a: MS:1000020 ! scanning method
 
 
 [Typedef]

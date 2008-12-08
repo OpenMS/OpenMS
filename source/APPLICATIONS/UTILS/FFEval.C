@@ -40,7 +40,10 @@ using namespace std;
 	@page FFEval FFEval
 	
 	@brief Evaluation tool for for feature detection algorithms.
-	
+		
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_FFEval.cli
+
 	@improvement Handling of truth convex hulls (Marc)
 */
 

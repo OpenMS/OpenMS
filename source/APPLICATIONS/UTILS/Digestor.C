@@ -44,7 +44,9 @@ using namespace std;
 	
 	@brief This application is used to digest a protein database to get all
 				 peptides given a cleavage enzyme. At the moment only trypsin is supported.
-	
+		
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_Digestor.cli
 */
 
 // We do not want this class to show up in the docu:

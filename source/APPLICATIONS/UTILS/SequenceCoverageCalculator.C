@@ -44,6 +44,8 @@ using namespace std;
 	
 	@brief This application is used to get sequence coverage information
 	
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_SequenceCoverageCalculator.cli
 */
 
 // We do not want this class to show up in the docu:

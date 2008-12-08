@@ -40,7 +40,9 @@ using namespace std;
 	@page DecoyDatabase DecoyDatabase
 	
 	@brief This small utility can create decoy databases used for decoy database searches.
-	
+		
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_DecoyDatabase.cli
 */
 
 // We do not want this class to show up in the docu:

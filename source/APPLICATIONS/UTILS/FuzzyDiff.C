@@ -38,7 +38,10 @@ using namespace std;
 /**
 	@page FuzzyDiff FuzzyDiff
 	
-	@brief Diff tool that tolerates numeric differences to some extent.
+	@brief Diff tool that tolerates numeric differences to some extent.	
+	
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_FuzzyDiff.cli
 */
 
 // We do not want this class to show up in the docu:

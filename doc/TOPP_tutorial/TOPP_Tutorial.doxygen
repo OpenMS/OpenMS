@@ -287,6 +287,10 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		@image html TOPP_consensus_id.png
 		@image latex TOPP_consensus_id.png "" width=14cm
 
+		@b Goal: Combine quantitation and identification results.
+		
+		Protein/peptide identifications can be annotated to quantitation results (featureXML, conensusXML)
+		by the @b IDMapper tool. The combined results can then be exported by the @b TextExporter tool: @ref TOPP_example_export .
 */
 
 //##############################################################################
