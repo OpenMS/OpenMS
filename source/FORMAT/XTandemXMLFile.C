@@ -281,7 +281,7 @@ namespace OpenMS
 					{
 						String error_string = String("More than one modification found which fits residue '") + type + "' with mass '" + modified + "': ";
 						String possbile_mods;
-						possbile_mods.implode(possible_mods.begin(),possible_mods.end(),',');
+						possbile_mods.concatenate(possible_mods.begin(),possible_mods.end(),',');
 						error_string += possbile_mods + ". Using first hit: '" + *possible_mods.begin() + "'.";
 						error(LOAD, error_string);
 					}

@@ -997,7 +997,7 @@ namespace OpenMS
 
 	void MetaDataBrowser::add(Feature& feature)
 	{
-		//identifier
+		//meta data
 		add(static_cast<MetaInfoInterface&>(feature));
 		//peptide ids
 		for (std::vector<PeptideIdentification>::iterator it=feature.getPeptideIdentifications().begin(); it!=feature.getPeptideIdentifications().end(); ++it)
@@ -1006,6 +1006,7 @@ namespace OpenMS
 		}
 		treeview_->expandItem( treeview_->findItems(QString::number(0),Qt::MatchExactly , 1).first() );
 	}
+	
 	void MetaDataBrowser::add(ConsensusMap& map)
 	{
 		add(static_cast<DocumentIdentifier&>(map));

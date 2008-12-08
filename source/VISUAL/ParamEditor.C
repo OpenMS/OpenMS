@@ -404,7 +404,7 @@ namespace OpenMS
 						String irest="";
 						if (it->valid_strings.size()!=0)
 						{
-							irest.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
+							irest.concatenate(it->valid_strings.begin(),it->valid_strings.end(),",");
 						}
 						item->setData(2,Qt::UserRole,irest.toQString());
 					}

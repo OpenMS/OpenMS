@@ -816,7 +816,7 @@ namespace OpenMS
 					case DataValue::STRING_LIST:
 						if (it->valid_strings.size()!=0)
 						{
-							restrictions.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
+							restrictions.concatenate(it->valid_strings.begin(),it->valid_strings.end(),",");
 						}
 						break;
 					default:
@@ -1147,7 +1147,7 @@ namespace OpenMS
 				if (default_value->valid_strings.size()!=0 && std::find(default_value->valid_strings.begin(),default_value->valid_strings.end(), it->value) == default_value->valid_strings.end())
 				{
 					String valid;
-					valid.implode(default_value->valid_strings.begin(),default_value->valid_strings.end(),",");
+					valid.concatenate(default_value->valid_strings.begin(),default_value->valid_strings.end(),",");
 					throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Invalid string parameter value '"+(String)it->value+"' for parameter '"+it.getName()+"' given! Valid values are: '"+valid+"'.");
 				}
 			}
@@ -1162,7 +1162,7 @@ namespace OpenMS
 					if (default_value->valid_strings.size()!=0 && std::find(default_value->valid_strings.begin(),default_value->valid_strings.end(), str_value) == default_value->valid_strings.end())
 					{
 						String valid;
-						valid.implode(default_value->valid_strings.begin(),default_value->valid_strings.end(),",");
+						valid.concatenate(default_value->valid_strings.begin(),default_value->valid_strings.end(),",");
 						throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__,name+": Invalid string parameter value '"+str_value+"' for parameter '"+it.getName()+"' given! Valid values are: '"+valid+"'.");
 					}
 				}	

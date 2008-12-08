@@ -247,6 +247,8 @@
           <precursorList count="1">
             <precursor spectrumRef="S0" sourceFileRef="sf_pr_0" externalNativeID="ENI1" externalSpectrumID="ESI1">
             	<isolationWindow>
+            		<cvParam cvRef="MS" accession="MS:1000793" name="isolation m/z upper limit" value="5.55"/>
+            		<cvParam cvRef="MS" accession="MS:1000794" name="isolation m/z lower limit" value="11.11"/>
         				<userParam name="iwname" value="isolationwindow1"/>
             	</isolationWindow>
               <selectedIonList count="1">

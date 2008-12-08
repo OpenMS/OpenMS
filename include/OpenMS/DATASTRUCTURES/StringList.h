@@ -78,6 +78,9 @@ namespace OpenMS
 			/// Transforms all contained strings to lower case
 			void toLower();
 			
+			/// Concatenate the string elements and putting the @p glue string between elements
+			String concatenate(const String& glue="") const;
+			
 			/// output stream operator
 			friend std::ostream& operator<<(std::ostream& os, const StringList& p);
 			

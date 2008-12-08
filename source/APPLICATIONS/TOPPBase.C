@@ -568,7 +568,7 @@ namespace OpenMS
 					if (it->valid_strings.size()!=0)
 					{
 						String tmp;
-						tmp.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
+						tmp.concatenate(it->valid_strings.begin(),it->valid_strings.end(),",");
 	
 						String add = "";
 						if (it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE ||
@@ -608,7 +608,7 @@ namespace OpenMS
 			if (addons.size()!=0)
 			{
 				String output;
-				output.implode(addons.begin(),addons.end()," ");
+				output.concatenate(addons.begin(),addons.end()," ");
 				if (desc_tmp[desc_tmp.size()-1]!='\n') desc_tmp += " ";
 				desc_tmp += String("(") + output + ")";
 			}
@@ -923,7 +923,7 @@ namespace OpenMS
 					if (find(p.valid_strings.begin(),p.valid_strings.end(),tmp)==p.valid_strings.end())
 					{
 						String valid_strings = "";
-						valid_strings.implode(p.valid_strings.begin(),p.valid_strings.end(),"','");
+						valid_strings.concatenate(p.valid_strings.begin(),p.valid_strings.end(),"','");
 						throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for string parameter '" + name + "' given. Valid strings are: '" + valid_strings + "'.");
 					}
 				}
@@ -965,7 +965,7 @@ namespace OpenMS
 					if (invalid)
 					{
 						String valid_formats = "";
-						valid_formats.implode(p.valid_strings.begin(),p.valid_strings.end(),"','");
+						valid_formats.concatenate(p.valid_strings.begin(),p.valid_strings.end(),"','");
 						throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Input file '" + tmp + "' has invalid format '") + format + "'. Valid formats are: '" + valid_formats + "'.");					
 					}
 				}
@@ -984,7 +984,7 @@ namespace OpenMS
 					if (!formats.contains(format) && format!="UNKNOWN")
 					{
 						String valid_formats = "";
-						valid_formats.implode(p.valid_strings.begin(),p.valid_strings.end(),"','");
+						valid_formats.concatenate(p.valid_strings.begin(),p.valid_strings.end(),"','");
 						throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid output file extension '") + tmp + "'. Valid file extensions are: '" + valid_formats + "'.");					
 					}
 				}
@@ -1115,7 +1115,7 @@ namespace OpenMS
 						if (find(p.valid_strings.begin(),p.valid_strings.end(),tmp)==p.valid_strings.end())
 						{
 							String valid_strings = "";
-							valid_strings.implode(p.valid_strings.begin(),p.valid_strings.end(),"','");
+							valid_strings.concatenate(p.valid_strings.begin(),p.valid_strings.end(),"','");
 							throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for string parameter '" + name + "' given. Valid strings are: '" + valid_strings + "'.");
 						}
 					}
@@ -1157,7 +1157,7 @@ namespace OpenMS
 						if (invalid)
 						{
 							String valid_formats = "";
-							valid_formats.implode(p.valid_strings.begin(),p.valid_strings.end(),"','");
+							valid_formats.concatenate(p.valid_strings.begin(),p.valid_strings.end(),"','");
 							throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Input file '" + tmp + "' has invalid format '") + format + "'. Valid formats are: '" + valid_formats + "'.");					
 						}
 					}
@@ -1176,7 +1176,7 @@ namespace OpenMS
 						if (!formats.contains(format) && format!="UNKNOWN")
 						{
 							String valid_formats = "";
-							valid_formats.implode(p.valid_strings.begin(),p.valid_strings.end(),"','");
+							valid_formats.concatenate(p.valid_strings.begin(),p.valid_strings.end(),"','");
 							throw Exception::InvalidParameter(__FILE__,__LINE__,__PRETTY_FUNCTION__, String("Invalid output file extension '") + tmp + "'. Valid file extensions are: '" + valid_formats + "'.");					
 						}
 					}
@@ -1666,7 +1666,7 @@ namespace OpenMS
 							String formats;
 							if (it->valid_strings.size()!=0)
 							{
-								formats.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
+								formats.concatenate(it->valid_strings.begin(),it->valid_strings.end(),",");
 								formats = String("(valid formats: '") + formats + "')";
 							}
 							tmp.setValue(name,(String)it->default_value, it->description + formats, tags);
@@ -1704,7 +1704,7 @@ namespace OpenMS
 							String formats;
 							if (it->valid_strings.size()!=0)
 							{
-								formats.implode(it->valid_strings.begin(),it->valid_strings.end(),",");
+								formats.concatenate(it->valid_strings.begin(),it->valid_strings.end(),",");
 								formats = String("(valid formats: '") + formats + "')";
 							}
 							tmp.setValue(name,(StringList)it->default_value, it->description + formats, tags);

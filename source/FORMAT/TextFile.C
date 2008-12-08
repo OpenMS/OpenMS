@@ -259,7 +259,7 @@ namespace OpenMS
 	String TextFile::asString() const
 	{
 		String tmp;
-		tmp.implode(this->begin(),this->end());
+		tmp.concatenate(this->begin(),this->end());
 		return tmp;
 	}
 

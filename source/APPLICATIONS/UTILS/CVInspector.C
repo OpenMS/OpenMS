@@ -83,10 +83,7 @@ class TOPPCVInspector
 			String description = child_term.description;
 			if (child_term.synonyms.size()!=0)
 			{
-				String synonyms;
-				synonyms.implode(child_term.synonyms.begin(),child_term.synonyms.end(),"', '");
-				synonyms = String(" -- Synonyms: '") + synonyms + "'";
-				description += synonyms;
+				description += String(" -- Synonyms: '") + child_term.synonyms.concatenate(", ") + "'";
 			}
 			subterm_line += "- <span title=\"" + description + "\">" + child_term.id + " ! " + child_term.name + "</span>";
 			StringList tags;
@@ -100,9 +97,7 @@ class TOPPCVInspector
 			}
 			if (tags.size()!=0)
 			{
-				String tags_string;
-				tags_string.implode(tags.begin(),tags.end(),", ");
-				subterm_line += String("<FONT color=\"grey\"> (" + tags_string + ")</FONT>");
+				subterm_line += String("<FONT color=\"grey\"> (") + tags.concatenate(", ") + ")</FONT>";
 			}
 			file.push_back(subterm_line + "<BR>");
 			writeTermTree_(child_term.id, cv, file, indent+1);
@@ -228,10 +223,7 @@ class TOPPCVInspector
 						String description = child_term.description;
 						if (child_term.synonyms.size()!=0)
 						{
-							String synonyms;
-							synonyms.implode(child_term.synonyms.begin(),child_term.synonyms.end(),"', '");
-							synonyms = String(" -- Synonyms: '") + synonyms + "'";
-							description += synonyms;
+							description += String(" -- Synonyms: '") + child_term.synonyms.concatenate(", ") + "'";
 						}
 						term_line += "<span title=\"" + description + "\">";
 					}
@@ -264,9 +256,7 @@ class TOPPCVInspector
 					}
 					if (tags.size()!=0)
 					{
-						String tags_string;
-						tags_string.implode(tags.begin(),tags.end(),", ");
-						term_line += String("<FONT color=\"grey\"> (" + tags_string + ")</FONT>");
+						term_line += String("<FONT color=\"grey\"> (") + tags.concatenate(", ") + ")</FONT>";
 					}
 					file.push_back(term_line);
 					

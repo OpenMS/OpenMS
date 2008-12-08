@@ -4,7 +4,7 @@ saved-by: David Sparkman
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 1.9.2
+remark: version: 1.10.0
 remark: release date: 2008-12-08
 remark: coverage: Mass spectrometer output files
 remark: creator: Matt Chambers <matt.chambers <@> vanderbilt.edu>
@@ -171,7 +171,7 @@ id: MS:1000023
 name: isolation width
 def: "The total width (i.e. not half for plus-or-minus) of the gate applied around a selected precursor ion." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
-is_a: MS:1000503 ! scan attribute
+is_a: MS:1000479 ! purgatory
 relationship: has_units MS:1000040 ! m/z
 
 [Term]
@@ -5059,6 +5059,28 @@ name: enhanced resolution scan
 def: "Scan with enhanced resolution." [PSI:MS]
 is_a: MS:1000020 ! scanning method
 
+[Term]
+id: MS:1000792
+name: isolation window attribute
+def: "Isolation window parameter." [PSI:MS]
+is_a: MS:1000547 ! object attribute
+relationship: part_of MS:1000441 ! scan
+
+[Term]
+id: MS:1000793
+name: isolation m/z upper limit
+def: "The highest m/z being isolated in an isolation window." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000792 ! isolation window attribute
+relationship: has_units MS:1000040 ! m/z
+
+[Term]
+id: MS:1000794
+name: isolation m/z lower limit
+def: "The lowest m/z being isolated in an isolation window." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000792 ! isolation window attribute
+relationship: has_units MS:1000040 ! m/z
 
 [Typedef]
 id: has_units

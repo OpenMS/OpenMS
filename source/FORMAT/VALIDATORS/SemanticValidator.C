@@ -250,7 +250,7 @@ namespace OpenMS
 		String SemanticValidator::getPath_(UInt remove_from_end) const
 		{
 			String path;
-			path.implode(open_tags_.begin(), open_tags_.end()-remove_from_end,"/");
+			path.concatenate(open_tags_.begin(), open_tags_.end()-remove_from_end,"/");
 			path = String("/") + path;
 			return path;
 		}

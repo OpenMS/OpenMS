@@ -195,5 +195,12 @@
             <CvTerm termAccession="MS:1000572" useTerm="false" termName="binary data compression type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
         <!-- end of chromatogram binary data array -->
+
+        <!-- start of isolation window -->
+        <CvMappingRule id="R32" cvElementPath="/mzML/run/spectrumList/spectrum/spectrumDescription/precursorList/precursor/isolationWindow/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/spectrumList/spectrum/spectrumDescription/precursorList/precursor/isolationWindow" cvTermsCombinationLogic="AND">
+            <CvTerm termAccession="MS:1000792" useTerm="false" termName="isolation window attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+        <!-- end of isolation window -->
+
     </CvMappingRuleList>
 </CvMapping>

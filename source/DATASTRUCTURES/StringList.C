@@ -110,6 +110,20 @@ namespace OpenMS
 		}
 	}
 
+		String StringList::concatenate(const String& glue) const
+		{
+			
+			if (size()==0) return "";
+			
+			String output = *(begin());
+			for (const_iterator it=begin()+1; it!=end(); ++it)
+			{
+				output += (glue + *it) ;
+			}
+			
+			return output;
+		}
+
 	// ----------------- Output operator ----------------------
 
 	ostream& operator<<(std::ostream& os, const StringList& p)

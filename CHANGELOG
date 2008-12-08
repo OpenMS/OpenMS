@@ -28,6 +28,7 @@ New features and improvements of TOPP:
 
 New features and improvements of TOPPView:
 - Added functionality for editing feature data
+- Added measuring and generic annotations to 1D view
 
 Changes to OpenMS XML formats:
 - ParamXML:
@@ -335,6 +336,7 @@ Detailed list of changes to specific OpenMS classes:
   - Added support for advanced parameters
 - String
   - Improved implementations of implode and substr
+  - Renamed inplode method to concatenate
 - DSpectrum
   - Added method to find the nearest peak to an m/z value (findNearest)
 - Feature

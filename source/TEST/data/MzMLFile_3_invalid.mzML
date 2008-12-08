@@ -243,9 +243,6 @@
         	<userParam name="name" value="spectrum2"/>
           <precursorList count="1">
             <precursor spectrumRef="S19">
-            	<isolationWindow>
-        				<userParam name="iwname" value="isolationwindow1"/>
-            	</isolationWindow>
               <selectedIonList count="1">
                 <selectedIon>
                   <cvParam cvRef="MS" accession="MS:1000744" name="selected m/z" value="5.55"/>

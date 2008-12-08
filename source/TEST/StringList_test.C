@@ -159,6 +159,16 @@ START_SECTION(void toLower())
 	TEST_EQUAL(list[1],"no")
 END_SECTION
 
+START_SECTION(String concatenate(const String& glue=""))
+	StringList list = StringList::create("1,2,3,4,5");
+	TEST_STRING_EQUAL(list.concatenate("g"),"1g2g3g4g5");
+	TEST_STRING_EQUAL(list.concatenate(""),"12345");
+	
+	list.clear();
+	TEST_STRING_EQUAL(list.concatenate("g"),"");
+	TEST_STRING_EQUAL(list.concatenate(""),"");
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

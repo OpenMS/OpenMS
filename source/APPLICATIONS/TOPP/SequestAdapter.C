@@ -931,7 +931,7 @@ class TOPPSequestAdapter
 						}
 						(*substrings_it) = String(Real_buffer);
 					}
-					string_buffer.implode(substrings.begin(), substrings.end(), " ");
+					string_buffer.concatenate(substrings.begin(), substrings.end(), " ");
 					sequest_infile.setIonSeriesWeights(string_buffer);
 				}
 				// modifications
@@ -958,12 +958,12 @@ class TOPPSequestAdapter
 				}
 				string_buffer = getStringOption_("partial_sequence");
 				string_buffer.split(',', substrings);
-				string_buffer.implode(substrings.begin(), substrings.end(), " ");
+				string_buffer.concatenate(substrings.begin(), substrings.end(), " ");
 				sequest_infile.setPartialSequence(string_buffer);
 
 				string_buffer = getStringOption_("header_filter");
 				string_buffer.split(',', substrings);
-				string_buffer.implode(substrings.begin(), substrings.end(), " ");
+				string_buffer.concatenate(substrings.begin(), substrings.end(), " ");
 				sequest_infile.setSequenceHeaderFilter(string_buffer);
 			}
 

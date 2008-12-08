@@ -68,7 +68,7 @@ namespace OpenMS
 		bool meta = false;
 		String tmp = filter;
 		tmp.trim();
-		vector<String> parts;
+		StringList parts;
 		tmp.split(' ',parts);
 		int size = parts.size();
 		if (size < 2) throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Invalid filter format.",tmp);
@@ -100,7 +100,7 @@ namespace OpenMS
 		//value
 		if (size > 3) // string values may contain spaces, implode to a single string
 		{
-			tmp.implode(parts.begin()+2, parts.end(), " ");
+			tmp.concatenate(parts.begin()+2, parts.end(), " ");
 		}
 		else if (size == 3) 
 		{

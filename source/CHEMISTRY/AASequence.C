@@ -830,7 +830,7 @@ namespace OpenMS
 							if (k == res.size())
 							{
 								valid_ = false;
-								sequence_string_.implode(split.begin(), split.end());
+								sequence_string_.concatenate(split.begin(), split.end());
 								sequence.clear();
 								cerr << "AASequence: cannot convert string '" << peptide << "' into meaningful amino acid sequence, missing ')'!" << endl;
 								return;
@@ -848,7 +848,7 @@ namespace OpenMS
 								if (k == res.size())
 								{
 									valid_ = false;
-									sequence_string_.implode(split.begin(), split.end());
+									sequence_string_.concatenate(split.begin(), split.end());
 									sequence.clear();
 									cerr << "AASequence: cannot convert string '" << peptide << "' into meaningful amino acid sequence, missing ']'!" << endl;
 									return;
@@ -860,7 +860,7 @@ namespace OpenMS
 						else
 						{
 							valid_ = false;
-							sequence_string_.implode(split.begin(), split.end());
+							sequence_string_.concatenate(split.begin(), split.end());
 							sequence.clear();
 							cerr << "AASequence: cannot convert string '" << peptide << "' into meaningful amino acid sequence, residue '" << res << "' unknown at position " << j << "!" << endl;
 							return;
@@ -874,7 +874,7 @@ namespace OpenMS
 			if (res_ptr == 0 && tag == "")
 			{
 				valid_ = false;
-				sequence_string_.implode(split.begin(), split.end());
+				sequence_string_.concatenate(split.begin(), split.end());
 				sequence.clear();
 				cerr << "AASequence: cannot parse residue with name: '" << name << "' from sequence '" << peptide << "'" << endl;
 				return;
@@ -908,7 +908,7 @@ namespace OpenMS
 				if (sequence.size() < i)
 				{
 					valid_ = false;
-					sequence_string_.implode(split.begin(), split.end());
+					sequence_string_.concatenate(split.begin(), split.end());
 					sequence.clear();
 					return;
 				}

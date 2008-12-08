@@ -470,22 +470,22 @@ START_SECTION((bool split(char splitter, std::vector<String>& substrings) const)
 
 END_SECTION
 
-START_SECTION((template<class StringIterator> void implode(StringIterator first, StringIterator last, const String& glue = "")))
+START_SECTION((template<class StringIterator> void concatenate(StringIterator first, StringIterator last, const String& glue = "")))
 	vector<String> split;
 	String("1;2;3;4;5").split(';',split);
 	String s;
-	s.implode(split.begin(),split.end(),"g");
+	s.concatenate(split.begin(),split.end(),"g");
 	TEST_EQUAL(s,"1g2g3g4g5");
 	
 	String("1;2;3;4;5").split(';',split);
-	s.implode(split.begin(),split.end());
+	s.concatenate(split.begin(),split.end());
 	TEST_EQUAL(s,"12345");
 
 	String("").split(';',split);
-	s.implode(split.begin(),split.end());
+	s.concatenate(split.begin(),split.end());
 	TEST_EQUAL(s,"");
 	
-	s.implode(split.begin(),split.end(),"_");
+	s.concatenate(split.begin(),split.end(),"_");
 	TEST_EQUAL(s,"");
 END_SECTION
 
