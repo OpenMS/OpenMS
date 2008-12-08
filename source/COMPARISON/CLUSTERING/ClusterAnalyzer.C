@@ -307,7 +307,7 @@ namespace OpenMS
 			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "tree is empty but minimal clustering hirachy has at least one level");
 		}
 
-		std::vector< std::vector < Real > > clusters(original.dimensionsize());
+		std::vector< std::vector < UInt > > clusters(original.dimensionsize());
 		std::vector< Real > all_dunn_indices;
 
 		//initial cluster state
