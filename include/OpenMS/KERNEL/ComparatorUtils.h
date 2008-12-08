@@ -251,7 +251,6 @@ namespace OpenMS
 	//======================================================================
 
 
-
 	/**
 		@brief A wrapper class that combines two comparators lexicographically.
 		Normally you should use the make-function lexicographicComparator()
@@ -302,6 +301,38 @@ namespace OpenMS
 	template < typename Cmp1, typename Cmp2 >
 	LexicographicComparator < Cmp1, Cmp2 > lexicographicComparator ( Cmp1 const & cmp1, Cmp2 const & cmp2 )
 	{ return LexicographicComparator < Cmp1, Cmp2 > ( cmp1, cmp2 ); }
+
+	//======================================================================
+
+
+
+	/**
+		@brief Class for comparison of std::pair 's using first ONLY e.g. for use with std::sort
+	*/
+	template<typename PairType>
+	struct PairComparatorFirstElement
+	: std::binary_function<PairType, PairType, bool >
+	{
+			bool operator() (const PairType& left, const PairType& right)const
+			{
+					return ( left.first < right.first ) ;
+			}
+
+	};
+
+	/**
+		@brief Class for comparison of std::pair 's using second ONLY e.g. for use with std::sort
+	*/
+	template<typename PairType>
+	struct PairComparatorSecondElement
+	: std::binary_function<PairType, PairType, bool >
+	{
+			bool operator() (const PairType& left, const PairType& right)const
+			{
+					return ( left.second < right.second ) ;
+			}
+
+	};
 
 
 }

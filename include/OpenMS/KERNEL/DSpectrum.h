@@ -44,7 +44,7 @@ namespace OpenMS
 
 	namespace Internal
 	{
-		/** 
+		/**
 			@brief Internal class used to store some information about
 			precursor ions.
 
@@ -87,10 +87,10 @@ namespace OpenMS
 			PrecursorPeak & operator=(const PrecursorPeak& rhs)
 			{
 				Base::operator=(rhs);
-				
+
 				charge_=rhs.charge_;
 				possible_charge_states_ = rhs.possible_charge_states_;
-				
+
 				return *this;
 			}
 
@@ -116,21 +116,21 @@ namespace OpenMS
 			{
 				return possible_charge_states_;
 			}
-			
+
 			const std::vector<Int>& getPossibleChargeStates() const
 			{
 				return possible_charge_states_;
 			}
-			
+
 			void setPossibleChargeStates(const std::vector<Int>& possible_charge_states)
 			{
 				possible_charge_states_ = possible_charge_states;
 			}
-			
+
 		 protected:
 
 			Int charge_;
-		  std::vector<Int> possible_charge_states_;
+			std::vector<Int> possible_charge_states_;
 
 		};
 
@@ -138,16 +138,14 @@ namespace OpenMS
 
 	/**
 		@brief Representation of a D-dimensional spectrum.
-		
+
 		Some meta information about the spectrum (ms-level, precursor peak, ...) is
 		also stored. If you want to store more meta information
 		see the MSSpectrum and MSExperiment classes.
-		
+
 		Additionally an interface for the minimum and maximum position, and the minimum and maximum
 		intensity of the peaks is provided by RangeManager.
-		
-		@todo Implement sorting methods, that also sort meta data (Hiwi)
-		
+
 		@ingroup Kernel
 	*/
 	template < typename PeakT = Peak1D, typename AllocT = std::allocator<PeakT> >
@@ -164,7 +162,7 @@ namespace OpenMS
 	    	public std::vector<Real>
 	  {
 	  };
-			
+
 
 		/**	@name	Type definitions */
 		//@{
@@ -226,8 +224,8 @@ namespace OpenMS
         name_(),
         meta_data_arrays_()
     {
-    }    
-    
+    }
+
 		/// Copy constructor
 		DSpectrum(const DSpectrum& rhs)
 			: ContainerType(rhs),
@@ -253,8 +251,8 @@ namespace OpenMS
         name_(rhs.name_),
         meta_data_arrays_(rhs.meta_data_arrays_)
     {
-    } 
-        
+    }
+
 		/// Destructor
 		inline ~DSpectrum()
 		{
@@ -274,7 +272,7 @@ namespace OpenMS
 			ms_level_ = rhs.ms_level_;
 			name_ = rhs.name_;
 			meta_data_arrays_ = rhs.meta_data_arrays_;
-			
+
 			return *this;
 		}
 
@@ -292,10 +290,10 @@ namespace OpenMS
       ms_level_ = rhs.ms_level_;
       name_ = rhs.name_;
       meta_data_arrays_ = rhs.meta_data_arrays_;
-      
+
       return *this;
     }
-    
+
 		/// Equality operator
 		bool operator == (const DSpectrum& rhs) const
 		{
@@ -385,43 +383,126 @@ namespace OpenMS
 
 		//@}
 
-		/// Sorts the peaks according to ascending intensity
+		/**
+			@brief Lexicographically sorts the peaks by their intensity.
+
+			Sorts the peaks according to ascending intensity. If it contains MetaDataArrays, those will be sorted accordingly.
+		*/
 		void sortByIntensity(bool reverse=false)
 		{
-			if (reverse)
+			if(meta_data_arrays_.size() == 0)
 			{
-				std::sort(ContainerType::begin(), ContainerType::end(), reverseComparator(typename PeakType::IntensityLess()));
+				if (reverse)
+				{
+					std::sort(ContainerType::begin(), ContainerType::end(), reverseComparator(typename PeakType::IntensityLess()));
+				}
+				else
+				{
+					std::sort(ContainerType::begin(), ContainerType::end(), typename PeakType::IntensityLess());
+				}
 			}
 			else
 			{
-				std::sort(ContainerType::begin(), ContainerType::end(), typename PeakType::IntensityLess());
+				//sort index list
+				std::vector< std::pair<typename PeakType::IntensityType,UInt> > sorted_indices;
+				sorted_indices.reserve(ContainerType::size());
+				for(UInt i(0); i < ContainerType::size(); ++i)
+				{
+					sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getIntensity(),i));
+				}
+
+				if (reverse)
+				{
+					std::sort(sorted_indices.begin(), sorted_indices.end(), reverseComparator(PairComparatorFirstElement< std::pair<typename PeakType::IntensityType,UInt> >()));
+				}
+				else
+				{
+					std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement< std::pair<typename PeakType::IntensityType,UInt> >());
+				}
+
+				//apply sorting to ContainerType and to metadataarrays
+				ContainerType tmp;
+				for(UInt i(0); i < sorted_indices.size(); ++i)
+				{
+					tmp.push_back(*(ContainerType::begin()+(sorted_indices[i].second)));
+				}
+				ContainerType::swap(tmp);
+
+				for(UInt i(0); i < meta_data_arrays_.size(); ++i)
+				{
+					MetaDataArray mda_tmp;
+					for(UInt j(0); j < meta_data_arrays_[i].size(); ++j)
+					{
+						mda_tmp.push_back(*(meta_data_arrays_[i].begin()+(sorted_indices[j].second)));
+					}
+					meta_data_arrays_[i].swap(mda_tmp);
+				}
 			}
+
 		}
-		
-		/// Lexicographically sorts the peaks by their position.
+
+		/**
+			@brief Lexicographically sorts the peaks by their position.
+
+			The spectrum is sorted with respect to position. If it contains MetaDataArrays, those will be sorted accordingly.
+		*/
 		void sortByPosition()
 		{
-			std::sort(ContainerType::begin(), ContainerType::end(), typename PeakType::PositionLess());
+			if(meta_data_arrays_.size() == 0)
+			{
+				std::sort(ContainerType::begin(), ContainerType::end(), typename PeakType::PositionLess());
+			}
+			else
+			{
+				//sort index list
+				std::vector< std::pair<typename PeakType::PositionType,UInt> > sorted_indices;
+				sorted_indices.reserve(ContainerType::size());
+				for(UInt i(0); i < ContainerType::size(); ++i)
+				{
+					sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getPosition(),i));
+				}
+				std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement< std::pair<typename PeakType::PositionType,UInt> >());
+
+				//apply sorting to ContainerType and to metadataarrays
+				ContainerType tmp;
+				for(UInt i(0); i < sorted_indices.size(); ++i)
+				{
+					tmp.push_back(*(ContainerType::begin()+(sorted_indices[i].second)));
+				}
+				ContainerType::swap(tmp);
+
+				//what if metadataarray is unequal in size to the spectrum?? throw error?
+				for(UInt i(0); i < meta_data_arrays_.size(); ++i)
+				{
+					MetaDataArray mda_tmp;
+					for(UInt j(0); j < meta_data_arrays_[i].size(); ++j)
+					{
+						mda_tmp.push_back(*(meta_data_arrays_[i].begin()+(sorted_indices[j].second)));
+					}
+					std::swap(meta_data_arrays_[i],mda_tmp);
+				}
+			}
+
 		}
 
 
-		///	@name Searching a peak or peak range
+		///@name Searching a peak or peak range
 		//@{
 		/**
 			@brief Binary search for the peak nearest to a specific m/z
-			
+
 			@param mz The searched for mass-to-charge ratio searched
-			@return Returns the index of the peak. 
+			@return Returns the index of the peak.
 
 			@note Make sure the spectrum is sorted with respect to m/z ratio! Otherwise the result is undefined.
-			
+
 			@exception Exception::Precondition is thrown if the spectrum is empty (not only in debug mode)
 		*/
 		UInt findNearest(CoordinateType mz) const
 		{
 			//no peak => no search
 			if (ContainerType::size()==0) throw Exception::Precondition(__FILE__,__LINE__,__PRETTY_FUNCTION__,"There must be at least one peak to determine the nearest peak!");
-			
+
 			//searh for position for inserting
 			ConstIterator it = MZBegin(mz);
 			//border cases
@@ -484,15 +565,15 @@ namespace OpenMS
 			return upper_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
 		}
 		//@}
-		
-		
+
+
 		/**
 			@name Peak meta data array methods
-			
+
 			These methods are used to annotate each peak in a spectrum with meta information.
 			It is an intermediate way between storing the information in the peak's MetaInfoInterface
 			and deriving a new peak type with members for this information.
-		  
+
 		  These statements should help you chose which approach to use
 		  - Access to meta info arrays is slower than to a member variable
 		  - Access to meta info arrays is faster than to a %MetaInfoInterface
@@ -510,7 +591,7 @@ namespace OpenMS
 			return meta_data_arrays_;
 		}
 		//@}
-		
+
 	protected:
 
 		/// Precursor information
@@ -524,14 +605,14 @@ namespace OpenMS
 
 		/// Name
 		String name_;
-		
+
 		///Meta info arrays
 		MetaDataArrays meta_data_arrays_;
 	};
 
 	///Print the contents to a stream.
 	template <typename PeakT, typename AllocT>
-	std::ostream& operator << (std::ostream& os, const DSpectrum<PeakT,AllocT>& rhs)        
+	std::ostream& operator << (std::ostream& os, const DSpectrum<PeakT,AllocT>& rhs)
 	{
 		os << "-- DSpectrum BEGIN --"<<std::endl;
 		os << "MS-LEVEL:" <<rhs.getMSLevel() << std::endl;
