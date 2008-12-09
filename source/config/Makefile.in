@@ -77,7 +77,7 @@ staticlibs: $(STATIC_LIBS)
 
 install:	install.shared
 	@$(ECHO) " "
-	@$(ECHO) "Don't forget to add the path"
+	@$(ECHO) "Don't forget to add the path (and the contrib lib directroy)"
 	@$(ECHO) " "
 	@$(ECHO) "   $(PREFIX)/lib/ "
 	@$(ECHO) " "

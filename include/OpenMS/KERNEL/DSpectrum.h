@@ -386,7 +386,7 @@ namespace OpenMS
 		/**
 			@brief Lexicographically sorts the peaks by their intensity.
 
-			Sorts the peaks according to ascending intensity. If it contains MetaDataArrays, those will be sorted accordingly.
+			Sorts the peaks according to ascending intensity. Meta data arrays will be sorted accordingly.
 		*/
 		void sortByIntensity(bool reverse=false)
 		{
@@ -430,7 +430,7 @@ namespace OpenMS
 
 				for(UInt i(0); i < meta_data_arrays_.size(); ++i)
 				{
-					MetaDataArray mda_tmp;
+					std::vector<Real> mda_tmp;
 					for(UInt j(0); j < meta_data_arrays_[i].size(); ++j)
 					{
 						mda_tmp.push_back(*(meta_data_arrays_[i].begin()+(sorted_indices[j].second)));
@@ -444,7 +444,7 @@ namespace OpenMS
 		/**
 			@brief Lexicographically sorts the peaks by their position.
 
-			The spectrum is sorted with respect to position. If it contains MetaDataArrays, those will be sorted accordingly.
+			The spectrum is sorted with respect to position. Meta data arrays will be sorted accordingly.
 		*/
 		void sortByPosition()
 		{
@@ -474,7 +474,7 @@ namespace OpenMS
 				//what if metadataarray is unequal in size to the spectrum?? throw error?
 				for(UInt i(0); i < meta_data_arrays_.size(); ++i)
 				{
-					MetaDataArray mda_tmp;
+					std::vector<Real> mda_tmp;
 					for(UInt j(0); j < meta_data_arrays_[i].size(); ++j)
 					{
 						mda_tmp.push_back(*(meta_data_arrays_[i].begin()+(sorted_indices[j].second)));

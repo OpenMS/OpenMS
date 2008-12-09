@@ -511,7 +511,15 @@ START_SECTION(( void sortByIntensity() ))
 	std::sort(intensities_copy.begin(),intensities_copy.end());
 
 	ds.getMetaDataArrays() = std::vector<DSpectrum<Peak1D>::MetaDataArray>(3,tmp);
+	ds.getMetaDataArrays()[0].setName("a1");
+	ds.getMetaDataArrays()[1].setName("a2");
+	ds.getMetaDataArrays()[2].setName("a3");
+	
 	ds.sortByIntensity();
+	
+	TEST_STRING_EQUAL(ds.getMetaDataArrays()[0].getName(),"a1")
+	TEST_STRING_EQUAL(ds.getMetaDataArrays()[1].getName(),"a2")
+	TEST_STRING_EQUAL(ds.getMetaDataArrays()[2].getName(),"a3")
 	DSpectrum<Peak1D>::iterator it1 = ds.begin();
 	DSpectrum<Peak1D>::MetaDataArray::iterator it2 = ds.getMetaDataArrays()[1].begin();
 	TOLERANCE_ABSOLUTE(0.0001)
@@ -564,7 +572,15 @@ START_SECTION(( void sortByPosition() ))
 		ds.push_back(p);
 	}
 	ds.getMetaDataArrays() = std::vector<DSpectrum<Peak1D>::MetaDataArray>(3,tmp);
+	ds.getMetaDataArrays()[0].setName("a1");
+	ds.getMetaDataArrays()[1].setName("a2");
+	ds.getMetaDataArrays()[2].setName("a3");
+	
 	ds.sortByPosition();
+	
+	TEST_STRING_EQUAL(ds.getMetaDataArrays()[0].getName(),"a1")
+	TEST_STRING_EQUAL(ds.getMetaDataArrays()[1].getName(),"a2")
+	TEST_STRING_EQUAL(ds.getMetaDataArrays()[2].getName(),"a3")
 	DSpectrum<Peak1D>::iterator it1 = ds.begin();
 	DSpectrum<Peak1D>::MetaDataArray::iterator it2 = ds.getMetaDataArrays()[1].begin();
 	for(std::vector<DoubleReal>::reverse_iterator rit = intensities.rbegin(); rit != intensities.rend(); ++rit)

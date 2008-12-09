@@ -31,119 +31,118 @@
 #include <functional>
 
 /**
-@defgroup ComparatorUtils ComparatorUtils
-
-@brief A collection of utilities for comparators.
-
-@ingroup Kernel
-
-@code
-#include <OpenMS/KERNEL/ComparatorUtils.h>
-@endcode
-
-This file contains some lightweight class templates
-which simplify the (re-)usage and composition of <b>comparator classes</b>:
-- ReverseComparator (reverse the direction of comparison)
-- LexicographicComparator (combine comparators lexicographically)
-- PointerComparator (compare pointers like the type they point to)
-.
-We provide corresponding "make-functions" so that you will not need to write
-out the type names in the template instantiation.
-
-We explain this with a simple example.  First a few prerequisites.
-
-@dontinclude Tutorial_ComparatorUtils.C
-@until String;
-
-The class IntRealString has three data members.  The class
-IntRealStringVector is a vector of IntRealString.
-We add some print() methods for convenience.
-@until };
-@until };
-
-Now we will exercise various ways of sorting such a vector.
-
-Of course, we could use the std::sort algorithm with a comparison function
-like the following.
-@until }
-
-This is straightforward but does not generalize well.  Instead we introduce
-three <b>comparator classes</b>:
-@until };
-@until };
-@until };
-Note how the std::binary_function template provides the necessary type
-information (sometimes this is called "reflection").
-
-Now we show various uses of the reverseComparator and lexicographicComparator
-function templates.
-@until vec.print();
-@until vec.print();
-@until vec.print();
-@until vec.print();
-@until vec.print();
-@until vec.print();
-
-And here is an application of the pointerComparator function template:
-@until main
-
-The output of the example program is:
-@code
-After initialization:
-(1, 4.5, paul)
-(2, 4.5, josie)
-(1, 4.5, john)
-(2, 3.9, kim)
-
-Sorted using lessByInt function:
-(1, 4.5, paul)
-(1, 4.5, john)
-(2, 4.5, josie)
-(2, 3.9, kim)
-
-Sorted using LessByInt comparator class:
-(1, 4.5, paul)
-(1, 4.5, john)
-(2, 4.5, josie)
-(2, 3.9, kim)
-
-Sorted using reversed LessByInt comparator class:
-(2, 4.5, josie)
-(2, 3.9, kim)
-(1, 4.5, paul)
-(1, 4.5, john)
-
-Sorted using lexicographic order: 1. LessByInt, 2. LessByReal
-(1, 4.5, paul)
-(1, 4.5, john)
-(2, 3.9, kim)
-(2, 4.5, josie)
-
-Sorted using lexicographic order: 1. reversed LessByInt, 2. LessByReal, 3. LessByString
-(2, 3.9, kim)
-(2, 4.5, josie)
-(1, 4.5, john)
-(1, 4.5, paul)
-
-ptr_vec before sorting
-(2, 3.9, kim)
-(2, 4.5, josie)
-(1, 4.5, john)
-(1, 4.5, paul)
-
-ptr_vec after sorting with pointerComparator(LessByString())
-(1, 4.5, john)
-(2, 4.5, josie)
-(2, 3.9, kim)
-(1, 4.5, paul)
-
-@endcode
-
-Note that pointerComparator can also be used with full-blown iterator classes.
-(It should work with everything that provides an operator*(), but the typedefs will always be pointers.)
-
-Note that these templates can also be used with different types for "left" and "right".
-
+	@defgroup ComparatorUtils ComparatorUtils
+	
+	@brief A collection of utilities for comparators.
+	
+	@ingroup Kernel
+	
+	@code
+	#include <OpenMS/KERNEL/ComparatorUtils.h>
+	@endcode
+	
+	This file contains some lightweight class templates
+	which simplify the (re-)usage and composition of <b>comparator classes</b>:
+	- ReverseComparator (reverse the direction of comparison)
+	- LexicographicComparator (combine comparators lexicographically)
+	- PointerComparator (compare pointers like the type they point to)
+	.
+	We provide corresponding "make-functions" so that you will not need to write
+	out the type names in the template instantiation.
+	
+	We explain this with a simple example.  First a few prerequisites.
+	
+	@dontinclude Tutorial_ComparatorUtils.C
+	@until String;
+	
+	The class IntRealString has three data members.  The class
+	IntRealStringVector is a vector of IntRealString.
+	We add some print() methods for convenience.
+	@until };
+	@until };
+	
+	Now we will exercise various ways of sorting such a vector.
+	
+	Of course, we could use the std::sort algorithm with a comparison function
+	like the following.
+	@until }
+	
+	This is straightforward but does not generalize well.  Instead we introduce
+	three <b>comparator classes</b>:
+	@until };
+	@until };
+	@until };
+	Note how the std::binary_function template provides the necessary type
+	information (sometimes this is called "reflection").
+	
+	Now we show various uses of the reverseComparator and lexicographicComparator
+	function templates.
+	@until vec.print();
+	@until vec.print();
+	@until vec.print();
+	@until vec.print();
+	@until vec.print();
+	@until vec.print();
+	
+	And here is an application of the pointerComparator function template:
+	@until main
+	
+	The output of the example program is:
+	@code
+	After initialization:
+	(1, 4.5, paul)
+	(2, 4.5, josie)
+	(1, 4.5, john)
+	(2, 3.9, kim)
+	
+	Sorted using lessByInt function:
+	(1, 4.5, paul)
+	(1, 4.5, john)
+	(2, 4.5, josie)
+	(2, 3.9, kim)
+	
+	Sorted using LessByInt comparator class:
+	(1, 4.5, paul)
+	(1, 4.5, john)
+	(2, 4.5, josie)
+	(2, 3.9, kim)
+	
+	Sorted using reversed LessByInt comparator class:
+	(2, 4.5, josie)
+	(2, 3.9, kim)
+	(1, 4.5, paul)
+	(1, 4.5, john)
+	
+	Sorted using lexicographic order: 1. LessByInt, 2. LessByReal
+	(1, 4.5, paul)
+	(1, 4.5, john)
+	(2, 3.9, kim)
+	(2, 4.5, josie)
+	
+	Sorted using lexicographic order: 1. reversed LessByInt, 2. LessByReal, 3. LessByString
+	(2, 3.9, kim)
+	(2, 4.5, josie)
+	(1, 4.5, john)
+	(1, 4.5, paul)
+	
+	ptr_vec before sorting
+	(2, 3.9, kim)
+	(2, 4.5, josie)
+	(1, 4.5, john)
+	(1, 4.5, paul)
+	
+	ptr_vec after sorting with pointerComparator(LessByString())
+	(1, 4.5, john)
+	(2, 4.5, josie)
+	(2, 3.9, kim)
+	(1, 4.5, paul)
+	
+	@endcode
+	
+	Note that pointerComparator can also be used with full-blown iterator classes.
+	(It should work with everything that provides an operator*(), but the typedefs will always be pointers.)
+	
+	Note that these templates can also be used with different types for "left" and "right".
 */
 
 namespace OpenMS
@@ -180,17 +179,19 @@ namespace OpenMS
 		Cmp const & cmp_;
 	};
 
-	/**@brief  Make-function to create a PointerComparator from another comparator without the need to specify the template arguments.
-		 \relatesalso PointerComparator
+	/**
+		@brief  Make-function to create a PointerComparator from another comparator without the need to specify the template arguments.
+		
+		@relatesalso PointerComparator
 
-	For example,
-  <pre>
-  int i = 88, j = 99;
-  if ( pointerComparator(std::less<int>())(&i,&j) )
-  {
-    //&nbsp;   // yes, 88 < 99.
-  }
-  </pre>
+		For example,
+	  <pre>
+	  int i = 88, j = 99;
+	  if ( pointerComparator(std::less<int>())(&i,&j) )
+	  {
+	    //&nbsp;   // yes, 88 < 99.
+	  }
+	  </pre>
 	*/
   template < class Cmp >
 	PointerComparator < Cmp> pointerComparator ( Cmp const & cmp )
@@ -230,17 +231,19 @@ namespace OpenMS
 		Cmp const & cmp_;
 	};
 
-	/**@brief  Make-function to create a ReverseComparator from another comparator without the need to specify the template arguments.
-		 \relatesalso ReverseComparator
+	/**
+		@brief  Make-function to create a ReverseComparator from another comparator without the need to specify the template arguments.
+		
+		@relatesalso ReverseComparator
 
-	For example,
-  <pre>
-  int i = 88, j = 99;
-  if ( reverseComparator(std::less<int>())(j,i) )
-  {
-    //&nbsp;   // yes, 99 > 88.
-  }
-  </pre>
+		For example,
+	  <pre>
+	  int i = 88, j = 99;
+	  if ( reverseComparator(std::less<int>())(j,i) )
+	  {
+	    //&nbsp;   // yes, 99 > 88.
+	  }
+	  </pre>
 	*/
   template < class Cmp >
 	ReverseComparator < Cmp> reverseComparator ( Cmp const & cmp )
@@ -292,11 +295,12 @@ namespace OpenMS
 		Cmp2 const & cmp2_;
 	};
 
-	/**@brief  Make-function to create a LexicographicComparator from two other comparators without the need to specify the template arguments.
-		 \relatesalso LexicographicComparator
+	/**
+		@brief  Make-function to create a LexicographicComparator from two other comparators without the need to specify the template arguments.
+		
+		@relatesalso LexicographicComparator
 
-	The usage is similar to pointerComparator() or reverseComparator(), which
-	see.
+		The usage is similar to pointerComparator() or reverseComparator(), which see.
 	*/
 	template < typename Cmp1, typename Cmp2 >
 	LexicographicComparator < Cmp1, Cmp2 > lexicographicComparator ( Cmp1 const & cmp1, Cmp2 const & cmp2 )
@@ -307,7 +311,7 @@ namespace OpenMS
 
 
 	/**
-		@brief Class for comparison of std::pair 's using first ONLY e.g. for use with std::sort
+		@brief Class for comparison of std::pair using first ONLY e.g. for use with std::sort
 	*/
 	template<typename PairType>
 	struct PairComparatorFirstElement
@@ -321,7 +325,7 @@ namespace OpenMS
 	};
 
 	/**
-		@brief Class for comparison of std::pair 's using second ONLY e.g. for use with std::sort
+		@brief Class for comparison of std::pair using second ONLY e.g. for use with std::sort
 	*/
 	template<typename PairType>
 	struct PairComparatorSecondElement
