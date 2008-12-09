@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -38,7 +38,7 @@
 #include <OpenMS/SYSTEM/FileWatcher.h>
 
 //STL
-#include <algorithm>	
+#include <algorithm>
 
 //QT
 #include <QtGui/QMouseEvent>
@@ -79,19 +79,19 @@ namespace OpenMS
 
 		projection_mz_.resize(1);
 		projection_rt_.resize(1);
-		
+
 		//set preferences and update widgets acoordningly
 		if (String(param_.getValue("mapping_of_mz_to")) != "x_axis")
 		{
 			mzToXAxis(false);
 		}
 	}
-	
+
 	Spectrum2DCanvas::~Spectrum2DCanvas()
 	{
 		//cout << "DEST Spectrum2DCanvas" << endl;
 	}
-	
+
 	void Spectrum2DCanvas::highlightPeak_(QPainter& painter, const PeakIndex& peak)
 	{
 		if (!peak.isValid()) return;
@@ -113,12 +113,12 @@ namespace OpenMS
 		painter.drawEllipse(pos.x() - 5, pos.y() - 5, 10, 10);
 		painter.restore();
 	}
-	
+
 	PeakIndex Spectrum2DCanvas::findNearestPeak_(const QPoint& pos)
 	{
 		///no layers => return invalid peak index
 		if (layers_.empty()) return PeakIndex();
-		
+
 		//Constructing the area corrects swapped mapping of RT and m/z
 		AreaType area (widgetToData_(pos - QPoint(5,5)),widgetToData_(pos + QPoint(5,5)));
 
@@ -126,8 +126,8 @@ namespace OpenMS
 
 		if (getCurrentLayer().type==LayerData::DT_PEAK)
 		{
-			for (ExperimentType::ConstAreaIterator i = getCurrentLayer().peaks.areaBeginConst(area.min()[1],area.max()[1],area.min()[0],area.max()[0]); 
-					 i != getCurrentLayer().peaks.areaEndConst(); 
+			for (ExperimentType::ConstAreaIterator i = getCurrentLayer().peaks.areaBeginConst(area.min()[1],area.max()[1],area.min()[0],area.max()[0]);
+					 i != getCurrentLayer().peaks.areaEndConst();
 					 ++i)
 			{
 				PeakIndex pi = i.getPeakIndex();
@@ -154,11 +154,11 @@ namespace OpenMS
 					if (i->getIntensity() > max_int)
 					{
 						max_int = i->getIntensity();
-												
+
 						return PeakIndex(i-getCurrentLayer().features.begin());
-					}				
+					}
 				}
-			}	 	
+			}
 		}
 		else
 		{
@@ -175,7 +175,7 @@ namespace OpenMS
 					if (i->getIntensity() > max_int)
 					{
 						max_int = i->getIntensity();
-												
+
 						return PeakIndex(i-getCurrentLayer().consensus.begin());
 					}
 				}
@@ -183,7 +183,7 @@ namespace OpenMS
 		}
 		return PeakIndex();
 	}
-	
+
 	void Spectrum2DCanvas::paintDots_(UInt layer_index, QPainter& painter)
 	{
 #ifdef TIMING_TOPPVIEW
@@ -216,7 +216,7 @@ namespace OpenMS
 		QPoint pos;
 		Int image_width = buffer_.width();
 		Int image_height = buffer_.height();
-				
+
 		if (layer.type==LayerData::DT_PEAK) //peaks
 		{
 			//determine number of MS1 scans
@@ -256,8 +256,8 @@ namespace OpenMS
 			//cout << "peaks: " << peaks << "  scans: " << scans << endl;
 			//cout << "width: " << width() << "  height: " << height() << endl;
 
-			for (ExperimentType::ConstAreaIterator i = layer.peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
-					 i != layer.peaks.areaEndConst(); 
+			for (ExperimentType::ConstAreaIterator i = layer.peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]);
+					 i != layer.peaks.areaEndConst();
 					 ++i)
 			{
 				PeakIndex pi = i.getPeakIndex();
@@ -285,13 +285,13 @@ namespace OpenMS
 					}
 				}
 			}
-			
+
 			//draw precursor peaks
 			if (getLayerFlag(layer_index,LayerData::P_PRECURSORS))
 			{
-				const ExperimentType& exp = layer.peaks; 
-				for (ExperimentType::ConstIterator i = exp.RTBegin(visible_area_.min()[1]); 
-						 i != exp.RTEnd(visible_area_.max()[1]); 
+				const ExperimentType& exp = layer.peaks;
+				for (ExperimentType::ConstIterator i = exp.RTBegin(visible_area_.min()[1]);
+						 i != exp.RTEnd(visible_area_.max()[1]);
 						 ++i)
 				{
 					//this is an MS/MS scan
@@ -389,13 +389,13 @@ namespace OpenMS
 
 #ifdef TIMING_TOPPVIEW
 		cout << "paintDots_ took " << timer.elapsed() << " ms" << endl;
-#endif	
+#endif
 	}
 
 	void Spectrum2DCanvas::paintTraceConvexHulls_(UInt layer_index, QPainter& painter)
 	{
 		painter.setPen(Qt::black);
-		
+
 		const LayerData& layer = getLayer(layer_index);
 		for (FeatureMapType::ConstIterator i = layer.features.begin(); i != layer.features.end(); ++i)
 		{
@@ -409,7 +409,7 @@ namespace OpenMS
 				paintConvexHulls_(i->getConvexHulls(),painter);
 			}
 		}
-	}            
+	}
 
 	void Spectrum2DCanvas::paintFeatureConvexHulls_(UInt layer_index, QPainter& painter)
 	{
@@ -422,12 +422,12 @@ namespace OpenMS
 					 i->getMZ() >= visible_area_.min()[0] &&
 					 i->getMZ() <= visible_area_.max()[0] &&
 					 layer.filters.passes(*i))
-			{				
+			{
 				//paint hull points
 				ConvexHull2D hull = i->getConvexHull();
 				QPolygon points;
 				points.resize(hull.getPoints().size());
-		
+
 				UInt index=0;
 				QPoint pos;
 				//iterate over hull points
@@ -435,17 +435,17 @@ namespace OpenMS
 				{
 					dataToWidget_(it->getY(), it->getX(),pos);
 					points.setPoint(index, pos);
-				}	
+				}
 				//cout << "Hull: " << hull << " Points: " << points.size()<<endl;
 				painter.drawPolygon(points);
 			}
 		}
-	}    
+	}
 
   void Spectrum2DCanvas::paintConvexHulls_(const vector<ConvexHull2D>& hulls, QPainter& painter)
   {
 		QPolygon points;
-		
+
 		//iterate over all convex hulls
 		for (UInt hull=0; hull<hulls.size(); ++hull)
 		{
@@ -457,16 +457,16 @@ namespace OpenMS
 			{
 				dataToWidget_(it->getY(), it->getX(),pos);
 				points.setPoint(index, pos);
-			}	
+			}
 			//cout << "Hull: " << hull << " Points: " << points.size()<<endl;
 			painter.drawPolygon(points);
 		}
   }
 
 	void Spectrum2DCanvas::paintConsensusElements_(UInt layer_index, QPainter& p)
-	{	
+	{
 		const LayerData& layer = getLayer(layer_index);
-		
+
 		for (ConsensusMapType::ConstIterator i = layer.consensus.begin(); i != layer.consensus.end(); ++i)
 		{
 			paintConsensusElement_(layer_index, *i, p, true);
@@ -477,9 +477,9 @@ namespace OpenMS
 	{
 		Int image_width = buffer_.width();
 		Int image_height = buffer_.height();
-		
+
 		const LayerData& layer = getLayer(layer_index);
-						
+
 		if ( isConsensusFeatureVisible_(cf, layer_index) && layer.filters.passes(cf))
 		{
 			//calculate position of consensus feature (centroid)
@@ -496,7 +496,7 @@ namespace OpenMS
 				//paint point
 				if (pos.x()>0 && pos.y()>0 && pos.x()<image_width-1 && pos.y()<image_height-1)
 				{
-					// use buffer only when not highlighting	
+					// use buffer only when not highlighting
 					if (use_buffer)
 					{
 						buffer_.setPixel(pos.x()   ,pos.y()   ,Qt::black);
@@ -516,13 +516,13 @@ namespace OpenMS
 				}
 			}
 		}
-			
+
 	}
-	
-	
+
+
 	bool Spectrum2DCanvas::isConsensusFeatureVisible_(const ConsensusFeature& ce, UInt layer_index)
 	{
-		// check the centroid first	
+		// check the centroid first
 		if (ce.getRT() >= visible_area_.min()[1] &&
 				ce.getRT() <= visible_area_.max()[1] &&
 				ce.getMZ() >= visible_area_.min()[0] &&
@@ -530,7 +530,7 @@ namespace OpenMS
 		{
 			return true;
 		}
-		
+
 		// if element-flag is set, check if any of the consensus elements is visible
 		if (getLayerFlag(layer_index, LayerData::C_ELEMENTS))
 		{
@@ -548,7 +548,7 @@ namespace OpenMS
 		}
 		return false;
 	}
-					
+
 	void Spectrum2DCanvas::intensityModeChange_()
 	{
 		for (UInt i=0; i<layers_.size();++i)
@@ -557,13 +557,13 @@ namespace OpenMS
 		}
 		SpectrumCanvas::intensityModeChange_();
 	}
-	
+
 	void Spectrum2DCanvas::recalculateDotGradient_(UInt layer)
 	{
 		getLayer_(layer).gradient.fromString(getLayer_(layer).param.getValue("dot:gradient"));
 		getLayer_(layer).gradient.activatePrecalculationMode(getMinIntensity(layer), overall_data_range_.max()[2], param_.getValue("interpolation_steps"));
 	}
-	
+
 	void Spectrum2DCanvas::updateProjections()
 	{
 		//try to find the right (peak) layer to project
@@ -605,24 +605,24 @@ namespace OpenMS
 		if (layer->type != LayerData::DT_PEAK)//forth, abort of no peak layer or several peak layers are present
 		{
 			QMessageBox::critical(this,"Error","Cannot show projections of feature layers!");
-			return;	
+			return;
 		}
-		
+
 		//create projection data
 		map<float, float> rt;
 		map<int, float> mzint;
 		map<int,int> mzcount;
 		map<int,float> mzsum;
-    
+
 		UInt peak_count = 0;
 		DoubleReal intensity_max = 0.0;
 		DoubleReal intensity_sum = 0.0;
-	
+
 	  float prec = 0.05;
 		float mult = 1.0/prec;
 
 
-		for (ExperimentType::ConstAreaIterator i = layer->peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
+		for (ExperimentType::ConstAreaIterator i = layer->peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]);
 				 i != layer->peaks.areaEndConst();
 				 ++i)
 		{
@@ -653,11 +653,11 @@ namespace OpenMS
 		projection_rt_[0][0].setIntensity(0.0);
 		projection_rt_[0][1].setMZ(visible_area_.max()[1]);
 		projection_rt_[0][1].setIntensity(0.0);
-		
+
 		UInt i = 2;
 		map<int,float>::iterator intit = mzint.begin();
 		map<int,int>::iterator cit = mzcount.begin();
-		
+
 		for (map<int, float>::iterator it = mzsum.begin(); it != mzsum.end(); ++it)
 		{
 			projection_mz_[0][i].setMZ(it->second/cit->second);
@@ -674,11 +674,11 @@ namespace OpenMS
 			projection_rt_[0][i].setIntensity(it->second);
 			++i;
 		}
-		
+
 		if (isMzToXAxis())
 		{
 			emit showProjectionHorizontal(projection_mz_,Spectrum1DCanvas::DM_PEAKS);
-			emit showProjectionVertical(projection_rt_,Spectrum1DCanvas::DM_CONNECTEDLINES);	
+			emit showProjectionVertical(projection_rt_,Spectrum1DCanvas::DM_CONNECTEDLINES);
 		}
 		else
 		{
@@ -687,22 +687,22 @@ namespace OpenMS
 		}
 		showProjectionInfo(peak_count, intensity_sum, intensity_max);
 	}
-	
+
 	bool Spectrum2DCanvas::finishAdding_()
 	{
 		//unselect all peaks
 		selected_peak_.clear();
 		measurement_start_.clear();
-		
+
 		current_layer_ = getLayerCount()-1;
-		
+
 		if (layers_.back().type==LayerData::DT_PEAK) //peak data
 		{
 			currentPeakData_().sortSpectra(true);
 			currentPeakData_().updateRanges(1);
-			
+
 			update_buffer_ = true;
-			
+
 			//Abort if no data points are contained
 			if (currentPeakData_().size()==0 || currentPeakData_().getSize()==0)
 			{
@@ -739,13 +739,13 @@ namespace OpenMS
 				return false;
 			}
 		}
-		
+
 		//overall values update
 		recalculateRanges_(0,1,2);
 		//cout << "New data range: " << overall_data_range_ << endl;
-		
+
 		resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
-		
+
 		if (getLayerCount()==2)
 		{
 			setIntensityMode(IM_PERCENTAGE);
@@ -762,7 +762,7 @@ namespace OpenMS
 
 		return true;
 	}
-	
+
 	void Spectrum2DCanvas::removeLayer(int layer_index )
 	{
 		if (layer_index<0 || layer_index >= int(getLayerCount()))
@@ -773,13 +773,13 @@ namespace OpenMS
 		//unselect all peaks
 		selected_peak_.clear();
 		measurement_start_.clear();
-	
+
 		//remove the data
 		layers_.erase(layers_.begin()+layer_index);
-		
+
 		//update visible area and boundaries
 		recalculateRanges_(0,1,2);
-		
+
 		resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
 
 		//update current layer if it became invalid
@@ -792,11 +792,11 @@ namespace OpenMS
 			update_(__PRETTY_FUNCTION__);
 			return;
 		}
-		
+
 		intensityModeChange_();
 		emit layerActivated(this);
 	}
-	
+
 	//change the current layer
 	void Spectrum2DCanvas::activateLayer(int layer_index)
 	{
@@ -811,15 +811,15 @@ namespace OpenMS
 
 		current_layer_ = layer_index;
 		emit layerActivated(this);
-		
+
 		update_(__PRETTY_FUNCTION__);
 	}
 
 	void Spectrum2DCanvas::recalculateSnapFactor_()
 	{
 		snap_factors_ = vector<DoubleReal>(getLayerCount(),1.0);
-		
-		if (intensity_mode_ == IM_SNAP) 
+
+		if (intensity_mode_ == IM_SNAP)
 		{
 			for (UInt i=0; i<getLayerCount(); i++)
 			{
@@ -828,8 +828,8 @@ namespace OpenMS
 					DoubleReal local_max  = -numeric_limits<DoubleReal>::max();
 					if (getLayer(i).type==LayerData::DT_PEAK)
 					{
-						for (ExperimentType::ConstAreaIterator it = getLayer(i).peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]); 
-								 it != getLayer(i).peaks.areaEndConst(); 
+						for (ExperimentType::ConstAreaIterator it = getLayer(i).peaks.areaBeginConst(visible_area_.min()[1],visible_area_.max()[1],visible_area_.min()[0],visible_area_.max()[0]);
+								 it != getLayer(i).peaks.areaEndConst();
 								 ++it)
 						{
 							PeakIndex pi = it.getPeakIndex();
@@ -875,7 +875,7 @@ namespace OpenMS
 					}
 					if (local_max>0.0)
 					{
-						snap_factors_[i] = overall_data_range_.max()[2]/local_max;			
+						snap_factors_[i] = overall_data_range_.max()[2]/local_max;
 					}
 				}
 			}
@@ -950,22 +950,22 @@ namespace OpenMS
 #ifdef DEBUG_TOPPVIEW
 		cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
 	  cout << "  Visible area -- m/z: " << visible_area_.minX() << " - " << visible_area_.maxX() << " rt: " << visible_area_.minY() << " - " << visible_area_.maxY() << endl;
-	  cout << "  Overall area -- m/z: " << overall_data_range_.min()[0] << " - " << overall_data_range_.max()[0] << " rt: " << overall_data_range_.min()[1] << " - " << overall_data_range_.max()[1] << endl; 
+	  cout << "  Overall area -- m/z: " << overall_data_range_.min()[0] << " - " << overall_data_range_.max()[0] << " rt: " << overall_data_range_.min()[1] << " - " << overall_data_range_.max()[1] << endl;
 #endif
 #ifdef TIMING_TOPPVIEW
 		QTime timer;
  		timer.start();
 #endif
-		
+
 		QPainter painter;
-		
+
 		if (update_buffer_)
 		{
 			update_buffer_ = false;
-			
+
 			//recalculate snap factor
 			recalculateSnapFactor_();
-			
+
 			buffer_.fill(QColor(param_.getValue("background_color").toQString()).rgb());
 			painter.begin(&buffer_);
 
@@ -1003,23 +1003,23 @@ namespace OpenMS
 			paintGridLines_(painter);
 			painter.end();
 		}
-		
+
 		painter.begin(this);
-		
+
 		//copy peak data from buffer
 		QVector<QRect> rects = e->region().rects();
 		for (int i = 0; i < (int)rects.size(); ++i)
 		{
 			painter.drawImage(rects[i].topLeft(), buffer_, rects[i]);
 		}
-		
+
 		//draw measurement peak
 		if (action_mode_==AM_MEASURE && measurement_start_.isValid())
 		{
 			painter.setPen(Qt::black);
-			
+
 			QPoint line_begin, line_end;
-			
+
 			if (selected_peak_.isValid())
 			{
 				if (getCurrentLayer().type==LayerData::DT_FEATURE)
@@ -1029,7 +1029,7 @@ namespace OpenMS
 				else if (getCurrentLayer().type==LayerData::DT_PEAK)
 				{
 					dataToWidget_(selected_peak_.getPeak(getCurrentLayer().peaks).getMZ(),selected_peak_.getSpectrum(getCurrentLayer().peaks).getRT(),line_begin);
-				}		
+				}
 				else
 				{
 					dataToWidget_(selected_peak_.getFeature(getCurrentLayer().consensus).getMZ(),selected_peak_.getFeature(getCurrentLayer().consensus).getRT(),line_begin);
@@ -1046,20 +1046,20 @@ namespace OpenMS
 			else if (getCurrentLayer().type==LayerData::DT_PEAK)
 			{
 				dataToWidget_(measurement_start_.getPeak(getCurrentLayer().peaks).getMZ(),measurement_start_.getSpectrum(getCurrentLayer().peaks).getRT(),line_end);
-			}					
+			}
 			else
 			{
 				dataToWidget_(measurement_start_.getFeature(getCurrentLayer().consensus).getMZ(),measurement_start_.getFeature(getCurrentLayer().consensus).getRT(),line_end);
 			}
 
 			painter.drawLine(line_begin, line_end);
-			
+
 			highlightPeak_(painter, measurement_start_);
 		}
-		
+
 		//draw selected peak
 		if (action_mode_==AM_MEASURE || action_mode_==AM_TRANSLATE) highlightPeak_(painter, selected_peak_);
-		
+
 		//draw convex hull of selected peak
 		if (selected_peak_.isValid())
 		{
@@ -1076,7 +1076,7 @@ namespace OpenMS
 				paintConsensusElement_(current_layer_, selected_peak_.getFeature(getCurrentLayer().consensus),painter,false);
 			}
 		}
-		
+
 		painter.end();
 #ifdef DEBUG_TOPPVIEW
 		cout << "END   " << __PRETTY_FUNCTION__ << endl;
@@ -1086,7 +1086,7 @@ namespace OpenMS
 		{
 			cout << "2D PaintEvent took " << timer.elapsed() << " ms" << endl << endl;
 		}
-#endif	
+#endif
 	}
 
 	void Spectrum2DCanvas::mousePressEvent(QMouseEvent* e)
@@ -1109,7 +1109,7 @@ namespace OpenMS
 			else if (action_mode_ == AM_ZOOM)
 			{
 				//translate (if not moving features)
-				if (!getCurrentLayer().type==LayerData::DT_FEATURE || !selected_peak_.isValid()) 
+				if (!getCurrentLayer().type==LayerData::DT_FEATURE || !selected_peak_.isValid())
 				{
 					rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
 					rubber_band_.show();
@@ -1120,7 +1120,7 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::mouseMoveEvent(QMouseEvent* e)
 	{
-		grabKeyboard(); // (re-)grab keyboard after it has been released by unhandled key	
+		grabKeyboard(); // (re-)grab keyboard after it has been released by unhandled key
 		QPoint pos = e->pos();
 	  PeakIndex near_peak = findNearestPeak_(pos);
 
@@ -1128,9 +1128,9 @@ namespace OpenMS
 		if (action_mode_==AM_MEASURE || (action_mode_==AM_TRANSLATE && !e->buttons() & Qt::LeftButton))
 		{
 			//highlight peak
-			selected_peak_ = near_peak; 
+			selected_peak_ = near_peak;
 			update_(__PRETTY_FUNCTION__);
-			
+
 			//show coordinates
 			if (selected_peak_.isValid())
 			{
@@ -1188,15 +1188,15 @@ namespace OpenMS
 		else if (action_mode_==AM_ZOOM)
 		{
 			//Zoom mode => no peak should be select
-			selected_peak_.clear(); 
+			selected_peak_.clear();
 			update_(__PRETTY_FUNCTION__);
 		}
 
 		//show current mouse cordinates
 		if (action_mode_==AM_ZOOM || !near_peak.isValid())
 		{
-			PointType pnt = widgetToData_(pos); 	 
-			emit sendCursorStatus( pnt[0], -1.0, pnt[1]); 	 
+			PointType pnt = widgetToData_(pos);
+			emit sendCursorStatus( pnt[0], -1.0, pnt[1]);
 		}
 
 		if (action_mode_==AM_MEASURE)
@@ -1243,23 +1243,23 @@ namespace OpenMS
 		else if (action_mode_ == AM_TRANSLATE)
 		{
 			if (e->buttons() & Qt::LeftButton)
-			{	
+			{
 				if (getCurrentLayer().type==LayerData::DT_FEATURE && selected_peak_.isValid()) //move feature
 				{
 					PointType new_data = widgetToData_(pos);
 					DoubleReal mz = new_data[0];
 					DoubleReal rt = new_data[1];
-					
+
 					//restrict the movement to the data range
 					mz = max(mz,overall_data_range_.min()[0]);
 					mz = min(mz,overall_data_range_.max()[0]);
 					rt = max(rt,overall_data_range_.min()[1]);
 					rt = min(rt,overall_data_range_.max()[1]);
-					
+
 					getCurrentLayer_().features[selected_peak_.peak].setRT(rt);
 					getCurrentLayer_().features[selected_peak_.peak].setMZ(mz);
-					
-					update_buffer_ = true;	
+
+					update_buffer_ = true;
 					update_(__PRETTY_FUNCTION__);
 					modificationStatus_(activeLayerIndex(), true);
 				}
@@ -1298,7 +1298,7 @@ namespace OpenMS
 						newHiY = overall_data_range_.maxY();
 						newLoY = newHiY - visible_area_.height();
 					}
-					
+
 					//change area
 					//cout << "New area: x " << newLoX <<"-"<< newHiX << " - y "<<newLoY <<"-"<< newHiY << endl;
 					//cout << __PRETTY_FUNCTION__ << endl;
@@ -1360,14 +1360,14 @@ namespace OpenMS
 			}
 		}
 	}
-	
+
 	void Spectrum2DCanvas::contextMenuEvent(QContextMenuEvent* e)
 	{
 		//Abort of there are no layers
 		if (layers_.empty()) return;
-		
+
 		DoubleReal rt = widgetToData_(e->pos())[1];
-		
+
 		const LayerData& layer = getCurrentLayer();
 
 		QMenu* context_menu = new QMenu(this);
@@ -1382,13 +1382,13 @@ namespace OpenMS
 		}
 		context_menu->addAction(layer_name.toQString())->setEnabled(false);
 		context_menu->addSeparator();
-		
+
 		context_menu->addAction("Layer meta data");
-		
+
 		QMenu* settings_menu = new QMenu("Settings");
  		settings_menu->addAction("Show/hide grid lines");
  		settings_menu->addAction("Show/hide axis legends");
-		
+
 		//-------------------PEAKS----------------------------------
 		if (layer.type==LayerData::DT_PEAK)
 		{
@@ -1396,7 +1396,7 @@ namespace OpenMS
 			settings_menu->addSeparator();
  			settings_menu->addAction("Show/hide projections");
  			settings_menu->addAction("Show/hide MS/MS precursors");
-			
+
 			//add surrounding survey scans
 			//find nearest survey scan
 			Int size = getCurrentLayer().peaks.size();
@@ -1482,9 +1482,9 @@ namespace OpenMS
 				context_menu->addMenu(msn_meta);
 				context_menu->addSeparator();
 			}
-						
+
 			finishContextMenu_(context_menu, settings_menu);
-			
+
 			//evaluate menu
 			if ((result = context_menu->exec(mapToGlobal(e->pos()))))
 			{
@@ -1500,7 +1500,7 @@ namespace OpenMS
 		    	dlg.add(spec);
 		      dlg.exec();
 				}
-			}	
+			}
 		}
 		//-------------------FEATURES----------------------------------
 		else if (layer.type==LayerData::DT_FEATURE)
@@ -1510,7 +1510,7 @@ namespace OpenMS
  			settings_menu->addAction("Show/hide convex hull");
  			settings_menu->addAction("Show/hide trace convex hulls");
  			settings_menu->addAction("Show/hide numbers/labels");
- 				
+
 			//search for nearby features
 			DPosition<2> p1 = widgetToData_(e->pos()+ QPoint(10,10));
 			DPosition<2> p2 = widgetToData_(e->pos()- QPoint(10,10));
@@ -1518,7 +1518,7 @@ namespace OpenMS
 			DoubleReal rt_max = max(p1[1],p2[1]);
 			DoubleReal mz_min = min(p1[0],p2[0]);
 			DoubleReal mz_max = max(p1[0],p2[0]);
-			
+
 			QMenu* meta = new QMenu("Feature meta data");
 			bool present = false;
 			FeatureMapType& features = getCurrentLayer_().features;
@@ -1530,24 +1530,24 @@ namespace OpenMS
 					present=true;
 					a = meta->addAction(QString("RT: ") + QString::number(it->getRT()) + "  m/z:" + QString::number(it->getMZ()) + "  charge:" + QString::number(it->getCharge()));
 					a->setData((int)(it-features.begin()));
-				}  
+				}
 			}
 			if (present)
 			{
 				context_menu->addMenu(meta);
-				context_menu->addSeparator(); 			
+				context_menu->addSeparator();
 			}
-			
+
 			finishContextMenu_(context_menu, settings_menu);
 
-			//evaluate menu			
+			//evaluate menu
 			if ((result = context_menu->exec(mapToGlobal(e->pos()))))
 			{
 				if (result->text().left(3)=="RT:")
 				{
 					MetaDataBrowser dlg(true, this);
 		      dlg.setWindowTitle("View/Edit meta data");
-		      dlg.add(features[result->data().toInt()]);					
+		      dlg.add(features[result->data().toInt()]);
 		      dlg.exec();
 				}
 			}
@@ -1558,11 +1558,49 @@ namespace OpenMS
 			//add settings
 			settings_menu->addSeparator();
  			settings_menu->addAction("Show/hide elements");
- 			
+
+			//search for nearby features
+			DPosition<2> p1 = widgetToData_(e->pos()+ QPoint(10,10));
+			DPosition<2> p2 = widgetToData_(e->pos()- QPoint(10,10));
+			DoubleReal rt_min = min(p1[1],p2[1]);
+			DoubleReal rt_max = max(p1[1],p2[1]);
+			DoubleReal mz_min = min(p1[0],p2[0]);
+			DoubleReal mz_max = max(p1[0],p2[0]);
+
+			QMenu* consens_meta = new QMenu("Consensus meta data");
+			bool present = false;
+			ConsensusMapType& features = getCurrentLayer_().consensus;
+			//consensus feature meta data menu
+			for (ConsensusMapType::Iterator it = features.begin(); it!=features.end(); ++it)
+			{
+				if (it->getMZ() <= mz_max && it->getMZ() >= mz_min && it->getRT() <= rt_max && it->getRT() >= rt_min)
+				{
+					present=true;
+
+					a = consens_meta->addAction(QString("RT: ") + QString::number(it->getRT()) + "  m/z:" + QString::number(it->getMZ()) + "  charge:" + QString::number(it->getCharge()));
+					a->setData((int)(it-features.begin()));
+				}
+			}
+			if (present)
+			{
+				context_menu->addMenu(consens_meta);
+				context_menu->addSeparator();
+			}
+
 			finishContextMenu_(context_menu, settings_menu);
-			result = context_menu->exec(mapToGlobal(e->pos()));
+
+			if ((result = context_menu->exec(mapToGlobal(e->pos()))))
+			{
+				if (result->text().left(3)=="RT:")
+				{
+					MetaDataBrowser dlg(true, this);
+					dlg.setWindowTitle("View/Edit meta data");
+					dlg.add(features[result->data().toInt()]);
+					dlg.exec();
+				}
+			}
 		}
-		
+
 		//common actions of peaks and features
 		if (result)
 		{
@@ -1573,7 +1611,7 @@ namespace OpenMS
 			else if (result->text() == "Show/hide grid lines")
 			{
 				showGridLines(!gridLinesShown());
-			} 
+			}
 			else if (result->text() == "Show/hide axis legends")
 			{
 				emit changeLegendVisibility();
@@ -1611,7 +1649,7 @@ namespace OpenMS
 				showMetaData(true);
 			}
 		}
-		
+
 		e->accept();
 	}
 
@@ -1620,12 +1658,12 @@ namespace OpenMS
 		//finish settings menu
 		settings_menu->addSeparator();
  		settings_menu->addAction("Preferences");
- 		
+
  		//create save menu
  		QMenu* save_menu = new QMenu("Save");
 		save_menu->addAction("Layer");
 		save_menu->addAction("Visible layer data");
- 		
+
 		//add settings menu
 		context_menu->addMenu(save_menu);
 		context_menu->addMenu(settings_menu);
@@ -1658,8 +1696,8 @@ namespace OpenMS
 			mapping->setCurrentIndex(1);
 		}
 		gradient->gradient().fromString(getCurrentLayer_().param.getValue("dot:gradient"));
-		on_file_change->setCurrentIndex(on_file_change->findText(param_.getValue("on_file_change").toQString()));	
-		
+		on_file_change->setCurrentIndex(on_file_change->findText(param_.getValue("on_file_change").toQString()));
+
 		if (dlg.exec())
 		{
 			param_.setValue("background_color",bg_color->getColor().name());
@@ -1669,7 +1707,7 @@ namespace OpenMS
 				mzToXAxis(!isMzToXAxis());
 			}
 			getCurrentLayer_().param.setValue("dot:gradient",gradient->gradient().toString());
-			
+
 			currentLayerParamtersChanged_();
 		}
 	}
@@ -1677,22 +1715,22 @@ namespace OpenMS
 	void Spectrum2DCanvas::currentLayerParamtersChanged_()
 	{
 		recalculateDotGradient_(activeLayerIndex());
-		
-		update_buffer_ = true;	
+
+		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
 	}
 
 	void Spectrum2DCanvas::saveCurrentLayer(bool visible)
 	{
 		const LayerData& layer = getCurrentLayer();
-    
+
     //determine proposed filename
 		String proposed_name = param_.getValue("default_path");
     if (visible==false && layer.filename!="")
     {
     	proposed_name = layer.filename;
     }
-    
+
 		if (layer.type==LayerData::DT_PEAK) //peak data
 		{
     	QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(),"mzData files (*.mzData);;All files (*)");
@@ -1701,7 +1739,7 @@ namespace OpenMS
 				//set up file adapter
 				MzDataFile f;
 				f.setLogType(ProgressLogger::GUI);
-			
+
 	    	if (visible) //only visible data
 	    	{
 					ExperimentType out;
@@ -1756,7 +1794,7 @@ namespace OpenMS
 	void Spectrum2DCanvas::updateLayer_(UInt i)
 	{
 		LayerData& layer = getLayer_(i);
-		
+
 		if (layers_.back().type==LayerData::DT_PEAK) //peak data
 		{
 			try
@@ -1767,7 +1805,7 @@ namespace OpenMS
 			{
 				QMessageBox::critical(this,"Error",(String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
 				layer.peaks.clear();
-			}		
+			}
 			layer.peaks.sortSpectra(true);
 			layer.peaks.updateRanges(1);
 		}
@@ -1818,7 +1856,7 @@ namespace OpenMS
 		//change visible area
 		changeVisibleArea_(AreaType(newLo,visible_area_.minY(),newHi,visible_area_.maxY()));
 	}
-	
+
 	void Spectrum2DCanvas::translateRight_()
 	{
 		DoubleReal shift = 0.05 * visible_area_.width();
@@ -1833,7 +1871,7 @@ namespace OpenMS
 		//change visible area
 		changeVisibleArea_(AreaType(newLo,visible_area_.minY(),newHi,visible_area_.maxY()));
 	}
-	
+
 	void Spectrum2DCanvas::translateForward_()
 	{
 		DoubleReal shift = 0.05 * visible_area_.height();
@@ -1848,7 +1886,7 @@ namespace OpenMS
 		//change visible area
 		changeVisibleArea_(AreaType(visible_area_.minX(),newLo,visible_area_.maxX(),newHi));
 	}
-	
+
 	void Spectrum2DCanvas::translateBackward_()
 	{
 		DoubleReal shift = 0.05 * visible_area_.height();
@@ -1861,7 +1899,7 @@ namespace OpenMS
 			newHi = newLo + visible_area_.height();
 		}
 		//change visible area
-		changeVisibleArea_(AreaType(visible_area_.minX(),newLo,visible_area_.maxX(),newHi));		
+		changeVisibleArea_(AreaType(visible_area_.minX(),newLo,visible_area_.maxX(),newHi));
 	}
 
 
@@ -1873,10 +1911,10 @@ namespace OpenMS
 		{
 			layer.features.erase(layer.features.begin()+selected_peak_.peak);
 			selected_peak_.clear();
-			update_buffer_ = true;	
+			update_buffer_ = true;
 			update_(__PRETTY_FUNCTION__);
 			e->accept();
-			
+
 			modificationStatus_(activeLayerIndex(), true);
 		}
 		else
@@ -1903,7 +1941,7 @@ namespace OpenMS
 			measurement_start_.clear();
 			update_(__PRETTY_FUNCTION__);
 		}
-		
+
 		//do the normal stuff
 		SpectrumCanvas::keyReleaseEvent(e);
 	}
@@ -1919,9 +1957,9 @@ namespace OpenMS
 				if (dialog.exec())
 				{
 					getCurrentLayer_().features[selected_peak_.peak] = dialog.getFeature();
-					update_buffer_ = true;	
+					update_buffer_ = true;
 					update_(__PRETTY_FUNCTION__);
-	
+
 					modificationStatus_(activeLayerIndex(), true);
 				}
 			}
@@ -1936,9 +1974,9 @@ namespace OpenMS
 				{
 					tmp = dialog.getFeature();
 					getCurrentLayer_().features.push_back(tmp);
-					update_buffer_ = true;	
+					update_buffer_ = true;
 					update_(__PRETTY_FUNCTION__);
-	
+
 					modificationStatus_(activeLayerIndex(), true);
 				}
 			}
