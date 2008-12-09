@@ -126,8 +126,8 @@ START_SECTION(([EXTRA]~HasScanMode()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-	HasScanMode<MSSpectrum<> > r(1,false);
-	HasScanMode<MSSpectrum<> > r2(2,true);
+	HasScanMode<MSSpectrum<> > r(InstrumentSettings::ZOOM,false);
+	HasScanMode<MSSpectrum<> > r2(InstrumentSettings::FULL,true);
 	MSSpectrum<> s;
 	s.getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
 	TEST_EQUAL(r(s), true);

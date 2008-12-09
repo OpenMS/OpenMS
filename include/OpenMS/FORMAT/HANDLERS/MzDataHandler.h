@@ -92,7 +92,7 @@ namespace OpenMS
 				// InletType
 				String(";Direct;Batch;Chromatography;ParticleBeam;MembraneSeparator;OpenSplit;JetSeparator;Septum;Reservoir;MovingBelt;MovingWire;FlowInjectionAnalysis;ElectrosprayInlet;ThermosprayInlet;Infusion;ContinuousFlowFastAtomBombardment;InductivelyCoupledPlasma").split(';',cv_terms_[11]);
 				// TandemScanningMethod
-				String(";ProductIonScan;PrecursorIonScan;ConstantNeutralLoss;SingleReactionMonitoring;MultipleReactionMonitoring;SingleIonMonitoring;MultipleIonMonitoring").split(';',cv_terms_[12]);
+				// is no longer used cv_terms_[12] is empty now
 				// DetectorType
 				String(";EM;Photomultiplier;FocalPlaneArray;FaradayCup;ConversionDynodeElectronMultiplier;ConversionDynodePhotomultiplier;Multi-Collector;ChannelElectronMultiplier").split(';',cv_terms_[13]);
 				// AnalyzerType
@@ -100,7 +100,7 @@ namespace OpenMS
 				// EnergyUnits
 				String(";eV;Percent").split(';',cv_terms_[15]);
 				// ScanMode
-				String(";Zoom;MassScan;SelectedIonDetection;SelectedReactionMonitoring;ConsecutiveReactionMonitoring;ConstantNeutralGainScan;ConstantNeutralLossScan;ProductIonScan;PrecursorIonScan;EnhancedResolutionScan").split(';',cv_terms_[16]);
+				// is no longer used cv_terms_[16] is empty now
 				// Polarity
 				String(";Positive;Negative").split(';',cv_terms_[17]);
 				// ActivationMethod
@@ -144,7 +144,7 @@ namespace OpenMS
 				// InletType
 				String(";Direct;Batch;Chromatography;ParticleBeam;MembraneSeparator;OpenSplit;JetSeparator;Septum;Reservoir;MovingBelt;MovingWire;FlowInjectionAnalysis;ElectrosprayInlet;ThermosprayInlet;Infusion;ContinuousFlowFastAtomBombardment;InductivelyCoupledPlasma").split(';',cv_terms_[11]);
 				// TandemScanningMethod
-				String(";ProductIonScan;PrecursorIonScan;ConstantNeutralLoss;SingleReactionMonitoring;MultipleReactionMonitoring;SingleIonMonitoring;MultipleIonMonitoring").split(';',cv_terms_[12]);
+				// is no longer used cv_terms_[12] is empty now
 				// DetectorType
 				String(";EM;Photomultiplier;FocalPlaneArray;FaradayCup;ConversionDynodeElectronMultiplier;ConversionDynodePhotomultiplier;Multi-Collector;ChannelElectronMultiplier").split(';',cv_terms_[13]);
 				// AnalyzerType
@@ -152,7 +152,7 @@ namespace OpenMS
 				// EnergyUnits
 				String(";eV;Percent").split(';',cv_terms_[15]);
 				// ScanMode
-				String(";Zoom;MassScan;SelectedIonDetection;SelectedReactionMonitoring;ConsecutiveReactionMonitoring;ConstantNeutralGainScan;ConstantNeutralLossScan;ProductIonScan;PrecursorIonScan;EnhancedResolutionScan").split(';',cv_terms_[16]);
+				// is no longer used cv_terms_[16] is empty now
 				// Polarity
 				String(";Positive;Negative").split(';',cv_terms_[17]);
 				// ActivationMethod
@@ -922,7 +922,6 @@ namespace OpenMS
 					writeCVS_(os, ana.getScanTime(), "1000016", "ScanTime",5);
 					writeCVS_(os, ana.getScanDirection(), 5,	"1000018", "ScanDirection",5);
 					writeCVS_(os, ana.getScanLaw(), 6, "1000019", "ScanLaw",5);
-					writeCVS_(os, ana.getTandemScanMethod(), 12,"1000020", "TandemScanningMethod",5);
 					writeCVS_(os, ana.getReflectronState(), 8, "1000021", "ReflectronState",5);
 					writeCVS_(os, ana.getTOFTotalPathLength(), "1000022", "TOFTotalPathLength",5);
 					writeCVS_(os, ana.getIsolationWidth(), "1000023", "IsolationWidth",5);
@@ -1109,7 +1108,50 @@ namespace OpenMS
 					}
 					os << ">\n";
 	
-					writeCVS_(os, spec.getInstrumentSettings().getScanMode(), 16, "1000036", "ScanMode",6);
+					//scan mode
+					switch(iset.getScanMode())
+					{
+						case InstrumentSettings::UNKNOWN:
+							//do nothing here
+							break;
+						case InstrumentSettings::FULL:
+							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"MassScan\"/>\n";
+							break;
+						case InstrumentSettings::ZOOM:
+							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"Zoom\"/>\n";
+							break;
+						case InstrumentSettings::SIM:
+							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"SelectedIonDetection\"/>\n";
+							break;
+						case InstrumentSettings::SRM:
+							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"SelectedReactionMonitoring\"/>\n";
+							break;
+						case InstrumentSettings::CRM:
+							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"ConsecutiveReactionMonitoring\"/>\n";
+							break;
+						case InstrumentSettings::CNG:
+							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"ConstantNeutralGainScan\"/>\n";
+							break;
+						case InstrumentSettings::CNL:
+							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"ConstantNeutralLossScan\"/>\n";
+							break;
+						case InstrumentSettings::PRECURSOR:
+							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"PrecursorIonScan\"/>\n";
+							break;
+						case InstrumentSettings::PDA:
+							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"PhotodiodeArrayDetector\"/>\n";
+							break;
+						case InstrumentSettings::EMC:
+							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"EnhancedMultiplyChargedScan\"/>\n";
+							break;
+						case InstrumentSettings::TDF:
+							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"TimeDelayedFragmentationScan\"/>\n";
+							break;
+						default:
+							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"MassScan\"/>\n";
+							warning(STORE, String("Scan mode '") + InstrumentSettings::NamesOfScanMode[iset.getScanMode()] + "' not supported by mzData. Using 'MassScan' scan mode!");
+					}
+					
 					writeCVS_(os, spec.getInstrumentSettings().getPolarity(), 17, "1000037", "Polarity",6);
 					//Retiontion time already in TimeInSeconds
 					writeCVS_(os, spec.getRT(), "1000039", "TimeInSeconds",6);
@@ -1269,7 +1311,52 @@ namespace OpenMS
 			{
 				if (accession=="PSI:1000036") //Scan Mode
 				{
-					spec_.getInstrumentSettings().setScanMode((InstrumentSettings::ScanMode)cvStringToEnum_(16, value,"scan mode"));
+					if (value=="Zoom")
+					{
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
+					}
+					else if (value=="MassScan")
+					{
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+					}
+					else if (value=="SelectedIonDetection")
+					{
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
+					}
+					else if (value=="SelectedReactionMonitoring")
+					{
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+					}
+					else if (value=="ConsecutiveReactionMonitoring")
+					{
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::CRM);
+					}
+					else if (value=="ConstantNeutralGainScan")
+					{
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::CNG);
+					}
+					else if (value=="ConstantNeutralLossScan")
+					{
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::CNL);
+					}
+					else if (value=="ProductIonScan")
+					{
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+						spec_.setMSLevel(2);
+					}
+					else if (value=="PrecursorIonScan")
+					{
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::PRECURSOR);
+					}
+					else if (value=="EnhancedResolutionScan")
+					{
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
+					}
+					else
+					{
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+						warning(LOAD, String("Unknown scan mode '") + value + "'. Assuming full scan");
+					}
 				}
 				else if (accession=="PSI:1000038") //Time in minutes
 				{
@@ -1465,7 +1552,7 @@ namespace OpenMS
 				}
 				else if (accession=="PSI:1000020")
 				{
-					exp_->getInstrument().getMassAnalyzers().back().setTandemScanMethod((MassAnalyzer::TandemScanningMethod)cvStringToEnum_(12, value, "tandem scanning mode"));
+					// ignored
 				}
 				else if (accession=="PSI:1000021")
 				{

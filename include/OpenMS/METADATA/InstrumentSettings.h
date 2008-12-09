@@ -45,16 +45,17 @@ namespace OpenMS
       enum ScanMode
       {
       	UNKNOWN,					///< Unknown scan method
-      	ZOOM,							///< Zoom scan
-      	FULL,							///< Full scan
-      	SIM,							///< Selected ion monitoring
-      	SRM,							///< Selected reaction monitoring
-      	CRM,							///< Consecutive reaction monitoring
-      	CNG,							///< Constant neutral gain scan
-      	CNL,							///< Constant neutral loss scan
-      	PRODUCT,					///< Product ion scan
+      	FULL,							///< Full scan @n Synonyms: 'MSn scan'
+      	ZOOM,							///< Zoom scan @n Synonyms: 'Enhanced resolution scan'
+      	SIM,							///< Selected ion monitoring scan @n Synonyms: 'Multiple ion monitoring scan', 'SIM scan', 'MIM scan'
+      	SRM,							///< Selected reaction monitoring scan @n Synonyms: 'Multiple reaction monitoring scan', 'SRM scan', 'MRM scan'
+      	CRM,							///< Consecutive reaction monitoring scan @n Synonyms: 'CRM scan'
+      	CNG,							///< Constant neutral gain scan @n Synonyms: 'CNG scan'
+      	CNL,							///< Constant neutral loss scan @n Synonyms: 'CNG scan'
       	PRECURSOR,				///< Precursor ion scan
-      	ER,								///< Enhanced resolution scan
+      	PDA,							///< Photodiode array detector scan @n Synonyms: 'PDA scan'
+      	EMC,							///< Enhanced multiply charged scan
+      	TDF,							///< Time-delayed fragmentation scan
       	SIZE_OF_SCANMODE
       };
 			

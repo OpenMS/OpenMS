@@ -31,8 +31,7 @@ using namespace std;
 namespace OpenMS
 {
 
-	const std::string InstrumentSettings::NamesOfScanMode[] = {"Unknown","Zoom","MassScan","SelectedIonMonitoring","SelectedReactionMonitoring","ConsecutiveReactionMonitoring","ConstantNeutralGainScan","ConstantNeutralLossScan","ProductIonScan","PrecursorIonScan","EnhancedResolutionScan"};
-
+	const std::string InstrumentSettings::NamesOfScanMode[] = {"Unknown","Full","Zoom","SelectedIonMonitoring","SelectedReactionMonitoring","ConsecutiveReactionMonitoring","ConstantNeutralGain","ConstantNeutralLoss","Precursor","PhotodiodeArrayDetector","EnhancedMultiplyCharged","TimeDelayedFragmentation"};
 
 	InstrumentSettings::InstrumentSettings():
 		MetaInfoInterface(),

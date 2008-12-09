@@ -41,8 +41,6 @@ namespace OpenMS
 
 	const std::string MassAnalyzer::NamesOfScanLaw[] = {"Unknown","Exponential","Linar","Quadratic"};
 
-	const std::string MassAnalyzer::NamesOfTandemScanningMethod[] = {"Unknown","Product ion scan","Precursor ion scan","Constant neutral loss","Single reaction monitoring","Multiple reaction monitoring","Single ion monitoring","Multiple ion monitoring"};
-
 	const std::string MassAnalyzer::NamesOfReflectronState[] = {"Unknown","On","Off","None"};
 	
 	MassAnalyzer::MassAnalyzer():
@@ -52,7 +50,6 @@ namespace OpenMS
 		resolution_type_(RESTYPENULL),
 		scan_direction_(SCANDIRNULL),
 		scan_law_(SCANLAWNULL),
-		tandem_scan_method_(TANDEMNULL),
 		reflectron_state_(REFLSTATENULL),	
 		resolution_(0.0),
 		accuracy_(0.0),
@@ -74,7 +71,6 @@ namespace OpenMS
 	  resolution_type_(source.resolution_type_),
 	  scan_direction_(source.scan_direction_),
 	  scan_law_(source.scan_law_),
-	  tandem_scan_method_(source.tandem_scan_method_),
 	  reflectron_state_(source.reflectron_state_),
 	  resolution_(source.resolution_),
 	  accuracy_(source.accuracy_),
@@ -104,7 +100,6 @@ namespace OpenMS
     resolution_type_ = source.resolution_type_;
     scan_direction_ = source.scan_direction_;
     scan_law_ = source.scan_law_;
-    tandem_scan_method_ = source.tandem_scan_method_;
     reflectron_state_ = source.reflectron_state_;
     resolution_ = source.resolution_;
     accuracy_ = source.accuracy_;
@@ -128,7 +123,6 @@ namespace OpenMS
 	    resolution_type_ == rhs.resolution_type_ &&
 	    scan_direction_ == rhs.scan_direction_ &&
 	    scan_law_ == rhs.scan_law_ &&
-	    tandem_scan_method_ == rhs.tandem_scan_method_ &&
 	    reflectron_state_ == rhs.reflectron_state_ &&
 	    resolution_ == rhs.resolution_ &&
 	    accuracy_ == rhs.accuracy_ &&
@@ -196,16 +190,6 @@ namespace OpenMS
 	void MassAnalyzer::setScanLaw(MassAnalyzer::ScanLaw scan_law)
 	{
 	  scan_law_ = scan_law; 
-	}
-	
-	MassAnalyzer::TandemScanningMethod MassAnalyzer::getTandemScanMethod() const 
-	{
-	  return tandem_scan_method_; 
-	}
-	
-	void MassAnalyzer::setTandemScanMethod(MassAnalyzer::TandemScanningMethod tandem_scan_method)
-	{
-	  tandem_scan_method_ = tandem_scan_method; 
 	}
 	
 	MassAnalyzer::ReflectronState MassAnalyzer::getReflectronState() const 

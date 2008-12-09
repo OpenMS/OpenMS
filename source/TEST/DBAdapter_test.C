@@ -257,7 +257,6 @@ END_SECTION
 		analyzer.setScanLaw(MassAnalyzer::LINEAR);
 		analyzer.setScanRate(5.555);
 		analyzer.setScanTime(6.666);
-		analyzer.setTandemScanMethod(MassAnalyzer::PRODUCTIONSCAN);
 		analyzer.setTOFTotalPathLength(7.777);
 		analyzer.setType(MassAnalyzer::TOF);
 		analyzer.setMetaValue("label", String("pink"));
@@ -624,7 +623,6 @@ END_SECTION
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getScanLaw() , MassAnalyzer::LINEAR )
 			TEST_REAL_SIMILAR(exp_new.getInstrument().getMassAnalyzers()[1].getScanRate() , 5.555 )
 			TEST_REAL_SIMILAR(exp_new.getInstrument().getMassAnalyzers()[1].getScanTime() , 6.666 )
-			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getTandemScanMethod() , MassAnalyzer::PRODUCTIONSCAN )
 			TEST_REAL_SIMILAR(exp_new.getInstrument().getMassAnalyzers()[1].getTOFTotalPathLength() , 7.777 )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getType() , MassAnalyzer::TOF )
 			TEST_EQUAL(exp_new.getInstrument().getMassAnalyzers()[1].getMetaValue("label") , "pink" )

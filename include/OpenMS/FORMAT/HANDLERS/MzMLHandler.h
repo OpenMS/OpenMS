@@ -43,6 +43,7 @@
 //TODO:
 // - Check CV terms of spectrumDescription and acquisitions as soon as they are settled
 // - Check CV terms of spectrum type, scanning method and file content as soon as they are settled
+// - Check isolationWindow CV when settled
 // - scanWindow for acquisition
 // - DataProcessing of binaryDataArray
 // - Sample: CVs for cellular compartement, source tissue and quality
@@ -932,7 +933,7 @@ namespace OpenMS
 				}
 				else if (accession=="MS:1000580") //MSn spectrum
 				{
-					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::PRODUCT);
+					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
 				}
 				else if (accession=="MS:1000581") //CRM spectrum
 				{
@@ -948,11 +949,27 @@ namespace OpenMS
 				}
 				else if (accession=="MS:1000620") //PDA spectrum
 				{
-					//Currently ignored
+					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::PDA);
 				}
-				else if (accession=="MS:1000627") //selected ion current chromatogram
+				else if (accession=="MS:1000325") //constant neutral gain spectrum
 				{
-					//Currently ignored
+					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::CNG);
+				}
+				else if (accession=="MS:1000326") //constant neutral loss spectrum
+				{
+					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::CNL);
+				}
+				else if (accession=="MS:1000341") //precursor ion spectrum
+				{
+					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::PRECURSOR);
+				}
+				else if (accession=="MS:1000789") //enhanced multiply charged spectrum
+				{
+					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::EMC);
+				}
+				else if (accession=="MS:1000790") //time-delayed fragmentation spectrum
+				{
+					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::TDF);
 				}
 				//representation
 				else if (accession=="MS:1000127") //centroid mass spectrum
@@ -2241,13 +2258,13 @@ namespace OpenMS
 			{
 				file_content[exp[i].getInstrumentSettings().getScanMode()]++;
 			}
-			if (file_content.has(InstrumentSettings::PRODUCT) || file_content.has(InstrumentSettings::PRECURSOR))
+			if (file_content.has(InstrumentSettings::FULL))
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
 			}
-			else if (file_content.has(InstrumentSettings::FULL))
+			else if (file_content.has(InstrumentSettings::ZOOM))
 			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000579\" name=\"MS1 spectrum\" />\n";
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
 			}
 			else if (file_content.has(InstrumentSettings::SIM))
 			{
@@ -2260,6 +2277,30 @@ namespace OpenMS
 			else if (file_content.has(InstrumentSettings::CRM))
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000581\" name=\"CRM spectrum\" />\n";
+			}
+			else if (file_content.has(InstrumentSettings::PRECURSOR))
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000341\" name=\"precursor ion spectrum\" />\n";
+			}
+			else if (file_content.has(InstrumentSettings::CNG))
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000325\" name=\"constant neutral gain spectrum\" />\n";
+			}
+			else if (file_content.has(InstrumentSettings::CNL))
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000326\" name=\"constant neutral loss spectrum\" />\n";
+			}
+			else if (file_content.has(InstrumentSettings::PDA))
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000620\" name=\"PDA spectrum\" />\n";
+			}
+			else if (file_content.has(InstrumentSettings::EMC))
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000789\" name=\"enhanced multiply charged spectrum\" />\n";
+			}
+			else if (file_content.has(InstrumentSettings::TDF))
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000789\" name=\"time-delayed fragmentation spectrum\" />\n";
 			}
 			else //FORCED
 			{
@@ -3150,24 +3191,49 @@ namespace OpenMS
 				}
 				if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::FULL)
 				{
-					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000579\" name=\"MS1 spectrum\"/>\n";
+					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
+				}
+				else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::ZOOM)
+				{
+					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
 				}
 				else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::SIM)
 				{
-					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000582\" name=\"SIM spectrum\"/>\n";
+					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000582\" name=\"SIM spectrum\" />\n";
 				}
 				else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::SRM)
 				{
-					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000583\" name=\"SRM spectrum\"/>\n";
+					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000583\" name=\"SRM spectrum\" />\n";
 				}
 				else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::CRM)
 				{
-					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000581\" name=\"CRM spectrum\"/>\n";
+					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000581\" name=\"CRM spectrum\" />\n";
 				}
-				else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::PRODUCT || spec.getInstrumentSettings().getScanMode()==InstrumentSettings::PRECURSOR)
+				else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::PRECURSOR)
 				{
-					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\"/>\n";
+					os	<< "				<cvParam cvRef=\"MS\" accession=\"MS:1000341\" name=\"precursor ion spectrum\" />\n";
 				}
+				else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::CNG)
+				{
+					os	<< "				<cvParam cvRef=\"MS\" accession=\"MS:1000325\" name=\"constant neutral gain spectrum\" />\n";
+				}
+				else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::CNL)
+				{
+					os	<< "				<cvParam cvRef=\"MS\" accession=\"MS:1000326\" name=\"constant neutral loss spectrum\" />\n";
+				}
+				else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::PDA)
+				{
+					os	<< "				<cvParam cvRef=\"MS\" accession=\"MS:1000620\" name=\"PDA spectrum\" />\n";
+				}
+				else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::EMC)
+				{
+					os	<< "				<cvParam cvRef=\"MS\" accession=\"MS:1000789\" name=\"enhanced multiply charged spectrum\" />\n";
+				}
+				else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::TDF)
+				{
+					os	<< "				<cvParam cvRef=\"MS\" accession=\"MS:1000789\" name=\"time-delayed fragmentation spectrum\" />\n";
+				}
+				
 				if (spec.getInstrumentSettings().getPolarity()==IonSource::NEGATIVE)
 				{
 					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000129\" name=\"negative scan\"/>\n";

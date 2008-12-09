@@ -71,7 +71,7 @@ namespace OpenMS
 	  			//Polarity
 					String("any;+;-").split(';',cv_terms_[0]);
 					//Scan type
-					String(";zoom;Full;SIM;SRM;CRM;CNG;CNL;PRODUCT;PRECURSOR;ER").split(';',cv_terms_[1]);
+					// is no longer used cv_terms_[1] is empty now
 					//Ionization method
 					String(";ESI;EI;CI;FAB;TSP;MALDI;FD;FI;PD;SI;TI;API;ISI;CID;CAD;HN;APCI;APPI;ICP").split(';',cv_terms_[2]);
 					//Mass analyzer
@@ -98,7 +98,7 @@ namespace OpenMS
 	  			//Polarity
 					String("any;+;-").split(';',cv_terms_[0]);
 					//Scan type
-					String(";zoom;Full;SIM;SRM;CRM;CNG;CNL;PRODUCT;PRECURSOR;ER").split(';',cv_terms_[1]);
+					// is no longer used cv_terms_[1] is empty now
 					//Ionization method
 					String(";ESI;EI;CI;FAB;TSP;MALDI;FD;FI;PD;SI;TI;API;ISI;CID;CAD;HN;APCI;APPI;ICP").split(';',cv_terms_[2]);
 					//Mass analyzer
@@ -388,10 +388,53 @@ namespace OpenMS
 				
 				String type = "";
 				optionalAttributeAsString_(type, attributes, s_scantype);
-				if (type=="EMS") type=""; //Enhanced MS (ABI - Sashimi converter)
-				if (type=="EPI") type=""; //Enhanced Product Ion (ABI - Sashimi converter)
-				exp_->back().getInstrumentSettings().setScanMode( (InstrumentSettings::ScanMode) cvStringToEnum_(1,type,"scanType") );
-				
+				if (type=="")
+				{
+					//unknown/unset => do nothing here => no warning in the end
+				}
+				else if (type=="zoom")
+				{
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
+				}
+				else if (type=="Full")
+				{
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+				}
+				else if (type=="SIM")
+				{
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
+				}
+				else if (type=="SRM")
+				{
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+				}
+				else if (type=="CRM")
+				{
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::CRM);
+				}
+				else if (type=="Q1")
+				{
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+				}
+				else if (type=="Q3")
+				{
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+				}
+				else if (type=="EMS")//Non-standard type: Enhanced MS (ABI - Sashimi converter)
+				{
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
+				}
+				else if (type=="EPI")//Non-standard type: Enhanced Product Ion (ABI - Sashimi converter)
+				{
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+					exp_->back().setMSLevel(2);
+				}
+				else
+				{
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+					warning(LOAD, String("Unknown scan mode '") + type + "'. Assuming full scan");
+				}
+					
 				++scan_count;
 			}
 			else if (tag=="operator")
@@ -892,11 +935,32 @@ namespace OpenMS
 				{
 					os << "any";
 				}
-				
-				if (spec.getInstrumentSettings().getScanMode()!=0)
+
+				//scan type
+				switch(spec.getInstrumentSettings().getScanMode())
 				{
-					os << "\" scanType=\"" << cv_terms_[1][spec.getInstrumentSettings().getScanMode()];
+					case InstrumentSettings::UNKNOWN:
+						break;
+					case InstrumentSettings::FULL:
+						os << "\" scanType=\"Full";
+						break;
+					case InstrumentSettings::ZOOM:
+						os << "\" scanType=\"zoom";
+						break;
+					case InstrumentSettings::SIM:
+						os << "\" scanType=\"SIM";
+						break;
+					case InstrumentSettings::SRM:
+						os << "\" scanType=\"SRM";
+						break;
+					case InstrumentSettings::CRM:
+						os << "\" scanType=\"CRM";
+						break;
+					default:
+						os << "\" scanType=\"Full";
+						warning(STORE, String("Scan type '") + InstrumentSettings::NamesOfScanMode[spec.getInstrumentSettings().getScanMode()] + "' not supported by mzXML. Using 'Full' scan mode!");
 				}
+
 				os << "\" retentionTime=\"";
 				if (spec.getRT()<0) os << "-";
 				os << "PT"<< std::fabs(spec.getRT()) << "S\"";

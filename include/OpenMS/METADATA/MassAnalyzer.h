@@ -114,22 +114,6 @@ namespace OpenMS
 			/// Names of scan laws
 			static const std::string NamesOfScanLaw[SIZE_OF_SCANLAW];
 
-			/// MS/MS scan method
-			enum TandemScanningMethod
-			{
-				TANDEMNULL,									///< Unknown
-				PRODUCTIONSCAN,							///< Product ion scan
-				PRECURSORIONSCAN,						///< Precursor ion scan
-				CONSTANTNEUTRALLOSS,				///< Constant neutral loss
-				SINGLEREACTIONMONITORING,		///< Single reaction monitoring
-				MULTIPLEREACTIONMONITORING,	///< Multiple reaction monitoring
-				SINGLEIONMONITORING,				///< Single ion monitoring
-				MULTIPLEIONMONITORING,			///< Multiple ion monitoring
-				SIZE_OF_TANDEMSCANNINGMETHOD
-			};
-			/// Names of MS/MS scan methods
-			static const std::string NamesOfTandemScanningMethod[SIZE_OF_TANDEMSCANNINGMETHOD];
-
 			///Reflectron state
 			enum ReflectronState
 			{
@@ -181,11 +165,6 @@ namespace OpenMS
       ScanLaw getScanLaw() const;
       /// sets the scan law
       void setScanLaw(ScanLaw scan_law);
-			
-			/// returns the MS/MS scanning method
-      TandemScanningMethod getTandemScanMethod() const;
-      /// sets the MS/MS scanning method
-      void setTandemScanMethod(TandemScanningMethod tandem_scan_method);
 			
 			/// returns the reflectron state (for TOF)
       ReflectronState getReflectronState() const;
@@ -256,7 +235,6 @@ namespace OpenMS
 			ResolutionType resolution_type_;
 			ScanDirection scan_direction_;
 			ScanLaw scan_law_;
-			TandemScanningMethod tandem_scan_method_;
 			ReflectronState reflectron_state_;
 			DoubleReal resolution_;
 			DoubleReal accuracy_;

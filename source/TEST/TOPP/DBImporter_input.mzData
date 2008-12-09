@@ -42,7 +42,6 @@
 					<cvParam cvLabel="psi" accession="PSI:1000016" name="ScanTime" value="6.666"/>
 					<cvParam cvLabel="psi" accession="PSI:1000018" name="ScanDirection" value="Up"/>
 					<cvParam cvLabel="psi" accession="PSI:1000019" name="ScanLaw" value="Linear"/>
-					<cvParam cvLabel="psi" accession="PSI:1000020" name="TandemScanningMethod" value="ProductIonScan"/>
 					<cvParam cvLabel="psi" accession="PSI:1000022" name="TOFTotalPathLength" value="7.777"/>
 					<userParam name="label" value="pink"/>
 				</analyzer>

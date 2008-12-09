@@ -213,7 +213,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		}
 		//general info
 		TEST_EQUAL(spec.getMSLevel(),2)
-		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::PRODUCT)
+		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::FULL)
 		TEST_EQUAL(spec.getType(),SpectrumSettings::PEAKS)
 		TEST_REAL_SIMILAR(spec.getRT(),5.2)
 		TEST_EQUAL(spec.getInstrumentSettings().getPolarity(),IonSource::POSITIVE)

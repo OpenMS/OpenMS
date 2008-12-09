@@ -79,7 +79,6 @@ namespace OpenMS
 			QComboBox* res_type_;
 			QComboBox* scan_dir_;
 			QComboBox* scan_law_;
-			QComboBox* tandem_scan_method_;
 			QComboBox* reflectron_state_;
 			//@}
 			

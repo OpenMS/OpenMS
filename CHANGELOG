@@ -66,6 +66,7 @@ Detailed list of changes to specific OpenMS classes:
 	- ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmApplyGivenTrafo
 	- ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment
 - Changes to classes
+	- MassAnalyzer: Removed tandem scanning method. This is stored in the ScanMode of InstrumentSettings.
 	- DataProcessing: Now contains Software and can handle multiple processing actions.
 	- Software: Only contains name and version now.
 	- SourceFile: Added MetaInfointerface and checksum type

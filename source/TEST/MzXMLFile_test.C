@@ -189,7 +189,6 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(inst.getMassAnalyzers()[0].getResolutionType(), MassAnalyzer::RESTYPENULL)
 	TEST_EQUAL(inst.getMassAnalyzers()[0].getScanDirection(), MassAnalyzer::SCANDIRNULL)
 	TEST_EQUAL(inst.getMassAnalyzers()[0].getScanLaw(), MassAnalyzer::SCANLAWNULL)
-	TEST_EQUAL(inst.getMassAnalyzers()[0].getTandemScanMethod(), MassAnalyzer::TANDEMNULL)
 	TEST_EQUAL(inst.getMassAnalyzers()[0].getReflectronState(), MassAnalyzer::REFLSTATENULL)
 	TEST_EQUAL(inst.getMassAnalyzers()[0].getResolution(), 0.0f)
 	TEST_EQUAL(inst.getMassAnalyzers()[0].getAccuracy(), 0.0f)

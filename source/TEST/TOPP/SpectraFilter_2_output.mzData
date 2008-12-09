@@ -48,7 +48,6 @@
 					<cvParam cvLabel="psi" accession="PSI:1000016" name="ScanTime" value="55.66"/>
 					<cvParam cvLabel="psi" accession="PSI:1000018" name="ScanDirection" value="Up"/>
 					<cvParam cvLabel="psi" accession="PSI:1000019" name="ScanLaw" value="Linear"/>
-					<cvParam cvLabel="psi" accession="PSI:1000020" name="TandemScanningMethod" value="PrecursorIonScan"/>
 					<cvParam cvLabel="psi" accession="PSI:1000021" name="ReflectronState" value="Off"/>
 					<cvParam cvLabel="psi" accession="PSI:1000022" name="TOFTotalPathLength" value="66.77"/>
 					<cvParam cvLabel="psi" accession="PSI:1000023" name="IsolationWidth" value="77.88"/>
@@ -67,7 +66,6 @@
 					<cvParam cvLabel="psi" accession="PSI:1000016" name="ScanTime" value="15.6"/>
 					<cvParam cvLabel="psi" accession="PSI:1000018" name="ScanDirection" value="Down"/>
 					<cvParam cvLabel="psi" accession="PSI:1000019" name="ScanLaw" value="Exponential"/>
-					<cvParam cvLabel="psi" accession="PSI:1000020" name="TandemScanningMethod" value="ProductIonScan"/>
 					<cvParam cvLabel="psi" accession="PSI:1000021" name="ReflectronState" value="On"/>
 					<cvParam cvLabel="psi" accession="PSI:1000022" name="TOFTotalPathLength" value="16.7"/>
 					<cvParam cvLabel="psi" accession="PSI:1000023" name="IsolationWidth" value="17.8"/>

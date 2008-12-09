@@ -51,7 +51,6 @@ namespace OpenMS
 		addComboBox_(res_type_, "Resolution type");
 		addComboBox_(scan_dir_, "Scan direction");
 		addComboBox_(scan_law_, "Scan law");
-		addComboBox_(tandem_scan_method_, "Tandem scan maethod");
 		addComboBox_(reflectron_state_, "Reflectron state");
 			
 		addDoubleLineEdit_(res_, "Resolution" );
@@ -75,7 +74,6 @@ namespace OpenMS
 			fillComboBox_(res_type_,& temp_.NamesOfResolutionType[temp_.getResolutionType()] , 1);
 			fillComboBox_(scan_dir_,& temp_.NamesOfScanDirection[temp_.getScanDirection()] , 1);
 			fillComboBox_(scan_law_,& temp_.NamesOfScanLaw[temp_.getScanLaw()] , 1);
-			fillComboBox_(tandem_scan_method_,& temp_.NamesOfTandemScanningMethod[temp_.getTandemScanMethod()] , 1);
 			fillComboBox_(reflectron_state_,& temp_.NamesOfReflectronState[temp_.getReflectronState()] , 1);
 		}
 		else
@@ -85,7 +83,6 @@ namespace OpenMS
 			fillComboBox_(res_type_, temp_.NamesOfResolutionType , MassAnalyzer::SIZE_OF_RESOLUTIONTYPE);
 			fillComboBox_(scan_dir_, temp_.NamesOfScanDirection , MassAnalyzer::SIZE_OF_SCANDIRECTION);
 			fillComboBox_(scan_law_, temp_.NamesOfScanLaw , MassAnalyzer::SIZE_OF_SCANLAW);
-			fillComboBox_(tandem_scan_method_, temp_.NamesOfTandemScanningMethod , MassAnalyzer::SIZE_OF_TANDEMSCANNINGMETHOD);
 			fillComboBox_(reflectron_state_, temp_.NamesOfReflectronState , MassAnalyzer::SIZE_OF_REFLECTRONSTATE);
 			
 			type_->setCurrentIndex(temp_.getType()); 
@@ -93,7 +90,6 @@ namespace OpenMS
 			res_type_->setCurrentIndex(temp_.getResolutionType()); 
 			scan_dir_->setCurrentIndex(temp_.getScanDirection()); 
 			scan_law_->setCurrentIndex(temp_.getScanLaw()); 
-			tandem_scan_method_->setCurrentIndex(temp_.getTandemScanMethod()); 
 			reflectron_state_->setCurrentIndex(temp_.getReflectronState()); 
 		}
 
@@ -116,7 +112,6 @@ namespace OpenMS
 		ptr_->setResolutionType((MassAnalyzer::ResolutionType)res_type_->currentIndex());		
 		ptr_->setScanDirection((MassAnalyzer::ScanDirection)scan_dir_->currentIndex());		
 		ptr_->setScanLaw((MassAnalyzer::ScanLaw)scan_law_->currentIndex());		
-		ptr_->setTandemScanMethod((MassAnalyzer::TandemScanningMethod)	tandem_scan_method_->currentIndex());		
 		ptr_->setReflectronState((MassAnalyzer::ReflectronState)reflectron_state_->currentIndex());		
 		
 		ptr_->setResolution(res_->text().toDouble());

@@ -94,11 +94,6 @@ START_SECTION(Int getFinalMSExponent() const)
   TEST_EQUAL(tmp.getFinalMSExponent(),0);
 END_SECTION
 
-START_SECTION(TandemScanningMethod getTandemScanMethod() const)
-  MassAnalyzer tmp;
-  TEST_EQUAL(tmp.getTandemScanMethod(),MassAnalyzer::TANDEMNULL);
-END_SECTION
-
 START_SECTION(float getAccuracy() const)
   MassAnalyzer tmp;
   TEST_REAL_SIMILAR(tmp.getAccuracy(),0.0);
@@ -218,12 +213,6 @@ START_SECTION(void setTOFTotalPathLength(float TOF_total_path_length))
   TEST_REAL_SIMILAR(tmp.getTOFTotalPathLength(),47.11);
 END_SECTION
 
-START_SECTION(void setTandemScanMethod(TandemScanningMethod tandem_scan_method))
-  MassAnalyzer tmp;
-  tmp.setTandemScanMethod(MassAnalyzer::PRODUCTIONSCAN);
-  TEST_EQUAL(tmp.getTandemScanMethod(),MassAnalyzer::PRODUCTIONSCAN);
-END_SECTION
-
 START_SECTION(MassAnalyzer(const MassAnalyzer& source))
   MassAnalyzer tmp;
   tmp.setType(MassAnalyzer::QUADRUPOLE);
@@ -240,7 +229,6 @@ START_SECTION(MassAnalyzer(const MassAnalyzer& source))
   tmp.setScanRate(47.15);
   tmp.setScanTime(47.16);
   tmp.setTOFTotalPathLength(47.17);
-  tmp.setTandemScanMethod(MassAnalyzer::PRODUCTIONSCAN);
 	tmp.setMetaValue("label",String("label"));
   tmp.setOrder(45);
 	
@@ -259,7 +247,6 @@ START_SECTION(MassAnalyzer(const MassAnalyzer& source))
 	TEST_REAL_SIMILAR(tmp.getScanRate(),47.15);
 	TEST_REAL_SIMILAR(tmp.getScanTime(),47.16);
 	TEST_REAL_SIMILAR(tmp.getTOFTotalPathLength(),47.17);
-	TEST_EQUAL(tmp.getTandemScanMethod(),MassAnalyzer::PRODUCTIONSCAN);
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 	TEST_EQUAL(tmp2.getOrder(),45)
 END_SECTION
@@ -281,7 +268,6 @@ START_SECTION(MassAnalyzer& operator= (const MassAnalyzer& source))
   tmp.setScanRate(47.15);
   tmp.setScanTime(47.16);
   tmp.setTOFTotalPathLength(47.17);
-  tmp.setTandemScanMethod(MassAnalyzer::PRODUCTIONSCAN);
 	tmp.setMetaValue("label",String("label"));
   tmp.setOrder(45);
 	
@@ -301,7 +287,6 @@ START_SECTION(MassAnalyzer& operator= (const MassAnalyzer& source))
 	TEST_REAL_SIMILAR(tmp2.getScanRate(),47.15);
 	TEST_REAL_SIMILAR(tmp2.getScanTime(),47.16);
 	TEST_REAL_SIMILAR(tmp2.getTOFTotalPathLength(),47.17);
-	TEST_EQUAL(tmp2.getTandemScanMethod(),MassAnalyzer::PRODUCTIONSCAN);
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 	TEST_EQUAL(tmp2.getOrder(),45)
 
@@ -320,7 +305,6 @@ START_SECTION(MassAnalyzer& operator= (const MassAnalyzer& source))
 	TEST_REAL_SIMILAR(tmp2.getScanRate(),0.0);
 	TEST_REAL_SIMILAR(tmp2.getScanTime(),0.0);
 	TEST_REAL_SIMILAR(tmp2.getTOFTotalPathLength(),0.0);
-	TEST_EQUAL(tmp2.getTandemScanMethod(),MassAnalyzer::TANDEMNULL);
 	TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
 	TEST_EQUAL(tmp2.getOrder(),0)
 END_SECTION
@@ -385,10 +369,6 @@ START_SECTION(bool operator== (const MassAnalyzer& rhs) const)
 	edit=empty;
 	edit.setTOFTotalPathLength(47.17);
 	TEST_EQUAL(edit==empty,false);
-	
-	edit=empty;
-	edit.setTandemScanMethod(MassAnalyzer::PRODUCTIONSCAN);
-	edit.setMetaValue("label",String("label"));
 	
   edit = empty;
   edit.setOrder(45);
@@ -455,10 +435,6 @@ START_SECTION(bool operator!= (const MassAnalyzer& rhs) const)
 	edit=empty;
 	edit.setTOFTotalPathLength(47.17);
 	TEST_EQUAL(edit!=empty,true);
-	
-	edit=empty;
-	edit.setTandemScanMethod(MassAnalyzer::PRODUCTIONSCAN);
-	edit.setMetaValue("label",String("label"));
 	
   edit = empty;
   edit.setOrder(45);
