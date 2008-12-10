@@ -330,10 +330,21 @@ namespace OpenMS
 							{
 								// last chance, a child term of the units was used
 								set<String> child_terms;
-								cv_.getAllChildTerms(child_terms, parsed_term.unit_accession);
-								if (child_terms.find(parsed_term.unit_accession) == child_terms.end())
+
+								bool found_unit(false);
+								for (set<String>::const_iterator it = term.units.begin(); it != term.units.end(); ++it)
 								{
-									errors_.push_back(String("Unit CVTerm not allowed: " + parsed_term.unit_accession + " - " + parsed_term.unit_name + " of term " + parsed_term.accession + " - " + parsed_term.name));
+									cv_.getAllChildTerms(child_terms, *it);
+									if (child_terms.find(parsed_term.unit_accession) != child_terms.end())
+									{
+										found_unit = true;
+										break;
+									}
+								}
+
+								if (!found_unit)
+								{
+										errors_.push_back(String("Unit CVTerm not allowed: " + parsed_term.unit_accession + " - " + parsed_term.unit_name + " of term " + parsed_term.accession + " - " + parsed_term.name));
 								}
 							}
 						}
