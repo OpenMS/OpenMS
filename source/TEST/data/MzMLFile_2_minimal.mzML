@@ -8,22 +8,17 @@
 		<fileContent/>
 	</fileDescription>
 	
-	<instrumentConfigurationList count="1">
-		<instrumentConfiguration id="ID_1">
-			<componentList count="1">
-				<source order="0"/>
-				<analyzer order="1"/>
-				<detector order="2"/>
-			</componentList>
-		</instrumentConfiguration>
-	</instrumentConfigurationList>
-	
 	<softwareList count="1">
 		<software id="ID_2" version="3.3.1 sp1">
       <cvParam cvRef="MS" accession="MS:1000533" name="Bioworks"/>
 		</software>
 	</softwareList>
-	
+
+	<instrumentConfigurationList count="1">
+		<instrumentConfiguration id="ID_1">
+		</instrumentConfiguration>
+	</instrumentConfigurationList>
+
 	<dataProcessingList count="1">
 		<dataProcessing id="ID_3">
 			<processingMethod order="1" softwareRef="ID_2"/>

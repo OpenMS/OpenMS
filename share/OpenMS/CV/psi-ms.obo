@@ -4,7 +4,7 @@ saved-by: David Sparkman
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 1.10.0
+remark: version: 1.11.0
 remark: release date: 2008-12-08
 remark: coverage: Mass spectrometer output files
 remark: creator: Matt Chambers <matt.chambers <@> vanderbilt.edu>
@@ -5081,6 +5081,12 @@ def: "The lowest m/z being isolated in an isolation window." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000792 ! isolation window attribute
 relationship: has_units MS:1000040 ! m/z
+
+[Term]
+id: MS:1000795
+name: no combination
+def: "Use this term if only one scan was recorded or there is no information about scans available." [PSI:MS]
+is_a: MS:1000570 ! spectra combination
 
 [Typedef]
 id: has_units

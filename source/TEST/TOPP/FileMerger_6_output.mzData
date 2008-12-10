@@ -67,7 +67,7 @@
 		<spectrum id="0">
 			<spectrumDesc>
 				<spectrumSettings>
-					<acqSpecification spectrumType="discrete" methodOfCombination="" count="2">
+					<acqSpecification spectrumType="discrete" methodOfCombination="no combination" count="2">
 						<acquisition acqNumber="4711">
 							<userParam name="name" value="acquisition1"/>
 						</acquisition>
@@ -77,6 +77,7 @@
 					</acqSpecification>
 					<spectrumInstrument msLevel="1" mzRangeStart="400" mzRangeStop="1800">
 						<cvParam cvLabel="psi" accession="PSI:1000036" name="ScanMode" value="MassScan"/>
+						<cvParam cvLabel="psi" accession="PSI:1000037" name="Polarity" value="Positive"/>
 						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="5.89050006866455"/>
 					</spectrumInstrument>
 				</spectrumSettings>
@@ -91,8 +92,13 @@
 		<spectrum id="1">
 			<spectrumDesc>
 				<spectrumSettings>
+					<acqSpecification spectrumType="discrete" methodOfCombination="no combination" count="1">
+						<acquisition acqNumber="0">
+						</acquisition>
+					</acqSpecification>
 					<spectrumInstrument msLevel="2" mzRangeStart="110" mzRangeStop="905">
 						<cvParam cvLabel="psi" accession="PSI:1000036" name="ScanMode" value="MassScan"/>
+						<cvParam cvLabel="psi" accession="PSI:1000037" name="Polarity" value="Positive"/>
 						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="5.99049997329712"/>
 					</spectrumInstrument>
 				</spectrumSettings>
@@ -120,8 +126,13 @@
 		<spectrum id="2">
 			<spectrumDesc>
 				<spectrumSettings>
+					<acqSpecification spectrumType="discrete" methodOfCombination="no combination" count="1">
+						<acquisition acqNumber="0">
+						</acquisition>
+					</acqSpecification>
 					<spectrumInstrument msLevel="1">
 						<cvParam cvLabel="psi" accession="PSI:1000036" name="ScanMode" value="MassScan"/>
+						<cvParam cvLabel="psi" accession="PSI:1000037" name="Polarity" value="Positive"/>
 						<cvParam cvLabel="psi" accession="PSI:1000039" name="TimeInSeconds" value="6.09049987792969"/>
 					</spectrumInstrument>
 				</spectrumSettings>

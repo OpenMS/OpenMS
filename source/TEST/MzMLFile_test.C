@@ -191,12 +191,11 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(spec.getAcquisitionInfo()[0].getNumber(),4711)
 		TEST_STRING_EQUAL(spec.getAcquisitionInfo()[0].getMetaValue("source_file_name"),"ac.dta")
 		TEST_STRING_EQUAL(spec.getAcquisitionInfo()[0].getMetaValue("source_file_path"),"file:///F:/data/Exp02")
-		TEST_STRING_EQUAL(spec.getAcquisitionInfo()[0].getMetaValue("external_native_id"),"ENI0")
-		TEST_STRING_EQUAL(spec.getAcquisitionInfo()[0].getMetaValue("external_spectrum_id"),"ESI0")
+//		TEST_STRING_EQUAL(spec.getAcquisitionInfo()[0].getMetaValue("external_native_id"),"ENI0")
+//		TEST_STRING_EQUAL(spec.getAcquisitionInfo()[0].getMetaValue("external_spectrum_id"),"ESI0")
 		TEST_EQUAL(spec.getAcquisitionInfo()[1].getNumber(),4712)
 		TEST_EQUAL(spec.getSourceFile()==SourceFile(),true)
 		//ids
-		TEST_STRING_EQUAL(spec.getMetaValue("id"),"S0")
 		TEST_STRING_EQUAL(spec.getNativeID(),"index=0")
 		TEST_STRING_EQUAL(spec.getMetaValue("maldi_spot_id"),"M0")
 	}
@@ -224,8 +223,9 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[1].end,1000.0)
 		TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[2].begin,1100.0)
 		TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[2].end,1500.0)
-		TEST_EQUAL(spec.getAcquisitionInfo().getMethodOfCombination(),"")
-		TEST_EQUAL(spec.getAcquisitionInfo().size(),0)
+		TEST_EQUAL(spec.getAcquisitionInfo().getMethodOfCombination(),"no combination")
+		TEST_EQUAL(spec.getAcquisitionInfo().size(),1)
+		TEST_EQUAL(spec.getAcquisitionInfo()[0].getNumber(),0)
 		//meta data arrays
 		TEST_EQUAL(spec.getMetaDataArrays().size(),2)
 		TEST_STRING_EQUAL(spec.getMetaDataArrays()[0].getName(),"signal to noise array")
@@ -244,15 +244,14 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(spec.getPrecursorPeak().getPossibleChargeStates()[2],4)
 		TEST_STRING_EQUAL(spec.getPrecursor().getMetaValue("source_file_name"),"pr.dta")
 		TEST_STRING_EQUAL(spec.getPrecursor().getMetaValue("source_file_path"),"file:///F:/data/Exp03")
-		TEST_STRING_EQUAL(spec.getPrecursor().getMetaValue("external_native_id"),"ENI1")
-		TEST_STRING_EQUAL(spec.getPrecursor().getMetaValue("external_spectrum_id"),"ESI1")
+//		TEST_STRING_EQUAL(spec.getPrecursor().getMetaValue("external_native_id"),"ENI1")
+//		TEST_STRING_EQUAL(spec.getPrecursor().getMetaValue("external_spectrum_id"),"ESI1")
 		//source file
 		TEST_STRING_EQUAL(spec.getSourceFile().getNameOfFile(),"tiny1.dta")
 		TEST_STRING_EQUAL(spec.getSourceFile().getPathToFile(),"file:///F:/data/Exp01")
 		TEST_STRING_EQUAL(spec.getSourceFile().getChecksum(),"81be39fb2700ab2f3c8b2234b91274968b6899b1")
 		TEST_EQUAL(spec.getSourceFile().getChecksumType(),SourceFile::SHA1)
 		//ids
-		TEST_STRING_EQUAL(spec.getMetaValue("id"),"S1")
 		TEST_STRING_EQUAL(spec.getNativeID(),"index=1")
 		TEST_STRING_EQUAL(spec.getMetaValue("maldi_spot_id"),"M1")
 		
@@ -285,7 +284,6 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(spec.getAcquisitionInfo()[1].getNumber(),4712)
 		TEST_EQUAL(spec.getSourceFile()==SourceFile(),true)
 		//ids
-		TEST_STRING_EQUAL(spec.getMetaValue("id"),"S2")
 		TEST_STRING_EQUAL(spec.getNativeID(),"index=2")
 		TEST_STRING_EQUAL(spec.getMetaValue("maldi_spot_id"),"M2")
 	}
@@ -304,10 +302,10 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(spec.getInstrumentSettings().getScanWindows().size(),1)
 		TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].begin,110.0)
 		TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].end,905.0)
-		TEST_STRING_EQUAL(spec.getAcquisitionInfo().getMethodOfCombination(),"")
-		TEST_EQUAL(spec.getAcquisitionInfo().size(),0)
+		TEST_STRING_EQUAL(spec.getAcquisitionInfo().getMethodOfCombination(),"no combination")
+		TEST_EQUAL(spec.getAcquisitionInfo().size(),1)
+		TEST_EQUAL(spec.getAcquisitionInfo()[0].getNumber(),0)
 		//ids
-		TEST_STRING_EQUAL(spec.getMetaValue("id"),"S3")
 		TEST_STRING_EQUAL(spec.getNativeID(),"index=3")
 		TEST_EQUAL(spec.metaValueExists("maldi_spot_id"),false)
 	}
@@ -556,12 +554,12 @@ START_SECTION( bool isSemanticallyValid(const String& filename, StringList& erro
 	//indexed MzML
 	TEST_EQUAL(file.isSemanticallyValid("data/MzMLFile_4_indexed.mzML", errors, warnings),true)
 	TEST_EQUAL(errors.size(),0)
-	TEST_EQUAL(warnings.size(),2)
+	TEST_EQUAL(warnings.size(),0)
 	
 	//invalid file
 	TEST_EQUAL(file.isSemanticallyValid("data/MzMLFile_3_invalid.mzML", errors, warnings),false)
 	TEST_EQUAL(errors.size(),5)
-	TEST_EQUAL(warnings.size(),2)
+	TEST_EQUAL(warnings.size(),0)
 END_SECTION
 
 /////////////////////////////////////////////////////////////
