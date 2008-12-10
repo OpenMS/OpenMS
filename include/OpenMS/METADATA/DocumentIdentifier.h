@@ -33,7 +33,17 @@
 namespace OpenMS
 {
   /** 
-    @brief manage document id's (e.g. LSID's)
+    @brief Manage source document information.
+    
+    This class stored information about the source document.
+    Primarily this is the document id e.g. a LSID.
+    
+    For source files additional information can be stored:
+    - file name
+    - file type
+    - file checksum
+    
+    @todo Add source file name, type and MD5 or SHA-1 checksum. Fill these members when loading a map from file (featureXML, consensusXML, mzData, mzXML, mzML, ANDI/MS, DTA, MGF, ...). Use this informtation e.g. when converting to mzML where it is required (Hiwi)
     
     @ingroup Metadata
   */
