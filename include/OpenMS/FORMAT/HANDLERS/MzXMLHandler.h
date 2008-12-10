@@ -422,12 +422,16 @@ namespace OpenMS
 				}
 				else if (type=="EMS")//Non-standard type: Enhanced MS (ABI - Sashimi converter)
 				{
-					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
 				}
 				else if (type=="EPI")//Non-standard type: Enhanced Product Ion (ABI - Sashimi converter)
 				{
 					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
 					exp_->back().setMSLevel(2);
+				}
+				else if (type=="ER") // Non-stanard type: Enhanced Resolution (ABI - Sashimi converter)
+				{
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
 				}
 				else
 				{
