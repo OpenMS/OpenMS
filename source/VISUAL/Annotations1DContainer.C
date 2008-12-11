@@ -29,7 +29,6 @@
 #include <OpenMS/VISUAL/Annotation1DDistanceItem.h>
 #include <OpenMS/VISUAL/Annotation1DTextItem.h>
 #include <OpenMS/VISUAL/Annotation1DPeakItem.h>
-#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 
 #include <iostream>
 

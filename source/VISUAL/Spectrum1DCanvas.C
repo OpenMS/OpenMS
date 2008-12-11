@@ -382,67 +382,25 @@ namespace OpenMS
 		// Delete pressed => delete selected annotations from the current layer
 		if (e->key()==Qt::Key_Delete)
 		{
+			e->accept();
 			getCurrentLayer().annotations_1d.removeSelectedItems();
 			update_buffer_ = true;
 			update_(__PRETTY_FUNCTION__);
 		}
 		
 		// 'a' pressed && in zoom mode (ctrl pressed) => select all annotation items
-		if ((e->modifiers() & Qt::ControlModifier) && (e->key()==Qt::Key_A))
+		else if ((e->modifiers() & Qt::ControlModifier) && (e->key()==Qt::Key_A))
 		{
+			e->accept();
 			getCurrentLayer().annotations_1d.selectAll();
 			update_buffer_ = true;
 			update_(__PRETTY_FUNCTION__);
 		}
 		
-		// Alt/Shift pressed => change action mode
-		if (e->key()==Qt::Key_Control)
+		else
 		{
-			action_mode_ = AM_ZOOM;
-			emit actionModeChange();
+			SpectrumCanvas::keyPressEvent(e);
 		}
-		else if (e->key()==Qt::Key_Shift)
-		{
-			action_mode_ = AM_MEASURE;
-			emit actionModeChange();
-		}
-		
-		// CTRL+/CTRL- => Zoom stack
-		if ((e->modifiers() & Qt::ControlModifier) && (e->key()==Qt::Key_Plus))
-		{
-			zoomForward_();
-		}
-		else if ((e->modifiers() & Qt::ControlModifier) && (e->key()==Qt::Key_Minus))
-		{
-			zoomBack_();
-		}
-		
-		// Arrow keys => translate
-		else if (e->key()==Qt::Key_Left)
-		{
-			translateLeft_();
-		}
-		else if (e->key()==Qt::Key_Right)
-		{
-			translateRight_();
-		}
-		else if (e->key()==Qt::Key_Up)
-		{
-			translateForward_();
-		}
-		else if (e->key()==Qt::Key_Down)
-		{
-			translateBackward_();
-		}
-		
-		//Backspace to reset zoom
-		else if (e->key()==Qt::Key_Backspace)
-		{
-			resetZoom();
-		}
-		
-		e->ignore();
-		
 	}
 
 	PeakIndex Spectrum1DCanvas::findPeakAtPosition_(QPoint p)
