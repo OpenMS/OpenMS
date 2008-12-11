@@ -73,7 +73,7 @@ namespace OpenMS
 		y_scrollbar_ = new QScrollBar(Qt::Vertical, this);
 		y_scrollbar_->setInvertedAppearance(true);
 		grid_->addWidget(y_scrollbar_,row,col-2);
-		grid_->addWidget(x_scrollbar_,row+2,col);		
+		grid_->addWidget(x_scrollbar_,row+2,col);
 		x_scrollbar_->hide();
 		y_scrollbar_->hide();
 		connect(canvas_, SIGNAL(updateHScrollbar(float,float,float,float)), this, SLOT(updateHScrollbar(float,float,float,float)));

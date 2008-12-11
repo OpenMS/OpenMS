@@ -508,6 +508,8 @@ namespace OpenMS
 		{
 			changeVisibleArea_(overall_data_range_.minX(), overall_data_range_.maxX(), true, true);
 		}
+		update_buffer_ = true;
+		update_(__PRETTY_FUNCTION__);
 	}
 
 	void Spectrum1DCanvas::setDrawMode(DrawModes mode)
