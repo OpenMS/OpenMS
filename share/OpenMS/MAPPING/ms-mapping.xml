@@ -12,7 +12,8 @@
     </CvReferenceList>
 
     <CvMappingRuleList>
-        <!-- start of file description -->
+    
+        <!-- file content -->
         <CvMappingRule id="R1a" cvElementPath="/mzML/fileDescription/fileContent/cvParam/@accession" requirementLevel="MUST"  scopePath="/mzML/fileDescription/fileContent" cvTermsCombinationLogic="AND">
             <CvTerm termAccession="MS:1000524" useTermName="false" useTerm="false" termName="data file content" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
             <CvTerm termAccession="MS:1000767" useTermName="false" useTerm="false" termName="native spectrum identifier format" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
@@ -20,27 +21,28 @@
         <CvMappingRule id="R1b" cvElementPath="/mzML/fileDescription/fileContent/cvParam/@accession" requirementLevel="MAY"  scopePath="/mzML/fileDescription/fileContent" cvTermsCombinationLogic="OR">
             <CvTerm termAccession="MS:1000525" useTerm="false" termName="spectrum representation" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
-        <CvMappingRule id="R2" cvElementPath="/mzML/fileDescription/contact/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/fileDescription/contact/cvParam" cvTermsCombinationLogic="OR" >
+        
+        <!-- contact -->
+        <CvMappingRule id="R2" cvElementPath="/mzML/fileDescription/contact/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/fileDescription/contact/cvParam" cvTermsCombinationLogic="AND" >
             <CvTerm termAccession="MS:1000585" useTermName="false" useTerm="false" termName="contact person attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
         </CvMappingRule>
+        
+        <!-- sourde file -->
         <CvMappingRule id="R3" cvElementPath="/mzML/fileDescription/sourceFileList/sourceFile/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/fileDescription/sourceFileList/sourceFile" cvTermsCombinationLogic="AND" >
             <CvTerm termAccession="MS:1000560" useTermName="false" useTerm="false" termName="source file type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
             <CvTerm termAccession="MS:1000561" useTermName="false" useTerm="false" termName="data file checksum type" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
         </CvMappingRule>
-        <!-- end of file description -->
 
-
-        <!-- start of sample -->
+        <!-- sample -->
         <CvMappingRule id="R4" cvElementPath="/mzML/sampleList/sample/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/sampleList/sample" cvTermsCombinationLogic="OR">
             <CvTerm termAccession="MS:1000548" useTerm="false" termName="sample attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" ></CvTerm>
             <CvTerm termAccession="PATO:0001241" useTerm="false" termName="quality of an object" isRepeatable="true" allowChildren="true" cvIdentifierRef="PATO"></CvTerm>
             <CvTerm termAccession="GO:0005575" useTerm="false" termName="cellular_component" isRepeatable="true" allowChildren="true" cvIdentifierRef="GO"></CvTerm>
             <CvTerm termAccession="BTO:0000000" useTerm="false" termName="brenda source tissue ontology" isRepeatable="true" allowChildren="true" cvIdentifierRef="BTO"/>
         </CvMappingRule>
-        <!-- end of sample -->
 
-        <!-- start of instrument  -->
-        <CvMappingRule id="R6a" cvElementPath="/mzML/instrumentConfigurationList/instrumentConfiguration/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/instrumentConfigurationList/instrument" cvTermsCombinationLogic="OR">
+        <!-- instrument  -->
+        <CvMappingRule id="R6a" cvElementPath="/mzML/instrumentConfigurationList/instrumentConfiguration/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/instrumentConfigurationList/instrument" cvTermsCombinationLogic="AND">
             <CvTerm termAccession="MS:1000031" useTerm="false" termName="instrument model" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
         <CvMappingRule id="R6b" cvElementPath="/mzML/instrumentConfigurationList/instrumentConfiguration/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/instrumentConfigurationList/instrument" cvTermsCombinationLogic="OR">
@@ -50,19 +52,22 @@
         </CvMappingRule>
 
         <!-- source -->
-        <CvMappingRule id="R8" cvElementPath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/source/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/source" cvTermsCombinationLogic="OR">
-            <CvTerm termAccession="MS:1000007" useTerm="false" termName="inlet type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        <CvMappingRule id="R8a" cvElementPath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/source/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/source" cvTermsCombinationLogic="AND">
             <CvTerm termAccession="MS:1000008" useTerm="false" termName="ionization type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+        <CvMappingRule id="R8b" cvElementPath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/source/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/source" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1000007" useTerm="false" termName="inlet type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
             <CvTerm termAccession="MS:1000482" useTerm="false" termName="source attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
+        
         <!-- analyzer  -->
         <CvMappingRule id="R10a" cvElementPath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/analyzer/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/analyzer" cvTermsCombinationLogic="AND">
             <CvTerm termAccession="MS:1000443" useTerm="false" termName="mass analyzer type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
         <CvMappingRule id="R10b" cvElementPath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/analyzer/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/analyzer" cvTermsCombinationLogic="OR">
             <CvTerm termAccession="MS:1000480" useTerm="false" termName="analyzer attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
-            <CvTerm termAccession="MS:1000021" useTerm="false" termName="reflectron state" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
+        
         <!-- detector -->
         <CvMappingRule id="R12a" cvElementPath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/detector/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/instrumentConfigurationList/instrumentConfiguration/componentList/detector" cvTermsCombinationLogic="AND">
             <CvTerm termAccession="MS:1000026" useTerm="false" termName="detector type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
@@ -77,19 +82,16 @@
         <CvMappingRule id="R14" cvElementPath="/mzML/softwareList/software/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/softwareList/software" cvTermsCombinationLogic="AND">
             <CvTerm termAccession="MS:1000531" useTerm="false" termName="software" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
-        <!-- end of software-->
 
-        <!-- start of  data processing -->
-        <CvMappingRule id="R15a" cvElementPath="/mzML/dataProcessingList/dataProcessing/processingMethod/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/dataProcessingList/dataProcessing/processingMethod" cvTermsCombinationLogic="OR">
-            <CvTerm termAccession="MS:1000543" useTerm="false" termName="data processing action" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
-            <CvTerm termAccession="MS:1000530" useTerm="false" termName="file format conversion" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+        <!--  data processing -->
+        <CvMappingRule id="R15a" cvElementPath="/mzML/dataProcessingList/dataProcessing/processingMethod/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/dataProcessingList/dataProcessing/processingMethod" cvTermsCombinationLogic="AND">
+            <CvTerm termAccession="MS:1000452" useTerm="false" termName="data transformation" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
         <CvMappingRule id="R15b" cvElementPath="/mzML/dataProcessingList/dataProcessing/processingMethod/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/dataProcessingList/dataProcessing/processingMethod" cvTermsCombinationLogic="OR">
             <CvTerm termAccession="MS:1000630" useTerm="false" termName="data processing parameter" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
-        <!-- end of  data processing -->
 
-        <!-- start of spectrum  -->
+        <!-- spectrum  -->
         <CvMappingRule id="R17a" cvElementPath="/mzML/run/spectrumList/spectrum/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/spectrumList/spectrum" cvTermsCombinationLogic="AND">
             <CvTerm termAccession="MS:1000559" useTermName="false" useTerm="false" termName="spectrum type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
             <CvTerm termAccession="MS:1000525" useTerm="false" termName="spectrum representation" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
@@ -102,9 +104,8 @@
             <CvTerm termAccession="MS:1000019" useTerm="false" termName="scan law" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
             <CvTerm termAccession="MS:1000020" useTerm="false" termName="scanning method" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
-        <!-- end of spectrum -->
 
-        <!-- start of acquisition list -->
+        <!-- acquisition list -->
         <CvMappingRule id="R19" cvElementPath="/mzML/run/spectrumList/spectrum/scanList/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/spectrumList/spectrum/scanList" cvTermsCombinationLogic="AND">
             <CvTerm termAccession="MS:1000570" useTerm="false" termName="spectra combination" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
@@ -114,15 +115,17 @@
             <CvTerm termAccession="MS:1000019" useTerm="false" termName="scan law" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
             <CvTerm termAccession="MS:1000020" useTerm="false" termName="scanning method" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
-        <!-- end of acquisition list -->
         
-        <!-- start of scan window (acquisition) -->
-        <CvMappingRule id="R26" cvElementPath="/mzML/run/spectrumList/spectrum/scanList/scan/scanWindowList/scanWindow/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/spectrumList/spectrum/scanList/scan/scanWindowList/scanWindow" cvTermsCombinationLogic="AND">
+        <!-- scan window -->
+        <CvMappingRule id="R26a" cvElementPath="/mzML/run/spectrumList/spectrum/scanList/scan/scanWindowList/scanWindow/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/spectrumList/spectrum/scanList/scan/scanWindowList/scanWindow" cvTermsCombinationLogic="AND">
+            <CvTerm termAccession="MS:1000500" useTerm="true" termName="scan m/z upper limit" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000501" useTerm="true" termName="scan m/z lower limit" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+        </CvMappingRule>
+        <CvMappingRule id="R26b" cvElementPath="/mzML/run/spectrumList/spectrum/scanList/scan/scanWindowList/scanWindow/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/run/spectrumList/spectrum/scanList/scan/scanWindowList/scanWindow" cvTermsCombinationLogic="OR">
             <CvTerm termAccession="MS:1000549" useTerm="false" termName="selection window attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
-        <!-- end of scan window -->
-
-        <!-- start of precursor list -->
+        
+        <!-- precursor list -->
         <CvMappingRule id="R21" cvElementPath="/mzML/run/spectrumList/spectrum/precursorList/precursor/selectedIonList/selectedIon/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/spectrumList/spectrum/precursorList/precursor/selectedIonList/selectedIon" cvTermsCombinationLogic="AND">
             <CvTerm termAccession="MS:1000455" useTerm="false" termName="ion selection attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
@@ -132,29 +135,25 @@
         <CvMappingRule id="R23b" cvElementPath="/mzML/run/spectrumList/spectrum/precursorList/precursor/activation/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/run/spectrumList/spectrum/precursorList/precursor/activation" cvTermsCombinationLogic="OR">
             <CvTerm termAccession="MS:1000510" useTerm="false" termName="precursor activation attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
-        <!-- end of precursor list -->
 
-        <!-- start of spectrum binary data array -->
+        <!-- spectrum binary data array -->
         <CvMappingRule id="R28" cvElementPath="/mzML/run/spectrumList/spectrum/binaryDataArrayList/binaryDataArray/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/spectrumList/spectrum/binaryDataArrayList/binaryDataArray" cvTermsCombinationLogic="AND">
             <CvTerm termAccession="MS:1000513" useTerm="false" termName="binary data array" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
             <CvTerm termAccession="MS:1000518" useTerm="false" termName="binary data type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
             <CvTerm termAccession="MS:1000572" useTerm="false" termName="binary data compression type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
-        <!-- end of spectrum binary data array -->
 
-        <!-- start of chromatogram binary data array -->
+        <!-- chromatogram binary data array -->
         <CvMappingRule id="R29" cvElementPath="/mzML/run/chromatogramList/chromatogram/binaryDataArrayList/binaryDataArray/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/chromatogramList/chromatogram/binaryDataArrayList/binaryDataArray" cvTermsCombinationLogic="AND">
             <CvTerm termAccession="MS:1000513" useTerm="false" termName="binary data array" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
             <CvTerm termAccession="MS:1000518" useTerm="false" termName="binary data type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
             <CvTerm termAccession="MS:1000572" useTerm="false" termName="binary data compression type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
-        <!-- end of chromatogram binary data array -->
 
-        <!-- start of isolation window -->
+        <!-- isolation window -->
         <CvMappingRule id="R32" cvElementPath="/mzML/run/spectrumList/spectrum/precursorList/precursor/isolationWindow/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/spectrumList/spectrum/precursorList/precursor/isolationWindow" cvTermsCombinationLogic="AND">
             <CvTerm termAccession="MS:1000792" useTerm="false" termName="isolation window attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
-        <!-- end of isolation window -->
 
     </CvMappingRuleList>
 </CvMapping>
