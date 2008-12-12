@@ -117,7 +117,7 @@ namespace OpenMS
 						term.parents.insert(line.substr(line.find(':') + 1).trim());
 					}
 				}
-				else if (line_wo_spaces.hasPrefix("relationship:has_units:"))
+				else if (line_wo_spaces.hasPrefix("relationship:has_units"))
 				{
 					String unit_id;
 					if (line.has('!'))
