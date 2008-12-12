@@ -54,7 +54,8 @@ namespace OpenMS
 
     @htmlinclude OpenMS_FeatureFinderAlgorithmPicked.parameters
 
-		@todo Add RT model with tailing/fronting (Marc)
+		@improvement RT model with tailing/fronting (Marc)
+		@improvement More general MZ model not based on averagenes - e.g. based on co-elution (Marc)
 		
 		@ingroup FeatureFinder
 	*/

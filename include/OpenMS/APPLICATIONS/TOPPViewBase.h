@@ -70,8 +70,6 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 		
-		@todo Add meta data browsing for consensus features. e.g. to show annotated peptide identifications (Hiwi)
-		
 		@todo Make 1d-annotations work properly in mirror mode (Johannes)
 		
 		@todo Repair visualization of spectrum alignments in 1d-view (Johannes)
