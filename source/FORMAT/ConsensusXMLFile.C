@@ -217,8 +217,9 @@ namespace OpenMS
 			progress_ = 0;
 			setProgress(++progress_);
 			//check file version against schema version
-			String file_version="1.0";
+			String file_version="";
 			optionalAttributeAsString_(file_version,attributes,"version");
+			if (file_version=="") file_version="1.0"; //default version is 1.0
 			if (file_version.toDouble()>version_.toDouble())
 			{
 				warning(LOAD, "The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");

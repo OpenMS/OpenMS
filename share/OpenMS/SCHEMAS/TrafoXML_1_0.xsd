@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
 	<xs:element name="TrafoXML">
 		<xs:annotation>
@@ -91,7 +92,7 @@
 					</xs:complexType>
 				</xs:element>
 			</xs:sequence>
-			<xs:attribute name="version" type="xs:string" use="required">
+			<xs:attribute name="version" type="xs:float" use="required">
 				<xs:annotation>
 					<xs:documentation>Schema version, e.g. '1.0'. </xs:documentation>
 				</xs:annotation>

@@ -137,10 +137,10 @@ namespace OpenMS
 		if (element == "TrafoXML")
 		{
 			//check file version against schema version
-			String file_version = attributeAsString_(attributes,"version");
-			if (file_version.toDouble()>version_.toDouble())
+			DoubleReal file_version = attributeAsDouble_(attributes,"version");
+			if (file_version>version_.toDouble())
 			{
-				warning(LOAD, "The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
+				warning(LOAD, String("The XML file (") + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
 			}
 		}
 		else if ( element == "Transformation" )

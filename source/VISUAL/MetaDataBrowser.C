@@ -199,6 +199,7 @@ namespace OpenMS
 		visualizeAll_(meta, item);
 
 		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+		
 		connectVisualizer_(visualizer);
 	}
 
@@ -223,6 +224,7 @@ namespace OpenMS
 		}
 
 		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+		
 		connectVisualizer_(visualizer);
 	}
 
@@ -247,6 +249,7 @@ namespace OpenMS
 		}
 
 		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+		
 		connectVisualizer_(visualizer);
 	}
 
@@ -271,6 +274,7 @@ namespace OpenMS
 		}
 
 		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+		
 		connectVisualizer_(visualizer);
 	}
 
@@ -295,8 +299,6 @@ namespace OpenMS
 
 		visualize_(dynamic_cast<DocumentIdentifier&>(meta), item);
 
-		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
-
 		//check for Sample
 		visualize_(meta.getSample(), item);
 
@@ -318,6 +320,8 @@ namespace OpenMS
 		//check for HPLC
 		visualize_(meta.getHPLC(), item);
 
+		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+		
 		connectVisualizer_(visualizer);
 	}
 
@@ -458,10 +462,11 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 
-		//visualize ScanWindows
+		//ScanWindows
 		visualizeAll_(meta.getScanWindows(), item);
 
 		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+		
 		connectVisualizer_(visualizer);
 	}
 
@@ -485,13 +490,13 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 
-		//visualize IonSources
+		//IonSources
 		visualizeAll_(meta.getIonSources(), item);
 
-		//Check for MassAnalyzers
+		//MassAnalyzers
 		visualizeAll_(meta.getMassAnalyzers(), item);
 
-		//visualize IonDectector
+		//IonDectector
 		visualizeAll_(meta.getIonDetectors(), item);
 
 		//Software
@@ -523,6 +528,7 @@ namespace OpenMS
 		}
 
 		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+		
 		connectVisualizer_(visualizer);
 	}
 
@@ -547,6 +553,7 @@ namespace OpenMS
 		}
 
 		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+		
 		connectVisualizer_(visualizer);
 	}
 
@@ -571,6 +578,7 @@ namespace OpenMS
 		}
 
 		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+		
 		connectVisualizer_(visualizer);
 	}
 
@@ -595,10 +603,11 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 
+		//source file
+		visualize_(meta.getSourceFile(), item);
+
 		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
-		//Check for source file
-		visualize_(meta.getSourceFile(), item);
 		connectVisualizer_(visualizer);
 	}
 
@@ -645,6 +654,7 @@ namespace OpenMS
 		}
 
 		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+		
 		connectVisualizer_(visualizer);
 	}
 
@@ -718,10 +728,11 @@ namespace OpenMS
 			item = new QTreeWidgetItem(parent, labels );
 		}
 
-		//visualize Software object
+		//Software object
 		visualize_(meta.getSoftware(), item);
 
 		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
+		
 		connectVisualizer_(visualizer);
 	}
 
@@ -814,7 +825,7 @@ namespace OpenMS
 			}
 		}
 
-		//Check for subsamples
+		//subsamples
 		visualizeAll_(meta.getSubsamples(), item);
 
 		visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
@@ -997,32 +1008,41 @@ namespace OpenMS
 
 	void MetaDataBrowser::add(Feature& feature)
 	{
-		//meta data
-		add(static_cast<MetaInfoInterface&>(feature));
 		//peptide ids
 		for (std::vector<PeptideIdentification>::iterator it=feature.getPeptideIdentifications().begin(); it!=feature.getPeptideIdentifications().end(); ++it)
 		{
   		add(*it);
 		}
+
+		add(static_cast<MetaInfoInterface&>(feature));
+
 		treeview_->expandItem( treeview_->findItems(QString::number(0),Qt::MatchExactly , 1).first() );
 	}
 
 	void MetaDataBrowser::add(ConsensusFeature& feature)
 	{
-		//meta data
-		add(static_cast<MetaInfoInterface&>(feature));
 		//peptide ids
 		for (std::vector<PeptideIdentification>::iterator it=feature.getPeptideIdentifications().begin(); it!=feature.getPeptideIdentifications().end(); ++it)
 		{
   		add(*it);
 		}
+
+		add(static_cast<MetaInfoInterface&>(feature));
+		
 		treeview_->expandItem( treeview_->findItems(QString::number(0),Qt::MatchExactly , 1).first() );
 	}
 
 	void MetaDataBrowser::add(ConsensusMap& map)
 	{
 		add(static_cast<DocumentIdentifier&>(map));
+
+		for(UInt i=0; i<map.getProteinIdentifications().size(); ++i)
+		{
+			add(map.getProteinIdentifications()[i]);
+		}
+
 		add(static_cast<MetaInfoInterface&>(map));
+
 		treeview_->expandItem( treeview_->findItems(QString::number(0),Qt::MatchExactly , 1).first() );
 	}
 

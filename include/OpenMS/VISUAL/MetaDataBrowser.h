@@ -113,14 +113,16 @@ namespace OpenMS
 			{
 				//spectrum settings
 				add(static_cast<SpectrumSettings&>(spectrum));
-				//meta info interface
-				add(static_cast<MetaInfoInterface&>(spectrum));
+
 				//MetaInfoDescriptions
 	      for (UInt i=0; i<spectrum.getMetaDataArrays().size();++i)
 	      {
 	      	// add(static_cast<MetaInfoDescription&>(spec.getMetaDataArrays()[i]));
 	      	add(spectrum.getMetaDataArrays()[i]);
 	      }
+
+				add(static_cast<MetaInfoInterface&>(spectrum));
+				
 				treeview_->expandItem( treeview_->findItems(QString::number(0),Qt::MatchExactly , 1).first() );
 			}
 
@@ -130,11 +132,13 @@ namespace OpenMS
 			{
 				//identifier
 				add(static_cast<DocumentIdentifier&>(map));
+				
 				//protein ids
 				for(UInt i=0; i<map.getProteinIdentifications().size(); ++i)
 				{
 					add(map.getProteinIdentifications()[i]);
 				}
+				
 				treeview_->expandItem( treeview_->findItems(QString::number(0),Qt::MatchExactly , 1).first() );
 			}
 			/// Adds a feature
