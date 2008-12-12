@@ -39,6 +39,7 @@
       <cvParam cvRef="MS" accession="MS:1000587" name="contact address" value="Higglesworth University, 12 Higglesworth Avenue, 12045, HI, USA"/>
       <cvParam cvRef="MS" accession="MS:1000588" name="contact URL" value="http://www.higglesworth.edu/"/>
       <cvParam cvRef="MS" accession="MS:1000589" name="contact email" value="wpennington@higglesworth.edu"/>
+			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="Higglesworth University"/>
  			<userParam name="name" value="contact1"/>
     </contact>
     

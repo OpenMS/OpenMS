@@ -346,19 +346,15 @@ namespace OpenMS
 			/**
 				@brief Assigns the attribute content to the String @a value if the attribute is present
 				
-				@return if the attribure was present
+				@return if the attribute was present
 			*/
 			inline bool optionalAttributeAsString_(String& value, const xercesc::Attributes& a, const char* name) const
 			{
 				const XMLCh* val = a.getValue(sm_.convert(name));
 				if (val!=0)
 				{
-					char* tmp2 = sm_.convert(val);
-					if (String(tmp2) != "")
-					{
-						value = tmp2;
-						return true;
-					}
+					value = sm_.convert(val);
+					return true;
 				}
 				return false;
 			}
@@ -366,7 +362,7 @@ namespace OpenMS
 			/**
 				@brief Assigns the attribute content to the Int @a value if the attribute is present
 				
-				@return if the attribure was present
+				@return if the attribute was present
 			*/
 			inline bool optionalAttributeAsInt_(Int& value, const xercesc::Attributes& a, const char* name) const
 			{
@@ -382,7 +378,7 @@ namespace OpenMS
 			/**
 				@brief Assigns the attribute content to the UInt @a value if the attribute is present
 				
-				@return if the attribure was present
+				@return if the attribute was present
 			*/
 			inline bool optionalAttributeAsUInt_(UInt& value, const xercesc::Attributes& a, const char* name) const
 			{
@@ -398,7 +394,7 @@ namespace OpenMS
 			/**
 				@brief Assigns the attribute content to the DoubleReal @a value if the attribute is present
 				
-				@return if the attribure was present
+				@return if the attribute was present
 			*/
 			inline bool optionalAttributeAsDouble_(DoubleReal& value, const xercesc::Attributes& a, const char* name) const
 			{

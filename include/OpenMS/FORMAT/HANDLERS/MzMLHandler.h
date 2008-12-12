@@ -2363,10 +2363,9 @@ namespace OpenMS
 			{
 				const ContactPerson& cp = exp.getContacts()[i];
 				os  << "		<contact>\n";
-				if (cp.getLastName()!="" || cp.getFirstName()!="")
-				{
-					os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000586\" name=\"contact name\" value=\"" << cp.getLastName() << ", " << cp.getFirstName() << "\"/>\n";
-				}
+				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000586\" name=\"contact name\" value=\"" << cp.getLastName() << ", " << cp.getFirstName() << "\"/>\n";
+				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000590\" name=\"contact organization\" value=\"" << cp.getInstitution() << "\"/>\n";
+
 				if (cp.getAddress()!="")
 				{
 					os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000587\" name=\"contact address\" value=\"" << cp.getAddress() << "\"/>\n";
@@ -2378,10 +2377,6 @@ namespace OpenMS
 				if (cp.getEmail()!="")
 				{
 					os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000589\" name=\"contact email\" value=\"" << cp.getEmail() << "\"/>\n";
-				}
-				if (cp.getInstitution()!="")
-				{
-					os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000590\" name=\"contact organization\" value=\"" << cp.getInstitution() << "\"/>\n";
 				}
 				if (cp.getContactInfo()!="")
 				{

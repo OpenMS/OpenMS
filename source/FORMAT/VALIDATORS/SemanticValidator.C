@@ -388,18 +388,19 @@ namespace OpenMS
 
       if (check_term_value_types_) //check values
       {
+      	ControlledVocabulary::CVTerm::XRefType type = cv_.getTerm(parsed_term.accession).xref_type;
+
         // get value, if it exists
-        if (parsed_term.has_value && parsed_term.value != "")
+        if (parsed_term.has_value && (parsed_term.value != "" || type == ControlledVocabulary::CVTerm::XSD_STRING))
         {
 					String value = parsed_term.value;
-          ControlledVocabulary::CVTerm::XRefType type = cv_.getTerm(parsed_term.accession).xref_type;
           if (type == ControlledVocabulary::CVTerm::NONE)
           {
-            errors_.push_back(String("Value of CVTerm not allowed: '") + parsed_term.accession + " - " + parsed_term.name + ", value=" + value + "' at element '" + getPath_(1) + "'");
+            errors_.push_back(String("Value of CVTerm not allowed: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
           }
           else if (type == ControlledVocabulary::CVTerm::XSD_STRING)
           {
-            // nothing to check, should be ok though
+            // nothing to check
           }
           else if (type == ControlledVocabulary::CVTerm::XSD_INTEGER)
           {
@@ -409,7 +410,7 @@ namespace OpenMS
             }
             catch (Exception::ConversionError& e)
             {
-              errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:integer: '") + parsed_term.accession + " - " + parsed_term.name + ", value=" + value+ "' at element '" + getPath_(1) + "'");
+              errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:integer: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value+ "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XSD_DECIMAL)
@@ -420,7 +421,7 @@ namespace OpenMS
             }
             catch (Exception::ConversionError& e)
             {
-              errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:decimal: '") + parsed_term.accession + " - " + parsed_term.name + ", value=" + value+ "' at element '" + getPath_(1) + "'");
+              errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:decimal: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value+ "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XSD_NEGATIVE_INTEGER)
@@ -435,7 +436,7 @@ namespace OpenMS
             }
             catch (Exception::ConversionError& e)
             {
-              errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:negativeInteger: '") + parsed_term.accession + " - " + parsed_term.name + ", value=" + value+ "' at element '" + getPath_(1) + "'");
+              errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:negativeInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value+ "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XSD_POSITIVE_INTEGER)
@@ -450,7 +451,7 @@ namespace OpenMS
             }
             catch (Exception::ConversionError& e)
             {
-              errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:positiveInteger: '") + parsed_term.accession + " - " + parsed_term.name + ", value=" + value+ "' at element '" + getPath_(1) + "'");
+              errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:positiveInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value+ "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XSD_NON_NEGATIVE_INTEGER)
@@ -465,7 +466,7 @@ namespace OpenMS
             }
             catch (Exception::ConversionError& e)
             {
-              errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:nonNegativeInteger: '") + parsed_term.accession + " - " + parsed_term.name + ", value=" + value+ "' at element '" + getPath_(1) + "'");
+              errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:nonNegativeInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value+ "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XSD_NON_POSITIVE_INTEGER)
@@ -480,7 +481,7 @@ namespace OpenMS
             }
             catch (Exception::ConversionError& e)
             {
-              errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:nonPositiveInteger: '") + parsed_term.accession + " - " + parsed_term.name + ", value=" + value+ "' at element '" + getPath_(1) + "'");
+              errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:nonPositiveInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value+ "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XSD_BOOLEAN)
@@ -490,7 +491,7 @@ namespace OpenMS
             value_copy.toLower();
             if (value_copy != "1" && value_copy  != "0" && value_copy != "true" && value_copy != "false")
             {
-              errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:boolean: '") + parsed_term.accession + " - " + parsed_term.name + ", value=" + value+ "' at element '" + getPath_(1) + "'");
+              errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:boolean: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value+ "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XSD_DATE)
@@ -502,17 +503,17 @@ namespace OpenMS
 						}
 						catch(Exception::ParseError&)
 						{
-							errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:date: '") + parsed_term.accession + " - " + parsed_term.name + ", value=" + value+ "' at element '" + getPath_(1) + "'");
+							errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:date: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value+ "' at element '" + getPath_(1) + "'");
 						}
           }
           else
           {
-            errors_.push_back(String("Value-type unknown (type #" + String(type) + "): '") + parsed_term.accession + " - " + parsed_term.name + ", value="+ value+ "' at element '" + getPath_(1) + "'");
+            errors_.push_back(String("Value-type unknown (type #" + String(type) + "): '") + parsed_term.accession + " - " + parsed_term.name + "' value='"+ value+ "' at element '" + getPath_(1) + "'");
           }
         }
         else if (cv_.getTerm(parsed_term.accession).xref_type != ControlledVocabulary::CVTerm::NONE)
         {
-          errors_.push_back(String("Value-type required, but not given (" + ControlledVocabulary::CVTerm::getXRefTypeName(cv_.getTerm(parsed_term.accession).xref_type) + "): '") + parsed_term.accession + " - " + parsed_term.name + ", value=" + parsed_term.value+ "' at element '" + getPath_(1) + "'");
+          errors_.push_back(String("Value-type required, but not given (" + ControlledVocabulary::CVTerm::getXRefTypeName(cv_.getTerm(parsed_term.accession).xref_type) + "): '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + parsed_term.value+ "' at element '" + getPath_(1) + "'");
       	}
       }
 		}
