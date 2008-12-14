@@ -138,6 +138,12 @@ namespace OpenMS
 				{
 					add(map.getProteinIdentifications()[i]);
 				}
+
+				//unassigned peptide ids
+				for(UInt i=0; i<map.getUnassignedPeptideIdentifications().size(); ++i)
+				{
+					add(map.getUnassignedPeptideIdentifications()[i]);
+				}
 				
 				treeview_->expandItem( treeview_->findItems(QString::number(0),Qt::MatchExactly , 1).first() );
 			}

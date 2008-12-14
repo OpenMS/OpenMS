@@ -1034,13 +1034,21 @@ namespace OpenMS
 
 	void MetaDataBrowser::add(ConsensusMap& map)
 	{
+		//identifier
 		add(static_cast<DocumentIdentifier&>(map));
-
+		
+		// protein identifications
 		for(UInt i=0; i<map.getProteinIdentifications().size(); ++i)
 		{
 			add(map.getProteinIdentifications()[i]);
 		}
 
+		//unassigned peptide ids
+		for(UInt i=0; i<map.getUnassignedPeptideIdentifications().size(); ++i)
+		{
+			add(map.getUnassignedPeptideIdentifications()[i]);
+		}
+		
 		add(static_cast<MetaInfoInterface&>(map));
 
 		treeview_->expandItem( treeview_->findItems(QString::number(0),Qt::MatchExactly , 1).first() );

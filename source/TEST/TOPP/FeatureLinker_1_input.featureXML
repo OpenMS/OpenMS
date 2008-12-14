@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
 	<IdentificationRun id="PI_0" date="2006-03-09T11:31:52" search_engine="Mascot" search_engine_version="">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 		</SearchParameters>
@@ -10,6 +11,12 @@
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
+
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
+		<PeptideHit score="4324.433" sequence="F" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_1">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+
 	<featureList count="2">
 		
 		<!-- FRAME FOR VIEWER -->

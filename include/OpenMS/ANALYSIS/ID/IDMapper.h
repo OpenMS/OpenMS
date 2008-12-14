@@ -144,7 +144,7 @@ namespace OpenMS
 				
 				//append protein identifications
 				map.getProteinIdentifications().insert(map.getProteinIdentifications().end(),protein_ids.begin(),protein_ids.end());
-				
+
 				//check if all feature have at least one convex hull
 				//if not, use the controid and the given deltas
 				if (!use_delta)
@@ -159,6 +159,9 @@ namespace OpenMS
 					}
 				}
 				
+				//keep track of assigned/unassigned peptide identifications
+				std::set<UInt> assigned;
+				
 				for(typename FeatureMap<FeatureType>::Iterator f_it = map.begin(); f_it!=map.end(); ++f_it)
 				{
 					//iterate over the IDs
@@ -172,6 +175,7 @@ namespace OpenMS
 								&& (fabs((DoubleReal)ids[i].getMetaValue("MZ")-f_it->getMZ()) <= mz_delta_)  )
 							{
 								f_it->getPeptideIdentifications().push_back(ids[i]);
+								assigned.insert(i);
 							}
 						}
 						else
@@ -187,11 +191,21 @@ namespace OpenMS
 									if (ch_it->encloses(id_pos))
 									{
 										f_it->getPeptideIdentifications().push_back(ids[i]);
+										assigned.insert(i);
 										break;
 									}
 								}
 							}
 						}
+					}
+				}
+				
+				//append unassigned peptide identifications
+				for (UInt i=0; i<ids.size(); ++i)
+				{
+					if (assigned.count(i)==0)
+					{
+						map.getUnassignedPeptideIdentifications().push_back(ids[i]);
 					}
 				}
 			}

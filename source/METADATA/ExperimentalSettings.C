@@ -236,11 +236,6 @@ namespace OpenMS
   	protein_identifications_ = protein_identifications;
   }
   
-  void ExperimentalSettings::addProteinIdentification(ProteinIdentification& protein_identification)
-  {
-  	protein_identifications_.push_back(protein_identification);
-  }
-
 	const String& ExperimentalSettings::getComment() const 
 	{
 	  return comment_; 

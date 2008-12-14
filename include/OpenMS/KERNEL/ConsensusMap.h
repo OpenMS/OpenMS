@@ -45,8 +45,6 @@ namespace OpenMS
 	    
 		The map indices used in the consensus features should be registered in this class.
 		
-	 	@improvement Add list of unassigned peptide features; allow loading and storing; change IDMapper; add to TextExport (Hiwi)
-		
 		@ingroup Kernel
   */
 	class ConsensusMap 
@@ -104,6 +102,7 @@ namespace OpenMS
 					file_description_(),
 					experiment_type_(),
 					protein_identifications_(),
+					unassigned_peptide_identifications_(),
 					data_processing_()
 			{
 			}
@@ -117,6 +116,7 @@ namespace OpenMS
 					file_description_(source.file_description_),
 					experiment_type_(source.experiment_type_),
 					protein_identifications_(source.protein_identifications_),
+					unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
 					data_processing_(source.data_processing_)
 			{
 			}
@@ -135,6 +135,7 @@ namespace OpenMS
 					file_description_(),
 					experiment_type_(),
 					protein_identifications_(),
+					unassigned_peptide_identifications_(),
 					data_processing_()
 			{
 			}
@@ -151,6 +152,7 @@ namespace OpenMS
 				file_description_ = source.file_description_;
 				experiment_type_ = source.experiment_type_;
 				protein_identifications_ = source.protein_identifications_;
+				unassigned_peptide_identifications_ = source.unassigned_peptide_identifications_;
 				data_processing_ = source.data_processing_;
 					
 				return *this;
@@ -274,7 +276,8 @@ namespace OpenMS
 				output_map.getFileDescriptions()[input_map_index].size = input_map.size();
 
 				output_map.getProteinIdentifications().insert(output_map.getProteinIdentifications().end(),input_map.getProteinIdentifications().begin(), input_map.getProteinIdentifications().end());
-
+				
+				output_map.getUnassignedPeptideIdentifications().insert(output_map.getUnassignedPeptideIdentifications().end(),input_map.getUnassignedPeptideIdentifications().begin(), input_map.getUnassignedPeptideIdentifications().end());
 			}
 				
 			/**
@@ -329,6 +332,7 @@ namespace OpenMS
 				std::swap(file_description_, from.file_description_);
 				experiment_type_.swap(from.experiment_type_);
 				protein_identifications_.swap(from.protein_identifications_);
+				unassigned_peptide_identifications_.swap(from.unassigned_peptide_identifications_);
 				data_processing_.swap(from.data_processing_);
 			}
 		
@@ -348,6 +352,24 @@ namespace OpenMS
 			void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)
 			{
 				protein_identifications_ = protein_identifications;
+			}
+
+			/// non-mutable access to the unassigned peptide identifications
+			const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const
+			{
+				return unassigned_peptide_identifications_;	   		
+			}	
+			
+			/// mutable access to the unassigned peptide identifications
+			std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications()
+			{
+				return unassigned_peptide_identifications_;	
+			}
+			
+			/// sets the unassigned peptide identifications
+			void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications)
+			{
+				unassigned_peptide_identifications_ = unassigned_peptide_identifications;
 			}
 			
 			/// returns a const reference to the description of the applied data processing 
@@ -379,6 +401,7 @@ namespace OpenMS
 					file_description_ == rhs.file_description_ &&
 					experiment_type_ == rhs.experiment_type_ &&
 					protein_identifications_==rhs.protein_identifications_ &&
+					unassigned_peptide_identifications_==rhs.unassigned_peptide_identifications_ &&
 					data_processing_ == rhs.data_processing_
 					;
 			}
@@ -399,6 +422,9 @@ namespace OpenMS
 					
 			/// protein identifications
 			std::vector<ProteinIdentification> protein_identifications_;
+
+			/// protein identifications
+			std::vector<PeptideIdentification> unassigned_peptide_identifications_;
 			
 			/// applied data processing
 			std::vector<DataProcessing> data_processing_;

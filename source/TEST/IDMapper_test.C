@@ -140,6 +140,7 @@ START_SECTION((template <typename FeatureType> void annotate(FeatureMap<FeatureT
 	IdXMLFile().load("data/IDMapper_2.idXML", protein_identifications, identifications);
 	
 	//--------------------------------------------------------------------------------------
+	//TEST MAPPING TO CONVEX HULLS
 	FeatureMap<> fm;
 	FeatureXMLFile().load("data/IDMapper_2.featureXML", fm);
 	IDMapper().annotate(fm,identifications,protein_identifications);
@@ -163,6 +164,14 @@ START_SECTION((template <typename FeatureType> void annotate(FeatureMap<FeatureT
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[3].getHits()[0].getSequence(),"D")
 	TEST_EQUAL(fm[0].getPeptideIdentifications()[4].getHits()[0].getSequence(),"E")
 	
+	//test unassigned peptide ids
+	TEST_EQUAL(fm.getUnassignedPeptideIdentifications().size(),5)
+	TEST_EQUAL(fm.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(),"F")
+	TEST_EQUAL(fm.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(),"G")
+	TEST_EQUAL(fm.getUnassignedPeptideIdentifications()[2].getHits()[0].getSequence(),"H")
+	TEST_EQUAL(fm.getUnassignedPeptideIdentifications()[3].getHits()[0].getSequence(),"I")
+	TEST_EQUAL(fm.getUnassignedPeptideIdentifications()[4].getHits()[0].getSequence(),"L")
+		
 	//--------------------------------------------------------------------------------------
 	//TEST MAPPING TO CENTROIDS
 	FeatureMap<> fm2;
@@ -184,6 +193,17 @@ START_SECTION((template <typename FeatureType> void annotate(FeatureMap<FeatureT
 	TEST_EQUAL(fm2[0].getPeptideIdentifications()[1].getHits().size(),1)
 	TEST_EQUAL(fm2[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),"A")
 	TEST_EQUAL(fm2[0].getPeptideIdentifications()[1].getHits()[0].getSequence(),"K")
+
+	//test unassigned peptide ids
+	TEST_EQUAL(fm2.getUnassignedPeptideIdentifications().size(),8)
+	TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(),"C")
+	TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(),"D")
+	TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[2].getHits()[0].getSequence(),"E")
+	TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[3].getHits()[0].getSequence(),"F")
+	TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[4].getHits()[0].getSequence(),"G")
+	TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[5].getHits()[0].getSequence(),"H")
+	TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[6].getHits()[0].getSequence(),"I")
+	TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[7].getHits()[0].getSequence(),"L")
 END_SECTION
 
 

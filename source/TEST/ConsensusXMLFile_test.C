@@ -90,8 +90,33 @@ START_SECTION((void load(const String &filename, ConsensusMap &map)))
 	TEST_EQUAL(map.getDataProcessing()[1].getProcessingActions().size(),2)
 	TEST_EQUAL(map.getDataProcessing()[1].getProcessingActions().count(DataProcessing::SMOOTHING),1)
 	TEST_EQUAL(map.getDataProcessing()[1].getProcessingActions().count(DataProcessing::BASELINE_REDUCTION),1)
+	//protein identifications
+	TEST_EQUAL(map.getProteinIdentifications().size(),2)
+	TEST_EQUAL(map.getProteinIdentifications()[0].getHits().size(),2)
+	TEST_EQUAL(map.getProteinIdentifications()[0].getHits()[0].getSequence(),"ABCDEFG")
+	TEST_EQUAL(map.getProteinIdentifications()[0].getHits()[1].getSequence(),"HIJKLMN")
+	TEST_EQUAL(map.getProteinIdentifications()[1].getHits().size(),1)
+	TEST_EQUAL(map.getProteinIdentifications()[1].getHits()[0].getSequence(),"OPQREST")
+	//peptide identifications
+	TEST_EQUAL(map[0].getPeptideIdentifications().size(),2)
+	TEST_EQUAL(map[0].getPeptideIdentifications()[0].getHits().size(),1)
+	TEST_EQUAL(map[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),"A")
+	TEST_EQUAL(map[0].getPeptideIdentifications()[1].getHits().size(),2)
+	TEST_EQUAL(map[0].getPeptideIdentifications()[1].getHits()[0].getSequence(),"C")
+	TEST_EQUAL(map[0].getPeptideIdentifications()[1].getHits()[1].getSequence(),"D")
+	TEST_EQUAL(map[1].getPeptideIdentifications().size(),1)
+	TEST_EQUAL(map[1].getPeptideIdentifications()[0].getHits().size(),1)
+	TEST_EQUAL(map[1].getPeptideIdentifications()[0].getHits()[0].getSequence(),"E")
+	//unassigned peptide identifications
+	TEST_EQUAL(map.getUnassignedPeptideIdentifications().size(),2)
+	TEST_EQUAL(map.getUnassignedPeptideIdentifications()[0].getHits().size(),1)
+	TEST_EQUAL(map.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(),"F")
+	TEST_EQUAL(map.getUnassignedPeptideIdentifications()[1].getHits().size(),2)
+	TEST_EQUAL(map.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(),"G")
+	TEST_EQUAL(map.getUnassignedPeptideIdentifications()[1].getHits()[1].getSequence(),"H")
 
 	//features
+	TEST_EQUAL(map.size(),6)
   ConsensusFeature cons_feature = map[0];
   TEST_REAL_SIMILAR(cons_feature.getRT(),1273.27)  
   TEST_REAL_SIMILAR(cons_feature.getMZ(),904.47)
@@ -163,7 +188,8 @@ START_SECTION([EXTRA] (bool isValid(const String& filename)))
   TEST_EQUAL(f.isValid("data/ConsensusXMLFile_1.consensusXML"),true);
   TEST_EQUAL(f.isValid("data/ConsensusXMLFile_2_options.consensusXML"),true);
 	
-  //test if written empty file is invalid, so this is not tested :)
+  //test if written empty file
+  // - this is invalid, so it is not tested :)
 	
 	//test if written full file is valid
 	ConsensusMap m;
@@ -172,129 +198,6 @@ START_SECTION([EXTRA] (bool isValid(const String& filename)))
 	f.load("data/ConsensusXMLFile_1.consensusXML",m);
 	f.store(tmp_filename, m);	
   TEST_EQUAL(f.isValid(tmp_filename),true);
-END_SECTION
-
-START_SECTION([EXTRA] peptide and protein identification I/O)
-{
-	std::vector<ProteinHit> protein_hits;
-	ProteinHit protein_hit;
-
-	protein_hit.setAccession("urn:lsid:ach0du1schreck2wo3iss4er5denn");
-	protein_hit.setMetaValue("dadada",String("dududu"));
-	protein_hit.setRank(768);
-	protein_hit.setScore(70.3);
-	protein_hit.setSequence("ABCDEFG");
-
-	protein_hits.push_back(protein_hit);
-
-	protein_hit.setAccession("urn:lsid:rumpelstielzchen");
-	protein_hit.setMetaValue("dadada",String("doppeltsogut"));
-	protein_hit.setRank(543);
-	protein_hit.setScore(140.6);
-	protein_hit.setSequence("HIJKLMN");
-
-	protein_hits.push_back(protein_hit);
-
-	ProteinIdentification::SearchParameters search_param;
-	search_param.db="DB";
-	search_param.db_version="1.2.3";
-	search_param.taxonomy="wolpertinger";
-	search_param.charges="+1,+2,-3";
-	search_param.mass_type=ProteinIdentification::MONOISOTOPIC;
-	search_param.fixed_modifications.push_back("bli");
-	search_param.variable_modifications.push_back("bla");
-	search_param.variable_modifications.push_back("bluff");
-	search_param.enzyme=ProteinIdentification::TRYPSIN;
-	search_param.missed_cleavages=2;
-	search_param.peak_mass_tolerance=0.3;
-	search_param.precursor_tolerance=0.1;
-	
-	ProteinIdentification protein_identification;
-	protein_identification.setSearchParameters(search_param);
-
-	ConsensusMap map;
-	
-	{
-		ProteinIdentification hits;
-		hits.setDateTime(DateTime::now());
-		hits.setSignificanceThreshold(56.7643);
-		hits.insertHit(protein_hits[0]);
-		hits.insertHit(protein_hits[1]);
-		hits.setIdentifier("id");
-		hits.setScoreType("score_type");
-		hits.setHigherScoreBetter(true);
-		hits.setSearchEngine("MaxKotzt");
-		hits.setSearchEngineVersion("2.1");
-		ProteinIdentification::SearchParameters param;
-		param.db = "RefSeq";
-		hits.setSearchParameters(param);
-		hits.setMetaValue("pi",3.14159);
-
-		map.getProteinIdentifications().push_back(hits);
-	}
-
-	ConsensusMap::FileDescription file_description;
-	file_description.label = "dummy_label";
-	file_description.size = 19;
-	file_description.filename = "dummy/filename";
-
-	map.getFileDescriptions()[222] = file_description;
-	
-	Peak2D peak2d;
-	peak2d.setMZ(736.53445);
-	peak2d.setRT(66324.47324);
-	peak2d.setIntensity(123123.321);
-	FeatureHandle feat_handle(222,9,peak2d);
-
-	ConsensusFeature cons_feat;
-	cons_feat.insert(feat_handle);
-
-	float peptide_significance_threshold = 42.3;
-	std::vector<PeptideHit> peptide_hits;
-
-	PeptideHit peptide_hit;
-	peptide_hit.setProteinAccessions(std::vector<String>(1,"urn:lsid:rumpelstielzchen"));
-	peptide_hit.setScore(4324.433);
-	peptide_hit.setSequence("HAL");
-	peptide_hit.setCharge(23);
-	peptide_hit.setAABefore('X');
-	peptide_hit.setAAAfter('Y');
-
-	peptide_hits.push_back(peptide_hit);
-
-	{
-		PeptideIdentification hits;
-
-		hits.setHits(peptide_hits);
-
-		hits.setHigherScoreBetter(false);
-		hits.setIdentifier("id");
-		hits.setMetaValue("label",17);
-		hits.setScoreType("score_type");
-		hits.setSignificanceThreshold(peptide_significance_threshold);
-
-		cons_feat.getPeptideIdentifications().push_back(hits);
-	}
-
-	map.push_back(cons_feat);
-
-	ConsensusXMLFile file;
-
-	String tmp_filename;
-  NEW_TMP_FILE(tmp_filename);
-
-	file.store(tmp_filename,map);
-	
-	ConsensusMap map_reloaded;
-	file.load(tmp_filename,map_reloaded);
-
-	String tmp_filename_reloaded_then_stored;
-	NEW_TMP_FILE(tmp_filename_reloaded_then_stored);
-
-	file.store(tmp_filename_reloaded_then_stored,map_reloaded);
-
-	TEST_FILE_EQUAL(tmp_filename.c_str(),tmp_filename_reloaded_then_stored.c_str());
-}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

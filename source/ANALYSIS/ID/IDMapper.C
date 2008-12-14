@@ -64,7 +64,9 @@ namespace OpenMS
 		//append protein identifications to Map
 		map.getProteinIdentifications().insert(map.getProteinIdentifications().end(),protein_ids.begin(),protein_ids.end());
 
-		
+		//keep track of assigned/unassigned peptide identifications
+		std::set<UInt> assigned;
+					
 		// store which peptides fit which feature (and avoid double entries)
 		// consensusMap -> {peptide_index}
 		std::vector < std::set< size_t> > mapping(map.size());
@@ -86,6 +88,7 @@ namespace OpenMS
 					if ( (fabs(rt_pep-map[cm_index].getRT()) <= rt_delta_) && (fabs(mz_pep-map[cm_index].getMZ()) <= mz_delta_)  )
 					{
 						map[cm_index].getPeptideIdentifications().push_back(ids[i]);
+						assigned.insert(i);
 					}
 				}
 				else
@@ -99,6 +102,7 @@ namespace OpenMS
 							if (mapping[cm_index].count(i) == 0)
 							{
 								map[cm_index].getPeptideIdentifications().push_back(ids[i]);
+								assigned.insert(i);
 								mapping[cm_index].insert(i);
 							}
 							continue; // we added this peptide already.. no need to check further
@@ -107,6 +111,16 @@ namespace OpenMS
 				}
 			}
 		}
+
+		//append unassigned peptide identifications
+		for (UInt i=0; i<ids.size(); ++i)
+		{
+			if (assigned.count(i)==0)
+			{
+				map.getUnassignedPeptideIdentifications().push_back(ids[i]);
+			}
+		}
+
 	}
 
 } // namespace OpenMS

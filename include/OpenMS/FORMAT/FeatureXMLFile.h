@@ -92,8 +92,12 @@ namespace OpenMS
 			// Docu in base class
       virtual void characters(const XMLCh* const chars, unsigned int length);
 
-			/// Writes a feature body to a stream
+			/// Writes a feature to a stream
 			void writeFeature_(const String& filename, std::ostream& os, const Feature& feat, const String& identifier_prefix, UInt identifier, UInt indentation_level);
+
+			/// Writes a peptide identification to a stream (for assigned/unassigned peptide identifications)
+			void writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level);
+			
 			
 			/** 
 				@brief update the pointer to the current feature
@@ -139,7 +143,7 @@ namespace OpenMS
 			PeptideHit pep_hit_;
 			/// Map from protein id to accession
 			Map<String,String> proteinid_to_accession_;
-			/// 
+			/// Map from search identifier concatenated with protein accession to id
 			Map<String,UInt> accession_to_id_;
 			/// Map from identification run identifier to file xs:id (for linking peptide identifications to the corresponding run)
 			Map<String,String> identifier_id_;

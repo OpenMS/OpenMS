@@ -53,8 +53,6 @@ namespace OpenMS
 		
 		Feature maps are typically created from peak data of 2D runs through the FeatureFinder.
 		
-		@improvement Add list of unassigned peptide features; allow loading and storing; change IDMapper; add to TextExport (Hiwi)
-		
 		@ingroup Kernel
 	*/
 	template <typename FeatureT = Feature >
@@ -89,6 +87,7 @@ namespace OpenMS
 					RangeManagerType(),
 					DocumentIdentifier(),
 					protein_identifications_(),
+					unassigned_peptide_identifications_(),
 					data_processing_()
 			{
 			}
@@ -99,6 +98,7 @@ namespace OpenMS
 					RangeManagerType(source),
 					DocumentIdentifier(source),
 					protein_identifications_(source.protein_identifications_),
+					unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
 					data_processing_(source.data_processing_)
 			{
 			}
@@ -119,6 +119,7 @@ namespace OpenMS
 				RangeManagerType::operator=(rhs);
 				DocumentIdentifier::operator=(rhs);
 				protein_identifications_ = rhs.protein_identifications_;
+				unassigned_peptide_identifications_ = rhs.unassigned_peptide_identifications_;
 				data_processing_ = rhs.data_processing_;
 
 				return *this;
@@ -132,6 +133,7 @@ namespace OpenMS
 					RangeManagerType::operator==(rhs) &&
 					DocumentIdentifier::operator==(rhs) &&
 					protein_identifications_==rhs.protein_identifications_ &&
+					unassigned_peptide_identifications_==rhs.unassigned_peptide_identifications_ &&
 					data_processing_ == rhs.data_processing_
 					;
 			}
@@ -245,6 +247,7 @@ namespace OpenMS
 				
 				// swap the remaining members
 				protein_identifications_.swap(from.protein_identifications_);
+				unassigned_peptide_identifications_.swap(from.unassigned_peptide_identifications_);
 				data_processing_.swap(from.data_processing_);
 			}
 			
@@ -266,11 +269,23 @@ namespace OpenMS
 		  	protein_identifications_ = protein_identifications;
 		  }
 		  
-			/// adds a protein identifications
-		  void addProteinIdentification(ProteinIdentification& protein_identification)
-		  {
-		  	protein_identifications_.push_back(protein_identification);
-		  }
+			/// non-mutable access to the unassigned peptide identifications
+			const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const
+			{
+				return unassigned_peptide_identifications_;	   		
+			}	
+			
+			/// mutable access to the unassigned peptide identifications
+			std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications()
+			{
+				return unassigned_peptide_identifications_;	
+			}
+			
+			/// sets the unassigned peptide identifications
+			void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications)
+			{
+				unassigned_peptide_identifications_ = unassigned_peptide_identifications;
+			}
 
 			/// returns a const reference to the description of the applied data processing 
 			const std::vector<DataProcessing>& getDataProcessing() const
@@ -294,6 +309,9 @@ namespace OpenMS
 			
 			/// protein identifications
 			std::vector<ProteinIdentification> protein_identifications_;
+
+			/// protein identifications
+			std::vector<PeptideIdentification> unassigned_peptide_identifications_;
 			
 			/// applied data processing
 			std::vector<DataProcessing> data_processing_;

@@ -51,78 +51,85 @@ namespace OpenMS
   		public Internal::XMLFile,
 			public ProgressLogger
   {
-	 public:
-		///Default constructor
-		ConsensusXMLFile();
-		///Destructor
-		~ConsensusXMLFile();
-
-
-		/**
-		@brief Loads a consenus map from a ConsensusXML file.
-			
-		@exception Exception::FileNotFound is thrown if the file could not be opened
-		@exception Exception::ParseError is thrown if an error occurs during parsing
-		*/
-		void load(const String& filename, ConsensusMap& map);
-
-		/**
-		@brief Stores a staralignment object into consensusXML format.
-      
-		@exception Exception::UnableToCreateFile is thrown if the file name is not writable
-		@exception Exception::IllegalArgument is thrown if the consensus map is not valid
-		*/
-		void store(const String& filename, const ConsensusMap& consensus_map);
-
-		/// Mutable access to the options for loading/storing 
-		PeakFileOptions& getOptions();
-
-		/// Non-mutable access to the options for loading/storing 
-		const PeakFileOptions& getOptions() const;
-  
-	 protected:
+		public:
+			///Default constructor
+			ConsensusXMLFile();
+			///Destructor
+			~ConsensusXMLFile();
 	
-		// Docu in base class
-		virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
-
-		// Docu in base class
-		virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
-
-		// Docu in base class
-		virtual void characters(const XMLCh* const chars, unsigned int length);
-
-		/// Options that can be set
-		PeakFileOptions options_;
+	
+			/**
+			@brief Loads a consenus map from file
+				
+			@exception Exception::FileNotFound is thrown if the file could not be opened
+			@exception Exception::ParseError is thrown if an error occurs during parsing
+			*/
+			void load(const String& filename, ConsensusMap& map);
+	
+			/**
+			@brief Stores a consenus map to file
+	      
+			@exception Exception::UnableToCreateFile is thrown if the file name is not writable
+			@exception Exception::IllegalArgument is thrown if the consensus map is not valid
+			*/
+			void store(const String& filename, const ConsensusMap& consensus_map);
+	
+			/// Mutable access to the options for loading/storing 
+			PeakFileOptions& getOptions();
+	
+			/// Non-mutable access to the options for loading/storing 
+			const PeakFileOptions& getOptions() const;
+  
+		protected:
+	
+			// Docu in base class
+			virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+	
+			// Docu in base class
+			virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+	
+			// Docu in base class
+			virtual void characters(const XMLCh* const chars, unsigned int length);
+	
+	
+			/// Writes a peptide identification to a stream (for assigned/unassigned peptide identifications)
+			void writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level);
+				
+	
+			/// Options that can be set
+			PeakFileOptions options_;
+				
+			///@name Temporary variables for parsing
+			//@{
+			ConsensusMap* consensus_map_;
+			ConsensusFeature act_cons_element_;
+			DPosition<2> pos_;
+			DoubleReal it_;
+			UInt last_map_;
+			//@}
+				
+			/// Pointer to last read object as a MetaInfoInterface, or null.
+			MetaInfoInterface* last_meta_;
+			/// Temporary protein ProteinIdentification
+			ProteinIdentification prot_id_;
+			/// Temporary peptide ProteinIdentification
+			PeptideIdentification pep_id_;
+			/// Temporary protein hit
+			ProteinHit prot_hit_;
+			/// Temporary peptide hit
+			PeptideHit pep_hit_;
+			/// Map from protein id to accession
+			Map<String,String> proteinid_to_accession_;
+			/// Map from search identifier concatenated with protein accession to id
+			Map<String,UInt> accession_to_id_;
+			/// Map from identification run identifier to file xs:id (for linking peptide identifications to the corresponding run)
+			Map<String,String> identifier_id_;
+			/// Map from file xs:id to identification run identifier (for linking peptide identifications to the corresponding run)
+			Map<String,String> id_identifier_;
+			/// Temporary search parameters file
+			ProteinIdentification::SearchParameters search_param_;
 			
-		///@name Temporary variables for parsing
-		//@{
-		ConsensusMap* consensus_map_;
-		ConsensusFeature act_cons_element_;
-		DPosition<2> pos_;
-		DoubleReal it_;
-		UInt last_map_;
-		//@}
-			
-		/// Pointer to last read object as a MetaInfoInterface, or null.
-		MetaInfoInterface* last_meta_;
-		/// Temporary protein ProteinIdentification
-		ProteinIdentification prot_id_;
-		/// Temporary peptide ProteinIdentification
-		PeptideIdentification pep_id_;
-		/// Temporary protein hit
-		ProteinHit prot_hit_;
-		/// Temporary peptide hit
-		PeptideHit pep_hit_;
-		/// Map from protein id to accession
-		Map<String,String> proteinid_to_accession_;
-		/// Map from identification run identifier to file xs:id (for linking peptide identifications to the corresponding run)
-		Map<String,String> identifier_id_;
-		/// Map from file xs:id to identification run identifier (for linking peptide identifications to the corresponding run)
-		Map<String,String> id_identifier_;
-		/// Temporary search parameters file
-		ProteinIdentification::SearchParameters search_param_;
-		
-		UInt progress_;
+			UInt progress_;
 
   };
 } // namespace OpenMS

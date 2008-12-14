@@ -41,9 +41,8 @@ namespace OpenMS
     For source files additional information can be stored:
     - file name
     - file type
-    - file checksum
     
-    @todo Add source file name, type and MD5 or SHA-1 checksum. Fill these members when loading a map from file (featureXML, consensusXML, mzData, mzXML, mzML, ANDI/MS, DTA, MGF, ...). Use this informtation e.g. when converting to mzML where it is required (Hiwi)
+    @todo Add source file name and type (FileHandler::Type). Fill these members when loading a map from file (featureXML, consensusXML, mzData, mzXML, mzML, ANDI/MS, DTA, DTA2D, MGF). Use this informtation e.g. when converting to mzML where it is required (Hiwi)
     
     @ingroup Metadata
   */

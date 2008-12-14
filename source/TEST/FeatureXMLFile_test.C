@@ -91,7 +91,31 @@ START_SECTION((void load(String filename, FeatureMap<>& feature_map)))
 	TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().size(),2)
 	TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::SMOOTHING),1)
 	TEST_EQUAL(e.getDataProcessing()[1].getProcessingActions().count(DataProcessing::BASELINE_REDUCTION),1)
-
+	//protein identifications
+	TEST_EQUAL(e.getProteinIdentifications().size(),2)
+	TEST_EQUAL(e.getProteinIdentifications()[0].getHits().size(),2)
+	TEST_EQUAL(e.getProteinIdentifications()[0].getHits()[0].getSequence(),"ABCDEFG")
+	TEST_EQUAL(e.getProteinIdentifications()[0].getHits()[1].getSequence(),"HIJKLMN")
+	TEST_EQUAL(e.getProteinIdentifications()[1].getHits().size(),1)
+	TEST_EQUAL(e.getProteinIdentifications()[1].getHits()[0].getSequence(),"OPQREST")
+	//peptide identifications
+	TEST_EQUAL(e[0].getPeptideIdentifications().size(),2)
+	TEST_EQUAL(e[0].getPeptideIdentifications()[0].getHits().size(),1)
+	TEST_EQUAL(e[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),"A")
+	TEST_EQUAL(e[0].getPeptideIdentifications()[1].getHits().size(),2)
+	TEST_EQUAL(e[0].getPeptideIdentifications()[1].getHits()[0].getSequence(),"C")
+	TEST_EQUAL(e[0].getPeptideIdentifications()[1].getHits()[1].getSequence(),"D")
+	TEST_EQUAL(e[1].getPeptideIdentifications().size(),1)
+	TEST_EQUAL(e[1].getPeptideIdentifications()[0].getHits().size(),1)
+	TEST_EQUAL(e[1].getPeptideIdentifications()[0].getHits()[0].getSequence(),"E")
+	//unassigned peptide identifications
+	TEST_EQUAL(e.getUnassignedPeptideIdentifications().size(),2)
+	TEST_EQUAL(e.getUnassignedPeptideIdentifications()[0].getHits().size(),1)
+	TEST_EQUAL(e.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(),"F")
+	TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits().size(),2)
+	TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(),"G")
+	TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits()[1].getSequence(),"H")
+	
 	//test of old file with mzData description (version 1.2)
 	//here only the downward-compatibility of the new parser is tested
 	//no exception should be thrown
@@ -126,16 +150,16 @@ START_SECTION((void load(String filename, FeatureMap<>& feature_map)))
 END_SECTION
 
 START_SECTION((void store(String filename, const FeatureMap<>& feature_map) const))
-  
   std::string tmp_filename;
-  FeatureMap<> e;
+  NEW_TMP_FILE(tmp_filename);
+  
+  FeatureMap<> map, map2;
   FeatureXMLFile f;
   
-  NEW_TMP_FILE(tmp_filename);
-  f.load("data/FeatureXMLFile_1.featureXML",e);
-  f.store(tmp_filename,e);
-  TEST_FILE_EQUAL(tmp_filename.c_str(),"data/FeatureXMLFile_1.featureXML");
-
+  f.load("data/FeatureXMLFile_1.featureXML",map);  
+  f.store(tmp_filename, map);
+  f.load(tmp_filename, map2);
+  TEST_EQUAL(map==map2, true)
 END_SECTION
 
 START_SECTION( PeakFileOptions& getOptions() )
@@ -189,118 +213,6 @@ START_SECTION( const PeakFileOptions& getOptions() const )
 	
 	TEST_EQUAL(pfo.getRTRange(),makeRange(1.5, 4.5))
 	TEST_EQUAL(pfo.getIntensityRange(),makeRange(290.0, 310.0))
-END_SECTION
-
-
-START_SECTION([EXTRA] peptide and protein identification I/O)
-{
-	std::vector<ProteinHit> protein_hits;
-	ProteinHit protein_hit;
-
-	protein_hit.setAccession("urn:lsid:ach0du1schreck2wo3iss4er5denn");
-	protein_hit.setMetaValue("dadada",String("dududu"));
-	protein_hit.setRank(768);
-	protein_hit.setScore(70.3);
-	protein_hit.setSequence("ABCDEFG");
-
-	protein_hits.push_back(protein_hit);
-
-	protein_hit.setAccession("urn:lsid:rumpelstielzchen");
-	protein_hit.setMetaValue("dadada",String("doppeltsogut"));
-	protein_hit.setRank(543);
-	protein_hit.setScore(140.6);
-	protein_hit.setSequence("HIJKLMN");
-
-	protein_hits.push_back(protein_hit);
-
-	ProteinIdentification::SearchParameters search_param;
-	search_param.db="DB";
-	search_param.db_version="1.2.3";
-	search_param.taxonomy="wolpertinger";
-	search_param.charges="+1,+2,-3";
-	search_param.mass_type=ProteinIdentification::MONOISOTOPIC;
-	search_param.fixed_modifications.push_back("bli");
-	search_param.variable_modifications.push_back("bla");
-	search_param.variable_modifications.push_back("bluff");
-	search_param.enzyme=ProteinIdentification::TRYPSIN;
-	search_param.missed_cleavages=2;
-	search_param.peak_mass_tolerance=0.3;
-	search_param.precursor_tolerance=0.1;
-	
-	ProteinIdentification protein_identification;
-	protein_identification.setSearchParameters(search_param);
-	
-	FeatureMap<> map;
-	{
-		ProteinIdentification hits;
-		hits.setDateTime(DateTime::now());
-		hits.setSignificanceThreshold(56.7643);
-		hits.insertHit(protein_hits[0]);
-		hits.insertHit(protein_hits[1]);
-		hits.setIdentifier("id");
-		hits.setScoreType("score_type");
-		hits.setHigherScoreBetter(true);
-		hits.setSearchEngine("MaxKotzt");
-		hits.setSearchEngineVersion("2.1");
-		ProteinIdentification::SearchParameters param;
-		param.db = "RefSeq";
-		hits.setSearchParameters(param);
-		hits.setMetaValue("pi",3.14159);
-
-		map.getProteinIdentifications().push_back(hits);
-	}
-
-	Feature element;
-	element.setMZ(736.53445);
-	element.setRT(66324.47324);
-	element.setIntensity(123123.321);
-	
-	float peptide_significance_threshold = 42.3;
-	std::vector<PeptideHit> peptide_hits;
-
-	PeptideHit peptide_hit;
-	peptide_hit.setProteinAccessions(std::vector<String>(1,"urn:lsid:rumpelstielzchen"));
-	peptide_hit.setScore(4324.433);
-	peptide_hit.setSequence("HAL");
-	peptide_hit.setCharge(23);
-	peptide_hit.setAABefore('X');
-	peptide_hit.setAAAfter('Y');
-
-	peptide_hits.push_back(peptide_hit);
-
-	{
-		PeptideIdentification hits;
-
-		hits.setHits(peptide_hits);
-
-		hits.setHigherScoreBetter(false);
-		hits.setIdentifier("id");
-		hits.setMetaValue("label",17);
-		hits.setScoreType("score_type");
-		hits.setSignificanceThreshold(peptide_significance_threshold);
-
-		element.getPeptideIdentifications().push_back(hits);
-	}
-
-	map.push_back(element);
-
-	FeatureXMLFile file;
-
-	String tmp_filename;
-  NEW_TMP_FILE(tmp_filename);
-
-	file.store(tmp_filename,map);
-	
-	FeatureMap<> map_reloaded;
-	file.load(tmp_filename,map_reloaded);
-	
-	String tmp_filename_reloaded_then_stored;
-	NEW_TMP_FILE(tmp_filename_reloaded_then_stored);
-
-	file.store(tmp_filename_reloaded_then_stored,map_reloaded);
-
-	TEST_FILE_EQUAL(tmp_filename.c_str(),tmp_filename_reloaded_then_stored.c_str());
-}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

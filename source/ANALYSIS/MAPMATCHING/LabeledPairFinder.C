@@ -255,6 +255,12 @@ namespace OpenMS
 		{
 			result_map.getProteinIdentifications().insert(result_map.getProteinIdentifications().end(),input_maps[i].getProteinIdentifications().begin(), input_maps[i].getProteinIdentifications().end());
 		}
+
+		//Add unassigned peptide identifications to result map
+		for (UInt i=0; i<input_maps.size(); ++i)
+		{
+			result_map.getUnassignedPeptideIdentifications().insert(result_map.getUnassignedPeptideIdentifications().end(),input_maps[i].getUnassignedPeptideIdentifications().begin(), input_maps[i].getUnassignedPeptideIdentifications().end());
+		}
 		
 		// Very useful for checking the results, and the ids have no real meaning anyway
 		result_map.sortByMZ();

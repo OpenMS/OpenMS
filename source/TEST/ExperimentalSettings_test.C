@@ -231,7 +231,7 @@ START_SECTION(ExperimentalSettings(const ExperimentalSettings& source))
   tmp.getSample().setName("bla2");
   tmp.getSourceFiles().resize(1);
   tmp.getContacts().resize(1);
-  tmp.addProteinIdentification(id);
+  tmp.getProteinIdentifications().push_back(id);
   tmp.setMetaValue("label",String("label"));
   
   ExperimentalSettings tmp2(tmp);
@@ -265,7 +265,7 @@ START_SECTION(ExperimentalSettings& operator= (const ExperimentalSettings& sourc
   tmp.getSample().setName("bla2");
   tmp.getSourceFiles().resize(1);
   tmp.getContacts().resize(1);
-	tmp.addProteinIdentification(id);
+	tmp.getProteinIdentifications().push_back(id);
   tmp.setMetaValue("label",String("label"));
   
   ExperimentalSettings tmp2;
@@ -330,7 +330,7 @@ START_SECTION(bool operator== (const ExperimentalSettings& rhs) const)
   TEST_EQUAL(edit==empty,false);
 
   edit = empty;
-	edit.addProteinIdentification(id);
+	edit.getProteinIdentifications().push_back(id);
   TEST_EQUAL(edit==empty, false);
 
   edit = empty;
@@ -382,7 +382,7 @@ START_SECTION(bool operator!= (const ExperimentalSettings& rhs) const)
   TEST_EQUAL(edit!=empty,true);
 
   edit = empty;
-	edit.addProteinIdentification(id);
+	edit.getProteinIdentifications().push_back(id);
   TEST_EQUAL(edit!=empty, true);
 
 	edit = empty;
@@ -400,7 +400,7 @@ START_SECTION(const std::vector<ProteinIdentification>& getProteinIdentification
 	id.setSignificanceThreshold(protein_significance_threshold);
 	id.insertHit(protein_hit);
 	
-	settings.addProteinIdentification(id);
+	settings.getProteinIdentifications().push_back(id);
 	const ProteinIdentification& test_id = settings.getProteinIdentifications()[0];
 	TEST_EQUAL(id == test_id, true)
 END_SECTION
@@ -415,22 +415,7 @@ START_SECTION(std::vector<ProteinIdentification>& getProteinIdentifications())
 	id.setSignificanceThreshold(protein_significance_threshold);
 	id.insertHit(protein_hit);
 	
-	settings.addProteinIdentification(id);
-	ProteinIdentification& test_id = settings.getProteinIdentifications()[0];
-	TEST_EQUAL(id == test_id, true)
-END_SECTION
-
-START_SECTION(void addProteinIdentification(ProteinIdentification& protein_identification))
-  ExperimentalSettings settings;
-  ProteinIdentification id;
-	ProteinHit protein_hit;
-	Real protein_significance_threshold = 63.2f;
-
-	id.setDateTime(DateTime::now());
-	id.setSignificanceThreshold(protein_significance_threshold);
-	id.insertHit(protein_hit);
-	
-	settings.addProteinIdentification(id);
+	settings.getProteinIdentifications().push_back(id);
 	ProteinIdentification& test_id = settings.getProteinIdentifications()[0];
 	TEST_EQUAL(id == test_id, true)
 END_SECTION

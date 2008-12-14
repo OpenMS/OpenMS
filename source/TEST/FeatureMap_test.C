@@ -86,9 +86,38 @@ hulls[0].addPoint(DPosition<2>(4.0,1.2));
 hulls[0].addPoint(DPosition<2>(5.0,3.123));
 feature4.setConvexHulls(hulls);
 
-START_SECTION(const DataProcessing& getDataProcessing() const)
-  FeatureMap<> tmp;
-  TEST_EQUAL(tmp.getDataProcessing().size(),0);
+START_SECTION(const std::vector<ProteinIdentification>& getProteinIdentifications() const)
+	FeatureMap<> tmp;
+	TEST_EQUAL(tmp.getProteinIdentifications().size(),0)
+END_SECTION
+
+START_SECTION(std::vector<ProteinIdentification>& getProteinIdentifications())
+	FeatureMap<> tmp;
+	tmp.getProteinIdentifications().resize(1);
+	TEST_EQUAL(tmp.getProteinIdentifications().size(),1)
+END_SECTION
+
+START_SECTION(void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications))
+	FeatureMap<> tmp;
+	tmp.setProteinIdentifications(std::vector<ProteinIdentification>(2));
+	TEST_EQUAL(tmp.getProteinIdentifications().size(),2)
+END_SECTION
+
+START_SECTION(const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const)
+	FeatureMap<> tmp;
+	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),0)
+END_SECTION
+
+START_SECTION(std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications())
+	FeatureMap<> tmp;
+	tmp.getUnassignedPeptideIdentifications().resize(1);
+	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),1)
+END_SECTION
+
+START_SECTION(void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications))
+	FeatureMap<> tmp;
+	tmp.setUnassignedPeptideIdentifications(std::vector<PeptideIdentification>(2));
+	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),2)
 END_SECTION
 
 START_SECTION(const DataProcessing& getDataProcessing() const)
@@ -147,6 +176,8 @@ START_SECTION((FeatureMap(const FeatureMap& map)))
 	map1.updateRanges();
 	map1.setIdentifier("lsid");;
 	map1.getDataProcessing().resize(1);
+	map1.getProteinIdentifications().resize(1);
+	map1.getUnassignedPeptideIdentifications().resize(1);
 		
 	FeatureMap<> map2(map1);
 	
@@ -154,6 +185,8 @@ START_SECTION((FeatureMap(const FeatureMap& map)))
   TEST_REAL_SIMILAR(map2.getMaxInt(),1.0)
   TEST_STRING_EQUAL(map2.getIdentifier(),"lsid")
   TEST_EQUAL(map2.getDataProcessing().size(),1)
+	TEST_EQUAL(map2.getProteinIdentifications().size(),1);
+	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1);
 END_SECTION
 
 START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
@@ -164,6 +197,8 @@ START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
 	map1.updateRanges();
 	map1.setIdentifier("lsid");
 	map1.getDataProcessing().resize(1);
+	map1.getProteinIdentifications().resize(1);
+	map1.getUnassignedPeptideIdentifications().resize(1);
 	
 	//assignment
 	FeatureMap<> map2;
@@ -173,6 +208,8 @@ START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
   TEST_REAL_SIMILAR(map2.getMaxInt(),1.0)
   TEST_STRING_EQUAL(map2.getIdentifier(),"lsid")
   TEST_EQUAL(map2.getDataProcessing().size(),1)
+	TEST_EQUAL(map2.getProteinIdentifications().size(),1);
+	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1);
 	
   //assignment of empty object
    map2 = FeatureMap<>();
@@ -182,6 +219,8 @@ START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
 	TEST_REAL_SIMILAR(map2.getMaxInt(), -numeric_limits<DoubleReal>::max())
   TEST_STRING_EQUAL(map2.getIdentifier(),"")
   TEST_EQUAL(map2.getDataProcessing().size(),0)
+	TEST_EQUAL(map2.getProteinIdentifications().size(),0);
+	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),0);
 END_SECTION
 
 START_SECTION((bool operator == (const FeatureMap& rhs) const))
@@ -199,6 +238,15 @@ START_SECTION((bool operator == (const FeatureMap& rhs) const))
 	edit = empty;
 	edit.getDataProcessing().resize(1);
 	TEST_EQUAL(empty==edit, false);
+
+  edit = empty;
+	edit.getProteinIdentifications().resize(1);
+  TEST_EQUAL(edit==empty, false);
+
+	edit = empty;
+	edit.getUnassignedPeptideIdentifications().resize(10);
+	TEST_EQUAL(empty==edit, false);
+
 
 	edit = empty;
 	edit.push_back(feature1);
@@ -223,7 +271,16 @@ START_SECTION((bool operator != (const FeatureMap& rhs) const))
 	edit = empty;
 	edit.getDataProcessing().resize(1);
 	TEST_EQUAL(empty!=edit, true);
-	
+
+  edit = empty;
+	edit.getProteinIdentifications().resize(10);
+  TEST_EQUAL(edit!=empty, true);
+
+	edit = empty;
+	edit.getUnassignedPeptideIdentifications().resize(10);
+	TEST_EQUAL(empty!=edit, true);
+
+
 	edit = empty;
 	edit.push_back(feature1);
 	edit.push_back(feature2);
@@ -343,24 +400,30 @@ START_SECTION(void sortByRT())
 END_SECTION
 
 START_SECTION(void swap(FeatureMap& from))
-	FeatureMap<> fm1, fm2;
-	fm1.setIdentifier("stupid comment");
-	fm1.push_back(feature1);
-	fm1.push_back(feature2);
-	fm1.updateRanges();
-	fm1.getDataProcessing().resize(1);
+	FeatureMap<> map1, map2;
+	map1.setIdentifier("stupid comment");
+	map1.push_back(feature1);
+	map1.push_back(feature2);
+	map1.updateRanges();
+	map1.getDataProcessing().resize(1);
+	map1.getProteinIdentifications().resize(1);
+	map1.getUnassignedPeptideIdentifications().resize(1);
 	
-	fm1.swap(fm2);
+	map1.swap(map2);
 	
-	TEST_EQUAL(fm1.getIdentifier(),"")
-	TEST_EQUAL(fm1.size(),0)
-	TEST_REAL_SIMILAR(fm1.getMinInt(),DRange<1>().min()[0])
-  TEST_EQUAL(fm1.getDataProcessing().size(),0)
+	TEST_EQUAL(map1.getIdentifier(),"")
+	TEST_EQUAL(map1.size(),0)
+	TEST_REAL_SIMILAR(map1.getMinInt(),DRange<1>().min()[0])
+  TEST_EQUAL(map1.getDataProcessing().size(),0)
+	TEST_EQUAL(map1.getProteinIdentifications().size(),0);
+	TEST_EQUAL(map1.getUnassignedPeptideIdentifications().size(),0);
 
-	TEST_EQUAL(fm2.getIdentifier(),"stupid comment")
-	TEST_EQUAL(fm2.size(),2)
-	TEST_REAL_SIMILAR(fm2.getMinInt(),0.5)
-  TEST_EQUAL(fm2.getDataProcessing().size(),1)
+	TEST_EQUAL(map2.getIdentifier(),"stupid comment")
+	TEST_EQUAL(map2.size(),2)
+	TEST_REAL_SIMILAR(map2.getMinInt(),0.5)
+  TEST_EQUAL(map2.getDataProcessing().size(),1)
+	TEST_EQUAL(map2.getProteinIdentifications().size(),1);
+	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1);
 	
 END_SECTION
 

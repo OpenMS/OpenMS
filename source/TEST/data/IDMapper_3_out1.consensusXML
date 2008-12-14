@@ -373,6 +373,50 @@
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="117.1" RT="4101.48" >
+		<PeptideHit score="-1.78600001335144" sequence="ACSF" charge="1" aa_before="R" aa_after="P" protein_refs="PH_163">
+		</PeptideHit>
+		<PeptideHit score="-1.79799997806549" sequence="AHSN" charge="1" aa_before="T" aa_after="Q" protein_refs="PH_164">
+		</PeptideHit>
+		<PeptideHit score="-1.91100001335144" sequence="ASHN" charge="1" aa_before="L" aa_after="T" protein_refs="PH_165">
+		</PeptideHit>
+		<PeptideHit score="-2.14299988746643" sequence="AHSL" charge="1" aa_before="V" aa_after="M" protein_refs="PH_166">
+		</PeptideHit>
+		<PeptideHit score="-2.16000008583069" sequence="ASHL" charge="1" aa_before="Q" aa_after="A" protein_refs="PH_167">
+		</PeptideHit>
+		<PeptideHit score="-2.16000008583069" sequence="ASHI" charge="1" aa_before="P" aa_after="S" protein_refs="PH_168">
+		</PeptideHit>
+		<PeptideHit score="-2.19199991226196" sequence="AHSD" charge="1" aa_before="R" aa_after="V" protein_refs="PH_169">
+		</PeptideHit>
+		<PeptideHit score="-2.2260000705719" sequence="ASHGG" charge="1" aa_before="V" aa_after="T" protein_refs="PH_170">
+		</PeptideHit>
+		<PeptideHit score="-2.23600006103516" sequence="ASSY" charge="1" aa_before="I" aa_after="F" protein_refs="PH_171">
+		</PeptideHit>
+		<PeptideHit score="-2.26500010490417" sequence="APAGN" charge="1" aa_before="N" aa_after="V" protein_refs="PH_172">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="114.09" RT="4149.49" >
+		<PeptideHit score="-1.75" sequence="MWN" charge="1" aa_before="T" aa_after="G" protein_refs="PH_175">
+		</PeptideHit>
+		<PeptideHit score="-2.12899994850159" sequence="VMMA" charge="1" aa_before="A" aa_after="T" protein_refs="PH_176">
+		</PeptideHit>
+		<PeptideHit score="-2.18400001525879" sequence="MPMA" charge="1" aa_before="V" aa_after="E" protein_refs="PH_177">
+		</PeptideHit>
+		<PeptideHit score="-2.34599995613098" sequence="ASDSA" charge="1" aa_before="D" aa_after="A" protein_refs="PH_178">
+		</PeptideHit>
+		<PeptideHit score="-2.37800002098083" sequence="SADSA" charge="1" aa_before="S" aa_after="S" protein_refs="PH_179">
+		</PeptideHit>
+		<PeptideHit score="-2.44199991226196" sequence="TGDSA" charge="1" aa_before="A" aa_after="V" protein_refs="PH_180">
+		</PeptideHit>
+		<PeptideHit score="-2.44899988174438" sequence="GTDSA" charge="1" aa_before="F" aa_after="R" protein_refs="PH_15">
+		</PeptideHit>
+		<PeptideHit score="-2.50699996948242" sequence="AKYA" charge="1" aa_before="V" aa_after="L" protein_refs="PH_181">
+		</PeptideHit>
+		<PeptideHit score="-2.51900005340576" sequence="GTAMA" charge="1" aa_before="A" aa_after="V" protein_refs="PH_26">
+		</PeptideHit>
+		<PeptideHit score="-2.5239999294281" sequence="TGAMA" charge="1" aa_before="L" aa_after="Y" protein_refs="PH_182">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
 	<mapList count="4">
 		<map id="0" name="" label="iTRAQ_114_myReference" size="31">
 			<userParam type="int" name="channel_name" value="114"/>

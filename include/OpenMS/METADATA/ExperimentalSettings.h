@@ -154,8 +154,6 @@ namespace OpenMS
 		  std::vector<ProteinIdentification>& getProteinIdentifications();		  
 		  /// sets the protein ProteinIdentification vector
 		  void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications);
-		  /// adds an ProteinIdentification to the ProteinIdentification vector
-		  void addProteinIdentification(ProteinIdentification& protein_identification);
 
     protected:
     	NativeIDType native_id_type_;

@@ -53,7 +53,7 @@ using namespace std;
 	These text files can be easily read using other applications
 	such as R, Matlab, Excel, etc.
 	
-	@todo Add identifications output to featureXML and consensusXML and consider no_ids flag (Andreas, Clemens, Chris, Nico)
+	@todo Add identifications output (protein, peptide, unassigned peptide) to featureXML and consensusXML and consider no_ids flag (Andreas, Clemens, Chris, Nico)
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_TextExporter.cli

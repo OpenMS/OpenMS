@@ -11,6 +11,10 @@
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
+		<PeptideHit score="4324.433" sequence="F" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_1">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
 	<mapList count="2">
 		<map id="0" name="FeatureLinker_1_input.featureXML" label="light" size="16">
 		</map>

@@ -53,7 +53,7 @@ using namespace std;
 	
 	In order to create feature data from peak data use the @ref TOPP_FeatureFinder.
 	
-	@todo Verify support of features annotated with protein/peptide identifications for labeled algorithm (Clemens)
+	@todo Verify support of features annotated with identifications (protein, peptide, unassigned peptide) for labeled algorithm (Clemens)
 	
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_FeatureLinker.cli

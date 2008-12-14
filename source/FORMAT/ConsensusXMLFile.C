@@ -91,7 +91,13 @@ namespace OpenMS
 		{
 			act_cons_element_.getPeptideIdentifications().push_back(pep_id_);
 			pep_id_ = PeptideIdentification();
-			last_meta_  = 0;
+			last_meta_  = &act_cons_element_;
+		}
+		else if (tag == "UnassignedPeptideIdentification")
+		{
+			consensus_map_->getUnassignedPeptideIdentifications().push_back(pep_id_);
+			pep_id_ = PeptideIdentification();
+			last_meta_ = consensus_map_;
 		}
 		else if (tag == "PeptideHit")
 		{
@@ -372,7 +378,7 @@ namespace OpenMS
 			//insert id and accession to map
 			proteinid_to_accession_[attributeAsString_(attributes,"id")] = accession;
 		}
-		else if (tag == "PeptideIdentification")
+		else if (tag == "PeptideIdentification" || tag == "UnassignedPeptideIdentification")
 		{
 			String id = attributeAsString_(attributes,"identification_run_ref");
 			if (!id_identifier_.has(id))
@@ -553,7 +559,6 @@ namespace OpenMS
 
 		// write identification run
 		UInt prot_count = 0;
-		Map<String,UInt> accession_to_id;
 
 		for ( UInt i = 0; i < consensus_map.getProteinIdentifications().size(); ++i )
 		{
@@ -639,7 +644,7 @@ namespace OpenMS
 
 				// prot_count
 				os << " id=\"PH_" << prot_count << "\"";
-				accession_to_id[current_prot_id.getHits()[j].getAccession()] = prot_count;
+				accession_to_id_[current_prot_id.getIdentifier() + "_" + current_prot_id.getHits()[j].getAccession()] = prot_count;
 				++prot_count;
 
 				os << " accession=\"" << current_prot_id.getHits()[j].getAccession() << "\"";
@@ -654,6 +659,12 @@ namespace OpenMS
 			writeUserParam_("userParam", os, current_prot_id, 3);
 			os << "\t\t</ProteinIdentification>\n";
 			os << "\t</IdentificationRun>\n";
+		}
+
+		//write unassigned peptide identifications
+		for ( UInt i = 0; i < consensus_map.getUnassignedPeptideIdentifications().size(); ++i )
+		{
+			writePeptideIdentification_(filename, os, consensus_map.getUnassignedPeptideIdentifications()[i], "UnassignedPeptideIdentification", 1);
 		}
 
 		//file descriptions
@@ -707,78 +718,7 @@ namespace OpenMS
 			// write PeptideIdentification
 			for ( UInt i = 0; i < elem.getPeptideIdentifications().size(); ++i )
 			{
-				setProgress(++progress_);
-				const PeptideIdentification& current_pep_id = elem.getPeptideIdentifications()[i];
-				if (!identifier_id_.has(current_pep_id.getIdentifier()))
-				{
-					warning(STORE, String("Omitting peptide identification because of missing ProteinIdentification with identifier '") + current_pep_id.getIdentifier() + "' while writing '" + filename + "'!");
-					continue;
-				}
-				os << "\t\t\t<PeptideIdentification ";
-				os << "identification_run_ref=\"" << identifier_id_[current_pep_id.getIdentifier()] << "\" ";
-				os << "score_type=\"" << current_pep_id.getScoreType() << "\" ";
-				os << "higher_score_better=\"" << ( current_pep_id.isHigherScoreBetter() ? "true" : "false" ) << "\" ";
-				os << "significance_threshold=\"" << current_pep_id.getSignificanceThreshold() << "\" ";
-				//mz
-				DataValue dv = current_pep_id.getMetaValue("MZ");
-				if (dv!=DataValue::EMPTY)
-				{
-					os << "MZ=\"" << dv.toString() << "\" ";
-				}
-				// rt
-				dv = current_pep_id.getMetaValue("RT");
-				if (dv!=DataValue::EMPTY)
-				{
-					os << "RT=\"" << dv.toString() << "\" ";
-				}
-				// spectrum_reference
-				dv = current_pep_id.getMetaValue("spectrum_reference");
-				if (dv!=DataValue::EMPTY)
-				{
-					os << "spectrum_reference=\"" << dv.toString() << "\" ";
-				}
-				os << ">\n";
-				
-				// write peptide hits
-				for(UInt j=0; j<current_pep_id.getHits().size(); ++j)
-				{
-					setProgress(++progress_);
-					os << "\t\t\t\t<PeptideHit";
-					os << " score=\"" << current_pep_id.getHits()[j].getScore() << "\"";
-					os << " sequence=\"" << current_pep_id.getHits()[j].getSequence() << "\"";
-					os << " charge=\"" << current_pep_id.getHits()[j].getCharge() << "\"";
-					if (current_pep_id.getHits()[j].getAABefore()!=' ')
-					{
-						os << " aa_before=\"" << current_pep_id.getHits()[j].getAABefore() << "\"";
-					}
-					if (current_pep_id.getHits()[j].getAAAfter()!=' ')
-					{
-						os << " aa_after=\"" << current_pep_id.getHits()[j].getAAAfter() << "\"";
-					}	
-					if(current_pep_id.getHits()[j].getProteinAccessions().size()!=0)
-					{
-						String accs = "";
-						for (UInt m=0; m<current_pep_id.getHits()[j].getProteinAccessions().size(); ++m)
-						{
-							if (m) accs += " ";
-							accs += "PH_";
-							accs += String(accession_to_id[current_pep_id.getHits()[j].getProteinAccessions()[m]]);
-						}
-						os << " protein_refs=\"" << accs << "\"";
-					}
-					os << ">\n";
-					writeUserParam_("userParam", os, current_pep_id.getHits()[j], 4);
-					os << "\t\t\t\t</PeptideHit>\n";
-				}
-				
-				//do not write "RT", "MZ" and "spectrum_reference" as they are written as attributes already
-				MetaInfoInterface tmp = current_pep_id;
-				tmp.removeMetaValue("RT");
-				tmp.removeMetaValue("MZ");
-				tmp.removeMetaValue("spectrum_reference");
-				setProgress(++progress_);
-				writeUserParam_("userParam", os, tmp, 4);
-				os << "\t\t\t</PeptideIdentification>\n";
+				writePeptideIdentification_(filename, os, elem.getPeptideIdentifications()[i], "PeptideIdentification", 3);
 			}
 
 			writeUserParam_("userParam", os, elem, 3);
@@ -790,6 +730,7 @@ namespace OpenMS
 
 		//Clear members
 		identifier_id_.clear();
+		accession_to_id_.clear();
 		endProgress();
 	}
 
@@ -814,6 +755,79 @@ namespace OpenMS
 		id_identifier_.clear();
   }
 
+	void ConsensusXMLFile::writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level)
+	{
+		String indent = String(indentation_level,'\t');
+		
+		if (!identifier_id_.has(id.getIdentifier()))
+		{
+			warning(STORE, String("Omitting peptide identification because of missing ProteinIdentification with identifier '") + id.getIdentifier() + "' while writing '" + filename + "'!");
+			return;
+		}
+		os << indent << "<" << tag_name << " ";
+		os << "identification_run_ref=\"" << identifier_id_[id.getIdentifier()] << "\" ";
+		os << "score_type=\"" << id.getScoreType() << "\" ";
+		os << "higher_score_better=\"" << ( id.isHigherScoreBetter() ? "true" : "false" ) << "\" ";
+		os << "significance_threshold=\"" << id.getSignificanceThreshold() << "\" ";
+		//mz
+		DataValue dv = id.getMetaValue("MZ");
+		if (dv!=DataValue::EMPTY)
+		{
+			os << "MZ=\"" << dv.toString() << "\" ";
+		}
+		// rt
+		dv = id.getMetaValue("RT");
+		if (dv!=DataValue::EMPTY)
+		{
+			os << "RT=\"" << dv.toString() << "\" ";
+		}
+		// spectrum_reference
+		dv = id.getMetaValue("spectrum_reference");
+		if (dv!=DataValue::EMPTY)
+		{
+			os << "spectrum_reference=\"" << dv.toString() << "\" ";
+		}
+		os << ">\n";
+		
+		// write peptide hits
+		for(UInt j=0; j<id.getHits().size(); ++j)
+		{
+			os << indent << "\t<PeptideHit";
+			os << " score=\"" << id.getHits()[j].getScore() << "\"";
+			os << " sequence=\"" << id.getHits()[j].getSequence() << "\"";
+			os << " charge=\"" << id.getHits()[j].getCharge() << "\"";
+			if (id.getHits()[j].getAABefore()!=' ')
+			{
+				os << " aa_before=\"" << id.getHits()[j].getAABefore() << "\"";
+			}
+			if (id.getHits()[j].getAAAfter()!=' ')
+			{
+				os << " aa_after=\"" << id.getHits()[j].getAAAfter() << "\"";
+			}	
+			if(id.getHits()[j].getProteinAccessions().size()!=0)
+			{
+				String accs = "";
+				for (UInt m=0; m<id.getHits()[j].getProteinAccessions().size(); ++m)
+				{
+					if (m) accs += " ";
+					accs += "PH_";
+					accs += String(accession_to_id_[id.getIdentifier() + "_" + id.getHits()[j].getProteinAccessions()[m]]);
+				}
+				os << " protein_refs=\"" << accs << "\"";
+			}
+			os << ">\n";
+			writeUserParam_("userParam", os, id.getHits()[j], indentation_level+2);
+			os << indent << "\t</PeptideHit>\n";
+		}
+		
+		//do not write "RT", "MZ" and "spectrum_reference" as they are written as attributes already
+		MetaInfoInterface tmp = id;
+		tmp.removeMetaValue("RT");
+		tmp.removeMetaValue("MZ");
+		tmp.removeMetaValue("spectrum_reference");
+		writeUserParam_("userParam", os, tmp, indentation_level+1);
+		os << indent << "</" << tag_name << ">\n";	
+	}
 
 }// namespace OpenMS
 
