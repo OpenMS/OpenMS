@@ -47,7 +47,7 @@ namespace OpenMS
 		
 		@ingroup Concept
 	*/
-  class FactoryProduct
+  class OPENMS_DLLAPI FactoryProduct
   	: public DefaultParamHandler
   {
 		public:

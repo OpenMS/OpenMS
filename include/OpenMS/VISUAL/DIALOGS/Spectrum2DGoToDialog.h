@@ -28,7 +28,7 @@
 #ifndef OPENMS_VISUAL_DIALOGS_SPECTRUM2DGOTODIALOG_H
 #define OPENMS_VISUAL_DIALOGS_SPECTRUM2DGOTODIALOG_H
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/Spectrum2DGoToDialogTemplate.h>
+#include <OpenMS/VISUAL/DIALOGS/UIC/ui_Spectrum2DGoToDialog.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/CONCEPT/Types.h>
 
@@ -40,7 +40,7 @@ namespace OpenMS
 		
 		@ingroup Dialogs
 	*/
-	class Spectrum2DGoToDialog
+	class OPENMS_DLLAPI Spectrum2DGoToDialog
 		: public QDialog,
 			public Ui::Spectrum2DGoToDialogTemplate
 	{

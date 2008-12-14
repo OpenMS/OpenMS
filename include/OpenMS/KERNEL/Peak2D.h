@@ -44,7 +44,7 @@ namespace OpenMS
 
 		@ingroup Kernel
 	*/
-	class Peak2D
+	class OPENMS_DLLAPI Peak2D
 	{
 	 public:
 		

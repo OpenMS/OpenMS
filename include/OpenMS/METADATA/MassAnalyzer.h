@@ -37,7 +37,7 @@ namespace OpenMS
 		
 		@ingroup Metadata
 	*/
-  class MassAnalyzer
+  class OPENMS_DLLAPI MassAnalyzer
   	: public MetaInfoInterface
   {
     public:

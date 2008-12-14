@@ -129,11 +129,11 @@ SuffixArrayPeptideFinder::~SuffixArrayPeptideFinder()
 	delete sa_; // TODO assignment, copy ctor
 }
 
-void SuffixArrayPeptideFinder::setTolerance(const float t){
+void SuffixArrayPeptideFinder::setTolerance(const double t){
 	sa_->setTolerance(t);
 }
 
-float SuffixArrayPeptideFinder::getTolerance() const
+double SuffixArrayPeptideFinder::getTolerance() const
 {
 	return (sa_->getTolerance());
 }
@@ -200,7 +200,7 @@ String SuffixArrayPeptideFinder::vToString_ (vector<String> v)
 
 void SuffixArrayPeptideFinder::getCandidates(vector<vector<pair<FASTAEntry, String> > >& candidates, const vector<double>& spec)
 {
-	vector<vector<pair<pair<int, int>, float> > > ca;
+	vector<vector<pair<pair<int, int>, double> > > ca;
 	sa_->findSpec(ca, spec);
 	
 	ModifierRep mod;

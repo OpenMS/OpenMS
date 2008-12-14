@@ -36,7 +36,7 @@ namespace OpenMS
   /**	
   	@brief A FilterFunctor extracts some spectrum characteristics for quality assessment
   */
-  class FilterFunctor 
+  class OPENMS_DLLAPI FilterFunctor 
   	: public FactoryProduct
   {
   public:

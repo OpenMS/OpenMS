@@ -42,7 +42,7 @@ namespace OpenMS
 			The modification is defined using an unique name of the modification present 
 			in the modifications DB instance.
 	*/
-	class ModificationDefinition
+	class OPENMS_DLLAPI ModificationDefinition
 	{
 		public:
 

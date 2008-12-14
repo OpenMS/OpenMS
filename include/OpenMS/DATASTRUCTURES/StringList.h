@@ -29,6 +29,11 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#ifdef OPENMS_COMPILER_MSVC
+	#pragma warning( push )
+	#pragma warning( disable : 4251 ) // disable MSVC dll-interface warning
+#endif
+
 namespace OpenMS
 {
 	/**
@@ -38,7 +43,7 @@ namespace OpenMS
 		
 		@ingroup Datastructures
 	*/
-	class StringList
+	class OPENMS_DLLAPI StringList
 		: public std::vector<String>
 	{
 		public:
@@ -87,5 +92,9 @@ namespace OpenMS
 	};
 	
 } // namespace OPENMS
+
+#ifdef OPENMS_COMPILER_MSVC
+	#pragma warning( pop ) 
+#endif
 
 #endif // OPENMS_DATASTRUCTURES_STRINGLIST_H

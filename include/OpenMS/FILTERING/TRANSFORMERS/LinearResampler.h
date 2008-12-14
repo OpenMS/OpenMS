@@ -50,7 +50,7 @@ namespace OpenMS
 		 
 		@htmlinclude OpenMS_LinearResampler.parameters
 	*/
-	class LinearResampler 
+	class OPENMS_DLLAPI LinearResampler 
 		: public DefaultParamHandler, 
 			public ProgressLogger
 	{

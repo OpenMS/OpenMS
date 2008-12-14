@@ -183,7 +183,7 @@ namespace OpenMS
 		tag_ = "";
  	} 
 
-  void OMSSAXMLFile::characters(const XMLCh* const chars, unsigned int /*length*/)
+  void OMSSAXMLFile::characters(const XMLCh* const chars, const unsigned int /*length*/)
   {
 		String value = ((String)sm_.convert(chars)).trim();
 		// MSPepHit section

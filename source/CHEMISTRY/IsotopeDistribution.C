@@ -24,14 +24,15 @@
 // $Maintainer: Clemens Groepl, Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-#include <OpenMS/CHEMISTRY/ElementDB.h>
-#include <OpenMS/CHEMISTRY/Element.h>
 #include <cmath>
 #include <iostream>
 #include <cstdlib>
 #include <algorithm>
+
+#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 using namespace std;
 
@@ -69,7 +70,7 @@ namespace OpenMS
 		return max_isotope_;
 	}
 
-	IsotopeDistribution::IsotopeDistribution& IsotopeDistribution::operator = (const IsotopeDistribution& iso)
+	IsotopeDistribution& IsotopeDistribution::operator = (const IsotopeDistribution& iso)
 	{
 		if (this != &iso)
 		{
@@ -79,7 +80,7 @@ namespace OpenMS
 		return *this;
 	}
 
-	IsotopeDistribution::IsotopeDistribution IsotopeDistribution::operator + (const IsotopeDistribution& iso) const
+	IsotopeDistribution IsotopeDistribution::operator + (const IsotopeDistribution& iso) const
 	{
 		ContainerType result;
 		convolve_(result, distribution_, iso.distribution_);
@@ -89,7 +90,7 @@ namespace OpenMS
 		return result_iso;
 	}
 
-	IsotopeDistribution::IsotopeDistribution& IsotopeDistribution::operator += (const IsotopeDistribution& iso)
+	IsotopeDistribution& IsotopeDistribution::operator += (const IsotopeDistribution& iso)
 	{
 		ContainerType result;
 		convolve_(result, distribution_, iso.distribution_);
@@ -97,7 +98,7 @@ namespace OpenMS
 		return *this;
 	}
 
-	IsotopeDistribution::IsotopeDistribution& IsotopeDistribution::operator *= (UInt factor)
+	IsotopeDistribution& IsotopeDistribution::operator *= (UInt factor)
 	{
 		ContainerType result;
 		convolvePow_(result, distribution_, factor);
@@ -105,7 +106,7 @@ namespace OpenMS
 		return *this;
 	}
 
-	IsotopeDistribution::IsotopeDistribution IsotopeDistribution::operator * (UInt factor) const
+	IsotopeDistribution IsotopeDistribution::operator * (UInt factor) const
 	{
 		ContainerType result;
 		convolvePow_(result, distribution_, factor);
@@ -182,7 +183,7 @@ namespace OpenMS
 			ContainerType single, conv_dist;
 			//calculate distribution for single element
 			ContainerType dist(db->getElement(names[i])->getIsotopeDistribution().getContainer());
-			convolvePow_(single, dist, (UInt)round(average_weight * factors[i]));
+			convolvePow_(single, dist, (UInt)Math::round(average_weight * factors[i]));
 			//convolve it with the existing distributions
 			conv_dist = distribution_;
 			convolve_(distribution_, single, conv_dist);

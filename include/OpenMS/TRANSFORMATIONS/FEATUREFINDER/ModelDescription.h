@@ -43,7 +43,7 @@ namespace OpenMS
 		@see BaseModel
 	*/  
   template <UInt D>
-	class ModelDescription
+	class OPENMS_DLLAPI ModelDescription
 	{
 		public:
 		

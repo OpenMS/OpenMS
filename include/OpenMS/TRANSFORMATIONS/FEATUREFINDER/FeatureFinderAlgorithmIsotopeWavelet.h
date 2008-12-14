@@ -48,7 +48,7 @@ namespace OpenMS
 		@ingroup FeatureFinder
 	*/
 	template <typename PeakType, typename FeatureType>
-	class FeatureFinderAlgorithmIsotopeWavelet : public FeatureFinderAlgorithm<PeakType, FeatureType> 
+	class OPENMS_DLLAPI FeatureFinderAlgorithmIsotopeWavelet : public FeatureFinderAlgorithm<PeakType, FeatureType> 
 	{
 
 	 public:

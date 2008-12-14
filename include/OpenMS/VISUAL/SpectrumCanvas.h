@@ -77,7 +77,7 @@ namespace OpenMS
       
 		@ingroup SpectrumWidgets
 	*/
-	class SpectrumCanvas 
+	class OPENMS_DLLAPI SpectrumCanvas 
 		: public QWidget,
 			public DefaultParamHandler
 	{

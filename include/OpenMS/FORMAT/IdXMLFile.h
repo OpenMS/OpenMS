@@ -55,7 +55,7 @@ namespace OpenMS
   	
   	@ingroup FileIO
   */
-  class IdXMLFile
+  class OPENMS_DLLAPI IdXMLFile
   	: protected Internal::XMLHandler,
   		public Internal::XMLFile
   {

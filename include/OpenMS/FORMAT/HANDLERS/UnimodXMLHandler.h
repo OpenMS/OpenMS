@@ -40,7 +40,7 @@ namespace OpenMS
     @brief Handler that is used for parsing XTandemXML data
     
   */
-  class UnimodXMLHandler:
+  class OPENMS_DLLAPI UnimodXMLHandler:
     public XMLHandler
   {
     public:

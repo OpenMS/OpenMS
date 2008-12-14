@@ -50,7 +50,7 @@ namespace OpenMS
 		Base64 supports two precisions: 32 Bit (float) and 64 Bit (double).
 		
   */
-  class Base64
+  class OPENMS_DLLAPI Base64
   {
   public:
     /// default constructor

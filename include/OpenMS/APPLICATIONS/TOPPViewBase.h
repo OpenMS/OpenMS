@@ -82,7 +82,7 @@ namespace OpenMS
 		
     @ingroup TOPPView_elements
   */
-  class TOPPViewBase 
+  class OPENMS_DLLAPI TOPPViewBase 
   	: public QMainWindow, 
   		public DefaultParamHandler
   {

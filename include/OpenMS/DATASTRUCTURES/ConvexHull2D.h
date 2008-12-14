@@ -34,7 +34,7 @@
 
 #include <vector>
 #include <map>
-#include <math.h>
+#include <cmath>
 
 #include <CGAL/Cartesian.h>
 #include <CGAL/convex_hull_2.h>
@@ -46,7 +46,7 @@ namespace OpenMS
 		
 		@ingroup Datastructures
 	*/
-	class ConvexHull2D
+	class OPENMS_DLLAPI ConvexHull2D
 	{
 		public:
 			typedef DPosition<2> PointType;

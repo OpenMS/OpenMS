@@ -45,7 +45,7 @@ namespace OpenMS
 	  	
 	  	@ingroup Math
 	  */
-	  class ROCCurve
+	  class OPENMS_DLLAPI ROCCurve
 	  {
 	  public:
 		
@@ -91,7 +91,7 @@ namespace OpenMS
       typedef CGAL::Polygon_2<CGAL::Cartesian<double> > Polygon;
 
       /// predicate for sort()
-      class simsortdec
+      class OPENMS_DLLAPI simsortdec
       {
       	public:
         	

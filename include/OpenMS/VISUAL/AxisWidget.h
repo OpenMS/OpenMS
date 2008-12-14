@@ -49,7 +49,7 @@ namespace OpenMS
 		
 		@ingroup Visual
 	*/
-	class AxisWidget 
+	class OPENMS_DLLAPI AxisWidget 
 		: public QWidget
 	{
 		Q_OBJECT

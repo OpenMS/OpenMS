@@ -58,7 +58,7 @@ namespace OpenMS
     @ingroup Analysis
   */
   
-  class FeatureDecharger : public DefaultParamHandler
+  class OPENMS_DLLAPI FeatureDecharger : public DefaultParamHandler
   {
     public:
     

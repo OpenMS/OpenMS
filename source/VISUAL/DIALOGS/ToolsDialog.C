@@ -43,7 +43,7 @@
 #include <QtGui/QCheckBox>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/PreprocessingFunctor.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 
 using namespace std;
 

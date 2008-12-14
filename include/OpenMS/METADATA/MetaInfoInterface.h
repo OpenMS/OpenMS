@@ -50,7 +50,7 @@ namespace OpenMS
 		@ingroup Metadata
 	*/
 
-	class MetaInfoInterface
+	class OPENMS_DLLAPI MetaInfoInterface
 	{
     public:
 

@@ -42,7 +42,7 @@ namespace OpenMS
 		
 		@ingroup Metadata
   */
-  class Gradient
+  class OPENMS_DLLAPI Gradient
   {
 		public:
       /// Constructor

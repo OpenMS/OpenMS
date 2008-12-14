@@ -39,7 +39,7 @@ namespace OpenMS
 		
 		@ingroup System
 	*/
-	class ProcessResource
+	class OPENMS_DLLAPI ProcessResource
 	{
 		public:
 			

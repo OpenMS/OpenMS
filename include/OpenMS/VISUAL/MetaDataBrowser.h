@@ -89,7 +89,7 @@ namespace OpenMS
 
 		@ingroup Visual
 	*/
-  class MetaDataBrowser
+  class OPENMS_DLLAPI MetaDataBrowser 
   	: public QDialog
   {
     Q_OBJECT

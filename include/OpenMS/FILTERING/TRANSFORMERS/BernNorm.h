@@ -43,7 +43,7 @@ namespace OpenMS
 	
 		@ingroup SpectraPreprocessers
   */
-  class BernNorm
+  class OPENMS_DLLAPI BernNorm
     : public PreprocessingFunctor
   {
   public:

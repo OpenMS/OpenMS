@@ -37,7 +37,7 @@ namespace OpenMS
 	/**
 	@brief Abstract base class for all 1D-model fitters using maximum likelihood optimization.
 	*/
-	class MaxLikeliFitter1D
+	class OPENMS_DLLAPI MaxLikeliFitter1D
 		: public Fitter1D
 	{
 

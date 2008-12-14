@@ -36,7 +36,7 @@ namespace OpenMS
 
 		@ingroup SpectraFilter
   */
-  class PeakDensityFilter : public FilterFunctor
+  class OPENMS_DLLAPI PeakDensityFilter : public FilterFunctor
   {
   public:
 

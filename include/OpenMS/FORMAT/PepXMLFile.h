@@ -47,7 +47,7 @@ namespace OpenMS
 		  	
   	@ingroup FileIO
   */
-  class PepXMLFile
+  class OPENMS_DLLAPI PepXMLFile
   	: protected Internal::XMLHandler,
   		public Internal::XMLFile
   {

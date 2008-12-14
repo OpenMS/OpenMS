@@ -57,7 +57,7 @@ namespace OpenMS
 		
 		@ingroup System
 	*/
-	class FileWatcher
+	class OPENMS_DLLAPI FileWatcher
 		: public QFileSystemWatcher		///@todo find out why ICC requires public instead of protected (Marc, Chris)
 	{
     Q_OBJECT

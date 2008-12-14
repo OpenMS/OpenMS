@@ -43,7 +43,7 @@ namespace OpenMS
 		
 		This class provides all functionality to view the meta information of an object of type ScanWindow.
 	*/
-	class ScanWindowVisualizer
+	class OPENMS_DLLAPI ScanWindowVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<InstrumentSettings::ScanWindow>
 	{

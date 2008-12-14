@@ -58,7 +58,7 @@ namespace OpenMS
 		
 		@todo Add support to store the displayed data as SVG or PNG image (HiWi)
 	*/
-	class SpectrumWidget 
+	class OPENMS_DLLAPI SpectrumWidget 
 		: public QWidget
 	{
 		Q_OBJECT

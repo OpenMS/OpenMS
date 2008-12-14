@@ -52,7 +52,7 @@ namespace OpenMS
 			@todo update references (Andreas)
 */
 	
-	class ElementDB
+	class OPENMS_DLLAPI ElementDB
 	{
 		public:
 	

@@ -40,7 +40,7 @@ namespace OpenMS
 
 		@ingroup SpectraPreprocessers
   */
-  class ParentPeakMower : public PreprocessingFunctor
+  class OPENMS_DLLAPI ParentPeakMower : public PreprocessingFunctor
   {
   public:
 

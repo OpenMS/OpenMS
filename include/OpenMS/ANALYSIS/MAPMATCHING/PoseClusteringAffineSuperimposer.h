@@ -37,7 +37,7 @@
 #include <fstream>
 #include <vector>
 #include <map>
-#include <math.h>
+#include <cmath>
 
 namespace OpenMS
 {
@@ -59,7 +59,7 @@ namespace OpenMS
 
 	@ingroup MapAlignment
 	*/
-	class PoseClusteringAffineSuperimposer
+	class OPENMS_DLLAPI PoseClusteringAffineSuperimposer
 		: public BaseSuperimposer
 	{
 	 public:

@@ -51,7 +51,7 @@ namespace OpenMS
 		
 		@ingroup Metadata
 	*/
-  class ExperimentalSettings
+  class OPENMS_DLLAPI ExperimentalSettings
   	: public MetaInfoInterface,
 			public DocumentIdentifier
   {

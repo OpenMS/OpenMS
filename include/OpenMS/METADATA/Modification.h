@@ -41,7 +41,7 @@ namespace OpenMS
 		
 		@ingroup Metadata
 	*/
-  class Modification: public SampleTreatment
+  class OPENMS_DLLAPI Modification: public SampleTreatment
   {
     public:
     	/// specificity of the reagent.

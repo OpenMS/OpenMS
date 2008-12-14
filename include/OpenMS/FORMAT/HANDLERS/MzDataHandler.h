@@ -246,7 +246,7 @@ namespace OpenMS
 			{
 				if (value!=0.0)
 				{
-					os << String(indent,'\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:" << acc << "\" name=\"" << name << "\" value=\"" << std::setprecision(writtenDigits<DoubleReal>()) << value << "\"/>\n";
+					os << String(indent,'\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:" << acc << "\" name=\"" << name << "\" value=\"" << std::setprecision(writtenDigits(DoubleReal())) << value << "\"/>\n";
 				}
 			}
 			/**  

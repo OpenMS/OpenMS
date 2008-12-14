@@ -46,7 +46,7 @@ namespace OpenMS
 
 		@ingroup Analysis_ID
   */
-  class FalseDiscoveryRate
+  class OPENMS_DLLAPI FalseDiscoveryRate
   	: public DefaultParamHandler
   {
   	public: 

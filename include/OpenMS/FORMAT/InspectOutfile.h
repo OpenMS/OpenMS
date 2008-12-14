@@ -45,7 +45,7 @@ namespace OpenMS
 		
 		@ingroup FileIO
 	*/
-	class InspectOutfile
+	class OPENMS_DLLAPI InspectOutfile
 	{
 		public:
 			/// default constructor

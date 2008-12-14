@@ -53,7 +53,7 @@ namespace OpenMS
   	  	
   	@ingroup FileIO
 	*/
-  class MS2File
+  class OPENMS_DLLAPI MS2File
 		: public ProgressLogger
   {
     public:

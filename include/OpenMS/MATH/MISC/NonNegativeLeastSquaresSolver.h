@@ -36,7 +36,7 @@ namespace OpenMS
 		
 		It solves Ax=b, where x>0 in the least squares sense (i.e. minimum residual)
 	*/
-	class NonNegativeLeastSquaresSolver
+	class OPENMS_DLLAPI NonNegativeLeastSquaresSolver
 	{
 		public:
 		

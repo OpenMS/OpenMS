@@ -47,7 +47,7 @@ namespace OpenMS
 		
 		@ingroup System
 	*/
-	class File
+	class OPENMS_DLLAPI File
 	{
 		public:
 			
@@ -107,7 +107,7 @@ namespace OpenMS
       	Creates a sparse* file @p filename (*requires Filesystem support!) of size @p filesize bytes using platform specific fileIO
       	The function is using 64-bit fileoffsets automatically (and is therefore independent of compiler flags)
 			*/
-      static bool createSparseFile(const String& filename, const Offset64Int& filesize);
+      static bool createSparseFile(const String& filename, const Int64& filesize);
 
       /**
 				@brief Extends a sparse file with handle @p hFile to size @p filesize bytes
@@ -116,9 +116,9 @@ namespace OpenMS
       	The function is using 64-bit fileoffsets automatically (and is therefore independent of compiler flags)
 			*/
 			#ifdef OPENMS_WINDOWSPLATFORM
-			static bool extendSparseFile(const HANDLE& hFile, const Offset64Int& filesize);
+			static bool extendSparseFile(const HANDLE& hFile, const Int64& filesize);
 			#else
-			static bool extendSparseFile(const int& hFile, const Offset64Int& filesize);
+			static bool extendSparseFile(const int& hFile, const Int64& filesize);
 			#endif
 						    
 			/**
@@ -133,9 +133,9 @@ namespace OpenMS
 				@note implementation is platform dependent, as handles in Windows are void* vs. int in Unix
 			*/
       #ifdef OPENMS_WINDOWSPLATFORM
-      static HANDLE getSwapFileHandle(const String& filename, const Offset64Int& filesize, const bool& create);
+      static HANDLE getSwapFileHandle(const String& filename, const Int64& filesize, const bool& create);
       #else
-      static    int getSwapFileHandle(const String& filename, const Offset64Int& filesize, const bool& create);
+      static    int getSwapFileHandle(const String& filename, const Int64& filesize, const bool& create);
       #endif
   	
 			/**

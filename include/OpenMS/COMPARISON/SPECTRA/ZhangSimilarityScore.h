@@ -45,7 +45,7 @@ namespace OpenMS
 		@ingroup SpectraComparison
   */
 	
-  class ZhangSimilarityScore : public PeakSpectrumCompareFunctor
+  class OPENMS_DLLAPI ZhangSimilarityScore : public PeakSpectrumCompareFunctor
   {
   public:
 	

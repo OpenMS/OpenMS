@@ -50,7 +50,7 @@ namespace OpenMS
 		@ingroup SpectraComparison
   */
 
-  class BinnedSumAgreeingIntensities : public BinnedSpectrumCompareFunctor
+  class OPENMS_DLLAPI BinnedSumAgreeingIntensities : public BinnedSpectrumCompareFunctor
   {
   public:
 

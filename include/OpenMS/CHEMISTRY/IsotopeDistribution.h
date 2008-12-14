@@ -50,7 +50,7 @@ namespace OpenMS
 		By default all possible isotopes are calculated, which leads to a large
 		number of values, if the mass value is large!
 	*/	
-  class IsotopeDistribution
+  class OPENMS_DLLAPI IsotopeDistribution
   {
 		public:
 

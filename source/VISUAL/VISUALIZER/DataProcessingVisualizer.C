@@ -89,7 +89,7 @@ namespace OpenMS
 			date.set(completion_time_->text());
 			ptr_->setCompletionTime(date);
 		}
-		catch(exception& e)
+		catch(exception& /*e*/)
 		{
 			if(date.isNull())
 			{

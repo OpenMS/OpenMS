@@ -52,7 +52,7 @@ namespace OpenMS
 	/**
 		@brief Cross platform memory mapping.
 	*/
-	class MemoryMap
+	class OPENMS_DLLAPI MemoryMap
 	{
     public:
     // recreate the functions already offered by POSIX  
@@ -76,14 +76,14 @@ namespace OpenMS
   
     #ifdef OPENMS_WINDOWSPLATFORM
     /* mmap for windows */
-      static void* OpenMS_mmap (const std::size_t& size, const HANDLE& handle, const Offset64Int& file_offset)
+      static void* OpenMS_mmap (const std::size_t& size, const HANDLE& handle, const Int64& file_offset)
       {
         
 				// set maximal mapping size
 				// @note this will increase the swap file size automatically
 				//       (in contrast to Linux where file extension has to be done manually before the mapping!)
 				LARGE_INTEGER iTmp1;
-				iTmp1.QuadPart = file_offset + (Offset64Int)size; 
+				iTmp1.QuadPart = file_offset + (Int64)size; 
 				DWORD hi1 = iTmp1.HighPart;
 				DWORD lo1 = iTmp1.LowPart;
 			
@@ -130,7 +130,7 @@ namespace OpenMS
     
       }
     #else
-      static void* OpenMS_mmap (const std::size_t& size, const int& fileHandle, const Offset64Int& file_offset)
+      static void* OpenMS_mmap (const std::size_t& size, const int& fileHandle, const Int64& file_offset)
       {
         
         void* map =  mmap64(0,

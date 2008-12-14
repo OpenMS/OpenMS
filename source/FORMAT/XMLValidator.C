@@ -98,7 +98,7 @@ namespace OpenMS
 	void XMLValidator::warning(const SAXParseException& exception)
 	{
 		char* message = XMLString::transcode(exception.getMessage());
-		String error_message = String("Validation warning in line ") + exception.getLineNumber() + " column " + exception.getColumnNumber() + ": " + message;
+		String error_message = String("Validation warning in line ") + (UInt) exception.getLineNumber() + " column " + (UInt) exception.getColumnNumber() + ": " + message;
 		cerr << error_message << endl;
 		valid_ = false;
 		XMLString::release(&message);
@@ -107,7 +107,7 @@ namespace OpenMS
 	void XMLValidator::error(const SAXParseException& exception)
 	{
 		char* message = XMLString::transcode(exception.getMessage());
-		String error_message = String("Validation error in line ") + exception.getLineNumber() + " column " + exception.getColumnNumber() + ": " + message;
+		String error_message = String("Validation error in line ") + (UInt) exception.getLineNumber() + " column " + (UInt) exception.getColumnNumber() + ": " + message;
 		cerr << error_message << endl;
 		valid_ = false;
 		XMLString::release(&message);
@@ -116,7 +116,7 @@ namespace OpenMS
 	void XMLValidator::fatalError(const SAXParseException& exception)
 	{
 		char* message = XMLString::transcode(exception.getMessage());
-		String error_message = String("Validation error in line ") + exception.getLineNumber() + " column " + exception.getColumnNumber() + ": " + message;
+		String error_message = String("Validation error in line ") + (UInt) exception.getLineNumber() + " column " + (UInt) exception.getColumnNumber() + ": " + message;
 		cerr << error_message << endl;
 		valid_ = false;
 		XMLString::release(&message);

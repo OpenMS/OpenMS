@@ -43,7 +43,7 @@ namespace OpenMS
 		
 		@ingroup Metadata
   */
-  class ProteinHit
+  class OPENMS_DLLAPI ProteinHit
   	: public MetaInfoInterface
   {
   	public:

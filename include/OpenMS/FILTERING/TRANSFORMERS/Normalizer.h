@@ -39,7 +39,7 @@ namespace OpenMS
 		
 		@ingroup SpectraPreprocessers
   */
-  class Normalizer
+  class OPENMS_DLLAPI Normalizer
     : public PreprocessingFunctor
   {
   public:

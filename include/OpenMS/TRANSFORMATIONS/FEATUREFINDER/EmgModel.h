@@ -39,7 +39,7 @@ namespace OpenMS
     
     @htmlinclude OpenMS_EmgModel.parameters
 	*/
-	class EmgModel
+	class OPENMS_DLLAPI EmgModel
 		: public InterpolationModel
 	{
 

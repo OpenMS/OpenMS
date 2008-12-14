@@ -40,7 +40,7 @@ namespace OpenMS
 		
   	@ingroup FileIO
 	*/
-  class XMLValidator
+  class OPENMS_DLLAPI XMLValidator
   	: private xercesc::ErrorHandler
   {
     public:

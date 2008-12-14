@@ -58,7 +58,7 @@ namespace OpenMS
 		
 		@ingroup Datastructures
 	*/
-	class Param
+	class OPENMS_DLLAPI Param
 		: public Internal::XMLFile
 	{
 	  public:
@@ -153,7 +153,7 @@ namespace OpenMS
 		public:
 		
 			/// Forward const iterator for the Param class
-			class ParamIterator
+			class OPENMS_DLLAPI ParamIterator
 			{
 				public:
 					/// Struct that captures information on entered / left nodes for ParamIterator
@@ -184,7 +184,7 @@ namespace OpenMS
 			    ///Prefix increment operator 
 			    ParamIterator& operator++();
 			    ///Postfix increment operator 
-			    ParamIterator operator++(Int);
+			    ParamIterator operator++(int);
 		 			///Equality operator
 			    bool operator==(const ParamIterator& rhs) const;
 					///Equality operator

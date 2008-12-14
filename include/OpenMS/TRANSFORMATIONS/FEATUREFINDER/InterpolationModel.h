@@ -44,7 +44,7 @@ namespace OpenMS
 		@ingroup FeatureFinder
 
 	*/
-    class InterpolationModel
+    class OPENMS_DLLAPI InterpolationModel
     	: public BaseModel<1>
     {
 

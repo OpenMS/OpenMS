@@ -47,7 +47,7 @@ namespace OpenMS
     
 		It contains the size, name and handle of the swap file.
   */
-  class ExternalAllocatorUnique {
+  class OPENMS_DLLAPI ExternalAllocatorUnique {
   
 		private:
 			/// do not allow default C'tor
@@ -60,9 +60,9 @@ namespace OpenMS
       /// name of temporary file
       String filename_;
       /// size of temporary file
-      Offset64Int filesize_;     
+      Int64 filesize_;     
       /// next byte position in file where the next mapping is scheduled
-      Offset64Int nextfree_;
+      Int64 nextfree_;
       
       /// filehandle to swap file
       #ifdef OPENMS_WINDOWSPLATFORM
@@ -72,11 +72,11 @@ namespace OpenMS
       #endif
       
       /// just for informational purposes: how many bytes are mapped
-      Offset64Int totalmappingsize_;
+      Int64 totalmappingsize_;
       
       
       // /// freed blocks which shall be reused before opening a new one
-      //std::vector < std::pair <Offset64Int, Offset64Int > > freeblock_;
+      //std::vector < std::pair <Int64, Int64 > > freeblock_;
 
     public:  
     
@@ -84,7 +84,7 @@ namespace OpenMS
      */
          
       /// C'tor
-      ExternalAllocatorUnique(const String &filename, const Offset64Int &filesize)
+      ExternalAllocatorUnique(const String &filename, const Int64 &filesize)
       :
         filename_(filename),
         filesize_(filesize),
@@ -170,42 +170,42 @@ namespace OpenMS
 			/**	@name	read & write accessors */
 			//@{
 			/// increase the filesize by @p x bytes
-      void advanceFilesize(const Offset64Int& x)
+      void advanceFilesize(const Int64& x)
       {
         filesize_ += x;
       }       
 			
 			/// get the size of the swap file      
-      const Offset64Int& getFilesize() const
+      const Int64& getFilesize() const
       {
         return filesize_;
       }      
 			
       /// get next free byte position of swap file
-      const Offset64Int& getNextfree() const
+      const Int64& getNextfree() const
       {
         return nextfree_;
       }      
 			/// advance the next free byte position by @p x bytes
-      void advanceNextfree(const Offset64Int& x)
+      void advanceNextfree(const Int64& x)
       {
         nextfree_ += x;
       }       
 
       /// get current number of bytes mapped from swap file into virtual memory      
-      const Offset64Int& getTotalmappingsize() const
+      const Int64& getTotalmappingsize() const
       {
         return totalmappingsize_;
       }
 			/// set new mapping size @p x
-      void setTotalmappingsize(const Offset64Int& x)
+      void setTotalmappingsize(const Int64& x)
       {
         totalmappingsize_ = x;
       }  
 			//@}
       
 			/// determine if a new mapping at the current file position would go beyond EOF
-			bool hasFreeSwap(const Offset64Int& bytes_needed)
+			bool hasFreeSwap(const Int64& bytes_needed)
 			{
 				return (filesize_ > bytes_needed+nextfree_);
 			}

@@ -26,9 +26,9 @@
 
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaGaussModel.h>
-#include <numeric>
-#include <math.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
+#include <numeric>
 
 namespace OpenMS
 {
@@ -78,7 +78,7 @@ namespace OpenMS
       data.reserve( UInt ( (max_ - min_) / interpolation_step_ + 1 ) );
       CoordinateType pos = min_;
   
-      DoubleReal part1 = 1/(sqrt(2*M_PI)*standard_deviation_);
+      DoubleReal part1 = 1/(sqrt(2*Constants::PI)*standard_deviation_);
       DoubleReal part2 = (2*pow(standard_deviation_,2));
   
       for ( UInt i = 0; pos< max_; ++i)

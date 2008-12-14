@@ -37,7 +37,7 @@ namespace OpenMS
 
 		@htmlinclude OpenMS_ExtendedIsotopeModel.parameters
 	*/
-	class ExtendedIsotopeModel
+	class OPENMS_DLLAPI ExtendedIsotopeModel
   : public InterpolationModel
   {
 

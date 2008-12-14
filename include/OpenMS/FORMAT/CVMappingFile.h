@@ -45,7 +45,7 @@ namespace OpenMS
   
   	@ingroup FileIO
   */
-  class CVMappingFile
+  class OPENMS_DLLAPI CVMappingFile
 		: protected Internal::XMLHandler,
 			public Internal::XMLFile
   {

@@ -38,7 +38,7 @@ namespace OpenMS
     
   	@ingroup Format
   */
-	class UniqueIdGenerator
+	class OPENMS_DLLAPI UniqueIdGenerator
 	{
 		public:
 			/// returns a regerence to the instance

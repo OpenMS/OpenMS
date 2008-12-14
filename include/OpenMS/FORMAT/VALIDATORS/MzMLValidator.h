@@ -41,7 +41,7 @@ namespace OpenMS
 	  /**
 	    @brief Semantically validates MzXML files.
 	  */
-	  class MzMLValidator
+	  class OPENMS_DLLAPI MzMLValidator
 			: public SemanticValidator
 	  {
 	    public:

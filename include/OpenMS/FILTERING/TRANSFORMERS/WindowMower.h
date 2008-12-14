@@ -40,7 +40,7 @@ namespace OpenMS
 
 		@ingroup SpectraPreprocessers
   */
-  class WindowMower
+  class OPENMS_DLLAPI WindowMower
   	 : public PreprocessingFunctor
   {
   public:

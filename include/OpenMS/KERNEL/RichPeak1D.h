@@ -41,7 +41,7 @@ namespace OpenMS
 	
 		@ingroup Kernel
 	*/
-	class RichPeak1D 
+	class OPENMS_DLLAPI RichPeak1D 
 		: public Peak1D, 
 			public MetaInfoInterface
 	{

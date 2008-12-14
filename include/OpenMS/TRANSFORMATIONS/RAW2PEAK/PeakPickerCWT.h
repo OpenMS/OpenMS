@@ -37,7 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
-#include <math.h>
+#include <cmath>
 #include <vector>
 #include <algorithm>
 
@@ -71,9 +71,9 @@ namespace OpenMS
 	  
 		@ingroup PeakPicking
   */
-  class PeakPickerCWT
-  	: public DefaultParamHandler, 
-  		public ProgressLogger
+  class OPENMS_DLLAPI PeakPickerCWT : 
+			public DefaultParamHandler,
+			public ProgressLogger
   {
 	 public:
 
@@ -309,7 +309,7 @@ namespace OpenMS
         sort(peak_shapes_.begin(), peak_shapes_.end(), PeakShape::PositionLess());
 				std::vector<UInt> peaks_to_skip;
         // search for broad or asymmetric peaks
-        UInt n = peak_shapes_.size();
+        UInt n = (UInt) peak_shapes_.size();
 				if( deconvolution_)
 				{
 					for (UInt i = 0; i < n; ++i)
@@ -622,7 +622,7 @@ namespace OpenMS
 			A regularData-Object which contents some additional useful informations
 			for analysing peaks and their properties
     */
-    class PeakArea_
+    class OPENMS_DLLAPI PeakArea_
     {
       typedef std::vector<PeakType>::iterator PeakIterator;
 

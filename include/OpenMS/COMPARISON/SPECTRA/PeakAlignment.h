@@ -50,7 +50,7 @@ namespace OpenMS
 		@ingroup SpectraComparison
 	*/
 
-	class PeakAlignment : public PeakSpectrumCompareFunctor
+	class OPENMS_DLLAPI PeakAlignment : public PeakSpectrumCompareFunctor
 	{
 	public:
 

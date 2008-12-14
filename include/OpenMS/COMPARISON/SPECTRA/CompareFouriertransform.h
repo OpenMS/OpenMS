@@ -30,7 +30,7 @@ namespace OpenMS
 		
 	*/
 	
-  class CompareFouriertransform : public PeakSpectrumCompareFunctor
+  class OPENMS_DLLAPI CompareFouriertransform : public PeakSpectrumCompareFunctor
   {
   	public:
 	

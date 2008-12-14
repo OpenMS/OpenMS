@@ -27,6 +27,8 @@
 #ifndef OPENMS_VISUAL_PEAKICON_H
 #define OPENMS_VISUAL_PEAKICON_H
 
+#include <OpenMS/config.h>
+
 class QPainter;
 class QRect;
 
@@ -39,7 +41,7 @@ namespace OpenMS
 		
 		@ingroup Visual
 	*/
-	class PeakIcon
+	class OPENMS_DLLAPI PeakIcon
 	{
 		public:
 			/// Icon names

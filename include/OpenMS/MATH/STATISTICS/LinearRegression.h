@@ -58,7 +58,7 @@ namespace OpenMS
 			
 			@ingroup Math
     */
-    class LinearRegression
+    class OPENMS_DLLAPI LinearRegression
     {
 		 public:
 

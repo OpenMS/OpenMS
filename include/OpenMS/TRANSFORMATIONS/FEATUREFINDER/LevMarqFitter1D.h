@@ -43,7 +43,7 @@ namespace OpenMS
     /** 
       @brief Abstract class for 1D-model fitter using Levenberg-Marquardt algorithm for parameter optimization.
 		*/
-    class LevMarqFitter1D
+    class OPENMS_DLLAPI LevMarqFitter1D
     : public Fitter1D
     {
 

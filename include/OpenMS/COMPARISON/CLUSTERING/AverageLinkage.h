@@ -46,7 +46,7 @@ namespace OpenMS
 
 		@ingroup SpectraClustering
 	*/
-	class AverageLinkage : public ClusterFunctor
+	class OPENMS_DLLAPI AverageLinkage : public ClusterFunctor
 	{
 		public:
 

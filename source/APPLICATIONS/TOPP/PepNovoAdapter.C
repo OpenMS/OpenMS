@@ -39,7 +39,7 @@
 #include <OpenMS/FORMAT/PTMXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <vector>
 #include <algorithm>
 

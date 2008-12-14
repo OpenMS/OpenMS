@@ -50,7 +50,7 @@ namespace OpenMS
     @brief Handler that is used for parsing XTandemXML data
     
   */
-  class XTandemInfileXMLHandler:
+  class OPENMS_DLLAPI XTandemInfileXMLHandler:
     public XMLHandler
   {
     public:

@@ -28,7 +28,7 @@
 #ifndef OPENMS_VISUAL_DIALOGS_DATAFILTERDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_DATAFILTERDIALOG_H
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/DataFilterDialogTemplate.h>
+#include <OpenMS/VISUAL/DIALOGS/UIC/ui_DataFilterDialog.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
 
 
@@ -38,7 +38,7 @@ namespace OpenMS
 		@brief Dialog for creating and changing a DataFilter
 		
 	*/
-	class DataFilterDialog
+	class OPENMS_DLLAPI DataFilterDialog
 		: public QDialog,
   		public Ui::DataFilterDialogTemplate
 	{

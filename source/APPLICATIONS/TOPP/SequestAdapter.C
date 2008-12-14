@@ -40,7 +40,7 @@
 #include <OpenMS/FORMAT/PTMXMLFile.h>
 
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <vector>
 #include <algorithm>
 
@@ -295,7 +295,7 @@ class TOPPSequestAdapter
 					++msms_spectra;
 					if ( spectra_it->getPrecursorPeak().getCharge() )
 					{
-						filename = common_name + "." + String(scan_number) + "." + String(spectra_it->getPrecursorPeak().getCharge()) + ".dta_" + String( (PointerSizeUInt) (dtas / max_dtas_per_run) );
+						filename = common_name + "." + String(scan_number) + "." + String(spectra_it->getPrecursorPeak().getCharge()) + ".dta_" + String( (dtas / max_dtas_per_run) );
 						++dtas;
 						if ( make_dtas ) dtafile.store(filename, *spectra_it);
 						dta_filenames.push_back(filename);
@@ -307,7 +307,7 @@ class TOPPSequestAdapter
 					{
 						for ( vector< Int >::const_iterator charges_it = charges.begin(); charges_it != charges.end(); ++charges_it )
 						{
-							filename = common_name + "." + String(scan_number) + "." + *charges_it + ".dta_" + String( (PointerSizeUInt) (dtas / max_dtas_per_run) );
+							filename = common_name + "." + String(scan_number) + "." + *charges_it + ".dta_" + String( (dtas / max_dtas_per_run) );
 							++dtas;
 							if ( make_dtas )
 							{
@@ -1127,7 +1127,7 @@ class TOPPSequestAdapter
 
 					batchfile << String(" cd " + temp_data_directory_win + " && " + temp_data_directory_win.substr(0,2));
 
-					for ( PointerSizeUInt i = 0; i <= (PointerSizeUInt) (dtas / max_dtas_per_run); ++i )
+					for ( UInt i = 0; i <= UInt(dtas / max_dtas_per_run); ++i )
 					{
 						batchfile << " && " << sequest_directory_win << "sequest.exe -P" << input_file_directory_network << File::basename(input_filename) << "  " << temp_data_directory_network << "*.dta_" << i<< " > " <<  temp_data_directory_network << sequest_screen_output << " && move sequest.log sequest.log" << i;
 					}
@@ -1149,7 +1149,7 @@ class TOPPSequestAdapter
 					{
 						bool no_log(false);
 						string_buffer.clear();
-						for ( PointerSizeUInt i = 0; i <= (PointerSizeUInt) (dtas / max_dtas_per_run); ++i )
+						for ( UInt i = 0; i <= (UInt) (dtas / max_dtas_per_run); ++i )
 						{
 							ifstream sequest_log(string(temp_data_directory + "sequest.log" + String(i)).c_str()); // write sequest log to logfile
 							if ( !sequest_log )

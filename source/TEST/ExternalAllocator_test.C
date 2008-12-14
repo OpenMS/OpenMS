@@ -68,7 +68,7 @@ START_SECTION((const_pointer address(const_reference value) const))
 }
 END_SECTION
 
-START_SECTION((ExternalAllocator(const String &filename=File::getUniqueName(), const Offset64Int &filesize=1)))
+START_SECTION((ExternalAllocator(const String &filename=File::getUniqueName(), const Int64 &filesize=1)))
 {
 	// this should work
   ExternalAllocator<int> extalloc;
@@ -112,7 +112,7 @@ ExternalAllocator<int>::pointer p;
 START_SECTION((pointer allocate(size_type num, const void *=0)))
 {
   p = extalloc.allocate(4);
-	TEST_EQUAL(extalloc.getMappingSize(), (Offset64Int) MemoryMap::OpenMS_getFileBlocksize())
+	TEST_EQUAL(extalloc.getMappingSize(), (Int64) MemoryMap::OpenMS_getFileBlocksize())
 }
 END_SECTION
 
@@ -141,9 +141,9 @@ START_SECTION((void destroy(pointer)))
 }
 END_SECTION
 
-START_SECTION(Offset64Int getMappingSize())
+START_SECTION(Int64 getMappingSize())
 {
-	TEST_EQUAL(extalloc.getMappingSize(), (Offset64Int) MemoryMap::OpenMS_getFileBlocksize())
+	TEST_EQUAL(extalloc.getMappingSize(), (Int64) MemoryMap::OpenMS_getFileBlocksize())
 }
 END_SECTION
 

@@ -39,7 +39,7 @@ namespace OpenMS
 		
 		This class provides all functionality to view the meta information of an object of type Modification.
 	*/
-	class ModificationVisualizer
+	class OPENMS_DLLAPI ModificationVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<Modification>
 	{

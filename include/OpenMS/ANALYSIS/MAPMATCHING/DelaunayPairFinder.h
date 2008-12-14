@@ -44,7 +44,7 @@ namespace OpenMS
 	
 	  @ingroup FeatureGrouping
   */
-  class DelaunayPairFinder 
+  class OPENMS_DLLAPI DelaunayPairFinder 
   	: public BaseGroupFinder
   {
    public:

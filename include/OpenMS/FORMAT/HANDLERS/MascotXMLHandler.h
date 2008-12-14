@@ -42,7 +42,7 @@ namespace OpenMS
     @brief Handler that is used for parsing MascotXML data
     
   */
-  class MascotXMLHandler:
+  class OPENMS_DLLAPI MascotXMLHandler:
     public XMLHandler
   {
     public:
@@ -59,7 +59,7 @@ namespace OpenMS
       virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 			
 			// Docu in base class
-      virtual void characters(const XMLCh* const chars, unsigned int /*length*/);
+      virtual void characters(const XMLCh* const chars, const unsigned int /*length*/);
 		  
     private:
     	

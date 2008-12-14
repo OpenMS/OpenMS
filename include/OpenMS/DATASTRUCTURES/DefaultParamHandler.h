@@ -79,7 +79,7 @@ namespace OpenMS
 		
 		@ingroup Datastructures
 	*/
-	class DefaultParamHandler
+	class OPENMS_DLLAPI DefaultParamHandler
 	{
 		public:
 			/// Constructor with name that is diplayed in error messages

@@ -26,6 +26,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaGaussFitter1D.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 namespace OpenMS
 {
@@ -74,7 +75,7 @@ namespace OpenMS
         {
           CoordinateType t = set[i].getPos();
 
-          Yi = ( 1 / ( sqrt( 2 * M_PI ) * normal_s ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale;
+          Yi = ( 1 / ( sqrt( 2 * Constants::PI ) * normal_s ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale;
 
           gsl_vector_set( f, i, ( Yi - set[i].getIntensity() ) );
         }
@@ -98,13 +99,13 @@ namespace OpenMS
           CoordinateType t = set[i].getPos();
 						
           // f'(normal_s)
-          derivative_normal_s = -( ( 1 / sqrt( 2 * M_PI ) ) / ( normal_s * normal_s ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale + ( ( 1 / sqrt( 2 * M_PI ) ) / ( normal_s * normal_s * normal_s * normal_s ) ) * ( ( t - normal_m ) * ( t - normal_m ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale;
+          derivative_normal_s = -( ( 1 / sqrt( 2 * Constants::PI ) ) / ( normal_s * normal_s ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale + ( ( 1 / sqrt( 2 * Constants::PI ) ) / ( normal_s * normal_s * normal_s * normal_s ) ) * ( ( t - normal_m ) * ( t - normal_m ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale;
 
 	  			// f'(normal_m)
-          derivative_normal_m = ( ( 1 / sqrt( 2 * M_PI ) ) / ( normal_s * normal_s * normal_s ) ) * ( t - normal_m ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale;
+          derivative_normal_m = ( ( 1 / sqrt( 2 * Constants::PI ) ) / ( normal_s * normal_s * normal_s ) ) * ( t - normal_m ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) ) * normal_scale;
           					
           // f'(normal_scale)
-          derivative_normal_scale = ( ( 1 / sqrt( 2 * M_PI ) ) / ( normal_s ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) );
+          derivative_normal_scale = ( ( 1 / sqrt( 2 * Constants::PI ) ) / ( normal_s ) ) * exp( -( ( t - normal_m ) * ( t - normal_m ) ) / ( 2 * normal_s * normal_s ) );
           					
           // set the jacobian matrix of the normal distribution
           gsl_matrix_set( J, i, 0, derivative_normal_s );

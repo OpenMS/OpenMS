@@ -32,7 +32,7 @@
 #include <fstream>
 #include <cmath>
 #include <typeinfo>
-#include <time.h>
+#include <ctime>
 #include <cstdio>
 
 #include <OpenMS/CHEMISTRY/ModifierRep.h>
@@ -272,7 +272,7 @@ namespace OpenMS
 	{
 
 		if (end-start<=1) return (spec.at(start)<m-tol_)?end:start;
-		int middle = (int)floor(((end-start)/2)+start);
+		int middle = ((end-start)/2)+start;
 
 		if (spec.at(middle)<m-tol_){
 			return findFirst_(spec,m,middle,end);
@@ -295,7 +295,7 @@ namespace OpenMS
 
 
 	// finds all occurences of a given spectrum
-	void SuffixArraySeqan::findSpec(vector<vector<pair<pair<int,int>,float> > >& candidates, const vector<double> & spec)
+	void SuffixArraySeqan::findSpec(vector<vector<pair<pair<int,int>,double> > >& candidates, const vector<double> & spec)
 	{
 		if (spec.size() == 0)
 		{
@@ -339,10 +339,10 @@ namespace OpenMS
 		it_ = new TIter(index_);
 
 		// preparing result vector
-		//vector<vector<pair<pair<int,int>,float> > > res;
+		//vector<vector<pair<pair<int,int>,double> > > res;
 		for (UInt i = 0; i < spec.size();i++)
 		{
-			vector<pair<pair<int,int>,float> > v;
+			vector<pair<pair<int,int>,double> > v;
 			candidates.push_back(v);
 		}
 		double mmax = spec.back();
@@ -436,7 +436,7 @@ namespace OpenMS
 									for (UInt k = 0; k <length(occ);++k)
 									{
 										UInt first_occ = findFirst_ (spec, mass_with_mods);
-										pair<pair<int,int>,float> p (pair<int,int>(occ[k]+1,length_till_node+i-1),found_masses.at(o));
+										pair<pair<int,int>,double> p (pair<int,int>(occ[k]+1,length_till_node+i-1),found_masses.at(o));
 
 										while (first_occ<spec.size()&&spec.at(first_occ)<=mass_with_mods+tol_)
 										{
@@ -491,7 +491,7 @@ namespace OpenMS
 								for (UInt k = 0; k <length(occ);k++){
 									if (i<(edge_length-1) || (isDigestingEnd(s_[occ[k]+length_till_node+i],s_[occ[k]+1+length_till_node+i]))) {
 										UInt first_occ = findFirst_ (spec, mass_with_mods );
-										pair<pair<int,int>,float> p (pair<int,int>(occ[k]+1,length_till_node+i),found_masses.at(o));
+										pair<pair<int,int>,double> p (pair<int,int>(occ[k]+1,length_till_node+i),found_masses.at(o));
 										++nres;
 										while (first_occ<spec.size()&&spec.at(first_occ)<=mass_with_mods+tol_)
 										{

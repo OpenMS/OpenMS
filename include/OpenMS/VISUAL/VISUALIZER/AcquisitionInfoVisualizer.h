@@ -41,7 +41,7 @@ namespace OpenMS
 		
 		This class provides all functionality to view the meta information of an object of type AcquisitionInfo.
 	*/
-	class AcquisitionInfoVisualizer
+	class OPENMS_DLLAPI AcquisitionInfoVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<AcquisitionInfo>
 	{

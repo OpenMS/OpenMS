@@ -33,7 +33,7 @@
 
 // STL
 #include <vector>
-#include <math.h>
+#include <cmath>
 
 
 namespace OpenMS
@@ -52,7 +52,7 @@ namespace OpenMS
   */
   
   template <typename ClusterPoint = DPosition<2> >
-  class HierarchicalClustering : public DefaultParamHandler
+  class OPENMS_DLLAPI HierarchicalClustering : public DefaultParamHandler
   {
     public:
     

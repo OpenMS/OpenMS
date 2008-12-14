@@ -138,6 +138,15 @@ namespace OpenMS
 		string::operator=(s.str());
 	}
 
+	String::String(long long signed int i)
+		: string()
+	{
+		stringstream s;
+		s << i;
+		string::operator=(s.str());
+	}
+
+
 	String::String(float f)
 		: string()
 	{
@@ -347,12 +356,12 @@ namespace OpenMS
 	{
 		ConstIterator it=end();
 		--it;
-		while (it!=--(begin()) && *it!=delim)
+		while (it!=begin() && *it!=delim)
 		{
 			--it;
 		}
 		//char not found
-		if (it==--(begin()))
+		if (it==begin() && *it!=delim)
 		{
 			throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(delim));
 		}

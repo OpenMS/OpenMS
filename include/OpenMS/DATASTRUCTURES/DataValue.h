@@ -46,7 +46,7 @@ namespace OpenMS
 
 		@ingroup Datastructures
 	*/
-	class DataValue
+	class OPENMS_DLLAPI DataValue
 	{
 
 		public:
@@ -204,7 +204,7 @@ namespace OpenMS
 			/// Space to store the data
 			union
 			{
- 				PointerSizeInt int_;
+ 				Int int_;
 				DoubleReal dou_;
 				String* str_;
 				StringList* str_list_;

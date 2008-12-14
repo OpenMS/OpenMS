@@ -55,7 +55,7 @@ namespace OpenMS
 		enum Flag { UNUSED, USED };
 
 		/// Exception that is thrown if a method a invalid IndexPair is given
-		class NoSuccessor :
+		class OPENMS_DLLAPI NoSuccessor :
 			public Exception::BaseException
 		{
 			public:

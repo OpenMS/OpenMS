@@ -52,7 +52,7 @@ namespace OpenMS
 
 		@ingroup MapAlignment
   */
-  class PoseClusteringShiftSuperimposer
+  class OPENMS_DLLAPI PoseClusteringShiftSuperimposer
 		: public BaseSuperimposer
   {
   	public:

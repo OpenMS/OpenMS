@@ -41,7 +41,7 @@ namespace OpenMS
 		
 		@ingroup Metadata
 	*/
-  class Acquisition: public MetaInfoInterface
+  class OPENMS_DLLAPI Acquisition: public MetaInfoInterface
   {
     public:
     	/// Constructor

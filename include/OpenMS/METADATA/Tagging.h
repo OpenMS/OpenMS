@@ -39,7 +39,7 @@ namespace OpenMS
 		
 		@ingroup Metadata
 	*/
-  class Tagging: public Modification
+  class OPENMS_DLLAPI Tagging: public Modification
   {
     public:
     	/// Isotope variants (light and heavy)

@@ -42,7 +42,7 @@ namespace OpenMS
 		
 		@ingroup SpectraComparison
   */
-  class PeakSpectrumCompareFunctor 
+  class OPENMS_DLLAPI PeakSpectrumCompareFunctor 
   	: public FactoryProduct
   {
 

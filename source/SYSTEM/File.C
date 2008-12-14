@@ -34,12 +34,12 @@
 #include <QtCore/QStringList>
 #include <QtNetwork/QHostInfo>
 
-#include <fcntl.h> // for O_RDWR etc
 #include <iostream>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #  include <Winioctl.h> // for DeviceIoControl and constants e.g. FSCTL_SET_SPARSE
 #else
+#  include <fcntl.h> // for O_RDWR etc
 #  include <unistd.h>
 #endif
 
@@ -194,7 +194,7 @@ namespace OpenMS
 	{
 		DateTime now = DateTime::now();
 		String pid;
-		#ifdef OPENMS_OS_MINGW32
+		#ifdef OPENMS_WINDOWSPLATFORM
 			pid = (String)GetCurrentProcessId();
 		#else
 			pid = (String)getpid();	
@@ -203,9 +203,9 @@ namespace OpenMS
 		return now.getDate() + "_" + now.getTime().remove(':') + "_" + String(QHostInfo::localHostName()) + "_" + pid + "_" + (++number);
 	}
 
-  bool File::createSparseFile(const String& filename, const Offset64Int& sfilesize = 1)
+  bool File::createSparseFile(const String& filename, const Int64& sfilesize = 1)
   { 
-		Offset64Int filesize = sfilesize; 
+		Int64 filesize = sfilesize; 
 		if (filesize < 1)
 		{
 			std::cerr << "File::createSparseFile (__LINE__) warning: mapping of empty files not allowed! Increasing filesize to 1 byte!" << std::endl;
@@ -284,9 +284,9 @@ namespace OpenMS
   }
 
 	#ifdef OPENMS_WINDOWSPLATFORM
-  bool File::extendSparseFile(const HANDLE& /*hFile*/, const Offset64Int& /*filesize*/)
+  bool File::extendSparseFile(const HANDLE& /*hFile*/, const Int64& /*filesize*/)
 	#else
-  bool File::extendSparseFile(const int& hFile, const Offset64Int& filesize)
+  bool File::extendSparseFile(const int& hFile, const Int64& filesize)
   #endif
   { 
 		//TODO see http://www.boost.org/libs/filesystem/doc/tr2_proposal.html#Text 
@@ -321,7 +321,7 @@ namespace OpenMS
   }	
 	
   #ifdef OPENMS_WINDOWSPLATFORM
-  HANDLE File::getSwapFileHandle(const String& filename, const Offset64Int& filesize, const bool& create)
+  HANDLE File::getSwapFileHandle(const String& filename, const Int64& filesize, const bool& create)
   {
     if (create && (!File::exists(filename)))
     {
@@ -359,7 +359,7 @@ namespace OpenMS
     return myFile;
   }
   #else
-  int File::getSwapFileHandle(const String& filename, const Offset64Int& filesize, const bool& create)
+  int File::getSwapFileHandle(const String& filename, const Int64& filesize, const bool& create)
   {
     if (create && (!File::exists(filename)))
     {

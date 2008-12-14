@@ -56,16 +56,16 @@
 #include <fstream>
 #include <boost/lexical_cast.hpp>
 
+#ifdef OPENMS_HAS_UNISTD_H
 #include <unistd.h> // unlink()
-#include <stdio.h>  // tmpnam()
-#include <math.h>   // fabs
-#include <stdlib.h> // getenv()
-
-#ifdef OPENMS_HAS_SSTREAM
-# include <sstream>
-#else
-# include <strstream>
 #endif
+
+#include <cstdio>  // tmpnam()
+#include <cmath>   // fabs
+#include <cstdlib> // getenv()
+
+// Empty declaration to avoid problems in case the namespace is not
+// yet defined (e.g. TEST/ClassTest_test.C)
 
 /// Provide a point of redirection for testing the test macros, see ClassTest_test.C
 #ifndef std__cout
@@ -76,8 +76,8 @@ namespace OpenMS
 {
 	namespace Internal
 	{
-		/// Auxilary namespace for class tests.  Used by the macros in module @ref ClassTest.
-		namespace ClassTest
+		/// Auxilary class for class tests
+		namespace OPENMS_DLLAPI ClassTest
 		{
 
 			/**

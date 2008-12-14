@@ -55,7 +55,7 @@ namespace OpenMS
 
 	   @ingroup SignalProcessing
   */
-  class TOFCalibration 
+  class OPENMS_DLLAPI TOFCalibration 
     : public DefaultParamHandler,
     	public ProgressLogger
   {

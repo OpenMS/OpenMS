@@ -39,7 +39,7 @@ In comparision to FastaIterator the FASTA file will be loaded first and stored t
 
 @see FastaIterator
 */
-class FastaIteratorIntern : public PepIterator
+class OPENMS_DLLAPI FastaIteratorIntern : public PepIterator
 {
 
 	public: 

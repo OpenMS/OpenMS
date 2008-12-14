@@ -40,7 +40,7 @@ namespace OpenMS
 		
 		@ingroup SpectrumWidgets
 	*/
-	class Spectrum3DWidget
+	class OPENMS_DLLAPI Spectrum3DWidget
 		: public SpectrumWidget
 	{
 		Q_OBJECT		

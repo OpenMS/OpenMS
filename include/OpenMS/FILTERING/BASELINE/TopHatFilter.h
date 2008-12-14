@@ -54,7 +54,7 @@ namespace OpenMS
     
 		@ingroup SignalProcessing
   */
-  class TopHatFilter 
+  class OPENMS_DLLAPI TopHatFilter 
   	: public MorphFilter
   {
     public:
@@ -108,11 +108,11 @@ namespace OpenMS
 
         std::vector<typename InputPeakIterator::value_type> erosion_result;
         // compute the erosion of raw data
-        this->template erosion(first, last, erosion_result, struc_elem_number_of_points);
+        erosion(first, last, erosion_result, struc_elem_number_of_points);
         // compute the dilation of erosion_result
-        this->template dilatation(erosion_result.begin(),erosion_result.end(), baseline_filtered_container, struc_elem_number_of_points);
+        dilatation(erosion_result.begin(),erosion_result.end(), baseline_filtered_container, struc_elem_number_of_points);
         // subtract the result from the original data
-        this->template minusIntensities_(first,last,baseline_filtered_container);
+        minusIntensities_(first,last,baseline_filtered_container);
       }
 
 

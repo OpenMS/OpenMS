@@ -54,7 +54,7 @@ namespace OpenMS
 	
 		@ingroup Visual
 	*/
-	class MultiGradient
+	class OPENMS_DLLAPI MultiGradient
 	{
 		public:
 	

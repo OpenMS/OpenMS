@@ -34,7 +34,7 @@ namespace OpenMS
 /**
 @brief EdwardsLippertIterator that only retrieves tryptic seqences
 */
-class EdwardsLippertIteratorTryptic : public EdwardsLippertIterator
+class OPENMS_DLLAPI EdwardsLippertIteratorTryptic : public EdwardsLippertIterator
 {
 	public:
 

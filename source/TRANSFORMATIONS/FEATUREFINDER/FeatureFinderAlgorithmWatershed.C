@@ -31,5 +31,5 @@
 
 namespace OpenMS
 {
-	FeatureFinderAlgorithmWatershed<Peak1D,Feature> default_FeatureFinderAlgorithmWatershed;     
+	//FeatureFinderAlgorithmWatershed<Peak1D,Feature> default_FeatureFinderAlgorithmWatershed;     
 }

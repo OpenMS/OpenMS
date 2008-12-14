@@ -79,7 +79,7 @@ namespace OpenMS
 	 *
 	 * 	@todo Tests for negative mode (Rene)
 	*/
-	class IsotopeWavelet
+	class OPENMS_DLLAPI IsotopeWavelet
 	{
 		public:
 	
@@ -258,7 +258,8 @@ namespace OpenMS
 				static UInt max_charge_; 				
 
 				/** This parameter determines the sample rate for the pre-computation of the gamma function. */
-				static DoubleReal table_steps_, inv_table_steps_;
+				static DoubleReal table_steps_;
+				static DoubleReal inv_table_steps_;
 
 				/** Internal table for the precomputed values of the gamma function. */ 
 				static std::vector<DoubleReal> gamma_table_;
@@ -270,7 +271,8 @@ namespace OpenMS
 				static IsotopeDistribution averagine_;
 
 				/** The largest possible indices for the corresponding tables. */
-				static Int gamma_table_max_index_, exp_table_max_index_;
+				static Int gamma_table_max_index_;
+				static Int exp_table_max_index_;
 	};
 
 } //namespace

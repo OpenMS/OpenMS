@@ -45,7 +45,7 @@ namespace OpenMS
 	    This is the general validator.
 	    @n Specialized validators for specific file formats are derived from this class.
 	  */
-	  class SemanticValidator
+	  class OPENMS_DLLAPI SemanticValidator
 			: protected Internal::XMLHandler,
 				public Internal::XMLFile
 	  {
@@ -105,8 +105,6 @@ namespace OpenMS
 				/// Sets the name of the unit name attribute (default: 'unitName')
 				void setUnitNameAttribute(const String& name);
 				
-			protected:
-				
 				///Representation of a parsed CV term
 				struct CVTerm
 				{
@@ -119,6 +117,8 @@ namespace OpenMS
 					String unit_name;
 					bool has_unit_name;
 				};
+
+		protected:
 					
 				// Docu in base class
 				void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);

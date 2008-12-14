@@ -47,7 +47,7 @@ namespace OpenMS
 		
 		@ingroup Kernel
   */
-	class ConsensusMap 
+	class OPENMS_DLLAPI ConsensusMap 
 		: public std::vector<ConsensusFeature>,
 			public MetaInfoInterface,
 			public RangeManager<2>,

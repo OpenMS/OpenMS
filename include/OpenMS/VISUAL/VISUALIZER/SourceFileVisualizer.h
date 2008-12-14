@@ -41,7 +41,7 @@ namespace OpenMS
 		
 		This class provides all functionality to view the meta information of an object of type SourceFile.
 	*/
-	class SourceFileVisualizer
+	class OPENMS_DLLAPI SourceFileVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<SourceFile>
 	{

@@ -39,7 +39,7 @@
 
 #include <iostream>
 #include <fstream>
-#include <math.h>
+#include <cmath>
 
 using namespace OpenMS;
 using namespace std;

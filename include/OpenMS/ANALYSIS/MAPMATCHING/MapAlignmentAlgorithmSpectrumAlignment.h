@@ -52,7 +52,7 @@ namespace OpenMS
 		
 		@ingroup MapAlignment
 	*/
-	class MapAlignmentAlgorithmSpectrumAlignment
+	class OPENMS_DLLAPI MapAlignmentAlgorithmSpectrumAlignment
 	 : public MapAlignmentAlgorithm
 	{
 		public:
@@ -91,7 +91,7 @@ namespace OpenMS
 				@experimental This algorithm is work in progress and might change.
 		
 			*/
-			class Compare
+			class OPENMS_DLLAPI Compare
 			{
 				protected:
 					bool flag;
@@ -208,7 +208,7 @@ namespace OpenMS
 				@param transformation std::vector<TransformationDescription> saved the specific data points to recalulcate the spline
 			 	@see MapAlignmentAlgorithmSpectrumAlignment()
 			*/			
-			void calculateSpline_(std::vector<int>& x,std::vector<double>& y, std::vector<MSSpectrum<>* >& aligned,UInt begin, UInt end,std::vector<TransformationDescription>& transformation);
+			void calculateSpline_(std::vector<int>& x,std::vector<Real>& y, std::vector<MSSpectrum<>* >& aligned,UInt begin, UInt end,std::vector<TransformationDescription>& transformation);
 		  
 		  /**
 			 	@brief calculate the size of the band for the alignment for two given Sequence
@@ -279,7 +279,7 @@ namespace OpenMS
 				@exception Exception::OutOfRange if a out of bound appear @p pattern or @p aligned
 				@see MapAlignmentAlgorithmSpectrumAlignment()	
 			*/
-			void affineGapalign_(UInt xbegin, UInt ybegin, UInt xend,UInt yend, const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::vector<int>& xcoordinate, std::vector<double>&ycoordinate, std::vector<int>& xcoordinatepattern);
+			void affineGapalign_(UInt xbegin, UInt ybegin, UInt xend,UInt yend, const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::vector<int>& xcoordinate, std::vector<Real>&ycoordinate, std::vector<int>& xcoordinatepattern);
 			
 			/**
 				@brief  preparation function of data points to construct later the  spline function.
@@ -295,7 +295,7 @@ namespace OpenMS
 				@param xcoordinatepattern std::vector<int> save the reference position of the anchor points from the pattern
 				@see MapAlignmentAlgorithmSpectrumAlignment()	
 			*/
-			void bucketFilter_(const std::vector<MSSpectrum<>* >& pattern,std::vector<MSSpectrum<>* >& aligned,std::vector<int> & xcoordinate, std::vector<double> & ycoordinate, std::vector<int>&xcoordinatepattern);
+			void bucketFilter_(const std::vector<MSSpectrum<>* >& pattern,std::vector<MSSpectrum<>* >& aligned,std::vector<Int> & xcoordinate, std::vector<Real> & ycoordinate, std::vector<Int>&xcoordinatepattern);
 			
 			/**
 				@brief Creates files for the debugging

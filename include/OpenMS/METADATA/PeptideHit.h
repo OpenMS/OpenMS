@@ -43,7 +43,7 @@ namespace OpenMS
 		
 		@ingroup Metadata
   */
-  class PeptideHit
+  class OPENMS_DLLAPI PeptideHit
   	: public MetaInfoInterface
   {
   	public:
@@ -51,7 +51,7 @@ namespace OpenMS
 			/// @name Comparators for PeptideHit and ProteinHit
 			//@{
 			/// Greater predicate for scores of hits
-			class ScoreMore
+			class OPENMS_DLLAPI ScoreMore
 			{
 			  public:
 			  	template<typename Arg>
@@ -62,7 +62,7 @@ namespace OpenMS
 			};
 			
 			/// Lesser predicate for scores of hits
-			class ScoreLess
+			class OPENMS_DLLAPI ScoreLess
 			{
 			  public:
 			  	template<typename Arg>

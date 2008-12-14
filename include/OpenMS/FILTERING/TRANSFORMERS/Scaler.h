@@ -37,7 +37,7 @@ namespace OpenMS
 
 		@ingroup SpectraPreprocessers
   */
-  class Scaler
+  class OPENMS_DLLAPI Scaler
     : public PreprocessingFunctor
   {
   public:

@@ -50,7 +50,7 @@ namespace OpenMS
      
 		@ingroup Metadata
   */
-  class ProteinIdentification
+  class OPENMS_DLLAPI ProteinIdentification
   	: public MetaInfoInterface
   {
 	  public:

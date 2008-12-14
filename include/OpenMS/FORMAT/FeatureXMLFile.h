@@ -45,7 +45,7 @@ namespace OpenMS
   	
   	@ingroup FileIO
   */
-  class FeatureXMLFile
+  class OPENMS_DLLAPI FeatureXMLFile
   	: protected Internal::XMLHandler,
   		public Internal::XMLFile
   {

@@ -83,7 +83,7 @@ namespace OpenMS
 		 
 		 @htmlinclude OpenMS_TwoDOptimization.parameters
 	*/
-	class TwoDOptimization : public DefaultParamHandler
+	class OPENMS_DLLAPI TwoDOptimization : public DefaultParamHandler
 	{
 	public:
 
@@ -940,7 +940,7 @@ namespace OpenMS
 																spec.getMetaDataArrays()[1][peak_index], //area
 																std::vector<Peak1D>::iterator(),
 																std::vector<Peak1D>::iterator(),
-																(PeakShape::Type)(spec.getMetaDataArrays()[5][peak_index])); //shape
+																PeakShape::Type(Int(spec.getMetaDataArrays()[5][peak_index]))); //shape
 								peak_shapes.push_back(shape);
 								++set_iter;
 							}

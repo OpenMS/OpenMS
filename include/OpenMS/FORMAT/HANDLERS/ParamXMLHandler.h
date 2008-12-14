@@ -42,7 +42,7 @@ namespace OpenMS
 		@brief XML Handler for Param files.
 
 	*/
-  class ParamXMLHandler
+  class OPENMS_DLLAPI ParamXMLHandler
   	: public XMLHandler
   {
     public:

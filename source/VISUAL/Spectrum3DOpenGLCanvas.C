@@ -326,13 +326,13 @@ namespace OpenMS
 					{
 						for(UInt i = 0;i<grid_intensity_[0].size();i++)
 						{ 
-							double intensity = (double)grid_intensity_[0][i]/pow(10,expo);
+							double intensity = (double)grid_intensity_[0][i]/pow(10.0,expo);
 							text = QString("%1").arg(intensity,0,'f',1);
 							renderText(-corner_-text.length()-width_/200.0-5.0, -corner_+scaledIntensity(grid_intensity_[0][i],canvas_3d_.current_layer_), -near_-2*corner_, text, font);
 						}
 						for(UInt i = 0;i<grid_intensity_[1].size();i++)
 						{
-							double intensity = (double)grid_intensity_[1][i]/pow(10,expo);
+							double intensity = (double)grid_intensity_[1][i]/pow(10.0,expo);
 							text = QString("%1").arg(intensity,0,'f',1);
 							renderText(-corner_-text.length()-width_/200.0-5.0, -corner_+scaledIntensity(grid_intensity_[1][i],canvas_3d_.current_layer_), -near_-2*corner_, text, font);
 						}
@@ -341,7 +341,7 @@ namespace OpenMS
 					{
 						for(UInt i = 0;i<grid_intensity_[2].size();i++)
 						{
-							double intensity = (double)grid_intensity_[2][i]/pow(10,expo);
+							double intensity = (double)grid_intensity_[2][i]/pow(10.0,expo);
 							text = QString("%1").arg(intensity,0,'f',1);
 							renderText(-corner_-text.length()-width_/200.0-5.0, -corner_+scaledIntensity(grid_intensity_[2][i],canvas_3d_.current_layer_), -near_-2*corner_, text, font);
 						}

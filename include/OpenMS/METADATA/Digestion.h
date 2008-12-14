@@ -39,7 +39,7 @@ namespace OpenMS
 		
 		@ingroup Metadata
 	*/
-  class Digestion: public SampleTreatment
+  class OPENMS_DLLAPI Digestion: public SampleTreatment
   {
     public:
     	/// default constructor

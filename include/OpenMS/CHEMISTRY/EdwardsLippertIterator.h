@@ -36,7 +36,7 @@ namespace OpenMS {
 
 The used algorithm was described by Edwards and Lippert. The algorithm uses two pointers to iterator over a sequence. One pointer represents the start the other the end.
 */
-class EdwardsLippertIterator : public PepIterator
+class OPENMS_DLLAPI EdwardsLippertIterator : public PepIterator
 {
 	
 	public:

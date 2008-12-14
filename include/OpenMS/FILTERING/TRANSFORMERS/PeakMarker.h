@@ -37,7 +37,7 @@ namespace OpenMS
   	@brief PeakMarker marks peaks that seem to fulfill some criterion
 
   */
-  class PeakMarker
+  class OPENMS_DLLAPI PeakMarker
     : public FactoryProduct
   {
   public:

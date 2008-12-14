@@ -97,7 +97,7 @@ namespace OpenMS
     
     @ingroup SignalProcessing
   */
-  class SavitzkyGolayFilter 
+  class OPENMS_DLLAPI SavitzkyGolayFilter 
   	: public ProgressLogger, 
   		public DefaultParamHandler
   {

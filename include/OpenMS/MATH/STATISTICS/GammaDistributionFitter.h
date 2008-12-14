@@ -57,7 +57,7 @@ namespace OpenMS
 			
 			@ingroup Math
 		*/
-		class GammaDistributionFitter
+		class OPENMS_DLLAPI GammaDistributionFitter
 		{
 			public:
 	

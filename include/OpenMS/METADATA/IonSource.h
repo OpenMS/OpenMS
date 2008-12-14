@@ -36,7 +36,7 @@ namespace OpenMS
 		
 		@ingroup Metadata
 	*/
-  class IonSource
+  class OPENMS_DLLAPI IonSource
   	: public MetaInfoInterface
   {
     public:

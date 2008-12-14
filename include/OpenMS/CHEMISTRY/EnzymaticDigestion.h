@@ -40,7 +40,7 @@ namespace OpenMS
 		 
 		 @ingroup Chemistry
 	*/
-	class EnzymaticDigestion
+	class OPENMS_DLLAPI EnzymaticDigestion
 	{
 		public: 
 			/// Possible enzymes for the digestion

@@ -160,7 +160,7 @@ namespace OpenMS
 			return true;
 		case FEATUREXML:
 			return true;
-#ifdef ANDIMS_DEF
+#ifdef USE_ANDIMS
 		case ANDIMS:
 			return true;
 #endif

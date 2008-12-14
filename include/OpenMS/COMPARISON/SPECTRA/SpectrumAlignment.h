@@ -51,7 +51,7 @@ namespace OpenMS
 		@ingroup SpectraComparison
   */
 	
-  class SpectrumAlignment 
+  class OPENMS_DLLAPI SpectrumAlignment 
   	: public DefaultParamHandler
   {
   public:

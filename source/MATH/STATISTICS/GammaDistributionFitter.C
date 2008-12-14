@@ -25,10 +25,13 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/MATH/STATISTICS/GammaDistributionFitter.h>
 #include <sstream>
 #include <iostream>
+#include <cmath>
+#include <boost/math/special_functions/gamma.hpp>
+
 #include <gsl/gsl_sf_psi.h>
+#include <OpenMS/MATH/STATISTICS/GammaDistributionFitter.h>
 
 using namespace std;
 
@@ -80,7 +83,7 @@ namespace OpenMS
 			for (vector<DPosition<2> >::iterator it = data->begin(); it != data->end(); ++it)
 			{
 				double the_x = it->getX();
-				gsl_vector_set(f, i++, pow(b, p)/tgamma(p) * pow(the_x, p - 1) * exp(-b * the_x) - it->getY());
+				gsl_vector_set(f, i++, pow(b, p)/boost::math::tgamma(p) * pow(the_x, p - 1) * exp(-b * the_x) - it->getY());
 			}
 		
 			return GSL_SUCCESS;
@@ -100,12 +103,12 @@ namespace OpenMS
 				double the_x = it->getX();
 				
 				// partielle ableitung nach b
-				double part_dev_b = pow(the_x, p - 1) * exp(-the_x * b) / tgamma(p) * (p * pow(b, p - 1) - the_x * pow(b, p));
+				double part_dev_b = pow(the_x, p - 1) * exp(-the_x * b) / boost::math::tgamma(p) * (p * pow(b, p - 1) - the_x * pow(b, p));
 				gsl_matrix_set(J, i, 0, part_dev_b);
 				
 				// partielle ableitung nach p
-				double factor = exp(-b * the_x) * pow(the_x, p - 1) * pow(b, p) / pow(tgamma(p), 2);
-				double argument = (log(b) + log(the_x)) * tgamma(p) - tgamma(p) * gsl_sf_psi(p);
+				double factor = exp(-b * the_x) * pow(the_x, p - 1) * pow(b, p) / pow(boost::math::tgamma(p), 2);
+				double argument = (log(b) + log(the_x)) * boost::math::tgamma(p) - boost::math::tgamma(p) * gsl_sf_psi(p);
 				double part_dev_p = factor * argument;
 				gsl_matrix_set(J, i, 1, part_dev_p);
 			}

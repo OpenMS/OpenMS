@@ -34,7 +34,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <vector>
 
 using namespace OpenMS;

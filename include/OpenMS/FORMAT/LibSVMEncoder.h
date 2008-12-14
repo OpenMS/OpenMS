@@ -46,7 +46,7 @@ namespace OpenMS
     the libsvm format.
     
   */
-  class LibSVMEncoder
+  class OPENMS_DLLAPI LibSVMEncoder
   {
     public:
       /// Constructor

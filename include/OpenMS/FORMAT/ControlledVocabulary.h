@@ -43,7 +43,7 @@ namespace OpenMS
   	
   	@ingroup Format
 	*/
-	class ControlledVocabulary
+	class OPENMS_DLLAPI ControlledVocabulary
 	{
 		friend std::ostream& operator << (std::ostream& os, const ControlledVocabulary& cv);
 			

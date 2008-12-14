@@ -612,16 +612,16 @@ class TOPPFileInfo
 					mz_qualities.push_back(fm_iter->getQuality(Feature::MZ));
 				}
 
-				cout.precision(writtenDigits<Feature::IntensityType>());
+				cout.precision(writtenDigits<>(Feature::IntensityType() ));
 				cout << "Intensities:\n" << some_statistics(intensities) << endl;
 
-				cout.precision(writtenDigits<Feature::QualityType>());
+				cout.precision(writtenDigits<>(Feature::QualityType() ));
 				cout << "Overall qualities:\n" << some_statistics(overallqualities) << endl;
 
-				cout.precision(writtenDigits<Feature::QualityType>());
+				cout.precision(writtenDigits<>(Feature::QualityType()));
 				cout << "Qualities in retention time dimension:\n" << some_statistics(rt_qualities) << endl;
 
-				cout.precision(writtenDigits<Feature::QualityType>());
+				cout.precision(writtenDigits<>(Feature::QualityType()));
 				cout << "Qualities in mass-to-charge dimension:\n" << some_statistics(mz_qualities) << endl;
 
 			}
@@ -660,7 +660,7 @@ class TOPPFileInfo
 					double it_aad = 0;
 					intensities.push_back(cm_iter->getIntensity());
 					qualities.push_back(cm_iter->getQuality());
-					for ( ConsensusFeature::HandleSetType::iterator hs_iter = cm_iter->begin();
+					for ( ConsensusFeature::HandleSetType::const_iterator hs_iter = cm_iter->begin();
 								hs_iter != cm_iter->end();
 								++hs_iter
 							)
@@ -692,23 +692,23 @@ class TOPPFileInfo
 					it_aad_by_cfs.push_back(it_aad);
 				}
 
-				cout.precision(writtenDigits<ConsensusFeature::IntensityType>());
+				cout.precision(writtenDigits(ConsensusFeature::IntensityType()));
 				cout << "Intensities of consensus features:\n" << some_statistics(intensities) << endl;
 
-				cout.precision(writtenDigits<ConsensusFeature::QualityType>());
+				cout.precision(writtenDigits(ConsensusFeature::QualityType()));
 				cout << "Qualities of consensus features:\n" << some_statistics(qualities) << endl;
 
-				cout.precision(writtenDigits<ConsensusFeature::CoordinateType>());
+				cout.precision(writtenDigits(ConsensusFeature::CoordinateType()));
 				cout << "Retention time differences ( element-center, weight 1 per element):\n" << some_statistics(rt_delta_by_elems) << endl;
 				cout << "Absolute retention time differences ( |element-center|, weight 1 per element):\n" << some_statistics(rt_aad_by_elems) << endl;
 				cout << "Average absolute differences of retention time within consensus features ( |element-center|, weight 1 per consensus features):\n" << some_statistics(rt_aad_by_cfs) << endl;
 
-				cout.precision(writtenDigits<ConsensusFeature::CoordinateType>());
+				cout.precision(writtenDigits(ConsensusFeature::CoordinateType()));
 				cout << "Mass-to-charge differences ( element-center, weight 1 per element):\n" << some_statistics(mz_delta_by_elems) << std::endl;
 				cout << "Absolute differences of mass-to-charge ( |element-center|, weight 1 per element):\n" << some_statistics(mz_aad_by_elems) << std::endl;
 				cout << "Average absolute differences of mass-to-charge within consensus features ( |element-center|, weight 1 per consensus features):\n" << some_statistics(mz_aad_by_cfs) << std::endl;
 
-				cout.precision(writtenDigits<ConsensusFeature::IntensityType>());
+				cout.precision(writtenDigits(ConsensusFeature::IntensityType()));
 				cout << "Intensity ratios ( element/center, weight 1 per element):\n" << some_statistics(it_delta_by_elems) << std::endl;
 				cout << "Relative intensity error ( max{(element/center),(center/element)}, weight 1 per element):\n" << some_statistics(it_aad_by_elems) << std::endl;
 				cout << "Average relative intensity error within consensus features ( max{(element/center),(center/element)}, weight 1 per consensus features):\n" << some_statistics(it_aad_by_cfs) << std::endl;
@@ -734,7 +734,7 @@ class TOPPFileInfo
 				}
 
 				sort(intensities.begin(),intensities.end());
-				cout.precision(writtenDigits<Peak1D::IntensityType>());
+				cout.precision(writtenDigits(Peak1D::IntensityType()));
 				cout << "Intensities:\n" << some_statistics(intensities) << endl;
 
 				//Statistics for meta information

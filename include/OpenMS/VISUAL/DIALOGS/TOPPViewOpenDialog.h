@@ -28,7 +28,7 @@
 #ifndef OPENMS_VISUAL_DIALOGS_TOPPVIEWOPENDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_TOPPVIEWOPENDIALOG_H
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/TOPPViewOpenDialogTemplate.h>
+#include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPViewOpenDialog.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 
@@ -43,7 +43,7 @@ namespace OpenMS
 		
 		@ingroup TOPPView_elements
 	*/
-	class TOPPViewOpenDialog
+	class OPENMS_DLLAPI TOPPViewOpenDialog
 		: public QDialog,
   		public Ui::TOPPViewOpenDialogTemplate
 	{

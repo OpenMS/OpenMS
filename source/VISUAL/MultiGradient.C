@@ -204,7 +204,7 @@ namespace OpenMS
 		string g(gradient);
 		string::iterator tmp(g.begin());
 		UInt tmp_pos=0;
-		for (string::iterator it = g.begin(); it!=(g.end()+1);++it)
+		for (string::iterator it = g.begin(); it!=g.end();++it)
 		{
 			if (*it == '|')
 			{
@@ -218,7 +218,7 @@ namespace OpenMS
 					setInterpolationMode(IM_STAIRS);
 				}
 			}
-			else if (*it == ';' || it == g.end())
+			else if (*it == ';')
 			{
 				pos_col_[tmp_pos] = QColor(string(tmp,it).c_str());
 				tmp = it+1;
@@ -229,6 +229,8 @@ namespace OpenMS
 				tmp = it+1;				
 			}
 		}
+		// last entry
+		pos_col_[tmp_pos] = QColor(string(tmp,g.end()).c_str());
 	}
 	
 	void MultiGradient::activatePrecalculationMode(DoubleReal min, DoubleReal max, UInt steps)

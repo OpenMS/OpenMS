@@ -49,7 +49,7 @@ namespace OpenMS
 		ClusterHierarchical clusters objects with corresponding distancemethod and clusteringmethod.
 		@ingroup SpectraClustering
 	*/
-	class ClusterHierarchical
+	class OPENMS_DLLAPI ClusterHierarchical
 	{
 	private:
 
@@ -178,7 +178,7 @@ namespace OpenMS
 			due to similarity - distance conversions that are mandatory in some context, compare functors
 			must return values normalized in the range [0,1] to ensure a clean conversion
 	*/
-	class UnnormalizedComparator : public Exception::BaseException
+	class OPENMS_DLLAPI UnnormalizedComparator : public Exception::BaseException
 	{
 		public:
 		UnnormalizedComparator(const char* file, int line, const char* function, const char* message

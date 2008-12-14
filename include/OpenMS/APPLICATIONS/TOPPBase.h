@@ -48,7 +48,7 @@ namespace OpenMS
   namespace Exception
   {
     /// An unregistered parameter was accessed
-    class UnregisteredParameter
+    class OPENMS_DLLAPI UnregisteredParameter
           : public Exception::BaseException
     {
       public:
@@ -59,7 +59,7 @@ namespace OpenMS
         }
     };
     /// A parameter was accessed with the wrong type
-    class WrongParameterType
+    class OPENMS_DLLAPI WrongParameterType
           : public Exception::BaseException
     {
       public:
@@ -70,7 +70,7 @@ namespace OpenMS
         }
     };
     /// A required parameter was not given
-    class RequiredParameterNotGiven
+    class OPENMS_DLLAPI RequiredParameterNotGiven
           : public Exception::BaseException
     {
       public:
@@ -96,7 +96,7 @@ namespace OpenMS
   	- add a doxygen page for the tool and add the page to TOPP.doxygen
   	- hide the derived class in the OpenMS documentation by using doxygen codition macros.
   */
-  class TOPPBase
+  class OPENMS_DLLAPI TOPPBase
   {
     public:
 

@@ -142,7 +142,7 @@ int main( int argc, const char** argv )
   		DoubleReal value = str.toDouble();
   		input_data.push_back(value);
   	}
-  	catch(Exception::ConversionError& e)
+  	catch(Exception::ConversionError& /*e*/)
   	{
   		cerr << "Invalid input data line '" << str << "' is ignored!" << endl;
   	}

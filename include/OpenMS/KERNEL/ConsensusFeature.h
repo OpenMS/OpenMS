@@ -50,7 +50,7 @@ namespace OpenMS
 	
 		@ingroup Kernel
 	*/
-	class ConsensusFeature
+	class OPENMS_DLLAPI ConsensusFeature
 		: public RichPeak2D,
 			public std::set<FeatureHandle, FeatureHandle::IndexLess>
 	{

@@ -46,7 +46,7 @@ namespace OpenMS
 		
 	@ingroup FileIO
   */
-  class ConsensusXMLFile 
+  class OPENMS_DLLAPI ConsensusXMLFile 
   	: public Internal::XMLHandler,
   		public Internal::XMLFile,
 			public ProgressLogger

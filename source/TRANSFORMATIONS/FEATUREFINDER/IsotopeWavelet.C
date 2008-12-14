@@ -26,8 +26,9 @@
 
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
-#include <math.h>
+#include <cmath>
 #include <iostream>
+#include <boost/math/special_functions/gamma.hpp>
 
 #ifndef ONEOLOG2E
 #define ONEOLOG2E 0.6931471806 
@@ -89,7 +90,7 @@ namespace OpenMS
 
 	DoubleReal IsotopeWavelet::getValueByLambdaExtrapol (const DoubleReal lambda, const DoubleReal tz1) 
 	{
-		DoubleReal fac (-lambda + (tz1-1)*myLog2_(lambda)*ONEOLOG2E - lgamma(tz1));
+		DoubleReal fac (-lambda + (tz1-1)*myLog2_(lambda)*ONEOLOG2E - boost::math::lgamma(tz1));
 		
 		return (sin((tz1-1)*WAVELET_PERIODICITY) * exp(fac));
 	}
@@ -155,7 +156,7 @@ namespace OpenMS
 			//std::cout << log(1./tgamma(query)) << "\t" << -lgamma(query) << std::endl;
 
 			//gamma_table_.push_back(1./tgamma(query));
-			gamma_table_.push_back (lgamma(query));
+			gamma_table_.push_back (boost::math::lgamma(query));
 			query += table_steps_;	
 		};	
 		gamma_table_max_index_ = gamma_table_.size();

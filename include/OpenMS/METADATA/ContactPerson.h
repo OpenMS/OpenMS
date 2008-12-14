@@ -39,7 +39,7 @@ namespace OpenMS
 		
 		@ingroup Metadata
 	*/
-  class ContactPerson
+  class OPENMS_DLLAPI ContactPerson
   	: public MetaInfoInterface
   {
     public:

@@ -24,7 +24,12 @@
 // $Maintainer: Eva Lange $
 // --------------------------------------------------------------------------
 
+#include <cmath>
+#include <boost/math/special_functions/acosh.hpp>
+
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+
 
 namespace OpenMS
 {
@@ -428,8 +433,8 @@ namespace OpenMS
       else  //It's a Sech - Peak
       {
         PeakShape p = peaks[global_peak_number+current_peak];
-        double x_left_endpoint=p.mz_position+1/p.left_width*acosh(sqrt(p.height/0.001));
-        double x_rigth_endpoint=p.mz_position+1/p.right_width*acosh(sqrt(p.height/0.001));
+				double x_left_endpoint=p.mz_position+1/p.left_width* boost::math::acosh(sqrt(p.height/0.001));
+        double x_rigth_endpoint=p.mz_position+1/p.right_width* boost::math::acosh(sqrt(p.height/0.001));
         double area_left=-p.height/p.left_width*(sinh(p.left_width*(p.mz_position-x_left_endpoint))/cosh(p.left_width*(p.mz_position-x_left_endpoint)));
         double area_right=-p.height/p.right_width*(sinh(p.right_width*(p.mz_position-x_rigth_endpoint))/cosh(p.right_width*(p.mz_position-x_rigth_endpoint)));
         peaks[global_peak_number+current_peak].area=area_left+area_right;

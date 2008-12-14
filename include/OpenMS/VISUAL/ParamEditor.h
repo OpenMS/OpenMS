@@ -30,7 +30,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 
-#include <OpenMS/VISUAL/UIC/ParamEditorTemplate.h>
+#include <OpenMS/VISUAL/UIC/ui_ParamEditor.h>
 
 
 #include <QtGui/QItemDelegate>
@@ -58,7 +58,7 @@ namespace OpenMS
 			
 			This handles editing of items.
 		*/
-		class ParamEditorDelegate 
+		class OPENMS_DLLAPI ParamEditorDelegate 
 			: public QItemDelegate
 		{
 			Q_OBJECT
@@ -89,7 +89,7 @@ namespace OpenMS
 		};
 		
 		/// QTreeWidget that emits a signal whenever a new row is selected
-		class ParamTree
+		class OPENMS_DLLAPI ParamTree
 			: public QTreeWidget
 		{
 			Q_OBJECT
@@ -124,7 +124,7 @@ namespace OpenMS
 		
 		@ingroup Visual
 	*/
-	class ParamEditor  
+	class OPENMS_DLLAPI ParamEditor  
 		: public QWidget,
 			public Ui::ParamEditorTemplate
 	{

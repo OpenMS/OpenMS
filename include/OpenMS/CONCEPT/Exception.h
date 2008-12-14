@@ -79,7 +79,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class BaseException
+		class OPENMS_DLLAPI BaseException
 			:	public std::exception
 		{
 			public:
@@ -156,7 +156,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class Precondition
+		class OPENMS_DLLAPI Precondition
 			: public BaseException
 		{
 			public:
@@ -170,7 +170,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class Postcondition
+		class OPENMS_DLLAPI Postcondition
 			: public BaseException
 		{
 			public:
@@ -185,7 +185,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class MissingInformation
+		class OPENMS_DLLAPI MissingInformation
 			: public BaseException
 		{
 			public:
@@ -206,7 +206,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class IndexUnderflow 
+		class OPENMS_DLLAPI IndexUnderflow 
 			: public BaseException
 		{
 			public:
@@ -225,7 +225,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class SizeUnderflow 
+		class OPENMS_DLLAPI SizeUnderflow 
 			: public BaseException
 		{
 			public:
@@ -244,11 +244,11 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class IndexOverflow 
+		class OPENMS_DLLAPI IndexOverflow 
 			: public BaseException
 		{
 			public:
-				IndexOverflow(const char* file, int line, const char* function, Int index = 0, UInt size = 0) throw();
+				IndexOverflow(const char* file, int line, const char* function, Int index = 0, size_t size = 0) throw();
 		};
 
 		/**	
@@ -261,7 +261,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class FailedAPICall 
+		class OPENMS_DLLAPI FailedAPICall 
 			: public BaseException
 		{
 			public:
@@ -275,7 +275,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class InvalidRange 
+		class OPENMS_DLLAPI InvalidRange 
 			: public BaseException
 		{
 			public:
@@ -293,7 +293,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class InvalidSize 
+		class OPENMS_DLLAPI InvalidSize 
 			: public BaseException
 		{
 			public:
@@ -309,7 +309,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class OutOfRange 
+		class OPENMS_DLLAPI OutOfRange 
 			: public BaseException
 		{
 			public:
@@ -325,7 +325,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class InvalidValue 
+		class OPENMS_DLLAPI InvalidValue 
 			: public BaseException
 		{
 			public:
@@ -337,7 +337,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class InvalidParameter 
+		class OPENMS_DLLAPI InvalidParameter 
 			: public BaseException
 		{
 			public:
@@ -352,7 +352,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class ConversionError 
+		class OPENMS_DLLAPI ConversionError 
 			: public BaseException
 		{
 			public:
@@ -368,7 +368,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class IllegalSelfOperation
+		class OPENMS_DLLAPI IllegalSelfOperation
 			: public BaseException
 		{
 			public:
@@ -383,7 +383,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class NullPointer 
+		class OPENMS_DLLAPI NullPointer 
 			: public BaseException
 		{
 			public:
@@ -397,7 +397,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class InvalidIterator
+		class OPENMS_DLLAPI InvalidIterator
 			: public BaseException
 		{
 			public:
@@ -412,7 +412,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class IncompatibleIterators
+		class OPENMS_DLLAPI IncompatibleIterators
 			: public BaseException
 		{
 			public:
@@ -426,7 +426,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class NotImplemented
+		class OPENMS_DLLAPI NotImplemented
 			: public BaseException
 		{
 			public:
@@ -440,7 +440,7 @@ namespace OpenMS
 			
 			@ingroup Exceptions
 		*/
-		class IllegalTreeOperation
+		class OPENMS_DLLAPI IllegalTreeOperation
 			: public BaseException
 		{
 			public:
@@ -457,7 +457,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class OutOfMemory
+		class OPENMS_DLLAPI OutOfMemory
 			: public BaseException, public std::bad_alloc
 		{
 			public:
@@ -469,7 +469,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class BufferOverflow 
+		class OPENMS_DLLAPI BufferOverflow 
 			: public BaseException
 		{
 			public:
@@ -481,7 +481,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class DivisionByZero 
+		class OPENMS_DLLAPI DivisionByZero 
 			: public BaseException
 		{
 			public:
@@ -493,7 +493,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class OutOfGrid 
+		class OPENMS_DLLAPI OutOfGrid 
 			: public BaseException
 		{
 			public:
@@ -507,7 +507,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class FileNotFound 
+		class OPENMS_DLLAPI FileNotFound 
 			: public BaseException
 		{
 			public:
@@ -521,7 +521,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class FileNotReadable 
+		class OPENMS_DLLAPI FileNotReadable 
 			: public BaseException
 		{
 			public:
@@ -535,7 +535,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-	 	class FileNotWritable
+	 	class OPENMS_DLLAPI FileNotWritable
 			: public BaseException
 		{
 			public:
@@ -549,7 +549,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class FileEmpty 
+		class OPENMS_DLLAPI FileEmpty 
 			: public BaseException
 		{
 			public:
@@ -563,7 +563,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class IllegalPosition 
+		class OPENMS_DLLAPI IllegalPosition 
 			: public BaseException
 		{
 			public:
@@ -577,7 +577,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class ParseError
+		class OPENMS_DLLAPI ParseError
 			: public BaseException
 		{
 			public:
@@ -591,7 +591,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/
-		class UnableToCreateFile
+		class OPENMS_DLLAPI UnableToCreateFile
 			: public BaseException
 		{
 			public:
@@ -603,7 +603,7 @@ namespace OpenMS
 			
 			@ingroup Exceptions
 		*/
-    class IllegalArgument 
+    class OPENMS_DLLAPI IllegalArgument 
 			: public BaseException
     {
 			public:
@@ -617,7 +617,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/			
-		class ElementNotFound
+		class OPENMS_DLLAPI ElementNotFound
 			: public BaseException
 		{
 			public:
@@ -631,7 +631,7 @@ namespace OpenMS
 
 			@ingroup Exceptions
 		*/			
-		class UnableToFit
+		class OPENMS_DLLAPI UnableToFit
 			: public BaseException
 		{
 			public:
@@ -646,7 +646,7 @@ namespace OpenMS
 				
 			@ingroup Exceptions
 		*/			
-		class UnableToCalibrate
+		class OPENMS_DLLAPI UnableToCalibrate
 			: public BaseException
 		{
 		public:
@@ -659,7 +659,7 @@ namespace OpenMS
 		
 			@ingroup Exceptions
 		*/
-		class GlobalExceptionHandler
+		class OPENMS_DLLAPI GlobalExceptionHandler
 		{
 			public:
 				/**	@name	Constructors

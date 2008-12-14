@@ -317,8 +317,9 @@ class TOPPPILISIdentification
 
 			DateTime now;
 			now.now();
+			
 			String date_string;
-			now.get(date_string);
+			//now.get(date_string); // @todo Fix it (Andreas)
 			String identifier("PILIS_"+date_string);
 
 			//UInt count(0);

@@ -40,8 +40,6 @@ class QString;
 namespace OpenMS 
 {
 	class ParamEditor;
-	class Param;
-	class LayerData;
 		
 	/**
 		@brief TOPP tool selection dialog
@@ -57,7 +55,7 @@ namespace OpenMS
 	
 		@ingroup Dialogs
 	*/
-	class ToolsDialog
+	class OPENMS_DLLAPI ToolsDialog
 		: public QDialog
 	{
 		Q_OBJECT

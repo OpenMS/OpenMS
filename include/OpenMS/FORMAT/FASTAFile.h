@@ -38,7 +38,7 @@ namespace OpenMS
 		 @brief This class serves for reading in FASTA files
 
   */
-  class FASTAFile
+  class OPENMS_DLLAPI FASTAFile
   {
 	 public:
 

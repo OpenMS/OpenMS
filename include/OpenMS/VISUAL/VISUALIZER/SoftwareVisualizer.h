@@ -43,7 +43,7 @@ namespace OpenMS
 		
 		This class provides all functionality to view the meta information of an object of type Software.
 	*/
-	class SoftwareVisualizer
+	class OPENMS_DLLAPI SoftwareVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<Software>
 	{

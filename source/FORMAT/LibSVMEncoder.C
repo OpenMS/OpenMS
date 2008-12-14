@@ -378,8 +378,8 @@ namespace OpenMS
 	  	{
 			  if (border_length > (sequence_length - k_mer_length + 1) / 2)
 			  {
-			  	left_border = (UInt) (floor((sequence_length - k_mer_length + 1) / 2));
-			  	right_border = (UInt) (ceil((sequence_length - k_mer_length + 1) / 2));
+			  	left_border = (UInt) (floor((sequence_length - k_mer_length + 1.0) / 2));
+			  	right_border = (UInt) (ceil((sequence_length - k_mer_length + 1.0) / 2));
 			  }
 			  else
 			  {
@@ -525,7 +525,7 @@ namespace OpenMS
 			}		
 		  if (length_encoding)
 		  {
-		  	libsvm_vector.push_back(make_pair((Int) sequence.size(), pow(k_mer_length, number_of_residues) + 1));
+		  	libsvm_vector.push_back(make_pair((Int) sequence.size(), (double)pow((double)k_mer_length, (double) number_of_residues) + 1));
 		  }
 		}
 

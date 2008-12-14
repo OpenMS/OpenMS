@@ -30,7 +30,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/XMLValidator.h>
 
-#include <math.h>
+#include <cmath>
 
 using namespace std;
 

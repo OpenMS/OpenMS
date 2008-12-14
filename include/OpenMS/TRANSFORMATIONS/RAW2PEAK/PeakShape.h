@@ -28,7 +28,7 @@
 #ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKSHAPE_H
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKSHAPE_H
 
-#include <math.h>
+#include <cmath>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/RichPeak1D.h>
@@ -147,7 +147,7 @@ namespace OpenMS
 
     	 Lexicographical comparison from dimension 0 to dimension D is done.
     */
-    class PositionLess
+    class OPENMS_DLLAPI PositionLess
     {
 	    public:
 	

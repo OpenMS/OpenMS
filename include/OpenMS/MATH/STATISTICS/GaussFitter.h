@@ -56,7 +56,7 @@ namespace OpenMS
 			
 			@ingroup Math
 		*/
-		class GaussFitter
+		class OPENMS_DLLAPI GaussFitter
 		{
 			public:
 	

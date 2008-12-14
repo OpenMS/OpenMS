@@ -27,7 +27,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/DATASTRUCTURES/StringList.h>
-
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -98,15 +98,15 @@ namespace OpenMS
 		const UInt exponent_extra_digits = 6;
 		const UInt charge_digits = 5;
 		const unsigned prec_save = os.precision();
-		os << std::setprecision(writtenDigits<FeatureHandle::CoordinateType>())
-			 << std::setw(writtenDigits<FeatureHandle::CoordinateType>()+exponent_extra_digits);
+		os << std::setprecision(writtenDigits<>(FeatureHandle::CoordinateType() ))
+			 << std::setw(writtenDigits(FeatureHandle::CoordinateType())+exponent_extra_digits);
 		printValueOrNan(os,rhs.ref_.getRT());
 		os << ' '
-			 << std::setw(writtenDigits<FeatureHandle::CoordinateType>()+exponent_extra_digits);
+			 << std::setw(writtenDigits(FeatureHandle::CoordinateType())+exponent_extra_digits);
 		printValueOrNan(os,rhs.ref_.getMZ());
 		os << ' '
-			 << std::setprecision(writtenDigits<FeatureHandle::IntensityType>())
-			 << std::setw(writtenDigits<FeatureHandle::IntensityType>()+exponent_extra_digits);
+			 << std::setprecision(writtenDigits<>(FeatureHandle::IntensityType() ))
+			 << std::setw(writtenDigits(FeatureHandle::IntensityType())+exponent_extra_digits);
 		printValueOrNan(os,rhs.ref_.getIntensity());
 		os << ' '
 			 << std::setw(charge_digits)
@@ -128,15 +128,15 @@ namespace OpenMS
 		const UInt exponent_extra_digits = 6;
 		const UInt charge_digits = 5;
 		const unsigned prec_save = os.precision();
-		os << std::setprecision(writtenDigits<FeatureHandle::CoordinateType>())
-			 << std::setw(writtenDigits<FeatureHandle::CoordinateType>()+exponent_extra_digits);
+		os << std::setprecision(writtenDigits(FeatureHandle::CoordinateType()))
+			 << std::setw(writtenDigits(FeatureHandle::CoordinateType())+exponent_extra_digits);
 		printValueOrNan(os,rhs.ref_.getRT());
 		os << ' '
-			 << std::setw(writtenDigits<FeatureHandle::CoordinateType>()+exponent_extra_digits);
+			 << std::setw(writtenDigits(FeatureHandle::CoordinateType())+exponent_extra_digits);
 		printValueOrNan(os,rhs.ref_.getMZ());
 		os << ' '
-			 << std::setprecision(writtenDigits<FeatureHandle::IntensityType>())
-			 << std::setw(writtenDigits<FeatureHandle::IntensityType>()+exponent_extra_digits);
+			 << std::setprecision(writtenDigits(FeatureHandle::IntensityType()))
+			 << std::setw(writtenDigits(FeatureHandle::IntensityType())+exponent_extra_digits);
 		printValueOrNan(os,rhs.ref_.getIntensity());
 		os << ' '
 			 << std::setw(charge_digits)

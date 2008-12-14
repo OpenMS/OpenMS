@@ -27,29 +27,23 @@
 #ifndef OPENMS_MATH_MISC_MATHFUNCTIONS_H
 #define OPENMS_MATH_MISC_MATHFUNCTIONS_H
 
-#include <cmath>
+#include <cmath> // which does not support round() in VS
 #include <OpenMS/CONCEPT/Types.h>
 // #include <iostream> // debugging
 
 // MinGW32 lacks proper definition of isnan/isinf
 #ifndef isnan
-          # define isnan(x) \
-              (sizeof (x) == sizeof (long double) ? isnan_ld (x) \
-               : sizeof (x) == sizeof (double) ? isnan_d (x) \
-               : isnan_f (x))
-          static inline int isnan_f  (float       x) { return x != x; }
-          static inline int isnan_d  (double      x) { return x != x; }
-          static inline int isnan_ld (long double x) { return x != x; }
+          #define isnan(x) isnan__(x)
+          static inline int isnan__ (float       x) { return x != x; }
+          static inline int isnan__ (double      x) { return x != x; }
+          static inline int isnan__ (long double x) { return x != x; }
           #endif
           
           #ifndef isinf
-          # define isinf(x) \
-              (sizeof (x) == sizeof (long double) ? isinf_ld (x) \
-               : sizeof (x) == sizeof (double) ? isinf_d (x) \
-               : isinf_f (x))
-          static inline int isinf_f  (float       x) { return isnan (x - x); }
-          static inline int isinf_d  (double      x) { return isnan (x - x); }
-          static inline int isinf_ld (long double x) { return isnan (x - x); }
+          #define isinf(x) isinf__(x)
+          static inline int isinf__ (float       x) { return isnan (x - x); }
+          static inline int isinf__ (double      x) { return isnan (x - x); }
+          static inline int isinf__ (long double x) { return isnan (x - x); }
           #endif
 
 namespace OpenMS 
@@ -76,7 +70,7 @@ namespace OpenMS
 		*/
 		inline static double ceil_decimal(double x, int decPow)
 		{
-			return (ceil(x/pow(10,decPow)))*pow(10,decPow); // decimal shift right, ceiling, decimal shift left
+			return (ceil(x/pow(10.0,decPow)))*pow(10.0,decPow); // decimal shift right, ceiling, decimal shift left
 		}
 		
 		/**
@@ -91,8 +85,8 @@ namespace OpenMS
 		*/
 		inline static double round_decimal(double x, int decPow) 	
 		{
-			if (x>0) return (floor(0.5+x/pow(10,decPow)))*pow(10,decPow);
-			return -((floor(0.5+fabs(x)/pow(10,decPow)))*pow(10,decPow));
+			if (x>0) return (floor(0.5+x/pow(10.0,decPow)))*pow(10.0,decPow);
+			return -((floor(0.5+fabs(x)/pow(10.0,decPow)))*pow(10.0,decPow));
 		}
 		
 		/**
@@ -137,6 +131,19 @@ namespace OpenMS
 		inline bool isOdd(UInt x)
 		{
 			return ((x & 1)!=0);
+		}
+
+		template <typename T>
+		T round (T x) 
+		{ 
+			if (x >= 0.0) 
+			{ 
+				return floor(x+0.5); 
+			} 
+			else 
+			{ 
+				return floor(x-0.5); 
+			}
 		}
 
 	} // namespace Math

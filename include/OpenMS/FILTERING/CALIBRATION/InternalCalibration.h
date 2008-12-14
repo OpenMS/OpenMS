@@ -48,7 +48,7 @@ namespace OpenMS
 	   
 	   @ingroup SignalProcessing
   */
-  class InternalCalibration 
+  class OPENMS_DLLAPI InternalCalibration 
   	: public DefaultParamHandler, 
   		public ProgressLogger
   {

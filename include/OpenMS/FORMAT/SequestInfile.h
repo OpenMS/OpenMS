@@ -41,7 +41,7 @@ namespace OpenMS
   	  	
   	@ingroup FileIO
 	*/
-  class SequestInfile
+  class OPENMS_DLLAPI SequestInfile
   {
 		public:
 			/// default constructor

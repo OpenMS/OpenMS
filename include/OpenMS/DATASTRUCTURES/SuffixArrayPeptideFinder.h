@@ -39,7 +39,7 @@ namespace OpenMS
 	/**
 		@brief wrapper for easy use of sufArray
 	*/
-class SuffixArrayPeptideFinder 
+class OPENMS_DLLAPI SuffixArrayPeptideFinder 
 {
 
 public:
@@ -71,7 +71,7 @@ public:
 
 	/**
 	@brief finds all candidate for given spectrum in the suffix array
-	@param spec const reference to float vector describing the MS spectrum
+	@param spec const reference to double vector describing the MS spectrum
 	@param candidates output parameters which holds the candidates of the masses given in spec after the call
 	@return	for every mass a entry with all Candidates as vector of FASTAEntrys
 	@see sufArray.h
@@ -91,15 +91,15 @@ public:
 
 	/**
 	@brief setter for tolerance
-	@param t const float tolerance
+	@param t const double tolerance
 	*/
-	void setTolerance(const float t);
+	void setTolerance(const double t);
 
 	/**
 	@brief getter for tolerance
-	@return float with tolerance
+	@return double with tolerance
 	*/
-	float getTolerance() const;
+	double getTolerance() const;
 
 	/**
 	@brief setter for number of modifications

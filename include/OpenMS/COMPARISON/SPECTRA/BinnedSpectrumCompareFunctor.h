@@ -49,7 +49,7 @@ namespace OpenMS
 		
 		@ingroup SpectraComparison
   */
-  class BinnedSpectrumCompareFunctor : public FactoryProduct
+  class OPENMS_DLLAPI BinnedSpectrumCompareFunctor : public FactoryProduct
   {
 	  
   private:
@@ -61,7 +61,7 @@ namespace OpenMS
 		    the compared spectra have different settings in binsize and/or binspread 
 		    due to which comparison would fail
     */
-    class IncompatibleBinning : public Exception::BaseException
+    class OPENMS_DLLAPI IncompatibleBinning : public Exception::BaseException
     {
     public:
       IncompatibleBinning(const char* file, int line, const char* function, const char* message

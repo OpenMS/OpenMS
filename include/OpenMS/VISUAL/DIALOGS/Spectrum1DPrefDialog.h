@@ -28,14 +28,14 @@
 #ifndef OPENMS_VISUAL_DIALOGS_SPECTRUM1DPREFDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_SPECTRUM1DPREFDIALOG_H
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/Spectrum1DPrefDialogTemplate.h>
+#include <OpenMS/VISUAL/DIALOGS/UIC/ui_Spectrum1DPrefDialog.h>
 
 namespace OpenMS 
 {
 	namespace Internal
 	{
 		///Preferences dialog for Spectrum1DWidget
-		class Spectrum1DPrefDialog
+		class OPENMS_DLLAPI Spectrum1DPrefDialog
 			: public QDialog,
 	  		public Ui::Spectrum1DPrefDialogTemplate
 		{

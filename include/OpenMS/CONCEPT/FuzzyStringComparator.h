@@ -53,8 +53,9 @@ namespace OpenMS
 	/**
 	@brief Fuzzy comparison of strings, tolerates numeric differences.
 
+	@todo Think about return values from compare_files (11 is not a bool :) (Clemens)
 	*/
-	class FuzzyStringComparator
+	class OPENMS_DLLAPI FuzzyStringComparator
 	{
 		
 		friend bool Internal::ClassTest::isStringSimilar( const std::string & , const std::string & );

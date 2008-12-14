@@ -73,7 +73,7 @@ namespace OpenMS
 			eraseMetaDataArrayEntry_(spectrum_pointers);
 			endProgress();
 		}
-		catch (Exception::OutOfRange& e) 
+		catch (Exception::OutOfRange& /*e*/) 
 		{
 			throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);	
 		}
@@ -153,9 +153,9 @@ namespace OpenMS
 		//the distance of two data points have to be greater than 3, if not the spline would thrown an Expection
 		//do a affine gap alignment of the block of the data points x1,y1,x2,y2
 
-		std::vector<int> xcoordinate;
-		std::vector<int> xcoordinatepattern;
-		std::vector<double>ycoordinate;
+		std::vector<Int> xcoordinate;
+		std::vector<Int> xcoordinatepattern;
+		std::vector<Real>ycoordinate;
 		debugmatrix_.clear();
 				
 		for(UInt i=0; i < alignpoint.size()-2; i+=2)
@@ -233,7 +233,7 @@ namespace OpenMS
 		@param xcoordinatepattern std::vector<int> save the reference position of the anchorpoints from the pattern
 		@see MapAlignmentAlgorithmSpectrumAlignment();
 	 */
-		void MapAlignmentAlgorithmSpectrumAlignment::affineGapalign_(UInt xbegin, UInt ybegin, UInt xend,UInt yend, const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::vector<int>& xcoordinate, std::vector<double>&ycoordinate, std::vector<int>& xcoordinatepattern)
+		void MapAlignmentAlgorithmSpectrumAlignment::affineGapalign_(UInt xbegin, UInt ybegin, UInt xend,UInt yend, const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::vector<int>& xcoordinate, std::vector<Real>&ycoordinate, std::vector<int>& xcoordinatepattern)
 		{	
 			
 			
@@ -331,7 +331,7 @@ namespace OpenMS
 									}
 									//std::cout << s << " s " << std::endl;
 			  				}
-								catch (Exception::OutOfRange &e) 
+								catch (Exception::OutOfRange & /*e*/) 
 					  		{
 									throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 					  		}
@@ -495,7 +495,7 @@ namespace OpenMS
 						//container necessary for collecting the positions of both sequence to gain later the correct datapoints for the spline
 			  		std::vector<int> xvar;
 			  		std::vector<int> xxvar;
-			  		std::vector<double> yvar;
+			  		std::vector<Real> yvar;
 						
 			  		while(!endtraceback)
 			  		{ 
@@ -635,7 +635,7 @@ namespace OpenMS
 			  	k_ *=2;
 			  }
 			}
-			catch (Exception::OutOfRange& e) 
+			catch (Exception::OutOfRange& /*e*/) 
 			{
 				throw Exception::OutOfRange(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 			}
@@ -907,7 +907,7 @@ namespace OpenMS
 			@param end UInt end of the alignment in the aligned sequence 
 			@see MapAlignmentAlgorithmSpectrumAlignment()
    */
-   inline void  MapAlignmentAlgorithmSpectrumAlignment::calculateSpline_(std::vector<int>& x,std::vector<double>& y, std::vector<MSSpectrum<>* >& aligned,UInt begin, UInt end,std::vector<TransformationDescription>& transformation) 
+   inline void  MapAlignmentAlgorithmSpectrumAlignment::calculateSpline_(std::vector<int>& x,std::vector<Real>& y, std::vector<MSSpectrum<>* >& aligned,UInt begin, UInt end,std::vector<TransformationDescription>& transformation) 
     {
     	if(x.size() >=3)
     	{
@@ -1118,10 +1118,10 @@ namespace OpenMS
 		@param xcoordinatepattern std::vector<int> save the reference position of the anchorpoints from the pattern
 		@see MapAlignmentAlgorithmSpecturmAlignment()
 	*/
-	inline void MapAlignmentAlgorithmSpectrumAlignment::bucketFilter_(const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned, std::vector<int> & xcoordinate, std::vector<double> & ycoordinate, std::vector<int>&xcoordinatepattern)
+	inline void MapAlignmentAlgorithmSpectrumAlignment::bucketFilter_(const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned, std::vector<Int> & xcoordinate, std::vector<Real> & ycoordinate, std::vector<Int>&xcoordinatepattern)
 	{
-		std::vector<int>tempxcoordinate;//cordinate aligned
-		std::vector<double>tempycoordinate;//rt aligigned
+		std::vector<Int>tempxcoordinate;//cordinate aligned
+		std::vector<Real>tempycoordinate;//rt aligigned
 
 		std::vector<std::pair<std::pair<Int, Real>, Real> > tempxy;
 		UInt size= xcoordinate.size();

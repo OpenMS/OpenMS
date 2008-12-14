@@ -30,6 +30,6 @@
 
 namespace OpenMS
 {
-	FeatureFinderAlgorithmSimplest<Peak1D,Feature> default_featurefinderalgorithmsimplest;         
+	//FeatureFinderAlgorithmSimplest<Peak1D,Feature> default_featurefinderalgorithmsimplest;         
 }
 

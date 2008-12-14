@@ -40,7 +40,7 @@ namespace OpenMS
 		
 		@todo Docu (Chris)
 	*/
-	class ProteinInference
+	class OPENMS_DLLAPI ProteinInference
 	{
 
 		public:

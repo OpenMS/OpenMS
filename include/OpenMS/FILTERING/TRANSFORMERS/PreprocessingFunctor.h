@@ -38,7 +38,7 @@ namespace OpenMS
   	@note Spectrum meta data arrays are invalidated by all preprocessing functors,
   	      that remove part of the peaks!
   */
-  class PreprocessingFunctor
+  class OPENMS_DLLAPI PreprocessingFunctor
   	: public FactoryProduct
   {
   public:

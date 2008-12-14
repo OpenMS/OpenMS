@@ -40,7 +40,7 @@ namespace OpenMS
 
 		@ingroup FeatureGrouping
 	*/
-	class FeatureGroupingAlgorithmLabeled
+	class OPENMS_DLLAPI FeatureGroupingAlgorithmLabeled
 		: public FeatureGroupingAlgorithm
 	{
 	 public:

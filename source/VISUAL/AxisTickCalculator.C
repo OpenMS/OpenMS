@@ -27,7 +27,7 @@
 
 // STL
 #include <iostream>
-#include <math.h>
+#include <cmath>
 
 // OpenMS
 #include <OpenMS/VISUAL/AxisTickCalculator.h>

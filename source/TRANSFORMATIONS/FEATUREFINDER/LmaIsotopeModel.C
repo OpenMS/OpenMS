@@ -28,6 +28,7 @@
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <numeric>
 
@@ -124,7 +125,7 @@ namespace OpenMS
 			// next pos
 			pos = min_ + step * interpolation_step_;
 
-			term1 = total_intensity_/(sqrt(2*M_PI)*isotope_stdev_);
+			term1 = total_intensity_/(sqrt(2*Constants::PI)*isotope_stdev_);
 			termSum = 0;
 			for (UInt i=0; i < isotopes_exact.size(); ++i)
 			{

@@ -39,7 +39,7 @@ namespace OpenMS
   
   	@ingroup Format
 	*/
-  class PeakTypeEstimator
+  class OPENMS_DLLAPI PeakTypeEstimator
   {
     public:
     	/**

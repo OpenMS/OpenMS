@@ -48,7 +48,7 @@ namespace OpenMS
 
     @ingroup Analysis_ID
   */
-  class IDDecoyProbability : public DefaultParamHandler
+  class OPENMS_DLLAPI IDDecoyProbability : public DefaultParamHandler
   {
     public:
 

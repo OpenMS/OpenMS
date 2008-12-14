@@ -69,7 +69,7 @@ START_SECTION((virtual String toString()=0))
 }
 END_SECTION
 
-START_SECTION((virtual void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >, float > > > &candidates, const std::vector< double > &spec)=0))
+START_SECTION((virtual void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >, double > > > &candidates, const std::vector< double > &spec)=0))
 {
   NOT_TESTABLE
 }

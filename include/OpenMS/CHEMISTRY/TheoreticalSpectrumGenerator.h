@@ -43,7 +43,7 @@ namespace OpenMS
 		
 		@ingroup Chemistry
 	*/
-	class TheoreticalSpectrumGenerator : public DefaultParamHandler
+	class OPENMS_DLLAPI TheoreticalSpectrumGenerator : public DefaultParamHandler
 	{
 		public:
 		

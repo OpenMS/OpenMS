@@ -185,7 +185,7 @@ namespace OpenMS
 		return formula;
 	}
 
-	EmpiricalFormula::EmpiricalFormula& EmpiricalFormula::operator = (const EmpiricalFormula& formula)
+	EmpiricalFormula& EmpiricalFormula::operator = (const EmpiricalFormula& formula)
 	{
 		if (this != &formula)
 		{
@@ -195,7 +195,7 @@ namespace OpenMS
 		return *this;
 	}
 
-	EmpiricalFormula::EmpiricalFormula& EmpiricalFormula::operator = (const String& formula)
+	EmpiricalFormula& EmpiricalFormula::operator = (const String& formula)
 	{
 		charge_ = 0;
 		formula_.clear();
@@ -203,7 +203,7 @@ namespace OpenMS
 		return *this;
 	}
 	
-	EmpiricalFormula::EmpiricalFormula EmpiricalFormula::operator + (const EmpiricalFormula& formula) const
+	EmpiricalFormula EmpiricalFormula::operator + (const EmpiricalFormula& formula) const
 	{
 		EmpiricalFormula ef;
 		ef.formula_ = formula.formula_;
@@ -223,7 +223,7 @@ namespace OpenMS
 		return ef;
 	}
 
-	EmpiricalFormula::EmpiricalFormula EmpiricalFormula::operator + (const String& formula) const
+	EmpiricalFormula EmpiricalFormula::operator + (const String& formula) const
 	{
 		EmpiricalFormula ef;
 		Int charge = parseFormula_(ef.formula_, formula);
@@ -243,7 +243,7 @@ namespace OpenMS
 		return ef;
 	}
 	
-	EmpiricalFormula::EmpiricalFormula& EmpiricalFormula::operator += (const EmpiricalFormula& formula)
+	EmpiricalFormula& EmpiricalFormula::operator += (const EmpiricalFormula& formula)
 	{
 		Map<const Element*, UInt>::ConstIterator it=formula.formula_.begin();
 		for (;it!=formula.formula_.end();++it)
@@ -261,7 +261,7 @@ namespace OpenMS
 		return *this;
 	}
 
-	EmpiricalFormula::EmpiricalFormula& EmpiricalFormula::operator += (const String& formula) 
+	EmpiricalFormula& EmpiricalFormula::operator += (const String& formula) 
 	{
 		Map<const Element*, UInt> str_formula;
 		Int charge = parseFormula_(str_formula, formula);
@@ -281,7 +281,7 @@ namespace OpenMS
 		return *this;
 	}
 	
-	EmpiricalFormula::EmpiricalFormula EmpiricalFormula::operator - (const EmpiricalFormula& formula) const
+	EmpiricalFormula EmpiricalFormula::operator - (const EmpiricalFormula& formula) const
 	{
 		EmpiricalFormula ef;
 		Map<const Element*, UInt>::ConstIterator it=formula.formula_.begin();
@@ -314,7 +314,7 @@ namespace OpenMS
 		return ef;
 	}
 
-	EmpiricalFormula::EmpiricalFormula EmpiricalFormula::operator - (const String& formula) const
+	EmpiricalFormula EmpiricalFormula::operator - (const String& formula) const
 	{
 		EmpiricalFormula ef;
 		Map<const Element*, UInt> str_formula;
@@ -349,7 +349,7 @@ namespace OpenMS
 		return ef;
 	}
 	
-	EmpiricalFormula::EmpiricalFormula& EmpiricalFormula::operator -= (const EmpiricalFormula& formula) 
+	EmpiricalFormula& EmpiricalFormula::operator -= (const EmpiricalFormula& formula) 
 	{
 		Map<const Element*, UInt>::ConstIterator it=formula.formula_.begin();
 		for (; it!=formula.formula_.end(); ++it)
@@ -374,7 +374,7 @@ namespace OpenMS
 		return *this;
 	}
 
-	EmpiricalFormula::EmpiricalFormula& EmpiricalFormula::operator -= (const String& formula) 
+	EmpiricalFormula& EmpiricalFormula::operator -= (const String& formula) 
 	{
 		Map<const Element*, UInt> str_formula;
 		Int charge = parseFormula_(str_formula, formula);

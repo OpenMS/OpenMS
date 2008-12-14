@@ -40,7 +40,7 @@ namespace OpenMS
 
 		@ingroup SpectraPreprocessers
   */
-  class MarkerMower : public PreprocessingFunctor
+  class OPENMS_DLLAPI MarkerMower : public PreprocessingFunctor
   {
   public:
 

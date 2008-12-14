@@ -43,7 +43,7 @@ namespace OpenMS
 		
 		@ingroup Metadata
 	*/
-  class AcquisitionInfo
+  class OPENMS_DLLAPI AcquisitionInfo
   	: public std::vector<Acquisition>,
   		public MetaInfoInterface
   {

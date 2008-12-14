@@ -43,7 +43,7 @@ namespace OpenMS
 	/** 
 	  @brief Hidden Markov Model State class for the Hidden Markov Model
 	*/
-	class HMMState
+	class OPENMS_DLLAPI HMMState
 	{
 		public:
 
@@ -123,7 +123,7 @@ namespace OpenMS
 						The HMM is mostly used within PILIS. For further details have a look at
 						the docs of PILIS.
 	*/
-	class HiddenMarkovModel
+	class OPENMS_DLLAPI HiddenMarkovModel
 	{
 		public:
 					

@@ -44,7 +44,7 @@ namespace OpenMS
 		
 		@ingroup Dialogs
 	*/
-	class SaveImageDialog : public QDialog
+	class OPENMS_DLLAPI SaveImageDialog : public QDialog
 	{
 		Q_OBJECT
 		

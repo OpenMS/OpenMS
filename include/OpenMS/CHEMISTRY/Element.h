@@ -43,7 +43,7 @@ namespace OpenMS
 	
 			@brief Representation of an element
 	*/
-	class Element
+	class OPENMS_DLLAPI Element
 	{
 		public:
 

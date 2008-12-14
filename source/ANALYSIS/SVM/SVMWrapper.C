@@ -27,6 +27,7 @@
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
@@ -2119,7 +2120,7 @@ namespace OpenMS
 		file << flush;
 								
 		// trying to find the two line parameters
-		target = (UInt) round(confidence * points.size());
+		target = (UInt) Math::round(confidence * points.size());
 		
 		mean = accumulate(differences.begin(), differences.end(), 0.0) / differences.size();		
 		intercept = mean;
@@ -2208,7 +2209,7 @@ namespace OpenMS
 		file << flush;
 								
 		// trying to find the two line parameters
-		target = (UInt) round(confidence * points.size());
+		target = (UInt) Math::round(confidence * points.size());
 		
 		mean = accumulate(differences.begin(), differences.end(), 0.0) / differences.size();		
 		intercept = mean;

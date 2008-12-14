@@ -40,7 +40,7 @@ namespace OpenMS
 		
 		This class provides all functionality to view the meta information of an object of type MetaInfoDescription.
 	*/
-	class MetaInfoDescriptionVisualizer
+	class OPENMS_DLLAPI MetaInfoDescriptionVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<MetaInfoDescription>
 	{

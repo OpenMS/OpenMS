@@ -42,7 +42,7 @@ namespace OpenMS
 
 		@ingroup SpectraFilter
   */
-  class GoodDiffFilter : public FilterFunctor
+  class OPENMS_DLLAPI GoodDiffFilter : public FilterFunctor
   {
   public:
 

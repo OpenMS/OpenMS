@@ -51,7 +51,7 @@ namespace OpenMS
 		
     @ingroup SpectrumWidgets
   */	
-  class Spectrum3DCanvas
+  class OPENMS_DLLAPI Spectrum3DCanvas
   	: public SpectrumCanvas
   {
     Q_OBJECT

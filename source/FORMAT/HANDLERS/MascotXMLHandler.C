@@ -148,7 +148,7 @@ namespace OpenMS
 		tag_ = "";
  	} 
 
-  void MascotXMLHandler::characters(const XMLCh* const chars, unsigned int /*length*/)
+  void MascotXMLHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
   {
 
 		if (tag_ == "NumQueries")

@@ -41,7 +41,7 @@ namespace OpenMS
 
 		@ingroup SpectraFilter
   */
-  class NeutralLossDiffFilter : public FilterFunctor
+  class OPENMS_DLLAPI NeutralLossDiffFilter : public FilterFunctor
   {
   public:
 

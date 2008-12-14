@@ -39,7 +39,7 @@ namespace OpenMS {
 
 Concatenates the strings given as FASTAEntry separating them with a unique character and storing the headers of FASTAEntry as well as the position of separator characters. So a substring can be accessed easily and the corresponding header can be found fast by using bineary search.
 */
-class BigString 
+class OPENMS_DLLAPI BigString 
 {
 
 	public:

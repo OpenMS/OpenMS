@@ -94,7 +94,7 @@ namespace OpenMS
 		
 		@htmlinclude OpenMS_OptimizePeakDeconvolution.parameters
 	*/
-  class OptimizePeakDeconvolution : public DefaultParamHandler
+  class OPENMS_DLLAPI OptimizePeakDeconvolution : public DefaultParamHandler
   {
   public:
     /** @name Type definitions

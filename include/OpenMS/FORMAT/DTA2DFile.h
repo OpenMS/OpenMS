@@ -56,7 +56,7 @@ namespace OpenMS
 
 			@ingroup FileIO
   */
-  class DTA2DFile
+  class OPENMS_DLLAPI DTA2DFile
   	: public ProgressLogger
   {
 	 private:
@@ -199,7 +199,7 @@ namespace OpenMS
 					rt = (strings[rt_dim].toDouble()) * (time_in_minutes ? 60.0 : 1.0);
 				}
 				// conversion to double or something else could have gone wrong
-				catch ( Exception::BaseException & e )
+				catch ( Exception::BaseException & /*e*/ )
 				{
 					throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line: \"")+line+"\"" ,filename);
 				}

@@ -27,7 +27,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 #include <iostream>
-#include <time.h>
+#include <ctime>
 
 using namespace std;
 
@@ -63,7 +63,7 @@ namespace OpenMS
 	  return *this;		
 	}
 
-	void DateTime::set(const String& date) throw (Exception::ParseError)
+	void DateTime::set(const String& date)
 	{
 		clear();
 		
@@ -101,8 +101,7 @@ namespace OpenMS
 		}
 	}
 	
-	void DateTime::set(UInt month, UInt day, UInt year,
-							 			 UInt hour, UInt minute, UInt second) throw (Exception::ParseError)
+	void DateTime::set(UInt month, UInt day, UInt year, UInt hour, UInt minute, UInt second)
 	{
 		QDateTime::setDate(QDate(year, month, day));
 		QDateTime::setTime(QTime(hour, minute, second));
@@ -148,7 +147,7 @@ namespace OpenMS
 		QDateTime::operator=(QDateTime());
 	}
 
-	void DateTime::setDate(const String& date) throw (Exception::ParseError)
+	void DateTime::setDate(const String& date)
 	{
 		QDate temp_date;
 		
@@ -176,7 +175,7 @@ namespace OpenMS
 		QDateTime::setDate(temp_date);
 	}
 				
-	void DateTime::setTime(const String& time) throw (Exception::ParseError)
+	void DateTime::setTime(const String& time)
 	{
 		QTime temp_time;
 		
@@ -189,7 +188,7 @@ namespace OpenMS
 		QDateTime::setTime(temp_time);				
 	}
 				
-	void DateTime::setDate(UInt month, UInt day, UInt year) throw (Exception::ParseError)
+	void DateTime::setDate(UInt month, UInt day, UInt year)
 	{
 		QDate temp_date;
 		
@@ -201,7 +200,7 @@ namespace OpenMS
 		QDateTime::setDate(temp_date);		
 	}
 		
-	void DateTime::setTime(UInt hour, UInt minute, UInt second) throw (Exception::ParseError)
+	void DateTime::setTime(UInt hour, UInt minute, UInt second)
 	{
 		QTime temp_time;
 		

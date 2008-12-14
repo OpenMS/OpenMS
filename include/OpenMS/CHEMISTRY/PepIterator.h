@@ -38,7 +38,7 @@ namespace OpenMS{
 
 @note every derived class has to implement the static functions "PepIterator * create()" and "const String getProductName()" (see FactoryProduct for details)
 */
-class PepIterator : public FactoryProduct
+class OPENMS_DLLAPI PepIterator : public FactoryProduct
 	{
  	
 	public:

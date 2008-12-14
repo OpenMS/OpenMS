@@ -186,47 +186,134 @@ namespace OpenMS
 			private:
 				/// Not implemented
 				MzXMLHandler();
+
+	  		static const XMLCh* s_value_;
+	  		static const XMLCh* s_count_;
+	  		static const XMLCh* s_type_;
+				static const XMLCh* s_name_;
+	  		static const XMLCh* s_version_;
+	  		static const XMLCh* s_filename_;
+	  		static const XMLCh* s_filetype_;
+	  		static const XMLCh* s_filesha1_;
+	  		static const XMLCh* s_completiontime_;
+	  		static const XMLCh* s_precision_;
+	  		static const XMLCh* s_byteorder_;
+	  		static const XMLCh* s_pairorder_;
+	  		static const XMLCh* s_precursorintensity_;
+	  		static const XMLCh* s_precursorcharge_;
+	  		static const XMLCh* s_windowwideness_;
+	  		static const XMLCh* s_mslevel_;
+	  		static const XMLCh* s_peakscount_;
+	  		static const XMLCh* s_polarity_;
+	  		static const XMLCh* s_scantype_;
+	  		static const XMLCh* s_retentiontime_;
+	  		static const XMLCh* s_collisionenergy_;
+	  		static const XMLCh* s_startmz_;
+	  		static const XMLCh* s_endmz_;
+	  		static const XMLCh* s_first_;
+	  		static const XMLCh* s_last_;
+	  		static const XMLCh* s_phone_;
+	  		static const XMLCh* s_email_;
+	  		static const XMLCh* s_uri_;
+				static const XMLCh* s_num_;
+	  		static const XMLCh* s_intensitycutoff_;
+	  		static const XMLCh* s_centroided_;
+	  		static const XMLCh* s_deisotoped_;
+	  		static const XMLCh* s_chargedeconvoluted_;
+
+			// init all the static members, which is necessary because otherwise the undefined order will cause problems
+			void initStaticMembers_()
+    	{
+      	static bool init(false);
+      	if (!init)
+      	{
+        	s_value_ = xercesc::XMLString::transcode("value");
+					s_count_ = xercesc::XMLString::transcode("scanCount");
+		      s_type_ = xercesc::XMLString::transcode("type");
+		      s_name_ = xercesc::XMLString::transcode("name");
+		      s_version_ = xercesc::XMLString::transcode("version");
+		      s_filename_ = xercesc::XMLString::transcode("fileName");
+		      s_filetype_ = xercesc::XMLString::transcode("fileType");
+		      s_filesha1_ = xercesc::XMLString::transcode("fileSha1");
+		      s_completiontime_ = xercesc::XMLString::transcode("completionTime");
+		      s_precision_ = xercesc::XMLString::transcode("precision");
+		      s_byteorder_ = xercesc::XMLString::transcode("byteOrder");
+		      s_pairorder_ = xercesc::XMLString::transcode("pairOrder");
+		      s_precursorintensity_ = xercesc::XMLString::transcode("precursorIntensity");
+		      s_precursorcharge_ = xercesc::XMLString::transcode("precursorCharge");
+		      s_windowwideness_ = xercesc::XMLString::transcode("windowWideness");
+		      s_mslevel_ = xercesc::XMLString::transcode("msLevel");
+		      s_peakscount_ = xercesc::XMLString::transcode("peaksCount");
+		      s_polarity_ = xercesc::XMLString::transcode("polarity");
+		      s_scantype_ = xercesc::XMLString::transcode("scanType");
+		      s_retentiontime_ = xercesc::XMLString::transcode("retentionTime");
+		      s_collisionenergy_ = xercesc::XMLString::transcode("collisionEnergy");
+		      s_startmz_ = xercesc::XMLString::transcode("startMz");
+		      s_endmz_ = xercesc::XMLString::transcode("endMz");
+		      s_first_ = xercesc::XMLString::transcode("first");
+		      s_last_ = xercesc::XMLString::transcode("last");
+		      s_phone_ = xercesc::XMLString::transcode("phone");
+		      s_email_ = xercesc::XMLString::transcode("email");
+		      s_uri_ = xercesc::XMLString::transcode("URI");
+		      s_num_ = xercesc::XMLString::transcode("num");
+		      s_intensitycutoff_ = xercesc::XMLString::transcode("intensityCutoff");
+    		  s_centroided_ = xercesc::XMLString::transcode("centroided");
+		      s_deisotoped_ = xercesc::XMLString::transcode("deisotoped");
+		      s_chargedeconvoluted_ = xercesc::XMLString::transcode("chargeDeconvoluted");
+
+					init = true;
+				}
+				return;
+			}
+			
 	  };
 	
 		//--------------------------------------------------------------------------------
 	
+		// this cannot be moved into a function as VS2008 does not allow more than 31 static members in a function .. don't ask...
+		template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_value_ = 0;
+		template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_count_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_type_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_name_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_version_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_filename_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_filetype_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_filesha1_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_completiontime_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_precision_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_byteorder_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_pairorder_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_precursorintensity_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_precursorcharge_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_windowwideness_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_mslevel_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_peakscount_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_polarity_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_scantype_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_retentiontime_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_collisionenergy_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_startmz_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_endmz_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_first_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_last_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_phone_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_email_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_uri_ = 0;
+		template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_num_ = 0; 
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_intensitycutoff_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_centroided_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_deisotoped_ = 0;
+  	template <typename MapType> const XMLCh* MzXMLHandler<MapType>::s_chargedeconvoluted_ = 0;
+
 		template <typename MapType>
 	  void MzXMLHandler<MapType>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
 	  {
-	  	static const XMLCh* s_value = xercesc::XMLString::transcode("value");
-	  	static const XMLCh* s_count = xercesc::XMLString::transcode("scanCount");
-	  	static const XMLCh* s_type = xercesc::XMLString::transcode("type");
-	  	static const XMLCh* s_name = xercesc::XMLString::transcode("name");
-	  	static const XMLCh* s_version = xercesc::XMLString::transcode("version");
-	  	static const XMLCh* s_filename = xercesc::XMLString::transcode("fileName");
-	  	static const XMLCh* s_filetype = xercesc::XMLString::transcode("fileType");
-	  	static const XMLCh* s_filesha1 = xercesc::XMLString::transcode("fileSha1");
-	  	static const XMLCh* s_completiontime = xercesc::XMLString::transcode("completionTime");
-	  	static const XMLCh* s_precision = xercesc::XMLString::transcode("precision");
-	  	static const XMLCh* s_byteorder = xercesc::XMLString::transcode("byteOrder");
-	  	static const XMLCh* s_pairorder = xercesc::XMLString::transcode("pairOrder");
-	  	static const XMLCh* s_precursorintensity = xercesc::XMLString::transcode("precursorIntensity");
-	  	static const XMLCh* s_precursorcharge = xercesc::XMLString::transcode("precursorCharge");
-	  	static const XMLCh* s_windowwideness = xercesc::XMLString::transcode("windowWideness");
-	  	static const XMLCh* s_mslevel = xercesc::XMLString::transcode("msLevel");
-	  	static const XMLCh* s_peakscount = xercesc::XMLString::transcode("peaksCount");
-	  	static const XMLCh* s_polarity = xercesc::XMLString::transcode("polarity");
-	  	static const XMLCh* s_scantype = xercesc::XMLString::transcode("scanType");
-	  	static const XMLCh* s_retentiontime = xercesc::XMLString::transcode("retentionTime");
-	  	static const XMLCh* s_collisionenergy = xercesc::XMLString::transcode("collisionEnergy");
-	  	static const XMLCh* s_startmz = xercesc::XMLString::transcode("startMz");
-	  	static const XMLCh* s_endmz = xercesc::XMLString::transcode("endMz");
-	  	static const XMLCh* s_first = xercesc::XMLString::transcode("first");
-	  	static const XMLCh* s_last = xercesc::XMLString::transcode("last");
-	  	static const XMLCh* s_phone = xercesc::XMLString::transcode("phone");
-	  	static const XMLCh* s_email = xercesc::XMLString::transcode("email");
-	  	static const XMLCh* s_uri = xercesc::XMLString::transcode("URI");
-	  	static const XMLCh* s_num = xercesc::XMLString::transcode("num");
-	  	static const XMLCh* s_intensitycutoff = xercesc::XMLString::transcode("intensityCutoff");
-	  	static const XMLCh* s_centroided = xercesc::XMLString::transcode("centroided");
-	  	static const XMLCh* s_deisotoped = xercesc::XMLString::transcode("deisotoped");
-	  	static const XMLCh* s_chargedeconvoluted = xercesc::XMLString::transcode("chargeDeconvoluted");
-	  	
+			static bool init_static_members(false);
+			if (!init_static_members)
+			{
+				initStaticMembers_();
+			}
+						
 	  	static UInt scan_count = 0;
 	  	
 	  	String tag = sm_.convert(qname);
@@ -239,7 +326,7 @@ namespace OpenMS
 			if (tag=="msRun")
 			{
 				Int count = 0;
-				optionalAttributeAsInt_(count, attributes, s_count);
+				optionalAttributeAsInt_(count, attributes, s_count_);
 				exp_->reserve(count);
 				logger_.startProgress(0,count,"loading mzXML file");
 				scan_count = 0;
@@ -248,9 +335,9 @@ namespace OpenMS
 			else if (tag=="parentFile")
 			{
 				SourceFile sf;
-				sf.setNameOfFile(attributeAsString_(attributes, s_filename));
-				sf.setFileType(attributeAsString_(attributes, s_filetype));
-				sf.setChecksum(attributeAsString_(attributes, s_filesha1), SourceFile::SHA1);		
+				sf.setNameOfFile(attributeAsString_(attributes, s_filename_));
+				sf.setFileType(attributeAsString_(attributes, s_filetype_));
+				sf.setChecksum(attributeAsString_(attributes, s_filesha1_), SourceFile::SHA1);		
 				exp_->getSourceFiles().push_back(sf);			
 			}
 			else if (tag=="software")
@@ -258,35 +345,35 @@ namespace OpenMS
 				String& parent_tag = *(open_tags_.end()-2);
 				if (parent_tag=="dataProcessing")
 				{
-					exp_->getDataProcessing().back().getSoftware().setVersion(attributeAsString_(attributes, s_version));
-					exp_->getDataProcessing().back().getSoftware().setName(attributeAsString_(attributes, s_name));
-					exp_->getDataProcessing().back().setMetaValue("#type",String(attributeAsString_(attributes, s_type)));
+					exp_->getDataProcessing().back().getSoftware().setVersion(attributeAsString_(attributes, s_version_));
+					exp_->getDataProcessing().back().getSoftware().setName(attributeAsString_(attributes, s_name_));
+					exp_->getDataProcessing().back().setMetaValue("#type",String(attributeAsString_(attributes, s_type_)));
 					
 					String time;
-					optionalAttributeAsString_(time,attributes,s_completiontime);
+					optionalAttributeAsString_(time,attributes,s_completiontime_);
 					exp_->getDataProcessing().back().setCompletionTime( asDateTime_(time) );
 				}
 				else if (parent_tag=="msInstrument")
 				{
-					exp_->getInstrument().getSoftware().setVersion(attributeAsString_(attributes, s_version));
-					exp_->getInstrument().getSoftware().setName(attributeAsString_(attributes, s_name));
+					exp_->getInstrument().getSoftware().setVersion(attributeAsString_(attributes, s_version_));
+					exp_->getInstrument().getSoftware().setName(attributeAsString_(attributes, s_name_));
 				}
 			}
 			else if (tag=="peaks")
 			{
-				precision_ = attributeAsString_(attributes, s_precision);
+				precision_ = attributeAsString_(attributes, s_precision_);
 				if (precision_!="32" && precision_!="64")
 				{
 					error(LOAD, String("Invalid precision '") + precision_ + "' in element 'peaks'");
 				}
 				String byte_order;
-				optionalAttributeAsString_(byte_order, attributes, s_byteorder);
+				optionalAttributeAsString_(byte_order, attributes, s_byteorder_);
 				if (byte_order!="network")
 				{
 					error(LOAD, String("Invalid or missing byte order '") + byte_order + "' in element 'peaks'. Must be 'network'!");
 				}
 				String pair_order;
-				optionalAttributeAsString_(pair_order, attributes, s_pairorder);
+				optionalAttributeAsString_(pair_order, attributes, s_pairorder_);
 				if (pair_order!="m/z-int")
 				{
 					error(LOAD, String("Invalid or missing pair order '") + pair_order + "' in element 'peaks'. Must be 'm/z-int'!");
@@ -296,20 +383,20 @@ namespace OpenMS
 			{
 				try
 				{
-					exp_->back().getPrecursorPeak().setIntensity( attributeAsDouble_(attributes, s_precursorintensity) );
+					exp_->back().getPrecursorPeak().setIntensity( attributeAsDouble_(attributes, s_precursorintensity_) );
 				}
-				catch (Exception::ParseError& e)
+				catch (Exception::ParseError& /*e*/)
 				{
 					error(LOAD, "Mandatory attribute precursorMz not found! Setting precursor intensity to 0 - trying to continue");
 					exp_->back().getPrecursorPeak().setIntensity(0.0);
 				}
 				
 				Int charge = 0;
-				optionalAttributeAsInt_(charge, attributes, s_precursorcharge);
+				optionalAttributeAsInt_(charge, attributes, s_precursorcharge_);
 				exp_->back().getPrecursorPeak().setCharge(charge);
 				
 				DoubleReal window = 0;
-				optionalAttributeAsDouble_(window, attributes, s_windowwideness);
+				optionalAttributeAsDouble_(window, attributes, s_windowwideness_);
 				exp_->back().getPrecursor().setWindowSize(window);
 			}
 			else if (tag=="scan")
@@ -319,11 +406,11 @@ namespace OpenMS
 				if (options_.getMetadataOnly()) throw EndParsingSoftly(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 				
 				// check if the scan is in the desired MS / RT range
-				UInt ms_level = attributeAsInt_(attributes, s_mslevel);
+				UInt ms_level = attributeAsInt_(attributes, s_mslevel_);
 				//parse retention time and convert it from xs:duration to seconds
 				DoubleReal retention_time = 0.0;
 				String time_string = "";
-				if (optionalAttributeAsString_(time_string, attributes, s_retentiontime))
+				if (optionalAttributeAsString_(time_string, attributes, s_retentiontime_))
 				{
 					time_string = time_string.suffix('T');
 					//std::cout << "Initial trim: " << time_string << std::endl;
@@ -362,32 +449,32 @@ namespace OpenMS
 				exp_->resize(exp_->size()+1);
 				exp_->back().setMSLevel(ms_level);
 				exp_->back().setRT(retention_time);
-				exp_->back().setNativeID(String("scan=") + attributeAsString_(attributes, s_num));
+				exp_->back().setNativeID(String("scan=") + attributeAsString_(attributes, s_num_));
 				//peak count == twice the scan size
-				peak_count_ = attributeAsInt_(attributes, s_peakscount);
+				peak_count_ = attributeAsInt_(attributes, s_peakscount_);
 				exp_->back().reserve(peak_count_);
 				
 				//centroided, chargeDeconvoluted, deisotoped are ignored
 
 				//other optional attributes
 				InstrumentSettings::ScanWindow window;
-				optionalAttributeAsDouble_(window.begin, attributes, s_startmz);
-				optionalAttributeAsDouble_(window.end, attributes, s_endmz);
+				optionalAttributeAsDouble_(window.begin, attributes, s_startmz_);
+				optionalAttributeAsDouble_(window.end, attributes, s_endmz_);
 				if (window.begin!=0.0 || window.end!=0.0 )
 				{
 					exp_->back().getInstrumentSettings().getScanWindows().push_back(window);
 				}
 				
 				DoubleReal tmp = 0.0;
-				optionalAttributeAsDouble_(tmp, attributes, s_collisionenergy);
+				optionalAttributeAsDouble_(tmp, attributes, s_collisionenergy_);
 				exp_->back().getPrecursor().setActivationEnergy(tmp);
 				
 				String polarity = "any";
-				optionalAttributeAsString_(polarity, attributes, s_polarity);
+				optionalAttributeAsString_(polarity, attributes, s_polarity_);
 				exp_->back().getInstrumentSettings().setPolarity( (IonSource::Polarity) cvStringToEnum_(0,polarity,"polarity") );
 				
 				String type = "";
-				optionalAttributeAsString_(type, attributes, s_scantype);
+				optionalAttributeAsString_(type, attributes, s_scantype_);
 				if (type=="")
 				{
 					//unknown/unset => do nothing here => no warning in the end
@@ -444,77 +531,77 @@ namespace OpenMS
 			else if (tag=="operator")
 			{
 				exp_->getContacts().resize(1);
-				exp_->getContacts().back().setFirstName(attributeAsString_(attributes, s_first));
-				exp_->getContacts().back().setLastName(attributeAsString_(attributes, s_last));
+				exp_->getContacts().back().setFirstName(attributeAsString_(attributes, s_first_));
+				exp_->getContacts().back().setLastName(attributeAsString_(attributes, s_last_));
 				
 				String tmp = "";
-				optionalAttributeAsString_(tmp, attributes,s_email);
+				optionalAttributeAsString_(tmp, attributes,s_email_);
 				exp_->getContacts().back().setEmail(tmp);
 
 				tmp = "";
-				optionalAttributeAsString_(tmp, attributes,s_phone);
+				optionalAttributeAsString_(tmp, attributes,s_phone_);
 				if (tmp != "") 
 				{
 					exp_->getContacts().back().setMetaValue("#phone", tmp);
 				}
 				
 				tmp = "";
-				optionalAttributeAsString_(tmp, attributes,s_uri);
+				optionalAttributeAsString_(tmp, attributes,s_uri_);
 				exp_->getContacts().back().setURL(tmp);
 			}
 			else if (tag=="msManufacturer")
 			{
-				exp_->getInstrument().setVendor(attributeAsString_(attributes, s_value));
+				exp_->getInstrument().setVendor(attributeAsString_(attributes, s_value_));
 			}
 			else if (tag=="msModel")
 			{
-				exp_->getInstrument().setModel(attributeAsString_(attributes, s_value));
+				exp_->getInstrument().setModel(attributeAsString_(attributes, s_value_));
 			}
 			else if (tag=="msIonisation")
 			{
 				exp_->getInstrument().getIonSources().resize(1);
-				exp_->getInstrument().getIonSources()[0].setIonizationMethod((IonSource::IonizationMethod) cvStringToEnum_(2, attributeAsString_(attributes, s_value), "msIonization") );
+				exp_->getInstrument().getIonSources()[0].setIonizationMethod((IonSource::IonizationMethod) cvStringToEnum_(2, attributeAsString_(attributes, s_value_), "msIonization") );
 			}
 			else if (tag=="msMassAnalyzer")
 			{
 				exp_->getInstrument().getMassAnalyzers().resize(1);
-				exp_->getInstrument().getMassAnalyzers()[0].setType( (MassAnalyzer::AnalyzerType) cvStringToEnum_(3, attributeAsString_(attributes, s_value), "msMassAnalyzer") );
+				exp_->getInstrument().getMassAnalyzers()[0].setType( (MassAnalyzer::AnalyzerType) cvStringToEnum_(3, attributeAsString_(attributes, s_value_), "msMassAnalyzer") );
 			}
 			else if (tag=="msDetector")
 			{
 				exp_->getInstrument().getIonDetectors().resize(1);
-				exp_->getInstrument().getIonDetectors()[0].setType( (IonDetector::Type) cvStringToEnum_(4, attributeAsString_(attributes, s_value), "msDetector") );
+				exp_->getInstrument().getIonDetectors()[0].setType( (IonDetector::Type) cvStringToEnum_(4, attributeAsString_(attributes, s_value_), "msDetector") );
 			}
 			else if (tag=="msResolution")
 			{
-				exp_->getInstrument().getMassAnalyzers()[0].setResolutionMethod( (MassAnalyzer::ResolutionMethod) cvStringToEnum_(5, attributeAsString_(attributes, s_value), "msResolution"));
+				exp_->getInstrument().getMassAnalyzers()[0].setResolutionMethod( (MassAnalyzer::ResolutionMethod) cvStringToEnum_(5, attributeAsString_(attributes, s_value_), "msResolution"));
 			}
 			else if (tag=="dataProcessing")
 			{
 				exp_->getDataProcessing().push_back(DataProcessing());
 				String boolean = "";
-				optionalAttributeAsString_(boolean, attributes, s_deisotoped);
+				optionalAttributeAsString_(boolean, attributes, s_deisotoped_);
 				if (boolean == "true" || boolean == "1")
 				{
 					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::DEISOTOPING);
 				}
 				
 				boolean = "";
-				optionalAttributeAsString_(boolean, attributes, s_chargedeconvoluted);
+				optionalAttributeAsString_(boolean, attributes, s_chargedeconvoluted_);
 				if (boolean == "true" || boolean == "1")
 				{
 					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::CHARGE_DECONVOLUTION);
 				}
 				
 				DoubleReal cutoff = 0.0;
-				optionalAttributeAsDouble_(cutoff, attributes, s_intensitycutoff);
+				optionalAttributeAsDouble_(cutoff, attributes, s_intensitycutoff_);
 				if (cutoff!=0.0)
 				{
 					exp_->getDataProcessing().back().setMetaValue("#intensity_cutoff",cutoff);
 				}
 					
 				boolean = "";
-				optionalAttributeAsString_(boolean, attributes, s_centroided);
+				optionalAttributeAsString_(boolean, attributes, s_centroided_);
 				if (boolean == "true" || boolean == "1")
 				{
 					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::PEAK_PICKING);
@@ -523,11 +610,11 @@ namespace OpenMS
 			else if (tag=="nameValue")
 			{
 				String name = "";
-				optionalAttributeAsString_(name, attributes, s_name);
+				optionalAttributeAsString_(name, attributes, s_name_);
 				if (name == "") return;
 
 				String value = "";
-				optionalAttributeAsString_(value, attributes, s_value);
+				optionalAttributeAsString_(value, attributes, s_value_);
 				
 				String& parent_tag = *(open_tags_.end()-2);
 								
@@ -547,11 +634,11 @@ namespace OpenMS
 			else if (tag=="processingOperation")
 			{
 				String name = "";
-				optionalAttributeAsString_(name, attributes, s_name);
+				optionalAttributeAsString_(name, attributes, s_name_);
 				if (name == "") return;
 
 				String value = "";
-				optionalAttributeAsString_(value, attributes, s_value);
+				optionalAttributeAsString_(value, attributes, s_value_);
 				
 				exp_->getDataProcessing().back().setMetaValue(name, value);
 			}

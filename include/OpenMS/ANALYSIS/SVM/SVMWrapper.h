@@ -37,7 +37,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include <fstream>
 
@@ -178,7 +178,7 @@ namespace OpenMS
 		loaded and we support also a new kernel function that was specially designed for learning with
 		small sequences of different lengths.
   */
-	class SVMWrapper
+	class OPENMS_DLLAPI SVMWrapper
 	{
 	 public:
 	

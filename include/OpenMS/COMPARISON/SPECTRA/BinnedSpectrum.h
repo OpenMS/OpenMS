@@ -55,7 +55,7 @@ namespace OpenMS
 		@ingroup SpectraComparison
 	*/
 
-	class BinnedSpectrum : public MSSpectrum<>
+	class OPENMS_DLLAPI BinnedSpectrum : public MSSpectrum<>
 	{
 
 	private:
@@ -70,7 +70,7 @@ namespace OpenMS
 		@brief 	Exception which is thrown if BinnedSpectrum bins are accessed and no PeakSpektrum has been
 				integrated yet i.e. bins_ is empty
 	*/
-	class NoSpectrumIntegrated : public Exception::BaseException
+	class OPENMS_DLLAPI NoSpectrumIntegrated : public Exception::BaseException
 	{
 	public:
 		NoSpectrumIntegrated(const char* file, int line, const char* function, const char* message ="BinnedSpectrum hasn't got a PeakSpectrum to base on yet") throw();

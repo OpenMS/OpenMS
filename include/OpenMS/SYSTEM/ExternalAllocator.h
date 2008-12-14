@@ -29,13 +29,15 @@
 
 #include <limits>
 #include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <fcntl.h> // for O_RDWR etc
-#include <math.h>  // for ldiv()
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>  // for ldiv()
 
+#ifdef OPENMS_WINDOWSPLATFORM
+#  include <sys/stat.h>
+#  include <sys/types.h>
+#  include <fcntl.h> // for O_RDWR etc
+#endif
 
 
 #include <OpenMS/config.h>
@@ -102,7 +104,7 @@ namespace OpenMS
        */
     
       /// C'tor where @p filename specifies the swap file of size @p filesize bytes
-      ExternalAllocator(const String& filename = File::getUniqueName(), const Offset64Int &filesize = 1) 
+      ExternalAllocator(const String& filename = File::getUniqueName(), const Int64 &filesize = 1) 
       {
         #ifdef DEBUG_ALLOC      
         std::cout << "<<-->> 2-tuple Ctor called \n";
@@ -300,7 +302,7 @@ namespace OpenMS
       }
       
 			/// number of bytes currently mapped from file into virtual memory
-  		Offset64Int getMappingSize()
+  		Int64 getMappingSize()
 			{
 				return shared_extalloc_->getTotalmappingsize();
 			}

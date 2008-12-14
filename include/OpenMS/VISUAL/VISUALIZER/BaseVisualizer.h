@@ -27,6 +27,8 @@
 #ifndef OPENMS_VISUAL_VISUALIZER_BASEVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_BASEVISUALIZER_H
 
+#include <OpenMS/config.h>
+
 namespace OpenMS 
 {
 	/**
@@ -40,7 +42,7 @@ namespace OpenMS
 		Visualizers are mainly used by the MetaDataBrowser.
 	*/
 	template<typename ObjectType>
-	class BaseVisualizer
+	class OPENMS_DLLAPI BaseVisualizer
 	{
 		public:
 			

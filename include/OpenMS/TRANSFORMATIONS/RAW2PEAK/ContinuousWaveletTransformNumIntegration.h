@@ -28,9 +28,11 @@
 #ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_CONTINUOUSWAVELETTRANSFORMNUMINTEGRATION_H
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_CONTINUOUSWAVELETTRANSFORMNUMINTEGRATION_H
 
+#include <cmath>
+
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransform.h>
 
-#include <math.h>
 
 #ifdef DEBUG_PEAK_PICKING
 #include <iostream>
@@ -44,7 +46,7 @@ namespace OpenMS
 
 	The convolution of the signal and the wavelet is computed by numerical integration.
   */
-  class ContinuousWaveletTransformNumIntegration : public ContinuousWaveletTransform
+  class OPENMS_DLLAPI ContinuousWaveletTransformNumIntegration : public ContinuousWaveletTransform
   {
 	 public:
     /// Raw data const iterator type
@@ -222,7 +224,7 @@ namespace OpenMS
       {
         // search for the corresponding datapoint of help in the wavelet (take the left most adjacent point)
         double distance = fabs(x->getMZ() - help->getMZ());
-        int index_w_r = (int)round(distance / spacing_);
+				int index_w_r = (int)Math::round(distance / spacing_);
         double wavelet_right =  wavelet_[index_w_r];
 
 #ifdef DEBUG_PEAK_PICKING
@@ -233,7 +235,7 @@ namespace OpenMS
 
         // search for the corresponding datapoint for (help-1) in the wavelet (take the left most adjacent point)
         distance = fabs(x->getMZ() - (help-1)->getMZ());
-        unsigned int index_w_l = (unsigned int)round(distance / spacing_);
+				unsigned int index_w_l = (unsigned int)Math::round(distance / spacing_);
 				if (index_w_l >= wavelet_.size()) 
 				{
 				  index_w_l = wavelet_.size()-1;
@@ -265,7 +267,7 @@ namespace OpenMS
       {
         // search for the corresponding datapoint for help in the wavelet (take the left most adjacent point)
         double distance = fabs(x->getMZ() - help->getMZ());
-        unsigned int index_w_l = (unsigned int)round(distance / spacing_);
+				unsigned int index_w_l = (unsigned int)Math::round(distance / spacing_);
         double wavelet_left =  wavelet_[index_w_l];
 
 #ifdef DEBUG_PEAK_PICKING
@@ -276,7 +278,7 @@ namespace OpenMS
 
         // search for the corresponding datapoint for (help+1) in the wavelet (take the left most adjacent point)
         distance = fabs(x->getMZ() - (help+1)->getMZ());
-        unsigned int index_w_r = (unsigned int)round(distance / spacing_);
+				unsigned int index_w_r = (unsigned int)Math::round(distance / spacing_);
         if (index_w_r >= wavelet_.size()) 
 				{
 				  index_w_r = wavelet_.size()-1;

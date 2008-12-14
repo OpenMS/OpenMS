@@ -72,12 +72,8 @@ namespace OpenMS
 	    }
 	  }
 	
-	  /**
-	  needs CGAL
-	  */
 	  double ROCCurve::AUC()
 	  {
-	#ifdef OPENMS_HAS_CGAL
 	    score_clas_pairs_.sort(simsortdec());
 	    // value that is not in score_clas_pairs_
 	    double prevsim = score_clas_pairs_.begin()->first + 1;
@@ -108,10 +104,6 @@ namespace OpenMS
 	    polygon.push_back(Point(1,1));
 	    polygon.push_back(Point(1,0));
 	    return -polygon.area();
-	#else
-	    cerr << "ROCCurve::AUC() requires CGAL\n";
-	    return 0;
-	#endif
 	  }
 	
 	  std::vector<std::pair<double,double > > ROCCurve::curve(UInt resolution)

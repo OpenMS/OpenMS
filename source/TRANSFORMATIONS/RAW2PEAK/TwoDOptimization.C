@@ -26,7 +26,7 @@
 //
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
-
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
 {
@@ -125,7 +125,7 @@ namespace OpenMS
 
 
 									//is it a Lorentz or a Sech - Peak?
-									if ((PeakShape::Type)((picked_peaks[peak_iter->first]).getMetaDataArrays()[5][peak_iter->second]) == PeakShape::LORENTZ_PEAK)
+									if ((PeakShape::Type)(Int)Math::round((picked_peaks[peak_iter->first]).getMetaDataArrays()[5][peak_iter->second]) == PeakShape::LORENTZ_PEAK)
 										{
 #ifdef DEBUG_2D
 											std::cout << "p_height "<< p_height << "\tp_position "<< p_position << "\tcurrent_position "
@@ -331,7 +331,7 @@ namespace OpenMS
 									double ddl_right_old = gsl_matrix_get(J, counter_posf, total_nr_peaks +3*map_idx+2);
 									//is it a Lorentz or a Sech - Peak?
 									
-									if ((PeakShape::Type)((picked_peaks[peak_iter->first]).getMetaDataArrays()[5][peak_iter->second]) == PeakShape::LORENTZ_PEAK)
+									if ((PeakShape::Type)(Int)Math::round((picked_peaks[peak_iter->first]).getMetaDataArrays()[5][peak_iter->second]) == PeakShape::LORENTZ_PEAK)
 										{
 											diff      = current_position - p_position;
 											// partial derivative with respect to the height,...

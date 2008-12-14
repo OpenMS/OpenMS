@@ -50,7 +50,7 @@ namespace OpenMS
 			which are also unique.
 
 	*/
-	class ModificationsDB
+	class OPENMS_DLLAPI ModificationsDB
 	{					
 		public:
 

@@ -50,7 +50,7 @@ namespace OpenMS
 		@htmlinclude OpenMS_MorphFilter.parameters
 */
 
-  class MorphFilter 
+  class OPENMS_DLLAPI MorphFilter 
   	: public DefaultParamHandler, 
   		public ProgressLogger
   {

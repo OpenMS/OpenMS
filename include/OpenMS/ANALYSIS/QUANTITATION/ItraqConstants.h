@@ -40,7 +40,7 @@ namespace OpenMS
 		
 		@todo Docu (Chris)
 	*/
-	class ItraqConstants
+	class OPENMS_DLLAPI ItraqConstants
 	{
 
 	public:

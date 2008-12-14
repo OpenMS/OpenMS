@@ -40,7 +40,7 @@ namespace OpenMS
 		
 		This class provides all functionality to view the meta information of an object of type Sample.
 	*/
-	class SampleVisualizer
+	class OPENMS_DLLAPI SampleVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<Sample>
 	{

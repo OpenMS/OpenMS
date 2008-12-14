@@ -341,7 +341,7 @@ namespace OpenMS
 			{
 				// b-ions
 				p_.setPosition((b_pos + z)/z);
-				p_.setIntensity(0.8);
+				p_.setIntensity(0.8f);
 				spec.push_back(p_);
 
 				// b-ion losses
@@ -349,20 +349,20 @@ namespace OpenMS
 				{
 					b_H2O_loss = true;
 					p_.setPosition((b_pos + z - 18.0)/z);
-					p_.setIntensity(0.1);
+					p_.setIntensity(0.1f);
 					spec.push_back(p_);
 				}
 				if (b_NH3_loss || aa == 'Q' || aa == 'N' || aa == 'R' || aa == 'K')
 				{
 					b_NH3_loss = true;
 					p_.setPosition((b_pos + z - 17.0)/z);
-					p_.setIntensity(0.1);
+					p_.setIntensity(0.1f);
 					spec.push_back(p_);
 				}
 
 				// a-ions
 				p_.setPosition((b_pos +z - 28.0)/z);
-				p_.setIntensity(0.3);
+				p_.setIntensity(0.3f);
 				spec.push_back(p_);
 				
 				// y-ions
@@ -376,7 +376,7 @@ namespace OpenMS
 					p_.setPosition((y_pos + z - 18.0)/z);
 					if (aa2 != 'Q')
 					{
-						p_.setIntensity(0.2);
+						p_.setIntensity(0.2f);
 					}
 					else
 					{
@@ -388,7 +388,7 @@ namespace OpenMS
 				{
 					y_NH3_loss = true;
 					p_.setPosition((y_pos + z - 17.0)/z);
-					p_.setIntensity(0.2);
+					p_.setIntensity(0.2f);
 				}
 			}
 		}

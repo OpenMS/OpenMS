@@ -25,7 +25,11 @@
 // --------------------------------------------------------------------------
 //
 
+#include <iostream>
+#include <cmath>
+
 #include <OpenMS/VISUAL/DIALOGS/SaveImageDialog.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 // Qt
 #include <QtGui/QLayout>
@@ -38,10 +42,6 @@
 #include <QtGui/QImageWriter>
 #include <QtGui/QApplication>
  
-// STL
-#include <iostream>
-#include <math.h>
-
 namespace OpenMS
 {
 
@@ -154,7 +154,7 @@ namespace OpenMS
 		if(size_proportions_->isChecked() && size_x_==qApp->focusWidget())
 		{
 			QString* temp = new QString();
-			temp->setNum((int)rint(s.toInt()/size_ratio_));
+			temp->setNum((int)Math::round(s.toInt()/size_ratio_));
 			size_y_->setText(*temp);
 		}
 	}	
@@ -164,7 +164,7 @@ namespace OpenMS
 		if(size_proportions_->isChecked() && size_y_==qApp->focusWidget())
 		{
 			QString* temp = new QString();
-			temp->setNum((int)rint(s.toInt()*size_ratio_));
+			temp->setNum((int)Math::round(s.toInt()*size_ratio_));
 			size_x_->setText(*temp);
 		}
 	}	

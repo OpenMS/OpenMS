@@ -36,7 +36,7 @@ namespace OpenMS
 		
 		@ingroup Metadata
 	*/
-  class SourceFile
+  class OPENMS_DLLAPI SourceFile
   	: public MetaInfoInterface
   {
     public:

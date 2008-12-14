@@ -36,7 +36,7 @@ namespace OpenMS
 		
 		@ingroup Metadata
 	*/
-  class IonDetector
+  class OPENMS_DLLAPI IonDetector
   	: public MetaInfoInterface
   {
     public:

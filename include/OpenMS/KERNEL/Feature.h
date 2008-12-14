@@ -57,7 +57,7 @@ namespace OpenMS
 
 	@ingroup Kernel
 	*/
-	class Feature
+	class OPENMS_DLLAPI Feature
 		: public RichPeak2D
 	{
 	 public:

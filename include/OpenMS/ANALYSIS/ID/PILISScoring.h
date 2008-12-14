@@ -61,8 +61,7 @@ namespace OpenMS
 
 		@ingroup Analysis_ID
 	*/
-	class PILISScoring
-		: public DefaultParamHandler
+	class OPENMS_DLLAPI PILISScoring : public DefaultParamHandler
 	{
 
 		public:

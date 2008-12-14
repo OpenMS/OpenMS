@@ -33,7 +33,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
-#include <math.h>
+#include <cmath>
 #include <gsl/gsl_spline.h>
 #include <gsl/gsl_statistics_double.h>
 #include <vector>
@@ -58,7 +58,7 @@ namespace OpenMS
  		* have to consider the class at hand if you plan to change the basic implementation of the transform. 
  	*/ 
 	template <typename PeakType>
-	class IsotopeWaveletTransform
+	class OPENMS_DLLAPI IsotopeWaveletTransform
 	{
 		public:
 				
@@ -673,18 +673,18 @@ namespace OpenMS
 							break;
 						};
 
-						if (fabs(iter2->getMZ()-seed_mz) > (fabs(h)-0.5)*NEUTRON_MASS/(c+1.))
+						if (fabs(iter2->getMZ()-seed_mz) > (abs(h)-0.5)*NEUTRON_MASS/(c+1.))
 						{
 							typename MSSpectrum<PeakType>::const_iterator iter3 (candidates[c].MZBegin(help_mz));
 							if (iter3 != candidates[c].end())
 							{
 								push2TmpBox_ (iter3->getMZ(), scan_index, c, 0, iter3->getIntensity(), candidates[0].getRT(), MZ_start, MZ_end);
-							};
-						};
-					};
-				};
-			};	
-		};
+							}
+						}
+					}
+				}
+			}
+		}
 
 		clusterSeeds_(candidates, ref, scan_index, candidates.size());
 	}

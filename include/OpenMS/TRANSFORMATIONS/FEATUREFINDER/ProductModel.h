@@ -50,7 +50,7 @@ namespace OpenMS
 
 	/// The class template is only implemented for D=2 because we use Peak2D here.
 	template <>
-	class ProductModel <2>
+	class OPENMS_DLLAPI ProductModel <2>
 		: public BaseModel<2>
 	{
 	 public:

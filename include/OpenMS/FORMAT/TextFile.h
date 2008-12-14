@@ -39,7 +39,7 @@ namespace OpenMS
   
   	@ingroup FileIO
 	*/
-  class TextFile
+  class OPENMS_DLLAPI TextFile
   	: public std::vector<String>
   {
     public:

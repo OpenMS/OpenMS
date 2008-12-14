@@ -54,7 +54,7 @@ namespace OpenMS
 		 	the charge of +/- 1 is set.
 	*/
 
-	class EmpiricalFormula
+	class OPENMS_DLLAPI EmpiricalFormula
 	{
 
 		public:
@@ -230,7 +230,7 @@ namespace OpenMS
 			//@}
 
 			/// writes the formula to a stream
-			friend std::ostream& operator << (std::ostream&, const EmpiricalFormula&);
+			friend std::ostream& operator<<(std::ostream& os, const EmpiricalFormula& formula);
 
 			/** @name Iterators
 			*/
@@ -253,7 +253,7 @@ namespace OpenMS
 			const ElementDB* element_db_;
 	};
 
-	std::ostream& operator << (std::ostream&, const EmpiricalFormula::EmpiricalFormula&);
+	std::ostream& operator<<(std::ostream& os, const EmpiricalFormula& formula);
 
 } // namespace OpenMS
 #endif

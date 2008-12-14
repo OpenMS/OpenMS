@@ -231,7 +231,7 @@ namespace OpenMS
 				}
 
 				// write back the values to the map
-				for (ConsensusFeature::HandleSetType::iterator it_elements = consensus_map_in[i].begin();
+				for (ConsensusFeature::HandleSetType::const_iterator it_elements = consensus_map_in[i].begin();
 						 it_elements != consensus_map_in[i].end();
 						 ++it_elements)
 				{

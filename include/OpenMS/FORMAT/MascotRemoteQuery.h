@@ -52,7 +52,7 @@ namespace OpenMS
 		
 		@todo Docu (Andreas)
 	*/
-	class MascotRemoteQuery 
+	class OPENMS_DLLAPI MascotRemoteQuery 
 		: public QObject,
 			public DefaultParamHandler
 	{

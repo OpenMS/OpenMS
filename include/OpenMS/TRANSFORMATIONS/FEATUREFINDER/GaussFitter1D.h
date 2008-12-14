@@ -38,7 +38,7 @@ namespace OpenMS
                  
       @htmlinclude OpenMS_GaussFitter1D.parameters               
     */
-    class GaussFitter1D
+    class OPENMS_DLLAPI GaussFitter1D
     : public MaxLikeliFitter1D
     {
         public:

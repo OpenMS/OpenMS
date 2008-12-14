@@ -49,7 +49,7 @@ namespace OpenMS
 			queries the instance with getModifiedResidue, a new modified residue is 
 			added. 
 	*/
-	class ResidueDB
+	class OPENMS_DLLAPI ResidueDB
 	{					
 		public:
 

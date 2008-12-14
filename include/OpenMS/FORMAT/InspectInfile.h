@@ -40,7 +40,7 @@ namespace OpenMS
   	
   	@ingroup FileIO
 	*/
-  class InspectInfile
+  class OPENMS_DLLAPI InspectInfile
   {
 		public:
 			

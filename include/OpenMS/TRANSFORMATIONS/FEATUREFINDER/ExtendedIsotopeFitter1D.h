@@ -37,7 +37,7 @@ namespace OpenMS
 
 	@htmlinclude OpenMS_ExtendedIsotopeFitter1D.parameters
 	*/
-	class ExtendedIsotopeFitter1D
+	class OPENMS_DLLAPI ExtendedIsotopeFitter1D
 		: public MaxLikeliFitter1D
 	{
 	 public:

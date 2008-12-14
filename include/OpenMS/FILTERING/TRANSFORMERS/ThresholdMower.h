@@ -38,7 +38,7 @@ namespace OpenMS
 
 		@ingroup SpectraPreprocessers
   */
-  class ThresholdMower
+  class OPENMS_DLLAPI ThresholdMower
     :	public PreprocessingFunctor
   {
   public:

@@ -41,7 +41,7 @@ namespace OpenMS
   	
   	@ingroup Format
   */
-  class PersistentObject
+  class OPENMS_DLLAPI PersistentObject
   {
 
     public:

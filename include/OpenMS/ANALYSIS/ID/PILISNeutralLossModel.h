@@ -51,8 +51,7 @@ namespace OpenMS
 
 		@ingroup Analysis_ID
 	*/	
-	class PILISNeutralLossModel
-		: public DefaultParamHandler
+	class OPENMS_DLLAPI PILISNeutralLossModel : public DefaultParamHandler
 	{
 		friend class PILISNeutralLossModelGenerator;
 

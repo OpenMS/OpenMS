@@ -46,7 +46,7 @@ namespace OpenMS
     The filtering by sequences looks for the best ProteinIdentification that
     is contained in one of the protein sequences.
   */
-  class IDFilter
+  class OPENMS_DLLAPI IDFilter
   {
     public:
 

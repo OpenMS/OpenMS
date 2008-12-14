@@ -42,7 +42,7 @@ namespace OpenMS
 		
 		@ingroup FileIO
 	*/
-	class MSPFile : public DefaultParamHandler
+	class OPENMS_DLLAPI MSPFile : public DefaultParamHandler
 	{
 		public:
 

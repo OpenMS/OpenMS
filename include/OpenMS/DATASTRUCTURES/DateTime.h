@@ -41,7 +41,7 @@ namespace OpenMS
 		
 		@ingroup Datastructures
 	*/
-	class DateTime 
+	class OPENMS_DLLAPI DateTime 
 		: public QDateTime
 	{
 		public:
@@ -64,36 +64,46 @@ namespace OpenMS
 				@brief sets date from a string
 				
 				Reads both english, german and iso/ansi date formats: 'MM/dd/yyyy', 'dd.MM.yyyy' or 'yyyy-MM-dd'
+
+				@exception Exception::ParseError
 			*/
-			void setDate(const String& date) throw (Exception::ParseError);
+			void setDate(const String& date);
 				
 			/**
 				@brief sets time from a string
 				
 				Reads time format: 'hh:mm:ss'
+
+				@exception Exception::ParseError
 			*/
-			void setTime(const String& date) throw (Exception::ParseError);
+			void setTime(const String& date);
 				
 			/**
 				@brief sets data from three integers
 				
 				Give the numbers in the following order: month, day and year.
+
+				@exception Exception::ParseError
 			*/
-			void setDate(UInt month, UInt day, UInt year) throw (Exception::ParseError);
+			void setDate(UInt month, UInt day, UInt year);
 		
 			/**
 				@brief sets time from three integers
 				
 				Give the numbers in the following order: hour, minute and second.
+
+				@exception Exception::ParseError
 			*/
-			void setTime(UInt hour, UInt minute, UInt second) throw (Exception::ParseError);
+			void setTime(UInt hour, UInt minute, UInt second);
 		
 			/**
 				@brief sets data from six integers
 				
 				Give the numbers in the following order: month, day, year, hour, minute, second.
+
+				@exception Exception::ParseError
 			*/
-			void set(UInt month, UInt day, UInt year, UInt hour, UInt minute, UInt second) throw (Exception::ParseError);
+			void set(UInt month, UInt day, UInt year, UInt hour, UInt minute, UInt second);
 		
 			/**
 				@brief Fills the arguments with the date and the time
@@ -153,8 +163,10 @@ namespace OpenMS
 			 	- yyyy-MM-ddThh:mm:ss (ISO 8601 format)
 			 	- yyyy-MM-ddZ (ISO 8601 format)
 			 	- yyyy-MM-dd+hh:mm (ISO 8601 format)
+
+				@exception Exception::ParseError
 			*/
-			void set(const String& date) throw (Exception::ParseError);
+			void set(const String& date);
 						
 		protected:
 	};

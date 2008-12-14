@@ -37,7 +37,7 @@ namespace OpenMS
 	/**
 		 @brief This class is the base class of the continuous wavelet transformation. 
 	*/
-	class ContinuousWaveletTransform
+	class OPENMS_DLLAPI ContinuousWaveletTransform
 	{
 	public:
     /// Raw data const iterator type
@@ -172,7 +172,7 @@ namespace OpenMS
     /// Non-mutable access to signal length including padded zeros [0,end]
     inline int getSize() const
     {
-			return signal_.size();
+			return (int) signal_.size();
     }
 
 

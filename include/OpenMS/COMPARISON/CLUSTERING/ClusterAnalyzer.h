@@ -46,7 +46,7 @@ namespace OpenMS
 			strict indexing/topology is assumed, i.e. node no. x represents clusteringstep no. x
 			left_child and right_child are indices to the clusters merged (not to the elements), distance is the distance of the two children
 	*/
-	class BinaryTreeNode
+	class OPENMS_DLLAPI BinaryTreeNode
 	{
 		public:
 		/// constructor
@@ -75,7 +75,7 @@ namespace OpenMS
 
 		@ingroup SpectraClustering
 	*/
-	class ClusterAnalyzer
+	class OPENMS_DLLAPI ClusterAnalyzer
 	{
 	public:
 	/// default constructor

@@ -48,7 +48,7 @@ namespace OpenMS
 		
 	@ingroup FileIO
   */
-  class TransformationXMLFile
+  class OPENMS_DLLAPI TransformationXMLFile
   	: protected Internal::XMLHandler,
   		public Internal::XMLFile
   {

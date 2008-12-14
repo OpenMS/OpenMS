@@ -47,7 +47,7 @@ namespace OpenMS
 
 		@ingroup Concept
 	*/
-	class VersionInfo
+	class OPENMS_DLLAPI VersionInfo
 	{
 		public:
 

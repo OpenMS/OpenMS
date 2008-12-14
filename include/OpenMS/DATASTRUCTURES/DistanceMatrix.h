@@ -47,7 +47,7 @@ namespace OpenMS
 		@ingroup Datastructures
 	*/
 	template <typename Value>
-	class DistanceMatrix
+	class OPENMS_DLLAPI DistanceMatrix
 
 	{
 	 public:

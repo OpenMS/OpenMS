@@ -57,8 +57,7 @@ namespace OpenMS
 
 		@ingroup Analysis_ID
 	*/	
-	class PILISModel
-		: public DefaultParamHandler
+	class OPENMS_DLLAPI PILISModel : public DefaultParamHandler
 	{
 		public:
 						

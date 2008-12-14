@@ -44,7 +44,7 @@ namespace OpenMS
 
   	@ingroup FileIO
   */
-  class OMSSACSVFile
+  class OPENMS_DLLAPI OMSSACSVFile
   {
     public:
 

@@ -51,7 +51,7 @@ namespace OpenMS
 		@ingroup SpectraComparison
   */
 
-  class BinnedSharedPeakCount : public BinnedSpectrumCompareFunctor
+  class OPENMS_DLLAPI BinnedSharedPeakCount : public BinnedSpectrumCompareFunctor
   {
   public:
 

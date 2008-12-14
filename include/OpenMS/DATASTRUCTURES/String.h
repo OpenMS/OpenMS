@@ -45,7 +45,7 @@ namespace OpenMS
 		
 		@ingroup Datastructures
 	*/
-	class String:
+	class OPENMS_DLLAPI String:
 		public std::string
 	{
 		public:
@@ -107,6 +107,8 @@ namespace OpenMS
 		String(long unsigned int i);
 		/// Constructor from an unsigned integer
 		String(long long unsigned int i);
+		/// Constructor from an unsigned integer
+		String(long long signed int i);
 		/// Constructor from float
 		String(float f);
 		/// Constructor from double

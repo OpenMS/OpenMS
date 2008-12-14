@@ -26,8 +26,7 @@
 
 #if defined OPENMS_BIG_ENDIAN
 #define OPENMS_IS_BIG_ENDIAN true
-#endif
-#if defined OPENMS_LITTLE_ENDIAN
+#else
 #define OPENMS_IS_BIG_ENDIAN false
 #endif
 
@@ -549,7 +548,7 @@ namespace OpenMS
 		for ( vector< UInt >::const_iterator wr_i = wanted_records.begin(); wr_i != wanted_records.end(); ++wr_i )
 		{
 			// get the according record in the index file
-			if ( index_length < (*wr_i + 1) * record_length_ ) // if the file is too short
+			if ( index_length < Int((*wr_i + 1) * record_length_) ) // if the file is too short
 			{
 				delete(index_record);
 				database.close();

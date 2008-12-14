@@ -58,7 +58,7 @@ namespace OpenMS
 		
 		@ingroup SpectraComparison
 	*/
-	class SteinScottImproveScore
+	class OPENMS_DLLAPI SteinScottImproveScore
 		: public PeakSpectrumCompareFunctor
 	{
 		

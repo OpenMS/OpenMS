@@ -26,6 +26,7 @@
 //
 
 #include <OpenMS/COMPARISON/SPECTRA/PeakAlignment.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 using namespace std;
 
@@ -353,7 +354,7 @@ namespace OpenMS
 		}
 		//return track from best alloverscore to 0,0
 		vector< pair<UInt,UInt> > ret_val;
-		pair<UInt,UInt> max_pair();
+		pair<UInt,UInt> max_pair;
 
 		//get matrix coordinates from best alloverscore
 		UInt row_index(0), col_index(0);
@@ -411,7 +412,7 @@ namespace OpenMS
 	{
 		//scoring formula : peakintensity score * peakposition score
 		double pi(sqrt(intens1*intens2));
-		double pp( (1/(sigma*sqrt(2*M_PI)))* exp(-(fabs(pos1-pos2))/2*sigma*sigma) );
+		double pp( (1/(sigma*sqrt(2*Constants::PI)))* exp(-(fabs(pos1-pos2))/2*sigma*sigma) );
 
 		/* to manually retrace
 		cout << fabs(pos1-pos2) << " - "<< pi*pp << endl;

@@ -370,7 +370,7 @@ String SuffixArrayTrypticCompressed::toString()
 int SuffixArrayTrypticCompressed::findFirst_ (const vector<double> & spec, double & m,int start, int  end) {
 	
 	if (end-start<=1) return (spec.at(start)<m-tol_)?end:start;
-	int middle = (int)floor(((end-start)/2)+start);
+	int middle = ((end-start)/2)+start;
 	
 	if (spec.at(middle)<m-tol_){
 		return findFirst_(spec,m,middle,end);
@@ -389,7 +389,7 @@ int SuffixArrayTrypticCompressed::findFirst_ (const vector<double> & spec, doubl
 }
 
 // finds all occurences of a given spectrum
-void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<int,int>,float > > >& candidates, const vector<double> & spec )
+void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<int,int>,double > > >& candidates, const vector<double> & spec )
 {
 	//time_t t0 (time(NULL));
 	if (spec.size() == 0)
@@ -414,7 +414,7 @@ void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<int,int>,flo
 	//preparing result table
 	for (UInt i = 0; i < spec.size();++i)
 	{
-		vector<pair<pair<int,int>,float > > v ;
+		vector<pair<pair<int,int>,double > > v ;
 		candidates.push_back(v);
 	}
 	double mmax = spec.back();
@@ -538,7 +538,7 @@ void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<int,int>,flo
 						{
 							++steps;
 							++nres;
-							pair<pair<int, int>, float> pnew(pair<int, int>(indices_[i].first, j + 1), found_masses[o]);
+							pair<pair<int, int>, double> pnew(pair<int, int>(indices_[i].first, j + 1), found_masses[o]);
 /*
 							try
 							{
@@ -573,7 +573,7 @@ void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<int,int>,flo
 								if (isDigestingEnd(c, cn_new))
 								{
 									++nres;
-									pair<pair<int,int>,float> pnew(pair<int, int>(indices_[i + z].first, j + 1), found_masses[o]);
+									pair<pair<int,int>,double> pnew(pair<int, int>(indices_[i + z].first, j + 1), found_masses[o]);
 									UInt first_occ_copy = first_occ;
 									while (first_occ_copy<spec.size()&&spec[first_occ_copy] <= mass_with_mods+tol_)
 									{

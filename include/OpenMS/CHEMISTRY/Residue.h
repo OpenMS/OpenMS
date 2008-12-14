@@ -53,7 +53,7 @@ namespace OpenMS
 		modification is present. Any modification which is present in the ModificationsDB can 
 		by applied, if appropriate. 
 	*/
-	class Residue
+	class OPENMS_DLLAPI Residue
 	{
 		public:
 		

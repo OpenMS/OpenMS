@@ -44,7 +44,7 @@ namespace OpenMS
 
 	@note All methods are const, so it can be used through a const reference or in const methods as well!
 	*/
-	class ProgressLogger
+	class OPENMS_DLLAPI ProgressLogger
 	{
 	 public:
 		/// Constructor

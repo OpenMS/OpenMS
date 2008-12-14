@@ -47,7 +47,7 @@ namespace OpenMS
 
 		@ingroup SpectraClustering
   	*/
-	class CompleteLinkage : public ClusterFunctor
+	class OPENMS_DLLAPI CompleteLinkage : public ClusterFunctor
 	{
 		public:
 

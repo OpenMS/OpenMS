@@ -45,7 +45,7 @@ namespace OpenMS
   	  	
   	@ingroup FileIO
 	*/
-  class MascotInfile2
+  class OPENMS_DLLAPI MascotInfile2
 		: public ProgressLogger,
 			public DefaultParamHandler
   {

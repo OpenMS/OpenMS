@@ -40,7 +40,7 @@ namespace OpenMS
 		
 		@ingroup Metadata
   */
-  class HPLC
+  class OPENMS_DLLAPI HPLC
   {
 		public:
       /// Constructor

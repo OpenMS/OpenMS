@@ -48,7 +48,7 @@ namespace OpenMS
 		The element indices of the result consensus features are the container access indices of the
 		input maps. The map indices of the result consensus features are are the indices in the input map vector.
   */
-  class BaseGroupFinder
+  class OPENMS_DLLAPI BaseGroupFinder
   	: public FactoryProduct,
 			public ProgressLogger
   {

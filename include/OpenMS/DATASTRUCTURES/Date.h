@@ -43,7 +43,7 @@ namespace OpenMS
 		
 		@ingroup Datastructures
 	*/
-	class Date : public QDate 
+	class OPENMS_DLLAPI Date : public QDate 
 	{
 		public:
 		

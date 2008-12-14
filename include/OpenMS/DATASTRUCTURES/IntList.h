@@ -30,6 +30,11 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
 
+#ifdef OPENMS_COMPILER_MSVC
+	#pragma warning( push )
+	#pragma warning( disable : 4251 ) // disable MSVC dll-interface warning
+#endif
+
 namespace OpenMS
 {
 	/**
@@ -39,7 +44,7 @@ namespace OpenMS
 		
 		@ingroup Datastructures
 	*/
-	class IntList
+	class OPENMS_DLLAPI IntList
 		: public std::vector<Int>
 	{
 		public:
@@ -83,5 +88,9 @@ namespace OpenMS
 
 
 } // namespace OPENMS
+
+#ifdef OPENMS_COMPILER_MSVC
+	#pragma warning( pop ) 
+#endif
 
 #endif // OPENMS_DATASTRUCTURES_INTLIST_H

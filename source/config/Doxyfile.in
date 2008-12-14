@@ -6,7 +6,7 @@
 # This is Doxyfile.in / Doxyfile
 # Please do ONLY change Doxyfile.in,
 # as Doxyfile is automagically
-# created by configure from Doxyfile.in
+# created by cmake from Doxyfile.in
 #
 # ==========================================================================
 #
@@ -15,7 +15,7 @@
 # Project related configuration options
 #---------------------------------------------------------------------------
 PROJECT_NAME           = OpenMS
-PROJECT_NUMBER         = "@PACKAGE_VERSION@" $(OPENMS_REVISION)
+PROJECT_NUMBER         = "@CF_PACKAGE_VERSION@" $(OPENMS_REVISION)
 OUTPUT_DIRECTORY       = 
 CREATE_SUBDIRS         = NO
 OUTPUT_LANGUAGE        = English
@@ -36,7 +36,7 @@ ALWAYS_DETAILED_SEC    = NO
 INLINE_INHERITED_MEMB  = NO
 FULL_PATH_NAMES        = NO
 STRIP_FROM_PATH        = ../
-STRIP_FROM_INC_PATH    = @OPENMS_PATH@/include/
+STRIP_FROM_INC_PATH    = @CF_OPENMS_PATH@/include/
 SHORT_NAMES            = NO
 JAVADOC_AUTOBRIEF      = NO
 MULTILINE_CPP_IS_BRIEF = NO

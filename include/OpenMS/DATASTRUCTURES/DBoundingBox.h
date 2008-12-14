@@ -40,7 +40,7 @@ namespace OpenMS
 		@ingroup Datastructures
 	*/
 	template <UInt D>
-	class DBoundingBox
+	class OPENMS_DLLAPI DBoundingBox
 		:	public Internal::DIntervalBase<D>
 	{
 

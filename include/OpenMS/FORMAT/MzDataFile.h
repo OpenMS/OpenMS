@@ -39,7 +39,7 @@ namespace OpenMS
 		
 		@ingroup FileIO
 	*/
-	class MzDataFile 
+	class OPENMS_DLLAPI MzDataFile 
 		:	public Internal::XMLFile,
 			public ProgressLogger
 	{

@@ -42,7 +42,7 @@ namespace OpenMS
 
 		@ingroup SpectraFilter
   */
-  class IsotopeDiffFilter : public FilterFunctor
+  class OPENMS_DLLAPI IsotopeDiffFilter : public FilterFunctor
   {
 	
   public:

@@ -39,7 +39,7 @@ namespace OpenMS {
 @brief Implements modification for suffix arrays
 */
 
-class ModifierRep {
+class OPENMS_DLLAPI ModifierRep {
 
 public:
 /**

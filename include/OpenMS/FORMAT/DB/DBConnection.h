@@ -48,7 +48,7 @@ namespace OpenMS
     
     @ingroup DatabaseIO
   */
-  class DBConnection
+  class OPENMS_DLLAPI DBConnection
   {
     public:
       /**
@@ -58,7 +58,7 @@ namespace OpenMS
       	
         @ingroup Exceptions
       */
-      class InvalidQuery
+      class OPENMS_DLLAPI InvalidQuery
             : public Exception::BaseException
       {
         public:
@@ -73,7 +73,7 @@ namespace OpenMS
       	
         @ingroup Exceptions
       */
-      class NotConnected
+      class OPENMS_DLLAPI NotConnected
             : public Exception::BaseException
       {
         public:

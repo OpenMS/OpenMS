@@ -40,7 +40,7 @@ namespace OpenMS {
 
 */
 
-class SuffixArrayTrypticSeqan : public SuffixArraySeqan  {
+class OPENMS_DLLAPI SuffixArrayTrypticSeqan : public SuffixArraySeqan  {
 	
 public:
 	

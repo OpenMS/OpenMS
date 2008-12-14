@@ -31,7 +31,7 @@
 #include <unistd.h>
 #endif
 #ifdef OPENMS_HAS_TIME_H
-#include <time.h>
+#include <ctime>
 #endif
 #ifdef OPENMS_HAS_SYS_TYPES_H
 #include <sys/types.h>
@@ -43,7 +43,7 @@
 #include <sys/time.h>
 #endif
 
-#ifdef OPENMS_HAS_WINDOWS_PERFORMANCE_COUNTER
+#ifdef OPENMS_WINDOWSPLATFORM
 #include <windows.h>
 #include <sys/timeb.h>
 #endif
@@ -54,7 +54,7 @@ namespace OpenMS
 
 	PointerSizeInt StopWatch::cpu_speed_ = 0L;
 
-	#ifdef OPENMS_HAS_WINDOWS_PERFORMANCE_COUNTER
+	#ifdef OPENMS_WINDOWSPLATFORM
 		PointerSizeInt StopWatch::clock_speed_ = 0L;
 	#endif
 
@@ -76,7 +76,7 @@ namespace OpenMS
 		}
 		#endif
 	
-		#ifdef OPENMS_HAS_WINDOWS_PERFORMANCE_COUNTER
+		#ifdef OPENMS_WINDOWSPLATFORM
 			if (cpu_speed_ == 0L)
 			{
 				LARGE_INTEGER ticks;
@@ -127,7 +127,7 @@ namespace OpenMS
 			return false;
 		}
 
-		#ifdef OPENMS_HAS_WINDOWS_PERFORMANCE_COUNTER
+		#ifdef OPENMS_WINDOWSPLATFORM
 			LARGE_INTEGER tms;
 			FILETIME kt,ut,ct,et;
 			
@@ -144,8 +144,8 @@ namespace OpenMS
 			last_secs_  = tms.QuadPart / cpu_speed_;			
 			last_usecs_ = (PointerSizeInt)((DoubleReal)(tms.QuadPart - (last_secs_*cpu_speed_)) / (DoubleReal)(cpu_speed_) * 1000000.0);
 
-			last_user_time_ = user_time.QuadPart / 10;
-			last_system_time_ = kernel_time.QuadPart / 10;
+			last_user_time_ = (clock_t) (user_time.QuadPart / 10);
+			last_system_time_ = (clock_t) (kernel_time.QuadPart / 10);
 
 		#else
 
@@ -173,7 +173,7 @@ namespace OpenMS
 		{ /* tried to stop a stopped stop_watch */
 			return false;
 		}
-		#ifdef OPENMS_HAS_WINDOWS_PERFORMANCE_COUNTER
+		#ifdef OPENMS_WINDOWSPLATFORM
 			LARGE_INTEGER tms;
 	
 			QueryPerformanceCounter(&tms);
@@ -194,8 +194,8 @@ namespace OpenMS
 			PointerSizeInt usecs_to_add = (PointerSizeInt)((DoubleReal)(tms.QuadPart - secs_to_add*cpu_speed_) /(DoubleReal)(cpu_speed_) * 1000000.0);
 			current_usecs_ += usecs_to_add - last_usecs_;
 			
-			current_user_time_ += user_time.QuadPart / 10 - last_user_time_;
-			current_system_time_ += kernel_time.QuadPart / 10 - last_system_time_;
+			current_user_time_ += (clock_t) (user_time.QuadPart / 10 - last_user_time_);
+			current_system_time_ += (clock_t) (kernel_time.QuadPart / 10 - last_system_time_);
 		#else
 			struct tms tms_buffer;
 			struct timeval timeval_buffer;
@@ -250,7 +250,7 @@ namespace OpenMS
 		{ 
 			/* stop_watch is currently running, so add the elapsed time since */
 			/* the stop_watch was last started to the accumulated time        */
-			#ifdef OPENMS_HAS_WINDOWS_PERFORMANCE_COUNTER
+			#ifdef OPENMS_WINDOWSPLATFORM
 				LARGE_INTEGER tms;
 				if (QueryPerformanceCounter(&tms))
 				{
@@ -291,7 +291,7 @@ namespace OpenMS
 	{
 		DoubleReal temp_value;
 
-		#ifdef OPENMS_HAS_WINDOWS_PERFORMANCE_COUNTER
+		#ifdef OPENMS_WINDOWSPLATFORM
 			FILETIME kt,ut,ct,et;
 		#else
 			struct tms tms_buffer;	
@@ -304,7 +304,7 @@ namespace OpenMS
 		else 
 		{
 			/* stop_watch is on, add current running time to accumulated time */
-			#ifdef OPENMS_HAS_WINDOWS_PERFORMANCE_COUNTER
+			#ifdef OPENMS_WINDOWSPLATFORM
 				HANDLE my_id=GetCurrentProcess();
 				GetProcessTimes(my_id,&ct,&et,&kt,&ut);
 				
@@ -322,7 +322,7 @@ namespace OpenMS
 			#endif
 		}
 
-		#ifdef OPENMS_HAS_WINDOWS_PERFORMANCE_COUNTER
+		#ifdef OPENMS_WINDOWSPLATFORM
 			return (DoubleReal)(temp_value / 1000000.0);
 		#else		
 			/* convert from clock ticks to seconds using the */
@@ -339,7 +339,7 @@ namespace OpenMS
 	{
 		DoubleReal temp_value = 0.0;
 
-		#ifdef OPENMS_HAS_WINDOWS_PERFORMANCE_COUNTER
+		#ifdef OPENMS_WINDOWSPLATFORM
 			//struct tms tms_buffer;
 			FILETIME kt,ut,ct,et;
 		#endif												
@@ -352,7 +352,7 @@ namespace OpenMS
 		else 
 		{ 
 			/* stop_watch is on, return accumulated plus current */
-			#ifdef OPENMS_HAS_WINDOWS_PERFORMANCE_COUNTER
+			#ifdef OPENMS_WINDOWSPLATFORM
 				//times(&tms_buffer);
 				HANDLE my_id=GetCurrentProcess();
 				GetProcessTimes(my_id,&ct,&et,&kt,&ut);
@@ -369,7 +369,7 @@ namespace OpenMS
 
 		/* convert from clock ticks to seconds using the */
 		/* cpu-speed value obtained by the constructor   */
-		#ifndef OPENMS_HAS_WINDOWS_PERFORMANCE_COUNTER
+		#ifndef OPENMS_WINDOWSPLATFORM
 			return (DoubleReal)(temp_value / 1000000.0);
 		#else 
 			return 0.0;

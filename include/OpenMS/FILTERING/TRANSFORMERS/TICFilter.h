@@ -38,7 +38,7 @@ namespace OpenMS
   
 		@ingroup SpectraFilter
   */
-  class TICFilter : public FilterFunctor
+  class OPENMS_DLLAPI TICFilter : public FilterFunctor
   {
   public:
 

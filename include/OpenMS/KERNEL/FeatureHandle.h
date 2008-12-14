@@ -43,7 +43,7 @@ namespace OpenMS
   	
   	@ingroup Kernel
   */
-  class FeatureHandle
+  class OPENMS_DLLAPI FeatureHandle
   	: public Peak2D
   {
   	
@@ -199,7 +199,7 @@ namespace OpenMS
 	This is done because these are used by IndexLess comparator.  This way it is
 	a bit harder to use FeatureHandle::asMutable() for illegal purposes ;-)
 	*/
-	class FeatureHandle::FeatureHandleMutable : public FeatureHandle
+	class OPENMS_DLLAPI FeatureHandle::FeatureHandleMutable : public FeatureHandle
 	{
 	 private:
 		FeatureHandle::setElementIndex;

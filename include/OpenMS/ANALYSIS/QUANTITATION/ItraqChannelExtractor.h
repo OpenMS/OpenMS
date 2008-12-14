@@ -41,7 +41,7 @@ namespace OpenMS
 		
 		@todo Docu (Chris)
 	*/
-	class ItraqChannelExtractor
+	class OPENMS_DLLAPI ItraqChannelExtractor
 		: public DefaultParamHandler,
 			public ItraqConstants
 	{

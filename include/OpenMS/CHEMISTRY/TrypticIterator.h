@@ -36,7 +36,7 @@ namespace OpenMS {
 @brief finds all tryptic Peptides with every missed cleavage
 
 */
-class TrypticIterator : public PepIterator
+class OPENMS_DLLAPI TrypticIterator : public PepIterator
 {
 	
 	public:

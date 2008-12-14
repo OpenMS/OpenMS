@@ -47,7 +47,7 @@ namespace OpenMS
 		@ingroup SpectraComparison
   */
 	
-  class SpectrumCheapDPCorr : public PeakSpectrumCompareFunctor
+  class OPENMS_DLLAPI SpectrumCheapDPCorr : public PeakSpectrumCompareFunctor
   {
   public:
 	

@@ -45,7 +45,7 @@ namespace OpenMS
 
 		@ingroup FeatureFinder
 	*/
-	class FeatureFinder :
+	class OPENMS_DLLAPI FeatureFinder :
 		public ProgressLogger,
 	 	public FeatureFinderDefs
 	{

@@ -38,7 +38,7 @@ namespace OpenMS
 		class XMLHandler;
 		
 		///Base class for loading/storing XML files that have a handler derived from XMLHandler.
-		class XMLFile
+		class OPENMS_DLLAPI XMLFile
 		{
 			
 			public:

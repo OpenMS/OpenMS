@@ -53,7 +53,7 @@ namespace OpenMS
 
 		@ingroup Metadata
 	*/
-  class Instrument
+  class OPENMS_DLLAPI Instrument
   	: public MetaInfoInterface
   {
   	

@@ -52,7 +52,7 @@ namespace OpenMS
 			precursor information from DTA files. No data processing!
 		*/
 		template < UInt D >
-		class PrecursorPeak
+		class OPENMS_DLLAPI PrecursorPeak
 			: public DRichPeak<D>::Type
 		{
 
@@ -149,7 +149,7 @@ namespace OpenMS
 		@ingroup Kernel
 	*/
 	template < typename PeakT = Peak1D, typename AllocT = std::allocator<PeakT> >
-	class DSpectrum
+	class OPENMS_DLLAPI DSpectrum
 		: public std::vector<PeakT, AllocT>,
 			public MetaInfoInterface,
 			public RangeManager<PeakT::DIMENSION>
@@ -157,7 +157,7 @@ namespace OpenMS
 	 public:
 
 	  ///Meta data array struct containing meta information and a name
-		class MetaDataArray
+		class OPENMS_DLLAPI MetaDataArray
 	    : public MetaInfoDescription,
 	    	public std::vector<Real>
 	  {

@@ -51,7 +51,7 @@ namespace OpenMS
   	
   	@ingroup FileIO
   */
-  class MascotOutfile
+  class OPENMS_DLLAPI MascotOutfile
   {
     public:
       

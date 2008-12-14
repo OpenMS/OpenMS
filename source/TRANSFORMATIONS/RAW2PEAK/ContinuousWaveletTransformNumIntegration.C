@@ -26,6 +26,7 @@
 //
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNumIntegration.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
 {
@@ -43,8 +44,8 @@ namespace OpenMS
     // integrate from i until offset_data_left
     for (int i = index; i > offset_data_left; --i)
     {
-      int index_w_r = (int)round(((index-i)*spacing_data)/spacing_);
-      int index_w_l = (int)round(((index-(i-1))*spacing_data)/spacing_);
+			int index_w_r = (int)Math::round(((index-i)*spacing_data)/spacing_);
+			int index_w_l = (int)Math::round(((index-(i-1))*spacing_data)/spacing_);
 
       v += spacing_data / 2.*( processed_input[i]*wavelet_[index_w_r] + processed_input[i-1]*wavelet_[index_w_l] );
     }
@@ -52,8 +53,8 @@ namespace OpenMS
     // integrate from i+1 until offset_data_right
     for (int i = index; i < offset_data_right; ++i)
     {
-      int index_w_r = (int)round((((i+1)-index)*spacing_data)/spacing_);
-      int index_w_l = (int)round(((i-index)*spacing_data)/spacing_);
+			int index_w_r = (int)Math::round((((i+1)-index)*spacing_data)/spacing_);
+			int index_w_l = (int)Math::round(((i-index)*spacing_data)/spacing_);
 			
       v += spacing_data / 2.*( processed_input[i+1]*wavelet_[index_w_r] + processed_input[i]*wavelet_[index_w_l]);
     }

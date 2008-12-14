@@ -39,7 +39,7 @@ namespace OpenMS
 		
 		These algorithms group corresponding features in one map or across maps.
 	*/
-	class FeatureGroupingAlgorithm
+	class OPENMS_DLLAPI FeatureGroupingAlgorithm
 	 : public FactoryProduct
 	{
 		public:

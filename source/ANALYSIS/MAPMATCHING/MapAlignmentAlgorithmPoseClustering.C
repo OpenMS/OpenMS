@@ -121,7 +121,7 @@ namespace OpenMS
 				{
 					trafo = calculateRegression_(i,reference_map_index,result,symmetric_regression);
 				}
-				catch (Exception::Precondition & exception ) // TODO is there a better way to deal with this situation?
+				catch (Exception::Precondition & /*exception*/ ) // TODO is there a better way to deal with this situation?
 				{
 					std::cerr << "Warning: MapAlignementAlgorithmPoseClustering could not compute a refined mapping. Using initial estimation." << std::endl;
 					trafo.setName("linear");
@@ -219,7 +219,7 @@ namespace OpenMS
 				{
 					trafo = calculateRegression_(i,reference_map_index,result,symmetric_regression);
 				}
-				catch (Exception::Precondition & exception ) // TODO is there a better way to deal with this situation?
+				catch (Exception::Precondition& /*exception*/ ) // TODO is there a better way to deal with this situation?
 				{
 					std::cerr << "Warning: MapAlignementAlgorithmPoseClustering could not compute a refined mapping. Using initial estimation." << std::endl;
 					trafo.setName("linear");

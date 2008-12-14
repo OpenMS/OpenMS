@@ -131,7 +131,7 @@ class TOPPDTAExtractor
 				}
 				writeDebug_(tmp3,1);	
 			}
-			catch(Exception::ConversionError& e)
+			catch(Exception::ConversionError& /*e*/)
 			{
 				writeLog_(String("Invalid boundary '") + tmp + "' given. Aborting!");
 				printUsage_();

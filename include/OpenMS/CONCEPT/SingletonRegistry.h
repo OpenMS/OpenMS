@@ -45,7 +45,7 @@ namespace OpenMS
 		
  		@ingroup Concept
   */
-  class SingletonRegistry
+  class OPENMS_DLLAPI SingletonRegistry
   {
     friend class singletonsNeedNoFriends; //some versions of gcc would warn otherwise
 

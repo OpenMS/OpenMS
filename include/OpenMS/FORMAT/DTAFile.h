@@ -44,7 +44,7 @@ namespace OpenMS
   	
   	@ingroup FileIO
   */
-  class DTAFile
+  class OPENMS_DLLAPI DTAFile
   {
     public:
       /// Default constructor
@@ -141,10 +141,10 @@ namespace OpenMS
 						}				
 						
 						//fill peak
-						p.setPosition(strings[0].toDouble());
-						p.setIntensity(strings[1].toDouble());
+						p.setPosition((typename SpectrumType::PeakType::PositionType)strings[0].toDouble());
+						p.setIntensity((typename SpectrumType::PeakType::IntensityType)strings[1].toDouble());
 					} 
-					catch ( Exception::BaseException & e )
+					catch ( Exception::BaseException & /*e*/ )
 					{
 						throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line: \"")+line+"\"" ,filename);
 					}

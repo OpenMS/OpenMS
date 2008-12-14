@@ -43,7 +43,7 @@ namespace OpenMS
   	
   	@ingroup FileIO
   */
-  class ANDIFile
+  class OPENMS_DLLAPI ANDIFile
   	:	public ProgressLogger
   {
     public:

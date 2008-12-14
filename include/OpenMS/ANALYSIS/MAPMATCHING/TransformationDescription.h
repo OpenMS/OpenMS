@@ -53,7 +53,7 @@ namespace OpenMS
 		
 	@ingroup MapAlignment
 	*/
-	class TransformationDescription
+	class OPENMS_DLLAPI TransformationDescription
 	{
 		friend class MapAlignmentAlgorithmApplyGivenTrafo;
 

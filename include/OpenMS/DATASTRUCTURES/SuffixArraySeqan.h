@@ -44,7 +44,7 @@ namespace OpenMS
 
 	*/
 
-	class SuffixArraySeqan : public SuffixArray
+	class OPENMS_DLLAPI SuffixArraySeqan : public SuffixArray
 	{
 
 		typedef seqan::TopDown<seqan::ParentLinks<> > TIterSpec;
@@ -87,7 +87,7 @@ namespace OpenMS
 
 		for every mass within the spectrum all candidates described by as pairs of ints are returned. All masses are searched for the same time in just one suffix array traversal. In order to accelerate the traversal the skip and lcp table are used. The mass wont be calculated for each entry but it will be updated during traversal using a stack datastructure
 		*/
-		void findSpec(std::vector<std::vector<std::pair<std::pair<int, int>, float > > >& candidates, const std::vector<double> & spec);
+		void findSpec(std::vector<std::vector<std::pair<std::pair<int, int>, double > > >& candidates, const std::vector<double> & spec);
 
 		/**
 		@brief saves the suffix array to disc

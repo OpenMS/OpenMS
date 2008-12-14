@@ -408,7 +408,7 @@ namespace OpenMS
             {
               parsed_term.value.toInt();
             }
-            catch (Exception::ConversionError& e)
+            catch (Exception::ConversionError& /*e*/)
             {
               errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:integer: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value+ "' at element '" + getPath_(1) + "'");
             }
@@ -419,7 +419,7 @@ namespace OpenMS
             {
               value.toDouble();
             }
-            catch (Exception::ConversionError& e)
+            catch (Exception::ConversionError& /*e*/)
             {
               errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:decimal: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value+ "' at element '" + getPath_(1) + "'");
             }
@@ -434,7 +434,7 @@ namespace OpenMS
                 throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "should be negative");
               }
             }
-            catch (Exception::ConversionError& e)
+            catch (Exception::ConversionError& /*e*/)
             {
               errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:negativeInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value+ "' at element '" + getPath_(1) + "'");
             }
@@ -449,7 +449,7 @@ namespace OpenMS
                 throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "should be positive");
               }
             }
-            catch (Exception::ConversionError& e)
+            catch (Exception::ConversionError& /*e*/)
             {
               errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:positiveInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value+ "' at element '" + getPath_(1) + "'");
             }
@@ -464,7 +464,7 @@ namespace OpenMS
                 throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "should not be negative");
               }
             }
-            catch (Exception::ConversionError& e)
+            catch (Exception::ConversionError& /*e*/)
             {
               errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:nonNegativeInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value+ "' at element '" + getPath_(1) + "'");
             }
@@ -479,7 +479,7 @@ namespace OpenMS
                 throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "should not be positive");
               }
             }
-            catch (Exception::ConversionError& e)
+            catch (Exception::ConversionError& /*e*/)
             {
               errors_.push_back(String("Value-type of CVTerm wrong, should be xsd:nonPositiveInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value+ "' at element '" + getPath_(1) + "'");
             }

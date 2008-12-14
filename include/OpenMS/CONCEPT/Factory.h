@@ -46,7 +46,7 @@ namespace OpenMS
  		@ingroup Concept
   */
   template <typename FactoryProduct>
-  class Factory
+  class OPENMS_DLLAPI Factory
 	: public FactoryBase
   {
     friend class singletonsNeedNoFriends; //some versions of gcc would warn otherwise

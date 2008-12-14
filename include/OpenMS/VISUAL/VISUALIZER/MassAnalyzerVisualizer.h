@@ -40,7 +40,7 @@ namespace OpenMS
 		
 		This class provides all functionality to view the meta information of an object of type MassAnalyzer.
 	*/
-	class MassAnalyzerVisualizer
+	class OPENMS_DLLAPI MassAnalyzerVisualizer
 		: public BaseVisualizerGUI,
 			public BaseVisualizer<MassAnalyzer>
 	{

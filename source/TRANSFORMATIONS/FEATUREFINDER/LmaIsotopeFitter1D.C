@@ -26,6 +26,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaIsotopeFitter1D.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <numeric>
 
@@ -96,7 +97,7 @@ namespace OpenMS
         {
             CoordinateType m = set[i].getPos();
     				
-            CoordinateType term1 = A/(sqrt(2*M_PI)*stdev);
+            CoordinateType term1 = A/(sqrt(2*Constants::PI)*stdev);
             CoordinateType termSum = 0;
             for (UInt j=0; j<isotopes_exact.size(); ++j)
             {
@@ -129,7 +130,7 @@ namespace OpenMS
         {
             CoordinateType m = set[i].getPos();
     
-            CoordinateType term1 = sqrt(2*M_PI)*stdev;
+            CoordinateType term1 = sqrt(2*Constants::PI)*stdev;
             CoordinateType termSum1 = 0.0;
             CoordinateType termSum2 = 0.0;
           //  CoordinateType termSum3 = 0.0;

@@ -43,7 +43,7 @@ namespace OpenMS
 
 		@ingroup Analysis_ID
   */
-  class ConsensusID
+  class OPENMS_DLLAPI ConsensusID
   	: public DefaultParamHandler
   {
   	public: 

@@ -40,7 +40,7 @@ namespace OpenMS
 		
 		@ingroup Metadata
 	*/
-  class DataProcessing
+  class OPENMS_DLLAPI DataProcessing
   	: public MetaInfoInterface
   {
   	

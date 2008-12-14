@@ -41,7 +41,7 @@ namespace OpenMS
 		 
 		@htmlinclude OpenMS_LmaGaussModel.parameters
 	*/
-	class LmaGaussModel
+	class OPENMS_DLLAPI LmaGaussModel
 		: public InterpolationModel
 	{
 

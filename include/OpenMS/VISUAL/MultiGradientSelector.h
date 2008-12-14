@@ -53,7 +53,7 @@ namespace OpenMS
 		
 		@ingroup Visual
 	*/
-	class MultiGradientSelector
+	class OPENMS_DLLAPI MultiGradientSelector
 		: public QWidget
 	{
 		Q_OBJECT

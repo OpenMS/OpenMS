@@ -26,6 +26,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 namespace OpenMS
 {
@@ -77,7 +78,7 @@ namespace OpenMS
             DoubleReal t = set[i].getPos();
     
             // Simplified EMG
-            Yi = ( h * w / s ) * sqrt( 2 * M_PI ) * exp( ( pow( w, 2 ) / ( 2 * pow( s, 2 ) ) ) - ( ( t - z ) / s ) ) / ( 1 + exp( ( -2.4055 / sqrt( 2 ) ) * ( ( ( t - z ) / w ) - w / s ) ) );
+            Yi = ( h * w / s ) * sqrt( 2.0 * Constants::PI ) * exp( ( pow( w, 2 ) / ( 2 * pow( s, 2 ) ) ) - ( ( t - z ) / s ) ) / ( 1 + exp( ( -2.4055 / sqrt( 2.0 ) ) * ( ( ( t - z ) / w ) - w / s ) ) );
     
             gsl_vector_set( f, i, ( Yi - set[i].getIntensity() ) );
         }
@@ -96,8 +97,8 @@ namespace OpenMS
         CoordinateType z = gsl_vector_get( x, 3 );
   
         const CoordinateType emg_const = 2.4055;
-        const CoordinateType sqrt_2pi = sqrt( 2 * M_PI );
-        const CoordinateType sqrt_2 = sqrt( 2 );
+        const CoordinateType sqrt_2pi = sqrt( 2 * Constants::PI );
+        const CoordinateType sqrt_2 = sqrt( 2.0 );
   
         CoordinateType exp1, exp2, exp3 = 0.0;
         CoordinateType derivative_height, derivative_width, derivative_symmetry, derivative_retention = 0.0;

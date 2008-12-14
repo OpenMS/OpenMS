@@ -45,7 +45,7 @@ namespace OpenMS
 
 		@ingroup PeakMarker
   */
-  class IsotopeMarker
+  class OPENMS_DLLAPI IsotopeMarker
     : public PeakMarker
   {
   public:

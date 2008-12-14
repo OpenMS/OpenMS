@@ -25,7 +25,10 @@
 // --------------------------------------------------------------------------
 //
 
+#include <boost/math/special_functions/acosh.hpp>
+
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
 {
@@ -571,8 +574,8 @@ namespace OpenMS
 						else  //It's a Sech - Peak 
 							{
 								PeakShape p = peaks[current_peak];
-								double x_left_endpoint=p.mz_position+1/p.left_width*acosh(sqrt(p.height/0.001));
-								double x_right_endpoint=p.mz_position+1/p.right_width*acosh(sqrt(p.height/0.001));
+								double x_left_endpoint=p.mz_position+1/p.left_width*boost::math::acosh(sqrt(p.height/0.001));
+								double x_right_endpoint=p.mz_position+1/p.right_width*boost::math::acosh(sqrt(p.height/0.001));
 #ifdef DEBUG_DECONV
 								std::cout<<"x_left_endpoint "<<x_left_endpoint<<" x_right_endpoint "<<x_right_endpoint<<std::endl;
 								std::cout<<"p.height"<<p.height<<std::endl;

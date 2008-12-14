@@ -66,7 +66,7 @@ namespace OpenMS
 		
 		@ingroup Chemistry
 	*/
-	class AASequence
+	class OPENMS_DLLAPI AASequence
 	{
 					
 		public:
@@ -76,7 +76,7 @@ namespace OpenMS
 			
 					AASequence constant iterator
 			*/
-			class ConstIterator
+			class OPENMS_DLLAPI ConstIterator
 			{
 				public: 
 				
@@ -96,7 +96,7 @@ namespace OpenMS
 				}
 
 				/// detailed constructor with pointer to the vector and offset position
-				ConstIterator(const std::vector<const Residue*>* vec_ptr, int position)
+				ConstIterator(const std::vector<const Residue*>* vec_ptr, Int position)
 				{
 					vector_ = vec_ptr;
 					position_ = position;
@@ -206,7 +206,7 @@ namespace OpenMS
 			
 					Mutable iterator for AASequence
 			*/
-			class Iterator
+			class OPENMS_DLLAPI Iterator
 			{
 				public: 
 
@@ -227,7 +227,7 @@ namespace OpenMS
 				}
 
 				/// detailed constructor with pointer to the vector and offset position
-				Iterator(std::vector<const Residue*>* vec_ptr, int position)
+				Iterator(std::vector<const Residue*>* vec_ptr, Int position)
 				{
 					vector_ = vec_ptr;
 					position_ = position;
@@ -534,9 +534,9 @@ namespace OpenMS
 
 			inline ConstIterator begin() const { return ConstIterator(&peptide_, 0); }
 
-			inline Iterator end() { return Iterator(&peptide_, peptide_.size()); }
+			inline Iterator end() { return Iterator(&peptide_, (Int) peptide_.size()); }
 
-			inline ConstIterator end() const { return ConstIterator(&peptide_, peptide_.size()); }
+			inline ConstIterator end() const { return ConstIterator(&peptide_, (Int) peptide_.size()); }
 			//@}
 
 			/** @name Stream operators

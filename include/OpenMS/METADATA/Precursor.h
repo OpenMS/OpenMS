@@ -38,7 +38,7 @@ namespace OpenMS
 		
 		@ingroup Metadata
 	*/  
-  class Precursor: public MetaInfoInterface
+  class OPENMS_DLLAPI Precursor: public MetaInfoInterface
   {
     public:
     	/// Method of activation

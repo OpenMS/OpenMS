@@ -618,7 +618,7 @@ namespace OpenMS
 		DoubleReal intensity_max = 0.0;
 		DoubleReal intensity_sum = 0.0;
 
-	  float prec = 0.05;
+	  float prec = 0.05f;
 		float mult = 1.0/prec;
 
 

@@ -44,7 +44,7 @@ namespace OpenMS
 		
 		@ingroup Dialogs
 	*/
-	class DBOpenDialog 
+	class OPENMS_DLLAPI DBOpenDialog 
 		: public QDialog
 	{
 		Q_OBJECT

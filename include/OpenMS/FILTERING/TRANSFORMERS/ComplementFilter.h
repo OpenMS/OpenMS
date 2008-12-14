@@ -41,7 +41,7 @@ namespace OpenMS
 
 		@ingroup SpectraFilter
   */
-  class ComplementFilter : public FilterFunctor
+  class OPENMS_DLLAPI ComplementFilter : public FilterFunctor
   {
   public:
 

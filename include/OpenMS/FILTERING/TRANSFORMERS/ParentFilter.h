@@ -37,7 +37,7 @@ namespace OpenMS
 		// will be readded when functionality is implemented
 		// ingroup SpectraFilter
   */
-  class ParentFilter : public FilterFunctor
+  class OPENMS_DLLAPI ParentFilter : public FilterFunctor
   {
   public:
 

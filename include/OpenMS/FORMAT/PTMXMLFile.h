@@ -43,7 +43,7 @@ namespace OpenMS
 		
 		@ingroup FileIO
 	*/
-	class PTMXMLFile
+	class OPENMS_DLLAPI PTMXMLFile
 		: public Internal::XMLFile
 	{
 		public:

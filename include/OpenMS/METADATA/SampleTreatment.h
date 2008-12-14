@@ -41,7 +41,7 @@ namespace OpenMS
 		
 		@ingroup Metadata
 	*/
-  class SampleTreatment: public MetaInfoInterface
+  class OPENMS_DLLAPI SampleTreatment: public MetaInfoInterface
   {
     public:
     	/**

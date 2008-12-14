@@ -995,11 +995,11 @@ namespace OpenMS
 // 		}
 // 	}
 	
-	Real SequestOutfile::const_weights_[] = {0.646, -0.959, -1.460};
-	Real SequestOutfile::xcorr_weights_[] = {5.49, 8.362, 9.933};
-	Real SequestOutfile::delta_cn_weights_[] = {4.643, 7.386, 11.149};
-	Real SequestOutfile::rank_sp_weights_[] = {-0.455, -0.194, -0.201};
-	Real SequestOutfile::delta_mass_weights_[] =  {-0.84, -0.314, -0.277};
+	Real SequestOutfile::const_weights_[] = {0.646f, -0.959f, -1.460f};
+	Real SequestOutfile::xcorr_weights_[] = {5.49f, 8.362f, 9.933f};
+	Real SequestOutfile::delta_cn_weights_[] = {4.643f, 7.386f, 11.149f};
+	Real SequestOutfile::rank_sp_weights_[] = {-0.455f, -0.194f, -0.201f};
+	Real SequestOutfile::delta_mass_weights_[] =  {-0.84f, -0.314f, -0.277f};
 	UInt SequestOutfile::max_pep_lens_[] = {100, 15, 25};
 	UInt SequestOutfile::num_frags_[] = {2, 2, 4};
 } //namespace OpenMS

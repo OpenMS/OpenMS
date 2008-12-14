@@ -133,12 +133,12 @@ namespace OpenMS
 		pre_states_.erase(state);
 	}
 
-	const set<HMMState::HMMState*>& HMMState::getPredecessorStates() const
+	const set<HMMState*>& HMMState::getPredecessorStates() const
 	{
 		return pre_states_;
 	}
 
-	const set<HMMState::HMMState*>& HMMState::getSuccessorStates() const
+	const set<HMMState*>& HMMState::getSuccessorStates() const
 	{
 		return succ_states_;
 	}

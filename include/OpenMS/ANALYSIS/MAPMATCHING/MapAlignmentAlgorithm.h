@@ -46,7 +46,7 @@ namespace OpenMS
 		
 		@improvement The maps should not be all loaded before the algorithm  - in order to save memory e.g. in the star-wise approach (Marc, Clemens)
 	*/
-	class MapAlignmentAlgorithm
+	class OPENMS_DLLAPI MapAlignmentAlgorithm
 		: public FactoryProduct,
 			public ProgressLogger
 	{

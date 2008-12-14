@@ -25,8 +25,9 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <cmath>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 using namespace std;
 
@@ -652,7 +653,7 @@ namespace OpenMS
 #endif
 
 				//avoid zero width
-				float minimal_endpoint_centroid_distance=0.01;
+				float minimal_endpoint_centroid_distance=0.01f;
 				if (  (fabs( area.left->getMZ()-area.centroid_position[0]) < minimal_endpoint_centroid_distance)
 							||(fabs(area.right->getMZ()-area.centroid_position[0]) < minimal_endpoint_centroid_distance) )
 					{
@@ -823,7 +824,7 @@ namespace OpenMS
 				std::cout << "h: " << lorentz.height << std::endl;
 #endif
 
-				if ((lorentz.r_value > sech.r_value) && std::isnan(sech.r_value))
+				if ((lorentz.r_value > sech.r_value) && isnan(sech.r_value))
 					{
 						return lorentz;
 					}
@@ -1109,8 +1110,8 @@ namespace OpenMS
 						--i;
 					}
 				dif /= peaks-1;
-				charge = (int) round(1/dif);
-				if(isnan(charge) || isinf(charge)) charge = 0;
+				charge = (int) Math::round(1/dif);
+				if(isnan((double)charge) || isinf((double)charge)) charge = 0;
 #ifdef DEBUG_DECONV
 				std::cout<<"1/dif = "<<1/dif<<";\tcharge = "<<charge<<std::endl;
 #endif

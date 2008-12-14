@@ -49,7 +49,7 @@ namespace OpenMS
 		
 		@ingroup Metadata
 	*/
-  class Sample: public MetaInfoInterface
+  class OPENMS_DLLAPI Sample: public MetaInfoInterface
   {
     public:
     	///state of aggregation of the sample

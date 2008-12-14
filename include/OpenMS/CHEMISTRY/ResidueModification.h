@@ -49,7 +49,7 @@ namespace OpenMS
 			an OpenMS instance stored in the ModificationsDB. Some residue modifications
 			have also unique synonyms which can be used instead.
 	*/
-	class ResidueModification
+	class OPENMS_DLLAPI ResidueModification
 	{
 		public:
 	

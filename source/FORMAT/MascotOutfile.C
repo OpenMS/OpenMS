@@ -24,7 +24,6 @@
 // $Maintainer: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/TimeStamp.h>
 #include <OpenMS/FORMAT/MascotOutfile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/METADATA/ProteinHit.h>
@@ -86,9 +85,10 @@ namespace OpenMS
   		throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
   			"date in header section not found!" ,filename);
   	}
-		PreciseTime precise_date(it->suffix('=').trim().toInt(),0);
-		stringstream ss;
-		ss << precise_date;
+
+		//PreciseTime precise_date(it->suffix('=').trim().toInt(),0);
+		DateTime precise_date;
+		precise_date.setTime_t(it->suffix('=').trim().toInt());
 		
 		DateTime date;
 		it = f.search(it, "time=");
@@ -98,9 +98,13 @@ namespace OpenMS
   			"time in header section not found!" ,filename);
   	}
 		
+		//date.set(ss.str().substr(6,2) + "." + ss.str().substr(4,2) + "." + 
+		//	ss.str().substr(0,4) + " " + it->suffix('=').trim());
+		date.setTime(it->suffix('=').trim());
+		// now add the date
+		// @todo fix this after cmake installation (Andreas, Chris)
+		//date.setDate(precise_date);		
 		
-		date.set(ss.str().substr(6,2) + "." + ss.str().substr(4,2) + "." + 
-			ss.str().substr(0,4) + " " + it->suffix('=').trim());
 		//temp_identification.id.setDateTime(date);
 		
 		// TODO

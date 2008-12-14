@@ -37,7 +37,7 @@
 #endif
 
 #ifdef OPENMS_HAS_TIME_H
-#include <time.h>
+#include <ctime>
 #endif
 
 #include <iostream>
@@ -51,7 +51,7 @@ namespace OpenMS
 		
 		@ingroup System
 	*/
-	class StopWatch
+	class OPENMS_DLLAPI StopWatch
 	{
 		public:
 		
@@ -240,7 +240,7 @@ namespace OpenMS
 
 		static PointerSizeInt cpu_speed_;
 
-		#ifdef OPENMS_HAS_WINDOWS_PERFORMANCE_COUNTER
+		#ifdef OPENMS_WINDOWSPLATFORM
 			static PointerSizeInt clock_speed_;
 		#endif
 

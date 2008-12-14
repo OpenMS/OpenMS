@@ -41,7 +41,7 @@ namespace OpenMS
   	  	
   	@ingroup FileIO
 	*/
-  class PepNovoInfile
+  class OPENMS_DLLAPI PepNovoInfile
   {
 		public:
 			/// default constructor

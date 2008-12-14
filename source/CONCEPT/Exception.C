@@ -30,16 +30,18 @@
 #include <typeinfo>
 #include <exception>
 #include <iostream>
-#include <stdio.h>
-#include <stdlib.h>	// for getenv in terminate()
-#include <sys/types.h>
-#include <signal.h> // for SIGSEGV and kill
+#include <cstdio>
+#include <cstdlib>	// for getenv in terminate()
+//#include <sys/types.h>
+#include <csignal> // for SIGSEGV and kill
 
+#ifndef OPENMS_WINDOWSPLATFORM
 #ifdef OPENMS_HAS_UNISTD_H
-#include <unistd.h> // fot getpid
+#include <unistd.h> // for getpid
 #endif
 #ifdef OPENMS_HAS_PROCESS_H
 #include <process.h>
+#endif
 #endif
 
 #define OPENMS_CORE_DUMP_ENVNAME "OPENMS_DUMP_CORE"
@@ -168,7 +170,7 @@ namespace OpenMS
 				globalHandler.setMessage(what_);
 			}
 
-			IndexOverflow::IndexOverflow(const char* file, int line, const char* function, Int index, UInt size) throw()
+			IndexOverflow::IndexOverflow(const char* file, int line, const char* function, Int index, size_t size) throw()
 				:	BaseException(file, line, function, "IndexOverflow", "an index was too large")
 			{
 				what_ = "the given index was too large: ";
@@ -396,17 +398,19 @@ namespace OpenMS
 				}
 				std::cout << "---------------------------------------------------" << std::endl;
 
+#ifndef OPENMS_WINDOWSPLATFORM
 				// if the environment variable declared in OPENMS_CORE_DUMP_ENVNAME
 				// is set, provoke a core dump (this is helpful to get s stack traceback)
 				if (getenv(OPENMS_CORE_DUMP_ENVNAME) != 0)
 				{
-					#ifdef OPENMS_HAS_KILL
+#ifdef OPENMS_HAS_KILL
 						std::cout << "dumping core file.... (to avoid this, unset " << OPENMS_CORE_DUMP_ENVNAME 
 									<< " in your environment)" << std::endl;
 						// provoke a core dump 
 						kill(getpid(), SIGSEGV);
-					#endif
+#endif
 				}
+#endif
 
 				// otherwise exit cleanly
 				exit(1);

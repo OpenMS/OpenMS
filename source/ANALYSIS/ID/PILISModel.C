@@ -527,7 +527,7 @@ namespace OpenMS
 
 			UInt suffix_pos(peptide.size() - i  - 1);
 			
-			if (i < floor(peptide.size()/2))
+			if (i < floor(peptide.size()/2.0))
 			{
 				pos_name = prefix_size;
 				y_name = "yk-"+prefix_size;
@@ -1027,7 +1027,7 @@ namespace OpenMS
 			String i_plus1(i+1), pep_size_i(peptide.size() - 1 - i);
 
 
-      if (i < floor(peptide.size()/2))
+      if (i < floor(peptide.size()/2.0))
       {
         pos_name = i_plus1;
 				y_name = "yk-"+i_plus1;

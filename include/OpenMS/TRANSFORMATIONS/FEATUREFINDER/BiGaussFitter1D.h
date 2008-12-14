@@ -40,7 +40,7 @@ namespace OpenMS
                  
       @htmlinclude OpenMS_BiGaussFitter1D.parameters
     */
-    class BiGaussFitter1D
+    class OPENMS_DLLAPI BiGaussFitter1D
     : public MaxLikeliFitter1D
     {
         public:

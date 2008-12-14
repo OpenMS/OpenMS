@@ -37,7 +37,7 @@ namespace OpenMS
 		
 		@ingroup Metadata
 	*/
-  class InstrumentSettings
+  class OPENMS_DLLAPI InstrumentSettings
     : public MetaInfoInterface
   {
     public:

@@ -28,7 +28,7 @@
 #ifndef OPENMS_VISUAL_DIALOGS_LAYERSTATISTICSDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_LAYERSTATISTICSDIALOG_H
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/LayerStatisticsDialogTemplate.h>
+#include <OpenMS/VISUAL/DIALOGS/UIC/ui_LayerStatisticsDialog.h>
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 
 #include <QtGui/QPushButton>
@@ -43,7 +43,7 @@ namespace OpenMS
 		
 		@ingroup Dialogs
 	*/
-	class LayerStatisticsDialog
+	class OPENMS_DLLAPI LayerStatisticsDialog
 		: public QDialog,
   		public Ui::LayerStatisticsDialogTemplate
 	{

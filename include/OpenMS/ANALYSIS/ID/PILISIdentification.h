@@ -50,7 +50,7 @@ namespace OpenMS
 		
 		@ingroup Analysis_ID
 	*/
-	class PILISIdentification : public DefaultParamHandler
+	class OPENMS_DLLAPI PILISIdentification : public DefaultParamHandler
 	{
 
 		public:

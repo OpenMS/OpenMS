@@ -39,7 +39,7 @@ namespace OpenMS
 
 		@ingroup SpectraPreprocessers
   */
-  class NLargest
+  class OPENMS_DLLAPI NLargest
     : public PreprocessingFunctor
   {
   public:

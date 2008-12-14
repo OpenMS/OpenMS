@@ -69,10 +69,10 @@ void* mapping = 0;
 
 #ifdef OPENMS_WINDOWSPLATFORM
 HANDLE h;
-START_SECTION([EXTRA](static void* OpenMS_mmap (const std::size_t& size, const HANDLE& handle, const Offset64Int& file_offset)))
+START_SECTION([EXTRA](static void* OpenMS_mmap (const std::size_t& size, const HANDLE& handle, const Int64& file_offset)))
 #else
 long h;
-START_SECTION([EXTRA](static void* OpenMS_mmap (const std::size_t& size, const int& fileHandle, const Offset64Int& file_offset)))
+START_SECTION([EXTRA](static void* OpenMS_mmap (const std::size_t& size, const int& fileHandle, const Int64& file_offset)))
 #endif
 {
 	String filename;

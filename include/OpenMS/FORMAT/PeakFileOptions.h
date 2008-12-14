@@ -36,7 +36,7 @@ namespace OpenMS
 	/**
 		@brief Options for loading files containing peak data.
 	*/
-	class PeakFileOptions
+	class OPENMS_DLLAPI PeakFileOptions
 	{
 	public:
 		///Default constructor

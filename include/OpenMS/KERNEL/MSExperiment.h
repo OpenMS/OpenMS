@@ -244,7 +244,7 @@ namespace OpenMS
 					// If the container is empty, nothing will happen
 					if (cont.size() == 0) return;
 
-					typename PeakType::CoordinateType current_rt = - std::numeric_limits<typename PeakType::CoordinateType>::max();
+					typename PeakType::CoordinateType current_rt = - (std::numeric_limits<typename PeakType::CoordinateType>::max)();
 
 					for (typename Container::const_iterator iter = cont.begin(); iter != cont.end(); ++iter)
 					{
@@ -452,7 +452,7 @@ namespace OpenMS
 			}
 
 			/// returns the total number of peaks
-			UInt getSize() const
+			UInt64 getSize() const
 		 	{
 			 	return total_size_;
 		 	}
@@ -589,7 +589,7 @@ namespace OpenMS
 	    /// MS levels of the data
 	    std::vector<UInt> ms_levels_;
 	    /// Number of all data points
-	    UInt total_size_;
+	    UInt64 total_size_;
       /// allocator for MSSpectrum
       AllocT alloc_;
 	};

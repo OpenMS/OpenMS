@@ -50,7 +50,7 @@ namespace OpenMS
 	
 				@ingroup Exceptions
 			*/
-			class IllegalKey
+			class OPENMS_DLLAPI IllegalKey
 				:	public Exception::BaseException
 			{
 				public:

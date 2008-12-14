@@ -41,7 +41,7 @@ namespace OpenMS
 
 		@ingroup PeakMarker
   */
-  class ComplementMarker
+  class OPENMS_DLLAPI ComplementMarker
     : public PeakMarker
   {
   public:

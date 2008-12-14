@@ -46,7 +46,7 @@ namespace OpenMS
 		@ingroup SpectrumWidgets
 	*/
 	
-  class Spectrum3DOpenGLCanvas
+  class OPENMS_DLLAPI Spectrum3DOpenGLCanvas
   	: public QGLWidget
   {
     Q_OBJECT

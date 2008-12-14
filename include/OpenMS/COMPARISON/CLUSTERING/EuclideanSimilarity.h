@@ -41,7 +41,7 @@ namespace OpenMS
 		@ingroup DummyComparison
 	*/
 
-	class EuclideanSimilarity
+	class OPENMS_DLLAPI EuclideanSimilarity
 	{
 	private:
 

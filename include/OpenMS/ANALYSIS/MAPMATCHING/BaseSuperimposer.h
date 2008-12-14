@@ -45,7 +45,7 @@ namespace OpenMS
 	works on several element maps and computes transformations that map the
 	elements of the maps as near as possible to each other.
 	*/
-	class BaseSuperimposer
+	class OPENMS_DLLAPI BaseSuperimposer
 		: public FactoryProduct,
 			public ProgressLogger
 	{

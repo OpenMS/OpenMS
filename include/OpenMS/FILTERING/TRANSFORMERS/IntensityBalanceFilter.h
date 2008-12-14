@@ -42,7 +42,7 @@ namespace OpenMS
 
 		@ingroup SpectraFilter
   */
-  class IntensityBalanceFilter : public FilterFunctor
+  class OPENMS_DLLAPI IntensityBalanceFilter : public FilterFunctor
   {
 	
   public:

@@ -72,7 +72,7 @@ namespace OpenMS
 	
 	@ingroup FeatureGrouping
   */
-  class SimplePairFinder
+  class OPENMS_DLLAPI SimplePairFinder
   	: public BaseGroupFinder
   {
 	 public:

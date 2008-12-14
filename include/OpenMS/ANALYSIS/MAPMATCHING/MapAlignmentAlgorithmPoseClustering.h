@@ -50,7 +50,7 @@ namespace OpenMS
 		@todo write test, work out the TODOs (Clemens)
 		@todo Add progress reporting (Clemens)
 	*/
-	class MapAlignmentAlgorithmPoseClustering
+	class OPENMS_DLLAPI MapAlignmentAlgorithmPoseClustering
 		: public MapAlignmentAlgorithm
 	{
 	 public:

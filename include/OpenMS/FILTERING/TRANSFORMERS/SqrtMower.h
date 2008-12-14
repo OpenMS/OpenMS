@@ -37,7 +37,7 @@ namespace OpenMS
 
 		@ingroup SpectraPreprocessers
   */
-  class SqrtMower : public PreprocessingFunctor
+  class OPENMS_DLLAPI SqrtMower : public PreprocessingFunctor
   {
   public:
 

@@ -90,7 +90,7 @@ namespace OpenMS
 			cerr << error_message_ << endl;
 		}
 		
-		void XMLHandler::characters(const XMLCh* const /*chars*/, unsigned int /*length*/)
+		void XMLHandler::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
 		{
 		}
 		

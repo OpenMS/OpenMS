@@ -47,7 +47,7 @@ namespace OpenMS
   
   	@ingroup FileIO
   */
-  class XTandemXMLFile
+  class OPENMS_DLLAPI XTandemXMLFile
 		: protected Internal::XMLHandler,
 			public Internal::XMLFile
   {

@@ -27,14 +27,16 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMWATERSHED_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMWATERSHED_H
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
-#include <OpenMS/MATH/MISC/LinearInterpolation.h>
 #include <iostream>
 #include <fstream>
 #include <deque>
-#include <math.h>
+#include <cmath>
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
+#include <OpenMS/MATH/MISC/LinearInterpolation.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <QtGui/QImage>
 #include <QtGui/QColor>
@@ -179,7 +181,7 @@ namespace OpenMS
            	GridPoint current_point;
             current_point.spectrum = s;
             current_point.peak = p;
-            current_point.intensity = UInt(round(lip.getData().at(p)*normalizing_factor));
+						current_point.intensity = UInt(Math::round(lip.getData().at(p)*normalizing_factor));
             current_point.distance = 0;
             current_point.flag = INIT;
             spectrum_points.push_back(current_point);

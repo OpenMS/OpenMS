@@ -29,6 +29,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <cmath>
@@ -62,7 +63,7 @@ namespace OpenMS
   */
 //#define DEBUG_FILTERING
 
-  class GaussFilter 
+  class OPENMS_DLLAPI GaussFilter 
   	: public ProgressLogger,
   		public DefaultParamHandler
   {
@@ -194,11 +195,11 @@ namespace OpenMS
         sigma_ = (DoubleReal)param_.getValue("gaussian_width") / 8.;
 				int number_of_points_right = (int)(ceil(4*sigma_ / spacing_))+1;
 		    coeffs_.resize(number_of_points_right);
-		    coeffs_[0] = 1.0/(sigma_ * sqrt(2.0 * M_PI));
+		    coeffs_[0] = 1.0/(sigma_ * sqrt(2.0 * Constants::PI));
 		
 		    for (int i=1; i < number_of_points_right; i++)
 		    {
-		    	coeffs_[i] = 1.0/(sigma_ * sqrt(2.0 * M_PI)) * exp(-((i*spacing_)*(i*spacing_)) / (2 * sigma_ * sigma_));
+		    	coeffs_[i] = 1.0/(sigma_ * sqrt(2.0 * Constants::PI)) * exp(-((i*spacing_)*(i*spacing_)) / (2 * sigma_ * sigma_));
 		    }
 #ifdef DEBUG_FILTERING
 		    std::cout << "Coeffs: " << std::endl;

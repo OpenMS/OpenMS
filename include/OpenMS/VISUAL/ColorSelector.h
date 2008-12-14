@@ -27,6 +27,8 @@
 #ifndef OPENMS_VISUAL_COLORSELECTOR_H
 #define OPENMS_VISUAL_COLORSELECTOR_H
 
+#include <OpenMS/config.h>
+
 //QT
 #include <QtGui/QWidget>
 class QPaintEvent;
@@ -46,7 +48,7 @@ namespace OpenMS
 		
 		@ingroup Visual
 	*/
-	class ColorSelector
+	class OPENMS_DLLAPI ColorSelector
 		: public QWidget
 	{
 		Q_OBJECT

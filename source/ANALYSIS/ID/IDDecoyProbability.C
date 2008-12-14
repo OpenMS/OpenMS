@@ -24,6 +24,7 @@
 // $Maintainer: Andreas Bertsch, Sven Nahnsen $
 // --------------------------------------------------------------------------
 
+#include <boost/math/special_functions/gamma.hpp>
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
 
 #include <fstream>
@@ -411,7 +412,7 @@ namespace OpenMS
   	}
   	else
   	{
-    	rho_rev = pow(result_gamma.b, result_gamma.p) / tgamma(result_gamma.p) * pow(score_rev_trans, result_gamma.p - 1) * exp(- result_gamma.b * score_rev_trans);
+			rho_rev = pow(result_gamma.b, result_gamma.p) / boost::math::tgamma(result_gamma.p) * pow(score_rev_trans, result_gamma.p - 1) * exp(- result_gamma.b * score_rev_trans);
   	}
 
   	// second transform the score into a 'correct' distribution density value

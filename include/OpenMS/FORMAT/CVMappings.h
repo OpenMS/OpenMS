@@ -41,12 +41,12 @@ namespace OpenMS
 		
 		@ingroup Format
 	*/
-	class CVMappings
+	class OPENMS_DLLAPI CVMappings
 	{
 		public:
 
 			///Represenation of a CV term used by CVMappings
-			class CVTerm
+			class OPENMS_DLLAPI CVTerm
 			{
 				public:
 								
@@ -104,7 +104,7 @@ namespace OpenMS
 			};
 						
 			/// Representation of a CV Mapping rule used by CVMappings
-			class CVMappingRule
+			class OPENMS_DLLAPI CVMappingRule
 			{
 				public:
 
@@ -171,7 +171,7 @@ namespace OpenMS
 				std::vector<CVTerm> cv_terms_;
 			};
 
-			class CVReference
+			class OPENMS_DLLAPI CVReference
 			{
 				public:
 

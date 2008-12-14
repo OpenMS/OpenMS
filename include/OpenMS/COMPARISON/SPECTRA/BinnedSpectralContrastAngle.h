@@ -51,7 +51,7 @@ namespace OpenMS
 		@ingroup SpectraComparison
 	*/
 
-	class BinnedSpectralContrastAngle : public BinnedSpectrumCompareFunctor
+	class OPENMS_DLLAPI BinnedSpectralContrastAngle : public BinnedSpectrumCompareFunctor
 	{
 
 		public:

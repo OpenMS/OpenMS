@@ -41,7 +41,7 @@ namespace OpenMS
 
 		@ingroup PeakMarker
   */
-  class NeutralLossMarker
+  class OPENMS_DLLAPI NeutralLossMarker
     : public PeakMarker
   {
   public:

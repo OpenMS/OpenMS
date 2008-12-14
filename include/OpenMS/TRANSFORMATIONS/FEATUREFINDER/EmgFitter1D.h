@@ -36,7 +36,7 @@ namespace OpenMS
                  
       @htmlinclude OpenMS_EmgFitter1D.parameters 
     */
-    class EmgFitter1D 
+    class OPENMS_DLLAPI EmgFitter1D 
     : public LevMarqFitter1D
     {
         public:

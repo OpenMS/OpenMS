@@ -110,7 +110,7 @@ START_SECTION((static String getUniqueName()))
 	TEST_EQUAL(split.size() >= 4, true) // if name of machine also contains '_' ...
 END_SECTION
 
-START_SECTION((static bool createSparseFile(const String &filename, const Offset64Int &filesize)))
+START_SECTION((static bool createSparseFile(const String &filename, const Int64 &filesize)))
 	String filename;
 	NEW_TMP_FILE(filename);
   
@@ -123,9 +123,9 @@ END_SECTION
 
 	
 #ifdef OPENMS_WINDOWSPLATFORM
-START_SECTION((static int getSwapFileHandle(const String &filename, const Offset64Int &filesize, const bool &create)))
+START_SECTION((static int getSwapFileHandle(const String &filename, const Int64 &filesize, const bool &create)))
 #else
-START_SECTION((static int getSwapFileHandle(const String &filename, const Offset64Int &filesize, const bool &create)))
+START_SECTION((static int getSwapFileHandle(const String &filename, const Int64 &filesize, const bool &create)))
 #endif
 	String filename;
 	NEW_TMP_FILE(filename);
@@ -143,9 +143,9 @@ END_SECTION
 
 
 #ifdef OPENMS_WINDOWSPLATFORM
-START_SECTION((static bool extendSparseFile(const int &hFile, const Offset64Int &filesize)))
+START_SECTION((static bool extendSparseFile(const int &hFile, const Int64 &filesize)))
 #else
-START_SECTION((static bool extendSparseFile(const int &hFile, const Offset64Int &filesize)))
+START_SECTION((static bool extendSparseFile(const int &hFile, const Int64 &filesize)))
 #endif
 	String filename;
 	NEW_TMP_FILE(filename);
