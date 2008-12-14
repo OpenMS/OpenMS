@@ -45,7 +45,8 @@ namespace OpenMS
 {
 
 	INIFileEditorWindow::INIFileEditorWindow(QWidget *parent) 
-		: QMainWindow(parent)
+		: QMainWindow(parent),
+			current_path_(".")
 	{
 		setWindowTitle("INIFileEditor");
 	  setWindowIcon(QIcon(inifileeditor));
@@ -67,8 +68,9 @@ namespace OpenMS
 		file->addAction("Save &As",this,SLOT(saveFileAs()));
 		file->addSeparator();
 		file->addAction("&Quit",this,SLOT(close()));
-				
-		connect(editor_,SIGNAL(modified(bool)),this,SLOT(updateWindowTitle(bool)));	// we connect the "changes state"(changes made/no changes) signal from the ParamEditor to the window title updating slot
+		
+		// we connect the "changes state"(changes made/no changes) signal from the ParamEditor to the window title updating slot
+		connect(editor_,SIGNAL(modified(bool)),this,SLOT(updateWindowTitle(bool)));
 		
 		setMinimumSize(600,600);
 	}
@@ -77,7 +79,7 @@ namespace OpenMS
 	{
 		if (filename=="")
 		{
-			filename_=QFileDialog::getOpenFileName(this,tr("Open ini file"),".",tr("ini files (*.ini);; all files (*.*)"));
+			filename_=QFileDialog::getOpenFileName(this,tr("Open ini file"),current_path_.toQString(),tr("ini files (*.ini);; all files (*.*)"));
 		}
 		else
 		{
@@ -91,8 +93,7 @@ namespace OpenMS
 				param_.clear();
 				param_.load(filename_.toStdString());
 				editor_->load(param_);
-				QString str=QString("%1 - INIFileEditor").arg(filename_);
-				setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
+				updateWindowTitle(editor_->isModified());
 				return true;
 			}
 			else
@@ -114,15 +115,14 @@ namespace OpenMS
 		editor_->store();
 
 		param_.store(filename_.toStdString());
-		QString str=QString("%1 - INIFileEditor").arg(filename_);
-		setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
+		updateWindowTitle(editor_->isModified());
 		return true;
 	}
 	
 	
 	bool INIFileEditorWindow::saveFileAs()
 	{
-		filename_=QFileDialog::getSaveFileName(this,tr("Save ini file"),".",tr("ini files (*.ini)"));
+		filename_=QFileDialog::getSaveFileName(this,tr("Save ini file"),current_path_.toQString(),tr("ini files (*.ini)"));
 		if(!filename_.isEmpty())
 		{
 			if(!filename_.endsWith(".ini")) filename_.append(".ini");
@@ -130,8 +130,7 @@ namespace OpenMS
 			editor_->store();
 			
 			param_.store(filename_.toStdString());
-			QString str=QString("%1 - INIFileEditor").arg(filename_);
-			setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
+			updateWindowTitle(editor_->isModified());
 			return true;
 		}
 		return false;
@@ -170,16 +169,18 @@ namespace OpenMS
 	
 	void INIFileEditorWindow::updateWindowTitle(bool update)
 	{
+		//update window title			
 		if(update)
 		{
-			QString str=QString("%1 * - INIFileEditor").arg(filename_);
-			setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
+			setWindowTitle((File::basename(filename_) + " * - INIFileEditor").toQString());
 		}
 		else
 		{
-			QString str=QString("%1 - INIFileEditor").arg(filename_);
-			setWindowTitle(str.remove(0,str.lastIndexOf('/')+1));
+			setWindowTitle((File::basename(filename_) + " - INIFileEditor").toQString());
 		}
+		
+		//update last path as well
+		current_path_ = File::path(filename_);
 	}
 }
 

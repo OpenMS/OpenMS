@@ -52,6 +52,7 @@ namespace OpenMS
 			 INIFileEditorWindow(QWidget *parent = 0);
 			/// when user closes window a message box asks the user if he wants to save
 			void closeEvent(QCloseEvent *event);
+			
 		public slots:
 			///loads the xml-file into a Param object and loads Param into ParamEditor
 			bool openFile(const String& filename="");
@@ -69,6 +70,8 @@ namespace OpenMS
 			Param param_;
 			/// filename of xml-file to store the Param object
 			QString filename_;
+			/// path used as next default location of the load/store dialogs
+			String current_path_;
 	};
 }
 
