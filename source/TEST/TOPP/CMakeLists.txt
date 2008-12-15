@@ -3,7 +3,7 @@
 set(TOPP_BIN_PATH ${PROJECT_SOURCE_DIR}/bin)
 
 ### FileConverter tests
-set(DIFF ${TOPP_BIN_PATH}/FuzzyDiff)
+set(DIFF ${TOPP_BIN_PATH}/FuzzyDiff -ini FuzzyDiff.ini)
 set(TOPPTOOL ${TOPP_BIN_PATH}/FileConverter)
 add_test("FileConverter_test1" ${TOPPTOOL} -in FileConverter_1_input.txt -in_type mzData -out FileConverter.tmp -out_type DTA2D)
 add_test("FileConverter_test1_output" ${DIFF} -in1 FileConverter.tmp -in2 FileConverter_1_output.dta2d)
@@ -20,9 +20,11 @@ if (USE_ANDIMS)
 endif()
 
 add_test("FileConverter_test6a" ${TOPPTOOL} -in FileConverter_6_input.dta2d -out FileConverter.tmp -out_type mzXML)
+add_test("FileConverter_test6a_step2" ${TOPPTOOL} -in FileConverter.tmp -in_type mzXML -out FileConverter2.tmp -out_type DTA2D)
 add_test("FileConverter_test6a_output" ${DIFF} -in1 FileConverter2.tmp -in2 FileConverter_6_input.dta2d)
 
 add_test("FileConverter_test6b" ${TOPPTOOL} -in FileConverter_6_input.dta2d -out FileConverter.tmp -out_type mzData)
+add_test("FileConverter_test6b_step2" ${TOPPTOOL} -in FileConverter.tmp -in_type mzData -out FileConverter2.tmp -out_type DTA2D)
 add_test("FileConverter_test6b_output" ${DIFF} -in1 FileConverter2.tmp -in2 FileConverter_6_input.dta2d)
 
 add_test("FileConverter_test7" ${TOPPTOOL} -in FileConverter_7_input.consensusXML -out FileConverter_7_output.tmp -out_type featureXML)
@@ -30,4 +32,3 @@ add_test("FileConverter_test7_output" ${DIFF} -in1 FileConverter_7_output.tmp -i
 
 add_test("FileConverter_test8" ${TOPPTOOL} -in FileConverter_8_input.mzML -out FileConverter_8_output.tmp -out_type mzData)
 add_test("FileConverter_test8_output" ${DIFF} -in1 FileConverter_8_output.tmp -in2 FileConverter_8_output.mzData)
-
