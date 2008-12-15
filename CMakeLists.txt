@@ -86,11 +86,11 @@ endif()
 ## contrib
 
 ## disable AndiMS for 64-bit platforms (until fixed)
-if (CMAKE_SIZEOF_VOID_P MATCHES "8")
+#if (CMAKE_SIZEOF_VOID_P MATCHES "8")
 	set(USE_ANDIMS 0 CACHE INTERNAL "Support AndiMS?!")
-else()
-	set(USE_ANDIMS 1 CACHE INTERNAL "Support AndiMS?!")
-endif()
+#else()
+#	set(USE_ANDIMS 1 CACHE INTERNAL "Support AndiMS?!")
+#endif()
 
 set(CUSTOM_CONTRIB_DIR CACHE PATH "User defined location of contrib dir. If left empty we assume the contrib to be in OpenMS/contrib!")
 set(CONTRIB_DIR ${PROJECT_SOURCE_DIR}/contrib/ CACHE INTERNAL "Final contrib path after looking at custom_contrib_path. defaults to OpenMS/contrib")
