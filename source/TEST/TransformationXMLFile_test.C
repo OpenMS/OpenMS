@@ -75,7 +75,7 @@ START_SECTION(void load(const String& filename, TransformationDescription& trans
 	TEST_REAL_SIMILAR(trafo.getParam("intercept"),2.718281828459045235);
 
 	trafo_xml.load("data/TransformationXMLFile_4.trafoXML",trafo);
-	TEST_STRING_EQUAL(trafo.getName(),"pairs");
+	TEST_STRING_EQUAL(trafo.getName(),"interpolated_linear");
 	TEST_EQUAL(trafo.getParameters().size(),0);
 	TEST_EQUAL(trafo.getPairs().size(),3);
 	TEST_REAL_SIMILAR(trafo.getPairs()[0].first,1.2);
