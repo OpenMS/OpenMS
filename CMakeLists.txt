@@ -86,11 +86,11 @@ endif()
 ## contrib
 
 ## disable AndiMS for 64-bit platforms (until fixed)
-#if (CMAKE_SIZEOF_VOID_P MATCHES "8")
+if (CMAKE_SIZEOF_VOID_P MATCHES "8")
 	set(USE_ANDIMS 0 CACHE INTERNAL "Support AndiMS?!")
-#else()
-#	set(USE_ANDIMS 1 CACHE INTERNAL "Support AndiMS?!")
-#endif()
+else()
+  set(USE_ANDIMS 1 CACHE INTERNAL "Support AndiMS?!")
+endif()
 
 set(CUSTOM_CONTRIB_DIR CACHE PATH "User defined location of contrib dir. If left empty we assume the contrib to be in OpenMS/contrib!")
 set(CONTRIB_DIR ${PROJECT_SOURCE_DIR}/contrib/ CACHE INTERNAL "Final contrib path after looking at custom_contrib_path. defaults to OpenMS/contrib")
@@ -162,10 +162,13 @@ OPENMS_CHECKLIB(GSLCBLAS_LIBRARY "libgslcblas_dll;gslcblas" "libgslcblas_dll_d;g
 
 OPENMS_CHECKLIB(CGAL_LIBRARY "cgal-vc80-mt;cgal-vc90-mt;CGAL" "cgal-vc80-mt-gd;cgal-vc90-mt-gd;CGAL" "CGAL")
 
+# TODO windoes????
 if (NOT MSVC)
 	OPENMS_CHECKLIB(ANDIMS_LIBRARY "ms10lib-TODO_CHRIS_JA_DU;ms10lib.a" "ms10lib-TODO_CHRIS_JA_DU;ms10lib.a" "ms10lib")
 
-	OPENMS_CHECKLIB(NETCDF_LIBRARY "netCDF-TODO_CHRIS_JA_DU;libnetcdf_c++.a" "netCDF-TODO_CHRIS_JA_DU;libnetcdf_c++.a" "netCDF")
+	OPENMS_CHECKLIB(NETCDF_LIBRARY1 "netCDF-TODO_CHRIS_JA_DU;libnetcdf_c++.a" "netCDF-TODO_CHRIS_JA_DU;libnetcdf_c++.a" "netCDF_c++")
+	OPENMS_CHECKLIB(NETCDF_LIBRARY2 "netCDF-TODO_CHRIS_JA_DU;libnetcdf.a" "netCDF-TODO_CHRIS_JA_DU;libnetcdf.a" "netCDF")
+	set(NETCDF_LIBRARY ${NETCDF_LIBRARY1} ${NETCDF_LIBRARY2})
 endif()
 
 # libSVM:
@@ -176,11 +179,6 @@ else()
 	set(SVM_LIBRARY general ${CONTRIB_LIB_DIR}svm.o CACHE INTERNAL "object file of svm library") # do not distinguish between optimized and debug
 endif()
 
-# TODO windoes
-OPENMS_CHECKLIB(ANDIMS_LIBRARY "ms10lib-TODO_CHRIS_JA_DU;ms10lib" "ms10lib-TODO_CHRIS_JA_DU;ms10lib" "ms10lib")
-
-# TODO windoes
-OPENMS_CHECKLIB(NETCDF_LIBRARY "netCDF-TODO_CHRIS_JA_DU;netcdf_c++" "netCDF-TODO_CHRIS_JA_DU;netcdf_c++" "netCDF")
 
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include/) ## for configured files, i.e. config.h
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include/)
@@ -369,18 +367,18 @@ set(CF_OPENMS_PATH ${PROJECT_BINARY_DIR})
 ## replace any variables in Doxyfile.in with current values
 configure_file(${PROJECT_SOURCE_DIR}/source/config/Doxyfile.in ${PROJECT_BINARY_DIR}/doc/doxygen/Doxyfile)
 
-## TODO: test this -> when building documentation, set in environment using svnversion before calling doxygen
-set(CF_PACKAGE_REVISION_FILE)
-if (OPENMS_HAS_SVNVERSION)
-
-	set(svnversion_file_h ${PROJECT_SOURCE_DIR}/source/CONCEPT/openms_svnversion) # file with version number
-
-	## ensure that the file is always rebuild
-  add_custom_target(svnversion_file_target ALL ${PROG_Svnversion} -n ${PROJECT_SOURCE_DIR} > ${svnversion_file_h} COMMENT "Call svnversion in project directory to generate openms_svnversion.txt")
-	set(CF_PACKAGE_REVISION_FILE ${svnversion_file_h})
-	#file(READ ${svnversion_file_h} ENV_OPENMS_REVISION) # read revision from file
-	#set($ENV{OPENMS_REVISION} ${ENV_OPENMS_REVISION}) # set environment variable e.g. for doxygen
-endif()
+### TODO: test this -> when building documentation, set in environment using svnversion before calling doxygen
+#set(CF_PACKAGE_REVISION_FILE)
+#if (OPENMS_HAS_SVNVERSION)
+#
+#	set(svnversion_file_h ${PROJECT_SOURCE_DIR}/source/CONCEPT/openms_svnversion) # file with version number
+#
+#	## ensure that the file is always rebuild
+#  add_custom_target(svnversion_file_target ALL ${PROG_Svnversion} -n ${PROJECT_SOURCE_DIR} > ${svnversion_file_h} COMMENT "Call svnversion in project directory to generate openms_svnversion.txt")
+#	set(CF_PACKAGE_REVISION_FILE ${svnversion_file_h})
+#	#file(READ ${svnversion_file_h} ENV_OPENMS_REVISION) # read revision from file
+#	#set($ENV{OPENMS_REVISION} ${ENV_OPENMS_REVISION}) # set environment variable e.g. for doxygen
+#endif()
 
 # are we building a shared or static lib?! (BOTH within the same BUILD-tree is NOT possible with OpenMS!!)
 if (MINGW OR MSVC)
@@ -433,7 +431,7 @@ if (OPENMS_HAS_SVNVERSION)
 ## TODO replace this with PreProcessorMacro when compiling lib
 ## e.g. SET_SOURCE_FILE_PROPERTIES(libSource.c main.c COMPILE_FLAGS -DREVISON=234)
 	message(STATUS "Adding dependency on SVN-Version target file...")
-	add_dependencies(OpenMS svnversion_file_target)
+##	add_dependencies(OpenMS svnversion_file_target)
 endif()
 
 
@@ -444,7 +442,7 @@ if (MSVC)
 endif()
 
 ### OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
-set(OPENMS_LIBRARIES ${OPENMS_DEP_LIBRARIES} OpenMS)
+set(OPENMS_LIBRARIES OpenMS ${OPENMS_DEP_LIBRARIES})
 
 ####### TOPP #########
 set(TOPP_executables)

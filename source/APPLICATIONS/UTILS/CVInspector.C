@@ -151,7 +151,7 @@ class TOPPCVInspector
 			file.push_back("  <BODY>");
 			
 			//count the number of terms and add button to expend/collaps all terms
-			UInt term_count = 0;
+			Int term_count = 0;
 			for (vector<CVMappings::CVMappingRule>::const_iterator it = mappings.getMappingRules().begin(); it != mappings.getMappingRules().end(); ++it)
 			{
 				for (vector<CVMappings::CVTerm>::const_iterator tit = it->getCVTerms().begin(); tit != it->getCVTerms().end(); ++tit)
@@ -161,7 +161,7 @@ class TOPPCVInspector
 			}
 			String expand_all = "    <a href=\"javascript:toggleDiv('div0','true')";
 			String collapse_all = "    <a href=\"javascript:toggleDiv('div0','false')";
-			for (UInt i=1; i<term_count; ++i)
+			for (Int i=1; i<term_count; ++i)
 			{
 				expand_all += String(";toggleDiv('div") + i + "','true')";
 				collapse_all += String(";toggleDiv('div") + i + "','false')";
