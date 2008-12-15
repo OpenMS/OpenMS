@@ -34,31 +34,95 @@
 
 /**
 	@page FAQ_Internal Internal FAQ
-	
+
 	<H2 style="border-top:2px solid grey;">General information</H2>
 		<UL>
 
 			<LI><B>I am new to %OpenMS. What should i do first?</B>
 				<OL>
 					<LI> Check out the developement version of %OpenMS (see website).
-					<LI> Build the internal documentation (use 'make idoc' instead of 'make doc').
+					<LI> (Linux) Build the internal documentation (use 'make idoc' instead of 'make doc' in <%OpenMS>/doc).
 					<LI> Try and build %OpenMS according to the installation instructions.
 					<Li> Read the %OpenMS Coding Convention.
 					<LI> Read the %OpenMS Tutorial.
 					<LI> Create a SourceForge account and send your account name to your supervisor.<BR>
 					     He then adds you to the %OpenMS developers team.
 					<LI> Register to the open-ms-general and open-ms-developers mailing list.<BR>
-					     (You can see the developers list only if you are logged in to Sourceforge and 
+					     (You can see the developers list only if you are logged in to Sourceforge and
 					     if you are a %OpenMS developer).
 				</OL>
-			
+
+
+      <LI><B>What is CMake?!</B>
+        <UL>
+          CMake builds BuildSystems for different platforms, e.g. VisualStudio Solutions on Windows, Makefiles on Linux etc.
+          This allows us to define in one central location (namely CMakeLists.txt) how OpenMS is build and have the platform specific stuff handled by CMake.
+          See http://www.cmake.org for more information.
+        </UL>
+
+      <LI><B>How do I use CMake?!</B>
+         <UL>
+          See Installation instructions for your platform.
+          In general, you call CMake(.exe) with some parameters to create the native build-system. Afterwards you can (but usually don't have to
+          edit the current configuration using a GUI named ccmake (or CMake-GUI in Windows), which ships with CMake).
+          Note: whenever ccmake is mentionend in this document, substitute this by CMake-GUI if your OS is Windows.
+        </UL>
+
+      <LI><B>What are user definable CMake Cache Variables?!</B>
+         <UL>
+          They allow the user to pass options to CMake which will influence the build system.
+          The most important option which should be given when calling CMake.exe is:
+          - CUSTOM_CONTRIB_DIR, which is the path to the OpenMS contrib dir.
+            The default for this variable <OpenMS>/contrib. So unless your contrib is at this location,
+            you will need to set this variable.
+          To pass this variable to CMake use the -D switch
+          e.g. <code>cmake -D CUSTOM_CONTRIB_DIR:PATH="D:\svn\contrib"</code>
+          Everything else can be edited using ccmake afterwards. The following options are of interest:
+          - OPENMS_DEBUG
+          - OPENMS_ENABLE_EXTERNALMEMORY
+          - CF_DB_PLUGIN
+          Their description will be displayed when you call ccmake.
+        </UL>
+
+      <LI><B>How do I switch to debug/release configuration?!</B>
+         <UL>
+          For Makefile generators (typically on Linux) you can set the CMAKE_BUILD_TYPE variable to either
+          Debug or Release by calling ccmake. This only works AFTER you have called cmake.<br>
+          For Visual Studio, this is not necessary as all configurations are generated and
+          you can choose the one you like within the IDE itself.
+        </UL>
+
+
+      <LI><B>CMake can't seem to find a Qt library (usually QtCore)! What now?</B>
+         <UL>
+          CMake finds QT by looking for 'qmake' in your PATH or for the Environment Variable QTDIR! Set these accordingly.<br>
+          If the problem still persists: do you have a second installation of Qt (especially the MinGW version?)?
+          This might lead CMake to the wrong path (it's searching for the Qt*.lib files).
+          You should only move/delete the offending Qt version if you know what you are doing!
+          A save workaround is to edit the CMakeCache file (e.g. via ccmake) and set all paths relating to QT (e.g. QT_LIBRARY_DIR) manually.
+        </UL>
+
+      <LI><B>Does AndiMS work on 64bit systems?! Do I need to disable it?!</B>
+         <UL>
+          AndiMS currently does not work on 64bit (we are planning a bugfix). CMake will *automatically*
+          disable AndiMS on 64bit systems!
+        </UL>
+
+      <LI><B>(Windows) Shall I use VisualStudio2008 or VisualStudio2005?</B>
+         <UL>
+          Use VS2008 if you can. It it much more convenient when reloading your Solution-File (VS2005 will
+          give you ~10e10 Messageboxes).
+          This happens whenever the Build-System calls CMake (which can be whenever you do svn-update).
+        </UL>
+
+
 			<LI><B>Is there a central URL for %OpenMS developers?</B>
 				<BR>
 				http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS/search/
 				<BR>
-				There you can search for %OpenMS classes and it links out to several 
+				There you can search for %OpenMS classes and it links out to several
 				websites of interest.
-				
+
 			<LI><B>How do I update the website?</B>
 				<OL>
 					<LI> Check out the @a website module:
@@ -66,32 +130,30 @@
 					<TT>svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/website</TT>
 					<LI> Edit the website
 					<LI> Commit the changes
-					<LI> Execute <TT>update.sh &lt;sf-login&gt;</TT>
-					<LI> Execute <TT>chmod -R 775</TT> in <TT>/home/groups/o/op/open-ms/htdocs/</TT> auf <TT>shell.sourceforge.net</TT>.
-							 <BR>(Otherwise other developers will not be able to overwrite the files).
+					<LI> Execute <TT>update.sh &lt;sf-login&gt; and follow instructions</TT>
 				</OL>
 
-	    <li><b>How do I add a new directory in the <tt>source/</tt> directory to the build system?</b><br>
-	      Add the new directory to <tt>source/config/Makefile.in</tt>.
+	    <li><b>How do I add a new directory <tt>MYDIR</tt> to the build system?</b><br>
+	        <OL>
+            <LI>Add the new directory to <%OpenMS>/includes.cmake (you should add two lines - one for /source and one for /include).
+            <LI>Create two new sources.cmake files (one for /source/MYDIR, one for /include/MYDIR), using existing sources.cmake files as template
+          </OL>
 
 	    <li><b>Can I use QT designer to create GUI widgets?</b><br>
 	      Yes! If you want to create a class called @a Widget:
-	
+
 	      <ul>
 	        <li>Create .ui-File with QT designer and store it as
 	        <tt>Widget.ui</tt>.
-	
-	        <li>Add the class to the <tt>Makefile</tt>
-	        (<tt>Widget.C</tt> and <tt>Widget_moc.C</tt>).
-	        Use OpenDialog as an example which changes are needed.</li>
-	
+
+	        <li>Add the class to the <tt>sources.cmake</tt>.
 	        <li>From the .ui-File the file
 	        <tt>include/OpenMS/VISUAL/UIC/ClassTemplate.h</tt> is
 	        generated by the build system.
 	        <br>
 	        DO NOT CHECK-IN THIS FILE, AS IT IS GENERATED
 	        AUTOMATICALLY, WHEN NEEDED!!!</li>
-	
+
 	        <li>Derive the class <tt>Widget</tt> from
 	        <tt>WidgetTemplate</tt>. You need to check in the
 	        <tt>Widget.h</tt> and <tt>Widget.C</tt> files.</li>
@@ -100,50 +162,45 @@
 
 	<H2 style="border-top:2px solid grey;">Common problems</H2>
 		<UL>
-			<li><b>After adding a class or after a SVN update, an @a undefined @a reference error occurs during execution of programs.</b><br>
-			  Execute <tt>make recollect</tt> in the <tt>source</tt> folder, which will update the files that are added to the library.
-			
-			<li><b>After a SVN update, a 'No rule to make target' error occurs during @a make.</b><br>
-				Try @a make @a depend in order to get the dependencies right!
+			<li><b>.</b><br>
+
+
+			<li><b></b><br>
+
 
 			<li><b>Can the CHECK-macro not handle template methods that have two or more arguments?</b><br>
 				Put round brackets around the method declaration. Then it should work.
 		</UL>
 
-	<H2 style="border-top:2px solid grey;">How can i speed up the compile process of %OpenMS?</H2>
+	<H2 style="border-top:2px solid grey;">[POTENTIALLY OUTDATED] How can I speed up the compile process of %OpenMS?</H2>
 		<UL>
 	    <li><b>Use ccache.</b><br>
-	    	<tt>ccache</tt> caches the preprocessor output and thereby speeds up the the compile 
+	    	<tt>ccache</tt> caches the preprocessor output and thereby speeds up the the compile
 	    	process if a file did not change since the last build.
 
 	    <li><b>Build with several threads.</b><br>
 				If you have several pocessors/cores you can build %OpenMS classes/tests and TOPP tools
 				in in several threads using the @a make option @a -j:
-				@n<code>make depend && make -j4 lib && make install && make -j4 test TOPP && make TOPPtest</code>
+				@n<code>make depend && make -j4 OpenMS && make -j4 test TOPP && make TOPPtest</code>
 				@n@n
 				On some platforms we have observed that files are compiled multiple times.
 				In this case, it might be better to use a "parallel make" only in recursive
-				invocations of make: 
-				@n<code>make depend && make "MAKE=make -j4 " lib && make install && make "MAKE=make -j4 " test</code>
-	    	
-	    <li><b>Remove unneeded dependencies files.</b><br>
-	    	You can strip dependencies headers, that wont change from the @em .Dependencies files.
-	    	Right now headers in @em /usr/ and in @em .../contrib are removed.
-	    	<BR>Use @em make @em depend_strip instead of @em make @em depend.
+				invocations of make:
+				@n<code>make depend && make "MAKE=make -j4 " OpenMS && make install && make "MAKE=make -j4 " test</code>
 
 		</UL>
-	
+
 	<H2 style="border-top:2px solid grey;">Debugging</H2>
 		<UL>
 			<li><b>How do I debug a failed %OpenMS test?</b><br>
-	    	Exeute the test with the @a -V option to see where the error
+	    	Execute the test with the @a -V option to see where the error
 	    	occurred.
-	    
+
 	    <li><b>How do I debug a failed TOPP test?</b><br>
 	    	Let @a make execute the test in debug/verbose mode, e.g.:
 	    	<BR>
 	    	<tt>shell&gt; make DEBUG=1 VERBOSE=1 FeatureFinder_test</tt>
-			
+
 	    <li><b>How do I debug uncaught exceptions?</b><br>
 	      There is a mechanism to have a core dumped if an uncaught
 	      exception occurs.
@@ -154,9 +211,9 @@
 	      Each time an uncaught exception occures, the OPENMS_DUMP_CORE
 	      variable is checked and a segmentation fault is caused, if it
 	      is set.
-	
-	
-	    <li><b>Why is no core dumped, although a fatal error occured?</b><br>
+
+
+	    <li><b>(Linux) Why is no core dumped, although a fatal error occured?</b><br>
 	      Try the @a ulimit @a -c @a unlimited command. It sets the maximum
 	      size of a core to unlimited.
 	      <br>
@@ -164,9 +221,9 @@
 	      <i>Note:</i> We observed that, on some systems, no core is
 	      dumped even if the size of the core file is set to unlimited.
 	      We are not sure what causes this problem.
-	
-	
-	    <li><b>How can I set breakpoints in @a gdb to debug %OpenMS?</b><br>
+
+
+	    <li><b>(Linux) How can I set breakpoints in @a gdb to debug %OpenMS?</b><br>
 	      Imagine you want to debug the @a TOPPView application and
 	      you want it to stop at line 341 of @a SpectrumMDIWindow.C.
 	      <br>
@@ -174,28 +231,28 @@
 	        <li>Run gdb:
 	        <br>
 	        <tt>shell&gt; gdb TOPPView</tt></li>
-	
-	
+
+
 	        <li>Start the application (and close it):
 	        <br>
 	        <tt>gdb&gt; run [arguments]</tt></li>
-	
-	
+
+
 	        <li>Set the breakpoint:
 	        <br>
 	        <tt>gdb&gt; break SpectrumMDIWindow.C:341</tt></li>
-	
-	
+
+
 	        <li>Start the application again (with the same arguments):
 	        <br>
 	        <tt>gdb&gt; run</tt></li>
 	      </ol>
-		
-				<LI><B>How can I find out which shared libraries are used by an application?</B>
+
+				<LI><B>(Linux) How can I find out which shared libraries are used by an application?</B>
 				<BR>
 				ldd &lt;application&gt;
-				
-				<LI><B>How can I get a list of the symbols defined in a (shared) library or object file?</B>
+
+				<LI><B>(Linux) How can I get a list of the symbols defined in a (shared) library or object file?</B>
 				<BR>
 				<code>nm &lt;library&gt;</code>
 				<BR>
@@ -207,12 +264,12 @@
 	<H2 style="border-top:2px solid grey;">SVN</H2>
 		<UL>
 	    <li><b>The $id$ string in my test is not expanded to the SVN id. Why?</b><br>
-	      In Subversion you have to set the keyword expansion expilcitly:<BR>
+	      In Subversion you have to set the keyword expansion explicitly:<BR>
 	      <tt>svn propset svn:keywords Id &lt;file&gt;</tt>
-	
+
 	    <li><b>How do I create a branch?</b><br>
 	      <tt>svn copy https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS \\<BR> https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/&lt;name&gt;/</tt>
-			
+
 			 <li><b>How do I merge the changes i made to the HEAD into the release branch?</b><br>
 			  Suppose you want to merge the changes you made in revision 2325 of the HEAD (/OpenMS) into the current
 			  revision of the release branch for Release X.X (/branches/ReleasesX.X - see http://open-ms.svn.sourceforge.net/viewvc/open-ms for the actual name of the branch).
@@ -224,7 +281,7 @@
 			  	<LI> Resolve conflicts and make sure all tests run
 			  	<LI> Commit the changes to the release branch
 			  </OL>
-	
+
 	 		<li><b>How do I merge a branch into the trunk?</b><br>
 	 			Imagine the current revision is 25 and you added the branch in revision 10.
 	 			<OL>
@@ -241,15 +298,15 @@
 
 	<H2 style="border-top:2px solid grey;">Doxygen documentation</H2>
 		<UL>
-	    <li><b>Where can i find the definition of the main page?</b><br>
+	    <li><b>Where can I find the definition of the main page?</b><br>
 	    @a OpenMS/doc/doxygen/public/Main.doxygen
 
-	    <li><b>Where can i add a new module?</b><br>
+	    <li><b>Where can I add a new module?</b><br>
 	    @a OpenMS/doc/doxygen/public/Modules.doxygen
-	    
+
 	    <li><b>How is the parameter documentation for classes derived from DefaultParamHandler created?</b><br>
-				You have to add your class to the program @a OpenMS/doc/doxygen/parameters/DefaultParamHandlerDocumenter.C. 
-				This program generates a html table with the parameters. This table can then be included into the 
+				You have to add your class to the program @a OpenMS/doc/doxygen/parameters/DefaultParamHandlerDocumenter.C.
+				This program generates a html table with the parameters. This table can then be included into the
 				class documentation using the following doxygen command:
 				@code
 @htmlinclude OpenMS_<class name>.parameters
@@ -266,18 +323,18 @@
 				@endcode
 				You can test if everything worked by calling @a make @a toppdoc in @a OpenMS/doc/.
 				The comand line documentation is written to @a OpenMS/doc/doxygen/parameters/output/.
-		
+
 	    <li><b>What are the important files for adding a new tutorial section?</b><br>
 		    %OpenMS tutorial:
 		    <BR>%OpenMS/doc/OpenMS_tutorial/OpenMS_Tutorial.doxygen
 		    <BR>OpenMS/doc/OpenMS_tutorial/refman_overwrite.tex
 		    <BR>%OpenMS/doc/doxygen/public/OpenMS_Tutorial_html.doxygen
-		    
+
 				TOPP tutorial:
 		    <BR>%OpenMS/doc/TOPP_tutorial/TOPP_Tutorial.doxygen
 		    <BR>OpenMS/doc/TOPP_tutorial/refman_overwrite.tex
 		    <BR>%OpenMS/doc/doxygen/public/TOPP_Tutorial_html.doxygen
-		    
+
 				TOPPView tutorial:
 		    <BR>%OpenMS/doc/TOPP_tutorial/TOPPView_Tutorial.doxygen
 		    <BR>OpenMS/doc/TOPP_tutorial/refman_overwrite.tex
@@ -319,27 +376,27 @@
 					<LI> Send a mail notification to the announcements mailing list and the general mailing list
 				</UL>
 
-				<LI><B>How is an new release package created?</B>
+				<LI><B>How is a new release package created?</B>
 				<OL>
 					<LI> Prepare the platform-independent sources release file:
 						<OL>
 							<LI> Update version number of TOPPView splash screen <tt>source/APPLICATIONS/TOPP/</tt>
-							<LI> Update version number in <tt>source/configure.ac</tt> (AC_INIT macro)
+							<LI> Update version number in <tt>CMakeLists.txt</tt>
 							<LI> Update version number in <tt>doc/OpenMS_tutorial/refman_overwrite.tex</tt>
 							<LI> Update version number in <tt>doc/TOPP_tutorial/refman_overwrite.tex</tt>
-							<LI> Run autoconf in <tt>source/</tt>
+							<LI> Run cmake
 							<LI> Make sure that the tutorial examples in <tt>sources/EXAMPLES/</tt> can be compiled
 							<LI> Make sure that the UTILS in <tt>source/APPLICATIONS/UTILS/</tt> can be compiled
 							<LI> Commit the changes to the SVN repository
 							<LI> Build the documentation that is needed for the release
 								<OL>
 									<LI> Check out a fresh working copy of %OpenMS
-									<LI> Build the library, and build the documentation using <tt>make doc</tt>.
+									<LI> Build the library, and build the documentation using <tt>make doc</tt> (not <tt>idoc</tt>!).
 									<LI> Build the tutorials <tt>make TOPP_tutorial OpenMS_tutorial</tt>.
 									<LI> Make sure that the Parameter documentation was created.
 									<LI> Make sure the include paths in the documentation are correct.
 								</OL>
-							<LI> Prepare the contrib release file:
+							<LI>(Linux) Prepare the contrib release file:
 								<OL>
 									<LI> Update Version number in <tt>configure.ac</tt> (AC_INIT macro)
 									<LI> Run autoconf in <tt>source/</tt>
@@ -355,21 +412,21 @@
 							<LI> Commit the changes to the SVN repository
 							<LI> Run the script <tt>OpenMS_installer.nsi</tt> using the NSIS compiler
 							<LI> Verify the Installer itself and TOPP within a fresh Virtual Machine (see <tt>win_installer/README</tt>)
-						</OL>						
+						</OL>
 				</OL>
-				
+
 			<LI><B>What has each developer to do for a release?</B>
-			
+
 				<p>
 				Each maintainer must check his/her classes and TOPP tools.
 				Keep in mind that missing documention scares off potential users!
 				<p>
-				Here is a list of what is to do: 
+				Here is a list of what is to do:
 				<OL>
 					<LI> Remove classes not ready for release from the release branch.
 					<LI> Update the CHANGELOG file
 					<LI> Check the output of TOPP tests @a source/TEST/TOPP/&lt;TOPP-tool&gt;.output for debug output
-					<LI> Check the test build of the latest gcc version for compiler warnings (32 and 64 bit)
+					<LI> Check the test build of the latest gcc/cl version for compiler warnings (32 and 64 bit)
 					<LI> Check if all examples in @a OpenMS/source/EXAMPLES/ compile.
 					<LI> Correct errors found by @a source/config/tools/checker.php.
 						<UL>
@@ -377,8 +434,8 @@
 							<LI> More options are given with @a --help
 							<LI> Send feedback concening the script to Marc
 						</UL>
-					<LI> Check all your %OpenMS tests with valgrind leak-check (cd source/TEST/ && make valgrind)
-					<LI> Check all your %OpenMS tests and TOPP tests with STL debug mode (configure: --enable-stl-debug)
+          <LI> [extend doc] Valgrind?
+					<LI> (Linux) Check all your %OpenMS tests and TOPP tests with STL debug mode (CMake: ENABLE-STL-DEBUG)
 					<LI> Documentation:
 						<UL>
 							<LI> %OpenMS
@@ -402,28 +459,32 @@
 		<UL>
 			<LI><B>How can a profile my code?</B>
 				<UL>
-					<LI> configure %OpenMS with the flag @em --enable-debuginfo
-					<LI> call the executable with valgrind: <tt>'valgrind --tool=callgrind &lt;executable&gt; &lt;parameters&gt;'</tt>
-						<UL>
-							<LI> Note: other processes running on the same machine can influence the profiling.
-							     Make sure your application gets enough resources (memory, CPU time).
-							<LI> You can start and stop the profiling while the executable is running e.g. to skip initialization steps:
-								<UL>
-									<LI> start valgrind with the option @em --instr-atstart=no
-									<LI> call <tt>'callgrind -i [on|off]'</tt> to start/stop the profiling 
-								</UL>
-						</UL>
-					<LI> The output can be viewed with <tt>'kcachegrind callgrind.out.&lt;process id&gt;'</tt>
+          <LI> Windows: this is directly supported by Vidual Studio. Follow their documentation.
+          <LI> Linux:
+          <OL>
+					  <LI> build %OpenMS in debug mode [extend doc]
+					  <LI> call the executable with valgrind: <tt>'valgrind --tool=callgrind &lt;executable&gt; &lt;parameters&gt;'</tt>
+						  <UL>
+							  <LI> Note: other processes running on the same machine can influence the profiling.
+							      Make sure your application gets enough resources (memory, CPU time).
+							  <LI> You can start and stop the profiling while the executable is running e.g. to skip initialization steps:
+								  <UL>
+									  <LI> start valgrind with the option @em --instr-atstart=no
+									  <LI> call <tt>'callgrind -i [on|off]'</tt> to start/stop the profiling
+								  </UL>
+						  </UL>
+					  <LI> The output can be viewed with <tt>'kcachegrind callgrind.out.&lt;process id&gt;'</tt>
+          </OL>
 				</UL>
 
-			<LI><B>How do i check my code for memory leaks?</B>
+			<LI><B>(Linux) How do i check my code for memory leaks?</B>
 				<OL>
-					<LI> configure %OpenMS with the flag @em --enable-debuginfo
+					<LI>build %OpenMS in debug mode [extend doc]
 					<LI> call the executable with valgrind: <tt>'valgrind --leak-check=full &lt;executable&gt; &lt;parameters&gt;'</tt>
 					<LI> Common errors are:
 						<UL>
 							<LI> <tt>'Invalid write/read ...'</tt> - Violation of container boundaries
-							<LI> <tt>'... depends on uninitialized variable'</tt>  - Uninitialized variables: 
+							<LI> <tt>'... depends on uninitialized variable'</tt>  - Uninitialized variables:
 							<LI> <tt>'... definitely lost'</tt> - Memory leak that has to be fixed
 							<LI> <tt>'... possibly lost'</tt> - Possible wemory leak, so have a look at the code
 						</UL>
@@ -433,19 +494,19 @@
 
 	<H2 style="border-top:2px solid grey;">TOPP</H2>
 		<UL>
-		
+
 			<LI><B>How to create an icon file for a TOPP tool under Windows?</B>
 			<OL>
 				<LI> Create an <i>.ico</i> file:
 					<OL>
 						<LI> first, you need some graphics program (The GIMP is recommended)
 						<LI> think of a motive and remind yourself that you have limited space.
-					       <a href="http://msdn2.microsoft.com/en-us/library/ms997636.aspx" target="_blank">http://msdn2.microsoft.com/en-us/library/ms997636.aspx</a> 
+					       <a href="http://msdn2.microsoft.com/en-us/library/ms997636.aspx" target="_blank">http://msdn2.microsoft.com/en-us/library/ms997636.aspx</a>
 					       gives some usefull hints.
 						<LI> create at least a 16x16, 32x32 and 48x48 pixel version and save each of them in a seperate layer of the respective size.
 						<LI> when saving your image as type <i>.ico</i> the GIMP will ask you for the color depth of each layer. As it is recommended to have
 						     multiple color depths of each icon-size, go back to the layers and duplicate each layer twice. That should give you 9 layers.
-						<LI> now save the image as <i>&lt;binaryname&gt;_icon.ico</i> (e.g. TOPPView_icon.ico) file, giving each group of equal sized layers a 4bit, 8bit and 24bit color depth. 
+						<LI> now save the image as <i>&lt;binaryname&gt;_icon.ico</i> (e.g. TOPPView_icon.ico) file, giving each group of equal sized layers a 4bit, 8bit and 24bit color depth.
 					</OL>
 				<LI> Create a resource file:
 					<OL>
@@ -454,24 +515,26 @@
 								 <i>101 ICON "TOPPView_icon.ico"</i><br>
 								 , replacing TOPPView with your binary name.
 					</OL>
-				<LI> Put both files in <i>%OpenMS/source/APPLICATIONS/TOPP/</i> (you should find some similar files for other TOPP tools already present):
-				<LI> Try to re-link your TOPP tool (deleting the binary and calling @a make @a &lt;myTOPPtool&gt; should suffice
+				<LI> Put both files in <i>%OpenMS/source/APPLICATIONS/TOPP/</i> (you should find some similar files for other TOPP tools already present).
+        <LI> Alter CMakeLists.txt to make the Build-System aware (search for TOPPView) and use common sense.
+				<LI> Try to re-link your TOPP tool.
 				<LI> Voilá. You should have an iconized TOPP tool.
 			</OL>
-			
+
 			<LI><B>What do i have to do to add a new TOPP tool?</B>
 			<OL>
 				<LI> Write the new tool ;)
-				<LI> Add your tool to getToolList() in include/OpenMS/APPLICATIONS/TOPPView.h
+				<LI> Add your tool to getToolList() in <tt>include/OpenMS/APPLICATIONS/TOPPView.h</tt>
 				<LI> Add it to the TOPP docu page (in @a doc/doxygen/public/TOPP.doxygen)
 				<LI> Add the executable to the ignore list if the directory (@a svn @a propedit @a svn:ignore @a source/APPLICATION/TOPP/)
+        <LI> Add the name to <tt>source/APPLICATIONS/TOPP/executables.cmake</tt>
 			</OL>
-			
+
 		</UL>
 
 	<H2 style="border-top:2px solid grey;">Contrib libraries</H2>
 		<UL>
-    <LI><B>How to upgrade to a new snapshot version of SeqAn?</B></LI>
+    <LI><B>(Linux) How to upgrade to a new snapshot version of SeqAn?</B></LI>
 			<OL>
          <LI>If there is a recent SeqAn release that works, use it instead ;-) Otherwise:
          <LI>Checkout the lasted stuff from SVN.
@@ -505,7 +568,7 @@
       </OL>
 		</UL>
 
-		
+
 */
 
 /// @endcond

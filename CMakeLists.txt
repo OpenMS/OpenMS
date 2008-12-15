@@ -15,6 +15,7 @@ PROJECT("OpenMS")
 
 ## not implemented yet (TODO):
 # DO_INSTALL
+# ENABLE-STL-DEBUG (not the same as OPENMS_DEBUG!)
 
 ########################################################
 ###    manual entries (edit this for new release)    ###
@@ -518,7 +519,7 @@ configure_file(
 include(CMakeExportBuildSettings)
 cmake_export_build_settings(${OpenMS_BINARY_DIR}/OpenMSBuildSettings.cmake)
 export_library_dependencies(${OpenMS_BINARY_DIR}/OpenMSLibraryDepends.cmake)
-# TODO install these files to a specific location to have a standard way 
+# TODO install these files to a specific location to have a standard way
 # to be used with external code
 
 
