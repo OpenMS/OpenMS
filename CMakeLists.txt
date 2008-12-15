@@ -481,6 +481,7 @@ add_dependencies(UTILS ${UTILS_executables})
 
 
 ###### Examples ######
+# TODO
 set(EXAMPLES_executables)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY source/EXAMPLES)
 include(source/EXAMPLES/executables.cmake)
@@ -496,10 +497,15 @@ endforeach(i)
 enable_testing()
 add_subdirectory(source/TEST EXCLUDE_FROM_ALL)
 
-
 ##### TOPPtests #####
 add_subdirectory(source/TEST/TOPP EXCLUDE_FROM_ALL)
 
+#### cache_clean ####
+# TODO
+#add_custom_command(
+# TARGET cache_clean remove "CMakeCache.txt"
+# )
+#add_custom_target(cache_clean)
 
 #### configs for external include files, e.g. to develop code with OpenMS
 #get_target_property(OPENMS_LIBRARIES_EXTERNAL OpenMS LOCATION)
