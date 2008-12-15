@@ -28,7 +28,7 @@
 #ifndef OPENMS_VISUAL_DIALOGS_SPECTRUMALIGNMENTDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_SPECTRUMALIGNMENTDIALOG_H
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/SpectrumAlignmentDialogTemplate.h>
+#include <OpenMS/VISUAL/DIALOGS/UIC/ui_SpectrumAlignmentDialog.h>
 
 namespace OpenMS 
 {
