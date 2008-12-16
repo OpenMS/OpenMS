@@ -55,7 +55,7 @@ paramdoc: dummy
 	@echo "      If this step fails the rest of the documentation is created nevertheless.";
 	@echo "";
 	@echo "Building OpenMS parameter docu:"
-	@echo "=============================="
+	@echo "==============================="
 	@-make paramdoc_try 
 	@echo "Building TOPP/UTILS docu:"
 	@echo "========================="
@@ -63,14 +63,12 @@ paramdoc: dummy
 
 # the actual paramdoc is created in this target to make sure the above text is printed
 paramdoc_try: doxygen/parameters/DefaultParamHandlerDocumenter.C dummy
-	@cd ../; make doc_progs && \
-		cd doc/doxygen/parameters/ && \ 
-	 ./DefaultParamHandlerDocumenter;
+	@cd ../; make doc_progs
+	@cd doxygen/parameters/ && ./DefaultParamHandlerDocumenter;
 
 toppdoc_try: doxygen/parameters/TOPPDocumenter.C dummy
-	@cd ../; make doc_progs && \
-		cd doc/doxygen/parameters/ && \
-	 ./TOPPDocumenter;
+	@cd ../; make doc_progs
+	@cd doxygen/parameters/ && ./TOPPDocumenter;
 
 #######################################################################
 # creates the documentation
