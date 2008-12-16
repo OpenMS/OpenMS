@@ -24,8 +24,6 @@
 # $Maintainer: Marc Sturm, Clemens Groepl $
 # --------------------------------------------------------------------------
 
--include ../source/config.mak
-
 # We want to add the revision info only if it is meaningful.
 # If the svnversion command fails, the result of the shell builtin function is "".
 # If we have a download without svn, the result of svnversion is "exported",
@@ -56,19 +54,21 @@ paramdoc: dummy
 	@echo "Note: A functioning OpenMS/TOPP installation and a running X-server is required for this step!";
 	@echo "      If this step fails the rest of the documentation is created nevertheless.";
 	@echo "";
-	@echo "Building param doc:"
+	@echo "Building OpenMS parameter docu:"
+	@echo "=============================="
 	@-make paramdoc_try 
-	@echo "Building TOPP/UTILS doc:"
+	@echo "Building TOPP/UTILS docu:"
+	@echo "========================="
 	@-make toppdoc_try 
 
-# the actual paramdoc is created in this target to make sure the above text is printed without the config.mak file
-paramdoc_try: doxygen/parameters/DefaultParamHandlerDocumenter.C ../source/config.mak dummy
+# the actual paramdoc is created in this target to make sure the above text is printed
+paramdoc_try: doxygen/parameters/DefaultParamHandlerDocumenter.C dummy
 	@cd doxygen/parameters/ && \
 	 $(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(LIB_CXXFLAGS) $(OPENMS_INCLUDES) $(ADD_INCLUDES) -c DefaultParamHandlerDocumenter.C -o DefaultParamHandlerDocumenter.o && \
 	 $(CXX) $(LDFLAGS) -o DefaultParamHandlerDocumenter DefaultParamHandlerDocumenter.o $(LIBS) && \
 	 ./DefaultParamHandlerDocumenter;
 
-toppdoc_try: doxygen/parameters/TOPPDocumenter.C ../source/config.mak dummy
+toppdoc_try: doxygen/parameters/TOPPDocumenter.C dummy
 	@cd doxygen/parameters/ && \
 	 $(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(LIB_CXXFLAGS) $(OPENMS_INCLUDES) $(ADD_INCLUDES) -c TOPPDocumenter.C -o TOPPDocumenter.o && \
 	 $(CXX) $(LDFLAGS) -o TOPPDocumenter TOPPDocumenter.o $(LIBS) && \

@@ -185,7 +185,7 @@ void writeParameters(const String& class_name, const Param& param)
 			if (it->valid_strings.size()!=0)
 			{
 				String valid_strings;
-				valid_strings.implode(it->valid_strings.begin(),it->valid_strings.end(),", ");
+				valid_strings.concatenate(it->valid_strings.begin(),it->valid_strings.end(),", ");
 				restrictions += valid_strings;
 			}
 		}
@@ -224,7 +224,7 @@ void writeParameters(const String& class_name, const Param& param)
 		}
 		if (parts.size()!=0)
 		{
-			name.implode(parts.begin(), parts.end(), ":");
+			name.concatenate(parts.begin(), parts.end(), ":");
 		}
 
 		//replace # and @ in values
