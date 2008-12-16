@@ -136,17 +136,17 @@ END_SECTION
 
 START_SECTION((const Residue& getResidue(Int index) const))
 	AASequence seq(String("ACDEF"));
-	Int sint(2);
+	SignedSize sint(2);
 	TEST_EQUAL(seq.getResidue(sint).getOneLetterCode(), "D")
-	TEST_EXCEPTION(Exception::IndexUnderflow, seq.getResidue(-3))
-	TEST_EXCEPTION(Exception::IndexOverflow, seq.getResidue(1000))
+	TEST_EXCEPTION(Exception::IndexUnderflow, seq.getResidue((SignedSize)-3))
+	TEST_EXCEPTION(Exception::IndexOverflow, seq.getResidue((SignedSize)1000))
 END_SECTION
 
-START_SECTION(const Residue& getResidue(UInt index) const)
+START_SECTION(const Residue& getResidue(Size index) const)
 	AASequence seq("ACDEF");
-	UInt unsignedint(2);
+	Size unsignedint(2);
 	TEST_EQUAL(seq.getResidue(unsignedint).getOneLetterCode(), "D")
-	TEST_EXCEPTION(Exception::IndexOverflow, seq.getResidue(1000))
+	TEST_EXCEPTION(Exception::IndexOverflow, seq.getResidue((Size)1000))
 END_SECTION
 
 START_SECTION((EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge=0) const))
@@ -177,7 +177,7 @@ END_SECTION
 
 START_SECTION(const Residue& operator [] (Int index) const)
   AASequence seq("DFPIANGER");
-	Int index = 0;
+	SignedSize index = 0;
 	TEST_EQUAL(seq[index].getOneLetterCode(), "D")
 	index = -1;
 	TEST_EXCEPTION(Exception::IndexUnderflow, seq[index])
@@ -185,9 +185,9 @@ START_SECTION(const Residue& operator [] (Int index) const)
 	TEST_EXCEPTION(Exception::IndexOverflow, seq[index])
 END_SECTION
 
-START_SECTION(const Residue& operator [] (UInt index) const)
+START_SECTION(const Residue& operator [] (Size index) const)
 	AASequence seq("DFPIANGER");
-  UInt index = 0;
+  Size index = 0;
   TEST_EQUAL(seq[index].getOneLetterCode(), "D")
   index = 20;
   TEST_EXCEPTION(Exception::IndexOverflow, seq[index])
@@ -217,26 +217,26 @@ START_SECTION(AASequence& operator += (const String&))
 	TEST_EQUAL(seq1, seq2)
 END_SECTION
 
-START_SECTION(UInt size() const)
+START_SECTION(Size size() const)
   AASequence seq1("DFPIANGER");
 	TEST_EQUAL(seq1.size(), 9)
 END_SECTION
 
-START_SECTION(AASequence getPrefix(UInt index) const)
+START_SECTION(AASequence getPrefix(Size index) const)
   AASequence seq1("DFPIANGER"), seq2("DFP"), seq3("DFPIANGER");
 	TEST_EQUAL(seq2, seq1.getPrefix(3));
 	TEST_EQUAL(seq3, seq1.getPrefix(9));
 	TEST_EXCEPTION(Exception::IndexOverflow, seq1.getPrefix(10))
 END_SECTION
 
-START_SECTION(AASequence getSuffix(UInt index) const)
+START_SECTION(AASequence getSuffix(Size index) const)
   AASequence seq1("DFPIANGER"), seq2("GER"), seq3("DFPIANGER");
 	TEST_EQUAL(seq2, seq1.getSuffix(3));
 	TEST_EQUAL(seq3, seq1.getSuffix(9));
 	TEST_EXCEPTION(Exception::IndexOverflow, seq1.getSuffix(10))
 END_SECTION
 
-START_SECTION(AASequence getSubsequence(UInt index, UInt number) const)
+START_SECTION(AASequence getSubsequence(Size index, UInt number) const)
   AASequence seq1("DFPIANGER"), seq2("IAN"), seq3("DFPIANGER");
 	TEST_EQUAL(seq2, seq1.getSubsequence(3, 3))
 	TEST_EQUAL(seq3, seq1.getSubsequence(0, 9))
@@ -245,7 +245,7 @@ END_SECTION
 
 START_SECTION(bool has(const Residue& residue) const)
   AASequence seq("DFPIANGER");
-	TEST_EQUAL(seq.has(seq[0]), true)
+	TEST_EQUAL(seq.has(seq[(Size)0]), true)
 	Residue res;
 	TEST_NOT_EQUAL(seq.has(res), true)
 END_SECTION
@@ -299,7 +299,7 @@ END_SECTION
 START_SECTION(ConstIterator begin() const)
 	String result[] = { "D", "F", "P", "I", "A", "N", "G", "E", "R" };
 	AASequence seq("DFPIANGER");
-	UInt i = 0;
+	Size i = 0;
 	for (AASequence::ConstIterator it = seq.begin(); it != seq.end(); ++it, ++i)
 	{
 		TEST_EQUAL((*it).getOneLetterCode(), result[i])
@@ -313,7 +313,7 @@ END_SECTION
 START_SECTION(Iterator begin())
 	String result[] = { "D", "F", "P", "I", "A", "N", "G", "E", "R" };
   AASequence seq("DFPIANGER");
-  UInt i = 0;
+  Size i = 0;
   for (AASequence::ConstIterator it = seq.begin(); it != seq.end(); ++it, ++i)
   {
     TEST_EQUAL((*it).getOneLetterCode(), result[i])
@@ -369,10 +369,10 @@ START_SECTION(AASequence(const char *rhs))
 	TEST_STRING_EQUAL((seq1 + seq2).toString(), seq3.toString())
 END_SECTION
 
-START_SECTION(void setModification(UInt index, const String &modification))
+START_SECTION(void setModification(Size index, const String &modification))
 	AASequence seq1("ACDEFNK");
 	seq1.setModification(5, "Deamidated");
-	TEST_STRING_EQUAL(seq1[5].getModification(), "MOD:00565")
+	TEST_STRING_EQUAL(seq1[(Size)5].getModification(), "MOD:00565")
 END_SECTION
 
 START_SECTION(void setNTerminalModification(const String &modification))
@@ -519,7 +519,7 @@ START_SECTION(bool isModified() const)
 	TEST_EQUAL(seq4.isModified(), true);
 END_SECTION
 
-START_SECTION(bool isModified(UInt index) const)
+START_SECTION(bool isModified(Size index) const)
 	AASequence seq4("DFPIAN(MOD:00565)GER");
 	TEST_EQUAL(seq4.isModified(5), true)
 	TEST_EQUAL(seq4.isModified(4), false)
