@@ -480,6 +480,18 @@ add_custom_target(UTILS)
 add_dependencies(UTILS ${UTILS_executables})
 
 
+##### Doc progs ######
+set(OpenMS_doc_executables)
+include(doc/doxygen/parameters/executables.cmake)
+foreach(i ${OpenMS_doc_executables})
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "")
+	add_executable(${i} EXCLUDE_FROM_ALL ${i}.C)
+	target_link_libraries(${i} ${OPENMS_LIBRARIES})
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
+endforeach(i)
+add_custom_target(doc_progs)
+add_dependencies(doc_progs ${OpenMS_doc_executables})
+
 ###### Examples ######
 # TODO
 set(EXAMPLES_executables)

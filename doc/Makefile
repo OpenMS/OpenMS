@@ -63,15 +63,13 @@ paramdoc: dummy
 
 # the actual paramdoc is created in this target to make sure the above text is printed
 paramdoc_try: doxygen/parameters/DefaultParamHandlerDocumenter.C dummy
-	@cd doxygen/parameters/ && \
-	 $(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(LIB_CXXFLAGS) $(OPENMS_INCLUDES) $(ADD_INCLUDES) -c DefaultParamHandlerDocumenter.C -o DefaultParamHandlerDocumenter.o && \
-	 $(CXX) $(LDFLAGS) -o DefaultParamHandlerDocumenter DefaultParamHandlerDocumenter.o $(LIBS) && \
+	@cd ../; make doc_progs && \
+		cd doc/doxygen/parameters/ && \ 
 	 ./DefaultParamHandlerDocumenter;
 
 toppdoc_try: doxygen/parameters/TOPPDocumenter.C dummy
-	@cd doxygen/parameters/ && \
-	 $(CXX) $(CXXFLAGS) $(ADD_CXXFLAGS) $(CPP_MODE_FLAGS) $(LIB_CXXFLAGS) $(OPENMS_INCLUDES) $(ADD_INCLUDES) -c TOPPDocumenter.C -o TOPPDocumenter.o && \
-	 $(CXX) $(LDFLAGS) -o TOPPDocumenter TOPPDocumenter.o $(LIBS) && \
+	@cd ../; make doc_progs && \
+		cd doc/doxygen/parameters/ && \
 	 ./TOPPDocumenter;
 
 #######################################################################
