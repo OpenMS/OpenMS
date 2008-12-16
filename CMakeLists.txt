@@ -82,7 +82,7 @@ endif()
 #default build type (for Makefile generators): release
 set(CMAKE_BUILD_TYPE "Release")
 Message(STATUS "Default build type is 'Release'. Change CMAKE_BUILD_TYPE to modify this! [relevant for Makefiles only]")
-
+Message(STATUS "  Current build type: ${CMAKE_BUILD_TYPE}")
 set(ENABLE_STL_DEBUG "false" CACHE BOOL "[GCC only] Enable STL-DEBUG mode (slow).")
 ## STL-DEBUG (only for GCC)
 if (ENABLE_STL_DEBUG)
@@ -553,12 +553,32 @@ export_library_dependencies(${OpenMS_BINARY_DIR}/OpenMSLibraryDepends.cmake)
 
 
 ##INFO for make cacheclean:
-## deleting the Cache should not be neccessary
+## deleting the Cache should not be neccessary, unless you change the location of some libraries
+## , still. some libraries might not be found due to partially compiled OpenMS/TOPP
+## So the best solution is to delete the Build-Tree and start over!
 ## (and it would require a custom_target which uses "echo > CMakeCache.txt" (most platforms should have it)
 ## just delete it by hand if you must
 ## alternatively use ADDITIONAL_MAKE_CLEAN_FILES to remove it when calling "make clean"
 
 
+## targets
+## - displays the most important targets
+## - the @ in front of 'echo' is neccessary to silence the output of the command
+add_custom_target(targets
+                  COMMAND @echo "    [target]       [builds ...]"
+                  COMMAND @echo "    OpenMS         the OpenMS-Library"
+                  COMMAND @echo "    TOPP           TOPP tools"
+                  COMMAND @echo "    test           all tests"
+                  COMMAND @echo "    UTILS          helper programs"
+                  COMMAND @echo "    EXAMPLES       example executables in source/EXAMPLES"
+                  COMMAND @echo ""
+                  COMMAND @echo "Single TOPP tools have their own target, e.g. TOPPView"
+                  COMMAND @echo "The same applies for class tests and UTILS tools."
+                  COMMAND @echo "All available targets can be listed using 'make help' (very long)"
+                  COMMAND @echo ""
+                  COMMENT "The most important targets for OpenMS"
+                  VERBATIM
+  )
 
 ########################################################
 ###    install/copy??																 ###

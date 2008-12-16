@@ -98,6 +98,27 @@
           you can choose the one you like within the IDE itself.
         </UL>
 
+      <LI><B>I changed the contrib path, but re-running CMake won't change the library paths?!</B>
+         <UL>
+          Once a library is found and its location is stored in a cache variable, it will only be searched again if the corresponding entry in the cache file is set to false. You can simply delete the CMakeCache.txt, but all other custom settings will be lost as well.
+        </UL>
+
+      <LI><B>What are the most useful (make) targets?!</B>
+         <UL>
+          In Visual Studio you can see all targets on the left. For Makefiles type <tt>make help</tt>.<br>
+          However, this list is quite long. The most useful targets will be shown to you by calling the
+          <tt>targets</tt> target, e.g. <tt>make targets</tt>.
+        </UL>
+
+
+      <LI><B>How do I switch to debug/release configuration?!</B>
+         <UL>
+          For Makefile generators (typically on Linux) you can set the CMAKE_BUILD_TYPE variable to either
+          Debug or Release by calling ccmake. This only works AFTER you have called cmake.<br>
+          For Visual Studio, this is not necessary as all configurations are generated and
+          you can choose the one you like within the IDE itself.
+        </UL>
+
 
       <LI><B>CMake can't seem to find a Qt library (usually QtCore)! What now?</B>
          <UL>
