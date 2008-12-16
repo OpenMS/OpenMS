@@ -57,7 +57,8 @@
         <UL>
           CMake builds BuildSystems for different platforms, e.g. VisualStudio Solutions on Windows, Makefiles on Linux etc.
           This allows us to define in one central location (namely CMakeLists.txt) how OpenMS is build and have the platform specific stuff handled by CMake.
-          See http://www.cmake.org for more information.
+          See http://www.cmake.org for more information.<br>
+          We require <b>CMake 2.6</b> and above!
         </UL>
 
       <LI><B>How do I use CMake?!</B>
@@ -65,7 +66,12 @@
           See Installation instructions for your platform.
           In general, you call CMake(.exe) with some parameters to create the native build-system. Afterwards you can (but usually don't have to
           edit the current configuration using a GUI named ccmake (or CMake-GUI in Windows), which ships with CMake).
-          Note: whenever ccmake is mentionend in this document, substitute this by CMake-GUI if your OS is Windows.
+          Note: whenever ccmake is mentionend in this document, substitute this by CMake-GUI if your OS is Windows. You can also edit the CMakeCache.txt file directly.
+        </UL>
+
+      <LI><B>How do I generate a build-system for Eclipse, KDevelop, CodeBlocks etc?!</B>
+         <UL>
+          Type <code>cmake</code> into a console. This will list the available code generators available on your platform, which you can pass to CMake using the <tt>-G</tt> option.
         </UL>
 
       <LI><B>What are user definable CMake Cache Variables?!</B>
