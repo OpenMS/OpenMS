@@ -56,12 +56,10 @@ paramdoc: dummy
 	@echo "Note: A functioning OpenMS/TOPP installation and a running X-server is required for this step!";
 	@echo "      If this step fails the rest of the documentation is created nevertheless.";
 	@echo "";
-	@echo "[ param doc ... "
+	@echo "Building param doc:"
 	@-make paramdoc_try 
-	@echo "  param doc: ok. ]"
-	@echo "[ TOPP doc ... "
+	@echo "Building TOPP/UTILS doc:"
 	@-make toppdoc_try 
-	@echo "  TOPP doc: ok. ]"
 
 # the actual paramdoc is created in this target to make sure the above text is printed without the config.mak file
 paramdoc_try: doxygen/parameters/DefaultParamHandlerDocumenter.C ../source/config.mak dummy
