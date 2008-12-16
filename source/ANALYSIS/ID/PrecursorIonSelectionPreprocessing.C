@@ -115,22 +115,6 @@ namespace OpenMS
 		// first check if preprocessed db already exists
 		String path = param_.getValue("preprocessing:preprocessed_db_path");
 		
-// 		// db-name__precursor_mass_tolerance_unit__missed_cleavages__taxonomy
-		
-// 		// get db-name
-// 		UInt pos1 = db_path.rfind("/") +1;
-// 		UInt pos2 = db_path.rfind(".");
-// 		String db_name = db_path.substr(pos1,pos2-pos1);
-		
-// 		std::stringstream ss;
-// 		ss << (DoubleReal)param_.getValue("precursor_mass_tolerance");
-// 		ss << "_";
-// 		ss << param_.getValue("precursor_mass_tolerance_unit");
-// 		ss << "_";
-// 		ss << (UInt)param_.getValue("missed_cleavages");
-		
-// 		path += db_name + "_" +ss.str() + "_" + (String)param_.getValue("preprocessing:taxonomy");
-		
 		// check if file exists
 		std::ifstream test(path.c_str());
 		if(test)
@@ -173,14 +157,10 @@ namespace OpenMS
 		std::ifstream test(path.c_str());
 		if(test)
 			{
-				std::cout << "loadPreprocessedDB"<<std::endl;
 				loadPreprocessedDB_(path);
 			}
 		else
 			{
-				std::cout << "create PreprocessedDB"<<std::endl;
-				return;
-				
 				FASTAFile fasta_file;
 				std::vector<FASTAFile::FASTAEntry> entries;
 				fasta_file.load(db_path,entries);
@@ -325,11 +305,10 @@ namespace OpenMS
 		// first save protein_masses_map
 		std::ofstream out(path.c_str());
 		out.precision(10);
-		// if(!out)
-// 		{
-// 				std::cout << "konnte outstream nicht anlegen!"<<std::endl;
-// 				return;
-// 		}
+		if (!out)
+			{
+				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, path);
+			}
 		out << prot_masses_.size() <<std::endl;
 #ifdef PISP_DEBUG
 		std::cout << prot_masses_.size() << " "<<counter_.size() << " "<< bin_masses_.size()<< std::endl;
@@ -352,8 +331,12 @@ namespace OpenMS
 #endif
 		// now save counter
 		std::ofstream out2((path + "_counter").c_str());
+		if (!out2)
+			{
+				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, path+ "_counter");
+			}
 		out2.precision(10);
-
+		
 		// header: number of entries, min, max
 		out2 << counter_.size() << "\t" << masses_[0] << "\t"<<*(masses_.end()-1) <<"\n";
 		for(UInt i = 0; i < counter_.size(); ++i)
@@ -368,6 +351,11 @@ namespace OpenMS
 #endif
 				// now save bin_masses
 				std::ofstream out3((path + "_bin_masses").c_str());
+				if (!out3)
+					{
+						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, path+ "_bin_masses");
+					}
+				
 				out3.precision(10);				
 				// header: number of entries
 				out3 << bin_masses_.size() << "\n";
