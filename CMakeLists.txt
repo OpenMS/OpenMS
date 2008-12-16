@@ -10,12 +10,12 @@ PROJECT("OpenMS")
 ########################################################
 # CUSTOM_CONTRIB_DIR
 # OPENMS_DEBUG
+# ENABLE_STL_DEBUG (not the same as OPENMS_DEBUG!)
 # OPENMS_ENABLE_EXTERNALMEMORY
 # CF_DB_PLUGIN
 
 ## not implemented yet (TODO):
 # DO_INSTALL
-# ENABLE-STL-DEBUG (not the same as OPENMS_DEBUG!)
 
 ########################################################
 ###    manual entries (edit this for new release)    ###
@@ -79,6 +79,25 @@ if (NOT WIN32) # we only want fPIC on non-windows systems (fPIC is implicitly tr
 	endif()
 endif()
 
+#default build type (for Makefile generators): release
+set(CMAKE_BUILD_TYPE "Release")
+Message(STATUS "Default build type is 'Release'. Change CMAKE_BUILD_TYPE to modify this! [relevant for Makefiles only]")
+
+set(ENABLE_STL_DEBUG "false" CACHE BOOL "[GCC only] Enable STL-DEBUG mode (slow).")
+## STL-DEBUG (only for GCC)
+if (ENABLE_STL_DEBUG)
+  if (CMAKE_COMPILER_IS_GNUCXX)
+    # force DEBUG mode
+    set(CMAKE_BUILD_TYPE "Debug" CACHE "Build type for Makefile Generators: Debug Release RelWithDebInfo MinSizeRel" STRING FORCE)
+    # add compiler flag
+    add_definitions(/D_GLIBCXX_DEBUG)
+    Message(STATUS "[enabled] STL-DEBUG")
+  else()
+    Message(WARNING "[disabled] STL-DEBUG is only supported for GCC!")
+  endif()
+else()
+  Message(STATUS "[disabled] STL-DEBUG")
+endif()
 
 ########################################################
 ###    external libs																 ###
@@ -139,13 +158,13 @@ endif()
 ## TODO: check if we also need to distinguish between compiler versions
 
 MACRO (OPENMS_CHECKLIB varname libnames libnames_d human_libname)
-	FIND_LIBRARY(${varname}_OPT NAMES ${libnames} PATHS ${CONTRIB_LIB_DIR} DOC "${human_libname} library dir")
+	FIND_LIBRARY(${varname}_OPT NAMES ${libnames} PATHS ${CONTRIB_LIB_DIR} DOC "${human_libname} library dir" NO_DEFAULT_PATH)
 	if (${varname}_OPT STREQUAL "${varname}_OPT-NOTFOUND")
 		MESSAGE(FATAL_ERROR "Unable to find ${human_libname} library! Searched names are: [${libnames}] Please make sure it is part of the contrib (which we assume to be at: ${CONTRIB_DIR}")
 	else()
 		MESSAGE(STATUS "Found ${human_libname} library at: " ${${varname}_OPT})
 	endif()
-	FIND_LIBRARY(${varname}_DBG NAMES ${libnames_d} PATHS ${CONTRIB_LIB_DIR} DOC "${human_libname} (Debug) library dir")
+	FIND_LIBRARY(${varname}_DBG NAMES ${libnames_d} PATHS ${CONTRIB_LIB_DIR} DOC "${human_libname} (Debug) library dir" NO_DEFAULT_PATH)
 	if (${varname}_DBG STREQUAL "${varname}_DBG-NOTFOUND")
 		MESSAGE(FATAL_ERROR "Unable to find ${human_libname} (Debug) library! Searched names are: [${libnames}] Please make sure it is part of the contrib (which we assume to be at: ${CONTRIB_DIR}")
 	else()
@@ -193,6 +212,10 @@ SET(QT_USE_QTOPENGL 1)
 FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE(${QT_USE_FILE})
 INCLUDE(UseQt4)
+
+Message(STATUS "QT qmake at ${QT_QMAKE_EXECUTABLE}")
+Message(STATUS "QT moc at ${QT_MOC_EXECUTABLE}")
+Message(STATUS "QT uic at ${QT_UIC_EXECUTABLE}")
 
 ########################################################
 ###    useful programms															 ###
@@ -418,7 +441,7 @@ MACRO (QT4_WRAP_UI_OWN outfiles )
 
 ENDMACRO (QT4_WRAP_UI_OWN)
 
-link_directories(${CONTRIB_LIB_DIR})
+#link_directories(${CONTRIB_LIB_DIR})
 
 # big include file for headers and C files, which fills the OpenMS_sources variable
 include (includes.cmake)
@@ -451,16 +474,16 @@ set(TOPP_executables)
 include(source/APPLICATIONS/TOPP/executables.cmake)
 
 
-#ENABLE_LANGUAGE(RC)
+
+set(TOPP_DIR source/APPLICATIONS/TOPP/)
 foreach(i ${TOPP_executables})
-	set(resource_file "")
+	set(resource_file ${CMAKE_SOURCE_DIR}/${TOPP_DIR}${i}.rc)
 	## add icons to TOPPView and INIFileEditor
-	if (MSVC AND i STREQUAL "TOPPView" OR i STREQUAL "INIFileEditor")
-		set(resource_file ${i}_icon.o.rc)
+	if (MSVC AND EXISTS ${resource_file})
 		message(STATUS "Setting resource file ${resource_file} for ${i}")
-		add_executable(${i} WIN32 source/APPLICATIONS/TOPP/${i}.C source/APPLICATIONS/TOPP/${resource_file})
+		add_executable(${i} ${TOPP_DIR}${i}.C ${resource_file})
 	else()
-		add_executable(${i} source/APPLICATIONS/TOPP/${i}.C)
+		add_executable(${i} ${TOPP_DIR}${i}.C)
 	endif()
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
 endforeach(i)
@@ -512,13 +535,6 @@ add_subdirectory(source/TEST EXCLUDE_FROM_ALL)
 ##### TOPPtests #####
 add_subdirectory(source/TEST/TOPP EXCLUDE_FROM_ALL)
 
-#### cache_clean ####
-# TODO
-#add_custom_command(
-# TARGET cache_clean remove "CMakeCache.txt"
-# )
-#add_custom_target(cache_clean)
-
 #### configs for external include files, e.g. to develop code with OpenMS
 #get_target_property(OPENMS_LIBRARIES_EXTERNAL OpenMS LOCATION)
 #set(OPENMS_INCLUDE_EXTERNAL ${PROJECT_BINARY_DIR}/include)
@@ -534,6 +550,14 @@ cmake_export_build_settings(${OpenMS_BINARY_DIR}/OpenMSBuildSettings.cmake)
 export_library_dependencies(${OpenMS_BINARY_DIR}/OpenMSLibraryDepends.cmake)
 # TODO install these files to a specific location to have a standard way
 # to be used with external code
+
+
+##INFO for make cacheclean:
+## deleting the Cache should not be neccessary
+## (and it would require a custom_target which uses "echo > CMakeCache.txt" (most platforms should have it)
+## just delete it by hand if you must
+## alternatively use ADDITIONAL_MAKE_CLEAN_FILES to remove it when calling "make clean"
+
 
 
 ########################################################
