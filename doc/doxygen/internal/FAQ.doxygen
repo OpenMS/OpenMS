@@ -139,6 +139,14 @@
 					<LI> Execute <TT>update.sh &lt;sf-login&gt; and follow instructions</TT>
 				</OL>
 
+      <li><b>How do I add a new class <tt>MyClass</tt> to the build system?</b><br>
+          <OL>
+            <LI>Create the new class (header in include/ and C file in source/)
+            <LI>Add each to the sources.cmake file in the same directory.
+            <LI>Add them to svn version control and set the svn:eol-style property to native<br>
+                e.g. <code>svn propset svn:eol-style native MyClass.h</code>
+          </OL>
+
 	    <li><b>How do I add a new directory <tt>MYDIR</tt> to the build system?</b><br>
 	        <OL>
             <LI>Add the new directory to <%OpenMS>/includes.cmake (you should add two lines - one for /source and one for /include).
@@ -440,7 +448,7 @@
 							<LI> More options are given with @a --help
 							<LI> Send feedback concening the script to Marc
 						</UL>
-          <LI> [extend doc] Valgrind?
+          <LI> [TODO] Valgrind?
 					<LI> (Linux) Check all your %OpenMS tests and TOPP tests with STL debug mode (CMake: ENABLE-STL-DEBUG)
 					<LI> Documentation:
 						<UL>
@@ -468,7 +476,7 @@
           <LI> Windows: this is directly supported by Vidual Studio. Follow their documentation.
           <LI> Linux:
           <OL>
-					  <LI> build %OpenMS in debug mode [extend doc]
+					  <LI> build %OpenMS in debug mode (set CMAKE_BUILD_TYPE to 'Debug')
 					  <LI> call the executable with valgrind: <tt>'valgrind --tool=callgrind &lt;executable&gt; &lt;parameters&gt;'</tt>
 						  <UL>
 							  <LI> Note: other processes running on the same machine can influence the profiling.
@@ -485,7 +493,7 @@
 
 			<LI><B>(Linux) How do i check my code for memory leaks?</B>
 				<OL>
-					<LI>build %OpenMS in debug mode [extend doc]
+					<LI>build %OpenMS in debug mode (set CMAKE_BUILD_TYPE to 'Debug')
 					<LI> call the executable with valgrind: <tt>'valgrind --leak-check=full &lt;executable&gt; &lt;parameters&gt;'</tt>
 					<LI> Common errors are:
 						<UL>
