@@ -14,6 +14,8 @@ PILISModelGenerator.C
 PILISNeutralLossModel.C
 PILISScoring.C
 ProtonDistributionModel.C
+PrecursorIonSelectionPreprocessing.C
+PrecursorIonSelection.C
 )
 
 ### add path to the filenames

@@ -16,6 +16,8 @@ PILISModelGenerator.h
 PILISNeutralLossModel.h
 PILISScoring.h
 ProtonDistributionModel.h
+PrecursorIonSelectionPreprocessing.h
+PrecursorIonSelection.h
 )
 
 ### add path to the filenames
