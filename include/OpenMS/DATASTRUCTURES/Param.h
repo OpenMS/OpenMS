@@ -136,7 +136,7 @@ namespace OpenMS
 				///Inserts an @p entry with the given @p prefix 
 				void insert(const ParamEntry& entry, const String& prefix = "");
 				///Returns the number of entries in the whole subtree
-				UInt size() const;
+				Size size() const;
 				///Returns the name suffix of a @p key (the part behind the last ':' character)
 				String suffix(const String& key) const;
 				
@@ -387,7 +387,7 @@ namespace OpenMS
 			///@name Manipulation of the whole parameter set
 			//@{
 			///Returns the number of entries (leafs).
-			UInt size() const;
+			Size size() const;
 			///Returns if there are no entries.
 			bool empty() const;
 			/// Deletes all entries

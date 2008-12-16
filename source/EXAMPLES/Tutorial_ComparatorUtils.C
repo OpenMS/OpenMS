@@ -25,7 +25,7 @@ class IntRealStringVector : public std::vector<IntRealString>
  public:
   void print() const
   {
-    for (UInt i = 0; i < size(); ++i) (*this)[i].print();
+    for (Size i = 0; i < size(); ++i) (*this)[i].print();
     std::cout << std::endl;
   }
 };
@@ -96,19 +96,19 @@ Int main()
 
   // vector of pointers into vec
   std::vector<const IntRealString*> ptr_vec;
-  for (UInt i = 0; i < vec.size(); ++i)
+  for (Size i = 0; i < vec.size(); ++i)
   {
     ptr_vec.push_back(&vec[i]);
   }
 
   std::cout << "ptr_vec before sorting" << std::endl;
-  for (UInt i = 0; i < ptr_vec.size(); ++i) ptr_vec[i]->print();
+  for (Size i = 0; i < ptr_vec.size(); ++i) ptr_vec[i]->print();
   std::cout << std::endl;
   
   std::sort(ptr_vec.begin(),ptr_vec.end(),OpenMS::pointerComparator(LessByString()));
 
   std::cout << "ptr_vec after sorting with pointerComparator(LessByString())" << std::endl;
-  for (UInt i = 0; i < ptr_vec.size(); ++i) ptr_vec[i]->print();
+  for (Size i = 0; i < ptr_vec.size(); ++i) ptr_vec[i]->print();
   std::cout << std::endl;
   
   return 0;

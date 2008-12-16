@@ -73,7 +73,7 @@ IsotopeDistribution* iso = new IsotopeDistribution();
 START_SECTION(IsotopeDistribution(const IsotopeDistribution& isotope_distribution))
 	IsotopeDistribution copy;
 	copy = *iso;
-  for (UInt i = 0; i != copy.getContainer().size(); ++i)
+  for (Size i = 0; i != copy.getContainer().size(); ++i)
   {
     TEST_EQUAL(copy.getContainer()[i].first, iso->getContainer()[i].first)
     TEST_EQUAL(copy.getContainer()[i].second, iso->getContainer()[i].second)
@@ -92,7 +92,7 @@ END_SECTION
 START_SECTION(IsotopeDistribution& operator = (const IsotopeDistribution& isotope_distribution))
 	IsotopeDistribution copy;
 	copy = *iso;
-	for (UInt i = 0; i != copy.getContainer().size(); ++i)
+	for (Size i = 0; i != copy.getContainer().size(); ++i)
 	{
 		TEST_EQUAL(copy.getContainer()[i].first, iso->getContainer()[i].first)
 		TEST_EQUAL(copy.getContainer()[i].second, iso->getContainer()[i].second)
@@ -141,7 +141,7 @@ START_SECTION(IsotopeDistribution& operator *= (UInt factor))
 	container.push_back(make_pair<UInt, double>(7093, 0.00963707));
 	container.push_back(make_pair<UInt, double>(7094, 0.0039406));
 
-	for (UInt i = 0; i != id.size(); ++i)
+	for (Size i = 0; i != id.size(); ++i)
 	{
 		TEST_EQUAL(id.getContainer()[i].first, container[i].first)
 		TEST_REAL_SIMILAR(id.getContainer()[i].second, container[i].second)

@@ -295,7 +295,7 @@ namespace OpenMS
 		fputs (filename.c_str(),fp);
 		fputs ("\"\n\n",fp);
 
-		for(UInt i = 0; i < experiment.size(); i++)
+		for (Size i = 0; i < experiment.size(); i++)
 		{
 			MSSpectrum<> peaks = experiment[i];
 			peaks.sortByPosition();
@@ -534,7 +534,7 @@ namespace OpenMS
 		
 		sort(charges.begin(), charges.end());
 		  	
-		for(UInt i = 0; i < charges.size(); i++)
+		for (Size i = 0; i < charges.size(); i++)
 		{
 			if (i == 0)
 			{				
@@ -637,7 +637,7 @@ namespace OpenMS
 								line.split(',', split);
 								if (split.size() > 0)
 								{
-									for (UInt i = 0; i != split.size(); ++i)
+									for (Size i = 0; i != split.size(); ++i)
 									{
 										if (split[i].hasSubstring("min"))
 										{

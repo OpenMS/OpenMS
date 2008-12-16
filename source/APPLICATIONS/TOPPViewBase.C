@@ -181,7 +181,7 @@ namespace OpenMS
 		//Recent files    
     QMenu* recent_menu = new QMenu("&Recent files", this);
   	recent_actions_.resize(20);
-		for (UInt i = 0; i<20; ++i)
+		for (Size i = 0; i<20; ++i)
 		{
 			recent_actions_[i] = recent_menu->addAction("",this,SLOT(openRecentFile()));
 			recent_actions_[i]->setVisible(false);
@@ -568,7 +568,7 @@ namespace OpenMS
   {
   	//test if no scans with MS-level 1 exist => prevent deadlock
   	bool ms1_present = false;
-  	for (UInt i = 0; i < exp.size(); ++i)
+  	for (Size i = 0; i < exp.size(); ++i)
   	{
   		if (exp[i].getMSLevel()==1)
   		{
@@ -749,7 +749,7 @@ namespace OpenMS
       {
       	fh.loadExperiment(abs_filename,peak_map, file_type,ProgressLogger::GUI);
       	UInt ms1_scans = 0;
-      	for (UInt i=0; i<peak_map.size();++i)
+      	for (Size i=0; i<peak_map.size();++i)
       	{
       		if (peak_map[i].getMSLevel()==1) ++ms1_scans;
       		if (ms1_scans>1)
@@ -823,7 +823,7 @@ namespace OpenMS
 		{
 			SpectrumCanvas* open_canvas = open_window->canvas();
 			Map<UInt,String> layers;
-			for (UInt i=0; i<open_canvas->getLayerCount(); ++i)
+			for (Size i=0; i<open_canvas->getLayerCount(); ++i)
 			{
 				if (!is_consensus_feature && open_canvas->getLayer(i).type==LayerData::DT_FEATURE)
 				{
@@ -952,7 +952,7 @@ namespace OpenMS
 			param_.setValue("preferences:number_of_recent_files",20);
 		}
 		
-		for (UInt i = 0; i < 20; ++i)
+		for (Size i = 0; i < 20; ++i)
 		{
 			if (i < (UInt)(recent_files_.size()))
 			{
@@ -1292,7 +1292,7 @@ namespace OpenMS
 		layer_manager_->blockSignals(true);
 		QListWidgetItem* item = 0;
 		QString name;
-    for (UInt i = 0; i<cc->getLayerCount(); ++i)
+    for (Size i = 0; i<cc->getLayerCount(); ++i)
     {
     	const LayerData& layer = cc->getLayer(i);
     	//add item
@@ -1344,7 +1344,7 @@ namespace OpenMS
   		parent_stack.push_back(0);
   		bool fail = false;
   		
-			for (UInt i = 0; i < cl.peaks.size(); ++i)
+			for (Size i = 0; i < cl.peaks.size(); ++i)
 			{
 				if (i > 0)
 				{
@@ -1409,7 +1409,7 @@ namespace OpenMS
 			{
 				// generate flat list instead
 				spectrum_selection_->clear();
-				for (UInt i = 0; i < cl.peaks.size(); ++i)
+				for (Size i = 0; i < cl.peaks.size(); ++i)
 				{
 					item = new QTreeWidgetItem((QTreeWidget*)0);
 					item->setText(0, QString("MS") + QString::number(cl.peaks[i].getMSLevel()));
@@ -1642,7 +1642,7 @@ namespace OpenMS
 		if (canvas->getLayerCount()==0) return;
 		
 		const DataFilters& filters = activeCanvas_()->getCurrentLayer().filters;
-		for (UInt i=0; i<filters.size(); ++i)
+		for (Size i=0; i<filters.size(); ++i)
 		{
 			QListWidgetItem* item = new QListWidgetItem(filters_);
 			item->setText(filters[i].toString().toQString());
@@ -2337,7 +2337,7 @@ namespace OpenMS
 // 				
 // 				std::vector<std::pair<DoubleReal, DoubleReal > > alignment_lines;
 // 				
-// 				for (UInt i = 0; i < alignment.size(); ++i)
+// 				for (Size i = 0; i < alignment.size(); ++i)
 // 				{
 // 					DoubleReal line_begin_mz = spectrum_1[alignment[i].first].getMZ();
 // 					DoubleReal line_end_mz = spectrum_2[alignment[i].second].getMZ();
@@ -2802,7 +2802,7 @@ namespace OpenMS
     else
     {
     	UInt ms1_scans = 0;
-    	for (UInt i=0; i<peaks.size();++i)
+    	for (Size i=0; i<peaks.size();++i)
     	{
     		if (peaks[i].getMSLevel()==1) ++ms1_scans;
     		if (ms1_scans>1)

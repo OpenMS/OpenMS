@@ -103,7 +103,7 @@ namespace OpenMS
     double z=constant*(sum3*sum4);
     UInt j(0);
 		
-		for(UInt i =0; i <s1.size();++i)
+		for (Size i =0; i <s1.size();++i)
 		{
 			Real counter =0;
 			double intensitiy=0;

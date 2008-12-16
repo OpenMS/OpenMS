@@ -133,7 +133,7 @@ class TOPPIDRTCalibration
 		
 		file.load(in_file, protein_identifications, identifications);
 
-		for(UInt i = 0; i < identifications.size(); ++i)
+		for (Size i = 0; i < identifications.size(); ++i)
 		{
 			if (identifications[i].metaValueExists("RT"))
 			{

@@ -174,7 +174,7 @@ class TOPPPILISModel
 
 
 			Map<String, Map<UInt, Map<UInt, PeptideHit> > > ids; // [peptide][charge][index]
-			for (UInt i = 0; i != peptide_ids.size(); ++i)
+			for (Size i = 0; i != peptide_ids.size(); ++i)
 			{
 				if (peptide_ids[i].getHits().size() > 0)
 				{

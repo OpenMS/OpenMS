@@ -82,7 +82,7 @@ namespace OpenMS
 		UInt denominator(max(spec1.getFilledBinNumber(),spec2.getFilledBinNumber())), shared_Bins(min(spec1.getBinNumber(),spec2.getBinNumber()));
 			
 		// all bins at equal position that have both intensity > 0 contribute positively to score
-		for (UInt i = 0; i < shared_Bins; ++i)
+		for (Size i = 0; i < shared_Bins; ++i)
 		{			
 			if(spec1.getBins()[i]>0 && spec2.getBins()[i]>0) 
 			{

@@ -58,7 +58,7 @@ namespace OpenMS
 			new_peptide_indices.push_back(0);
 			
 			// searching for peptide(s) with maximal score			
-			for(UInt i = 1; i < identification.getHits().size(); i++)
+			for (Size i = 1; i < identification.getHits().size(); i++)
 			{
 				Real temp_score = identification.getHits()[i].getScore();
 				if (identification.isHigherScoreBetter())
@@ -90,7 +90,7 @@ namespace OpenMS
 			}						
 			if (!strict || new_peptide_indices.size() == 1)
 			{
-				for(UInt i = 0; i < new_peptide_indices.size(); i++)
+				for (Size i = 0; i < new_peptide_indices.size(); i++)
 				{
 					filtered_peptide_hits.push_back(identification.getHits()[new_peptide_indices[i]]);
 				}
@@ -116,7 +116,7 @@ namespace OpenMS
 
 		const vector<PeptideHit>& temp_peptide_hits = identification.getHits();
 
-		for(UInt i = 0; i < temp_peptide_hits.size(); i++)
+		for (Size i = 0; i < temp_peptide_hits.size(); i++)
 		{
 	  	if (temp_peptide_hits[i].getSequence().size() >= min_length)
 	  	{
@@ -124,7 +124,7 @@ namespace OpenMS
 			}				
 		}		
 		
-		for(UInt i = 0; i < new_peptide_indices.size(); i++)
+		for (Size i = 0; i < new_peptide_indices.size(); i++)
 		{
 			filtered_peptide_hits.push_back(identification.getHits()[new_peptide_indices[i]]);
 		}
@@ -148,7 +148,7 @@ namespace OpenMS
 		filtered_identification = identification;
 		filtered_identification.setHits(vector<PeptideHit>());
 		
-		for(UInt i = 0; i < proteins.size(); i++)
+		for (Size i = 0; i < proteins.size(); i++)
 		{
 			if (proteins[i].identifier!="")
 			{
@@ -162,7 +162,7 @@ namespace OpenMS
 		accession_sequences.append("*");
 		protein_sequences.append("*");
 		
-		for(UInt i = 0; i < identification.getHits().size(); i++)
+		for (Size i = 0; i < identification.getHits().size(); i++)
 		{
 			if (no_protein_identifiers || accession_sequences=="*")
 			{
@@ -203,13 +203,13 @@ namespace OpenMS
 		filtered_identification=identification;
 		filtered_identification.setHits(vector<ProteinHit>());
 		
-		for(UInt i = 0; i < proteins.size(); i++)
+		for (Size i = 0; i < proteins.size(); i++)
 		{
 			accession_sequences.append("*" + proteins[i].identifier);
 		}
 		accession_sequences.append("*");
 		
-		for(UInt i = 0; i < identification.getHits().size(); i++)
+		for (Size i = 0; i < identification.getHits().size(); i++)
 		{
 	  	if (accession_sequences.find("*" + identification.getHits()[i].getAccession()) != string::npos)
 	  	{
@@ -235,7 +235,7 @@ namespace OpenMS
 		filtered_identification=identification;
 		filtered_identification.setHits(vector<PeptideHit>());
 		
-		for(UInt i = 0; i < identification.getHits().size(); i++)
+		for (Size i = 0; i < identification.getHits().size(); i++)
 		{
 	  	if (find(peptides.begin(), peptides.end(), identification.getHits()[i].getSequence().toString()) == peptides.end())
 	  	{
@@ -261,7 +261,7 @@ namespace OpenMS
 		filtered_identification=identification;
 		filtered_identification.setHits(vector<PeptideHit>());
 		
-		for(UInt i = 0; i < identification.getHits().size(); i++)
+		for (Size i = 0; i < identification.getHits().size(); i++)
 		{
 			if (identification.getHits()[i].metaValueExists("predicted_RT_p_value_first_dim") 
 			    && (DoubleReal)(identification.getHits()[i].getMetaValue("predicted_RT_p_value_first_dim")) <= border )
@@ -288,7 +288,7 @@ namespace OpenMS
 		filtered_identification=identification;
 		filtered_identification.setHits(vector<PeptideHit>());
 		
-		for(UInt i = 0; i < identification.getHits().size(); i++)
+		for (Size i = 0; i < identification.getHits().size(); i++)
 		{
 			if (identification.getHits()[i].metaValueExists("predicted_RT_p_value") 
 			    && (DoubleReal)(identification.getHits()[i].getMetaValue("predicted_RT_p_value")) <= border )
@@ -316,7 +316,7 @@ namespace OpenMS
 		String identifier = identification.getIdentifier();
 		
 		UInt i = 0;		
-		for(UInt j = 0; j < temp_protein_hits.size(); ++j)
+		for (Size j = 0; j < temp_protein_hits.size(); ++j)
 		{
 			bool found = false;
 			i = 0;

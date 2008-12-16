@@ -60,12 +60,12 @@ namespace OpenMS
 		
 		composition_vector.clear();												
 		
-		for (UInt i = 0; i < number_of_different_letters; i++)
+		for (Size i = 0; i < number_of_different_letters; i++)
 		{
 			counts[i] = 0;
 		}
 		
-		for (UInt i = 0; i < sequence.size(); i++)
+		for (Size i = 0; i < sequence.size(); i++)
 		{			
 			if (allowed_characters.find(sequence[i]) != String::npos)
 			{			
@@ -74,7 +74,7 @@ namespace OpenMS
 			}
 		}
 		
-		for(UInt i = 0; i < number_of_different_letters; i++)
+		for (Size i = 0; i < number_of_different_letters; i++)
 		{
 			if (counts[i] > 0)
 			{
@@ -93,7 +93,7 @@ namespace OpenMS
 		
 		composition_vectors.clear();
 
-		for(UInt i = 0; i < sequences.size(); i++)
+		for (Size i = 0; i < sequences.size(); i++)
 		{
 			encodeCompositionVector(sequences[i],
 															composition_vector,
@@ -131,7 +131,7 @@ namespace OpenMS
   {
   	libsvm_vectors.clear();
   	
-  	for(UInt i = 0; i < feature_vectors.size(); i++)
+  	for (Size i = 0; i < feature_vectors.size(); i++)
   	{
   		libsvm_vectors.push_back(encodeLibSVMVector(feature_vectors[i]));
   	}
@@ -161,7 +161,7 @@ namespace OpenMS
 		}
 		
 		problem->y = new double[problem->l];
-		for(UInt i = 0; i < vectors.size(); ++i)
+		for (Size i = 0; i < vectors.size(); ++i)
 		{
 			problem->y[i] = labels[i];
 		}
@@ -174,7 +174,7 @@ namespace OpenMS
 			return NULL;
 		}
 		
-		for(UInt i = 0; i < vectors.size(); i++)
+		for (Size i = 0; i < vectors.size(); i++)
 		{
 			node_vectors[i] = vectors[i];
 		}
@@ -193,7 +193,7 @@ namespace OpenMS
 		vector< pair<Int, DoubleReal> > encoded_vector;
 		svm_node* libsvm_vector;
 		
-		for(UInt i = 0; i < sequences.size(); i++)
+		for (Size i = 0; i < sequences.size(); i++)
 		{
 			
 			encodeCompositionVector(sequences[i], encoded_vector, allowed_characters);
@@ -213,7 +213,7 @@ namespace OpenMS
 		vector< pair<Int, DoubleReal> > encoded_vector;
 		svm_node* libsvm_vector;
 		
-		for(UInt i = 0; i < sequences.size(); i++)
+		for (Size i = 0; i < sequences.size(); i++)
 		{
 			
 			encodeCompositionVector(sequences[i], encoded_vector, allowed_characters);
@@ -233,7 +233,7 @@ namespace OpenMS
 		vector< pair<Int, DoubleReal> > encoded_vector;
 		svm_node* libsvm_vector;
 		
-		for(UInt i = 0; i < sequences.size(); i++)
+		for (Size i = 0; i < sequences.size(); i++)
 		{
 			
 			encodeCompositionVector(sequences[i], encoded_vector, allowed_characters);
@@ -316,7 +316,7 @@ namespace OpenMS
 			it->split(' ', parts);
 			data->y[counter] = parts[0].trim().toFloat();		
 			data->x[counter] = new svm_node[parts.size()];			
-			for(UInt j = 1; j < parts.size(); ++j)
+			for (Size j = 1; j < parts.size(); ++j)
 			{
 				parts[j].split(':', temp_parts);
 				if (temp_parts.size() < 2)
@@ -364,7 +364,7 @@ namespace OpenMS
   	libsvm_vector.clear();
 	  sequence_length = sequence.size();
 	  
-	  for(UInt i = 0; i < sequence.size(); ++i)
+	  for (Size i = 0; i < sequence.size(); ++i)
 	  {
 	  	if (!allowed_characters.has(sequence.at(i)))
 	  	{
@@ -401,7 +401,7 @@ namespace OpenMS
 			  }
 			}	
 
-			for(UInt i = 0; i < number_of_residues; ++i)
+			for (Size i = 0; i < number_of_residues; ++i)
 			{	
 				residue_values.insert(make_pair(allowed_characters[i], counter));
 				++counter;
@@ -416,7 +416,7 @@ namespace OpenMS
 		  values.second = 1;
 		  ordered_tree.insert(values);
 		
-		  for(UInt j = 1; j < left_border; j++)
+		  for (Size j = 1; j < left_border; j++)
 		  {
 				oligo_value -= factor * residue_values[sequence[j - 1]];
 				oligo_value = oligo_value * number_of_residues + residue_values[sequence[j + k_mer_length - 1]];
@@ -448,7 +448,7 @@ namespace OpenMS
 			  values.second = 1;
 			  ordered_tree.insert(values);
 			
-			  for(UInt j = 1; j < left_border; j++)
+			  for (Size j = 1; j < left_border; j++)
 			  {
 					oligo_value -= factor * residue_values[sequence[sequence_length - j]];
 					oligo_value = oligo_value * number_of_residues + residue_values[sequence[sequence_length - k_mer_length - j]];
@@ -468,7 +468,7 @@ namespace OpenMS
 		  }
 		  else
 		  {
-			  for(UInt k = right_border + k_mer_length; k > right_border; k--)
+			  for (Size k = right_border + k_mer_length; k > right_border; k--)
 			  {
 					oligo_value += factor * residue_values[sequence[k - 1]];
 					factor *= number_of_residues;
@@ -484,7 +484,7 @@ namespace OpenMS
 			  }
 			  values.second = (Int)(right_border - sequence_length) * -1;
 			  ordered_tree.insert(values);
-			  for(UInt j = right_border + 1; j < sequence_length - k_mer_length + 1; j++)
+			  for (Size j = right_border + 1; j < sequence_length - k_mer_length + 1; j++)
 			  {
 					oligo_value -= factor * residue_values[sequence[j - 1]];
 					oligo_value = oligo_value * number_of_residues + residue_values[sequence[j + k_mer_length - 1]];
@@ -517,7 +517,7 @@ namespace OpenMS
 						++elements_start;
 					}
 					sort(temp_positions.begin(), temp_positions.end());
-					for(UInt i = 0; i < temp_positions.size(); ++i)
+					for (Size i = 0; i < temp_positions.size(); ++i)
 					{
 						libsvm_vector.push_back(make_pair(elements->first, temp_positions[i]));	
 					}
@@ -544,7 +544,7 @@ namespace OpenMS
 		vector< pair<Int, DoubleReal> > encoded_vector;
 		svm_node* libsvm_vector;
 		
-		for(UInt i = 0; i < sequences.size(); i++)
+		for (Size i = 0; i < sequences.size(); i++)
 		{			
 			encodeOligoBorders(sequences[i], k_mer_length, allowed_characters, border_length, encoded_vector, strict, unpaired, length_encoding);
 			libsvm_vector = encodeLibSVMVector(encoded_vector);
@@ -565,7 +565,7 @@ namespace OpenMS
 		bool is_right_border = false;
 		
 		vectors.clear();
-		for(UInt i = 0; i < sequences.size(); i++)
+		for (Size i = 0; i < sequences.size(); i++)
 		{	
 			is_right_border = false;
 			if (sequences[i].size() > border_length)
@@ -632,7 +632,7 @@ namespace OpenMS
     UInt 														number_of_modifications = modifications->getNumberOfModifications();
     
     // checking if sequence contains illegal characters
-    for(UInt i = 0; i < sequence.size(); ++i)
+    for (Size i = 0; i < sequence.size(); ++i)
     {
 			if (allowed_characters.find(sequence[i].getOneLetterCode()) == String::npos)
 			{
@@ -645,7 +645,7 @@ namespace OpenMS
     	factor_simple = (number_of_residues * (number_of_modifications + 1));
     	
 			values.resize(sequence_length - k_mer_length + 1, pair<Int, DoubleReal>());
-			for(UInt i = 0; i < number_of_residues; ++i)
+			for (Size i = 0; i < number_of_residues; ++i)
 			{	
 			    residue_values.insert(make_pair(String(allowed_characters[i]), counter));
 			    ++counter;
@@ -654,7 +654,7 @@ namespace OpenMS
 			if (!is_right_border || k_mer_length == 1)
 			{
 
-				for(Int k = (Int) k_mer_length - 1; k >= 0; k--)
+				for(SignedSize k = (Int) k_mer_length - 1; k >= 0; k--)
 				{		
 						if (sequence[k].isModified())
 						{
@@ -680,7 +680,7 @@ namespace OpenMS
 				values[counter].second = oligo_value;
 				++counter;
 		
-				for(UInt j = 1; j < sequence_length - k_mer_length + 1; j++)
+				for (Size j = 1; j < sequence_length - k_mer_length + 1; j++)
 				{
 						if (sequence[j - 1].isModified())
 						{
@@ -715,7 +715,7 @@ namespace OpenMS
 	    }
 	    else
 	    {
-				for(Int k = sequence_length - k_mer_length; k < (Int) sequence_length; k++)
+				for(SignedSize k = sequence_length - k_mer_length; k < (Int) sequence_length; k++)
 				{		
 						if (sequence[k].isModified())
 						{
@@ -735,7 +735,7 @@ namespace OpenMS
 				values[counter].second = oligo_value;
 				++counter;
 
-				for(Int j = (Int) sequence_length - k_mer_length - 1; j>= 0 ; j--)
+				for(SignedSize j = sequence_length - k_mer_length - 1; j>= 0 ; j--)
 				{
 						if (sequence[j + k_mer_length].isModified())
 						{

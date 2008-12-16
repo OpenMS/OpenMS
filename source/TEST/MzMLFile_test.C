@@ -174,8 +174,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(spec.size(),15)
 		for (UInt i=0; i<15; ++i)
 		{
-			TEST_REAL_SIMILAR(spec[i].getMZ(),i);
-			TEST_REAL_SIMILAR(spec[i].getIntensity(),15-i);
+			TEST_REAL_SIMILAR(spec[(Size)i].getMZ(),i);
+			TEST_REAL_SIMILAR(spec[(Size)i].getIntensity(),15-i);
 		}
 		//general info		
 		TEST_EQUAL(spec.getMSLevel(),1)
@@ -205,7 +205,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		const MSSpectrum<>& spec = exp[1]; 	
 		//peaks
 		TEST_EQUAL(spec.size(),10)
-		for (UInt i=0; i<10; ++i)
+		for (Size i=0; i<10; ++i)
 		{
 			TEST_REAL_SIMILAR(spec[i].getMZ(),2.0*i);
 			TEST_REAL_SIMILAR(spec[i].getIntensity(),20-2.0*i);
@@ -264,8 +264,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(spec.size(),15)
 		for (UInt i=0; i<15; ++i)
 		{
-			TEST_REAL_SIMILAR(spec[i].getMZ(),i);
-			TEST_REAL_SIMILAR(spec[i].getIntensity(),15-i);
+			TEST_REAL_SIMILAR(spec[(Size)i].getMZ(),i);
+			TEST_REAL_SIMILAR(spec[(Size)i].getIntensity(),15-i);
 		}
 		//general info		
 		TEST_EQUAL(spec.getMSLevel(),1)

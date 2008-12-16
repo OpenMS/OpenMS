@@ -186,7 +186,7 @@ String SuffixArrayPeptideFinder::vToString_ (vector<String> v)
 {
 	if (v.size()==0) return ("");
 	String res = "[";
-	for (UInt i = 0; i < v.size();++i)
+	for (Size i = 0; i < v.size();++i)
 	{
 		res += v[i];
 		if (i < v.size() - 1)
@@ -205,7 +205,7 @@ void SuffixArrayPeptideFinder::getCandidates(vector<vector<pair<FASTAEntry, Stri
 	
 	ModifierRep mod;
 	mod.setNumberOfModifications(sa_->getNumberOfModifications());
-	for (UInt i = 0; i < ca.size(); i++)
+	for (Size i = 0; i < ca.size(); i++)
 	{
 		set<String> already_used; // TODO
 		// TODO
@@ -215,7 +215,7 @@ void SuffixArrayPeptideFinder::getCandidates(vector<vector<pair<FASTAEntry, Stri
 		}
 
 		vector<pair<FASTAEntry, String> > temp;
-		for (UInt j = 0; j < ca[i].size(); j++)
+		for (Size j = 0; j < ca[i].size(); j++)
 		{
 			FASTAEntry fe;
 			big_string_.getPeptide(fe, ca[i][j].first.first, ca[i][j].first.second);

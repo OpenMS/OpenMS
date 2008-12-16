@@ -133,6 +133,19 @@ namespace OpenMS
 	*/
 	typedef OPENMS_UINT64_TYPE UID;
 
+	/**
+	 	@brief Size type e.g. used as variable which can hold result of size()
+
+		@ingroup Concept
+	*/
+	typedef size_t Size;
+
+	/** 
+	 	@brief Signed Size type e.g. used as pointer difference 
+
+		@ingroup Concept
+	*/
+	typedef ptrdiff_t SignedSize;
   
 	enum ASCII
 	{

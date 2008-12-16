@@ -168,9 +168,9 @@ namespace OpenMS
 		}
         
 		//Store all values into the gradient object
-		for(UInt i=0; i< eluents_.size(); ++i )
+		for (Size i=0; i< eluents_.size(); ++i )
 		{
-			for(UInt j=0; j< timepoints_.size(); ++j )
+			for (Size j=0; j< timepoints_.size(); ++j )
 			{
 				String value((gradientdata_[count+j])->text());
 				temp_.setPercentage(eluents_[i], timepoints_[j], value.toInt()  );      
@@ -206,7 +206,7 @@ namespace OpenMS
 		//----------------------------------------------------------------------
 		//			Actual data
 		//----------------------------------------------------------------------
-		for(UInt i=0; i<timepoints_.size(); ++i )
+		for (Size i=0; i<timepoints_.size(); ++i )
 		{
 			//Add labels to display eluent-timepoint-percentage-triplets.	
 			QLabel* label1 = new QLabel(String(timepoints_[i]).c_str(), this);
@@ -218,7 +218,7 @@ namespace OpenMS
 		nextrow_++;
 		
 		//Add the percentage values for the eluents and their timepoint.	
-		for(UInt i=0; i<eluents_.size(); ++i)
+		for (Size i=0; i<eluents_.size(); ++i)
 		{
 		
 		QLabel* eluent = new QLabel(eluents_[i].c_str(), this);
@@ -226,7 +226,7 @@ namespace OpenMS
 		eluent->show();
 		gradientlabel_.push_back(eluent);
 		
-		  for(UInt j=0; j<timepoints_.size(); ++j)
+		  for (Size j=0; j<timepoints_.size(); ++j)
 			{
 			  percentage_ = new QLineEdit(this);
 				percentage_->setText( String(  temp_.getPercentage( eluents_[i], timepoints_[j]) ).c_str()  );

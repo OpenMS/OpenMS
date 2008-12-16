@@ -122,7 +122,7 @@ namespace OpenMS
 		// (1.0.2) Searching for query indices for which peptides are present
 		if (number_of_queries > 1)
 		{
-			for(UInt i = 1; i <= number_of_queries; i++)
+			for (Size i = 1; i <= number_of_queries; i++)
 			{
 	  		it = f.search(it, "q" + String(i) + "_p1=");
 	 		 	if (it!=f.end())
@@ -240,7 +240,7 @@ namespace OpenMS
 		  		{
 		  			temp_identifier = (*it).substr(tag_start + 1, tag_end - tag_start - 1);
 						temp_scores.clear();
-						for(UInt k = 0; k < 3; k++)
+						for (Size k = 0; k < 3; k++)
 						{
 							temp_scores.push_back(0);
 						}
@@ -359,7 +359,7 @@ namespace OpenMS
 					it->suffix('=').split(',',parts);
 					temp_peptide_sequence = parts[6];
 					
-					for(UInt index = 0; index < peptide_hits.size(); index++)
+					for (Size index = 0; index < peptide_hits.size(); index++)
 					{
 						if (peptide_hits[index].getSequence() == temp_peptide_sequence)
 						{

@@ -194,7 +194,7 @@ namespace OpenMS
 		// init all possible losses with zero intensity
 		String ion_name = param_.getValue("ion_name");
 		Map<String, double> loss_weights;
-		for (UInt i = 0; i != pre_loss_names.size(); ++i)
+		for (Size i = 0; i != pre_loss_names.size(); ++i)
 		{
 			String name1(pre_loss_names[i]);
 			peak_ints[ion_name + "-" + name1] = 0;
@@ -202,7 +202,7 @@ namespace OpenMS
 
 			if (enable_double_losses)
 			{
-				for (UInt j = 0; j != pre_loss_names.size(); ++j)
+				for (Size j = 0; j != pre_loss_names.size(); ++j)
 				{
 					String name2(pre_loss_names[j]);
         	String name;
@@ -704,7 +704,7 @@ namespace OpenMS
 
 		if (enable_COOH)
 		{
-    	for (UInt i = 0; i != num_explicit_; ++i)
+    	for (Size i = 0; i != num_explicit_; ++i)
     	{
       	hmm_precursor_.addNewState(new HMMState("COOH-" + h2o + "_" + String(i + 1)));
     	}
@@ -742,7 +742,7 @@ namespace OpenMS
         hmm_precursor_.addNewState(new HMMState(aa1.toString() + "-" + loss1));
         hmm_precursor_.addNewState(new HMMState(aa1.toString() + "-" + loss1 + "-next"));
 
-        for (UInt i = 0; i != num_explicit_; ++i)
+        for (Size i = 0; i != num_explicit_; ++i)
         {
           hmm_precursor_.addNewState(new HMMState(aa1.toString() + "-" + loss1 + "_" + String(i + 1)));
         }
@@ -766,7 +766,7 @@ namespace OpenMS
         	hmm_precursor_.setTransitionProbability(cooh_name, "COOH-" + h2o, 0.1);
         	hmm_precursor_.setTransitionProbability(cooh_name, cooh_name + "-next", 0.7);
 
-        	for (UInt i = 0; i != num_explicit_; ++i)
+        	for (Size i = 0; i != num_explicit_; ++i)
         	{
           	String cooh_name_num = cooh_name + "_" + String(i + 1);
           	hmm_precursor_.addNewState(new HMMState(cooh_name_num));
@@ -831,7 +831,7 @@ namespace OpenMS
 								hmm_precursor_.addNewState(new HMMState(name + losses + "-NTerm-next", true));
 								*/
 								
-               	for (UInt i = 0; i != num_explicit_; ++i)
+               	for (Size i = 0; i != num_explicit_; ++i)
                 {
                   hmm_precursor_.addNewState(new HMMState(name + losses + "_" + String(i + 1), true));
                 }
@@ -841,7 +841,7 @@ namespace OpenMS
                 hmm_precursor_.setTransitionProbability(name + losses, aa2.toString() + "-" + loss2, 0.1);
                 hmm_precursor_.setTransitionProbability(name + losses, name + losses + "-next", 0.7);
 
-                for (UInt i = 0; i != num_explicit_; ++i)
+                for (Size i = 0; i != num_explicit_; ++i)
                 {
                   String state_name_num = name + losses + "_" + String(i + 1);
                   String state_name = name + losses;
@@ -943,7 +943,7 @@ namespace OpenMS
 */
 				}
 
-        for (UInt i = 0; i != num_explicit_; ++i)
+        for (Size i = 0; i != num_explicit_; ++i)
         {
           String name_num = aa.toString() + "-" + loss + "_" + String(i + 1);
           String name = aa.toString() + "-" + loss;

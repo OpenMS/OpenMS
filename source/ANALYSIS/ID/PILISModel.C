@@ -483,7 +483,7 @@ namespace OpenMS
 
 		// activation of protons sitting at lysine and histidine side chains
 		double side_chain_activation(param_.getValue("side_chain_activation"));
-		for (UInt i = 0; i != peptide.size(); ++i)
+		for (Size i = 0; i != peptide.size(); ++i)
 		{
 			if (peptide[i].getOneLetterCode() != "R") // || peptide[i].getOneLetterCode() == "K")
 			{
@@ -510,7 +510,7 @@ namespace OpenMS
 		vector<AASequence> prefixes, suffixes;
 
 		vector<double> bb_charges_all;
-    for (UInt i = 0; i != bb_charge_full.size(); ++i)
+    for (Size i = 0; i != bb_charge_full.size(); ++i)
     {
       bb_charges_all.push_back(bb_charge_full[i]);
     }
@@ -520,7 +520,7 @@ namespace OpenMS
 		
 		
 		// for each site: 1. set proton distribution, 2. initial training intensities, 3. train the model
-		for (UInt i = 0; i != peptide.size() - 1; ++i)
+		for (Size i = 0; i != peptide.size() - 1; ++i)
 		{
 			String pos_name, y_name1, b_name1, a_name1, y_name, b_name;
 			String y_name2, b_name2, a_name2, prefix_size(i + 1), suffix_size(peptide.size() - 1 - i);
@@ -771,7 +771,7 @@ namespace OpenMS
       } 
 
 			UInt max_fragment_charge = param_.getValue("max_fragment_charge");
-			for (UInt z = 1; z <= max_fragment_charge; ++z)
+			for (Size z = 1; z <= max_fragment_charge; ++z)
 			{
 				double charge_remote_threshold((double)param_.getValue("charge_remote_threshold"));
 				double avail_bb_sum_prefix = getAvailableBackboneCharge_(prefix, Residue::BIon, z);
@@ -986,7 +986,7 @@ namespace OpenMS
 		}
 	
     // activation of protons sitting at lysine and histidine side chains
-    for (UInt i = 0; i != peptide.size(); ++i)
+    for (Size i = 0; i != peptide.size(); ++i)
     {
       if (peptide[i].getOneLetterCode() == "H" || peptide[i].getOneLetterCode() == "K")
       {
@@ -1011,7 +1011,7 @@ namespace OpenMS
 		vector<String> suffix_names1, suffix_names2, prefix_names1, prefix_names2, a_names1, a_names2;
 	
 		vector<double> bb_charges_all;
-		for (UInt i = 0; i != bb_charge_full.size(); ++i)
+		for (Size i = 0; i != bb_charge_full.size(); ++i)
 		{
 			bb_charges_all.push_back(bb_charge_full[i]);
 		}
@@ -1019,7 +1019,7 @@ namespace OpenMS
 		double bb_charges_median = bb_charges_all[UInt(bb_charges_all.size()/2.0)];
 		
 		// get the paths
-		for (UInt i = 0; i != peptide.size() - 1; ++i)
+		for (Size i = 0; i != peptide.size() - 1; ++i)
 		{
 
       String pos_name, y_name1, b_name1, a_name1, y_name, b_name;
@@ -1285,7 +1285,7 @@ namespace OpenMS
 		vector<Map<String, double> > prefix_losses, suffix_losses;
 		vector<double> prefix_ints1, prefix_ints2, suffix_ints1, suffix_ints2, a_ints1;
 		double prefix_sum(0), suffix_sum(0);
-		for (UInt i = 0; i != prefixes.size(); ++i)
+		for (Size i = 0; i != prefixes.size(); ++i)
 		{
 			double prefix_int1 = tmp[hmm_.getState(prefix_names1[i])];
 			//cerr << prefix_names1[i] << " " << prefix_int1 << endl;
@@ -1325,7 +1325,7 @@ namespace OpenMS
 		
 		double charge_remote_threshold((double)param_.getValue("charge_remote_threshold"));
 		bool suppress_single_ions(param_.getValue("suppress_single_ions").toBool());
-		for (UInt i = 0; i != prefixes.size(); ++i)
+		for (Size i = 0; i != prefixes.size(); ++i)
 		{
 			// prefix
 			double weight = prefixes[i].getMonoWeight(Residue::BIon);
@@ -1358,7 +1358,7 @@ namespace OpenMS
 				else
 				{
 					b_ion_name = split[0] + String(i + 1) + "-";
-					for (UInt j = 1; j != split.size(); ++j)
+					for (Size j = 1; j != split.size(); ++j)
 					{
 						b_ion_name += split[j];
 					}
@@ -1395,7 +1395,7 @@ namespace OpenMS
         	else
        	 	{
           	b_ion_name = split[0] + String(i + 1) + "-";
-          	for (UInt j = 1; j != split.size(); ++j)
+          	for (Size j = 1; j != split.size(); ++j)
           	{
             	b_ion_name += split[j];
           	}
@@ -1431,7 +1431,7 @@ namespace OpenMS
         else
         {
           a_ion_name = split[0] + String(i + 1) + "-";
-          for (UInt j = 1; j != split.size(); ++j)
+          for (Size j = 1; j != split.size(); ++j)
           {
             a_ion_name += split[j];
           }
@@ -1473,7 +1473,7 @@ namespace OpenMS
         else
         {
           y_ion_name = split[0] + String(num) + "-";
-          for (UInt j = 1; j != split.size(); ++j)
+          for (Size j = 1; j != split.size(); ++j)
           {
             y_ion_name += split[j];
           }
@@ -1511,7 +1511,7 @@ namespace OpenMS
         	else
         	{
           	y_ion_name = split[0] + String(num) + "-";
-          	for (UInt j = 1; j != split.size(); ++j)
+          	for (Size j = 1; j != split.size(); ++j)
          		{
             	y_ion_name += split[j];
           	}
@@ -1732,7 +1732,7 @@ namespace OpenMS
 
     // activation of protons sitting at lysine and histidine side chains
     double side_chain_activation(param_.getValue("side_chain_activation"));
-    for (UInt i = 0; i != ion.size(); ++i)
+    for (Size i = 0; i != ion.size(); ++i)
     {
       if (ion[i].getOneLetterCode() != "R") // || peptide[i].getOneLetterCode() == "K")
       {
@@ -1765,7 +1765,7 @@ namespace OpenMS
 		double charge_dir_tmp(bb_charges[0]);
 
     double bb_sum(0);
-    for (UInt i = 0; i != bb_charges.size(); ++i)
+    for (Size i = 0; i != bb_charges.size(); ++i)
     {
       bb_sum += bb_charges[i];
     }
@@ -1782,7 +1782,7 @@ namespace OpenMS
     double bb_avg = (bb_sum - bb_charges[0]) / (double)(bb_charges.size() - 1);
 
 					
-		for (UInt i = 0; i != peptide.size() - 1; ++i)
+		for (Size i = 0; i != peptide.size() - 1; ++i)
     {
       bb_init.push_back(bb_charges[i+1] * charge_dir_tmp/* * (double)param_.getValue("charge_directed_factor")*/);
       String aa(peptide[i].getOneLetterCode());
@@ -1814,7 +1814,7 @@ namespace OpenMS
 
 		// normalize the initial probability values
 		double init_prob_sum(0);
-		for (UInt i = 0; i != bb_init.size(); ++i)
+		for (Size i = 0; i != bb_init.size(); ++i)
 		{
 			init_prob_sum += bb_init[i] + sc_init[i] + cr_init[i];
 		}
@@ -1823,7 +1823,7 @@ namespace OpenMS
 		{
 			init_prob_sum += sc_charges[peptide.size() - 1];
 		}
-		for (UInt i = 0; i != bb_init.size(); ++i)
+		for (Size i = 0; i != bb_init.size(); ++i)
 		{
 			bb_init[i] /= init_prob_sum;
 			sc_init[i] /= init_prob_sum;

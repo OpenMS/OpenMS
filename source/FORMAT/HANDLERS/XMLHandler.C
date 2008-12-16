@@ -112,7 +112,7 @@ namespace OpenMS
 			std::vector<String> keys;
 			meta.getKeys(keys);
 			
-			for (UInt i = 0; i!=keys.size();++i)
+			for (Size i = 0; i!=keys.size();++i)
 			{
 				os << String(indent,'\t') << "<" << tag_name << " type=\"";
 				
@@ -150,13 +150,13 @@ namespace OpenMS
 		
 		void StringManager::clear()
 		{
-			for(UInt i=0; i< xml_strings_.size(); ++i)
+			for (Size i=0; i< xml_strings_.size(); ++i)
 			{
 				XMLString::release(&xml_strings_[i]);
 			}
 			xml_strings_.clear();
 
-			for(UInt i=0; i< c_strings_.size(); ++i)
+			for (Size i=0; i< c_strings_.size(); ++i)
 			{
 				XMLString::release(&c_strings_[i]);
 			}

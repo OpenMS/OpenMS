@@ -134,12 +134,12 @@ namespace OpenMS
 
 		char aa[] = "ARNDCEQGHILKMFPSTWYV";
 
-		for (UInt z = 0; z < 255;++z)
+		for (Size z = 0; z < 255;++z)
 		{
 			masse_[z] = 0;
 		}
 
-		for (UInt z = 0; z<strlen(aa);++z)
+		for (Size z = 0; z<strlen(aa);++z)
 		{
 			const Residue* r = rdb->getResidue(aa[z]);
 			masse_[(int)aa[z]] = r->getAverageWeight(Residue::Internal);
@@ -179,7 +179,7 @@ namespace OpenMS
 			use_tags_(source.use_tags_),
 			tol_(source.tol_)
 	{
-		for (UInt i = 0; i < 255;++i)
+		for (Size i = 0; i < 255;++i)
 		{
 			masse_[i] = source.masse_[i];
 		}
@@ -303,7 +303,7 @@ namespace OpenMS
 		}
 		//check if spectrum is sorted
 		//time_t t1 (time(NULL));
-		for (UInt i = 1; i < spec.size();++i)
+		for (Size i = 1; i < spec.size();++i)
 		{
 			if (spec.at(i-1)>spec.at(i))
 			{
@@ -321,14 +321,14 @@ namespace OpenMS
 		vector<UInt> tag_indices;
 		if (use_tags_)
 		{
-			for (UInt i = 0; i < tags_.size();++i)
+			for (Size i = 0; i < tags_.size();++i)
 			{
 				it_ = new TIter(index_);
 
 				seqan::String<char> s (tags_.at(i).c_str());
 				goDown(*it_,s);
 				seqan::String<UInt> occs = getOccurrences(*it_);
-				for (UInt i = 0 ; i < length(occs);++i)
+				for (Size i = 0 ; i < length(occs);++i)
 				{
 					tag_indices.push_back(occs[i]);
 				}
@@ -340,7 +340,7 @@ namespace OpenMS
 
 		// preparing result vector
 		//vector<vector<pair<pair<int,int>,double> > > res;
-		for (UInt i = 0; i < spec.size();i++)
+		for (Size i = 0; i < spec.size();i++)
 		{
 			vector<pair<pair<int,int>,double> > v;
 			candidates.push_back(v);
@@ -425,7 +425,7 @@ namespace OpenMS
 										found_masses.push_back(it->first);
 									}
 								}
-								for (UInt o = 0; o < found_masses.size();o++)
+								for (Size o = 0; o < found_masses.size();o++)
 								{
 									double mass_with_mods = newm+ found_masses.at(o);
 									++steps4;
@@ -433,7 +433,7 @@ namespace OpenMS
 									seqan::String<UInt> occ = getOccurrences(*it_);
 
 									nres+=length(occ);
-									for (UInt k = 0; k <length(occ);++k)
+									for (Size k = 0; k <length(occ);++k)
 									{
 										UInt first_occ = findFirst_ (spec, mass_with_mods);
 										pair<pair<int,int>,double> p (pair<int,int>(occ[k]+1,length_till_node+i-1),found_masses.at(o));
@@ -479,7 +479,7 @@ namespace OpenMS
 									found_masses.push_back(it->first);
 								}
 							}
-							for (UInt o = 0; o < found_masses.size();o++)
+							for (Size o = 0; o < found_masses.size();o++)
 							{
 								double mass_with_mods = newm+ found_masses.at(o);
 								//if (binary_search(spec.begin(),spec.end(),(newm), FloatsWithTolLess(tol_))){
@@ -488,7 +488,7 @@ namespace OpenMS
 
 								seqan::String<UInt> occ = getOccurrences(*it_);
 								//nres+=length(occ);
-								for (UInt k = 0; k <length(occ);k++){
+								for (Size k = 0; k <length(occ);k++){
 									if (i<(edge_length-1) || (isDigestingEnd(s_[occ[k]+length_till_node+i],s_[occ[k]+1+length_till_node+i]))) {
 										UInt first_occ = findFirst_ (spec, mass_with_mods );
 										pair<pair<int,int>,double> p (pair<int,int>(occ[k]+1,length_till_node+i),found_masses.at(o));
@@ -513,7 +513,7 @@ namespace OpenMS
 					{
 						double mpart = 18.0;
 						seqan::String<char> seq = representative(*it_);
-						for (UInt w = 0; w < length(seq); ++w)
+						for (Size w = 0; w < length(seq); ++w)
 						{
 							mpart+=masse_[(int)seq[w]];
 						}
@@ -564,17 +564,17 @@ namespace OpenMS
 		//goNext(*it_);
 		goNextSubTree_(*it_);
 		parseTree_(*it_, out_number, edge_length, leafe_depth);
-		for (UInt i = 0; i < leafe_depth.size(); i++)
+		for (Size i = 0; i < leafe_depth.size(); i++)
 		{
 			cout << leafe_depth.at(i) << ",";
 		}
 		cout << endl;
-		for (UInt i = 0; i < out_number.size(); i++)
+		for (Size i = 0; i < out_number.size(); i++)
 		{
 			cout << "(" << out_number.at(i).first << "," << out_number.at(i).second << ") ; ";
 		}
 		cout << endl;
-		for (UInt i = 0; i < edge_length.size(); i++)
+		for (Size i = 0; i < edge_length.size(); i++)
 		{
 			cout << "(" << edge_length.at(i).first << "," << edge_length.at(i).second << ") ; ";
 		}

@@ -128,7 +128,7 @@ namespace OpenMS
 	 	while(result.isValid())
 		{
 			//id, description
-	 		for (unsigned int col = 0; col < 2; col++) 
+	 		for (Size col = 0; col < 2; col++) 
 	 		{ 
 	 		 	item = new QTableWidgetItem(result.value(col).toString());
      		table_->setItem(row, col+1, item);

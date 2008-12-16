@@ -270,7 +270,7 @@ namespace OpenMS
 		else if (tool=="FeatureFinder")
 		{
 			std::vector<String> list2 = Factory<FeatureFinderAlgorithm<Peak1D,Feature> >::registeredProducts();
-			for (UInt i=0; i<list2.size(); ++i)
+			for (Size i=0; i<list2.size(); ++i)
 			{
 				list << list2[i].toQString();
 			}
@@ -278,7 +278,7 @@ namespace OpenMS
 		else if (tool=="SpectraFilter")
 		{
 			std::vector<String> list2 = Factory<PreprocessingFunctor>::registeredProducts();
-			for (UInt i=0; i<list2.size(); ++i)
+			for (Size i=0; i<list2.size(); ++i)
 			{
 				list << list2[i].toQString();			
 			}
@@ -286,7 +286,7 @@ namespace OpenMS
 		else if (tool=="FeatureLinker")
 		{
 			std::vector<String> list2 = Factory<FeatureGroupingAlgorithm>::registeredProducts();
-			for (UInt i=0; i<list2.size(); ++i)
+			for (Size i=0; i<list2.size(); ++i)
 			{
 				list << list2[i].toQString();			
 			}

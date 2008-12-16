@@ -79,12 +79,12 @@ struct FloatsWithTolLess : public binary_function<float , float, bool>
 		
 		char aa[] = "ARNDCEQGHILKMFPSTWYV";
 		
-		for (unsigned int i = 0; i<255;++i)
+		for (Size i = 0; i<255;++i)
 		{
 			masse_[i]=0;
 		}
 	
-		for (unsigned int i = 0; i<strlen(aa);++i)
+		for (Size i = 0; i<strlen(aa);++i)
 		{
 			const Residue * r = rdb->getResidue(aa[i]);
 			masse_[(int)aa[i]]=r->getAverageWeight();
@@ -118,7 +118,7 @@ struct FloatsWithTolLess : public binary_function<float , float, bool>
 		m_(source.m_),
 		massMax_(source.massMax_)
 	{
-		for (unsigned int i = 0; i < 256;i++)
+		for (Size i = 0; i < 256;i++)
 		{
 			masse_[i]=source.masse_[i];
 		}
@@ -180,7 +180,7 @@ struct FloatsWithTolLess : public binary_function<float , float, bool>
 	void EdwardsLippertIterator::setSpectrum (const vector<float> & s)
 	{
 		//check if spectrum is sorted
-		for (unsigned int i = 1; i < s.size();++i)
+		for (Size i = 1; i < s.size();++i)
 		{
 			if (s.at(i-1)>s.at(i))
 			{

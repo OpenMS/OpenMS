@@ -66,7 +66,7 @@ namespace OpenMS
 		//define reference map (the one with most peaks)
 		UInt reference_map_index = 0;
 		UInt max_count = 0;		
-		for (UInt m=0; m<maps.size(); ++m)
+		for (Size m=0; m<maps.size(); ++m)
 		{
 			// initialize getSize() by calling updateRanges()
 			maps[m].updateRanges(1);
@@ -88,7 +88,7 @@ namespace OpenMS
     DelaunayPairFinder pairfinder;
     pairfinder.setParameters(param_.copy("pairfinder:",true));
 		
-		for (UInt i = 0; i < maps.size(); ++i)
+		for (Size i = 0; i < maps.size(); ++i)
 		{
 			if (i != reference_map_index)
 			{
@@ -100,7 +100,7 @@ namespace OpenMS
 	      superimposer.run(input, si_trafos);
 				
 				//apply transformation to consensus feature and contained feature handles
-				for (UInt j=0; j<input[1].size(); ++j)
+				for (Size j=0; j<input[1].size(); ++j)
 				{
 					//Calculate new RT
 					DoubleReal rt = input[1][j].getRT();
@@ -136,7 +136,7 @@ namespace OpenMS
 				transformations[i].setParam("intercept",trafo.getParam("slope")*si_trafos[0].getParam("intercept")+trafo.getParam("intercept"));
 
 				// apply transformation to all scans
-				for (UInt j=0; j< maps[i].size(); ++j)
+				for (Size j=0; j< maps[i].size(); ++j)
 				{
 					DoubleReal rt = maps[i][j].getRT();
 					transformations[i].apply(rt);
@@ -162,7 +162,7 @@ namespace OpenMS
 		// define reference map (the one with most peaks)
 		UInt reference_map_index = 0;
 		UInt max_count = 0;		
-		for (UInt m=0; m<maps.size(); ++m)
+		for (Size m=0; m<maps.size(); ++m)
 		{
 			if (maps[m].size()>max_count)
 			{
@@ -184,7 +184,7 @@ namespace OpenMS
     pairfinder.setParameters(param_.copy("pairfinder:",true));
 		pairfinder.setLogType(getLogType());
 
-    for (UInt i = 0; i < maps.size(); ++i)
+    for (Size i = 0; i < maps.size(); ++i)
 		{
 			setProgress(10*i);
 			if (i != reference_map_index)
@@ -198,7 +198,7 @@ namespace OpenMS
 				setProgress(10*i+2);
 
 				// apply transformation
-				for (UInt j=0; j<input[1].size(); ++j)
+				for (Size j=0; j<input[1].size(); ++j)
 				{
 					DoubleReal rt = input[1][j].getRT();
 					si_trafos[0].apply(rt);
@@ -235,7 +235,7 @@ namespace OpenMS
 				transformations[i].setParam("intercept",trafo.getParam("slope")*si_trafos[0].getParam("intercept")+trafo.getParam("intercept"));
 				
 				// apply transformation (global and local)
-				for (UInt j = 0; j < maps[i].size(); ++j)
+				for (Size j = 0; j < maps[i].size(); ++j)
 				{
 					DoubleReal rt = maps[i][j].getRT();
 					// DoubleReal rt_old = rt;

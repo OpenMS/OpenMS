@@ -111,7 +111,7 @@ namespace OpenMS
 		vector<String> split;
 		param.begin().getName().split(':',split);
 		String prefix("");
-		for (UInt i=0;i<split.size()-1;++i)
+		for (Size i=0;i<split.size()-1;++i)
 		{
 			prefix += split[i]+":";
 		}
@@ -125,7 +125,7 @@ namespace OpenMS
 				// update prefix
 				it.getName().split(':',split);
 				prefix = "";
-				for (UInt i=0;i<split.size()-1;++i)
+				for (Size i=0;i<split.size()-1;++i)
 				{
 					prefix += split[i]+":";
 				}

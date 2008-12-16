@@ -368,7 +368,7 @@ namespace OpenMS
 			String toUnmodifiedString() const;
 			
 			/// set the modification of the residue at position index
-			void setModification(UInt index, const String& modification);
+			void setModification(Size index, const String& modification);
 
 			/// sets the N-terminal modification
 			void setNTerminalModification(const String& modification);
@@ -389,13 +389,13 @@ namespace OpenMS
 			bool setResidue(Int index, const Residue* residue);
 		
 			/// sets the residue at position index; residue must be a valid residue of the ResidueDB!
-			bool setResidue(UInt index, const Residue* residue);
+			bool setResidue(Size index, const Residue* residue);
 			
 			/// returns a pointer to the residue, which is at position index
-			const Residue& getResidue(Int index) const;
+			const Residue& getResidue(SignedSize index) const;
 			
 			/// returns a pointer to the residue, which is at position index
-			const Residue& getResidue(UInt index) const;
+			const Residue& getResidue(Size index) const;
 			
 			/// returns the formula of the peptide
 			EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
@@ -410,10 +410,10 @@ namespace OpenMS
 			Map<const EmpiricalFormula*, UInt> getNeutralLosses() const;
 
 			/// returns a pointer to the residue at given position
-			const Residue& operator [] (Int index) const;
+			const Residue& operator [] (SignedSize index) const;
 			
 			/// returns a pointer to the residue at given position
-			const Residue& operator [] (UInt index) const;
+			const Residue& operator [] (Size index) const;
 			
 			/// adds the residues of the peptide
 			AASequence operator + (const AASequence& peptide) const;
@@ -440,22 +440,22 @@ namespace OpenMS
 			AASequence& operator += (const Residue* residue);
 			
 			/// returns the number of residues
-			UInt size() const;
+			Size size() const;
 
 			/// returns a peptide sequence of the first index residues
-			AASequence getPrefix(UInt index) const;
+			AASequence getPrefix(Size index) const;
 
 			/// returns a peptide sequence of the last index residues
-			AASequence getSuffix(UInt index) const;
+			AASequence getSuffix(Size index) const;
 
 			/// returns a peptide sequence of number residues, beginning at position index
-			AASequence getSubsequence(UInt index, UInt number) const;
+			AASequence getSubsequence(Size index, UInt number) const;
 
 			/// counts the number of occurrences of residue given by a string
-			UInt getNumberOf(const String& residue) const;
+			Size getNumberOf(const String& residue) const;
 
 			/// counts the number of occurrences of residue given by a string literal
-			UInt getNumberOf(const char* residue) const;
+			Size getNumberOf(const char* residue) const;
 			//@}
 
 			/** @name Predicates
@@ -503,7 +503,7 @@ namespace OpenMS
 			bool isModified() const;
 			
 			/// returns true if the residue at the position is modified
-			bool isModified(UInt index) const;
+			bool isModified(Size index) const;
 			
 			/// equality operator
 			bool operator == (const AASequence& rhs) const;

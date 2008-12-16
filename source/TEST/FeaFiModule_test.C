@@ -318,9 +318,9 @@ START_SECTION(void addConvexHull(const FeatureFinderDefs::IndexSet& set, Feature
 	FeaFiModule<Peak1D,Feature> t(&exp2,0,0);
 	
 	FeatureFinderDefs::IndexSet set;
-	for (UInt i=0; i<exp2.size(); ++i) 
+	for (Size i=0; i<exp2.size(); ++i) 
 	{
-		for (UInt j=0; j<exp2[i].size(); ++j) 
+		for (Size j=0; j<exp2[i].size(); ++j) 
 		{
 			set.insert(std::make_pair(i,j));
 		}

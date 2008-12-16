@@ -66,7 +66,7 @@ namespace OpenMS
 
 		std::vector< std::vector<UInt> >clusters;
 		clusters.reserve(original_distance.dimensionsize());
-		for(UInt i = 0; i < original_distance.dimensionsize(); ++i)
+		for (Size i = 0; i < original_distance.dimensionsize(); ++i)
 		{
 			clusters.push_back(std::vector<UInt>(1,i));
 		}
@@ -95,13 +95,13 @@ namespace OpenMS
 				//update original_distance matrix
 				//complete linkage: new distcance between clusteres is the minimum distance between elements of each cluster
 				//lance-williams update für d((i,j),k): 0.5* d(i,k) + 0.5* d(j,k) + 0.5* |d(i,k)-d(j,k)|
-				for (UInt k = 0; k < min.second; ++k)
+				for (Size k = 0; k < min.second; ++k)
 				{
 					Real dik = original_distance.getValue(min.first,k);
 					Real djk = original_distance.getValue(min.second,k);
 					original_distance.setValueQuick(min.second,k, (0.5* dik + 0.5* djk + 0.5* std::fabs(dik-djk)));
 				}
-				for (UInt k = min.second+1; k < original_distance.dimensionsize(); ++k)
+				for (Size k = min.second+1; k < original_distance.dimensionsize(); ++k)
 				{
 					Real dik = original_distance.getValue(min.first,k);
 					Real djk = original_distance.getValue(min.second,k);

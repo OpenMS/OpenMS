@@ -95,13 +95,13 @@ class TOPPIDMerger
 		IdXMLFile().load(file_names[0], protein_identifications, identifications);
 
 		vector<String> used_ids;
-		for(UInt i=1; i<file_names.size(); ++i)
+		for (Size i=1; i<file_names.size(); ++i)
 		{
 			vector<ProteinIdentification> additional_protein_identifications;
 			vector<PeptideIdentification> additional_identifications;
 			IdXMLFile().load(file_names[i], additional_protein_identifications, additional_identifications);
 			
-			for (UInt i=0; i<additional_protein_identifications.size();++i)
+			for (Size i=0; i<additional_protein_identifications.size();++i)
 			{
 				if (find(used_ids.begin(), used_ids.end(), additional_protein_identifications[i].getIdentifier())!=used_ids.end())
 				{

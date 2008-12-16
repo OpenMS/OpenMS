@@ -263,7 +263,7 @@ namespace OpenMS
 		{
 			String filename = String(nr_feat).fillLeft('0',4) + "_Extension.dta2d";
 			std::ofstream file(filename.c_str());
-			for(UInt i=0; i<peaks.size(); ++i)
+			for (Size i=0; i<peaks.size(); ++i)
 			{
 				file << this->getPeakRt(peaks[i]) << " " << this->getPeakMz(peaks[i]) << " " << peaks.size()-i << std::endl;
 			}

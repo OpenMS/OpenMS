@@ -161,7 +161,7 @@ namespace OpenMS
 		*/
 		bool encloses(const PositionType& position) const
 		{
-      for(UInt i = 0; i != D; i++)
+      for (Size i = 0; i != D; i++)
       {
         if (position[i]<min_[i]) return false;
         if (position[i]>=max_[i]) return false;
@@ -189,7 +189,7 @@ namespace OpenMS
 			PositionType other_min = other_range.min();
 			PositionType other_max = other_range.max();
 			
-			for (UInt i = 0; i != D; ++i)
+			for (Size i = 0; i != D; ++i)
 			{
 				united_min[i] = min_[i] < other_min[i] ? min_[i] : other_min[i];
 				united_max[i] = max_[i] > other_max[i] ? max_[i] : other_max[i];
@@ -210,7 +210,7 @@ namespace OpenMS
 		  if (encloses(range.min_))
 		  {
 		  	//check if r.max_ in this area => Inside / Intersects
-	      for(UInt i = 0; i != D; i++)
+	      for (Size i = 0; i != D; i++)
 	      {
 	        if (range.max_[i]>max_[i])
 	        {
@@ -221,7 +221,7 @@ namespace OpenMS
 		  }
 		  // => r.min_ is not inside this area
 	  	//check if any r.min_ >= max_ => Disjoint
-      for(UInt i = 0; i != D; i++)
+      for (Size i = 0; i != D; i++)
       {
         if (range.min_[i]>=max_[i])
         {
@@ -230,7 +230,7 @@ namespace OpenMS
       }
       // => some coordinate of r.min_ has to be smaller than the one of min_
   		//check if all coords of r are smaller than the those of the range
-      for(UInt i = 0; i != D; i++)
+      for (Size i = 0; i != D; i++)
       {
         if (range.max_[i]<=min_[i])
         {
@@ -256,7 +256,7 @@ namespace OpenMS
 		  
 		  // => r.min_ is not inside this area
 	  	//check if any r.min_ >= max_ => Disjoint
-      for(UInt i = 0; i != D; i++)
+      for (Size i = 0; i != D; i++)
       {
         if (range.min_[i]>=max_[i])
         {
@@ -265,7 +265,7 @@ namespace OpenMS
       }
       // => some coordinate of r.min_ has to be smaller than the one of min_
   		//check if all coords of r are smaller than the those of the range
-      for(UInt i = 0; i != D; i++)
+      for (Size i = 0; i != D; i++)
       {
         if (range.max_[i]<=min_[i])
         {
@@ -278,7 +278,7 @@ namespace OpenMS
 		/// Checks if the range is empty
 		bool isEmpty() const 
 		{ 
-      for(UInt i = 0; i != D; i++)
+      for (Size i = 0; i != D; i++)
       {
         if (max_[i]<=min_[i])
         {

@@ -68,7 +68,7 @@ namespace OpenMS
 	StringList& StringList::operator=(const vector<string>& rhs)
 	{
 		this->resize(rhs.size());
-		for (UInt i=0; i<rhs.size(); ++i)
+		for (Size i=0; i<rhs.size(); ++i)
 		{
 			this->operator[](i)= rhs[i];
 		}
@@ -87,7 +87,7 @@ namespace OpenMS
 	
 	bool StringList::contains(const String& s) const
 	{
-		for (UInt i=0; i<this->size(); ++i)
+		for (Size i=0; i<this->size(); ++i)
 		{
 			if (this->operator[](i)==s) return true;
 		}
@@ -96,7 +96,7 @@ namespace OpenMS
 	
 	void StringList::toUpper()
 	{
-		for (UInt i=0; i<this->size(); ++i)
+		for (Size i=0; i<this->size(); ++i)
 		{
 			this->operator[](i).toUpper();
 		}
@@ -104,7 +104,7 @@ namespace OpenMS
 	
 	void StringList::toLower()
 	{
-		for (UInt i=0; i<this->size(); ++i)
+		for (Size i=0; i<this->size(); ++i)
 		{
 			this->operator[](i).toLower();
 		}
@@ -134,7 +134,7 @@ namespace OpenMS
 			os << p[0];
 		}
 		
-		for (UInt i=1; i<p.size(); ++i)
+		for (Size i=1; i<p.size(); ++i)
 		{
 			os << ", " << p[i];
 		}

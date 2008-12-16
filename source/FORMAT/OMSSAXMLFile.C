@@ -365,7 +365,7 @@ namespace OpenMS
 					fatalError(LOAD, String("Invalid mapping file line: '") + *it + "'");
 				}
 				vector<ResidueModification> mods;
-				for (UInt i = 2; i != split.size(); ++i)
+				for (Size i = 2; i != split.size(); ++i)
 				{
 					String tmp(split[i].trim());
 					if (tmp.size() != 0)

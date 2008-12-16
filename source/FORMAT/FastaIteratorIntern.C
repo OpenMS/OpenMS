@@ -93,7 +93,7 @@ namespace OpenMS {
 		ffile.load (f,entries);
 		entrys_.clear();
 		entrys_.resize(entries.size(), std::make_pair("", ""));
-		for(UInt i = 0; i < entries.size(); ++i)
+		for (Size i = 0; i < entries.size(); ++i)
 		{
 			entrys_[i].first = (entries[i].identifier + " " + entries[i].description);
 			entrys_[i].second = entries[i].sequence;

@@ -50,7 +50,7 @@ namespace OpenMS
 	DoubleList::DoubleList(const vector<Real>& rhs)
 	{
 		this->resize(rhs.size());
-		for(UInt i=0;i<rhs.size();++i)
+		for (Size i=0;i<rhs.size();++i)
 		{
 			(*this)[i]=(DoubleReal)rhs[i];
 		}
@@ -65,7 +65,7 @@ namespace OpenMS
 	DoubleList& DoubleList::operator=(const vector<Real>& rhs)
 	{
 		this->resize(rhs.size());
-		for(UInt i=0;i<rhs.size();++i)
+		for (Size i=0;i<rhs.size();++i)
 		{
 			(*this)[i]=(DoubleReal)rhs[i];
 		}
@@ -89,7 +89,7 @@ namespace OpenMS
 		else
 		{
 			ret.resize(out.size());
-			for(UInt i=0; i< out.size(); ++i)
+			for (Size i=0; i< out.size(); ++i)
 			{
 				ret[i]=out[i].toDouble();
 			}
@@ -99,7 +99,7 @@ namespace OpenMS
 	
 	bool DoubleList::contains(DoubleReal s) const
 	{
-		for (UInt i=0; i<this->size(); ++i)
+		for (Size i=0; i<this->size(); ++i)
 		{
 			if (this->operator[](i)==s) return true;
 		}
@@ -116,7 +116,7 @@ namespace OpenMS
 			os << p[0];
 		}
 		
-		for (UInt i=1; i<p.size(); ++i)
+		for (Size i=1; i<p.size(); ++i)
 		{
 			os << ", " << p[i];
 		}

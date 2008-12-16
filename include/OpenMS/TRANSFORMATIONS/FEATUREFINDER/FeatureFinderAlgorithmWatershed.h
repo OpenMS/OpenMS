@@ -148,7 +148,7 @@ namespace OpenMS
 				//do linear resampling in m/z dimension
         ff_->startProgress(0, map_->size(), "Resampling of input data");
         data_.reserve(map_->size());
-        for (UInt s=0; s<map_->size(); ++s)
+        for (Size s=0; s<map_->size(); ++s)
         {
         	ff_->setProgress(s);
           if ((*map_)[s].getMSLevel()!=1)
@@ -161,14 +161,14 @@ namespace OpenMS
           
           if (apply_log_)
           {
-            for (UInt p=0; p<(*map_)[s].size(); ++p)
+            for (Size p=0; p<(*map_)[s].size(); ++p)
             {
               lip.addValue((*map_)[s][p].getMZ(),log(1 + (*map_)[s][p].getIntensity()));
             }
           }
           else
           {
-            for (UInt p=0; p<(*map_)[s].size(); ++p)
+            for (Size p=0; p<(*map_)[s].size(); ++p)
             {
               lip.addValue((*map_)[s][p].getMZ(),((*map_)[s][p].getIntensity()));
             }
@@ -176,7 +176,7 @@ namespace OpenMS
           
           std::vector<GridPoint> spectrum_points;
           spectrum_points.reserve(peaks_);
-          for (UInt p=0; p<peaks_; ++p )
+          for (Size p=0; p<peaks_; ++p )
 		    	{
            	GridPoint current_point;
             current_point.spectrum = s;
@@ -198,9 +198,9 @@ namespace OpenMS
 					//determine maximum intensity of resampled data
         	DoubleReal max_int = 0.0;
         	DoubleReal min_int = data_[0][0].intensity;
-        	for (UInt s=0;s<data_.size();++s)
+        	for (Size s=0;s<data_.size();++s)
         	{
-        		for (UInt p=0;p<data_[s].size();++p)
+        		for (Size p=0;p<data_[s].size();++p)
 	        	{
 	        		if (data_[s][p].intensity > max_int)
 	        		{
@@ -218,9 +218,9 @@ namespace OpenMS
 				//SORTING
         //sort seed vector by intensity of peaks (highest first)
        	data_ptrs_.reserve(data_.size()*peaks_);
-      	for (UInt s=0;s<data_.size();++s)
+      	for (Size s=0;s<data_.size();++s)
       	{
-      		for (UInt p=0;p<data_[s].size();++p)
+      		for (Size p=0;p<data_[s].size();++p)
         	{
         		data_ptrs_.push_back(&(data_[s][p]));
           }
@@ -258,7 +258,7 @@ namespace OpenMS
             
             std::vector<GridPoint*> neighbors; 
             getNeighbors_(current_point,neighbors);
-            for (UInt n=0; n<neighbors.size(); ++n)
+            for (Size n=0; n<neighbors.size(); ++n)
             {
               if ( neighbors[n]->flag == WATERSHED || neighbors[n]->flag > 0)
               {
@@ -293,7 +293,7 @@ namespace OpenMS
             // put neighbors in vector
             std::vector<GridPoint*> neighbors;
             getNeighbors_(current_point,neighbors);
-            for (UInt n = 0; n < neighbors.size(); ++n)
+            for (Size n = 0; n < neighbors.size(); ++n)
             {
               GridPoint* neighbor = neighbors[n];
               if (((neighbor->flag == WATERSHED) || (neighbor->flag > 0)) && (neighbor->distance < current_dist))
@@ -324,7 +324,7 @@ namespace OpenMS
           
           //----------------------------------------------------------------------------------
           //CHECK IF NEW MINIMA HAVE BEEN DISCOVERED
-          for (UInt j2=i; j2<j; ++j2)
+          for (Size j2=i; j2<j; ++j2)
           {
             GridPoint* current_point = data_ptrs_[j2];
             //distance is reset to 0 
@@ -340,7 +340,7 @@ namespace OpenMS
                 std::vector<GridPoint*> neighbors; 
                 getNeighbors_(fifo_.front(),neighbors);
                 fifo_.pop_front();
-                for (UInt n=0; n<neighbors.size(); ++n)
+                for (Size n=0; n<neighbors.size(); ++n)
                 {
                   if(neighbors[n]->flag == MASK)
                   {
@@ -372,7 +372,7 @@ namespace OpenMS
 				tmp_features.resize(current_label);
         std::vector<ConvexHull2D::PointArrayType> points;
         points.resize(current_label);
-        for (UInt i=0; i<data_ptrs_.size(); ++i)
+        for (Size i=0; i<data_ptrs_.size(); ++i)
         {
         	ff_->setProgress(i);
         	const GridPoint& point = *(data_ptrs_[i]);
@@ -400,10 +400,10 @@ namespace OpenMS
         Real average_points = 0;
         UInt counter = 0; 
         UInt pointssize[500];
-        for (UInt l = 0; l<500;l++)          
+        for (Size l = 0; l<500;l++)          
           {  pointssize[l] = 0;
           }       
-        for (UInt i=0; i<tmp_features.size(); ++i)
+        for (Size i=0; i<tmp_features.size(); ++i)
 				{
           ff_->setProgress(i);
           if (!points[i].empty())
@@ -422,7 +422,7 @@ namespace OpenMS
         //calculate convex hulls and copy features with points to the output array
 				ff_->startProgress(0, tmp_features.size(), "Calculating feature convex hulls");
 				features_->reserve(tmp_features.size()); 
-				for (UInt i=0; i<tmp_features.size(); ++i)
+				for (Size i=0; i<tmp_features.size(); ++i)
 				{
 					ff_->setProgress(i);
           
@@ -430,7 +430,7 @@ namespace OpenMS
 					{
 						features_->push_back(tmp_features[i]);
 						features_->back().getConvexHulls().push_back(points[i]);
-						features_->back().setMetaValue("label",i);
+						features_->back().setMetaValue("label",(UInt)i);
 						features_->back().setMetaValue("contained_points",(UInt)points[i].size());
             
 					}

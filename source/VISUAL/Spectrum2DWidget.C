@@ -193,7 +193,7 @@ namespace OpenMS
 				{
 					if (it->getName()==name)
 					{
-						for (UInt i=0; i<it->size(); ++i)
+						for (Size i=0; i<it->size(); ++i)
 						{
 							if ((*it)[i]<min) min = (*it)[i];
 							if ((*it)[i]>max) max = (*it)[i];
@@ -213,7 +213,7 @@ namespace OpenMS
 				{
 					if (it->getName()==name)
 					{
-						for (UInt i=0; i<it->size(); ++i)
+						for (Size i=0; i<it->size(); ++i)
 						{
 							tmp.inc((*it)[i]);
 						}

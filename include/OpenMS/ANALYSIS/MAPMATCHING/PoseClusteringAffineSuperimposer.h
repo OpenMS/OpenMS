@@ -141,7 +141,7 @@ namespace OpenMS
 
 			// compute total intensities of both maps for normalisation
 			DoubleReal total_int_model_map = 0;
-			for (UInt i = 0; i < model_map.size(); ++i)
+			for (Size i = 0; i < model_map.size(); ++i)
 			{
 				total_int_model_map += model_map[i].getIntensity();
 			}
@@ -149,7 +149,7 @@ namespace OpenMS
 			setProgress(6);
 
 			DoubleReal total_int_scene_map = 0;
-			for (UInt i = 0; i < scene_map.size(); ++i)
+			for (Size i = 0; i < scene_map.size(); ++i)
 			{
 				total_int_scene_map += scene_map[i].getIntensity();
 			}
@@ -197,7 +197,7 @@ namespace OpenMS
 				for ( UInt k = k_low; k < k_high; ++k )
 				{
 					// second point in model map
-					for (UInt j = i+1, l_low = k_low, l_high = k_high; j < model_map_size; ++j)
+					for (Size j = i+1, l_low = k_low, l_high = k_high; j < model_map_size; ++j)
 					{
 						// diff in model map
 						DoubleReal diff_model = model_map[j].getRT() - model_map[i].getRT();

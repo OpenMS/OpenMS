@@ -113,7 +113,7 @@ namespace OpenMS
 		}
 
 		//append unassigned peptide identifications
-		for (UInt i=0; i<ids.size(); ++i)
+		for (Size i=0; i<ids.size(); ++i)
 		{
 			if (assigned.count(i)==0)
 			{

@@ -156,7 +156,7 @@ namespace OpenMS
       raw_peak_array.resize(n);
 			raw_peak_array_original.resize(n);
       
-      for (UInt i = 0; i < n; ++i)
+      for (Size i = 0; i < n; ++i)
       {
         PeakType raw_data_point;
         raw_data_point.setIntensity((first + i)->getIntensity());
@@ -312,7 +312,7 @@ namespace OpenMS
         UInt n = (UInt) peak_shapes_.size();
 				if( deconvolution_)
 				{
-					for (UInt i = 0; i < n; ++i)
+					for (Size i = 0; i < n; ++i)
 					{
 						if ((peak_shapes_[i].getFWHM() > fwhm_threshold) 
 								|| (peak_shapes_[i].getSymmetricMeasure() < symm_threshold))
@@ -428,7 +428,7 @@ namespace OpenMS
 				}
 				
         // write the picked peaks to the outputcontainer
-        for (UInt i = 0; i < peak_shapes_.size(); ++i)
+        for (Size i = 0; i < peak_shapes_.size(); ++i)
         {
 					// put it out only if the peak was not deconvoluted
 					if(find(peaks_to_skip.begin(),peaks_to_skip.end(),i) == peaks_to_skip.end() )
@@ -498,7 +498,7 @@ namespace OpenMS
       ms_exp_peaks.reserve(n);
       startProgress(0,n,"picking peaks");
       // pick peaks on each scan
-      for (UInt i = 0; i < n; ++i)
+      for (Size i = 0; i < n; ++i)
       {
 				setProgress(i);
         MSSpectrum< OutputPeakType > spectrum;

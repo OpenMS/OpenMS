@@ -77,7 +77,7 @@ namespace OpenMS
 		pi.push_back(0);
 		lambda.push_back(std::numeric_limits<Real>::max());
 
-		for(UInt k = 1; k < original_distance.dimensionsize(); ++k)
+		for (Size k = 1; k < original_distance.dimensionsize(); ++k)
 		{
 			std::vector<Real> row_k;
 			row_k.reserve(k);
@@ -87,13 +87,13 @@ namespace OpenMS
 			lambda.push_back(std::numeric_limits<Real>::max());
 
 			// get the right distances
-			for(UInt i = 0; i < k; ++i)
+			for (Size i = 0; i < k; ++i)
 			{
 				row_k.push_back(original_distance.getValue(i,k));
 			}
 
 			//calculate pointer values for element k
-			for(UInt i = 0; i < k; ++i)
+			for (Size i = 0; i < k; ++i)
 			{
 				if(lambda[i] >= row_k[i])
 				{
@@ -108,7 +108,7 @@ namespace OpenMS
 			}
 
 			//update clustering if neccessary
-			for(UInt i = 0; i < k; ++i)
+			for (Size i = 0; i < k; ++i)
 			{
 				if(lambda[i] >= lambda[pi[i]])
 				{
@@ -117,7 +117,7 @@ namespace OpenMS
 			}
 		}
 
-		for(UInt i = 0; i < pi.size()-1; ++i)
+		for (Size i = 0; i < pi.size()-1; ++i)
 		{
 			//strict order is always kept in algorithm: i < pi[i]
 			cluster_tree.push_back(BinaryTreeNode(i,pi[i],lambda[i]));
@@ -128,13 +128,13 @@ namespace OpenMS
 		std::sort(cluster_tree.begin(),cluster_tree.end(),compareBinaryTreeNode);
 
 		// convert -pre-tree to correct format
-		for(UInt i = 0; i < cluster_tree.size(); ++i)
+		for (Size i = 0; i < cluster_tree.size(); ++i)
 		{
 			if(cluster_tree[i].right_child < cluster_tree[i].left_child)
 			{
 				std::swap(cluster_tree[i].left_child,cluster_tree[i].right_child);
 			}
-			for(UInt k = i+1; k < cluster_tree.size(); ++k)
+			for (Size k = i+1; k < cluster_tree.size(); ++k)
 			{
 				if(cluster_tree[k].left_child == cluster_tree[i].right_child)
 				{

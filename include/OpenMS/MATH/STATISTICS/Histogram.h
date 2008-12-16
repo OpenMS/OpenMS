@@ -145,7 +145,7 @@ namespace OpenMS
 			}
 	
 			///returns the number of bins
-			UInt size() const
+			Size size() const
 			{
 				return bins_.size();
 			}
@@ -308,7 +308,7 @@ namespace OpenMS
 		template<typename ValueType, typename BinSizeType>
 		std::ostream& operator << (std::ostream& os, const Histogram<ValueType,BinSizeType>& hist)
 		{
-			for(UInt i=0; i<hist.size(); ++i)
+			for (Size i=0; i<hist.size(); ++i)
 			{
 				os << hist.centerOfBin(i) << "	" << hist[i] << std::endl;
 			}

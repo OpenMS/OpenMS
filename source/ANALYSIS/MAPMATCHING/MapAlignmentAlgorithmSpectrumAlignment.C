@@ -65,7 +65,7 @@ namespace OpenMS
 
 		
 			startProgress(0,(peakmaps.size()-1),"Alignment");
-			for(UInt i = 1 ; i < peakmaps.size();++i )
+			for (Size i = 1 ; i < peakmaps.size();++i )
 			{									
 				prepareAlign_(spectrum_pointers,peakmaps[i],transformation);
 				setProgress(i);
@@ -112,7 +112,7 @@ namespace OpenMS
 			UInt x=0;
 			Real maxi=-999.0;
 			
-			for(UInt k = 0; k<pattern.size(); ++k)
+			for (Size k = 0; k<pattern.size(); ++k)
 			{
 				Real s =	scoring_(*pattern[k],*(tempalign[y]));
 				if(s > maxi && s > cutoffScore_)
@@ -129,7 +129,7 @@ namespace OpenMS
 			
 			UInt xn=(UInt)(pattern.size() * i);
 			UInt yn=0;
-			for(UInt k = 0; k<tempalign.size(); ++k)
+			for (Size k = 0; k<tempalign.size(); ++k)
 			{
 				Real s =	scoring_(*pattern[xn],*(tempalign[k]));
 				if(s > maxi && s > cutoffScore_)
@@ -158,7 +158,7 @@ namespace OpenMS
 		std::vector<Real>ycoordinate;
 		debugmatrix_.clear();
 				
-		for(UInt i=0; i < alignpoint.size()-2; i+=2)
+		for (Size i=0; i < alignpoint.size()-2; i+=2)
 		{
 			affineGapalign_(alignpoint[i],alignpoint[i+1],alignpoint[i+2],alignpoint[i+3], pattern, tempalign,xcoordinate,ycoordinate,xcoordinatepattern);
 		}
@@ -170,7 +170,7 @@ namespace OpenMS
 		}
 		
 	/*
-		for(UInt i = 0; i< xcoordinate.size(); ++i)
+		for (Size i = 0; i< xcoordinate.size(); ++i)
 		{
 			std::cout<< xcoordinate[i] << " " << ycoordinate[i] << " x  y  anchorpunkte " << std::endl;
 		}
@@ -179,7 +179,7 @@ namespace OpenMS
 		
 		bucketFilter_(pattern, tempalign,xcoordinate,ycoordinate,xcoordinatepattern);
 		/*std::cout << xcoordinate.size()<< std::endl;
-				for(UInt i = 0; i< xcoordinate.size(); ++i)
+				for (Size i = 0; i< xcoordinate.size(); ++i)
 				{
 					std::cout<< xcoordinate[i] << " " << ycoordinate[i] << " x  y  anchorpunkte " << std::endl;
 				}*/
@@ -187,7 +187,7 @@ namespace OpenMS
 		calculateSpline_(xcoordinate,ycoordinate,tempalign,(UInt)0,tempalign.size()-1,transformation);
 		if(xcoordinate[0]!=0)
 		{
-			for(UInt i =0; i <=(UInt)xcoordinate[0];++i)
+			for (Size i =0; i <=(UInt)xcoordinate[0];++i)
 			{
 				Real rt = (i+1)*(ycoordinate[0]/(xcoordinate[0]+1));
 				(*tempalign[i]).setRT(rt);
@@ -197,7 +197,7 @@ namespace OpenMS
 		{
 			Real slope= (ycoordinate[ycoordinate.size()-2]-ycoordinate[ycoordinate.size()-1])/(xcoordinate[xcoordinate.size()-2]-xcoordinate[xcoordinate.size()-1]);
 		
-			for(UInt i = xcoordinate[xcoordinate.size()-1]; i < tempalign.size();++i)
+			for (Size i = xcoordinate[xcoordinate.size()-1]; i < tempalign.size();++i)
 			{
 				Real rt = (i)*slope;
 				(*tempalign[i]).setRT(rt);
@@ -205,7 +205,7 @@ namespace OpenMS
 		}
 		//todo plot the result!!!
 	/*	
-		for(UInt i=0; i< tempalign.size();++i)
+		for (Size i=0; i< tempalign.size();++i)
 		{
 			std::cout << (*tempalign[i]).getRT()<< " " << std::endl;
 		}
@@ -292,7 +292,7 @@ namespace OpenMS
 				std::map<UInt,std::map<UInt,UInt> > traceback;
 		      //init both  matrices
 			  	
-			  	for(UInt i = 1; i<= n; ++i)
+			  	for (Size i = 1; i<= n; ++i)
 			  	{	//->band-size
 						setProgress(i);
 			  		std::vector<Real>debugtmp;
@@ -462,9 +462,9 @@ namespace OpenMS
 			  		}
 			  	}
 /*
-					for(UInt i=0; i <=n;++i)
+					for (Size i=0; i <=n;++i)
 					{
-						for(UInt j=0; j<=m;++j)
+						for (Size j=0; j<=m;++j)
 						{
 							std::cout << i << " "<< j << " i j " << matchmatrix[i][j] << " " << insertmatrix[i][j] << " " << traceback[i][j] << " Match Insert Trace" << std::endl;
 						}
@@ -479,7 +479,7 @@ namespace OpenMS
 			  		finish= true;
 			  		if(debug_)
 			  		{
-			  			for(UInt i =0; i <tempdebugbuffer.size();++i )
+			  			for (Size i =0; i <tempdebugbuffer.size();++i )
 			  			{
 			  				debugmatrix_.push_back(tempdebugbuffer[i]);
 			  			}
@@ -609,7 +609,7 @@ namespace OpenMS
 								}*/
 			  			}
 			  		}
-			  		for(UInt i=0; i <xvar.size(); ++i)
+			  		for (Size i=0; i <xvar.size(); ++i)
 						{								
 							//std::cout<< xvar[xvar.size()-1-i] << " " << std::endl;
 							if(xcoordinate.size()>0)
@@ -659,7 +659,7 @@ namespace OpenMS
 			
 			if(pattern.size()!=0)
 			{	
-				for(UInt i=0; i< peakmap.size();++i)
+				for (Size i=0; i< peakmap.size();++i)
 				{
 					if(peakmap[i].getMSLevel()==1)
 					{ 
@@ -683,7 +683,7 @@ namespace OpenMS
 		{
 			if(c1_->getName()=="CompareFouriertransform")
 			{
-				for(UInt i=0; i< spectrum_pointer_container.size();++i)
+				for (Size i=0; i< spectrum_pointer_container.size();++i)
 				{
 					transform_(*spectrum_pointer_container[i]);
 				}
@@ -702,7 +702,7 @@ namespace OpenMS
 			
 			if(c1_->getName()=="CompareFouriertransform")
 			{
-				for(UInt i=0; i <spectrum_pointer_container.size();++i)
+				for (Size i=0; i <spectrum_pointer_container.size();++i)
 				{
 					MSSpectrum<>::MetaDataArrays& temp = (*spectrum_pointer_container[i]).getMetaDataArrays();
 					
@@ -760,7 +760,7 @@ namespace OpenMS
 				bool iflag = true;
 				Real sum=0;
   			//normalize first the intensity!!!
-  			for(UInt k = 0 ;k<spec.size(); ++k)
+  			for (Size k = 0 ;k<spec.size(); ++k)
   			{
   				sum+=spec[k].getIntensity();
   			}
@@ -866,7 +866,7 @@ namespace OpenMS
       	UInt temp= (UInt)((yend-ybegin) * i);
     		Real	maxi=-999.0;
     		Real	s=-999.0;
-    		for(UInt k = 0; k<=(xend-xbegin); ++k)
+    		for (Size k = 0; k<=(xend-xbegin); ++k)
     		{
     			UInt x;
     			Int y;
@@ -920,7 +920,7 @@ namespace OpenMS
     			tempy[x.size()-1-i]=y[i];
     		}*/
 				std::vector<std::pair<Real,Real> >PairVector;
-    		for(UInt i= 0 ; i <x.size(); ++i)
+    		for (Size i= 0 ; i <x.size(); ++i)
     		{
     			tempx[i]=x[i];
     			tempy[i]=y[i];
@@ -936,7 +936,7 @@ namespace OpenMS
     		gsl_spline *spline = gsl_spline_alloc(gsl_interp_cspline, (UInt)x.size());
     		gsl_spline_init(spline,tempx,tempy,(UInt)x.size());
 
-    		for(UInt i = begin; i <= end; ++i)
+    		for (Size i = begin; i <= end; ++i)
     		{
     			(*aligned[i]).setRT(gsl_spline_eval(spline,i,acc));
     		}
@@ -960,7 +960,7 @@ namespace OpenMS
     					UInt distance = std::abs((Int)(begin-end));
     					UInt difference = std::abs((Int)(y[1]-y[0]));
     					Real k= distance/difference; 
-    					for(UInt i=0; i<=distance; ++i)
+    					for (Size i=0; i<=distance; ++i)
     					{	
     						Real t=y[1]+i*k;
     						(*aligned[begin+i]).setRT(t);
@@ -1036,7 +1036,7 @@ namespace OpenMS
    /*
    inline  void  MapAlignmentAlgorithmSpectrumAlignment::ordering_(std::vector<int>& x,std::vector<double>& y )
     {
-     	for(UInt i =0 ; i < x.size()-1;++i)
+     	for (Size i =0 ; i < x.size()-1;++i)
     	{
     		int temp1=x[i+1];
     		double temp2=y[i+1];
@@ -1129,16 +1129,16 @@ namespace OpenMS
 		if(bucketsize_ >= xcoordinate.size()) size=xcoordinate.size();
 		else size=size/bucketsize_;
 		//std::cout << size << " size "<< xcoordinate.size() << " size2 " << std::endl;
-		for(UInt i = 0; i<=xcoordinate.size()-size;i+=size)
+		for (Size i = 0; i<=xcoordinate.size()-size;i+=size)
 		{
 			std::vector<std::pair<std::pair<Int, Real>, Real> > temp;
-			for(UInt j=0; j<size;++j)//inside a bucket
+			for (Size j=0; j<size;++j)//inside a bucket
 			{
 				Real score = scoring_(*pattern[xcoordinatepattern[i+j]],*aligned[xcoordinate[i+j]]);
 				
 				temp.push_back(std::make_pair(std::make_pair(xcoordinate[i+j],ycoordinate[i+j]),score));		
 			}
-			/*for(UInt i=0; i < temp.size();++i)
+			/*for (Size i=0; i < temp.size();++i)
 			{ 
 				std::cout<< (temp[i].first).first << " " << (temp[i].first).second << " in temp"<< std::endl; 
 			}
@@ -1149,11 +1149,11 @@ namespace OpenMS
 			if(anchor<=0) anchor =1;
 		
 			//std::cout << anchor << " anchorpoints "  << anchorPoints_<< std::endl;
-			/*for(UInt i=0; i< temp.size();++i)
+			/*for (Size i=0; i< temp.size();++i)
 			{
 				std::cout<< (temp[i].first).first << "first" << (temp[i].first).second << " second" <<std::endl; 
 			}*/
-			for(UInt k =0; k< (UInt)anchor;++k)
+			for (Size k =0; k< (UInt)anchor;++k)
 			{
 				tempxy.push_back(temp[k]);
 			}
@@ -1162,7 +1162,7 @@ namespace OpenMS
 		
 		xcoordinate.clear();
 		ycoordinate.clear();
-		for(UInt i =0; i <tempxy.size();++i)
+		for (Size i =0; i <tempxy.size();++i)
 		{
 			xcoordinate.push_back((tempxy[i].first).first);
 			ycoordinate.push_back((tempxy[i].first).second);
@@ -1186,7 +1186,7 @@ namespace OpenMS
 		tempfile3.open("debugscore.txt",std::ios::trunc);
 		tempfile3 << "set xrange[0:"<< pattern.size()-1<<  "]" << "\n set yrange[0:"<< aligned.size()-1 << "]" << "\n set zrange[0:" 
 				<< maximimum << "] \n set view 45,20,1.0,2.5 \n"<< "splot \'-\'" <<std::endl;
-		for(UInt i =0; i< debugscorematrix_.size();++i)
+		for (Size i =0; i< debugscorematrix_.size();++i)
 		{
 			tempfile3<< debugscorematrix_[i][0] << " " << debugscorematrix_[i][1] << " " << debugscorematrix_[i][2] << std::endl;
 		}
@@ -1199,10 +1199,10 @@ namespace OpenMS
 		myfile << "set xrange[0:"<< pattern.size()-1<<  "]" << "\n set yrange[0:"<< aligned.size()-1 << "] \n plot \'-\' with lines " << std::endl;
 		std::sort(debugtraceback_.begin(),debugtraceback_.end(),Compare(false));
 		
-		for(UInt i =0; i< debugtraceback_.size(); ++i)
+		for (Size i =0; i< debugtraceback_.size(); ++i)
 		{
 			myfile<< debugtraceback_[i].first << " " << debugtraceback_[i].second << std::endl;
-			for(UInt p=0;p<debugscorematrix_.size();++p)
+			for (Size p=0;p<debugscorematrix_.size();++p)
 			{
 				if(debugscorematrix_[p][0] == debugtraceback_[i].first && debugscorematrix_[p][1] == debugtraceback_[i].second)
 				{
@@ -1222,14 +1222,14 @@ namespace OpenMS
 		Real scoremaximum=-2;
 		//precalculation for the heatmap
 		//getting the maximum score
-		for(UInt i=0; i < debugscorematrix_.size();++i)
+		for (Size i=0; i < debugscorematrix_.size();++i)
 		{
 			if(scoremaximum < debugscorematrix_[i][2]+2) scoremaximum=debugscorematrix_[i][2]+2;
 			//shift all score about 2 (to get 0, the default score in the debugbuffermatrix is -2 )
 			debugscorematrix_[i][2]+=2;
 		}
 		//to get the intvall [0,1] divide all score to the global maximum
-		for(UInt i=0; i < debugscorematrix_.size();++i)
+		for (Size i=0; i < debugscorematrix_.size();++i)
 		{
 			if(debugscorematrix_[i][2]!=0) debugscorematrix_[i][2]/=scoremaximum;
 		}
@@ -1237,21 +1237,21 @@ namespace OpenMS
 		
 		//write the score in a file
 		/*
-		for(UInt i=0; i < debugscorematrix_.size();++i)
+		for (Size i=0; i < debugscorematrix_.size();++i)
 		{
 			debugbuffermatrix[(UInt)debugscorematrix_[i][0]][(UInt)debugscorematrix_[i][1]]=debugscorematrix_[i][2];
 		}*/
 		std::ofstream scorefile;
 		scorefile.open("debugscoreheatmap.r",std::ios::trunc);
 		/*
-		for(UInt i=0; i < debugbuffermatrix.size();++i)
+		for (Size i=0; i < debugbuffermatrix.size();++i)
 		{
-			for(UInt j=0; j< debugbuffermatrix[i].size(); ++j)
+			for (Size j=0; j< debugbuffermatrix[i].size(); ++j)
 			{
 				scorefile<< i << " "<< j << " "<<  debugbuffermatrix[i][j] << std::endl; 	
 			}
 		}*/
-		for(UInt i=0; i < debugscorematrix_.size();++i)
+		for (Size i=0; i < debugscorematrix_.size();++i)
 		{
 			scorefile<< debugscorematrix_[i][0] << " " << debugscorematrix_[i][1] << " " << debugscorematrix_[i][2] << " "<< debugscorematrix_[i][3] << std::endl;
 			
@@ -1267,7 +1267,7 @@ namespace OpenMS
 		/*
 		Real matchmaximum=-999.0;
 		Real insertmaximum=-999.0;
-		for(UInt i =0; i< debugmatrix_.size();++i)
+		for (Size i =0; i< debugmatrix_.size();++i)
 		{
 		debugbuffermatrix[debugmatrix_[i][0]][debugmatrix_[i][1]]=(Real)debugmatrix_[i][2];
 		if(matchmaximum <debugmatrix_[i][2]) matchmaximum = (Real)debugmatrix_[i][2];
@@ -1284,10 +1284,10 @@ namespace OpenMS
 		"set tic scale 0 \n set palette rgbformula -7,2,-7 \n set cbrange [-999.0:" << matchmaximum <<"] \n set cblabel \"Score\" \n unset cbtics"<< std::endl;
 			myfile<< "p \'-\' using 1:2:3 with image" <<std::endl;
 			//output matchmatrix
-		for(UInt i=0; i< debugbuffermatrix.size();++i)
+		for (Size i=0; i< debugbuffermatrix.size();++i)
 		{
 		if(i!=0) myfile << std::endl;
-		for(UInt j=0; j < debugbuffermatrix[0].size();++j)
+		for (Size j=0; j < debugbuffermatrix[0].size();++j)
 		{
 		myfile<< i << " " << j << " " << debugbuffermatrix[i][j] << std::endl;
 	}
@@ -1295,7 +1295,7 @@ namespace OpenMS
 		myfile <<"e"<< std::endl;
 		myfile << std::endl;
 		std::cout << " complete matchmatrix " << std::endl;
-		for(UInt i =0; i< debugmatrix_.size();++i)
+		for (Size i =0; i< debugmatrix_.size();++i)
 		{
 		debugbuffermatrix[debugmatrix_[i][0]][debugmatrix_[i][1]]=debugmatrix_[i][3];
 	}
@@ -1304,10 +1304,10 @@ namespace OpenMS
 		"unset key \n"
 		"set tic scale 0 \n set palette rgbformula -7,2,-7 \n	set cbrange [-999.0:"<< insertmaximum<<"] \n set cblabel \"Score\" \n unset cbtics"<< std::endl;
 		myfile<< "p \'-\' using 1:2:3 with image" <<std::endl;
-		for(UInt i=0; i< debugbuffermatrix.size();++i)
+		for (Size i=0; i< debugbuffermatrix.size();++i)
 		{
 		if(i!=0) myfile << std::endl;
-		for(UInt j=0; j < debugbuffermatrix[0].size();++j)
+		for (Size j=0; j < debugbuffermatrix[0].size();++j)
 		{
 		myfile<< i << " " << j << " " << debugbuffermatrix[i][j] << std::endl;
 	}
@@ -1318,14 +1318,14 @@ namespace OpenMS
 			
 		myfile<< "set multiplot layout 1,1 columnsfirst \n set title \"Heat Map of the tracebackmatrix\" \n unset key \n set tic scale 0 \n set palette rgbformula -7,2,-7 \n set cbrange [0:5] \n set cblabel \"Score\" \n unset cbtics \n set xrange [0: " << pattern.size()-1<< "] \n set yrange[0:" << tempalign.size()<< "] \n set view map \n"<< std::endl;
 		myfile<< "p \'-\' using 1:2:3 with image" <<std::endl;
-		for(UInt i=0;i <pattern.size();++i)
+		for (Size i=0;i <pattern.size();++i)
 		{
-			for(UInt j=0; j<tempalign.size();++j)
+			for (Size j=0; j<tempalign.size();++j)
 			{
 				debugbuffermatrix[i][j]=0;
 			}
 		}
-		for(UInt i =0; i< debugmatrix_.size();++i)
+		for (Size i =0; i< debugmatrix_.size();++i)
 		{
 			Real score = 0;
 			if(debugmatrix_[i][4] == 0)
@@ -1342,10 +1342,10 @@ namespace OpenMS
 			}
 			debugbuffermatrix[debugmatrix_[i][0]][debugmatrix_[i][1]]=score;
 		}
-		for(UInt i=0; i< debugbuffermatrix.size();++i)
+		for (Size i=0; i< debugbuffermatrix.size();++i)
 		{
 			if(i!=0) myfile << std::endl;
-			for(UInt j=0; j < debugbuffermatrix[0].size();++j)
+			for (Size j=0; j < debugbuffermatrix[0].size();++j)
 			{
 				myfile<< i << " " << j << " " << debugbuffermatrix[i][j] << std::endl;
 			}
@@ -1356,7 +1356,7 @@ namespace OpenMS
 						
 		myfile <<"unset multiplot"<<std::endl;
 			
-			for(UInt i=0; i<debugmatrix_.size();++i)
+			for (Size i=0; i<debugmatrix_.size();++i)
 		{
 		myfile<<debugmatrix_[i][0] << " " << debugmatrix_[i][1] << " " << debugmatrix_[i][4] << std::endl; 
 	}

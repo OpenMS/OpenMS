@@ -70,7 +70,7 @@ namespace OpenMS
   	StringList log_files;
   	log_files << "TOPP.log";
   	if (!getParam_("log").isEmpty()) log_files << (String)(getParam_("log"));
-		for(UInt i=0; i< log_files.size(); ++i)
+		for (Size i=0; i< log_files.size(); ++i)
 		{
   		if (File::empty(log_files[i]))
   		{
@@ -271,7 +271,7 @@ namespace OpenMS
 						else if (it->value.valueType()==DataValue::STRING_VALUE)
 						{
 							os << "                <xs:restriction base=\"xs:string\">" << endl;
-							for (UInt i=0; i<it->valid_strings.size(); ++i)
+							for (Size i=0; i<it->valid_strings.size(); ++i)
 							{
 								os << "                  <xs:enumeration value=\"" << it->valid_strings[i] << "\"/>" << endl;
 							}
@@ -678,7 +678,7 @@ namespace OpenMS
 	void TOPPBase::setValidStrings_(const String& name, const std::vector<String>& strings)
 	{
 		//check for commas
-		for (UInt i=0; i<strings.size(); ++i)
+		for (Size i=0; i<strings.size(); ++i)
 		{
 			if (strings[i].has(','))
 			{
@@ -686,7 +686,7 @@ namespace OpenMS
 			}
 		}
 		//search the right parameter
-		for (UInt i=0; i<parameters_.size(); ++i)
+		for (Size i=0; i<parameters_.size(); ++i)
 		{
 			if (parameters_[i].name==name)
 			{
@@ -706,7 +706,7 @@ namespace OpenMS
 	void TOPPBase::setValidFormats_(const String& name, const std::vector<String>& formats)
 	{
 		//check for commas
-		for (UInt i=0; i<formats.size(); ++i)
+		for (Size i=0; i<formats.size(); ++i)
 		{
 			if (FileHandler::getTypeByFileName(String(".")+formats[i])==FileHandler::UNKNOWN)
 			{
@@ -714,7 +714,7 @@ namespace OpenMS
 			}
 		}
 		//search the right parameter
-		for (UInt i=0; i<parameters_.size(); ++i)
+		for (Size i=0; i<parameters_.size(); ++i)
 		{
 			if (parameters_[i].name==name)
 			{
@@ -734,7 +734,7 @@ namespace OpenMS
 	void TOPPBase::setMinInt_(const String& name, Int min)
 	{
 		//search the right parameter
-		for (UInt i=0; i<parameters_.size(); ++i)
+		for (Size i=0; i<parameters_.size(); ++i)
 		{
 			if (parameters_[i].name==name)
 			{
@@ -754,7 +754,7 @@ namespace OpenMS
 	void TOPPBase::setMaxInt_(const String& name, Int max)
 	{
 		//search the right parameter
-		for (UInt i=0; i<parameters_.size(); ++i)
+		for (Size i=0; i<parameters_.size(); ++i)
 		{
 			if (parameters_[i].name==name)
 			{
@@ -774,7 +774,7 @@ namespace OpenMS
 	void TOPPBase::setMinFloat_(const String& name, DoubleReal min)
 	{
 		//search the right parameter
-		for (UInt i=0; i<parameters_.size(); ++i)
+		for (Size i=0; i<parameters_.size(); ++i)
 		{
 			if (parameters_[i].name==name)
 			{
@@ -794,7 +794,7 @@ namespace OpenMS
 	void TOPPBase::setMaxFloat_(const String& name, DoubleReal max)
 	{
 		//search the right parameter
-		for (UInt i=0; i<parameters_.size(); ++i)
+		for (Size i=0; i<parameters_.size(); ++i)
 		{
 			if (parameters_[i].name==name)
 			{
@@ -1365,7 +1365,7 @@ namespace OpenMS
 			StringList sl = (StringList)tmp;
 			IntList il;
 			il.resize(sl.size());
-		 	for(UInt i = 0; i < sl.size(); ++i)
+		 	for (Size i = 0; i < sl.size(); ++i)
 			{
 				try
 				{
@@ -1393,7 +1393,7 @@ namespace OpenMS
 			StringList sl = (StringList)tmp;
 			DoubleList dl;
 			dl.resize(sl.size());
-		 	for(UInt i = 0; i < sl.size(); ++i)
+		 	for (Size i = 0; i < sl.size(); ++i)
 			{
 				try
 				{

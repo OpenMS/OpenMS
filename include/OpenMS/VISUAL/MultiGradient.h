@@ -125,7 +125,7 @@ namespace OpenMS
 		}
 
 		///return the number of color points
-		UInt size() const;
+		Size size() const;
 	
 		/// sets the interploation mode (default or stairs). Default is linear
 		void setInterpolationMode(InterpolationMode mode);

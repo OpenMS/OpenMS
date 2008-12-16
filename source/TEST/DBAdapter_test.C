@@ -476,7 +476,7 @@ END_SECTION
 			TEST_EQUAL( spec.getSourceFile().getNameOfFile(), "westberlin" )
 			TEST_EQUAL( spec.getSourceFile().getPathToFile(), "/osten/" )
 			
-			for (UInt i=0; i<3; ++i)
+			for (Size i=0; i<3; ++i)
 			{
 				TEST_REAL_SIMILAR( spec[i].getIntensity() , exp_original.begin()->operator[](i).getIntensity() )
 				TEST_REAL_SIMILAR( spec[i].getPosition()[0] , exp_original.begin()->operator[](i).getPosition()[0] )
@@ -636,7 +636,7 @@ END_SECTION
 		  TEST_EQUAL( itn->getRT() , ito->getRT() )
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
 			TEST_EQUAL( itn->size() , ito->size() )
-			for (UInt i=0; i<3; ++i)
+			for (Size i=0; i<3; ++i)
 			{
 				TEST_REAL_SIMILAR( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
 				TEST_REAL_SIMILAR( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
@@ -656,7 +656,7 @@ END_SECTION
 	
 			TEST_EQUAL( itn->getComment() , "bla" )
 			TEST_EQUAL( itn->size() , ito->size() )
-			for (UInt i=0; i<3; ++i)
+			for (Size i=0; i<3; ++i)
 			{
 				TEST_REAL_SIMILAR( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
 				TEST_REAL_SIMILAR( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
@@ -769,7 +769,7 @@ END_SECTION
 			TEST_EQUAL( itn->getAcquisitionInfo()[0].getMetaValue("icon"), "one more icon");
 			TEST_EQUAL( itn->getAcquisitionInfo()[1].getNumber(), 2);
 			TEST_EQUAL( itn->getAcquisitionInfo()[1].getMetaValue("label"), "yet another label");
-			for (UInt i=0; i<3; ++i)
+			for (Size i=0; i<3; ++i)
 			{
 				TEST_REAL_SIMILAR( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
 				TEST_REAL_SIMILAR( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )
@@ -787,7 +787,7 @@ END_SECTION
 			TEST_EQUAL( itn->getPrecursor().getMetaValue("icon") , "NewPrecursor" )
 			TEST_EQUAL( itn->getComment() , "bla" )
 			TEST_EQUAL( itn->size() , ito->size() )
-			for (UInt i=0; i<3; ++i)
+			for (Size i=0; i<3; ++i)
 			{
 				TEST_REAL_SIMILAR( itn->operator[](i).getIntensity() , ito->operator[](i).getIntensity() )
 				TEST_REAL_SIMILAR( itn->operator[](i).getPosition()[0] , ito->operator[](i).getPosition()[0] )

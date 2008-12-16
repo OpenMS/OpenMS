@@ -87,7 +87,7 @@ namespace OpenMS
 		os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 		
 		//write data processing
-		for (UInt i=0; i< feature_map.getDataProcessing().size(); ++i)
+		for (Size i=0; i< feature_map.getDataProcessing().size(); ++i)
 		{
 			const DataProcessing& processing = feature_map.getDataProcessing()[i];
 			os << "\t<dataProcessing completion_time=\"" << processing.getCompletionTime().getDate() << 'T' << processing.getCompletionTime().getTime() << "\">\n";
@@ -157,12 +157,12 @@ namespace OpenMS
 				 << ">\n";
 			
 			//modifications
-			for (UInt j=0; j!=search_param.fixed_modifications.size(); ++j)
+			for (Size j=0; j!=search_param.fixed_modifications.size(); ++j)
 			{
 				os << "\t\t\t<FixedModification name=\"" << search_param.fixed_modifications[j] << "\" />\n";
 				//Add MetaInfo, when modifications has it (Andreas)
 			}
-			for (UInt j=0; j!=search_param.variable_modifications.size(); ++j)
+			for (Size j=0; j!=search_param.variable_modifications.size(); ++j)
 			{
 				os << "\t\t\t<VariableModification name=\"" << search_param.variable_modifications[j] << "\" />\n";
 				//Add MetaInfo, when modifications has it (Andreas)
@@ -179,7 +179,7 @@ namespace OpenMS
 			os << " significance_threshold=\"" << current_prot_id.getSignificanceThreshold() << "\">\n";
 			
 			// write protein hits
-			for(UInt j=0; j<current_prot_id.getHits().size(); ++j)
+			for (Size j=0; j<current_prot_id.getHits().size(); ++j)
 			{
 				os << "\t\t\t<ProteinHit";
 
@@ -210,7 +210,7 @@ namespace OpenMS
 		
 		// write features with their corresponding attributes
 		os << "\t<featureList count=\"" << feature_map.size() << "\">\n";
-		for (UInt s=0; s<feature_map.size(); s++)
+		for (Size s=0; s<feature_map.size(); s++)
 		{
 			writeFeature_(filename, os, feature_map[s], "f_", s, 0);
 		}
@@ -351,7 +351,7 @@ namespace OpenMS
 		else if (tag=="processingAction" && parent_tag=="dataProcessing")
 		{
 			String name = attributeAsString_(attributes, s_name);
-			for (UInt i=0; i< DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
+			for (Size i=0; i< DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
 			{
 				if (name == DataProcessing::NamesOfProcessingAction[i])
 				{
@@ -700,12 +700,12 @@ namespace OpenMS
 		String indent = String(indentation_level,'\t');
 
 		os << indent << "\t\t<feature id=\"" << identifier_prefix << identifier << "\">\n";
-		for (UInt i=0; i<2;i++)
+		for (Size i=0; i<2;i++)
 		{
 			os << indent <<	"\t\t\t<position dim=\"" << i << "\">" << precisionWrapper(feat.getPosition()[i]) << "</position>\n";
 		}
 		os << indent << "\t\t\t<intensity>" << precisionWrapper(feat.getIntensity()) << "</intensity>\n";
-		for (UInt i=0; i<2;i++)
+		for (Size i=0; i<2;i++)
 		{
 			os << indent << "\t\t\t<quality dim=\"" << i << "\">" << precisionWrapper(feat.getQuality(i)) << "</quality>\n";
 		}
@@ -733,20 +733,20 @@ namespace OpenMS
 
 		UInt hulls_count = hulls.size();
 
-		for (UInt i=0;i<hulls_count; i++)
+		for (Size i=0;i<hulls_count; i++)
 		{
 			os << indent << "\t\t\t<convexhull nr=\"" << i << "\">\n";
 
 			ConvexHull2D current_hull = hulls[i];
 			UInt hull_size	= current_hull.getPoints().size();
 
-			for (UInt j=0;j<hull_size;j++)
+			for (Size j=0;j<hull_size;j++)
 			{
 				os << indent << "\t\t\t\t<hullpoint>\n";
 
 				DPosition<2> pos = current_hull.getPoints()[j];
 				UInt pos_size = pos.size();
-				for (UInt k=0; k<pos_size; k++)
+				for (Size k=0; k<pos_size; k++)
 				{
 					os << indent << "\t\t\t\t\t<hposition dim=\"" << k << "\">" << precisionWrapper(pos[k]) << "</hposition>\n";
 				}
@@ -815,7 +815,7 @@ namespace OpenMS
 		os << ">\n";
 		
 		// write peptide hits
-		for(UInt j=0; j<id.getHits().size(); ++j)
+		for (Size j=0; j<id.getHits().size(); ++j)
 		{
 			os << indent << "\t<PeptideHit";
 			os << " score=\"" << id.getHits()[j].getScore() << "\"";
@@ -832,7 +832,7 @@ namespace OpenMS
 			if(id.getHits()[j].getProteinAccessions().size()!=0)
 			{
 				String accs = "";
-				for (UInt m=0; m<id.getHits()[j].getProteinAccessions().size(); ++m)
+				for (Size m=0; m<id.getHits()[j].getProteinAccessions().size(); ++m)
 				{
 					if (m) accs += " ";
 					accs += "PH_";

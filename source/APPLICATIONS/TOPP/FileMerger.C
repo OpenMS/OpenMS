@@ -134,7 +134,7 @@ class TOPPFileMerger
 		out.reserve(file_list.size());
 		UInt rt_auto = 0;
 		UInt native_id = 0;
-		for(UInt i = 0; i < file_list.size();++i)
+		for (Size i = 0; i < file_list.size();++i)
 		{
 			String filename = file_list[i];
 			
@@ -172,7 +172,7 @@ class TOPPFileMerger
 					{
 						writeLog_(String("Warning: cannot guess retention time from filename as it does not contain 'rt'"));
 					}
-					for (UInt i = 0; i < filename.size(); ++i)
+					for (Size i = 0; i < filename.size(); ++i)
 					{
 						if (filename[i] == 'r' && ++i != filename.size() && filename[i] == 't' && ++i != filename.size() && isdigit(filename[i]))
 						{

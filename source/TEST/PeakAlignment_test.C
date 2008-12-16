@@ -101,12 +101,12 @@ START_SECTION((vector< pair<UInt,UInt> > getAlignmentTraceback(const PeakSpectru
 	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s2);
 	vector< pair<UInt,UInt> > result, tester;
 	result = pa.getAlignmentTraceback(s1,s2);
-	for(UInt i = 0; i < 127; ++i)
+	for (Size i = 0; i < 127; ++i)
 	{
 		tester.push_back(pair<UInt,UInt>(i,i));
 	}
 	TEST_EQUAL(tester.size(),result.size())
-	for(UInt i = 0; i < tester.size(); ++i)
+	for (Size i = 0; i < tester.size(); ++i)
 	{
 		TEST_EQUAL(tester.at(i).first,result.at(i).first)
 	}

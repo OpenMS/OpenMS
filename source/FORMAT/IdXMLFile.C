@@ -106,7 +106,7 @@ namespace OpenMS
 		}
 		
 		//write search parameters
-		for(UInt i=0; i!=params.size();++i)
+		for (Size i=0; i!=params.size();++i)
 		{
 			os << "\t<SearchParameters "
 				 << "id=\"SP_" << i << "\" "
@@ -152,12 +152,12 @@ namespace OpenMS
 				 << ">\n";
 			
 			//modifications
-			for (UInt j=0; j!=params[i].fixed_modifications.size(); ++j)
+			for (Size j=0; j!=params[i].fixed_modifications.size(); ++j)
 			{
 				os << "\t\t<FixedModification name=\"" << params[i].fixed_modifications[j] << "\" />\n";
 				//Add MetaInfo, when modifications has it (Andreas)
 			}
-			for (UInt j=0; j!=params[i].variable_modifications.size(); ++j)
+			for (Size j=0; j!=params[i].variable_modifications.size(); ++j)
 			{
 				os << "\t\t<VariableModification name=\"" << params[i].variable_modifications[j] << "\" />\n";
 				//Add MetaInfo, when modifications has it (Andreas)
@@ -180,7 +180,7 @@ namespace OpenMS
 		vector<String> done_identifiers;
 		
 		//write ProteinIdentification Runs
-		for (UInt i=0; i<protein_ids.size(); ++i)
+		for (Size i=0; i<protein_ids.size(); ++i)
 		{
 			done_identifiers.push_back(protein_ids[i].getIdentifier());
 			
@@ -189,7 +189,7 @@ namespace OpenMS
 			os << "search_engine=\"" << protein_ids[i].getSearchEngine() << "\" ";
 			os << "search_engine_version=\"" << protein_ids[i].getSearchEngineVersion() << "\" ";
 			//identifier
-			for(UInt j=0; j!=params.size();++j)
+			for (Size j=0; j!=params.size();++j)
 			{
 				if (params[j]==protein_ids[i].getSearchParameters())
 				{
@@ -211,7 +211,7 @@ namespace OpenMS
 			os << "significance_threshold=\"" << protein_ids[i].getSignificanceThreshold() << "\" >\n";
 			
 			//write protein hits
-			for(UInt j=0; j<protein_ids[i].getHits().size(); ++j)
+			for (Size j=0; j<protein_ids[i].getHits().size(); ++j)
 			{
 				os << "\t\t\t<ProteinHit ";
 				os << "id=\"PH_" << prot_count << "\" ";
@@ -227,7 +227,7 @@ namespace OpenMS
 			os << "\t\t</ProteinIdentification>\n";
 
 			//write PeptideIdentifications
-			for (UInt l=0; l<peptide_ids.size(); ++l)
+			for (Size l=0; l<peptide_ids.size(); ++l)
 			{
 				if (peptide_ids[l].getIdentifier()==protein_ids[i].getIdentifier() && peptide_ids[l].getHits().size() != 0)
 				{
@@ -263,7 +263,7 @@ namespace OpenMS
 					os << ">\n";
 					
 					//write peptide hits
-					for(UInt j=0; j<peptide_ids[l].getHits().size(); ++j)
+					for (Size j=0; j<peptide_ids[l].getHits().size(); ++j)
 					{
 						os << "\t\t\t<PeptideHit ";
 						os << "score=\"" << peptide_ids[l].getHits()[j].getScore() << "\" ";
@@ -280,7 +280,7 @@ namespace OpenMS
 						if(peptide_ids[l].getHits()[j].getProteinAccessions().size()!=0)
 						{
 							String accs = "";
-							for (UInt m=0; m<peptide_ids[l].getHits()[j].getProteinAccessions().size(); ++m)
+							for (Size m=0; m<peptide_ids[l].getHits()[j].getProteinAccessions().size(); ++m)
 							{
 								if (accs!="")
 								{
@@ -313,7 +313,7 @@ namespace OpenMS
 			os << "<IdentificationRun date=\"1900-01-01T01:01:01.0Z\" search_engine=\"Unknown\" search_parameters_ref=\"ID_1\" search_engine_version=\"0\"/>\n";
 		}
 
-		for (UInt i=0; i<peptide_ids.size(); ++i)
+		for (Size i=0; i<peptide_ids.size(); ++i)
 		{
 			if (find(done_identifiers.begin(), done_identifiers.end(), peptide_ids[i].getIdentifier())==done_identifiers.end())
 			{

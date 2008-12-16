@@ -75,11 +75,11 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 		
 	char aa[] = "ARNDCEQGHILKMFPSTWYV";
 		
-	for (unsigned int i = 0; i<255;++i)
+	for (Size i = 0; i<255;++i)
 	{
 		masse[i]=0;
 	}
-	for (unsigned int i = 0; i<strlen(aa);++i)
+	for (Size i = 0; i<strlen(aa);++i)
 	{
 		const Residue * r = rdb->getResidue(aa[i]);
 		masse[(int)aa[i]]=r->getAverageWeight(Residue::Internal);
@@ -94,7 +94,7 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 	vector <vector< pair<pair<int,int>,double> > > res;
 	sa->findSpec(res, specc);
 	TEST_EQUAL(res.size(),specc.size());
-	for (unsigned int i = 0; i<res.size();i++)
+	for (Size i = 0; i<res.size();i++)
 	{
 		TEST_EQUAL(res.at(i).size(),1);
 	}
@@ -129,11 +129,11 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 	sa->findSpec(res, specc_new);
 	
 	//checking for doubled results;
-	for (unsigned int i = 0; i < res.size();i++)
+	for (Size i = 0; i < res.size();i++)
 	{
-		for (unsigned int j = 0;j<res.at(i).size();j++)
+		for (Size j = 0;j<res.at(i).size();j++)
 		{
-			for (unsigned int k = j+1; k < res.at(i).size();k++)
+			for (Size k = j+1; k < res.at(i).size();k++)
 			{
 				TEST_EQUAL(res.at(i).at(j).first.first==res.at(i).at(k).first.first && res.at(i).at(j).first.second==res.at(i).at(k).first.second, 0);			
 			}
@@ -145,15 +145,15 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 	// checking if the mass of the found candidates is correct
 	// checking if the next character is not a P
 	
-	for (unsigned int i = 0; i < res.size();i++)
+	for (Size i = 0; i < res.size();i++)
 	{
-		for (unsigned int j = 0;j<res.at(i).size();j++)
+		for (Size j = 0;j<res.at(i).size();j++)
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
 			if (txt[res.at(i).at(j).first.first-1]!='$') TEST_NOT_EQUAL(seq[0],'P');
 			if (txt[res.at(i).at(j).first.first+res.at(i).at(j).first.second]!='$') TEST_EQUAL(seq[seq.length()-1]=='R'||seq[seq.length()-1]=='K',true)
 			double m = 18;
-			for (unsigned int k = 0; k < seq.length();k++)
+			for (Size k = 0; k < seq.length();k++)
 			{
 				m += masse[(int)seq[k]];
 			}
@@ -163,13 +163,13 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 	// getting all candidates with tags 
 	int number_of_tags=0;
 	vector<String> res_with_tags_exp;
-	for (unsigned int i = 0; i < res.size();i++)
+	for (Size i = 0; i < res.size();i++)
 	{
-		for (unsigned int j = 0;j<res.at(i).size();j++)
+		for (Size j = 0;j<res.at(i).size();j++)
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
 			bool has_tag = false;
-			for (unsigned int k = 2; k < seq.length();k++)
+			for (Size k = 2; k < seq.length();k++)
 			{
 				if (seq.substr(k-2,3)=="AAA"||seq.substr(k-2,3)=="ARA")
 				{
@@ -193,13 +193,13 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 	res.clear();
 	sa->findSpec(res, specc_new);
 	vector<String> res_with_tags;
-	for (unsigned int i = 0; i < res.size();i++)
+	for (Size i = 0; i < res.size();i++)
 	{
-		for (unsigned int j = 0;j<res.at(i).size();j++)
+		for (Size j = 0;j<res.at(i).size();j++)
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
 			bool has_tag = false;
-			for (unsigned int k = 2; k < seq.length();k++)
+			for (Size k = 2; k < seq.length();k++)
 			{
 				if (seq.substr(k-2,3)=="AAA"||seq.substr(k-2,3)=="ARA")
 				{
@@ -215,10 +215,10 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 		}
 	}
 
-	for (unsigned int i = 0; i < res_with_tags_exp.size(); ++i)
+	for (Size i = 0; i < res_with_tags_exp.size(); ++i)
 	{
 		bool was_found = false;
-		for (unsigned int j = 0; j < res_with_tags.size(); ++j)
+		for (Size j = 0; j < res_with_tags.size(); ++j)
 		{
 			if (res_with_tags_exp.at(i)==res_with_tags.at(j))
 			{
@@ -235,13 +235,13 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 	res.clear();
 	sa->findSpec(res, specc_new);
 	
-	for (unsigned int i = 0; i < res.size(); i++)
+	for (Size i = 0; i < res.size(); i++)
 	{
-		for (unsigned int j = 0; j < res[i].size(); j++)
+		for (Size j = 0; j < res[i].size(); j++)
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
 			double m = 18.0;
-			for (unsigned int k = 0; k < seq.length(); k++)
+			for (Size k = 0; k < seq.length(); k++)
 			{
 				m += masse[(int)seq[k]];
 			}

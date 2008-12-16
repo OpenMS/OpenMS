@@ -80,7 +80,7 @@ class TOPPLabeledEval
 	String fiveNumberQuotients(vector<DoubleReal> a, vector<DoubleReal> b, UInt decimal_places)
 	{
 		vector<DoubleReal> errors;
-		for (UInt i=0; i< a.size(); ++i) errors.push_back(a[i] / b[i]);
+		for (Size i=0; i< a.size(); ++i) errors.push_back(a[i] / b[i]);
 		return fiveNumbers(errors, decimal_places);
 	}
 
@@ -102,7 +102,7 @@ class TOPPLabeledEval
 		UInt matched_pairs = 0;
 		UInt half_matched_pairs = 0;
 		vector<DoubleReal> t_ratio, i_ratio, rt_diffs, mz_diffs;
-		for (UInt t=0; t<truth.size(); ++t)
+		for (Size t=0; t<truth.size(); ++t)
 		{
 			if (truth[t].size()!=2)
 			{
@@ -115,10 +115,10 @@ class TOPPLabeledEval
 			elements[0] = *(truth[t].getFeatures().begin());
 			elements[1] = *(++(truth[t].getFeatures().begin()));
 			DoubleReal mz_tol_charged = mz_tol / truth[t].getCharge();
-			for (UInt e=0; e<2; ++e)
+			for (Size e=0; e<2; ++e)
 			{
 				DoubleReal best_score = 0.0;
-				for (UInt i=0; i<input.size(); ++i)
+				for (Size i=0; i<input.size(); ++i)
 				{
 					const Feature& f_i = input[i];
 					if ( fabs(f_i.getRT()-elements[e].getRT())<rt_tol

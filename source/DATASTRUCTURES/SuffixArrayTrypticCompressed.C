@@ -108,7 +108,7 @@ struct FloatsWithTolLess : public binary_function<double , double, bool>
 // gets the index of the next seperator character
 int SuffixArrayTrypticCompressed::getNextSep_(const int p) const
 {
-	for (UInt i = (p+1); i < s_.length();++i)
+	for (Size i = (p+1); i < s_.length();++i)
 	{
 		if (s_[i]=='$')
 		{
@@ -159,12 +159,12 @@ SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String & st, co
 		
 	char aa[] = "ARNDCEQGHILKMFPSTWYV";
 	
-	for (UInt i = 0; i<256;++i)
+	for (Size i = 0; i<256;++i)
 	{
 		masse_[i]=0;
 	}
 
-	for (UInt i = 0; i<strlen(aa);++i)
+	for (Size i = 0; i<strlen(aa);++i)
 	{
 		const Residue* r = rdb->getResidue(aa[i]);
 		masse_[(int)aa[i]]=r->getAverageWeight(Residue::Internal);
@@ -179,7 +179,7 @@ SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String & st, co
 		//creating unsorted suffix array with every tryptic suffix
 		UInt next_pos = getNextSep_(0);
 		bool is_at_start=true;
-		for (UInt i = 0 ; i < (s_.length());++i)
+		for (Size i = 0 ; i < (s_.length());++i)
 		{
 			if (next_pos<i) next_pos = getNextSep_(i);
 			const char start_char = s_[i];
@@ -218,14 +218,14 @@ SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String & st, co
 		sort(indices_.begin(),indices_.end(),SubstringLess(s_));
 		
 		//creating lcp
-		for (UInt i = 1;i<indices_.size();++i)
+		for (Size i = 1;i<indices_.size();++i)
 		{
 			lcp_.push_back(getLCP_(indices_.at(i-1),indices_.at(i)));
 		}
 		lcp_.push_back(0);
 
 		//creating skip entry
-		for (UInt i = 0; i < lcp_.size();++i)
+		for (Size i = 0; i < lcp_.size();++i)
 		{
 			int lcp_value = lcp_.at(i);
 			int j = 0;
@@ -278,7 +278,7 @@ bool SuffixArrayTrypticCompressed::save(const String & file_name)
 	{
 		throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, (file_name+".skip2"));
 	}
-	for (UInt i = 0; i < indices_.size();++i)
+	for (Size i = 0; i < indices_.size();++i)
 	{
 		file_INDICES << indices_.at(i).first<<"\n"<<indices_.at(i).second;
 		file_LCP << lcp_.at(i);
@@ -355,12 +355,12 @@ String SuffixArrayTrypticCompressed::toString()
 		ss<<endl;
 	}
 	ss<<"lcp: ";
-	for (UInt i = 0;i < lcp_.size();++i)
+	for (Size i = 0;i < lcp_.size();++i)
 	{
 		ss<<lcp_.at(i);
 	}
 	ss<<endl<<"skip: ";
-	for (UInt i = 0;i < skip_.size();++i)
+	for (Size i = 0;i < skip_.size();++i)
 	{
 		ss<<skip_.at(i);
 	}
@@ -403,7 +403,7 @@ void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<int,int>,dou
 	UInt number_of_posible_mods = modifier.getMaxModificationMasses();
 
 	//check if spectrum is sorted
-	for (UInt i = 1; i < spec.size();++i)
+	for (Size i = 1; i < spec.size();++i)
 	{
 		if (spec[i - 1] > spec[i])
 		{
@@ -412,7 +412,7 @@ void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<int,int>,dou
 	}
 	
 	//preparing result table
-	for (UInt i = 0; i < spec.size();++i)
+	for (Size i = 0; i < spec.size();++i)
 	{
 		vector<pair<pair<int,int>,double > > v ;
 		candidates.push_back(v);
@@ -529,7 +529,7 @@ void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<int,int>,dou
 						}
 					}
 				
-					for (UInt o = 0; o < found_masses.size(); o++) 
+					for (Size o = 0; o < found_masses.size(); o++) 
 					{
 						double mass_with_mods = (found_masses[o] + m);
 						UInt first_occ = findFirst_(spec, mass_with_mods);
@@ -626,7 +626,7 @@ double SuffixArrayTrypticCompressed::getTolerance () const
 void SuffixArrayTrypticCompressed::setTags (const vector<String> & tags)
 {
 	tags_ = tags;
-	for (UInt i = 0; i < tags.size();++i)
+	for (Size i = 0; i < tags.size();++i)
 	{
 		if (tags.at(i).size()!=3)
 		{
@@ -672,15 +672,15 @@ void SuffixArrayTrypticCompressed::printStatistic ()
 	vector<pair<int,int> > edge_length;
 	vector<int> leafe_depth;
 	parseTree_(0,indices_.size()-1,1,0,1,out_number,edge_length,leafe_depth);
-	for (UInt i = 0; i < leafe_depth.size();i++){
+	for (Size i = 0; i < leafe_depth.size();i++){
 		cout<<leafe_depth.at(i)<<",";
 	}
 	cout<<endl;
-	for (UInt i = 0; i < out_number.size();i++){
+	for (Size i = 0; i < out_number.size();i++){
 		cout<<"("<<out_number.at(i).first<<","<<out_number.at(i).second<<") ; ";
 	}
 	cout<<endl;
-	for (UInt i = 0; i < edge_length.size();i++){
+	for (Size i = 0; i < edge_length.size();i++){
 		cout<<"("<<edge_length.at(i).first<<","<<edge_length.at(i).second<<") ; ";
 	}
 	cout<<endl;

@@ -64,9 +64,9 @@ namespace OpenMS
 		std::vector< Real > intradist_i(original.dimensionsize(),0.0); //for each element i holds the average intracluster distance in [i]
 
 		//inital values for interdis_i and cluster_with_interdist
-		for(UInt i = 1; i < original.dimensionsize(); ++i)
+		for (Size i = 1; i < original.dimensionsize(); ++i)
 		{
-			for(UInt j = 0; j < i; ++j)
+			for (Size j = 0; j < i; ++j)
 			{
 				if(original.getValue(i,j)<interdist_i[i])
 				{
@@ -82,7 +82,7 @@ namespace OpenMS
 		}
 
 		/* to manually retrace
-		for(UInt i = 0; i < original.dimensionsize(); ++i)
+		for (Size i = 0; i < original.dimensionsize(); ++i)
 		{
 			std::cout << interdist_i[i] << " | " << cluster_with_interdist[i] << " | " << intradist_i[i] << std::endl;
 		}
@@ -90,15 +90,15 @@ namespace OpenMS
 
 		//initial cluster state
 		std::vector< std::vector < UInt > > clusters(original.dimensionsize());
-		for(UInt i = 0; i < clusters.size(); ++i)
+		for (Size i = 0; i < clusters.size(); ++i)
 		{
 			clusters[i].push_back(i);
 		}
 
-		for(UInt t = 0; t < tree.size()-1; ++t) //last steps silhouettes would be all 0 respectively not defined
+		for (Size t = 0; t < tree.size()-1; ++t) //last steps silhouettes would be all 0 respectively not defined
 		{
 
-			for(UInt i = 0; i < original.dimensionsize(); ++i)
+			for (Size i = 0; i < original.dimensionsize(); ++i)
 			{
 				std::vector<UInt>::iterator in_left = std::find(clusters[tree[t].left_child].begin(),clusters[tree[t].left_child].end(),i);
 				std::vector<UInt>::iterator in_right = std::find(clusters[tree[t].right_child].begin(),clusters[tree[t].right_child].end(),i);
@@ -110,11 +110,11 @@ namespace OpenMS
 					if(tree[t].left_child != cluster_with_interdist[i] && tree[t].right_child != cluster_with_interdist[i]) //s(i)_nr (!element_of) left or right
 					{
 						Real interdist_merged(0);
-						for(UInt j = 0; j < clusters[tree[t].left_child].size(); ++j)
+						for (Size j = 0; j < clusters[tree[t].left_child].size(); ++j)
 						{
 							interdist_merged += original.getValue(i,clusters[tree[t].left_child][j]);
 						}
-						for(UInt j = 0; j < clusters[tree[t].right_child].size(); ++j)
+						for (Size j = 0; j < clusters[tree[t].right_child].size(); ++j)
 						{
 							interdist_merged += original.getValue(i,clusters[tree[t].right_child][j]);
 						}
@@ -138,7 +138,7 @@ namespace OpenMS
 							k=tree[t].left_child;
 						}
 						Real interdist_merged(0);
-						for(UInt j = 0; j < clusters[k].size(); ++j)
+						for (Size j = 0; j < clusters[k].size(); ++j)
 						{
 							interdist_merged += original.getValue(i,clusters[k][j]);
 						}
@@ -156,12 +156,12 @@ namespace OpenMS
 							interdist_i[i]=interdist_merged;
 							cluster_with_interdist[i] = tree[t].left_child;
 
-							for(UInt u = 0; u < clusters.size(); ++u)
+							for (Size u = 0; u < clusters.size(); ++u)
 							{
 								if(u != tree[t].left_child && u != tree[t].right_child && clusters[u].end() == std::find(clusters[u].begin(),clusters[u].end(),i))
 								{
 									Real min_interdist_i(0);
-									for(UInt v = 0; v < clusters[u].size(); ++v)
+									for (Size v = 0; v < clusters[u].size(); ++v)
 									{
 										min_interdist_i += original.getValue(clusters[u][v],i);
 									}
@@ -196,7 +196,7 @@ namespace OpenMS
 						//interdist_i is kept
 						//but intradist_i has to be updated
 						intradist_i[i] *= clusters[l].size()-1;
-						for(UInt j = 0; j < clusters[k].size(); ++j)
+						for (Size j = 0; j < clusters[k].size(); ++j)
 						{
 							intradist_i[i] += original.getValue(i,clusters[k][j]);
 						}
@@ -210,12 +210,12 @@ namespace OpenMS
 						intradist_i[i] /= (Real)(clusters[k].size()+(clusters[l].size()-1));
 						//find new min av. interdist_i
 						interdist_i[i]=std::numeric_limits<Real>::max();
-						for(UInt u = 0; u < clusters.size(); ++u)
+						for (Size u = 0; u < clusters.size(); ++u)
 						{
 							if(u!=l && u!=k)
 							{
 								Real av_interdist_i(0);
-								for(UInt v = 0; v < clusters[u].size(); ++v)
+								for (Size v = 0; v < clusters[u].size(); ++v)
 								{
 									av_interdist_i += original.getValue(clusters[u][v],i);
 								}
@@ -238,7 +238,7 @@ namespace OpenMS
 			clusters.erase(clusters.begin()+tree[t].right_child);
 
 			//adept the cluster indices in clusters with interdist
-			for(UInt x = 0; x < cluster_with_interdist.size();++x)
+			for (Size x = 0; x < cluster_with_interdist.size();++x)
 			{
 				if(cluster_with_interdist[x]>tree[t].right_child)
 				{
@@ -247,9 +247,9 @@ namespace OpenMS
 			}
 
 			/* to manually retrace
-			for(UInt x = 0; x < clusters.size();++x)
+			for (Size x = 0; x < clusters.size();++x)
 			{
-				for(UInt y = 0; y < clusters[x].size();++y)
+				for (Size y = 0; y < clusters[x].size();++y)
 				{
 					std::cout << clusters[x][y] << " ";
 				}
@@ -257,7 +257,7 @@ namespace OpenMS
 			}
 			std::cout << std::endl;
 			std::cout << "---------" << std::endl;
-			for(UInt z = 0; z < original.dimensionsize(); ++z)
+			for (Size z = 0; z < original.dimensionsize(); ++z)
 			{
 				std::cout << interdist_i[z] << " , " << intradist_i[z] << " , " << cluster_with_interdist[z] << " , ";
 				std::cout << ((interdist_i[z] - intradist_i[z]) / std::max(interdist_i[z],intradist_i[z])) << std::endl;
@@ -269,12 +269,12 @@ namespace OpenMS
 			//calculate average silhouette width for clusters and then overall average silhouette width for cluster step
 			Real average_overall_silhouette(0); // from cluster step
 			std::vector<Real> silhouettes(original.dimensionsize(),0.0);
-			for(UInt g = 0; g < clusters.size(); ++g)
+			for (Size g = 0; g < clusters.size(); ++g)
 			{
 				if(clusters[g].size()>1)
 				{
 					//collect silhouettes clusterwise so that average cluster silhouettes will be easily accessible
-					for(UInt h = 0; h < clusters[g].size(); ++h)
+					for (Size h = 0; h < clusters[g].size(); ++h)
 					{
 						if(interdist_i[clusters[g][h]]!=0)
 						{
@@ -287,7 +287,7 @@ namespace OpenMS
 				}
 			}
 			/* to manually retrace
-				for(UInt i = 0; i < silhouettes.size(); ++i)
+				for (Size i = 0; i < silhouettes.size(); ++i)
 				{
 					std::cout << "s(" <<  (i) << ") = " << silhouettes[i] << std::endl;
 				}
@@ -311,7 +311,7 @@ namespace OpenMS
 		std::vector< Real > all_dunn_indices;
 
 		//initial cluster state
-		for(UInt i = 0; i < clusters.size(); ++i)
+		for (Size i = 0; i < clusters.size(); ++i)
 		{
 			clusters[i].push_back(i);
 		}
@@ -319,13 +319,13 @@ namespace OpenMS
 		//initial state for min inter and max intra distances
 		Real min_intercluster_distance(tree[0].distance), max_intracluster_distance(0);
 		std::pair<UInt,UInt> clusters_with_min_intercluster_dist(tree[0].left_child,tree[0].right_child);
-		for(UInt cluster_step = 0; cluster_step < tree.size()-1; ++cluster_step)
+		for (Size cluster_step = 0; cluster_step < tree.size()-1; ++cluster_step)
 		{
 
 			//max intracluster distance changed?
-			for(UInt x = 0; x < clusters[tree[cluster_step].left_child].size();++x)
+			for (Size x = 0; x < clusters[tree[cluster_step].left_child].size();++x)
 			{
-				for(UInt y = 0; y < clusters[tree[cluster_step].right_child].size();++y)
+				for (Size y = 0; y < clusters[tree[cluster_step].right_child].size();++y)
 				{
 					if(original.getValue(clusters[tree[cluster_step].left_child][x],clusters[tree[cluster_step].right_child][y]) > max_intracluster_distance)
 					{
@@ -352,13 +352,13 @@ namespace OpenMS
 				{
 					//find new min intercluster distance
 					min_intercluster_distance = std::numeric_limits<Real>::max();
-					for(UInt k = 1; k < clusters.size(); ++k)
+					for (Size k = 1; k < clusters.size(); ++k)
 					{
-						for(UInt l = 0; l < k; ++l)
+						for (Size l = 0; l < k; ++l)
 						{
-							for(UInt i = 0; i < clusters[k].size(); ++i)
+							for (Size i = 0; i < clusters[k].size(); ++i)
 							{
-								for(UInt j = 0; j < clusters[l].size(); ++j)
+								for (Size j = 0; j < clusters[l].size(); ++j)
 								{
 									if(original.getValue(clusters[k][i],clusters[l][j]) < min_intercluster_distance)
 									{
@@ -411,12 +411,12 @@ namespace OpenMS
 		}
 		clusters.clear();
 		clusters.reserve(tree.size()+1);
-		for(UInt i = 0; i < tree.size()+1; ++i)
+		for (Size i = 0; i < tree.size()+1; ++i)
 		{
 			clusters.push_back(std::vector<UInt>(1,i));
 		}
 		//redo clustering till step (original.dimensionsize()-cluster_quantity)
-		for(UInt cluster_step = 0; cluster_step < tree.size()+1-cluster_quantity; ++cluster_step)
+		for (Size cluster_step = 0; cluster_step < tree.size()+1-cluster_quantity; ++cluster_step)
 		{
 			//pushback elements of right_child to left_child (and then erase second)
 			clusters[tree[cluster_step].left_child].insert(clusters[tree[cluster_step].left_child].end(),clusters[tree[cluster_step].right_child].begin(),clusters[tree[cluster_step].right_child].end());
@@ -443,12 +443,12 @@ namespace OpenMS
 
 		clusters.clear();
 		clusters.reserve(tree.size()+1);
-		for(UInt i = 0; i < tree.size()+1; ++i)
+		for (Size i = 0; i < tree.size()+1; ++i)
 		{
 			clusters.push_back(std::vector<UInt>(1,i));
 		}
 		//redo clustering till step (original.dimensionsize()-cluster_quantity)
-		for(UInt cluster_step = 0; cluster_step < tree.size()+1-cluster_quantity; ++cluster_step)
+		for (Size cluster_step = 0; cluster_step < tree.size()+1-cluster_quantity; ++cluster_step)
 		{
 			//pushback elements of right_child to left_child (and then erase second)
 			clusters[tree[cluster_step].left_child].insert(clusters[tree[cluster_step].left_child].end(),clusters[tree[cluster_step].right_child].begin(),clusters[tree[cluster_step].right_child].end());
@@ -459,7 +459,7 @@ namespace OpenMS
 
 		Real average = (Real)(tree.size()+1)/(Real)cluster_quantity;
 		Real aberration(0);
-		for(UInt i = 0; i < clusters.size(); ++i)
+		for (Size i = 0; i < clusters.size(); ++i)
 		{
 			aberration += std::fabs((Real)clusters[i].size()-average);
 		}
@@ -477,14 +477,14 @@ namespace OpenMS
 
 		std::vector< Real > cohesions;
 		cohesions.reserve(clusters.size());
-		for(UInt i = 0; i < clusters.size(); ++i)
+		for (Size i = 0; i < clusters.size(); ++i)
 		{
 			std::vector< Real > se; // calculate squared errors for cluster i
 			se.reserve(clusters[i].size());
 			Real av_dist(0); // all pairwise distances in cluster i
-			for(UInt j = 0; j < clusters[i].size(); ++j)
+			for (Size j = 0; j < clusters[i].size(); ++j)
 			{
-				for(UInt k = 0; k < j; ++k)
+				for (Size k = 0; k < j; ++k)
 				{
 					se.push_back(original.getValue(clusters[i][j],clusters[i][k]));
 					av_dist += original.getValue(clusters[i][j],clusters[i][k]);
@@ -492,7 +492,7 @@ namespace OpenMS
 			}
 			av_dist /= (((Real)clusters[i].size()*(Real)(clusters[i].size()-1.0))/2.0); //now av. intra cluster distance
 			Real sse(0);
-			for(UInt d = 0; d < se.size(); ++d)
+			for (Size d = 0; d < se.size(); ++d)
 			{
 				sse += ((se[d]-av_dist) * (se[d]-av_dist));
 			}
@@ -506,12 +506,12 @@ namespace OpenMS
 
 		std::vector<String> clusters;
 		clusters.reserve(tree.size()+1);
-		for(UInt i = 0; i < tree.size()+1; ++i)
+		for (Size i = 0; i < tree.size()+1; ++i)
 		{
 			clusters.push_back(String(i));
 		}
 		//redo clustering till step (original.dimensionsize()-1)
-		for(UInt cluster_step = 0; cluster_step < tree.size(); ++cluster_step)
+		for (Size cluster_step = 0; cluster_step < tree.size(); ++cluster_step)
 		{
 			//append string right_child to left_child (and then erase second)
 			if(include_distance)

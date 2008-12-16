@@ -58,7 +58,7 @@ END_SECTION
 
 START_SECTION((void insertPair(double score, bool clas)))
   srand((unsigned)time(NULL));
-  for (UInt i = 0; i < 1000; ++i)
+  for (Size i = 0; i < 1000; ++i)
   {
     double score = (double)rand()/RAND_MAX;
     bool clas = (rand() > RAND_MAX/2);

@@ -99,7 +99,7 @@ namespace OpenMS
     				
             CoordinateType term1 = A/(sqrt(2*Constants::PI)*stdev);
             CoordinateType termSum = 0;
-            for (UInt j=0; j<isotopes_exact.size(); ++j)
+            for (Size j=0; j<isotopes_exact.size(); ++j)
             {
               termSum += isotopes_exact[j]*exp(-pow(m-mono_mz-j*isotope_distance,2)/(2*stdev*stdev)) ;
             } 
@@ -136,7 +136,7 @@ namespace OpenMS
           //  CoordinateType termSum3 = 0.0;
             CoordinateType termExp = 0.0;
             
-            for (UInt j=0; j<isotopes_exact.size(); ++j)
+            for (Size j=0; j<isotopes_exact.size(); ++j)
             {
               termExp = exp(-pow(m-mono_mz-j*isotope_distance,2)/(2*stdev*stdev));
               termSum1 += isotopes_exact[j] * termExp;
@@ -310,7 +310,7 @@ namespace OpenMS
         std::vector<Real> model_data;
         model_data.reserve(set.size());
               
-        for (UInt i=0; i < set.size(); ++i)
+        for (Size i=0; i < set.size(); ++i)
         {
            real_data.push_back(set[i].getIntensity());
            model_data.push_back( model->getIntensity( DPosition<1>(set[i].getPosition()) ) );

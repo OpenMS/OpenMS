@@ -61,13 +61,13 @@ START_SECTION(virtual void run())
   //create input
 	MSExperiment<> input;
 	input.reserve(500);
-	for (UInt s=0; s<500; ++s)
+	for (Size s=0; s<500; ++s)
 	{
 		MSExperiment<>::SpectrumType spec;
 		spec.reserve(500);
 		spec.setRT(s);
 		spec.setMSLevel(1);
-		for (UInt p=500; p<1000; ++p)
+		for (Size p=500; p<1000; ++p)
 		{
 			MSExperiment<>::PeakType peak;
 			peak.setMZ(p);

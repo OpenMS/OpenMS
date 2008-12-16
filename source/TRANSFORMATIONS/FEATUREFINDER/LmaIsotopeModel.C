@@ -120,14 +120,14 @@ namespace OpenMS
 
 		CoordinateType term1 = 0;
 		CoordinateType termSum = 0;
-		for (UInt step = 0; pos< max_; ++step)
+		for (Size step = 0; pos< max_; ++step)
 		{
 			// next pos
 			pos = min_ + step * interpolation_step_;
 
 			term1 = total_intensity_/(sqrt(2*Constants::PI)*isotope_stdev_);
 			termSum = 0;
-			for (UInt i=0; i < isotopes_exact.size(); ++i)
+			for (Size i=0; i < isotopes_exact.size(); ++i)
 			{
 				termSum += isotopes_exact[i]*exp(-pow(pos-monoisotopic_mz_-i*isotope_distance_,2)/(2*isotope_stdev_*isotope_stdev_));
 			}

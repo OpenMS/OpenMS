@@ -107,7 +107,7 @@ namespace OpenMS
 		if ((String) param_.getValue("intensity_method")=="peak_picker")
 		{
 			do_picking = true;
-			for (UInt i=0; i<ms_exp_data.getDataProcessing().size(); ++i)
+			for (Size i=0; i<ms_exp_data.getDataProcessing().size(); ++i)
 			{
 				if (ms_exp_data.getDataProcessing()[i].getProcessingActions().count(DataProcessing::PEAK_PICKING)==1)
 				{
@@ -310,7 +310,7 @@ namespace OpenMS
 		channel_names_[1].setMatrix<8,1>(CHANNELS_EIGHTPLEX);
 
 		channel_map_.clear();
-		for (UInt i=0; i < channel_names_[itraq_type_].rows(); ++i)
+		for (Size i=0; i < channel_names_[itraq_type_].rows(); ++i)
 		{
 			ChannelInfo info;
 			info.description = "";

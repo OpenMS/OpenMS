@@ -96,14 +96,14 @@ class TOPPIdXMLInfo
 			// calculations
 			//-------------------------------------------------------------
 		
-			for(UInt i = 0; i < identifications.size(); ++i)
+			for (Size i = 0; i < identifications.size(); ++i)
 			{
 				if (!identifications[i].empty())
 				{
 					++spectrum_count;
 					peptide_hit_count += identifications[i].getHits().size();
 					const vector<PeptideHit>& temp_hits = identifications[i].getHits();
-					for(UInt j = 0; j < temp_hits.size(); ++j)
+					for (Size j = 0; j < temp_hits.size(); ++j)
 					{
 						if (find(peptides.begin(), peptides.end(), temp_hits[j].getSequence().toString()) == peptides.end())
 						{
@@ -112,12 +112,12 @@ class TOPPIdXMLInfo
 					}
 				}
 			} 
-			for(UInt i = 0; i < protein_identifications.size(); ++i)
+			for (Size i = 0; i < protein_identifications.size(); ++i)
 			{
 				++runs_count;
 				protein_hit_count += protein_identifications[i].getHits().size();
 				const vector<ProteinHit>& temp_hits = protein_identifications[i].getHits();
-				for(UInt j = 0; j < temp_hits.size(); ++j)
+				for (Size j = 0; j < temp_hits.size(); ++j)
 				{
 					if (find(proteins.begin(), proteins.end(), temp_hits[j].getAccession()) == proteins.end())
 					{

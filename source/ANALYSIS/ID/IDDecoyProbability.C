@@ -145,7 +145,7 @@ namespace OpenMS
   	// rev scores fitting
   	vector<DPosition<2> > rev_data;
 
-  	for (UInt i = 0; i != rev_scores_normalized.size(); ++i)
+  	for (Size i = 0; i != rev_scores_normalized.size(); ++i)
   	{
     	DPosition<2> pos;
     	pos.setX(((double)i + 1.0) / number_of_bins);
@@ -217,7 +217,7 @@ namespace OpenMS
 #endif
 		
   	// get diff of fwd and rev
-  	for (UInt i = 0; i < number_of_bins; ++i)
+  	for (Size i = 0; i < number_of_bins; ++i)
   	{
     	UInt fwd(fwd_bins[i]), rev(rev_bins[i]);
     	if (fwd > rev && max_reverse_bin < i)
@@ -237,7 +237,7 @@ namespace OpenMS
   	vector<DPosition<2> > diff_data;
 		double gauss_A(0);
 		double gauss_x0(0);
-  	for (UInt i = 0; i != diff_scores.size(); ++i)
+  	for (Size i = 0; i != diff_scores.size(); ++i)
   	{
     	DPosition<2> pos;
     	pos.setX(((double)i + 1.0) / (double)number_of_bins);
@@ -259,7 +259,7 @@ namespace OpenMS
 		double gauss_sigma(0);
 		gauss_x0 /= (double)diff_scores.size();
 		
-		for (UInt i = 0; i != diff_scores.size(); ++i)
+		for (Size i = 0; i != diff_scores.size(); ++i)
 		{
 			gauss_sigma += fabs(gauss_x0 - ((double)i + 1.0) / (double)number_of_bins);
 		}
@@ -446,7 +446,7 @@ namespace OpenMS
 		
   	// write distribution to file
   	ofstream o((filename + "_dist_tmp.dat").c_str());
-  	for (UInt i = 0; i < number_of_bins; ++i)
+  	for (Size i = 0; i < number_of_bins; ++i)
   	{
 			if (ids.has((double)i/number_of_bins))
 			{

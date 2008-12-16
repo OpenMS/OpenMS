@@ -171,7 +171,7 @@ namespace OpenMS
       void filterExperiment(MSExperiment<PeakType>& map)
       {
         startProgress(0,map.size(),"smoothing data");
-        for (UInt i = 0; i < map.size(); ++i)
+        for (Size i = 0; i < map.size(); ++i)
         {
           typename MSExperiment<PeakType>::SpectrumType spectrum;
           filter(map[i],spectrum);

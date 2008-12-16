@@ -168,7 +168,7 @@ namespace OpenMS
             vector<String> mod_split;
             mods.split('/', mod_split);
             AASequence peptide = ids.back().getHits().begin()->getSequence();
-            for (UInt i = 1; i <= (UInt)mod_split[0].toInt(); ++i)
+            for (Size i = 1; i <= (UInt)mod_split[0].toInt(); ++i)
             {
               vector<String> single_mod;
               mod_split[i].split(',', single_mod);

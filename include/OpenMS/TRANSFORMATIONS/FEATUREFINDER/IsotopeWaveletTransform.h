@@ -284,7 +284,7 @@ namespace OpenMS
 			inline DoubleReal chordTrapezoidRule_ (const std::vector<DoubleReal>& x, const std::vector<DoubleReal>& y) 
 			{
 				DoubleReal res=0;
-				for (UInt i=0; i<x.size()-1; ++i)
+				for (Size i=0; i<x.size()-1; ++i)
 				{
 					res += (x[i+1]-x[i])*(y[i+1]+y[i]);
 				};
@@ -388,7 +388,7 @@ namespace OpenMS
 		bool repair=false;
 	
 		//Starting convolution
-		for (UInt i=0; i<scan_size; ++i)
+		for (Size i=0; i<scan_size; ++i)
 		{
 			//Now, let's sample the wavelets
 			for (c=0; c<max_charge; ++c)
@@ -502,7 +502,7 @@ namespace OpenMS
 					sampleTheIsotopeWavelet_ (scan, wavelet_length, i, cum_spacing, (UInt) c_charge, mode);
 					k=0; 
 		
-					for (UInt j=i; j<scan_size && k<wavelet_length; ++j, ++k)
+					for (Size j=i; j<scan_size && k<wavelet_length; ++j, ++k)
 					{
 						prod_[k] = scan[j].getIntensity()*psi_[k];
 						xs_[k] = scan[j].getMZ();
@@ -533,7 +533,7 @@ namespace OpenMS
 					{
 						//We do not care about the intensities, since we will set them to zero anyway.
 						//We would just like to avoid multiple positions to occur in the transform
-						for (UInt ii=0; ii<=noi2interpol; ++ii) 
+						for (Size ii=0; ii<=noi2interpol; ++ii) 
 						//it must be "<=noi..." !!! not "<", since in this case we do not want to keep the last multiple	
 						//the same holds for "ii=0"
 						{
@@ -552,7 +552,7 @@ namespace OpenMS
 					DoubleReal x2 = c_peak1.getMZ();
 					DoubleReal y2 = c_peak1.getIntensity();
 					DoubleReal dx = (x2-x1)/(DoubleReal)(noi2interpol);
-					for (UInt ii=1; ii<noi2interpol; ++ii) //ii=1, not 0, since we want to keep the first of the multiples
+					for (Size ii=1; ii<noi2interpol; ++ii) //ii=1, not 0, since we want to keep the first of the multiples
 					{	
 						transforms[c][multiple_s[c]+ii].setMZ(c_peak2.getMZ()+ii*dx);
 						transforms[c][multiple_s[c]+ii].setIntensity(y1 + (y2-y1)/(x2-x1)*(c_peak2.getMZ()+ii*dx-x1));
@@ -570,7 +570,7 @@ namespace OpenMS
 			{
 				std::stringstream name; name << "trans_" << scan.getRT() << "_" << c+1 << ".dat\0"; 
 				std::ofstream ofile (name.str().c_str());
-				for (unsigned int i=0; i<transforms[c].size(); ++i)
+				for (Size i=0; i<transforms[c].size(); ++i)
 					ofile << transforms[c][i].getMZ() << "\t" <<  transforms[c][i].getIntensity() << std::endl;
 				ofile.close();
 			};
@@ -592,7 +592,7 @@ namespace OpenMS
 	 	UInt help_dist, MZ_start, MZ_end;
 			
 		//For all charges do ...
-		for (UInt c=0; c<cands_size; ++c)		
+		for (Size c=0; c<cands_size; ++c)		
 		{
 			MSSpectrum<PeakType> c_sorted_candidate (candidates[c]); 
 			std::vector<DoubleReal> processed (signal_size, 0);
@@ -725,7 +725,7 @@ namespace OpenMS
 
 		DoubleReal cum_spacing=offset, max_spacing=offset;
 		c_mzs_[0] = scan[mz_index].getMZ();
-		for (UInt j=1; j<wavelet_length+1; ++j)
+		for (Size j=1; j<wavelet_length+1; ++j)
 		{
 			c_mzs_[j] = scan[mz_index+j].getMZ();
 			c_spacings_[j-1] = c_mzs_[j]-c_mzs_[j-1];
@@ -740,7 +740,7 @@ namespace OpenMS
 
 		if ( ceil(max_tz1*inv_table_steps) < IsotopeWavelet::getGammaTableMaxIndex() &&  ceil(lambda*inv_table_steps) < IsotopeWavelet::getExpTableMaxIndex())
 		{
-			for (UInt j=0; j<wavelet_length; ++j)
+			for (Size j=0; j<wavelet_length; ++j)
 			{
 				tz1=cum_spacing*charge+1;
 				psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambda (lambda, tz1) : 0;
@@ -749,7 +749,7 @@ namespace OpenMS
 		}
 		else
 		{
-			for (UInt j=0; j<wavelet_length; ++j)
+			for (Size j=0; j<wavelet_length; ++j)
 			{
 				tz1=cum_spacing*charge+1;
 				psi_[j] = (cum_spacing > 0) ? IsotopeWavelet::getValueByLambdaExtrapol (lambda, tz1) : 0;
@@ -762,7 +762,7 @@ namespace OpenMS
 			{
 				std::stringstream stream; stream << "wavelet_" << c_mzs_[0] << "_" << charge << ".dat\0"; 
 				std::ofstream ofile (stream.str().c_str());
-				for (unsigned int i=0; i<wavelet_length; ++i)
+				for (Size i=0; i<wavelet_length; ++i)
 				{
 					ofile << scan[mz_index+i].getMZ() << "\t" << psi_[i] << std::endl;
 				}
@@ -863,7 +863,7 @@ namespace OpenMS
 	DoubleReal IsotopeWaveletTransform<PeakType>::getAvIntens_ (const MSSpectrum<PeakType>& scan) 
 	{ 
 		DoubleReal av_intens=0;
-		for (UInt i=0; i<scan.size(); ++i)
+		for (Size i=0; i<scan.size(); ++i)
 		{
 			if (scan[i].getIntensity() >= 0)
 			{
@@ -877,7 +877,7 @@ namespace OpenMS
 	DoubleReal IsotopeWaveletTransform<PeakType>::getSdIntens_ (const MSSpectrum<PeakType>& scan, const DoubleReal mean) 
 	{
 		DoubleReal res=0, intens;
-		for (UInt i=0; i<scan.size(); ++i)
+		for (Size i=0; i<scan.size(); ++i)
 		{		
 			if (scan[i].getIntensity() >= 0)
 			{
@@ -903,7 +903,7 @@ namespace OpenMS
 	std::pair<int, int> IsotopeWaveletTransform<PeakType>::getNearBys_ (const MSSpectrum<PeakType>& signal, const DoubleReal mz, 
 		const UInt start) const 
 	{
-		for (UInt i=start; i<signal.size(); ++i)
+		for (Size i=start; i<signal.size(); ++i)
 		{
 			if (signal[i].getMZ() > mz)
 			{
@@ -1222,7 +1222,7 @@ namespace OpenMS
 		UInt index=0;
 		for (iter=box.begin(); iter != box.end(); ++iter, ++index)
 		{
-			for (UInt i=iter->second.MZ_begin; i!= iter->second.MZ_end; ++i)
+			for (Size i=iter->second.MZ_begin; i!= iter->second.MZ_end; ++i)
 			{
 				elution_profile[index] += map[iter->second.RT_index][i].getIntensity();
 			};	
@@ -1231,7 +1231,7 @@ namespace OpenMS
 
 		DoubleReal max=0;
 		Int max_index=INT_MIN;
-		for (UInt i=0; i<elution_profile.size(); ++i)
+		for (Size i=0; i<elution_profile.size(); ++i)
 		{
 			if (elution_profile[i] > max)
 			{
@@ -1243,14 +1243,14 @@ namespace OpenMS
 		Int max_extension = (Int)(elution_profile.size()) - 2*max_index;
 	
 		DoubleReal av_elution=0;
-		for (UInt i=0; i<elution_profile.size(); ++i)
+		for (Size i=0; i<elution_profile.size(); ++i)
 		{
 			av_elution += elution_profile[i];
 		};
 		av_elution /= (DoubleReal)elution_profile.size();
 
 		DoubleReal sd_elution=0;
-		for (UInt i=0; i<elution_profile.size(); ++i)
+		for (Size i=0; i<elution_profile.size(); ++i)
 		{
 			sd_elution += (av_elution-elution_profile[i])*(av_elution-elution_profile[i]);
 		};
@@ -1326,7 +1326,7 @@ namespace OpenMS
 		UInt num_o_feature, l_mz, r_mz;
 
 		typename std::pair<DoubleReal, DoubleReal> c_extend;
-		for (unsigned int c=0; c<max_charge; ++c)
+		for (Size c=0; c<max_charge; ++c)
 		{
 			std::vector<BoxElement> final_box;
 			for (iter=tmp_boxes_->at(c).begin(); iter!=tmp_boxes_->at(c).end(); ++iter)
@@ -1377,26 +1377,26 @@ namespace OpenMS
 			//Computing the derivatives
 			std::vector<DoubleReal> bwd_diffs(num_o_feature, 0), fwd_diffs(num_o_feature, 0); //, c_diffs (num_o_feature);
 			/*c_diffs[0]=0; if (num_o_feature >= 1) c_diffs[num_o_feature-1]=0; 
-			for (UInt i=1; i<num_o_feature-1; ++i)
+			for (Size i=1; i<num_o_feature-1; ++i)
 			{
 				c_diffs[i] = (final_box[i+1].max_intens-final_box[i-1].max_intens)/(final_box[i+1].mz-final_box[i+1].mz);
 			};*/
 
 			bwd_diffs[0]=0;
-			for (UInt i=1; i<num_o_feature; ++i)
+			for (Size i=1; i<num_o_feature; ++i)
 			{
 				bwd_diffs[i] = (final_box[i].max_intens-final_box[i-1].max_intens)/(final_box[i].mz-final_box[i-1].mz);
 			};		
 
 			if (num_o_feature >= 1) fwd_diffs[num_o_feature-1]=0;
-			for (UInt i=0; i<num_o_feature-1; ++i)
+			for (Size i=0; i<num_o_feature-1; ++i)
 			{					
 				fwd_diffs[i] = (final_box[i+1].max_intens-final_box[i].max_intens)/(final_box[i+1].mz-final_box[i].mz);
 			};
 
 			#ifdef DEBUG_FEATUREFINDER
 				std::ofstream ofile_bwd ("bwd.dat"), ofile_fwd ("fwd.dat");
-				for (unsigned int i=0; i<num_o_feature; ++i)
+				for (Size i=0; i<num_o_feature; ++i)
 				{
 					ofile_fwd << final_box[i].mz << "\t" << fwd_diffs[i] << std::endl;
 					ofile_bwd << final_box[i].mz << "\t" << bwd_diffs[i] << std::endl;
@@ -1404,7 +1404,7 @@ namespace OpenMS
 				ofile_bwd.close(); ofile_fwd.close();
 			#endif
 
-			for (UInt i=0; i<num_o_feature; ++i)
+			for (Size i=0; i<num_o_feature; ++i)
 			{	
 				while (i<num_o_feature-1)
 				{
@@ -1451,7 +1451,7 @@ namespace OpenMS
 			
 			//... determining the best fitting charge
 			best_charge_index=0; best_charge_score=0; 
-			for (UInt i=0; i<max_charge; ++i)
+			for (Size i=0; i<max_charge; ++i)
 			{
 				if (charge_votes[i] > best_charge_score)
 				{

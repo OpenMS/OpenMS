@@ -214,14 +214,14 @@ namespace OpenMS
 		aligner_param.setValue("epsilon", 0.3);
 		aligner.setParameters(aligner_param);
 
-		for (UInt i = 0; i != id.getPeptideHits().size(); ++i)
+		for (Size i = 0; i != id.getPeptideHits().size(); ++i)
 		{
 			vector<pair<UInt, UInt> > alignment;
 			aligner.getSpectrumAlignment(alignment, spec_copy, sim_specs_[i]);
 
 			cerr << i << " " << id.getPeptideHits()[i].getSequence() << endl;
 			double rms(0);
-			for (UInt j = 0; j != alignment.size(); ++j)
+			for (Size j = 0; j != alignment.size(); ++j)
 			{
 				double mz1(spec_copy[alignment[j].first].getMZ()), mz2(sim_specs_[i][alignment[j].second].getMZ());
 				cerr << mz1 << " " << mz2 << " " << mz1 - mz2 << " " << sim_specs_[i][alignment[j].second].getMetaValue("IonName") << endl;
@@ -271,12 +271,12 @@ namespace OpenMS
 			//TODO WARNING ERROR KOTZ (Andreas, Marc)
 			PeakSpectrum s1,s2;
 			s1.resize(sim_spec.size());
-			for (UInt p=0; p<sim_spec.size(); ++p)
+			for (Size p=0; p<sim_spec.size(); ++p)
 			{
 				s1[p] = sim_spec[p];
 			}
 			s2.resize(spec.size());
-			for (UInt p=0; p< spec.size(); ++p)
+			for (Size p=0; p< spec.size(); ++p)
 			{
 				s2[p] = spec[p];
 			}
@@ -295,7 +295,7 @@ namespace OpenMS
 		UInt max_candidates = (UInt)param_.getValue("max_candidates");
 		sim_specs_.clear();
 		id.setScoreType("PILIS");
-		for (UInt i = 0; i < pre_id.getHits().size() && i < max_candidates; ++i)
+		for (Size i = 0; i < pre_id.getHits().size() && i < max_candidates; ++i)
     {
       AASequence peptide_sequence = pre_id.getHits()[i].getSequence();
       RichPeakSpectrum sim_spec;
@@ -305,12 +305,12 @@ namespace OpenMS
 			//TODO WARNING ERROR KOTZ (Andreas, Marc)
 			PeakSpectrum s1,s2;
 			s1.resize(sim_spec.size());
-			for (UInt p=0; p<sim_spec.size(); ++p)
+			for (Size p=0; p<sim_spec.size(); ++p)
 			{
 				s1[p] = sim_spec[p];
 			}
 			s2.resize(spec.size());
-			for (UInt p=0; p< spec.size(); ++p)
+			for (Size p=0; p< spec.size(); ++p)
 			{
 				s2[p] = spec[p];
 			}
@@ -330,7 +330,7 @@ namespace OpenMS
 		double b_pos(0);
 		double y_pos(18);
 		bool b_H2O_loss(false), b_NH3_loss(false), y_H2O_loss(false), y_NH3_loss(false);
-		for (UInt i = 0; i != sequence.size(); ++i)
+		for (Size i = 0; i != sequence.size(); ++i)
 		{
 			char aa(sequence[i]);
 			b_pos += aa_weight_[aa];
@@ -441,9 +441,9 @@ namespace OpenMS
 			}
 
 			// now get the modifications
-			for (UInt i = 0; i != mod_split.size(); ++i)
+			for (Size i = 0; i != mod_split.size(); ++i)
 			{
-				for (UInt j = 0; j != mod_split[i].size(); ++j)
+				for (Size j = 0; j != mod_split[i].size(); ++j)
 				{
 					if (mod_split[i][j] == '@')
 					{

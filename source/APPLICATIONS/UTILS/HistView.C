@@ -153,7 +153,7 @@ int main( int argc, const char** argv )
 	DoubleReal min = input_data[0];
 	DoubleReal max = input_data[0];
 	DoubleReal avg = 0.0;
-	for (UInt i=0; i<input_data.size(); ++i)
+	for (Size i=0; i<input_data.size(); ++i)
 	{
 		if(input_data[i]>max) max = input_data[i];
 		if(input_data[i]<min) min = input_data[i];
@@ -177,7 +177,7 @@ int main( int argc, const char** argv )
 	//create histogram	
 	if (verbose) cout << "Creating histogram:" << endl;
 	Histogram<UInt,Real> hist(min,max,bin_size);
-	for (UInt i=0; i<input_data.size(); ++i)
+	for (Size i=0; i<input_data.size(); ++i)
 	{
 		if (input_data[i]>=min && input_data[i]<=max)
 		{

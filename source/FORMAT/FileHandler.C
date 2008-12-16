@@ -228,7 +228,7 @@ namespace OpenMS
 			bool conversion_error = false;
 			try
 			{
-				for (UInt i=0; i<8; ++i)
+				for (Size i=0; i<8; ++i)
 				{
 					parts[i].toFloat();
 				}
@@ -246,7 +246,7 @@ namespace OpenMS
 			bool conversion_error = false;
 			try
 			{
-				for (UInt i=0; i<12; ++i)
+				for (Size i=0; i<12; ++i)
 				{
 					parts[i].toFloat();
 				}

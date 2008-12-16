@@ -47,7 +47,7 @@ namespace OpenMS
 		
 	}
 
-	UInt MultiGradient::size() const
+	Size MultiGradient::size() const
 	{
 		return pos_col_.size();
 	}
@@ -86,7 +86,7 @@ namespace OpenMS
 		}
 
 		map<UInt,QColor>::iterator it = pos_col_.begin();
-		for (UInt i=0; i<index; ++i)
+		for (Size i=0; i<index; ++i)
 		{
 			++it;
 		}		
@@ -101,7 +101,7 @@ namespace OpenMS
 		}
 		
 		map<UInt,QColor>::iterator it = pos_col_.begin();
-		for (UInt i=0; i<index; ++i)
+		for (Size i=0; i<index; ++i)
 		{
 			++it;
 		}
@@ -241,7 +241,7 @@ namespace OpenMS
 		pre_steps_ = steps - 1;
 		pre_.clear();
 		pre_.reserve(steps);
-		for (UInt step = 0; step < steps; ++step)
+		for (Size step = 0; step < steps; ++step)
 		{
 			pre_.push_back(interpolatedColorAt(step,0,pre_steps_));
 			//cout << pre_.back().red() << " " << pre_.back().green() << " " << pre_.back().blue() << endl;

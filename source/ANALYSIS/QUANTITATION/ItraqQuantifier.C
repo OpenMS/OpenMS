@@ -369,18 +369,18 @@ namespace OpenMS
 
 			#ifdef ITRAQ_DEBUG
 			std::cout << "debug OUTPUT\n";
-			for (UInt i = 1; i<peptide_ratios[0].size(); ++i)
+			for (Size i = 1; i<peptide_ratios[0].size(); ++i)
 			{
 				if (i == peptide_intensities[0].size()/2)
 				{
 					std::cout << "++++++++++ median: \n";
 				}
-				for (UInt j = 0; j<peptide_ratios.size(); ++j)
+				for (Size j = 0; j<peptide_ratios.size(); ++j)
 				{
 					std::cout << peptide_ratios[j][i] << " ";
 				}
 				std::cout << " -- int -- ";
-				for (UInt j = 0; j<peptide_intensities.size(); ++j)
+				for (Size j = 0; j<peptide_intensities.size(); ++j)
 				{
 					std::cout << peptide_intensities[j][i] << " ";
 				}
@@ -517,7 +517,7 @@ namespace OpenMS
 				Int line = (itraq_type_ == FOURPLEX ? channel-114 : channel-113);
 				if ((itraq_type_ == FOURPLEX && (line<0 || line>3))
 						|| 
-						(itraq_type_ == EIGHTPLEX && (line<0 || line>8) || channel==120))
+						((itraq_type_ == EIGHTPLEX && (line<0 || line>8)) || channel==120))
 				{
 					throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,String("ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; channel-name is not valid for ") + String(itraq_type_==FOURPLEX ? "4plex": "8plex") + String(": '") + result[0] + String("'"));
 				}

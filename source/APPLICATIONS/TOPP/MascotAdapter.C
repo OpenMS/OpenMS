@@ -357,7 +357,7 @@ class TOPPMascotAdapter
 				///charges
 				parts = getStringList_("charges");
 
-					for(UInt i = 0; i < parts.size(); i++)
+					for (Size i = 0; i < parts.size(); i++)
 					{
 						temp_charge = parts[i];
 						if (temp_charge[temp_charge.size() - 1] == '-' || temp_charge[0] == '-')
@@ -584,7 +584,7 @@ class TOPPMascotAdapter
 				
 				if (setByUser_("first_dim_rt"))
 				{
-					for(UInt i = 0; i < identifications.size(); ++i)
+					for (Size i = 0; i < identifications.size(); ++i)
 					{
 						identifications[i].setMetaValue("first_dim_rt", first_dim_rt);
 					}

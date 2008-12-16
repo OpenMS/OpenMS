@@ -74,7 +74,7 @@ START_SECTION((SuffixArraySeqan(const SuffixArraySeqan &source)))
 	TEST_EQUAL (sa_new->getNumberOfModifications(),sa2.getNumberOfModifications());
 	TEST_EQUAL (sa_new->getUseTags(),sa2.getUseTags());
 	TEST_EQUAL (sa_new->getTags().size(),sa2.getTags().size());
-	for (unsigned int i = 0; i < sa2.getTags().size();++i)
+	for (Size i = 0; i < sa2.getTags().size();++i)
 	{
 		TEST_EQUAL (sa_new->getTags().at(i),sa2.getTags().at(i));
 	}
@@ -239,11 +239,11 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 		
 	char aa[] = "ARNDCEQGHILKMFPSTWYV";
 		
-	for (unsigned int i = 0; i<255;++i)
+	for (Size i = 0; i<255;++i)
 	{
 		masse[i]=0;
 	}
-	for (unsigned int i = 0; i<strlen(aa);++i)
+	for (Size i = 0; i<strlen(aa);++i)
 	{
 		const Residue * r = rdb->getResidue(aa[i]);
 		masse[(int)aa[i]]=r->getAverageWeight(Residue::Internal);
@@ -258,7 +258,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 	TEST_EQUAL(res.size(),specc.size());
 
 /*	
-	for (unsigned int i = 0; i<res.size();i++)
+	for (Size i = 0; i<res.size();i++)
 	{
 		TEST_EQUAL(res.at(i).size(), 3);
 	}
@@ -297,11 +297,11 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 	sa->findSpec(res, specc_new);
 	//checking for doubled results;
 	STATUS("Okay!");
-	for (unsigned int i = 0; i < res.size();i++)
+	for (Size i = 0; i < res.size();i++)
 	{
-		for (unsigned int j = 0;j<res.at(i).size();j++)
+		for (Size j = 0;j<res.at(i).size();j++)
 		{
-			for (unsigned int k = j+1; k < res.at(i).size();k++)
+			for (Size k = j+1; k < res.at(i).size();k++)
 			{
 				TEST_EQUAL(res.at(i).at(j).first.first==res.at(i).at(k).first.first && res.at(i).at(j).first.second==res.at(i).at(k).first.second, 0);
 				
@@ -312,14 +312,14 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 	TOLERANCE_ABSOLUTE(0.55)
 	sa->setTolerance(0.5);
 	// checking if the mass of the found candidates is correct
-	for (unsigned int i = 0; i < res.size();i++)
+	for (Size i = 0; i < res.size();i++)
 	{
-		for (unsigned int j = 0;j<res.at(i).size();j++)
+		for (Size j = 0;j<res.at(i).size();j++)
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
 			
 			double m = 18;
-			for (unsigned int k = 0; k < seq.length();k++)
+			for (Size k = 0; k < seq.length();k++)
 			{
 				m+=masse[(int)seq[k]];
 			}
@@ -331,13 +331,13 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 	// getting all candidates with tags 
 	int number_of_tags=0;
 	vector<String> res_with_tags_exp;
-	for (unsigned int i = 0; i < res.size();i++)
+	for (Size i = 0; i < res.size();i++)
 	{
-		for (unsigned int j = 0;j<res.at(i).size();j++)
+		for (Size j = 0;j<res.at(i).size();j++)
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
 			bool has_tag = false;
-			for (unsigned int k = 2; k < seq.length();k++)
+			for (Size k = 2; k < seq.length();k++)
 			{
 				if (seq.substr(k-2,3)=="AAA"||seq.substr(k-2,3)=="ARA")
 				{
@@ -365,13 +365,13 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 	sa->findSpec(res, specc_new);
 	STATUS("Okay!");
 	vector<String> res_with_tags;
-	for (unsigned int i = 0; i < res.size();i++)
+	for (Size i = 0; i < res.size();i++)
 	{
-		for (unsigned int j = 0;j<res.at(i).size();j++)
+		for (Size j = 0;j<res.at(i).size();j++)
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
 			bool has_tag = false;
-			for (unsigned int k = 2; k < seq.length();k++)
+			for (Size k = 2; k < seq.length();k++)
 			{
 				if (seq.substr(k-2,3)=="AAA"||seq.substr(k-2,3)=="ARA")
 				{
@@ -387,9 +387,9 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 		}
 	}
 	STATUS("Okay!");
-	for (unsigned int i = 0; i < res_with_tags_exp.size();++i){
+	for (Size i = 0; i < res_with_tags_exp.size();++i){
 		bool was_found = false;
-		for (unsigned int j = 0; j < res_with_tags.size();++j){
+		for (Size j = 0; j < res_with_tags.size();++j){
 			if (res_with_tags_exp.at(i)==res_with_tags.at(j)){
 				was_found=true;
 				break;
@@ -406,13 +406,13 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 	STATUS("Okay!");
 
 	//Checking if mass is correct
-	for (unsigned int i = 0; i < res.size();i++)
+	for (Size i = 0; i < res.size();i++)
 	{
-		for (unsigned int j = 0;j<res.at(i).size();j++)
+		for (Size j = 0;j<res.at(i).size();j++)
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
 			double m = 18.0;
-			for (unsigned int k = 0; k < seq.length();k++)
+			for (Size k = 0; k < seq.length();k++)
 			{
 				m+=masse[(int)seq[k]];
 			}
@@ -432,7 +432,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 	res.clear();
 	sa->findSpec(res, specc4);
 	TEST_EQUAL(res.at(0).size(),res.at(1).size());
-	for (unsigned int j = 0; j < res.at(0).size();++j)
+	for (Size j = 0; j < res.at(0).size();++j)
 	{
 		TEST_EQUAL(res.at(0).at(j).first.first,res.at(1).at(j).first.first);
 		TEST_EQUAL(res.at(0).at(j).first.second,res.at(1).at(j).first.second);

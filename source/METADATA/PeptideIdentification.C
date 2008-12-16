@@ -202,7 +202,7 @@ namespace OpenMS {
 	{
 		peptide_hits.clear();
 
-		for(UInt i = 0; i < hits_.size(); ++i)
+		for (Size i = 0; i < hits_.size(); ++i)
 		{
 			vector<String>::const_iterator it = hits_[i].getProteinAccessions().begin();
 			while(it != hits_[i].getProteinAccessions().end())
@@ -246,7 +246,7 @@ namespace OpenMS {
 
 		peptide_hits.clear();
 
-		for(UInt i = 0; i < hits_.size(); ++i)
+		for (Size i = 0; i < hits_.size(); ++i)
 		{
 			found = false;
 			vector<String>::const_iterator it = hits_[i].getProteinAccessions().begin();

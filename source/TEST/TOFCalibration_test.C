@@ -148,9 +148,9 @@ START_SECTION((template<typename PeakType> void pickAndCalibrate(MSExperiment< P
 	
 TOLERANCE_ABSOLUTE(0.01)
   TEST_EQUAL(exp.size()==res_exp.size(),true)
-	for (UInt i=0; i<exp.size(); ++i)
+	for (Size i=0; i<exp.size(); ++i)
 	{
-		for (UInt j=0; j<exp[i].size(); ++j)
+		for (Size j=0; j<exp[i].size(); ++j)
 		{
 			TEST_REAL_SIMILAR(exp[i][j].getPos(),res_exp[i][j].getPos())
 			TEST_REAL_SIMILAR(exp[i][j].getIntensity(),res_exp[i][j].getIntensity())
@@ -202,9 +202,9 @@ std::cout.precision(writtenDigits<DoubleReal>());
 
 	TOLERANCE_ABSOLUTE(0.01)
   TEST_EQUAL(exp.size()==res_exp.size(),true)
-	for (UInt i=0; i<exp.size(); ++i)
+	for (Size i=0; i<exp.size(); ++i)
 	{
-		for (UInt j=0; j<exp[i].size(); ++j)
+		for (Size j=0; j<exp[i].size(); ++j)
 		{
 			TEST_REAL_SIMILAR(res_exp[i][j].getPos(),exp[i][j].getPos())
 			TEST_REAL_SIMILAR(res_exp[i][j].getIntensity(),exp[i][j].getIntensity())

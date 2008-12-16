@@ -572,7 +572,7 @@ namespace OpenMS
 			if (OPENMS_IS_BIG_ENDIAN)
 			{
 				char tmp;
-				for (UInt i = 0; i < trie_db_pos_length_ / 2; i++)
+				for (Size i = 0; i < trie_db_pos_length_ / 2; i++)
 				{
 					tmp = index_record[db_pos_length_ + i];
 					index_record[db_pos_length_ + i] = index_record[db_pos_length_ + trie_db_pos_length_ - 1 - i];
@@ -596,7 +596,7 @@ namespace OpenMS
 			if (OPENMS_IS_BIG_ENDIAN)
 			{
 				char tmp;
-				for (UInt i = 0; i < trie_db_pos_length_ / 2; i++)
+				for (Size i = 0; i < trie_db_pos_length_ / 2; i++)
 				{
 					tmp = index_record[db_pos_length_ + i];
 					index_record[db_pos_length_ + i] = index_record[db_pos_length_ + trie_db_pos_length_ - 1 - i];
@@ -716,7 +716,7 @@ namespace OpenMS
 					  if (OPENMS_IS_BIG_ENDIAN)
 						{
 							char tmp;
-							for (UInt i = 0; i < db_pos_length_ / 2; i++)
+							for (Size i = 0; i < db_pos_length_ / 2; i++)
 							{
 								tmp = record[i];
 								record[i] = record[db_pos_length_ - 1 - i];
@@ -732,7 +732,7 @@ namespace OpenMS
 						if (OPENMS_IS_BIG_ENDIAN)
 						{
 							char tmp;
-							for (UInt i = 0; i < trie_db_pos_length_ / 2; i++)
+							for (Size i = 0; i < trie_db_pos_length_ / 2; i++)
 							{
 								tmp = record[db_pos_length_ + i];
 								record[db_pos_length_ + i] = record[db_pos_length_ + trie_db_pos_length_ - 1 - i];
@@ -803,7 +803,7 @@ namespace OpenMS
 			if (OPENMS_IS_BIG_ENDIAN == true)
 			{
 				char tmp;
-				for (UInt i = 0; i < db_pos_length_ / 2; i++)
+				for (Size i = 0; i < db_pos_length_ / 2; i++)
 				{
 					tmp = record[i];
 					record[i] = record[db_pos_length_ - 1 - i];
@@ -817,7 +817,7 @@ namespace OpenMS
 			if (OPENMS_IS_BIG_ENDIAN)
 			{
 				char tmp;
-				for (UInt i = 0; i < trie_db_pos_length_ / 2; i++)
+				for (Size i = 0; i < trie_db_pos_length_ / 2; i++)
 				{
 					tmp = record[db_pos_length_ + i];
 					record[db_pos_length_ + i] = record[db_pos_length_ + trie_db_pos_length_ - 1 - i];

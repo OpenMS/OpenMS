@@ -382,7 +382,7 @@ namespace OpenMS
 			{
 				//call handleCVParam_ with the parent tag for each parameter in the group
 				String ref = attributeAsString_(attributes, s_ref);
-				for (UInt i=0; i<ref_param_[ref].size(); ++i)
+				for (Size i=0; i<ref_param_[ref].size(); ++i)
 				{
 					handleCVParam_(parent_parent_parent_tag, parent_parent_tag, parent_tag,ref_param_[ref][i].accession,ref_param_[ref][i].name,ref_param_[ref][i].value);
 				}
@@ -628,7 +628,7 @@ namespace OpenMS
 		void MzMLHandler<MapType>::fillData_()
 		{
 			//decode all base64 arrays
-			for (UInt i=0; i<data_.size(); i++)
+			for (Size i=0; i<data_.size(); i++)
 			{
 				//remove whitespaces from binary data
 				//this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
@@ -649,7 +649,7 @@ namespace OpenMS
 			bool int_precision_64 = true;
 			Int mz_index = -1;
 			Int int_index = -1;
-			for (UInt i=0; i<data_.size(); i++)
+			for (Size i=0; i<data_.size(); i++)
 			{
 				if (data_[i].name=="m/z array")
 				{
@@ -692,7 +692,7 @@ namespace OpenMS
 				//create meta data arrays and assign meta data
 				spec_.getMetaDataArrays().resize(data_.size()-2);
 				UInt meta_array_index = 0;
-				for (UInt i=0; i<data_.size(); i++)
+				for (Size i=0; i<data_.size(); i++)
 				{
 					if (data_[i].name!="m/z array" && data_[i].name!="intensity array")
 					{
@@ -701,7 +701,7 @@ namespace OpenMS
 						//copy meta info into MetaInfoDescription
 						std::vector<UInt> keys;
 						data_[i].meta.getKeys(keys);
-						for (UInt k=0;k<keys.size(); ++k)
+						for (Size k=0;k<keys.size(); ++k)
 						{
 							spec_.getMetaDataArrays()[meta_array_index].setMetaValue(keys[k],data_[i].meta.getValue(keys[k]));
 						}
@@ -713,13 +713,13 @@ namespace OpenMS
 			
 			//copy meta data from m/z and intensity binary
 			//We don't have this as a separate location => store it in spectrum
-			for (UInt i=0; i<data_.size(); i++)
+			for (Size i=0; i<data_.size(); i++)
 			{
 				if (data_[i].name=="m/z array" || data_[i].name=="intensity array")
 				{
 					std::vector<UInt> keys;
 					data_[i].meta.getKeys(keys);
-					for (UInt k=0;k<keys.size(); ++k)
+					for (Size k=0;k<keys.size(); ++k)
 					{
 						spec_.setMetaValue(keys[k],data_[i].meta.getValue(keys[k]));
 					}
@@ -728,7 +728,7 @@ namespace OpenMS
 			
 			//add the peaks and the meta data to the container (if they pass the restrictions)
 			spec_.reserve(default_array_length_);
-			for (UInt n = 0 ; n < default_array_length_ ; n++)
+			for (Size n = 0 ; n < default_array_length_ ; n++)
 			{
 				DoubleReal mz = mz_precision_64 ? data_[mz_index].decoded_64[n] : data_[mz_index].decoded_32[n];
 				DoubleReal intensity = int_precision_64 ? data_[int_index].decoded_64[n] : data_[int_index].decoded_32[n];
@@ -743,7 +743,7 @@ namespace OpenMS
 
 					//add meta data
 					UInt meta_array_index = 0;
-					for (UInt i=0; i<data_.size(); i++)
+					for (Size i=0; i<data_.size(); i++)
 					{
 						if (n<data_[i].size && data_[i].name!="m/z array" && data_[i].name!="intensity array")
 						{
@@ -2126,7 +2126,7 @@ namespace OpenMS
 			std::vector<String> keys;
 			meta.getKeys(keys);
 			
-			for (UInt i = 0; i!=keys.size();++i)
+			for (Size i = 0; i!=keys.size();++i)
 			{
 				os << String(indent,'\t') << "<userParam name=\"" << keys[i] << "\" type=\"";
 				
@@ -2230,7 +2230,7 @@ namespace OpenMS
 			os	<< "	<fileDescription>\n";
 			os	<< "		<fileContent>\n";
 			Map<InstrumentSettings::ScanMode, UInt> file_content;
-			for (UInt i=0; i<exp.size(); ++i)
+			for (Size i=0; i<exp.size(); ++i)
 			{
 				file_content[exp[i].getInstrumentSettings().getScanMode()]++;
 			}
@@ -2336,18 +2336,18 @@ namespace OpenMS
 			{
 				//find out how many spectra source files need to be written
 				UInt sf_sp_count=0;
-				for (UInt i=0; i<exp.size(); ++i)
+				for (Size i=0; i<exp.size(); ++i)
 				{
 					if (exp[i].getSourceFile()!=SourceFile()) ++sf_sp_count;
 				}
 				os	<< "		<sourceFileList count=\"" << exp.getSourceFiles().size() + sf_sp_count << "\">\n";
 				//write source files of run
-				for (UInt i=0; i<exp.getSourceFiles().size(); ++i)
+				for (Size i=0; i<exp.getSourceFiles().size(); ++i)
 				{
 					writeSourceFile_(os, String("sf_ru_")+i, exp.getSourceFiles()[i]);
 				}
 				//write source files of spectra
-				for (UInt i=0; i<exp.size(); ++i)
+				for (Size i=0; i<exp.size(); ++i)
 				{
 					if (exp[i].getSourceFile()!=SourceFile())
 					{
@@ -2359,7 +2359,7 @@ namespace OpenMS
 			//--------------------------------------------------------------------------------------------
 			// contacts
 			//--------------------------------------------------------------------------------------------
-			for (UInt i=0; i<exp.getContacts().size(); ++i)
+			for (Size i=0; i<exp.getContacts().size(); ++i)
 			{
 				const ContactPerson& cp = exp.getContacts()[i];
 				os  << "		<contact>\n";
@@ -2439,7 +2439,7 @@ namespace OpenMS
 			//write instrument software
 			writeSoftware_(os, "so_in_0", exp.getInstrument().getSoftware());
 			//write data processing
-			for (UInt i=0; i<exp.getDataProcessing().size(); ++i)
+			for (Size i=0; i<exp.getDataProcessing().size(); ++i)
 			{
 				writeSoftware_(os, String("so_dp_") + i, exp.getDataProcessing()[i].getSoftware());
 			}
@@ -2533,7 +2533,7 @@ namespace OpenMS
 				//--------------------------------------------------------------------------------------------
 				// ion source
 				//--------------------------------------------------------------------------------------------
-				for (UInt i=0; i<in.getIonSources().size(); ++i)
+				for (Size i=0; i<in.getIonSources().size(); ++i)
 				{
 					const IonSource& so = in.getIonSources()[i];
 					os  << "				<source order=\"" << so.getOrder() << "\">\n";
@@ -2806,7 +2806,7 @@ namespace OpenMS
 				//--------------------------------------------------------------------------------------------
 				// mass analyzer
 				//--------------------------------------------------------------------------------------------
-				for (UInt i=0; i<in.getMassAnalyzers().size(); ++i)
+				for (Size i=0; i<in.getMassAnalyzers().size(); ++i)
 				{
 					const MassAnalyzer& ma = in.getMassAnalyzers()[i];
 					os  << "				<analyzer order=\"" << ma.getOrder() << "\">\n";
@@ -2893,7 +2893,7 @@ namespace OpenMS
 				//--------------------------------------------------------------------------------------------
 				// ion detector
 				//--------------------------------------------------------------------------------------------
-				for (UInt i=0; i<in.getIonDetectors().size(); ++i)
+				for (Size i=0; i<in.getIonDetectors().size(); ++i)
 				{
 					const IonDetector& id = in.getIonDetectors()[i];
 					os  << "				<detector order=\"" << id.getOrder() << "\">\n";
@@ -3021,7 +3021,7 @@ namespace OpenMS
 			//--------------------------------------------------------------------------------------------
 			os  << "	<dataProcessingList count=\"1\">\n";			
 			os  << "		<dataProcessing id=\"dp_ru_0\">\n";
-			for (UInt i=0; i<exp.getDataProcessing().size(); ++i)
+			for (Size i=0; i<exp.getDataProcessing().size(); ++i)
 			{
 				const DataProcessing& dp = exp.getDataProcessing()[i];
 				os  << "			<processingMethod order=\"0\" softwareRef=\"so_dp_" << i << "\">\n";
@@ -3123,7 +3123,7 @@ namespace OpenMS
 			if (exp.getSourceFiles().size()!=0)
 			{
 				os	<< "		<sourceFileRefList count=\"" << exp.getSourceFiles().size() << "\">\n";
-				for (UInt i=0; i<exp.getSourceFiles().size(); ++i)
+				for (Size i=0; i<exp.getSourceFiles().size(); ++i)
 				{
 					os	<< "			<sourceFileRef ref=\"sf_ru_" << i << "\"/>\n";
 				}
@@ -3134,7 +3134,7 @@ namespace OpenMS
 			//--------------------------------------------------------------------------------------------
 			//spectrum
 			//--------------------------------------------------------------------------------------------
-			for (UInt s=0; s<exp.size(); ++s)
+			for (Size s=0; s<exp.size(); ++s)
 			{
 				const SpectrumType& spec = exp[s];
 				os	<< "			<spectrum id=\"" << spec.getNativeID() << "\" index=\"" << s << "\" defaultArrayLength=\"" << spec.size() << "\"";
@@ -3236,7 +3236,7 @@ namespace OpenMS
 				//--------------------------------------------------------------------------------------------
 				//scan
 				//--------------------------------------------------------------------------------------------
-				for (UInt j=0; j<spec.getAcquisitionInfo().size(); ++j)
+				for (Size j=0; j<spec.getAcquisitionInfo().size(); ++j)
 				{
 					const Acquisition& ac = spec.getAcquisitionInfo()[j];
 					os	<< "					<scan number=\"" << ac.getNumber() << "\">\n";
@@ -3246,7 +3246,7 @@ namespace OpenMS
 					if (j==0 && spec.getInstrumentSettings().getScanWindows().size()!=0)
 					{
 						os	<< "					<scanWindowList count=\"" << spec.getInstrumentSettings().getScanWindows().size() << "\">\n";
-						for (UInt j=0; j<spec.getInstrumentSettings().getScanWindows().size(); ++j)
+						for (Size j=0; j<spec.getInstrumentSettings().getScanWindows().size(); ++j)
 						{
 							os	<< "						<scanWindow>\n";
 							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan m/z lower limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].begin << "\"/>\n";
@@ -3264,7 +3264,7 @@ namespace OpenMS
 					if (spec.getInstrumentSettings().getScanWindows().size()!=0)
 					{
 						os	<< "					<scanWindowList count=\"" << spec.getInstrumentSettings().getScanWindows().size() << "\">\n";
-						for (UInt j=0; j<spec.getInstrumentSettings().getScanWindows().size(); ++j)
+						for (Size j=0; j<spec.getInstrumentSettings().getScanWindows().size(); ++j)
 						{
 							os	<< "						<scanWindow>\n";
 							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan m/z lower limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].begin << "\"/>\n";
@@ -3297,7 +3297,7 @@ namespace OpenMS
 					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected m/z\" value=\"" << spec.getPrecursorPeak().getMZ() << "\"/>\n";
 					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << spec.getPrecursorPeak().getCharge() << "\"/>\n";
 					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"intensity\" value=\"" << spec.getPrecursorPeak().getIntensity() << "\"/>\n";
-					for (UInt j=0; j<spec.getPrecursorPeak().getPossibleChargeStates().size(); ++j)
+					for (Size j=0; j<spec.getPrecursorPeak().getPossibleChargeStates().size(); ++j)
 					{
 						os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << spec.getPrecursorPeak().getPossibleChargeStates()[j] << "\"/>\n";
 					}
@@ -3379,7 +3379,7 @@ namespace OpenMS
 					os	<< "				<binaryDataArrayList count=\"" << (spec.getMetaDataArrays().size()+2) << "\">\n";
 					//write m/z array
 					data_to_encode.resize(spec.size());
-					for (UInt p=0; p<spec.size(); ++p) data_to_encode[p] = spec[p].getMZ();
+					for (Size p=0; p<spec.size(); ++p) data_to_encode[p] = spec[p].getMZ();
 					decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
 					os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
 					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\"/>\n";
@@ -3388,7 +3388,7 @@ namespace OpenMS
 					os	<< "						<binary>" << encoded_string << "</binary>\n";
 					os	<< "					</binaryDataArray>\n";
 					//write intensity array
-					for (UInt p=0; p<spec.size(); ++p) data_to_encode[p] = spec[p].getIntensity();
+					for (Size p=0; p<spec.size(); ++p) data_to_encode[p] = spec[p].getIntensity();
 					decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
 					os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
 					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\"/>\n";
@@ -3397,11 +3397,11 @@ namespace OpenMS
 					os	<< "						<binary>" << encoded_string << "</binary>\n";
 					os	<< "					</binaryDataArray>\n";
 					//write meta data array
-					for (UInt m=0; m<spec.getMetaDataArrays().size(); ++m)
+					for (Size m=0; m<spec.getMetaDataArrays().size(); ++m)
 					{
 						const typename SpectrumType::MetaDataArray& array = spec.getMetaDataArrays()[m];
 						data_to_encode.resize(array.size());
-						for (UInt p=0; p<array.size(); ++p) data_to_encode[p] = array[p];
+						for (Size p=0; p<array.size(); ++p) data_to_encode[p] = array[p];
 						decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
 						os	<< "					<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\">\n";
 						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\"/>\n";

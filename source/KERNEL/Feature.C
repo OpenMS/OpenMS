@@ -82,7 +82,7 @@ namespace OpenMS
   		else
   		{
 				ConvexHull2D::PointArrayType all_points;
-				for (UInt hull=0; hull<convex_hulls_.size(); ++hull)
+				for (Size hull=0; hull<convex_hulls_.size(); ++hull)
 				{
 					all_points.insert(all_points.end(), convex_hulls_[hull].getPoints().begin(), convex_hulls_[hull].getPoints().end());
 				}

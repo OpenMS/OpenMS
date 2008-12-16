@@ -585,7 +585,7 @@ namespace OpenMS
 				typename MapType::SpectrumType::MetaDataArray mda;
 				//Assign the right MetaInfoDescription ("supDesc" tag)
 				String id = attributeAsString_(attributes, s_id);
-				for (UInt i=0;i<meta_id_descs_.size(); ++i)
+				for (Size i=0;i<meta_id_descs_.size(); ++i)
 				{
 					if (meta_id_descs_[i].first==id)
 					{
@@ -735,7 +735,7 @@ namespace OpenMS
 			// vector of base64-encoded strings:
 			// Each string represents one property (e.g. mzData) and decodes
 			// to a vector of property values - one value for every peak in the spectrum.
-			for (UInt i=0; i<data_to_decode_.size(); i++)
+			for (Size i=0; i<data_to_decode_.size(); i++)
 			{
 				//remove whitespaces from binary data
 				//this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
@@ -792,13 +792,13 @@ namespace OpenMS
 				}
 				
 				//reserve space for meta data arrays (peak count)
-				for (UInt i=0;i<spec_.getMetaDataArrays().size();++i)
+				for (Size i=0;i<spec_.getMetaDataArrays().size();++i)
 				{
 					spec_.getMetaDataArrays()[i].reserve(peak_count_);
 				}
 				
 				//push_back the peaks into the container				
-				for (UInt n = 0 ; n < peak_count_ ; n++)
+				for (Size n = 0 ; n < peak_count_ ; n++)
 				{
 					DoubleReal mz = mz_precision_64 ? decoded_double_list_[0][n] : decoded_list_[0][n];
 					DoubleReal intensity = int_precision_64 ? decoded_double_list_[1][n] : decoded_list_[1][n];
@@ -810,7 +810,7 @@ namespace OpenMS
 						tmp.setPosition(mz);
 						spec_.push_back(tmp);
 						//load data from meta data arrays
-						for (UInt i=0;i<spec_.getMetaDataArrays().size();++i)
+						for (Size i=0;i<spec_.getMetaDataArrays().size();++i)
 						{
 							spec_.getMetaDataArrays()[i].push_back(precisions_[2+i]=="64" ? decoded_double_list_[2+i][n] : decoded_list_[2+i][n]);
 						}
@@ -862,7 +862,7 @@ namespace OpenMS
 				warning(STORE, "The MzData format can store only one source file. Only the first one is stored!");
 			}
 
-			for (UInt i=0; i < cexp_->getContacts().size(); ++i)
+			for (Size i=0; i < cexp_->getContacts().size(); ++i)
 			{
 				os << "\t\t\t<contact>\n"
 					 << "\t\t\t\t<name>" << cexp_->getContacts()[i].getFirstName() << " " << cexp_->getContacts()[i].getLastName() << "</name>\n"
@@ -909,7 +909,7 @@ namespace OpenMS
 			else
 			{
 				os << "\t\t\t<analyzerList count=\"" << inst.getMassAnalyzers().size() << "\">\n";
-				for (UInt i=0; i<inst.getMassAnalyzers().size(); ++i)
+				for (Size i=0; i<inst.getMassAnalyzers().size(); ++i)
 				{
 					os << "\t\t\t\t<analyzer>\n";
 					const MassAnalyzer& ana = inst.getMassAnalyzers()[i];
@@ -1018,7 +1018,7 @@ namespace OpenMS
 				bool all_numbers = true;
 				bool all_empty = true;
 				bool all_prefixed_numbers = true;
-				for (UInt s=0; s<cexp_->size(); s++)
+				for (Size s=0; s<cexp_->size(); s++)
 				{
 					String native_id = (*cexp_)[s].getNativeID();
 					if (!native_id.hasPrefix("spectrum="))
@@ -1052,7 +1052,7 @@ namespace OpenMS
 				Map<UInt,UInt> level_id; 
 				
 				os << "\t<spectrumList count=\"" << cexp_->size() << "\">\n";
-				for (UInt s=0; s<cexp_->size(); s++)
+				for (Size s=0; s<cexp_->size(); s++)
 				{
 					logger_.setProgress(s);
 					const SpectrumType& spec = (*cexp_)[s];
@@ -1084,7 +1084,7 @@ namespace OpenMS
 	
 						os << "\" methodOfCombination=\"" << spec.getAcquisitionInfo().getMethodOfCombination() << "\""
 						   << " count=\"" << spec.getAcquisitionInfo().size() << "\">\n";
-						for (UInt i=0; i<spec.getAcquisitionInfo().size(); ++i)
+						for (Size i=0; i<spec.getAcquisitionInfo().size(); ++i)
 						{
 							const Acquisition& ac = spec.getAcquisitionInfo()[i];
 							os << "\t\t\t\t\t\t<acquisition acqNumber=\"" << ac.getNumber() << "\">\n";
@@ -1202,7 +1202,7 @@ namespace OpenMS
 					if (options_.getWriteSupplementalData())
 					{
 						//write meta data array descriptions
-						for (UInt i=0; i<spec.getMetaDataArrays().size(); ++i)
+						for (Size i=0; i<spec.getMetaDataArrays().size(); ++i)
 						{
 							const MetaInfoDescription& desc = spec.getMetaDataArrays()[i];
 							os << "\t\t\t<supDesc supDataArrayRef=\"" << (i+1) << "\">\n";
@@ -1234,7 +1234,7 @@ namespace OpenMS
 					
 					//write m/z and intensity arrays
 					data_to_encode_.clear();
-					for (UInt i=0; i<spec.size(); i++)
+					for (Size i=0; i<spec.size(); i++)
 					{
 						data_to_encode_.push_back(spec[i].getPosition()[0]);
 					}
@@ -1243,7 +1243,7 @@ namespace OpenMS
 	
 					// intensity
 					data_to_encode_.clear();
-					for (UInt i=0; i<spec.size(); i++)
+					for (Size i=0; i<spec.size(); i++)
 					{
 						data_to_encode_.push_back(spec[i].getIntensity());
 					}
@@ -1254,7 +1254,7 @@ namespace OpenMS
 					if (options_.getWriteSupplementalData())
 					{
 						//write supplemental data arrays
-						for (UInt i=0; i<spec.getMetaDataArrays().size(); ++i)
+						for (Size i=0; i<spec.getMetaDataArrays().size(); ++i)
 						{
 							const typename MapType::SpectrumType::MetaDataArray& mda = spec.getMetaDataArrays()[i];
 							//check if spectrum and meta data array have the same length
@@ -1264,7 +1264,7 @@ namespace OpenMS
 							}
 							//encode meta data array
 							data_to_encode_.clear();
-							for (UInt j=0; j<mda.size(); j++)
+							for (Size j=0; j<mda.size(); j++)
 							{
 								data_to_encode_.push_back (mda[j]);
 							}

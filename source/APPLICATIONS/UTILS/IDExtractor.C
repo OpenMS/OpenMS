@@ -137,7 +137,7 @@ class TOPPIDExtractor
 			//-------------------------------------------------------------
 			if (best_hits)
 			{
-				for(UInt i = 0; i < identifications.size(); ++i)
+				for (Size i = 0; i < identifications.size(); ++i)
 				{
 					identifications_with_scores.push_back(make_pair(identifications[i].getHits()[0].getScore(), identifications[i]));
 				}
@@ -167,11 +167,11 @@ class TOPPIDExtractor
 			else
 			{
 				indices.resize(identifications.size(), 0);
-				for(UInt i = 0; i < identifications.size(); ++i)
+				for (Size i = 0; i < identifications.size(); ++i)
 				{
 					indices[i] = i;
 				}
-				for(UInt i = 0; i < number_of_rand_invokations; ++i)
+				for (Size i = 0; i < number_of_rand_invokations; ++i)
 				{
 					rand();
 				}
@@ -206,17 +206,17 @@ class TOPPIDExtractor
 				return ILLEGAL_PARAMETERS;		
 			}			
 			
-			for(UInt i = 0; i < protein_identifications.size(); ++i)
+			for (Size i = 0; i < protein_identifications.size(); ++i)
 			{
 				temp_protein_hits = protein_identifications[i].getHits();
 				chosen_protein_hits.clear();
 				if (identifiers.find(protein_identifications[i].getIdentifier()) != identifiers.end())
 				{
 					temp_identifications = identifiers[protein_identifications[i].getIdentifier()];					
-					for(UInt j = 0; j < temp_protein_hits.size(); ++j)
+					for (Size j = 0; j < temp_protein_hits.size(); ++j)
 					{
 						bool already_chosen = false;
-						for(UInt k =0; k < temp_identifications.size(); ++k)
+						for (Size k =0; k < temp_identifications.size(); ++k)
 						{
 							temp_identifications[k].getReferencingHits(temp_protein_hits[j].getAccession(), temp_peptide_hits);
 							if (temp_peptide_hits.size() > 0 && !already_chosen)

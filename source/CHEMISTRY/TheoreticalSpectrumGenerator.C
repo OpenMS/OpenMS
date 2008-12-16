@@ -111,7 +111,7 @@ namespace OpenMS
 		switch(res_type)
 		{
 			case Residue::AIon:
-				for (UInt i = 1; i != peptide.size(); ++i)
+				for (Size i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getPrefix(i);
 					double pos = ion.getMonoWeight(Residue::AIon, charge) / charge;
@@ -122,7 +122,7 @@ namespace OpenMS
 				break;
 				
 			case Residue::BIon:
-				for (UInt i = 1; i != peptide.size(); ++i)
+				for (Size i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getPrefix(i);
 					double pos = ion.getMonoWeight(Residue::BIon, charge) / charge;
@@ -133,7 +133,7 @@ namespace OpenMS
 				break;
 				
 			case Residue::CIon:
-				for (UInt i = 1; i != peptide.size(); ++i)
+				for (Size i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getPrefix(i);
 					double pos = ion.getMonoWeight(Residue::CIon, charge) / charge;
@@ -144,7 +144,7 @@ namespace OpenMS
 				break;
 				
 			case Residue::XIon:
-				for (UInt i = 1; i != peptide.size(); ++i)
+				for (Size i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getSuffix(i);
 					double pos = ion.getMonoWeight(Residue::XIon, charge) / charge;
@@ -155,7 +155,7 @@ namespace OpenMS
 				break;
 				
 			case Residue::YIon:
-				for (UInt i = 1; i != peptide.size(); ++i)
+				for (Size i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getSuffix(i);
 					double pos = ion.getMonoWeight(Residue::YIon, charge) / charge;
@@ -166,7 +166,7 @@ namespace OpenMS
 				break;
 				
 			case Residue::ZIon:
-				for (UInt i = 1; i != peptide.size(); ++i)
+				for (Size i = 1; i != peptide.size(); ++i)
 				{
 					ion = peptide.getSuffix(i);
 					double pos = ion.getMonoWeight(Residue::ZIon, charge) / charge;

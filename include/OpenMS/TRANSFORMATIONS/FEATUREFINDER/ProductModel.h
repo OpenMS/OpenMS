@@ -70,7 +70,7 @@ namespace OpenMS
     	this->setName(this->getProductName());
 
     	//Register model info
-      for (UInt dim=0; dim<D; ++dim)
+      for (Size dim=0; dim<D; ++dim)
       {
       	String name = Peak2D::shortDimensionName(dim);
     		this->subsections_.push_back(name);
@@ -88,7 +88,7 @@ namespace OpenMS
 	    	distributions_(D,0),
 	    	scale_(source.scale_)
     {
-      for (UInt dim=0; dim<D; ++dim)
+      for (Size dim=0; dim<D; ++dim)
       {
       	// clone source model
         if (source.distributions_[dim])
@@ -103,7 +103,7 @@ namespace OpenMS
     /// destructor
     virtual ~ProductModel()
     {
-      for (UInt dim=0; dim<D; ++dim)
+      for (Size dim=0; dim<D; ++dim)
       {
       	delete distributions_[dim];
   		}
@@ -117,7 +117,7 @@ namespace OpenMS
         BaseModel<D>::operator = (source);
 				scale_ = source.scale_;
 
-        for (UInt dim=0; dim<D; ++dim)
+        for (Size dim=0; dim<D; ++dim)
         {
           if (source.distributions_[dim])
           {
@@ -139,7 +139,7 @@ namespace OpenMS
     IntensityType getIntensity(const PositionType& pos) const
     {
       IntensityType intens(scale_);
-      for (UInt dim=0; dim<D; ++dim)
+      for (Size dim=0; dim<D; ++dim)
       {
         if (distributions_[dim]==0)
         {
@@ -217,7 +217,7 @@ namespace OpenMS
       typedef BaseModel<1>::SamplesType Samples1D;
       std::vector<Samples1D> samples(D);
       // get samples for each dimension
-      for (UInt dim=0; dim<D; ++dim)
+      for (Size dim=0; dim<D; ++dim)
       {
       	distributions_[dim]->getSamples(samples[dim]);
       }
@@ -227,7 +227,7 @@ namespace OpenMS
 
       while(i[D-1]<samples[D-1].size())
       {
-        for (UInt dim=0; dim<D; ++dim)
+        for (Size dim=0; dim<D; ++dim)
         {
           peak.getPosition()[dim] = samples[dim][ i[dim] ].getPosition()[0];
         }
@@ -235,7 +235,7 @@ namespace OpenMS
         cont.push_back(peak);
 
         ++i[0];
-        for (UInt dim=0; dim<D-1; ++dim)
+        for (Size dim=0; dim<D-1; ++dim)
         {
           if (i[dim]>=samples[dim].size())
           {
@@ -252,7 +252,7 @@ namespace OpenMS
 		{
 			BaseModel<D>::updateMembers_();
 			scale_ = (double)(this->param_.getValue("intensity_scaling"));
-	    for (UInt dim=0; dim<D; ++dim)
+	    for (Size dim=0; dim<D; ++dim)
       {
       	String name = Peak2D::shortDimensionName(dim);
         if (this->param_.exists(name))

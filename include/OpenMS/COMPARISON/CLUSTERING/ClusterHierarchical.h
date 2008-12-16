@@ -98,9 +98,9 @@ namespace OpenMS
 				//create distancematrix for data with comparator
 				original_distance.clear();
 				original_distance.resize(data.size(),1);
-				for(UInt i=0; i < data.size(); i++)
+				for (Size i=0; i < data.size(); i++)
 				{
-					for(UInt j=0; j < i; j++)
+					for (Size j=0; j < i; j++)
 					{
 						//distance value is 1-similarity value, since similarity is in range of [0,1]
 						original_distance.setValueQuick(i,j,1-comparator(data[i],data[j]));
@@ -137,7 +137,7 @@ namespace OpenMS
 			binned_data.reserve(data.size());
 
 			//transform each PeakSpectrum to a corresponding BinnedSpectrum with given settings of size and spread
-			for(UInt i=0; i < data.size(); i++)
+			for (Size i=0; i < data.size(); i++)
 			{
 				//double sz(2), UInt sp(1);
 				binned_data.push_back(BinnedSpectrum(sz,sp,data[i]));
@@ -147,9 +147,9 @@ namespace OpenMS
 				original_distance.clear();
 				original_distance.resize(data.size(),1);
 
-			for(UInt i=0; i < binned_data.size(); i++)
+			for (Size i=0; i < binned_data.size(); i++)
 			{
-				for(UInt j=0; j < i; j++)
+				for (Size j=0; j < i; j++)
 				{
 					//distance value is 1-similarity value, since similarity is in range of [0,1]
 					original_distance.setValue(i,j,1-comparator(binned_data[i],binned_data[j]));

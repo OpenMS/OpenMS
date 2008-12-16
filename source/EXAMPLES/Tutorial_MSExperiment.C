@@ -8,7 +8,7 @@ Int main()
 {
   PeakMap exp;
 
-	for (UInt i=0; i<4; ++i)
+	for (Size i=0; i<4; ++i)
 	{
 		PeakSpectrum spectrum;
 		spectrum.setRT(i);

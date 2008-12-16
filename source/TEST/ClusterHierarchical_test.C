@@ -198,7 +198,7 @@ END_SECTION
 START_SECTION((template <typename Data, typename SimilarityComparator> void cluster(vector< Data > &data, const SimilarityComparator &comparator, const ClusterFunctor &clusterer, vector<BinaryTreeNode>& cluster_tree)))
 {
 	vector<UInt> d(6,0);
-	for(UInt i = 0; i<d.size(); ++i)
+	for (Size i = 0; i<d.size(); ++i)
 	{
 		d[i]=i;
 	}
@@ -217,7 +217,7 @@ START_SECTION((template <typename Data, typename SimilarityComparator> void clus
 	ch.cluster<UInt,lowlevelComparator>(d,lc,sl,result, matrix);
 
 	TEST_EQUAL(tree.size(), result.size());
-	for (UInt i = 0; i < tree.size(); ++i)
+	for (Size i = 0; i < tree.size(); ++i)
 	{
 			TOLERANCE_ABSOLUTE(0.0001);
 			TEST_EQUAL(tree[i].left_child, result[i].left_child);
@@ -259,7 +259,7 @@ START_SECTION((void cluster(std::vector<PeakSpectrum>& data, const BinnedSpectru
 	ch.cluster(d,bspc,1.5,2,sl,result, matrix);
 
 	TEST_EQUAL(tree.size(), result.size());
-	for (UInt i = 0; i < tree.size(); ++i)
+	for (Size i = 0; i < tree.size(); ++i)
 	{
 			TOLERANCE_ABSOLUTE(0.0001);
 			TEST_EQUAL(tree[i].left_child, result[i].left_child);

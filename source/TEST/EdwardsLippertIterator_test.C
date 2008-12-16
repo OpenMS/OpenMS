@@ -96,11 +96,11 @@ START_SECTION(virtual FASTAEntry operator *())
 		
 	char aa[] = "ARNDCEQGHILKMFPSTWYV";
 		
-	for (unsigned int i = 0; i<255;++i)
+	for (Size i = 0; i<255;++i)
 	{
 		masse[i]=0;
 	}
-	for (unsigned int i = 0; i<strlen(aa);++i)
+	for (Size i = 0; i<strlen(aa);++i)
 	{
 		const Residue * r = rdb->getResidue(aa[i]);
 		masse[(int)aa[i]]=r->getAverageWeight();
@@ -110,7 +110,7 @@ START_SECTION(virtual FASTAEntry operator *())
 	ptr->setFastaFile("data/EdwardsLippertIterator_test.fasta");
 	ptr->setSpectrum(specc);
 	ptr->begin();
-	for (unsigned int i = 0; i < 29;++i)
+	for (Size i = 0; i < 29;++i)
 	{
 		FASTAEntry fe = **ptr;
 		TEST_EQUAL(fe.first,">Entry 1");
@@ -138,12 +138,12 @@ START_SECTION(virtual FASTAEntry operator *())
 		String seq = (**ptr).second;
 		(++*ptr);
 		float m = 0;
-		for (unsigned int i = 0; i < seq.length();i++)
+		for (Size i = 0; i < seq.length();i++)
 		{
 			m+=masse[(int)seq[i]];
 		}
 		bool is_in_spec = false;
-		for (unsigned int i = 0; i < specc.size();i++)
+		for (Size i = 0; i < specc.size();i++)
 		{
 			is_in_spec |= (m>=specc.at(i)-tol&&m<=specc.at(i)+tol);
 		}
@@ -229,7 +229,7 @@ START_SECTION(virtual const std::vector<float>& getSpectrum())
 	ptr = new EdwardsLippertIterator();
 	ptr->setSpectrum(specc);
 	TEST_EQUAL(specc.size(),ptr->getSpectrum().size());
-	for (unsigned int i = 0;i < specc.size();++i)
+	for (Size i = 0;i < specc.size();++i)
 	{
 		TEST_EQUAL(specc.at(i),ptr->getSpectrum().at(i));
 	}

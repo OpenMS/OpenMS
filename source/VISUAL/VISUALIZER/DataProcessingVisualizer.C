@@ -57,7 +57,7 @@ namespace OpenMS
 		
 		//actions
 		actions_->clear();
-		for (UInt i=0; i<DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
+		for (Size i=0; i<DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
 		{
 			QListWidgetItem* item = new QListWidgetItem(actions_);
 			item->setText(QString::fromStdString(DataProcessing::NamesOfProcessingAction[i]));
@@ -100,7 +100,7 @@ namespace OpenMS
 		
 		//actions
 		ptr_->getProcessingActions().clear();
-		for (UInt i=0; i<DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
+		for (Size i=0; i<DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
 		{
 			if (actions_->item(i)->checkState()==Qt::Checked)
 			{

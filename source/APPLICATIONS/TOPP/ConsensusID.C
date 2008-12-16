@@ -202,7 +202,7 @@ class TOPPConsensusID
 				//compute consensus
 				alg_param.setValue("number_of_runs",(UInt)map.getProteinIdentifications().size());
 				consensus.setParameters(alg_param);
-				for (UInt i = 0; i < map.size(); ++i)
+				for (Size i = 0; i < map.size(); ++i)
 				{
 					consensus.apply(map[i].getPeptideIdentifications());
 				}
@@ -230,7 +230,7 @@ class TOPPConsensusID
 				//compute consensus
 				alg_param.setValue("number_of_runs",(UInt)map.getProteinIdentifications().size());
 				consensus.setParameters(alg_param);
-				for (UInt i = 0; i < map.size(); ++i)
+				for (Size i = 0; i < map.size(); ++i)
 				{
 					consensus.apply(map[i].getPeptideIdentifications());
 				}

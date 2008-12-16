@@ -172,7 +172,7 @@ namespace OpenMS
 				template <UInt D2>
 				void assign(const DIntervalBase<D2> rhs)
 				{
-					for (UInt i=0; i<std::min(D,D2); ++i)
+					for (Size i=0; i<std::min(D,D2); ++i)
 					{
 						min_[i] = rhs.min()[i];
 						max_[i] = rhs.max()[i];

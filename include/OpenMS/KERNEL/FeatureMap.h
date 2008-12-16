@@ -202,7 +202,7 @@ namespace OpenMS
 				updateRanges_(this->begin(),this->end());
 				
 				//enlarge the range by the convex hull points
-				for (UInt i=0; i<this->size(); ++i)
+				for (Size i=0; i<this->size(); ++i)
 				{
 					DBoundingBox<2> box = this->operator[](i).getConvexHull().getBoundingBox();
 					if (!box.isEmpty())

@@ -212,7 +212,7 @@ namespace OpenMS
                                 
             printf("chisq/dof = %g\n",  pow(chi, 2.0) / dof);
                               
-            for (UInt i=0; i<p; ++i)
+            for (Size i=0; i<p; ++i)
             {
               std::cout << i;
 			  			printf(".Parameter = %.5f +/- %.5f\n", FIT( i ), c*ERR( i ) );
@@ -221,7 +221,7 @@ namespace OpenMS
 #endif
         
           // set optimized parameters
-          for (UInt i = 0; i < p; ++i)
+          for (Size i = 0; i < p; ++i)
           {
             x_init[i] = FIT( i );
           }

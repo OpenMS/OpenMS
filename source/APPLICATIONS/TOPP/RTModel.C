@@ -634,7 +634,7 @@ class TOPPRTModel
 				if (textfile_input)
 				{
 					loadStringLabelLines_(inputfile_name, training_peptides, training_retention_times);
-					for(UInt i = 0; i < training_peptides.size(); ++i)
+					for (Size i = 0; i < training_peptides.size(); ++i)
 					{
 						if (temp_type == OLIGO)
 						{
@@ -665,7 +665,7 @@ class TOPPRTModel
 			//-------------------------------------------------------------
 			if (!textfile_input)
 			{
-				for(UInt i = 0; i < identifications.size(); i++)
+				for (Size i = 0; i < identifications.size(); i++)
 				{
 					UInt temp_size = identifications[i].getHits().size();
 					if (temp_size > 0)
@@ -775,7 +775,7 @@ class TOPPRTModel
 			
 			      temp_mean = accumulate(temp_values.begin(), temp_values.end(), 0.) / temp_values.size();
 			
-			      for(UInt j =0; j < temp_values.size(); ++j)
+			      for (Size j =0; j < temp_values.size(); ++j)
 			      {
 							temp_variance += (temp_values[j] - temp_mean) * (temp_values[j] - temp_mean);
 			      }
@@ -835,7 +835,7 @@ class TOPPRTModel
 			
 			      temp_mean = accumulate(temp_values.begin(), temp_values.end(), 0.) / temp_values.size();
 			
-			      for(UInt j =0; j < temp_values.size(); ++j)
+			      for (Size j =0; j < temp_values.size(); ++j)
 			      {
 							temp_variance += (temp_values[j] - temp_mean) * (temp_values[j] - temp_mean);
 			      }
@@ -859,7 +859,7 @@ class TOPPRTModel
 			// For separation prediction there are two files needed
 			if (separation_prediction)
 			{
-				for(UInt i = 0; i < identifications_negative.size(); i++)
+				for (Size i = 0; i < identifications_negative.size(); i++)
 				{
 					UInt temp_size = identifications_negative[i].getHits().size();
 					if (temp_size > 0)
@@ -897,7 +897,7 @@ class TOPPRTModel
 
 			if (!separation_prediction)
 			{
-				for(UInt i = 0; i < training_retention_times.size(); i++)
+				for (Size i = 0; i < training_retention_times.size(); i++)
 				{
 					training_retention_times[i] = training_retention_times[i] / total_gradient_time;
 				}

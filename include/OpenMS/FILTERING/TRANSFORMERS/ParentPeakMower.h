@@ -109,7 +109,7 @@ namespace OpenMS
 		
 			// identify the ranges which are to be considered
 			std::vector<DRange<1> > ranges;
-			for (UInt z = 1; z <= pre_charge; ++z)
+			for (Size z = 1; z <= pre_charge; ++z)
 			{
 				if (clean_all_charge_states || z == pre_charge)
 				{

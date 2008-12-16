@@ -99,7 +99,7 @@ END_SECTION
 DoubleReal v=-1;
 START_SECTION((static DoubleReal getValueByMass (const DoubleReal t, const DoubleReal m, const UInt z, const Int mode=+1))) 
 	TOLERANCE_ABSOLUTE (1e-4)
-	for (UInt c=0; c<iw->getMaxCharge(); ++c)
+	for (Size c=0; c<iw->getMaxCharge(); ++c)
 	{
 		v=iw->getValueByMass (HALF_NEUTRON_MASS/(c+1.), 1000, c+1, 1);
 		TEST_REAL_SIMILAR(v, 0)
@@ -107,7 +107,7 @@ START_SECTION((static DoubleReal getValueByMass (const DoubleReal t, const Doubl
 END_SECTION
 
 START_SECTION((static DoubleReal getValueByLambda (const DoubleReal lambda, const DoubleReal tz1))) 
-	for (UInt c=0; c<iw->getMaxCharge(); ++c)
+	for (Size c=0; c<iw->getMaxCharge(); ++c)
 	{
 		v=iw->getValueByLambda (iw->getLambdaQ(1000*(c+1)-(c+1)*PROTON_MASS), HALF_NEUTRON_MASS*(c+1)+1);
 		TOLERANCE_ABSOLUTE (1e-4)
@@ -116,7 +116,7 @@ START_SECTION((static DoubleReal getValueByLambda (const DoubleReal lambda, cons
 END_SECTION
 
 START_SECTION((static DoubleReal getValueByLambdaExtrapol (const DoubleReal lambda, const DoubleReal tz1))) 
-	for (UInt c=0; c<iw->getMaxCharge(); ++c)
+	for (Size c=0; c<iw->getMaxCharge(); ++c)
 	{
 		v=iw->getValueByLambdaExtrapol (iw->getLambdaQ(1000*(c+1)-(c+1)*PROTON_MASS), HALF_NEUTRON_MASS*(c+1)+1);
 		TOLERANCE_ABSOLUTE (1e-4)

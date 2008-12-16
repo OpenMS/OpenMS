@@ -211,7 +211,7 @@ namespace OpenMS
 							String origin = mod_split[1];
 							origin.remove(')');
 							origin.remove('(');
-							for (UInt i = 0; i != temp_aa_sequence.size(); ++i)
+							for (Size i = 0; i != temp_aa_sequence.size(); ++i)
 							{
 								// best way we can check; because origin can be e.g. (STY)
 								if (origin.hasSubstring(temp_aa_sequence[i].getOneLetterCode()))

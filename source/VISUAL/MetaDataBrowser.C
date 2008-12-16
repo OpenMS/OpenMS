@@ -398,7 +398,7 @@ namespace OpenMS
 		meta.assignRanks();
 
 		//list all peptides hits in the tree
-		for(UInt i=0; i<meta.getHits().size(); ++i)
+		for (Size i=0; i<meta.getHits().size(); ++i)
 		{
 			visualize_(const_cast<PeptideHit&>(meta.getHits()[i]), item);
 		}
@@ -432,7 +432,7 @@ namespace OpenMS
 		//check for proteinhits objects
 		meta.assignRanks();
 
-		for(UInt i=0; i<meta.getHits().size(); ++i)
+		for (Size i=0; i<meta.getHits().size(); ++i)
 		{
 			visualize_(const_cast<ProteinHit&>(meta.getHits()[i]), item);
 		}
@@ -1038,13 +1038,13 @@ namespace OpenMS
 		add(static_cast<DocumentIdentifier&>(map));
 		
 		// protein identifications
-		for(UInt i=0; i<map.getProteinIdentifications().size(); ++i)
+		for (Size i=0; i<map.getProteinIdentifications().size(); ++i)
 		{
 			add(map.getProteinIdentifications()[i]);
 		}
 
 		//unassigned peptide ids
-		for(UInt i=0; i<map.getUnassignedPeptideIdentifications().size(); ++i)
+		for (Size i=0; i<map.getUnassignedPeptideIdentifications().size(); ++i)
 		{
 			add(map.getUnassignedPeptideIdentifications()[i]);
 		}

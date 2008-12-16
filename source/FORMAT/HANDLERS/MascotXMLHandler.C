@@ -240,7 +240,7 @@ namespace OpenMS
 								String origin = mod_split[1];
 								origin.remove(')');
 								origin.remove('(');
-								for (UInt i = 0; i != temp_aa_sequence.size(); ++i)
+								for (Size i = 0; i != temp_aa_sequence.size(); ++i)
 								{
 									// best way we can check; because origin can be e.g. (STY)
 									if (origin.hasSubstring(temp_aa_sequence[i].getOneLetterCode()))
@@ -288,7 +288,7 @@ namespace OpenMS
 			if (parts.size() == 3)
 			{
 				temp_string = parts[1];
-				for(UInt i = 0; i < temp_string.size(); ++i)
+				for (Size i = 0; i < temp_string.size(); ++i)
 				{
 					if (temp_string.at(i) != '0')
 					{
@@ -360,9 +360,9 @@ namespace OpenMS
 				// pepXML can contain more hits than MascotXML; hence we try to match all of them...
 				// run-time is O(n^2) in the number of petide hits; should be a very small number
 				
-				for (UInt i = 0; i < temp_peptide_hits.size(); ++i)
+				for (Size i = 0; i < temp_peptide_hits.size(); ++i)
 				{
-					for (UInt j = 0; j < temp_hits.size(); ++j)
+					for (Size j = 0; j < temp_hits.size(); ++j)
 					{
 						if (temp_hits[j].isModified() && temp_hits[j].toUnmodifiedString() == temp_peptide_hits[i].getSequence().toUnmodifiedString())
 						{

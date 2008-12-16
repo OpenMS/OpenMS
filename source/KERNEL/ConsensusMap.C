@@ -48,7 +48,7 @@ namespace OpenMS
 		}
 		
 		//actual check
-		for (UInt i = 0; i < size(); ++i)
+		for (Size i = 0; i < size(); ++i)
     {
       const ConsensusFeature& f = operator[](i);
       for (ConsensusFeature::HandleSetType::const_iterator it = f.begin(); it!=f.end(); ++it)
@@ -77,7 +77,7 @@ namespace OpenMS
     	os << "Map " << it->first << ": " << it->second.filename << " - " << it->second.label << " - " << it->second.size << endl; 
     }
     
-    for (UInt i = 0; i < cons_map.size(); ++i)
+    for (Size i = 0; i < cons_map.size(); ++i)
     {
       os << cons_map[i] << endl;
     }
@@ -91,7 +91,7 @@ namespace OpenMS
 		updateRanges_(begin(),end());
 		
 		//enlarge the range by the internal points of each feature
-		for (UInt i=0; i<size(); ++i)
+		for (Size i=0; i<size(); ++i)
 		{
 			for (ConsensusFeature::HandleSetType::const_iterator it=operator[](i).begin(); it!=operator[](i).end(); ++it)
 			{

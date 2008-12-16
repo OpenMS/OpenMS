@@ -110,7 +110,7 @@ namespace OpenMS
 		// probe text font size with last axis labels  
 		QString probe = "";
 		int index = 0;
-		for (unsigned int i=0; i<3; i++)
+		for (Size i=0; i<3; i++)
 		{
 			QString s;
 			if (grid_line_.size() > i)
@@ -140,7 +140,7 @@ namespace OpenMS
 		if (grid_scaling > w/5 ) grid_scaling = w/5;  // don't let font size get to big
 		if (grid_scaling > h/5 ) grid_scaling = h/5;  
 	
-		for (unsigned int j = 0; j != min((unsigned int)grid_line_.size(), (unsigned int)2) ; j++) 
+		for (Size j = 0; j != min((unsigned int)grid_line_.size(), (unsigned int)2) ; j++) 
 		{
 	    if (is_log_ && j>0) break; // just draw text on big intervalls
 			// style definitions

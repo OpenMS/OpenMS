@@ -486,7 +486,7 @@ START_SECTION(( void sortByIntensity() ))
 	intensities.push_back(29);  tmp[8] = 414.301; mzs.push_back(414.301);
 	intensities.push_back(29);  tmp[9] = 412.321; mzs.push_back(412.321);
 
-	for(UInt i = 0; i < mzs.size(); ++i)
+	for (Size i = 0; i < mzs.size(); ++i)
 	{
 		p.setIntensity(intensities[i]); p.setMZ(mzs[i]);
 		ds.push_back(p);
@@ -502,7 +502,7 @@ START_SECTION(( void sortByIntensity() ))
 		++it_ds;
 	}
 	ds.clear();
-	for(UInt i = 0; i < mzs.size(); ++i)
+	for (Size i = 0; i < mzs.size(); ++i)
 	{
 		p.setIntensity(intensities[i]); p.setMZ(mzs[i]);
 		ds.push_back(p);
@@ -552,7 +552,7 @@ START_SECTION(( void sortByPosition() ))
 	intensities.push_back(60);  tmp[8] = 60;  mzs.push_back(412.824);
 	intensities.push_back(29);  tmp[9] = 29;  mzs.push_back(412.321);
 
-	for(UInt i = 0; i < mzs.size(); ++i)
+	for (Size i = 0; i < mzs.size(); ++i)
 	{
 		p.setIntensity(intensities[i]); p.setMZ(mzs[i]);
 		ds.push_back(p);
@@ -566,7 +566,7 @@ START_SECTION(( void sortByPosition() ))
 		++it;
 	}
 	ds.clear();
-	for(UInt i = 0; i < mzs.size(); ++i)
+	for (Size i = 0; i < mzs.size(); ++i)
 	{
 		p.setIntensity(intensities[i]); p.setMZ(mzs[i]);
 		ds.push_back(p);
@@ -613,7 +613,7 @@ START_SECTION(( void sortByPosition() ))
 	ds2.sortByPosition();
 	ds3.getMetaDataArrays() = std::vector<DSpectrum<Peak2D>::MetaDataArray> (3,tmp2);
 	ds3.sortByPosition();
-	for(UInt i = 0; i < ds2.size(); ++i)
+	for (Size i = 0; i < ds2.size(); ++i)
 	{
 		TEST_EQUAL(ds2[i].getPosition() , ds3[i].getPosition());
 		TEST_EQUAL(ds3[i].getIntensity() , ds3.getMetaDataArrays()[1][i]);

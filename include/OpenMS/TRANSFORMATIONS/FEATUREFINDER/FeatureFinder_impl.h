@@ -59,11 +59,11 @@ namespace OpenMS
 			}
 			
 			//Check if the peaks are sorted according to m/z
-			for (UInt s=0; s<input_map.size(); ++s)
+			for (Size s=0; s<input_map.size(); ++s)
 			{
 				if (input_map[s].size()==0) continue;
 				DoubleReal last_pos = input_map[s][0].getMZ();
-				for (UInt p=1; p<input_map[s].size(); ++p)
+				for (Size p=1; p<input_map[s].size(); ++p)
 				{
 					if (input_map[s][p].getMZ()<last_pos)
 					{
@@ -78,7 +78,7 @@ namespace OpenMS
 		{
 			// Resize peak flag vector
 			flags_.resize(input_map.size());
-			for (UInt i=0; i<input_map.size(); ++i)
+			for (Size i=0; i<input_map.size(); ++i)
 			{
 				flags_[i].assign(input_map[i].size(), UNUSED);
 			}

@@ -210,7 +210,7 @@ START_SECTION((template<class PeakT> void filterIdentificationsByProteins(MSExpe
   proteins.push_back(FASTAFile::FASTAEntry("Q824A5", "first desription", "LHASGITVTEIPVTATNFK"));
   proteins.push_back(FASTAFile::FASTAEntry("Q872T5", "second description", "THPYGHAIVAGIERYPSK"));
 	
-	for(UInt i = 0; i < 5; ++i)
+	for (Size i = 0; i < 5; ++i)
 	{
 		experiment.push_back(MSSpectrum<>());
 	}
@@ -263,7 +263,7 @@ START_SECTION((template <class PeakT> void filterIdentificationsByThresholds(MSE
   
   ids.push_back(identification);
 	
-	for(UInt i = 0; i < 5; ++i)
+	for (Size i = 0; i < 5; ++i)
 	{
 		experiment.push_back(MSSpectrum<>());
 	}
@@ -303,7 +303,7 @@ START_SECTION((template <class PeakT> void filterIdentificationsByScores(MSExper
   
   ids.push_back(identification);
 	
-	for(UInt i = 0; i < 5; ++i)
+	for (Size i = 0; i < 5; ++i)
 	{
 		experiment.push_back(MSSpectrum<>());
 	}
@@ -341,7 +341,7 @@ START_SECTION((template <class PeakT> void filterIdentificationsByBestNHits(MSEx
   
   ids.push_back(identification);
 	
-	for(UInt i = 0; i < 5; ++i)
+	for (Size i = 0; i < 5; ++i)
 	{
 		experiment.push_back(MSSpectrum<>());
 	}

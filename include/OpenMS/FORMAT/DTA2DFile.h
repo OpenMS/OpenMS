@@ -151,7 +151,7 @@ namespace OpenMS
 					bool int_set = false;
 
 					//assign new order
-					for (UInt i = 0 ; i<3;++i)
+					for (Size i = 0 ; i<3;++i)
 					{
 						if ( strings[i]=="RT" || strings[i]=="RETENTION_TIME" || strings[i]=="MASS-TO-CHARGE" || strings[i]=="IT" || strings[i]=="INTENSITY")
 						{

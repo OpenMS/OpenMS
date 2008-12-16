@@ -109,7 +109,7 @@ START_SECTION((bool optimize(std::vector<PeakShape>& peaks,int failure)))
  
 	OptimizationFunctions::positions_DC_.resize(20);
   OptimizationFunctions::signal_DC_.resize(20);
-  for (unsigned int i = 0; i < 20 ;++i)
+  for (Size i = 0; i < 20 ;++i)
   {
   	OptimizationFunctions::positions_DC_[i] = origin +i*spacing;
     OptimizationFunctions::signal_DC_[i] = peak_shape(origin +i*spacing);

@@ -447,7 +447,7 @@ namespace OpenMS
 		QPolygon points;
 
 		//iterate over all convex hulls
-		for (UInt hull=0; hull<hulls.size(); ++hull)
+		for (Size hull=0; hull<hulls.size(); ++hull)
 		{
 			points.resize(hulls[hull].getPoints().size());
 			UInt index=0;
@@ -551,7 +551,7 @@ namespace OpenMS
 
 	void Spectrum2DCanvas::intensityModeChange_()
 	{
-		for (UInt i=0; i<layers_.size();++i)
+		for (Size i=0; i<layers_.size();++i)
 		{
 			recalculateDotGradient_(i);
 		}
@@ -572,7 +572,7 @@ namespace OpenMS
 		{
 			UInt peak_layer_count = 0;
 			Int last_peak_layer = 0;
-			for(UInt i=0; i<getLayerCount(); ++i)
+			for (Size i=0; i<getLayerCount(); ++i)
 			{
 				if (getLayer(i).type==LayerData::DT_PEAK)
 				{
@@ -589,7 +589,7 @@ namespace OpenMS
 		{
 			UInt peak_layer_count = 0;
 			Int last_peak_layer = 0;
-			for(UInt i=0; i<getLayerCount(); ++i)
+			for (Size i=0; i<getLayerCount(); ++i)
 			{
 				if (getLayer(i).type==LayerData::DT_PEAK && getLayer(i).visible)
 				{
@@ -821,7 +821,7 @@ namespace OpenMS
 
 		if (intensity_mode_ == IM_SNAP)
 		{
-			for (UInt i=0; i<getLayerCount(); i++)
+			for (Size i=0; i<getLayerCount(); i++)
 			{
 				if (getLayer(i).visible)
 				{
@@ -969,7 +969,7 @@ namespace OpenMS
 			buffer_.fill(QColor(param_.getValue("background_color").toQString()).rgb());
 			painter.begin(&buffer_);
 
-			for (UInt i=0; i<getLayerCount(); i++)
+			for (Size i=0; i<getLayerCount(); i++)
 			{
 				if (getLayer(i).visible)
 				{
@@ -1149,7 +1149,7 @@ namespace OpenMS
 					//add meta info
 					std::vector<String> keys;
 					f.getKeys(keys);
-					for (UInt m=0; m<keys.size(); ++m)
+					for (Size m=0; m<keys.size(); ++m)
 					{
 						status = status + " " + keys[m] + ": " + (String)(f.getMetaValue(keys[m]));
 					}
@@ -1163,7 +1163,7 @@ namespace OpenMS
 					emit sendCursorStatus(p.getMZ(), p.getIntensity(), s.getRT());
 					//meta info
 					String status;
-					for (UInt m=0; m<s.getMetaDataArrays().size();++m)
+					for (Size m=0; m<s.getMetaDataArrays().size();++m)
 					{
 						status += s.getMetaDataArrays()[m].getName() + ": " + s.getMetaDataArrays()[m][selected_peak_.peak] + " ";
 					}
@@ -1990,7 +1990,7 @@ namespace OpenMS
 		//reserve enough space
 		layers_[i].features.reserve(layers_[i].features.size()+map.size());
 		//add features
-		for (UInt j=0; j<map.size(); ++j)
+		for (Size j=0; j<map.size(); ++j)
 		{
 			layers_[i].features.push_back(map[j]);
 		}
@@ -2018,7 +2018,7 @@ namespace OpenMS
 		//reserve enough space
 		layers_[i].consensus.reserve(layers_[i].features.size()+map.size());
 		//add features
-		for (UInt j=0; j<map.size(); ++j)
+		for (Size j=0; j<map.size(); ++j)
 		{
 			layers_[i].consensus.push_back(map[j]);
 		}

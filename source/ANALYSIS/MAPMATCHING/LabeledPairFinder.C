@@ -145,7 +145,7 @@ namespace OpenMS
 				DoubleReal bin_step = fabs(end_value-start_value)/100;
 				Math::Histogram<> hist(start_value,end_value,bin_step);
 				//std::cout << "Histogram from " << start_value << " to " << end_value << " (bin size " << bin_step << ")" << endl;
-				for (UInt i=start_index; i<=end_index; ++i)
+				for (Size i=start_index; i<=end_index; ++i)
 				{
 					//std::cout << "i: " << dists[i] << endl;		
 					hist.inc(dists[i]);
@@ -161,7 +161,7 @@ namespace OpenMS
 				UInt max_value = hist.maxValue();
 				result.A = max_value-bin_median;
 				//overwrite estimate of x0 with the position of the highest bin
-				for (UInt i=0;i<hist.size();++i)
+				for (Size i=0;i<hist.size();++i)
 				{
 					if (hist[i]==max_value)
 					{
@@ -187,7 +187,7 @@ namespace OpenMS
 				//cout << "estimated allowed deviation (before fit): " << result.sigma*3.0 << endl;
 				//--------------------------- do gauss fit ---------------------------
 				vector<DPosition<2> > points(hist.size());
-				for (UInt i=0;i<hist.size();++i)
+				for (Size i=0;i<hist.size();++i)
 				{
 					points[i][0] = hist.centerOfBin(i);
 					points[i][1] = max(0u,hist[i]);
@@ -251,13 +251,13 @@ namespace OpenMS
 		}
 		
 		//Add protein identifications to result map
-		for (UInt i=0; i<input_maps.size(); ++i)
+		for (Size i=0; i<input_maps.size(); ++i)
 		{
 			result_map.getProteinIdentifications().insert(result_map.getProteinIdentifications().end(),input_maps[i].getProteinIdentifications().begin(), input_maps[i].getProteinIdentifications().end());
 		}
 
 		//Add unassigned peptide identifications to result map
-		for (UInt i=0; i<input_maps.size(); ++i)
+		for (Size i=0; i<input_maps.size(); ++i)
 		{
 			result_map.getUnassignedPeptideIdentifications().insert(result_map.getUnassignedPeptideIdentifications().end(),input_maps[i].getUnassignedPeptideIdentifications().begin(), input_maps[i].getUnassignedPeptideIdentifications().end());
 		}

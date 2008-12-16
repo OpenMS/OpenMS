@@ -254,7 +254,7 @@ START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
 	param.setValue("considered_hits",1);
 	consensus.setParameters(param);
 	f = ids;
-	for (UInt i = 0; i < f.size(); ++i)
+	for (Size i = 0; i < f.size(); ++i)
 	{
 		f[i].setHigherScoreBetter(false);
 	}

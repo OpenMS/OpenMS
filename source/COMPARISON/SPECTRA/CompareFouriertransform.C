@@ -89,7 +89,7 @@ namespace OpenMS
 		{	
 			
 			Real sum=0;
-			for(UInt k=0; k< temp1[i].size();++k)
+			for (Size k=0; k< temp1[i].size();++k)
 			{
 		 
 				sum=sum + temp1[i][k]-temp2[j][k];
@@ -138,13 +138,13 @@ namespace OpenMS
   	double* data = new double [2*spec.size()];
   	//normalize first the intensity!!!
   	DoubleReal int_sum=0;
-  	for(UInt p = 0 ;p<spec.size(); ++p)
+  	for (Size p = 0 ;p<spec.size(); ++p)
   	{
   		int_sum+=spec[p].getIntensity();
   	}
   	//copy the peaks two times
   	UInt i = 0;
-  	for (UInt p=0; p<spec.size(); ++p)
+  	for (Size p=0; p<spec.size(); ++p)
   	{
   		data[i] = spec[p].getIntensity()/int_sum;
   		++i;

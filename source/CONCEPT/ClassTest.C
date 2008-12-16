@@ -115,7 +115,7 @@ namespace OpenMS
 			bool validate(const std::vector<std::string>& file_names)
 			{
 				bool passed = true;
-				for (UInt i=0; i<file_names.size(); ++i)          								
+				for (Size i=0; i<file_names.size(); ++i)          								
 				{																																									
 					if (File::exists(file_names[i]))																
 					{																																								
@@ -132,7 +132,7 @@ namespace OpenMS
 								if (!MzMLFile().isSemanticallyValid(file_names[i], errors, warnings))								
 								{																																						
 									std::cout << "Error: mzML file semantically invalid '" << file_names[i] << "' - " << std::endl;
-									for (UInt j=0; j<errors.size(); ++j)
+									for (Size j=0; j<errors.size(); ++j)
 									{
 										std::cout << "Error - " << errors[j] << std::endl;
 									}

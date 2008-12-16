@@ -274,7 +274,7 @@ namespace OpenMS
 
 	void SpectrumWidget::closeEvent(QCloseEvent* e)
 	{
-		for (UInt l=0; l<canvas()->getLayerCount(); ++l)
+		for (Size l=0; l<canvas()->getLayerCount(); ++l)
 		{
 			//modified => ask if it should be saved		
 			const LayerData& layer = canvas()->getLayer(l);

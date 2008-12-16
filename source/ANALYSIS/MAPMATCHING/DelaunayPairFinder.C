@@ -219,7 +219,7 @@ namespace OpenMS
 			// iterator range.
 			if ( input == MODEL_ )
 			{
-				for (UInt i = 0; i < input_maps[0].size(); ++i)
+				for (Size i = 0; i < input_maps[0].size(); ++i)
 				{
 					DoubleReal trans_rt = input_maps[0][i].getRT();
 					DoubleReal trans_mz = input_maps[0][i].getMZ() * internal_mz_scaling_;
@@ -229,7 +229,7 @@ namespace OpenMS
 			}
 			else // input == SCENE_
 			{
-				for (UInt i = 0; i < input_maps[1].size(); ++i)
+				for (Size i = 0; i < input_maps[1].size(); ++i)
 				{
 					DoubleReal trans_rt = input_maps[1][i].getRT();
 					//TODO: use offset -- transformation_[Peak2D::RT].apply(trans_rt);

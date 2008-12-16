@@ -102,7 +102,7 @@ START_SECTION((void cluster(const DistanceMatrix< Real > &original_distance, std
 
 	(*ptr).cluster(matrix,result);
 	TEST_EQUAL(tree.size(), result.size());
-	for (UInt i = 0; i < tree.size(); ++i)
+	for (Size i = 0; i < tree.size(); ++i)
 	{
 			TOLERANCE_ABSOLUTE(0.0001);
 			TEST_EQUAL(tree[i].left_child, result[i].left_child);
@@ -116,7 +116,7 @@ START_SECTION((void cluster(const DistanceMatrix< Real > &original_distance, std
 	//~ result.clear();
 
 	//~ (*ptr).cluster(matrix,result,th);
-	//~ for (UInt i = 0; i < tree.size(); ++i)
+	//~ for (Size i = 0; i < tree.size(); ++i)
 	//~ {
 			//~ TOLERANCE_ABSOLUTE(0.0001);
 			//~ TEST_EQUAL(tree[i].left_child, result[i].left_child);

@@ -144,7 +144,7 @@ namespace OpenMS
 		return distribution_[0].first;
 	}
 
-	UInt IsotopeDistribution::size() const
+	Size IsotopeDistribution::size() const
 	{
 		return distribution_.size();
 	}
@@ -178,7 +178,7 @@ namespace OpenMS
 		distribution_.clear();
 		distribution_.push_back(make_pair(0u,1.0));
 		
-		for (UInt i = 0; i != names.size(); ++i)
+		for (Size i = 0; i != names.size(); ++i)
 		{
 			ContainerType single, conv_dist;
 			//calculate distribution for single element
@@ -239,7 +239,7 @@ namespace OpenMS
 		// my code 
 		ContainerType tmp, tmp_result;
 		tmp.push_back(make_pair<UInt, double>(0, 1));
-		for (UInt i=0; i!=n; ++i)
+		for (Size i=0; i!=n; ++i)
 		{
 			convolve(tmp_result, input, tmp);
 			swap(tmp_result, tmp);
@@ -276,7 +276,7 @@ namespace OpenMS
     // somewhere in the middle
     ContainerType convolution_power;
     convolveSquare_(convolution_power, input);
-    for (UInt i = 1; ; ++i)
+    for (Size i = 1; ; ++i)
     {
       if (n & (1 << i))
       {

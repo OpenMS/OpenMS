@@ -524,7 +524,7 @@ ref_vector.sortByIntensity();
 	      {
 	        return false;
 	      }
-	      for (unsigned int i=0;i<size();i++)
+	      for (Size i=0;i<size();i++)
 	      {
 	        if (typeid(*(vector_[i]))!=typeid(*(array.vector_[i])))
 	        {

@@ -69,7 +69,7 @@ namespace OpenMS
 		temp_.getKeys(keys_);
 			
 		//Load actual metaInfo Data into viewLayout_
-		for(UInt i=0; i< keys_.size(); ++i)
+		for (Size i=0; i< keys_.size(); ++i)
 		{ 
 		  loadData_(keys_[i]);
 		}
@@ -259,7 +259,7 @@ namespace OpenMS
 		{
 			//Delete all data in GUI		
 			std::vector<UInt> keys_temp= keys_;
-			for(UInt i =0; i< keys_temp.size(); ++i)
+			for (Size i =0; i< keys_temp.size(); ++i)
 			{	
 				remove_(keys_temp[i]);
 			}
@@ -273,7 +273,7 @@ namespace OpenMS
 			nextrow_=0;
 			keys_.clear();
 			ptr_->getKeys(keys_);
-			for(UInt i =0; i< keys_.size(); ++i)
+			for (Size i =0; i< keys_.size(); ++i)
 			{	
 				loadData_(keys_[i]);
 			}

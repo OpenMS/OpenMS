@@ -96,7 +96,7 @@ START_SECTION((std::vector< Real > averageSilhouetteWidth(std::vector< BinaryTre
 	tree.push_back(BinaryTreeNode(0,1,0.7));
 	vector<Real> result = ptr->averageSilhouetteWidth(tree, matrix);
 	TEST_EQUAL(result.size(), asw.size());
-	for (UInt i = 0; i < result.size(); ++i)
+	for (Size i = 0; i < result.size(); ++i)
 	{
 			TOLERANCE_ABSOLUTE(0.001);
 			TEST_REAL_SIMILAR(result[i], asw[i]);
@@ -134,14 +134,14 @@ START_SECTION((std::vector< Real > dunnIndices(std::vector< BinaryTreeNode > &tr
 	di[0]=0.4/0.3; di[1]=0.5/0.4; di[2]=0.6/0.8; di[3]=0.7/0.8; di[4]=0.0;
 	vector<Real> result = ptr->dunnIndices(tree, matrix);
 	TEST_EQUAL(result.size(), di.size());
-	for (UInt i = 0; i < result.size(); ++i)
+	for (Size i = 0; i < result.size(); ++i)
 	{
 			TOLERANCE_ABSOLUTE(0.001);
 			TEST_REAL_SIMILAR(result[i], di[i]);
 	}
 	result = ptr->dunnIndices(tree, matrix, true);
 	TEST_EQUAL(result.size(), di.size());
-	for (UInt i = 0; i < result.size(); ++i)
+	for (Size i = 0; i < result.size(); ++i)
 	{
 			TOLERANCE_ABSOLUTE(0.001);
 			TEST_REAL_SIMILAR(result[i], di[i]);
@@ -184,10 +184,10 @@ START_SECTION((void cut(std::vector< BinaryTreeNode > &tree, std::vector< std::v
 	tree.push_back(BinaryTreeNode(0,1,0.7));
   ptr->cut(3, clusters, tree);
 	TEST_EQUAL(clusters.size(), result.size());
-	for (UInt i = 0; i < clusters.size(); ++i)
+	for (Size i = 0; i < clusters.size(); ++i)
 	{
 		TEST_EQUAL(clusters[i].size(), result[i].size());
-		for (UInt j = 0; j < clusters[i].size(); ++j)
+		for (Size j = 0; j < clusters[i].size(); ++j)
 		{
 			TEST_EQUAL(clusters[i][j], result[i][j]);
 		}
@@ -227,7 +227,7 @@ START_SECTION((std::vector< Real > cohesion(std::vector< std::vector< UInt > > &
 
 	vector<Real> result = ptr->cohesion(clusters, matrix);
 	TEST_EQUAL(cohesions.size(), result.size());
-	for (UInt i = 0; i < cohesions.size(); ++i)
+	for (Size i = 0; i < cohesions.size(); ++i)
 	{
 		TEST_EQUAL(cohesions[i], result[i]);
 	}

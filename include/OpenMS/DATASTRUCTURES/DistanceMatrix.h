@@ -429,9 +429,9 @@ namespace OpenMS
 		bool operator== ( DistanceMatrix<ValueType> const & rhs ) const
 		{
 			OPENMS_PRECONDITION(dimensionsize_ == rhs.dimensionsize_,"DistanceMatrices have different sizes.");
-			for(UInt i = 1; i < rhs.dimensionsize(); ++i)
+			for (Size i = 1; i < rhs.dimensionsize(); ++i)
 			{
-				for(UInt j = 0; i < i; ++j)
+				for (Size j = 0; i < i; ++j)
 				{
 					if(matrix_[i][j]!=rhs.matrix_[i][j])
 					{

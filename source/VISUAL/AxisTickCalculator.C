@@ -127,7 +127,7 @@ namespace OpenMS
 		}
 		grid.push_back(big);
 		std::vector<double> small;
-		for(UInt i = 0;i!=grid[0].size();++i)
+		for (Size i = 0;i!=grid[0].size();++i)
 		{
 			double currGL =grid[0][i];
 			for(int j = 0;j!=8;++j)

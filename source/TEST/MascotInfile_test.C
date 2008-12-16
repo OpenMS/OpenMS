@@ -47,7 +47,7 @@ PeakSpectrum spec;
 Peak1D tmp;
 vector<Int> charges;
 charges.push_back(2);
-for (UInt i=1;i<10;i+=1)
+for (Size i=1;i<10;i+=1)
 {
 	tmp.setPosition(DPosition<1>(i));
 	tmp.setIntensity(i * i);

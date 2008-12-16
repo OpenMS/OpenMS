@@ -80,12 +80,12 @@ namespace OpenMS
 			
 			// init the matrix with "gap costs" tolerance
 			matrix[0][0] = 0;
-			for (UInt i = 1; i <= s1.size(); ++i)
+			for (Size i = 1; i <= s1.size(); ++i)
 			{
 				matrix[i][0] = i * tolerance;
 				traceback[i][0]  = std::make_pair(i - 1, 0);
 			}
-			for (UInt j = 1; j <= s2.size(); ++j)
+			for (Size j = 1; j <= s2.size(); ++j)
 			{
 				matrix[0][j] = j * tolerance;
 				traceback[0][j] = std::make_pair(0, j - 1);
@@ -95,9 +95,9 @@ namespace OpenMS
 			UInt left_ptr(1);
 			UInt last_i(0), last_j(0);
 			//Size off_band_counter(0);
-			for (UInt i = 1; i <= s1.size(); ++i)
+			for (Size i = 1; i <= s1.size(); ++i)
 			{
-				for (UInt j = left_ptr; j <= s2.size(); ++j)
+				for (Size j = left_ptr; j <= s2.size(); ++j)
 				{
 					bool off_band(false);
 					// find min of the three possible directions
@@ -190,12 +190,12 @@ namespace OpenMS
 #ifdef ALIGNMENT_DEBUG
 #if 0
 			cerr << "TheMatrix: " << endl << " \t  \t";
-			for (UInt j = 0; j != s2.size(); ++j)
+			for (Size j = 0; j != s2.size(); ++j)
 			{
 				cerr << s2[j].getPosition()[0] << " \t";
 			}
 			cerr << endl;
-			for (UInt i = 0; i <= s1.size(); ++i)
+			for (Size i = 0; i <= s1.size(); ++i)
 			{
 				if (i != 0)
 				{
@@ -205,7 +205,7 @@ namespace OpenMS
 				{
 					cerr << " \t";
 				}
-				for (UInt j = 0; j <= s2.size(); ++j)
+				for (Size j = 0; j <= s2.size(); ++j)
 				{
 					if (matrix.has(i) && matrix[i].has(j))
 					{

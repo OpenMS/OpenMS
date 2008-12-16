@@ -71,17 +71,17 @@ START_SECTION((DoubleReal getSVRProbability()))
 	vector<DoubleReal> labels;
 	svm_problem* problem;
 	
-	for(UInt j = 0; j < count; j++)
+	for (Size j = 0; j < count; j++)
 	{	
 		temp_vector.clear();
-		for(UInt i = 0; i < 6; i++)
+		for (Size i = 0; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
 		}
 		vectors.push_back(temp_vector);
 	}
 	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
-	for(UInt i = 0; i < count; i++)
+	for (Size i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
@@ -107,7 +107,7 @@ START_SECTION((Int train(struct svm_problem *problem)))
 	svm_node** nodes = new svm_node*[count];
 	DoubleReal* labels = new DoubleReal[count];
 	
-	for(UInt i = 0; i < count; i++)
+	for (Size i = 0; i < count; i++)
 	{
 		nodes[i] = new svm_node[count];
 		nodes[i][count - 1].index = -1;
@@ -127,7 +127,7 @@ START_SECTION((static void getLabels(svm_problem *problem, std::vector< DoubleRe
 	std::vector<DoubleReal> label_vector1;
 	std::vector<DoubleReal> label_vector2;
 	
-	for(UInt i = 0; i < count; i++)
+	for (Size i = 0; i < count; i++)
 	{
 		nodes[i] = new svm_node[count];
 		nodes[i][count - 1].index = -1;
@@ -140,7 +140,7 @@ START_SECTION((static void getLabels(svm_problem *problem, std::vector< DoubleRe
 	
 	SVMWrapper::getLabels(problem, label_vector2);
 	TEST_EQUAL(label_vector1.size(), label_vector2.size())
-	for(UInt i = 0; i < label_vector2.size(); i++)
+	for (Size i = 0; i < label_vector2.size(); i++)
 	{
 		TEST_REAL_SIMILAR(label_vector1[i], label_vector2[i])
 	}	
@@ -154,7 +154,7 @@ START_SECTION((static void createRandomPartitions(svm_problem *problem, UInt num
 	DoubleReal* labels = new DoubleReal[count];
 	std::vector<svm_problem*> partitions;
 		
-	for(UInt i = 0; i < count; i++)
+	for (Size i = 0; i < count; i++)
 	{
 		nodes[i] = new svm_node[count];
 		nodes[i][count - 1].index = -1;
@@ -180,12 +180,12 @@ START_SECTION((static svm_problem* mergePartitions(const std::vector< svm_proble
 	 std::vector<svm_problem*> partitions;
 	
 		
-	for(UInt i = 0; i < count; i++)
+	for (Size i = 0; i < count; i++)
 	{
 		nodes[i] = new svm_node[count];
 		nodes[i][count - 1].index = -1;
 		labels[i] = ((DoubleReal) i * 2) / 3 + 0.03;
-		for(UInt j = 0; j < count; j++)
+		for (Size j = 0; j < count; j++)
 		{
 			nodes[i][j].value = ((DoubleReal) i * 2) / 3;
 		}
@@ -199,7 +199,7 @@ START_SECTION((static svm_problem* mergePartitions(const std::vector< svm_proble
 	UInt problem2_size = (count / number_of_partitions) * (number_of_partitions - 1);
 	UInt partition_size = count / number_of_partitions;
 	TEST_EQUAL((UInt) problem2->l, problem2_size)
-	for(UInt i = 0; i < problem2_size; i++)
+	for (Size i = 0; i < problem2_size; i++)
 	{
 		UInt j = 0;
 		while(problem->x[i][j].index != -1 && problem2->x[i][j].index != -1)
@@ -241,17 +241,17 @@ START_SECTION((DoubleReal performCrossValidation(svm_problem *problem, const std
 	map<SVM_parameter_type, DoubleReal> parameters;
 	DoubleReal cv_quality;
 	
-	for(UInt j = 0; j < count; j++)
+	for (Size j = 0; j < count; j++)
 	{	
 		temp_vector.clear();
-		for(UInt i = 0; i < 6; i++)
+		for (Size i = 0; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
 		}
 		vectors.push_back(temp_vector);
 	}
 	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
-	for(UInt i = 0; i < count; i++)
+	for (Size i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
@@ -283,17 +283,17 @@ START_SECTION((void predict(struct svm_problem *predictProblem, std::vector< Dou
 	vector<DoubleReal> predicted_labels;
 	svm_problem* problem;
 	
-	for(UInt j = 0; j < count; j++)
+	for (Size j = 0; j < count; j++)
 	{	
 		temp_vector.clear();
-		for(UInt i = 0; i < 6; i++)
+		for (Size i = 0; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
 		}
 		vectors.push_back(temp_vector);
 	}
 	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
-	for(UInt i = 0; i < count; i++)
+	for (Size i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
@@ -386,17 +386,17 @@ START_SECTION((void getDecisionValues(svm_problem* data, std::vector<DoubleReal>
 	svm.setParameter(SVM_TYPE, NU_SVR);
 	svm.setParameter(KERNEL_TYPE, POLY);
 	svm.setParameter(DEGREE, 2);
-	for(UInt j = 0; j < count; j++)
+	for (Size j = 0; j < count; j++)
 	{	
 		temp_vector.clear();
-		for(UInt i = 1; i < 6; i++)
+		for (Size i = 1; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
 		}
 		vectors.push_back(temp_vector);
 	}
 	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
-	for(UInt i = 0; i < count; i++)
+	for (Size i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
@@ -417,7 +417,7 @@ START_SECTION((void getDecisionValues(svm_problem* data, std::vector<DoubleReal>
 	TEST_NOT_EQUAL(predicted_labels.size(), 0)
 	svm.getDecisionValues(problem, decision_values);
 	TEST_EQUAL(predicted_labels.size() == decision_values.size(), true)
-	for(UInt i = 0; i < predicted_labels.size(); ++i)
+	for (Size i = 0; i < predicted_labels.size(); ++i)
 	{
 		TEST_EQUAL((predicted_labels[i] < 0 && decision_values[i] < 0) 
 							|| (predicted_labels[i] > 0 && decision_values[i] > 0), true)
@@ -431,7 +431,7 @@ START_SECTION((void getDecisionValues(svm_problem* data, std::vector<DoubleReal>
 	TEST_NOT_EQUAL(predicted_labels.size(), 0)
 	svm.getDecisionValues(problem, decision_values);
 	TEST_EQUAL(predicted_labels.size() == decision_values.size(), true)
-	for(UInt i = 0; i < predicted_labels.size(); ++i)
+	for (Size i = 0; i < predicted_labels.size(); ++i)
 	{
 		TEST_EQUAL((predicted_labels[i] < 0 && decision_values[i] < 0) 
 							|| (predicted_labels[i] > 0 && decision_values[i] > 0), true)
@@ -452,17 +452,17 @@ START_SECTION((void scaleData(svm_problem* data, Int max_scale_value = -1)))
 	svm.setParameter(SVM_TYPE, NU_SVR);
 	svm.setParameter(KERNEL_TYPE, POLY);
 	svm.setParameter(DEGREE, 2);
-	for(UInt j = 0; j < count; j++)
+	for (Size j = 0; j < count; j++)
 	{	
 		temp_vector.clear();
-		for(UInt i = 1; i < 6; i++)
+		for (Size i = 1; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i, ((DoubleReal) i) * j * 0.3));
 		}
 		vectors.push_back(temp_vector);
 	}
 	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
-	for(UInt i = 0; i < count; i++)
+	for (Size i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
@@ -614,17 +614,17 @@ START_SECTION((void loadModel(std::string modelFilename)))
 	svm_problem* problem;
 	SVMWrapper svm2;
 	
-	for(UInt j = 0; j < count; j++)
+	for (Size j = 0; j < count; j++)
 	{	
 		temp_vector.clear();
-		for(UInt i = 0; i < 6; i++)
+		for (Size i = 0; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
 		}
 		vectors.push_back(temp_vector);
 	}
 	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
-	for(UInt i = 0; i < count; i++)
+	for (Size i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
@@ -639,7 +639,7 @@ START_SECTION((void loadModel(std::string modelFilename)))
 	svm2.predict(problem, predicted_labels2);
 	TEST_NOT_EQUAL(predicted_labels1.size(), 0)
 	TEST_EQUAL(predicted_labels1.size(), predicted_labels2.size())
-	for(UInt i = 0; i < predicted_labels1.size(); i++)
+	for (Size i = 0; i < predicted_labels1.size(); i++)
 	{
 		TEST_REAL_SIMILAR(predicted_labels1[i], predicted_labels2[i])
 	}
@@ -658,17 +658,17 @@ START_SECTION((void saveModel(std::string modelFilename) const throw(Exception::
 	svm_problem* problem;
 	SVMWrapper svm2;	
 	
-	for(UInt j = 0; j < count; j++)
+	for (Size j = 0; j < count; j++)
 	{	
 		temp_vector.clear();
-		for(UInt i = 0; i < 6; i++)
+		for (Size i = 0; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
 		}
 		vectors.push_back(temp_vector);
 	}
 	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
-	for(UInt i = 0; i < count; i++)
+	for (Size i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
@@ -685,7 +685,7 @@ START_SECTION((void saveModel(std::string modelFilename) const throw(Exception::
 	TEST_NOT_EQUAL(predicted_labels2.size(), 0)
 	TEST_EQUAL(predicted_labels1.size(), predicted_labels2.size())
 
-	for(UInt i = 0; i < predicted_labels1.size(); i++)
+	for (Size i = 0; i < predicted_labels1.size(); i++)
 	{
 		TEST_REAL_SIMILAR(predicted_labels1[i], predicted_labels2[i])
 	}
@@ -701,16 +701,16 @@ START_SECTION((void predict(const std::vector< svm_node * > &vectors, std::vecto
 	vector<DoubleReal> predicted_labels;
 	svm_problem* problem;
 	
-	for(UInt j = 0; j < count; j++)
+	for (Size j = 0; j < count; j++)
 	{	
-		for(UInt i = 0; i < 6; i++)
+		for (Size i = 0; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
 		}
 		vectors.push_back(temp_vector);
 	}
 	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
-	for(UInt i = 0; i < count; i++)
+	for (Size i = 0; i < count; i++)
 	{
 		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
 	}
@@ -739,10 +739,10 @@ START_SECTION(void getSVCProbabilities(struct svm_problem *problem, std::vector<
 	svm.setParameter(SVM_TYPE, C_SVC);
 	svm.setParameter(KERNEL_TYPE, POLY);
 	svm.setParameter(DEGREE, 2);
-	for(UInt j = 0; j < count; j++)
+	for (Size j = 0; j < count; j++)
 	{	
 		temp_vector.clear();
-		for(UInt i = 1; i < 6; i++)
+		for (Size i = 1; i < 6; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
 		}
@@ -759,7 +759,7 @@ START_SECTION(void getSVCProbabilities(struct svm_problem *problem, std::vector<
 	TEST_NOT_EQUAL(predicted_labels.size(), 0)
 	svm.getSVCProbabilities(problem, probabilities, predicted_labels);
 	TEST_EQUAL(predicted_labels.size() == probabilities.size(), true)
-	for(UInt i = 0; i < predicted_labels.size(); ++i)
+	for (Size i = 0; i < predicted_labels.size(); ++i)
 	{
 		TEST_EQUAL((predicted_labels[i] < 0 && probabilities[i] < 0.5) 
 							|| (predicted_labels[i] > 0 && probabilities[i] >= 0.5), true)
@@ -773,7 +773,7 @@ START_SECTION(void getSVCProbabilities(struct svm_problem *problem, std::vector<
 	TEST_NOT_EQUAL(predicted_labels.size(), 0)
 	svm.getSVCProbabilities(problem, probabilities, predicted_labels);
 	TEST_EQUAL(predicted_labels.size() == probabilities.size(), true)
-	for(UInt i = 0; i < predicted_labels.size(); ++i)
+	for (Size i = 0; i < predicted_labels.size(); ++i)
 	{
 		TEST_EQUAL((predicted_labels[i] < 0 && probabilities[i] <= 0.5) 
 							|| (predicted_labels[i] > 0 && probabilities[i] > 0.5), true)

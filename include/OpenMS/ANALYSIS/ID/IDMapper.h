@@ -80,14 +80,14 @@ namespace OpenMS
 		
   			//store mapping of scan RT to index
 				std::multimap<DoubleReal, UInt> experiment_precursors;
-				for(UInt i = 0; i < map.size(); i++)
+				for (Size i = 0; i < map.size(); i++)
 				{
 					experiment_precursors.insert(std::make_pair(map[i].getRT(), i));
 				}
 				
 				//store mapping of identification RT to index
 				std::multimap<DoubleReal, UInt> identifications_precursors;
-				for(UInt i = 0; i < ids.size(); i++)
+				for (Size i = 0; i < ids.size(); i++)
 				{
 					identifications_precursors.insert(std::make_pair(ids[i].getMetaValue("RT"), i));
 				}
@@ -165,7 +165,7 @@ namespace OpenMS
 				for(typename FeatureMap<FeatureType>::Iterator f_it = map.begin(); f_it!=map.end(); ++f_it)
 				{
 					//iterate over the IDs
-					for (UInt i=0; i<ids.size(); ++i)
+					for (Size i=0; i<ids.size(); ++i)
 					{
 						if (ids[i].getHits().size()==0) continue;
 
@@ -201,7 +201,7 @@ namespace OpenMS
 				}
 				
 				//append unassigned peptide identifications
-				for (UInt i=0; i<ids.size(); ++i)
+				for (Size i=0; i<ids.size(); ++i)
 				{
 					if (assigned.count(i)==0)
 					{
@@ -235,7 +235,7 @@ namespace OpenMS
 			///Helper function that checks if all peptide hits are annotated with RT and MZ meta values
 			void checkHits_(const std::vector<PeptideIdentification>& ids)
 			{
-				for (UInt i=0; i<ids.size(); ++i)
+				for (Size i=0; i<ids.size(); ++i)
 				{
 					if (!ids[i].metaValueExists("RT"))
 					{

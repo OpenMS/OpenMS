@@ -489,7 +489,7 @@ namespace OpenMS
 		else if (tag=="processingAction" && parent_tag=="dataProcessing")
 		{
 			String name = attributeAsString_(attributes, "name");
-			for (UInt i=0; i< DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
+			for (Size i=0; i< DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
 			{
 				if (name == DataProcessing::NamesOfProcessingAction[i])
 				{
@@ -543,7 +543,7 @@ namespace OpenMS
 		setProgress(++progress_);
 		
 		//write data processing
-		for (UInt i=0; i< consensus_map.getDataProcessing().size(); ++i)
+		for (Size i=0; i< consensus_map.getDataProcessing().size(); ++i)
 		{
 			const DataProcessing& processing = consensus_map.getDataProcessing()[i];
 			os << "\t<dataProcessing completion_time=\"" << processing.getCompletionTime().getDate() << 'T' << processing.getCompletionTime().getTime() << "\">\n";
@@ -616,12 +616,12 @@ namespace OpenMS
 				 << ">\n";
 			
 			//modifications
-			for (UInt j=0; j!=search_param.fixed_modifications.size(); ++j)
+			for (Size j=0; j!=search_param.fixed_modifications.size(); ++j)
 			{
 				os << "\t\t\t<FixedModification name=\"" << search_param.fixed_modifications[j] << "\" />\n";
 				//Add MetaInfo, when modifications has it (Andreas)
 			}
-			for (UInt j=0; j!=search_param.variable_modifications.size(); ++j)
+			for (Size j=0; j!=search_param.variable_modifications.size(); ++j)
 			{
 				os << "\t\t\t<VariableModification name=\"" << search_param.variable_modifications[j] << "\" />\n";
 				//Add MetaInfo, when modifications has it (Andreas)
@@ -638,7 +638,7 @@ namespace OpenMS
 			os << " significance_threshold=\"" << current_prot_id.getSignificanceThreshold() << "\">\n";
 		
 			// write protein hits
-			for(UInt j=0; j<current_prot_id.getHits().size(); ++j)
+			for (Size j=0; j<current_prot_id.getHits().size(); ++j)
 			{
 				os << "\t\t\t<ProteinHit";
 
@@ -681,7 +681,7 @@ namespace OpenMS
 
 		// write all consensus elements
 		os << "\t<consensusElementList>\n";
-		for (UInt i = 0; i < consensus_map.size(); ++i)
+		for (Size i = 0; i < consensus_map.size(); ++i)
 		{
 			setProgress(++progress_);
 			// write a consensusElement
@@ -790,7 +790,7 @@ namespace OpenMS
 		os << ">\n";
 		
 		// write peptide hits
-		for(UInt j=0; j<id.getHits().size(); ++j)
+		for (Size j=0; j<id.getHits().size(); ++j)
 		{
 			os << indent << "\t<PeptideHit";
 			os << " score=\"" << id.getHits()[j].getScore() << "\"";
@@ -807,7 +807,7 @@ namespace OpenMS
 			if(id.getHits()[j].getProteinAccessions().size()!=0)
 			{
 				String accs = "";
-				for (UInt m=0; m<id.getHits()[j].getProteinAccessions().size(); ++m)
+				for (Size m=0; m<id.getHits()[j].getProteinAccessions().size(); ++m)
 				{
 					if (m) accs += " ";
 					accs += "PH_";

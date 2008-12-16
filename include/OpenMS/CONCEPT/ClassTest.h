@@ -578,7 +578,7 @@ int main(int argc, char **argv)																									\
 	if (TEST::test_count==0)																																\
 	{																																												\
 		bool destructor = false;																															\
-		for (unsigned int i=0;i!=TEST::test_name.size();++i)																	\
+		for (Size i=0;i!=TEST::test_name.size();++i)																	\
 		{																																											\
 			if (TEST::test_name[i] == '~')																											\
 			{																																										\

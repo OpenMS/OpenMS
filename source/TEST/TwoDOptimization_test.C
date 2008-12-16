@@ -187,7 +187,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   float spacing = 0.1;
 
 	MSSpectrum<Peak1D >	 raw_spec;
-  for (unsigned int i = 0; i < 20 ;++i)
+  for (Size i = 0; i < 20 ;++i)
   {
 		Peak1D data_point;
 		data_point.setMZ(origin +i*spacing);
@@ -218,7 +218,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
  (ms_exp.begin()+1)->setRT(101);
 
   MSSpectrum<Peak1D >	 raw_spec2;
-  for (unsigned int i = 0; i < 20 ;++i)
+  for (Size i = 0; i < 20 ;++i)
   {
 		Peak1D data_point;
 		data_point.setMZ(origin +i*spacing);

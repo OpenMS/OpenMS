@@ -270,11 +270,11 @@ namespace OpenMS
 
 		double survival_function_bin_size = (double)param_.getValue("survival_function_bin_size");
   	sort(indices.begin(), indices.end());
-  	for (UInt i = 0; i != indices.size(); ++i)
+  	for (Size i = 0; i != indices.size(); ++i)
   	{
     	//cerr << indices[i] << " ";
     	sum = 0;
-    	for (UInt j = i; j != indices.size(); ++j)
+    	for (Size j = i; j != indices.size(); ++j)
     	{
       	sum += points[indices[j]];
     	}

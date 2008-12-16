@@ -110,20 +110,20 @@ namespace OpenMS
 
 		//initialize alignment matrix with 0 in (0,0) and a multiple of gapcost in the first row/col matrix(row,col,values)
 		Matrix<double> matrix(spec1.size()+1, spec2.size()+1,0);
-		for (UInt i = 1; i < matrix.rows(); i++)
+		for (Size i = 1; i < matrix.rows(); i++)
 		{
 			matrix.setValue(i,0,-gap*i);
 		}
-		for (UInt i = 1; i < matrix.cols(); i++)
+		for (Size i = 1; i < matrix.cols(); i++)
 		{
 			matrix.setValue(0,i,-gap*i);
 		}
 
 		//get sigma - the standard deviation (sqrt of variance)
 		double mid(0);
-		for (UInt i = 0; i < spec1.size(); ++i)
+		for (Size i = 0; i < spec1.size(); ++i)
 		{
-			for (UInt j = 0; j < spec2.size(); ++j)
+			for (Size j = 0; j < spec2.size(); ++j)
 			{
 				double pos1(spec1[i].getMZ()), pos2(spec2[j].getMZ());
 				mid += fabs(pos1 - pos2);
@@ -138,9 +138,9 @@ namespace OpenMS
 
 
 		double var(0);
-		for (UInt i = 0; i < spec1.size(); ++i)
+		for (Size i = 0; i < spec1.size(); ++i)
 		{
-			for (UInt j = 0; j < spec2.size(); ++j)
+			for (Size j = 0; j < spec2.size(); ++j)
 			{
 				double pos1(spec1[i].getMZ()), pos2(spec2[j].getMZ());
 				var += (fabs(pos1 - pos2) - mid)*(fabs(pos1 - pos2) - mid);
@@ -163,9 +163,9 @@ namespace OpenMS
 			*/
 
 		//fill alignment matrix
-		for (UInt i = 1; i < spec1.size()+1; ++i)
+		for (Size i = 1; i < spec1.size()+1; ++i)
 		{
-			for (UInt j = 1; j < spec2.size()+1; ++j)
+			for (Size j = 1; j < spec2.size()+1; ++j)
 			{
 				double pos1(spec1[i-1].getMZ()), pos2(spec2[j-1].getMZ());
 				//only if peaks are in reasonable proximity alignment is considered else only gaps
@@ -194,24 +194,24 @@ namespace OpenMS
 
 		//get best overall score and return
 		double best_score(DBL_MIN);
-		for(UInt i = 0; i < matrix.cols(); i++)
+		for (Size i = 0; i < matrix.cols(); i++)
 		{
 			best_score = max( best_score , matrix.getValue(matrix.rows()-1, i) );
 		}
-		for(UInt i = 0; i < matrix.rows(); i++)
+		for (Size i = 0; i < matrix.rows(); i++)
 		{
 			best_score = max( best_score , matrix.getValue(i, matrix.cols()-1) );
 		}
 
 		//calculate selfalignment-scores for both input spectra
 		double score_spec1(0),score_spec2(0);
-		for (UInt i = 0; i < spec1.size(); ++i)
+		for (Size i = 0; i < spec1.size(); ++i)
 		{
 			double int_i(spec1[i].getIntensity());
 			double pos_i(spec1[i].getMZ());
 			score_spec1 += peakPairScore_(pos_i,int_i,pos_i,int_i,sigma);
 		}
-		for (UInt i = 0; i < spec2.size(); ++i)
+		for (Size i = 0; i < spec2.size(); ++i)
 		{
 			double int_i(spec2[i].getIntensity());
 			double pos_i(spec2[i].getMZ());
@@ -247,11 +247,11 @@ namespace OpenMS
 
 		//initialize alignment matrix with 0 in (0,0) and a multiple of gapcost in the first row/col matrix(row,col,values)
 		Matrix<double> matrix(spec1.size()+1, spec2.size()+1,0);
-		for (UInt i = 1; i < matrix.rows(); i++)
+		for (Size i = 1; i < matrix.rows(); i++)
 		{
 			matrix.setValue(i,0,-gap*i);
 		}
-		for (UInt i = 1; i < matrix.cols(); i++)
+		for (Size i = 1; i < matrix.cols(); i++)
 		{
 			matrix.setValue(0,i,-gap*i);
 		}
@@ -263,9 +263,9 @@ namespace OpenMS
 
 		//get sigma - the standard deviation (sqrt of variance)
 		double mid(0);
-		for (UInt i = 0; i < spec1.size(); ++i)
+		for (Size i = 0; i < spec1.size(); ++i)
 		{
-			for (UInt j = 0; j < spec2.size(); ++j)
+			for (Size j = 0; j < spec2.size(); ++j)
 			{
 				double pos1(spec1[i].getMZ()), pos2(spec2[j].getMZ());
 				mid += fabs(pos1 - pos2);
@@ -278,9 +278,9 @@ namespace OpenMS
 		*/
 
 		double var(0);
-		for (UInt i = 0; i < spec1.size(); ++i)
+		for (Size i = 0; i < spec1.size(); ++i)
 		{
-			for (UInt j = 0; j < spec2.size(); ++j)
+			for (Size j = 0; j < spec2.size(); ++j)
 			{
 				double pos1(spec1[i].getMZ()), pos2(spec2[j].getMZ());
 				var += (fabs(pos1 - pos2) - mid)*(fabs(pos1 - pos2) - mid);
@@ -300,9 +300,9 @@ namespace OpenMS
 
 
 		//fill alignment matrix
-		for (UInt i = 1; i < spec1.size()+1; ++i)
+		for (Size i = 1; i < spec1.size()+1; ++i)
 		{
-			for (UInt j = 1; j < spec2.size()+1; ++j)
+			for (Size j = 1; j < spec2.size()+1; ++j)
 			{
 				double pos1(spec1[i-1].getMZ()), pos2(spec2[j-1].getMZ());
 				//only if peaks are in reasonable proximity alignment is considered else only gaps
@@ -359,7 +359,7 @@ namespace OpenMS
 		//get matrix coordinates from best alloverscore
 		UInt row_index(0), col_index(0);
 		double best_score(DBL_MIN);
-		for(UInt i = 0; i < matrix.cols(); i++)
+		for (Size i = 0; i < matrix.cols(); i++)
 		{
 			if(best_score < matrix.getValue(matrix.rows()-1, i) )
 			{
@@ -368,7 +368,7 @@ namespace OpenMS
 				col_index = i;
 			}
 		}
-		for(UInt i = 0; i < matrix.rows(); i++)
+		for (Size i = 0; i < matrix.rows(); i++)
 		{
 			if(best_score < matrix.getValue(i, matrix.cols()-1) )
 			{

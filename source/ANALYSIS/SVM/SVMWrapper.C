@@ -439,7 +439,7 @@ namespace OpenMS
 			else if (model_ != NULL)
 	    {
 	   		prediction_problem = computeKernelMatrix(problem, training_data_);
-		    for(UInt i = 0; i < problem.sequences.size(); i++)
+		    for (Size i = 0; i < problem.sequences.size(); i++)
 		    {
 					label = svm_predict(model_, prediction_problem->x[i]);
 					results.push_back(label);
@@ -459,7 +459,7 @@ namespace OpenMS
 		UInt actual_partition_size = 0; 
 		vector<UInt>::iterator indices_iterator;
 		
-		for(UInt i = 0; i < problems.size(); ++i)
+		for (Size i = 0; i < problems.size(); ++i)
 		{
 			delete problems[i];
 		}		
@@ -472,7 +472,7 @@ namespace OpenMS
 		else if (number > 1)
 		{
 			// Creating the particular partition instances
-			for(UInt i = 0; i < number; i++)
+			for (Size i = 0; i < number; i++)
 			{
 				problems.push_back(new svm_problem());
 			}
@@ -487,7 +487,7 @@ namespace OpenMS
 			
 			indices_iterator = indices.begin();
 			
-			for(UInt partition_index = 0; 
+			for (Size partition_index = 0; 
 					partition_index < number; 
 					partition_index++)
 			{
@@ -528,7 +528,7 @@ namespace OpenMS
 		UInt actual_partition_size = 0; 
 		vector<UInt>::iterator indices_iterator;
 		
-		for(UInt i = 0; i < problems.size(); ++i)
+		for (Size i = 0; i < problems.size(); ++i)
 		{
 			problems[i].labels.clear();
 			problems[i].sequences.clear();
@@ -542,13 +542,13 @@ namespace OpenMS
 		else if (number > 1)
 		{
 			// Creating the particular partition instances
-			for(UInt i = 0; i < number; i++)
+			for (Size i = 0; i < number; i++)
 			{
 				problems.push_back(SVMData());
 			}
 			
 			// Creating indices
-			for(UInt  i = 0; i < problem.sequences.size(); i++)
+			for (Size  i = 0; i < problem.sequences.size(); i++)
 			{
 				indices.push_back(i);
 			}
@@ -557,7 +557,7 @@ namespace OpenMS
 			
 			indices_iterator = indices.begin();
 			
-			for(UInt partition_index = 0; 
+			for (Size partition_index = 0; 
 					partition_index < number; 
 					partition_index++)
 			{
@@ -603,7 +603,7 @@ namespace OpenMS
 		if (problems.size() > 0)
 		{
 			merged_problem = new svm_problem();
-			for(UInt i = 0; i < problems.size(); i++)
+			for (Size i = 0; i < problems.size(); i++)
 			{
 				if (i != except)
 				{
@@ -613,7 +613,7 @@ namespace OpenMS
 			merged_problem->l = count;
 			merged_problem->x = new svm_node*[count];
 			merged_problem->y = new DoubleReal[count];
-			for(UInt i = 0; i < problems.size(); i++)
+			for (Size i = 0; i < problems.size(); i++)
 			{
 				if (i != except)
 				{
@@ -643,7 +643,7 @@ namespace OpenMS
 		{			
 			if (problems.size() > 0)
 			{
-				for(UInt i = 0; i < problems.size(); i++)
+				for (Size i = 0; i < problems.size(); i++)
 				{
 					if (i != except)
 					{
@@ -652,11 +652,11 @@ namespace OpenMS
 				}
 				merged_problem.sequences.resize(count, std::vector< std::pair<int, double> >());
 				merged_problem.labels.resize(count, 0.);
-				for(UInt i = 0; i < problems.size(); i++)
+				for (Size i = 0; i < problems.size(); i++)
 				{
 					if (i != except)
 					{
-						for(UInt j = 0; j < problems[i].sequences.size(); j++)
+						for (Size j = 0; j < problems[i].sequences.size(); j++)
 						{
 							merged_problem.sequences[actual_index] = problems[i].sequences[j];
 							merged_problem.labels[actual_index] = problems[i].labels[j];
@@ -676,7 +676,7 @@ namespace OpenMS
 		if (problem != NULL)
 		{		
 			count = problem->l;
-			for(UInt i = 0; i < count; i++)
+			for (Size i = 0; i < count; i++)
 			{
 				labels.push_back(problem->y[i]);
 			}
@@ -701,7 +701,7 @@ namespace OpenMS
 		vector<pair<DoubleReal, UInt> > combined_parameters;
 		DoubleReal cv_quality = 0.0;
 		combined_parameters.push_back(make_pair(1, 25));
-		for(UInt i = 1; i < gauss_tables_.size(); ++i)
+		for (Size i = 1; i < gauss_tables_.size(); ++i)
 		{
 			combined_parameters.push_back(make_pair(1, 25));
 		}				
@@ -772,9 +772,9 @@ namespace OpenMS
 		}
 
 		// for every 
-		for(UInt i = 0; i < number_of_runs; i++)
+		for (Size i = 0; i < number_of_runs; i++)
 		{
-			for(UInt index = 0; index < start_values_map.size(); ++index)
+			for (Size index = 0; index < start_values_map.size(); ++index)
 			{
 				best_values[index] = 0;
 			}
@@ -785,7 +785,7 @@ namespace OpenMS
 			found = true;
 
 			training_data = new svm_problem*[number_of_partitions];
-			for(UInt j = 0; j < number_of_partitions; j++)
+			for (Size j = 0; j < number_of_partitions; j++)
 			{
 				training_data[j] = SVMWrapper::mergePartitions(partitions, j);
 			}
@@ -815,7 +815,7 @@ namespace OpenMS
 
 				// evaluation of parameter performance
 				temp_performance = 0;
-				for(UInt j = 0; j < number_of_partitions; j++)
+				for (Size j = 0; j < number_of_partitions; j++)
 				{
 					if (train(training_data[j]))
 					{
@@ -861,7 +861,7 @@ namespace OpenMS
 						if (output && j == number_of_partitions - 1)
 						{
 							performances_file << temp_performance / (j + 1) << " ";
-							for(UInt k = 0; k < start_values_map.size(); k++)
+							for (Size k = 0; k < start_values_map.size(); k++)
 							{
 								switch(actual_types[k])
 								{
@@ -908,7 +908,7 @@ namespace OpenMS
 				if (temp_performance > max_performance)
 				{
 					max_performance = temp_performance;
-					for(UInt index = 0; index < start_values_map.size(); ++index)
+					for (Size index = 0; index < start_values_map.size(); ++index)
 					{
 						best_values[index] = actual_values[index];
 					}		
@@ -964,7 +964,7 @@ namespace OpenMS
 				}
 			}
 			
-			for(UInt k = 0; k < number_of_partitions; k++)
+			for (Size k = 0; k < number_of_partitions; k++)
 			{
 				free(training_data[k]->x);
 				free(training_data[k]->y);
@@ -977,7 +977,7 @@ namespace OpenMS
 					<< " mean performance is: " << *(max_element(performances.begin(), performances.end())) / (i + 1) 
 					<< endl << "performance of this run is: " << max_performance << " with parameters: ";
 				run_performances_file << max_performance << " ";
-				for(UInt k = 0; k < start_values_map.size(); k++)
+				for (Size k = 0; k < start_values_map.size(); k++)
 				{
 					switch(actual_types[k])
 					{
@@ -1024,7 +1024,7 @@ namespace OpenMS
 		}
 		
 		// Determining the index for the maximum performance
-		for(UInt i = 0; i < performances.size(); i++)
+		for (Size i = 0; i < performances.size(); i++)
 		{
 			if (performances[i] > max)
 			{
@@ -1098,7 +1098,7 @@ namespace OpenMS
 					actual_index++;
 				}
 				performances_file	<< performances[counter]  / number_of_runs << ": ";
-				for(UInt k = 0; k < start_values_map.size(); k++)
+				for (Size k = 0; k < start_values_map.size(); k++)
 				{
 					switch(actual_types[k])
 					{
@@ -1191,7 +1191,7 @@ namespace OpenMS
 		vector<pair<DoubleReal, UInt> > combined_parameters;
 		DoubleReal cv_quality = 0.0;
 		combined_parameters.push_back(make_pair(1, 25));
-		for(UInt i = 1; i < gauss_tables_.size(); ++i)
+		for (Size i = 1; i < gauss_tables_.size(); ++i)
 		{
 			combined_parameters.push_back(make_pair(1, 25));
 		}				
@@ -1262,9 +1262,9 @@ namespace OpenMS
 		}
 
 		// for every 
-		for(UInt i = 0; i < number_of_runs; i++)
+		for (Size i = 0; i < number_of_runs; i++)
 		{
-			for(UInt index = 0; index < start_values_map.size(); ++index)
+			for (Size index = 0; index < start_values_map.size(); ++index)
 			{
 				best_values[index] = 0;
 			}
@@ -1275,7 +1275,7 @@ namespace OpenMS
 			found = true;
 
 			training_data.resize(number_of_partitions, SVMData());
-			for(UInt j = 0; j < number_of_partitions; j++)
+			for (Size j = 0; j < number_of_partitions; j++)
 			{
 				SVMWrapper::mergePartitions(partitions, j, training_data[j]);
 			}
@@ -1305,7 +1305,7 @@ namespace OpenMS
 
 				// evaluation of parameter performance
 				temp_performance = 0;
-				for(UInt j = 0; j < number_of_partitions; j++)
+				for (Size j = 0; j < number_of_partitions; j++)
 				{
 					if (train(training_data[j]))
 					{
@@ -1350,7 +1350,7 @@ namespace OpenMS
 						if (output && j == number_of_partitions - 1)
 						{
 							performances_file << temp_performance / (j + 1) << " ";
-							for(UInt k = 0; k < start_values_map.size(); k++)
+							for (Size k = 0; k < start_values_map.size(); k++)
 							{
 								switch(actual_types[k])
 								{
@@ -1397,7 +1397,7 @@ namespace OpenMS
 				if (temp_performance > max_performance)
 				{
 					max_performance = temp_performance;
-					for(UInt index = 0; index < start_values_map.size(); ++index)
+					for (Size index = 0; index < start_values_map.size(); ++index)
 					{
 						best_values[index] = actual_values[index];
 					}		
@@ -1459,7 +1459,7 @@ namespace OpenMS
 					<< " mean performance is: " << *(max_element(performances.begin(), performances.end())) / (i + 1) 
 					<< endl << "performance of this run is: " << max_performance << " with parameters: ";
 				run_performances_file << max_performance << " ";
-				for(UInt k = 0; k < start_values_map.size(); k++)
+				for (Size k = 0; k < start_values_map.size(); k++)
 				{
 					switch(actual_types[k])
 					{
@@ -1506,7 +1506,7 @@ namespace OpenMS
 		}
 		
 		// Determining the index for the maximum performance
-		for(UInt i = 0; i < performances.size(); i++)
+		for (Size i = 0; i < performances.size(); i++)
 		{
 			if (performances[i] > max)
 			{
@@ -1580,7 +1580,7 @@ namespace OpenMS
 					actual_index++;
 				}
 				performances_file	<< performances[counter]  / number_of_runs << ": ";
-				for(UInt k = 0; k < start_values_map.size(); k++)
+				for (Size k = 0; k < start_values_map.size(); k++)
 				{
 					switch(actual_types[k])
 					{
@@ -1663,7 +1663,7 @@ namespace OpenMS
 		
     if (model_ != NULL)
     {
-	    for(UInt i = 0; i < vectors.size(); i++)
+	    for (Size i = 0; i < vectors.size(); i++)
 	    {
 				label = svm_predict(model_, vectors[i]);
 				results.push_back(label);
@@ -1757,7 +1757,7 @@ namespace OpenMS
 			param_->nr_weight = weights.size();
 			param_->weight_label = new Int[weights.size()];
 			param_->weight = new DoubleReal[weights.size()];
-			for(UInt i = 0; i < weights.size(); ++i)
+			for (Size i = 0; i < weights.size(); ++i)
 			{
 				param_->weight_label[i] = weight_labels[i];
 				param_->weight[i] = weights[i];
@@ -1963,7 +1963,7 @@ namespace OpenMS
 		kernel_matrix->x = new svm_node*[number_of_sequences];
 		kernel_matrix->y = new DoubleReal[number_of_sequences];
 		
-		for(UInt i = 0; i < number_of_sequences; i++)
+		for (Size i = 0; i < number_of_sequences; i++)
 		{
 			kernel_matrix->x[i] = new svm_node[problem2->l + 2];
 			kernel_matrix->x[i][0].index = 0;
@@ -1974,9 +1974,9 @@ namespace OpenMS
 
 		if (problem1 == problem2)
 		{
-			for(UInt i = 0; i < number_of_sequences; i++)
+			for (Size i = 0; i < number_of_sequences; i++)
 			{			
-				for(UInt j = i; j < number_of_sequences; j++)
+				for (Size j = i; j < number_of_sequences; j++)
 				{
 					temp = SVMWrapper::kernelOligo(problem1->x[i], problem2->x[j], gauss_table_);
 					kernel_matrix->x[i][j + 1].index = j + 1;
@@ -1988,9 +1988,9 @@ namespace OpenMS
 		}
 		else
 		{
-			for(UInt i = 0; i < number_of_sequences; i++)
+			for (Size i = 0; i < number_of_sequences; i++)
 			{			
-				for(UInt j = 0; j < (UInt) problem2->l; j++)
+				for (Size j = 0; j < (UInt) problem2->l; j++)
 				{
 					temp = SVMWrapper::kernelOligo(problem1->x[i], problem2->x[j], gauss_table_);
 
@@ -2026,7 +2026,7 @@ namespace OpenMS
 		kernel_matrix->x = new svm_node*[number_of_sequences];
 		kernel_matrix->y = new DoubleReal[number_of_sequences];
 		
-		for(UInt i = 0; i < number_of_sequences; i++)
+		for (Size i = 0; i < number_of_sequences; i++)
 		{
 			kernel_matrix->x[i] = new svm_node[problem2.labels.size() + 2];
 			kernel_matrix->x[i][0].index = 0;
@@ -2037,9 +2037,9 @@ namespace OpenMS
 
 		if (&problem1 == &problem2)
 		{
-			for(UInt i = 0; i < number_of_sequences; i++)
+			for (Size i = 0; i < number_of_sequences; i++)
 			{			
-				for(UInt j = i; j < number_of_sequences; j++)
+				for (Size j = i; j < number_of_sequences; j++)
 				{
 					temp = SVMWrapper::kernelOligo(problem1.sequences[i], problem2.sequences[j], gauss_table_);
 					kernel_matrix->x[i][j + 1].index = j + 1;
@@ -2051,9 +2051,9 @@ namespace OpenMS
 		}
 		else
 		{
-			for(UInt i = 0; i < number_of_sequences; i++)
+			for (Size i = 0; i < number_of_sequences; i++)
 			{			
-				for(UInt j = 0; j < (UInt) problem2.labels.size(); j++)
+				for (Size j = 0; j < (UInt) problem2.labels.size(); j++)
 				{
 					temp = SVMWrapper::kernelOligo(problem1.sequences[i], problem2.sequences[j], gauss_table_);
 
@@ -2092,11 +2092,11 @@ namespace OpenMS
 			
 		
 		// creation of points (measured rt, predicted rt)
-		for(UInt i = 0; i < number_of_runs; ++i)
+		for (Size i = 0; i < number_of_runs; ++i)
 		{
 			createRandomPartitions(data, number_of_partitions, partitions);
 			
-			for (UInt j = 0; j < number_of_partitions; ++j)
+			for (Size j = 0; j < number_of_partitions; ++j)
 			{
 				training_data = SVMWrapper::mergePartitions(partitions, j);
 				if (train(training_data))
@@ -2173,11 +2173,11 @@ namespace OpenMS
 			
 		
 		// creation of points (measured rt, predicted rt)
-		for(UInt i = 0; i < number_of_runs; ++i)
+		for (Size i = 0; i < number_of_runs; ++i)
 		{
 			createRandomPartitions(data, number_of_partitions, partitions);
 			
-			for (UInt j = 0; j < number_of_partitions; ++j)
+			for (Size j = 0; j < number_of_partitions; ++j)
 			{
 				SVMWrapper::mergePartitions(partitions, j, training_data);
 				if (train(training_data))
@@ -2410,7 +2410,7 @@ namespace OpenMS
 			gauss_table.resize(border_length, 0);
 		}		
 		gauss_table[0] = 1;
-	 	for(UInt i = 1; i < border_length; ++i)
+	 	for (Size i = 1; i < border_length; ++i)
 	 	{
 	  	gauss_table[i] = exp((-1 / 4.0 /
 					 						     (sigma * sigma)) *

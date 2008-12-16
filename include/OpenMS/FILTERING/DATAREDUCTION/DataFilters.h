@@ -123,7 +123,7 @@ namespace OpenMS
 			};
 			
 			///Filter count
-			UInt size() const;
+			Size size() const;
 			
 			/**
 			  @brief Filter accessor
@@ -175,7 +175,7 @@ namespace OpenMS
 			{
 				if (!is_active_) return true;
 				
-				for (UInt i = 0; i < filters_.size(); i++)
+				for (Size i = 0; i < filters_.size(); i++)
 				{
 					const DataFilters::DataFilter& filter = filters_[i];
 					if (filter.field==INTENSITY)
@@ -189,7 +189,7 @@ namespace OpenMS
 						const typename MSSpectrum<PeakType>::MetaDataArrays& mdas = spectrum.getMetaDataArrays();
 						//find the right meta data array
 						Int mda_index = -1;
-						for (UInt j=0; j<mdas.size(); ++j)
+						for (Size j=0; j<mdas.size(); ++j)
 						{
 							if (mdas[j].getName()==filter.meta_name)
 							{

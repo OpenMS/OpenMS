@@ -117,7 +117,7 @@ namespace OpenMS
 		
 		if (q_value)
 		{
-			for (UInt i = 0; i != fwd_scores.size(); ++i)
+			for (Size i = 0; i != fwd_scores.size(); ++i)
 			{
 				if (i == 0 && j == 0)
 				{
@@ -169,7 +169,7 @@ namespace OpenMS
 		}
 		else
 		{
-			for (UInt i = 0; i != fwd_scores.size(); ++i)
+			for (Size i = 0; i != fwd_scores.size(); ++i)
 			{
 				while (j != rev_scores.size() && 
 							 ((fwd_scores[i] <= rev_scores[j] && higher_score_better) ||
@@ -261,7 +261,7 @@ namespace OpenMS
    	// calculate fdr for the forward scores
     Map<double, double> score_to_fdr;
     UInt j = 0;
-    for (UInt i = 0; i != fwd_scores.size(); ++i)
+    for (Size i = 0; i != fwd_scores.size(); ++i)
     {
       while (j != rev_scores.size() &&
              ((fwd_scores[i] <= rev_scores[j] && higher_score_better) ||

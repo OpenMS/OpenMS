@@ -134,7 +134,7 @@ START_SECTION([EXTRA] FASTAEntry operator*())
 		} 
 		else 
 		{
-			for (unsigned int i = 1; i < realSeq.length() - 1; ++i)
+			for (Size i = 1; i < realSeq.length() - 1; ++i)
 			{
 				if (realSeq.substr(i, seq.length()) == seq)
 				{

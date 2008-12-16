@@ -47,7 +47,7 @@ endif()
 ########################################################
 
 if (CMAKE_COMPILER_IS_GNUCXX)
-	add_definitions(-Wno-long-long -Wall -Wno-non-virtual-dtor  -pedantic)
+	add_definitions(-Wno-long-long -Wall -Wno-non-virtual-dtor  -pedantic -O3)
 elseif (MSVC)
 	#add_definitions(/Wall) ## disable for now.. its just too much!
 
@@ -164,7 +164,7 @@ OPENMS_CHECKLIB(GSLCBLAS_LIBRARY "libgslcblas_dll;gslcblas" "libgslcblas_dll_d;g
 OPENMS_CHECKLIB(CGAL_LIBRARY "cgal-vc80-mt;cgal-vc90-mt;CGAL" "cgal-vc80-mt-gd;cgal-vc90-mt-gd;CGAL" "CGAL")
 
 # TODO windoes????
-if (NOT MSVC)
+if (NOT MSVC AND USE_ANDIMS)
 	OPENMS_CHECKLIB(ANDIMS_LIBRARY "ms10lib-TODO_CHRIS_JA_DU;ms10lib.a" "ms10lib-TODO_CHRIS_JA_DU;ms10lib.a" "ms10lib")
 
 	OPENMS_CHECKLIB(NETCDF_LIBRARY1 "netCDF-TODO_CHRIS_JA_DU;libnetcdf_c++.a" "netCDF-TODO_CHRIS_JA_DU;libnetcdf_c++.a" "netCDF_c++")
@@ -292,6 +292,7 @@ endif()
 ####      but only has setValue(String, long long). Casting everything to (Int) (which is long long on 64bit VS) is unintuitiv!)
 ## set OpenMS Types (Int) and (UInt) to the size of size_t and not simply as "int" or "unsigned int"
 ## - under unix this seems equivalent, but MSVS defined "int" always as 32bit, even on 64bit platforms.
+
 #if (OPENMS_64BIT_ARCHITECTURE)
 #	set(CF_OPENMS_SIZE_T_SIGNED ${CF_OPENMS_INT64_TYPE})
 #else()

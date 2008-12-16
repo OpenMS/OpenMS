@@ -192,7 +192,7 @@ namespace OpenMS
 	}
 
 	
-	UInt DataFilters::size() const
+	Size DataFilters::size() const
 	{
 		return filters_.size();
 	}
@@ -207,7 +207,7 @@ namespace OpenMS
 	{
 		if (!is_active_) return true;
 			
-		for (UInt i = 0; i < filters_.size(); i++)
+		for (Size i = 0; i < filters_.size(); i++)
 		{
 			const DataFilters::DataFilter& filter = filters_[i];
 			if (filter.field==INTENSITY)
@@ -247,7 +247,7 @@ namespace OpenMS
 	{
 		if (!is_active_) return true;
 			
-		for (UInt i = 0; i < filters_.size(); i++)
+		for (Size i = 0; i < filters_.size(); i++)
 		{
 			const DataFilters::DataFilter& filter = filters_[i];
 			if (filter.field==INTENSITY)

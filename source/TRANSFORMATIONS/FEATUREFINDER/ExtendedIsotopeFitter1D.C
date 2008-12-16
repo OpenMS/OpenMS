@@ -120,7 +120,7 @@ namespace OpenMS
 		std::vector<Real> model_data;
 		model_data.reserve(set.size());
 
-		for (UInt i=0; i < set.size(); ++i)
+		for (Size i=0; i < set.size(); ++i)
 		{
 			real_data.push_back(set[i].getIntensity());
 			model_data.push_back( model->getIntensity( DPosition<1>(set[i].getPosition()) ) );

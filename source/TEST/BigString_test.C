@@ -113,7 +113,7 @@ START_SECTION(unsigned int size())
 	ptr = new BigString();
 	TEST_EQUAL (ptr->size(),1);
 	const FASTAEntry fe ("ENTRY 1","AAAAA");
-	for (UInt i= 1; i < 10; i++)
+	for (Size i= 1; i < 10; i++)
 	{
 		ptr->add(fe);
 		TEST_EQUAL (ptr->size(),i+1);
@@ -124,7 +124,7 @@ START_SECTION(unsigned int length())
 	ptr = new BigString();
 	TEST_EQUAL (ptr->length(),1);
 	const FASTAEntry fe ("ENTRY 1","AAAAA");
-	for (UInt i= 1; i < 10; i++)
+	for (Size i= 1; i < 10; i++)
 	{
 		ptr->add(fe);
 		TEST_EQUAL (ptr->length(), i * 6 + 1);

@@ -106,7 +106,7 @@ namespace OpenMS
 			{
 				//determine min and max of the data
 				Real min = numeric_limits<Real>::max(), max = -numeric_limits<Real>::max();
-				for (UInt i=0; i<it->size(); ++i)
+				for (Size i=0; i<it->size(); ++i)
 				{
 					if ((*it)[i]<min) min = (*it)[i];
 					if ((*it)[i]>max) max = (*it)[i];
@@ -115,7 +115,7 @@ namespace OpenMS
 		
 				//create histogram
 				tmp.reset(min,max,(max-min)/500.0);
-				for (UInt i=0; i<it->size(); ++i)
+				for (Size i=0; i<it->size(); ++i)
 				{
 					tmp.inc((*it)[i]);
 				}

@@ -179,7 +179,7 @@ namespace OpenMS
           ms_exp_filtered.reserve(n);
           startProgress(0,n,"resampling of data");
 	        // pick peaks on each scan
-	        for (UInt i = 0; i < n; ++i)
+	        for (Size i = 0; i < n; ++i)
 	        {
 	            MSSpectrum< OutputPeakType > spectrum;
 	            InputSpectrumIterator input_it(first+i);

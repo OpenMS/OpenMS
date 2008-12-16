@@ -84,7 +84,7 @@ class TOPPFFEVal
 	UInt count(const FeatureMap<>& map, const String& name, const String& value="")
 	{
 		UInt count =0;
-		for (UInt i=0; i<map.size(); ++i)
+		for (Size i=0; i<map.size(); ++i)
 		{
 			if (map[i].metaValueExists(name))
 			{
@@ -134,7 +134,7 @@ class TOPPFFEVal
 		//determine average RT tolerance:
 		//median feature RT span times given factor
 		vector<DoubleReal> rt_spans;
-		for (UInt t=0; t<features_in.size(); ++t)
+		for (Size t=0; t<features_in.size(); ++t)
 		{
 			rt_spans.push_back(features_in[t].getConvexHull().getBoundingBox().width());
 		}
@@ -148,14 +148,14 @@ class TOPPFFEVal
 		std::vector<DoubleReal> ints_missed;
 		Map<String,UInt> abort_strings;
 
-		for (UInt m=0; m<features_truth.size(); ++m)
+		for (Size m=0; m<features_truth.size(); ++m)
 		{
 			Feature& f_t =  features_truth[m];
 			UInt match_count = 0;
 			bool correct_charge = false;
 			bool exact_centroid_match = false;
 			Feature last_match;
-			for (UInt a=0; a<features_in.size(); ++a)
+			for (Size a=0; a<features_in.size(); ++a)
 			{
 				const Feature& f_i =  features_in[a];
 				//RT match
@@ -224,7 +224,7 @@ class TOPPFFEVal
 				//look up the abort reason of the nearest seed
 				DoubleReal best_score_ab = 0;
 				String reason = "";
-				for (UInt b=0; b<abort_reasons.size(); ++b)
+				for (Size b=0; b<abort_reasons.size(); ++b)
 				{
 					const Feature& f_ab =  abort_reasons[b];
 					if ( fabs(f_ab.getRT() - f_t.getRT()) <= rt_tol
@@ -295,7 +295,7 @@ class TOPPFFEVal
 		cout << "charge matches statistics:" << endl;
 		cout << "===========================" << endl;
 		Map<UInt,UInt> present_charges,found_charges;
-		for (UInt i=0;i<features_truth.size(); ++i)
+		for (Size i=0;i<features_truth.size(); ++i)
 		{
 			UInt charge = features_truth[i].getCharge();
 			present_charges[charge]++;

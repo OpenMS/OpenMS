@@ -602,7 +602,7 @@ namespace OpenMS
     double fwhm_threshold = (double)param_.getValue("fwhm_threshold");
    
     PeakShape p;
-    for (unsigned int current_peak = 0; current_peak < peaks.size(); current_peak++)
+    for (Size current_peak = 0; current_peak < peaks.size(); current_peak++)
       {
 				p.left_width  = gsl_vector_get(fit->x, 0);
 				p.right_width = gsl_vector_get(fit->x, 1);

@@ -41,7 +41,7 @@ ModifierRep::ModifierRep()
 
 	char aa[] = "ARNDCEQGHILKMFPSTWYV";
 
-	for (unsigned int i = 0; i<256;++i)
+	for (Size i = 0; i<256;++i)
 	{
 		modification_table_.push_back(vector<double>());
 	}
@@ -50,7 +50,7 @@ ModifierRep::ModifierRep()
 
 	// @todo reactivate modifications for suffix trees (andreas)
 	/*
-	for (unsigned int i = 0; i<strlen(aa);++i)
+	for (Size i = 0; i<strlen(aa);++i)
 	{
 		const Residue * r = rdb.getResidue(aa[i]);
 		set< const ResidueModification * > mods (rdb.getModifications(r));
@@ -102,9 +102,9 @@ UInt ModifierRep::getMaxModificationMasses ()
 	}
 	map<double,int> mod_masses;
 
-	for (unsigned int i = 0; i < modification_table_.size();++i)
+	for (Size i = 0; i < modification_table_.size();++i)
 	{
-		for (unsigned int j = 0; j < modification_table_.at(i).size();++j)
+		for (Size j = 0; j < modification_table_.at(i).size();++j)
 		{
 			mod_masses[modification_table_.at(i).at(j)]=1;
 		}
@@ -120,7 +120,7 @@ UInt ModifierRep::getMaxModificationMasses ()
 	for (int k = 1; k < number_of_modifications_; ++k)
 	{
 		vector<double> to_add;
-		for (unsigned int i = 0; i < all_single_mods.size();++i)
+		for (Size i = 0; i < all_single_mods.size();++i)
 		{
 			map<double,int>::iterator it2;
 			for (it2 = mod_masses.begin();it2!=mod_masses.end();++it2)
@@ -130,7 +130,7 @@ UInt ModifierRep::getMaxModificationMasses ()
 
 
 		}
-		for (unsigned int j = 0; j < to_add.size();++j)
+		for (Size j = 0; j < to_add.size();++j)
 		{
 			mod_masses[to_add.at(j)]=1;
 		}
@@ -145,7 +145,7 @@ void ModifierRep::refreshModificationList (map<double,int> & mod_map,const char 
 		return;
 	} else
 	{
-		for (unsigned int i = 0;i<modification_table_.at(int(c)).size();++i)
+		for (Size i = 0;i<modification_table_.at(int(c)).size();++i)
 		{
 			double mod_mass = modification_table_.at(int(c)).at(i);
 			map<double,int>::iterator it;
@@ -156,7 +156,7 @@ void ModifierRep::refreshModificationList (map<double,int> & mod_map,const char 
 					to_add.push_back(pair<double,int>(it->first+mod_mass,it->second+1));
 				}
 			}
-			for (unsigned int j = 0; j<to_add.size();++j){
+			for (Size j = 0; j<to_add.size();++j){
 				mod_map[to_add.at(j).first] = to_add.at(j).second;
 			}
 			mod_map[mod_mass] = 1;
@@ -185,9 +185,9 @@ vector<String> ModifierRep::getModificationsForMass (double & m) {
 	if (mass_mapping_.size()==0&&number_of_modifications_>0){
 		set<String> all_mods;
 
-		for (unsigned int i = 0; i < modification_table_.size();++i)
+		for (Size i = 0; i < modification_table_.size();++i)
 		{
-			for (unsigned int j = 0; j < modification_table_.at(i).size();++j)
+			for (Size j = 0; j < modification_table_.at(i).size();++j)
 			{
 				all_mods.insert(String ((char)i));
 			}
@@ -207,7 +207,7 @@ vector<String> ModifierRep::getModificationsForMass (double & m) {
 			int c = 0;
 			for (;it2!=all_mods.end();++it2)
 			{
-				for (unsigned int i = c; i < res.size();++i)
+				for (Size i = c; i < res.size();++i)
 				{
 					to_add.push_back(res.at(i)+(*it2));
 				}
@@ -217,10 +217,10 @@ vector<String> ModifierRep::getModificationsForMass (double & m) {
 		}
 
 		map<double,vector<String> > mass_mapping;
-		for (unsigned int i = 0; i < res.size();++i)
+		for (Size i = 0; i < res.size();++i)
 		{
 			vector<double> masses;
-			for (unsigned int j = 0 ; j < res.at(i).length();++j)
+			for (Size j = 0 ; j < res.at(i).length();++j)
 			{
 				if (masses.size()==0)
 				{
@@ -228,9 +228,9 @@ vector<String> ModifierRep::getModificationsForMass (double & m) {
 				} else
 				{
 					vector<double> masses_help;
-					for (unsigned int k = 0; k < modification_table_.at((int)res.at(i)[j]).size();k++)
+					for (Size k = 0; k < modification_table_.at((int)res.at(i)[j]).size();k++)
 					{
-						for (unsigned int l = 0 ; l < masses.size(); ++l)
+						for (Size l = 0 ; l < masses.size(); ++l)
 						{
 							masses_help.push_back(masses.at(l)+modification_table_.at((int)res.at(i)[j]).at(k));
 						}
@@ -239,7 +239,7 @@ vector<String> ModifierRep::getModificationsForMass (double & m) {
 				}
 			}
 
-			for (unsigned int j = 0; j < masses.size();j++)
+			for (Size j = 0; j < masses.size();j++)
 			{
 				if (mass_mapping.find(masses.at(j))==mass_mapping.end())
 				{
@@ -259,7 +259,7 @@ vector<String> ModifierRep::getModificationsForMass (double & m) {
 			key_set.push_back(it3->first);
 		}
 		map<String,vector<String> > mass_mapping_string;
-		for (unsigned int i = 0; i < key_set.size();i++)
+		for (Size i = 0; i < key_set.size();i++)
 		{
 			list<String> list_help;
 			list_help.insert(list_help.end(),mass_mapping[key_set.at(i)].begin(),mass_mapping[key_set.at(i)].end());
@@ -276,7 +276,7 @@ vector<String> ModifierRep::getModificationsForMass (double & m) {
 		/*map<String,vector<String> >::iterator it4 = mass_mapping_.begin();
 		for (;it4!=mass_mapping_.end();++it4){
 			cout<<endl<<it4->first<<endl;
-			for (unsigned int i = 0; i < it4->second.size();++i){
+			for (Size i = 0; i < it4->second.size();++i){
 				cout<<it4->second.at(i)<<",";
 			}
 		}*/
@@ -302,25 +302,25 @@ vector<String> ModifierRep::getModificationsForMass (double & m, const String & 
 	{
 		seq_hist.push_back(0);
 	}
-	for (unsigned int i = 0; i < seq.length();++i)
+	for (Size i = 0; i < seq.length();++i)
 	{
 		seq_hist[(int)seq[i]]++;
 	}
 	vector<String> res;
 
-	for (unsigned int j = 0; j < all_mods.size();j++)
+	for (Size j = 0; j < all_mods.size();j++)
 	{
 		vector<int> mod_hist;
 		for (int i = 0; i < 256;i++)
 		{
 			mod_hist.push_back(0);
 		}
-		for (unsigned int i = 0; i < all_mods.at(j).length();++i)
+		for (Size i = 0; i < all_mods.at(j).length();++i)
 		{
 			mod_hist[(int)all_mods.at(j)[i]]++;
 		}
 		bool to_add = true;
-		for (unsigned int i = 0; i < mod_hist.size();i++)
+		for (Size i = 0; i < mod_hist.size();i++)
 		{
 			if (mod_hist[i]>seq_hist[i])
 			{

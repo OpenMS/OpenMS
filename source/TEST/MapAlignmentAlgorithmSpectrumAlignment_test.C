@@ -64,9 +64,9 @@ START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::
   std::vector< MSExperiment<> > maps;
 	PeakMap map1;
 	PeakMap map2;	
-	for(UInt i= 0; i< 15; ++i)
+	for (Size i= 0; i< 15; ++i)
 	{
-		for(UInt j =1 ; j < 5; ++j)
+		for (Size j =1 ; j < 5; ++j)
 		{
 			PeakSpectrum spectrum;
 			spectrum.setRT(i);
@@ -82,9 +82,9 @@ START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::
 		    map1.push_back(spectrum);
 		}
 	}
-	for(UInt i= 0; i< 15; ++i)
+	for (Size i= 0; i< 15; ++i)
 		{
-			for(UInt j =1 ; j < 5; ++j)
+			for (Size j =1 ; j < 5; ++j)
 			{
 				PeakSpectrum spectrum;
 				spectrum.setRT(i*1.2+200);
@@ -108,7 +108,7 @@ START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::
   Int counter =0;
 	maps[0].updateRanges(-1);
 	maps[1].updateRanges(-1);
-  for(UInt i=0; i< maps[0].size(); ++i)
+  for (Size i=0; i< maps[0].size(); ++i)
   {
 		if((maps[0])[i].getMSLevel() <2)
 		{

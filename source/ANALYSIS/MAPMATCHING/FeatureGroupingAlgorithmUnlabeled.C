@@ -50,7 +50,7 @@ namespace OpenMS
 		// define reference map (the one with most peaks)
 		UInt reference_map_index = 0;
 		UInt max_count = 0;		
-		for (UInt m=0; m<maps.size(); ++m)
+		for (Size m=0; m<maps.size(); ++m)
 		{
 			if (maps[m].size()>max_count)
 			{
@@ -66,7 +66,7 @@ namespace OpenMS
   
 		// loop over all other maps, extend the groups
 		ConsensusMap result;
-		for (UInt i = 0; i < maps.size(); ++i)
+		for (Size i = 0; i < maps.size(); ++i)
 		{
 			if (i != reference_map_index)
 			{

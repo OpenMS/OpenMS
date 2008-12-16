@@ -155,7 +155,7 @@ namespace OpenMS
 		}
 
 		const ResidueModification* mod = *modification_names_[mod_name].begin();
-		for (UInt i = 0; i != mods_.size(); ++i)
+		for (Size i = 0; i != mods_.size(); ++i)
 		{
 			if (mods_[i] == mod)
 			{

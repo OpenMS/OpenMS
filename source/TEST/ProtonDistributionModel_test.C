@@ -72,13 +72,13 @@ START_SECTION(void getProtonDistribution(Map<UInt, double>& bb_charges, Map<UInt
 	double bb_tmp[] = {1.76496e-09, 2.9459e-13, 6.3724e-12, 2.96724e-13, 0.69332e-13, 6.56286e-13, 4.82365e-13, 3.51139e-13, 5.82514e-23, 1.35049e-12};
 	AASequence peptide("DFPIANGER");
 	ptr->getProtonDistribution(bb_charges, sc_charges, peptide, 1);
-	for (UInt i = 0; i <= peptide.size(); ++i)
+	for (Size i = 0; i <= peptide.size(); ++i)
 	{
 		TEST_REAL_SIMILAR(bb_charges[i], bb_tmp[i])
 	}
 
 	double sc_tmp[] = {2.7239e-23, 0, 0, 0, 0, 7.77547e-15, 0, 1.15343e-22, 1};
-	for (UInt i = 0; i != peptide.size(); ++i)
+	for (Size i = 0; i != peptide.size(); ++i)
 	{
 		TEST_REAL_SIMILAR(sc_charges[i], sc_tmp[i])
 	}

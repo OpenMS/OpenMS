@@ -65,7 +65,7 @@ namespace OpenMS
 			valid_strings()
 	{
 		//add tags
-		for (UInt i=0; i<t.size(); ++i)
+		for (Size i=0; i<t.size(); ++i)
 		{
 			tags.insert(t[i]);
 		}
@@ -107,14 +107,14 @@ namespace OpenMS
 		if (name!=rhs.name || entries.size()!=rhs.entries.size() || nodes.size()!=rhs.nodes.size()) return false;
 		
 		//order of sections / entries should not matter
-		for(UInt i=0; i< entries.size(); ++i)
+		for (Size i=0; i< entries.size(); ++i)
 		{
 			if (find(rhs.entries.begin(),rhs.entries.end(),entries[i])==rhs.entries.end())
 			{
 				return false;
 			}
 		}
-		for(UInt i=0; i< nodes.size(); ++i)
+		for (Size i=0; i< nodes.size(); ++i)
 		{
 			if (find(rhs.nodes.begin(),rhs.nodes.end(),nodes[i])==rhs.nodes.end())
 			{
@@ -155,11 +155,11 @@ namespace OpenMS
 		if (!name.has(':')) // we are in the right child
 		{
 			//check if a node or entry prefix match
-			for(UInt i=0; i<nodes.size();++i)
+			for (Size i=0; i<nodes.size();++i)
 			{
 				if (nodes[i].name.hasPrefix(name)) return this;
 			}
-			for(UInt i=0; i<entries.size();++i)
+			for (Size i=0; i<entries.size();++i)
 			{
 				if (entries[i].name.hasPrefix(name)) return this;
 			}
@@ -283,7 +283,7 @@ namespace OpenMS
 		}
 	}
 	
-	UInt Param::ParamNode::size() const
+	Size Param::ParamNode::size() const
 	{
 		UInt subnode_size = 0;
 		for (vector<ParamNode>::const_iterator it=nodes.begin(); it!=nodes.end(); ++it)
@@ -387,7 +387,7 @@ namespace OpenMS
 			throw ElementNotFound(__FILE__,__LINE__,__PRETTY_FUNCTION__,key);
 		}
 		//check for commas
-		for (UInt i=0; i<strings.size(); ++i)
+		for (Size i=0; i<strings.size(); ++i)
 		{
 			if (strings[i].has(','))
 			{
@@ -839,7 +839,7 @@ namespace OpenMS
 						{
 							os << ">" <<  endl;
 							const StringList& list = it->value;
-							for (UInt i=0; i<list.size();++i)
+							for (Size i=0; i<list.size();++i)
 							{
 								os << indentation << "  <LISTITEM value=\"" << list[i] << "\"/>" << endl;	
 							}
@@ -850,7 +850,7 @@ namespace OpenMS
 						{
 							os << ">" <<  endl;
 							const IntList& list = it->value;
-							for (UInt i=0; i<list.size();++i)
+							for (Size i=0; i<list.size();++i)
 							{
 								os << indentation << "  <LISTITEM value=\"" << list[i] << "\"/>" << endl;	
 							}
@@ -861,7 +861,7 @@ namespace OpenMS
 						{
 							os << ">" <<  endl;
 							const DoubleList& list = it->value;
-							for (UInt i=0; i<list.size();++i)
+							for (Size i=0; i<list.size();++i)
 							{
 								os << indentation << "  <LISTITEM value=\"" << list[i] << "\"/>" << endl;	
 							}
@@ -1088,7 +1088,7 @@ namespace OpenMS
 		return os;
 	}
 
-	UInt Param::size() const
+	Size Param::size() const
 	{
 		return root_.size();
 	}
@@ -1155,7 +1155,7 @@ namespace OpenMS
 			{
 				String str_value;
 				StringList ls_value = (StringList) it->value;
-				for(UInt i = 0; i < ls_value.size(); ++i)
+				for (Size i = 0; i < ls_value.size(); ++i)
 				{
 						str_value = ls_value[i];
 					
@@ -1179,7 +1179,7 @@ namespace OpenMS
 			{
 				Int int_value;
 				IntList ls_value =(IntList) it->value;
-				for(UInt i = 0; i < ls_value.size(); ++i)
+				for (Size i = 0; i < ls_value.size(); ++i)
 				{
 					int_value = ls_value[i];
 					if ((default_value->min_int != -std::numeric_limits<Int>::max() && int_value < default_value->min_int) || (default_value->max_int!=std::numeric_limits<Int>::max() && int_value > default_value->max_int))
@@ -1200,7 +1200,7 @@ namespace OpenMS
 			{
 				DoubleReal dou_value; 
 				DoubleList ls_value = (DoubleList)it->value;
-				for(UInt i = 0; i < ls_value.size(); ++i)
+				for (Size i = 0; i < ls_value.size(); ++i)
 				{
 					dou_value = ls_value[i];
 					if ((default_value->min_float!=-std::numeric_limits<DoubleReal>::max() && dou_value < default_value->min_float) || (default_value->max_float!=std::numeric_limits<DoubleReal>::max() && dou_value > default_value->max_float))
@@ -1395,7 +1395,7 @@ namespace OpenMS
 	void Param::addTags(const String& key, const StringList& tags)
 	{
 		ParamEntry& entry = getEntry_(key);
-		for(UInt i=0; i!=tags.size(); ++i)
+		for (Size i=0; i!=tags.size(); ++i)
 		{
 			if (tags[i].has(','))
 			{

@@ -264,7 +264,7 @@ namespace OpenMS
 			os << "--" << param_.getValue("boundary") << endl << "Content-Disposition: form-data; name=\"FILE\"; filename=\"" << filename << "\"" << endl << endl;
 		}
 
-		for(UInt i = 0; i < experiment.size(); i++)
+		for (Size i = 0; i < experiment.size(); i++)
 		{
 			if (experiment[i].getMSLevel() == 0)
 			{
@@ -342,7 +342,7 @@ namespace OpenMS
 								line.split(',', split);
 								if (split.size() > 0)
 								{
-									for (UInt i = 0; i != split.size(); ++i)
+									for (Size i = 0; i != split.size(); ++i)
 									{
 										if (split[i].hasSubstring("min"))
 										{

@@ -113,7 +113,7 @@ namespace OpenMS
 		times_.push_back(timepoint);
 		
 		// add zero values to percentages
-		for (UInt i = 0 ;  i < eluents_.size(); ++i)
+		for (Size i = 0 ;  i < eluents_.size(); ++i)
 		{
 			percentages_[i].push_back(0);
 		}
@@ -225,10 +225,10 @@ namespace OpenMS
 	
 	bool Gradient::isValid() const
 	{
-		for (UInt j = 0 ;  j < times_.size(); ++j)
+		for (Size j = 0 ;  j < times_.size(); ++j)
 		{
 			Int sum =0;
-			for (UInt i = 0 ;  i < eluents_.size(); ++i)
+			for (Size i = 0 ;  i < eluents_.size(); ++i)
 			{
 				sum += percentages_[i][j];
 			}

@@ -90,10 +90,10 @@ namespace OpenMS
 
 /*
 		UInt i_left(0);
-		for (UInt i = 0; i != s1.size(); ++i)
+		for (Size i = 0; i != s1.size(); ++i)
 		{
 			sum1 += s1[i].getIntensity();
-			for (UInt j = i_left; j != s1.size(); ++j)
+			for (Size j = i_left; j != s1.size(); ++j)
 			{
 				double pos1(s1[i].getPosition()[0]), pos2(s1[j].getPosition()[0]);
 				if (abs(pos1 - pos2) <= 2 * tolerance)
@@ -116,10 +116,10 @@ namespace OpenMS
 
 /*
     i_left = 0;
-    for (UInt i = 0; i != s2.size(); ++i)
+    for (Size i = 0; i != s2.size(); ++i)
     {
       sum2 += s2[i].getIntensity();
-      for (UInt j = i_left; j != s2.size(); ++j)
+      for (Size j = i_left; j != s2.size(); ++j)
       {
         double pos1(s2[i].getPosition()[0]), pos2(s2[j].getPosition()[0]);
         if (abs(pos1 - pos2) <= 2 * tolerance)
@@ -155,9 +155,9 @@ namespace OpenMS
     }
 
 		UInt j_left(0);
-		for (UInt i = 0; i != s1.size(); ++i)
+		for (Size i = 0; i != s1.size(); ++i)
 		{
-			for (UInt j = j_left; j != s2.size(); ++j)
+			for (Size j = j_left; j != s2.size(); ++j)
 			{
 				double pos1(s1[i].getMZ()), pos2(s2[j].getMZ());
 				if (fabs(pos1 - pos2) < tolerance)

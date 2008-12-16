@@ -79,7 +79,7 @@ class TOPPCVInspector
 		{
 			const ControlledVocabulary::CVTerm& child_term = cv.getTerm(*it);
 			String subterm_line;
-			for (UInt i=0; i<4*indent; ++i) subterm_line += "&nbsp;";
+			for (Size i=0; i<4*indent; ++i) subterm_line += "&nbsp;";
 			String description = child_term.description;
 			if (child_term.synonyms.size()!=0)
 			{
@@ -116,7 +116,7 @@ class TOPPCVInspector
 	
 		// load cv terms
 		ControlledVocabulary cv;
-		for (UInt i=0; i<cv_files.size(); ++i)
+		for (Size i=0; i<cv_files.size(); ++i)
 		{
 			cv.loadFromOBO(cv_names[i], cv_files[i]);
 		}
@@ -275,7 +275,7 @@ class TOPPCVInspector
 							{
 								const ControlledVocabulary::CVTerm& child_term = cv.getTerm(*atit);
 								String parser_string = String("os << \"&lt;cvParam cvRef=\\\"MS\\\" accession=\\\"") + child_term.id + "\\\" name=\\\"" + child_term.name + "\\\"";
-								for (UInt i=0; i<child_term.unparsed.size(); ++i)
+								for (Size i=0; i<child_term.unparsed.size(); ++i)
 								{
 									//TODO this does not work anymore. The type is now stored as a member
 									if (child_term.unparsed[i].hasSubstring("value-type:xsd\\:int") || child_term.unparsed[i].hasSubstring("value-type:xsd\\:float") || child_term.unparsed[i].hasSubstring("value-type:xsd\\:string"))

@@ -77,7 +77,7 @@ class TOPPSequenceCoverageCalculator
 			
 			if (sequence.hasSubstring(substring))
 			{
-				for(UInt i = 0; i <= sequence.size() - substring.size(); ++i)
+				for (Size i = 0; i <= sequence.size() - substring.size(); ++i)
 				{
 					temp_index = i;
 					temp_count = 0;
@@ -136,14 +136,14 @@ class TOPPSequenceCoverageCalculator
 			// calculations
 			//-------------------------------------------------------------					
 
-			for(UInt j = 0; j < proteins.size(); ++j)
+			for (Size j = 0; j < proteins.size(); ++j)
 			{
 				coverage.clear();
 				coverage.resize(proteins[j].sequence.size(), 0);
 				temp_unique_peptides.clear();
 				temp_modified_unique_peptides.clear();
 				
-				for(UInt i = 0; i < identifications.size(); ++i)
+				for (Size i = 0; i < identifications.size(); ++i)
 				{
 					if (!identifications[i].empty())
 					{
@@ -159,7 +159,7 @@ class TOPPSequenceCoverageCalculator
 						{
 							pair<UInt, UInt> indices;
 							getStartAndEndIndex(proteins[j].sequence, temp_hits[0].getSequence().toUnmodifiedString(), indices);
-							for(UInt k = indices.first; k < indices.second; ++k)
+							for (Size k = indices.first; k < indices.second; ++k)
 							{
 								coverage[k] = 1;
 							}
@@ -184,7 +184,7 @@ class TOPPSequenceCoverageCalculator
 					}					
 				}
 /*				cout << proteins[j].sequence << endl;
-				for(UInt k = 0; k < coverage.size(); ++k)
+				for (Size k = 0; k < coverage.size(); ++k)
 				{
 					cout << coverage[k];
 				}

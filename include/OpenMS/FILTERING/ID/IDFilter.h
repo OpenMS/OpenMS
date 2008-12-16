@@ -211,7 +211,7 @@ namespace OpenMS
 				ProteinIdentification temp_protein_identification;				
 				std::vector<ProteinIdentification> filtered_protein_identifications;
 					
-				for(UInt j = 0; j < experiment.getProteinIdentifications().size(); j++)
+				for (Size j = 0; j < experiment.getProteinIdentifications().size(); j++)
 				{
 					filterIdentificationsByThreshold(experiment.getProteinIdentifications()[j], protein_threshold_fraction, temp_protein_identification);
 					if (!temp_protein_identification.getHits().empty())
@@ -225,9 +225,9 @@ namespace OpenMS
 				PeptideIdentification temp_identification;
 				std::vector<PeptideIdentification> filtered_identifications;
 				
-				for(UInt i = 0; i < experiment.size(); i++)
+				for (Size i = 0; i < experiment.size(); i++)
 				{
-					for(UInt j = 0; j < experiment[i].getPeptideIdentifications().size(); j++)
+					for (Size j = 0; j < experiment[i].getPeptideIdentifications().size(); j++)
 					{
 						filterIdentificationsByThreshold(experiment[i].getPeptideIdentifications()[j], peptide_threshold_fraction, temp_identification);
 						if (!temp_identification.getHits().empty())
@@ -248,7 +248,7 @@ namespace OpenMS
 				ProteinIdentification temp_protein_identification;				
 				std::vector<ProteinIdentification> filtered_protein_identifications;
 					
-				for(UInt j = 0; j < experiment.getProteinIdentifications().size(); j++)
+				for (Size j = 0; j < experiment.getProteinIdentifications().size(); j++)
 				{
 					filterIdentificationsByScore(experiment.getProteinIdentifications()[j], protein_threshold_score, temp_protein_identification);
 					if (!temp_protein_identification.getHits().empty())
@@ -262,9 +262,9 @@ namespace OpenMS
 				PeptideIdentification temp_identification;
 				std::vector<PeptideIdentification> filtered_identifications;
 				
-				for(UInt i = 0; i < experiment.size(); i++)
+				for (Size i = 0; i < experiment.size(); i++)
 				{
-					for(UInt j = 0; j < experiment[i].getPeptideIdentifications().size(); j++)
+					for (Size j = 0; j < experiment[i].getPeptideIdentifications().size(); j++)
 					{
 						filterIdentificationsByScore(experiment[i].getPeptideIdentifications()[j], peptide_threshold_score, temp_identification);
 						if (!temp_identification.getHits().empty())
@@ -285,7 +285,7 @@ namespace OpenMS
 				ProteinIdentification temp_protein_identification;				
 				std::vector<ProteinIdentification> filtered_protein_identifications;
 					
-				for(UInt j = 0; j < experiment.getProteinIdentifications().size(); j++)
+				for (Size j = 0; j < experiment.getProteinIdentifications().size(); j++)
 				{
 					filterIdentificationsByBestNHits(experiment.getProteinIdentifications()[j], n, temp_protein_identification);
 					if (!temp_protein_identification.getHits().empty())
@@ -299,9 +299,9 @@ namespace OpenMS
 				PeptideIdentification temp_identification;
 				std::vector<PeptideIdentification> filtered_identifications;
 				
-				for(UInt i = 0; i < experiment.size(); i++)
+				for (Size i = 0; i < experiment.size(); i++)
 				{
-					for(UInt j = 0; j < experiment[i].getPeptideIdentifications().size(); j++)
+					for (Size j = 0; j < experiment[i].getPeptideIdentifications().size(); j++)
 					{
 						filterIdentificationsByBestNHits(experiment[i].getPeptideIdentifications()[j], n, temp_identification);
 						if (!temp_identification.getHits().empty())
@@ -323,12 +323,12 @@ namespace OpenMS
 				std::vector<PeptideIdentification> filtered_identifications;
 				PeptideIdentification temp_identification;
 
-				for(UInt i = 0; i < experiment.size(); i++)
+				for (Size i = 0; i < experiment.size(); i++)
 				{
 					if (experiment[i].getMSLevel() == 2)
 					{
 						temp_identifications = experiment[i].getPeptideIdentifications();
-						for(UInt j = 0; j < temp_identifications.size(); j++)
+						for (Size j = 0; j < temp_identifications.size(); j++)
 						{
 							filterIdentificationsByProteins(temp_identifications[j], proteins, temp_identification);
 							if (!temp_identification.getHits().empty())

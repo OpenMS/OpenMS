@@ -94,7 +94,7 @@ namespace OpenMS
 		
 #ifdef DEBUG_ID_CONSENSUS
 		const vector<PeptideHit>& hits2 = ids[0].getHits();
-		for (UInt i=0; i< hits2.size(); ++i)
+		for (Size i=0; i< hits2.size(); ++i)
 		{
 			cout << "  " << hits2[i].getSequence() << " " << hits2[i].getScore() << endl;
 		}

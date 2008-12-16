@@ -37,7 +37,7 @@ int main (int , char** )
 {	
 	//TOPP tools
 	StringList tools = TOPPBase::getToolList();
-	for (UInt i=0; i<tools.size(); ++i)
+	for (Size i=0; i<tools.size(); ++i)
 	{
 		//start process
 		QProcess process;
@@ -51,7 +51,7 @@ int main (int , char** )
 	
 	//UTILS
 	tools = StringList::create("CaapConvert,CVInspector,DecoyDatabase,Digestor,FFEval,FuzzyDiff,HistView,IDExtractor,IdXMLInfo,LabeledEval,RTEvaluation,SemanticValidator,SequenceCoverageCalculator,XMLValidator");
-	for (UInt i=0; i<tools.size(); ++i)
+	for (Size i=0; i<tools.size(); ++i)
 	{
 		//start process
 		QProcess process;

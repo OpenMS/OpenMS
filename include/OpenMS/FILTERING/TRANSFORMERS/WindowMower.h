@@ -96,7 +96,7 @@ namespace OpenMS
 				
 				//extract peakcount most intense peaks				
 				window.sortByIntensity(true);
-				for (UInt i = 0; i < peakcount; ++i)
+				for (Size i = 0; i < peakcount; ++i)
 				{
 					if (i < window.size())
 					{

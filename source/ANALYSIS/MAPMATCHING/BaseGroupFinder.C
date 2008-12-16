@@ -54,7 +54,7 @@ namespace OpenMS
 	{
 		std::set<UInt> used_ids;
 		
-		for (UInt i=0; i< maps.size(); ++i)
+		for (Size i=0; i< maps.size(); ++i)
 		{
 			const ConsensusMap& map = maps[i];
 			for (ConsensusMap::FileDescriptions::const_iterator it = map.getFileDescriptions().begin(); it!=map.getFileDescriptions().end(); ++it)

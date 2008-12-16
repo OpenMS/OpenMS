@@ -132,7 +132,7 @@ namespace OpenMS
 		model.addNewState("bk-1");
 		model.addNewState("bk-2");
 
-		for (UInt i = 1; i <= visible_model_depth; ++i)
+		for (Size i = 1; i <= visible_model_depth; ++i)
 		{
 			// these states are really created
 			// charge states
@@ -250,7 +250,7 @@ namespace OpenMS
 		}
 
 		// set the initial transitions
-		for (UInt i = 1; i <= visible_model_depth; ++i)
+		for (Size i = 1; i <= visible_model_depth; ++i)
 		{
 			String num(i);
 			if (i <= model_depth)
@@ -513,7 +513,7 @@ namespace OpenMS
 		cerr << "Adding double loss states" << endl;
 #endif
 
-		for (UInt i = 0; i != num_explicit; ++i)
+		for (Size i = 0; i != num_explicit; ++i)
 		{
 			precursor_model.addNewState(new HMMState("COOH-" + h2o + "_" + String(i + 1)));
 		}
@@ -535,7 +535,7 @@ namespace OpenMS
 				precursor_model.addNewState(new HMMState(aa1.toString() + "-" + loss1));
 				precursor_model.addNewState(new HMMState(aa1.toString() + "-" + loss1 + "-next"));
 
-				for (UInt i = 0; i != num_explicit; ++i)
+				for (Size i = 0; i != num_explicit; ++i)
 				{
 					precursor_model.addNewState(new HMMState(aa1.toString() + "-" + loss1 + "_" + String(i + 1)));
 				}
@@ -557,7 +557,7 @@ namespace OpenMS
 				precursor_model.setTransitionProbability(cooh_name, "COOH-" + h2o, 0.25);
 				precursor_model.setTransitionProbability(cooh_name, cooh_name + "-next", 0.25);
 
-				for (UInt i = 0; i != num_explicit; ++i)
+				for (Size i = 0; i != num_explicit; ++i)
 				{
 					String cooh_name_num = cooh_name + "_" + String(i + 1);
 					precursor_model.addNewState(new HMMState(cooh_name_num));
@@ -613,7 +613,7 @@ namespace OpenMS
 								precursor_model.addNewState(new HMMState(name + losses, true));
 								precursor_model.addNewState(new HMMState(name + losses + "-next", true));
 			
-								for (UInt i = 0; i != num_explicit; ++i)
+								for (Size i = 0; i != num_explicit; ++i)
 								{
 									precursor_model.addNewState(new HMMState(name + losses + "_" + String(i + 1), true));
 									//precursor_model.addNewState(new HMMState(aa1.toString() + "COOH-" + loss2 + "-" + h2o + "_" +  String(i + 1), true));
@@ -624,7 +624,7 @@ namespace OpenMS
 								precursor_model.setTransitionProbability(name + losses, aa2.toString() + "-" + loss2, 0.25);
 								precursor_model.setTransitionProbability(name + losses, name + losses + "-next", 0.25);
 			
-								for (UInt i = 0; i != num_explicit; ++i)
+								for (Size i = 0; i != num_explicit; ++i)
 								{
 									String state_name_num = name + losses + "_" + String(i + 1);
 									String state_name = name + losses;
@@ -669,7 +669,7 @@ namespace OpenMS
 				precursor_model.setTransitionProbability(aa.toString() + "-" + loss, "p", 0.25);
 				precursor_model.setTransitionProbability(aa.toString() + "-" + loss, aa.toString() + "-" + loss + "-next", 0.5);
 
-				for (UInt i = 0; i != num_explicit; ++i)
+				for (Size i = 0; i != num_explicit; ++i)
 				{
 					String name_num = aa.toString() + "-" + loss + "_" + String(i + 1);
 					String name = aa.toString() + "-" + loss;

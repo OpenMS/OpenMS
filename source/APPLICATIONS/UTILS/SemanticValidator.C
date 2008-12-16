@@ -92,11 +92,11 @@ class TOPPSemanticValidator
 		semantic_validator.setCheckUnits(true);
 		StringList errors, warnings;
 		/*bool valid =*/ semantic_validator.validate(in_file, errors, warnings);
-    for (UInt i=0; i<warnings.size(); ++i)
+    for (Size i=0; i<warnings.size(); ++i)
     {
     	cout << "Warning: " << warnings[i] << endl;
     }
-    for (UInt i=0; i<errors.size(); ++i)
+    for (Size i=0; i<errors.size(); ++i)
     {
       cout << "Error: " << errors[i] << endl;
     }
@@ -122,11 +122,11 @@ class TOPPSemanticValidator
 			semantic_validator_u.setTag(*it);
     	StringList errors_u, warnings_u;
     	bool valid_u = semantic_validator_u.validate(in_file, errors_u, warnings_u);
-    	for (UInt i=0; i<warnings_u.size(); ++i)
+    	for (Size i=0; i<warnings_u.size(); ++i)
     	{
       	cout << "Warning: " << warnings_u[i] << endl;
     	}
-    	for (UInt i=0; i<errors_u.size(); ++i)
+    	for (Size i=0; i<errors_u.size(); ++i)
     	{
       	cout << "Error: " << errors_u[i] << endl;
     	}

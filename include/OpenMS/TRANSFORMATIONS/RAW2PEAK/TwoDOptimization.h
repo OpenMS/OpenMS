@@ -308,7 +308,7 @@ namespace OpenMS
 			return;
 		}
 		//check if required meta data arrays are present (for each scan)
-		for (UInt i=0; i<ms_exp.size(); ++i)
+		for (Size i=0; i<ms_exp.size(); ++i)
 		{
 			//check if enough meta data arrays are present
 			if (ms_exp[i].getMetaDataArrays().size()<6)
@@ -353,7 +353,7 @@ namespace OpenMS
 		double mz_in_hash   = 0;			// used as reference to the current isotopic peak			
 	
 		// sweep through scans
-		for (unsigned int curr_scan =0; ms_exp_it+curr_scan != ms_exp_it_end;++curr_scan)
+		for (Size curr_scan =0; ms_exp_it+curr_scan != ms_exp_it_end;++curr_scan)
 			{
 				unsigned int nr_peaks_in_scan = (ms_exp_it +curr_scan)->size();
 				//last_rt = current_rt;

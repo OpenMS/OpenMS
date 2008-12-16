@@ -140,7 +140,7 @@ START_SECTION([EXTRA] DefaultParamHandler::setParameters(...))
 	TOLERANCE_ABSOLUTE(0.0001)
 	TEST_EQUAL(dpa1.size(),dpa2.size())
 	ABORT_IF(dpa1.size()!=dpa2.size());
-	for (UInt i=0; i<dpa1.size(); ++i)
+	for (Size i=0; i<dpa1.size(); ++i)
 	{
 		TEST_REAL_SIMILAR(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
 		TEST_REAL_SIMILAR(dpa1[i].getIntensity(),dpa2[i].getIntensity())
@@ -218,7 +218,7 @@ START_SECTION((void setOffset(CoordinateType offset)))
 	TOLERANCE_ABSOLUTE(0.01)
 	TEST_EQUAL(dpa1.size(),dpa2.size())
 	ABORT_IF(dpa1.size()!=dpa2.size());
-	for (UInt i=0; i<dpa1.size(); ++i)
+	for (Size i=0; i<dpa1.size(); ++i)
 	{
 		TEST_REAL_SIMILAR(dpa1[i].getPosition()[0],dpa2[i].getPosition()[0])
 		TEST_REAL_SIMILAR(dpa1[i].getIntensity(),dpa2[i].getIntensity())

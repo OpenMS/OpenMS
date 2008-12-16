@@ -106,7 +106,7 @@ protected:
 		// check for valid input
 		//-------------------------------------------------------------
 		//check if all input files have the correct type
-		for (UInt i=0;i<ins.size();++i)
+		for (Size i=0;i<ins.size();++i)
 		{
 			if (FileHandler::getType(ins[i])!=FileHandler::FEATUREXML)
 			{
@@ -129,14 +129,14 @@ protected:
 		//load input
 		std::vector< FeatureMap<> > maps(ins.size());
 		FeatureXMLFile f;
-		for (UInt i=0; i<ins.size(); ++i)
+		for (Size i=0; i<ins.size(); ++i)
 		{		 		
 	    f.load(ins[i], maps[i]);
 		}
 
 		//set file names
 		ConsensusMap out_map;
-		for (UInt i=0; i<ins.size(); ++i)
+		for (Size i=0; i<ins.size(); ++i)
 		{
 			out_map.getFileDescriptions()[i].filename = ins[i];
 			out_map.getFileDescriptions()[i].size = maps[i].size();

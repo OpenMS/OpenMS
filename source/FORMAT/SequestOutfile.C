@@ -163,7 +163,7 @@ namespace OpenMS
 		
 		vector<Real>::const_iterator p_value = pvalues.begin();
 		
-		for (UInt viewed_peptides = 0; viewed_peptides < displayed_peptides; )
+		for (Size viewed_peptides = 0; viewed_peptides < displayed_peptides; )
 		{
 			PeptideHit peptide_hit;
 			ProteinHit protein_hit;
@@ -265,7 +265,7 @@ namespace OpenMS
 				
 				peptide_hit.addProteinAccession(accession);
 				
-				for (UInt i = 0; i < proteins_per_peptide; ++i)
+				for (Size i = 0; i < proteins_per_peptide; ++i)
 				{
 					getline(result_file, line);
 					if (!line.empty() && (line[line.length()-1] < 33) ) line.resize(line.length() - 1);
@@ -296,7 +296,7 @@ namespace OpenMS
 			}
 			else // if the pvalue is higher than allowed
 			{
-				for (UInt i = 0; i < proteins_per_peptide; ++i) getline(result_file, line);
+				for (Size i = 0; i < proteins_per_peptide; ++i) getline(result_file, line);
 			}
 
 			++p_value;
@@ -357,7 +357,7 @@ namespace OpenMS
 				else if ((*(s_i+1))[0] == '+')
 				{
 					bool is_digit(true);
-					for (UInt i = 1; i < (s_i + 1)->length(); ++i) is_digit &= (bool)isdigit((*(s_i+1))[i]);
+					for (Size i = 1; i < (s_i + 1)->length(); ++i) is_digit &= (bool)isdigit((*(s_i+1))[i]);
 					if (is_digit && ((s_i + 1)->length() - 1))
 					{
 						s_i->append(*(s_i + 1));

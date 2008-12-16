@@ -99,7 +99,7 @@ namespace OpenMS
 				RT_votes_cutoff = 0;
 			};
 				
-			for (UInt i=0, j=0; i<Base::map_->size(); ++i)
+			for (Size i=0, j=0; i<Base::map_->size(); ++i)
 			{	
 				std::vector<MSSpectrum<PeakType> > pwts (max_charge_, Base::map_->at(i));
 				std::cout << "Spectrum " << i+1 << " (" << Base::map_->at(i).getRT() << ") of " << Base::map_->size() << "\t" ; 
@@ -148,7 +148,7 @@ namespace OpenMS
 				std::cerr << "Please remember that the IWT is only suited for MS and not for MS/MS scans. Hence you should always exclude tandem MS signals from the IWT." << std::endl;
 				std::cerr << "Another reason might be a very bad resolution of your scan, s.t. the wavelet is unable to adapt its own spacing in a still reasonable manner." << std::endl;
 				std::cerr << "The problematic scans are: " << std::endl;
-				for (UInt i=0; i<error_prone_scans.size(); ++i)
+				for (Size i=0; i<error_prone_scans.size(); ++i)
 				{
 					std::cerr << error_prone_scans[i] << "\t"; 
 				};

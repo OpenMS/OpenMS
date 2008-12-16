@@ -206,7 +206,7 @@ void writeParameters(const String& class_name, const Param& param)
 		vector<String> parts;
 		name.split(':', parts);
 		String prefix = "";
-		for (UInt i=0; i+1< parts.size(); ++i)
+		for (Size i=0; i+1< parts.size(); ++i)
 		{
 			if (i==0)
 			{

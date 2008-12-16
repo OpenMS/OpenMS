@@ -107,7 +107,7 @@ namespace OpenMS
 			UInt getMin() const;
 
 			/// returns the size of the distribtion which is the number of isotopes in the distribution
-			UInt size() const;
+			Size size() const;
 
 			/// clears the distribution and resets max isotope to 0
 			void clear();

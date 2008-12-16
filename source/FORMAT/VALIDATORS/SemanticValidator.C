@@ -51,7 +51,7 @@ namespace OpenMS
 				check_units_(false)
 		{
 			//order rules by element
-			for (UInt r=0;r<mapping_.getMappingRules().size(); ++r)
+			for (Size r=0;r<mapping_.getMappingRules().size(); ++r)
 			{
 				rules_[mapping_.getMappingRules()[r].getElementPath()].push_back(mapping_.getMappingRules()[r]);
 			}
@@ -168,9 +168,9 @@ namespace OpenMS
 			Map<String , Map<String, UInt> >& fulfilled = fulfilled_[path]; //(rule ID => term ID => term count)
 			
 			//check how offen each term appeared
-			for (UInt r=0; r<rules.size(); ++r)
+			for (Size r=0; r<rules.size(); ++r)
 			{
-				for (UInt t=0; t<rules[r].getCVTerms().size(); ++t)
+				for (Size t=0; t<rules[r].getCVTerms().size(); ++t)
 				{
 					if ( !rules[r].getCVTerms()[t].getIsRepeatable() && fulfilled[rules[r].getIdentifier()][rules[r].getCVTerms()[t].getAccession()]>1 )
 					{
@@ -180,12 +180,12 @@ namespace OpenMS
 			}
 	
 			//check if all required rules are fulfilled
-			for (UInt r=0; r<rules.size(); ++r)
+			for (Size r=0; r<rules.size(); ++r)
 			{
 				//Count the number of distince matched terms
 				UInt terms_count = rules[r].getCVTerms().size();
 				UInt match_count = 0;
-				for (UInt t=0; t<terms_count; ++t)
+				for (Size t=0; t<terms_count; ++t)
 				{
 					if ( fulfilled[rules[r].getIdentifier()][rules[r].getCVTerms()[t].getAccession()]>=1)
 					{
@@ -280,10 +280,10 @@ namespace OpenMS
 			bool allowed = false;
 			bool rule_found = false;
 			vector<CVMappings::CVMappingRule>& rules = rules_[path];
-			for (UInt r=0;r<rules.size(); ++r) //go thru all rules
+			for (Size r=0;r<rules.size(); ++r) //go thru all rules
 			{
 				rule_found = true;
-				for (UInt t=0;t<rules[r].getCVTerms().size(); ++t)  //go thru all terms
+				for (Size t=0;t<rules[r].getCVTerms().size(); ++t)  //go thru all terms
 				{
 					const CVMappings::CVTerm& term = rules[r].getCVTerms()[t];
 					if (term.getUseTerm() && term.getAccession()==parsed_term.accession) //check if the term itself is allowed

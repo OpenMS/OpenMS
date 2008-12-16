@@ -112,7 +112,7 @@ namespace OpenMS
 				ConvexHull2D getConvexhull() const
 				{
 					ConvexHull2D::PointArrayType hull_points(peaks.size());
-					for (UInt i=0; i<peaks.size(); ++i)
+					for (Size i=0; i<peaks.size(); ++i)
 					{
 						hull_points[i][0] = peaks[i].first;
 						hull_points[i][1] = peaks[i].second->getMZ();
@@ -128,7 +128,7 @@ namespace OpenMS
 					max_rt = peaks.begin()->first;					
 					max_peak = peaks.begin()->second;
 					
-					for (UInt i=1; i<peaks.size(); ++i)
+					for (Size i=1; i<peaks.size(); ++i)
 					{
 						if (peaks[i].second->getIntensity()>max_peak->getIntensity())
 						{
@@ -143,7 +143,7 @@ namespace OpenMS
 				{
 					DoubleReal sum = 0.0;
 					DoubleReal intensities = 0.0;
-					for (UInt i=0; i<peaks.size(); ++i)
+					for (Size i=0; i<peaks.size(); ++i)
 					{
 						sum += peaks[i].second->getMZ()*peaks[i].second->getIntensity();
 						intensities += peaks[i].second->getIntensity();
@@ -173,7 +173,7 @@ namespace OpenMS
 				UInt getPeakCount() const
 				{
 					UInt sum = 0;
-					for (UInt i=0; i<this->size(); ++i)
+					for (Size i=0; i<this->size(); ++i)
 					{
 						sum += this->at(i).peaks.size();
 					}
@@ -187,7 +187,7 @@ namespace OpenMS
 					if (this->size()<2) return false;
 
 					//Abort if the seed was removed
-					for (UInt j=0; j<this->size(); ++j)
+					for (Size j=0; j<this->size(); ++j)
 					{
 						if (std::fabs(seed_mz-this->at(j).getAvgMZ())<=trace_tolerance)
 						{
@@ -211,7 +211,7 @@ namespace OpenMS
 					
 					UInt max=0;
 					DoubleReal max_int=this->at(0).theoretical_int;
-					for (UInt i=1; i<this->size(); ++i)
+					for (Size i=1; i<this->size(); ++i)
 					{
 						if (this->at(i).theoretical_int>max_int)
 						{
@@ -231,9 +231,9 @@ namespace OpenMS
 						return;
 					}
 					bool first = true;					
-					for (UInt i=0; i<this->size(); ++i)
+					for (Size i=0; i<this->size(); ++i)
 					{
-						for (UInt j=0; j<this->at(i).peaks.size(); ++j)
+						for (Size j=0; j<this->at(i).peaks.size(); ++j)
 						{
 							if (first)
 							{
@@ -263,9 +263,9 @@ namespace OpenMS
 					DoubleReal min = std::numeric_limits<DoubleReal>::max();
 					DoubleReal max = -std::numeric_limits<DoubleReal>::max();
 					//Abort if the seed was removed
-					for (UInt i=0; i<this->size(); ++i)
+					for (Size i=0; i<this->size(); ++i)
 					{
-						for (UInt j=0; j<this->at(i).peaks.size(); ++j)
+						for (Size j=0; j<this->at(i).peaks.size(); ++j)
 						{
 							DoubleReal rt = this->at(i).peaks[j].first;
 							if (rt>max) max = rt;
@@ -295,7 +295,7 @@ namespace OpenMS
 				///The number of isotopes trimmed on the left side. This is needed to reconstruct the monoisotopic peak.
 				UInt trimmed_left;
 				/// Returns the size
-				UInt size() const
+				Size size() const
 				{
 					return intensity.size();
 				}
@@ -433,7 +433,7 @@ namespace OpenMS
 				
 				//reserve space for calculated scores
 				UInt meta_array_count = 5 + charge_high - charge_low;
-				for (UInt s=0; s<map_.size(); ++s)
+				for (Size s=0; s<map_.size(); ++s)
 				{
 					UInt scan_size = map_[s].size();
 					map_[s].getMetaDataArrays().resize(meta_array_count);
@@ -446,7 +446,7 @@ namespace OpenMS
 					map_[s].getMetaDataArrays()[3].setName("local_max");
 					map_[s].getMetaDataArrays()[3].assign(scan_size,0.0);
 					UInt charge = charge_low;
-					for (UInt i = 4; i< meta_array_count; ++i)
+					for (Size i = 4; i< meta_array_count; ++i)
 					{
 						map_[s].getMetaDataArrays()[i].setName(String("pattern_score_")+charge);
 						map_[s].getMetaDataArrays()[i].assign(scan_size,0.0);
@@ -480,13 +480,13 @@ namespace OpenMS
 					intensity_rt_step_ = (map_.getMaxRT() - rt_start ) / (DoubleReal)intensity_bins_;
 				 	intensity_mz_step_ = (map_.getMaxMZ() - mz_start ) / (DoubleReal)intensity_bins_;
 					intensity_thresholds_.resize(intensity_bins_);
-					for (UInt rt=0; rt<intensity_bins_; ++rt)
+					for (Size rt=0; rt<intensity_bins_; ++rt)
 					{
 						intensity_thresholds_[rt].resize(intensity_bins_);
 						DoubleReal min_rt = rt_start + rt * intensity_rt_step_;
 						DoubleReal max_rt = rt_start + ( rt + 1 ) * intensity_rt_step_;
 						std::vector<DoubleReal> tmp;
-						for (UInt mz=0; mz<intensity_bins_; ++mz)
+						for (Size mz=0; mz<intensity_bins_; ++mz)
 						{
 							ff_->setProgress(rt*intensity_bins_+ mz);
 							DoubleReal min_mz = mz_start + mz * intensity_mz_step_;
@@ -504,7 +504,7 @@ namespace OpenMS
 							if (tmp.size()!=0)
 							{
 								std::sort(tmp.begin(), tmp.end());
-								for (UInt i=0;i<21;++i)
+								for (Size i=0;i<21;++i)
 								{
 									UInt index = (UInt)std::floor(0.05*i*(tmp.size()-1));
 									intensity_thresholds_[rt][mz][i] = tmp[index];
@@ -514,9 +514,9 @@ namespace OpenMS
 					}
 					
 					//store intensity score in PeakInfo
-					for (UInt s=0; s<map_.size(); ++s)
+					for (Size s=0; s<map_.size(); ++s)
 					{
-						for (UInt p=0; p<map_[s].size(); ++p)
+						for (Size p=0; p<map_[s].size(); ++p)
 						{
 							map_[s].getMetaDataArrays()[1][p] = intensityScore_(s,p);
 						}
@@ -531,7 +531,7 @@ namespace OpenMS
 				//new scope to make local variables disappear
 				{
 					ff_->startProgress(0, map_.size(), "Precalculating mass trace scores");
-					for (UInt s=0; s<map_.size(); ++s)
+					for (Size s=0; s<map_.size(); ++s)
 					{
 						ff_->setProgress(s);
 						//do nothing for the first few and last few spectra as the scans required to search for traces are missing
@@ -542,7 +542,7 @@ namespace OpenMS
 						
 						const SpectrumType& spectrum = map_[s];
 						//iterate over all peaks of the scan
-						for (UInt p=0; p<spectrum.size(); ++p)
+						for (Size p=0; p<spectrum.size(); ++p)
 						{
 							std::vector<DoubleReal> scores;
 							scores.reserve(2*min_spectra_);
@@ -552,7 +552,7 @@ namespace OpenMS
 							
 							//log_ << std::endl << "Peak: " << pos << std::endl;
 							bool is_max_peak = true; //checking the maximum intensity peaks -> use them later as feature seeds.
-							for (UInt i=1; i<=min_spectra_; ++i)
+							for (Size i=1; i<=min_spectra_; ++i)
 							{
 								try
 								{
@@ -566,7 +566,7 @@ namespace OpenMS
 									scores.push_back(0.0);
 								}
 							}
-							for (UInt i=1; i<=min_spectra_; ++i)
+							for (Size i=1; i<=min_spectra_; ++i)
 							{
 								try
 								{
@@ -596,7 +596,7 @@ namespace OpenMS
 				//Charge loop (create seeds and features for each charge separately)
 				//-------------------------------------------------------------------------
 				Int plot_nr = -1; //counter for the number of plots (debug info)
-				for (UInt c=charge_low; c<=charge_high; ++c)
+				for (Size c=charge_low; c<=charge_high; ++c)
 				{
 					UInt charge_index_meta = 4 + c - charge_low;
 					UInt feature_count_before = features_->size();
@@ -606,11 +606,11 @@ namespace OpenMS
 					//Step 3.1: Precalculate IsotopePattern score
 					//-----------------------------------------------------------
 					ff_->startProgress(0, map_.size(), String("Calculating isotope pattern scores for charge ")+c);
-					for (UInt s=0; s<map_.size(); ++s)
+					for (Size s=0; s<map_.size(); ++s)
 					{
 						ff_->setProgress(s);
 						const SpectrumType& spectrum = map_[s];
-						for (UInt p=0; p<spectrum.size(); ++p)
+						for (Size p=0; p<spectrum.size(); ++p)
 						{
 							DoubleReal mz = spectrum[p].getMZ();
 							
@@ -621,7 +621,7 @@ namespace OpenMS
 							//Look up expected isotopic peaks (in the current spectrum or adjacent spectra)
 							UInt peak_index = (UInt)spectrum.findNearest(mz-((DoubleReal)(isotopes.size()+1)/c));
 							IsotopePattern pattern(isotopes.size());
-							for (UInt i=0; i<isotopes.size(); ++i)
+							for (Size i=0; i<isotopes.size(); ++i)
 							{
 								DoubleReal isotope_pos = mz + ((DoubleReal)i-max_isotope)/c;
 								findIsotope_(isotope_pos, s, pattern, i, false, peak_index);
@@ -631,7 +631,7 @@ namespace OpenMS
 							//update pattern scores of all contained peaks (if necessary)
 							if (pattern_score > 0.0)
 							{
-								for (UInt i=0; i<pattern.peak.size(); ++i)
+								for (Size i=0; i<pattern.peak.size(); ++i)
 								{
 									if (pattern.peak[i]>=0 && pattern_score>map_[pattern.spectrum[i]].getMetaDataArrays()[charge_index_meta][pattern.peak[i]])
 									{
@@ -649,7 +649,7 @@ namespace OpenMS
 					//-----------------------------------------------------------		
 					ff_->startProgress(0, map_.size(), String("Finding seeds for charge ")+c);
 					DoubleReal min_seed_score = param_.getValue("seed:min_score");
-					for (UInt s=0; s<map_.size(); ++s)
+					for (Size s=0; s<map_.size(); ++s)
 					{
 						ff_->setProgress(s);
 						//do nothing for the first few and last few spectra as the scans required to search for traces are missing
@@ -658,7 +658,7 @@ namespace OpenMS
 							continue;
 						}
 						//iterate over peaks
-						for (UInt p=0; p<map_[s].size(); ++p)
+						for (Size p=0; p<map_[s].size(); ++p)
 						{	
 							MetaDataArrays& meta = map_[s].getMetaDataArrays();
 							meta[2][p] = std::pow(meta[0][p]*meta[1][p]*meta[charge_index_meta][p], 1.0f/3.0f);
@@ -681,7 +681,7 @@ namespace OpenMS
 						//seeds
 						FeatureMap<> seed_map;
 						seed_map.reserve(seeds.size());
-						for (UInt i=0; i<seeds.size(); ++i)
+						for (Size i=0; i<seeds.size(); ++i)
 						{
 							UInt spectrum = seeds[i].spectrum;
 							UInt peak = seeds[i].peak;
@@ -706,7 +706,7 @@ namespace OpenMS
 					//Extension of seeds
 					//------------------------------------------------------------------
 					ff_->startProgress(0,seeds.size(), String("Extending seeds for charge ")+c);
-					for (UInt i=0; i<seeds.size(); ++i)
+					for (Size i=0; i<seeds.size(); ++i)
 					{
 						//------------------------------------------------------------------
 						//Step 3.3.1:
@@ -816,7 +816,7 @@ namespace OpenMS
 						DoubleReal low_bound = x0 - 2.5 * sigma;
 						DoubleReal high_bound = x0 + 2.5 * sigma;
 						log_ << "    => RT bounds: " << low_bound << " - " << high_bound << std::endl;
-						for (UInt t=0; t< traces.size(); ++t)
+						for (Size t=0; t< traces.size(); ++t)
 						{
 							MassTrace& trace = traces[t];
 							log_ << "   - Trace " << t << ": (" << trace.theoretical_int << ")" << std::endl;
@@ -825,7 +825,7 @@ namespace OpenMS
 							//compute average relative deviation and correlation
 							DoubleReal deviation = 0.0;
 							std::vector<DoubleReal> v_theo, v_real;
-							for (UInt k=0; k<trace.peaks.size(); ++k)
+							for (Size k=0; k<trace.peaks.size(); ++k)
 							{
 								//consider peaks when inside RT bounds only
 								if (trace.peaks[k].first>=low_bound && trace.peaks[k].first<= high_bound)
@@ -924,10 +924,10 @@ namespace OpenMS
 						{
 							std::vector<DoubleReal> v_theo, v_real;
 							DoubleReal deviation = 0.0;
-							for (UInt t=0; t< new_traces.size(); ++t)
+							for (Size t=0; t< new_traces.size(); ++t)
 							{
 								MassTrace& trace = new_traces[t];
-								for (UInt k=0; k<trace.peaks.size(); ++k)
+								for (Size k=0; k<trace.peaks.size(); ++k)
 								{
 									DoubleReal theo = new_traces.baseline + trace.theoretical_int *  height * exp(-0.5 * pow(trace.peaks[k].first - x0, 2) / pow(sigma, 2) );
 									v_theo.push_back(theo);
@@ -958,9 +958,9 @@ namespace OpenMS
 							//gnuplot script	
 							String script = String("plot \"debug/features/") + plot_nr + ".dta\" title 'before fit (RT: " +  String::number(x0,2) + " m/z: " +  String::number(peak.getMZ(),4) + ")' with points 1";
 							//feature before fit
-							for (UInt k=0; k<traces.size(); ++k)
+							for (Size k=0; k<traces.size(); ++k)
 							{
-								for (UInt j=0; j<traces[k].peaks.size(); ++j)
+								for (Size j=0; j<traces[k].peaks.size(); ++j)
 								{
 									tf.push_back(String(500.0*k+traces[k].peaks[j].first) + "	" + traces[k].peaks[j].second->getIntensity());
 								}
@@ -970,9 +970,9 @@ namespace OpenMS
 							if (new_traces.getPeakCount()!=0)
 							{
 								tf.clear();
-								for (UInt k=0; k<new_traces.size(); ++k)
+								for (Size k=0; k<new_traces.size(); ++k)
 								{
-									for (UInt j=0; j<new_traces[k].peaks.size(); ++j)
+									for (Size j=0; j<new_traces[k].peaks.size(); ++j)
 									{
 										tf.push_back(String(500.0*k+new_traces[k].peaks[j].first) + "	" + new_traces[k].peaks[j].second->getIntensity());
 									}
@@ -991,7 +991,7 @@ namespace OpenMS
 							}
 							//fitted functions
 							tf.clear();
-							for (UInt k=0; k<traces.size(); ++k)
+							for (Size k=0; k<traces.size(); ++k)
 							{
 								char fun = 'f';
 								fun += k;
@@ -1043,9 +1043,9 @@ namespace OpenMS
 						{
 							DoubleReal total_intensity = 0.0;
 							DoubleReal average_mz = 0.0;
-	 						for (UInt t=0; t<traces.size(); ++t)
+	 						for (Size t=0; t<traces.size(); ++t)
 							{
-								for (UInt p=0; p<traces[t].peaks.size(); ++p)
+								for (Size p=0; p<traces[t].peaks.size(); ++p)
 								{
 									average_mz += traces[t].peaks[p].second->getMZ()*traces[t].peaks[p].second->getIntensity();
 									total_intensity+=traces[t].peaks[p].second->getIntensity();
@@ -1066,7 +1066,7 @@ namespace OpenMS
 						// - as we scaled the isotope distribution to 
 						f.setIntensity(2.5 * height * sigma / getIsotopeDistribution_(f.getMZ()).max);
 						//add convex hulls of mass traces
-						for (UInt j=0; j<traces.size(); ++j)
+						for (Size j=0; j<traces.size(); ++j)
 						{
 							f.getConvexHulls().push_back(traces[j].getConvexhull());
 						}
@@ -1075,7 +1075,7 @@ namespace OpenMS
 						//----------------------------------------------------------------
 						//Remove all seeds that lie inside the convex hull of the new feature
 						DBoundingBox<2> bb = f.getConvexHull().getBoundingBox();
-						for (UInt j=i+1; j<seeds.size(); ++j)
+						for (Size j=i+1; j<seeds.size(); ++j)
 						{
 							DoubleReal rt = map_[seeds[j].spectrum].getRT();
 							DoubleReal mz = map_[seeds[j].spectrum][seeds[j].peak].getMZ();
@@ -1101,7 +1101,7 @@ namespace OpenMS
 				//precalculate BBs and maximum mz span
 				std::vector< DBoundingBox<2> > bbs(features_->size());
 				DoubleReal max_mz_span = 0.0;
-				for (UInt i=0; i<features_->size(); ++i)
+				for (Size i=0; i<features_->size(); ++i)
 				{
 					bbs[i] = features_->at(i).getConvexHull().getBoundingBox();
 					if (bbs[i].height()>max_mz_span)
@@ -1110,10 +1110,10 @@ namespace OpenMS
 					}
 				}
 				//intersect
-				for (UInt i=0; i<features_->size(); ++i)
+				for (Size i=0; i<features_->size(); ++i)
 				{
 					Feature& f1(features_->at(i));
-					for (UInt j=i+1; j<features_->size(); ++j)
+					for (Size j=i+1; j<features_->size(); ++j)
 					{
 						ff_->setProgress(i*features_->size()+j);
 						Feature& f2(features_->at(j));
@@ -1177,7 +1177,7 @@ namespace OpenMS
 				FeatureMap<> tmp;
 				tmp.reserve(features_->size());
 				UInt removed = 0;
-				for(UInt i=0; i<features_->size(); ++i)
+				for (Size i=0; i<features_->size(); ++i)
 				{
 					if (features_->operator[](i).getIntensity()!=0.0)
 					{
@@ -1198,7 +1198,7 @@ namespace OpenMS
 				//report RT apex spectrum if wished by the user
 				if((String)(param_.getValue("feature:report_rt_apex_spectrum"))=="true")
 				{
-					for(UInt i=0; i<features_->size(); ++i)
+					for (Size i=0; i<features_->size(); ++i)
 					{
 						Feature& f = features_->operator[](i);
 						UInt apex_spectrum = map_.RTBegin(f.getRT()) - map_.begin();
@@ -1230,7 +1230,7 @@ namespace OpenMS
 					FeatureXMLFile().store("debug/abort_reasons.featureXML", abort_map);
 					
 					//store input map with calculated scores (without overall score)
-					for (UInt s=0; s<map_.size(); ++s)
+					for (Size s=0; s<map_.size(); ++s)
 					{
 						map_[s].getMetaDataArrays().erase(map_[s].getMetaDataArrays().begin()+2);
 					}					
@@ -1328,7 +1328,7 @@ namespace OpenMS
 				//calculate the RT range sum of feature 1
 				DoubleReal s1 = 0.0;
 				const std::vector<ConvexHull2D>& hulls1 = f1.getConvexHulls();
-				for (UInt i=0; i<hulls1.size(); ++i)
+				for (Size i=0; i<hulls1.size(); ++i)
 				{
 					s1 += hulls1[i].getBoundingBox().width();
 				}
@@ -1336,17 +1336,17 @@ namespace OpenMS
 				//calculate the RT range sum of feature 2
 				DoubleReal s2 = 0.0;
 				const std::vector<ConvexHull2D>& hulls2 = f2.getConvexHulls();
-				for (UInt j=0; j<hulls2.size(); ++j)
+				for (Size j=0; j<hulls2.size(); ++j)
 				{
 					s2 += hulls2[j].getBoundingBox().width();
 				}
 				
 				//calculate overlap
 				DoubleReal overlap = 0.0;
-				for (UInt i=0; i<hulls1.size(); ++i)
+				for (Size i=0; i<hulls1.size(); ++i)
 				{
 					DBoundingBox<2> bb1 = hulls1[i].getBoundingBox();
-					for (UInt j=0; j<hulls2.size(); ++j)
+					for (Size j=0; j<hulls2.size(); ++j)
 					{
 						DBoundingBox<2> bb2 = hulls2[j].getBoundingBox();
 						if (bb1.intersects(bb2))
@@ -1408,7 +1408,7 @@ namespace OpenMS
 					UInt end = 0;
 					bool is_begin = true;
 					bool is_end = false;
-					for (UInt i=0; i<isotope_distributions_[index].intensity.size(); ++i)
+					for (Size i=0; i<isotope_distributions_[index].intensity.size(); ++i)
 					{
 						if (isotope_distributions_[index].intensity[i]<intensity_percentage_)
 						{
@@ -1425,12 +1425,12 @@ namespace OpenMS
 					isotope_distributions_[index].optional_end = end;
 					//scale the distibution to a maximum of 1
 					DoubleReal max = 0.0;
-					for (UInt i=0; i<isotope_distributions_[index].intensity.size(); ++i)
+					for (Size i=0; i<isotope_distributions_[index].intensity.size(); ++i)
 					{
 						if (isotope_distributions_[index].intensity[i]>max) max = isotope_distributions_[index].intensity[i];
 					}
 					isotope_distributions_[index].max = max;
-					for (UInt i=0; i<isotope_distributions_[index].intensity.size(); ++i)
+					for (Size i=0; i<isotope_distributions_[index].intensity.size(); ++i)
 					{
 						isotope_distributions_[index].intensity[i] /= max;
 					}
@@ -1476,13 +1476,13 @@ namespace OpenMS
 
 				//fit isotope distribution to peaks
 				DoubleReal max_score = 0.0;
-				for (UInt start=begin; start<=end; ++start)
+				for (Size start=begin; start<=end; ++start)
 				{
 					//find isotope peaks for the current start peak
 					UInt peak_index = start;
 					IsotopePattern pattern(isotopes.size());
 					log_ << " - Fitting at " << start << " (mz:" << spectrum[start].getMZ() << ")" << std::endl;
-					for (UInt iso=0; iso<isotopes.size(); ++iso)
+					for (Size iso=0; iso<isotopes.size(); ++iso)
 					{
 						DoubleReal pos = spectrum[start].getMZ() + iso/(DoubleReal)charge;
 						findIsotope_(pos, center.spectrum, pattern, iso, true, peak_index);
@@ -1490,7 +1490,7 @@ namespace OpenMS
 					
 					//check if the seed is contained, otherwise abort
 					bool seed_contained = false;
-					for (UInt iso=0; iso<pattern.peak.size(); ++iso)
+					for (Size iso=0; iso<pattern.peak.size(); ++iso)
 					{
 						if (pattern.peak[iso]==(Int)center.peak && pattern.spectrum[iso]==center.spectrum)
 						{
@@ -1508,7 +1508,7 @@ namespace OpenMS
 					
 					//check if the seed is still contained, otherwise abort
 					seed_contained = false;
-					for (UInt iso=0; iso<pattern.peak.size(); ++iso)
+					for (Size iso=0; iso<pattern.peak.size(); ++iso)
 					{
 						if (pattern.peak[iso]==(Int)center.peak && pattern.spectrum[iso]==center.spectrum)
 						{
@@ -1540,7 +1540,7 @@ namespace OpenMS
 				//find index of the trace with the maximum intensity
 				DoubleReal max_int =  0.0;
 				UInt max_trace_index = 0;
-				for (UInt p=0; p<pattern.peak.size(); ++p)
+				for (Size p=0; p<pattern.peak.size(); ++p)
 				{
 					if (pattern.peak[p]<0) continue; //skip missing and removed traces
 					if (map_[pattern.spectrum[p]][pattern.peak[p]].getIntensity()>max_int)
@@ -1572,7 +1572,7 @@ namespace OpenMS
 					log_ << "   - could not extend trace with maximum intensity => abort" << std::endl;
 					return;
 				}
-				for (UInt p=0; p<pattern.peak.size(); ++p)
+				for (Size p=0; p<pattern.peak.size(); ++p)
 				{
 					log_ << " - Trace " << p << std::endl;
 					if (p==max_trace_index)
@@ -1604,7 +1604,7 @@ namespace OpenMS
 					UInt end = std::min(starting_peak.spectrum+min_spectra_,(UInt)map_.size());
 					DoubleReal mz = map_[starting_peak.spectrum][starting_peak.peak].getMZ();
 					DoubleReal inte = map_[starting_peak.spectrum][starting_peak.peak].getIntensity();
-					for (UInt spectrum_index=begin; spectrum_index<end; ++spectrum_index)
+					for (Size spectrum_index=begin; spectrum_index<end; ++spectrum_index)
 					{
 						//find better seeds (no-empty scan/low mz diff/higher intensity)
 						Int peak_index = -1;
@@ -1874,7 +1874,7 @@ namespace OpenMS
 			{
 				if (debug) log_ << "   - fitting " << pattern.intensity.size() << " peaks" << std::endl;
 				//Abort if a core peak is missing
-				for (UInt iso=0+isotopes.optional_begin; iso<pattern.peak.size()-isotopes.optional_end; ++iso)
+				for (Size iso=0+isotopes.optional_begin; iso<pattern.peak.size()-isotopes.optional_end; ++iso)
 				{
 					if (pattern.peak[iso]==-1)
 					{
@@ -1887,7 +1887,7 @@ namespace OpenMS
 				// - do not allow gaps inside the pattern
 				DoubleReal best_int_score = 0.01; //Not 0 as this would result in problems when checking for the percental improvement
 				UInt best_begin = 0;
-				for (UInt i=isotopes.optional_begin; i>0; --i)
+				for (Size i=isotopes.optional_begin; i>0; --i)
 				{
 					if (pattern.peak[i-1]==-1)
 					{
@@ -1896,7 +1896,7 @@ namespace OpenMS
 					}
 				}
 				UInt best_end = 0;
-				for (UInt i=isotopes.optional_end; i>0; --i)
+				for (Size i=isotopes.optional_end; i>0; --i)
 				{
 					if (pattern.peak[pattern.peak.size()-i]==-1)
 					{
@@ -1905,9 +1905,9 @@ namespace OpenMS
 					}
 				}
 				if (debug) log_ << "   - best_begin/end: " << best_begin << "/" << best_end << std::endl;
-				for (UInt b=best_begin; b<=isotopes.optional_begin; ++b)
+				for (Size b=best_begin; b<=isotopes.optional_begin; ++b)
 				{
-					for (UInt e=best_end; e<=isotopes.optional_end; ++e)
+					for (Size e=best_end; e<=isotopes.optional_end; ++e)
 					{
 						//Make sure we have more than 2 peaks (unless in the first loop interation, there we allow two points) 
 						if (isotopes.size()-b-e>2 || (b==best_begin && e==best_end && isotopes.size()-b-e>1))
@@ -1935,14 +1935,14 @@ namespace OpenMS
 				}
 				
 				//remove left out peaks from the beginning
-				for (UInt i=0; i<best_begin; ++i)
+				for (Size i=0; i<best_begin; ++i)
 				{
 					pattern.peak[i] = -2;
 					pattern.intensity[i] = 0.0;
 					pattern.mz_score[i] = 0.0;
 				}
 				//remove left out peaks from the end
-				for (UInt i=0; i<best_end; ++i)
+				for (Size i=0; i<best_end; ++i)
 				{
 					pattern.peak[isotopes.size()-1-i] = -2;
 					pattern.intensity[isotopes.size()-1-i] = 0.0;
@@ -2064,10 +2064,10 @@ namespace OpenMS
 				double sig = gsl_vector_get (param, 2);
 				
 				UInt count = 0;
-				for (UInt t=0; t< traces->size(); ++t)
+				for (Size t=0; t< traces->size(); ++t)
 				{
 					MassTrace& trace = traces->at(t);			
-					for (UInt i=0; i<trace.peaks.size(); ++i)
+					for (Size i=0; i<trace.peaks.size(); ++i)
 					{
 						gsl_vector_set(f, count, traces->baseline + trace.theoretical_int * height * exp(-0.5 * pow(trace.peaks[i].first - x0, 2)  / pow(sig, 2)) - trace.peaks[i].second->getIntensity() );
 						++count;
@@ -2084,10 +2084,10 @@ namespace OpenMS
 				double sig = gsl_vector_get (param, 2);
 				
 				UInt count = 0;
-				for (UInt t=0; t<traces->size(); ++t)
+				for (Size t=0; t<traces->size(); ++t)
 				{
 					MassTrace& trace = traces->at(t);
-					for (UInt i=0; i< trace.peaks.size(); ++i)
+					for (Size i=0; i< trace.peaks.size(); ++i)
 					{
 						DoubleReal rt = trace.peaks[i].first;
 						gsl_matrix_set (J, count, 0, trace.theoretical_int * exp(-0.5 * pow(rt-x0,2) / pow(sig,2)));

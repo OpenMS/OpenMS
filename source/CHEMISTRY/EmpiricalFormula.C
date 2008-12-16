@@ -530,7 +530,7 @@ namespace OpenMS
 			if (!isdigit(formula[0]))
 			{
 				String split;
-				for (UInt i=0; i<formula.size(); ++i)
+				for (Size i=0; i<formula.size(); ++i)
 				{
 					if (isupper(formula[i]) || formula[i] == '+' || formula[i] == '-')
 					{
@@ -554,7 +554,7 @@ namespace OpenMS
 		}
 
 		// add up the elements and charge
-		for (UInt i=0;i!=splitter.size();++i)
+		for (Size i=0;i!=splitter.size();++i)
 		{
 			String split = splitter[i];
 			String number;

@@ -475,13 +475,13 @@ class TOPPPTModel
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
-			for(UInt i = 0; i < identifications.size(); i++)
+			for (Size i = 0; i < identifications.size(); i++)
 			{
 				const vector<PeptideHit>& temp_peptide_hits = identifications[i].getHits();
 				UInt temp_size = temp_peptide_hits.size();
 				if (temp_size > 0)
 				{
-					for(UInt j = 0; j < temp_size; ++j)
+					for (Size j = 0; j < temp_size; ++j)
 					{
 						temp_peptide_hit = temp_peptide_hits[j];
 						temp_string = temp_peptide_hit.getSequence().toUnmodifiedString();
@@ -509,13 +509,13 @@ class TOPPPTModel
 			UInt counter = 0;
 			
 			vector<String> temp_training_peptides;
-			for(UInt i = 0; i < identifications_negative.size(); i++)
+			for (Size i = 0; i < identifications_negative.size(); i++)
 			{
 				const vector<PeptideHit>& temp_peptide_hits = identifications_negative[i].getHits();
 				UInt temp_size = temp_peptide_hits.size();
 				if (temp_size > 0)
 				{
-					for(UInt j = 0; j < temp_size; ++j)
+					for (Size j = 0; j < temp_size; ++j)
 					{
 						temp_peptide_hit = temp_peptide_hits[j];
 						temp_string = temp_peptide_hit.getSequence().toUnmodifiedString();

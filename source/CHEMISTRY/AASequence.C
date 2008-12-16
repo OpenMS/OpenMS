@@ -83,9 +83,9 @@ namespace OpenMS
 		return *this;
 	}
 	
-	const Residue& AASequence::getResidue(Int index) const
+	const Residue& AASequence::getResidue(SignedSize index) const
 	{
-		if (index >= 0 && UInt(index) >= peptide_.size())
+		if (index >= 0 && Size(index) >= peptide_.size())
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, peptide_.size());
 		}
@@ -96,7 +96,7 @@ namespace OpenMS
 		return *peptide_[index];
 	}
 
-	const Residue& AASequence::getResidue(UInt index) const
+	const Residue& AASequence::getResidue(Size index) const
 	{
 		if (index >= peptide_.size())
 		{
@@ -178,7 +178,7 @@ namespace OpenMS
 			}
 			else
 			{
-				for (UInt i=0;i!=peptide_.size();++i)
+				for (Size i=0;i!=peptide_.size();++i)
 				{
 					ef += peptide_[i]->getFormula(Residue::Internal);
 				}
@@ -238,7 +238,7 @@ namespace OpenMS
 		static const EmpiricalFormula NH3("NH3");*/
 		Map<const EmpiricalFormula*, UInt> losses;
 		/*
-		for (UInt i=0;i!=peptide_.size();++i)
+		for (Size i=0;i!=peptide_.size();++i)
 		{
 			if (peptide_[i]->hasNeutralLoss())
 			{
@@ -267,7 +267,7 @@ namespace OpenMS
 		return losses;
 	}
 
-	const Residue& AASequence::operator [] (Int index) const
+	const Residue& AASequence::operator [] (SignedSize index) const
 	{
 		if (index < 0)
 		{
@@ -275,15 +275,15 @@ namespace OpenMS
 		}
 		else
 		{
-			if (UInt(index) >= size())
+			if (Size(index) >= size())
 			{
 				throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
 			}
 		}
-		return *peptide_[UInt(index)];
+		return *peptide_[Size(index)];
 	}
 	
-	const Residue& AASequence::operator [] (UInt index) const
+	const Residue& AASequence::operator [] (Size index) const
 	{
 		if (index >= size())
 		{
@@ -296,7 +296,7 @@ namespace OpenMS
 	{
 		AASequence seq;
 		seq.peptide_ = peptide_;
-		for (UInt i=0;i!=sequence.peptide_.size();++i)
+		for (Size i=0;i!=sequence.peptide_.size();++i)
 		{
 			seq.peptide_.push_back(sequence.peptide_[i]);
 		}
@@ -327,7 +327,7 @@ namespace OpenMS
 	
 	AASequence& AASequence::operator += (const AASequence& sequence)
 	{
-		for (UInt i=0;i!=sequence.peptide_.size();++i)
+		for (Size i=0;i!=sequence.peptide_.size();++i)
 		{
 			peptide_.push_back(sequence.peptide_[i]);
 		}
@@ -338,7 +338,7 @@ namespace OpenMS
 	{
 		vector<const Residue*> vec;
 		parseString_(vec, peptide);
-		for (UInt i=0;i!=vec.size();++i)
+		for (Size i=0;i!=vec.size();++i)
 		{
 			peptide_.push_back(vec[i]);
 		}
@@ -362,40 +362,40 @@ namespace OpenMS
 		return *this;
 	}
 	
-	UInt AASequence::size() const
+	Size AASequence::size() const
 	{
 		return peptide_.size();
 	}
 
-	AASequence AASequence::getPrefix(UInt index) const
+	AASequence AASequence::getPrefix(Size index) const
 	{
 		if (index > size())
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
 		}
 		AASequence seq;
-		for (UInt i=0;i<index;++i)
+		for (Size i=0;i<index;++i)
 		{
 			seq.peptide_.push_back(peptide_[i]);
 		}
 		return seq;
 	}
 
-	AASequence AASequence::getSuffix(UInt index) const
+	AASequence AASequence::getSuffix(Size index) const
 	{
 		if (index > size())
 		{
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
 		}
 		AASequence seq;
-		for (UInt i=size()-index;i!=size();++i)
+		for (Size i=size()-index;i!=size();++i)
 		{
 			seq.peptide_.push_back(peptide_[i]);
 		}
 		return seq;
 	}
 
-	AASequence AASequence::getSubsequence(UInt index, UInt num) const
+	AASequence AASequence::getSubsequence(Size index, UInt num) const
 	{
 		if (index >= size())
 		{
@@ -406,7 +406,7 @@ namespace OpenMS
 			throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index+num, size());
 		}
 		AASequence seq;
-		for (UInt i = index; i != index + num; ++i)
+		for (Size i = index; i != index + num; ++i)
 		{
 			seq.peptide_.push_back(peptide_[i]);
 		}
@@ -415,7 +415,7 @@ namespace OpenMS
 	
 	bool AASequence::has(const Residue& residue) const 
 	{
-		for (UInt i = 0; i != peptide_.size(); ++i)
+		for (Size i = 0; i != peptide_.size(); ++i)
 		{
 			if (*peptide_[i] == residue)
 			{
@@ -445,11 +445,11 @@ namespace OpenMS
 		{
 			if (sequence.size() <= peptide_.size())
 			{
-				for (UInt i=0;i!=peptide_.size();++i)
+				for (Size i=0;i!=peptide_.size();++i)
 				{
 					if (peptide_[i] == sequence.peptide_[0])
 					{
-						UInt j=0;
+						Size j=0;
 						for (;j+i!=peptide_.size() && j!=sequence.peptide_.size();++j)
 						{
 							if (peptide_[j+i] == sequence.peptide_[j])
@@ -483,9 +483,9 @@ namespace OpenMS
 		{
 			if (seq.size() <= peptide_.size())
 			{
-				for (UInt i=0;i!=peptide_.size();++i)
+				for (Size i=0;i!=peptide_.size();++i)
 				{
-					UInt j=0;
+					Size j=0;
 					for (;j+i!=peptide_.size() && j!=seq.size();++j)
 					{
 						if (peptide_[j+i] == seq[j])
@@ -516,7 +516,7 @@ namespace OpenMS
 		{
 			return false;
 		}
-		for (UInt i=0;i!=sequence.size();++i)
+		for (Size i=0;i!=sequence.size();++i)
 		{
 			if (sequence.peptide_[i] != peptide_[i])
 			{
@@ -542,7 +542,7 @@ namespace OpenMS
 		{
 			return false;
 		}
-		for (UInt i=0;i!=sequence.size();++i)
+		for (Size i=0;i!=sequence.size();++i)
 		{
 			if (sequence.peptide_[sequence.size()-1-i] != peptide_[size()-1-i])
 			{
@@ -584,7 +584,7 @@ namespace OpenMS
 		{
 			return false;
 		}
-		for (UInt i = 0; i != size(); ++i)
+		for (Size i = 0; i != size(); ++i)
 		{
 			if (peptide_[i] != peptide.peptide_[i])
 			{
@@ -645,7 +645,7 @@ namespace OpenMS
 		return false;
 	}
 	
-	bool AASequence::isModified(UInt position) const
+	bool AASequence::isModified(Size position) const
 	{
 		if (position >= peptide_.size())
     {
@@ -667,7 +667,7 @@ namespace OpenMS
       os << "(" << peptide.n_term_mod_ << ")";
     }
 
-		for (UInt i = 0; i != peptide.size(); ++i)
+		for (Size i = 0; i != peptide.size(); ++i)
 		{
 			if (peptide.peptide_[i]->isModified())
 			{
@@ -731,7 +731,7 @@ namespace OpenMS
 		
 		// split the peptide in its residues
 		vector<String> split;
-		UInt pos(0);
+		Size pos(0);
 		bool mod_open(false), tag_open(false);
 		if (peptide[0] == '[')
 		{
@@ -741,7 +741,7 @@ namespace OpenMS
 		{
 			mod_open = true;
 		}
-		for (UInt i = 1; i < peptide.size(); ++i)
+		for (Size i = 1; i < peptide.size(); ++i)
 		{
 			if ((isalpha(peptide[i]) && isupper(peptide[i]) && !mod_open) ||
 					(peptide[i] == '[' && !mod_open))
@@ -795,7 +795,7 @@ namespace OpenMS
 		}
 
 		String c_term = *(split.end() - 1);
-		UInt c_term_mods = count(c_term.begin(), c_term.end(), '(');
+		Size c_term_mods = count(c_term.begin(), c_term.end(), '(');
 		if (c_term_mods > 0)
 		{
 			// now we have found a potential C-term modification
@@ -811,11 +811,11 @@ namespace OpenMS
 		}
 		
 		// parse the residues
-		for (UInt i = 0; i != split.size(); ++i)
+		for (Size i = 0; i != split.size(); ++i)
 		{
 			String res = split[i];
 			String name, mod, tag;
-			for (UInt j = 0; j != res.size(); ++j)
+			for (Size j = 0; j != res.size(); ++j)
 			{
 				if (isalpha(res[j]))
 				{
@@ -825,7 +825,7 @@ namespace OpenMS
 				{
 					if (res[j] == '(')
 					{
-						for (UInt k = j + 1; res[k] != ')';++k)
+						for (Size k = j + 1; res[k] != ')';++k)
 						{
 							if (k == res.size())
 							{
@@ -843,7 +843,7 @@ namespace OpenMS
 					{
 						if (res[j] == '[')
 						{
-							for (UInt k = j + 1; res[k] != ']'; ++k)
+							for (Size k = j + 1; res[k] != ']'; ++k)
 							{
 								if (k == res.size())
 								{
@@ -921,9 +921,9 @@ namespace OpenMS
 		return ResidueDB::getInstance();
 	}	
 
-	UInt AASequence::getNumberOf(const String& residue) const
+	Size AASequence::getNumberOf(const String& residue) const
 	{
-		UInt count(0);
+		Size count(0);
 		const Residue* res = getResidueDB_()->getResidue(residue);
 		if (valid_)
 		{
@@ -949,7 +949,7 @@ namespace OpenMS
 		return count;
 	}
 
-	UInt AASequence::getNumberOf(const char* residue) const
+	Size AASequence::getNumberOf(const char* residue) const
 	{
 		return getNumberOf(String(residue));
 	}
@@ -963,7 +963,7 @@ namespace OpenMS
 		}
 	}
 
-	void AASequence::setModification(UInt index, const String& modification)
+	void AASequence::setModification(Size index, const String& modification)
 	{
 		if (index >= peptide_.size())
 		{

@@ -50,7 +50,7 @@ namespace OpenMS
 	IntList::IntList(const vector<UInt>& rhs)
 	{
 		this->resize(rhs.size());
-		for(UInt i=0;i<rhs.size();++i)
+		for (Size i=0;i<rhs.size();++i)
 		{
 			(*this)[i]=(Int)rhs[i];
 		}
@@ -65,7 +65,7 @@ namespace OpenMS
 	IntList& IntList::operator=(const vector<UInt>& rhs)
 	{
 		this->resize(rhs.size());
-		for(UInt i=0;i<rhs.size();++i)
+		for (Size i=0;i<rhs.size();++i)
 		{
 			(*this)[i]=(Int)rhs[i];
 		}
@@ -89,7 +89,7 @@ namespace OpenMS
 		else
 		{
 			ret.resize(out.size());
-			for(UInt i=0; i< out.size(); ++i)
+			for (Size i=0; i< out.size(); ++i)
 			{
 				ret[i]=out[i].toInt();
 			}
@@ -99,7 +99,7 @@ namespace OpenMS
 	
 	bool IntList::contains(Int s) const
 	{
-		for (UInt i=0; i<this->size(); ++i)
+		for (Size i=0; i<this->size(); ++i)
 		{
 			if (this->operator[](i)==s) return true;
 		}
@@ -116,7 +116,7 @@ namespace OpenMS
 			os << p[0];
 		}
 		
-		for (UInt i=1; i<p.size(); ++i)
+		for (Size i=1; i<p.size(); ++i)
 		{
 			os << ", " << p[i];
 		}

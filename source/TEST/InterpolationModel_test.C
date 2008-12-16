@@ -206,7 +206,7 @@ END_SECTION
 START_SECTION(([EXTRA]void  fillIntensities(PeakIterator beg, PeakIterator end) const))
 	const TestModel t;
   std::vector< TestModel::PeakType > vec(4);
-  for (UInt i=0; i<4; ++i)
+  for (Size i=0; i<4; ++i)
   {
 		vec[i].setIntensity(-0.5);
 		vec[i].getPosition()[0] = i;

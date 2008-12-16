@@ -221,11 +221,11 @@ class TOPPFileInfo
 					cout << endl << "Semantically validating " << fh.typeToName(in_type) << " file:" << endl;
 					StringList errors, warnings;
 					valid = MzMLFile().isSemanticallyValid(in, errors, warnings);
-					for (UInt i=0; i<warnings.size(); ++i)
+					for (Size i=0; i<warnings.size(); ++i)
 					{
 						cout << "Warning: " << warnings[i] << endl;
 					}
-					for (UInt i=0; i<errors.size(); ++i)
+					for (Size i=0; i<errors.size(); ++i)
 					{
 						cout << "Error: " << errors[i] << endl;
 					}
@@ -261,7 +261,7 @@ class TOPPFileInfo
 
 			//Charge distribution
 			Map<UInt,UInt> charges;
-			for (UInt i=0; i< feat.size(); ++i)
+			for (Size i=0; i< feat.size(); ++i)
 			{
 				charges[feat[i].getCharge()]++;
 			}
@@ -333,7 +333,7 @@ class TOPPFileInfo
 
 			//check if the meta data indicates that this is peak data
 			UInt meta_type = SpectrumSettings::UNKNOWN;
-			for (UInt i=0; i<exp.getDataProcessing().size(); ++i)
+			for (Size i=0; i<exp.getDataProcessing().size(); ++i)
 			{
 				if (exp.getDataProcessing()[i].getProcessingActions().count(DataProcessing::PEAK_PICKING)==1)
 				{
@@ -355,7 +355,7 @@ class TOPPFileInfo
 			if (type==SpectrumSettings::RAWDATA)
 			{
 				vector<Real> spacing;
-				for (UInt j=1; j<exp[i].size(); ++j)
+				for (Size j=1; j<exp[i].size(); ++j)
 				{
 					spacing.push_back(exp[i][j].getMZ()-exp[i][j-1].getMZ());
 				}
@@ -391,7 +391,7 @@ class TOPPFileInfo
 				counts[it->getMSLevel()]++;
 			}
 			//output
-			for (UInt i = 0; i!=5; ++i)
+			for (Size i = 0; i!=5; ++i)
 			{
 				if (counts[i]!=0)
 				{
@@ -452,7 +452,7 @@ class TOPPFileInfo
 						 << endl;
 				std::vector<DoubleReal> rts;
 				rts.reserve(exp.size());
-				for (UInt s=0; s<exp.size();++s)
+				for (Size s=0; s<exp.size();++s)
 				{
 					//ms level = 0
 					if (exp[s].getMSLevel()==0)
@@ -475,7 +475,7 @@ class TOPPFileInfo
 					}
 					//duplicate meta data array names
 					Map<String,int> names;
-					for (UInt m=0; m<exp[s].getMetaDataArrays().size(); ++m)
+					for (Size m=0; m<exp[s].getMetaDataArrays().size(); ++m)
 					{
 						String name = exp[s].getMetaDataArrays()[m].getName();
 						if (names.has(name))
@@ -490,7 +490,7 @@ class TOPPFileInfo
 					//check peaks
 					std::vector<DoubleReal> mzs;
 					mzs.reserve(exp[s].size());
-					for (UInt p=0; p<exp[s].size();++p)
+					for (Size p=0; p<exp[s].size();++p)
 					{
 						//negative intensity
 						if (exp[s][p].getIntensity()<0.0)
@@ -546,19 +546,19 @@ class TOPPFileInfo
 						 << "  Model            : " << exp.getInstrument().getModel()  << endl
 						 << "  Vendor           : " << exp.getInstrument().getVendor()  << endl
 						 << "  Ion source(s)    : ";
-				for (UInt i=0; i< exp.getInstrument().getIonSources().size(); ++i)
+				for (Size i=0; i< exp.getInstrument().getIonSources().size(); ++i)
 				{
 					cout  << IonSource::NamesOfIonizationMethod[exp.getInstrument().getIonSources()[i].getIonizationMethod()];
 					if (i!=exp.getInstrument().getIonSources().size()-1) cout << ", ";
 				}
 				cout << endl << "  Mass Analyzer(s) : ";
-				for (UInt i=0; i< exp.getInstrument().getMassAnalyzers().size(); ++i)
+				for (Size i=0; i< exp.getInstrument().getMassAnalyzers().size(); ++i)
 				{
 					cout  << MassAnalyzer::NamesOfAnalyzerType[exp.getInstrument().getMassAnalyzers()[i].getType()];
 					if (i!=exp.getInstrument().getMassAnalyzers().size()-1) cout << ", ";
 				}
 				cout << endl << "  Detector(s)      : ";
-				for (UInt i=0; i< exp.getInstrument().getIonDetectors().size(); ++i)
+				for (Size i=0; i< exp.getInstrument().getIonDetectors().size(); ++i)
 				{
 					cout  << IonDetector::NamesOfType[exp.getInstrument().getIonDetectors()[i].getType()];
 					if (i!=exp.getInstrument().getIonDetectors().size()-1) cout << ", ";
@@ -566,7 +566,7 @@ class TOPPFileInfo
 				cout << endl << endl;
 	
 				//contact persons
-				for (UInt i=0; i< exp.getContacts().size(); ++i)
+				for (Size i=0; i< exp.getContacts().size(); ++i)
 				{
 					cout << "Contact Person" << endl
 							 << "  First Name       : " << exp.getContacts()[i].getFirstName() << endl
@@ -746,10 +746,10 @@ class TOPPFileInfo
 					DoubleReal sum = 0.0;
 					for (MSExperiment<Peak1D>::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
 					{
-						for (UInt meta=0; meta<spec->getMetaDataArrays().size(); ++meta)
+						for (Size meta=0; meta<spec->getMetaDataArrays().size(); ++meta)
 						{
 							if (spec->getMetaDataArrays()[meta].getName()!=name) continue;
-							for (UInt peak=0; peak < spec->size(); ++peak)
+							for (Size peak=0; peak < spec->size(); ++peak)
 							{
 								m_values.push_back(spec->getMetaDataArrays()[meta][peak]);
 								sum += spec->getMetaDataArrays()[meta][peak];

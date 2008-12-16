@@ -9,7 +9,7 @@ Int main()
   pos[0] = 8.15;
   pos[1] = 47.11;
 
-  for (UInt i = 0; i < DPosition<2>::DIMENSION; ++i)
+  for (Size i = 0; i < DPosition<2>::DIMENSION; ++i)
   {
     std::cout << "Dimension " << i << ": "<< pos[i] << std::endl;
   }	

@@ -115,7 +115,7 @@ namespace OpenMS
 				add(static_cast<SpectrumSettings&>(spectrum));
 
 				//MetaInfoDescriptions
-	      for (UInt i=0; i<spectrum.getMetaDataArrays().size();++i)
+	      for (Size i=0; i<spectrum.getMetaDataArrays().size();++i)
 	      {
 	      	// add(static_cast<MetaInfoDescription&>(spec.getMetaDataArrays()[i]));
 	      	add(spectrum.getMetaDataArrays()[i]);
@@ -134,13 +134,13 @@ namespace OpenMS
 				add(static_cast<DocumentIdentifier&>(map));
 				
 				//protein ids
-				for(UInt i=0; i<map.getProteinIdentifications().size(); ++i)
+				for (Size i=0; i<map.getProteinIdentifications().size(); ++i)
 				{
 					add(map.getProteinIdentifications()[i]);
 				}
 
 				//unassigned peptide ids
-				for(UInt i=0; i<map.getUnassignedPeptideIdentifications().size(); ++i)
+				for (Size i=0; i<map.getUnassignedPeptideIdentifications().size(); ++i)
 				{
 					add(map.getUnassignedPeptideIdentifications()[i]);
 				}

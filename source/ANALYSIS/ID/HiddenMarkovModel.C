@@ -793,7 +793,7 @@ namespace OpenMS
 					double sum = accumulate(all_trans.begin(), all_trans.end(), 0.0);
 					double avg(sum/double(all_trans.size()));
 					double rsd(0);
-					for (UInt i = 0; i != all_trans.size(); ++i)
+					for (Size i = 0; i != all_trans.size(); ++i)
 					{
 						cout << all_trans[i] << " ";
 						rsd += abs(all_trans[i] - avg);
@@ -865,17 +865,17 @@ namespace OpenMS
 		vector<String> suffixe;
 		HMMState* s2 = name_to_state_["bxyz"];
 		HMMState* end_state = name_to_state_["end"];
-		for (UInt i = 0; i != residues.size(); ++i)
+		for (Size i = 0; i != residues.size(); ++i)
 		{
 			s2 = name_to_state_["bxyz"];
-			for (UInt j = 0; j != residues.size(); ++j)
+			for (Size j = 0; j != residues.size(); ++j)
 			{
 				String aa1(residues[i]), aa2(residues[j]);
 				if (training_steps_count_[name_to_state_[aa1 + aa2 + "bxyz"]][s2] == 0)
 				{
 					UInt count(0);
 					double sum(0);
-					for (UInt k = 0; k != residues.size(); ++k)
+					for (Size k = 0; k != residues.size(); ++k)
 					{
 						UInt tmp = training_steps_count_[name_to_state_[aa1 + residues[k] + "bxyz"]][s2];
 						if (tmp != 0)
@@ -884,7 +884,7 @@ namespace OpenMS
 							count++;
 						}
 					}
-					for (UInt k = 0; k != residues.size(); ++k)
+					for (Size k = 0; k != residues.size(); ++k)
 					{
 						UInt tmp = training_steps_count_[name_to_state_[residues[k] + aa2 +"bxyz"]][s2];
 						if (tmp != 0)
@@ -905,16 +905,16 @@ namespace OpenMS
 				}
 			}
 
-			for (UInt j = 0; j != residues.size(); ++j)
+			for (Size j = 0; j != residues.size(); ++j)
       {
-				for (UInt counter = 0; counter < 3; ++counter)
+				for (Size counter = 0; counter < 3; ++counter)
 				{
         	String aa1(residues[i]), aa2(residues[j]);
         	if (training_steps_count_[name_to_state_[aa1 + aa2 + "bxyz" + String(counter)]][s2] == 0)
         	{
           	UInt count(0);
           	double sum(0);
-          	for (UInt k = 0; k != residues.size(); ++k)
+          	for (Size k = 0; k != residues.size(); ++k)
           	{
             	UInt tmp = training_steps_count_[name_to_state_[aa1 + residues[k] + "bxyz" + String(counter)]][s2];
             	if (tmp != 0)
@@ -923,7 +923,7 @@ namespace OpenMS
               	count++;
             	}
           	}
-          	for (UInt k = 0; k != residues.size(); ++k)
+          	for (Size k = 0; k != residues.size(); ++k)
           	{
             	UInt tmp = training_steps_count_[name_to_state_[residues[k] + aa2 +"bxyz" + String(counter)]][s2];
             	if (tmp != 0)
@@ -950,14 +950,14 @@ namespace OpenMS
 			
 			
 			s2 = name_to_state_["axyz"];
-      for (UInt j = 0; j != residues.size(); ++j)
+      for (Size j = 0; j != residues.size(); ++j)
       {
         String aa1(residues[i]), aa2(residues[j]);
         if (training_steps_count_[name_to_state_[aa1 + aa2 + "axyz"]][s2] == 0)
         {
           UInt count(0);
           double sum(0);
-          for (UInt k = 0; k != residues.size(); ++k)
+          for (Size k = 0; k != residues.size(); ++k)
           {
             UInt tmp = training_steps_count_[name_to_state_[aa1 + residues[k] + "axyz"]][s2];
             if (tmp != 0)
@@ -966,7 +966,7 @@ namespace OpenMS
               count++;
             }
           }
-          for (UInt k = 0; k != residues.size(); ++k)
+          for (Size k = 0; k != residues.size(); ++k)
           {
             UInt tmp = training_steps_count_[name_to_state_[residues[k] + aa2 +"axyz"]][s2];
             if (tmp != 0)
@@ -989,7 +989,7 @@ namespace OpenMS
 			// sc and cr
 			String sc_residues("HKDE");
 		
-			for (UInt j = 0; j != sc_residues.size(); ++j)
+			for (Size j = 0; j != sc_residues.size(); ++j)
 			{
 				String aa1(residues[i]), sc_res(sc_residues[j]);
 				s2 = name_to_state_[sc_res];
@@ -997,7 +997,7 @@ namespace OpenMS
 				{
 					UInt count(0);
 					double sum(0);
-					for (UInt k = 0; k != residues.size(); ++k)
+					for (Size k = 0; k != residues.size(); ++k)
 					{
 						HMMState* s1 = name_to_state_[residues[k] + sc_res];
 						UInt tmp = training_steps_count_[s1][s2];
@@ -1023,7 +1023,7 @@ namespace OpenMS
       {
         UInt count(0);
         double sum(0);
-        for (UInt k = 0; k != residues.size(); ++k)
+        for (Size k = 0; k != residues.size(); ++k)
         {
 					HMMState* s1 = name_to_state_[residues[k] + sc_res];
           UInt tmp = training_steps_count_[s1][s2];
@@ -1042,7 +1042,7 @@ namespace OpenMS
 		}
 
 		s2 = name_to_state_["bk-1"];
-		for (UInt i = 0; i != residues.size(); ++i)
+		for (Size i = 0; i != residues.size(); ++i)
 		{
 			String aa1(residues[i]);
 			//cerr << "#training steps " << aa1 << "=" << training_steps_count_[name_to_state_[aa1 + "bk-1"]][s2] << " (" << trans_[name_to_state_[aa1 + "bk-1"]][s2] << ")" << endl;
@@ -1050,7 +1050,7 @@ namespace OpenMS
 			{
 				UInt count(0);
 				double sum(0);
-				for (UInt j = 0; j != residues.size(); ++j)
+				for (Size j = 0; j != residues.size(); ++j)
 				{
 					HMMState* s1 = name_to_state_[residues[j] + "bk-1"];
 					UInt tmp = training_steps_count_[s1][s2];
@@ -1070,14 +1070,14 @@ namespace OpenMS
 		}
 
 		s2 = name_to_state_["bk-2"];
-    for (UInt i = 0; i != residues.size(); ++i)
+    for (Size i = 0; i != residues.size(); ++i)
     {
       String aa1(residues[i]);
       if (training_steps_count_[name_to_state_[aa1 + "bk-2"]][s2] == 0)
       {
         UInt count(0);
         double sum(0);
-        for (UInt j = 0; j != residues.size(); ++j)
+        for (Size j = 0; j != residues.size(); ++j)
         {
           HMMState* s1 = name_to_state_[residues[j] + "bk-2"];
           UInt tmp = training_steps_count_[s1][s2];

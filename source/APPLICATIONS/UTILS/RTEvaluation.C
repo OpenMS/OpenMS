@@ -617,7 +617,7 @@ class TOPPRTEvaluation
 				if (textfile_input)
 				{
 					loadStringLabelLines_(inputfile_name, training_peptides, training_retention_times);
-					for(UInt i = 0; i < training_peptides.size(); ++i)
+					for (Size i = 0; i < training_peptides.size(); ++i)
 					{
 						if (temp_type == OLIGO)
 						{
@@ -648,7 +648,7 @@ class TOPPRTEvaluation
 			//-------------------------------------------------------------
 			if (!textfile_input)
 			{
-				for(UInt i = 0; i < identifications.size(); i++)
+				for (Size i = 0; i < identifications.size(); i++)
 				{
 					UInt temp_size = identifications[i].getHits().size();
 					if (temp_size > 0)
@@ -758,7 +758,7 @@ class TOPPRTEvaluation
 			
 			      temp_mean = accumulate(temp_values.begin(), temp_values.end(), 0.) / temp_values.size();
 			
-			      for(UInt j =0; j < temp_values.size(); ++j)
+			      for (Size j =0; j < temp_values.size(); ++j)
 			      {
 							temp_variance += (temp_values[j] - temp_mean) * (temp_values[j] - temp_mean);
 			      }
@@ -781,7 +781,7 @@ class TOPPRTEvaluation
 
 			if (!separation_prediction)
 			{
-				for(UInt i = 0; i < training_retention_times.size(); i++)
+				for (Size i = 0; i < training_retention_times.size(); i++)
 				{
 					training_retention_times[i] = training_retention_times[i] / total_gradient_time;
 				}
@@ -824,12 +824,12 @@ class TOPPRTEvaluation
 					+ training_sample.labels.size() + " labels for training";
 				writeDebug_(debug_string, 1);
 				
-				for(UInt i = 0; i < number_of_outer_runs; ++i)
+				for (Size i = 0; i < number_of_outer_runs; ++i)
 				{
 					samples.clear();
 					SVMWrapper::createRandomPartitions(training_sample, number_of_outer_partitions, samples);
 					test_quality_sum = 0.;
-					for(UInt j = 0; j < number_of_outer_partitions; ++j)
+					for (Size j = 0; j < number_of_outer_partitions; ++j)
 					{
 						SVMData temp_training_sample;
 						SVMData& temp_test_sample = samples[j];

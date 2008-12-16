@@ -180,7 +180,7 @@ class TOPPPILISIdentification
 			for (RichPeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
 			{
 				double pre_weight(it->getPrecursorPeak().getPosition()[0]);
-				for (UInt z = min_charge; z <= max_charge; ++z)
+				for (Size z = min_charge; z <= max_charge; ++z)
 				{
 					pre_weights.push_back((pre_weight * (double)z) - (double)z);
 				}
@@ -197,7 +197,7 @@ class TOPPPILISIdentification
 
 			map<double, vector<pair<pair<String, String>, String> > > sorted_candidates;
 			UInt count(0);
-			for (UInt count = 0; count != candidates.size(); ++count)
+			for (Size count = 0; count != candidates.size(); ++count)
 			{
 				sorted_candidates[pre_weights[count]] = candidates[count];
 			}
@@ -235,7 +235,7 @@ class TOPPPILISIdentification
 
 					map<String, UInt> cand;
 				
-					for (UInt z = min_charge; z <= max_charge; ++z)
+					for (Size z = min_charge; z <= max_charge; ++z)
 					{
 						double pre_weight = (it->getPrecursorPeak().getPosition()[0]* (double)z) - (double)z;
 						for (vector<pair<pair<String, String>, String> >::const_iterator cit = sorted_candidates[pre_weight].begin(); cit != sorted_candidates[pre_weight].end(); ++cit)
@@ -246,7 +246,7 @@ class TOPPPILISIdentification
 								continue;
 							}
 							UInt num_cleavages_sites(0);
-							for (UInt k = 0; k != seq.size(); ++k)
+							for (Size k = 0; k != seq.size(); ++k)
 							{
 								if (k != seq.size() - 1)
 								{
@@ -298,7 +298,7 @@ class TOPPPILISIdentification
 
 			// write the result to the IdentificationData structure for the storing
 			UInt max_candidates = getIntOption_("max_candidates");
-			for (UInt i = 0; i != ids.size(); ++i)
+			for (Size i = 0; i != ids.size(); ++i)
 			{
 				if (ids[i].getHits().size() > max_candidates)
 				{

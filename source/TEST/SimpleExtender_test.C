@@ -92,7 +92,7 @@ START_SECTION(void extend(const ChargedIndexSet &seed_region, ChargedIndexSet& r
 
 	const UInt num = 5;
 
-	for (UInt i=0; i < num; i++)
+	for (Size i=0; i < num; i++)
 	{
 		PeakType p;
 		p.setMZ(mzs[i]);
@@ -107,7 +107,7 @@ START_SECTION(void extend(const ChargedIndexSet &seed_region, ChargedIndexSet& r
 
 	DoubleReal its2[] = {1000, 1500, 2000, 1500, 1000};
 
-	for (UInt i=0; i < num; i++)
+	for (Size i=0; i < num; i++)
 	{
 		PeakType p;
 		p.setMZ(mzs[i]);
@@ -122,7 +122,7 @@ START_SECTION(void extend(const ChargedIndexSet &seed_region, ChargedIndexSet& r
 
 	DoubleReal its3[] = {1000, 1500, 5000, 1500, 1000};
 
-	for (UInt i=0; i < num; i++)
+	for (Size i=0; i < num; i++)
 	{
 		PeakType p;
 		p.setMZ(mzs[i]);
@@ -138,7 +138,7 @@ START_SECTION(void extend(const ChargedIndexSet &seed_region, ChargedIndexSet& r
 	// the last two data points should not be included (see param intensity_factor)
 	DoubleReal its4[] = {1000, 1500, 2000, 0.1, 0.1};
 
-	for (UInt i=0; i < num; i++)
+	for (Size i=0; i < num; i++)
 	{
 		PeakType p;
 		p.setMZ(mzs[i]);

@@ -166,10 +166,10 @@ class TOPPPTPredict
 			// calculations
 			//-------------------------------------------------------------
 		
-			for(UInt i = 0; i < identifications.size(); i++)
+			for (Size i = 0; i < identifications.size(); i++)
 			{
 				temp_peptide_hits = identifications[i].getHits();
-				for(UInt j = 0; j < temp_peptide_hits.size(); j++)
+				for (Size j = 0; j < temp_peptide_hits.size(); j++)
 				{
 					peptides.push_back(temp_peptide_hits[j].getSequence().toUnmodifiedString());
 				}
@@ -206,15 +206,15 @@ class TOPPPTPredict
 			}
 	    svm.getSVCProbabilities(prediction_data, predicted_likelihoods, predicted_labels);
 
-			for(UInt i = 0; i < peptides.size(); i++)
+			for (Size i = 0; i < peptides.size(); i++)
 			{
 				predicted_data.insert(make_pair(peptides[i],
 																				(predicted_likelihoods[i])));
 			}
-			for(UInt i = 0; i < identifications.size(); i++)
+			for (Size i = 0; i < identifications.size(); i++)
 			{
 				temp_peptide_hits = identifications[i].getHits();
-				for(UInt j = 0; j < temp_peptide_hits.size(); j++)
+				for (Size j = 0; j < temp_peptide_hits.size(); j++)
 				{
 					DoubleReal temp_rt = predicted_data[temp_peptide_hits[j].getSequence().toUnmodifiedString()];
 

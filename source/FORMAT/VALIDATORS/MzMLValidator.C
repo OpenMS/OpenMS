@@ -60,7 +60,7 @@ namespace OpenMS
 	  	else if (tag=="referenceableParamGroupRef")
 	    {
 	    	const std::vector<CVTerm>& terms = param_groups_[attributeAsString_(attributes,"ref")];
-				for (UInt i=0; i< terms.size(); ++i)
+				for (Size i=0; i< terms.size(); ++i)
 				{
 					handleTerm_(path, terms[i]);
 				}

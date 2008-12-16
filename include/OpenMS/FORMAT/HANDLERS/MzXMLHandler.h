@@ -683,7 +683,7 @@ namespace OpenMS
 					char_rest_ = "";
 					PeakType peak;
 					//push_back the peaks into the container
-					for (UInt n = 0 ; n < ( 2 * peak_count_) ; n += 2)
+					for (Size n = 0 ; n < ( 2 * peak_count_) ; n += 2)
 					{
 						// check if peak in in the specified m/z  and intensity range
 						if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
@@ -702,7 +702,7 @@ namespace OpenMS
 					char_rest_ = "";
 					PeakType peak;
 					//push_back the peaks into the container
-					for (UInt n = 0 ; n < (2 * peak_count_) ; n += 2)
+					for (Size n = 0 ; n < (2 * peak_count_) ; n += 2)
 					{
 						if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
 						 && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n+1]))))
@@ -772,7 +772,7 @@ namespace OpenMS
 		{
 			//determine how many spectra there are (count only those with peaks)
 			UInt count_tmp_  = 0;
-			for (UInt s=0; s<cexp_->size(); s++)
+			for (Size s=0; s<cexp_->size(); s++)
 			{
 				const SpectrumType& spec = (*cexp_)[s];
 				if (spec.size()!=0) ++count_tmp_;
@@ -795,7 +795,7 @@ namespace OpenMS
 			}
 			else 
 			{
-				for (UInt i=0; i< cexp_->getSourceFiles().size(); ++i)
+				for (Size i=0; i< cexp_->getSourceFiles().size(); ++i)
 				{
 					const SourceFile& sf = cexp_->getSourceFiles()[i];
 					os << "\t\t<parentFile fileName=\"" << sf.getNameOfFile() << "\" fileType=\"";
@@ -915,7 +915,7 @@ namespace OpenMS
 			}
 			else
 			{
-				for (UInt i=0; i<cexp_->getDataProcessing().size(); ++i)
+				for (Size i=0; i<cexp_->getDataProcessing().size(); ++i)
 				{
 					const DataProcessing& data_processing = cexp_->getDataProcessing()[i];
 					os << "\t\t<dataProcessing deisotoped=\""
@@ -959,7 +959,7 @@ namespace OpenMS
 			bool all_numbers = true;
 			bool all_empty = true;
 			bool all_prefixed_numbers = true;
-			for (UInt s=0; s<cexp_->size(); s++)
+			for (Size s=0; s<cexp_->size(); s++)
 			{
 				String native_id = (*cexp_)[s].getNativeID();
 				if (!native_id.hasPrefix("scan="))
@@ -992,7 +992,7 @@ namespace OpenMS
 			
 			// write scans
 			std::stack<UInt> open_scans;
-			for (UInt s=0; s<cexp_->size(); s++)
+			for (Size s=0; s<cexp_->size(); s++)
 			{
 				logger_.setProgress(s);
 				const SpectrumType& spec = (*cexp_)[s];
@@ -1080,7 +1080,7 @@ namespace OpenMS
 					
 					//std::cout << "Writing scan " << s << std::endl;
 					std::vector<Real> tmp;
-					for (UInt i=0; i<spec.size(); i++)
+					for (Size i=0; i<spec.size(); i++)
 					{
 						tmp.push_back(spec[i].getMZ());
 						tmp.push_back(spec[i].getIntensity());
@@ -1110,7 +1110,7 @@ namespace OpenMS
 				//std::cout << "scan: " << s << " this: " << ms_level << " next: " << next_ms_level << std::endl;
 				if (next_ms_level <= ms_level)
 				{
-					for (UInt i = 0; i<= ms_level-next_ms_level && !open_scans.empty(); ++i)
+					for (Size i = 0; i<= ms_level-next_ms_level && !open_scans.empty(); ++i)
 					{
 						os << String(ms_level-i+1,'\t') << "</scan>\n";
 						open_scans.pop();

@@ -406,7 +406,7 @@ namespace OpenMS
 				//sort index list
 				std::vector< std::pair<typename PeakType::IntensityType,UInt> > sorted_indices;
 				sorted_indices.reserve(ContainerType::size());
-				for(UInt i(0); i < ContainerType::size(); ++i)
+				for (Size i(0); i < ContainerType::size(); ++i)
 				{
 					sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getIntensity(),i));
 				}
@@ -422,16 +422,16 @@ namespace OpenMS
 
 				//apply sorting to ContainerType and to metadataarrays
 				ContainerType tmp;
-				for(UInt i(0); i < sorted_indices.size(); ++i)
+				for (Size i(0); i < sorted_indices.size(); ++i)
 				{
 					tmp.push_back(*(ContainerType::begin()+(sorted_indices[i].second)));
 				}
 				ContainerType::swap(tmp);
 
-				for(UInt i(0); i < meta_data_arrays_.size(); ++i)
+				for (Size i(0); i < meta_data_arrays_.size(); ++i)
 				{
 					std::vector<Real> mda_tmp;
-					for(UInt j(0); j < meta_data_arrays_[i].size(); ++j)
+					for (Size j(0); j < meta_data_arrays_[i].size(); ++j)
 					{
 						mda_tmp.push_back(*(meta_data_arrays_[i].begin()+(sorted_indices[j].second)));
 					}
@@ -457,7 +457,7 @@ namespace OpenMS
 				//sort index list
 				std::vector< std::pair<typename PeakType::PositionType,UInt> > sorted_indices;
 				sorted_indices.reserve(ContainerType::size());
-				for(UInt i(0); i < ContainerType::size(); ++i)
+				for (Size i(0); i < ContainerType::size(); ++i)
 				{
 					sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getPosition(),i));
 				}
@@ -465,17 +465,17 @@ namespace OpenMS
 
 				//apply sorting to ContainerType and to metadataarrays
 				ContainerType tmp;
-				for(UInt i(0); i < sorted_indices.size(); ++i)
+				for (Size i(0); i < sorted_indices.size(); ++i)
 				{
 					tmp.push_back(*(ContainerType::begin()+(sorted_indices[i].second)));
 				}
 				ContainerType::swap(tmp);
 
 				//what if metadataarray is unequal in size to the spectrum?? throw error?
-				for(UInt i(0); i < meta_data_arrays_.size(); ++i)
+				for (Size i(0); i < meta_data_arrays_.size(); ++i)
 				{
 					std::vector<Real> mda_tmp;
-					for(UInt j(0); j < meta_data_arrays_[i].size(); ++j)
+					for (Size j(0); j < meta_data_arrays_[i].size(); ++j)
 					{
 						mda_tmp.push_back(*(meta_data_arrays_[i].begin()+(sorted_indices[j].second)));
 					}

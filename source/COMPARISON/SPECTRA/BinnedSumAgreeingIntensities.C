@@ -81,7 +81,7 @@ namespace OpenMS
 		double score(0), sharedBins(min(spec1.getBinNumber(),spec2.getBinNumber())), sum1(0), sum2(0), summax(0);
 				
 		// all bins at equal position and similar intensities contribute positively to score
-		for (UInt i = 0; i < sharedBins; ++i)
+		for (Size i = 0; i < sharedBins; ++i)
 		{
 			sum1 += spec1.getBins()[i];
 			sum2 += spec2.getBins()[i];

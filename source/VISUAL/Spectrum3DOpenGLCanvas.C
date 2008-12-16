@@ -223,7 +223,7 @@ namespace OpenMS
 		//RT numbers
 		if(grid_rt_.size()>0)
 		{
-			for(UInt i = 0;i<grid_rt_[0].size();i++)
+			for (Size i = 0;i<grid_rt_[0].size();i++)
 			{
 				text = QString::number(grid_rt_[0][i]);
 				renderText(-corner_-15.0, -corner_-5.0, -near_-2*corner_-scaledRT(grid_rt_[0][i]), text, font);
@@ -231,7 +231,7 @@ namespace OpenMS
 		}
 		if(zoom_<3.0 && grid_rt_.size()>=2)
 		{
-			for(UInt i = 0;i<grid_rt_[1].size();i++)
+			for (Size i = 0;i<grid_rt_[1].size();i++)
 			{
 				text = QString::number(grid_rt_[1][i]);
 				renderText(-corner_-15.0,  -corner_-5.0, -near_-2*corner_-scaledRT(grid_rt_[1][i]), text, font);
@@ -239,7 +239,7 @@ namespace OpenMS
 		}
 		if(zoom_<2.0 && grid_rt_.size()>=3)
 		{
-			for(UInt i = 0;i<grid_rt_[2].size();i++)
+			for (Size i = 0;i<grid_rt_[2].size();i++)
 			{
 				text = QString::number(grid_rt_[2][i]);
 				renderText(-corner_-15.0, -corner_-5.0, -near_-2*corner_-scaledRT(grid_rt_[2][i]), text, font);
@@ -249,7 +249,7 @@ namespace OpenMS
 		//m/z numbers
 		if(grid_mz_.size()>0)
 		{
-			for(UInt i = 0;i<grid_mz_[0].size();i++)
+			for (Size i = 0;i<grid_mz_[0].size();i++)
 			{
 				text = QString::number(grid_mz_[0][i]);
 				renderText(-corner_-text.length()+scaledMZ(grid_mz_[0][i]), -corner_-5.0, -near_-2*corner_+15.0, text, font);
@@ -257,7 +257,7 @@ namespace OpenMS
 		}
 		if(zoom_<3.0 && grid_mz_.size()>=2)
 		{
-			for(UInt i = 0;i<grid_mz_[1].size();i++)
+			for (Size i = 0;i<grid_mz_[1].size();i++)
 			{
 				text = QString::number(grid_mz_[1][i]);
 				renderText(-corner_-text.length()+scaledMZ(grid_mz_[1][i]), -corner_-5.0, -near_-2*corner_+15.0, text, font);
@@ -265,7 +265,7 @@ namespace OpenMS
 		}
 		if(zoom_<2.0 && grid_mz_.size()>=3)
 		{
-			for(UInt i = 0;i<grid_mz_[2].size();i++)
+			for (Size i = 0;i<grid_mz_[2].size();i++)
 			{
 				text = QString::number(grid_mz_[2][i]);
 				renderText(-corner_-text.length()+scaledMZ(grid_mz_[2][i]), -corner_-5.0, -near_-2*corner_+15.0, text, font);
@@ -285,7 +285,7 @@ namespace OpenMS
 						font.setPixelSize(10);
 					}
 					
-					for(UInt i = 0;i<grid_intensity_[0].size();i++)
+					for (Size i = 0;i<grid_intensity_[0].size();i++)
 					{ 
 						text = QString::number(grid_intensity_[0][i]);
 						renderText(-corner_-text.length()-width_/200.0-5.0, -corner_+(2.0*grid_intensity_[0][i]), -near_-2*corner_, text, font);
@@ -324,13 +324,13 @@ namespace OpenMS
 					
 					if(zoom_<3.0 && grid_intensity_.size()>=2)
 					{
-						for(UInt i = 0;i<grid_intensity_[0].size();i++)
+						for (Size i = 0;i<grid_intensity_[0].size();i++)
 						{ 
 							double intensity = (double)grid_intensity_[0][i]/pow(10.0,expo);
 							text = QString("%1").arg(intensity,0,'f',1);
 							renderText(-corner_-text.length()-width_/200.0-5.0, -corner_+scaledIntensity(grid_intensity_[0][i],canvas_3d_.current_layer_), -near_-2*corner_, text, font);
 						}
-						for(UInt i = 0;i<grid_intensity_[1].size();i++)
+						for (Size i = 0;i<grid_intensity_[1].size();i++)
 						{
 							double intensity = (double)grid_intensity_[1][i]/pow(10.0,expo);
 							text = QString("%1").arg(intensity,0,'f',1);
@@ -339,7 +339,7 @@ namespace OpenMS
 					}
 					if(width_>800 && heigth_>600&& zoom_<2.0 && grid_intensity_.size()>=3)
 					{
-						for(UInt i = 0;i<grid_intensity_[2].size();i++)
+						for (Size i = 0;i<grid_intensity_[2].size();i++)
 						{
 							double intensity = (double)grid_intensity_[2][i]/pow(10.0,expo);
 							text = QString("%1").arg(intensity,0,'f',1);
@@ -395,7 +395,7 @@ namespace OpenMS
 		glNewList(list,GL_COMPILE);
 		glPointSize(3.0);
 	
-		for(UInt i =0;i<canvas_3d_.getLayerCount();i++)
+		for (Size i =0;i<canvas_3d_.getLayerCount();i++)
 		{	
 			const LayerData& layer = canvas_3d_.getLayer(i);
 			if(layer.visible)
@@ -448,7 +448,7 @@ namespace OpenMS
 		GLuint list = glGenLists(1);
 		glNewList(list,GL_COMPILE);
 	
-		for(UInt i =0;i<canvas_3d_.getLayerCount();i++)
+		for (Size i =0;i<canvas_3d_.getLayerCount();i++)
 		{	
 			const LayerData& layer = canvas_3d_.getLayer(i);
 			if(layer.visible)
@@ -537,7 +537,7 @@ namespace OpenMS
 		//mz
 		if(grid_mz_.size()>=1)
 		{
-			for(UInt i = 0;i<grid_mz_[0].size();i++)
+			for (Size i = 0;i<grid_mz_[0].size();i++)
 			{
 				glVertex3d(-corner_+scaledMZ(grid_mz_[0][i]), -corner_, -near_-2*corner_);
 				glVertex3d(-corner_+scaledMZ(grid_mz_[0][i]), -corner_, -far_+2*corner_);
@@ -545,7 +545,7 @@ namespace OpenMS
 		}
 		if(grid_mz_.size()>=2)
 		{
-			for(UInt i = 0;i<grid_mz_[1].size();i++)
+			for (Size i = 0;i<grid_mz_[1].size();i++)
 			{	
 				glVertex3d(-corner_+scaledMZ(grid_mz_[1][i]), -corner_, -near_-2*corner_);
 				glVertex3d(-corner_+scaledMZ(grid_mz_[1][i]), -corner_, -far_+2*corner_);
@@ -553,7 +553,7 @@ namespace OpenMS
 		}
 		if(grid_mz_.size()>=3)
 		{
-			for(UInt i = 0;i<grid_mz_[2].size();i++)
+			for (Size i = 0;i<grid_mz_[2].size();i++)
 			{	
 				glVertex3d(-corner_+scaledMZ(grid_mz_[2][i]), -corner_, -near_-2*corner_);
 				glVertex3d(-corner_+scaledMZ(grid_mz_[2][i]), -corner_, -far_+2*corner_);
@@ -562,7 +562,7 @@ namespace OpenMS
 		//rt
 		if(grid_rt_.size()>=1)
 		{
-			for(UInt i = 0;i<grid_rt_[0].size();i++)
+			for (Size i = 0;i<grid_rt_[0].size();i++)
 			{
 				glVertex3d(-corner_, -corner_, -near_-2*corner_-scaledRT(grid_rt_[0][i]));
 				glVertex3d( corner_, -corner_, -near_-2*corner_-scaledRT(grid_rt_[0][i]));
@@ -570,7 +570,7 @@ namespace OpenMS
 		}
 		if(grid_rt_.size()>=2)
 		{
-			for(UInt i = 0;i<grid_rt_[1].size();i++)
+			for (Size i = 0;i<grid_rt_[1].size();i++)
 			{
 				glVertex3d(-corner_, -corner_, -near_-2*corner_-scaledRT(grid_rt_[1][i]));
 				glVertex3d( corner_, -corner_, -near_-2*corner_-scaledRT(grid_rt_[1][i]));
@@ -578,7 +578,7 @@ namespace OpenMS
 		}
 		if(grid_rt_.size()>=3)
 		{
-			for(UInt i = 0;i<grid_rt_[2].size();i++)
+			for (Size i = 0;i<grid_rt_[2].size();i++)
 			{
 				glVertex3d(-corner_, -corner_, -near_-2*corner_-scaledRT(grid_rt_[2][i]));
 				glVertex3d( corner_, -corner_, -near_-2*corner_-scaledRT(grid_rt_[2][i]));
@@ -602,7 +602,7 @@ namespace OpenMS
 		//MZ
 		if(grid_mz_.size()>=1)
 		{
-			for(UInt i = 0;i<grid_mz_[0].size();i++)
+			for (Size i = 0;i<grid_mz_[0].size();i++)
 			{
 				glVertex3d(-corner_+scaledMZ(grid_mz_[0][i]), -corner_, -near_-2*corner_);
 				glVertex3d( -corner_+scaledMZ(grid_mz_[0][i]), -corner_+4.0, -near_-2*corner_);
@@ -610,7 +610,7 @@ namespace OpenMS
 		}
 		if(grid_mz_.size()>=2)
 		{
-			for(UInt i = 0;i<grid_mz_[1].size();i++)
+			for (Size i = 0;i<grid_mz_[1].size();i++)
 			{
 				glVertex3d(-corner_+scaledMZ(grid_mz_[1][i]), -corner_, -near_-2*corner_);
 				glVertex3d( -corner_+scaledMZ(grid_mz_[1][i]), -corner_+3.0, -near_-2*corner_);
@@ -618,7 +618,7 @@ namespace OpenMS
 		}
 		if(grid_mz_.size()>=3)
 		{
-			for(UInt i = 0;i<grid_mz_[2].size();i++)
+			for (Size i = 0;i<grid_mz_[2].size();i++)
 			{
 				glVertex3d(-corner_+scaledMZ(grid_mz_[2][i]),  -corner_,  -near_-2*corner_);
 				glVertex3d( -corner_+scaledMZ(grid_mz_[2][i]), -corner_+2.0, -near_-2*corner_);
@@ -628,7 +628,7 @@ namespace OpenMS
 		//RT
 		if(grid_rt_.size()>=1)
 		{
-			for(UInt i = 0;i<grid_rt_[0].size();i++)
+			for (Size i = 0;i<grid_rt_[0].size();i++)
 			{
 				glVertex3d(-corner_, -corner_, -near_-2*corner_-scaledRT(grid_rt_[0][i]));
 				glVertex3d( -corner_, -corner_+4.0, -near_-2*corner_-scaledRT(grid_rt_[0][i]));
@@ -636,7 +636,7 @@ namespace OpenMS
 		}
 		if(grid_rt_.size()>=2)
 		{
-			for(UInt i = 0;i<grid_rt_[1].size();i++)
+			for (Size i = 0;i<grid_rt_[1].size();i++)
 			{
 				glVertex3d(-corner_, -corner_, -near_-2*corner_-scaledRT(grid_rt_[1][i]));
 				glVertex3d( -corner_, -corner_+3.0, -near_-2*corner_-scaledRT(grid_rt_[1][i]));
@@ -644,7 +644,7 @@ namespace OpenMS
 		}	
 		if(grid_rt_.size()>=3)
 		{
-			for(UInt i = 0;i<grid_rt_[2].size();i++)
+			for (Size i = 0;i<grid_rt_[2].size();i++)
 			{
 				glVertex3d(-corner_, -corner_, -near_-2*corner_-scaledRT(grid_rt_[2][i]));
 				glVertex3d( -corner_, -corner_+2.0, -near_-2*corner_-scaledRT(grid_rt_[2][i]));
@@ -656,7 +656,7 @@ namespace OpenMS
 			case SpectrumCanvas::IM_PERCENTAGE:
 				if(grid_intensity_.size()>=1)
 				{
-					for(UInt i = 0;i<grid_intensity_[0].size();i++)
+					for (Size i = 0;i<grid_intensity_[0].size();i++)
 					{	
 						glVertex3d(-corner_,  -corner_+(2.0 *grid_intensity_[0][i]),  -near_-2*corner_);
 						glVertex3d( -corner_+4.0, -corner_+(2.0 * grid_intensity_[0][i]), -near_-2*corner_-4.0);
@@ -668,7 +668,7 @@ namespace OpenMS
 			case SpectrumCanvas::IM_SNAP:
 				if(grid_intensity_.size()>=1)
 				{
-					for(UInt i = 0;i<grid_intensity_[0].size();i++)
+					for (Size i = 0;i<grid_intensity_[0].size();i++)
 					{	
 						glVertex3d(-corner_,  -corner_+scaledIntensity(grid_intensity_[0][i],canvas_3d_.current_layer_), -near_-2*corner_);
 						glVertex3d( -corner_+4.0, -corner_+scaledIntensity(grid_intensity_[0][i],canvas_3d_.current_layer_), -near_-2*corner_-4.0);
@@ -676,7 +676,7 @@ namespace OpenMS
 				}
 				if(grid_intensity_.size()>=2)
 				{
-					for(UInt i = 0;i<grid_intensity_[1].size();i++)
+					for (Size i = 0;i<grid_intensity_[1].size();i++)
 					{
 						glVertex3d(-corner_, -corner_+scaledIntensity(grid_intensity_[1][i],canvas_3d_.current_layer_),  -near_-2*corner_);
 						glVertex3d( -corner_+3.0, -corner_+scaledIntensity(grid_intensity_[1][i],canvas_3d_.current_layer_), -near_-2*corner_-3.0);
@@ -684,7 +684,7 @@ namespace OpenMS
 				}
 				if(grid_intensity_.size()>=3)
 				{
-					for(UInt i = 0;i<grid_intensity_[2].size();i++)
+					for (Size i = 0;i<grid_intensity_[2].size();i++)
 					{ 
 						glVertex3d(-corner_, -corner_+scaledIntensity(grid_intensity_[2][i],canvas_3d_.current_layer_), -near_-2*corner_);
 						glVertex3d( -corner_+2.0, -corner_+scaledIntensity(grid_intensity_[2][i],canvas_3d_.current_layer_), -near_-2*corner_-2.0);
@@ -889,7 +889,7 @@ namespace OpenMS
 		int_scale_.min_[0]= canvas_3d_.overall_data_range_.max_[2];
 		int_scale_.max_[0]= canvas_3d_.overall_data_range_.min_[2];
 		
-		for(UInt i =0;i<canvas_3d_.getLayerCount();i++)
+		for (Size i =0;i<canvas_3d_.getLayerCount();i++)
 		{
 			for (SpectrumCanvas::ExperimentType::ConstIterator spec_it = canvas_3d_.getLayer(i).peaks.RTBegin(canvas_3d_.visible_area_.min_[1]); 
 					 spec_it != canvas_3d_.getLayer(i).peaks.RTEnd(canvas_3d_.visible_area_.max_[1]); 

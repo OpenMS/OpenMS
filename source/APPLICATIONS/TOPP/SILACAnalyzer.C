@@ -273,7 +273,7 @@ class TOPPSILACAnalyzer
 			int cluster_number[] = {1,1,1,1,1,1,1,1,1,1}; // maybe though with a vector even if more that 10 charge states are doubtfull?
 
 			//iterate over all charge states
-			for (UInt charge=charge_min; charge<=charge_max; ++charge)
+			for (Size charge=charge_min; charge<=charge_max; ++charge)
 			{
 				std::cout << std::endl << "charge state: " << charge << "+" << std::endl;
 				DoubleReal isotope_distance = 1.0 / (DoubleReal)charge;
@@ -366,9 +366,9 @@ class TOPPSILACAnalyzer
 				//-------------------------------------------------------------
 				DistanceMatrix<Real> distance_matrix;
 				distance_matrix.resize(data.size(),1);
-				for(UInt i=0; i < data.size(); ++i)
+				for (Size i=0; i < data.size(); ++i)
 				{
-					for(UInt j=0; j < i; ++j)
+					for (Size j=0; j < i; ++j)
 					{
 						// shrink RT by factor rt_scaling in order to make clusters more symmetric
 						distance_matrix.setValueQuick(i,j, sqrt( (data[i].rt-data[j].rt)*(data[i].rt-data[j].rt)*rt_scaling*rt_scaling+(data[i].mz-data[j].mz)*(data[i].mz-data[j].mz) ) );
@@ -396,7 +396,7 @@ class TOPPSILACAnalyzer
 				//~ std::vector< Real >::iterator max_el(max_element((asw.end()-((Int)data.size()/10) ),asw.end()));//only the first size/10 steps are reviewed
 				size_t best_n = tree.size();
 				Real max_deviation((*max_el)*(optimal_silhouette_tolerance/100));
-				for(UInt i = 0; i < asw.size(); ++i)
+				for (Size i = 0; i < asw.size(); ++i)
 				{
 					if(std::fabs(asw[i]-(*max_el))<=max_deviation)
 					{
@@ -406,7 +406,7 @@ class TOPPSILACAnalyzer
 				}
 
 				//~ debug output
-				//~ for(UInt j = 0; j < asw.size(); ++j)
+				//~ for (Size j = 0; j < asw.size(); ++j)
 				//~ {
 					//~ std::cout << "asw(" << j << "): " << asw[j] << std::endl;
 				//~ }
@@ -414,7 +414,7 @@ class TOPPSILACAnalyzer
 
 				//~ dunn indices nogood here, if not only the the last half considered
 				//~ std::vector<Real>dunn = ca.dunnIndices(tree,distance_matrix);
-				//~ for(UInt j = 0; j < dunn.size(); ++j)
+				//~ for (Size j = 0; j < dunn.size(); ++j)
 				//~ {
 					//~ std::cout << "dunn: " << dunn[j] << std::endl;
 				//~ }
@@ -433,7 +433,7 @@ class TOPPSILACAnalyzer
 				// count data points in each cluster
 				//-------------------------------------------------------------
 				std::vector<Int> cluster_size(best_n,0); // number of points per cluster
-				for(UInt i=0; i < cluster_size.size(); ++i)
+				for (Size i=0; i < cluster_size.size(); ++i)
 				{
 					cluster_size[i] = best_n_clusters[i].size();
 				}
@@ -441,9 +441,9 @@ class TOPPSILACAnalyzer
 				//--------------------------------------------------------------
 				// fill in cluster_id and cluster_size in SILACData structure
 				//--------------------------------------------------------------
-				for(UInt i=0; i < best_n_clusters.size(); ++i)
+				for (Size i=0; i < best_n_clusters.size(); ++i)
 				{
-					for(UInt j=0; j < best_n_clusters[i].size(); ++j)
+					for (Size j=0; j < best_n_clusters[i].size(); ++j)
 					{
 						data[best_n_clusters[i][j]].cluster_id = i;
 						data[best_n_clusters[i][j]].cluster_size = best_n_clusters[i].size();
@@ -485,7 +485,7 @@ class TOPPSILACAnalyzer
 				//--------------------------------------------------------------
 				if (out!="")
 				{
-					for (UInt i=0; i<best_n; ++i)
+					for (Size i=0; i<best_n; ++i)
 					{
 						DoubleReal rt = 0.0;
 						DoubleReal mz = 0.0;
@@ -635,7 +635,7 @@ class TOPPSILACAnalyzer
 	      	// write ratios of all cluster to *.dat
 					std::ofstream stream_ratios(debug_dat.c_str());
 					stream_ratios << "cluster_id cluster_size rt mz ratio" << std::endl;
-	      	for (UInt i=0; i<best_n;++i)
+	      	for (Size i=0; i<best_n;++i)
 					{
 						DoubleReal rt = 0.0;
 						DoubleReal mz = 0.0;
@@ -725,7 +725,7 @@ class TOPPSILACAnalyzer
 				stream_gnuplotscript << "set size 2.0, 2.0" << std::endl;
 				stream_gnuplotscript << "set size square" << std::endl << std::endl;
 				//iterate over all charge states
-				for (UInt charge=charge_min; charge<=charge_max; ++charge)
+				for (Size charge=charge_min; charge<=charge_max; ++charge)
 				{
   	    	String debug_suffix = "_" + String(0.01*floor(mass_separation*100+0.5)) + "Da_" + String(charge) +"+";
   	    	// names of dat files

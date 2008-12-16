@@ -164,9 +164,9 @@ START_SECTION(Feature fit(const ChargedIndexSet& index_set))
 	
 	Peak2D p;
 	std::vector<Peak2D> peak_array;
-	for (UInt mz=0; mz<mz_num; mz++) 
+	for (Size mz=0; mz<mz_num; mz++) 
 	{
-		for (UInt rt=0; rt<rt_num; rt++)
+		for (Size rt=0; rt<rt_num; rt++)
 		{
 			p.setMZ(mzs[mz]);
 			p.setRT(rts[rt]);
@@ -189,9 +189,9 @@ START_SECTION(Feature fit(const ChargedIndexSet& index_set))
 	model_fitter.setParameters(param);
 	ChargedIndexSet  set;
 
-	for (UInt mz=0; mz<mz_num; mz++) 
+	for (Size mz=0; mz<mz_num; mz++) 
 	{
-		for (UInt rt=0; rt<rt_num; rt++)
+		for (Size rt=0; rt<rt_num; rt++)
 		{
 			set.insert(std::make_pair(rt,mz));
 		}
@@ -223,7 +223,7 @@ START_SECTION(Feature fit(const ChargedIndexSet& index_set))
 
 	// test predicted intensities
 	DPosition<2> pos;
-	for (UInt mz=0; mz<mz_num; mz++) for (UInt rt=0; rt<rt_num; rt++)
+	for (Size mz=0; mz<mz_num; mz++) for (Size rt=0; rt<rt_num; rt++)
 	{
 	 	pos[MZ] = mzs[mz];
 		pos[RT] = rts[rt];
@@ -259,7 +259,7 @@ START_SECTION(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (Unabl
 
 	Peak2D p;
 	std::vector<Peak2D> peak_array;
-	for (UInt rt=0; rt<rt_num; rt++) for (UInt mz=0; mz<mz_num; mz++)
+	for (Size rt=0; rt<rt_num; rt++) for (Size mz=0; mz<mz_num; mz++)
 	{
 		p.setMZ(mzs[mz]);
 		p.setRT(rts[rt]);
@@ -291,9 +291,9 @@ START_SECTION(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (Unabl
 	model_fitter.setParameters(param);
 	ChargedIndexSet  set;
 	
-	for (UInt i=0; i<input.size(); ++i) 
+	for (Size i=0; i<input.size(); ++i) 
 	{
-		for (UInt j=0; j<input[i].size(); ++j) 
+		for (Size j=0; j<input[i].size(); ++j) 
 		{
 			set.insert(std::make_pair(i,j));
 		}
@@ -327,8 +327,8 @@ START_SECTION(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (Unabl
 
 	// test predicted intensities
 	DPosition<2> pos;
-	for (UInt rt=0; rt<rt_num; rt++)
-		for (UInt mz=0; mz<mz_num; mz++)
+	for (Size rt=0; rt<rt_num; rt++)
+		for (Size mz=0; mz<mz_num; mz++)
 			if(intens[rt*mz_num+mz]>1000.0)
 	{
 	 	pos[MZ] = mzs[mz];
@@ -367,7 +367,7 @@ START_SECTION(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (Unabl
 	
 	Peak2D p;
 	std::vector<Peak2D> peak_array;
-	for (UInt rt=0; rt<rt_num; rt++) for (UInt mz=0; mz<mz_num; mz++)
+	for (Size rt=0; rt<rt_num; rt++) for (Size mz=0; mz<mz_num; mz++)
 	{
 		p.setMZ(mzs[mz]);
 		p.setRT(rts[rt]);
@@ -398,9 +398,9 @@ START_SECTION(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (Unabl
 	model_fitter.setParameters(param);
 	ChargedIndexSet  set;
 	
-	for (UInt i=0; i<input.size(); ++i) 
+	for (Size i=0; i<input.size(); ++i) 
 	{
-		for (UInt j=0; j<input[i].size(); ++j) 
+		for (Size j=0; j<input[i].size(); ++j) 
 		{
 			set.insert(std::make_pair(i,j));
 		}
@@ -431,7 +431,7 @@ START_SECTION(([EXTRA]Feature fit(const ChargedIndexSet& index_set) throw (Unabl
 	
 	// test predicted intensities
 	DPosition<2> pos;
-	for (UInt mz=0; mz<mz_num; mz++) for (UInt rt=0; rt<rt_num; rt++)
+	for (Size mz=0; mz<mz_num; mz++) for (Size rt=0; rt<rt_num; rt++)
 	{
 	 	pos[MZ] = mzs[mz];
 		pos[RT] = rts[rt];
@@ -481,7 +481,7 @@ START_SECTION(([EXTRA]void ExtendedModelFitter::optimize()))
 		// save samples
 		Peak2D p;
 		std::vector<Peak2D> peak_array;
-		for (UInt i=0; i<dpa1.size(); ++i) {
+		for (Size i=0; i<dpa1.size(); ++i) {
 			p.setMZ(1);
 			p.setRT(dpa1[i].getPosition()[0]);
 			p.setIntensity(dpa1[i].getIntensity());
@@ -505,8 +505,8 @@ START_SECTION(([EXTRA]void ExtendedModelFitter::optimize()))
 		ChargedIndexSet  set;
 
 		// construct indexSet
-		for (UInt i=0; i<input.size(); ++i) 
-			for (UInt j=0; j<input[i].size(); ++j) 
+		for (Size i=0; i<input.size(); ++i) 
+			for (Size j=0; j<input[i].size(); ++j) 
 				set.insert(std::make_pair(i,j));
 
 		// compute start parameter
@@ -558,7 +558,7 @@ START_SECTION(([EXTRA]void ExtendedModelFitter::optimize()))
 
 	//String fname2 = "samples2.dta2d";
 	//ofstream file2(fname2.c_str()); 	
-	for (UInt i=0; i<dpa2.size(); ++i)
+	for (Size i=0; i<dpa2.size(); ++i)
 	{
 
 		//if (i%3 == 0 && (dpa2[i].getPosition()[1] > 1))
@@ -595,8 +595,8 @@ START_SECTION(([EXTRA]void ExtendedModelFitter::optimize()))
 	ChargedIndexSet  set2;
 
 	// construct indexSet
-	for (UInt i=0; i<input2.size(); ++i) 
-		for (UInt j=0; j<input2[i].size(); ++j) 
+	for (Size i=0; i<input2.size(); ++i) 
+		for (Size j=0; j<input2[i].size(); ++j) 
 			set2.insert(std::make_pair(i,j));
 
 	// compute start parameter
@@ -641,7 +641,7 @@ START_SECTION(([EXTRA]void ExtendedModelFitter::optimize()))
 	//String fname3 = "samples3.dta2d";
 	//ofstream file3(fname3.c_str()); 
 	// save samples
-	for (UInt i=0; i<dpa3.size(); ++i) {
+	for (Size i=0; i<dpa3.size(); ++i) {
 		//file3 << dpa3[i].getPosition()[0] << "	" << (dpa3[i].getPosition()[1]) << "\n";
 		p3.setMZ(1);
 		p3.setRT(dpa3[i].getPosition()[0]);
@@ -663,8 +663,8 @@ START_SECTION(([EXTRA]void ExtendedModelFitter::optimize()))
 
 	// construct indexSet
 	ChargedIndexSet set3;
-	for (UInt i=0; i<exp3.size(); ++i) 
-		for (UInt j=0; j<exp3[i].size(); ++j) 
+	for (Size i=0; i<exp3.size(); ++i) 
+		for (Size j=0; j<exp3[i].size(); ++j) 
 			set3.insert(std::make_pair(i,j));
 
 	// compute start parameter
@@ -725,7 +725,7 @@ START_SECTION(([EXTRA]void ExtendedModelFitter::optimize()))
 			//String fname4 = "samples4.dta2d";
 			//ofstream file4(fname4.c_str()); 
 			// save samples
-			for (UInt i=0; i<dpa4.size(); ++i)
+			for (Size i=0; i<dpa4.size(); ++i)
 			{
 
 				//file4 << dpa4[i].getPosition()[0] << "	" << (dpa4[i].getPosition()[1]) << "\n";
@@ -749,8 +749,8 @@ START_SECTION(([EXTRA]void ExtendedModelFitter::optimize()))
 
 			// construct indexSet
 			ChargedIndexSet set4;
-			for (UInt i=0; i<exp4.size(); ++i) 
-				for (UInt j=0; j<exp4[i].size(); ++j) 
+			for (Size i=0; i<exp4.size(); ++i) 
+				for (Size j=0; j<exp4[i].size(); ++j) 
 					set4.insert(std::make_pair(i,j));
 
 			// compute start parameter

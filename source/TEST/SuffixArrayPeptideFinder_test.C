@@ -208,15 +208,15 @@ START_SECTION((void getCandidates(std::vector< std::vector< std::pair< FASTAEntr
 		fasta_map[(**fit).first]=(**fit).second;
 		++*fit;
 	}
-	for (unsigned int i = 0; i < res2.size(); ++i)
+	for (Size i = 0; i < res2.size(); ++i)
 	{
-		for (unsigned int j = 0; j < res2.at(i).size();++j)
+		for (Size j = 0; j < res2.at(i).size();++j)
 		{
 			String pep_seq = res2.at(i).at(j).first.second;
 			String complete_seq = fasta_map[res2.at(i).at(j).first.first];
 			unsigned int l = pep_seq.length();
 			bool found = false;
-			for (unsigned int k = l;k<=complete_seq.length();++k)
+			for (Size k = l;k<=complete_seq.length();++k)
 			{
 				found |= complete_seq.substr(k-l,l)==pep_seq;
 			}
@@ -228,15 +228,15 @@ START_SECTION((void getCandidates(std::vector< std::vector< std::pair< FASTAEntr
 	sa->setNumberOfModifications(1);
 	res2.clear();
 	sa->getCandidates(res2, specc);
-	for (unsigned int i = 0; i < res2.size(); ++i)
+	for (Size i = 0; i < res2.size(); ++i)
 	{
-		for (unsigned int j = 0; j < res2.at(i).size();++j)
+		for (Size j = 0; j < res2.at(i).size();++j)
 		{
 			String pep_seq = res2.at(i).at(j).first.second;
 			String complete_seq = fasta_map[res2.at(i).at(j).first.first];
 			unsigned int l = pep_seq.length();
 			bool found = false;
-			for (unsigned int k = l;k<=complete_seq.length();++k)
+			for (Size k = l;k<=complete_seq.length();++k)
 			{
 				found |= complete_seq.substr(k-l,l)==pep_seq;
 			}
@@ -248,15 +248,15 @@ START_SECTION((void getCandidates(std::vector< std::vector< std::pair< FASTAEntr
 	sa->setModificationOutputMethod ("stringChecked");
 	res2.clear();
 	sa->getCandidates(res2, specc);
-	for (unsigned int i = 0; i < res2.size(); ++i)
+	for (Size i = 0; i < res2.size(); ++i)
 	{
-		for (unsigned int j = 0; j < res2.at(i).size();++j)
+		for (Size j = 0; j < res2.at(i).size();++j)
 		{
 			String pep_seq = res2.at(i).at(j).first.second;
 			String complete_seq = fasta_map[res2.at(i).at(j).first.first];
 			unsigned int l = pep_seq.length();
 			bool found = false;
-			for (unsigned int k = l;k<=complete_seq.length();++k)
+			for (Size k = l;k<=complete_seq.length();++k)
 			{
 				found |= complete_seq.substr(k-l,l)==pep_seq;
 			}

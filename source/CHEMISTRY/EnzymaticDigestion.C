@@ -93,7 +93,7 @@ namespace OpenMS
 		
 		//missed cleavages
 		UInt sum = count;
-		for (UInt i=1 ; ((i<=missed_cleavages_) && (count > i)); ++i)
+		for (Size i=1 ; ((i<=missed_cleavages_) && (count > i)); ++i)
 		{
 			sum += count - i;
 		}
@@ -135,7 +135,7 @@ namespace OpenMS
 		{
 			//resize to number of fragments
 			UInt sum = count;
-			for (UInt i = 1; ((i <= missed_cleavages_) && (count > i)); ++i)
+			for (Size i = 1; ((i <= missed_cleavages_) && (count > i)); ++i)
 			{
 				sum += count - i;
 			}
@@ -144,7 +144,7 @@ namespace OpenMS
 			
 			//generate fragments with missed cleavages
 			UInt pos = count;
-			for (UInt i = 1 ; ((i <= missed_cleavages_) && (count > i)); ++i)
+			for (Size i = 1 ; ((i <= missed_cleavages_) && (count > i)); ++i)
 			{
 				vector<AASequence::ConstIterator>::const_iterator b = mc_iterators.begin();
 				vector<AASequence::ConstIterator>::const_iterator e = b+(i+1);

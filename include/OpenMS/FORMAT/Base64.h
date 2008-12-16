@@ -299,7 +299,7 @@ namespace OpenMS
 
 		// sort all read bytes correctly into a char[4] (double) or
 		// char[8] (Real) and push_back when necessary.
-		for (UInt i=0; i<src_size; i+=4)
+		for (Size i=0; i<src_size; i+=4)
 		{
 //		printf ("start: i=%d, offset %d\n", i, offset);
 

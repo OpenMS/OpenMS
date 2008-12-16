@@ -150,7 +150,7 @@ START_SECTION((template <typename PeakType> void filterExperiment(MSExperiment<P
 	TEST_EQUAL(exp[2].size(),0);
 	TEST_EQUAL(exp[3].size(),0);
 
-	for (UInt i=0; i<exp[0].size(); ++i)
+	for (Size i=0; i<exp[0].size(); ++i)
 	{
 		TEST_REAL_SIMILAR(exp[0][i].getIntensity(), 0.0)
 		TEST_REAL_SIMILAR(exp[1][i].getIntensity(), 0.0)

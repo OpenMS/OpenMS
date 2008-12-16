@@ -120,7 +120,7 @@ class TOPPDigestor
 			digestor.setMissedCleavages(missed_cleavages);
 			
 			protein_accessions.resize(1, String(""));
-			for(UInt i = 0; i < protein_data.size(); ++i)
+			for (Size i = 0; i < protein_data.size(); ++i)
 			{
 				protein_accessions[0] = protein_data[i].identifier;
 				temp_protein_hit.setSequence(protein_data[i].sequence);
@@ -128,7 +128,7 @@ class TOPPDigestor
 				
 				digestor.digest(AASequence(protein_data[i].sequence), temp_peptides);
 				temp_peptide_hit.setProteinAccessions(protein_accessions);
-				for(UInt j = 0; j < temp_peptides.size(); ++j)
+				for (Size j = 0; j < temp_peptides.size(); ++j)
 				{
 					if (temp_peptides[j].size() >= min_size)
 					{

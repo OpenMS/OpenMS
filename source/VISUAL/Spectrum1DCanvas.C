@@ -565,7 +565,7 @@ namespace OpenMS
 			
 			SpectrumIteratorType vbegin, vend;
 								
-			for (UInt i=0; i< getLayerCount();++i)
+			for (Size i=0; i< getLayerCount();++i)
 			{
 				const LayerData& layer = getLayer(i);
 				const ExperimentType::SpectrumType& spectrum = layer.peaks[0];
@@ -729,7 +729,7 @@ namespace OpenMS
 //		if (draw_metainfo_)
 //		{
 //			SpectrumIteratorType vbegin, vend;
-//			for (UInt i=0; i< getLayerCount();++i)
+//			for (Size i=0; i< getLayerCount();++i)
 //			{
 //				if (getLayer(i).visible)
 //				{
@@ -926,7 +926,7 @@ namespace OpenMS
   	if (intensity_mode_ == IM_SNAP) 
 		{
 			double local_max  = -numeric_limits<double>::max();
-			for (UInt i=0; i<getLayerCount();++i)
+			for (Size i=0; i<getLayerCount();++i)
 			{
 				SpectrumIteratorType tmp  = max_element(getLayer_(i).peaks[0].MZBegin(visible_area_.minX()), getLayer_(i).peaks[0].MZEnd(visible_area_.maxX()), PeakType::IntensityLess());
 				if (tmp->getIntensity() > local_max) 
@@ -1187,7 +1187,7 @@ namespace OpenMS
 	bool Spectrum1DCanvas::flippedLayersExist()
 	{
 		bool if_this_variable_is_true_then_there_are_flipped_layers_otherwise_not = false;
-		for (UInt i = 0; i < layers_.size(); ++i)
+		for (Size i = 0; i < layers_.size(); ++i)
 		{
 			if (layers_[i].flipped)
 			{

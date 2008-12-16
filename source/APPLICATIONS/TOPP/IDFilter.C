@@ -216,7 +216,7 @@ class TOPPIDFilter
 		if (exclusion_peptides_file_name  != "")
 		{
 			IdXML_file.load(exclusion_peptides_file_name, protein_identifications, identifications_exclusion);
-			for(UInt i = 0; i < identifications_exclusion.size(); i++)
+			for (Size i = 0; i < identifications_exclusion.size(); i++)
 			{
 				for(vector<PeptideHit>::const_iterator it = identifications_exclusion[i].getHits().begin();
 						it != identifications_exclusion[i].getHits().end();
@@ -234,7 +234,7 @@ class TOPPIDFilter
 		//-------------------------------------------------------------
 						
 		// Filtering peptide identifications	according to set criteria
-		for(UInt i = 0; i < identifications.size(); i++)
+		for (Size i = 0; i < identifications.size(); i++)
 		{
 			if (fabs(peptide_significance_threshold_fraction - 0) < 0.00001)
 			{
@@ -305,7 +305,7 @@ class TOPPIDFilter
 		}
 						
 		// Filtering protein identifications	according to set criteria
-		for(UInt i = 0; i < protein_identifications.size(); i++)
+		for (Size i = 0; i < protein_identifications.size(); i++)
 		{
 			if (!protein_identifications[i].getHits().empty())
 			{

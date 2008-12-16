@@ -221,7 +221,7 @@ namespace OpenMS
 					}
 
 					std::cout << "Charges:\n";
-					for (UInt i=1; i<summary.charge.size(); ++i)
+					for (Size i=1; i<summary.charge.size(); ++i)
 					{
 						if (summary.charge[i]!=0)
 						{

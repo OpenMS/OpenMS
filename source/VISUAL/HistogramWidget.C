@@ -252,7 +252,7 @@ namespace OpenMS
 		pen.setColor(QColor(100,125,175));
 		painter.setPen(pen);
 		
-		for (UInt i=0; i<dist.size();++i)
+		for (Size i=0; i<dist.size();++i)
 		{
 			if (dist[i]!=0)
 			{
@@ -264,7 +264,7 @@ namespace OpenMS
 	
 		//calculate total intensity
 		Real total_sum=0;
-		for (UInt i=0; i<dist.size();++i)
+		for (Size i=0; i<dist.size();++i)
 		{
 			total_sum += dist[i];
 		}	
@@ -274,7 +274,7 @@ namespace OpenMS
 		QPoint last_point(1,h);
 		QPoint point;
 		Real int_sum=0;
-		for (UInt i=0; i<dist.size();++i)
+		for (Size i=0; i<dist.size();++i)
 		{
 			int_sum += dist[i];
 			point.setX(UInt((Real(i)/(dist.size()-1))*(w-margin_)));

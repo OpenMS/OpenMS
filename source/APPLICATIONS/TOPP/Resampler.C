@@ -209,9 +209,9 @@ class TOPPResampler
       // apply logarithm to intensities
       if (use_log)
       {
-  			for (UInt i=0; i<scans; ++i)
+  			for (Size i=0; i<scans; ++i)
   			{
-  				for (UInt j=0; j<peaks; ++j)
+  				for (Size j=0; j<peaks; ++j)
   				{
   					image.setPixel(j, i, gradient.interpolatedColorAt(std::log(bilip.getData().getValue(i, j))/factor).rgb());
   				}
@@ -219,9 +219,9 @@ class TOPPResampler
       }
       else
       {
-        for (UInt i=0; i<scans; ++i)
+        for (Size i=0; i<scans; ++i)
         {
-          for (UInt j=0; j<peaks; ++j)
+          for (Size j=0; j<peaks; ++j)
           {
             image.setPixel(j, i, gradient.interpolatedColorAt(bilip.getData().getValue(i, j)/factor).rgb());
           }
@@ -242,7 +242,7 @@ class TOPPResampler
 			lin_resampler.setParameters(resampler_param);
 	
       // resample and filter every scan
-      for (UInt i = 0; i < exp.size(); ++i)
+      for (Size i = 0; i < exp.size(); ++i)
       {
       	MSExperiment<>::SpectrumType resampled_spectrum;
         lin_resampler.raster(exp[i],resampled_spectrum);

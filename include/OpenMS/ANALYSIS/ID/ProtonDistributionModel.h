@@ -137,7 +137,7 @@ namespace OpenMS
 			void calcChargeStateIntensities_(const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion, int charge, Residue::ResidueType n_term_type,	double& n_term1, double& c_term1, double& n_term2, double& c_term2,	FragmentationType type);
 
 			// returns the left and right GB values, NH2 and COOH if at terminus
-			void getLeftAndRightGBValues_(const AASequence& peptide, double& left_gb, double& right_gb, UInt position);
+			void getLeftAndRightGBValues_(const AASequence& peptide, double& left_gb, double& right_gb, Size position);
 			
 			Map<UInt, double> sc_charge_;
 			Map<UInt, double> bb_charge_;

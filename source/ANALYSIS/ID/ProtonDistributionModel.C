@@ -132,7 +132,7 @@ namespace OpenMS
 			double gb_left_n_term(0), gb_right_n_term(0);
 			getLeftAndRightGBValues_(peptide, gb_left_n_term, gb_right_n_term, 0);
 			gb_bb.push_back(gb_left_n_term + gb_right_n_term);
-			UInt count(1);
+			Size count(1);
 			for (AASequence::ConstIterator it = peptide.begin(); it != peptide.end(); ++it, ++count)
 			{
 				double gb(0), gb_left(0), gb_right(0);
@@ -147,7 +147,7 @@ namespace OpenMS
 			// now distribute the charges until no site has more than 1.0 proton
 			vector<double> bb_coulomb(peptide.size() + 1, 0.0), sc_coulomb(peptide.size(), 0.0);
 			Int actual_charge(charge);
-			set<UInt> sc_sites, bb_sites;
+			set<Size> sc_sites, bb_sites;
 			while (true)
 			{
 				//cerr << "#proton remaining: " << actual_charge << endl;
@@ -201,7 +201,7 @@ namespace OpenMS
 				}
 		
 				// check if there is a site containing more than one proton
-				for (UInt i = 0; i != p_bb.size(); ++i)
+				for (Size i = 0; i != p_bb.size(); ++i)
 				{
 					if (p_bb[i] > 1.0)
 					{
@@ -211,7 +211,7 @@ namespace OpenMS
 						--actual_charge;
 					}
 				}
-				for (UInt i = 0; i != p_sc.size(); ++i)
+				for (Size i = 0; i != p_sc.size(); ++i)
 				{
 					if (p_sc[i] > 1.0)
 					{
@@ -223,25 +223,25 @@ namespace OpenMS
 				}
 
 				// now calculate the coloumb repulsions
-				for (UInt i = 0; i != gb_bb.size(); ++i)
+				for (Size i = 0; i != gb_bb.size(); ++i)
 				{
 					// check if the site is not occupied by a "complete" proton
 					if (bb_sites.find(i) == bb_sites.end())
 					{
 						double coulomb_sum(0);
-						for (set<UInt>::const_iterator it = bb_sites.begin(); it != bb_sites.end(); ++it)
+						for (set<Size>::const_iterator it = bb_sites.begin(); it != bb_sites.end(); ++it)
 						{
 							// calculate the distance between occupied site and this backbone site
-							UInt pos = *it;
-							UInt diff = (pos > i) ? pos - i : i - pos;
+							Size pos = *it;
+							Size diff = (pos > i) ? pos - i : i - pos;
 							coulomb_sum += COULOMB_REPULSION / (double)diff;
 						}
 
-						for (set<UInt>::const_iterator it = sc_sites.begin(); it != sc_sites.end(); ++it)
+						for (set<Size>::const_iterator it = sc_sites.begin(); it != sc_sites.end(); ++it)
 						{
 							// calculate the distance between occupied side chain and this backbone site
-							UInt pos = *it;
-							UInt diff = (pos > i) ? pos -i : i - pos;
+							Size pos = *it;
+							Size diff = (pos > i) ? pos -i : i - pos;
 							++diff; // bond to the side chain counts extra
 							coulomb_sum += COULOMB_REPULSION / (double)diff;
 						}
@@ -249,22 +249,22 @@ namespace OpenMS
 						//cerr << "BB coulomb" << i << ": " << coulomb_sum << endl;
 					}
 				}
-				for (UInt i = 0; i != gb_sc.size(); ++i)
+				for (Size i = 0; i != gb_sc.size(); ++i)
 				{
 					if (sc_sites.find(i) == sc_sites.end())
 					{
 						double coulomb_sum(0);
-						for (set<UInt>::const_iterator it = bb_sites.begin(); it != bb_sites.end(); ++it)
+						for (set<Size>::const_iterator it = bb_sites.begin(); it != bb_sites.end(); ++it)
 						{
-							UInt pos = *it;
-							UInt diff = (pos > i) ? pos - i : i - pos;
+							Size pos = *it;
+							Size diff = (pos > i) ? pos - i : i - pos;
 							++diff;
 							coulomb_sum += COULOMB_REPULSION / (double)diff;
 						}
-						for (set<UInt>::const_iterator it = sc_sites.begin(); it != sc_sites.end(); ++it)
+						for (set<Size>::const_iterator it = sc_sites.begin(); it != sc_sites.end(); ++it)
 						{
-							UInt pos = *it;
-							UInt diff = (pos > i) ? pos - i : i - pos;
+							Size pos = *it;
+							Size diff = (pos > i) ? pos - i : i - pos;
 							diff += 2;
 							coulomb_sum += COULOMB_REPULSION / (double)diff;
 						}
@@ -307,7 +307,7 @@ namespace OpenMS
 			return;
 		}
 		
-		UInt most_basic_site(0);
+		Size most_basic_site(0);
 		bool most_basic_site_sc(false);
 
     double gb_bb_l_NH2 = param_.getValue("gb_bb_l_NH2");
@@ -325,7 +325,7 @@ namespace OpenMS
 			// find the most basic site
 			double max_prob(0);
 			//cerr << "bb: ";
-			for (UInt i = 0; i != bb_charge_.size(); ++i)
+			for (Size i = 0; i != bb_charge_.size(); ++i)
 			{
 				//cerr << i << ". " << bb_charge_[i] << "; " << endl;
 				if (bb_charge_[i] > max_prob)
@@ -336,7 +336,7 @@ namespace OpenMS
 			}
 
 			//cerr << endl << "sc: ";
-			for (UInt i = 0; i != sc_charge_.size(); ++i)
+			for (Size i = 0; i != sc_charge_.size(); ++i)
 			{
 				//cerr << i << ". " << sc_charge_[i] << "; " << endl;
 				if (sc_charge_[i] > max_prob)
@@ -353,7 +353,7 @@ namespace OpenMS
 			sc_charge_.clear();
 		}
 
-		UInt fixed_site(0);
+		Size fixed_site(0);
 		if (fixed_proton)
 		{
 			fixed_site = cleavage_site;
@@ -368,12 +368,12 @@ namespace OpenMS
 
 		const double T(500.0);
 	
-		for (UInt i = 0; i != sc_charge_.size(); ++i)
+		for (Size i = 0; i != sc_charge_.size(); ++i)
 		{
 			sc_charge_[i] = 0;
 		}
 
-		for (UInt i = 0; i != bb_charge_.size(); ++i)
+		for (Size i = 0; i != bb_charge_.size(); ++i)
 		{
 			bb_charge_[i] = 0;
 		}
@@ -383,7 +383,7 @@ namespace OpenMS
 		double q(0), sum_E(0), sum_E_n_term(0), sum_E_c_term(0); // Zustandsumme
 		if (charge == 1)
 	{
-		for (UInt i = 0; i != peptide.size(); ++i)
+		for (Size i = 0; i != peptide.size(); ++i)
 		{
 			//String aa(peptide[i]->getOneLetterCode());
 			
@@ -447,7 +447,7 @@ namespace OpenMS
 		//cerr << "E: " << sum_E << endl;
 
 		// calculate the availabilities
-		for (UInt i = 0; i != peptide.size(); ++i)
+		for (Size i = 0; i != peptide.size(); ++i)
 		{
 			// backbone
 			if (i == 0)
@@ -535,7 +535,7 @@ namespace OpenMS
 			gb_j = peptide[fixed_site].getSideChainBasicity();
 		}
 		
-		for (UInt i = 0; i <= peptide.size(); ++i)
+		for (Size i = 0; i <= peptide.size(); ++i)
 		{
 			double gb_i(0);
       // proton 1 at N-terminus
@@ -620,7 +620,7 @@ namespace OpenMS
 		}
 
 		// calculate availablities
-		for (UInt i = 0; i <= peptide.size(); ++i)
+		for (Size i = 0; i <= peptide.size(); ++i)
 		{
 			double gb_i(0);
 			if (i == 0 || (i == cleavage_site && use_most_basic_site))
@@ -764,9 +764,9 @@ namespace OpenMS
 	{
 		// calculate sum
 		int count(0);
-		for (UInt i = 0; i <= peptide.size(); ++i)
+		for (Size i = 0; i <= peptide.size(); ++i)
 		{
-			for (UInt j = i; j <= peptide.size(); ++j)
+			for (Size j = i; j <= peptide.size(); ++j)
 			{
 				double gb_i(0), gb_j(0);
 				// proton 1 at N-terminus
@@ -906,9 +906,9 @@ namespace OpenMS
 		}
 
 		// calculate availabilities
-		for (UInt i = 0; i <= peptide.size(); ++i)
+		for (Size i = 0; i <= peptide.size(); ++i)
 		{
-			for (UInt j = i; j <= peptide.size(); ++j)
+			for (Size j = i; j <= peptide.size(); ++j)
 			{
 				double gb_i(0), gb_j(0);
 				// calculate the backbone proton gb's
@@ -1057,7 +1057,7 @@ namespace OpenMS
 	#if 0
 	cerr << "side chain proton availabilities" << endl;
 	double sum(0);
-	for (unsigned int i = 0; i != peptide.size(); ++i)
+	for (Size i = 0; i != peptide.size(); ++i)
 	{
 		if (sc_charge_.has(i))
 		{
@@ -1071,7 +1071,7 @@ namespace OpenMS
 	}
 
 	cerr << "\nbackbone proton availabilities" << endl;
-	for (unsigned int i = 0; i  <= peptide.size(); ++i)
+	for (Size i = 0; i  <= peptide.size(); ++i)
 	{
 		if (bb_charge_.has(i))
 		{
@@ -1113,7 +1113,7 @@ namespace OpenMS
 		double sum(0);
 		if (res_type == Residue::AIon || res_type == Residue::BIon || res_type == Residue::CIon)
 		{
-			for (UInt i = 1; i <= peptide.size(); ++i)
+			for (Size i = 1; i <= peptide.size(); ++i)
 			{
 				sum += bb_charge_[i];
 				if (sc_charge_.has(i-1))
@@ -1127,7 +1127,7 @@ namespace OpenMS
 		{
 			if (res_type == Residue::XIon || res_type == Residue::YIon || res_type == Residue::ZIon)
 			{
-				for (UInt i = bb_charge_.size() - peptide.size() - 1; i != bb_charge_.size(); ++i)
+				for (Size i = bb_charge_.size() - peptide.size() - 1; i != bb_charge_.size(); ++i)
 				{
 					sum += bb_charge_[i];
 					if (sc_charge_.has(i))
@@ -1238,12 +1238,12 @@ namespace OpenMS
 #ifdef CALC_CHARGE_STATES_DEBUG
 				cerr << "Distribution of second proton: " << endl;
 				cerr << "BB: ";
-				for (UInt i = 0; i != bb_charge_.size(); ++i)
+				for (Size i = 0; i != bb_charge_.size(); ++i)
 				{
 					cerr << "; " << i << ". " << bb_charge_[i];
 				}
 				cerr << "\nSC: ";
-				for (UInt i = 0; i != sc_charge_.size(); ++i)
+				for (Size i = 0; i != sc_charge_.size(); ++i)
 				{
 					cerr << "; " << i << ". " << sc_charge_[i];
 				}
@@ -1251,7 +1251,7 @@ namespace OpenMS
 #endif
 				
 				double singly_charged(0);
-				for (UInt i = 0; i != n_term_ion.size(); ++i)
+				for (Size i = 0; i != n_term_ion.size(); ++i)
 				{
 					n_term2 += bb_charge_[i] * p_n;
 					singly_charged += bb_charge_[i] * p_c;
@@ -1262,7 +1262,7 @@ namespace OpenMS
 					}
 				}
 
-				for (UInt i = n_term_ion.size(); i <= peptide.size(); ++i)
+				for (Size i = n_term_ion.size(); i <= peptide.size(); ++i)
 				{
 					c_term2 += bb_charge_[i] * p_c;
 					singly_charged += bb_charge_[i] * p_n;
@@ -1296,12 +1296,12 @@ namespace OpenMS
 				{
 					// TODO ranges correct? Missing some sites of the peptide
 					double n_term_sum(0), c_term_sum(0);
-					for (UInt i = 0; i != n_term_ion.size(); ++i)
+					for (Size i = 0; i != n_term_ion.size(); ++i)
 					{
 						n_term_sum += bb_charge_full_[i];
 						n_term_sum += sc_charge_full_[i];
 					}
-					for (UInt i = n_term_ion.size(); i != peptide.size(); ++i)
+					for (Size i = n_term_ion.size(); i != peptide.size(); ++i)
 					{
 						c_term_sum += bb_charge_full_[i];
 						c_term_sum += sc_charge_full_[i];
@@ -1351,7 +1351,7 @@ namespace OpenMS
 			int charge, Residue::ResidueType n_term_type, double& n_term1, double& c_term1, double& n_term2, double& c_term2*/
 			// add up charges from the ions
 			double n_term_sum(0);
-			for (UInt i = 0; i <= n_term_ion.size(); ++i)
+			for (Size i = 0; i <= n_term_ion.size(); ++i)
 			{
 				n_term_sum += bb_charge_[i];
 				if (i != n_term_ion.size())
@@ -1360,12 +1360,12 @@ namespace OpenMS
 				}
 			}
 			double c_term_sum(0);
-			for (UInt i = n_term_ion.size() + 1; i != bb_charge_.size(); ++i)
+			for (Size i = n_term_ion.size() + 1; i != bb_charge_.size(); ++i)
 			{
 				c_term_sum += bb_charge_[i];
 			}
 
-			for (UInt i = n_term_ion.size(); i != sc_charge_.size(); ++i)
+			for (Size i = n_term_ion.size(); i != sc_charge_.size(); ++i)
 			{
 				c_term_sum += sc_charge_[i];
 			}
@@ -1430,7 +1430,7 @@ namespace OpenMS
 		double sum(0);
 		if (res_type == Residue::YIon || res_type == Residue::XIon || res_type == Residue::ZIon)
 		{
-			for (UInt i = peptide.size() - ion.size(); i != peptide.size(); ++i)
+			for (Size i = peptide.size() - ion.size(); i != peptide.size(); ++i)
 			{
 				sum += bb_charge_[i+1];
 				if (sc_charge_.has(i))
@@ -1441,7 +1441,7 @@ namespace OpenMS
 		}
 		else
 		{
-			for (UInt i = 0; i <= ion.size(); ++i)
+			for (Size i = 0; i <= ion.size(); ++i)
 			{
 				sum += bb_charge_[i];
 				if (sc_charge_.has(i))
@@ -1470,7 +1470,7 @@ namespace OpenMS
 		return ints;
 	}
 
-	void ProtonDistributionModel::getLeftAndRightGBValues_(const AASequence& peptide, double& left_gb, double& right_gb, UInt position)
+	void ProtonDistributionModel::getLeftAndRightGBValues_(const AASequence& peptide, double& left_gb, double& right_gb, Size position)
 	{
 		// TODO test if position out of range
 		if (position == 0)

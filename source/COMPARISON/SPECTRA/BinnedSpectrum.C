@@ -69,7 +69,7 @@ namespace OpenMS
 
 		//put all peaks into bins
 		UInt bin_number;
-		for (UInt i = 0; i < this->size(); ++i)
+		for (Size i = 0; i < this->size(); ++i)
 		{
 			//bin_number counted form 0 -> floor
 			bin_number = (UInt)floor(this->operator[](i).getMZ()/this->bin_size_);
@@ -78,7 +78,7 @@ namespace OpenMS
 			bins_[bin_number] = bins_.at(bin_number) + this->operator[](i).getIntensity();
 
 			//add peak to neighboring binspread many
-			for (UInt j = 0; j < bin_spread_; ++j)
+			for (Size j = 0; j < bin_spread_; ++j)
 			{
 				bins_[bin_number+j+1] = bins_.at(bin_number+j+1) + this->operator[](i).getIntensity();
 				// we are not in one of the first bins (0 to bin_spread)

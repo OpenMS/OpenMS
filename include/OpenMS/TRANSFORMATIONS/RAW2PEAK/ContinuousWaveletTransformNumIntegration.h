@@ -147,7 +147,7 @@ namespace OpenMS
 				else processed_input[0]=it_help->getIntensity();
 				
         double x;
-        for (unsigned int k=1; k < n-zeros; ++k)
+        for (Size k=1; k < n-zeros; ++k)
         {
           x = origin + k*spacing;
           // go to the real data point next to x
@@ -163,7 +163,7 @@ namespace OpenMS
 				}
 
         // TODO avoid to compute the cwt for the zeros in signal
-        for (unsigned int i=0; i < n; ++i)
+        for (Size i=0; i < n; ++i)
         {
           signal_[i].setMZ(origin + i*spacing);
           signal_[i].setIntensity(integrate_(processed_input,spacing,i));

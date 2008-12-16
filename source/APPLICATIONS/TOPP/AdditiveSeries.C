@@ -405,7 +405,7 @@ class AdditiveSeries
 		}
 
 		vector<double> sp_concentrations2;
-		for (UInt i=0; i<sp_concentrations.size(); i++)
+		for (Size i=0; i<sp_concentrations.size(); i++)
 		{
 			if (flags.at(i) == true )
 			{

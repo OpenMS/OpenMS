@@ -295,7 +295,7 @@ class TOPPRTPredict
 				loadStrings_(inputfile_name, peptides);
 				if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
 				{
-					for(UInt i = 0; i < peptides.size(); ++i)
+					for (Size i = 0; i < peptides.size(); ++i)
 					{
 						modified_peptides.push_back(AASequence(peptides[i]));
 					}
@@ -313,10 +313,10 @@ class TOPPRTPredict
 		
 			if (!textfile_input)
 			{
-				for(UInt i = 0; i < identifications.size(); i++)
+				for (Size i = 0; i < identifications.size(); i++)
 				{
 					temp_peptide_hits = identifications[i].getHits();
-					for(UInt j = 0; j < temp_peptide_hits.size(); j++)
+					for (Size j = 0; j < temp_peptide_hits.size(); j++)
 					{
 						if (svm.getIntParameter(KERNEL_TYPE) == OLIGO)
 						{
@@ -376,7 +376,7 @@ class TOPPRTPredict
 				LibSVMEncoder::destroyProblem(prediction_data);
 			}
 
-			for(UInt i = 0; i < number_of_peptides; i++)
+			for (Size i = 0; i < number_of_peptides; i++)
 			{
 				if (svm.getIntParameter(KERNEL_TYPE) == OLIGO && !textfile_output)
 				{
@@ -398,10 +398,10 @@ class TOPPRTPredict
 			{
 				if (!separation_prediction)
 				{
-					for(UInt i = 0; i < identifications.size(); i++)
+					for (Size i = 0; i < identifications.size(); i++)
 					{
 						temp_peptide_hits = identifications[i].getHits();
-						for(UInt j = 0; j < temp_peptide_hits.size(); j++)
+						for (Size j = 0; j < temp_peptide_hits.size(); j++)
 						{
 							DoubleReal temp_rt = 0.;
 							DoubleReal temp_p_value = 0.;
@@ -457,7 +457,7 @@ class TOPPRTPredict
 					
 					PeptideIdentification temp_identification;
 	
-					for(UInt i = 0; i < identifications.size(); i++)
+					for (Size i = 0; i < identifications.size(); i++)
 					{					
 						hits_negative.clear();
 						hits_positive.clear();

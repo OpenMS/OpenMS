@@ -144,7 +144,7 @@ namespace OpenMS
             if (RT_votes_cutoff_ > this->map_->size())
               RT_votes_cutoff = 0;
         
-            for (UInt i=0, j=0; i<this->map_->size(); ++i)
+            for (Size i=0, j=0; i<this->map_->size(); ++i)
             {	
               std::vector<MSSpectrum<PeakType> > pwts (max_charge_, this->map_->at(i));
               std::cout << "Spectrum " << i << " (" << this->map_->at(i).getRT() << ") of " << this->map_->size()-1 << " ... " ; 
@@ -229,14 +229,14 @@ namespace OpenMS
               					
 						// Charge voting
             CoordinateType votes = 0;
-            for (UInt i=0; i<max_charge_; ++i) votes += charge_votes[i];
+            for (Size i=0; i<max_charge_; ++i) votes += charge_votes[i];
             	
             UInt first_charge = 1;
             UInt last_charge = 1; 
             bool set_first = false;
             	
             // get score in percent and set charges
-            for (UInt i=0; i<max_charge_; ++i)
+            for (Size i=0; i<max_charge_; ++i)
             {
               CoordinateType perc_score = charge_votes[i]/votes;
               if (perc_score >= charge_threshold_) 
@@ -263,7 +263,7 @@ namespace OpenMS
          		// Now, check different charges ... 
             //---------------------------------------------------------------------------
             if (first_charge<=last_charge && first_charge >0 && last_charge>0)
-            for (UInt i=first_charge; i<=last_charge; ++i)
+            for (Size i=first_charge; i<=last_charge; ++i)
             {            
               best_charge_index = i-1;
               
@@ -300,7 +300,7 @@ namespace OpenMS
                 
 								//TODO add some mz left to the box for modelfitting
                 // compute index set for seed region
-                for (UInt p=spec_index_begin; p<=spec_index_end; ++p)
+                for (Size p=spec_index_begin; p<=spec_index_end; ++p)
                 {
                   region.insert(std::make_pair(box_iter->second.RT_index,p));
                 } 
@@ -448,7 +448,7 @@ namespace OpenMS
             }
 
             std::cout << "Charges:\n";
-            for (UInt i=1; i<summary.charge.size(); ++i)
+            for (Size i=1; i<summary.charge.size(); ++i)
             {
               if (summary.charge[i]!=0)
               {

@@ -99,7 +99,7 @@ class TOPPFileFilter
 			registerIntList_("level","i j...",IntList::create("1,2,3"),"MS levels to extract", false);
 			registerStringOption_("remove_mode","<mode>","","Remove scans by scan mode\n",false);
 			StringList mode_list;
-			for (UInt i=0; i<InstrumentSettings::SIZE_OF_SCANMODE; ++i)
+			for (Size i=0; i<InstrumentSettings::SIZE_OF_SCANMODE; ++i)
 			{
 				mode_list.push_back(InstrumentSettings::NamesOfScanMode[i]);
 			}
@@ -221,7 +221,7 @@ class TOPPFileFilter
   			{
   				String mode = getStringOption_("remove_mode");
   				writeDebug_(String("Removing mode: ") + mode,3);
-  				for (UInt i=0; i<InstrumentSettings::SIZE_OF_SCANMODE; ++i)
+  				for (Size i=0; i<InstrumentSettings::SIZE_OF_SCANMODE; ++i)
   				{
   					if (InstrumentSettings::NamesOfScanMode[i]==mode)
   					{

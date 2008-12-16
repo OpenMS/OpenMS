@@ -501,7 +501,7 @@ namespace OpenMS
 			bool clearMetaDataArrays()
 			{
 				bool meta_present = false;
-				for (UInt i=0; i< this->size(); ++i)
+				for (Size i=0; i< this->size(); ++i)
 				{
 					if (this->operator[](i).getMetaDataArrays().size()!=0)
 					{
@@ -580,7 +580,7 @@ namespace OpenMS
 	    // Docu in base class
 	    virtual void clearChildIds_()
 	    {
-	    	for (UInt i=0; i<this->size(); ++i)
+	    	for (Size i=0; i<this->size(); ++i)
 				{
 					this->operator[](i).clearId(true);
 				}

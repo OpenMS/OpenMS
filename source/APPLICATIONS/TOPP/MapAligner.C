@@ -137,7 +137,7 @@ protected:
 		}
 		//check whether all input files have the same type (this type is used to store the output type too)		
 		FileHandler::Type in_type = FileHandler::getType(ins[0]);
-		for (UInt i=1;i<ins.size();++i)
+		for (Size i=1;i<ins.size();++i)
 		{
 			if (FileHandler::getType(ins[i])!=in_type)
 			{
@@ -173,7 +173,7 @@ protected:
 			std::vector< MSExperiment<> > peak_maps(ins.size());
 			MzDataFile f;
 			f.setLogType(log_type_);
-			for (UInt i=0; i<ins.size(); ++i)
+			for (Size i=0; i<ins.size(); ++i)
 			{		 		
 		    f.load(ins[i], peak_maps[i]);
 			}
@@ -190,7 +190,7 @@ protected:
 			}
 			
 			// write output
-			for (UInt i=0; i<outs.size(); ++i)
+			for (Size i=0; i<outs.size(); ++i)
 			{		 		
 		    f.store(outs[i], peak_maps[i]);
 			}
@@ -205,7 +205,7 @@ protected:
 			FeatureXMLFile f;
 			// f.setLogType(log_type_); // TODO
 			progresslogger.startProgress(0,ins.size(),"loading input files (data)");
-			for (UInt i=0; i<ins.size(); ++i)
+			for (Size i=0; i<ins.size(); ++i)
 			{
 				progresslogger.setProgress(i);
 		    f.load(ins[i], feat_maps[i]);
@@ -226,7 +226,7 @@ protected:
 			
 			// write output
 			progresslogger.startProgress(0,outs.size(),"writing output files (data)");
-			for (UInt i=0; i<outs.size(); ++i)
+			for (Size i=0; i<outs.size(); ++i)
 			{		 		
 				progresslogger.setProgress(i);
 		    f.store(outs[i], feat_maps[i]);
@@ -247,7 +247,7 @@ protected:
 			// f.setLogType_(log_type_);
 
 			progresslogger.startProgress(0,ins.size(),"loading input files (data)");
-			for (UInt i=0; i<ins.size(); ++i)
+			for (Size i=0; i<ins.size(); ++i)
 			{
 				progresslogger.setProgress(i);
 		    f.load( ins[i], protein_ids_vec[i], peptide_ids_vec[i] );
@@ -268,7 +268,7 @@ protected:
 			
 			// write output
 			progresslogger.startProgress(0,outs.size(),"writing output files (data)");
-			for (UInt i=0; i<outs.size(); ++i)
+			for (Size i=0; i<outs.size(); ++i)
 			{		 		
 				progresslogger.setProgress(i);
 		    f.store( outs[i], protein_ids_vec[i], peptide_ids_vec[i] );
@@ -288,7 +288,7 @@ protected:
 		if (trafos.size()!=0)
 		{
 			progresslogger.startProgress(0,transformations.size(),"writing output files (transformations)");
-			for (UInt i=0; i<transformations.size(); ++i)
+			for (Size i=0; i<transformations.size(); ++i)
 			{
 				progresslogger.setProgress(i);
 				TransformationXMLFile().store(trafos[i],transformations[i]);

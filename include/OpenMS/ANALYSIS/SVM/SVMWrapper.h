@@ -106,10 +106,10 @@ namespace OpenMS
 			}
 				
 			// writing feature vectors		
-			for(UInt i = 0; i < sequences.size(); i++)
+			for (Size i = 0; i < sequences.size(); i++)
 			{
 				output_file << labels[i] << " ";
-				for(UInt j = 0; j < sequences[i].size(); ++j)
+				for (Size j = 0; j < sequences[i].size(); ++j)
 				{
 					output_file << sequences[i][j].second << ":" << sequences[i][j].first << " " ;					
 				}
@@ -152,7 +152,7 @@ namespace OpenMS
 				it->split(' ', parts);
 				labels[counter] = parts[0].trim().toFloat();		
 				sequences[counter].resize(parts.size(), std::pair<Int, DoubleReal>());			
-				for(UInt j = 1; j < parts.size(); ++j)
+				for (Size j = 1; j < parts.size(); ++j)
 				{
 					parts[j].split(':', temp_parts);
 					if (temp_parts.size() < 2)

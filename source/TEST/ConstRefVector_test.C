@@ -503,7 +503,7 @@ START_SECTION((ConstRefVector(ContainerType &p)))
   PeakArrayType pa(5);
   ConstRefVector<PeakArrayType> pl(pa);
  	
- 	for (UInt i=0; i<pa.size(); ++i)
+ 	for (Size i=0; i<pa.size(); ++i)
  	{
  		TEST_EQUAL(pa[i]== pl[i],true)
  	}
