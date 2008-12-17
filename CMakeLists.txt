@@ -122,6 +122,7 @@ set(CONTRIB_DIR ${PROJECT_SOURCE_DIR}/contrib/ CACHE INTERNAL "Final contrib pat
 
 if (CONTRIB_CUSTOM_DIR STREQUAL "")
 	message(STATUS "Using DEFAULT setting for contrib directory: ${CONTRIB_DIR}")
+  message(STATUS "If you want to set your own path to contrib use -D CONTRIB_CUSTOM_DIR:PATH=\"/my/path/to/contrib\"")
 else()
 	set(CONTRIB_DIR ${CONTRIB_CUSTOM_DIR})
 	message(STATUS "Using user defined contrib directory: ${CONTRIB_DIR}")
@@ -423,6 +424,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 MACRO (QT4_WRAP_UI_OWN outfiles )
   QT4_EXTRACT_OPTIONS(ui_files ui_options ${ARGN})
 
+  # create output directory (will not exist for out-of-source builds)
+  file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/${directory})
+
   FOREACH (it ${ui_files})
     GET_FILENAME_COMPONENT(outfile ${it} NAME_WE)
     GET_FILENAME_COMPONENT(infile ${it} ABSOLUTE)
@@ -571,50 +575,86 @@ add_custom_target(targets
   )
 
 ##### Message after OpenMS has been built #####
-add_custom_command(TARGET OpenMS
-                   POST_BUILD
-                   COMMAND @echo ""
-                   COMMAND @echo "=========================================================================="
-                   COMMAND @echo ""
-                   COMMAND @echo "The OpenMS library has been built."
-                   COMMAND @echo ""
-                   COMMAND @echo "You should now build the TOPP tools and tests."
-                   COMMAND @echo "Then you should test your installation by executing the tests."
-                   COMMAND @echo ""
-                   COMMAND @echo "Make sure to add the OpenMS and contrib lib/ path"
-                   COMMAND @echo "to your LD_LIBRARY_PATH environment variable."
-                   COMMAND @echo "Otherwise the tests and TOPP tools will not work."
-                   COMMAND @echo ""
-                   COMMAND @echo "For a full list of make targets execute:"
-                   COMMAND @echo "make targets"
-                   COMMAND @echo ""
-                   COMMAND @echo "=========================================================================="
-                   COMMAND @echo ""
-                   COMMENT "message after library is built"
-                   VERBATIM)
+if (MSVC)
+  add_custom_command(TARGET OpenMS
+                    POST_BUILD
+                    COMMAND @echo ""
+                    COMMAND @echo "=========================================================================="
+                    COMMAND @echo ""
+                    COMMAND @echo "The OpenMS library has been built."
+                    COMMAND @echo ""
+                    COMMAND @echo "You should now build the TOPP tools and tests."
+                    COMMAND @echo "Then you should test your installation by executing the tests."
+                    COMMAND @echo ""
+                    COMMAND @echo "For a full list of targets execute:"
+                    COMMAND @echo "make targets"
+                    COMMAND @echo ""
+                    COMMAND @echo "=========================================================================="
+                    COMMAND @echo ""
+                    COMMENT "message after library is built"
+                    VERBATIM)
+else()
+  add_custom_command(TARGET OpenMS
+                    POST_BUILD
+                    COMMAND @echo ""
+                    COMMAND @echo "=========================================================================="
+                    COMMAND @echo ""
+                    COMMAND @echo "The OpenMS library has been built."
+                    COMMAND @echo ""
+                    COMMAND @echo "You should now build the TOPP tools and tests."
+                    COMMAND @echo "Then you should test your installation by executing the tests."
+                    COMMAND @echo ""
+                    COMMAND @echo "Make sure to add the OpenMS and contrib lib/ path"
+                    COMMAND @echo "to your LD_LIBRARY_PATH environment variable."
+                    COMMAND @echo "Otherwise the tests and TOPP tools will not work."
+                    COMMAND @echo ""
+                    COMMAND @echo "Execute the 'targets' project to see prominent targets!"
+                    COMMAND @echo ""
+                    COMMAND @echo "=========================================================================="
+                    COMMAND @echo ""
+                    COMMENT "message after library is built"
+                    VERBATIM)
+endif()
 
 ##### Message after TOPP has been built #####
-add_custom_command(TARGET TOPP
-                   POST_BUILD
-                   COMMAND @echo ""
-                   COMMAND @echo "=========================================================================="
-                   COMMAND @echo ""
-                   COMMAND @echo "The TOPP tools have been built and installed to the bin/ folder."
-                   COMMAND @echo ""
-                   COMMAND @echo "Then you should test your installation by executing the tests."
-                   COMMAND @echo ""
-                   COMMAND @echo "Make sure to add the OpenMS and contrib lib/ path"
-                   COMMAND @echo "to your LD_LIBRARY_PATH environment variable."
-                   COMMAND @echo "Otherwise the tests and TOPP tools will not work."
-                   COMMAND @echo ""
-                   COMMAND @echo "For a full list of make targets execute:"
-                   COMMAND @echo "make targets"
-                   COMMAND @echo ""
-                   COMMAND @echo "=========================================================================="
-                   COMMAND @echo ""
-                   COMMENT "message after TOPP is built"
-                   VERBATIM)
-
+if (MSVC)
+  add_custom_command(TARGET TOPP
+                    POST_BUILD
+                    COMMAND @echo ""
+                    COMMAND @echo "=========================================================================="
+                    COMMAND @echo ""
+                    COMMAND @echo "The TOPP tools have been built and installed to the bin/ folder."
+                    COMMAND @echo ""
+                    COMMAND @echo "Then you should test your installation by executing the tests."
+                    COMMAND @echo ""
+                    COMMAND @echo "Execute the 'targets' project to see prominent targets!"
+                    COMMAND @echo ""
+                    COMMAND @echo "=========================================================================="
+                    COMMAND @echo ""
+                    COMMENT "message after TOPP is built"
+                    VERBATIM)
+else()
+  add_custom_command(TARGET TOPP
+                    POST_BUILD
+                    COMMAND @echo ""
+                    COMMAND @echo "=========================================================================="
+                    COMMAND @echo ""
+                    COMMAND @echo "The TOPP tools have been built and installed to the bin/ folder."
+                    COMMAND @echo ""
+                    COMMAND @echo "Then you should test your installation by executing the tests."
+                    COMMAND @echo ""
+                    COMMAND @echo "Make sure to add the OpenMS and contrib lib/ path"
+                    COMMAND @echo "to your LD_LIBRARY_PATH environment variable."
+                    COMMAND @echo "Otherwise the tests and TOPP tools will not work."
+                    COMMAND @echo ""
+                    COMMAND @echo "For a full list of make targets execute:"
+                    COMMAND @echo "make targets"
+                    COMMAND @echo ""
+                    COMMAND @echo "=========================================================================="
+                    COMMAND @echo ""
+                    COMMENT "message after TOPP is built"
+                    VERBATIM)
+endif()
 
 
 ##### Messages at the end of cmake #####
@@ -623,8 +663,12 @@ MESSAGE(STATUS "----------------------------------------------------------------
 MESSAGE(STATUS "")
 MESSAGE(STATUS "You have successfully configured OpenMS and TOPP.")
 MESSAGE(STATUS "")
-MESSAGE(STATUS "For a full list of make targets execute:")
-MESSAGE(STATUS "'make targets'")
+if (MSVC)
+  MESSAGE(STATUS "Execute the 'targets' project to see prominent targets!")
+else()
+  MESSAGE(STATUS "For a full list of make targets execute:")
+  MESSAGE(STATUS "'make targets'")
+endif()
 MESSAGE(STATUS "")
 MESSAGE(STATUS "-----------------------------------------------------------------")
 MESSAGE(STATUS "")

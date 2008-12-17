@@ -59,7 +59,10 @@ for (Size i=0; i<myVec.size(); ++i)
 </code>
 
 Particularly do <b>not</b> use UInt as substitute for Size! Even though UInt and Size are equivalent
-using G++ (Linux), they are different types on Windows (Visual Studio), where UInt is 32bit, whereas Size is either 32 or 64bit depending on the platform. Using UInt leads to warnings (at best) and might even break your code!
+on prominent 32bit systems, they are usually different types on 64bit systems, where UInt is 32bit, whereas Size is 64bit depending on the platform. Using UInt leads to warnings (at best) and might even break your code!
+<p>
+Size is an unsigned type!If you need a signed type (e.g. when comparing length of vectors) use SignedSize (also defined in types.h)<br>
+</p>
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Pass-by-value versus pass-by-reference</H2>
 
