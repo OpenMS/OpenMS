@@ -1,7 +1,10 @@
 /**
-	
-	@page install_linux Installation on Linux
-
+  
+  @page install_linux Installation on Linux
+  
+  @todo Building with prefix (Marc, Chris)
+  @todo Building with custom compiler (Marc, Chris)
+  
   @section install_linux_read Read this!
   
   This document addresses %OpenMS users and explains the
@@ -12,22 +15,25 @@
   <b>Required applications</b>
   
   In order to compile %OpenMS, several applications need to be installed:
-	 - Compiler: An ANSI-compatible C++ compiler is required. <BR>Currently g++ 4.1.0 or higher is supported.  <BR>Older versions might still work, but are not actively maintained. <BR>g++ is part of the GNU Compiler Collection (GCC).
-	 - Autoconf 2.9 or higher is required
-	 - GNU make is required
+   - Compiler: An ANSI-compatible C++ compiler is required. <BR>Currently g++ 4.1.0 or higher is supported.  <BR>Older versions might still work, but are not actively maintained. <BR>g++ is part of the GNU Compiler Collection (GCC).
+   - Autoconf 2.9 or higher is required
+   - GNU make is required
   
-  <p>
   If your %OpenMS version is a development version from SVN, the following 
   applications are needed in order to create the %OpenMS documentation:
-		- doxygen (We recommend version 1.5.4)
-  	- pdflatex
+    - doxygen (We recommend version 1.5.4)
+    - pdflatex
 
-  <p>
   Depending on your linux distribution, you might have to install the following packages (names may vary):
-  	- build-essential (Ubuntu)
-  	- qt4-devel
-  	- x11-devel
-  	- libXmu-devel
+    - build-essential (Ubuntu only)
+    - cmake
+    - qt4-devel
+    - x11-devel
+    - libXmu-devel
+    - qt4-mysql (for DB sopport only)
+    - mysql-devel (for DB sopport only)
+
+<HR>
 
   @section install_linux_required Installing required dependency libraries
   
@@ -104,10 +110,10 @@
   Basically the installation boils down to this:
 
   <pre>
-&gt; ./configure --prefix=&lt;prefix&gt;
-&gt; make
-&gt; make install
-</pre>
+  &gt; ./configure --prefix=&lt;prefix&gt;
+  &gt; make
+  &gt; make install
+  </pre>
 
   @note If you want to use preinstalled MySQL binaries, make sure that the mysql-devel package is installed.
 
@@ -116,41 +122,39 @@
   For GUI and database access we use Qt 4.3. You can obtain the source code from 
   <a href="http://www.trolltech.com/download/index.html" target="_blank">http://www.trolltech.com/download/index.html</a>.
 
-  <p>Run configure with the '-verbose' option. With that option a
+  Run configure with the '-verbose' option. With that option a
   summary is shown before the you have to accept the licence. Make
   sure that MySQL (or any other DB you want to use) and OpenGL support are enabled in the summary.</p>
 
-<pre>
-&gt; ./configure -verbose -fast -no-qt3support (... see below)
-&gt; make
-</pre>
+  <pre>
+  &gt; ./configure -verbose -fast -no-qt3support (... see below)
+  &gt; make
+  </pre>
 
-  <p><b>SQL support:</b>
+  <b>SQL support:</b>
   <br>
   Use the configure option '-qt-sql-&lt;driver&gt;' to enable database support. There is a
   Qt driver for a lot of SQL database provided by Qt. Check the Qt manual for details.</p>
   
-	@note If you want to use the preinstalled binaries, make sure that the qt-devel package is installed.
+  @note If you want to use the preinstalled binaries, make sure that the qt-devel package is installed.
   
   @note Qt 4.4.1 and higher can also be used, although this version has several minor bugs.
   
   @subsection install_linux_contrib Installing the contrib package
-  
-  @b Download:
-  
+    
   The contrib package is contained in the %OpenMS release package and is available under the path contrib in the %OpenMS directory.
   
   If you are using the developer version of %OpenMS, you must check out the contrib from Sourceforge SVN repository
-	<pre>&gt; svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib</pre> 
-	to obtain the latest developer version (potentially unstable).
-  
-  @b Installation:
-  @n Execute:
   <pre>
-&gt; ./configure
-	</pre>
+  &gt; svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib
+  </pre> 
+  
+  To configure the contrib library execute:
+  <pre>
+  &gt; ./configure
+  </pre>
 
-	The following configure options can be used:
+  The following configure options can be used:
 
   <table border="0"  cellspacing="0" cellpadding="0">
     <tr>
@@ -173,13 +177,13 @@
   If you do not give any configure options, it is assumed that you
   want to use 'gcc' as C-compiler and 'g++' as C++-compiler.
 
-	@note If <code>./configure</code> is not executable on your system, you should execute <tt>autoconf</tt> before the above commands.
+  @note If <code>./configure</code> is not executable on your system, you should execute <tt>autoconf</tt> before the above commands.
 
   Next you can build all the libraries with
 
   <pre>
-&gt; make all
-</pre>
+  &gt; make all
+  </pre>
 
   If everything worked, the following sub-directories were created:
 
@@ -195,102 +199,84 @@
     It contains the header files needed for %OpenMS.</li>
   </ul>
 
-  @section install_linux_openms Installing OpenMS
+<HR>
+  
+  @section install_linux_openms Installing OpenMS/TOPP
  
- 	You need to get the %OpenMS source code from our website. The latest stable version of %OpenMS can be found in the 
-	<a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">files</a> section.
-	For further (e.g. latest developer version from SVN) info see the <a href="http://open-ms.sourceforge.net/download.php" target="_blank">download instructions</a>.
+   You need to get the %OpenMS source code from our website. The latest stable version of %OpenMS can be found in the 
+  <a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">files</a> section.
+  For further (e.g. latest developer version from SVN) info see the <a href="http://open-ms.sourceforge.net/download.php" target="_blank">download instructions</a>.
 
-  If you have not installed the libraries which %OpenMS requires, please refer to the section @ref install_linux_required above. Otherwise you might only get parts of the full %OpenMS functionality.
-  <br>
-  Assuming you have successfully installed the dependent libraries, you can proceed.
-  <br>
-  <br>
-  After you got the source code and prepared the contrib libs go to the <tt>source</tt> directory and type in the following commands (... see 'configure --help' and below for more options during <code>./configure</code>)
-
+  If you have not installed the libraries which %OpenMS requires, please refer to the section @ref install_linux_required above.
+  
+  CMake is used to check the system and create the main 'Makefile'.
+  @n Go to the %OpenMS directory and execute the following command:
   <pre>
-&gt; ./configure
-&gt; make lib
-&gt; make install
-  </pre>This should do the job.
-  <br>
-  <br>
-  The most important configure options are:
+  &gt; cmake .
+  </pre>
+  
+  You can set CMake variables using the <code>-D VARIABLE=VALUE</code> option.
+  A full list of the CMake variables is shown when you execute
+  <pre>
+  &gt; ccmake .
+  </pre>
+  This works only after executing <code>cmake .</code>.
+  
+  The most important CMake variables are:
 
   <table border="0">
     <tr>
-      <td>--prefix=DIR&nbsp;&nbsp;&nbsp;</td>
+      <td>TODO</td>
       <td>the path where the library is installed.
-          <BR><b>Note:</b> Moving the library after installing it is not possible! 
-          Please use this option to point configure to the location %OpenMS should
+          <BR>
+          <b>Note:</b> Moving the library after installing it is not possible! 
+          Please use this option to point CMake to the location %OpenMS should
           be installed to.</td>
     </tr>
     <tr>
-      <td>--with-default-path=DIR&nbsp;&nbsp;&nbsp;</td>
-      <td>use default path DIR/include for header files and DIR/lib
-      for libraries (<i>../contrib</i> if unset)</td>
+      <td>CONTRIB_CUSTOM_DIR</td>
+      <td>search for the contrib libraries in this location.
+          If unset the default locations of the system are used.</td>
     </tr>
     <tr>
-      <td>--with-qt=QTDIR</td>
-      <td>Qt is installed in QTDIR.</td>
+      <td>QT_QMAKE_EXECUTABLE</td>
+      <td>Defines the Qt 'qmake' application. The corresping qt installation is used.</td>
     </tr>
     <tr>
-      <td>--with-compiler=CXX</td>
-      <td>use CXX as C++ compiler</td>
+      <td>QT_DB_PLUGIN</td>
+      <td>Defines the Qt database type. By default MySQL is used.</td>
+    </tr>
+    <tr>
+      <td>TODO</td>
+      <td>Defines the C++ compiler to use.</td>
     </tr>
   </table>
-	<p>
-		
-  @note If <code>./configure</code> is not executable on your system, you should execute <tt>autoconf</tt> before the above commands.
-  
-  <p>
-	If <code>./configure</code> fails, a file called <b>config.diag.tar</b> is created. Please send this file
-  together with a description of the problem by <a href="http://open-ms.sourceforge.net/contact.php" target="_blank">email</a>.
 
-	Add <i>&lt;path_to_OpenMS&gt;/lib/</i> (e.g. <i>~/OpenMS/lib/</i>) to the environment variable <b>LD_LIBRARY_PATH</b> (as suggested by the previous <code>make</code>).
-	
-	On 64bit machines it may be requiered to switch off support for ANDI/MS and netCDF using the switches  --disable-andims and --disable-netcdf, however these data formats will not be supported then.
+  After CMake was executed, you can list the make targets by calling <code>make targets</code>.
 
-  @section install_linux_testing_openms Testing your OpenMS installation  
-  
-  After you have installed %OpenMS, you can test your installation
-  by executing the following command:
-
+  In order to build the %OpenMS library and TOPP tools execute the following command:
   <pre>
-&gt; cd &lt;path_to_OpenMS&gt;/source/
-&gt; make test
-</pre>
-	
-	@note To test the DB connectivity, copy the file
-	'&lt;path_to_OpenMS&gt;/source/TEST/DB_credentials_template.txt'
-	to 'DB_credentials.txt' and fill in your DB access details. As
-	long as the 'DB_credentials.txt' file remains there, the DB will
-	be tested with any subsequent call of 'make test'. 
-	In order to successfully test DB connectivity, the database must exist 
-	and the the given user must have write access to the database.
-	
-  @section install_linux_topp Building the TOPP tools
+  &gt; make
+  </pre>
+
+  Make sure to add <i>&lt;path_to_OpenMS&gt;/lib/</i> (e.g. <i>~/OpenMS/lib/</i>) to the environment variable <b>LD_LIBRARY_PATH</b>.
   
-	TOPP is a toolset for the analysis of HPLC/MS data. It consists of several small applications that can be chained to create analysis pipelines tailored for a specific problem.
-	<BR>
-	<BR>
-  After you have built %OpenMS, you can build the TOPP tools
-  with the following command:
+  @note The ANDI/MS library does not work on 64 bit machines. On these machines ANDI/MS (cdf) support is disabled automatically.
 
-  <pre>
-&gt; cd &lt;path_to_OpenMS&gt;/source/
-&gt; make TOPP
-</pre>Now the TOPP tools are ready to use in <code>${PREFIX}/bin/</code>.
-  <br>
+  @note The TOPP tools are ready to use in the <code>bin/</code> folder of the installation directory.
 
-  @section install_linux_testing_topp Testing the TOPP tools
+<HR>
+
+  @section install_linux_testing_openms Testing your OpenMS/TOPP installation  
   
-  After you have built the TOPP tools, you can test them with the following command:
-
+  After you have installed %OpenMS and TOPP, you should test your installation by executing the following command:
   <pre>
-&gt; cd &lt;path_to_OpenMS&gt;/source/
-&gt; make TOPPtest
-</pre> 
+  &gt; cd &lt;path_to_OpenMS&gt;
+  &gt; make TEST
+  &gt; make test
+  </pre>
+  
+  @note To test the DB connectivity, copy the file '&lt;path_to_OpenMS&gt;/source/TEST/DB_credentials_template.txt' to 'DB_credentials.txt' and fill in your DB access details. As long as the 'DB_credentials.txt' file remains there, the DB will be tested with any subsequent call of 'make test'. In order to successfully test DB connectivity, the database must exist and the the given user must have write access to the database.
 
   @note To test the DBImporter and DBExporter go to the '&lt;path_to_OpenMS&gt;/source/TEST/TOPP/' directory and copy the files 'DBImporter_input_template.ini' and 'DBExporter_input_template.ini' to 'DBImporter_input.ini' and 'DBExporter_input.ini', respectively. Then fill in your DB access details. As long as these file remains there, the DB will be tested with any subsequent call of 'make TOPPtest'. In order to successfully test the tools, the database must exist and the the given user must have write access to the database.
 

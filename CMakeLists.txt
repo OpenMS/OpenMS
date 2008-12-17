@@ -16,9 +16,10 @@ PROJECT("OpenMS")
 
 ## not implemented yet (TODO):
 # - install with prefix (chris) => enable this in the test (marc)
-# - default meothod to include external code
 # - test for contrib headers (CONTRIB_HEADER_DIR ccmake variable - test one header for each required library)
+# - set compiler explicitly + output of used compiler
 # - parallel build of test executables
+# - default method to include external code
 
 ########################################################
 ###    manual entries (edit this for new release)    ###
