@@ -100,7 +100,7 @@ namespace OpenMS
 			}
 		else // 
 			{
-				std::vector<DoubleReal>::iterator tmp_iter = lower_bound(bin_masses_.begin(),bin_masses_.end(),mass);
+					std::vector<DoubleReal>::iterator tmp_iter = std::lower_bound(bin_masses_.begin(),bin_masses_.end(),mass);
 				if((tmp_iter+1)==bin_masses_.end()
 					 || fabs(*tmp_iter - mass) < fabs(*(tmp_iter+1) - mass))
 					{
@@ -269,7 +269,7 @@ namespace OpenMS
 						for(UInt i=0;i<masses_.size();++i)
 							{
 								std::vector<DoubleReal>::iterator tmp_iter =
-									lower_bound(bin_masses_.begin(),bin_masses_.end(),masses_[i]);
+										std::lower_bound(bin_masses_.begin(),bin_masses_.end(),masses_[i]);
 								if(tmp_iter== bin_masses_.end())
 									{
 										++counter_[distance(bin_masses_.begin(),tmp_iter-1)];

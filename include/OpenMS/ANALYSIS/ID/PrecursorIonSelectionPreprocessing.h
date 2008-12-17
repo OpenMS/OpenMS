@@ -33,7 +33,7 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-
+#include <algorithm>
 #include <cmath>
 #include <set>
 #include <fstream>
