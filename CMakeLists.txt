@@ -37,8 +37,6 @@ set(CF_PACKAGE_VERSION "1.3" CACHE INTERNAL "OpenMS VERSION" FORCE)
 cmake_minimum_required(VERSION 2.6)
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
-set(DO_INSTALL false CACHE BOOL "Set to 'true' if you want the CMAKE_INSTALL_PREFIX to be used and the library to be installed. On 'false' the library and Tools will be build but not installed!")
-
 if (CMAKE_SIZEOF_VOID_P MATCHES "8")
 	set(OPENMS_64BIT_ARCHITECTURE 1 CACHE INTERNAL "Architecture-bits")
 else()
@@ -83,7 +81,7 @@ if (NOT WIN32) # we only want fPIC on non-windows systems (fPIC is implicitly tr
 	endif()
 endif()
 
-#default build type (for Makefile generators): release
+#default build type (for Makefile generators): Debug
 set(OPENMS_BUILD_TYPE "Debug" CACHE STRING "Build type: 'Debug' or 'Release'")
 if (OPENMS_BUILD_TYPE STREQUAL "Debug")
 	Message(STATUS "OpenMS build type: ${OPENMS_BUILD_TYPE} (compiler debug info and OpenMS debug mode enabled)")
@@ -689,3 +687,5 @@ MESSAGE(STATUS "")
 
 # TODO: install (copy) directories?!
 # ...
+set(DO_INSTALL false CACHE BOOL "Set to 'ON' if you want the CMAKE_INSTALL_PREFIX to be used and the library to be installed. On 'OFF' the library and Tools will be build but not installed!")
+
