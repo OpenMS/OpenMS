@@ -90,7 +90,7 @@
 
       <LI><B>How do I switch to debug/release configuration?!</B><br>
         For Makefile generators (typically on Linux) you can set the CMAKE_BUILD_TYPE variable to either
-        Debug or Release by calling ccmake. This only works AFTER you have called cmake.
+        Debug or Release by calling ccmake.
         <br>
         For Visual Studio, this is not necessary as all configurations are generated and
         you can choose the one you like within the IDE itself.

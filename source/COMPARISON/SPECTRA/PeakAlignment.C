@@ -227,9 +227,7 @@ namespace OpenMS
 		double best_score_normalized(best_score/sqrt(score_spec1*score_spec2));
 
 		/*
-		#ifdef OPENMS_DEBUG
 		cout << "score_spec1: " << score_spec1 << " score_spec2: " << score_spec2 <<  " best_score: " << best_score << endl;
-		#endif
 
 		//normalize score to interval [0,1] with arithmeic mean
 		double best_score_normalized( (best_score*2) / (score_spec1 + score_spec2) );

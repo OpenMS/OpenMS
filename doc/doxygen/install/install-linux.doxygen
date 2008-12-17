@@ -2,9 +2,6 @@
   
   @page install_linux Installation on Linux
   
-  @todo Building with prefix (Marc, Chris)
-  @todo Building with custom compiler (Marc, Chris)
-  
   @section install_linux_read Read this!
   
   This document addresses %OpenMS users and explains the
@@ -226,7 +223,7 @@
 
   <table border="0">
     <tr>
-      <td>TODO</td>
+      <td>CMAKE_INSTALL_PREFIX</td>
       <td>the path where the library is installed.
           <BR>
           <b>Note:</b> Moving the library after installing it is not possible! 
@@ -243,11 +240,17 @@
       <td>Defines the Qt 'qmake' application. The corresping qt installation is used.</td>
     </tr>
     <tr>
+      <td>CMAKE_BUILD_TYPE</td>
+      <td>Should be either 'Release' (optimization enabled) or 'Debug' (debug info and 
+          precondition/postcondiction checks enabled).
+          @n The default is 'Release'.</td>
+    </tr>
+    <tr>
       <td>QT_DB_PLUGIN</td>
       <td>Defines the Qt database type. By default MySQL is used.</td>
     </tr>
     <tr>
-      <td>TODO</td>
+      <td>CMAKE_CXX_COMPILER</td>
       <td>Defines the C++ compiler to use.</td>
     </tr>
   </table>

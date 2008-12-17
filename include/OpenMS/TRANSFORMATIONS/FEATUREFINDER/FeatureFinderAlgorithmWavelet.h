@@ -153,23 +153,17 @@ namespace OpenMS
               iwt.getTransforms (this->map_->at(i), pwts, max_charge_, mode_);
               this->ff_->setProgress (++j);
     
-              #ifdef OPENMS_DEBUG
-                std::cout << "transform ok ... "; std::cout.flush();
-              #endif
+              //std::cout << "transform ok ... "; std::cout.flush();
           
               iwt.identifyCharges (pwts,  this->map_->at(i), i, ampl_cutoff_);
               this->ff_->setProgress (++j);
                         
-              #ifdef OPENMS_DEBUG
-              std::cout << "charge recognition ok ... "; std::cout.flush();
-              #endif
+              //std::cout << "charge recognition ok ... "; std::cout.flush();
               
               iwt.updateBoxStates(*this->map_, i, RT_interleave_, RT_votes_cutoff);
               this->ff_->setProgress (++j);
                       
-              #ifdef OPENMS_DEBUG
-              std::cout << "updated box states." << std::endl;
-              #endif
+              //std::cout << "updated box states." << std::endl;
 
               std::cout.flush();
             };
@@ -179,9 +173,7 @@ namespace OpenMS
             //Forces to empty OpenBoxes_ and to synchronize ClosedBoxes_ 
             iwt.updateBoxStates(*this->map_, INT_MAX, RT_interleave_, RT_votes_cutoff); 
   
-            #ifdef OPENMS_DEBUG
-            std::cout << "Final mapping."; std::cout.flush();
-            #endif
+            //std::cout << "Final mapping."; std::cout.flush();
               
           //---------------------------------------------------------------------------
           //Step 2:
