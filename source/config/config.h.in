@@ -93,7 +93,7 @@
 // Defines for conditional compiles when Libs are missing
 #cmakedefine USE_ANDIMS
 
-#define DB_PLUGIN "@CF_DB_PLUGIN@"
+#define DB_PLUGIN "@QT_DB_PLUGIN@"
 
 // __PRETTY_FUNCTION__ is a GNU G++ extension.  It is used in exceptions to indicate their origin.
 #ifndef OPENMS_COMPILER_GXX 

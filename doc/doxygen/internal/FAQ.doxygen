@@ -61,7 +61,7 @@
 
       <LI><B>What is CMake?!</B><br>
         CMake builds BuildSystems for different platforms, e.g. VisualStudio Solutions on Windows, Makefiles on Linux etc.
-        This allows us to define in one central location (namely CMakeLists.txt) how OpenMS is build and have the platform specific stuff handled by CMake.
+        This allows us to define in one central location (namely CMakeLists.txt) how %OpenMS is build and have the platform specific stuff handled by CMake.
         See http://www.cmake.org for more information.<br>
         We require <b>CMake 2.6</b> and above!
 
@@ -77,11 +77,11 @@
       <LI><B>What are user definable CMake Cache Variables?!</B><br>
         They allow the user to pass options to CMake which will influence the build system.
         The most important option which should be given when calling CMake.exe is:
-        - CUSTOM_CONTRIB_DIR, which is the path to the OpenMS contrib dir.
+        - CONTRIB_CUSTOM_DIR, which is the path to the %OpenMS contrib dir.
           The default for this variable <OpenMS>/contrib. So unless your contrib is at this location,
           you will need to set this variable.
         To pass this variable to CMake use the -D switch
-        e.g. <code>cmake -D CUSTOM_CONTRIB_DIR:PATH="D:\svn\contrib"</code>
+        e.g. <code>cmake -D CONTRIB_CUSTOM_DIR:PATH="D:\svn\contrib"</code>
         Everything else can be edited using ccmake afterwards. The following options are of interest:
         - OPENMS_DEBUG
         - OPENMS_ENABLE_EXTERNALMEMORY
@@ -90,10 +90,14 @@
 
       <LI><B>How do I switch to debug/release configuration?!</B><br>
         For Makefile generators (typically on Linux) you can set the CMAKE_BUILD_TYPE variable to either
-        Debug or Release by calling ccmake. This only works AFTER you have called cmake.<br>
+        Debug or Release by calling ccmake. This only works AFTER you have called cmake.
+        <br>
         For Visual Studio, this is not necessary as all configurations are generated and
         you can choose the one you like within the IDE itself.
-
+        <br>
+				The 'debug' configuration enabled debug information.
+				The 'release' configuration disables debug information and enables optimization.
+				
       <LI><B>I changed the contrib path, but re-running CMake won't change the library paths?!</B><br>
       	Once a library is found and its location is stored in a cache variable, it will only be searched again if the corresponding entry in the cache file is set to false. You can simply delete the CMakeCache.txt, but all other custom settings will be lost as well.
 
@@ -178,7 +182,9 @@
 	    <li><b>Build with several threads.</b><br>
 				If you have several pocessors/cores you can build %OpenMS classes/tests and TOPP tools
 				in in several threads using the @a make option @a -j:
-				@n<code>make -j8 OpenMS TOPP</code>
+				- <code>make -j8 OpenMS</code>
+				- <code>make -j8 TOPP</code>
+				- <code>make -j8 TEST</code>
 		</UL>
 
 	<H2 style="border-top:2px solid grey;">Debugging</H2>

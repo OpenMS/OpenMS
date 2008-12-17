@@ -8,14 +8,17 @@ PROJECT("OpenMS")
 ### - do NOT hardcode them here!										 ###
 ### - edit them within CMakeCache.txt using ccmake	 ###
 ########################################################
-# CUSTOM_CONTRIB_DIR
+# CONTRIB_CUSTOM_DIR
 # OPENMS_DEBUG
-# ENABLE_STL_DEBUG (not the same as OPENMS_DEBUG!)
+# STL_DEBUG (not the same as OPENMS_DEBUG!)
 # OPENMS_ENABLE_EXTERNALMEMORY
-# CF_DB_PLUGIN
+# QT_DB_PLUGIN
 
 ## not implemented yet (TODO):
-# DO_INSTALL
+# - install with prefix (chris) => enable this in the test (marc)
+# - default meothod to include external code
+# - test for contrib headers (CONTRIB_HEADER_DIR ccmake variable - test one header for each required library)
+# - parallel build of test executables
 
 ########################################################
 ###    manual entries (edit this for new release)    ###
@@ -83,9 +86,9 @@ endif()
 set(CMAKE_BUILD_TYPE "Release")
 Message(STATUS "Default build type is 'Release'. Change CMAKE_BUILD_TYPE to modify this! [relevant for Makefiles only]")
 Message(STATUS "  Current build type: ${CMAKE_BUILD_TYPE}")
-set(ENABLE_STL_DEBUG "false" CACHE BOOL "[GCC only] Enable STL-DEBUG mode (slow).")
+set(STL_DEBUG "false" CACHE BOOL "[GCC only] Enable STL-DEBUG mode (slow).")
 ## STL-DEBUG (only for GCC)
-if (ENABLE_STL_DEBUG)
+if (STL_DEBUG)
   if (CMAKE_COMPILER_IS_GNUCXX)
     # force DEBUG mode
     set(CMAKE_BUILD_TYPE "Debug" CACHE "Build type for Makefile Generators: Debug Release RelWithDebInfo MinSizeRel" STRING FORCE)
@@ -112,20 +115,20 @@ else()
   set(USE_ANDIMS 1 CACHE INTERNAL "Support AndiMS?!")
 endif()
 
-set(CUSTOM_CONTRIB_DIR CACHE PATH "User defined location of contrib dir. If left empty we assume the contrib to be in OpenMS/contrib!")
+set(CONTRIB_CUSTOM_DIR CACHE PATH "User defined location of contrib dir. If left empty we assume the contrib to be in OpenMS/contrib!")
 set(CONTRIB_DIR ${PROJECT_SOURCE_DIR}/contrib/ CACHE INTERNAL "Final contrib path after looking at custom_contrib_path. defaults to OpenMS/contrib")
 
-#message("CUSTOM contrib is: " ${CUSTOM_CONTRIB_DIR})
+#message("CUSTOM contrib is: " ${CONTRIB_CUSTOM_DIR})
 
-if (CUSTOM_CONTRIB_DIR STREQUAL "")
+if (CONTRIB_CUSTOM_DIR STREQUAL "")
 	message(STATUS "Using DEFAULT setting for contrib directory: ${CONTRIB_DIR}")
 else()
-	set(CONTRIB_DIR ${CUSTOM_CONTRIB_DIR})
+	set(CONTRIB_DIR ${CONTRIB_CUSTOM_DIR})
 	message(STATUS "Using user defined contrib directory: ${CONTRIB_DIR}")
 endif()
 
-FIND_PATH(CONFIRM_CONTRIB_DIR README.txt PATHS ${CONTRIB_DIR} NO_DEFAULT_PATH)
-if (CONFIRM_CONTRIB_DIR STREQUAL "CONFIRM_CONTRIB_DIR-NOTFOUND")
+FIND_PATH(CONTRIB_CONFIRM_DIR README.txt PATHS ${CONTRIB_DIR} NO_DEFAULT_PATH)
+if (CONTRIB_CONFIRM_DIR STREQUAL "CONTRIB_CONFIRM_DIR-NOTFOUND")
 	message(FATAL_ERROR "The path to the Contrib directory (${CONTRIB_DIR}) is not correct!")
 endif()
 
@@ -141,14 +144,6 @@ else()
 endif()
 
 message(STATUS "Contrib lib dir: ${CONTRIB_LIB_DIR}")
-
-# TODO check whether this is necessary
-FIND_PATH(GSL_INCLUDE_DIR gsl/gsl_cdf.h NAMES gsl/gsl_randist.h PATHS ${CONTRIB_INCLUDE_DIR} DOC "GSL header include dir")
-if (GSL_INCLUDE_DIR STREQUAL "GSL_INCLUDE_DIR-NOTFOUND")
-	MESSAGE(FATAL_ERROR "Unable to find GSL include dir! Please make sure it is part of the contrib (which we assume to be at: ${CONTRIB_DIR}")
-else()
-	MESSAGE(STATUS "Found GSL include dir at: " ${GSL_INCLUDE_DIR})
-endif()
 
 ###########################################################
 ###							 find libs (for linking)								###
@@ -174,13 +169,13 @@ MACRO (OPENMS_CHECKLIB varname libnames libnames_d human_libname)
 	set(${varname} optimized ${${varname}_OPT} debug ${${varname}_DBG})
 ENDMACRO (OPENMS_CHECKLIB)
 
-OPENMS_CHECKLIB(XERCESC_LIBRARY "xerces-c_2;libxerces-c;xerces-c" "xerces-c_2D;libxerces-c;xerces-c" "xerces_c")
+OPENMS_CHECKLIB(CONTRIB_XERCESC "xerces-c_2;libxerces-c;xerces-c" "xerces-c_2D;libxerces-c;xerces-c" "xerces_c")
 
-OPENMS_CHECKLIB(GSL_LIBRARY "libgsl_dll;gsl" "libgsl_dll_d;gsl" "GSL")
+OPENMS_CHECKLIB(CONTRIB_GSL "libgsl_dll;gsl" "libgsl_dll_d;gsl" "GSL")
 
-OPENMS_CHECKLIB(GSLCBLAS_LIBRARY "libgslcblas_dll;gslcblas" "libgslcblas_dll_d;gslcblas" "GSL-CBLAS")
+OPENMS_CHECKLIB(CONTRIB_GSLCBLAS "libgslcblas_dll;gslcblas" "libgslcblas_dll_d;gslcblas" "GSL-CBLAS")
 
-OPENMS_CHECKLIB(CGAL_LIBRARY "cgal-vc80-mt;cgal-vc90-mt;CGAL" "cgal-vc80-mt-gd;cgal-vc90-mt-gd;CGAL" "CGAL")
+OPENMS_CHECKLIB(CONTRIB_CGAL "cgal-vc80-mt;cgal-vc90-mt;CGAL" "cgal-vc80-mt-gd;cgal-vc90-mt-gd;CGAL" "CGAL")
 
 # TODO windoes????
 if (NOT MSVC AND USE_ANDIMS)
@@ -221,12 +216,12 @@ Message(STATUS "QT uic at ${QT_UIC_EXECUTABLE}")
 ###    useful programms															 ###
 ########################################################
 
-find_program(PROG_Svnversion
+find_program(SVNVERSION_EXECUTABLE
              svnversion
              PATHS "c:/programme/subversion/bin" "c:/program files/subversion/bin"   ### additional search paths (along with $PATH)
              DOC "svnversion executable which helps in determining the svn revision when building TOPP tools")
 
-if (PROG_Svnversion STREQUAL "PROG_Svnversion-NOTFOUND")
+if (SVNVERSION_EXECUTABLE STREQUAL "SVNVERSION_EXECUTABLE-NOTFOUND")
 	message(STATUS "The programm svnversion could not be found. SVN-revision information will not be available! Add the location of svnversion(.exe) to your PATH environment variable if you require SVN-revision.")
 	set(OPENMS_HAS_SVNVERSION false CACHE INTERNAL "SVNVersion(.exe) present?")
 else()
@@ -378,7 +373,7 @@ if (NOT DEFINED USE_ANDIMS)
 endif()
 
 # user flag with default "QMYSQL" (needs a cmake flag/cache entry, so we define it empty which causes it to show up in the wizard)
-set(CF_DB_PLUGIN "QMYSQL" CACHE BOOL "User switch to change the DB plugin.")
+set(QT_DB_PLUGIN "QMYSQL" CACHE STRING "User switch to change the DB plugin.")
 
 
 ########################################################
@@ -399,7 +394,7 @@ configure_file(${PROJECT_SOURCE_DIR}/source/config/Doxyfile.in ${PROJECT_BINARY_
 #	set(svnversion_file_h ${PROJECT_SOURCE_DIR}/source/CONCEPT/openms_svnversion) # file with version number
 #
 #	## ensure that the file is always rebuild
-#  add_custom_target(svnversion_file_target ALL ${PROG_Svnversion} -n ${PROJECT_SOURCE_DIR} > ${svnversion_file_h} COMMENT "Call svnversion in project directory to generate openms_svnversion.txt")
+#  add_custom_target(svnversion_file_target ALL ${SVNVERSION_EXECUTABLE} -n ${PROJECT_SOURCE_DIR} > ${svnversion_file_h} COMMENT "Call svnversion in project directory to generate openms_svnversion.txt")
 #	set(CF_PACKAGE_REVISION_FILE ${svnversion_file_h})
 #	#file(READ ${svnversion_file_h} ENV_OPENMS_REVISION) # read revision from file
 #	#set($ENV{OPENMS_REVISION} ${ENV_OPENMS_REVISION}) # set environment variable e.g. for doxygen
@@ -460,7 +455,7 @@ if (OPENMS_HAS_SVNVERSION)
 endif()
 
 
-set(OPENMS_DEP_LIBRARIES ${QT_LIBRARIES} ${CGAL_LIBRARY} ${GSL_LIBRARY} ${GSLCBLAS_LIBRARY} ${SVM_LIBRARY} ${XERCESC_LIBRARY} ${ANDIMS_LIBRARY} ${NETCDF_LIBRARY})
+set(OPENMS_DEP_LIBRARIES ${QT_LIBRARIES} ${CONTRIB_CGAL} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${ANDIMS_LIBRARY} ${NETCDF_LIBRARY})
 if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
 	target_link_libraries(OpenMS ${OPENMS_DEP_LIBRARIES})
@@ -521,11 +516,11 @@ set(EXAMPLES_executables)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY source/EXAMPLES)
 include(source/EXAMPLES/executables.cmake)
 foreach(i ${EXAMPLES_executables})
-  #add_executable(${i} source/EXAMPLES/${i}.C)
-  #target_link_libraries(${i} ${OPENMS_LIBRARIES})
+  add_executable(${i} source/EXAMPLES/${i}.C)
+  target_link_libraries(${i} ${OPENMS_LIBRARIES})
 endforeach(i)
-#add_custom_target(EXAMPLES)
-#add_dependencies(EXAMPLES ${EXAMPLES_executables})
+add_custom_target(EXAMPLES)
+add_dependencies(EXAMPLES ${EXAMPLES_executables})
 
 
 #### Tests #####
@@ -548,43 +543,93 @@ configure_file(
 include(CMakeExportBuildSettings)
 cmake_export_build_settings(${OpenMS_BINARY_DIR}/OpenMSBuildSettings.cmake)
 export_library_dependencies(${OpenMS_BINARY_DIR}/OpenMSLibraryDepends.cmake)
-# TODO install these files to a specific location to have a standard way
-# to be used with external code
+# TODO install these files to a specific location to have a standard way to be used with external code
 
-
-##INFO for make cacheclean:
-## deleting the Cache should not be neccessary, unless you change the location of some libraries
-## , still. some libraries might not be found due to partially compiled OpenMS/TOPP
-## So the best solution is to delete the Build-Tree and start over!
-## (and it would require a custom_target which uses "echo > CMakeCache.txt" (most platforms should have it)
-## just delete it by hand if you must
-## alternatively use ADDITIONAL_MAKE_CLEAN_FILES to remove it when calling "make clean"
-
-
-## targets
-## - displays the most important targets
-## - the @ in front of 'echo' is neccessary to silence the output of the command
+##### targets list #####
 add_custom_target(targets
-                  COMMAND @echo "    [target]       [builds ...]"
-                  COMMAND @echo "    OpenMS         the OpenMS-Library"
-                  COMMAND @echo "    TOPP           TOPP tools"
-                  COMMAND @echo "    test           all tests"
-                  COMMAND @echo "    UTILS          helper programs"
-                  COMMAND @echo "    EXAMPLES       example executables in source/EXAMPLES"
+	                COMMAND @echo ""
+	                COMMAND @echo "=========================================================================="
+	                COMMAND @echo ""
+                  COMMAND @echo "The following make targets are available:"
+                  COMMAND @echo "    [no target]    builds the OpenMS library, TOPP tools and UTILS tools"
+                  COMMAND @echo "    OpenMS         builds the OpenMS library"
+                  COMMAND @echo "    TOPP           builds the TOPP tools"
+                  COMMAND @echo "    UTILS          builds the UTILS tools"
+                  COMMAND @echo "    TEST           builds the OpenMS tests"
+                  COMMAND @echo "    test           executes OpenMS and TOPP tests"
+                  COMMAND @echo "                   make sure they are built using the TEST target"
+                  COMMAND @echo "    EXAMPLES       builds the example executables in source/EXAMPLES"
+                  COMMAND @echo "    help           list all available targets (very long)"
                   COMMAND @echo ""
                   COMMAND @echo "Single TOPP tools have their own target, e.g. TOPPView"
                   COMMAND @echo "The same applies for class tests and UTILS tools."
-                  COMMAND @echo "All available targets can be listed using 'make help' (very long)"
-                  COMMAND @echo ""
+	                COMMAND @echo ""
+	                COMMAND @echo "=========================================================================="
+	                COMMAND @echo ""
                   COMMENT "The most important targets for OpenMS"
                   VERBATIM
   )
 
-########################################################
-###    install/copy??																 ###
-########################################################
+##### Message after OpenMS has been built #####
+add_custom_command(TARGET OpenMS
+                   POST_BUILD
+                   COMMAND @echo ""
+                   COMMAND @echo "=========================================================================="
+                   COMMAND @echo ""
+                   COMMAND @echo "The OpenMS library has been built."
+                   COMMAND @echo ""
+                   COMMAND @echo "You should now build the TOPP tools and tests."
+                   COMMAND @echo "Then you should test your installation by executing the tests."
+                   COMMAND @echo ""
+                   COMMAND @echo "Make sure to add the OpenMS and contrib lib/ path"
+                   COMMAND @echo "to your LD_LIBRARY_PATH environment variable."
+                   COMMAND @echo "Otherwise the tests and TOPP tools will not work."
+                   COMMAND @echo ""
+                   COMMAND @echo "For a full list of make targets execute:"
+                   COMMAND @echo "make targets"
+                   COMMAND @echo ""
+                   COMMAND @echo "=========================================================================="
+                   COMMAND @echo ""
+                   COMMENT "message after library is built"
+                   VERBATIM)
+
+##### Message after TOPP has been built #####
+add_custom_command(TARGET TOPP
+                   POST_BUILD
+                   COMMAND @echo ""
+                   COMMAND @echo "=========================================================================="
+                   COMMAND @echo ""
+                   COMMAND @echo "The TOPP tools have been built and installed to the bin/ folder."
+                   COMMAND @echo ""
+                   COMMAND @echo "Then you should test your installation by executing the tests."
+                   COMMAND @echo ""
+                   COMMAND @echo "Make sure to add the OpenMS and contrib lib/ path"
+                   COMMAND @echo "to your LD_LIBRARY_PATH environment variable."
+                   COMMAND @echo "Otherwise the tests and TOPP tools will not work."
+                   COMMAND @echo ""
+                   COMMAND @echo "For a full list of make targets execute:"
+                   COMMAND @echo "make targets"
+                   COMMAND @echo ""
+                   COMMAND @echo "=========================================================================="
+                   COMMAND @echo ""
+                   COMMENT "message after TOPP is built"
+                   VERBATIM)
+
+
+
+##### Messages at the end of cmake #####
+MESSAGE(STATUS "")
+MESSAGE(STATUS "-----------------------------------------------------------------")
+MESSAGE(STATUS "")
+MESSAGE(STATUS "You have successfully configured OpenMS and TOPP.")
+MESSAGE(STATUS "")
+MESSAGE(STATUS "For a full list of make targets execute:")
+MESSAGE(STATUS "'make targets'")
+MESSAGE(STATUS "")
+MESSAGE(STATUS "-----------------------------------------------------------------")
+MESSAGE(STATUS "")
+
+##### install/copy?? #####
 
 # TODO: install (copy) directories?!
 # ...
-
-

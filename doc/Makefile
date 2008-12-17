@@ -185,6 +185,6 @@ clean:
 	@rm -rf OpenMS_tutorial/latex_output/ OpenMS_tutorial.pdf OpenMS_tutorial/doxygen-error.log
 	@rm -rf TOPP_tutorial/latex_output/ TOPP_tutorial.pdf TOPP_tutorial/doxygen-error.log
 	@rm -rf doxygen/parameters/DefaultParamHandlerDocumenter doxygen/parameters/DefaultParamHandlerDocumenter.o doxygen/parameters/output/OpenMS_*.parameters
-	@rm -rf doxygen/parameters/TOPPDocumenter doxygen/parameters/TOPPDocumenter.o doxygen/parameters/output/TOPP_*.cli
+	@rm -rf doxygen/parameters/TOPPDocumenter doxygen/parameters/TOPPDocumenter.o doxygen/parameters/output/TOPP_*.cli doxygen/parameters/output/UTILS_*.cli
 
 dummy:

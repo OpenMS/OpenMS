@@ -168,10 +168,10 @@
 <code>
           $ cd <path_to_OpenMS_build_directory>
             e.g. $ cd OpenMS_Win64
-          $ cmake -D CUSTOM_CONTRIB_DIR:PATH="<path_to_contrib>" -G "<generator>" "<path_to_OpenMS>"
+          $ cmake -D CONTRIB_CUSTOM_DIR:PATH="<path_to_contrib>" -G "<generator>" "<path_to_OpenMS>"
 </code>
           The choice of <generator> is dependent on your system. Type $ cmake to see a list of available generators.
-            e.g. <code>$ cmake -D CUSTOM_CONTRIB_DIR:PATH="C:\svn\contrib" -G "Visual Studio 8 2005 Win64" "../OpenMS"</code>
+            e.g. <code>$ cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib" -G "Visual Studio 8 2005 Win64" "../OpenMS"</code>
 
       </OL>
 

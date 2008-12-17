@@ -1,6 +1,10 @@
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-using OpenMS::Int;  using OpenMS::UInt;  using OpenMS::Real;  using OpenMS::String;
+using OpenMS::Int;
+using OpenMS::UInt;
+using OpenMS::Size;
+using OpenMS::Real;
+using OpenMS::String;
 
 // Simple class with three data members
 class IntRealString

@@ -44,7 +44,6 @@
 			</UL>
 			General information:
 			<UL>
-				<LI> @subpage makefile
 				<LI> @subpage FAQ
 			</TD>
 			<TD width="33%" valign="top">
