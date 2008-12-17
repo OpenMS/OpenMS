@@ -3,11 +3,10 @@
 
 PROJECT("OpenMS")
 
-## not implemented yet (TODO):
+# TODO LIST:
 # - install with prefix (chris) => enable this in the test (marc)
 # - test for contrib headers (CONTRIB_HEADER_DIR ccmake variable - test one header for each required library)
 # - parallel build of test executables
-# - default method to include external code
 
 ########################################################
 ### entries meant to be configured using CMake cache ###
@@ -85,10 +84,10 @@ endif()
 set(OPENMS_BUILD_TYPE "Debug" CACHE STRING "Build type: 'Debug' or 'Release'")
 if (OPENMS_BUILD_TYPE STREQUAL "Debug")
 	Message(STATUS "OpenMS build type: ${OPENMS_BUILD_TYPE} (compiler debug info and OpenMS debug mode enabled)")
-	set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "This must be equal to OPENMS_BUILD_TYPE!" FORCE)
+	set(CMAKE_BUILD_TYPE "Debug" CACHE INTERNAL "This must be equal to OPENMS_BUILD_TYPE!" FORCE)
 elseif (OPENMS_BUILD_TYPE STREQUAL "Release")
 	Message(STATUS "OpenMS build type: ${OPENMS_BUILD_TYPE} (optimization enabled)")
-	set(CMAKE_BUILD_TYPE "Release" CACHE STRING "This must be equal to OPENMS_BUILD_TYPE!" FORCE)
+	set(CMAKE_BUILD_TYPE "Release" CACHE INTERNAL "This must be equal to OPENMS_BUILD_TYPE!" FORCE)
 else()
 	Message(FATAL_ERROR "OPENMS_BUILD_TYPE must be 'Debug' or 'Release'!")
 endif()
@@ -238,9 +237,9 @@ find_program(SVNVERSION_EXECUTABLE
 
 if (SVNVERSION_EXECUTABLE STREQUAL "SVNVERSION_EXECUTABLE-NOTFOUND")
 	message(STATUS "The programm svnversion could not be found. SVN-revision information will not be available! Add the location of svnversion(.exe) to your PATH environment variable if you require SVN-revision.")
-	set(OPENMS_HAS_SVNVERSION false CACHE INTERNAL "SVNVersion(.exe) present?")
+	set(OPENMS_HAS_SVNVERSION OFF CACHE INTERNAL "SVNVersion(.exe) present?")
 else()
-	set(OPENMS_HAS_SVNVERSION true CACHE INTERNAL "SVNVersion(.exe) present?")
+	set(OPENMS_HAS_SVNVERSION ON CACHE INTERNAL "SVNVersion(.exe) present?")
 endif()
 
 ########################################################
@@ -525,7 +524,6 @@ add_custom_target(doc_progs)
 add_dependencies(doc_progs ${OpenMS_doc_executables})
 
 ###### Examples ######
-# TODO
 set(EXAMPLES_executables)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY source/EXAMPLES)
 include(source/EXAMPLES/executables.cmake)

@@ -47,6 +47,9 @@ TOFCalibration
 TOPPView
 TextExporter
 XTandemAdapter
+IDMapper
+IDRTCalibration
+SILACAnalyzer
 )
 
 ### pass source file list to the upper instance
