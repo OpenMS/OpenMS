@@ -47,7 +47,7 @@ float score = 4.4;
 uint rank = 3;
 AASequence sequence = AASequence("ARRAY");
 std::string sequence2 = "  ARRAY  ";
-Int charge;
+Int charge = 2;
 
 PeptideHit* ptr = 0;
 START_SECTION((PeptideHit()))

@@ -21,9 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Oliver Kohlbacher $
+// $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
-//
 
 #ifndef OPENMS_SYSTEM_STOPWATCH_H
 #define OPENMS_SYSTEM_STOPWATCH_H

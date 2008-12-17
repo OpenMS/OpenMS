@@ -38,7 +38,7 @@
 	<H2 style="border-top:2px solid grey;">General information</H2>
 		<UL>
 
-			<LI><B>I am new to %OpenMS. What should i do first?</B>
+			<LI><B>I am new to %OpenMS. What should i do first?</B><br>
 				<OL>
 					<LI> Check out the developement version of %OpenMS (see website).
 					<LI> (Linux) Build the internal documentation (use 'make idoc' instead of 'make doc' in <%OpenMS>/doc).
@@ -52,105 +52,73 @@
 					     if you are a %OpenMS developer).
 				</OL>
 
-
-      <LI><B>What is CMake?!</B>
-        <UL>
-          CMake builds BuildSystems for different platforms, e.g. VisualStudio Solutions on Windows, Makefiles on Linux etc.
-          This allows us to define in one central location (namely CMakeLists.txt) how OpenMS is build and have the platform specific stuff handled by CMake.
-          See http://www.cmake.org for more information.<br>
-          We require <b>CMake 2.6</b> and above!
-        </UL>
-
-      <LI><B>How do I use CMake?!</B>
-         <UL>
-          See Installation instructions for your platform.
-          In general, you call CMake(.exe) with some parameters to create the native build-system. Afterwards you can (but usually don't have to
-          edit the current configuration using a GUI named ccmake (or CMake-GUI in Windows), which ships with CMake).
-          Note: whenever ccmake is mentionend in this document, substitute this by CMake-GUI if your OS is Windows. You can also edit the CMakeCache.txt file directly.
-        </UL>
-
-      <LI><B>How do I generate a build-system for Eclipse, KDevelop, CodeBlocks etc?!</B>
-         <UL>
-          Type <code>cmake</code> into a console. This will list the available code generators available on your platform, which you can pass to CMake using the <tt>-G</tt> option.
-        </UL>
-
-      <LI><B>What are user definable CMake Cache Variables?!</B>
-         <UL>
-          They allow the user to pass options to CMake which will influence the build system.
-          The most important option which should be given when calling CMake.exe is:
-          - CUSTOM_CONTRIB_DIR, which is the path to the OpenMS contrib dir.
-            The default for this variable <OpenMS>/contrib. So unless your contrib is at this location,
-            you will need to set this variable.
-          To pass this variable to CMake use the -D switch
-          e.g. <code>cmake -D CUSTOM_CONTRIB_DIR:PATH="D:\svn\contrib"</code>
-          Everything else can be edited using ccmake afterwards. The following options are of interest:
-          - OPENMS_DEBUG
-          - OPENMS_ENABLE_EXTERNALMEMORY
-          - CF_DB_PLUGIN
-          Their description will be displayed when you call ccmake.
-        </UL>
-
-      <LI><B>How do I switch to debug/release configuration?!</B>
-         <UL>
-          For Makefile generators (typically on Linux) you can set the CMAKE_BUILD_TYPE variable to either
-          Debug or Release by calling ccmake. This only works AFTER you have called cmake.<br>
-          For Visual Studio, this is not necessary as all configurations are generated and
-          you can choose the one you like within the IDE itself.
-        </UL>
-
-      <LI><B>I changed the contrib path, but re-running CMake won't change the library paths?!</B>
-         <UL>
-          Once a library is found and its location is stored in a cache variable, it will only be searched again if the corresponding entry in the cache file is set to false. You can simply delete the CMakeCache.txt, but all other custom settings will be lost as well.
-        </UL>
-
-      <LI><B>What are the most useful (make) targets?!</B>
-         <UL>
-          In Visual Studio you can see all targets on the left. For Makefiles type <tt>make help</tt>.<br>
-          However, this list is quite long. The most useful targets will be shown to you by calling the
-          <tt>targets</tt> target, e.g. <tt>make targets</tt>.
-        </UL>
-
-
-      <LI><B>How do I switch to debug/release configuration?!</B>
-         <UL>
-          For Makefile generators (typically on Linux) you can set the CMAKE_BUILD_TYPE variable to either
-          Debug or Release by calling ccmake. This only works AFTER you have called cmake.<br>
-          For Visual Studio, this is not necessary as all configurations are generated and
-          you can choose the one you like within the IDE itself.
-        </UL>
-
-
-      <LI><B>CMake can't seem to find a Qt library (usually QtCore)! What now?</B>
-         <UL>
-          CMake finds QT by looking for 'qmake' in your PATH or for the Environment Variable QTDIR! Set these accordingly.<br>
-          If the problem still persists: do you have a second installation of Qt (especially the MinGW version?)?
-          This might lead CMake to the wrong path (it's searching for the Qt*.lib files).
-          You should only move/delete the offending Qt version if you know what you are doing!
-          A save workaround is to edit the CMakeCache file (e.g. via ccmake) and set all paths relating to QT (e.g. QT_LIBRARY_DIR) manually.
-        </UL>
-
-      <LI><B>Does AndiMS work on 64bit systems?! Do I need to disable it?!</B>
-         <UL>
-          AndiMS currently does not work on 64bit (we are planning a bugfix). CMake will *automatically*
-          disable AndiMS on 64bit systems!
-        </UL>
-
-      <LI><B>(Windows) Shall I use VisualStudio2008 or VisualStudio2005?</B>
-         <UL>
-          Use VS2008 if you can. It it much more convenient when reloading your Solution-File (VS2005 will
-          give you ~10e10 Messageboxes).
-          This happens whenever the Build-System calls CMake (which can be whenever you do svn-update).
-        </UL>
-
-
-			<LI><B>Is there a central URL for %OpenMS developers?</B>
+			<LI><B>Is there a central URL for %OpenMS developers?</B><br>
 				<BR>
 				http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS/search/
 				<BR>
 				There you can search for %OpenMS classes and it links out to several
 				websites of interest.
 
-			<LI><B>How do I update the website?</B>
+      <LI><B>What is CMake?!</B><br>
+        CMake builds BuildSystems for different platforms, e.g. VisualStudio Solutions on Windows, Makefiles on Linux etc.
+        This allows us to define in one central location (namely CMakeLists.txt) how OpenMS is build and have the platform specific stuff handled by CMake.
+        See http://www.cmake.org for more information.<br>
+        We require <b>CMake 2.6</b> and above!
+
+      <LI><B>How do I use CMake?!</B><br>
+        See Installation instructions for your platform.
+        In general, you call CMake(.exe) with some parameters to create the native build-system. Afterwards you can (but usually don't have to
+        edit the current configuration using a GUI named ccmake (or CMake-GUI in Windows), which ships with CMake).<BR>
+        <B>Note:</B> whenever ccmake is mentionend in this document, substitute this by CMake-GUI if your OS is Windows. You can also edit the CMakeCache.txt file directly.
+
+      <LI><B>How do I generate a build-system for Eclipse, KDevelop, CodeBlocks etc?!</B>
+      	Type <code>cmake</code> into a console. This will list the available code generators available on your platform, which you can pass to CMake using the <tt>-G</tt> option.
+
+      <LI><B>What are user definable CMake Cache Variables?!</B><br>
+        They allow the user to pass options to CMake which will influence the build system.
+        The most important option which should be given when calling CMake.exe is:
+        - CUSTOM_CONTRIB_DIR, which is the path to the OpenMS contrib dir.
+          The default for this variable <OpenMS>/contrib. So unless your contrib is at this location,
+          you will need to set this variable.
+        To pass this variable to CMake use the -D switch
+        e.g. <code>cmake -D CUSTOM_CONTRIB_DIR:PATH="D:\svn\contrib"</code>
+        Everything else can be edited using ccmake afterwards. The following options are of interest:
+        - OPENMS_DEBUG
+        - OPENMS_ENABLE_EXTERNALMEMORY
+        - CF_DB_PLUGIN
+        Their description will be displayed when you call ccmake.
+
+      <LI><B>How do I switch to debug/release configuration?!</B><br>
+        For Makefile generators (typically on Linux) you can set the CMAKE_BUILD_TYPE variable to either
+        Debug or Release by calling ccmake. This only works AFTER you have called cmake.<br>
+        For Visual Studio, this is not necessary as all configurations are generated and
+        you can choose the one you like within the IDE itself.
+
+      <LI><B>I changed the contrib path, but re-running CMake won't change the library paths?!</B><br>
+      	Once a library is found and its location is stored in a cache variable, it will only be searched again if the corresponding entry in the cache file is set to false. You can simply delete the CMakeCache.txt, but all other custom settings will be lost as well.
+
+      <LI><B>What are the most useful (make) targets?!</B><br>
+        In Visual Studio you can see all targets on the left. For Makefiles type <tt>make help</tt>.<br>
+        However, this list is quite long. The most useful targets will be shown to you by calling the
+        <tt>targets</tt> target, i.e. <tt>make targets</tt>.
+
+      <LI><B>CMake can't seem to find a Qt library (usually QtCore)! What now?</B><br>
+        CMake finds QT by looking for 'qmake' in your PATH or for the Environment Variable QTDIR! Set these accordingly.<br>
+        If the problem still persists: do you have a second installation of Qt (especially the MinGW version?)?
+        This might lead CMake to the wrong path (it's searching for the Qt*.lib files).
+        You should only move/delete the offending Qt version if you know what you are doing!
+        A save workaround is to edit the CMakeCache file (e.g. via ccmake) and set all paths relating to QT (e.g. QT_LIBRARY_DIR) manually.
+
+      <LI><B>Does AndiMS work on 64bit systems?! Do I need to disable it?!</B><br>
+        AndiMS currently does not work on 64bit (we are planning a bugfix). CMake will *automatically*
+        disable AndiMS on 64bit systems!
+
+      <LI><B>(Windows) Shall I use VisualStudio2008 or VisualStudio2005?</B><br>
+        Use VS2008 if you can. It it much more convenient when reloading your Solution-File (VS2005 will
+        give you ~10e10 Messageboxes).
+        This happens whenever the Build-System calls CMake (which can be whenever you do svn-update).
+        
+			<LI><B>How do I update the website?</B><br>
 				<OL>
 					<LI> Check out the @a website module:
 					<BR>
@@ -197,17 +165,11 @@
 
 	<H2 style="border-top:2px solid grey;">Common problems</H2>
 		<UL>
-			<li><b>.</b><br>
-
-
-			<li><b></b><br>
-
-
 			<li><b>Can the CHECK-macro not handle template methods that have two or more arguments?</b><br>
 				Put round brackets around the method declaration. Then it should work.
 		</UL>
 
-	<H2 style="border-top:2px solid grey;">[POTENTIALLY OUTDATED] How can I speed up the compile process of %OpenMS?</H2>
+	<H2 style="border-top:2px solid grey;">How can I speed up the compile process of %OpenMS?</H2>
 		<UL>
 	    <li><b>Use ccache.</b><br>
 	    	<tt>ccache</tt> caches the preprocessor output and thereby speeds up the the compile
@@ -216,13 +178,7 @@
 	    <li><b>Build with several threads.</b><br>
 				If you have several pocessors/cores you can build %OpenMS classes/tests and TOPP tools
 				in in several threads using the @a make option @a -j:
-				@n<code>make depend && make -j4 OpenMS && make -j4 test TOPP && make TOPPtest</code>
-				@n@n
-				On some platforms we have observed that files are compiled multiple times.
-				In this case, it might be better to use a "parallel make" only in recursive
-				invocations of make:
-				@n<code>make depend && make "MAKE=make -j4 " OpenMS && make install && make "MAKE=make -j4 " test</code>
-
+				@n<code>make -j8 OpenMS TOPP</code>
 		</UL>
 
 	<H2 style="border-top:2px solid grey;">Debugging</H2>

@@ -117,7 +117,6 @@ set(format_executables_list
   MascotInfile_test
   MascotOutfile_test
   Base64_test
-  UniqueIdGenerator_test
   PersistentObject_test
   FASTAFile_test
   FileHandler_test

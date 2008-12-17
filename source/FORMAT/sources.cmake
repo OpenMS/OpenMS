@@ -43,7 +43,6 @@ SequestOutfile.C
 TextFile.C
 TransformationXMLFile.C
 UnimodXMLFile.C
-UniqueIdGenerator.C
 XMLFile.C
 XMLValidator.C
 XTandemInfile.C
