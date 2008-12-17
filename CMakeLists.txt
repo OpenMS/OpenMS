@@ -3,22 +3,23 @@
 
 PROJECT("OpenMS")
 
-########################################################
-### entries meant to be configured using CMake cache ###
-### - do NOT hardcode them here!										 ###
-### - edit them within CMakeCache.txt using ccmake	 ###
-########################################################
-# CONTRIB_CUSTOM_DIR
-# OPENMS_DEBUG
-# STL_DEBUG
-# OPENMS_ENABLE_EXTERNALMEMORY
-# QT_DB_PLUGIN
-
 ## not implemented yet (TODO):
 # - install with prefix (chris) => enable this in the test (marc)
 # - test for contrib headers (CONTRIB_HEADER_DIR ccmake variable - test one header for each required library)
 # - parallel build of test executables
 # - default method to include external code
+
+########################################################
+### entries meant to be configured using CMake cache ###
+### - do NOT hardcode them here!										 ###
+### - edit them within CMakeCache.txt using ccmake	 ###
+########################################################
+# OPENMS_BUILD_MODE
+# CONTRIB_CUSTOM_DIR
+# OPENMS_DEBUG
+# STL_DEBUG
+# OPENMS_ENABLE_EXTERNALMEMORY
+# QT_DB_PLUGIN
 
 ########################################################
 ###    manual entries (edit this for new release)    ###
@@ -82,32 +83,40 @@ if (NOT WIN32) # we only want fPIC on non-windows systems (fPIC is implicitly tr
 	endif()
 endif()
 
-## STL-DEBUG (only for GCC)
-set(STL_DEBUG "false" CACHE BOOL "[GCC only] Enable STL-DEBUG mode (slow).")
+#default build type (for Makefile generators): release
+set(OPENMS_BUILD_TYPE "Debug" CACHE STRING "Build type: 'Debug' or 'Release'")
+if (OPENMS_BUILD_TYPE STREQUAL "Debug")
+	Message(STATUS "OpenMS build type: ${OPENMS_BUILD_TYPE} (compiler debug info and OpenMS debug mode enabled)")
+	set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "This must be equal to OPENMS_BUILD_TYPE!" FORCE)
+elseif (OPENMS_BUILD_TYPE STREQUAL "Release")
+	Message(STATUS "OpenMS build type: ${OPENMS_BUILD_TYPE} (optimization enabled)")
+	set(CMAKE_BUILD_TYPE "Release" CACHE STRING "This must be equal to OPENMS_BUILD_TYPE!" FORCE)
+else()
+	Message(FATAL_ERROR "OPENMS_BUILD_TYPE must be 'Debug' or 'Release'!")
+endif()
+
+# user OPENMS DEBUG flag
+set(OPENMS_DEBUG OFF CACHE BOOL "Enables debug mode (precondition and postconditions are enabled, a bit slower)")
+if (OPENMS_BUILD_TYPE STREQUAL "Debug")
+	set(OPENMS_DEBUG ON CACHE BOOL "Enables debug mode (precondition and postconditions are enabled, a bit slower)" FORCE)
+endif()
+Message(STATUS "OpenMS debug mode: ${OPENMS_DEBUG}")
+
+## STL-DEBUG (only for GCC and in debug mode)
+set(STL_DEBUG OFF CACHE BOOL "[GCC only] Enable STL-DEBUG mode (very slow).")
 if (STL_DEBUG)
   if (CMAKE_COMPILER_IS_GNUCXX)
-    # force DEBUG mode
-    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type for Makefile Generators: Debug Release RelWithDebInfo MinSizeRel" FORCE)
-    # add compiler flag
-    add_definitions(/D_GLIBCXX_DEBUG)
-    Message(STATUS "[enabled] STL-DEBUG")
+		if (OPENMS_BUILD_TYPE STREQUAL "Debug")
+			# add compiler flag
+    	add_definitions(/D_GLIBCXX_DEBUG)
+	  else()
+	    Message(WARNING "STL debug mode is only supported for OpenMS debug mode only")
+	  endif()
   else()
-    Message(WARNING "[disabled] STL-DEBUG is only supported for GCC!")
+    Message(WARNING "STL debug mode is supported for compiler GCC only")
   endif()
-else()
-  Message(STATUS "[disabled] STL-DEBUG")
 endif()
-
-#default build type (for Makefile generators): release
-if (CMAKE_BUILD_TYPE STREQUAL "")
-	set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type for Makefile Generators: Debug Release RelWithDebInfo MinSizeRel" FORCE)
-endif()
-Message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
-
-# user DEBUG flag
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-	set(OPENMS_DEBUG "true" CACHE BOOL "Enables debug mode (precondition and postconditions are enabled, slow)" FORCE)
-endif()
+Message(STATUS "STL debug mode: ${STL_DEBUG}")
 
 ########################################################
 ###    external libs																 ###
@@ -364,7 +373,7 @@ CHECK_INCLUDE_FILE_CXX("sys/times.h" OPENMS_HAS_SYS_TIMES_H)
 CHECK_INCLUDE_FILE_CXX("sys/time.h"  OPENMS_HAS_SYS_TIME_H)
 
 # user flag
-set(OPENMS_ENABLE_EXTERNALMEMORY "false" CACHE BOOL "User switch to enable external memory support (if you run out of RAM+swap). Warning: performance penalty!")
+set(OPENMS_ENABLE_EXTERNALMEMORY OFF CACHE BOOL "User switch to enable external memory support (if you run out of RAM+swap). Warning: performance penalty!")
 
 include(CheckFunctionExists)
 ## in MinGW we have the signal.h header, but no kill() as in Linux, so we need to check for the kill() function
@@ -377,7 +386,7 @@ if (NOT DEFINED USE_ANDIMS)
 endif()
 
 # user flag with default "QMYSQL"
-set(QT_DB_PLUGIN "QMYSQL" CACHE STRING "User switch to change the DB plugin.")
+set(QT_DB_PLUGIN "QMYSQL" CACHE STRING "User switch to change the Qt database plugin.")
 
 
 ########################################################

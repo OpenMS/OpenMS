@@ -240,7 +240,7 @@
       <td>Defines the Qt 'qmake' application. The corresping qt installation is used.</td>
     </tr>
     <tr>
-      <td>CMAKE_BUILD_TYPE</td>
+      <td>OPENMS_BUILD_TYPE</td>
       <td>Should be either 'Release' (optimization enabled) or 'Debug' (debug info and 
           precondition/postcondiction checks enabled).
           @n The default is 'Release'.</td>
