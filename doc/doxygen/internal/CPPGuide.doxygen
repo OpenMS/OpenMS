@@ -41,6 +41,26 @@ Instead, introduce individual symbols to the scope where you need
 them. E.g. you would write <TT>using std::vector;</TT> instead of <TT>using namespace std;</TT>.
 This immediately gives a hint to where the symbol is defined as well.
 
+<H2 style="margin-top:20px; border-top:1px solid grey;">UInt is not Size!</H2>
+
+Whenever working with STL types (especially vectors), assign the return value of
+a <tt>.size()</tt> operation to the OpenMS type <tt>Size</tt>, which is defined as follows
+<code>// OpenMS/include/CONCEPT/Types.h
+typedef size_t Size;</code>
+
+The correct usage is:
+<code>
+std::vector<String> myVec;
+myVec.push_back("hello");
+for (Size i=0; i<myVec.size(); ++i)
+{
+  std::cout << "Index: " << i << " Value: " << myVec[i] << std::endl;
+}
+</code>
+
+Particularly do <b>not</b> use UInt as substitute for Size! Even though UInt and Size are equivalent
+using G++ (Linux), they are different types on Windows (Visual Studio), where UInt is 32bit, whereas Size is either 32 or 64bit depending on the platform. Using UInt leads to warnings (at best) and might even break your code!
+
 <H2 style="margin-top:20px; border-top:1px solid grey;">Pass-by-value versus pass-by-reference</H2>
 
 Except of primitive types (int, double, float, ....) all method arguments should be passed as non-mutable references.
