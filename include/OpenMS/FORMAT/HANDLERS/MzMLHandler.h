@@ -42,13 +42,15 @@
 
 //TODO:
 // - ExternalSpectrumID/ExternalNativeID (when back)
-// - Check CV terms of spectrum and scan (when settled)
-// - Check CV terms of spectrum type, scanning method and file content (when settled)
+// - Check CV terms of spectrum, scan - this includes handling of zoom scans
+// - Check CV terms of spectrum type and file content (when settled)
 // - Check isolationWindow CV
+// - Resolution power terms
+// - Multiple 'dissociation methods' per precursor
 // - DataProcessing of binaryDataArray
 // - Sample: CVs for cellular compartement, source tissue and quality
 // - units
-// - scanSettingsList 
+// - scanSettingsList
 //
 //TODO (PERHAPS):
 // - DataProcessing of spectrum and chromatogram
@@ -902,7 +904,7 @@ namespace OpenMS
 			//------------------------- spectrum ----------------------------
 			else if(parent_tag=="spectrum")
 			{
-				//MS:1000559 ! spectrum type
+				//spectrum type
 				if (accession=="MS:1000579") //MS1 spectrum
 				{
 					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
@@ -947,7 +949,8 @@ namespace OpenMS
 				{
 					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::TDF);
 				}
-				//representation
+				
+				//spectrum representation
 				else if (accession=="MS:1000127") //centroid mass spectrum
 				{
 					spec_.setType(SpectrumSettings::PEAKS);
@@ -956,9 +959,15 @@ namespace OpenMS
 				{
 					spec_.setType(SpectrumSettings::RAWDATA);
 				}
+				
+				//spectrum attribute
 				else if (accession=="MS:1000527" || accession=="MS:1000528" || accession=="MS:1000504" || accession=="MS:1000505" || accession=="MS:1000285" )
 				{
-					//currently ignored
+					//currently ignored:
+					// - highest peak
+					// - lowest peak
+					// - TIC
+					// - base peak m/z
 				}
 				else if (accession=="MS:1000511") //ms level
 				{
@@ -968,70 +977,6 @@ namespace OpenMS
 					{
 						skip_spectrum_ = true;
 					}
-				}
-				//scan attributes
-				else if (accession=="MS:1000011")//mass resolution
-				{
-					//No member => meta data
-					spec_.setMetaValue("mass resolution",value);
-				}
-				else if (accession=="MS:1000015")//scan rate
-				{
-					//No member => meta data
-					spec_.setMetaValue("scan rate",value);
-				}
-				else if (accession=="MS:1000016")//scan time
-				{
-					spec_.setRT(value.toDouble());
-					
-					if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRT())))
-					{
-						skip_spectrum_=true;
-					}
-				}
-				else if (accession=="MS:1000023")//isolation width
-				{
-					//No member => meta data
-					spec_.setMetaValue("isolation width",value);
-				}
-				else if (accession=="MS:1000512")//filter string
-				{
-					//No member => meta data
-					spec_.setMetaValue("filter string",value);
-				}
-				else if (accession=="MS:1000616")//preset scan configuration
-				{
-					//No member => meta data
-					spec_.setMetaValue("preset scan configuration",String("true"));
-				}
-				
-				//scan direction
-				else if (accession=="MS:1000092")//decreasing m/z scan
-				{
-					//No member => meta data
-					spec_.setMetaValue("scan direction",String("decreasing"));
-				}
-				else if (accession=="MS:1000093")//increasing m/z scan
-				{
-					//No member => meta data
-					spec_.setMetaValue("scan direction",String("increasing"));
-				}
-				
-				//scan law
-				else if (accession=="MS:1000094")//scan law: exponential
-				{
-					//No member => meta data
-					spec_.setMetaValue("scan law",String("exponential"));
-				}
-				else if (accession=="MS:1000095")//scan law: linear
-				{
-					//No member => meta data
-					spec_.setMetaValue("scan law",String("linear"));
-				}
-				else if (accession=="MS:1000096")//scan law: quadratic
-				{
-					//No member => meta data
-					spec_.setMetaValue("scan law",String("quadratic"));
 				}
 				
 				//scan polarity
@@ -1187,45 +1132,69 @@ namespace OpenMS
 				}
 				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
-			//------------------------- acquisition ----------------------------
+			//------------------------- scan ----------------------------
 			else if (parent_tag=="scan")
 			{
 				//scan attributes
 				if (accession=="MS:1000011")//mass resolution
 				{
 					//No member => meta data
-					spec_.getAcquisitionInfo().back().setMetaValue("mass resolution",value);
+					spec_.setMetaValue("mass resolution",value);
 				}
 				else if (accession=="MS:1000015")//scan rate
 				{
 					//No member => meta data
-					spec_.getAcquisitionInfo().back().setMetaValue("scan rate",value);
+					spec_.setMetaValue("scan rate",value);
 				}
 				else if (accession=="MS:1000016")//scan time
 				{
-					//No member => meta data
-					spec_.getAcquisitionInfo().back().setMetaValue("scan time",value);
-				}
-				else if (accession=="MS:1000023")//isolation width
-				{
-					//No member => meta data
-					spec_.getAcquisitionInfo().back().setMetaValue("isolation width",value);
-				}
-				else if (accession=="MS:1000511") //ms level
-				{
-					//No member => meta data
-					spec_.getAcquisitionInfo().back().setMetaValue("ms level",value);
+					spec_.setRT(value.toDouble());
+					
+					if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRT())))
+					{
+						skip_spectrum_=true;
+					}
 				}
 				else if (accession=="MS:1000512")//filter string
 				{
 					//No member => meta data
-					spec_.getAcquisitionInfo().back().setMetaValue("filter string",value);
+					spec_.setMetaValue("filter string",value);
 				}
 				else if (accession=="MS:1000616")//preset scan configuration
 				{
 					//No member => meta data
-					spec_.getAcquisitionInfo().back().setMetaValue("preset scan configuration",String("true"));
+					spec_.setMetaValue("preset scan configuration",String("true"));
 				}
+				
+				//scan direction
+				else if (accession=="MS:1000092")//decreasing m/z scan
+				{
+					//No member => meta data
+					spec_.setMetaValue("scan direction",String("decreasing"));
+				}
+				else if (accession=="MS:1000093")//increasing m/z scan
+				{
+					//No member => meta data
+					spec_.setMetaValue("scan direction",String("increasing"));
+				}
+				
+				//scan law
+				else if (accession=="MS:1000094")//scan law: exponential
+				{
+					//No member => meta data
+					spec_.setMetaValue("scan law",String("exponential"));
+				}
+				else if (accession=="MS:1000095")//scan law: linear
+				{
+					//No member => meta data
+					spec_.setMetaValue("scan law",String("linear"));
+				}
+				else if (accession=="MS:1000096")//scan law: quadratic
+				{
+					//No member => meta data
+					spec_.setMetaValue("scan law",String("quadratic"));
+				}
+				
 				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- contact ----------------------------
@@ -2172,9 +2141,9 @@ namespace OpenMS
 			{
 				os  << "			<cvParam cvRef=\"MS\" accession=\"" << so_term.id << "\" name=\"" << so_term.name << "\" />\n";
 			}
-			else //FORCED
+			else
 			{
-				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000752\" name=\"TOPP software\" />\n";
+				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000799\" name=\"custom unreleased software tool\" value=\"" << software.getName() << "\"/>\n";
 			}
 			writeUserParam_(os, software, 3);
 			os  << "		</software>\n";
@@ -2461,9 +2430,9 @@ namespace OpenMS
 			{
 				os  << "			<cvParam cvRef=\"MS\" accession=\"" << in_term.id <<"\" name=\"" << in_term.name << "\"/>\n";
 			}
-			else //FORCED
+			else
 			{
-				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000447\" name=\"LTQ\"/>\n";
+				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000031\" name=\"instrument model\"/>\n";
 			}
 			
 			if (in.getCustomizations()!="")
@@ -3144,6 +3113,7 @@ namespace OpenMS
 				}
 				os  << ">\n";
 				
+				//spectrum representation
 				if (spec.getType()==SpectrumSettings::PEAKS)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000127\" name=\"centroid mass spectrum\"/>\n";
@@ -3152,14 +3122,17 @@ namespace OpenMS
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000128\" name=\"profile mass spectrum\"/>\n";
 				}
-				else //FORCED
+				else
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000128\" name=\"profile mass spectrum\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000525\" name=\"spectrum representation\"/>\n";
 				}
+				
 				if (spec.getMSLevel()!=0)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000511\" name=\"ms level\" value=\"" << spec.getMSLevel() << "\"/>\n";	
 				}
+				
+				//spectrum type
 				if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::FULL)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
@@ -3204,6 +3177,10 @@ namespace OpenMS
 				{
 					os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000789\" name=\"time-delayed fragmentation spectrum\" />\n";
 				}
+				else //FORCED
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
+				}
 				
 				if (spec.getInstrumentSettings().getPolarity()==IonSource::NEGATIVE)
 				{
@@ -3213,11 +3190,11 @@ namespace OpenMS
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000130\" name=\"positive scan\"/>\n";
 				}
-				else //FORCED
+				else
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000130\" name=\"positive scan\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000465\" name=\"scan polarity\"/>\n";
 				}
-				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan time\" value=\"" << spec.getRT() << "\"/>\n";
+				
 				writeUserParam_(os, spec, 5);
 				//--------------------------------------------------------------------------------------------
 				//scan list
@@ -3240,7 +3217,10 @@ namespace OpenMS
 				{
 					const Acquisition& ac = spec.getAcquisitionInfo()[j];
 					os	<< "					<scan number=\"" << ac.getNumber() << "\">\n";
-					//cvParam: all stored in userParam
+					if (j==0)
+					{
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan time\" value=\"" << spec.getRT() << "\"/>\n";
+					}
 					writeUserParam_(os, ac, 6);
 					//scan windows
 					if (j==0 && spec.getInstrumentSettings().getScanWindows().size()!=0)
@@ -3260,6 +3240,8 @@ namespace OpenMS
 				if (spec.getAcquisitionInfo().size()==0)
 				{
 					os	<< "					<scan number=\"0\">\n";
+					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan time\" value=\"" << spec.getRT() << "\"/>\n";
+				
 					//scan windows
 					if (spec.getInstrumentSettings().getScanWindows().size()!=0)
 					{

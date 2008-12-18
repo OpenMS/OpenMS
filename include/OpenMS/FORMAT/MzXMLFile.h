@@ -39,6 +39,8 @@ namespace OpenMS
 	/**
 		@brief File adapter for MzXML 2.1 files
 		
+		@todo Check if compressed data arrays are allowed and implement them (Hiwi)
+		
 		@ingroup FileIO
 	*/
 	class OPENMS_DLLAPI MzXMLFile

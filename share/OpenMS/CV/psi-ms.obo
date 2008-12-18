@@ -4,10 +4,10 @@ saved-by: David Sparkman
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 1.11.0
-remark: release date: 2008-12-08
+remark: version: 1.12.0
+remark: release date: 2008-12-17
 remark: coverage: Mass spectrometer output files
-remark: creator: Matt Chambers <matt.chambers <@> vanderbilt.edu>
+remark: creator: Fredrik Levander <fredrik.levander <@> immun.lth.se>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group
 remark: When appropriate the definition and synonyms of a term are reported exactly as in the chapter 12 of IUPAC orange book. See http://www.iupac.org/projects/2003/2003-056-2-500.html.
 import: http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo?revision=1.15
@@ -87,10 +87,10 @@ relationship: part_of MS:1000479 ! purgatory
 [Term]
 id: MS:1000011
 name: mass resolution
-def: "The maximum m/z value at which two peaks can be resolved, according to one of the standard measures." [PSI:MS]
-xref: value-type:xsd\:float "The allowed value-type for this CV term."
+def: "Smallest mass difference between two equal magnitude peaks so that the valley between
+them is a specified fraction of the peak height." [PSI:MS]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000503 ! scan attribute
-relationship: has_units MS:1000040 ! m/z
 
 [Term]
 id: MS:1000012
@@ -150,7 +150,7 @@ id: MS:1000020
 name: scanning method
 def: "Describes the acquisition data type produced by a tandem mass spectrometry experiment." [PSI:MS]
 synonym: "Tandem Scanning Method" RELATED []
-relationship: part_of MS:1000441 ! scan
+relationship: part_of MS:1000479 ! purgatory
 
 [Term]
 id: MS:1000021
@@ -3196,8 +3196,9 @@ relationship: part_of MS:1000463 ! instrument
 [Term]
 id: MS:1000497
 name: zoom scan
-def: "Feature of the ion trap mass spectrometer where MSMS data is acquired over a certain mass range." [PSI:MS]
-is_a: MS:1000020 ! scanning method
+def: "Special scan mode, where data with improved resoltuion is acquired. This is typically achieved by scanning a more narrow m/z window or scanning with a lower scan rate." [PSI:MS]
+is_a: MS:1000499 ! spectrum attribute
+synonym: "enhanced resolution scan" EXACT []
 
 [Term]
 id: MS:1000498
@@ -5087,6 +5088,44 @@ id: MS:1000795
 name: no combination
 def: "Use this term if only one scan was recorded or there is no information about scans available." [PSI:MS]
 is_a: MS:1000570 ! spectra combination
+
+[Term]
+id: MS:1000796
+name: spectrum title
+def: "A free-form text title describing a spectrum." [PSI:MS]
+comment: This is the preferred storage place for the spectrum TITLE from an MGF peak list. This term corresponds to Protein Informatics CV term PI:00416
+is_a: MS:1000499 ! spectrum attribute
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+
+[Term]
+id: MS:1000797
+name: peak list scans
+def: "A list of scan numbers and or scan ranges associated with a peak list. If possible the list of scans should be converted to native spectrum identifiers instead of using this term." [PSI:MS]
+comment: This is the preferred storage place for the spectrum SCANS attribute from an MGF peak list. This term corresponds to Protein Informatics CV term PI:00414
+is_a: MS:1000499 ! spectrum attribute
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+
+[Term]
+id: MS:1000798
+name: peak list raw scans
+def: "A list of raw scans and or scan ranges used to generate a peak list. If possible the list of scans should be converted to native spectrum identifiers instead of using this term." [PSI:MS]
+comment: This is the preferred storage place for the spectrum RAWSCANS attribute from an MGF peak list. This term corresponds to Protein Informatics CV term PI:00415
+is_a: MS:1000499 ! spectrum attribute
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+
+[Term]
+id: MS:1000799
+name: custom unreleased software tool
+def: "A software tool that has not yet been released. The value should describe the software. Please do not use this term for publicly available software - contact the PSI-MS working group in order to have another CV term added." [PSI:MS]
+is_a: MS:1000531 ! software
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+
+[Term]
+id: MS:1000800
+name: mass resolving power
+def: "The observed mass divided by the difference between two masses that can be separated: m/dm. The procedure by which dm was obtained and the mass at which the measurement was made should be reported." [PSI:MS]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1000503 ! scan attribute 
 
 [Typedef]
 id: has_units

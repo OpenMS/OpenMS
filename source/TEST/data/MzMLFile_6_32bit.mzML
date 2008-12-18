@@ -155,7 +155,6 @@
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum"/>
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid mass spectrum"/>
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
-				<cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.1"/>
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan"/>
 				<userParam name="name" type="xsd:string" value="spectrum1"/>
 				<userParam name="id" type="xsd:string" value="S0"/>
@@ -171,6 +170,7 @@
 					<cvParam cvRef="MS" accession="MS:1000573" name="median of spectra"/>
 					<userParam name="name" type="xsd:string" value="acquisition_list"/>
 					<scan number="4711">
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.1"/>
 						<userParam name="name" type="xsd:string" value="acquisition1"/>
 						<userParam name="source_file_name" type="xsd:string" value="ac.dta"/>
 						<userParam name="source_file_path" type="xsd:string" value="file:///F:/data/Exp02"/>
@@ -201,7 +201,6 @@
 				<cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum"/>
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid mass spectrum"/>
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2"/>
-				<cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.2"/>
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan"/>
 				<userParam name="name" type="xsd:string" value="spectrum2"/>
 				<userParam name="id" type="xsd:string" value="S1"/>
@@ -216,6 +215,7 @@
         <scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination"/>
 	        <scan number="0">
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.2"/>
 		      </scan>
 		    </scanList>
 				<precursorList count="1">
@@ -278,7 +278,6 @@
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid mass spectrum"/>
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum"/>
-				<cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.3"/>
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan"/>
 				<userParam name="name" type="xsd:string" value="scan3"/>
 				<userParam name="name" type="xsd:string" value="spectrum3"/>
@@ -292,6 +291,7 @@
 					<cvParam cvRef="MS" accession="MS:1000573" name="median of spectra"/>
 					<userParam name="name" type="xsd:string" value="acquisition_list"/>
 					<scan number="4711">
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.3"/>
 						<userParam name="name" type="xsd:string" value="acquisition1"/>
 					</scan>
 					<scan number="4712">
@@ -318,7 +318,6 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum"/>
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value=""/>
-				<cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.4"/>
 				<userParam name="name" type="xsd:string" value="spectrum4"/>
 				<userParam name="id" type="xsd:string" value="S3"/>
 				<userParam name="native_id" type="xsd:string" value="N3"/>
@@ -326,6 +325,7 @@
         <scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination"/>
 	        <scan number="0">
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.4"/>
 		      </scan>
 		    </scanList>
 			</spectrum>

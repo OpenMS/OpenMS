@@ -99,14 +99,5 @@
 
 	</TABLE>
   
+  @todo Adapt checker.php to new build system (Marc)
 */
-
-/*
-
-
-General ToDo list of Marc:
- - Release
-	 - contrib -> OpenMS (docu und script)
-	 - Update changelog
- - Reihenfolge der Paremter anschauen
-

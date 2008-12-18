@@ -116,15 +116,15 @@
         <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="445.347"/>
         <cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="120053"/>
         <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
-        <cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.8905" unitCvRef="MS" unitAccession="MS:1000038" unitName="minute"/>
-        <cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
-        <cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="3"/>
 	      <cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
 	      <userParam name="name" value="spectrum1"/>
     		<userParam name="name" value="scan1"/>
         <scanList count="2">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination"/>
         	<scan number="4711">
+		        <cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.8905" unitCvRef="MS" unitAccession="MS:1000038" unitName="minute"/>
+		        <cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
+		        <cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="3"/>
       			<userParam name="name" value="acquisition1"/>
       			<scanWindowList count="1">
 		          <scanWindow>

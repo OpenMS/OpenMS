@@ -370,7 +370,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	//spectrum 1
 	TEST_STRING_EQUAL((String)exp[1].getMetaValue("mass resolution"),"4.1")	
 	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("collision energy"),"4.2")	
-	TEST_STRING_EQUAL((String)exp[0].getAcquisitionInfo()[0].getMetaValue("mass resolution"),"4.3")
+	TEST_STRING_EQUAL((String)exp[0].getMetaValue("mass resolution"),"4.3")
 	TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("sample batch"),"4.4")
 
 	/////////////////////// TESTING SPECIAL CASES ///////////////////////
@@ -502,6 +502,13 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 	
 	//test if everything worked
 	TEST_EQUAL(exp==exp_original,true)
+	TEST_EQUAL(exp.size()==exp_original.size(),true)
+	TEST_EQUAL(exp.ExperimentalSettings::operator==(exp_original),true)
+	for (UInt i=0; i<exp.size(); ++i)
+	{
+		cout << "SPEC: " << i << endl;
+		TEST_EQUAL(exp[i]==exp_original[i],true);
+	}
 	
 END_SECTION
 
