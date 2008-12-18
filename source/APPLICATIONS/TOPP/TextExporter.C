@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Ole Schulz-Trieglaff $
+// $Maintainer: Clemens Groepl, Andreas Bertsch, Chris Bielow, Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>

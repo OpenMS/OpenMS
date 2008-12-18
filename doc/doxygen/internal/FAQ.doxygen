@@ -71,7 +71,7 @@
         edit the current configuration using a GUI named ccmake (or CMake-GUI in Windows), which ships with CMake).<BR>
         <B>Note:</B> whenever ccmake is mentionend in this document, substitute this by CMake-GUI if your OS is Windows. You can also edit the CMakeCache.txt file directly.
 
-      <LI><B>How do I generate a build-system for Eclipse, KDevelop, CodeBlocks etc?!</B>
+      <LI><B>How do I generate a build-system for Eclipse, KDevelop, CodeBlocks etc?!</B><br>
       	Type <code>cmake</code> into a console. This will list the available code generators available on your platform, which you can pass to CMake using the <tt>-G</tt> option.
 
       <LI><B>What are user definable CMake Cache Variables?!</B><br>
@@ -167,9 +167,8 @@
 	      </ul>
 		</UL>
 
-	<H2 style="border-top:2px solid grey;">Common problems</H2>
 		<UL>
-			<li><b>Can the CHECK-macro not handle template methods that have two or more arguments?</b><br>
+			<li><b>Can the START_SECTION-macro not handle template methods that have two or more arguments?</b><br>
 				Put round brackets around the method declaration. Then it should work.
 		</UL>
 
@@ -182,29 +181,34 @@
 	    <li><b>Build with several threads.</b><br>
 				If you have several pocessors/cores you can build %OpenMS classes/tests and TOPP tools
 				in in several threads using the @a make option @a -j:
-				- <code>make -j8 OpenMS</code>
+				- <code>make -j8 %OpenMS</code>
 				- <code>make -j8 TOPP</code>
 				- <code>make -j8 TEST</code>
 		</UL>
 
 	<H2 style="border-top:2px solid grey;">Debugging</H2>
 		<UL>
-			<li><b>How do I debug a failed %OpenMS test?</b><br>
-	    	Execute the test with the @a -V option to see where the error
-	    	occurred.
-
-	    <li><b>How do I debug a failed TOPP test?</b><br>
-	    	Let @a make execute the test in debug/verbose mode, e.g.:
-	    	<BR>
-	    	<tt>shell&gt; make DEBUG=1 VERBOSE=1 FeatureFinder_test</tt>
+			<li><b>How do I run a single test?</b><br>
+				You can only run single tests, if you know the test number.
+				You can list all tests with numbers using the command
+				
+				<code>&gt; ctest -N</code>
+				
+				Now CTest can be used to execute a range of tests.
+				For the test 45, you would use the same start and end test number:
+				
+				<code>&gt; ctest -V -I 45,45</code>
+				
+				You can also select test using a regular expressions.
+				Have a look at the CTest help!
 
 	    <li><b>How do I debug uncaught exceptions?</b><br>
 	      There is a mechanism to have a core dumped if an uncaught
 	      exception occurs.
-	      <br>
+
 	      To enable it, the environment variable OPENMS_DUMP_CORE has
 	      to be set.
-	      <br>
+
 	      Each time an uncaught exception occures, the OPENMS_DUMP_CORE
 	      variable is checked and a segmentation fault is caused, if it
 	      is set.
@@ -213,8 +217,7 @@
 	    <li><b>(Linux) Why is no core dumped, although a fatal error occured?</b><br>
 	      Try the @a ulimit @a -c @a unlimited command. It sets the maximum
 	      size of a core to unlimited.
-	      <br>
-	      <br>
+
 	      <i>Note:</i> We observed that, on some systems, no core is
 	      dumped even if the size of the core file is set to unlimited.
 	      We are not sure what causes this problem.
@@ -296,10 +299,10 @@
 	<H2 style="border-top:2px solid grey;">Doxygen documentation</H2>
 		<UL>
 	    <li><b>Where can I find the definition of the main page?</b><br>
-	    @a OpenMS/doc/doxygen/public/Main.doxygen
+	    @a %OpenMS/doc/doxygen/public/Main.doxygen
 
 	    <li><b>Where can I add a new module?</b><br>
-	    @a OpenMS/doc/doxygen/public/Modules.doxygen
+	    @a %OpenMS/doc/doxygen/public/Modules.doxygen
 
 	    <li><b>How is the parameter documentation for classes derived from DefaultParamHandler created?</b><br>
 				You have to add your class to the program @a OpenMS/doc/doxygen/parameters/DefaultParamHandlerDocumenter.C.
@@ -521,7 +524,7 @@
 			<OL>
 				<LI> Write the new tool ;)
 				<LI> Add your tool to getToolList() in <tt>include/OpenMS/APPLICATIONS/TOPPView.h</tt>
-				<LI> Add it to the TOPP docu page (in @a doc/doxygen/public/TOPP.doxygen)
+				<LI> Add it to the TOPP docu page (in @a %doc/doxygen/public/TOPP.doxygen)
 				<LI> Add the executable to the ignore list if the directory (@a svn @a propedit @a svn:ignore @a source/APPLICATION/TOPP/)
         <LI> Add the name to <tt>source/APPLICATIONS/TOPP/executables.cmake</tt>
 			</OL>

@@ -1,7 +1,23 @@
+#
+# README:
+#
+# Test names (the first argument of 'add_test') must be distinct.
+# If not, the first defintion of the test is overwritten!
+#
+# Therefore we use the following naming scheme for tests:
+# TOPP_<tool>_<num>[_out<num2>]
+# 
+# 'TOPP_' This prefix is used to distinguish TOPP and OpenMS tests in the nightly builds.
+# <tool>  is the TOPP tool name used to identify failed TOPP tool tests during the nightly builds.
+# <num>   Index that is incresed for each call of a TOPP tool during a test.
+#         For each new TOPP tool test this is reset to 1.
+# '_out'  When the result file of a test is checked with FuzzyDiff, this suffix is appended.
+# <num2>  If several files need to be checked in the same test, the checks are numbered from 1.
+#
+
 ### General settings
 set(TOPP_BIN_PATH ${PROJECT_SOURCE_DIR}/bin/)
 set(DIFF ${TOPP_BIN_PATH}/FuzzyDiff -ini FuzzyDiff.ini)
-
 
 ### AdditiveSeries tests
 add_test("TOPP_AdditiveSeries_1" ${TOPP_BIN_PATH}/AdditiveSeries -ini AdditiveSeries_1_parameters.ini)

@@ -267,32 +267,19 @@ int main(int argc, char **argv)																									\
  																																								\
  TEST::version_string = version;																								\
 																																								\
-	if (argc == 2)																																\
-	{																																							\
-		if (!strcmp(argv[1], "-v"))																									\
-			TEST::verbose = 1;																												\
-		if (!strcmp(argv[1], "-V"))																									\
-			TEST::verbose = 2;																												\
-	};																																						\
 																																								\
-	if ((argc > 2) || ((argc == 2) && (TEST::verbose == 0)))											\
+	if (argc > 1)																																	\
 	{																																							\
 		std::cerr																																		\
 			<< "This is " << argv[0] << ", the test program for the\n"								\
 			<< #class_name " class.\n"																								\
 			"\n"																																			\
-			"On successful operation it simply returns PASSED,\n"											\
-			"otherwise FAILED is printed.\n"																					\
-			"If called with an argument of -v,\n"																			\
-			"prints detailed information about individual tests.\n"										\
-			"Option -V provides verbose information on every subtest." << std::endl;	\
+			"On successful operation it returns PASSED,\n"											      \
+			"otherwise FAILED is printed.\n";																					\
 		return 1;																																		\
 	}																																							\
 																																								\
-	if (TEST::verbose > 0)																												\
-	{																																							\
-		std__cout << "Version: " << TEST::version_string << std::endl;							\
-	}																																							\
+	std__cout << "Version: " << TEST::version_string << std::endl;					  		\
 																																								\
 	const char * env_openms_testtimeout;																					\
 	env_openms_testtimeout = getenv ("OPENMS_TESTTIMEOUT");												\
@@ -338,7 +325,6 @@ int main(int argc, char **argv)																									\
 		TEST::this_test = false;																						\
 		TEST::test = false;																									\
 		TEST::all_tests = false;																						\
-		if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))	\
 		{																																		\
 			if (TEST::exception == 1)																					\
 				TEST::exception++;																							\
@@ -357,7 +343,6 @@ int main(int argc, char **argv)																									\
 		TEST::this_test = false;																						\
 		TEST::test = false;																									\
 		TEST::all_tests = false;																						\
-		if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))	\
 		{																																		\
 			if (TEST::exception == 1)																					\
 				TEST::exception++;																							\
@@ -377,7 +362,6 @@ int main(int argc, char **argv)																									\
 		TEST::this_test = false;																						\
 		TEST::test = false;																									\
 		TEST::all_tests = false;																						\
-		if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))	\
 		{																																		\
 			std__cout << std::endl <<																					\
 				"    (caught unidentified and unexpected exception outside a subtest!) " << \
@@ -388,12 +372,6 @@ int main(int argc, char **argv)																									\
 	if (!TEST::validate(TEST::tmp_file_list))															\
 	{																																			\
 		TEST::all_tests = false;																						\
-	}																																			\
-	/* clean up all temporary files */																		\
-	while (TEST::tmp_file_list.size() > 0 && TEST::verbose < 1)						\
-	{																																			\
-		unlink(TEST::tmp_file_list.back().c_str());													\
-		TEST::tmp_file_list.pop_back();																			\
 	}																																			\
 	/* check for exit code */																							\
 	if (!TEST::all_tests)																									\
@@ -436,8 +414,7 @@ int main(int argc, char **argv)																									\
 	TEST::test_name = #name_of_test;																			\
 	TEST::test_count = 0;																									\
 	TEST::start_section_line = __LINE__;																	\
-	if (TEST::verbose > 0)																								\
-		std__cout << "checking " << TEST::test_name << " ... " << std::flush;	\
+	std__cout << "checking " << TEST::test_name << " ... " << std::flush;	\
 	try																																		\
 	{																																			\
 		while (true)																												\
@@ -478,7 +455,6 @@ int main(int argc, char **argv)																									\
 		TEST::this_test = false;																															\
 		TEST::test = false;																																		\
 		TEST::all_tests = false;																															\
-		if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))									\
 		{																																											\
 			if (TEST::exception == 1) /* dummy to avoid compiler warnings */										\
 				TEST::exception++;																																\
@@ -496,7 +472,6 @@ int main(int argc, char **argv)																									\
 		TEST::this_test = false;																															\
 		TEST::test = false;																																		\
 		TEST::all_tests = false;																															\
-		if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))									\
 		{																																											\
 			TEST::initialNewline();																															\
 			std__cout << "    (caught exception of type `"																			\
@@ -514,7 +489,6 @@ int main(int argc, char **argv)																									\
 		TEST::this_test = false;																															\
 		TEST::test = false;																																		\
 		TEST::all_tests = false;																															\
-		if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))									\
 		{																																											\
 			TEST::initialNewline();																															\
 			std__cout << "    (caught std::exception. Cause: `" << e.what() << "')" << std::endl;	\
@@ -525,7 +499,6 @@ int main(int argc, char **argv)																									\
 		TEST::this_test = false;																															\
 		TEST::test = false;																																		\
 		TEST::all_tests = false;																															\
-		if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))									\
 		{																																											\
 			TEST::initialNewline();																															\
 			std__cout << "    (caught std::string as an exception: `" << e << "')" << std::endl; \
@@ -536,7 +509,6 @@ int main(int argc, char **argv)																									\
 		TEST::this_test = false;																															\
 		TEST::test = false;																																		\
 		TEST::all_tests = false;																															\
-		if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))									\
 		{																																											\
 			TEST::initialNewline();																															\
 			std__cout << "    (caught char pointer as an exception: `" << e << "')" << std::endl;	\
@@ -547,14 +519,12 @@ int main(int argc, char **argv)																									\
 		TEST::this_test = false;																															\
 		TEST::test = false;																																		\
 		TEST::all_tests = false;																															\
-		if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))									\
 		{																																											\
 			TEST::initialNewline();																															\
 			std__cout << "    (caught unidentified and unexpected exception!)" << std::endl;		\
 		}																																											\
 	}																																												\
-			TEST::all_tests = TEST::all_tests && TEST::test;																		\
-	if (TEST::verbose > 0)																																	\
+	TEST::all_tests = TEST::all_tests && TEST::test;																				\
 	{																																												\
 		if (TEST::test)																																				\
 		{																																											\
@@ -562,16 +532,12 @@ int main(int argc, char **argv)																									\
 		}																																											\
 		else																																									\
 		{																																											\
-			if (TEST::verbose > 1 )																															\
-			{																																										\
-				std__cout << "############################################################\n";		\
-			}																																										\
+			std__cout << "############################################################\n";			\
 			std__cout <<																																				\
 				__FILE__ ":" << TEST::start_section_line <<																				\
 				": failed  START_SECTION(" << TEST::test_name << ")\n"														\
 				__FILE__ ":" << __LINE__ <<																												\
-				": failed  END_SECTION" <<																												\
-				(TEST::verbose > 1 ? "\n" : "" ) << std::endl;																		\
+				": failed  END_SECTION" <<	std::endl <<	std::endl;															\
 		}																																											\
 	}																																												\
 	/* issue a warning if no tests were performed (unless in destructor)*/									\
@@ -589,7 +555,7 @@ int main(int argc, char **argv)																									\
 		if (!destructor) std::cerr << "Warning: no subtests performed in '"										\
 															 << TEST::test_name << "' (line " << __LINE__ << ")!" << std::endl;	\
 	}																																												\
-	if ( TEST::verbose > 1 ) std__cout << std::endl;
+	std__cout << std::endl;
 
 //@}
 
@@ -615,7 +581,6 @@ int main(int argc, char **argv)																									\
 		TEST::test_line = __LINE__;																					\
 		TEST::this_test = ((a) == (b));																			\
 		TEST::test = TEST::test && TEST::this_test;													\
-		if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))	\
 		{																																		\
 			TEST::initialNewline();																						\
 			if (TEST::this_test)																							\
@@ -650,7 +615,6 @@ int main(int argc, char **argv)																									\
 		TEST::test_line = __LINE__;																					\
 		TEST::this_test = !((a) == (b));																		\
 		TEST::test = TEST::test && TEST::this_test;													\
-		if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))	\
 		{																																		\
 			TEST::initialNewline();																						\
 			if (TEST::this_test)																							\
@@ -686,7 +650,6 @@ int main(int argc, char **argv)																									\
 		TEST::test_line = __LINE__;																					\
 		TEST::this_test = (std::string(a) == std::string(b));								\
 		TEST::test = TEST::test && TEST::this_test;													\
-		if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))	\
 		{																																		\
 			TEST::initialNewline();																						\
 			if (TEST::this_test)																							\
@@ -740,7 +703,6 @@ int main(int argc, char **argv)																									\
 				TEST::equal_files &= (TEST_FILE__template_line == TEST_FILE__line);								\
 				if (TEST_FILE__template_line != TEST_FILE__line)																	\
 				{																																									\
-					if (TEST::verbose > 0)																													\
 					{																																								\
 						TEST::initialNewline();																												\
 						std__cout << "   TEST_FILE_EQUAL: line mismatch:\n    got:      '"						\
@@ -753,7 +715,6 @@ int main(int argc, char **argv)																									\
 		else																																									\
 		{																																											\
 			TEST::equal_files = false;																													\
-			if (TEST::verbose > 0)																															\
 			{																																										\
 				TEST::initialNewline();																														\
 				std__cout << "    (line " << __LINE__ << ": TEST_FILE_EQUAL(" << #filename << ", " << #templatename ;	\
@@ -777,7 +738,6 @@ int main(int argc, char **argv)																									\
 																																													\
 		TEST::this_test = TEST::equal_files;																									\
 		TEST::test = TEST::test && TEST::this_test;																						\
-		if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))									\
 		{																																											\
 			TEST::initialNewline();																															\
 			std__cout << "    (line " << __LINE__ << ": TEST_FILE_EQUAL("<< #filename << ", " << #templatename << "): "; \
@@ -814,7 +774,6 @@ int main(int argc, char **argv)																									\
 		TEST::test_line = __LINE__;																					\
 		TEST::this_test = TEST::isRealSimilar( (a), (b) );									\
 		TEST::test = TEST::test && TEST::this_test;													\
-		if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))	\
 		{																																		\
 			TEST::initialNewline();																						\
 			if (TEST::this_test)																							\
@@ -862,7 +821,6 @@ int main(int argc, char **argv)																									\
 		TEST::test_line = __LINE__;																					\
 		TEST::this_test = TEST::isStringSimilar( (a), (b) );								\
 		TEST::test = TEST::test && TEST::this_test;													\
-		if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))	\
 		{																																		\
 			TEST::initialNewline();																						\
 			if (TEST::this_test)																							\
@@ -912,7 +870,6 @@ int main(int argc, char **argv)																									\
 		TEST::test_line = __LINE__;																					\
 		TEST::this_test = TEST::isFileSimilar( (a), (b) );									\
 		TEST::test = TEST::test && TEST::this_test;													\
-		if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))	\
 		{																																		\
 			TEST::initialNewline();																						\
 			if (TEST::this_test)																							\
@@ -950,7 +907,6 @@ int main(int argc, char **argv)																									\
 */
 #define TOLERANCE_RELATIVE(a)																						\
 	TEST::ratio_max_allowed = (a);																				\
-	if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))	\
 	{																																			\
 		TEST::initialNewline();																							\
 	std__cout << "    (line " << __LINE__ <<															\
@@ -971,7 +927,6 @@ int main(int argc, char **argv)																									\
 */
 #define TOLERANCE_ABSOLUTE(a)																						\
 	TEST::absdiff_max_allowed = (a);																			\
-	if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))	\
 	{																																			\
 		TEST::initialNewline();																							\
 		std__cout << "    (line " << __LINE__ <<														\
@@ -1024,7 +979,6 @@ int main(int argc, char **argv)																									\
 		TEST::this_test = (TEST::exception == 1);														\
 		TEST::test = TEST::test && TEST::this_test;													\
 																																				\
-		if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))	\
 		{																																		\
 			TEST::initialNewline();																						\
 			switch (TEST::exception)																					\
@@ -1100,7 +1054,6 @@ int main(int argc, char **argv)																									\
 		TEST::this_test = (TEST::exception == 1);														\
 		TEST::test = TEST::test && TEST::this_test;													\
 																																				\
-		if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))	\
 		{																																		\
 			TEST::initialNewline();																						\
 			switch (TEST::exception)																					\
@@ -1158,7 +1111,6 @@ int main(int argc, char **argv)																									\
 	{																																			\
 		filename = TEST::tmpFileName(__FILE__,__LINE__);										\
 		TEST::tmp_file_list.push_back(filename);														\
-		if (TEST::verbose > 1)																							\
 		{																																		\
 			TEST::initialNewline();																						\
 			std__cout << "  creating new temporary filename '" << filename		\
@@ -1176,7 +1128,6 @@ int main(int argc, char **argv)																									\
 #define ABORT_IF(condition)																							\
 	if (condition)																												\
 	{																																			\
-		if (TEST::verbose > 1)																							\
 		{																																		\
 			TEST::initialNewline();																						\
 			std__cout << __FILE__ ":" <<  __LINE__ <<													\
@@ -1204,7 +1155,6 @@ int main(int argc, char **argv)																									\
 	@hideinitializer
 */
 #define STATUS(message)																			\
-	if (TEST::verbose > 1)																		\
 	{																													\
 		TEST::initialNewline();																	\
 		std__cout << __FILE__ ":" <<  __LINE__ << ": status:  "	\
