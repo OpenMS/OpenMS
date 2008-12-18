@@ -205,7 +205,7 @@ endif()
 if (MSVC)
 	set(SVM_LIBRARY optimized ${CONTRIB_LIB_DIR}svm.obj debug ${CONTRIB_LIB_DIR}svm_d.obj CACHE INTERNAL "object file of svm library")
 else()
-	set(SVM_LIBRARY general svm.o CACHE INTERNAL "object file of svm library") # do not distinguish between optimized and debug
+	set(SVM_LIBRARY general ${CONTRIB_LIB_DIR}svm.o CACHE INTERNAL "object file of svm library") # do not distinguish between optimized and debug
 endif()
 
 
@@ -449,7 +449,7 @@ MACRO (QT4_WRAP_UI_OWN outfiles )
 
 ENDMACRO (QT4_WRAP_UI_OWN)
 
-link_directories(${CONTRIB_LIB_DIR})
+#link_directories(${CONTRIB_LIB_DIR})
 
 # big include file for headers and C files, which fills the OpenMS_sources variable
 include (includes.cmake)
@@ -689,3 +689,4 @@ MESSAGE(STATUS "")
 # ...
 set(DO_INSTALL false CACHE BOOL "Set to 'ON' if you want the CMAKE_INSTALL_PREFIX to be used and the library to be installed. On 'OFF' the library and Tools will be build but not installed!")
 
+INCLUDE(CPack)
