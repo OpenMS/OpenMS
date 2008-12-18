@@ -50,6 +50,7 @@ XTandemAdapter
 IDMapper
 IDRTCalibration
 SILACAnalyzer
+PrecursorIonSelector
 )
 
 ### pass source file list to the upper instance
