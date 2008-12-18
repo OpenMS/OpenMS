@@ -1,9 +1,9 @@
 set(OpenMS_sources  CACHE INTERNAL "This variable should hold all OpenMS sources at the end of the config step" )
 
-include(source/KERNEL/sources.cmake)                                 
-include(source/METADATA/sources.cmake)                               
-include(source/ANALYSIS/QUANTITATION/sources.cmake)                  
-include(source/ANALYSIS/SVM/sources.cmake)                           
+include(source/KERNEL/sources.cmake)
+include(source/METADATA/sources.cmake)
+include(source/ANALYSIS/QUANTITATION/sources.cmake)
+include(source/ANALYSIS/SVM/sources.cmake)
 include(source/ANALYSIS/MAPMATCHING/sources.cmake)
 include(source/ANALYSIS/DECHARGING/sources.cmake)
 include(source/ANALYSIS/ID/sources.cmake)
@@ -81,11 +81,9 @@ include (include/OpenMS/VISUAL/DIALOGS/sources.cmake)
 include (include/OpenMS/VISUAL/VISUALIZER/sources.cmake)
 
 ## merge all headers to sources (for source group view in VS)
-if (MSVC)
-	##add configured config.h to source group
-	source_group("Header Files\\OpenMS" FILES ${CONFIGURED_CONFIG_H})
-	list(APPEND OpenMS_sources ${OpenMS_sources_h} ${CONFIGURED_CONFIG_H})
-endif()
+#add configured config.h to source group
+source_group("Header Files\\OpenMS" FILES ${CONFIGURED_CONFIG_H})
+list(APPEND OpenMS_sources ${OpenMS_sources_h} ${CONFIGURED_CONFIG_H})
 
 # TODO track why the duplicate warnings are thrown for all (!) MOC sources
 # Macro problem?
