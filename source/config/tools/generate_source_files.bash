@@ -4,6 +4,8 @@
 ### each subdirectory which contains source file which
 ### need to be processed by CMake contains a seperate 
 ### file
+### WARNING: the files produced might need manual tweaking, as
+### as not all special cases are considered! (e.g. "USE_ANDIMS")
 ### 11/2008 AB, CB
 
 #### configs #########################################
