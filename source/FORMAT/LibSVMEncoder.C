@@ -737,14 +737,14 @@ namespace OpenMS
 
 				for(SignedSize j = sequence_length - k_mer_length - 1; j>= 0 ; j--)
 				{
-						if (sequence[j + k_mer_length].isModified())
+						if (sequence[(Size) j + k_mer_length].isModified())
 						{
-							oligo_value -= factor * (residue_values[(sequence.getResidue(j + k_mer_length)).getOneLetterCode()]
-				    		+ (modifications->findModificationIndex(sequence.getResidue(j + k_mer_length).getModification()) + 1) * number_of_residues);
+							oligo_value -= factor * (residue_values[(sequence.getResidue((Size) j + k_mer_length)).getOneLetterCode()]
+				    		+ (modifications->findModificationIndex(sequence.getResidue((Size) j + k_mer_length).getModification()) + 1) * number_of_residues);
 						}
 						else
 						{
-				    	oligo_value -= factor * residue_values[sequence[j + k_mer_length].getOneLetterCode()];
+				    	oligo_value -= factor * residue_values[sequence[(Size) j + k_mer_length].getOneLetterCode()];
 						}
 						if (sequence[j].isModified())
 						{

@@ -205,7 +205,7 @@ endif()
 if (MSVC)
 	set(SVM_LIBRARY optimized ${CONTRIB_LIB_DIR}svm.obj debug ${CONTRIB_LIB_DIR}svm_d.obj CACHE INTERNAL "object file of svm library")
 else()
-	set(SVM_LIBRARY general ${CONTRIB_LIB_DIR}svm.o CACHE INTERNAL "object file of svm library") # do not distinguish between optimized and debug
+	set(SVM_LIBRARY general svm.o CACHE INTERNAL "object file of svm library") # do not distinguish between optimized and debug
 endif()
 
 
@@ -449,7 +449,7 @@ MACRO (QT4_WRAP_UI_OWN outfiles )
 
 ENDMACRO (QT4_WRAP_UI_OWN)
 
-#link_directories(${CONTRIB_LIB_DIR})
+link_directories(${CONTRIB_LIB_DIR})
 
 # big include file for headers and C files, which fills the OpenMS_sources variable
 include (includes.cmake)
@@ -472,6 +472,8 @@ set(OPENMS_DEP_LIBRARIES ${QT_LIBRARIES} ${CONTRIB_CGAL} ${CONTRIB_GSL} ${CONTRI
 if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
 	target_link_libraries(OpenMS ${OPENMS_DEP_LIBRARIES})
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        target_link_libraries(OpenMS ${OPENMS_DEP_LIBRARIES})
 endif()
 
 ### OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
