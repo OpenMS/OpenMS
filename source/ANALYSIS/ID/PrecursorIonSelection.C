@@ -525,9 +525,9 @@ namespace OpenMS
 			{
 					
 				++iteration;
-				//#ifdef PIS_DEBUG
+#ifdef PIS_DEBUG
 				std::cout << "================================ iteration "<<iteration<<std::endl;
-				//#endif
+#endif
 				curr_pep_ids.clear();
 				curr_prot_ids.clear();
 					
@@ -547,7 +547,7 @@ namespace OpenMS
 		    
 						// get their peptide ids
 						std::vector<PeptideIdentification> & pep_ids = new_features[c].getPeptideIdentifications();
-						//#ifdef PIS_DEBUG
+#ifdef PIS_DEBUG
 						if(pep_ids.size() > 0)
 							{
 								std::cout << " ids "	<< std::endl;
@@ -564,7 +564,7 @@ namespace OpenMS
 								std::cout << "Score : "
 													<<pep_ids[0].getHits()[0].getScore()<<std::endl;
 							}
-						//#endif
+#endif
 						for(UInt pep_id=0;pep_id<pep_ids.size();++pep_id)
 							{
 								// save peptide id
