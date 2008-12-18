@@ -4,8 +4,6 @@ set(directory include/OpenMS/FORMAT/HANDLERS)
 ### list all header files of the directory here
 set(sources_list_h
 ANDIHandler.h
-ConsensusXMLHandler.h
-FeatureXMLHandler.h
 MascotXMLHandler.h
 MzDataHandler.h
 MzMLHandler.h

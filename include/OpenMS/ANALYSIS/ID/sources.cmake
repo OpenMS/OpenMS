@@ -6,10 +6,8 @@ set(sources_list_h
 ConsensusID.h
 FalseDiscoveryRate.h
 HiddenMarkovModel.h
-IDConsensusFeatureMapper.h
 IDDecoyProbability.h
-IDFeatureMapper.h
-IDSpectrumMapper.h
+IDMapper.h
 PILISIdentification.h
 PILISModel.h
 PILISModelGenerator.h

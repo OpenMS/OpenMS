@@ -7,7 +7,6 @@ ContinuousWaveletTransform.h
 ContinuousWaveletTransformNumIntegration.h
 OptimizePeakDeconvolution.h
 OptimizePick.h
-PeakPicker.h
 PeakPickerCWT.h
 PeakShape.h
 TwoDOptimization.h

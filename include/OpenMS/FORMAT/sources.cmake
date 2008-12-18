@@ -63,7 +63,6 @@ SequestOutfile.h
 TextFile.h
 TransformationXMLFile.h
 UnimodXMLFile.h
-UniqueIdGenerator.h
 XMLFile.h
 XMLValidator.h
 XTandemInfile.h
