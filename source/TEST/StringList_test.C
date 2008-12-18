@@ -63,6 +63,24 @@ START_SECTION(static StringList create(const String& list))
 	TEST_EQUAL(list3.size(),0);
 END_SECTION
 
+START_SECTION(static StringList create( const char * const * list, UInt size ))
+{
+	const char * const yes_no[] = { "yes", "no" };
+	StringList list = StringList::create(yes_no,2);
+	TEST_EQUAL(list.size(),2);
+	TEST_STRING_EQUAL(list[0],"yes");
+	TEST_STRING_EQUAL(list[1],"no");
+
+	const char * const yes[] = { "yes" };
+	StringList list2 = StringList::create(yes,1);
+	TEST_EQUAL(list2.size(),1);
+	TEST_STRING_EQUAL(list2[0],"yes");
+
+	StringList list3 = StringList::create(0,0);
+	TEST_EQUAL(list3.size(),0);
+}
+END_SECTION
+
 START_SECTION(StringList(const StringList& rhs))
 	StringList list = StringList::create("yes,no");
 	StringList list2(list);

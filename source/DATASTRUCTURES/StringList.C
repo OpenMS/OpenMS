@@ -38,19 +38,16 @@ namespace OpenMS
 	StringList::StringList(const StringList& rhs)
 		: vector<String>(rhs)
 	{
-		
 	}
 	
 	StringList::StringList(const vector<String>& rhs)
 		: vector<String>(rhs)
 	{
-		
 	}
 	
 	StringList::StringList(const vector<string>& rhs)
 		: vector<String>(rhs.begin(),rhs.end())
 	{
-		
 	}
 
 	StringList& StringList::operator=(const StringList& rhs)
@@ -81,6 +78,16 @@ namespace OpenMS
 		if (!list.split(',',out) && list!="")
 		{
 			out.push_back(list);
+		}
+		return out;
+	}
+	
+	StringList StringList::create( const char * const * list, UInt size )
+	{
+		StringList out;
+		for ( UInt i = 0; i < size; ++i )
+		{
+			out.push_back(list[i]);
 		}
 		return out;
 	}

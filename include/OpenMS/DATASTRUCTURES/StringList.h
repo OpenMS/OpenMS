@@ -46,7 +46,7 @@ namespace OpenMS
 	class OPENMS_DLLAPI StringList
 		: public std::vector<String>
 	{
-		public:
+		public: 
 
 			///@name Constructors and assignment operators
 			//@{
@@ -76,6 +76,8 @@ namespace OpenMS
 
 			/// Returns a list that is created by splitting the given comma-separated string (String are not trimmed!)
 			static StringList create(const String& list);
+			/// Returns a list that is created from an array of char*
+			static StringList create(const char * const * list, UInt size );
 			/// Returns if a string is contains in the list
 			bool contains(const String& s) const;
 			/// Transforms all contained strings to upper case
