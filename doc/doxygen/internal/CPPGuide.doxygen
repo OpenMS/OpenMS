@@ -45,18 +45,20 @@ This immediately gives a hint to where the symbol is defined as well.
 
 Whenever working with STL types (especially vectors), assign the return value of
 a <tt>.size()</tt> operation to the OpenMS type <tt>Size</tt>, which is defined as follows
-<code>// OpenMS/include/CONCEPT/Types.h
-typedef size_t Size;</code>
+@code
+// OpenMS/include/CONCEPT/Types.h
+typedef size_t Size;
+@endcode
 
 The correct usage is:
-<code>
+@code
 std::vector<String> myVec;
 myVec.push_back("hello");
 for (Size i=0; i<myVec.size(); ++i)
 {
   std::cout << "Index: " << i << " Value: " << myVec[i] << std::endl;
 }
-</code>
+@endcode
 
 Particularly do <b>not</b> use UInt as substitute for Size! Even though UInt and Size are equivalent
 on prominent 32bit systems, they are usually different types on 64bit systems, where UInt is 32bit, whereas Size is 64bit depending on the platform. Using UInt leads to warnings (at best) and might even break your code!
