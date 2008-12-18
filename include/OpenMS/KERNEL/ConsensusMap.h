@@ -272,12 +272,11 @@ namespace OpenMS
 				{
 					output_map.push_back( ConsensusFeature( input_map_index, element_index, input_map[element_index] ) );
 				}
-					
 				output_map.getFileDescriptions()[input_map_index].size = input_map.size();
-
 				output_map.getProteinIdentifications().insert(output_map.getProteinIdentifications().end(),input_map.getProteinIdentifications().begin(), input_map.getProteinIdentifications().end());
-				
 				output_map.getUnassignedPeptideIdentifications().insert(output_map.getUnassignedPeptideIdentifications().end(),input_map.getUnassignedPeptideIdentifications().begin(), input_map.getUnassignedPeptideIdentifications().end());
+				output_map.updateRanges();
+				return;
 			}
 				
 			/**
@@ -305,8 +304,9 @@ namespace OpenMS
 				{
 					output_map.push_back( ConsensusFeature( input_map_index, element_index, tmp[element_index] ) );
 				}
-					
 				output_map.getFileDescriptions()[input_map_index].size = n;
+				output_map.updateRanges();
+				return;
 			}
 				
 			// Docu in base class
