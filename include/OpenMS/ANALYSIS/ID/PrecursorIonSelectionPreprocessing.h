@@ -64,8 +64,7 @@ namespace OpenMS
 		 *	@param save Flag if preprocessing should be stored.
 		 *
 		 *	@throws Exception::FileNotFound if file with preprocessing or db can't be found
-		 *	@throws Exception::FileNotReadable if file with preprocessing or db can't be read
-		 *	@throws Exception::FileNotWritable if file with preprocessing can't be written
+		 *  @throws Exception::UnableToCreateFile if preprocessing file can't be written
 		 */
 		void dbPreprocessing(String db_path,bool save=true);
 
@@ -76,7 +75,8 @@ namespace OpenMS
 		 *	@param db_path Path to database file (fasta)
 		 *
 		 *	@throws Exception::FileNotFound if file with preprocessing can't be found
-		 *	@throws Exception::FileNotReadable if file with preprocessing can't be read
+		 *	@throws Exception::InvalidParameter if precursor_mass_tolerance_unit is ppm and
+		 *  file containing bin borders can't be found
 		 */
 		void loadPreprocessing();
 

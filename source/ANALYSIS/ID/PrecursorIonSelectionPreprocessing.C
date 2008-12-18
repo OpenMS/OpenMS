@@ -134,174 +134,175 @@ namespace OpenMS
 							<< "\t" << param_.getValue("missed_cleavages")
 							<< "\t" << param_.getValue("preprocessing:taxonomy") <<std::endl;
 #endif
-		// first check if preprocessed db already exists
-		String path = param_.getValue("preprocessing:preprocessed_db_path");
 
-		// db-name__precursor_mass_tolerance_unit__missed_cleavages__taxonomy
+		FASTAFile fasta_file;
+		std::vector<FASTAFile::FASTAEntry> entries;
+		fasta_file.load(db_path,entries);
+		EnzymaticDigestion digest;
+		digest.setMissedCleavages((UInt)param_.getValue("missed_cleavages"));
 
-		// get db-name
-		UInt pos1 = db_path.rfind("/") +1;
-		UInt pos2 = db_path.rfind(".");
-		String db_name = db_path.substr(pos1,pos2-pos1);
-
-		std::stringstream ss;
-		ss << (DoubleReal)param_.getValue("precursor_mass_tolerance");
-		ss << "_";
-		ss << param_.getValue("precursor_mass_tolerance_unit");
-		ss << "_";
-		ss << (UInt)param_.getValue("missed_cleavages");
-
-		path += db_name + "_" +ss.str() + "_" + (String)param_.getValue("preprocessing:taxonomy");
-
-		// check if file exists
-		std::ifstream test(path.c_str());
-		if(test)
+		// first get all protein sequences and calculate digest
+		for(UInt e=0;e<entries.size();++e)
 			{
-				loadPreprocessedDB_(path);
-			}
-		else
-			{
-				FASTAFile fasta_file;
-				std::vector<FASTAFile::FASTAEntry> entries;
-				fasta_file.load(db_path,entries);
-				EnzymaticDigestion digest;
-				digest.setMissedCleavages((UInt)param_.getValue("missed_cleavages"));
-
-				// first get all protein sequences and calculate digest
-				for(UInt e=0;e<entries.size();++e)
+				// filter for taxonomy
+				if(entries[e].description.toUpper().hasSubstring(((String)param_.getValue("preprocessing:taxonomy")).toUpper())) 
 					{
-						// filter for taxonomy
-						if(entries[e].description.toUpper().hasSubstring(((String)param_.getValue("preprocessing:taxonomy")).toUpper())) 
+#ifdef PISP_DEBUG
+						std::cout << entries[e].identifier << std::endl;
+#endif
+						entries[e].identifier = entries[e].identifier.prefix('|');
+						String& seq = entries[e].sequence;
+						// check for unallowed characters
+						if(seq.hasSubstring("X") || seq.hasSubstring("B") ||  seq.hasSubstring("Z") )
 							{
-#ifdef PISP_DEBUG
-								std::cout << entries[e].identifier << std::endl;
-#endif
-								entries[e].identifier = entries[e].identifier.prefix('|');
-								String& seq = entries[e].sequence;
-								// check for unallowed characters
-								if(seq.hasSubstring("X") || seq.hasSubstring("B") ||  seq.hasSubstring("Z") )
-									{
-										continue;
-									}
-								std::vector<DoubleReal> prot_masses;
-								// digest sequence
-								AASequence aa_seq(seq);
-								std::vector<AASequence> vec;
-								digest.digest(aa_seq,vec);
-
-								// enter peptide sequences in map
-								std::vector<AASequence>::iterator vec_iter = vec.begin();
-								for(;vec_iter != vec.end();++vec_iter)
-									{
-										DoubleReal mass = vec_iter->getMonoWeight(Residue::Full,1);
-										prot_masses.push_back(mass);
-										if(sequences_.count(*vec_iter)==0) // peptide sequences are considered only once
-											{
-												sequences_.insert(*vec_iter);
- 												masses_.push_back(mass);
-											}
-									}
-								prot_masses_.insert(make_pair(entries[e].identifier,prot_masses));
+								continue;
 							}
+						std::vector<DoubleReal> prot_masses;
+						// digest sequence
+						AASequence aa_seq(seq);
+						std::vector<AASequence> vec;
+						digest.digest(aa_seq,vec);
 
+						// enter peptide sequences in map
+						std::vector<AASequence>::iterator vec_iter = vec.begin();
+						for(;vec_iter != vec.end();++vec_iter)
+							{
+								DoubleReal mass = vec_iter->getMonoWeight(Residue::Full,1);
+								prot_masses.push_back(mass);
+								if(sequences_.count(*vec_iter)==0) // peptide sequences are considered only once
+									{
+										sequences_.insert(*vec_iter);
+										masses_.push_back(mass);
+									}
+							}
+						prot_masses_.insert(make_pair(entries[e].identifier,prot_masses));
 					}
 
-				if(masses_.size() == 0)
-					{
-						std::cout << "no masses entered" << std::endl;
-						return;
-					}
-				std::sort(masses_.begin(),masses_.end());
-				// now get minimal and maximal mass and create counter_-vectors
-				// count mass occurences using bins
+			}
+
+		if(masses_.size() == 0)
+			{
+				std::cout << "no masses entered" << std::endl;
+				return;
+			}
+		std::sort(masses_.begin(),masses_.end());
+		// now get minimal and maximal mass and create counter_-vectors
+		// count mass occurences using bins
 #ifdef PISP_DEBUG
-				std::cout << "min\tmax "<<masses_[0] << "\t"<<*(masses_.end()-1)<<std::endl;
-				std::cout << "prot_masses.size() "<<prot_masses_.size()<<std::endl;
+		std::cout << "min\tmax "<<masses_[0] << "\t"<<*(masses_.end()-1)<<std::endl;
+		std::cout << "prot_masses.size() "<<prot_masses_.size()<<std::endl;
 #endif
-				// if the precursor mass tolerance is given in Da
-				// we have equidistant bins
-				if(param_.getValue("precursor_mass_tolerance_unit") == "Da")
-					{
-						counter_.resize((UInt)((*(masses_.end()-1)-masses_[0]) / (DoubleReal)param_.getValue("precursor_mass_tolerance")) +1,0);
+		// if the precursor mass tolerance is given in Da
+		// we have equidistant bins
+		if(param_.getValue("precursor_mass_tolerance_unit") == "Da")
+			{
+				counter_.resize((UInt)((*(masses_.end()-1)-masses_[0]) / (DoubleReal)param_.getValue("precursor_mass_tolerance")) +1,0);
 						
-						for(UInt i=0;i<masses_.size();++i)
-							{
-								// get bin index
-								DoubleReal tmp = (masses_[i] - masses_[0]) / (DoubleReal)param_.getValue("precursor_mass_tolerance");
-								++counter_[ceil(tmp)];
-// 								// if mass lies between to bin limits, both bin counters are increased (wird bei ppm anders gemacht)
-// 								if(ceil(tmp) != floor(tmp)) 				++counter_[floor(tmp)];
-							}
-						UInt max = 0;
-						for(UInt i=0;i<counter_.size();++i)
-							{
-								if(counter_[i] >  max )  max = counter_[i];
-							}
-						// store maximal frequency
-						f_max_ = max;
-					}
-				else // with ppm, we have bins of increasing size and need to save the bin limits
+				for(UInt i=0;i<masses_.size();++i)
 					{
-						bin_masses_.clear();
-						counter_.clear();
-						// so first we calculate the boundings of the bins
-						DoubleReal curr_mass = masses_[0];
-#ifdef PISP_DEBUG 
-						std::cout << "min_max_curr "<<masses_[0] << " "<<*(masses_.end()-1) << " "<< curr_mass << std::endl;
-#endif
-						UInt size = 0;
-						while(curr_mass < *(masses_.end()-1))
-							{
-								/// store the lower bound of the current bin
-								bin_masses_.push_back(curr_mass); 
-								++size;
-								/// calculate lower bound for next bin
-								curr_mass = curr_mass + curr_mass*(DoubleReal)param_.getValue("precursor_mass_tolerance")/1e06;
-							}
-#ifdef PISP_DEBUG
-						std::cout <<"bin_masses_.size() " <<  bin_masses_.size() << " "<<size<< std::endl;
-#endif
-						counter_.resize(size,0);
-#ifdef PISP_DEBUG
-						std::cout << "counter_.size() "<<counter_.size()  << " bin_masses_.size() "<<bin_masses_.size()<<std::endl;
-#endif
- 						// then we put the peptide masses into the right bins
-						for(UInt i=0;i<masses_.size();++i)
-							{
-								std::vector<DoubleReal>::iterator tmp_iter =
-										std::lower_bound(bin_masses_.begin(),bin_masses_.end(),masses_[i]);
-								if(tmp_iter== bin_masses_.end())
-									{
-										++counter_[distance(bin_masses_.begin(),tmp_iter-1)];
-									}
-								else if((tmp_iter+1)==bin_masses_.end() // last entry
-												|| fabs(*tmp_iter - masses_[i]) < fabs(*(tmp_iter+1) - masses_[i])) // or closer to left entry
-									{
-										// increase counter for bin to the left
-										++counter_[distance(bin_masses_.begin(),tmp_iter)];
-									}
-								else ++counter_[distance(bin_masses_.begin(),tmp_iter+1)]; // increase right counter
-							}
-						// determine maximal frequency for normalization
-						UInt max = 0;
-						for(UInt i=0;i<counter_.size();++i)
-							{
-								if(counter_[i] >  max )  max = counter_[i];
-							}
-						f_max_ = max;
-#ifdef PISP_DEBUG
-						std::cout << "f_max_ "<<f_max_ <<std::endl;
-#endif
+						// get bin index
+						DoubleReal tmp = (masses_[i] - masses_[0]) / (DoubleReal)param_.getValue("precursor_mass_tolerance");
+						++counter_[ceil(tmp)];
 					}
-				// db-name__precursor_mass_tolerance___missed_cleavages__taxonomy
-				if(save) savePreprocessedDB_(path);
+				UInt max = 0;
+				for(UInt i=0;i<counter_.size();++i)
+					{
+						if(counter_[i] >  max )  max = counter_[i];
+					}
+				// store maximal frequency
+				f_max_ = max;
 			}
+		else // with ppm, we have bins of increasing size and need to save the bin limits
+			{
+				bin_masses_.clear();
+				counter_.clear();
+				// so first we calculate the boundings of the bins
+				DoubleReal curr_mass = masses_[0];
+#ifdef PISP_DEBUG 
+				std::cout << "min_max_curr "<<masses_[0] << " "<<*(masses_.end()-1) << " "<< curr_mass << std::endl;
+#endif
+				UInt size = 0;
+				while(curr_mass < *(masses_.end()-1))
+					{
+						/// store the lower bound of the current bin
+						bin_masses_.push_back(curr_mass); 
+						++size;
+						/// calculate lower bound for next bin
+						curr_mass = curr_mass + curr_mass*(DoubleReal)param_.getValue("precursor_mass_tolerance")/1e06;
+					}
+#ifdef PISP_DEBUG
+				std::cout <<"bin_masses_.size() " <<  bin_masses_.size() << " "<<size<< std::endl;
+#endif
+				counter_.resize(size,0);
+#ifdef PISP_DEBUG
+				std::cout << "counter_.size() "<<counter_.size()  << " bin_masses_.size() "<<bin_masses_.size()<<std::endl;
+#endif
+				// then we put the peptide masses into the right bins
+				for(UInt i=0;i<masses_.size();++i)
+					{
+						std::vector<DoubleReal>::iterator tmp_iter =
+							std::lower_bound(bin_masses_.begin(),bin_masses_.end(),masses_[i]);
+						if(tmp_iter== bin_masses_.end())
+							{
+								++counter_[distance(bin_masses_.begin(),tmp_iter-1)];
+							}
+						else if((tmp_iter+1)==bin_masses_.end() // last entry
+										|| fabs(*tmp_iter - masses_[i]) < fabs(*(tmp_iter+1) - masses_[i])) // or closer to left entry
+							{
+								// increase counter for bin to the left
+								++counter_[distance(bin_masses_.begin(),tmp_iter)];
+							}
+						else ++counter_[distance(bin_masses_.begin(),tmp_iter+1)]; // increase right counter
+					}
+				// determine maximal frequency for normalization
+				UInt max = 0;
+				for(UInt i=0;i<counter_.size();++i)
+					{
+						if(counter_[i] >  max )  max = counter_[i];
+					}
+				f_max_ = max;
+#ifdef PISP_DEBUG
+				std::cout << "f_max_ "<<f_max_ <<std::endl;
+#endif
+					
+			}
+		// db-name__precursor_mass_tolerance___missed_cleavages__taxonomy
+		if(save)
+			{
+				// first check if preprocessed db already exists
+				String path = param_.getValue("preprocessing:preprocessed_db_path");
+				
+				// db-name__precursor_mass_tolerance_unit__missed_cleavages__taxonomy
+
+#ifdef OPENMS_WINDOWSPLATFORM
+				UInt pos1 = db_path.rfind("\\") +1;
+				path += "\\";
+#else
+				UInt pos1 = db_path.rfind("/") +1;
+				path += "/";
+#endif
+				
+				// get db-name
+				UInt pos2 = db_path.rfind(".");
+				String db_name = db_path.substr(pos1,pos2-pos1);
+				
+				std::stringstream ss;
+				ss << (DoubleReal)param_.getValue("precursor_mass_tolerance");
+				ss << "_";
+				ss << param_.getValue("precursor_mass_tolerance_unit");
+				ss << "_";
+				ss << (UInt)param_.getValue("missed_cleavages");
+				
+				path += db_name + "_" +ss.str() + "_" + (String)param_.getValue("preprocessing:taxonomy");
+				
+				savePreprocessedDB_(path);
+
+			}
+
 	}
 
 	void PrecursorIonSelectionPreprocessing::savePreprocessedDB_(String& path)
 	{
-		std::cout << "datei: "<<path << std::endl;
-		std::cout << prot_masses_.size() << " "<<counter_.size() << " "<< bin_masses_.size()<< std::endl;
 		// first save protein_masses_map
 		std::ofstream out(path.c_str());
 		out.precision(10);
@@ -316,7 +317,6 @@ namespace OpenMS
 		std::map<String,std::vector<DoubleReal> >::iterator pm_iter = prot_masses_.begin();
 		for(;pm_iter!=prot_masses_.end();++pm_iter)
 			{
-					//std::cout << pm_iter->second.size() << "\t"<< pm_iter->first;
 					out << pm_iter->second.size() << "\t"<< pm_iter->first;
 					for(UInt i = 0; i<pm_iter->second.size();++i)
 					{
@@ -376,7 +376,6 @@ namespace OpenMS
 		std::cout << "load " << path << std::endl;
 #endif
 		TextFile::Iterator iter = file.begin();
-		//		prot_masses_.reserve(iter->toInt());
 		++iter;
 		for(; iter != file.end(); ++iter)
 	    {
@@ -405,9 +404,6 @@ namespace OpenMS
 		iter = file2.begin();
 		std::vector<String> header;
 		iter->split('\t',header);
-		// 		std::cout << "vorm reserve"<<std::endl;
-		// 		counter_.reserve(header[0].toInt());
-		// 		std::cout << "nachm reserve"<<std::endl;
 
 		f_max_ = 0;
 		
@@ -417,13 +413,20 @@ namespace OpenMS
 				counter_.push_back(iter->toDouble());
 				if(iter->toDouble() > f_max_) f_max_ = iter->toDouble();
 			}
-		//		std::cout << min_mass_ << " "<<max_mass_ << " "<< counter_.size() << std::endl;
 		file2.clear();
-		if(path.hasSubstring("ppm"))
+		if(param_.getValue("precursor_mass_tolerance_unit")=="ppm")
 			{
-				
 				TextFile file3;
-				file3.load(path+"_bin_masses",true);
+				try
+					{
+						file3.load(path+"_bin_masses",true);
+					}
+				catch(Exception::BaseException& /*e*/)
+					{
+						throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+																							"ppm is used as precursor_mass_tolerance_unit, which requires the file "
+																							+ path+"_bin_masses"+ ", that could not be found." );
+					}
 #ifdef PISP_DEBUG
 				std::cout << "load "<<path<<"_bin_masses"<<std::endl;
 #endif
@@ -435,24 +438,6 @@ namespace OpenMS
 						bin_masses_.push_back(iter->toDouble());
 					}
 			}
-		//std::cout << masses_[0] << " "<<*(masses_.end()-1) << " "<< counter_.size() << std::endl;
-	// 	file2.clear();
-// 		if(path.hasSubstring("ppm"))
-// 			{
-// 				// calculate the bin boundings
-// 				DoubleReal curr_mass = masses_[0];
-// 				std::cout << "min_max_curr "<<masses_[0] << " "<<*(masses_.end()-1) << " "<< curr_mass << std::endl;
-// 				UInt size = 0;
-// 				while(curr_mass < (*masses_.end()-1))
-// 					{
-// 						/// store the lower bound of the current bin
-// 						bin_masses_.push_back(curr_mass); 
-// 						++size;
-// 						/// calculate lower bound for next bin
-// 						curr_mass = curr_mass + curr_mass*(DoubleReal)param_.getValue("precursor_mass_tolerance")/1e06;
-// 					}
-				
-// 			}
 		
 	}
 

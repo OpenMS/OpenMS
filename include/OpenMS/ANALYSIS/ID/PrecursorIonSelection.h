@@ -154,8 +154,6 @@ namespace OpenMS
 
 		void shiftUp_(FeatureMap<>& features,PrecursorIonSelectionPreprocessing& preprocessed_db,String protein_acc);
 
-		void inferProteinIds_(std::vector<PeptideIdentification>& new_pep_ids,std::vector<ProteinIdentification>& prot_ids);
-		
 		/// update members method from DefaultParamHandler to update the members 
 		void updateMembers_();
 

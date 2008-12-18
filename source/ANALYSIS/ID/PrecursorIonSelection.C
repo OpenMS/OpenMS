@@ -87,11 +87,6 @@ namespace OpenMS
 		FeatureMap<>::Iterator iter = features.begin();
 		while(iter != features.end() && count < number)
 			{
-				// 						std::cout << iter->getFeatures()[0].getPosOnScout() <<" "
-				// 											<< iter->getFeatures()[0].getMZ() <<" "
-				// 											<< iter->getTotalScore() <<" "
-				// 											<< iter->getFragmented() << std::endl;
-				
 				if((iter->metaValueExists("fragmented") && iter->getMetaValue("fragmented")!= "true")
 					 || !iter->metaValueExists("fragmented"))
 					{
@@ -111,7 +106,6 @@ namespace OpenMS
 					}
 				++iter;
 			}
-		
 	}
 
 	void PrecursorIonSelection::rescore_(FeatureMap<>& features,std::vector<PeptideIdentification>& new_pep_ids,
@@ -137,10 +131,6 @@ namespace OpenMS
 				// for all peptide hits
 				for(UInt h=0;h<hits.size();++h)
 					{
-// 						// if the peptide hit is significant
-// 						if(hits[h].getScore() >= new_pep_ids[i].getSignificanceThreshold() && 
-// 							 (Int)hits[h].getMetaValue("Rank") == 1 )
-// 							{
 #ifdef PIS_DEBUG
 						std::cout << hits[h].getScore() << " >= "<< new_pep_ids[i].getSignificanceThreshold()<<" "
 											<< hits[h].getMetaValue("Rank") << std::endl;
@@ -185,12 +175,10 @@ namespace OpenMS
 																	{
 																		// change ordering of corresponding features ->down
 																		if(type_ == UPSHIFT || type_ == SPS) continue;
-																		std::cout << "shiftDown"<<std::endl;
 																		shiftDown_(features,preprocessed_db,*acc_it);
 																	}
 																else if(type_ != DOWNSHIFT && type_ != DEX && type_ != SPS)
 																	{
-																		std::cout << "shiftUp"<<std::endl;
  																		// change ordering of corresponding features ->up
 																		shiftUp_(features,preprocessed_db,*acc_it);
 																	}
@@ -208,15 +196,12 @@ namespace OpenMS
 												status_changed.insert(*acc_it);
 												if(type_ != DOWNSHIFT && type_ != DEX && type_ != SPS)
 													{
-
-														std::cout << "shiftUp"<<std::endl;
-														// change ordering of corresponding features ->up
+  													// change ordering of corresponding features ->up
 														shiftUp_(features,preprocessed_db,*acc_it);
 													}
 											}
 									}
 							}
-				//					}
 			}
 
 		std::set<String>::iterator it=status_changed.begin();
@@ -422,93 +407,6 @@ namespace OpenMS
 			}
 	}
 
-	void PrecursorIonSelection::inferProteinIds_(std::vector<PeptideIdentification>& new_pep_ids,
-																							 std::vector<ProteinIdentification>& prot_ids)
-	{
-		std::cout << "countPeptideHits_()"<<std::endl;
-
-
-		std::vector<PeptideIdentification>::const_iterator p_it = new_pep_ids.begin();
-		
-		for(;p_it != new_pep_ids.end();++p_it)
-			{
-				std::vector<PeptideHit>::const_iterator ph_it = p_it->getHits().begin();
-				for(;ph_it != p_it->getHits().end();++ph_it)
-					{
-						std::vector< String >::const_iterator acc_it = ph_it->getProteinAccessions().begin();
-						for(;acc_it != ph_it->getProteinAccessions().end();++acc_it)
-							{
-								//								bool found = false;
-								// find corresponding protein id
-								std::vector<ProteinIdentification>::iterator iter = prot_ids.begin();
-								//								std::vector<ProteinHit>::iterator pro_hit_iter;
-								// 								std::vector<ProteinHit> prot_hit_vec;
- 								for(;iter != prot_ids.end();++iter)
-// 									{
-// 										prot_hit_vec = iter->getHits();
-// 										pro_hit_iter = prot_hit_vec.begin();
-// 										for(;pro_hit_iter != prot_hit_vec.end();++pro_hit_iter)
-// 											{
-// 												if(pro_hit_iter->getAccession() == *acc_it)
-// 													{
-// 														found = true;
-// 														break;
-// 													}
-// 											}
-// 										if(found) break;
-// 									}
-// 								if(!found) std::cout << "error: protein not found "<<*acc_it<< std::endl;
-								// take only highest scoring peptide hit
-								if(prot_id_counter_.find(*acc_it) != prot_id_counter_.end())
-									{
-										//if(find(prot_id_counter_[*acc_it].begin(),prot_id_counter_[*acc_it].end(),ph_it->getSequence().toString())==prot_id_counter_[*acc_it].end() )
-										// if sequence is new
-										if(prot_id_counter_[*acc_it].count(ph_it->getSequence().toString())==0)
-											{
-												// increment counter
-												prot_id_counter_[*acc_it].insert(ph_it->getSequence().toString());
-												// increase score of protein id
-												//												pro_hit_iter->setScore(pro_hit_iter->getScore()+ph_it->getScore());
-											}
-										else // compare score and set on highest score
-											{
-												// erstmal nich unbedingt nötig, da wir nix mit den proteinscores machen
-											}
-									}
-								else
-									{
-										std::set<String> t_vec;
-										t_vec.insert(ph_it->getSequence().toString());
-										prot_id_counter_.insert(std::make_pair(*acc_it,t_vec));
-										//										pro_hit_iter->setScore(pro_hit_iter->getScore()+ph_it->getScore());
-										std::cout << "inserting "<< *acc_it << " "<<ph_it->getSequence().toString() << std::endl;
-									}
-								//iter->setHits(prot_hit_vec);
-							}
-					}
-
-
-				
-			}
-		
-		//
-#ifdef DEBUG_PIS
-		std:: cout << "end countPeptides\n";
-		std::map<String,std::vector<String> >::iterator it = prot_id_counter_.begin();
-		for(;it != prot_id_counter_.end();++it)
-			{
-				std::cout << it->first;
-				for(UInt i=0;i< it->second.size();++i)
-					{
-						std::cout << "\t" << it->second[i];
-					}
-				std::cout << "\n" ;
-			}
-		std:: cout << "---------------------end countPeptides\n";
-#endif
-
-	}
-
 	void PrecursorIonSelection::checkForRequiredUserParams_(FeatureMap<>& features)
 	{
 #ifdef PIS_DEBUG
@@ -627,9 +525,9 @@ namespace OpenMS
 			{
 					
 				++iteration;
-#ifdef PIS_DEBUG
+				//#ifdef PIS_DEBUG
 				std::cout << "================================ iteration "<<iteration<<std::endl;
-#endif
+				//#endif
 				curr_pep_ids.clear();
 				curr_prot_ids.clear();
 					
@@ -649,7 +547,7 @@ namespace OpenMS
 		    
 						// get their peptide ids
 						std::vector<PeptideIdentification> & pep_ids = new_features[c].getPeptideIdentifications();
-#ifdef PIS_DEBUG
+						//#ifdef PIS_DEBUG
 						if(pep_ids.size() > 0)
 							{
 								std::cout << " ids "	<< std::endl;
@@ -666,7 +564,7 @@ namespace OpenMS
 								std::cout << "Score : "
 													<<pep_ids[0].getHits()[0].getScore()<<std::endl;
 							}
-#endif
+						//#endif
 						for(UInt pep_id=0;pep_id<pep_ids.size();++pep_id)
 							{
 								// save peptide id
@@ -758,9 +656,6 @@ namespace OpenMS
 						continue;
 					}
 
-				// rescore
-				// really use curr_prot_ids???
-				//	inferProteinIds_(curr_pep_ids,curr_prot_ids);
 
 				rescore_(features,curr_pep_ids,preprocessed_db);
 		
@@ -898,7 +793,6 @@ namespace OpenMS
 	
 	void PrecursorIonSelection::updateMembers_()
 	{
-		std::cout << "update members "<<std::endl;
 		if(param_.getValue("type") == "IPS") type_ = IPS;
 		else if(param_.getValue("type") == "Upshift") type_ = UPSHIFT;
 		else if(param_.getValue("type") == "Downshift") type_ = DOWNSHIFT;
@@ -907,7 +801,6 @@ namespace OpenMS
 		min_pep_ids_ = (UInt)param_.getValue("min_pep_ids");
 		mz_tolerance_unit_ = (String)param_.getValue("precursor_mass_tolerance_unit");
 		mz_tolerance_ = (DoubleReal)param_.getValue("precursor_mass_tolerance");
-		std::cout << "type "<< type_ << std::endl;
 	}
 
 	
