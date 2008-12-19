@@ -150,8 +150,8 @@ namespace OpenMS
     connect(tab_bar_,SIGNAL(currentIdChanged(int)),this,SLOT(focusByTab(int)));
     connect(tab_bar_,SIGNAL(aboutToCloseId(int)),this,SLOT(closeByTab(int)));
 		//connect signals ans slots for drag-and-drop
-		connect(tab_bar_,SIGNAL(dropOnWidget(const QMimeData*)),this,SLOT(copyLayer(const QMimeData*)));		
-		connect(tab_bar_,SIGNAL(dropOnTab(const QMimeData*,int)),this,SLOT(copyLayer(const QMimeData*, int)));		
+		connect(tab_bar_,SIGNAL(dropOnWidget(const QMimeData*)),this,SLOT(copyLayer(const QMimeData*)));
+		connect(tab_bar_,SIGNAL(dropOnTab(const QMimeData*,int)),this,SLOT(copyLayer(const QMimeData*, int)));
 
     box_layout->addWidget(tab_bar_);
     ws_=new QWorkspace(dummy);
@@ -161,7 +161,7 @@ namespace OpenMS
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateSpectrumBar()));
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateFilterBar()));
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateMenu()));
- 
+
     box_layout->addWidget(ws_);
 
 		//################## MENUS #################
@@ -172,13 +172,13 @@ namespace OpenMS
     file->addAction("&Open from database",this,SLOT(openDatabaseDialog()), Qt::CTRL+Qt::Key_D);
     file->addAction("&Close",this,SLOT(closeFile()), Qt::CTRL+Qt::Key_W);
 		file->addSeparator();
-		
+
 		//Meta data
 		file->addAction("&Show meta data (file)",this,SLOT(metadataFileDialog()));
     file->addAction("&Show meta data (database)",this,SLOT(metadataDatabaseDialog()));
     file->addSeparator();
-		
-		//Recent files    
+
+		//Recent files
     QMenu* recent_menu = new QMenu("&Recent files", this);
   	recent_actions_.resize(20);
 		for (Size i = 0; i<20; ++i)
@@ -191,7 +191,7 @@ namespace OpenMS
     file->addSeparator();
     file->addAction("&Preferences",this, SLOT(preferencesDialog()));
     file->addAction("&Quit",qApp,SLOT(quit()));
-    
+
     //Tools menu
     QMenu* tools = new QMenu("&Tools",this);
     menuBar()->addMenu(tools);
@@ -217,7 +217,7 @@ namespace OpenMS
     layer->addAction("Show/hide axis legends", this, SLOT(toggleAxisLegends()), Qt::CTRL+Qt::Key_L);
 		layer->addSeparator();
     layer->addAction("Preferences", this, SLOT(showPreferences()));
-    
+
     //Windows menu
     QMenu * windows = new QMenu("&Windows", this);
     menuBar()->addMenu(windows);
@@ -226,7 +226,7 @@ namespace OpenMS
     windows->addAction(QIcon(QPixmap(tile_h)),"Tile &vertical",this,SLOT(tileHorizontal()));
     windows->addAction(QIcon(QPixmap(tile_v)),"Tile &horizontal",this,SLOT(tileVertical()));
 		windows->addSeparator();
-	
+
 		//Help menu
 		QMenu* help = new QMenu("&Help", this);
 		menuBar()->addMenu(help);
@@ -235,10 +235,10 @@ namespace OpenMS
 		QAction* action = help->addAction("OpenMS website",this,SLOT(showURL()));
 		action->setData("http://www.OpenMS.de");
 		action = help->addAction("TOPPView tutorial (online)",this,SLOT(showURL()), Qt::Key_F1);
-		action->setData("http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/html/TOPPViewTutorial.html");		
+		action->setData("http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/html/TOPPViewTutorial.html");
 		help->addSeparator();
 		help->addAction("&About",this,SLOT(showAboutDialog()));
-		
+
     //create status bar
     message_label_ = new QLabel(statusBar());
     statusBar()->addWidget(message_label_,1);
@@ -259,14 +259,14 @@ namespace OpenMS
 		//################## TOOLBARS #################
     //create toolbars and connect signals
   	QToolButton* b;
-  	
+
   	//--Basic tool bar for all views--
     tool_bar_ = addToolBar("Basic tool bar");
-    
+
     //intensity modes
     intensity_group_ = new QButtonGroup(tool_bar_);
     intensity_group_->setExclusive(true);
-    
+
     b = new QToolButton(tool_bar_);
     b->setIcon(QPixmap(lin));
     b->setToolTip("Intensity: Normal");
@@ -306,14 +306,14 @@ namespace OpenMS
     reset_zoom_button->setWhatsThis("Reset zoom: Zooms out as far as possible and resets the zoom history.<BR>(Hotkey: Backspace)");
 
     tool_bar_->show();
-    
+
     //--1D toolbar--
     tool_bar_1d_ = addToolBar("1D tool bar");
 
     //draw modes 1D
     draw_group_1d_ = new QButtonGroup(tool_bar_1d_);
     draw_group_1d_->setExclusive(true);
-    
+
     b = new QToolButton(tool_bar_1d_);
     b->setIcon(QPixmap(peaks));
     b->setToolTip("Peak mode");
@@ -322,7 +322,7 @@ namespace OpenMS
     b->setWhatsThis("1D Draw mode: Peaks<BR><BR>Peaks are diplayed as sticks.");
     draw_group_1d_->addButton(b,Spectrum1DCanvas::DM_PEAKS);
 		tool_bar_1d_->addWidget(b);
-    
+
     b = new QToolButton(tool_bar_1d_);
     b->setIcon(QPixmap(lines));
     b->setToolTip("Raw data mode");
@@ -389,9 +389,9 @@ namespace OpenMS
 		connect(layer_manager_,SIGNAL(customContextMenuRequested(const QPoint&)),this,SLOT(layerContextMenu(const QPoint&)));
 		connect(layer_manager_,SIGNAL(itemChanged(QListWidgetItem*)),this,SLOT(layerVisibilityChange(QListWidgetItem*)));
     connect(layer_manager_,SIGNAL(itemDoubleClicked(QListWidgetItem*)),this,SLOT(layerEdit(QListWidgetItem*)));
-    
+
     windows->addAction("&Show layer window",layer_bar,SLOT(show()));
-		
+
     //spectrum selection
     QDockWidget* spectrum_bar = new QDockWidget("Spectra", this);
     addDockWidget(Qt::RightDockWidgetArea, spectrum_bar);
@@ -405,17 +405,17 @@ namespace OpenMS
   	spectrum_selection_->setHeaderLabels(header_labels);
     spectrum_bar->setWidget(spectrum_selection_);
     connect(spectrum_selection_,SIGNAL(itemClicked(QTreeWidgetItem*, int)),this,SLOT(spectrumSelectionChange(QTreeWidgetItem*, int)));
-    
+
     windows->addAction("&Show spectrum selection window",spectrum_bar,SLOT(show()));
-        
+
     //data filters
     QDockWidget* filter_bar = new QDockWidget("Data filters", this);
     addDockWidget(Qt::RightDockWidgetArea, filter_bar);
     QWidget* tmp_widget = new QWidget(); //dummy widget as QDockWidget takes only one widget
     filter_bar->setWidget(tmp_widget);
-    
+
     QVBoxLayout* vbl = new QVBoxLayout(tmp_widget);
-      
+
     filters_ = new QListWidget(tmp_widget);
     filters_->setSelectionMode(QAbstractItemView::NoSelection);
     filters_->setWhatsThis("Data filter bar<BR><BR>Here filtering options for the current layer can be set.<BR>Through the context menu you can add, remove and edit filters.<BR>For convenience, editing filters is also possible by double-clicking them.");
@@ -426,8 +426,8 @@ namespace OpenMS
 
     filters_check_box_ = new QCheckBox("Enable/disable all filters", tmp_widget);
     connect(filters_check_box_,SIGNAL(toggled(bool)),this,SLOT(layerFilterVisibilityChange(bool)));
-    vbl->addWidget(filters_check_box_); 
-    
+    vbl->addWidget(filters_check_box_);
+
     windows->addAction("&Show filter window",filter_bar,SLOT(show()));
 
 
@@ -441,7 +441,7 @@ namespace OpenMS
 		log_bar->setWidget(log_);
 		log_bar->hide();
     windows->addAction("&Show log window",log_bar,SLOT(show()));
-		
+
 		//################## DEFAULTS #################
     //general
     defaults_.setValue("preferences:default_map_view", "2d", "Default visualization mode for maps.");
@@ -478,23 +478,23 @@ namespace OpenMS
     defaults_.insert("preferences:3d:",def3->getDefaults());
     delete def3;
     defaults_.setSectionDescription("preferences:3d","Settings for 3D map view.");
-		
+
 		defaults_.setValue("preferences:version","none","OpenMS version, used to check if the TOPPView.ini is up-to-date");
-		
+
 		subsections_.push_back("preferences:RecentFiles");
-		
+
   	defaultsToParam_();
-  	
+
   	//load param file
     loadPreferences();
-  	
+
   	//update the menu
   	updateMenu();
-		
+
 		//######################### Additional context menus ######################################
 		add_2d_context_ = new QMenu("More",this);
 		add_2d_context_->addAction("Show layer in 3D",this,SLOT(showCurrentPeaksAs3D()));
-  
+
 		topp_.process = 0;
 	}
 
@@ -516,8 +516,8 @@ namespace OpenMS
 		if (!QDesktopServices::openUrl(QUrl(action->data().toString())))
 		{
 			QMessageBox::warning(this, tr("Error"),
-												 tr("Unable to open\n") + 
-														action->data().toString() + 
+												 tr("Unable to open\n") +
+														action->data().toString() +
 														tr("\n\nPossible reason: security settings or misconfigured Operating System"));
 		}
 	}
@@ -526,7 +526,7 @@ namespace OpenMS
   {
   	//set wait cursor
   	setCursor(Qt::WaitCursor);
-				
+
     //Open DB connection
     DBConnection con;
     connectToDB_(con);
@@ -551,15 +551,15 @@ namespace OpenMS
       setCursor(Qt::ArrowCursor);
       return;
 		}
-		
+
 		//determine if the data is 1D or 2D
     QSqlQuery result = con.executeQuery(String("SELECT count(id) from DATA_Spectrum where fid_MSExperiment='")+db_id+"' and MSLevel='1'");
 		bool is_2D = (result.value(0).toInt()>1);
-		
+
 		//add data
     if (caption=="") caption = String("DB entry ")+db_id;
 		addData_(dummy_map, dummy_map2, exp, false, is_2D, show_options, "", caption, window_id);
-  	
+
   	//Reset cursor
   	setCursor(Qt::ArrowCursor);
   }
@@ -580,7 +580,7 @@ namespace OpenMS
   	{
   		return 0.0;
   	}
-  	
+
     float noise = 0.0;
     UInt count = 0;
     srand(time(0));
@@ -612,7 +612,7 @@ namespace OpenMS
   void TOPPViewBase::preferencesDialog()
   {
 		Internal::TOPPViewPrefDialog dlg(this);
-		
+
 		//get pointers
 		QLineEdit* default_path = dlg.findChild<QLineEdit*>("default_path");
 		QLineEdit* temp_path = dlg.findChild<QLineEdit*>("temp_path");
@@ -620,12 +620,12 @@ namespace OpenMS
 		QComboBox* map_default = dlg.findChild<QComboBox*>("map_default");
 		QComboBox* map_cutoff = dlg.findChild<QComboBox*>("map_cutoff");
 		QComboBox* on_file_change = dlg.findChild<QComboBox*>("on_file_change");
-		
+
 		QLineEdit* db_host = dlg.findChild<QLineEdit*>("db_host");
 		QSpinBox* db_port = dlg.findChild<QSpinBox*>("db_port");
 		QLineEdit* db_name = dlg.findChild<QLineEdit*>("db_name");
 		QLineEdit* db_login = dlg.findChild<QLineEdit*>("db_login");
-		
+
 		ColorSelector* color_1D = dlg.findChild<ColorSelector*>("color_1D");
 		ColorSelector* selected_1D = dlg.findChild<ColorSelector*>("selected_1D");
 		ColorSelector* icon_1D = dlg.findChild<ColorSelector*>("icon_1D");
@@ -636,21 +636,21 @@ namespace OpenMS
 		MultiGradientSelector* peak_3D = dlg.findChild<MultiGradientSelector*>("peak_3D");
 		QComboBox* shade_3D = dlg.findChild<QComboBox*>("shade_3D");
 		QSpinBox* line_width_3D  = dlg.findChild<QSpinBox*>("line_width_3D");
-		
+
 		//set General values
 		default_path->setText(param_.getValue("preferences:default_path").toQString());
 		temp_path->setText(param_.getValue("preferences:tmp_file_path").toQString());
 		recent_files->setValue((Int)param_.getValue("preferences:number_of_recent_files"));
 		map_default->setCurrentIndex(map_default->findText(param_.getValue("preferences:default_map_view").toQString()));
-		map_cutoff->setCurrentIndex(map_cutoff->findText(param_.getValue("preferences:intensity_cutoff").toQString()));		
-		on_file_change->setCurrentIndex(on_file_change->findText(param_.getValue("preferences:on_file_change").toQString()));		
+		map_cutoff->setCurrentIndex(map_cutoff->findText(param_.getValue("preferences:intensity_cutoff").toQString()));
+		on_file_change->setCurrentIndex(on_file_change->findText(param_.getValue("preferences:on_file_change").toQString()));
 
 
 		db_host->setText(param_.getValue("preferences:db:host").toQString());
 		db_port->setValue((Int)param_.getValue("preferences:db:port"));
 		db_name->setText(param_.getValue("preferences:db:name").toQString());
 		db_login->setText(param_.getValue("preferences:db:login").toQString());
-		
+
 		color_1D->setColor(QColor(param_.getValue("preferences:1d:peak_color").toQString()));
 		selected_1D->setColor(QColor(param_.getValue("preferences:1d:highlighted_peak_color").toQString()));
 		icon_1D->setColor(QColor(param_.getValue("preferences:1d:icon_color").toQString()));
@@ -661,7 +661,7 @@ namespace OpenMS
 		peak_3D->gradient().fromString(param_.getValue("preferences:3d:dot:gradient"));
 		shade_3D->setCurrentIndex((Int)param_.getValue("preferences:3d:dot:shade_mode"));
 		line_width_3D->setValue((Int)param_.getValue("preferences:3d:dot:line_width"));
-		
+
 		//execute dialog
 		if (dlg.exec())
 		{
@@ -723,12 +723,12 @@ namespace OpenMS
    		setCursor(Qt::ArrowCursor);
       return;
 		}
-		
+
 		//try to load data and determine if it is 1D or 2D data
 		FeatureMapType feature_map;
 		ExperimentType peak_map;
 		ConsensusMapType consensus_map;
-		
+
 		bool is_2D = false;
 		bool is_feature = false;
     try
@@ -766,7 +766,7 @@ namespace OpenMS
     	setCursor(Qt::ArrowCursor);
       return;
     }
-    
+
     //try to add the data
 		if (caption=="")
 		{
@@ -777,23 +777,23 @@ namespace OpenMS
     	abs_filename = "";
     }
     addData_(feature_map, consensus_map, peak_map, is_feature, is_2D, show_options, abs_filename, caption, window_id);
-  	
+
   	//add to recent file
   	if (add_to_recent) addRecentFile_(filename);
-    
+
     //reset cursor
     setCursor(Qt::ArrowCursor);
   }
-  
+
   void TOPPViewBase::addData_(FeatureMapType& feature_map, ConsensusMapType& consensus_map, ExperimentType& peak_map, bool is_feature, bool is_2D, bool show_options, const String& filename, const String& caption, UInt window_id)
   {
   	//initialize flags with defaults from the parameters
   	bool as_new_window = true;
   	bool maps_as_2d = ((String)param_.getValue("preferences:default_map_view")=="2d");
   	bool use_mower = ((String)param_.getValue("preferences:intensity_cutoff")=="on");
-		
+
 		bool is_consensus_feature = (feature_map==FeatureMapType());
-		
+
 		//set the window where (new layer) data could be opened in
 		SpectrumWidget* open_window = window_(window_id);
 		if (open_window==0)
@@ -804,7 +804,7 @@ namespace OpenMS
 		{
 			as_new_window = false;
 		}
-		
+
 		//create dialog no matter if it is shown or not. It is used to determine the flags
 		TOPPViewOpenDialog dialog(caption, as_new_window, maps_as_2d, use_mower, this);
 		//disable opening in new window when
@@ -836,7 +836,7 @@ namespace OpenMS
 			}
 			dialog.setMergeLayers(layers);
 		}
-		
+
 		//show options if requested
 		if (show_options && !dialog.exec())
 		{
@@ -846,7 +846,7 @@ namespace OpenMS
 		maps_as_2d = dialog.viewMapAs2D();
 		use_mower = dialog.isCutoffEnabled();
   	Int merge_layer = dialog.getMergeLayer();
-  	
+
 		//determine the window to open the data in
 		if (as_new_window) //new window
     {
@@ -858,13 +858,13 @@ namespace OpenMS
       {
       	open_window = new Spectrum2DWidget(getSpectrumParameters_(2), ws_);
       	open_window->canvas()->setAdditionalContextMenu(add_2d_context_);
-      } 
+      }
       else //3d
       {
       	open_window = new Spectrum3DWidget(getSpectrumParameters_(3), ws_);
       }
     }
-		
+
     if (merge_layer==-1) //add data to the window
     {
 	    if (is_feature) //features and consensus features
@@ -896,7 +896,7 @@ namespace OpenMS
 					open_window->canvas()->setFilters(filters);
 	      }
 			}
-			
+
 			//set caption
     	open_window->canvas()->setLayerName(open_window->canvas()->activeLayerIndex(), caption);
 		}
@@ -922,23 +922,23 @@ namespace OpenMS
 		updateFilterBar();
   	updateMenu();
 	}
-	
+
   void TOPPViewBase::addRecentFile_(const String& filename)
   {
   	//find out absolute path
     String tmp = File::absolutePath(filename);
-	
+
 		// remove the new file if already in the recent list and prepend it
 		recent_files_.removeAll(tmp.toQString());
 		recent_files_.prepend(tmp.toQString());
-		
+
 		//remove those files exceeding the defined number
 		UInt number_of_recent_files = UInt(param_.getValue("preferences:number_of_recent_files"));
 		while ((UInt)recent_files_.size() > number_of_recent_files)
 		{
 			recent_files_.removeLast();
 		}
-		
+
     updateRecentMenu_();
   }
 
@@ -951,7 +951,7 @@ namespace OpenMS
 			number_of_recent_files = 20;
 			param_.setValue("preferences:number_of_recent_files",20);
 		}
-		
+
 		for (Size i = 0; i < 20; ++i)
 		{
 			if (i < (UInt)(recent_files_.size()))
@@ -991,7 +991,7 @@ namespace OpenMS
   		updateMenu();
   	}
   }
- 
+
   void TOPPViewBase::focusByTab(int id)
   {
   	SpectrumWidget* window = window_(id);
@@ -1000,7 +1000,7 @@ namespace OpenMS
   		window->setFocus();
   	}
   }
-  
+
   void TOPPViewBase::closeFile()
   {
     ws_->activeWindow()->close();
@@ -1010,13 +1010,13 @@ namespace OpenMS
   void TOPPViewBase::editMetadata()
   {
   	SpectrumCanvas* canvas = activeCanvas_();
-  	
+
     //warn if hidden layer => wrong layer selected...
   	if (!canvas->getCurrentLayer().visible)
   	{
   		showLogMessage_(LS_NOTICE,"The current layer is not visible","Have you selected the right layer for this action?");
   	}
-  	
+
   	//show editable meta data dialog
   	canvas->showMetaData(true);
   }
@@ -1031,9 +1031,9 @@ namespace OpenMS
   {
   	Spectrum1DWidget* active = active1DWindow_();
   	if (active==0) return;
-  	
+
   	//cout << "linkActiveTo() active: " << active->window_id << endl;
-  	
+
   	//remove link if present
   	if (link_map_.find(active->window_id)!=link_map_.end())
   	{
@@ -1054,9 +1054,9 @@ namespace OpenMS
   			cout << "linkActiveTo() - disconnect: Error, could not find window with id '" << active->window_id << "'!" << endl;
   		}
   	}
-  	  
+
     if (link_box_->itemText(index)=="<unlinked>") return;
-    
+
     //link
     SpectrumWidget* link_to = window_(link_box_->itemData(index).toInt());
 		if (link_to!=0)
@@ -1071,7 +1071,7 @@ namespace OpenMS
 		else
 		{
 			cout << "linkActiveTo() - connect: Error, could not find window with id '" << link_box_->itemData(index).toInt() << "'!" << endl;
-		}    
+		}
   }
 
   void TOPPViewBase::showStatusMessage(string msg, OpenMS::UInt time)
@@ -1323,16 +1323,16 @@ namespace OpenMS
 		}
 		layer_manager_->blockSignals(false);
   }
-  
+
   void TOPPViewBase::updateSpectrumBar()
-  {		
+  {
   	SpectrumCanvas* cc = activeCanvas_();
   	int layer_row = layer_manager_->currentRow();
   	if (layer_row == -1 || cc == 0)
   	{
   		return;
   	}
-  	
+
   	spectrum_selection_->clear();
   	spectrum_selection_->blockSignals(true);
   	const LayerData& cl = cc->getCurrentLayer();
@@ -1343,7 +1343,7 @@ namespace OpenMS
   		std::vector<QTreeWidgetItem*> parent_stack;
   		parent_stack.push_back(0);
   		bool fail = false;
-  		
+
 			for (Size i = 0; i < cl.peaks.size(); ++i)
 			{
 				if (i > 0)
@@ -1393,13 +1393,13 @@ namespace OpenMS
 				{
 					item = new QTreeWidgetItem((QTreeWidget*)0);
 				}
-				
+
 				parent_stack.back() = item;
 				if (parent_stack.size() == 1)
 				{
 					spectrum_selection_->addTopLevelItem(item);
 				}
-				
+
 				item->setText(0, QString("MS") + QString::number(cl.peaks[i].getMSLevel()));
 				item->setText(1, QString::number(cl.peaks[i].getRT()));
 				item->setText(2, QString::number(cl.peaks[i].getPrecursorPeak().getPosition()[0]));
@@ -1427,17 +1427,17 @@ namespace OpenMS
   		item->setText(1, QString("-"));
   		item->setText(2, QString("-"));
   		item->setText(3, QString::number(0));
-			item->setFlags(Qt::NoItemFlags);
+			item->setFlags(0);
 			spectrum_selection_->addTopLevelItem(item);
 			return; // leave signals blocked
   	}
-  	
+
   	if (cl.peaks.size() == 1)
   	{
-  		item->setFlags(Qt::NoItemFlags);
+  		item->setFlags(0);
   		return; // leave signals blocked
   	}
-  	
+
   	spectrum_selection_->blockSignals(false);
   }
 
@@ -1450,21 +1450,21 @@ namespace OpenMS
 			updateSpectrumBar();
 		}
 	}
-	
+
 	void TOPPViewBase::spectrumSelectionChange(QTreeWidgetItem* item, int /*column*/)
 	{
 		SpectrumCanvas* cc = activeCanvas_();
 		const LayerData& cl = cc->getCurrentLayer();
-		
+
 		int index = item->text(3).toInt();
-		
+
 		FeatureMapType f_dummy;
 		ConsensusMapType c_dummy;
 		ExperimentType exp;
 		exp.resize(1);
 		exp[0] = cl.peaks[index];
 		addData_(f_dummy, c_dummy, exp, false, false, true, cl.filename, cl.name + " (" + QString::number(cl.peaks[index].getRT()) + ")");
-			
+
 		//updateSpectrumBar();
 	}
 
@@ -1478,7 +1478,7 @@ namespace OpenMS
 			QMenu* context_menu = new QMenu(layer_manager_);
 			context_menu->addAction("Rename");
 			context_menu->addAction("Delete");
-			
+
 			if (activeCanvas_()->getLayer(layer).flipped)
 			{
 				new_action = context_menu->addAction("Flip upwards (1D)");
@@ -1518,7 +1518,7 @@ namespace OpenMS
 				bool b = active1DWindow_()->canvas()->flippedLayersExist();
 				active1DWindow_()->canvas()->setMirrorModeActive(b);
 			}
-			
+
 			//Update tab bar and window title
 			if (activeCanvas_()->getLayerCount()!=0)
 			{
@@ -1530,13 +1530,13 @@ namespace OpenMS
 				tab_bar_->setTabText(tab_bar_->currentIndex(),"empty");
 				activeWindow_()->setWindowTitle("empty");
 			}
-					
+
 			//Update filter bar, spectrum bar and layer bar
 			updateLayerBar();
 			updateSpectrumBar();
 			updateFilterBar();
 			updateMenu();
-			
+
 			delete (context_menu);
 		}
 	}
@@ -1547,7 +1547,7 @@ namespace OpenMS
 		context_menu->addAction("Clear");
 
 		QAction* selected = context_menu->exec(log_->mapToGlobal(pos));
-		
+
 		//clear text
 		if (selected!=0 && selected->text()=="Clear")
 		{
@@ -1560,8 +1560,8 @@ namespace OpenMS
 	{
 		//do nothing if no window is open
 		if (activeCanvas_()==0) return;
-		
-		QMenu* context_menu = new QMenu(filters_);			
+
+		QMenu* context_menu = new QMenu(filters_);
 
 		//warn if the current layer is not visible
 		String layer_name = String("Layer: ") + activeCanvas_()->getCurrentLayer().name;
@@ -1610,7 +1610,7 @@ namespace OpenMS
 					updateFilterBar();
 				}
 			}
-		}	
+		}
 		delete (context_menu);
 	}
 
@@ -1636,18 +1636,18 @@ namespace OpenMS
   {
   	//update filters
   	filters_->clear();
-		
+
 		SpectrumCanvas* canvas = activeCanvas_();
 		if (canvas==0) return;
 		if (canvas->getLayerCount()==0) return;
-		
+
 		const DataFilters& filters = activeCanvas_()->getCurrentLayer().filters;
 		for (Size i=0; i<filters.size(); ++i)
 		{
 			QListWidgetItem* item = new QListWidgetItem(filters_);
 			item->setText(filters[i].toString().toQString());
 		}
-  
+
   	//update check box
   	filters_check_box_->setChecked(activeCanvas_()->getCurrentLayer().filters.isActive());
   }
@@ -1666,7 +1666,7 @@ namespace OpenMS
 		bool visible;
 		layer = layer_manager_->row(item);
 		visible = activeCanvas_()->getLayer(layer).visible;
-		
+
 		if (item->checkState()==Qt::Unchecked && visible)
 		{
 			activeCanvas_()->changeVisibility(layer, false);
@@ -1752,7 +1752,7 @@ namespace OpenMS
     connect(sw->canvas(),SIGNAL(layerModficationChange(UInt,bool)),this,SLOT(updateLayerBar()));
     connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
     connect(sw,SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
-  
+
   	Spectrum2DWidget* sw2 = qobject_cast<Spectrum2DWidget*>(sw);
   	if (sw2 != 0)
   	{
@@ -1760,21 +1760,21 @@ namespace OpenMS
   		connect(sw2->getVerticalProjection(),SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
   		connect(sw2,SIGNAL(showSpectrumAs1D(int)),this,SLOT(showSpectrumAs1D(int)));
   	}
-  	
+
 	  sw->setWindowTitle(caption.toQString());
-		
-		//add tab with id  
+
+		//add tab with id
   	static int window_counter = 4711;
   	sw->window_id = window_counter++;
-			
+
     tab_bar_->addTab(caption.toQString(), sw->window_id);
-    
+
     //connect slots and sigals for removing the widget from the bar, when it is closed
     //- through the menu entry
     //- through the tab bar
     //- thourgh the MDI close button
     connect(sw,SIGNAL(aboutToBeDestroyed(int)),tab_bar_,SLOT(removeId(int)));
-    
+
     tab_bar_->setCurrentId(sw->window_id);
 
 		//show first window maximized (only visible windows are in the list)
@@ -1798,7 +1798,7 @@ namespace OpenMS
   	if (!ws_->activeWindow()) return 0;
     return qobject_cast<SpectrumWidget*>(ws_->activeWindow());
   }
-  
+
   SpectrumCanvas*  TOPPViewBase::activeCanvas_() const
   {
     SpectrumWidget* sw = qobject_cast<SpectrumWidget*>(ws_->activeWindow());
@@ -1815,7 +1815,7 @@ namespace OpenMS
 		if (!w) return 0;
 		return w;
   }
-  
+
   Spectrum2DWidget* TOPPViewBase::active2DWindow_() const
   {
 		Spectrum2DWidget* w = qobject_cast<Spectrum2DWidget*>(activeWindow_());
@@ -1887,7 +1887,7 @@ namespace OpenMS
       	if (File::exists(filename)) recent_files_.append(filename);
       }
     }
-		
+
     updateRecentMenu_();
   }
 
@@ -1900,10 +1900,10 @@ namespace OpenMS
     {
       param_.setValue("preferences:RecentFiles:"+String(i),recent_files_[i]);
     }
-		
+
 		//set version
 		param_.setValue("preferences:version",VersionInfo::getVersion());
-		
+
     //save only the subsection that begins with "preferences:"
     try
     {
@@ -1934,7 +1934,7 @@ namespace OpenMS
 #endif
 		filter_all += " *.mzML *.mzXML *.mzData *.featureXML *.consensusXML);;" ;
 		filter_single +=";;mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;XML files (*.xml);;all files (*)";
-	
+
 	 	return QFileDialog::getOpenFileNames(this, "Open file(s)", param_.getValue("preferences:default_path").toQString(), (filter_all+ filter_single).toQString());
   }
 
@@ -1961,7 +1961,7 @@ namespace OpenMS
 				param_.setValue("DBPassword",text);
 			}
 		}
-		
+
 		if (param_.exists("DBPassword"))
 		{
 			try
@@ -1975,14 +1975,14 @@ namespace OpenMS
 			}
 		}
 	}
-	
+
   void TOPPViewBase::openDatabaseDialog()
   {
 		DBConnection db;
 		connectToDB_(db);
 		if (db.isConnected())
 		{
-			vector<UInt> result;	
+			vector<UInt> result;
 			DBOpenDialog db_dialog(db,result,this);
 			if (db_dialog.exec())
 			{
@@ -2003,7 +2003,7 @@ namespace OpenMS
 		{
   		showLogMessage_(LS_NOTICE,"The current layer is not visible","Have you selected the right layer for this action?");
 		}
-		
+
 		//delete old input and output file
 		File::remove(topp_.file_name + "_in");
 		File::remove(topp_.file_name + "_out");
@@ -2026,7 +2026,7 @@ namespace OpenMS
 		{
   		showLogMessage_(LS_NOTICE,"The current layer is not visible","Have you selected the right layer for this action?");
 		}
-		
+
 		//create and store unique file name prefix for files
 		topp_.file_name = param_.getValue("preferences:tmp_file_path").toString() + "/TOPPView_" + File::getUniqueName();
 		if (!File::writable(topp_.file_name+"_ini"))
@@ -2035,7 +2035,7 @@ namespace OpenMS
 			return;
 		}
 		ToolsDialog tools_dialog(this,topp_.file_name+"_ini",param_.getValue("preferences:default_path"),getCurrentLayer()->type);
-		
+
 		if(tools_dialog.exec()==QDialog::Accepted)
 		{
 			//Store tool name, input parameter and output parameter
@@ -2051,7 +2051,7 @@ namespace OpenMS
 	void TOPPViewBase::runTOPPTool_()
 	{
 		const LayerData& layer = activeCanvas_()->getCurrentLayer();
-		
+
 		//test if files are writable
 		if (!File::writable(topp_.file_name+"_in"))
 		{
@@ -2063,7 +2063,7 @@ namespace OpenMS
 			showLogMessage_(LS_ERROR,"Cannot create temporary file",String("Cannot write to '")+topp_.file_name+"'_out!");
 			return;
 		}
-		
+
 		//Store data
 		topp_.layer_name = layer.name;
 		topp_.window_id = activeWindow_()->window_id;
@@ -2108,7 +2108,7 @@ namespace OpenMS
 				ConsensusXMLFile().store(topp_.file_name+"_in",layer.consensus);
 			}
 		}
-		
+
 		//compose argument list
 		QStringList args;
 		args << "-ini"
@@ -2121,19 +2121,19 @@ namespace OpenMS
 			args << QString("-%1").arg(topp_.out.toQString())
 					 << (topp_.file_name+"_out").toQString();
 		}
-		
+
 		//start log and show it
 		showLogMessage_(LS_NOTICE,"Starting TOPP tool","");// tool + args.join(" "));
-		
+
 		//start process
 		topp_.process = new QProcess();
 		topp_.process->setProcessChannelMode(QProcess::MergedChannels);
 		connect(topp_.process,SIGNAL(readyReadStandardOutput()),this,SLOT(updateProcessLog()));
 		topp_.process->start(topp_.tool.toQString(),args);
-		
+
 		//connect the finished slot
 		connect(topp_.process,SIGNAL(finished(int,QProcess::ExitStatus)),this,SLOT(finishTOPPToolExecution(int,QProcess::ExitStatus)));
-		
+
 		//start process
 		topp_.process->waitForStarted();
 		updateMenu();
@@ -2143,9 +2143,9 @@ namespace OpenMS
   {
   	//finish with new line
   	log_->append("");
-  	
+
   	String tmp_dir = param_.getValue("preferences:tmp_file_path").toString();
-  	
+
 		if (topp_.process->exitStatus()==QProcess::CrashExit)
 		{
 			showLogMessage_(LS_ERROR,"Execution of TOPP tool not successful!",String("The tool crashed during execution. If you want to debug this crash, check the input files in '") + tmp_dir + "' or enable 'debug' mode in the TOPP ini file.");
@@ -2161,7 +2161,7 @@ namespace OpenMS
 				addDataFile(topp_.file_name+"_out",true,false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id);
 			}
 		}
-		
+
 		//clean up
 		delete topp_.process;
 		topp_.process = 0;
@@ -2195,13 +2195,13 @@ namespace OpenMS
 		{
   		showLogMessage_(LS_NOTICE,"The current layer is not visible","Have you selected the right layer for this action?");
 		}
-				
+
 		//load id data
 		QString name = QFileDialog::getOpenFileName(this,"Select ProteinIdentification data",param_.getValue("preferences:default_path").toQString(),"identfication files (*.idXML);; all files (*.*)");
 		if(name!="")
 		{
-			vector<PeptideIdentification> identifications; 
-			vector<ProteinIdentification> protein_identifications; 
+			vector<PeptideIdentification> identifications;
+			vector<ProteinIdentification> protein_identifications;
 			IdXMLFile().load(name, protein_identifications, identifications);
 			if (layer.type==LayerData::DT_PEAK)
 			{
@@ -2230,9 +2230,9 @@ namespace OpenMS
 				return;
 			}
 			AASequence aa_sequence(seq_string);
-			
+
 			Int charge = spec_gen_dialog.spin_box->value();
-			
+
 			if (aa_sequence.isValid())
 			{
 				RichPeakSpectrum rich_spec;
@@ -2271,30 +2271,30 @@ namespace OpenMS
 				}
 				if (spec_gen_dialog.list_widget->item(4)->checkState() == Qt::Checked) // "Y-ions"
 				{
-					generator.addPeaks(rich_spec, aa_sequence, Residue::YIon, charge); 
+					generator.addPeaks(rich_spec, aa_sequence, Residue::YIon, charge);
 				}
 				if (spec_gen_dialog.list_widget->item(5)->checkState() == Qt::Checked) // "Z-ions"
 				{
-					generator.addPeaks(rich_spec, aa_sequence, Residue::ZIon, charge); 
+					generator.addPeaks(rich_spec, aa_sequence, Residue::ZIon, charge);
 				}
 				if (spec_gen_dialog.list_widget->item(6)->checkState() == Qt::Checked) // "Precursor"
 				{
 					generator.addPrecursorPeaks(rich_spec, aa_sequence, charge);
 				}
-				
+
 				PeakSpectrum new_spec;
 				for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
 				{
 					new_spec.push_back(static_cast<Peak1D>(*it));
 				}
-				
+
 				PeakMap new_exp;
 				new_exp.push_back(new_spec);
-				
+
 				FeatureMapType f_dummy;
 				ConsensusMapType c_dummy;
 				addData_(f_dummy, c_dummy, new_exp, false, false, true, "", seq_string + QString(" (theoretical)"));
-	      
+
 	      // ensure spectrum is drawn as sticks
 	      draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
 				setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
@@ -2305,7 +2305,7 @@ namespace OpenMS
 			}
 		}
 	}
-	
+
 	void TOPPViewBase::showSpectrumAlignmentDialog()
 	{
 		SpectrumAlignmentDialog spec_align_dialog;
@@ -2322,9 +2322,9 @@ namespace OpenMS
 // 				String unit_is_ppm = spec_align_dialog.ppm->isChecked() ? "true" : "false";
 // 				param.setValue("is_relative_tolerance", unit_is_ppm, "If true, the 'tolerance' is interpreted as ppm-value", false);
 // 				aligner.setParameters(param);
-// 				
+//
 // 				// TODO JJ
-// 				
+//
 // 				const LayerData& current_layer_1 = active_1d_mirror_window->canvas()->getCurrentLayer();
 // 				const LayerData& current_layer_2 = active_1d_mirror_window->flippedCanvas()->getCurrentLayer();
 // 				const ExperimentType& map_1 = current_layer_1.peaks;
@@ -2332,11 +2332,11 @@ namespace OpenMS
 // 				const ExperimentType::SpectrumType& spectrum_1 = *(map_1.begin());
 // 				const ExperimentType::SpectrumType& spectrum_2 = *(map_2.begin());
 // 				std::vector<std::pair<UInt, UInt> > alignment;
-// 
+//
 // 				aligner.getSpectrumAlignment(alignment, spectrum_1, spectrum_2);
-// 				
+//
 // 				std::vector<std::pair<DoubleReal, DoubleReal > > alignment_lines;
-// 				
+//
 // 				for (Size i = 0; i < alignment.size(); ++i)
 // 				{
 // 					DoubleReal line_begin_mz = spectrum_1[alignment[i].first].getMZ();
@@ -2344,11 +2344,11 @@ namespace OpenMS
 // 					alignment_lines.push_back(std::make_pair(line_begin_mz, line_end_mz));
 // 				}
 // 				active_1d_mirror_window->setAlignmentLines(alignment_lines);
-// 				
+//
 // 				SpectrumAlignmentScore scorer;
 // 				scorer.setParameters(param);
 // 				double score = scorer(spectrum_1, spectrum_2);
-// 				
+//
 // 				QMessageBox::information(this, "Alignment performed", QString("Aligned %1 pairs of peaks (Score: %2).").arg(alignment_lines.size()).arg(score));
 // 			}
 // 			else
@@ -2357,7 +2357,7 @@ namespace OpenMS
 // 			}
 		}
 	}
-	
+
 	void TOPPViewBase::showCurrentPeaksAs3D()
 	{
     const LayerData& layer = activeCanvas_()->getCurrentLayer();
@@ -2365,11 +2365,11 @@ namespace OpenMS
   	{
   		//open new 3D widget
   		Spectrum3DWidget* w = new Spectrum3DWidget(getSpectrumParameters_(3), ws_);
-			
+
   		//copy data
   		ExperimentType exp;
 			activeCanvas_()->getVisiblePeakData(exp);
-  			
+
 	    if (!w->canvas()->addLayer(exp))
 	  	{
 	  		return;
@@ -2380,7 +2380,7 @@ namespace OpenMS
 	    updateLayerBar();
 	    updateSpectrumBar();
 			updateFilterBar();
-			updateMenu();	
+			updateMenu();
 		}
 		else
 		{
@@ -2397,16 +2397,16 @@ namespace OpenMS
 		exp[0] = layer.peaks[index];
 		//open new 1D widget
 		Spectrum1DWidget* w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
-    
+
     //add data
     if (!w->canvas()->addLayer(exp))
   	{
   		return;
   	}
-    
+
 		String caption = layer.name + " (RT: " + String(layer.peaks[index].getRT()) + ")";
 		w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
-		
+
     showAsWindow_(w,caption);
     updateLayerBar();
     updateSpectrumBar();
@@ -2416,17 +2416,17 @@ namespace OpenMS
 
 	void TOPPViewBase::showAboutDialog()
 	{
-		//dialog and grid layout 
+		//dialog and grid layout
 		QDialog* dlg = new QDialog(this);
 		QGridLayout* grid = new QGridLayout(dlg);
 		dlg->setWindowTitle("About TOPPView");
-		
+
 		//image
 		QLabel* label = new QLabel(dlg);
 		QPixmap image(Oesterberg);
 		label->setPixmap(image);
 		grid->addWidget(label,0,0);
-		
+
 		//text
 		QString text = QString("<BR>"
 									 				 "<FONT size=+3>TOPPView</font><BR>"
@@ -2446,7 +2446,7 @@ namespace OpenMS
 													 ).arg(VersionInfo::getVersion().toQString());
 		label = new QLabel(text,dlg);
 		grid->addWidget(label,0,1,Qt::AlignTop | Qt::AlignLeft);
-		
+
 		//execute
 		dlg->exec();
 	}
@@ -2455,7 +2455,7 @@ namespace OpenMS
 	{
 		//show log if there is output
 		qobject_cast<QWidget *>(log_->parent())->show();
-		
+
 		//update log_
 		log_->textCursor().insertText(topp_.process->readAllStandardOutput());
 	}
@@ -2485,7 +2485,7 @@ namespace OpenMS
   		updateMenu();
   	}
   }
-  
+
   void TOPPViewBase::updateMenu()
   {
   	//is there a canvas?
@@ -2646,7 +2646,7 @@ namespace OpenMS
     		QApplication::processEvents();
     		addDataFile(*it,false,true);
     	}
-    	else 
+    	else
     	{
     		splash_screen->showMessage((String("Loading file: ") + *it).toQString());
     		splash_screen->repaint();
@@ -2662,7 +2662,7 @@ namespace OpenMS
 		//Compose current time string
 		DateTime d;
 		d.now();
-		
+
 		String state_string;
 		switch(state)
 		{
@@ -2670,7 +2670,7 @@ namespace OpenMS
 			case LS_WARNING: state_string = "WARNING"; break;
 			case LS_ERROR: state_string = "ERROR"; break;
 		}
-		
+
 		//update log
 		log_->append("==============================================================================");
 		log_->append((d.getTime() + " " + state_string + ": " + heading).toQString());
@@ -2684,27 +2684,27 @@ namespace OpenMS
 	{
 		activeCanvas_()->saveCurrentLayer(false);
 	}
-	
+
 	void TOPPViewBase::saveLayerVisible()
 	{
-		activeCanvas_()->saveCurrentLayer(true);		
+		activeCanvas_()->saveCurrentLayer(true);
 	}
-	
+
 	void TOPPViewBase::toggleGridLines()
 	{
-		activeCanvas_()->showGridLines(!activeCanvas_()->gridLinesShown());		
+		activeCanvas_()->showGridLines(!activeCanvas_()->gridLinesShown());
 	}
-	
+
 	void TOPPViewBase::toggleAxisLegends()
 	{
-		activeWindow_()->showLegend(!activeWindow_()->isLegendShown());		
+		activeWindow_()->showLegend(!activeWindow_()->isLegendShown());
 	}
-	
+
 	void TOPPViewBase::showPreferences()
 	{
 		activeCanvas_()->showCurrentLayerPreferences();
 	}
-	
+
 	void TOPPViewBase::metadataFileDialog()
 	{
 	 	QStringList files = getFileList_();
@@ -2723,9 +2723,9 @@ namespace OpenMS
 	      return;
 			}
 			MetaDataBrowser dlg(false, this);
-			dlg.setWindowTitle("Meta data");			
+			dlg.setWindowTitle("Meta data");
 			dlg.add(exp);
-	 	 	dlg.exec();			
+	 	 	dlg.exec();
 		}
 	}
 
@@ -2735,7 +2735,7 @@ namespace OpenMS
 		connectToDB_(con);
 		if (con.isConnected())
 		{
-			vector<UInt> ids;	
+			vector<UInt> ids;
 			DBOpenDialog db_dialog(con,ids,ws_);
 			if (db_dialog.exec())
 			{
@@ -2754,7 +2754,7 @@ namespace OpenMS
 			      return;
 					}
 					MetaDataBrowser dlg(false, this);
-					dlg.setWindowTitle("Meta data");			
+					dlg.setWindowTitle("Meta data");
 					dlg.add(exp);
 			 	 	dlg.exec();
 				}
@@ -2772,16 +2772,16 @@ namespace OpenMS
 		//stream >> row >> col;
 
   	//set wait cursor
-  	setCursor(Qt::WaitCursor);		
-		
+  	setCursor(Qt::WaitCursor);
+
 		//only the selected row can be dragged => the source layer is the selected layer
 		const LayerData& layer = activeCanvas_()->getCurrentLayer();
-		
+
 		//copy the feature and peak data
 		FeatureMapType features = layer.features;
 		ExperimentType peaks = layer.peaks;
 		ConsensusMapType consensus = layer.consensus;
-		
+
 		//determine where to copy the data
 		UInt new_id = 0;
 		if (id!=-1) new_id = id;
@@ -2812,12 +2812,12 @@ namespace OpenMS
     		}
     	}
     }
-		
+
 		//add the data
 		addData_(features, consensus, peaks, is_feature, is_2D, false, layer.filename, layer.name, new_id);
 
 		//reset cursor
-  	setCursor(Qt::ArrowCursor);		
+  	setCursor(Qt::ArrowCursor);
 	}
 
 	void TOPPViewBase::keyPressEvent(QKeyEvent* e)
@@ -2828,7 +2828,7 @@ namespace OpenMS
     	e->ignore();
       return;
     }
-    
+
 		//page up => go one layer up
 		if (e->key()==Qt::Key_PageUp)
 		{
@@ -2853,7 +2853,7 @@ namespace OpenMS
 				e->accept();
 			}
 		}
-		
+
 		e->ignore();
 	}
 
