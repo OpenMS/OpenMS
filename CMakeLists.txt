@@ -54,7 +54,8 @@ elseif (MSVC)
 
 	## disable stupid warnings. enable if you want to have fun with MSVC 8
 	## warning! 4275,4251 is for dllexport/import warnings! this could be vital. recheck!
-	add_definitions(/wd4267 /wd4290 /wd4996 /wd4521 /wd4522 /wd4275 /wd4251)
+	#add_definitions(/wd4267 /wd4290 /wd4996 /wd4521 /wd4522 /wd4275 /wd4251)
+	#add_definitions(/wd4267)
 
 	## disable min and max macros by default
 	## see CGAL and BOOST configs for more elaborate explanations

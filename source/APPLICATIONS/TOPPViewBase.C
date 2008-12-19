@@ -1427,14 +1427,14 @@ namespace OpenMS
   		item->setText(1, QString("-"));
   		item->setText(2, QString("-"));
   		item->setText(3, QString::number(0));
-			item->setFlags(!Qt::ItemIsEnabled);
+			item->setFlags(Qt::NoItemFlags);
 			spectrum_selection_->addTopLevelItem(item);
 			return; // leave signals blocked
   	}
   	
   	if (cl.peaks.size() == 1)
   	{
-  		item->setFlags(!Qt::ItemIsEnabled);
+  		item->setFlags(Qt::NoItemFlags);
   		return; // leave signals blocked
   	}
   	

@@ -93,7 +93,7 @@ namespace OpenMS
 				}
 				else
 				{
-					for(ConsensusFeature::HandleSetType::iterator it_handle = map[cm_index].getFeatures().begin(); 
+					for(ConsensusFeature::HandleSetType::const_iterator it_handle = map[cm_index].getFeatures().begin(); 
 							it_handle != map[cm_index].getFeatures().end(); 
 							++it_handle)
 					{
