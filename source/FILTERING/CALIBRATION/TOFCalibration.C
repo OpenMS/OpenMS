@@ -106,15 +106,16 @@ namespace OpenMS
 														 &chisq, work);
 
 
-#define C(i) (gsl_vector_get(c,(i)))
 #ifdef DEBUG_CALIBRATION
 				printf ("# best fit: Y = %g + %g X + %g X^2\n",
-								C(0), C(1), C(2));
+								gsl_vector_get(c,(0)),
+								gsl_vector_get(c,(1)),
+								gsl_vector_get(c,(2)));
 #endif
 				// store the coefficients
-				coeff_quad_fit_.push_back(C(0));
-				coeff_quad_fit_.push_back(C(1));
-				coeff_quad_fit_.push_back(C(2));
+				coeff_quad_fit_.push_back(gsl_vector_get(c,(0)));
+				coeff_quad_fit_.push_back(gsl_vector_get(c,(1)));
+				coeff_quad_fit_.push_back(gsl_vector_get(c,(2)));
 				
 				gsl_multifit_linear_free (work);
 
@@ -150,7 +151,7 @@ namespace OpenMS
 				calib_masses[i] = calib_masses_[i];
 				error_medians[i] = error_medians_[i];				
       }
-	
+
     acc_ = gsl_interp_accel_alloc();
     spline_ = gsl_spline_alloc(gsl_interp_cspline,error_medians_.size());
     gsl_spline_init(spline_,calib_masses,error_medians,error_medians_.size());
