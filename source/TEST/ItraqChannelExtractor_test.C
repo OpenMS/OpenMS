@@ -83,7 +83,7 @@ START_SECTION((void run(const MSExperiment< Peak1D > &ms_exp_data, ConsensusMap 
 {
 	MzDataFile mz_data_file;
 	MSExperiment<Peak1D > exp;
-	mz_data_file.load("data/ItraqChannelExtractor.mzData",exp);
+	mz_data_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.mzData"),exp);
 	Param p;
 	p.setValue("channel_active", "114:ref, 115:something, 116:else");
   ItraqChannelExtractor ice(ItraqChannelExtractor::FOURPLEX, p);
@@ -95,7 +95,7 @@ START_SECTION((void run(const MSExperiment< Peak1D > &ms_exp_data, ConsensusMap 
 	NEW_TMP_FILE(cm_file_out);
 	cm_file.store(cm_file_out,cm_out);
 	WHITELIST("<?xml-stylesheet");
-	TEST_FILE_SIMILAR(cm_file_out,"data/ItraqChannelExtractor.consensusXML");
+	TEST_FILE_SIMILAR(cm_file_out,OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.consensusXML"));
 	
 }
 END_SECTION

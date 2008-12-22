@@ -80,7 +80,7 @@ START_SECTION((void store(const String &filename, const PeakSpectrum& spec, Doub
 
 	// here a fixed name has to be used as it has to be in the template
 	file.store("MascotInfile_test.txt", spec, 1998.0f, 25.379, "TestTitle");
-	TEST_FILE_EQUAL("MascotInfile_test.txt", "data/MascotInfile_test_template1.txt");
+	TEST_FILE_EQUAL("MascotInfile_test.txt", OPENMS_GET_TEST_DATA_PATH("MascotInfile_test_template1.txt"));
 	remove("MascotInfile_test.txt");
 END_SECTION
 
@@ -211,7 +211,7 @@ END_SECTION
 START_SECTION([EXTRA] void store(const std::string& filename, const PeakSpectrum& spec, double mz, double retention_time, std::string search_title))
 	// here a fixed name has to be used as it has to be in the tamplate
 	file.store("MascotInfile_test.txt", spec, 1998.0f, 25.379, "TestTitle");
-	TEST_FILE_EQUAL("MascotInfile_test.txt", "data/MascotInfile_test_template2.txt");
+	TEST_FILE_EQUAL("MascotInfile_test.txt", OPENMS_GET_TEST_DATA_PATH("MascotInfile_test_template2.txt"));
 	remove("MascotInfile_test.txt");
 END_SECTION
 
@@ -279,7 +279,7 @@ START_SECTION((void store(const String &filename, const MSExperiment<> &experime
 	exp.push_back(spec);	
 
 	file.store("MascotInfile_test.txt", exp, "Experiment");
-	TEST_FILE_EQUAL("MascotInfile_test.txt", "data/MascotInfile_test_template3.txt");
+	TEST_FILE_EQUAL("MascotInfile_test.txt", OPENMS_GET_TEST_DATA_PATH("MascotInfile_test_template3.txt"));
 	remove("MascotInfile_test.txt");
 END_SECTION
 
@@ -288,7 +288,7 @@ START_SECTION(template <typename MapType> void load(const String &filename, MapT
 	MSExperiment<> experiment;
 	MSExperiment<>::SpectrumType spectrum;
 	
-	infile.load("data/MascotInfile_test.mascot_in", experiment);
+	infile.load(OPENMS_GET_TEST_DATA_PATH("MascotInfile_test.mascot_in"), experiment);
 	spectrum = experiment[0];
 	TEST_REAL_SIMILAR(spectrum.getRT(), 25.379)
 	TEST_REAL_SIMILAR(spectrum.getPrecursorPeak().getPosition()[0], 1998) 

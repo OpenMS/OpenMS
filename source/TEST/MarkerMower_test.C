@@ -71,7 +71,7 @@ END_SECTION
 START_SECTION((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
-	dta_file.load("data/Transformers_tests.dta", spec);
+	dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec);
 	TEST_EQUAL(spec.size(), 121)
 
 	Param p(e_ptr->getParameters());
@@ -97,7 +97,7 @@ START_SECTION((void filterPeakMap(PeakMap& exp)))
 	e_ptr = new MarkerMower();
   DTAFile dta_file;
   PeakSpectrum spec;
-  dta_file.load("data/Transformers_tests.dta", spec);
+  dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec);
 
 	PeakMap pm;
 	pm.push_back(spec);
@@ -116,7 +116,7 @@ START_SECTION((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 	e_ptr = new MarkerMower();
   DTAFile dta_file;
   PeakSpectrum spec;
-  dta_file.load("data/Transformers_tests.dta", spec);
+  dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec);
   TEST_EQUAL(spec.size(), 121)
 	
 	Param p(e_ptr->getParameters());

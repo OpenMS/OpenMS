@@ -70,7 +70,7 @@ END_SECTION
 START_SECTION((template<typename SpectrumType> double apply(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
-	dta_file.load("data/Transformers_tests.dta", spec);
+	dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec);
 	TOLERANCE_ABSOLUTE(0.01)
 
 	double filter = e_ptr->apply(spec);

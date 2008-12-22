@@ -51,7 +51,7 @@ END_SECTION
 
 START_SECTION(TrypticIterator(const TrypticIterator &))
 	ptr = new TrypticIterator();
-	ptr->setFastaFile("data/TrypticIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("TrypticIterator_test.fasta"));
 	ptr->begin();
 	++*ptr;
 	TrypticIterator copy (*ptr);
@@ -64,13 +64,13 @@ START_SECTION(virtual void setFastaFile(const String &f))
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::FileNotFound,ptr->setFastaFile("FileThatNotExists"));
 	TEST_EXCEPTION (Exception::FileNotFound,ptr->setFastaFile(""));
-	ptr->setFastaFile("data/TrypticIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("TrypticIterator_test.fasta"));
 END_SECTION
 
 START_SECTION(virtual String getFastaFile())
 	ptr = new TrypticIterator();
-	ptr->setFastaFile("data/TrypticIterator_test.fasta");
-	TEST_EQUAL(ptr->getFastaFile(),"data/TrypticIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("TrypticIterator_test.fasta"));
+	TEST_EQUAL(ptr->getFastaFile(),OPENMS_GET_TEST_DATA_PATH("TrypticIterator_test.fasta"));
 END_SECTION
 
 START_SECTION(static const String getProductName())
@@ -86,7 +86,7 @@ END_SECTION
 START_SECTION(virtual FASTAEntry operator *())
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator,**ptr);
-	ptr->setFastaFile("data/TrypticIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("TrypticIterator_test.fasta"));
 	ptr->begin();
 	FASTAEntry fe = **ptr;
 	TEST_EQUAL(fe.first,">Entry 1");
@@ -125,7 +125,7 @@ END_SECTION
 START_SECTION(virtual PepIterator& operator++())
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, ++(*ptr));
-	ptr->setFastaFile("data/TrypticIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("TrypticIterator_test.fasta"));
 	ptr->begin();
 	PepIterator & pepIt = ++(*ptr);
 	TEST_EQUAL ((*pepIt).first,(**ptr).first);
@@ -138,7 +138,7 @@ END_SECTION
 START_SECTION(virtual PepIterator* operator++(int i))
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, (*ptr)++);
-	ptr->setFastaFile("data/TrypticIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("TrypticIterator_test.fasta"));
 	ptr->begin();
 	FASTAEntry fe = **ptr;
 	PepIterator * pepIt = (*ptr)++;
@@ -149,7 +149,7 @@ END_SECTION
 START_SECTION(virtual bool begin())
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, (*ptr).begin());
-	ptr->setFastaFile("data/TrypticIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("TrypticIterator_test.fasta"));
 	ptr->begin();
 	FASTAEntry fe = **ptr;
 	TEST_EQUAL(fe.first,">Entry 1");
@@ -158,7 +158,7 @@ END_SECTION
 
 START_SECTION(virtual bool isAtEnd())
 	ptr = new TrypticIterator();
-	ptr->setFastaFile("data/TrypticIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("TrypticIterator_test.fasta"));
 	ptr->begin();
 	for (int i = 0; i < 13;i++)
 	{

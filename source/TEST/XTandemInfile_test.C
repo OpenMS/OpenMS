@@ -230,7 +230,7 @@ START_SECTION(void write(const String &filename))
 END_SECTION
 
 START_SECTION(void load(const String &filename))
-	ptr->load("data/XTandemInfile_test.xml");
+	ptr->load(OPENMS_GET_TEST_DATA_PATH("XTandemInfile_test.xml"));
 	NOT_TESTABLE
 END_SECTION
 

@@ -92,7 +92,7 @@ START_SECTION((const FeatureMapType& getFeatureMap() const))
   FeatureMap<> map;
 
   // load a feature map
-  FeatureXMLFile().load("data/FeatureDecharger_TestData.featureXML",map);  
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureDecharger_TestData.featureXML"),map);  
 
   FeatureDecharger fdc;
   fdc.compute(map);

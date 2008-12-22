@@ -57,7 +57,7 @@ END_SECTION
   BinnedSpectrum* bs1;
   DTAFile dtafile;
   PeakSpectrum s1;
-  DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
+  DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s1);
 
 START_SECTION((BinnedSpectrum(Real size, UInt spread, PeakSpectrum ps)))
 {

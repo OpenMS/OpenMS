@@ -58,7 +58,7 @@ START_SECTION(template<typename SpectrumType> void load(const String& filename, 
 	
 	TEST_EXCEPTION(Exception::FileNotFound, f1.load("data_Idontexist",s);)
 
-	f1.load("data/DTAFile_test.dta",s);
+	f1.load(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"),s);
 	
 	TEST_EQUAL(s.size(), 25);
 	TEST_REAL_SIMILAR(s.getPrecursorPeak().getPosition()[0], 582.40666)
@@ -171,7 +171,7 @@ START_SECTION(template<typename SpectrumType> void load(const String& filename, 
 	//TEST WITH Peak1D
 
 	DSpectrum<> s2;
-	f1.load("data/DTAFile_test.dta",s2);
+	f1.load(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"),s2);
 	
 	TEST_EQUAL(s2.size(), 25);
 	TEST_REAL_SIMILAR(s2.getPrecursorPeak().getPosition()[0], 582.4066)

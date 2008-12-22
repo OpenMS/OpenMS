@@ -61,7 +61,7 @@ TOLERANCE_ABSOLUTE(0.01)
 START_SECTION((void load(const String &filename, ConsensusMap &map)))
   ConsensusMap map;
   ConsensusXMLFile file;
-  file.load("data/ConsensusXMLFile_1.consensusXML", map);
+  file.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
 	//meta data
   TEST_EQUAL(map.getIdentifier(),"lsid")
 	TEST_EQUAL(map.getExperimentType()=="label-free",true)
@@ -152,19 +152,19 @@ START_SECTION((void load(const String &filename, ConsensusMap &map)))
 	//PeakFileOptions tests
 	
 	file.getOptions().setRTRange(makeRange(815, 818));
-	file.load("data/ConsensusXMLFile_2_options.consensusXML",map);
+	file.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_2_options.consensusXML"),map);
 	TEST_EQUAL(map.size(),1)
 	TEST_REAL_SIMILAR(map[0].getRT(), 817.266)
 
 	file.getOptions() = PeakFileOptions();
 	file.getOptions().setMZRange(makeRange(944, 945));
-	file.load("data/ConsensusXMLFile_2_options.consensusXML",map);
+	file.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_2_options.consensusXML"),map);
 	TEST_EQUAL(map.size(),1)
 	TEST_REAL_SIMILAR(map[0].getMZ(), 944.96)
 
 	file.getOptions() = PeakFileOptions();
 	file.getOptions().setIntensityRange(makeRange(15000,24000));
-	file.load("data/ConsensusXMLFile_2_options.consensusXML",map);
+	file.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_2_options.consensusXML"),map);
 	TEST_EQUAL(map.size(),1)
 	TEST_REAL_SIMILAR(map[0].getIntensity(),23000.238)
 
@@ -177,7 +177,7 @@ START_SECTION((void store(const String &filename, const ConsensusMap &map)))
   ConsensusMap map, map2;
   ConsensusXMLFile f;
   
-  f.load("data/ConsensusXMLFile_1.consensusXML",map);  
+  f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"),map);  
   f.store(tmp_filename, map);
   f.load(tmp_filename, map2);
   TEST_EQUAL(map==map2, true)
@@ -185,8 +185,8 @@ END_SECTION
 
 START_SECTION([EXTRA] (bool isValid(const String& filename)))
   ConsensusXMLFile f;
-  TEST_EQUAL(f.isValid("data/ConsensusXMLFile_1.consensusXML"),true);
-  TEST_EQUAL(f.isValid("data/ConsensusXMLFile_2_options.consensusXML"),true);
+  TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML")),true);
+  TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_2_options.consensusXML")),true);
 	
   //test if written empty file
   // - this is invalid, so it is not tested :)
@@ -195,7 +195,7 @@ START_SECTION([EXTRA] (bool isValid(const String& filename)))
 	ConsensusMap m;
 	String tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
-	f.load("data/ConsensusXMLFile_1.consensusXML",m);
+	f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"),m);
 	f.store(tmp_filename, m);	
   TEST_EQUAL(f.isValid(tmp_filename),true);
 END_SECTION

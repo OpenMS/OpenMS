@@ -85,13 +85,13 @@ START_SECTION(std::vector< UInt > load(const String& result_filename, std::vecto
 	
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.01), "the file 'a' could not be found")
 	
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileEmpty, file.load("data/Inspect_empty_file.txt", peptide_identifications, protein_identification, 0.01), "the file 'data/Inspect_empty_file.txt' is empty")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileEmpty, file.load(OPENMS_GET_TEST_DATA_PATH("Inspect_empty_file.txt"), peptide_identifications, protein_identification, 0.01), OPENMS_GET_TEST_DATA_PATH_MESSAGE("the file '","Inspect_empty_file.txt","' is empty"))
 	
 	peptide_identifications.clear();
 	protein_identification.setHits(vector< ProteinHit >());
 	
 	
-	file.load("data/InspectOutfile.out", peptide_identifications, protein_identification, 0.001);
+	file.load(OPENMS_GET_TEST_DATA_PATH("InspectOutfile.out"), peptide_identifications, protein_identification, 0.001);
 	
 	TEST_EQUAL(peptide_identifications.size(), 1)
 	if ( peptide_identifications.size() == 1 )
@@ -116,7 +116,7 @@ START_SECTION(std::vector< UInt > load(const String& result_filename, std::vecto
 	}
 	peptide_identifications.clear();
 std::cout << "MARTIN" << std::endl;
-	file.load("data/InspectOutfile.out", peptide_identifications, protein_identification, 0.01);
+	file.load(OPENMS_GET_TEST_DATA_PATH("InspectOutfile.out"), peptide_identifications, protein_identification, 0.01);
 std::cout << "MARTIN" << std::endl;
 	TEST_EQUAL(peptide_identifications.size(), 1)
 	if ( peptide_identifications.size() == 1 )
@@ -153,10 +153,10 @@ std::cout << "MARTIN" << std::endl;
 	
 	peptide_identifications.clear();
 	protein_identification.setHits(vector< ProteinHit >());
-	TEST_EQUAL(file.load("data/InspectOutfile.out1", peptide_identifications, protein_identification, 0.01).size(), 1)
-	if ( file.load("data/InspectOutfile.out1", peptide_identifications, protein_identification, 0.01).size() == 1 )
+	TEST_EQUAL(file.load(OPENMS_GET_TEST_DATA_PATH("InspectOutfile.out1"), peptide_identifications, protein_identification, 0.01).size(), 1)
+	if ( file.load(OPENMS_GET_TEST_DATA_PATH("InspectOutfile.out1"), peptide_identifications, protein_identification, 0.01).size() == 1 )
 	{
-		TEST_EQUAL(file.load("data/InspectOutfile.out1", peptide_identifications, protein_identification, 0.01)[0], 2)
+		TEST_EQUAL(file.load(OPENMS_GET_TEST_DATA_PATH("InspectOutfile.out1"), peptide_identifications, protein_identification, 0.01)[0], 2)
 	}
 END_SECTION
 
@@ -166,24 +166,24 @@ START_SECTION(void generateTrieDB(const std::String& source_database_filename, c
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.generateTrieDB("a", "", ""), "the file 'a' could not be found")
 	
 	// test unable to create file
-// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.generateTrieDB("data/Inspect_test.fasta", "data/Inspect_unreadable_unwriteable.txt", ""), "the file 'data/Inspect_unreadable_unwriteable.txt' could not be created")
+// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.generateTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.fasta"), OPENMS_GET_TEST_DATA_PATH("Inspect_unreadable_unwriteable.txt"), ""), "the file 'data/Inspect_unreadable_unwriteable.txt' could not be created")
 	
-// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.generateTrieDB("data/Inspect_test.fasta", "InspectOutfile_test.trie", "data/Inspect_unreadable_unwriteable.txt"), "the file 'data/Inspect_unreadable_unwriteable.txt' could not be created")
+// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.generateTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.fasta"), "InspectOutfile_test.trie", OPENMS_GET_TEST_DATA_PATH("Inspect_unreadable_unwriteable.txt")), "the file 'data/Inspect_unreadable_unwriteable.txt' could not be created")
 
 	remove("InspectOutfile_test.trie");
 	remove("InspectOutfile_test.index");
 
 
 	// test the actual program
-	file.generateTrieDB("data/Inspect_test.fasta", "InspectOutfile_test.trie", "InspectOutfile_test.index");
-	TEST_FILE_EQUAL("InspectOutfile_test.trie", "data/Inspect_test.trie")
-	TEST_FILE_EQUAL("InspectOutfile_test.index", "data/Inspect_test.index")
+	file.generateTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.fasta"), "InspectOutfile_test.trie", "InspectOutfile_test.index");
+	TEST_FILE_EQUAL("InspectOutfile_test.trie", OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"))
+	TEST_FILE_EQUAL("InspectOutfile_test.index", OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"))
 	remove("InspectOutfile_test.trie");
 	remove("InspectOutfile_test.index");
 	
-	file.generateTrieDB("data/Inspect_test2.fasta", "InspectOutfile_test.trie", "InspectOutfile_test.index");
-	TEST_FILE_EQUAL("InspectOutfile_test.trie", "data/Inspect_test2.trie")
-	TEST_FILE_EQUAL("InspectOutfile_test.index", "data/Inspect_test2.index")
+	file.generateTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test2.fasta"), "InspectOutfile_test.trie", "InspectOutfile_test.index");
+	TEST_FILE_EQUAL("InspectOutfile_test.trie", OPENMS_GET_TEST_DATA_PATH("Inspect_test2.trie"))
+	TEST_FILE_EQUAL("InspectOutfile_test.index", OPENMS_GET_TEST_DATA_PATH("Inspect_test2.index"))
 	remove("InspectOutfile_test.trie");
 	remove("InspectOutfile_test.index");
 END_SECTION
@@ -197,22 +197,22 @@ START_SECTION(void compressTrieDB(const String& database_filename, const String&
 	remove("InspectOutfile_test2.trie");
 	remove("InspectOutfile_test2.index");
 	// test for equal filenames
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.compressTrieDB("data/Inspect_test.trie", "data/Inspect_test.index", wanted_records, "data/Inspect_test.trie", ""), "data/Inspect_test.trie in: Same filename can not be used for original and second database!")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"), wanted_records, OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), ""), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","Inspect_test.trie"," in: Same filename can not be used for original and second database!"))
 	
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.compressTrieDB("data/Inspect_test.trie", "data/Inspect_test.index", wanted_records, "", "data/Inspect_test.index"), "data/Inspect_test.index in: Same filename can not be used for original and second database!")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"), wanted_records, "", OPENMS_GET_TEST_DATA_PATH("Inspect_test.index")), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","Inspect_test.index"," in: Same filename can not be used for original and second database!"))
 
 	// test file not found for input files (using empty filenames)
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.compressTrieDB("a", "", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index"), "the file 'a' could not be found")
 	
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.compressTrieDB("data/Inspect_test.trie", "b", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index"), "the file 'b' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), "b", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index"), "the file 'b' could not be found")
 
 	// test for unable to create file
-// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.compressTrieDB("data/Inspect_test.trie", "data/Inspect_test.index", wanted_records, "data/Inspect_unreadable_unwriteable.txt", "", true), "the file 'data/Inspect_unreadable_unwriteable.txt' could not be created")
+// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"), wanted_records, OPENMS_GET_TEST_DATA_PATH("Inspect_unreadable_unwriteable.txt"), "", true), "the file 'data/Inspect_unreadable_unwriteable.txt' could not be created")
 	
-// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.compressTrieDB("data/Inspect_test.trie", "data/Inspect_test.index", wanted_records, "InspectOutfile_test.trie", "data/Inspect_unreadable_unwriteable.txt", true), "the file 'data/Inspect_unreadable_unwriteable.txt' could not be created")
+// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"), wanted_records, "InspectOutfile_test.trie", OPENMS_GET_TEST_DATA_PATH("Inspect_unreadable_unwriteable.txt"), true), "the file 'data/Inspect_unreadable_unwriteable.txt' could not be created")
 
 	// test for parse error
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.compressTrieDB("data/Inspect_test.trie", "data/Inspect_empty_file.txt", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", true), "data/Inspect_empty_file.txt in: index file is too short!")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_empty_file.txt"), wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", true),OPENMS_GET_TEST_DATA_PATH_MESSAGE("", "Inspect_empty_file.txt"," in: index file is too short!"))
 	
 	remove("InspectOutfile_test.trie");
 	remove("InspectOutfile_test.index");
@@ -222,14 +222,14 @@ START_SECTION(void compressTrieDB(const String& database_filename, const String&
 	// test the actual program
 	bool append = true;
 	wanted_records.push_back(0);
-	file.compressTrieDB("data/Inspect_test.trie", "data/Inspect_test.index", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", append);
+	file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"), wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", append);
 	wanted_records.clear();
 
-	file.compressTrieDB("data/Inspect_test2.trie", "data/Inspect_test2.index", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", append);
+	file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test2.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_test2.index"), wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", append);
 
 	wanted_records.clear();
 	wanted_records.push_back(1);
-	file.compressTrieDB("data/Inspect_test.trie", "data/Inspect_test.index", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", append);
+	file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"), wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", append);
 
 	wanted_records.clear();
 	wanted_records.push_back(0);
@@ -239,8 +239,8 @@ START_SECTION(void compressTrieDB(const String& database_filename, const String&
 	remove("InspectOutfile_test.trie");
 	remove("InspectOutfile_test.index");
 
-	TEST_FILE_EQUAL("InspectOutfile_test2.trie", "data/Inspect_test.trie")
-	TEST_FILE_EQUAL("InspectOutfile_test2.index", "data/Inspect_test.index")
+	TEST_FILE_EQUAL("InspectOutfile_test2.trie", OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"))
+	TEST_FILE_EQUAL("InspectOutfile_test2.index", OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"))
 
 	remove("InspectOutfile_test2.trie");
 	remove("InspectOutfile_test2.index");
@@ -262,12 +262,12 @@ START_SECTION(std::vector< UInt > getSequences(const String& database_filename, 
 	sequences.push_back("GDREQLLQRARLAEQAERYDDMASAMKAVTELNEPLSNEDRNLLSVAYKNVVGARRSSWRVISSIEQKTMADGNEKKLEKVKAYREKIEKELETVCNDVLALLDKFLIKNCNDFQYESKVFYLKMKGDYYRYLAEVASGEKKNSVVEASEAAYKEAFEISKEHMQPTHPIRLGLALNFSVFYYEIQNAPEQACLLAKQAFDDAIAELDTLNEDSYKDSTLIMQLLRDNLTLWTSDQQDEEAGEGN");
 	sequences.push_back("SAPPSLLVLYFGKKELRAMKVLILACLVALALARELEELNVPGEIVESLSSSEESITRINKKIEKFQSEEQQQTEDELQDKIHPFAQTQSLVYPFPGPIPNSLPQNIPPLTQTPVVVPP");
 	
-	file.getSequences("data/Inspect_test.trie", rn_position_map, found_sequences);
+	file.getSequences(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), rn_position_map, found_sequences);
 	if ( found_sequences.size() == 1 )
 	{
 		TEST_STRING_EQUAL(found_sequences.front(), sequences.front())
 
-		file.getSequences("data/Inspect_test2.trie", rn_position_map, found_sequences);
+		file.getSequences(OPENMS_GET_TEST_DATA_PATH("Inspect_test2.trie"), rn_position_map, found_sequences);
 
 		TEST_EQUAL((sequences == found_sequences), true)
 	}
@@ -332,15 +332,15 @@ START_SECTION(void getPrecursorRTandMZ(const vector< pair< String, vector< pair 
 	vector< PeptideIdentification > ids, ids_found;
 
 	// test exceptions
-	files_and_peptide_identification_with_scan_number.push_back(make_pair("data/InspectOutfile_test_1.mzXML", vector< pair< UInt, UInt > >(1, make_pair(0, 10))));
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.getPrecursorRTandMZ(files_and_peptide_identification_with_scan_number, ids_found), "data/InspectOutfile_test_1.mzXML in: Not enought scans in file! (4 available, should be at least 10)")
+	files_and_peptide_identification_with_scan_number.push_back(make_pair(OPENMS_GET_TEST_DATA_PATH("InspectOutfile_test_1.mzXML"), vector< pair< UInt, UInt > >(1, make_pair(0, 10))));
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.getPrecursorRTandMZ(files_and_peptide_identification_with_scan_number, ids_found), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","InspectOutfile_test_1.mzXML"," in: Not enought scans in file! (4 available, should be at least 10)"))
 	
 	files_and_peptide_identification_with_scan_number.clear();
 	ids.clear();
 	ids_found.clear();
 	
-	files_and_peptide_identification_with_scan_number.push_back(make_pair("data/InspectOutfile_test_1.mzXML", vector< pair < UInt, UInt > >(1, make_pair(0, 4))));
-	files_and_peptide_identification_with_scan_number.push_back(make_pair("data/InspectOutfile_test_2.mzXML", vector< pair < UInt, UInt > >(1, make_pair(1, 4))));
+	files_and_peptide_identification_with_scan_number.push_back(make_pair(OPENMS_GET_TEST_DATA_PATH("InspectOutfile_test_1.mzXML"), vector< pair < UInt, UInt > >(1, make_pair(0, 4))));
+	files_and_peptide_identification_with_scan_number.push_back(make_pair(OPENMS_GET_TEST_DATA_PATH("InspectOutfile_test_2.mzXML"), vector< pair < UInt, UInt > >(1, make_pair(1, 4))));
 	ids_found.push_back(PeptideIdentification());
 	ids_found.push_back(PeptideIdentification());
 	
@@ -365,10 +365,10 @@ START_SECTION(void getLabels(const String& source_database_filename, String& ac_
 	// test exceptions
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getLabels("a", ac_label, sequence_start_label, sequence_end_label, comment_label, species_label), "the file 'a' could not be found")
 	
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.getLabels("data/Inspect_test1.fasta", ac_label, sequence_start_label, sequence_end_label, comment_label, species_label), "data/Inspect_test1.fasta in: database has unknown file format (neither trie nor FASTA nor swissprot)")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.getLabels(OPENMS_GET_TEST_DATA_PATH("Inspect_test1.fasta"), ac_label, sequence_start_label, sequence_end_label, comment_label, species_label), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","Inspect_test1.fasta"," in: database has unknown file format (neither trie nor FASTA nor swissprot)"))
 	
 	// test the actual program
-	file.getLabels("data/Inspect_test.fasta", ac_label, sequence_start_label, sequence_end_label, comment_label, species_label);
+	file.getLabels(OPENMS_GET_TEST_DATA_PATH("Inspect_test.fasta"), ac_label, sequence_start_label, sequence_end_label, comment_label, species_label);
 	TEST_STRING_EQUAL(ac_label, ">")
 	TEST_STRING_EQUAL(sequence_start_label, ">")
 	TEST_STRING_EQUAL(sequence_end_label, ">")
@@ -385,11 +385,11 @@ START_SECTION(vector< UInt > getWantedRecords(const String& result_filename, Rea
 	
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getWantedRecords("a", 0.01), "the file 'a' could not be found")
 	
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileEmpty, file.getWantedRecords("data/Inspect_empty_file.txt", 0.01), "the file 'data/Inspect_empty_file.txt' is empty")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileEmpty, file.getWantedRecords(OPENMS_GET_TEST_DATA_PATH("Inspect_empty_file.txt"), 0.01), OPENMS_GET_TEST_DATA_PATH_MESSAGE("the file '","Inspect_empty_file.txt","' is empty"))
 	
 
 	// test the actual program
-	vector< UInt > wanted_records = file.getWantedRecords("data/InspectOutfile.out", 0.01);
+	vector< UInt > wanted_records = file.getWantedRecords(OPENMS_GET_TEST_DATA_PATH("InspectOutfile.out"), 0.01);
 	TEST_EQUAL (wanted_records.size(), 1)
 	if ( !wanted_records.empty() ) TEST_EQUAL (wanted_records.front(), 0)
 END_SECTION
@@ -399,13 +399,13 @@ START_SECTION(template< typename PeakT > void getExperiment(MSExperiment< PeakT 
 	String type;
 
 	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.getExperiment(exp, type, "data/InspectOutfile_version_file.txt"), "data/InspectOutfile_version_file.txt in: Could not determine type of the file. Aborting!")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.getExperiment(exp, type, OPENMS_GET_TEST_DATA_PATH("InspectOutfile_version_file.txt")), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","InspectOutfile_version_file.txt"," in: Could not determine type of the file. Aborting!"))
 
 	
 	// test the actual program
-	file.getExperiment(exp, type, "TOPP/Inspect.mzXML");
+	file.getExperiment(exp, type, OPENMS_GET_TEST_DATA_PATH("../TOPP/Inspect.mzXML"));
 	TEST_STRING_EQUAL(type, "mzXML")
-	file.getExperiment(exp, type, "TOPP/Inspect.mzData");
+	file.getExperiment(exp, type, OPENMS_GET_TEST_DATA_PATH("../TOPP/Inspect.mzData"));
 	TEST_STRING_EQUAL(type, "mzData")
 END_SECTION
 
@@ -419,7 +419,7 @@ START_SECTION(void getSearchEngineAndVersion(const String& inspect_output_withou
 	
 	
 	// test the actual program
-	file.getSearchEngineAndVersion("data/InspectOutfile_version_file.txt", protein_identification);
+	file.getSearchEngineAndVersion(OPENMS_GET_TEST_DATA_PATH("InspectOutfile_version_file.txt"), protein_identification);
 	TEST_STRING_EQUAL(protein_identification.getSearchEngine(), "InsPecT");
 	TEST_STRING_EQUAL(protein_identification.getSearchEngineVersion(), "20060907");
 END_SECTION

@@ -53,19 +53,19 @@ END_SECTION
 START_SECTION((bool isValid(const String &filename, const String &schema) ))
 	XMLValidator v;
 	
-	TEST_EQUAL(v.isValid("data/XMLValidator_valid.xml","data/XMLValidator.xsd"), true);
+	TEST_EQUAL(v.isValid(OPENMS_GET_TEST_DATA_PATH("XMLValidator_valid.xml"),OPENMS_GET_TEST_DATA_PATH("XMLValidator.xsd")), true);
 	
-	TEST_EQUAL(v.isValid("data/XMLValidator_missing_element.xml","data/XMLValidator.xsd"), false);
+	TEST_EQUAL(v.isValid(OPENMS_GET_TEST_DATA_PATH("XMLValidator_missing_element.xml"),OPENMS_GET_TEST_DATA_PATH("XMLValidator.xsd")), false);
 	
-	TEST_EQUAL(v.isValid("data/XMLValidator_missing_attribute.xml","data/XMLValidator.xsd"), false);
+	TEST_EQUAL(v.isValid(OPENMS_GET_TEST_DATA_PATH("XMLValidator_missing_attribute.xml"),OPENMS_GET_TEST_DATA_PATH("XMLValidator.xsd")), false);
 	
-	TEST_EQUAL(v.isValid("data/XMLValidator_syntax.xml","data/XMLValidator.xsd"), false);
+	TEST_EQUAL(v.isValid(OPENMS_GET_TEST_DATA_PATH("XMLValidator_syntax.xml"),OPENMS_GET_TEST_DATA_PATH("XMLValidator.xsd")), false);
 	
 	//check vaild fail again to make sure internal states are ok
-	TEST_EQUAL(v.isValid("data/XMLValidator_valid.xml","data/XMLValidator.xsd"), true);
+	TEST_EQUAL(v.isValid(OPENMS_GET_TEST_DATA_PATH("XMLValidator_valid.xml"),OPENMS_GET_TEST_DATA_PATH("XMLValidator.xsd")), true);
 	
 	//test exception
-	TEST_EXCEPTION(Exception::FileNotFound, v.isValid("data/this_file_does_not_exist.for_sure","data/XMLValidator.xsd"));
+	TEST_EXCEPTION(Exception::FileNotFound, v.isValid(OPENMS_GET_TEST_DATA_PATH("this_file_does_not_exist.for_sure"),OPENMS_GET_TEST_DATA_PATH("XMLValidator.xsd")));
 END_SECTION
 
 /////////////////////////////////////////////////////////////

@@ -302,7 +302,7 @@ START_SECTION((bool storeLibSVMProblem(const String& filename, const svm_problem
 	String allowed_characters = "ACNGT";
 	svm_problem* problem;
 	vector<DoubleReal> labels;
-	String temp_filename = "data/LibSVMEncoder_test.tmp";
+	String temp_filename = OPENMS_GET_TEST_DATA_PATH("LibSVMEncoder_test.tmp");
 	
 	labels.push_back(2.1);
 	labels.push_back(1.3);
@@ -313,19 +313,19 @@ START_SECTION((bool storeLibSVMProblem(const String& filename, const svm_problem
 	problem = encoder.encodeLibSVMProblemWithCompositionVectors(sequences, labels, allowed_characters);
 	NEW_TMP_FILE(temp_filename)
 	encoder.storeLibSVMProblem(temp_filename, problem);
-	TEST_FILE_EQUAL("data/LibSVMEncoder_test.txt", temp_filename.c_str())
+	TEST_FILE_EQUAL(OPENMS_GET_TEST_DATA_PATH("LibSVMEncoder_test.txt"), temp_filename.c_str())
 
 END_SECTION
 
 START_SECTION((svm_problem* loadLibSVMProblem(const String& filename)))
 	String allowed_characters = "ACNGT";
 	svm_problem* problem;
-	String temp_filename = "data/LibSVMEncoder_test.tmp";
+	String temp_filename = OPENMS_GET_TEST_DATA_PATH("LibSVMEncoder_test.tmp");
 	
 	NEW_TMP_FILE(temp_filename)
-	problem = encoder.loadLibSVMProblem("data/LibSVMEncoder_test.txt");
+	problem = encoder.loadLibSVMProblem(OPENMS_GET_TEST_DATA_PATH("LibSVMEncoder_test.txt"));
 	encoder.storeLibSVMProblem(temp_filename, problem);
-	TEST_FILE_EQUAL("data/LibSVMEncoder_test.txt", temp_filename.c_str())
+	TEST_FILE_EQUAL(OPENMS_GET_TEST_DATA_PATH("LibSVMEncoder_test.txt"), temp_filename.c_str())
 
 END_SECTION
 

@@ -83,7 +83,7 @@ START_SECTION((template <typename PeakType> UInt annotate(MSExperiment< PeakType
 	//load id
 	vector<PeptideIdentification> identifications; 
 	vector<ProteinIdentification> protein_identifications;
-	IdXMLFile().load("data/IDMapper_1.idXML", protein_identifications, identifications);
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_1.idXML"), protein_identifications, identifications);
 	
 	TEST_EQUAL(identifications.size(),3)
 	TEST_EQUAL(identifications[0].getHits().size(), 2)
@@ -137,12 +137,12 @@ START_SECTION((template <typename FeatureType> void annotate(FeatureMap<FeatureT
 	//load id data
 	vector<PeptideIdentification> identifications; 
 	vector<ProteinIdentification> protein_identifications; 
-	IdXMLFile().load("data/IDMapper_2.idXML", protein_identifications, identifications);
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_2.idXML"), protein_identifications, identifications);
 	
 	//--------------------------------------------------------------------------------------
 	//TEST MAPPING TO CONVEX HULLS
 	FeatureMap<> fm;
-	FeatureXMLFile().load("data/IDMapper_2.featureXML", fm);
+	FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_2.featureXML"), fm);
 	IDMapper().annotate(fm,identifications,protein_identifications);
 	
 	//test protein ids
@@ -176,7 +176,7 @@ START_SECTION((template <typename FeatureType> void annotate(FeatureMap<FeatureT
 	//TEST MAPPING TO CENTROIDS
 	FeatureMap<> fm2;
 	IDMapper mapper;
-	FeatureXMLFile().load("data/IDMapper_2.featureXML", fm2);
+	FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_2.featureXML"), fm2);
 	mapper.setRTDelta(4.0);
 	mapper.setMZDelta(1.5);
 	mapper.annotate(fm2,identifications,protein_identifications, true);
@@ -214,7 +214,7 @@ START_SECTION(void annotate(ConsensusMap& map, const std::vector<PeptideIdentifi
 		
 	std::vector<ProteinIdentification> protein_ids;
 	std::vector<PeptideIdentification> peptide_ids;
-	IdXMLFile().load("data/IDMapper_3.idXML", protein_ids, peptide_ids);
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.idXML"), protein_ids, peptide_ids);
 	
   ConsensusXMLFile cons_file;
   
@@ -222,22 +222,22 @@ START_SECTION(void annotate(ConsensusMap& map, const std::vector<PeptideIdentifi
 	  std::string tmp_filename;
 	  NEW_TMP_FILE(tmp_filename);
 		ConsensusMap cons_map;
-		cons_file.load("data/IDMapper_3.consensusXML", cons_map);
+		cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.consensusXML"), cons_map);
 		mapper.annotate(cons_map, peptide_ids, protein_ids);
 		cons_file.store(tmp_filename,cons_map);
 		WHITELIST("<?xml-stylesheet");
-		TEST_FILE_SIMILAR(tmp_filename,"data/IDMapper_3_out1.consensusXML");
+		TEST_FILE_SIMILAR(tmp_filename,OPENMS_GET_TEST_DATA_PATH("IDMapper_3_out1.consensusXML"));
 	}
 
 	{
 	  std::string tmp_filename;
 	  NEW_TMP_FILE(tmp_filename);
 		ConsensusMap cons_map;
-		cons_file.load("data/IDMapper_3.consensusXML", cons_map);
+		cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.consensusXML"), cons_map);
 		mapper.annotate(cons_map, peptide_ids, protein_ids, true);
 		cons_file.store(tmp_filename,cons_map);
 		WHITELIST("<?xml-stylesheet");
-		TEST_FILE_SIMILAR(tmp_filename,"data/IDMapper_3_out2.consensusXML");
+		TEST_FILE_SIMILAR(tmp_filename,OPENMS_GET_TEST_DATA_PATH("IDMapper_3_out2.consensusXML"));
 	}
 	
 }

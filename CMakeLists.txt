@@ -254,6 +254,8 @@ else()
 	set(CF_OPENMS_DATA_PATH ${PROJECT_SOURCE_DIR}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
 endif()
 
+set(CF_OPENMS_TEST_DATA_PATH ${PROJECT_SOURCE_DIR}/source/TEST/data/ CACHE INTERNAL "Path to the test data")
+
 # check for Microsoft Visual Studio compiler
 if (MSVC)
 	set(OPENMS_COMPILER_MSVC "1" CACHE INTERNAL "Do we use Microsoft Compiler?")
@@ -489,18 +491,46 @@ include(source/APPLICATIONS/TOPP/executables.cmake)
 set(TOPP_DIR source/APPLICATIONS/TOPP/)
 foreach(i ${TOPP_executables})
 	set(resource_file ${CMAKE_SOURCE_DIR}/${TOPP_DIR}${i}.rc)
+        set(resource_dir ${CMAKE_SOURCE_DIR}/${TOPP_DIR}/${i}-resources/)
 	## add icons to TOPPView and INIFileEditor
 	if (MSVC AND EXISTS ${resource_file})
 		message(STATUS "Setting resource file ${resource_file} for ${i}")
 		add_executable(${i} ${TOPP_DIR}${i}.C ${resource_file})
-	else()
+        elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND EXISTS ${resource_dir})
+#		SET( MACOSX_BUNDLE_INFO_STRING "${i}" )
+#		SET( MACOSX_BUNDLE_ICON_FILE "${i}.icns" )
+#		SET( MACOSX_BUNDLE_BUNDLE_NAME "${i}" )
+#                SET( MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${i}" )
+		# set custom Info.plist file
+#		set (MACOSX_BUNDLE_INFO_PLIST "${resource_dir}Info.plist" )
+
+		add_executable(${i} MACOSX_BUNDLE ${TOPP_DIR}${i}.C)          
+
+                # Need to copy the icon file
+                ADD_CUSTOM_COMMAND(
+                  TARGET ${i}
+                  POST_BUILD
+                  COMMAND ${CMAKE_COMMAND} -E echo "Post build for ${i}"
+                  COMMAND ${CMAKE_COMMAND} -E copy
+                  ${resource_dir}Info.plist
+                  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents
+                  COMMAND ${CMAKE_COMMAND} -E make_directory
+                  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents/Resources
+                  COMMAND ${CMAKE_COMMAND} -E copy
+                  ${resource_dir}${i}.icns
+                  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents/Resources
+                  )
+#                EXEC_PROGRAM( "mkdir -p ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents")
+#                EXEC_PROGRAM( "cp ${resource_dir}Info.plist ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents")
+#                EXEC_PROGRAM( "mkdir -p ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents/Resources")
+#                EXEC_PROGRAM( "cp ${resource_dir}${i}.icns ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents/Resources")
+        else()
 		add_executable(${i} ${TOPP_DIR}${i}.C)
 	endif()
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
 endforeach(i)
 add_custom_target(TOPP)
 add_dependencies(TOPP ${TOPP_executables})
-
 
 ##### UTILS ########
 set(UTILS_executables)
@@ -689,5 +719,3 @@ MESSAGE(STATUS "")
 # TODO: install (copy) directories?!
 # ...
 set(DO_INSTALL false CACHE BOOL "Set to 'ON' if you want the CMAKE_INSTALL_PREFIX to be used and the library to be installed. On 'OFF' the library and Tools will be build but not installed!")
-
-INCLUDE(CPack)

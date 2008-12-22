@@ -58,7 +58,7 @@ START_SECTION(void load(const String& filename,  std::map<String, std::vector<AA
 	std::map<String, std::vector<AASequence> > peptides;
 	std::map<String, std::vector<AASequence> >::iterator it;
 	std::vector<AASequence> temp_sequences;
-	String filename = "data/PepXMLFile_test.pepXML";
+	String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.pepXML");
 	
 	file.load(filename, peptides);
 	it = peptides.begin();

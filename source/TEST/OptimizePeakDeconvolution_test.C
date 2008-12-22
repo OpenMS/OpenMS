@@ -114,7 +114,7 @@ START_SECTION((bool optimize(std::vector<PeakShape>& peaks,int failure)))
   	OptimizationFunctions::positions_DC_[i] = origin +i*spacing;
     OptimizationFunctions::signal_DC_[i] = peak_shape(origin +i*spacing);
    }
-  String file = "data/OptimizePeakDeconvolution.ini";
+  String file = OPENMS_GET_TEST_DATA_PATH("OptimizePeakDeconvolution.ini");
   Param param;
   param.load(file);
 

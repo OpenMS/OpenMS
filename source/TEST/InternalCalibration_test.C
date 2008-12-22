@@ -79,7 +79,7 @@ START_SECTION((template <typename InputPeakType> void calibrate(MSExperiment< In
   MSExperiment<Peak1D> exp;
   MSExperiment<> exp_peaks;
   MzDataFile file;
-  file.load("data/InternalCalibration_test.mzData",exp);
+  file.load(OPENMS_GET_TEST_DATA_PATH("InternalCalibration_test.mzData"),exp);
   std::vector<double> ref_masses;
   ref_masses.push_back(1296.68476942);
   ref_masses.push_back(2465.19833942);

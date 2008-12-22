@@ -78,7 +78,7 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
 	
 	// test exceptions
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.01, pvalues), "the file 'a' could not be found")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load("data/SequestOutfile.out1", peptide_identifications, protein_identification, 0.01, pvalues), "data/SequestOutfile.out1 in: Wrong number of columns in line 16! (11 present, should be 12)")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load(OPENMS_GET_TEST_DATA_PATH("SequestOutfile.out1"), peptide_identifications, protein_identification, 0.01, pvalues), "data/SequestOutfile.out1 in: Wrong number of columns in line 16! (11 present, should be 12)")
 	TEST_EXCEPTION(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification, 2.0, pvalues))
 	TEST_EXCEPTION(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification,-1.0, pvalues))
 	
@@ -88,10 +88,10 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
 	
 
 	// test the actual program
-	file.load("data/SequestOutfile2.out", peptide_identifications, protein_identification, 1.0, pvalues);
+	file.load(OPENMS_GET_TEST_DATA_PATH("SequestOutfile2.out"), peptide_identifications, protein_identification, 1.0, pvalues);
 	TEST_EQUAL(peptide_identifications.size(), 0)
 	
-	file.load("data/SequestOutfile.out", peptide_identifications, protein_identification, 1.0, pvalues);
+	file.load(OPENMS_GET_TEST_DATA_PATH("SequestOutfile.out"), peptide_identifications, protein_identification, 1.0, pvalues);
 	
 	TEST_EQUAL(peptide_identifications.size(), 1)
 	if ( peptide_identifications.size() == 1 )
@@ -196,7 +196,7 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
 	pvalues.push_back(0.01);
 	pvalues.push_back(0.05);
 	pvalues.push_back(0.5);
-	file.load("data/SequestOutfile.out", peptide_identifications, protein_identification, 0.01, pvalues);
+	file.load(OPENMS_GET_TEST_DATA_PATH("SequestOutfile.out"), peptide_identifications, protein_identification, 0.01, pvalues);
 	
 	TEST_EQUAL(peptide_identifications.size(), 1)
 	if ( peptide_identifications.size() == 1 )
@@ -306,7 +306,7 @@ START_SECTION(void getSequences(const String& database_filename, const map< Stri
 	sequences.push_back("SAPPSLLVLYFGKKELRAMKVLILACLVALALARELEELNVPGEIVESLSSSEESITRINKKIEKFQSEEQQQTEDELQDKIHPFAQTQSLVYPFPGPIPNSLPQNIPPLTQTPVVVPP");
 	sequences.push_back("GDREQLLQRARLAEQAERYDDMASAMKAVTELNEPLSNEDRNLLSVAYKNVVGARRSSWRVISSIEQKTMADGNEKKLEKVKAYREKIEKELETVCNDVLALLDKFLIKNCNDFQYESKVFYLKMKGDYYRYLAEVASGEKKNSVVEASEAAYKEAFEISKEHMQPTHPIRLGLALNFSVFYYEIQNAPEQACLLAKQAFDDAIAELDTLNEDSYKDSTLIMQLLRDNLTLWTSDQQDEEAGEGN");
 	
-	file.getSequences("data/Sequest_test.fasta", ac_position_map, found_sequences, found, not_found);
+	file.getSequences(OPENMS_GET_TEST_DATA_PATH("Sequest_test.fasta"), ac_position_map, found_sequences, found, not_found);
 	TEST_EQUAL(found.size(), 2)
 	TEST_EQUAL(not_found.size(), 2)
 	if ( found.size() == 2 && not_found.size() == 2 )
@@ -322,7 +322,7 @@ START_SECTION(void getSequences(const String& database_filename, const map< Stri
 		TEST_EQUAL(sequences[3], found_sequences[0])
 		TEST_EQUAL(sequences[1], found_sequences[1])
 
-		file.getSequences("data/Sequest_test2.fasta", not_found, found_sequences, found, not_found);
+		file.getSequences(OPENMS_GET_TEST_DATA_PATH("Sequest_test2.fasta"), not_found, found_sequences, found, not_found);
 		TEST_EQUAL(found.size(), 4)
 		TEST_EQUAL(not_found.size(), 0)
 
@@ -430,7 +430,7 @@ START_SECTION(void readOutHeader(const String& result_filename, DateTime& dateti
 	// test exceptions
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.readOutHeader("a", datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns), "the file 'a' could not be found")
 	
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.readOutHeader("data/SequestOutfile_headerfile.txt", datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns), "data/SequestOutfile_headerfile.txt in: No Sequest version found!")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.readOutHeader(OPENMS_GET_TEST_DATA_PATH("SequestOutfile_headerfile.txt"), datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns), "data/SequestOutfile_headerfile.txt in: No Sequest version found!")
 	
 
 	// test the actual program

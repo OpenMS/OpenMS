@@ -42,7 +42,7 @@ using namespace OpenMS;
 using namespace std;
 
 PILISScoring* ptr = 0;
-String filename("data/IDFilter_test2.idXML");
+String filename(OPENMS_GET_TEST_DATA_PATH("IDFilter_test2.idXML"));
 START_SECTION(PILISScoring())
 	ptr = new PILISScoring();
 	TEST_NOT_EQUAL(ptr, 0)

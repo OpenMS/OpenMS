@@ -429,7 +429,7 @@ END_SECTION
 	DBAdapter a(con);
 	RichPeakMap exp_2;
 	FileHandler fh;
-	fh.loadExperiment("data/SimpleExtender_test.mzData", exp_2);
+	fh.loadExperiment(OPENMS_GET_TEST_DATA_PATH("SimpleExtender_test.mzData"), exp_2);
 	a.storeExperiment(exp_2);
 	
 	

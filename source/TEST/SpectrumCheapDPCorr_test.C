@@ -69,11 +69,11 @@ END_SECTION
 START_SECTION(double operator () (const PeakSpectrum& a, const PeakSpectrum& b) const)
 	DTAFile dta_file;
 	PeakSpectrum spec1;
-	dta_file.load("data/Transformers_tests.dta", spec1);
+	dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec1);
 
 	DTAFile dta_file2;
 	PeakSpectrum spec2;
-	dta_file2.load("data/Transformers_tests_2.dta", spec2);
+	dta_file2.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests_2.dta"), spec2);
 
 	double score = (*e_ptr)(spec1, spec2);
 
@@ -105,7 +105,7 @@ END_SECTION
 START_SECTION(double operator () (const PeakSpectrum& a) const)
   DTAFile dta_file;
   PeakSpectrum spec1;
-  dta_file.load("data/Transformers_tests.dta", spec1);
+  dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec1);
 
   double score = (*e_ptr)(spec1);
 

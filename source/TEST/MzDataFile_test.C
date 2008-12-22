@@ -74,7 +74,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	MSExperiment<> e;
 
 	// real test
-	file.load("data/MzDataFile_1.mzData",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),e);
   //---------------------------------------------------------------------------
   // 60 : (120,100)
   // 120: (110,100) (120,200) (130,100)
@@ -424,24 +424,24 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	
 	//load a second time to make sure everything is re-initialized correctly
 	MSExperiment<> e2;
-	file.load("data/MzDataFile_1.mzData",e2);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),e2);
 	TEST_EQUAL(e==e2,true)
 	
 	//loading a minimal file containing one spectrum  - with whitespaces inside the base64 data
 	MSExperiment<> e3;
-  file.load("data/MzDataFile_3_minimal.mzData",e3);
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_3_minimal.mzData"),e3);
   TEST_EQUAL(e3.size(),1)
   TEST_EQUAL(e3[0].size(),3)
 
 	//load one extremely long spectrum - tests CDATA splitting
 	MSExperiment<> e4;
-	file.load("data/MzDataFile_2_long.mzData",e4);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_2_long.mzData"),e4);
 	TEST_EQUAL(e4.size(), 1)
 	TEST_EQUAL(e4[0].size(), 997530)
 
 	//load with 64 bit precision and endian conversion
 	MSExperiment<> e5;
-	file.load("data/MzDataFile_4_64bit.mzData",e5);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_4_64bit.mzData"),e5);
 	TEST_EQUAL(e5.getIdentifier(),"");
   TEST_EQUAL(e5.size(), 1)
 	TEST_EQUAL(e5[0].size(), 3)
@@ -480,7 +480,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	
 	//test if it works with different peak types
 	MSExperiment<RichPeak1D> e_rich;
-  file.load("data/MzDataFile_1.mzData",e_rich);
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),e_rich);
 	
 END_SECTION
 
@@ -493,7 +493,7 @@ START_SECTION(([EXTRA] load with metadata-only flag))
 	MSExperiment<> e;
 
 	// real test
-	file.load("data/MzDataFile_1.mzData",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),e);
 
 	//check number of scans
 	TEST_EQUAL(e.size(),0)
@@ -517,7 +517,7 @@ START_SECTION(([EXTRA] load with selected MS levels))
 	
 	// load only MS level 1
 	file.getOptions().addMSLevel(1);
-	file.load("data/MzDataFile_1.mzData",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),e);
 	TEST_EQUAL(e.size(), 2)
 	TEST_EQUAL(e[0].size(), 1)
 	TEST_STRING_EQUAL(e[0].getNativeID(),"spectrum=10")
@@ -528,7 +528,7 @@ START_SECTION(([EXTRA] load with selected MS levels))
 	
 	// load all MS levels
 	file.getOptions().clearMSLevels();
-	file.load("data/MzDataFile_1.mzData",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),e);
 	TEST_EQUAL(e.size(), 3)
 	TEST_EQUAL(e[0].size(), 1)
 	TEST_EQUAL(e[1].size(), 3)
@@ -545,7 +545,7 @@ START_SECTION(([EXTRA] load with RT range))
 	MzDataFile file;
 	
 	file.getOptions().setRTRange(makeRange(100, 200));
-	file.load("data/MzDataFile_1.mzData",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),e);
 	//---------------------------------------------------------------------------
 	// 60 : (120,100)
 	// 120: (110,100) (120,200) (130,100)
@@ -565,7 +565,7 @@ START_SECTION(([EXTRA] load with MZ range))
 	MzDataFile file;
 	
 	file.getOptions().setMZRange(makeRange(115, 135));
-	file.load("data/MzDataFile_1.mzData",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),e);
 	//---------------------------------------------------------------------------
 	// 60 : +(120,100)
 	// 120: -(110,100) +(120,200) +(130,100)
@@ -600,7 +600,7 @@ START_SECTION(([EXTRA] load with intensity range))
 	MzDataFile file;
 	
 	file.getOptions().setIntensityRange(makeRange(150, 350));
-	file.load("data/MzDataFile_1.mzData",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),e);
 	//---------------------------------------------------------------------------
 	// 60 : -(120,100)
 	// 120: -(110,100) +(120,200) -(130,100)
@@ -628,7 +628,7 @@ END_SECTION
 START_SECTION((template<typename MapType> void store(const String& filename, const MapType& map) const ))
   MSExperiment<> e1, e2;
   MzDataFile f;
-  f.load("data/MzDataFile_1.mzData",e1);
+  f.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),e1);
 	TEST_EQUAL(e1.size(), 3)
 
 	std::string tmp_filename;
@@ -816,7 +816,7 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
 
 	//test if filled file is valid
 	NEW_TMP_FILE(tmp_filename);
-	f.load("data/MzDataFile_1.mzData",e);
+	f.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),e);
   f.store(tmp_filename,e);
   TEST_EQUAL(f.isValid(tmp_filename),true);
 END_SECTION

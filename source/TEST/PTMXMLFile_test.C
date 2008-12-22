@@ -55,7 +55,7 @@ END_SECTION
 START_SECTION((void load(const String& filename, std::map< String, std::pair< String, String > >& ptm_informations)))
 
 	map< String, pair< String, String > > ptm_informations;
-	xml_file.load("data/PTMs.xml", ptm_informations);
+	xml_file.load(OPENMS_GET_TEST_DATA_PATH("PTMs.xml"), ptm_informations);
 	
 	TEST_EQUAL(ptm_informations["TEST"].first, "N2O2-CH3")
 	TEST_EQUAL(ptm_informations["TEST"].second, "KLR")
@@ -65,7 +65,7 @@ END_SECTION
 START_SECTION((void store(String filename, std::map< String, std::pair< String, String > > &ptm_informations) const))
 
 	map< String, pair< String, String > > ptm_informations;
-	xml_file.load("data/PTMs.xml", ptm_informations);
+	xml_file.load(OPENMS_GET_TEST_DATA_PATH("PTMs.xml"), ptm_informations);
 	String temp_filename;
 	NEW_TMP_FILE(temp_filename)
 	xml_file.store(temp_filename, ptm_informations);

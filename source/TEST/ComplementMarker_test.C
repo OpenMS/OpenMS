@@ -72,7 +72,7 @@ END_SECTION
 START_SECTION((template<typename SpectrumType> void apply(std::map<double, bool> marked, SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
-	dta_file.load("data/Transformers_tests.dta", spec);
+	dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec);
 
 	map<double, bool> marked;
 	e_ptr->apply(marked, spec);

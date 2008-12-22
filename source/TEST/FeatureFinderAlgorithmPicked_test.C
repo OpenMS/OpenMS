@@ -73,13 +73,13 @@ START_SECTION(virtual void run())
 	MSExperiment<> input;
 	MzDataFile mzdata_file;
 	mzdata_file.getOptions().addMSLevel(1);
-	mzdata_file.load("data/FeatureFinderAlgorithmPicked.mzData",input);
+	mzdata_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.mzData"),input);
 	input.updateRanges(1);
 	FeatureMap<> output;
 	
 	//parameters
 	Param param;
-	param.load("data/FeatureFinderAlgorithmPicked.ini");
+	param.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.ini"));
 	param = param.copy("FeatureFinder:1:algorithm:",true);
 	//Dummy featurefinder
 	FeatureFinder ff;

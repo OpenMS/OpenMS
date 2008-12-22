@@ -67,7 +67,7 @@ START_SECTION((void load(String filename, FeatureMap<>& feature_map)))
 	TEST_EXCEPTION( Exception::FileNotFound , dfmap_file.load("dummy/dummy.MzData",e) )
 	
 	// real test
-	dfmap_file.load("data/FeatureXMLFile_1.featureXML",e);
+	dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"),e);
 	TEST_EQUAL(e.getIdentifier(),"lsid");
 	TEST_EQUAL(e.size(),2)
 	TEST_REAL_SIMILAR(e[0].getRT(), 25)
@@ -119,12 +119,12 @@ START_SECTION((void load(String filename, FeatureMap<>& feature_map)))
 	//test of old file with mzData description (version 1.2)
 	//here only the downward-compatibility of the new parser is tested
 	//no exception should be thrown
-	dfmap_file.load("data/FeatureXMLFile_3_old.featureXML",e);
+	dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_3_old.featureXML"),e);
 	TEST_EQUAL(e.size(),1)
 
 	//PeakFileOptions tests
 	dfmap_file.getOptions().setRTRange(makeRange(0, 10));
-	dfmap_file.load("data/FeatureXMLFile_1.featureXML",e);
+	dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"),e);
 	TEST_EQUAL(e.size(),1)
 	TEST_REAL_SIMILAR(e[0].getRT(), 0)
 	TEST_REAL_SIMILAR(e[0].getMZ(), 35)
@@ -132,7 +132,7 @@ START_SECTION((void load(String filename, FeatureMap<>& feature_map)))
 
 	dfmap_file.getOptions() = PeakFileOptions();
 	dfmap_file.getOptions().setMZRange(makeRange(10, 50));
-	dfmap_file.load("data/FeatureXMLFile_1.featureXML",e);
+	dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"),e);
 	TEST_EQUAL(e.size(),1)
 	TEST_REAL_SIMILAR(e[0].getRT(), 0)
 	TEST_REAL_SIMILAR(e[0].getMZ(), 35)
@@ -140,7 +140,7 @@ START_SECTION((void load(String filename, FeatureMap<>& feature_map)))
 
 	dfmap_file.getOptions() = PeakFileOptions();
 	dfmap_file.getOptions().setIntensityRange(makeRange(400, 600));
-	dfmap_file.load("data/FeatureXMLFile_1.featureXML",e);
+	dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"),e);
 	TEST_EQUAL(e.size(),1)
 	TEST_REAL_SIMILAR(e[0].getRT(), 0)
 	TEST_REAL_SIMILAR(e[0].getMZ(), 35)
@@ -156,7 +156,7 @@ START_SECTION((void store(String filename, const FeatureMap<>& feature_map) cons
   FeatureMap<> map, map2;
   FeatureXMLFile f;
   
-  f.load("data/FeatureXMLFile_1.featureXML",map);  
+  f.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"),map);  
   f.store(tmp_filename, map);
   f.load(tmp_filename, map2);
   TEST_EQUAL(map==map2, true)
@@ -166,27 +166,27 @@ START_SECTION( PeakFileOptions& getOptions() )
 	FeatureXMLFile f;
   FeatureMap<> e;
 	f.getOptions().setRTRange(makeRange(1.5, 4.5));
-	f.load("data/FeatureXMLFile_2_options.featureXML",e);
+	f.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"),e);
 	TEST_EQUAL(e.size(), 5)
 
 	f.getOptions().setMZRange(makeRange(1025.0, 2000.0));
-	f.load("data/FeatureXMLFile_2_options.featureXML",e);
+	f.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"),e);
 	TEST_EQUAL(e.size(), 3)
 
 	f.getOptions().setIntensityRange(makeRange(290.0, 310.0));
-	f.load("data/FeatureXMLFile_2_options.featureXML",e);
+	f.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"),e);
 	TEST_EQUAL(e.size(), 1)
 	
 	f.getOptions().setMetadataOnly(true);
-	f.load("data/FeatureXMLFile_2_options.featureXML",e);
+	f.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"),e);
 	TEST_EQUAL(e.getIdentifier(), "lsid2")
 	TEST_EQUAL(e.size(), 0)
 END_SECTION
 
 START_SECTION([EXTRA] static bool isValid(const String& filename))
   FeatureXMLFile f;
-	TEST_EQUAL(f.isValid("data/FeatureXMLFile_1.featureXML"),true);	
-	TEST_EQUAL(f.isValid("data/FeatureXMLFile_2_options.featureXML"),true);	
+	TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML")),true);	
+	TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML")),true);	
 
 	FeatureMap<> e;
 	String filename;
@@ -198,7 +198,7 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
 	
 	//test if full file is valid
 	NEW_TMP_FILE(filename);
-	f.load("data/FeatureXMLFile_1.featureXML",e);
+	f.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"),e);
 	f.store(filename, e);	
   TEST_EQUAL(f.isValid(filename),true);
 END_SECTION

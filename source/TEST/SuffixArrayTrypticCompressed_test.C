@@ -255,7 +255,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 	res.clear();
 	TEST_EXCEPTION(Exception::InvalidValue, sa->findSpec(res, specc3));
 	ifstream i_stream;
-	i_stream.open("data/SuffixArrayTrypticCompressed_test.txt");
+	i_stream.open(OPENMS_GET_TEST_DATA_PATH("SuffixArrayTrypticCompressed_test.txt"));
 	String txt;
 	getline(i_stream,txt);
 	

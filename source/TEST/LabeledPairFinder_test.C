@@ -148,7 +148,7 @@ START_SECTION((virtual void run(const std::vector<ConsensusMap>& input_maps, Con
 	pm2.setParameters(p2);
 	
 	FeatureMap<> features2;
-	FeatureXMLFile().load("data/LabeledPairFinder.featureXML",features2);
+	FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("LabeledPairFinder.featureXML"),features2);
 	
 	ConsensusMap output2;
 	vector<ConsensusMap> input2(1);

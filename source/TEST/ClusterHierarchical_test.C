@@ -233,7 +233,7 @@ START_SECTION((void cluster(std::vector<PeakSpectrum>& data, const BinnedSpectru
 	PeakSpectrum s1, s2, s3;
 	Peak1D peak;
 
-	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
+	DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s1);
 	s2 = s1;
 	s3 = s1;
 	s2.pop_back();

@@ -57,14 +57,14 @@ START_SECTION((void load(const String& filename, bool trim_lines=false, Int firs
 	
 	TEST_EXCEPTION(Exception::FileNotFound, file.load("FileDoesNotExist.txt"))	
 	
-	file.load("data/TextFile_test_infile.txt");
+	file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"));
 	TEST_EQUAL(file.size(), 11)
 	TEST_EQUAL(file[0].trim() == "first_line", true)
 	TEST_EQUAL(file[3].trim() == "middle_line", true)
 	TEST_EQUAL(file[10].trim() == "last_line", true)
 	
 	//trimmed
-	file.load("data/TextFile_test_infile.txt",true);
+	file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true);
 	TEST_EQUAL(file.size(), 11)
 	TEST_EQUAL(file[0].trim() == "first_line", true)
 	TEST_EQUAL(file[3].trim() == "middle_line", true)
@@ -75,17 +75,17 @@ START_SECTION((void load(const String& filename, bool trim_lines=false, Int firs
 	TEST_EQUAL(file[8].trim() == "back_tab_line", true)
 	
 	//only first few
-	file.load("data/TextFile_test_infile.txt",true,1);
+	file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true,1);
 	TEST_EQUAL(file.size(), 1)
 	TEST_EQUAL(file[0].trim() == "first_line", true)
 	
-	file.load("data/TextFile_test_infile.txt",true,3);
+	file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true,3);
 	TEST_EQUAL(file.size(), 3)
 	TEST_EQUAL(file[0].trim() == "first_line", true)
 	TEST_EQUAL(file[1].trim() == "", true)
 	TEST_EQUAL(file[2].trim() == "", true)
 	
-	file.load("data/TextFile_test_infile.txt",true,4);
+	file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true,4);
 	TEST_EQUAL(file.size(), 4)
 	TEST_EQUAL(file[0].trim() == "first_line", true)
 	TEST_EQUAL(file[1].trim() == "", true)
@@ -111,18 +111,18 @@ START_SECTION((void store(const String& filename) ))
 END_SECTION
 
 START_SECTION((TextFile(const String& filename, bool trim_lines=false, Int first_n=-1) ))
-	TextFile file("data/TextFile_test_infile.txt");
+	TextFile file(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"));
 	TEST_EQUAL(file[0].trim() == "first_line", true)
 	TEST_EQUAL(file[3].trim() == "middle_line", true)
 	TEST_EQUAL(file[10].trim() == "last_line", true)
 	TEST_EQUAL(file.size(), 11)
 	
-	TextFile file2("data/TextFile_test_empty_infile.txt");
+	TextFile file2(OPENMS_GET_TEST_DATA_PATH("TextFile_test_empty_infile.txt"));
 	TEST_EQUAL(file2.size(), 0)
 END_SECTION
 
 START_SECTION((Iterator search(const Iterator& start, const String& text, bool trim=false)))
-	TextFile file("data/TextFile_test_infile.txt");
+	TextFile file(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"));
 	
 	TEST_EQUAL(file.search(file.begin(),"first_line") == file.begin(), true)
 	TEST_EQUAL(file.search(file.begin(),"middle_line") == (file.begin()+3), true)
@@ -143,7 +143,7 @@ START_SECTION((Iterator search(const Iterator& start, const String& text, bool t
 	TEST_EQUAL(file.search(file.begin()+1,"first_line",true) == file.end(), true)
 	
 	//Try it on the same file (but trimmed)
-	file.load("data/TextFile_test_infile.txt",true);
+	file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true);
 
 	TEST_EQUAL(file.search(file.begin(),"first_line") == file.begin(), true)
 	TEST_EQUAL(file.search(file.begin(),"middle_line") == (file.begin()+3), true)
@@ -162,7 +162,7 @@ START_SECTION((Iterator search(const Iterator& start, const String& text, bool t
 END_SECTION
 
 START_SECTION((Iterator search(const String& text, bool trim=false)))
-	TextFile file("data/TextFile_test_infile.txt");
+	TextFile file(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"));
 	
 	TEST_EQUAL(file.search("first_line") == file.begin(), true)
 	TEST_EQUAL(file.search("middle_line") == (file.begin()+3), true)
@@ -180,7 +180,7 @@ START_SECTION((Iterator search(const String& text, bool trim=false)))
 	TEST_EQUAL(file.search("invented_line",true) == file.end(), true)
 	
 	//Try it on the same file (but trimmed)
-	file.load("data/TextFile_test_infile.txt",true);
+	file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true);
 
 	TEST_EQUAL(file.search("first_line") == file.begin(), true)
 	TEST_EQUAL(file.search("middle_line") == (file.begin()+3), true)
@@ -197,7 +197,7 @@ START_SECTION((Iterator search(const String& text, bool trim=false)))
 END_SECTION
 
 START_SECTION((Iterator searchSuffix(const Iterator& start, const String& text, bool trim=false)))
-	TextFile file("data/TextFile_test_infile.txt");
+	TextFile file(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"));
 	
 	TEST_EQUAL(file.searchSuffix(file.begin(),"invented_line",true) == file.end(), true)
 	TEST_EQUAL(file.searchSuffix(file.begin(),"back_space_line",true) == file.begin()+7, true)
@@ -210,7 +210,7 @@ START_SECTION((Iterator searchSuffix(const Iterator& start, const String& text, 
 END_SECTION
 
 START_SECTION((Iterator searchSuffix(const String& text, bool trim=false)))
-	TextFile file("data/TextFile_test_infile.txt");
+	TextFile file(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"));
 	
 	TEST_EQUAL(file.searchSuffix("invented_line",true) == file.end(), true)
 	TEST_EQUAL(file.searchSuffix("back_space_line",true) == file.begin()+7, true)
@@ -222,7 +222,7 @@ START_SECTION((Iterator searchSuffix(const String& text, bool trim=false)))
 END_SECTION
 
 START_SECTION((ConstIterator search(const ConstIterator& start, const String& text, bool trim=false) const))
-	TextFile file("data/TextFile_test_infile.txt");
+	TextFile file(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"));
 	
 	TEST_EQUAL(file.search(file.begin(),"first_line") == file.begin(), true)
 	TEST_EQUAL(file.search(file.begin(),"middle_line") == (file.begin()+3), true)
@@ -243,7 +243,7 @@ START_SECTION((ConstIterator search(const ConstIterator& start, const String& te
 	TEST_EQUAL(file.search(file.begin()+1,"first_line",true) == file.end(), true)
 	
 	//Try it on the same file (but trimmed)
-	file.load("data/TextFile_test_infile.txt",true);
+	file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true);
 
 	TEST_EQUAL(file.search(file.begin(),"first_line") == file.begin(), true)
 	TEST_EQUAL(file.search(file.begin(),"middle_line") == (file.begin()+3), true)
@@ -262,7 +262,7 @@ START_SECTION((ConstIterator search(const ConstIterator& start, const String& te
 END_SECTION
 
 START_SECTION((ConstIterator search(const String& text, bool trim=false) const))
-	TextFile file("data/TextFile_test_infile.txt");
+	TextFile file(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"));
 	
 	TEST_EQUAL(file.search("first_line") == file.begin(), true)
 	TEST_EQUAL(file.search("middle_line") == (file.begin()+3), true)
@@ -280,7 +280,7 @@ START_SECTION((ConstIterator search(const String& text, bool trim=false) const))
 	TEST_EQUAL(file.search("invented_line",true) == file.end(), true)
 	
 	//Try it on the same file (but trimmed)
-	file.load("data/TextFile_test_infile.txt",true);
+	file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true);
 
 	TEST_EQUAL(file.search("first_line") == file.begin(), true)
 	TEST_EQUAL(file.search("middle_line") == (file.begin()+3), true)
@@ -297,7 +297,7 @@ START_SECTION((ConstIterator search(const String& text, bool trim=false) const))
 END_SECTION
 
 START_SECTION((ConstIterator searchSuffix(const ConstIterator& start, const String& text, bool trim=false) const))
-	TextFile file("data/TextFile_test_infile.txt");
+	TextFile file(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"));
 	
 	TEST_EQUAL(file.searchSuffix(file.begin(),"invented_line",true) == file.end(), true)
 	TEST_EQUAL(file.searchSuffix(file.begin(),"back_space_line",true) == file.begin()+7, true)
@@ -310,7 +310,7 @@ START_SECTION((ConstIterator searchSuffix(const ConstIterator& start, const Stri
 END_SECTION
 
 START_SECTION((ConstIterator searchSuffix(const String& text, bool trim=false) const))
-	TextFile file("data/TextFile_test_infile.txt");
+	TextFile file(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"));
 	
 	TEST_EQUAL(file.searchSuffix("invented_line",true) == file.end(), true)
 	TEST_EQUAL(file.searchSuffix("back_space_line",true) == file.begin()+7, true)

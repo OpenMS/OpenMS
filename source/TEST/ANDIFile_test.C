@@ -58,7 +58,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	//test exception
 	TEST_EXCEPTION( Exception::FileNotFound , file.load("dummy/dummy.cdf",e) )
 	
-  file.load("data/ANDIFile_test.cdf",e);
+  file.load(OPENMS_GET_TEST_DATA_PATH("ANDIFile_test.cdf"),e);
   
   //---------------------------------------------------------------------------
   // 60 : (120,100) 
@@ -231,12 +231,12 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 
 	//load a second time to make sure everything is re-initialized correctly
 	MSExperiment<> e2;
-	file.load("data/ANDIFile_test.cdf",e2);
+	file.load(OPENMS_GET_TEST_DATA_PATH("ANDIFile_test.cdf"),e2);
 	TEST_EQUAL(e==e2,true)
 	
 	//test if it works with different peak types
 	MSExperiment<RichPeak1D> e_rich;
-  file.load("data/ANDIFile_test.cdf",e_rich);
+  file.load(OPENMS_GET_TEST_DATA_PATH("ANDIFile_test.cdf"),e_rich);
 
 END_SECTION
 

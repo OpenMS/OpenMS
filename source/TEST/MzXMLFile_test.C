@@ -79,7 +79,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EXCEPTION( Exception::FileNotFound , file.load("dummy/dummy.mzXML",e) )
 	
 	//real test
-	file.load("data/MzXMLFile_1.mzXML",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e);
   
   //---------------------------------------------------------------------------
   // 60 : (120,100)
@@ -227,12 +227,12 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	
 	//load a second time to make sure everything is re-initialized correctly
 	MSExperiment<> e2;
-	file.load("data/MzXMLFile_1.mzXML",e2);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e2);
 	TEST_EQUAL(e==e2,true)
 	
 	//test reading 64 bit data
 	MSExperiment<> e3;
-	file.load("data/MzXMLFile_3_64bit.mzXML",e3);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_3_64bit.mzXML"),e3);
 
   TEST_EQUAL(e3.size(), 3)
 	TEST_REAL_SIMILAR(e3[0].getMSLevel(), 1)
@@ -266,19 +266,19 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 
 	//loading a minimal file containing one spectrum - with whitespaces inside the base64 data
 	MSExperiment<> e4;
-  file.load("data/MzXMLFile_2_minimal.mzXML",e4);
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_2_minimal.mzXML"),e4);
   TEST_EQUAL(e4.size(),1)
   TEST_EQUAL(e4[0].size(),1)
 	
 	//load one extremely long spectrum - tests CDATA splitting
 	MSExperiment<> e5;
-	file.load("data/MzXMLFile_4_long.mzXML",e5);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_4_long.mzXML"),e5);
 	TEST_EQUAL(e5.size(), 1)
 	TEST_EQUAL(e5[0].size(), 997530)
 
 	//test if it works with different peak types
 	MSExperiment<RichPeak1D> e_rich;
-  file.load("data/MzXMLFile_1.mzXML",e_rich);
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e_rich);
 END_SECTION
 
 START_SECTION(([EXTRA] load with metadata only flag))
@@ -289,7 +289,7 @@ START_SECTION(([EXTRA] load with metadata only flag))
 	file.getOptions().setMetadataOnly(true);
 
 	// real test
-	file.load("data/MzXMLFile_1.mzXML",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e);
 	
 	TEST_EQUAL(e.size(),0)
   TEST_EQUAL(e.getSourceFiles().size(),2)
@@ -315,7 +315,7 @@ START_SECTION(([EXTRA] load with selected MS levels))
 	
 	// load only MS level 1
 	file.getOptions().addMSLevel(1);
-	file.load("data/MzXMLFile_1.mzXML",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e);
 
 	TEST_EQUAL(e.size(), 3)
 	TEST_EQUAL(e[0].getMSLevel(), 1)
@@ -330,7 +330,7 @@ START_SECTION(([EXTRA] load with selected MS levels))
 	
 	// load all levels
 	file.getOptions().clearMSLevels();
-	file.load("data/MzXMLFile_1.mzXML",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e);
 
 	TEST_EQUAL(e.size(), 4)
 END_SECTION
@@ -342,7 +342,7 @@ START_SECTION(([EXTRA] load with selected MZ range))
 	MzXMLFile file;
 
 	file.getOptions().setMZRange(makeRange(115,135));
-	file.load("data/MzXMLFile_1.mzXML",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e);
 	//---------------------------------------------------------------------------
 	// 60 : +(120,100)
 	// 120: -(110,100) +(120,200) +(130,100)
@@ -371,7 +371,7 @@ START_SECTION(([EXTRA] load with RT range))
 	MSExperiment<> e;
 	MzXMLFile file;
 	file.getOptions().setRTRange(makeRange(100, 200));
-	file.load("data/MzXMLFile_1.mzXML",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e);
 	//---------------------------------------------------------------------------
 	// 120: (110,100) (120,200) (130,100)
 	// 180: (100,100) (110,200) (120,300) (130,200) (140,100)
@@ -404,7 +404,7 @@ START_SECTION(([EXTRA] load with intensity range))
 	MSExperiment<> e;
 	MzXMLFile file;
 	file.getOptions().setIntensityRange(makeRange(150, 350));
-	file.load("data/MzXMLFile_1.mzXML",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e);
 	//---------------------------------------------------------------------------
 	// 60 : -(120,100)
 	// 120: -(110,100) +(120,200) -(130,100)
@@ -498,7 +498,7 @@ START_SECTION((template<typename MapType> void store(const String& filename, con
   MzXMLFile f;
 
   NEW_TMP_FILE(tmp_filename);
- 	 f.load("data/MzXMLFile_1.mzXML",e1);
+ 	 f.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e1);
 	TEST_EQUAL(e1.size(), 4)
 
 	f.store(tmp_filename,e1);
@@ -515,7 +515,7 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
 
 	//test if fill file is valid
 	NEW_TMP_FILE(tmp_filename);
-	f.load("data/MzXMLFile_1.mzXML",e);
+	f.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e);
   f.store(tmp_filename,e);
   TEST_EQUAL(f.isValid(tmp_filename),true);
 END_SECTION

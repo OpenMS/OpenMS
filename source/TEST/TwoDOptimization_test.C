@@ -232,7 +232,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   raw_exp.push_back(raw_spec2);
 	raw_exp.begin()->setRT(100);
   (raw_exp.begin()+1)->setRT(101);
-  String file = "data/TwoDOptimization.xml";	
+  String file = OPENMS_GET_TEST_DATA_PATH("TwoDOptimization.xml");	
   Param param;
 	param.load(file);
   MSExperiment<Peak1D >::const_iterator first,last;

@@ -49,7 +49,7 @@ END_SECTION
 START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) )
 	std::vector<ProteinIdentification> protein_ids;
 	std::vector<PeptideIdentification> peptide_ids;
-	IdXMLFile().load("data/IdXMLFile_whole.idXML", protein_ids, peptide_ids);
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids);
 	
 	TEST_EQUAL(protein_ids.size(),2)
 	TEST_EQUAL(peptide_ids.size(),3)
@@ -175,7 +175,7 @@ START_SECTION(void store(String filename, const std::vector<ProteinIdentificatio
 	//store and load data
 	std::vector<ProteinIdentification> protein_ids, protein_ids2;
 	std::vector<PeptideIdentification> peptide_ids, peptide_ids2;
-	IdXMLFile().load("data/IdXMLFile_whole.idXML", protein_ids2, peptide_ids2);	
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids2, peptide_ids2);	
 	String filename;
 	NEW_TMP_FILE(filename)
 	IdXMLFile().store(filename, protein_ids2, peptide_ids2);	
@@ -316,7 +316,7 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
 	
 	//test if full file is valid
 	NEW_TMP_FILE(filename);
-	f.load("data/IdXMLFile_whole.idXML", protein_ids2, peptide_ids2);
+	f.load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids2, peptide_ids2);
 	protein_ids2[0].setMetaValue("stringvalue",String("bla"));
 	protein_ids2[0].setMetaValue("intvalue",4711);
 	protein_ids2[0].setMetaValue("floatvalue",5.3);

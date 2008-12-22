@@ -58,8 +58,8 @@ START_SECTION((void apply(std::vector< PeptideIdentification > &fwd_ids, std::ve
   ptr = new FalseDiscoveryRate();
 	vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids;
 	vector<PeptideIdentification> fwd_pep_ids, rev_pep_ids;
-	IdXMLFile().load("data/XTandem_fwd_ids.idXML", fwd_prot_ids, fwd_pep_ids);
-	IdXMLFile().load("data/XTandem_rev_ids.idXML", rev_prot_ids, rev_pep_ids);
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_fwd_ids.idXML"), fwd_prot_ids, fwd_pep_ids);
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_rev_ids.idXML"), rev_prot_ids, rev_pep_ids);
 	ptr->apply(fwd_pep_ids, rev_pep_ids);
 	TOLERANCE_ABSOLUTE(0.0001)
 	for (vector<PeptideIdentification>::const_iterator it = fwd_pep_ids.begin(); it != fwd_pep_ids.end(); ++it)
@@ -87,8 +87,8 @@ START_SECTION((void apply(std::vector< ProteinIdentification > &fwd_ids, std::ve
 {
   vector<ProteinIdentification> fwd_prot_ids, rev_prot_ids;
   vector<PeptideIdentification> fwd_pep_ids, rev_pep_ids;
-  IdXMLFile().load("data/XTandem_fwd_ids.idXML", fwd_prot_ids, fwd_pep_ids);
-  IdXMLFile().load("data/XTandem_rev_ids.idXML", rev_prot_ids, rev_pep_ids);
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_fwd_ids.idXML"), fwd_prot_ids, fwd_pep_ids);
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_rev_ids.idXML"), rev_prot_ids, rev_pep_ids);
   ptr->apply(fwd_prot_ids, rev_prot_ids);
   TOLERANCE_ABSOLUTE(0.001)
 	

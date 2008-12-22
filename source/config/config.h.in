@@ -48,6 +48,10 @@
 #define OPENMS_DATA_PATH "@CF_OPENMS_DATA_PATH@"
 #define PACKAGE_VERSION "@CF_PACKAGE_VERSION@"
 
+// Macro to construct a c string containing the complete path to the test data
+#define OPENMS_GET_TEST_DATA_PATH(filename) (std::string("@CF_OPENMS_TEST_DATA_PATH@") + filename).c_str()
+#define OPENMS_GET_TEST_DATA_PATH_MESSAGE(prefix,filename,suffix) (prefix + std::string("@CF_OPENMS_TEST_DATA_PATH@") + filename + suffix).c_str()
+
 // do we use SVN revision in VersionInfo.C?! [depending on the availability of svnversion(.exe)]
 #cmakedefine OPENMS_HAS_SVNVERSION
 #define PACKAGE_REVISION_FILE "@CF_PACKAGE_REVISION_FILE@"

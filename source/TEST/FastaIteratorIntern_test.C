@@ -56,21 +56,21 @@ START_SECTION(virtual void setFastaFile(const String &f))
 	ptr = new FastaIteratorIntern();
 	TEST_EXCEPTION (Exception::FileNotFound,ptr->setFastaFile("FileThatNotExists"));
 	TEST_EXCEPTION (Exception::FileNotFound,ptr->setFastaFile(""));
-	ptr->setFastaFile("data/FastaIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("FastaIterator_test.fasta"));
 END_SECTION
 
 START_SECTION(String getFastaFile ())
 	ptr = new FastaIteratorIntern();
 	TEST_EQUAL (ptr->getFastaFile(),"");
-	ptr->setFastaFile("data/FastaIterator_test.fasta");
-	TEST_EQUAL (ptr->getFastaFile(),"data/FastaIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("FastaIterator_test.fasta"));
+	TEST_EQUAL (ptr->getFastaFile(),OPENMS_GET_TEST_DATA_PATH("FastaIterator_test.fasta"));
 END_SECTION
 
 
 START_SECTION(virtual FASTAEntry operator *())
 	ptr = new FastaIteratorIntern();
 	TEST_EXCEPTION (Exception::InvalidIterator,**ptr);
-	ptr->setFastaFile("data/FastaIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("FastaIterator_test.fasta"));
 	ptr->begin();
 	FASTAEntry fe = **ptr;
 	TEST_EQUAL(fe.first,"Entry 1");
@@ -80,7 +80,7 @@ END_SECTION
 START_SECTION(virtual PepIterator& operator++())
 	ptr = new FastaIteratorIntern();
 	TEST_EXCEPTION (Exception::InvalidIterator, ++(*ptr));
-	ptr->setFastaFile("data/FastaIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("FastaIterator_test.fasta"));
 	ptr->begin();
 	PepIterator & pepIt = ++(*ptr);
 	TEST_EQUAL ((*pepIt).first,(**ptr).first);
@@ -93,7 +93,7 @@ END_SECTION
 START_SECTION(virtual PepIterator* operator++(int i))
 	ptr = new FastaIteratorIntern();
 	TEST_EXCEPTION (Exception::InvalidIterator, (*ptr)++);
-	ptr->setFastaFile("data/FastaIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("FastaIterator_test.fasta"));
 	ptr->begin();
 	FASTAEntry fe = **ptr;
 	PepIterator * pepIt = (*ptr)++;
@@ -104,7 +104,7 @@ END_SECTION
 START_SECTION(virtual bool begin())
 	ptr = new FastaIteratorIntern();
 	TEST_EXCEPTION (Exception::InvalidIterator, (*ptr).begin());
-	ptr->setFastaFile("data/FastaIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("FastaIterator_test.fasta"));
 	ptr->begin();
 	FASTAEntry fe = **ptr;
 	TEST_EQUAL(fe.first,"Entry 1");
@@ -113,7 +113,7 @@ END_SECTION
 
 START_SECTION(virtual bool isAtEnd())
 	ptr = new FastaIteratorIntern();
-	ptr->setFastaFile("data/FastaIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("FastaIterator_test.fasta"));
 	ptr->begin();
 	for (int i = 0; i < 5;i++)
 	{
@@ -125,7 +125,7 @@ END_SECTION
 
 START_SECTION(FastaIteratorIntern(const FastaIteratorIntern &))
 	ptr = new FastaIteratorIntern();
-	ptr->setFastaFile("data/FastaIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("FastaIterator_test.fasta"));
 	ptr->begin();
 	++*ptr;
 	++*ptr;

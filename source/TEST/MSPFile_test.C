@@ -74,7 +74,7 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
 	MSPFile msp_file;
 	vector<PeptideIdentification> ids;
 	RichPeakMap exp;
-	msp_file.load("data/MSPFile_test.msp", ids, exp);
+	msp_file.load(OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"), ids, exp);
 	TEST_EQUAL(exp.size(), 5)
 	TEST_EQUAL(ids.size(), 5)
 	
@@ -89,7 +89,7 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
 	msp_file.setParameters(p);
 	ids.clear();
 	exp.clear();
-	msp_file.load("data/MSPFile_test.msp", ids, exp);
+	msp_file.load(OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"), ids, exp);
 	TEST_EQUAL(exp.size(), 2)
 	TEST_EQUAL(ids.size(), 2)
 
@@ -100,7 +100,7 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
 	msp_file.setParameters(p);
 	ids.clear();
 	exp.clear();
-	msp_file.load("data/MSPFile_test.msp", ids, exp);
+	msp_file.load(OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"), ids, exp);
 	TEST_EQUAL(exp.size(), 3)
 	TEST_EQUAL(ids.size(), 3)
 

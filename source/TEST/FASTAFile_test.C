@@ -77,7 +77,7 @@ START_SECTION((void load(const String& filename, std::vector< FASTAEntry > &data
 	
 	TEST_EXCEPTION(Exception::FileNotFound, file.load("bla",data))
 	
-	file.load("data/FASTAFile_test.fasta",data);
+	file.load(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"),data);
 	sequences_iterator = data.begin();
 	TEST_EQUAL(data.size(), 2)
 	TEST_EQUAL(sequences_iterator->identifier, String("P68509|1433F_BOVIN"))
@@ -102,7 +102,7 @@ START_SECTION((void store(const String& filename, const std::vector< FASTAEntry 
 	NEW_TMP_FILE(tmp_filename);
 	FASTAFile file;
 	
-	file.load("data/FASTAFile_test.fasta",data);
+	file.load(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"),data);
 	TEST_EXCEPTION(Exception::UnableToCreateFile, file.store("/bla/bluff/blblb/sdfhsdjf/test.txt",data))
 	
 	file.store(tmp_filename,data);

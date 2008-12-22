@@ -73,7 +73,7 @@ END_SECTION
 
 START_SECTION(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, bool load_proteins=true))
 
-	xml_file.load("data/OMSSAXMLFile_test_1.xml",	protein_identification, peptide_identifications);
+	xml_file.load(OPENMS_GET_TEST_DATA_PATH("OMSSAXMLFile_test_1.xml"),	protein_identification, peptide_identifications);
 	OMSSAXMLFile xml_file;
 
 	TEST_EQUAL(protein_identification.getHits().size(), 4)

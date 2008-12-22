@@ -42,13 +42,13 @@ START_TEST(TextFile, "$Id$")
 
 START_SECTION((static bool exists(const String &file)))
 	TEST_EQUAL(File::exists("does_not_exists.txt"), false)
-	TEST_EQUAL(File::exists("data/File_test_text.txt"), true)
+	TEST_EQUAL(File::exists(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")), true)
 END_SECTION
 
 START_SECTION((static bool empty(const String &file)))
 	TEST_EQUAL(File::empty("does_not_exists.txt"), true)
-	TEST_EQUAL(File::empty("data/File_test_empty.txt"), true)	
-	TEST_EQUAL(File::empty("data/File_test_text.txt"), false)
+	TEST_EQUAL(File::empty(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)	
+	TEST_EQUAL(File::empty(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")), false)
 END_SECTION
 
 START_SECTION((static bool remove(const String &file)))
@@ -67,8 +67,8 @@ END_SECTION
 
 START_SECTION((static bool readable(const String &file)))
 	TEST_EQUAL(File::readable("does_not_exists.txt"), false)
-	TEST_EQUAL(File::readable("data/File_test_empty.txt"), true)	
-	TEST_EQUAL(File::readable("data/File_test_text.txt"), true)
+	TEST_EQUAL(File::readable(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)	
+	TEST_EQUAL(File::readable(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")), true)
 END_SECTION
 
 START_SECTION((static bool writable(const String &file)))
@@ -98,7 +98,7 @@ END_SECTION
 
 START_SECTION((static bool fileList(const String &dir, const String &file_pattern, std::vector< String > &output)))
 	vector<String> vec;
-	TEST_EQUAL(File::fileList("data/","*.bliblaluff",vec),false);
+	TEST_EQUAL(File::fileList(OPENMS_GET_TEST_DATA_PATH(""),"*.bliblaluff",vec),false);
 END_SECTION
 
 START_SECTION((static String getUniqueName()))

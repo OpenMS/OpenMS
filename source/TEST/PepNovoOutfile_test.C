@@ -87,16 +87,16 @@ START_SECTION(void load(const std::string& result_filename, std::vector< Peptide
 	// test exceptions
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.915, filenames_and_precursor_retention_times), "the file 'a' could not be found")
 	
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load("data/PepNovoOutfile.out1", peptide_identifications, protein_identification, 0.915, filenames_and_precursor_retention_times), "data/PepNovoOutfile.out1 in: Not enough columns in file in line 2 (should be 8)!")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out1"), peptide_identifications, protein_identification, 0.915, filenames_and_precursor_retention_times), "data/PepNovoOutfile.out1 in: Not enough columns in file in line 2 (should be 8)!")
 	
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load("data/PepNovoOutfile.out2", peptide_identifications, protein_identification, 0.915, filenames_and_precursor_retention_times), "data/PepNovoOutfile.out2 in: Not enough columns in file in line 7 (should be 8)!")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out2"), peptide_identifications, protein_identification, 0.915, filenames_and_precursor_retention_times), "data/PepNovoOutfile.out2 in: Not enough columns in file in line 7 (should be 8)!")
 	
 	peptide_identifications.clear();
 	protein_identification.setHits(vector< ProteinHit >());
 	
 	
 	// test the actual program
-	file.load("data/PepNovoOutfile.out", peptide_identifications, protein_identification, 0.915, filenames_and_precursor_retention_times);
+	file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out"), peptide_identifications, protein_identification, 0.915, filenames_and_precursor_retention_times);
 	
 	TEST_EQUAL(peptide_identifications.size(), 1)
 	if ( peptide_identifications.size() == 1 )
@@ -118,7 +118,7 @@ START_SECTION(void load(const std::string& result_filename, std::vector< Peptide
 		}
 	}
 	
-	file.load("data/PepNovoOutfile.out", peptide_identifications, protein_identification, 0.94, filenames_and_precursor_retention_times);
+	file.load(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile.out"), peptide_identifications, protein_identification, 0.94, filenames_and_precursor_retention_times);
 	
 	TEST_EQUAL(peptide_identifications.size(), 1)
 	if ( peptide_identifications.size() == 1 )
@@ -159,7 +159,7 @@ START_SECTION(void getSearchEngineAndVersion(const String& pepnovo_output_withou
 	
 	
 	// test the actual program
-	file.getSearchEngineAndVersion("data/PepNovoOutfile_version_file.txt", protein_identification);
+	file.getSearchEngineAndVersion(OPENMS_GET_TEST_DATA_PATH("PepNovoOutfile_version_file.txt"), protein_identification);
 	TEST_EQUAL(protein_identification.getSearchEngine(), "PepNovo");
 	TEST_EQUAL(protein_identification.getSearchEngineVersion(), "v2.00");
 END_SECTION

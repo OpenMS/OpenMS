@@ -41,7 +41,7 @@ START_TEST(IsotopeWaveletTransform, "$Id$")
 
 
 MSExperiment<> map;
-MzDataFile file; file.load ("data/IsotopeWaveletTransform_test_2.mzData", map);
+MzDataFile file; file.load (OPENMS_GET_TEST_DATA_PATH("IsotopeWaveletTransform_test_2.mzData"), map);
 map.updateRanges();
 IsotopeWaveletTransform<Peak1D>* trans = 0;
 START_SECTION(IsotopeWaveletTransform (const DoubleReal min_mz, const DoubleReal max_mz, const UInt max_charge))
@@ -77,7 +77,7 @@ END_SECTION
 START_SECTION((FeatureMap<Feature> mapSeeds2Features (const MSExperiment<PeakType>& map, const UInt max_charge, const UInt RT_votes_cutoff)))
 	FeatureMap<Feature> features = trans->mapSeeds2Features (map, 1, 0);
 	FeatureMap<Feature>::iterator iter;
-	std::ifstream ifile ("data/IsotopeWaveletTransform.out");
+	std::ifstream ifile (OPENMS_GET_TEST_DATA_PATH("IsotopeWaveletTransform.out"));
 	DoubleReal tmp;
 	TOLERANCE_ABSOLUTE (1e-1);
 	for (iter=features.begin(); iter!=features.end(); ++iter)

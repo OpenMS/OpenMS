@@ -84,23 +84,23 @@ START_SECTION((void run(const ConsensusMap &consensus_map_in, ConsensusMap &cons
 {
   ConsensusXMLFile cm_file;
 	ConsensusMap cm_in, cm_out;
-	cm_file.load("data/ItraqChannelExtractor.consensusXML",cm_in);
+	cm_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.consensusXML"),cm_in);
 
 	std::vector<ProteinIdentification> protein_ids;
 	std::vector<PeptideIdentification> peptide_ids;
-	IdXMLFile().load("data/ItraqQuantifier.idXML", protein_ids, peptide_ids);
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ItraqQuantifier.idXML"), protein_ids, peptide_ids);
 	
 	ItraqQuantifier iq;
 	iq.run(cm_in, peptide_ids, protein_ids, cm_out);
 
-	String cm_file_out;// = "data/ItraqQuantifier.consensusXML";
+	String cm_file_out;// = OPENMS_GET_TEST_DATA_PATH("ItraqQuantifier.consensusXML");
 	NEW_TMP_FILE(cm_file_out);
 	cm_file.store(cm_file_out,cm_out);
 	
 	// TOLERANCE_ABSOLUTE(was: 0.01); // TODO   I want to see if default tolerances are good enough.  If these fail, you are welcome to uncomment this.  (Clemens)
 	// TOLERANCE_RELATIVE(your choice ????);  TODO ????
 	WHITELIST("<?xml-stylesheet");
-	TEST_FILE_SIMILAR(cm_file_out,"data/ItraqQuantifier.consensusXML");
+	TEST_FILE_SIMILAR(cm_file_out,OPENMS_GET_TEST_DATA_PATH("ItraqQuantifier.consensusXML"));
 }
 END_SECTION
 

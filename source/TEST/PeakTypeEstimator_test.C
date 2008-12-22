@@ -60,11 +60,11 @@ START_SECTION((template<typename PeakConstIterator> SpectrumSettings::SpectrumTy
 	exp.resize(4);
 	PeakTypeEstimator pte;
 	// raw data (with zeros)
-	file.load("data/PeakTypeEstimator_raw.dta",exp[0]);
+	file.load(OPENMS_GET_TEST_DATA_PATH("PeakTypeEstimator_raw.dta"),exp[0]);
 	// TOF raw data (without zeros)
-	file.load("data/PeakTypeEstimator_rawTOF.dta",exp[1]);
+	file.load(OPENMS_GET_TEST_DATA_PATH("PeakTypeEstimator_rawTOF.dta"),exp[1]);
 	//peak data
-	file.load("data/PeakTypeEstimator_peak.dta",exp[2]);
+	file.load(OPENMS_GET_TEST_DATA_PATH("PeakTypeEstimator_peak.dta"),exp[2]);
 	//too few data points
 	exp[3].resize(4);
 	

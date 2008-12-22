@@ -64,7 +64,7 @@ END_SECTION
 
 START_SECTION((void load(const String &filename, ProteinIdentification &protein_identification, std::vector<PeptideIdentification> &id_data) const))
 
-	xml_file.load("data/MascotXMLFile_test_1.mascotXML",
+	xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_1.mascotXML"),
 							protein_identification, 
 				   		peptide_identifications);
 	
@@ -131,7 +131,7 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
 	temp.push_back(aa_sequence_3);
 	modified_peptides.insert(make_pair("135.29", temp));
 		
-	xml_file.load("data/MascotXMLFile_test_1.mascotXML",
+	xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_1.mascotXML"),
 								protein_identification, 
 					   		peptide_identifications,
 					   		modified_peptides);

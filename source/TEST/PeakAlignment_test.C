@@ -76,8 +76,8 @@ START_SECTION((double operator()(const PeakSpectrum &spec1, const PeakSpectrum &
 {
 	PeakAlignment pa;
 	PeakSpectrum s1, s2;
-	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
-	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s2);
+	DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s1);
+	DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s2);
 	s2.pop_back();
 	double score = pa(s1, s2);
 	TEST_REAL_SIMILAR(score, 0.997477)
@@ -87,7 +87,7 @@ END_SECTION
 START_SECTION((double operator()(const PeakSpectrum &spec) const ))
 {
   PeakSpectrum s1;
-  DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
+  DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s1);
   double score = (*ptr)(s1);
   TEST_REAL_SIMILAR(score, 1);
 }
@@ -97,8 +97,8 @@ START_SECTION((vector< pair<UInt,UInt> > getAlignmentTraceback(const PeakSpectru
 {
 	PeakAlignment pa;
 	PeakSpectrum s1, s2;
-	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
-	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s2);
+	DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s1);
+	DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s2);
 	vector< pair<UInt,UInt> > result, tester;
 	result = pa.getAlignmentTraceback(s1,s2);
 	for (Size i = 0; i < 127; ++i)

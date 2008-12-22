@@ -76,7 +76,7 @@ START_SECTION(void readFromFile(const String& filename))
 END_SECTION
 
 START_SECTION(void writeToFile(const String& filename))
-	String temp_filename("data/PILISModel_model.dat");
+	String temp_filename(OPENMS_GET_TEST_DATA_PATH("PILISModel_model.dat"));
 	NEW_TMP_FILE(temp_filename)
 	ptr->writeToFile(temp_filename);
 END_SECTION
@@ -89,7 +89,7 @@ END_SECTION
 
 START_SECTION(void train(const RichPeakSpectrum&, const AASequence& peptide, UInt charge))
 	RichPeakSpectrum spec;
-	DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", spec);
+	DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), spec);
 	ptr->train(spec, peptide, 1);
 END_SECTION
 

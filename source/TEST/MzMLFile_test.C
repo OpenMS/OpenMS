@@ -76,7 +76,7 @@ TOLERANCE_ABSOLUTE(0.01)
 START_SECTION((template <typename MapType> void load(const String& filename, MapType& map)))
 	MzMLFile file;
 	MSExperiment<> exp;
-	file.load("data/MzMLFile_1.mzML",exp);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
 
 	//-------------------------- general information --------------------------
   		
@@ -377,23 +377,23 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	
 	//load a second time to make sure everything is re-initialized correctly
 	MSExperiment<> exp2;
-	file.load("data/MzMLFile_1.mzML",exp2);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp2);
 	TEST_EQUAL(exp==exp2,true)
 	
 	//load minimal file
 	MSExperiment<> exp3;
-	file.load("data/MzMLFile_2_minimal.mzML",exp3);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_2_minimal.mzML"),exp3);
 	TEST_EQUAL(exp3.size(),0)
 
 	//load file with huge CDATA and whitespaces in CDATA
 	MSExperiment<> exp4;
-	file.load("data/MzMLFile_5_long.mzML",exp4);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_5_long.mzML"),exp4);
 	TEST_EQUAL(exp4.size(),1)
 	TEST_EQUAL(exp4[0].size(),997530)
 	
 	//load 32 bit data
 	MSExperiment<> exp5;
-	file.load("data/MzMLFile_6_32bit.mzML",exp5);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_32bit.mzML"),exp5);
 	TEST_EQUAL(exp5.size(),4)
 	TEST_EQUAL(exp5[0].size(),15)
 	TEST_EQUAL(exp5[1].size(),10)
@@ -402,7 +402,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	
 	//test if it works with different peak types
 	MSExperiment<RichPeak1D> e_rich;
-  file.load("data/MzMLFile_1.mzML",e_rich);
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),e_rich);
 	
 END_SECTION
 
@@ -410,7 +410,7 @@ START_SECTION([EXTRA] load only meta data)
 	MzMLFile file;
 	file.getOptions().setMetadataOnly(true);
 	MSExperiment<> exp;
-	file.load("data/MzMLFile_1.mzML",exp);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
 
 	TEST_EQUAL(exp.size(),0)
 	TEST_EQUAL(exp.getIdentifier(),"document_accession");
@@ -425,7 +425,7 @@ START_SECTION([EXTRA] load with restricted MS levels)
 	MzMLFile file;
 	file.getOptions().addMSLevel(1);
 	MSExperiment<> exp;
-	file.load("data/MzMLFile_1.mzML",exp);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
 
 	TEST_EQUAL(exp.size(),3)
 	TEST_REAL_SIMILAR(exp[0].getRT(),5.1)
@@ -438,7 +438,7 @@ START_SECTION([EXTRA] load with restricted RT range)
 	MzMLFile file;
 	file.getOptions().setRTRange(makeRange(5.15,5.35));
 	MSExperiment<> exp;
-	file.load("data/MzMLFile_1.mzML",exp);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
 	TEST_EQUAL(exp.size(),2)
 	TEST_REAL_SIMILAR(exp[0].getRT(),5.2)
 	TEST_REAL_SIMILAR(exp[1].getRT(),5.3)
@@ -448,7 +448,7 @@ START_SECTION([EXTRA] load with restricted m/z range)
 	MzMLFile file;
 	file.getOptions().setMZRange(makeRange(6.5,9.5));
 	MSExperiment<> exp;
-	file.load("data/MzMLFile_1.mzML",exp);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
 	
 	TEST_EQUAL(exp.size(),4)
 	TEST_EQUAL(exp[0].size(),3)
@@ -468,7 +468,7 @@ START_SECTION([EXTRA] load intensity range)
 	MzMLFile file;
 	file.getOptions().setIntensityRange(makeRange(6.5,9.5));
 	MSExperiment<> exp;
-	file.load("data/MzMLFile_1.mzML",exp);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
 
 	TEST_EQUAL(exp.size(),4)
 	TEST_EQUAL(exp[0].size(),3)
@@ -489,7 +489,7 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 	
 	//load map
 	MSExperiment<> exp_original;
-	file.load("data/MzMLFile_1.mzML",exp_original);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp_original);
  	
  	//store map
 	std::string tmp_filename;
@@ -524,12 +524,12 @@ START_SECTION([EXTRA] bool isValid(const String& filename))
 
 	//written filled file
 	NEW_TMP_FILE(tmp_filename);
-	file.load("data/MzMLFile_1.mzML",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),e);
   file.store(tmp_filename,e);
   TEST_EQUAL(file.isValid(tmp_filename),true);
 	
 	//indexed file
-	TEST_EQUAL(file.isValid("data/MzMLFile_4_indexed.mzML"),true)
+	TEST_EQUAL(file.isValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_4_indexed.mzML")),true)
 END_SECTION
 
 START_SECTION( bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings))
@@ -547,24 +547,24 @@ START_SECTION( bool isSemanticallyValid(const String& filename, StringList& erro
 	
 	//written filled file
 	NEW_TMP_FILE(tmp_filename);
-	file.load("data/MzMLFile_1.mzML",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),e);
   file.store(tmp_filename,e);
   TEST_EQUAL(file.isSemanticallyValid(tmp_filename, errors, warnings),true);
 	TEST_EQUAL(errors.size(),0)
 	TEST_EQUAL(warnings.size(),0)
 
 	//valid file
-	TEST_EQUAL(file.isSemanticallyValid("data/MzMLFile_1.mzML", errors, warnings),true)
+	TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), errors, warnings),true)
 	TEST_EQUAL(errors.size(),0)
 	TEST_EQUAL(warnings.size(),2)
 
 	//indexed MzML
-	TEST_EQUAL(file.isSemanticallyValid("data/MzMLFile_4_indexed.mzML", errors, warnings),true)
+	TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_4_indexed.mzML"), errors, warnings),true)
 	TEST_EQUAL(errors.size(),0)
 	TEST_EQUAL(warnings.size(),0)
 	
 	//invalid file
-	TEST_EQUAL(file.isSemanticallyValid("data/MzMLFile_3_invalid.mzML", errors, warnings),false)
+	TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_3_invalid.mzML"), errors, warnings),false)
 	TEST_EQUAL(errors.size(),5)
 	TEST_EQUAL(warnings.size(),0)
 END_SECTION

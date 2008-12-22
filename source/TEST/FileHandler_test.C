@@ -92,27 +92,27 @@ END_SECTION
 
 START_SECTION((static Type getTypeByContent(const String &filename)))
 	FileHandler tmp;
-	TEST_EQUAL(tmp.getTypeByContent("data/MzDataFile_1.mzData"), FileHandler::MZDATA)
-	TEST_EQUAL(tmp.getTypeByContent("data/FeatureXMLFile_1.featureXML"), FileHandler::FEATUREXML)
-	TEST_EQUAL(tmp.getTypeByContent("data/MzXMLFile_1.mzXML"), FileHandler::MZXML)
-	TEST_EQUAL(tmp.getTypeByContent("data/MzMLFile_1.mzML"), FileHandler::MZML)
-	TEST_EQUAL(tmp.getTypeByContent("data/DTAFile_test.dta"), FileHandler::DTA)
-	TEST_EQUAL(tmp.getTypeByContent("data/DTA2DFile_test_1.dta2d"), FileHandler::DTA2D)
-	TEST_EQUAL(tmp.getTypeByContent("data/DTA2DFile_test_2.dta2d"), FileHandler::DTA2D)
-	TEST_EQUAL(tmp.getTypeByContent("data/ANDIFile_test.cdf"), FileHandler::ANDIMS)
-	TEST_EQUAL(tmp.getTypeByContent("data/class_test_infile.txt"), FileHandler::UNKNOWN)
-	TEST_EQUAL(tmp.getTypeByContent("data/IdXMLFile_whole.idXML"), FileHandler::IDXML)
-	TEST_EQUAL(tmp.getTypeByContent("data/TransformationXMLFile_1.trafoXML"), FileHandler::TRANSFORMATIONXML)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData")), FileHandler::MZDATA)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML")), FileHandler::FEATUREXML)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML")), FileHandler::MZXML)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML")), FileHandler::MZML)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta")), FileHandler::DTA)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d")), FileHandler::DTA2D)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_2.dta2d")), FileHandler::DTA2D)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("ANDIFile_test.cdf")), FileHandler::ANDIMS)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("class_test_infile.txt")), FileHandler::UNKNOWN)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML")), FileHandler::IDXML)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_1.trafoXML")), FileHandler::TRANSFORMATIONXML)
 	
 	TEST_EXCEPTION(Exception::FileNotFound,tmp.getTypeByContent("/bli/bla/bluff"))
 END_SECTION
 
 START_SECTION((static Type getType(const String &filename)))
 	FileHandler tmp;
-	TEST_EQUAL(tmp.getType("data/class_test_infile.txt"), FileHandler::UNKNOWN)
-	TEST_EQUAL(tmp.getType("data/IdXMLFile_whole.idXML"), FileHandler::IDXML)
-	TEST_EQUAL(tmp.getType("data/ConsensusXMLFile.consensusXML"), FileHandler::CONSENSUSXML)
-	TEST_EQUAL(tmp.getType("data/TransformationXMLFile_1.trafoXML"), FileHandler::TRANSFORMATIONXML)
+	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("class_test_infile.txt")), FileHandler::UNKNOWN)
+	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML")), FileHandler::IDXML)
+	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile.consensusXML")), FileHandler::CONSENSUSXML)
+	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_1.trafoXML")), FileHandler::TRANSFORMATIONXML)
 	
 	TEST_EXCEPTION(Exception::FileNotFound,tmp.getType("/bli/bla/bluff"))
 END_SECTION
@@ -121,54 +121,54 @@ START_SECTION((template <class PeakType> bool loadExperiment(const String &filen
 	FileHandler tmp;
 	MSExperiment<> exp;
 	TEST_EQUAL(tmp.loadExperiment("test.bla",exp), false)	
-	TEST_EQUAL(tmp.loadExperiment("data/DTAFile_test.dta",exp), true)
+	TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"),exp), true)
 
-	TEST_EQUAL(tmp.loadExperiment("data/MzDataFile_1.mzData",exp), true)	
+	TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),exp), true)	
 	TEST_REAL_SIMILAR(exp[1][0].getPosition()[0], 110)
 	TEST_REAL_SIMILAR(exp[1][1].getPosition()[0], 120)
 	TEST_REAL_SIMILAR(exp[1][2].getPosition()[0], 130)
 
   // starts with 110, so this one should skip the first
   tmp.getOptions().setMZRange(DRange<1> (115, 1000));
-	TEST_EQUAL(tmp.loadExperiment("data/MzDataFile_1.mzData",exp), true)	
+	TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),exp), true)	
 	TEST_REAL_SIMILAR(exp[1][0].getPosition()[0], 120)
 	TEST_REAL_SIMILAR(exp[1][1].getPosition()[0], 130)
 
   tmp.getOptions() = PeakFileOptions();
-  TEST_EQUAL(tmp.loadExperiment("data/MzXMLFile_1.mzXML",exp), true)	
+  TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),exp), true)	
 	TEST_REAL_SIMILAR(exp[2][0].getPosition()[0], 100)
 	TEST_REAL_SIMILAR(exp[2][1].getPosition()[0], 110)
 	TEST_REAL_SIMILAR(exp[2][2].getPosition()[0], 120)
 
   tmp.getOptions().setMZRange(DRange<1> (115, 1000));
-  TEST_EQUAL(tmp.loadExperiment("data/MzXMLFile_1.mzXML",exp), true)	
+  TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),exp), true)	
 	TEST_REAL_SIMILAR(exp[2][0].getPosition()[0], 120)
 	TEST_REAL_SIMILAR(exp[2][1].getPosition()[0], 130)
 	TEST_REAL_SIMILAR(exp[2][2].getPosition()[0], 140)
 
   tmp.getOptions() = PeakFileOptions();
-  TEST_EQUAL(tmp.loadExperiment("data/MzMLFile_1.mzML",exp), true)	
+  TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp), true)	
 	TEST_EQUAL(exp.size(),4)
 
 
 #ifdef USE_ANDIMS
-  TEST_EQUAL(tmp.loadExperiment("data/ANDIFile_test.cdf",exp), true)
+  TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("ANDIFile_test.cdf"),exp), true)
 #else
-	TEST_EQUAL(tmp.loadExperiment("data/ANDIFile_test.cdf",exp), false)
+	TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("ANDIFile_test.cdf"),exp), false)
 #endif
 
   tmp.getOptions() = PeakFileOptions();
-  TEST_EQUAL(tmp.loadExperiment("data/DTA2DFile_test_1.dta2d",exp), true)	
+  TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),exp), true)	
 	TEST_REAL_SIMILAR(exp[0][0].getPosition()[0], 230.02)
 	TEST_REAL_SIMILAR(exp[0][1].getPosition()[0], 430.02)
 	TEST_REAL_SIMILAR(exp[0][2].getPosition()[0], 630.02)
 
   tmp.getOptions().setMZRange(DRange<1> (300, 1000));
-  TEST_EQUAL(tmp.loadExperiment("data/DTA2DFile_test_1.dta2d",exp), true)	
+  TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),exp), true)	
 	TEST_REAL_SIMILAR(exp[0][0].getPosition()[0], 430.02)
 	TEST_REAL_SIMILAR(exp[0][1].getPosition()[0], 630.02)
 
-	TEST_EXCEPTION(Exception::ParseError,tmp.loadExperiment("data/DTAFile_test.dta",exp, FileHandler::DTA2D))
+	TEST_EXCEPTION(Exception::ParseError,tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"),exp, FileHandler::DTA2D))
 END_SECTION
 
 START_SECTION((static bool isSupported(Type type)))
@@ -202,9 +202,9 @@ START_SECTION((template <class FeatureType> bool loadFeatures(const String &file
   FileHandler tmp;
 	FeatureMap<> map;
 	TEST_EQUAL(tmp.loadFeatures("test.bla",map), false)	
-	TEST_EQUAL(tmp.loadFeatures("data/FeatureXMLFile_2_options.featureXML",map), true)
+	TEST_EQUAL(tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"),map), true)
 	TEST_EQUAL(map.size(),7);
-	TEST_EQUAL(tmp.loadFeatures("data/FeatureXMLFile_2_options.featureXML",map), true)
+	TEST_EQUAL(tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"),map), true)
 	TEST_EQUAL(map.size(),7);
 	
 END_SECTION

@@ -72,7 +72,7 @@ END_SECTION
 
 START_SECTION(double operator () (const PeakSpectrum& spec) const)
 	PeakSpectrum s1;
-  DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
+  DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s1);
 
   Normalizer normalizer;
   Param p(normalizer.getParameters());
@@ -86,8 +86,8 @@ END_SECTION
 
 START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)
   PeakSpectrum s1, s2;
-  DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s1);
-  DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", s2);
+  DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s1);
+  DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s2);
 
   Normalizer normalizer;
   Param p(normalizer.getParameters());

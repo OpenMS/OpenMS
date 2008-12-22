@@ -54,7 +54,7 @@ END_SECTION
 
 ControlledVocabulary cv;
 START_SECTION(void loadFromOBO(const String &name, const String &filename))
-	cv.loadFromOBO("bla","data/ControlledVocabulary.obo");
+	cv.loadFromOBO("bla",OPENMS_GET_TEST_DATA_PATH("ControlledVocabulary.obo"));
 	TEST_EQUAL(cv.name(),"bla")
 END_SECTION
 

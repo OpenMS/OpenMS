@@ -72,7 +72,7 @@ END_SECTION
 START_SECTION((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
 	DTAFile dta_file;
 	PeakSpectrum spec;
-	dta_file.load("data/Transformers_tests.dta", spec);
+	dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec);
 
 	e_ptr->filterSpectrum(spec);
 	
@@ -96,7 +96,7 @@ END_SECTION
 START_SECTION((void filterPeakMap(PeakMap& exp)))
 	DTAFile dta_file;
   PeakSpectrum spec;
-  dta_file.load("data/Transformers_tests.dta", spec);
+  dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec);
 
 	PeakMap pm;
 	pm.push_back(spec);
@@ -115,7 +115,7 @@ END_SECTION
 START_SECTION((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   DTAFile dta_file;
   PeakSpectrum spec;
-  dta_file.load("data/Transformers_tests.dta", spec);
+  dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec);
 
   e_ptr->filterPeakSpectrum(spec);
 

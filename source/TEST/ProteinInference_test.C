@@ -72,7 +72,7 @@ START_SECTION((void infer(ConsensusMap &consensus_map, const UInt reference_map)
 	
   ConsensusXMLFile cm_file;
 	ConsensusMap cm;
-	cm_file.load("data/ItraqQuantifier.consensusXML",cm);
+	cm_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqQuantifier.consensusXML"),cm);
 	
 	// delete quantitative info
 	for (size_t i=0; i < cm.getProteinIdentifications()[0].getHits().size(); ++i)
@@ -84,13 +84,13 @@ START_SECTION((void infer(ConsensusMap &consensus_map, const UInt reference_map)
 	ProteinInference inferrer;
 	inferrer.infer(cm, 0);
 	
-	String cm_file_out;// = "data/ItraqQuantifier.consensusXML";
+	String cm_file_out;// = OPENMS_GET_TEST_DATA_PATH("ItraqQuantifier.consensusXML");
 	NEW_TMP_FILE(cm_file_out);
 	cm_file.store(cm_file_out,cm);
 	
 	// TOLERANCE_ABSOLUTE(0.01);
 	WHITELIST("<?xml-stylesheet");
-	TEST_FILE_SIMILAR(cm_file_out,"data/ItraqQuantifier.consensusXML");
+	TEST_FILE_SIMILAR(cm_file_out,OPENMS_GET_TEST_DATA_PATH("ItraqQuantifier.consensusXML"));
 	
 }
 END_SECTION

@@ -44,7 +44,7 @@ using namespace std;
 
 PILISIdentification* ptr = 0;
 RichPeakSpectrum spec;
-DTAFile().load("data/PILISSequenceDB_DFPIANGER_1.dta", spec);
+DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), spec);
 spec.setMSLevel(2);
 START_SECTION(PILISIdentification())
 	ptr = new PILISIdentification();

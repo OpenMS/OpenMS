@@ -253,8 +253,8 @@ const char* a1 ="TOPPBaseTest";
 const char* a3 ="-ini";
 const char* a5 ="-instance";
 const char* a6 ="6";
-const char* a7 ="data/TOPPBase_toolcommon.ini";
-const char* a8 ="data/TOPPBase_common.ini";
+const char* a7 =OPENMS_GET_TEST_DATA_PATH("TOPPBase_toolcommon.ini");
+const char* a8 =OPENMS_GET_TEST_DATA_PATH("TOPPBase_common.ini");
 const char* a9 ="5";
 const char* a10 ="-stringoption";
 const char* a11 ="-flag";
@@ -507,8 +507,8 @@ END_SECTION
 START_SECTION(([EXTRA]void inputFileReadable_(const String& filename) const))
 	TOPPBaseTest tmp;
 	TEST_EXCEPTION(Exception::FileNotFound,tmp.inputFileReadable("/this/file/does/not/exist.txt"));
-	TEST_EXCEPTION(Exception::FileEmpty,tmp.inputFileReadable("data/TOPPBase_empty.txt"));
-	tmp.inputFileReadable("data/TOPPBase_common.ini");
+	TEST_EXCEPTION(Exception::FileEmpty,tmp.inputFileReadable(OPENMS_GET_TEST_DATA_PATH("TOPPBase_empty.txt")));
+	tmp.inputFileReadable(OPENMS_GET_TEST_DATA_PATH("TOPPBase_common.ini"));
 END_SECTION
 
 START_SECTION(([EXTRA]void outputFileWritable_(const String& filename) const))
@@ -554,7 +554,7 @@ START_SECTION(([EXTRA]Param getParam_( const std::string& prefix ) const))
 
 	Param good_params;
 	good_params.setValue( "TOPPBaseTest:stringoption", "toolcommon" );
-	good_params.setValue( "ini", "data/TOPPBase_toolcommon.ini" );
+	good_params.setValue( "ini", OPENMS_GET_TEST_DATA_PATH("TOPPBase_toolcommon.ini") );
 	good_params.setValue( "stringoption", "instance1" );
 
 	TEST_EQUAL(tmp_topp.getParam(), good_params);

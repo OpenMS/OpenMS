@@ -131,19 +131,19 @@ START_SECTION(void handlePTMs(const String& modification_line, const String& mod
 	String modification_line = "Phosphorylation";
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.handlePTMs(modification_line, "a", true), "the file 'a' could not be found")
 	
-// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotReadable, file.handlePTMs(modification_line, "data/Sequest_unreadable_unwriteable.txt", true), "the file `data/Sequest_unreadable_unwriteable.txt' is not readable for the current user")
+// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotReadable, file.handlePTMs(modification_line, OPENMS_GET_TEST_DATA_PATH("Sequest_unreadable_unwriteable.txt"), true), "the file `data/Sequest_unreadable_unwriteable.txt' is not readable for the current user")
 	
 	modification_line = "2H20,KRLNH,fix";
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", true), "There's something wrong with this modification. Aborting! in: 2H20,KRLNH,fix")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.handlePTMs(modification_line,  OPENMS_GET_TEST_DATA_PATH("../TOPP/Sequest_PTMs.xml"), true), "There's something wrong with this modification. Aborting! in: 2H20,KRLNH,fix")
 
 	modification_line = "10.3+";
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", true), "No residues for modification given. Aborting! in: 10.3+")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.handlePTMs(modification_line,  OPENMS_GET_TEST_DATA_PATH("../TOPP/Sequest_PTMs.xml"), true), "No residues for modification given. Aborting! in: 10.3+")
 
 	modification_line = "10.3+,KRLNH,stat,PTM_0";
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", true), "There's something wrong with the type of this modification. Aborting! in: 10.3+,KRLNH,stat,PTM_0")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.handlePTMs(modification_line,  OPENMS_GET_TEST_DATA_PATH("../TOPP/Sequest_PTMs.xml"), true), "There's something wrong with the type of this modification. Aborting! in: 10.3+,KRLNH,stat,PTM_0")
 
 	modification_line = "Phosphorylation:Phosphorylation";
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", true), "There's already a modification with this name. Aborting! in: Phosphorylation")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.handlePTMs(modification_line,  OPENMS_GET_TEST_DATA_PATH("../TOPP/Sequest_PTMs.xml"), true), "There's already a modification with this name. Aborting! in: Phosphorylation")
 	
 
 	// test the actual program
@@ -151,7 +151,7 @@ START_SECTION(void handlePTMs(const String& modification_line, const String& mod
 // 	"10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm,opt:-16,nterm,fix:17-,cterm_prot:-17,nterm_prot,fix";
 
 	// average masses
-	file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", false);
+  file.handlePTMs(modification_line,  OPENMS_GET_TEST_DATA_PATH("../TOPP/Sequest_PTMs.xml"), false);
 
 	map< String, vector< String > > modifications;
 	modifications["PTM_0"] = vector< String >(3);
@@ -226,7 +226,7 @@ START_SECTION(void handlePTMs(const String& modification_line, const String& mod
 	}
 
 	// monoisotopic masses
-	file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", true);
+	file.handlePTMs(modification_line,  OPENMS_GET_TEST_DATA_PATH("../TOPP/Sequest_PTMs.xml"), true);
 
 //	modifications["Phosphorylation"][1] = "79.96634";
 // 	modifications["Carbamylation"][1] = "43.00582";
@@ -256,7 +256,7 @@ START_SECTION((const std::map< String, std::vector< String > >& getModifications
 // 	"10.3+,KRLNH,fix:Phosphorylation:+16,C:HCNO,nterm,Carbamylation:H2C,CHKNQRILDEST,opt,Methylation:16-,cterm,opt:-16,nterm,fix:17-,cterm_prot:-17,nterm_prot,fix";
 
 	// average masses
-	file.handlePTMs(modification_line, "TOPP/Sequest_PTMs.xml", false);
+	file.handlePTMs(modification_line,  OPENMS_GET_TEST_DATA_PATH("../TOPP/Sequest_PTMs.xml"), false);
 
 	map< String, vector< String > > modifications;
 	modifications["PTM_0"] = vector< String >(3);
@@ -577,11 +577,11 @@ START_SECTION(void store(const String& filename))
 	NEW_TMP_FILE(filename)
 
 	// test exceptions
-// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.store("data/Sequest_unreadable_unwriteable.txt"), "the file `data/Sequest_unreadable_unwriteable.txt' could not be created")
+// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.store(OPENMS_GET_TEST_DATA_PATH("Sequest_unreadable_unwriteable.txt")), "the file `data/Sequest_unreadable_unwriteable.txt' could not be created")
 
 	// test actual program
 	file.store(filename);
-	TEST_FILE_EQUAL(filename.c_str(), "data/SequestInfile_test_template1.txt");
+	TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("SequestInfile_test_template1.txt"));
 END_SECTION
 
 /////////////////////////////////////////////////////////////

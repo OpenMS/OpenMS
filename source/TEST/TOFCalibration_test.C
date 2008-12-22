@@ -111,13 +111,13 @@ START_SECTION((template<typename PeakType> void pickAndCalibrate(MSExperiment< P
   MSExperiment<Peak1D> calib_exp;
   MSExperiment<Peak1D> exp,res_exp;
   MzDataFile file;
-  file.load("data/TOFCalibration_test_calibrants.mzData",calib_exp);
-  file.load("data/TOFCalibration_test.mzData",exp);
-  file.load("data/TOFCalibration_test_output.mzData",res_exp);
+  file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test_calibrants.mzData"),calib_exp);
+  file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test.mzData"),exp);
+  file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test_output.mzData"),res_exp);
   vector<double> ref_masses;
   TextFile ref_file;
 
-  ref_file.load("data/TOFCalibration_test_calibrant_masses.txt",true);
+  ref_file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test_calibrant_masses.txt"),true);
 
   for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
 	{
@@ -166,13 +166,13 @@ std::cout.precision(writtenDigits<DoubleReal>());
   MSExperiment<> calib_exp;
   MSExperiment<> exp,res_exp;
   MzDataFile file;
-  file.load("data/TOFCalibration_test_calibrants2.mzData",calib_exp);
-  file.load("data/TOFCalibration_test2.mzData",exp);
-  file.load("data/TOFCalibration_test_output2.mzData",res_exp);
+  file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test_calibrants2.mzData"),calib_exp);
+  file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test2.mzData"),exp);
+  file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test_output2.mzData"),res_exp);
   vector<double> ref_masses;
   TextFile ref_file;
 
-  ref_file.load("data/TOFCalibration_test_calibrant_masses.txt",true);
+  ref_file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test_calibrant_masses.txt"),true);
 
   for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
    {

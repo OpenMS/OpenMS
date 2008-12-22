@@ -114,7 +114,7 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 	res.clear();
 	TEST_EXCEPTION(Exception::InvalidValue, sa->findSpec(res, specc3));
 	ifstream i_stream;
-	i_stream.open("data/SuffixArrayTrypticSeqan_test.txt");
+	i_stream.open(OPENMS_GET_TEST_DATA_PATH("SuffixArrayTrypticSeqan_test.txt"));
 	String txt;
 	getline(i_stream,txt);
 	sa = new SuffixArrayTrypticSeqan(txt,"");

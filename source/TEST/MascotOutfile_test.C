@@ -57,7 +57,7 @@ START_SECTION((void load(String filename, ProteinIdentification &protein_identif
 	vector<PeptideIdentification> peptide_identifications;
 	ProteinIdentification protein_identification;
 
-	ptr->load("data/MascotOutfile2.txt", protein_identification, peptide_identifications);
+	ptr->load(OPENMS_GET_TEST_DATA_PATH("MascotOutfile2.txt"), protein_identification, peptide_identifications);
 
 	TEST_EQUAL(peptide_identifications.size(), 4)	
 	TEST_EQUAL(peptide_identifications[0].getHits().size(), 1)	

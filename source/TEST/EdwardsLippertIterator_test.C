@@ -62,7 +62,7 @@ END_SECTION
 
 START_SECTION(EdwardsLippertIterator(const EdwardsLippertIterator &))
 	ptr = new EdwardsLippertIterator();
-	ptr->setFastaFile("data/EdwardsLippertIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("EdwardsLippertIterator_test.fasta"));
 	ptr->setSpectrum(specc);
 	ptr->begin();
 	++*ptr;
@@ -77,15 +77,15 @@ START_SECTION(virtual void setFastaFile(const String &f))
 	ptr = new EdwardsLippertIterator();
 	TEST_EXCEPTION (Exception::FileNotFound,ptr->setFastaFile("FileThatNotExists"));
 	TEST_EXCEPTION (Exception::FileNotFound,ptr->setFastaFile(""));
-	ptr->setFastaFile("data/FastaIterator_test.fasta");
-	TEST_EQUAL (ptr->getFastaFile(),"data/FastaIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("FastaIterator_test.fasta"));
+	TEST_EQUAL (ptr->getFastaFile(),OPENMS_GET_TEST_DATA_PATH("FastaIterator_test.fasta"));
 END_SECTION
 
 START_SECTION(String getFastaFile ())
 	ptr = new EdwardsLippertIterator();
 	TEST_EQUAL (ptr->getFastaFile(),"");
-	ptr->setFastaFile("data/FastaIterator_test.fasta");
-	TEST_EQUAL (ptr->getFastaFile(),"data/FastaIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("FastaIterator_test.fasta"));
+	TEST_EQUAL (ptr->getFastaFile(),OPENMS_GET_TEST_DATA_PATH("FastaIterator_test.fasta"));
 END_SECTION
 
 
@@ -107,7 +107,7 @@ START_SECTION(virtual FASTAEntry operator *())
 	}
 	ptr = new EdwardsLippertIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator,**ptr);
-	ptr->setFastaFile("data/EdwardsLippertIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("EdwardsLippertIterator_test.fasta"));
 	ptr->setSpectrum(specc);
 	ptr->begin();
 	for (Size i = 0; i < 29;++i)
@@ -128,7 +128,7 @@ START_SECTION(virtual FASTAEntry operator *())
 
 
 	ptr = new EdwardsLippertIterator();
-	ptr->setFastaFile("data/EdwardsLippertIterator_test_2.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("EdwardsLippertIterator_test_2.fasta"));
 	ptr->setSpectrum(specc);
 	ptr->begin();
 	float tol = 0.2;
@@ -154,7 +154,7 @@ END_SECTION
 START_SECTION(virtual PepIterator& operator++())
 	ptr = new EdwardsLippertIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, ++(*ptr));
-	ptr->setFastaFile("data/EdwardsLippertIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("EdwardsLippertIterator_test.fasta"));
 	ptr->setSpectrum(specc);
 	ptr->begin();
 	PepIterator & pepIt = ++(*ptr);
@@ -168,7 +168,7 @@ END_SECTION
 START_SECTION(virtual PepIterator* operator++(int i))
 	ptr = new EdwardsLippertIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, (*ptr)++);
-	ptr->setFastaFile("data/EdwardsLippertIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("EdwardsLippertIterator_test.fasta"));
 	ptr->setSpectrum(specc);
 	ptr->begin();
 	FASTAEntry fe = **ptr;
@@ -180,7 +180,7 @@ END_SECTION
 START_SECTION(virtual bool begin())
 	ptr = new EdwardsLippertIterator();
 	TEST_EXCEPTION (Exception::InvalidIterator, (*ptr).begin());
-	ptr->setFastaFile("data/EdwardsLippertIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("EdwardsLippertIterator_test.fasta"));
 	ptr->setSpectrum(specc);
 	ptr->begin();
 	FASTAEntry fe = **ptr;
@@ -190,7 +190,7 @@ END_SECTION
 
 START_SECTION(bool isAtEnd ())
 	ptr = new EdwardsLippertIterator();
-	ptr->setFastaFile("data/EdwardsLippertIterator_test.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("EdwardsLippertIterator_test.fasta"));
 	ptr->setSpectrum(specc);
 	ptr->begin();
 	for (int i = 0; i < 58;i++)

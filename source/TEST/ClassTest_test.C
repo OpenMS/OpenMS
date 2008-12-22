@@ -767,7 +767,7 @@ START_SECTION()
 END_SECTION
 
 START_SECTION()
-	TEST_FILE_EQUAL("data/class_test_infile.txt", "data/class_test_template.txt")
+	TEST_FILE_EQUAL(OPENMS_GET_TEST_DATA_PATH("class_test_infile.txt"), OPENMS_GET_TEST_DATA_PATH("class_test_template.txt"))
 END_SECTION
 
 START_SECTION()

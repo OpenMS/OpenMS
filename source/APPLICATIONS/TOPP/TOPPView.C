@@ -108,10 +108,16 @@ int main( int argc, const char** argv )
 
 	// test if unknown options were given
 	if (param.exists("unknown"))
-	{
-		cout << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
-		print_usage();
-		return 1;
+	{    
+    // if TOPPView is packed as Mac OS X bundle it will get a -psn_.. parameter by default from the OS
+    // if this is the only unknown option it will be ignored .. maybe this should be solved directly
+    // in Param.h
+    if(!(param.getValue("unknown").toString().hasSubstring("-psn") && !param.getValue("unknown").toString().hasSubstring(", ")))
+    {
+      cout << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
+      print_usage();
+      return 1;
+    }
 	}
 
 #ifndef DEBUG_TOPP	

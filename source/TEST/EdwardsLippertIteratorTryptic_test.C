@@ -56,7 +56,7 @@ END_SECTION
 
 START_SECTION(EdwardsLippertIteratorTryptic(const EdwardsLippertIteratorTryptic& rhs))
   ptr = new EdwardsLippertIteratorTryptic();
-  ptr->setFastaFile("data/EdwardsLippertIterator_test_2.fasta");
+  ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("EdwardsLippertIterator_test_2.fasta"));
 	vector<float> specc;
 	specc.push_back(178.1864);
 	specc.push_back(441.4806);
@@ -72,7 +72,7 @@ END_SECTION
 
 START_SECTION(EdwardsLippertIteratorTryptic& operator=(const EdwardsLippertIteratorTryptic &rhs))
 	ptr = new EdwardsLippertIteratorTryptic();
-  ptr->setFastaFile("data/EdwardsLippertIterator_test_2.fasta");
+  ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("EdwardsLippertIterator_test_2.fasta"));
   vector<float> specc;
   specc.push_back(178.1864);
   specc.push_back(441.4806);
@@ -104,8 +104,8 @@ START_SECTION([EXTRA] FASTAEntry operator*())
 
 	ptr = new EdwardsLippertIteratorTryptic();
 	FastaIterator * fit = new FastaIterator();
-	ptr->setFastaFile("data/EdwardsLippertIterator_test_2.fasta");
-	fit->setFastaFile("data/EdwardsLippertIterator_test_2.fasta");
+	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("EdwardsLippertIterator_test_2.fasta"));
+	fit->setFastaFile(OPENMS_GET_TEST_DATA_PATH("EdwardsLippertIterator_test_2.fasta"));
 	ptr->setSpectrum(specc);
 	fit->begin();
 	ptr->begin();

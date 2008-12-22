@@ -52,7 +52,7 @@ using namespace std;
 ///load input data
 std::vector< ProteinIdentification > protein_identifications;
 std::vector< PeptideIdentification > identifications;
-IdXMLFile().load("data/IDFilter_test.idXML", protein_identifications, identifications);
+IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test.idXML"), protein_identifications, identifications);
 PeptideIdentification identification = identifications[0];
 ProteinIdentification protein_identification = protein_identifications[0];							
 
@@ -388,7 +388,7 @@ END_SECTION
 START_SECTION(void filterIdentificationsByRTPValues(const PeptideIdentification &identification, PeptideIdentification &filtered_identification, DoubleReal p_value=0.05))
 	PeptideIdentification filtered_identification;
 
-	IdXMLFile().load("data/IDFilter_test2.idXML", protein_identifications, identifications);
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test2.idXML"), protein_identifications, identifications);
 	PeptideIdentification identification2 = identifications[0];
 	ProteinIdentification protein_identification2 = protein_identifications[0];							
 	IDFilter().filterIdentificationsByRTPValues(identification2 , filtered_identification, 0.08);

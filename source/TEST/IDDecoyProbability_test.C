@@ -71,8 +71,8 @@ START_SECTION((void apply(std::vector<PeptideIdentification>& prob_ids, const st
   IDDecoyProbability decoy;
 	vector<ProteinIdentification> prot_ids_fwd, prot_ids_rev;
 	vector<PeptideIdentification> pep_ids_fwd, pep_ids_rev, prob_ids;
-	IdXMLFile().load("data/XTandem_fwd_ids.idXML", prot_ids_fwd, pep_ids_fwd);
-	IdXMLFile().load("data/XTandem_rev_ids.idXML", prot_ids_rev, pep_ids_rev);
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_fwd_ids.idXML"), prot_ids_fwd, pep_ids_fwd);
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("XTandem_rev_ids.idXML"), prot_ids_rev, pep_ids_rev);
 
 	decoy.apply(prob_ids, pep_ids_fwd, pep_ids_rev);
 

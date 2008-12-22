@@ -66,7 +66,7 @@ END_SECTION
 ptr = new OMSSACSVFile();
 
 START_SECTION(void load(const String &filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &id_data) const)
-	ptr->load("data/OMSSACSVFile_test_1.csv", protein_identification, peptide_identifications);
+	ptr->load(OPENMS_GET_TEST_DATA_PATH("OMSSACSVFile_test_1.csv"), protein_identification, peptide_identifications);
 	TEST_EQUAL(protein_identification.getHits().size(), 0)
 	TEST_EQUAL(peptide_identifications.size(), 1)
 END_SECTION

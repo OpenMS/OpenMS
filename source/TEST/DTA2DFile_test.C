@@ -80,7 +80,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EXCEPTION( Exception::FileNotFound , file.load("dummy/dummy.dta2d",e) )
 
 	// real test
-	file.load("data/DTA2DFile_test_1.dta2d",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),e);
 
 	TEST_EQUAL(e.size(), 9);
 	ABORT_IF(e.size() != 9)
@@ -143,7 +143,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 
 	
 	//test with header
-	file.load("data/DTA2DFile_test_2.dta2d",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_2.dta2d"),e);
 	std::vector<Peak2D> array;
 	e.get2DData(array);
 	TEST_EQUAL(array.size(), 11);
@@ -207,7 +207,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 
 
 	MSExperiment<> e3;
-	file.load("data/DTA2DFile_test_1.dta2d",e3);
+	file.load(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),e3);
 	TEST_EQUAL(e3.size(), 9);
 	ABORT_IF(e3.size() != 9)
 
@@ -264,7 +264,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 
 	//test with header and minutes instead of seconds
   MSExperiment<> e4;
-  file.load("data/DTA2DFile_test_3.dta2d",e4);
+  file.load(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_3.dta2d"),e4);
   TEST_EQUAL(e4.size(),9)
 	TEST_REAL_SIMILAR(e4[0].getRT(), 282666)
 	TEST_REAL_SIMILAR(e4[1].getRT(), 282672)
@@ -274,7 +274,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	
 	//test if it works with different peak types
 	MSExperiment<RichPeak1D> e_rich;
-  file.load("data/DTA2DFile_test_3.dta2d",e_rich);
+  file.load(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_3.dta2d"),e_rich);
   
 END_SECTION
 
@@ -285,7 +285,7 @@ START_SECTION((template<typename MapType> void store(const String& filename, con
   DTA2DFile f;
 
   NEW_TMP_FILE(tmp_filename);
-  f.load("data/DTA2DFile_test_1.dta2d",e);
+  f.load(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),e);
 	f.store(tmp_filename,e);
 
 	MSExperiment<> e2;
@@ -424,7 +424,7 @@ START_SECTION(([EXTRA] load with RT range))
 	DTA2DFile file;
 
 	file.getOptions().setRTRange(makeRange(4711.15, 4711.45));
-	file.load("data/DTA2DFile_test_1.dta2d",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),e);
 	
 	TEST_EQUAL(e.getNativeIDType(),ExperimentalSettings::MULTIPLE_PEAK_LISTS)
 	TEST_EQUAL(e.size(), 3)
@@ -453,7 +453,7 @@ START_SECTION(([EXTRA] load with MZ range))
 	DTA2DFile file;
 
 	file.getOptions().setMZRange(makeRange(150, 220));
-	file.load("data/DTA2DFile_test_1.dta2d",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),e);
 
 	TEST_EQUAL(e.getNativeIDType(),ExperimentalSettings::MULTIPLE_PEAK_LISTS)
 	TEST_EQUAL(e.size(), 5)
@@ -492,7 +492,7 @@ START_SECTION(([EXTRA] load with intensity range))
 	DTA2DFile file;
 
 	file.getOptions().setIntensityRange(makeRange(30000, 70000));
-	file.load("data/DTA2DFile_test_1.dta2d",e);
+	file.load(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),e);
 
 	TEST_EQUAL(e.getNativeIDType(),ExperimentalSettings::MULTIPLE_PEAK_LISTS)
 	TEST_EQUAL(e.size(), 5)

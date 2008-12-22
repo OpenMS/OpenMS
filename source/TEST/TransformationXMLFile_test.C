@@ -51,10 +51,10 @@ END_SECTION
 START_SECTION([EXTRA] static bool isValid(const String& filename))
 {
 	TransformationXMLFile f;
-	TEST_EQUAL(f.isValid("data/TransformationXMLFile_1.trafoXML"),true);	
-	TEST_EQUAL(f.isValid("data/TransformationXMLFile_2.trafoXML"),true);	
-	TEST_EQUAL(f.isValid("data/TransformationXMLFile_3.trafoXML"),false);	
-	TEST_EQUAL(f.isValid("data/TransformationXMLFile_4.trafoXML"),true);	
+	TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_1.trafoXML")),true);	
+	TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_2.trafoXML")),true);	
+	TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_3.trafoXML")),false);	
+	TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_4.trafoXML")),true);	
 }
 END_SECTION
 
@@ -64,17 +64,17 @@ START_SECTION(void load(const String& filename, TransformationDescription& trans
 	TransformationDescription trafo;
 	TransformationXMLFile trafo_xml;
 
-	trafo_xml.load("data/TransformationXMLFile_1.trafoXML",trafo);
+	trafo_xml.load(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_1.trafoXML"),trafo);
 	TEST_STRING_EQUAL(trafo.getName(),"none");
 	TEST_EQUAL(trafo.getParameters().empty(),true);
 
-	trafo_xml.load("data/TransformationXMLFile_2.trafoXML",trafo);
+	trafo_xml.load(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_2.trafoXML"),trafo);
 	TEST_STRING_EQUAL(trafo.getName(),"linear");
 	TEST_EQUAL(trafo.getParameters().size(),2);
 	TEST_REAL_SIMILAR(trafo.getParam("slope"),3.141592653589793238);
 	TEST_REAL_SIMILAR(trafo.getParam("intercept"),2.718281828459045235);
 
-	trafo_xml.load("data/TransformationXMLFile_4.trafoXML",trafo);
+	trafo_xml.load(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_4.trafoXML"),trafo);
 	TEST_STRING_EQUAL(trafo.getName(),"interpolated_linear");
 	TEST_EQUAL(trafo.getParameters().size(),0);
 	TEST_EQUAL(trafo.getPairs().size(),3);

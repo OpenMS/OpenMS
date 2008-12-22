@@ -273,7 +273,7 @@ START_SECTION(([EXTRA] Extension on real-world data))
 	FeatureMap<FeatureType> features;
 	FeatureFinder ff;
 
-	MzDataFile().load("data/SimpleExtender_test.mzData",input);
+	MzDataFile().load(OPENMS_GET_TEST_DATA_PATH("SimpleExtender_test.mzData"),input);
 
 	ExtenderType extender(&input, &features, &ff);
 
@@ -292,7 +292,7 @@ START_SECTION(([EXTRA] Extension on real-world data))
 	ChargedIndexSet region;
   extender.extend(set,region);
 		
-	ifstream infile( "data/SimpleExtender_region1");
+	ifstream infile( OPENMS_GET_TEST_DATA_PATH("SimpleExtender_region1"));
 	
 	DoubleReal intensity, rt, mz;
 	
@@ -326,7 +326,7 @@ START_SECTION(([EXTRA] Extension on picked data))
 
 	ExtenderType extender(&input, &features, &ff);
 
-	MzDataFile().load("data/SimpleExtender_test2.mzData",input);
+	MzDataFile().load(OPENMS_GET_TEST_DATA_PATH("SimpleExtender_test2.mzData"),input);
 
 	input.updateRanges();
 
@@ -339,7 +339,7 @@ START_SECTION(([EXTRA] Extension on picked data))
 	ChargedIndexSet region;
 	extender.extend(set,region);
 	
-	ifstream infile( "data/SimpleExtender_region2");
+	ifstream infile( OPENMS_GET_TEST_DATA_PATH("SimpleExtender_region2"));
 	
 	DoubleReal intensity, rt, mz;
 	
