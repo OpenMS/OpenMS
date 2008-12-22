@@ -1,6 +1,6 @@
 ##
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/source/TEST)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/source/TEST)
 include(executables.cmake)
 
 ### CONCEPT
@@ -99,7 +99,7 @@ foreach(i ${analysis_executables_list})
 endforeach(i)
 add_custom_target(ANALYSIS_TEST)
 add_dependencies(ANALYSIS_TEST ${analysis_executables_list})
-		
+
 ### APPLICATIONS
 foreach(i ${applications_executables_list})
   add_executable(${i} ${i}.C)
@@ -118,11 +118,11 @@ add_dependencies(TRANSFORMATIONS_TEST ${transformations_executables_list})
 
 
 ### collect test executables
-set(TEST_executables 
-		${concept_executables_list} 
-		${system_executables_list} 
-		${datastructures_executables_list} 
-		${kernel_executables_list} 
+set(TEST_executables
+		${concept_executables_list}
+		${system_executables_list}
+		${datastructures_executables_list}
+		${kernel_executables_list}
 		${metadata_executables_list}
 		${visual_executables_list}
 		${format_executables_list}
@@ -134,7 +134,7 @@ set(TEST_executables
 		${applications_executables_list}
 		${transformations_executables_list})
 
-### TEST target 
+### TEST target
 add_custom_target(TEST)
 add_dependencies(TEST ${TEST_executables})
 
