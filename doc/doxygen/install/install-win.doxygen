@@ -20,22 +20,16 @@
   <br>
   <br>
 
-  <b>Required applications</b>
-
-  <p>
-  In order to compile %OpenMS, a proper compilation environment is required.
-
-  @section install_win_setup Setup of environment
-
 
 <b>Notation of this tutorial</b>
  <UL>
     <LI>whenever there is a $ this implies entering everything that follows the $ into a command line (usually the Visual Studio Command line)
     <LI>A string in <> is something the user needs to choose e.g. <path_to_contrib> means that this string should be replaced by the path where the user put the %OpenMS contrib package. Usually all commands where this is necessary come with examples, so don't worry.
-    <LI>Whenever you added a path to your Windows Path Environment variable, restart the command line in order for the changes to take effect
+    <LI>Whenever you added a path to your Windows PATH Environment variable, <tt>Command Line</tt> which are already open are not refreshed. You will need a to open a new one.
   </UL>
 
 
+  @section install_win_setup Setup of environment
 
 <b>Pre-Requisites (Software)</b>
   <UL>
@@ -44,7 +38,11 @@
     <LI>if you work with the SVN version of OpenMS (instead of the Release package), we recommend downloading
     the svn binaries (which contain svnversion.exe). TortoiseSVN is *not* enough!
     You can find the binaries here: http://subversion.tigris.org
-    Make sure to add the location of svnversion.exe to your PATH (usually this is "C:\progam files\subversion\bin")
+    <br>Make sure to add the location of svnversion.exe to your PATH (usually this is "C:\progam files\subversion\bin")
+    <LI>To build the contrib-package you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
+    <br>Make sure to add the location of 7z.exe to your PATH (usually this is "C:\progam files\7-zip")
+    <LI>To build the contrib-package you will need <tt>patch</tt> (see http://gnuwin32.sourceforge.net/packages/patch.htm)
+    <br>Make sure to add the location of patch.exe to your PATH.
   </UL>
 
 
@@ -108,13 +106,14 @@
         <OL>
           <LI>we have no experience here, but it should be possible to get the DLL's and Link-Libraries here as well.
         </OL>
-      <LI>set the Environment Variable QTDIR to your QT-Directory
-      <LI>add the QT/bin (!) directory to your PATH Environment Variable
+      <LI>set the Environment Variable QTDIR to your Qt-Directory
+      <LI>add the <Qt>/bin (!) directory to your PATH Environment Variable
 
 
 		In order to make the
 		installation of the remaining required libraries easier, we composed a
-		"contrib-package" containing the libraries ANDI/MS, NetCDF, GSL, CGAL, libSVM, SeqAn and XERCES-C.
+		"contrib-package" containing the libraries GSL, CGAL, libSVM, SeqAn and XERCES-C.
+		<br>ANDI/MS and NetCDF are currently only included in the Linux version. We are working on a patch of those external libaries for Windows.
 		This contrib package has several advantages over manual installation
 		<ul>
 			<li>you get all the libraries in versions tested with %OpenMS.</li>
@@ -133,17 +132,38 @@
   The contrib package is contained in the %OpenMS release package.
 
   If you are using the developer version of %OpenMS, you must check out the contrib from Sourceforge SVN repository
-	<pre>&gt; svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib</pre>
+	<pre>&gt; svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib_win</pre> (Warning: this might change soon)
 	to obtain the latest developer version (potentially unstable).
 
   @b Installation:
 
-    [extend docu]
-    BIG TODO: currently there is no contrib for Windows!!
+		After you got the source code for the contrib package open a VisualStudio Command line (see Start-Menu).
+    
+    <OL>
+      <LI>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
+      <LI>create a build directory for the OpenMS contrib <br>
+          -e.g. $ mkdir contrib_win64_build
+      <LI>call CMake to build the contrib
+				You will need to set two important parameters which determine the type of contrib that is build.
+				These two parameters tell us which Visual Studio version you are using (CONTRIB_MSVC_VERSION should be 8 or 9) and which address model (CONTRIB_ADDRESSMODEL should be 32 or 64; 32bit or 64bit applications) you want to be generated. 
+				If the 64bit version is available depends on your installation of Visual Studio. Be aware that you can build 64bit apps even if your operating system is only 32bit (but you will not be
+				able to run 64bit apps in this case).
+				
+@code
+cd <path_to_contrib_build_directory>
+cmake -G "<generator>" "<path_to_contrib>"
+cmake -D CONTRIB_MSVC_VERSION:STRING=<version> -D CONTRIB_ADDRESSMODEL:STRING=<bit> -G "<generator>" "<path_to_contrib>"
+@endcode
 
-    - make sure you check out the correct version (64 vs 32 bit), depending on what system you use!
-    ...
-    - add the <contrib>/lib | <contrib>/win/lib[32|64|/ directory to your PATH Environment Variable
+        For the <generator> you should choose the one that reflects your settings of CONTRIB_MSVC_VERSION and CONTRIB_ADDRESSMODEL. It should be identical to the one you will later use for OpenMS as well. Type <tt>$ cmake</tt> to see a list of available generators.
+@code
+cd c:\svn\contrib_win64_build
+cmake -D CONTRIB_MSVC_VERSION:STRING=9 -D CONTRIB_ADDRESSMODEL:STRING=64 -D -G "Visual Studio 9 2008 Win64" "c:\svn\contrib_win"
+@endcode
+
+				<LI>add the <contrib>/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
+      </OL>
+    
 
 
   @section install_win_openms Installing OpenMS
@@ -165,17 +185,21 @@
       <LI>create a build directory for OpenMS<br>
           -e.g. $ mkdir OpenMS_Win64
       <LI>call CMake to create the BuildSystem there
-<code>
-          $ cd <path_to_OpenMS_build_directory>
-            e.g. $ cd OpenMS_Win64
-          $ cmake -D CONTRIB_CUSTOM_DIR:PATH="<path_to_contrib>" -G "<generator>" "<path_to_OpenMS>"
-</code>
-          The choice of <generator> is dependent on your system. Type $ cmake to see a list of available generators.
-            e.g. <code>$ cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib" -G "Visual Studio 8 2005 Win64" "../OpenMS"</code>
+@code
+cd <path_to_OpenMS_build_directory>
+cmake -D CONTRIB_CUSTOM_DIR:PATH="<path_to_contrib>" -G "<generator>" "<path_to_OpenMS>"
+@endcode
+          The choice of <generator> is dependent on your system. Type <tt>$ cmake</tt> to see a list of available generators.
+          Example:
+@code
+cd c:\svn\OpenMS_Win64
+cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib" -G "Visual Studio 8 2005 Win64" "../OpenMS"
+@endcode
 
       </OL>
 
-
+		Now there should be a <tt>OpenMS.sln</tt> file in your build directory, which you can open using Visual Studio.
+		If you chose another generator (e.g. Eclipse) you will find something equivalent.
 
   @section install_win_testing_openms Testing your OpenMS installation
 
@@ -195,7 +219,7 @@
 
 		@section install_linux_testing_topp Testing the TOPP tools
 
-		After you have built the TOPP tools, you can test by building the "TOPPtest" target in the IDE.
+		After you have built the TOPP tools, you can test by exeuting the "TEST" and "test" target (in that order) in the IDE.
 
 
   @section create_doc Building the documentation (not working right now - sorry)
@@ -248,10 +272,10 @@
 
 		<LI>
 			Build QT with DB support
-			<code>
-> cd &lt;path_to_QT&gt;<br>
-> configure -L &lt;path_to_MYSQLSERVER&gt;/lib/opt -l libmysql -I &lt;path_to_MYSQLSERVER&gt;/include -qt-sql-mysql -qt-sql-odbc -qt-sql-sqlite -qt-gif -qt-libpng -qt-libjpeg
-			</code>
+			@code
+cd &lt;path_to_QT&gt;<br>
+configure -L &lt;path_to_MYSQLSERVER&gt;/lib/opt -l libmysql -I &lt;path_to_MYSQLSERVER&gt;/include -qt-sql-mysql -qt-sql-odbc -qt-sql-sqlite -qt-gif -qt-libpng -qt-libjpeg
+			@endcode
 			and wait ...
 		</LI>
 
@@ -260,9 +284,9 @@
 		<LI>
 			Now, create a database by opening the mysql command line client (from the start menu) and enter your root password.<br>
 			Now type:<br>
-			<code>
+			@code
 mysql> CREATE DATABASE OPENMS_TEST_DB;<br>
-			</code>
+			@endcode
 			you should see something like:<br>
 			<code>Query OK, 1 row affected (0.14 sec)</code>
 		</LI>

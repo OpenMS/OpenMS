@@ -82,8 +82,8 @@ if (NOT WIN32) # we only want fPIC on non-windows systems (fPIC is implicitly tr
 	endif()
 endif()
 
-#default build type (for Makefile generators): Debug
-set(OPENMS_BUILD_TYPE "Debug" CACHE STRING "Build type: 'Debug' or 'Release'")
+#default build type (for Makefile generators): Release
+set(OPENMS_BUILD_TYPE "Release" CACHE STRING "Build type: 'Debug' or 'Release'")
 if (OPENMS_BUILD_TYPE STREQUAL "Debug")
 	Message(STATUS "OpenMS build type: ${OPENMS_BUILD_TYPE} (compiler debug info and OpenMS debug mode enabled)")
 	set(CMAKE_BUILD_TYPE "Debug" CACHE INTERNAL "This must be equal to OPENMS_BUILD_TYPE!" FORCE)
@@ -143,21 +143,17 @@ else()
 	message(STATUS "Using user defined contrib directory: ${CONTRIB_DIR}")
 endif()
 
-FIND_PATH(CONTRIB_CONFIRM_DIR README.txt PATHS ${CONTRIB_DIR} NO_DEFAULT_PATH)
+if (MSVC) ## we have another contrib right now
+	FIND_PATH(CONTRIB_CONFIRM_DIR CMakeCache.txt PATHS ${CONTRIB_DIR} NO_DEFAULT_PATH)
+else()
+	FIND_PATH(CONTRIB_CONFIRM_DIR README.txt PATHS ${CONTRIB_DIR} NO_DEFAULT_PATH)
+endif()
 if (CONTRIB_CONFIRM_DIR STREQUAL "CONTRIB_CONFIRM_DIR-NOTFOUND")
 	message(FATAL_ERROR "The path to the Contrib directory (${CONTRIB_DIR}) is not correct!")
 endif()
 
 set(CONTRIB_INCLUDE_DIR ${CONTRIB_DIR}/include/ CACHE INTERNAL "contrib include dir")
-if (NOT MSVC)
-	set(CONTRIB_LIB_DIR ${CONTRIB_DIR}/lib/ CACHE INTERNAL "contrib lib dir")
-else()
-	if (OPENMS_64BIT_ARCHITECTURE)
-		set(CONTRIB_LIB_DIR ${CONTRIB_DIR}/win/lib_64/ CACHE INTERNAL "contrib lib dir")
-	else()
-		set(CONTRIB_LIB_DIR ${CONTRIB_DIR}/win/lib_32/ CACHE INTERNAL "contrib lib dir")
-	endif()
-endif()
+set(CONTRIB_LIB_DIR ${CONTRIB_DIR}/lib/ CACHE INTERNAL "contrib lib dir")
 
 message(STATUS "Contrib lib dir: ${CONTRIB_LIB_DIR}")
 

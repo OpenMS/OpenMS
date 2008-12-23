@@ -13,7 +13,6 @@
   
   In order to compile %OpenMS, several applications need to be installed:
    - Compiler: An ANSI-compatible C++ compiler is required. <BR>Currently g++ 4.1.0 or higher is supported.  <BR>Older versions might still work, but are not actively maintained. <BR>g++ is part of the GNU Compiler Collection (GCC).
-   - Autoconf 2.9 or higher is required
    - GNU make is required
   
   If your %OpenMS version is a development version from SVN, the following 
@@ -206,10 +205,13 @@
 
   If you have not installed the libraries which %OpenMS requires, please refer to the section @ref install_linux_required above.
   
-  CMake is used to check the system and create the main 'Makefile'.
+  CMake is used to check the system and create the main 'Makefile'. We recommend using out-of-source builds, i.e. your source tree remains unchanged.
   @n Go to the %OpenMS directory and execute the following command:
   <pre>
-  &gt; cmake .
+  &gt; cd ..
+  &gt; mkdir OpenMS_BuildTree
+  &gt; cd OpenMS_BuildTree
+  &gt; cmake ../OpenMS
   </pre>
   
   You can set CMake variables using the <code>-D VARIABLE=VALUE</code> option.
@@ -217,14 +219,14 @@
   <pre>
   &gt; ccmake .
   </pre>
-  This works only after executing <code>cmake .</code>.
+  This works only after executing <code>cmake</code>.
   
   The most important CMake variables are:
 
   <table border="0">
     <tr>
       <td>CMAKE_INSTALL_PREFIX</td>
-      <td>the path where the library is installed.
+      <td>(NOT SUPPORTED YET) the path where the library is installed.
           <BR>
           <b>Note:</b> Moving the library after installing it is not possible! 
           Please use this option to point CMake to the location %OpenMS should
@@ -233,11 +235,11 @@
     <tr>
       <td>CONTRIB_CUSTOM_DIR</td>
       <td>search for the contrib libraries in this location.
-          If unset the default locations of the system are used.</td>
+          If unset the the location is assumed to be <tt><path_to_OpenMS>/contrib</tt>.</td>
     </tr>
     <tr>
       <td>QT_QMAKE_EXECUTABLE</td>
-      <td>Defines the Qt 'qmake' application. The corresping qt installation is used.</td>
+      <td>Defines the Qt 'qmake' application. The corresponding Qt installation is used.</td>
     </tr>
     <tr>
       <td>OPENMS_BUILD_TYPE</td>

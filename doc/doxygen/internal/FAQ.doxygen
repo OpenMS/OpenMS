@@ -113,14 +113,14 @@
         You should only move/delete the offending Qt version if you know what you are doing!
         A save workaround is to edit the CMakeCache file (e.g. via ccmake) and set all paths relating to QT (e.g. QT_LIBRARY_DIR) manually.
 
-      <LI><B>Does AndiMS work on 64bit systems?! Do I need to disable it?!</B><br>
-        AndiMS currently does not work on 64bit (we are planning a bugfix). CMake will *automatically*
-        disable AndiMS on 64bit systems!
+      <LI><B>Where is AndiMS working properly?! Do I need to disable it?!</B><br>
+        AndiMS currently does not work on 64bit Linux and all Windows versions (we are planning a bugfix). CMake will *automatically*
+        disable AndiMS on those affected systems!
 
       <LI><B>(Windows) Shall I use VisualStudio2008 or VisualStudio2005?</B><br>
         Use VS2008 if you can. It it much more convenient when reloading your Solution-File (VS2005 will
         give you ~10e10 Messageboxes).
-        This happens whenever the Build-System calls CMake (which can be whenever you do svn-update).
+        This happens whenever the Build-System calls CMake (which can be quite often, e.g. after svn-update).
         
 			<LI><B>How do I update the website?</B><br>
 				<OL>
