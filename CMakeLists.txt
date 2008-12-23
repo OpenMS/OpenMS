@@ -32,6 +32,7 @@ set(CF_PACKAGE_VERSION "1.3" CACHE INTERNAL "OpenMS VERSION" FORCE)
 
 # Heart of the BUILD system : only edit when you know what you´re doing (we don´t)
 # quick manual for most commands: http://www.cmake.org/cmake/help/cmake2.6docs.html
+# useful predefined variables: http://www.paraview.org/Wiki/CMake_Useful_Variables
 
 cmake_minimum_required(VERSION 2.6)
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
@@ -122,8 +123,8 @@ Message(STATUS "STL debug mode: ${STL_DEBUG}")
 
 ## contrib
 
-## disable AndiMS for 64-bit platforms (until fixed)
-if (CMAKE_SIZEOF_VOID_P MATCHES "8")
+## disable AndiMS for 64-bit platforms and Visual Studio (until fixed)
+if (CMAKE_SIZEOF_VOID_P MATCHES "8" OR MSVC)
 	set(USE_ANDIMS 0 CACHE INTERNAL "Support AndiMS?!")
 else()
   set(USE_ANDIMS 1 CACHE INTERNAL "Support AndiMS?!")
