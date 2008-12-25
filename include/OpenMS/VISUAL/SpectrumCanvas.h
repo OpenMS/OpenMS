@@ -789,7 +789,7 @@ namespace OpenMS
 		}
 		
 		///Helper function to paint grid lines
-		void paintGridLines_(QPainter& painter);
+		virtual void paintGridLines_(QPainter& painter);
 		
 		/// Buffer that stores the actual peak information
 		QImage buffer_;

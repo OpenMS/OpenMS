@@ -74,8 +74,6 @@ namespace OpenMS
 		
 		@todo Repair visualization of spectrum alignments in 1d-view (Johannes)
 		
-		@todo Adapt Spectrum1DWidget/Canvas such that two different grids and two y-axis-widgets are shown in mirror mode (Johannes)
-		
 		@todo Review documentation of all new features (Johannes)
 		
     @improvement Paint only highest point per pixel, paint only part of the data when moving (Hiwi)

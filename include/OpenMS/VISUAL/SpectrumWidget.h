@@ -116,7 +116,7 @@ namespace OpenMS
 			void setIntensityMode(SpectrumCanvas::IntensityModes mode);
 	
 			/// Hides x-axis and y-axis
-			void hideAxes();
+			virtual void hideAxes();
 			
 			/// Saves the widget's content as image file
 			void saveAsImage();

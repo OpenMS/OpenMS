@@ -50,6 +50,7 @@
 #include <OpenMS/VISUAL/Annotation1DTextItem.h>
 #include <OpenMS/VISUAL/Annotation1DPeakItem.h>
 #include <OpenMS/VISUAL/Annotations1DContainer.h>
+#include <OpenMS/VISUAL/AxisWidget.h>
 
 #include <iostream>
 
@@ -1257,6 +1258,112 @@ namespace OpenMS
 		//chage data area
 		changeVisibleArea_(newLo, newHi);
 	}
+	
+	/// Returns whether this widget is currently in mirror mode
+	bool Spectrum1DCanvas::mirrorModeActive()
+	{
+		return mirror_mode_;
+	}
+	
+	/// Sets whether this widget is currently in mirror mode
+	void Spectrum1DCanvas::setMirrorModeActive(bool b)
+	{
+		mirror_mode_ = b;
+		qobject_cast<Spectrum1DWidget*>(spectrum_widget_)->toggleMirrorView(b);
+		update_buffer_ = true;
+		update_(__PRETTY_FUNCTION__);
+	}
+	
+	void Spectrum1DCanvas::paintGridLines_(QPainter& painter)
+	{	
+		if (!show_grid_ || !spectrum_widget_) return;
+
+		QPen p1(QColor(130,130,130));
+		p1.setStyle(Qt::DashLine);
+		QPen p2(QColor(170,170,170));
+		p2.setStyle(Qt::DashLine);
+		QPen p3(QColor(230,230,230));
+		p3.setStyle(Qt::DashLine);
+	
+		painter.save();
+
+		unsigned int xl, xh, yl, yh; //width/height of the diagram area, x, y coordinates of lo/hi x,y values
+	
+		xl = 0;
+		xh = width();
+
+		yl = height();
+		yh = 0;
+	
+		// drawing of grid lines and associated text	
+		for (Size j = 0; j != spectrum_widget_->xAxis()->gridLines().size() ; j++) 
+		{
+			// style definitions
+			switch(j)
+			{
+				case 0:	// style settings for big intervals 
+					painter.setPen(p1);
+					break;
+				case 1:	// style settings for small intervals
+					painter.setPen(p2);
+					break;
+				case 2: // style settings for smalles intervals
+					painter.setPen(p3);
+					break;
+				default:
+					std::cout << "empty vertical grid line vector error!" << std::endl;
+					painter.setPen(QPen(QColor(0,0,0)));
+					break;
+			}
+
+			int x;
+			for (std::vector<double>::const_iterator it = spectrum_widget_->xAxis()->gridLines()[j].begin(); it != spectrum_widget_->xAxis()->gridLines()[j].end(); it++) 
+			{
+				x = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->xAxis()->getAxisMinimum(), spectrum_widget_->xAxis()->getAxisMaximum(), xl, xh));
+				painter.drawLine(x, yl, x, yh);
+			}
+		}
+		
+		for (Size j = 0; j != spectrum_widget_->yAxis()->gridLines().size() ; j++) 
+		{
+
+			// style definitions
+			switch(j)
+			{
+				case 0:	// style settings for big intervals 
+					painter.setPen(p1);
+					break;
+				case 1:	// style settings for small intervals
+					painter.setPen(p2);
+					break;
+				case 2: // style settings for smalles intervals
+					painter.setPen(p3);
+					break;
+				default:
+					std::cout << "empty vertical grid line vector error!" << std::endl;
+					painter.setPen(QPen(QColor(0,0,0)));
+					break;
+			}
+
+			int y;
+			for (std::vector<double>::const_iterator it = spectrum_widget_->yAxis()->gridLines()[j].begin(); it != spectrum_widget_->yAxis()->gridLines()[j].end(); it++) 
+			{
+				y = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->yAxis()->getAxisMinimum(), spectrum_widget_->yAxis()->getAxisMaximum(), yl, yh));
+				if (!mirror_mode_)
+				{
+					painter.drawLine(xl, y, xh, y);
+				}
+				else
+				{
+					painter.drawLine(xl, y/2, xh, y/2);
+					painter.drawLine(xl, yl-y/2, xh, yl-y/2);
+				}
+			}
+		}
+		
+		painter.restore();
+	}
+	
 }//Namespace
 
 

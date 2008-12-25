@@ -35,6 +35,7 @@
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 
 class QAction;
+class QSpacerItem;
 
 namespace OpenMS
 {
@@ -67,7 +68,16 @@ namespace OpenMS
 		{
 			return static_cast<Spectrum1DCanvas*>(canvas_);
 		}
-	
+		
+		// Docu in base class
+		virtual void hideAxes();
+		
+		// Docu in base class
+		virtual void showLegend(bool show);
+		
+		/// Switches to mirror view, displays another y-axis for the second spectrum
+		void toggleMirrorView(bool mirror);
+			
 	signals:
 		/// Is emitted whenever the visible area changes.		
 		void visibleAreaChanged(double, double); 
@@ -83,6 +93,12 @@ namespace OpenMS
 		virtual Math::Histogram<UInt, Real> createMetaDistribution_(const String& name) const;
 		// Docu in base class
 		virtual void recalculateAxes_();
+		
+		/// The second y-axis for the mirror view
+		AxisWidget* flipped_y_axis_;
+		
+		/// Spacer between the two y-axes in mirror mode (needed when visualizing an alignment)
+		QSpacerItem* spacer_;
 	};
 } // namespace OpenMS
 

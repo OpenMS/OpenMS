@@ -28,6 +28,8 @@
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum1DGoToDialog.h>
+#include <QtGui/QSpacerItem>
+#include <QtGui/QScrollBar>
 
 using namespace std;
 
@@ -47,6 +49,14 @@ namespace OpenMS
 		y_axis_->setLegend("Intensity");
 		y_axis_->setAllowShortNumbers(true);
 		y_axis_->setMinimumWidth(50);
+		
+		flipped_y_axis_ = new AxisWidget(AxisWidget::LEFT,"Intensity",this);
+		flipped_y_axis_->setInverseOrientation(true);
+		flipped_y_axis_->setAllowShortNumbers(true);
+		flipped_y_axis_->setMinimumWidth(50);
+		flipped_y_axis_->hide();
+		
+		spacer_ = new QSpacerItem(0,0);
 	}
 	
 	void Spectrum1DWidget::recalculateAxes_()
@@ -72,12 +82,15 @@ namespace OpenMS
 		{
 			case SpectrumCanvas::IM_NONE:
 				it_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
+				flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
 				break;
 			case SpectrumCanvas::IM_PERCENTAGE:
 				it_axis->setAxisBounds(canvas()->getVisibleArea().minY() / canvas()->getDataRange().maxY() * 100.0, canvas()->getVisibleArea().maxY() / canvas()->getDataRange().maxY() * 100.0);
+				flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY() / canvas()->getDataRange().maxY() * 100.0, canvas()->getVisibleArea().maxY() / canvas()->getDataRange().maxY() * 100.0);
 				break;
 			case SpectrumCanvas::IM_SNAP:
 				it_axis->setAxisBounds(canvas()->getVisibleArea().minY()/canvas()->getSnapFactor(), canvas()->getVisibleArea().maxY()/canvas()->getSnapFactor());
+				flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY()/canvas()->getSnapFactor(), canvas()->getVisibleArea().maxY()/canvas()->getSnapFactor());
 				break;
 			default:
 				throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
@@ -140,6 +153,49 @@ namespace OpenMS
 		}
 	}
 
+	void Spectrum1DWidget::showLegend(bool show)
+	{
+		y_axis_->showLegend(show);
+		flipped_y_axis_->showLegend(show);
+		x_axis_->showLegend(show);
+		update();
+	}
+	
+	void Spectrum1DWidget::hideAxes()
+	{
+		y_axis_->hide();
+		flipped_y_axis_->hide();
+		x_axis_->hide();
+	}
+	
+	void Spectrum1DWidget::toggleMirrorView(bool mirror)
+	{
+		if (mirror)
+		{
+			grid_->addItem(spacer_, 1, 1);
+   		grid_->addWidget(flipped_y_axis_, 2, 1);
+			grid_->removeWidget(canvas());
+			grid_->removeWidget(x_axis_);
+			grid_->removeWidget(x_scrollbar_);
+			grid_->addWidget(canvas(), 0, 2, 3, 1); // rowspan = 3
+			grid_->addWidget(x_axis_, 3, 2);
+			grid_->addWidget(x_scrollbar_, 4, 2);
+   		flipped_y_axis_->show();
+		}
+		else
+		{
+			grid_->removeWidget(canvas());
+			grid_->removeWidget(flipped_y_axis_);
+			flipped_y_axis_->hide();
+			grid_->removeItem(spacer_);
+			grid_->removeWidget(x_axis_);
+			grid_->removeWidget(x_scrollbar_);
+			grid_->addWidget(canvas(), 0, 2);
+			grid_->addWidget(x_axis_, 1, 2);
+			grid_->addWidget(x_scrollbar_, 2, 2);
+		}
+	}
+	
 } //namespace
 
 

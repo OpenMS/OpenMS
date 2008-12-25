@@ -93,19 +93,11 @@ namespace OpenMS
 			bool flippedLayersExist();
 			
 			/// Returns whether this widget is currently in mirror mode
-			inline bool mirrorModeActive()
-			{
-				return mirror_mode_;
-			}
+			bool mirrorModeActive();
 			
 			/// Sets whether this widget is currently in mirror mode
-			inline void setMirrorModeActive(bool b)
-			{
-				mirror_mode_ = b;
-				update_buffer_ = true;
-				update_(__PRETTY_FUNCTION__);
-			}
-			
+			void setMirrorModeActive(bool b);
+		
 			/// Calls dataToWidget_() but takes snap_factors_ and percentage_factor_ into account.
 			void dataToWidget(const PeakType& peak, QPoint& point, bool flipped = false);
 			
@@ -204,6 +196,8 @@ namespace OpenMS
 			virtual void translateLeft_();
 			//docu in base class
 			virtual void translateRight_();
+			//docu in base class
+			virtual void paintGridLines_(QPainter& painter);
 	};
 } // namespace OpenMS
 
