@@ -69,7 +69,6 @@ namespace OpenMS
   FuzzyStringComparator::~FuzzyStringComparator(){}
   
   void FuzzyStringComparator::reportFailure_( char const * const message ) const
-    throw (FuzzyStringComparator::AbortComparison)
   {
     // We neither want this entire method be non-const nor make
     // is_status_success_ a mutable.  So lets hack around it.  (Documented in
