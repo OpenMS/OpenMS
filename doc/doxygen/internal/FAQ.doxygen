@@ -83,6 +83,7 @@
         To pass this variable to CMake use the -D switch
         e.g. <code>cmake -D CONTRIB_CUSTOM_DIR:PATH="D:\svn\contrib"</code>
         Everything else can be edited using ccmake afterwards. The following options are of interest:
+        - OPENMS_BUILD_MODE
         - OPENMS_DEBUG
         - OPENMS_ENABLE_EXTERNALMEMORY
         - CF_DB_PLUGIN

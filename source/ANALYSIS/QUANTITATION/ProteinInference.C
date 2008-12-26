@@ -121,7 +121,7 @@ namespace OpenMS
 			Map < UInt, std::vector < IntensityType > > ratios;
 			
 			// number of unique peptides pointing to current protein
-			UInt coverage_count = consensus_to_peptide.size();
+			UInt coverage_count = (UInt)consensus_to_peptide.size();
 			
 			for (Map < size_t, PeptideHit>::iterator it_pephits = consensus_to_peptide.begin();
 					 it_pephits != consensus_to_peptide.end();

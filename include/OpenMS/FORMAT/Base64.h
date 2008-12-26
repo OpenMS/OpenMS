@@ -96,8 +96,8 @@ namespace OpenMS
 			convert = true;
 		}
 	
-		UInt element_size = sizeof (FromType);
-		UInt size = element_size * in.size();
+		Size element_size = sizeof (FromType);
+		Size size = element_size * in.size();
  		UInt padding = 0;
 		if (size%3 == 2) padding=1; 
 		if (size%3 == 1) padding=2;
@@ -106,7 +106,7 @@ namespace OpenMS
 		register unsigned char b;
 
 		//reserve enough space in the output string
-		out.reserve((UInt)(std::ceil((3.0*size)/4.0)+8.0));
+		out.reserve(Size(std::ceil((3.0*size)/4.0)+8.0));
 
 /*
 	Inline documentation:
@@ -152,9 +152,9 @@ namespace OpenMS
 		different endian: element_size-1, increment -1
 */
 
-		UInt i = 0;
-		UInt pos = 0;				// position in vector
-		UInt offset = 0;		// offset in Real
+		Size i = 0;
+		Size pos = 0;				// position in vector
+		Size offset = 0;		// offset in Real
 		int inc = 1;				// increment
 
 		if (convert == false) inc = 1;
@@ -260,7 +260,7 @@ namespace OpenMS
 		out.clear();
 		if (in == "") return;
 	
-		UInt src_size = in.size();
+		Size src_size = in.size();
 		// last one or two '=' are skipped if contained
 		int padding = 0;
 		if (in[src_size-1] == '=') padding++;

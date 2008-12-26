@@ -227,8 +227,10 @@ namespace OpenMS
 
 	      The model of the trained svm is saved into 'modelFilename'. Throws an exception if 
 	      the model cannot be saved.
+
+				@exception Exception::UnableToCreateFile
 			*/
-	    void saveModel(std::string modelFilename) const throw (Exception::UnableToCreateFile);
+	    void saveModel(std::string modelFilename) const;
 	
 		  /**
 		    @brief loads the model

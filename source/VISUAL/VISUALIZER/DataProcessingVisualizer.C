@@ -100,7 +100,7 @@ namespace OpenMS
 		
 		//actions
 		ptr_->getProcessingActions().clear();
-		for (Size i=0; i<DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
+		for (UInt i=0; i<DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
 		{
 			if (actions_->item(i)->checkState()==Qt::Checked)
 			{

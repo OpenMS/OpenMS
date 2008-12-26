@@ -161,7 +161,7 @@ namespace OpenMS
 		*/
 		bool encloses(const PositionType& position) const
 		{
-      for (Size i = 0; i != D; i++)
+      for (UInt i = 0; i != D; i++)
       {
         if (position[i]<min_[i]) return false;
         if (position[i]>=max_[i]) return false;

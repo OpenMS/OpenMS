@@ -356,7 +356,7 @@ namespace OpenMS
 		/// Returns the number of layers
 		inline UInt getLayerCount() const
 		{
-			return layers_.size();
+			return (UInt)layers_.size();
 		}
 			
 		/// Returns the index of the active layer

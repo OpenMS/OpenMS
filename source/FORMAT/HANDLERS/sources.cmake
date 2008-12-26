@@ -3,17 +3,20 @@ set(directory source/FORMAT/HANDLERS)
 
 ### list all filenames of the directory here
 set(sources_list
-ANDIHandler.C
-MascotXMLHandler.C
-MzDataHandler.C
-MzMLHandler.C
-MzXMLHandler.C
-PTMXMLHandler.C
-ParamXMLHandler.C
-UnimodXMLHandler.C
-XMLHandler.C
-XTandemInfileXMLHandler.C
+	MascotXMLHandler.C
+	MzDataHandler.C
+	MzMLHandler.C
+	MzXMLHandler.C
+	PTMXMLHandler.C
+	ParamXMLHandler.C
+	UnimodXMLHandler.C
+	XMLHandler.C
+	XTandemInfileXMLHandler.C
 )
+
+if (USE_ANDIMS) 	 
+	list(APPEND sources_list ANDIHandler.C) 	 
+endif()
 
 ### add path to the filenames
 set(sources)

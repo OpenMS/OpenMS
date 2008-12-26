@@ -436,7 +436,7 @@ namespace OpenMS
 				UInt meta_array_count = 5 + charge_high - charge_low;
 				for (Size s=0; s<map_.size(); ++s)
 				{
-					UInt scan_size = map_[s].size();
+					Size scan_size = map_[s].size();
 					map_[s].getMetaDataArrays().resize(meta_array_count);
 					map_[s].getMetaDataArrays()[0].setName("trace_score");
 					map_[s].getMetaDataArrays()[0].assign(scan_size,0.0);

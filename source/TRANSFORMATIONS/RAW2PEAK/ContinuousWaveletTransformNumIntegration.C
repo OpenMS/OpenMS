@@ -36,10 +36,10 @@ namespace OpenMS
    int index)
   {
     double v = 0.;
-    int half_width = wavelet_.size();
+    int half_width = (int)wavelet_.size();
     int index_in_data = (int)floor((half_width*spacing_) / spacing_data);
     int offset_data_left = ((index - index_in_data) < 0) ? 0 : (index-index_in_data);
-    int offset_data_right = ((index + index_in_data) > (int)processed_input.size()-1) ? processed_input.size()-2 : (index+index_in_data);
+    int offset_data_right = ((index + index_in_data) > (int)processed_input.size()-1) ? (int)processed_input.size()-2 : (index+index_in_data);
 
     // integrate from i until offset_data_left
     for (int i = index; i > offset_data_left; --i)

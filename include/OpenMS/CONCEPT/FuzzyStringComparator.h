@@ -256,7 +256,8 @@ namespace OpenMS
  		void reportSuccess_() const;
 
 		/// Report bad news.
- 		void reportFailure_( char const * const message ) const throw(AbortComparison);
+		/// @exception AbortComparison
+ 		void reportFailure_( char const * const message ) const;
 
     /// Log and results output goes here
 		std::ostream * log_dest_;

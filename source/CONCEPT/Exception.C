@@ -373,7 +373,10 @@ namespace OpenMS
 				std::set_new_handler(newHandler);
 			}
 
-			void GlobalExceptionHandler::newHandler() throw(OutOfMemory)
+			void GlobalExceptionHandler::newHandler() 
+#ifndef OPENMS_COMPILER_MSVC
+				throw(OutOfMemory)
+#endif
 			{
 				throw OutOfMemory(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 			}

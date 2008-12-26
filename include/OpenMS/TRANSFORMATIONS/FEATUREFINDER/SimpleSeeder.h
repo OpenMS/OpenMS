@@ -82,7 +82,7 @@ namespace OpenMS
 			}
 
 			/// return the next seed
-			IndexPair nextSeed() throw (NoSuccessor)
+			IndexPair nextSeed()
 			{	
 				if (!initialized_)
 				{

@@ -899,8 +899,7 @@ namespace OpenMS
 			os << "\t\t\t</source>\n";
 						
 			//no analyzer given => add empty entry as there must be one entry
-			UInt num_analyzers = inst.getMassAnalyzers().size();
-			if (num_analyzers == 0)
+			if (inst.getMassAnalyzers().size() == 0)
 			{
 				os << "\t\t\t<analyzerList count=\"1\">\n"
 				   << "\t\t\t\t<analyzer>\n"
@@ -1052,7 +1051,7 @@ namespace OpenMS
 				Map<UInt,UInt> level_id; 
 				
 				os << "\t<spectrumList count=\"" << cexp_->size() << "\">\n";
-				for (Size s=0; s<cexp_->size(); s++)
+				for (Size s=0; s<cexp_->size(); ++s)
 				{
 					logger_.setProgress(s);
 					const SpectrumType& spec = (*cexp_)[s];

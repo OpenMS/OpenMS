@@ -295,7 +295,6 @@ namespace OpenMS
 		If matrices have different row or colmn numbers, throws a precondition exception.
 		*/
 		bool operator == ( Matrix const & rhs ) const
-			throw (Exception::Precondition)
 		{
 			OPENMS_PRECONDITION(cols_ == rhs.cols_,
 													"Matrices have different row sizes.");
@@ -309,7 +308,6 @@ namespace OpenMS
 		If matrices have different row or column numbers, throws a precondition exception.
 		*/
 		bool operator < (Matrix const & rhs) const
-			throw (Exception::Precondition)
 		{
 			OPENMS_PRECONDITION(cols_ == rhs.cols_,
 													"Matrices have different row sizes.");

@@ -649,8 +649,8 @@ namespace OpenMS
 			//look up the precision and the index of the intensity and m/z array
 			bool mz_precision_64 = true;
 			bool int_precision_64 = true;
-			Int mz_index = -1;
-			Int int_index = -1;
+			Size mz_index = -1;
+			Size int_index = -1;
 			for (Size i=0; i<data_.size(); i++)
 			{
 				if (data_[i].name=="m/z array")
@@ -677,12 +677,12 @@ namespace OpenMS
 			}
 			
 			//Warn if the decoded data has a differenct size than the the defaultArrayLength
-			UInt mz_size = mz_precision_64 ? data_[mz_index].decoded_64.size() : data_[mz_index].decoded_32.size();
+			Size mz_size = mz_precision_64 ? data_[mz_index].decoded_64.size() : data_[mz_index].decoded_32.size();
 			if (default_array_length_!=mz_size)
 			{
 				warning(LOAD, String("The base64-decoded m/z array of spectrum ") + exp_->size() + " has the size " + mz_size + ", but it should have the size " + default_array_length_ + " (defaultArrayLength).");
 			}
-			UInt int_size = int_precision_64 ? data_[int_index].decoded_64.size() : data_[int_index].decoded_32.size();
+			Size int_size = int_precision_64 ? data_[int_index].decoded_64.size() : data_[int_index].decoded_32.size();
 			if (default_array_length_!=int_size)
 			{
 				warning(LOAD, String("The base64-decoded intensity array of spectrum ") + exp_->size() + " has the size " + int_size + ", but it should have the size " + default_array_length_ + " (defaultArrayLength).");
@@ -2495,10 +2495,10 @@ namespace OpenMS
 			}
 
 			writeUserParam_(os, in, 3);
-			UInt component_count = in.getIonSources().size() + in.getMassAnalyzers().size() + in.getIonDetectors().size();
+			Size component_count = in.getIonSources().size() + in.getMassAnalyzers().size() + in.getIonDetectors().size();
 			if (component_count!=0)
 			{
-				os  << "			<componentList count=\"" << std::max((UInt)3,component_count) << "\">\n";
+				os  << "			<componentList count=\"" << std::max((Size)3,component_count) << "\">\n";
 				//--------------------------------------------------------------------------------------------
 				// ion source
 				//--------------------------------------------------------------------------------------------

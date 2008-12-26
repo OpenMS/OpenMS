@@ -455,13 +455,13 @@ namespace OpenMS
 			else
 			{
 				//sort index list
-				std::vector< std::pair<typename PeakType::PositionType,UInt> > sorted_indices;
+				std::vector< std::pair<typename PeakType::PositionType,Size> > sorted_indices;
 				sorted_indices.reserve(ContainerType::size());
 				for (Size i(0); i < ContainerType::size(); ++i)
 				{
 					sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getPosition(),i));
 				}
-				std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement< std::pair<typename PeakType::PositionType,UInt> >());
+				std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement< std::pair<typename PeakType::PositionType,Size> >());
 
 				//apply sorting to ContainerType and to metadataarrays
 				ContainerType tmp;

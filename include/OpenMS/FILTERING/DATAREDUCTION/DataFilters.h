@@ -188,7 +188,7 @@ namespace OpenMS
 					{
 						const typename MSSpectrum<PeakType>::MetaDataArrays& mdas = spectrum.getMetaDataArrays();
 						//find the right meta data array
-						Int mda_index = -1;
+						SignedSize mda_index = -1;
 						for (Size j=0; j<mdas.size(); ++j)
 						{
 							if (mdas[j].getName()==filter.meta_name)

@@ -730,9 +730,11 @@ namespace OpenMS
 					throw();
 
 				/// The OPENMS new handler
-				static void newHandler()
-					throw(OutOfMemory);
-
+#ifdef OPENMS_COMPILER_MSVC
+				static void newHandler();
+#else
+				static void newHandler() throw(OutOfMemory);
+#endif
 				static std::string file_;
 				static int				 line_;
 				static std::string function_;

@@ -58,6 +58,9 @@ elseif (MSVC)
 	#add_definitions(/wd4267 /wd4290 /wd4996 /wd4521 /wd4522 /wd4275 /wd4251)
 	#add_definitions(/wd4267)
 
+	##don't warn about unchecked std::copy()
+	add_definitions(/D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS)
+
 	## disable min and max macros by default
 	## see CGAL and BOOST configs for more elaborate explanations
 	add_definitions(/DNOMINMAX)
@@ -66,7 +69,7 @@ elseif (MSVC)
 	add_definitions(/DGSL_DLL)
 
 	# minimal code rebuild
-	add_definitions(/Gm)
+	add_definitions(/Gm /Zi)
 
 	#SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT.lib,libcpmt.lib")
 	#SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT.lib,libcpmt.lib")
@@ -164,6 +167,11 @@ message(STATUS "Contrib lib dir: ${CONTRIB_LIB_DIR}")
 ## Also we need to be very careful to link against the correct debug/release version in MSVC!
 ## TODO: check if we also need to distinguish between compiler versions
 
+## fills ${varname} with the names of Debug and Release libraries (which usually only differ on MSVC)
+## @param varname Name of the variable which will hold the result string (e.g. "optimized myLib.so debug myLibDebug.so")
+## @param libnames   List of library names which are searched (release libs)
+## @param libnames_d List of library names which are searched (debug libs)
+## @param human_libname Name of the library (for display only) 
 MACRO (OPENMS_CHECKLIB varname libnames libnames_d human_libname)
 	FIND_LIBRARY(${varname}_OPT NAMES ${libnames} PATHS ${CONTRIB_LIB_DIR} DOC "${human_libname} library dir" NO_DEFAULT_PATH)
 	if (${varname}_OPT STREQUAL "${varname}_OPT-NOTFOUND")
@@ -199,10 +207,12 @@ if (NOT MSVC AND USE_ANDIMS)
 endif()
 
 # libSVM:
-# there is no FIND_OBJECT.. so just hard-code it (FIND_LIBRARY won't work)
-if (MSVC)
-	set(SVM_LIBRARY optimized ${CONTRIB_LIB_DIR}svm.obj debug ${CONTRIB_LIB_DIR}svm_d.obj CACHE INTERNAL "object file of svm library")
+
+if (MSVC) # we created a lib here, because we cannot just add an object..
+	OPENMS_CHECKLIB(SVM_LIBRARY "svm" "svmd" "LibSVM")
+	#set(SVM_LIBRARY optimized ${CONTRIB_LIB_DIR}svm.obj debug ${CONTRIB_LIB_DIR}svm_d.obj CACHE INTERNAL "object file of svm library")
 else()
+	# there is no FIND_OBJECT.. so just hard-code it (FIND_LIBRARY won't work)
 	set(SVM_LIBRARY general ${CONTRIB_LIB_DIR}svm.o CACHE INTERNAL "object file of svm library") # do not distinguish between optimized and debug
 endif()
 
@@ -449,7 +459,8 @@ MACRO (QT4_WRAP_UI_OWN outfiles )
 
 ENDMACRO (QT4_WRAP_UI_OWN)
 
-#link_directories(${CONTRIB_LIB_DIR})
+#needed for MSVC to locate Boost-Libs
+link_directories(${CONTRIB_LIB_DIR})
 
 # big include file for headers and C files, which fills the OpenMS_sources variable
 include (includes.cmake)

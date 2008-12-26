@@ -131,7 +131,7 @@ namespace OpenMS
     
           Int status;
           Int iter = 0;
-          const UInt n = set.size();
+          const UInt n = (UInt)set.size();
     
           // number of parameters to be optimized
           UInt p = num_params;

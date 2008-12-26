@@ -239,19 +239,19 @@ namespace OpenMS
         else
         {
           os << "\nCluster size statistics:\n";
-          uint maxsize = 0;
-          for (uint i=0; i<clustermap_.size(); ++i)
+          Size maxsize = 0;
+          for (Size i=0; i<clustermap_.size(); ++i)
           {
             if (clustermap_[i].size() > maxsize) maxsize = clustermap_[i].size();
           }
 
-          std::vector<uint> size_dist(maxsize+1);
-          for (uint i=0; i<clustermap_.size(); ++i)
+          std::vector<UInt> size_dist(maxsize+1);
+          for (Size i=0; i<clustermap_.size(); ++i)
           {
             ++size_dist[clustermap_[i].size()];  
           }
           
-          for (uint i=0; i<maxsize+1; ++i)
+          for (Size i=0; i<maxsize+1; ++i)
           {
             if (size_dist[i]>0)
               os << size_dist[i] <<  " of size " << i << "\n";  

@@ -312,7 +312,7 @@ namespace OpenMS
         UInt n = (UInt) peak_shapes_.size();
 				if( deconvolution_)
 				{
-					for (Size i = 0; i < n; ++i)
+					for (UInt i = 0; i < n; ++i)
 					{
 						if ((peak_shapes_[i].getFWHM() > fwhm_threshold) 
 								|| (peak_shapes_[i].getSymmetricMeasure() < symm_threshold))

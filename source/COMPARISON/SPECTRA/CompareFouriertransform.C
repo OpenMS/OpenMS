@@ -143,13 +143,13 @@ namespace OpenMS
   		int_sum+=spec[p].getIntensity();
   	}
   	//copy the peaks two times
-  	UInt i = 0;
+  	Size i = 0;
   	for (Size p=0; p<spec.size(); ++p)
   	{
   		data[i] = spec[p].getIntensity()/int_sum;
   		++i;
   	}
-  	for (Int p=spec.size()-1; p>=0; --p)
+  	for (SignedSize p=spec.size()-1; p>=0; --p)
   	{
   		data[i] = spec[p].getIntensity()/int_sum;
   		++i;

@@ -736,7 +736,7 @@ namespace OpenMS
     {
     	MSSpectrum<>::MetaDataArrays& temp = spec.getMetaDataArrays();
 		
-    	UInt i=0;
+    	Size i=0;
     	if(temp.size()>0)
 			{
 				while(i< temp.size())
@@ -1124,7 +1124,7 @@ namespace OpenMS
 		std::vector<Real>tempycoordinate;//rt aligigned
 
 		std::vector<std::pair<std::pair<Int, Real>, Real> > tempxy;
-		UInt size= xcoordinate.size();
+		Size size= xcoordinate.size();
 		//std::cout <<bucketsize_  << " bucketsize "<<size << " anchorpoints " <<xcoordinate.size() << " xsize()" << std::endl;
 		if(bucketsize_ >= xcoordinate.size()) size=xcoordinate.size();
 		else size=size/bucketsize_;

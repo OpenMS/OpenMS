@@ -174,11 +174,11 @@ namespace OpenMS
 			// and each point pair in the scene map and hash the affine
 			// transformation.
 
-			UInt const model_map_size = model_map.size(); // i j
-			UInt const scene_map_size = scene_map.size(); // k l
+			Size const model_map_size = model_map.size(); // i j
+			Size const scene_map_size = scene_map.size(); // k l
 
 			// first point in model map
-			for ( UInt i = 0, k_low = 0, k_high = 0;
+			for ( Size i = 0, k_low = 0, k_high = 0;
 						i < model_map_size-1;
 						++i
 					)
@@ -194,7 +194,7 @@ namespace OpenMS
 							) ++k_high ;
 
 				// first point in scene map
-				for ( UInt k = k_low; k < k_high; ++k )
+				for ( Size k = k_low; k < k_high; ++k )
 				{
 					// second point in model map
 					for (Size j = i+1, l_low = k_low, l_high = k_high; j < model_map_size; ++j)
@@ -213,7 +213,7 @@ namespace OpenMS
 									) ++l_high ;
 
 						// second point in scene map
-						for ( UInt l = l_low; l < l_high; ++l )
+						for ( Size l = l_low; l < l_high; ++l )
 						{
 							// diff in scene map
 							DoubleReal diff_scene = scene_map[l].getRT() - scene_map[k].getRT();
@@ -245,8 +245,8 @@ namespace OpenMS
 
 							DoubleReal bucket_fraction_shift = (shift - shift_bounding_box_.min()[0]) / shift_bucket_size_;  // floating point division
 							DoubleReal bucket_fraction_scaling = (scaling - scaling_bounding_box_.min()[0]) / scaling_bucket_size_;  // floating point division
-							Int bucket_shift_index    = (int) bucket_fraction_shift; // round down (yes we are >= 0)
-							Int bucket_scaling_index    = (int) bucket_fraction_scaling; // round down (yes we are >= 0)
+							Int bucket_shift_index    = (Int) bucket_fraction_shift; // round down (yes we are >= 0)
+							Int bucket_scaling_index    = (Int) bucket_fraction_scaling; // round down (yes we are >= 0)
 							bucket_fraction_shift -= bucket_shift_index;          // fractional part
 							bucket_fraction_scaling -= bucket_scaling_index;          // fractional part
 							

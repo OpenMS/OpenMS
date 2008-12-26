@@ -110,9 +110,9 @@ namespace OpenMS
 			char delimiter;
 
 			// default dimension of the data
-			UInt rt_dim = 0;
-			UInt mz_dim = 1;
-			UInt int_dim = 2;
+			Size rt_dim = 0;
+			Size mz_dim = 1;
+			Size int_dim = 2;
 
 			//RT unit (default is seconds)
 			bool time_in_minutes = false;

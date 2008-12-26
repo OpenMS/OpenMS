@@ -295,7 +295,7 @@ namespace OpenMS
 				}
 				if (val == max_)
 				{
-					return (bins_.size()-1);
+					return UInt(bins_.size()-1);
 				}
 				else
 				{

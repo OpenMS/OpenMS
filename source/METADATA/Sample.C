@@ -300,7 +300,7 @@ namespace OpenMS
 	
 	Int Sample::countTreatments() const
 	{
-		return treatments_.size();
+		return (Int)treatments_.size();
 	}
 
 }

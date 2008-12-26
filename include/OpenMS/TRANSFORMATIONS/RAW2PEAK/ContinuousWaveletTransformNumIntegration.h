@@ -163,7 +163,7 @@ namespace OpenMS
 				}
 
         // TODO avoid to compute the cwt for the zeros in signal
-        for (Size i=0; i < n; ++i)
+        for (UInt i=0; i < n; ++i)
         {
           signal_[i].setMZ(origin + i*spacing);
           signal_[i].setIntensity(integrate_(processed_input,spacing,i));

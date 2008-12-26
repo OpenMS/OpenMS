@@ -369,7 +369,7 @@ namespace OpenMS
 	std::ostream& operator << (std::ostream& os, const DPosition<D>& pos)
 	{
 		os << precisionWrapper(pos[0]);
-		for (Size i=1; i < D; ++i)
+		for (UInt i=1; i < D; ++i)
 		{
 			os << ' ' << precisionWrapper(pos[i]);
 		}
