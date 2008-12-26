@@ -314,7 +314,7 @@ namespace OpenMS
 
 	}
 	
-	void SVMWrapper::saveModel(string model_filename) const throw (Exception::UnableToCreateFile)
+	void SVMWrapper::saveModel(string model_filename) const
 	{
 		Int  status = 0;
 		
