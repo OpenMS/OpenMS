@@ -64,7 +64,7 @@ namespace OpenMS
 	Spectrum1DCanvas::Spectrum1DCanvas(const Param& preferences, QWidget* parent)
 		: SpectrumCanvas(preferences, parent),
 			mirror_mode_(false),
-			lower_half_active_(true)
+			alignment_shown_(false)
 	{
     //Paramater handling
     defaults_.setValue("highlighted_peak_color", "#ff0000", "Highlighted peak color.");
@@ -172,11 +172,6 @@ namespace OpenMS
 		
 		// get mouse position in widget coordinates
 		last_mouse_pos_ = e->pos();
-	
-		if (mirror_mode_)
-		{
-			lower_half_active_ = (last_mouse_pos_.y() > height() / 2);
-		}
 		
 		if (e->button() == Qt::LeftButton)
 		{
@@ -407,6 +402,9 @@ namespace OpenMS
 	{
 		//no layers => return invalid peak index
 		if (layers_.empty()) return PeakIndex();
+		
+		// mirror mode and p not on same half as active layer => return invalid peak index
+		if (mirror_mode_ && (getCurrentLayer().flipped ^ p.y() > height()/2)) return PeakIndex();
 		
 		//reference to the current data
 		SpectrumType& spectrum = currentPeakData_()[0];
@@ -1042,7 +1040,11 @@ namespace OpenMS
 			context_menu->addAction(layer_name.toQString())->setEnabled(false);
 			context_menu->addSeparator();
 	
-			context_menu->addAction("Add label");
+			new_action = context_menu->addAction("Add label");
+			if (mirror_mode_ && (getCurrentLayer().flipped ^ e->pos().y() > height()/2))
+			{
+				new_action->setEnabled(false);
+			}
 			new_action = context_menu->addAction("Add peak annotation");
 			PeakIndex near_peak = findPeakAtPosition_(e->pos());
 			if (!near_peak.isValid())

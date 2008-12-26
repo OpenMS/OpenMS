@@ -1300,7 +1300,7 @@ namespace OpenMS
 			name = layer.name.toQString();
 			if (layer.flipped)
 			{
-				name += " (flipped)";
+				name += " [flipped]";
 			}
 			item->setText(name);
     	if (layer.visible)

@@ -173,8 +173,8 @@ namespace OpenMS
       QPoint measurement_start_point_;
       /// Indicates whether this widget is currently in mirror mode
 			bool mirror_mode_;
-			/// Indicates whether the lower or upper half is currently active (only relevant in mirror mode)
-			bool lower_half_active_;
+			/// Indicates whether an alignment is currently visualized
+			bool alignment_shown_;
       
 			/// Find peak next to the given position
 			PeakIndex findPeakAtPosition_(QPoint);
