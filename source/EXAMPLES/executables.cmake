@@ -32,6 +32,7 @@ Tutorial_TheoreticalSpectrumGenerator
 Tutorial_TopHatFilter
 Tutorial_Unlabeled
 Tutorial_typeAsString
+Tutorial_ListEditor
 )
 
 ### add path to the filenames

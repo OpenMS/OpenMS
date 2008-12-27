@@ -28,6 +28,7 @@ Spectrum3DOpenGLCanvas.C
 Spectrum3DWidget.C
 SpectrumCanvas.C
 SpectrumWidget.C
+ListEditor.C
 )
 
 ### add path to the filenames

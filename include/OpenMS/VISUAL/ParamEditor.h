@@ -82,7 +82,12 @@ namespace OpenMS
 			protected:
 				/// Checks if a @p name is valid for the entry corresponding to @p index (checks if it would be duplicate)
 				bool exists_(QString name, QModelIndex index) const;
-				
+			
+			private slots:
+				///For closing ListEditor and updating ParamEditor
+				void commitAndCloseListEditor();
+				///if cancel in ListEditor is clicked Dialog is closed and changes are rejected
+				void closeListEditor();
 			private:
 				/// Not implemented
 				ParamEditorDelegate();
@@ -120,7 +125,7 @@ namespace OpenMS
 		
 		@image html ParamEditor.png
 		
-		@todo Add support for string/int/float lists, Add input/output file dialogs (Hiwi)
+		@todo Add input/output file dialogs (Hiwi)
 		
 		@ingroup Visual
 	*/

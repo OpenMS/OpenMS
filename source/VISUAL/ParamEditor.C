@@ -27,6 +27,7 @@
 
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/VISUAL/ListEditor.h>
 
 #include <QtGui/QMessageBox>
 #include <QtGui/QComboBox>
@@ -34,9 +35,11 @@
 #include <QtGui/QShortcut>
 #include <QtGui/QMenu>
 #include <QtGui/QItemSelection>
+#include <QtCore/QStringList>
  
 #include <stack>
 #include <limits>
+#include <sstream>
 
 using namespace std;
 
@@ -77,11 +80,23 @@ namespace OpenMS
 					editor->addItems(list);
 					return editor;
 				}
-				else // LineEdit for the rest
+				else // for lists
 				{
+					if(dtype =="string list" || dtype =="int list" || dtype=="double list")
+					{
+						ListEditor *editor = new ListEditor;
+						editor->setModal(true);
+						connect(editor,SIGNAL(accepted()),this, SLOT(commitAndCloseListEditor()));
+						connect(editor,SIGNAL(rejected()),this,SLOT(closeListEditor()));
+						return editor;
+					}						
+					else //LineEditor for rest
+					{
 					QLineEdit *editor = new QLineEdit(parent);
 					editor->setFocusPolicy(Qt::StrongFocus);
 					return editor;
+					}
+					
 				}
 			}
 			return 0;
@@ -93,7 +108,7 @@ namespace OpenMS
 
 			if(index.column()==1)
 			{
-				if(qobject_cast<QLineEdit*>(editor)==0) //Drop-down list for enums
+				if(qobject_cast<QLineEdit*>(editor)==0 && qobject_cast<ListEditor*>(editor)==0) //Drop-down list for enums
 				{
 					int index = static_cast<QComboBox*>(editor)->findText(str);
 					if (index==-1)
@@ -102,9 +117,28 @@ namespace OpenMS
 					}
 					static_cast<QComboBox*>(editor)->setCurrentIndex(index);
 				}
-				else// LineEdit for the rest
+				else if(qobject_cast<QComboBox*>(editor)==0 && qobject_cast<ListEditor*>(editor)==0)// LineEdit for other values
 				{
 					static_cast<QLineEdit*>(editor)->setText(str);
+				}
+				else		// ListEditor for lists 
+				{
+					String list;
+					list = str.mid(1,str.length()-2);
+					QString type = index.sibling(index.row(),2).data(Qt::DisplayRole).toString();
+					if(type == "int list")
+					{
+						static_cast<ListEditor*>(editor)->setList(StringList::create(list),ListTable::INT);
+					}
+					else if(type == "double list")
+					{
+						static_cast<ListEditor*>(editor)->setList(StringList::create(list),ListTable::FLOAT);
+					}
+					else
+					{
+						static_cast<ListEditor*>(editor)->setList(StringList::create(list),ListTable::STRING);
+					}
+					static_cast<ListEditor*>(editor)->setListRestrictions(index.sibling(index.row(),2).data(Qt::UserRole).toString());
 				}
 			}
 		}
@@ -113,16 +147,23 @@ namespace OpenMS
 		{
 			QVariant present_value = index.data(Qt::DisplayRole);
 			QVariant new_value;
+			StringList list;
+			bool new_list = false;
 			if(index.column()==1)
 			{
 				//extract new value
-				if(qobject_cast<QLineEdit*>(editor)==0) //Drop-down list for enums
+				if(qobject_cast<QLineEdit*>(editor)==0 && qobject_cast<ListEditor*>(editor) == 0) //Drop-down list for enums
 				{
 					new_value = QVariant(static_cast<QComboBox*>(editor)->currentText());
 				}
-				else
+				else if(qobject_cast<QComboBox*>(editor) == 0 && qobject_cast<ListEditor*>(editor)==0)
 				{
 					new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
+				}
+				else
+				{
+					list = static_cast<ListEditor*>(editor)->getList();
+					new_list = true;
 				}
 				//check if it matches the restrictions or is empty
 				if (new_value.toString()!="")
@@ -183,13 +224,25 @@ namespace OpenMS
 					}
 				}
 			}
-			
-			//check if modified
-			if(new_value!=present_value)
+			if(new_list)
 			{
+				stringstream ss;
+				ss << list;
+				QVariant new_value;
+				new_value = QVariant(QString::fromStdString(ss.str()));
 				model->setData(index, new_value);
 				model->setData(index,QBrush(Qt::yellow),Qt::BackgroundRole);
 				emit modified(true);
+			}				
+			else
+			{
+				//check if modified
+				if(new_value!=present_value)
+				{
+					model->setData(index, new_value);
+					model->setData(index,QBrush(Qt::yellow),Qt::BackgroundRole);
+					emit modified(true);
+				}
 			}
 		}
 		 
@@ -221,7 +274,19 @@ namespace OpenMS
 			}
 			return false;
 		}
-
+		
+		void ParamEditorDelegate::commitAndCloseListEditor()
+		{
+			ListEditor* editor = qobject_cast<ListEditor*>(sender());
+			emit commitData(editor);
+			emit closeEditor(editor);
+		}
+		
+		void ParamEditorDelegate::closeListEditor()
+		{
+			ListEditor* editor = qobject_cast<ListEditor*>(sender());
+			emit closeEditor(editor);
+		}
 
 		///////////////////ParamTree/////////////////////////////////
 	
@@ -345,6 +410,15 @@ namespace OpenMS
 				case DataValue::STRING_VALUE:
 					item->setText(2, "string");
 					break;
+				case DataValue::STRING_LIST:
+					item->setText(2,"string list");
+					break;
+				case DataValue::INT_LIST:
+					item->setText(2,"int list");
+					break;
+				case DataValue::DOUBLE_LIST:
+					item->setText(2,"double list");
+					break;
 				default:
 					break;
 			};
@@ -352,6 +426,7 @@ namespace OpenMS
 			switch(it->value.valueType())
 			{
 				case DataValue::INT_VALUE:
+				case DataValue::INT_LIST:
 					{
 						String drest="", irest="";
 						bool min_set = (it->min_int!=-numeric_limits<Int>::max());
@@ -376,6 +451,7 @@ namespace OpenMS
 					}
 					break;
 				case DataValue::DOUBLE_VALUE:
+				case DataValue::DOUBLE_LIST:
 					{
 						String drest="", irest="";
 						bool min_set = (it->min_float!=-numeric_limits<DoubleReal>::max());
@@ -400,6 +476,7 @@ namespace OpenMS
 					}
 					break;
 				case DataValue::STRING_VALUE:
+				case DataValue::STRING_LIST:	
 					{
 						String irest="";
 						if (it->valid_strings.size()!=0)
@@ -532,7 +609,53 @@ namespace OpenMS
 					}
 				}
 			}
-
+								String list;
+					list = child->text(1).mid(1,child->text(1).length()-2);
+			if(child->text(2)=="string list")
+			{
+				param_->setValue(path,StringList::create(list),description,tags);
+				String restrictions = child->data(2,Qt::UserRole).toString();
+				if(restrictions!="")
+				{
+					vector<String> parts;
+					restrictions.split(',',parts);
+					param_->setValidStrings(path,parts);
+				}
+			}
+			else if(child->text(2) =="double list")
+			{
+				param_->setValue(path,DoubleList::create(list),description,tags);
+				String restrictions = child->data(2,Qt::UserRole).toString();
+				vector<String> parts;
+				if(restrictions.split(' ',parts))
+				{
+					if(parts[0]!= "")
+					{
+						param_->setMinFloat(path,parts[0].toFloat());
+					}
+					if(parts[1] != "")
+					{
+						param_->setMaxFloat(path,parts[1].toFloat());
+					}
+				}
+			}
+			else if(child->text(2) == "int list")
+			{
+				param_->setValue(path,IntList::create(list),description,tags);
+				String restrictions = child->data(2,Qt::UserRole).toString();
+				vector<String> parts;
+				if(restrictions.split(' ',parts))
+				{
+					if(parts[0]!= "")
+					{
+						param_->setMinInt(path,parts[0].toFloat());
+					}
+					if(parts[1] != "")
+					{
+						param_->setMaxInt(path,parts[1].toFloat());
+					}
+				}			
+			}
 			
 			// set description node description if the prefix matches
 			for (map<String,String>::const_iterator it = section_descriptions.begin(); it!=section_descriptions.end(); ++it)

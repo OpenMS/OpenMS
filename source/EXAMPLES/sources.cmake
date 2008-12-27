@@ -32,6 +32,7 @@ Tutorial_TheoreticalSpectrumGenerator.C
 Tutorial_TopHatFilter.C
 Tutorial_Unlabeled.C
 Tutorial_typeAsString.C
+Tutorial_ListEditor.C
 )
 
 ### add path to the filenames
