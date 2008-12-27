@@ -30,10 +30,9 @@
 namespace OpenMS
 {	
 
-	Annotation1DPeakItem::Annotation1DPeakItem(const PointType& position, const PeakIndex& peak, const QString& text, const QPen& pen)
+	Annotation1DPeakItem::Annotation1DPeakItem(const PointType& position, const QString& text, const QPen& pen)
 		: Annotation1DItem(text, pen),
-			position_(position),
-			peak_(peak)
+			position_(position)
 	{
 	}
 	
@@ -41,7 +40,6 @@ namespace OpenMS
 		: Annotation1DItem(rhs)
 	{
 		position_ = rhs.getPosition();
-		peak_ = rhs.getPeak();
 	}
 	
 	Annotation1DPeakItem::~Annotation1DPeakItem()
@@ -56,9 +54,23 @@ namespace OpenMS
 		
 		// compute bounding box of text_item on the specified painter
 		bounding_box_ = painter.boundingRect(QRectF(pos, pos), Qt::AlignCenter, text_);
-		// shift pos, annotation should be next to the peak and not overlap it
-		bounding_box_.translate(bounding_box_.width()/2.0 + 10.0, -15.0);
-		
+		// shift pos - annotation should be over peak or, if not possible, next to it
+		DoubleReal vertical_shift = bounding_box_.height()/2 + 5;
+		if (!flipped)
+		{
+			vertical_shift *= -1;
+		}
+		bounding_box_.translate(0.0, vertical_shift);
+		if (flipped && bounding_box_.bottom() > canvas->height())
+		{
+			bounding_box_.moveBottom(canvas->height());
+			bounding_box_.moveLeft(pos.x() + 5.0);
+		}
+		else if (!flipped && bounding_box_.top() < 0.0)
+		{
+			bounding_box_.moveTop(0.0);
+			bounding_box_.moveLeft(pos.x() + 5.0);
+		}
 		if (selected_)
 		{
 			painter.setPen(selected_pen_);
@@ -70,7 +82,6 @@ namespace OpenMS
 		}
 		
 		painter.drawText(bounding_box_, Qt::AlignCenter, text_);
-		painter.drawLine(bounding_box_.bottomLeft(), pos);
 	}
 	
 	void Annotation1DPeakItem::setPosition(const Annotation1DPeakItem::PointType& position)
@@ -82,16 +93,6 @@ namespace OpenMS
  	{
  		return position_;
  	}
-	
-	void Annotation1DPeakItem::setPeak(const PeakIndex& peak)
-	{
-		peak_ = peak;
-	}
-	
-	const PeakIndex& Annotation1DPeakItem::getPeak() const
-	{
-		return peak_;
-	}
 	
 }//Namespace
 

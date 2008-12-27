@@ -1137,17 +1137,10 @@ namespace OpenMS
 					QString text = QInputDialog::getText(this, "Add peak annotation", "Enter text:", QLineEdit::Normal, "", &ok);
 					if (ok && !text.isEmpty())
 					{
-						PointType position = widgetToData(e->pos());
 						PeakType peak = near_peak.getPeak(getCurrentLayer().peaks);
-						position.setX(peak.getMZ());
-						DoubleReal peak_height = peak.getIntensity();
-						PointType actual_pos = position;
-						if (position.getY() > peak_height)
-						{
-							actual_pos.setY(peak_height);
-						}
+						PointType position(peak.getMZ(), peak.getIntensity());
 						QPen pen(QColor(getCurrentLayer().param.getValue("annotation_color").toQString()), 1);
-						Annotation1DItem* item = new Annotation1DPeakItem(actual_pos, near_peak, text, pen);
+						Annotation1DItem* item = new Annotation1DPeakItem(position, text, pen);
 						getCurrentLayer().annotations_1d.push_front(item);
 						update_buffer_ = true;
 						update_(__PRETTY_FUNCTION__);
