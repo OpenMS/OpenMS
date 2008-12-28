@@ -1326,7 +1326,7 @@ namespace OpenMS
 		UInt num_o_feature, l_mz, r_mz;
 
 		typename std::pair<DoubleReal, DoubleReal> c_extend;
-		for (Size c=0; c<max_charge; ++c)
+		for (UInt c=0; c<max_charge; ++c)
 		{
 			std::vector<BoxElement> final_box;
 			for (iter=tmp_boxes_->at(c).begin(); iter!=tmp_boxes_->at(c).end(); ++iter)

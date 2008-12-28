@@ -102,7 +102,7 @@ namespace OpenMS
 
     	// find maxmz i.e. significant (> threshold * maxpeak) peak with highest m/z
     	double maxmz = 0;
-    	for (int i = spectrum.size() -1 ; i >= 0 ; --i)
+    	for (SignedSize i = spectrum.size() -1 ; i >= 0 ; --i)
     	{
       	if (spectrum[i].getIntensity() > maxint * threshold)
       	{

@@ -337,7 +337,7 @@ namespace OpenMS
 	  	{
 				ProteinHit protein_hit;
 				String temp_peptide_sequence;
-				Int peptide_index = -1;
+				SignedSize peptide_index = -1;
 	
 				protein_hit.setAccession(it->suffix('=').prefix(','));
 				//protein_hit.setAccessionType("SwissProt");

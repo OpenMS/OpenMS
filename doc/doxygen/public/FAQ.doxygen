@@ -36,7 +36,7 @@
 	<H2 style="border-top:2px solid grey;">Tests</H2>
 		<UL>
 
-			<LI><B>When executing 'make test', all tests fail.</B>
+			<LI><B>(Linux) When executing 'make test', all tests fail.</B>
 			<BR> If a error message similar to
 			@code error while loading shared libraries: libOpenMS.so: cannot open shared object file @endcode
 			is shown, you have probably not correctly added your &lt;%OpenMS&gt;/lib/ folder to the environment variable <i>LD_LIBRARY_PATH</i>.

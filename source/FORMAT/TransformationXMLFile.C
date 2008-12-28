@@ -107,7 +107,7 @@ namespace OpenMS
 		}
 		
 		//write pairs
-		UInt pairs_size = transformation.getPairs().size();
+		Size pairs_size = transformation.getPairs().size();
 		if (pairs_size!=0)
 		{
 			os << "\t\t<Pairs count=\"" << pairs_size << "\">\n";

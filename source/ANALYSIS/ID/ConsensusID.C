@@ -138,7 +138,7 @@ namespace OpenMS
 			}
 		}
 		//divide score by the maximum possible score and multiply with 100 => %
-		UInt max_score;
+		Size max_score;
 		if (number_of_runs==0)
 		{
 			max_score = ids.size()*considered_hits;

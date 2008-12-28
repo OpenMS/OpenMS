@@ -70,7 +70,7 @@ namespace OpenMS
 		tmp.trim();
 		StringList parts;
 		tmp.split(' ',parts);
-		int size = parts.size();
+		SignedSize size = parts.size();
 		if (size < 2) throw Exception::InvalidValue(__FILE__,__LINE__,__PRETTY_FUNCTION__,"Invalid filter format.",tmp);
 		//field
 		tmp=parts[0];

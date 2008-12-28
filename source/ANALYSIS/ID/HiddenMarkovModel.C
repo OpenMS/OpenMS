@@ -340,7 +340,7 @@ namespace OpenMS
 	
 	UInt HiddenMarkovModel::getNumberOfStates() const
 	{
-		return states_.size();
+		return (UInt)states_.size();
 	}
 
 	void HiddenMarkovModel::addNewState(HMMState* s)

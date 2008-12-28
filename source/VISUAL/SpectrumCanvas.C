@@ -435,7 +435,7 @@ namespace OpenMS
 		DRange<3>::PositionType min = overall_data_range_.min();
 		DRange<3>::PositionType max = overall_data_range_.max();
 		
-		for (Size layer_index=0; layer_index< getLayerCount(); ++layer_index)
+		for (UInt layer_index=0; layer_index< getLayerCount(); ++layer_index)
 		{
 			if (getLayer(layer_index).type==LayerData::DT_PEAK)
 			{
@@ -521,7 +521,7 @@ namespace OpenMS
   {
 		//look up all layers that contain data of the file
 		UInt updatable_layers = 0;
-		for (Size j=0; j<getLayerCount(); ++j)
+		for (UInt j=0; j<getLayerCount(); ++j)
 		{	
 			//cout << "  Layer: " << j << " " << getLayer(j).filename << endl;
 			if (getLayer(j).filename == filename)

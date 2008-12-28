@@ -96,7 +96,7 @@ namespace OpenMS
 				}
 
 				/// detailed constructor with pointer to the vector and offset position
-				ConstIterator(const std::vector<const Residue*>* vec_ptr, Int position)
+				ConstIterator(const std::vector<const Residue*>* vec_ptr, SignedSize position)
 				{
 					vector_ = vec_ptr;
 					position_ = position;

@@ -217,7 +217,7 @@ namespace OpenMS
 #endif
 		
   	// get diff of fwd and rev
-  	for (Size i = 0; i < number_of_bins; ++i)
+  	for (UInt i = 0; i < number_of_bins; ++i)
   	{
     	UInt fwd(fwd_bins[i]), rev(rev_bins[i]);
     	if (fwd > rev && max_reverse_bin < i)

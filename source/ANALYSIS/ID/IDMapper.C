@@ -65,14 +65,14 @@ namespace OpenMS
 		map.getProteinIdentifications().insert(map.getProteinIdentifications().end(),protein_ids.begin(),protein_ids.end());
 
 		//keep track of assigned/unassigned peptide identifications
-		std::set<UInt> assigned;
+		std::set<Size> assigned;
 					
 		// store which peptides fit which feature (and avoid double entries)
 		// consensusMap -> {peptide_index}
 		std::vector < std::set< size_t> > mapping(map.size());
 		
 		//iterate over the peptide IDs
-		for (size_t i=0; i<ids.size(); ++i)
+		for (Size i=0; i<ids.size(); ++i)
 		{
 			if (ids[i].getHits().size()==0) continue;
 
@@ -80,7 +80,7 @@ namespace OpenMS
 			DoubleReal mz_pep = ids[i].getMetaValue("MZ");
 
 			//iterate over the features
-			for(size_t cm_index = 0 ; cm_index<map.size(); ++cm_index)
+			for(Size cm_index = 0 ; cm_index<map.size(); ++cm_index)
 			{
 				//check if we compare distance from centroid or subelements
 				if (!measure_from_subelements)

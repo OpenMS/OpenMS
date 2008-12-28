@@ -521,20 +521,23 @@
 				<LI> Voilá. You should have an iconized TOPP tool.
 			</OL>
 
-			<LI><B>What do i have to do to add a new TOPP tool?</B>
+			<LI><B>What do I have to do to add a new TOPP tool?</B>
 			<OL>
 				<LI> Write the new tool ;)
 				<LI> Add your tool to getToolList() in <tt>include/OpenMS/APPLICATIONS/TOPPView.h</tt>
 				<LI> Add it to the TOPP docu page (in @a %doc/doxygen/public/TOPP.doxygen)
 				<LI> Add the executable to the ignore list if the directory (@a svn @a propedit @a svn:ignore @a source/APPLICATION/TOPP/)
         <LI> Add the name to <tt>source/APPLICATIONS/TOPP/executables.cmake</tt>
+        <LI> Write a TOPP test (add it to /source/TEST/TOPP/CMakeLists.txt)<br>
+        		 Warning: handle any kind of input files to your TOPP tool via command line flags and use the ${DATA_DIR_TOPP} prefix. You can use ini-files
+        		 to specify output-files, but not input-files. Doing otherwise will break out-of-source builds.
 			</OL>
 
 		</UL>
 
 	<H2 style="border-top:2px solid grey;">Contrib libraries</H2>
 		<UL>
-    <LI><B>(Linux) How to upgrade to a new snapshot version of SeqAn?</B></LI>
+    <LI><B>([deprecated] Linux) How to upgrade to a new snapshot version of SeqAn?</B></LI>
 			<OL>
          <LI>If there is a recent SeqAn release that works, use it instead ;-) Otherwise:
          <LI>Checkout the lasted stuff from SVN.
