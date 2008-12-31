@@ -190,6 +190,8 @@ namespace OpenMS
 			bool mirror_mode_;
 			/// Indicates whether an alignment is currently visualized
 			bool show_alignment_;
+			/// Indicates whether annotation items are just being moved on the canvas
+			bool moving_annotations_;
       /// Stores the alignment as MZ values of pairs of aligned peaks in both spectra
       std::vector<std::pair<DoubleReal, DoubleReal > > alignment_;
       /// Stores the score of the last alignment

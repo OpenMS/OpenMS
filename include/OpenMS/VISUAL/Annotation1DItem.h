@@ -27,6 +27,8 @@
 #ifndef OPENMS_VISUAL_ANNOTATION1DITEM_H
 #define OPENMS_VISUAL_ANNOTATION1DITEM_H
 
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
+
 #include <QtCore/QRectF>
 #include <QtCore/QString>
 
@@ -52,6 +54,13 @@ namespace OpenMS
 	
 		public:
 			
+			/// Type of the Points
+			typedef DPosition<2> PointType;
+			/// Intensity type
+			typedef Real IntensityType;
+			/// Coordinate type
+			typedef DoubleReal CoordinateType;			
+			
 			/// Destructor
 			virtual ~Annotation1DItem();
 			
@@ -67,6 +76,8 @@ namespace OpenMS
 			const QString& getText() const;
 			/// Draws the item on @p painter
 			virtual void draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped = false) = 0;
+			/// Moves the item; behaviour depends on item type and is implemented in the subclasses
+			virtual void move(const PointType& delta) = 0;
 			
 		protected:
 		

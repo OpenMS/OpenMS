@@ -87,6 +87,14 @@ namespace OpenMS
 		}
 	}
 	
+	void Annotation1DDistanceItem::move(const PointType& delta)
+	{
+		// shift vertical position according to y-component of delta
+		start_point_.setY(start_point_.getY()+delta.getY());
+		end_point_.setY(end_point_.getY()+delta.getY());
+	}
+
+	
 	void Annotation1DDistanceItem::setStartPoint(const PointType& p)
 	{
 		start_point_ = p;

@@ -28,7 +28,6 @@
 #define OPENMS_VISUAL_ANNOTATION1DDISTANCEITEM_H
 
 #include <OpenMS/VISUAL/Annotation1DItem.h>
-#include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 namespace OpenMS
 {
@@ -40,13 +39,6 @@ namespace OpenMS
 	{
 		
 		public:
-			
-			/// Type of the Points
-			typedef DPosition<2> PointType;
-			/// Intensity type
-			typedef Real IntensityType;
-			/// Coordinate type
-			typedef DoubleReal CoordinateType;
 
 			/// Constructor
 			Annotation1DDistanceItem(const QString& text, const PointType& start_point, const PointType& end_point);
@@ -54,8 +46,10 @@ namespace OpenMS
 			Annotation1DDistanceItem(const Annotation1DDistanceItem& rhs);
 			/// Destructor
 			virtual ~Annotation1DDistanceItem();
-			/// Draw the item
+			// Docu in base class
 			virtual void draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped = false);
+			// Docu in base class
+			virtual void move(const PointType& delta);
 			/// Sets the start point of the measured distance line
 			void setStartPoint(const PointType& start);
 			/// Sets the peak index of the end peak of the measurement
@@ -64,7 +58,7 @@ namespace OpenMS
 			const PointType& getStartPoint() const;
 			/// Returns the end point as (MZ,intensity)
 			const PointType& getEndPoint() const;
-				
+			
 		protected:
 		
 			/// The start point of the measured distance line

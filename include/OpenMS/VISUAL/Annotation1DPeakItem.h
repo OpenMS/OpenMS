@@ -28,7 +28,6 @@
 #define OPENMS_VISUAL_ANNOTATION1DPEAKITEM_H
 
 #include <OpenMS/VISUAL/Annotation1DItem.h>
-#include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 namespace OpenMS
 {
@@ -41,21 +40,16 @@ namespace OpenMS
 		
 		public:
 			
-			/// Type of the Points
-			typedef DPosition<2> PointType;
-			/// Intensity type
-			typedef Real IntensityType;
-			/// Coordinate type
-			typedef DoubleReal CoordinateType;
-
 			/// Constructor
 			Annotation1DPeakItem(const PointType& position, const QString& text);
 			/// Copy constructor
 			Annotation1DPeakItem(const Annotation1DPeakItem& rhs);
 			/// Destructor
 			virtual ~Annotation1DPeakItem();
-			/// Draws the item
+			// Docu in base class
 			virtual void draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped = false);
+			// Docu in base class
+			virtual void move(const PointType& delta);
 			/// Sets the position of the peak (in MZ / intensity coordinates)
 			void setPosition(const PointType& position);
 			/// Returns the position of the peak (in MZ / intensity coordinates)

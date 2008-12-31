@@ -81,6 +81,11 @@ namespace OpenMS
 		}
 	}
 	
+	void Annotation1DPeakItem::move(const PointType& delta)
+	{
+		// do nothing, peak annotations cannot be moved
+	}
+	
 	void Annotation1DPeakItem::setPosition(const Annotation1DPeakItem::PointType& position)
 	{
 		position_ = position;

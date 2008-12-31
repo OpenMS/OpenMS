@@ -64,6 +64,13 @@ namespace OpenMS
 		}
 	}
 	
+	void Annotation1DTextItem::move(const PointType& delta)
+	{
+		// shift position_ by delta
+		position_.setX(position_.getX()+delta.getX());
+		position_.setY(position_.getY()+delta.getY());
+	}
+	
 	void Annotation1DTextItem::setPosition(const Annotation1DTextItem::PointType& position)
 	{
 		position_ = position;

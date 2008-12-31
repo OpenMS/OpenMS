@@ -66,7 +66,8 @@ namespace OpenMS
 	Spectrum1DCanvas::Spectrum1DCanvas(const Param& preferences, QWidget* parent)
 		: SpectrumCanvas(preferences, parent),
 			mirror_mode_(false),
-			show_alignment_(false)
+			show_alignment_(false),
+			moving_annotations_(false)
 	{
     //Paramater handling
     defaults_.setValue("highlighted_peak_color", "#ff0000", "Highlighted peak color.");
@@ -255,23 +256,13 @@ namespace OpenMS
 					QMessageBox::information(this,"Not supported","Measuring is not yet supported for rotated spectra.");
 				}
 			}
-			/* if ctrl is pressed, allow selection / deselection of multiple annotation items.
-				else,deselect all annotation items before selecting the one under the cursor (if existent). */
-			if (!(e->modifiers() & Qt::ControlModifier))
-			{
-				getCurrentLayer().annotations_1d.deselectAll();
-			}
+			
+			// check item under cursor
 			Annotation1DItem* item = getCurrentLayer().annotations_1d.getItemAt(last_mouse_pos_);
 			if (item)
 			{
-				if (item->isSelected())
-				{
-					getCurrentLayer().annotations_1d.deselectItemAt(last_mouse_pos_);
-				}
-				else
-				{
-					getCurrentLayer().annotations_1d.selectItemAt(last_mouse_pos_);
-				}
+				item->setSelected(!item->isSelected());
+				
 				// if item is a distance item: show distance of selected item in status bar
 				Annotation1DDistanceItem* distance_item = dynamic_cast<Annotation1DDistanceItem*>(item);
 				if (distance_item)
@@ -297,9 +288,35 @@ namespace OpenMS
 		QPoint p = e->pos();
 		
 		PeakIndex near_peak = findPeakAtPosition_(p);
-	
+		
 		if(e->buttons() & Qt::LeftButton)
 		{
+			// move all selected annotations
+			Annotation1DItem* item = getCurrentLayer().annotations_1d.getItemAt(last_mouse_pos_);
+			if (item)
+			{
+				moving_annotations_ = true;
+				if (intensity_mode_==IM_PERCENTAGE)
+				{
+					percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().peaks[0].getMaxInt();
+				}
+				else 
+				{
+					percentage_factor_ = 1.0;
+				}
+				DoubleReal delta_x = widgetToData(p, true).getX() - widgetToData(last_mouse_pos_, true).getX();
+				DoubleReal delta_y = widgetToData(p, true).getY() - widgetToData(last_mouse_pos_, true).getY();
+				PointType delta(delta_x, delta_y);
+				
+				Annotations1DContainer& ann_1d = getCurrentLayer().annotations_1d;
+				for (Annotations1DContainer::Iterator it = ann_1d.begin(); it != ann_1d.end(); ++it)
+				{
+					if ((*it)->isSelected())
+					{
+						(*it)->move(delta);
+					}
+				}
+			}
 			if (action_mode_ == AM_TRANSLATE)
 			{
 				// translation in data metric
@@ -429,6 +446,25 @@ namespace OpenMS
 					getCurrentLayer().annotations_1d.push_front(item);
 				}
 			}
+			
+			// deselect all items, if ctrl is not pressed
+			Annotation1DItem* item = getCurrentLayer().annotations_1d.getItemAt(e->pos());
+			bool was_selected = false;
+			if (item)
+			{
+				was_selected = item->isSelected();
+			}
+			if (!(e->modifiers() & Qt::ControlModifier) && !moving_annotations_)
+			{
+				getCurrentLayer().annotations_1d.deselectAll();
+				if (item)
+				{
+					item->setSelected(was_selected);
+				}
+			}
+			
+			moving_annotations_ = false;
+			
 			measurement_start_.clear();
 			update_buffer_ = true;
 			update_(__PRETTY_FUNCTION__);
