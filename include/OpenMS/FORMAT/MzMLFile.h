@@ -31,26 +31,27 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/METADATA/DocumentIdentifier.h>
 
 namespace OpenMS
 {
 	/**
 		@brief File adapter for MzML files
-		
+
 		This implementation does currently not support the whole functionality of MzML.
 		Some minor features are still missing:
   	  - chromatograms
   	  - zlib compression of base64 data
   	  - base64 integer data
   	  - base64 16 bit data
-		
+
 		If a critical error occurs due to the missing functionality, Exception::NotImplemented is thrown.
-		
+
 		@todo Implement Base64 integers, 16 bit, zlib support, chromatograms and CV units (Hiwi)
-		
+
 		@ingroup FileIO
 	*/
-	class OPENMS_DLLAPI MzMLFile 
+	class OPENMS_DLLAPI MzMLFile
 		:	public Internal::XMLFile,
 			public ProgressLogger
 	{
@@ -59,11 +60,11 @@ namespace OpenMS
 			MzMLFile();
 			///Destructor
 			~MzMLFile();
-			
-      /// Mutable access to the options for loading/storing 
+
+      /// Mutable access to the options for loading/storing
       PeakFileOptions& getOptions();
 
-      /// Non-mutable access to the options for loading/storing 
+      /// Non-mutable access to the options for loading/storing
       const PeakFileOptions& getOptions() const;
 
 			/**
@@ -78,7 +79,11 @@ namespace OpenMS
 			void load(const String& filename, MapType& map)
 			{
 				map.reset();
-				
+
+				//set DocumentIdentifier
+				map.setLoadedFileType(filename);
+				map.setLoadedFilePath(filename);
+
 				Internal::MzMLHandler<MapType> handler(map,filename,schema_version_,*this);
 				handler.setOptions(options_);
 				parse_(filename, &handler);
@@ -101,7 +106,7 @@ namespace OpenMS
 
 			/**
 				@brief Checks if a file validates against the XML schema.
-				
+
 		  	@exception Exception::FileNotFound is thrown if the file cannot be found.
 				@exception Exception::NotImplemented is thrown if there is no schema available for the file type.
 			*/
@@ -109,20 +114,20 @@ namespace OpenMS
 
 			/**
 				@brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
-				
+
 				@param filename File name of the file to be checked.
 				@param errors Errors during the validation are returned in this output parameter.
 				@param warnings Warnings during the validation are returned in this output parameter.
-				
+
 				@exception Exception::FileNotFound is thrown if the file could not be opened
 			*/
 			bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings);
 
 		private:
-			
+
 			/// Options for loading / storing
 			PeakFileOptions options_;
-			
+
 			/// Location of indexed mzML schema
 			String indexed_schema_location_;
 	};

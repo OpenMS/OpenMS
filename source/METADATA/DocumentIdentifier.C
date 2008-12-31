@@ -25,18 +25,18 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/DocumentIdentifier.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 
 namespace OpenMS
 {
-	
-	
+
 	DocumentIdentifier::DocumentIdentifier()
 	{
 	}
 
 	DocumentIdentifier::DocumentIdentifier(const DocumentIdentifier& source)
-		: id_(source.id_)
+		: id_(source.id_),file_path_(source.file_path_),file_type_(source.file_type_)
 	{}
 
 	DocumentIdentifier& DocumentIdentifier::operator=(const DocumentIdentifier& source)
@@ -47,31 +47,57 @@ namespace OpenMS
 		}
 
 		id_ = source.id_;
+		file_type_ = source.file_type_;
+		file_path_ = source.file_path_;
 
-		return *this;          
+		return *this;
 	}
 
-	DocumentIdentifier::~DocumentIdentifier() 
+	DocumentIdentifier::~DocumentIdentifier()
 	{}
 
 	void DocumentIdentifier::setIdentifier(const String& id)
 	{
-		id_ = id; 
+		id_ = id;
 	}
 
 	const String& DocumentIdentifier::getIdentifier() const
 	{
-		return id_; 
+		return id_;
+	}
+
+	void DocumentIdentifier::setLoadedFilePath(const String& file_name)
+	{
+		file_path_ = File::absolutePath(file_name);
+	}
+
+	const String& DocumentIdentifier::getLoadedFilePath() const
+	{
+		return file_path_;
+	}
+
+	void DocumentIdentifier::setLoadedFileType(const String& file_name)
+	{
+		file_type_ = FileHandler::typeToName(FileHandler::getTypeByContent(file_name));
+	}
+
+	const String& DocumentIdentifier::getLoadedFileType() const
+	{
+		return file_type_;
 	}
 
 	void DocumentIdentifier::swap(DocumentIdentifier& from)
 	{
 		std::swap(id_, from.id_);
+		std::swap(file_path_, from.file_path_);
+		std::swap(file_type_, from.file_type_);
 	}
 
 	bool DocumentIdentifier::operator== (const DocumentIdentifier& rhs) const
   {
   	return  id_ == rhs.id_;
 	}
+
+
 }
 

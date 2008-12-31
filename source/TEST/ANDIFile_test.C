@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -57,13 +57,16 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 
 	//test exception
 	TEST_EXCEPTION( Exception::FileNotFound , file.load("dummy/dummy.cdf",e) )
-	
+
   file.load(OPENMS_GET_TEST_DATA_PATH("ANDIFile_test.cdf"),e);
-  
+	//test DocumentIdentifier addition
+	TEST_STRING_EQUAL(e.getLoadedFilePath(), File::absolutePath("data/ANDIFile_test.cdf"));
+	TEST_STRING_EQUAL(e.getLoadedFileType(),"cdf");
+
   //---------------------------------------------------------------------------
-  // 60 : (120,100) 
+  // 60 : (120,100)
   // 120: (110,100) (120,200) (130,100)
-	// 180: (100,100) (110,200) (120,300) (130,200) (140,100) 
+	// 180: (100,100) (110,200) (120,300) (130,200) (140,100)
 	//---------------------------------------------------------------------------
   TEST_EQUAL(e.size(), 3)
 	TEST_REAL_SIMILAR(e[0].getMSLevel(), 1)
@@ -97,11 +100,11 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_REAL_SIMILAR(e[2][3].getIntensity(), 200)
 	TEST_REAL_SIMILAR(e[2][4].getPosition()[0], 140)
 	TEST_REAL_SIMILAR(e[2][4].getIntensity(), 100)
-  
+
   TEST_REAL_SIMILAR(e[0].getRT(), 60)
   TEST_REAL_SIMILAR(e[1].getRT(), 120)
   TEST_REAL_SIMILAR(e[2].getRT(), 180)
-  
+
   //---------------------------------------------------------------------------
   // RT = 60
   //---------------------------------------------------------------------------
@@ -115,7 +118,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[0].getPrecursor().getActivationEnergy(), 0)
 	TEST_EQUAL(e[0].getPrecursor().getActivationEnergyUnit(), Precursor::UNITSNULL)
 	TEST_EQUAL(e[0].getPrecursor().getWindowSize(), 0)
-	
+
 	//---------------------------------------------------------------------------
 	// RT = 120
 	//---------------------------------------------------------------------------
@@ -129,7 +132,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[1].getPrecursor().getActivationEnergy(), 0)
 	TEST_EQUAL(e[1].getPrecursor().getActivationEnergyUnit(), Precursor::UNITSNULL)
 	TEST_EQUAL(e[1].getPrecursor().getWindowSize(), 0)
-	
+
 	//---------------------------------------------------------------------------
 	// RT = 180
 	//---------------------------------------------------------------------------
@@ -143,7 +146,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[2].getPrecursor().getActivationEnergy(), 0)
 	TEST_EQUAL(e[2].getPrecursor().getActivationEnergyUnit(), Precursor::UNITSNULL)
 	TEST_EQUAL(e[2].getPrecursor().getWindowSize(), 0)
-  
+
   //---------------------------------------------------------------------------
   // const vector<SourceFile>& getSourceFiles() const;
   //---------------------------------------------------------------------------
@@ -162,7 +165,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   TEST_EQUAL(e.getContacts()[1].getLastName(), "7")
   TEST_EQUAL(e.getContacts()[1].getContactInfo(), "6")
   TEST_EQUAL(e.getContacts()[1].getMetaValue("ContactPosition"), "Dataset owner")
-    
+
   //---------------------------------------------------------------------------
   // const DataProcessing& getDataProcessing() const;
   //---------------------------------------------------------------------------
@@ -173,7 +176,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   TEST_EQUAL(e.getDataProcessing().back().getMetaValue("ErrorLog"), "")
   TEST_EQUAL(e.getDataProcessing().back().getMetaValue("CalibrationHistory"), "25262728")
   TEST_REAL_SIMILAR(e.getDataProcessing().back().getMetaValue("NumOfCalibrations"), 456.0)
-  
+
   //---------------------------------------------------------------------------
   // const Instrument& getInstrument() const;
   //---------------------------------------------------------------------------
@@ -219,7 +222,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(inst.getMassAnalyzers()[0].getIsolationWidth(), 0)
 	TEST_EQUAL(inst.getMassAnalyzers()[0].getFinalMSExponent(), 0)
 	TEST_EQUAL(inst.getMassAnalyzers()[0].getMagneticFieldStrength(), 0)
-	
+
 	//---------------------------------------------------------------------------
   // const HPLC& getHPLC() const;
   //---------------------------------------------------------------------------
@@ -233,7 +236,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	MSExperiment<> e2;
 	file.load(OPENMS_GET_TEST_DATA_PATH("ANDIFile_test.cdf"),e2);
 	TEST_EQUAL(e==e2,true)
-	
+
 	//test if it works with different peak types
 	MSExperiment<RichPeak1D> e_rich;
   file.load(OPENMS_GET_TEST_DATA_PATH("ANDIFile_test.cdf"),e_rich);

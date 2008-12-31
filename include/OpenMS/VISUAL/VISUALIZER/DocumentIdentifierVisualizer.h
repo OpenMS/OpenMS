@@ -23,7 +23,7 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
- 
+
 #ifndef OPENMS_VISUAL_VISUALIZER_DOCUMENTIDENTIFIERVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_DOCUMENTIDENTIFIERVISUALIZER_H
 
@@ -34,11 +34,11 @@
 
 //QT
 
-namespace OpenMS 
+namespace OpenMS
 {
 	/**
 		@brief Class that displays all meta information for DocumentIdentifier objects
-		
+
 		This class provides all functionality to view the meta information of an object of type DocumentIdentifier.
 	*/
 	class OPENMS_DLLAPI DocumentIdentifierVisualizer
@@ -46,28 +46,30 @@ namespace OpenMS
 			public BaseVisualizer<DocumentIdentifier>
 	{
 			Q_OBJECT
-	
+
 		public:
-			
+
 		   ///Constructor
 			DocumentIdentifierVisualizer(bool editable = false, QWidget* parent = 0);
-		
+
 		public slots:
-			
+
 		  //Docu in base class
 			void store();
-		
+
 		protected slots:
-			
+
 			///Undo the changes made in the GUI.
 			void undo_();
-	
-		protected:  
+
+		protected:
 			///@name Edit fields and buttons
 	    //@{
 			QLineEdit* identifier_;
+			QLineEdit* file_path_;
+			QLineEdit* file_type_;
 			//@}
-			
+
 			//Docu in base class
 			void update_();
 	};

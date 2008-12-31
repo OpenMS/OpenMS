@@ -31,6 +31,7 @@
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/METADATA/DocumentIdentifier.h>
 
 #include <iostream>
 
@@ -39,19 +40,19 @@ namespace OpenMS
 	/**
   	@brief This class provides Input/Output functionality for feature maps
 
-		A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/. 
-		
+		A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
+
   	@note This format will eventually be replaced by the HUPO-PSI AnalysisXML format!
-  	
+
   	@ingroup FileIO
   */
   class OPENMS_DLLAPI FeatureXMLFile
   	: protected Internal::XMLHandler,
   		public Internal::XMLFile
   {
-	
+
 		public:
-		
+
 			/** @name Constructors and Destructor */
 			//@{
 			///Default constructor
@@ -59,36 +60,36 @@ namespace OpenMS
 			///Destructor
 			~FeatureXMLFile();
 			//@}
-			
+
 			/**
 				@brief loads the file with name @p filename into @p map.
-			
+
 				@exception Exception::FileNotFound is thrown if the file could not be opened
 				@exception Exception::ParseError is thrown if an error occurs during parsing
 			*/
 			void load(String filename, FeatureMap<>& feature_map);
-					
+
 			/**
 				@brief stores the map @p feature_map in file with name @p filename.
-				
+
 				@exception Exception::UnableToCreateFile is thrown if the file could not be created
 			*/
 			void store(String filename, const FeatureMap<>& feature_map);
-			
-      /// Mutable access to the options for loading/storing 
+
+      /// Mutable access to the options for loading/storing
       PeakFileOptions& getOptions();
 
-      /// Non-mutable access to the options for loading/storing 
+      /// Non-mutable access to the options for loading/storing
       const PeakFileOptions& getOptions() const;
-		
+
 		protected:
 
 			// Docu in base class
       virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
-			
+
 			// Docu in base class
       virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
-			
+
 			// Docu in base class
       virtual void characters(const XMLCh* const chars, const unsigned int length);
 
@@ -97,11 +98,11 @@ namespace OpenMS
 
 			/// Writes a peptide identification to a stream (for assigned/unassigned peptide identifications)
 			void writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level);
-			
-			
-			/** 
+
+
+			/**
 				@brief update the pointer to the current feature
-					
+
 				@param create If true, a new (empty) Feature is added at the appropriate subordinate_feature_level_
 			*/
 			void updateCurrentFeature_(bool create);
@@ -110,29 +111,29 @@ namespace OpenMS
 			Feature* current_feature_;
 			/// Feature map pointer for reading
 			FeatureMap<Feature>* map_;
-			/// Options that can be set				
+			/// Options that can be set
 			PeakFileOptions options_;
-			
+
 			/**@name temporary datastructures to hold parsed data */
 	    //@{
 			ModelDescription<2>* model_desc_;
 			Param param_;
 			ConvexHull2D current_chull_;
-			DPosition<2> hull_position_;	
+			DPosition<2> hull_position_;
 	    //@}
-			
+
 			/// current dimension of the feature position, quality, or convex hull point
-	 		UInt dim_;			
-			
+	 		UInt dim_;
+
 			//for downward compatibility, all tags in the old description must be ignored
 			bool in_description_;
-			
+
 			/// level in Feature stack during parsing
 			Int subordinate_feature_level_;
-			
+
 			/// Pointer to last read object as a MetaInfoInterface, or null.
 			MetaInfoInterface* last_meta_;
-			
+
 			/// Temporary protein ProteinIdentification
 			ProteinIdentification prot_id_;
 			/// Temporary peptide ProteinIdentification

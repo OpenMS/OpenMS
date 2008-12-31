@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -67,7 +67,7 @@ namespace OpenMS
 		}
 		return *this;
 	}
-	
+
 	MSPFile::~MSPFile()
 	{
 	}
@@ -86,6 +86,10 @@ namespace OpenMS
 
 		exp.reset();
 		exp.setNativeIDType(ExperimentalSettings::MULTIPLE_PEAK_LISTS);
+
+		//set DocumentIdentifier
+		exp.setLoadedFileType(filename);
+		exp.setLoadedFilePath(filename);
 
     String line;
     ifstream is(filename.c_str());
@@ -115,7 +119,7 @@ namespace OpenMS
 		String instrument((String)param_.getValue("instrument"));
 		bool inst_type_correct(true);
 		UInt spectrum_number = 0;
-		
+
 		while (getline(is, line))
     {
       if (line.hasPrefix("Name:"))
@@ -132,13 +136,13 @@ namespace OpenMS
 				inst_type_correct = true;
 				continue;
       }
-			
+
 			/*
       if (line.hasPrefix("MW:"))
       {
         // skip that as it is not necessary and might not be available at all
       }*/
-			
+
       if (line.hasPrefix("Comment:"))
       {
         // slow, but we need the modifications from the header and the instrument type
@@ -160,7 +164,7 @@ namespace OpenMS
 						}
 						break;
 					}
-					
+
           if (it->hasPrefix("Mods=") && *it != "Mods=0")
           {
             String mods = it->suffix('=');
@@ -191,7 +195,7 @@ namespace OpenMS
                         "' at residue '" << single_mod[1] << "' could not be found, aborting!" << endl;
                 throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name);
               }
-              
+
               // this gives many error, e.g. Oxidation of Methionine is present multiple times in PSI-MOD
               if (candidate_mods.size() > 1)
               {
@@ -201,7 +205,7 @@ namespace OpenMS
 								{
 									cerr << " " << *it;
 								}
-												
+
 								cerr << "; choosing first one!" << endl;
               }
 
@@ -210,7 +214,7 @@ namespace OpenMS
 							UInt mod_position = single_mod[0].toInt();
 
 							// TODO C-term modification
-							
+
 							if (mod_position == 0 && ModificationsDB::getInstance()->getModification(psi_mod).getTermSpecificity() == ResidueModification::N_TERM)
 							{
 								peptide.setNTerminalModification(psi_mod);
@@ -232,7 +236,7 @@ namespace OpenMS
         }
 				continue;
       }
-      
+
 			if (line.hasPrefix("Num peaks:"))
 			{
 				if (!inst_type_correct)
@@ -266,7 +270,7 @@ namespace OpenMS
 			}
     }
   }
-	
+
 
 
 
@@ -290,6 +294,6 @@ namespace OpenMS
     }
   }
 
-	
+
 }// namespace OpenMS
 

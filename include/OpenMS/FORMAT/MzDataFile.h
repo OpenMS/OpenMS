@@ -31,30 +31,31 @@
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/HANDLERS/MzDataHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/METADATA/DocumentIdentifier.h>
 
 namespace OpenMS
 {
 	/**
 		@brief File adapter for MzData files
-		
+
 		@ingroup FileIO
 	*/
-	class OPENMS_DLLAPI MzDataFile 
+	class OPENMS_DLLAPI MzDataFile
 		:	public Internal::XMLFile,
 			public ProgressLogger
 	{
-		
+
 		public:
-			
+
 			///Default constructor
 			MzDataFile();
 			///Destructor
 			~MzDataFile();
-			
-      /// Mutable access to the options for loading/storing 
+
+      /// Mutable access to the options for loading/storing
       PeakFileOptions& getOptions();
 
-      /// Non-mutable access to the options for loading/storing 
+      /// Non-mutable access to the options for loading/storing
       const PeakFileOptions& getOptions() const;
 
 			/**
@@ -70,7 +71,11 @@ namespace OpenMS
 			{
 				map.reset();
 				map.setNativeIDType(ExperimentalSettings::SPECTRUM_IDENTIFIER);
-				
+
+				//set DocumentIdentifier
+				map.setLoadedFileType(filename);
+				map.setLoadedFilePath(filename);
+
 				Internal::MzDataHandler<MapType> handler(map,filename,schema_version_,*this);
 				handler.setOptions(options_);
 				parse_(filename, &handler);
@@ -90,7 +95,7 @@ namespace OpenMS
 				handler.setOptions(options_);
 				save_(filename, &handler);
 			}
-			
+
 		private:
 
 			/// Options for loading / storing

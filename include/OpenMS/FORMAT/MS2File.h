@@ -31,6 +31,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/DocumentIdentifier.h>
 
 #include <vector>
 #include <fstream>
@@ -39,18 +40,18 @@ namespace OpenMS
 {
 	/**
 		@brief MS2 input file adapter.
-		
+
 		For the format description take a look at:
 		Rapid Commun Mass Spectrom. 2004;18(18):2162-8.
 
-		MS1, MS2, and SQT-three unified, compact, and easily parsed file formats for the 
+		MS1, MS2, and SQT-three unified, compact, and easily parsed file formats for the
 		storage of shotgun proteomic spectra and identifications.
 
-		McDonald WH, Tabb DL, Sadygov RG, MacCoss MJ, Venable J, Graumann J, Johnson JR, 
+		McDonald WH, Tabb DL, Sadygov RG, MacCoss MJ, Venable J, Graumann J, Johnson JR,
 		Cociorva D, Yates JR 3rd.
 
 		PMID: 15317041
-  	  	
+
   	@ingroup FileIO
 	*/
   class OPENMS_DLLAPI MS2File
@@ -80,6 +81,10 @@ namespace OpenMS
 				exp.reset();
 				exp.setNativeIDType(ExperimentalSettings::MULTIPLE_PEAK_LISTS);
 
+				//set DocumentIdentifier
+				exp.setLoadedFileType(filename);
+				exp.setLoadedFilePath(filename);
+
 				std::ifstream in(filename.c_str());
 
 				UInt spectrum_number = 0;
@@ -103,7 +108,7 @@ namespace OpenMS
 					if (line[0] == 'S')
 					{
 						if (!first_spec)
-						{	
+						{
 							spec.setMSLevel(2);
 							spec.setNativeID(String("index=")+(spectrum_number++));
 							exp.push_back(spec);
@@ -129,7 +134,7 @@ namespace OpenMS
 					{
 						continue;
 					}
-					
+
 					// charge specification
 					if (line[0] == 'Z')
 					{
@@ -171,7 +176,7 @@ namespace OpenMS
 
 			}
 			*/
-			
+
     protected:
 
   };

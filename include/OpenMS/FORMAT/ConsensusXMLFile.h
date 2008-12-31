@@ -32,21 +32,22 @@
 #include <OpenMS/FORMAT/PeakFileOptions.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/DocumentIdentifier.h>
 
 namespace OpenMS
 {
   /**
-	@brief This class provides Input functionality for ConsensusMaps and Output functionality for 
+	@brief This class provides Input functionality for ConsensusMaps and Output functionality for
 	alignments and quantitation.
-     
-	This class can be used to load the content of a consensusXML file into a ConsensusMap 
+
+	This class can be used to load the content of a consensusXML file into a ConsensusMap
 	or to save the content of an ConsensusMap object into an XML file.
-		
+
 	A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
-		
+
 	@ingroup FileIO
   */
-  class OPENMS_DLLAPI ConsensusXMLFile 
+  class OPENMS_DLLAPI ConsensusXMLFile
   	: public Internal::XMLHandler,
   		public Internal::XMLFile,
 			public ProgressLogger
@@ -56,49 +57,49 @@ namespace OpenMS
 			ConsensusXMLFile();
 			///Destructor
 			~ConsensusXMLFile();
-	
-	
+
+
 			/**
 			@brief Loads a consenus map from file
-				
+
 			@exception Exception::FileNotFound is thrown if the file could not be opened
 			@exception Exception::ParseError is thrown if an error occurs during parsing
 			*/
 			void load(const String& filename, ConsensusMap& map);
-	
+
 			/**
 			@brief Stores a consenus map to file
-	      
+
 			@exception Exception::UnableToCreateFile is thrown if the file name is not writable
 			@exception Exception::IllegalArgument is thrown if the consensus map is not valid
 			*/
 			void store(const String& filename, const ConsensusMap& consensus_map);
-	
-			/// Mutable access to the options for loading/storing 
+
+			/// Mutable access to the options for loading/storing
 			PeakFileOptions& getOptions();
-	
-			/// Non-mutable access to the options for loading/storing 
+
+			/// Non-mutable access to the options for loading/storing
 			const PeakFileOptions& getOptions() const;
-  
+
 		protected:
-	
+
 			// Docu in base class
 			virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
-	
+
 			// Docu in base class
 			virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
-	
+
 			// Docu in base class
 			virtual void characters(const XMLCh* const chars, const unsigned int length);
-	
-	
+
+
 			/// Writes a peptide identification to a stream (for assigned/unassigned peptide identifications)
 			void writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level);
-				
-	
+
+
 			/// Options that can be set
 			PeakFileOptions options_;
-				
+
 			///@name Temporary variables for parsing
 			//@{
 			ConsensusMap* consensus_map_;
@@ -107,7 +108,7 @@ namespace OpenMS
 			DoubleReal it_;
 			UInt last_map_;
 			//@}
-				
+
 			/// Pointer to last read object as a MetaInfoInterface, or null.
 			MetaInfoInterface* last_meta_;
 			/// Temporary protein ProteinIdentification
@@ -128,7 +129,7 @@ namespace OpenMS
 			Map<String,String> id_identifier_;
 			/// Temporary search parameters file
 			ProteinIdentification::SearchParameters search_param_;
-			
+
 			UInt progress_;
 
   };

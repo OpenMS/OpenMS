@@ -77,7 +77,12 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
 	msp_file.load(OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"), ids, exp);
 	TEST_EQUAL(exp.size(), 5)
 	TEST_EQUAL(ids.size(), 5)
-	
+
+		//test DocumentIdentifier addition
+	TEST_STRING_EQUAL(exp.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"));
+	TEST_STRING_EQUAL(exp.getLoadedFileType(),"Unknown");
+
+
 	TEST_STRING_EQUAL(exp[0].getNativeID(), "index=0")
 	TEST_STRING_EQUAL(exp[1].getNativeID(), "index=1")
 	TEST_STRING_EQUAL(exp[2].getNativeID(), "index=2")
@@ -95,7 +100,7 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
 
 	TEST_STRING_EQUAL(exp[0].getNativeID(), "index=0")
 	TEST_STRING_EQUAL(exp[1].getNativeID(), "index=1")
-	
+
 	p.setValue("instrument", "it");
 	msp_file.setParameters(p);
 	ids.clear();

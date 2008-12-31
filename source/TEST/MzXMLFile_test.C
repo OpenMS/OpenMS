@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -71,21 +71,25 @@ END_SECTION
 
 START_SECTION((template<typename MapType> void load(const String& filename, MapType& map) ))
 	TOLERANCE_ABSOLUTE(0.01)
-	
+
 	MzXMLFile file;
-	
+
 	//exception
 	MSExperiment<> e;
 	TEST_EXCEPTION( Exception::FileNotFound , file.load("dummy/dummy.mzXML",e) )
-	
+
 	//real test
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e);
-  
+
+	//test DocumentIdentifier addition
+	TEST_STRING_EQUAL(e.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"));
+	TEST_STRING_EQUAL(e.getLoadedFileType(),"mzXML");
+
   //---------------------------------------------------------------------------
   // 60 : (120,100)
   // 120: (110,100) (120,200) (130,100)
   // 180: (100,100) (110,200) (120,300) (130,200) (140,100)
-	//--------------------------------------------------------------------------- 
+	//---------------------------------------------------------------------------
   TEST_EQUAL(e.size(), 4)
 	TEST_EQUAL(e[0].getMSLevel(), 1)
 	TEST_EQUAL(e[1].getMSLevel(), 1)
@@ -200,7 +204,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(inst.getMassAnalyzers()[0].getMagneticFieldStrength(), 0.0f)
 	TEST_EQUAL(inst.getSoftware().getName(),"MS-Z")
 	TEST_EQUAL(inst.getSoftware().getVersion(),"3.0")
-	
+
   //---------------------------------------------------------------------------
 	// vector<ContactPerson>& getContacts()
   //---------------------------------------------------------------------------
@@ -212,7 +216,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_STRING_EQUAL(contacts[0].getEmail(),"a@b.de")
 	TEST_STRING_EQUAL(contacts[0].getURL(),"http://bla.de")
 	TEST_STRING_EQUAL(contacts[0].getContactInfo(),"")
-	
+
   //---------------------------------------------------------------------------
 	// const Sample& getSample()
   //---------------------------------------------------------------------------
@@ -222,14 +226,14 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
  	TEST_EQUAL(e.getSample().getMass(), 0.0f)
 	TEST_EQUAL(e.getSample().getVolume(), 0.0f)
 	TEST_EQUAL(e.getSample().getConcentration(), 0.0f)
-	
+
 	/////////////////////// TESTING SPECIAL CASES ///////////////////////
-	
+
 	//load a second time to make sure everything is re-initialized correctly
 	MSExperiment<> e2;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e2);
 	TEST_EQUAL(e==e2,true)
-	
+
 	//test reading 64 bit data
 	MSExperiment<> e3;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_3_64bit.mzXML"),e3);
@@ -269,7 +273,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_2_minimal.mzXML"),e4);
   TEST_EQUAL(e4.size(),1)
   TEST_EQUAL(e4[0].size(),1)
-	
+
 	//load one extremely long spectrum - tests CDATA splitting
 	MSExperiment<> e5;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_4_long.mzXML"),e5);
@@ -290,7 +294,7 @@ START_SECTION(([EXTRA] load with metadata only flag))
 
 	// real test
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e);
-	
+
 	TEST_EQUAL(e.size(),0)
   TEST_EQUAL(e.getSourceFiles().size(),2)
   TEST_STRING_EQUAL(e.getSourceFiles()[0].getNameOfFile(), "File_test_1.raw");
@@ -312,7 +316,7 @@ START_SECTION(([EXTRA] load with selected MS levels))
 
 	MSExperiment<> e;
 	MzXMLFile file;
-	
+
 	// load only MS level 1
 	file.getOptions().addMSLevel(1);
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e);
@@ -327,7 +331,7 @@ START_SECTION(([EXTRA] load with selected MS levels))
 	TEST_STRING_EQUAL(e[0].getNativeID(),"scan=10")
 	TEST_STRING_EQUAL(e[1].getNativeID(),"scan=11")
 	TEST_STRING_EQUAL(e[2].getNativeID(),"scan=12")
-	
+
 	// load all levels
 	file.getOptions().clearMSLevels();
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e);
@@ -347,8 +351,8 @@ START_SECTION(([EXTRA] load with selected MZ range))
 	// 60 : +(120,100)
 	// 120: -(110,100) +(120,200) +(130,100)
 	// 180: -(100,100) -(110,200) +(120,300) +(130,200) -(140,100)
-	//--------------------------------------------------------------------------- 
-	
+	//---------------------------------------------------------------------------
+
 	TEST_REAL_SIMILAR(e[0].size(), 1)
 	TEST_REAL_SIMILAR(e[1].size(), 2)
 	TEST_REAL_SIMILAR(e[2].size(), 2)
@@ -375,7 +379,7 @@ START_SECTION(([EXTRA] load with RT range))
 	//---------------------------------------------------------------------------
 	// 120: (110,100) (120,200) (130,100)
 	// 180: (100,100) (110,200) (120,300) (130,200) (140,100)
-	//--------------------------------------------------------------------------- 
+	//---------------------------------------------------------------------------
  	TEST_EQUAL(e.size(), 2)
  	TEST_EQUAL(e[0].size(), 3)
  	TEST_EQUAL(e[1].size(), 5)
@@ -409,7 +413,7 @@ START_SECTION(([EXTRA] load with intensity range))
 	// 60 : -(120,100)
 	// 120: -(110,100) +(120,200) -(130,100)
 	// 180: -(100,100) +(110,200) +(120,300) +(130,200) -(140,100)
-	//--------------------------------------------------------------------------- 
+	//---------------------------------------------------------------------------
 	TEST_REAL_SIMILAR(e[0].size(), 0)
 	TEST_REAL_SIMILAR(e[1].size(), 1)
 	TEST_REAL_SIMILAR(e[2].size(), 3)
@@ -430,7 +434,7 @@ START_SECTION(([EXTRA] load/store for nested scans))
   MzXMLFile f;
 	MSExperiment<> e2;
 	e2.resize(5);
-	
+
 	//alternating
 	e2[0].setMSLevel(1);
 	e2[1].setMSLevel(2);
@@ -510,7 +514,7 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
 	std::string tmp_filename;
   MzXMLFile f;
   MSExperiment<> e;
-  
+
   //Note: empty mzXML files are not valid, thus this test is omitted
 
 	//test if fill file is valid

@@ -39,7 +39,6 @@
 namespace OpenMS
 {
   class String;
-
   /**
 			@brief DTA2D File adapter.
 
@@ -90,7 +89,7 @@ namespace OpenMS
 		void load(const String& filename, MapType& map)
 		{
 			startProgress(0,0,"loading DTA2D file");
-			
+
 			//try to open file
 			std::ifstream is(filename.c_str());
 			if (!is)
@@ -100,6 +99,10 @@ namespace OpenMS
 
 			map.reset();
 			map.setNativeIDType(ExperimentalSettings::MULTIPLE_PEAK_LISTS);
+
+			//set DocumentIdentifier
+			map.setLoadedFileType(filename);
+			map.setLoadedFilePath(filename);
 
 			// temporary variables to store the data in
 			std::vector<String> strings(3);
@@ -119,10 +122,10 @@ namespace OpenMS
 
 			// string to store the current line in
 			String line;
-			
+
 			// native ID (numbers from 0)
 			UInt native_id = 0;
-			
+
 			while (getline(is,line,'\n'))
 			{
 				line.trim();
@@ -186,7 +189,7 @@ namespace OpenMS
 					}
 					continue;
 				}
-				
+
 				try
 				{
 					line.split(delimiter,strings);
@@ -208,7 +211,7 @@ namespace OpenMS
 				if (rt != spec.getRT())
 				{
 					if ( spec.size()!=0
-						 	 && 
+						 	 &&
 						 	 (!options_.hasRTRange() || options_.getRTRange().encloses(DPosition<1>(spec.getRT())))) // RT restriction fulfilled
 					{
 						map.push_back(spec);
@@ -219,7 +222,7 @@ namespace OpenMS
 					spec.setNativeID(String("index=")+native_id);
 					++native_id;
 				}
-				
+
 				//Skip peaks with invalid m/z or intensity value
 				if (
 						(!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(p.getMZ())))
@@ -230,24 +233,24 @@ namespace OpenMS
 					spec.push_back(p);
 				}
 			}
-			
+
 			// add last Spectrum
-			if ( 
+			if (
 				  spec.size()!=0
-				 	&& 
+				 	&&
 				 	(!options_.hasRTRange() || options_.getRTRange().encloses(DPosition<1>(spec.getRT()))) // RT restriction fulfilled
 				 )
 			{
-				map.push_back(spec); 
+				map.push_back(spec);
 			}
-			
+
 			is.close();
 			endProgress();
 		}
 
 		/**
 			@brief Stores a map in a DTA2D file.
-			
+
 			@p map has to be a MSExperiment or have the same interface.
 
 			@exception Exception::UnableToCreateFile is thrown if the file could not be created
@@ -256,7 +259,7 @@ namespace OpenMS
 		void store(const String& filename, const MapType& map) const
 		{
 			startProgress(0,map.size(),"storing DTA2D file");
-			
+
 			std::ofstream os(filename.c_str());
 			if (!os)
 			{

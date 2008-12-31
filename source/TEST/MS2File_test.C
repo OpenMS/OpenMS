@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -60,17 +60,21 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	PeakMap exp;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MS2File_test_spectra.ms2"), exp);
 
+	//test DocumentIdentifier addition
+	TEST_STRING_EQUAL(exp.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MS2File_test_spectra.ms2"));
+	TEST_STRING_EQUAL(exp.getLoadedFileType(),"ms2");
+
 	TEST_EQUAL(exp.size(), 2)
 
 	TEST_EQUAL(exp[0].size(), 4)
 	TEST_EQUAL(exp[1].size(), 4)
-	
+
 	TEST_STRING_EQUAL(exp[0].getNativeID(), "index=0")
 	TEST_STRING_EQUAL(exp[1].getNativeID(), "index=1")
-	
+
 	TEST_REAL_SIMILAR(exp[0].getPrecursorPeak().getPosition()[0], 444.44)
 	TEST_REAL_SIMILAR(exp[1].getPrecursorPeak().getPosition()[0], 555.555)
-	
+
 END_SECTION
 
 /////////////////////////////////////////////////////////////

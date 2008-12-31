@@ -46,13 +46,13 @@ namespace OpenMS
 {
 	/**
 		@brief Facilitates file handling by file type recognition.
-		
+
 		This class provides file type recognition from the file name and
 		from the file content.
-		
+
 		It also offer a common interface to load MSExperiment data
 		and allows querying for supported file types.
-		
+
 		@ingroup FileIO
 	*/
 	class OPENMS_DLLAPI FileHandler
@@ -65,32 +65,32 @@ namespace OpenMS
 		*/
 		enum Type
 		{
-			UNKNOWN,        		///< Unknown file extension                         
-			DTA,            		///< DTA file (.dta)                                
-			DTA2D,          		///< DTA2D file (.dta2d)                            
-			MZDATA,         		///< MzData file (.MzData)                          
-			MZXML,          		///< MzXML file (.MzXML)                            
-			FEATUREXML,     		///< %OpenMS feature file (.featureXML)             
-			ANDIMS,         		///< ANDI\\MS file (.cdf)                           
-			IDXML,  						///< %OpenMS identification format (.idXML)         
-			CONSENSUSXML,  			///< %OpenMS consensus map format (.consensusXML)   
-			MGF,								///< Mascot Generic Format (.mgf)                   
-			PARAM,          		///< %OpenMS parameters file (.ini)                  
+			UNKNOWN,        		///< Unknown file extension
+			DTA,            		///< DTA file (.dta)
+			DTA2D,          		///< DTA2D file (.dta2d)
+			MZDATA,         		///< MzData file (.MzData)
+			MZXML,          		///< MzXML file (.MzXML)
+			FEATUREXML,     		///< %OpenMS feature file (.featureXML)
+			ANDIMS,         		///< ANDI\\MS file (.cdf)
+			IDXML,  						///< %OpenMS identification format (.idXML)
+			CONSENSUSXML,  			///< %OpenMS consensus map format (.consensusXML)
+			MGF,								///< Mascot Generic Format (.mgf)
+			PARAM,          		///< %OpenMS parameters file (.ini)
 			TRANSFORMATIONXML,  ///< Tranformation description file (.trafoXML)
 			MZML,								///< MzML file (.mzML)
 			MS2,								///< MS2 file (.ms2)
 			SIZE_OF_TYPE    		///< No file type. Simply stores the number of types
 		};
-			
+
 		/// String representations of the file types
 		static const std::string NamesOfTypes[SIZE_OF_TYPE];
 
 		/**
 			@brief Tries to determine the file type (by name or content)
-			
+
 			First the type is determined from the file name.
-			It this fails, the type is determined from the file content. 
-		
+			It this fails, the type is determined from the file content.
+
 			@exception Exception::FileNotFound is thrown if the file is not present
 		*/
 		static Type getType(const String& filename);
@@ -101,11 +101,11 @@ namespace OpenMS
 
 		/**
 			@brief Determines the file type of a file by parsing the first few lines
-			
+
 			@exception Exception::FileNotFound is thrown if the file is not present
 		*/
 		static Type getTypeByContent(const String& filename);
-				
+
 		/// Converts a file type name into a Type
 		static Type nameToType(const String& name);
 
@@ -128,7 +128,7 @@ namespace OpenMS
 			 @param exp The MSExperiment to load the data into.
 			 @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extention ( or from the content if that fails).
 			 @param log Progress logging mode
-			 
+
 			 @return true if the file could be loaded, false otherwise
 		*/
 		template <class PeakType> bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, Type force_type = UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE)
@@ -230,7 +230,7 @@ namespace OpenMS
 			 @param filename the Filename of the file to load.
 			 @param map The FeatureMap to load the data into.
 			 @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extention ( or from the content if that fails).
-			 
+
 			 @return true if the file could be loaded, false otherwise
 		*/
 		template <class FeatureType> bool loadFeatures(const String& filename, FeatureMap<FeatureType>& map, Type force_type = UNKNOWN)
@@ -251,7 +251,7 @@ namespace OpenMS
 					return false;
 				}
 			}
-			
+
 			//load right file
 			switch(type)
 			{

@@ -35,10 +35,10 @@
 namespace OpenMS
 {
 	class String;
-	
+
 	/**
 		@brief File adapter for MzXML 2.1 files
-		
+
 		@todo Check if compressed data arrays are allowed and implement them (Hiwi)
 		
 		@ingroup FileIO
@@ -52,18 +52,18 @@ namespace OpenMS
 			MzXMLFile();
 			///Destructor
 			~MzXMLFile();
-			
-      /// Mutable access to the options for loading/storing 
+
+      /// Mutable access to the options for loading/storing
       PeakFileOptions& getOptions();
 
-      /// Non-mutable access to the options for loading/storing 
+      /// Non-mutable access to the options for loading/storing
       const PeakFileOptions& getOptions() const;
 
 			/**
 				@brief Loads a map from a MzXML file.
 
 				@p map has to be a MSExperiment or have the same interface.
-				
+
 				@exception Exception::FileNotFound is thrown if the file could not be opened
 				@exception Exception::ParseError is thrown if an error occurs during parsing
 			*/
@@ -72,7 +72,11 @@ namespace OpenMS
 			{
 				map.reset();
 				map.setNativeIDType(ExperimentalSettings::SCAN_NUMBER);
-					
+
+				//set DocumentIdentifier
+				map.setLoadedFileType(filename);
+				map.setLoadedFilePath(filename);
+
 				Internal::MzXMLHandler<MapType> handler(map,filename,schema_version_,*this);
 				handler.setOptions(options_);
 				parse_(filename, &handler);

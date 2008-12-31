@@ -75,11 +75,16 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 
 	// real test
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),e);
-  //---------------------------------------------------------------------------
+
+	//test DocumentIdentifier addition
+	TEST_STRING_EQUAL(e.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"));
+	TEST_STRING_EQUAL(e.getLoadedFileType(),"mzData");
+
+//---------------------------------------------------------------------------
   // 60 : (120,100)
   // 120: (110,100) (120,200) (130,100)
-  // 180: (100,100) (110,200) (120,300) (130,200) (140,100) 
-	//--------------------------------------------------------------------------- 
+  // 180: (100,100) (110,200) (120,300) (130,200) (140,100)
+	//---------------------------------------------------------------------------
   TEST_EQUAL(e.size(), 3)
 	TEST_REAL_SIMILAR(e[0].getMSLevel(), 1)
 	TEST_REAL_SIMILAR(e[1].getMSLevel(), 2)
@@ -200,7 +205,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[0].size(), 1)
 	TEST_EQUAL(e[1].size(), 3)
 	TEST_EQUAL(e[2].size(), 5)
- 
+
 //	0) r_value
 //  1) area
 //  2) FWHM
@@ -313,7 +318,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   // accessionNumber
   //---------------------------------------------------------------------------
 	TEST_EQUAL(e.getIdentifier(),"lsid");
-  
+
   //---------------------------------------------------------------------------
   // const vector<SourceFile>& getSourceFiles() const;
   //---------------------------------------------------------------------------
@@ -363,7 +368,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(inst.getIonSources().size(),1)
 	TEST_EQUAL(inst.getIonSources()[0].getIonizationMethod(), IonSource::ESI)
 	TEST_EQUAL(inst.getIonSources()[0].getInletType(), IonSource::DIRECT)
-	TEST_EQUAL(inst.getIonSources()[0].getPolarity(), IonSource::NEGATIVE) 
+	TEST_EQUAL(inst.getIonSources()[0].getPolarity(), IonSource::NEGATIVE)
 	TEST_EQUAL(inst.getIonSources()[0].getMetaValue("URL"), "www.open-ms.de")
 	TEST_EQUAL(inst.getIonSources()[0].getMetaValue("SourceComment"), "Source")
 	TEST_EQUAL(inst.getIonDetectors().size(),1)
@@ -421,12 +426,12 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e.getSample().getMetaValue("SampleComment"), "Sample")
 
 	/////////////////////// TESTING SPECIAL CASES ///////////////////////
-	
+
 	//load a second time to make sure everything is re-initialized correctly
 	MSExperiment<> e2;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),e2);
 	TEST_EQUAL(e==e2,true)
-	
+
 	//loading a minimal file containing one spectrum  - with whitespaces inside the base64 data
 	MSExperiment<> e3;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_3_minimal.mzData"),e3);
@@ -477,19 +482,19 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_REAL_SIMILAR(e5[0].getMetaDataArrays()[0][2], 100)
 	TEST_REAL_SIMILAR(e5[0].getMetaDataArrays()[7][2], 100)
 	TEST_EQUAL(e5[0].getMetaDataArrays()[6][2], 100)
-	
+
 	//test if it works with different peak types
 	MSExperiment<RichPeak1D> e_rich;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),e_rich);
-	
+
 END_SECTION
 
 START_SECTION(([EXTRA] load with metadata-only flag))
 	TOLERANCE_ABSOLUTE(0.01)
-	
+
 	MzDataFile file;
 	file.getOptions().setMetadataOnly(true);
-	
+
 	MSExperiment<> e;
 
 	// real test
@@ -514,7 +519,7 @@ START_SECTION(([EXTRA] load with selected MS levels))
 
 	MSExperiment<> e;
 	MzDataFile file;
-	
+
 	// load only MS level 1
 	file.getOptions().addMSLevel(1);
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),e);
@@ -525,7 +530,7 @@ START_SECTION(([EXTRA] load with selected MS levels))
 	TEST_STRING_EQUAL(e[1].getNativeID(),"spectrum=12")
 	TEST_REAL_SIMILAR(e[0].getMSLevel(), 1)
 	TEST_REAL_SIMILAR(e[1].getMSLevel(), 1)
-	
+
 	// load all MS levels
 	file.getOptions().clearMSLevels();
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),e);
@@ -543,14 +548,14 @@ START_SECTION(([EXTRA] load with RT range))
 
 	MSExperiment<> e;
 	MzDataFile file;
-	
+
 	file.getOptions().setRTRange(makeRange(100, 200));
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),e);
 	//---------------------------------------------------------------------------
 	// 60 : (120,100)
 	// 120: (110,100) (120,200) (130,100)
-	// 180: (100,100) (110,200) (120,300) (130,200) (140,100) 
-	//--------------------------------------------------------------------------- 
+	// 180: (100,100) (110,200) (120,300) (130,200) (140,100)
+	//---------------------------------------------------------------------------
 	TEST_EQUAL(e.size(), 2)
 	TEST_REAL_SIMILAR(e[0].getMSLevel(), 2)
 	TEST_REAL_SIMILAR(e[1].getMSLevel(), 1)
@@ -563,14 +568,14 @@ START_SECTION(([EXTRA] load with MZ range))
 
 	MSExperiment<> e;
 	MzDataFile file;
-	
+
 	file.getOptions().setMZRange(makeRange(115, 135));
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),e);
 	//---------------------------------------------------------------------------
 	// 60 : +(120,100)
 	// 120: -(110,100) +(120,200) +(130,100)
 	// 180: -(100,100) -(110,200) +(120,300) +(130,200) -(140,100)
-	//--------------------------------------------------------------------------- 
+	//---------------------------------------------------------------------------
 	TEST_EQUAL(e.size(), 3)
 
 	TEST_EQUAL(e[0].size(), 1)
@@ -598,14 +603,14 @@ START_SECTION(([EXTRA] load with intensity range))
 
 	MSExperiment<> e;
 	MzDataFile file;
-	
+
 	file.getOptions().setIntensityRange(makeRange(150, 350));
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),e);
 	//---------------------------------------------------------------------------
 	// 60 : -(120,100)
 	// 120: -(110,100) +(120,200) -(130,100)
 	// 180: -(100,100) +(110,200) +(120,300) +(130,200) -(140,100)
-	//--------------------------------------------------------------------------- 
+	//---------------------------------------------------------------------------
 	TEST_EQUAL(e.size(), 3)
 
 	TEST_EQUAL(e[0].size(), 0)
@@ -667,13 +672,13 @@ START_SECTION([EXTRA] storing/loading of meta data arrays)
 	mda2.push_back(-2.3);
 	mda2.push_back(-2.4);
 	mda2.push_back(-2.5);
-	
+
 	//spectrum 1 (one meta data arrays)
 	spec.setRT(500.0);
 	spec.getMetaDataArrays().push_back(mda1);
 	spec.getMetaDataArrays()[0].setName("MDA1");
 	exp.push_back(spec);
-	
+
 	//spectrum 2 (zero meta data array)
 	spec.setRT(600.0);
 	spec.getMetaDataArrays().clear();
@@ -686,7 +691,7 @@ START_SECTION([EXTRA] storing/loading of meta data arrays)
 	spec.getMetaDataArrays()[0].setName("MDA1");
 	spec.getMetaDataArrays()[1].setName("MDA2");
 	exp.push_back(spec);
-	
+
 	//*******************************************
 	//store file
 	std::string filename;
@@ -698,43 +703,43 @@ START_SECTION([EXTRA] storing/loading of meta data arrays)
 	//load and check file
 	MSExperiment<> exp2;
 	file.load(filename,exp2);
-	
+
 	TEST_EQUAL(exp2.size(),3)
 	TEST_EQUAL(exp2[0].getMetaDataArrays().size(),1)
 	TEST_EQUAL(exp2[1].getMetaDataArrays().size(),0)
 	TEST_EQUAL(exp2[2].getMetaDataArrays().size(),2)
-	
+
 	TEST_EQUAL(exp2[0].getMetaDataArrays()[0].getName(),"MDA1");
 	TEST_EQUAL(exp2[2].getMetaDataArrays()[0].getName(),"MDA1");
 	TEST_EQUAL(exp2[2].getMetaDataArrays()[1].getName(),"MDA2");
-	
+
 	TEST_EQUAL(exp2[0].getMetaDataArrays()[0].size(),5)
 	TEST_REAL_SIMILAR(exp2[0].getMetaDataArrays()[0][0],1.1);
 	TEST_REAL_SIMILAR(exp2[0].getMetaDataArrays()[0][1],1.2);
 	TEST_REAL_SIMILAR(exp2[0].getMetaDataArrays()[0][2],1.3);
 	TEST_REAL_SIMILAR(exp2[0].getMetaDataArrays()[0][3],1.4);
 	TEST_REAL_SIMILAR(exp2[0].getMetaDataArrays()[0][4],1.5);
-	
+
 	TEST_EQUAL(exp2[2].getMetaDataArrays()[0].size(),5)
 	TEST_REAL_SIMILAR(exp2[2].getMetaDataArrays()[0][0],1.1);
 	TEST_REAL_SIMILAR(exp2[2].getMetaDataArrays()[0][1],1.2);
 	TEST_REAL_SIMILAR(exp2[2].getMetaDataArrays()[0][2],1.3);
 	TEST_REAL_SIMILAR(exp2[2].getMetaDataArrays()[0][3],1.4);
 	TEST_REAL_SIMILAR(exp2[2].getMetaDataArrays()[0][4],1.5);
-	
+
 	TEST_EQUAL(exp2[2].getMetaDataArrays()[1].size(),5)
 	TEST_REAL_SIMILAR(exp2[2].getMetaDataArrays()[1][0],-2.1);
 	TEST_REAL_SIMILAR(exp2[2].getMetaDataArrays()[1][1],-2.2);
 	TEST_REAL_SIMILAR(exp2[2].getMetaDataArrays()[1][2],-2.3);
 	TEST_REAL_SIMILAR(exp2[2].getMetaDataArrays()[1][3],-2.4);
 	TEST_REAL_SIMILAR(exp2[2].getMetaDataArrays()[1][4],-2.5);
-	
-	//*******************************************	
+
+	//*******************************************
 	//check if filtering of meta data arrays works
 	MSExperiment<> exp3;
 	file.getOptions().setMZRange(DRange< 1 >(2.5,7.0));
 	file.load(filename,exp3);
-	
+
 	TEST_EQUAL(exp.size(),3)
 	TEST_EQUAL(exp3[0].size(),3)
 	TEST_EQUAL(exp3[1].size(),3)
@@ -743,21 +748,21 @@ START_SECTION([EXTRA] storing/loading of meta data arrays)
 	TEST_EQUAL(exp3[0].getMetaDataArrays().size(),1)
 	TEST_EQUAL(exp3[1].getMetaDataArrays().size(),0)
 	TEST_EQUAL(exp3[2].getMetaDataArrays().size(),2)
-	
+
 	TEST_EQUAL(exp3[0].getMetaDataArrays()[0].getName(),"MDA1");
 	TEST_EQUAL(exp3[2].getMetaDataArrays()[0].getName(),"MDA1");
 	TEST_EQUAL(exp3[2].getMetaDataArrays()[1].getName(),"MDA2");
 
-	TEST_EQUAL(exp3[0].getMetaDataArrays()[0].size(),3)	
+	TEST_EQUAL(exp3[0].getMetaDataArrays()[0].size(),3)
 	TEST_REAL_SIMILAR(exp3[0].getMetaDataArrays()[0][0],1.3);
 	TEST_REAL_SIMILAR(exp3[0].getMetaDataArrays()[0][1],1.4);
 	TEST_REAL_SIMILAR(exp3[0].getMetaDataArrays()[0][2],1.5)
-	
+
 	TEST_EQUAL(exp3[2].getMetaDataArrays()[0].size(),3)
 	TEST_REAL_SIMILAR(exp3[2].getMetaDataArrays()[0][0],1.3);
 	TEST_REAL_SIMILAR(exp3[2].getMetaDataArrays()[0][1],1.4);
 	TEST_REAL_SIMILAR(exp3[2].getMetaDataArrays()[0][2],1.5);
-	
+
 	TEST_EQUAL(exp3[2].getMetaDataArrays()[1].size(),3)
 	TEST_REAL_SIMILAR(exp3[2].getMetaDataArrays()[1][0],-2.3);
 	TEST_REAL_SIMILAR(exp3[2].getMetaDataArrays()[1][1],-2.4);
@@ -765,7 +770,7 @@ START_SECTION([EXTRA] storing/loading of meta data arrays)
 
   //*********************************************
   //test if the storing meta data arrays without a name works
-  
+
 	exp3[0].getMetaDataArrays()[0].setName("");
 	exp3[2].getMetaDataArrays()[0].setName("");
 	exp3[2].getMetaDataArrays()[1].setName("");
@@ -773,7 +778,7 @@ START_SECTION([EXTRA] storing/loading of meta data arrays)
 	MSExperiment<> exp4;
 	file.store(filename,exp3);
 	file.load(filename,exp4);
-	
+
 	TEST_EQUAL(exp.size(),3)
 	TEST_EQUAL(exp4[0].size(),3)
 	TEST_EQUAL(exp4[1].size(),3)
@@ -782,21 +787,21 @@ START_SECTION([EXTRA] storing/loading of meta data arrays)
 	TEST_EQUAL(exp4[0].getMetaDataArrays().size(),1)
 	TEST_EQUAL(exp4[1].getMetaDataArrays().size(),0)
 	TEST_EQUAL(exp4[2].getMetaDataArrays().size(),2)
-	
+
 	TEST_EQUAL(exp4[0].getMetaDataArrays()[0].getName(),"");
 	TEST_EQUAL(exp4[2].getMetaDataArrays()[0].getName(),"");
 	TEST_EQUAL(exp4[2].getMetaDataArrays()[1].getName(),"");
 
-	TEST_EQUAL(exp4[0].getMetaDataArrays()[0].size(),3)	
+	TEST_EQUAL(exp4[0].getMetaDataArrays()[0].size(),3)
 	TEST_REAL_SIMILAR(exp4[0].getMetaDataArrays()[0][0],1.3);
 	TEST_REAL_SIMILAR(exp4[0].getMetaDataArrays()[0][1],1.4);
 	TEST_REAL_SIMILAR(exp4[0].getMetaDataArrays()[0][2],1.5)
-	
+
 	TEST_EQUAL(exp4[2].getMetaDataArrays()[0].size(),3)
 	TEST_REAL_SIMILAR(exp4[2].getMetaDataArrays()[0][0],1.3);
 	TEST_REAL_SIMILAR(exp4[2].getMetaDataArrays()[0][1],1.4);
 	TEST_REAL_SIMILAR(exp4[2].getMetaDataArrays()[0][2],1.5);
-	
+
 	TEST_EQUAL(exp4[2].getMetaDataArrays()[1].size(),3)
 	TEST_REAL_SIMILAR(exp4[2].getMetaDataArrays()[1][0],-2.3);
 	TEST_REAL_SIMILAR(exp4[2].getMetaDataArrays()[1][1],-2.4);
@@ -808,7 +813,7 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
 	std::string tmp_filename;
   MzDataFile f;
   MSExperiment<> e;
-  
+
   //test if empty file is valid
 	NEW_TMP_FILE(tmp_filename);
   f.store(tmp_filename,e);

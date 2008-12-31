@@ -10,7 +10,7 @@
 //  modify it under the terms of the GNU Lesser General Public
 //  License as published by the Free Software Foundation; either
 //  version 2.1 of the License, or (at your option) any later version.
-// 
+//
 //  This library is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -41,21 +41,21 @@
 
 #include <vector>
 
-namespace OpenMS 
+namespace OpenMS
 {
 	/**
 		@brief Description of the experimental settings
-		
-		These settings are valid for the whole experiment. 
+
+		These settings are valid for the whole experiment.
 		See SpectrumSettings for settings which are spectrum specific.
-		
+
 		@ingroup Metadata
 	*/
   class OPENMS_DLLAPI ExperimentalSettings
   	: public MetaInfoInterface,
 			public DocumentIdentifier
   {
-    public:			
+    public:
 
     	///Native ID type
     	enum NativeIDType
@@ -82,15 +82,15 @@ namespace OpenMS
       ExperimentalSettings(const ExperimentalSettings& source);
       ///Destructor
       ~ExperimentalSettings();
-      
+
       ///Assignment operator
       ExperimentalSettings& operator= (const ExperimentalSettings& source);
 
       /// Equality operator
-      bool operator== (const ExperimentalSettings& rhs) const;      
+      bool operator== (const ExperimentalSettings& rhs) const;
       /// Equality operator
       bool operator!= (const ExperimentalSettings& rhs) const;
-			
+
 			/// Returns the native ID type of the spectra
   		NativeIDType getNativeIDType() const;
 			/// Sets the native ID type of the spectra
@@ -102,33 +102,33 @@ namespace OpenMS
       Sample& getSample();
       /// sets the sample description
       void setSample(const Sample& sample);
-			
+
 			/// returns a const reference to the source date file
       const std::vector<SourceFile>& getSourceFiles() const;
       /// returns a mutable reference to the source date file
       std::vector<SourceFile>& getSourceFiles();
       /// sets the source date file
       void setSourceFiles(const std::vector<SourceFile>& source_files);
-			
+
 			/// returns a const reference to the list of contact persons
       const std::vector<ContactPerson>& getContacts() const;
       	/// returns a mutable reference to the list of contact persons
       std::vector<ContactPerson>& getContacts();
       	/// sets the list of contact persons
       void setContacts(const std::vector<ContactPerson>& contacts);
-			
+
 			/// returns a const reference to the MS instrument description
       const Instrument& getInstrument() const;
       /// returns a mutable reference to the MS instrument description
       Instrument& getInstrument();
       /// sets the MS instrument description
       void setInstrument(const Instrument& instrument);
-			
-			/// returns a const reference to the description of the applied processing 
+
+			/// returns a const reference to the description of the applied processing
       const std::vector<DataProcessing>& getDataProcessing() const;
-      /// returns a mutable reference to the description of the applied processing 
+      /// returns a mutable reference to the description of the applied processing
       std::vector<DataProcessing>& getDataProcessing();
-      /// sets the description of the applied processing 
+      /// sets the description of the applied processing
       void setDataProcessing(const std::vector<DataProcessing>& processing_method);
 
 			/// returns a const reference to the description of the HPLC run
@@ -137,11 +137,11 @@ namespace OpenMS
       HPLC& getHPLC();
       /// sets the description of the HPLC run
       void setHPLC(const HPLC& hplc);
-      
+
      	/// returns the date the experiment was performed
     	const DateTime& getDateTime() const;
     	/// sets the date the experiment was performed
-      void setDateTime(const DateTime& date);   
+      void setDateTime(const DateTime& date);
 
 			/// returns the free-text comment
       const String& getComment() const;
@@ -149,9 +149,9 @@ namespace OpenMS
       void setComment(const String& comment);
 
 		 	/// returns a const reference to the protein ProteinIdentification vector
-		 	const std::vector<ProteinIdentification>& getProteinIdentifications() const;		 		    	
+		 	const std::vector<ProteinIdentification>& getProteinIdentifications() const;
 		 	/// returns a mutable reference to the protein ProteinIdentification vector
-		  std::vector<ProteinIdentification>& getProteinIdentifications();		  
+		  std::vector<ProteinIdentification>& getProteinIdentifications();
 		  /// sets the protein ProteinIdentification vector
 		  void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications);
 

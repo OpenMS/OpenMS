@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -78,8 +78,12 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	MSExperiment<> exp;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
 
+	//test DocumentIdentifier addition
+	TEST_STRING_EQUAL(exp.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
+	TEST_STRING_EQUAL(exp.getLoadedFileType(),"mzML");
+
 	//-------------------------- general information --------------------------
-  		
+
 	TEST_EQUAL(exp.size(),4)
 	//run
 	TEST_EQUAL(exp.getNativeIDType(),ExperimentalSettings::MULTIPLE_PEAK_LISTS)
@@ -169,7 +173,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 
 	//-------------------------- spectrum 0 --------------------------
 	{
-		const MSSpectrum<>& spec = exp[0]; 
+		const MSSpectrum<>& spec = exp[0];
 		//peaks
 		TEST_EQUAL(spec.size(),15)
 		for (UInt i=0; i<15; ++i)
@@ -177,7 +181,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 			TEST_REAL_SIMILAR(spec[(Size)i].getMZ(),i);
 			TEST_REAL_SIMILAR(spec[(Size)i].getIntensity(),15-i);
 		}
-		//general info		
+		//general info
 		TEST_EQUAL(spec.getMSLevel(),1)
 		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::FULL)
 		TEST_EQUAL(spec.getMetaDataArrays().size(),0)
@@ -199,10 +203,10 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_STRING_EQUAL(spec.getNativeID(),"index=0")
 		TEST_STRING_EQUAL(spec.getMetaValue("maldi_spot_id"),"M0")
 	}
-	
+
 	//-------------------------- spectrum 1 --------------------------
 	{
-		const MSSpectrum<>& spec = exp[1]; 	
+		const MSSpectrum<>& spec = exp[1];
 		//peaks
 		TEST_EQUAL(spec.size(),10)
 		for (Size i=0; i<10; ++i)
@@ -254,12 +258,12 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		//ids
 		TEST_STRING_EQUAL(spec.getNativeID(),"index=1")
 		TEST_STRING_EQUAL(spec.getMetaValue("maldi_spot_id"),"M1")
-		
+
 	}
-	
+
 	//-------------------------- spectrum 2 --------------------------
 	{
-		const MSSpectrum<>& spec = exp[2]; 
+		const MSSpectrum<>& spec = exp[2];
 		//peaks
 		TEST_EQUAL(spec.size(),15)
 		for (UInt i=0; i<15; ++i)
@@ -267,7 +271,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 			TEST_REAL_SIMILAR(spec[(Size)i].getMZ(),i);
 			TEST_REAL_SIMILAR(spec[(Size)i].getIntensity(),15-i);
 		}
-		//general info		
+		//general info
 		TEST_EQUAL(spec.getMSLevel(),1)
 		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::FULL)
 		TEST_EQUAL(spec.getMetaDataArrays().size(),0)
@@ -290,7 +294,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 
 	//-------------------------- spectrum 3 (no peaks) --------------------------
 	{
-		const MSSpectrum<>& spec = exp[3]; 
+		const MSSpectrum<>& spec = exp[3];
 		//peaks
 		TEST_EQUAL(spec.size(),0)
 		//general info
@@ -309,7 +313,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_STRING_EQUAL(spec.getNativeID(),"index=3")
 		TEST_EQUAL(spec.metaValueExists("maldi_spot_id"),false)
 	}
-	
+
 	//-------------------------- userParam --------------------------
 	//run
   TEST_STRING_EQUAL(exp.getMetaValue("mzml_id"),"document_id")
@@ -350,7 +354,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL((String)exp[1].getMetaDataArrays()[1].getMetaValue("name"),"binaryDataArray_c")
 	TEST_STRING_EQUAL((String)exp[1].getMetaDataArrays()[1].getMetaValue("name2"),"")
 	//acquisition list
-	TEST_STRING_EQUAL((String)exp[0].getAcquisitionInfo().getMetaValue("name"),"acquisition_list")	
+	TEST_STRING_EQUAL((String)exp[0].getAcquisitionInfo().getMetaValue("name"),"acquisition_list")
 	//acquisition
 	TEST_STRING_EQUAL((String)exp[0].getAcquisitionInfo()[0].getMetaValue("name"),"acquisition1")
 	TEST_STRING_EQUAL((String)exp[0].getAcquisitionInfo()[1].getMetaValue("name"),"acquisition2")
@@ -368,18 +372,18 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 
 	//-------------------------- cvParam (but no member => meta data)--------------------------
 	//spectrum 1
-	TEST_STRING_EQUAL((String)exp[1].getMetaValue("mass resolution"),"4.1")	
-	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("collision energy"),"4.2")	
+	TEST_STRING_EQUAL((String)exp[1].getMetaValue("mass resolution"),"4.1")
+	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("collision energy"),"4.2")
 	TEST_STRING_EQUAL((String)exp[0].getMetaValue("mass resolution"),"4.3")
 	TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("sample batch"),"4.4")
 
 	/////////////////////// TESTING SPECIAL CASES ///////////////////////
-	
+
 	//load a second time to make sure everything is re-initialized correctly
 	MSExperiment<> exp2;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp2);
 	TEST_EQUAL(exp==exp2,true)
-	
+
 	//load minimal file
 	MSExperiment<> exp3;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_2_minimal.mzML"),exp3);
@@ -390,7 +394,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_5_long.mzML"),exp4);
 	TEST_EQUAL(exp4.size(),1)
 	TEST_EQUAL(exp4[0].size(),997530)
-	
+
 	//load 32 bit data
 	MSExperiment<> exp5;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_32bit.mzML"),exp5);
@@ -399,11 +403,11 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_EQUAL(exp5[1].size(),10)
 	TEST_EQUAL(exp5[2].size(),15)
 	TEST_EQUAL(exp5[3].size(),0)
-	
+
 	//test if it works with different peak types
 	MSExperiment<RichPeak1D> e_rich;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),e_rich);
-	
+
 END_SECTION
 
 START_SECTION([EXTRA] load only meta data)
@@ -449,7 +453,7 @@ START_SECTION([EXTRA] load with restricted m/z range)
 	file.getOptions().setMZRange(makeRange(6.5,9.5));
 	MSExperiment<> exp;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
-	
+
 	TEST_EQUAL(exp.size(),4)
 	TEST_EQUAL(exp[0].size(),3)
 	TEST_REAL_SIMILAR(exp[0][0].getMZ(),7.0)
@@ -486,20 +490,20 @@ END_SECTION
 
 START_SECTION((template <typename MapType> void store(const String& filename, const MapType& map) const))
 	MzMLFile file;
-	
+
 	//load map
 	MSExperiment<> exp_original;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp_original);
- 	
+
  	//store map
 	std::string tmp_filename;
  	NEW_TMP_FILE(tmp_filename);
 	file.store(tmp_filename,exp_original);
-	
+
 	//load written map
 	MSExperiment<> exp;
 	file.load(tmp_filename,exp);
-	
+
 	//test if everything worked
 	TEST_EQUAL(exp==exp_original,true)
 	TEST_EQUAL(exp.size()==exp_original.size(),true)
@@ -509,14 +513,14 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 		cout << "SPEC: " << i << endl;
 		TEST_EQUAL(exp[i]==exp_original[i],true);
 	}
-	
+
 END_SECTION
 
 START_SECTION([EXTRA] bool isValid(const String& filename))
 	std::string tmp_filename;
   MzMLFile file;
   MSExperiment<> e;
-  
+
   //written empty file
 	NEW_TMP_FILE(tmp_filename);
   file.store(tmp_filename,e);
@@ -527,7 +531,7 @@ START_SECTION([EXTRA] bool isValid(const String& filename))
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),e);
   file.store(tmp_filename,e);
   TEST_EQUAL(file.isValid(tmp_filename),true);
-	
+
 	//indexed file
 	TEST_EQUAL(file.isValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_4_indexed.mzML")),true)
 END_SECTION
@@ -537,14 +541,14 @@ START_SECTION( bool isSemanticallyValid(const String& filename, StringList& erro
 	MzMLFile file;
 	StringList errors, warnings;
   MSExperiment<> e;
-	
+
   //written empty file
 	NEW_TMP_FILE(tmp_filename);
   file.store(tmp_filename,e);
   TEST_EQUAL(file.isSemanticallyValid(tmp_filename, errors, warnings),true);
 	TEST_EQUAL(errors.size(),0)
 	TEST_EQUAL(warnings.size(),0)
-	
+
 	//written filled file
 	NEW_TMP_FILE(tmp_filename);
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),e);
@@ -562,7 +566,7 @@ START_SECTION( bool isSemanticallyValid(const String& filename, StringList& erro
 	TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_4_indexed.mzML"), errors, warnings),true)
 	TEST_EQUAL(errors.size(),0)
 	TEST_EQUAL(warnings.size(),0)
-	
+
 	//invalid file
 	TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_3_invalid.mzML"), errors, warnings),false)
 	TEST_EQUAL(errors.size(),5)

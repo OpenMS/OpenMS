@@ -30,17 +30,18 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/HANDLERS/ANDIHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <fstream>
 
 namespace OpenMS
 {
 	class String;
-	
+
   /**
   	@brief File adapter for ANDI/MS files
-  	
+
   	@improvement Fix bugs on 64 bit systems (Hiwi)
-  	
+
   	@ingroup FileIO
   */
   class OPENMS_DLLAPI ANDIFile
@@ -69,10 +70,14 @@ namespace OpenMS
 		    {
 		      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 		    }
-				
+
 				map.reset();
 				map.setNativeIDType(ExperimentalSettings::MULTIPLE_PEAK_LISTS);
-				
+
+				//set DocumentIdentifier
+				map.setLoadedFileType(filename);
+				map.setLoadedFilePath(filename);
+
 				Internal::ANDIHandler<MapType> handler(map,*this);
 				handler.parse(filename);
       }

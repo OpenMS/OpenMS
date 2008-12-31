@@ -29,25 +29,26 @@
 
 // OpenMS
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/SYSTEM/File.h>
+//~ #include <OpenMS/FORMAT/FileHandler.h>
 
 namespace OpenMS
 {
-  /** 
-    @brief Manage source document information.
-    
-    This class stored information about the source document.
-    Primarily this is the document id e.g. a LSID.
-    
-    For source files additional information can be stored:
-    - file name
-    - file type
-    
-    @todo Add source file name and type (FileHandler::Type). Fill these members when loading a map from file (featureXML, consensusXML, mzData, mzXML, mzML, ANDI/MS, DTA, DTA2D, MGF). Use this informtation e.g. when converting to mzML where it is required (Hiwi)
-    
-    @ingroup Metadata
+  /**
+     @brief Manage source document information.
+
+     This class stored information about the source document.
+     Primarily this is the document id e.g. a LSID.
+
+     For source files additional information can be stored:
+     - file name
+     - file type
+
+     @improvement change file_type_ to FileHandler::Type. Inclusion of FileHandler results in circular inclusions. Forward declarations can't resolve (inheritance, no enum forward declaration with gcc, ...). Possible solution is extraction of FileHandler::Type in extra header file.
+
+     @ingroup Metadata
   */
-  
-  class OPENMS_DLLAPI DocumentIdentifier
+  class DocumentIdentifier
   {
     public:
       /** @name Constructors and Destructors
@@ -64,10 +65,10 @@ namespace OpenMS
 
 			/// Equality operator
 			bool operator== (const DocumentIdentifier& rhs) const;
-			
+
       /// destructor
       virtual ~DocumentIdentifier();
-      //@}    
+      //@}
 
       /** @name Acessors
        */
@@ -81,12 +82,29 @@ namespace OpenMS
 
 			/// exchange content with @p from
 			void swap(DocumentIdentifier& from);
-			
+
+
+      /// set the file_name_ according to absolute path of the file loaded from preferrably done whilst loading
+      void setLoadedFilePath(const String& file_name);
+
+      /// get the file_name_ which is the absolute path to the file loaded from
+      const String& getLoadedFilePath() const;
+
+      /// set the file_type according to the type of the file loaded from (see FileHandler::Type) preferrably done whilst loading
+      void setLoadedFileType(const String& file_name);
+
+      /// get the file_type (e.g. featureXML, consensusXML, mzData, mzXML, mzML, ...) of the file loaded from
+      const String& getLoadedFileType() const;
+
       //@}
-      
+
     protected:
       /// the ID (e.g. LSID)
       String id_;
+      /// the path to the loaded file
+      String file_path_;
+      /// the type name of the loaded file
+      String file_type_;
   };
 } // namespace OpenMS
 

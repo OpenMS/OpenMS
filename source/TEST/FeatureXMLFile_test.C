@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -56,19 +56,24 @@ END_SECTION
 START_SECTION((~FeatureXMLFile()))
 	delete ptr;
 END_SECTION
- 
+
 START_SECTION((void load(String filename, FeatureMap<>& feature_map)))
 	TOLERANCE_ABSOLUTE(0.01)
-	
+
 	FeatureMap<> e;
 	FeatureXMLFile dfmap_file;
-	
+
 	//test exception
 	TEST_EXCEPTION( Exception::FileNotFound , dfmap_file.load("dummy/dummy.MzData",e) )
-	
+
 	// real test
 	dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"),e);
 	TEST_EQUAL(e.getIdentifier(),"lsid");
+
+	//test DocumentIdentifier addition
+	TEST_STRING_EQUAL(e.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"));
+	TEST_STRING_EQUAL(e.getLoadedFileType(),"FeatureXML");
+
 	TEST_EQUAL(e.size(),2)
 	TEST_REAL_SIMILAR(e[0].getRT(), 25)
 	TEST_REAL_SIMILAR(e[0].getMZ(), 0)
@@ -115,7 +120,7 @@ START_SECTION((void load(String filename, FeatureMap<>& feature_map)))
 	TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits().size(),2)
 	TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(),"G")
 	TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits()[1].getSequence(),"H")
-	
+
 	//test of old file with mzData description (version 1.2)
 	//here only the downward-compatibility of the new parser is tested
 	//no exception should be thrown
@@ -145,18 +150,18 @@ START_SECTION((void load(String filename, FeatureMap<>& feature_map)))
 	TEST_REAL_SIMILAR(e[0].getRT(), 0)
 	TEST_REAL_SIMILAR(e[0].getMZ(), 35)
 	TEST_REAL_SIMILAR(e[0].getIntensity(), 500)
-	
+
 
 END_SECTION
 
 START_SECTION((void store(String filename, const FeatureMap<>& feature_map) const))
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
-  
+
   FeatureMap<> map, map2;
   FeatureXMLFile f;
-  
-  f.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"),map);  
+
+  f.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"),map);
   f.store(tmp_filename, map);
   f.load(tmp_filename, map2);
   TEST_EQUAL(map==map2, true)
@@ -176,7 +181,7 @@ START_SECTION( PeakFileOptions& getOptions() )
 	f.getOptions().setIntensityRange(makeRange(290.0, 310.0));
 	f.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"),e);
 	TEST_EQUAL(e.size(), 1)
-	
+
 	f.getOptions().setMetadataOnly(true);
 	f.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"),e);
 	TEST_EQUAL(e.getIdentifier(), "lsid2")
@@ -185,21 +190,21 @@ END_SECTION
 
 START_SECTION([EXTRA] static bool isValid(const String& filename))
   FeatureXMLFile f;
-	TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML")),true);	
-	TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML")),true);	
+	TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML")),true);
+	TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML")),true);
 
 	FeatureMap<> e;
 	String filename;
-	
+
   //test if empty file is valid
 	NEW_TMP_FILE(filename)
-	f.store(filename,e);	
-  TEST_EQUAL(f.isValid(filename),true);	
-	
+	f.store(filename,e);
+  TEST_EQUAL(f.isValid(filename),true);
+
 	//test if full file is valid
 	NEW_TMP_FILE(filename);
 	f.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"),e);
-	f.store(filename, e);	
+	f.store(filename, e);
   TEST_EQUAL(f.isValid(filename),true);
 END_SECTION
 
@@ -208,9 +213,9 @@ START_SECTION( const PeakFileOptions& getOptions() const )
  	FeatureMap<> e;
 	f.getOptions().setRTRange(makeRange(1.5, 4.5));
 	f.getOptions().setIntensityRange(makeRange(290.0, 310.0));
-	
+
 	const PeakFileOptions pfo = f.getOptions();
-	
+
 	TEST_EQUAL(pfo.getRTRange(),makeRange(1.5, 4.5))
 	TEST_EQUAL(pfo.getIntensityRange(),makeRange(290.0, 310.0))
 END_SECTION
@@ -218,4 +223,4 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
- 
+

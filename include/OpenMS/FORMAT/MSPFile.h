@@ -30,6 +30,8 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/DocumentIdentifier.h>
+
 #include <vector>
 
 namespace OpenMS
@@ -39,7 +41,7 @@ namespace OpenMS
 
 
 		@htmlinclude OpenMS_MSPFile.parameters
-		
+
 		@ingroup FileIO
 	*/
 	class OPENMS_DLLAPI MSPFile : public DefaultParamHandler
@@ -54,21 +56,21 @@ namespace OpenMS
 
 			/// Copy constructor
 			MSPFile(const MSPFile& rhs);
-			
+
 			///Destructor
 			virtual ~MSPFile();
 			//@}
-		
+
 			/// assignment operator
 			MSPFile& operator = (const MSPFile& rhs);
-			
+
 			/**
 				@brief Loads a map from a MSPFile file.
 
 				@param exp RichPeakMap which contains the spectra after reading
 				@param filename the filename of the experiment
 				@param ids output parameter which contains the peptide identifications from the spectra anntations
-				
+
 				@throw FileNotFound is thrown if the file could not be found
 				@throw ParseError is thrown if the given file could not be parsed
 				@throw ElementNotFound is thrown if a annotated modification cannot be found in ModificationsDB (PSI-MOD definitions)
@@ -77,7 +79,7 @@ namespace OpenMS
 
 			/**
 				@brief Stores a map in a MSPFile file.
-				
+
 				@throw UnableToCreateFile is thrown if the given file could not be created
 			*/
 			void store(const String& /*filename*/, const RichPeakMap& /*exp*/) const
@@ -86,10 +88,10 @@ namespace OpenMS
 			}
 
 			protected:
-			
+
 				/// reads the header information and stores it as metainfo in the spectrum
 				void parseHeader_(const String& header, RichPeakSpectrum& spec);
-		
+
 	};
 
 } // namespace OpenMS
