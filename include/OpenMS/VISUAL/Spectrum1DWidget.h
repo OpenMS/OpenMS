@@ -77,6 +77,9 @@ namespace OpenMS
 		
 		/// Switches to mirror view, displays another y-axis for the second spectrum
 		void toggleMirrorView(bool mirror);
+		
+		/// Performs an alignment of the layers with @p layer_index_1 and @p layer_index_2
+		void performAlignment(UInt layer_index_1, UInt layer_index_2, const Param& param);
 			
 	signals:
 		/// Is emitted whenever the visible area changes.		

@@ -62,8 +62,6 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 
 //Qt
 #include <QtGui/QToolBar>
@@ -2308,53 +2306,38 @@ namespace OpenMS
 
 	void TOPPViewBase::showSpectrumAlignmentDialog()
 	{
-		SpectrumAlignmentDialog spec_align_dialog;
-		if (spec_align_dialog.exec())
+		Spectrum1DWidget* active_1d_window = active1DWindow_();
+		if (!active_1d_window || !active_1d_window->canvas()->mirrorModeActive())
 		{
-// 			Spectrum1DMirrorWidget* active_1d_mirror_window = active1DMirrorWindow_();
-// 			// only possible in mirror mode:
-// 			if (active_1d_mirror_window)
-// 			{
-// 				SpectrumAlignment aligner;
-// 				Param param;
-// 				DoubleReal tolerance = spec_align_dialog.tolerance_spinbox->value();
-// 				param.setValue("tolerance", tolerance, "Defines the absolut (in Da) or relative (in ppm) tolerance", false);
-// 				String unit_is_ppm = spec_align_dialog.ppm->isChecked() ? "true" : "false";
-// 				param.setValue("is_relative_tolerance", unit_is_ppm, "If true, the 'tolerance' is interpreted as ppm-value", false);
-// 				aligner.setParameters(param);
-//
-// 				// TODO JJ
-//
-// 				const LayerData& current_layer_1 = active_1d_mirror_window->canvas()->getCurrentLayer();
-// 				const LayerData& current_layer_2 = active_1d_mirror_window->flippedCanvas()->getCurrentLayer();
-// 				const ExperimentType& map_1 = current_layer_1.peaks;
-// 				const ExperimentType& map_2 = current_layer_2.peaks;
-// 				const ExperimentType::SpectrumType& spectrum_1 = *(map_1.begin());
-// 				const ExperimentType::SpectrumType& spectrum_2 = *(map_2.begin());
-// 				std::vector<std::pair<UInt, UInt> > alignment;
-//
-// 				aligner.getSpectrumAlignment(alignment, spectrum_1, spectrum_2);
-//
-// 				std::vector<std::pair<DoubleReal, DoubleReal > > alignment_lines;
-//
-// 				for (Size i = 0; i < alignment.size(); ++i)
-// 				{
-// 					DoubleReal line_begin_mz = spectrum_1[alignment[i].first].getMZ();
-// 					DoubleReal line_end_mz = spectrum_2[alignment[i].second].getMZ();
-// 					alignment_lines.push_back(std::make_pair(line_begin_mz, line_end_mz));
-// 				}
-// 				active_1d_mirror_window->setAlignmentLines(alignment_lines);
-//
-// 				SpectrumAlignmentScore scorer;
-// 				scorer.setParameters(param);
-// 				double score = scorer(spectrum_1, spectrum_2);
-//
-// 				QMessageBox::information(this, "Alignment performed", QString("Aligned %1 pairs of peaks (Score: %2).").arg(alignment_lines.size()).arg(score));
-// 			}
-// 			else
-// 			{
-// 				QMessageBox::warning(this, "Not supported", "Here be some description.");
-// 			}
+			return;
+		}
+		Spectrum1DCanvas* cc = active_1d_window->canvas();
+		
+		SpectrumAlignmentDialog spec_align_dialog(active_1d_window);
+		if (spec_align_dialog.exec())
+		{			
+			Int layer_index_1 = spec_align_dialog.get1stLayerIndex();
+			Int layer_index_2 = spec_align_dialog.get2ndLayerIndex();
+			
+			// two layers must be selected:
+			if (layer_index_1 < 0 || layer_index_2 < 0)
+			{
+				QMessageBox::information(this, "Layer selection invalid", "You must select two layers for an alignment.");
+				return;
+			}
+			
+			Param param;
+			DoubleReal tolerance = spec_align_dialog.tolerance_spinbox->value();
+			param.setValue("tolerance", tolerance, "Defines the absolut (in Da) or relative (in ppm) tolerance");
+			String unit_is_ppm = spec_align_dialog.ppm->isChecked() ? "true" : "false";
+			param.setValue("is_relative_tolerance", unit_is_ppm, "If true, the 'tolerance' is interpreted as ppm-value");
+			
+			active_1d_window->performAlignment((UInt)layer_index_1, (UInt)layer_index_2, param);
+			
+			DoubleReal al_score = cc->getAlignmentScore();
+			Size al_size = cc->getAlignmentSize();
+			
+			QMessageBox::information(this, "Alignment performed", QString("Aligned %1 pairs of peaks (Score: %2).").arg(al_size).arg(al_score));
 		}
 	}
 
@@ -2506,11 +2489,7 @@ namespace OpenMS
 		{
 			topp_running = true;
 		}
-  	bool mirror_mode = false;
-  	if (active1DWindow_() && active1DWindow_()->canvas()->mirrorModeActive())
-  	{
-  		mirror_mode = true;
-  	}
+  	bool mirror_mode = active1DWindow_() && active1DWindow_()->canvas()->mirrorModeActive();
 		QList<QAction*> actions = this->findChildren<QAction*>("");
 		for (int i=0; i<actions.count(); ++i)
 		{

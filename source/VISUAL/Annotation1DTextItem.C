@@ -27,11 +27,13 @@
 #include <OpenMS/VISUAL/Annotation1DTextItem.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 
+#include <QtGui/QPainter>
+
 namespace OpenMS
 {	
 
-	Annotation1DTextItem::Annotation1DTextItem(const PointType& position, const QString& text, const QPen& pen)
-		: Annotation1DItem(text, pen),
+	Annotation1DTextItem::Annotation1DTextItem(const PointType& position, const QString& text)
+		: Annotation1DItem(text),
 			position_(position)
 	{
 	}
@@ -55,17 +57,11 @@ namespace OpenMS
 		// compute bounding box of text_item on the specified painter
 		bounding_box_ = painter.boundingRect(QRectF(pos, pos), Qt::AlignCenter, text_);
 		
+		painter.drawText(bounding_box_, Qt::AlignCenter, text_);
 		if (selected_)
 		{
-			painter.setPen(selected_pen_);
 			drawBoundingBox_(painter);
 		}
-		else
-		{
-			painter.setPen(pen_);
-		}
-		
-		painter.drawText(bounding_box_, Qt::AlignCenter, text_);
 	}
 	
 	void Annotation1DTextItem::setPosition(const Annotation1DTextItem::PointType& position)

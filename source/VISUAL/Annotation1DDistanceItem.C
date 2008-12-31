@@ -28,12 +28,13 @@
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 
 #include <QtCore/QPoint>
+#include <QtGui/QPainter>
 
 namespace OpenMS
 {	
 
-	Annotation1DDistanceItem::Annotation1DDistanceItem(const QString& text, const PointType& start_point, const PointType& end_point, const QPen& pen)
-		: Annotation1DItem(text, pen),
+	Annotation1DDistanceItem::Annotation1DDistanceItem(const QString& text, const PointType& start_point, const PointType& end_point)
+		: Annotation1DItem(text),
 			start_point_(start_point),
 			end_point_(end_point)
 	{
@@ -54,8 +55,8 @@ namespace OpenMS
 	{
 		//translate mz/intensity to pixel coordinates
 		QPoint start_p, end_p;
-		canvas->dataToWidget(start_point_.getX(), start_point_.getY(), start_p, flipped);
-		canvas->dataToWidget(end_point_.getX(), end_point_.getY(), end_p, flipped);
+		canvas->dataToWidget(start_point_.getX(), start_point_.getY(), start_p, flipped, true);
+		canvas->dataToWidget(end_point_.getX(), end_point_.getY(), end_p, flipped, true);
 		
 		// compute bounding box on the specified painter
 		bounding_box_ = QRectF(QPointF(start_p.x(), start_p.y()), QPointF(end_p.x(), end_p.y()+4)); // +4 for lower half of arrow heads
@@ -71,16 +72,6 @@ namespace OpenMS
 			bounding_box_.setRight(bounding_box_.right() + additional_space);
 		}
 		
-		if (selected_)
-		{
-			painter.setPen(selected_pen_);
-			drawBoundingBox_(painter);
-		}
-		else
-		{
-			painter.setPen(pen_);
-		}
-		
 		// draw line
 		painter.drawLine(start_p, end_p);
 		// draw arrow heads and the ends
@@ -88,8 +79,12 @@ namespace OpenMS
 		painter.drawLine(start_p, QPoint(start_p.x()+5, start_p.y()+4));
 		painter.drawLine(end_p, QPoint(end_p.x()-5, end_p.y()-4));
 		painter.drawLine(end_p, QPoint(end_p.x()-5, end_p.y()+4));
-		// draw distance text
+		
 		painter.drawText(bounding_box_, Qt::AlignHCenter, text_);
+		if (selected_)
+		{
+			drawBoundingBox_(painter);
+		}
 	}
 	
 	void Annotation1DDistanceItem::setStartPoint(const PointType& p)

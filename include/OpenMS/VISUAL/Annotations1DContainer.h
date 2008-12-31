@@ -29,14 +29,15 @@
 
 #include <OpenMS/VISUAL/Annotation1DItem.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
-#include <OpenMS/KERNEL/PeakIndex.h>
 
 #include <list>
 
-#include <QtCore/QPoint>
-#include <QtCore/QObject>
-#include <QtCore/QRectF>
-#include <QtGui/QPainter>
+#include <QtGui/QPen>
+
+class QPoint;
+class QObject;
+class QRectF;
+class QPainter;
 
 namespace OpenMS
 {
@@ -80,6 +81,19 @@ namespace OpenMS
 			void deselectAll();
 			/// Removes the selected items
 			void removeSelectedItems();
+			/// Sets the pen_
+			void setPen(const QPen& pen);
+			/// Returns the pen_
+			const QPen& getPen() const;
+			/// Sets the selected_pen_
+			void setSelectedPen(const QPen& pen);
+			/// Returns the selected_pen_
+			const QPen& getSelectedPen() const;
+			
+			/// The pen with which the items are drawn
+			QPen pen_;
+			/// The pen which is used if an item is selected
+			QPen selected_pen_;
 	};
 	
 } // namespace

@@ -29,15 +29,12 @@
 #define OPENMS_VISUAL_DIALOGS_SPECTRUMALIGNMENTDIALOG_H
 
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_SpectrumAlignmentDialog.h>
+#include <OpenMS/VISUAL/Spectrum1DWidget.h>
 
 namespace OpenMS 
 {
 	/**
-		@brief Dialog which allows the user to enter a tolerance and performs a spectrum alignment.
-		
-		Dialog which allows the user to enter a tolerance and performs a spectrum alignment. The
-		alignment can only be performed if the active window is a Spectrum1DWidget with two
-		canvasses (mirror mode).
+		@brief Lets the user select two spectra and set the parameters for the spectrum alignment.
 		
 		@ingroup Dialogs
 	*/
@@ -50,11 +47,21 @@ namespace OpenMS
 		public:
 			
 			/// Constructor
-			SpectrumAlignmentDialog();
+			SpectrumAlignmentDialog(Spectrum1DWidget* parent);
+			
+			/// Returns the index of the selected non-flipped layer
+			Int get1stLayerIndex();
+			/// Returns the index of the selected flipped layer
+			Int get2ndLayerIndex();
 			
 		protected slots:
 		
 		protected:
+			
+			/// Stores the layer indices of the layers in the left list (non-flipped layers)
+			std::vector<UInt> layer_indices_1;
+			/// Stores the layer indices of the layers in the right list (flipped layers)
+			std::vector<UInt> layer_indices_2;
 			
 		private:
 			

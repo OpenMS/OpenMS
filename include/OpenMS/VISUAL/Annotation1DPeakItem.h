@@ -29,7 +29,6 @@
 
 #include <OpenMS/VISUAL/Annotation1DItem.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
 {
@@ -50,7 +49,7 @@ namespace OpenMS
 			typedef DoubleReal CoordinateType;
 
 			/// Constructor
-			Annotation1DPeakItem(const PointType& position, const QString& text, const QPen& pen);
+			Annotation1DPeakItem(const PointType& position, const QString& text);
 			/// Copy constructor
 			Annotation1DPeakItem(const Annotation1DPeakItem& rhs);
 			/// Destructor

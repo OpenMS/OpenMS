@@ -27,11 +27,10 @@
 #ifndef OPENMS_VISUAL_ANNOTATION1DITEM_H
 #define OPENMS_VISUAL_ANNOTATION1DITEM_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <QtCore/QRectF>
-#include <QtGui/QPen>
-#include <QtGui/QPainter>
 #include <QtCore/QString>
+
+class QPainter;
 
 namespace OpenMS
 {
@@ -58,41 +57,23 @@ namespace OpenMS
 			
 			/// Returns the current bounding box of this item on the canvas where it has last been drawn
 			const QRectF& boundingBox() const;
-			
 			/// Returns true if this item is currently selected on the canvas, else false
 			bool isSelected() const;
-			
 			/// Sets whether this item is currently selected on the canvas or not
 			void setSelected(bool selected);
-			
 			/// Sets the text of the item
 			void setText(const QString& text);
-			
 			/// Returns the text of the item
 			const QString& getText() const;
-			
-			/// Sets the pen_
-			void setPen(const QPen& pen);
-			
-			/// Returns the pen_
-			const QPen& getPen() const;
-			
-			/// Sets the selected_pen_
-			void setSelectedPen(const QPen& pen);
-			
-			/// Returns the selected_pen_
-			const QPen& getSelectedPen() const;
-			
 			/// Draws the item on @p painter
 			virtual void draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped = false) = 0;
 			
 		protected:
 		
 			/// Constructor
-			Annotation1DItem(const QString& text, const QPen& pen);
+			Annotation1DItem(const QString& text);
 			/// Copy constructor
-			Annotation1DItem(const Annotation1DItem& rhs);		
-			
+			Annotation1DItem(const Annotation1DItem& rhs);
 			/// Draws the bounding_box_
 			void drawBoundingBox_(QPainter& painter);
 			
@@ -102,10 +83,6 @@ namespace OpenMS
 			bool selected_;
 			/// The displayed text
 			QString text_;
-			/// The pen with which the item is drawn
-			QPen pen_;
-			/// The pen which is used if the item is selected
-			QPen selected_pen_;
 			
 	};
 } // namespace OpenMS

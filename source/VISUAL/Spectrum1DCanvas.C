@@ -51,6 +51,8 @@
 #include <OpenMS/VISUAL/Annotation1DPeakItem.h>
 #include <OpenMS/VISUAL/Annotations1DContainer.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 
 #include <iostream>
 
@@ -64,13 +66,13 @@ namespace OpenMS
 	Spectrum1DCanvas::Spectrum1DCanvas(const Param& preferences, QWidget* parent)
 		: SpectrumCanvas(preferences, parent),
 			mirror_mode_(false),
-			alignment_shown_(false)
+			show_alignment_(false)
 	{
     //Paramater handling
     defaults_.setValue("highlighted_peak_color", "#ff0000", "Highlighted peak color.");
     defaults_.setValue("icon_color", "#000000", "Peak icon color.");
     defaults_.setValue("peak_color", "#0000ff", "Peak color.");
-   	defaults_.setValue("annotation_color", "#0e6805", "Annotation color.");
+   	defaults_.setValue("annotation_color", "#000055", "Annotation color.");
     defaults_.setValue("background_color", "#ffffff", "Background color.");
 		defaultsToParam_();
 		setName("Spectrum1DCanvas");
@@ -103,61 +105,105 @@ namespace OpenMS
 		changeVisibleArea_(AreaType(lo, visible_area_.minY(), hi, visible_area_.maxY()), repaint, add_to_stack);
 	}
 	
-	void Spectrum1DCanvas::dataToWidget(const PeakType& peak, QPoint& point, bool flipped)
+	void Spectrum1DCanvas::dataToWidget(const PeakType& peak, QPoint& point, bool flipped, bool percentage)
 	{
-		dataToWidget(peak.getMZ(), getSnapFactor()*percentage_factor_*peak.getIntensity(), point, flipped);
+		dataToWidget(peak.getMZ(), peak.getIntensity(), point, flipped, percentage);
 	}
 	
-	void Spectrum1DCanvas::dataToWidget(float x, float y, QPoint& point, bool flipped)
+	void Spectrum1DCanvas::dataToWidget(float x, float y, QPoint& point, bool flipped, bool percentage)
 	{
 		QPoint tmp;
+		if (percentage)
+		{
+			y *= getSnapFactor()*percentage_factor_;
+		}
 		SpectrumCanvas::dataToWidget_(x, y, tmp);
+		point.setX(tmp.x());
+		DoubleReal alignment_shrink_factor = 1.0;
+		if (height() > 10)
+		{
+			alignment_shrink_factor = (DoubleReal)(height() - 10) / (DoubleReal)height();
+		}
 		if (mirror_mode_)
 		{
 			if (flipped)
 			{
-				point.setX(tmp.x());
-				point.setY(height() - (tmp.y() / 2));
+				if (!show_alignment_)
+				{
+					point.setY(height() - (tmp.y() / 2));
+				}
+				else // show_alignment_
+				{
+					point.setY(height() - ((tmp.y() * alignment_shrink_factor) / 2));
+				}
 			}
-			else
+			else // !flipped
 			{
-				point.setX(tmp.x());
-				point.setY(tmp.y() / 2);
+				if (!show_alignment_)
+				{
+					point.setY(tmp.y() / 2);
+				}
+				else // show_alignment_
+				{
+					point.setY((tmp.y() * alignment_shrink_factor) / 2);
+				}
 			}
 		}
-		else
+		else // !mirror_mode_
 		{
-			point.setX(tmp.x());
 			point.setY(tmp.y());
 		}
 	}
 	
-	SpectrumCanvas::PointType Spectrum1DCanvas::widgetToData(const QPoint& pos)
+	SpectrumCanvas::PointType Spectrum1DCanvas::widgetToData(const QPoint& pos, bool percentage)
 	{
-		return widgetToData(pos.x(), pos.y());
+		return widgetToData(pos.x(), pos.y(), percentage);
 	}
 	
-	SpectrumCanvas::PointType Spectrum1DCanvas::widgetToData(float x, float y)
+	SpectrumCanvas::PointType Spectrum1DCanvas::widgetToData(float x, float y, bool percentage)
 	{
 		float actual_y;
+		DoubleReal alignment_shrink_factor = 1.0;
+		if (height() > 10)
+		{
+			alignment_shrink_factor = (DoubleReal)(height() - 10) / (DoubleReal)height();
+		}
 		
 		if (mirror_mode_)
 		{
 			if (y > height() / 2)
 			{
-				actual_y = (height() - y) * 2;
+				if (!show_alignment_)
+				{
+					actual_y = (height() - y) * 2;
+				}
+				else
+				{
+					actual_y = (height() - y) * 2 / alignment_shrink_factor;
+				}
 			}
-			else
+			else // y <= height()/2
 			{
-				actual_y = y * 2;
+				if (!show_alignment_)
+				{
+					actual_y = y * 2;
+				}
+				else
+				{
+					actual_y = y * 2 / alignment_shrink_factor;
+				}
 			}
 		}
 		else
 		{
 			actual_y = y;
 		}
-		
-		return SpectrumCanvas::widgetToData_(x, actual_y);
+		PointType p = SpectrumCanvas::widgetToData_(x, actual_y);
+		if (percentage)
+		{
+			p.setY(p.getY() / (getSnapFactor()*percentage_factor_));
+		}
+		return p;
 	}
 	
 	//////////////////////////////////////////////////////////////////////////////////
@@ -188,6 +234,14 @@ namespace OpenMS
 					{
 						measurement_start_ = selected_peak_;
 						const ExperimentType::PeakType& peak = measurement_start_.getPeak(getCurrentLayer().peaks);
+						if (intensity_mode_==IM_PERCENTAGE)
+						{
+							percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().peaks[0].getMaxInt();
+						}
+						else 
+						{
+							percentage_factor_ = 1.0;
+						}
 						dataToWidget(peak, measurement_start_point_, getCurrentLayer().flipped);
 						measurement_start_point_.setY(last_mouse_pos_.y());
 					}
@@ -202,7 +256,7 @@ namespace OpenMS
 				}
 			}
 			/* if ctrl is pressed, allow selection / deselection of multiple annotation items.
-				 else,deselect all annotation items before selecting the one under the cursor (if existent). */
+				else,deselect all annotation items before selecting the one under the cursor (if existent). */
 			if (!(e->modifiers() & Qt::ControlModifier))
 			{
 				getCurrentLayer().annotations_1d.deselectAll();
@@ -269,8 +323,7 @@ namespace OpenMS
 			}
 			else if (action_mode_ == AM_MEASURE)
 			{
-				// measure only positive distances:
-				if (near_peak.peak > measurement_start_.peak)
+				if (near_peak.peak != measurement_start_.peak)
 				{
 					selected_peak_ = near_peak;
 									
@@ -285,7 +338,6 @@ namespace OpenMS
 					{
 						emit sendCursorStatus();
 					}
-					
 					last_mouse_pos_ = p;
 					update_(__PRETTY_FUNCTION__);
 				}
@@ -331,7 +383,6 @@ namespace OpenMS
 		{
 			return;
 		}
-		
 		if (e->button() == Qt::LeftButton)
 		{
 			if (action_mode_ == AM_ZOOM)
@@ -350,7 +401,7 @@ namespace OpenMS
 				{
 					measurement_start_.clear();
 				}
-				if (measurement_start_.isValid() && selected_peak_.peak > measurement_start_.peak)
+				if (measurement_start_.isValid() && selected_peak_.peak != measurement_start_.peak)
 				{
 					const ExperimentType::PeakType& peak_1 = measurement_start_.getPeak(getCurrentLayer().peaks);
 					const ExperimentType::PeakType& peak_2 = selected_peak_.getPeak(getCurrentLayer().peaks);
@@ -358,11 +409,23 @@ namespace OpenMS
 					DoubleReal distance = peak_2.getMZ() - peak_1.getMZ();
 					emit sendStatusMessage(QString("Measured: dMZ = %1, Intensity ratio = %2").arg(distance).arg(peak_2.getIntensity()/peak_1.getIntensity()).toStdString(), 0);
 					// add new distance item to annotations_1d of current layer
-					PointType start_p = widgetToData(measurement_start_point_);
-					start_p.setX(peak_1.getMZ());
-					PointType end_p(peak_2.getMZ(), start_p.getY());
-					QPen pen(QColor(getCurrentLayer().param.getValue("annotation_color").toQString()), 1);
-					Annotation1DItem* item = new Annotation1DDistanceItem(QString::number(distance, 'f', 3), start_p, end_p, pen);
+					if (intensity_mode_==IM_PERCENTAGE)
+					{
+						percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().peaks[0].getMaxInt();
+					}
+					else 
+					{
+						percentage_factor_ = 1.0;
+					}
+					PointType p = widgetToData(measurement_start_point_, true);
+					bool peak_1_less = peak_1.getMZ() < peak_2.getMZ();
+					DoubleReal start_mz = peak_1_less ? peak_1.getMZ() : peak_2.getMZ();
+					DoubleReal end_mz = peak_1_less ? peak_2.getMZ() : peak_1.getMZ();
+					distance = end_mz - start_mz;
+					PointType start_p(start_mz, p.getY());
+					PointType end_p(end_mz, p.getY());
+					
+					Annotation1DItem* item = new Annotation1DDistanceItem(QString::number(distance, 'f', 3), start_p, end_p);
 					getCurrentLayer().annotations_1d.push_front(item);
 				}
 			}
@@ -375,7 +438,7 @@ namespace OpenMS
 	void Spectrum1DCanvas::keyPressEvent(QKeyEvent* e)
 	{
 		// Delete pressed => delete selected annotations from the current layer
-		if (e->key()==Qt::Key_Delete)
+		if (e->key()==Qt::Key_Delete || e->key()==Qt::Key_Backspace)
 		{
 			e->accept();
 			getCurrentLayer().annotations_1d.removeSelectedItems();
@@ -404,14 +467,14 @@ namespace OpenMS
 		if (layers_.empty()) return PeakIndex();
 		
 		// mirror mode and p not on same half as active layer => return invalid peak index
-		if (mirror_mode_ && (getCurrentLayer().flipped ^ p.y() > height()/2)) return PeakIndex();
+		if (mirror_mode_ && (getCurrentLayer().flipped ^ (p.y() > height()/2))) return PeakIndex();
 		
 		//reference to the current data
 		SpectrumType& spectrum = currentPeakData_()[0];
 		
 		// get the interval (in diagramm metric) that will be projected on screen coordinate p.x() or p.y() (depending on orientation)
-		PointType lt = widgetToData(p - QPoint(1, 1));
-		PointType rb = widgetToData(p + QPoint(1, 1));
+		PointType lt = widgetToData(p - QPoint(1, 1), true);
+		PointType rb = widgetToData(p + QPoint(1, 1), true);
 	
 		// get iterator on first peak with higher position than interval_start
 		PeakType temp;
@@ -436,10 +499,18 @@ namespace OpenMS
 		SpectrumIteratorType nearest_it = left_it;
 		
 		// select source interval start and end depending on diagram orientation
+		if (intensity_mode_==IM_PERCENTAGE)
+		{
+			percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().peaks[0].getMaxInt();
+		}
+		else 
+		{
+			percentage_factor_ = 1.0;
+		}		
 		QPoint tmp;
-		dataToWidget(0, overall_data_range_.minY(),tmp, getCurrentLayer().flipped);
+		dataToWidget(0, overall_data_range_.minY(),tmp, getCurrentLayer().flipped, true);
 		double dest_interval_start = tmp.y();
-		dataToWidget(0, overall_data_range_.maxY(),tmp, getCurrentLayer().flipped);
+		dataToWidget(0, overall_data_range_.maxY(),tmp, getCurrentLayer().flipped, true);
 		double dest_interval_end = tmp.y();
 		
 		int nearest_intensity = static_cast<int>(intervalTransformation(nearest_it->getIntensity(), visible_area_.minY(),
@@ -456,7 +527,6 @@ namespace OpenMS
 				nearest_it = it;
 			}
 		}
-	
 		return PeakIndex(0,nearest_it-spectrum.begin());
 	}
 	
@@ -702,12 +772,25 @@ namespace OpenMS
 			painter.drawImage(rects[i].topLeft(), buffer_, rects[i]);
 		}
 		
-		// draw x-axis when in mirror mode
 		if (mirror_mode_)
 		{
 			painter.save();
-			painter.setPen(Qt::black);
-			painter.drawLine(0,height()/2,width(),height()/2);
+			
+			if (!show_alignment_)
+			{
+				// draw x-axis
+				painter.setPen(Qt::black);
+				painter.drawLine(0,height()/2,width(),height()/2);
+			}
+			else
+			{
+				drawAlignment(painter);
+				// two x-axes:
+				painter.setPen(Qt::black);
+				painter.drawLine(0,height()/2+5,width(),height()/2+5);
+				painter.drawLine(0,height()/2-5,width(),height()/2-5);
+			}
+			
 			painter.restore();
 		}
 		
@@ -715,10 +798,7 @@ namespace OpenMS
 		if (action_mode_ == AM_MEASURE && measurement_start_.isValid())
 		{
 			QPoint measurement_end_point(last_mouse_pos_.x(), measurement_start_point_.y());
-			if (measurement_end_point.x() >= measurement_start_point_.x())
-			{
-				painter.drawLine(measurement_start_point_, measurement_end_point);
-			}
+			painter.drawLine(measurement_start_point_, measurement_end_point);
 		}
 		// draw highlighted measurement start peak and selected peak
 		bool with_elongation = (action_mode_ == AM_MEASURE);
@@ -763,15 +843,26 @@ namespace OpenMS
 			const ExperimentType::PeakType& sel = peak.getPeak(getLayer_(layer_index).peaks);
 
 			painter.setPen(QPen(QColor(param_.getValue("highlighted_peak_color").toQString()), 2));
-				
+			
 			if (intensity_mode_==IM_PERCENTAGE)
 			{
 				percentage_factor_ = overall_data_range_.max()[1]/getLayer_(layer_index).peaks[0].getMaxInt();
 			}
-			
+			else 
+			{
+				percentage_factor_ = 1.0;
+			}
 			dataToWidget(sel, begin, getLayer_(layer_index).flipped);
-			QPoint top_end;
-			dataToWidget(sel.getMZ(), getVisibleArea().maxY(), top_end, getLayer_(layer_index).flipped);					
+			QPoint top_end(begin);
+			
+			if (getLayer_(layer_index).flipped)
+			{
+				top_end.setY(height());
+			}
+			else
+			{
+				top_end.setY(0.0);
+			}
 			
 			// paint the crosshair only for currently selected peaks of the current layer
 			if (layer_index == current_layer_ && (peak == measurement_start_ || peak == selected_peak_))
@@ -803,9 +894,39 @@ namespace OpenMS
 	void Spectrum1DCanvas::drawAnnotations(const LayerData& layer, QPainter& painter)
 	{
 		bool flipped = layer.flipped;
+		if (intensity_mode_==IM_PERCENTAGE)
+		{
+			percentage_factor_ = overall_data_range_.max()[1]/layer.peaks[0].getMaxInt();
+		}
+		else 
+		{
+			percentage_factor_ = 1.0;
+		}
+		QPen pen(QColor(layer.param.getValue("annotation_color").toQString()));
+		QPen selected_pen;
+		
+		//make selected items a little brighter
+		int sel_red = pen.color().red() + 50;
+		int sel_green = pen.color().green() + 50;
+		int sel_blue = pen.color().blue() + 50;
+		//check if rgb out of bounds
+		sel_red = sel_red > 255 ? 255 : sel_red;
+		sel_green = sel_green > 255 ? 255 : sel_green;
+		sel_blue = sel_blue > 255 ? 255 : sel_blue;
+		
+		selected_pen.setColor(QColor(sel_red, sel_green, sel_blue));
+		
 		Annotations1DContainer& c = layer.annotations_1d;
 		for (Annotations1DContainer::ConstIterator it = c.begin(); it != c.end(); ++it)
 		{
+			if (!(*it)->isSelected())
+			{
+				painter.setPen(pen);
+			}
+			else
+			{
+				painter.setPen(selected_pen);
+			}
 			(*it)->draw(this, painter, flipped);
 		}
 	}
@@ -875,15 +996,19 @@ namespace OpenMS
 				break;
 			case 1:
 				getCurrentLayer_().param.setValue("peak_color", "#00ff00");
+				getCurrentLayer_().param.setValue("annotation_color", "#005500");
 				break;
 			case 2:
 				getCurrentLayer_().param.setValue("peak_color", "#ff00ff");
+				getCurrentLayer_().param.setValue("annotation_color", "#550055");
 				break;
 			case 3:
 				getCurrentLayer_().param.setValue("peak_color", "#00ffff");
+				getCurrentLayer_().param.setValue("annotation_color", "#005555");
 				break;
 			case 4:
 				getCurrentLayer_().param.setValue("peak_color", "#ffaa00");
+				getCurrentLayer_().param.setValue("annotation_color", "#550000");
 				break;
 		}
 	
@@ -1041,7 +1166,7 @@ namespace OpenMS
 			context_menu->addSeparator();
 	
 			new_action = context_menu->addAction("Add label");
-			if (mirror_mode_ && (getCurrentLayer().flipped ^ e->pos().y() > height()/2))
+			if (mirror_mode_ && (getCurrentLayer().flipped ^ (e->pos().y() > height()/2)))
 			{
 				new_action->setEnabled(false);
 			}
@@ -1123,8 +1248,7 @@ namespace OpenMS
 					if (ok && !text.isEmpty())
 					{
 						PointType position = widgetToData(e->pos());
-						QPen pen(QColor(getCurrentLayer().param.getValue("annotation_color").toQString()), 1);
-						Annotation1DItem* item = new Annotation1DTextItem(position, text, pen);
+						Annotation1DItem* item = new Annotation1DTextItem(position, text);
 						getCurrentLayer().annotations_1d.push_front(item);
 						
 						update_buffer_ = true;
@@ -1139,8 +1263,7 @@ namespace OpenMS
 					{
 						PeakType peak = near_peak.getPeak(getCurrentLayer().peaks);
 						PointType position(peak.getMZ(), peak.getIntensity());
-						QPen pen(QColor(getCurrentLayer().param.getValue("annotation_color").toQString()), 1);
-						Annotation1DItem* item = new Annotation1DPeakItem(position, text, pen);
+						Annotation1DItem* item = new Annotation1DPeakItem(position, text);
 						getCurrentLayer().annotations_1d.push_front(item);
 						update_buffer_ = true;
 						update_(__PRETTY_FUNCTION__);
@@ -1183,7 +1306,7 @@ namespace OpenMS
 	bool Spectrum1DCanvas::flippedLayersExist()
 	{
 		bool if_this_variable_is_true_then_there_are_flipped_layers_otherwise_not = false;
-		for (Size i = 0; i < layers_.size(); ++i)
+		for (Size i = 0; i < getLayerCount(); ++i)
 		{
 			if (layers_[i].flipped)
 			{
@@ -1350,13 +1473,98 @@ namespace OpenMS
 				}
 				else
 				{
-					painter.drawLine(xl, y/2, xh, y/2);
-					painter.drawLine(xl, yl-y/2, xh, yl-y/2);
+					if (!show_alignment_)
+					{
+						painter.drawLine(xl, y/2, xh, y/2);
+						painter.drawLine(xl, yl-y/2, xh, yl-y/2);
+					}
+					else
+					{
+						DoubleReal alignment_shrink_factor = 1.0;
+						if (height() > 10)
+						{
+							alignment_shrink_factor = (DoubleReal)(height() - 10) / (DoubleReal)height();
+						}
+						painter.drawLine(xl,y*alignment_shrink_factor/2, xh, y*alignment_shrink_factor/2);
+						painter.drawLine(xl,yl-y*alignment_shrink_factor/2, xh, yl-y*alignment_shrink_factor/2);
+					}
 				}
 			}
 		}
 		
 		painter.restore();
+	}
+	
+	void Spectrum1DCanvas::performAlignment(UInt layer_index_1, UInt layer_index_2, const Param& param)
+	{
+		alignment_.clear();
+		if (layer_index_1 >= getLayerCount() || layer_index_2 >= getLayerCount())
+		{
+			return;
+		}
+		LayerData& layer_1 = getLayer_(layer_index_1);
+		LayerData& layer_2 = getLayer_(layer_index_2);
+		const ExperimentType& map_1 = layer_1.peaks;
+		const ExperimentType& map_2 = layer_2.peaks;
+		const ExperimentType::SpectrumType& spectrum_1 = *(map_1.begin());
+		const ExperimentType::SpectrumType& spectrum_2 = *(map_2.begin());
+		
+		SpectrumAlignment aligner;
+		aligner.setParameters(param);
+		
+		std::vector<std::pair<UInt, UInt> > aligned_peaks_indices;
+		aligner.getSpectrumAlignment(aligned_peaks_indices, spectrum_1, spectrum_2);
+
+		for (Size i = 0; i < aligned_peaks_indices.size(); ++i)
+		{
+			DoubleReal line_begin_mz = spectrum_1[aligned_peaks_indices[i].first].getMZ();
+			DoubleReal line_end_mz = spectrum_2[aligned_peaks_indices[i].second].getMZ();
+			alignment_.push_back(std::make_pair(line_begin_mz, line_end_mz));
+		}
+		
+		show_alignment_ = true;
+		update_buffer_ = true;
+		update_(__PRETTY_FUNCTION__);
+		
+		SpectrumAlignmentScore scorer;
+		scorer.setParameters(param);
+		
+		alignment_score_ = scorer(spectrum_1, spectrum_2);
+	}
+	
+	void Spectrum1DCanvas::resetAlignment()
+	{
+		alignment_.clear();
+		show_alignment_ = false;
+	}
+	
+	void Spectrum1DCanvas::drawAlignment(QPainter& painter)
+	{
+		painter.save();
+		
+		//draw peak-connecting lines between the two spectra
+		painter.setPen(Qt::red);
+		QPoint begin_p, end_p;
+		double dummy = 0.0;
+
+		for (Size i = 0; i < getAlignmentSize(); ++i)
+		{
+			dataToWidget(alignment_[i].first, dummy, begin_p);
+			dataToWidget(alignment_[i].second, dummy, end_p);
+			painter.drawLine(begin_p.x(), height()/2-5, end_p.x(), height()/2+5);
+		}
+		
+		painter.restore();
+	}
+	
+	Size Spectrum1DCanvas::getAlignmentSize()
+	{
+		return alignment_.size();
+	}
+	
+	DoubleReal Spectrum1DCanvas::getAlignmentScore()
+	{
+		return alignment_score_;
 	}
 	
 }//Namespace

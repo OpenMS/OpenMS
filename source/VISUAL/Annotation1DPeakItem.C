@@ -27,11 +27,13 @@
 #include <OpenMS/VISUAL/Annotation1DPeakItem.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 
+#include <QtGui/QPainter>
+
 namespace OpenMS
 {	
 
-	Annotation1DPeakItem::Annotation1DPeakItem(const PointType& position, const QString& text, const QPen& pen)
-		: Annotation1DItem(text, pen),
+	Annotation1DPeakItem::Annotation1DPeakItem(const PointType& position, const QString& text)
+		: Annotation1DItem(text),
 			position_(position)
 	{
 	}
@@ -50,7 +52,7 @@ namespace OpenMS
 	{
 		//translate mz/intensity to pixel coordinates
 		QPoint pos;
-		canvas->dataToWidget(position_.getX(), position_.getY(), pos, flipped);
+		canvas->dataToWidget(position_.getX(), position_.getY(), pos, flipped, true);
 		
 		// compute bounding box of text_item on the specified painter
 		bounding_box_ = painter.boundingRect(QRectF(pos, pos), Qt::AlignCenter, text_);
@@ -71,17 +73,12 @@ namespace OpenMS
 			bounding_box_.moveTop(0.0);
 			bounding_box_.moveLeft(pos.x() + 5.0);
 		}
-		if (selected_)
-		{
-			painter.setPen(selected_pen_);
-			drawBoundingBox_(painter);
-		}
-		else
-		{
-			painter.setPen(pen_);
-		}
 		
 		painter.drawText(bounding_box_, Qt::AlignCenter, text_);
+		if (selected_)
+		{
+			drawBoundingBox_(painter);
+		}
 	}
 	
 	void Annotation1DPeakItem::setPosition(const Annotation1DPeakItem::PointType& position)

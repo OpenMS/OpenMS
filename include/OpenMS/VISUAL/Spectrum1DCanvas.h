@@ -98,20 +98,35 @@ namespace OpenMS
 			/// Sets whether this widget is currently in mirror mode
 			void setMirrorModeActive(bool b);
 		
-			/// Calls dataToWidget_() but takes snap_factors_ and percentage_factor_ into account.
-			void dataToWidget(const PeakType& peak, QPoint& point, bool flipped = false);
+			/// Calls dataToWidget() and takes snap_factors_ and percentage_factor_ into account.
+			void dataToWidget(const PeakType& peak, QPoint& point, bool flipped = false, bool percentage = true);
 			
-			/// Calls SpectrumCanvas::dataToWidget_() but takes mirror mode into account
-			void dataToWidget(float x, float y, QPoint& point, bool flipped = false);
+			/// Calls SpectrumCanvas::dataToWidget_(), takes mirror mode into account
+			void dataToWidget(float x, float y, QPoint& point, bool flipped = false, bool percentage = false);
 			
-			/// Calls SpectrumCanvas::widgetToData_() but takes mirror mode into account
-			PointType widgetToData(const QPoint& pos);
+			/// Calls SpectrumCanvas::widgetToData_(), takes mirror mode into account
+			PointType widgetToData(const QPoint& pos, bool percentage = false);
 			
-			/// Calls SpectrumCanvas::widgetToData_() but takes mirror mode into account
-			PointType widgetToData(float x, float y);
+			/// Calls SpectrumCanvas::widgetToData_(), takes mirror mode into account
+			PointType widgetToData(float x, float y, bool percentage = false);
 			
 			/// Draws all annotation items of @p layer on @p painter
 			void drawAnnotations(const LayerData& layer, QPainter& painter);
+			
+			/// Performs an alignment of the layers with @p layer_index_1 and @p layer_index_2
+			void performAlignment(UInt layer_index_1, UInt layer_index_2, const Param& param);
+			
+			/// Resets alignment_
+			void resetAlignment();
+			
+			/// Draws the alignment on @p painter
+			void drawAlignment(QPainter& painter);
+			
+			/// Returns the number of aligned pairs of peaks
+			Size getAlignmentSize();
+			
+			/// Returns the score of the alignment
+			DoubleReal getAlignmentScore();
 			
 		public slots:
 			// Docu in base class
@@ -174,8 +189,12 @@ namespace OpenMS
       /// Indicates whether this widget is currently in mirror mode
 			bool mirror_mode_;
 			/// Indicates whether an alignment is currently visualized
-			bool alignment_shown_;
-      
+			bool show_alignment_;
+      /// Stores the alignment as MZ values of pairs of aligned peaks in both spectra
+      std::vector<std::pair<DoubleReal, DoubleReal > > alignment_;
+      /// Stores the score of the last alignment
+			DoubleReal alignment_score_;
+			
 			/// Find peak next to the given position
 			PeakIndex findPeakAtPosition_(QPoint);
 	

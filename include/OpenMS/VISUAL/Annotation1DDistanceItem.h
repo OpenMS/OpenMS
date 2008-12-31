@@ -29,7 +29,6 @@
 
 #include <OpenMS/VISUAL/Annotation1DItem.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
-#include <OpenMS/KERNEL/PeakIndex.h>
 
 namespace OpenMS
 {
@@ -50,7 +49,7 @@ namespace OpenMS
 			typedef DoubleReal CoordinateType;
 
 			/// Constructor
-			Annotation1DDistanceItem(const QString& text, const PointType& start_point, const PointType& end_point, const QPen& pen);
+			Annotation1DDistanceItem(const QString& text, const PointType& start_point, const PointType& end_point);
 			/// Copy constructor
 			Annotation1DDistanceItem(const Annotation1DDistanceItem& rhs);
 			/// Destructor

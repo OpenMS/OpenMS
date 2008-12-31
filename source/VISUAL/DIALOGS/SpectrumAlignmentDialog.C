@@ -26,13 +26,18 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
+#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 
 // QT includes
 #include <QtGui/QButtonGroup>
 
+#include <vector>
+
 namespace OpenMS
 {
-	SpectrumAlignmentDialog::SpectrumAlignmentDialog()
+	SpectrumAlignmentDialog::SpectrumAlignmentDialog(Spectrum1DWidget* parent)
+		: layer_indices_1(),
+			layer_indices_2()
 	{
 		setupUi(this);
 		
@@ -40,5 +45,57 @@ namespace OpenMS
 		button_group->addButton(ppm);
 		button_group->addButton(da);
 		da->setChecked(true);
+		
+		Spectrum1DCanvas* cc = parent->canvas();
+		for (UInt i = 0; i < cc->getLayerCount(); ++i)
+		{
+			const LayerData& layer = cc->getLayer(i);
+			if (layer.flipped)
+			{
+				layer_list_2->addItem(layer.name.toQString());
+				layer_indices_2.push_back(i);
+			}
+			else
+			{
+				layer_list_1->addItem(layer.name.toQString());
+				layer_indices_1.push_back(i);
+			}
+		}
+		// select first item of each list
+		if (layer_list_1->count() > 0)
+		{
+			layer_list_1->setCurrentRow(0);
+		}
+		if (layer_list_2->count() > 0)
+		{
+			layer_list_2->setCurrentRow(0);
+		}
 	}
+	
+	Int SpectrumAlignmentDialog::get1stLayerIndex()
+	{
+		if (layer_list_1->count() == 0 || layer_list_1->currentRow() == -1)
+		{
+			return -1;
+		}
+		if (layer_indices_1.size() > (Size)(layer_list_1->currentRow()))
+		{
+			return layer_indices_1[(Size)(layer_list_1->currentRow())];
+		}
+		return -1;
+	}
+	
+	Int SpectrumAlignmentDialog::get2ndLayerIndex()
+	{
+		if (layer_list_2->count() == 0 || layer_list_2->currentRow() == -1)
+		{
+			return -1;
+		}
+		if (layer_indices_2.size() > (Size)(layer_list_2->currentRow()))
+		{
+			return layer_indices_2[(Size)(layer_list_2->currentRow())];
+		}
+		return -1;
+	}
+	
 } // namespace
