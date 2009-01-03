@@ -27,6 +27,7 @@
 //OpenMS
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum3DOpenGLCanvas.h>
+#include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum3DPrefDialog.h>
 #include <OpenMS/VISUAL/ColorSelector.h>

@@ -26,6 +26,7 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
+#include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -1620,6 +1621,10 @@ namespace OpenMS
 			{
 				saveCurrentLayer(result->text()=="Visible layer data");
 			}
+			else if (result->text()=="As image")
+			{
+				spectrum_widget_->saveAsImage();
+			}
 			else if (result->text()=="Show/hide projections")
 			{
 				emit toggleProjections();
@@ -1663,6 +1668,7 @@ namespace OpenMS
  		QMenu* save_menu = new QMenu("Save");
 		save_menu->addAction("Layer");
 		save_menu->addAction("Visible layer data");
+		save_menu->addAction("As image");
 
 		//add settings menu
 		context_menu->addMenu(save_menu);

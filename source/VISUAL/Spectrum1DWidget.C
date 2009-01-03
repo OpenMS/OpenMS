@@ -207,6 +207,15 @@ namespace OpenMS
 		canvas()->performAlignment(layer_index_1, layer_index_2, param);
 	}
 	
+	void Spectrum1DWidget::resetAlignment()
+	{
+		spacer_->changeSize(0,0);
+		grid_->removeWidget(y_axis_);
+		grid_->removeWidget(flipped_y_axis_);
+		grid_->addWidget(y_axis_, 0, 1);
+		grid_->addWidget(flipped_y_axis_, 2, 1);
+	}
+	
 } //namespace
 
 

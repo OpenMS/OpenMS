@@ -1225,7 +1225,12 @@ namespace OpenMS
 			{
 				new_action->setEnabled(false);
 			}
-			
+			context_menu->addSeparator();
+			new_action = context_menu->addAction("Clear alignment");
+			if (!show_alignment_)
+			{
+				new_action->setEnabled(false);
+			}
 			context_menu->addSeparator();
 	
 			context_menu->addAction("Layer meta data");
@@ -1325,6 +1330,10 @@ namespace OpenMS
 						update_buffer_ = true;
 						update_(__PRETTY_FUNCTION__);
 					}
+				}
+				else if (result->text()=="Clear alignment");
+				{
+					resetAlignment();
 				}
 			}
 		}
@@ -1592,7 +1601,10 @@ namespace OpenMS
 	void Spectrum1DCanvas::resetAlignment()
 	{
 		alignment_.clear();
+		qobject_cast<Spectrum1DWidget*>(spectrum_widget_)->resetAlignment();
 		show_alignment_ = false;
+		update_buffer_ = true;
+		update_(__PRETTY_FUNCTION__);
 	}
 	
 	void Spectrum1DCanvas::drawAlignment(QPainter& painter)

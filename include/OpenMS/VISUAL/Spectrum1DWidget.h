@@ -80,7 +80,10 @@ namespace OpenMS
 		
 		/// Performs an alignment of the layers with @p layer_index_1 and @p layer_index_2
 		void performAlignment(UInt layer_index_1, UInt layer_index_2, const Param& param);
-			
+		
+		/// Resets the alignment
+		void resetAlignment();
+		
 	signals:
 		/// Is emitted whenever the visible area changes.		
 		void visibleAreaChanged(double, double); 
