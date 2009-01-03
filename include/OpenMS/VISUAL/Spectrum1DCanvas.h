@@ -177,7 +177,9 @@ namespace OpenMS
 			virtual void recalculateSnapFactor_();
 			// Docu in base class
 			virtual void updateScrollbars_();
-			
+			// Docu in base class
+			virtual void intensityModeChange_();
+
 			/// Draw modes (for each spectrum)
 			std::vector<DrawModes> draw_modes_; 
 			/// Iterator on peak next to mouse position
@@ -199,6 +201,9 @@ namespace OpenMS
 			
 			/// Find peak next to the given position
 			PeakIndex findPeakAtPosition_(QPoint);
+			
+			/// Ensure that all annotations are within data range
+			void ensureAnnotationsWithinDataRange_();
 	
 	    /** @name Reimplemented QT events */
 	    //@{

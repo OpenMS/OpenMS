@@ -28,6 +28,8 @@
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 
 #include <QtGui/QPainter>
+#include <QtCore/QPoint>
+
 
 namespace OpenMS
 {	
@@ -52,7 +54,7 @@ namespace OpenMS
 	{
 		//translate mz/intensity to pixel coordinates
 		QPoint pos;
-		canvas->dataToWidget(position_.getX(), position_.getY(), pos, flipped);
+		canvas->dataToWidget(position_.getX(), position_.getY(), pos, flipped, true);
 		
 		// compute bounding box of text_item on the specified painter
 		bounding_box_ = painter.boundingRect(QRectF(pos, pos), Qt::AlignCenter, text_);
@@ -64,9 +66,8 @@ namespace OpenMS
 		}
 	}
 	
-	void Annotation1DTextItem::move(const PointType& delta)
+	void Annotation1DTextItem::move(const PointType& delta, Spectrum1DCanvas* canvas)
 	{
-		// shift position_ by delta
 		position_.setX(position_.getX()+delta.getX());
 		position_.setY(position_.getY()+delta.getY());
 	}
@@ -80,6 +81,31 @@ namespace OpenMS
  	{
  		return position_;
  	}
+ 	
+ 	void Annotation1DTextItem::ensureWithinDataRange(Spectrum1DCanvas* const canvas)
+	{
+		DRange<3> data_range = canvas->getDataRange();
+		
+		CoordinateType x_pos = position_.getX();
+		CoordinateType y_pos = position_.getY() * canvas->getPercentageFactor();
+		
+		if (x_pos < data_range.min()[0])
+		{
+			position_.setX(data_range.min()[0]);
+		}
+		if (x_pos > data_range.max()[0])
+		{
+			position_.setX(data_range.max()[0]);
+		}
+		if (y_pos < data_range.min()[1])
+		{
+			position_.setY(data_range.min()[1] / canvas->getPercentageFactor());
+		}
+		if (y_pos > data_range.max()[1])
+		{
+			position_.setY(data_range.max()[1] / canvas->getPercentageFactor());
+		}
+	}
 	
 }//Namespace
 

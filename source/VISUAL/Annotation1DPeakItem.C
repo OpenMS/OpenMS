@@ -28,6 +28,7 @@
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 
 #include <QtGui/QPainter>
+#include <QtCore/QPoint>
 
 namespace OpenMS
 {	
@@ -81,7 +82,7 @@ namespace OpenMS
 		}
 	}
 	
-	void Annotation1DPeakItem::move(const PointType& delta)
+	void Annotation1DPeakItem::move(const PointType& delta, Spectrum1DCanvas* canvas)
 	{
 		// do nothing, peak annotations cannot be moved
 	}
@@ -95,6 +96,11 @@ namespace OpenMS
  	{
  		return position_;
  	}
+ 	
+ 	void Annotation1DPeakItem::ensureWithinDataRange(Spectrum1DCanvas* const canvas)
+	{
+		// peak items are never outside data range (cannot be moved)
+	}
 	
 }//Namespace
 

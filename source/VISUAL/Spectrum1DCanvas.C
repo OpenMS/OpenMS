@@ -222,6 +222,42 @@ namespace OpenMS
 		
 		if (e->button() == Qt::LeftButton)
 		{
+			// selection/deselection of annotation items
+			Annotation1DItem* item = getCurrentLayer().annotations_1d.getItemAt(last_mouse_pos_);
+			if (item)
+			{
+				if (!(e->modifiers() & Qt::ControlModifier))
+				{
+					if (!item->isSelected())
+					{
+						// the item becomes the only selected item
+						getCurrentLayer().annotations_1d.deselectAll();
+						item->setSelected(true);
+					}
+					// an item was clicked -> can be moved on the canvas
+					moving_annotations_ = true;
+				}
+				else
+				{
+					// ctrl pressed -> allow selection/deselection of multiple items, do not deselect others
+					item->setSelected(!item->isSelected());
+				}
+				
+				// if item is a distance item: show distance of selected item in status bar
+				Annotation1DDistanceItem* distance_item = dynamic_cast<Annotation1DDistanceItem*>(item);
+				if (distance_item)
+				{
+					const DoubleReal start_p = distance_item->getStartPoint().getX();
+					const DoubleReal end_p = distance_item->getEndPoint().getX();
+					emit sendStatusMessage(QString("Measured: dMZ = %1").arg(end_p - start_p).toStdString(), 0);
+				}
+			}
+			else
+			{
+				// no item was under the cursor
+				getCurrentLayer().annotations_1d.deselectAll();
+			}
+			
 			if (action_mode_ == AM_ZOOM)
 			{
 				rubber_band_.setGeometry(e->pos().x(),e->pos().y(),0,0);
@@ -256,22 +292,6 @@ namespace OpenMS
 					QMessageBox::information(this,"Not supported","Measuring is not yet supported for rotated spectra.");
 				}
 			}
-			
-			// check item under cursor
-			Annotation1DItem* item = getCurrentLayer().annotations_1d.getItemAt(last_mouse_pos_);
-			if (item)
-			{
-				item->setSelected(!item->isSelected());
-				
-				// if item is a distance item: show distance of selected item in status bar
-				Annotation1DDistanceItem* distance_item = dynamic_cast<Annotation1DDistanceItem*>(item);
-				if (distance_item)
-				{
-					const DoubleReal start_p = distance_item->getStartPoint().getX();
-					const DoubleReal end_p = distance_item->getEndPoint().getX();
-					emit sendStatusMessage(QString("Measured: dMZ = %1").arg(end_p - start_p).toStdString(), 0);
-				}
-			}
 		}
 		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
@@ -291,11 +311,13 @@ namespace OpenMS
 		
 		if(e->buttons() & Qt::LeftButton)
 		{
-			// move all selected annotations
-			Annotation1DItem* item = getCurrentLayer().annotations_1d.getItemAt(last_mouse_pos_);
-			if (item)
+			bool move = moving_annotations_;
+			if (mirror_mode_ && (getCurrentLayer().flipped ^ (p.y() > height()/2)))
 			{
-				moving_annotations_ = true;
+				move = false;
+			}
+			if (move)
+			{
 				if (intensity_mode_==IM_PERCENTAGE)
 				{
 					percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().peaks[0].getMaxInt();
@@ -304,20 +326,21 @@ namespace OpenMS
 				{
 					percentage_factor_ = 1.0;
 				}
-				DoubleReal delta_x = widgetToData(p, true).getX() - widgetToData(last_mouse_pos_, true).getX();
-				DoubleReal delta_y = widgetToData(p, true).getY() - widgetToData(last_mouse_pos_, true).getY();
-				PointType delta(delta_x, delta_y);
+				PointType delta = widgetToData(p, true) - widgetToData(last_mouse_pos_, true);
 				
 				Annotations1DContainer& ann_1d = getCurrentLayer().annotations_1d;
 				for (Annotations1DContainer::Iterator it = ann_1d.begin(); it != ann_1d.end(); ++it)
 				{
 					if ((*it)->isSelected())
 					{
-						(*it)->move(delta);
+						(*it)->move(delta, this);
 					}
 				}
+				update_buffer_ = true;
+				update_(__PRETTY_FUNCTION__);
+				last_mouse_pos_ = p;
 			}
-			if (action_mode_ == AM_TRANSLATE)
+			else if (action_mode_ == AM_TRANSLATE)
 			{
 				// translation in data metric
 				double shift = widgetToData(last_mouse_pos_).getX() - widgetToData(p).getX();
@@ -447,22 +470,7 @@ namespace OpenMS
 				}
 			}
 			
-			// deselect all items, if ctrl is not pressed
-			Annotation1DItem* item = getCurrentLayer().annotations_1d.getItemAt(e->pos());
-			bool was_selected = false;
-			if (item)
-			{
-				was_selected = item->isSelected();
-			}
-			if (!(e->modifiers() & Qt::ControlModifier) && !moving_annotations_)
-			{
-				getCurrentLayer().annotations_1d.deselectAll();
-				if (item)
-				{
-					item->setSelected(was_selected);
-				}
-			}
-			
+			ensureAnnotationsWithinDataRange_();
 			moving_annotations_ = false;
 			
 			measurement_start_.clear();
@@ -604,13 +612,18 @@ namespace OpenMS
 		overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
 		
 		zoomClear_();
+		
 		if (overall_data_range_.maxX() - overall_data_range_.minX() <1.0)
 		{
-			changeVisibleArea_(overall_data_range_.minX() -1.0, overall_data_range_.maxX() + 1.0, true, true);
+			AreaType new_area(overall_data_range_.minX() - 1.0, overall_data_range_.minY(),
+												overall_data_range_.maxX() + 1.0, overall_data_range_.maxY());
+			changeVisibleArea_(new_area, true, true);
 		}
 		else
 		{
-			changeVisibleArea_(overall_data_range_.minX(), overall_data_range_.maxX(), true, true);
+			AreaType new_area(overall_data_range_.minX(), overall_data_range_.minY(),
+												overall_data_range_.maxX(), overall_data_range_.maxY());
+			changeVisibleArea_(new_area, true, true);
 		}
 		update_buffer_ = true;
 		update_(__PRETTY_FUNCTION__);
@@ -1283,7 +1296,15 @@ namespace OpenMS
 					QString text = QInputDialog::getText(this, "Add label", "Enter text:", QLineEdit::Normal, "", &ok);
 					if (ok && !text.isEmpty())
 					{
-						PointType position = widgetToData(e->pos());
+						if (intensity_mode_==IM_PERCENTAGE)
+						{
+							percentage_factor_ = overall_data_range_.max()[1]/getCurrentLayer().peaks[0].getMaxInt();
+						}
+						else 
+						{
+							percentage_factor_ = 1.0;
+						}
+						PointType position = widgetToData(e->pos(), true);
 						Annotation1DItem* item = new Annotation1DTextItem(position, text);
 						getCurrentLayer().annotations_1d.push_front(item);
 						
@@ -1601,6 +1622,34 @@ namespace OpenMS
 	DoubleReal Spectrum1DCanvas::getAlignmentScore()
 	{
 		return alignment_score_;
+	}
+	
+	void Spectrum1DCanvas::intensityModeChange_()
+	{
+		recalculateSnapFactor_();
+		ensureAnnotationsWithinDataRange_();
+		update_buffer_ = true;
+		update_(__PRETTY_FUNCTION__);
+	}
+	
+	void Spectrum1DCanvas::ensureAnnotationsWithinDataRange_()
+	{
+		for (UInt i = 0; i < getLayerCount(); ++i)
+		{
+			if (intensity_mode_==IM_PERCENTAGE)
+			{
+				percentage_factor_ = overall_data_range_.max()[1]/getLayer_(i).peaks[0].getMaxInt();
+			}
+			else 
+			{
+				percentage_factor_ = 1.0;
+			}
+			Annotations1DContainer& ann_1d = getLayer_(i).annotations_1d;
+			for (Annotations1DContainer::Iterator it = ann_1d.begin(); it != ann_1d.end(); ++it)
+			{
+				(*it)->ensureWithinDataRange(this);
+			}
+		}
 	}
 	
 }//Namespace

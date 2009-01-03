@@ -489,6 +489,9 @@ namespace OpenMS
 		*/
 		DoubleReal getSnapFactor();
 		
+		/// Returns the percentage factor
+		DoubleReal getPercentageFactor();
+		
 		/// Shows the preferences dialog of the active layer
 		virtual void showCurrentLayerPreferences() = 0;
 

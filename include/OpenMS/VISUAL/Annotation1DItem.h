@@ -74,10 +74,12 @@ namespace OpenMS
 			void setText(const QString& text);
 			/// Returns the text of the item
 			const QString& getText() const;
+			/// Ensures that the item has coordinates within the visible area of the canvas
+			virtual void ensureWithinDataRange(Spectrum1DCanvas* const canvas) = 0;
 			/// Draws the item on @p painter
 			virtual void draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped = false) = 0;
 			/// Moves the item; behaviour depends on item type and is implemented in the subclasses
-			virtual void move(const PointType& delta) = 0;
+			virtual void move(const PointType& delta, Spectrum1DCanvas* canvas) = 0;
 			
 		protected:
 		

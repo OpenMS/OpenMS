@@ -87,7 +87,7 @@ namespace OpenMS
 		}
 	}
 	
-	void Annotation1DDistanceItem::move(const PointType& delta)
+	void Annotation1DDistanceItem::move(const PointType& delta, Spectrum1DCanvas* canvas)
 	{
 		// shift vertical position according to y-component of delta
 		start_point_.setY(start_point_.getY()+delta.getY());
@@ -113,6 +113,24 @@ namespace OpenMS
 	const Annotation1DDistanceItem::PointType& Annotation1DDistanceItem::getEndPoint() const
 	{
 		return end_point_;
+	}
+	
+	void Annotation1DDistanceItem::ensureWithinDataRange(Spectrum1DCanvas* const canvas)
+	{
+		// can only be moved vertically, so check only y-position
+		DRange<3> data_range = canvas->getDataRange();
+		CoordinateType y_pos = start_point_.getY() * canvas->getPercentageFactor();
+		
+		if (y_pos < data_range.min()[1])
+		{
+			start_point_.setY(data_range.min()[1] / canvas->getPercentageFactor());
+			end_point_.setY(start_point_.getY());
+		}
+		if (y_pos > data_range.max()[1])
+		{
+			start_point_.setY(data_range.max()[1] / canvas->getPercentageFactor());
+			end_point_.setY(start_point_.getY());
+		}
 	}
 	
 }//Namespace

@@ -486,6 +486,11 @@ namespace OpenMS
 		return snap_factors_[0];
 	}
 
+	DoubleReal SpectrumCanvas::getPercentageFactor()
+	{
+		return percentage_factor_;
+	}
+	
 	void SpectrumCanvas::recalculateSnapFactor_()
 	{
 		

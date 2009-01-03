@@ -47,9 +47,11 @@ namespace OpenMS
 			/// Destructor
 			virtual ~Annotation1DPeakItem();
 			// Docu in base class
+			virtual void ensureWithinDataRange(Spectrum1DCanvas* const canvas);
+			// Docu in base class
 			virtual void draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped = false);
 			// Docu in base class
-			virtual void move(const PointType& delta);
+			virtual void move(const PointType& delta, Spectrum1DCanvas* canvas);
 			/// Sets the position of the peak (in MZ / intensity coordinates)
 			void setPosition(const PointType& position);
 			/// Returns the position of the peak (in MZ / intensity coordinates)
