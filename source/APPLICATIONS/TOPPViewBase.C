@@ -556,7 +556,7 @@ namespace OpenMS
 
 		//add data
     if (caption=="") caption = String("DB entry ")+db_id;
-		addData_(dummy_map, dummy_map2, exp, false, is_2D, show_options, "", caption, window_id);
+		addData_(dummy_map, dummy_map2, exp, false, is_2D, false, show_options, "", caption, window_id);
 
   	//Reset cursor
   	setCursor(Qt::ArrowCursor);
@@ -774,7 +774,7 @@ namespace OpenMS
     {
     	abs_filename = "";
     }
-    addData_(feature_map, consensus_map, peak_map, is_feature, is_2D, show_options, abs_filename, caption, window_id);
+    addData_(feature_map, consensus_map, peak_map, is_feature, is_2D, false, show_options, abs_filename, caption, window_id);
 
   	//add to recent file
   	if (add_to_recent) addRecentFile_(filename);
@@ -783,11 +783,12 @@ namespace OpenMS
     setCursor(Qt::ArrowCursor);
   }
 
-  void TOPPViewBase::addData_(FeatureMapType& feature_map, ConsensusMapType& consensus_map, ExperimentType& peak_map, bool is_feature, bool is_2D, bool show_options, const String& filename, const String& caption, UInt window_id)
+  void TOPPViewBase::addData_(FeatureMapType& feature_map, ConsensusMapType& consensus_map, ExperimentType& peak_map, bool is_feature, bool is_2D, bool show_as_1d, bool show_options, const String& filename, const String& caption, UInt window_id)
   {
   	//initialize flags with defaults from the parameters
   	bool as_new_window = true;
   	bool maps_as_2d = ((String)param_.getValue("preferences:default_map_view")=="2d");
+  	bool maps_as_1d = false;
   	bool use_mower = ((String)param_.getValue("preferences:intensity_cutoff")=="on");
 
 		bool is_consensus_feature = (feature_map==FeatureMapType());
@@ -807,13 +808,19 @@ namespace OpenMS
 		TOPPViewOpenDialog dialog(caption, as_new_window, maps_as_2d, use_mower, this);
 		//disable opening in new window when
 		if (open_window==0 // there is no active window
-			  || (is_2D && qobject_cast<Spectrum1DWidget*>(open_window)!=0) //2D data is to be opened, but the current window is a 1D window
 			  || (is_feature && qobject_cast<Spectrum3DWidget*>(open_window)!=0)) //feature data is to be opened, but the current window is a 3D window
 		{
 			dialog.disableLocation(true);
 		}
-		//disable 2d/3d option for features and single scans
-		if (is_feature || !is_2D) dialog.disableDimension(true);
+		//disable 1d/2d/3d option for features and single scans
+		if (is_feature)
+		{
+			dialog.disableDimension(true);
+		}
+		else if (!is_2D)
+		{
+			dialog.disableDimension(false);
+		}
 		//disable cutoff for features and single scans
 		if (is_feature || !is_2D) dialog.disableCutoff(false);
 		//enable merge layers if a feature layer is opened and there are already features layers to merge it to
@@ -842,6 +849,12 @@ namespace OpenMS
 		}
 		as_new_window = dialog.openAsNewWindow();
 		maps_as_2d = dialog.viewMapAs2D();
+		maps_as_1d = dialog.viewMapAs1D();
+		if (show_as_1d)
+		{
+			maps_as_1d = true;
+			maps_as_2d = false;
+		}
 		use_mower = dialog.isCutoffEnabled();
   	Int merge_layer = dialog.getMergeLayer();
 
@@ -851,6 +864,10 @@ namespace OpenMS
       if (!is_2D) //1d
       {
         open_window = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
+      }
+      else if (maps_as_1d) // 2d in 1d window
+      {
+      	open_window = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
       }
       else if (maps_as_2d || is_feature) //2d or features
       {
@@ -1335,6 +1352,7 @@ namespace OpenMS
   	spectrum_selection_->blockSignals(true);
   	const LayerData& cl = cc->getCurrentLayer();
   	QTreeWidgetItem* item = 0;
+  	QTreeWidgetItem* selected_item = 0;
 
   	if(cl.type == LayerData::DT_PEAK)
   	{
@@ -1402,11 +1420,18 @@ namespace OpenMS
 				item->setText(1, QString::number(cl.peaks[i].getRT()));
 				item->setText(2, QString::number(cl.peaks[i].getPrecursorPeak().getPosition()[0]));
 				item->setText(3, QString::number(i));
+				
+				if (i == cl.current_spectrum)
+				{
+					item->setSelected(true);
+					selected_item = item;
+				}
 			}
 			if (fail)
 			{
 				// generate flat list instead
 				spectrum_selection_->clear();
+				selected_item = 0;
 				for (Size i = 0; i < cl.peaks.size(); ++i)
 				{
 					item = new QTreeWidgetItem((QTreeWidget*)0);
@@ -1415,7 +1440,16 @@ namespace OpenMS
 					item->setText(2, QString::number(cl.peaks[i].getPrecursorPeak().getPosition()[0]));
 					item->setText(3, QString::number(i));
 					spectrum_selection_->addTopLevelItem(item);
+					if (i == cl.current_spectrum)
+					{
+						item->setSelected(true);
+						selected_item = item;
+					}
 				}
+			}
+			if (selected_item)
+			{
+				spectrum_selection_->scrollToItem(selected_item);
 			}
   	}
   	else
@@ -1451,19 +1485,31 @@ namespace OpenMS
 
 	void TOPPViewBase::spectrumSelectionChange(QTreeWidgetItem* item, int /*column*/)
 	{
-		SpectrumCanvas* cc = activeCanvas_();
-		const LayerData& cl = cc->getCurrentLayer();
+		Spectrum1DWidget* widget_1d = active1DWindow_();
+		if (widget_1d)
+		{
+			int index = item->text(3).toInt();
+			widget_1d->canvas()->activateSpectrum(index);
+		}
+		else
+		{
+			SpectrumCanvas* cc = activeCanvas_();
+			const LayerData& cl = cc->getCurrentLayer();
+	
+			int index = item->text(3).toInt();
 
-		int index = item->text(3).toInt();
-
-		FeatureMapType f_dummy;
-		ConsensusMapType c_dummy;
-		ExperimentType exp;
-		exp.resize(1);
-		exp[0] = cl.peaks[index];
-		addData_(f_dummy, c_dummy, exp, false, false, true, cl.filename, cl.name + " (" + QString::number(cl.peaks[index].getRT()) + ")");
-
-		//updateSpectrumBar();
+			FeatureMapType f_dummy;
+			ConsensusMapType c_dummy;
+			ExperimentType exp = cl.peaks;
+			addData_(f_dummy, c_dummy, exp, false, true, true, false, cl.filename, cl.name);
+			
+			if (active1DWindow_())
+			{
+				active1DWindow_()->canvas()->activateSpectrum(index);
+			}
+			
+			updateSpectrumBar();
+		}
 	}
 
 	void TOPPViewBase::layerContextMenu(const QPoint & pos)
@@ -1507,12 +1553,12 @@ namespace OpenMS
 			// flip layer up/downwards
 			else if (selected != 0 && selected->text() == "Flip downwards (1D)")
 			{
-				activeCanvas_()->getLayer(layer).flipped = true;
+				active1DWindow_()->canvas()->flipLayer(layer);
 				active1DWindow_()->canvas()->setMirrorModeActive(true);
 			}
 			else if (selected != 0 && selected->text() == "Flip upwards (1D)")
 			{
-				activeCanvas_()->getLayer(layer).flipped = false;
+				active1DWindow_()->canvas()->flipLayer(layer);
 				bool b = active1DWindow_()->canvas()->flippedLayersExist();
 				active1DWindow_()->canvas()->setMirrorModeActive(b);
 			}
@@ -2291,7 +2337,7 @@ namespace OpenMS
 
 				FeatureMapType f_dummy;
 				ConsensusMapType c_dummy;
-				addData_(f_dummy, c_dummy, new_exp, false, false, true, "", seq_string + QString(" (theoretical)"));
+				addData_(f_dummy, c_dummy, new_exp, false, false, false, true, "", seq_string + QString(" (theoretical)"));
 
 	      // ensure spectrum is drawn as sticks
 	      draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
@@ -2374,20 +2420,22 @@ namespace OpenMS
 	void TOPPViewBase::showSpectrumAs1D(int index)
 	{
 		const LayerData& layer = activeCanvas_()->getCurrentLayer();
+		
 		//copy spectrum
-		ExperimentType exp;
-		exp.resize(1);
-		exp[0] = layer.peaks[index];
+		ExperimentType exp = layer.peaks;
+		
 		//open new 1D widget
 		Spectrum1DWidget* w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
 
     //add data
-    if (!w->canvas()->addLayer(exp))
+    if (!w->canvas()->addLayer(exp) || (Size)index >= w->canvas()->getCurrentLayer().peaks.size())
   	{
   		return;
   	}
-
-		String caption = layer.name + " (RT: " + String(layer.peaks[index].getRT()) + ")";
+		
+		w->canvas()->activateSpectrum(index);
+		
+		String caption = layer.name;
 		w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
 
     showAsWindow_(w,caption);
@@ -2793,7 +2841,7 @@ namespace OpenMS
     }
 
 		//add the data
-		addData_(features, consensus, peaks, is_feature, is_2D, false, layer.filename, layer.name, new_id);
+		addData_(features, consensus, peaks, is_feature, is_2D, false, false, layer.filename, layer.name, new_id);
 
 		//reset cursor
   	setCursor(Qt::ArrowCursor);

@@ -33,8 +33,9 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include <OpenMS/VISUAL/Annotations1DContainer.h>
-
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
+
+#include <vector>
 
 namespace OpenMS 
 {
@@ -85,6 +86,7 @@ namespace OpenMS
 				peaks(),
 				features(),
 				consensus(),
+				current_spectrum(0),
 				f1(false),
 				f2(false),
 				f3(false),
@@ -94,12 +96,34 @@ namespace OpenMS
 				annotations_1d(),
 				modified(false)
 		{
+			annotations_1d.resize(1);
+		}
+		
+		/// Returns a const reference to the current spectrum (1d view)
+		inline const ExperimentType::SpectrumType& getCurrentSpectrum() const
+		{
+			return peaks[current_spectrum];
+		}
+		/// Returns a const reference to the annotations of the current spectrum (1d view)
+		inline const Annotations1DContainer& getCurrentAnnotations() const
+		{
+			return annotations_1d[current_spectrum];
+		}
+		/// Returns a mutable reference to the current spectrum (1d view)
+		inline ExperimentType::SpectrumType& getCurrentSpectrum()
+		{
+			return peaks[current_spectrum];
+		}
+		/// Returns a mutable reference to the annotations of the current spectrum (1d view)
+		inline Annotations1DContainer& getCurrentAnnotations()
+		{
+			return annotations_1d[current_spectrum];
 		}
 		
 		/// if this layer is visible
 		bool visible;
 		/// if this layer is flipped (1d mirror view)
-		mutable bool flipped;
+		bool flipped;
 		/// data type (peak of feature data)
 		DataType type;
 		/// layer name
@@ -112,6 +136,8 @@ namespace OpenMS
 		FeatureMapType features;
 		/// consensus feature data
 		ConsensusMapType consensus;
+		/// Index of the current spectrum (1d view)
+		Size current_spectrum;
 		
 		/// Flag one (Features: convex hulls, Peak: precursors, Consensus: elements)
 		bool f1;
@@ -129,8 +155,8 @@ namespace OpenMS
 		///Filters to apply before painting
 		DataFilters filters;
 				
-		///Annotations for the 1D view
-		mutable Annotations1DContainer annotations_1d;
+		///Annotations of all spectra of the experiment (1D view)
+		std::vector<Annotations1DContainer> annotations_1d;
 		
 		///Flag that indicates that the input data was modified since loading it
 		bool modified;

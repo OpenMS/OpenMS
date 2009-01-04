@@ -57,6 +57,8 @@ namespace OpenMS
 			
 			/// Returns true, if 2D mode is to be used for maps
 			bool viewMapAs2D() const;
+			/// Returns true, if 1D mode is to be used for maps
+			bool viewMapAs1D() const;
 			/// Returns of the low intensity peaks should be hidden
 			bool isCutoffEnabled() const;
 			/// Returns true, if the data should be opened in a new window

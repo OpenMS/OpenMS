@@ -92,6 +92,9 @@ namespace OpenMS
 			/// Returns whether flipped layers exist or not
 			bool flippedLayersExist();
 			
+			/// Flips the layer with @p index up/downwards
+			void flipLayer(UInt index);
+			
 			/// Returns whether this widget is currently in mirror mode
 			bool mirrorModeActive();
 			
@@ -111,7 +114,7 @@ namespace OpenMS
 			PointType widgetToData(float x, float y, bool percentage = false);
 			
 			/// Draws all annotation items of @p layer on @p painter
-			void drawAnnotations(const LayerData& layer, QPainter& painter);
+			void drawAnnotations(LayerData& layer, QPainter& painter);
 			
 			/// Performs an alignment of the layers with @p layer_index_1 and @p layer_index_2
 			void performAlignment(UInt layer_index_1, UInt layer_index_2, const Param& param);
@@ -127,6 +130,9 @@ namespace OpenMS
 			
 			/// Returns the score of the alignment
 			DoubleReal getAlignmentScore();
+			
+			/// Sets current spectrum index of current layer to @p index
+			void activateSpectrum(Size index);
 			
 		public slots:
 			// Docu in base class

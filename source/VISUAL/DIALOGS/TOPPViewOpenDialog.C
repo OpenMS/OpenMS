@@ -49,6 +49,7 @@ namespace OpenMS
 		
 		//init map view
 		QButtonGroup* button_group = new QButtonGroup(this);
+		button_group->addButton(d1_);
 		button_group->addButton(d2_);
 		button_group->addButton(d3_);
 		if (!as_2d)
@@ -103,6 +104,12 @@ namespace OpenMS
 		return false;
 	}
 	
+	bool TOPPViewOpenDialog::viewMapAs1D() const
+	{
+		if (d1_->isChecked()) return true;
+		return false;
+	}
+	
 	bool TOPPViewOpenDialog::isCutoffEnabled() const
 	{
 		if (cutoff_->isChecked()) return true;
@@ -117,6 +124,8 @@ namespace OpenMS
 
 	void TOPPViewOpenDialog::disableDimension(bool as_2d)
 	{
+		d1_->setChecked(!as_2d);
+		d1_->setEnabled(false);
 		d2_->setChecked(as_2d);
 		d2_->setEnabled(false);
 		d3_->setEnabled(false);
@@ -150,11 +159,13 @@ namespace OpenMS
 	{
 		if (button==layer_ || button==merge_)
 		{
+			d1_->setEnabled(false);
 			d2_->setEnabled(false);
 			d3_->setEnabled(false);
 		}
 		else if (!map_as_2d_disabled_)
 		{
+			d1_->setEnabled(true);
 			d2_->setEnabled(true);
 			d3_->setEnabled(true);
 		}

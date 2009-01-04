@@ -286,7 +286,7 @@ namespace OpenMS
       	@param caption Sets the layer name and window caption of the data. If unset the file name is used. If set, the file is not monitored foro changes.
       	@param window_id in which window the file is opened if opened as a new layer (0 or default equals current
       */
-  		void addData_(FeatureMapType& feature_map, ConsensusMapType& consensus_map, ExperimentType& peak_map, bool is_feature, bool is_2D, bool show_options, const String& filename="", const String& caption="", UInt window_id=0);
+  		void addData_(FeatureMapType& feature_map, ConsensusMapType& consensus_map, ExperimentType& peak_map, bool is_feature, bool is_2D, bool show_as_1d, bool show_options, const String& filename="", const String& caption="", UInt window_id=0);
   
     	/// Tries to open a db connection (queries the user for the DB password)
     	void connectToDB_(DBConnection& db);
