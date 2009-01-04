@@ -70,10 +70,6 @@ namespace OpenMS
   /**
   	@brief Main window of TOPPView tool
 		
-		@todo Make 1d-annotations work properly in mirror mode (Johannes)
-		
-		@todo Repair visualization of spectrum alignments in 1d-view (Johannes)
-		
 		@todo Review documentation of all new features (Johannes)
 		
     @improvement Paint only highest point per pixel, paint only part of the data when moving (Hiwi)
