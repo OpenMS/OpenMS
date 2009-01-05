@@ -72,7 +72,7 @@ START_SECTION([EXTRA](virtual void init(const PeakIterator& it_begin, const Peak
   MSSpectrum < > raw_data;
   MSSpectrum< >::const_iterator it;
   DTAFile dta_file;
-  dta_file.load("./data/SignalToNoiseEstimator_test.dta", raw_data);
+  dta_file.load(OPENMS_GET_TEST_DATA_PATH("SignalToNoiseEstimator_test.dta"), raw_data);
   
     
   SignalToNoiseEstimatorMedian< MSSpectrum < > > sne;  
@@ -84,7 +84,7 @@ START_SECTION([EXTRA](virtual void init(const PeakIterator& it_begin, const Peak
   sne.init(raw_data.begin(),raw_data.end());
 
   MSSpectrum < > stn_data;
-  dta_file.load("./data/SignalToNoiseEstimatorMedian_test.out", stn_data);
+  dta_file.load(OPENMS_GET_TEST_DATA_PATH("SignalToNoiseEstimatorMedian_test.out"), stn_data);
   int i = 0;
   for (it=raw_data.begin();it!=raw_data.end(); ++it)
   {

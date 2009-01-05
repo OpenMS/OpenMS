@@ -60,7 +60,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 
   file.load(OPENMS_GET_TEST_DATA_PATH("ANDIFile_test.cdf"),e);
 	//test DocumentIdentifier addition
-	TEST_STRING_EQUAL(e.getLoadedFilePath(), File::absolutePath("data/ANDIFile_test.cdf"));
+	TEST_STRING_EQUAL(e.getLoadedFilePath(), File::absolutePath(OPENMS_GET_TEST_DATA_PATH("ANDIFile_test.cdf")));
 	TEST_STRING_EQUAL(e.getLoadedFileType(),"cdf");
 
   //---------------------------------------------------------------------------
