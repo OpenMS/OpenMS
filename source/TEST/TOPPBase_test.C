@@ -253,8 +253,17 @@ const char* a1 ="TOPPBaseTest";
 const char* a3 ="-ini";
 const char* a5 ="-instance";
 const char* a6 ="6";
-const char* a7 =OPENMS_GET_TEST_DATA_PATH("TOPPBase_toolcommon.ini");
-const char* a8 =OPENMS_GET_TEST_DATA_PATH("TOPPBase_common.ini");
+// needed to get the correct pathes
+char* a7;
+std::string temp_a7(OPENMS_GET_TEST_DATA_PATH("TOPPBase_toolcommon.ini"));
+a7 = new char[temp_a7.size() + 1];
+strcpy(a7, temp_a7.c_str());
+//
+char* a8;
+std::string temp_a8(OPENMS_GET_TEST_DATA_PATH("TOPPBase_common.ini"));
+a8 = new char[temp_a8.size() + 1];
+strcpy(a8, temp_a8.c_str());
+//
 const char* a9 ="5";
 const char* a10 ="-stringoption";
 const char* a11 ="-flag";
@@ -478,7 +487,11 @@ START_SECTION(([EXTRA] String getStringList_(const String& name) const))
 	
 	const char* string_cl2[5]={a1,a17,a12,a7, a8};	//commandline: "TOPPBaseTest -stringlist conmandline data/TOPPBase_toolcommon.ini data/TOPPBase_common.ini"
 	TOPPBaseTest tmp3(5, string_cl2);
-	TEST_EQUAL(tmp3.getStringList("stringlist"),StringList::create("commandline,data/TOPPBase_toolcommon.ini,data/TOPPBase_common.ini"));
+	StringList tmp_stringlist;
+	tmp_stringlist << "commandline";
+	tmp_stringlist << OPENMS_GET_TEST_DATA_PATH("TOPPBase_toolcommon.ini");
+	tmp_stringlist << OPENMS_GET_TEST_DATA_PATH("TOPPBase_common.ini");
+	TEST_EQUAL(tmp3.getStringList("stringlist"),tmp_stringlist);
 	
 	TEST_EXCEPTION(Exception::WrongParameterType,tmp2.getStringList("intoption"));
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getStringList("imleeewenit"));
