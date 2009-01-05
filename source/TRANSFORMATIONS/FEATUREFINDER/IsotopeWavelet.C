@@ -150,7 +150,9 @@ namespace OpenMS
 		UInt up_to=2*(peak_cutoff*max_charge_+1);
 		gamma_table_.clear();
 		exp_table_.clear();
-		DoubleReal query=0; 
+		DoubleReal query=0;
+		gamma_table_.push_back (INT_MAX);
+		query += table_steps_; 
 		while (query <= up_to)
 		{
 			//std::cout << log(1./tgamma(query)) << "\t" << -lgamma(query) << std::endl;
