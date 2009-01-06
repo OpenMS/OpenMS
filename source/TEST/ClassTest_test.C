@@ -253,6 +253,9 @@ START_SECTION("TEST_REAL_SIMILAR()")
 			{
 				TOLERANCE_ABSOLUTE(0.25);
 				TOLERANCE_RELATIVE(1.1);
+// we need to get rid of some preprocessor macros, as the Microsoft VC++ compiler will crash with a stack overflow during
+// compilation of this test otherwise - the stack size is not fixable apparently
+#ifndef OPENMS_WINDOWSPLATFORM
 				{
 					{
 						e = e0;
@@ -291,6 +294,7 @@ START_SECTION("TEST_REAL_SIMILAR()")
 						TEST_REAL_SIMILAR(bp+e,bp+f);
 					}
 				}
+#endif
 			}
 		}
 		{

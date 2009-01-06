@@ -313,5 +313,5 @@ foreach(i ${sources_list})
 endforeach(i)
 
 ### source group definition
-source_group("Source Files\\TEST" FILES ${sources})
+source_group("" FILES ${sources})
 

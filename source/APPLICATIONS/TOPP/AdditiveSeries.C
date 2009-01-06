@@ -81,6 +81,8 @@ class AdditiveSeries
  protected:
 	void registerOptionsAndFlags_()
 	{
+		registerInputFileList_("in","<files>",StringList(),"input files separated by blanks",true);
+		setValidFormats_("in",StringList::create("featureXML"));
 		registerOutputFile_("out","<file>","","output XML file containg regression line and confidence interval");
 		registerDoubleOption_("mz_tolerance","<tol>",1.0, "Tolerance in m/z dimension",false);
 		registerDoubleOption_("rt_tolerance","<tol>",1.0, "Tolerance in RT dimension",false);
@@ -99,13 +101,13 @@ class AdditiveSeries
 		registerStringOption_("mz_unit","<unit>","Thomson","the m/z unit of the plot",false);
 		registerStringOption_("rt_unit","<unit>","seconds","the RT unit of the plot",false);
 		
-		registerSubsection_("files","Input featureXML section");
+		registerSubsection_("in","Input featureXML section");
 		registerSubsection_("concentrations","Spiked concentrations section");
 	}
 
 	Param getSubsectionDefaults_(const String& section) const
 	{
-		if (section=="files")
+		if (section=="in")
 		{
 			Param tmp;
 			tmp.setValue("1","data/file1.xml");
@@ -200,9 +202,9 @@ class AdditiveSeries
 
 		if (feat1 != 0 && feat2 != 0)  //(f1_sum != 0 && f2_sum != 0) 
 		{
-									cout << "Feature 1: " << *feat1 << endl;
-									cout << "Feature 2: " << *feat2 << endl;
-									cout << "Intensity ratio : " << ( feat1->getIntensity() / feat2->getIntensity() ) << endl;
+			cout << "Feature 1: " << *feat1 << endl;
+			cout << "Feature 2: " << *feat2 << endl;
+			cout << "Intensity ratio : " << ( feat1->getIntensity() / feat2->getIntensity() ) << endl;
 			intensities.push_back( feat1->getIntensity() / feat2->getIntensity());
 
 			return true;
@@ -369,19 +371,21 @@ class AdditiveSeries
 		vector<bool> flags;
 
 		// fetching list of files
-		vector<String> files;
-		Param file_param = add_param.copy("files:",true);
-		Param::ParamIterator pit = file_param.begin();
-		while (pit != file_param.end() )
-		{
-			files.push_back(pit->value);
-			pit++;
-		}
+		StringList files = getStringList_("in");
+		
+		//vector<String> files;
+		//Param file_param = add_param.copy("files:",true);
+		//Param::ParamIterator pit = file_param.begin();
+		//while (pit != file_param.end() )
+		//{
+		//	files.push_back(pit->value);
+		//	pit++;
+		//}
 
 		// read the spiked concentrations
 		vector<double> sp_concentrations;
-		file_param = add_param.copy("concentrations:",true);
-		pit = file_param.begin();
+		Param file_param = add_param.copy("concentrations:",true);
+		Param::ParamIterator pit = file_param.begin();
 		while (pit != file_param.end() )
 		{
 			sp_concentrations.push_back((double)(pit->value));

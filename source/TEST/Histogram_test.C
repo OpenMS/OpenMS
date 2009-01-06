@@ -173,7 +173,7 @@ START_SECTION((void reset(BinSizeType min, BinSizeType max, BinSizeType bin_size
 	d.reset(1, 11, 2);
 	TEST_REAL_SIMILAR(d.min(), 1)
 	TEST_REAL_SIMILAR(d.max(), 11)
-	TEST_REAL_SIMILAR(d.size(), 5)
+	TEST_EQUAL(d.size(), 5)
 	TEST_REAL_SIMILAR(d.binSize(), 2)
 END_SECTION
 

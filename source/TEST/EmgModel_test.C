@@ -206,7 +206,7 @@ START_SECTION([EXTRA] DefaultParamHandler::setParameters(...))
 
 	tmp.setValue("emg:symmetry", 0.17);
 	em2.setParameters(tmp);
-	ABORT_IF(isinf(!em2.getIntensity(2.0)))
+	ABORT_IF(isinf(float(!em2.getIntensity(2.0))))
 
 	tmp.setValue("emg:symmetry", 0.2);
 	em2.setParameters(tmp);
