@@ -153,7 +153,7 @@ namespace OpenMS
 				globalHandler.setMessage(what_);
 			}
 
-			IndexUnderflow::IndexUnderflow(const char* file, int line, const char* function, Int index, UInt size) throw()
+			IndexUnderflow::IndexUnderflow(const char* file, int line, const char* function, SignedSize index, Size size) throw()
 				: BaseException(file, line, function,"IndexUnderflow", "")
 			{
 				what_ = "the given index was too small: ";
@@ -170,7 +170,7 @@ namespace OpenMS
 				globalHandler.setMessage(what_);
 			}
 
-			IndexOverflow::IndexOverflow(const char* file, int line, const char* function, Int index, size_t size) throw()
+			IndexOverflow::IndexOverflow(const char* file, int line, const char* function, SignedSize index, Size size) throw()
 				:	BaseException(file, line, function, "IndexOverflow", "an index was too large")
 			{
 				what_ = "the given index was too large: ";
@@ -192,7 +192,7 @@ namespace OpenMS
 			{
 			}
 		
-			OutOfMemory::OutOfMemory(const char* file, int line, const char* function, UInt size) throw()
+			OutOfMemory::OutOfMemory(const char* file, int line, const char* function, Size size) throw()
 				:	BaseException(file, line, function, "OutOfMemory", "a memory allocation failed")
 			{
 				what_ = "unable to allocate enough memory (size = ";
@@ -205,7 +205,7 @@ namespace OpenMS
 				globalHandler.setMessage(what_);
 			}
 
-			SizeUnderflow::SizeUnderflow(const char* file, int line, const char* function, UInt size) throw()
+			SizeUnderflow::SizeUnderflow(const char* file, int line, const char* function, Size size) throw()
 				:	BaseException(file, line, function, "SizeUnderflow", "")
 			{
 				what_ = "the given size was too small: ";
@@ -216,7 +216,7 @@ namespace OpenMS
 				globalHandler.setMessage(what_);
 			}
 
-			InvalidSize::InvalidSize(const char* file, int line, const char* function, UInt size) throw()
+			InvalidSize::InvalidSize(const char* file, int line, const char* function, Size size) throw()
 				:	BaseException(file, line, function, "InvalidSize", "")
 			{
 				what_ = "the given size was not expected: ";

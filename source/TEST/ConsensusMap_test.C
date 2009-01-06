@@ -247,7 +247,7 @@ END_SECTION
 START_SECTION((ConsensusMap(Base::size_type n)))
   ConsensusMap cons_map(5);
   
-  TEST_REAL_SIMILAR(cons_map.size(),5)
+  TEST_EQUAL(cons_map.size(),5)
 END_SECTION
 
 START_SECTION((const FileDescriptions& getFileDescriptions() const ))

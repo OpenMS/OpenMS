@@ -271,7 +271,7 @@ START_SECTION((String suffix(char delim) const))
 	TEST_EXCEPTION(Exception::ElementNotFound, s.suffix('Z'));
 END_SECTION
 
-START_SECTION((String substr(Int start, Int n) const))
+START_SECTION((String substr(SignedSize start, SignedSize n) const))
 	String s("abcdef");
 	//std::string functionality
 	TEST_EQUAL(s.substr(0,4),"abcd");
@@ -301,7 +301,7 @@ START_SECTION((String substr(Int start, Int n) const))
 	TEST_EQUAL(s.substr(-19,-9),"")
 END_SECTION
 
-START_SECTION((String substr(Int start) const))
+START_SECTION((String substr(SignedSize start) const))
 	String s("abcdef");
 	TEST_EQUAL(s.substr(0),"abcdef");
 	TEST_EQUAL(s.substr(1),"bcdef")
@@ -751,20 +751,20 @@ START_SECTION((String& operator+= (long double d)))
 	ECHO_AND_VALUE(typeAsString(7.4) << ": " << 7.4);
 	ECHO_AND_VALUE(typeAsString(7.4L) << ": " << 7.4L);
 
-	ECHO_AND_DO(std::cout.precision(writtenDigits<double>()));
+	ECHO_AND_DO(std::cout.precision( writtenDigits<>(double()) ));
 	ECHO_AND_VALUE(typeAsString(7.4) << ": " << 7.4);
 	ECHO_AND_VALUE(typeAsString(7.4L) << ": " << 7.4L);
 
 	ECHO_AND_VALUE(sizeof(long double));
 	ECHO_AND_VALUE(std::numeric_limits<long double>::digits);
 	ECHO_AND_VALUE(std::numeric_limits<long double>::digits10);
-	ECHO_AND_VALUE(writtenDigits<long double>());
+	ECHO_AND_VALUE( writtenDigits<>(long double()) );
 
 	ECHO_AND_DO(std::cout.precision(std::numeric_limits<long double>::digits10));
 	STATUS(typeAsString(7.4) << ": " << 7.4);
 	STATUS(typeAsString(7.4L) << ": " << 7.4L);
 
-	ECHO_AND_DO(std::cout.precision(writtenDigits<long double>()));
+	ECHO_AND_DO(std::cout.precision(writtenDigits<>(long double())));
 	STATUS(typeAsString(7.4) << ": " << 7.4);
 	STATUS(typeAsString(7.4L) << ": " << 7.4L);
 

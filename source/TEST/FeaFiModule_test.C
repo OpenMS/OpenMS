@@ -329,7 +329,7 @@ START_SECTION(void addConvexHull(const FeatureFinderDefs::IndexSet& set, Feature
 	Feature f;
 	t.addConvexHull(set,f);
 	ConvexHull2D& hull = f.getConvexHulls()[0];
-	TEST_REAL_SIMILAR(hull.getPoints().size(), 9);
+	TEST_EQUAL(hull.getPoints().size(), 9);
 	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1237.27, 691)) != hull.getPoints().end(), true);
 	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1237.93, 688.4)) != hull.getPoints().end(), true);
 	TEST_EQUAL(find(hull.getPoints().begin(), hull.getPoints().end(), ConvexHull2D::PointType(1240.54, 687.6)) != hull.getPoints().end(), true);

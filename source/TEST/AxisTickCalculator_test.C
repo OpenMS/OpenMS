@@ -43,7 +43,7 @@ START_SECTION((static void calcGridLines(double x1, double x2, int levels, GridV
 	std::vector<std::vector<double> > vector1;
 	AxisTickCalculator::calcGridLines(1.0,4.0,3,vector1,7,5);
 	
-	TEST_REAL_SIMILAR(3,vector1.size());
+	TEST_EQUAL(3,vector1.size());
 	TEST_REAL_SIMILAR(4,vector1[0].size());
 	TEST_REAL_SIMILAR(3,vector1[1].size());
 	TEST_REAL_SIMILAR(6,vector1[2].size());
@@ -70,8 +70,8 @@ START_SECTION((static void calcLogGridLines(double x1, double x2, GridVector& gr
 	std::vector<std::vector<double> > vector1;
 	AxisTickCalculator::calcLogGridLines(log10(10.0),log10(100.0),vector1);
 
-	TEST_REAL_SIMILAR(1,vector1[0].size());
-	TEST_REAL_SIMILAR(8,vector1[1].size());
+	TEST_EQUAL(1,vector1[0].size());
+	TEST_EQUAL(8,vector1[1].size());
 	
 	TEST_REAL_SIMILAR(1.0,vector1[0][0]);
 	

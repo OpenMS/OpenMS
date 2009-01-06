@@ -191,14 +191,14 @@ namespace OpenMS
 			@param n length of the substring.<br> 
 			         If a negative length is given, then that many characters will be omitted from the end of string.
 		*/
-		String substr(Int start, Int n) const;
+		String substr(SignedSize start, SignedSize n) const;
 		/**
 			@brief Returns the suffix of the string from position @p start
 			
 			@param start  start position of the substring.<br> 
 			              If start is negative, the returned string will start at the start'th character from the end of string.
 		*/
-		String substr(Int start) const;
+		String substr(SignedSize start) const;
 		
 		//@}
 		

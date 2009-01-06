@@ -38,7 +38,7 @@
 #include <vector>
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 ///////////////////////////
 
@@ -558,14 +558,14 @@ START_SECTION((void addValue( KeyType arg_pos, ValueType arg_value ) ))
 			lifd_small.getData().resize(5);
 			lifd_small.setMapping( 0, 0, 5, 5 );
 			lifd_small.addValue( pos, 10 );
-			for ( LIFD::ContainerType::iterator iter = lifd_small.getData().begin(); iter != lifd_small.getData().end(); ++ iter ) *iter = round(*iter);
+			for ( LIFD::ContainerType::iterator iter = lifd_small.getData().begin(); iter != lifd_small.getData().end(); ++ iter ) *iter = Math::round(*iter);
 			STATUS("          " << lifd_small.getData());
 
 			LIFD lifd_big;
 			lifd_big.getData().resize(15);
 			lifd_big.setMapping( 5, 0, 10, 5 );
 						lifd_big.addValue( pos, 10 );
-			for ( LIFD::ContainerType::iterator iter = lifd_big.getData().begin(); iter != lifd_big.getData().end(); ++ iter ) *iter = round(*iter);
+						for ( LIFD::ContainerType::iterator iter = lifd_big.getData().begin(); iter != lifd_big.getData().end(); ++ iter ) *iter = Math::round(*iter);
 			STATUS(lifd_big.getData());
 
 			std::vector < LIFD::ContainerType::value_type > big_infix ( lifd_big.getData().begin()+5, lifd_big.getData().begin()+10 );

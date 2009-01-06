@@ -162,7 +162,7 @@ tc = TOFCalibration();
 
 START_SECTION((template<typename PeakType> void calibrate(MSExperiment<Peak1D> &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
   TOLERANCE_ABSOLUTE(0.000001)
-std::cout.precision(writtenDigits<DoubleReal>());
+	std::cout.precision(writtenDigits<>(DoubleReal()));
   MSExperiment<> calib_exp;
   MSExperiment<> exp,res_exp;
   MzDataFile file;

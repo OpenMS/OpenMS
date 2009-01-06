@@ -78,22 +78,22 @@ namespace OpenMS
 
 		@note Make sure to call setLogType first!
 		*/
-		void startProgress(UInt begin, UInt end, const String& label) const;
+		void startProgress(Size begin, Size end, const String& label) const;
 
 		/// Sets the current progress
-		void setProgress(UInt value) const;
+		void setProgress(Size value) const;
 
 		/// Ends the progress display
 		void endProgress() const;
 
 	 protected:
 		mutable LogType type_;
-		mutable UInt begin_;
-		mutable UInt end_;
-		mutable UInt value_;
+		mutable Size begin_;
+		mutable Size end_;
+		mutable Size value_;
 		mutable QProgressDialog* dlg_;
 		mutable StopWatch stop_watch_;
-		static UInt recursion_depth_;
+		static Size recursion_depth_;
 	};
 
 } // namespace OpenMS

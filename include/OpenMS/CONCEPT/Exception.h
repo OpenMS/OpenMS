@@ -210,7 +210,7 @@ namespace OpenMS
 			: public BaseException
 		{
 			public:
-				IndexUnderflow(const char* file, int line, const char* function, Int index = 0, UInt size = 0) throw();
+				IndexUnderflow(const char* file, int line, const char* function, SignedSize index = 0, Size size = 0) throw();
 		};
 
 		/**	
@@ -229,7 +229,7 @@ namespace OpenMS
 			: public BaseException
 		{
 			public:
-			  SizeUnderflow(const char* file, int line, const char* function, UInt size = 0) throw();
+			  SizeUnderflow(const char* file, int line, const char* function, Size size = 0) throw();
 		};
 
 		/**	
@@ -248,7 +248,7 @@ namespace OpenMS
 			: public BaseException
 		{
 			public:
-				IndexOverflow(const char* file, int line, const char* function, Int index = 0, size_t size = 0) throw();
+				IndexOverflow(const char* file, int line, const char* function, SignedSize index = 0, Size size = 0) throw();
 		};
 
 		/**	
@@ -297,7 +297,7 @@ namespace OpenMS
 			: public BaseException
 		{
 			public:
-				InvalidSize(const char* file, int line, const char* function, UInt size = 0) throw();
+				InvalidSize(const char* file, int line, const char* function, Size size = 0) throw();
 		};
 
 
@@ -461,7 +461,7 @@ namespace OpenMS
 			: public BaseException, public std::bad_alloc
 		{
 			public:
-				OutOfMemory(const char* file, int line, const char* function, UInt size = 0) throw();
+				OutOfMemory(const char* file, int line, const char* function, Size size = 0) throw();
 		};
 
 		/**	

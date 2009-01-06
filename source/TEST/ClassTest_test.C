@@ -94,7 +94,7 @@ START_SECTION("TOLERANCE_RELATIVE()")
 }
 END_SECTION
 
-START_SECTION()
+START_SECTION("NEW_TMP_FILE")
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
 	TEST::this_test = (tmp_filename != "");
@@ -736,25 +736,25 @@ START_SECTION("TEST_FILE_SIMILAR")
 }
 END_SECTION
 
-START_SECTION()
+START_SECTION("TEST_EQUAL")
 	TEST_EQUAL(1.0, 1.0)
 	TEST_EQUAL('A', 'A')
 END_SECTION
 
-START_SECTION()
+START_SECTION("TEST_NOT_EQUAL")
 	TEST_NOT_EQUAL(0, 1)
 	TEST_NOT_EQUAL('A', 'B')
 END_SECTION
 
-START_SECTION()
+START_SECTION("TEST_EXCEPTION")
 	TEST_EXCEPTION(Exception::NullPointer, throw Exception::NullPointer(__FILE__, __LINE__, __PRETTY_FUNCTION__))
 END_SECTION
 
-START_SECTION()
+START_SECTION("TEST_EXCEPTION_WITH_MESSAGE")
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::NullPointer, throw Exception::NullPointer(__FILE__, __LINE__, __PRETTY_FUNCTION__), "a null pointer was specified")
 END_SECTION
 
-START_SECTION()
+START_SECTION("__PRETTY_FUNCTION__")
 	struct Dummy
 	{
 		std::string f_dummy(double, float,int,unsigned,long,unsigned long,char) { return __PRETTY_FUNCTION__; }
@@ -762,15 +762,15 @@ START_SECTION()
 	STATUS("\n\n\tExample for usage of __PRETTY_FUNCTION__ inside a member function of a nested class in main():\n\t" << dummy.f_dummy(0,0,0,0,0,0,0) << '\n')
 END_SECTION
 
-START_SECTION()
+START_SECTION("STATUS")
 	STATUS("status message")
 END_SECTION
 
-START_SECTION()
+START_SECTION("TEST_FILE_EQUAL")
 	TEST_FILE_EQUAL(OPENMS_GET_TEST_DATA_PATH("class_test_infile.txt"), OPENMS_GET_TEST_DATA_PATH("class_test_template.txt"))
 END_SECTION
 
-START_SECTION()
+START_SECTION("ABORT_IF")
 	ABORT_IF(true)
 	TEST_EQUAL(1, 0)
 END_SECTION

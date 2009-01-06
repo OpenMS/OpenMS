@@ -39,6 +39,7 @@
 #include <cstdlib>
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 ///////////////////////////
 
@@ -512,7 +513,7 @@ START_SECTION((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType ar
 			for ( BIFD::ContainerType::iterator iter = bifd_small.getData().begin();
 						iter != bifd_small.getData().end();
 						++iter
-					) *iter = round(*iter);
+						) *iter = Math::round(*iter);
 			verbose(STATUS("          " << bifd_small.getData()));
 
 			BIFD bifd_big;
@@ -523,7 +524,7 @@ START_SECTION((void addValue( KeyType arg_pos_0, KeyType arg_pos_1, ValueType ar
 			for ( BIFD::ContainerType::iterator iter = bifd_big.getData().begin();
 						iter != bifd_big.getData().end();
 						++iter
-					) *iter = round(*iter);
+						) *iter = Math::round(*iter);
 			verbose(STATUS(bifd_big.getData()));
 
 			BIFD::ContainerType big_submatrix;

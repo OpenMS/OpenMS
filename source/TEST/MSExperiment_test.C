@@ -175,7 +175,7 @@ START_SECTION((template<class Container> void get2DData(Container& cont) const))
 	exp.get2DData(a);
 
 	//Tests
-	TEST_REAL_SIMILAR(a.size(),5);
+	TEST_EQUAL(a.size(),5);
 	TEST_REAL_SIMILAR(a[0].getRT(),11.1);
 	TEST_REAL_SIMILAR(a[0].getMZ(),5);
 	TEST_REAL_SIMILAR(a[0].getIntensity(),47.11);

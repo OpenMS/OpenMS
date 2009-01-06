@@ -126,7 +126,7 @@ END_SECTION
 
 
 START_SECTION(static float myPow(float a, float b))
-	TEST_EQUAL (trunc(IsotopeWavelet::myPow(1.1, 3)*10), 13);
+	TEST_EQUAL (int(IsotopeWavelet::myPow(1.1, 3)*10), 13);
 END_SECTION
 
 

@@ -114,7 +114,7 @@ END_SECTION
 START_SECTION((const std::vector<double>& getWavelet() const))
   ContinuousWaveletTransform cwt;
   
-  TEST_REAL_SIMILAR(cwt.getWavelet().size(), 0)
+  TEST_EQUAL(cwt.getWavelet().size(), 0)
 END_SECTION
 
 START_SECTION((double& getScale()))

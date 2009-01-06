@@ -369,63 +369,49 @@ namespace OpenMS
 		return String(it, end());
 	}
 
-	String String::substr(Int start, Int n) const
+	String String::substr(SignedSize start, SignedSize n) const
 	{
-		ConstIterator begin, end;
+		SignedSize begin, end;
 		if (start>=0)
 		{
-			begin = this->begin()+start;
+			begin = std::min(SignedSize(this->size()), start);
 		}
 		else
 		{
-			begin = this->end()+start;
+			begin = std::max(SignedSize(0), SignedSize(this->size()) + start);
 		}
+
 		if (n>=0)
 		{
-			end = begin + n;
+			end = std::min(SignedSize(this->size()), begin + n);
 		}
 		else
 		{
-			end = this->end()+n;
+			end = std::max(SignedSize(0), SignedSize(this->size()) + n);
 		}
+
 		//prevent errors
-		if (begin<this->begin())
-		{
-			begin = this->begin();
-		}
-		if (end>this->end())
-		{
-			end = this->end();
-		}
 		if (begin>end)
 		{
 			begin = end;
 		}
-		return String(begin,end);
+		return String(this->begin() + begin, this->begin() + end);
 		
 	}
 
-	String String::substr(Int start) const
+	String String::substr(SignedSize start) const
 	{
-		ConstIterator begin;
+		SignedSize begin;
 		if (start>=0)
 		{
-			begin = this->begin()+start;
+			begin = std::min(SignedSize(this->size()), start);
 		}
 		else
 		{
-			begin = this->end()+start;
+			begin = std::max(SignedSize(0), SignedSize(this->size())+start);
 		}
-		//prevent errors
-		if (begin<this->begin())
-		{
-			begin = this->begin();
-		}
-		if (begin>this->end())
-		{
-			begin = this->end();
-		}
-		return String(begin,this->end());
+
+		return String(this->begin() + begin,this->end());
 	}
 
 	String& String::trim()
@@ -494,7 +480,7 @@ namespace OpenMS
 	{
 		srand(time(0));
 		String tmp(length, '.');
-		UInt random;
+		SizeType random;
 		for (Size i = 0 ; i < length; ++i)
 		{
 			random = (SizeType)floor(((double)rand()/(double(RAND_MAX)+1)) * 62.0);

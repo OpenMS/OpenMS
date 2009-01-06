@@ -36,7 +36,7 @@ using namespace std;
 
 namespace OpenMS
 {
-	UInt ProgressLogger::recursion_depth_ = 0;
+	Size ProgressLogger::recursion_depth_ = 0;
 
 	ProgressLogger::ProgressLogger()
 		:	type_(NONE),
@@ -64,7 +64,7 @@ namespace OpenMS
 	}
 
 
-	void ProgressLogger::startProgress(UInt begin, UInt end, const String& label) const
+	void ProgressLogger::startProgress(Size begin, Size end, const String& label) const
 	{
 		OPENMS_PRECONDITION(begin <= end, "ProgressLogger::init : invalid range!");
 		switch (type_)
@@ -93,7 +93,7 @@ namespace OpenMS
 		return;
 	}
 	
-	void ProgressLogger::setProgress(UInt value) const
+	void ProgressLogger::setProgress(Size value) const
 	{		
 		switch (type_)
 		{
