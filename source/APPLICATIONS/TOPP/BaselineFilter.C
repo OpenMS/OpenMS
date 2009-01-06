@@ -21,11 +21,11 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Eva Lange $
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FILTERING/BASELINE/TopHatFilter.h>
+#include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -41,14 +41,16 @@ using namespace std;
 	
 	@brief Executes the top-hat filter to remove the baseline of an MS experiment.
 	
-	This nonlinear filter, known as the top-hat operator in morphological mathematics
-	(see Soille, ''Morphological Image Analysis''), is independent of the underlying baseline shape.
-	It is able to detect an over brightness even if the environment is not uniform.
-	The principle is based on the subtraction of a signal from its opening (erosion followed by a dilation).
-	The size the structuring element (here a flat line) being conditioned by the width of the lineament
-	(in our case the maximum width of a mass spectrometric peak) to be detected.
+	This nonlinear filter, known as the top-hat operator in morphological
+	mathematics (see Soille, ''Morphological Image Analysis''), is independent
+	of the underlying baseline shape.  It is able to detect an over brightness
+	even if the environment is not uniform.  The principle is based on the
+	subtraction of a signal from its opening (erosion followed by a dilation).
+	The size the structuring element (here a flat line) being conditioned by the
+	width of the lineament (in our case the maximum width of a mass
+	spectrometric peak) to be detected.
 	
-	Before basline filtering the @ref TOPP_NoiseFilter is often applied.
+	Before baseline filtering the @ref TOPP_NoiseFilter is often applied.
 		
 	@note The length (given in Thomson) of the structuring element should be wider than the
 	maximum peak width in the raw data.
@@ -76,7 +78,11 @@ class TOPPBaselineFilter
 			setValidFormats_("in",StringList::create("mzData"));
 			registerOutputFile_("out","<file>","","output raw data file ");
 	  	setValidFormats_("out",StringList::create("mzData"));
-      registerDoubleOption_("struc_elem_length","<size>",2.5,"Length of the structuring element in Th.",false);
+      registerDoubleOption_("struc_elem_length","<size>",3,"Length of the structuring element in Th.",false);
+      registerStringOption_("struc_elem_unit","<unit>","Thomson","The 'unit' of struc_elem_length",false);
+			setValidStrings_("struc_elem_unit",StringList::create("Thomson,DataPoints"));
+      registerStringOption_("method","<string>",MorphologicalFilter::method_names[MorphologicalFilter::TOPHAT],"The name of the morphological filter to be applied",false);
+			setValidStrings_("method",StringList::create(MorphologicalFilter::method_names, MorphologicalFilter::NUMBER_OF_METHODS));
       addEmptyLine_();
 			addText_("Note: The top-hat filter works only on roughly uniform data (to generate equally-spaced data you can use the Resampler tool!)");
 	}
@@ -94,12 +100,12 @@ class TOPPBaselineFilter
 		//-------------------------------------------------------------
 
 		MzDataFile mz_data_file;
-		MSExperiment<Peak1D > exp;
+		MSExperiment<Peak1D > ms_exp;
 		mz_data_file.setLogType(log_type_);
-		mz_data_file.load(in,exp);
+		mz_data_file.load(in,ms_exp);
 
-		//check for peak type (raw data required)
-		if (PeakTypeEstimator().estimateType(exp[0].begin(),exp[0].end())==SpectrumSettings::PEAKS)
+		// check for peak type (raw data required)
+		if (PeakTypeEstimator().estimateType(ms_exp[0].begin(),ms_exp[0].end())==SpectrumSettings::PEAKS)
 		{
 			writeLog_("Warning: OpenMS peak type estimation indicates that this is not raw data!");
 		}
@@ -107,18 +113,19 @@ class TOPPBaselineFilter
 		//-------------------------------------------------------------
 		// calculations
 		//-------------------------------------------------------------
-		TopHatFilter tophat;
-    tophat.setLogType(log_type_);
-    Param tophat_param;
-    tophat_param.setValue("struc_elem_length",getDoubleOption_("struc_elem_length"));
-		tophat.setParameters(tophat_param);
-		tophat.filterExperiment(exp);
+		MorphologicalFilter morph_filter;
+    morph_filter.setLogType(log_type_);
+    DoubleReal const  struc_elem_length = getDoubleOption_("struc_elem_length");
+		MorphologicalFilter::Method const  method = MorphologicalFilter::method(getStringOption_("method"));
+		bool const is_struc_size_in_thomson = getStringOption_("struc_elem_unit") == "Thomson";
+
+		morph_filter.filterMSExperiment( method, struc_elem_length, is_struc_size_in_thomson, ms_exp );
 
 		//-------------------------------------------------------------
 		// writing output
 		//-------------------------------------------------------------
 		
-		mz_data_file.store(out,exp);
+		mz_data_file.store(out,ms_exp);
 
 		return EXECUTION_OK;
 	}

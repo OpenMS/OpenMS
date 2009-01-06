@@ -108,8 +108,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
 #include <OpenMS/COMPARISON/CLUSTERING/HierarchicalClustering.h>
 #include <OpenMS/COMPARISON/SPECTRA/CompareFouriertransform.h>
-#include <OpenMS/FILTERING/BASELINE/MorphFilter.h>
-#include <OpenMS/FILTERING/BASELINE/TopHatFilter.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
@@ -313,7 +311,6 @@ int main (int argc , char** argv)
 	DOCME(MSPFile);
 	DOCME(MapAlignmentAlgorithmPoseClustering);
 	DOCME(MapAlignmentAlgorithmSpectrumAlignment);
-	DOCME(MorphFilter);
 	DOCME(NLargest);
 	DOCME(NeutralLossDiffFilter);
 	DOCME(NeutralLossMarker);
@@ -340,7 +337,6 @@ int main (int argc , char** argv)
 	DOCME(TICFilter);
 	DOCME(TheoreticalSpectrumGenerator);
 	DOCME(ThresholdMower);
-	DOCME(TopHatFilter);
 	DOCME(TwoDOptimization);
 	DOCME(WindowMower);
 	DOCME(ZhangSimilarityScore);

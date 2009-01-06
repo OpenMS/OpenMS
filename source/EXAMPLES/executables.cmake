@@ -29,7 +29,7 @@ Tutorial_SavitzkyGolayFilter
 Tutorial_Spectrum1D
 Tutorial_TOFCalibration
 Tutorial_TheoreticalSpectrumGenerator
-Tutorial_TopHatFilter
+Tutorial_MorphologicalFilter
 Tutorial_Unlabeled
 Tutorial_typeAsString
 Tutorial_ListEditor

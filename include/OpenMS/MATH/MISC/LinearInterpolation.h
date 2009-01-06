@@ -39,29 +39,29 @@ namespace OpenMS
 	{
 
 		/**
-			 @brief Provides access to linearly interpolated values (and
-			 derivatives) from discrete data points.  Values beyond the given range
-			 of data points are implicitly taken as zero.
+		@brief Provides access to linearly interpolated values (and
+		derivatives) from discrete data points.  Values beyond the given range
+		of data points are implicitly taken as zero.
 
-			 The input is just a vector of values ("Data").  These are interpreted
-			 as the y-coordinates at the x-coordinate positions 0,...,data_.size-1.
+		The input is just a vector of values ("Data").  These are interpreted
+		as the y-coordinates at the x-coordinate positions 0,...,data_.size-1.
 
-			 The interpolated data can also be <i>scaled</i> and <i>shifted</i> in
-			 the x-dimension by an <em>affine mapping</em>.  That is, we have "inside" and
-			 "outside" x-coordinates.  The affine mapping can be specified in two
-			 ways:
-			 - using setScale() and setOffset(),
-			 - using setMapping()
-			 .
-			 By default the identity mapping (scale=1, offset=0) is used.
+		The interpolated data can also be <i>scaled</i> and <i>shifted</i> in
+		the x-dimension by an <em>affine mapping</em>.  That is, we have "inside" and
+		"outside" x-coordinates.  The affine mapping can be specified in two
+		ways:
+		- using setScale() and setOffset(),
+		- using setMapping()
+		.
+		By default the identity mapping (scale=1, offset=0) is used.
 
-			 Using the value() and derivative() methods you can sample linearly
-			 interpolated values for a given x-coordinate position of the data and
-			 the derivative of the data.
+		Using the value() and derivative() methods you can sample linearly
+		interpolated values for a given x-coordinate position of the data and
+		the derivative of the data.
 
-			 @see BilinearInterpolation
+		@see BilinearInterpolation
 
-			 @ingroup Math
+		@ingroup Math
 		*/
 		template < typename Key = DoubleReal, typename Value = Key >
 		class LinearInterpolation
@@ -110,16 +110,16 @@ namespace OpenMS
 			/// Assignment operator
 			LinearInterpolation & operator= ( LinearInterpolation const & arg )
 			{
-				 if (&arg == this)
-	    return *this;
-
-					scale_   = arg.scale_;
-					offset_  = arg.offset_;
-					inside_  = arg.inside_;
-					outside_ = arg.outside_;
-					data_    = arg.data_;
-
+				if (&arg == this)
 					return *this;
+				
+				scale_   = arg.scale_;
+				offset_  = arg.offset_;
+				inside_  = arg.inside_;
+				outside_ = arg.outside_;
+				data_    = arg.data_;
+
+				return *this;
 			}
 
 			/// Destructor.
@@ -179,8 +179,8 @@ namespace OpenMS
 
 
 			/**@brief Performs linear resampling.  The arg_value is split up and
-				 added to the data points around arg_pos.
-			 */
+			added to the data points around arg_pos.
+			*/
 			void addValue ( KeyType arg_pos, ValueType arg_value ) 
 			{
 
@@ -254,7 +254,7 @@ namespace OpenMS
 					{
 						if ( pos >= -0.5 ) // that is: -0.5 <= pos < +0.5
 						{
-								return ( data_[1] - data_[0] ) * ( pos + 0.5 ) + ( data_[0] ) * ( 0.5 - pos );
+							return ( data_[1] - data_[0] ) * ( pos + 0.5 ) + ( data_[0] ) * ( 0.5 - pos );
 						}
 						else // that is: -1.5 <= pos < -0.5
 						{
@@ -316,9 +316,9 @@ namespace OpenMS
 			}
 
 			/**@brief Assigns data to the internal random access container from
-				 which interpolated values are being sampled.
+			which interpolated values are being sampled.
 
-				 SourceContainer must be assignable to ContainerType.
+			SourceContainer must be assignable to ContainerType.
 			*/
 			template < typename SourceContainer >
 			void setData ( SourceContainer const & data ) 
@@ -386,10 +386,10 @@ namespace OpenMS
 			}
 
 			/**@brief Accessor.  "Offset" is the point (in "outside" units) which
-				 corresponds to "Data[0]".
+			corresponds to "Data[0]".
 
-				 <b>Note:</b> Using this invalidates the inside and outside reference
-				 points.
+			<b>Note:</b> Using this invalidates the inside and outside reference
+			points.
 			*/
 			void setOffset ( KeyType const & offset ) 
 			{
@@ -397,16 +397,16 @@ namespace OpenMS
 			}
 
 			/**@brief Specifies the mapping from "outside" to "inside" coordinates by the following data:
-				 - <code>scale</code>: the difference in outside coordinates between consecutive values in the data vector.
-				 - <code>inside</code> and <code>outside</code>: these x-axis positions are mapped onto each other.
+			- <code>scale</code>: the difference in outside coordinates between consecutive values in the data vector.
+			- <code>inside</code> and <code>outside</code>: these x-axis positions are mapped onto each other.
 
-				 For example, when you have a complicated probability distribution
-				 which is in fact centered around zero (but you cannot have negative
-				 indices in the data vector), then you can arrange things such that
-				 inside is the mean of the pre-computed, shifted density values of that
-				 distribution and outside is the centroid position of, say, a peak in
-				 the real world which you want to model by a scaled and shifted version
-				 of the probability distribution.
+			For example, when you have a complicated probability distribution
+			which is in fact centered around zero (but you cannot have negative
+			indices in the data vector), then you can arrange things such that
+			inside is the mean of the pre-computed, shifted density values of that
+			distribution and outside is the centroid position of, say, a peak in
+			the real world which you want to model by a scaled and shifted version
+			of the probability distribution.
 
 			*/
 			void setMapping ( KeyType const & scale, KeyType const & inside, KeyType const & outside )
@@ -418,10 +418,10 @@ namespace OpenMS
 			}
 
 			/**@brief Specifies the mapping from "outside" to "inside" coordinates by the following data:
-				 - <code>inside_low</code> and <code>outside_low</code>: these axis positions are mapped onto each other.
-				 - <code>inside_high</code> and <code>outside_high</code>: these axis positions are mapped onto each other.
+			- <code>inside_low</code> and <code>outside_low</code>: these axis positions are mapped onto each other.
+			- <code>inside_high</code> and <code>outside_high</code>: these axis positions are mapped onto each other.
 
-				 This four argument version is just a convenience overload for the three argument version, which see.
+			This four argument version is just a convenience overload for the three argument version, which see.
 			*/
 			void setMapping ( KeyType const & inside_low, KeyType const & outside_low,
 												KeyType const & inside_high, KeyType const & outside_high )

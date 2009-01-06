@@ -3,8 +3,7 @@ set(directory source/FILTERING/BASELINE)
 
 ### list all filenames of the directory here
 set(sources_list
-MorphFilter.C
-TopHatFilter.C
+MorphologicalFilter.C
 )
 
 ### add path to the filenames

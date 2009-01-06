@@ -39,11 +39,11 @@ namespace OpenMS
 
 	/**
 		@brief Base class for all map-alignment algorithms
-		
+
 		It takes two or more maps and corrects for retention time distortions.
-		
+
 		The input maps are transformed and the transformation description is returned.
-		
+
 		@improvement The maps should not be all loaded before the algorithm  - in order to save memory e.g. in the star-wise approach (Marc, Clemens)
 	*/
 	class OPENMS_DLLAPI MapAlignmentAlgorithm
@@ -59,34 +59,34 @@ namespace OpenMS
 
 		/**
 		@brief Aligns peak maps
-				
+
 		@exception Exception::NotImplemented is thrown if an algorithm cannot align peak maps
 		*/
 		virtual void alignPeakMaps(std::vector< MSExperiment<> >&, std::vector<TransformationDescription>&);
 
 		/**
 		@brief Aligns feature maps
-				
+
 		@exception Exception::NotImplemented is thrown if an algorithm cannot align feature maps
 		*/
 		virtual void alignFeatureMaps(std::vector< FeatureMap<> >&, std::vector<TransformationDescription>&);
 
 		/**
 		@brief Aligns peptide identifications
-				
+
 		@exception Exception::NotImplemented is thrown if an algorithm cannot align peptide identifications
 		*/
 		virtual void alignPeptideIdentifications(std::vector< std::vector< PeptideIdentification > >&, std::vector<TransformationDescription>&);
 
 		/// Register all derived classes in this method
 		static void registerChildren();
-		
+
 	 private:
 		/// Copy constructor is not implemented -> private
 		MapAlignmentAlgorithm(const MapAlignmentAlgorithm& );
 		/// Assignment operator is not implemented -> private
 		MapAlignmentAlgorithm& operator=(const MapAlignmentAlgorithm& );
-			
+
 	};
 
 } // namespace OpenMS

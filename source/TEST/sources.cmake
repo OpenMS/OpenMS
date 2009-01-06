@@ -185,7 +185,7 @@ ModificationDefinitionsSet_test.C
 Modification_test.C
 ModificationsDB_test.C
 ModifierRep_test.C
-MorphFilter_test.C
+MorphologicalFilter_test.C
 MultiGradient_test.C
 MzDataFile_test.C
 MzMLFile_test.C
@@ -286,7 +286,6 @@ Tagging_test.C
 TextFile_test.C
 TheoreticalSpectrumGenerator_test.C
 ThresholdMower_test.C
-TopHatFilter_test.C
 TransformationDescription_test.C
 TransformationXMLFile_test.C
 TrypticIterator_test.C

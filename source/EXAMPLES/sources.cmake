@@ -29,7 +29,7 @@ Tutorial_SavitzkyGolayFilter.C
 Tutorial_Spectrum1D.C
 Tutorial_TOFCalibration.C
 Tutorial_TheoreticalSpectrumGenerator.C
-Tutorial_TopHatFilter.C
+Tutorial_MorphologicalFilter.C
 Tutorial_Unlabeled.C
 Tutorial_typeAsString.C
 Tutorial_ListEditor.C

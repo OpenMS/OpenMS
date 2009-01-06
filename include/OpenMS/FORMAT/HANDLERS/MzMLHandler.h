@@ -666,7 +666,7 @@ namespace OpenMS
 			}
 			
 			//Abort if no m/z or intensity array is present
-			if (int_index==-1 || mz_index==-1)
+			if ( int_index == Size(-1) || mz_index == Size(-1) )
 			{
 				//if defaultArrayLength > 0 : warn that no m/z or int arrays is present
 				if (default_array_length_!=0)

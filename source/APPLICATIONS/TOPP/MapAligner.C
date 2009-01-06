@@ -48,8 +48,6 @@ using namespace std;
 	This tool provides several different algorithms to correct for retention time shifts
 	and distortions.
 	
-	@todo Add processing of idXML (Clemens)
-	
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_MapAligner.cli
 */

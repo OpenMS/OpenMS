@@ -21,13 +21,27 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Eva Lange $
+// $Maintainer: Clemens Groepl $
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/FILTERING/BASELINE/MorphFilter.h>
+#include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 
 namespace OpenMS
 {
- 	
+	// Note: this list has to be kept in sync with enum MorphologicalFilter::Method
+	const char* MorphologicalFilter::MorphologicalFilter::method_names[MorphologicalFilter::NUMBER_OF_METHODS] =
+		{
+			"identity",
+			"erosion",
+			"dilation",
+			"opening",
+			"closing",
+			"gradient",
+			"tophat",
+			"bothat",
+			"erosion_simple",
+			"dilation_simple"
+		};
+
 }

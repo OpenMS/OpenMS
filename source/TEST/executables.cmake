@@ -175,8 +175,7 @@ set(math_executables_list
 
 set(filtering_executables_list
 	LinearResampler_test
-  TopHatFilter_test
-  MorphFilter_test
+  MorphologicalFilter_test
   SignalToNoiseEstimator_test
   SignalToNoiseEstimatorMedian_test
   SignalToNoiseEstimatorMeanIterative_test

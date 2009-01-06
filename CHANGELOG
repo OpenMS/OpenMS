@@ -59,6 +59,8 @@ Detailed list of changes to specific OpenMS classes:
   - FeatureXMLHandler (merged into FeatureXMLFile)
   - ConsensusXMLHandler (merged into ConsensusXMLFile)
   - PeakPicker (merged into PeakPickerCWT)
+  - MorphFilter (merged into MorphologicalFilter)
+	- TopHatFilter (merged into MorphologicalFilter)
 - New classes
   - DATASTRUCTURES/IntList
   - DATASTRUCTURES/StringList
