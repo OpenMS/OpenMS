@@ -288,7 +288,7 @@ END_SECTION
 START_SECTION((ConstRefVector(size_type n)))
   ConstRefVector<PeakArrayType> pl2(2);
   
-  TEST_REAL_SIMILAR(pl2.size(), 2)
+  TEST_EQUAL(pl2.size(), 2)
 END_SECTION
 
 START_SECTION((ConstRefVector(size_type n, const ValueType &element)))

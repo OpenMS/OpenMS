@@ -253,7 +253,7 @@ END_SECTION
 START_SECTION((const FileDescriptions& getFileDescriptions() const ))
   ConsensusMap cons_map;
   
-  TEST_REAL_SIMILAR(cons_map.getFileDescriptions().size(),0)
+  TEST_EQUAL(cons_map.getFileDescriptions().size(),0)
 END_SECTION
 
 START_SECTION((FileDescriptions& getFileDescriptions()))

@@ -194,7 +194,7 @@ START_SECTION((template<class Container> void get2DData(Container& cont) const))
 	exp.get2DData(list);
 
 	//Tests
-	TEST_REAL_SIMILAR(list.size(),5);
+	TEST_EQUAL(list.size(),5);
 	std::vector<Peak2D>::const_iterator it = list.begin();
 	TEST_REAL_SIMILAR(it->getRT(),11.1);
 	TEST_REAL_SIMILAR(it->getMZ(),5);

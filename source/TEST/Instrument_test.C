@@ -164,7 +164,7 @@ END_SECTION
 START_SECTION(std::vector<IonDetector>& getIonDetectors())
   Instrument tmp;
   tmp.getIonDetectors().resize(1);
-  TEST_REAL_SIMILAR(tmp.getIonDetectors().size(),1);
+  TEST_EQUAL(tmp.getIonDetectors().size(),1);
 END_SECTION
 
 START_SECTION(std::vector<IonSource>& getIonSources())
