@@ -741,6 +741,7 @@ START_SECTION((String& operator+= (long double d)))
 #if 1
 #define ECHO_AND_DO(bla) STATUS(""#bla); bla
 #define ECHO_AND_VALUE(bla) STATUS(""#bla << ": " << bla);
+  typedef long double longdouble;
 
 	ECHO_AND_VALUE(sizeof(double));
 	ECHO_AND_VALUE(std::numeric_limits<double>::digits);
@@ -758,13 +759,13 @@ START_SECTION((String& operator+= (long double d)))
 	ECHO_AND_VALUE(sizeof(long double));
 	ECHO_AND_VALUE(std::numeric_limits<long double>::digits);
 	ECHO_AND_VALUE(std::numeric_limits<long double>::digits10);
-	ECHO_AND_VALUE( writtenDigits<>(long double()) );
+	ECHO_AND_VALUE( writtenDigits<>( longdouble() ) );
 
 	ECHO_AND_DO(std::cout.precision(std::numeric_limits<long double>::digits10));
 	STATUS(typeAsString(7.4) << ": " << 7.4);
 	STATUS(typeAsString(7.4L) << ": " << 7.4L);
 
-	ECHO_AND_DO(std::cout.precision(writtenDigits<>(long double())));
+	ECHO_AND_DO(std::cout.precision(writtenDigits<>( longdouble() )));
 	STATUS(typeAsString(7.4) << ": " << 7.4);
 	STATUS(typeAsString(7.4L) << ": " << 7.4L);
 

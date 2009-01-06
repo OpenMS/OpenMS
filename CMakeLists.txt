@@ -578,6 +578,7 @@ add_dependencies(EXAMPLES ${EXAMPLES_executables})
 
 #### Tests #####
 enable_testing()
+INCLUDE(Dart)
 add_subdirectory(source/TEST)
 
 ##### TOPPtests #####
