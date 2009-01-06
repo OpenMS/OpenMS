@@ -35,7 +35,7 @@
   <UL>
     <LI>have a Visual Studio 2005/2008 installed (2003 is not supported, but might work, if you compile your own contrib)
     <LI>Have CMake 2.6 or greater installed (www.cmake.org)
-    <LI>if you work with the SVN version of OpenMS (instead of the Release package), we recommend downloading
+    <LI>if you work with the SVN version of %OpenMS (instead of the Release package), we recommend downloading
     the svn binaries (which contain svnversion.exe). TortoiseSVN is *not* enough!
     You can find the binaries here: http://subversion.tigris.org
     <br>Make sure to add the location of svnversion.exe to your PATH (usually this is "C:\progam files\subversion\bin")
@@ -141,7 +141,7 @@
     
     <OL>
       <LI>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
-      <LI>create a build directory for the OpenMS contrib <br>
+      <LI>create a build directory for the %OpenMS contrib <br>
           -e.g. $ mkdir contrib_win64_build
       <LI>call CMake to build the contrib
 				You will need to set two important parameters which determine the type of contrib that is build.
@@ -155,7 +155,7 @@ cmake -G "<generator>" "<path_to_contrib>"
 cmake -D CONTRIB_MSVC_VERSION:STRING=<version> -D CONTRIB_ADDRESSMODEL:STRING=<bit> -G "<generator>" "<path_to_contrib>"
 @endcode
 
-        For the <generator> you should choose the one that reflects your settings of CONTRIB_MSVC_VERSION and CONTRIB_ADDRESSMODEL. It should be identical to the one you will later use for OpenMS as well. Type <tt>$ cmake</tt> to see a list of available generators.
+        For the <generator> you should choose the one that reflects your settings of CONTRIB_MSVC_VERSION and CONTRIB_ADDRESSMODEL. It should be identical to the one you will later use for %OpenMS as well. Type <tt>$ cmake</tt> to see a list of available generators.
 @code
 cd c:\svn\contrib_win64_build
 cmake -D CONTRIB_MSVC_VERSION:STRING=9 -D CONTRIB_ADDRESSMODEL:STRING=64 -D -G "Visual Studio 9 2008 Win64" "c:\svn\contrib_win"
@@ -182,7 +182,7 @@ cmake -D CONTRIB_MSVC_VERSION:STRING=9 -D CONTRIB_ADDRESSMODEL:STRING=64 -D -G "
     To create Visual Studio Project Files using CMake:
     <OL>
       <LI>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
-      <LI>create a build directory for OpenMS<br>
+      <LI>create a build directory for %OpenMS<br>
           -e.g. $ mkdir OpenMS_Win64
       <LI>call CMake to create the BuildSystem there
 @code
@@ -273,8 +273,8 @@ cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib" -G "Visual Studio 8 2005 Win64
 		<LI>
 			Build QT with DB support
 			@code
-cd &lt;path_to_QT&gt;<br>
-configure -L &lt;path_to_MYSQLSERVER&gt;/lib/opt -l libmysql -I &lt;path_to_MYSQLSERVER&gt;/include -qt-sql-mysql -qt-sql-odbc -qt-sql-sqlite -qt-gif -qt-libpng -qt-libjpeg
+cd <path_to_QT>
+configure -L <path_to_MYSQLSERVER>/lib/opt -l libmysql -I <path_to_MYSQLSERVER>/include -qt-sql-mysql -qt-sql-odbc -qt-sql-sqlite -qt-gif -qt-libpng -qt-libjpeg
 			@endcode
 			and wait ...
 		</LI>
@@ -285,7 +285,7 @@ configure -L &lt;path_to_MYSQLSERVER&gt;/lib/opt -l libmysql -I &lt;path_to_MYSQ
 			Now, create a database by opening the mysql command line client (from the start menu) and enter your root password.<br>
 			Now type:<br>
 			@code
-mysql> CREATE DATABASE OPENMS_TEST_DB;<br>
+mysql> CREATE DATABASE OPENMS_TEST_DB;
 			@endcode
 			you should see something like:<br>
 			<code>Query OK, 1 row affected (0.14 sec)</code>

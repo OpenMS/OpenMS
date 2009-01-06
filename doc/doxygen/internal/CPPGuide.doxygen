@@ -44,7 +44,7 @@ This immediately gives a hint to where the symbol is defined as well.
 <H2 style="margin-top:20px; border-top:1px solid grey;">UInt is not Size!</H2>
 
 Whenever working with STL types (especially vectors), assign the return value of
-a <tt>.size()</tt> operation to the OpenMS type <tt>Size</tt>, which is defined as follows
+a <tt>.size()</tt> operation to the %OpenMS type <tt>Size</tt>, which is defined as follows
 @code
 // OpenMS/include/CONCEPT/Types.h
 typedef size_t Size;
@@ -65,6 +65,15 @@ on prominent 32bit systems, they are usually different types on 64bit systems, w
 <p>
 Size is an unsigned type!If you need a signed type (e.g. when comparing length of vectors) use SignedSize (also defined in types.h)<br>
 </p>
+
+<H2 style="margin-top:20px; border-top:1px solid grey;">Math functions</H2>
+
+Using GCC a lot of common math functions are available (e.g. trunc, round etc). However, this is <b>not</b> required by the C++Standard,
+so Microsoft decided not to include them. You will break the windows port of OpenMS if you use them!<br>
+You can rely on <tt>ceil()</tt> and <tt>floor()</tt> to exist everywhere (include cmath).
+If you are not sure whats available try http://www.cplusplus.com/ or for VisualStudio specific problems: MSDN (http://msdn.microsoft.com/en-us/visualc/default.aspx).<br>
+Additionally %OpenMS provides a Math::round() function for convenience (see MATH/MISC/MathFunctions.h).
+
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Pass-by-value versus pass-by-reference</H2>
 
@@ -95,7 +104,7 @@ or references the DLL when building an executable.
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">When do I use OPENMS_DLLAPI?!</H2>
 
-Whenever you've written a new OpenMS class, which is not a template class insert the macro into the header like this:
+Whenever you've written a new %OpenMS class, which is not a template class insert the macro into the header like this:
 @code
 class Myclass
 { ...
@@ -158,7 +167,7 @@ namespace OpenMS
 
 @endcode
 
-<b>Note:</b> In OpenMS, Qt headers have to be included with the library prefix!
+<b>Note:</b> In %OpenMS, Qt headers have to be included with the library prefix!
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Input/Output</H2>
 
