@@ -578,10 +578,10 @@ add_dependencies(EXAMPLES ${EXAMPLES_executables})
 
 #### Tests #####
 enable_testing()
-add_subdirectory(source/TEST EXCLUDE_FROM_ALL)
+add_subdirectory(source/TEST)
 
 ##### TOPPtests #####
-add_subdirectory(source/TEST/TOPP EXCLUDE_FROM_ALL)
+add_subdirectory(source/TEST/TOPP)
 
 #### configs for external include files, e.g. to develop code with OpenMS
 #get_target_property(OPENMS_LIBRARIES_EXTERNAL OpenMS LOCATION)
