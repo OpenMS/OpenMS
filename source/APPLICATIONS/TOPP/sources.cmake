@@ -57,5 +57,5 @@ foreach(i ${sources_list})
 endforeach(i)
 
 ### source group definition
-source_group("Source Files\\APPLICATIONS\\TOPP" FILES ${sources})
+source_group("" FILES ${sources})
 
