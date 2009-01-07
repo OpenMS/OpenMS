@@ -278,18 +278,24 @@ START_SECTION((String substr(SignedSize start, SignedSize n) const))
 	TEST_EQUAL(s.substr(1,1),"b")
 	TEST_EQUAL(s.substr(1,3),"bcd")
 	TEST_EQUAL(s.substr(0,4),"abcd")
-	TEST_EQUAL(s.substr(0,8),"abcdef")
+	TEST_EQUAL(s.substr(0,6),"abcdef")
+	TEST_EQUAL(s.substr(5,1),"f")
+	TEST_EQUAL(s.substr(6,1),"")
+	TEST_EQUAL(s.substr(0,7),"abcdef")
 	//start negative
 	TEST_EQUAL(s.substr(-3,1),"d")
-	TEST_EQUAL(s.substr(-9,1),"a")
+	TEST_EQUAL(s.substr(-5,1),"b")
+	TEST_EQUAL(s.substr(-6,1),"a")
+	TEST_EQUAL(s.substr(-7,1),"a")
 	//n negative
 	TEST_EQUAL(s.substr(0,-2),"abcd")
 	TEST_EQUAL(s.substr(0,-1),"abcde")
+	TEST_EQUAL(s.substr(0,-6),"")
 	TEST_EQUAL(s.substr(2,-1),"cde")
 	TEST_EQUAL(s.substr(4,-4),"")
 	TEST_EQUAL(s.substr(1,-1),"bcde")
 	TEST_EQUAL(s.substr(4,-3),"")
-	TEST_EQUAL(s.substr(0,-9),"")
+	TEST_EQUAL(s.substr(0,-7),"")
 	//both negative
 	TEST_EQUAL(s.substr(-4,-2),"cd")
 	TEST_EQUAL(s.substr(-1,-2),"")
@@ -298,18 +304,19 @@ START_SECTION((String substr(SignedSize start, SignedSize n) const))
 	TEST_EQUAL(s.substr(-1,-1),"")
 	TEST_EQUAL(s.substr(-3,-1),"de")
 	TEST_EQUAL(s.substr(-3,-1),"de")
-	TEST_EQUAL(s.substr(-19,-9),"")
 END_SECTION
 
 START_SECTION((String substr(SignedSize start) const))
 	String s("abcdef");
 	TEST_EQUAL(s.substr(0),"abcdef");
 	TEST_EQUAL(s.substr(1),"bcdef")
-	TEST_EQUAL(s.substr(0),"abcdef")
+	TEST_EQUAL(s.substr(5),"f")
+	TEST_EQUAL(s.substr(6),"")
 	TEST_EQUAL(s.substr(-1),"f")
 	TEST_EQUAL(s.substr(-2),"ef")
 	TEST_EQUAL(s.substr(-3),"def");
-	TEST_EQUAL(s.substr(-9),"abcdef");
+	TEST_EQUAL(s.substr(-6),"abcdef");
+	TEST_EQUAL(s.substr(-7),"abcdef");
 END_SECTION
 
 START_SECTION((String& reverse()))

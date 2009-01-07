@@ -186,6 +186,10 @@ namespace OpenMS
 		/**
 			@brief Returns a substring
 			
+			If start or end are out of bounds, they are automatically corrected - set to begin or end, respectively.
+			
+			If the end is positioned before the start an empty string is returned.
+			
 			@param start  start position of the substring.<br> 
 			              If start is negative, the returned string will start at the start'th character from the end of string.
 			@param n length of the substring.<br> 
@@ -194,6 +198,8 @@ namespace OpenMS
 		String substr(SignedSize start, SignedSize n) const;
 		/**
 			@brief Returns the suffix of the string from position @p start
+
+			If start is out of bounds, it is automatically corrected - set to begin or end, respectively.
 			
 			@param start  start position of the substring.<br> 
 			              If start is negative, the returned string will start at the start'th character from the end of string.
@@ -356,7 +362,7 @@ namespace OpenMS
 		/**
 			@brief returns a string with at maximum @p n characters for @p d
 		
-		 If @p d is larger, scientific notation is used.
+			If @p d is larger, scientific notation is used.
 		*/
 		static String numberLength(DoubleReal d, UInt n);
 
@@ -365,9 +371,10 @@ namespace OpenMS
 			@brief splits a string into @p substrings using @p splitter as delimiter
 			
 			If the @p splitter is not found, @p substrings is empty.
+			
 			@return if the splitter was found (once or multiple times) in the string
 
-			@see implode().
+			@see concatenate().
 		*/
 		bool split(char splitter, std::vector<String>& substrings) const;
 		

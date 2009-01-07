@@ -325,7 +325,6 @@ int main(int argc, char **argv)																									\
 		TEST::test = false;																																		\
 		TEST::all_tests = false;																															\
 		{																																											\
-			if (TEST::exception == 1) TEST::exception++;																				\
 			TEST::initialNewline();																															\
 			std__cout << "Error: Caught unexpected exception of type '" << e.getName() << "'";	\
 			if ((e.getLine() > 0) && (std::strcmp(e.getFile(),"")!=0))													\
@@ -945,7 +944,7 @@ int main(int argc, char **argv)																									\
 				break;																													\
 			case 1:																														\
 				std__cout << "    (line " << TEST::test_line <<									\
-					" TEST_EXCEPTION(" #exception_type "," #command								\
+					":  TEST_EXCEPTION(" #exception_type "," #command								\
 					"): OK)    +" << std::endl;																		\
 				break;																													\
 			case 2:																														\
@@ -968,7 +967,7 @@ int main(int argc, char **argv)																									\
 	This macro checks if a given type of exception occured while executing the
 	given command and additionally tests for the message of the exception.
 
-	Example:  #TEST_EXCEPTION(Exception::IndexOverflow, vector[-1], "a null pointer was specified")
+	Example:  #TEST_EXCEPTION_WITH_MESSAGE(Exception::IndexOverflow, vector[-1], "a null pointer was specified")
 
 	If no, a wrong exception occured or a wrong message is returned, false is
 	returned, otherwise true.
@@ -1015,28 +1014,28 @@ int main(int argc, char **argv)																									\
 			{																																	\
 			case 0:																														\
 					std__cout << __FILE__ ":" << TEST::test_line <<								\
-						":  TEST_EXCEPTION(" #exception_type "," #command ", " #message \
+						":  TEST_EXCEPTION_WITH_MESSAGE(" #exception_type "," #command ", " #message \
 						"): no exception thrown!    - " << std::endl;								\
 					break;																												\
 			case 1:																														\
 					std__cout << "    (line " << TEST::test_line <<								\
-						" TEST_EXCEPTION(" #exception_type "," #command ", " #message \
+						":  TEST_EXCEPTION_WITH_MESSAGE(" #exception_type "," #command ", " #message \
 						"): OK)    +" << std::endl;																	\
 					break;																												\
 			case 2:																														\
 					std__cout << __FILE__ ":" << TEST::test_line <<								\
-						":  TEST_EXCEPTION(" #exception_type "," #command ", " #message \
+						":  TEST_EXCEPTION_WITH_MESSAGE(" #exception_type "," #command ", " #message \
 						"): wrong exception thrown!  \"" <<													\
 						TEST::exception_name << "\"    - " << std::endl;						\
 					break;																												\
 			case 3:																														\
 					std__cout << __FILE__ ":" << TEST::test_line <<								\
-						":  TEST_EXCEPTION(" #exception_type "," #command ", " #message \
+						":  TEST_EXCEPTION_WITH_MESSAGE(" #exception_type "," #command ", " #message \
 						"): wrong exception thrown!     - " << std::endl;						\
 					break;																												\
 			case 4:																														\
 					std__cout << __FILE__ ":" << TEST::test_line <<								\
-						":  TEST_EXCEPTION(" #exception_type "," #command ", " #message \
+						":  TEST_EXCEPTION_WITH_MESSAGE(" #exception_type "," #command ", " #message \
 						"): exception has wrong message: got '" <<									\
 						TEST::exception_message <<																	\
 						"', expected '" <<																					\
