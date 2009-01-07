@@ -414,9 +414,9 @@ START_SECTION(([EXTRA] load with intensity range))
 	// 120: -(110,100) +(120,200) -(130,100)
 	// 180: -(100,100) +(110,200) +(120,300) +(130,200) -(140,100)
 	//---------------------------------------------------------------------------
-	TEST_REAL_SIMILAR(e[0].size(), 0)
-	TEST_REAL_SIMILAR(e[1].size(), 1)
-	TEST_REAL_SIMILAR(e[2].size(), 3)
+	TEST_EQUAL(e[0].size(), 0)
+	TEST_EQUAL(e[1].size(), 1)
+	TEST_EQUAL(e[2].size(), 3)
 
 	TEST_REAL_SIMILAR(e[1][0].getPosition()[0], 120)
 	TEST_REAL_SIMILAR(e[1][0].getIntensity(), 200)
