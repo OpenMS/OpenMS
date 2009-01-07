@@ -107,7 +107,7 @@ END_SECTION
 String filename;
 NEW_TMP_FILE(filename);
 ExternalAllocator<int> extalloc(filename, 10000);
-ExternalAllocator<int>::pointer p;
+ExternalAllocator<int>::pointer p(0);
 
 START_SECTION((pointer allocate(size_type num, const void *=0)))
 {

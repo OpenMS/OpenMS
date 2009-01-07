@@ -593,7 +593,7 @@ namespace OpenMS
 				}
 				else
 				{
-					Feature* f1;
+					Feature* f1(0);
 					if (!map_->empty())
 					{
 						f1 = &(map_->back());

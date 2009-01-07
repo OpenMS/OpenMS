@@ -71,7 +71,7 @@ void* mapping = 0;
 HANDLE h;
 START_SECTION([EXTRA](static void* OpenMS_mmap (const std::size_t& size, const HANDLE& handle, const Int64& file_offset)))
 #else
-long h;
+long h(0);
 START_SECTION([EXTRA](static void* OpenMS_mmap (const std::size_t& size, const int& fileHandle, const Int64& file_offset)))
 #endif
 {
