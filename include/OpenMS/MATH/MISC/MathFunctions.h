@@ -142,7 +142,7 @@ namespace OpenMS
 			} 
 			else 
 			{ 
-				return floor(x-0.5); 
+				return ceil(x-0.5); 
 			}
 		}
 
