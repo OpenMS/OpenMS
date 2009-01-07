@@ -151,14 +151,14 @@ namespace OpenMS
 		ContainerType& result = interpolation_.getData();
 		result.clear ();
 
-		Int rMax = std::min ( int( left.size() + right.size() - 1 ), Int(2*normal_widening_width/interpolation_step_*max_isotope_+1) );
+		Int rMax = std::min ( Int( left.size() + right.size() - 1 ), Int(2*normal_widening_width/interpolation_step_*max_isotope_+1) );
 		result.resize ( rMax, 0 );
 
 		// we loop backwards because then the small products tend to come first
 		// (for better numerics)
-		for ( Size i = left.size() - 1; i >= 0; --i )
+		for ( SignedSize i = left.size() - 1; i >= 0; --i )
 		{
-			for ( Size j = std::min ( rMax - i, right.size() ) - 1; j >= 0 ; --j )
+			for ( SignedSize j = std::min ( rMax - i, right.size() ) - 1; j >= 0 ; --j )
 			{
 				result[i+j] += left[i] * right[j];
 			}

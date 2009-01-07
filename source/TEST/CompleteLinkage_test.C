@@ -125,8 +125,8 @@ START_SECTION((void cluster(DistanceMatrix< Real > &original_distance, std::vect
 	for (Size i = 0; i < result.size(); ++i)
 	{
 			TOLERANCE_ABSOLUTE(0.0001);
-			TEST_REAL_SIMILAR(tree[i].left_child, result[i].left_child);
-			TEST_REAL_SIMILAR(tree[i].right_child, result[i].right_child);
+			TEST_EQUAL(tree[i].left_child, result[i].left_child);
+			TEST_EQUAL(tree[i].right_child, result[i].right_child);
 			TEST_REAL_SIMILAR(tree[i].distance, result[i].distance);
 	}
 }

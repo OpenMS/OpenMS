@@ -353,9 +353,9 @@ START_SECTION(([EXTRA] load with selected MZ range))
 	// 180: -(100,100) -(110,200) +(120,300) +(130,200) -(140,100)
 	//---------------------------------------------------------------------------
 
-	TEST_REAL_SIMILAR(e[0].size(), 1)
-	TEST_REAL_SIMILAR(e[1].size(), 2)
-	TEST_REAL_SIMILAR(e[2].size(), 2)
+	TEST_EQUAL(e[0].size(), 1)
+	TEST_EQUAL(e[1].size(), 2)
+	TEST_EQUAL(e[2].size(), 2)
 
 	TEST_REAL_SIMILAR(e[0][0].getPosition()[0], 120)
 	TEST_REAL_SIMILAR(e[0][0].getIntensity(), 100)

@@ -108,7 +108,7 @@ START_SECTION(template <typename SpectrumType> void getSpectrumAlignment(std::ve
 	alignment.clear();
   sas1.getSpectrumAlignment(alignment, s1, s2);
 
-  TEST_REAL_SIMILAR(alignment.size(), 100)
+  TEST_EQUAL(alignment.size(), 100)
 
 END_SECTION
 
