@@ -696,13 +696,13 @@ namespace OpenMS
 	{		
 		std::vector<DoubleReal> x, y;
 		UInt peak_cutoff=0;
-		for (DoubleReal i=min_mz; i<max_mz*max_charge; i+=100)
+		UInt step_size ((max_mz*max_charge-min_mz)/10.0);
+		for (DoubleReal i=min_mz; i<max_mz*max_charge; i+=step_size)
 		{
 			IsotopeWavelet::getAveragine (i, &peak_cutoff);
 			x.push_back (i);
 			y.push_back (peak_cutoff);
 		};
-
 
 		Math::LinearRegression regress;
 		regress.computeRegression (0.95, x.begin(), x.end(), y.begin());
