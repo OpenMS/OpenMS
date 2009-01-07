@@ -42,7 +42,7 @@ class TOPPBaseTest
 {
 	public:
 		TOPPBaseTest()
-			: TOPPBase("TOPPBaseTest", "A test class")
+			: TOPPBase("TOPPBaseTest", "A test class", false)
 		{
 			main(0,0);
 		}
