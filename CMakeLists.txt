@@ -98,11 +98,11 @@ else()
 endif()
 
 # user OPENMS DEBUG flag
-set(OPENMS_DEBUG OFF CACHE BOOL "Enables debug mode (precondition and postconditions are enabled, a bit slower)")
+set(OPENMS_ASSERTIONS OFF CACHE BOOL "Enables debug messages (precondition and postconditions are enabled, a bit slower) - this is NOT changing any compiler flags!")
 if (OPENMS_BUILD_TYPE STREQUAL "Debug")
-	set(OPENMS_DEBUG ON CACHE BOOL "Enables debug mode (precondition and postconditions are enabled, a bit slower)" FORCE)
+	set(OPENMS_ASSERTIONS ON CACHE BOOL "Enables debug messages (precondition and postconditions are enabled, a bit slower) - this is NOT changing any compiler flags!" FORCE)
 endif()
-Message(STATUS "OpenMS debug mode: ${OPENMS_DEBUG}")
+Message(STATUS "OpenMS assertion mode: ${OPENMS_ASSERTIONS}")
 
 ## STL-DEBUG (only for GCC and in debug mode)
 set(STL_DEBUG OFF CACHE BOOL "[GCC only] Enable STL-DEBUG mode (very slow).")
@@ -111,14 +111,16 @@ if (STL_DEBUG)
 		if (OPENMS_BUILD_TYPE STREQUAL "Debug")
 			# add compiler flag
     	add_definitions(/D_GLIBCXX_DEBUG)
+    	Message(STATUS "STL debug mode: ${STL_DEBUG}")
 	  else()
-	    Message(WARNING "STL debug mode is only supported for OpenMS debug mode only")
+	    Message(WARNING "STL debug mode is supported for OpenMS debug mode only")
 	  endif()
   else()
     Message(WARNING "STL debug mode is supported for compiler GCC only")
   endif()
+else()
+	Message(STATUS "STL debug mode: ${STL_DEBUG}")
 endif()
-Message(STATUS "STL debug mode: ${STL_DEBUG}")
 
 ########################################################
 ###    external libs																 ###
