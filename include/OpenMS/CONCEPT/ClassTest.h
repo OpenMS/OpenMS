@@ -319,55 +319,46 @@ int main(int argc, char **argv)																									\
 #define END_TEST																												\
 	/* global try block */																								\
 	}																																			\
-	/* catch FileNotFound exceptions to print out the file name */				\
-	catch (OpenMS::Exception::FileNotFound e)															\
-	{																																			\
-		TEST::this_test = false;																						\
-		TEST::test = false;																									\
-		TEST::all_tests = false;																						\
-		{																																		\
-			if (TEST::exception == 1)																					\
-				TEST::exception++;																							\
-			std__cout << std::endl << "    (caught exception of type `"				\
-								<< e.getName() << "'";																	\
-			if ((e.getLine() > 0) && (std::strcmp(e.getFile(),"")!=0))				\
-				std__cout << " outside a subtest, which was thrown in line " << e.getLine()	\
-									<< " of file " << e.getFile()													\
-									<< " in function " << e.getFunction();								\
-			std__cout << " - unexpected!) " << std::endl;											\
-		}																																		\
-	}																																			\
-	/* catch OpenMS exceptions to retrieve additional information */			\
-	catch (OpenMS::Exception::BaseException& e)														\
-	{																																			\
-		TEST::this_test = false;																						\
-		TEST::test = false;																									\
-		TEST::all_tests = false;																						\
-		{																																		\
-			if (TEST::exception == 1)																					\
-				TEST::exception++;																							\
-			std__cout << std::endl << "    (caught exception of type `"				\
-								<< e.getName() << "'";																	\
-			if ((e.getLine() > 0) && (std::strcmp(e.getFile(),"")!=0))				\
-				std__cout << " outside a subtest, which was thrown in line " << e.getLine()	\
-									<< " of file " << e.getFile()													\
-									<< " in function " << e.getFunction();								\
-			std__cout << " - unexpected!) " << std::endl;											\
-			std__cout << "    (message is: " << e.what() << ")" << std::endl;	\
-		}																																		\
-	}																																			\
-	/* catch all non-OpenMS exceptions */																	\
-	catch (...)																														\
-	{																																			\
-		TEST::this_test = false;																						\
-		TEST::test = false;																									\
-		TEST::all_tests = false;																						\
-		{																																		\
-			std__cout << std::endl <<																					\
-				"    (caught unidentified and unexpected exception outside a subtest!) " << \
-				std::endl;																											\
-		}																																		\
-	}																																			\
+	catch (::OpenMS::Exception::BaseException& e)																						\
+	{																																												\
+		TEST::this_test = false;																															\
+		TEST::test = false;																																		\
+		TEST::all_tests = false;																															\
+		{																																											\
+			if (TEST::exception == 1) TEST::exception++;																				\
+			TEST::initialNewline();																															\
+			std__cout << "Error: Caught unexpected exception of type '" << e.getName() << "'";	\
+			if ((e.getLine() > 0) && (std::strcmp(e.getFile(),"")!=0))													\
+			{																																										\
+				std__cout << " thrown in line " << e.getLine() << " of file '" << e.getFile() 		\
+									<< "' in function '" << e.getFunction()	<< "'";													\
+			}																																										\
+			std__cout << " - Message: " << e.what() << std::endl;																\
+		}																																											\
+	}																																												\
+	/* catch std:: exceptions */																														\
+	catch (std::exception& e)																																\
+	{																																												\
+		TEST::this_test = false;																															\
+		TEST::test = false;																																		\
+		TEST::all_tests = false;																															\
+		{																																											\
+			TEST::initialNewline();																															\
+			std__cout << "Error: Caught std::exception" << std::endl;														\
+			std__cout << " - Message: " << e.what() << std::endl;																\
+		}																																											\
+	}																																												\
+	/* catch all other exceptions */																												\
+	catch (...)																																							\
+	{																																												\
+		TEST::this_test = false;																															\
+		TEST::test = false;																																		\
+		TEST::all_tests = false;																															\
+		{																																											\
+			TEST::initialNewline();																															\
+			std__cout << "Error: Caught unidentified and unexpected exception - No message." << std::endl;		\
+		}																																											\
+	}																																												\
 	/* check validity of temporary files if known */											\
 	if (!TEST::validate(TEST::tmp_file_list))															\
 	{																																			\
@@ -449,24 +440,6 @@ int main(int argc, char **argv)																									\
 			break;																																							\
 		}																																											\
 	}																																												\
-	/* catch FileNotFound exceptions to print out the file name */													\
-	catch (OpenMS::Exception::FileNotFound& e)																							\
-	{																																												\
-		TEST::this_test = false;																															\
-		TEST::test = false;																																		\
-		TEST::all_tests = false;																															\
-		{																																											\
-			if (TEST::exception == 1) /* dummy to avoid compiler warnings */										\
-				TEST::exception++;																																\
-			std__cout << std::endl << "    (caught exception of type `"													\
-								<< e.getName() << "'";																										\
-			if ((e.getLine() > 0) && (std::strcmp(e.getFile(),"")!=0))													\
-				std__cout << " outside a subtest, which was thrown in line " << e.getLine()				\
-									<< " of file " << e.getFile()																						\
-									<< " in function `" << e.getFunction();																	\
-			std__cout << " - unexpected!) " << std::endl;																				\
-		}																																											\
-	}																																												\
 	catch (::OpenMS::Exception::BaseException& e)																						\
 	{																																												\
 		TEST::this_test = false;																															\
@@ -474,16 +447,16 @@ int main(int argc, char **argv)																									\
 		TEST::all_tests = false;																															\
 		{																																											\
 			TEST::initialNewline();																															\
-			std__cout << "    (caught exception of type `"																			\
-								<< e.getName() << "'";																										\
+			std__cout << "Error: Caught unexpected exception of type '" << e.getName() << "'";	\
 			if ((e.getLine() > 0) && (std::strcmp(e.getFile(),"")!=0))													\
-				std__cout << " outside a subtest, which was thrown in line " << e.getLine()				\
-									<< " of file " << e.getFile()																						\
-									<< " in function `" << e.getFunction();																	\
-			std__cout << "' - unexpected!) " << std::endl;																			\
-			std__cout << "    (message is: `" << e.what() << "')" << std::endl;									\
+			{																																										\
+				std__cout << " thrown in line " << e.getLine() << " of file '" << e.getFile() 		\
+									<< "' in function '" << e.getFunction()	<< "'";													\
+			}																																										\
+			std__cout << " - Message: " << e.what() << std::endl;																\
 		}																																											\
 	}																																												\
+	/* catch std:: exceptions */																														\
 	catch (std::exception& e)																																\
 	{																																												\
 		TEST::this_test = false;																															\
@@ -491,29 +464,11 @@ int main(int argc, char **argv)																									\
 		TEST::all_tests = false;																															\
 		{																																											\
 			TEST::initialNewline();																															\
-			std__cout << "    (caught std::exception. Cause: `" << e.what() << "')" << std::endl;	\
+			std__cout << "Error: Caught std::exception" << std::endl;														\
+			std__cout << " - Message: " << e.what() << std::endl;																\
 		}																																											\
 	}																																												\
-	catch (std::string& e)																																	\
-	{																																												\
-		TEST::this_test = false;																															\
-		TEST::test = false;																																		\
-		TEST::all_tests = false;																															\
-		{																																											\
-			TEST::initialNewline();																															\
-			std__cout << "    (caught std::string as an exception: `" << e << "')" << std::endl; \
-		}																																											\
-	}																																												\
-	catch (const char* e)																																		\
-	{																																												\
-		TEST::this_test = false;																															\
-		TEST::test = false;																																		\
-		TEST::all_tests = false;																															\
-		{																																											\
-			TEST::initialNewline();																															\
-			std__cout << "    (caught char pointer as an exception: `" << e << "')" << std::endl;	\
-		}																																											\
-	}																																												\
+	/* catch all other exceptions */																												\
 	catch (...)																																							\
 	{																																												\
 		TEST::this_test = false;																															\
@@ -521,7 +476,7 @@ int main(int argc, char **argv)																									\
 		TEST::all_tests = false;																															\
 		{																																											\
 			TEST::initialNewline();																															\
-			std__cout << "    (caught unidentified and unexpected exception!)" << std::endl;		\
+			std__cout << "Error: Caught unidentified and unexpected exception - No message." << std::endl;		\
 		}																																											\
 	}																																												\
 	TEST::all_tests = TEST::all_tests && TEST::test;																				\

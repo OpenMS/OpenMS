@@ -281,7 +281,7 @@ START_SECTION((String substr(SignedSize start, SignedSize n) const))
 	TEST_EQUAL(s.substr(0,8),"abcdef")
 	//start negative
 	TEST_EQUAL(s.substr(-3,1),"d")
-	TEST_EQUAL(s.substr(-9,1),"")
+	TEST_EQUAL(s.substr(-9,1),"a")
 	//n negative
 	TEST_EQUAL(s.substr(0,-2),"abcd")
 	TEST_EQUAL(s.substr(0,-1),"abcde")

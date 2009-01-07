@@ -38,6 +38,42 @@ START_TEST(String, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
+String spectrum_file1 = OPENMS_GET_TEST_DATA_PATH("InspectOutfile_test_1.mzXML");
+String spectrum_file2 = OPENMS_GET_TEST_DATA_PATH("InspectOutfile_test_2.mzXML");
+
+//create input file (they contain absolute paths...)
+String input_file_name;
+NEW_TMP_FILE(input_file_name);
+TextFile outfile_content;
+outfile_content.push_back("#SpectrumFile	Scan#	Annotation	Protein	Charge	MQScore	CutScore	IntenseBY	BYPresent	Unused	p-value	DeltaScore	DeltaScoreOther	RecordNumber	DBFilePos	SpecFilePos");
+outfile_content.push_back(spectrum_file1 + "	4	N.EER.N	Q9CQV8|1433B_MOUSE	1	-6889	1150	200	500	0	0.95000	0	0	1	287	270451");
+outfile_content.push_back(spectrum_file1 + "	4	R.EKIE.K	P68509|1433F_BOVIN	1	-1456	3388	300	667	0	0.01000	-1199	-1199	0	87	276369");
+outfile_content.push_back(spectrum_file1 + "	4	E.KKLE.K	P68509|1433F_BOVIN	1	-257	3820	450	333	0	0.00001	1199	1199	0	78	276369");
+outfile_content.push_back(spectrum_file1 + "	25	D.DAIAE.L	P68509|1433F_BOVIN	1	-6526	354	250	375	0	0.97500	-6269	-6269	0	205	276369");
+outfile_content.push_back(spectrum_file1 + "	37	D.EAIAEL.D	Q9CQV8|1433B_MOUSE	1	-2807	2464	350	300	0	0.98536	0	0	1	446	387302");
+outfile_content.push_back(spectrum_file1 + "	49	D.KFLIK.N	P68509|1433F_BOVIN	1	-5308	1813	250	375	0	0.98758	0	0	0	106	473207");
+outfile_content.push_back(spectrum_file1 + "	120	N.EKKLEKVKA.Y	P68509|1433F_BOVIN	2	-9115	-1187	185	125	0	0.96296	0	0	0	77	1062539");
+outfile_content.push_back(spectrum_file1 + "	217	N.EDRNLL.S	P68509|1433F_BOVIN	1	-11835	140	100	0	0	0.97143	0	0	0	41	1720635");
+outfile_content.push_back(spectrum_file1 + "	249	A.LLDKF.L	P68509|1433F_BOVIN	1	-4503	2554	300	250	0	0.99043	0	0	0	103	1943362");
+outfile_content.push_back(spectrum_file1 + "	501	F.DEAIAELDTLNEE.S	Q9CQV8|1433B_MOUSE	2	-7874	-1829	231	0	0	0.95652	0	0	1	452	3860094");
+outfile_content.push_back(spectrum_file1 + "	667	K.LAEQAERYDDMAA.A	Q9CQV8|1433B_MOUSE	2	-9787	-1362	77	125	0	0.96552	0	0	1	266	5279013");
+outfile_content.push_back(spectrum_file1 + "	685	N.LTLWTSENQGDEGDAG.E	Q9CQV8|1433B_MOUSE	2	-9056	-2174	125	0	0	0.96296	0	0	1	479	5448607");
+outfile_content.push_back(spectrum_file1 + "	736	Y.QEAFEIS.K	Q9CQV8|1433B_MOUSE	1	-11507	478	0	250	0	0.98789	17	17	1	399	6018155");
+outfile_content.push_back(spectrum_file1 + "	736	Y.KEAFEIS.K	P68509|1433F_BOVIN	1	-11524	457	0	250	0	0.97059	-17	0	0	156	6018155");
+outfile_content.push_back(spectrum_file1 + "	758	S.NEDRNLLSVAYKN.V	P68509|1433F_BOVIN	2	-4841	-481	256	208	0	0.98948	0	0	0	43	6167475");
+outfile_content.push_back(spectrum_file1 + "	764	L.LAKQAFDDAIAELDTLNED.S	P68509|1433F_BOVIN	2	-4474	-560	140	250	0	0.99043	0	0	0	201	6208454");
+outfile_content.push_back(spectrum_file1 + "	786	T.MDKSELV.Q	Q9CQV8|1433B_MOUSE	1	-12849	-1629	48	167	0	0.97368	0	0	1	253	6399323");
+outfile_content.push_back(spectrum_file1 + "	1045	S.VFYYEI.Q	P68509|1433F_BOVIN	1	-15475	-2579	0	100	0	0.97500	0	0	0	184	9842931");
+outfile_content.push_back(spectrum_file1 + "	1962	E.AFEIS.K	P68509|1433F_BOVIN	1	-10496	-742	100	375	0	0.96774	0	0	0	159	19098337");
+outfile_content.store(input_file_name);
+
+String input_file_name2;
+NEW_TMP_FILE(input_file_name2);
+outfile_content.clear();
+outfile_content.push_back("#SpectrumFile	Scan#	Annotation	Protein	Charge	MQScore	CutScore	IntenseBY	BYPresent	Unused	p-value	DeltaScore	DeltaScoreOther	RecordNumber	DBFilePos	SpecFilePos");
+outfile_content.push_back(spectrum_file1 + "	N.EER.N	Q9CQV8|1433B_MOUSE	1	-6889	1150	200	500	0	0.95000	0	0	1	287	270451");
+outfile_content.store(input_file_name2);
+
 
 InspectOutfile* ptr = 0;
 START_SECTION(InspectOutfile())
@@ -80,18 +116,14 @@ START_SECTION(std::vector< UInt > load(const String& result_filename, std::vecto
 	
 	// test exceptions
 	TEST_EXCEPTION(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification, 2.0))
-	
 	TEST_EXCEPTION(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification, -1.0))
-	
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.01), "the file 'a' could not be found")
-	
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileEmpty, file.load(OPENMS_GET_TEST_DATA_PATH("Inspect_empty_file.txt"), peptide_identifications, protein_identification, 0.01), OPENMS_GET_TEST_DATA_PATH_MESSAGE("the file '","Inspect_empty_file.txt","' is empty"))
 	
 	peptide_identifications.clear();
 	protein_identification.setHits(vector< ProteinHit >());
 	
-	
-	file.load(OPENMS_GET_TEST_DATA_PATH("InspectOutfile.out"), peptide_identifications, protein_identification, 0.001);
+	file.load(input_file_name, peptide_identifications, protein_identification, 0.001);
 	
 	TEST_EQUAL(peptide_identifications.size(), 1)
 	if ( peptide_identifications.size() == 1 )
@@ -116,7 +148,7 @@ START_SECTION(std::vector< UInt > load(const String& result_filename, std::vecto
 	}
 	peptide_identifications.clear();
 std::cout << "MARTIN" << std::endl;
-	file.load(OPENMS_GET_TEST_DATA_PATH("InspectOutfile.out"), peptide_identifications, protein_identification, 0.01);
+	file.load(input_file_name, peptide_identifications, protein_identification, 0.01);
 std::cout << "MARTIN" << std::endl;
 	TEST_EQUAL(peptide_identifications.size(), 1)
 	if ( peptide_identifications.size() == 1 )
@@ -153,10 +185,10 @@ std::cout << "MARTIN" << std::endl;
 	
 	peptide_identifications.clear();
 	protein_identification.setHits(vector< ProteinHit >());
-	TEST_EQUAL(file.load(OPENMS_GET_TEST_DATA_PATH("InspectOutfile.out1"), peptide_identifications, protein_identification, 0.01).size(), 1)
-	if ( file.load(OPENMS_GET_TEST_DATA_PATH("InspectOutfile.out1"), peptide_identifications, protein_identification, 0.01).size() == 1 )
+	TEST_EQUAL(file.load(input_file_name2, peptide_identifications, protein_identification, 0.01).size(), 1)
+	if ( file.load(input_file_name2, peptide_identifications, protein_identification, 0.01).size() == 1 )
 	{
-		TEST_EQUAL(file.load(OPENMS_GET_TEST_DATA_PATH("InspectOutfile.out1"), peptide_identifications, protein_identification, 0.01)[0], 2)
+		TEST_EQUAL(file.load(input_file_name2, peptide_identifications, protein_identification, 0.01)[0], 2)
 	}
 END_SECTION
 
@@ -166,9 +198,7 @@ START_SECTION(void generateTrieDB(const std::String& source_database_filename, c
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.generateTrieDB("a", "", ""), "the file 'a' could not be found")
 	
 	// test unable to create file
-// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.generateTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.fasta"), OPENMS_GET_TEST_DATA_PATH("Inspect_unreadable_unwriteable.txt"), ""), "the file 'data/Inspect_unreadable_unwriteable.txt' could not be created")
-	
-// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.generateTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.fasta"), "InspectOutfile_test.trie", OPENMS_GET_TEST_DATA_PATH("Inspect_unreadable_unwriteable.txt")), "the file 'data/Inspect_unreadable_unwriteable.txt' could not be created")
+	TEST_EXCEPTION(Exception::UnableToCreateFile, file.generateTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.fasta"), OPENMS_GET_TEST_DATA_PATH("Inspect_unreadable_unwriteable.txt"), ""))
 
 	remove("InspectOutfile_test.trie");
 	remove("InspectOutfile_test.index");
@@ -198,18 +228,14 @@ START_SECTION(void compressTrieDB(const String& database_filename, const String&
 	remove("InspectOutfile_test2.index");
 	// test for equal filenames
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"), wanted_records, OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), ""), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","Inspect_test.trie"," in: Same filename can not be used for original and second database!"))
-	
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"), wanted_records, "", OPENMS_GET_TEST_DATA_PATH("Inspect_test.index")), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","Inspect_test.index"," in: Same filename can not be used for original and second database!"))
 
 	// test file not found for input files (using empty filenames)
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.compressTrieDB("a", "", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index"), "the file 'a' could not be found")
-	
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), "b", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index"), "the file 'b' could not be found")
 
 	// test for unable to create file
-// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"), wanted_records, OPENMS_GET_TEST_DATA_PATH("Inspect_unreadable_unwriteable.txt"), "", true), "the file 'data/Inspect_unreadable_unwriteable.txt' could not be created")
-	
-// 	TEST_EXCEPTION_WITH_MESSAGE(Exception::UnableToCreateFile, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"), wanted_records, "InspectOutfile_test.trie", OPENMS_GET_TEST_DATA_PATH("Inspect_unreadable_unwriteable.txt"), true), "the file 'data/Inspect_unreadable_unwriteable.txt' could not be created")
+	TEST_EXCEPTION(Exception::UnableToCreateFile, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"), wanted_records, OPENMS_GET_TEST_DATA_PATH("Inspect_unreadable_unwriteable.txt"), "", true))
 
 	// test for parse error
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_empty_file.txt"), wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", true),OPENMS_GET_TEST_DATA_PATH_MESSAGE("", "Inspect_empty_file.txt"," in: index file is too short!"))
@@ -332,15 +358,15 @@ START_SECTION(void getPrecursorRTandMZ(const vector< pair< String, vector< pair 
 	vector< PeptideIdentification > ids, ids_found;
 
 	// test exceptions
-	files_and_peptide_identification_with_scan_number.push_back(make_pair(OPENMS_GET_TEST_DATA_PATH("InspectOutfile_test_1.mzXML"), vector< pair< UInt, UInt > >(1, make_pair(0, 10))));
+	files_and_peptide_identification_with_scan_number.push_back(make_pair(spectrum_file1, vector< pair< UInt, UInt > >(1, make_pair(0, 10))));
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.getPrecursorRTandMZ(files_and_peptide_identification_with_scan_number, ids_found), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","InspectOutfile_test_1.mzXML"," in: Not enought scans in file! (4 available, should be at least 10)"))
 	
 	files_and_peptide_identification_with_scan_number.clear();
 	ids.clear();
 	ids_found.clear();
 	
-	files_and_peptide_identification_with_scan_number.push_back(make_pair(OPENMS_GET_TEST_DATA_PATH("InspectOutfile_test_1.mzXML"), vector< pair < UInt, UInt > >(1, make_pair(0, 4))));
-	files_and_peptide_identification_with_scan_number.push_back(make_pair(OPENMS_GET_TEST_DATA_PATH("InspectOutfile_test_2.mzXML"), vector< pair < UInt, UInt > >(1, make_pair(1, 4))));
+	files_and_peptide_identification_with_scan_number.push_back(make_pair(spectrum_file1, vector< pair < UInt, UInt > >(1, make_pair(0, 4))));
+	files_and_peptide_identification_with_scan_number.push_back(make_pair(spectrum_file2, vector< pair < UInt, UInt > >(1, make_pair(1, 4))));
 	ids_found.push_back(PeptideIdentification());
 	ids_found.push_back(PeptideIdentification());
 	
@@ -364,7 +390,6 @@ START_SECTION(void getLabels(const String& source_database_filename, String& ac_
 
 	// test exceptions
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getLabels("a", ac_label, sequence_start_label, sequence_end_label, comment_label, species_label), "the file 'a' could not be found")
-	
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.getLabels(OPENMS_GET_TEST_DATA_PATH("Inspect_test1.fasta"), ac_label, sequence_start_label, sequence_end_label, comment_label, species_label), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","Inspect_test1.fasta"," in: database has unknown file format (neither trie nor FASTA nor swissprot)"))
 	
 	// test the actual program
@@ -380,16 +405,13 @@ START_SECTION(vector< UInt > getWantedRecords(const String& result_filename, Rea
 
 	// test exceptions
 	TEST_EXCEPTION(Exception::IllegalArgument, file.getWantedRecords("", 2.0))
-
 	TEST_EXCEPTION(Exception::IllegalArgument, file.getWantedRecords("", -1.0))
-	
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getWantedRecords("a", 0.01), "the file 'a' could not be found")
-	
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileEmpty, file.getWantedRecords(OPENMS_GET_TEST_DATA_PATH("Inspect_empty_file.txt"), 0.01), OPENMS_GET_TEST_DATA_PATH_MESSAGE("the file '","Inspect_empty_file.txt","' is empty"))
 	
 
 	// test the actual program
-	vector< UInt > wanted_records = file.getWantedRecords(OPENMS_GET_TEST_DATA_PATH("InspectOutfile.out"), 0.01);
+	vector< UInt > wanted_records = file.getWantedRecords(input_file_name, 0.01);
 	TEST_EQUAL (wanted_records.size(), 1)
 	if ( !wanted_records.empty() ) TEST_EQUAL (wanted_records.front(), 0)
 END_SECTION
@@ -400,7 +422,6 @@ START_SECTION(template< typename PeakT > void getExperiment(MSExperiment< PeakT 
 
 	// test exceptions
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.getExperiment(exp, type, OPENMS_GET_TEST_DATA_PATH("InspectOutfile_version_file.txt")), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","InspectOutfile_version_file.txt"," in: Could not determine type of the file. Aborting!"))
-
 	
 	// test the actual program
 	file.getExperiment(exp, type, OPENMS_GET_TEST_DATA_PATH("../TOPP/Inspect.mzXML"));
@@ -433,7 +454,6 @@ START_SECTION(void readOutHeader(const String& filename, const String& header_li
 
 	// test exceptions
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.readOutHeader("dummy_testfile", header_line, spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column, number_of_columns), "dummy_testfile in: at least one of the columns '#SpectrumFile', 'Scan#', 'Annotation', 'Protein', 'Charge', 'MQScore', 'p-value', 'RecordNumber', 'DBFilePos' or 'SpecFilePos' is missing!")
-
 	
 	// test the actual program
 	header_line = "#SpectrumFile	Scan#	Annotation	Protein	Charge	MQScore	Length	TotalPRMScore	MedianPRMScore	FractionY	FractionB	Intensity	NTT	p-value	F-Score	DeltaScore	DeltaScoreOther	RecordNumber	DBFilePos	SpecFilePos";
