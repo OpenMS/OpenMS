@@ -30,7 +30,7 @@
 namespace OpenMS
 {
 	// Note: this list has to be kept in sync with enum MorphologicalFilter::Method
-	const char* MorphologicalFilter::MorphologicalFilter::method_names[MorphologicalFilter::NUMBER_OF_METHODS] =
+	const char* MorphologicalFilter::method_names[MorphologicalFilter::NUMBER_OF_METHODS] =
 		{
 			"identity",
 			"erosion",
