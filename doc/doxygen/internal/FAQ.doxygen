@@ -136,9 +136,13 @@
       <li><b>How do I add a new class <tt>MyClass</tt> to the build system?</b><br>
           <OL>
             <LI>Create the new class (header in include/ and C file in source/)
-            <LI>Add each to the sources.cmake file in the same directory.
+            <LI>Add both to the respective sources.cmake file in the same directory.
             <LI>Add them to svn version control and set the svn:eol-style property to native<br>
-                e.g. <code>svn propset svn:eol-style native MyClass.h</code>
+                e.g. 
+@code
+svn propset svn:eol-style native MyClass.h
+svn propset svn:eol-style native MyClass.C
+@endcode
           </OL>
 
 	    <li><b>How do I add a new directory <tt>MYDIR</tt> to the build system?</b><br>
@@ -193,7 +197,7 @@
 				All source files added to an IDE are associated with their targets. You can find the 
 				source files for each test within its own subproject.<br>
 				The same is true for the TOPP and UTILS classes.
-
+		</UL>
 
 	<H2 style="border-top:2px solid grey;">Debugging</H2>
 		<UL>

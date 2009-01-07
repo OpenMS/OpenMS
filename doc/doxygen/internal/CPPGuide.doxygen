@@ -69,7 +69,7 @@ Size is an unsigned type!If you need a signed type (e.g. when comparing length o
 <H2 style="margin-top:20px; border-top:1px solid grey;">Math functions</H2>
 
 Using GCC a lot of common math functions are available (e.g. trunc, round etc). However, this is <b>not</b> required by the C++Standard,
-so Microsoft decided not to include them. You will break the windows port of OpenMS if you use them!<br>
+so Microsoft decided not to include them. You will break the windows port of %OpenMS if you use them!<br>
 You can rely on <tt>ceil()</tt> and <tt>floor()</tt> to exist everywhere (include cmath).
 If you are not sure whats available try http://www.cplusplus.com/ or for VisualStudio specific problems: MSDN (http://msdn.microsoft.com/en-us/visualc/default.aspx).<br>
 Additionally %OpenMS provides a Math::round() function for convenience (see MATH/MISC/MathFunctions.h).
