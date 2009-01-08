@@ -202,12 +202,16 @@ svn propset svn:eol-style native MyClass.C
 	<H2 style="border-top:2px solid grey;">Debugging</H2>
 		<UL>
 			<li><b>How do I run a single test?</b><br>
-				You can only run single tests, if you know the test number.
+			
 				You can list all tests with numbers using the command
-				
 				<code>&gt; ctest -N</code>
 				
-				Now CTest can be used to execute a range of tests.
+				You can run a test by specifying its name using the <tt>-R</tt> flag.
+				E.g. to call all tests which contain the substring <tt>File</tt> use:
+				
+				<code>&gt; ctest -R File</code>
+			
+				You can only run single tests (or a range of tests), if you know the test number.
 				For the test 45, you would use the same start and end test number:
 				
 				<code>&gt; ctest -V -I 45,45</code>
