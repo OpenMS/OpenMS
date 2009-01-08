@@ -265,7 +265,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 	
 	
 	vector<double> spec_new;
-	for (int i = 500; i < 5000; i += 20)
+	for (int i = 500; i < 5000; i += 197)
 	{
 		spec_new.push_back((double)i);
 	}
