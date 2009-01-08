@@ -4,10 +4,10 @@
 ## # The following are required to uses Dart and the Cdash dashboard
 ##   ENABLE_TESTING()
 ##   INCLUDE(Dart)
-set(CTEST_PROJECT_NAME "OpenMS/TOPP")
+set(CTEST_PROJECT_NAME "OpenMS")
 set(CTEST_NIGHTLY_START_TIME "00:00:00 UTC")
 
 set(CTEST_DROP_METHOD "http")
 set(CTEST_DROP_SITE "www.cdash.org")
-set(CTEST_DROP_LOCATION "/CDashPublic/submit.php?project=OpenMS%2FTOPP")
+set(CTEST_DROP_LOCATION "/CDashPublic/submit.php?project=OpenMS")
 set(CTEST_DROP_SITE_CDASH TRUE)
