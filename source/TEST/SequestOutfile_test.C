@@ -397,7 +397,7 @@ END_SECTION
 
 START_SECTION(void readOutHeader(const String& result_filename, DateTime& datetime, Real& precursor_mz_value, Int& charge, UInt& precursor_mass_type, UInt& ion_mass_type, UInt& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, UInt& number_of_columns))
 	
-	String result_filename = "TOPP/tmp/Sequest.mzXML.13.1.d.out";
+	String result_filename = OPENMS_GET_TEST_DATA_PATH("../TOPP/tmp/Sequest.mzXML.13.1.d.out");
 	DateTime datetime;
 	
 	Real precursor_mz_value(0.0);
