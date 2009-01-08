@@ -208,7 +208,7 @@ namespace OpenMS
 				}
 
 				// Retention time changed -> new Spectrum
-				if (rt != spec.getRT())
+				if (fabs(rt-spec.getRT())>0.0001)
 				{
 					if ( spec.size()!=0
 						 	 &&
