@@ -185,7 +185,7 @@ START_SECTION(([EXTRA] "struct SimpleTopHat, used as reference implementation"))
 #undef EnTrY
 #undef EnTrYfAt
 
-	TEST_FILE_EQUAL(tmpfn.c_str(),"data/MorphologicalFilter_test_1.txt");
+	TEST_FILE_EQUAL(tmpfn.c_str(),OPENMS_GET_TEST_DATA_PATH("MorphologicalFilter_test_1.txt"));
 
 	// Documentation in MorphologicalFilter uses the following gnuplot script
 
