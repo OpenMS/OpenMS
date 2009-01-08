@@ -51,8 +51,8 @@ endif()
 if (EXISTS source/TEST/TOPP/DBExporter_input.ini)
 	add_test("TOPP_DBExporter_1" ${TOPP_BIN_PATH}/DBExporter  -out DBExporter_output.tmp -ini ${DATA_DIR_TOPP}/DBExporter_input.ini -id 1)
 	add_test("TOPP_DBExporter_1_out1" ${DIFF} -in1 DBExporter_output.tmp -in2 ${DATA_DIR_TOPP}/DBImporter_input.mzData)
-#TODO	add_test("TOPP_DBExporter_2" ${TOPP_BIN_PATH}/DBExporter  -out DBExporter_output2.tmp -ini ${DATA_DIR_TOPP}/DBExporter_input.ini -query 'SELECT 1')
-#add_test("TOPP_DBExporter_2_out1" ${DIFF} -in1 DBExporter_output2.tmp -in2 ${DATA_DIR_TOPP}/DBImporter_input.mzData)
+	add_test("TOPP_DBExporter_2" ${TOPP_BIN_PATH}/DBExporter  -out DBExporter_output2.tmp -ini ${DATA_DIR_TOPP}/DBExporter_input.ini -query "SELECT 1")
+	add_test("TOPP_DBExporter_2_out1" ${DIFF} -in1 DBExporter_output2.tmp -in2 ${DATA_DIR_TOPP}/DBImporter_input.mzData)
 endif()
 
 ### Decharger tests
@@ -245,8 +245,7 @@ add_test("TOPP_RTModel_4_out2" ${DIFF} -in1 RTModel_4_output.tmp_samples -in2 ${
 
 ### PTModel tests
 add_test("TOPP_PTModel_1" ${TOPP_BIN_PATH}/PTModel -in_positive ${DATA_DIR_TOPP}/PTModel_1_input_positive.idXML -in_negative ${DATA_DIR_TOPP}/PTModel_1_input_negative.idXML -out PTModel_1_output.tmp -ini ${DATA_DIR_TOPP}/PTModel_1_parameters.ini)
-#SED('s/^.*prob.*$$//g' PTModel_1_output.tmp > PTModel_1_output.tmp_
-#TODO add_test("TOPP_PTModel_1_out1" ${DIFF} -in1 PTModel_1_output.tmp_ -in2 PTModel_1_output.model)
+add_test("TOPP_PTModel_1_out1" ${DIFF} -whitelist "probA" "probB" -in1 PTModel_1_output.tmp -in2 PTModel_1_output.model)
 add_test("TOPP_PTModel_1_out2" ${DIFF} -in1 PTModel_1_output.tmp_samples -in2 ${DATA_DIR_TOPP}/PTModel_1_output.samples)
 add_test("TOPP_PTModel_1_out3" ${DIFF} -in1 PTModel_1_output.tmp_additional_parameters -in2 ${DATA_DIR_TOPP}/PTModel_1_output.additional_parameters)
 #REMOVE(-rf PTModel_1_output.tmp_additional_parameters PTModel_1_output.tmp_samples
@@ -261,61 +260,37 @@ add_test("TOPP_RTPredict_1_out1" ${DIFF} -in1 RTPredict_1_output.tmp -in2 ${DATA
 add_test("TOPP_RTPredict_2" ${TOPP_BIN_PATH}/RTPredict -in ${DATA_DIR_TOPP}/RTPredict_2_input.idXML -out_positive RTPredict_2_output_positive.tmp -out_negative RTPredict_2_output_negative.tmp -svm_model ${DATA_DIR_TOPP}/RTPredict_2_input.model)
 add_test("TOPP_RTPredict_2_out1" ${DIFF} -in1 RTPredict_2_output_positive.tmp -in2 ${DATA_DIR_TOPP}/RTPredict_2_output_positive.idXML)
 add_test("TOPP_RTPredict_2_out2" ${DIFF} -in1 RTPredict_2_output_negative.tmp -in2 ${DATA_DIR_TOPP}/RTPredict_2_output_negative.idXML)
-add_test("TOPP_RTPredict_3" ${TOPP_BIN_PATH}/RTPredict -in ${DATA_DIR_TOPP}/RTPredict_3_input.idXML -out RTPredict_3_output.tmp_ -total_gradient_time 1 -svm_model ${DATA_DIR_TOPP}/RTPredict_3_input.model)
-#SED('s/^.*predicted_RT_p_value.*$$//g' RTPredict_3_output.tmp_ > RTPredict_3_output.tmp
-#TODO add_test("TOPP_RTPredict_3_out1" ${DIFF} -in1 RTPredict_3_output.tmp -in2 ${DATA_DIR_TOPP}/RTPredict_3_output.idXML)
+add_test("TOPP_RTPredict_3" ${TOPP_BIN_PATH}/RTPredict -in ${DATA_DIR_TOPP}/RTPredict_3_input.idXML -out RTPredict_3_output.tmp -total_gradient_time 1 -svm_model ${DATA_DIR_TOPP}/RTPredict_3_input.model)
+add_test("TOPP_RTPredict_3_out1" ${DIFF} -whitelist "<?xml-stylesheet" "predicted_RT_p_value" -in1 RTPredict_3_output.tmp -in2 ${DATA_DIR_TOPP}/RTPredict_3_output.idXML)
 add_test("TOPP_RTPredict_4" ${TOPP_BIN_PATH}/RTPredict -in ${DATA_DIR_TOPP}/RTPredict_4_input.txt -out RTPredict_4_output.tmp -total_gradient_time 1 -svm_model ${DATA_DIR_TOPP}/RTPredict_4_input.model -textfile_input)
 add_test("TOPP_RTPredict_4_out1" ${DIFF} -in1 RTPredict_4_output.tmp -in2 ${DATA_DIR_TOPP}/RTPredict_4_output.txt)
 add_test("TOPP_RTPredict_5" ${TOPP_BIN_PATH}/RTPredict -in ${DATA_DIR_TOPP}/RTPredict_5_input.idXML -out RTPredict_5_output.tmp -total_gradient_time 1 -svm_model ${DATA_DIR_TOPP}/RTPredict_5_input.model -textfile_output)
 add_test("TOPP_RTPredict_5_out1" ${DIFF} -in1 RTPredict_5_output.tmp -in2 ${DATA_DIR_TOPP}/RTPredict_5_output.txt)
 
 ### InspectAdapter tests
-#TODO
-#add_test("TOPP_InspectAdapter_1" ${TOPP_BIN_PATH}/InspectAdapter -ini ${DATA_DIR_TOPP}/InspectAdapter_1_parameters.ini -list_modifications > InspectAdapter_1_output.tmp)
-#add_test("TOPP_InspectAdapter_1_out1" ${DIFF} -in1 InspectAdapter_1_output.tmp -in2 ${DATA_DIR_TOPP}/InspectAdapter_1_output.modification_list.txt)
-#add_test("TOPP_InspectAdapter_2" ${TOPP_BIN_PATH}/InspectAdapter -ini ${DATA_DIR_TOPP}/InspectAdapter_1_parameters.ini -inspect_in -out InspectAdapter_2_output.tmp)
-##SED('s/^spectra,.*$$/spectra,dummy.mzXML/g' InspectAdapter_2_output.tmp > InspectAdapter_2_output.tmp_3
-##SED('s/^db,.*$$/db,dummy.trie/g' InspectAdapter_2_output.tmp_3 > InspectAdapter_2_output.tmp
-#add_test("TOPP_InspectAdapter_2_out1" ${DIFF} -in1 InspectAdapter_2_output.tmp -in2 ${DATA_DIR_TOPP}/InspectAdapter_2_output.inspect_in)
-#add_test("TOPP_InspectAdapter_3" ${TOPP_BIN_PATH}/InspectAdapter -ini ${DATA_DIR_TOPP}/InspectAdapter_1_parameters.ini -inspect_in -in ${DATA_DIR_TOPP}/Inspect.mzData -out InspectAdapter_3_output.tmp)
-##SED('s/^spectra,.*$$/spectra,dummy.mzXML/g' InspectAdapter_3_output.tmp > InspectAdapter_3_output.tmp_2
-##SED('s/^db,.*$$/db,dummy.trie/g' InspectAdapter_3_output.tmp_2 > InspectAdapter_3_output.tmp
-#add_test("TOPP_InspectAdapter_3_out1" ${DIFF} -in1 InspectAdapter_3_output.tmp -in2 ${DATA_DIR_TOPP}/InspectAdapter_2_output.inspect_in)
-#add_test("TOPP_InspectAdapter_4" ${TOPP_BIN_PATH}/InspectAdapter -ini ${DATA_DIR_TOPP}/InspectAdapter_1_parameters.ini -in ${DATA_DIR_TOPP}/InspectAdapter.out -out InspectAdapter_4_output.tmp_ -inspect_out)
-##SED('s/^.*date.*$$/# date removed/g' InspectAdapter_4_output.tmp_ > InspectAdapter_4_output.tmp
-#add_test("TOPP_InspectAdapter_4_out1" ${DIFF} -in1 InspectAdapter_4_output.tmp -in2 ${DATA_DIR_TOPP}/InspectAdapter_4_output.idXML)
-##REMOVE(-rf Inspect_FASTAFile_test4.tmp.trie Inspect_FASTAFile_test4.tmp.index InspectAdapter_4_output.tmp_
+add_test("TOPP_InspectAdapter_1" ${TOPP_BIN_PATH}/InspectAdapter -ini ${DATA_DIR_TOPP}/InspectAdapter_1_parameters.ini -inspect_in -out InspectAdapter_2_output.tmp)
+add_test("TOPP_InspectAdapter_1_out1" ${DIFF} -whitelist "spectra," "db," -in1 InspectAdapter_2_output.tmp -in2 ${DATA_DIR_TOPP}/InspectAdapter_2_output.inspect_in)
+add_test("TOPP_InspectAdapter_2" ${TOPP_BIN_PATH}/InspectAdapter -ini ${DATA_DIR_TOPP}/InspectAdapter_1_parameters.ini -inspect_in -in ${DATA_DIR_TOPP}/Inspect.mzData -out InspectAdapter_3_output.tmp)
+add_test("TOPP_InspectAdapter_2_out1" ${DIFF} -whitelist "spectra," "db," -in1 InspectAdapter_3_output.tmp -in2 ${DATA_DIR_TOPP}/InspectAdapter_2_output.inspect_in)
+add_test("TOPP_InspectAdapter_3" ${TOPP_BIN_PATH}/InspectAdapter -ini ${DATA_DIR_TOPP}/InspectAdapter_1_parameters.ini -in ${DATA_DIR_TOPP}/InspectAdapter.out -out InspectAdapter_4_output.tmp -inspect_out)
+add_test("TOPP_InspectAdapter_3_out1" ${DIFF} -whitelist "<?xml-stylesheet" "IdentificationRun date" -in1 InspectAdapter_4_output.tmp -in2 ${DATA_DIR_TOPP}/InspectAdapter_4_output.idXML)
 
 ### SequestAdapter tests
-#TODO
-#add_test("TOPP_SequestAdapter_1" ${TOPP_BIN_PATH}/SequestAdapter -ini ${DATA_DIR_TOPP}/SequestAdapter_1_parameters.ini -list_modifications > SequestAdapter_1_output.tmp)
-#add_test("TOPP_SequestAdapter_1_out1" ${DIFF} -in1 SequestAdapter_1_output.tmp -in2 ${DATA_DIR_TOPP}/SequestAdapter_1_output.modification_list.txt)
-##REMOVE(-rf ./tmp/Sequest*.dta_* ./tmp/sequest_run.bat ./tmp/temp.sequest.in
-#add_test("TOPP_SequestAdapter_2" ${TOPP_BIN_PATH}/SequestAdapter -ini SequestAdapter_1_parameters.ini -in Sequest.mzXML -out SequestAdapter_2_output.tmp -sequest_in)
-#add_test("TOPP_SequestAdapter_2_out1" ${DIFF} -in1 SequestAdapter_2_output.tmp -in2 ${DATA_DIR_TOPP}/SequestAdapter_2_output.sequest_in)
-##REMOVE(-rf ./tmp/Sequest*.dta_*
-##REMOVE(-rf ./tmp/Sequest*.dta_* ./tmp/sequest_run.bat ./tmp/temp.sequest.in
-#add_test("TOPP_SequestAdapter_3" ${TOPP_BIN_PATH}/SequestAdapter -ini ${DATA_DIR_TOPP}/SequestAdapter_1_parameters.ini -in Sequest.mzData -out SequestAdapter_3_output.tmp -sequest_in -in Sequest.mzData)
-#add_test("TOPP_SequestAdapter_3_out1" ${DIFF} -in1 SequestAdapter_3_output.tmp -in2 ${DATA_DIR_TOPP}/SequestAdapter_2_output.sequest_in)
-##REMOVE(-rf ./tmp/Sequest*.dta_*
-#add_test("TOPP_SequestAdapter_4" ${TOPP_BIN_PATH}/SequestAdapter -ini ${DATA_DIR_TOPP}/SequestAdapter_2_parameters.ini -in tmp -out SequestAdapter_4_output.tmp -sequest_out)
-#add_test("TOPP_SequestAdapter_4_out1" ${DIFF} -in1 SequestAdapter_4_output.tmp -in2 ${DATA_DIR_TOPP}/SequestAdapter_4_output.idXML)
-##REMOVE(-rf ./tmp/sequest_run.bat ./tmp/temp.sequest.in
+add_test("TOPP_SequestAdapter_1" ${TOPP_BIN_PATH}/SequestAdapter -ini SequestAdapter_1_parameters.ini -in Sequest.mzXML -out SequestAdapter_2_output.tmp -sequest_in)
+add_test("TOPP_SequestAdapter_1_out1" ${DIFF} -in1 SequestAdapter_2_output.tmp -in2 ${DATA_DIR_TOPP}/SequestAdapter_2_output.sequest_in)
+add_test("TOPP_SequestAdapter_2" ${TOPP_BIN_PATH}/SequestAdapter -ini ${DATA_DIR_TOPP}/SequestAdapter_1_parameters.ini -in Sequest.mzData -out SequestAdapter_3_output.tmp -sequest_in -in Sequest.mzData)
+add_test("TOPP_SequestAdapter_2_out1" ${DIFF} -in1 SequestAdapter_3_output.tmp -in2 ${DATA_DIR_TOPP}/SequestAdapter_2_output.sequest_in)
+add_test("TOPP_SequestAdapter_3" ${TOPP_BIN_PATH}/SequestAdapter -ini ${DATA_DIR_TOPP}/SequestAdapter_2_parameters.ini -in tmp -out SequestAdapter_4_output.tmp -sequest_out)
+add_test("TOPP_SequestAdapter_3_out1" ${DIFF} -in1 SequestAdapter_4_output.tmp -in2 ${DATA_DIR_TOPP}/SequestAdapter_4_output.idXML)
 
 ### PepNovoAdapter tests
-#TODO add_test("TOPP_PepNovoAdapter_1" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_1_parameters.ini -list_modifications > PepNovoAdapter_1_output.tmp)
-#add_test("TOPP_PepNovoAdapter_1_out1" ${DIFF} -in1 PepNovoAdapter_1_output.tmp -in2 ${DATA_DIR_TOPP}/PepNovoAdapter_1_output.modification_list.txt)
-#add_test("TOPP_PepNovoAdapter_2" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_1_parameters.ini -list_models > PepNovoAdapter_2_output.tmp)
-#add_test("TOPP_PepNovoAdapter_2_out1" ${DIFF} -in1 PepNovoAdapter_2_output.tmp -in2 ${DATA_DIR_TOPP}/PepNovoAdapter_2_output.model_list.txt)
-#add_test("TOPP_PepNovoAdapter_3" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_1_parameters.ini -in PepNovo.mzXML -pepnovo_in -out PepNovoAdapter_3_output.tmp)
-#add_test("TOPP_PepNovoAdapter_3_out1" ${DIFF} -in1 ./tmp/PepNovo_PTMs_.txt -in2 ./tmp/PepNovo_PTMs.txt)
-##REMOVE(-rf ./tmp/PepNovo*.dta
-#add_test("TOPP_PepNovoAdapter_4" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_1_parameters.ini -in ${DATA_DIR_TOPP}/PepNovo.mzData -pepnovo_in -out PepNovoAdapter_4_output.tmp)
-#add_test("TOPP_PepNovoAdapter_4_out1" ${DIFF} -in1 ./tmp/PepNovo_PTMs_.txt -in2 ./tmp/PepNovo_PTMs.txt)
-##REMOVE(-rf ./tmp/PepNovo*.dta ./tmp/PepNovo_PTMs.txt ./tmp/dta_list.txt
-#add_test("TOPP_PepNovoAdapter_5" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_5_parameters.ini -in ${DATA_DIR_TOPP}/PepNovoAdapter_5_output.pepnovo_out -out PepNovoAdapter_5_output.tmp_ -pepnovo_out)
-##SED('s/^.*date_group_1.*$$/# date group removed/g' PepNovoAdapter_5_output.tmp_ > PepNovoAdapter_5_output.tmp
-#add_test("TOPP_PepNovoAdapter_5_out1" ${DIFF} -in1 PepNovoAdapter_5_output.tmp -in2 ${DATA_DIR_TOPP}/PepNovoAdapter_5_output.idXML)
+add_test("TOPP_PepNovoAdapter_1" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_1_parameters.ini -in PepNovo.mzXML -pepnovo_in -out PepNovoAdapter_3_output.tmp)
+add_test("TOPP_PepNovoAdapter_1_out1" ${DIFF} -in1 ./tmp/PepNovo_PTMs_.txt -in2 ./tmp/PepNovo_PTMs.txt)
+#TODO ANDREAS - We have to clean up the /tmp/ directory to run this test multiple times
+#add_test("TOPP_PepNovoAdapter_2" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_1_parameters.ini -in ${DATA_DIR_TOPP}/PepNovo.mzData -pepnovo_in -out PepNovoAdapter_4_output.tmp)
+#add_test("TOPP_PepNovoAdapter_2_out1" ${DIFF} -in1 ./tmp/PepNovo_PTMs_.txt -in2 ./tmp/PepNovo_PTMs.txt)
+add_test("TOPP_PepNovoAdapter_3" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_5_parameters.ini -in ${DATA_DIR_TOPP}/PepNovoAdapter_5_output.pepnovo_out -out PepNovoAdapter_5_output.tmp -pepnovo_out)
+add_test("TOPP_PepNovoAdapter_3_out1" ${DIFF} -whitelist "<?xml-stylesheet" "date_group_1" -in1 PepNovoAdapter_5_output.tmp -in2 ${DATA_DIR_TOPP}/PepNovoAdapter_5_output.idXML)
 
 ### SpectraFilter tests
 add_test("TOPP_SpectraFilter_1" ${TOPP_BIN_PATH}/SpectraFilter -in ${DATA_DIR_TOPP}/SpectraFilter_1_input.mzData -out SpectraFilter_1_output.mzData.tmp -type SqrtMower)
@@ -340,13 +315,10 @@ add_test("TOPP_TOFCalibration_2_out1" ${DIFF} -in1 TOFCalibration_2_output.tmp -
 ### TextExporter tests
 add_test("TOPP_TextExporter_1" ${TOPP_BIN_PATH}/TextExporter -in ${DATA_DIR_TOPP}/TextExporter_1_input.featureXML -no_progress -out TextExporter.tmp)
 add_test("TOPP_TextExporter_1_out1" ${DIFF} -in1 TextExporter.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_1_output.txt)
-#TODO add_test("TOPP_TextExporter_2" ${TOPP_BIN_PATH}/TextExporter -ini ${DATA_DIR_TOPP}/TextExporter_2_parameters.ini)
-##SED('s:\(.*extracted\ from\ \).*$$:\1\ <omitted>:g' TextExporter_2_consensus_centroids.tmp > TextExporter_2_consensus_centroids.tmp_
-#add_test("TOPP_TextExporter_2_out1" ${DIFF} -in1 TextExporter_2_consensus_centroids.tmp_ -in2 ${DATA_DIR_TOPP}/TextExporter_2_consensus_centroids.wsv)
-##SED('s:\(.*extracted\ from\ \).*$$:\1\ <omitted>:g' TextExporter_2_consensus_elements.tmp > TextExporter_2_consensus_elements.tmp_
-#add_test("TOPP_TextExporter_2_out2" ${DIFF} -in1 TextExporter_2_consensus_elements.tmp_ -in2 ${DATA_DIR_TOPP}/TextExporter_2_consensus_elements.wsv)
-##SED('s:\(.*extracted\ from\ \).*$$:\1\ <omitted>:g' TextExporter_2_consensus_features.tmp > TextExporter_2_consensus_features.tmp_
-#add_test("TOPP_TextExporter_2_out3" ${DIFF} -in1 TextExporter_2_consensus_features.tmp_ -in2 ${DATA_DIR_TOPP}/TextExporter_2_consensus_features.wsv)
+add_test("TOPP_TextExporter_2" ${TOPP_BIN_PATH}/TextExporter -ini ${DATA_DIR_TOPP}/TextExporter_2_parameters.ini)
+add_test("TOPP_TextExporter_2_out1" ${DIFF} -whitelist "extracted from" -in1 TextExporter_2_consensus_centroids.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_2_consensus_centroids.wsv)
+add_test("TOPP_TextExporter_2_out2" ${DIFF} -whitelist "extracted from" -in1 TextExporter_2_consensus_elements.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_2_consensus_elements.wsv)
+add_test("TOPP_TextExporter_2_out3" ${DIFF} -whitelist "extracted from" -in1 TextExporter_2_consensus_features.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_2_consensus_features.wsv)
 add_test("TOPP_TextExporter_3" ${TOPP_BIN_PATH}/TextExporter -in ${DATA_DIR_TOPP}/TextExporter_3_input.idXML -no_progress -out TextExporter3.tmp)
 add_test("TOPP_TextExporter_3_out1" ${DIFF} -in1 TextExporter3.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_3_output.txt)
 add_test("TOPP_TextExporter_4" ${TOPP_BIN_PATH}/TextExporter -in ${DATA_DIR_TOPP}/TextExporter_3_input.idXML -no_progress -out TextExporter3.tmp -proteins_only)
@@ -389,12 +361,9 @@ add_test("TOPP_IDMapper_2" ${TOPP_BIN_PATH}/IDMapper -in ${DATA_DIR_TOPP}/IDMapp
 add_test("TOPP_IDMapper_2_out1" ${DIFF} -in1 IDMapper_2_output.tmp -in2 ${DATA_DIR_TOPP}/IDMapper_2_output.consensusXML)
 
 ### ConsensusID tests
-#TODO add_test("TOPP_ConsensusID_1" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_1_parameters.ini -out ConsensusID_1_output.tmp_)
-##SED('s/^.*IdentificationRun date.*$$/#Run removed because of date/g' ConsensusID_1_output.tmp_ > ConsensusID_1_output.tmp
-#add_test("TOPP_ConsensusID_1_out1" ${DIFF} -in1 ConsensusID_1_output.tmp -in2 ConsensusID_1_output.idXML)
-#add_test("TOPP_ConsensusID_2" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_2_parameters.ini -out ConsensusID_2_output.tmp_ -in ${DATA_DIR_TOPP}/ConsensusID_2_input.featureXML)
-##SED('s/^.*IdentificationRun id.*$$/#Run removed because of date/g' ConsensusID_2_output.tmp_ > ConsensusID_2_output.tmp
-#add_test("TOPP_ConsensusID_2_out1" ${DIFF} -in1 ConsensusID_2_output.tmp -in2 ${DATA_DIR_TOPP}/ConsensusID_2_output.featureXML)
-#add_test("TOPP_ConsensusID_3" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_3_parameters.ini -out ConsensusID_3_output.tmp_ -in ${DATA_DIR_TOPP}/ConsensusID_3_input.consensusXML)
-##SED('s/^.*IdentificationRun id.*$$/#Run removed because of date/g' ConsensusID_3_output.tmp_ > ConsensusID_3_output.tmp
-#add_test("TOPP_ConsensusID_3_out1" ${DIFF} -in1 ConsensusID_3_output.tmp -in2 ${DATA_DIR_TOPP}/ConsensusID_3_output.consensusXML)
+add_test("TOPP_ConsensusID_1" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_1_parameters.ini -out ConsensusID_1_output.tmp)
+add_test("TOPP_ConsensusID_1_out1" ${DIFF} -whitelist "<?xml-stylesheet" "IdentificationRun date" -in1 ConsensusID_1_output.tmp -in2 ConsensusID_1_output.idXML)
+add_test("TOPP_ConsensusID_2" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_2_parameters.ini -out ConsensusID_2_output.tmp -in ${DATA_DIR_TOPP}/ConsensusID_2_input.featureXML)
+add_test("TOPP_ConsensusID_2_out1" ${DIFF} -whitelist "IdentificationRun id" -in1 ConsensusID_2_output.tmp -in2 ${DATA_DIR_TOPP}/ConsensusID_2_output.featureXML)
+add_test("TOPP_ConsensusID_3" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_3_parameters.ini -out ConsensusID_3_output.tmp -in ${DATA_DIR_TOPP}/ConsensusID_3_input.consensusXML)
+add_test("TOPP_ConsensusID_3_out1" ${DIFF} -whitelist "<?xml-stylesheet" "IdentificationRun id" -in1 ConsensusID_3_output.tmp -in2 ${DATA_DIR_TOPP}/ConsensusID_3_output.consensusXML)

@@ -3,7 +3,7 @@
 <IdXML version="1.1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 	</SearchParameters>
-#Run removed because of date
+	<IdentificationRun date ... this is ignore because of the date ...
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Consensus_merged (Mascot)" higher_score_better="true" significance_threshold="0" MZ="1" RT="1" >
