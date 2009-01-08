@@ -90,7 +90,7 @@ namespace OpenMS
 		double mean, variance, min, lowerq, median, upperq, max;
 	};
 	/// Write SomeStatistics to a stream.
-	static std::ostream& operator << (std::ostream& os, const SomeStatistics& rhs)
+	static ostream& operator << (ostream& os, const SomeStatistics& rhs)
 	{
 		return os <<
 			"  mean: " << rhs.mean << "\n"
@@ -121,6 +121,7 @@ class TOPPFileInfo
 		setValidFormats_("in",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
 		registerStringOption_("in_type","<type>","","input file type -- default: determined from file extension or content\n", false);
 		setValidStrings_("in_type",StringList::create("mzData,mzXML,mzML,DTA,DTA2D,cdf,mgf,featureXML,consensusXML"));
+		registerOutputFile_("out","<file>","","Optional output file. If '-' or left out, the output is written to the command line.", false);
 		registerFlag_("m","Show meta information about the whole experiment");
 		registerFlag_("s","Computes a five-number statistics of intensities and qualities");
 		registerFlag_("d","Show detailed listing of all spectra (peak files only)");
@@ -128,8 +129,7 @@ class TOPPFileInfo
 		registerFlag_("v","Validate the file only (for mzData, mzXML, featureXML, IdXML, consensusXML)");
 	}
 
-
-	ExitCodes main_(int , const char**)
+	ExitCodes outputTo(ostream& os)
 	{
 		//-------------------------------------------------------------
 		// parameter handling
@@ -137,6 +137,7 @@ class TOPPFileInfo
 
 		//file names
 		String in = getStringOption_("in");
+		
 		//file type
 		FileHandler fh;
 		FileHandler::Type in_type = fh.nameToType(getStringOption_("in_type"));
@@ -152,8 +153,8 @@ class TOPPFileInfo
 			writeLog_("Error: Could not determine input file type!");
 			return PARSE_ERROR;
 		}
-
-		cout << endl
+		
+		os << endl
 				 << "-- General information --" << endl
 				 << endl
 				 << "file name: " << in << endl
@@ -169,73 +170,73 @@ class TOPPFileInfo
 		if (getFlag_("v"))
 		{
 			bool valid = true;
-			cout << endl << "Validating " << fh.typeToName(in_type) << " file";
+			os << endl << "Validating " << fh.typeToName(in_type) << " file";
 			switch(in_type)
 			{
 				case FileHandler::MZDATA :
-					cout << " against XML schema version " << MzDataFile().getVersion() << endl;
+					os << " against XML schema version " << MzDataFile().getVersion() << endl;
 					valid = MzDataFile().isValid(in);
 					break;
 				case FileHandler::MZML :
-					cout << " against XML schema version " << MzMLFile().getVersion() << endl;
+					os << " against XML schema version " << MzMLFile().getVersion() << endl;
 					valid = MzMLFile().isValid(in);
 					break;
 				case FileHandler::FEATUREXML :
-					cout << " against XML schema version " << FeatureXMLFile().getVersion() << endl;
+					os << " against XML schema version " << FeatureXMLFile().getVersion() << endl;
 					valid = FeatureXMLFile().isValid(in);
 					break;
 				case FileHandler::IDXML :
-					cout << " against XML schema version " << IdXMLFile().getVersion() << endl;
+					os << " against XML schema version " << IdXMLFile().getVersion() << endl;
 					valid = IdXMLFile().isValid(in);
 					break;
 				case FileHandler::CONSENSUSXML :
-					cout << " against XML schema version " << ConsensusXMLFile().getVersion() << endl;
+					os << " against XML schema version " << ConsensusXMLFile().getVersion() << endl;
 					valid = ConsensusXMLFile().isValid(in);
 					break;
 				case FileHandler::MZXML :
-					cout << " against XML schema version " << MzXMLFile().getVersion() << endl;
+					os << " against XML schema version " << MzXMLFile().getVersion() << endl;
 					valid = MzXMLFile().isValid(in);
 					break;
 				default:
-					cout << endl << "Aborted: Validation of this file type is not supported!" << endl;
+					os << endl << "Aborted: Validation of this file type is not supported!" << endl;
 					return EXECUTION_OK;
 			};
 
 			if (valid)
 			{
-				cout << "Success: fhe file is valid!" << endl;
+				os << "Success: fhe file is valid!" << endl;
 			}
 			else
 			{
-				cout << "Failed: errors are listed above!" << endl;
+				os << "Failed: errors are listed above!" << endl;
 			}
 			
 			if (in_type==FileHandler::MZML)
 			{
 				if (!valid)
 				{
-					cout << endl << "Semantic validation is not perfomed due to previous errors! " << endl;
+					os << endl << "Semantic validation is not perfomed due to previous errors! " << endl;
 				}
 				else
 				{
-					cout << endl << "Semantically validating " << fh.typeToName(in_type) << " file:" << endl;
+					os << endl << "Semantically validating " << fh.typeToName(in_type) << " file:" << endl;
 					StringList errors, warnings;
 					valid = MzMLFile().isSemanticallyValid(in, errors, warnings);
 					for (Size i=0; i<warnings.size(); ++i)
 					{
-						cout << "Warning: " << warnings[i] << endl;
+						os << "Warning: " << warnings[i] << endl;
 					}
 					for (Size i=0; i<errors.size(); ++i)
 					{
-						cout << "Error: " << errors[i] << endl;
+						os << "Error: " << errors[i] << endl;
 					}
 					if (valid)
 					{
-						cout << "Success: fhe file is semantically valid!" << endl;
+						os << "Success: fhe file is semantically valid!" << endl;
 					}
 					else
 					{
-						cout << "Failed: errors are listed above!" << endl;
+						os << "Failed: errors are listed above!" << endl;
 					}
 				}
 			}
@@ -252,7 +253,7 @@ class TOPPFileInfo
 			FeatureXMLFile().load(in,feat);
 			feat.updateRanges();
 
-			cout << "Number of features: " << feat.size() << endl
+			os << "Number of features: " << feat.size() << endl
 					 << endl
 					 << "retention time range: " << feat.getMin()[Peak2D::RT] << " / " << feat.getMax()[Peak2D::RT] << endl
 					 << "m/z range: " << feat.getMin()[Peak2D::MZ] << " / " << feat.getMax()[Peak2D::MZ] << endl
@@ -266,10 +267,10 @@ class TOPPFileInfo
 				charges[feat[i].getCharge()]++;
 			}
 
-			cout << "Charge distribution" << endl;
+			os << "Charge distribution" << endl;
 			for (Map<UInt,UInt>::const_iterator it=charges.begin(); it!=charges.end(); ++it)
 			{
-				cout << "charge " << it->first << ": " << it->second << endl;
+				os << "charge " << it->first << ": " << it->second << endl;
 			}
 		}
 		//-------------------------------------------------------------
@@ -286,16 +287,16 @@ class TOPPFileInfo
 				++num_consfeat_of_size[cmit->size()];
 			}
 
-			std::cout << 
+			os << 
 				"\n"
 				"Number of consensus features:" << std::endl;
 			for ( std::map<UInt,UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i )
 			{
-				std::cout << "  of size " << std::setw(2) << i->first << ": " << std::setw(6) << i->second << '\n';
+				os << "  of size " << std::setw(2) << i->first << ": " << std::setw(6) << i->second << '\n';
 			}
-			std::cout << "  total:      " << std::setw(6) << cons.size() << '\n';
+			os << "  total:      " << std::setw(6) << cons.size() << '\n';
 
-			std::cout <<
+			os <<
 				"\n"
 				"Ranges:\n"
 				"  retention time:  " << precisionWrapper(cons.getMin()[Peak2D::RT]) << " : " << precisionWrapper(cons.getMax()[Peak2D::RT]) << "\n"
@@ -307,12 +308,12 @@ class TOPPFileInfo
 			const ConsensusMap::FileDescriptions& descs = cons.getFileDescriptions();
 			if (descs.size()!=0)
 			{
-				cout <<
+				os <<
 					"\n"
 					"File descriptions:\n";
 				for (ConsensusMap::FileDescriptions::const_iterator it=descs.begin(); it!=descs.end(); ++it)
 				{
-					cout << " - " << it->second.filename << endl
+					os << " - " << it->second.filename << endl
 							 << "   identifier: " << it->first << endl
 							 << "   label     : " << it->second.label << endl
 							 << "   size      : " << it->second.size << endl;
@@ -348,7 +349,7 @@ class TOPPFileInfo
 			{
 				type = PeakTypeEstimator().estimateType(exp[i].begin(),exp[i].end());
 			}
-			cout << endl
+			os << endl
 					 << "peak type (metadata) : " << SpectrumSettings::NamesOfSpectrumType[meta_type] << endl
 					 << "peak type (estimated): " << SpectrumSettings::NamesOfSpectrumType[type] << endl;
 			//if raw data, determine the spacing
@@ -360,15 +361,15 @@ class TOPPFileInfo
 					spacing.push_back(exp[i][j].getMZ()-exp[i][j-1].getMZ());
 				}
 				std::sort(spacing.begin(),spacing.end());
-				cout << "estimated raw data spacing: " << spacing[spacing.size()/2] << " (min: " << spacing[0] << " max: " << spacing.back() << ")" << endl;
+				os << "estimated raw data spacing: " << spacing[spacing.size()/2] << " (min: " << spacing[0] << " max: " << spacing.back() << ")" << endl;
 			}
-			cout << endl;
+			os << endl;
 
 			//basic info
 			exp.updateRanges();
 			vector<UInt> levels = exp.getMSLevels();
 
-			cout << "Number of peaks: " << exp.getSize() << endl
+			os << "Number of peaks: " << exp.getSize() << endl
 					 << endl
 					 << "retention time range: " << exp.getMinRT() << " / " << exp.getMaxRT() << endl
 					 << "m/z range: " << exp.getMinMZ() << " / " << exp.getMaxMZ() << endl
@@ -376,13 +377,13 @@ class TOPPFileInfo
 					 << "MS levels: ";
 			if (levels.size()!=0)
 			{
-				cout  << *(levels.begin());
+				os << *(levels.begin());
 				for (vector<UInt>::iterator it = ++levels.begin(); it != levels.end(); ++it)
 				{
-					cout << ", " << *it;
+					os << ", " << *it;
 				}
 			}
-			cout << endl << endl;
+			os << endl << endl;
 
 			//count how many spectra per MS level there are
 			vector<UInt> counts(5);
@@ -395,10 +396,10 @@ class TOPPFileInfo
 			{
 				if (counts[i]!=0)
 				{
-					cout << "Spectra of MS Level " << i << ": " << counts[i] << endl;
+					os << "Spectra of MS Level " << i << ": " << counts[i] << endl;
 				}
 			}
-			cout << endl;
+			os << endl;
 
 			//show meta data array names
 			for (MSExperiment<Peak1D>::iterator it = exp.begin(); it!=exp.end(); ++it)
@@ -420,34 +421,34 @@ class TOPPFileInfo
 			{
 				for (Map<String,int>::ConstIterator it=meta_names.begin();it!=meta_names.end();++it)
 				{
-					cout << "Meta data array: " << it->first << " (for " << it->second << " spectra)" << endl;
+					os << "Meta data array: " << it->first << " (for " << it->second << " spectra)" << endl;
 				}
-				cout << endl;
+				os << endl;
 			}
 
 			// Detailed listing of scans
 			if (getFlag_("d"))
 			{
-				cout << endl
+				os << endl
 						 << "-- Detailed spectrum listing --" << endl
 						 << endl;
 				UInt count=0;
 				for (MSExperiment<Peak1D>::iterator it = exp.begin(); it!=exp.end(); ++it)
 				{
 					++count;
-					cout << "spectrum " << count << " - mslevel:" << it->getMSLevel() << " scanMode:" << InstrumentSettings::NamesOfScanMode[it->getInstrumentSettings().getScanMode()] << " peaks:" << it->size() << " RT:" << it->getRT() << " m/z:";
+					os << "spectrum " << count << " - mslevel:" << it->getMSLevel() << " scanMode:" << InstrumentSettings::NamesOfScanMode[it->getInstrumentSettings().getScanMode()] << " peaks:" << it->size() << " RT:" << it->getRT() << " m/z:";
 					if (it->size()!=0)
 					{
-						cout << it->begin()->getMZ() << "-" << (it->end()-1)->getMZ();
+						os << it->begin()->getMZ() << "-" << (it->end()-1)->getMZ();
 					}
-					cout << endl;
+					os << endl;
 				}
 			}
 
 			//Check for corrupt data
 			if (getFlag_("c"))
 			{
-				cout << endl
+				os << endl
 						 << "-- Checking for corrupt data --" << endl
 						 << endl;
 				std::vector<DoubleReal> rts;
@@ -457,21 +458,21 @@ class TOPPFileInfo
 					//ms level = 0
 					if (exp[s].getMSLevel()==0)
 					{
-						cout << "Error: MS-level 0 in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
+						os << "Error: MS-level 0 in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
 					}
 					//duplicate scans
 					if (exp[s].getMSLevel()==1)
 					{
 						if (find(rts.begin(),rts.end(),exp[s].getRT())!=rts.end())
 						{
-							cout << "Error: Duplicate spectrum retention time: " << exp[s].getRT() << std::endl;
+							os << "Error: Duplicate spectrum retention time: " << exp[s].getRT() << std::endl;
 						}
 						rts.push_back(exp[s].getRT());
 					}
 					//scan size = 0
 					if (exp[s].size()==0)
 					{
-						cout << "Warning: No peaks in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
+						os << "Warning: No peaks in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
 					}
 					//duplicate meta data array names
 					Map<String,int> names;
@@ -480,7 +481,7 @@ class TOPPFileInfo
 						String name = exp[s].getMetaDataArrays()[m].getName();
 						if (names.has(name))
 						{
-							cout << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
+							os << "Error: Duplicate meta data array name '" << name << "' in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
 						}
 						else
 						{
@@ -495,12 +496,12 @@ class TOPPFileInfo
 						//negative intensity
 						if (exp[s][p].getIntensity()<0.0)
 						{
-							cout << "Warning: Negative intensity of peak (RT: " << exp[s].getRT() << " RT: " << exp[s][p].getMZ() << ")" << std::endl;
+							os << "Warning: Negative intensity of peak (RT: " << exp[s].getRT() << " RT: " << exp[s][p].getMZ() << ")" << std::endl;
 						}
 						//duplicate m/z
 						if (find(mzs.begin(),mzs.end(),exp[s][p].getMZ())!=mzs.end())
 						{
-							cout << "Warning: Duplicate peak m/z " << exp[s][p].getMZ() << " in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
+							os << "Warning: Duplicate peak m/z " << exp[s][p].getMZ() << " in spectrum (RT: " << exp[s].getRT() << ")" << std::endl;
 						}
 						mzs.push_back(exp[s][p].getMZ());
 					}
@@ -512,35 +513,35 @@ class TOPPFileInfo
 		if (getFlag_("m"))
 		{
 			//basic info
-			cout << endl
+			os << endl
 					 << "-- Meta information --" << endl
 					 << endl;
 					 
 			if (in_type==FileHandler::FEATUREXML) //features
 			{
-				cout << "Document id       : " << feat.getIdentifier() << endl
+				os << "Document id       : " << feat.getIdentifier() << endl
 						 << endl;
 			}
 			else if (in_type==FileHandler::CONSENSUSXML) //consensus features
 			{
-				cout << "Document id       : " << cons.getIdentifier() << endl
+				os << "Document id       : " << cons.getIdentifier() << endl
 						 << endl;
 			}
 			else //peaks
 			{
 				
-				cout << "Document id       : " << exp.getIdentifier() << endl
+				os << "Document id       : " << exp.getIdentifier() << endl
 						 << "Date              : " << exp.getDateTime().get() << endl;
 
 				//basic info
-				cout << endl
+				os << endl
 						 << "Sample" << endl
 						 << "  Name             : " << exp.getSample().getName() << endl
 						 << "  Organism         : " << exp.getSample().getOrganism()  << endl
 						 << "  Comment          : " << exp.getSample().getComment()  << endl;
 	
 				//instrument info
-				cout << endl
+				os << endl
 						 << "Instrument" << endl
 						 << "  Name             : " << exp.getInstrument().getName() << endl
 						 << "  Model            : " << exp.getInstrument().getModel()  << endl
@@ -548,27 +549,27 @@ class TOPPFileInfo
 						 << "  Ion source(s)    : ";
 				for (Size i=0; i< exp.getInstrument().getIonSources().size(); ++i)
 				{
-					cout  << IonSource::NamesOfIonizationMethod[exp.getInstrument().getIonSources()[i].getIonizationMethod()];
-					if (i!=exp.getInstrument().getIonSources().size()-1) cout << ", ";
+					os << IonSource::NamesOfIonizationMethod[exp.getInstrument().getIonSources()[i].getIonizationMethod()];
+					if (i!=exp.getInstrument().getIonSources().size()-1) os << ", ";
 				}
-				cout << endl << "  Mass Analyzer(s) : ";
+				os << endl << "  Mass Analyzer(s) : ";
 				for (Size i=0; i< exp.getInstrument().getMassAnalyzers().size(); ++i)
 				{
-					cout  << MassAnalyzer::NamesOfAnalyzerType[exp.getInstrument().getMassAnalyzers()[i].getType()];
-					if (i!=exp.getInstrument().getMassAnalyzers().size()-1) cout << ", ";
+					os << MassAnalyzer::NamesOfAnalyzerType[exp.getInstrument().getMassAnalyzers()[i].getType()];
+					if (i!=exp.getInstrument().getMassAnalyzers().size()-1) os << ", ";
 				}
-				cout << endl << "  Detector(s)      : ";
+				os << endl << "  Detector(s)      : ";
 				for (Size i=0; i< exp.getInstrument().getIonDetectors().size(); ++i)
 				{
-					cout  << IonDetector::NamesOfType[exp.getInstrument().getIonDetectors()[i].getType()];
-					if (i!=exp.getInstrument().getIonDetectors().size()-1) cout << ", ";
+					os << IonDetector::NamesOfType[exp.getInstrument().getIonDetectors()[i].getType()];
+					if (i!=exp.getInstrument().getIonDetectors().size()-1) os << ", ";
 				}
-				cout << endl << endl;
+				os << endl << endl;
 	
 				//contact persons
 				for (Size i=0; i< exp.getContacts().size(); ++i)
 				{
-					cout << "Contact Person" << endl
+					os << "Contact Person" << endl
 							 << "  First Name       : " << exp.getContacts()[i].getFirstName() << endl
 							 << "  Last Name        : " << exp.getContacts()[i].getLastName() << endl
 							 << "  Email            : " << exp.getContacts()[i].getEmail() << endl
@@ -580,7 +581,7 @@ class TOPPFileInfo
 		// '-s' show statistics
 		if (getFlag_("s"))
 		{
-			cout << endl
+			os << endl
 					 << "-- Statistics --" << endl
 					 << endl;
 			OpenMS::SomeStatistics some_statistics;
@@ -612,17 +613,17 @@ class TOPPFileInfo
 					mz_qualities.push_back(fm_iter->getQuality(Feature::MZ));
 				}
 
-				cout.precision(writtenDigits<>(Feature::IntensityType() ));
-				cout << "Intensities:\n" << some_statistics(intensities) << endl;
+				os.precision(writtenDigits<>(Feature::IntensityType() ));
+				os << "Intensities:\n" << some_statistics(intensities) << endl;
 
-				cout.precision(writtenDigits<>(Feature::QualityType() ));
-				cout << "Overall qualities:\n" << some_statistics(overallqualities) << endl;
+				os.precision(writtenDigits<>(Feature::QualityType() ));
+				os << "Overall qualities:\n" << some_statistics(overallqualities) << endl;
 
-				cout.precision(writtenDigits<>(Feature::QualityType()));
-				cout << "Qualities in retention time dimension:\n" << some_statistics(rt_qualities) << endl;
+				os.precision(writtenDigits<>(Feature::QualityType()));
+				os << "Qualities in retention time dimension:\n" << some_statistics(rt_qualities) << endl;
 
-				cout.precision(writtenDigits<>(Feature::QualityType()));
-				cout << "Qualities in mass-to-charge dimension:\n" << some_statistics(mz_qualities) << endl;
+				os.precision(writtenDigits<>(Feature::QualityType()));
+				os << "Qualities in mass-to-charge dimension:\n" << some_statistics(mz_qualities) << endl;
 
 			}
 			else if (in_type==FileHandler::CONSENSUSXML) //consensus features
@@ -692,26 +693,26 @@ class TOPPFileInfo
 					it_aad_by_cfs.push_back(it_aad);
 				}
 
-				cout.precision(writtenDigits(ConsensusFeature::IntensityType()));
-				cout << "Intensities of consensus features:\n" << some_statistics(intensities) << endl;
+				os.precision(writtenDigits(ConsensusFeature::IntensityType()));
+				os << "Intensities of consensus features:\n" << some_statistics(intensities) << endl;
 
-				cout.precision(writtenDigits(ConsensusFeature::QualityType()));
-				cout << "Qualities of consensus features:\n" << some_statistics(qualities) << endl;
+				os.precision(writtenDigits(ConsensusFeature::QualityType()));
+				os << "Qualities of consensus features:\n" << some_statistics(qualities) << endl;
 
-				cout.precision(writtenDigits(ConsensusFeature::CoordinateType()));
-				cout << "Retention time differences ( element-center, weight 1 per element):\n" << some_statistics(rt_delta_by_elems) << endl;
-				cout << "Absolute retention time differences ( |element-center|, weight 1 per element):\n" << some_statistics(rt_aad_by_elems) << endl;
-				cout << "Average absolute differences of retention time within consensus features ( |element-center|, weight 1 per consensus features):\n" << some_statistics(rt_aad_by_cfs) << endl;
+				os.precision(writtenDigits(ConsensusFeature::CoordinateType()));
+				os << "Retention time differences ( element-center, weight 1 per element):\n" << some_statistics(rt_delta_by_elems) << endl;
+				os << "Absolute retention time differences ( |element-center|, weight 1 per element):\n" << some_statistics(rt_aad_by_elems) << endl;
+				os << "Average absolute differences of retention time within consensus features ( |element-center|, weight 1 per consensus features):\n" << some_statistics(rt_aad_by_cfs) << endl;
 
-				cout.precision(writtenDigits(ConsensusFeature::CoordinateType()));
-				cout << "Mass-to-charge differences ( element-center, weight 1 per element):\n" << some_statistics(mz_delta_by_elems) << std::endl;
-				cout << "Absolute differences of mass-to-charge ( |element-center|, weight 1 per element):\n" << some_statistics(mz_aad_by_elems) << std::endl;
-				cout << "Average absolute differences of mass-to-charge within consensus features ( |element-center|, weight 1 per consensus features):\n" << some_statistics(mz_aad_by_cfs) << std::endl;
+				os.precision(writtenDigits(ConsensusFeature::CoordinateType()));
+				os << "Mass-to-charge differences ( element-center, weight 1 per element):\n" << some_statistics(mz_delta_by_elems) << std::endl;
+				os << "Absolute differences of mass-to-charge ( |element-center|, weight 1 per element):\n" << some_statistics(mz_aad_by_elems) << std::endl;
+				os << "Average absolute differences of mass-to-charge within consensus features ( |element-center|, weight 1 per consensus features):\n" << some_statistics(mz_aad_by_cfs) << std::endl;
 
-				cout.precision(writtenDigits(ConsensusFeature::IntensityType()));
-				cout << "Intensity ratios ( element/center, weight 1 per element):\n" << some_statistics(it_delta_by_elems) << std::endl;
-				cout << "Relative intensity error ( max{(element/center),(center/element)}, weight 1 per element):\n" << some_statistics(it_aad_by_elems) << std::endl;
-				cout << "Average relative intensity error within consensus features ( max{(element/center),(center/element)}, weight 1 per consensus features):\n" << some_statistics(it_aad_by_cfs) << std::endl;
+				os.precision(writtenDigits(ConsensusFeature::IntensityType()));
+				os << "Intensity ratios ( element/center, weight 1 per element):\n" << some_statistics(it_delta_by_elems) << std::endl;
+				os << "Relative intensity error ( max{(element/center),(center/element)}, weight 1 per element):\n" << some_statistics(it_aad_by_elems) << std::endl;
+				os << "Average relative intensity error within consensus features ( max{(element/center),(center/element)}, weight 1 per consensus features):\n" << some_statistics(it_aad_by_cfs) << std::endl;
 
 			}
 			else //peaks
@@ -734,14 +735,14 @@ class TOPPFileInfo
 				}
 
 				sort(intensities.begin(),intensities.end());
-				cout.precision(writtenDigits(Peak1D::IntensityType()));
-				cout << "Intensities:\n" << some_statistics(intensities) << endl;
+				os.precision(writtenDigits(Peak1D::IntensityType()));
+				os << "Intensities:\n" << some_statistics(intensities) << endl;
 
 				//Statistics for meta information
 				for (Map<String,int>::ConstIterator it=meta_names.begin();it!=meta_names.end();++it)
 				{
 					String name = it->first;
-					cout << "Meta data: " << name << endl;
+					os << "Meta data: " << name << endl;
 					vector<Real> m_values;
 					DoubleReal sum = 0.0;
 					for (MSExperiment<Peak1D>::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
@@ -757,7 +758,7 @@ class TOPPFileInfo
 						}
 					}
 					sort(m_values.begin(),m_values.end());
-					cout << "  count: " << m_values.size() << endl
+					os << "  count: " << m_values.size() << endl
 							 << "  min: " << QString::number(m_values.front(),'f',2).toStdString() << endl
 							 << "  max: " << QString::number(m_values.back(),'f',2).toStdString() << endl
 							 << "  mean: " << QString::number(sum/m_values.size(),'f',2).toStdString() << endl
@@ -768,9 +769,26 @@ class TOPPFileInfo
 
 		}
 
-		cout << endl << endl;
+		os << endl << endl;
 
 		return EXECUTION_OK;
+	}
+
+	ExitCodes main_(int , const char**)
+	{
+		String out = getStringOption_("out");
+		
+		//output to command line
+		if (out=="")
+		{
+			return outputTo(cout);
+		}
+		//output to file
+		else
+		{
+			ofstream os(out.c_str());
+			return outputTo(os);
+		}
 	}
 };
 
