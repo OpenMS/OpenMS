@@ -21,6 +21,7 @@ ResidueDB.h
 ResidueModification.h
 TheoreticalSpectrumGenerator.h
 TrypticIterator.h
+AAIndex.h
 )
 
 ### add path to the filenames

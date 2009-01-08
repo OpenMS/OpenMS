@@ -300,6 +300,7 @@ XMLValidator_test.C
 XTandemInfile_test.C
 XTandemXMLFile_test.C
 ZhangSimilarityScore_test.C
+AAIndex_test.C
 )
 
 if (USE_ANDIMS) 	 

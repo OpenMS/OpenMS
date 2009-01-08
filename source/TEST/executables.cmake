@@ -245,6 +245,7 @@ set(chemistry_executables_list
   Residue_test
   ResidueDB_test
   AASequence_test
+  AAIndex_test
   EnzymaticDigestion_test
   TheoreticalSpectrumGenerator_test
   ModifierRep_test
