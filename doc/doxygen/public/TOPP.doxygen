@@ -84,6 +84,7 @@
 	- @subpage TOPP_FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
 	- @subpage TOPP_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy.
  	- @subpage TOPP_IDRTCalibration - Can be used to calibrate RTs of peptide hits linearly to standards.
+	- @subpage TOPP_PrecursorIonSelector - A tool for precursor ion selection based on identification results.
 
 	<b>Peptide property prediction</b>
  	- @subpage TOPP_RTPredict - Predicts retention times for peptides using a model trained by RTModel.
