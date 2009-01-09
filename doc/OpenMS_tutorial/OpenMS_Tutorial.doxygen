@@ -1129,6 +1129,100 @@ corresponding distance matrix).
 
 */
 
+//####################################### PIP #######################################
+
+/**
+	@page tutorial_pip Peak Intensity Prediction
+
+		This tutorial will give you an overview of how to use the peak intensity prediction (PIP).
+		In general, PIP allows you to predict the peak intensity of a peptide relative to other 
+		peptides of the same abundance from its sequence alone. At the same time, this value allows to
+		correct peak intensities for peptide-specific instrument sensitivity in a label-free quantitation
+		application. 
+
+		This method is still in an early phase: A proof of concept has been conducted and published 
+		in <b><A HREF="#References">[1]</A></b>. Peak intensities @em can be predicted with significant correlations, 
+		but application tests are yet to come.
+
+	@section PIP_background Background
+		
+		The sensitivity of a mass spectrometer depends on the analyzed peptides, among other factors.
+		This peptide-specific sensitivity causes peak heights of peptides with the same abundance to be
+		generally different. PIP incorporates a model that maps peptide sequences to peptide-specific 
+		sensitivities. 
+
+	@section PIP_details Machine learning details
+		The incorporated model has been adapted with a Local Linear Map <b><A HREF="#References">[2]</A></b> - 
+		a machine learning algorithm that uses both supervised and unsupervised learning in its training, 
+		and which is fast and easy to implement. Better results can be achieved with other learning 
+		architectures <b><A HREF="#References">[3]</A></b>, however, these are not implemented in this 
+		prototype stage yet.
+
+	@section PIP_training About the training data
+		The model which the PIP module uses has been trained with data from a Bruker Ultraflex MALDI-TOF 
+		instrument.
+		Details about these data can be found with <b><A HREF="#References">[3]</A></b>. 
+		A Pearson's squared correlation of 0.43 in ten-fold cross-validation and of 0.34 across datasets from the same 
+		instrument (but with different settings and operating persons) could be achieved. There is no experience 
+		yet about the performance across instruments. So we would be pleased if you could share your experience 
+		with the model incorporated in PIP applied to other datasets.
+
+		@n At this point, it is not possible to train a model with your own data, but it is a planned feature. 
+		It is as of yet unknown how similar peptide-specific sensitivities behave between different MALDI instruments.
+
+	@section PIP_howto How to use PIP
+		PIP lets you predict intensities using peptide sequences as input. 
+		The output values have been normalized to a mean of 0 and variance 1.
+		
+		@n To @b test PIP with data from your instrument, MALDI spectra that contain only peptides of one 
+		protein can be used: 
+		-# Normalize your peak intensities with the sum of only the peptide's peaks to make them comparable
+		to other spectra. 
+		-# Logarithmize the resulting values. 
+		-# Center and normalize your peak intensities by variance (of course, multiple spectra should be 
+		used to find mean and variance), these value are referred to as @em tI in the following.
+		-# Predict the peptide's peak intensities (referred to as @em pI in the following)
+		-# Calculate the correlation between the @em tI and @em pI. If you calculate exp(log(tI) - pI), 
+		it should give 1 as a result in this test.
+
+		@n To calculate relative peptide abundance (relative to those of the other peptides in the mixture) 
+		from intensities of a peptide mixture using values predicted by PIP, do above steps 2. to 4. 
+		Then calculate the peptide level @em x = exp(log(tI) - pI). @b !!! The quantification with an actual 
+		protein mixture has never been tested with this model. 
+
+
+	@section PIP_example Example code
+		There is a usage example for the PeakIntensityPredictor class in 
+		<tt>source/EXAMPLES/Tutorial_PeakIntensityPredictor.C</tt>.
+		
+		Sequences of peptides to be predicted should be stored in a vector of AASequence instances:
+
+		@dontinclude Tutorial_PeakIntensityPredictor.C
+	  @skip Create
+	  @until TELGFDPEAHFAIDDEVIAHTR
+
+		Then create an instance of the model, and predict the peak intensities of the peptides:
+		
+		@until model.predict
+
+		You can output AASequence instances like normal strings:
+		
+		@until }
+
+	@section References References
+		<A NAME="References"></a>
+		\arg \c <b>[1]</b>:<A HREF="http://bieson.ub.uni-bielefeld.de/frontdoor.php?source_opus=1370">
+		Wiebke Timm:  <em>Peak Intensity Prediction in Mass Spectra using Machine Learning Methods</em>,
+		PhD Thesis (2008)</A>
+		\arg \c <b>[2]</b>:Helge Ritter: <em>Learning with Self-Organizing Map, Artificial Neural Networks</em>, 
+				In T. Kohonen et al., eds.: Artificial Neural Networks, Elsevier Science Publishers (1991), 379–384
+		\arg \c <b>[3]</b>:<A HREF="http://www.biomedcentral.com/1471-2105/9/443">
+		W. Timm, A. Scherbart, S. Böcker, O. Kohlbacher, T.W. Nattkemper: <em>Peak Intensity Prediction in 
+		MALDI-TOF Mass Spectrometry: A Machine Learning Study to support Quantitative Proteomics</em>, 
+		BMC Bioinformatics (2008)</A>
+
+*/
+
 //####################################### HOWTO #######################################
 
 /**

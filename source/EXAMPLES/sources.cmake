@@ -33,6 +33,7 @@ Tutorial_MorphologicalFilter.C
 Tutorial_Unlabeled.C
 Tutorial_typeAsString.C
 Tutorial_ListEditor.C
+Tutorial_PeakIntensityPredictor.C
 )
 
 ### add path to the filenames

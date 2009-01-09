@@ -301,6 +301,8 @@ XTandemInfile_test.C
 XTandemXMLFile_test.C
 ZhangSimilarityScore_test.C
 AAIndex_test.C
+LocalLinearMap_test.C
+PeakIntensityPredictor_test.C
 )
 
 if (USE_ANDIMS) 	 

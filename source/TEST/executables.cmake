@@ -288,6 +288,8 @@ set(analysis_executables_list
   HiddenMarkovModel_test
   IDDecoyProbability_test
   FalseDiscoveryRate_test
+  LocalLinearMap_test
+  PeakIntensityPredictor_test
 )
 
 set(applications_executables_list

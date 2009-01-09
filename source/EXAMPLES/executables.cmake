@@ -33,6 +33,7 @@ Tutorial_MorphologicalFilter
 Tutorial_Unlabeled
 Tutorial_typeAsString
 Tutorial_ListEditor
+Tutorial_PeakIntensityPredictor
 )
 
 ### add path to the filenames

@@ -21,9 +21,8 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Scherbart, Wiebke Timm $
+// $Maintainer: Alexandra Scherbart $
 // --------------------------------------------------------------------------
-//
 
 #ifndef OPENMS_CHEMISTRY_RESIDUE_INDECES_H
 #define OPENMS_CHEMISTRY_RESIDUE_INDECES_H
@@ -35,7 +34,7 @@
 namespace OpenMS
 {
 	/**
-		@brief Represenation of selected AAIndex properties
+		@brief Represenation of selected %AAIndex properties
 		
 		Upper-case one-letter-code can be used to access the properties of a single amino acid.
 		
@@ -45,7 +44,7 @@ namespace OpenMS
 	{
 		public:
 			
-			/// TODO
+			/// Returns if the residue is aliphatic (1.0 or 0.0)
 			static DoubleReal aliphatic(char aa) 
 			{
 				if( aa == 'A' || aa == 'G' || aa == 'F' || aa == 'I' || aa == 'M' || aa == 'L' || aa == 'P' || aa == 'V' ) 
@@ -58,8 +57,8 @@ namespace OpenMS
 				}
 			}
 		
-			/// TODO
-			static DoubleReal acid(char aa) 
+			/// Returns if the residue is acidic (1.0 or 0.0)
+			static DoubleReal acidic(char aa) 
 			{
 				if( aa == 'D' || aa == 'E' ) 
 				{
@@ -71,7 +70,7 @@ namespace OpenMS
 				}
 			}
 			
-			/// TODO
+			/// Returns if the residue is basic (1.0 or 0.0)
 			static DoubleReal basic(char aa) 
 			{
 				if( aa == 'K' || aa == 'R' || aa == 'H' || aa == 'W' ) 
@@ -84,7 +83,7 @@ namespace OpenMS
 				}
 			}
 	
-			/// TODO
+			/// Returns if the residue is polar (1.0 or 0.0)
 			static DoubleReal polar(char aa) 
 			{
 				if( aa == 'S' || aa == 'T' || aa == 'Y' || aa == 'H' || aa == 'C' || aa == 'N' || aa == 'Q' || aa == 'W' ) 
@@ -177,7 +176,7 @@ namespace OpenMS
 				
 				@exception InvalidValue is thrown if an undefined one-letter-code is used
 			*/
-			static Real GBleft(char aa) 
+			static DoubleReal GBleft(char aa) 
 			{
 				switch(aa) 
 				{
@@ -255,7 +254,7 @@ namespace OpenMS
 				
 				@exception InvalidValue is thrown if an undefined one-letter-code is used
 			*/
-			static Real GBdeltaright(char aa) 
+			static DoubleReal GBdeltaright(char aa) 
 			{
 				switch(aa) 
 				{
@@ -344,7 +343,7 @@ namespace OpenMS
 				
 				@exception InvalidValue is thrown if an undefined one-letter-code is used
 			*/
-			static Real getKHAG800101(char aa) 
+			static DoubleReal getKHAG800101(char aa) 
 			{
 				switch(aa) 
 				{
@@ -430,7 +429,7 @@ namespace OpenMS
 				
 				@exception InvalidValue is thrown if an undefined one-letter-code is used
 			*/
-			static Real getVASM830103(char aa) 
+			static DoubleReal getVASM830103(char aa) 
 			{
 				switch(aa) 
 				{
@@ -521,7 +520,7 @@ namespace OpenMS
 				
 				@exception InvalidValue is thrown if an undefined one-letter-code is used
 			*/
-			static Real getNADH010106(char aa) 
+			static DoubleReal getNADH010106(char aa) 
 			{
 				switch(aa) 
 				{
@@ -609,7 +608,7 @@ namespace OpenMS
 				
 				@exception InvalidValue is thrown if an undefined one-letter-code is used
 			*/	
-			static Real getNADH010107(char aa) 
+			static DoubleReal getNADH010107(char aa) 
 			{
 				switch(aa) 
 				{
@@ -699,7 +698,7 @@ namespace OpenMS
 				
 				@exception InvalidValue is thrown if an undefined one-letter-code is used
 			*/
-			static Real getWILM950102(char aa) 
+			static DoubleReal getWILM950102(char aa) 
 			{
 				switch(aa) 
 				{
@@ -786,7 +785,7 @@ namespace OpenMS
 				
 				@exception InvalidValue is thrown if an undefined one-letter-code is used
 			*/
-			static Real getROBB760107(char aa) 
+			static DoubleReal getROBB760107(char aa) 
 			{
 				switch(aa) 
 				{
@@ -874,7 +873,7 @@ namespace OpenMS
 				
 				@exception InvalidValue is thrown if an undefined one-letter-code is used
 			*/
-			static Real getOOBM850104(char aa) 
+			static DoubleReal getOOBM850104(char aa) 
 			{
 				switch(aa) 
 				{
@@ -962,7 +961,7 @@ namespace OpenMS
 				
 				@exception InvalidValue is thrown if an undefined one-letter-code is used
 			*/
-			static Real getFAUJ880111(char aa) 
+			static DoubleReal getFAUJ880111(char aa) 
 			{
 				switch(aa) 
 				{
@@ -1052,7 +1051,7 @@ namespace OpenMS
 				
 				@exception InvalidValue is thrown if an undefined one-letter-code is used
 			*/
-			static Real getFINA770101(char aa) 
+			static DoubleReal getFINA770101(char aa) 
 			{
 				switch(aa) 
 				{
@@ -1139,7 +1138,7 @@ namespace OpenMS
 				
 				@exception InvalidValue is thrown if an undefined one-letter-code is used
 			*/
-			static Real getARGP820102(char aa) 
+			static DoubleReal getARGP820102(char aa) 
 			{
 				switch(aa) 
 				{
@@ -1233,7 +1232,7 @@ namespace OpenMS
 				
 				@exception InvalidValue is thrown if an undefined one-letter-code is used
 			*/
-			static std::vector<DoubleReal> getPropertyVector(AASequence& sequence)
+			static std::vector<DoubleReal> getPropertyVector(const AASequence& sequence)
 			{
 				std::vector<DoubleReal> out(18);
 				
@@ -1282,7 +1281,7 @@ namespace OpenMS
 				
 				@exception InvalidValue is thrown if an undefined one-letter-code is used
 			*/
-			static DoubleReal calculateGB(AASequence& seq, DoubleReal T=500.0) 
+			static DoubleReal calculateGB(const AASequence& seq, DoubleReal T=500.0) 
 			{
 						
 				DoubleReal R = Constants::GAS_CONSTANT/1000.0; // ideal gas constant in kj/(K*mol)

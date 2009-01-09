@@ -23,8 +23,6 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Scherbart $
 // --------------------------------------------------------------------------
-//
-	
 	
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/CHEMISTRY/AAIndex.h>
@@ -51,7 +49,7 @@ START_TEST(AASequenceIndeces, "$Id: AASequenceIndeces_test.C 0001 2008-08-14 11:
 
 TOLERANCE_ABSOLUTE(0.01)
 
-START_SECTION(static vector<DoubleReal> getPropertyVector(AASequence& sequence))
+START_SECTION(static vector<DoubleReal> getPropertyVector(const AASequence& sequence))
 	vector<DoubleReal> calculated = AAIndex::getPropertyVector(seq3);
 	TEST_REAL_SIMILAR(calculated[0], 1.0);
 	TEST_REAL_SIMILAR(calculated[1], 9.34);
@@ -74,7 +72,7 @@ START_SECTION(static vector<DoubleReal> getPropertyVector(AASequence& sequence))
 		
 END_SECTION
 
-START_SECTION(static DoubleReal calculateGB(AASequence& seq, DoubleReal T=500.0) )
+START_SECTION(static DoubleReal calculateGB(const AASequence& seq, DoubleReal T=500.0) )
 	TEST_REAL_SIMILAR(AAIndex::calculateGB(seq1), 1337.53)
 	TEST_REAL_SIMILAR(AAIndex::calculateGB(seq2), 1442.70)
 	TEST_REAL_SIMILAR(AAIndex::calculateGB(seq3), 1442.70)
@@ -84,6 +82,77 @@ START_SECTION(static DoubleReal calculateGB(AASequence& seq, DoubleReal T=500.0)
 	TEST_NOT_EQUAL(AAIndex::calculateGB(seq3,100.0), 1442.70)
 END_SECTION
 
+START_SECTION(static DoubleReal aliphatic(char aa))
+	TEST_REAL_SIMILAR(AAIndex::aliphatic('A'),1.0)
+	TEST_REAL_SIMILAR(AAIndex::aliphatic('B'),0.0)
+END_SECTION
+
+START_SECTION(static DoubleReal acidic(char aa))
+	TEST_REAL_SIMILAR(AAIndex::acidic('D'),1.0)
+	TEST_REAL_SIMILAR(AAIndex::acidic('A'),0.0)
+END_SECTION
+
+START_SECTION(static DoubleReal basic(char aa))
+	TEST_REAL_SIMILAR(AAIndex::basic('K'),1.0)
+	TEST_REAL_SIMILAR(AAIndex::basic('A'),0.0)
+END_SECTION
+
+START_SECTION(static DoubleReal polar(char aa))
+	TEST_REAL_SIMILAR(AAIndex::polar('S'),1.0)
+	TEST_REAL_SIMILAR(AAIndex::polar('A'),0.0)
+END_SECTION
+
+START_SECTION(static DoubleReal GBsidechain(char aa))
+ TEST_REAL_SIMILAR(AAIndex::GBsidechain('A'),0.0)
+END_SECTION
+
+START_SECTION(static DoubleReal GBleft(char aa))
+ TEST_REAL_SIMILAR(AAIndex::GBleft('A'),881.82)
+END_SECTION
+
+START_SECTION(static DoubleReal GBdeltaright(char aa))
+ TEST_REAL_SIMILAR(AAIndex::GBdeltaright('A'),0.0)
+END_SECTION
+
+START_SECTION(static DoubleReal getKHAG800101(char aa))
+ TEST_REAL_SIMILAR(AAIndex::getKHAG800101('A'),49.1)
+END_SECTION
+
+START_SECTION(static DoubleReal getVASM830103(char aa))
+ TEST_REAL_SIMILAR(AAIndex::getVASM830103('A'),0.159)
+END_SECTION
+
+START_SECTION(static DoubleReal getNADH010106(char aa))
+ TEST_REAL_SIMILAR(AAIndex::getNADH010106('A'),5.0)
+END_SECTION
+
+START_SECTION(static DoubleReal getNADH010107(char aa))
+ TEST_REAL_SIMILAR(AAIndex::getNADH010107('A'),-2.0)
+END_SECTION
+
+START_SECTION(static DoubleReal getWILM950102(char aa))
+ TEST_REAL_SIMILAR(AAIndex::getWILM950102('A'),2.62)
+END_SECTION
+
+START_SECTION(static DoubleReal getROBB760107(char aa))
+ TEST_REAL_SIMILAR(AAIndex::getROBB760107('A'),0.0)
+END_SECTION
+
+START_SECTION(static DoubleReal getOOBM850104(char aa))
+ TEST_REAL_SIMILAR(AAIndex::getOOBM850104('A'),-2.49)
+END_SECTION
+
+START_SECTION(static DoubleReal getFAUJ880111(char aa))
+ TEST_REAL_SIMILAR(AAIndex::getFAUJ880111('A'),0.0)
+END_SECTION
+
+START_SECTION(static DoubleReal getFINA770101(char aa))
+ TEST_REAL_SIMILAR(AAIndex::getFINA770101('A'),1.08)
+END_SECTION
+
+START_SECTION(static DoubleReal getARGP820102(char aa))
+ TEST_REAL_SIMILAR(AAIndex::getARGP820102('A'),1.18)
+END_SECTION
+
 
 END_TEST
-	

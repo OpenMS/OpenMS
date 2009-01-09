@@ -21,35 +21,40 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Alexandra Scherbart $
 // --------------------------------------------------------------------------
 
-/**
+#include <OpenMS/ANALYSIS/PIP/PeakIntensityPredictor.h>
 
-	@page OpenMSTutorial %OpenMS tutorial
+using namespace OpenMS;
+using namespace std;
 
-	First, we give a small introduction to this tutorial and %OpenMS:
-	- @subpage tutorial_general
-	- @subpage tutorial_structure
-	- @subpage tutorial_terms
+Int main() 
+{
+	//Create a vector for the predicted values that is large enough to hold them all
+	vector<AASequence> peptides;
+	peptides.push_back(AASequence("IVGLMPHPEHAVEK"));
+	peptides.push_back(AASequence("LADNISNAMQGISEATEPR"));
+	peptides.push_back(AASequence("ELDHSDTIEVIVNPEDIDYDAASEQAR"));
+	peptides.push_back(AASequence("AVDTVR"));
+	peptides.push_back(AASequence("AAWQVK"));
+	peptides.push_back(AASequence("FLGTQGR"));
+	peptides.push_back(AASequence("NYPSDWSDVDTK"));
+	peptides.push_back(AASequence("GSPSFGPESISTETWSAEPYGR"));
+	peptides.push_back(AASequence("TELGFDPEAHFAIDDEVIAHTR"));
+	
+	//Create new predictor model with vector of AASequences
+	PeakIntensityPredictor model;
+	
+	//Perform prediction with LLM model
+	vector< DoubleReal> predicted = model.predict(peptides);
+	
+	//for each element in peptides print sequence as well as corresponding predicted peak intensity value.
+	for(Size i=0; i<peptides.size(); i++)
+	{
+		cout << "Intensity of " << peptides[i] << " is " << predicted[i] << endl;
+	}
 
-	Then you should read about the basic classes and concepts of %OpenMS:
-	- @subpage tutorial_concept
-	- @subpage tutorial_datastructures
-	- @subpage tutorial_kernel
-	- @subpage tutorial_metadata
-	- @subpage tutorial_chemistry
-	- @subpage tutorial_format
+	return 0;
+} //end of main
 
-	The more advanced tutorials cover the algorithms provided by %OpenMS:
-	- @subpage tutorial_filtering
-	- @subpage tutorial_transformations
-	- @subpage tutorial_mapalignment
-	- @subpage tutorial_featuregrouping
-
-	Other advanced tutorials:
-	- @subpage tutorial_visual
-	- @subpage tutorial_clustering
-	- @subpage tutorial_pip
-	- @subpage tutorial_howto
-*/
