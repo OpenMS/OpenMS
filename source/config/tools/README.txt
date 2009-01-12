@@ -15,14 +15,12 @@ This folder contains some useful tools for developers:
   checker.php           -  Reports errors in the code, test, documentation, ...
                            This tool relies on doxygen XML output.
 
-  sql2grpah.php         -  Transforms the OpenMS MySQL DB to a GraphML representation.
+  sql2graph.php         -  Transforms the OpenMS MySQL DB to a GraphML representation.
                            The layout can be done with Yed.
 	
   make_dist.sh          -  Is used to create OpenMS release file.
 
   make_dist_contrib.sh  -  Is used to create the contrib release file.
-  
-  tools.sh              -  A collection of small bash tools you can 'source' into your shell.
 
 
 Note: All php scripts are executed by calling them as argument of the php interpreter.

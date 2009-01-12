@@ -342,7 +342,7 @@ function parseTestFile($filename)
 		if (beginsWith($line,"START_SECTION(") || beginsWith($line,"START_SECTION (") || beginsWith($line,"START_SECTION	("))
 		{
 			# strip brackets
-			$function = trim(substr($line,5));
+			$function = trim(substr($line,13));
 			//print "Function: $function \n";
 			while ($function[0]=='(' && $function[strlen($function)-1]==')')
 			{

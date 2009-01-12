@@ -37,7 +37,7 @@ AASequence seq2("GTVVTGR");
 AASequence seq3("EHVLLAR");
 
 
-START_TEST(AASequenceIndeces, "$Id: AASequenceIndeces_test.C 0001 2008-08-14 11:44:24 ascherbart $")
+START_TEST(AASequenceIndeces, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -48,7 +48,7 @@ class TOPPBaseTest
 		}
 
 		TOPPBaseTest(int argc ,const char** argv)
-			: TOPPBase("TOPPBaseTest", "A test class")
+			: TOPPBase("TOPPBaseTest", "A test class", false)
 		{
 			main(argc,argv);
 		}
@@ -164,13 +164,13 @@ class TOPPBaseTestNOP
 {
 	public:
 		TOPPBaseTestNOP()
-			: TOPPBase("TOPPBaseTest", "A test class with non-optional parameters")
+			: TOPPBase("TOPPBaseTest", "A test class with non-optional parameters", false)
 		{
 			main(0,0);
 		}
 
 		TOPPBaseTestNOP(int argc , const char** argv)
-			: TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters")
+			: TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters", false)
 		{
 			main(argc,argv);
 		}

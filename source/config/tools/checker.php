@@ -37,8 +37,7 @@
 		print "\n";
 		print "This script works only if an OpenMS copy is used, where\n";
 		print "- the internal documentation was built,\n";
-		print "- all OpenMS tests were executed,\n";
-		print "- all TOPP tests were executed.\n";
+		print "- all tests were executed.\n";
 		print "\n";
 		print "If no user name is given, the tests are performed for all users.\n";
 		print "\n";
@@ -79,7 +78,7 @@
 	
 	######################## declarations ###############################
 	$GLOBALS["all_tests"] = array(
-															"all"				     => "performs all tests (default)",
+															"(none)"		     => "performs all tests",
 															"guards"         => "check if header guards present and correct",
 															"tab"            => "check tab settings for editors",
 															"maintainers"    => "check if maintainers are consistent in header, source and test file",
@@ -238,26 +237,30 @@
 			$abort = true;
 		}
 	}
-	if (in_array("test_output",$tests))
+	$test_log = array(); //Array from test name to warnings/errors
+	if (in_array("test_output",$tests) || in_array("topp_output",$tests))
 	{
-		$out = array();
-		exec("cd $path/source/TEST/ && ls -a *.output 2> /dev/null | wc -l",$out);
-		if (trim($out[0]) < 100)
+		if (!file_exists("$path/Testing/Temporary/LastTest.log"))
 		{
-			print "Error: For the 'test_output' test, test output files are needed!\n";
-			print "       Please execute 'make test' in '$path/source/'.\n";
+			print "Error: For the tests 'test_output' and 'topp_output', the test log is needed!\n";
+			print "       Please execute 'make test'.\n";
 			$abort = true;
 		}
-	}
-	if (in_array("topp_output",$tests))
-	{
-		$out = array();
-		exec("cd $path/source/TEST/TOPP/ && ls -a *.output 2> /dev/null | wc -l",$out);
-		if (trim($out[0]) < 10)
+		else
 		{
-			print "Error: For the 'topp_output' test, TOPP test output files are needed!\n";
-			print "       Please execute 'make TOPPtest' in '$path/source/'.\n";
-			$abort = true;
+			$current_test_name = "";
+			$log_file = file("$path/Testing/Temporary/LastTest.log");
+			foreach ($log_file as $line)
+			{
+				if (ereg("[0-9]+/[0-9]+ Testing: (.*)",$line,$parts))
+				{
+					$current_test_name = trim($parts[1]);
+				}
+				if (beginsWith($line,"warning") || beginsWith($line,"Warning") || beginsWith($line,"error") || beginsWith($line,"Error"))
+				{
+					$test_log[$current_test_name][] = trim($line);
+				}
+			}
 		}
 	}
 	if ($abort)
@@ -268,7 +271,7 @@
 	########################### MAINTAINERS ################################
 	
 	$files=array();
-	exec("cd $path && find include/OpenMS/ -name \"*.h\" ! -name \"*Template.h\"", $files);
+	exec("cd $path && find include/OpenMS/ -name \"*.h\" ! -name \"ui_*.h\" ! -name \"nnls.h\"", $files);
 	exec("cd $path && find source/ -name \"*.C\" ! -regex \".*/EXAMPLES/.*\" ! -regex \".*/tools/.*\" ! -name \"*_moc.C\" ! -name \"moc_*.C\" ! -name \"*Template.C\"", $files);
 	
 	//look up Maintainer in first 40 lines of files
@@ -349,13 +352,22 @@
 	
 	########################### auxilary files #############################
 	$called_tests = array();
-	$makefile = file("$path/source/TEST/Makefile");
+	$makefile = file("$path/source/TEST/executables.cmake");
 	foreach($makefile as $line)
 	{
 		$line = trim($line);
-		if (strpos($line,"_test")!== FALSE && strpos($line,":")===FALSE && $line[0]!="#" && $line[0]!="@")
+		if (strpos($line,"_test")!== FALSE)
 		{
-			$called_tests[] = "source/TEST/".strtr($line,array("\\"=>""," "=>"", "	"=>"")).".C";
+			//Appended conditional test
+			if (strpos($line,"APPEND")!== FALSE)
+			{
+				$line = substr($line,strrpos($line,' ')+1,-1);
+				$called_tests[] = "source/TEST/".$line.".C";
+			}
+			else
+			{
+				$called_tests[] = "source/TEST/".strtr($line,array("_1"=>"","_2"=>"")).".C";
+			}
 		}
 	}
 	if (in_array("doxygen_errors",$tests))
@@ -535,6 +547,7 @@
 				"SchemaFile.h",
 				"Serialization.h",
 				"IsotopeCluster.h",
+				"Param.h",
 				);
 
 			if (endsWith($f,".h") && !endsWith($f,"_impl.h"))
@@ -556,7 +569,7 @@
 					}
 					else if (!in_array($testname,$called_tests))
 					{
-						realOutput("Test not in Makefile for '$f'",$user,$f);
+						realOutput("Test not in executables.cmake for '$f'",$user,$f);
 					}
 				}
 			}
@@ -568,7 +581,9 @@
 			$ignore = array(
 				"SampleTreatment_test.C",
 				"Exception_Base_test.C",
-				"NumericDiff.C"
+				"NumericDiff.C",
+				"Param_test_1.C",
+				"Param_test_2.C",
 			);
 			
 			if (!in_array($basename,$ignore)  && !beginsWith($f,"source/APPLICATIONS/TOPP/")  && !beginsWith($f,"source/APPLICATIONS/UTILS/"))
@@ -661,7 +676,6 @@
 		{
 			if (in_array($testname,$files))
 			{
-				
  				#parse test
  				$tmp = parseTestFile("$path/$testname");
  				$todo_tests = $tmp["todo"];
@@ -772,18 +786,10 @@
 		########################### warnings test  #####################################
 		if (in_array("test_output",$tests) )
 		{
-			$outputfile = substr("$path/$testname",0,-2).".output";
-			if (endsWith($f,".h") && in_array($testname,$files) && file_exists($outputfile))
+			if (endsWith($f,".h") && in_array($testname,$files))
 			{
-				$testfile = file($outputfile);
 				$errors = array();
-				foreach ($testfile as $line)
-				{
-					if (stripos($line,"warning")!==FALSE || stripos($line,"error")!==FALSE)
-					{
-						$errors[] = trim($line);
-					}
-				}
+				if (isset($test_log[$classname."_test"])) $errors = array_unique($test_log[$classname."_test"]);
 				if (count($errors)!=0)
 				{
 					realOutput("Error/warnings in test output of '$testname'",$user,$testname);
@@ -854,7 +860,7 @@
 				if ($is_dph)
 				{
 					$output = array();
-					exec("grep -l ".$classname."_Parameters $path/$f", $output);
+					exec("grep -l OpenMS_".$classname.".parameters $path/$f", $output);
 					if ($output==array())
 					{
 						realOutput("Missing reference to parameters page in '$f' unless abstract base class",$user,$f);
@@ -881,34 +887,32 @@
 	}
 
 	
-	########################### warnings TOPPtest  #################################
+	########################### warnings TOPP test  #################################
 	if (in_array("topp_output",$tests))
 	{
-		$out = array();
-		exec("cd $path/source/TEST/TOPP/ && ls -a *.output",$out);
-		foreach ($out as $file)
+		$file_warnings = array();
+		foreach ($test_log as $name => $warnings)
 		{
-			$file = trim($file);
-			$topp_file = "source/APPLICATIONS/TOPP/".substr($file,0,-6)."C";
-			if (in_array($topp_file,$files_todo))
+			if (beginsWith($name,"TOPP_"))
 			{
-				$testfile = file("$path/source/TEST/TOPP/$file");
-				$errors = array();
-				foreach ($testfile as $line)
+				$name = substr($name,5);
+				$name = substr($name,0,strpos($name,'_'));
+				$topp_file = "source/APPLICATIONS/TOPP/".$name.".C";
+				if (in_array($topp_file,$files_todo))
 				{
-					if (stripos($line,"warning")!==FALSE || stripos($line,"error")!==FALSE)
-					{
-						$errors[] = trim($line);
-					}
+					if (!isset($file_warnings[$topp_file])) $file_warnings[$topp_file] = array();
+					$file_warnings[$topp_file] = array_merge($file_warnings[$topp_file],$warnings);
 				}
-				if (count($errors)!=0)
-				{
-					realOutput("Error/warnings in TOPP test output 'source/TEST/TOPP/$file'",$user,$topp_file);
-					foreach ($errors as $e)
-					{
-						print "  '$e'\n";
-					}
-				}
+			}
+		}
+		//print errors/warnings bundled for each TOPP tool
+		foreach($file_warnings as $file => $warnings)
+		{
+			realOutput("Error/warnings in TOPP tool test of '$file'",$user,$file);
+			$warnings = array_unique($warnings);
+			foreach ($warnings as $e)
+			{
+				print "  '$e'\n";
 			}
 		}
 	}

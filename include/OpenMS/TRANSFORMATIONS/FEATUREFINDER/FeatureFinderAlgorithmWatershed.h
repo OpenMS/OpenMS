@@ -44,14 +44,16 @@
 namespace OpenMS
 {
   /** 
-		@brief FeatureFinderAlgorithm implementation using the Watershed Segmentation.
+		@brief Feature detecton algorithm based on watershed segmentation.
     
     The watershed segmentation algorithm is based on the paper:
     @n Watersheds in digital spaces: an efficient algorithm based onimmersion simulations
     @n Vincent, L.   Soille, P.  
 		@n IEEE Transactions on Pattern Analysis and Machine Intelligence, 1991, 13 (6), 583-598
-    
+
     @experimental Currently only the watershed segmentation is returned, not real features!
+
+    @htmlinclude OpenMS_FeatureFinderAlgorithmWatershed.parameters
     
     @ingroup FeatureFinder
 	*/
