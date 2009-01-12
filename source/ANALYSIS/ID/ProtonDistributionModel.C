@@ -27,6 +27,9 @@
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <gsl/gsl_randist.h>
+
+
 #include <cmath>
 #include <numeric>
 #include <cstdlib>
@@ -100,11 +103,14 @@ namespace OpenMS
 															int charge,
 															Residue::ResidueType res_type)
 	{
+		bb_charge_.clear();
+		sc_charge_.clear();
 		calculateProtonDistribution_(peptide, charge, res_type);
 		bb_charges = bb_charge_;
 		sc_charges = sc_charge_;
 	}
 
+/*
 	void ProtonDistributionModel::getChargeStateIntensities(const AASequence& peptide,
 													                                const AASequence& n_term_ion,
 																													const AASequence& c_term_ion,
@@ -116,198 +122,395 @@ namespace OpenMS
 																													double& c_term2,
 																													FragmentationType type)
 	{
-		calcChargeStateIntensities_(peptide, n_term_ion, c_term_ion, charge, n_term_type, n_term1, c_term1, n_term2, c_term2, type);
+		
+		//calcChargeStateIntensities_(peptide, n_term_ion, c_term_ion, charge, n_term_type, n_term1, c_term1, n_term2, c_term2, type);
+		vector<double> n_term_intensities, c_term_intensities;
+		calcChargeStateIntensities_(peptide, n_term_ion, c_term_ion, charge, n_term_type, n_term_intensities, c_term_intensities, type);
+		n_term1 = n_term_intensities[0];
+		c_term1 = c_term_intensities[0];
+		if (charge == 1)
+		{
+			n_term2 = 0;
+			c_term2 = 0;
+		}
+		else
+		{
+			n_term2 = n_term_intensities[1];
+			c_term2 = c_term_intensities[1];
+		}
+		return;
+	}
+*/
+
+	// this method calculates the distribution of protons, by using two separat ions given by the precursor peptide ion and the cleavage site
+	// this is needed for charge directed cases, where the activated proton needs to be distributed between the two ions
+	// cleavage_site is one-based; so b1/yk-1 would be cleavage_site == 1; it can be in the range [0,peptide.size()]
+	void ProtonDistributionModel::calculateProtonDistributionIonPair_(const AASequence& peptide,
+																																		Residue::ResidueType n_res_type,
+																																		Size cleavage_site)
+	{
+		double q(0); // Zustandsumme
+
+	  double gb_bb_l_NH2 = param_.getValue("gb_bb_l_NH2");
+	  double gb_bb_r_COOH = param_.getValue("gb_bb_r_COOH");
+	  double gb_bb_r_bion = param_.getValue("gb_bb_r_b-ion");
+  	double gb_bb_r_aion = param_.getValue("gb_bb_r_a-ion");
+
+	  const double T(500.0);
+
+
+		// we calculate the distribution of only the last proton, all other protons are already distributed
+
+		// so, first calculate the Zustandssumme Q of the N-term ion
+		for (Size i = 0; i != cleavage_site; ++i)
+  	{
+    	// backbone energy
+    	if (i == 0)
+    	{
+      	double E = -(gb_bb_l_NH2 + peptide[i].getBackboneBasicityRight());
+      	q += (1.0 - bb_charge_[i]) * exp(-E * 1000 / (Constants::R * T));
+    	}
+    	else
+    	{
+      	if (i == cleavage_site - 1)
+      	{
+        	// position at the C-terminal end of the ion
+        	double E(-peptide[i].getBackboneBasicityLeft());
+        	if (n_res_type == Residue::BIon)
+        	{
+          	E -= gb_bb_r_bion;
+        	}
+        	else
+        	{
+						// a-ion
+            E -= gb_bb_r_aion;
+          }
+        	q += (1.0 - bb_charge_[i + 1]) * exp(-E * 1000 / (Constants::R * T));
+				}
+
+        // normal internal backbone position
+        double E = -(peptide[i - 1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight());
+        q += (1.0 - bb_charge_[i]) * exp(-E * 1000 / (Constants::R * T));
+    	}
+
+   		// side chains
+    	if (peptide[i].getSideChainBasicity() != 0)
+    	{
+      	double E = -peptide[i].getSideChainBasicity();
+      	q += (1.0 - sc_charge_[i]) * exp(-E * 1000 / (Constants::R * T));
+    	}
+  	}
+
+		//cerr << "Q-N-term=" << 	q << endl;
+
+		// add the parts of the C-term ion to the Zustandssumme
+    for (Size i = cleavage_site; i != peptide.size(); ++i)
+    {
+      // backbone energy
+      if (i == cleavage_site)
+      {
+        double E = -(gb_bb_l_NH2 + peptide[i].getBackboneBasicityRight());
+				//cerr << "H3N: " << (1.0 - bb_charge_[i]) * exp(-E * 1000 / (Constants::R * T)) << endl;
+        q += (1.0 - bb_charge_[i]) * exp(-E * 1000 / (Constants::R * T));
+      }
+      else
+      {
+        if (i == peptide.size() - 1)
+        {
+          // position at the C-terminal end of the ion, C-term ion always has COOH ending...
+          double E(0);
+          E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_COOH);
+					//cerr << "COOH: " << (1.0 - bb_charge_[i + 1]) * exp(-E * 1000 / (Constants::R * T)) << endl;
+          q += (1.0 - bb_charge_[i + 1]) * exp(-E * 1000 / (Constants::R * T));
+				}
+
+				// normal internal backbone position
+        double E = -(peptide[i - 1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight());
+				//cerr << "Internal: " << (1.0 - bb_charge_[i]) * exp(-E * 1000/ (Constants::R * T)) << endl;
+        q += (1.0 - bb_charge_[i]) * exp(-E * 1000/ (Constants::R * T));
+      }
+      // side chains
+      if (peptide[i].getSideChainBasicity() != 0)
+      {
+        double E = -peptide[i].getSideChainBasicity();
+				//cerr << "SideChain: " << (1.0 - sc_charge_[i]) * exp(-E * 1000 / (Constants::R * T)) << endl;
+        q += (1.0 - sc_charge_[i]) * exp(-E * 1000 / (Constants::R * T));
+      }
+    }		
+
+		//cerr << "Q=" << q << endl;
+		
+		// calculate proton availabilities of the N-terminal ion
+		for (Size i = 0; i != cleavage_site; ++i)
+  	{
+    	// backbone
+    	if (i == 0)
+    	{
+      	double E = -(gb_bb_l_NH2 + peptide[i].getBackboneBasicityRight());
+      	bb_charge_ion_n_term_[i] = (1.0 - bb_charge_[i]) * exp(-E * 1000 /(Constants::R * T))/q;
+    	}
+    	else
+    	{
+      	if (i == cleavage_site - 1)
+      	{
+        	double E(-peptide[i].getBackboneBasicityLeft());
+
+        	if (n_res_type == Residue::BIon)
+        	{
+          	E -= gb_bb_r_bion;
+        	}
+        	else
+        	{
+						// a-ion
+            E -= gb_bb_r_aion;
+        	}
+        	bb_charge_ion_n_term_[i + 1] = (1.0 - bb_charge_[i + 1]) * exp(-E * 1000/(Constants::R * T))/q;
+				}
+
+        // normal backbone position
+        double E = -(peptide[i-1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight());
+        bb_charge_ion_n_term_[i] = (1.0 - bb_charge_[i]) * exp(-E * 1000 /(Constants::R * T))/q;
+    	}
+
+    	// side chains
+    	if (peptide[i].getSideChainBasicity() != 0)
+    	{
+      	double E = -peptide[i].getSideChainBasicity();
+      	sc_charge_ion_n_term_[i] = (1.0 - sc_charge_[i]) * exp(-E * 1000 / (Constants::R * T))/q;
+    	}
+		}
+
+		// same for the C-term ion
+    for (Size i = cleavage_site; i != peptide.size(); ++i)
+    {
+      // backbone
+      if (i == cleavage_site)
+      {
+        double E = -(gb_bb_l_NH2 + peptide[i].getBackboneBasicityRight());
+        bb_charge_ion_c_term_[i - cleavage_site] = (1.0 - bb_charge_[i]) * exp(-E * 1000 /(Constants::R * T))/q;
+      }
+      else
+      {
+        if (i == peptide.size() - 1)
+        {
+          double E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_COOH);
+          bb_charge_ion_c_term_[i + 1 - cleavage_site] = (1.0 - bb_charge_[i + 1]) * exp(-E * 1000/(Constants::R * T))/q;
+        }
+
+        // normal backbone position
+        double E = -(peptide[i-1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight());
+        bb_charge_ion_c_term_[i - cleavage_site] = (1.0 - bb_charge_[i]) * exp(-E * 1000 /(Constants::R * T))/q;
+				//cerr << "Int: " << peptide[i].getOneLetterCode() << " " << bb_charge_[i] << 
+      }
+
+      // side chains
+      if (peptide[i].getSideChainBasicity() != 0)
+      {
+        double E = -peptide[i].getSideChainBasicity();
+        sc_charge_ion_c_term_[i - cleavage_site] = (1.0 - sc_charge_[i]) * exp(-E * 1000 / (Constants::R * T))/q;
+				//cerr << "SC: " << peptide[i].getOneLetterCode() << " " << sc_charge_[i] << " " << sc_charge_ion_c_term_[i - cleavage_site] << endl;
+      }
+    }
+
+		return;
 	}
 	
-	void ProtonDistributionModel::calculateProtonDistribution_(const AASequence& peptide, 
-																								int charge, Residue::ResidueType res_type, 
-																								bool fixed_proton, 
-																								UInt cleavage_site,
-																								bool use_most_basic_site)
+	void ProtonDistributionModel::calculateProtonDistributionGreater2_(const AASequence& peptide, int charge, Residue::ResidueType res_type)
 	{
-		//cerr << "calculateProtonDistribution_(" << peptide << ", charge=" << charge	<< ", fixed_proton=" << fixed_proton << ", cleavage_site=" << cleavage_site << ", use_most_basic_site=" << use_most_basic_site << ")" << endl;
-		if (charge > 2)
+		//double gb_bb_l_NH2 = param_.getValue("gb_bb_l_NH2");
+    //double gb_bb_r_COOH = param_.getValue("gb_bb_r_COOH");
+    //double gb_bb_r_bion = param_.getValue("gb_bb_r_b-ion");
+    //double gb_bb_r_aion = param_.getValue("gb_bb_r_a-ion");
+		//const double T(500.0);
+					
+		vector<double> gb_bb, gb_sc;
+		double gb_left_n_term(0), gb_right_n_term(0);
+		getLeftAndRightGBValues_(peptide, gb_left_n_term, gb_right_n_term, 0);
+		gb_bb.push_back(gb_left_n_term + gb_right_n_term);
+		UInt count(1);
+		for (AASequence::ConstIterator it = peptide.begin(); it != peptide.end(); ++it, ++count)
 		{
-			vector<double> gb_bb, gb_sc;
-			double gb_left_n_term(0), gb_right_n_term(0);
-			getLeftAndRightGBValues_(peptide, gb_left_n_term, gb_right_n_term, 0);
-			gb_bb.push_back(gb_left_n_term + gb_right_n_term);
-			Size count(1);
-			for (AASequence::ConstIterator it = peptide.begin(); it != peptide.end(); ++it, ++count)
-			{
-				double gb(0), gb_left(0), gb_right(0);
-				getLeftAndRightGBValues_(peptide, gb_left, gb_right, count);
-				
-				gb = gb_left + gb_right;
-				gb_bb.push_back(gb);
-
-				gb_sc.push_back(it->getSideChainBasicity());
-			}
+			double gb(0), gb_left(0), gb_right(0);
+			getLeftAndRightGBValues_(peptide, gb_left, gb_right, count);
 			
-			// now distribute the charges until no site has more than 1.0 proton
-			vector<double> bb_coulomb(peptide.size() + 1, 0.0), sc_coulomb(peptide.size(), 0.0);
-			Int actual_charge(charge);
-			set<Size> sc_sites, bb_sites;
-			while (true)
-			{
-				//cerr << "#proton remaining: " << actual_charge << endl;
-				vector<double> k_bb(peptide.size() + 1, 0.0), k_sc(peptide.size(), 0.0);
-				count = 0;
-				double sum_k(0);
-				for (vector<double>::const_iterator it = gb_bb.begin(); it != gb_bb.end(); ++it, ++count)
-				{
-					if (bb_sites.find(count) == bb_sites.end())
-					{
-						k_bb[count] = exp((*it - bb_coulomb[count]) * 1000.0 / Constants::R / 500.0);
-						sum_k += k_bb[count];
-						//cerr << k_bb[count] << endl;
-					}
-				}
+			gb = gb_left + gb_right;
+			gb_bb.push_back(gb);
 
-				count = 0;
-				for (vector<double>::const_iterator it = gb_sc.begin(); it != gb_sc.end(); ++it, ++count)
-				{
-					if (sc_sites.find(count) == sc_sites.end())
-					{
-						k_sc[count] = exp((*it - sc_coulomb[count]) * 1000.0 / Constants::R / 500.0);
-						sum_k += k_sc[count];
-						//cerr << k_sc[count] << endl;
-					}
-				}
-
-				//cerr << "sum_k: " << sum_k << endl;
-
-				vector<double> p_bb(peptide.size() + 1, 1.0), p_sc(peptide.size(), 1.0);
-				count = 0;
-				for (vector<double>::const_iterator it = k_bb.begin(); it != k_bb.end(); ++it, ++count)
-				{
-					if (bb_sites.find(count) == bb_sites.end())
-					{
-						p_bb[count] = (double)actual_charge * *it / sum_k;
-						bb_charge_[count] = p_bb[count];
-					}
-					//cerr << "BB" << count << ": " << p_bb[count] << endl;
-				}
-
-				count = 0;
-				for (vector<double>::const_iterator it = k_sc.begin(); it != k_sc.end(); ++it, ++count)
-				{
-					if (sc_sites.find(count) == sc_sites.end())
-					{
-						p_sc[count] = (double)actual_charge * *it / sum_k;
-						sc_charge_[count] = p_sc[count];
-					}
-					//cerr << "SC" << count << ": " << p_sc[count] << endl;
-				}
-		
-				// check if there is a site containing more than one proton
-				for (Size i = 0; i != p_bb.size(); ++i)
-				{
-					if (p_bb[i] > 1.0)
-					{
-						bb_charge_[i] = 1.0;
-						bb_sites.insert(i);
-						//cerr << "BackbonePosition " << i << " has charge > 1" << endl;
-						--actual_charge;
-					}
-				}
-				for (Size i = 0; i != p_sc.size(); ++i)
-				{
-					if (p_sc[i] > 1.0)
-					{
-						sc_charge_[i] = 1.0;
-						//cerr << "SideChain " << i << " has charge > 1 " << endl;
-						sc_sites.insert(i);
-						--actual_charge;
-					}
-				}
-
-				// now calculate the coloumb repulsions
-				for (Size i = 0; i != gb_bb.size(); ++i)
-				{
-					// check if the site is not occupied by a "complete" proton
-					if (bb_sites.find(i) == bb_sites.end())
-					{
-						double coulomb_sum(0);
-						for (set<Size>::const_iterator it = bb_sites.begin(); it != bb_sites.end(); ++it)
-						{
-							// calculate the distance between occupied site and this backbone site
-							Size pos = *it;
-							Size diff = (pos > i) ? pos - i : i - pos;
-							coulomb_sum += COULOMB_REPULSION / (double)diff;
-						}
-
-						for (set<Size>::const_iterator it = sc_sites.begin(); it != sc_sites.end(); ++it)
-						{
-							// calculate the distance between occupied side chain and this backbone site
-							Size pos = *it;
-							Size diff = (pos > i) ? pos -i : i - pos;
-							++diff; // bond to the side chain counts extra
-							coulomb_sum += COULOMB_REPULSION / (double)diff;
-						}
-						bb_coulomb[i] = coulomb_sum;
-						//cerr << "BB coulomb" << i << ": " << coulomb_sum << endl;
-					}
-				}
-				for (Size i = 0; i != gb_sc.size(); ++i)
-				{
-					if (sc_sites.find(i) == sc_sites.end())
-					{
-						double coulomb_sum(0);
-						for (set<Size>::const_iterator it = bb_sites.begin(); it != bb_sites.end(); ++it)
-						{
-							Size pos = *it;
-							Size diff = (pos > i) ? pos - i : i - pos;
-							++diff;
-							coulomb_sum += COULOMB_REPULSION / (double)diff;
-						}
-						for (set<Size>::const_iterator it = sc_sites.begin(); it != sc_sites.end(); ++it)
-						{
-							Size pos = *it;
-							Size diff = (pos > i) ? pos - i : i - pos;
-							diff += 2;
-							coulomb_sum += COULOMB_REPULSION / (double)diff;
-						}
-						//cerr << "SC coulomb" << i << ": " << coulomb_sum << endl; 
-						sc_coulomb[i] = coulomb_sum;
-					}
-				}
-			
-				// TODO think about what happens if #protons are greater than number of sites?!?
-				if (bb_sites.size() == 0 && sc_sites.size() == 0)
-				{
-					break;
-				}
-
-				// search for entries > 1
-				bool has_greater_one(false);
-				for (vector<double>::const_iterator it = p_bb.begin(); it != p_bb.end(); ++it)
-				{
-					if (*it > 1.0)
-					{
-						has_greater_one = true;
-					}
-				}
-
-				for (vector<double>::const_iterator it = p_sc.begin(); it != p_sc.end(); ++it)
-				{
-					if (*it > 1.0)
-					{
-						has_greater_one = true;
-					}
-				}
-
-				if (!has_greater_one)
-				{
-					//cerr << "Has no site with more than 1.0 proton" << endl;
-					break;
-				}
-			}
-			
-			return;
+			gb_sc.push_back(it->getSideChainBasicity());
 		}
 		
-		Size most_basic_site(0);
+		// now distribute the charges until no site has more than 1.0 proton
+		vector<double> bb_coulomb(peptide.size() + 1, 0.0), sc_coulomb(peptide.size(), 0.0);
+		Int actual_charge(charge);
+		set<UInt> sc_sites, bb_sites;
+		while (true)
+		{
+			//cerr << "#proton remaining: " << actual_charge << endl;
+			vector<double> k_bb(peptide.size() + 1, 0.0), k_sc(peptide.size(), 0.0);
+			count = 0;
+			double sum_k(0);
+			for (vector<double>::const_iterator it = gb_bb.begin(); it != gb_bb.end(); ++it, ++count)
+			{
+				if (bb_sites.find(count) == bb_sites.end())
+				{
+					k_bb[count] = exp((*it - bb_coulomb[count]) * 1000.0 / Constants::R / 500.0);
+					sum_k += k_bb[count];
+					//cerr << k_bb[count] << endl;
+				}
+			}
+
+			count = 0;
+			for (vector<double>::const_iterator it = gb_sc.begin(); it != gb_sc.end(); ++it, ++count)
+			{
+				if (sc_sites.find(count) == sc_sites.end())
+				{
+					k_sc[count] = exp((*it - sc_coulomb[count]) * 1000.0 / Constants::R / 500.0);
+					sum_k += k_sc[count];
+					//cerr << k_sc[count] << endl;
+				}
+			}
+
+			//cerr << "sum_k: " << sum_k << endl;
+
+			vector<double> p_bb(peptide.size() + 1, 1.0), p_sc(peptide.size(), 1.0);
+			count = 0;
+			for (vector<double>::const_iterator it = k_bb.begin(); it != k_bb.end(); ++it, ++count)
+			{
+				if (bb_sites.find(count) == bb_sites.end())
+				{
+					p_bb[count] = (double)actual_charge * *it / sum_k;
+					bb_charge_[count] = p_bb[count];
+				}
+				//cerr << "BB" << count << ": " << p_bb[count] << endl;
+			}
+
+			count = 0;
+			for (vector<double>::const_iterator it = k_sc.begin(); it != k_sc.end(); ++it, ++count)
+			{
+				if (sc_sites.find(count) == sc_sites.end())
+				{
+					p_sc[count] = (double)actual_charge * *it / sum_k;
+					sc_charge_[count] = p_sc[count];
+				}
+				//cerr << "SC" << count << ": " << p_sc[count] << endl;
+			}
+	
+			// check if there is a site containing more than one proton
+			for (Size i = 0; i != p_bb.size(); ++i)
+			{
+				if (p_bb[i] > 1.0)
+				{
+					bb_charge_[i] = 1.0;
+					bb_sites.insert(i);
+					//cerr << "BackbonePosition " << i << " has charge > 1" << endl;
+					--actual_charge;
+				}
+			}
+			for (Size i = 0; i != p_sc.size(); ++i)
+			{
+				if (p_sc[i] > 1.0)
+				{
+					sc_charge_[i] = 1.0;
+					//cerr << "SideChain " << i << " has charge > 1 " << endl;
+					sc_sites.insert(i);
+					--actual_charge;
+				}
+			}
+
+			// now calculate the coloumb repulsions
+			for (Size i = 0; i != gb_bb.size(); ++i)
+			{
+				// check if the site is not occupied by a "complete" proton
+				if (bb_sites.find(i) == bb_sites.end())
+				{
+					double coulomb_sum(0);
+					for (set<UInt>::const_iterator it = bb_sites.begin(); it != bb_sites.end(); ++it)
+					{
+						// calculate the distance between occupied site and this backbone site
+						UInt pos = *it;
+						UInt diff = (pos > i) ? pos - i : i - pos;
+						coulomb_sum += COULOMB_REPULSION / (double)diff;
+					}
+
+					for (set<UInt>::const_iterator it = sc_sites.begin(); it != sc_sites.end(); ++it)
+					{
+						// calculate the distance between occupied side chain and this backbone site
+						UInt pos = *it;
+						UInt diff = (pos > i) ? pos -i : i - pos;
+						++diff; // bond to the side chain counts extra
+						coulomb_sum += COULOMB_REPULSION / (double)diff;
+					}
+					bb_coulomb[i] = coulomb_sum;
+					//cerr << "BB coulomb" << i << ": " << coulomb_sum << endl;
+				}
+			}
+			for (Size i = 0; i != gb_sc.size(); ++i)
+			{
+				if (sc_sites.find(i) == sc_sites.end())
+				{
+					double coulomb_sum(0);
+					for (set<UInt>::const_iterator it = bb_sites.begin(); it != bb_sites.end(); ++it)
+					{
+						UInt pos = *it;
+						UInt diff = (pos > i) ? pos - i : i - pos;
+						++diff;
+						coulomb_sum += COULOMB_REPULSION / (double)diff;
+					}
+					for (set<UInt>::const_iterator it = sc_sites.begin(); it != sc_sites.end(); ++it)
+					{
+						UInt pos = *it;
+						UInt diff = (pos > i) ? pos - i : i - pos;
+						diff += 2;
+						coulomb_sum += COULOMB_REPULSION / (double)diff;
+					}
+					//cerr << "SC coulomb" << i << ": " << coulomb_sum << endl; 
+					sc_coulomb[i] = coulomb_sum;
+				}
+			}
+		
+			// TODO think about what happens if #protons are greater than number of sites?!?
+			if (bb_sites.size() == 0 && sc_sites.size() == 0)
+			{
+				break;
+			}
+
+			// search for entries > 1
+			bool has_greater_one(false);
+			for (vector<double>::const_iterator it = p_bb.begin(); it != p_bb.end(); ++it)
+			{
+				if (*it > 1.0)
+				{
+					has_greater_one = true;
+				}
+			}
+
+			for (vector<double>::const_iterator it = p_sc.begin(); it != p_sc.end(); ++it)
+			{
+				if (*it > 1.0)
+				{
+					has_greater_one = true;
+				}
+			}
+
+			if (!has_greater_one)
+			{
+				//cerr << "Has no site with more than 1.0 proton" << endl;
+				break;
+			}
+		}
+		
+		return;
+
+	}
+
+	void ProtonDistributionModel::calculateProtonDistributionCharge2_(const AASequence& peptide,
+																																		Residue::ResidueType res_type,
+																																		bool fixed_proton,
+																																		Size cleavage_site,
+																																		bool use_most_basic_site)
+	{
+		double q(0), sum_E(0), sum_E_n_term(0), sum_E_c_term(0); // Zustandsumme
+		UInt most_basic_site(0);
 		bool most_basic_site_sc(false);
 
     double gb_bb_l_NH2 = param_.getValue("gb_bb_l_NH2");
@@ -379,129 +582,6 @@ namespace OpenMS
 		}
 		//bb_charge_[peptide.size()] = 0;
 
-		// single charged
-		double q(0), sum_E(0), sum_E_n_term(0), sum_E_c_term(0); // Zustandsumme
-		if (charge == 1)
-	{
-		for (Size i = 0; i != peptide.size(); ++i)
-		{
-			//String aa(peptide[i]->getOneLetterCode());
-			
-			// backbone energy
-			if (i == 0)
-			{
-				//double E = -(gb_bb_l_["NH2"] + gb_bb_r_[aa]);
-				double E = -(gb_bb_l_NH2 + peptide[i].getBackboneBasicityRight());
-				q += exp(-E * 1000 / (Constants::R * T));
-			}
-			else
-			{
-				if (i == peptide.size() - 1)
-				{
-					// position at the C-terminal end of the ion
-					double E(0);
-					if (res_type == Residue::BIon)
-					{
-						//E = -(gb_bb_l_[aa] + gb_bb_r_["b-ion"]);
-						E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_bion);
-					}
-					else
-					{
-						if (res_type == Residue::AIon)
-						{
-							//E = -(gb_bb_l_[aa] + gb_bb_r_["a-ion"]);
-							E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_aion);
-						}
-						else
-						{
-							//E = -(gb_bb_l_[aa] + gb_bb_r_["COOH"]);
-							E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_COOH);
-						}
-					}
-					q += exp(-E * 1000 / (Constants::R * T));
-					//E = -(gb_bb_l_[peptide[i - 1].getOneLetterCode()] + gb_bb_r_[aa]);
-					E = -(peptide[i - 1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight());
-					q += exp(-E * 1000/ (Constants::R * T));
-				}
-				else
-				{
-					// normal internal backbone position
-					//double E = -(gb_bb_l_[peptide[i - 1].getOneLetterCode()] + gb_bb_r_[aa]);
-					double E = -(peptide[i - 1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight());
-					q += exp(-E * 1000 / (Constants::R * T));
-				}
-			}
-			
-			// side chains
-			if (/*gb_sc_.has(aa)*/peptide[i].getSideChainBasicity() != 0)
-			{
-				//double E = -gb_sc_[aa];
-				double E = -peptide[i].getSideChainBasicity();
-				q += exp(-E * 1000 / (Constants::R * T));
-			}
-		}
-	
-		#if 0
-		cout << "Q=" << q << endl;
-		#endif
-		//cerr << "E: " << sum_E << endl;
-
-		// calculate the availabilities
-		for (Size i = 0; i != peptide.size(); ++i)
-		{
-			// backbone
-			if (i == 0)
-			{
-				//double E = -(gb_bb_l_["NH2"] + gb_bb_r_[aa]);
-				double E = -(gb_bb_l_NH2 + peptide[i].getBackboneBasicityRight());
-				bb_charge_[i] = exp(-E * 1000 /(Constants::R * T))/q;
-				sum_E += exp(-E * 1000/Constants::R/T);
-			}
-			else
-			{
-				if (i == peptide.size() - 1)
-				{
-					double E(0);
-					
-					if (res_type == Residue::BIon)
-					{
-						E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_bion);
-					}
-					else
-					{
-						if (res_type == Residue::AIon)
-						{
-							E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_aion);
-						}
-						else
-						{
-							E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_COOH);
-						}
-					}
-					bb_charge_[i] = exp(-E * 1000/(Constants::R * T))/q;
-					sum_E += exp(-E * 1000/Constants::R/T);
-					E = -(peptide[i-1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight());
-					bb_charge_[i+1] = exp(-E * 1000 /(Constants::R * T))/q;
-					sum_E += exp(-E * 1000/Constants::R/T);
-				}
-				else
-				{
-					// normal backbone position
-					double E = -(peptide[i-1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight());
-					bb_charge_[i] = exp(-E * 1000 /(Constants::R * T))/q;
-					sum_E += exp(-E * 1000/Constants::R/T);
-				}
-			}
-	
-			// side chains
-			if (peptide[i].getSideChainBasicity() != 0)
-			{
-				double E = -peptide[i].getSideChainBasicity();
-				sc_charge_[i] = exp(-E * 1000 / (Constants::R * T))/q;
-				sum_E += exp(-E * 1000/Constants::R/T);
-			}
-		}
-	}
 
 	// fixed proton
 	//
@@ -760,7 +840,7 @@ namespace OpenMS
 
 	
 	// double charged
-	if (charge == 2 && !fixed_proton && !use_most_basic_site)
+	if (!fixed_proton && !use_most_basic_site)
 	{
 		// calculate sum
 		int count(0);
@@ -1057,7 +1137,7 @@ namespace OpenMS
 	#if 0
 	cerr << "side chain proton availabilities" << endl;
 	double sum(0);
-	for (Size i = 0; i != peptide.size(); ++i)
+	for (unsigned int i = 0; i != peptide.size(); ++i)
 	{
 		if (sc_charge_.has(i))
 		{
@@ -1071,7 +1151,7 @@ namespace OpenMS
 	}
 
 	cerr << "\nbackbone proton availabilities" << endl;
-	for (Size i = 0; i  <= peptide.size(); ++i)
+	for (unsigned int i = 0; i  <= peptide.size(); ++i)
 	{
 		if (bb_charge_.has(i))
 		{
@@ -1098,8 +1178,155 @@ namespace OpenMS
 		E_n_term_ = 0;
 		E_c_term_ = 0;
 	}
-}
 
+	}
+
+	void ProtonDistributionModel::calculateProtonDistributionCharge1_(const AASequence& peptide, Residue::ResidueType res_type)
+  {
+	// single charged
+	double q(0), sum_E(0)/*, sum_E_n_term(0), sum_E_c_term(0)*/; // Zustandsumme
+
+  double gb_bb_l_NH2 = param_.getValue("gb_bb_l_NH2");
+  double gb_bb_r_COOH = param_.getValue("gb_bb_r_COOH");
+  double gb_bb_r_bion = param_.getValue("gb_bb_r_b-ion");
+  double gb_bb_r_aion = param_.getValue("gb_bb_r_a-ion");
+
+	const double T(500.0);
+	
+	for (Size i = 0; i != peptide.size(); ++i)
+	{
+		// backbone energy
+		if (i == 0)
+		{
+			double E = -(gb_bb_l_NH2 + peptide[i].getBackboneBasicityRight());
+			q += exp(-E * 1000 / (Constants::R * T));
+		}
+		else
+		{
+			if (i == peptide.size() - 1)
+			{
+				// position at the C-terminal end of the ion
+				double E(0);
+				if (res_type == Residue::BIon)
+				{
+					E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_bion);
+				}
+				else
+				{
+					if (res_type == Residue::AIon)
+					{
+						E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_aion);
+					}
+					else
+					{
+						E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_COOH);
+					}
+				}
+				q += exp(-E * 1000 / (Constants::R * T));
+				E = -(peptide[i - 1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight());
+				q += exp(-E * 1000/ (Constants::R * T));
+			}
+			else
+			{
+				// normal internal backbone position
+				double E = -(peptide[i - 1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight());
+				q += exp(-E * 1000 / (Constants::R * T));
+			}
+		}
+		
+		// side chains
+		if (peptide[i].getSideChainBasicity() != 0)
+		{
+			double E = -peptide[i].getSideChainBasicity();
+			q += exp(-E * 1000 / (Constants::R * T));
+		}
+	}
+
+	#if 0
+	cout << "Q=" << q << endl;
+	#endif
+	// calculate the availabilities
+	for (Size i = 0; i != peptide.size(); ++i)
+	{
+		// backbone
+		if (i == 0)
+		{
+			double E = -(gb_bb_l_NH2 + peptide[i].getBackboneBasicityRight());
+			bb_charge_[i] = exp(-E * 1000 /(Constants::R * T))/q;
+			sum_E += exp(-E * 1000/Constants::R/T);
+		}
+		else
+		{
+			if (i == peptide.size() - 1)
+			{
+				double E(0);
+				
+				if (res_type == Residue::BIon)
+				{
+					E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_bion);
+				}
+				else
+				{
+					if (res_type == Residue::AIon)
+					{
+						E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_aion);
+					}
+					else
+					{
+						E = -(peptide[i].getBackboneBasicityLeft() + gb_bb_r_COOH);
+					}
+				}
+				// TODO charge order; bug????
+				bb_charge_[i + 1] = exp(-E * 1000/(Constants::R * T))/q;
+				sum_E += exp(-E * 1000/Constants::R/T);
+				E = -(peptide[i-1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight());
+				bb_charge_[i] = exp(-E * 1000 /(Constants::R * T))/q;
+				sum_E += exp(-E * 1000/Constants::R/T);
+			}
+			else
+			{
+				// normal backbone position
+				double E = -(peptide[i-1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight());
+				bb_charge_[i] = exp(-E * 1000 /(Constants::R * T))/q;
+				sum_E += exp(-E * 1000/Constants::R/T);
+			}
+		}
+
+		// side chains
+		if (peptide[i].getSideChainBasicity() != 0)
+		{
+			double E = -peptide[i].getSideChainBasicity();
+			sc_charge_[i] = exp(-E * 1000 / (Constants::R * T))/q;
+			sum_E += exp(-E * 1000/Constants::R/T);
+		}
+  }
+		E_ = sum_E;
+	}
+	
+	void ProtonDistributionModel::calculateProtonDistribution_(const AASequence& peptide, 
+																								int charge, Residue::ResidueType res_type, 
+																								bool fixed_proton, 
+																								Size cleavage_site,
+																								bool use_most_basic_site)
+	{
+		if (charge == 1)
+		{
+			calculateProtonDistributionCharge1_(peptide, res_type);
+			return;
+		}
+		if (charge == 2)
+		{
+			calculateProtonDistributionCharge2_(peptide, res_type, fixed_proton, cleavage_site, use_most_basic_site);
+			return;
+		}
+		if (charge > 2)
+		{
+			calculateProtonDistributionGreater2_(peptide, charge, res_type);
+		}
+		return;
+	}
+
+/*
 	double ProtonDistributionModel::getProtonAffinity_(const AASequence& peptide, int charge, Residue::ResidueType res_type)
 	{
 		//const double T(500.0);
@@ -1143,6 +1370,136 @@ namespace OpenMS
 	
 		//return pa;
 		return E_;
+	}
+*/
+
+	void ProtonDistributionModel::getChargeStateIntensities(const AASequence& peptide, 
+																 													const AASequence& n_term_ion, 
+																													const AASequence& c_term_ion, 
+																													int charge, 
+																													Residue::ResidueType n_term_type,
+																													std::vector<double>& n_term_intensities, 
+																													std::vector<double>& c_term_intensities, 
+																													FragmentationType type)
+	{
+		calcChargeStateIntensities_(peptide, n_term_ion, c_term_ion, charge, n_term_type, n_term_intensities, c_term_intensities, type);
+		return;
+	}
+
+	void ProtonDistributionModel::calcChargeStateIntensities_(const AASequence& peptide, 
+																														const AASequence& n_term_ion, 
+																														const AASequence& c_term_ion, 
+																														int charge,
+																														Residue::ResidueType n_term_type,
+																														vector<double>& n_term_intensities,
+																														vector<double>& c_term_intensities,
+																														FragmentationType type)
+	{
+		// original method works well
+		if (charge == 1)
+		{
+			double c_term_int1(0), c_term_int2(0), n_term_int1(0), n_term_int2(0);
+			n_term_intensities.clear();
+			c_term_intensities.clear();
+			calcChargeStateIntensities_(peptide, n_term_ion, c_term_ion, charge, n_term_type, n_term_int1, c_term_int1, n_term_int2, c_term_int2, type);
+			n_term_intensities.push_back(n_term_int1);
+			c_term_intensities.push_back(c_term_int1);
+			return;
+		}
+
+		if (charge == 2)
+		{
+			double c_term_int1(0), c_term_int2(0), n_term_int1(0), n_term_int2(0);
+      n_term_intensities.clear();
+      c_term_intensities.clear();
+      calcChargeStateIntensities_(peptide, n_term_ion, c_term_ion, charge, n_term_type, n_term_int1, c_term_int1, n_term_int2, c_term_int2, type);
+      n_term_intensities.push_back(n_term_int1);
+			n_term_intensities.push_back(n_term_int2);
+      c_term_intensities.push_back(c_term_int1);
+			c_term_intensities.push_back(c_term_int2);
+			return;
+		}
+
+		// charge > 2
+		n_term_intensities = vector<double>(charge, 0.0);
+		c_term_intensities = vector<double>(charge, 0.0);
+		
+		// calculate the number of in-active protons
+		// this is simply the number of protons in case of charge-remote and 
+		// side-chain induced cleavages (side-chain protons stay at the side chain)
+		// for charge-directed cleavages there must be one proton which induces 
+		// the cleavage, however, this can be distributed over several places
+		UInt num_active_protons = charge;
+		if (type == ChargeDirected)
+		{
+			num_active_protons = charge - 1;
+		}
+		
+		// calc proton distribution
+		calculateProtonDistribution_(peptide, num_active_protons, Residue::Full);
+    double n_term_sum(0), c_term_sum(0);
+
+		// sum up all protons located at the N-term/C-term part of the peptide
+    for (Size i = 0; i != n_term_ion.size(); ++i)
+    {
+			//cerr << "N-term: i=" << i << ", " << peptide[i].getOneLetterCode() << ", BB-charge=" << bb_charge_[i] << ", SC-charge=" << sc_charge_[i] << endl;
+      n_term_sum += bb_charge_[i];
+      n_term_sum += sc_charge_[i];
+    }
+    for (Size i = n_term_ion.size(); i != peptide.size(); ++i)
+    {
+			//cerr << "C-term: i=" << i << ", " << peptide[i].getOneLetterCode() << ", BB-charge=" << bb_charge_[i] << ", SC-charge=" << sc_charge_[i] << endl;
+      c_term_sum += bb_charge_[i + 1];
+      c_term_sum += sc_charge_[i];
+    }
+    //c_term_sum += bb_charge_[peptide.size()];
+		//cerr << n_term_ion << " " << c_term_ion << " " << n_term_sum << " " << c_term_sum << endl;
+		//n_term_intensities[0] = n_term_sum;
+		//c_term_intensities[0] = c_term_sum;
+		// now we have the distributions of the protons
+		
+		//cerr << "Init: " << n_term_sum << " " << c_term_sum << endl;
+		if (type == ChargeDirected)
+		{
+			// charge directed case
+			// the proton which induces the cleavage is handled separately
+			bb_charge_ion_n_term_.clear();
+			bb_charge_ion_c_term_.clear();
+			sc_charge_ion_n_term_.clear();
+			sc_charge_ion_c_term_.clear();
+			calculateProtonDistributionIonPair_(peptide, n_term_type, n_term_ion.size());
+			//cerr << "NTerm: ";
+			for (Size i = 0; i != n_term_ion.size(); ++i)
+			{
+				//cerr << i << ", bb=" << bb_charge_ion_n_term_[i] << ", sc=" << sc_charge_ion_n_term_[i] << " ";
+				n_term_sum += bb_charge_ion_n_term_[i];
+				n_term_sum += sc_charge_ion_n_term_[i];
+			}
+			//cerr << bb_charge_ion_n_term_[n_term_ion.size()] << endl;
+			n_term_sum += bb_charge_ion_n_term_[n_term_ion.size()];
+
+			//cerr << "CTerm: ";
+			for (Size i = 0; i != c_term_ion.size(); ++i)
+			{
+				//cerr << i << ", bb=" << bb_charge_ion_c_term_[i] << ", sc=" << sc_charge_ion_c_term_[i] << " ";
+				c_term_sum += bb_charge_ion_c_term_[i];
+				c_term_sum += sc_charge_ion_c_term_[i];
+			}
+			//cerr << bb_charge_ion_c_term_[c_term_ion.size()] << endl;
+			c_term_sum += bb_charge_ion_c_term_[c_term_ion.size()];
+		}
+
+    // we simply need to calculate the charge state distribution according
+    // to the proton probabilities we calculate above
+    // TODO sigma to param
+    const double sigma = 0.5;
+    for (int z = 1; z <= charge; ++z)
+    {
+      n_term_intensities[z - 1] = gsl_ran_gaussian_pdf(fabs(n_term_sum - (double)z), sigma);
+      c_term_intensities[z - 1] = gsl_ran_gaussian_pdf(fabs(c_term_sum - (double)z), sigma);
+    }
+
+		return;
 	}
 
 	void ProtonDistributionModel::calcChargeStateIntensities_( const AASequence& peptide, 
@@ -1421,6 +1778,7 @@ namespace OpenMS
 		return;
 	}
 
+/*
 	vector<double> ProtonDistributionModel::getChargeStateIntensities_(const AASequence& peptide, const AASequence& ion, int charge, Residue::ResidueType res_type)
 	{
 		const double T(8.314472);
@@ -1468,7 +1826,7 @@ namespace OpenMS
 		}
 		
 		return ints;
-	}
+	}*/
 
 	void ProtonDistributionModel::getLeftAndRightGBValues_(const AASequence& peptide, double& left_gb, double& right_gb, Size position)
 	{

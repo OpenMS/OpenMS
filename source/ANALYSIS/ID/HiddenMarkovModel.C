@@ -24,15 +24,17 @@
 // $Maintainer: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-// TODO: !!!! niemals eine struktur aendern ueber die man iteriert!
-
 #include <OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CONCEPT/Macros.h>
 
 #include <iostream>
 #include <fstream>
 #include <stack>
 #include <cmath>
 #include <numeric>
+#include <algorithm>
 
 #define SIMPLE_DEBUG2
 #undef  SIMPLE_DEBUG2
@@ -45,6 +47,10 @@
 
 #define EVALUATE_DEBUG
 #undef EVALUATE_DEBUG
+
+#ifdef EVALUATE_DEBUG
+#include <gsl/gsl_statistics.h>
+#endif
 
 using namespace std;
 
@@ -133,12 +139,12 @@ namespace OpenMS
 		pre_states_.erase(state);
 	}
 
-	const set<HMMState*>& HMMState::getPredecessorStates() const
+	const set<HMMState::HMMState*>& HMMState::getPredecessorStates() const
 	{
 		return pre_states_;
 	}
 
-	const set<HMMState*>& HMMState::getSuccessorStates() const
+	const set<HMMState::HMMState*>& HMMState::getSuccessorStates() const
 	{
 		return succ_states_;
 	}
@@ -326,6 +332,7 @@ namespace OpenMS
     }
     trans_.clear();
     count_trans_.clear();
+		train_count_trans_all_.clear();
     forward_.clear();
     backward_.clear();
     name_to_state_.clear();
@@ -335,12 +342,13 @@ namespace OpenMS
     trained_trans_.clear();
     synonym_trans_.clear();
     synonym_trans_names_.clear();	
+		var_modifications_ = StringList::create("");
 		return;
 	}
 	
 	UInt HiddenMarkovModel::getNumberOfStates() const
 	{
-		return (UInt)states_.size();
+		return states_.size();
 	}
 
 	void HiddenMarkovModel::addNewState(HMMState* s)
@@ -419,6 +427,9 @@ namespace OpenMS
 
 	void HiddenMarkovModel::setTransitionProbability(const String& s1, const String& s2, double trans_prob)
 	{
+    OPENMS_PRECONDITION(
+		name_to_state_.find(s1) != name_to_state_.end() && name_to_state_.find(s2) != name_to_state_.end(),
+		String("HiddenMarkovModel::setTransitionProbability(" + String(s1) + ", " + String(s2) + ", " +  String(trans_prob) + "), no suchstate!").c_str());
 #ifdef SIMPLE_DEBUG2
     cerr << "setTransitionProbability: '" << s1 << "' -> '" << s2 << "'" << " " << trans_prob << endl;
 #endif
@@ -657,7 +668,18 @@ namespace OpenMS
 				{
 					sum += count_trans_[it1->first][it2->first];
 #ifdef EVALUATE_DEBUG
-					cerr << it1->first->getName() << " " << it2->first->getName() << " " << count_trans_[it1->first][it2->first] << endl;
+					cerr << it1->first->getName() << " " << it2->first->getName() << " ";
+					
+					//<< count_trans_[it1->first][it2->first] << endl;
+					for (vector<double>::const_iterator it = train_count_trans_all_[it1->first][it2->first].begin(); it != train_count_trans_all_[it1->first][it2->first].end(); ++it)
+					{
+						cerr << *it << " ";
+					}
+					vector<double> data = train_count_trans_all_[it1->first][it2->first];
+					std::sort(data.begin(),data.end());
+		      double mean = gsl_stats_mean(&data.front(),1,data.size());
+		      double variance = gsl_stats_variance_m(&data.front(),1,data.size(),mean);
+					cerr << "mean=" << mean << ", variance=" << variance << endl;
 #endif
 				}
 			}
@@ -678,6 +700,7 @@ namespace OpenMS
 
 	void HiddenMarkovModel::setInitialTransitionProbability(const String& state, double prob)
 	{
+		OPENMS_PRECONDITION(name_to_state_.find(state) != name_to_state_.end(), String("HiddenMarkovModel::setInitialTransitionProbability(" + state + ", " + String(prob) + "), no suchstate!").c_str());
 		init_prob_[name_to_state_[state]] = prob;
 	}
 
@@ -691,6 +714,8 @@ namespace OpenMS
 #ifdef SIMPLE_DEBUG2
 		cerr << "setTrainingEmissionProbability(" << state << "(" << name_to_state_[state] << "), " << prob << ")" << endl;
 #endif
+
+		OPENMS_PRECONDITION(name_to_state_.find(state) != name_to_state_.end(), String("HiddenMarkovModel::setTrainingEmissionProbability(" + state + ", " + String(prob) + "), no such state!").c_str());
 		train_emission_prob_[name_to_state_[state]] = prob;
 	}
 
@@ -829,106 +854,128 @@ namespace OpenMS
     }
 	}
 
-/*
-	void HiddenMarkovModel::buildSynonyms()
-	{
-		for (map<String, map<String, std::pair<String, String> > >::const_iterator it = synonym_trans_names_.begin(); it != synonym_trans_names_.end(); ++it)
-		{
-			for (map<String, pair<String, String> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
-			{
-				synonym_trans_[name_to_state_[it->first]][name_to_state_[it2->first]] = 
-						make_pair<HMMState*, HMMState*>(name_to_state_[it2->second.first], name_to_state_[it2->second.second]);
-			}
-		}
-	}*/
-
 	void HiddenMarkovModel::estimateUntrainedTransitions()
 	{
 		#ifdef HIDDEN_MARKOV_MODEL_DEBUG
 		cerr << "Transition training stats" << endl;
-
-		/*
 		for (map<HMMState*, map<HMMState*, UInt> >::const_iterator it = training_steps_count_.begin(); it != training_steps_count_.end(); ++it)
 		{
 			for (map<HMMState*, UInt>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
 			{
 				cerr << it->first->getName() << " " << it1->first->getName() << " " << it1->second << endl;
 			}
-		}*/
+		}
 
 		cerr << "Estimation" << endl;
 		#endif
 
 
-		String residues("ACDEFGHIKMNPQRSTVWY");
-		
-		vector<String> suffixe;
-		HMMState* s2 = name_to_state_["bxyz"];
+		set<const Residue*> residues(ResidueDB::getInstance()->getResidues(ResidueDB::NATURAL_20));
+    for (StringList::const_iterator it = var_modifications_.begin(); it != var_modifications_.end(); ++it)
+    {
+      residues.insert(ResidueDB::getInstance()->getModifiedResidue(*it));
+    }
+
+		HMMState* s2 = 0;
 		HMMState* end_state = name_to_state_["end"];
-		for (Size i = 0; i != residues.size(); ++i)
+		for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
 		{
 			s2 = name_to_state_["bxyz"];
-			for (Size j = 0; j != residues.size(); ++j)
+			for (set<const Residue*>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
 			{
-				String aa1(residues[i]), aa2(residues[j]);
-				if (training_steps_count_[name_to_state_[aa1 + aa2 + "bxyz"]][s2] == 0)
+				AASequence first_aa, second_aa;
+				first_aa += *it;
+				second_aa += *jt;
+				String aa1(first_aa.toString()), aa2(second_aa.toString());
+				#ifdef HIDDEN_MARKOV_MODEL_DEBUG
+				cerr << "Estimating: " << aa1 << " -> " << aa2 << " (" << training_steps_count_[name_to_state_[aa1 + aa2 + "_bxyz"]][s2] << ") :: " ;
+				#endif
+
+				if (training_steps_count_[name_to_state_[aa1 + aa2 + "_bxyz"]][s2] == 0)
 				{
 					UInt count(0);
 					double sum(0);
-					for (Size k = 0; k != residues.size(); ++k)
+					// "rows" of the amino acid matrix
+					for (set<const Residue*>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
 					{
-						UInt tmp = training_steps_count_[name_to_state_[aa1 + residues[k] + "bxyz"]][s2];
-						if (tmp != 0)
+						AASequence third_aa;
+						third_aa += *kt;
+						String aa3(third_aa.toString());
+						if (training_steps_count_[name_to_state_[aa1 + aa3 + "_bxyz"]][s2] != 0)
 						{
-							sum += trans_[name_to_state_[aa1 + residues[k] + "bxyz"]][s2];
+							sum += trans_[name_to_state_[aa1 + aa3 + "_bxyz"]][s2];
 							count++;
 						}
 					}
-					for (Size k = 0; k != residues.size(); ++k)
+					// "columns" of the amino acid matrix
+					for (set<const Residue*>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
 					{
-						UInt tmp = training_steps_count_[name_to_state_[residues[k] + aa2 +"bxyz"]][s2];
-						if (tmp != 0)
+						AASequence third_aa;
+						third_aa += *kt;
+						String aa3(third_aa.toString());
+
+						if (training_steps_count_[name_to_state_[aa3 + aa2 +"_bxyz"]][s2] != 0)
 						{
-							sum += trans_[name_to_state_[residues[k] + aa2 +"bxyz"]][s2];
+							sum += trans_[name_to_state_[aa3 + aa2 +"_bxyz"]][s2];
 							count++;
 						}
 					}
 
+					#ifdef HIDDEN_MARKOV_MODEL_DEBUG
+					cerr << trans_[name_to_state_[aa1 + aa2 + "_bxyz"]][s2] << " to ";
+					#endif
 					if (count != 0)
 					{
 						#ifdef HIDDEN_MARKOV_MODEL_DEBUG
 						cerr << "setting transitions of " << aa1 << aa2 << "bxyz -> bxyz to " << sum/double(count) << endl;
 						#endif
-						trans_[name_to_state_[aa1 + aa2 + "bxyz"]][s2] = sum/double(count);
-						trans_[name_to_state_[aa1 + aa2 + "bxyz"]][end_state] = 1 - sum/double(count);
+						trans_[name_to_state_[aa1 + aa2 + "_bxyz"]][s2] = sum/double(count);
+						trans_[name_to_state_[aa1 + aa2 + "_bxyz"]][end_state] = 1 - sum/double(count);
 					}
+					#ifdef HIDDEN_MARKOV_MODEL_DEBUG
+					cerr << sum/double(count) << endl;
+
+				}
+				else
+				{
+					cerr << "not needed" << endl;
+					#endif
 				}
 			}
 
-			for (Size j = 0; j != residues.size(); ++j)
+			for (set<const Residue*>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
       {
 				for (Size counter = 0; counter < 3; ++counter)
 				{
-        	String aa1(residues[i]), aa2(residues[j]);
-        	if (training_steps_count_[name_to_state_[aa1 + aa2 + "bxyz" + String(counter)]][s2] == 0)
+					AASequence first_aa, second_aa;
+					first_aa += *it;
+					second_aa += *jt;
+					String aa1(first_aa.toString()), aa2(second_aa.toString());
+
+        	if (training_steps_count_[name_to_state_[aa1 + aa2 + "_bxyz" + String(counter)]][s2] == 0)
         	{
           	UInt count(0);
           	double sum(0);
-          	for (Size k = 0; k != residues.size(); ++k)
+          	for (set<const Residue*>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
           	{
-            	UInt tmp = training_steps_count_[name_to_state_[aa1 + residues[k] + "bxyz" + String(counter)]][s2];
-            	if (tmp != 0)
+							AASequence third_aa;
+							third_aa += *kt;
+							String aa3(third_aa.toString());
+            	if (training_steps_count_[name_to_state_[aa1 + aa3 + "_bxyz" + String(counter)]][s2] != 0)
             	{
-              	sum += trans_[name_to_state_[aa1 + residues[k] + "bxyz" + String(counter)]][s2];
+              	sum += trans_[name_to_state_[aa1 + aa3 + "_bxyz" + String(counter)]][s2];
               	count++;
             	}
           	}
-          	for (Size k = 0; k != residues.size(); ++k)
+          	for (set<const Residue*>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
           	{
-            	UInt tmp = training_steps_count_[name_to_state_[residues[k] + aa2 +"bxyz" + String(counter)]][s2];
-            	if (tmp != 0)
+							AASequence third_aa;
+							third_aa += *kt;
+							String aa3(third_aa.toString());
+
+            	if (training_steps_count_[name_to_state_[aa3 + aa2 +"_bxyz" + String(counter)]][s2] != 0)
             	{
-              	sum += trans_[name_to_state_[residues[k] + aa2 +"bxyz" + String(counter)]][s2];
+              	sum += trans_[name_to_state_[aa3 + aa2 +"_bxyz" + String(counter)]][s2];
               	count++;
             	}
           	}
@@ -938,40 +985,46 @@ namespace OpenMS
             	#ifdef HIDDEN_MARKOV_MODEL_DEBUG
             	cerr << "setting transitions of " << aa1 << aa2 << "bxyz -> bxyz to " << sum/double(count) << endl;
             	#endif
-            	trans_[name_to_state_[aa1 + aa2 + "bxyz" + String(counter)]][s2] = sum/double(count);
-            	trans_[name_to_state_[aa1 + aa2 + "bxyz" + String(counter)]][end_state] = 1 - sum/double(count);
+            	trans_[name_to_state_[aa1 + aa2 + "_bxyz" + String(counter)]][s2] = sum/double(count);
+            	trans_[name_to_state_[aa1 + aa2 + "_bxyz" + String(counter)]][end_state] = 1 - sum/double(count);
           	}
        		}
       	}
 			}
-
-
-
-			
 			
 			s2 = name_to_state_["axyz"];
-      for (Size j = 0; j != residues.size(); ++j)
+      for (set<const Residue*>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
       {
-        String aa1(residues[i]), aa2(residues[j]);
-        if (training_steps_count_[name_to_state_[aa1 + aa2 + "axyz"]][s2] == 0)
+				AASequence first_aa, second_aa;
+				first_aa += *it;
+				second_aa += *jt;
+				String aa1(first_aa.toString()), aa2(second_aa.toString());
+
+        if (training_steps_count_[name_to_state_[aa1 + aa2 + "_axyz"]][s2] == 0)
         {
           UInt count(0);
           double sum(0);
-          for (Size k = 0; k != residues.size(); ++k)
+          for (set<const Residue*>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
           {
-            UInt tmp = training_steps_count_[name_to_state_[aa1 + residues[k] + "axyz"]][s2];
-            if (tmp != 0)
+						AASequence third_aa;
+						third_aa += *kt;
+						String aa3(third_aa.toString());
+
+            if (training_steps_count_[name_to_state_[aa1 + aa3 + "_axyz"]][s2] != 0)
             {
-              sum += trans_[name_to_state_[aa1 + residues[k] + "axyz"]][s2];
+              sum += trans_[name_to_state_[aa1 + aa3 + "_axyz"]][s2];
               count++;
             }
           }
-          for (Size k = 0; k != residues.size(); ++k)
+          for (set<const Residue*>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
           {
-            UInt tmp = training_steps_count_[name_to_state_[residues[k] + aa2 +"axyz"]][s2];
-            if (tmp != 0)
+						AASequence third_aa;
+						third_aa += *kt;
+						String aa3(third_aa.toString());
+
+            if (training_steps_count_[name_to_state_[aa3 + aa2 +"_axyz"]][s2] != 0)
             {
-              sum += trans_[name_to_state_[residues[k] + aa2 +"axyz"]][s2];
+              sum += trans_[name_to_state_[aa3 + aa2 +"_axyz"]][s2];
               count++;
             }
           }
@@ -980,28 +1033,40 @@ namespace OpenMS
 						#ifdef HIDDEN_MARKOV_MODEL_DEBUG
 	          cerr << "setting transitions of " << aa1 << aa2 << "axyz -> axyz to " << sum/double(count) << endl;
 						#endif
-  	        trans_[name_to_state_[aa1 + aa2 + "axyz"]][s2] = sum/double(count);
-    	      trans_[name_to_state_[aa1 + aa2 + "axyz"]][end_state] = 1 - sum/double(count);
+  	        trans_[name_to_state_[aa1 + aa2 + "_axyz"]][s2] = sum/double(count);
+    	      trans_[name_to_state_[aa1 + aa2 + "_axyz"]][end_state] = 1 - sum/double(count);
 					}
         }
       }
+		}
 
-			// sc and cr
-			String sc_residues("HKDE");
-		
-			for (Size j = 0; j != sc_residues.size(); ++j)
+
+		// sc and cr
+		String sc_residues("HKRDE");
+
+		for (String::ConstIterator it = sc_residues.begin(); it != sc_residues.end(); ++it)
+		{
+			String sc_res = *it;
+
+			for (set<const Residue*>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
 			{
-				String aa1(residues[i]), sc_res(sc_residues[j]);
+        AASequence second_aa;
+				second_aa += *jt;
+				String aa2(second_aa.toString());
+			
 				s2 = name_to_state_[sc_res];
-				if (training_steps_count_[name_to_state_[aa1 + sc_res]][s2] == 0)
+				if (training_steps_count_[name_to_state_[aa2 + "_" + sc_res]][s2] == 0)
 				{
 					UInt count(0);
 					double sum(0);
-					for (Size k = 0; k != residues.size(); ++k)
+					for (set<const Residue*>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
 					{
-						HMMState* s1 = name_to_state_[residues[k] + sc_res];
-						UInt tmp = training_steps_count_[s1][s2];
-						if (tmp != 0)
+						AASequence third_aa;
+						third_aa += *kt;
+						String aa3(third_aa.toString());
+
+						HMMState* s1 = name_to_state_[aa3 + "_" + sc_res];
+						if (training_steps_count_[s1][s2] != 0)
 						{
 							sum += trans_[s1][s2];
 							count++;
@@ -1010,51 +1075,31 @@ namespace OpenMS
 
 					if (count != 0)
 					{
-						trans_[name_to_state_[aa1 + sc_res]][s2] = sum/double(count);
-						trans_[name_to_state_[aa1 + sc_res]][end_state] = 1 - sum/double(count);
+						trans_[name_to_state_[aa2 + "_" + sc_res]][s2] = sum/double(count);
+						trans_[name_to_state_[aa2 + "_" + sc_res]][end_state] = 1 - sum/double(count);
 					}
-				}
-			}
-			
-			String aa1(residues[i]), sc_res("RSC");
-			s2 = name_to_state_["R"];
-
-      if (training_steps_count_[name_to_state_[aa1 + sc_res]][s2] == 0)
-      {
-        UInt count(0);
-        double sum(0);
-        for (Size k = 0; k != residues.size(); ++k)
-        {
-					HMMState* s1 = name_to_state_[residues[k] + sc_res];
-          UInt tmp = training_steps_count_[s1][s2];
-          if (tmp != 0)
-          {
-            sum += trans_[s1][s2];
-            count++;
-          }
-        }
-				if (count != 0)
-				{
-	        trans_[name_to_state_[aa1 + sc_res]][s2] = sum/double(count);
-	      	trans_[name_to_state_[aa1 + sc_res]][end_state] = 1 - sum/double(count);
 				}
 			}
 		}
 
 		s2 = name_to_state_["bk-1"];
-		for (Size i = 0; i != residues.size(); ++i)
+		for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
 		{
-			String aa1(residues[i]);
+			AASequence first_aa;
+			first_aa += *it;
+			String aa1(first_aa.toString());
 			//cerr << "#training steps " << aa1 << "=" << training_steps_count_[name_to_state_[aa1 + "bk-1"]][s2] << " (" << trans_[name_to_state_[aa1 + "bk-1"]][s2] << ")" << endl;
-			if (training_steps_count_[name_to_state_[aa1 + "bk-1"]][s2] == 0)
+			if (training_steps_count_[name_to_state_[aa1 + "_bk-1"]][s2] == 0)
 			{
 				UInt count(0);
 				double sum(0);
-				for (Size j = 0; j != residues.size(); ++j)
+				for (set<const Residue*>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
 				{
-					HMMState* s1 = name_to_state_[residues[j] + "bk-1"];
-					UInt tmp = training_steps_count_[s1][s2];
-					if (tmp != 0)
+					AASequence second_aa;
+					second_aa += *jt;
+					String aa2(second_aa.toString());
+					HMMState* s1 = name_to_state_[aa2 + "_bk-1"];
+					if (training_steps_count_[s1][s2] != 0)
 					{
 						sum += trans_[s1][s2];
 						count++;
@@ -1062,34 +1107,40 @@ namespace OpenMS
 					//cerr << "Estimating transition of '" << aa1 << "bk-1' -> 'bk-1' to " << sum/(double)count << endl;
 					if (count != 0)
 					{
-						trans_[name_to_state_[aa1 + "bk-1"]][s2] = sum/(double)count;
-						trans_[name_to_state_[aa1 + "bk-1"]][end_state] = 1 - sum/(double)count;
+						trans_[name_to_state_[aa1 + "_bk-1"]][s2] = sum/(double)count;
+						trans_[name_to_state_[aa1 + "_bk-1"]][end_state] = 1 - sum/(double)count;
 					}
 				}
 			}
 		}
 
 		s2 = name_to_state_["bk-2"];
-    for (Size i = 0; i != residues.size(); ++i)
+    for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
     {
-      String aa1(residues[i]);
-      if (training_steps_count_[name_to_state_[aa1 + "bk-2"]][s2] == 0)
+			AASequence first_aa;
+			first_aa += *it;
+			String aa1(first_aa.toString());
+
+      if (training_steps_count_[name_to_state_[aa1 + "_bk-2"]][s2] == 0)
       {
         UInt count(0);
         double sum(0);
-        for (Size j = 0; j != residues.size(); ++j)
+        for (set<const Residue*>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
         {
-          HMMState* s1 = name_to_state_[residues[j] + "bk-2"];
-          UInt tmp = training_steps_count_[s1][s2];
-          if (tmp != 0)
+					AASequence second_aa;
+					second_aa += *jt;
+					String aa2(second_aa.toString());
+
+          HMMState* s1 = name_to_state_[aa2 + "_bk-2"];
+          if (training_steps_count_[s1][s2] != 0)
           {
             sum += trans_[s1][s2];
             count++;
           }
           if (count != 0)
           {
-            trans_[name_to_state_[aa1 + "bk-2"]][s2] = sum/(double)count;
-            trans_[name_to_state_[aa1 + "bk-2"]][end_state] = 1 - sum/(double)count;
+            trans_[name_to_state_[aa1 + "_bk-2"]][s2] = sum/(double)count;
+            trans_[name_to_state_[aa1 + "_bk-2"]][end_state] = 1 - sum/(double)count;
           }
         }
       }
@@ -1106,6 +1157,11 @@ namespace OpenMS
 	double HiddenMarkovModel::getPseudoCounts() const
 	{
 		return pseudo_counts_;
+	}
+
+	void HiddenMarkovModel::setVariableModifications(const StringList& modifications)
+	{
+		var_modifications_ = modifications;
 	}
 
 	void HiddenMarkovModel::copy_(const HiddenMarkovModel& source)
@@ -1174,9 +1230,9 @@ namespace OpenMS
 
 		synonym_trans_names_ = source.synonym_trans_names_;
 		pseudo_counts_ = source.pseudo_counts_;
+		var_modifications_ = source.var_modifications_;
 
 
-		//buildSynonyms();
     for (map<String, map<String, std::pair<String, String> > >::const_iterator it = synonym_trans_names_.begin(); it != synonym_trans_names_.end(); ++it)
     {
       for (map<String, pair<String, String> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)

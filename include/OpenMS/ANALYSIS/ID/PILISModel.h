@@ -119,6 +119,7 @@ namespace OpenMS
 		protected:
 
 			/// enumeration of the basic ion types used
+			/*
 			enum IonType_
 			{
 				AIon = 0,
@@ -136,21 +137,19 @@ namespace OpenMS
 			{
 				Map<IonType_, std::vector<double> > ints;
 			};
+			*/
 			
 			/// extracts the ions intensities of a training spectrum
-			double getIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, IonPeaks_& ion_ints, const AASequence& peptide, UInt charge);
+			//double getIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, IonPeaks_& ion_ints, const AASequence& peptide, UInt charge);
 
 			/// aligns two spectra a writes the intensities from the first which matches the second to the vector
-			double getIntensitiesFromComparison_(const RichPeakSpectrum& train_spec, const RichPeakSpectrum& theo_spec, std::vector<double>& intensities);
+			//double getIntensitiesFromComparison_(const RichPeakSpectrum& train_spec, const RichPeakSpectrum& theo_spec, std::vector<double>& intensities);
 
 			/// trains neutral losses an related peaks
-			void trainNeutralLossesFromIon_(double initial_probability, const Map<String, double>& intensities, IonType_ ion_type, double ion_intensity, const AASequence& ion);
-
-			/// estimates the neutral losses of an ion
-			void getNeutralLossesFromIon_(Map<String, double>& intensities, double initial_probability, IonType_ ion_type, const AASequence& ion);
+			//void trainNeutralLossesFromIon_(double initial_probability, const Map<String, double>& intensities, IonType_ ion_type, double ion_intensity, const AASequence& ion);
 
 			/// enables the states needed for neutral loss training/simulation
-			void enableNeutralLossStates_(IonType_ ion_type, const AASequence& ion);
+			//void enableNeutralLossStates_(IonType_ ion_type, const AASequence& ion);
 
 			/// get the initial transition probabilities from the proton dist, returns true if charge remote is enabled
 			bool getInitialTransitionProbabilities_(std::vector<double>& bb_init, 

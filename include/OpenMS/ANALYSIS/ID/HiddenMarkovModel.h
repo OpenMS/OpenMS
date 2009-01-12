@@ -34,6 +34,7 @@
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <utility>
@@ -43,7 +44,7 @@ namespace OpenMS
 	/** 
 	  @brief Hidden Markov Model State class for the Hidden Markov Model
 	*/
-	class OPENMS_DLLAPI HMMState
+	class HMMState
 	{
 		public:
 
@@ -123,7 +124,7 @@ namespace OpenMS
 						The HMM is mostly used within PILIS. For further details have a look at
 						the docs of PILIS.
 	*/
-	class OPENMS_DLLAPI HiddenMarkovModel
+	class HiddenMarkovModel
 	{
 		public:
 					
@@ -248,6 +249,8 @@ namespace OpenMS
 
 			///
 			double getPseudoCounts() const;
+
+			void setVariableModifications(const StringList& modifications);
 			//@}
 			
 		protected:
@@ -271,6 +274,8 @@ namespace OpenMS
 
 			// transition prob counts
 			std::map<HMMState*, std::map<HMMState*, double> > count_trans_;
+
+			std::map<HMMState*, std::map<HMMState*, std::vector<double> > > count_trans_all_;
 
 			// all transition probs of all training steps (for model checking)
 			std::map<HMMState*, std::map<HMMState*, std::vector<double> > > train_count_trans_all_;
@@ -313,6 +318,8 @@ namespace OpenMS
 
 			// copy all the stuff from one HMM to this 
 			void copy_(const HiddenMarkovModel& source);
+
+			StringList var_modifications_;
 	};
 }
 #endif

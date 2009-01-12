@@ -76,8 +76,8 @@ namespace OpenMS
 			/** @name Accessors
 			*/
 			//@{
-			/// performs a training step; needs as parameters a spectrum with annotated sequence and charge
-			void train(const RichPeakSpectrum&, const AASequence& peptide, double ion_weight, UInt charge);
+			/// performs a training step; needs as parameters a spectrum with annotated sequence and charge; returns the intensity sum of the matched peaks
+			double train(const RichPeakSpectrum&, const AASequence& peptide, double ion_weight, UInt charge);
 
 			/** reads the model parameters from the given files
 			    @param filename filename of the model
@@ -107,7 +107,7 @@ namespace OpenMS
 		protected:
 
 			/// extracts the precursor and related intensities of a training spectrum
-			void getIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, Map<String, double>& pre_ints, double ion_weight, const AASequence& peptide, UInt charge);
+			double getIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, Map<String, double>& pre_ints, double ion_weight, const AASequence& peptide, UInt charge);
 
 			/// trains precursor and related peaks
 			void trainIons_(double initial_probability, const Map<String, double>& intensities, const AASequence& peptide);

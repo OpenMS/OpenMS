@@ -62,7 +62,7 @@ namespace OpenMS
 	 
 		@htmlinclude OpenMS_ProtonDistributionModel.parameters
 	*/
-	class OPENMS_DLLAPI ProtonDistributionModel : public DefaultParamHandler
+	class ProtonDistributionModel : public DefaultParamHandler
 	{
 		public:
 			
@@ -117,7 +117,11 @@ namespace OpenMS
 					@param c_term2 the probability of seeing a doubly charged suffix ion
 					@param type the type of fragmentation (charge-directed, charge-remote of side chain)
 			*/
-			void getChargeStateIntensities(const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion, int charge, Residue::ResidueType n_term_type, double& n_term1,  double& c_term1, double& n_term2, double& c_term2, FragmentationType type);
+			//void getChargeStateIntensities(const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion, int charge, Residue::ResidueType n_term_type, double& n_term1,  double& c_term1, double& n_term2, double& c_term2, FragmentationType type);
+
+
+			void getChargeStateIntensities(const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion, int charge, Residue::ResidueType n_term_type,
+																		 std::vector<double>& n_term_intensities, std::vector<double>& c_term_intensities, FragmentationType type);
 
 			/// sets the proton distributions of the whole peptide, they are needed for the getChargeStateIntensities_ method and need to be recalculated each time if not given
 			void setPeptideProtonDistribution(const Map<UInt, double>& bb_charge, const Map<UInt, double>& sc_charge);
@@ -125,14 +129,24 @@ namespace OpenMS
 			protected:
 
 			// calculates the proton distribtion
-			void calculateProtonDistribution_(const AASequence& peptide, int charge, Residue::ResidueType res_type = Residue::YIon, bool fixed_proton = false, UInt cleavage_site = 0, bool use_most_basic_site = false);
-	
+			void calculateProtonDistribution_(const AASequence& peptide, int charge, Residue::ResidueType res_type = Residue::YIon, bool fixed_proton = false, Size cleavage_site = 0, bool use_most_basic_site = false);
+
+			void calculateProtonDistributionCharge1_(const AASequence& peptide, Residue::ResidueType res_type);
+			void calculateProtonDistributionCharge2_(const AASequence& peptide, Residue::ResidueType res_type, bool fixed_proton, Size cleavage_site, bool use_most_basic_site);
+			void calculateProtonDistributionGreater2_(const AASequence& peptide, int charge, Residue::ResidueType res_type);
+
+			void calculateProtonDistributionIonPair_(const AASequence& peptide, Residue::ResidueType type, Size cleavage_site);
+			
 			// returns the proton affinity of the peptide with the given charge and ion type
-			double getProtonAffinity_(const AASequence& ion, int charge, Residue::ResidueType res_type);
+			//double getProtonAffinity_(const AASequence& ion, int charge, Residue::ResidueType res_type);
 
 			// returns the (relative) Intensities of the possible charge states of the ion from peptide
-			std::vector<double> getChargeStateIntensities_(const AASequence& peptide, const AASequence& ion, int charge, Residue::ResidueType res_type);
+			//std::vector<double> getChargeStateIntensities_(const AASequence& peptide, const AASequence& ion, int charge, Residue::ResidueType res_type);
 
+
+		  void calcChargeStateIntensities_(const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion, int charge,
+                                       Residue::ResidueType n_term_type, std::vector<double>& n_term_intensities, std::vector<double>& c_term_intensities, FragmentationType type);
+			
 			// calculates the intensities of the different possible charge states
 			void calcChargeStateIntensities_(const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion, int charge, Residue::ResidueType n_term_type,	double& n_term1, double& c_term1, double& n_term2, double& c_term2,	FragmentationType type);
 
@@ -143,6 +157,10 @@ namespace OpenMS
 			Map<UInt, double> bb_charge_;
 			Map<UInt, double> sc_charge_full_;
 			Map<UInt, double> bb_charge_full_;
+			Map<UInt, double> sc_charge_ion_n_term_;
+			Map<UInt, double> bb_charge_ion_n_term_;
+			Map<UInt, double> sc_charge_ion_c_term_;
+			Map<UInt, double> bb_charge_ion_c_term_;
 			double E_;
 			double E_c_term_;
 			double E_n_term_;
