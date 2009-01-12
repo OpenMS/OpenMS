@@ -1324,7 +1324,7 @@ namespace OpenMS
 					k_app += contrib;
 				}
 				// calculate apparent GB
-				return R * T * log2(k_app);
+				return R * T * log(k_app)/log(2.0);
 			}
 		
 		private:

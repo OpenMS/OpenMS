@@ -499,7 +499,7 @@ namespace OpenMS
 
 			//UInt suffix_pos(peptide.size() - i  - 1);
 			
-			if (i < floor(peptide.size()/2))
+			if (i < peptide.size()/2)
 			{
 				pos_name = prefix_size;
 			}
@@ -910,7 +910,7 @@ namespace OpenMS
       String y_name2, b_name2, a_name2;
 			String i_plus1(i+1), pep_size_i(peptide.size() - 1 - i);
 
-      if (i < floor(peptide.size()/2))
+      if (i < peptide.size()/2)
       {
         pos_name = i_plus1;
       }

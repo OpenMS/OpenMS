@@ -212,6 +212,10 @@ svn propset svn:eol-style native MyClass.C
 				All source files added to an IDE are associated with their targets. You can find the 
 				source files for each test within its own subproject.<BR>
 				The same is true for the TOPP and UTILS classes.
+			<LI><b>[Visual Studio] I'm getting the error "Error C2471: cannot update program database".</b><br>
+				This is a bug in Visual Studio and there is a bugfix:
+				<a href="http://code.msdn.microsoft.com/KB946040" target="_blank">http://code.msdn.microsoft.com/KB946040</a><br>
+				Only apply it if you encounter the error. The bugfix might have unwanted side effects!
 
 		</UL>
 	<H2 style="border-top:2px solid grey;">Debugging</H2>
