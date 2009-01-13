@@ -79,8 +79,9 @@ namespace OpenMS
 			const QByteArray& getMascotXMLResponse() const;
 			
 			
-			/// assignment operator 
-			MascotRemoteQuery& operator = (const MascotRemoteQuery& rhs);
+			/// assignment operator  
+			//@todo implement this (Andreas)
+			//MascotRemoteQuery& operator = (const MascotRemoteQuery& rhs);
 
 		protected:
 
