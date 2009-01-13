@@ -465,8 +465,7 @@ svn propset svn:eol-style native MyClass.C
 				<OL>
 					<LI> Remove classes not ready for release from the release branch.
 					<LI> Update the CHANGELOG file
-					<LI> Check the output of TOPP tests @a source/TEST/TOPP/&lt;TOPP-tool&gt;.output for debug output
-					<LI> Check the test build of the latest gcc/cl version for compiler warnings (32 and 64 bit)
+					<LI> Check the test builds of the latest gcc/cl version for compiler warnings (32 and 64 bit)
 					<LI> Check if all examples in @a OpenMS/source/EXAMPLES/ compile.
 					<LI> Correct errors found by @a source/config/tools/checker.php.
 						<UL>
@@ -475,7 +474,6 @@ svn propset svn:eol-style native MyClass.C
 							<LI> Send feedback concening the script to Marc
 						</UL>
           <LI> [TODO] Valgrind?
-					<LI> (Linux) Check all your %OpenMS tests and TOPP tests with STL debug mode (CMake: ENABLE-STL-DEBUG)
 					<LI> Documentation:
 						<UL>
 							<LI> %OpenMS
