@@ -31,11 +31,15 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ProteinInference.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 
+#include <limits>
+
 #ifdef ITRAQ_NAIVECORRECTION
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_linalg.h>
 #endif
+
+//#define ITRAQ_DEBUG 1
 
 namespace OpenMS
 {
@@ -117,7 +121,7 @@ namespace OpenMS
 	 *	@param protein_ids List of proteins inferred from peptides
 	 *	@param consensus_map_out Postprocessed iTRAQ ratios for Proteins (if provided) or Peptides otherwise
 	 *
-	 *	@throws Exception::FailedAPICall is least-squares fit fails
+	 *	@throws Exception::FailedAPICall if least-squares fit fails
 	 *	@throws Exception::InvalidParameter if parameter is invalid (e.g. reference_channel)
 	 */
 	void ItraqQuantifier::run(const ConsensusMap& consensus_map_in, 
@@ -334,7 +338,22 @@ namespace OpenMS
 						 it_elements != consensus_map_out[i].end();
 						 ++it_elements)
 				{
-					peptide_ratios[map_to_vectorindex[it_elements->getMapIndex()]].push_back(it_elements->getIntensity() / ref_intensity);
+					if (ref_intensity==0) //avoid nan's and inf's
+					{
+						if (it_elements->getIntensity()==0) // 0/0 will give 'nan'
+						{
+							//so leave it out completely (there is no information to be gained)
+						}
+						else	// x/0 is 'inf' but std::sort() has problems with that
+						{
+							peptide_ratios[map_to_vectorindex[it_elements->getMapIndex()]].push_back(std::numeric_limits<double>::max());
+						}
+					}
+					else // everything seems fine
+					{
+						peptide_ratios[map_to_vectorindex[it_elements->getMapIndex()]].push_back(it_elements->getIntensity() / ref_intensity);
+					}
+					
 					// control
 					peptide_intensities[map_to_vectorindex[it_elements->getMapIndex()]].push_back(it_elements->getIntensity());
 				}					
