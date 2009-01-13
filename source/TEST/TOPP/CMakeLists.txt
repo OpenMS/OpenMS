@@ -14,6 +14,10 @@
 # '_out'  When the result file of a test is checked with FuzzyDiff, this suffix is appended.
 # <num2>  If several files need to be checked in the same test, the checks are numbered from 1.
 #
+#
+# Warning: When passing parameters avoid usage of "<" and ">" signs, as this will confuse CDASH when 
+#          interpreting the test results file (which happens to be XML)
+
 
 ### General settings
 set(TOPP_BIN_PATH ${PROJECT_BINARY_DIR}/bin)
@@ -244,7 +248,7 @@ add_test("TOPP_RTModel_4_out2" ${DIFF} -in1 RTModel_4_output.tmp_samples -in2 ${
 
 ### PTModel tests
 add_test("TOPP_PTModel_1" ${TOPP_BIN_PATH}/PTModel -in_positive ${DATA_DIR_TOPP}/PTModel_1_input_positive.idXML -in_negative ${DATA_DIR_TOPP}/PTModel_1_input_negative.idXML -out PTModel_1_output.tmp -ini ${DATA_DIR_TOPP}/PTModel_1_parameters.ini)
-add_test("TOPP_PTModel_1_out1" ${DIFF} -whitelist "probA" "probB" -in1 PTModel_1_output.tmp -in2 PTModel_1_output.model)
+add_test("TOPP_PTModel_1_out1" ${DIFF} -whitelist "probA" "probB" -in1 PTModel_1_output.tmp -in2 ${DATA_DIR_TOPP}/PTModel_1_output.model)
 add_test("TOPP_PTModel_1_out2" ${DIFF} -in1 PTModel_1_output.tmp_samples -in2 ${DATA_DIR_TOPP}/PTModel_1_output.samples)
 add_test("TOPP_PTModel_1_out3" ${DIFF} -in1 PTModel_1_output.tmp_additional_parameters -in2 ${DATA_DIR_TOPP}/PTModel_1_output.additional_parameters)
 #REMOVE(-rf PTModel_1_output.tmp_additional_parameters PTModel_1_output.tmp_samples
@@ -260,7 +264,7 @@ add_test("TOPP_RTPredict_2" ${TOPP_BIN_PATH}/RTPredict -in ${DATA_DIR_TOPP}/RTPr
 add_test("TOPP_RTPredict_2_out1" ${DIFF} -in1 RTPredict_2_output_positive.tmp -in2 ${DATA_DIR_TOPP}/RTPredict_2_output_positive.idXML)
 add_test("TOPP_RTPredict_2_out2" ${DIFF} -in1 RTPredict_2_output_negative.tmp -in2 ${DATA_DIR_TOPP}/RTPredict_2_output_negative.idXML)
 add_test("TOPP_RTPredict_3" ${TOPP_BIN_PATH}/RTPredict -in ${DATA_DIR_TOPP}/RTPredict_3_input.idXML -out RTPredict_3_output.tmp -total_gradient_time 1 -svm_model ${DATA_DIR_TOPP}/RTPredict_3_input.model)
-add_test("TOPP_RTPredict_3_out1" ${DIFF} -whitelist "<?xml-stylesheet" "predicted_RT_p_value" -in1 RTPredict_3_output.tmp -in2 ${DATA_DIR_TOPP}/RTPredict_3_output.idXML)
+add_test("TOPP_RTPredict_3_out1" ${DIFF} -whitelist "?xml-stylesheet" "predicted_RT_p_value" -in1 RTPredict_3_output.tmp -in2 ${DATA_DIR_TOPP}/RTPredict_3_output.idXML)
 add_test("TOPP_RTPredict_4" ${TOPP_BIN_PATH}/RTPredict -in ${DATA_DIR_TOPP}/RTPredict_4_input.txt -out RTPredict_4_output.tmp -total_gradient_time 1 -svm_model ${DATA_DIR_TOPP}/RTPredict_4_input.model -textfile_input)
 add_test("TOPP_RTPredict_4_out1" ${DIFF} -in1 RTPredict_4_output.tmp -in2 ${DATA_DIR_TOPP}/RTPredict_4_output.txt)
 add_test("TOPP_RTPredict_5" ${TOPP_BIN_PATH}/RTPredict -in ${DATA_DIR_TOPP}/RTPredict_5_input.idXML -out RTPredict_5_output.tmp -total_gradient_time 1 -svm_model ${DATA_DIR_TOPP}/RTPredict_5_input.model -textfile_output)
@@ -272,7 +276,7 @@ add_test("TOPP_InspectAdapter_1_out1" ${DIFF} -whitelist "spectra," "db," -in1 I
 add_test("TOPP_InspectAdapter_2" ${TOPP_BIN_PATH}/InspectAdapter -ini ${DATA_DIR_TOPP}/InspectAdapter_1_parameters.ini -inspect_in -in ${DATA_DIR_TOPP}/Inspect.mzData -out InspectAdapter_3_output.tmp)
 add_test("TOPP_InspectAdapter_2_out1" ${DIFF} -whitelist "spectra," "db," -in1 InspectAdapter_3_output.tmp -in2 ${DATA_DIR_TOPP}/InspectAdapter_2_output.inspect_in)
 add_test("TOPP_InspectAdapter_3" ${TOPP_BIN_PATH}/InspectAdapter -ini ${DATA_DIR_TOPP}/InspectAdapter_1_parameters.ini -in ${DATA_DIR_TOPP}/InspectAdapter.out -out InspectAdapter_4_output.tmp -inspect_out)
-add_test("TOPP_InspectAdapter_3_out1" ${DIFF} -whitelist "<?xml-stylesheet" "IdentificationRun date" -in1 InspectAdapter_4_output.tmp -in2 ${DATA_DIR_TOPP}/InspectAdapter_4_output.idXML)
+add_test("TOPP_InspectAdapter_3_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 InspectAdapter_4_output.tmp -in2 ${DATA_DIR_TOPP}/InspectAdapter_4_output.idXML)
 
 ### SequestAdapter tests
 add_test("TOPP_SequestAdapter_1" ${TOPP_BIN_PATH}/SequestAdapter -ini SequestAdapter_1_parameters.ini -in Sequest.mzXML -out SequestAdapter_2_output.tmp -sequest_in)
@@ -289,7 +293,7 @@ add_test("TOPP_PepNovoAdapter_1_out1" ${DIFF} -in1 ./tmp/PepNovo_PTMs_.txt -in2 
 #add_test("TOPP_PepNovoAdapter_2" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_1_parameters.ini -in ${DATA_DIR_TOPP}/PepNovo.mzData -pepnovo_in -out PepNovoAdapter_4_output.tmp)
 #add_test("TOPP_PepNovoAdapter_2_out1" ${DIFF} -in1 ./tmp/PepNovo_PTMs_.txt -in2 ./tmp/PepNovo_PTMs.txt)
 add_test("TOPP_PepNovoAdapter_3" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_5_parameters.ini -in ${DATA_DIR_TOPP}/PepNovoAdapter_5_output.pepnovo_out -out PepNovoAdapter_5_output.tmp -pepnovo_out)
-add_test("TOPP_PepNovoAdapter_3_out1" ${DIFF} -whitelist "<?xml-stylesheet" "date_group_1" -in1 PepNovoAdapter_5_output.tmp -in2 ${DATA_DIR_TOPP}/PepNovoAdapter_5_output.idXML)
+add_test("TOPP_PepNovoAdapter_3_out1" ${DIFF} -whitelist "?xml-stylesheet" "date_group_1" -in1 PepNovoAdapter_5_output.tmp -in2 ${DATA_DIR_TOPP}/PepNovoAdapter_5_output.idXML)
 
 ### SpectraFilter tests
 add_test("TOPP_SpectraFilter_1" ${TOPP_BIN_PATH}/SpectraFilter -in ${DATA_DIR_TOPP}/SpectraFilter_1_input.mzData -out SpectraFilter_1_output.mzData.tmp -type SqrtMower)
@@ -331,7 +335,7 @@ add_test("TOPP_TextExporter_7_out1" ${DIFF} -in1 TextExporter5.tmp -in2 ${DATA_D
 
 ### SILACAnalyzer tests
 add_test("TOPP_SILACAnalyzer_1" ${TOPP_BIN_PATH}/SILACAnalyzer -ini ${DATA_DIR_TOPP}/SILACAnalyzer_1_parameters.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_1_input.mzData -out SILACAnalyzer_1_output.tmp)
-add_test("TOPP_SILACAnalyzer_1_out1" ${DIFF} -whitelist "<map " "<?xml-stylesheet" -in1 SILACAnalyzer_1_output.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_1_output.consensusXML)
+add_test("TOPP_SILACAnalyzer_1_out1" ${DIFF} -whitelist "SILACAnalyzer_1_input.mzData " "?xml-stylesheet" -in1 SILACAnalyzer_1_output.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_1_output.consensusXML)
 
 ### FeatureFinderMRM tests
 add_test("TOPP_FeatureFinderMRM_1" ${TOPP_BIN_PATH}/FeatureFinderMRM -in ${DATA_DIR_TOPP}/FeatureFinderMRM_1_input.mzData -ini ${DATA_DIR_TOPP}/FeatureFinderMRM_1.ini -out FeatureFinderMRM.tmp)
@@ -343,15 +347,15 @@ add_test("TOPP_FeatureFinderMRM_2_out2" ${DIFF} -in1 precursor_461.743 -in2 ${DA
 
 ### FeatureLinker tests
 add_test("TOPP_FeatureLinker_1" ${TOPP_BIN_PATH}/FeatureLinker -ini ${DATA_DIR_TOPP}/FeatureLinker_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinker_1_input.featureXML)
-add_test("TOPP_FeatureLinker_1_out1" ${DIFF} -whitelist "<map " "<?xml-stylesheet" -in1 FeatureLinker_1_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_1_output.consensusXML)
+add_test("TOPP_FeatureLinker_1_out1" ${DIFF} -whitelist "FeatureLinker_1_" "?xml-stylesheet" -in1 FeatureLinker_1_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_1_output.consensusXML)
 add_test("TOPP_FeatureLinker_2" ${TOPP_BIN_PATH}/FeatureLinker -ini ${DATA_DIR_TOPP}/FeatureLinker_2_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinker_2_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinker_2_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinker_2_input3.featureXML)
-add_test("TOPP_FeatureLinker_2_out1" ${DIFF} -whitelist "<map " "<?xml-stylesheet" -in1 FeatureLinker_2_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_2_output.consensusXML)
+add_test("TOPP_FeatureLinker_2_out1" ${DIFF} -whitelist "FeatureLinker_2_" "?xml-stylesheet" -in1 FeatureLinker_2_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_2_output.consensusXML)
 add_test("TOPP_FeatureLinker_3" ${TOPP_BIN_PATH}/FeatureLinker -ini ${DATA_DIR_TOPP}/FeatureLinker_3_parameters.ini  -in ${DATA_DIR_TOPP}/FeatureLinker_3_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinker_3_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinker_3_input3.featureXML)
-add_test("TOPP_FeatureLinker_3_out1" ${DIFF} -whitelist "<map " "<?xml-stylesheet" -in1 FeatureLinker_3_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_3_output.consensusXML)
+add_test("TOPP_FeatureLinker_3_out1" ${DIFF} -whitelist "FeatureLinker_3_" "?xml-stylesheet" -in1 FeatureLinker_3_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_3_output.consensusXML)
 add_test("TOPP_FeatureLinker_4" ${TOPP_BIN_PATH}/FeatureLinker -ini ${DATA_DIR_TOPP}/FeatureLinker_4_parameters.ini  -in ${DATA_DIR_TOPP}/FeatureLinker_4_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinker_4_input2.featureXML)
-add_test("TOPP_FeatureLinker_4_out1" ${DIFF} -whitelist "<map " "<?xml-stylesheet" -in1 FeatureLinker_4_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_4_output.consensusXML)
+add_test("TOPP_FeatureLinker_4_out1" ${DIFF} -whitelist "FeatureLinker_4_" "?xml-stylesheet" -in1 FeatureLinker_4_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_4_output.consensusXML)
 add_test("TOPP_FeatureLinker_5" ${TOPP_BIN_PATH}/FeatureLinker -ini ${DATA_DIR_TOPP}/FeatureLinker_5_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinker_5_input.featureXML)
-add_test("TOPP_FeatureLinker_5_out1" ${DIFF} -whitelist "<map " "<?xml-stylesheet" -in1 FeatureLinker_5_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_5_output.consensusXML)
+add_test("TOPP_FeatureLinker_5_out1" ${DIFF} -whitelist "FeatureLinker_5_" "?xml-stylesheet" -in1 FeatureLinker_5_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinker_5_output.consensusXML)
 
 ### IDMapper tests
 add_test("TOPP_IDMapper_1" ${TOPP_BIN_PATH}/IDMapper -in ${DATA_DIR_TOPP}/IDMapper_1_input.featureXML -out IDMapper_1_output.tmp -id ${DATA_DIR_TOPP}/IDMapper_1_input.idXML)
@@ -361,8 +365,8 @@ add_test("TOPP_IDMapper_2_out1" ${DIFF} -in1 IDMapper_2_output.tmp -in2 ${DATA_D
 
 ### ConsensusID tests
 add_test("TOPP_ConsensusID_1" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_1_parameters.ini -out ConsensusID_1_output.tmp)
-add_test("TOPP_ConsensusID_1_out1" ${DIFF} -whitelist "<?xml-stylesheet" "IdentificationRun date" -in1 ConsensusID_1_output.tmp -in2 ConsensusID_1_output.idXML)
+add_test("TOPP_ConsensusID_1_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ConsensusID_1_output.tmp -in2 ConsensusID_1_output.idXML)
 add_test("TOPP_ConsensusID_2" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_2_parameters.ini -out ConsensusID_2_output.tmp -in ${DATA_DIR_TOPP}/ConsensusID_2_input.featureXML)
 add_test("TOPP_ConsensusID_2_out1" ${DIFF} -whitelist "IdentificationRun id" -in1 ConsensusID_2_output.tmp -in2 ${DATA_DIR_TOPP}/ConsensusID_2_output.featureXML)
 add_test("TOPP_ConsensusID_3" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_3_parameters.ini -out ConsensusID_3_output.tmp -in ${DATA_DIR_TOPP}/ConsensusID_3_input.consensusXML)
-add_test("TOPP_ConsensusID_3_out1" ${DIFF} -whitelist "<?xml-stylesheet" "IdentificationRun id" -in1 ConsensusID_3_output.tmp -in2 ${DATA_DIR_TOPP}/ConsensusID_3_output.consensusXML)
+add_test("TOPP_ConsensusID_3_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun id" -in1 ConsensusID_3_output.tmp -in2 ${DATA_DIR_TOPP}/ConsensusID_3_output.consensusXML)
