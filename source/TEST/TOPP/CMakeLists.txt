@@ -335,7 +335,7 @@ add_test("TOPP_TextExporter_7_out1" ${DIFF} -in1 TextExporter5.tmp -in2 ${DATA_D
 
 ### SILACAnalyzer tests
 add_test("TOPP_SILACAnalyzer_1" ${TOPP_BIN_PATH}/SILACAnalyzer -ini ${DATA_DIR_TOPP}/SILACAnalyzer_1_parameters.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_1_input.mzData -out SILACAnalyzer_1_output.tmp)
-add_test("TOPP_SILACAnalyzer_1_out1" ${DIFF} -whitelist "SILACAnalyzer_1_input.mzData " "?xml-stylesheet" -in1 SILACAnalyzer_1_output.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_1_output.consensusXML)
+add_test("TOPP_SILACAnalyzer_1_out1" ${DIFF} -whitelist "SILACAnalyzer_1_input.mzData" "?xml-stylesheet" -in1 SILACAnalyzer_1_output.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_1_output.consensusXML)
 
 ### FeatureFinderMRM tests
 add_test("TOPP_FeatureFinderMRM_1" ${TOPP_BIN_PATH}/FeatureFinderMRM -in ${DATA_DIR_TOPP}/FeatureFinderMRM_1_input.mzData -ini ${DATA_DIR_TOPP}/FeatureFinderMRM_1.ini -out FeatureFinderMRM.tmp)
