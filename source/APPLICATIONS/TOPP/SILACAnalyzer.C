@@ -390,7 +390,7 @@ class TOPPSILACAnalyzer
 				AverageLinkage al;
 				std::vector< BinaryTreeNode > tree;
 				ClusterAnalyzer ca;
-				al.cluster(distance_matrix_copy,tree,DBL_MAX);
+				al.cluster(distance_matrix_copy, tree, std::numeric_limits<float>::max());
 
 				//-----------------------------------------------------------------
 				// find number of clusters which maximizes average silhouette width
