@@ -200,7 +200,7 @@ $fp=fopen($test_name,"w");
 $i=0;
 foreach(file($test_name.".bak") as $line)
 {
-	if (substr(trim($line),0,5)=="START_SECTION" && strpos($line,"[EXTRA]")===FALSE)
+	if (substr(trim($line),0,13)=="START_SECTION" && strpos($line,"[EXTRA]")===FALSE)
 	{
 		fwrite($fp,"START_SECTION((".$replace[$i]."))\n");
 		++$i;

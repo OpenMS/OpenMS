@@ -24,8 +24,8 @@
 // $Maintainer: Alexandra Scherbart $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_RESIDUE_INDECES_H
-#define OPENMS_CHEMISTRY_RESIDUE_INDECES_H
+#ifndef OPENMS_CHEMISTRY_AAINDEX_H
+#define OPENMS_CHEMISTRY_AAINDEX_H
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>

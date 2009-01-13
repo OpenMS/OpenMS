@@ -119,8 +119,6 @@ namespace OpenMS
 			LocalLinearMap(LocalLinearMap& rhs);
 			///Assignment operator not implemented => private
 			LocalLinearMap& operator = (const LocalLinearMap& llm);
-			///Equality operator not implemented => private
-			bool operator == (const LocalLinearMap& llm) const;
 		
 		};
 	

@@ -110,8 +110,6 @@ namespace OpenMS
 			PeakIntensityPredictor(const PeakIntensityPredictor& llmModel);
 			/// assignment operator not impemented => private
 			PeakIntensityPredictor& operator = (const PeakIntensityPredictor& peakIntensityPredictor);
-			/// equality operator not impemented => private
-			bool operator == (const PeakIntensityPredictor& peakIntensityPredictor) const;
 			
 		};
 

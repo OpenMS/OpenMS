@@ -52,7 +52,7 @@ LocalLinearMap* ptr = 0;
 LocalLinearMap llm;
 
 
-START_SECTION(LocalLinearMap())
+START_SECTION((LocalLinearMap()))
 	ptr = new LocalLinearMap();
 	TEST_NOT_EQUAL(ptr, 0)
 	TEST_EQUAL(ptr->getLLMParam().xdim, llm.getLLMParam().xdim)
@@ -64,43 +64,47 @@ START_SECTION((virtual ~LocalLinearMap()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(const LLMParam& getLLMParam() const)
+START_SECTION((const LLMParam& getLLMParam() const))
 	TEST_EQUAL(llm.getLLMParam().xdim, 1)
 	TEST_EQUAL(llm.getLLMParam().ydim, 2)
 	TEST_EQUAL(llm.getLLMParam().radius, 0.4)
 END_SECTION
 
-START_SECTION(const Matrix<DoubleReal>& getCodebooks() const)
+START_SECTION((const Matrix<DoubleReal>& getCodebooks() const))
 	TEST_EQUAL(llm.getCodebooks().rows(), 2)
 	TEST_EQUAL(llm.getCodebooks().cols(), 18)
-	//0.0163859	0.9420950
-	//0.0368383	-0.4910166
-	TEST_REAL_SIMILAR(llm.getCodebooks().getValue(0,0), 0.030113)
-	TEST_REAL_SIMILAR(llm.getCodebooks().getValue(0,1), 0.01550)
-	TEST_REAL_SIMILAR(llm.getCodebooks().getValue(1,0), 0.0)
-	TEST_REAL_SIMILAR(llm.getCodebooks().getValue(1,1), 0.0)
+	//-0.06281751 0.9460272
+	//0.03852812 -0.4956029
+	TEST_REAL_SIMILAR(llm.getCodebooks().getValue(0,0), -0.06281751)
+	TEST_REAL_SIMILAR(llm.getCodebooks().getValue(0,1), 0.9460272)
+	TEST_REAL_SIMILAR(llm.getCodebooks().getValue(1,0), 0.03852812)
+	TEST_REAL_SIMILAR(llm.getCodebooks().getValue(1,1), -0.4956029)
+	TEST_REAL_SIMILAR(llm.getCodebooks().getValue(0,17), 0.3478902)
+	TEST_REAL_SIMILAR(llm.getCodebooks().getValue(1,17), -0.1460901)
 END_SECTION
 
-START_SECTION(const Matrix<DoubleReal>& getMatrixA() const)
+START_SECTION((const Matrix<DoubleReal>& getMatrixA() const))
 	TEST_EQUAL(llm.getMatrixA().rows(), 2)
 	TEST_EQUAL(llm.getMatrixA().cols(), 18)
-	//-0.4431946	0.2819091
-	//-0.5988132	-0.1837768
-	TEST_REAL_SIMILAR(llm.getMatrixA().getValue(0,0), 3.31028978)
-	TEST_REAL_SIMILAR(llm.getMatrixA().getValue(0,1), 0.0)
-	TEST_REAL_SIMILAR(llm.getMatrixA().getValue(1,0), 0.0)
-	TEST_REAL_SIMILAR(llm.getMatrixA().getValue(1,1), 0.0)
+	//-0.005066359 -0.0251465
+	//-0.221425369 -0.2565968
+	TEST_REAL_SIMILAR(llm.getMatrixA().getValue(0,0), -0.005066359)
+	TEST_REAL_SIMILAR(llm.getMatrixA().getValue(0,1), -0.0251465)
+	TEST_REAL_SIMILAR(llm.getMatrixA().getValue(1,0), -0.221425369)
+	TEST_REAL_SIMILAR(llm.getMatrixA().getValue(1,1), -0.2565968)
+	TEST_REAL_SIMILAR(llm.getMatrixA().getValue(0,17), -0.3692879)
+	TEST_REAL_SIMILAR(llm.getMatrixA().getValue(1,17), 0.3665653)
 END_SECTION
 
-START_SECTION(const vector<DoubleReal>& getVectorWout() const)
+START_SECTION((const vector<DoubleReal>& getVectorWout() const))
 	TEST_EQUAL(llm.getVectorWout().size(), 2)
-	//4.205033
-	//4.205731
-	TEST_REAL_SIMILAR(llm.getVectorWout()[0], 3.8171745)
-	TEST_REAL_SIMILAR(llm.getVectorWout()[1], 0.0)
+	//3.746677 
+	//3.395571
+	TEST_REAL_SIMILAR(llm.getVectorWout()[0], 3.746677)
+	TEST_REAL_SIMILAR(llm.getVectorWout()[1], 3.395571)
 END_SECTION
 
-START_SECTION(const Matrix<DoubleReal>& getCord() const)
+START_SECTION((const Matrix<UInt>& getCord() const))
 	TEST_EQUAL(llm.getCord().rows(), 2)
 	TEST_EQUAL(llm.getCord().cols(), 2)
 	TEST_REAL_SIMILAR(llm.getCord().getValue(0,0), 0)
@@ -109,13 +113,13 @@ START_SECTION(const Matrix<DoubleReal>& getCord() const)
 	TEST_REAL_SIMILAR(llm.getCord().getValue(1,1), 1)
 END_SECTION
 
-START_SECTION(vector<DoubleReal> neigh(const Matrix<UInt>& rhs1, UInt rhs2, DoubleReal rhs3))
+START_SECTION((std::vector<DoubleReal> neigh(const Matrix< UInt > &cord, UInt win, DoubleReal radius)))
 	vector<DoubleReal> nei1 = llm.neigh(llm.getCord(), 0, llm.getLLMParam().radius);
 	TEST_EQUAL(nei1[0], 1)
 	TEST_REAL_SIMILAR(nei1[1], 0.04393693) 	
 END_SECTION
 
-START_SECTION(void normalizeVector(std::vector<DoubleReal>& rhs))
+START_SECTION((void normalizeVector(std::vector< DoubleReal > &aaIndexVariables)))
 	NOT_TESTABLE
 END_SECTION
 

@@ -65,7 +65,7 @@ using namespace std;
 	  	{
 				istringstream linestream(line);
 				string proto;
-				while(getline(linestream, proto, '\t'))
+				while(getline(linestream, proto, ' '))
 		    {
 		    	stringstream(proto) >> pos;
 		    	i = (UInt)k/18;
@@ -96,7 +96,7 @@ using namespace std;
 	  	{
 				istringstream linestream(line);
 				string map;
-				while(getline(linestream, map, '\t'))
+				while(getline(linestream, map, ' '))
 				{
 					stringstream(map) >> pos;
 					i = (UInt)k/(19);

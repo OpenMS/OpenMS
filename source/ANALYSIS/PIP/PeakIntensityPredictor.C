@@ -145,10 +145,10 @@ using namespace std;
 		DoubleReal min_dist = 0.0;
 		Matrix<DoubleReal> code = llm_.getCodebooks();
 
-		//calculate euclidean distance of vector data to prototype no 1.
+		//calculate euclidean distance of vector data to prototype no 0.
 		for(Size c=0; c<data.size(); c++)
 		{
-			min_dist += (data[c] - code.getValue(1, c))*(data[c] - code.getValue(1, c));
+			min_dist += (data[c] - code.getValue(0, c))*(data[c] - code.getValue(0, c));
 		}
 	
 		//calculate euclidean distance of vector data to the remaining prototypes
