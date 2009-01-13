@@ -40,7 +40,7 @@ START_TEST(StringList, "$Id$")
 /////////////////////////////////////////////////////////////
 
 StringList* ptr = 0;
-START_SECTION(StringList())
+START_SECTION((StringList()))
 	ptr = new StringList;
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
@@ -49,7 +49,7 @@ START_SECTION(~StringList())
 	delete ptr;
 END_SECTION
 
-START_SECTION(static StringList create(const String& list))
+START_SECTION((static StringList create(const String& list)))
 	StringList list = StringList::create("yes,no");
 	TEST_EQUAL(list.size(),2);
 	TEST_STRING_EQUAL(list[0],"yes");
@@ -63,7 +63,7 @@ START_SECTION(static StringList create(const String& list))
 	TEST_EQUAL(list3.size(),0);
 END_SECTION
 
-START_SECTION(static StringList create( const char * const * list, UInt size ))
+START_SECTION((static StringList create( const char * const * list, UInt size )))
 {
 	const char * const yes_no[] = { "yes", "no" };
 	StringList list = StringList::create(yes_no,2);
@@ -81,7 +81,7 @@ START_SECTION(static StringList create( const char * const * list, UInt size ))
 }
 END_SECTION
 
-START_SECTION(StringList(const StringList& rhs))
+START_SECTION((StringList(const StringList& rhs)))
 	StringList list = StringList::create("yes,no");
 	StringList list2(list);
 	TEST_EQUAL(list2.size(),2);
@@ -89,7 +89,7 @@ START_SECTION(StringList(const StringList& rhs))
 	TEST_STRING_EQUAL(list2[1],"no");
 END_SECTION
 
-START_SECTION(StringList(const std::vector<String>& rhs))
+START_SECTION((StringList(const std::vector<String>& rhs)))
 	std::vector<String> list;
 	list.push_back("yes");
 	list.push_back("no");
@@ -99,7 +99,7 @@ START_SECTION(StringList(const std::vector<String>& rhs))
 	TEST_STRING_EQUAL(list2[1],"no");
 END_SECTION
 
-START_SECTION(StringList(const std::vector<std::string>& rhs))
+START_SECTION((StringList(const std::vector<std::string>& rhs)))
 	std::vector<string> list;
 	list.push_back("yes");
 	list.push_back("no");
@@ -110,7 +110,7 @@ START_SECTION(StringList(const std::vector<std::string>& rhs))
 
 END_SECTION
 
-START_SECTION(StringList& operator=(const StringList& rhs))
+START_SECTION((StringList& operator=(const StringList& rhs)))
 	StringList list = StringList::create("yes,no");
 	StringList list2;
 	list2 = list;
@@ -120,7 +120,7 @@ START_SECTION(StringList& operator=(const StringList& rhs))
 
 END_SECTION
 
-START_SECTION(StringList& operator=(const std::vector<String>& rhs))
+START_SECTION((StringList& operator=(const std::vector<String>& rhs)))
 	std::vector<String> list;
 	list.push_back("yes");
 	list.push_back("no");
@@ -132,7 +132,7 @@ START_SECTION(StringList& operator=(const std::vector<String>& rhs))
 
 END_SECTION
 
-START_SECTION(StringList& operator=(const std::vector<std::string>& rhs))
+START_SECTION((StringList& operator=(const std::vector<std::string>& rhs)))
 	std::vector<string> list;
 	list.push_back("yes");
 	list.push_back("no");
@@ -154,7 +154,7 @@ START_SECTION((template<typename StringType> StringList& operator<<(const String
 	TEST_STRING_EQUAL(list[3],"a");
 END_SECTION
 
-START_SECTION(bool contains(const String& s) const)
+START_SECTION((bool contains(const String& s) const))
 	StringList list = StringList::create("yes,no");
 	TEST_EQUAL(list.contains("yes"),true)
 	TEST_EQUAL(list.contains("no"),true)
@@ -163,21 +163,21 @@ START_SECTION(bool contains(const String& s) const)
 	TEST_EQUAL(list.contains("noe"),false)
 END_SECTION
 
-START_SECTION(void toUpper())
+START_SECTION((void toUpper()))
 	StringList list = StringList::create("yes,no");
 	list.toUpper();
 	TEST_EQUAL(list[0],"YES")
 	TEST_EQUAL(list[1],"NO")
 END_SECTION
 
-START_SECTION(void toLower())
+START_SECTION((void toLower()))
 	StringList list = StringList::create("yES,nO");
 	list.toLower();
 	TEST_EQUAL(list[0],"yes")
 	TEST_EQUAL(list[1],"no")
 END_SECTION
 
-START_SECTION(String concatenate(const String& glue=""))
+START_SECTION((String concatenate(const String &glue="") const ))
 	StringList list = StringList::create("1,2,3,4,5");
 	TEST_STRING_EQUAL(list.concatenate("g"),"1g2g3g4g5");
 	TEST_STRING_EQUAL(list.concatenate(""),"12345");

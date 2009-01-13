@@ -120,6 +120,12 @@ START_SECTION((bool operator!= (const MSExperiment& rhs) const))
 	TEST_EQUAL(edit!=empty, true);
 END_SECTION
 
+START_SECTION(void resize(const typename Base::size_type& size))
+	MSExperiment<> tmp;
+	tmp.resize(5);
+	TEST_EQUAL(tmp.size(),5)
+END_SECTION
+
 START_SECTION((template<class Container> void get2DData(Container& cont) const))
 	MSExperiment<> exp;
 	MSExperiment<>::SpectrumType spec;
@@ -285,7 +291,7 @@ START_SECTION((const std::vector<UInt>& getMSLevels() const))
 	TEST_EQUAL(tmp.getMSLevels().size(),0)
 END_SECTION
 
-START_SECTION((UInt getSize() const))
+START_SECTION((UInt64 getSize() const ))
 	MSExperiment<Peak1D > tmp;
 	TEST_EQUAL(tmp.getSize(),0)
 END_SECTION

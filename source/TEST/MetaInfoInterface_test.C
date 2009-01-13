@@ -53,7 +53,7 @@ END_SECTION
 
 MetaInfoInterface mi;
 
-START_SECTION((MetaInfoRegistry& metaRegistry() const))
+START_SECTION((static MetaInfoRegistry& metaRegistry()))
 	MetaInfoInterface mi2;
 	mi2.metaRegistry().registerName("testname","testdesc","testunit");
 	TEST_EQUAL(mi2.metaRegistry().getIndex("testname"),1024);

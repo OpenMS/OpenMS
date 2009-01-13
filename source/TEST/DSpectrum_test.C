@@ -471,7 +471,7 @@ START_SECTION((ConstIterator MZBegin(CoordinateType mz) const))
 	TEST_EQUAL(it->getPosition()[0],6.0)
 END_SECTION
 
-START_SECTION(( void sortByIntensity() ))
+START_SECTION((void sortByIntensity(bool reverse=false)))
 	DSpectrum<Peak1D> ds;
 	Peak1D p; DSpectrum<Peak1D>::MetaDataArray tmp; tmp.resize(10);
 	std::vector<DoubleReal> mzs, intensities;
@@ -537,7 +537,7 @@ START_SECTION(( void sortByIntensity() ))
 	}
 END_SECTION
 
-START_SECTION(( void sortByPosition() ))
+START_SECTION((void sortByPosition()))
 	DSpectrum<Peak1D> ds;
 	Peak1D p; DSpectrum<Peak1D>::MetaDataArray tmp; tmp.resize(10);
 	std::vector<DoubleReal> mzs, intensities;
@@ -621,7 +621,7 @@ START_SECTION(( void sortByPosition() ))
 
 	END_SECTION
 
-START_SECTION((UInt findNearest(CoordinateType mz) const  ))
+START_SECTION((UInt findNearest(CoordinateType mz) const))
 	DSpectrum<Peak1D> tmp;
 	Peak1D p;
 	p.setIntensity(29); p.setMZ(412.321); tmp.push_back(p); //0
@@ -664,12 +664,12 @@ START_SECTION((UInt findNearest(CoordinateType mz) const  ))
 END_SECTION
 
 
-START_SECTION(const MetaDataArrays& getMetaDataArrays() const)
+START_SECTION((const MetaDataArrays& getMetaDataArrays() const))
   DSpectrum<> s1;
   TEST_EQUAL(s1.getMetaDataArrays().size(),0)
 END_SECTION
 
-START_SECTION(MetaDataArrays& getMetaDataArrays())
+START_SECTION((MetaDataArrays& getMetaDataArrays()))
   DSpectrum<> s1;
   s1.getMetaDataArrays().resize(2);
   TEST_EQUAL(s1.getMetaDataArrays().size(),2)

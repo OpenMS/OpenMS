@@ -40,7 +40,9 @@ namespace OpenMS
 	{
 		//-------------------------------------------------------------------
 
-		/// Comparator that allows to compare the indices of two peaks by their intensity.
+		/**
+			@brief Comparator that allows to compare the indices of two peaks by their intensity.
+		*/
 		template < typename FeaFiModuleType >
 		struct IntensityLess
 			: std::binary_function < typename FeatureFinderDefs::IndexPair, typename FeatureFinderDefs::IndexPair, bool >

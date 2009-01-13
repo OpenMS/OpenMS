@@ -52,6 +52,18 @@ START_SECTION((virtual ~LabeledPairFinder()))
 	delete ptr;
 END_SECTION
 
+START_SECTION((static BaseGroupFinder* create()))
+	BaseGroupFinder* base_ptr = 0;
+	base_ptr = LabeledPairFinder::create();
+	TEST_NOT_EQUAL(base_ptr, 0)
+END_SECTION
+
+START_SECTION((static const String getProductName()))
+  LabeledPairFinder spf;
+  
+  TEST_STRING_EQUAL(spf.getProductName(),"labeled_pair_finder")
+END_SECTION
+
 FeatureMap<> features;
 features.resize(10);
 //start

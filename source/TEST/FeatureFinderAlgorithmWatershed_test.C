@@ -44,12 +44,12 @@ using namespace std;
 typedef FeatureFinderAlgorithmWatershed<Peak1D,Feature> FFAW;
 
 FFAW* ptr;
-START_SECTION(FeatureFinderAlgorithmWatershed())
+START_SECTION((FeatureFinderAlgorithmWatershed()))
 	ptr = new FFAW;
 	TEST_NOT_EQUAL(ptr,0)
 END_SECTION
 
-START_SECTION((virtual ~FeatureFinderAlgorithmWatershed()))
+START_SECTION(([EXTRA]virtual ~FeatureFinderAlgorithmWatershed()))
 	delete ptr;
 END_SECTION
 
@@ -57,7 +57,7 @@ START_SECTION([EXTRA] FeatureFinderAlgorithmWatershed() - with RichPeak1D)
 	FeatureFinderAlgorithmWatershed<RichPeak1D,Feature> ffa;
 END_SECTION
 
-START_SECTION(virtual void run())
+START_SECTION((virtual void run()))
   //create input
 	MSExperiment<> input;
 	input.reserve(500);
@@ -137,7 +137,7 @@ START_SECTION((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
 	delete ptr2;
 END_SECTION
 
-START_SECTION(static const String getProductName())
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(FFAW::getProductName(),"watershed")
 END_SECTION
 

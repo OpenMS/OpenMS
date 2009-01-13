@@ -229,21 +229,21 @@ class TOPPBaseTestNOP
 /////////////////////////////////////////////////////////////
 
 TOPPBaseTest* ptr = 0;
-START_SECTION((TOPPBase(const String& tool_name, const String& tool_description)))
+START_SECTION((TOPPBase(const String &name, const String &description, bool official=true, const String &version="")))
 	ptr = new TOPPBaseTest();
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
-START_SECTION((~TOPPBase()))
+START_SECTION((virtual ~TOPPBase()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(static StringList getToolList())
+START_SECTION((static StringList getToolList()))
 	TEST_EQUAL(TOPPBaseTest::getToolList().contains("FileInfo"),true)
 	TEST_EQUAL(TOPPBaseTest::getToolList().contains("ImaginaryTool"),false)
 END_SECTION
 
-START_SECTION(ExitCodes main(int argc, const char**argv))
+START_SECTION((ExitCodes main(int argc, const char**argv)))
 	NOT_TESTABLE
 	// is tested implicitly in all tests
 END_SECTION

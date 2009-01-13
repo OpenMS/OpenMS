@@ -59,9 +59,9 @@ namespace OpenMS
 		protected:
 			
 			/// Stores the layer indices of the layers in the left list (non-flipped layers)
-			std::vector<UInt> layer_indices_1;
+			std::vector<UInt> layer_indices_1_;
 			/// Stores the layer indices of the layers in the right list (flipped layers)
-			std::vector<UInt> layer_indices_2;
+			std::vector<UInt> layer_indices_2_;
 			
 		private:
 			

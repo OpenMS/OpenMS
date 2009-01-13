@@ -21,11 +21,11 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Marc Sturm, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_SEMANTICVALIDATOR_H
-#define OPENMS_FORMAT_SEMANTICVALIDATOR_H
+#ifndef OPENMS_FORMAT_VALIDATORS_SEMANTICVALIDATOR_H
+#define OPENMS_FORMAT_VALIDATORS_SEMANTICVALIDATOR_H
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -191,4 +191,4 @@ namespace OpenMS
  
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_SEMANTICVALIDATOR_H
+#endif // OPENMS_FORMAT_VSLIDATORS_SEMANTICVALIDATOR_H

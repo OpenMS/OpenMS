@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
  
-#ifndef OPENMS_VISUAL_VISUALIZER_PROCESSINGMETHODVISUALIZER_H
-#define OPENMS_VISUAL_VISUALIZER_PROCESSINGMETHODVISUALIZER_H
+#ifndef OPENMS_VISUAL_VISUALIZER_DATAPROCESSINGVISUALIZER_H
+#define OPENMS_VISUAL_VISUALIZER_DATAPROCESSINGVISUALIZER_H
 
 //OpenMS
 #include <OpenMS/METADATA/DataProcessing.h>

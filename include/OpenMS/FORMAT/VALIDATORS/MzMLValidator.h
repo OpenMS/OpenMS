@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MZMLVALIDATOR_H
-#define OPENMS_FORMAT_MZMLVALIDATOR_H
+#ifndef OPENMS_FORMAT_VALIDATORS_MZMLVALIDATOR_H
+#define OPENMS_FORMAT_VALIDATORS_MZMLVALIDATOR_H
 
 
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
@@ -87,4 +87,5 @@ namespace OpenMS
  
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_MZMLVALIDATOR_H
+#endif
+

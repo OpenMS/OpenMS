@@ -56,7 +56,7 @@ START_SECTION((FeatureMap()))
 	TEST_REAL_SIMILAR(pl_ptr->getMaxInt(), -numeric_limits<DoubleReal>::max())
 END_SECTION
 
-START_SECTION((~FeatureMap()))
+START_SECTION((virtual ~FeatureMap()))
 	delete pl_ptr;
 END_SECTION
 
@@ -86,52 +86,52 @@ hulls[0].addPoint(DPosition<2>(4.0,1.2));
 hulls[0].addPoint(DPosition<2>(5.0,3.123));
 feature4.setConvexHulls(hulls);
 
-START_SECTION(const std::vector<ProteinIdentification>& getProteinIdentifications() const)
+START_SECTION((const std::vector<ProteinIdentification>& getProteinIdentifications() const))
 	FeatureMap<> tmp;
 	TEST_EQUAL(tmp.getProteinIdentifications().size(),0)
 END_SECTION
 
-START_SECTION(std::vector<ProteinIdentification>& getProteinIdentifications())
+START_SECTION((std::vector<ProteinIdentification>& getProteinIdentifications()))
 	FeatureMap<> tmp;
 	tmp.getProteinIdentifications().resize(1);
 	TEST_EQUAL(tmp.getProteinIdentifications().size(),1)
 END_SECTION
 
-START_SECTION(void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications))
+START_SECTION((void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)))
 	FeatureMap<> tmp;
 	tmp.setProteinIdentifications(std::vector<ProteinIdentification>(2));
 	TEST_EQUAL(tmp.getProteinIdentifications().size(),2)
 END_SECTION
 
-START_SECTION(const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const)
+START_SECTION((const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const))
 	FeatureMap<> tmp;
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),0)
 END_SECTION
 
-START_SECTION(std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications())
+START_SECTION((std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications()))
 	FeatureMap<> tmp;
 	tmp.getUnassignedPeptideIdentifications().resize(1);
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),1)
 END_SECTION
 
-START_SECTION(void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications))
+START_SECTION((void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications)))
 	FeatureMap<> tmp;
 	tmp.setUnassignedPeptideIdentifications(std::vector<PeptideIdentification>(2));
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),2)
 END_SECTION
 
-START_SECTION(const DataProcessing& getDataProcessing() const)
+START_SECTION((const std::vector<DataProcessing>& getDataProcessing() const))
   FeatureMap<> tmp;
   TEST_EQUAL(tmp.getDataProcessing().size(),0);
 END_SECTION
 
-START_SECTION(DataProcessing& getDataProcessing())
+START_SECTION((std::vector<DataProcessing>& getDataProcessing()))
   FeatureMap<> tmp;
   tmp.getDataProcessing().resize(1);
   TEST_EQUAL(tmp.getDataProcessing().size(),1);
 END_SECTION
 
-START_SECTION(void setDataProcessing(const DataProcessing& data_processing))
+START_SECTION((void setDataProcessing(const std::vector< DataProcessing > &processing_method)))
   FeatureMap<> tmp;
   std::vector<DataProcessing> dummy;
   dummy.resize(1);
@@ -139,7 +139,7 @@ START_SECTION(void setDataProcessing(const DataProcessing& data_processing))
   TEST_EQUAL(tmp.getDataProcessing().size(),1);
 END_SECTION
 
-START_SECTION( void updateRanges() )
+START_SECTION((void updateRanges()))
 	//test without convex hulls
   FeatureMap<> s;
   s.push_back(feature1);
@@ -168,7 +168,7 @@ START_SECTION( void updateRanges() )
 	
 END_SECTION
 
-START_SECTION((FeatureMap(const FeatureMap& map)))
+START_SECTION((FeatureMap(const FeatureMap &source)))
 	FeatureMap<> map1;
 	map1.push_back(feature1);
 	map1.push_back(feature2);
@@ -345,7 +345,7 @@ START_SECTION((void sortByPosition()))
 	
 END_SECTION
 
-START_SECTION(void sortByMZ())
+START_SECTION((void sortByMZ()))
 	
 	FeatureMap<> to_be_sorted;
 	
@@ -372,7 +372,7 @@ START_SECTION(void sortByMZ())
 	
 END_SECTION
 
-START_SECTION(void sortByRT())
+START_SECTION((void sortByRT()))
 	
 	FeatureMap<> to_be_sorted;
 	
@@ -399,7 +399,7 @@ START_SECTION(void sortByRT())
 	
 END_SECTION
 
-START_SECTION(void swap(FeatureMap& from))
+START_SECTION((void swap(FeatureMap& from)))
 	FeatureMap<> map1, map2;
 	map1.setIdentifier("stupid comment");
 	map1.push_back(feature1);
@@ -427,7 +427,7 @@ START_SECTION(void swap(FeatureMap& from))
 	
 END_SECTION
 
-START_SECTION(void sortByOverallQuality() )
+START_SECTION((void sortByOverallQuality(bool reverse=false)))
 	
 	FeatureMap<> to_be_sorted;
 	

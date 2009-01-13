@@ -39,181 +39,181 @@ START_TEST(MassAnalyzer, "$Id$")
 /////////////////////////////////////////////////////////////
 
 MassAnalyzer* ptr = 0;
-START_SECTION(MassAnalyzer())
+START_SECTION((MassAnalyzer()))
 	ptr = new MassAnalyzer();
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
-START_SECTION(~MassAnalyzer())
+START_SECTION((~MassAnalyzer()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(Int getOrder() const)
+START_SECTION((Int getOrder() const))
 	MassAnalyzer tmp;
 	TEST_EQUAL(tmp.getOrder(),0)
 END_SECTION
 
-START_SECTION(void setOrder(Int order))
+START_SECTION((void setOrder(Int order)))
 	MassAnalyzer tmp;
 	tmp.setOrder(4711);
 	TEST_EQUAL(tmp.getOrder(),4711)
 END_SECTION
 
-START_SECTION(AnalyzerType getType() const)
+START_SECTION((AnalyzerType getType() const))
   MassAnalyzer tmp;
   TEST_EQUAL(tmp.getType(),MassAnalyzer::ANALYZERNULL);
 END_SECTION
 
-START_SECTION(ReflectronState getReflectronState() const)
+START_SECTION((ReflectronState getReflectronState() const))
   MassAnalyzer tmp;
   TEST_EQUAL(tmp.getReflectronState(),MassAnalyzer::REFLSTATENULL);
 END_SECTION
 
-START_SECTION(ResolutionMethod getResolutionMethod() const)
+START_SECTION((ResolutionMethod getResolutionMethod() const))
   MassAnalyzer tmp;
   TEST_EQUAL(tmp.getResolutionMethod(),MassAnalyzer::RESMETHNULL);
 END_SECTION
 
-START_SECTION(ResolutionType getResolutionType() const)
+START_SECTION((ResolutionType getResolutionType() const))
   MassAnalyzer tmp;
   TEST_EQUAL(tmp.getResolutionType(),MassAnalyzer::RESTYPENULL);
 END_SECTION
 
-START_SECTION(ScanDirection getScanDirection() const)
+START_SECTION((ScanDirection getScanDirection() const))
   MassAnalyzer tmp;
   TEST_EQUAL(tmp.getScanDirection(),MassAnalyzer::SCANDIRNULL);
 END_SECTION
 
-START_SECTION(ScanLaw getScanLaw() const)
+START_SECTION((ScanLaw getScanLaw() const))
   MassAnalyzer tmp;
   TEST_EQUAL(tmp.getScanLaw(),MassAnalyzer::SCANLAWNULL);
 END_SECTION
 
-START_SECTION(Int getFinalMSExponent() const)
+START_SECTION((Int getFinalMSExponent() const))
   MassAnalyzer tmp;
   TEST_EQUAL(tmp.getFinalMSExponent(),0);
 END_SECTION
 
-START_SECTION(float getAccuracy() const)
+START_SECTION((DoubleReal getAccuracy() const ))
   MassAnalyzer tmp;
   TEST_REAL_SIMILAR(tmp.getAccuracy(),0.0);
 END_SECTION
 
-START_SECTION(float getIsolationWidth() const)
+START_SECTION((DoubleReal getIsolationWidth() const ))
   MassAnalyzer tmp;
   TEST_REAL_SIMILAR(tmp.getIsolationWidth(),0.0);
 END_SECTION
 
-START_SECTION(float getMagneticFieldStrength() const)
+START_SECTION((DoubleReal getMagneticFieldStrength() const ))
   MassAnalyzer tmp;
   TEST_REAL_SIMILAR(tmp.getMagneticFieldStrength(),0.0);
 END_SECTION
 
-START_SECTION(float getResolution() const)
+START_SECTION((DoubleReal getResolution() const ))
   MassAnalyzer tmp;
   TEST_REAL_SIMILAR(tmp.getResolution(),0.0);
 END_SECTION
 
-START_SECTION(float getScanRate() const)
+START_SECTION((DoubleReal getScanRate() const ))
   MassAnalyzer tmp;
   TEST_REAL_SIMILAR(tmp.getScanRate(),0.0);
 END_SECTION
 
-START_SECTION(float getScanTime() const)
+START_SECTION((DoubleReal getScanTime() const ))
   MassAnalyzer tmp;
   TEST_REAL_SIMILAR(tmp.getScanTime(),0.0);
 END_SECTION
 
-START_SECTION(float getTOFTotalPathLength() const)
+START_SECTION((DoubleReal getTOFTotalPathLength() const ))
   MassAnalyzer tmp;
   TEST_REAL_SIMILAR(tmp.getTOFTotalPathLength(),0.0);
 END_SECTION
 
-START_SECTION(void setType(AnalyzerType type))
+START_SECTION((void setType(AnalyzerType type)))
   MassAnalyzer tmp;
   tmp.setType(MassAnalyzer::QUADRUPOLE);
   TEST_EQUAL(tmp.getType(),MassAnalyzer::QUADRUPOLE);
 END_SECTION
 
-START_SECTION(void setAccuracy(float accuracy))
+START_SECTION((void setAccuracy(DoubleReal accuracy)))
   MassAnalyzer tmp;
   tmp.setAccuracy(47.11);
   TEST_REAL_SIMILAR(tmp.getAccuracy(),47.11);
 END_SECTION
 
-START_SECTION(void setFinalMSExponent(Int final_MS_exponent))
+START_SECTION((void setFinalMSExponent(Int final_MS_exponent)))
   MassAnalyzer tmp;
   tmp.setFinalMSExponent(47);
   TEST_EQUAL(tmp.getFinalMSExponent(),47);
 END_SECTION
 
-START_SECTION(void setIsolationWidth(float isolation_width))
+START_SECTION((void setIsolationWidth(DoubleReal isolation_width)))
   MassAnalyzer tmp;
   tmp.setIsolationWidth(47.11);
   TEST_REAL_SIMILAR(tmp.getIsolationWidth(),47.11);
 END_SECTION
 
-START_SECTION(void setMagneticFieldStrength(float magnetic_field_strength))
+START_SECTION((void setMagneticFieldStrength(DoubleReal magnetic_field_strength)))
   MassAnalyzer tmp;
   tmp.setMagneticFieldStrength(47.11);
   TEST_REAL_SIMILAR(tmp.getMagneticFieldStrength(),47.11);
 END_SECTION
 
-START_SECTION(void setReflectronState(ReflectronState reflecton_state))
+START_SECTION((void setReflectronState(ReflectronState reflecton_state)))
   MassAnalyzer tmp;
   tmp.setReflectronState(MassAnalyzer::ON);
   TEST_EQUAL(tmp.getReflectronState(),MassAnalyzer::ON);
 END_SECTION
 
-START_SECTION(void setResolution(float resolution))
+START_SECTION((void setResolution(DoubleReal resolution)))
   MassAnalyzer tmp;
   tmp.setResolution(47.11);
   TEST_REAL_SIMILAR(tmp.getResolution(),47.11);
 END_SECTION
 
-START_SECTION(void setResolutionMethod(ResolutionMethod resolution_method))
+START_SECTION((void setResolutionMethod(ResolutionMethod resolution_method)))
   MassAnalyzer tmp;
   tmp.setResolutionMethod(MassAnalyzer::FWHM);
   TEST_EQUAL(tmp.getResolutionMethod(),MassAnalyzer::FWHM);
 END_SECTION
 
-START_SECTION(void setResolutionType(ResolutionType resolution_type))
+START_SECTION((void setResolutionType(ResolutionType resolution_type)))
   MassAnalyzer tmp;
   tmp.setResolutionType(MassAnalyzer::CONSTANT);
   TEST_EQUAL(tmp.getResolutionType(),MassAnalyzer::CONSTANT);
 END_SECTION
 
-START_SECTION(void setScanDirection(ScanDirection scan_direction))
+START_SECTION((void setScanDirection(ScanDirection scan_direction)))
   MassAnalyzer tmp;
   tmp.setScanDirection(MassAnalyzer::UP);
   TEST_EQUAL(tmp.getScanDirection(),MassAnalyzer::UP);
 END_SECTION
 
-START_SECTION(void setScanLaw(ScanLaw scan_law))
+START_SECTION((void setScanLaw(ScanLaw scan_law)))
   MassAnalyzer tmp;
   tmp.setScanLaw(MassAnalyzer::LINEAR);
   TEST_EQUAL(tmp.getScanLaw(),MassAnalyzer::LINEAR);
 END_SECTION
 
-START_SECTION(void setScanRate(float scan_rate))
+START_SECTION((void setScanRate(DoubleReal scan_rate)))
   MassAnalyzer tmp;
   tmp.setScanRate(47.11);
   TEST_REAL_SIMILAR(tmp.getScanRate(),47.11);
 END_SECTION
 
-START_SECTION(void setScanTime(float scan_time))
+START_SECTION((void setScanTime(DoubleReal scan_time)))
   MassAnalyzer tmp;
   tmp.setScanTime(47.11);
   TEST_REAL_SIMILAR(tmp.getScanTime(),47.11);
 END_SECTION
 
-START_SECTION(void setTOFTotalPathLength(float TOF_total_path_length))
+START_SECTION((void setTOFTotalPathLength(DoubleReal TOF_total_path_length)))
   MassAnalyzer tmp;
   tmp.setTOFTotalPathLength(47.11);
   TEST_REAL_SIMILAR(tmp.getTOFTotalPathLength(),47.11);
 END_SECTION
 
-START_SECTION(MassAnalyzer(const MassAnalyzer& source))
+START_SECTION((MassAnalyzer(const MassAnalyzer& source)))
   MassAnalyzer tmp;
   tmp.setType(MassAnalyzer::QUADRUPOLE);
   tmp.setAccuracy(47.11);
@@ -251,7 +251,7 @@ START_SECTION(MassAnalyzer(const MassAnalyzer& source))
 	TEST_EQUAL(tmp2.getOrder(),45)
 END_SECTION
 
-START_SECTION(MassAnalyzer& operator= (const MassAnalyzer& source))
+START_SECTION((MassAnalyzer& operator= (const MassAnalyzer& source)))
   MassAnalyzer tmp;
   
   tmp.setType(MassAnalyzer::QUADRUPOLE);
@@ -309,7 +309,7 @@ START_SECTION(MassAnalyzer& operator= (const MassAnalyzer& source))
 	TEST_EQUAL(tmp2.getOrder(),0)
 END_SECTION
 
-START_SECTION(bool operator== (const MassAnalyzer& rhs) const)
+START_SECTION((bool operator== (const MassAnalyzer& rhs) const))
   MassAnalyzer edit, empty;
   
 	TEST_EQUAL(edit==empty,true);
@@ -375,7 +375,7 @@ START_SECTION(bool operator== (const MassAnalyzer& rhs) const)
 	TEST_EQUAL(edit==empty,false);
 END_SECTION
 
-START_SECTION(bool operator!= (const MassAnalyzer& rhs) const)
+START_SECTION((bool operator!= (const MassAnalyzer& rhs) const))
   MassAnalyzer edit, empty;
   
 	TEST_EQUAL(edit!=empty,false);

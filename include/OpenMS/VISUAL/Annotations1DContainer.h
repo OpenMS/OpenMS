@@ -41,7 +41,7 @@ class QPainter;
 
 namespace OpenMS
 {
-
+	/// Container for annotations to content of Spectrum1DCanvas
 	class Annotations1DContainer
 		: public std::list<Annotation1DItem*>
 	{

@@ -46,33 +46,33 @@ TOLERANCE_ABSOLUTE(0.001)
 
 // default ctor
 Tagging* dv_ptr = 0;
-START_SECTION(Tagging())
+START_SECTION((Tagging()))
 	dv_ptr = new Tagging;
 	TEST_NOT_EQUAL(dv_ptr, 0)
 END_SECTION
 
 // destructor
-START_SECTION(~Tagging())
+START_SECTION((virtual ~Tagging()))
 	delete dv_ptr;
 END_SECTION
 
-START_SECTION(const IsotopeVariant& getVariant() const)
+START_SECTION((const IsotopeVariant& getVariant() const))
 	Tagging s;
 	TEST_EQUAL(s.getVariant(),Tagging::LIGHT)
 END_SECTION
 
-START_SECTION(float getMassShift() const)
+START_SECTION((DoubleReal getMassShift() const ))
 	Tagging s;
 	TEST_REAL_SIMILAR(s.getMassShift(),0.0)
 END_SECTION
 
-START_SECTION(void setMassShift(float mass_shift))
+START_SECTION((void setMassShift(DoubleReal mass_shift)))
 	Tagging s;
 	s.setMassShift(4711.2);
 	TEST_REAL_SIMILAR(s.getMassShift(),4711.2)
 END_SECTION
 
-START_SECTION(void setVariant(const IsotopeVariant& variant))
+START_SECTION((void setVariant(const IsotopeVariant& variant)))
 	Tagging s;
 	s.setVariant(Tagging::HEAVY);
 	TEST_EQUAL(s.getVariant(),Tagging::HEAVY)
@@ -85,7 +85,7 @@ START_SECTION([EXTRA] getType)
 END_SECTION
 
 //copy ctr
-START_SECTION(Tagging(const Tagging&))
+START_SECTION((Tagging(const Tagging&)))
 	Tagging s;
 	//set
 	s.setMassShift(4711.2);
@@ -102,7 +102,7 @@ START_SECTION(Tagging(const Tagging&))
 END_SECTION
 
 //assignment operator
-START_SECTION(Tagging& operator=(const Tagging&))
+START_SECTION((Tagging& operator=(const Tagging&)))
 	Tagging s,s2;
 	//set
 	s.setMassShift(4711.2);
@@ -119,7 +119,7 @@ START_SECTION(Tagging& operator=(const Tagging&))
 END_SECTION
 
 //clone
-START_SECTION(SampleTreatment* clone() const)
+START_SECTION((virtual SampleTreatment* clone() const ))
 	Tagging s;
 	SampleTreatment* st1;
 	SampleTreatment* st;
@@ -141,7 +141,7 @@ START_SECTION(SampleTreatment* clone() const)
 	TEST_REAL_SIMILAR(dp->getMass(),23.4)
 END_SECTION
 
-START_SECTION(bool operator== (const SampleTreatment& rhs) const)
+START_SECTION((virtual bool operator==(const SampleTreatment &rhs) const ))
 	Tagging empty,edit;
 	
 	TEST_EQUAL(edit==empty, true);

@@ -39,41 +39,41 @@ START_TEST(ExperimentalSettings, "$Id$")
 /////////////////////////////////////////////////////////////
 
 ExperimentalSettings* ptr = 0;
-START_SECTION(ExperimentalSettings())
+START_SECTION((ExperimentalSettings()))
 	ptr = new ExperimentalSettings();
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
-START_SECTION(~ExperimentalSettings())
+START_SECTION((~ExperimentalSettings()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(const Date& getDateTime() const)
+START_SECTION((const DateTime& getDateTime() const))
   ExperimentalSettings tmp;
   TEST_EQUAL(tmp.getDateTime().get(),"0000-00-00 00:00:00");
 END_SECTION
 
-START_SECTION(const HPLC& getHPLC() const)
+START_SECTION((const HPLC& getHPLC() const))
   ExperimentalSettings tmp;
   TEST_EQUAL(tmp.getHPLC()==HPLC(),true);
 END_SECTION
 
-START_SECTION(const Instrument& getInstrument() const)
+START_SECTION((const Instrument& getInstrument() const))
   ExperimentalSettings tmp;
   TEST_EQUAL(tmp.getInstrument()==Instrument(),true);
 END_SECTION
 
-START_SECTION(const DataProcessing& getDataProcessing() const)
+START_SECTION((const std::vector<DataProcessing>& getDataProcessing() const))
   ExperimentalSettings tmp;
   TEST_EQUAL(tmp.getDataProcessing().size(),0);
 END_SECTION
 
-START_SECTION(const Sample& getSample() const)
+START_SECTION((const Sample& getSample() const))
   ExperimentalSettings tmp;
   TEST_EQUAL(tmp.getSample()==Sample(),true);
 END_SECTION
 
-START_SECTION(const SourceFile& getSourceFiles() const)
+START_SECTION((const std::vector<SourceFile>& getSourceFiles() const))
   ExperimentalSettings tmp;
   TEST_EQUAL(tmp.getSourceFiles().size(),0);
 END_SECTION
@@ -89,23 +89,18 @@ START_SECTION((void setComment(const String& comment)))
 	TEST_EQUAL(tmp.getComment(), "bla");
 END_SECTION
 
-START_SECTION((const String& getIdentifier() const))
+START_SECTION((NativeIDType getNativeIDType() const))
 	ExperimentalSettings tmp;
-	TEST_EQUAL(tmp.getIdentifier(), "");
+	TEST_EQUAL(tmp.getNativeIDType(), ExperimentalSettings::UNKNOWN);
 END_SECTION
 
-START_SECTION((void setIdentifier(const String& identifier)))
-	ExperimentalSettings tmp;
-	tmp.setIdentifier("bla");
-	TEST_EQUAL(tmp.getIdentifier(), "bla");
-END_SECTION
-
-START_SECTION(const std::vector<ContactPerson>& getContacts() const)
+START_SECTION((void 	setNativeIDType(NativeIDType type)))
   ExperimentalSettings tmp;
-  TEST_EQUAL(tmp.getContacts().size(),0);
+  tmp.setNativeIDType(ExperimentalSettings::THERMO);
+  TEST_EQUAL(tmp.getNativeIDType(), ExperimentalSettings::THERMO);
 END_SECTION
 
-START_SECTION(void setContacts(const std::vector<ContactPerson>& contacts))
+START_SECTION((void setContacts(const std::vector<ContactPerson>& contacts)))
   ExperimentalSettings tmp;
   std::vector<ContactPerson> dummy;
   ContactPerson c;
@@ -123,7 +118,7 @@ START_SECTION(void setContacts(const std::vector<ContactPerson>& contacts))
   TEST_EQUAL(tmp.getContacts()[1].getLastName(),"blubb18");
 END_SECTION
 
-START_SECTION(void setDateTime(const Date& date))
+START_SECTION((void setDateTime(const DateTime &date)))
   ExperimentalSettings tmp;
   DateTime dummy;
   dummy.set("02/07/2006 01:02:03");
@@ -131,7 +126,7 @@ START_SECTION(void setDateTime(const Date& date))
   TEST_EQUAL(tmp.getDateTime().get(),"2006-02-07 01:02:03");
 END_SECTION
 
-START_SECTION(void setHPLC(const HPLC& hplc))
+START_SECTION((void setHPLC(const HPLC& hplc)))
   ExperimentalSettings tmp;
   HPLC dummy;
   dummy.setFlux(5);
@@ -139,7 +134,7 @@ START_SECTION(void setHPLC(const HPLC& hplc))
   TEST_EQUAL(tmp.getHPLC().getFlux(),5);
 END_SECTION
 
-START_SECTION(void setInstrument(const Instrument& instrument))
+START_SECTION((void setInstrument(const Instrument& instrument)))
   ExperimentalSettings tmp;
   Instrument dummy;
   dummy.setName("bla");
@@ -147,7 +142,7 @@ START_SECTION(void setInstrument(const Instrument& instrument))
   TEST_EQUAL(tmp.getInstrument().getName(),"bla");
 END_SECTION
 
-START_SECTION(void setDataProcessing(const DataProcessing& data_processing))
+START_SECTION((void setDataProcessing(const std::vector< DataProcessing > &processing_method)))
   ExperimentalSettings tmp;
   std::vector<DataProcessing> dummy;
   dummy.resize(1);
@@ -155,7 +150,7 @@ START_SECTION(void setDataProcessing(const DataProcessing& data_processing))
   TEST_EQUAL(tmp.getDataProcessing().size(),1);
 END_SECTION
 
-START_SECTION(void setSample(const Sample& sample))
+START_SECTION((void setSample(const Sample& sample)))
   ExperimentalSettings tmp;
   Sample dummy;
   dummy.setName("bla3");
@@ -163,7 +158,7 @@ START_SECTION(void setSample(const Sample& sample))
   TEST_EQUAL(tmp.getSample().getName(),"bla3");
 END_SECTION
 
-START_SECTION(void setSourceFiles(const vector<SourceFile>& source_file))
+START_SECTION((void setSourceFiles(const std::vector< SourceFile > &source_files)))
   ExperimentalSettings tmp;
   vector<SourceFile> dummy;
   dummy.resize(1);
@@ -171,37 +166,42 @@ START_SECTION(void setSourceFiles(const vector<SourceFile>& source_file))
   TEST_EQUAL(tmp.getSourceFiles().size(),1);
 END_SECTION
 
-START_SECTION(HPLC& getHPLC())
+START_SECTION((HPLC& getHPLC()))
   ExperimentalSettings tmp;
   tmp.getHPLC().setFlux(5);
   TEST_EQUAL(tmp.getHPLC().getFlux(),5);
 END_SECTION
 
-START_SECTION(Instrument& getInstrument())
+START_SECTION((Instrument& getInstrument()))
   ExperimentalSettings tmp;
   tmp.getInstrument().setName("bla55");
   TEST_EQUAL(tmp.getInstrument().getName(),"bla55");
 END_SECTION
 
-START_SECTION(DataProcessing& getDataProcessing())
+START_SECTION((std::vector<DataProcessing>& getDataProcessing()))
   ExperimentalSettings tmp;
   tmp.getDataProcessing().resize(1);
   TEST_EQUAL(tmp.getDataProcessing().size(),1);
 END_SECTION
 
-START_SECTION(Sample& getSample())
+START_SECTION((Sample& getSample()))
   ExperimentalSettings tmp;
   tmp.getSample().setName("bla2");
   TEST_EQUAL(tmp.getSample().getName(),"bla2");
 END_SECTION
 
-START_SECTION(SourceFile& getSourceFiles())
+START_SECTION((std::vector<SourceFile>& getSourceFiles()))
   ExperimentalSettings tmp;
   tmp.getSourceFiles().resize(1);
   TEST_EQUAL(tmp.getSourceFiles().size(),1)
 END_SECTION
 
-START_SECTION(std::vector<ContactPerson>& getContacts())
+START_SECTION((const std::vector<ContactPerson>& getContacts() const))
+  ExperimentalSettings tmp;
+  TEST_EQUAL(tmp.getContacts().size(),0);
+END_SECTION
+
+START_SECTION((std::vector<ContactPerson>& getContacts()))
   ExperimentalSettings tmp;
   ContactPerson c;
   c.setFirstName("bla17");
@@ -213,7 +213,7 @@ START_SECTION(std::vector<ContactPerson>& getContacts())
   TEST_EQUAL(tmp.getContacts()[1].getFirstName(),"bla18");
 END_SECTION
 
-START_SECTION(ExperimentalSettings(const ExperimentalSettings& source))
+START_SECTION((ExperimentalSettings(const ExperimentalSettings& source)))
   ExperimentalSettings tmp;
   ProteinIdentification id;
 	ProteinHit protein_hit;
@@ -247,7 +247,7 @@ START_SECTION(ExperimentalSettings(const ExperimentalSettings& source))
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");  
 END_SECTION
 
-START_SECTION(ExperimentalSettings& operator= (const ExperimentalSettings& source))
+START_SECTION((ExperimentalSettings& operator= (const ExperimentalSettings& source)))
   ExperimentalSettings tmp;
   ProteinIdentification id;
 	ProteinHit protein_hit;
@@ -294,7 +294,7 @@ START_SECTION(ExperimentalSettings& operator= (const ExperimentalSettings& sourc
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
 END_SECTION
 
-START_SECTION(bool operator== (const ExperimentalSettings& rhs) const)
+START_SECTION((bool operator== (const ExperimentalSettings& rhs) const))
   ExperimentalSettings edit, empty;
   ProteinIdentification id;
 	ProteinHit protein_hit;
@@ -346,7 +346,7 @@ START_SECTION(bool operator== (const ExperimentalSettings& rhs) const)
 	TEST_EQUAL(edit==empty,false);
 END_SECTION
 
-START_SECTION(bool operator!= (const ExperimentalSettings& rhs) const)
+START_SECTION((bool operator!= (const ExperimentalSettings& rhs) const))
   ExperimentalSettings edit, empty;
   ProteinIdentification id;
 	ProteinHit protein_hit;
@@ -390,7 +390,7 @@ START_SECTION(bool operator!= (const ExperimentalSettings& rhs) const)
 	TEST_EQUAL(edit!=empty,true);
 END_SECTION
 
-START_SECTION(const std::vector<ProteinIdentification>& getProteinIdentifications() const)
+START_SECTION((const std::vector<ProteinIdentification>& getProteinIdentifications() const))
   ExperimentalSettings settings;
   ProteinIdentification id;
 	ProteinHit protein_hit;
@@ -405,7 +405,7 @@ START_SECTION(const std::vector<ProteinIdentification>& getProteinIdentification
 	TEST_EQUAL(id == test_id, true)
 END_SECTION
 
-START_SECTION(std::vector<ProteinIdentification>& getProteinIdentifications())
+START_SECTION((std::vector<ProteinIdentification>& getProteinIdentifications()))
   ExperimentalSettings settings;
   ProteinIdentification id;
 	ProteinHit protein_hit;
@@ -420,7 +420,7 @@ START_SECTION(std::vector<ProteinIdentification>& getProteinIdentifications())
 	TEST_EQUAL(id == test_id, true)
 END_SECTION
 
-START_SECTION(void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications))
+START_SECTION((void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)))
   ExperimentalSettings settings;
   ProteinIdentification id;
 	ProteinHit protein_hit;

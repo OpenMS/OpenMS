@@ -147,7 +147,7 @@ START_SECTION((String(double d)))
 	TEST_EQUAL(s,"17.012345")
 END_SECTION
 
-START_SECTION((String(long double d)))
+START_SECTION((String(long double ld)))
 	String s(17.012345L); // suffix L indicates long double
 	TEST_EQUAL(s,"17.012345")
 END_SECTION
@@ -156,6 +156,12 @@ START_SECTION((String(long long unsigned int i)))
 	String s((long long unsigned int)(12345678));
 	TEST_EQUAL(s,"12345678")
 END_SECTION
+
+START_SECTION(String(long long signed int i))
+	String s((long long signed int)(-12345678));
+	TEST_EQUAL(s,"-12345678")
+END_SECTION
+
 
 START_SECTION((static String numberLength(DoubleReal d, UInt n)))
 	TEST_EQUAL(String::numberLength(12345678.9123,11),"12345678.91")
@@ -663,7 +669,7 @@ START_SECTION((String operator+ (double d) const))
 	TEST_EQUAL(fixed + (double)(4), "test4")
 END_SECTION
 
-START_SECTION((String operator+ (long double d) const))
+START_SECTION((String operator+(long double ld) const ))
 	TEST_EQUAL(fixed + (long double)(4), "test4")
 END_SECTION
 

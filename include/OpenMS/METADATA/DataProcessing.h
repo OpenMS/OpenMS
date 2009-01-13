@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_PROCESSINGMETHOD_H
-#define OPENMS_METADATA_PROCESSINGMETHOD_H
+#ifndef OPENMS_METADATA_DATAPROCESSING_H
+#define OPENMS_METADATA_DATAPROCESSING_H
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/Software.h>
@@ -115,4 +115,4 @@ namespace OpenMS
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_PROCESSINGMETHOD_H
+#endif // OPENMS_METADATA_DATAPROCESSING_H

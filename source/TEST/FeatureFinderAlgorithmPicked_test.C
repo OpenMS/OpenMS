@@ -45,12 +45,12 @@ using namespace std;
 typedef FeatureFinderAlgorithmPicked<Peak1D,Feature> FFPP;
 
 FFPP* ptr;
-START_SECTION(FeatureFinderAlgorithmPicked())
+START_SECTION((FeatureFinderAlgorithmPicked()))
 	ptr = new FFPP;
 	TEST_NOT_EQUAL(ptr,0)
 END_SECTION
 
-START_SECTION((virtual ~FeatureFinderAlgorithmPicked()))
+START_SECTION(~FeatureFinderAlgorithmPicked())
 	delete ptr;
 END_SECTION
 
@@ -64,11 +64,11 @@ START_SECTION((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
 	delete ptr2;
 END_SECTION
 
-START_SECTION(static const String getProductName())
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(FFPP::getProductName(),"picked_peak")
 END_SECTION
 
-START_SECTION(virtual void run())
+START_SECTION((virtual void run()))
 	//input and output
 	MSExperiment<> input;
 	MzDataFile mzdata_file;

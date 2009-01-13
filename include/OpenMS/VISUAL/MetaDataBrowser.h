@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm  $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_MSMETADATAEXPLORER_H
-#define OPENMS_VISUAL_MSMETADATAEXPLORER_H
+#ifndef OPENMS_VISUAL_METADATABROWSER_H
+#define OPENMS_VISUAL_METADATABROWSER_H
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>

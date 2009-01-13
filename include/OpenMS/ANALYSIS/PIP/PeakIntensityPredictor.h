@@ -103,6 +103,33 @@ namespace OpenMS
 			/// calculate assignments of peptides to cluster and the corresponding error
 			std::vector<DoubleReal> calculateAddInfo_(const std::vector<DoubleReal>& data);
 
+			/**
+				@brief Calculates an array of properties for an amino acid sequence
+				
+				The array contains the following properties:
+				- 0: Number of 'R' residues
+				- 1: Signal sequence helical potential
+				- 2: Number of 'F' residues
+				- 3: Positive charge
+				- 4: Helix-coil equilibrium constant
+				- 5: Estimated gas-phase basicity at 500 K
+				- 6: Number of 'H' residues
+				- 7: Kerr-constant increments
+				- 8: Number of 'M' residues
+				- 9: Average amino acid weight
+				- 10: Hydropathy scale (36% accessibility)
+				- 11: Hydropathy scale (50% accessibility)
+				- 12: Optimized average non-bonded energy per atom
+				- 13: Number of 'Q' residues
+				- 14: Information measure for extended without H-bond
+				- 15: Relative population of conformational state E
+				- 16: Hydrophobicity coefficient in RP-HPLC, C8 with 0.1%TFA/MeCN/H2 O,
+				- 17: Number of 'Y' residues
+				
+				@exception InvalidValue is thrown if an undefined one-letter-code is used
+			*/
+			std::vector<DoubleReal> getPropertyVector_(const AASequence& sequence);
+
 			/// Local Linear %Map model
 			LocalLinearMap llm_;
 			

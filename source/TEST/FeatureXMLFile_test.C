@@ -154,7 +154,7 @@ START_SECTION((void load(String filename, FeatureMap<>& feature_map)))
 
 END_SECTION
 
-START_SECTION((void store(String filename, const FeatureMap<>& feature_map) const))
+START_SECTION((void store(String filename, const FeatureMap<> &feature_map)))
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
 
@@ -167,7 +167,7 @@ START_SECTION((void store(String filename, const FeatureMap<>& feature_map) cons
   TEST_EQUAL(map==map2, true)
 END_SECTION
 
-START_SECTION( PeakFileOptions& getOptions() )
+START_SECTION((PeakFileOptions& getOptions()))
 	FeatureXMLFile f;
   FeatureMap<> e;
 	f.getOptions().setRTRange(makeRange(1.5, 4.5));
@@ -208,7 +208,7 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
   TEST_EQUAL(f.isValid(filename),true);
 END_SECTION
 
-START_SECTION( const PeakFileOptions& getOptions() const )
+START_SECTION((const PeakFileOptions& getOptions() const))
 	FeatureXMLFile f;
  	FeatureMap<> e;
 	f.getOptions().setRTRange(makeRange(1.5, 4.5));

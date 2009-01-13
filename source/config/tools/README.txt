@@ -1,9 +1,6 @@
 
 This folder contains some useful tools for developers:
 
-  create_methods.php    -  Creates methods for a class:
-                           member accessors, default constructors, destructor, assignment operator and equality operators.
-
   create_test.php       -  Creates a test for a class.
 
   correct_test.php      -  Helps the user to correct BEGIN_SECTION macros.

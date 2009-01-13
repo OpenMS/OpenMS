@@ -49,29 +49,6 @@ START_TEST(AASequenceIndeces, "$Id$")
 
 TOLERANCE_ABSOLUTE(0.01)
 
-START_SECTION(static vector<DoubleReal> getPropertyVector(const AASequence& sequence))
-	vector<DoubleReal> calculated = AAIndex::getPropertyVector(seq3);
-	TEST_REAL_SIMILAR(calculated[0], 1.0);
-	TEST_REAL_SIMILAR(calculated[1], 9.34);
-	TEST_REAL_SIMILAR(calculated[2], 0.0);
-	TEST_REAL_SIMILAR(calculated[3], 2.0);
-	TEST_REAL_SIMILAR(calculated[4], 7.73);
-	TEST_REAL_SIMILAR(calculated[5], 1442.7);
-	TEST_REAL_SIMILAR(calculated[6], 1.0);
-	TEST_REAL_SIMILAR(calculated[7], 318.5);
-	TEST_REAL_SIMILAR(calculated[8], 0.0);
-	TEST_REAL_SIMILAR(calculated[9], 836.978);		
-	TEST_REAL_SIMILAR(calculated[10], 171.0);
-	TEST_REAL_SIMILAR(calculated[11], 190.0);
-	TEST_REAL_SIMILAR(calculated[12], -9.97);
-	TEST_REAL_SIMILAR(calculated[13], 0.0);
-	TEST_REAL_SIMILAR(calculated[14], 0.3);
-	TEST_REAL_SIMILAR(calculated[15], 1.259);
-	TEST_REAL_SIMILAR(calculated[16], 18.13);
-	TEST_REAL_SIMILAR(calculated[17], 0.0);
-		
-END_SECTION
-
 START_SECTION(static DoubleReal calculateGB(const AASequence& seq, DoubleReal T=500.0) )
 	TEST_REAL_SIMILAR(AAIndex::calculateGB(seq1), 1337.53)
 	TEST_REAL_SIMILAR(AAIndex::calculateGB(seq2), 1442.70)

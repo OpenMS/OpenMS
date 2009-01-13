@@ -48,7 +48,7 @@ START_SECTION((DPosition()))
 	TEST_NOT_EQUAL(d10_ptr, 0)
 END_SECTION
 
-START_SECTION((virtual ~DPosition()))
+START_SECTION((~DPosition()))
 	delete d10_ptr;
 END_SECTION
 
@@ -183,7 +183,7 @@ START_SECTION((Iterator end()))
   TEST_REAL_SIMILAR(v[9], 10.0)
 END_SECTION
 
-START_SECTION((static UInt size()))
+START_SECTION((static Size size()))
 	TEST_EQUAL(DPosition<777>::size(), 777)
 	DPosition<3> p3;
 	TEST_EQUAL(p3.size(), 3)

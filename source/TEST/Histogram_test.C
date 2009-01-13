@@ -72,11 +72,11 @@ START_SECTION((BinSizeType binSize() const))
 	TEST_REAL_SIMILAR(d.binSize(), 1)
 END_SECTION
 
-START_SECTION((UInt size() const))
+START_SECTION((Size size() const ))
 	TEST_EQUAL(d.size(), 10)
 END_SECTION
 
-START_SECTION((Histogram(BinSizeType min, BinSizeType max, BinSizeType bin_size) ))
+START_SECTION((Histogram(BinSizeType min, BinSizeType max, BinSizeType bin_size)))
 	Histogram<float, float> d3(5.5, 7.7, 0.2);
 	TEST_REAL_SIMILAR(d3.min(), 5.5)
 	TEST_REAL_SIMILAR(d3.max(), 7.7)
@@ -91,7 +91,7 @@ START_SECTION((ValueType maxValue() const))
 	TEST_REAL_SIMILAR(d.maxValue(), 0.0)
 END_SECTION
 
-START_SECTION((ValueType operator [] (UInt index) const ))
+START_SECTION((ValueType operator [] (UInt index) const))
 	d.reset(4, 14, 2);
 	TEST_EQUAL(d.size(),5);
 	TEST_REAL_SIMILAR(d[0],0.0);
@@ -102,7 +102,7 @@ START_SECTION((ValueType operator [] (UInt index) const ))
 	TEST_EXCEPTION(Exception::IndexOverflow, d[5])
 END_SECTION
 
-START_SECTION((void inc(BinSizeType val, ValueType increment=1) ))
+START_SECTION((void inc(BinSizeType val, ValueType increment=1)))
 	TEST_EXCEPTION(Exception::OutOfRange, d.inc(3.9, 250.3))
 	TEST_EXCEPTION(Exception::OutOfRange, d.inc(14.1, 250.3))
 	d.inc(4, 1.0);
@@ -154,7 +154,7 @@ START_SECTION((ConstIterator end() const))
 	TEST_EQUAL(it==d.end(),true);
 END_SECTION
 
-START_SECTION((ValueType binValue(BinSizeType val) const ))
+START_SECTION((ValueType binValue(BinSizeType val) const))
 	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(3.9))
 	TEST_REAL_SIMILAR(d.binValue(4.0),2.0);
 	TEST_REAL_SIMILAR(d.binValue(5.9),2.0);
@@ -169,7 +169,7 @@ START_SECTION((ValueType binValue(BinSizeType val) const ))
 	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(14.1))
 END_SECTION
 	
-START_SECTION((void reset(BinSizeType min, BinSizeType max, BinSizeType bin_size) ))
+START_SECTION((void reset(BinSizeType min, BinSizeType max, BinSizeType bin_size)))
 	d.reset(1, 11, 2);
 	TEST_REAL_SIMILAR(d.min(), 1)
 	TEST_REAL_SIMILAR(d.max(), 11)
@@ -209,7 +209,7 @@ START_SECTION((void applyLogTransformation(Real multiplier)))
 	TEST_REAL_SIMILAR(dist.binValue(4.5),9.21044);
 END_SECTION
 
-START_SECTION((BinSizeType centerOfBin(UInt bin_index) const  ))
+START_SECTION((BinSizeType centerOfBin(UInt bin_index) const))
 	Histogram<float, float> dist(0,5,1);
 	dist.inc(0.5,1);
 	dist.inc(1.5,10);

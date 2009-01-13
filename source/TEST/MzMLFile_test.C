@@ -516,7 +516,7 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 
 END_SECTION
 
-START_SECTION([EXTRA] bool isValid(const String& filename))
+START_SECTION(bool isValid(const String& filename))
 	std::string tmp_filename;
   MzMLFile file;
   MSExperiment<> e;
@@ -536,7 +536,7 @@ START_SECTION([EXTRA] bool isValid(const String& filename))
 	TEST_EQUAL(file.isValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_4_indexed.mzML")),true)
 END_SECTION
 
-START_SECTION( bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings))
+START_SECTION(bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings))
 	std::string tmp_filename;
 	MzMLFile file;
 	StringList errors, warnings;

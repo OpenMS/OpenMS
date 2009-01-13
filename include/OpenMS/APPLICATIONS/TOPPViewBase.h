@@ -279,6 +279,7 @@ namespace OpenMS
   			@param peak_map The peak data (empty if not peak data)
   			@param is_feature Flag that indicates the actual data type
   			@param is_2D If more that one MS1 spectrum is contained in peak data
+  			@param show_as_1d Force dataset to be opened in 1D mode (even if it contains several spectra)
   			@param show_options If the options dialog should be shown (otherwise the defaults are used)
   			@param filename source file name (if the data came from a file)
       	@param caption Sets the layer name and window caption of the data. If unset the file name is used. If set, the file is not monitored foro changes.

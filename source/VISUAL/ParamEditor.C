@@ -648,11 +648,11 @@ namespace OpenMS
 				{
 					if(parts[0]!= "")
 					{
-						param_->setMinInt(path,parts[0].toFloat());
+						param_->setMinInt(path,parts[0].toInt());
 					}
 					if(parts[1] != "")
 					{
-						param_->setMaxInt(path,parts[1].toFloat());
+						param_->setMaxInt(path,parts[1].toInt());
 					}
 				}			
 			}

@@ -39,71 +39,71 @@ START_TEST(IonDetector, "$Id$")
 /////////////////////////////////////////////////////////////
 
 IonDetector* ptr = 0;
-START_SECTION(IonDetector())
+START_SECTION((IonDetector()))
 	ptr = new IonDetector();
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
-START_SECTION(~IonDetector())
+START_SECTION((~IonDetector()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(Int getOrder() const)
+START_SECTION((Int getOrder() const))
 	IonDetector tmp;
 	TEST_EQUAL(tmp.getOrder(),0)
 END_SECTION
 
-START_SECTION(void setOrder(Int order))
+START_SECTION((void setOrder(Int order)))
 	IonDetector tmp;
 	tmp.setOrder(4711);
 	TEST_EQUAL(tmp.getOrder(),4711)
 END_SECTION
 
-START_SECTION(Type getType() const)
+START_SECTION((Type getType() const))
   IonDetector tmp;
   TEST_EQUAL(tmp.getType(),IonDetector::TYPENULL);
 END_SECTION
 
-START_SECTION(void setType(Type type))
+START_SECTION((void setType(Type type)))
   IonDetector tmp;
   tmp.setType(IonDetector::ELECTRONMULTIPLIER);
   TEST_EQUAL(tmp.getType(),IonDetector::ELECTRONMULTIPLIER);
 END_SECTION
 
-START_SECTION(float getADCSamplingFrequency() const)
+START_SECTION((DoubleReal getADCSamplingFrequency() const ))
   IonDetector tmp;
   TEST_EQUAL(tmp.getADCSamplingFrequency(),0);
 END_SECTION
 
-START_SECTION(void setADCSamplingFrequency(float ADC_sampling_frequency))
+START_SECTION((void setADCSamplingFrequency(DoubleReal ADC_sampling_frequency)))
   IonDetector tmp;
   tmp.setADCSamplingFrequency(47.11);
   TEST_REAL_SIMILAR(tmp.getADCSamplingFrequency(),47.11);
 END_SECTION
 
-START_SECTION(float getResolution() const)
+START_SECTION((DoubleReal getResolution() const ))
   IonDetector tmp;
   TEST_EQUAL(tmp.getResolution(),0);
 END_SECTION
 
-START_SECTION(void setResolution(float resolution))
+START_SECTION((void setResolution(DoubleReal resolution)))
   IonDetector tmp;
   tmp.setResolution(47.11);
   TEST_REAL_SIMILAR(tmp.getResolution(),47.11);
 END_SECTION
 
-START_SECTION(AcquisitionMode getAcquisitionMode() const)
+START_SECTION((AcquisitionMode getAcquisitionMode() const))
   IonDetector tmp;
   TEST_EQUAL(tmp.getAcquisitionMode(),IonDetector::ACQMODENULL);
 END_SECTION
 
-START_SECTION(void setAcquisitionMode(AcquisitionMode acquisition_mode))
+START_SECTION((void setAcquisitionMode(AcquisitionMode acquisition_mode)))
   IonDetector tmp;
   tmp.setAcquisitionMode(IonDetector::PULSECOUNTING);
   TEST_EQUAL(tmp.getAcquisitionMode(),IonDetector::PULSECOUNTING);
 END_SECTION
 
-START_SECTION(IonDetector(const IonDetector& source))
+START_SECTION((IonDetector(const IonDetector& source)))
  	IonDetector tmp;
   tmp.setResolution(47.11);
   tmp.setADCSamplingFrequency(47.21);
@@ -121,7 +121,7 @@ START_SECTION(IonDetector(const IonDetector& source))
 	TEST_EQUAL(tmp2.getOrder(),45)
 END_SECTION
 
-START_SECTION(IonDetector& operator= (const IonDetector& source))
+START_SECTION((IonDetector& operator= (const IonDetector& source)))
  	IonDetector tmp;
   tmp.setResolution(47.11);
   tmp.setADCSamplingFrequency(47.21);
@@ -148,7 +148,7 @@ START_SECTION(IonDetector& operator= (const IonDetector& source))
 	TEST_EQUAL(tmp2.getOrder(),0)
 END_SECTION
 
-START_SECTION(bool operator== (const IonDetector& rhs) const)
+START_SECTION((bool operator== (const IonDetector& rhs) const))
  	IonDetector edit,empty;
  	
  	TEST_EQUAL(edit==empty,true);
@@ -177,7 +177,7 @@ START_SECTION(bool operator== (const IonDetector& rhs) const)
 	TEST_EQUAL(edit==empty,false);
 END_SECTION
 
-START_SECTION(bool operator!= (const IonDetector& rhs) const)
+START_SECTION((bool operator!= (const IonDetector& rhs) const))
  	IonDetector edit,empty;
  	
  	TEST_EQUAL(edit!=empty,false);

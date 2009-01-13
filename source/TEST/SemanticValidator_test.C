@@ -21,7 +21,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Marc Sturm $
+// $Maintainer: Marc Sturm, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -54,7 +54,7 @@ cv.loadFromOBO("brenda",File::find("/CV/brenda.obo"));
 cv.loadFromOBO("GO",File::find("/CV/goslim_goa.obo"));
 
 SemanticValidator* ptr = 0;
-START_SECTION(SemanticValidator(const CVMappings& mapping, const ControlledVocabulary& cv))
+START_SECTION((SemanticValidator(const CVMappings& mapping, const ControlledVocabulary& cv)))
 	ptr = new SemanticValidator(mapping,cv);
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
@@ -63,23 +63,23 @@ START_SECTION((virtual ~SemanticValidator()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(void setTag(const String& tag))
+START_SECTION((void setTag(const String& tag)))
 	NOT_TESTABLE
 END_SECTION
 	
-START_SECTION(void setAccessionAttribute(const String& accession))
+START_SECTION((void setAccessionAttribute(const String& accession)))
 	NOT_TESTABLE
 END_SECTION
 	
-START_SECTION(void setNameAttribute(const String& name))
+START_SECTION((void setNameAttribute(const String& name)))
 	NOT_TESTABLE
 END_SECTION
 	
-START_SECTION(void setValueAttribute(const String& value))
+START_SECTION((void setValueAttribute(const String& value)))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(bool validate(const String& filename, StringList& output))
+START_SECTION((bool validate(const String &filename, StringList &errors, StringList &warnings)))
 	StringList errors, warnings;
 	
 	//----------------------------------------------------------------------------------------

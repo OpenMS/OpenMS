@@ -142,7 +142,7 @@ namespace OpenMS
       /// returns a mutable reference to the instrument software
       Software& getSoftware();
       /// sets the instrument software
-      void setSoftware(const Software& ion_sources);
+      void setSoftware(const Software& software);
       
 			/// returns the ion optics type
       IonOpticsType getIonOptics() const;

@@ -83,17 +83,17 @@ START_SECTION((SampleState getState() const))
 	TEST_EQUAL(s.getState(),Sample::SAMPLENULL)
 END_SECTION
 
-START_SECTION((float getMass() const))
+START_SECTION((DoubleReal getMass() const ))
 	Sample s;
 	TEST_REAL_SIMILAR(s.getMass(),0.0)
 END_SECTION
 
-START_SECTION((float getVolume() const))
+START_SECTION((DoubleReal getVolume() const ))
 	Sample s;
 	TEST_REAL_SIMILAR(s.getVolume(),0.0)
 END_SECTION
 
-START_SECTION((float getConcentration() const))
+START_SECTION((DoubleReal getConcentration() const ))
 	Sample s;
 	TEST_REAL_SIMILAR(s.getConcentration(),0.0)
 END_SECTION
@@ -128,19 +128,19 @@ START_SECTION((void setState(SampleState state)))
 	TEST_EQUAL(s.getState(),Sample::LIQUID)
 END_SECTION
 
-START_SECTION((void setMass(float mass)))
+START_SECTION((void setMass(DoubleReal mass)))
 	Sample s;
 	s.setMass(4711.2);
 	TEST_REAL_SIMILAR(s.getMass(),4711.2)
 END_SECTION
 
-START_SECTION((void setVolume(float volume)))
+START_SECTION((void setVolume(DoubleReal volume)))
 	Sample s;
 	s.setVolume(4711.3);
 	TEST_REAL_SIMILAR(s.getVolume(),4711.3)
 END_SECTION
 
-START_SECTION((void setConcentration(float concentration)))
+START_SECTION((void setConcentration(DoubleReal concentration)))
 	Sample s;
 	s.setConcentration(4711.4);
 	TEST_REAL_SIMILAR(s.getConcentration(),4711.4)
@@ -182,12 +182,12 @@ START_SECTION((Int countTreatments() const))
 	TEST_EQUAL(s.countTreatments(),1)
 END_SECTION
 
-START_SECTION((const SampleTreatment& getTreatment(UInt position) const ))
+START_SECTION((const SampleTreatment& getTreatment(UInt position) const))
 	Sample s;
 	TEST_EXCEPTION(Exception::IndexOverflow, s.getTreatment(0))
 END_SECTION
 
-START_SECTION((void addTreatment(const SampleTreatment& treatment, Int before_position=-1) ))
+START_SECTION((void addTreatment(const SampleTreatment& treatment, Int before_position=-1)))
 	Sample s;
 	Digestion d;
 	Modification m,m2,m3;
@@ -210,7 +210,7 @@ START_SECTION((void addTreatment(const SampleTreatment& treatment, Int before_po
 	TEST_REAL_SIMILAR((dynamic_cast<const Tagging&>(s.getTreatment(2))).getMassShift(),5.0)
 END_SECTION
 
-START_SECTION((SampleTreatment& getTreatment(UInt position) ))
+START_SECTION((SampleTreatment& getTreatment(UInt position)))
 	Sample s;
 	Digestion d;
 	s.addTreatment(d);
@@ -218,7 +218,7 @@ START_SECTION((SampleTreatment& getTreatment(UInt position) ))
 	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(0))).getEnzyme(),"bluff")
 END_SECTION
 
-START_SECTION((void removeTreatment(UInt position) ))
+START_SECTION((void removeTreatment(UInt position)))
 	Sample s;
 	Digestion d;
 	Modification m,m2,m3;

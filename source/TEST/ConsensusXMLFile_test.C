@@ -58,6 +58,17 @@ END_SECTION
 
 TOLERANCE_ABSOLUTE(0.01)
 
+START_SECTION(const PeakFileOptions& getOptions() const)
+	ConsensusXMLFile file;
+	TEST_EQUAL(file.getOptions().hasMSLevels(),false)
+END_SECTION
+
+START_SECTION(PeakFileOptions& getOptions())
+	ConsensusXMLFile file;
+	file.getOptions().addMSLevel(1);
+	TEST_EQUAL(file.getOptions().hasMSLevels(),true);
+END_SECTION
+
 START_SECTION((void load(const String &filename, ConsensusMap &map)))
   ConsensusMap map;
   ConsensusXMLFile file;
@@ -175,7 +186,7 @@ START_SECTION((void load(const String &filename, ConsensusMap &map)))
 
 END_SECTION
 
-START_SECTION((void store(const String &filename, const ConsensusMap &map)))
+START_SECTION((void store(const String &filename, const ConsensusMap &consensus_map)))
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
 
