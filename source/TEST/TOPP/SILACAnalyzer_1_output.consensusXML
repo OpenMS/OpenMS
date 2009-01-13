@@ -2,9 +2,9 @@
 <?xml-stylesheet type="text/xsl" href="file:///some/path/to/ConsensusXML.xsl?>
 <consensusXML version="1.3" experiment_type="silac" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_3.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<mapList count="2">
-		<map id="0" name="SILACAnalyzer_1_input.mzData" label="light" size="0">
+		<map id="0" name="SILACAnalyzer_1_input.mzData" label="light" size="313238">
 		</map>
-		<map id="1" name="SILACAnalyzer_1_input.mzData" label="heavy" size="0">
+		<map id="1" name="SILACAnalyzer_1_input.mzData" label="heavy" size="313238">
 		</map>
 	</mapList>
 	<consensusElementList>
