@@ -27,6 +27,16 @@
 #include <OpenMS/ANALYSIS/ID/PILISNeutralLossModel.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 
+// TODOs
+//
+// - Fix damn losses!
+//
+// N-terminal Lysine NH3-loss
+// 
+// if E N-term and charge directed state, abundant loss of water
+// the bk-1/bk-2 pathway somtimes show bx+18 ions, especially when H is C-term to it
+//
+
 #define NEUTRAL_LOSS_MODEL_DEBUG
 #undef NEUTRAL_LOSS_MODEL_DEBUG
 
@@ -41,7 +51,6 @@ namespace OpenMS
 	PILISNeutralLossModel::PILISNeutralLossModel()
 		: DefaultParamHandler("PILISNeutralLossModel")
 	{	
-		//defaults_.setValue("precursor_mass_tolerance", 3.0, "Mass tolerance of the precursor peak, used to identify the precursor peak and its loss peaks for training"); // TODO needed?
 		defaults_.setValue("fragment_mass_tolerance", 0.4, "Peak mass tolerance of the product ions, used to identify the ions for training");
 		
 		defaults_.setValue("fixed_modifications", StringList::create(""), "Fixed modifications");
@@ -49,6 +58,8 @@ namespace OpenMS
 
 		defaults_.setValue("pseudo_counts", 1e-15, "Value which is added for every transition trained of the underlying hidden Markov model");
 		defaults_.setValue("num_explicit", 1, "Number of explicitely modeled losses from the same kind of amino acid or combinations thereof");
+
+		defaults_.setValue("min_int_to_train", "0.2", "Minimal intensity a ion and its losses must have to be considered for training.");
 		
 		defaults_.setValue("C_term_H2O_loss", "true", "enable water loss of the C-terminus");
 		defaults_.setValidStrings("C_term_H2O_loss", StringList::create("true,false"));
@@ -94,31 +105,25 @@ namespace OpenMS
 	double PILISNeutralLossModel::train(const RichPeakSpectrum& spec, const AASequence& peptide, double ion_weight, UInt charge)
 	{
 		Map<String, double> peak_ints;
-		//double peptide_weight((peptide.getMonoWeight() + charge) / (double)charge);
 		double intensity_sum = getIntensitiesFromSpectrum_(spec, peak_ints, ion_weight, peptide, charge);
 
-		double sum(0);
-		for (Map<String, double>::ConstIterator it = peak_ints.begin(); it != peak_ints.end(); ++it)
-		{
-			sum += it->second;
-		}
-
 		String ion_name((String)param_.getValue("ion_name"));
-		if (sum < 0.05 || (ion_name != "p" && peak_ints[ion_name] == 0))
+		double min_int_to_train((double)param_.getValue("min_int_to_train"));
+		if (intensity_sum < min_int_to_train || (ion_name != "p" && peak_ints[ion_name] == 0))
 		{
-			return 0;
+			return intensity_sum;
 		}
 		
 		for (Map<String, double>::Iterator it = peak_ints.begin(); it != peak_ints.end(); ++it)
 		{
-			it->second /= sum;
+			it->second /= intensity_sum;
 #ifdef NEUTRAL_LOSS_MODEL_DEBUG
 			cerr << "LOSS: " << it->first << " " << it->second << " " << peptide << ", sum=" << sum <<endl;
 #endif
 		}
 		
 		trainIons_(1.0, peak_ints, peptide);
-
+		
 		return intensity_sum;
 	}
 
@@ -229,10 +234,9 @@ namespace OpenMS
 		double intensity_sum(0);
   	for (RichPeakSpectrum::ConstIterator it = train_spec.begin(); it != train_spec.end(); ++it)
     {
-			// single losses
 			for (Map<String, double>::ConstIterator loss_it = loss_weights.begin(); loss_it != loss_weights.end(); ++loss_it)
 			{
-				double diff = fabs(it->getMZ() - (ion_weight - loss_it->second) / (double)charge);
+				double diff = fabs(it->getMZ() - (ion_weight - loss_it->second + (double)charge) / (double)charge);
 				if (diff < pre_error)
 				{
 					double factor = pre_error / (pre_error - diff);
@@ -240,7 +244,6 @@ namespace OpenMS
 					intensity_sum += it->getIntensity() * factor;
 				}
 			}
-			
 		}
 		return intensity_sum;
 	}

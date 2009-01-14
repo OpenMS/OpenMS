@@ -173,8 +173,6 @@ namespace OpenMS
 			model.addNewState(new HMMState("R_k-" + num + "-ions", false));
 			model.addNewState(new HMMState("H_" + num + "-ions", false));
 			model.addNewState(new HMMState("H_k-" + num + "-ions", false));
-			//model.addNewState(new HMMState("bk-1_-ions", false));
-			//model.addNewState(new HMMState("bk-2_-ions", false));
 
 			//model.addNewState(new HMMState("b" + num + "+", false));
 			//model.addNewState(new HMMState("bk-" + num + "+", false));
@@ -251,7 +249,7 @@ namespace OpenMS
 
 		model.setTransitionProbability("AABase1", "AABase2", 1);
 
-    // CR(?) bk-1, bk-2
+    // CR bk-1, bk-2
 		for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
 		{
 			AASequence first_aa;
@@ -259,7 +257,6 @@ namespace OpenMS
 			String first(first_aa.toString());
 
     	model.addSynonymTransition("AABase1", "AABase2", "Ak-1", first+"_bk-1");
-
     	model.setTransitionProbability(first+"_bk-1", "bk-1", 0.5);
     	model.setTransitionProbability(first+"_bk-1", "endk-1", 0.5);
 

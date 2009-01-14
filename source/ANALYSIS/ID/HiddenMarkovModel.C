@@ -25,13 +25,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
 #include <iostream>
 #include <fstream>
-#include <stack>
 #include <cmath>
 #include <numeric>
 #include <algorithm>
@@ -209,28 +209,6 @@ namespace OpenMS
 		set<HMMState*> states = states_;
 		map<HMMState*, vector<HMMState*> > transitions;
 		
-		/*
-		stack<HMMState*> s;
-		for (map<HMMState*, double>::const_iterator it = init_prob_.begin(); it != init_prob_.end(); ++it)
-		{
-			s.push(it->first);
-		}
-
-		while (s.size() != 0)
-		{
-			HMMState* state = s.top();
-			states.insert(state);
-			s.pop();
-			for (set<HMMState*>::const_iterator it = state->getSuccessorStates().begin(); it != state->getSuccessorStates().end(); ++it)
-			{
-				//cerr << ":: " << state->getName() << " " << (*it)->getName() << endl;
-				transitions[state].push_back(*it);
-				s.push(*it);
-			}
-		}
-		*/
-
-	
 		ofstream out(filename.c_str());
     out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
 
@@ -876,174 +854,81 @@ namespace OpenMS
       residues.insert(ResidueDB::getInstance()->getModifiedResidue(*it));
     }
 
+		// pathways axyz and bxyz and the first two explicitely modeled ones
 		HMMState* s2 = 0;
 		HMMState* end_state = name_to_state_["end"];
-		for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+		StringList pathways = StringList::create("axyz,axyz1,axyz1,bxyz,bxyz1,bxyz2");	
+		for (StringList::const_iterator pathway_it = pathways.begin(); pathway_it != pathways.end(); ++pathway_it)
 		{
-			s2 = name_to_state_["bxyz"];
-			for (set<const Residue*>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
+			String pathway = *pathway_it;
+			for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
 			{
-				AASequence first_aa, second_aa;
-				first_aa += *it;
-				second_aa += *jt;
-				String aa1(first_aa.toString()), aa2(second_aa.toString());
-				#ifdef HIDDEN_MARKOV_MODEL_DEBUG
-				cerr << "Estimating: " << aa1 << " -> " << aa2 << " (" << training_steps_count_[name_to_state_[aa1 + aa2 + "_bxyz"]][s2] << ") :: " ;
-				#endif
-
-				if (training_steps_count_[name_to_state_[aa1 + aa2 + "_bxyz"]][s2] == 0)
-				{
-					UInt count(0);
-					double sum(0);
-					// "rows" of the amino acid matrix
-					for (set<const Residue*>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
-					{
-						AASequence third_aa;
-						third_aa += *kt;
-						String aa3(third_aa.toString());
-						if (training_steps_count_[name_to_state_[aa1 + aa3 + "_bxyz"]][s2] != 0)
-						{
-							sum += trans_[name_to_state_[aa1 + aa3 + "_bxyz"]][s2];
-							count++;
-						}
-					}
-					// "columns" of the amino acid matrix
-					for (set<const Residue*>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
-					{
-						AASequence third_aa;
-						third_aa += *kt;
-						String aa3(third_aa.toString());
-
-						if (training_steps_count_[name_to_state_[aa3 + aa2 +"_bxyz"]][s2] != 0)
-						{
-							sum += trans_[name_to_state_[aa3 + aa2 +"_bxyz"]][s2];
-							count++;
-						}
-					}
-
-					#ifdef HIDDEN_MARKOV_MODEL_DEBUG
-					cerr << trans_[name_to_state_[aa1 + aa2 + "_bxyz"]][s2] << " to ";
-					#endif
-					if (count != 0)
-					{
-						#ifdef HIDDEN_MARKOV_MODEL_DEBUG
-						cerr << "setting transitions of " << aa1 << aa2 << "bxyz -> bxyz to " << sum/double(count) << endl;
-						#endif
-						trans_[name_to_state_[aa1 + aa2 + "_bxyz"]][s2] = sum/double(count);
-						trans_[name_to_state_[aa1 + aa2 + "_bxyz"]][end_state] = 1 - sum/double(count);
-					}
-					#ifdef HIDDEN_MARKOV_MODEL_DEBUG
-					cerr << sum/double(count) << endl;
-
-				}
-				else
-				{
-					cerr << "not needed" << endl;
-					#endif
-				}
-			}
-
-			for (set<const Residue*>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
-      {
-				for (Size counter = 0; counter < 3; ++counter)
+				s2 = name_to_state_[pathway];
+				for (set<const Residue*>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
 				{
 					AASequence first_aa, second_aa;
 					first_aa += *it;
 					second_aa += *jt;
 					String aa1(first_aa.toString()), aa2(second_aa.toString());
+					#ifdef HIDDEN_MARKOV_MODEL_DEBUG
+					cerr << "Estimating: " << aa1 << " -> " << aa2 << " (" << training_steps_count_[name_to_state_[aa1 + aa2 + "_" + pathway]][s2] << ") :: " ;
+					#endif
 
-        	if (training_steps_count_[name_to_state_[aa1 + aa2 + "_bxyz" + String(counter)]][s2] == 0)
-        	{
-          	UInt count(0);
-          	double sum(0);
-          	for (set<const Residue*>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
-          	{
-							AASequence third_aa;
-							third_aa += *kt;
-							String aa3(third_aa.toString());
-            	if (training_steps_count_[name_to_state_[aa1 + aa3 + "_bxyz" + String(counter)]][s2] != 0)
-            	{
-              	sum += trans_[name_to_state_[aa1 + aa3 + "_bxyz" + String(counter)]][s2];
-              	count++;
-            	}
-          	}
-          	for (set<const Residue*>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
-          	{
-							AASequence third_aa;
-							third_aa += *kt;
-							String aa3(third_aa.toString());
-
-            	if (training_steps_count_[name_to_state_[aa3 + aa2 +"_bxyz" + String(counter)]][s2] != 0)
-            	{
-              	sum += trans_[name_to_state_[aa3 + aa2 +"_bxyz" + String(counter)]][s2];
-              	count++;
-            	}
-          	}
-
-          	if (count != 0)
-          	{
-            	#ifdef HIDDEN_MARKOV_MODEL_DEBUG
-            	cerr << "setting transitions of " << aa1 << aa2 << "bxyz -> bxyz to " << sum/double(count) << endl;
-            	#endif
-            	trans_[name_to_state_[aa1 + aa2 + "_bxyz" + String(counter)]][s2] = sum/double(count);
-            	trans_[name_to_state_[aa1 + aa2 + "_bxyz" + String(counter)]][end_state] = 1 - sum/double(count);
-          	}
-       		}
-      	}
-			}
-			
-			s2 = name_to_state_["axyz"];
-      for (set<const Residue*>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
-      {
-				AASequence first_aa, second_aa;
-				first_aa += *it;
-				second_aa += *jt;
-				String aa1(first_aa.toString()), aa2(second_aa.toString());
-
-        if (training_steps_count_[name_to_state_[aa1 + aa2 + "_axyz"]][s2] == 0)
-        {
-          UInt count(0);
-          double sum(0);
-          for (set<const Residue*>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
-          {
-						AASequence third_aa;
-						third_aa += *kt;
-						String aa3(third_aa.toString());
-
-            if (training_steps_count_[name_to_state_[aa1 + aa3 + "_axyz"]][s2] != 0)
-            {
-              sum += trans_[name_to_state_[aa1 + aa3 + "_axyz"]][s2];
-              count++;
-            }
-          }
-          for (set<const Residue*>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
-          {
-						AASequence third_aa;
-						third_aa += *kt;
-						String aa3(third_aa.toString());
-
-            if (training_steps_count_[name_to_state_[aa3 + aa2 +"_axyz"]][s2] != 0)
-            {
-              sum += trans_[name_to_state_[aa3 + aa2 +"_axyz"]][s2];
-              count++;
-            }
-          }
-					if (count != 0)
+					if (training_steps_count_[name_to_state_[aa1 + aa2 + "_" + pathway]][s2] == 0)
 					{
-						#ifdef HIDDEN_MARKOV_MODEL_DEBUG
-	          cerr << "setting transitions of " << aa1 << aa2 << "axyz -> axyz to " << sum/double(count) << endl;
-						#endif
-  	        trans_[name_to_state_[aa1 + aa2 + "_axyz"]][s2] = sum/double(count);
-    	      trans_[name_to_state_[aa1 + aa2 + "_axyz"]][end_state] = 1 - sum/double(count);
-					}
-        }
-      }
-		}
+						UInt count(0);
+						double sum(0);
+						// "rows" of the amino acid matrix
+						for (set<const Residue*>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
+						{
+							AASequence third_aa;
+							third_aa += *kt;
+							String aa3(third_aa.toString());
+							if (training_steps_count_[name_to_state_[aa1 + aa3 + "_" + pathway]][s2] != 0)
+							{
+								sum += trans_[name_to_state_[aa1 + aa3 + "_" + pathway]][s2];
+								count++;
+							}
+						}
+						// "columns" of the amino acid matrix
+						for (set<const Residue*>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
+						{
+							AASequence third_aa;
+							third_aa += *kt;
+							String aa3(third_aa.toString());
 
+							if (training_steps_count_[name_to_state_[aa3 + aa2 + "_" + pathway]][s2] != 0)
+							{
+								sum += trans_[name_to_state_[aa3 + aa2 + "_" + pathway]][s2];
+								count++;
+							}
+						}
+
+						#ifdef HIDDEN_MARKOV_MODEL_DEBUG
+						cerr << trans_[name_to_state_[aa1 + aa2 + "_" + pathway]][s2] << " to ";
+						#endif
+						if (count != 0)
+						{
+							#ifdef HIDDEN_MARKOV_MODEL_DEBUG
+							cerr << "setting transitions of " << aa1 << aa2 << "_" << pathway << " -> " << pathway << " to " << sum/double(count) << endl;
+							#endif
+							trans_[name_to_state_[aa1 + aa2 + "_" + pathway]][s2] = sum/double(count);
+							trans_[name_to_state_[aa1 + aa2 + "_" + pathway]][end_state] = 1 - sum/double(count);
+						}
+						#ifdef HIDDEN_MARKOV_MODEL_DEBUG
+						cerr << sum/double(count) << endl;
+					}
+					else
+					{
+						cerr << "not needed" << endl;
+						#endif
+					}
+				}
+			}
+		}
 
 		// sc and cr
 		String sc_residues("HKRDE");
-
 		for (String::ConstIterator it = sc_residues.begin(); it != sc_residues.end(); ++it)
 		{
 			String sc_res = *it;
@@ -1082,69 +967,42 @@ namespace OpenMS
 			}
 		}
 
-		s2 = name_to_state_["bk-1"];
-		for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+		StringList bk_pathways = StringList::create("bk-1,bk-2");
+
+		for (StringList::const_iterator pathway_it = bk_pathways.begin(); pathway_it != bk_pathways.end(); ++pathway_it)
 		{
-			AASequence first_aa;
-			first_aa += *it;
-			String aa1(first_aa.toString());
-			//cerr << "#training steps " << aa1 << "=" << training_steps_count_[name_to_state_[aa1 + "bk-1"]][s2] << " (" << trans_[name_to_state_[aa1 + "bk-1"]][s2] << ")" << endl;
-			if (training_steps_count_[name_to_state_[aa1 + "_bk-1"]][s2] == 0)
+			String pathway = *pathway_it;
+			s2 = name_to_state_[pathway];
+			for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
 			{
-				UInt count(0);
-				double sum(0);
-				for (set<const Residue*>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
+				AASequence first_aa;
+				first_aa += *it;
+				String aa1(first_aa.toString());
+				if (training_steps_count_[name_to_state_[aa1 + "_" + pathway]][s2] == 0)
 				{
-					AASequence second_aa;
-					second_aa += *jt;
-					String aa2(second_aa.toString());
-					HMMState* s1 = name_to_state_[aa2 + "_bk-1"];
-					if (training_steps_count_[s1][s2] != 0)
+					UInt count(0);
+					double sum(0);
+					for (set<const Residue*>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
 					{
-						sum += trans_[s1][s2];
-						count++;
-					}
-					//cerr << "Estimating transition of '" << aa1 << "bk-1' -> 'bk-1' to " << sum/(double)count << endl;
-					if (count != 0)
-					{
-						trans_[name_to_state_[aa1 + "_bk-1"]][s2] = sum/(double)count;
-						trans_[name_to_state_[aa1 + "_bk-1"]][end_state] = 1 - sum/(double)count;
+						AASequence second_aa;
+						second_aa += *jt;
+						String aa2(second_aa.toString());
+						HMMState* s1 = name_to_state_[aa2 + "_" + pathway];
+						if (training_steps_count_[s1][s2] != 0)
+						{
+							sum += trans_[s1][s2];
+							count++;
+						}
+						//cerr << "Estimating transition of '" << aa1 << pathway << "' -> '" << pathway << "' to " << sum/(double)count << endl;
+						if (count != 0)
+						{
+							trans_[name_to_state_[aa1 + "_" + pathway]][s2] = sum/(double)count;
+							trans_[name_to_state_[aa1 + "_" + pathway]][end_state] = 1 - sum/(double)count;
+						}
 					}
 				}
 			}
 		}
-
-		s2 = name_to_state_["bk-2"];
-    for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
-    {
-			AASequence first_aa;
-			first_aa += *it;
-			String aa1(first_aa.toString());
-
-      if (training_steps_count_[name_to_state_[aa1 + "_bk-2"]][s2] == 0)
-      {
-        UInt count(0);
-        double sum(0);
-        for (set<const Residue*>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
-        {
-					AASequence second_aa;
-					second_aa += *jt;
-					String aa2(second_aa.toString());
-
-          HMMState* s1 = name_to_state_[aa2 + "_bk-2"];
-          if (training_steps_count_[s1][s2] != 0)
-          {
-            sum += trans_[s1][s2];
-            count++;
-          }
-          if (count != 0)
-          {
-            trans_[name_to_state_[aa1 + "_bk-2"]][s2] = sum/(double)count;
-            trans_[name_to_state_[aa1 + "_bk-2"]][end_state] = 1 - sum/(double)count;
-          }
-        }
-      }
-    }
 
 	}
 

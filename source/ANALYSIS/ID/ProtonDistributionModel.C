@@ -34,10 +34,8 @@
 #include <numeric>
 #include <cstdlib>
 
-#define PROTON_LOSS_FACTOR 0.3
-#define PROTON_LOSS_DIFF 18000
-#define PROTON_LOSS_POWER 1
 #define COULOMB_REPULSION (double)47.0  // from zhang: 47.0 kJ/mol
+#define COULOMB_REPULSION2 (double)147.0 // new
 
 
 using namespace std;
@@ -54,7 +52,8 @@ namespace OpenMS
 		defaults_.setValue("gb_bb_r_COOH", -95.82, "Gas-phase basicity value of C-terminus", StringList::create("advanced"));
 		defaults_.setValue("gb_bb_r_b-ion", 36.46, "Gas-phase basicity value of b-ion C-terminus", StringList::create("advanced"));
 		defaults_.setValue("gb_bb_r_a-ion", 46.85, "Gas-phase basicity value of a-ion C-terminus", StringList::create("advanced"));
-		//defaults_.setValue("temperature", 500.0, "Temperature term ", true);
+		defaults_.setValue("sigma", 0.5, "Width of the gaussian which distributes the mobile protons over the charge states, only for z > 3.", StringList::create("advanced"));
+		defaults_.setValue("temperature", 500.0, "Temperature term ", StringList::create("advanced"));
 
 		defaultsToParam_();
 	}
@@ -151,13 +150,11 @@ namespace OpenMS
 	{
 		double q(0); // Zustandsumme
 
-	  double gb_bb_l_NH2 = param_.getValue("gb_bb_l_NH2");
-	  double gb_bb_r_COOH = param_.getValue("gb_bb_r_COOH");
-	  double gb_bb_r_bion = param_.getValue("gb_bb_r_b-ion");
-  	double gb_bb_r_aion = param_.getValue("gb_bb_r_a-ion");
-
-	  const double T(500.0);
-
+	  double gb_bb_l_NH2 = (double)param_.getValue("gb_bb_l_NH2");
+	  double gb_bb_r_COOH = (double)param_.getValue("gb_bb_r_COOH");
+	  double gb_bb_r_bion = (double)param_.getValue("gb_bb_r_b-ion");
+  	double gb_bb_r_aion = (double)param_.getValue("gb_bb_r_a-ion");
+		double T = (double)param_.getValue("temperature");
 
 		// we calculate the distribution of only the last proton, all other protons are already distributed
 
@@ -429,7 +426,7 @@ namespace OpenMS
 						// calculate the distance between occupied site and this backbone site
 						UInt pos = *it;
 						UInt diff = (pos > i) ? pos - i : i - pos;
-						coulomb_sum += COULOMB_REPULSION / (double)diff;
+						coulomb_sum += COULOMB_REPULSION2 / (double)diff;
 					}
 
 					for (set<UInt>::const_iterator it = sc_sites.begin(); it != sc_sites.end(); ++it)
@@ -438,7 +435,7 @@ namespace OpenMS
 						UInt pos = *it;
 						UInt diff = (pos > i) ? pos -i : i - pos;
 						++diff; // bond to the side chain counts extra
-						coulomb_sum += COULOMB_REPULSION / (double)diff;
+						coulomb_sum += COULOMB_REPULSION2 / (double)diff;
 					}
 					bb_coulomb[i] = coulomb_sum;
 					//cerr << "BB coulomb" << i << ": " << coulomb_sum << endl;
@@ -454,14 +451,14 @@ namespace OpenMS
 						UInt pos = *it;
 						UInt diff = (pos > i) ? pos - i : i - pos;
 						++diff;
-						coulomb_sum += COULOMB_REPULSION / (double)diff;
+						coulomb_sum += COULOMB_REPULSION2 / (double)diff;
 					}
 					for (set<UInt>::const_iterator it = sc_sites.begin(); it != sc_sites.end(); ++it)
 					{
 						UInt pos = *it;
 						UInt diff = (pos > i) ? pos - i : i - pos;
 						diff += 2;
-						coulomb_sum += COULOMB_REPULSION / (double)diff;
+						coulomb_sum += COULOMB_REPULSION2 / (double)diff;
 					}
 					//cerr << "SC coulomb" << i << ": " << coulomb_sum << endl; 
 					sc_coulomb[i] = coulomb_sum;
@@ -1490,9 +1487,8 @@ namespace OpenMS
 		}
 
     // we simply need to calculate the charge state distribution according
-    // to the proton probabilities we calculate above
-    // TODO sigma to param
-    const double sigma = 0.5;
+    // to the proton probabilities we calculated above
+		double sigma = (double)param_.getValue("sigma");
     for (int z = 1; z <= charge; ++z)
     {
       n_term_intensities[z - 1] = gsl_ran_gaussian_pdf(fabs(n_term_sum - (double)z), sigma);
@@ -1777,56 +1773,6 @@ namespace OpenMS
 		}
 		return;
 	}
-
-/*
-	vector<double> ProtonDistributionModel::getChargeStateIntensities_(const AASequence& peptide, const AASequence& ion, int charge, Residue::ResidueType res_type)
-	{
-		const double T(8.314472);
-		
-		vector<double> ints;
-		calculateProtonDistribution_(peptide, charge, res_type);
-		double sum(0);
-		if (res_type == Residue::YIon || res_type == Residue::XIon || res_type == Residue::ZIon)
-		{
-			for (Size i = peptide.size() - ion.size(); i != peptide.size(); ++i)
-			{
-				sum += bb_charge_[i+1];
-				if (sc_charge_.has(i))
-				{
-					sum += sc_charge_[i];
-				}
-			}
-		}
-		else
-		{
-			for (Size i = 0; i <= ion.size(); ++i)
-			{
-				sum += bb_charge_[i];
-				if (sc_charge_.has(i))
-				{
-					sum += sc_charge_[i];
-				}
-			}
-		}
-		
-		if (sum < 1)
-		{
-			ints.push_back(1.0);
-		}
-		else
-		{
-			//double pa = getProtonAffinity_(ion, 1, res_type);
-			calculateProtonDistribution_(ion, 1, res_type);
-			double pa = Constants::R * T * log(E_);
-			
-		
-			double tmp = PROTON_LOSS_FACTOR * exp(-((pow(pa - PROTON_LOSS_DIFF, PROTON_LOSS_POWER)))/Constants::R/T);
-			ints.push_back(tmp/(tmp+1));
-			ints.push_back(1/(tmp+1));
-		}
-		
-		return ints;
-	}*/
 
 	void ProtonDistributionModel::getLeftAndRightGBValues_(const AASequence& peptide, double& left_gb, double& right_gb, Size position)
 	{
