@@ -79,18 +79,6 @@ START_SECTION(static DoubleReal polar(char aa))
 	TEST_REAL_SIMILAR(AAIndex::polar('A'),0.0)
 END_SECTION
 
-START_SECTION(static DoubleReal GBsidechain(char aa))
- TEST_REAL_SIMILAR(AAIndex::GBsidechain('A'),0.0)
-END_SECTION
-
-START_SECTION(static DoubleReal GBleft(char aa))
- TEST_REAL_SIMILAR(AAIndex::GBleft('A'),881.82)
-END_SECTION
-
-START_SECTION(static DoubleReal GBdeltaright(char aa))
- TEST_REAL_SIMILAR(AAIndex::GBdeltaright('A'),0.0)
-END_SECTION
-
 START_SECTION(static DoubleReal getKHAG800101(char aa))
  TEST_REAL_SIMILAR(AAIndex::getKHAG800101('A'),49.1)
 END_SECTION
