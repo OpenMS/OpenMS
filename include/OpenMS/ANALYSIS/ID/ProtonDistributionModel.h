@@ -28,7 +28,6 @@
 #ifndef OPENMS_ANALYSIS_ID_PROTONDISTRIBUTIONMODEL_H
 #define OPENMS_ANALYSIS_ID_PROTONDISTRIBUTIONMODEL_H
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
@@ -102,7 +101,7 @@ namespace OpenMS
 					@param charge the charge
 					@param res_type the type of the ion given in peptide. Peptides are handled as y-ions, i.e. Residue::YIon
 			*/
-			void getProtonDistribution(Map<UInt, double>& bb_charges, Map<UInt, double>& sc_charges, const AASequence& peptide, int charge,	Residue::ResidueType res_type = Residue::YIon);
+			void getProtonDistribution(std::vector<double>& bb_charges, std::vector<double>& sc_charges, const AASequence& peptide, int charge,	Residue::ResidueType res_type = Residue::YIon);
 
 			/** @brief calculates the charge state intensities of different charge states of the same ion
 					
@@ -124,7 +123,7 @@ namespace OpenMS
 																		 std::vector<double>& n_term_intensities, std::vector<double>& c_term_intensities, FragmentationType type);
 
 			/// sets the proton distributions of the whole peptide, they are needed for the getChargeStateIntensities_ method and need to be recalculated each time if not given
-			void setPeptideProtonDistribution(const Map<UInt, double>& bb_charge, const Map<UInt, double>& sc_charge);
+			void setPeptideProtonDistribution(const std::vector<double>& bb_charge, const std::vector<double>& sc_charge);
 
 			protected:
 
@@ -153,14 +152,14 @@ namespace OpenMS
 			// returns the left and right GB values, NH2 and COOH if at terminus
 			void getLeftAndRightGBValues_(const AASequence& peptide, double& left_gb, double& right_gb, Size position);
 			
-			Map<UInt, double> sc_charge_;
-			Map<UInt, double> bb_charge_;
-			Map<UInt, double> sc_charge_full_;
-			Map<UInt, double> bb_charge_full_;
-			Map<UInt, double> sc_charge_ion_n_term_;
-			Map<UInt, double> bb_charge_ion_n_term_;
-			Map<UInt, double> sc_charge_ion_c_term_;
-			Map<UInt, double> bb_charge_ion_c_term_;
+			std::vector<double> sc_charge_;
+			std::vector<double> bb_charge_;
+			std::vector<double> sc_charge_full_;
+			std::vector<double> bb_charge_full_;
+			std::vector<double> sc_charge_ion_n_term_;
+			std::vector<double> bb_charge_ion_n_term_;
+			std::vector<double> sc_charge_ion_c_term_;
+			std::vector<double> bb_charge_ion_c_term_;
 			double E_;
 			double E_c_term_;
 			double E_n_term_;

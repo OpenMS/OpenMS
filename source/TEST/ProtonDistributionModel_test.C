@@ -67,8 +67,8 @@ START_SECTION(ProtonDistributionModel& operator = (const ProtonDistributionModel
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void getProtonDistribution(Map<UInt, double>& bb_charges, Map<UInt, double>& sc_charges, const AASequence& peptide, int charge, Residue::ResidueType res_type = Residue::YIon))
-	Map<UInt, double> bb_charges, sc_charges;
+START_SECTION(void getProtonDistribution(vector<double>& bb_charges, vector<double>& sc_charges, const AASequence& peptide, int charge, Residue::ResidueType res_type = Residue::YIon))
+	vector<double> bb_charges, sc_charges;
 	double bb_tmp[] = {1.76496e-09, 2.9459e-13, 6.3724e-12, 2.96724e-13, 0.69332e-13, 6.56286e-13, 4.82365e-13, 3.51139e-13, 5.82514e-23, 1.35049e-12};
 	AASequence peptide("DFPIANGER");
 	ptr->getProtonDistribution(bb_charges, sc_charges, peptide, 1);
@@ -85,8 +85,8 @@ START_SECTION(void getProtonDistribution(Map<UInt, double>& bb_charges, Map<UInt
 
 END_SECTION
 
-START_SECTION(void setPeptideProtonDistribution(const Map<UInt, double>& bb_charge, const Map<UInt, double>& sc_charge))
-	Map<UInt, double> bb_charges, sc_charges;
+START_SECTION(void setPeptideProtonDistribution(const vector<double>& bb_charge, vector<double>& sc_charge))
+	vector<double> bb_charges, sc_charges;
 	AASequence peptide("DFPIANGER");
 	ptr->getProtonDistribution(bb_charges, sc_charges, peptide, 1);
 
@@ -95,7 +95,7 @@ START_SECTION(void setPeptideProtonDistribution(const Map<UInt, double>& bb_char
 END_SECTION
 
 START_SECTION(void getChargeStateIntensities(const AASequence& peptide, const AASequence& n_term_ion, const AASequence& c_term_ion, int charge, Residue::ResidueType n_term_type, double& n_term1, double& c_term1, double& n_term2, double& c_term2, FragmentationType type))
-	Map<UInt, double> bb_charges, sc_charges;
+	vector<double> bb_charges, sc_charges;
 	AASequence peptide("DFPIANGER");
 	ptr->getProtonDistribution(bb_charges, sc_charges, peptide, 1);
 	

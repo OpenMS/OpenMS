@@ -90,20 +90,20 @@ namespace OpenMS
 		return *this;
 	}
 	
-	void ProtonDistributionModel::setPeptideProtonDistribution(const Map<UInt, double>& bb_charge, const Map<UInt, double>& sc_charge)
+	void ProtonDistributionModel::setPeptideProtonDistribution(const vector<double>& bb_charge, const vector<double>& sc_charge)
 	{
 		bb_charge_full_ = bb_charge;
 		sc_charge_full_ = sc_charge;
 	}
 
-	void ProtonDistributionModel::getProtonDistribution( Map<UInt, double>& bb_charges,
-															Map<UInt, double>& sc_charges,
+	void ProtonDistributionModel::getProtonDistribution(vector<double>& bb_charges,
+															vector<double>& sc_charges,
 															const AASequence& peptide,
 															int charge,
 															Residue::ResidueType res_type)
 	{
-		bb_charge_.clear();
-		sc_charge_.clear();
+		bb_charge_ = vector<double>(peptide.size() + 1, 0.0);
+		sc_charge_ = vector<double>(peptide.size(), 0.0);
 		calculateProtonDistribution_(peptide, charge, res_type);
 		bb_charges = bb_charge_;
 		sc_charges = sc_charge_;
@@ -510,15 +510,16 @@ namespace OpenMS
 		UInt most_basic_site(0);
 		bool most_basic_site_sc(false);
 
-    double gb_bb_l_NH2 = param_.getValue("gb_bb_l_NH2");
-		double gb_bb_r_COOH = param_.getValue("gb_bb_r_COOH");
-		double gb_bb_r_bion = param_.getValue("gb_bb_r_b-ion");
-		double gb_bb_r_aion = param_.getValue("gb_bb_r_a-ion");
+    double gb_bb_l_NH2 = (double)param_.getValue("gb_bb_l_NH2");
+		double gb_bb_r_COOH = (double)param_.getValue("gb_bb_r_COOH");
+		double gb_bb_r_bion = (double)param_.getValue("gb_bb_r_b-ion");
+		double gb_bb_r_aion = (double)param_.getValue("gb_bb_r_a-ion");
+		double T = (double)param_.getValue("temperature");
 
 		if (!use_most_basic_site)
 		{
-			bb_charge_.clear();
-			sc_charge_.clear();
+			bb_charge_ = vector<double>(peptide.size() + 1, 0.0);
+			sc_charge_ = vector<double>(peptide.size(), 0.0);
 		}
 		else
 		{
@@ -549,8 +550,8 @@ namespace OpenMS
 			//cerr << endl;
 			
 
-			bb_charge_.clear();
-			sc_charge_.clear();
+			bb_charge_ = vector<double>(peptide.size() + 1, 0.0);
+			sc_charge_ = vector<double>(peptide.size(), 0.0);
 		}
 
 		Size fixed_site(0);
@@ -566,8 +567,6 @@ namespace OpenMS
 			fixed_site_sc = most_basic_site_sc;
 		}
 
-		const double T(500.0);
-	
 		for (Size i = 0; i != sc_charge_.size(); ++i)
 		{
 			sc_charge_[i] = 0;
@@ -1183,13 +1182,12 @@ namespace OpenMS
 	// single charged
 	double q(0), sum_E(0)/*, sum_E_n_term(0), sum_E_c_term(0)*/; // Zustandsumme
 
-  double gb_bb_l_NH2 = param_.getValue("gb_bb_l_NH2");
-  double gb_bb_r_COOH = param_.getValue("gb_bb_r_COOH");
-  double gb_bb_r_bion = param_.getValue("gb_bb_r_b-ion");
-  double gb_bb_r_aion = param_.getValue("gb_bb_r_a-ion");
+  double gb_bb_l_NH2 = (double)param_.getValue("gb_bb_l_NH2");
+  double gb_bb_r_COOH = (double)param_.getValue("gb_bb_r_COOH");
+  double gb_bb_r_bion = (double)param_.getValue("gb_bb_r_b-ion");
+  double gb_bb_r_aion = (double)param_.getValue("gb_bb_r_a-ion");
+	double T = (double)param_.getValue("temperature");
 
-	const double T(500.0);
-	
 	for (Size i = 0; i != peptide.size(); ++i)
 	{
 		// backbone energy
@@ -1316,10 +1314,9 @@ namespace OpenMS
 			calculateProtonDistributionCharge2_(peptide, res_type, fixed_proton, cleavage_site, use_most_basic_site);
 			return;
 		}
-		if (charge > 2)
-		{
-			calculateProtonDistributionGreater2_(peptide, charge, res_type);
-		}
+		
+		// charge > 2
+		calculateProtonDistributionGreater2_(peptide, charge, res_type);
 		return;
 	}
 
@@ -1460,10 +1457,10 @@ namespace OpenMS
 		{
 			// charge directed case
 			// the proton which induces the cleavage is handled separately
-			bb_charge_ion_n_term_.clear();
-			bb_charge_ion_c_term_.clear();
-			sc_charge_ion_n_term_.clear();
-			sc_charge_ion_c_term_.clear();
+			bb_charge_ion_n_term_ = vector<double>(n_term_ion.size() + 1, 0.0);
+			bb_charge_ion_c_term_ = vector<double>(c_term_ion.size() + 1, 0.0);
+			sc_charge_ion_n_term_ = vector<double>(n_term_ion.size(), 0.0);
+			sc_charge_ion_c_term_ = vector<double>(c_term_ion.size(), 0.0);
 			calculateProtonDistributionIonPair_(peptide, n_term_type, n_term_ion.size());
 			//cerr << "NTerm: ";
 			for (Size i = 0; i != n_term_ion.size(); ++i)
@@ -1608,7 +1605,7 @@ namespace OpenMS
 				{
 					n_term2 += bb_charge_[i] * p_n;
 					singly_charged += bb_charge_[i] * p_c;
-					if (sc_charge_.has(i))
+					if (sc_charge_[i] != 0)
 					{
 						n_term2 += sc_charge_[i] * p_n;
 						singly_charged += sc_charge_[i]  * p_c;
@@ -1619,7 +1616,7 @@ namespace OpenMS
 				{
 					c_term2 += bb_charge_[i] * p_c;
 					singly_charged += bb_charge_[i] * p_n;
-					if (sc_charge_.has(i - 1))
+					if (sc_charge_[i - 1] != 0)
 					{
 						c_term2 += sc_charge_[i - 1]  * p_c;
 						singly_charged += sc_charge_[i - 1] * p_n;

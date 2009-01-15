@@ -44,6 +44,9 @@
 #define SIM_DEBUG
 #undef  SIM_DEBUG
 
+#define INIT_CHARGE_DEBUG
+#undef  INIT_CHARGE_DEBUG
+
 #define MIN_DECIMAL_VALUE 1e-10
 
 using namespace std;
@@ -51,6 +54,7 @@ using namespace std;
 // new TODOS
 // - New proton activation function, e.g. which handles internal sc occupancy 
 //   and multiple e.g. P in a peptide
+// - Pathway length scaling through root function, e.g. for loss models ????
 
 
 // old ones
@@ -69,8 +73,8 @@ namespace OpenMS
 	{	
 		defaults_.setValue("upper_mz", 2000.0, "Max m/z value of product ions in the simulated spectrum");
 		defaults_.setValue("lower_mz", 200.0, "Lowest m/z value of product ions in the simulated spectrum");
-		defaults_.setValue("charge_remote_threshold", 0.05, "If the probability for the proton at the N-terminus is lower than this value, enable charge-remote pathways");
-		defaults_.setValue("charge_directed_threshold", 0.05, "Limit the proton availability at the N-terminus to at least this value for charge-directed pathways");
+		defaults_.setValue("charge_remote_threshold", 0.1, "If the probability for the proton at the N-terminus is lower than this value, enable charge-remote pathways");
+		defaults_.setValue("charge_directed_threshold", 0.1, "Limit the proton availability at the N-terminus to at least this value for charge-directed pathways");
 		defaults_.setValue("model_depth", 6, "The number of explicitly modeled backbone cleavages from N-terminus and C-terminus, would be 9 for the default value");
 		defaults_.setValue("visible_model_depth", 50, "The maximal possible size of a peptide to be modeled");
 		defaults_.setValue("precursor_mass_tolerance", 3.0, "Mass tolerance of the precursor peak, used to identify the precursor peak and its loss peaks for training");
@@ -413,38 +417,14 @@ namespace OpenMS
 		#endif
 
 		// get proton distribution
-		Map<UInt, double> bb_charge_full, sc_charge_full;
+		vector<double> bb_charge_full, sc_charge_full;
 		prot_dist_.getProtonDistribution(bb_charge_full, sc_charge_full, peptide, charge, Residue::YIon);
 		prot_dist_.setPeptideProtonDistribution(bb_charge_full, sc_charge_full);
-	
+
 		// get start probabilities
 		vector<double> bb_init, sc_init, cr_init;
-		bool is_charge_remote = getInitialTransitionProbabilities_(bb_init, cr_init, sc_init, bb_charge_full, sc_charge_full, peptide);
-		double bb_sum(0);
-		for (Map<UInt, double>::ConstIterator iit = bb_charge_full.begin(); iit != bb_charge_full.end(); ++iit)
-		{
-			bb_sum += iit->second;
-		}
-
-		// activation of protons sitting at lysine and histidine side chains
-		double side_chain_activation(param_.getValue("side_chain_activation"));
-		for (Size i = 0; i != peptide.size(); ++i)
-		{
-			if (peptide[i].getOneLetterCode() != "R")
-			{
-				bb_sum += side_chain_activation * sc_charge_full[i];
-			}
-		}
-
-		// backbone proton availability thresholds
-		if  (bb_sum > 1)
-		{
-			bb_sum = 1;		
-		}
-		if (bb_sum < (double)param_.getValue("charge_directed_threshold") * charge)
-		{
-			bb_sum = (double)param_.getValue("charge_directed_threshold") * charge;
-		}
+		double precursor_init(0);
+		bool is_charge_remote = getInitialTransitionProbabilities_(bb_init, cr_init, sc_init, precursor_init, bb_charge_full, sc_charge_full, peptide);
 
 		// clear the main Hidden Markov Model
 		hmm_.clearInitialTransitionProbabilities();
@@ -452,15 +432,6 @@ namespace OpenMS
 		
 		//double harge_sum(0);
 		vector<AASequence> prefixes, suffixes;
-
-		// get the median backbone proton occupancy, for normalization purposes
-		vector<double> bb_charges_all;
-    for (Size i = 0; i != bb_charge_full.size(); ++i)
-    {
-      bb_charges_all.push_back(bb_charge_full[i]);
-    }
-    sort(bb_charges_all.begin(), bb_charges_all.end());
-    double bb_charges_median = bb_charges_all[UInt(bb_charges_all.size()/2.0)];
 
 		// for each site: 
 		// 1. set proton distribution, 
@@ -491,14 +462,11 @@ namespace OpenMS
 
 			prot_dist_.getChargeStateIntensities(peptide, prefix, suffix, charge, Residue::AIon, a_ints, ay_ints, ProtonDistributionModel::ChargeDirected);
 
-			double bb_enhance_factor(max(1.0, sqrt(bb_charge_full[i+1] / bb_charges_median)));
-			//cerr << "bb_sum=" << bb_sum << " " << bb_enhance_factor << endl;
-
 			if (!is_charge_remote)
 			{
-				hmm_.setInitialTransitionProbability("BB"+pos_name, bb_sum * bb_enhance_factor);
-				hmm_.setInitialTransitionProbability(aa1+aa2+"_bxyz"+pos_name, bb_sum  * bb_enhance_factor);
-				hmm_.setInitialTransitionProbability(aa1+aa2+"_axyz"+pos_name, bb_sum  * bb_enhance_factor);
+				hmm_.setInitialTransitionProbability("BB"+pos_name, bb_init[i]);
+				hmm_.setInitialTransitionProbability(aa1+aa2+"_bxyz"+pos_name, bb_init[i]);
+				hmm_.setInitialTransitionProbability(aa1+aa2+"_axyz"+pos_name, bb_init[i]);
 			}
 
 			prefixes.push_back(prefix);
@@ -506,21 +474,16 @@ namespace OpenMS
 			
 			if ((aa1 == "D" || aa1 == "E" || pos_name == "k-1" || pos_name == "k-2") && is_charge_remote)
 			{
-				hmm_.setInitialTransitionProbability("CR"+pos_name, 1 - bb_sum);
-				//charge_sum += cr_init[i];
-
+				hmm_.setInitialTransitionProbability("CR"+pos_name, cr_init[i]);
 				prot_dist_.getChargeStateIntensities(peptide, prefix, suffix, charge,	Residue::BIon, b_cr_ints, y_cr_ints, ProtonDistributionModel::ChargeRemote);
-
 				//cerr << "ChargeStats: CR=" << CR_charges[i] << ", " << peptide.getPrefix(i+1) << "-" << peptide.getSuffix(peptide.size() - 1 - i) << ", " << charge << endl;
 			}
 
 			if ((aa1 == "K" || aa1 == "H" || aa1 == "R") && is_charge_remote)
 			{
 				prot_dist_.getChargeStateIntensities(peptide, prefix, suffix, charge, Residue::BIon, b_sc_ints, y_sc_ints, ProtonDistributionModel::SideChain);
-				hmm_.setInitialTransitionProbability("SC"+pos_name, sc_charge_full[i]);
-
+				hmm_.setInitialTransitionProbability("SC"+pos_name, /*sc_charge_full[i]*/ sc_init[i]);
 				//cerr << "ChargeStats: SC=" << SC_charges[i] << ", " << peptide.getPrefix(i+1) << "-" << peptide.getSuffix(peptide.size() - 1 - i) << ", " << charge << endl;	
-				//charge_sum += SC_charges[i];
 			}
 
 			
@@ -647,14 +610,17 @@ namespace OpenMS
 				hmm_.setTransitionProbability("D" + pos_name, "D_" + pos_name + "-ions", 1.0);
 				hmm_.setTrainingEmissionProbability("D_" + pos_name + "-ions", emission_prob);
 
-				hmm_.setInitialTransitionProbability(aa2+"_D"+pos_name, 1 - bb_sum);
+				hmm_.setInitialTransitionProbability(aa2+"_D"+pos_name, cr_init[i]);
 				hmm_.enableTransition(aa2+"_D"+pos_name, "D"+pos_name);
 				hmm_.enableTransition(aa2+"_D"+pos_name, "end"+pos_name);
 			}
 
 			// TODO test !has R rule
-			if (pos_name == "k-1" && is_charge_remote && aa1 != "D" && aa1 != "E" && !peptide.has("R"))
+			if (aa1 != "D" && aa1 != "E" && !peptide.has("R") && is_charge_remote)
 			{
+
+				if (pos_name == "k-1"/* && is_charge_remote*/)
+				{
 				emission_prob = 0;
 				hmm_.enableTransition("CRk-1", "Ak-1");
 				hmm_.enableTransition("CRk-1", "endk-1");
@@ -669,12 +635,12 @@ namespace OpenMS
 				hmm_.setTransitionProbability("bk-1", "bk-1_-ions", 1.0);
 				hmm_.setTrainingEmissionProbability("bk-1_-ions", emission_prob);
 
-				hmm_.setInitialTransitionProbability(aa1+"_bk-1", 1 - bb_sum);
+				hmm_.setInitialTransitionProbability(aa1+"_bk-1", cr_init[i]);
 				hmm_.enableTransition(aa1+"_bk-1", "bk-1");
 				hmm_.enableTransition(aa1+"_bk-1", "endk-1");
 			}
 
-			if (pos_name == "k-2" && is_charge_remote && aa1 != "D" && aa1 != "E" && !peptide.has("R"))
+			if (pos_name == "k-2"/* && is_charge_remote*/)
 			{
 				emission_prob = 0;
 				hmm_.enableTransition("CRk-2", "Ak-2");
@@ -690,9 +656,10 @@ namespace OpenMS
 				hmm_.setTransitionProbability("bk-2", "bk-2_-ions", 1.0);
 				hmm_.setTrainingEmissionProbability("bk-2_-ions", emission_prob);
 
-				hmm_.setInitialTransitionProbability(aa1+"_bk-2", 1 - bb_sum);
+				hmm_.setInitialTransitionProbability(aa1+"_bk-2", cr_init[i]);
 				hmm_.enableTransition(aa1+"_bk-2", "bk-2");
         hmm_.enableTransition(aa1+"_bk-2", "endk-2");
+			}
 			}
 			
 			if (aa1 == "E" && is_charge_remote)
@@ -711,7 +678,7 @@ namespace OpenMS
 				hmm_.setTransitionProbability("E" + pos_name, "E_" + pos_name + "-ions", 1.0);
 				hmm_.setTrainingEmissionProbability("E_" + pos_name + "-ions", emission_prob);
 
-				hmm_.setInitialTransitionProbability(aa2+"_E"+pos_name, 1 - bb_sum);
+				hmm_.setInitialTransitionProbability(aa2+"_E"+pos_name, cr_init[i]);
         hmm_.enableTransition(aa2+"_E"+pos_name, "E"+pos_name);
 				hmm_.enableTransition(aa2+"_E"+pos_name, "end"+pos_name);
       }
@@ -732,7 +699,7 @@ namespace OpenMS
 				hmm_.setTransitionProbability("K" + pos_name, "K_" + pos_name + "-ions", 1.0);
 				hmm_.setTrainingEmissionProbability("K_" + pos_name + "-ions", emission_prob);
 
-				hmm_.setInitialTransitionProbability(aa2+"_K"+pos_name, sc_charge_full[i]);
+				hmm_.setInitialTransitionProbability(aa2+"_K"+pos_name, sc_init[i]);
         hmm_.enableTransition(aa2+"_K"+pos_name, "K"+pos_name);
 				hmm_.enableTransition(aa2+"_K"+pos_name, "end"+pos_name);
 			}
@@ -753,7 +720,7 @@ namespace OpenMS
 				hmm_.setTransitionProbability("H" + pos_name, "H_" + pos_name + "-ions", 1.0);
 				hmm_.setTrainingEmissionProbability("H_" + pos_name + "-ions", emission_prob);
 
-				hmm_.setInitialTransitionProbability(aa2+"_H"+pos_name, sc_charge_full[i]);
+				hmm_.setInitialTransitionProbability(aa2+"_H"+pos_name, sc_init[i]);
         hmm_.enableTransition(aa2+"_H"+pos_name, "H"+pos_name);
 				hmm_.enableTransition(aa2+"_H"+pos_name, "end"+pos_name);
       }
@@ -774,14 +741,13 @@ namespace OpenMS
 				hmm_.setTransitionProbability("R" + pos_name, "R_" + pos_name + "-ions", 1.0);
         hmm_.setTrainingEmissionProbability("R_" + pos_name + "-ions", emission_prob);
 
-				hmm_.setInitialTransitionProbability(aa2+"_R"+pos_name, sc_charge_full[i]);
+				hmm_.setInitialTransitionProbability(aa2+"_R"+pos_name, sc_init[i]);
         hmm_.enableTransition(aa2+"_R"+pos_name, "R"+pos_name);
 				hmm_.enableTransition(aa2+"_R"+pos_name, "end"+pos_name);
       } 
 		}
 	
-		double charge_remote_threshold((double)param_.getValue("charge_remote_threshold"));
-		if (bb_sum <= charge_remote_threshold)
+		if (is_charge_remote)
 		{
 			double peptide_weight((peptide.getMonoWeight() + charge) / (double)charge);
 			precursor_model_cr_.train(in_spec, peptide, peptide_weight, charge);
@@ -832,64 +798,36 @@ namespace OpenMS
 		}
 		
 		// calc proton distribution
-		Map<UInt, double> sc_charge_full, bb_charge_full;
+		vector<double> sc_charge_full, bb_charge_full;
 		//cerr << "getProtonDistribution: " << peptide << " " << charge << endl;
 		prot_dist_.getProtonDistribution(bb_charge_full, sc_charge_full, peptide, charge, Residue::YIon);
 		prot_dist_.setPeptideProtonDistribution(bb_charge_full, sc_charge_full);
-
-		//for (Size i = 0; i != bb_charge_full.size() - 1; ++i)
-		//{
-		//	cerr << "i: bb=" << bb_charge_full[i] << ", sc=" << sc_charge_full[i] << endl;
-		//}
+		
+		#ifdef INIT_CHARGE_DEBUG
+		for (Size i = 0; i != bb_charge_full.size() - 1; ++i)
+		{
+			cerr << "i: bb=" << bb_charge_full[i] << ", sc=" << sc_charge_full[i] << endl;
+		}
+		#endif
 
 		hmm_.clearInitialTransitionProbabilities();
 		hmm_.clearTrainingEmissionProbabilities();
 	
     // set charges
     vector<double> bb_init, sc_init, cr_init;
-		bool is_charge_remote = getInitialTransitionProbabilities_(bb_init, cr_init, sc_init, bb_charge_full, sc_charge_full, peptide);
-		//cerr << "is_charge_remote=" << is_charge_remote << endl;
-		//for (Size i = 0; i != bb_init.size(); ++i)
-		//{
-		//	cerr << "bb=" << bb_init[i] << ", cr=" << cr_init[i] << ", sc=" << sc_init[i] << endl;
-		//}
+		double precursor_init(0);
+		bool is_charge_remote = getInitialTransitionProbabilities_(bb_init, cr_init, sc_init, precursor_init, bb_charge_full, sc_charge_full, peptide);
+		#ifdef INIT_CHARGE_DEBUG
+		cerr << "is_charge_remote=" << is_charge_remote << endl;
+		for (Size i = 0; i != bb_init.size(); ++i)
+		{
+			cerr << "bb=" << bb_init[i] << ", cr=" << cr_init[i] << ", sc=" << sc_init[i] << endl;
+		}
+		cerr << "precursor_init=" << precursor_init << endl;
+		#endif
 	
-		double bb_sum(0), bb_sum_orig(0);
-		for (Map<UInt, double>::ConstIterator iit = bb_charge_full.begin(); iit != bb_charge_full.end(); ++iit)
-		{
-			bb_sum += iit->second;
-		}
-	
-    // activation of protons sitting at lysine and histidine side chains
-		double side_chain_activation(param_.getValue("side_chain_activation"));
-    for (Size i = 0; i != peptide.size(); ++i)
-    {
-      if (peptide[i].getOneLetterCode() == "H" || peptide[i].getOneLetterCode() == "K")
-      {
-        bb_sum += side_chain_activation * sc_charge_full[i];
-      }
-    }
-		
-		if (bb_sum > 1)
-		{
-			bb_sum = 1;
-		}
-		bb_sum_orig = bb_sum;
-		if (bb_sum < (double)param_.getValue("charge_directed_threshold") * charge)
-		{
-			bb_sum = (double)param_.getValue("charge_directed_threshold") * charge;
-		}
-
 		vector<AASequence> suffixes, prefixes;
 		vector<String> pos_names;
-	
-		vector<double> bb_charges_all;
-		for (Size i = 0; i != bb_charge_full.size(); ++i)
-		{
-			bb_charges_all.push_back(bb_charge_full[i]);
-		}
-		sort(bb_charges_all.begin(), bb_charges_all.end());
-		double bb_charges_median = bb_charges_all[UInt(bb_charges_all.size()/2.0)];
 	
 		vector<vector<double> > all_b_cr_ints, all_y_cr_ints, all_b_sc_ints, all_y_sc_ints, all_b_ints, all_y_ints, all_a_ints, all_ay_ints;
 		// get the paths
@@ -918,19 +856,18 @@ namespace OpenMS
 			aa2_seq += &peptide[i + 1];
 			String aa1(aa1_seq.toString()), aa2(aa2_seq.toString());
 
-			double bb_enhance_factor(max(1.0, sqrt(bb_charge_full[i+1] / bb_charges_median)));
-			hmm_.setInitialTransitionProbability("BB"+pos_name, bb_sum * bb_enhance_factor);
+			hmm_.setInitialTransitionProbability("BB"+pos_name, bb_init[i]);
 
 			vector<double> b_cr_ints(charge, 0), y_cr_ints(charge, 0), b_sc_ints(charge, 0), y_sc_ints(charge, 0), b_ints(charge, 0), y_ints(charge, 0), a_ints(charge, 0), ay_ints(charge, 0);
 			if ((aa1 == "D" || aa1 == "E" || pos_name == "k-1" || pos_name == "k-2") && is_charge_remote)
 			{
-				hmm_.setInitialTransitionProbability("CR"+pos_name, 1 - bb_sum);
+				hmm_.setInitialTransitionProbability("CR"+pos_name, cr_init[i]);
 				prot_dist_.getChargeStateIntensities(peptide, prefix, suffix, charge, Residue::BIon, b_cr_ints, y_cr_ints, ProtonDistributionModel::ChargeRemote);
 			}
 
 			if ((aa1 == "K" || aa1 == "H" || aa1 == "R") && is_charge_remote)
 			{
-				hmm_.setInitialTransitionProbability("SC"+pos_name, sc_charge_full[i]);
+				hmm_.setInitialTransitionProbability("SC"+pos_name, sc_init[i]);
 				prot_dist_.getChargeStateIntensities(peptide, prefix, suffix, charge,	Residue::BIon, b_sc_ints, y_sc_ints, ProtonDistributionModel::SideChain);
 			}
 		
@@ -939,12 +876,14 @@ namespace OpenMS
 
 			//if (charge == 3)
 			//{
-			//	cerr << prefix << " - " << suffix << " ";
-			//	for (Size ions_charge = 0; ions_charge != b_ints.size(); ++ions_charge)
-			//	{
-			//		cerr << b_ints[ions_charge] << " - " << y_ints[ions_charge] << " | ";
-			//	}
-			//	cerr << endl;
+			#ifdef INIT_CHARGE_DEBUG
+				cerr << prefix << " - " << suffix << " ";
+				for (Size ions_charge = 0; ions_charge != b_ints.size(); ++ions_charge)
+				{
+					cerr << b_ints[ions_charge] << " - " << y_ints[ions_charge] << " | ";
+				}
+				cerr << endl;
+			#endif
 			//}
 
 			all_a_ints.push_back(a_ints);
@@ -972,8 +911,6 @@ namespace OpenMS
 			hmm_.enableTransition(aa1+aa2+"_axyz"+pos_name, "end"+pos_name);
 			hmm_.setTransitionProbability("axyz" + pos_name, "axyz_" + pos_name + "-ions", 1.0);
 
-			//cerr << "neutral loss charge sums: " << H2O_b_charge_sum << " " << H2O_y_charge_sum << " " << NH3_b_charge_sum << " " << NH3_y_charge_sum << " " << charge_dir_tmp << endl;
-
       if (aa1 == "D" && is_charge_remote)
       {
 				hmm_.setTransitionProbability("D" + pos_name, "D_" + pos_name + "-ions", 1.0);
@@ -984,7 +921,9 @@ namespace OpenMS
 				hmm_.enableTransition(aa2+"_D"+pos_name, "end"+pos_name);
 			}
 
-      if (pos_name == "k-1" && is_charge_remote && aa1 != "D" && aa1 != "E" && !peptide.has("R"))
+			if (aa1 != "D" && aa1 != "E" && !peptide.has("R") && is_charge_remote)
+			{
+      if (pos_name == "k-1"/* && is_charge_remote && aa1 != "D" && aa1 != "E" && !peptide.has("R")*/)
       {
 				hmm_.setTransitionProbability("bk-1", "bk-1_-ions", 1.0);
 
@@ -996,7 +935,7 @@ namespace OpenMS
         hmm_.enableTransition(aa1 + "_bk-1", "end"+pos_name);
       }
 
-			if (pos_name == "k-2" && is_charge_remote && aa1 != "D" && aa1 != "E" && !peptide.has("R"))
+			if (pos_name == "k-2"/* && is_charge_remote && aa1 != "D" && aa1 != "E" && !peptide.has("R")*/)
 			{
 				hmm_.setTransitionProbability("bk-2", "bk-2_-ions", 1.0);
 
@@ -1006,6 +945,7 @@ namespace OpenMS
 
 				hmm_.enableTransition(aa1 + "_bk-2", "bk-2");
 				hmm_.enableTransition(aa1 + "_bk-2", "end"+pos_name);
+			}
 			}
 
 			if (aa1 == "E" && is_charge_remote)
@@ -1068,39 +1008,42 @@ namespace OpenMS
 		{
 			vector<double> path_intensities;
 			path_intensities.push_back(tmp[hmm_.getState("bxyz_" + pos_names[i] + "-ions")]);
-			//cerr << prefixes[i] << " - " << suffixes[i] <<  endl;
-			//cerr << "bxyz-intensity: " << path_intensities.back() << endl;
       path_intensities.push_back(tmp[hmm_.getState("H_" + pos_names[i] + "-ions")]);
 
       path_intensities.push_back(tmp[hmm_.getState("K_" + pos_names[i] + "-ions")]);
       path_intensities.push_back(tmp[hmm_.getState("R_" + pos_names[i] + "-ions")]);
       path_intensities.push_back(tmp[hmm_.getState("D_" + pos_names[i] + "-ions")]);
-			//cerr << "Dcr-intensity: " << path_intensities.back() << endl;
       path_intensities.push_back(tmp[hmm_.getState("E_" + pos_names[i] + "-ions")]);
-			//cerr << "Ecr-intensity: " << path_intensities.back() << endl;
 			
-			/*
+		
+			#ifdef INIT_CHARGE_DEBUG
       cerr << prefixes[i] << " - " << suffixes[i] << ": bxyz=" << path_intensities[0] <<
                                                      ", H=" << path_intensities[1] <<
                                                      ", K=" << path_intensities[2] <<
                                                      ", R=" << path_intensities[3] <<
                                                      ", D=" << path_intensities[4] <<
                                                      ", E=" << path_intensities[5];
-*/
+			#endif
 
 			
 			if (i == peptide.size() - 2)
 			{
 				path_intensities.push_back(tmp[hmm_.getState("bk-1_-ions")]);
-				//cerr << ", bk-1=" << path_intensities.back();
+				#ifdef INIT_CHARGE_DEBUG
+				cerr << ", bk-1=" << path_intensities.back();
+				#endif
 			}
 			if (i == peptide.size() - 3)
 			{
 				path_intensities.push_back(tmp[hmm_.getState("bk-2_-ions")]);
-				//cerr << ", bk-2=" << path_intensities.back();
+				#ifdef INIT_CHARGE_DEBUG
+				cerr << ", bk-2=" << path_intensities.back();
+				#endif
 			}
 			path_intensities.push_back(tmp[hmm_.getState("axyz_" + pos_names[i] + "-ions")]);
-			//cerr << ", axzy=" << path_intensities.back() << endl;
+			#ifdef INIT_CHARGE_DEBUG
+			cerr << ", axzy=" << path_intensities.back() << endl;
+			#endif
 	
 			vector<vector<vector<double> > > prefix_intensities, suffix_intensities;
 			prefix_intensities.push_back(all_b_ints);
@@ -1197,6 +1140,7 @@ namespace OpenMS
 						for (vector<RichPeak1D>::const_iterator it = b_loss_peaks.begin(); it != b_loss_peaks.end(); ++it)
 						{
         			String b_ion_name = it->getMetaValue("IonName");
+
         			vector<String> split;
         			b_ion_name.split('-', split);
         			if (split.size() == 0)
@@ -1212,19 +1156,15 @@ namespace OpenMS
           			}
         			}
 
-        			//if (!suppress_single_ions || (suppress_single_ions && i + 1 > 1))
-        			//{
-								b_ion_name += String(z, '+');
-
-								if (int_it != path_intensities.size() - 1)
-								{
-          				addPeaks_(prefix_weight, z, it->getMZ(), it->getIntensity(), spec, prefix_id, b_ion_name);
-								}
-								else
-								{
-									addPeaks_(prefix_weight - 28.0, z, it->getMZ(), it->getIntensity(), spec, prefix_id, b_ion_name);
-								}
-        			//}
+							b_ion_name += String(z, '+');
+							if (int_it != path_intensities.size() - 1)
+							{
+          			addPeaks_(prefix_weight, z, it->getMZ(), it->getIntensity(), spec, prefix_id, b_ion_name);
+							}
+							else
+							{
+								addPeaks_(prefix_weight - 28.0, z, it->getMZ(), it->getIntensity(), spec, prefix_id, b_ion_name);
+							}
 						}
 					}
 
@@ -1259,11 +1199,8 @@ namespace OpenMS
             		}
           		}
 
-          		//if (!suppress_single_ions || (suppress_single_ions && i + 1 > 1))
-          		//{
-								y_ion_name += String(z, '+');
-            		addPeaks_(suffix_weight, z, it->getMZ(), it->getIntensity(), spec, suffix_id, y_ion_name);
-          		//}
+							y_ion_name += String(z, '+');
+            	addPeaks_(suffix_weight, z, it->getMZ(), it->getIntensity(), spec, suffix_id, y_ion_name);
 						}
         	}
 				}
@@ -1274,24 +1211,22 @@ namespace OpenMS
 
 		// precursor intensities
 		vector<RichPeak1D> pre_peaks;
-		//cerr << peptide << " ->getSpectrum: bb_sum=" << bb_sum << ", charge_remote=" << is_charge_remote<< endl;
-		if (bb_sum <= charge_remote_threshold)
+		if (is_charge_remote)
 		{
-			precursor_model_cr_.getIons(pre_peaks, peptide, bb_sum);
+			precursor_model_cr_.getIons(pre_peaks, peptide, precursor_init);
 		}
 		else
 		{
-			precursor_model_cd_.getIons(pre_peaks, peptide, max(0.0, 1.0 - bb_sum));
+			precursor_model_cd_.getIons(pre_peaks, peptide, precursor_init);
 		}
 		
 		double weight = peptide.getMonoWeight();
-		IsotopeDistribution id;
+		IsotopeDistribution id(max_isotope);
 		id.estimateFromPeptideWeight(weight);	
 		for (vector<RichPeak1D>::const_iterator it = pre_peaks.begin(); it != pre_peaks.end(); ++it)
 		{
 			addPeaks_(weight, charge, it->getMZ(), it->getIntensity(), spec, id, it->getMetaValue("IonName"));
 		}
-	
 	
 		// now build the spectrum with the peaks
 		double intensity_max(0);
@@ -1405,12 +1340,12 @@ namespace OpenMS
 	double PILISModel::getAvailableBackboneCharge_(const AASequence& ion, Residue::ResidueType res_type, int charge)
 	{
 		double bb_sum(0);
-		Map<UInt, double> bb_charges, sc_charges;
+		vector<double> bb_charges, sc_charges;
 		prot_dist_.getProtonDistribution(bb_charges, sc_charges, ion, charge, res_type);
 
-		for (Map<UInt, double>::ConstIterator it = bb_charges.begin(); it != bb_charges.end(); ++it)
+		for (vector<double>::const_iterator it = bb_charges.begin(); it != bb_charges.end(); ++it)
 		{
-			bb_sum += it->second;
+			bb_sum += *it;
 		}
 
     // activation of protons sitting at lysine and histidine side chains
@@ -1439,51 +1374,81 @@ namespace OpenMS
 	bool PILISModel::getInitialTransitionProbabilities_(std::vector<double>& bb_init, 
 																											std::vector<double>& cr_init, 
 																											std::vector<double>& sc_init, 
-																											const Map<UInt, double>& bb_charges, 
-																											const Map<UInt, double>& sc_charges, 
+																											double& precursor_init,
+																											const vector<double>& bb_charges, 
+																											const vector<double>& sc_charges, 
 																											const AASequence& peptide)
 	{
 		bool is_charge_remote(false);
 
-		//double charge_dir_tmp(bb_charges[0]); TODO obsolete????
-
     double bb_sum(0);
-    for (Size i = 0; i != bb_charges.size(); ++i)
+    for (vector<double>::const_iterator it = bb_charges.begin(); it != bb_charges.end(); ++it)
     {
-			//cerr << i << " " << bb_charges[i] << endl;
-      bb_sum += bb_charges[i];
+      bb_sum += *it;
     }
-		//cerr << "bb_sum=" << bb_sum << endl;
 
-    //charge_dir_tmp = bb_sum;
-    if (bb_sum < (double)param_.getValue("charge_directed_threshold"))
+		if (bb_sum > 1)
     {
-      //charge_dir_tmp = (double)param_.getValue("charge_directed_threshold");
+      bb_sum = 1;
+    }
+		#ifdef INIT_CHARGE_DEBUG
+		cerr << "bb_sum=" << bb_sum << endl;
+		#endif
+
+    if (bb_sum < (double)param_.getValue("charge_remote_threshold"))
+    {
 			is_charge_remote = true;
+		}
 
+		if (bb_sum < (double)param_.getValue("charge_directed_threshold"))
+		{
 			bb_sum = (double)param_.getValue("charge_directed_threshold");
-    }
-
+		}
+    
     double bb_avg = (bb_sum - bb_charges[0]) / (double)(bb_charges.size() - 1);
 
-					
+
+    // side-chain activiation
+		double side_chain_activation(param_.getValue("side_chain_activation"));
+		for (Size i = 0; i != peptide.size(); ++i)
+		{
+			if (peptide[i].getOneLetterCode() != "R")
+			{
+				bb_sum += side_chain_activation * sc_charges[i];
+			}
+		}
+
+		if (bb_sum > 1)
+		{
+			bb_sum = 1;
+		}
+		
+		vector<double> bb_charges_all = bb_charges;
+		sort(bb_charges_all.begin(), bb_charges_all.end());
+		double bb_charges_median = bb_charges_all[(Size)(bb_charges_all.size()/2.0)];
+		#ifdef INIT_CHARGE_DEBUG
+		cerr << "bb_charges_median=" << bb_charges_median << endl;
+		#endif
+
 		for (Size i = 0; i != peptide.size() - 1; ++i)
     {
-      bb_init.push_back(bb_charges[i+1] * bb_sum /* charge_dir_tmp*/);
+			//double bb_enhance_factor(max(1.0, /*sqrt(*/bb_charges[i+1] / bb_charges_median)/*)*/);
+			//cerr << "bb_enhance_factor=" << bb_enhance_factor << endl;
+      bb_init.push_back(bb_charges[i+1] * bb_sum /** bb_enhance_factor*/);
       String aa(peptide[i].getOneLetterCode());
-      if (sc_charges.has(i))
+      if (sc_charges[i] != 0)
       {
         if ((aa == "K" || aa == "R" || aa == "H"))
         {
-          sc_init.push_back(sc_charges[i] * bb_avg);
+          sc_init.push_back(sc_charges[i] * bb_charges_median/*bb_avg*/);
         }
         else
         {
           sc_init.push_back(0.0);
         }
-        if (bb_sum <= (double)param_.getValue("charge_remote_threshold") && (aa == "D" || aa == "E"))
+        if (is_charge_remote)
         {
-          cr_init.push_back(((1 - bb_sum) * bb_avg));
+          cr_init.push_back(((1 - bb_sum) * bb_charges_median/*bb_avg*/));
         }
         else
         {
@@ -1496,6 +1461,7 @@ namespace OpenMS
         cr_init.push_back(0.0);
       }
     }
+		precursor_init = (1 - bb_sum) * bb_charges_median/*bb_avg*/ / 10.0;
 
 		// normalize the initial probability values
 		double init_prob_sum(0);
@@ -1503,19 +1469,15 @@ namespace OpenMS
 		{
 			init_prob_sum += bb_init[i] + sc_init[i] + cr_init[i];
 		}
+		init_prob_sum += precursor_init;
 
-		/*
-		// C-term bb positional acmino acid might have a proton associated with (is inactive, as no pathway uses it)
-		if (sc_charges.has(peptide.size() - 1))
-		{
-			init_prob_sum += sc_charges[peptide.size() - 1];
-		}*/
 		for (Size i = 0; i != bb_init.size(); ++i)
 		{
 			bb_init[i] /= init_prob_sum;
 			sc_init[i] /= init_prob_sum;
 			cr_init[i] /= init_prob_sum;
 		}
+		precursor_init /= init_prob_sum;
 		
 		return is_charge_remote;
 	}

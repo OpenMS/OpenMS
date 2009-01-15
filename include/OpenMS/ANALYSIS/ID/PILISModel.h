@@ -96,13 +96,9 @@ namespace OpenMS
 			*/			 
 			void writeToFile(const String& filename);
 
-
 			// 
 			void init(bool generate_models = true);
 			
-			/// greedy specturm aligner, should be replaced by a better algorithm
-			//void getSpectrumAlignment(Map<UInt, UInt>& peak_map, const PeakSpectrum& spec1, const PeakSpectrum& spec2);
-
 			/// simulates a spectrum with the model of the given peptide and charge and writes it to the given PeakSpectrum
 			void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, UInt charge);
 
@@ -118,45 +114,13 @@ namespace OpenMS
 
 		protected:
 
-			/// enumeration of the basic ion types used
-			/*
-			enum IonType_
-			{
-				AIon = 0,
-				BIon,
-				B2Ion,
-				YIon,
-				BIon_H2O,
-				BIon_NH3,
-				YIon_H2O,
-				YIon_NH3
-			};
-			
-			/// describes ions peaks and the relatives of them
-			struct IonPeaks_
-			{
-				Map<IonType_, std::vector<double> > ints;
-			};
-			*/
-			
-			/// extracts the ions intensities of a training spectrum
-			//double getIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, IonPeaks_& ion_ints, const AASequence& peptide, UInt charge);
-
-			/// aligns two spectra a writes the intensities from the first which matches the second to the vector
-			//double getIntensitiesFromComparison_(const RichPeakSpectrum& train_spec, const RichPeakSpectrum& theo_spec, std::vector<double>& intensities);
-
-			/// trains neutral losses an related peaks
-			//void trainNeutralLossesFromIon_(double initial_probability, const Map<String, double>& intensities, IonType_ ion_type, double ion_intensity, const AASequence& ion);
-
-			/// enables the states needed for neutral loss training/simulation
-			//void enableNeutralLossStates_(IonType_ ion_type, const AASequence& ion);
-
 			/// get the initial transition probabilities from the proton dist, returns true if charge remote is enabled
 			bool getInitialTransitionProbabilities_(std::vector<double>& bb_init, 
 																							std::vector<double>& cr_init, 
 																							std::vector<double>& sc_init, 
-																							const Map<UInt, double>& bb_charges,
-																							const Map<UInt, double>& sc_charges,
+																							double& precursor_init,
+																							const std::vector<double>& bb_charges,
+																							const std::vector<double>& sc_charges,
 																							const AASequence& peptide);
 
 			double getAvailableBackboneCharge_(const AASequence& ion, Residue::ResidueType res_type, int charge);
