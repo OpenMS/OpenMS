@@ -37,9 +37,9 @@ using namespace std;
 
 ModifierRep::ModifierRep()
 {
-	ResidueDB* rdb = ResidueDB::getInstance();
+	//ResidueDB* rdb = ResidueDB::getInstance();
 
-	char aa[] = "ARNDCEQGHILKMFPSTWYV";
+	//char aa[] = "ARNDCEQGHILKMFPSTWYV";
 
 	for (Size i = 0; i<256;++i)
 	{

@@ -138,7 +138,7 @@ END_SECTION
 
 START_SECTION(UInt getNumberOfModifiedResidues() const)
 	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 1)
-	const Residue* mod_res = ptr->getModifiedResidue("MOD:01214");
+	/*const Residue* mod_res =*/ ptr->getModifiedResidue("MOD:01214");
 	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 2)
 END_SECTION
 
