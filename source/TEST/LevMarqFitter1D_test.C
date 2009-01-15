@@ -31,87 +31,88 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 
-
-///////////////////////////
-
-
-START_TEST(LevMarqFitter1D, "$Id$")
-
-///////////////////////////
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
+///////////////////////////
+
+
 class TestModel : public LevMarqFitter1D
 {
-  public:	TestModel() : LevMarqFitter1D()
-	{
-		setName(getProductName());
-		check_defaults_ = false;
-		defaultsToParam_();
-	}
+  public: TestModel() : LevMarqFitter1D()
+  {
+    setName(getProductName());
+    check_defaults_ = false;
+    defaultsToParam_();
+  }
 
 
-	TestModel(const TestModel& source) : LevMarqFitter1D(source)
-	{
-		updateMembers_();
-	}
-	
-	virtual ~TestModel()
-	{
-	}
-	
-	virtual TestModel& operator = (const TestModel& source)
-	{
-		if (&source == this) return *this;
-		
-		LevMarqFitter1D::operator = (source);
-		updateMembers_();
-		
-		return *this;
-	}
-	
-	void updateMembers_()
-	{
-		 LevMarqFitter1D::updateMembers_();
-	}
+  TestModel(const TestModel& source) : LevMarqFitter1D(source)
+  {
+    updateMembers_();
+  }
 
-	String getGslStatus_() const
-	{
-		return "success";
-	}
+  virtual ~TestModel()
+  {
+  }
 
-	QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model)
-	{
-		UInt N = 0;
-		N = range.size();
-		
-		DoubleReal center = 0.0;
-		center = model->getCenter();
-	
-		return 1.0;
-	}
+  virtual TestModel& operator = (const TestModel& source)
+  {
+    if (&source == this) return *this;
 
-	void printState_(Int iter, gsl_multifit_fdfsolver*) 
-	{
-		Int iterations = 0;
-		iterations = iter;
-	}
-	
-	void optimize_() 
-	{
-	}
-	
-	static const String getProductName()
-	{ 
-		return "TestModel"; 
-	}
+    LevMarqFitter1D::operator = (source);
+    updateMembers_();
+
+    return *this;
+  }
+
+  void updateMembers_()
+  {
+     LevMarqFitter1D::updateMembers_();
+  }
+
+  String getGslStatus_() const
+  {
+    return "success";
+  }
+
+  QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model)
+  {
+    UInt N = 0;
+    N = range.size();
+
+    DoubleReal center = 0.0;
+    center = model->getCenter();
+
+    return 1.0;
+  }
+
+  void printState_(Int iter, gsl_multifit_fdfsolver*)
+  {
+    Int iterations = 0;
+    iterations = iter;
+  }
+
+  void optimize_()
+  {
+  }
+
+  static const String getProductName()
+  {
+    return "TestModel";
+  }
 
 };
 
-
 /////////////////////////////////////////////////////////////
+
+START_TEST(LevMarqFitter1D, "$Id$")
+
+///////////////////////////
+
+
 /////////////////////////////////////////////////////////////
 
 
@@ -122,8 +123,8 @@ START_SECTION((LevMarqFitter1D()))
 END_SECTION
 
 START_SECTION((LevMarqFitter1D(const  LevMarqFitter1D &source)))
-	TestModel tm1;	
-  
+	TestModel tm1;
+
   TestModel tm2(tm1);
 	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 END_SECTION
@@ -135,7 +136,7 @@ END_SECTION
 START_SECTION((virtual LevMarqFitter1D& operator=(const  LevMarqFitter1D &source)))
 	TestModel tm1;
   TestModel tm2;
-  
+
   tm2 = tm1;
 	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 END_SECTION

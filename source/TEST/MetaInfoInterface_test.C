@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -69,17 +69,13 @@ START_SECTION((void setMetaValue(const String& name, const String& value)))
 END_SECTION
 
 START_SECTION((const DataValue& getMetaValue(UInt index) const))
-	string tmp;
 	mi.setMetaValue(1024,String("testtesttest"));
-	tmp = String(mi.getMetaValue(1024));
-	TEST_EQUAL("testtesttest",tmp)
+	TEST_STRING_EQUAL(mi.getMetaValue(1024),"testtesttest");
 END_SECTION
 
 START_SECTION((const DataValue& getMetaValue(const String& name) const))
-	string tmp;
 	mi.setMetaValue("testname",String("testtesttest2"));
-	tmp = String(mi.getMetaValue("testname"));
-	TEST_EQUAL("testtesttest2",tmp)
+	TEST_STRING_EQUAL(mi.getMetaValue("testname"),"testtesttest2");
 END_SECTION
 
 START_SECTION((void setMetaValue(const String& name, Int value)))
@@ -172,24 +168,24 @@ START_SECTION((MetaInfoInterface& operator = (const MetaInfoInterface& rhs)))
 	//test if a deep copy was done
 	mi3.setMetaValue("cluster_id",11.9);
 	TEST_REAL_SIMILAR(double(mi.getMetaValue("cluster_id")),double(mi.getMetaValue("cluster_id")))
-	TEST_REAL_SIMILAR(double(mi3.getMetaValue("cluster_id")),11.9)	
+	TEST_REAL_SIMILAR(double(mi3.getMetaValue("cluster_id")),11.9)
 	//test what happens when source is empty
 	mi3 = mi4;
-	TEST_EQUAL(mi3.isMetaEmpty(),true)	
+	TEST_EQUAL(mi3.isMetaEmpty(),true)
 END_SECTION
 
 START_SECTION((void setMetaValue(const String& name, const DataValue& value)))
 	DataValue tmp("testtesttest3");
 	mi.setMetaValue("testname",tmp);
 	tmp = String(mi.getMetaValue("testname"));
-	TEST_EQUAL("testtesttest3",tmp)
+	TEST_EQUAL(tmp,"testtesttest3")
 END_SECTION
 
 START_SECTION((void setMetaValue(UInt index, const DataValue& value)))
 	DataValue tmp("testtesttest3");
 	mi.setMetaValue(2,tmp);
 	tmp = String(mi.getMetaValue(2));
-	TEST_EQUAL("testtesttest3",tmp)
+	TEST_EQUAL(tmp,"testtesttest3")
 END_SECTION
 
 START_SECTION((void getKeys(std::vector<String>& keys) const))
@@ -200,9 +196,9 @@ START_SECTION((void getKeys(std::vector<String>& keys) const))
 	TEST_EQUAL(tmp2.size(),tmp.size())
 	TEST_EQUAL(tmp2[0],tmp[0])
 	TEST_EQUAL(tmp2[1],tmp[1])
-	
+
 	MetaInfoInterface mi2(mi);
-	mi2.getKeys(tmp2);	
+	mi2.getKeys(tmp2);
 	TEST_EQUAL(tmp2.size(),tmp.size())
 	TEST_EQUAL(tmp2[0],tmp[0])
 	TEST_EQUAL(tmp2[1],tmp[1])
@@ -219,8 +215,8 @@ START_SECTION((void getKeys(std::vector<String>& keys) const))
 	tmp.push_back("testname");
 	tmp.push_back("a");
 	tmp.push_back("d");
-	tmp.push_back("x");	
-	
+	tmp.push_back("x");
+
 	TEST_EQUAL(tmp2.size(),tmp.size())
 	TEST_EQUAL(tmp2[0],tmp[0])
 	TEST_EQUAL(tmp2[1],tmp[1])
@@ -238,7 +234,7 @@ START_SECTION((void getKeys(std::vector< UInt > &keys) const))
 	TEST_EQUAL(vec.size(),2)
 	TEST_EQUAL(vec[0],3)
 	TEST_EQUAL(vec[1],4)
-	
+
 	mi.metaRegistry().registerName("a","test");
 	mi.metaRegistry().registerName("d","test");
 	mi.metaRegistry().registerName("x","test");
@@ -246,7 +242,7 @@ START_SECTION((void getKeys(std::vector< UInt > &keys) const))
 	mi.setMetaValue("d",1);
 	mi.setMetaValue("x",1);
 	mi.getKeys(vec);
-	
+
 	TEST_EQUAL(vec.size(),5)
 	TEST_EQUAL(vec[0],3)
 	TEST_EQUAL(vec[1],4)
@@ -271,7 +267,7 @@ END_SECTION
 
 START_SECTION(([EXTRA] void getKeys(std::vector<String>& keys) const))
 	std::vector<String> keys;
-	mi.getKeys(keys);	
+	mi.getKeys(keys);
 	TEST_EQUAL(keys.size(),2)
 	TEST_EQUAL(keys[0],"cluster_id")
 	TEST_EQUAL(keys[1],"testname")
@@ -312,19 +308,19 @@ END_SECTION
 
 START_SECTION((void removeMetaValue(UInt index)))
 	MetaInfoInterface i,i2;
-	
+
 	i.setMetaValue(1,String("bla"));
 	TEST_EQUAL(i==i2,false)
 	i.removeMetaValue(1);
 	TEST_EQUAL(i==i2,true)
-	
+
 	//try if removing a non-existing value works as well
 	i.removeMetaValue(1234);
 END_SECTION
 
 START_SECTION((void removeMetaValue(const String& name)))
 	MetaInfoInterface i,i2;
-	
+
 	i.setMetaValue("label",String("bla"));
 	TEST_EQUAL(i==i2,false)
 	i.removeMetaValue("label");

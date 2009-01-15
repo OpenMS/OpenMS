@@ -258,9 +258,9 @@ START_SECTION((String newickTree(std::vector< BinaryTreeNode > &tree, bool inclu
 	tree.push_back(BinaryTreeNode(0,1,0.7));
 
 	String result = ptr->newickTree(tree);
-	TEST_EQUAL("( ( ( 0 , ( 1 , 2 ) ) , ( 3 , 4 ) ) , 5 )", result);
+	TEST_EQUAL(result,"( ( ( 0 , ( 1 , 2 ) ) , ( 3 , 4 ) ) , 5 )");
 	result = ptr->newickTree(tree,true);
-	TEST_EQUAL("( ( ( 0:0.5 , ( 1:0.3 , 2:0.3 ):0.5 ):0.6 , ( 3:0.4 , 4:0.4 ):0.6 ):0.7 , 5:0.7 )", result);
+	TEST_EQUAL(result,"( ( ( 0:0.5 , ( 1:0.3 , 2:0.3 ):0.5 ):0.6 , ( 3:0.4 , 4:0.4 ):0.6 ):0.7 , 5:0.7 )");
 }
 END_SECTION
 

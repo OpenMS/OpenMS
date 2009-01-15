@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -103,17 +103,17 @@ END_SECTION
 START_SECTION((String getName(UInt index) const ))
 	string tmp;
 	tmp = mir.getName (1);
-	TEST_EQUAL("isotopic_range",tmp)
+	TEST_EQUAL(tmp,"isotopic_range")
 	tmp = mir.getName (2);
-	TEST_EQUAL("cluster_id",tmp)
+	TEST_EQUAL(tmp,"cluster_id")
 	tmp = mir.getName (3);
-	TEST_EQUAL("label",tmp)
+	TEST_EQUAL(tmp,"label")
 	tmp = mir.getName (4);
-	TEST_EQUAL("icon",tmp)
+	TEST_EQUAL(tmp,"icon")
 	tmp = mir.getName (1024);
-	TEST_EQUAL("testname",tmp)
+	TEST_EQUAL(tmp,"testname")
 	tmp = mir.getName (1025);
-	TEST_EQUAL("retention time",tmp)
+	TEST_EQUAL(tmp,"retention time")
 END_SECTION
 
 START_SECTION((String getDescription(UInt index) const ))
@@ -137,7 +137,7 @@ START_SECTION((String getDescription(const String& name) const ))
 	tmp = mir.getDescription("isotopic_range");
 	TEST_EQUAL(tmp,string("consecutive numbering of the peaks in an isotope pattern. 0 is the monoisotopic peak"))
 	tmp = mir.getDescription("cluster_id");
-	TEST_EQUAL(tmp,string("consecutive numbering of isotope clusters in a spectrum"))	
+	TEST_EQUAL(tmp,string("consecutive numbering of isotope clusters in a spectrum"))
 END_SECTION
 
 START_SECTION((String getUnit(UInt index) const ))
@@ -161,42 +161,42 @@ START_SECTION((String getUnit(const String& name) const ))
 	tmp = mir.getUnit("isotopic_range");
 	TEST_EQUAL(tmp,string(""))
 	tmp = mir.getUnit("cluster_id");
-	TEST_EQUAL(tmp,string(""))	
+	TEST_EQUAL(tmp,string(""))
 END_SECTION
 
 START_SECTION((MetaInfoRegistry(const MetaInfoRegistry& rhs)))
 	MetaInfoRegistry mir2(mir);
 	TEST_EQUAL(1024,mir2.getIndex ("testname"))
 	TEST_EQUAL(1025,mir2.getIndex ("retention time"))
-	TEST_EQUAL("isotopic_range",mir2.getName (1))
-	TEST_EQUAL("testname",mir2.getName (1024))
-	TEST_EQUAL("retention time",mir2.getName (1025))
+	TEST_EQUAL(mir2.getName(1),"isotopic_range")
+	TEST_EQUAL(mir2.getName(1024),"testname")
+	TEST_EQUAL(mir2.getName(1025),"retention time")
 	TEST_EQUAL(mir2.getDescription(1024),string("this is just a test"))
 	TEST_EQUAL(mir2.getDescription(1025),string("this is just another test"))
 	TEST_EQUAL(mir2.getDescription("testname"),string("this is just a test"))
-	TEST_EQUAL(mir2.getDescription("retention time"),string("this is just another test"))	
+	TEST_EQUAL(mir2.getDescription("retention time"),string("this is just another test"))
 	TEST_EQUAL(mir2.getUnit(1024),string(""))
 	TEST_EQUAL(mir2.getUnit(1025),string("sec"))
 	TEST_EQUAL(mir2.getUnit("testname"),string(""))
-	TEST_EQUAL(mir2.getUnit("retention time"),string("sec"))	
+	TEST_EQUAL(mir2.getUnit("retention time"),string("sec"))
 END_SECTION
 
 START_SECTION((MetaInfoRegistry& operator = (const MetaInfoRegistry& rhs)))
 	MetaInfoRegistry mir2;
 	mir2 = mir;
-	TEST_EQUAL(1024,mir2.getIndex ("testname"))
-	TEST_EQUAL(1025,mir2.getIndex ("retention time"))
-	TEST_EQUAL("isotopic_range",mir2.getName (1))
-	TEST_EQUAL("testname",mir2.getName (1024))
-	TEST_EQUAL("retention time",mir2.getName (1025))
+	TEST_EQUAL(1024,mir2.getIndex ("testname"));
+	TEST_EQUAL(1025,mir2.getIndex ("retention time"));
+	TEST_EQUAL(mir2.getName(1),"isotopic_range");
+	TEST_EQUAL(mir2.getName(1024),"testname");
+	TEST_EQUAL(mir2.getName(1025),"retention time");
 	TEST_EQUAL(mir2.getDescription(1024),string("this is just a test"))
 	TEST_EQUAL(mir2.getDescription(1025),string("this is just another test"))
 	TEST_EQUAL(mir2.getDescription("testname"),string("this is just a test"))
-	TEST_EQUAL(mir2.getDescription("retention time"),string("this is just another test"))	
+	TEST_EQUAL(mir2.getDescription("retention time"),string("this is just another test"))
 	TEST_EQUAL(mir2.getUnit(1024),string(""))
 	TEST_EQUAL(mir2.getUnit(1025),string("sec"))
 	TEST_EQUAL(mir2.getUnit("testname"),string(""))
-	TEST_EQUAL(mir2.getUnit("retention time"),string("sec"))	
+	TEST_EQUAL(mir2.getUnit("retention time"),string("sec"))
 END_SECTION
 
 /////////////////////////////////////////////////////////////

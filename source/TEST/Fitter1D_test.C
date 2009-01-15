@@ -27,68 +27,74 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 
+
+using namespace OpenMS;
+
+
+class TestModel : public Fitter1D
+{
+  public:
+  TestModel()
+    : Fitter1D()
+  {
+    setName(getProductName());
+
+    check_defaults_ = false;
+
+    defaultsToParam_();
+  }
+
+  TestModel(const TestModel& source) : Fitter1D(source)
+  {
+    updateMembers_();
+  }
+
+  virtual ~TestModel()
+  {
+  }
+
+  virtual TestModel& operator = (const TestModel& source)
+  {
+    if (&source == this) return *this;
+
+    Fitter1D::operator = (source);
+    updateMembers_();
+
+    return *this;
+  }
+
+  void updateMembers_()
+  {
+    Fitter1D::updateMembers_();
+  }
+
+  QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model)
+  {
+    UInt N = 0;
+    N = range.size();
+
+    DoubleReal center = 0.0;
+    center = model->getCenter();
+
+    return 1.0;
+  }
+
+  static const String getProductName()
+  {
+    return "TestModel";
+  }
+
+};
+
+
+
+
 START_TEST(Fitter1D, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-using namespace OpenMS;
 using std::stringstream;
-
-class TestModel : public Fitter1D
-{
-  public:
-	TestModel()
-		: Fitter1D()
-	{
-		setName(getProductName());
-		
-		check_defaults_ = false;
-		
-		defaultsToParam_();
-	}
-
-	TestModel(const TestModel& source) : Fitter1D(source)
-	{
-		updateMembers_();
-	}
-	
-	virtual ~TestModel()
-	{
-	}
-	
-	virtual TestModel& operator = (const TestModel& source)
-	{
-		if (&source == this) return *this;
-		
-		Fitter1D::operator = (source);
-		updateMembers_();
-		
-		return *this;
-	}
-	
-	void updateMembers_()
-	{
-		Fitter1D::updateMembers_();
-	}
-	
-	QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model)
-	{
-		UInt N = 0;
-		N = range.size();
-		
-		DoubleReal center = 0.0;
-		center = model->getCenter();
-		
-		return 1.0;
-	}
-
-	static const String getProductName()
-	{ 
-		return "TestModel"; 
-	}
-
-};
 
 
 /////////////////////////////////////////////////////////////
@@ -104,8 +110,8 @@ START_SECTION(Fitter1D())
 END_SECTION
 
 START_SECTION((Fitter1D(const  Fitter1D &source)))
-	TestModel tm1;	
-  
+	TestModel tm1;
+
   TestModel tm2(tm1);
 	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 END_SECTION
@@ -117,7 +123,7 @@ END_SECTION
 START_SECTION((virtual Fitter1D& operator=(const  Fitter1D &source)))
 	TestModel tm1;
   TestModel tm2;
-  
+
   tm2 = tm1;
 	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 END_SECTION
@@ -128,7 +134,7 @@ START_SECTION((virtual QualityType fit1d(const  RawDataArrayType &range, Interpo
 END_SECTION
 
 START_SECTION((void registerChildren()))
-	// dummy subtest 
+	// dummy subtest
 	TEST_EQUAL(1,1)
 END_SECTION
 

@@ -34,198 +34,199 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(TOPPBase, "$Id$");
-
 //test class with optional parameters
 class TOPPBaseTest
-	: public TOPPBase
+  : public TOPPBase
 {
-	public:
-		TOPPBaseTest()
-			: TOPPBase("TOPPBaseTest", "A test class", false)
-		{
-			main(0,0);
-		}
+  public:
+    TOPPBaseTest()
+      : TOPPBase("TOPPBaseTest", "A test class", false)
+    {
+      main(0,0);
+    }
 
-		TOPPBaseTest(int argc ,const char** argv)
-			: TOPPBase("TOPPBaseTest", "A test class", false)
-		{
-			main(argc,argv);
-		}
+    TOPPBaseTest(int argc ,const char** argv)
+      : TOPPBase("TOPPBaseTest", "A test class", false)
+    {
+      main(argc,argv);
+    }
 
-		virtual void registerOptionsAndFlags_()
-		{
-			registerStringOption_("stringoption","<string>","string default","string description",false);
-			registerIntOption_("intoption","<int>",4711,"int description",false);
-			registerDoubleOption_("doubleoption","<double>",0.4711,"double description",false);
-			registerIntList_("intlist","<intlist>",IntList::create("1,2,3,4"),"intlist description",false);
-			registerDoubleList_("doublelist","<doublelist>",DoubleList::create("0.4711,1.022,4.0"),"doubelist description",false);
-			registerStringList_("stringlist","<stringlist>",StringList::create("abc,def,ghi,jkl"),"stringlist description",false);
-			registerFlag_("flag","flag description");
-			
-			//for testing write_ini parameter (and with it setDefaults)
-			registerStringList_("stringlist2","<stringlist>",StringList::create("1,2,3"),"stringlist with restrictions",false);
-			vector<String> rest;
-			rest.push_back("hopla");
-			rest.push_back("dude");
-			setValidStrings_("stringlist2",rest);
-			
-			registerIntList_("intlist2","<int>",IntList::create("3,4,5"),"intlist with restrictions",false);
-			setMinInt_("intlist2",2);
-			setMaxInt_("intlist2",6);
-			
-			registerDoubleList_("doublelist2","<double>",DoubleList::create("1.2,2.33"),"doublelist with restrictions",false);
-			setMinFloat_("doublelist2",0.2);
-			setMaxFloat_("doublelist2",5.4);
-			
-		}
-		
-		
-		String getStringOption(const String& name) const
-		{
-			return getStringOption_(name);
-		}
+    virtual void registerOptionsAndFlags_()
+    {
+      registerStringOption_("stringoption","<string>","string default","string description",false);
+      registerIntOption_("intoption","<int>",4711,"int description",false);
+      registerDoubleOption_("doubleoption","<double>",0.4711,"double description",false);
+      registerIntList_("intlist","<intlist>",IntList::create("1,2,3,4"),"intlist description",false);
+      registerDoubleList_("doublelist","<doublelist>",DoubleList::create("0.4711,1.022,4.0"),"doubelist description",false);
+      registerStringList_("stringlist","<stringlist>",StringList::create("abc,def,ghi,jkl"),"stringlist description",false);
+      registerFlag_("flag","flag description");
 
-		double getDoubleOption(const String& name) const
-		{
-			return getDoubleOption_(name);
-		}
+      //for testing write_ini parameter (and with it setDefaults)
+      registerStringList_("stringlist2","<stringlist>",StringList::create("1,2,3"),"stringlist with restrictions",false);
+      vector<String> rest;
+      rest.push_back("hopla");
+      rest.push_back("dude");
+      setValidStrings_("stringlist2",rest);
 
-		Int getIntOption(const String& name) const
-		{
-			return getIntOption_(name);
-		}
-		
-		StringList getStringList(const String& name) const
-		{
-			return getStringList_(name);
-		}
-		
-		IntList getIntList(const String& name) const
-		{
-			return getIntList_(name);
-		}
-		
-		DoubleList getDoubleList(const String& name) const
-		{
-			return getDoubleList_(name);
-		}
-		
-		Param const& getParam() const
-		{
-			return getParam_();
-		}
+      registerIntList_("intlist2","<int>",IntList::create("3,4,5"),"intlist with restrictions",false);
+      setMinInt_("intlist2",2);
+      setMaxInt_("intlist2",6);
 
-		bool getFlag(const String& name) const
-		{
-			return getFlag_(name);
-		}
+      registerDoubleList_("doublelist2","<double>",DoubleList::create("1.2,2.33"),"doublelist with restrictions",false);
+      setMinFloat_("doublelist2",0.2);
+      setMaxFloat_("doublelist2",5.4);
 
-		bool setByUser(const String& name) const
-		{
-			return setByUser_(name);
-		}
+    }
 
-		virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
-		{
-			return EXECUTION_OK;
-		}
 
-		String const& getIniLocation() const
-		{
-			return getIniLocation_();
-		}
+    String getStringOption(const String& name) const
+    {
+      return getStringOption_(name);
+    }
 
-		void inputFileReadable(const String& filename) const
-		{
-			inputFileReadable_(filename);
-		}
+    double getDoubleOption(const String& name) const
+    {
+      return getDoubleOption_(name);
+    }
 
-		void outputFileWritable(const String& filename) const
-		{
-			outputFileWritable_(filename);
-		}
+    Int getIntOption(const String& name) const
+    {
+      return getIntOption_(name);
+    }
 
-		void addDataProcessing(MSExperiment<>& map, const std::set<DataProcessing::ProcessingAction>& actions)
-		{
-			addDataProcessing_(map, actions);
-		}
-		
-		void parseRange(const String& text, double& low, double& high) const
-		{
-			parseRange_(text, low, high);
-		}
+    StringList getStringList(const String& name) const
+    {
+      return getStringList_(name);
+    }
+
+    IntList getIntList(const String& name) const
+    {
+      return getIntList_(name);
+    }
+
+    DoubleList getDoubleList(const String& name) const
+    {
+      return getDoubleList_(name);
+    }
+
+    Param const& getParam() const
+    {
+      return getParam_();
+    }
+
+    bool getFlag(const String& name) const
+    {
+      return getFlag_(name);
+    }
+
+    bool setByUser(const String& name) const
+    {
+      return setByUser_(name);
+    }
+
+    virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
+    {
+      return EXECUTION_OK;
+    }
+
+    String const& getIniLocation() const
+    {
+      return getIniLocation_();
+    }
+
+    void inputFileReadable(const String& filename) const
+    {
+      inputFileReadable_(filename);
+    }
+
+    void outputFileWritable(const String& filename) const
+    {
+      outputFileWritable_(filename);
+    }
+
+    void addDataProcessing(MSExperiment<>& map, const std::set<DataProcessing::ProcessingAction>& actions)
+    {
+      addDataProcessing_(map, actions);
+    }
+
+    void parseRange(const String& text, double& low, double& high) const
+    {
+      parseRange_(text, low, high);
+    }
 
 };
 
 // Test class for no-optional parameters
 class TOPPBaseTestNOP
-	: public TOPPBase
+  : public TOPPBase
 {
-	public:
-		TOPPBaseTestNOP()
-			: TOPPBase("TOPPBaseTest", "A test class with non-optional parameters", false)
-		{
-			main(0,0);
-		}
+  public:
+    TOPPBaseTestNOP()
+      : TOPPBase("TOPPBaseTest", "A test class with non-optional parameters", false)
+    {
+      main(0,0);
+    }
 
-		TOPPBaseTestNOP(int argc , const char** argv)
-			: TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters", false)
-		{
-			main(argc,argv);
-		}
+    TOPPBaseTestNOP(int argc , const char** argv)
+      : TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters", false)
+    {
+      main(argc,argv);
+    }
 
-		virtual void registerOptionsAndFlags_()
-		{
-			registerStringOption_("stringoption","<string>","string default","string description");
-			registerIntOption_("intoption","<int>",4711,"int description");
-			registerDoubleOption_("doubleoption","<double>",0.4711,"double description");
-			registerFlag_("flag","flag description");
-			registerStringList_("stringlist","<stringlist>",StringList::create("abc,def,ghi,jkl"),"stringlist description");
-			registerIntList_("intlist","<intlist>",IntList::create("1,2,3,4"),"intlist description");
-			registerDoubleList_("doublelist","<doublelist>",DoubleList::create("0.4711,1.022,4.0"),"doubelist description");
-		}
+    virtual void registerOptionsAndFlags_()
+    {
+      registerStringOption_("stringoption","<string>","string default","string description");
+      registerIntOption_("intoption","<int>",4711,"int description");
+      registerDoubleOption_("doubleoption","<double>",0.4711,"double description");
+      registerFlag_("flag","flag description");
+      registerStringList_("stringlist","<stringlist>",StringList::create("abc,def,ghi,jkl"),"stringlist description");
+      registerIntList_("intlist","<intlist>",IntList::create("1,2,3,4"),"intlist description");
+      registerDoubleList_("doublelist","<doublelist>",DoubleList::create("0.4711,1.022,4.0"),"doubelist description");
+    }
 
-		String getStringOption(const String& name) const
-		{
-			return getStringOption_(name);
-		}
-		bool setByUser(const String& name) const
-		{
-			return setByUser_(name);
-		}
+    String getStringOption(const String& name) const
+    {
+      return getStringOption_(name);
+    }
+    bool setByUser(const String& name) const
+    {
+      return setByUser_(name);
+    }
 
-		double getDoubleOption(const String& name) const
-		{
-			return getDoubleOption_(name);
-		}
+    double getDoubleOption(const String& name) const
+    {
+      return getDoubleOption_(name);
+    }
 
-		Int getIntOption(const String& name) const
-		{
-			return getIntOption_(name);
-		}
-		
-		StringList getStringList(const String& name) const
-		{
-			return getStringList_(name);
-		}
-				IntList getIntList(const String& name) const
-		{
-			return getIntList_(name);
-		}
-		
-		DoubleList getDoubleList(const String& name) const
-		{
-			return getDoubleList_(name);
-		}
-		
-		virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
-		{
-			return EXECUTION_OK;
-		}
+    Int getIntOption(const String& name) const
+    {
+      return getIntOption_(name);
+    }
+
+    StringList getStringList(const String& name) const
+    {
+      return getStringList_(name);
+    }
+        IntList getIntList(const String& name) const
+    {
+      return getIntList_(name);
+    }
+
+    DoubleList getDoubleList(const String& name) const
+    {
+      return getDoubleList_(name);
+    }
+
+    virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
+    {
+      return EXECUTION_OK;
+    }
 };
 
 /////////////////////////////////////////////////////////////
+
+  START_TEST(TOPPBase, "$Id$");
+
 /////////////////////////////////////////////////////////////
 
 TOPPBaseTest* ptr = 0;
@@ -348,17 +349,17 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	const char* string_cl2[2] = {a1, a11};
 	TOPPBaseTestNOP tmp8(2,string_cl2);
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp8.getStringOption("stringoption"));
-	
+
 	//test option write_ini
 	String filename;
 	NEW_TMP_FILE(filename);
 	const char* f_name = filename.c_str();
 	const char* write_ini[3]={a1, a21, f_name};
-	
+
 	TOPPBaseTest tmp9(3, write_ini);
 	Param p1, p2;
 	p1.load(filename);
-	
+
 	//every parameter except for help,ini.instance, write_ini and write_wsdl
 	//toolname : TOPPBaseTest
 	p2.setValue("TOPPBaseTest:1:stringoption","string default","string description");
@@ -383,10 +384,10 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setValue(intlist2,IntList::create("3,4,5"),"intlist with restriction");
 		p2.setMinInt(intlist2,2);
 		p2.setMaxInt(intlist2,6);
-	p2.setValue(doublelist2,DoubleList::create("1.2,2.33"),"doubelist with restrictions");		
+	p2.setValue(doublelist2,DoubleList::create("1.2,2.33"),"doubelist with restrictions");
 		p2.setMinFloat(doublelist2,0.2);
 		p2.setMaxFloat(doublelist2,5.4);
-	
+
 	TEST_EQUAL(p1,p2)
 
 END_SECTION
@@ -435,20 +436,20 @@ START_SECTION(([EXTRA] String getIntList_(const String& name) const))
 	const char* string_cl[5]={a1, a18, a6 ,a9 ,a16}; //commandline: "TOPPBaseTest -intlist 6 5 4711"
 	TOPPBaseTest tmp2(5, string_cl);
 	TEST_EQUAL(tmp2.getIntList("intlist"),IntList::create("6,5,4711"))
-	
+
 	const char* string_cl1[3]={a1, a18, a6}; //commandline: "TOPPBaseTest -intlist 6"
 	TOPPBaseTest tmp3(3, string_cl1);
 	TEST_EQUAL(tmp3.getIntList("intlist"),IntList::create("6"))
-	
+
 	TEST_EXCEPTION(Exception::WrongParameterType,tmp2.getIntList("intoption"));
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getIntList("imleeewenit"));
-	
+
 	//missing required parameters
 	const char* string_cl2[2] = {a1, a11};
 	TOPPBaseTestNOP tmp4(2,string_cl2);
 	TEST_EQUAL(false,tmp4.setByUser("intlist"));
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp4.getIntList("intlist"));
-END_SECTION	
+END_SECTION
 
 START_SECTION(([EXTRA] String getDoubleList_(const String& name) const))
 	//default
@@ -466,7 +467,7 @@ START_SECTION(([EXTRA] String getDoubleList_(const String& name) const))
 	const char* string_cl21[4]={a1,a19,a20,a13};//commandline :"TOPPBaseTest -doublelist 0.411 4.5
 	TOPPBaseTest tmp31(4,string_cl21);
 	TEST_EQUAL(tmp31.getDoubleList("doublelist"),DoubleList::create("0.411,4.5"));
-			
+
 	TEST_EXCEPTION(Exception::WrongParameterType,tmp2.getDoubleList("intoption"));
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getDoubleList("imleeewenit"));
 	//missing required parameters
@@ -475,7 +476,7 @@ START_SECTION(([EXTRA] String getDoubleList_(const String& name) const))
 	TEST_EQUAL(false,tmp4.setByUser("doublelist"));
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp4.getDoubleList("doublelist"));
 END_SECTION
-	
+
 START_SECTION(([EXTRA] String getStringList_(const String& name) const))
 	//default
 	TOPPBaseTest tmp;
@@ -484,7 +485,7 @@ START_SECTION(([EXTRA] String getStringList_(const String& name) const))
 	const char* string_cl[3]={a1,a17,a12};	//commandline: "TOPPBaseTest -stringlist conmandline"
 	TOPPBaseTest tmp2(3, string_cl);
 	TEST_EQUAL(tmp2.getStringList("stringlist"),StringList::create("commandline"))
-	
+
 	const char* string_cl2[5]={a1,a17,a12,a7, a8};	//commandline: "TOPPBaseTest -stringlist conmandline data/TOPPBase_toolcommon.ini data/TOPPBase_common.ini"
 	TOPPBaseTest tmp3(5, string_cl2);
 	StringList tmp_stringlist;
@@ -492,16 +493,16 @@ START_SECTION(([EXTRA] String getStringList_(const String& name) const))
 	tmp_stringlist << OPENMS_GET_TEST_DATA_PATH("TOPPBase_toolcommon.ini");
 	tmp_stringlist << OPENMS_GET_TEST_DATA_PATH("TOPPBase_common.ini");
 	TEST_EQUAL(tmp3.getStringList("stringlist"),tmp_stringlist);
-	
+
 	TEST_EXCEPTION(Exception::WrongParameterType,tmp2.getStringList("intoption"));
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getStringList("imleeewenit"));
-	
+
 	//missing required parameters
 	const char* string_cl3[2] = {a1, a11};
 	TOPPBaseTestNOP tmp4(2,string_cl3);
 	TEST_EQUAL(false,tmp4.setByUser("stringlist"));
 	TEST_EXCEPTION(Exception::RequiredParameterNotGiven,tmp4.getStringList("stringlist"));
-	
+
 END_SECTION
 
 START_SECTION(([EXTRA]bool getFlag_(const String& name) const))
@@ -581,7 +582,7 @@ START_SECTION(([EXTRA] template<typename MapType> void addDataProcessing_(MapTyp
 
 	TOPPBaseTest topp;
 	topp.addDataProcessing(exp, actions);
-	
+
 	TEST_EQUAL(exp.getDataProcessing().size(),1)
 	TEST_EQUAL(exp.getDataProcessing()[0].getSoftware().getName(),"TOPPBaseTest")
 	TEST_NOT_EQUAL(exp.getDataProcessing()[0].getSoftware().getVersion(),"1.1")

@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -34,94 +34,94 @@
 
 ///////////////////////////
 
+using namespace OpenMS;
+
+class TestModel : public InterpolationModel
+{
+  public:
+  TestModel()
+    : InterpolationModel()
+  {
+    setName(getProductName());
+
+    check_defaults_ = false;
+
+    defaultsToParam_();
+  }
+
+
+  TestModel(const TestModel& source)
+    : InterpolationModel(source)
+  {
+    updateMembers_();
+  }
+
+  virtual ~TestModel()
+  {
+  }
+
+  virtual TestModel& operator = (const TestModel& source)
+  {
+    if (&source == this) return *this;
+
+    InterpolationModel::operator = (source);
+    updateMembers_();
+
+    return *this;
+  }
+
+  void updateMembers_()
+  {
+     InterpolationModel::updateMembers_();
+  }
+
+  IntensityType getIntensity(const PositionType& pos) const
+  {
+    return pos[0]*3.0;
+  }
+
+  IntensityType getIntensity(CoordinateType coord) const
+  {
+    return coord*3.0;
+  }
+
+  bool isContained(const PositionType& pos) const
+  {
+    return getIntensity(pos)>cut_off_;
+  }
+
+  void  fillIntensity(PeakType& peak) const
+  {
+    peak.setIntensity(getIntensity(peak.getPosition()));
+  }
+
+  void getSamples(SamplesType& /*cont*/) const
+  {
+  }
+
+  void setSamples()
+  {
+  }
+
+  CoordinateType getCenter() const
+  {
+    return 10.0;
+  }
+
+  static const String getProductName()
+  {
+    return "TestModel";
+  }
+
+};
+
+
 START_TEST(InterpolationModel , "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-using namespace OpenMS;
 using std::stringstream;
-
-class TestModel : public InterpolationModel
-{
-  public:
-	TestModel()
-		: InterpolationModel()
-	{
-		setName(getProductName());
-		
-		check_defaults_ = false;
-		
-		defaultsToParam_();
-	}
-
-
-	TestModel(const TestModel& source)
-		: InterpolationModel(source)
-	{
-		updateMembers_();
-	}
-	
-	virtual ~TestModel()
-	{
-	}
-	
-	virtual TestModel& operator = (const TestModel& source)
-	{
-		if (&source == this) return *this;
-		
-		InterpolationModel::operator = (source);
-		updateMembers_();
-		
-		return *this;
-	}
-	
-	void updateMembers_()
-	{
-		 InterpolationModel::updateMembers_();
-	}
-
-	IntensityType getIntensity(const PositionType& pos) const
-	{
-		return pos[0]*3.0;
-	}
-	
-	IntensityType getIntensity(CoordinateType coord) const
-	{
-		return coord*3.0;
-	}
-
-	bool isContained(const PositionType& pos) const
-	{
-		return getIntensity(pos)>cut_off_;
-	}
-
-	void  fillIntensity(PeakType& peak) const
-	{
-		peak.setIntensity(getIntensity(peak.getPosition()));
-	}
-
-	void getSamples(SamplesType& /*cont*/) const
-	{
-	}
-	
-	void setSamples() 
-	{
-	}
-	
-	CoordinateType getCenter() const
-	{
-		return 10.0;
-	}
-
-	static const String getProductName()
-	{ 
-		return "TestModel"; 
-	}
-
-
-
-};
 
 //////////////////////////////////////
 
@@ -141,7 +141,7 @@ END_SECTION
 START_SECTION((virtual InterpolationModel& operator=(const InterpolationModel &source)))
 	TestModel tm1;
   TestModel tm2;
-  
+
   tm1.setCutOff(3.3);
   tm2 = tm1;
 	TEST_REAL_SIMILAR(tm1.getCutOff(),tm2.getCutOff())
@@ -150,7 +150,7 @@ END_SECTION
 
 // copy constructor
 START_SECTION((InterpolationModel(const InterpolationModel &source)))
-	TestModel fp1;	
+	TestModel fp1;
   fp1.setCutOff(0.1);
 
   TestModel fp2(fp1);
@@ -218,7 +218,7 @@ START_SECTION(([EXTRA]void  fillIntensities(PeakIterator beg, PeakIterator end) 
   TEST_EQUAL(vec[3].getIntensity(), -0.5)
 END_SECTION
 
-START_SECTION( virtual CoordinateType getCenter() const) 
+START_SECTION( virtual CoordinateType getCenter() const)
 	const TestModel t;
  TEST_REAL_SIMILAR(t.getCenter(),10.0);
 END_SECTION
@@ -234,15 +234,15 @@ END_SECTION
 START_SECTION( void setScalingFactor(CoordinateType scaling) )
 	TestModel tm;
 	tm.setScalingFactor(2.0);
-	
+
 	TEST_REAL_SIMILAR(tm.getParameters().getValue("intensity_scaling"),2.0)
-	TEST_REAL_SIMILAR(tm.getScalingFactor(),2.0)		
+	TEST_REAL_SIMILAR(tm.getScalingFactor(),2.0)
 END_SECTION
 
 START_SECTION( void setInterpolationStep(CoordinateType interpolation_step) )
 	TestModel tm;
 	tm.setInterpolationStep( 10.5 );
-	
+
 	TEST_REAL_SIMILAR(tm.getParameters().getValue("interpolation_step"), 10.5 )
 END_SECTION
 
@@ -261,21 +261,21 @@ END_SECTION
 START_SECTION( CoordinateType getScalingFactor() const )
 	TestModel tm;
 	tm.setScalingFactor(666.0);
-	
+
 	TEST_REAL_SIMILAR(tm.getParameters().getValue("intensity_scaling"),666.0)
-	TEST_REAL_SIMILAR(tm.getScalingFactor(),666.0)		
+	TEST_REAL_SIMILAR(tm.getScalingFactor(),666.0)
 END_SECTION
 
 START_SECTION( const LinearInterpolation& getInterpolation() const )
 	TestModel tm;
 	InterpolationModel::LinearInterpolation interpol1;
 	InterpolationModel::LinearInterpolation interpol2 = tm.getInterpolation();
-	
+
 	// compare models
 	TEST_REAL_SIMILAR(interpol1.getScale(), interpol2.getScale());
 	TEST_REAL_SIMILAR(interpol1.getInsideReferencePoint(), interpol2.getInsideReferencePoint());
 	TEST_REAL_SIMILAR(interpol1.getOutsideReferencePoint(), interpol2.getOutsideReferencePoint() );
-	
+
 END_SECTION
 
 START_SECTION( IntensityType getIntensity(CoordinateType coord) const )

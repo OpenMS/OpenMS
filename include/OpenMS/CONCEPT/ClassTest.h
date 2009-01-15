@@ -89,27 +89,62 @@ namespace OpenMS
 			/// Creates a temporary file name from the test name and the line
 			std::string tmpFileName(const std::string& file, int line);
 
+			/// This overload returns true; @c float is a floating point type.
+			inline bool isRealType( float )       { return true; }
+			/// This overload returns true; @c double is a floating point type.
+			inline bool isRealType( double )      { return true; }
+      /// This overload returns true; @c long @c double is a floating point type.
+      inline bool isRealType( long double ) { return true; }
+      /// This overload returns true; @c DataValue will be converted to DoubleReal by #TEST_REAL_SIMILAR.
+      inline bool isRealType( const DataValue& ) { return true; }
+			/// This catch-all template returns false; it will be instantiated for non-floating point types.
+			template < typename T > inline bool isRealType( const T& ) { return false; }
+
 			/** @brief Compare floating point numbers using @em absdiff_max_allowed and
 			@em ratio_max_allowed.
 
 			Side effects: Updates #fuzzy_message.
 			*/
-			bool isRealSimilar(double number_1, double number_2);
+      void
+      testRealSimilar( const char * file, int line, long double number_1,
+                       const char * number_1_stringified,
+                       bool number_1_is_realtype, Int number_1_written_digits,
+                       long double number_2, const char * number_2_stringified,
+                       bool number_2_is_realtype, Int number_2_written_digits );
+
+      /// used by testRealSimilar()
+      bool
+      isRealSimilar( long double number_1, long double number_2 );
 
 			/**@brief Compare strings using @em absdiff_max_allowed and @em ratio_max_allowed.
+
+        This is called by the #TEST_STRING_SIMILAR macro.
 
 			Side effects: Updates #absdiff, #ratio, #fuzzy_message, #line_num_1_max
 			and #line_num_2_max.
 			*/
-			bool isStringSimilar( const std::string & string_1, const std::string & string_2);
-				
-			/**@brief Compare files using @em absdiff_max_allowed and @em ratio_max_allowed.
+      void
+      testStringSimilar( const char * file, int line,
+                         const std::string & string_1,
+                         const char * string_1_stringified,
+                         const std::string & string_2,
+                         const char * string_2_stringified );
+
+      /// used by TEST_STRING_EQUAL
+      void
+      testStringEqual( const char * file, int line,
+                       const std::string & string_1,
+                       const char * string_1_stringified,
+                       const std::string & string_2,
+                       const char * string_2_stringified );
+
+      /**@brief Compare files using @em absdiff_max_allowed and @em ratio_max_allowed.
 
 			Side effects: Updates #absdiff, #ratio, #fuzzy_message, #line_num_1_max
 			and #line_num_2_max.
 			*/
 			bool isFileSimilar( const std::string & filename_1, const std::string & filename_2);
-				
+
 			/// make sure we have a newline before results from first subtest
 			void initialNewline();
 
@@ -121,19 +156,19 @@ namespace OpenMS
 
 			/// Maximum ratio of numbers allowed, see #TOLERANCE_RELATIVE.
 			extern double ratio_max_allowed;
-			
+
 			/// Maximum ratio of numbers observed so far, see #TOLERANCE_RELATIVE.
 			extern double ratio_max;
-			
+
 			/// Recent ratio of numbers, see #TOLERANCE_RELATIVE.
 			extern double ratio;
-			
+
 			/// Maximum absolute difference of numbers allowed, see #TOLERANCE_ABSOLUTE.
 			extern double absdiff_max_allowed;
-			
+
 			/// Maximum difference of numbers observed so far, see #TOLERANCE_ABSOLUTE.
 			extern double absdiff_max;
-			
+
 			/// Recent absolute difference of numbers, see #TOLERANCE_ABSOLUTE.
 			extern double absdiff;
 
@@ -203,11 +238,73 @@ namespace OpenMS
 			/// (Flags whether a new line is in place, depending on context and verbosity setting.  Used by initialNewline() and some macros.)
 			extern bool newline;
 
+      template<typename T1, typename T2>
+        void
+        testEqual( const char * file, int line, const T1 & expression_1,
+                   const char * expression_1_stringified, const T2 & expression_2,
+                   const char * expression_2_stringified )
+        {
+          ++test_count;
+          test_line = line;
+          this_test = (expression_1 == T1(expression_2));
+          test = test && this_test;
+          {
+            initialNewline();
+            if ( this_test )
+            {
+              std__cout << "    (line " << line << ":  TEST_EQUAL("
+                  << expression_1_stringified << ','
+                  << expression_2_stringified << "): got " << expression_1
+                  << ", expected " << expression_2 << ")    + " << std::endl;
+            }
+            else
+            {
+              std__cout << file << ':' << line << ":  TEST_EQUAL("
+                  << expression_1_stringified << ','
+                  << expression_2_stringified << "): got " << expression_1
+                  << ", expected " << expression_2 << ")    - " << std::endl;
+            }
+          }
+        }
+
+      template<typename T1, typename T2>
+        void
+        testNotEqual( const char * file, int line, const T1 & expression_1,
+                      const char * expression_1_stringified, const T2 & expression_2,
+                      const char * expression_2_stringified )
+        {
+          ++test_count;
+          test_line = line;
+          this_test = !(expression_1 == T1(expression_2));
+          test = test && this_test;
+          {
+            initialNewline();
+            if ( this_test )
+            {
+              std__cout << "    (line " << line << ":  TEST_NOT_EQUAL("
+                  << expression_1_stringified << ','
+                  << expression_2_stringified << "): got " << expression_1
+                  << ", forbidden is " << expression_2 << ")    + "
+                  << std::endl;
+            }
+            else
+            {
+              std__cout << file << ':' << line << ":  TEST_NOT_EQUAL("
+                  << expression_1_stringified << ','
+                  << expression_2_stringified << "): got " << expression_1
+                  << ", forbidden is " << expression_2 << ")    - "
+                  << std::endl;
+            }
+          }
+        }
+
+
+
 		}
 	}
 }
 
-// A namespace alias - apparently these cannot be documented by doxygen (?)
+// A namespace alias - apparently these cannot be documented using doxygen (?)
 namespace TEST = OpenMS::Internal::ClassTest;
 
 /**
@@ -231,7 +328,6 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
 */
 //@{
-
 
 //@name test and subtest
 //@{
@@ -513,7 +609,6 @@ int main(int argc, char **argv)																									\
 
 //@}
 
-
 /**	@brief Generic equality macro.
 
 	This macro uses the operator == to check its two arguments for equality.
@@ -529,28 +624,7 @@ int main(int argc, char **argv)																									\
 
 	 @hideinitializer
 */
-#define TEST_EQUAL(a,b)																									\
-	{																																			\
-		++TEST::test_count;																									\
-		TEST::test_line = __LINE__;																					\
-		TEST::this_test = ((a) == (b));																			\
-		TEST::test = TEST::test && TEST::this_test;													\
-		{																																		\
-			TEST::initialNewline();																						\
-			if (TEST::this_test)																							\
-				std__cout << "    (line " << __LINE__ <<												\
-					":  TEST_EQUAL(" #a "," #b																		\
-					"): got " << (a) <<																						\
-					", expected " << (b) <<																				\
-					")    + " << std::endl;																				\
-			else																															\
-				std__cout << __FILE__ ":" << TEST::test_line <<									\
-					":  TEST_EQUAL(" #a "," #b																		\
-					"): got " << (a) <<																						\
-					", expected " << (b) <<																				\
-					"    - " << std::endl;																				\
-		}																																		\
-	}
+#define TEST_EQUAL(a,b) TEST::testEqual(__FILE__,__LINE__,(a),(#a),(b),(#b));
 
 /**	@brief Generic inequality macro.
 
@@ -563,28 +637,7 @@ int main(int argc, char **argv)																									\
 
 	 @hideinitializer
 */
-#define TEST_NOT_EQUAL(a,b)																							\
-	{																																			\
-		++TEST::test_count;																									\
-		TEST::test_line = __LINE__;																					\
-		TEST::this_test = !((a) == (b));																		\
-		TEST::test = TEST::test && TEST::this_test;													\
-		{																																		\
-			TEST::initialNewline();																						\
-			if (TEST::this_test)																							\
-				std__cout << "    (line " << __LINE__ <<												\
-					" TEST_NOT_EQUAL(" #a "," #b																	\
-					"): got " << (a) <<																						\
-					", forbidden is " << (b) <<																		\
-					")    + " << std::endl;																				\
-			else																															\
-				std__cout << __FILE__ ":" << __LINE__ <<												\
-					":  TEST_NOT_EQUAL(" #a "," #b																\
-					"): got " << (a) <<																						\
-					", forbidden is " << (b) <<																		\
-					"    - " << std::endl;																				\
-		}																																		\
-	}
+#define TEST_NOT_EQUAL(a,b) TEST::testNotEqual(__FILE__,__LINE__,(a),(#a),(b),(#b));
 
 /**	@brief String equality macro.
 
@@ -598,28 +651,7 @@ int main(int argc, char **argv)																									\
 
 	@hideinitializer
 */
-#define TEST_STRING_EQUAL(a,b)																					\
-	{																																			\
-		++TEST::test_count;																									\
-		TEST::test_line = __LINE__;																					\
-		TEST::this_test = (std::string(a) == std::string(b));								\
-		TEST::test = TEST::test && TEST::this_test;													\
-		{																																		\
-			TEST::initialNewline();																						\
-			if (TEST::this_test)																							\
-				std__cout << "    (line " << __LINE__ <<												\
-					" TEST_STRING_EQUAL("<< #a << "," << #b <<										\
-					"): got \"" << (a) <<																					\
-					"\", expected \"" << (b) <<																		\
-					"\")    + " << std::endl;																			\
-			else																															\
-				std__cout << __FILE__ ":" << TEST::test_line <<									\
-					":  TEST_STRING_EQUAL(" #a "," #b															\
-					"): got \"" << (a) <<																					\
-					"\", expected \"" << (b) <<																		\
-					"\"    - " << std::endl;																			\
-		}																																		\
-	}
+#define TEST_STRING_EQUAL(a,b) TEST::testStringEqual(__FILE__,__LINE__,(a),(#a),(b),(#b));
 
 /**
 	@brief File comparison macro.
@@ -722,37 +754,7 @@ int main(int argc, char **argv)																									\
 
 	@hideinitializer
 */
-#define TEST_REAL_SIMILAR(a,b)																					\
-	{																																			\
-		++TEST::test_count;																									\
-		TEST::test_line = __LINE__;																					\
-		TEST::this_test = TEST::isRealSimilar( (a), (b) );									\
-		TEST::test = TEST::test && TEST::this_test;													\
-		{																																		\
-			TEST::initialNewline();																						\
-			if (TEST::this_test)																							\
-			{																																	\
-				std__cout << "    (line " << __LINE__ <<												\
-					":  TEST_REAL_SIMILAR(" #a "," #b															\
-					"): got " << precisionWrapper(a) <<														\
-					", expected " << precisionWrapper(b) <<												\
-					")    + " << std::endl;																				\
-			}																																	\
-			else																															\
-			{																																	\
-				std__cout << __FILE__ ":" << TEST::test_line <<									\
-					":  TEST_REAL_SIMILAR(" #a "," #b															\
-					"): got " << precisionWrapper(a) <<														\
-					", expected " << precisionWrapper(b) <<												\
-					" (absolute: " << TEST::absdiff <<														\
-					" [" << TEST::absdiff_max_allowed <<													\
-					"], relative: " << TEST::ratio <<															\
-					" [" << TEST::ratio_max_allowed <<														\
-					"], message: \"" << TEST::fuzzy_message <<										\
-					"\" )    - " << std::endl;																		\
-			}																																	\
-		}																																		\
-	}
+#define TEST_REAL_SIMILAR(a,b) TEST::testRealSimilar(__FILE__,__LINE__,(a),(#a),TEST::isRealType(a),writtenDigits(a),(b),(#b),TEST::isRealType(b),writtenDigits(b));
 
 /**	@brief String similarity macro.
 
@@ -769,40 +771,7 @@ int main(int argc, char **argv)																									\
 
 	@hideinitializer
 */
-#define TEST_STRING_SIMILAR(a,b)																				\
-	{																																			\
-		++TEST::test_count;																									\
-		TEST::test_line = __LINE__;																					\
-		TEST::this_test = TEST::isStringSimilar( (a), (b) );								\
-		TEST::test = TEST::test && TEST::this_test;													\
-		{																																		\
-			TEST::initialNewline();																						\
-			if (TEST::this_test)																							\
-			{																																	\
-				std__cout << "    (line " << __LINE__ <<												\
-					":  TEST_STRING_SIMILAR(" #a "," #b "):  "										\
-					"absolute: " << TEST::absdiff <<															\
-					" (" << TEST::absdiff_max_allowed <<													\
-					"), relative: " << TEST::ratio <<															\
-					" (" << TEST::ratio_max_allowed << ")    +\n";								\
-				std__cout << "got:\n";																					\
-				TEST::printWithPrefix((a),TEST::line_num_1_max);								\
-				std__cout << "expected:\n";																			\
-				TEST::printWithPrefix((b),TEST::line_num_2_max);								\
-			}																																	\
-			else																															\
-			{																																	\
-				std__cout << __FILE__ ":" << TEST::test_line <<									\
-					": TEST_STRING_SIMILAR(" #a "," #b ") ...    -\n"							\
-					"got:\n";																											\
-				TEST::printWithPrefix((a),TEST::line_num_1_max);								\
-				std__cout <<"expected:\n";																			\
-				TEST::printWithPrefix((b),TEST::line_num_2_max);								\
-				std__cout << "message: \n";																			\
-				std__cout << TEST::fuzzy_message;																\
-			}																																	\
-		}																																		\
-	}
+#define TEST_STRING_SIMILAR(a,b) TEST::testStringSimilar(__FILE__,__LINE__,(a),(#a),(b),(#b));
 
 /**	@brief File similarity macro.
 
@@ -893,15 +862,14 @@ int main(int argc, char **argv)																									\
 	If both lines contain the same element from this list, they are skipped
 	over. (See @em FuzzyStringComparator.)
 */
-#define WHITELIST(a)														\
-	TEST::setWhitelist(__FILE__,__LINE__,(a));
+#define WHITELIST(a) TEST::setWhitelist(__FILE__,__LINE__,(a));
 
 /**	@brief Exception test macro.
 
 	This macro checks if a given type of exception occured while executing the
 	given command.  Example: #TEST_EXCEPTION(Exception::IndexOverflow,
 	vector[-1]).  If no or a wrong exception occured, false is returned,
-	otherwise true. 
+	otherwise true.
 
 	@param exception_type the exception-class
 	@param command any general C++ or OpenMS-specific command
@@ -1130,7 +1098,7 @@ int main(int argc, char **argv)																									\
 
 /**
 	@brief Macro that suppresses the warning issued when no subtests are performed
-	
+
 	Please use this macro only if the method cannot be tested at all or cannot be
 	tested properly on its own. In the later case, the method must however be tested
 	in tests of related methods.  See also @em test_count.

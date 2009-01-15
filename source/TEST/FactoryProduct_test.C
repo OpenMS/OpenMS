@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -32,6 +32,47 @@
 #include <OpenMS/CONCEPT/FactoryProduct.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
+using namespace OpenMS;
+
+
+class TestProduct1
+  : public FactoryProduct
+{
+  public:
+  TestProduct1()
+    : FactoryProduct("TestProduct1")
+  {
+    defaults_.setValue("check",0,"desc1");
+    defaults_.setValue("value",1,"desc2");
+
+    defaultsToParam_();
+  }
+
+  TestProduct1(const TestProduct1& rhs)
+    : FactoryProduct(rhs)
+  {
+    updateMembers_();
+  }
+
+  TestProduct1& operator=(const TestProduct1& rhs)
+  {
+    if (&rhs==this) return *this;
+
+    FactoryProduct::operator=(rhs);
+    updateMembers_();
+
+    return *this;
+  }
+
+  void updateMembers_()
+  {
+    check = param_.getValue("check");
+  }
+
+  int check;
+};
+
+
 
 ///////////////////////////
 
@@ -40,45 +81,7 @@ START_TEST(FactoryProduct, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-using namespace OpenMS;
 using std::stringstream;
-
-class TestProduct1 
-	: public FactoryProduct
-{
-  public:
-	TestProduct1()
-		: FactoryProduct("TestProduct1")
-	{
-		defaults_.setValue("check",0,"desc1");
-		defaults_.setValue("value",1,"desc2");
-		
-		defaultsToParam_();
-	}
-	
-	TestProduct1(const TestProduct1& rhs)
-		: FactoryProduct(rhs)
-	{
-		updateMembers_();
-	}
-
-	TestProduct1& operator=(const TestProduct1& rhs)
-	{
-		if (&rhs==this) return *this;
-		
-		FactoryProduct::operator=(rhs);
-		updateMembers_();
-		
-		return *this;
-	}
-	
-	void updateMembers_()
-	{
-		check = param_.getValue("check");
-	}
-	
-	int check;
-};
 
 FactoryProduct* ptr = 0;
 START_SECTION((FactoryProduct(const String& name)))
@@ -126,7 +129,7 @@ START_SECTION((FactoryProduct& operator = (const FactoryProduct& source)))
 
   TestProduct1 fp2;
   fp2 = fp1;
-	
+
 	TEST_EQUAL(fp1,fp2)
 END_SECTION
 
@@ -140,14 +143,14 @@ START_SECTION((FactoryProduct(const FactoryProduct& source)))
 
 	TEST_EQUAL(fp1, fp2)
 END_SECTION
- 
+
 START_SECTION((bool operator == (const FactoryProduct& rhs) const))
 	TestProduct1 s,t;
   Param p;
   p.setValue("check",1);
 
   TEST_EQUAL(s==t, true)
-  
+
   s.setParameters(p);
 
   TEST_EQUAL(s==t, false)

@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -73,7 +73,7 @@ START_SECTION(FuzzyStringComparator(const FuzzyStringComparator& rhs))
 END_SECTION
 
 //------------------------------------------------------------
- 
+
 START_SECTION(const double& getAcceptableAbsolute() const)
 {
 	// tested along with set-method
@@ -136,7 +136,7 @@ START_SECTION(void setTabWidth(const int rhs))
 {
 	FuzzyStringComparator fsc;
 	fsc.setTabWidth(1452);
-	TEST_REAL_SIMILAR(fsc.getTabWidth(),1452);
+	TEST_EQUAL(fsc.getTabWidth(),1452);
 }
 END_SECTION
 
@@ -144,7 +144,7 @@ START_SECTION(void setFirstColumn(const int rhs))
 {
 	FuzzyStringComparator fsc;
 	fsc.setFirstColumn(4321235);
-	TEST_REAL_SIMILAR(fsc.getFirstColumn(),4321235);
+	TEST_EQUAL(fsc.getFirstColumn(),4321235);
 }
 END_SECTION
 
@@ -154,13 +154,13 @@ START_SECTION(void setLogDestination(std::ostream & rhs))
 	// TODO: The default should be to send log output to std::cout, but
 	// strangely this doesn't work with Windows, thus I commented out the first
 	// subtest. Maybe a problem with static initializers? (Clemens, 2008-03-28)
-	// TEST_EQUAL(fsc.getLogDestination(),std::cout);
+	TEST_EQUAL(&fsc.getLogDestination(),&std::cout);
 	fsc.setLogDestination(std::cerr);
-	TEST_EQUAL(fsc.getLogDestination(),std::cerr);
-	TEST_NOT_EQUAL(fsc.getLogDestination(),std::cout);
+	TEST_EQUAL(&fsc.getLogDestination(),&std::cerr);
+	TEST_NOT_EQUAL(&fsc.getLogDestination(),&std::cout);
 	fsc.setLogDestination(std::cout);
-	TEST_NOT_EQUAL(fsc.getLogDestination(),std::cerr);
-	TEST_EQUAL(fsc.getLogDestination(),std::cout);
+	TEST_NOT_EQUAL(&fsc.getLogDestination(),&std::cerr);
+	TEST_EQUAL(&fsc.getLogDestination(),&std::cout);
 }
 END_SECTION
 
@@ -379,7 +379,7 @@ START_SECTION((bool compareFiles( const std::string & filename_1, const std::str
 			std::ofstream file1(filename1.c_str());
 			std::ofstream file2(filename2.c_str());
 			file1 << "1 \n xx\n 2.008	\n 3" << std::flush;
-			file2 << "1.11 \nU\n		\n\n  q					  	0002.04000 \n 3" << std::flush; 
+			file2 << "1.11 \nU\n		\n\n  q					  	0002.04000 \n 3" << std::flush;
 			file1.close();
 			file2.close();
 		}

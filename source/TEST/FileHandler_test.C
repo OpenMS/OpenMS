@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -42,18 +42,18 @@ using namespace std;
 
 START_SECTION((static String typeToName(Type type)))
 	FileHandler tmp;
-	TEST_EQUAL("Unknown", tmp.typeToName(FileHandler::UNKNOWN));
-	TEST_EQUAL("DTA", tmp.typeToName(FileHandler::DTA));
-	TEST_EQUAL("DTA2D", tmp.typeToName(FileHandler::DTA2D));
-	TEST_EQUAL("mzData", tmp.typeToName(FileHandler::MZDATA));
-	TEST_EQUAL("mzXML", tmp.typeToName(FileHandler::MZXML));
-	TEST_EQUAL("mzML", tmp.typeToName(FileHandler::MZML));
-	TEST_EQUAL("FeatureXML", tmp.typeToName(FileHandler::FEATUREXML));
-	TEST_EQUAL("cdf", tmp.typeToName(FileHandler::ANDIMS));
-	TEST_EQUAL("IdXML", tmp.typeToName(FileHandler::IDXML));
-	TEST_EQUAL("ConsensusXML", tmp.typeToName(FileHandler::CONSENSUSXML));
-	TEST_EQUAL("TrafoXML", tmp.typeToName(FileHandler::TRANSFORMATIONXML));
-	TEST_EQUAL("Param", tmp.typeToName(FileHandler::PARAM));
+	TEST_EQUAL(tmp.typeToName(FileHandler::UNKNOWN),"Unknown");
+	TEST_EQUAL(tmp.typeToName(FileHandler::DTA),"DTA");
+	TEST_EQUAL(tmp.typeToName(FileHandler::DTA2D),"DTA2D");
+	TEST_EQUAL(tmp.typeToName(FileHandler::MZDATA),"mzData");
+	TEST_EQUAL(tmp.typeToName(FileHandler::MZXML),"mzXML");
+	TEST_EQUAL(tmp.typeToName(FileHandler::MZML),"mzML");
+	TEST_EQUAL(tmp.typeToName(FileHandler::FEATUREXML),"FeatureXML");
+	TEST_EQUAL(tmp.typeToName(FileHandler::ANDIMS),"cdf");
+	TEST_EQUAL(tmp.typeToName(FileHandler::IDXML),"IdXML");
+	TEST_EQUAL(tmp.typeToName(FileHandler::CONSENSUSXML),"ConsensusXML");
+	TEST_EQUAL(tmp.typeToName(FileHandler::TRANSFORMATIONXML),"TrafoXML");
+	TEST_EQUAL(tmp.typeToName(FileHandler::PARAM),"Param");
 END_SECTION
 
 START_SECTION((static Type nameToType(const String &name)))
@@ -103,7 +103,7 @@ START_SECTION((static Type getTypeByContent(const String &filename)))
 	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("class_test_infile.txt")), FileHandler::UNKNOWN)
 	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML")), FileHandler::IDXML)
 	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_1.trafoXML")), FileHandler::TRANSFORMATIONXML)
-	
+
 	TEST_EXCEPTION(Exception::FileNotFound,tmp.getTypeByContent("/bli/bla/bluff"))
 END_SECTION
 
@@ -113,41 +113,41 @@ START_SECTION((static Type getType(const String &filename)))
 	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML")), FileHandler::IDXML)
 	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile.consensusXML")), FileHandler::CONSENSUSXML)
 	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_1.trafoXML")), FileHandler::TRANSFORMATIONXML)
-	
+
 	TEST_EXCEPTION(Exception::FileNotFound,tmp.getType("/bli/bla/bluff"))
 END_SECTION
 
 START_SECTION((template <class PeakType> bool loadExperiment(const String &filename, MSExperiment< PeakType > &exp, Type force_type=UNKNOWN, ProgressLogger::LogType log=ProgressLogger::NONE)))
 	FileHandler tmp;
 	MSExperiment<> exp;
-	TEST_EQUAL(tmp.loadExperiment("test.bla",exp), false)	
+	TEST_EQUAL(tmp.loadExperiment("test.bla",exp), false)
 	TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"),exp), true)
 
-	TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),exp), true)	
+	TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),exp), true)
 	TEST_REAL_SIMILAR(exp[1][0].getPosition()[0], 110)
 	TEST_REAL_SIMILAR(exp[1][1].getPosition()[0], 120)
 	TEST_REAL_SIMILAR(exp[1][2].getPosition()[0], 130)
 
   // starts with 110, so this one should skip the first
   tmp.getOptions().setMZRange(DRange<1> (115, 1000));
-	TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),exp), true)	
+	TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"),exp), true)
 	TEST_REAL_SIMILAR(exp[1][0].getPosition()[0], 120)
 	TEST_REAL_SIMILAR(exp[1][1].getPosition()[0], 130)
 
   tmp.getOptions() = PeakFileOptions();
-  TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),exp), true)	
+  TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),exp), true)
 	TEST_REAL_SIMILAR(exp[2][0].getPosition()[0], 100)
 	TEST_REAL_SIMILAR(exp[2][1].getPosition()[0], 110)
 	TEST_REAL_SIMILAR(exp[2][2].getPosition()[0], 120)
 
   tmp.getOptions().setMZRange(DRange<1> (115, 1000));
-  TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),exp), true)	
+  TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),exp), true)
 	TEST_REAL_SIMILAR(exp[2][0].getPosition()[0], 120)
 	TEST_REAL_SIMILAR(exp[2][1].getPosition()[0], 130)
 	TEST_REAL_SIMILAR(exp[2][2].getPosition()[0], 140)
 
   tmp.getOptions() = PeakFileOptions();
-  TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp), true)	
+  TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp), true)
 	TEST_EQUAL(exp.size(),4)
 
 
@@ -158,13 +158,13 @@ START_SECTION((template <class PeakType> bool loadExperiment(const String &filen
 #endif
 
   tmp.getOptions() = PeakFileOptions();
-  TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),exp), true)	
+  TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),exp), true)
 	TEST_REAL_SIMILAR(exp[0][0].getPosition()[0], 230.02)
 	TEST_REAL_SIMILAR(exp[0][1].getPosition()[0], 430.02)
 	TEST_REAL_SIMILAR(exp[0][2].getPosition()[0], 630.02)
 
   tmp.getOptions().setMZRange(DRange<1> (300, 1000));
-  TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),exp), true)	
+  TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),exp), true)
 	TEST_REAL_SIMILAR(exp[0][0].getPosition()[0], 430.02)
 	TEST_REAL_SIMILAR(exp[0][1].getPosition()[0], 630.02)
 
@@ -201,12 +201,12 @@ END_SECTION
 START_SECTION((template <class FeatureType> bool loadFeatures(const String &filename, FeatureMap< FeatureType > &map, Type force_type=UNKNOWN)))
   FileHandler tmp;
 	FeatureMap<> map;
-	TEST_EQUAL(tmp.loadFeatures("test.bla",map), false)	
+	TEST_EQUAL(tmp.loadFeatures("test.bla",map), false)
 	TEST_EQUAL(tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"),map), true)
 	TEST_EQUAL(map.size(),7);
 	TEST_EQUAL(tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"),map), true)
 	TEST_EQUAL(map.size(),7);
-	
+
 END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

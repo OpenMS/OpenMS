@@ -146,7 +146,7 @@ START_SECTION((DSpectrum(const DSpectrum& rhs)))
 	TEST_REAL_SIMILAR(100.0 , s2.getMaxInt())
 	TEST_EQUAL(17 , s2.getMSLevel())
 	TEST_REAL_SIMILAR(7.0 , s2.getRT())
-	TEST_EQUAL("bla",s2.getName())
+	TEST_EQUAL(s2.getName(),"bla")
 END_SECTION
 
 START_SECTION((DSpectrum& operator = (const DSpectrum& rhs)))
@@ -171,7 +171,7 @@ START_SECTION((DSpectrum& operator = (const DSpectrum& rhs)))
 	TEST_REAL_SIMILAR(100.0 , s2.getMaxInt())
 	TEST_EQUAL(17 , s2.getMSLevel())
 	TEST_REAL_SIMILAR(7.0 , s2.getRT())
-	TEST_EQUAL("bla",s2.getName())
+	TEST_EQUAL(s2.getName(),"bla")
 END_SECTION
 
 START_SECTION((bool operator == (const DSpectrum& rhs) const))
@@ -514,9 +514,9 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
 	ds.getMetaDataArrays()[0].setName("a1");
 	ds.getMetaDataArrays()[1].setName("a2");
 	ds.getMetaDataArrays()[2].setName("a3");
-	
+
 	ds.sortByIntensity();
-	
+
 	TEST_STRING_EQUAL(ds.getMetaDataArrays()[0].getName(),"a1")
 	TEST_STRING_EQUAL(ds.getMetaDataArrays()[1].getName(),"a2")
 	TEST_STRING_EQUAL(ds.getMetaDataArrays()[2].getName(),"a3")
@@ -575,9 +575,9 @@ START_SECTION((void sortByPosition()))
 	ds.getMetaDataArrays()[0].setName("a1");
 	ds.getMetaDataArrays()[1].setName("a2");
 	ds.getMetaDataArrays()[2].setName("a3");
-	
+
 	ds.sortByPosition();
-	
+
 	TEST_STRING_EQUAL(ds.getMetaDataArrays()[0].getName(),"a1")
 	TEST_STRING_EQUAL(ds.getMetaDataArrays()[1].getName(),"a2")
 	TEST_STRING_EQUAL(ds.getMetaDataArrays()[2].getName(),"a3")

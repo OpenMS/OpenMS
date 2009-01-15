@@ -80,10 +80,12 @@ namespace OpenMS
 			DataValue(const IntList&);
 			/// specific constructor for double lists
 			DataValue(const DoubleList&);
-			/// specific constructor for double values
-			DataValue(DoubleReal);
-			/// specific constructor for real values
-			DataValue(Real);
+			/// specific constructor for long double values (note: the implementation uses DoubleReal)
+			DataValue(long double);
+			/// specific constructor for double values (note: the implementation uses DoubleReal)
+			DataValue(double);
+			/// specific constructor for float values (note: the implementation uses DoubleReal)
+			DataValue(float);
 			/// specific constructor for integer values
 			DataValue(Int);
 			/// specific constructor for unsigned integer values
@@ -123,17 +125,29 @@ namespace OpenMS
 			*/
 			operator DoubleList() const ;
 			/**
-				@brief conversion operator to double
+				@brief conversion operator to long double
+
+				Note: The implementation uses typedef DoubleReal (as opposed to float, double, long double.)
 
 				@exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
 			*/
-			operator DoubleReal() const ;
+			operator long double() const ;
+			/**
+				@brief conversion operator to double
+			
+				Note: The implementation uses typedef DoubleReal (as opposed to float, double, long double.)
+
+				@exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+			*/
+			operator double() const ;
 			/**
 				@brief conversion operator to float
 
+				Note: The implementation uses typedef DoubleReal (as opposed to float, double, long double.)
+
 				@exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
 			*/
-			operator Real() const;
+			operator float() const;
 			/**
 				@brief conversion operator to int
 

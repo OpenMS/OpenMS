@@ -161,23 +161,23 @@ END_SECTION
 START_SECTION(void setModificationOutputMethod(const String &s))
 	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"seqan");
 	sa->setModificationOutputMethod ("stringChecked");
-	TEST_EQUAL("stringChecked",sa->getModificationOutputMethod());
+	TEST_EQUAL(sa->getModificationOutputMethod(),"stringChecked");
 	sa->setModificationOutputMethod ("stringUnchecked");
-	TEST_EQUAL("stringUnchecked",sa->getModificationOutputMethod());
+	TEST_EQUAL(sa->getModificationOutputMethod(),"stringUnchecked");
 	sa->setModificationOutputMethod ("mass");
-	TEST_EQUAL("mass",sa->getModificationOutputMethod());
+	TEST_EQUAL(sa->getModificationOutputMethod(),"mass");
 	TEST_EXCEPTION(Exception::InvalidValue,sa->setModificationOutputMethod ("bla"));
 END_SECTION
 
 START_SECTION(String getModificationOutputMethod())
 	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"seqan");
-	TEST_EQUAL("mass",sa->getModificationOutputMethod());
+	TEST_EQUAL(sa->getModificationOutputMethod(),"mass");
 	sa->setModificationOutputMethod ("stringChecked");
-	TEST_EQUAL("stringChecked",sa->getModificationOutputMethod());
+	TEST_EQUAL(sa->getModificationOutputMethod(),"stringChecked");
 	sa->setModificationOutputMethod ("stringUnchecked");
-	TEST_EQUAL("stringUnchecked",sa->getModificationOutputMethod());
+	TEST_EQUAL(sa->getModificationOutputMethod(),"stringUnchecked");
 	sa->setModificationOutputMethod ("mass");
-	TEST_EQUAL("mass",sa->getModificationOutputMethod());
+	TEST_EQUAL(sa->getModificationOutputMethod(),"mass");
 END_SECTION
 
 START_SECTION((void getCandidates(std::vector< std::vector< std::pair< FASTAEntry, String > > > &candidates, const std::vector< double > &spec)))

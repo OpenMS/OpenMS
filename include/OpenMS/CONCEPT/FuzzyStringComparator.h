@@ -41,289 +41,329 @@
 
 namespace OpenMS
 {
-	namespace Internal
-	{
-		namespace ClassTest
-		{
-			bool isStringSimilar( const std::string &, const std::string & );
-			bool isFileSimilar( const std::string &, const std::string & );
-		}
-	}
+  namespace Internal
+  {
+    namespace ClassTest
+    {
+      void
+      testStringSimilar( const char * file, int line,
+                         const std::string & string_1,
+                         const char * string_1_stringified,
+                         const std::string & string_2,
+                         const char * string_2_stringified );
+      bool
+      isFileSimilar( const std::string &, const std::string & );
+    }
+  }
 
-	/**
-	@brief Fuzzy comparison of strings, tolerates numeric differences.
+  /**
+   @brief Fuzzy comparison of strings, tolerates numeric differences.
 
-	@todo Think about return values from compare_files (11 is not a bool :) (Clemens)
-	*/
-	class OPENMS_DLLAPI FuzzyStringComparator
-	{
-		
-		friend bool Internal::ClassTest::isStringSimilar( const std::string & , const std::string & );
-		friend bool Internal::ClassTest::isFileSimilar( const std::string & , const std::string & );
+   @todo Think about return values from compare_files (11 is not a bool :) (Clemens)
+   */
+  class OPENMS_DLLAPI FuzzyStringComparator
+  {
 
-		/// %Internal exeption class.
-		struct AbortComparison{};
-		
-	 public:
+      friend void
+          Internal::ClassTest::testStringSimilar(
+                                                  const char * file,
+                                                  int line,
+                                                  const std::string & string_1,
+                                                  const char * string_1_stringified,
+                                                  const std::string & string_2,
+                                                  const char * string_2_stringified );
+      friend bool
+      Internal::ClassTest::isFileSimilar( const std::string &,
+                                          const std::string & );
 
-		///@name the fabulous four
-		//@{
+      /// %Internal exception class.
+      struct AbortComparison
+      {
+      };
 
-		/// Constructor
-		FuzzyStringComparator();
+    public:
 
-		/// Destructor
-		virtual ~FuzzyStringComparator();
+      ///@name the fabulous four
+      //@{
 
-		/// Copy constructor intentionally not implemented
-		FuzzyStringComparator(const FuzzyStringComparator& rhs);
+      /// Constructor
+      FuzzyStringComparator();
 
-		/// Assignment operator intentionally not implemented
-		FuzzyStringComparator & operator=(const FuzzyStringComparator& rhs);
+      /// Destructor
+      virtual
+      ~FuzzyStringComparator();
 
-		//@}
+      /// Copy constructor intentionally not implemented
+      FuzzyStringComparator( const FuzzyStringComparator& rhs );
 
-		/// Acceptable relative error (a number >= 1.0)
-		const double & getAcceptableRelative() const
-		{
-			return ratio_max_allowed_;
-		}
+      /// Assignment operator intentionally not implemented
+      FuzzyStringComparator &
+      operator=( const FuzzyStringComparator& rhs );
 
-		/// Acceptable relative error (a number >= 1.0)
-		void setAcceptableRelative(const double rhs)
-		{
-			this->ratio_max_allowed_ = rhs;
-			if ( ratio_max_allowed_ < 1.0 ) ratio_max_allowed_ = 1/ratio_max_allowed_;
+      //@}
 
-		}
+      /// Acceptable relative error (a number >= 1.0)
+      const double &
+      getAcceptableRelative() const
+      {
+        return ratio_max_allowed_;
+      }
 
-		/// Acceptable absolute difference (a number >= 0.0)
-		const double & getAcceptableAbsolute() const
-		{
-			return absdiff_max_allowed_;
-		}
+      /// Acceptable relative error (a number >= 1.0)
+      void
+      setAcceptableRelative( const double rhs )
+      {
+        this->ratio_max_allowed_ = rhs;
+        if ( ratio_max_allowed_ < 1.0 ) ratio_max_allowed_ = 1
+            / ratio_max_allowed_;
 
-		/// Acceptable absolute difference (a number >= 0.0)
-		void setAcceptableAbsolute(const double rhs)
-		{
-			this->absdiff_max_allowed_ = rhs;
-			if ( absdiff_max_allowed_ < 0.0 ) absdiff_max_allowed_ = -absdiff_max_allowed_;
-		}
+      }
 
-		/// White list.  If both lines contain the same element from this list, they are skipped over.
-		const StringList & getWhitelist() const
-		{
-			return whitelist;
-		}
+      /// Acceptable absolute difference (a number >= 0.0)
+      const double &
+      getAcceptableAbsolute() const
+      {
+        return absdiff_max_allowed_;
+      }
 
-		/// White list.  If both lines contain the same element from this list, they are skipped over.
-		StringList & getWhitelist()
-		{
-			return whitelist;
-		}
+      /// Acceptable absolute difference (a number >= 0.0)
+      void
+      setAcceptableAbsolute( const double rhs )
+      {
+        this->absdiff_max_allowed_ = rhs;
+        if ( absdiff_max_allowed_ < 0.0 ) absdiff_max_allowed_
+            = -absdiff_max_allowed_;
+      }
 
-		/// White list.  If both lines contain the same element from this list, they are skipped over.
-		void setWhitelist(const StringList& rhs)
-		{
-			whitelist = rhs;
-		}
+      /// White list.  If both lines contain the same element from this list, they are skipped over.
+      const StringList &
+      getWhitelist() const
+      {
+        return whitelist;
+      }
 
+      /// White list.  If both lines contain the same element from this list, they are skipped over.
+      StringList &
+      getWhitelist()
+      {
+        return whitelist;
+      }
 
-		/**@brief verbose level
+      /// White list.  If both lines contain the same element from this list, they are skipped over.
+      void
+      setWhitelist( const StringList& rhs )
+      {
+        whitelist = rhs;
+      }
 
-		- 0 = very quiet mode (absolutely no output)
-		- 1 = quiet mode (no output unless differences detected)
-		- 2 = default (include summary at end)
-		- 3 = continue after errors
-		.
-		*/
-		const int & getVerboseLevel() const
-		{
-			return verbose_level_;
-		}
+      /**@brief verbose level
 
-		/**@brief verbose level
+       - 0 = very quiet mode (absolutely no output)
+       - 1 = quiet mode (no output unless differences detected)
+       - 2 = default (include summary at end)
+       - 3 = continue after errors
+       .
+       */
+      const int &
+      getVerboseLevel() const
+      {
+        return verbose_level_;
+      }
 
-		- 0 = very quiet mode (absolutely no output)
-		- 1 = quiet mode (no output unless differences detected)
-		- 2 = default (include summary at end)
-		- 3 = continue after errors
-		.
-		*/
-		void setVerboseLevel(const int rhs)
-		{
-			this->verbose_level_ = rhs;
-		}
+      /**@brief verbose level
 
-		/**@brief get tab width (for column numbers)
-		*/
-		const int & getTabWidth() const
-		{
-			return tab_width_;
-		}
+       - 0 = very quiet mode (absolutely no output)
+       - 1 = quiet mode (no output unless differences detected)
+       - 2 = default (include summary at end)
+       - 3 = continue after errors
+       .
+       */
+      void
+      setVerboseLevel( const int rhs )
+      {
+        this->verbose_level_ = rhs;
+      }
 
-		/**@brief set tab width (for column numbers)
-		*/
-		void setTabWidth(const int rhs)
-		{
-			this->tab_width_ = rhs;
-		}
+      /**@brief get tab width (for column numbers)
+       */
+      const int &
+      getTabWidth() const
+      {
+        return tab_width_;
+      }
 
-		/**@brief get first column (for column numbers)
-		*/
-		const int & getFirstColumn() const
-		{
-			return first_column_;
-		}
+      /**@brief set tab width (for column numbers)
+       */
+      void
+      setTabWidth( const int rhs )
+      {
+        this->tab_width_ = rhs;
+      }
 
-		/**@brief set first column (for column numbers)
-		*/
-		void setFirstColumn(const int rhs)
-		{
-			this->first_column_ = rhs;
-		}
+      /**@brief get first column (for column numbers)
+       */
+      const int &
+      getFirstColumn() const
+      {
+        return first_column_;
+      }
 
-		/**@brief Log output is written to this destination.
+      /**@brief set first column (for column numbers)
+       */
+      void
+      setFirstColumn( const int rhs )
+      {
+        this->first_column_ = rhs;
+      }
 
-		The default is std::cout.  Use std::ostringstream etc. to save the output
-		in a string.
-		*/
-		std::ostream & getLogDestination() const
-		{
-			return *log_dest_;
-		}
+      /**@brief Log output is written to this destination.
 
-		/**@brief Log output is written to this destination.
+       The default is std::cout.  Use std::ostringstream etc. to save the output
+       in a string.
+       */
+      std::ostream &
+      getLogDestination() const
+      {
+        return *log_dest_;
+      }
 
-		The default is std::cout.  Use std::ostringstream etc. to save the output
-		in a string.
+      /**@brief Log output is written to this destination.
 
-		@internal There seems to be an issue with this under Windows, see comment
-		in FuzzyStringComparator_test.C
-		
-		*/
-		void setLogDestination(std::ostream & rhs)
-		{
-			this->log_dest_ = &rhs;
-		}
+       The default is std::cout.  Use std::ostringstream etc. to save the output
+       in a string.
 
-		/**@brief Compare two strings.
-		
-		This compares all lines of the input.
+       @internal There seems to be an issue with this under Windows, see comment
+       in FuzzyStringComparator_test.C
 
-		returns true in case of success
-		*/
-		Int compareStrings( std::string const & lhs, std::string const & rhs );
-		
-		/**@brief Compare two streams of input.
-		
-		This compares all lines of the input.  Intended to be used for file
-		streams.
+       */
+      void
+      setLogDestination( std::ostream & rhs )
+      {
+        this->log_dest_ = &rhs;
+      }
 
-		returns true in case of success
-		*/
-		Int compareStreams( std::istream & input_1, std::istream & input_2 );
-		
-		/**@brief Simple diff-like application to compare two input files.
-		Numeric differences are tolerated up to a certain ratio or absolute
-		difference.
+      /**@brief Compare two strings.
 
-		where
-		@param filename_1 first input file
-		@param filename_2 second input file
-		@return A non-zero exit status indicates that errors were found.  For the meaning of other numbers, see the code.
+       This compares all lines of the input.
 
-		@sa ratio_max_allowed_
-		@sa absdiff_max_allowed_
-		@sa verbose_level_
-		*/
-		Int compareFiles( const std::string & filename_1, const std::string & filename_2);
+       returns true in case of success
+       */
+      Int
+      compareStrings( std::string const & lhs, std::string const & rhs );
 
-	 protected:
+      /**@brief Compare two streams of input.
 
-		/**@brief Compare two lines of input.
-		
-		This implements the core functionality.  Intended to be used for a single
-		line of input.
+       This compares all lines of the input.  Intended to be used for file
+       streams.
 
-		returns true (non-zero) in case of success
-		*/
-		Int compareLines_( std::string const & line_str_1,
-												std::string const & line_str_2
-											);
+       returns true in case of success
+       */
+      Int
+      compareStreams( std::istream & input_1, std::istream & input_2 );
 
-		/// Report good news.
- 		void reportSuccess_() const;
+      /**@brief Simple diff-like application to compare two input files.
+       Numeric differences are tolerated up to a certain ratio or absolute
+       difference.
 
-		/// Report bad news.
-		/// @exception AbortComparison
- 		void reportFailure_( char const * const message ) const;
+       where
+       @param filename_1 first input file
+       @param filename_2 second input file
+       @return A non-zero exit status indicates that errors were found.  For the meaning of other numbers, see the code.
 
-    /// Log and results output goes here
-		std::ostream * log_dest_;
+       @sa ratio_max_allowed_
+       @sa absdiff_max_allowed_
+       @sa verbose_level_
+       */
+      Int
+      compareFiles( const std::string & filename_1,
+                    const std::string & filename_2 );
 
-		/// input_1 name
-		std::string input_1_name_;
-		/// input_2 name
-		std::string input_2_name_;
+    protected:
 
-		std::stringstream line_1_;
-		std::stringstream line_2_;
+      /**@brief Compare two lines of input.
 
-		std::ios::pos_type line_1_pos_;
-		std::ios::pos_type line_2_pos_;
+       This implements the core functionality.  Intended to be used for a single
+       line of input.
 
-		/// Maximum ratio of numbers allowed, see @em ratio_max_.
-		double ratio_max_allowed_;
+       returns true (non-zero) in case of success
+       */
+      Int
+      compareLines_( std::string const & line_str_1,
+                     std::string const & line_str_2 );
 
-		/// Maximum ratio of numbers observed so far, see @em ratio_max_allowed_.
-		double ratio_max_;
+      /// Report good news.
+      void
+      reportSuccess_() const;
 
-		/// Maximum absolute difference of numbers allowed, see @em absdiff_max_.
-		double absdiff_max_allowed_;
+      /// Report bad news.
+      /// @exception AbortComparison
+      void
+      reportFailure_( char const * const message ) const;
 
-		/// Maximum difference of numbers observed so far, see @em absdiff_max_allowed_.
-		double absdiff_max_;
+      /// Log and results output goes here
+      std::ostream * log_dest_;
 
-		double number_1_;
-		char letter_1_;
-		bool is_number_1_;
-		bool is_space_1_;
+      /// input_1 name
+      std::string input_1_name_;
+      /// input_2 name
+      std::string input_2_name_;
 
-		double number_2_;
-		char letter_2_;
-		bool is_number_2_;
-		bool is_space_2_;
+      std::stringstream line_1_;
+      std::stringstream line_2_;
 
-		bool is_absdiff_small_; 
+      std::ios::pos_type line_1_pos_;
+      std::ios::pos_type line_2_pos_;
 
-		int line_num_1_;
-		int line_num_2_;
+      /// Maximum ratio of numbers allowed, see @em ratio_max_.
+      double ratio_max_allowed_;
 
-		int line_num_1_max_;
-		int line_num_2_max_;
+      /// Maximum ratio of numbers observed so far, see @em ratio_max_allowed_.
+      double ratio_max_;
 
-		int verbose_level_;
-		int tab_width_;
-		int first_column_;
-		
-		/**@brief Has comparison been sucessful so far?  Note: this flag is
-		changed in reportFailure_();
-		*/
-		bool is_status_success_;
+      /// Maximum absolute difference of numbers allowed, see @em absdiff_max_.
+      double absdiff_max_allowed_;
 
-		std::string line_str_1_max_;
-		std::string line_str_2_max_;
+      /// Maximum difference of numbers observed so far, see @em absdiff_max_allowed_.
+      double absdiff_max_;
 
-		/// use a prefix when reporting
-		bool use_prefix_;
+      double number_1_;
+      char letter_1_;
+      bool is_number_1_;
+      bool is_space_1_;
 
-		StringList whitelist;
-		std::map<String,UInt> whitelist_cases;
+      double number_2_;
+      char letter_2_;
+      bool is_number_2_;
+      bool is_space_2_;
 
-	}; // class FuzzyStringComparator
+      bool is_absdiff_small_;
+
+      int line_num_1_;
+      int line_num_2_;
+
+      int line_num_1_max_;
+      int line_num_2_max_;
+
+      int verbose_level_;
+      int tab_width_;
+      int first_column_;
+
+      /**@brief Has comparison been sucessful so far?  Note: this flag is
+       changed in reportFailure_();
+       */
+      bool is_status_success_;
+
+      std::string line_str_1_max_;
+      std::string line_str_2_max_;
+
+      /// use a prefix when reporting
+      bool use_prefix_;
+
+      StringList whitelist;
+      std::map<String,UInt> whitelist_cases;
+
+  }; // class FuzzyStringComparator
 
 }//namespace OpenMS
 
 #endif //OPENMS_CONCEPT_FUZZYSTRINGCOMPARATOR_H
-

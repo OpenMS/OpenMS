@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -68,7 +68,7 @@ START_SECTION((const DataValue& getValue(UInt index) const))
 	string tmp;
 	mi.setValue(1024,String("testtesttest"));
 	tmp = String(mi.getValue(1024));
-	TEST_EQUAL("testtesttest",tmp)
+	TEST_EQUAL(tmp,"testtesttest")
 END_SECTION
 
 START_SECTION((void setValue(const String& name, const String& value)))
@@ -79,7 +79,7 @@ START_SECTION((const DataValue& getValue(const String& name) const))
 	string tmp;
 	mi.setValue("testname",String("testtesttest2"));
 	tmp = String(mi.getValue("testname"));
-	TEST_EQUAL("testtesttest2",tmp)
+	TEST_EQUAL(tmp,"testtesttest2")
 END_SECTION
 
 START_SECTION((void setValue(const String& name, Int value)))
@@ -148,28 +148,28 @@ END_SECTION
 START_SECTION((MetaInfo(const MetaInfo& rhs)))
 	MetaInfo mi3(mi);
 	TEST_REAL_SIMILAR(DoubleReal(mi3.getValue("cluster_id")),DoubleReal(mi.getValue("cluster_id")))
-	TEST_EQUAL("testtesttest2",String(mi3.getValue("testname")))
+	TEST_STRING_EQUAL(mi3.getValue("testname"),"testtesttest2")
 END_SECTION
 
 START_SECTION((MetaInfo& operator = (const MetaInfo& rhs)))
 	MetaInfo mi3;
 	mi3 = mi;
 	TEST_REAL_SIMILAR(DoubleReal(mi3.getValue("cluster_id")),DoubleReal(mi.getValue("cluster_id")))
-	TEST_EQUAL("testtesttest2",String(mi3.getValue("testname")))
+	TEST_STRING_EQUAL(mi3.getValue("testname"),"testtesttest2")
 END_SECTION
 
 START_SECTION((void setValue(const String& name, const DataValue& value)))
 	DataValue tmp("testtesttest3");
 	mi.setValue("testname",tmp);
 	tmp = String(mi.getValue("testname"));
-	TEST_EQUAL("testtesttest3",tmp)
+	TEST_EQUAL(tmp,"testtesttest3")
 END_SECTION
 
 START_SECTION((void setValue(UInt index, const DataValue& value)))
 	DataValue tmp("testtesttest3");
 	mi.setValue(2,tmp);
 	tmp = String(mi.getValue(2));
-	TEST_EQUAL("testtesttest3",tmp)
+	TEST_EQUAL(tmp,"testtesttest3")
 END_SECTION
 
 START_SECTION((void getKeys(std::vector<String>& keys) const))
@@ -180,9 +180,9 @@ START_SECTION((void getKeys(std::vector<String>& keys) const))
 	TEST_EQUAL(tmp2.size(),tmp.size())
 	TEST_EQUAL(tmp2[0],tmp[0])
 	TEST_EQUAL(tmp2[1],tmp[1])
-	
+
 	MetaInfo mi2(mi);
-	mi2.getKeys(tmp2);	
+	mi2.getKeys(tmp2);
 	TEST_EQUAL(tmp2.size(),tmp.size())
 	TEST_EQUAL(tmp2[0],tmp[0])
 	TEST_EQUAL(tmp2[1],tmp[1])
@@ -196,8 +196,8 @@ START_SECTION((void getKeys(std::vector<String>& keys) const))
 	tmp.push_back("testname");
 	tmp.push_back("a");
 	tmp.push_back("d");
-	tmp.push_back("x");	
-	
+	tmp.push_back("x");
+
 	TEST_EQUAL(tmp2.size(),tmp.size())
 	TEST_EQUAL(tmp2[0],tmp[0])
 	TEST_EQUAL(tmp2[1],tmp[1])
@@ -215,12 +215,12 @@ START_SECTION((void getKeys(std::vector< UInt > &keys) const))
 	TEST_EQUAL(vec.size(),2)
 	TEST_EQUAL(vec[0],3)
 	TEST_EQUAL(vec[1],4)
-	
+
 	mi.setValue("a",1);
 	mi.setValue("d",1);
 	mi.setValue("x",1);
 	mi.getKeys(vec);
-	
+
 	TEST_EQUAL(vec.size(),5)
 	TEST_EQUAL(vec[0],3)
 	TEST_EQUAL(vec[1],4)
@@ -278,19 +278,19 @@ END_SECTION
 
 START_SECTION((void removeValue(UInt index)))
 	MetaInfo i,i2;
-	
+
 	i.setValue(1,String("bla"));
 	TEST_EQUAL(i==i2,false)
 	i.removeValue(1);
 	TEST_EQUAL(i==i2,true)
-	
+
 	//try if removing a non-existing value works as well
 	i.removeValue(1234);
 END_SECTION
 
 START_SECTION((void removeValue(const String& name)))
 	MetaInfo i,i2;
-	
+
 	i.setValue("label",String("bla"));
 	TEST_EQUAL(i==i2,false)
 	i.removeValue("label");

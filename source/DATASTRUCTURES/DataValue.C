@@ -68,12 +68,17 @@ namespace OpenMS
 	//-------------------------------------------------------------------
 	//    ctor for all supported types a DataValue object can hold
 	//--------------------------------------------------------------------
-	DataValue::DataValue(DoubleReal p) : value_type_(DOUBLE_VALUE)
+	DataValue::DataValue(long double p) : value_type_(DOUBLE_VALUE)
 	{ 
 		data_.dou_ = p;
 	}
 	
-	DataValue::DataValue(Real p) : value_type_(DOUBLE_VALUE)
+	DataValue::DataValue(double p) : value_type_(DOUBLE_VALUE)
+	{ 
+		data_.dou_ = p;
+	}
+	
+	DataValue::DataValue(float p) : value_type_(DOUBLE_VALUE)
 	{ 
 		data_.dou_ = p;
 	}
@@ -194,7 +199,7 @@ namespace OpenMS
 	//---------------------------------------------------------------------------
 	//                      Conversion operators
 	//----------------------------------------------------------------------------
-	DataValue::operator DoubleReal() const
+	DataValue::operator long double() const
 	{
 		if (value_type_ == EMPTY_VALUE)
 		{
@@ -202,12 +207,25 @@ namespace OpenMS
 		}
 		else if (value_type_ == INT_VALUE) 
 		{
-		  return DoubleReal(data_.int_);
+		  return (long double)(data_.int_);
 		}
 		return data_.dou_; 
 	}
 	
-	DataValue::operator Real() const
+	DataValue::operator double() const
+	{
+		if (value_type_ == EMPTY_VALUE)
+		{
+			throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue::EMPTY to double");
+		}
+		else if (value_type_ == INT_VALUE) 
+		{
+		  return double(data_.int_);
+		}
+		return data_.dou_; 
+	}
+	
+	DataValue::operator float() const
 	{
 		if (value_type_ == EMPTY_VALUE)
 		{
@@ -215,7 +233,7 @@ namespace OpenMS
 		}
 		else if (value_type_ == INT_VALUE) 
 		{
-		  return Real(data_.int_);
+		  return float(data_.int_);
 		}
 
 		return data_.dou_; 

@@ -48,7 +48,7 @@ namespace OpenMS
 		struct /* OPENMS_DLLAPI */ IntensityIteratorWrapper : IteratorT
 		{
 			typedef typename IteratorT::value_type::IntensityType value_type;
-		
+
 			/// "Why this?" - We need getIntensity return a reference, not a value.
 			struct Peak1D_ : Peak1D
 			{
@@ -68,7 +68,7 @@ namespace OpenMS
 			{
 				return static_cast<Peak1D_&>(const_cast<Peak1D&>(IteratorT::operator[](rhs))).getIntensity();
 			}
-			
+
 			template <typename IndexT> IntensityIteratorWrapper operator+(const IndexT& rhs) const
 			{
 				return IntensityIteratorWrapper(IteratorT::operator+(rhs));
@@ -83,7 +83,7 @@ namespace OpenMS
 		}
 
 	}
-	
+
 	/**
 	@brief This class implements baseline filtering operations using methods
 	from mathematical morphology.
@@ -99,7 +99,7 @@ namespace OpenMS
 	contains the maxima of a sliding window of size struc_size around \f$ i \f$,
 	i.e. \f[ \mathrm{dilation}_i = \max\{x_{i-\mathrm{struc\_size}/2}, \ldots,
 	x_{i+\mathrm{struc\_size}/2}\} \f].
-	
+
 	For morphological baseline filtering the <i>tophat</i> method is used.  The
 	tophat transform is defined as signal minus opening, where the opening is
 	the dilation of the erosion of the signal.
@@ -117,7 +117,7 @@ namespace OpenMS
 	@ingroup SignalProcessing
 
 	*/
-	class /* OPENMS_DLLAPI */ MorphologicalFilter
+	class OPENMS_DLLAPI MorphologicalFilter
 		:	public ProgressLogger
 	{
 	public:
@@ -157,12 +157,12 @@ namespace OpenMS
 			0.
 			*/
 		};
-		
+
 		/**@brief List of names of available morphological filtering methods.
 		These are: "identity", "erosion", "dilation", "opening", "closing", "gradient",
 		"tophat", "bothat", "erosion_simple", "dilation_simple".
 
-		@note This list has to be in sync with enum #Method.  
+		@note This list has to be in sync with enum #Method.
 		*/
 		static const char* method_names[MorphologicalFilter::NUMBER_OF_METHODS] ;
 
@@ -301,7 +301,7 @@ namespace OpenMS
 		from struc_size and the average spacing, and rounded up to an odd
 		number.</li>
 		</ul>
-		
+
 		For uniformly spaced data you can compute the number of data points in the
 		structuring element as follows:
 		@code
@@ -358,7 +358,7 @@ namespace OpenMS
 		SpectrumSettings are copied.
 		*/
 		template <typename InputPeakContainer, typename OutputPeakContainer >
-			void filterMSSpectrum( Method method, DoubleReal struc_size, bool is_struc_size_in_thomson, 
+			void filterMSSpectrum( Method method, DoubleReal struc_size, bool is_struc_size_in_thomson,
 														 const InputPeakContainer& input_peak_container, OutputPeakContainer& output_peak_container
 													 )
 		{
@@ -416,7 +416,7 @@ namespace OpenMS
 			Int ii = 0; // input index
 			Int oi = 0; // output index
 			ValueType current; // current value
-			
+
 			// we just can't get the case distinctions right in these cases, resorting to simple method.
 			if ( size <= struc_size || size <= 5 )
 			{
@@ -516,7 +516,7 @@ namespace OpenMS
 			Int ii = 0; // input index
 			Int oi = 0; // output index
 			ValueType current; // current value
-			
+
 			// we just can't get the case distinctions right in these cases, resorting to simple method.
 			if ( size <= struc_size || size <= 5 )
 			{
@@ -634,7 +634,7 @@ namespace OpenMS
 		}
 
 	};
-	
+
 }// namespace OpenMS
 
 #endif

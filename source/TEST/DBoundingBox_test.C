@@ -69,14 +69,17 @@ BB1 bb1;
 BB2 bb2;
 
 START_SECTION(bool isEmpty() const)
-  TEST_EQUAL(bb1,BB1::empty)
+  // TODO what is this test doing anyway?
+  // TEST_EQUAL(bb1,BB1::empty) // TODO cannot convert rhs to lhs type
   TEST_EQUAL(BB1::empty,bb1)
-  TEST_EQUAL(bb2,BB2::empty)
+  // TEST_EQUAL(bb2,BB2::empty) // TODO cannot convert
+  TEST_EQUAL(BB2::empty,bb2)
 END_SECTION
 
 START_SECTION(void enlarge(const PositionType& p))
+  // TODO what is this test doing anyway?
 	bb2.enlarge(BB2::zero.min());
-  TEST_EQUAL(bb2,BB2::zero);
+  TEST_EQUAL(BB2::zero,bb2);
 	bb2.enlarge(BB2::empty.min());
   //STATUS(bb2);
 	bb2.enlarge(BB2::empty.max());
