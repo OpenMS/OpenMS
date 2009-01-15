@@ -59,7 +59,7 @@ namespace OpenMS
 		defaults_.setValue("pseudo_counts", 1e-15, "Value which is added for every transition trained of the underlying hidden Markov model");
 		defaults_.setValue("num_explicit", 1, "Number of explicitely modeled losses from the same kind of amino acid or combinations thereof");
 
-		defaults_.setValue("min_int_to_train", "0.2", "Minimal intensity a ion and its losses must have to be considered for training.");
+		defaults_.setValue("min_int_to_train", 0.2, "Minimal intensity a ion and its losses must have to be considered for training.");
 		
 		defaults_.setValue("C_term_H2O_loss", "true", "enable water loss of the C-terminus");
 		defaults_.setValidStrings("C_term_H2O_loss", StringList::create("true,false"));
@@ -102,14 +102,20 @@ namespace OpenMS
 		return hmm_precursor_;
 	}
 	
-	double PILISNeutralLossModel::train(const RichPeakSpectrum& spec, const AASequence& peptide, double ion_weight, UInt charge)
+	double PILISNeutralLossModel::train(const RichPeakSpectrum& spec, const AASequence& peptide, double ion_weight, UInt charge, double peptide_weight)
 	{
+	#ifdef NEUTRAL_LOSS_MODEL_DEBUG
+		cerr << "PILISNeutralLossModel::train(#spec.size()=" << spec.size() << ", peptide=" << peptide << ", ion_weight=" << ion_weight << ", charge=" << charge << ", peptide_weight=" << peptide_weight << ")" << endl;
+	#endif
 		Map<String, double> peak_ints;
 		double intensity_sum = getIntensitiesFromSpectrum_(spec, peak_ints, ion_weight, peptide, charge);
 
 		String ion_name((String)param_.getValue("ion_name"));
 		double min_int_to_train((double)param_.getValue("min_int_to_train"));
-		if (intensity_sum < min_int_to_train || (ion_name != "p" && peak_ints[ion_name] == 0))
+		#ifdef NEUTRAL_LOSS_MODEL_DEBUG
+		cerr << ion_name << " intensity_sum=" << intensity_sum << ", min_int_to_train=" << min_int_to_train << endl;
+		#endif
+		if (intensity_sum < min_int_to_train || (ion_name != "p" && peak_ints[ion_name] == 0) || (ion_weight < peptide_weight / 2.0))
 		{
 			return intensity_sum;
 		}
@@ -118,7 +124,7 @@ namespace OpenMS
 		{
 			it->second /= intensity_sum;
 #ifdef NEUTRAL_LOSS_MODEL_DEBUG
-			cerr << "LOSS: " << it->first << " " << it->second << " " << peptide << ", sum=" << sum <<endl;
+			cerr << "LOSS: " << it->first << " " << it->second << " " << peptide << ", sum=" << intensity_sum <<endl;
 #endif
 		}
 		
@@ -164,7 +170,7 @@ namespace OpenMS
 	double PILISNeutralLossModel::getIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, Map<String, double>& peak_ints, double ion_weight, const AASequence& peptide, UInt charge)
 	{
 #ifdef NEUTRAL_LOSS_MODEL_DEBUG
-		cerr << "PILISNeutralLossModel::getIntensitiesFromSpectrum_(#peaks=" << train_spec.size() << ", weight=" << ion_weight << ", charge=" << charge << ")" << endl;
+		cerr << "PILISNeutralLossModel::getIntensitiesFromSpectrum_(#peaks=" << train_spec.size() << ", weight=" << ion_weight << ", peptide=" << peptide  <<  ", charge=" << charge << ")" << endl;
 #endif
 		set<String> precursor_losses;
 		bool enable_double_losses(param_.getValue("enable_double_losses").toBool());
@@ -239,7 +245,17 @@ namespace OpenMS
 				double diff = fabs(it->getMZ() - (ion_weight - loss_it->second + (double)charge) / (double)charge);
 				if (diff < pre_error)
 				{
-					double factor = pre_error / (pre_error - diff);
+					double factor = (pre_error - diff) / pre_error;
+					#ifdef NEUTRAL_LOSS_MODEL_DEBUG
+					cerr << "Found: ";
+					cerr << "factor=" << factor
+							 << " intensity=" << it->getIntensity()
+							 << " @m/z=" << it->getMZ() 
+							 << " ion_weight=" << ion_weight 
+							 << " loss_weight=" << loss_it->second 
+							 << " theo_ion_pos=" <<  (ion_weight - loss_it->second + (double)charge) / (double)charge
+							 << " diff=" << diff << endl;
+					#endif
 					peak_ints[loss_it->first] += it->getIntensity() * factor;
 					intensity_sum += it->getIntensity() * factor;
 				}

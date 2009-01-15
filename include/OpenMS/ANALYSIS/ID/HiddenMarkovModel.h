@@ -30,7 +30,6 @@
 
 #include <vector>
 #include <set>
-#include <map>
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -270,33 +269,33 @@ namespace OpenMS
 		private:
 
 			// transition probs
-			std::map<HMMState*, std::map<HMMState*, double> > trans_;
+			Map<HMMState*, Map<HMMState*, double> > trans_;
 
 			// transition prob counts
-			std::map<HMMState*, std::map<HMMState*, double> > count_trans_;
+			Map<HMMState*, Map<HMMState*, double> > count_trans_;
 
-			std::map<HMMState*, std::map<HMMState*, std::vector<double> > > count_trans_all_;
+			Map<HMMState*, Map<HMMState*, std::vector<double> > > count_trans_all_;
 
 			// all transition probs of all training steps (for model checking)
-			std::map<HMMState*, std::map<HMMState*, std::vector<double> > > train_count_trans_all_;
+			Map<HMMState*, Map<HMMState*, std::vector<double> > > train_count_trans_all_;
 
 			// number of training steps of the transitions
-			std::map<HMMState*, std::map<HMMState*, UInt> > training_steps_count_;
+			Map<HMMState*, Map<HMMState*, UInt> > training_steps_count_;
 
 			// forward variables
-			std::map<HMMState*, double> forward_;
+			Map<HMMState*, double> forward_;
 
 			// backward variables
-			std::map<HMMState*, double> backward_;
+			Map<HMMState*, double> backward_;
 
-			// name to state mapping
-			std::map<String, HMMState*> name_to_state_;
+			// name to state Mapping
+			Map<String, HMMState*> name_to_state_;
 
 			// emission probabilities
-			std::map<HMMState*, double> train_emission_prob_;
+			Map<HMMState*, double> train_emission_prob_;
 
 			// initial transition probabilities
-			std::map<HMMState*, double> init_prob_;
+			Map<HMMState*, double> init_prob_;
 
 			// all states of the HMM
 			std::set<HMMState*> states_;
@@ -304,14 +303,14 @@ namespace OpenMS
 			// trained transitions
 			std::set<std::pair<HMMState*, HMMState*> > trained_trans_;
 
-			// synonym transitions mapping
-			std::map<String, std::map<String, std::pair<String, String> > > synonym_trans_names_;
+			// synonym transitions Mapping
+			Map<String, Map<String, std::pair<String, String> > > synonym_trans_names_;
 
 			// synonym transitions
-			std::map<HMMState*, std::map<HMMState*, std::pair<HMMState*, HMMState*> > > synonym_trans_;
+			Map<HMMState*, Map<HMMState*, std::pair<HMMState*, HMMState*> > > synonym_trans_;
 
 			// transitions which are enabled
-			std::map<HMMState*, std::set<HMMState*> > enabled_trans_;
+			Map<HMMState*, std::set<HMMState*> > enabled_trans_;
 
 			// pseudocounts used in this instance
 			double pseudo_counts_;

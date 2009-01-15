@@ -433,6 +433,9 @@ namespace OpenMS
 		//double harge_sum(0);
 		vector<AASequence> prefixes, suffixes;
 
+		double pep_weight(peptide.getMonoWeight());
+		double peptide_mz((pep_weight + charge)/(double)charge);
+
 		// for each site: 
 		// 1. set proton distribution, 
 		// 2. initial training intensities, 
@@ -506,12 +509,12 @@ namespace OpenMS
           if (avail_bb_sum_prefix <= charge_remote_threshold)
           {
             //cerr << "Train b-ion losses, CR (avail=" << avail_bb_sum_prefix << ", z=" << z << ", prefix=" << prefix << endl;
-            sum_b[z] += b_ion_losses_cr_.train(in_spec, prefix, pre_weight, z);
+            sum_b[z] += b_ion_losses_cr_.train(in_spec, prefix, pre_weight, z, pep_weight);
           }
           else
           {
             //cerr << "Train b-ion losses, CD (avail=" << avail_bb_sum_prefix << ", z=" << z << ", prefix=" << prefix << endl;
-            sum_b[z] += b_ion_losses_cd_.train(in_spec, prefix, pre_weight, z);
+            sum_b[z] += b_ion_losses_cd_.train(in_spec, prefix, pre_weight, z, pep_weight);
           }
         }
         else
@@ -520,34 +523,34 @@ namespace OpenMS
 
           if (avail_bb_sum_prefix <= charge_remote_threshold)
           {
-            sum_b[z] += b2_ion_losses_cr_.train(in_spec, prefix, pre_weight, z);
+            sum_b[z] += b2_ion_losses_cr_.train(in_spec, prefix, pre_weight, z, pep_weight);
           }
           else
           {
-            sum_b[z] += b2_ion_losses_cd_.train(in_spec, prefix, pre_weight, z);
+            sum_b[z] += b2_ion_losses_cd_.train(in_spec, prefix, pre_weight, z, pep_weight);
           }
         }
 
         double a_pre_weight = prefix.getMonoWeight(Residue::AIon);
         if (avail_bb_sum_prefix <= charge_remote_threshold)
         {
-          sum_a[z] += a_ion_losses_cr_.train(in_spec, prefix, a_pre_weight, z);
+          sum_a[z] += a_ion_losses_cr_.train(in_spec, prefix, a_pre_weight, z, pep_weight);
         }
         else
         {
-					sum_a[z] += a_ion_losses_cd_.train(in_spec, prefix, a_pre_weight, z);
+					sum_a[z] += a_ion_losses_cd_.train(in_spec, prefix, a_pre_weight, z, pep_weight);
         }
 
         double suf_weight = suffix.getMonoWeight(Residue::YIon);
         if (avail_bb_sum_suffix <= charge_remote_threshold)
         {
           //cerr << "Train y-ion losses, CR (avail=" << avail_bb_sum_suffix << ", z=" << z << ", suffix=" << suffix << endl;
-          sum_y[z] += y_ion_losses_cr_.train(in_spec, suffix, suf_weight, z);
+          sum_y[z] += y_ion_losses_cr_.train(in_spec, suffix, suf_weight, z, pep_weight);
         }
         else
         {
           //cerr << "Train y-ion losses, CD (avail=" << avail_bb_sum_suffix << ", z=" << z << ", suffix=" << suffix << endl;
-          sum_y[z] += y_ion_losses_cd_.train(in_spec, suffix, suf_weight, z);
+          sum_y[z] += y_ion_losses_cd_.train(in_spec, suffix, suf_weight, z, pep_weight);
         }
 
 				sum_a_ints += sum_a[z];
@@ -749,13 +752,11 @@ namespace OpenMS
 	
 		if (is_charge_remote)
 		{
-			double peptide_weight((peptide.getMonoWeight() + charge) / (double)charge);
-			precursor_model_cr_.train(in_spec, peptide, peptide_weight, charge);
+			precursor_model_cr_.train(in_spec, peptide, peptide_mz, charge, pep_weight);
 		}
 		else
 		{
-			double peptide_weight((peptide.getMonoWeight() + charge) / (double)charge);
-			precursor_model_cd_.train(in_spec, peptide, peptide_weight, charge);
+			precursor_model_cd_.train(in_spec, peptide, peptide_mz, charge, pep_weight);
 		}
 
 		// now train the model with the data set

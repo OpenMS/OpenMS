@@ -77,7 +77,7 @@ namespace OpenMS
 			*/
 			//@{
 			/// performs a training step; needs as parameters a spectrum with annotated sequence and charge; returns the intensity sum of the matched peaks
-			double train(const RichPeakSpectrum&, const AASequence& peptide, double ion_weight, UInt charge);
+			double train(const RichPeakSpectrum&, const AASequence& peptide, double ion_weight, UInt charge, double peptide_weight);
 
 			/** reads the model parameters from the given files
 			    @param filename filename of the model
