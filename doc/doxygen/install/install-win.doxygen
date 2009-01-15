@@ -45,6 +45,8 @@
     <br>Make sure to add the location of patch.exe to your PATH.
   </UL>
 
+	@warning YOU NEED TO DISABLE UAC(User Account control) for the duration of the contrib installation as the patch.exe utility is not signed by GNU and will fail with active UAC.
+					 Alternatively you can create a manifest for patch.exe, but that is much more involved.
 
   @section install_win_required Installing required dependency libraries
 
