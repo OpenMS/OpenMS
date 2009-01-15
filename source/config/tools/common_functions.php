@@ -262,19 +262,38 @@ function getClassInfo($path,$header, $debug)
 					if (isset($member->templateparamlist))
 					{
 						$first = true;
+						$template = "";
 						foreach($member->templateparamlist->param as $para)
 						{
+							# edited by Clemens 2009-01-15; this seems to work for doxygen 1.5.7.1
+							# (handling of whitespace is horrific, please improve if you know better)
 							if ($first)
 							{
-								$template = "template <".trim($para->type->ref." ".$para->type)." ".$para->defname;
+								$template = "template <";
 								$first = false;
 							}
 							else
 							{
-								$template .= ", ".$para->type." ".$para->defname;
+								$template .= ",";
+							}
+							if (isset($para->type))
+							{
+								$template .= " ".$para->type;
+								$template = trim($template);
+							}
+							if (isset($para->type->ref))
+							{
+								$template .= " ".$para->type->ref;
+								$template = trim($template);
+							}
+							if (isset($para->defname))
+							{
+								$template .= " ".$para->defname;
+								$template = trim($template);
 							}
 						}
-						if (isset($template)) $mem = $template."> ".$mem;
+						$template .= " > ";
+						$mem = $template.$mem;
 					}
 					
 					if ($debug>4)
