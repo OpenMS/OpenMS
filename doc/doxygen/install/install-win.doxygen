@@ -195,7 +195,7 @@ cmake -D CONTRIB_CUSTOM_DIR:PATH="<path_to_contrib>" -G "<generator>" "<path_to_
           Example:
 @code
 cd c:\svn\OpenMS_Win64
-cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib" -G "Visual Studio 8 2005 Win64" "../OpenMS"
+cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib" -G "Visual Studio 9 2008 Win64" "../OpenMS"
 @endcode
 
       </OL>
