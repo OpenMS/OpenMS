@@ -107,10 +107,10 @@ END_SECTION
 START_SECTION((const Matrix<UInt>& getCord() const))
 	TEST_EQUAL(llm.getCord().rows(), 2)
 	TEST_EQUAL(llm.getCord().cols(), 2)
-	TEST_REAL_SIMILAR(llm.getCord().getValue(0,0), 0)
-	TEST_REAL_SIMILAR(llm.getCord().getValue(0,1), 0)
-	TEST_REAL_SIMILAR(llm.getCord().getValue(1,0), 0)
-	TEST_REAL_SIMILAR(llm.getCord().getValue(1,1), 1)
+	TEST_EQUAL(llm.getCord().getValue(0,0), 0)
+	TEST_EQUAL(llm.getCord().getValue(0,1), 0)
+	TEST_EQUAL(llm.getCord().getValue(1,0), 0)
+	TEST_EQUAL(llm.getCord().getValue(1,1), 1)
 END_SECTION
 
 START_SECTION((std::vector<DoubleReal> neigh(const Matrix< UInt > &cord, UInt win, DoubleReal radius)))

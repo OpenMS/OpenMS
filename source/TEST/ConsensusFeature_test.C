@@ -70,12 +70,12 @@ START_SECTION((ConsensusFeature& operator=(const ConsensusFeature &rhs)))
   ConsensusFeature cons_copy;
   cons_copy = cons;
   
-  TEST_REAL_SIMILAR(cons_copy.getRT(),1)
-  TEST_REAL_SIMILAR(cons_copy.getMZ(),2)
-  TEST_REAL_SIMILAR(cons_copy.getIntensity(),200)
-  TEST_REAL_SIMILAR((cons_copy.begin())->getMapIndex(),1)
-  TEST_REAL_SIMILAR((cons_copy.begin())->getElementIndex(),3)
-  TEST_REAL_SIMILAR((cons_copy.begin())->getIntensity(),200)
+  TEST_REAL_SIMILAR(cons_copy.getRT(),1.0)
+  TEST_REAL_SIMILAR(cons_copy.getMZ(),2.0)
+  TEST_REAL_SIMILAR(cons_copy.getIntensity(),200.0)
+  TEST_EQUAL((cons_copy.begin())->getMapIndex(),1)
+  TEST_EQUAL((cons_copy.begin())->getElementIndex(),3)
+  TEST_EQUAL((cons_copy.begin())->getIntensity(),200)
 END_SECTION
 
 START_SECTION((ConsensusFeature(const ConsensusFeature &rhs)))
@@ -84,29 +84,29 @@ START_SECTION((ConsensusFeature(const ConsensusFeature &rhs)))
   cons.insert(1,3,tmp_feature);
   ConsensusFeature cons_copy(cons);
   
-  TEST_REAL_SIMILAR(cons_copy.getRT(),1)
-  TEST_REAL_SIMILAR(cons_copy.getMZ(),2)
-  TEST_REAL_SIMILAR(cons_copy.getIntensity(),200)
-  TEST_REAL_SIMILAR((cons_copy.begin())->getMapIndex(),1)
-  TEST_REAL_SIMILAR((cons_copy.begin())->getElementIndex(),3)
-  TEST_REAL_SIMILAR((cons_copy.begin())->getIntensity(),200)
+  TEST_REAL_SIMILAR(cons_copy.getRT(),1.0)
+  TEST_REAL_SIMILAR(cons_copy.getMZ(),2.0)
+  TEST_REAL_SIMILAR(cons_copy.getIntensity(),200.0)
+  TEST_EQUAL((cons_copy.begin())->getMapIndex(),1)
+  TEST_EQUAL((cons_copy.begin())->getElementIndex(),3)
+  TEST_EQUAL((cons_copy.begin())->getIntensity(),200)
 END_SECTION
 
 START_SECTION((ConsensusFeature(const Peak2D &point)))
   
   ConsensusFeature cons(tmp_feature);
-  TEST_REAL_SIMILAR(cons.getRT(),1)
-  TEST_REAL_SIMILAR(cons.getMZ(),2)
-  TEST_REAL_SIMILAR(cons.getIntensity(),200)
+  TEST_REAL_SIMILAR(cons.getRT(),1.0)
+  TEST_REAL_SIMILAR(cons.getMZ(),2.0)
+  TEST_REAL_SIMILAR(cons.getIntensity(),200.0)
   TEST_EQUAL(cons.empty(), true)
 END_SECTION
 
 START_SECTION((ConsensusFeature(const RichPeak2D &point)))
   
   ConsensusFeature cons(tmp_feature);
-  TEST_REAL_SIMILAR(cons.getRT(),1)
-  TEST_REAL_SIMILAR(cons.getMZ(),2)
-  TEST_REAL_SIMILAR(cons.getIntensity(),200)
+  TEST_REAL_SIMILAR(cons.getRT(),1.0)
+  TEST_REAL_SIMILAR(cons.getMZ(),2.0)
+  TEST_REAL_SIMILAR(cons.getIntensity(),200.0)
   TEST_EQUAL(cons.empty(), true)
 END_SECTION
 
@@ -115,13 +115,13 @@ START_SECTION((ConsensusFeature(UInt map_index, UInt element_index, const Featur
   DRange<2> pos_range(1,2,1,2);
   DRange<1> int_range(200,200);
     
-  TEST_REAL_SIMILAR(cons.getRT(),1)
-  TEST_REAL_SIMILAR(cons.getMZ(),2)
-  TEST_REAL_SIMILAR(cons.getIntensity(),200)
+  TEST_REAL_SIMILAR(cons.getRT(),1.0)
+  TEST_REAL_SIMILAR(cons.getMZ(),2.0)
+  TEST_REAL_SIMILAR(cons.getIntensity(),200.0)
   ConsensusFeature::HandleSetType::const_iterator it = cons.begin();
-  TEST_REAL_SIMILAR(it->getMapIndex(),1)
-  TEST_REAL_SIMILAR(it->getElementIndex(),3)
-  TEST_REAL_SIMILAR(it->getIntensity(),200)
+  TEST_EQUAL(it->getMapIndex(),1)
+  TEST_EQUAL(it->getElementIndex(),3)
+  TEST_EQUAL(it->getIntensity(),200)
 END_SECTION
 
 START_SECTION((DRange<1> getIntensityRange() const))
@@ -160,9 +160,9 @@ START_SECTION((const HandleSetType& getFeatures() const))
   ConsensusFeature::HandleSetType group = cons_copy.getFeatures();
     
   ConsensusFeature::HandleSetType::const_iterator it = group.begin();
-  TEST_REAL_SIMILAR(it->getMapIndex(),2)
-  TEST_REAL_SIMILAR(it->getElementIndex(),3)
-  TEST_REAL_SIMILAR(it->getIntensity(),200)
+  TEST_EQUAL(it->getMapIndex(),2)
+  TEST_EQUAL(it->getElementIndex(),3)
+  TEST_EQUAL(it->getIntensity(),200)
 END_SECTION
 
 
@@ -174,13 +174,13 @@ START_SECTION((void insert(FeatureHandle const &handle)))
   cons.insert(h2);
       
   ConsensusFeature::HandleSetType::const_iterator it = cons.begin();
-  TEST_REAL_SIMILAR(it->getMapIndex(),2)
-  TEST_REAL_SIMILAR(it->getElementIndex(),3)
-  TEST_REAL_SIMILAR(it->getIntensity(),200)
+  TEST_EQUAL(it->getMapIndex(),2)
+  TEST_EQUAL(it->getElementIndex(),3)
+  TEST_EQUAL(it->getIntensity(),200)
   ++it;
-  TEST_REAL_SIMILAR(it->getMapIndex(),4)
-  TEST_REAL_SIMILAR(it->getElementIndex(),5)
-  TEST_REAL_SIMILAR(it->getIntensity(),200)
+  TEST_EQUAL(it->getMapIndex(),4)
+  TEST_EQUAL(it->getElementIndex(),5)
+  TEST_EQUAL(it->getIntensity(),200)
   ++it;
   TEST_EQUAL(it==cons.end(), true)
 END_SECTION
@@ -190,16 +190,16 @@ START_SECTION((void insert(UInt map_index, UInt element_index, const Feature &el
   cons.insert(2,3,tmp_feature);
       
   ConsensusFeature::HandleSetType::const_iterator it = cons.begin();
-  TEST_REAL_SIMILAR(it->getMapIndex(),2)
-  TEST_REAL_SIMILAR(it->getElementIndex(),3)
-  TEST_REAL_SIMILAR(it->getIntensity(),200)
+  TEST_EQUAL(it->getMapIndex(),2)
+  TEST_EQUAL(it->getElementIndex(),3)
+  TEST_EQUAL(it->getIntensity(),200)
   ++it;
   TEST_EQUAL(it==cons.end(),true)
 END_SECTION
 
 START_SECTION((DoubleReal getQuality() const))
 	ConsensusFeature cons;
-	TEST_REAL_SIMILAR(cons.getQuality(),0.0)
+	TEST_EQUAL(cons.getQuality(),0.0)
 END_SECTION
 
 START_SECTION((void setQuality(DoubleReal quality)))
@@ -213,21 +213,21 @@ START_SECTION((void computeConsensus()))
   //one point
   cons.insert(2,3,tmp_feature);
 	cons.computeConsensus();
-	TEST_REAL_SIMILAR(cons.getIntensity(),200)
-	TEST_REAL_SIMILAR(cons.getRT(),1)
-	TEST_REAL_SIMILAR(cons.getMZ(),2)
+	TEST_REAL_SIMILAR(cons.getIntensity(),200.0)
+	TEST_REAL_SIMILAR(cons.getRT(),1.0)
+	TEST_REAL_SIMILAR(cons.getMZ(),2.0)
 	//two points
   cons.insert(4,5,tmp_feature2);
 	cons.computeConsensus();
-	TEST_REAL_SIMILAR(cons.getIntensity(),250)
+	TEST_REAL_SIMILAR(cons.getIntensity(),250.0)
 	TEST_REAL_SIMILAR(cons.getRT(),1.5)
 	TEST_REAL_SIMILAR(cons.getMZ(),2.5)	
 	//three points
   cons.insert(6,7,tmp_feature3);
 	cons.computeConsensus();
-	TEST_REAL_SIMILAR(cons.getIntensity(),300)
-	TEST_REAL_SIMILAR(cons.getRT(),2)
-	TEST_REAL_SIMILAR(cons.getMZ(),3)	
+	TEST_REAL_SIMILAR(cons.getIntensity(),300.0)
+	TEST_REAL_SIMILAR(cons.getRT(),2.0)
+	TEST_REAL_SIMILAR(cons.getMZ(),3.0)	
 END_SECTION
 
 /////////////////////////////////////////////////////////////

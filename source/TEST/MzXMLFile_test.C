@@ -239,9 +239,9 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_3_64bit.mzXML"),e3);
 
   TEST_EQUAL(e3.size(), 3)
-	TEST_REAL_SIMILAR(e3[0].getMSLevel(), 1)
-	TEST_REAL_SIMILAR(e3[1].getMSLevel(), 1)
-	TEST_REAL_SIMILAR(e3[2].getMSLevel(), 1)
+	TEST_EQUAL(e3[0].getMSLevel(), 1)
+	TEST_EQUAL(e3[1].getMSLevel(), 1)
+	TEST_EQUAL(e3[2].getMSLevel(), 1)
 	TEST_REAL_SIMILAR(e3[0].getRT(), 1)
 	TEST_REAL_SIMILAR(e3[1].getRT(), 121)
 	TEST_REAL_SIMILAR(e3[2].getRT(), 3661)

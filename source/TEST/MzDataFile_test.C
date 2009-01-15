@@ -86,9 +86,9 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   // 180: (100,100) (110,200) (120,300) (130,200) (140,100)
 	//---------------------------------------------------------------------------
   TEST_EQUAL(e.size(), 3)
-	TEST_REAL_SIMILAR(e[0].getMSLevel(), 1)
-	TEST_REAL_SIMILAR(e[1].getMSLevel(), 2)
-	TEST_REAL_SIMILAR(e[2].getMSLevel(), 1)
+	TEST_EQUAL(e[0].getMSLevel(), 1)
+	TEST_EQUAL(e[1].getMSLevel(), 2)
+	TEST_EQUAL(e[2].getMSLevel(), 1)
 	TEST_REAL_SIMILAR(e[0].getRT(), 60)
 	TEST_REAL_SIMILAR(e[1].getRT(), 120)
 	TEST_REAL_SIMILAR(e[2].getRT(), 180)
@@ -528,8 +528,8 @@ START_SECTION(([EXTRA] load with selected MS levels))
 	TEST_STRING_EQUAL(e[0].getNativeID(),"spectrum=10")
 	TEST_EQUAL(e[1].size(), 5)
 	TEST_STRING_EQUAL(e[1].getNativeID(),"spectrum=12")
-	TEST_REAL_SIMILAR(e[0].getMSLevel(), 1)
-	TEST_REAL_SIMILAR(e[1].getMSLevel(), 1)
+	TEST_EQUAL(e[0].getMSLevel(), 1)
+	TEST_EQUAL(e[1].getMSLevel(), 1)
 
 	// load all MS levels
 	file.getOptions().clearMSLevels();
@@ -538,9 +538,9 @@ START_SECTION(([EXTRA] load with selected MS levels))
 	TEST_EQUAL(e[0].size(), 1)
 	TEST_EQUAL(e[1].size(), 3)
 	TEST_EQUAL(e[2].size(), 5)
-	TEST_REAL_SIMILAR(e[0].getMSLevel(), 1)
-	TEST_REAL_SIMILAR(e[1].getMSLevel(), 2)
-	TEST_REAL_SIMILAR(e[2].getMSLevel(), 1)
+	TEST_EQUAL(e[0].getMSLevel(), 1)
+	TEST_EQUAL(e[1].getMSLevel(), 2)
+	TEST_EQUAL(e[2].getMSLevel(), 1)
 END_SECTION
 
 START_SECTION(([EXTRA] load with RT range))
@@ -557,8 +557,8 @@ START_SECTION(([EXTRA] load with RT range))
 	// 180: (100,100) (110,200) (120,300) (130,200) (140,100)
 	//---------------------------------------------------------------------------
 	TEST_EQUAL(e.size(), 2)
-	TEST_REAL_SIMILAR(e[0].getMSLevel(), 2)
-	TEST_REAL_SIMILAR(e[1].getMSLevel(), 1)
+	TEST_EQUAL(e[0].getMSLevel(), 2)
+	TEST_EQUAL(e[1].getMSLevel(), 1)
 	TEST_REAL_SIMILAR(e[0].getRT(), 120)
 	TEST_REAL_SIMILAR(e[1].getRT(), 180)
 END_SECTION

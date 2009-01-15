@@ -118,7 +118,7 @@ START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::
 	  	}
 		}
   }
-	TEST_REAL_SIMILAR(counter, 0)
+	TEST_EQUAL(counter, 0)
 END_SECTION
 
 START_SECTION([EXTRA] void alignFeatureMaps(std::vector< FeatureMap<> >&))
