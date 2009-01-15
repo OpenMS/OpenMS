@@ -471,7 +471,8 @@ svn propset svn:eol-style native MyClass.C
 						<UL>
 							<LI> The option @a -u @a &lt;maintainer&gt; restricts the output to one maintainer
 							<LI> More options are given with @a --help
-							<LI> Send feedback concening the script to Marc
+							<LI> It may be necessary to increase the memory limit for PHP like in this example:  <code>php -d memory_limit=1000M checker.php $OPENMS -x > output_checker_allusers.txt</code>
+							<LI> Send feedback concerning the script to Marc
 						</UL>
           <LI> [TODO] Valgrind?
 					<LI> Documentation:
