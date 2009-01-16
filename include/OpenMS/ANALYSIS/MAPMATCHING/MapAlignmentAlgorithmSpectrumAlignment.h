@@ -187,12 +187,12 @@ namespace OpenMS
 				else retun false.
 				@param i Int coordinate i
 				@param j Int coordinate j
-				@param n UInt  size of column
-				@param m UInt  size of row
+				@param n Size  size of column
+				@param m Size  size of row
 				@param k_ Int  size of k_
 				@see MapAlignmentAlgorithmSpectrumAlignment()
 			*/			
-			bool insideBand_(UInt i,Int j,UInt n,UInt m,Int k_);
+			bool insideBand_(Size i,Int j,Size n,Size m,Int k_);
 			
 			/**
 		    @brief function to calculate a cubicspline to interpolate the Retention time
@@ -203,12 +203,12 @@ namespace OpenMS
 			 	@param x std::vector<int> which contain x coordinate
 			 	@param y  std::vector<double> which contain the retentiontimes
 			 	@param aligned MSExperiment the aligned sequence
-			 	@param begin UInt begin of the alignment in the aligned sequence 
-			 	@param end UInt end of the alignment in the aligned sequence 
+			 	@param begin Size begin of the alignment in the aligned sequence 
+			 	@param end Size end of the alignment in the aligned sequence 
 				@param transformation std::vector<TransformationDescription> saved the specific data points to recalulcate the spline
 			 	@see MapAlignmentAlgorithmSpectrumAlignment()
 			*/			
-			void calculateSpline_(std::vector<int>& x,std::vector<Real>& y, std::vector<MSSpectrum<>* >& aligned,UInt begin, UInt end,std::vector<TransformationDescription>& transformation);
+			void calculateSpline_(std::vector<int>& x,std::vector<Real>& y, std::vector<MSSpectrum<>* >& aligned,Size begin, Size end,std::vector<TransformationDescription>& transformation);
 		  
 		  /**
 			 	@brief calculate the size of the band for the alignment for two given Sequence
@@ -218,15 +218,15 @@ namespace OpenMS
      		
 				@param pattern const std::vector<MSSpectrum<> > vector of pointers of the template sequence
 				@param aligned std::vector<MSSpectrum<> > vector of pointers of the aligned sequence
-     		@param buffer std::map<UInt, std::map<UInt,Real> >  holds the calculated score of index i,j.
+     		@param buffer std::map<Size, std::map<Size,Real> >  holds the calculated score of index i,j.
      		@param column_row_orientation bool indicate the order of the matrix 	
-     		@param xbegin UInt indicate the beginning of the template sequence
-     		@param xend UInt indicate the end of the template sequence
-     		@param ybegin UInt indicate the beginning of the aligned sequence
-     		@param yend UInt indicate the end of the aligned sequence
+     		@param xbegin Size indicate the beginning of the template sequence
+     		@param xend Size indicate the end of the template sequence
+     		@param ybegin Size indicate the beginning of the aligned sequence
+     		@param yend Size indicate the end of the aligned sequence
 				@see MapAlignmentAlgorithmSpectrumAlignment()	
     	*/			
-			Int bestk_(const std::vector<MSSpectrum<>* >& pattern, std::vector<MSSpectrum<>* >& aligned,std::map<UInt, std::map<UInt,Real> > & buffer,bool column_row_orientation, UInt xbegin,UInt xend, UInt ybegin, UInt yend);
+			Int bestk_(const std::vector<MSSpectrum<>* >& pattern, std::vector<MSSpectrum<>* >& aligned,std::map<Size, std::map<Size,Real> > & buffer,bool column_row_orientation, Size xbegin,Size xend, Size ybegin, Size yend);
 			
 			/**
 				@brief calculate the score of two given MSSpectrums calls intern scoring_
@@ -235,17 +235,17 @@ namespace OpenMS
 				I,j indicate the index in the matrix. To find the right index on the sequence, each beginning is also given to the function.
 				A flag indicates the labeling of the axes. The buffermatrix stores the result of the scoring. If the band expands only a lookup of known scores is done.
 
-				@param i UInt is a index from the matrix.
+				@param i Size is a index from the matrix.
 				@param j Int is a index from the matrix.
-				@param patternbegin UInt indicate the beginning of the template sequence
-				@param alignbegin UInt indicate the beginning of the aligned sequence
+				@param patternbegin Size indicate the beginning of the template sequence
+				@param alignbegin Size indicate the beginning of the aligned sequence
 				@param pattern const std::vector<MSSpectrum<> > vector of pointers of the template sequence
 				@param aligned std::vector<MSSpectrum<> > vector of pointers of the aligned sequence
-				@param buffer std::map<UInt, std::map<UInt,Real> >  holds the calculated score of index i,j.
+				@param buffer std::map<Size, std::map<Size,Real> >  holds the calculated score of index i,j.
 				@param column_row_orientation bool indicate the order of the matrix
 				@see MapAlignmentAlgorithmSpectrumAlignment()	
 			*/
-			Real scoreCalculation_(UInt i,Int j, UInt patternbegin, UInt alignbegin ,const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::map<UInt, std::map<UInt,Real> > & buffer,bool column_row_orientation);
+			Real scoreCalculation_(Size i,Int j, Size patternbegin, Size alignbegin ,const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::map<Size, std::map<Size,Real> > & buffer,bool column_row_orientation);
 			
 			/**
 				@brief return the score of two given MSSpectrums by calling the scorefunction
@@ -266,10 +266,10 @@ namespace OpenMS
 				The first sequence is used as a template for the alignment.
 
 				 	 
-			 	@param xbegin UInt cordinate for the beginning of the template sequence.
-			 	@param ybegin UInt cordinate for the beginning of the aligend sequence .
-			 	@param xend UInt cordinate for the end of the template sequence.
-			 	@param yend UInt cordinate for the end of the aligend sequence.
+			 	@param xbegin Size cordinate for the beginning of the template sequence.
+			 	@param ybegin Size cordinate for the beginning of the aligend sequence .
+			 	@param xend Size cordinate for the end of the template sequence.
+			 	@param yend Size cordinate for the end of the aligend sequence.
 				@param pattern MSExperiment template MSExperiment.
 				@param aligned MSExperiment sequence to be align MSExperiment.
 			 	@param xcoordinate std::vector<int> save the postion of ankerpoints
@@ -279,7 +279,7 @@ namespace OpenMS
 				@exception Exception::OutOfRange if a out of bound appear @p pattern or @p aligned
 				@see MapAlignmentAlgorithmSpectrumAlignment()	
 			*/
-			void affineGapalign_(UInt xbegin, UInt ybegin, UInt xend,UInt yend, const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::vector<int>& xcoordinate, std::vector<Real>&ycoordinate, std::vector<int>& xcoordinatepattern);
+			void affineGapalign_(Size xbegin, Size ybegin, Size xend,Size yend, const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::vector<int>& xcoordinate, std::vector<Real>&ycoordinate, std::vector<int>& xcoordinatepattern);
 			
 			/**
 				@brief  preparation function of data points to construct later the  spline function.
@@ -327,9 +327,9 @@ namespace OpenMS
 			///This is the minimal score to be count as a mismatch(range 0.0 - 1.0)
 			Real cutoffScore_;
 			///Defines the size of one bucket 
-			UInt bucketsize_;
+			Size bucketsize_;
 			///Defines the amount of ankerpoints which are selected within one bucket. 
-			UInt anchorPoints_;
+			Size anchorPoints_;
 			///Debug mode flag default: False
 			bool debug_;
 			///Represent the cost of a mismath in the alignment

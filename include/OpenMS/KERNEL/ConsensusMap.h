@@ -264,15 +264,15 @@ namespace OpenMS
 				@param output_map The resulting ConsensusMap.
 			*/
 			template <typename ContainerT>
-			static void convert( UInt const input_map_index, ContainerT const & input_map, ConsensusMap& output_map )
+			static void convert(Size const input_map_index, ContainerT const & input_map, ConsensusMap& output_map )
 			{
 				output_map.clear();
 				output_map.reserve(input_map.size());
-				for ( UInt element_index = 0; element_index < input_map.size(); ++element_index )
+				for (Size element_index = 0; element_index < input_map.size(); ++element_index )
 				{
 					output_map.push_back( ConsensusFeature( input_map_index, element_index, input_map[element_index] ) );
 				}
-				output_map.getFileDescriptions()[input_map_index].size = (UInt) input_map.size();
+				output_map.getFileDescriptions()[input_map_index].size = (Size) input_map.size();
 				output_map.getProteinIdentifications().insert(output_map.getProteinIdentifications().end(),input_map.getProteinIdentifications().begin(), input_map.getProteinIdentifications().end());
 				output_map.getUnassignedPeptideIdentifications().insert(output_map.getUnassignedPeptideIdentifications().end(),input_map.getUnassignedPeptideIdentifications().begin(), input_map.getUnassignedPeptideIdentifications().end());
 				output_map.updateRanges();
@@ -287,7 +287,7 @@ namespace OpenMS
 				@param output_map The resulting ConsensusMap.
 				@param n The maximum number of elements to be copied.
 			*/
-			static void convert( UInt const input_map_index, MSExperiment<> & input_map, ConsensusMap& output_map, UInt n )
+			static void convert(Size const input_map_index, MSExperiment<> & input_map, ConsensusMap& output_map, Size n)
 			{
 				input_map.updateRanges(1);
 				if ( n > input_map.getSize() )
@@ -300,7 +300,7 @@ namespace OpenMS
 				tmp.reserve(input_map.getSize());
 				input_map.get2DData(tmp); //Avoid tripling the memory consumption by this call
 				std::partial_sort( tmp.begin(), tmp.begin()+n, tmp.end(), reverseComparator(Peak2D::IntensityLess()) );
-				for ( UInt element_index = 0; element_index < n; ++element_index )
+				for (Size element_index = 0; element_index < n; ++element_index )
 				{
 					output_map.push_back( ConsensusFeature( input_map_index, element_index, tmp[element_index] ) );
 				}

@@ -89,7 +89,7 @@ namespace OpenMS
 			@throw Exception::Precondition if no consensus feature contains feature
 			handles from both maps
 		*/
-		TransformationDescription calculateRegression_(UInt const index_x_map, UInt const index_y_map, ConsensusMap const& consensus_map, bool symmetric_regression) const;
+		TransformationDescription calculateRegression_(Size const index_x_map, Size const index_y_map, ConsensusMap const& consensus_map, bool symmetric_regression) const;
 		
 	 private:
 

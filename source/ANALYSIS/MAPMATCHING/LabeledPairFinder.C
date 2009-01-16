@@ -65,8 +65,8 @@ namespace OpenMS
 		checkIds_(input_maps);
 		
 		//look up the light and heavy index
-		UInt light_index = numeric_limits<UInt>::max();
-		UInt heavy_index = numeric_limits<UInt>::max();	
+		Size light_index = numeric_limits<Size>::max();
+		Size heavy_index = numeric_limits<Size>::max();	
 		for (ConsensusMap::FileDescriptions::const_iterator it = result_map.getFileDescriptions().begin();
 			 	 it!=result_map.getFileDescriptions().end();
 			 	 ++it)
@@ -80,7 +80,7 @@ namespace OpenMS
 				light_index = it->first;
 			}
 		}
-		if (light_index == numeric_limits<UInt>::max() || heavy_index == numeric_limits<UInt>::max())
+		if (light_index == numeric_limits<Size>::max() || heavy_index == numeric_limits<Size>::max())
 		{
 			throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"the input maps have to be labeled 'light' and 'heavy'");
 		}
@@ -133,13 +133,13 @@ namespace OpenMS
 				GaussFitter::GaussFitResult result;
 				//first estimate of the optimal shift: median of the distances
 				sort(dists.begin(),dists.end());
-				UInt median_index = dists.size()/2; 
+				Size median_index = dists.size()/2; 
 				result.x0 = dists[median_index]; 
 				//create histogram of distances
 				//consider only the maximum of pairs, centered around the optimal shift
 				Int max_pairs = model_ref.size()/2;
-				UInt start_index = max(0,(Int)(median_index) - max_pairs/2);
-				UInt end_index = min((Int)(dists.size()-1),(Int)(median_index) + max_pairs/2);
+				Size start_index = max(0,(Int)(median_index) - max_pairs/2);
+				Size end_index = min((Int)(dists.size()-1),(Int)(median_index) + max_pairs/2);
 				DoubleReal start_value = dists[start_index];
 				DoubleReal end_value = dists[end_index];
 				DoubleReal bin_step = fabs(end_value-start_value)/100;
@@ -153,12 +153,12 @@ namespace OpenMS
 				//std::cout << hist << endl;
 				dists.clear();
 				//determine median of bins (uniform background distribution)
-				vector<UInt> bins(hist.begin(),hist.end());
+				vector<Size> bins(hist.begin(),hist.end());
 				sort(bins.begin(),bins.end());
-				UInt bin_median = bins[bins.size()/2];
+				Size bin_median = bins[bins.size()/2];
 				bins.clear();
 				//estimate scale A: maximum of the histogram
-				UInt max_value = hist.maxValue();
+				Size max_value = hist.maxValue();
 				result.A = max_value-bin_median;
 				//overwrite estimate of x0 with the position of the highest bin
 				for (Size i=0;i<hist.size();++i)
@@ -234,7 +234,7 @@ namespace OpenMS
 		//compute best pairs
 		// - sort matches by quality
 		// - take highest-quality matches first (greedy) and mark them as used
-		set<UInt> used_features;
+		set<Size> used_features;
 		matches.sortByQuality(true);
 		for (ConsensusMap::const_iterator match=matches.begin(); match!=matches.end(); ++match)
 		{

@@ -48,14 +48,14 @@ namespace OpenMS
 		if (maps.size()<2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"At least two maps must be given!");
 		
 		// define reference map (the one with most peaks)
-		UInt reference_map_index = 0;
+		Size reference_map_index = 0;
 		Size max_count = 0;		
 		for (Size m=0; m<maps.size(); ++m)
 		{
 			if (maps[m].size()>max_count)
 			{
 				max_count = maps[m].size();
-				reference_map_index = (UInt)m;
+				reference_map_index = m;
 			}
 		}
 

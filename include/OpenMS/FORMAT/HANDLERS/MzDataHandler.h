@@ -326,7 +326,7 @@ namespace OpenMS
 			
 				The @p name and @p id are only used if the @p tag is @em supDataArrayBinary or @em supDataArray.
 			*/
-			inline void writeBinary_(std::ostream& os, UInt size, const String& tag, const String& name="", Int id=-1)
+			inline void writeBinary_(std::ostream& os, Size size, const String& tag, const String& name="", Int id=-1)
 			{
 				os 	<< "\t\t\t<" << tag;
 				if (tag=="supDataArrayBinary" || tag=="supDataArray")

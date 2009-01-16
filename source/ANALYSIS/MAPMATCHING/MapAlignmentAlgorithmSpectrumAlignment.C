@@ -101,15 +101,15 @@ namespace OpenMS
 		fourierActivation_(tempalign);
 
 		//if it's possible, built 4 blocks. These can be individually be aligned.						
-		std::vector<UInt> alignpoint;
+		std::vector<Size> alignpoint;
 		//saving the first cordinates
 		alignpoint.push_back(0); 
 		alignpoint.push_back(0);
 		//4 blocks : 0-0.25 ,0.25-50,0.50-0.75,1 The data points must have a high similarity score
 		for(Real i = 0.25; i<=0.75;i+=0.25)
 		{	
-			UInt y= (UInt)(tempalign.size() * i);
-			UInt x=0;
+			Size y= (Size)(tempalign.size() * i);
+			Size x=0;
 			Real maxi=-999.0;
 			
 			for (Size k = 0; k<pattern.size(); ++k)
@@ -127,8 +127,8 @@ namespace OpenMS
 							alignpoint.push_back(y);
 			}
 			
-			UInt xn=(UInt)(pattern.size() * i);
-			UInt yn=0;
+			Size xn=(Size)(pattern.size() * i);
+			Size yn=0;
 			for (Size k = 0; k<tempalign.size(); ++k)
 			{
 				Real s =	scoring_(*pattern[xn],*(tempalign[k]));
@@ -184,16 +184,16 @@ namespace OpenMS
 					std::cout<< xcoordinate[i] << " " << ycoordinate[i] << " x  y  anchorpunkte " << std::endl;
 				}*/
 		//calculate the spline
-		calculateSpline_(xcoordinate,ycoordinate,tempalign,(UInt)0,tempalign.size()-1,transformation);
+		calculateSpline_(xcoordinate,ycoordinate,tempalign,(Size)0,tempalign.size()-1,transformation);
 		if(xcoordinate[0]!=0)
 		{
-			for (Size i =0; i <=(UInt)xcoordinate[0];++i)
+			for (Size i =0; i <= (Size)xcoordinate[0];++i)
 			{
 				Real rt = (i+1)*(ycoordinate[0]/(xcoordinate[0]+1));
 				(*tempalign[i]).setRT(rt);
 			}
 		}
-		if((UInt)xcoordinate[xcoordinate.size()-1]!=tempalign.size()-1)
+		if((Size)xcoordinate[xcoordinate.size()-1]!=tempalign.size()-1)
 		{
 			Real slope= (ycoordinate[ycoordinate.size()-2]-ycoordinate[ycoordinate.size()-1])/(xcoordinate[xcoordinate.size()-2]-xcoordinate[xcoordinate.size()-1]);
 		
@@ -222,10 +222,10 @@ namespace OpenMS
 		The first sequence is used to be a template for the alignment.
 
 
-		@param xbegin UInt cordinate for the beginning of the template sequence.
-		@param ybegin UInt cordinate for the beginning of the aligend sequence .
-		@param xend UInt cordinate for the end of the template sequence.
-		@param yend UInt cordinate for the end of the aligend sequence.
+		@param xbegin Size cordinate for the beginning of the template sequence.
+		@param ybegin Size cordinate for the beginning of the aligend sequence .
+		@param xend Size cordinate for the end of the template sequence.
+		@param yend Size cordinate for the end of the aligend sequence.
 		@param pattern is the template MSExperiment.
 		@param aligned is to be align MSExperiment.
 		@param xcoordinate std::vector<int> save the postion of anchorpoints
@@ -233,19 +233,19 @@ namespace OpenMS
 		@param xcoordinatepattern std::vector<int> save the reference position of the anchorpoints from the pattern
 		@see MapAlignmentAlgorithmSpectrumAlignment();
 	 */
-		void MapAlignmentAlgorithmSpectrumAlignment::affineGapalign_(UInt xbegin, UInt ybegin, UInt xend,UInt yend, const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::vector<int>& xcoordinate, std::vector<Real>&ycoordinate, std::vector<int>& xcoordinatepattern)
+		void MapAlignmentAlgorithmSpectrumAlignment::affineGapalign_(Size xbegin, Size ybegin, Size xend, Size yend, const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::vector<int>& xcoordinate, std::vector<Real>&ycoordinate, std::vector<int>& xcoordinatepattern)
 		{	
 			
 			
 			
 			
 			//affine gap alignment needs two matrices
-		  std::map<UInt, std::map<UInt,Real> > matchmatrix;
-		  std::map<UInt, std::map<UInt,Real> > insertmatrix;	
+		  std::map<Size, std::map<Size,Real> > matchmatrix;
+		  std::map<Size, std::map<Size,Real> > insertmatrix;	
 		  //setting the size of column and row	
 			
-		  UInt n= std::max((xend-xbegin),(yend-ybegin))+1; //column 
-		  UInt m= std::min((xend-xbegin),(yend-ybegin))+1; //row
+		  Size n= std::max((xend-xbegin),(yend-ybegin))+1; //column 
+		  Size m= std::min((xend-xbegin),(yend-ybegin))+1; //row
 		 // std::cout<< n << " n " << m << " m " <<  xbegin << " " <<xend<< " " << ybegin << " " << yend <<std::endl;
 		  //log the Progress of the subaligmnet
 			String temp = "sub-alignment of interval: template sequence " + String(xbegin) + " " + String(xend) + " interval: alignsequence " + String(ybegin) + " " + String(yend);
@@ -259,7 +259,7 @@ namespace OpenMS
 		  		column_row_orientation = true;
 		  }
 			//matrix for holding calculated sorces
-			std::map<UInt, std::map<UInt,Real> > buffermatrix;
+			std::map<Size, std::map<Size,Real> > buffermatrix;
 			//calculate the value of k
 			k_=	bestk_(pattern, aligned, buffermatrix, column_row_orientation,xbegin,xend, ybegin, yend);
 			
@@ -289,7 +289,7 @@ namespace OpenMS
 			  {																//best k+1 =(2(k+1)+m-n)d+(n(k+1))matchscore 
 																				//if k >= columnsize -> there is no band necessary(normal global alignment)
 			  	tempdebugbuffer.clear();//because a next k run is done so clear the old one
-				std::map<UInt,std::map<UInt,UInt> > traceback;
+				std::map<Size,std::map<Size,Size> > traceback;
 		      //init both  matrices
 			  	
 			  	for (Size i = 1; i<= n; ++i)
@@ -300,8 +300,8 @@ namespace OpenMS
 				    {
 			  			//j->row
 			  			
-			  			Int j=i+h;
-			  			if(j >= 1 && (UInt)j<=m )
+			  			SignedSize j=i+h;
+			  			if(j >= 1 && (Size)j<=m )
 			  			{	
 			  				DoubleReal s=-999.0;
 			  				//score calculation, attention column and row a 1 size smaller
@@ -803,7 +803,7 @@ namespace OpenMS
 				i= temp.size();
 			  temp.resize(i+1);
 			  temp[i].setName("Fouriertransformation");
-			  UInt j=0;
+			  Size j=0;
 			  while(j < spec.size())
 			  {
 			  	temp[i].push_back(data[j]);
@@ -823,12 +823,12 @@ namespace OpenMS
 			else retun false.
 			@param i Int coordinate i
 			@param j Int coordinate j
-			@param n UInt  size of column
-			@param m UInt  size of row
+			@param n Size  size of column
+			@param m Size  size of row
 			@param k_ Int  size of k_
 			@see MapAlignmentAlgorithmSpectrumAlignment()
 		*/
-		inline bool  MapAlignmentAlgorithmSpectrumAlignment::insideBand_(UInt i,Int j,UInt n,UInt m,Int k_) 
+		inline bool  MapAlignmentAlgorithmSpectrumAlignment::insideBand_(Size i,Int j,Size n,Size m,Int k_) 
 	  {
 	   	if((Int)(-k_)<=(Int)(i-j) &&(Int) (i-j) <=(Int)(k_+n-m))
 	   	{
@@ -849,36 +849,36 @@ namespace OpenMS
 			
 			@param pattern const std::vector<T* > vector of pointers of the template sequence
 			@param aligned std::vector<T* > vector of pointers of the aligned sequence
-			@param buffer std::map<UInt, std::map<UInt,Real> >  holds the calculated score of index i,j.
+			@param buffer std::map<Size, std::map<Size,Real> >  holds the calculated score of index i,j.
 			@param flag1 bool flag indicate the order of the matrix   		
-			@param xbegin UInt indicate the beginning of the template sequence
-			@param xend UInt indicate the end of the template sequence
-			@param ybegin UInt indicate the beginning of the aligned sequence
-			@param yend UInt indicate the end of the aligned sequence
+			@param xbegin Size indicate the beginning of the template sequence
+			@param xend Size indicate the end of the template sequence
+			@param ybegin Size indicate the beginning of the aligned sequence
+			@param yend Size indicate the end of the aligned sequence
 			@see MapAlignmentAlgorithmSpecturmAlignment()
     */
   
-    inline Int  MapAlignmentAlgorithmSpectrumAlignment::bestk_(const std::vector<MSSpectrum<>* >& pattern, std::vector<MSSpectrum<>* >& aligned,std::map<UInt, std::map<UInt,Real> > & buffer,bool column_row_orientation, UInt xbegin,UInt xend, UInt ybegin, UInt yend)
+    inline Int  MapAlignmentAlgorithmSpectrumAlignment::bestk_(const std::vector<MSSpectrum<>* >& pattern, std::vector<MSSpectrum<>* >& aligned,std::map<Size, std::map<Size,Real> > & buffer,bool column_row_orientation, Size xbegin,Size xend, Size ybegin, Size yend)
     {	
     	Int ktemp=2;
       for(Real i = 0.25; i<=0.75;i+=0.25)
     	{	
-      	UInt temp= (UInt)((yend-ybegin) * i);
+      	Size temp= (Size)((yend-ybegin) * i);
     		Real	maxi=-999.0;
     		Real	s=-999.0;
     		for (Size k = 0; k<=(xend-xbegin); ++k)
     		{
-    			UInt x;
+    			Size x;
     			Int y;
     			if(column_row_orientation)
     			{ 
-    				x= (UInt)temp+1;
+    				x= (Size)temp+1;
     				y= k+1;
     				s= scoreCalculation_(x,y,xbegin,ybegin,pattern,aligned,buffer,column_row_orientation);
     			}
     			else
     			{
-    				x= (UInt)k+1;
+    				x= (Size)k+1;
     				y= (Int)(temp+1);
     				s= scoreCalculation_(x,y,xbegin,ybegin,pattern,aligned,buffer,column_row_orientation);
     			}
@@ -903,11 +903,11 @@ namespace OpenMS
 			@param x std::vector<int> which contain x cordinates
 			@param y  std::vector<double> which contain the retentiontimes
 			@param aligened MSExperiment the aligned sequence
-			@param begin UInt begin of the alignment in the aligned sequence 
-			@param end UInt end of the alignment in the aligned sequence 
+			@param begin Size begin of the alignment in the aligned sequence 
+			@param end Size end of the alignment in the aligned sequence 
 			@see MapAlignmentAlgorithmSpectrumAlignment()
    */
-   inline void  MapAlignmentAlgorithmSpectrumAlignment::calculateSpline_(std::vector<int>& x,std::vector<Real>& y, std::vector<MSSpectrum<>* >& aligned,UInt begin, UInt end,std::vector<TransformationDescription>& transformation) 
+   inline void  MapAlignmentAlgorithmSpectrumAlignment::calculateSpline_(std::vector<int>& x,std::vector<Real>& y, std::vector<MSSpectrum<>* >& aligned,Size begin, Size end,std::vector<TransformationDescription>& transformation) 
     {
     	if(x.size() >=3)
     	{
@@ -933,8 +933,8 @@ namespace OpenMS
 				trans.setPairs(PairVector);
 				transformation.push_back(trans);
     		gsl_interp_accel *acc = gsl_interp_accel_alloc();
-    		gsl_spline *spline = gsl_spline_alloc(gsl_interp_cspline, (UInt)x.size());
-    		gsl_spline_init(spline,tempx,tempy,(UInt)x.size());
+    		gsl_spline *spline = gsl_spline_alloc(gsl_interp_cspline, (Size)x.size());
+    		gsl_spline_init(spline,tempx,tempy,(Size)x.size());
 
     		for (Size i = begin; i <= end; ++i)
     		{
@@ -955,10 +955,10 @@ namespace OpenMS
     		{
     			if(x.size()==2)
     			{
-    				if((UInt)x[1]== begin &&(UInt) x[0]==end)
+    				if((Size)x[1]== begin &&(Size) x[0]==end)
     				{
-    					UInt distance = std::abs((Int)(begin-end));
-    					UInt difference = std::abs((Int)(y[1]-y[0]));
+    					Size distance = std::abs((Int)(begin-end));
+    					Size difference = std::abs((Int)(y[1]-y[0]));
     					Real k= distance/difference; 
     					for (Size i=0; i<=distance; ++i)
     					{	
@@ -966,7 +966,7 @@ namespace OpenMS
     						(*aligned[begin+i]).setRT(t);
     					}
     				}
-    				else if((UInt)x[1]!=begin &&(UInt) x[0]==end)
+    				else if((Size)x[1]!=begin &&(Size) x[0]==end)
     				{
     					if(y[1]>(*aligned[begin]).getRT())
     					{
@@ -976,13 +976,13 @@ namespace OpenMS
     					}
     					else
     					{
-    						UInt difference = std::abs((Int)((*aligned[x[1]]).getRT()-y[1]));
+    						Size difference = std::abs((Int)((*aligned[x[1]]).getRT()-y[1]));
     						x.push_back(begin);
     						y.push_back((*aligned[x[1]]).getRT()-difference);
     						calculateSpline_(x,y,aligned,begin,end);
     					}
     				}
-    				else if((UInt)x[1]==begin &&(UInt) x[0]!=end)
+    				else if((Size)x[1]==begin &&(Size) x[0]!=end)
     				{
     					if(y[0]<(*aligned[end]).getRT())
     					{
@@ -993,18 +993,18 @@ namespace OpenMS
     					}
     					else
     					{
-    						UInt difference = std::abs((Int)((*aligned[x[0]]).getRT()-y[0]));
+    						Size difference = std::abs((Int)((*aligned[x[0]]).getRT()-y[0]));
     						x.push_back(end);
     						y.push_back((*aligned[x[0]]).getRT()+difference);
     						ordering_(x,y);
     						calculateSpline_(x,y,aligned,begin,end);
     					}
     				}
-    				else if((UInt)x[1]!= begin &&(UInt) x[0]!= end)
+    				else if((Size)x[1]!= begin &&(Size) x[0]!= end)
     				{
     					if(y[1]<(*aligned[begin]).getRT())
     					{
-    						UInt difference = std::abs((Int)((*aligned[x[1]]).getRT()-y[1]));
+    						Size difference = std::abs((Int)((*aligned[x[1]]).getRT()-y[1]));
     						x.push_back(begin);
     						y.push_back((*aligned[x[1]]).getRT()-difference);
     					}
@@ -1016,7 +1016,7 @@ namespace OpenMS
     					}
     					if(y[0]>(*aligned[end]).getRT())
     					{
-    						UInt difference = std::abs((Int)((*aligned[x[0]]).getRT()-y[0]));
+    						Size difference = std::abs((Int)((*aligned[x[0]]).getRT()-y[0]));
     						x.push_back(end);
     						y.push_back((*aligned[x[0]]).getRT()+difference);
     						
@@ -1056,17 +1056,17 @@ namespace OpenMS
 			I,j indicate the index in the matrix. To find the right index on the sequence, each beginning is also given to the function.
 			A flag indicates which order the matrix contain. The buffermatrix collects the result of the scoring, if the band expand only a lookup of knowing scores is done
 			
-			@param i UInt is a index from the matrix.
+			@param i Size is a index from the matrix.
 			@param j Int is a index from the matrix.
-			@param patternbegin UInt indicate the beginning of the template sequence
-			@param aligenbegin UInt indicate the beginning of the aligned sequence
+			@param patternbegin Size indicate the beginning of the template sequence
+			@param aligenbegin Size indicate the beginning of the aligned sequence
 			@param pattern const std::vector<T* > vector of pointers of the template sequence
 			@param aligned std::vector<T* > vector of pointers of the aligned sequence
-			@param buffer std::map<UInt, std::map<UInt,Real> >  holds the calculated score of index i,j.
+			@param buffer std::map<Size, std::map<Size,Real> >  holds the calculated score of index i,j.
 			@param flag1 bool flag indicate the order of the matrix
 			@see MapAlignmentAlgorithmSpecturmAlignment()
    */
-   inline	Real MapAlignmentAlgorithmSpectrumAlignment::scoreCalculation_(UInt i,Int j, UInt patternbegin, UInt alignbegin ,const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::map<UInt, std::map<UInt,Real> > & buffer,bool column_row_orientation)
+   inline	Real MapAlignmentAlgorithmSpectrumAlignment::scoreCalculation_(Size i,Int j, Size patternbegin, Size alignbegin ,const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned,std::map<Size, std::map<Size,Real> > & buffer,bool column_row_orientation)
    {
   	 if(!column_row_orientation)
   	 {
@@ -1153,7 +1153,7 @@ namespace OpenMS
 			{
 				std::cout<< (temp[i].first).first << "first" << (temp[i].first).second << " second" <<std::endl; 
 			}*/
-			for (Size k =0; k< (UInt)anchor;++k)
+			for (Size k =0; k< (Size)anchor;++k)
 			{
 				tempxy.push_back(temp[k]);
 			}
@@ -1217,7 +1217,7 @@ namespace OpenMS
 		
 		
 		//R heatplot score of both sequence
-		std::map<UInt,std::map<UInt,Real> >debugbuffermatrix;
+		std::map<Size,std::map<Size,Real> >debugbuffermatrix;
 		
 		Real scoremaximum=-2;
 		//precalculation for the heatmap
@@ -1239,7 +1239,7 @@ namespace OpenMS
 		/*
 		for (Size i=0; i < debugscorematrix_.size();++i)
 		{
-			debugbuffermatrix[(UInt)debugscorematrix_[i][0]][(UInt)debugscorematrix_[i][1]]=debugscorematrix_[i][2];
+			debugbuffermatrix[(Size)debugscorematrix_[i][0]][(Size)debugscorematrix_[i][1]]=debugscorematrix_[i][2];
 		}*/
 		std::ofstream scorefile;
 		scorefile.open("debugscoreheatmap.r",std::ios::trunc);

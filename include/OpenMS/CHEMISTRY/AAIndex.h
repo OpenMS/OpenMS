@@ -31,6 +31,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
+#include <cmath>
+
 namespace OpenMS
 {
 	/**
