@@ -1,4 +1,5 @@
-<?php # -*- mode: php; tab-width: 2; -*-
+<?php
+# -*- mode: php; tab-width: 2; -*-
 # vi: set ts=2:
 #
 # --------------------------------------------------------------------------
@@ -25,10 +26,9 @@
 # --------------------------------------------------------------------------
 	
 	error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
+	ini_set('memory_limit', '1000M');
 	
 	include "common_functions.php";
-	
-	#TODO: add check for self assignment
 	
 	######################## helper functions ###############################
 	function printUsage()
@@ -40,6 +40,11 @@
 		print "- all tests were executed.\n";
 		print "\n";
 		print "If no user name is given, the tests are performed for all users.\n";
+		print "\n";
+		
+		print "Note:\n";
+		print "If the script does not have enough memory available, use:\n";
+		print "> php -d memory_limit=1000M checker.php\n";
 		print "\n";
 		print "tests:\n";
 		foreach ($GLOBALS["all_tests"] as $name => $desc)
