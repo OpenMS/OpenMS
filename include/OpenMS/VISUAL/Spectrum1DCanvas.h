@@ -101,13 +101,13 @@ namespace OpenMS
 			/// Sets whether this widget is currently in mirror mode
 			void setMirrorModeActive(bool b);
 		
-			/// Calls dataToWidget() and takes snap_factors_ and percentage_factor_ into account.
+			/// For convenience - calls dataToWidget(float, float, ...)
 			void dataToWidget(const PeakType& peak, QPoint& point, bool flipped = false, bool percentage = true);
 			
 			/// Calls SpectrumCanvas::dataToWidget_(), takes mirror mode into account
 			void dataToWidget(float x, float y, QPoint& point, bool flipped = false, bool percentage = false);
 			
-			/// Calls SpectrumCanvas::widgetToData_(), takes mirror mode into account
+			/// For convenience - calls widgetToData(float, float, ...)
 			PointType widgetToData(const QPoint& pos, bool percentage = false);
 			
 			/// Calls SpectrumCanvas::widgetToData_(), takes mirror mode into account
