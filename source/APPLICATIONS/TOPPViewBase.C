@@ -1485,6 +1485,11 @@ namespace OpenMS
 
 	void TOPPViewBase::spectrumSelectionChange(QTreeWidgetItem* current, QTreeWidgetItem* /*previous*/)
 	{
+		if (current == 0)
+		{
+			return;
+		}
+		
 		Spectrum1DWidget* widget_1d = active1DWindow_();
 		if (widget_1d)
 		{
