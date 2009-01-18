@@ -212,7 +212,7 @@ namespace OpenMS
 			/// dialog for inspecting file meta data
 			void metadataFileDialog();
 			/// Shows the selected spectrum
-			void spectrumSelectionChange(QTreeWidgetItem* item, int /*column*/);
+			void spectrumSelectionChange(QTreeWidgetItem* current, QTreeWidgetItem* /*previous*/);
 
     protected slots:
       /** @name Layer manager and filter manager slots

@@ -402,7 +402,7 @@ namespace OpenMS
   	header_labels.append(QString("m/z"));
   	spectrum_selection_->setHeaderLabels(header_labels);
     spectrum_bar->setWidget(spectrum_selection_);
-    connect(spectrum_selection_,SIGNAL(itemClicked(QTreeWidgetItem*, int)),this,SLOT(spectrumSelectionChange(QTreeWidgetItem*, int)));
+    connect(spectrum_selection_,SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)),this,SLOT(spectrumSelectionChange(QTreeWidgetItem*, QTreeWidgetItem*)));
 
     windows->addAction("&Show spectrum selection window",spectrum_bar,SLOT(show()));
 
@@ -1483,12 +1483,12 @@ namespace OpenMS
 		}
 	}
 
-	void TOPPViewBase::spectrumSelectionChange(QTreeWidgetItem* item, int /*column*/)
+	void TOPPViewBase::spectrumSelectionChange(QTreeWidgetItem* current, QTreeWidgetItem* /*previous*/)
 	{
 		Spectrum1DWidget* widget_1d = active1DWindow_();
 		if (widget_1d)
 		{
-			int index = item->text(3).toInt();
+			int index = current->text(3).toInt();
 			widget_1d->canvas()->activateSpectrum(index);
 		}
 		else
@@ -1496,7 +1496,7 @@ namespace OpenMS
 			SpectrumCanvas* cc = activeCanvas_();
 			const LayerData& cl = cc->getCurrentLayer();
 	
-			int index = item->text(3).toInt();
+			int index = current->text(3).toInt();
 
 			FeatureMapType f_dummy;
 			ConsensusMapType c_dummy;
