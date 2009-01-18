@@ -131,28 +131,28 @@ namespace OpenMS
 			{
 				if (!show_alignment_)
 				{
-					point.setY(height() - (tmp.y() / 2));
+					point.setY(height() - (int)(tmp.y() / 2.0));
 				}
 				else // show_alignment_
 				{
-					point.setY(height() - ((tmp.y() * alignment_shrink_factor) / 2));
+					point.setY(height() - (int)((tmp.y() * alignment_shrink_factor) / 2.0));
 				}
 			}
 			else // !flipped
 			{
 				if (!show_alignment_)
 				{
-					point.setY(tmp.y() / 2);
+					point.setY((int)(tmp.y() / 2.0));
 				}
 				else // show_alignment_
 				{
-					point.setY((tmp.y() * alignment_shrink_factor) / 2);
+					point.setY((int)((tmp.y() * alignment_shrink_factor) / 2.0));
 				}
 			}
 		}
 		else // !mirror_mode_
 		{
-			point.setY(tmp.y());
+			point.setY((int)(tmp.y()));
 		}
 	}
 	
@@ -906,7 +906,7 @@ namespace OpenMS
 			}
 			else
 			{
-				top_end.setY(0.0);
+				top_end.setY(0);
 			}
 			
 			// paint the crosshair only for currently selected peaks of the current layer
@@ -1553,8 +1553,8 @@ namespace OpenMS
 						{
 							alignment_shrink_factor = (DoubleReal)(height() - 10) / (DoubleReal)height();
 						}
-						painter.drawLine(xl,y*alignment_shrink_factor/2, xh, y*alignment_shrink_factor/2);
-						painter.drawLine(xl,yl-y*alignment_shrink_factor/2, xh, yl-y*alignment_shrink_factor/2);
+						painter.drawLine(xl,(int)((DoubleReal)(y)*alignment_shrink_factor/2.0), xh, (int)((DoubleReal)(y)*alignment_shrink_factor/2.0));
+						painter.drawLine(xl,yl-(int)((DoubleReal)(y)*alignment_shrink_factor/2.0), xh, yl-(int)((DoubleReal)(y)*alignment_shrink_factor/2.0));
 					}
 				}
 			}
