@@ -105,7 +105,7 @@ class TestModel : public BaseModel<2>
 TestModel* ptr = 0;
 START_SECTION((BaseModel()))
 	ptr = new TestModel();
-	TEST_NOT_EQUAL((Int)ptr, 0)
+	TEST_NOT_EQUAL((Size)ptr, 0)
 END_SECTION
 
 // destructor
