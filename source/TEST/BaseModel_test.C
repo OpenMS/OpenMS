@@ -105,8 +105,7 @@ class TestModel : public BaseModel<2>
 TestModel* ptr = 0;
 START_SECTION((BaseModel()))
 	ptr = new TestModel();
-  char * ptr2 = 0;
-	TEST_NOT_EQUAL(ptr2, 0)
+	TEST_NOT_EQUAL((Int)ptr, 0)
 END_SECTION
 
 // destructor
