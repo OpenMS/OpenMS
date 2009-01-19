@@ -156,7 +156,7 @@ namespace OpenMS
 			//tags
 			String tags_string;
 			optionalAttributeAsString_(tags_string,attributes,"tags");
-			StringList tags = StringList::create(tags_string);
+			list_.tags = StringList::create(tags_string);
 			//advanced (for downward compatibility with old Param files)
 			String advanced_string;
 			optionalAttributeAsString_(advanced_string,attributes,"advanced");

@@ -91,6 +91,8 @@ namespace OpenMS
 			private:
 				/// Not implemented
 				ParamEditorDelegate();
+				///used to modify value of output and input files( not for output and input lists)
+				mutable QString fileName_;
 		};
 		
 		/// QTreeWidget that emits a signal whenever a new row is selected

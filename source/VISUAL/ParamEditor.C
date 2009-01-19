@@ -36,6 +36,8 @@
 #include <QtGui/QMenu>
 #include <QtGui/QItemSelection>
 #include <QtCore/QStringList>
+#include <QtGui/QLabel>
+#include <QtGui/QFileDialog>
  
 #include <stack>
 #include <limits>
@@ -80,11 +82,27 @@ namespace OpenMS
 					editor->addItems(list);
 					return editor;
 				}
-				else // for lists
+				else if(dtype == "output file")
 				{
-					if(dtype =="string list" || dtype =="int list" || dtype=="double list")
+					QLineEdit* editor = new QLineEdit(parent);
+					editor->setReadOnly(true);
+					QString str = index.sibling(index.row(),0).data(Qt::DisplayRole).toString();
+					fileName_ = QFileDialog::getSaveFileName(editor,tr("Output File"),str);
+					return editor;
+				}
+				else if(dtype == "input file")
+				{
+					QLineEdit* editor = new QLineEdit(parent);
+					editor->setReadOnly(true);
+					QString str = index.sibling(index.row(),0).data(Qt::DisplayRole).toString();
+					fileName_ = QFileDialog::getOpenFileName(editor,tr("Input File"),str);
+					return editor;
+				}
+				else if(dtype =="string list" || dtype =="int list" || dtype=="double list" || dtype =="input list" || dtype =="output list" ) // for lists
 					{
-						ListEditor *editor = new ListEditor;
+						QString str = "<"+ index.sibling(index.row(),0).data(Qt::DisplayRole).toString() + "> " +"(<" + dtype + ">)";
+						ListEditor *editor = new ListEditor(0,str);
+						editor->setTypeName(index.sibling(index.row(),0).data(Qt::DisplayRole).toString());
 						editor->setModal(true);
 						connect(editor,SIGNAL(accepted()),this, SLOT(commitAndCloseListEditor()));
 						connect(editor,SIGNAL(rejected()),this,SLOT(closeListEditor()));
@@ -96,8 +114,6 @@ namespace OpenMS
 					editor->setFocusPolicy(Qt::StrongFocus);
 					return editor;
 					}
-					
-				}
 			}
 			return 0;
 		}
@@ -108,7 +124,7 @@ namespace OpenMS
 
 			if(index.column()==1)
 			{
-				if(qobject_cast<QLineEdit*>(editor)==0 && qobject_cast<ListEditor*>(editor)==0) //Drop-down list for enums
+				if(qobject_cast<QComboBox*>(editor)) //Drop-down list for enums
 				{
 					int index = static_cast<QComboBox*>(editor)->findText(str);
 					if (index==-1)
@@ -117,9 +133,19 @@ namespace OpenMS
 					}
 					static_cast<QComboBox*>(editor)->setCurrentIndex(index);
 				}
-				else if(qobject_cast<QComboBox*>(editor)==0 && qobject_cast<ListEditor*>(editor)==0)// LineEdit for other values
+				else if(qobject_cast<QLineEdit*>(editor))// LineEdit for other values
 				{
-					static_cast<QLineEdit*>(editor)->setText(str);
+					if(static_cast<QLineEdit*>(editor)->isReadOnly())/// for output/input file
+					{
+						if(!fileName_.isNull())
+						{
+							static_cast<QLineEdit*>(editor)->setText(fileName_);
+						}
+					}
+					else
+					{
+						static_cast<QLineEdit*>(editor)->setText(str);
+					}
 				}
 				else		// ListEditor for lists 
 				{
@@ -128,15 +154,23 @@ namespace OpenMS
 					QString type = index.sibling(index.row(),2).data(Qt::DisplayRole).toString();
 					if(type == "int list")
 					{
-						static_cast<ListEditor*>(editor)->setList(StringList::create(list),ListTable::INT);
+						static_cast<ListEditor*>(editor)->setList(StringList::create(list),ListEditor::INT);
 					}
 					else if(type == "double list")
 					{
-						static_cast<ListEditor*>(editor)->setList(StringList::create(list),ListTable::FLOAT);
+						static_cast<ListEditor*>(editor)->setList(StringList::create(list),ListEditor::FLOAT);
 					}
-					else
+					else if(type == "string list")
 					{
-						static_cast<ListEditor*>(editor)->setList(StringList::create(list),ListTable::STRING);
+						static_cast<ListEditor*>(editor)->setList(StringList::create(list),ListEditor::STRING);
+					}
+					else if(type == "input list")
+					{
+						static_cast<ListEditor*>(editor)->setList(StringList::create(list),ListEditor::INPUT_FILE);
+					}
+					else if(type == "output list")
+					{
+						static_cast<ListEditor*>(editor)->setList(StringList::create(list),ListEditor::OUTPUT_FILE);
 					}
 					static_cast<ListEditor*>(editor)->setListRestrictions(index.sibling(index.row(),2).data(Qt::UserRole).toString());
 				}
@@ -152,13 +186,28 @@ namespace OpenMS
 			if(index.column()==1)
 			{
 				//extract new value
-				if(qobject_cast<QLineEdit*>(editor)==0 && qobject_cast<ListEditor*>(editor) == 0) //Drop-down list for enums
+				if(qobject_cast<QComboBox*>(editor)) //Drop-down list for enums
 				{
 					new_value = QVariant(static_cast<QComboBox*>(editor)->currentText());
 				}
-				else if(qobject_cast<QComboBox*>(editor) == 0 && qobject_cast<ListEditor*>(editor)==0)
+				else if(qobject_cast<QLineEdit*>(editor))
 				{
-					new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
+					if(static_cast<QLineEdit*>(editor)->isReadOnly())
+					{
+						if(!fileName_.isNull())
+						{
+							new_value = fileName_;//QVariant(static_cast<QLabel*>(editor)->text());
+							fileName_ = "\0";
+						}
+						else
+						{
+							new_value = present_value;
+						}
+					}
+					else
+					{
+						new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
+					}
 				}
 				else
 				{
@@ -248,7 +297,7 @@ namespace OpenMS
 		 
 		void ParamEditorDelegate::updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& ) const
 		{
-			editor->setGeometry(option.rect);
+				editor->setGeometry(option.rect);
 		}
 
 		bool ParamEditorDelegate::exists_(QString name, QModelIndex index) const
@@ -408,10 +457,32 @@ namespace OpenMS
 					item->setText(2, "float");
 					break;
 				case DataValue::STRING_VALUE:
-					item->setText(2, "string");
+					if(it->tags.count("input file"))
+					{
+						item->setText(2,"input file");
+					}
+					else if(it->tags.count("output file"))
+					{
+						item->setText(2,"output file");
+					}
+					else
+					{
+						item->setText(2,"string");
+					}
 					break;
 				case DataValue::STRING_LIST:
-					item->setText(2,"string list");
+					if(it->tags.count("input file"))
+					{
+						item->setText(2,"input list");
+					}
+					else if(it->tags.count("output file"))
+					{
+						item->setText(2,"output list");
+					}
+					else
+					{
+						item->setText(2,"string list");
+					}
 					break;
 				case DataValue::INT_LIST:
 					item->setText(2,"int list");
@@ -592,6 +663,30 @@ namespace OpenMS
 					param_->setValidStrings(path,parts);
 				}
 			}
+			else if(child->text(2) =="input file")
+			{
+				tags.push_back("input file");
+				param_->setValue(path, child->text(1).toStdString(),description,tags);
+				String restrictions = child->data(2, Qt::UserRole).toString();
+				if(restrictions!="")
+				{
+					std::vector<String> parts;
+					restrictions.split(',', parts);
+					param_->setValidStrings(path,parts);
+				}
+			}
+						else if(child->text(2) =="output file")
+			{
+				tags.push_back("output file");
+				param_->setValue(path, child->text(1).toStdString(),description,tags);
+				String restrictions = child->data(2, Qt::UserRole).toString();
+				if(restrictions!="")
+				{
+					std::vector<String> parts;
+					restrictions.split(',', parts);
+					param_->setValidStrings(path,parts);
+				}
+			}
 			else if(child->text(2)=="int")
 			{
 				param_->setValue(path, child->text(1).toInt(),description,tags);
@@ -613,6 +708,30 @@ namespace OpenMS
 					list = child->text(1).mid(1,child->text(1).length()-2);
 			if(child->text(2)=="string list")
 			{
+				param_->setValue(path,StringList::create(list),description,tags);
+				String restrictions = child->data(2,Qt::UserRole).toString();
+				if(restrictions!="")
+				{
+					vector<String> parts;
+					restrictions.split(',',parts);
+					param_->setValidStrings(path,parts);
+				}
+			}
+			else if(child->text(2)=="input list")
+			{
+				tags.push_back("input file");
+				param_->setValue(path,StringList::create(list),description,tags);
+				String restrictions = child->data(2,Qt::UserRole).toString();
+				if(restrictions!="")
+				{
+					vector<String> parts;
+					restrictions.split(',',parts);
+					param_->setValidStrings(path,parts);
+				}
+			}
+			else if(child->text(2)=="output list")
+			{
+				tags.push_back("output file");
 				param_->setValue(path,StringList::create(list),description,tags);
 				String restrictions = child->data(2,Qt::UserRole).toString();
 				if(restrictions!="")

@@ -30,41 +30,82 @@
 
 #include<OpenMS/DATASTRUCTURES/StringList.h>
 #include <QtGui/QDialog>
-#include<QtGui/QTableWidget>
+#include<QtGui/QListWidget>
 #include <QtGui/QItemDelegate>
 
 	class QPushButton;
 	
 namespace OpenMS
 {
-
-	/**
-		@brief Namespace used to hide implementation details from users.
-		
-	*/		
-		namespace Internal
+	namespace Internal
 	{
-			class ListTable
-			: public QTableWidget
-			{
-			Q_OBJECT
+		class ListTable;
+		class ListEditorDelegate;
+	}
 	
-			public:
-			//types of lists
+//DIALOG
+class ListEditor
+:public QDialog
+{
+	Q_OBJECT
+	
+	public:
+				//types of lists
 				enum Type
 				{
-					EMPTY_VALUE,
 					INT,
 					FLOAT,
 					STRING,
 					OUTPUT_FILE,
 					INPUT_FILE
-				};
+				};	
+	
+		///Constructor	
+		ListEditor(QWidget* parent = 0,QString title = "");
+		///returns modified list
+		StringList getList() const;
+		///sets list (and its type)that will be modified by user
+		void setList(const StringList& list, ListEditor::Type type);
+		///set restrictions for list elements
+		void setListRestrictions(const String& restrictions);
+		///set name of type
+		void setTypeName(const QString& name);
+		
+		/// get type of list
+		ListEditor::Type getType();
+	
+	private:
+		///displays the list
+		Internal::ListTable *listTable_;
+		///Delegate between view and model
+		Internal::ListEditorDelegate *listDelegate_;
+		/// buttton for new Row
+		QPushButton *newRowButton_;
+		///button for removing row
+		QPushButton *removeRowButton_;
+		///button clicked if modifications are accepted
+		QPushButton *OkButton_;
+		///button clicked if modifications are rejected
+		QPushButton *CancelButton_;
+};
+
+	/**
+		@brief Namespace used to hide implementation details from users.
+		
+	*/	
+	namespace Internal
+	{
+			class ListTable
+			: public QListWidget
+			{
+			Q_OBJECT
+	
+			public:
 	
 				//Default Constructor
 				ListTable(QWidget* parent =0);
 	
-				ListTable(int rows, int columns, QWidget* parent = 0);
+			//	ListTable(int rows, int columns, QWidget* parent = 0);
 	
 				//returns a list_
 				StringList getList();
@@ -104,51 +145,31 @@ namespace OpenMS
 			  void updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex &index) const;
 				
 				//sets Type of List
-				void setType(const ListTable::Type type);
+				void setType(const ListEditor::Type type);
 				//sets restrictions for listelements
 				void setRestrictions(const String& restrictions);
+				///set name of type
+				void setTypeName(const QString& name);
+				///sets the fileName
+				void setFileName(const QString &name);
+				
 
 			private:
 				/// Not implemented
 				ListEditorDelegate();
 				///List type
-				Internal::ListTable::Type type_;
+				ListEditor::Type type_;
 				///restrictions for list elements
 				String restrictions_;
+				///type name. used to distinguish output/input from string lists
+				QString typeName_;
+				///used to set input and output values in setModelData
+				mutable QString fileName_;
+
+				
 		};
 	}
-//DIALOG
-class ListEditor
-:public QDialog
-{
-	Q_OBJECT
-	
-	public:
-		///Constructor	
-		ListEditor(QWidget* parent = 0);
-		///returns modified list
-		StringList getList() const;
-		///sets list (and its type)that will be modified by user
-		void setList(const StringList& list, Internal::ListTable::Type type);
-		///set restrictions for list elements
-		void setListRestrictions(const String& restrictions);
-		/// get type of list
-		Internal::ListTable::Type getType();
-	
-	private:
-		///Inherits QTableWidget
-		Internal::ListTable *listTable_;
-		///Inherits QItemDelegate
-		Internal::ListEditorDelegate *listDelegate_;
-		/// buttton for new Row
-		QPushButton *newRowButton_;
-		///button for removing row
-		QPushButton *removeRowButton_;
-		///button clicked if modifications are accepted
-		QPushButton *OkButton_;
-		///button clicked if modifications are rejected
-		QPushButton *CancelButton_;
-};
+
 
 
 
