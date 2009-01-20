@@ -36,12 +36,12 @@ namespace OpenMS
 		@brief Information about one raw data spectrum that was combined with several
 		other raw data spectra.
 		
-		Although this class is basically an integer value, it is needed to store important meta info
-		for each raw data scan. 
+		Although this class is basically a string value, it is needed to store important meta info for each raw data scan. 
 		
 		@ingroup Metadata
 	*/
-  class OPENMS_DLLAPI Acquisition: public MetaInfoInterface
+  class OPENMS_DLLAPI Acquisition
+  	: public MetaInfoInterface
   {
     public:
     	/// Constructor
@@ -59,13 +59,13 @@ namespace OpenMS
       /// Equality operator
       bool operator!= (const Acquisition& rhs) const;
 			
-		/// return the index/number of the scan (number is -1 by default)
-      Int getNumber() const;
+			/// return the identifier/index/number of the acquisition
+      const String& getIdentifier() const;
       /// sets the index/number of the scan
-      void setNumber(Int number);
+      void setIdentifier(const String& identifier);
 
     protected:
-      Int number_;
+      String identifier_;
       
   };
 } // namespace OpenMS

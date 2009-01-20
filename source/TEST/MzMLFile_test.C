@@ -192,12 +192,10 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].end,1800.0)
 		TEST_STRING_EQUAL(spec.getAcquisitionInfo().getMethodOfCombination(),"median of spectra")
 		TEST_EQUAL(spec.getAcquisitionInfo().size(),2)
-		TEST_EQUAL(spec.getAcquisitionInfo()[0].getNumber(),4711)
+		TEST_EQUAL(spec.getAcquisitionInfo()[0].getIdentifier(),"4711")
 		TEST_STRING_EQUAL(spec.getAcquisitionInfo()[0].getMetaValue("source_file_name"),"ac.dta")
 		TEST_STRING_EQUAL(spec.getAcquisitionInfo()[0].getMetaValue("source_file_path"),"file:///F:/data/Exp02")
-//		TEST_STRING_EQUAL(spec.getAcquisitionInfo()[0].getMetaValue("external_native_id"),"ENI0")
-//		TEST_STRING_EQUAL(spec.getAcquisitionInfo()[0].getMetaValue("external_spectrum_id"),"ESI0")
-		TEST_EQUAL(spec.getAcquisitionInfo()[1].getNumber(),4712)
+		TEST_EQUAL(spec.getAcquisitionInfo()[1].getIdentifier(),"4712")
 		TEST_EQUAL(spec.getSourceFile()==SourceFile(),true)
 		//ids
 		TEST_STRING_EQUAL(spec.getNativeID(),"index=0")
@@ -229,7 +227,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[2].end,1500.0)
 		TEST_EQUAL(spec.getAcquisitionInfo().getMethodOfCombination(),"no combination")
 		TEST_EQUAL(spec.getAcquisitionInfo().size(),1)
-		TEST_EQUAL(spec.getAcquisitionInfo()[0].getNumber(),0)
+		TEST_EQUAL(spec.getAcquisitionInfo()[0].getIdentifier(),"0")
 		//meta data arrays
 		TEST_EQUAL(spec.getMetaDataArrays().size(),2)
 		TEST_STRING_EQUAL(spec.getMetaDataArrays()[0].getName(),"signal to noise array")
@@ -284,8 +282,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		//acquisition
 		TEST_STRING_EQUAL(spec.getAcquisitionInfo().getMethodOfCombination(),"median of spectra")
 		TEST_EQUAL(spec.getAcquisitionInfo().size(),2)
-		TEST_EQUAL(spec.getAcquisitionInfo()[0].getNumber(),4711)
-		TEST_EQUAL(spec.getAcquisitionInfo()[1].getNumber(),4712)
+		TEST_EQUAL(spec.getAcquisitionInfo()[0].getIdentifier(),"4711")
+		TEST_EQUAL(spec.getAcquisitionInfo()[1].getIdentifier(),"4712")
 		TEST_EQUAL(spec.getSourceFile()==SourceFile(),true)
 		//ids
 		TEST_STRING_EQUAL(spec.getNativeID(),"index=2")
@@ -308,7 +306,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].end,905.0)
 		TEST_STRING_EQUAL(spec.getAcquisitionInfo().getMethodOfCombination(),"no combination")
 		TEST_EQUAL(spec.getAcquisitionInfo().size(),1)
-		TEST_EQUAL(spec.getAcquisitionInfo()[0].getNumber(),0)
+		TEST_EQUAL(spec.getAcquisitionInfo()[0].getIdentifier(),"0")
 		//ids
 		TEST_STRING_EQUAL(spec.getNativeID(),"index=3")
 		TEST_EQUAL(spec.metaValueExists("maldi_spot_id"),false)
@@ -516,7 +514,7 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 
 END_SECTION
 
-START_SECTION(bool isValid(const String& filename))
+START_SECTION(bool isValid(const String& filename, std::ostream& os = std::cerr))
 	std::string tmp_filename;
   MzMLFile file;
   MSExperiment<> e;

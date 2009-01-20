@@ -53,10 +53,12 @@ namespace OpenMS
 				/**
 					@brief Checks if a file validates against the XML schema
 					
+					Error messages are printed to the error stream, unless redirected with the attribute @p os .
+				
 			  	@exception Exception::FileNotFound is thrown if the file cannot be found
 					@exception Exception::NotImplemented is thrown if there is no schema available for the file type
 				*/
-				bool isValid(const String& filename);
+				bool isValid(const String& filename, std::ostream& os = std::cerr);
 				
 				///return the version of the schema
 				const String& getVersion() const;

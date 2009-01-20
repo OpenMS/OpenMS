@@ -62,14 +62,14 @@ END_SECTION
 START_SECTION(AcquisitionInfo(const AcquisitionInfo& source))
 	AcquisitionInfo tmp;
 	Acquisition a;
-	a.setNumber(4711);
+	a.setIdentifier("4711");
 	tmp.push_back(a);
 	tmp.setMethodOfCombination("Combo");
 	tmp.setMetaValue("bla",4.0);
 
 	AcquisitionInfo tmp2(tmp);
 	TEST_EQUAL(tmp2.size(), 1);
-	TEST_EQUAL(tmp2[0].getNumber(), 4711);  
+	TEST_EQUAL(tmp2[0].getIdentifier(), "4711");  
 	TEST_EQUAL(tmp2.getMethodOfCombination(), "Combo");  
 	TEST_REAL_SIMILAR((DoubleReal)(tmp2.getMetaValue("bla")), 4.0)
 END_SECTION
@@ -77,7 +77,7 @@ END_SECTION
 START_SECTION(AcquisitionInfo& operator= (const AcquisitionInfo& source))
 	AcquisitionInfo tmp;
 	Acquisition a;
-	a.setNumber(4711);
+	a.setIdentifier("4711");
 	tmp.push_back(a);
 	tmp.setMethodOfCombination("Combo");
 	tmp.setMetaValue("bla",4.0);
@@ -86,7 +86,7 @@ START_SECTION(AcquisitionInfo& operator= (const AcquisitionInfo& source))
 	AcquisitionInfo tmp2;
 	tmp2 = tmp;
 	TEST_EQUAL(tmp2.size(), 1);
-	TEST_EQUAL(tmp2[0].getNumber(), 4711);  
+	TEST_EQUAL(tmp2[0].getIdentifier(), "4711");  
 	TEST_EQUAL(tmp2.getMethodOfCombination(), "Combo");
 	TEST_REAL_SIMILAR((DoubleReal)(tmp2.getMetaValue("bla")), 4.0)
 		

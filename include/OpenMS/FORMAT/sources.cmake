@@ -64,7 +64,6 @@ TextFile.h
 TransformationXMLFile.h
 UnimodXMLFile.h
 XMLFile.h
-XMLValidator.h
 XTandemInfile.h
 XTandemXMLFile.h
 )

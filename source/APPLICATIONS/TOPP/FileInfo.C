@@ -175,27 +175,27 @@ class TOPPFileInfo
 			{
 				case FileHandler::MZDATA :
 					os << " against XML schema version " << MzDataFile().getVersion() << endl;
-					valid = MzDataFile().isValid(in);
+					valid = MzDataFile().isValid(in,os);
 					break;
 				case FileHandler::MZML :
 					os << " against XML schema version " << MzMLFile().getVersion() << endl;
-					valid = MzMLFile().isValid(in);
+					valid = MzMLFile().isValid(in,os);
 					break;
 				case FileHandler::FEATUREXML :
 					os << " against XML schema version " << FeatureXMLFile().getVersion() << endl;
-					valid = FeatureXMLFile().isValid(in);
+					valid = FeatureXMLFile().isValid(in,os);
 					break;
 				case FileHandler::IDXML :
 					os << " against XML schema version " << IdXMLFile().getVersion() << endl;
-					valid = IdXMLFile().isValid(in);
+					valid = IdXMLFile().isValid(in,os);
 					break;
 				case FileHandler::CONSENSUSXML :
 					os << " against XML schema version " << ConsensusXMLFile().getVersion() << endl;
-					valid = ConsensusXMLFile().isValid(in);
+					valid = ConsensusXMLFile().isValid(in,os);
 					break;
 				case FileHandler::MZXML :
 					os << " against XML schema version " << MzXMLFile().getVersion() << endl;
-					valid = MzXMLFile().isValid(in);
+					valid = MzXMLFile().isValid(in,os);
 					break;
 				default:
 					os << endl << "Aborted: Validation of this file type is not supported!" << endl;

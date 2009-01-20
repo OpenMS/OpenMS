@@ -110,7 +110,7 @@ namespace OpenMS
 		  	@exception Exception::FileNotFound is thrown if the file cannot be found.
 				@exception Exception::NotImplemented is thrown if there is no schema available for the file type.
 			*/
-			bool isValid(const String& filename);
+			bool isValid(const String& filename, std::ostream& os = std::cerr);
 
 			/**
 				@brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.

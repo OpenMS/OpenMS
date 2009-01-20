@@ -41,11 +41,11 @@
 #include <iostream>
 
 //TODO:
-// - ExternalSpectrumID/ExternalNativeID (when back)
 // - Check CV terms of spectrum, scan - this includes handling of zoom scans
 // - Check CV terms of spectrum type and file content (when settled)
 // - Check isolationWindow CV
 // - Resolution power terms
+// - activation/isolationWindow in product/neutralLoss
 // - Multiple 'dissociation methods' per precursor
 // - DataProcessing of binaryDataArray
 // - Sample: CVs for cellular compartement, source tissue and quality
@@ -222,10 +222,10 @@ namespace OpenMS
 			void fillData_();			
 
 			/// Handles CV terms
-			void handleCVParam_(const String& parent_parent_parent_tag, const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value);
+			void handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value);
 
 			/// Handles user terms
-			void handleUserParam_(const String& parent_tag, const String& name, const String& type, const String& value);
+			void handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value);
 			
 			/// Writes user terms
 			void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent) const;
@@ -284,7 +284,6 @@ namespace OpenMS
 			static const XMLCh* s_id = xercesc::XMLString::transcode("id");
 			static const XMLCh* s_spot_id = xercesc::XMLString::transcode("spotID");
 			static const XMLCh* s_ref = xercesc::XMLString::transcode("ref");
-			static const XMLCh* s_number = xercesc::XMLString::transcode("number");
 			static const XMLCh* s_version = xercesc::XMLString::transcode("version");
 			static const XMLCh* s_order = xercesc::XMLString::transcode("order");
 			static const XMLCh* s_location = xercesc::XMLString::transcode("location");
@@ -294,8 +293,7 @@ namespace OpenMS
 			static const XMLCh* s_default_instrument_configuration_ref = xercesc::XMLString::transcode("defaultInstrumentConfigurationRef");
 			static const XMLCh* s_default_data_processing_ref = xercesc::XMLString::transcode("defaultDataProcessingRef");
 			static const XMLCh* s_start_time_stamp = xercesc::XMLString::transcode("startTimeStamp");
-			//static const XMLCh* s_external_native_id = xercesc::XMLString::transcode("externalNativeID");
-			//static const XMLCh* s_external_spectrum_id = xercesc::XMLString::transcode("externalSpectrumID");
+			static const XMLCh* s_external_spectrum_id = xercesc::XMLString::transcode("externalSpectrumID");
 			
 			String tag = sm_.convert(qname);
 			open_tags_.push_back(tag);
@@ -305,8 +303,6 @@ namespace OpenMS
 			if (open_tags_.size()>1) parent_tag = *(open_tags_.end()-2);
 			String parent_parent_tag;
 			if (open_tags_.size()>2) parent_parent_tag = *(open_tags_.end()-3);
-			String parent_parent_parent_tag;
-			if (open_tags_.size()>3) parent_parent_parent_tag = *(open_tags_.end()-4);
 
 			//do nothing until a new spectrum is reached
 			if (tag!="spectrum" && skip_spectrum_) return;
@@ -360,7 +356,7 @@ namespace OpenMS
 			{
 				String value = "";
 				optionalAttributeAsString_(value, attributes, s_value);
-				handleCVParam_(parent_parent_parent_tag, parent_parent_tag, parent_tag, attributeAsString_(attributes, s_accession), attributeAsString_(attributes, s_name), value);
+				handleCVParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_accession), attributeAsString_(attributes, s_name), value);
 			}
 			else if (tag=="userParam")
 			{
@@ -368,7 +364,7 @@ namespace OpenMS
 				optionalAttributeAsString_(type, attributes, s_type);
 				String value = "";
 				optionalAttributeAsString_(value, attributes, s_value);
-				handleUserParam_(parent_tag, attributeAsString_(attributes, s_name), type, value);
+				handleUserParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_name), type, value);
 			}
 			else if (tag=="referenceableParamGroup")
 			{
@@ -386,14 +382,12 @@ namespace OpenMS
 				String ref = attributeAsString_(attributes, s_ref);
 				for (Size i=0; i<ref_param_[ref].size(); ++i)
 				{
-					handleCVParam_(parent_parent_parent_tag, parent_parent_tag, parent_tag,ref_param_[ref][i].accession,ref_param_[ref][i].name,ref_param_[ref][i].value);
+					handleCVParam_(parent_parent_tag, parent_tag,ref_param_[ref][i].accession,ref_param_[ref][i].name,ref_param_[ref][i].value);
 				}
 			}
 			else if (tag=="scan")
 			{
-				//number
 				Acquisition tmp;
-				tmp.setNumber(attributeAsInt_(attributes, s_number));
 				//source file => meta data
 				String source_file_ref;
 				if(optionalAttributeAsString_(source_file_ref, attributes, s_source_file_ref))
@@ -401,18 +395,12 @@ namespace OpenMS
 					tmp.setMetaValue("source_file_name",source_files_[source_file_ref].getNameOfFile());
 					tmp.setMetaValue("source_file_path",source_files_[source_file_ref].getPathToFile());
 				}
-//				//external native id => meta data
-//				String external_native_id;
-//				if(optionalAttributeAsString_(external_native_id, attributes, s_external_native_id))
-//				{
-//					tmp.setMetaValue("external_native_id",external_native_id);
-//				}
-//				//external spectrum id => meta data
-//				String external_spectrum_id;
-//				if(optionalAttributeAsString_(external_spectrum_id, attributes, s_external_spectrum_id))
-//				{
-//					tmp.setMetaValue("external_spectrum_id",external_spectrum_id);
-//				}
+				//external spectrum id => meta data
+				String external_spectrum_id;
+				if(optionalAttributeAsString_(external_spectrum_id, attributes, s_external_spectrum_id))
+				{
+					tmp.setIdentifier(external_spectrum_id);
+				}
 				
 				spec_.getAcquisitionInfo().push_back(tmp);
 			}
@@ -544,18 +532,12 @@ namespace OpenMS
 					spec_.getPrecursor().setMetaValue("source_file_name",source_files_[source_file_ref].getNameOfFile());
 					spec_.getPrecursor().setMetaValue("source_file_path",source_files_[source_file_ref].getPathToFile());
 				}
-//				//external native id => meta data
-//				String external_native_id;
-//				if(optionalAttributeAsString_(external_native_id, attributes, s_external_native_id))
-//				{
-//					spec_.getPrecursor().setMetaValue("external_native_id",external_native_id);
-//				}
-//				//external spectrum id => meta data
-//				String external_spectrum_id;
-//				if(optionalAttributeAsString_(external_spectrum_id, attributes, s_external_spectrum_id))
-//				{
-//					spec_.getPrecursor().setMetaValue("external_spectrum_id",external_spectrum_id);
-//				}
+				//external spectrum id => meta data
+				String external_spectrum_id;
+				if(optionalAttributeAsString_(external_spectrum_id, attributes, s_external_spectrum_id))
+				{
+					spec_.getPrecursor().setMetaValue("external_spectrum_id",external_spectrum_id);
+				}
 			}
 			else if (tag=="precursorList")
 			{
@@ -759,7 +741,7 @@ namespace OpenMS
 		}
 		
 		template <typename MapType>
-		void MzMLHandler<MapType>::handleCVParam_(const String& /*parent_parent_parent_tag*/, const String& /*parent_parent_tag*/, const String& parent_tag, const String& accession, const String& name, const String& value)
+		void MzMLHandler<MapType>::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value)
 		{
 			//Error checks of CV values
 			if (cv_.exists(accession))
@@ -1038,7 +1020,7 @@ namespace OpenMS
 				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- activation ----------------------------
-			else if(parent_tag=="activation")
+			else if(parent_tag=="activation" && parent_parent_tag=="precursor")
 			{
 				if (accession=="MS:1000245") //charge stripping
 				{
@@ -1122,6 +1104,14 @@ namespace OpenMS
 					spec_.getPrecursor().setActivationMethod(Precursor::PQD);
 				}
 				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
+			}
+			else if(parent_tag=="activation" && parent_parent_tag=="product")
+			{
+				//TODO
+			}
+			else if(parent_tag=="activation" && parent_parent_tag=="neutralLoss")
+			{
+				//TODO
 			}
 			//------------------------- scanList ----------------------------
 			else if(parent_tag=="scanList")
@@ -1989,7 +1979,7 @@ namespace OpenMS
 		}
 
 		template <typename MapType>
-		void MzMLHandler<MapType>::handleUserParam_(const String& parent_tag, const String& name, const String& type, const String& value)
+		void MzMLHandler<MapType>::handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value)
 		{
 			//create a DataValue that contains the data in the right type
 			DataValue data_value;
@@ -2062,20 +2052,36 @@ namespace OpenMS
 			{
 				spec_.getAcquisitionInfo().back().setMetaValue(name,data_value);
 			}
-			else if (parent_tag=="isolationWindow")
+			else if (parent_tag=="isolationWindow" && parent_parent_tag=="precursor")
 			{
 				//We don't have this as a separate location => store it in the precursor
 				spec_.getPrecursor().setMetaValue(name,data_value);
+			}
+			else if (parent_tag=="isolationWindow" && parent_parent_tag=="product")
+			{
+				//TODO
+			}
+			else if (parent_tag=="isolationWindow" && parent_parent_tag=="neutralLoss")
+			{
+				//TODO
 			}
 			else if (parent_tag=="selectedIon")
 			{
 				//We don't have this as a separate location => store it in the precursor
 				spec_.getPrecursor().setMetaValue(name,data_value);
 			}
-			else if (parent_tag=="activation")
+			else if (parent_tag=="activation" && parent_parent_tag=="precursor")
 			{
 				//We don't have this as a separate location => store it in the precursor
 				spec_.getPrecursor().setMetaValue(name,data_value);
+			}
+			else if (parent_tag=="activation" && parent_parent_tag=="product")
+			{
+				//TODO
+			}
+			else if (parent_tag=="activation" && parent_parent_tag=="neutralLoss")
+			{
+				//TODO
 			}
 			else if (parent_tag=="processingMethod")
 			{
@@ -2185,7 +2191,7 @@ namespace OpenMS
 			logger_.startProgress(0,exp.size(),"storing mzML file");
 			
 			os	<< "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
-					<< "<mzML xmlns=\"http://psi.hupo.org/schema_revision/mzML_1.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/schema_revision/mzML_1.0.0 mzML1.0.0.xsd\" accession=\"" << exp.getIdentifier() << "\" version=\"1.1\">\n";
+					<< "<mzML xmlns=\"http://psidev.info/ms/mzML/xsd/mzML_1.1.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psidev.info/ms/mzML/xsd/mzML_1.1.0 mzML1.1.0.xsd\" accession=\"" << exp.getIdentifier() << "\" version=\"1.1\">\n";
 			//--------------------------------------------------------------------------------------------
 			// CV list
 			//--------------------------------------------------------------------------------------------
@@ -3216,7 +3222,7 @@ namespace OpenMS
 				for (Size j=0; j<spec.getAcquisitionInfo().size(); ++j)
 				{
 					const Acquisition& ac = spec.getAcquisitionInfo()[j];
-					os	<< "					<scan number=\"" << ac.getNumber() << "\">\n";
+					os	<< "					<scan externalSpectrumID=\"" << ac.getIdentifier() << "\">\n";
 					if (j==0)
 					{
 						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan time\" value=\"" << spec.getRT() << "\"/>\n";
@@ -3239,7 +3245,7 @@ namespace OpenMS
 				}
 				if (spec.getAcquisitionInfo().size()==0)
 				{
-					os	<< "					<scan number=\"0\">\n";
+					os	<< "					<scan externalSpectrumID=\"0\">\n";
 					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan time\" value=\"" << spec.getRT() << "\"/>\n";
 				
 					//scan windows

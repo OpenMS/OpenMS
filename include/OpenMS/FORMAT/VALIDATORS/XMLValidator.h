@@ -24,8 +24,8 @@
 // $Maintainer: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_XMLVALIDATOR_H
-#define OPENMS_FORMAT_XMLVALIDATOR_H
+#ifndef OPENMS_FORMAT_VALIDATORS_XMLVALIDATOR_H
+#define OPENMS_FORMAT_VALIDATORS_XMLVALIDATOR_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -49,15 +49,21 @@ namespace OpenMS
 
 			/**
 			  @brief Returns if an XML file is valid for given a schema file
-
+				
+				Error messages are printed to the error stream, unless redirected with the attribute @p os .
+				
 			  @exception Exception::FileNotFound is thrown if the file cannot be found
 			  @exception Exception::ParseError is thrown if the parser could not be initialized
 			*/
-			bool isValid(const String& filename, const String& schema);
+			bool isValid(const String& filename, const String& schema,  std::ostream& os = std::cerr);
 
   	protected:
-  		//
+  		/// Flag if the validated file is valid
   		bool valid_;
+  		/// File name of validated file (for error messages)
+  		String filename_;
+  		//output stream reference (for error messages)
+  		std::ostream* os_;
   		
   		/// @name Implementation of Xerces ErrorHandler methods
   		//@{
@@ -70,4 +76,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_XMLVALIDATOR_H
+#endif // OPENMS_FORMAT_VALIDATORS_XMLVALIDATOR_H

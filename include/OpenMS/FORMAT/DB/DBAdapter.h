@@ -898,7 +898,7 @@ namespace OpenMS
 			{
 				query.str("");
 				query << "INSERT INTO META_Acquisition SET fid_AcquisitionInfo=" << acquisition_info_id << ",";
-				query << "Number=" << info_it->getNumber();
+				query << "Number=" << info_it->getIdentifier();
 				
 				result = db_con_.executeQuery(query.str());
 				parent_id = db_con_.getAutoId();
@@ -1318,7 +1318,7 @@ namespace OpenMS
 		result.first();
 		while(result.isValid())
 		{
-			acquisition.setNumber(result.value(0).toInt());
+			acquisition.setIdentifier(result.value(0).toString());
 			loadMetaInfo_(result.value(1).toInt(), acquisition);
 			spec.getAcquisitionInfo().push_back(acquisition);
 			result.next();

@@ -189,8 +189,8 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   ABORT_IF(e[1].getAcquisitionInfo().size()!=2);
 	TEST_EQUAL(e[1].getType(), SpectrumSettings::RAWDATA)
 	TEST_EQUAL(e[1].getAcquisitionInfo().getMethodOfCombination(), "sum")
-	TEST_EQUAL(e[1].getAcquisitionInfo()[0].getNumber(), 501)
-	TEST_EQUAL(e[1].getAcquisitionInfo()[1].getNumber(), 502)
+	TEST_EQUAL(e[1].getAcquisitionInfo()[0].getIdentifier(), "501")
+	TEST_EQUAL(e[1].getAcquisitionInfo()[1].getIdentifier(), "502")
 	TEST_EQUAL(e[1].getAcquisitionInfo()[0].getMetaValue("URL"), "www.open-ms.de")
 	TEST_EQUAL(e[1].getAcquisitionInfo()[1].getMetaValue("URL"), "www.open-ms.de")
 	TEST_EQUAL(e[1].getAcquisitionInfo()[0].getMetaValue("AcqComment"), "Acquisition 1")
@@ -200,7 +200,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   ABORT_IF(e[2].getAcquisitionInfo().size()!=1);
 	TEST_EQUAL(e[2].getType(), SpectrumSettings::PEAKS)
 	TEST_EQUAL(e[2].getAcquisitionInfo().getMethodOfCombination(), "average")
-	TEST_EQUAL(e[2].getAcquisitionInfo()[0].getNumber(), 601)
+	TEST_EQUAL(e[2].getAcquisitionInfo()[0].getIdentifier(), "601")
 
 	TEST_EQUAL(e[0].size(), 1)
 	TEST_EQUAL(e[1].size(), 3)

@@ -637,7 +637,7 @@ namespace OpenMS
 			else if (tag=="acquisition")
 			{
 				spec_.getAcquisitionInfo().insert(spec_.getAcquisitionInfo().end(), Acquisition());
-				spec_.getAcquisitionInfo().back().setNumber(attributeAsInt_(attributes, s_acqnumber));
+				spec_.getAcquisitionInfo().back().setIdentifier(attributeAsString_(attributes, s_acqnumber));
 			}
 			else if (tag=="spectrumInstrument" || tag=="acqInstrument")
 			{
@@ -1086,7 +1086,17 @@ namespace OpenMS
 						for (Size i=0; i<spec.getAcquisitionInfo().size(); ++i)
 						{
 							const Acquisition& ac = spec.getAcquisitionInfo()[i];
-							os << "\t\t\t\t\t\t<acquisition acqNumber=\"" << ac.getNumber() << "\">\n";
+							Int acq_number;
+							try
+							{
+								acq_number =  ac.getIdentifier().toInt();
+							}
+							catch(...)
+							{
+								warning(STORE, String("Could not convert acquisition identifier '") + ac.getIdentifier() + "' to an integer. Using '0' instead!");
+								acq_number = 0;
+							}
+							os << "\t\t\t\t\t\t<acquisition acqNumber=\"" << acq_number << "\">\n";
 							writeUserParam_(os, ac, 7);
 							os << "\t\t\t\t\t\t</acquisition>\n";
 						}

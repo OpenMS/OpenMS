@@ -28,7 +28,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/XMLValidator.h>
+#include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
 #include <cmath>
 

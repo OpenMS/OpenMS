@@ -52,6 +52,7 @@ Detailed list of changes to specific OpenMS classes:
 - Renamed and moved classes
   - Renamed MSMetaDataExplorer to MetaDataBrowser
   - Renamed ProcessingMethod to DataProcessing
+  - Moved XMLValidator from FORMAT/ to FORMAT/VALIDATORS/
 - Removed classes
   - DPeakArray (moved the functionality to the classes that inherited from it)
   - IDSpectrumMapper (replaced by IDMapper)
@@ -78,6 +79,7 @@ Detailed list of changes to specific OpenMS classes:
     - Added Software
     - Added ion optics type
   - AcquisitionInfo: Added MetaInfoInterface
+  - Acquisition: integer 'number' member was changed to a string 'identifier' (for MzML)
   - ExperimentalSettings
     - Now contains multiple SourceFiles and DataProcessings
     - ExperimentType was removed
@@ -110,6 +112,9 @@ Detailed list of changes to specific OpenMS classes:
     - Made now() is static now and returns the current Date instead of modifying the object.
   - MSExperiment: The date is now a DateTime object.
   - ProgressLogger: Nested application uses indentation.
+  - XMLValidator: The output stream for error messages can now be set in the isValid(...) method
+  - XMLFile: The output stream for validation error messages can now be set in the isValid(...) method
+  - MzMLFile: The output stream for validation error messages can now be set in the isValid(...) method
 	
 ------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.2                                     ----

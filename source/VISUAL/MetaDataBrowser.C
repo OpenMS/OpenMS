@@ -210,8 +210,7 @@ namespace OpenMS
 		visualizer->load(meta);
 
     QStringList labels;
-    String name = String("Acquisition Nr. ") + meta.getNumber();
-    labels << name.c_str() << QString::number(ws_->addWidget(visualizer));
+    labels << "Acquisition" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem* item;
 		if(parent == 0)

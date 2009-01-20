@@ -27,7 +27,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
-#include <OpenMS/FORMAT/XMLValidator.h>
+#include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
 
@@ -55,7 +55,7 @@ namespace OpenMS
   }
 	
 	//reimplemented in order to handle index MzML
-	bool MzMLFile::isValid(const String& filename) 
+	bool MzMLFile::isValid(const String& filename, std::ostream& os) 
 	{
 		//determine if this is indexed mzML or not
 		bool indexed = false;
@@ -75,7 +75,7 @@ namespace OpenMS
 			current_location = File::find(schema_location_);
 		}
 		
-		return XMLValidator().isValid(filename,current_location);
+		return XMLValidator().isValid(filename,current_location,os);
 	}
 	
 	bool MzMLFile::isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings)

@@ -314,7 +314,7 @@ END_SECTION
 		AcquisitionInfo info;
 		info.setMethodOfCombination("combo");
 		Acquisition acquisition;
-		acquisition.setNumber(1);
+		acquisition.setIdentifier("1");
 		acquisition.setMetaValue ("icon", String("yet another icon"));
 		info.push_back(acquisition);
 		
@@ -451,7 +451,7 @@ END_SECTION
 			TEST_EQUAL( spec.getInstrumentSettings().getScanMode() , exp_original.begin()->getInstrumentSettings().getScanMode() )
 			TEST_EQUAL( spec.getAcquisitionInfo().getMethodOfCombination(), "combo");
 			// and how do we check	info.setSpectrumType("type"); ?
-			TEST_EQUAL( spec.getAcquisitionInfo()[0].getNumber(), 1);
+			TEST_EQUAL( spec.getAcquisitionInfo()[0].getIdentifier(), "1");
 			TEST_EQUAL( spec.getAcquisitionInfo()[0].getMetaValue("icon"), "yet another icon");
 	
 			TEST_EQUAL( spec.getSourceFile().getNameOfFile() , exp_original.begin()->getSourceFile().getNameOfFile() )
@@ -713,10 +713,10 @@ END_SECTION
 			modified_spec.getInstrumentSettings().setMetaValue("label", String("please bite here"));
 			
 			info.clear();
-			acquisition.setNumber(1);
+			acquisition.setIdentifier("1");
 			acquisition.setMetaValue ("icon", String("one more icon"));
 			info.push_back(acquisition);
-			acquisition.setNumber(2);
+			acquisition.setIdentifier("2");
 			acquisition.setMetaValue ("label", String("yet another label"));
 			info.push_back(acquisition);
 			
@@ -765,9 +765,9 @@ END_SECTION
 			TEST_EQUAL( itn->getMSLevel() , ito->getMSLevel() )
 			TEST_EQUAL( itn->size() , ito->size() )
 			TEST_EQUAL( itn->getInstrumentSettings().getMetaValue("label") , "please bite here" )
-			TEST_EQUAL( itn->getAcquisitionInfo()[0].getNumber(), 1);
+			TEST_EQUAL( itn->getAcquisitionInfo()[0].getIdentifier(), "1");
 			TEST_EQUAL( itn->getAcquisitionInfo()[0].getMetaValue("icon"), "one more icon");
-			TEST_EQUAL( itn->getAcquisitionInfo()[1].getNumber(), 2);
+			TEST_EQUAL( itn->getAcquisitionInfo()[1].getIdentifier(), "2");
 			TEST_EQUAL( itn->getAcquisitionInfo()[1].getMetaValue("label"), "yet another label");
 			for (Size i=0; i<3; ++i)
 			{

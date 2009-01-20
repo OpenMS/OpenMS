@@ -27,7 +27,7 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/XMLValidator.h>
+#include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
@@ -113,14 +113,14 @@ namespace OpenMS
 			os.close();
 		}
 
-		bool XMLFile::isValid(const String& filename) 
+		bool XMLFile::isValid(const String& filename, std::ostream& os) 
 		{
 			if (schema_location_.empty())
 			{
 				throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
 			}
 			String current_location = File::find(schema_location_);
-			return XMLValidator().isValid(filename,current_location);
+			return XMLValidator().isValid(filename,current_location,os);
 		}
 
 		const String& XMLFile::getVersion() const

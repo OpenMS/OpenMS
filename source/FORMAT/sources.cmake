@@ -44,7 +44,6 @@ TextFile.C
 TransformationXMLFile.C
 UnimodXMLFile.C
 XMLFile.C
-XMLValidator.C
 XTandemInfile.C
 XTandemXMLFile.C
 )

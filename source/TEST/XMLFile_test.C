@@ -55,7 +55,7 @@ START_SECTION(XMLFile(const String &schema_location, const String &version))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(bool isValid(const String &filename) )
+START_SECTION(bool isValid(const String &filename,  std::ostream& os = std::cerr) )
 	XMLFile f("","");
 	TEST_EXCEPTION(Exception::NotImplemented, f.isValid(""))
 END_SECTION
