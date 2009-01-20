@@ -212,16 +212,16 @@ START_SECTION((virtual IntensityType getCutOff() const))
 END_SECTION
 
 START_SECTION((virtual void getSamples(SamplesType &cont) const =0))
-	// TODO
+  NOT_TESTABLE;
 END_SECTION
 
 START_SECTION((virtual void getSamples(std::ostream &os)))
-	// TODO
+  NOT_TESTABLE;
 END_SECTION
 
 START_SECTION((template <class PeakIterator> void registerChildren()))
 {
-	// TODO
+  NOT_TESTABLE;
 }
 END_SECTION
 

@@ -52,20 +52,20 @@ START_SECTION((FuzzyStringComparator()))
 }
 END_SECTION
 
-START_SECTION((~FuzzyStringComparator()))
+START_SECTION((virtual ~FuzzyStringComparator()))
 {
 	delete inst_ptr;
 }
 END_SECTION
 
-START_SECTION(FuzzyStringComparator& operator=(const FuzzyStringComparator& rhs))
+START_SECTION((FuzzyStringComparator& operator=(const FuzzyStringComparator& rhs)))
 {
   // Not implemented
 	NOT_TESTABLE;
 }
 END_SECTION
 
-START_SECTION(FuzzyStringComparator(const FuzzyStringComparator& rhs))
+START_SECTION((FuzzyStringComparator(const FuzzyStringComparator& rhs)))
 {
   // Not implemented
 	NOT_TESTABLE;
@@ -74,49 +74,49 @@ END_SECTION
 
 //------------------------------------------------------------
 
-START_SECTION(const double& getAcceptableAbsolute() const)
+START_SECTION((const double& getAcceptableAbsolute() const))
 {
 	// tested along with set-method
 	NOT_TESTABLE;
 }
 END_SECTION
 
-START_SECTION(const double& getAcceptableRelative() const)
+START_SECTION((const double& getAcceptableRelative() const))
 {
 	// tested along with set-method
 	NOT_TESTABLE;
 }
 END_SECTION
 
-START_SECTION(const int& getVerboseLevel() const)
+START_SECTION((const int& getVerboseLevel() const))
 {
 	// tested along with set-method
 	NOT_TESTABLE;
 }
 END_SECTION
 
-START_SECTION(const int& getTabWidth() const)
+START_SECTION((const int& getTabWidth() const))
 {
 	// tested along with set-method
 	NOT_TESTABLE;
 }
 END_SECTION
 
-START_SECTION(const int& getFirstColumn() const)
+START_SECTION((const int& getFirstColumn() const))
 {
 	// tested along with set-method
 	NOT_TESTABLE;
 }
 END_SECTION
 
-START_SECTION(std::ostream& getLogDestination() const)
+START_SECTION((std::ostream& getLogDestination() const))
 {
 	// tested along with set-method
 	NOT_TESTABLE;
 }
 END_SECTION
 
-START_SECTION(void setAcceptableAbsolute(const double rhs))
+START_SECTION((void setAcceptableAbsolute(const double rhs)))
 {
 	FuzzyStringComparator fsc;
 	fsc.setAcceptableAbsolute(2345.6789);
@@ -124,7 +124,7 @@ START_SECTION(void setAcceptableAbsolute(const double rhs))
 }
 END_SECTION
 
-START_SECTION(void setAcceptableRelative(const double rhs))
+START_SECTION((void setAcceptableRelative(const double rhs)))
 {
 	FuzzyStringComparator fsc;
 	fsc.setAcceptableRelative(6789.2345);
@@ -132,7 +132,7 @@ START_SECTION(void setAcceptableRelative(const double rhs))
 }
 END_SECTION
 
-START_SECTION(void setTabWidth(const int rhs))
+START_SECTION((void setTabWidth(const int rhs)))
 {
 	FuzzyStringComparator fsc;
 	fsc.setTabWidth(1452);
@@ -140,7 +140,7 @@ START_SECTION(void setTabWidth(const int rhs))
 }
 END_SECTION
 
-START_SECTION(void setFirstColumn(const int rhs))
+START_SECTION((void setFirstColumn(const int rhs)))
 {
 	FuzzyStringComparator fsc;
 	fsc.setFirstColumn(4321235);
@@ -148,7 +148,7 @@ START_SECTION(void setFirstColumn(const int rhs))
 }
 END_SECTION
 
-START_SECTION(void setLogDestination(std::ostream & rhs))
+START_SECTION((void setLogDestination(std::ostream & rhs)))
 {
 	FuzzyStringComparator fsc;
 	// TODO: The default should be to send log output to std::cout, but
@@ -164,7 +164,7 @@ START_SECTION(void setLogDestination(std::ostream & rhs))
 }
 END_SECTION
 
-START_SECTION(void setVerboseLevel(const int rhs))
+START_SECTION((void setVerboseLevel(const int rhs)))
 {
 	FuzzyStringComparator fsc;
 	// default should be 2
@@ -176,10 +176,43 @@ START_SECTION(void setVerboseLevel(const int rhs))
 }
 END_SECTION
 
+{
+  FuzzyStringComparator fsc;
+  FuzzyStringComparator const & fsc_cref = fsc;
+
+  START_SECTION((const StringList& getWhitelist() const ))
+  {
+    TEST_EQUAL(fsc_cref.getWhitelist().empty(),true);
+    // continued below
+  }
+  END_SECTION
+
+  START_SECTION((StringList& getWhitelist()))
+  {
+    TEST_EQUAL(fsc_cref.getWhitelist().empty(),true);
+    // continued below
+  }
+  END_SECTION
+
+  START_SECTION((void setWhitelist(const StringList &rhs)))
+  {
+    fsc.setWhitelist(StringList::create("null,eins,zwei,drei"));
+    TEST_STRING_EQUAL(fsc.getWhitelist()[0],"null");
+    TEST_STRING_EQUAL(fsc_cref.getWhitelist()[1],"eins");
+    TEST_EQUAL(fsc_cref.getWhitelist().size(),4);
+    fsc.setWhitelist(StringList::create("zero,one,two,three,four"));
+    TEST_STRING_EQUAL(fsc.getWhitelist()[0],"zero");
+    TEST_STRING_EQUAL(fsc_cref.getWhitelist()[1],"one");
+    TEST_EQUAL(fsc_cref.getWhitelist().size(),5);
+  }
+  END_SECTION
+
+}
+
 
 //------------------------------------------------------------
 
-START_SECTION((bool compareStrings( std::string const & lhs, std::string const & rhs )))
+START_SECTION((Int compareStrings(std::string const &lhs, std::string const &rhs)))
 {
 	std::ostringstream log;
 	//------------------------------
@@ -332,7 +365,7 @@ START_SECTION((bool compareStrings( std::string const & lhs, std::string const &
 }
 END_SECTION
 
-START_SECTION((bool compareStreams( std::istream & input_1, std::istream & input_2 )))
+START_SECTION((Int compareStreams(std::istream &input_1, std::istream &input_2)))
 {
 	std::ostringstream log;
 	{
@@ -362,7 +395,7 @@ START_SECTION((bool compareStreams( std::istream & input_1, std::istream & input
 }
 END_SECTION
 
-START_SECTION((bool compareFiles( const std::string & filename_1, const std::string & filename_2)))
+START_SECTION((Int compareFiles(const std::string &filename_1, const std::string &filename_2)))
 {
 	std::ostringstream log;
 	{

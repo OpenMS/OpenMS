@@ -49,7 +49,7 @@ namespace OpenMS
   	
 	 public:
 
-		class FeatureHandleMutable;
+		class FeatureHandleMutable_;
 
     ///@name Constructors and destructor
     //@{
@@ -114,11 +114,11 @@ namespace OpenMS
 		(which see), you <i>must not</i> modify the map index of element index if
 		there is more than one FeatureHandle stored in a ConsensusFeature.
 		Consequently, we "disable" setMapIndex() or setElementIndex() even within
-		FeatureHandleMutable.  On the other hand, it is perfectly safe to apply
+		FeatureHandleMutable_.  On the other hand, it is perfectly safe to apply
 		FeatureHandle::setRT(), FeatureHandle::setMZ(),
 		FeatureHandle::setIntensity(), FeatureHandle::setCharge(), etc..
 		*/
-		FeatureHandleMutable& asMutable() const;
+		FeatureHandleMutable_& asMutable() const;
     //@}
     
     ///@name Accessors
@@ -199,19 +199,19 @@ namespace OpenMS
 	This is done because these are used by IndexLess comparator.  This way it is
 	a bit harder to use FeatureHandle::asMutable() for illegal purposes ;-)
 	*/
-	class OPENMS_DLLAPI FeatureHandle::FeatureHandleMutable : public FeatureHandle
+	class OPENMS_DLLAPI FeatureHandle::FeatureHandleMutable_ : public FeatureHandle
 	{
 	 private:
 		FeatureHandle::setElementIndex;
 		FeatureHandle::setMapIndex;
-		FeatureHandleMutable();
-		FeatureHandleMutable(const FeatureHandleMutable&);
+		FeatureHandleMutable_();
+		FeatureHandleMutable_(const FeatureHandleMutable_&);
 	};
 
-	inline FeatureHandle::FeatureHandleMutable& FeatureHandle::asMutable() const
+	inline FeatureHandle::FeatureHandleMutable_& FeatureHandle::asMutable() const
 	{
-		// the const cast is to remove constness, but note that FeatureHandleMutable lacks some mutators
-		return static_cast<FeatureHandleMutable&>(const_cast<FeatureHandle&>(*this));
+		// the const cast is to remove constness, but note that FeatureHandleMutable_ lacks some mutators
+		return static_cast<FeatureHandleMutable_&>(const_cast<FeatureHandle&>(*this));
 	}
 	
   ///Print the contents of a FeatureHandle to a stream.

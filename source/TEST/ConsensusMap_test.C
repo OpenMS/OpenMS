@@ -53,52 +53,52 @@ START_SECTION((~ConsensusMap()))
 	delete ptr;
 END_SECTION
 
-START_SECTION(const std::vector<ProteinIdentification>& getProteinIdentifications() const)
+START_SECTION((const std::vector<ProteinIdentification>& getProteinIdentifications() const))
 	FeatureMap<> tmp;
 	TEST_EQUAL(tmp.getProteinIdentifications().size(),0)
 END_SECTION
 
-START_SECTION(std::vector<ProteinIdentification>& getProteinIdentifications())
+START_SECTION((std::vector<ProteinIdentification>& getProteinIdentifications()))
 	FeatureMap<> tmp;
 	tmp.getProteinIdentifications().resize(1);
 	TEST_EQUAL(tmp.getProteinIdentifications().size(),1)
 END_SECTION
 
-START_SECTION(void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications))
+START_SECTION((void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)))
 	FeatureMap<> tmp;
 	tmp.setProteinIdentifications(std::vector<ProteinIdentification>(2));
 	TEST_EQUAL(tmp.getProteinIdentifications().size(),2)
 END_SECTION
 
-START_SECTION(const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const)
+START_SECTION((const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const))
 	FeatureMap<> tmp;
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),0)
 END_SECTION
 
-START_SECTION(std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications())
+START_SECTION((std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications()))
 	FeatureMap<> tmp;
 	tmp.getUnassignedPeptideIdentifications().resize(1);
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),1)
 END_SECTION
 
-START_SECTION(void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications))
+START_SECTION((void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications)))
 	FeatureMap<> tmp;
 	tmp.setUnassignedPeptideIdentifications(std::vector<PeptideIdentification>(2));
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),2)
 END_SECTION
 
-START_SECTION(const DataProcessing& getDataProcessing() const)
+START_SECTION((const std::vector<DataProcessing>& getDataProcessing() const))
   ConsensusMap tmp;
   TEST_EQUAL(tmp.getDataProcessing().size(),0);
 END_SECTION
 
-START_SECTION(DataProcessing& getDataProcessing())
+START_SECTION((std::vector<DataProcessing>& getDataProcessing()))
   ConsensusMap tmp;
   tmp.getDataProcessing().resize(1);
   TEST_EQUAL(tmp.getDataProcessing().size(),1);
 END_SECTION
 
-START_SECTION(void setDataProcessing(const DataProcessing& data_processing))
+START_SECTION((void setDataProcessing(const std::vector< DataProcessing > &processing_method)))
   ConsensusMap tmp;
   std::vector<DataProcessing> dummy;
   dummy.resize(1);
@@ -126,7 +126,7 @@ feature4.getPosition()[0] = 5.25;
 feature4.getPosition()[1] = 1.5;
 feature4.setIntensity(0.5);
 
-START_SECTION(void updateRanges())
+START_SECTION((void updateRanges()))
   ConsensusMap map;
 	ConsensusFeature f;
 	f.setIntensity(1.0);
@@ -134,7 +134,7 @@ START_SECTION(void updateRanges())
 	f.setMZ(3.0);
 	f.insert(1,1,feature1);
 	map.push_back(f);
-  
+
   map.updateRanges();
   TEST_REAL_SIMILAR(map.getMaxInt(),1.0)
   TEST_REAL_SIMILAR(map.getMinInt(),1.0)
@@ -142,42 +142,42 @@ START_SECTION(void updateRanges())
   TEST_REAL_SIMILAR(map.getMax()[1],3.0)
   TEST_REAL_SIMILAR(map.getMin()[0],2.0)
   TEST_REAL_SIMILAR(map.getMin()[1],3.0)
-  
+
   //second time to check the initialization
   map.updateRanges();
-   
+
   TEST_REAL_SIMILAR(map.getMaxInt(),1.0)
   TEST_REAL_SIMILAR(map.getMinInt(),1.0)
   TEST_REAL_SIMILAR(map.getMax()[0],2.0)
   TEST_REAL_SIMILAR(map.getMax()[1],3.0)
   TEST_REAL_SIMILAR(map.getMin()[0],2.0)
   TEST_REAL_SIMILAR(map.getMin()[1],3.0)
-  
+
   //two points
 	f.insert(1,2,feature2);
 	map.push_back(f);
 	map.updateRanges();
-	
+
   TEST_REAL_SIMILAR(map.getMaxInt(),1.0)
   TEST_REAL_SIMILAR(map.getMinInt(),0.5)
   TEST_REAL_SIMILAR(map.getMax()[0],2.0)
   TEST_REAL_SIMILAR(map.getMax()[1],3.0)
   TEST_REAL_SIMILAR(map.getMin()[0],0.0)
   TEST_REAL_SIMILAR(map.getMin()[1],2.5)
-  
+
 	//four points
 	f.insert(1,3,feature3);
 	f.insert(1,4,feature4);
 	map.push_back(f);
 	map.updateRanges();
-	
+
   TEST_REAL_SIMILAR(map.getMaxInt(),1.0)
   TEST_REAL_SIMILAR(map.getMinInt(),0.01)
   TEST_REAL_SIMILAR(map.getMax()[0],10.5)
   TEST_REAL_SIMILAR(map.getMax()[1],3.0)
   TEST_REAL_SIMILAR(map.getMin()[0],0.0)
   TEST_REAL_SIMILAR(map.getMin()[1],0.0)
-  	
+
 END_SECTION
 
 START_SECTION((ConsensusMap& operator = (const ConsensusMap& source)))
@@ -192,7 +192,7 @@ START_SECTION((ConsensusMap& operator = (const ConsensusMap& source)))
 	map1.setExperimentType("itraq");
 	map1.getProteinIdentifications().resize(1);
 	map1.getUnassignedPeptideIdentifications().resize(1);
-  
+
   //assignment
   ConsensusMap map2;
   map2 = map1;
@@ -206,7 +206,7 @@ START_SECTION((ConsensusMap& operator = (const ConsensusMap& source)))
   TEST_EQUAL(map2.getDataProcessing().size(),1)
 	TEST_EQUAL(map2.getProteinIdentifications().size(),1);
 	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1);
-	
+
   //assignment of empty object
   map2 = ConsensusMap();
   TEST_EQUAL(map2.getIdentifier(),"")
@@ -229,7 +229,7 @@ START_SECTION((ConsensusMap(const ConsensusMap& source)))
 	map1.setExperimentType("itraq");
 	map1.getProteinIdentifications().resize(1);
 	map1.getUnassignedPeptideIdentifications().resize(1);
-  
+
   ConsensusMap map2(map1);
 
   TEST_EQUAL(map2.getIdentifier(),"lsid")
@@ -246,34 +246,34 @@ END_SECTION
 
 START_SECTION((ConsensusMap(Base::size_type n)))
   ConsensusMap cons_map(5);
-  
+
   TEST_EQUAL(cons_map.size(),5)
 END_SECTION
 
-START_SECTION((const FileDescriptions& getFileDescriptions() const ))
+START_SECTION((const FileDescriptions& getFileDescriptions() const))
   ConsensusMap cons_map;
-  
+
   TEST_EQUAL(cons_map.getFileDescriptions().size(),0)
 END_SECTION
 
 START_SECTION((FileDescriptions& getFileDescriptions()))
   ConsensusMap cons_map;
-	
+
   cons_map.getFileDescriptions()[0].filename = "blub";
   TEST_EQUAL(cons_map.getFileDescriptions()[0].filename == "blub", true)
-END_SECTION		
-		
-START_SECTION((const String& getExperimentType() const ))
-  ConsensusMap cons_map;
-	TEST_EQUAL(cons_map.getExperimentType() == "", true)	
-END_SECTION		
+END_SECTION
 
-START_SECTION((void setExperimentType(const String& experiment_type) ))
+START_SECTION((const String& getExperimentType() const))
+  ConsensusMap cons_map;
+	TEST_EQUAL(cons_map.getExperimentType() == "", true)
+END_SECTION
+
+START_SECTION((void setExperimentType(const String& experiment_type)))
   ConsensusMap cons_map;
 	cons_map.setExperimentType("itraq");
   TEST_EQUAL(cons_map.getExperimentType(),"itraq")
-END_SECTION		
-		
+END_SECTION
+
 START_SECTION((bool isValid(String& error_message) const))
 	String error_message;
 	ConsensusMap cm;
@@ -302,11 +302,11 @@ START_SECTION((bool isValid(String& error_message) const))
 	ConsensusFeature f2;
 	f2.insert(2,1,Feature());
 	cm.push_back(f2);
-	
+
 END_SECTION
 
-START_SECTION(void swap(ConsensusMap& from))
-	ConsensusMap map1, map2;	
+START_SECTION((void swap(ConsensusMap& from)))
+	ConsensusMap map1, map2;
 	ConsensusFeature f;
 	f.insert(1,1,Feature());
 	map1.push_back(f);
@@ -317,33 +317,33 @@ START_SECTION(void swap(ConsensusMap& from))
 	map1.getDataProcessing().resize(1);
 	map1.getProteinIdentifications().resize(1);
 	map1.getUnassignedPeptideIdentifications().resize(1);
-	
+
 	map1.swap(map2);
 
 	TEST_EQUAL(map1.size(),0)
 	TEST_EQUAL(map1.getFileDescriptions().size(),0)
-	TEST_EQUAL(map1.getIdentifier(),"")	
+	TEST_EQUAL(map1.getIdentifier(),"")
   TEST_EQUAL(map1.getDataProcessing().size(),0)
 	TEST_EQUAL(map1.getProteinIdentifications().size(),0);
 	TEST_EQUAL(map1.getUnassignedPeptideIdentifications().size(),0);
-	
+
 	TEST_EQUAL(map2.size(),1)
 	TEST_EQUAL(map2.getFileDescriptions().size(),1)
-	TEST_EQUAL(map2.getIdentifier(),"LSID")	
+	TEST_EQUAL(map2.getIdentifier(),"LSID")
   TEST_EQUAL(map2.getExperimentType(),"itraq")
   TEST_EQUAL(map2.getDataProcessing().size(),1)
 	TEST_EQUAL(map2.getProteinIdentifications().size(),1);
 	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1);
 END_SECTION
 
-START_SECTION(bool operator == (const ConsensusMap& rhs) const)
+START_SECTION((bool operator == (const ConsensusMap& rhs) const))
 	ConsensusMap empty,edit;
-	
+
 	TEST_EQUAL(empty==edit, true);
-	
+
 	edit.setIdentifier("lsid");;
 	TEST_EQUAL(empty==edit, false);
-	
+
 	edit = empty;
 	edit.push_back(feature1);
 	TEST_EQUAL(empty==edit, false);
@@ -351,7 +351,7 @@ START_SECTION(bool operator == (const ConsensusMap& rhs) const)
 	edit = empty;
 	edit.getDataProcessing().resize(1);
 	TEST_EQUAL(empty==edit, false);
-	
+
 	edit = empty;
 	edit.setMetaValue("bla", 4.1);
 	TEST_EQUAL(empty==edit, false);
@@ -384,14 +384,14 @@ START_SECTION(bool operator == (const ConsensusMap& rhs) const)
 	TEST_EQUAL(empty==edit, false);
 END_SECTION
 
-START_SECTION(bool operator != (const ConsensusMap& rhs) const)
+START_SECTION((bool operator != (const ConsensusMap& rhs) const))
 	ConsensusMap empty,edit;
-	
+
 	TEST_EQUAL(empty!=edit, false);
-	
+
 	edit.setIdentifier("lsid");;
 	TEST_EQUAL(empty!=edit, true);
-	
+
 	edit = empty;
 	edit.push_back(feature1);
 	TEST_EQUAL(empty!=edit, true);
@@ -427,6 +427,51 @@ START_SECTION(bool operator != (const ConsensusMap& rhs) const)
 	edit.clear();
 	TEST_EQUAL(empty!=edit, true);
 END_SECTION
+
+
+START_SECTION((void sortByIntensity(bool reverse=false)))
+{
+  NOT_TESTABLE; // tested within TOPP TextExporter
+}
+END_SECTION
+
+START_SECTION((void sortByRT()))
+{
+  NOT_TESTABLE; // tested within TOPP TextExporter
+}
+END_SECTION
+
+START_SECTION((void sortByMZ()))
+{
+  NOT_TESTABLE; // tested within TOPP TextExporter
+}
+END_SECTION
+
+START_SECTION((void sortByPosition()))
+{
+  NOT_TESTABLE; // tested within TOPP TextExporter
+}
+END_SECTION
+
+START_SECTION((void sortByQuality(bool reverse=false)))
+{
+  NOT_TESTABLE; // tested within TOPP TextExporter
+}
+END_SECTION
+
+START_SECTION((void sortBySize()))
+{
+  NOT_TESTABLE; // tested within TOPP TextExporter
+}
+END_SECTION
+
+START_SECTION((void sortByMaps()))
+{
+  NOT_TESTABLE; // tested within TOPP TextExporter
+}
+END_SECTION
+
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

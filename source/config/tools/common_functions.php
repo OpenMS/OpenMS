@@ -292,7 +292,10 @@ function getClassInfo($path,$header, $debug)
 								$template = trim($template);
 							}
 						}
-						$template .= " > ";
+						if ( !$first )
+						{
+							$template .= " > ";
+						}
 						$mem = $template.$mem;
 					}
 					

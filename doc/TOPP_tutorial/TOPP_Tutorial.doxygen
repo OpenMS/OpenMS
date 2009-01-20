@@ -316,7 +316,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		</TR>
 		<TR>
 			<TD>
-				@b Description: <br/>
+				@b Description: <br>
 				This algorihtm does a star-wise alignment of the input data. The center of the star is the map with
 				most data points. All other maps are then aligned to the center map by estimating a linear transformation
 				(shift and stretch) of retention times. The transformation is estimated using a pose clustering approach.
@@ -330,7 +330,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		</TR>
 		<TR>
 			<TD>
-				@b Description: <br/>
+				@b Description: <br>
 				This algorithms uses a dynamic-programming approach based on spectrum similariy for the alignment.
 				The resulting retention time mapping of dynamic-programming is then smoothed by fitting a spline 
 				to the retention time pairs.
@@ -357,7 +357,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	</TR>
 	<TR>
 		<TD>
-			@b Description: <br/>
+			@b Description: <br>
 			
 			This algorithm detects and quantifies peptide signals in a raw LC-MS map. We use
 			the wavelet transform to identify signal candidates. The transform uses a mother
@@ -403,7 +403,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	</TR>
 	<TR>
 		<TD>
-			@b Description: <br/>
+			@b Description: <br>
 			
 			This is an @b experimental algorithm for feature detection in raw single MS (not MS/MS) data sets.
 			The method is based on the <I>isotope wavelet</I>, which has been tailored to the
@@ -447,7 +447,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	</TR>
 	<TR>
 		<TD>
-			@b Description: <br/>
+			@b Description: <br>
 			
 			This is an @b algorithm for feature detection based on peak data.
 		  In contrast to the other algorithms, it is based on peak/stick data,
@@ -483,7 +483,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 	</TR>
 		<TR>
 			<TD>
-				@b Description: <br/>
+				@b Description: <br>
 				
 				This is another algorithm for feature detection in raw data.
 				It is similar to the "simplest" algorithm, except for the modeling.
@@ -492,7 +492,7 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 				
 				@b Extension: see "simplest"
 				
-				@b Modelling: <br/>
+				@b Modelling: <br>
 				like in "simplest", but an exponentially modified Gaussian (EMG) is used for the elution profile.
 				The least-squares fitting is done by the Levenberg-Marquardt algorithm.
 				(class EMGFitter1D, class LmaGaussFitter1D)
@@ -510,20 +510,20 @@ FileFilter -in infile.mzData -levels 2 -rt 100:1500 -out outfile.mzData
 		</TR>
 		<TR>
 			<TD>
-				@b Description: <br/>
+				@b Description: <br>
 				This is an algorithm for feature detection in raw data.
 				The following components are used:
 				
-				@b Seeding: <br/> A "seed" is a starting point for finding a feature.  In this
+				@b Seeding: <br> A "seed" is a starting point for finding a feature.  In this
 				 algorithm, all raw data points above the noise threshold are sorted with respect
 				 to intensity.  The strongest unused data point is used as a seed.  (class
 				 SimpleSeeder)
 				
-				@b Extension: <br/> A "region" is extended around the seed.  The region grows
+				@b Extension: <br> A "region" is extended around the seed.  The region grows
 				in RT and m/z simultaneously.  These data points are marked as used.  (class
 				SimpleExtender)
 				
-				@b Modelling: <br/> A theoretical "model" is fitted to the data points of the
+				@b Modelling: <br> A theoretical "model" is fitted to the data points of the
 				region.  Both dimensions (RT, m/z) are considered separately.  This algorithm
 				uses a bi-Gaussian model for the elution profile, i.e., two "half" Gaussians
 				are chosen to represent the data points to the left and right of the maximum

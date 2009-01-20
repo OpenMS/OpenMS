@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -42,7 +42,7 @@ using namespace Math;
 using namespace std;
 
 LinearRegression* ptr;
-START_SECTION(LinearRegression())
+START_SECTION((LinearRegression()))
   ptr = new LinearRegression;
   TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
@@ -64,14 +64,14 @@ for (int i=0; i < 10; ++i)
 
 LinearRegression lin_reg;
 
-START_SECTION((bool computeRegression(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin)))
+START_SECTION((template < typename Iterator > void computeRegression(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin)))
   lin_reg.computeRegression(0.95,x_axis.begin(),x_axis.end(),y_axis.begin());
 
   TEST_REAL_SIMILAR(lin_reg.getSlope(),2.0)
   TEST_REAL_SIMILAR(lin_reg.getIntercept(),4.0)
 END_SECTION
 
-START_SECTION((int computeRegressionWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin)))
+START_SECTION((template < typename Iterator > void computeRegressionWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin)))
   lin_reg.computeRegressionWeighted(0.95,x_axis.begin(),x_axis.end(),y_axis.begin(),weight.begin());
 END_SECTION
 
@@ -128,7 +128,9 @@ for (int i=0; i < 10; ++i)
 {
   y_axis[i]=2*i;
 }
-START_SECTION((template <typename Iterator> bool computeRegressionNoIntercept(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin);))
+
+START_SECTION((template < typename Iterator > void computeRegressionNoIntercept(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin)))
+
   lin_reg.computeRegressionNoIntercept(0.95,x_axis.begin(),x_axis.end(),y_axis.begin());
 
   TEST_REAL_SIMILAR(lin_reg.getSlope(),2.0)

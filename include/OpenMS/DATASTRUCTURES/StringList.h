@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -38,15 +38,15 @@ namespace OpenMS
 {
 	/**
 		@brief String list
-		
+
 		This class is based on std::vector<String> but adds some methods for convenience.
-		
+
 		@ingroup Datastructures
 	*/
 	class OPENMS_DLLAPI StringList
 		: public std::vector<String>
 	{
-		public: 
+		public:
 
 			///@name Constructors and assignment operators
 			//@{
@@ -65,7 +65,7 @@ namespace OpenMS
 			///  Assignment operator vector<string>
 			StringList& operator=(const std::vector<std::string>& rhs);
 			//@}
-			
+
 			///Operator for appending entries with less code
 			template<typename StringType>
 			StringList& operator<<(const StringType& string)
@@ -78,25 +78,25 @@ namespace OpenMS
 			static StringList create(const String& list);
 			/// Returns a list that is created from an array of char*
 			static StringList create(const char * const * list, UInt size );
-			/// Returns if a string is contains in the list
+			/// Returns if a string is contained in the list
 			bool contains(const String& s) const;
 			/// Transforms all contained strings to upper case
 			void toUpper();
 			/// Transforms all contained strings to lower case
 			void toLower();
-			
+
 			/// Concatenate the string elements and putting the @p glue string between elements
 			String concatenate(const String& glue="") const;
-			
+
 			/// output stream operator
 			friend std::ostream& operator<<(std::ostream& os, const StringList& p);
-			
+
 	};
-	
+
 } // namespace OPENMS
 
 #ifdef OPENMS_COMPILER_MSVC
-	#pragma warning( pop ) 
+	#pragma warning( pop )
 #endif
 
 #endif // OPENMS_DATASTRUCTURES_STRINGLIST_H

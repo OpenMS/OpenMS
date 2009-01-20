@@ -61,8 +61,8 @@ namespace OpenMS
     line_str_1_max_(),
     line_str_2_max_(),
 		use_prefix_(false),
-		whitelist(),
-		whitelist_cases()
+		whitelist_(),
+		whitelist_cases_()
   {
 	}
 
@@ -139,21 +139,21 @@ namespace OpenMS
 				prefix << "  absolute_max:        " << absdiff_max_ << "\n" <<
 				prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << std::endl;
 
-			if ( !whitelist_cases.empty() )
+			if ( !whitelist_cases_.empty() )
 			{
 				*log_dest_ <<
 					prefix << '\n' <<
 					prefix << "  whitelist cases:\n";
 				UInt length = 0;
-				for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases.begin();
-							wlcit != whitelist_cases.end();
+				for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases_.begin();
+							wlcit != whitelist_cases_.end();
 							++wlcit
 						)
 				{
 					if ( wlcit->first.size() > length) length = wlcit->first.size();
 				}
-				for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases.begin();
-							wlcit != whitelist_cases.end();
+				for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases_.begin();
+							wlcit != whitelist_cases_.end();
 							++wlcit
 						)
 				{
@@ -208,21 +208,21 @@ namespace OpenMS
 				prefix << "  absolute_max:        " << absdiff_max_ << '\n' <<
 				prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << std::endl;
 
-				if ( !whitelist_cases.empty() )
+				if ( !whitelist_cases_.empty() )
 				{
 					*log_dest_ <<
 						prefix << '\n' <<
 						prefix << "  whitelist cases:\n";
 					UInt length = 0;
-					for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases.begin();
-								wlcit != whitelist_cases.end();
+					for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases_.begin();
+								wlcit != whitelist_cases_.end();
 								++wlcit
 							)
 					{
 						if ( wlcit->first.size() > length) length = wlcit->first.size();
 					}
-					for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases.begin();
-								wlcit != whitelist_cases.end();
+					for ( std::map<String,UInt>::const_iterator wlcit = whitelist_cases_.begin();
+								wlcit != whitelist_cases_.end();
 								++wlcit
 							)
 					{
@@ -259,8 +259,8 @@ namespace OpenMS
   Int FuzzyStringComparator::compareLines_( std::string const & line_str_1, std::string const & line_str_2 )
   {
 		
-		for ( StringList::const_iterator slit = whitelist.begin();
-					slit != whitelist.end();
+		for ( StringList::const_iterator slit = whitelist_.begin();
+					slit != whitelist_.end();
 					++slit
 				)
 		{
@@ -268,8 +268,8 @@ namespace OpenMS
 					 line_str_2.find(*slit)!=std::string::npos
 				 )
 			{
-				++whitelist_cases[*slit];
-				// *log_dest_ << "whitelist case: " << *slit << '\n';
+				++whitelist_cases_[*slit];
+				// *log_dest_ << "whitelist_ case: " << *slit << '\n';
 				return is_status_success_;
 			}
 		}

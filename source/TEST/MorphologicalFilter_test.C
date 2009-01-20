@@ -238,7 +238,7 @@ START_SECTION((virtual ~MorphologicalFilter()))
 }
 END_SECTION
 
-START_SECTION(Method method( const std::string &rhs ))
+START_SECTION((static Method method(const std::string &rhs)))
 {
 	TEST_EQUAL(MorphologicalFilter::method("erosion"),MorphologicalFilter::EROSION);
 	TEST_EQUAL(MorphologicalFilter::method("closing"),MorphologicalFilter::CLOSING);
@@ -631,7 +631,7 @@ START_SECTION((template <typename InputPeakContainer, typename OutputPeakContain
 }   
 END_SECTION
 
-START_SECTION((template <typename PeakType, typename AllocType> void filterMSExperiment( Method method, DoubleReal struc_size, bool is_struc_size_in_thomson, MSExperiment<PeakType, typename AllocType>& ms_exp)))
+START_SECTION((template <typename PeakType , typename AllocType > void filterMSExperiment(Method method, DoubleReal struc_size, bool is_struc_size_in_thomson, MSExperiment< PeakType, AllocType > &ms_exp)))
 {
  	MSSpectrum<Peak1D> raw;
 	raw.setComment("Let's see if this comment is copied by the filter.");

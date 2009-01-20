@@ -64,7 +64,7 @@ START_SECTION((static const String getProductName()))
   TEST_EQUAL(pcsi.getName() == "poseclustering_shift",true)
 END_SECTION
 
-START_SECTION((virtual void run(const std::vector<ElementMapType>& maps, std::vector<TransformationDescription>& transformations)))
+START_SECTION((virtual void run(const std::vector< ConsensusMap > &maps, std::vector< TransformationDescription > &transformations)))
   std::vector<ConsensusMap> input(2);
   Feature feat1;
   Feature feat2;

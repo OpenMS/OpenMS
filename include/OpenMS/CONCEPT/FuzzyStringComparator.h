@@ -139,21 +139,21 @@ namespace OpenMS
       const StringList &
       getWhitelist() const
       {
-        return whitelist;
+        return whitelist_;
       }
 
       /// White list.  If both lines contain the same element from this list, they are skipped over.
       StringList &
       getWhitelist()
       {
-        return whitelist;
+        return whitelist_;
       }
 
       /// White list.  If both lines contain the same element from this list, they are skipped over.
       void
       setWhitelist( const StringList& rhs )
       {
-        whitelist = rhs;
+        whitelist_ = rhs;
       }
 
       /**@brief verbose level
@@ -359,8 +359,8 @@ namespace OpenMS
       /// use a prefix when reporting
       bool use_prefix_;
 
-      StringList whitelist;
-      std::map<String,UInt> whitelist_cases;
+      StringList whitelist_;
+      std::map<String,UInt> whitelist_cases_;
 
   }; // class FuzzyStringComparator
 

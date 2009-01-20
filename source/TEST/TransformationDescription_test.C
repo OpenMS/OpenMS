@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -96,12 +96,26 @@ pairs.push_back(make_pair(1.2,5.2));
 pairs.push_back(make_pair(3.2,7.3));
 pairs.push_back(make_pair(2.2,6.25));
 
-START_SECTION(const PairVector& getPairs() const)
+START_SECTION((const PairVector& getPairs() const))
 	TransformationDescription td;
 	TEST_EQUAL(td.getPairs().size(),0)
 END_SECTION
 
-START_SECTION(void setPairs(const PairVector& pairs))	
+START_SECTION((PairVector& getPairs()))
+{
+  TransformationDescription td;
+  TEST_EQUAL(td.getPairs().size(),0)
+  td.getPairs().push_back(make_pair(12.34,56.78));
+  TEST_EQUAL(td.getPairs().size(),1)
+  TEST_EQUAL(td.getPairs()[0].first,12.34);
+  TEST_EQUAL(td.getPairs()[0].second,56.78);
+  TEST_NOT_EQUAL(td.getPairs().empty(),true);
+  td.getPairs().clear();
+  TEST_EQUAL(td.getPairs().empty(),true);
+}
+END_SECTION
+
+START_SECTION((void setPairs(const PairVector& pairs)))
 {
 	TransformationDescription td;
 	td.setPairs(pairs);
@@ -120,7 +134,7 @@ START_SECTION((TransformationDescription(const TransformationDescription& rhs)))
 	td.setName("dummy");
 	td.setParam("int",5);
 	td.setPairs(pairs);
-	
+
 	TEST_EQUAL(td.getName()==td.getName(),true)
 	TEST_EQUAL(td.getParameters()==td.getParameters(),true)
 	TEST_EQUAL(td.getPairs().size(),3)
@@ -135,7 +149,7 @@ START_SECTION((TransformationDescription& operator = (const TransformationDescri
 	td.setPairs(pairs);
 	TransformationDescription td2;
 	td2 = td;
-	
+
  	TEST_STRING_EQUAL(td2.getName(),td.getName());
 	TEST_EQUAL(td2.getParameters()==td.getParameters(),true);
 	TEST_EQUAL(td2.getPairs()==td.getPairs(),true);
@@ -171,31 +185,31 @@ START_SECTION((void clear()))
 }
 END_SECTION
 
-START_SECTION((void apply(DoubleReal& value)))
+START_SECTION((void apply(DoubleReal &value) const))
 {
 	DoubleReal value = 5.0;
 	TransformationDescription td;
-	
+
 	//test missing name and parameters
  	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value));
-	
+
 	td.setName("bla");
 	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value));
-	
+
 	//test with identity
 	td.setName("none");
 	td.apply(value);
 	TEST_REAL_SIMILAR(value,5.0);
-	
+
 	//test for missing parameter
 	td.setName("linear");
-	td.setParam("slope",1.0);	
+	td.setParam("slope",1.0);
 	TEST_EXCEPTION(Exception::IllegalArgument,td.apply(value));
-	
+
 	//real test (linear, identity)
 	td.setParam("intercept",0.0);
 	TEST_REAL_SIMILAR(value,5.0);
-	
+
 	//real test (linear, no identity)
 	td.setParam("slope",2.0);
 	td.setParam("intercept",47.12);

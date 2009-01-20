@@ -83,6 +83,7 @@ Return types of methods should be non-mutable references as well, where possible
 Sometimes you cannot use references as the retuned value is constructed in the method.
 If the constructed type is large, you can save computation time like that:
 
+@code
 //Bad idea
 LargeObject someFunction()
 {

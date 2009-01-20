@@ -74,8 +74,8 @@ class TOPPFuzzyDiff
 		addEmptyLine_();
 		// TODO  Support for string lists  is currently (2008-11-21) experimental.
 		registerStringList_("whitelist","<string list>",StringList::create("<?xml-stylesheet"),"Lines containing one of these strings are skipped over",false,true);
-		// registerStringList_("whitelist","<string list>",StringList::create("&lt;?xml-stylesheet"),"Lines containing one of these strings are skipped over",false,true);
-		// registerStringList_("whitelist","<string list>",StringList(),"Lines containing one of these strings are skipped over",false,true);
+		// registerStringList_("whitelist_","<string list>",StringList::create("&lt;?xml-stylesheet"),"Lines containing one of these strings are skipped over",false,true);
+		// registerStringList_("whitelist_","<string list>",StringList(),"Lines containing one of these strings are skipped over",false,true);
 		addEmptyLine_();
 		addText_("Output style:");
 		registerIntOption_("verbose","<int>",2,"set verbose level:\n"
@@ -110,7 +110,7 @@ class TOPPFuzzyDiff
 		int tab_width = getIntOption_("tab_width");
 		int first_column = getIntOption_("first_column");
 
-		// This is for debugging the parsing of whitelist from cmdline or ini file.  Converting StringList back to String is intentional.
+		// This is for debugging the parsing of whitelist_ from cmdline or ini file.  Converting StringList back to String is intentional.
 		writeDebug_(String("whitelist: ") + String(whitelist) + " (size: " + whitelist.size() + ")", 1);
 
 		OpenMS::FuzzyStringComparator fsc;

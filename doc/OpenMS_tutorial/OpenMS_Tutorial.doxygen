@@ -726,7 +726,7 @@ data points. If your data is not uniform yet, please use the @a LinearResampler 
 
 The @a TopHatFilter removes signal structures in the raw data which are broader than the size of the structuring element.
 
-The following example (Tutorial_TopHatFilter.C) shows how to instantiate a tophat filter, set the length of the
+The following example (Tutorial_MorphologicalFilter.C) shows how to instantiate a tophat filter, set the length of the
 structuring element and remove the base line in a raw LC-MS map.
 
 @dontinclude Tutorial_TopHatFilter.C
@@ -1215,9 +1215,9 @@ corresponding distance matrix).
 		Wiebke Timm:  <em>Peak Intensity Prediction in Mass Spectra using Machine Learning Methods</em>,
 		PhD Thesis (2008)</A>
 		\arg \c <b>[2]</b>:Helge Ritter: <em>Learning with Self-Organizing Map, Artificial Neural Networks</em>, 
-				In T. Kohonen et al., eds.: Artificial Neural Networks, Elsevier Science Publishers (1991), 379–384
+				In T. Kohonen et al., eds.: Artificial Neural Networks, Elsevier Science Publishers (1991), 379ï¿½384
 		\arg \c <b>[3]</b>:<A HREF="http://www.biomedcentral.com/1471-2105/9/443">
-		W. Timm, A. Scherbart, S. Böcker, O. Kohlbacher, T.W. Nattkemper: <em>Peak Intensity Prediction in 
+		W. Timm, A. Scherbart, S. Bï¿½cker, O. Kohlbacher, T.W. Nattkemper: <em>Peak Intensity Prediction in 
 		MALDI-TOF Mass Spectrometry: A Machine Learning Study to support Quantitative Proteomics</em>, 
 		BMC Bioinformatics (2008)</A>
 

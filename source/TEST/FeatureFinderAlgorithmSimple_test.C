@@ -44,7 +44,7 @@ using namespace std;
 typedef FeatureFinderAlgorithmSimple<Peak1D,Feature> FFASS;
 
 FFASS* ptr;
-START_SECTION(FeatureFinderAlgorithmSimple())
+START_SECTION((FeatureFinderAlgorithmSimple()))
 	ptr = new FFASS;
 	TEST_NOT_EQUAL(ptr,0)
 END_SECTION
@@ -58,7 +58,7 @@ END_SECTION
 //	FeatureFinderAlgorithmSimple<RichPeak1D,Feature> ffa;
 //END_SECTION
 
-START_SECTION(virtual void run())
+START_SECTION((virtual void run()))
 	// dummy subtest
 	TEST_EQUAL(1,1)
 END_SECTION
@@ -76,7 +76,7 @@ START_SECTION((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
 	delete ptr2;
 END_SECTION
 
-START_SECTION(static const String getProductName())
+START_SECTION((static const String getProductName()))
 	TEST_EQUAL(FFASS::getProductName(),"simple")
 END_SECTION
 

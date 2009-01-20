@@ -166,7 +166,7 @@ START_SECTION((const HandleSetType& getFeatures() const))
 END_SECTION
 
 
-START_SECTION((void insert(FeatureHandle const &handle)))
+START_SECTION((void insert(const FeatureHandle &handle)))
   ConsensusFeature cons;
   FeatureHandle h1(2,3,tmp_feature);
   FeatureHandle h2(4,5,tmp_feature);
@@ -197,12 +197,12 @@ START_SECTION((void insert(UInt map_index, UInt element_index, const Feature &el
   TEST_EQUAL(it==cons.end(),true)
 END_SECTION
 
-START_SECTION((DoubleReal getQuality() const))
+START_SECTION((QualityType getQuality() const ))
 	ConsensusFeature cons;
 	TEST_EQUAL(cons.getQuality(),0.0)
 END_SECTION
 
-START_SECTION((void setQuality(DoubleReal quality)))
+START_SECTION((void setQuality(QualityType quality)))
 	ConsensusFeature cons;
 	cons.setQuality(4.5);
 	TEST_REAL_SIMILAR(cons.getQuality(),4.5)

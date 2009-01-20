@@ -181,7 +181,7 @@ namespace OpenMS
       void OPENMS_DLLAPI
       printWithPrefix( const std::string & text, const int marked = -1 );
 
-      /// set the whitelist
+      /// set the whitelist_
       void OPENMS_DLLAPI
       setWhitelist( const char * const /* file */, const int line,
                     const std::string& whitelist );
@@ -888,7 +888,7 @@ int main(int argc, char **argv)																									\
 			")   (\""#a"\")" << std::endl;																		\
 	}
 
-/** @brief Define the whitelist used by #TEST_STRING_SIMILAR and #TEST_FILE_SIMILAR.
+/** @brief Define the whitelist_ used by #TEST_STRING_SIMILAR and #TEST_FILE_SIMILAR.
 
  If both lines contain the same element from this list, they are skipped
  over. (See @em FuzzyStringComparator.)

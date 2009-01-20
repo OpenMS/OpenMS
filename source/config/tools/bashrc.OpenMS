@@ -548,10 +548,10 @@ function prompt ()
         _OpenMS_where_defined
     else
         export PROMPT_LENGTH=${1:-30}
-        export PS1="\[\033]30;\u@\h\007\]\[\033]0;\w\007\]\[\033[0m\033[0;1m\]\[\033[28;128t\]\$(\
-        if [ \${PROMPT_LENGTH} -gt 6 ]; then if [ \${#PWD} -gt \$((\${PROMPT_LENGTH}-3)) ]; \
-        then echo \"\[\033[0;31m\]...\[\033[m\033[0;1m\]\${PWD:\$((6-\${PROMPT_LENGTH}))} \";\
-        else echo \\w\ ; fi; fi)\[\033[0;32m\]\$ \[\033[0;0m\]"
+				export PS1="\$(\
+				if [ \${PROMPT_LENGTH} -gt 6 ]; then if [ \${#PWD} -gt \$((\${PROMPT_LENGTH}-3)) ]; \
+				then echo -ne \"\[\033[0m\033[31m\]...\[\033[0m\033[1m\]\${PWD:\$((6-\${PROMPT_LENGTH}))} \";\
+				else echo -ne \"\[\033[0m\033[1m\]\\w \"; fi; fi)\[\033[0m\033[1;30m\]\$ \[\033[0;0m\]"
     fi
 }
 
