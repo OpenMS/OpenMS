@@ -55,7 +55,7 @@ START_SECTION((~FASTAFile()))
   delete(ptr);
 END_SECTION
 
-FASTAFile file();
+FASTAFile file;
 vector< FASTAFile::FASTAEntry > sequences;
 vector< FASTAFile::FASTAEntry >::const_iterator sequences_iterator;
 FASTAFile::FASTAEntry temp_entry;
