@@ -459,15 +459,18 @@ namespace OpenMS
 		// get the transition prob 
 		if (trans_.find(state1) != trans_.end() && trans_.find(state1)->second.find(state2) != trans_.find(state1)->second.end())
 		{
+		/*
 			// TODO !!!! ???? path length correction
 			if (state2->getName().hasSubstring("next"))
 			{
 				return sqrt(trans_[state1][state2]);
 			}
 			else
-			{
+			{*/
 				return trans_.find(state1)->second.find(state2)->second;
+				/*
 			}
+			*/
 		}
 		else
 		{

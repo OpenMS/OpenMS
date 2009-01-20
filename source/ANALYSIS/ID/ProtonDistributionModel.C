@@ -35,7 +35,7 @@
 #include <cstdlib>
 
 #define COULOMB_REPULSION (double)47.0  // from zhang: 47.0 kJ/mol
-#define COULOMB_REPULSION2 (double)147.0 // new
+#define COULOMB_REPULSION2 (double)47.0 // new
 
 
 using namespace std;
@@ -314,6 +314,7 @@ namespace OpenMS
 	
 	void ProtonDistributionModel::calculateProtonDistributionGreater2_(const AASequence& peptide, int charge, Residue::ResidueType res_type)
 	{
+		//cerr << "void ProtonDistributionModel::calculateProtonDistributionGreater2_(" << peptide << ", " << charge << ", res_type=" << res_type << ")" << endl;
 		//double gb_bb_l_NH2 = param_.getValue("gb_bb_l_NH2");
     //double gb_bb_r_COOH = param_.getValue("gb_bb_r_COOH");
     //double gb_bb_r_bion = param_.getValue("gb_bb_r_b-ion");
@@ -327,10 +328,10 @@ namespace OpenMS
 		UInt count(1);
 		for (AASequence::ConstIterator it = peptide.begin(); it != peptide.end(); ++it, ++count)
 		{
-			double gb(0), gb_left(0), gb_right(0);
+			double gb_left(0), gb_right(0);
 			getLeftAndRightGBValues_(peptide, gb_left, gb_right, count);
 			
-			gb = gb_left + gb_right;
+			double gb = gb_left + gb_right;
 			gb_bb.push_back(gb);
 
 			gb_sc.push_back(it->getSideChainBasicity());
@@ -342,7 +343,7 @@ namespace OpenMS
 		set<UInt> sc_sites, bb_sites;
 		while (true)
 		{
-			//cerr << "#proton remaining: " << actual_charge << endl;
+			//cerr << "#protons remaining: " << actual_charge << endl;
 			vector<double> k_bb(peptide.size() + 1, 0.0), k_sc(peptide.size(), 0.0);
 			count = 0;
 			double sum_k(0);
@@ -1401,7 +1402,7 @@ namespace OpenMS
 			return;
 		}
 
-		if (charge == 2)
+		/*if (charge == 2)
 		{
 			double c_term_int1(0), c_term_int2(0), n_term_int1(0), n_term_int2(0);
       n_term_intensities.clear();
@@ -1413,6 +1414,7 @@ namespace OpenMS
 			c_term_intensities.push_back(c_term_int2);
 			return;
 		}
+		*/
 
 		// charge > 2
 		n_term_intensities = vector<double>(charge, 0.0);
@@ -1778,6 +1780,7 @@ namespace OpenMS
 		{
 			left_gb = (double)param_.getValue("gb_bb_l_NH2");
 			right_gb = peptide[position].getBackboneBasicityRight();
+			return;
 			//cerr << position << " " << left_gb << " " << right_gb << endl;
 		}
 		else
@@ -1786,15 +1789,18 @@ namespace OpenMS
 			{
 				left_gb = peptide[position - 1].getBackboneBasicityLeft();
 				right_gb = (double)param_.getValue("gb_bb_r_COOH");
+				return;
 				//cerr << position << " " << left_gb << " " << right_gb << endl;
 			}
 			else
 			{
 				left_gb = peptide[position - 1].getBackboneBasicityLeft();
 				right_gb = peptide[position].getBackboneBasicityRight();
+				return;
 				//cerr << position << " " << left_gb << " " << right_gb << endl;
 			}
 		}
+		return;
 	}
 
 } // namespace OpenMS

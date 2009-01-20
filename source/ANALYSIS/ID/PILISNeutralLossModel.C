@@ -57,9 +57,9 @@ namespace OpenMS
 		defaults_.setValue("variable_modifications", StringList::create(""), "Variable modifications");
 
 		defaults_.setValue("pseudo_counts", 1e-15, "Value which is added for every transition trained of the underlying hidden Markov model");
-		defaults_.setValue("num_explicit", 1, "Number of explicitely modeled losses from the same kind of amino acid or combinations thereof");
+		defaults_.setValue("num_explicit", 2, "Number of explicitely modeled losses from the same kind of amino acid or combinations thereof");
 
-		defaults_.setValue("min_int_to_train", 0.2, "Minimal intensity a ion and its losses must have to be considered for training.");
+		defaults_.setValue("min_int_to_train", 0.1, "Minimal intensity a ion and its losses must have to be considered for training.");
 		
 		defaults_.setValue("C_term_H2O_loss", "true", "enable water loss of the C-terminus");
 		defaults_.setValidStrings("C_term_H2O_loss", StringList::create("true,false"));
@@ -67,7 +67,7 @@ namespace OpenMS
 		defaults_.setValue("ion_name", "p", "Ion base names used to set in meta values");
 		defaults_.setValidStrings("ion_name", StringList::create("p,a,b,b2,y"));
 
-		defaults_.setValue("enable_double_losses", "true", "if true, two different losses can occur at the same time, e.g. -H2O and -NH3 forming loss of -35");
+		defaults_.setValue("enable_double_losses", "true", "if true, two different losses can occur at the same time, e.g. -H2O and -NH3 forming loss of -35Da");
 
 		defaultsToParam_();
 	}
@@ -887,9 +887,9 @@ namespace OpenMS
 
 			if (!enable_double_losses)
 			{
-    		hmm_precursor_.setTransitionProbability(cooh_name, ion_name + "-" + h2o, 0.000001);
-    		hmm_precursor_.setTransitionProbability(cooh_name, ion_name, 0.000001);
-    		hmm_precursor_.setTransitionProbability(cooh_name, "COOH-" + h2o + "-next", 0.999998);
+    		hmm_precursor_.setTransitionProbability(cooh_name, ion_name + "-" + h2o, 0.02);
+    		hmm_precursor_.setTransitionProbability(cooh_name, ion_name, 0.18);
+    		hmm_precursor_.setTransitionProbability(cooh_name, "COOH-" + h2o + "-next", 0.8);
 			}
 			else
 			{
@@ -918,9 +918,9 @@ namespace OpenMS
 				}
 				if (!enable_double_losses)
 				{
-          hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, ion_name + "-" + loss, 0.000001);
-          hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, ion_name, 0.000001);
-          hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, aa.toString() + "-NTerm-" + loss + "-next", 0.999998);
+          hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, ion_name + "-" + loss, 0.25);
+          hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, ion_name, 0.25);
+          hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, aa.toString() + "-NTerm-" + loss + "-next", 0.5);
 				}
 				else
 				{
@@ -943,25 +943,15 @@ namespace OpenMS
 
 				if (!enable_double_losses)
 				{
-        	hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, ion_name + "-" + loss, 0.000001);
-        	hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, ion_name, 0.000001);
-        	hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, aa.toString() + "-" + loss + "-next", 0.999998);
-/*
-					hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, ion_name + "-" + loss, 0.0001);
-					hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, ion_name, 0.0001);
-          hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, aa.toString() + "-NTerm-" + loss + "-next", 0.9998);
-*/
+        	hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, ion_name + "-" + loss, 0.02);
+        	hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, ion_name, 0.18);
+        	hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, aa.toString() + "-" + loss + "-next", 0.8);
 				}
 				else
 				{
 					hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, ion_name + "-" + loss, 0.25);
           hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, ion_name, 0.25);
           hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, aa.toString() + "-" + loss + "-next", 0.5);
-/*
-					hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, ion_name + "-" + loss, 0.25);
-					hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, ion_name, 0.25);
-					hmm_precursor_.setTransitionProbability(aa.toString() + "-NTerm-" + loss, aa.toString() + "-NTerm-" + loss + "-next", 0.5);
-*/
 				}
 
         for (UInt i = 0; i != num_explicit_; ++i)

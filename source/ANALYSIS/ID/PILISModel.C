@@ -47,7 +47,7 @@
 #define INIT_CHARGE_DEBUG
 #undef  INIT_CHARGE_DEBUG
 
-#define MIN_DECIMAL_VALUE 1e-10
+#define MIN_DECIMAL_VALUE 1e-8
 
 using namespace std;
 
@@ -92,9 +92,8 @@ namespace OpenMS
 		defaults_.setValue("pseudo_counts", 1e-15, "Value which is added for every transition trained of the underlying hidden Markov model");
 		defaults_.setValue("max_isotope", 2, "Maximal isotope peak which is reported by the model, 0 means all isotope peaks are reported");
 
-		defaults_.setValue("max_fragment_charge_training", 1, "Maximal allowed charge states for ions to be considered for training");
+		defaults_.setValue("max_fragment_charge_training", 2, "Maximal allowed charge states for ions to be considered for training");
 		defaults_.setValue("max_fragment_charge", 4, "Maximal charge state allowed for fragment ions");
-		defaults_.setValue("suppress_single_ions", "true", "If set to true, single ions are suppressed, e.g. y1 and b1");
 
 		defaultsToParam_();
 	}
@@ -1004,7 +1003,6 @@ namespace OpenMS
 		UInt max_isotope = (UInt)param_.getValue("max_isotope");
 		UInt max_fragment_charge = (UInt)param_.getValue("max_fragment_charge");
 		double charge_remote_threshold = (double)param_.getValue("charge_remote_threshold");
-		bool suppress_single_ions = param_.getValue("suppress_single_ions").toBool();
 		for (Size i = 0; i != prefixes.size(); ++i)
 		{
 			vector<double> path_intensities;
@@ -1273,6 +1271,64 @@ namespace OpenMS
 
 		spec.sortByPosition();
 
+		RichPeakSpectrum new_spec;
+		// add up peak intensities which are close together
+		vector<RichPeak1D> close_peaks;
+		for (RichPeakSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)
+		{
+			// empty
+			if (close_peaks.empty())
+			{
+				close_peaks.push_back(*it);
+				continue;
+			}
+			
+			// include peak in cluster
+			if (it->getPosition() - close_peaks.begin()->getMZ() < 0.1)
+			{
+				close_peaks.push_back(*it);
+				continue;
+			}
+			else
+			{
+				// move cluster to 
+				if (close_peaks.size() > 1)
+				{
+					double mz(0), intensity(0);
+					String name;
+					for (vector<RichPeak1D>::const_iterator pit = close_peaks.begin(); pit != close_peaks.end(); ++pit)
+					{
+						mz += pit->getMZ();
+						intensity += pit->getIntensity();
+						String p_name = pit->getMetaValue("IonName");
+						if (p_name != "")
+						{
+							name += p_name;
+							if (pit != close_peaks.end() - 1)
+							{
+								name += "/";
+							}
+						}
+					}
+					RichPeak1D peak;
+					peak.setPosition(mz / (double)close_peaks.size());
+					peak.setIntensity(intensity);
+					peak.setMetaValue("IonName", name);
+					new_spec.push_back(peak);
+
+					// clear the actual cluster and actual peak
+					close_peaks.clear();
+					close_peaks.push_back(*it);
+					continue;
+				}
+				// cluster has only one peak, add it to the spec and start new cluster
+				new_spec.push_back(*close_peaks.begin());
+				close_peaks.clear();
+				close_peaks.push_back(*it);
+			}
+		}
+		spec = new_spec;
+
 		
 		double min_y_int((double)param_.getValue("min_y_ion_intensity"));
 		double min_b_int((double)param_.getValue("min_b_ion_intensity"));
@@ -1433,15 +1489,17 @@ namespace OpenMS
 
 		for (Size i = 0; i != peptide.size() - 1; ++i)
     {
-			//double bb_enhance_factor(max(1.0, /*sqrt(*/bb_charges[i+1] / bb_charges_median)/*)*/);
-			//cerr << "bb_enhance_factor=" << bb_enhance_factor << endl;
-      bb_init.push_back(bb_charges[i+1] * bb_sum /** bb_enhance_factor*/);
+			double bb_enhance_factor(max(1.0, sqrt(bb_charges[i+1] / bb_charges_median)));
+			#ifdef INIT_CHARGE_DEBUG
+			cerr << "bb_enhance_factor=" << bb_enhance_factor << endl;
+			#endif
+      bb_init.push_back(bb_charges[i+1] * bb_sum * bb_enhance_factor);
       String aa(peptide[i].getOneLetterCode());
       if (sc_charges[i] != 0)
       {
         if ((aa == "K" || aa == "R" || aa == "H"))
         {
-          sc_init.push_back(sc_charges[i] * bb_charges_median/*bb_avg*/);
+          sc_init.push_back(sc_charges[i] * bb_charges_median);
         }
         else
         {
@@ -1449,7 +1507,7 @@ namespace OpenMS
         }
         if (is_charge_remote)
         {
-          cr_init.push_back(((1 - bb_sum) * bb_charges_median/*bb_avg*/));
+          cr_init.push_back(((1 - bb_sum) * bb_charges_median));
         }
         else
         {
