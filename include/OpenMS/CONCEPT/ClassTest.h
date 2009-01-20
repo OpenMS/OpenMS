@@ -76,43 +76,43 @@ namespace OpenMS
   namespace Internal
   {
     /// Auxiliary class for class tests
-    namespace OPENMS_DLLAPI ClassTest
+    namespace ClassTest
     {
 
       /**
        @brief Validates the given files against the XML schema (if available)
        @return If all files passed the validation
        */
-      bool
+      bool OPENMS_DLLAPI
       validate( const std::vector<std::string>& file_names );
 
       /// Creates a temporary file name from the test name and the line
-      std::string
+      std::string OPENMS_DLLAPI
       tmpFileName( const std::string& file, int line );
 
       /// This overload returns true; @c float is a floating point type.
-      inline bool
+      inline bool OPENMS_DLLAPI
       isRealType( float )
       {
         return true;
       }
 
       /// This overload returns true; @c double is a floating point type.
-      inline bool
+      inline bool OPENMS_DLLAPI
       isRealType( double )
       {
         return true;
       }
 
       /// This overload returns true; @c long @c double is a floating point type.
-      inline bool
+      inline bool OPENMS_DLLAPI
       isRealType( long double )
       {
         return true;
       }
 
       /// This overload returns true; @c DataValue will be converted to DoubleReal by #TEST_REAL_SIMILAR.
-      inline bool
+      inline bool OPENMS_DLLAPI
       isRealType( const DataValue& )
       {
         return true;
@@ -131,7 +131,7 @@ namespace OpenMS
 
        Side effects: Updates #fuzzy_message.
        */
-      void
+      void OPENMS_DLLAPI
       testRealSimilar( const char * file, int line, long double number_1,
                        const char * number_1_stringified,
                        bool number_1_is_realtype, Int number_1_written_digits,
@@ -139,7 +139,7 @@ namespace OpenMS
                        bool number_2_is_realtype, Int number_2_written_digits );
 
       /// used by testRealSimilar()
-      bool
+      bool OPENMS_DLLAPI
       isRealSimilar( long double number_1, long double number_2 );
 
       /**@brief Compare strings using @em absdiff_max_allowed and @em ratio_max_allowed.
@@ -149,7 +149,7 @@ namespace OpenMS
        Side effects: Updates #absdiff, #ratio, #fuzzy_message, #line_num_1_max
        and #line_num_2_max.
        */
-      void
+      void OPENMS_DLLAPI
       testStringSimilar( const char * file, int line,
                          const std::string & string_1,
                          const char * string_1_stringified,
@@ -157,7 +157,7 @@ namespace OpenMS
                          const char * string_2_stringified );
 
       /// used by TEST_STRING_EQUAL
-      void
+      void OPENMS_DLLAPI
       testStringEqual( const char * file, int line,
                        const std::string & string_1,
                        const char * string_1_stringified,
@@ -169,106 +169,106 @@ namespace OpenMS
        Side effects: Updates #absdiff, #ratio, #fuzzy_message, #line_num_1_max
        and #line_num_2_max.
        */
-      bool
+      bool OPENMS_DLLAPI
       isFileSimilar( const std::string & filename_1,
                      const std::string & filename_2 );
 
       /// make sure we have a newline before results from first subtest
-      void
+      void OPENMS_DLLAPI
       initialNewline();
 
       /// print the text, each line gets a prefix, the marked line number gets a special prefix
-      void
+      void OPENMS_DLLAPI
       printWithPrefix( const std::string & text, const int marked = -1 );
 
       /// set the whitelist
-      void
+      void OPENMS_DLLAPI
       setWhitelist( const char * const /* file */, const int line,
                     const std::string& whitelist );
 
       /// Maximum ratio of numbers allowed, see #TOLERANCE_RELATIVE.
-      extern double ratio_max_allowed;
+      extern OPENMS_DLLAPI double ratio_max_allowed;
 
       /// Maximum ratio of numbers observed so far, see #TOLERANCE_RELATIVE.
-      extern double ratio_max;
+      extern OPENMS_DLLAPI double ratio_max;
 
       /// Recent ratio of numbers, see #TOLERANCE_RELATIVE.
-      extern double ratio;
+      extern OPENMS_DLLAPI double ratio;
 
       /// Maximum absolute difference of numbers allowed, see #TOLERANCE_ABSOLUTE.
-      extern double absdiff_max_allowed;
+      extern OPENMS_DLLAPI double absdiff_max_allowed;
 
       /// Maximum difference of numbers observed so far, see #TOLERANCE_ABSOLUTE.
-      extern double absdiff_max;
+      extern OPENMS_DLLAPI double absdiff_max;
 
       /// Recent absolute difference of numbers, see #TOLERANCE_ABSOLUTE.
-      extern double absdiff;
+      extern OPENMS_DLLAPI double absdiff;
 
-      extern int line_num_1_max;
-      extern int line_num_2_max;
+      extern OPENMS_DLLAPI int line_num_1_max;
+      extern OPENMS_DLLAPI int line_num_2_max;
 
       /// Verbosity level ( "-v" is 1 and "-V" is 2 )
-      extern int verbose;
+      extern OPENMS_DLLAPI int verbose;
 
       /// Status of the whole test
-      extern bool all_tests;
+      extern OPENMS_DLLAPI bool all_tests;
 
       /// Status of the current subsection
-      extern bool test;
+      extern OPENMS_DLLAPI bool test;
 
       /// Status of last elementary test
-      extern bool this_test;
+      extern OPENMS_DLLAPI bool this_test;
 
       /// (Used by various macros. Indicates a rough category of the exception being caught.)
-      extern int exception;
+      extern OPENMS_DLLAPI int exception;
 
       /// (Used by various macros.  Stores the "name" of the exception, if applicable.)
-      extern std::string exception_name;
+      extern OPENMS_DLLAPI std::string exception_name;
 
       /// (Used by various macros.  Stores the "message" of the exception, if applicable.)
-      extern std::string exception_message;
+      extern OPENMS_DLLAPI std::string exception_message;
 
       /// Name of current subsection
-      extern std::string test_name;
+      extern OPENMS_DLLAPI std::string test_name;
 
       /// Line where current subsection started
-      extern int start_section_line;
+      extern OPENMS_DLLAPI int start_section_line;
 
       /// Line of current elementary test
-      extern int test_line;
+      extern OPENMS_DLLAPI int test_line;
 
       /// Version string supplied with #START_TEST
-      extern const char* version_string;
+      extern OPENMS_DLLAPI const char* version_string;
 
       /// List of tmp file names (these will be cleaned up, see #NEW_TMP_FILE)
-      extern std::vector<std::string> tmp_file_list;
+      extern OPENMS_DLLAPI std::vector<std::string> tmp_file_list;
 
       /// Questionable file tested by #TEST_FILE_EQUAL
-      extern std::ifstream infile;
+      extern OPENMS_DLLAPI std::ifstream infile;
 
       /// Template (correct) file used by #TEST_FILE_EQUAL
-      extern std::ifstream templatefile;
+      extern OPENMS_DLLAPI std::ifstream templatefile;
 
       /// (A variable used by #TEST_FILE_EQUAL)
-      extern bool equal_files;
+      extern OPENMS_DLLAPI bool equal_files;
 
       /// (A buffer for one line from a file. Used by #TEST_FILE_EQUAL.)
-      extern char line_buffer[65536];
+      extern OPENMS_DLLAPI char line_buffer[65536];
 
       /// Counter for the number of elementary tests within the current subsection.
-      extern int test_count;
+      extern OPENMS_DLLAPI int test_count;
 
       /// See #ADD_MESSAGE.
-      extern std::string add_message;
+      extern OPENMS_DLLAPI std::string add_message;
 
       /**@brief Last message from a fuzzy comparison.  Written by
        #isRealSimilar(), #isStringSimilar(), #isFileSimilar().  Read by
        #TEST_REAL_SIMILAR, #TEST_STRING_SIMILAR, #TEST_FILE_SIMILAR;
        */
-      extern std::string fuzzy_message;
+      extern OPENMS_DLLAPI std::string fuzzy_message;
 
       /// (Flags whether a new line is in place, depending on context and verbosity setting.  Used by initialNewline() and some macros.)
-      extern bool newline;
+      extern OPENMS_DLLAPI bool newline;
 
       template < typename T1, typename T2 >
         void

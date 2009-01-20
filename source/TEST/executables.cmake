@@ -294,7 +294,7 @@ set(analysis_executables_list
 )
 
 set(applications_executables_list
-TOPPBase_test
+	TOPPBase_test
 )
 
 set(transformations_executables_list
