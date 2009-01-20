@@ -95,6 +95,15 @@ class TOPPCVInspector
 			{
 				tags.push_back("value-type=" + ControlledVocabulary::CVTerm::getXRefTypeName(child_term.xref_type));
 			}
+			if (child_term.units.size()>0)
+			{
+				StringList units;
+				for (set<String>::const_iterator u_it=child_term.units.begin(); u_it!=child_term.units.end(); ++u_it)
+				{
+					units.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
+				}
+				tags.push_back(String("unit=") + units.concatenate(", "));
+			}
 			if (tags.size()!=0)
 			{
 				subterm_line += String("<FONT color=\"grey\"> (") + tags.concatenate(", ") + ")</FONT>";
@@ -204,11 +213,11 @@ class TOPPCVInspector
 				//create table with terms
 				for (vector<CVMappings::CVTerm>::const_iterator tit = it->getCVTerms().begin(); tit != it->getCVTerms().end(); ++tit)
 				{
-					++term_count;
 					//create term line
 					String term_line = String("      <TR><TD valign=\"top\">Term:</TD><TD>");
 					if (tit->getAllowChildren())
 					{
+						++term_count;
 						term_line += String("<a href=\"javascript:toggleDiv('div") + term_count + "','')\" style=\"text-decoration:none\" >+</a> ";
 					}
 					else
@@ -252,6 +261,15 @@ class TOPPCVInspector
 						if (term.xref_type!=ControlledVocabulary::CVTerm::NONE)
 						{
 							tags.push_back("value-type=" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type));
+						}
+						if (term.units.size()>0)
+						{
+							StringList units;
+							for (set<String>::const_iterator u_it=term.units.begin(); u_it!=term.units.end(); ++u_it)
+							{
+								units.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
+							}
+							tags.push_back(String("unit=") + units.concatenate(", "));
 						}
 					}
 					if (tags.size()!=0)

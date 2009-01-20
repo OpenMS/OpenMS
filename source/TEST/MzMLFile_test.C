@@ -135,7 +135,9 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_EQUAL(exp.getInstrument().getMassAnalyzers().size(),2)
 	TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[0].getOrder(),201)
 	TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[0].getType(),MassAnalyzer::PAULIONTRAP)
+	TEST_REAL_SIMILAR(exp.getInstrument().getMassAnalyzers()[0].getAccuracy(),10.5)	
 	TEST_REAL_SIMILAR(exp.getInstrument().getMassAnalyzers()[0].getMagneticFieldStrength(),14.56)
+	TEST_REAL_SIMILAR(exp.getInstrument().getMassAnalyzers()[0].getTOFTotalPathLength(),11.1)
 	TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[1].getOrder(),202)
 	TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[1].getType(),MassAnalyzer::LIT)
 	TEST_REAL_SIMILAR(exp.getInstrument().getMassAnalyzers()[1].getMagneticFieldStrength(),1414.14)
@@ -567,8 +569,16 @@ START_SECTION(bool isSemanticallyValid(const String& filename, StringList& error
 
 	//invalid file
 	TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_3_invalid.mzML"), errors, warnings),false)
-	TEST_EQUAL(errors.size(),5)
-	TEST_EQUAL(warnings.size(),0)
+	TEST_EQUAL(errors.size(),8)
+//	for (Size i=0; i<errors.size(); ++i)
+//	{
+//		cout << "ERROR: " << errors[i] << endl;
+//	}
+	TEST_EQUAL(warnings.size(),1)
+//	for (Size i=0; i<warnings.size(); ++i)
+//	{
+//		cout << "WARNING: " << warnings[i] << endl;
+//	}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

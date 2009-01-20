@@ -180,9 +180,9 @@ namespace OpenMS
       /// sets the resolution
       void setResolution(DoubleReal resolution);
 			
-			/// returns the mass accuracy i.e. how much the theoretical mass differs from the measured mass (in m/z)
+			/// returns the mass accuracy i.e. how much the theoretical mass may differ from the measured mass (in ppm)
       DoubleReal getAccuracy() const;
-      /// sets the accuracy  i.e. how much the theoretical mass differs from the measured mass  (in m/z)
+      /// sets the accuracy  i.e. how much the theoretical mass may differ from the measured mass  (in ppm)
       void setAccuracy(DoubleReal accuracy);
 			
 			/// returns the scan rate (in s)

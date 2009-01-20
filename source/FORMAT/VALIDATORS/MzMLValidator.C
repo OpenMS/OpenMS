@@ -36,6 +36,7 @@ namespace OpenMS
 		MzMLValidator::MzMLValidator(const CVMappings& mapping, const ControlledVocabulary& cv)
 			: SemanticValidator(mapping, cv)
 		{
+			setCheckUnits(true);
 		}
 		
 		MzMLValidator::~MzMLValidator()

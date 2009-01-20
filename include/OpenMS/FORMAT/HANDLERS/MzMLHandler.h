@@ -45,11 +45,11 @@
 // - Check CV terms of spectrum type and file content (when settled)
 // - Check isolationWindow CV
 // - Resolution power terms
+// - collision energy / activation energy (and units)
 // - activation/isolationWindow in product/neutralLoss
 // - Multiple 'dissociation methods' per precursor
 // - DataProcessing of binaryDataArray
 // - Sample: CVs for cellular compartement, source tissue and quality
-// - units
 // - scanSettingsList
 //
 //TODO (PERHAPS):
@@ -1032,7 +1032,7 @@ namespace OpenMS
 					//No member => meta data
 					spec_.getPrecursor().setMetaValue("delayed extraction",String("true"));
 				}
-				else if (accession=="MS:1000045") //collision energy
+				else if (accession=="MS:1000045") //collision energy (ev)
 				{
 					//No member => meta data
 					spec_.getPrecursor().setMetaValue("collision energy",value); 
@@ -1047,7 +1047,7 @@ namespace OpenMS
 					//No member => meta data
 					spec_.getPrecursor().setMetaValue("collision gas",String("true"));
 				}
-				else if (accession=="MS:1000509") //activation energy
+				else if (accession=="MS:1000509") //activation energy (ev)
 				{
 					spec_.getPrecursor().setActivationEnergy(value.toDouble());
 				}
@@ -1136,7 +1136,7 @@ namespace OpenMS
 					//No member => meta data
 					spec_.setMetaValue("scan rate",value);
 				}
-				else if (accession=="MS:1000016")//scan time
+				else if (accession=="MS:1000016")//scan time (assuming seconds)
 				{
 					spec_.setRT(value.toDouble());
 					
@@ -1692,11 +1692,11 @@ namespace OpenMS
 					instruments_[current_id_].getMassAnalyzers().back().setType(MassAnalyzer::LIT);
 				}
 				//mass analyzer attribute
-				else if (accession=="MS:1000014") //accuracy
+				else if (accession=="MS:1000014") //accuracy (ppm)
 				{
 					instruments_[current_id_].getMassAnalyzers().back().setAccuracy(value.toDouble());
 				}
-				else if (accession=="MS:1000022") //TOF Total Path Length
+				else if (accession=="MS:1000022") //TOF Total Path Length (mm)
 				{
 					instruments_[current_id_].getMassAnalyzers().back().setTOFTotalPathLength(value.toDouble());
 				}
@@ -1704,7 +1704,7 @@ namespace OpenMS
 				{
 					instruments_[current_id_].getMassAnalyzers().back().setFinalMSExponent(value.toInt());
 				}
-				else if (accession=="MS:1000025") //magnetic field strength
+				else if (accession=="MS:1000025") //magnetic field strength (tesla)
 				{
 					instruments_[current_id_].getMassAnalyzers().back().setMagneticFieldStrength(value.toDouble());
 				}
@@ -1832,11 +1832,11 @@ namespace OpenMS
 			else if (parent_tag=="processingMethod")
 			{
 				//data processing parameter
-				if (accession=="MS:1000629") //low intensity threshold
+				if (accession=="MS:1000629") //low intensity threshold (ion count)
 				{
 					processing_[current_id_].back().setMetaValue("low_intensity_threshold",value.toDouble());
 				}
-				else if (accession=="MS:1000631") //high intensity threshold
+				else if (accession=="MS:1000631") //high intensity threshold (ion count)
 				{
 					processing_[current_id_].back().setMetaValue("high_intensity_threshold",value.toDouble());
 				}
@@ -2371,9 +2371,9 @@ namespace OpenMS
 			{
 				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000001\" name=\"sample number\" value=\"" << sa.getNumber() << "\"/>\n";
 			}
-			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000004\" name=\"sample mass\" value=\"" << sa.getMass() << "\"/>\n";
-			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000005\" name=\"sample volume\" value=\"" << sa.getVolume() << "\"/>\n";
-			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000006\" name=\"sample concentration\" value=\"" << sa.getConcentration() << "\"/>\n";
+			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000004\" name=\"sample mass\" value=\"" << sa.getMass() << "\"  unitAccession=\"UO:0000022\" unitName=\"milligram\" unitCvRef=\"UO\"/>\n";
+			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000005\" name=\"sample volume\" value=\"" << sa.getVolume() << "\" unitAccession=\"UO:0000098\" unitName=\"milliliter\" unitCvRef=\"UO\"/>\n";
+			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000006\" name=\"sample concentration\" value=\"" << sa.getConcentration() << "\" unitAccession=\"UO:0000177\" unitName=\"unit per volume unit\" unitCvRef=\"UO\"/>\n";
 			if (sa.getComment()!="")
 			{
 				os  << "			<userParam name=\"comment\" type=\"xsd:string\" value=\"" << sa.getComment() << "\"/>\n";
@@ -2786,10 +2786,10 @@ namespace OpenMS
 					const MassAnalyzer& ma = in.getMassAnalyzers()[i];
 					os  << "				<analyzer order=\"" << ma.getOrder() << "\">\n";
 					
-					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000014\" name=\"accuracy\" value=\"" << ma.getAccuracy() << "\"/>\n";
-					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000022\" name=\"TOF Total Path Length\" value=\"" << ma.getTOFTotalPathLength() << "\"/>\n";
-					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000024\" name=\"final MS exponent\" value=\"" << ma.getFinalMSExponent() << "\"/>\n";
-					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000025\" name=\"magnetic field strength\" value=\"" << ma.getMagneticFieldStrength() << "\"/>\n";
+					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000014\" name=\"accuracy\" value=\"" << ma.getAccuracy() << "\" unitAccession=\"UO:0000169\" unitName=\"parts per million\" unitCvRef=\"UO\" />\n";
+					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000022\" name=\"TOF Total Path Length\" value=\"" << ma.getTOFTotalPathLength() << "\" unitAccession=\"UO:0000016\" unitName=\"millimeter\" unitCvRef=\"UO\" />\n";
+					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000024\" name=\"final MS exponent\" value=\"" << ma.getFinalMSExponent() << "\" />\n";
+					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000025\" name=\"magnetic field strength\" value=\"" << ma.getMagneticFieldStrength() << "\" unitAccession=\"UO:0000228\" unitName=\"tesla\" unitCvRef=\"UO\" />\n";
 					
 					if (ma.getReflectronState()==MassAnalyzer::ON)
 					{
@@ -3225,7 +3225,7 @@ namespace OpenMS
 					os	<< "					<scan externalSpectrumID=\"" << ac.getIdentifier() << "\">\n";
 					if (j==0)
 					{
-						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan time\" value=\"" << spec.getRT() << "\"/>\n";
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"/>\n";
 					}
 					writeUserParam_(os, ac, 6);
 					//scan windows
@@ -3235,8 +3235,8 @@ namespace OpenMS
 						for (Size j=0; j<spec.getInstrumentSettings().getScanWindows().size(); ++j)
 						{
 							os	<< "						<scanWindow>\n";
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan m/z lower limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].begin << "\"/>\n";
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan m/z upper limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].end << "\"/>\n";
+							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan m/z lower limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].begin << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan m/z upper limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].end << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\"/>\n";
 							os	<< "						</scanWindow>\n";
 						}
 						os	<< "						</scanWindowList>\n";
@@ -3282,7 +3282,7 @@ namespace OpenMS
 					//--------------------------------------------------------------------------------------------
 					os	<< "						<selectedIonList count=\"1\">\n";
 					os	<< "							<selectedIon>\n";
-					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected m/z\" value=\"" << spec.getPrecursorPeak().getMZ() << "\"/>\n";
+					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected m/z\" value=\"" << spec.getPrecursorPeak().getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\"/>\n";
 					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << spec.getPrecursorPeak().getCharge() << "\"/>\n";
 					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"intensity\" value=\"" << spec.getPrecursorPeak().getIntensity() << "\"/>\n";
 					for (Size j=0; j<spec.getPrecursorPeak().getPossibleChargeStates().size(); ++j)
@@ -3297,7 +3297,7 @@ namespace OpenMS
 					//activation
 					//--------------------------------------------------------------------------------------------
 					os	<< "						<activation>\n";
-					os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000509\" name=\"activation energy\" value=\"" << spec.getPrecursor().getActivationEnergy() << "\"/>\n";
+					os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000509\" name=\"activation energy\" value=\"" << spec.getPrecursor().getActivationEnergy() << "\" unitAccession=\"UO:0000266\" unitName=\"electronvolt\" unitCvRef=\"UO\" />\n";
 					if (spec.getPrecursor().getActivationMethod()==Precursor::CID)
 					{
 						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000133\" name=\"collision-induced dissociation\"/>\n";
@@ -3370,7 +3370,7 @@ namespace OpenMS
 					for (Size p=0; p<spec.size(); ++p) data_to_encode[p] = spec[p].getMZ();
 					decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
 					os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
-					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\"/>\n";
+					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
 					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\"/>\n";
 					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\"/>\n";
 					os	<< "						<binary>" << encoded_string << "</binary>\n";
