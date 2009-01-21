@@ -290,7 +290,8 @@ set(analysis_executables_list
   FalseDiscoveryRate_test
   LocalLinearMap_test
   PeakIntensityPredictor_test
-	IDMapper_test
+  IDMapper_test
+  PrecursorIonSelectionPreprocessing_test
 )
 
 set(applications_executables_list

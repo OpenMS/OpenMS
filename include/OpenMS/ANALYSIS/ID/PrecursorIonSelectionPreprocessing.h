@@ -33,6 +33,8 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
+#include <OpenMS/SYSTEM/StopWatch.h>
+
 #include <algorithm>
 #include <cmath>
 #include <set>
@@ -40,7 +42,7 @@
 namespace OpenMS
 {
   
-  class PrecursorIonSelectionPreprocessing : public DefaultParamHandler
+  class OPENMS_DLLAPI PrecursorIonSelectionPreprocessing : public DefaultParamHandler
   {
   public:
       PrecursorIonSelectionPreprocessing();
@@ -51,7 +53,7 @@ namespace OpenMS
 		
 		//const std::set<AASequence>& getSequences() const;
 
-		const std::map<String,std::vector<DoubleReal> >& getProtMasses();
+		const std::map<String,std::vector<DoubleReal> >& getProtMasses() const;
 
 
 		const std::vector<DoubleReal> & getMasses(String acc);
@@ -71,8 +73,6 @@ namespace OpenMS
 		
 		/**
 		 *	@brief Loads tryptric peptide masses of a given database.
-		 *	
-		 *	@param db_path Path to database file (fasta)
 		 *
 		 *	@throws Exception::FileNotFound if file with preprocessing can't be found
 		 *	@throws Exception::InvalidParameter if precursor_mass_tolerance_unit is ppm and

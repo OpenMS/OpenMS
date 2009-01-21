@@ -303,6 +303,7 @@ ZhangSimilarityScore_test.C
 AAIndex_test.C
 LocalLinearMap_test.C
 PeakIntensityPredictor_test.C
+PrecursorIonSelectionPreprocessing_test.C
 )
 
 if (USE_ANDIMS) 	 

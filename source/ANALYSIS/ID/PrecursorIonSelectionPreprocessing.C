@@ -29,6 +29,7 @@
 
 using namespace std;
 //#define PISP_DEBUG
+#undef PISP_DEBUG
 namespace OpenMS
 {
 	PrecursorIonSelectionPreprocessing::PrecursorIonSelectionPreprocessing()
@@ -81,7 +82,7 @@ namespace OpenMS
 // 	}
 	
 	
-	const std::map<String,std::vector<DoubleReal> >& PrecursorIonSelectionPreprocessing::getProtMasses()
+	const std::map<String,std::vector<DoubleReal> >& PrecursorIonSelectionPreprocessing::getProtMasses() const
 	{
 	  return prot_masses_; 
 	}
@@ -100,7 +101,21 @@ namespace OpenMS
 			}
 		else // 
 			{
-					std::vector<DoubleReal>::iterator tmp_iter = std::lower_bound(bin_masses_.begin(),bin_masses_.end(),mass);
+#ifdef PISP_DEBUG
+				std::cout << bin_masses_.size() << " "<< mass << std::endl;
+				std::cout << *(bin_masses_.begin()) << " "<< *(bin_masses_.end()-1) << std::endl;
+#endif
+				std::vector<DoubleReal>::iterator tmp_iter = bin_masses_.begin();
+				while(tmp_iter!=bin_masses_.end() && *tmp_iter<mass)
+					{
+						++tmp_iter;
+					}
+				if(tmp_iter!=bin_masses_.begin()) --tmp_iter;
+#ifdef PISP_DEBUG
+				if(tmp_iter!=bin_masses_.end())	std::cout << "tmp_iter "<<*tmp_iter << std::endl;
+				else std::cout << "tmp_iter am ende"<< std::endl;
+				std::cout << "fmax "<<f_max_ << std::endl;
+#endif
 				if((tmp_iter+1)==bin_masses_.end()
 					 || fabs(*tmp_iter - mass) < fabs(*(tmp_iter+1) - mass))
 					{
@@ -235,13 +250,40 @@ namespace OpenMS
 #endif
 				counter_.resize(size,0);
 #ifdef PISP_DEBUG
-				std::cout << "counter_.size() "<<counter_.size()  << " bin_masses_.size() "<<bin_masses_.size()<<std::endl;
+				std::cout << "masses_.size() "<< masses_.size()
+									<< " counter_.size() "<<counter_.size()
+									<< " bin_masses_.size() "<<bin_masses_.size()<<std::endl;
+
 #endif
+				std::vector<DoubleReal>::iterator old_begin = bin_masses_.begin();
 				// then we put the peptide masses into the right bins
 				for(UInt i=0;i<masses_.size();++i)
 					{
-						std::vector<DoubleReal>::iterator tmp_iter =
-							std::lower_bound(bin_masses_.begin(),bin_masses_.end(),masses_[i]);
+#ifdef PISP_DEBUG
+						std::cout << "i "<<i << std::endl;
+						StopWatch timer;
+						timer.start();
+#endif
+						std::vector<DoubleReal>::iterator tmp_iter = old_begin;
+
+#ifdef PISP_DEBUG
+						timer.start();
+						std::cout << "old_begin "<<*old_begin << " masses_[i] "<<masses_[i]<<std::endl;
+						if(old_begin != bin_masses_.begin()) std::cout << "old_begin-1 "<<*(old_begin-1)<<std::endl;
+#endif
+						while(tmp_iter != bin_masses_.end() &&  *tmp_iter < masses_[i])
+							{
+								++tmp_iter;
+							}
+#ifdef PISP_DEBUG
+						timer.stop();
+						std::cout << "while schleife\t"; 
+						std::cout << timer.getCPUTime()<<"\t";
+						timer.reset();
+#endif
+						
+						
+						old_begin = tmp_iter;
 						if(tmp_iter== bin_masses_.end())
 							{
 								++counter_[distance(bin_masses_.begin(),tmp_iter-1)];
@@ -253,6 +295,10 @@ namespace OpenMS
 								++counter_[distance(bin_masses_.begin(),tmp_iter)];
 							}
 						else ++counter_[distance(bin_masses_.begin(),tmp_iter+1)]; // increase right counter
+#ifdef PISP_DEBUG
+						timer.stop();
+						std::cout << timer.getCPUTime ()<<std::endl;
+#endif
 					}
 				// determine maximal frequency for normalization
 				UInt max = 0;
@@ -269,7 +315,7 @@ namespace OpenMS
 		// db-name__precursor_mass_tolerance___missed_cleavages__taxonomy
 		if(save)
 			{
-				// first check if preprocessed db already exists
+		 		// first check if preprocessed db already exists
 				String path = param_.getValue("preprocessing:preprocessed_db_path");
 				
 				// db-name__precursor_mass_tolerance_unit__missed_cleavages__taxonomy
@@ -322,46 +368,48 @@ namespace OpenMS
 					{
 							out << "\t" << pm_iter->second[i];
 					}
-					out << std::endl;
+					out << "\n";
 			}
-		out.close();
+		//	out.close();
 #ifdef PISP_DEBUG
 		std::cout << (path + "_counter") << std::endl;
 		std::cout  <<"counter: "  << counter_.size() << "\t" << masses_[0] << "\t"<<*(masses_.end()-1) <<"\n";
 #endif
-		// now save counter
-		std::ofstream out2((path + "_counter").c_str());
-		if (!out2)
-			{
-				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, path+ "_counter");
-			}
-		out2.precision(10);
+// 		// now save counter
+// 		std::ofstream out2((path + "_counter").c_str());
+// 		if (!out2)
+// 			{
+// 				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, path+ "_counter");
+// 			}
+// 		out2.precision(10);
 		
 		// header: number of entries, min, max
-		out2 << counter_.size() << "\t" << masses_[0] << "\t"<<*(masses_.end()-1) <<"\n";
+		out << "###\n";
+		out << counter_.size() << "\t" << masses_[0] << "\t"<<*(masses_.end()-1) <<"\n";
 		for(UInt i = 0; i < counter_.size(); ++i)
 			{
-					out2 << counter_[i] << std::endl;
+					out << counter_[i] << "\t";
 			}
-	
+		out << "\n";
 		if(path.hasSubstring("ppm"))
 			{
 #ifdef PISP_DEBUG
 				std::cout << (path + "_bin_masses") << std::endl;
 #endif
-				// now save bin_masses
-				std::ofstream out3((path + "_bin_masses").c_str());
-				if (!out3)
-					{
-						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, path+ "_bin_masses");
-					}
+// 				// now save bin_masses
+// 				std::ofstream out3((path + "_bin_masses").c_str());
+// 				if (!out3)
+// 					{
+// 						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, path+ "_bin_masses");
+// 					}
 				
-				out3.precision(10);				
+// 				out3.precision(10);				
 				// header: number of entries
-				out3 << bin_masses_.size() << "\n";
+				out << "###\n";
+				out << bin_masses_.size() << "\n";
 				for(UInt i = 0; i < bin_masses_.size(); ++i)
 					{
-						out3<< bin_masses_[i] << std::endl;
+						out<< bin_masses_[i] << "\n";
 					}
 			}
 
@@ -377,7 +425,7 @@ namespace OpenMS
 #endif
 		TextFile::Iterator iter = file.begin();
 		++iter;
-		for(; iter != file.end(); ++iter)
+		for(; iter != file.end() && !iter->hasPrefix("###"); ++iter)
 	    {
 				std::vector<String> parts;
 				iter->split('\t',parts);
@@ -397,46 +445,50 @@ namespace OpenMS
 #ifdef PISP_DEBUG
 		std::cout << "loaded"<<std::endl;
 #endif
-		file.clear();
-		// now get the counter_ vector
-		TextFile file2;
-		file2.load(path+"_counter",true);
-		iter = file2.begin();
+// 		file.clear();
+// 		// now get the counter_ vector
+// 		TextFile file2;
+// 		file2.load(path+"_counter",true);
+// 		iter = file2.begin();
+		++iter;
 		std::vector<String> header;
 		iter->split('\t',header);
 
 		f_max_ = 0;
 		
 		++iter;
-		for(; iter != file2.end(); ++iter)
+		std::vector<String> freqs;
+		iter->split('\t',freqs);
+
+		for(std::vector<String>::const_iterator f_iter=freqs.begin(); f_iter != freqs.end(); ++f_iter)
 	    {
-				counter_.push_back(iter->toDouble());
-				if(iter->toDouble() > f_max_) f_max_ = iter->toDouble();
+				counter_.push_back(f_iter->toDouble());
+				if(f_iter->toDouble() > f_max_) f_max_ = f_iter->toDouble();
 			}
-		file2.clear();
+		++iter;
+		
 		if(param_.getValue("precursor_mass_tolerance_unit")=="ppm")
 			{
-				TextFile file3;
-				try
+				if(iter == file.end())  	throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+																																		"ppm is used as precursor_mass_tolerance_unit, which requires the file "
+																																		+ path+"_bin_masses"+ ", that could not be found." );
+				else if(iter->hasPrefix("###"))
 					{
-						file3.load(path+"_bin_masses",true);
-					}
-				catch(Exception::BaseException& /*e*/)
-					{
-						throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-																							"ppm is used as precursor_mass_tolerance_unit, which requires the file "
-																							+ path+"_bin_masses"+ ", that could not be found." );
-					}
+						++iter;
 #ifdef PISP_DEBUG
-				std::cout << "load "<<path<<"_bin_masses"<<std::endl;
+						std::cout << "load "<<path<<"_bin_masses"<<std::endl;
 #endif
-				iter = file3.begin();
-				bin_masses_.reserve(iter->toInt());
-				++iter;
-				for(; iter != file3.end(); ++iter)
-					{
-						bin_masses_.push_back(iter->toDouble());
+						bin_masses_.reserve(iter->toInt());
+						++iter;
+						for(; iter != file.end(); ++iter)
+							{
+								bin_masses_.push_back(iter->toDouble());
+							}
+						
 					}
+				else throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+																							 "ppm is used as precursor_mass_tolerance_unit, which requires the file "
+																							 + path+"_bin_masses"+ ", that could not be found." );
 			}
 		
 	}
