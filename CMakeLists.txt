@@ -426,7 +426,7 @@ configure_file(${PROJECT_SOURCE_DIR}/source/config/Doxyfile.in ${PROJECT_BINARY_
 
 # are we building a shared or static lib?! (BOTH within the same BUILD-tree is NOT possible with OpenMS!!)
 if (MINGW OR MSVC)
-	set(BUILD_SHARED_LIBS true)
+	set(BUILD_SHARED_LIBS false)
 else()
 	set(BUILD_SHARED_LIBS true)
 endif()
@@ -466,6 +466,9 @@ ENDMACRO (QT4_WRAP_UI_OWN)
 # big include file for headers and C files, which fills the OpenMS_sources variable
 include (includes.cmake)
 
+#needed for MSVC to locate Boost-Libs (put this above ADD_LIBRARY() - otherwise it will not work)
+link_directories(${CONTRIB_LIB_DIR})
+
 # add library target
 # warning: set BUILD_SHARED_LIBS to decide if library is shared or static (see above)! We need the BUILD_SHARED_LIBS flag to set declspec flags for MSVC!
 ADD_LIBRARY(OpenMS ${OpenMS_sources})
@@ -484,8 +487,6 @@ set(OPENMS_DEP_LIBRARIES ${QT_LIBRARIES} ${CONTRIB_CGAL} ${CONTRIB_GSL} ${CONTRI
 if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
 	target_link_libraries(OpenMS ${OPENMS_DEP_LIBRARIES})
-	#needed for MSVC to locate Boost-Libs
-	link_directories(${CONTRIB_LIB_DIR})
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   target_link_libraries(OpenMS ${OPENMS_DEP_LIBRARIES})
 endif()
