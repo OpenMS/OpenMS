@@ -2149,7 +2149,7 @@ namespace OpenMS
 			}
 			else
 			{
-				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000799\" name=\"custom unreleased software tool\" value=\"" << software.getName() << "\"/>\n";
+				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000799\" name=\"custom unreleased software tool\" value=\"" << software.getName() << "\" />\n";
 			}
 			writeUserParam_(os, software, 3);
 			os  << "		</software>\n";
@@ -2161,24 +2161,24 @@ namespace OpenMS
 			os	<< "			<sourceFile id=\"" << id << "\" name=\"" << source_file.getNameOfFile() << "\" location=\"" << source_file.getPathToFile() << "\">\n";
 			if (source_file.getChecksumType()==SourceFile::SHA1)
 			{
-				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000569\" name=\"SHA-1\" value=\"" << source_file.getChecksum() << "\"/>\n";
+				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000569\" name=\"SHA-1\" value=\"" << source_file.getChecksum() << "\" />\n";
 			}
 			else if (source_file.getChecksumType()==SourceFile::MD5)
 			{
-				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000568\" name=\"MD5\" value=\"" << source_file.getChecksum() << "\"/>\n";
+				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000568\" name=\"MD5\" value=\"" << source_file.getChecksum() << "\" />\n";
 			}
 			else //FORCED
 			{
-				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000569\" name=\"SHA-1\" value=\"\"/>\n";
+				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000569\" name=\"SHA-1\" value=\"\" />\n";
 			}
 			ControlledVocabulary::CVTerm sf_term = getChildWithName_("MS:1000560",source_file.getFileType());
 			if (sf_term.id!="")
 			{
-				os  << "				<cvParam cvRef=\"MS\" accession=\"" << sf_term.id <<"\" name=\"" << sf_term.name << "\"/>\n";
+				os  << "				<cvParam cvRef=\"MS\" accession=\"" << sf_term.id <<"\" name=\"" << sf_term.name << "\" />\n";
 			}
 			else //FORCED
 			{
-				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000564\" name=\"mzData file\"/>\n";
+				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000564\" name=\"mzData file\" />\n";
 			}
 			writeUserParam_(os, source_file, 4);
 			os	<< "			</sourceFile>\n";
@@ -2338,24 +2338,24 @@ namespace OpenMS
 			{
 				const ContactPerson& cp = exp.getContacts()[i];
 				os  << "		<contact>\n";
-				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000586\" name=\"contact name\" value=\"" << cp.getLastName() << ", " << cp.getFirstName() << "\"/>\n";
-				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000590\" name=\"contact organization\" value=\"" << cp.getInstitution() << "\"/>\n";
+				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000586\" name=\"contact name\" value=\"" << cp.getLastName() << ", " << cp.getFirstName() << "\" />\n";
+				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000590\" name=\"contact organization\" value=\"" << cp.getInstitution() << "\" />\n";
 
 				if (cp.getAddress()!="")
 				{
-					os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000587\" name=\"contact address\" value=\"" << cp.getAddress() << "\"/>\n";
+					os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000587\" name=\"contact address\" value=\"" << cp.getAddress() << "\" />\n";
 				}
 				if (cp.getURL()!="")
 				{
-					os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000588\" name=\"contact URL\" value=\"" << cp.getURL() << "\"/>\n";
+					os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000588\" name=\"contact URL\" value=\"" << cp.getURL() << "\" />\n";
 				}
 				if (cp.getEmail()!="")
 				{
-					os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000589\" name=\"contact email\" value=\"" << cp.getEmail() << "\"/>\n";
+					os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000589\" name=\"contact email\" value=\"" << cp.getEmail() << "\" />\n";
 				}
 				if (cp.getContactInfo()!="")
 				{
-					os  << "			<userParam name=\"contact_info\" type=\"xsd:string\" value=\"" << cp.getContactInfo() << "\"/>\n";
+					os  << "			<userParam name=\"contact_info\" type=\"xsd:string\" value=\"" << cp.getContactInfo() << "\" />\n";
 				}
 				writeUserParam_(os, cp, 3);
 				os << "		</contact>\n"; 
@@ -2369,14 +2369,14 @@ namespace OpenMS
 			os  << "		<sample id=\"sa_0\" name=\"" << sa.getName() << "\">\n";
 			if (sa.getNumber()!="")
 			{
-				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000001\" name=\"sample number\" value=\"" << sa.getNumber() << "\"/>\n";
+				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000001\" name=\"sample number\" value=\"" << sa.getNumber() << "\" />\n";
 			}
-			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000004\" name=\"sample mass\" value=\"" << sa.getMass() << "\"  unitAccession=\"UO:0000022\" unitName=\"milligram\" unitCvRef=\"UO\"/>\n";
-			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000005\" name=\"sample volume\" value=\"" << sa.getVolume() << "\" unitAccession=\"UO:0000098\" unitName=\"milliliter\" unitCvRef=\"UO\"/>\n";
-			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000006\" name=\"sample concentration\" value=\"" << sa.getConcentration() << "\" unitAccession=\"UO:0000177\" unitName=\"unit per volume unit\" unitCvRef=\"UO\"/>\n";
+			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000004\" name=\"sample mass\" value=\"" << sa.getMass() << "\"  unitAccession=\"UO:0000022\" unitName=\"milligram\" unitCvRef=\"UO\" />\n";
+			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000005\" name=\"sample volume\" value=\"" << sa.getVolume() << "\" unitAccession=\"UO:0000098\" unitName=\"milliliter\" unitCvRef=\"UO\" />\n";
+			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000006\" name=\"sample concentration\" value=\"" << sa.getConcentration() << "\" unitAccession=\"UO:0000177\" unitName=\"unit per volume unit\" unitCvRef=\"UO\" />\n";
 			if (sa.getComment()!="")
 			{
-				os  << "			<userParam name=\"comment\" type=\"xsd:string\" value=\"" << sa.getComment() << "\"/>\n";
+				os  << "			<userParam name=\"comment\" type=\"xsd:string\" value=\"" << sa.getComment() << "\" />\n";
 			}
 			if (sa.getState()==Sample::EMULSION)
 			{
@@ -2434,70 +2434,70 @@ namespace OpenMS
 			ControlledVocabulary::CVTerm in_term = getChildWithName_("MS:1000031",in.getName());
 			if (in_term.id!="")
 			{
-				os  << "			<cvParam cvRef=\"MS\" accession=\"" << in_term.id <<"\" name=\"" << in_term.name << "\"/>\n";
+				os  << "			<cvParam cvRef=\"MS\" accession=\"" << in_term.id <<"\" name=\"" << in_term.name << "\" />\n";
 			}
 			else
 			{
-				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000031\" name=\"instrument model\"/>\n";
+				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000031\" name=\"instrument model\" />\n";
 			}
 			
 			if (in.getCustomizations()!="")
 			{
-				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000032\" name=\"customization\" value=\"" << in.getCustomizations() << "\"/>\n";
+				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000032\" name=\"customization\" value=\"" << in.getCustomizations() << "\" />\n";
 			}
 
 			//ion optics
 			if (in.getIonOptics()==Instrument::MAGNETIC_DEFLECTION)
 			{
-				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000221\" name=\"magnetic deflection\"/>\n";
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000221\" name=\"magnetic deflection\" />\n";
 			}
 			else if (in.getIonOptics()==Instrument::DELAYED_EXTRACTION)
 			{
-				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000246\" name=\"delayed extraction\"/>\n";
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000246\" name=\"delayed extraction\" />\n";
 			}
 			else if (in.getIonOptics()==Instrument::COLLISION_QUADRUPOLE)
 			{
-				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000275\" name=\"collision quadrupole\"/>\n";
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000275\" name=\"collision quadrupole\" />\n";
 			}
 			else if (in.getIonOptics()==Instrument::SELECTED_ION_FLOW_TUBE)
 			{
-				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000281\" name=\"selected ion flow tube\"/>\n";
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000281\" name=\"selected ion flow tube\" />\n";
 			}
 			else if (in.getIonOptics()==Instrument::TIME_LAG_FOCUSING)
 			{
-				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000286\" name=\"time lag focusing\"/>\n";
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000286\" name=\"time lag focusing\" />\n";
 			}
 			else if (in.getIonOptics()==Instrument::REFLECTRON)
 			{
-				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000300\" name=\"reflectron\"/>\n";
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000300\" name=\"reflectron\" />\n";
 			}
 			else if (in.getIonOptics()==Instrument::EINZEL_LENS)
 			{
-				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000307\" name=\"einzel lens\"/>\n";
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000307\" name=\"einzel lens\" />\n";
 			}
 			else if (in.getIonOptics()==Instrument::ELECTRIC_FIELD_STRENGTH)
 			{
-				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000308\" name=\"electric field strength\"/>\n";
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000308\" name=\"electric field strength\" />\n";
 			}
 			else if (in.getIonOptics()==Instrument::FIRST_STABILITY_REGION)
 			{
-				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000309\" name=\"first stability region\"/>\n";
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000309\" name=\"first stability region\" />\n";
 			}
 			else if (in.getIonOptics()==Instrument::FRINGING_FIELD)
 			{
-				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000310\" name=\"fringing field\"/>\n";
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000310\" name=\"fringing field\" />\n";
 			}
 			else if (in.getIonOptics()==Instrument::KINETIC_ENERGY_ANALYZER)
 			{
-				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000311\" name=\"kinetic energy analyzer\"/>\n";
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000311\" name=\"kinetic energy analyzer\" />\n";
 			}
 			else if (in.getIonOptics()==Instrument::SPACE_CHARGE_EFFECT)
 			{
-				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000319\" name=\"space charge effect\"/>\n";
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000319\" name=\"space charge effect\" />\n";
 			}
 			else if (in.getIonOptics()==Instrument::STATIC_FIELD)
 			{
-				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000320\" name=\"static field\"/>\n";
+				os << "			<cvParam cvRef=\"MS\" accession=\"MS:1000320\" name=\"static field\" />\n";
 			}
 
 			writeUserParam_(os, in, 3);
@@ -2515,256 +2515,256 @@ namespace OpenMS
 					
 					if(so.getInletType()==IonSource::CONTINUOUSFLOWFASTATOMBOMBARDMENT)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000055\" name=\"continuous flow fast atom bombardment\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000055\" name=\"continuous flow fast atom bombardment\" />\n";
 					}
 					else if(so.getInletType()==IonSource::DIRECT)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000056\" name=\"direct inlet\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000056\" name=\"direct inlet\" />\n";
 					}
 					else if(so.getInletType()==IonSource::ELECTROSPRAYINLET)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000057\" name=\"electrospray inlet\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000057\" name=\"electrospray inlet\" />\n";
 					}
 					else if(so.getInletType()==IonSource::FLOWINJECTIONANALYSIS)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000058\" name=\"flow injection analysis\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000058\" name=\"flow injection analysis\" />\n";
 					}
 					else if(so.getInletType()==IonSource::INDUCTIVELYCOUPLEDPLASMA)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000059\" name=\"inductively coupled plasma\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000059\" name=\"inductively coupled plasma\" />\n";
 					}
 					else if(so.getInletType()==IonSource::INFUSION)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000060\" name=\"infusion\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000060\" name=\"infusion\" />\n";
 					}
 					else if(so.getInletType()==IonSource::JETSEPARATOR)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000061\" name=\"jet separator\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000061\" name=\"jet separator\" />\n";
 					}
 					else if(so.getInletType()==IonSource::MEMBRANESEPARATOR)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000062\" name=\"membrane separator\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000062\" name=\"membrane separator\" />\n";
 					}
 					else if(so.getInletType()==IonSource::MOVINGBELT)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000063\" name=\"moving belt\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000063\" name=\"moving belt\" />\n";
 					}
 					else if(so.getInletType()==IonSource::MOVINGWIRE)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000064\" name=\"moving wire\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000064\" name=\"moving wire\" />\n";
 					}
 					else if(so.getInletType()==IonSource::OPENSPLIT)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000065\" name=\"open split\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000065\" name=\"open split\" />\n";
 					}
 					else if(so.getInletType()==IonSource::PARTICLEBEAM)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000066\" name=\"particle beam\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000066\" name=\"particle beam\" />\n";
 					}
 					else if(so.getInletType()==IonSource::RESERVOIR)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000067\" name=\"reservoir\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000067\" name=\"reservoir\" />\n";
 					}
 					else if(so.getInletType()==IonSource::SEPTUM)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000068\" name=\"septum\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000068\" name=\"septum\" />\n";
 					}
 					else if(so.getInletType()==IonSource::THERMOSPRAYINLET)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000069\" name=\"thermospray inlet\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000069\" name=\"thermospray inlet\" />\n";
 					}
 					else if(so.getInletType()==IonSource::BATCH)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000248\" name=\"direct insertion probe\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000248\" name=\"direct insertion probe\" />\n";
 					}
 					else if(so.getInletType()==IonSource::CHROMATOGRAPHY)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000249\" name=\"direct liquid introduction\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000249\" name=\"direct liquid introduction\" />\n";
 					}
 					else if(so.getInletType()==IonSource::MEMBRANE)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000396\" name=\"membrane inlet\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000396\" name=\"membrane inlet\" />\n";
 					}
 					else if(so.getInletType()==IonSource::NANOSPRAY)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000485\" name=\"nanospray inlet\"/>\n";	
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000485\" name=\"nanospray inlet\" />\n";	
 					}
 	
 					if(so.getIonizationMethod()==IonSource::APCI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000070\" name=\"atmospheric pressure chemical ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000070\" name=\"atmospheric pressure chemical ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::CI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000071\" name=\"chemical ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000071\" name=\"chemical ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::ESI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000073\" name=\"electrospray ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000073\" name=\"electrospray ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::FAB)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000074\" name=\"fast atom bombardment ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000074\" name=\"fast atom bombardment ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::MALDI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000075\" name=\"matrix-assisted laser desorption ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000075\" name=\"matrix-assisted laser desorption ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::MPI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000227\" name=\"multiphoton ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000227\" name=\"multiphoton ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::AP_MALDI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000239\" name=\"atmospheric pressure matrix-assisted laser desorption ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000239\" name=\"atmospheric pressure matrix-assisted laser desorption ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::API)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000240\" name=\"atmospheric pressure ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000240\" name=\"atmospheric pressure ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::DI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000247\" name=\"desorption ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000247\" name=\"desorption ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::FA)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000255\" name=\"flowing afterglow\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000255\" name=\"flowing afterglow\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::FD)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000257\" name=\"field desorption\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000257\" name=\"field desorption\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::FI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000258\" name=\"field ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000258\" name=\"field ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::GD_MS)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000259\" name=\"glow discharge ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000259\" name=\"glow discharge ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::NICI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000271\" name=\"Negative ion chemical ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000271\" name=\"Negative ion chemical ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::NRMS)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000272\" name=\"neutralization reionization mass spectrometry\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000272\" name=\"neutralization reionization mass spectrometry\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::PI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000273\" name=\"photoionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000273\" name=\"photoionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::PYMS)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000274\" name=\"pyrolysis mass spectrometry\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000274\" name=\"pyrolysis mass spectrometry\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::REMPI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000276\" name=\"resonance enhanced multiphoton ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000276\" name=\"resonance enhanced multiphoton ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::SELDI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000278\" name=\"surface enhanced laser desorption ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000278\" name=\"surface enhanced laser desorption ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::SEND)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000279\" name=\"surface enhanced neat desorption\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000279\" name=\"surface enhanced neat desorption\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::AI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000380\" name=\"adiabatic ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000380\" name=\"adiabatic ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::ASI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000381\" name=\"associative ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000381\" name=\"associative ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::APPI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000382\" name=\"atmospheric pressure photoionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000382\" name=\"atmospheric pressure photoionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::AD)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000383\" name=\"autodetachment\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000383\" name=\"autodetachment\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::AUI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000384\" name=\"autoionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000384\" name=\"autoionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::CEI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000385\" name=\"charge exchange ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000385\" name=\"charge exchange ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::CHEMI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000386\" name=\"chemi-ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000386\" name=\"chemi-ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::SILI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000387\" name=\"desorption/ionization on silicon\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000387\" name=\"desorption/ionization on silicon\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::DISSI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000388\" name=\"dissociative ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000388\" name=\"dissociative ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::EI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000389\" name=\"electron ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000389\" name=\"electron ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::LD)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000393\" name=\"laser desorption ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000393\" name=\"laser desorption ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::LSI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000395\" name=\"liquid secondary ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000395\" name=\"liquid secondary ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::MESI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000397\" name=\"microelectrospray\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000397\" name=\"microelectrospray\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::NESI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000398\" name=\"nanoelectrospray\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000398\" name=\"nanoelectrospray\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::PEI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000399\" name=\"penning ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000399\" name=\"penning ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::PD)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000400\" name=\"plasma desorption ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000400\" name=\"plasma desorption ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::SI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000402\" name=\"secondary ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000402\" name=\"secondary ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::SOI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000403\" name=\"soft ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000403\" name=\"soft ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::SPI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000404\" name=\"spark ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000404\" name=\"spark ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::SALDI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000405\" name=\"surface-assisted laser desorption ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000405\" name=\"surface-assisted laser desorption ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::SUI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000406\" name=\"surface ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000406\" name=\"surface ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::TI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000407\" name=\"thermal ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000407\" name=\"thermal ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::VI)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000408\" name=\"vertical ionization\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000408\" name=\"vertical ionization\" />\n";
 					}
 					else if(so.getIonizationMethod()==IonSource::FIB)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000446\" name=\"fast ion bombardment\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000446\" name=\"fast ion bombardment\" />\n";
 					}
 						
 					writeUserParam_(os, so, 5);
@@ -2774,7 +2774,7 @@ namespace OpenMS
 				if (component_count<3 && in.getIonSources().size()==0)
 				{
 					os  << "				<source order=\"1234\">\n";
-					os  << "					<cvParam cvRef=\"MS\" accession=\"MS:1000446\" name=\"fast ion bombardment\"/>\n";
+					os  << "					<cvParam cvRef=\"MS\" accession=\"MS:1000446\" name=\"fast ion bombardment\" />\n";
 					os  << "					<userParam name=\"warning\" type=\"xsd:string\" value=\"invented ion source, to fulfill mzML schema\" />\n";
 					os  << "				</source>\n";				
 				}
@@ -2793,65 +2793,65 @@ namespace OpenMS
 					
 					if (ma.getReflectronState()==MassAnalyzer::ON)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000106\" name=\"reflectron on\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000106\" name=\"reflectron on\" />\n";
 						
 					}
 					else if (ma.getReflectronState()==MassAnalyzer::OFF)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000105\" name=\"reflectron off\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000105\" name=\"reflectron off\" />\n";
 					}
 	
 					if (ma.getType()==MassAnalyzer::FOURIERTRANSFORM)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000079\" name=\"fourier transform ion cyclotron resonance mass spectrometer\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000079\" name=\"fourier transform ion cyclotron resonance mass spectrometer\" />\n";
 					}
 					else if (ma.getType()==MassAnalyzer::SECTOR)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000080\" name=\"magnetic sector\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000080\" name=\"magnetic sector\" />\n";
 					}
 					else if (ma.getType()==MassAnalyzer::QUADRUPOLE)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000081\" name=\"quadrupole\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000081\" name=\"quadrupole\" />\n";
 					}
 					else if (ma.getType()==MassAnalyzer::TOF)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000084\" name=\"time-of-flight\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000084\" name=\"time-of-flight\" />\n";
 					}
 					else if (ma.getType()==MassAnalyzer::ESA)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000254\" name=\"electrostatic energy analyzer\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000254\" name=\"electrostatic energy analyzer\" />\n";
 					}
 					else if (ma.getType()==MassAnalyzer::IT)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000264\" name=\"ion trap\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000264\" name=\"ion trap\" />\n";
 					}
 					else if (ma.getType()==MassAnalyzer::SWIFT)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000284\" name=\"stored waveform inverse fourier transform\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000284\" name=\"stored waveform inverse fourier transform\" />\n";
 					}
 					else if (ma.getType()==MassAnalyzer::CYCLOTRON)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000288\" name=\"cyclotron\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000288\" name=\"cyclotron\" />\n";
 					}
 					else if (ma.getType()==MassAnalyzer::ORBITRAP)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000484\" name=\"orbitrap\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000484\" name=\"orbitrap\" />\n";
 					}
 					else if (ma.getType()==MassAnalyzer::AXIALEJECTIONLINEARIONTRAP)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000078\" name=\"axial ejection linear ion trap\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000078\" name=\"axial ejection linear ion trap\" />\n";
 					}
 					else if (ma.getType()==MassAnalyzer::PAULIONTRAP)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000082\" name=\"quadrupole ion trap\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000082\" name=\"quadrupole ion trap\" />\n";
 					}
 					else if (ma.getType()==MassAnalyzer::RADIALEJECTIONLINEARIONTRAP)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000083\" name=\"radial ejection linear ion trap\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000083\" name=\"radial ejection linear ion trap\" />\n";
 					}
 					else if (ma.getType()==MassAnalyzer::LIT)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000291\" name=\"linear ion trap\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000291\" name=\"linear ion trap\" />\n";
 					}
 					
 					writeUserParam_(os, ma, 5);
@@ -2861,7 +2861,7 @@ namespace OpenMS
 				if (component_count<3 && in.getMassAnalyzers().size()==0)
 				{
 					os  << "				<analyzer order=\"1234\">\n";
-					os << "						<cvParam cvRef=\"MS\" accession=\"MS:1000288\" name=\"cyclotron\"/>\n";
+					os << "						<cvParam cvRef=\"MS\" accession=\"MS:1000288\" name=\"cyclotron\" />\n";
 					os  << "					<userParam name=\"warning\" type=\"xsd:string\" value=\"invented mass analyzer, to fulfill mzML schema\" />\n";
 					os  << "				</analyzer>\n";				
 				}
@@ -2873,105 +2873,105 @@ namespace OpenMS
 					const IonDetector& id = in.getIonDetectors()[i];
 					os  << "				<detector order=\"" << id.getOrder() << "\">\n";
 	
-					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000028\" name=\"detector resolution\" value=\"" << id.getResolution() << "\"/>\n";
-					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000029\" name=\"sampling frequency\" value=\"" << id.getADCSamplingFrequency() << "\"/>\n";
+					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000028\" name=\"detector resolution\" value=\"" << id.getResolution() << "\" />\n";
+					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000029\" name=\"sampling frequency\" value=\"" << id.getADCSamplingFrequency() << "\" />\n";
 	
 					if (id.getAcquisitionMode()==IonDetector::ADC)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000117\" name=\"analog-digital converter\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000117\" name=\"analog-digital converter\" />\n";
 					}
 					else if (id.getAcquisitionMode()==IonDetector::PULSECOUNTING)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000118\" name=\"pulse counting\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000118\" name=\"pulse counting\" />\n";
 					}
 					else if (id.getAcquisitionMode()==IonDetector::TDC)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000119\" name=\"time-digital converter\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000119\" name=\"time-digital converter\" />\n";
 					}
 					else if (id.getAcquisitionMode()==IonDetector::TRANSIENTRECORDER)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000120\" name=\"transient recorder\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000120\" name=\"transient recorder\" />\n";
 					}
 	
 					if (id.getType()==IonDetector::CHANNELTRON)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000107\" name=\"channeltron\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000107\" name=\"channeltron\" />\n";
 					}
 					else if (id.getType()==IonDetector::DALYDETECTOR)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000110\" name=\"daly detector\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000110\" name=\"daly detector\" />\n";
 					}
 					else if (id.getType()==IonDetector::FARADAYCUP)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000112\" name=\"faraday cup\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000112\" name=\"faraday cup\" />\n";
 					}
 					else if (id.getType()==IonDetector::MICROCHANNELPLATEDETECTOR)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000114\" name=\"microchannel plate detector\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000114\" name=\"microchannel plate detector\" />\n";
 					}
 					else if (id.getType()==IonDetector::MULTICOLLECTOR)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000115\" name=\"multi-collector\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000115\" name=\"multi-collector\" />\n";
 					}
 					else if (id.getType()==IonDetector::PHOTOMULTIPLIER)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000116\" name=\"photomultiplier\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000116\" name=\"photomultiplier\" />\n";
 					}
 					else if (id.getType()==IonDetector::ELECTRONMULTIPLIER)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000253\" name=\"electron multiplier\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000253\" name=\"electron multiplier\" />\n";
 					}
 					else if (id.getType()==IonDetector::ARRAYDETECTOR)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000345\" name=\"array detector\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000345\" name=\"array detector\" />\n";
 					}
 					else if (id.getType()==IonDetector::CONVERSIONDYNODE)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000346\" name=\"conversion dynode\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000346\" name=\"conversion dynode\" />\n";
 					}
 					else if (id.getType()==IonDetector::DYNODE)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000347\" name=\"dynode\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000347\" name=\"dynode\" />\n";
 					}
 					else if (id.getType()==IonDetector::FOCALPLANECOLLECTOR)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000348\" name=\"focal plane collector\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000348\" name=\"focal plane collector\" />\n";
 					}
 					else if (id.getType()==IonDetector::IONTOPHOTONDETECTOR)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000349\" name=\"ion-to-photon detector\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000349\" name=\"ion-to-photon detector\" />\n";
 					}
 					else if (id.getType()==IonDetector::POINTCOLLECTOR)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000350\" name=\"point collector\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000350\" name=\"point collector\" />\n";
 					}
 					else if (id.getType()==IonDetector::POSTACCELERATIONDETECTOR)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000351\" name=\"postacceleration detector\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000351\" name=\"postacceleration detector\" />\n";
 					}
 					else if (id.getType()==IonDetector::PHOTODIODEARRAYDETECTOR)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000621\" name=\"photodiode array detector\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000621\" name=\"photodiode array detector\" />\n";
 					}
 					else if (id.getType()==IonDetector::INDUCTIVEDETECTOR)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000624\" name=\"inductive detector\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000624\" name=\"inductive detector\" />\n";
 					}
 					else if (id.getType()==IonDetector::CONVERSIONDYNODEELECTRONMULTIPLIER)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000108\" name=\"conversion dynode electron multiplier\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000108\" name=\"conversion dynode electron multiplier\" />\n";
 					}
 					else if (id.getType()==IonDetector::CONVERSIONDYNODEPHOTOMULTIPLIER)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000109\" name=\"conversion dynode photomultiplier\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000109\" name=\"conversion dynode photomultiplier\" />\n";
 					}
 					else if (id.getType()==IonDetector::ELECTRONMULTIPLIERTUBE)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000111\" name=\"electron multiplier tube\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000111\" name=\"electron multiplier tube\" />\n";
 					}
 					else if (id.getType()==IonDetector::FOCALPLANEARRAY)
 					{
-						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000113\" name=\"focal plane array\"/>\n";
+						os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000113\" name=\"focal plane array\" />\n";
 					}
 	
 					writeUserParam_(os, id, 5);
@@ -2981,13 +2981,13 @@ namespace OpenMS
 				if (component_count<3 && in.getIonDetectors().size()==0)
 				{
 					os  << "				<detector order=\"1234\">\n";
-					os  << "					<cvParam cvRef=\"MS\" accession=\"MS:1000107\" name=\"channeltron\"/>\n";
+					os  << "					<cvParam cvRef=\"MS\" accession=\"MS:1000107\" name=\"channeltron\" />\n";
 					os  << "					<userParam name=\"warning\" type=\"xsd:string\" value=\"invented ion detector, to fulfill mzML schema\" />\n";
 					os  << "				</detector>\n";				
 				}
 				os  << "			</componentList>\n";
 			}
-			os  << "			<softwareRef ref=\"so_in_0\"/>\n";
+			os  << "			<softwareRef ref=\"so_in_0\" />\n";
 			os  << "		</instrumentConfiguration>\n";
 			os  << "	</instrumentConfigurationList>\n";
 
@@ -3002,31 +3002,31 @@ namespace OpenMS
 				os  << "			<processingMethod order=\"0\" softwareRef=\"so_dp_" << i << "\">\n";
 				if (dp.getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION)==1)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000034\" name=\"charge deconvolution\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000034\" name=\"charge deconvolution\" />\n";
 				}
 				if (dp.getProcessingActions().count(DataProcessing::DEISOTOPING)==1)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000033\" name=\"deisotoping\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000033\" name=\"deisotoping\" />\n";
 				}
 				if (dp.getProcessingActions().count(DataProcessing::SMOOTHING)==1)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000592\" name=\"smoothing\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000592\" name=\"smoothing\" />\n";
 				}
 				if (dp.getProcessingActions().count(DataProcessing::CHARGE_CALCULATION)==1)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000778\" name=\"charge state calculation\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000778\" name=\"charge state calculation\" />\n";
 				}
 				if (dp.getProcessingActions().count(DataProcessing::PRECURSOR_RECALCULATION)==1)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000780\" name=\"precursor recalculation\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000780\" name=\"precursor recalculation\" />\n";
 				}
 				if (dp.getProcessingActions().count(DataProcessing::BASELINE_REDUCTION)==1)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000593\" name=\"baseline reduction\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000593\" name=\"baseline reduction\" />\n";
 				}
 				if (dp.getProcessingActions().count(DataProcessing::PEAK_PICKING)==1)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000035\" name=\"peak picking\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000035\" name=\"peak picking\" />\n";
 				}
 				if (dp.getProcessingActions().count(DataProcessing::FEATURE_FINDING)==1)
 				{
@@ -3034,36 +3034,36 @@ namespace OpenMS
 				}
 				if (dp.getProcessingActions().count(DataProcessing::ALIGNMENT)==1)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000745\" name=\"retention time alignment\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000745\" name=\"retention time alignment\" />\n";
 				}
 				if (dp.getProcessingActions().count(DataProcessing::LOW_INTENSITY_REMOVAL)==1)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000594\" name=\"low intensity data point removal\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000594\" name=\"low intensity data point removal\" />\n";
 				}
 				if (dp.getProcessingActions().count(DataProcessing::HIGH_INTENSITY_REMOVAL)==1)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000746\" name=\"high intensity data point removal\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000746\" name=\"high intensity data point removal\" />\n";
 				}
 				if (dp.getProcessingActions().count(DataProcessing::CONVERSION_MZDATA)==1)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000546\" name=\"Conversion to mzData\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000546\" name=\"Conversion to mzData\" />\n";
 				}
 				if (dp.getProcessingActions().count(DataProcessing::CONVERSION_MZML)==1)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000544\" name=\"Conversion to mzML\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000544\" name=\"Conversion to mzML\" />\n";
 				}
 				if (dp.getProcessingActions().count(DataProcessing::CONVERSION_MZXML)==1)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000545\" name=\"Conversion to mzXML\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000545\" name=\"Conversion to mzXML\" />\n";
 				}
 				if (dp.getProcessingActions().count(DataProcessing::CONVERSION_DTA)==1)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000741\" name=\"Conversion to dta\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000741\" name=\"Conversion to dta\" />\n";
 				}
 				//data processing attribute
 				if (dp.getCompletionTime().isValid())
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000747\" name=\"completion time\" value=\"" << dp.getCompletionTime().toString("yyyy-MM-dd+hh:mm").toStdString() << "\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000747\" name=\"completion time\" value=\"" << dp.getCompletionTime().toString("yyyy-MM-dd+hh:mm").toStdString() << "\" />\n";
 				}
 				
 				writeUserParam_(os, dp, 4);
@@ -3073,7 +3073,7 @@ namespace OpenMS
 			if (exp.getDataProcessing().size()==0)
 			{
 				os  << "			<processingMethod order=\"0\" softwareRef=\"so_dp_0\">\n";
-				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000544\" name=\"Conversion to mzML\"/>\n";
+				os  << "				<cvParam cvRef=\"MS\" accession=\"MS:1000544\" name=\"Conversion to mzML\" />\n";
 				os  << "				<userParam name=\"warning\" type=\"xsd:string\" value=\"invented data processing, to fulfill mzML schema\" />\n";
 				os  << "			</processingMethod>\n";
 			}
@@ -3100,7 +3100,7 @@ namespace OpenMS
 				os	<< "		<sourceFileRefList count=\"" << exp.getSourceFiles().size() << "\">\n";
 				for (Size i=0; i<exp.getSourceFiles().size(); ++i)
 				{
-					os	<< "			<sourceFileRef ref=\"sf_ru_" << i << "\"/>\n";
+					os	<< "			<sourceFileRef ref=\"sf_ru_" << i << "\" />\n";
 				}
 				os	<< "		</sourceFileRefList>\n";
 			}
@@ -3122,20 +3122,20 @@ namespace OpenMS
 				//spectrum representation
 				if (spec.getType()==SpectrumSettings::PEAKS)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000127\" name=\"centroid mass spectrum\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000127\" name=\"centroid mass spectrum\" />\n";
 				}
 				else if (spec.getType()==SpectrumSettings::RAWDATA)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000128\" name=\"profile mass spectrum\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000128\" name=\"profile mass spectrum\" />\n";
 				}
 				else
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000525\" name=\"spectrum representation\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000525\" name=\"spectrum representation\" />\n";
 				}
 				
 				if (spec.getMSLevel()!=0)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000511\" name=\"ms level\" value=\"" << spec.getMSLevel() << "\"/>\n";	
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000511\" name=\"ms level\" value=\"" << spec.getMSLevel() << "\" />\n";	
 				}
 				
 				//spectrum type
@@ -3190,15 +3190,15 @@ namespace OpenMS
 				
 				if (spec.getInstrumentSettings().getPolarity()==IonSource::NEGATIVE)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000129\" name=\"negative scan\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000129\" name=\"negative scan\" />\n";
 				}
 				else if (spec.getInstrumentSettings().getPolarity()==IonSource::POSITIVE)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000130\" name=\"positive scan\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000130\" name=\"positive scan\" />\n";
 				}
 				else
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000465\" name=\"scan polarity\"/>\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000465\" name=\"scan polarity\" />\n";
 				}
 				
 				writeUserParam_(os, spec, 5);
@@ -3209,11 +3209,11 @@ namespace OpenMS
 				ControlledVocabulary::CVTerm ai_term = getChildWithName_("MS:1000570",spec.getAcquisitionInfo().getMethodOfCombination());
 				if (ai_term.id!="")
 				{
-					os  << "					<cvParam cvRef=\"MS\" accession=\"" << ai_term.id <<"\" name=\"" << ai_term.name << "\"/>\n";
+					os  << "					<cvParam cvRef=\"MS\" accession=\"" << ai_term.id <<"\" name=\"" << ai_term.name << "\" />\n";
 				}
 				else
 				{
-					os  << "					<cvParam cvRef=\"MS\" accession=\"MS:1000795\" name=\"no combination\"/>\n";
+					os  << "					<cvParam cvRef=\"MS\" accession=\"MS:1000795\" name=\"no combination\" />\n";
 				}
 				writeUserParam_(os, spec.getAcquisitionInfo(), 5);
 				//--------------------------------------------------------------------------------------------
@@ -3225,7 +3225,7 @@ namespace OpenMS
 					os	<< "					<scan externalSpectrumID=\"" << ac.getIdentifier() << "\">\n";
 					if (j==0)
 					{
-						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"/>\n";
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
 					}
 					writeUserParam_(os, ac, 6);
 					//scan windows
@@ -3236,7 +3236,7 @@ namespace OpenMS
 						{
 							os	<< "						<scanWindow>\n";
 							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan m/z lower limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].begin << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan m/z upper limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].end << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\"/>\n";
+							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan m/z upper limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].end << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
 							os	<< "						</scanWindow>\n";
 						}
 						os	<< "						</scanWindowList>\n";
@@ -3246,7 +3246,7 @@ namespace OpenMS
 				if (spec.getAcquisitionInfo().size()==0)
 				{
 					os	<< "					<scan externalSpectrumID=\"0\">\n";
-					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan time\" value=\"" << spec.getRT() << "\"/>\n";
+					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
 				
 					//scan windows
 					if (spec.getInstrumentSettings().getScanWindows().size()!=0)
@@ -3255,8 +3255,8 @@ namespace OpenMS
 						for (Size j=0; j<spec.getInstrumentSettings().getScanWindows().size(); ++j)
 						{
 							os	<< "						<scanWindow>\n";
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan m/z lower limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].begin << "\"/>\n";
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan m/z upper limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].end << "\"/>\n";
+							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan m/z lower limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].begin << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan m/z upper limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].end << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
 							os	<< "						</scanWindow>\n";
 						}
 						os	<< "						</scanWindowList>\n";
@@ -3282,12 +3282,12 @@ namespace OpenMS
 					//--------------------------------------------------------------------------------------------
 					os	<< "						<selectedIonList count=\"1\">\n";
 					os	<< "							<selectedIon>\n";
-					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected m/z\" value=\"" << spec.getPrecursorPeak().getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\"/>\n";
-					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << spec.getPrecursorPeak().getCharge() << "\"/>\n";
-					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"intensity\" value=\"" << spec.getPrecursorPeak().getIntensity() << "\"/>\n";
+					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected m/z\" value=\"" << spec.getPrecursorPeak().getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << spec.getPrecursorPeak().getCharge() << "\" />\n";
+					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"intensity\" value=\"" << spec.getPrecursorPeak().getIntensity() << "\" />\n";
 					for (Size j=0; j<spec.getPrecursorPeak().getPossibleChargeStates().size(); ++j)
 					{
-						os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << spec.getPrecursorPeak().getPossibleChargeStates()[j] << "\"/>\n";
+						os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << spec.getPrecursorPeak().getPossibleChargeStates()[j] << "\" />\n";
 					}
 					//userParam: no extra object for it => no user paramters
 					os	<< "							</selectedIon>\n";					
@@ -3300,55 +3300,55 @@ namespace OpenMS
 					os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000509\" name=\"activation energy\" value=\"" << spec.getPrecursor().getActivationEnergy() << "\" unitAccession=\"UO:0000266\" unitName=\"electronvolt\" unitCvRef=\"UO\" />\n";
 					if (spec.getPrecursor().getActivationMethod()==Precursor::CID)
 					{
-						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000133\" name=\"collision-induced dissociation\"/>\n";
+						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000133\" name=\"collision-induced dissociation\" />\n";
 					}
 					else if (spec.getPrecursor().getActivationMethod()==Precursor::PD)
 					{
-						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000134\" name=\"plasma desorption\"/>\n";
+						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000134\" name=\"plasma desorption\" />\n";
 					}
 					else if (spec.getPrecursor().getActivationMethod()==Precursor::PSD)
 					{
-						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000135\" name=\"post-source decay\"/>\n";
+						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000135\" name=\"post-source decay\" />\n";
 					}
 					else if (spec.getPrecursor().getActivationMethod()==Precursor::SID)
 					{
-						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000136\" name=\"surface-induced dissociation\"/>\n";
+						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000136\" name=\"surface-induced dissociation\" />\n";
 					}
 					else if (spec.getPrecursor().getActivationMethod()==Precursor::BIRD)
 					{
-						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000242\" name=\"blackbody infrared radiative dissociation\"/>\n";
+						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000242\" name=\"blackbody infrared radiative dissociation\" />\n";
 					}
 					else if (spec.getPrecursor().getActivationMethod()==Precursor::ECD)
 					{
-						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000250\" name=\"electron capture dissociation\"/>\n";
+						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000250\" name=\"electron capture dissociation\" />\n";
 					}
 					else if (spec.getPrecursor().getActivationMethod()==Precursor::IMD)
 					{
-						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000262\" name=\"infrared multiphoton dissociation\"/>\n";
+						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000262\" name=\"infrared multiphoton dissociation\" />\n";
 					}
 					else if (spec.getPrecursor().getActivationMethod()==Precursor::SORI)
 					{
-						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000282\" name=\"sustained off-resonance irradiation\"/>\n";
+						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000282\" name=\"sustained off-resonance irradiation\" />\n";
 					}
 					else if (spec.getPrecursor().getActivationMethod()==Precursor::HCID)
 					{
-						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000422\" name=\"high-energy collision-induced dissociation\"/>\n";
+						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000422\" name=\"high-energy collision-induced dissociation\" />\n";
 					}
 					else if (spec.getPrecursor().getActivationMethod()==Precursor::LCID)
 					{
-						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000433\" name=\"low-energy collision-induced dissociation\"/>\n";
+						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000433\" name=\"low-energy collision-induced dissociation\" />\n";
 					}
 					else if (spec.getPrecursor().getActivationMethod()==Precursor::PHD)
 					{
-						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000435\" name=\"photodissociation\"/>\n";
+						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000435\" name=\"photodissociation\" />\n";
 					}
 					else if (spec.getPrecursor().getActivationMethod()==Precursor::ETD)
 					{
-						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000598\" name=\"electron transfer dissociation\"/>\n";
+						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000598\" name=\"electron transfer dissociation\" />\n";
 					}
 					else if (spec.getPrecursor().getActivationMethod()==Precursor::PQD)
 					{
-						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000599\" name=\"pulsed q dissociation\"/>\n";
+						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000599\" name=\"pulsed q dissociation\" />\n";
 					}
 					//as "precursor" has no own user param it's userParam is stored here
 					writeUserParam_(os, spec.getPrecursor(), 7);
@@ -3371,17 +3371,17 @@ namespace OpenMS
 					decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
 					os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
 					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\"/>\n";
-					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\"/>\n";
+					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />\n";
 					os	<< "						<binary>" << encoded_string << "</binary>\n";
 					os	<< "					</binaryDataArray>\n";
 					//write intensity array
 					for (Size p=0; p<spec.size(); ++p) data_to_encode[p] = spec[p].getIntensity();
 					decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
 					os	<< "					<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
-					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\"/>\n";
-					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\"/>\n";
-					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\"/>\n";
+					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" />\n";
+					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+					os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />\n";
 					os	<< "						<binary>" << encoded_string << "</binary>\n";
 					os	<< "					</binaryDataArray>\n";
 					//write meta data array
@@ -3392,16 +3392,16 @@ namespace OpenMS
 						for (Size p=0; p<array.size(); ++p) data_to_encode[p] = array[p];
 						decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string);
 						os	<< "					<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\">\n";
-						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\"/>\n";
-						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\"/>\n";
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />\n";
 						ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513",array.getName());
 						if (bi_term.id!="")
 						{
-							os  << "						<cvParam cvRef=\"MS\" accession=\"" << bi_term.id <<"\" name=\"" << bi_term.name << "\"/>\n";
+							os  << "						<cvParam cvRef=\"MS\" accession=\"" << bi_term.id <<"\" name=\"" << bi_term.name << "\" />\n";
 						}
 						else
 						{
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\"/>\n";
+							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
 						}
 						writeUserParam_(os, array, 8);
 						os	<< "						<binary>" << encoded_string << "</binary>\n";
