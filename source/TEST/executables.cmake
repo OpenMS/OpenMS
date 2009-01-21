@@ -283,7 +283,6 @@ set(analysis_executables_list
   FeatureDecharger_test
   ConsensusID_test
   ProteinInference_test
-  ProtonDistributionModel_test
   PILISScoring_test
   HiddenMarkovModel_test
   IDDecoyProbability_test

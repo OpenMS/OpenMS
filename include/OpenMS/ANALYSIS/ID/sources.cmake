@@ -8,12 +8,7 @@ FalseDiscoveryRate.h
 HiddenMarkovModel.h
 IDDecoyProbability.h
 IDMapper.h
-PILISIdentification.h
-PILISModel.h
-PILISModelGenerator.h
-PILISNeutralLossModel.h
 PILISScoring.h
-ProtonDistributionModel.h
 PrecursorIonSelectionPreprocessing.h
 PrecursorIonSelection.h
 )
