@@ -492,11 +492,7 @@ namespace OpenMS
 
 	const map< String, vector< String > >& SequestInfile::getModifications() const {return PTMname_residues_mass_type_;}
 	
-	void
-	SequestInfile::handlePTMs(
-		const String& modification_line,
-		const String& modifications_filename,
-		const bool monoisotopic)
+	void SequestInfile::handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic)
 	{
 		PTMname_residues_mass_type_.clear();
 		// to store the information about modifications from the ptm xml file
@@ -684,6 +680,4 @@ namespace OpenMS
 		info.push_back("1");info.push_back("ALIVKRWFY");info.push_back("P");enzyme_info_["Elastase/Tryp/Chymo"] = info; info.clear();
 		info.push_back("1");info.push_back("KRLFWYN");info.push_back("-");enzyme_info_["Trypsin/Chymo"] = info; info.clear();
 	}
-	
-	const String SequestInfile::aas_single_letter_ = "GASPVTCLIXNOBDQKZEMHFRYW";
 }

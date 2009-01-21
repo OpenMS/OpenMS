@@ -240,9 +240,6 @@ namespace OpenMS
 			/// returns some standard enzymes (used to initialize the enzyme list)
 			void setStandardEnzymeInfo_();
 
-			/// the amino acids in one-letter-code
-			static const String aas_single_letter_;
-
 			std::map< String, std::vector< String > > enzyme_info_; ///< an endline-delimited list of enzymes; each with cutting direction 0 (N to C) /1; cuts after (list of aa); doesn't cut before (list of aa); the attributes are tab-delimited
 			String database_; ///< database used
 			String snd_database_; ///< second database used

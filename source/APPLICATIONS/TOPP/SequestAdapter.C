@@ -279,7 +279,6 @@ class TOPPSequestAdapter
 			map< String, Real >& outfile_names_and_precursor_retention_times,
 			vector< String >& dta_filenames,
 			bool make_dtas = true)
-		throw (Exception::UnableToCreateFile)
 		{
 			DTAFile dtafile;
 			String filename;
