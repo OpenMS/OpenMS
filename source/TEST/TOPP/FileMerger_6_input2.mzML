@@ -96,7 +96,7 @@
     <dataProcessing id="XcaliburProcessing">
       <processingMethod order="1" softwareRef="Xcalibur">
         <cvParam cvRef="MS" accession="MS:1000033" name="deisotoping" value=""/>
-        <cvParam cvRef="MS" accession="MS:1000629" name="low intensity threshold" value="5.9"/>
+        <cvParam cvRef="MS" accession="MS:1000629" name="low intensity threshold" value="5.9" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
   			<userParam name="name" value="processingMethod"/>
       </processingMethod>
     </dataProcessing>
@@ -111,7 +111,7 @@
       <sourceFileRef ref="sf1"/>
     </sourceFileRefList>
     <spectrumList count="2" defaultDataProcessingRef="pwizconversion">
-      <spectrum index="0" id="20" defaultArrayLength="10">
+      <spectrum index="0" id="index=1" defaultArrayLength="10">
       	<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2"/>
         <cvParam cvRef="MS" accession="MS:1000127" name="centroid mass spectrum" value=""/>
       	<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value=""/>
@@ -138,7 +138,7 @@
 		      </scan>
 		    </scanList>
         <precursorList count="1">
-          <precursor spectrumRef="S19">
+          <precursor spectrumRef="index=0">
             <selectedIonList count="1">
               <selectedIon>
                 <cvParam cvRef="MS" accession="MS:1000744" name="selected m/z" value="445.34" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
@@ -167,7 +167,7 @@
           </binaryDataArray>
         </binaryDataArrayList>
       </spectrum>
-      <spectrum index="1" id="21" defaultArrayLength="0" sourceFileRef="sf_spectrum_2">
+      <spectrum index="1" id="index=2" defaultArrayLength="0" sourceFileRef="sf_spectrum_2">
       	<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
         <cvParam cvRef="MS" accession="MS:1000127" name="centroid mass spectrum" value=""/>
       	<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value=""/>

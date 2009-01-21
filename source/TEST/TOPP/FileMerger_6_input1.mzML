@@ -107,7 +107,7 @@
       <sourceFileRef ref="sf1"/>
     </sourceFileRefList>
     <spectrumList count="1" defaultDataProcessingRef="XcaliburProcessing">
-      <spectrum index="0" id="19" defaultArrayLength="15">
+      <spectrum index="0" id="index=0" defaultArrayLength="15">
       	<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
       	<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value=""/>
         <cvParam cvRef="MS" accession="MS:1000127" name="centroid mass spectrum" value=""/>

@@ -107,7 +107,7 @@
       <sourceFileRef ref="sf1"/>
     </sourceFileRefList>
     <spectrumList count="3" defaultDataProcessingRef="XcaliburProcessing">
-      <spectrum index="0" id="19" defaultArrayLength="15">
+      <spectrum index="0" id="index=0" defaultArrayLength="15">
         <cvParam cvRef="MS" accession="MS:1000127" name="centroid mass spectrum" value=""/>
 	      <cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value=""/>
         <cvParam cvRef="MS" accession="MS:1000528" name="lowest m/z value" value="400.39" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
@@ -152,7 +152,7 @@
           </binaryDataArray>
         </binaryDataArrayList>
       </spectrum>
-      <spectrum index="1" id="20" defaultArrayLength="10">
+      <spectrum index="1" id="index=1" defaultArrayLength="10">
         <cvParam cvRef="MS" accession="MS:1000127" name="centroid mass spectrum" value=""/>
 	      <cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value=""/>
         <cvParam cvRef="MS" accession="MS:1000528" name="lowest m/z value" value="320.39" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
@@ -179,7 +179,7 @@
 		      </scan>
 		    </scanList>
         <precursorList count="1">
-          <precursor spectrumRef="S19">
+          <precursor spectrumRef="index=1">
             <selectedIonList count="1">
               <selectedIon>
                 <cvParam cvRef="MS" accession="MS:1000744" name="selected m/z" value="445.34" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
@@ -223,7 +223,7 @@
           </binaryDataArray>
         </binaryDataArrayList>
       </spectrum>
-      <spectrum index="2" id="21" defaultArrayLength="0" sourceFileRef="sf_spectrum_2">
+      <spectrum index="2" id="index=2" defaultArrayLength="0" sourceFileRef="sf_spectrum_2">
         <cvParam cvRef="MS" accession="MS:1000127" name="centroid mass spectrum" value=""/>
       	<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
 	      <cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value=""/>
