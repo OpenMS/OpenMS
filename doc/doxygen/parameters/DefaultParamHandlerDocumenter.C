@@ -31,7 +31,7 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
-#include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
+//#include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
@@ -314,17 +314,17 @@ int main (int argc , char** argv)
 	DOCME(NeutralLossMarker);
 	DOCME(Normalizer);
 	DOCME(OptimizePeakDeconvolution);
-	DOCME(PILISScoring);
-	DOCME(PILISModel);
-	DOCME(PILISNeutralLossModel);
-	DOCME(PILISModelGenerator);
-	DOCME(PILISIdentification);
+	//DOCME(PILISScoring);
+	//DOCME(PILISModel);
+	//DOCME(PILISNeutralLossModel);
+	//DOCME(PILISModelGenerator);
+	//DOCME(PILISIdentification);
 	DOCME(ParentPeakMower);
 	DOCME(PeakAlignment);
 	DOCME(PeakPickerCWT);
 	DOCME(PoseClusteringAffineSuperimposer);
 	DOCME(PoseClusteringShiftSuperimposer);
-	DOCME(ProtonDistributionModel);
+	//DOCME(ProtonDistributionModel);
 	DOCME(SavitzkyGolayFilter);
 	DOCME(SimplePairFinder);
 	DOCME(SpectrumAlignment);

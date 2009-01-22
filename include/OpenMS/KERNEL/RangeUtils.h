@@ -203,7 +203,7 @@ namespace OpenMS
 	/**
 		@brief Predicate that determines if a spectrum is empty.
 		
-		SpectrumType must have a empty() member function
+		SpectrumType must have a empty() method
 		
 		@ingroup RangeUtils
 	*/	
@@ -220,7 +220,6 @@ namespace OpenMS
 			IsEmptySpectrum(bool reverse = false)
 				: reverse_(reverse)
 			{
-				
 			}
 		
 			inline bool operator()(const SpectrumType& s) const
@@ -237,9 +236,44 @@ namespace OpenMS
 	};
 
 	/**
+		@brief Predicate that determines if a spectrum is a zoom (enhanced resolution) spectrum.
+		
+		SpectrumType must have a getInstrumentSettings() method
+		
+		@ingroup RangeUtils
+	*/	
+	template <class SpectrumType>
+	class IsZoomSpectrum
+		: std::unary_function<SpectrumType, bool>
+	{
+		public:
+			/**
+				@brief Constructor
+				
+				@param reverse if @p reverse is true, operator() return true if the spectrum is not a zoom spectrum
+			*/
+			IsZoomSpectrum(bool reverse = false)
+				: reverse_(reverse)
+			{
+			}
+		
+			inline bool operator()(const SpectrumType& s) const
+			{
+				if (reverse_)
+				{
+					return !s.getInstrumentSettings().getZoomScan(); 
+				}
+				return s.getInstrumentSettings().getZoomScan(); 
+			}
+		
+		protected:
+			bool reverse_;
+	};
+
+	/**
 		@brief Predicate that determines if a peak lies inside/outside a specific m/z range
 		
-		PeakType must have a getPosition() member function.
+		PeakType must have a getPosition() method.
 		
 		@note It is assumed that the m/z dimension is dimension 0!
 		
@@ -284,7 +318,7 @@ namespace OpenMS
 	/**
 		@brief Predicate that determines if a peak lies inside/outside a specific intensity range
 		
-		PeakType must have a getIntensity() member function.
+		PeakType must have a getIntensity() method.
 		
 		@ingroup RangeUtils
 	*/	

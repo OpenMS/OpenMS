@@ -284,7 +284,7 @@ END_SECTION
 		settings.getScanWindows()[0].begin = 3.456;
 		settings.getScanWindows()[0].end = 7.89;
 		settings.setPolarity(IonSource::NEGATIVE);
-		settings.setScanMode(InstrumentSettings::ZOOM);
+		settings.setScanMode(InstrumentSettings::SIM);
 		spec.setInstrumentSettings (settings);
 		
 		// set a spectrum source file
@@ -709,7 +709,7 @@ END_SECTION
 			modified_spec.getInstrumentSettings().getScanWindows()[0].begin = 3.567;
 			modified_spec.getInstrumentSettings().getScanWindows()[0].end = 7.91;
 			modified_spec.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
-			modified_spec.getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
+			modified_spec.getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
 			modified_spec.getInstrumentSettings().setMetaValue("label", String("please bite here"));
 			
 			info.clear();

@@ -104,6 +104,7 @@ class TOPPFileFilter
 				mode_list.push_back(InstrumentSettings::NamesOfScanMode[i]);
 			}
 			setValidStrings_("remove_mode",mode_list);
+			registerFlag_("remove_zoom","Remove zoom (enhanced resolution) scans");
       registerFlag_("sort","sorts the output data according to RT and m/z."
       										 "\nNote: Spectrum meta data arrays are erased, as they would be invalid after sorting by m/z.");
       
@@ -229,7 +230,14 @@ class TOPPFileFilter
   					}
   				}
   			}
-  				
+  			
+  			//remove zoom scans (might be a lot of spectra)
+  			if (getFlag_("remove_zoom"))
+  			{
+  				writeDebug_("Removing zoom scans",3);
+  				exp.erase(remove_if(exp.begin(), exp.end(),IsZoomSpectrum<MapType::SpectrumType>()), exp.end());
+  			}
+  			
   			//remove empty scans
   			exp.erase(remove_if(exp.begin(), exp.end(), IsEmptySpectrum<MapType::SpectrumType>()), exp.end());
  				

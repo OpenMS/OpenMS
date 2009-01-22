@@ -112,7 +112,7 @@ add_test("TOPP_FileFilter_2" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/Fi
 add_test("TOPP_FileFilter_2_out1" ${DIFF} -in1 FileFilter_2_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_2_output.mzData)
 add_test("TOPP_FileFilter_3" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzData -out FileFilter_3_out.tmp -level 2)
 add_test("TOPP_FileFilter_3_out1" ${DIFF} -in1 FileFilter_3_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_3_output.mzData)
-add_test("TOPP_FileFilter_4" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/FileFilter_4_input.mzData -out FileFilter_4_out.tmp -remove_mode Zoom)
+add_test("TOPP_FileFilter_4" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/FileFilter_4_input.mzData -out FileFilter_4_out.tmp -remove_zoom)
 add_test("TOPP_FileFilter_4_out1" ${DIFF} -in1 FileFilter_4_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_4_output.mzData)
 add_test("TOPP_FileFilter_5" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/FileFilter_5_input.featureXML -out FileFilter_5_out.tmp -rt :1000 -mz :480 -int :79000 -charge :3 -q :0.6)
 add_test("TOPP_FileFilter_5_out1" ${DIFF} -in1 FileFilter_5_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_5_out.featureXML)
@@ -122,6 +122,8 @@ add_test("TOPP_FileFilter_7" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/Fi
 add_test("TOPP_FileFilter_7_out1" ${DIFF} -in1 FileFilter_7_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_7_out.mzData)
 add_test("TOPP_FileFilter_8" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/FileFilter_8_input.consensusXML -out FileFilter_8_out.tmp -rt 600:1400 -mz 700:2300 -int 1100:6000)
 add_test("TOPP_FileFilter_8_out1" ${DIFF} -in1 FileFilter_8_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_8_out.consensusXML)
+add_test("TOPP_FileFilter_9" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/FileFilter_9_input.mzData -out FileFilter_9_out.tmp -remove_mode SelectedIonMonitoring)
+add_test("TOPP_FileFilter_9_out1" ${DIFF} -in1 FileFilter_9_out.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_9_output.mzData)
 
 ### FileInfo tests
 add_test("TOPP_FileInfo_1" ${TOPP_BIN_PATH}/FileInfo -in ${DATA_DIR_TOPP}/FileInfo_1_input.txt -in_type DTA -no_progress -out FileInfo.tmp)

@@ -32,7 +32,7 @@ MascotAdapterOnline.C
 NoiseFilter.C
 OMSSAAdapter.C
 PILISIdentification.C
-PILISModel.C
+#PILISModel.C
 PTModel.C
 PTPredict.C
 PeakPicker.C

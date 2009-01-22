@@ -126,10 +126,10 @@ START_SECTION(([EXTRA]~HasScanMode()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-	HasScanMode<MSSpectrum<> > r(InstrumentSettings::ZOOM,false);
+	HasScanMode<MSSpectrum<> > r(InstrumentSettings::SIM,false);
 	HasScanMode<MSSpectrum<> > r2(InstrumentSettings::FULL,true);
 	MSSpectrum<> s;
-	s.getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
+	s.getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
 	TEST_EQUAL(r(s), true);
 	TEST_EQUAL(r2(s), true);
 	s.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
@@ -225,6 +225,29 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 	spec.resize(5);
 	TEST_EQUAL(s(spec), false);
 	TEST_EQUAL(s2(spec), true);	
+END_SECTION
+
+//IsZoomSpectrum
+
+IsZoomSpectrum<MSSpectrum<> >* ptr48 = 0;
+START_SECTION((IsZoomSpectrum(bool reverse = false)))
+	ptr48 = new IsZoomSpectrum<MSSpectrum<> >();
+	TEST_NOT_EQUAL(ptr48, 0)
+END_SECTION
+
+START_SECTION(([EXTRA]~IsZoomSpectrum()))
+	delete ptr48;
+END_SECTION
+
+START_SECTION((bool operator()(const SpectrumType& s) const))
+	IsZoomSpectrum<MSSpectrum<> > s;
+	IsZoomSpectrum<MSSpectrum<> > s2(true);
+	MSSpectrum<> spec;
+	TEST_EQUAL(s(spec), false);
+	TEST_EQUAL(s2(spec), true);
+	spec.getInstrumentSettings().setZoomScan(true);
+	TEST_EQUAL(s(spec), true);
+	TEST_EQUAL(s2(spec), false);	
 END_SECTION
 
 /////////////////////////////////////////////////////////////

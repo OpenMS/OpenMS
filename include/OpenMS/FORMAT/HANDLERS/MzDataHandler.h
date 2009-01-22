@@ -1124,10 +1124,14 @@ namespace OpenMS
 							//do nothing here
 							break;
 						case InstrumentSettings::FULL:
-							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"MassScan\"/>\n";
-							break;
-						case InstrumentSettings::ZOOM:
-							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"Zoom\"/>\n";
+							if (iset.getZoomScan())
+							{
+								os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"Zoom\"/>\n";
+							}
+							else
+							{
+								os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"MassScan\"/>\n";
+							}
 							break;
 						case InstrumentSettings::SIM:
 							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"SelectedIonDetection\"/>\n";
@@ -1322,7 +1326,8 @@ namespace OpenMS
 				{
 					if (value=="Zoom")
 					{
-						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
+						spec_.getInstrumentSettings().setZoomScan(true);
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
 					}
 					else if (value=="MassScan")
 					{
@@ -1359,7 +1364,8 @@ namespace OpenMS
 					}
 					else if (value=="EnhancedResolutionScan")
 					{
-						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
+						spec_.getInstrumentSettings().setZoomScan(true);
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
 					}
 					else
 					{

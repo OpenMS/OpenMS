@@ -46,7 +46,6 @@ namespace OpenMS
       {
       	UNKNOWN,					///< Unknown scan method
       	FULL,							///< Full scan @n Synonyms: 'MSn scan'
-      	ZOOM,							///< Zoom scan @n Synonyms: 'Enhanced resolution scan'
       	SIM,							///< Selected ion monitoring scan @n Synonyms: 'Multiple ion monitoring scan', 'SIM scan', 'MIM scan'
       	SRM,							///< Selected reaction monitoring scan @n Synonyms: 'Multiple reaction monitoring scan', 'SRM scan', 'MRM scan'
       	CRM,							///< Consecutive reaction monitoring scan @n Synonyms: 'CRM scan'
@@ -100,6 +99,11 @@ namespace OpenMS
       /// sets the scan mode
       void setScanMode(ScanMode scan_mode);
 			
+			/// return if this scan is a zoom (enhanced resolution) scan
+			bool getZoomScan() const;
+			/// sets if this scan is a zoom (enhanced resolution) scan
+			void setZoomScan(bool zoom_scan);
+			
 			/// returns the polarity
       IonSource::Polarity getPolarity() const;
       /// sets the polariy
@@ -114,6 +118,7 @@ namespace OpenMS
 
     protected:
       ScanMode scan_mode_;
+      bool zoom_scan_;
       IonSource::Polarity polarity_;
       std::vector< ScanWindow > scan_windows_;
   };

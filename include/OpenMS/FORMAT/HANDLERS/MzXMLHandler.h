@@ -481,7 +481,8 @@ namespace OpenMS
 				}
 				else if (type=="zoom")
 				{
-					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
+					exp_->back().getInstrumentSettings().setZoomScan(true);
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
 				}
 				else if (type=="Full")
 				{
@@ -518,7 +519,8 @@ namespace OpenMS
 				}
 				else if (type=="ER") // Non-stanard type: Enhanced Resolution (ABI - Sashimi converter)
 				{
-					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::ZOOM);
+					exp_->back().getInstrumentSettings().setZoomScan(true);
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
 				}
 				else
 				{
@@ -1033,10 +1035,14 @@ namespace OpenMS
 					case InstrumentSettings::UNKNOWN:
 						break;
 					case InstrumentSettings::FULL:
-						os << "\" scanType=\"Full";
-						break;
-					case InstrumentSettings::ZOOM:
-						os << "\" scanType=\"zoom";
+						if (spec.getInstrumentSettings().getZoomScan())
+						{
+							os << "\" scanType=\"zoom";
+						}
+						else
+						{
+							os << "\" scanType=\"Full";
+						}
 						break;
 					case InstrumentSettings::SIM:
 						os << "\" scanType=\"SIM";

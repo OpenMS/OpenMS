@@ -41,7 +41,6 @@
 #include <iostream>
 
 //TODO:
-// - CV: terms of spectrum, scan - this includes handling of zoom scans
 // - CV: isolationWindow terms
 // - CV: resolution power terms
 // - CV: collision energy / activation energy (and units)
@@ -949,10 +948,13 @@ namespace OpenMS
 				else if (accession=="MS:1000527" || accession=="MS:1000528" || accession=="MS:1000504" || accession=="MS:1000505" || accession=="MS:1000285" )
 				{
 					//currently ignored:
-					// - highest peak
-					// - lowest peak
-					// - TIC
-					// - base peak m/z
+				  //- MS:1000285 ! total ion current (value-type=xsd:decimal)
+				  //- MS:1000504 ! base peak m/z (value-type=xsd:decimal, unit=MS:1000040!m/z)
+				  //- MS:1000505 ! base peak intensity (value-type=xsd:decimal)
+				  //- MS:1000527 ! highest m/z value (value-type=xsd:decimal, unit=MS:1000040!m/z)
+				  //- MS:1000528 ! lowest m/z value (value-type=xsd:decimal, unit=MS:1000040!m/z)
+				  //- MS:1000618 ! highest wavelength value (value-type=xsd:decimal)
+				  //- MS:1000619 ! lowest wavelength value (value-type=xsd:decimal)
 				}
 				else if (accession=="MS:1000511") //ms level
 				{
@@ -962,6 +964,25 @@ namespace OpenMS
 					{
 						skip_spectrum_ = true;
 					}
+				}
+				else if (accession=="MS:1000497") //zoom scan
+				{
+					//TODO
+				}
+				else if (accession=="MS:1000796") //spectrum title
+				{
+					//No member => meta data
+					spec_.getPrecursor().setMetaValue("spectrum_title",value); 
+				}
+				else if (accession=="MS:1000797") //peak list scans
+				{
+					//No member => meta data
+					spec_.getPrecursor().setMetaValue("peak list scans",value); 
+				}
+				else if (accession=="MS:1000798") //peak list raw scans
+				{
+					//No member => meta data
+					spec_.getPrecursor().setMetaValue("peak list raw scans",value); 
 				}
 				
 				//scan polarity
@@ -1157,6 +1178,11 @@ namespace OpenMS
 				{
 					//No member => meta data
 					spec_.setMetaValue("preset scan configuration",String("true"));
+				}
+				else if (accession=="MS:1000800")//mass resolving power
+				{
+					//No member => meta data
+					spec_.setMetaValue("mass resolving power",String("true"));
 				}
 				
 				//scan direction
@@ -2216,10 +2242,6 @@ namespace OpenMS
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
 			}
-			else if (file_content.has(InstrumentSettings::ZOOM))
-			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
-			}
 			else if (file_content.has(InstrumentSettings::SIM))
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000582\" name=\"SIM spectrum\" />\n";
@@ -3143,10 +3165,6 @@ namespace OpenMS
 				
 				//spectrum type
 				if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::FULL)
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
-				}
-				else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::ZOOM)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
 				}
