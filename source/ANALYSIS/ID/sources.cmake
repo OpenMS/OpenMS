@@ -5,7 +5,6 @@ set(directory source/ANALYSIS/ID)
 set(sources_list
 ConsensusID.C
 FalseDiscoveryRate.C
-HiddenMarkovModel.C
 IDDecoyProbability.C
 IDMapper.C
 PILISScoring.C
