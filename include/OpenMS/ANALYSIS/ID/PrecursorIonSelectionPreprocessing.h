@@ -99,7 +99,7 @@ namespace OpenMS
 		/// counter for the bins
 		std::vector<UInt> counter_;
 		/// maximal relative frequency of a mass
-    DoubleReal f_max_;
+    UInt f_max_;
 
   };
 }

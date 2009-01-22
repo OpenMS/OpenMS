@@ -34,7 +34,7 @@ namespace OpenMS
 {
 	PrecursorIonSelectionPreprocessing::PrecursorIonSelectionPreprocessing()
 		: DefaultParamHandler("PrecursorIonSelectionPreprocessing"),
-			f_max_(0.)
+			f_max_(0)
 	{
 		defaults_.setValue("precursor_mass_tolerance", 10., "Precursor mass tolerance which is used to query the peptide database for peptides");
 		defaults_.setMinFloat("precursor_mass_tolerance",0.);
@@ -97,7 +97,7 @@ namespace OpenMS
 	{
 		if(param_.getValue("precursor_mass_tolerance_unit") == "Da")
 			{
-				return (DoubleReal)counter_[floor((mass - masses_[0])/(DoubleReal)param_.getValue("precursor_mass_tolerance") +0.5)]/f_max_;
+				return (DoubleReal)counter_[(Size) floor((mass - masses_[0])/(DoubleReal)param_.getValue("precursor_mass_tolerance") +0.5)]/(DoubleReal)f_max_;
 			}
 		else // 
 			{
@@ -119,9 +119,9 @@ namespace OpenMS
 				if((tmp_iter+1)==bin_masses_.end()
 					 || fabs(*tmp_iter - mass) < fabs(*(tmp_iter+1) - mass))
 					{
-						return (DoubleReal)counter_[distance(bin_masses_.begin(),tmp_iter)]/f_max_;
+						return (DoubleReal)counter_[distance(bin_masses_.begin(),tmp_iter)]/(DoubleReal)f_max_;
 					}
-				else return (DoubleReal)counter_[distance(bin_masses_.begin(),tmp_iter+1)]/f_max_;
+				else return (DoubleReal)counter_[distance(bin_masses_.begin(),tmp_iter+1)]/(DoubleReal)f_max_;
 			}
 	}
 
@@ -217,7 +217,7 @@ namespace OpenMS
 					{
 						// get bin index
 						DoubleReal tmp = (masses_[i] - masses_[0]) / (DoubleReal)param_.getValue("precursor_mass_tolerance");
-						++counter_[ceil(tmp)];
+						++counter_[(Size) ceil(tmp)];
 					}
 				UInt max = 0;
 				for(UInt i=0;i<counter_.size();++i)
@@ -320,13 +320,8 @@ namespace OpenMS
 				
 				// db-name__precursor_mass_tolerance_unit__missed_cleavages__taxonomy
 
-#ifdef OPENMS_WINDOWSPLATFORM
-				UInt pos1 = db_path.rfind("\\") +1;
-				path += "\\";
-#else
 				UInt pos1 = db_path.rfind("/") +1;
 				path += "/";
-#endif
 				
 				// get db-name
 				UInt pos2 = db_path.rfind(".");
@@ -462,8 +457,8 @@ namespace OpenMS
 
 		for(std::vector<String>::const_iterator f_iter=freqs.begin(); f_iter != freqs.end(); ++f_iter)
 	    {
-				counter_.push_back(f_iter->toDouble());
-				if(f_iter->toDouble() > f_max_) f_max_ = f_iter->toDouble();
+				counter_.push_back(f_iter->toInt());
+				if((UInt)f_iter->toInt() > f_max_) f_max_ = f_iter->toInt();
 			}
 		++iter;
 		
