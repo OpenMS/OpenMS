@@ -119,7 +119,6 @@ GaussModel_test.C
 GoodDiffFilter_test.C
 Gradient_test.C
 HPLC_test.C
-HiddenMarkovModel_test.C
 HierarchicalClustering_test.C
 Histogram_test.C
 IDConsensusFeatureMapper_test.C

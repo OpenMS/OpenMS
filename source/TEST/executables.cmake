@@ -284,7 +284,6 @@ set(analysis_executables_list
   ConsensusID_test
   ProteinInference_test
   PILISScoring_test
-  HiddenMarkovModel_test
   IDDecoyProbability_test
   FalseDiscoveryRate_test
   LocalLinearMap_test

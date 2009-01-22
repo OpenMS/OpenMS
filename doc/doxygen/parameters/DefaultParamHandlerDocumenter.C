@@ -30,10 +30,6 @@
 // Documentation is in .C files:
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
-#include <OpenMS/ANALYSIS/ID/PILISModel.h>
-#include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
-#include <OpenMS/ANALYSIS/ID/PILISNeutralLossModel.h>
-#include <OpenMS/ANALYSIS/ID/PILISIdentification.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
