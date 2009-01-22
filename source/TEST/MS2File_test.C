@@ -55,7 +55,7 @@ END_SECTION
 
 TOLERANCE_ABSOLUTE(0.01)
 
-START_SECTION((template <typename MapType> void load(const String& filename, MapType& map)))
+START_SECTION((template <typename MapType> void load(const String& filename, MapType& exp)))
 	MS2File file;
 	PeakMap exp;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MS2File_test_spectra.ms2"), exp);

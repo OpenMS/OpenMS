@@ -134,7 +134,7 @@ START_SECTION(bool operator == (const AASequence& rhs) const)
   TEST_EQUAL(seq5 == AASequence("DFBIANGER"), true)
 END_SECTION
 
-START_SECTION((const Residue& getResidue(Int index) const))
+START_SECTION((const Residue& getResidue(SignedSize index) const))
 	AASequence seq(String("ACDEF"));
 	SignedSize sint(2);
 	TEST_EQUAL(seq.getResidue(sint).getOneLetterCode(), "D")
@@ -175,7 +175,7 @@ START_SECTION((Map<const EmpiricalFormula*, UInt> getNeutralLosses() const))
   Map<const EmpiricalFormula*, UInt> losses = seq.getNeutralLosses();
 END_SECTION
 
-START_SECTION(const Residue& operator [] (Int index) const)
+START_SECTION(const Residue& operator [] (Size index) const)
   AASequence seq("DFPIANGER");
 	SignedSize index = 0;
 	TEST_EQUAL(seq[index].getOneLetterCode(), "D")
@@ -236,7 +236,7 @@ START_SECTION(AASequence getSuffix(Size index) const)
 	TEST_EXCEPTION(Exception::IndexOverflow, seq1.getSuffix(10))
 END_SECTION
 
-START_SECTION(AASequence getSubsequence(Size index, UInt number) const)
+START_SECTION(AASequence getSubsequence(Size index, Size number) const)
   AASequence seq1("DFPIANGER"), seq2("IAN"), seq3("DFPIANGER");
 	TEST_EQUAL(seq2, seq1.getSubsequence(3, 3))
 	TEST_EQUAL(seq3, seq1.getSubsequence(0, 9))

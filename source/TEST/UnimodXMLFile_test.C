@@ -57,7 +57,7 @@ END_SECTION
 
 ptr = new UnimodXMLFile();
 
-START_SECTION(void load(const String& filename, vector<ResidueModification*>& modifications) const)
+START_SECTION(void load(const String& filename, vector<ResidueModification*>& modifications))
 	vector<ResidueModification*> modifications;
 	ptr->load("CHEMISTRY/unimod.xml", modifications);
 

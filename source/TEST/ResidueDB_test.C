@@ -61,6 +61,12 @@ START_SECTION((bool hasResidue(const String &name) const))
 	TEST_EQUAL(ptr->hasResidue("K"), true)
 END_SECTION
 
+START_SECTION(bool hasResidue(const Residue *residue) const)
+	TEST_EQUAL(ptr->hasResidue(ptr->getResidue("BLUBB")), false)
+	TEST_EQUAL(ptr->hasResidue(ptr->getResidue("LYS")), true)
+	TEST_EQUAL(ptr->hasResidue(ptr->getResidue("K")), true)
+END_SECTION
+
 START_SECTION(UInt getNumberOfResidues() const)
 	TEST_EQUAL(ptr->getNumberOfResidues(), 21);
 END_SECTION
@@ -76,8 +82,8 @@ START_SECTION(const Residue* getModifiedResidue(const Residue *residue, const St
 	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
 	TEST_STRING_EQUAL(mod_res->getModification(), "MOD:00720")
 END_SECTION
-    
-START_SECTION(const std::set<const Residue*>& getResidues() const)
+
+START_SECTION(const std::set<const Residue*>& getResidues(AminoAcidSet aa_set=ALL) const)
 	set<const Residue*> residues = ptr->getResidues(ResidueDB::ALL);
 	TEST_EQUAL(residues.size(), 21)
 	residues = ptr->getResidues(ResidueDB::NATURAL_20);
