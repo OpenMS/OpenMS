@@ -41,16 +41,19 @@
 #include <iostream>
 
 //TODO:
-// - Check CV terms of spectrum, scan - this includes handling of zoom scans
-// - Check CV terms of spectrum type and file content (when settled)
-// - Check isolationWindow CV
-// - Resolution power terms
-// - collision energy / activation energy (and units)
-// - activation/isolationWindow in product/neutralLoss
+// - CV: terms of spectrum, scan - this includes handling of zoom scans
+// - CV: isolationWindow terms
+// - CV: resolution power terms
+// - CV: collision energy / activation energy (and units)
+// - CV: cellular compartement, source tissue and quality os sample
+// - Handling of activation/isolationWindow in product/neutralLoss
 // - Multiple 'dissociation methods' per precursor
 // - DataProcessing of binaryDataArray
-// - Sample: CVs for cellular compartement, source tissue and quality
 // - scanSettingsList
+//
+//TODO (WHEN SETTLED):
+// - CV: terms of spectrum type and file content
+// - CV: terms of intensity description
 //
 //TODO (PERHAPS):
 // - DataProcessing of spectrum and chromatogram
@@ -2191,7 +2194,7 @@ namespace OpenMS
 			logger_.startProgress(0,exp.size(),"storing mzML file");
 			
 			os	<< "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
-					<< "<mzML xmlns=\"http://psidev.info/ms/mzML/xsd/mzML_1.1.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psidev.info/ms/mzML/xsd/mzML_1.1.0 mzML1.1.0.xsd\" accession=\"" << exp.getIdentifier() << "\" version=\"1.1\">\n";
+					<< "<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd\" accession=\"" << exp.getIdentifier() << "\" version=\"1.1\">\n";
 			//--------------------------------------------------------------------------------------------
 			// CV list
 			//--------------------------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="Windows-1252"?>
-<xs:schema xmlns:dx="http://psidev.info/ms/mzML/xsd/mzML_1.1.0" attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://psidev.info/ms/mzML/xsd/mzML_1.1.0" version="1.1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:schema xmlns:dx="http://psi.hupo.org/ms/mzml" attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://psi.hupo.org/ms/mzml" version="1.1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:complexType name="mzMLType">
     <xs:annotation>
       <xs:documentation>This is the root element for the Proteomics Standards Initiative (PSI) mzML schema, which is intended to capture the use of a mass spectrometer, the data generated, and the initial processing of that data (to the level of the peak list).</xs:documentation>
