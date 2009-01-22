@@ -267,10 +267,10 @@
 	        </scan>
         </scanList>
         <precursorList count="1">
-          <precursor spectrumRef="index=1" sourceFileRef="sf_pr_0" >
+          <precursor spectrumRef="index=0" sourceFileRef="sf_pr_0" >
           	<isolationWindow>
-          		<cvParam cvRef="MS" accession="MS:1000793" name="isolation m/z upper limit" value="5.55"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-          		<cvParam cvRef="MS" accession="MS:1000794" name="isolation m/z lower limit" value="11.11"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+          		<cvParam cvRef="MS" accession="MS:1000794" name="isolation m/z lower limit" value="6.66"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+          		<cvParam cvRef="MS" accession="MS:1000793" name="isolation m/z upper limit" value="7.77"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
       				<userParam name="iwname" value="isolationwindow1"/>
           	</isolationWindow>
             <selectedIonList count="1">

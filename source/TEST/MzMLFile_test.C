@@ -248,8 +248,6 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(spec.getPrecursorPeak().getPossibleChargeStates()[2],4)
 		TEST_STRING_EQUAL(spec.getPrecursor().getMetaValue("source_file_name"),"pr.dta")
 		TEST_STRING_EQUAL(spec.getPrecursor().getMetaValue("source_file_path"),"file:///F:/data/Exp03")
-//		TEST_STRING_EQUAL(spec.getPrecursor().getMetaValue("external_native_id"),"ENI1")
-//		TEST_STRING_EQUAL(spec.getPrecursor().getMetaValue("external_spectrum_id"),"ESI1")
 		//source file
 		TEST_STRING_EQUAL(spec.getSourceFile().getNameOfFile(),"tiny1.dta")
 		TEST_STRING_EQUAL(spec.getSourceFile().getPathToFile(),"file:///F:/data/Exp01")
@@ -371,11 +369,14 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL(exp[1].getPrecursor().getMetaValue("acname").toString(),"activation1")
 
 	//-------------------------- cvParam (but no member => meta data)--------------------------
-	//spectrum 1
-	TEST_STRING_EQUAL((String)exp[1].getMetaValue("mass resolution"),"4.1")
-	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("collision energy"),"4.2")
-	TEST_STRING_EQUAL((String)exp[0].getMetaValue("mass resolution"),"4.3")
+	//general
 	TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("sample batch"),"4.4")
+	//spectrum 1
+	TEST_STRING_EQUAL((String)exp[0].getMetaValue("mass resolution"),"4.3")
+	//spectrum 2
+	TEST_STRING_EQUAL((String)exp[1].getMetaValue("mass resolution"),"4.1")
+	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("isolation m/z lower limit"),"6.66")
+	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("isolation m/z upper limit"),"7.77")
 
 	/////////////////////// TESTING SPECIAL CASES ///////////////////////
 
@@ -505,14 +506,34 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 	file.load(tmp_filename,exp);
 
 	//test if everything worked
+//	TEST_EQUAL(exp.size()==exp_original.size(),true)
+//	TEST_EQUAL(exp.ExperimentalSettings::operator==(exp_original),true)
+//	for (UInt i=0; i<exp.size(); ++i)
+//	{
+//		TEST_EQUAL(exp[i]==exp_original[i],true);
+//	}
 	TEST_EQUAL(exp==exp_original,true)
-	TEST_EQUAL(exp.size()==exp_original.size(),true)
-	TEST_EQUAL(exp.ExperimentalSettings::operator==(exp_original),true)
-	for (UInt i=0; i<exp.size(); ++i)
-	{
-		cout << "SPEC: " << i << endl;
-		TEST_EQUAL(exp[i]==exp_original[i],true);
-	}
+
+END_SECTION
+
+START_SECTION([EXTRA] store with special scan types)
+	MzMLFile file;
+
+	//load map
+	MSExperiment<> exp_original;
+	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_7_scan_types.mzML"),exp_original);
+
+ 	//store map
+	std::string tmp_filename;
+ 	NEW_TMP_FILE(tmp_filename);
+	file.store(tmp_filename,exp_original);
+
+	//load written map
+	MSExperiment<> exp;
+	file.load(tmp_filename,exp);
+
+	//test if everything worked
+	TEST_EQUAL(exp==exp_original,true)
 
 END_SECTION
 
