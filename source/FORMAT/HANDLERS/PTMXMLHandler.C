@@ -76,7 +76,7 @@ namespace OpenMS
 			open_tag_ = false;
 		}
 
-		void PTMXMLHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
+		void PTMXMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
 		{
 			if ( open_tag_ )
 			{

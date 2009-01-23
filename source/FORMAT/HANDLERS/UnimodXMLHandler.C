@@ -164,7 +164,7 @@ namespace OpenMS
 		}
  	} 
 
-  void UnimodXMLHandler::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
+  void UnimodXMLHandler::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
   {
 		// nothing to do here
 	}

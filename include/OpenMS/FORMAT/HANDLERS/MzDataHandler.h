@@ -173,7 +173,7 @@ namespace OpenMS
       virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 			
 			// Docu in base class
-      virtual void characters(const XMLCh* const chars, const unsigned int length);
+      virtual void characters(const XMLCh* const chars, const XMLSize_t length);
 
   		/// Writes the contents to a stream
 			void writeTo(std::ostream& os);
@@ -353,7 +353,7 @@ namespace OpenMS
 		//--------------------------------------------------------------------------------
 
 		template <typename MapType>
-		void MzDataHandler<MapType>::characters(const XMLCh* const chars, unsigned int /*length*/)
+		void MzDataHandler<MapType>::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
 		{
 			// skip current spectrum
 			if (skip_spectrum_) return;
@@ -735,7 +735,7 @@ namespace OpenMS
 			// vector of base64-encoded strings:
 			// Each string represents one property (e.g. mzData) and decodes
 			// to a vector of property values - one value for every peak in the spectrum.
-			for (Size i=0; i<data_to_decode_.size(); i++)
+			for (Size i=0; i<data_to_decode_.size(); ++i)
 			{
 				//remove whitespaces from binary data
 				//this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception

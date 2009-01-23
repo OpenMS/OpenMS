@@ -352,7 +352,7 @@ namespace OpenMS
 		return;
   }
 
-  void XTandemXMLFile::characters(const XMLCh* const chars, const unsigned int /*length*/)
+  void XTandemXMLFile::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
   {
     if (tag_ == "note" && is_description_)
     {

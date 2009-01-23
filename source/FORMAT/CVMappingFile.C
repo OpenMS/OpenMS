@@ -229,7 +229,7 @@ namespace OpenMS
 		return;
   }
 
-  void CVMappingFile::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
+  void CVMappingFile::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
   {
 		// good XML format, nothing to do here
   }

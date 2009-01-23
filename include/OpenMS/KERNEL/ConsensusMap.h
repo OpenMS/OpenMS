@@ -302,9 +302,9 @@ namespace OpenMS
 				std::partial_sort( tmp.begin(), tmp.begin()+n, tmp.end(), reverseComparator(Peak2D::IntensityLess()) );
 				for (Size element_index = 0; element_index < n; ++element_index )
 				{
-					output_map.push_back( ConsensusFeature( input_map_index, element_index, tmp[element_index] ) );
+					output_map.push_back( ConsensusFeature( (UInt)input_map_index, (UInt)element_index, tmp[element_index] ) );
 				}
-				output_map.getFileDescriptions()[input_map_index].size = n;
+				output_map.getFileDescriptions()[(UInt) input_map_index].size = (UInt)n;
 				output_map.updateRanges();
 				return;
 			}

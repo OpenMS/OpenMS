@@ -395,7 +395,7 @@ namespace OpenMS
 		glNewList(list,GL_COMPILE);
 		glPointSize(3.0);
 	
-		for (Size i =0;i<canvas_3d_.getLayerCount();i++)
+		for (UInt i =0;i<canvas_3d_.getLayerCount();++i)
 		{	
 			const LayerData& layer = canvas_3d_.getLayer(i);
 			if(layer.visible)

@@ -66,23 +66,23 @@ namespace OpenMS
 		
 		if (tag_ == "protein")
 		{
-			String attribute_value = String(sm_.convert(attributes.getValue(0u))).trim();
+			String attribute_value = String(sm_.convert(attributes.getValue(XMLSize_t(0)))).trim();
  	 		actual_protein_hit_.setAccession(attribute_value);
 		}
 		else if (tag_ == "query")
 		{
-			actual_query_ = (String(sm_.convert(attributes.getValue(0u))).trim()).toInt();
+			actual_query_ = (String(sm_.convert(attributes.getValue(XMLSize_t(0)))).trim()).toInt();
 		}
 		else if (tag_ == "peptide" || tag_ == "u_peptide" || tag_ == "q_peptide") 
 		{
 			if (tag_ == "peptide")
 			{
-				String attribute_value = String(sm_.convert(attributes.getValue(0u))).trim();
+				String attribute_value = String(sm_.convert(attributes.getValue(XMLSize_t(0)))).trim();
 		  	peptide_identification_index_ = attribute_value.toInt() - 1;
 			}
 			else if (tag_ == "u_peptide" || tag_ == "q_peptide")
 			{
-				String attribute_value = String(sm_.convert(attributes.getValue(0u))).trim();
+				String attribute_value = String(sm_.convert(attributes.getValue(XMLSize_t(0)))).trim();
 	  		peptide_identification_index_ = attribute_value.toInt() - 1;
 			}
 			if (peptide_identification_index_ > id_data_.size())
@@ -148,7 +148,7 @@ namespace OpenMS
 		tag_ = "";
  	} 
 
-  void MascotXMLHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
+  void MascotXMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
   {
 
 		if (tag_ == "NumQueries")

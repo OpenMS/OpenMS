@@ -90,7 +90,7 @@ namespace OpenMS
       void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 		
 			// Docu in base class
-   		void characters(const XMLCh* const chars, const unsigned int /*length*/);
+   		void characters(const XMLCh* const chars, const XMLSize_t /*length*/);
 
 		private:
 

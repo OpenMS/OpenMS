@@ -80,7 +80,7 @@ namespace OpenMS
 		}
  	} 
 
-  void XTandemInfileXMLHandler::characters(const XMLCh* const chars, const unsigned int /*length*/)
+  void XTandemInfileXMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
   {
 		String value = ((String)sm_.convert(chars)).trim();
 		if (tag_ == "note")

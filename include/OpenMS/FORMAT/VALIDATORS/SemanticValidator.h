@@ -133,7 +133,7 @@ namespace OpenMS
 				void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
 	
 	      // Docu in base class
-	      void characters(const XMLCh* const chars, const unsigned int /*length*/);
+	      void characters(const XMLCh* const chars, const XMLSize_t /*length*/);
 				
 				/// Returns the current element path
 				virtual String getPath_(UInt remove_from_end = 0) const;

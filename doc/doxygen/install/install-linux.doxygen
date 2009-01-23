@@ -81,7 +81,7 @@
   "contrib-package" containing the libraries ANDI/MS, NetCDF, GSL, CGAL, libSVM, SeqAn and XERCES-C. 
   This contrib package has several advantages over manual installation
   - you get all the libraries in versions tested with %OpenMS.
-  - it contains a configure script that builds all the libraries in one step.
+  - it contains a CMake script that builds all the libraries in one step.
   - you don't have to spend hours reading installation instructions of all the libraries.
   - we applied some patches to the libraries to fix some bugs. <BR><b>These bugs may be fatal if you do not use the contrib package.</b>
 
@@ -145,46 +145,19 @@
   &gt; svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib
   </pre> 
   
-  To configure the contrib library execute:
+  CMake is used to check the system and create the contrib libraries. We recommend using out-of-source builds, i.e. your contrib source tree remains unchanged.
+  @n Go to the contrib directory and execute the following command:
   <pre>
-  &gt; ./configure
+  &gt; cd ..
+  &gt; mkdir contrib_BuildTree
+  &gt; cd contrib_BuildTree
+  &gt; cmake ../contrib
   </pre>
-
-  The following configure options can be used:
-
-  <table border="0"  cellspacing="0" cellpadding="0">
-    <tr>
-      <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-      <td>
-        --with-compiler=CXX
-      </td>
-      <td>&nbsp;use CXX as C++ compiler (default: g++)</td>
-    </tr>
-    <tr>
-      <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-      <td>
-        --with-c-compiler=CC&nbsp;&nbsp;
-      </td>
-      <td>&nbsp;use CC as C compiler (default: gcc)</td>
-    </tr>
-  </table>
   
-  <BR>
-  If you do not give any configure options, it is assumed that you
-  want to use 'gcc' as C-compiler and 'g++' as C++-compiler.
-
-  @note If <code>./configure</code> is not executable on your system, you should execute <tt>autoconf</tt> before the above commands.
-
-  Next you can build all the libraries with
-
-  <pre>
-  &gt; make all
-  </pre>
-
   If everything worked, the following sub-directories were created:
 
   <ul>
-    <li>'lib/' or the given 'libdir' (as ./configure option)
+    <li>'lib/'
     <br>
     It contains the libraries needed by %OpenMS.
     <br>
@@ -217,7 +190,7 @@
   You can set CMake variables using the <code>-D VARIABLE=VALUE</code> option.
   A full list of the CMake variables is shown when you execute
   <pre>
-  &gt; ccmake .
+  &gt; ccmake <OpenMS_BuildTree>
   </pre>
   This works only after executing <code>cmake</code>.
   

@@ -667,7 +667,7 @@ namespace OpenMS
 		}
 	}
 
-	void FeatureXMLFile::characters(const XMLCh* const chars, unsigned int /*length*/)
+	void FeatureXMLFile::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
 	{
 		//for downward compatibility, all tags in the old description must be ignored
 		if (in_description_) return;

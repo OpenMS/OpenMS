@@ -1100,7 +1100,7 @@ namespace OpenMS
   	if (intensity_mode_ == IM_SNAP) 
 		{
 			double local_max  = -numeric_limits<double>::max();
-			for (Size i=0; i<getLayerCount();++i)
+			for (UInt i=0; i<getLayerCount();++i)
 			{
 				SpectrumIteratorType tmp  = max_element(getLayer_(i).getCurrentSpectrum().MZBegin(visible_area_.minX()), getLayer_(i).getCurrentSpectrum().MZEnd(visible_area_.maxX()), PeakType::IntensityLess());
 				if (tmp->getIntensity() > local_max) 

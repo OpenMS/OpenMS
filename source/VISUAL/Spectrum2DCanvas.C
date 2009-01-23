@@ -573,7 +573,7 @@ namespace OpenMS
 		{
 			UInt peak_layer_count = 0;
 			Int last_peak_layer = 0;
-			for (Size i=0; i<getLayerCount(); ++i)
+			for (UInt i=0; i<getLayerCount(); ++i)
 			{
 				if (getLayer(i).type==LayerData::DT_PEAK)
 				{

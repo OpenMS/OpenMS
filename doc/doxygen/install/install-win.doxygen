@@ -42,7 +42,8 @@
     <LI>To build the contrib-package you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
     <br>Make sure to add the location of 7z.exe to your PATH (usually this is "C:\progam files\7-zip")
     <LI>To build the contrib-package you will need <tt>patch</tt> (see http://gnuwin32.sourceforge.net/packages/patch.htm)
-    <br>Make sure to add the location of patch.exe to your PATH.
+    <br>Make sure to add the location of patch.exe to your PATH. On Vista patch.exe requires elevation, 
+    		i.e. you need an admin account with disabled UAC (User Account Control), otherwise the contrib will not build.
   </UL>
 
 
@@ -116,9 +117,10 @@
 		<br>ANDI/MS and NetCDF are currently only included in the Linux version. We are working on a patch of those external libaries for Windows.
 		This contrib package has several advantages over manual installation
 		<ul>
-			<li>you get all the libraries in versions tested with %OpenMS.</li>
-			<li>it contains a batch script that builds all the libraries in one step.</li>
-			<li>you don't have to spend hours reading installation instructions of all the libraries.</li>
+			<li>You get all the libraries in versions tested with %OpenMS.</li>
+			<li>It contains a batch script that builds all the libraries in one step.</li>
+			<li>You don't have to spend hours reading installation instructions of all the libraries.</li>
+			<li>We applied some patches to the libraries to fix some bugs. <BR><b>These bugs may be fatal if you do not use the contrib package.</b></li>
 		</ul>
 		We recommend using the contrib package! Qt and MySQL are not
 		contained in the contrib package. If they are not installed on your system, you
@@ -145,20 +147,21 @@
           -e.g. $ mkdir contrib_win64_build
       <LI>call CMake to build the contrib
 				You will need to set two important parameters which determine the type of contrib that is build.
-				These two parameters tell us which Visual Studio version you are using (CONTRIB_MSVC_VERSION should be 8 or 9) and which address model (CONTRIB_ADDRESSMODEL should be 32 or 64; 32bit or 64bit applications) you want to be generated. 
-				If the 64bit version is available depends on your installation of Visual Studio. Be aware that you can build 64bit apps even if your operating system is only 32bit (but you will not be
-				able to run 64bit apps in this case).
+				Be aware that you can build 64bit apps (this is called cross-compiling) even if your operating system is only 32bit, but you will not be
+				able to run 64bit apps in this case.
 				
 @code
 cd <path_to_contrib_build_directory>
 cmake -G "<generator>" "<path_to_contrib>"
-cmake -D CONTRIB_MSVC_VERSION:STRING=<version> -D CONTRIB_ADDRESSMODEL:STRING=<bit> -G "<generator>" "<path_to_contrib>"
 @endcode
 
-        For the <generator> you should choose the one that reflects your settings of CONTRIB_MSVC_VERSION and CONTRIB_ADDRESSMODEL. It should be identical to the one you will later use for %OpenMS as well. Type <tt>$ cmake</tt> to see a list of available generators.
+        The <generator> you use must be one of the Visual Studio Generators. This is because some contrib libs require Visual Studio to build.
+        Be careful to specify the Generator suffixed with "Win64" if you want a 64bit contrib!
+        Type <tt>$ cmake</tt> to see a list of available generators.<br>
+        Example:
 @code
 cd c:\svn\contrib_win64_build
-cmake -D CONTRIB_MSVC_VERSION:STRING=9 -D CONTRIB_ADDRESSMODEL:STRING=64 -G "Visual Studio 9 2008 Win64" "c:\svn\contrib_win"
+cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib_win"
 @endcode
 
 				<LI>add the <contrib>/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
@@ -190,6 +193,7 @@ cd <path_to_OpenMS_build_directory>
 cmake -D CONTRIB_CUSTOM_DIR:PATH="<path_to_contrib>" -G "<generator>" "<path_to_OpenMS>"
 @endcode
           The choice of <generator> is dependent on your system. Type <tt>$ cmake</tt> to see a list of available generators.
+          If you use a Visual Studio Generator, it should be identical to the one used for building the contrib.
           Example:
 @code
 cd c:\svn\OpenMS_Win64

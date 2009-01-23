@@ -65,6 +65,9 @@ elseif (MSVC)
 	## see CGAL and BOOST configs for more elaborate explanations
 	add_definitions(/DNOMINMAX)
 
+	## xerces bug workaround
+	add_definitions(/DOPENMS_XERCESDLL)
+	
 	# compile such that GSL is in DLL mode
 	add_definitions(/DGSL_DLL)
 
@@ -150,13 +153,10 @@ else()
 	message(STATUS "Using user defined contrib directory: ${CONTRIB_DIR}")
 endif()
 
-if (MSVC) ## we have another contrib right now
-	FIND_PATH(CONTRIB_CONFIRM_DIR CMakeCache.txt PATHS ${CONTRIB_DIR} NO_DEFAULT_PATH)
-else()
-	FIND_PATH(CONTRIB_CONFIRM_DIR README.txt PATHS ${CONTRIB_DIR} NO_DEFAULT_PATH)
-endif()
+FIND_PATH(CONTRIB_CONFIRM_DIR README_contrib1.3.txt PATHS ${CONTRIB_DIR} NO_DEFAULT_PATH)
+
 if (CONTRIB_CONFIRM_DIR STREQUAL "CONTRIB_CONFIRM_DIR-NOTFOUND")
-	message(FATAL_ERROR "The path to the Contrib directory (${CONTRIB_DIR}) is not correct!")
+	message(FATAL_ERROR "The path to the Contrib directory (${CONTRIB_DIR}) is not correct or you need to update your contrib!")
 endif()
 
 set(CONTRIB_INCLUDE_DIR ${CONTRIB_DIR}/include/ CACHE INTERNAL "contrib include dir")
@@ -193,7 +193,7 @@ MACRO (OPENMS_CHECKLIB varname libnames libnames_d human_libname)
 	set(${varname} optimized ${${varname}_OPT} debug ${${varname}_DBG})
 ENDMACRO (OPENMS_CHECKLIB)
 
-OPENMS_CHECKLIB(CONTRIB_XERCESC "xerces-c_2;xerces-c_static_2;libxerces-c;xerces-c" "xerces-c_2D;xerces-c_static_2D;libxerces-c;xerces-c" "xerces_c")
+OPENMS_CHECKLIB(CONTRIB_XERCESC "xerces-c_3;xerces-c_static_3;libxerces-c;xerces-c" "xerces-c_3D;xerces-c_static_3D;libxerces-c;xerces-c" "xerces_c")
 
 OPENMS_CHECKLIB(CONTRIB_GSL "libgsl_dll;gsl" "libgsl_dll_d;gsl" "GSL")
 

@@ -91,7 +91,7 @@ namespace OpenMS
       virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
 			// Docu in base class
-      virtual void characters(const XMLCh* const chars, const unsigned int length);
+      virtual void characters(const XMLCh* const chars, const XMLSize_t length);
 
 			/// Writes a feature to a stream
 			void writeFeature_(const String& filename, std::ostream& os, const Feature& feat, const String& identifier_prefix, UInt identifier, UInt indentation_level);

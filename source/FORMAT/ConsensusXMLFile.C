@@ -110,7 +110,7 @@ namespace OpenMS
 		}
 	}
 
-	void ConsensusXMLFile::characters(const XMLCh* const /*chars*/, unsigned int /*length*/)
+	void ConsensusXMLFile::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
 	{
 	}
 

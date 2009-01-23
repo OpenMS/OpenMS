@@ -90,7 +90,7 @@ namespace OpenMS
 			cerr << error_message_ << endl;
 		}
 		
-		void XMLHandler::characters(const XMLCh* const /*chars*/, const unsigned int /*length*/)
+		void XMLHandler::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
 		{
 		}
 		
@@ -138,8 +138,8 @@ namespace OpenMS
 		//*******************************************************************************************************************
 
 		StringManager::StringManager()
-			: xml_strings_(100),
-				c_strings_(100)
+			: xml_strings_(0),
+				c_strings_(0)
 		{
 		}
 		
