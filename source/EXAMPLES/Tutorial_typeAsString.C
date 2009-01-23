@@ -31,11 +31,11 @@ int main()
   cout << typeAsString<DPeak<1>::Type::CoordinateType>() << endl;
   cout << typeAsString<DPeak<1>::Type::IntensityType>() << endl;
   cout << endl;
-  cout << typeAsString(someFunc) << endl;
+  cout << typeAsString(&someFunc) << endl;
   cout << typeAsString<WOW<char const * const *** const & > >() << endl;
   cout << typeAsString<Oink<double,55> >() << endl;
-  cout << typeAsString(WOW<string,8>::staticMemberFunc) << endl;
-  cout << typeAsString(& WOW<char,8>::memberFunc) << endl;
+  cout << typeAsString(&WOW<string,8>::staticMemberFunc) << endl;
+  cout << typeAsString(&WOW<char,8>::memberFunc) << endl;
 
   return 0;
 } // end of Tutorial_typeAsString.C
