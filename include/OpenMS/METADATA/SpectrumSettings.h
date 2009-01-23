@@ -56,11 +56,7 @@ namespace OpenMS
   	
     public:
     
-    	/**
-    		@brief spectrum type
-    		
-    		If set to unknown see SpectrumType of the DataProcessing ( in MSExperiment ).
-    	*/
+    	///Spectrum peak type
     	enum SpectrumType
     	{
     		UNKNOWN,	///< Unknown spectrum type

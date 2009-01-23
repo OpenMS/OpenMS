@@ -40,25 +40,20 @@
 #include <sstream>
 #include <iostream>
 
-//TODO:
-// - Multiple 'dissociation methods' per precursor
-// - DataProcessing of binaryDataArray
-// - scanSettingsList
-//
 //TODO (WHEN SETTLED):
 // - CV: terms of spectrum type and file content
 // - CV: terms of intensity description
 // - CV: collision energy / activation energy (and units)
+// - scanSettingsList
 //
-//TODO (PERHAPS):
-// - DataProcessing of spectrum and chromatogram
-// - InstrumentConfiguration of Acquisiton
-//
-//MISSING (AND CURRENTLY NOT PLANNED):
+//MISSING:
+// - multiple 'dissociation methods' per precursor
 // - more than one precursor per spectrum (warning if more than one)
 // - more than one selected ion per precursor (warning if more than one)
 // - more than one isolationWindow per precursor
-// - scanWindowList for each acquisition separately
+// - scanWindowList for each acquisition separately (currently for the whole spectrum only)
+// - DataProcessing of spectrum (defaultsDataProcessingRef is used) and binaryDataArray
+// - InstrumentConfiguration of Scan
 
 // xs:id/xs:idref prefix list
 // - sf_ru : sourceFile (run)
@@ -480,9 +475,7 @@ namespace OpenMS
 			else if (tag=="dataProcessingRef")
 			{
 			  //"spectrum", "chromatogram" and "binaryDataArray" can have a DataProcessing too
-			  //Currently this is not implemented as the mzML schema is messed up
-			  //all dataProcessing is handled as global data processing of the whole file!
-			  //See: end of dataProcessingList
+			  //Currently this is not implemented
 			}
 			else if (tag=="dataProcessing")
 			{
