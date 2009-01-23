@@ -1123,7 +1123,7 @@ namespace OpenMS
 						case InstrumentSettings::UNKNOWN:
 							//do nothing here
 							break;
-						case InstrumentSettings::FULL:
+						case InstrumentSettings::MASSSPECTRUM:
 							if (iset.getZoomScan())
 							{
 								os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"Zoom\"/>\n";
@@ -1327,11 +1327,11 @@ namespace OpenMS
 					if (value=="Zoom")
 					{
 						spec_.getInstrumentSettings().setZoomScan(true);
-						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 					}
 					else if (value=="MassScan")
 					{
-						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 					}
 					else if (value=="SelectedIonDetection")
 					{
@@ -1355,7 +1355,7 @@ namespace OpenMS
 					}
 					else if (value=="ProductIonScan")
 					{
-						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 						spec_.setMSLevel(2);
 					}
 					else if (value=="PrecursorIonScan")
@@ -1365,11 +1365,11 @@ namespace OpenMS
 					else if (value=="EnhancedResolutionScan")
 					{
 						spec_.getInstrumentSettings().setZoomScan(true);
-						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 					}
 					else
 					{
-						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+						spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 						warning(LOAD, String("Unknown scan mode '") + value + "'. Assuming full scan");
 					}
 				}

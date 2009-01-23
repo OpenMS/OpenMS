@@ -41,9 +41,6 @@
 #include <iostream>
 
 //TODO:
-// - CV: resolution power terms
-// - CV: collision energy / activation energy (and units)
-// - CV: cellular compartement, source tissue and quality os sample
 // - Multiple 'dissociation methods' per precursor
 // - DataProcessing of binaryDataArray
 // - scanSettingsList
@@ -51,12 +48,13 @@
 //TODO (WHEN SETTLED):
 // - CV: terms of spectrum type and file content
 // - CV: terms of intensity description
+// - CV: collision energy / activation energy (and units)
 //
 //TODO (PERHAPS):
 // - DataProcessing of spectrum and chromatogram
 // - InstrumentConfiguration of Acquisiton
 //
-//MISSING (AND NOT PLANNED):
+//MISSING (AND CURRENTLY NOT PLANNED):
 // - more than one precursor per spectrum (warning if more than one)
 // - more than one selected ion per precursor (warning if more than one)
 // - more than one isolationWindow per precursor
@@ -109,7 +107,7 @@ namespace OpenMS
 					logger_(logger),
 					skip_spectrum_(false)
 	  	{
-	  		cv_.loadFromOBO("psi-ms", File::find("CV/psi-ms.obo"));
+				cv_.loadFromOBO("MS",File::find("/CV/psi-ms.obo"));
 			}
 
       /// Constructor for a read-only handler
@@ -126,7 +124,7 @@ namespace OpenMS
 					logger_(logger),
 					skip_spectrum_(false)
   		{
-  			cv_.loadFromOBO("psi-ms", File::find("CV/psi-ms.obo"));
+				cv_.loadFromOBO("MS",File::find("/CV/psi-ms.obo"));
 			}
 
       /// Destructor
@@ -771,7 +769,11 @@ namespace OpenMS
 				{
 					if (term.xref_type==ControlledVocabulary::CVTerm::NONE)
 					{
-						warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
+						//Quality CV does not state value type :(
+						if (!accession.hasPrefix("PATO:"))
+						{
+							warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
+						}
 					}
 					else
 					{
@@ -890,11 +892,11 @@ namespace OpenMS
 				//spectrum type
 				if (accession=="MS:1000579") //MS1 spectrum
 				{
-					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 				}
 				else if (accession=="MS:1000580") //MSn spectrum
 				{
-					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 				}
 				else if (accession=="MS:1000581") //CRM spectrum
 				{
@@ -1311,6 +1313,21 @@ namespace OpenMS
 				else if (accession=="MS:1000052") //suspension
 				{
 					samples_[current_id_].setState(Sample::SUSPENSION);
+				}
+				else if (accession.hasPrefix("PATO:")) //quality of an object
+				{
+					//No member => meta data
+					samples_[current_id_].setMetaValue(String(name),String(value));
+				}
+				else if (accession.hasPrefix("GO:")) //cellular_component
+				{
+					//No member => meta data
+					samples_[current_id_].setMetaValue("GO cellular component",String(name));
+				}
+				else if (accession.hasPrefix("BTO:")) //brenda source tissue ontology
+				{
+					//No member => meta data
+					samples_[current_id_].setMetaValue("brenda source tissue",String(name));
 				}
 				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
@@ -2228,7 +2245,7 @@ namespace OpenMS
 			{
 				file_content[exp[i].getInstrumentSettings().getScanMode()]++;
 			}
-			if (file_content.has(InstrumentSettings::FULL))
+			if (file_content.has(InstrumentSettings::MASSSPECTRUM))
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
 			}
@@ -3154,7 +3171,7 @@ namespace OpenMS
 				}
 				
 				//spectrum type
-				if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::FULL)
+				if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::MASSSPECTRUM)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
 				}

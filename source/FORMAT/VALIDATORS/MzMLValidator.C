@@ -112,6 +112,16 @@ namespace OpenMS
 			path = String("/") + path;
 			return path;
 		}
+		
+		//reimplemented to catch non-PSI CVs
+		void MzMLValidator::handleTerm_(const String& path, const CVTerm& parsed_term) 
+		{
+			//some CVs cannot be validates because they use 'part_of' which spoils the inheritance
+			if (parsed_term.accession.hasPrefix("GO:")) return;
+			if (parsed_term.accession.hasPrefix("BTO:")) return;
+			
+			SemanticValidator::handleTerm_(path,parsed_term);
+		}
 
 	} // namespace Internal
 } // namespace OpenMS

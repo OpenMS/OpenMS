@@ -86,10 +86,10 @@ namespace OpenMS
 		
 		//load cvs
 		ControlledVocabulary cv;
-		cv.loadFromOBO("PSI",File::find("/CV/psi-ms.obo"));
+		cv.loadFromOBO("MS",File::find("/CV/psi-ms.obo"));
 		cv.loadFromOBO("PATO",File::find("/CV/quality.obo"));
 		cv.loadFromOBO("UO",File::find("/CV/unit.obo"));
-		cv.loadFromOBO("brenda",File::find("/CV/brenda.obo"));
+		cv.loadFromOBO("BTO",File::find("/CV/brenda.obo"));
 		cv.loadFromOBO("GO",File::find("/CV/goslim_goa.obo"));
 		
 		//validate

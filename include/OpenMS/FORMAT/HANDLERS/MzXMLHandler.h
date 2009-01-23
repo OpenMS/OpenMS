@@ -482,11 +482,11 @@ namespace OpenMS
 				else if (type=="zoom")
 				{
 					exp_->back().getInstrumentSettings().setZoomScan(true);
-					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 				}
 				else if (type=="Full")
 				{
-					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 				}
 				else if (type=="SIM")
 				{
@@ -502,29 +502,29 @@ namespace OpenMS
 				}
 				else if (type=="Q1")
 				{
-					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 				}
 				else if (type=="Q3")
 				{
-					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 				}
 				else if (type=="EMS")//Non-standard type: Enhanced MS (ABI - Sashimi converter)
 				{
-					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 				}
 				else if (type=="EPI")//Non-standard type: Enhanced Product Ion (ABI - Sashimi converter)
 				{
-					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 					exp_->back().setMSLevel(2);
 				}
 				else if (type=="ER") // Non-stanard type: Enhanced Resolution (ABI - Sashimi converter)
 				{
 					exp_->back().getInstrumentSettings().setZoomScan(true);
-					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 				}
 				else
 				{
-					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::FULL);
+					exp_->back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 					warning(LOAD, String("Unknown scan mode '") + type + "'. Assuming full scan");
 				}
 					
@@ -1034,7 +1034,7 @@ namespace OpenMS
 				{
 					case InstrumentSettings::UNKNOWN:
 						break;
-					case InstrumentSettings::FULL:
+					case InstrumentSettings::MASSSPECTRUM:
 						if (spec.getInstrumentSettings().getZoomScan())
 						{
 							os << "\" scanType=\"zoom";

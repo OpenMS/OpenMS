@@ -45,7 +45,7 @@ namespace OpenMS
       enum ScanMode
       {
       	UNKNOWN,					///< Unknown scan method
-      	FULL,							///< Full scan @n Synonyms: 'MSn scan'
+      	MASSSPECTRUM,			///< Standard mass spectrum @n Synonyms: 'full scan', 'MSn scan'
       	SIM,							///< Selected ion monitoring scan @n Synonyms: 'Multiple ion monitoring scan', 'SIM scan', 'MIM scan'
       	SRM,							///< Selected reaction monitoring scan @n Synonyms: 'Multiple reaction monitoring scan', 'SRM scan', 'MRM scan'
       	CRM,							///< Consecutive reaction monitoring scan @n Synonyms: 'CRM scan'

@@ -63,7 +63,10 @@ namespace OpenMS
 
 				// Docu in base class
 				virtual String getPath_(UInt remove_from_end = 0) const;
-
+				
+				// Docu in base class
+				virtual void handleTerm_(const String& path, const CVTerm& parsed_term); 
+				
 				///CV terms which can have a value (term => value type)
 				Map<String,std::vector<CVTerm> > param_groups_;
 				

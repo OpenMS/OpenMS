@@ -185,7 +185,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		}
 		//general info
 		TEST_EQUAL(spec.getMSLevel(),1)
-		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::FULL)
+		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::MASSSPECTRUM)
 		TEST_EQUAL(spec.getMetaDataArrays().size(),0)
 		TEST_EQUAL(spec.getType(),SpectrumSettings::PEAKS)
 		TEST_REAL_SIMILAR(spec.getRT(),5.1)
@@ -216,7 +216,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		}
 		//general info
 		TEST_EQUAL(spec.getMSLevel(),2)
-		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::FULL)
+		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::MASSSPECTRUM)
 		TEST_EQUAL(spec.getType(),SpectrumSettings::PEAKS)
 		TEST_REAL_SIMILAR(spec.getRT(),5.2)
 		TEST_EQUAL(spec.getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
@@ -271,7 +271,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		}
 		//general info
 		TEST_EQUAL(spec.getMSLevel(),1)
-		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::FULL)
+		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::MASSSPECTRUM)
 		TEST_EQUAL(spec.getMetaDataArrays().size(),0)
 		TEST_EQUAL(spec.getType(),SpectrumSettings::PEAKS)
 		TEST_REAL_SIMILAR(spec.getRT(),5.3)
@@ -298,7 +298,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		//general info
 		TEST_EQUAL(spec.getMSLevel(),1)
 		TEST_REAL_SIMILAR(spec.getRT(),5.4)
-		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::FULL)
+		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::MASSSPECTRUM)
 		TEST_EQUAL(spec.getMetaDataArrays().size(),0)
 		TEST_EQUAL(spec.getType(),SpectrumSettings::RAWDATA)
 		TEST_EQUAL(spec.getInstrumentSettings().getScanWindows().size(),1)
@@ -334,6 +334,9 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL((String)exp.getInstrument().getIonDetectors()[1].getMetaValue("name"),"detector2")
 	//sample
 	TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("name"),"sample")
+	TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("brenda source tissue"),"cardiac muscle")
+	TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("GO cellular component"),"nucleus")
+	TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("cellular quality"),"11.11")
 	//contact
 	TEST_STRING_EQUAL((String)exp.getContacts()[0].getMetaValue("name"),"contact1")
 	TEST_STRING_EQUAL((String)exp.getContacts()[1].getMetaValue("name"),"contact2")
@@ -582,6 +585,14 @@ START_SECTION(bool isSemanticallyValid(const String& filename, StringList& error
 	TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), errors, warnings),true)
 	TEST_EQUAL(errors.size(),0)
 	TEST_EQUAL(warnings.size(),2)
+//	for (Size i=0; i<errors.size(); ++i)
+//	{
+//		cout << "ERROR: " << errors[i] << endl;
+//	}
+//	for (Size i=0; i<warnings.size(); ++i)
+//	{
+//		cout << "WARNING: " << warnings[i] << endl;
+//	}
 
 	//indexed MzML
 	TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_4_indexed.mzML"), errors, warnings),true)
@@ -591,11 +602,11 @@ START_SECTION(bool isSemanticallyValid(const String& filename, StringList& error
 	//invalid file
 	TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_3_invalid.mzML"), errors, warnings),false)
 	TEST_EQUAL(errors.size(),8)
+	TEST_EQUAL(warnings.size(),1)
 //	for (Size i=0; i<errors.size(); ++i)
 //	{
 //		cout << "ERROR: " << errors[i] << endl;
 //	}
-	TEST_EQUAL(warnings.size(),1)
 //	for (Size i=0; i<warnings.size(); ++i)
 //	{
 //		cout << "WARNING: " << warnings[i] << endl;

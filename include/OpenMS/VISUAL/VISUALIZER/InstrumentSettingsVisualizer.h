@@ -66,6 +66,7 @@ namespace OpenMS
 			///@name Edit fields and buttons
 	    //@{
 	   	QComboBox* instrumentsettings_scan_mode_;
+			QComboBox* zoom_scan_;
 			QComboBox* instrumentsettings_polarity_;
 			//@}
 		

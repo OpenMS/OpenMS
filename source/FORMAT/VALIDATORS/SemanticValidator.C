@@ -396,7 +396,11 @@ namespace OpenMS
 					String value = parsed_term.value;
           if (type == ControlledVocabulary::CVTerm::NONE)
           {
-            errors_.push_back(String("Value of CVTerm not allowed: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+						//Quality CV does not state value type :(
+						if (!parsed_term.accession.hasPrefix("PATO:"))
+						{
+            	errors_.push_back(String("Value of CVTerm not allowed: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
+          	}
           }
           else if (type == ControlledVocabulary::CVTerm::XSD_STRING)
           {
