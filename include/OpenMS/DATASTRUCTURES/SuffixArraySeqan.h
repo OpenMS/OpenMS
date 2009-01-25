@@ -31,8 +31,21 @@
 
 #include <vector>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <seqan/index.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArray.h>
+
+#ifdef _MSC_VER // disable some seqan warnings that distract from ours
+#	pragma warning( push ) // save warning state
+#	pragma warning( disable : 4244 )
+#	pragma warning( disable : 4390 )
+#	pragma warning( disable : 4521 )
+#	pragma warning( disable : 4522 )
+#	pragma warning( disable : 4800 )
+#endif
+#include <seqan/index.h>
+#ifdef _MSC_VER
+#	pragma warning( pop )  // restore old warning state
+#endif
+
 
 namespace OpenMS
 {
