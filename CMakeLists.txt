@@ -59,7 +59,7 @@ elseif (MSVC)
 	#add_definitions(/wd4267)
 
 	##don't warn about unchecked std::copy()
-	add_definitions(/D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_DEPRECATE)
+	add_definitions(/D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_DEPRECATE /D_SECURE_SCL=0)
 
 	## disable min and max macros by default
 	## see CGAL and BOOST configs for more elaborate explanations
