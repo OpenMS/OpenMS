@@ -178,6 +178,7 @@ namespace OpenMS
 	
 			if (status!=GSL_SUCCESS)
 			{
+				gsl_rng_free(r);
 				gsl_multifit_fdfsolver_free(s);
 	
 				throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-GaussFitter","Could not fit the gaussian to the data");
@@ -197,6 +198,7 @@ namespace OpenMS
 			cout << gnuplot_formula_ << endl;
 			#endif
 			
+			gsl_rng_free(r);
 			gsl_multifit_fdfsolver_free (s);
 	
 			return result;

@@ -187,10 +187,11 @@ namespace OpenMS
 	
 		    status = gsl_multifit_test_delta (s->dx, s->x, 1e-4, 1e-4);
 		  }
-		  while (status == GSL_CONTINUE && iter < 10000);
+		  while (status == GSL_CONTINUE && iter < 1000);
 	
 			if (status!=GSL_SUCCESS)
 			{
+				gsl_rng_free(r);
 				gsl_multifit_fdfsolver_free(s);
 	
 				throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-GammaDistributionFitter","Could not fit the gaussian to the data");
@@ -210,6 +211,7 @@ namespace OpenMS
 			cout << gnuplot_formula_ << endl;
 #endif
 			
+			gsl_rng_free(r);
 			gsl_multifit_fdfsolver_free (s);
 	
 			return result;
