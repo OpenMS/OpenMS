@@ -122,7 +122,7 @@ START_SECTION(void setTolerance(double t))
 }
 END_SECTION
 
-START_SECTION(unsigned int getNumberOfModifications ())
+START_SECTION(Size getNumberOfModifications ())
 {
 	TEST_EQUAL (sa->getNumberOfModifications(),0);
 	sa->setNumberOfModifications(1);
@@ -140,7 +140,7 @@ START_SECTION(String toString())
 }
 END_SECTION
 
-START_SECTION(void setNumberOfModifications(unsigned int number_of_mods))
+START_SECTION(void setNumberOfModifications(Size number_of_mods))
 {
 	TEST_EQUAL (sa->getNumberOfModifications(),0);
 	sa->setNumberOfModifications(1);
@@ -232,7 +232,7 @@ END_SECTION
 
 #if 1
 
-START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >, double > > > &candidates, const std::vector< double > &spec)))
+START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< SignedSize, SignedSize >, double > > > &candidates, const std::vector< double > &spec)))
 {
 	double masse[255];
 	ResidueDB* rdb = ResidueDB::getInstance();
@@ -253,7 +253,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 	spec.push_back(178.1864);
 	spec.push_back(441.4806);
 	const vector<double> specc (spec);
-	vector <vector< pair<pair<int,int>,double> > > res;
+	vector <vector< pair<pair<SignedSize, SignedSize>,double> > > res;
 	sa->findSpec(res, specc);
 	TEST_EQUAL(res.size(),specc.size());
 
@@ -329,7 +329,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< int
 	STATUS("Okay!");
 
 	// getting all candidates with tags 
-	int number_of_tags=0;
+	Size number_of_tags=0;
 	vector<String> res_with_tags_exp;
 	for (Size i = 0; i < res.size();i++)
 	{

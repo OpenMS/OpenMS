@@ -109,7 +109,7 @@ namespace OpenMS
 			}
 	
 			///destructor
-			~Histogram()
+			virtual ~Histogram()
 			{
 			}
 			//@}
@@ -264,11 +264,11 @@ namespace OpenMS
 			//@}
 
 			/// Transforms the bin values with f(x)=multiplier*log(x+1) 	 
-			void applyLogTransformation(Real multiplier) 	 
+			void applyLogTransformation(BinSizeType multiplier) 	 
 			{ 	 
 				for (typename std::vector<ValueType>::iterator it = bins_.begin(); it!=bins_.end(); ++it) 	 
 				{ 	 
-					*it = (ValueType)(multiplier*log((Real)(*it+1.0f))); 	 
+					*it = (ValueType)(multiplier*log((BinSizeType)(*it+1.0f))); 	 
 				} 	 
 			}
 			

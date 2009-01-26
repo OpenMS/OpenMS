@@ -193,7 +193,7 @@ START_SECTION((Histogram& operator = (const Histogram& histogram)))
 	TEST_EQUAL(d == dist, true)
 END_SECTION
 
-START_SECTION((void applyLogTransformation(Real multiplier)))
+START_SECTION((void applyLogTransformation(BinSizeType multiplier)))
 	TOLERANCE_ABSOLUTE(0.01)
 	Histogram<float, float> dist(0,5,1);
 	dist.inc(0.5,1);

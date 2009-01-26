@@ -57,10 +57,10 @@ namespace OpenMS
 			EnzymaticDigestion();
 			
 			///Returns the number of missed cleavages for the digestion
-			UInt getMissedCleavages() const;
+			Size getMissedCleavages() const;
 
 			///Sets the number of missed cleavages for the digestion (default is 0).
-			void setMissedCleavages(UInt missed_cleavages);	
+			void setMissedCleavages(Size missed_cleavages);	
 
 			///Returns the enzyme for the digestion
 			Enzyme getEnzyme() const;
@@ -72,11 +72,11 @@ namespace OpenMS
 			void digest(const AASequence& protein, std::vector<AASequence>& output);
 			
 			/// Returns the number of peptides a digestion of @p protein would yield.
-			UInt peptideCount(const AASequence& protein);
+			Size peptideCount(const AASequence& protein);
 			
 		protected:
 			/// Number of missed cleavages
-			UInt missed_cleavages_;
+			Size missed_cleavages_;
 			/// Used enzyme
 			Enzyme enzyme_;
 			

@@ -1578,7 +1578,7 @@ namespace OpenMS
 		SpectrumAlignment aligner;
 		aligner.setParameters(param);
 		
-		std::vector<std::pair<UInt, UInt> > aligned_peaks_indices;
+		std::vector<std::pair<Size, Size> > aligned_peaks_indices;
 		aligner.getSpectrumAlignment(aligned_peaks_indices, spectrum_1, spectrum_2);
 
 		for (Size i = 0; i < aligned_peaks_indices.size(); ++i)

@@ -83,7 +83,7 @@ START_SECTION(const Residue* getModifiedResidue(const Residue *residue, const St
 	TEST_STRING_EQUAL(mod_res->getModification(), "MOD:00720")
 END_SECTION
 
-START_SECTION(const std::set<const Residue*>& getResidues(AminoAcidSet aa_set=ALL) const)
+START_SECTION(const std::set<const Residue*> getResidues(AminoAcidSet aa_set=ALL) const)
 	set<const Residue*> residues = ptr->getResidues(ResidueDB::ALL);
 	TEST_EQUAL(residues.size(), 21)
 	residues = ptr->getResidues(ResidueDB::NATURAL_20);

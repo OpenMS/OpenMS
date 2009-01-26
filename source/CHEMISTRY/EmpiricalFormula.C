@@ -559,7 +559,7 @@ namespace OpenMS
 			String split = splitter[i];
 			String number;
 			String symbol;
-			for (Int j=split.size()-1;j>=0;--j)
+			for (SignedSize j=split.size()-1;j>=0;--j)
 			{
 				if (isdigit(split[j]))
 				{

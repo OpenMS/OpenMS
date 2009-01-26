@@ -57,12 +57,12 @@ namespace OpenMS
 		return 0;
 	}
 
-	UInt ResidueDB::getNumberOfResidues() const
+	Size ResidueDB::getNumberOfResidues() const
 	{
 		return residues_.size();
 	}
 
-	UInt ResidueDB::getNumberOfModifiedResidues() const
+	Size ResidueDB::getNumberOfModifiedResidues() const
 	{
 		return modified_residues_.size();
 	}

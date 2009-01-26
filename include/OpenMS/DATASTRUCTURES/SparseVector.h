@@ -426,7 +426,7 @@ namespace OpenMS
 			Value sparse_element_;
 
 			///Updates position of @p it and all larger elements
-			void update_(map_iterator it, UInt amount_deleted)
+			void update_(map_iterator it, Size amount_deleted)
 			{
 				while(it != values_.end())
 				{

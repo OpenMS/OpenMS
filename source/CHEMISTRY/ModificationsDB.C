@@ -53,12 +53,12 @@ namespace OpenMS
 		}
 	}
 
-	UInt ModificationsDB::getNumberOfModifications() const
+	Size ModificationsDB::getNumberOfModifications() const
 	{
 		return mods_.size();
 	}
 
-	const ResidueModification& ModificationsDB::getModification(UInt index) const
+	const ResidueModification& ModificationsDB::getModification(Size index) const
 	{
 		if (index >= mods_.size())
 		{
@@ -139,9 +139,9 @@ namespace OpenMS
 		return *mod_x;
 	}
 
-	UInt ModificationsDB::findModificationIndex(const String& mod_name) const
+	Size ModificationsDB::findModificationIndex(const String& mod_name) const
 	{
-		UInt idx(0);
+		Size idx(0);
 		if (modification_names_.has(mod_name))
 		{
 			if (modification_names_[mod_name].size() > 1)

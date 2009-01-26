@@ -36,7 +36,6 @@ namespace OpenMS
     : PeakSpectrumCompareFunctor()
   {
 		setName(SpectrumAlignmentScore::getProductName());
-		//defaults_.setValue("epsilon", 0.3, "Defines the absolut error of the mass spectrometer");
 		defaults_.setValue("tolerance", 0.3, "Defines the absolut (in Da) or relative (in ppm) tolerance");
 		defaults_.setValue("is_relative_tolerance", "false", "if true, the tolerance value is interpreted as ppm");
 		defaults_.setValidStrings("is_relative_tolerance", StringList::create("true,false"));
@@ -87,7 +86,7 @@ namespace OpenMS
 		p.setValue("is_relative_tolerance", (String)param_.getValue("is_relative_tolerance"));
 		aligner.setParameters(p);
 
-		vector<pair<UInt, UInt> > alignment;
+		vector<pair<Size, Size> > alignment;
 		aligner.getSpectrumAlignment(alignment, s1, s2);
 
 		double score(0), sum(0), sum1(0), sum2(0);
@@ -101,7 +100,7 @@ namespace OpenMS
 			sum2 += it1->getIntensity() * it1->getIntensity();
 		}
 		
-		for (vector<pair<UInt, UInt> >::const_iterator it = alignment.begin(); it != alignment.end(); ++it)
+		for (vector<pair<Size, Size> >::const_iterator it = alignment.begin(); it != alignment.end(); ++it)
 		{
 			//double factor(0.0);
 			//factor = (epsilon - fabs(s1[it->first].getPosition()[0] - s2[it->second].getPosition()[0])) / epsilon;

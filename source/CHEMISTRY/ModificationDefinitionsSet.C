@@ -53,27 +53,27 @@ namespace OpenMS
 	{
 	}
 
-	void ModificationDefinitionsSet::setMaxModifications(UInt max_mod)
+	void ModificationDefinitionsSet::setMaxModifications(Size max_mod)
 	{
 		max_mods_per_peptide_ = max_mod;
 	}
 
-	UInt ModificationDefinitionsSet::getMaxModifications() const
+	Size ModificationDefinitionsSet::getMaxModifications() const
 	{
 		return max_mods_per_peptide_;
 	}
 
-	UInt ModificationDefinitionsSet::getNumberOfModifications() const
+	Size ModificationDefinitionsSet::getNumberOfModifications() const
 	{
 		return variable_mods_.size() + fixed_mods_.size();
 	}
 
-	UInt ModificationDefinitionsSet::getNumberOfFixedModifications() const
+	Size ModificationDefinitionsSet::getNumberOfFixedModifications() const
 	{
 		return fixed_mods_.size();
 	}
 
-	UInt ModificationDefinitionsSet::getNumberOfVariableModifications() const
+	Size ModificationDefinitionsSet::getNumberOfVariableModifications() const
 	{
 		return variable_mods_.size();
 	}

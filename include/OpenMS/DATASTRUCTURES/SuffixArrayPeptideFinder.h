@@ -105,13 +105,13 @@ public:
 	@brief setter for number of modifications
 	@param number_of_mods
 	*/
-	void setNumberOfModifications(UInt number_of_mods) const;
+	void setNumberOfModifications(Size number_of_mods) const;
 
 	/**
 	@brief getter for number of modifications
 	@return number of modifications
 	*/
-	UInt getNumberOfModifications() const;
+	Size getNumberOfModifications() const;
 
 	/**
 	@brief setter for tags

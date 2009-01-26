@@ -91,7 +91,7 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 	spec.push_back(245.2816);
 	spec.push_back(387.4392);
 	const vector<double> specc (spec);
-	vector <vector< pair<pair<int,int>,double> > > res;
+	vector <vector< pair<pair<SignedSize, SignedSize>,double> > > res;
 	sa->findSpec(res, specc);
 	TEST_EQUAL(res.size(),specc.size());
 	for (Size i = 0; i<res.size();i++)
@@ -161,7 +161,7 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 		}
 	}
 	// getting all candidates with tags 
-	int number_of_tags=0;
+	Size number_of_tags=0;
 	vector<String> res_with_tags_exp;
 	for (Size i = 0; i < res.size();i++)
 	{
