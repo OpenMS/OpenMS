@@ -120,12 +120,22 @@ namespace OpenMS
 			return intensity_sum;
 		}
 		
-		for (Map<String, double>::Iterator it = peak_ints.begin(); it != peak_ints.end(); ++it)
+		double max_int(0);
+		for (Map<String, double>::ConstIterator it = peak_ints.begin(); it != peak_ints.end(); ++it)
 		{
-			it->second /= intensity_sum;
+			//it->second /= intensity_sum;
+			if (it->second > max_int)
+			{
+				max_int = it->second;
+			}
 #ifdef NEUTRAL_LOSS_MODEL_DEBUG
 			cerr << "LOSS: " << it->first << " " << it->second << " " << peptide << ", sum=" << intensity_sum <<endl;
 #endif
+		}
+
+		for (Map<String, double>::Iterator it = peak_ints.begin(); it != peak_ints.end(); ++it)
+		{
+			it->second /= max_int;
 		}
 		
 		trainIons_(1.0, peak_ints, peptide);
@@ -607,16 +617,27 @@ namespace OpenMS
 
 	void PILISNeutralLossModel::getIons_(Map<String, double>& intensities, double initial_probability, const AASequence& precursor)
 	{
-		hmm_precursor_.setInitialTransitionProbability("start", initial_probability);
+		//cerr << "getIons_: " << initial_probability << " " << precursor << endl;
+		hmm_precursor_.setInitialTransitionProbability("start", 1.0);
 
 		enableIonStates_(precursor);
 
 		Map<HMMState*, double> tmp;
 		hmm_precursor_.calculateEmissionProbabilities(tmp);
 
+		double max_prob(0);
 		for (Map<HMMState*, double>::ConstIterator it = tmp.begin(); it != tmp.end(); ++it)
 		{
 			intensities[it->first->getName()] = it->second;
+			if (it->second > max_prob)
+			{
+				max_prob = it->second;
+			}
+		}
+
+		for (Map<String, double>::Iterator it = intensities.begin(); it != intensities.end(); ++it)
+		{
+			it->second = it->second / max_prob * initial_probability;
 		}
 		
 #ifdef NEUTRAL_LOSS_MODEL_DEBUG
@@ -625,6 +646,8 @@ namespace OpenMS
 			cerr << it->first->getName() << " -> " << it->second << endl;
 		}		
 #endif
+
+		
 
 #ifdef NEUTRAL_LOSS_MODEL_FILE_DEBUG
 		String pep_seq(precursor.toString());
@@ -887,8 +910,8 @@ namespace OpenMS
 
 			if (!enable_double_losses)
 			{
-    		hmm_precursor_.setTransitionProbability(cooh_name, ion_name + "-" + h2o, 0.02);
-    		hmm_precursor_.setTransitionProbability(cooh_name, ion_name, 0.18);
+    		hmm_precursor_.setTransitionProbability(cooh_name, ion_name + "-" + h2o, 0.001);
+    		hmm_precursor_.setTransitionProbability(cooh_name, ion_name, 0.199);
     		hmm_precursor_.setTransitionProbability(cooh_name, "COOH-" + h2o + "-next", 0.8);
 			}
 			else
@@ -943,8 +966,8 @@ namespace OpenMS
 
 				if (!enable_double_losses)
 				{
-        	hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, ion_name + "-" + loss, 0.02);
-        	hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, ion_name, 0.18);
+        	hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, ion_name + "-" + loss, 0.001);
+        	hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, ion_name, 0.199);
         	hmm_precursor_.setTransitionProbability(aa.toString() + "-" + loss, aa.toString() + "-" + loss + "-next", 0.8);
 				}
 				else

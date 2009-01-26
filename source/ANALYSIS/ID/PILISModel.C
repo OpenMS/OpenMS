@@ -75,7 +75,7 @@ namespace OpenMS
 		defaults_.setValue("lower_mz", 200.0, "Lowest m/z value of product ions in the simulated spectrum");
 		defaults_.setValue("charge_remote_threshold", 0.1, "If the probability for the proton at the N-terminus is lower than this value, enable charge-remote pathways");
 		defaults_.setValue("charge_directed_threshold", 0.1, "Limit the proton availability at the N-terminus to at least this value for charge-directed pathways");
-		defaults_.setValue("model_depth", 6, "The number of explicitly modeled backbone cleavages from N-terminus and C-terminus, would be 9 for the default value");
+		defaults_.setValue("model_depth", 10, "The number of explicitly modeled backbone cleavages from N-terminus and C-terminus, would be 9 for the default value");
 		defaults_.setValue("visible_model_depth", 50, "The maximal possible size of a peptide to be modeled");
 		defaults_.setValue("precursor_mass_tolerance", 3.0, "Mass tolerance of the precursor peak, used to identify the precursor peak and its loss peaks for training");
 		defaults_.setValue("fragment_mass_tolerance", 0.3, "Peak mass tolerance of the product ions, used to identify the ions for training");
@@ -88,7 +88,7 @@ namespace OpenMS
 		defaults_.setValue("min_y_loss_intensity", 0.0, ".");
 		defaults_.setValue("min_b_loss_intensity", 0.0, ".");
 
-		defaults_.setValue("side_chain_activation", 0.1, "Additional activation of proton sitting at side chain, especially important at lysin and histidine residues");
+		defaults_.setValue("side_chain_activation", 0.15, "Additional activation of proton sitting at side chain, especially important at lysin and histidine residues");
 		defaults_.setValue("pseudo_counts", 1e-15, "Value which is added for every transition trained of the underlying hidden Markov model");
 		defaults_.setValue("max_isotope", 2, "Maximal isotope peak which is reported by the model, 0 means all isotope peaks are reported");
 
@@ -557,13 +557,10 @@ namespace OpenMS
 				sum_y_ints += sum_y[z];
       }
 
-			double emission_prob(0);
-
 			// end state is always needed
-			hmm_.setTrainingEmissionProbability("end"+pos_name, 0.5/(double(peptide.size() - 1)));
+			hmm_.setTrainingEmissionProbability("end"+pos_name, 1.0/(double(peptide.size() - 1)));
 			if (!is_charge_remote)
 			{
-				emission_prob = 0;
 				hmm_.setTrainingEmissionProbability("AA"+pos_name, sum_a_ints + sum_b_ints + sum_y_ints);
 
 				// now enable the states
@@ -574,179 +571,177 @@ namespace OpenMS
 				hmm_.enableTransition(aa1+aa2+"_bxyz" + pos_name, "bxyz"+pos_name);
 				hmm_.enableTransition(aa1+aa2+"_bxyz" + pos_name, "end"+pos_name);
 			
+				double pre_emission_prob(0), suf_emission_prob(0);
 				for (UInt z = 1; z <= max_fragment_charge_training && z <= charge; ++z)
 				{
-					emission_prob += b_ints[z - 1] * sum_b[z];
-				 	emission_prob += y_ints[z - 1] * sum_y[z];
+					pre_emission_prob += b_ints[z - 1] * sum_b[z];
+				 	suf_emission_prob += y_ints[z - 1] * sum_y[z];
 				}
-				hmm_.setTransitionProbability("bxyz" + pos_name, "bxyz_" + pos_name + "-ions", 1.0);
-				hmm_.setTrainingEmissionProbability("bxyz_" + pos_name + "-ions", emission_prob);
+				hmm_.setTransitionProbability("bxyz" + pos_name, "bxyz_" + pos_name + "-prefix", 1.0);
+				hmm_.setTransitionProbability("bxyz" + pos_name, "bxyz_" + pos_name + "-suffix", 1.0);
+				hmm_.enableTransition("bxyz_" + pos_name + "-prefix", "bxyz_" + pos_name + "-prefix-ions");
+				hmm_.enableTransition("bxyz_" + pos_name + "-prefix", "end" + pos_name);
+				hmm_.enableTransition("bxyz_" + pos_name + "-suffix", "bxyz_" + pos_name + "-suffix-ions");
+				hmm_.enableTransition("bxyz_" + pos_name + "-suffix", "end" + pos_name);
+
+				hmm_.setTrainingEmissionProbability("bxyz_" + pos_name + "-prefix-ions", pre_emission_prob);
+				hmm_.setTrainingEmissionProbability("bxyz_" + pos_name + "-suffix-ions", suf_emission_prob);
 
 				// axyz path
 				hmm_.enableTransition(aa1+aa2+"_axyz"+pos_name, "axyz"+pos_name);
 				hmm_.enableTransition(aa1+aa2+"_axyz"+pos_name, "end"+pos_name);
 			
-				emission_prob = 0;
+				pre_emission_prob = 0;
+				suf_emission_prob = 0;
 				for (UInt z = 1; z <= max_fragment_charge_training && z <= charge; ++z)
 				{
-					emission_prob += a_ints[z - 1] * sum_a[z];
-					//emission_prob += ay_ints[z] * sum_y[z]; // TODO test if this can be done, or ruins the a-ion intensities
+					pre_emission_prob += a_ints[z - 1] * sum_a[z];
+					//suf_emission_prob += ay_ints[z] * sum_y[z]; // TODO test if this can be done, or ruins the a-ion intensities
 				}
-				hmm_.setTransitionProbability("axyz" + pos_name, "axyz_" + pos_name + "-ions", 1.0);
-				hmm_.setTrainingEmissionProbability("axyz_" + pos_name + "-ions", emission_prob);
+				hmm_.setTransitionProbability("axyz" + pos_name, "axyz_" + pos_name + "-prefix", 1.0);
+				hmm_.enableTransition("axyz_" + pos_name + "-prefix", "axyz_" + pos_name + "-prefix-ions");
+				hmm_.enableTransition("axyz_" + pos_name + "-prefix", "end" + pos_name);
+				hmm_.setTrainingEmissionProbability("axyz_" + pos_name + "-prefix-ions", pre_emission_prob);
+
 			}
 			
-			if (aa1 == "D" && is_charge_remote)
+			const String cr_aa("DE");
+			for (String::ConstIterator it = cr_aa.begin(); it != cr_aa.end(); ++it)
 			{
-				emission_prob = 0;
-				hmm_.enableTransition("CR"+pos_name, "A"+pos_name);
-				hmm_.enableTransition("CR"+pos_name, "end"+pos_name);
-
-				for (UInt z = 1; z <= max_fragment_charge_training && z <= charge; ++z)
+				if (is_charge_remote && aa1 == String(*it))
 				{
-					emission_prob += b_cr_ints[z - 1] * sum_b[z];
-					emission_prob += y_cr_ints[z - 1] * sum_y[z];
+					hmm_.enableTransition("CR"+pos_name, "A"+pos_name);
+					hmm_.enableTransition("CR"+pos_name, "end"+pos_name);
+
+					double pre_emission_prob(0), suf_emission_prob(0);
+					for (UInt z = 1; z <= max_fragment_charge_training && z <= charge; ++z)
+					{
+						pre_emission_prob += b_cr_ints[z - 1] * sum_b[z];
+						suf_emission_prob += y_cr_ints[z - 1] * sum_y[z];
+					}
+
+					hmm_.setTrainingEmissionProbability("A"+pos_name, pre_emission_prob +  suf_emission_prob);
+
+					hmm_.setTransitionProbability(String(*it) + pos_name, String(*it) + "_" + pos_name + "-prefix", 1.0);
+					hmm_.enableTransition(String(*it) + "_" + pos_name + "-prefix", String(*it) + "_" + pos_name + "-prefix-ions");
+					hmm_.enableTransition(String(*it) + "_" + pos_name + "-prefix", "end" + pos_name);
+					hmm_.setTrainingEmissionProbability(String(*it) + "_" + pos_name + "-prefix-ions", pre_emission_prob);
+
+					hmm_.setTransitionProbability(String(*it) + pos_name, String(*it) + "_" + pos_name + "-suffix", 1.0);
+					hmm_.enableTransition(String(*it) + "_" + pos_name + "-suffix", String(*it) + "_" + pos_name + "-suffix-ions");
+					hmm_.enableTransition(String(*it) + "_" + pos_name + "-suffix", "end" + pos_name);
+					hmm_.setTrainingEmissionProbability(String(*it) + "_" + pos_name + "-suffix-ions", suf_emission_prob);
+
+					hmm_.setInitialTransitionProbability(aa2+"_" + String(*it) + pos_name, cr_init[i]);
+					hmm_.enableTransition(aa2+"_" + String(*it) + pos_name, String(*it) + pos_name);
+					hmm_.enableTransition(aa2+"_" + String(*it) + pos_name, "end" + pos_name);
 				}
-
-				hmm_.setTrainingEmissionProbability("A"+pos_name, emission_prob);
-				hmm_.setTransitionProbability("D" + pos_name, "D_" + pos_name + "-ions", 1.0);
-				hmm_.setTrainingEmissionProbability("D_" + pos_name + "-ions", emission_prob);
-
-				hmm_.setInitialTransitionProbability(aa2+"_D"+pos_name, cr_init[i]);
-				hmm_.enableTransition(aa2+"_D"+pos_name, "D"+pos_name);
-				hmm_.enableTransition(aa2+"_D"+pos_name, "end"+pos_name);
 			}
 
-			// TODO test !has R rule
-			if (aa1 != "D" && aa1 != "E" && !peptide.has("R") && is_charge_remote)
+			if (is_charge_remote && !peptide.has("D") && !peptide.has("E"))
 			{
 
-				if (pos_name == "k-1"/* && is_charge_remote*/)
+				if (pos_name == "k-1")
 				{
-				emission_prob = 0;
-				hmm_.enableTransition("CRk-1", "Ak-1");
-				hmm_.enableTransition("CRk-1", "endk-1");
+					hmm_.enableTransition("CRk-1", "Ak-1");
+					hmm_.enableTransition("CRk-1", "endk-1");
 
-				for (UInt z = 1; z <= max_fragment_charge_training && z <= charge; ++z)
-				{
-					emission_prob += b_cr_ints[z - 1] * sum_b[z];
-					emission_prob += y_cr_ints[z - 1] * sum_y[z];
+					double pre_emission_prob(0), suf_emission_prob(0);
+					for (UInt z = 1; z <= max_fragment_charge_training && z <= charge; ++z)
+					{
+						pre_emission_prob += b_cr_ints[z - 1] * sum_b[z];
+						suf_emission_prob += y_cr_ints[z - 1] * sum_y[z];
+					}
+
+					hmm_.setTrainingEmissionProbability("Ak-1", pre_emission_prob + suf_emission_prob);
+
+
+					hmm_.setTransitionProbability("bk-1", "bk-1_-prefix", 1.0);
+					hmm_.enableTransition("bk-1_-prefix", "bk-1_-prefix-ions");
+					hmm_.enableTransition("bk-1_-prefix", "endk-1");
+					hmm_.setTrainingEmissionProbability("bk-1_-prefix-ions", pre_emission_prob);
+
+					hmm_.setTransitionProbability("bk-1", "bk-1_-suffix", 1.0);
+          hmm_.enableTransition("bk-1_-suffix", "bk-1_-suffix-ions");
+          hmm_.enableTransition("bk-1_-suffix", "endk-1");
+          hmm_.setTrainingEmissionProbability("bk-1_-suffix-ions", suf_emission_prob);
+
+					hmm_.setTransitionProbability("bk-1", "bk-1_-ions", 1.0);
+
+					hmm_.setInitialTransitionProbability(aa1+"_bk-1", cr_init[i]);
+					hmm_.enableTransition(aa1+"_bk-1", "bk-1");
+					hmm_.enableTransition(aa1+"_bk-1", "endk-1");
 				}
 
-				hmm_.setTrainingEmissionProbability("Ak-1", emission_prob);
-				hmm_.setTransitionProbability("bk-1", "bk-1_-ions", 1.0);
-				hmm_.setTrainingEmissionProbability("bk-1_-ions", emission_prob);
-
-				hmm_.setInitialTransitionProbability(aa1+"_bk-1", cr_init[i]);
-				hmm_.enableTransition(aa1+"_bk-1", "bk-1");
-				hmm_.enableTransition(aa1+"_bk-1", "endk-1");
-			}
-
-			if (pos_name == "k-2"/* && is_charge_remote*/)
-			{
-				emission_prob = 0;
-				hmm_.enableTransition("CRk-2", "Ak-2");
-				hmm_.enableTransition("CRk-2", "endk-2");
-				
-				for (UInt z = 1; z <= max_fragment_charge_training && z <= charge; ++z)
+				if (pos_name == "k-2")
 				{
-					emission_prob += b_cr_ints[z - 1] * sum_b[z];
-					emission_prob += y_cr_ints[z - 1] * sum_y[z];
+					hmm_.enableTransition("CRk-2", "Ak-2");
+          hmm_.enableTransition("CRk-2", "endk-2");
+
+          double pre_emission_prob(0), suf_emission_prob(0);
+          for (UInt z = 1; z <= max_fragment_charge_training && z <= charge; ++z)
+          {
+            pre_emission_prob += b_cr_ints[z - 1] * sum_b[z];
+            suf_emission_prob += y_cr_ints[z - 1] * sum_y[z];
+          }
+
+          hmm_.setTrainingEmissionProbability("Ak-2", pre_emission_prob + suf_emission_prob);
+
+
+          hmm_.setTransitionProbability("bk-2", "bk-2_-prefix", 1.0);
+          hmm_.enableTransition("bk-2_-prefix", "bk-2_-prefix-ions");
+          hmm_.enableTransition("bk-2_-prefix", "endk-2");
+          hmm_.setTrainingEmissionProbability("bk-2_-prefix-ions", pre_emission_prob);
+
+          hmm_.setTransitionProbability("bk-2", "bk-2_-suffix", 1.0);
+          hmm_.enableTransition("bk-2_-suffix", "bk-2_-suffix-ions");
+          hmm_.enableTransition("bk-2_-suffix", "endk-2");
+          hmm_.setTrainingEmissionProbability("bk-2_-suffix-ions", suf_emission_prob);
+
+          hmm_.setTransitionProbability("bk-2", "bk-2_-ions", 1.0);
+
+          hmm_.setInitialTransitionProbability(aa1+"_bk-2", cr_init[i]);
+          hmm_.enableTransition(aa1+"_bk-2", "bk-2");
+          hmm_.enableTransition(aa1+"_bk-2", "endk-2");
 				}
-
-				hmm_.setTrainingEmissionProbability("Ak-2", emission_prob);
-				hmm_.setTransitionProbability("bk-2", "bk-2_-ions", 1.0);
-				hmm_.setTrainingEmissionProbability("bk-2_-ions", emission_prob);
-
-				hmm_.setInitialTransitionProbability(aa1+"_bk-2", cr_init[i]);
-				hmm_.enableTransition(aa1+"_bk-2", "bk-2");
-        hmm_.enableTransition(aa1+"_bk-2", "endk-2");
-			}
 			}
 			
-			if (aa1 == "E" && is_charge_remote)
-      { 
-				emission_prob = 0;
-        hmm_.enableTransition("CR"+pos_name, "A"+pos_name);
-				hmm_.enableTransition("CR"+pos_name, "end"+pos_name);
-
-				for (UInt z = 1; z <= max_fragment_charge_training && z <= charge; ++z)
-				{
-					emission_prob += b_cr_ints[z - 1] * sum_b[z];
-					emission_prob += y_cr_ints[z - 1] * sum_y[z];
-				}
-
-				hmm_.setTrainingEmissionProbability("A"+pos_name, emission_prob);
-				hmm_.setTransitionProbability("E" + pos_name, "E_" + pos_name + "-ions", 1.0);
-				hmm_.setTrainingEmissionProbability("E_" + pos_name + "-ions", emission_prob);
-
-				hmm_.setInitialTransitionProbability(aa2+"_E"+pos_name, cr_init[i]);
-        hmm_.enableTransition(aa2+"_E"+pos_name, "E"+pos_name);
-				hmm_.enableTransition(aa2+"_E"+pos_name, "end"+pos_name);
-      }
-
-			if (aa1 == "K" && is_charge_remote)
+			const String sc_aa("KRH");
+			for (String::ConstIterator it = sc_aa.begin(); it != sc_aa.end(); ++it)
 			{
-				emission_prob = 0;
-				hmm_.enableTransition("SC"+pos_name, "ASC"+pos_name);
-				hmm_.enableTransition("SC"+pos_name, "end"+pos_name);
-
-				for (UInt z = 1; z <= max_fragment_charge_training && z <= charge; ++z)
+				if (is_charge_remote && aa1 == String(*it))
 				{
-					emission_prob += b_sc_ints[z - 1] * sum_b[z];
-					emission_prob += y_sc_ints[z - 1] * sum_y[z];
+
+					hmm_.enableTransition("SC"+pos_name, "ASC"+pos_name);
+					hmm_.enableTransition("SC"+pos_name, "end"+pos_name);
+				
+					double pre_emission_prob(0), suf_emission_prob(0);
+					for (UInt z = 1; z <= max_fragment_charge_training && z <= charge; ++z)
+					{
+						pre_emission_prob += b_sc_ints[z - 1] * sum_b[z];
+						suf_emission_prob += y_sc_ints[z - 1] * sum_y[z];
+					}
+
+					hmm_.setTrainingEmissionProbability("ASC"+pos_name, pre_emission_prob + suf_emission_prob);
+
+					hmm_.setTransitionProbability(String(*it) + pos_name, String(*it) + "_" + pos_name + "-prefix", 1.0);
+					hmm_.setTransitionProbability(String(*it) + pos_name, String(*it) + "_" + pos_name + "-suffix", 1.0);
+					
+					hmm_.enableTransition(String(*it) + "_" + pos_name + "-prefix", String(*it) + "_" + pos_name + "-prefix-ions");
+					hmm_.enableTransition(String(*it) + "_" + pos_name + "-prefix", "end" + pos_name);
+					hmm_.enableTransition(String(*it) + "_" + pos_name + "-suffix", String(*it) + "_" + pos_name + "-suffix-ions");
+					hmm_.enableTransition(String(*it) + "_" + pos_name + "-suffix", "end" + pos_name);
+
+					hmm_.setTrainingEmissionProbability(String(*it) + "_" + pos_name + "-prefix-ions", pre_emission_prob);
+					hmm_.setTrainingEmissionProbability(String(*it) + "_" + pos_name + "-suffix-ions", suf_emission_prob);
+
+
+					hmm_.setInitialTransitionProbability(aa2 + "_" + String(*it) + pos_name, sc_init[i]);
+        	hmm_.enableTransition(aa2+"_" + String(*it) + pos_name, String(*it) + pos_name);
+					hmm_.enableTransition(aa2+"_" + String(*it) + pos_name, "end"+pos_name);
+
 				}
-
-				hmm_.setTrainingEmissionProbability("ASC"+pos_name, emission_prob);
-				hmm_.setTransitionProbability("K" + pos_name, "K_" + pos_name + "-ions", 1.0);
-				hmm_.setTrainingEmissionProbability("K_" + pos_name + "-ions", emission_prob);
-
-				hmm_.setInitialTransitionProbability(aa2+"_K"+pos_name, sc_init[i]);
-        hmm_.enableTransition(aa2+"_K"+pos_name, "K"+pos_name);
-				hmm_.enableTransition(aa2+"_K"+pos_name, "end"+pos_name);
 			}
-
-			if (aa1 == "H" && is_charge_remote)
-      {
-				emission_prob = 0;
-        hmm_.enableTransition("SC"+pos_name, "ASC"+pos_name);
-				hmm_.enableTransition("SC"+pos_name, "end"+pos_name);
-
-				for (UInt z = 1; z <= max_fragment_charge_training && z <= charge; ++z)
-				{
-					emission_prob += b_sc_ints[z - 1] * sum_b[z];
-					emission_prob += y_sc_ints[z - 1] * sum_y[z];
-				}
-				
-				hmm_.setTrainingEmissionProbability("ASC"+pos_name, emission_prob);
-				hmm_.setTransitionProbability("H" + pos_name, "H_" + pos_name + "-ions", 1.0);
-				hmm_.setTrainingEmissionProbability("H_" + pos_name + "-ions", emission_prob);
-
-				hmm_.setInitialTransitionProbability(aa2+"_H"+pos_name, sc_init[i]);
-        hmm_.enableTransition(aa2+"_H"+pos_name, "H"+pos_name);
-				hmm_.enableTransition(aa2+"_H"+pos_name, "end"+pos_name);
-      }
-
-      if (aa1 == "R" && is_charge_remote)
-      { 
-				emission_prob = 0;
-        hmm_.enableTransition("SC"+pos_name, "ASC"+pos_name);
-				hmm_.enableTransition("SC"+pos_name, "end"+pos_name);
-
-				for (UInt z = 1; z <= max_fragment_charge_training && z <= charge; ++z)
-				{
-					emission_prob += b_sc_ints[z - 1] * sum_b[z];
-					emission_prob += y_sc_ints[z - 1] * sum_y[z];
-				}
-				
-				hmm_.setTrainingEmissionProbability("ASC"+pos_name, emission_prob);
-				hmm_.setTransitionProbability("R" + pos_name, "R_" + pos_name + "-ions", 1.0);
-        hmm_.setTrainingEmissionProbability("R_" + pos_name + "-ions", emission_prob);
-
-				hmm_.setInitialTransitionProbability(aa2+"_R"+pos_name, sc_init[i]);
-        hmm_.enableTransition(aa2+"_R"+pos_name, "R"+pos_name);
-				hmm_.enableTransition(aa2+"_R"+pos_name, "end"+pos_name);
-      } 
 		}
 	
 		if (is_charge_remote)
@@ -903,91 +898,108 @@ namespace OpenMS
       hmm_.enableTransition(aa1+aa2+"_bxyz"+pos_name, "bxyz"+pos_name);
 			hmm_.enableTransition(aa1+aa2+"_bxyz"+pos_name, "end"+pos_name);
 
-			hmm_.setTransitionProbability("bxyz" + pos_name, "bxyz_" + pos_name + "-ions", 1.0);
+			hmm_.setTransitionProbability("bxyz" + pos_name, "bxyz_" + pos_name + "-prefix", 1.0);
+			hmm_.setTransitionProbability("bxyz" + pos_name, "bxyz_" + pos_name + "-suffix", 1.0);
+
+			hmm_.enableTransition("bxyz_" + pos_name + "-prefix", "bxyz_" + pos_name + "-prefix-ions");
+			hmm_.enableTransition("bxyz_" + pos_name + "-prefix", "end" + pos_name);
+			hmm_.enableTransition("bxyz_" + pos_name + "-suffix", "bxyz_" + pos_name + "-suffix-ions");
+			hmm_.enableTransition("bxyz_" + pos_name + "-suffix", "end" + pos_name);
+
 
 			// axyz
 			hmm_.enableTransition("AA"+pos_name, aa1+aa2+"_axyz"+pos_name);
 			hmm_.enableTransition(aa1+aa2+"_axyz"+pos_name, "axyz"+pos_name);
 			hmm_.enableTransition(aa1+aa2+"_axyz"+pos_name, "end"+pos_name);
-			hmm_.setTransitionProbability("axyz" + pos_name, "axyz_" + pos_name + "-ions", 1.0);
+			hmm_.setTransitionProbability("axyz" + pos_name, "axyz_" + pos_name + "-prefix", 1.0);
+			hmm_.enableTransition("axyz_" + pos_name + "-prefix", "axyz_" + pos_name + "-prefix-ions");
+			hmm_.enableTransition("axyz_" + pos_name + "-prefix", "end" + pos_name);
 
-      if (aa1 == "D" && is_charge_remote)
-      {
-				hmm_.setTransitionProbability("D" + pos_name, "D_" + pos_name + "-ions", 1.0);
-				hmm_.enableTransition("CR"+pos_name, "A"+pos_name);
-				hmm_.enableTransition("CR"+pos_name, "end"+pos_name);
-				hmm_.enableTransition("A"+pos_name, aa2+"_D"+pos_name);
-        hmm_.enableTransition(aa2+"_D"+pos_name, "D"+pos_name);
-				hmm_.enableTransition(aa2+"_D"+pos_name, "end"+pos_name);
-			}
-
-			if (aa1 != "D" && aa1 != "E" && !peptide.has("R") && is_charge_remote)
+			const String cr_aa("DE");
+			for (String::ConstIterator it = cr_aa.begin(); it != cr_aa.end(); ++it)
 			{
-      if (pos_name == "k-1"/* && is_charge_remote && aa1 != "D" && aa1 != "E" && !peptide.has("R")*/)
-      {
-				hmm_.setTransitionProbability("bk-1", "bk-1_-ions", 1.0);
+      	if (is_charge_remote && aa1 == String(*it))
+				{      	
+					hmm_.setTransitionProbability(String(*it) + pos_name, String(*it) + "_" + pos_name + "-prefix", 1.0);
+					hmm_.setTransitionProbability(String(*it) + pos_name, String(*it) + "_" + pos_name + "-suffix", 1.0);
 
-				hmm_.enableTransition("CRk-1", "Ak-1");
-        hmm_.enableTransition("CRk-1", "endk-1");
-				hmm_.enableTransition("Ak-1", aa1+"_bk-1");
+					hmm_.enableTransition(String(*it) + "_" + pos_name + "-prefix", String(*it) + "_" + pos_name + "-prefix-ions");
+					hmm_.enableTransition(String(*it) + "_" + pos_name + "-prefix", "end" + pos_name);
+					hmm_.enableTransition(String(*it) + "_" + pos_name + "-suffix", String(*it) + "_" + pos_name + "-suffix-ions");
+					hmm_.enableTransition(String(*it) + "_" + pos_name + "-suffix", "end" + pos_name);
 
-				hmm_.enableTransition(aa1 + "_bk-1", "bk-1");
-        hmm_.enableTransition(aa1 + "_bk-1", "end"+pos_name);
-      }
+					hmm_.enableTransition("CR"+pos_name, "A"+pos_name);
+					hmm_.enableTransition("CR"+pos_name, "end"+pos_name);
+					hmm_.enableTransition("A"+pos_name, aa2+"_D"+pos_name);
+        	hmm_.enableTransition(aa2+"_D"+pos_name, "D"+pos_name);
+					hmm_.enableTransition(aa2+"_D"+pos_name, "end"+pos_name);
+				}
+			}
 
-			if (pos_name == "k-2"/* && is_charge_remote && aa1 != "D" && aa1 != "E" && !peptide.has("R")*/)
+			if (!peptide.has("D") && !peptide.has("E") && is_charge_remote)
 			{
-				hmm_.setTransitionProbability("bk-2", "bk-2_-ions", 1.0);
+      	if (pos_name == "k-1")
+      	{
+					hmm_.setTransitionProbability("bk-1", "bk-1_-prefix", 1.0);
+					hmm_.setTransitionProbability("bk-1", "bk-1_-suffix", 1.0);
 
-				hmm_.enableTransition("CRk-2", "Ak-2");
-				hmm_.enableTransition("CRk-2", "endk-2");
-				hmm_.enableTransition("Ak-2", aa1+"_bk-2");
+					hmm_.enableTransition("bk-1_-prefix", "bk-1_-prefix-ions");
+					hmm_.enableTransition("bk-1_-prefix", "endk-1" );
+					hmm_.enableTransition("bk-1_-suffix", "bk-1_-suffix-ions");
+					hmm_.enableTransition("bk-1_-suffix", "endk-1");
 
-				hmm_.enableTransition(aa1 + "_bk-2", "bk-2");
-				hmm_.enableTransition(aa1 + "_bk-2", "end"+pos_name);
+					hmm_.enableTransition("CRk-1", "Ak-1");
+        	hmm_.enableTransition("CRk-1", "endk-1");
+					hmm_.enableTransition("Ak-1", aa1+"_bk-1");
+
+					hmm_.enableTransition(aa1 + "_bk-1", "bk-1");
+        	hmm_.enableTransition(aa1 + "_bk-1", "endk-1");
+      	}
+
+				if (pos_name == "k-2")
+				{
+          hmm_.setTransitionProbability("bk-2", "bk-2_-prefix", 1.0);
+          hmm_.setTransitionProbability("bk-2", "bk-2_-suffix", 1.0);
+
+          hmm_.enableTransition("bk-2_-prefix", "bk-2_-prefix-ions");
+          hmm_.enableTransition("bk-2_-prefix", "endk-2" );
+          hmm_.enableTransition("bk-2_-suffix", "bk-2_-suffix-ions");
+          hmm_.enableTransition("bk-2_-suffix", "endk-2");
+
+          hmm_.enableTransition("CRk-2", "Ak-2");
+          hmm_.enableTransition("CRk-2", "endk-2");
+          hmm_.enableTransition("Ak-2", aa1+"_bk-2");
+
+          hmm_.enableTransition(aa1 + "_bk-2", "bk-2");
+          hmm_.enableTransition(aa1 + "_bk-2", "endk-2");
+				}
 			}
+
+			const String sc_aa("HKR");
+			for (String::ConstIterator it = sc_aa.begin(); it != sc_aa.end(); ++it)
+			{
+				if (is_charge_remote && aa1 == String(*it))
+				{
+					hmm_.setTransitionProbability(String(*it) + pos_name, String(*it) + "_" + pos_name + "-prefix", 1.0);
+          hmm_.setTransitionProbability(String(*it) + pos_name, String(*it) + "_" + pos_name + "-suffix", 1.0);
+
+          hmm_.enableTransition(String(*it) + "_" + pos_name + "-prefix", String(*it) + "_" + pos_name + "-prefix-ions");
+          hmm_.enableTransition(String(*it) + "_" + pos_name + "-prefix", "end" + pos_name);
+          hmm_.enableTransition(String(*it) + "_" + pos_name + "-suffix", String(*it) + "_" + pos_name + "-suffix-ions");
+          hmm_.enableTransition(String(*it) + "_" + pos_name + "-suffix", "end" + pos_name);
+
+
+
+        	hmm_.enableTransition("SC"+pos_name, "ASC"+pos_name);
+					hmm_.enableTransition("SC"+pos_name, "end"+pos_name);
+        	hmm_.enableTransition("ASC"+pos_name, aa2+"_" + String(*it) + pos_name);
+        	hmm_.enableTransition(aa2+"_" + String(*it) + pos_name, String(*it) + pos_name);
+					hmm_.enableTransition(aa2+"_" + String(*it) + pos_name, "end"+pos_name);
+				}
 			}
-
-			if (aa1 == "E" && is_charge_remote)
-      {
-				hmm_.setTransitionProbability("E" + pos_name, "E_" + pos_name + "-ions", 1.0);
-        hmm_.enableTransition("CR"+pos_name, "A"+pos_name);
-				hmm_.enableTransition("CR"+pos_name, "end"+pos_name);
-        hmm_.enableTransition("A"+pos_name, aa2+"_E"+pos_name);
-        hmm_.enableTransition(aa2+"_E"+pos_name, "E"+pos_name);
-				hmm_.enableTransition(aa2+"_E"+pos_name, "end"+pos_name);
-      }
-
-			if (aa1 == "K" && is_charge_remote)
-      {
-        hmm_.enableTransition("SC"+pos_name, "ASC"+pos_name);
-				hmm_.enableTransition("SC"+pos_name, "end"+pos_name);
-				hmm_.setTransitionProbability("K" + pos_name, "K_" + pos_name + "-ions", 1.0);
-        hmm_.enableTransition("ASC"+pos_name, aa2+"_K"+pos_name);
-        hmm_.enableTransition(aa2+"_K"+pos_name, "K"+pos_name);
-				hmm_.enableTransition(aa2+"_K"+pos_name, "end"+pos_name);
-			}
-				
-			if (aa1 == "H" && is_charge_remote)
-      {
-        hmm_.enableTransition("SC"+pos_name, "ASC"+pos_name);
-				hmm_.enableTransition("SC"+pos_name, "end"+pos_name);
-				hmm_.setTransitionProbability("H" + pos_name, "H_" + pos_name + "-ions", 1.0);
-        hmm_.enableTransition("ASC"+pos_name, aa2+"_H"+pos_name);
-        hmm_.enableTransition(aa2+"_H"+pos_name, "H"+pos_name);
-				hmm_.enableTransition(aa2+"_H"+pos_name, "end"+pos_name);
-      }
-
-      if (aa1 == "R" && is_charge_remote)
-      {
-        hmm_.enableTransition("SC"+pos_name, "ASC"+pos_name);
-				hmm_.enableTransition("SC"+pos_name, "end"+pos_name);
-				hmm_.setTransitionProbability("R" + pos_name, "R_" + pos_name + "-ions", 1.0);
-        hmm_.enableTransition("ASC"+pos_name, aa2+"_R"+pos_name);
-        hmm_.enableTransition(aa2+"_R"+pos_name, "R"+pos_name);
-				hmm_.enableTransition(aa2+"_R"+pos_name, "end"+pos_name);
-      }
 		}
+
+		//cerr << "Collecting peaks..." << endl;
 
     Map<HMMState*, double> tmp;
 		hmm_.calculateEmissionProbabilities(tmp);
@@ -999,21 +1011,29 @@ namespace OpenMS
 		//peptide_ss << peptide;
 		//hmm_.writeGraphMLFile(String("model_graph_train_"+peptide_ss.str()+"_"+String(charge)+".graphml").c_str());
 
-
 		UInt max_isotope = (UInt)param_.getValue("max_isotope");
 		UInt max_fragment_charge = (UInt)param_.getValue("max_fragment_charge");
 		double charge_remote_threshold = (double)param_.getValue("charge_remote_threshold");
 		for (Size i = 0; i != prefixes.size(); ++i)
 		{
-			vector<double> path_intensities;
-			path_intensities.push_back(tmp[hmm_.getState("bxyz_" + pos_names[i] + "-ions")]);
-      path_intensities.push_back(tmp[hmm_.getState("H_" + pos_names[i] + "-ions")]);
+			String aa;
+			AASequence aa_seq;
+			aa_seq += peptide[i].getOneLetterCode();
+			aa = aa_seq.toString();
 
-      path_intensities.push_back(tmp[hmm_.getState("K_" + pos_names[i] + "-ions")]);
-      path_intensities.push_back(tmp[hmm_.getState("R_" + pos_names[i] + "-ions")]);
-      path_intensities.push_back(tmp[hmm_.getState("D_" + pos_names[i] + "-ions")]);
-      path_intensities.push_back(tmp[hmm_.getState("E_" + pos_names[i] + "-ions")]);
-			
+			vector<double> pre_path_intensities, suf_path_intensities;
+			pre_path_intensities.push_back(tmp[hmm_.getState("bxyz_" + pos_names[i] + "-prefix-ions")]);
+			suf_path_intensities.push_back(tmp[hmm_.getState("bxyz_" + pos_names[i] + "-suffix-ions")]);
+
+			const String cr_and_sc("DEHKR");
+			for (String::ConstIterator it = cr_and_sc.begin(); it != cr_and_sc.end(); ++it)
+			{
+				if (aa == String(*it))
+				{
+					pre_path_intensities.push_back(tmp[hmm_.getState(String(*it) + "_" + pos_names[i] + "-prefix-ions")]);
+					suf_path_intensities.push_back(tmp[hmm_.getState(String(*it) + "_" + pos_names[i] + "-suffix-ions")]);
+				}
+			}
 		
 			#ifdef INIT_CHARGE_DEBUG
       cerr << prefixes[i] << " - " << suffixes[i] << ": bxyz=" << path_intensities[0] <<
@@ -1024,7 +1044,7 @@ namespace OpenMS
                                                      ", E=" << path_intensities[5];
 			#endif
 
-			
+			/*
 			if (i == peptide.size() - 2)
 			{
 				path_intensities.push_back(tmp[hmm_.getState("bk-1_-ions")]);
@@ -1038,41 +1058,48 @@ namespace OpenMS
 				#ifdef INIT_CHARGE_DEBUG
 				cerr << ", bk-2=" << path_intensities.back();
 				#endif
-			}
-			path_intensities.push_back(tmp[hmm_.getState("axyz_" + pos_names[i] + "-ions")]);
+			}*/
+
+			pre_path_intensities.push_back(tmp[hmm_.getState("axyz_" + pos_names[i] + "-prefix-ions")]);
+			suf_path_intensities.push_back(tmp[hmm_.getState("axyz_" + pos_names[i] + "-suffix-ions")]);
+
 			#ifdef INIT_CHARGE_DEBUG
 			cerr << ", axzy=" << path_intensities.back() << endl;
 			#endif
 	
 			vector<vector<vector<double> > > prefix_intensities, suffix_intensities;
 			prefix_intensities.push_back(all_b_ints);
-			prefix_intensities.push_back(all_b_sc_ints);
-			prefix_intensities.push_back(all_b_sc_ints);
-			prefix_intensities.push_back(all_b_sc_ints);
-			prefix_intensities.push_back(all_b_cr_ints);
-			prefix_intensities.push_back(all_b_cr_ints);
+			suffix_intensities.push_back(all_y_ints);
+			const String sc_aa("HKR");
+			if (sc_aa.hasSubstring(aa))
+			{
+				prefix_intensities.push_back(all_b_sc_ints);
+				suffix_intensities.push_back(all_y_sc_ints);
+			}
+			const String cr_aa("DE");
+			if (cr_aa.hasSubstring(aa))
+			{
+				prefix_intensities.push_back(all_b_cr_ints);
+				suffix_intensities.push_back(all_y_cr_ints);	
+			}
+			prefix_intensities.push_back(all_a_ints);
+			suffix_intensities.push_back(all_ay_ints);
+/*
 			if (i == peptide.size() - 2 || i == peptide.size() - 3)
 			{
 				prefix_intensities.push_back(all_b_cr_ints);
 			}
-			prefix_intensities.push_back(all_a_ints);
-
-      suffix_intensities.push_back(all_y_ints);
-      suffix_intensities.push_back(all_y_sc_ints);
-      suffix_intensities.push_back(all_y_sc_ints);
-      suffix_intensities.push_back(all_y_sc_ints);
-      suffix_intensities.push_back(all_y_cr_ints);
-      suffix_intensities.push_back(all_y_cr_ints);
+*/
+/*
 			if (i == peptide.size() - 2 || i == peptide.size() - 3)
 			{
 				suffix_intensities.push_back(all_y_cr_ints);
 			}
-			suffix_intensities.push_back(all_ay_ints);
-		
+*/
 
-			for (Size int_it = 0; int_it != path_intensities.size(); ++int_it)
+			for (Size int_it = 0; int_it != pre_path_intensities.size(); ++int_it)
 			{
-				if (path_intensities[int_it] < MIN_DECIMAL_VALUE)
+				if (pre_path_intensities[int_it] < MIN_DECIMAL_VALUE && suf_path_intensities[int_it] < MIN_DECIMAL_VALUE)
 				{
 					continue;
 				}
@@ -1080,7 +1107,7 @@ namespace OpenMS
 				double suffix_weight = suffixes[i].getMonoWeight(Residue::YIon);
 				IsotopeDistribution prefix_id;
 				
-				if (int_it != path_intensities.size() - 1)
+				if (int_it != pre_path_intensities.size() - 1)
 				{
 					prefix_id = prefixes[i].getFormula(Residue::BIon).getIsotopeDistribution(max_isotope);
 				}
@@ -1092,34 +1119,34 @@ namespace OpenMS
 
 				for (UInt z = 1; z <= charge && z <= max_fragment_charge; ++z)
 				{
-					if (prefix_intensities[int_it][i][z - 1] != 0)
+					if (prefix_intensities[int_it][i][z - 1] > MIN_DECIMAL_VALUE)
 					{
 						vector<RichPeak1D> b_loss_peaks;
 						double avail_bb_sum_prefix(0);
 						
-						if (int_it != path_intensities.size() - 1)
+						if (int_it != pre_path_intensities.size() - 1)
 						{
 							avail_bb_sum_prefix = getAvailableBackboneCharge_(prefixes[i], Residue::BIon, z);
 							if (avail_bb_sum_prefix <= charge_remote_threshold)
             	{
 								if (i == 1) // second BB position
 								{
-									b2_ion_losses_cr_.getIons(b_loss_peaks, prefixes[i], prefix_intensities[int_it][i][z - 1] * path_intensities[int_it]);
+									b2_ion_losses_cr_.getIons(b_loss_peaks, prefixes[i], prefix_intensities[int_it][i][z - 1] * pre_path_intensities[int_it]);
 								}
 								else
 								{
-              		b_ion_losses_cr_.getIons(b_loss_peaks, prefixes[i], prefix_intensities[int_it][i][z - 1] * path_intensities[int_it]);
+              		b_ion_losses_cr_.getIons(b_loss_peaks, prefixes[i], prefix_intensities[int_it][i][z - 1] * pre_path_intensities[int_it]);
 								}
             	}
             	else
             	{
 								if (i == 1)
 								{
-									b2_ion_losses_cd_.getIons(b_loss_peaks, prefixes[i], prefix_intensities[int_it][i][z - 1] * path_intensities[int_it]);
+									b2_ion_losses_cd_.getIons(b_loss_peaks, prefixes[i], prefix_intensities[int_it][i][z - 1] * pre_path_intensities[int_it]);
 								}
               	else
 								{
-									b_ion_losses_cd_.getIons(b_loss_peaks, prefixes[i], prefix_intensities[int_it][i][z - 1] * path_intensities[int_it]);
+									b_ion_losses_cd_.getIons(b_loss_peaks, prefixes[i], prefix_intensities[int_it][i][z - 1] * pre_path_intensities[int_it]);
 								}
             	}
 						}
@@ -1128,18 +1155,20 @@ namespace OpenMS
 							avail_bb_sum_prefix = getAvailableBackboneCharge_(prefixes[i], Residue::AIon, z);
 							if (avail_bb_sum_prefix <= charge_remote_threshold)
               {
-                a_ion_losses_cr_.getIons(b_loss_peaks, prefixes[i], prefix_intensities[int_it][i][z - 1] * path_intensities[int_it]);
+                a_ion_losses_cr_.getIons(b_loss_peaks, prefixes[i], prefix_intensities[int_it][i][z - 1] * pre_path_intensities[int_it]);
               }
               else
               {
-                a_ion_losses_cd_.getIons(b_loss_peaks, prefixes[i], prefix_intensities[int_it][i][z - 1] * path_intensities[int_it]);
+                a_ion_losses_cd_.getIons(b_loss_peaks, prefixes[i], prefix_intensities[int_it][i][z - 1] * pre_path_intensities[int_it]);
               }
 						}
 
 						for (vector<RichPeak1D>::const_iterator it = b_loss_peaks.begin(); it != b_loss_peaks.end(); ++it)
 						{
         			String b_ion_name = it->getMetaValue("IonName");
-
+							#ifdef INIT_CHARGE_DEBUG
+							cerr << b_ion_name << " " << it->getMZ() << " " << it->getIntensity() << endl;
+							#endif
         			vector<String> split;
         			b_ion_name.split('-', split);
         			if (split.size() == 0)
@@ -1156,7 +1185,7 @@ namespace OpenMS
         			}
 
 							b_ion_name += String(z, '+');
-							if (int_it != path_intensities.size() - 1)
+							if (int_it != pre_path_intensities.size() - 1)
 							{
           			addPeaks_(prefix_weight, z, it->getMZ(), it->getIntensity(), spec, prefix_id, b_ion_name);
 							}
@@ -1167,22 +1196,25 @@ namespace OpenMS
 						}
 					}
 
-					if (suffix_intensities[int_it][i][z - 1] > MIN_DECIMAL_VALUE && int_it != path_intensities.size() - 1) // no ay 
+					if (suffix_intensities[int_it][i][z - 1] > MIN_DECIMAL_VALUE && int_it != suf_path_intensities.size() - 1) // no ay 
 					{
 						vector<RichPeak1D> y_loss_peaks;
 						double avail_bb_sum_suffix = getAvailableBackboneCharge_(suffixes[i], Residue::YIon, z);
 						if (avail_bb_sum_suffix <= charge_remote_threshold)
 						{
-							y_ion_losses_cr_.getIons(y_loss_peaks, suffixes[i], suffix_intensities[int_it][i][z - 1] * path_intensities[int_it]);
+							y_ion_losses_cr_.getIons(y_loss_peaks, suffixes[i], suffix_intensities[int_it][i][z - 1] * suf_path_intensities[int_it]);
 						}
 						else
 						{
-							y_ion_losses_cd_.getIons(y_loss_peaks, suffixes[i], suffix_intensities[int_it][i][z - 1] * path_intensities[int_it]);
+							y_ion_losses_cd_.getIons(y_loss_peaks, suffixes[i], suffix_intensities[int_it][i][z - 1] * suf_path_intensities[int_it]);
 						}
 
 						for (vector<RichPeak1D>::const_iterator it = y_loss_peaks.begin(); it != y_loss_peaks.end(); ++it)
         		{
           		String y_ion_name = it->getMetaValue("IonName");
+							#ifdef INIT_CHARGE_DEBUG
+							cerr << y_ion_name << " " << it->getMZ() << " " << it->getIntensity() << endl;
+							#endif
           		vector<String> split;
           		y_ion_name.split('-', split);
           		if (split.size() == 0)
@@ -1438,7 +1470,7 @@ namespace OpenMS
 	{
 		bool is_charge_remote(false);
 
-    double bb_sum(0);
+    double bb_sum(0), bb_sum_orig(0);
     for (vector<double>::const_iterator it = bb_charges.begin(); it != bb_charges.end(); ++it)
     {
       bb_sum += *it;
@@ -1448,11 +1480,13 @@ namespace OpenMS
     {
       bb_sum = 1;
     }
+
 		#ifdef INIT_CHARGE_DEBUG
 		cerr << "bb_sum=" << bb_sum << endl;
 		#endif
+		bb_sum_orig = bb_sum;
 
-    if (bb_sum < (double)param_.getValue("charge_remote_threshold"))
+		if (bb_sum < (double)param_.getValue("charge_remote_threshold"))
     {
 			is_charge_remote = true;
 		}
@@ -1479,7 +1513,11 @@ namespace OpenMS
 		{
 			bb_sum = 1;
 		}
-		
+	
+		#ifdef INIT_CHARGE_DEBUG
+		cerr << "bb_sum after side-chain-activiation=" << bb_sum << endl;
+		#endif
+
 		vector<double> bb_charges_all = bb_charges;
 		sort(bb_charges_all.begin(), bb_charges_all.end());
 		double bb_charges_median = bb_charges_all[(Size)(bb_charges_all.size()/2.0)];
@@ -1487,40 +1525,40 @@ namespace OpenMS
 		cerr << "bb_charges_median=" << bb_charges_median << endl;
 		#endif
 
+		double blocker_sum(1.0);
 		for (Size i = 0; i != peptide.size() - 1; ++i)
     {
 			double bb_enhance_factor(max(1.0, sqrt(bb_charges[i+1] / bb_charges_median)));
 			#ifdef INIT_CHARGE_DEBUG
 			cerr << "bb_enhance_factor=" << bb_enhance_factor << endl;
 			#endif
-      bb_init.push_back(bb_charges[i+1] * bb_sum * bb_enhance_factor);
+			
+			if (sc_charges[i] != 0)
+			{
+				blocker_sum += 10.0 * sc_charges[i];
+			}
+
+      bb_init.push_back(/*bb_charges[i+1]  **/ bb_sum * bb_enhance_factor / blocker_sum);
       String aa(peptide[i].getOneLetterCode());
-      if (sc_charges[i] != 0)
+      if ((aa == "K" || aa == "R" || aa == "H"))
       {
-        if ((aa == "K" || aa == "R" || aa == "H"))
-        {
-          sc_init.push_back(sc_charges[i] * bb_charges_median);
-        }
-        else
-        {
-          sc_init.push_back(0.0);
-        }
-        if (is_charge_remote)
-        {
-          cr_init.push_back(((1 - bb_sum) * bb_charges_median));
-        }
-        else
-        {
-          cr_init.push_back(0.0);
-        }
+        sc_init.push_back(sc_charges[i] /* * bb_charges_median*/);
       }
       else
       {
         sc_init.push_back(0.0);
+      }
+
+			if (is_charge_remote && (aa == "D" || aa == "E" || i == peptide.size() - 2 || i == peptide.size() - 3))
+      {
+        cr_init.push_back(((1 - bb_sum_orig) /** bb_charges_median*/));
+      }
+      else
+      {
         cr_init.push_back(0.0);
       }
     }
-		precursor_init = (1 - bb_sum) * bb_charges_median/*bb_avg*/ / 10.0;
+		precursor_init = (1 - bb_sum) /** bb_charges_median*//*bb_avg*/ / 10.0;
 
 		// normalize the initial probability values
 		double init_prob_sum(0);

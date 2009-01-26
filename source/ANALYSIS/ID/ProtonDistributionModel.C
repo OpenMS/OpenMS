@@ -148,6 +148,8 @@ namespace OpenMS
 																																		Residue::ResidueType n_res_type,
 																																		Size cleavage_site)
 	{
+		// TODO model this using one calculation for both ions
+
 		double q(0); // Zustandsumme
 
 	  double gb_bb_l_NH2 = (double)param_.getValue("gb_bb_l_NH2");
@@ -235,7 +237,7 @@ namespace OpenMS
       }
     }		
 
-		//cerr << "Q=" << q << endl;
+		//cerr << "Q-C-term=" << q << endl;
 		
 		// calculate proton availabilities of the N-terminal ion
 		for (Size i = 0; i != cleavage_site; ++i)
@@ -1275,6 +1277,7 @@ namespace OpenMS
 				// TODO charge order; bug????
 				bb_charge_[i + 1] = exp(-E * 1000/(Constants::R * T))/q;
 				sum_E += exp(-E * 1000/Constants::R/T);
+
 				E = -(peptide[i-1].getBackboneBasicityLeft() + peptide[i].getBackboneBasicityRight());
 				bb_charge_[i] = exp(-E * 1000 /(Constants::R * T))/q;
 				sum_E += exp(-E * 1000/Constants::R/T);
@@ -1402,7 +1405,7 @@ namespace OpenMS
 			return;
 		}
 
-		/*if (charge == 2)
+		if (charge == 2)
 		{
 			double c_term_int1(0), c_term_int2(0), n_term_int1(0), n_term_int2(0);
       n_term_intensities.clear();
@@ -1414,7 +1417,7 @@ namespace OpenMS
 			c_term_intensities.push_back(c_term_int2);
 			return;
 		}
-		*/
+	
 
 		// charge > 2
 		n_term_intensities = vector<double>(charge, 0.0);
@@ -1530,15 +1533,15 @@ namespace OpenMS
 
 				double ratio_bx_yz = exp(pa_n - pa_c);
 
-				n_term1 = ratio_bx_yz / (1.0 + ratio_bx_yz);
-				c_term1 = 1.0 / (ratio_bx_yz + 1.0);
+				n_term1 = ratio_bx_yz/*ratio_bx_yz / (1.0 + ratio_bx_yz)*/;
+				c_term1 = 1.0 /*/ (ratio_bx_yz + 1.0)*/;
 
 				// of course ++ ions are not available
 				n_term2 = 0;
 				c_term2 = 0;
 				
 
-				//cerr << n_term_kapp << " " << c_term_kapp << " " << n_term1 << " " << c_term1 << endl;
+				//cerr << "ChargeStateIntensities: " << n_term_ion << " - " << c_term_ion << " z=1 " << n_term_kapp << " " << c_term_kapp << " " << n_term1 << " " << c_term1 << endl;
 			}
 			else
 			{

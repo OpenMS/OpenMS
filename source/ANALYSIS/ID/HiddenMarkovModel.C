@@ -559,6 +559,8 @@ namespace OpenMS
 		set<HMMState*> succ;
 		for (Map<HMMState*, double>::iterator it = init_prob_.begin(); it != init_prob_.end(); ++it)
 		{
+			//cerr << it->first << " " << it->second << endl;
+			//cerr << it->first->getName() << endl;
 			forward_[it->first] = it->second;
 		}
 		
@@ -692,6 +694,7 @@ namespace OpenMS
 	void HiddenMarkovModel::setInitialTransitionProbability(const String& state, double prob)
 	{
 		OPENMS_PRECONDITION(name_to_state_.find(state) != name_to_state_.end(), String("HiddenMarkovModel::setInitialTransitionProbability(" + state + ", " + String(prob) + "), no suchstate!").c_str());
+		//cerr << state << " " << prob << endl;
 		init_prob_[name_to_state_[state]] = prob;
 	}
 

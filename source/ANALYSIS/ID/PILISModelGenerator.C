@@ -78,7 +78,36 @@ namespace OpenMS
 		model.addNewState("Acenter");
 		model.addNewState("SCcenter");
 		model.addNewState("ASCcenter");
-		
+	
+		model.addNewState(new HMMState("axyz_center-prefix-ions", false));
+    model.addNewState(new HMMState("axyz_center-suffix-ions", false));
+    model.addNewState(new HMMState("axyz_center-prefix"));
+    model.addNewState(new HMMState("axyz_center-suffix"));
+    model.addNewState(new HMMState("bxyz_center-prefix-ions", false));
+    model.addNewState(new HMMState("bxyz_center-suffix-ions", false));
+    model.addNewState(new HMMState("bxyz_center-prefix"));
+    model.addNewState(new HMMState("bxyz_center-suffix"));
+    model.addNewState(new HMMState("D_center-prefix-ions", false));
+    model.addNewState(new HMMState("D_center-suffix-ions", false));
+    model.addNewState(new HMMState("D_center-prefix"));
+    model.addNewState(new HMMState("D_center-suffix"));
+    model.addNewState(new HMMState("E_center-prefix-ions", false));
+    model.addNewState(new HMMState("E_center-suffix-ions", false));
+    model.addNewState(new HMMState("E_center-prefix"));
+    model.addNewState(new HMMState("E_center-suffix"));
+    model.addNewState(new HMMState("K_center-prefix-ions", false));
+    model.addNewState(new HMMState("K_center-suffix-ions", false));
+    model.addNewState(new HMMState("K_center-prefix"));
+    model.addNewState(new HMMState("K_center-suffix"));
+    model.addNewState(new HMMState("R_center-prefix-ions", false));
+    model.addNewState(new HMMState("R_center-suffix-ions", false));
+    model.addNewState(new HMMState("R_center-prefix"));
+    model.addNewState(new HMMState("R_center-suffix"));
+    model.addNewState(new HMMState("H_center-prefix-ions", false));
+    model.addNewState(new HMMState("H_center-suffix-ions", false));
+    model.addNewState(new HMMState("H_center-prefix"));
+    model.addNewState(new HMMState("H_center-suffix"));
+
 		model.addNewState("bxyz");
 		model.addNewState("axyz");
 		model.addNewState("D");
@@ -135,6 +164,15 @@ namespace OpenMS
 		model.addNewState(new HMMState("bk-1_-ions", false));
     model.addNewState(new HMMState("bk-2_-ions", false));
 
+    model.addNewState(new HMMState("bk-1_-prefix-ions", false));
+    model.addNewState(new HMMState("bk-1_-suffix-ions", false));
+    model.addNewState(new HMMState("bk-1_-prefix"));
+    model.addNewState(new HMMState("bk-1_-suffix"));
+    model.addNewState(new HMMState("bk-2_-prefix-ions", false));
+    model.addNewState(new HMMState("bk-2_-suffix-ions", false));
+    model.addNewState(new HMMState("bk-2_-prefix"));
+    model.addNewState(new HMMState("bk-2_-suffix"));
+
 		for (Size i = 1; i <= visible_model_depth; ++i)
 		{
 			// these states are really created
@@ -159,34 +197,37 @@ namespace OpenMS
 			model.addNewState("ASCk-"+num);
 
 			// emitting ion states
-			model.addNewState(new HMMState("axyz_" + num + "-ions", false));
-			model.addNewState(new HMMState("axyz_k-" + num + "-ions", false));
-			model.addNewState(new HMMState("bxyz_" + num + "-ions", false));
-			model.addNewState(new HMMState("bxyz_k-" + num + "-ions", false));
-			model.addNewState(new HMMState("D_" + num + "-ions", false));
-			model.addNewState(new HMMState("D_k-" + num + "-ions", false));
-			model.addNewState(new HMMState("E_" + num + "-ions", false));
-			model.addNewState(new HMMState("E_k-" + num + "-ions", false));
-			model.addNewState(new HMMState("K_" + num + "-ions", false));
-			model.addNewState(new HMMState("K_k-" + num + "-ions", false));
-			model.addNewState(new HMMState("R_" + num + "-ions", false));
-			model.addNewState(new HMMState("R_k-" + num + "-ions", false));
-			model.addNewState(new HMMState("H_" + num + "-ions", false));
-			model.addNewState(new HMMState("H_k-" + num + "-ions", false));
-
-			//model.addNewState(new HMMState("b" + num + "+", false));
-			//model.addNewState(new HMMState("bk-" + num + "+", false));
-			//model.addNewState(new HMMState("y" + num + "+", false));
-			//model.addNewState(new HMMState("yk-" + num + "+", false));
-			//model.addNewState(new HMMState("a" + num + "+", false));
-			//model.addNewState(new HMMState("ak-" + num + "+", false));
-
-			//model.addNewState(new HMMState("b"+num+"++", false));
-      //model.addNewState(new HMMState("bk-" + num + "++", false));
-      //model.addNewState(new HMMState("y" + num + "++", false));
-      //model.addNewState(new HMMState("yk-" + num + "++", false));
-      //model.addNewState(new HMMState("a" + num + "++", false));
-      //model.addNewState(new HMMState("ak-" + num + "++", false));
+			model.addNewState(new HMMState("axyz_" + num + "-prefix-ions", false));
+			model.addNewState(new HMMState("axyz_" + num + "-suffix-ions", false));
+      model.addNewState(new HMMState("axyz_" + num + "-prefix"));
+      model.addNewState(new HMMState("axyz_" + num + "-suffix"));
+			model.addNewState(new HMMState("axyz_k-" + num + "-prefix-ions", false));
+			model.addNewState(new HMMState("axyz_k-" + num + "-suffix-ions", false));
+      model.addNewState(new HMMState("axyz_k-" + num + "-prefix"));
+      model.addNewState(new HMMState("axyz_k-" + num + "-suffix"));
+			
+			model.addNewState(new HMMState("bxyz_" + num + "-prefix-ions", false));
+			model.addNewState(new HMMState("bxyz_" + num + "-suffix-ions", false));
+      model.addNewState(new HMMState("bxyz_" + num + "-prefix"));
+      model.addNewState(new HMMState("bxyz_" + num + "-suffix"));
+			model.addNewState(new HMMState("bxyz_k-" + num + "-prefix-ions", false));
+			model.addNewState(new HMMState("bxyz_k-" + num + "-suffix-ions", false));
+      model.addNewState(new HMMState("bxyz_k-" + num + "-prefix"));
+      model.addNewState(new HMMState("bxyz_k-" + num + "-suffix"));
+		
+			String sc_and_cr("DEHKR");
+			for (String::ConstIterator it = sc_and_cr.begin(); it != sc_and_cr.end(); ++it)
+			{
+				String aa(*it);
+				model.addNewState(new HMMState(aa + "_" + num + "-prefix-ions", false));
+				model.addNewState(new HMMState(aa + "_" + num + "-suffix-ions", false));
+ 	     	model.addNewState(new HMMState(aa + "_" + num + "-prefix"));
+ 	     	model.addNewState(new HMMState(aa + "_" + num + "-suffix"));
+				model.addNewState(new HMMState(aa + "_k-" + num + "-prefix-ions", false));
+				model.addNewState(new HMMState(aa + "_k-" + num + "-suffix-ions", false));
+      	model.addNewState(new HMMState(aa + "_k-" + num + "-prefix"));
+      	model.addNewState(new HMMState(aa + "_k-" + num + "-suffix"));
+			}
 
 			model.addNewState(new HMMState("end"+num, false));
 			model.addNewState(new HMMState("endk-"+num, false));
@@ -266,13 +307,58 @@ namespace OpenMS
 			
 		}
 
+    model.setTransitionProbability("bk-1_-prefix", "bk-1_-prefix-ions", 0.9);
+    model.setTransitionProbability("bk-1_-prefix", "endk-1", 0.1);
+    model.setTransitionProbability("bk-1_-suffix", "bk-1_-suffix-ions", 0.9);
+		model.setTransitionProbability("bk-1_-suffix", "endk-1", 0.1);
+
+    model.setTransitionProbability("bk-2_-prefix", "bk-2_-prefix-ions", 0.9);
+    model.setTransitionProbability("bk-2_-prefix", "endk-1", 0.1);
+    model.setTransitionProbability("bk-2_-suffix", "bk-2_-suffix-ions", 0.9);
+    model.setTransitionProbability("bk-2_-suffix", "endk-1", 0.1);
+
+
+
 		// set the initial transitions
 		for (Size i = 1; i <= visible_model_depth; ++i)
 		{
 			String num(i);
 			if (i <= model_depth)
 			{
-		
+				model.setTransitionProbability("axyz_" + num + "-prefix", "axyz_" + num + "-prefix-ions", 0.9);
+				model.setTransitionProbability("axyz_" + num + "-prefix", "end" + num, 0.1);
+				model.setTransitionProbability("axyz_" + num + "-suffix", "axyz_" + num + "-suffix-ions", 0.9);
+				model.setTransitionProbability("axyz_" + num + "-suffix", "end" + num, 0.1);
+        model.setTransitionProbability("axyz_k-" + num + "-prefix", "axyz_k-" + num + "-prefix-ions", 0.9);
+        model.setTransitionProbability("axyz_k-" + num + "-prefix", "endk-" + num, 0.1);
+        model.setTransitionProbability("axyz_k-" + num + "-suffix", "axyz_k-" + num + "-suffix-ions", 0.9);
+        model.setTransitionProbability("axyz_k-" + num + "-suffix", "endk-" + num, 0.1);
+
+        model.setTransitionProbability("bxyz_" + num + "-prefix", "bxyz_" + num + "-prefix-ions", 0.9);
+        model.setTransitionProbability("bxyz_" + num + "-prefix", "end" + num, 0.1);
+        model.setTransitionProbability("bxyz_" + num + "-suffix", "bxyz_" + num + "-suffix-ions", 0.9);
+        model.setTransitionProbability("bxyz_" + num + "-suffix", "end" + num, 0.1);
+        model.setTransitionProbability("bxyz_k-" + num + "-prefix", "bxyz_k-" + num + "-prefix-ions", 0.9);
+        model.setTransitionProbability("bxyz_k-" + num + "-prefix", "endk-" + num, 0.1);
+        model.setTransitionProbability("bxyz_k-" + num + "-suffix", "bxyz_k-" + num + "-suffix-ions", 0.9);
+        model.setTransitionProbability("bxyz_k-" + num + "-suffix", "endk-" + num, 0.1);
+
+				String sc_and_cr("DEHRK");
+
+				for (String::ConstIterator it = sc_and_cr.begin(); it != sc_and_cr.end(); ++it)
+				{
+					String aa(*it);
+        	model.setTransitionProbability(aa + "_" + num + "-prefix", aa + "_" + num + "-prefix-ions", 0.9);
+        	model.setTransitionProbability(aa + "_" + num + "-prefix", "end" + num, 0.1);
+        	model.setTransitionProbability(aa + "_" + num + "-suffix", aa + "_" + num + "-suffix-ions", 0.9);
+        	model.setTransitionProbability(aa + "_" + num + "-suffix", "end" + num, 0.1);
+        	model.setTransitionProbability(aa + "_k-" + num + "-prefix", aa + "_k-" + num + "-prefix-ions", 0.9);
+        	model.setTransitionProbability(aa + "_k-" + num + "-prefix", "endk-" + num, 0.1);
+        	model.setTransitionProbability(aa + "_k-" + num + "-suffix", aa + "_k-" + num + "-suffix-ions", 0.9);
+        	model.setTransitionProbability(aa + "_k-" + num + "-suffix", "endk-" + num, 0.1);
+				}
+
+
 				model.setTransitionProbability("BB"+num, "end"+num, 0.5);
 				model.setTransitionProbability("BBk-"+num, "endk-"+num, 0.5);
 			
@@ -293,6 +379,40 @@ namespace OpenMS
 			}
 			else
 			{
+				model.addSynonymTransition("axyz_center-prefix", "axyz_center-prefix-ions", "axyz_" + num + "-prefix", "axyz_" + num + "-prefix-ions");
+        model.addSynonymTransition("axyz_center-prefix", "endcenter", "axyz_" + num + "-prefix", "end" + num);
+				model.addSynonymTransition("axyz_center-suffix", "axyz_center-suffix-ions", "axyz_" + num + "-suffix", "axyz_" + num + "-suffix-ions");
+        model.addSynonymTransition("axyz_center-suffix", "endcenter", "axyz_" + num + "-suffix", "end" + num);
+        model.addSynonymTransition("axyz_center-prefix", "axyz_center-prefix-ions", "axyz_k-" + num + "-prefix", "axyz_k-" + num + "-prefix-ions");
+        model.addSynonymTransition("axyz_center-prefix", "endcenter", "axyz_k-" + num + "-prefix", "endk-" + num);
+        model.addSynonymTransition("axyz_center-suffix", "axyz_center-suffix-ions", "axyz_k-" + num + "-suffix", "axyz_k-" + num + "-suffix-ions");
+        model.addSynonymTransition("axyz_center-suffix", "endcenter", "axyz_k-" + num + "-suffix", "endk-" + num);
+
+        model.addSynonymTransition("bxyz_center-prefix", "bxyz_center-prefix-ions", "bxyz_" + num + "-prefix", "bxyz_" + num + "-prefix-ions");
+        model.addSynonymTransition("bxyz_center-prefix", "endcenter", "bxyz_" + num + "-prefix", "end" + num);
+        model.addSynonymTransition("bxyz_center-suffix", "bxyz_center-suffix-ions", "bxyz_" + num + "-suffix", "bxyz_" + num + "-suffix-ions");
+        model.addSynonymTransition("bxyz_center-suffix", "endcenter", "bxyz_" + num + "-suffix", "end" + num);
+        model.addSynonymTransition("bxyz_center-prefix", "bxyz_center-prefix-ions", "bxyz_k-" + num + "-prefix", "bxyz_k-" + num + "-prefix-ions");
+        model.addSynonymTransition("bxyz_center-prefix", "endcenter", "bxyz_k-" + num + "-prefix", "endk-" + num);
+        model.addSynonymTransition("bxyz_center-suffix", "bxyz_center-suffix-ions", "bxyz_k-" + num + "-suffix", "bxyz_k-" + num + "-suffix-ions");
+        model.addSynonymTransition("bxyz_center-suffix", "endcenter", "bxyz_k-" + num + "-suffix", "endk-" + num);
+
+        String sc_and_cr("DEHRK");
+        for (String::ConstIterator it = sc_and_cr.begin(); it != sc_and_cr.end(); ++it)
+        {
+          String aa(*it);
+          model.addSynonymTransition(aa + "_center-prefix", aa + "_center-prefix-ions", aa + "_" + num + "-prefix", aa + "_" + num + "-prefix-ions");
+          model.addSynonymTransition(aa + "_center-prefix", "endcenter", aa + "_" + num + "-prefix", "end" + num);
+					model.addSynonymTransition(aa + "_center-prefix", aa + "_center-prefix-ions", aa + "_k-" + num + "-prefix", aa + "_k-" + num + "-prefix-ions");
+          model.addSynonymTransition(aa + "_center-prefix", "endcenter", aa + "_k-" + num + "-prefix", "endk-" + num);
+
+          model.addSynonymTransition(aa + "_center-suffix", aa + "_center-suffix-ions", aa + "_" + num + "-suffix", aa + "_" + num + "-suffix-ions");
+          model.addSynonymTransition(aa + "_center-suffix", "endcenter", aa + "_" + num + "-suffix", "end" + num);
+          model.addSynonymTransition(aa + "_center-suffix", aa + "_center-suffix-ions", aa + "_k-" + num + "-suffix", aa + "_k-" + num + "-suffix-ions");
+          model.addSynonymTransition(aa + "_center-suffix", "endcenter", aa + "_k-" + num + "-suffix", "endk-" + num);
+
+        }
+
 				model.addSynonymTransition("BBcenter", "endcenter", "BB"+num, "end"+num);
 				model.addSynonymTransition("BBcenter", "endcenter", "BBk-"+num, "endk-"+num);
 				model.setTransitionProbability("BBcenter", "endcenter", 0.5);
@@ -316,6 +436,8 @@ namespace OpenMS
         model.addSynonymTransition("SCcenter", "ASCcenter", "SC"+num, "ASC"+num);
         model.addSynonymTransition("SCcenter", "ASCcenter", "SCk-"+num, "ASCk-"+num);
         model.setTransitionProbability("SCcenter", "ASCcenter", 0.5);
+
+
 			}
 			
 			for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
