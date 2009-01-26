@@ -91,7 +91,7 @@ namespace OpenMS
 			static void registerChildren();
 
 			/// Main method that implements the actual algorithm
-			virtual inline void run()=0;
+			virtual void run()=0;
 
 			/**
 				@brief Returns the default parameters. Reimplment
