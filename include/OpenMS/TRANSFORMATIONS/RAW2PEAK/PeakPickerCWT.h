@@ -106,7 +106,7 @@ namespace OpenMS
 			can be of type Peak1D or any other class derived from Peak1D.
     */
     template <typename InputPeakIterator, typename OutputPeakContainer  >
-    void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, int ms_level = 1)
+    void pick(InputPeakIterator first, InputPeakIterator last, OutputPeakContainer& picked_peak_container, Int ms_level = 1)
     {
 
       if (peak_bound_cwt_==0.0 || peak_bound_ms2_level_cwt_==0.0)
@@ -197,7 +197,7 @@ namespace OpenMS
       do
       {
         number_of_peaks = 0;
-        int peak_left_index, peak_right_index;
+        Int peak_left_index, peak_right_index;
 
         // compute the continious wavelet transform with resolution 1
         DoubleReal resolution = 1;
@@ -207,8 +207,8 @@ namespace OpenMS
         bool regular_endpoints=true;
 
         // search for maximum positions in the cwt and extract potential peaks
-        int direction=1;
-        int distance_from_scan_border = 0;
+        Int direction=1;
+        Int distance_from_scan_border = 0;
         while ((distance(it_pick_begin, it_pick_end) > 3)
                && getMaxPosition_(it_pick_begin,
                                   it_pick_end,
@@ -470,7 +470,7 @@ namespace OpenMS
 			can be of type Peak1D or any other class derived from Peak1D.
     */
     template <typename InputPeakContainer, typename OutputPeakContainer >
-    void pick(const InputPeakContainer& input_peak_container, OutputPeakContainer& picked_peaks_container, int ms_level = 1)
+    void pick(const InputPeakContainer& input_peak_container, OutputPeakContainer& picked_peaks_container, Int ms_level = 1)
     {
       // copy the spectrum settings
       static_cast<SpectrumSettings&>(picked_peaks_container) = input_peak_container;
@@ -660,7 +660,7 @@ namespace OpenMS
 			Computes the correlation of the peak and the original data given by the peak enpoints area.left and area.right.
 			If the value is near 1, the fitted peakshape and the raw data are expected to be very similar. 
     */
-    double correlate_(const PeakShape& peak, const PeakArea_& area, int direction=0) const;
+    double correlate_(const PeakShape& peak, const PeakArea_& area, Int direction=0) const;
 
 
     /** 
@@ -671,7 +671,7 @@ namespace OpenMS
 			are relevant. If no peak is detected the method return false.
 			For direction=1, the method runs from first to last given direction=-1 it runs the other way around.
     */
-    bool getMaxPosition_(PeakIterator first, PeakIterator last, const ContinuousWaveletTransform& wt, PeakArea_& area, int distance_from_scan_border, int ms_level, int direction=1);
+    bool getMaxPosition_(PeakIterator first, PeakIterator last, const ContinuousWaveletTransform& wt, PeakArea_& area, Int distance_from_scan_border, Int ms_level, Int direction=1);
 
 
     /** 
@@ -693,7 +693,7 @@ namespace OpenMS
 			-	(2) analogous procedure to the right of x_r
 			.
     */
-    bool getPeakEndPoints_(PeakIterator first, PeakIterator last,  PeakArea_ &area, int distance_from_scan_border, int& peak_left_index, int& peak_right_index);
+    bool getPeakEndPoints_(PeakIterator first, PeakIterator last,  PeakArea_ &area, Int distance_from_scan_border, Int& peak_left_index, Int& peak_right_index);
 
 
     /** 
@@ -731,11 +731,11 @@ namespace OpenMS
     bool deconvolutePeak_(PeakShape& shape);
 
 		/// Determines the number of peaks in the given mass range using the cwt
-    int getNumberOfPeaks_(PeakIterator first,PeakIterator last, std::vector<double>& peak_values,
-													int direction,DoubleReal resolution, ContinuousWaveletTransformNumIntegration& wt);
+    Int getNumberOfPeaks_(PeakIterator first,PeakIterator last, std::vector<double>& peak_values,
+													Int direction,DoubleReal resolution, ContinuousWaveletTransformNumIntegration& wt);
 
 		/// Estimate the charge state of the peaks
-    int determineChargeState_(std::vector<double>& peak_values);
+    Int determineChargeState_(std::vector<double>& peak_values);
 
 		/// Add a peak
     void addPeak_(std::vector<PeakShape>& peaks_DC,PeakArea_& area,double left_width,double right_width);
