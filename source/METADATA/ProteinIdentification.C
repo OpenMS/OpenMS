@@ -89,13 +89,13 @@ namespace OpenMS
 	}
 	
 	// retrival of the peptide significance threshold value
-  Real ProteinIdentification::getSignificanceThreshold() const
+  DoubleReal ProteinIdentification::getSignificanceThreshold() const
   {
   	return protein_significance_threshold_;
   }
 
 	// setting of the peptide significance threshold value
-	void ProteinIdentification::setSignificanceThreshold(Real value)
+	void ProteinIdentification::setSignificanceThreshold(DoubleReal value)
 	{
 		protein_significance_threshold_ = value;
 	}
@@ -177,7 +177,6 @@ namespace OpenMS
        	tmpscore = lit->getScore();
      	}
 		}
-		return;
   }
 
   void ProteinIdentification::sort()

@@ -36,7 +36,7 @@ using namespace std;
 
 ///////////////////////////
 
-DRange<1> makeRange(Real a, Real b)
+DRange<1> makeRange(DoubleReal a, DoubleReal b)
 {
 	DPosition<1> pa(a), pb(b);
 	return DRange<1>(pa, pb);

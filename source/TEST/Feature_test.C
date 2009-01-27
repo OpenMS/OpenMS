@@ -143,7 +143,7 @@ START_SECTION([EXTRA](IntensityType& getIntensity()))
 	TEST_REAL_SIMILAR(p.getIntensity(), 123.456)
 	p.setIntensity(-0.12345);
 	TEST_REAL_SIMILAR(p.getIntensity(), -0.12345)
-	p.setIntensity(0.0);
+	p.setIntensity(0.0f);
 	TEST_REAL_SIMILAR(p.getIntensity(), 0.0)
 END_SECTION
 
@@ -349,12 +349,12 @@ START_SECTION((bool operator==(const Feature &rhs) const))
 	Feature p2(p1);
 	TEST_EQUAL(p1==p2, true)
 
-	p1.setIntensity(5);
+	p1.setIntensity(5.0f);
   p1.setOverallQuality(0.9);
   p1.setQuality(0, 0.1);
   p1.setModelDescription(desc);
 	TEST_EQUAL(p1==p2, false)
-	p2.setIntensity(5);
+	p2.setIntensity(5.0f);
   p2.setOverallQuality(0.9);
   p2.setQuality(0, 0.1);
   p2.setModelDescription(desc);
@@ -371,9 +371,9 @@ START_SECTION([EXTRA](Feature& operator != (const Feature& rhs)))
 	Feature p2(p1);
 	TEST_EQUAL(p1!=p2, false)
 
-	p1.setIntensity(5);
+	p1.setIntensity(5.0f);
 	TEST_EQUAL(p1!=p2, true)
-	p2.setIntensity(5);
+	p2.setIntensity(5.0f);
 	TEST_EQUAL(p1!=p2, false)
 
 	p1.getPosition()[0]=5;

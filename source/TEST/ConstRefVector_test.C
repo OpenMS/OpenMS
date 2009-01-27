@@ -57,9 +57,9 @@ START_SECTION((ConstRefVector(const ConstRefVector& p)))
   ConstRefVector<PeakArrayType> pl;
   Peak1D peak1;
   Peak1D peak2;
-  peak1.setIntensity(1.0);
+  peak1.setIntensity(1.0f);
   pl.push_back(peak1);
-  peak2.setIntensity(2.0);
+  peak2.setIntensity(2.0f);
   pl.push_back(peak2);
 
   ConstRefVector<PeakArrayType> pl2(pl);
@@ -72,9 +72,9 @@ START_SECTION((ConstRefVector& operator=(const ConstRefVector &rhs)))
   ConstRefVector<PeakArrayType> pl;
   Peak1D peak1;
   Peak1D peak2;
-  peak1.setIntensity(1.0);
+  peak1.setIntensity(1.0f);
   pl.push_back(peak1);
-  peak2.setIntensity(2.0);
+  peak2.setIntensity(2.0f);
   pl.push_back(peak2);
 
   ConstRefVector<PeakArrayType> pl2;
@@ -88,15 +88,15 @@ ConstRefVector<PeakArrayType> pl;
 
 Peak1D peak1;
 peak1.setPosition(2.0);
-peak1.setIntensity(1.0);
+peak1.setIntensity(1.0f);
 
 Peak1D peak2;
 peak2.setPosition(0.0);
-peak2.setIntensity(0.5);
+peak2.setIntensity(0.5f);
 
 Peak1D peak3;
 peak3.setPosition(10.5);
-peak3.setIntensity(0.01);
+peak3.setIntensity(0.01f);
 
 START_SECTION((size_type size() const))
   TEST_EQUAL(pl.size(), 0)
@@ -176,19 +176,19 @@ ConstRefVector<PeakArray2DType> pl2;
 Peak2D peak4;
 peak4.getPosition()[0] = 2.0;
 peak4.getPosition()[1] = 3.0;
-peak4.setIntensity(1.0);
+peak4.setIntensity(1.0f);
 pl2.push_back(peak4);
 
 Peak2D peak5;
 peak5.getPosition()[0] = 0.0;
 peak5.getPosition()[1] = 2.5;
-peak5.setIntensity(0.5);
+peak5.setIntensity(0.5f);
 pl2.push_back(peak5);
 
 Peak2D peak6;
 peak6.getPosition()[0] = 10.5;
 peak6.getPosition()[1] = 0.0;
-peak6.setIntensity(0.01);
+peak6.setIntensity(0.01f);
 pl2.push_back(peak6);
 
 START_SECTION((Iterator begin()))
@@ -247,7 +247,7 @@ END_SECTION
 
 Peak1D peak7;
 peak7.getPosition()[0] = 1.1;
-peak7.setIntensity(1.1);
+peak7.setIntensity(1.1f);
 
 START_SECTION((void reserve(size_type n)))
   pl.reserve(4);
@@ -277,7 +277,7 @@ END_SECTION
 START_SECTION((ConstRefVector(size_type n, const ValueType &element)))
   Peak2D peak;
   peak.getPosition()[0] = 1.1;
-  peak.setIntensity(5.1);
+  peak.setIntensity(5.1f);
   ConstRefVector<PeakArray2DType> pl2(3, peak);
   TEST_EQUAL(pl2.size(), 3)
   TEST_REAL_SIMILAR(pl2[0].getIntensity(), 5.1)
@@ -312,11 +312,11 @@ END_SECTION
 
 Peak1D peak8;
 peak8.getPosition()[0] = 2.0;
-peak8.setIntensity(1.0);
+peak8.setIntensity(1.0f);
 
 Peak1D peak9;
 peak9.getPosition()[0] = 0.0;
-peak9.setIntensity(2.5);
+peak9.setIntensity(2.5f);
 
 START_SECTION((void swap(ConstRefVector &array)))
   ConstRefVector<PeakArrayType> pl2;
@@ -472,7 +472,7 @@ START_SECTION((void resize(size_type new_size, const ValueType &t)))
   ConstRefVector<PeakArrayType> pl;
   Peak1D peak;
   peak.getPosition()[0] = 0.0;
-  peak.setIntensity(2.5);
+  peak.setIntensity(2.5f);
   pl.resize(2,peak);
 
   TEST_EQUAL(pl.size(), 2)
@@ -525,21 +525,21 @@ END_SECTION
 START_SECTION((void sortByPosition()))
 	ConstRefVector<PeakArray2DType> dpa2;
 	Peak2D p1(peak4);
-	p1.setIntensity(1);
+	p1.setIntensity(1.0f);
 	Peak2D p2(peak5);
-	p2.setIntensity(2);
+	p2.setIntensity(2.0f);
 	Peak2D p3(peak6);
-	p3.setIntensity(3);
+	p3.setIntensity(3.0f);
 	Peak2D p4;
 	p4.getPosition()[0]=4.3;
 	p4.getPosition()[1]=4711;
-	p4.setIntensity(4);
+	p4.setIntensity(4.0f);
 	Peak2D p5;
 	p5.getPosition()[1]=4711;
-	p5.setIntensity(5);
+	p5.setIntensity(5.0f);
 	Peak2D p6;
 	p6.getPosition()[1]=4711;
-	p6.setIntensity(6);
+	p6.setIntensity(6.0f);
 	dpa2.push_back(p1);
 	dpa2.push_back(p2);
 	dpa2.push_back(p3);
@@ -575,21 +575,21 @@ START_SECTION((template <typename ComparatorType> void sortByComparator(Comparat
 
   ConstRefVector<PeakArray2DType> dpa2;
 	Peak2D p1(peak4);
-	p1.setIntensity(1);
+	p1.setIntensity(1.0f);
 	Peak2D p2(peak5);
-	p2.setIntensity(2);
+	p2.setIntensity(2.0f);
 	Peak2D p3(peak6);
-	p3.setIntensity(3);
+	p3.setIntensity(3.0f);
 	Peak2D p4;
 	p4.getPosition()[0]=4.3;
 	p4.getPosition()[1]=4711;
-	p4.setIntensity(4);
+	p4.setIntensity(4.0f);
 	Peak2D p5;
 	p5.getPosition()[1]=4711;
-	p5.setIntensity(5);
+	p5.setIntensity(5.0f);
 	Peak2D p6;
 	p6.getPosition()[1]=4711;
-	p6.setIntensity(6);
+	p6.setIntensity(6.0f);
 	dpa2.push_back(p1);
 	dpa2.push_back(p2);
 	dpa2.push_back(p3);

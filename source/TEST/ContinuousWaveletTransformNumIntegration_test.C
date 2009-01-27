@@ -66,7 +66,7 @@ START_SECTION((template <typename InputPeakIterator> void transform(InputPeakIte
   
   transformer.init(scale,spacing);
   std::vector<Peak1D > raw_data(9);
-  raw_data[4].setIntensity(1);
+  raw_data[4].setIntensity(1.0f);
   transformer.transform(raw_data.begin(),raw_data.end(),1.);
   TEST_REAL_SIMILAR(transformer[4],0)
   TEST_REAL_SIMILAR(transformer.getWavelet()[0],1.)

@@ -14,6 +14,7 @@ New features and improvements of OpenMS:
 - Meta data: Several extensions to the meta data handling classes for mzML compliance.
 - The macros used for unit testing in source/TEST have been revised.
 - More consistent handling of single vs. double numeric precision, esp. in file output.
+- Added ANALYSIS/PIP/PeakIntensityPredictor class for peak intensity prediction (contributed by Alexandra Scherbart).
 
 New features and improvements of TOPP:
 - Added SILACAnalyzer: A specialized tool for quantitation of SILAC experiments (contributed by Lars Nilse).

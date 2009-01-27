@@ -51,17 +51,17 @@ END_SECTION
 Feature tmp_feature;
 tmp_feature.setRT(1);
 tmp_feature.setMZ(2);
-tmp_feature.setIntensity(200);
+tmp_feature.setIntensity(200.0f);
 
 Feature tmp_feature2;
 tmp_feature2.setRT(2);
 tmp_feature2.setMZ(3);
-tmp_feature2.setIntensity(300);
+tmp_feature2.setIntensity(300.0f);
 
 Feature tmp_feature3;
 tmp_feature3.setRT(3);
 tmp_feature3.setMZ(4);
-tmp_feature3.setIntensity(400);
+tmp_feature3.setIntensity(400.0f);
 
 START_SECTION((ConsensusFeature& operator=(const ConsensusFeature &rhs)))
   ConsensusFeature cons(tmp_feature);
@@ -127,9 +127,9 @@ END_SECTION
 START_SECTION((DRange<1> getIntensityRange() const))
   ConsensusFeature cons;
   Feature f;
-  f.setIntensity(0);
+  f.setIntensity(0.0f);
   cons.insert(0,0,f);
-  f.setIntensity(200);
+  f.setIntensity(200.0f);
   cons.insert(0,1,f);
   
   TEST_REAL_SIMILAR(cons.getIntensityRange().minX(),0.0)

@@ -93,7 +93,7 @@ namespace OpenMS
 			bool flippedLayersExist();
 			
 			/// Flips the layer with @p index up/downwards
-			void flipLayer(UInt index);
+			void flipLayer(Size index);
 			
 			/// Returns whether this widget is currently in mirror mode
 			bool mirrorModeActive();
@@ -117,7 +117,7 @@ namespace OpenMS
 			void drawAnnotations(LayerData& layer, QPainter& painter);
 			
 			/// Performs an alignment of the layers with @p layer_index_1 and @p layer_index_2
-			void performAlignment(UInt layer_index_1, UInt layer_index_2, const Param& param);
+			void performAlignment(Size layer_index_1, Size layer_index_2, const Param& param);
 			
 			/// Resets alignment_
 			void resetAlignment();
@@ -161,7 +161,7 @@ namespace OpenMS
 			void changeVisibleArea_(double lo, double hi, bool repaint = true, bool add_to_stack = false);  
 			
 			/// Draws a highlighted peak; if draw_elongation is true, the elongation line is drawn (for measuring)
-			void drawHighlightedPeak_(UInt layer_index, const PeakIndex& peak, QPainter& painter, bool draw_elongation = false);
+			void drawHighlightedPeak_(Size layer_index, const PeakIndex& peak, QPainter& painter, bool draw_elongation = false);
 			
 			/// Draws a dashed line using the highlighted peak color parameter
 			void drawDashedLine_(const QPoint& from, const QPoint& to, QPainter& painter);
@@ -223,7 +223,7 @@ namespace OpenMS
 	    //@}
 			
 			//docu in base class
-			virtual void updateLayer_(UInt i);
+			virtual void updateLayer_(Size i);
 			//docu in base class
 			virtual void translateLeft_();
 			//docu in base class

@@ -59,14 +59,14 @@ namespace OpenMS
 		
 		public:
 			/// Constructor
-			HistogramWidget(const Math::Histogram<UInt,Real>& distribution, QWidget* parent = 0);
+			HistogramWidget(const Math::Histogram<>& distribution, QWidget* parent = 0);
 			/// Destructor
 			virtual ~HistogramWidget();
 			
 			/// Returns the value f the lower splitter
-			Real getLeftSplitter();
+			DoubleReal getLeftSplitter();
 			/// Returns the value of the upper splitter
-			Real getRightSplitter();
+			DoubleReal getRightSplitter();
 			/// set axis legends
 			void setLegend(const String& legend);
 
@@ -74,21 +74,21 @@ namespace OpenMS
 			/// Shows the splitters if @p on is true. Hides them otherwise.
 			void showSplitters(bool on);
 			/// Sets the value of the right splitter
-			void setRightSplitter(Real pos);
+			void setRightSplitter(DoubleReal pos);
 			/// Sets the value of the left splitter
-			void setLeftSplitter(Real pos);
+			void setLeftSplitter(DoubleReal pos);
 			/// Enables/disables log mode
 			void setLogMode(bool log_mode);
 
 		protected:
 			/// the histogram to display
-			Math::Histogram<UInt,Real> dist_;
+			Math::Histogram<> dist_;
 			/// Flag that indicates if splitters are shown
 			bool show_splitters_;
 			/// value of the right splitter
-			Real left_splitter_;
+			DoubleReal left_splitter_;
 			/// value of the right splitter
-			Real right_splitter_;
+			DoubleReal right_splitter_;
 			/// the splitter that is currently dragged (0=none, 1=left, 2=right)
 			UInt moving_splitter_;
 			/// x axis

@@ -116,7 +116,7 @@ namespace OpenMS
 	
 	void SpectrumWidget::showIntensityDistribution()
 	{
-		Histogram<UInt,Real> dist = createIntensityDistribution_();
+		Histogram<> dist = createIntensityDistribution_();
 		HistogramDialog dw(dist);
 		dw.setLegend("intensity");
 		dw.setLogMode(true);
@@ -148,7 +148,7 @@ namespace OpenMS
 
 	void SpectrumWidget::showMetaDistribution(const String& name)
 	{
-		Histogram<UInt,Real> dist = createMetaDistribution_(name);
+		Histogram<> dist = createMetaDistribution_(name);
 		HistogramDialog dw(dist);
 		dw.setLegend(name);
 		

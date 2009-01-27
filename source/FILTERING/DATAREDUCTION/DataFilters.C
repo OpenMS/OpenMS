@@ -153,7 +153,7 @@ namespace OpenMS
 		}
 	}
 	
-	void DataFilters::remove(UInt index)
+	void DataFilters::remove(Size index)
 	{
 		if (index>=filters_.size()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__,index,filters_.size());
 		filters_.erase(filters_.begin()+index);
@@ -169,7 +169,7 @@ namespace OpenMS
 		return is_active_;
 	}
 
-	void DataFilters::replace(UInt index, const DataFilter& filter)
+	void DataFilters::replace(Size index, const DataFilter& filter)
 	{
 		if (index>=filters_.size()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__,index,filters_.size());
 		filters_[index] = filter;

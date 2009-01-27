@@ -332,7 +332,7 @@ namespace OpenMS
 	}
 
 
-	void Spectrum3DCanvas::updateLayer_(UInt i)
+	void Spectrum3DCanvas::updateLayer_(Size i)
 	{
 		LayerData& layer = getLayer_(i);
 		

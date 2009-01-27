@@ -161,7 +161,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
 	Peak1D peak;
   PeakShape peak_shape,peak_shape2;
   peak.setMZ(500);
-  peak.setIntensity(400);
+  peak.setIntensity(400.0f);
   peak_shape.mz_position = 500;
   peak_shape.left_width = 2.5;
   peak_shape.right_width = 2.5;
@@ -170,7 +170,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   peak_shape.type = PeakShape::LORENTZ_PEAK;  
 	peaks.push_back(peak);
   peak.setMZ(501);
-  peak.setIntensity(400);
+  peak.setIntensity(400.0f);
   peak_shape2.mz_position = 501;
   peak_shape2.left_width = 2.5;
   peak_shape2.right_width = 2.5;
@@ -195,7 +195,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
     raw_spec.push_back(data_point);
   }
   peak.setMZ(500.02);
-  peak.setIntensity(400);
+  peak.setIntensity(400.0f);
   peak_shape.mz_position = 500;
   peak_shape.left_width = 2.5;
   peak_shape.right_width = 2.5;
@@ -204,7 +204,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   peak_shape.type = PeakShape::LORENTZ_PEAK;  
 	peaks2.push_back(peak);
   peak.setMZ(501);
-  peak.setIntensity(400);
+  peak.setIntensity(400.0f);
   peak_shape2.mz_position = 501;
   peak_shape2.left_width = 2.5;
   peak_shape2.right_width = 2.5;

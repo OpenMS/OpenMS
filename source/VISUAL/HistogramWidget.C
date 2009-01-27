@@ -45,7 +45,7 @@ namespace OpenMS
 {
 	using namespace Math;
 	
-	HistogramWidget::HistogramWidget(const Histogram<UInt,Real>& distribution, QWidget* parent)
+	HistogramWidget::HistogramWidget(const Histogram<>& distribution, QWidget* parent)
 	  : QWidget(parent),
 		dist_(distribution),
 		show_splitters_(false),
@@ -73,12 +73,12 @@ namespace OpenMS
 		delete(bottom_axis_);
 	}
 	
-	Real HistogramWidget::getLeftSplitter()
+	DoubleReal HistogramWidget::getLeftSplitter()
 	{
 		return left_splitter_;	
 	}
 	
-	Real HistogramWidget::getRightSplitter()
+	DoubleReal HistogramWidget::getRightSplitter()
 	{
 		return right_splitter_;	
 	}
@@ -88,12 +88,12 @@ namespace OpenMS
 		show_splitters_=on;	
 	}
 	
-	void HistogramWidget::setRightSplitter(Real pos)
+	void HistogramWidget::setRightSplitter(DoubleReal pos)
 	{
 		right_splitter_=min(dist_.max(),pos);
 	}
 	
-	void HistogramWidget::setLeftSplitter(Real pos)
+	void HistogramWidget::setLeftSplitter(DoubleReal pos)
 	{
 		left_splitter_=max(dist_.min(),pos);
 	}
@@ -136,7 +136,7 @@ namespace OpenMS
 			//left
 			if (moving_splitter_==1)
 			{
-				left_splitter_ = Real(Int(e->x())-Int(margin_))/(width()-2*margin_)*(dist_.max()-dist_.min())+dist_.min();
+				left_splitter_ = DoubleReal(Int(e->x())-Int(margin_))/(width()-2*margin_)*(dist_.max()-dist_.min())+dist_.min();
 				//upper bound
 				if (left_splitter_>right_splitter_-(dist_.max()-dist_.min())/50.0)
 				{
@@ -154,7 +154,7 @@ namespace OpenMS
 			if (moving_splitter_==2)
 			{
 				
-				right_splitter_ = Real(Int(e->x())-Int(margin_))/(width()-2*margin_+2)*(dist_.max()-dist_.min())+dist_.min();
+				right_splitter_ = DoubleReal(Int(e->x())-Int(margin_))/(width()-2*margin_+2)*(dist_.max()-dist_.min())+dist_.min();
 				//upper bound
 				if (right_splitter_<left_splitter_+(dist_.max()-dist_.min())/50.0)
 				{
@@ -234,7 +234,7 @@ namespace OpenMS
 	void HistogramWidget::invalidate_()
 	{
 		//apply log trafo if needed
-		Math::Histogram<UInt,Real> dist(dist_);
+		Math::Histogram<> dist(dist_);
 		if (log_mode_)
 		{
 			dist.applyLogTransformation(100.0);
@@ -256,14 +256,14 @@ namespace OpenMS
 		{
 			if (dist[i]!=0)
 			{
-				UInt bin_pos = UInt((Real(i)/(dist.size()-1))*(w-margin_));
+				UInt bin_pos = UInt((DoubleReal(i)/(dist.size()-1))*(w-margin_));
 				UInt bin_height = UInt(((DoubleReal)dist[i]/dist.maxValue())*(h-margin_));
 				painter.drawLine(bin_pos+1,h,bin_pos+1,h-bin_height);
 			}
 		}
 	
 		//calculate total intensity
-		Real total_sum=0;
+		DoubleReal total_sum=0;
 		for (Size i=0; i<dist.size();++i)
 		{
 			total_sum += dist[i];
@@ -273,11 +273,11 @@ namespace OpenMS
 		painter.setPen(Qt::red);
 		QPoint last_point(1,h);
 		QPoint point;
-		Real int_sum=0;
+		DoubleReal int_sum=0;
 		for (Size i=0; i<dist.size();++i)
 		{
 			int_sum += dist[i];
-			point.setX(UInt((Real(i)/(dist.size()-1))*(w-margin_)));
+			point.setX(UInt((DoubleReal(i)/(dist.size()-1))*(w-margin_)));
 			point.setY(UInt((1-(int_sum / total_sum))*(h-margin_)+margin_));
 			painter.drawLine(last_point,point);
 			last_point=point;

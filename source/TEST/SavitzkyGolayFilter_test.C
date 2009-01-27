@@ -62,10 +62,10 @@ START_SECTION((template <typename InputPeakIterator, typename OutputPeakContaine
   MSSpectrum<Peak1D>::Iterator it = raw.begin();
   for (int i=0; i<5; ++i, ++it)
   {
-  	it->setIntensity(0);
+  	it->setIntensity(0.0f);
     if (i==2)
     {
-      it->setIntensity(1);
+      it->setIntensity(1.0f);
     }
   }
 
@@ -96,18 +96,18 @@ START_SECTION((template <typename PeakType> void filterExperiment(MSExperiment<P
   Peak1D p;
   for (int i=0; i<9; ++i)
   {
-  	p.setIntensity(0.0);
+  	p.setIntensity(0.0f);
     if (i==3)
     {
-  		p.setIntensity(1.0);
+  		p.setIntensity(1.0f);
     }
     if (i==4)
     {
-  		p.setIntensity(0.8);
+  		p.setIntensity(0.8f);
     }
     if (i==5)
     {
-  		p.setIntensity(1.2);
+  		p.setIntensity(1.2f);
     }
     exp[0].push_back(p);
     exp[1].push_back(p);

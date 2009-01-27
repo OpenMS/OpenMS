@@ -183,7 +183,7 @@ namespace OpenMS
 			for (Size r=0; r<rules.size(); ++r)
 			{
 				//Count the number of distince matched terms
-				UInt terms_count = rules[r].getCVTerms().size();
+				Size terms_count = rules[r].getCVTerms().size();
 				UInt match_count = 0;
 				for (Size t=0; t<terms_count; ++t)
 				{

@@ -70,9 +70,9 @@ START_SECTION((virtual void run(const std::vector< ConsensusMap > &maps, std::ve
   PositionType pos1(1,1);
   PositionType pos2(5,5);
   feat1.setPosition(pos1);
-  feat1.setIntensity(100);
+  feat1.setIntensity(100.0f);
   feat2.setPosition(pos2);
-  feat2.setIntensity(100);
+  feat2.setIntensity(100.0f);
   input[0].push_back(feat1);
   input[0].push_back(feat2);
   
@@ -81,9 +81,9 @@ START_SECTION((virtual void run(const std::vector< ConsensusMap > &maps, std::ve
   PositionType pos3(1.4,1.02);
   PositionType pos4(5.4,5.02);
   feat3.setPosition(pos3);
-  feat3.setIntensity(100);
+  feat3.setIntensity(100.0f);
   feat4.setPosition(pos4);
-  feat4.setIntensity(100);
+  feat4.setIntensity(100.0f);
   input[1].push_back(feat3);
   input[1].push_back(feat4);
 

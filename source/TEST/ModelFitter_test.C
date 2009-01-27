@@ -147,7 +147,7 @@ START_SECTION(Feature fit(const ChargedIndexSet& index_set))
 	double mean[2];	mean[MZ] = 676.5; mean[RT] = 1262.5;
 	double stdev[2]; stdev[MZ] = 0.5; stdev[RT] = 0.9;
 
-	double intens[] = { 1.65879841, 6.652431187, 19.59411554, 42.38668296, 67.34288093,
+	float intens[] = { 1.65879841, 6.652431187, 19.59411554, 42.38668296, 67.34288093,
 		78.58007608, 67.34288093, 42.38668296, 19.59411554, 6.652431187, 1.65879841,
 		20.20830161, 81.04320276, 238.7051942, 516.3755092, 820.4042402, 957.3013023,
 		820.4042402, 516.3755092, 238.7051942, 81.04320276, 20.20830161, 90.56732447,
@@ -554,7 +554,7 @@ START_SECTION(([EXTRA]void ExtendedModelFitter::optimize()))
 	std::vector<Peak2D> peak_array2;
 
 	// noise value		
-	double noise = 10;
+	Real noise = 10;
 
 	//String fname2 = "samples2.dta2d";
 	//ofstream file2(fname2.c_str()); 	

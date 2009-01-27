@@ -71,7 +71,7 @@ START_SECTION((virtual void run()))
 		{
 			MSExperiment<>::PeakType peak;
 			peak.setMZ(p);
-			peak.setIntensity(1.0);
+			peak.setIntensity(1.0f);
 			spec.push_back(peak);
 		}
 		input.push_back(spec);
@@ -101,20 +101,20 @@ START_SECTION((virtual void run()))
 		
 	//--------------------------------------------------------------------
 	//TEST WITH ONE BASIN IN THE CENTER
-	input[250][250].setIntensity(4.0);
+	input[250][250].setIntensity(4.0f);
 	input.updateRanges(1);
 	ffaw.setData(input, output, ff);
   ffaw.run();
 	TEST_EQUAL(output.size(),1);
-	TEST_REAL_SIMILAR(output[0].getRT(),250.0);
+	TEST_REAL_SIMILAR(output[0].getRT(),250.0f);
 	TEST_REAL_SIMILAR(output[0].getMZ(),749.5);
 	//MzDataFile().store(String("ff_in_")+test_number,input);
 	//FeatureXMLFile().store(String("ff_out_")+(test_number++),output);
 	
 	//--------------------------------------------------------------------
 	//TEST WITH THREE BASIN IN V-SHAPE
-	input[125][125].setIntensity(2.0);
-	input[125][375].setIntensity(4.0);
+	input[125][125].setIntensity(2.0f);
+	input[125][375].setIntensity(4.0f);
 	input.updateRanges(1);
 	ffaw.setData(input, output, ff);
   ffaw.run();

@@ -186,7 +186,7 @@ START_SECTION((const DateTime& getDateTime() const))
 	TEST_EQUAL(date_time == date, true)
 END_SECTION
 
-START_SECTION((Real getSignificanceThreshold() const))
+START_SECTION((DoubleReal getSignificanceThreshold() const))
 	ProteinIdentification hits;
 	hits.setSignificanceThreshold(protein_significance_threshold);
 	TEST_EQUAL(hits.getSignificanceThreshold(), protein_significance_threshold)	
@@ -213,7 +213,7 @@ START_SECTION((void setDateTime(const DateTime& date)))
 	TEST_EQUAL(hits.getDateTime() == date, true)
 END_SECTION
 
-START_SECTION((void setSignificanceThreshold(Real value)))
+START_SECTION((void setSignificanceThreshold(DoubleReal value)))
 	ProteinIdentification hits;
 	hits.setSignificanceThreshold(protein_significance_threshold);
 	TEST_EQUAL(hits.getSignificanceThreshold(), protein_significance_threshold)

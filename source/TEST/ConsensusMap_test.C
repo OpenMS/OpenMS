@@ -109,27 +109,27 @@ END_SECTION
 Feature feature1;
 feature1.getPosition()[0] = 2.0;
 feature1.getPosition()[1] = 3.0;
-feature1.setIntensity(1.0);
+feature1.setIntensity(1.0f);
 
 Feature feature2;
 feature2.getPosition()[0] = 0.0;
 feature2.getPosition()[1] = 2.5;
-feature2.setIntensity(0.5);
+feature2.setIntensity(0.5f);
 
 Feature feature3;
 feature3.getPosition()[0] = 10.5;
 feature3.getPosition()[1] = 0.0;
-feature3.setIntensity(0.01);
+feature3.setIntensity(0.01f);
 
 Feature feature4;
 feature4.getPosition()[0] = 5.25;
 feature4.getPosition()[1] = 1.5;
-feature4.setIntensity(0.5);
+feature4.setIntensity(0.5f);
 
 START_SECTION((void updateRanges()))
   ConsensusMap map;
 	ConsensusFeature f;
-	f.setIntensity(1.0);
+	f.setIntensity(1.0f);
 	f.setRT(2.0);
 	f.setMZ(3.0);
 	f.insert(1,1,feature1);

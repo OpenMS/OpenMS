@@ -71,8 +71,8 @@ namespace OpenMS
 			/// Internal respresentation of (resampled) data points
       struct GridPoint
       {
-        UInt spectrum;
-        UInt peak;
+        Size spectrum;
+        Size peak;
         UInt intensity;
         UInt distance;
         Int flag;

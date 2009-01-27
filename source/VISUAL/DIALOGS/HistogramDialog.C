@@ -36,7 +36,7 @@ namespace OpenMS
 {
 	using namespace Math;
 	
-	HistogramDialog::HistogramDialog(const Histogram<UInt,Real>& distribution, QWidget* parent) 
+	HistogramDialog::HistogramDialog(const Histogram<>& distribution, QWidget* parent) 
 		: QDialog(parent)
 	{ 	
 		setWindowTitle("Intensity Distribution");

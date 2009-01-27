@@ -198,7 +198,7 @@ START_SECTION(([EXTRA]void fillIntensity(PeakType& peak) const))
 	const TestModel t;
   TestModel::PeakType p;
   p.getPosition()[0]=0.1;
-  p.setIntensity(0.1);
+  p.setIntensity(0.1f);
   t.fillIntensity(p);
   TEST_REAL_SIMILAR(p.getIntensity(), 0.3)
 END_SECTION

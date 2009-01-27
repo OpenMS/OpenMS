@@ -105,7 +105,7 @@ class TOPPFFEVal
 	}
 	
 	/// Returns the total number and percentage in parentheses
-	String percentage(UInt count, UInt size)
+	String percentage(UInt count, Size size)
 	{
 		return String(" (") + String::number(100.0*count/size,2) + "%)";
 	}

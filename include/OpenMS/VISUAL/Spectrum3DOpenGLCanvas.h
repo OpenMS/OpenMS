@@ -121,7 +121,7 @@ namespace OpenMS
 			double scaledIntensity(double intensity,int layer_index);
 	
 			/// recalculates the dot gradient inerpolation values.
-			void recalculateDotGradient_(UInt layer);
+			void recalculateDotGradient_(Size layer);
 			///calculate the ticks for the gridlines
 			void calculateGridLines_();
 		

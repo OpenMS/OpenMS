@@ -176,7 +176,7 @@ int main( int argc, const char** argv )
 	
 	//create histogram	
 	if (verbose) cout << "Creating histogram:" << endl;
-	Histogram<UInt,Real> hist(min,max,bin_size);
+	Histogram<> hist(min,max,bin_size);
 	for (Size i=0; i<input_data.size(); ++i)
 	{
 		if (input_data[i]>=min && input_data[i]<=max)

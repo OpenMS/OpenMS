@@ -80,7 +80,7 @@ class RM
 			
 			tmp.getPosition()[0] = 2.0;
 			tmp.getPosition()[1] = 500.0;
-			tmp.setIntensity(1.0);
+			tmp.setIntensity(1.0f);
 			vec.push_back(tmp);
 			
 			tmp.getPosition()[0] = 100.0;
@@ -90,7 +90,7 @@ class RM
 
 			tmp.getPosition()[0] = 2.0;
 			tmp.getPosition()[1] = 500.0;
-			tmp.setIntensity(1.0);
+			tmp.setIntensity(1.0f);
 			vec.push_back(tmp);
 			
 			clearRanges();
@@ -104,7 +104,7 @@ class RM
 			
 			tmp.getPosition()[0] = 2.0;
 			tmp.getPosition()[1] = 500.0;
-			tmp.setIntensity(1.0);
+			tmp.setIntensity(1.0f);
 			vec.push_back(tmp);
 			
 			clearRanges();

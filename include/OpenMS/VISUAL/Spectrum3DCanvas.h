@@ -115,7 +115,7 @@ namespace OpenMS
 			bool legend_shown_;
 
 			//docu in base class
-			virtual void updateLayer_(UInt i);
+			virtual void updateLayer_(Size i);
       //docu in base class
 			virtual void translateLeft_();
 			//docu in base class

@@ -134,7 +134,7 @@ END_SECTION
 START_SECTION((double operator[](unsigned int i)))
   std::vector<Peak1D > signal;
   Peak1D rp;
-  rp.setIntensity(100);
+  rp.setIntensity(100.0f);
   signal.push_back(rp);
   
   ContinuousWaveletTransform cwt;

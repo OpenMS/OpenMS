@@ -78,13 +78,13 @@ START_SECTION((virtual void group(const std::vector< FeatureMap<> > &maps, Conse
 	in[0][0].setMZ(1.0f);
 	in[0][0].setCharge(1);
 	in[0][0].setOverallQuality(1);
-	in[0][0].setIntensity(4.0);
+	in[0][0].setIntensity(4.0f);
 	//best
 	in[0][1].setRT(1.5f);
 	in[0][1].setMZ(5.0f);
 	in[0][1].setCharge(1);
 	in[0][1].setOverallQuality(1);
-	in[0][1].setIntensity(2.0);
+	in[0][1].setIntensity(2.0f);
 	//inside (down, up, left, right)
 	in[0][2].setRT(1.0f);
 	in[0][2].setMZ(5.0f);

@@ -147,7 +147,7 @@ START_SECTION((bool operator != (const PeptideIdentification& rhs) const))
 END_SECTION
 
 
-START_SECTION((Real getSignificanceThreshold() const))
+START_SECTION((DoubleReal getSignificanceThreshold() const))
 	PeptideIdentification hits;
 	hits.setSignificanceThreshold(peptide_significance_threshold);
 	TEST_EQUAL(hits.getSignificanceThreshold(), peptide_significance_threshold)
@@ -173,7 +173,7 @@ START_SECTION((void setHits(const std::vector< PeptideHit > &hits)))
 	TEST_EQUAL(hits.getHits() == peptide_hits, true)
 END_SECTION
 
-START_SECTION((void setSignificanceThreshold(Real value)))
+START_SECTION((void setSignificanceThreshold(DoubleReal value)))
 	PeptideIdentification hits;
 	hits.setSignificanceThreshold(peptide_significance_threshold);
 	TEST_EQUAL(hits.getSignificanceThreshold(), peptide_significance_threshold)

@@ -515,7 +515,7 @@ namespace OpenMS
 		
 		//reference to the current data
 		SpectrumType& spectrum = getCurrentLayer_().getCurrentSpectrum();
-		UInt spectrum_index = (UInt)getCurrentLayer_().current_spectrum;
+		Size spectrum_index = getCurrentLayer_().current_spectrum;
 		
 		// get the interval (in diagramm metric) that will be projected on screen coordinate p.x() or p.y() (depending on orientation)
 		PointType lt = widgetToData(p - QPoint(1, 1), true);
@@ -880,7 +880,7 @@ namespace OpenMS
 
 	}
 	
-	void Spectrum1DCanvas::drawHighlightedPeak_(UInt layer_index, const PeakIndex& peak, QPainter& painter, bool draw_elongation)
+	void Spectrum1DCanvas::drawHighlightedPeak_(Size layer_index, const PeakIndex& peak, QPainter& painter, bool draw_elongation)
 	{
 		if (peak.isValid())
 		{
@@ -1100,7 +1100,7 @@ namespace OpenMS
   	if (intensity_mode_ == IM_SNAP) 
 		{
 			double local_max  = -numeric_limits<double>::max();
-			for (UInt i=0; i<getLayerCount();++i)
+			for (Size i=0; i<getLayerCount();++i)
 			{
 				SpectrumIteratorType tmp  = max_element(getLayer_(i).getCurrentSpectrum().MZBegin(visible_area_.minX()), getLayer_(i).getCurrentSpectrum().MZEnd(visible_area_.maxX()), PeakType::IntensityLess());
 				if (tmp->getIntensity() > local_max) 
@@ -1384,7 +1384,7 @@ namespace OpenMS
 		return if_this_variable_is_true_then_there_are_flipped_layers_otherwise_not;
 	}
 
-	void Spectrum1DCanvas::updateLayer_(UInt i)
+	void Spectrum1DCanvas::updateLayer_(Size i)
 	{
 		LayerData& layer = getLayer_(i);
 		try
@@ -1563,7 +1563,7 @@ namespace OpenMS
 		painter.restore();
 	}
 	
-	void Spectrum1DCanvas::performAlignment(UInt layer_index_1, UInt layer_index_2, const Param& param)
+	void Spectrum1DCanvas::performAlignment(Size layer_index_1, Size layer_index_2, const Param& param)
 	{
 		alignment_.clear();
 		if (layer_index_1 >= getLayerCount() || layer_index_2 >= getLayerCount())
@@ -1646,7 +1646,7 @@ namespace OpenMS
 	
 	void Spectrum1DCanvas::ensureAnnotationsWithinDataRange_()
 	{
-		for (UInt i = 0; i < getLayerCount(); ++i)
+		for (Size i = 0; i < getLayerCount(); ++i)
 		{
 			if (intensity_mode_==IM_PERCENTAGE)
 			{
@@ -1664,7 +1664,7 @@ namespace OpenMS
 		}
 	}
 	
-	void Spectrum1DCanvas::flipLayer(UInt index)
+	void Spectrum1DCanvas::flipLayer(Size index)
 	{
 		if (index < getLayerCount())
 		{

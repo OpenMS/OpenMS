@@ -67,7 +67,7 @@ END_SECTION
 
 START_SECTION((void setIntensity(IntensityType intensity)))
 	Peak1D p;
- 	p.setIntensity(17.8);
+ 	p.setIntensity(17.8f);
  	TEST_REAL_SIMILAR(p.getIntensity(), 17.8)
 END_SECTION
 
@@ -103,7 +103,7 @@ START_SECTION((Peak1D(const Peak1D& p)))
 	Peak1D::PositionType pos;
 	pos[0] = 21.21;
 	Peak1D p;
-	p.setIntensity(123.456);
+	p.setIntensity(123.456f);
 	p.setPosition(pos);
 	Peak1D::PositionType pos2;
 	Peak1D::IntensityType i2;
@@ -121,7 +121,7 @@ START_SECTION((Peak1D& operator = (const Peak1D& rhs)))
 	Peak1D::PositionType pos;
 	pos[0] = 21.21;
 	Peak1D p;
-	p.setIntensity(123.456);
+	p.setIntensity(123.456f);
 	p.setPosition(pos);
 	Peak1D::PositionType pos2;
 	Peak1D::IntensityType i2;
@@ -141,9 +141,9 @@ START_SECTION((bool operator == (const Peak1D& rhs) const))
 	Peak1D p2(p1);
 	TEST_EQUAL(p1==p2, true)
 	
-	p1.setIntensity(5);
+	p1.setIntensity(5.0f);
 	TEST_EQUAL(p1==p2, false)
-	p2.setIntensity(5);
+	p2.setIntensity(5.0f);
 	TEST_EQUAL(p1==p2, true)
 	
 	p1.getPosition()[0]=5;
@@ -157,9 +157,9 @@ START_SECTION((bool operator != (const Peak1D& rhs) const))
 	Peak1D p2(p1);
 	TEST_EQUAL(p1!=p2, false)
 	
-	p1.setIntensity(5);
+	p1.setIntensity(5.0f);
 	TEST_EQUAL(p1!=p2, true)
-	p2.setIntensity(5);
+	p2.setIntensity(5.0f);
 	TEST_EQUAL(p1!=p2, false)
 	
 	p1.getPosition()[0]=5;
@@ -191,13 +191,13 @@ START_SECTION([EXTRA] struct IntensityLess)
 	std::vector<Peak1D > v;
 	Peak1D p;
 	
-	p.setIntensity(2.5);
+	p.setIntensity(2.5f);
 	v.push_back(p);
 
-	p.setIntensity(3.5);
+	p.setIntensity(3.5f);
 	v.push_back(p);
 
-	p.setIntensity(1.5);
+	p.setIntensity(1.5f);
 	v.push_back(p);
 	
 	std::sort(v.begin(), v.end(), Peak1D::IntensityLess());

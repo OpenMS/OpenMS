@@ -61,9 +61,9 @@ namespace OpenMS
 			// Docu in base class
 			virtual void recalculateAxes_();
 			// Docu in base class
-			virtual Math::Histogram<UInt, Real> createIntensityDistribution_() const;
+			virtual Math::Histogram<> createIntensityDistribution_() const;
 			// Docu in base class
-			virtual Math::Histogram<UInt, Real> createMetaDistribution_(const String& name) const;
+			virtual Math::Histogram<> createMetaDistribution_(const String& name) const;
 			
 			//docu in base class
 			bool isLegendShown() const;

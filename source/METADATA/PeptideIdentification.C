@@ -107,12 +107,12 @@ namespace OpenMS {
   	hits_ = hits;
   }
 
-  Real PeptideIdentification::getSignificanceThreshold() const
+  DoubleReal PeptideIdentification::getSignificanceThreshold() const
   {
   	return significance_threshold_;
   }
 
-	void PeptideIdentification::setSignificanceThreshold(Real value)
+	void PeptideIdentification::setSignificanceThreshold(DoubleReal value)
 	{
 		significance_threshold_ = value;
 	}

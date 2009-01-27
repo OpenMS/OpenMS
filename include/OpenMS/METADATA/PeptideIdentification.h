@@ -84,9 +84,9 @@ namespace OpenMS
 	    void setHits(const std::vector<PeptideHit>& hits);
 	    
 			/// returns the peptide significance threshold value
-	    Real getSignificanceThreshold() const;
+	    DoubleReal getSignificanceThreshold() const;
 			/// setting of the peptide significance threshold value
-			void setSignificanceThreshold(Real value);
+			void setSignificanceThreshold(DoubleReal value);
 	   
 	    /// returns the peptide score type
 	    String getScoreType() const;   
@@ -129,7 +129,7 @@ namespace OpenMS
 	  protected:
 			String id_;													 ///< Identifier by which ProteinIdentification and PeptideIdentification are matched
 	    std::vector<PeptideHit> hits_; 			 ///< A list containing the peptide hits
-	    Real significance_threshold_;   		 ///< the peptide significance threshold
+	    DoubleReal significance_threshold_;   		 ///< the peptide significance threshold
 	    String score_type_;									 ///< The score type (Mascot, Sequest, e-value, p-value) 
 	    bool higher_score_better_; 					 ///< The score orientation
   };

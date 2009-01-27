@@ -498,7 +498,7 @@ namespace OpenMS
 
 			@exception Exception::Precondition is thrown if the spectrum is empty (not only in debug mode)
 		*/
-		SignedSize findNearest(CoordinateType mz) const
+		Size findNearest(CoordinateType mz) const
 		{
 			//no peak => no search
 			if (ContainerType::size()==0) throw Exception::Precondition(__FILE__,__LINE__,__PRETTY_FUNCTION__,"There must be at least one peak to determine the nearest peak!");
@@ -513,11 +513,11 @@ namespace OpenMS
 			--it2;
 			if (std::fabs(it->getMZ()-mz)<std::fabs(it2->getMZ()-mz))
 			{
-				return it - ContainerType::begin();
+				return Size(it - ContainerType::begin());
 			}
 			else
 			{
-				return it2 - ContainerType::begin();
+				return Size(it2 - ContainerType::begin());
 			}
 		}
 		/**

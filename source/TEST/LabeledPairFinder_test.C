@@ -71,13 +71,13 @@ features[0].setRT(1.0f);
 features[0].setMZ(1.0f);
 features[0].setCharge(1);
 features[0].setOverallQuality(1);
-features[0].setIntensity(4.0);
+features[0].setIntensity(4.0f);
 //best
 features[1].setRT(1.5f);
 features[1].setMZ(5.0f);
 features[1].setCharge(1);
 features[1].setOverallQuality(1);
-features[1].setIntensity(2.0);
+features[1].setIntensity(2.0f);
 //inside (down, up, left, right)
 features[2].setRT(1.0f);
 features[2].setMZ(5.0f);

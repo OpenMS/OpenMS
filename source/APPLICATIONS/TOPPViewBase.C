@@ -971,7 +971,7 @@ namespace OpenMS
 		{
 			if (i < (UInt)(recent_files_.size()))
 			{
-				recent_actions_[i]->setText(recent_files_[i]);
+				recent_actions_[i]->setText(recent_files_[(int)i]);
 				recent_actions_[i]->setVisible(true);
 			}
 			else
@@ -1382,8 +1382,8 @@ namespace OpenMS
 					}
 					else if (cl.peaks[i].getMSLevel() < cl.peaks[i-1].getMSLevel())
 					{
-						int level_diff = cl.peaks[i-1].getMSLevel() - cl.peaks[i].getMSLevel();
-						int parent_index = 0;
+						Int level_diff = cl.peaks[i-1].getMSLevel() - cl.peaks[i].getMSLevel();
+						Size parent_index = 0;
 						QTreeWidgetItem* parent = 0;
 						if (parent_stack.size() - level_diff >= 2)
 						{

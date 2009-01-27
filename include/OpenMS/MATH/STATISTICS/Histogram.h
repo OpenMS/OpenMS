@@ -52,7 +52,7 @@ namespace OpenMS
 			
 			@ingroup Math
 		*/
-		template<typename ValueType=UInt, typename BinSizeType=Real>
+		template<typename ValueType=UInt, typename BinSizeType=DoubleReal>
 		class OPENMS_DLLAPI Histogram
 		{
 		 public:
@@ -99,7 +99,7 @@ namespace OpenMS
 					// if max_ == min_ there is only one bin
 					if (max_ != min_)
 					{
-						bins_ = std::vector<ValueType>(UInt(ceil((double(max_)-double(min_))/double(bin_size_))),0);
+						bins_ = std::vector<ValueType>(Size(ceil((double(max_)-double(min_))/double(bin_size_))),0);
 					}
 					else
 					{
@@ -169,7 +169,7 @@ namespace OpenMS
 
 			  @exception Exception::IndexOverflow is thrown for invalid indices
 			*/
-			BinSizeType centerOfBin(UInt bin_index) const
+			BinSizeType centerOfBin(Size bin_index) const
 			{
 				if (bin_index >= bins_.size())
 				{
@@ -217,7 +217,7 @@ namespace OpenMS
 					bin_size_ = bin_size;
 					
 					bins_.clear();
-					bins_.resize(UInt(ceil((max_-min_)/bin_size_)),0);
+					bins_.resize(Size(ceil((max_-min_)/bin_size_)),0);
 				}
 			}
 	
@@ -286,7 +286,7 @@ namespace OpenMS
 
 			  @exception Exception::OutOfRange is thrown if the value is out of valid range
 			*/
-			UInt valToBin_(BinSizeType val) const
+			Size valToBin_(BinSizeType val) const
 			{
 				//std::cout << "val: " << val << " (min: " << min_ << " max: " << max_ << ")" << std::endl;
 				if (val < min_ || val > max_)
@@ -295,11 +295,11 @@ namespace OpenMS
 				}
 				if (val == max_)
 				{
-					return UInt(bins_.size()-1);
+					return Size(bins_.size()-1);
 				}
 				else
 				{
-					return (UInt) floor ( (double(val)-double(min_)) / (double(max_)-double(min_)) * bins_.size() );
+					return (Size) floor ( (double(val)-double(min_)) / (double(max_)-double(min_)) * bins_.size() );
 				}				
 			}
 		};

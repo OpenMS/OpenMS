@@ -237,7 +237,7 @@ END_SECTION
 
 ///construct some test features
 Feature feature_1;
-feature_1.setIntensity(1000.00);
+feature_1.setIntensity(1000.00f);
 feature_1.setCharge(4);
 feature_1.setOverallQuality(31.3334);
 feature_1.setMetaValue(String("test_int"), 5);
@@ -245,7 +245,7 @@ feature_1.setMetaValue(String("test_double"), 23.42);
 feature_1.setMetaValue(String("test_string"), String("hello world 1"));
 
 Feature feature_2;
-feature_2.setIntensity(122.01);
+feature_2.setIntensity(122.01f);
 feature_2.setCharge(3);
 feature_2.setOverallQuality(0.002);
 feature_2.setMetaValue(String("test_int"), 10);
@@ -253,7 +253,7 @@ feature_2.setMetaValue(String("test_double"), 0.042);
 feature_2.setMetaValue(String("test_string"), String("hello world 2"));
 
 Feature feature_3;
-feature_3.setIntensity(55.0);
+feature_3.setIntensity(55.0f);
 feature_3.setCharge(4);
 feature_3.setOverallQuality(1);
 feature_3.setMetaValue(String("test_int"), 0);
@@ -262,28 +262,28 @@ feature_3.setMetaValue(String("test_string"), String("hello world 3"));
 
 ///construct some test consensus features
 ConsensusFeature c_feature_1;
-c_feature_1.setIntensity(1000.00);
+c_feature_1.setIntensity(1000.00f);
 c_feature_1.setCharge(4);
 c_feature_1.setQuality(31.3334);
 
 ConsensusFeature c_feature_2;
-c_feature_2.setIntensity(122.01);
+c_feature_2.setIntensity(122.01f);
 c_feature_2.setCharge(3);
 c_feature_2.setQuality(0.002);
 
 ConsensusFeature c_feature_3;
-c_feature_3.setIntensity(55.0);
+c_feature_3.setIntensity(55.0f);
 c_feature_3.setCharge(4);
 c_feature_3.setQuality(1);
 
 ///construct some test peaks
 MSSpectrum<Peak1D> spec;
 Peak1D peak;
-peak.setIntensity(201.334);
+peak.setIntensity(201.334f);
 spec.push_back(peak);
-peak.setIntensity(2008.2);
+peak.setIntensity(2008.2f);
 spec.push_back(peak);
-peak.setIntensity(0.001);
+peak.setIntensity(0.001f);
 spec.push_back(peak);
 
 MSSpectrum<Peak1D>::MetaDataArrays& mdas = spec.getMetaDataArrays();
@@ -297,9 +297,9 @@ mdas[0][2] = 0;
 
 mdas[1].setName("test_double");
 mdas[1].resize(3);
-mdas[1][0] =  23.42;
-mdas[1][1] = 0.000;
-mdas[1][2] = 100.01;
+mdas[1][0] =  23.42f;
+mdas[1][1] = 0.0f;
+mdas[1][2] = 100.01f;
 
 mdas[2].setName("test_dummy");
 mdas[2].resize(3);

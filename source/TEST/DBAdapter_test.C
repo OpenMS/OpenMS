@@ -265,15 +265,15 @@ END_SECTION
 		// MS spectrum
 		RichPeakMap::SpectrumType spec;
 		RichPeakMap::SpectrumType::PeakType p;
-		p.setIntensity(565);
+		p.setIntensity(565.0f);
 		p.getPosition()[0] = 600.1;
 		p.setMetaValue("label", String("peaklabel"));
 		spec.push_back(p);
-		p.setIntensity(620);
+		p.setIntensity(620.0f);
 		p.getPosition()[0] = 700.1;
 		p.removeMetaValue("label");
 		spec.push_back(p);
-		p.setIntensity(701);
+		p.setIntensity(701.0f);
 		p.getPosition()[0] = 800.1;
 		spec.push_back(p);
 		spec.setRT(1.98);
@@ -299,12 +299,12 @@ END_SECTION
 		meta_data_array.setName ("icon");
 		meta_data_array.setComment ("little icon with colors and stuff");
 		meta_data_array.setMetaValue ("icon", String("an icon is an icon is an icon"));
-		meta_data_array.push_back(3.14);
-		meta_data_array.push_back(3.1);
-		meta_data_array.push_back(3);
+		meta_data_array.push_back(3.14f);
+		meta_data_array.push_back(3.1f);
+		meta_data_array.push_back(3.0f);
 		source_file.setNameOfFile("this is the filename");
 		source_file.setPathToFile("/slashdot/");
-		source_file.setFileSize(1.234);
+		source_file.setFileSize(1.234f);
 		source_file.setFileType("RAWDATA");
 		source_file.setChecksum("6132b58967cf1ebc05062492c17145e5ee9f82a8",SourceFile::SHA1);
 		meta_data_array.setSourceFile(source_file);
@@ -355,19 +355,19 @@ END_SECTION
 			
 		//MSMS spectrum
 		spec.clear();
-		p.setIntensity(210);
+		p.setIntensity(210.0f);
 		p.getPosition()[0] = 100.155;
 		spec.push_back(p);
-		p.setIntensity(101);
+		p.setIntensity(101.0f);
 		p.getPosition()[0] = 150.25;
 		spec.push_back(p);
-		p.setIntensity(90);
+		p.setIntensity(90.0f);
 		p.getPosition()[0] = 300.5;
 		spec.push_back(p);
 		spec.setRT(3.96);
 		spec.setMSLevel(2);
 		spec.getPrecursorPeak().getPosition()[0] = 600.1;
-		spec.getPrecursorPeak().setIntensity(4711);
+		spec.getPrecursorPeak().setIntensity(4711.0f);
 		spec.getPrecursorPeak().setCharge(2);
 		spec.getPrecursor().setMetaValue("icon",String("Precursor"));
 		spec.getPrecursor().setWindowSize(0.1456);
@@ -397,13 +397,13 @@ END_SECTION
 		MSSpectrum<Peak1D> spec_peak1d;
 		Peak1D peak1d;
 		
-		peak1d.setIntensity(565);
+		peak1d.setIntensity(565.0f);
 		peak1d.getPosition()[0] = 600.1;
 		spec_peak1d.push_back(peak1d);
-		peak1d.setIntensity(620);
+		peak1d.setIntensity(620.0f);
 		peak1d.getPosition()[0] = 700.1;
 		spec_peak1d.push_back(peak1d);
-		peak1d.setIntensity(701);
+		peak1d.setIntensity(701.0f);
 		peak1d.getPosition()[0] = 800.1;
 		spec_peak1d.push_back(peak1d);
 		spec_peak1d.setRT(1.98);
@@ -698,11 +698,11 @@ END_SECTION
 	
 			// modify first spectrum
 			RichPeakMap::SpectrumType & modified_spec = exp_original[0];
-			modified_spec[0].setIntensity(566);
+			modified_spec[0].setIntensity(566.0f);
 			modified_spec[0].getPosition()[0] = 612.1;
-			modified_spec[1].setIntensity(620);
+			modified_spec[1].setIntensity(620.0f);
 			modified_spec[1].getPosition()[0] = 712.1;
-			modified_spec[2].setIntensity(701);
+			modified_spec[2].setIntensity(701.0f);
 			modified_spec[2].getPosition()[0] = 812.1;
 			modified_spec.setRT(1.88);
 			modified_spec.setMSLevel(1);
@@ -728,14 +728,14 @@ END_SECTION
 			meta_data_array.setComment ("This represents some artful kind of label.");
 			meta_data_array.setName ("icon");
 			meta_data_array.setComment ("little icon with colors and stuff");
-			meta_data_array.push_back(23);
-			meta_data_array.push_back(42);
-			meta_data_array.push_back(100.001);
+			meta_data_array.push_back(23.0f);
+			meta_data_array.push_back(42.0f);
+			meta_data_array.push_back(100.001f);
 			// setting a source file
 			SourceFile source_file;
 			source_file.setNameOfFile("this is the filename");
 			source_file.setPathToFile("/slashdot/");
-			source_file.setFileSize(1.234);
+			source_file.setFileSize(1.234f);
 			source_file.setFileType("RAWDATA");
 			meta_data_array.setSourceFile(source_file);
 			

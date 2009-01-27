@@ -185,7 +185,7 @@ namespace OpenMS
 		return PeakIndex();
 	}
 
-	void Spectrum2DCanvas::paintDots_(UInt layer_index, QPainter& painter)
+	void Spectrum2DCanvas::paintDots_(Size layer_index, QPainter& painter)
 	{
 #ifdef TIMING_TOPPVIEW
 		QTime timer;
@@ -393,7 +393,7 @@ namespace OpenMS
 #endif
 	}
 
-	void Spectrum2DCanvas::paintTraceConvexHulls_(UInt layer_index, QPainter& painter)
+	void Spectrum2DCanvas::paintTraceConvexHulls_(Size layer_index, QPainter& painter)
 	{
 		painter.setPen(Qt::black);
 
@@ -412,7 +412,7 @@ namespace OpenMS
 		}
 	}
 
-	void Spectrum2DCanvas::paintFeatureConvexHulls_(UInt layer_index, QPainter& painter)
+	void Spectrum2DCanvas::paintFeatureConvexHulls_(Size layer_index, QPainter& painter)
 	{
 		painter.setPen(Qt::black);
 		const LayerData& layer = getLayer(layer_index);
@@ -427,7 +427,7 @@ namespace OpenMS
 				//paint hull points
 				ConvexHull2D hull = i->getConvexHull();
 				QPolygon points;
-				points.resize(hull.getPoints().size());
+				points.resize((int)hull.getPoints().size());
 
 				UInt index=0;
 				QPoint pos;
@@ -450,7 +450,7 @@ namespace OpenMS
 		//iterate over all convex hulls
 		for (Size hull=0; hull<hulls.size(); ++hull)
 		{
-			points.resize(hulls[hull].getPoints().size());
+			points.resize((int)hulls[hull].getPoints().size());
 			UInt index=0;
 			QPoint pos;
 			//iterate over hull points
@@ -464,7 +464,7 @@ namespace OpenMS
 		}
   }
 
-	void Spectrum2DCanvas::paintConsensusElements_(UInt layer_index, QPainter& p)
+	void Spectrum2DCanvas::paintConsensusElements_(Size layer_index, QPainter& p)
 	{
 		const LayerData& layer = getLayer(layer_index);
 
@@ -474,7 +474,7 @@ namespace OpenMS
 		}
 	}
 
-	void Spectrum2DCanvas::paintConsensusElement_(UInt layer_index, const ConsensusFeature& cf, QPainter& p, bool use_buffer)
+	void Spectrum2DCanvas::paintConsensusElement_(Size layer_index, const ConsensusFeature& cf, QPainter& p, bool use_buffer)
 	{
 		Int image_width = buffer_.width();
 		Int image_height = buffer_.height();
@@ -521,7 +521,7 @@ namespace OpenMS
 	}
 
 
-	bool Spectrum2DCanvas::isConsensusFeatureVisible_(const ConsensusFeature& ce, UInt layer_index)
+	bool Spectrum2DCanvas::isConsensusFeatureVisible_(const ConsensusFeature& ce, Size layer_index)
 	{
 		// check the centroid first
 		if (ce.getRT() >= visible_area_.min()[1] &&
@@ -559,7 +559,7 @@ namespace OpenMS
 		SpectrumCanvas::intensityModeChange_();
 	}
 
-	void Spectrum2DCanvas::recalculateDotGradient_(UInt layer)
+	void Spectrum2DCanvas::recalculateDotGradient_(Size layer)
 	{
 		getLayer_(layer).gradient.fromString(getLayer_(layer).param.getValue("dot:gradient"));
 		getLayer_(layer).gradient.activatePrecalculationMode(getMinIntensity(layer), overall_data_range_.max()[2], param_.getValue("interpolation_steps"));
@@ -573,7 +573,7 @@ namespace OpenMS
 		{
 			UInt peak_layer_count = 0;
 			Int last_peak_layer = 0;
-			for (UInt i=0; i<getLayerCount(); ++i)
+			for (Size i=0; i<getLayerCount(); ++i)
 			{
 				if (getLayer(i).type==LayerData::DT_PEAK)
 				{
@@ -655,7 +655,7 @@ namespace OpenMS
 		projection_rt_[0][1].setMZ(visible_area_.max()[1]);
 		projection_rt_[0][1].setIntensity(0.0);
 
-		UInt i = 2;
+		Size i = 2;
 		map<int,float>::iterator intit = mzint.begin();
 		map<int,int>::iterator cit = mzcount.begin();
 
@@ -1797,7 +1797,7 @@ namespace OpenMS
 	  }
 	}
 
-	void Spectrum2DCanvas::updateLayer_(UInt i)
+	void Spectrum2DCanvas::updateLayer_(Size i)
 	{
 		LayerData& layer = getLayer_(i);
 
@@ -1989,7 +1989,7 @@ namespace OpenMS
 		}
 	}
 
-	void Spectrum2DCanvas::mergeIntoLayer(UInt i, FeatureMapType& map)
+	void Spectrum2DCanvas::mergeIntoLayer(Size i, FeatureMapType& map)
 	{
 		OPENMS_PRECONDITION(i < layers_.size(), "Spectrum2DCanvas::mergeIntoLayer(i, map) index overflow");
 		OPENMS_PRECONDITION(layers_[i].type==LayerData::DT_FEATURE, "Spectrum2DCanvas::mergeIntoLayer(i, map) non-feature layer selected");
@@ -2017,7 +2017,7 @@ namespace OpenMS
 		}
 	}
 
-	void Spectrum2DCanvas::mergeIntoLayer(UInt i, ConsensusMapType& map)
+	void Spectrum2DCanvas::mergeIntoLayer(Size i, ConsensusMapType& map)
 	{
 		OPENMS_PRECONDITION(i < layers_.size(), "Spectrum2DCanvas::mergeIntoLayer(i, map) index overflow");
 		OPENMS_PRECONDITION(layers_[i].type==LayerData::DT_CONSENSUS, "Spectrum2DCanvas::mergeIntoLayer(i, map) non-consensus-feature layer selected");

@@ -186,19 +186,19 @@ START_SECTION((bool operator()(const PeakType& p) const))
 	InIntensityRange<Peak1D > r(5.0,10.0,false);
 	InIntensityRange<Peak1D > r2(5.0,10.0,true);
 	Peak1D p;
-	p.setIntensity(4.9);
+	p.setIntensity(4.9f);
 	TEST_EQUAL(r(p), false);
 	TEST_EQUAL(r2(p), true);
-	p.setIntensity(5.0);
+	p.setIntensity(5.0f);
 	TEST_EQUAL(r(p), true);
 	TEST_EQUAL(r2(p), false);
-	p.setIntensity(7.5);
+	p.setIntensity(7.5f);
 	TEST_EQUAL(r(p), true);
 	TEST_EQUAL(r2(p), false);
-	p.setIntensity(10.0);
+	p.setIntensity(10.0f);
 	TEST_EQUAL(r(p), true);
 	TEST_EQUAL(r2(p), false);
-	p.setIntensity(10.1);
+	p.setIntensity(10.1f);
 	TEST_EQUAL(r(p), false);
 	TEST_EQUAL(r2(p), true);	
 END_SECTION

@@ -99,9 +99,9 @@ namespace OpenMS
 
 	protected:
 		// Docu in base class
-		virtual Math::Histogram<UInt, Real> createIntensityDistribution_() const;
+		virtual Math::Histogram<> createIntensityDistribution_() const;
 		// Docu in base class
-		virtual Math::Histogram<UInt, Real> createMetaDistribution_(const String& name) const;
+		virtual Math::Histogram<> createMetaDistribution_(const String& name) const;
 		
 		/// Vertical projection widget
 		Spectrum1DWidget* projection_vert_;

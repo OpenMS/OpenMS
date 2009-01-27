@@ -33,7 +33,7 @@
 using namespace OpenMS;
 using namespace std;
 
-DRange<1> makeRange(Real a, Real b)
+DRange<1> makeRange(DoubleReal a, DoubleReal b)
 {
 	DPosition<1> pa(a), pb(b);
 	return DRange<1>(pa, pb);
@@ -655,23 +655,23 @@ START_SECTION([EXTRA] storing/loading of meta data arrays)
 	MSExperiment<> exp;
 	MSSpectrum<> spec;
 	spec.resize(5);
-	spec[0].setIntensity(1.0); spec[0].setMZ(1.0);
-	spec[1].setIntensity(2.0); spec[1].setMZ(2.0);
-	spec[2].setIntensity(3.0); spec[2].setMZ(3.0);
-	spec[3].setIntensity(4.0); spec[3].setMZ(4.0);
-	spec[4].setIntensity(5.0); spec[4].setMZ(5.0);
+	spec[0].setIntensity(1.0f); spec[0].setMZ(1.0);
+	spec[1].setIntensity(2.0f); spec[1].setMZ(2.0);
+	spec[2].setIntensity(3.0f); spec[2].setMZ(3.0);
+	spec[3].setIntensity(4.0f); spec[3].setMZ(4.0);
+	spec[4].setIntensity(5.0f); spec[4].setMZ(5.0);
 	MSSpectrum<>::MetaDataArray mda1;
-	mda1.push_back(1.1);
-	mda1.push_back(1.2);
-	mda1.push_back(1.3);
-	mda1.push_back(1.4);
-	mda1.push_back(1.5);
+	mda1.push_back(1.1f);
+	mda1.push_back(1.2f);
+	mda1.push_back(1.3f);
+	mda1.push_back(1.4f);
+	mda1.push_back(1.5f);
 	MSSpectrum<>::MetaDataArray mda2;
-	mda2.push_back(-2.1);
-	mda2.push_back(-2.2);
-	mda2.push_back(-2.3);
-	mda2.push_back(-2.4);
-	mda2.push_back(-2.5);
+	mda2.push_back(-2.1f);
+	mda2.push_back(-2.2f);
+	mda2.push_back(-2.3f);
+	mda2.push_back(-2.4f);
+	mda2.push_back(-2.5f);
 
 	//spectrum 1 (one meta data arrays)
 	spec.setRT(500.0);

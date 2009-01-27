@@ -137,9 +137,9 @@ namespace OpenMS
 				result.x0 = dists[median_index]; 
 				//create histogram of distances
 				//consider only the maximum of pairs, centered around the optimal shift
-				Int max_pairs = model_ref.size()/2;
-				Size start_index = max(0,(Int)(median_index) - max_pairs/2);
-				Size end_index = min((Int)(dists.size()-1),(Int)(median_index) + max_pairs/2);
+				Size max_pairs = model_ref.size()/2;
+				Size start_index = (Size) max((SignedSize)0,(SignedSize)(median_index - max_pairs/2));
+				Size end_index = (Size) min((SignedSize)(dists.size()-1),(SignedSize)(median_index + max_pairs/2));
 				DoubleReal start_value = dists[start_index];
 				DoubleReal end_value = dists[end_index];
 				DoubleReal bin_step = fabs(end_value-start_value)/100;

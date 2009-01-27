@@ -1048,7 +1048,7 @@ namespace OpenMS
 					warning(STORE, "Not all spectrum native IDs are numbers or correctly prefixed with 'spectrum='. The spectra are renumbered and the native IDs are lost!");
 				}
 				//Map to store the last spectrum ID for each MS level (needed to find precursor spectra)
-				Map<UInt,UInt> level_id; 
+				Map<Size,Size> level_id; 
 				
 				os << "\t<spectrumList count=\"" << cexp_->size() << "\">\n";
 				for (Size s=0; s<cexp_->size(); ++s)
@@ -1174,7 +1174,7 @@ namespace OpenMS
 					typedef typename SpectrumType::PrecursorPeakType PrecursorPeak;
 					if (spec.getPrecursorPeak() != PrecursorPeak() || spec.getPrecursor() != Precursor())
 					{
-						UInt precursor_ms_level = spec.getMSLevel()-1;
+						Size precursor_ms_level = spec.getMSLevel()-1;
 						Int precursor_id = -1;
 						if (level_id.has(precursor_ms_level))
 						{

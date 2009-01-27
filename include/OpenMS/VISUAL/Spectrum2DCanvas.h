@@ -74,10 +74,10 @@ namespace OpenMS
 			virtual void saveCurrentLayer(bool visible);
 			
 			/// Merges the features in @p map into the features layer @p i 
-			void mergeIntoLayer(UInt i, FeatureMapType& map);
+			void mergeIntoLayer(Size i, FeatureMapType& map);
 
 			/// Merges the consensus features in @p map into the features layer @p i 
-			void mergeIntoLayer(UInt i, ConsensusMapType& map);
+			void mergeIntoLayer(Size i, ConsensusMapType& map);
 			
     signals:
       /// Sets the data for the horizontal projection
@@ -140,7 +140,7 @@ namespace OpenMS
       	@param layer_index The index of the layer.
       	@param p The QPainter to paint on.
       */
-      void paintDots_(UInt layer_index, QPainter& p);
+      void paintDots_(Size layer_index, QPainter& p);
 
       /**
       	@brief Paints convex hulls (one for each mass trace) of a features layer.
@@ -148,7 +148,7 @@ namespace OpenMS
       	@param layer_index Index of the layer.
       	@param p The QPainter to paint on.
       */
-      void paintTraceConvexHulls_(UInt layer_index, QPainter& p);
+      void paintTraceConvexHulls_(Size layer_index, QPainter& p);
 
       /**
       	@brief Paints the convex hulls (one for each feature) of a features layer.
@@ -156,7 +156,7 @@ namespace OpenMS
       	@param layer_index Index of the layer.
       	@param p The QPainter to paint on.
       */
-      void paintFeatureConvexHulls_(UInt layer_index, QPainter& p);
+      void paintFeatureConvexHulls_(Size layer_index, QPainter& p);
 
       /**
       	@brief Paints the consensus elements of a consensus features layer.
@@ -164,7 +164,7 @@ namespace OpenMS
       	@param layer_index Index of the layer.
       	@param p The QPainter to paint on.
       */
-      void paintConsensusElements_(UInt layer_index, QPainter& p);
+      void paintConsensusElements_(Size layer_index, QPainter& p);
 
       /**
       	@brief Paints one consensus element of a consensus features layer.
@@ -174,7 +174,7 @@ namespace OpenMS
       	@param p The QPainter to paint on.
       	@param use_buffer Flag to switch between painting on the buffer and screen.
       */		
-			void paintConsensusElement_(UInt layer_index, const ConsensusFeature& cf, QPainter& p, bool use_buffer);
+			void paintConsensusElement_(Size layer_index, const ConsensusFeature& cf, QPainter& p, bool use_buffer);
 			
       /**
       	@brief checks if any element of a consensus feature is currently visible.
@@ -182,7 +182,7 @@ namespace OpenMS
       	@param layer_index Index of the layer.
       	@param ce The ConsensusFeature that needs checking
       */
-			bool isConsensusFeatureVisible_(const ConsensusFeature& ce, UInt layer_index);
+			bool isConsensusFeatureVisible_(const ConsensusFeature& ce, Size layer_index);
 
 			/**
       	@brief Paints convex hulls (one for each mass trace) for a single feature.
@@ -199,7 +199,7 @@ namespace OpenMS
 			// Docu in base class
 			virtual void currentLayerParamtersChanged_();
       /// recalculates the dot gradient of a layer
-      void recalculateDotGradient_(UInt layer);
+      void recalculateDotGradient_(Size layer);
 
       /// m/z projection data
       ExperimentType projection_mz_;
@@ -241,7 +241,7 @@ namespace OpenMS
       PeakIndex measurement_start_;
 
 			//docu in base class
-			virtual void updateLayer_(UInt i);
+			virtual void updateLayer_(Size i);
       //docu in base class
 			virtual void translateLeft_();
 			//docu in base class

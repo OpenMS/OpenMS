@@ -182,9 +182,9 @@ namespace OpenMS
 	  	/// Switch between different intensitiy modes
 	  	virtual void intensityModeChange_();
 			/// creates the intensity distribution of the current layer
-			virtual Math::Histogram<UInt,Real> createIntensityDistribution_() const = 0;
+			virtual Math::Histogram<> createIntensityDistribution_() const = 0;
 			/// creates the meta data distribution of value @p name of the current layer
-			virtual Math::Histogram<UInt,Real> createMetaDistribution_(const String& name) const = 0;
+			virtual Math::Histogram<> createMetaDistribution_(const String& name) const = 0;
 			/// recalculates the Axis ticks
 			virtual void recalculateAxes_() = 0;
 			

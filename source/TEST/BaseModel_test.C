@@ -173,7 +173,7 @@ START_SECTION((template <typename PeakType> void fillIntensity(PeakType &peak) c
   TestModel::PeakType p;
   p.getPosition()[0]=0.1;
   p.getPosition()[1]=0.2;
-  p.setIntensity(0.1);
+  p.setIntensity(0.1f);
   t.fillIntensity(p);
   TEST_REAL_SIMILAR(p.getIntensity(), 0.3)
 END_SECTION

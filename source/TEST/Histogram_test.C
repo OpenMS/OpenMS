@@ -91,7 +91,7 @@ START_SECTION((ValueType maxValue() const))
 	TEST_REAL_SIMILAR(d.maxValue(), 0.0)
 END_SECTION
 
-START_SECTION((ValueType operator [] (UInt index) const))
+START_SECTION((ValueType operator [] (Size index) const))
 	d.reset(4, 14, 2);
 	TEST_EQUAL(d.size(),5);
 	TEST_REAL_SIMILAR(d[0],0.0);
@@ -209,7 +209,7 @@ START_SECTION((void applyLogTransformation(BinSizeType multiplier)))
 	TEST_REAL_SIMILAR(dist.binValue(4.5),9.21044);
 END_SECTION
 
-START_SECTION((BinSizeType centerOfBin(UInt bin_index) const))
+START_SECTION((BinSizeType centerOfBin(Size bin_index) const))
 	Histogram<float, float> dist(0,5,1);
 	dist.inc(0.5,1);
 	dist.inc(1.5,10);

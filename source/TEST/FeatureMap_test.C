@@ -63,23 +63,23 @@ END_SECTION
 Feature feature1;
 feature1.getPosition()[0] = 2.0;
 feature1.getPosition()[1] = 3.0;
-feature1.setIntensity(1.0);
+feature1.setIntensity(1.0f);
 
 Feature feature2;
 feature2.getPosition()[0] = 0.0;
 feature2.getPosition()[1] = 2.5;
-feature2.setIntensity(0.5);
+feature2.setIntensity(0.5f);
 
 Feature feature3;
 feature3.getPosition()[0] = 10.5;
 feature3.getPosition()[1] = 0.0;
-feature3.setIntensity(0.01);
+feature3.setIntensity(0.01f);
 
 //feature with convex hulls
 Feature feature4;
 feature4.getPosition()[0] = 5.25;
 feature4.getPosition()[1] = 1.5;
-feature4.setIntensity(0.5);
+feature4.setIntensity(0.5f);
 std::vector< ConvexHull2D > hulls(1);
 hulls[0].addPoint(DPosition<2>(-1.0,2.0));
 hulls[0].addPoint(DPosition<2>(4.0,1.2));
@@ -295,15 +295,15 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
 	FeatureMap<> to_be_sorted;
 	
 	Feature f1;
-	f1.setIntensity(10);
+	f1.setIntensity(10.0f);
 	to_be_sorted.push_back(f1);
 	
 	Feature f2;
-	f2.setIntensity(5);
+	f2.setIntensity(5.0f);
 	to_be_sorted.push_back(f2);
 	
 	Feature f3;
-	f3.setIntensity(3);
+	f3.setIntensity(3.0f);
 	to_be_sorted.push_back(f3);
 	
 	to_be_sorted.sortByIntensity();
