@@ -104,16 +104,15 @@ namespace OpenMS
 	{
 	  //Check whether new timepoint is in range
 		String m(new_timepoint_->text()) ;
-		int num_time = timepoints_.size();
 		
-		if(num_time==0 && m.trim().length() !=0)
+		if(timepoints_.empty() && m.trim().length() !=0)
 		{
 			temp_.addTimepoint(m.toInt());
 			update_();
 		}
 		else
 		{
-			if( m.trim().length() !=0 && timepoints_[num_time-1] < m.toInt())
+			if( m.trim().length() !=0 && timepoints_.back() < m.toInt())
 			{
 				temp_.addTimepoint(m.toInt());
 				update_();

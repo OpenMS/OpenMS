@@ -969,17 +969,17 @@ namespace OpenMS
 						set_iter = lower_bound(d.iso_map_iter->second.peaks_.begin(),
 																	 d.iso_map_iter->second.peaks_.end(),
 																	 pair,IndexLess());
-						Size i=0;
-						while(i < peak_shapes.size())
+						Size p=0;
+						while(p < peak_shapes.size())
 							{
 								MSSpectrum<>& spec = ms_exp[set_iter->first];
-								spec[set_iter->second].setMZ(peak_shapes[i].mz_position);
-								spec[set_iter->second].setIntensity(peak_shapes[i].height);
-								spec.getMetaDataArrays()[3][set_iter->second] = peak_shapes[i].left_width;
-								spec.getMetaDataArrays()[4][set_iter->second] = peak_shapes[i].right_width;
+								spec[set_iter->second].setMZ(peak_shapes[p].mz_position);
+								spec[set_iter->second].setIntensity(peak_shapes[p].height);
+								spec.getMetaDataArrays()[3][set_iter->second] = peak_shapes[p].left_width;
+								spec.getMetaDataArrays()[4][set_iter->second] = peak_shapes[p].right_width;
 
 								++set_iter;
-								++i;
+								++p;
 							}
 						++idx;
 						peak_shapes.clear();
