@@ -49,7 +49,7 @@ endif()
 ########################################################
 
 if (CMAKE_COMPILER_IS_GNUCXX)
-	add_definitions(-Wno-long-long -Wall -Wno-non-virtual-dtor  -pedantic)
+	add_definitions(-Wall -Wextra -pedantic -Wno-non-virtual-dtor -Wno-long-long ) # -Wconversion
 elseif (MSVC)
 	#add_definitions(/Wall) ## disable for now.. its just too much!
 

@@ -160,7 +160,7 @@ namespace OpenMS
 				}
 				
 				//keep track of assigned/unassigned peptide identifications
-				std::set<UInt> assigned;
+				std::set<Size> assigned;
 				
 				for(typename FeatureMap<FeatureType>::Iterator f_it = map.begin(); f_it!=map.end(); ++f_it)
 				{

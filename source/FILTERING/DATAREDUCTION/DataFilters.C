@@ -197,7 +197,7 @@ namespace OpenMS
 		return filters_.size();
 	}
 	
-	const DataFilters::DataFilter& DataFilters::operator[](UInt index) const
+	const DataFilters::DataFilter& DataFilters::operator[](Size index) const
 	{		
 		if (index>=filters_.size()) throw Exception::IndexOverflow(__FILE__,__LINE__,__PRETTY_FUNCTION__,index,filters_.size());
 		return filters_[index];

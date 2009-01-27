@@ -35,7 +35,7 @@
 					</spectrumInstrument>
 				</spectrumSettings>
 				<precursorList count="1">
-					<precursor msLevel="1" spectrumRef="4294967295">
+					<precursor msLevel="1" spectrumRef="-1">
 						<ionSelection>
 							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="500.666666666667"/>
 							<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="3"/>
@@ -60,7 +60,7 @@
 					</spectrumInstrument>
 				</spectrumSettings>
 				<precursorList count="1">
-					<precursor msLevel="1" spectrumRef="4294967295">
+					<precursor msLevel="1" spectrumRef="-1">
 						<ionSelection>
 							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="500.666666666667"/>
 							<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="3"/>
@@ -85,7 +85,7 @@
 					</spectrumInstrument>
 				</spectrumSettings>
 				<precursorList count="1">
-					<precursor msLevel="1" spectrumRef="4294967295">
+					<precursor msLevel="1" spectrumRef="-1">
 						<ionSelection>
 							<cvParam cvLabel="psi" accession="PSI:1000040" name="MassToChargeRatio" value="500.666666666667"/>
 							<cvParam cvLabel="psi" accession="PSI:1000041" name="ChargeState" value="3"/>

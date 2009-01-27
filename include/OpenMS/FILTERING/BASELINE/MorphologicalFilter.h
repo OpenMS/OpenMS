@@ -337,7 +337,7 @@ namespace OpenMS
 			}
 			else
 			{
-				struc_size_in_datapoints = struc_size;
+				struc_size_in_datapoints = UInt(struc_size);
 			}
 			filterRange( method, struc_size_in_datapoints,
 									 Internal::intensityIteratorWrapper(input_begin),

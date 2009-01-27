@@ -155,7 +155,7 @@ namespace OpenMS
 
 			  @exception Exception::IndexOverflow is thrown for invalid indices
 			*/
-			ValueType operator [] (UInt index) const
+			ValueType operator [] (Size index) const
 			{
 				if (index >= bins_.size())
 				{

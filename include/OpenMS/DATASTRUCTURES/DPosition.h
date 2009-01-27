@@ -115,14 +115,14 @@ namespace OpenMS
 		//@{
 		
 		///Const accessor for the dimensions
-		CoordinateType operator [] (UInt index) const
+		CoordinateType operator [] (Size index) const
 		{
 			OPENMS_PRECONDITION(index < D, "DPosition<D>:operator [] (Position): index overflow!");
 			return coordinate_[index];
 		}
 
 		///Accessor for the dimensions
-		CoordinateType& operator [] (UInt index)
+		CoordinateType& operator [] (Size index)
 		{
 			OPENMS_PRECONDITION(index < D, "DPosition<D>:operator [] (Position): index overflow!");
 			return coordinate_[index];

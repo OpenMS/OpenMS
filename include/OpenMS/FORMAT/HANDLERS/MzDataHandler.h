@@ -1175,7 +1175,7 @@ namespace OpenMS
 					if (spec.getPrecursorPeak() != PrecursorPeak() || spec.getPrecursor() != Precursor())
 					{
 						UInt precursor_ms_level = spec.getMSLevel()-1;
-						UInt precursor_id = -1;
+						Int precursor_id = -1;
 						if (level_id.has(precursor_ms_level))
 						{
 							precursor_id = level_id[precursor_ms_level];

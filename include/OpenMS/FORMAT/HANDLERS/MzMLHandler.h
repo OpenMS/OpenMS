@@ -733,7 +733,7 @@ namespace OpenMS
 		}
 		
 		template <typename MapType>
-		void MzMLHandler<MapType>::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value)
+		void MzMLHandler<MapType>::handleCVParam_(const String& /*parent_parent_tag*/, const String& parent_tag, const String& accession, const String& name, const String& value)
 		{
 			//Error checks of CV values
 			if (cv_.exists(accession))
@@ -2024,7 +2024,7 @@ namespace OpenMS
 		}
 
 		template <typename MapType>
-		void MzMLHandler<MapType>::handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value)
+		void MzMLHandler<MapType>::handleUserParam_(const String& /*parent_parent_tag*/, const String& parent_tag, const String& name, const String& type, const String& value)
 		{
 			//create a DataValue that contains the data in the right type
 			DataValue data_value;

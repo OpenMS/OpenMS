@@ -130,7 +130,7 @@ namespace OpenMS
 
 			  @exception Exception::IndexOverflow is thrown for invalid indices
 			*/
-			const DataFilter& operator[](UInt index) const;
+			const DataFilter& operator[](Size index) const;
 			
 			///Adds a filter
 			void add(const DataFilter& filter);

@@ -183,7 +183,7 @@ namespace OpenMS
 						++i
 					)
 			{
-				setProgress(10+Real(i)/model_map_size*100.f);
+				setProgress((UInt)(10+Real(i)/model_map_size*100.f));
 
 				// Adjust window in scene map
 				while ( k_low < scene_map_size &&
