@@ -56,13 +56,13 @@ namespace OpenMS
 // 			std::vector<DoubleReal> &signal=static_cast<TwoDOptimization::Data*> (params) ->signal;
 
       Size num_scans = signal2D.size()/2;
-      IsotopeCluster::ChargedIndexSet::iterator peak_iter = iso_map_iter->second.peaks_.begin();
+      IsotopeCluster::ChargedIndexSet::iterator peak_iter = iso_map_iter->second.peaks.begin();
       gsl_vector_set_zero(f);
 
       //iterate over all scans
       for (Size current_scan = 0; current_scan < num_scans; ++current_scan)
 				{
-					Size curr_scan_idx = current_scan + iso_map_iter->second.peaks_.begin()->first;
+					Size curr_scan_idx = current_scan + iso_map_iter->second.peaks.begin()->first;
 					current_position = ((raw_data_first 
 															 + signal2D[2*current_scan].first)->begin() 
 															+ signal2D[2*current_scan].second)->getMZ();
@@ -94,12 +94,12 @@ namespace OpenMS
 #endif
 
 							size_t current_peak = 0;
-							peak_iter = iso_map_iter->second.peaks_.begin();
-							while(peak_iter != iso_map_iter->second.peaks_.end() && peak_iter->first != curr_scan_idx) ++peak_iter;
+							peak_iter = iso_map_iter->second.peaks.begin();
+							while(peak_iter != iso_map_iter->second.peaks.end() && peak_iter->first != curr_scan_idx) ++peak_iter;
 							//iterate over all peaks of the current scan
-							while(peak_iter != iso_map_iter->second.peaks_.end() && peak_iter->first == curr_scan_idx)
+							while(peak_iter != iso_map_iter->second.peaks.end() && peak_iter->first == curr_scan_idx)
 								{
-									Int peak_idx = distance(iso_map_iter->second.peaks_.begin(),peak_iter);
+									Int peak_idx = distance(iso_map_iter->second.peaks.begin(),peak_iter);
 									DoubleReal mz_in_hash = ((picked_peaks[peak_iter->first]).begin() + peak_iter->second)->getMZ() * 10;
 									std::map<Int,std::vector<PeakIndex> >::iterator  m_spec_iter = matching_peaks.begin();
 									Int map_idx=0;
@@ -259,12 +259,12 @@ namespace OpenMS
 			OptimizationFunctions::PenaltyFactorsIntensity& penalties=static_cast<TwoDOptimization::Data*> (params) ->penalties;
 // 			std::vector<DoubleReal> &positions=static_cast<TwoDOptimization::Data*> (params) ->positions;
 // 			std::vector<DoubleReal> &signal=static_cast<TwoDOptimization::Data*> (params) ->signal;
-      IsotopeCluster::ChargedIndexSet::iterator peak_iter = iso_map_iter->second.peaks_.begin();
+      IsotopeCluster::ChargedIndexSet::iterator peak_iter = iso_map_iter->second.peaks.begin();
 			Size num_scans = signal2D.size()/2;
       //iterate over all scans
       for (Size current_scan = 0; current_scan < num_scans; ++current_scan)
 				{
-					Size curr_scan_idx = current_scan + iso_map_iter->second.peaks_.begin()->first;
+					Size curr_scan_idx = current_scan + iso_map_iter->second.peaks.begin()->first;
 					current_position = ((raw_data_first 
 															 + signal2D[2*current_scan].first)->begin() 
 															+ signal2D[2*current_scan].second)->getMZ();
@@ -297,12 +297,12 @@ namespace OpenMS
 #endif
 
 							size_t current_peak = 0;
-							peak_iter = iso_map_iter->second.peaks_.begin();
-							while(peak_iter != iso_map_iter->second.peaks_.end() && peak_iter->first != curr_scan_idx) ++peak_iter;
+							peak_iter = iso_map_iter->second.peaks.begin();
+							while(peak_iter != iso_map_iter->second.peaks.end() && peak_iter->first != curr_scan_idx) ++peak_iter;
 							//iterate over all peaks of the current scan
-							while(peak_iter != iso_map_iter->second.peaks_.end() && peak_iter->first == curr_scan_idx)
+							while(peak_iter != iso_map_iter->second.peaks.end() && peak_iter->first == curr_scan_idx)
 								{
-									Int peak_idx = distance(iso_map_iter->second.peaks_.begin(),peak_iter);
+									Int peak_idx = distance(iso_map_iter->second.peaks.begin(),peak_iter);
 									DoubleReal mz_in_hash = ((picked_peaks[peak_iter->first]).begin() + peak_iter->second)->getMZ() * 10;
 									std::map<Int,std::vector<PeakIndex> >::iterator  m_spec_iter =	matching_peaks.begin();
 									Int map_idx=0;
@@ -587,8 +587,8 @@ namespace OpenMS
 	
   void TwoDOptimization::findMatchingPeaks_(std::multimap<DoubleReal, IsotopeCluster>::iterator& it, MSExperiment<>& ms_exp)
   {
-  	IsotopeCluster::ChargedIndexSet::const_iterator iter = it->second.peaks_.begin();
-    for(; iter != it->second.peaks_.end(); ++iter)
+  	IsotopeCluster::ChargedIndexSet::const_iterator iter = it->second.peaks.begin();
+    for(; iter != it->second.peaks.end(); ++iter)
 			{
 
 				DoubleReal mz = (ms_exp[iter->first][iter->second]).getMZ();

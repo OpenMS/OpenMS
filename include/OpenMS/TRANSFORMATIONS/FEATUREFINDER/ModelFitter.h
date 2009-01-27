@@ -238,10 +238,10 @@ namespace OpenMS
 				);
 				               
 			// set charge
-			if (index_set.charge_ != 0)
+			if (index_set.charge != 0)
 			{
-				first_mz_model_ = index_set.charge_;
-				last_mz_model_ = index_set.charge_;
+				first_mz_model_ = index_set.charge;
+				last_mz_model_ = index_set.charge;
 			}
                 
 			if (first_mz_model_ > last_mz_model_) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ModelFitter::fit(): charge range tested is not valid; check \"model_type:first\" and \"model_type:last\" ");

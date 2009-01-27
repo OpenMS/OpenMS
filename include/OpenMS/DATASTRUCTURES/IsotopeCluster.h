@@ -41,30 +41,28 @@ namespace OpenMS
 		/// A set of index pairs, usually referring to an MSExperiment.
 		typedef std::set<IndexPair> IndexSet;
 		
-		/// Charge score
-		typedef DoubleReal ProbabilityType;	
-		
 		///index set with associated charge estimate
 		struct ChargedIndexSet 
-		: public IndexSet
+			: public IndexSet
 		{
-			ChargedIndexSet() : charge_(0), max_charge_score_() { }
+			ChargedIndexSet()
+			: charge(0)
+			{
+			}
 			/// charge estimate (convention: zero means "no charge estimate")
-			Size charge_;			
-			/// Score of highest scoring charge state
-			ProbabilityType max_charge_score_; 
+			Size charge;			
 		};
 		  	
     IsotopeCluster()
-      : peaks_(), 
-      	scans_()
+      : peaks(), 
+      	scans()
     {
     }
     /// peaks in this cluster
-    ChargedIndexSet peaks_;
+    ChargedIndexSet peaks;
     
     /// the scans of this cluster
-    std::vector<Size> scans_;
+    std::vector<Size> scans;
   };
 
 } // namespace OPENMS

@@ -296,7 +296,7 @@ namespace OpenMS
               // calculate the average intensity
               av_intens /= (CoordinateType)charge_binary_votes[best_charge_index];
               // Set charge for seed region
-              region.charge_ = i;
+              region.charge = i;
               
               //---------------------------------------------------------------------------
               // Step 3:

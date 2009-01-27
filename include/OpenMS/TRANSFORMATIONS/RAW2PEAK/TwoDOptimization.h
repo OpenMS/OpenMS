@@ -63,11 +63,6 @@
 
 namespace OpenMS
 {   
-	
-	typedef std::pair<Size,Size> Idx  ;
-	typedef std::set<Idx> IndexSet;
-
- 
 	/**
 		 @brief This class provides the two-dimensional optimization of the picked peak parameters.
 			
@@ -89,9 +84,9 @@ namespace OpenMS
 
 		///Comparator for the retention time.
 		struct IndexLess
-			: public std::binary_function <Idx,Idx, bool>
+			: public std::binary_function <IsotopeCluster::IndexPair,IsotopeCluster::IndexPair, bool>
 		{
-			inline bool operator () (const Idx& a, const Idx& b) const
+			inline bool operator () (const IsotopeCluster::IndexPair& a, const IsotopeCluster::IndexPair& b) const
 			{
 				return (a.first < b.first);
 			}
@@ -411,8 +406,8 @@ namespace OpenMS
 // 														std::cout << "Last peak cluster too far, creating new cluster at "<<curr_mz << std::endl;
 // #endif
 														IsotopeCluster new_cluster;
-														new_cluster.peaks_.charge_  = current_charge;
-														new_cluster.scans_.push_back( curr_scan );					
+														new_cluster.peaks.charge  = current_charge;
+														new_cluster.scans.push_back( curr_scan );					
 														cluster_iter = iso_map_.insert(std::pair<DoubleReal,IsotopeCluster>(mz_in_hash,new_cluster));
 			      
 													}
@@ -424,14 +419,14 @@ namespace OpenMS
 														cluster_iter = clusters_last_scan[distance(iso_last_scan.begin(),it)];
 
 														// check whether this scan is already contained
-														if(find(cluster_iter->second.scans_.begin(),cluster_iter->second.scans_.end(),curr_scan)
-															 == cluster_iter->second.scans_.end())
+														if(find(cluster_iter->second.scans.begin(),cluster_iter->second.scans.end(),curr_scan)
+															 == cluster_iter->second.scans.end())
 															{
-																cluster_iter->second.scans_.push_back( curr_scan );
+																cluster_iter->second.scans.push_back( curr_scan );
 															}
 			      
 // 														//#ifdef DEBUG_2D
-// 														std::cout << "Cluster with " << cluster_iter->second.peaks_.size()
+// 														std::cout << "Cluster with " << cluster_iter->second.peaks.size()
 // 																			<< " peaks retrieved." << std::endl;
 // 														//#endif
 													}
@@ -448,8 +443,8 @@ namespace OpenMS
 			  
 												// create new isotopic cluster
 												IsotopeCluster new_cluster;
-												new_cluster.peaks_.charge_  = current_charge;
-												new_cluster.scans_.push_back( curr_scan );					
+												new_cluster.peaks.charge  = current_charge;
+												new_cluster.scans.push_back( curr_scan );					
 												cluster_iter = iso_map_.insert(std::pair<DoubleReal,IsotopeCluster>(mz_in_hash,new_cluster));
 
 											}
@@ -460,13 +455,13 @@ namespace OpenMS
 
 
 		      
-										cluster_iter->second.peaks_.insert(std::pair<UInt,UInt>(curr_scan,curr_peak));
+										cluster_iter->second.peaks.insert(std::pair<UInt,UInt>(curr_scan,curr_peak));
 		      
 										iso_curr_scan.push_back(  mz_in_hash );
 										clusters_curr_scan.push_back(cluster_iter);
 										++curr_peak;
 		      
-										cluster_iter->second.peaks_.insert(std::pair<UInt,UInt>(curr_scan,curr_peak));
+										cluster_iter->second.peaks.insert(std::pair<UInt,UInt>(curr_scan,curr_peak));
 										iso_curr_scan.push_back((peak_it+curr_peak)->getMZ());
 										clusters_curr_scan.push_back(cluster_iter);
 		      
@@ -479,7 +474,7 @@ namespace OpenMS
 										while (dist2nextpeak <= max_peak_distance_
 													 &&  curr_peak < (nr_peaks_in_scan-1) )
 											{
-												cluster_iter->second.peaks_.insert(std::pair<UInt,UInt>(curr_scan,curr_peak+1));				// save peak in cluster
+												cluster_iter->second.peaks.insert(std::pair<UInt,UInt>(curr_scan,curr_peak+1));				// save peak in cluster
 												iso_curr_scan.push_back((peak_it+curr_peak+1)->getMZ());
 												clusters_curr_scan.push_back(cluster_iter);
 												//	std::cout << "new enter'd: "<<(peak_it+curr_peak+1)->getMZ()<<" im while"<<std::endl;
@@ -513,8 +508,8 @@ namespace OpenMS
 // 														std::cout << "Last peak cluster too far, creating new cluster at "<<curr_mz << std::endl;
 // 														//#endif
 														IsotopeCluster new_cluster;
-														new_cluster.peaks_.charge_  = current_charge;
-														new_cluster.scans_.push_back( curr_scan );					
+														new_cluster.peaks.charge  = current_charge;
+														new_cluster.scans.push_back( curr_scan );					
 														cluster_iter = iso_map_.insert(std::pair<DoubleReal,IsotopeCluster>(mz_in_hash,new_cluster));
 			      
 													}
@@ -526,14 +521,14 @@ namespace OpenMS
 														cluster_iter = clusters_last_scan[distance(iso_last_scan.begin(),it)];
 
 														// check whether this scan is already contained
-														if(find(cluster_iter->second.scans_.begin(),cluster_iter->second.scans_.end(),curr_scan)
-															 == cluster_iter->second.scans_.end())
+														if(find(cluster_iter->second.scans.begin(),cluster_iter->second.scans.end(),curr_scan)
+															 == cluster_iter->second.scans.end())
 															{
-																cluster_iter->second.scans_.push_back( curr_scan );
+																cluster_iter->second.scans.push_back( curr_scan );
 															}
 			      
 // 														//#ifdef DEBUG_2D
-// 														std::cout << "Cluster with " << cluster_iter->second.peaks_.size()
+// 														std::cout << "Cluster with " << cluster_iter->second.peaks.size()
 // 																			<< " peaks retrieved." << std::endl;
 // 														//#endif
 													}
@@ -550,8 +545,8 @@ namespace OpenMS
 			  
 												// create new isotopic cluster
 												IsotopeCluster new_cluster;
-												new_cluster.peaks_.charge_  = current_charge;
-												new_cluster.scans_.push_back( curr_scan );					
+												new_cluster.peaks.charge  = current_charge;
+												new_cluster.scans.push_back( curr_scan );					
 												cluster_iter = iso_map_.insert(std::pair<DoubleReal,IsotopeCluster>(mz_in_hash,new_cluster));
 
 											}
@@ -562,7 +557,7 @@ namespace OpenMS
 
 
 		      
-										cluster_iter->second.peaks_.insert(std::pair<UInt,UInt>(curr_scan,curr_peak));
+										cluster_iter->second.peaks.insert(std::pair<UInt,UInt>(curr_scan,curr_peak));
 		      
 										iso_curr_scan.push_back(  mz_in_hash );
 										clusters_curr_scan.push_back(cluster_iter);
@@ -599,12 +594,12 @@ namespace OpenMS
 #ifdef DEBUG_2D
 				std::cout << "element: " << counter<< std::endl;
 				std::cout << "mz: "<< it->first << std::endl<<"rts: ";
-// 				for(Size i=0;i<it->second.scans_.size();++i) std::cout << it->second.scans_[i] << "\n";
+// 				for(Size i=0;i<it->second.scans.size();++i) std::cout << it->second.scans[i] << "\n";
 				std::cout<<std::endl<<"peaks: ";
-				IndexSet::const_iterator iter = it->second.peaks_.begin();
-				for(; iter != it->second.peaks_.end(); ++iter)std::cout << ms_exp[iter->first].getRT() << " "<<(ms_exp[iter->first][iter->second]).getMZ()<<std::endl;
+				IsotopeCluster::IndexSet::const_iterator iter = it->second.peaks.begin();
+				for(; iter != it->second.peaks.end(); ++iter)std::cout << ms_exp[iter->first].getRT() << " "<<(ms_exp[iter->first][iter->second]).getMZ()<<std::endl;
 				
-//for(Size i=0;i<it->second.peaks_.size();++i) std::cout << ms_exp[it->first].getRT() << " "<<(ms_exp[it->first][it->second]).getMZ()<<std::endl;
+//for(Size i=0;i<it->second.peaks.size();++i) std::cout << ms_exp[it->first].getRT() << " "<<(ms_exp[it->first][it->second]).getMZ()<<std::endl;
 				std::cout << std::endl << std::endl;
 
 #endif
@@ -626,7 +621,7 @@ namespace OpenMS
 				d.raw_data_first =  first;
 
 				Size nr_diff_peaks = matching_peaks_.size();
-				d.total_nr_peaks = it->second.peaks_.size();
+				d.total_nr_peaks = it->second.peaks.size();
 
 				Size nr_parameters = nr_diff_peaks*3 + d.total_nr_peaks;
 
@@ -874,10 +869,10 @@ namespace OpenMS
 #ifdef DEBUG_2D
 				std::cerr << "element: " << counter<< std::endl;
 				std::cerr << "mz: "<< it->first <<std::endl<<"rts: ";
-				for(Size i=0;i<it->second.scans_.size();++i) std::cerr << it->second.scans_[i] << "\n";
+				for(Size i=0;i<it->second.scans.size();++i) std::cerr << it->second.scans[i] << "\n";
 				std::cerr<<std::endl<<"peaks: ";
-				IndexSet::const_iterator iter = it->second.peaks_.begin();
-				for(; iter != it->second.peaks_.end(); ++iter)std::cerr << ms_exp[iter->first].getRT() << " "<<(ms_exp[iter->first][iter->second]).getMZ()<<std::endl;
+				IsotopeCluster::IndexSet::const_iterator iter = it->second.peaks.begin();
+				for(; iter != it->second.peaks.end(); ++iter)std::cerr << ms_exp[iter->first].getRT() << " "<<(ms_exp[iter->first][iter->second]).getMZ()<<std::endl;
 				//for(Size i=0;i<it->second.peaks_.size();++i) std::cout << ms_exp[it->first].getRT() << " "<<(ms_exp[it->first][it->second]).getMZ()<<std::endl;
 				std::cerr << std::endl << std::endl;
 
@@ -910,18 +905,18 @@ namespace OpenMS
 							}
 
 
-						Idx pair;
-						pair.first =  d.iso_map_iter->second.peaks_.begin()->first + idx;
+						IsotopeCluster::IndexPair pair;
+						pair.first =  d.iso_map_iter->second.peaks.begin()->first + idx;
 
-						IndexSet::const_iterator set_iter = lower_bound(d.iso_map_iter->second.peaks_.begin(),
-																														d.iso_map_iter->second.peaks_.end(),
+						IsotopeCluster::IndexSet::const_iterator set_iter = lower_bound(d.iso_map_iter->second.peaks.begin(),
+																														d.iso_map_iter->second.peaks.end(),
 																														pair,IndexLess());
 
 
 						// find the last entry with this rt-value
 						++pair.first;
-						IndexSet::const_iterator set_iter2 = lower_bound(d.iso_map_iter->second.peaks_.begin(),
-																														 d.iso_map_iter->second.peaks_.end(),
+						IsotopeCluster::IndexSet::const_iterator set_iter2 = lower_bound(d.iso_map_iter->second.peaks.begin(),
+																														 d.iso_map_iter->second.peaks.end(),
 																														 pair,IndexLess());
 
 						while(set_iter != set_iter2)
@@ -964,10 +959,10 @@ namespace OpenMS
 							}
 #endif
 						std::sort(peak_shapes.begin(),peak_shapes.end(),PeakShape::PositionLess());
-						pair.first =  d.iso_map_iter->second.peaks_.begin()->first + idx;
+						pair.first =  d.iso_map_iter->second.peaks.begin()->first + idx;
 
-						set_iter = lower_bound(d.iso_map_iter->second.peaks_.begin(),
-																	 d.iso_map_iter->second.peaks_.end(),
+						set_iter = lower_bound(d.iso_map_iter->second.peaks.begin(),
+																	 d.iso_map_iter->second.peaks.end(),
 																	 pair,IndexLess());
 						Size p=0;
 						while(p < peak_shapes.size())
@@ -1012,19 +1007,19 @@ namespace OpenMS
 		for(Size i=0;i<iso_map_idx;++i)  ++iso_map_iter;
 
 #ifdef DEBUG2D
-		std::cout << "rt begin: "<<exp[iso_map_iter->second.scans_[0]].getRT()
-							<< "\trt end: "<<exp[iso_map_iter->second.scans_[iso_map_iter->second.scans_.size()-1]].getRT()
-							<< " \t"<<iso_map_iter->second.scans_.size()<<" scans"
+		std::cout << "rt begin: "<<exp[iso_map_iter->second.scans[0]].getRT()
+							<< "\trt end: "<<exp[iso_map_iter->second.scans[iso_map_iter->second.scans.size()-1]].getRT()
+							<< " \t"<<iso_map_iter->second.scans.size()<<" scans"
 							<< std::endl;
 #endif
 		
 		// get left and right endpoint for all scans in the current cluster
-		for(Size i=0; i< iso_map_iter->second.scans_.size();++i)
+		for(Size i=0; i< iso_map_iter->second.scans.size();++i)
 			{
 				typename MSExperiment<OutputPeakType>::iterator exp_it;
 	  
 				// first the right scan through binary search
-				rt = exp[iso_map_iter->second.scans_[i]].getRT();
+				rt = exp[iso_map_iter->second.scans[i]].getRT();
 				spec.setRT(rt);
 				InputSpectrumIterator iter = lower_bound(first, last, spec, typename MSSpectrum<InputPeakType>::RTLess());
 				//				if(iter->getRT() != rt) --iter;
@@ -1033,12 +1028,12 @@ namespace OpenMS
 				std::cout << exp_it->getRT() << " vs "<< iter->getRT()<<std::endl;
 #endif
 				// now the right mz
-				IndexSet::const_iterator j=(iso_map_iter->second.peaks_.begin());
+				IsotopeCluster::IndexSet::const_iterator j=(iso_map_iter->second.peaks.begin());
 																		
-				Idx pair;
-				pair.first =  iso_map_iter->second.peaks_.begin()->first + i;
-				IndexSet::const_iterator set_iter = lower_bound(iso_map_iter->second.peaks_.begin(),
-																												iso_map_iter->second.peaks_.end(),
+				IsotopeCluster::IndexPair pair;
+				pair.first =  iso_map_iter->second.peaks.begin()->first + i;
+				IsotopeCluster::IndexSet::const_iterator set_iter = lower_bound(iso_map_iter->second.peaks.begin(),
+																												iso_map_iter->second.peaks.end(),
 																												pair,IndexLess());
 				
 				// consider a bit more of the signal to the left
@@ -1046,8 +1041,8 @@ namespace OpenMS
 				
 				// find the last entry with this rt-value
 				++pair.first;
-				IndexSet::const_iterator set_iter2 = lower_bound(iso_map_iter->second.peaks_.begin(),
-																												 iso_map_iter->second.peaks_.end(),
+				IsotopeCluster::IndexSet::const_iterator set_iter2 = lower_bound(iso_map_iter->second.peaks.begin(),
+																												 iso_map_iter->second.peaks.end(),
 																												 pair,IndexLess());
 				--set_iter2;
 				last_peak_mz = (exp_it->begin() + set_iter2->second)->getMZ() + 1;
@@ -1069,7 +1064,7 @@ namespace OpenMS
 						intensity = raw_data_iter->getIntensity();
 					}
 				++raw_data_iter;
-				Idx left,right;
+				IsotopeCluster::IndexPair left,right;
 				left.first = distance(first,iter);
 				left.second = raw_data_iter-iter->begin();
 #ifdef DEBUG2D

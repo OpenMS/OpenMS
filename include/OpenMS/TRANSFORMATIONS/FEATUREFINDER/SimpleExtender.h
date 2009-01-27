@@ -153,7 +153,7 @@ namespace OpenMS
 				boundary_.push(IndexWithPriority(*citer,priority));
 			}
 			// pass on charge information
-			result_region.charge_ = seed_region.charge_;
+			result_region.charge = seed_region.charge;
 
 			// re-compute intensity threshold
 			intensity_threshold_ = (DoubleReal)(this->param_).getValue("intensity_factor") * this->getPeakIntensity(seed);
