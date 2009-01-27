@@ -36,8 +36,8 @@ namespace OpenMS
 	///Stores information about an isotopic cluster (i.e. potential peptide charge variants)
   struct IsotopeCluster
   {
-  	/// An index e..g in an MSExperiment
-  	typedef std::pair<UInt,UInt> IndexPair;
+  	/// An index e.g. in an MSExperiment
+  	typedef std::pair<Size,Size> IndexPair;
 		/// A set of index pairs, usually referring to an MSExperiment.
 		typedef std::set<IndexPair> IndexSet;
 		
@@ -50,7 +50,7 @@ namespace OpenMS
 		{
 			ChargedIndexSet() : charge_(0), max_charge_score_() { }
 			/// charge estimate (convention: zero means "no charge estimate")
-			UInt charge_;			
+			Size charge_;			
 			/// Score of highest scoring charge state
 			ProbabilityType max_charge_score_; 
 		};
@@ -64,7 +64,7 @@ namespace OpenMS
     ChargedIndexSet peaks_;
     
     /// the scans of this cluster
-    std::vector<UInt> scans_;
+    std::vector<Size> scans_;
   };
 
 } // namespace OPENMS

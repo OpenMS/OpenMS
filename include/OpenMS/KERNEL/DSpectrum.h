@@ -404,7 +404,7 @@ namespace OpenMS
 			else
 			{
 				//sort index list
-				std::vector< std::pair<typename PeakType::IntensityType,UInt> > sorted_indices;
+				std::vector< std::pair<typename PeakType::IntensityType,Size> > sorted_indices;
 				sorted_indices.reserve(ContainerType::size());
 				for (Size i(0); i < ContainerType::size(); ++i)
 				{
@@ -413,11 +413,11 @@ namespace OpenMS
 
 				if (reverse)
 				{
-					std::sort(sorted_indices.begin(), sorted_indices.end(), reverseComparator(PairComparatorFirstElement< std::pair<typename PeakType::IntensityType,UInt> >()));
+					std::sort(sorted_indices.begin(), sorted_indices.end(), reverseComparator(PairComparatorFirstElement< std::pair<typename PeakType::IntensityType,Size> >()));
 				}
 				else
 				{
-					std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement< std::pair<typename PeakType::IntensityType,UInt> >());
+					std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement< std::pair<typename PeakType::IntensityType,Size> >());
 				}
 
 				//apply sorting to ContainerType and to metadataarrays
@@ -498,7 +498,7 @@ namespace OpenMS
 
 			@exception Exception::Precondition is thrown if the spectrum is empty (not only in debug mode)
 		*/
-		UInt findNearest(CoordinateType mz) const
+		SignedSize findNearest(CoordinateType mz) const
 		{
 			//no peak => no search
 			if (ContainerType::size()==0) throw Exception::Precondition(__FILE__,__LINE__,__PRETTY_FUNCTION__,"There must be at least one peak to determine the nearest peak!");

@@ -56,7 +56,7 @@ namespace OpenMS
 // 			std::vector<DoubleReal> &signal=static_cast<TwoDOptimization::Data*> (params) ->signal;
 
       Size num_scans = signal2D.size()/2;
-      std::set<std::pair<UInt,UInt> >::iterator peak_iter = iso_map_iter->second.peaks_.begin();
+      IsotopeCluster::ChargedIndexSet::iterator peak_iter = iso_map_iter->second.peaks_.begin();
       gsl_vector_set_zero(f);
 
       //iterate over all scans
@@ -259,7 +259,7 @@ namespace OpenMS
 			OptimizationFunctions::PenaltyFactorsIntensity& penalties=static_cast<TwoDOptimization::Data*> (params) ->penalties;
 // 			std::vector<DoubleReal> &positions=static_cast<TwoDOptimization::Data*> (params) ->positions;
 // 			std::vector<DoubleReal> &signal=static_cast<TwoDOptimization::Data*> (params) ->signal;
-      std::set<std::pair<UInt,UInt> >::iterator peak_iter = iso_map_iter->second.peaks_.begin();
+      IsotopeCluster::ChargedIndexSet::iterator peak_iter = iso_map_iter->second.peaks_.begin();
 			Size num_scans = signal2D.size()/2;
       //iterate over all scans
       for (Size current_scan = 0; current_scan < num_scans; ++current_scan)
@@ -587,7 +587,7 @@ namespace OpenMS
 	
   void TwoDOptimization::findMatchingPeaks_(std::multimap<DoubleReal, IsotopeCluster>::iterator& it, MSExperiment<>& ms_exp)
   {
-    IndexSet::const_iterator iter = it->second.peaks_.begin();
+  	IsotopeCluster::ChargedIndexSet::const_iterator iter = it->second.peaks_.begin();
     for(; iter != it->second.peaks_.end(); ++iter)
 			{
 

@@ -55,14 +55,14 @@ START_SECTION((~PeakIndex()))
 }
 END_SECTION
 
-START_SECTION((PeakIndex(UInt peak)))
+START_SECTION((PeakIndex(Size peak)))
 {
   PeakIndex i(17);
 	TEST_EQUAL(i.peak,17)
 }
 END_SECTION
 
-START_SECTION((PeakIndex(UInt spectrum, UInt peak)))
+START_SECTION((PeakIndex(Size spectrum, Size peak)))
 {
   PeakIndex i(5,17);
 	TEST_EQUAL(i.peak,17)

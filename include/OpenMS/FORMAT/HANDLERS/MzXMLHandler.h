@@ -1002,7 +1002,7 @@ namespace OpenMS
 				UInt ms_level = spec.getMSLevel();
 				open_scans.push(ms_level);
 
-				UInt spectrum_id = s+1;
+				Size spectrum_id = s+1;
 				if (all_prefixed_numbers)
 				{
 					spectrum_id = spec.getNativeID().substr(5).toInt();

@@ -78,7 +78,7 @@ START_SECTION((FeatureHandle(const FeatureHandle &rhs)))
   TEST_EQUAL(it.getPosition() == it_copy.getPosition(), true)  
 END_SECTION
 
-START_SECTION((FeatureHandle(UInt map_index, UInt element_index, const Peak2D &point)))
+START_SECTION((FeatureHandle(Size map_index, Size element_index, const Peak2D &point)))
   ElementType e;
   FeatureHandle it(1,2,e);
 
@@ -103,28 +103,28 @@ START_SECTION((virtual bool operator==(const FeatureHandle &i) const))
   TEST_EQUAL(it1 == it2, true)  
 END_SECTION
 
-START_SECTION((UInt getElementIndex() const))
+START_SECTION((Size getElementIndex() const))
   ElementType e;
   FeatureHandle it(1,2,e);
 
   TEST_EQUAL(it.getElementIndex() == 2, true)  
 END_SECTION
 
-START_SECTION((UInt getMapIndex() const))
+START_SECTION((Size getMapIndex() const))
   ElementType e;
   FeatureHandle it(1,2,e);
 
   TEST_EQUAL(it.getMapIndex() == 1, true)  
 END_SECTION
 
-START_SECTION((void setElementIndex(UInt e)))
+START_SECTION((void setElementIndex(Size e)))
   FeatureHandle it;
   it.setElementIndex(2);
 
   TEST_EQUAL(it.getElementIndex() == 2, true)  
 END_SECTION
 
-START_SECTION((void setMapIndex(UInt i)))
+START_SECTION((void setMapIndex(Size i)))
   FeatureHandle it;
   it.setMapIndex(2);
 

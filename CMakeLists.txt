@@ -49,7 +49,7 @@ endif()
 ########################################################
 
 if (CMAKE_COMPILER_IS_GNUCXX)
-	add_definitions(-Wall -Wextra -pedantic -Wno-non-virtual-dtor -Wno-long-long ) # -Wconversion
+	add_definitions(-Wall -Wextra -pedantic -Wno-non-virtual-dtor -Wno-long-long)
 elseif (MSVC)
 	#add_definitions(/Wall) ## disable for now.. its just too much!
 
@@ -89,6 +89,16 @@ if (NOT WIN32) # we only want fPIC on non-windows systems (fPIC is implicitly tr
 		add_definitions(-fPIC)
 	endif()
 endif()
+
+# -Wconversion flag for GCC
+set(CXX_WARN_CONVERSION OFF CACHE BOOL "Enables warnings for type conversion problems (GCC only)")
+if (CXX_WARN_CONVERSION)
+	if (CMAKE_COMPILER_IS_GNUCXX)
+		add_definitions(-Wconversion)
+	endif()
+endif()
+Message(STATUS "Compiler checks for conversion: ${CXX_WARN_CONVERSION}")
+
 
 #default build type (for Makefile generators): Release
 set(OPENMS_BUILD_TYPE "Release" CACHE STRING "Build type: 'Debug' or 'Release'")

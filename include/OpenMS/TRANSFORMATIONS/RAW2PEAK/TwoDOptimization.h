@@ -23,7 +23,6 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Alexandra Zerck $
 // --------------------------------------------------------------------------
-//
 
 #ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_TWODOPTIMIZATION_H
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_TWODOPTIMIZATION_H
@@ -65,7 +64,7 @@
 namespace OpenMS
 {   
 	
-	typedef std::pair<UInt,UInt> Idx  ;
+	typedef std::pair<Size,Size> Idx  ;
 	typedef std::set<Idx> IndexSet;
 
  
@@ -83,7 +82,8 @@ namespace OpenMS
 		 
 		 @htmlinclude OpenMS_TwoDOptimization.parameters
 	*/
-	class OPENMS_DLLAPI TwoDOptimization : public DefaultParamHandler
+	class OPENMS_DLLAPI TwoDOptimization 
+		: public DefaultParamHandler
 	{
 	public:
 
@@ -257,8 +257,8 @@ namespace OpenMS
 		*/
 		//@{
 		std::vector<DoubleReal>::iterator searchInScan_(std::vector<DoubleReal>::iterator scan_begin,
-																										std::vector<DoubleReal>::iterator scan_end ,
-																										DoubleReal current_mz);
+																								std::vector<DoubleReal>::iterator scan_end ,
+																								DoubleReal current_mz);
 
 		/** Performs 2D optimization of all regions */
 		template <typename InputSpectrumIterator,typename OutputPeakType>
@@ -278,7 +278,7 @@ namespace OpenMS
 		void getRegionEndpoints_(MSExperiment<OutputPeakType>& exp,
 														 InputSpectrumIterator& first,
 														 InputSpectrumIterator& last,
-														 UInt iso_map_idx,
+														 Size iso_map_idx,
 														 DoubleReal noise_level,
 														 TwoDOptimization::Data& d);
 
@@ -353,7 +353,7 @@ namespace OpenMS
 		DoubleReal mz_in_hash   = 0;			// used as reference to the current isotopic peak			
 	
 		// sweep through scans
-		for (UInt curr_scan =0; ms_exp_it+curr_scan != ms_exp_it_end;++curr_scan)
+		for (Size curr_scan =0; ms_exp_it+curr_scan != ms_exp_it_end;++curr_scan)
 			{
 				Size nr_peaks_in_scan = (ms_exp_it +curr_scan)->size();
 				//last_rt = current_rt;
@@ -380,7 +380,7 @@ namespace OpenMS
 					{
 	      
 	  
-						for(UInt curr_peak=0; peak_it+curr_peak < peak_it_last-1;++curr_peak)
+						for(Size curr_peak=0; peak_it+curr_peak < peak_it_last-1;++curr_peak)
 							{
 		  
 								// store the m/z of the current peak
@@ -590,10 +590,7 @@ namespace OpenMS
 																					InputSpectrumIterator& last,
 																					MSExperiment< OutputPeakType >& ms_exp)
   {
-
-		//#define DEBUG_2D
     Int counter =0;
-    //#endif
     // go through the clusters
     for (std::multimap<DoubleReal, IsotopeCluster>::iterator it = iso_map_.begin();
          it != iso_map_.end();
@@ -602,12 +599,12 @@ namespace OpenMS
 #ifdef DEBUG_2D
 				std::cout << "element: " << counter<< std::endl;
 				std::cout << "mz: "<< it->first << std::endl<<"rts: ";
-// 				for(UInt i=0;i<it->second.scans_.size();++i) std::cout << it->second.scans_[i] << "\n";
+// 				for(Size i=0;i<it->second.scans_.size();++i) std::cout << it->second.scans_[i] << "\n";
 				std::cout<<std::endl<<"peaks: ";
 				IndexSet::const_iterator iter = it->second.peaks_.begin();
 				for(; iter != it->second.peaks_.end(); ++iter)std::cout << ms_exp[iter->first].getRT() << " "<<(ms_exp[iter->first][iter->second]).getMZ()<<std::endl;
 				
-//for(unsigned int i=0;i<it->second.peaks_.size();++i) std::cout << ms_exp[it->first].getRT() << " "<<(ms_exp[it->first][it->second]).getMZ()<<std::endl;
+//for(Size i=0;i<it->second.peaks_.size();++i) std::cout << ms_exp[it->first].getRT() << " "<<(ms_exp[it->first][it->second]).getMZ()<<std::endl;
 				std::cout << std::endl << std::endl;
 
 #endif
@@ -637,8 +634,7 @@ namespace OpenMS
 				gsl_vector_set_zero(start_value);
 
 				// initialize parameters for optimization
-				std::map<Int, std::vector<PeakIndex> >::iterator m_peaks_it
-					= d.matching_peaks.begin();
+				std::map<Int, std::vector<PeakIndex> >::iterator m_peaks_it = d.matching_peaks.begin();
 				DoubleReal av_mz=0,av_lw=0,av_rw=0,avr_height=0,height;
 				Int peak_counter = 0;
 				Int diff_peak_counter =0;
@@ -665,13 +661,13 @@ namespace OpenMS
 
 #ifdef DEBUG_2D
 				std::cout << "----------------------------\n\nstart_value: "<<std::endl;
-				for(UInt k=0;k<start_value->size;++k)
+				for(Size k=0;k<start_value->size;++k)
 					{
 						std::cout << gsl_vector_get(start_value,k)<<std::endl;
 					}
 #endif
 				Int num_positions = 0;
-				for(UInt i=0; i<d.signal2D.size(); i+=2)
+				for(Size i=0; i<d.signal2D.size(); i+=2)
 					{
 						num_positions += (d.signal2D[i+1].second - d.signal2D[i].second +1);
 #ifdef DEBUG_2D
@@ -741,7 +737,7 @@ namespace OpenMS
 
 
 				std::cout << "----------------------------------------------\n\nnachher"<<std::endl;
-				for(UInt k=0;k<fit->x->size;++k)
+				for(Size k=0;k<fit->x->size;++k)
 					{
 						std::cout << gsl_vector_get(fit->x,k)<<std::endl;
 					}
@@ -845,7 +841,7 @@ namespace OpenMS
 // 			}
 		//		std::cout << "---------------------------------------------------------------\n\n\n\n";
 		
-    UInt max_iteration;
+    Size max_iteration;
     dv = param_.getValue("iterations");
     if (dv.isEmpty() || dv.toString() == "")
       max_iteration = 15;
@@ -875,18 +871,17 @@ namespace OpenMS
          ++it)
 			{
 				d.iso_map_iter = it;
-				//#ifdef DEBUG_2D
+#ifdef DEBUG_2D
 				std::cerr << "element: " << counter<< std::endl;
 				std::cerr << "mz: "<< it->first <<std::endl<<"rts: ";
-				for(UInt i=0;i<it->second.scans_.size();++i) std::cerr << it->second.scans_[i] << "\n";
+				for(Size i=0;i<it->second.scans_.size();++i) std::cerr << it->second.scans_[i] << "\n";
 				std::cerr<<std::endl<<"peaks: ";
 				IndexSet::const_iterator iter = it->second.peaks_.begin();
 				for(; iter != it->second.peaks_.end(); ++iter)std::cerr << ms_exp[iter->first].getRT() << " "<<(ms_exp[iter->first][iter->second]).getMZ()<<std::endl;
-				
-//for(unsigned int i=0;i<it->second.peaks_.size();++i) std::cout << ms_exp[it->first].getRT() << " "<<(ms_exp[it->first][it->second]).getMZ()<<std::endl;
+				//for(Size i=0;i<it->second.peaks_.size();++i) std::cout << ms_exp[it->first].getRT() << " "<<(ms_exp[it->first][it->second]).getMZ()<<std::endl;
 				std::cerr << std::endl << std::endl;
 
-				//#endif
+#endif
 				// prepare for optimization:
 				// determine the matching peaks
 				// and the endpoints of each isotope pattern in the cluster
@@ -895,7 +890,7 @@ namespace OpenMS
 				
 				
 				
-				UInt idx = 0;
+				Size idx = 0;
 				for(Size i=0; i < d.signal2D.size()/2; ++i)
 					{
 						OptimizationFunctions::positions_.clear();
@@ -998,7 +993,7 @@ namespace OpenMS
 	void TwoDOptimization::getRegionEndpoints_(MSExperiment<OutputPeakType>& exp,
 																						 InputSpectrumIterator& first,
 																						 InputSpectrumIterator& last,
-																						 UInt iso_map_idx,
+																						 Size iso_map_idx,
 																						 DoubleReal noise_level,
 																						 TwoDOptimization::Data& d)
 	{
@@ -1014,7 +1009,7 @@ namespace OpenMS
 		InputPeakType peak;
 
 		MapType::iterator iso_map_iter = iso_map_.begin();
-		for(UInt i=0;i<iso_map_idx;++i)  ++iso_map_iter;
+		for(Size i=0;i<iso_map_idx;++i)  ++iso_map_iter;
 
 #ifdef DEBUG2D
 		std::cout << "rt begin: "<<exp[iso_map_iter->second.scans_[0]].getRT()

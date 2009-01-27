@@ -75,14 +75,14 @@ namespace OpenMS
 				String label;
 				/// @brief Number of elements (features, peaks, ...).
 				/// This is e.g. used to check for correct element indices when writing a consensus map
-				UInt size;
+				Size size;
 			};
 
 			///@name Type definitions
 			//@{
 			typedef std::vector<ConsensusFeature > Base;
 			typedef RangeManager<2> RangeManagerType;
-			typedef Map<UInt,FileDescription> FileDescriptions;
+			typedef Map<Size,FileDescription> FileDescriptions;
 			/// Mutable iterator		
 			typedef std::vector<ConsensusFeature>::iterator Iterator;
 			/// Non-mutable iterator
@@ -302,9 +302,9 @@ namespace OpenMS
 				std::partial_sort( tmp.begin(), tmp.begin()+n, tmp.end(), reverseComparator(Peak2D::IntensityLess()) );
 				for (Size element_index = 0; element_index < n; ++element_index )
 				{
-					output_map.push_back( ConsensusFeature( (UInt)input_map_index, (UInt)element_index, tmp[element_index] ) );
+					output_map.push_back( ConsensusFeature(input_map_index, element_index, tmp[element_index] ) );
 				}
-				output_map.getFileDescriptions()[(UInt) input_map_index].size = (UInt)n;
+				output_map.getFileDescriptions()[input_map_index].size = n;
 				output_map.updateRanges();
 				return;
 			}

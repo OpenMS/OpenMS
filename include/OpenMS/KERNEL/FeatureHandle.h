@@ -62,7 +62,7 @@ namespace OpenMS
 		{
 		}
 		/// Constructor with map index, element index and position
-		FeatureHandle(UInt map_index, UInt element_index, const Peak2D& point)
+		FeatureHandle(Size map_index, Size element_index, const Peak2D& point)
 			: Peak2D(point),
 				map_index_(map_index),
 				element_index_(element_index),
@@ -70,7 +70,7 @@ namespace OpenMS
 		{
 		}
 		/// Constructor from map index, element index and Feature
-		FeatureHandle(UInt map_index, UInt element_index, const Feature& point)
+		FeatureHandle(Size map_index, Size element_index, const Feature& point)
 			: Peak2D(point),
 				map_index_(map_index),
 				element_index_(element_index),
@@ -78,7 +78,7 @@ namespace OpenMS
 		{
 		}
 		/// Constructor from map index, element index and ConsensusFeature
-		FeatureHandle(UInt map_index, UInt element_index, const ConsensusFeature& point);
+		FeatureHandle(Size map_index, Size element_index, const ConsensusFeature& point);
 		/// Copy constructor
 		FeatureHandle(const FeatureHandle& rhs)
 			: Peak2D(rhs),
@@ -124,22 +124,22 @@ namespace OpenMS
     ///@name Accessors
     //@{
 		/// Returns the map index
-		UInt getMapIndex() const
+		Size getMapIndex() const
 		{
 			return map_index_;
 		}
 		/// Set the map index
-		void setMapIndex(UInt i)
+		void setMapIndex(Size i)
 		{
 			map_index_ = i;
 		}
 		/// Returns the element index
-		UInt getElementIndex() const
+		Size getElementIndex() const
 		{
 			return element_index_;
 		}
 		/// Set the element index
-		void setElementIndex(UInt e)
+		void setElementIndex(Size e)
 		{
 			element_index_= e;
 		}
@@ -186,9 +186,9 @@ namespace OpenMS
 	 protected:
     	
 		/// Int of the element's container
-		UInt map_index_;
+		Size map_index_;
 		/// Int of the element within element's container
-		UInt element_index_;
+		Size element_index_;
 		/// Charge of the feature
 		Int charge_;
   };

@@ -30,7 +30,7 @@
 namespace OpenMS
 {
 	
-	FeatureHandle::FeatureHandle(UInt map_index, UInt element_index, const ConsensusFeature& point)
+	FeatureHandle::FeatureHandle(Size map_index, Size element_index, const ConsensusFeature& point)
 		: Peak2D(point),
 			map_index_(map_index),
 			element_index_(element_index),

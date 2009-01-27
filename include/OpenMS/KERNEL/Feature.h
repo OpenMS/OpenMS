@@ -120,15 +120,15 @@ namespace OpenMS
 		}
 
 		/// Non-mutable access to the quality in dimension c
-		QualityType getQuality( UInt index ) const
+		QualityType getQuality( Size index ) const
 		{
-			OPENMS_PRECONDITION( index < 2, "Feature<2>:getQuality(UInt): index overflow!" );
+			OPENMS_PRECONDITION( index < 2, "Feature<2>:getQuality(Size): index overflow!" );
 			return qualities_[ index ];
 		}
 		/// Set the quality in dimension c
-		void setQuality( UInt index, QualityType q )
+		void setQuality( Size index, QualityType q )
 		{
-			OPENMS_PRECONDITION( index < 2, "Feature<2>:setQuality(UInt): index overflow!" );
+			OPENMS_PRECONDITION( index < 2, "Feature<2>:setQuality(Size): index overflow!" );
 			qualities_[ index ] = q;
 		}
 

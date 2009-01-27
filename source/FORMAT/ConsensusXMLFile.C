@@ -670,7 +670,7 @@ namespace OpenMS
 		//file descriptions
 		const ConsensusMap::FileDescriptions& description_vector = consensus_map.getFileDescriptions();
 		os << "\t<mapList count=\"" << description_vector.size() << "\">\n";
-		for (Map<UInt,ConsensusMap::FileDescription>::const_iterator it=description_vector.begin(); it!=description_vector.end(); ++it)
+		for (ConsensusMap::FileDescriptions::const_iterator it=description_vector.begin(); it!=description_vector.end(); ++it)
 		{
 			setProgress(++progress_);
 			os << "\t\t<map id=\"" << it->first << "\" name=\"" << it->second.filename << "\" label=\"" << it->second.label << "\" size=\"" << it->second.size << "\">\n";

@@ -178,7 +178,7 @@ namespace OpenMS
 			std::vector< std::vector<String> > cv_terms_;
 			
 			/// Converts @p term to the index of the term in the cv_terms_ entry @p section
-			inline UInt cvStringToEnum_(UInt section, const String& term, const char* message)
+			inline SignedSize cvStringToEnum_(Size section, const String& term, const char* message)
 			{
 				OPENMS_PRECONDITION(section<cv_terms_.size(),"cvStringToEnum_: Index overflow (secion number too large)");
 					

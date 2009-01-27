@@ -110,7 +110,7 @@ START_SECTION((ConsensusFeature(const RichPeak2D &point)))
   TEST_EQUAL(cons.empty(), true)
 END_SECTION
 
-START_SECTION((ConsensusFeature(UInt map_index, UInt element_index, const Feature &element)))
+START_SECTION((ConsensusFeature(Size map_index, Size element_index, const Feature &element)))
  	ConsensusFeature cons(1,3,tmp_feature);
   DRange<2> pos_range(1,2,1,2);
   DRange<1> int_range(200,200);
@@ -185,7 +185,7 @@ START_SECTION((void insert(const FeatureHandle &handle)))
   TEST_EQUAL(it==cons.end(), true)
 END_SECTION
 
-START_SECTION((void insert(UInt map_index, UInt element_index, const Feature &element)))
+START_SECTION((void insert(Size map_index, Size element_index, const Feature &element)))
   ConsensusFeature cons;
   cons.insert(2,3,tmp_feature);
       

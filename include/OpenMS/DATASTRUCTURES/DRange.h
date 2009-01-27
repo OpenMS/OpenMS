@@ -248,8 +248,6 @@ namespace OpenMS
 		*/
 		bool isIntersected(const DRange& range) const
 		{
-			
-			unsigned short bla = long(-49849894);
 		  //check if r.min_ is in this area
 		  if (encloses(range.min_))
 		  {
