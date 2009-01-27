@@ -285,7 +285,7 @@ namespace OpenMS
 	
 	Size Param::ParamNode::size() const
 	{
-		UInt subnode_size = 0;
+		Size subnode_size = 0;
 		for (vector<ParamNode>::const_iterator it=nodes.begin(); it!=nodes.end(); ++it)
 		{
 			subnode_size += it->size();

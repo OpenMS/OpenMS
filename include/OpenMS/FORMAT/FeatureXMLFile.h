@@ -94,7 +94,7 @@ namespace OpenMS
       virtual void characters(const XMLCh* const chars, const XMLSize_t length);
 
 			/// Writes a feature to a stream
-			void writeFeature_(const String& filename, std::ostream& os, const Feature& feat, const String& identifier_prefix, UInt identifier, UInt indentation_level);
+			void writeFeature_(const String& filename, std::ostream& os, const Feature& feat, const String& identifier_prefix, Size identifier, UInt indentation_level);
 
 			/// Writes a peptide identification to a stream (for assigned/unassigned peptide identifications)
 			void writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level);

@@ -509,10 +509,10 @@ namespace OpenMS
 				 << "Options (mandatory options marked with '*'):" << endl;
 
 		//determine max length of parameters (including argument) for indentation
-		string::size_type max_size = 0;
+		UInt max_size = 0;
 		for( vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
 		{
-			max_size = max(max_size,it->name.size()+it->argument.size()+it->required);
+			max_size = max((UInt)max_size,(UInt)(it->name.size()+it->argument.size()+it->required));
 		}
 
 		//offset of the descriptions

@@ -699,7 +699,7 @@ namespace OpenMS
 		}
 	}
 
-	void FeatureXMLFile::writeFeature_(const String& filename, ostream& os, const Feature& feat, const String& identifier_prefix, UInt identifier, UInt indentation_level)
+	void FeatureXMLFile::writeFeature_(const String& filename, ostream& os, const Feature& feat, const String& identifier_prefix, Size identifier, UInt indentation_level)
 	{
 		String indent = String(indentation_level,'\t');
 
@@ -735,21 +735,21 @@ namespace OpenMS
 		vector<ConvexHull2D> hulls = feat.getConvexHulls();
 		vector<ConvexHull2D>::iterator citer = hulls.begin();
 
-		UInt hulls_count = hulls.size();
+		Size hulls_count = hulls.size();
 
 		for (Size i=0;i<hulls_count; i++)
 		{
 			os << indent << "\t\t\t<convexhull nr=\"" << i << "\">\n";
 
 			ConvexHull2D current_hull = hulls[i];
-			UInt hull_size	= current_hull.getPoints().size();
+			Size hull_size	= current_hull.getPoints().size();
 
 			for (Size j=0;j<hull_size;j++)
 			{
 				os << indent << "\t\t\t\t<hullpoint>\n";
 
 				DPosition<2> pos = current_hull.getPoints()[j];
-				UInt pos_size = pos.size();
+				Size pos_size = pos.size();
 				for (Size k=0; k<pos_size; k++)
 				{
 					os << indent << "\t\t\t\t\t<hposition dim=\"" << k << "\">" << precisionWrapper(pos[k]) << "</hposition>\n";
