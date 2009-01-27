@@ -36,6 +36,7 @@
 #ifdef _MSC_VER // disable some seqan warnings that distract from ours
 #	pragma warning( push ) // save warning state
 #	pragma warning( disable : 4244 )
+#	pragma warning( disable : 4267 )
 #	pragma warning( disable : 4390 )
 #	pragma warning( disable : 4521 )
 #	pragma warning( disable : 4522 )
