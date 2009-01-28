@@ -25,7 +25,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/DoubleList.h>
-
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 using namespace std;
 
 namespace OpenMS
@@ -93,6 +93,16 @@ namespace OpenMS
 			{
 				ret[i]=out[i].toDouble();
 			}
+		}
+		return ret;
+	}
+	
+	DoubleList DoubleList::create(const StringList& list)
+	{
+		DoubleList ret;
+		for(UInt i = 0 ; i < list.size(); ++i)
+		{
+			ret.push_back(list[i].toDouble());
 		}
 		return ret;
 	}

@@ -85,7 +85,7 @@ namespace OpenMS
 				else if(dtype == "output file")
 				{
 					QLineEdit* editor = new QLineEdit(parent);
-					editor->setReadOnly(true);
+					//editor->setReadOnly(true);
 					QString str = index.sibling(index.row(),0).data(Qt::DisplayRole).toString();
 					fileName_ = QFileDialog::getSaveFileName(editor,tr("Output File"),str);
 					return editor;
@@ -93,12 +93,12 @@ namespace OpenMS
 				else if(dtype == "input file")
 				{
 					QLineEdit* editor = new QLineEdit(parent);
-					editor->setReadOnly(true);
+					//editor->setReadOnly(true);
 					QString str = index.sibling(index.row(),0).data(Qt::DisplayRole).toString();
 					fileName_ = QFileDialog::getOpenFileName(editor,tr("Input File"),str);
 					return editor;
 				}
-				else if(dtype =="string list" || dtype =="int list" || dtype=="double list" || dtype =="input list" || dtype =="output list" ) // for lists
+				else if(dtype =="string list" || dtype =="int list" || dtype=="double list" || dtype =="input file list" || dtype =="output file list" ) // for lists
 					{
 						QString str = "<"+ index.sibling(index.row(),0).data(Qt::DisplayRole).toString() + "> " +"(<" + dtype + ">)";
 						ListEditor *editor = new ListEditor(0,str);
@@ -135,7 +135,8 @@ namespace OpenMS
 				}
 				else if(qobject_cast<QLineEdit*>(editor))// LineEdit for other values
 				{
-					if(static_cast<QLineEdit*>(editor)->isReadOnly())/// for output/input file
+					QString dtype = index.sibling(index.row(),2).data(Qt::DisplayRole).toString();
+					if(dtype == "output file" || dtype == "input file") /// for output/input file
 					{
 						if(!fileName_.isNull())
 						{
@@ -152,25 +153,30 @@ namespace OpenMS
 					String list;
 					list = str.mid(1,str.length()-2);
 					QString type = index.sibling(index.row(),2).data(Qt::DisplayRole).toString();
+					StringList rlist = StringList::create(list);
+					for(UInt i = 0; i < rlist.size(); ++i)
+					{
+						rlist[i]  = rlist[i].trim();
+					}
 					if(type == "int list")
 					{
-						static_cast<ListEditor*>(editor)->setList(StringList::create(list),ListEditor::INT);
+						static_cast<ListEditor*>(editor)->setList(rlist,ListEditor::INT);
 					}
 					else if(type == "double list")
 					{
-						static_cast<ListEditor*>(editor)->setList(StringList::create(list),ListEditor::FLOAT);
+						static_cast<ListEditor*>(editor)->setList(rlist,ListEditor::FLOAT);
 					}
 					else if(type == "string list")
 					{
-						static_cast<ListEditor*>(editor)->setList(StringList::create(list),ListEditor::STRING);
+						static_cast<ListEditor*>(editor)->setList(rlist,ListEditor::STRING);
 					}
-					else if(type == "input list")
+					else if(type == "input file list")
 					{
-						static_cast<ListEditor*>(editor)->setList(StringList::create(list),ListEditor::INPUT_FILE);
+						static_cast<ListEditor*>(editor)->setList(rlist,ListEditor::INPUT_FILE);
 					}
-					else if(type == "output list")
+					else if(type == "output file list")
 					{
-						static_cast<ListEditor*>(editor)->setList(StringList::create(list),ListEditor::OUTPUT_FILE);
+						static_cast<ListEditor*>(editor)->setList(rlist,ListEditor::OUTPUT_FILE);
 					}
 					static_cast<ListEditor*>(editor)->setListRestrictions(index.sibling(index.row(),2).data(Qt::UserRole).toString());
 				}
@@ -192,26 +198,21 @@ namespace OpenMS
 				}
 				else if(qobject_cast<QLineEdit*>(editor))
 				{
-					if(static_cast<QLineEdit*>(editor)->isReadOnly())
+					QString dtype = index.sibling(index.row(),2).data(Qt::DisplayRole).toString();
+					if(dtype =="output file" || "input file")
 					{
-						if(!fileName_.isNull())
-						{
-							new_value = fileName_;//QVariant(static_cast<QLabel*>(editor)->text());
-							fileName_ = "\0";
-						}
-						else
-						{
-							new_value = present_value;
-						}
-					}
-					else
-					{
+
 						new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
+						fileName_ = "\0";
 					}
 				}
 				else
 				{
 					list = static_cast<ListEditor*>(editor)->getList();
+					for(UInt i =  1; i < list.size(); ++i)
+					{
+						list[i] = "\n" + list[i] ;
+					}
 					new_list = true;
 				}
 				//check if it matches the restrictions or is empty
@@ -446,7 +447,44 @@ namespace OpenMS
 			//name
 			item->setText(0, it->name.toQString());
 			//value
-			item->setText(1, QString::fromStdString(it->value.toString().c_str()));
+			if(it->value.valueType() == DataValue::STRING_LIST)
+			{
+				StringList list = it->value;
+				for(UInt i = 1; i < list.size(); ++i)
+				{
+					list[i] = "\n" + list[i];
+				}
+				String ll  = "["+list.concatenate(",")+"]";
+				item->setText(1, QString::fromStdString(ll.c_str()));
+			}
+			else if(it->value.valueType() == DataValue::INT_LIST)
+			{
+				IntList lis = it->value;
+				StringList list;
+				list.push_back(lis[0]);
+				for(UInt i = 1; i < list.size(); ++i)
+				{
+					list.push_back("\n" + lis[i]);
+				}
+				String ll  = "["+list.concatenate(",")+"]";
+				item->setText(1, QString::fromStdString(ll.c_str()));
+			}
+			else if(it->value.valueType() == DataValue::DOUBLE_LIST)
+			{
+				DoubleList lis = it->value;
+				StringList list;
+				list.push_back(lis[0]);
+				for(UInt i = 1; i < list.size(); ++i)
+				{
+					list.push_back("\n" + list[i]);
+				}
+				String ll  = "["+list.concatenate(",")+"]";
+				item->setText(1, QString::fromStdString(ll.c_str()));
+			}
+			else
+			{
+				item->setText(1, QString::fromStdString(it->value.toString().c_str()));
+			}
 			//type
 			switch(it->value.valueType())
 			{
@@ -473,11 +511,11 @@ namespace OpenMS
 				case DataValue::STRING_LIST:
 					if(it->tags.count("input file"))
 					{
-						item->setText(2,"input list");
+						item->setText(2,"input file list");
 					}
 					else if(it->tags.count("output file"))
 					{
-						item->setText(2,"output list");
+						item->setText(2,"output file list");
 					}
 					else
 					{
@@ -704,11 +742,16 @@ namespace OpenMS
 					}
 				}
 			}
-								String list;
-					list = child->text(1).mid(1,child->text(1).length()-2);
+			String list;
+			list = child->text(1).mid(1,child->text(1).length()-2); 
+			StringList rlist = StringList::create(list);
+			for(UInt i = 0; i < rlist.size(); ++i)
+			{
+				rlist[i] = rlist[i].trim();
+			}
 			if(child->text(2)=="string list")
 			{
-				param_->setValue(path,StringList::create(list),description,tags);
+				param_->setValue(path,rlist,description,tags);
 				String restrictions = child->data(2,Qt::UserRole).toString();
 				if(restrictions!="")
 				{
@@ -717,10 +760,10 @@ namespace OpenMS
 					param_->setValidStrings(path,parts);
 				}
 			}
-			else if(child->text(2)=="input list")
+			else if(child->text(2)=="input file list")
 			{
 				tags.push_back("input file");
-				param_->setValue(path,StringList::create(list),description,tags);
+				param_->setValue(path,rlist,description,tags);
 				String restrictions = child->data(2,Qt::UserRole).toString();
 				if(restrictions!="")
 				{
@@ -729,10 +772,10 @@ namespace OpenMS
 					param_->setValidStrings(path,parts);
 				}
 			}
-			else if(child->text(2)=="output list")
+			else if(child->text(2)=="output file list")
 			{
 				tags.push_back("output file");
-				param_->setValue(path,StringList::create(list),description,tags);
+				param_->setValue(path,rlist,description,tags);
 				String restrictions = child->data(2,Qt::UserRole).toString();
 				if(restrictions!="")
 				{
@@ -743,7 +786,7 @@ namespace OpenMS
 			}
 			else if(child->text(2) =="double list")
 			{
-				param_->setValue(path,DoubleList::create(list),description,tags);
+				param_->setValue(path,DoubleList::create(rlist),description,tags);
 				String restrictions = child->data(2,Qt::UserRole).toString();
 				vector<String> parts;
 				if(restrictions.split(' ',parts))
@@ -760,7 +803,7 @@ namespace OpenMS
 			}
 			else if(child->text(2) == "int list")
 			{
-				param_->setValue(path,IntList::create(list),description,tags);
+				param_->setValue(path,IntList::create(rlist),description,tags);
 				String restrictions = child->data(2,Qt::UserRole).toString();
 				vector<String> parts;
 				if(restrictions.split(' ',parts))

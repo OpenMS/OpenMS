@@ -97,6 +97,16 @@ namespace OpenMS
 		return ret;
 	}
 	
+	IntList IntList::create(const StringList& list)
+	{
+		IntList ret;
+		for(UInt i = 0 ; i < list.size(); ++i)
+		{
+			ret.push_back(list[i].toInt());
+		}
+		return ret;
+	}
+	
 	bool IntList::contains(Int s) const
 	{
 		for (Size i=0; i<this->size(); ++i)

@@ -24,8 +24,8 @@
 // --------------------------------------------------------------------------
 // $Maintainer: David Wojnar $
 // --------------------------------------------------------------------------
-#ifndef LIST_EDITOR_H
-#define LIST_EDITOR_H
+#ifndef OPENMS_VISUAL_LISTEDITOR_H
+#define OPENMS_VISUAL_LISTEDITOR_H
 
 
 #include<OpenMS/DATASTRUCTURES/StringList.h>
@@ -43,7 +43,10 @@ namespace OpenMS
 		class ListEditorDelegate;
 	}
 	
-//DIALOG
+	/**
+		@brief Editor for editing int, double and string lists (including output and input file lists)
+		
+	*/	
 class ListEditor
 :public QDialog
 {
@@ -164,7 +167,7 @@ class ListEditor
 				///type name. used to distinguish output/input from string lists
 				QString typeName_;
 				///used to set input and output values in setModelData
-				mutable QString fileName_;
+				mutable QString file_name_;
 
 				
 		};
@@ -175,4 +178,4 @@ class ListEditor
 
 
 } // namespace OpenMS
-#endif //LIST_EDITOR_H
+#endif //OPENMS_VISUAL_LISTEDITOR_H

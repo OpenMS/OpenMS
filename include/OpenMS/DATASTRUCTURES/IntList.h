@@ -29,6 +29,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/StringList.h>
 
 #ifdef OPENMS_COMPILER_MSVC
 	#pragma warning( push )
@@ -76,7 +77,9 @@ namespace OpenMS
 			}
 
 			/// Returns a list that is created by splitting the given comma-separated string (String are not trimmed!)
-			static IntList create(const String& list);
+			static IntList create(const String& list);			
+			///Returns a list that is created by converting every string element of the given StringList
+			static IntList create(const StringList& list);
 			/// Returns if a string is contains in the list
 			bool contains(Int s) const;
 			

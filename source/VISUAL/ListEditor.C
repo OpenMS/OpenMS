@@ -27,11 +27,10 @@
 
 #include<OpenMS/VISUAL/ListEditor.h>
 #include<OpenMS/DATASTRUCTURES/String.h>
-//#include <OpenMS/DATASTRUCTURES/StringList.h>
+
 
 //für DIALOG
 #include<QtGui/QPushButton>
-#include<QtGui/QVBoxLayout>
 #include<QtGui/QHBoxLayout>
 #include<QtGui/QHeaderView>
 #include <QtGui/QMessageBox>
@@ -39,7 +38,6 @@
 #include <QtGui/QComboBox>
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QFileDialog>
-#include <QtGui/QLabel>
 
 #include <vector>
 
@@ -59,21 +57,21 @@ namespace OpenMS
 			if(type_ == ListEditor::INPUT_FILE)
 			{
 				QLineEdit* editor = new QLineEdit(parent);
-				editor->setReadOnly(true);
+				//editor->setReadOnly(true);
 				QString str = index.data(Qt::DisplayRole).toString();
 
 				editor->setFocusPolicy(Qt::StrongFocus);
 
-				fileName_ = QFileDialog::getOpenFileName(editor, tr("Input File"),str);
+				file_name_ = QFileDialog::getOpenFileName(editor, tr("Input File List"),str);
 
 				return editor;
 			}
 			else if(type_ == ListEditor::OUTPUT_FILE)
 			{
 					QLineEdit* editor = new QLineEdit(parent);
-					editor->setReadOnly(true);
+					//editor->setReadOnly(true);
 					QString str = index.data(Qt::DisplayRole).toString();
-					fileName_ = QFileDialog::getSaveFileName(editor, tr("Output File"),str);
+					file_name_ = QFileDialog::getSaveFileName(editor, tr("Output File List"),str);
 
 				return editor;
 			}
@@ -101,11 +99,12 @@ namespace OpenMS
 				QString str = index.data(Qt::DisplayRole).toString();
 				
 				if(type_ == ListEditor::INPUT_FILE || type_ == ListEditor::OUTPUT_FILE)
-					if(!fileName_.isNull())
+				{	
+					if(!file_name_.isNull())
 					{
-						static_cast<QLineEdit*>(editor)->setText(fileName_);
+						static_cast<QLineEdit*>(editor)->setText(file_name_);
 					}
-
+				}
 				else if(qobject_cast<QComboBox*>(editor))
 				{
 					int index = static_cast<QComboBox*>(editor)->findText(str);
@@ -135,15 +134,15 @@ namespace OpenMS
 				else if(type_ == ListEditor::INPUT_FILE || type_ == ListEditor::OUTPUT_FILE)
 				{
 
-					if(!fileName_.isNull())
-					{
-						new_value = fileName_;
-						fileName_ = "\0";
-					}
-					else
-					{
-						new_value = present_value;
-					}
+					//if(!file_name_.isNull())
+					//{
+						new_value = QVariant(static_cast<QLineEdit*>(editor)->text());//file_name_;
+						file_name_ = "\0";
+					//}
+			//		else
+			//		{
+			//			new_value = present_value;
+			//		}
 				}
 				else
 				{
@@ -246,7 +245,7 @@ namespace OpenMS
 		}
 		void ListEditorDelegate::setFileName(const QString& name)
 		{
-			fileName_ = name;
+			file_name_ = name;
 		}
 	
 //////////////////////////////////////////////////////////////
@@ -255,6 +254,7 @@ namespace OpenMS
 	ListTable::ListTable(QWidget* parent)
 	:QListWidget(parent)
 	{	
+		
 	}
 
 	StringList ListTable::getList()
@@ -284,6 +284,7 @@ namespace OpenMS
 			insertItem(i,item);
 		}
 		list_ = list;
+		adjustSize();
 	}
 
 	void ListTable::createNewRow()
@@ -340,6 +341,7 @@ ListEditor::ListEditor(QWidget *parent,QString title)
 	setLayout(mainLayout);
 	QString tit =  "List Editor"+title;
 	setWindowTitle(tit);
+	setMinimumSize(800,500);
 }
 
 StringList ListEditor::getList() const
