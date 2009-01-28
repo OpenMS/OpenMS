@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<IdXML version="1.1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/IdXML_1_1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="SwissProt" db_version="SwissProt_54.5.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+	</SearchParameters>
+	<IdentificationRun date="2008-08-18T14:30:01" search_engine="Mascot" search_engine_version="2.2.03" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="P02787" score="841" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_64" accession="O60258" score="24" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="24" MZ="1000.48999" RT="1530" >
+			<PeptideHit score="40.47000122" sequence="YLGEEYVK" charge="1" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="float" name="EValue" value="0.0011"/>
+				<UserParam type="int" name="Rank" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="13.73999977" sequence="YICMNKR" charge="1" aa_before="K" aa_after="G" protein_refs="PH_64" >
+				<UserParam type="float" name="EValue" value="0.54"/>
+				<UserParam type="int" name="Rank" value="2"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

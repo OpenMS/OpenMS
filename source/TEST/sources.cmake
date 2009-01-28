@@ -299,6 +299,7 @@ AAIndex_test.C
 LocalLinearMap_test.C
 PeakIntensityPredictor_test.C
 PrecursorIonSelectionPreprocessing_test.C
+PrecursorIonSelection_test.C
 )
 
 if (USE_ANDIMS) 	 

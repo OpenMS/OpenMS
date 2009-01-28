@@ -290,6 +290,7 @@ set(analysis_executables_list
   PeakIntensityPredictor_test
   IDMapper_test
   PrecursorIonSelectionPreprocessing_test
+  PrecursorIonSelection_test
 )
 
 set(applications_executables_list

@@ -170,18 +170,18 @@ namespace OpenMS
 																std::cout <<prot_id_counter_[*acc_it].size()
 																					<< " >= "<<min_pep_ids_ << std::endl;
 #endif
-																// if enough peptides are found now
-																if(prot_id_counter_[*acc_it].size()>=min_pep_ids_ )
-																	{
-																		// change ordering of corresponding features ->down
-																		if(type_ == UPSHIFT || type_ == SPS) continue;
-																		shiftDown_(features,preprocessed_db,*acc_it);
-																	}
-																else if(type_ != DOWNSHIFT && type_ != DEX && type_ != SPS)
-																	{
- 																		// change ordering of corresponding features ->up
-																		shiftUp_(features,preprocessed_db,*acc_it);
-																	}
+// 																// if enough peptides are found now
+// 																if(prot_id_counter_[*acc_it].size()>=min_pep_ids_ )
+// 																	{
+// 																		// change ordering of corresponding features ->down
+// 																		if(type_ == UPSHIFT || type_ == SPS) continue;
+// 																		shiftDown_(features,preprocessed_db,*acc_it);
+// 																	}
+// 																else if(type_ != DOWNSHIFT && type_ != DEX && type_ != SPS)
+// 																	{
+//  																		// change ordering of corresponding features ->up
+// 																		shiftUp_(features,preprocessed_db,*acc_it);
+// 																	}
 															}
 													}
 											}
@@ -194,11 +194,11 @@ namespace OpenMS
 												seq_set.insert(hits[h].getSequence().toString());
 												prot_id_counter_.insert(make_pair(*acc_it,seq_set));
 												status_changed.insert(*acc_it);
-												if(type_ != DOWNSHIFT && type_ != DEX && type_ != SPS)
-													{
-  													// change ordering of corresponding features ->up
-														shiftUp_(features,preprocessed_db,*acc_it);
-													}
+// 												if(type_ != DOWNSHIFT && type_ != DEX && type_ != SPS)
+// 													{
+//   													// change ordering of corresponding features ->up
+// 														shiftUp_(features,preprocessed_db,*acc_it);
+// 													}
 											}
 									}
 							}
@@ -271,10 +271,10 @@ namespace OpenMS
 	void PrecursorIonSelection::shiftDown_(FeatureMap<>& features,PrecursorIonSelectionPreprocessing& preprocessed_db,
 																				 String protein_acc)
 	{
-#ifdef PIS_DEBUG
-		std::cout << protein_acc << "  shift down  "<<std::endl;
-#endif
 		const std::vector<DoubleReal>& masses =preprocessed_db.getMasses(protein_acc);
+#ifdef PIS_DEBUG
+		std::cout << protein_acc << "  shift down  "<<masses.size()<< " peptides"<<std::endl;
+#endif
 		FeatureMap<>::Iterator f_iter = features.begin();
 		for(;f_iter != features.end();++f_iter)
 			{
@@ -339,10 +339,11 @@ namespace OpenMS
 	void PrecursorIonSelection::shiftUp_(FeatureMap<>& features,PrecursorIonSelectionPreprocessing& preprocessed_db,
 																			 String protein_acc)
 	{
-#ifdef PIS_DEBUG
-		std::cout << protein_acc << "  shift up  "<<std::endl;
-#endif
 		const std::vector<DoubleReal>& masses =preprocessed_db.getMasses(protein_acc);
+#ifdef PIS_DEBUG
+		std::cout << protein_acc << "  shift up  "<<masses.size()<< " peptides"<<std::endl;
+#endif
+
 		FeatureMap<>::Iterator f_iter = features.begin();
 		for(;f_iter != features.end();++f_iter)
 			{
@@ -481,12 +482,19 @@ namespace OpenMS
 	return filtered_pep_ids;
 }
 
+
+	void PrecursorIonSelection::reset()
+	{
+		prot_id_counter_.clear();
+	}
 	
 	void PrecursorIonSelection::simulateRun(FeatureMap<>& features,std::vector<PeptideIdentification>& pep_ids,
 																					std::vector<ProteinIdentification>& prot_ids,
 																					PrecursorIonSelectionPreprocessing& preprocessed_db,
 																					UInt step_size, String path)
 	{
+
+		sortByTotalScore(features);
 		std::ofstream outf(path.c_str());
 #ifdef PIS_DEBUG
 		std::cout << "type "<<type_<<std::endl;
@@ -518,10 +526,11 @@ namespace OpenMS
 		UInt pep_id_number = 0;
 		std::vector<PeptideIdentification> curr_pep_ids,all_pep_ids;
 		std::vector<ProteinIdentification> curr_prot_ids,all_prot_ids;
-
-		
+#ifdef PIS_DEBUG
+		std::cout << max_iteration_ << std::endl;
+#endif
 		// while there are precursors left and the maximal number of iterations isn't arrived
-		while((new_features.size()  > 0 && iteration < (UInt)param_.getValue("max_iteration")) )
+		while((new_features.size()  > 0 && iteration < max_iteration_) )
 			{
 					
 				++iteration;
@@ -793,6 +802,10 @@ namespace OpenMS
 	
 	void PrecursorIonSelection::updateMembers_()
 	{
+#ifdef PIS_DEBUG
+		std::cout << "update members"<<std::endl;
+#endif
+		
 		if(param_.getValue("type") == "IPS") type_ = IPS;
 		else if(param_.getValue("type") == "Upshift") type_ = UPSHIFT;
 		else if(param_.getValue("type") == "Downshift") type_ = DOWNSHIFT;
@@ -801,6 +814,7 @@ namespace OpenMS
 		min_pep_ids_ = (UInt)param_.getValue("min_pep_ids");
 		mz_tolerance_unit_ = (String)param_.getValue("precursor_mass_tolerance_unit");
 		mz_tolerance_ = (DoubleReal)param_.getValue("precursor_mass_tolerance");
+		max_iteration_ = (UInt) param_.getValue("max_iteration");
 	}
 
 	

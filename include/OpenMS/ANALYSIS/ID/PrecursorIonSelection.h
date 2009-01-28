@@ -39,7 +39,7 @@
 namespace OpenMS
 {
   
-  class PrecursorIonSelection : public DefaultParamHandler
+  class OPENMS_DLLAPI PrecursorIonSelection : public DefaultParamHandler
   {
   public:
 
@@ -59,23 +59,6 @@ namespace OpenMS
 		const DoubleReal& getMaxScore() const;
 		void setMaxScore(const DoubleReal& max_score);
 
-		/// returns a const reference to the PeptideIdentification vector
-		inline const std::vector<PeptideIdentification>& getPeptideIdentifications() const
-		{
-			return peptide_ids_;
-		};
-		
-		/// returns a mutable reference to the PeptideIdentification vector
-		inline std::vector<PeptideIdentification>& getPeptideIdentifications()
-		{
-			return peptide_ids_;
-		};
-		
-		/// sets the PeptideIdentification vector
-		inline void setPeptideIdentifications( const std::vector<PeptideIdentification>& peptide_ids )
-		{
-			peptide_ids_ = peptide_ids;
-		};
 		
 		/// Compare by score
 		struct TotalScoreMore
@@ -137,16 +120,24 @@ namespace OpenMS
 		 *	
 		 *	@param features FeatureMap with all possible precursors
 		 *	@param pep_ids Peptide identifications
+		 *	@param prot_ids Protein identifications
 		 *	@param preprocessed_db Information from preprocessed database
 		 *  @param step_size Number of MS/MS spectra considered per iteration
+		 *  @param path Path to output file
 		 *
 		 */
     void simulateRun(FeatureMap<>& features,std::vector<PeptideIdentification>& pep_ids,
 										 std::vector<ProteinIdentification>& prot_ids,
 										 PrecursorIonSelectionPreprocessing& preprocessed_db,
 										 UInt step_size, String path);
-    
 
+
+		void reset();
+
+		const std::map<String,std::set<String> >& getPeptideProteinCounter()
+		{
+			return prot_id_counter_;
+		}
 		
   private:
 
@@ -184,14 +175,14 @@ namespace OpenMS
     DoubleReal max_score_;
     /// precursor ion selection strategy
     Type type_;
-		/// peptide identications
-		std::vector<PeptideIdentification> peptide_ids_;
 		/// stores the peptide sequences for all protein identifications
 		std::map<String,std::set<String> > prot_id_counter_;
 		/// precursor ion error tolerance 
 		DoubleReal mz_tolerance_;
 		/// precursor ion error tolerance unit (ppm or Da)
 		String mz_tolerance_unit_;
+		/// maximal number of iterations
+		UInt max_iteration_;
 		
   };
 
