@@ -71,22 +71,22 @@ ptr->dbPreprocessing(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreprocessi
 	
 START_SECTION((const std::map<String,std::vector<DoubleReal> >& getProtMasses() const))
 	std::map<String,std::vector<DoubleReal> > prot_map = ptr->getProtMasses();
-	TEST_EQUAL(prot_map.size(), 4)
+	TEST_EQUAL(prot_map.size(), 2)
 END_SECTION
 
 START_SECTION((const std::vector<DoubleReal> & getMasses(String acc) const))
-	std::vector<DoubleReal> pep_masses= ptr->getMasses("P01008");
+	const std::vector<DoubleReal>& pep_masses= ptr->getMasses("P01008");
 	TEST_EQUAL(pep_masses.size(), 113)
 	TEST_REAL_SIMILAR(pep_masses[0],1356.68332791328)
-	pep_masses= ptr->getMasses("P02768");
-  TEST_EQUAL(pep_masses.size(), 165)
-	TEST_REAL_SIMILAR(pep_masses[0],278.153837203979)
+	const std::vector<DoubleReal>& pep_masses2= ptr->getMasses("P02787");
+  TEST_EQUAL(pep_masses2.size(), 159)
+	TEST_REAL_SIMILAR(pep_masses2[0],306.159984588623)
 END_SECTION
 
 	
 START_SECTION(void dbPreprocessing(String &db_path))
 	std::map<String,std::vector<DoubleReal> > prot_map = ptr->getProtMasses();
-	TEST_EQUAL(prot_map.size(), 4)
+	TEST_EQUAL(prot_map.size(), 2)
 END_SECTION
 
 START_SECTION(DoubleReal getWeight(DoubleReal mass))
@@ -99,7 +99,7 @@ START_SECTION(void loadPreprocessing())
 	param.setValue("preprocessing:preprocessed_db_path",OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreprocessing_db_10_ppm_1_"));
   ldb.setParameters(param);
   ldb.loadPreprocessing();
-  TEST_EQUAL(ldb.getProtMasses().size(),4)
+  TEST_EQUAL(ldb.getProtMasses().size(),2)
   DoubleReal w = ldb.getWeight(147.113);
   TEST_REAL_SIMILAR(w,0.5)
 
