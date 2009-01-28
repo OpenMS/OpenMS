@@ -77,7 +77,7 @@ namespace OpenMS
 				
 				It is deactivated by default and can be deactivated manually by passing an empty list.
 			*/
-			void setMergeLayers(const Map<UInt,String>& layers);
+			void setMergeLayers(const Map<Size,String>& layers);
 			
 		protected slots:
 			///slot that disables 2D/3D options, when as layer is selected

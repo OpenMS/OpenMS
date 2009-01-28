@@ -728,7 +728,7 @@ namespace OpenMS
 		return i_mz;
 	}
 	
-	double Spectrum3DOpenGLCanvas::scaledIntensity(double intensity,int layer_index)
+	double Spectrum3DOpenGLCanvas::scaledIntensity(Real intensity,Size layer_index)
 	{
 		double scaledintensity= 0;
 		switch(canvas_3d_.intensity_mode_)

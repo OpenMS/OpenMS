@@ -362,9 +362,9 @@ namespace OpenMS
 		/// Returns the index of the active layer
 		Size activeLayerIndex() const;
 		///change the active layer (the one that is used for selecting and so on)
-		virtual void activateLayer(int layer_index)=0;
+		virtual void activateLayer(Size layer_index)=0;
 		///removes the layer with index @p layer_index
-		virtual void removeLayer(int layer_index)=0;
+		virtual void removeLayer(Size layer_index)=0;
 		/**
 			@brief Add a peak data layer
 			
@@ -513,7 +513,7 @@ namespace OpenMS
 			@param i the index of the layer
 			@param b true if layer is supposed to be visible
 		*/
-		void changeVisibility(int i, bool b);
+		void changeVisibility(Size i, bool b);
 
 		/**
 			@brief change if the defined data filters are used
@@ -521,7 +521,7 @@ namespace OpenMS
 			@param i the index of the layer
 			@param b true if layer is supposed to be visible
 		*/
-		void changeLayerFilterState(int i, bool b);
+		void changeLayerFilterState(Size i, bool b);
 
 		/**
 			@brief Whether or not to show grid lines

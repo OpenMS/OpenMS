@@ -342,7 +342,7 @@ END_SECTION
 START_SECTION((void setPrecursorPeak(const PrecursorPeakType& peak)))
   DSpectrum1 sdi;
 	DSpectrum1::PrecursorPeakType	p;
-  p.setIntensity(47.11);
+  p.setIntensity(47.11f);
   sdi.setPrecursorPeak(p);
   TEST_EQUAL(p==sdi.getPrecursorPeak(),true)
   TEST_REAL_SIMILAR(sdi.getPrecursorPeak().getIntensity(),47.11)

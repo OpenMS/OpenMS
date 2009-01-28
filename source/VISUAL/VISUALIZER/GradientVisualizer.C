@@ -145,8 +145,8 @@ namespace OpenMS
 		//Check, whether sum is 100
 		Size time_size = timepoints_.size();
 		Size elu_size = eluents_.size();
-		int count = 0;
-		int elu_count = 0;
+		Size count = 0;
+		Size elu_count = 0;
 		int sum_check=0;
 		for(Size i=0; i< time_size; ++i )
 		{ 

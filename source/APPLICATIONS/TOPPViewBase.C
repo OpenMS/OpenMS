@@ -827,7 +827,7 @@ namespace OpenMS
 		if (is_feature && open_window!=0) //TODO merge
 		{
 			SpectrumCanvas* open_canvas = open_window->canvas();
-			Map<UInt,String> layers;
+			Map<Size,String> layers;
 			for (Size i=0; i<open_canvas->getLayerCount(); ++i)
 			{
 				if (!is_consensus_feature && open_canvas->getLayer(i).type==LayerData::DT_FEATURE)

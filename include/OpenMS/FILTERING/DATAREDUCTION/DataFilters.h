@@ -220,10 +220,10 @@ namespace OpenMS
 			///Returns if the meta value at @p index of @p meta_interface (a peak or feature) passes the @p filter
 			inline bool metaPasses_(const MetaInfoInterface& meta_interface, const DataFilters::DataFilter& filter, Size index) const
 			{
-				if (!meta_interface.metaValueExists(index)) return false;
+				if (!meta_interface.metaValueExists((UInt)index)) return false;
 				else if (filter.op!=EXISTS)
 				{
-					const DataValue& data_value = meta_interface.getMetaValue(index);
+					const DataValue& data_value = meta_interface.getMetaValue((UInt)index);
 					if(!filter.value_is_numerical)
 					{
 						if(data_value.valueType() != DataValue::STRING_VALUE) return false;

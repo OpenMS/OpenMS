@@ -389,7 +389,7 @@ namespace OpenMS
 					}
 
 					std::map<UInt,UInt> map_id_to_map_num;
-					std::vector<UInt> map_num_to_map_id;
+					std::vector<Size> map_num_to_map_id;
 					std::vector<FeatureHandle> feature_handles;
 					FeatureHandle feature_handle_NaN;
 					feature_handle_NaN.setRT(std::numeric_limits<FeatureHandle::CoordinateType>::quiet_NaN());
@@ -412,7 +412,7 @@ namespace OpenMS
 						<< "# RT_cf MZ_cf Intensity_cf Charge_cf";
 					for ( UInt fhindex = 0; fhindex < map_num_to_map_id.size(); ++fhindex )
 					{
-						const UInt map_id = map_num_to_map_id[fhindex];
+						Size map_id = map_num_to_map_id[fhindex];
 						consensus_features_file
 							<< "    RT_" << map_id
 							<< " MZ_" << map_id

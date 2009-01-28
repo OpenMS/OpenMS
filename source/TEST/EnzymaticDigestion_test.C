@@ -40,7 +40,7 @@ START_TEST(EnzymaticDigestion, "$Id$")
 /////////////////////////////////////////////////////////////
 
 EnzymaticDigestion* e_ptr = 0;
-START_SECTION(EnzymaticDigestion())
+START_SECTION((EnzymaticDigestion()))
 	e_ptr = new EnzymaticDigestion;
 	TEST_NOT_EQUAL(e_ptr, 0)
 END_SECTION
@@ -49,25 +49,25 @@ START_SECTION([EXTRA] ~EnzymaticDigestion())
 	delete e_ptr;
 END_SECTION
 
-START_SECTION(UInt getMissedCleavages() const)
+START_SECTION((Size getMissedCleavages() const ))
 	TEST_EQUAL(EnzymaticDigestion().getMissedCleavages(),0)
 END_SECTION
 
-START_SECTION(Enzyme getEnzyme() const)
+START_SECTION((Enzyme getEnzyme() const))
 	TEST_EQUAL(EnzymaticDigestion().getEnzyme(),EnzymaticDigestion::TRYPSIN)
 END_SECTION
 
-START_SECTION(void setMissedCleavages(UInt missed_cleavages))
+START_SECTION((void setMissedCleavages(Size missed_cleavages)))
 	EnzymaticDigestion ed;
 	ed.setMissedCleavages(5);
 	TEST_EQUAL(ed.getMissedCleavages(),5)
 END_SECTION
 
-START_SECTION(void setEnzyme(Enzyme enzyme))
+START_SECTION((void setEnzyme(Enzyme enzyme)))
 	//can be tested as soon as there is a second enzyme
 END_SECTION
 
-START_SECTION(UInt peptideCount(const AASequence& protein))
+START_SECTION((Size peptideCount(const AASequence &protein)))
 	EnzymaticDigestion ed;
 	UInt tmp = ed.peptideCount(String("ACDE"));
 	TEST_EQUAL(tmp,1)
@@ -95,7 +95,7 @@ START_SECTION(UInt peptideCount(const AASequence& protein))
 	TEST_EQUAL(ed.peptideCount(String("RKR")),6)
 END_SECTION
 
-START_SECTION(void digest(const AASequence& protein, std::vector<AASequence>& output))
+START_SECTION((void digest(const AASequence& protein, std::vector<AASequence>& output)))
 	EnzymaticDigestion ed;
 	vector<AASequence> out;
 	

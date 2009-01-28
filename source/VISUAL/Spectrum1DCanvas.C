@@ -81,9 +81,9 @@ namespace OpenMS
 	}
 	
 	//change the current layer
-	void Spectrum1DCanvas::activateLayer(int layer_index)
+	void Spectrum1DCanvas::activateLayer(Size layer_index)
 	{
-		if (layer_index<0 || layer_index >= int(getLayerCount()) || layer_index==int(current_layer_))
+		if (layer_index >= getLayerCount() || layer_index==current_layer_)
 		{
 			return ;
 		}
@@ -578,9 +578,9 @@ namespace OpenMS
 	//////////////////////////////////////////////////////////////////////////////////
 	// SLOTS
 	
-	void Spectrum1DCanvas::removeLayer(int layer_index)
+	void Spectrum1DCanvas::removeLayer(Size layer_index)
 	{
-		if (layer_index<0 || layer_index >= int(getLayerCount()))
+		if (layer_index >= getLayerCount())
 		{
 			return;
 		}

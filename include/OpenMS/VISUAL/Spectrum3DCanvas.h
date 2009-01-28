@@ -96,9 +96,9 @@ namespace OpenMS
 		public slots:
 			
 	    // Docu in base class
-	    void activateLayer(int layer_index);
+	    void activateLayer(Size layer_index);
 	    // Docu in base class
-	    void removeLayer(int layer_index);
+	    void removeLayer(Size layer_index);
   	
   	protected:
 			

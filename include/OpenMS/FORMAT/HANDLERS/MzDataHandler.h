@@ -326,7 +326,7 @@ namespace OpenMS
 			
 				The @p name and @p id are only used if the @p tag is @em supDataArrayBinary or @em supDataArray.
 			*/
-			inline void writeBinary_(std::ostream& os, Size size, const String& tag, const String& name="", Size id=-1)
+			inline void writeBinary_(std::ostream& os, Size size, const String& tag, const String& name="", SignedSize id=-1)
 			{
 				os 	<< "\t\t\t<" << tag;
 				if (tag=="supDataArrayBinary" || tag=="supDataArray")
@@ -1048,7 +1048,7 @@ namespace OpenMS
 					warning(STORE, "Not all spectrum native IDs are numbers or correctly prefixed with 'spectrum='. The spectra are renumbered and the native IDs are lost!");
 				}
 				//Map to store the last spectrum ID for each MS level (needed to find precursor spectra)
-				Map<Size,Size> level_id; 
+				Map<Int,Size> level_id; 
 				
 				os << "\t<spectrumList count=\"" << cexp_->size() << "\">\n";
 				for (Size s=0; s<cexp_->size(); ++s)
@@ -1174,8 +1174,8 @@ namespace OpenMS
 					typedef typename SpectrumType::PrecursorPeakType PrecursorPeak;
 					if (spec.getPrecursorPeak() != PrecursorPeak() || spec.getPrecursor() != Precursor())
 					{
-						Size precursor_ms_level = spec.getMSLevel()-1;
-						Int precursor_id = -1;
+						Int precursor_ms_level = spec.getMSLevel()-1;
+						SignedSize precursor_id = -1;
 						if (level_id.has(precursor_ms_level))
 						{
 							precursor_id = level_id[precursor_ms_level];

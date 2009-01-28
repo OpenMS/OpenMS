@@ -142,12 +142,12 @@ START_SECTION(([EXTRA]bool DataFilter::operator!=(const DataFilter& rhs) const))
 	
 END_SECTION
 
-START_SECTION(bool isActive() const)
+START_SECTION((bool isActive() const))
 	DataFilters tmp;
 	TEST_EQUAL(tmp.isActive(), false)
 END_SECTION
 
-START_SECTION(void setActive(bool is_active))
+START_SECTION((void setActive(bool is_active)))
 	DataFilters tmp;
 	tmp.setActive(true);
 	TEST_EQUAL(tmp.isActive(), true)
@@ -168,7 +168,7 @@ START_SECTION((void add(const DataFilter& filter)))
 END_SECTION
 
 
-START_SECTION((const DataFilter& operator[](UInt index) const))
+START_SECTION((const DataFilter& operator[](Size index) const ))
 	
 	TEST_EXCEPTION(Exception::IndexOverflow, filters[3])
 	filters.add(filter_1);
@@ -178,7 +178,7 @@ START_SECTION((const DataFilter& operator[](UInt index) const))
 END_SECTION
 
 
-START_SECTION((Size size() const ))
+START_SECTION((Size size() const))
 
 	TEST_EQUAL(filters.size(), 3)
 	filters.add(filter_4);
@@ -197,7 +197,7 @@ START_SECTION((Size size() const ))
 END_SECTION
 
 
-START_SECTION((void remove(UInt index)))
+START_SECTION((void remove(Size index)))
 
 	TEST_EXCEPTION(Exception::IndexOverflow, filters.remove(7))
 	filters.remove(0);
@@ -208,7 +208,7 @@ START_SECTION((void remove(UInt index)))
 END_SECTION
 
 
-START_SECTION((void replace(UInt index, const DataFilter& filter)))
+START_SECTION((void replace(Size index, const DataFilter &filter)))
 	
 	TEST_EXCEPTION(Exception::IndexOverflow, filters.replace(10, filter_1))
 	//at the moment: filters[0] == filter_5, ..., filters[4] == filter_9
@@ -304,7 +304,7 @@ mdas[1][2] = 100.01f;
 mdas[2].setName("test_dummy");
 mdas[2].resize(3);
 
-START_SECTION((template<class PeakType> bool passes(const MSSpectrum<PeakType>& spectrum, UInt peak_index) const))
+START_SECTION((template < class PeakType > bool passes(const MSSpectrum< PeakType > &spectrum, Size peak_index) const ))
 
 	filters.add(filter_1); // "Intensity <= 201.334"
 	TEST_EQUAL(filters.passes(spec,0), true) // 201.334

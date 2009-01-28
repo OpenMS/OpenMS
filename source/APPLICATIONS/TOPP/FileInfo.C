@@ -281,7 +281,7 @@ class TOPPFileInfo
 			ConsensusXMLFile().load(in,cons);
 			cons.updateRanges();
 
-			std::map<UInt,UInt> num_consfeat_of_size;
+			std::map<Size,UInt> num_consfeat_of_size;
 			for ( ConsensusMap::const_iterator cmit = cons.begin(); cmit != cons.end(); ++cmit )
 			{
 				++num_consfeat_of_size[cmit->size()];
@@ -290,7 +290,7 @@ class TOPPFileInfo
 			os << 
 				"\n"
 				"Number of consensus features:" << std::endl;
-			for ( std::map<UInt,UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i )
+			for ( std::map<Size,UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i )
 			{
 				os << "  of size " << std::setw(2) << i->first << ": " << std::setw(6) << i->second << '\n';
 			}
@@ -588,7 +588,7 @@ class TOPPFileInfo
 
 			if (in_type==FileHandler::FEATUREXML) //features
 			{
-				UInt size = feat.size();
+				Size size = feat.size();
 
 				std::vector<double> intensities;
 				intensities.reserve(size);
@@ -628,7 +628,7 @@ class TOPPFileInfo
 			}
 			else if (in_type==FileHandler::CONSENSUSXML) //consensus features
 			{
-				UInt size = cons.size();
+				Size size = cons.size();
 
 				std::vector<double> intensities;
 				intensities.reserve(size);
@@ -719,7 +719,7 @@ class TOPPFileInfo
 			{
 				//copy intensities of  MS-level 1 peaks
 				exp.updateRanges(1);
-				UInt size = exp.getSize();
+				Size size = exp.getSize();
 				std::vector<double> intensities;
 				intensities.reserve(size);
 				for (MSExperiment<Peak1D>::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)

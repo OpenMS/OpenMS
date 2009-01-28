@@ -176,7 +176,7 @@ namespace OpenMS
 					throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 				}
 				
-				return min_+((BinSizeType)bin_index+0.5)*bin_size_;
+				return (BinSizeType)(min_+((BinSizeType)bin_index+0.5)*bin_size_);
 			}
 
 			/**

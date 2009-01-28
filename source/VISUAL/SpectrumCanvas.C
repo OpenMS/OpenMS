@@ -400,9 +400,9 @@ namespace OpenMS
 		if (i==0 && spectrum_widget_) spectrum_widget_->setWindowTitle(name.toQString());
 	}
 
-	void SpectrumCanvas::changeVisibility(int i, bool b)
+	void SpectrumCanvas::changeVisibility(Size i, bool b)
 	{
-		OPENMS_PRECONDITION(i < (int)layers_.size(), "SpectrumCanvas::changeVisibility(i,b) index overflow");
+		OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::changeVisibility(i,b) index overflow");
 		LayerData& layer = getLayer_(i);
 		if (layer.visible!=b)
 		{
@@ -412,9 +412,9 @@ namespace OpenMS
 		}
 	}
 
-	void SpectrumCanvas::changeLayerFilterState(int i, bool b)
+	void SpectrumCanvas::changeLayerFilterState(Size i, bool b)
 	{
-		OPENMS_PRECONDITION(i < (int)layers_.size(), "SpectrumCanvas::changeVisibility(i,b) index overflow");
+		OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::changeVisibility(i,b) index overflow");
 		LayerData& layer = getLayer_(i);
 		if (layer.filters.isActive()!=b)
 		{

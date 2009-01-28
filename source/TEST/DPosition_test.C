@@ -52,7 +52,7 @@ START_SECTION((~DPosition()))
 	delete d10_ptr;
 END_SECTION
 
-START_SECTION((CoordinateType operator[](UInt index) const))
+START_SECTION((CoordinateType operator[](Size index) const ))
   const DPosition<3> i;
   TEST_EQUAL(i[0], 0.0)
   TEST_EQUAL(i[1], 0.0)
@@ -60,7 +60,7 @@ START_SECTION((CoordinateType operator[](UInt index) const))
   TEST_EXCEPTION(Exception::Precondition, i[3])
 END_SECTION
 
-START_SECTION((CoordinateType& operator[](UInt index)))
+START_SECTION((CoordinateType& operator[](Size index)))
   DPosition<3> i;
   const DPosition<3>& c_i(i);
   i[0] = 1.0;

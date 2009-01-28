@@ -995,7 +995,7 @@ namespace OpenMS
 							for (Size k=0; k<traces.size(); ++k)
 							{
 								char fun = 'f';
-								fun += k;
+								fun += (char)k;
 								tf.push_back(String(fun)+"(x)= " + traces.baseline + " + " + (traces[k].theoretical_int*height) + " * exp(-0.5*(x-" + (500.0*k+x0) + ")**2/(" + sigma + ")**2)");
 								script =  script + ", " + fun + "(x) title 'Trace " + k + " (m/z: " + String::number(traces[k].getAvgMZ(),4) + ")'";
 							}
@@ -1466,7 +1466,7 @@ namespace OpenMS
 				}
 				--end;
 				//search begin
-				Int begin = center.peak;
+				SignedSize begin = center.peak;
 				while(begin>=0 && spectrum[begin].getMZ()>spectrum[center.peak].getMZ()-mass_window)
 				{
 					--begin;
@@ -1691,7 +1691,7 @@ namespace OpenMS
 				std::vector<DoubleReal> deltas(delta_count-1, 0);
 				//deltas.reserve(2*delta_count);
 				UInt missing_peaks = 0;
-				UInt peaks_before = trace.peaks.size();
+				Size peaks_before = trace.peaks.size();
 				String abort_reason = "";
 				while((!inc_rt && spectrum_index>=0) || (inc_rt && spectrum_index<(SignedSize)map_.size()))
 				{

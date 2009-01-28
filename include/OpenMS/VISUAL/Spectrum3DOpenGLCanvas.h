@@ -118,7 +118,7 @@ namespace OpenMS
 			///  returns the mz-value : BB-coordinates  --> value
 			double scaledInversMZ(double mz);
 	    /// returns the BB-intensity -coordinate :  values --> BB-coordinates
-			double scaledIntensity(double intensity,int layer_index);
+			double scaledIntensity(Real intensity,Size layer_index);
 	
 			/// recalculates the dot gradient inerpolation values.
 			void recalculateDotGradient_(Size layer);

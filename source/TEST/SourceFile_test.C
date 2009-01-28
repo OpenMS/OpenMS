@@ -55,8 +55,8 @@ END_SECTION
 
 START_SECTION((void setFileSize(Real file_size)))
   SourceFile tmp;
-	tmp.setFileSize(1.667);
-  TEST_REAL_SIMILAR(tmp.getFileSize(),1.667);
+	tmp.setFileSize(1.667f);
+  TEST_REAL_SIMILAR(tmp.getFileSize(),1.667f);
 END_SECTION
 
 START_SECTION((const String& getFileType() const))

@@ -572,7 +572,7 @@ namespace OpenMS
 		if (layer->type != LayerData::DT_PEAK) //second, check if more than one peak layer is present
 		{
 			UInt peak_layer_count = 0;
-			Int last_peak_layer = 0;
+			Size last_peak_layer = 0;
 			for (Size i=0; i<getLayerCount(); ++i)
 			{
 				if (getLayer(i).type==LayerData::DT_PEAK)
@@ -589,7 +589,7 @@ namespace OpenMS
 		if (layer->type != LayerData::DT_PEAK) //third, check if more than one peak layer is visible
 		{
 			UInt peak_layer_count = 0;
-			Int last_peak_layer = 0;
+			Size last_peak_layer = 0;
 			for (Size i=0; i<getLayerCount(); ++i)
 			{
 				if (getLayer(i).type==LayerData::DT_PEAK && getLayer(i).visible)
@@ -764,9 +764,9 @@ namespace OpenMS
 		return true;
 	}
 
-	void Spectrum2DCanvas::removeLayer(int layer_index )
+	void Spectrum2DCanvas::removeLayer(Size layer_index )
 	{
-		if (layer_index<0 || layer_index >= int(getLayerCount()))
+		if (layer_index >= getLayerCount())
 		{
 			return;
 		}
@@ -799,9 +799,9 @@ namespace OpenMS
 	}
 
 	//change the current layer
-	void Spectrum2DCanvas::activateLayer(int layer_index)
+	void Spectrum2DCanvas::activateLayer(Size layer_index)
 	{
-		if (layer_index<0 || layer_index >= int(getLayerCount()) || layer_index==int(current_layer_))
+		if (layer_index >= getLayerCount() || layer_index==current_layer_)
 		{
 			return ;
 		}
@@ -1400,9 +1400,9 @@ namespace OpenMS
 
 			//add surrounding survey scans
 			//find nearest survey scan
-			Int size = getCurrentLayer().peaks.size();
+			SignedSize size = getCurrentLayer().peaks.size();
 			Int current = getCurrentLayer().peaks.RTBegin(rt)-getCurrentLayer().peaks.begin();
-			Int i=0;
+			SignedSize i=0;
 			while (current+i<size || current-i>=0)
 			{
 				if(current+i<size && getCurrentLayer().peaks[current+i].getMSLevel()==1)

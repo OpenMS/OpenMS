@@ -105,7 +105,7 @@ class TOPPFFEVal
 	}
 	
 	/// Returns the total number and percentage in parentheses
-	String percentage(UInt count, Size size)
+	String percentage(Size count, Size size)
 	{
 		return String(" (") + String::number(100.0*count/size,2) + "%)";
 	}
@@ -264,7 +264,7 @@ class TOPPFFEVal
 		cout << endl;
 		cout << "feature matching statistics:" << endl;
 		cout << "============================" << endl;
-		UInt tmp = count(features_truth,"matches","0");
+		Size tmp = count(features_truth,"matches","0");
 		cout << "no match: " << tmp << percentage(tmp,features_truth.size()) << endl;
 		tmp = count(features_truth,"matches","1");
 		cout << "one match: " << tmp << percentage(tmp,features_truth.size()) << endl;
