@@ -3067,7 +3067,7 @@ namespace OpenMS
 				}
 				if (dp.getProcessingActions().count(DataProcessing::PEAK_PICKING_MAX)==1)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000802\" name=\"heigh peak picking\" />\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000802\" name=\"height peak picking\" />\n";
 				}
 				if (dp.getProcessingActions().count(DataProcessing::FEATURE_FINDING)==1)
 				{

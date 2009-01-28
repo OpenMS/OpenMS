@@ -5135,7 +5135,7 @@ is_a: MS:1000035 ! peak picking
 
 [Term]
 id: MS:1000802
-name: heigh peak picking
+name: height peak picking
 def: "Spectral peak processing conducted on the acquired data to convert profile data to centroided data. The maximum intensity of all raw data points that belong to the peak is reported." [PSI:MS]
 synonym: "max peak picking" EXACT []
 is_a: MS:1000035 ! peak picking
