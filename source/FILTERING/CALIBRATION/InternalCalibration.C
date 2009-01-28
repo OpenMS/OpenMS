@@ -38,6 +38,7 @@ namespace OpenMS
 		defaults_.setValue("window_length",5.0,"In a window of this radius around each reference mass peaks are picked.");
 		subsections_.push_back("PeakPicker");
 		defaultsToParam_();
+		updateMembers_();
 	}
 	
   InternalCalibration::InternalCalibration(InternalCalibration& obj)
