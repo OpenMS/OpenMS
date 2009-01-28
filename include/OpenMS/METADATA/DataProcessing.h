@@ -56,6 +56,8 @@ namespace OpenMS
     		PRECURSOR_RECALCULATION,	///< Recalculation of precursor m/z
     		BASELINE_REDUCTION, 		  ///< Baseline reduction
     		PEAK_PICKING, 					  ///< Peak picking (conversion from raw to peak data)
+    		PEAK_PICKING_SUM,					///< Specialized peak picking that reports the sums of raw data point intensities belonging to one peak
+    		PEAK_PICKING_MAX,					///< Specialized Peak picking that reports the maximum raw data point intensity belonging to one peak
     		FEATURE_FINDING, 				  ///< Feature findng (conversion from raw/peak to feature data)
     		ALIGNMENT, 							  ///< Retention time alignment of different maps
     		LOW_INTENSITY_REMOVAL,	  ///< The removal of very low intensity data points

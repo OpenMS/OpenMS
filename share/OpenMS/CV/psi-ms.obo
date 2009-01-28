@@ -87,8 +87,7 @@ relationship: part_of MS:1000479 ! purgatory
 [Term]
 id: MS:1000011
 name: mass resolution
-def: "Smallest mass difference between two equal magnitude peaks so that the valley between
-them is a specified fraction of the peak height." [PSI:MS]
+def: "Smallest mass difference between two equal magnitude peaks so that the valley between them is a specified fraction of the peak height." [PSI:MS]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000503 ! scan attribute
 
@@ -5126,6 +5125,20 @@ name: mass resolving power
 def: "The observed mass divided by the difference between two masses that can be separated: m/dm. The procedure by which dm was obtained and the mass at which the measurement was made should be reported." [PSI:MS]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000503 ! scan attribute 
+
+[Term]
+id: MS:1000801
+name: area peak picking
+def: "Spectral peak processing conducted on the acquired data to convert profile data to centroided data. The area defined by all raw data points that belong to the peak is reported." [PSI:MS]
+synonym: "sum peak picking" EXACT []
+is_a: MS:1000035 ! peak picking
+
+[Term]
+id: MS:1000802
+name: heigh peak picking
+def: "Spectral peak processing conducted on the acquired data to convert profile data to centroided data. The maximum intensity of all raw data points that belong to the peak is reported." [PSI:MS]
+synonym: "max peak picking" EXACT []
+is_a: MS:1000035 ! peak picking
 
 [Typedef]
 id: has_units

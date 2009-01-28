@@ -1927,6 +1927,14 @@ namespace OpenMS
 				{
 					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::PEAK_PICKING);
 				}
+				else if (accession=="MS:1000801") //area peak picking
+				{
+					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::PEAK_PICKING_SUM);
+				}
+				else if (accession=="MS:1000802") //height peak picking
+				{
+					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::PEAK_PICKING_MAX);
+				}
 				else if (accession=="MS:1000592" || cv_.isChildOf(accession,"MS:1000592")) //smoothing (or child terms, we make no difference
 				{
 					processing_[current_id_].back().getProcessingActions().insert(DataProcessing::SMOOTHING);
@@ -3052,6 +3060,14 @@ namespace OpenMS
 				if (dp.getProcessingActions().count(DataProcessing::PEAK_PICKING)==1)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000035\" name=\"peak picking\" />\n";
+				}
+				if (dp.getProcessingActions().count(DataProcessing::PEAK_PICKING_SUM)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000801\" name=\"area peak picking\" />\n";
+				}
+				if (dp.getProcessingActions().count(DataProcessing::PEAK_PICKING_MAX)==1)
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000802\" name=\"heigh peak picking\" />\n";
 				}
 				if (dp.getProcessingActions().count(DataProcessing::FEATURE_FINDING)==1)
 				{

@@ -48,7 +48,7 @@
 	<dataProcessingList count="1">
 		<dataProcessing id="dp_0">
 			<processingMethod order="0" softwareRef="so_dp_0">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML"/>
+				<cvParam cvRef="MS" accession="MS:1000801" name="area peak picking"/>
 			</processingMethod>
 		</dataProcessing>
 	</dataProcessingList>
