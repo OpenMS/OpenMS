@@ -475,28 +475,36 @@ namespace OpenMS
 			throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "invalid clustering");
 		}
 
+		Real av_dist(0); // average of all pairwise distances
+		for(UInt i = 0; i < original.dimensionsize(); ++i)
+		{
+			for(UInt j = i+1; j < original.dimensionsize(); ++j)
+			{
+				av_dist += original.getValue(i,j);
+			}
+		}
+		av_dist /= (((Real)original.dimensionsize()*(Real)(original.dimensionsize()-1.0))/2.0);
+
 		std::vector< Real > cohesions;
 		cohesions.reserve(clusters.size());
 		for (Size i = 0; i < clusters.size(); ++i)
 		{
-			std::vector< Real > se; // calculate squared errors for cluster i
-			se.reserve(clusters[i].size());
-			Real av_dist(0); // all pairwise distances in cluster i
+			Real av_c_dist(0); // all pairwise distances in cluster i
 			for (Size j = 0; j < clusters[i].size(); ++j)
 			{
 				for (Size k = 0; k < j; ++k)
 				{
-					se.push_back(original.getValue(clusters[i][j],clusters[i][k]));
-					av_dist += original.getValue(clusters[i][j],clusters[i][k]);
+					av_c_dist += original.getValue(clusters[i][j],clusters[i][k]);
 				}
 			}
-			av_dist /= (((Real)clusters[i].size()*(Real)(clusters[i].size()-1.0))/2.0); //now av. intra cluster distance
-			Real sse(0);
-			for (Size d = 0; d < se.size(); ++d)
+
+			av_c_dist /= (((Real)clusters[i].size()*(Real)(clusters[i].size()-1.0))/2.0); //now av. intra cluster distance
+			if(clusters[i].size()==1)
 			{
-				sse += ((se[d]-av_dist) * (se[d]-av_dist));
+				av_c_dist = av_dist;
 			}
-			cohesions.push_back(sse);
+			//~ std::cout << " av clu i " << av_c_dist << std::endl;
+			cohesions.push_back(av_c_dist);
 		}
 		return cohesions;
 	}

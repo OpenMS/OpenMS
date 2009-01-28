@@ -195,7 +195,7 @@ START_SECTION((void setThreshold(double x)))
 }
 END_SECTION
 
-START_SECTION((template <typename Data, typename SimilarityComparator> void cluster(vector< Data > &data, const SimilarityComparator &comparator, const ClusterFunctor &clusterer, vector<BinaryTreeNode>& cluster_tree)))
+START_SECTION((template <typename Data, typename SimilarityComparator> void cluster(std::vector< Data > &data, const SimilarityComparator &comparator, const ClusterFunctor &clusterer, std::vector<BinaryTreeNode>& cluster_tree, DistanceMatrix<Real>& original_distance)))
 {
 	vector<UInt> d(6,0);
 	for (Size i = 0; i<d.size(); ++i)

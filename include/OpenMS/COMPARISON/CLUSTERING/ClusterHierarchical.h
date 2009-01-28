@@ -81,7 +81,7 @@ namespace OpenMS
 			similarity functor applicable to this type must be the second template argument, e.g.
 			for @ref PeakSpectrum with a @ref PeakSpectrumCompareFunctor.
 			The similarity functor must provide the similarity calculation with the ()-operator and
-			yield normalized values in range of [0,1] for the type of @ref data.
+			yield normalized values in range of [0,1] for the type of < Data >.
 
 			@param data vector of objects to be clustered
 			@param comparator similarity functor fitting for types in data

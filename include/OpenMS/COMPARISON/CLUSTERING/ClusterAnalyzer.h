@@ -135,7 +135,6 @@ namespace OpenMS
 		@param cluster_quantity size_t giving the number of clusters (i.e. starting elements - cluster_quantity = cluster step)
 		@param tree vector of BinaryTreeNode's representing the clustering
 		@param clusters vector of vectors holding the clusters (with indices to the actual elements)
-		@param original DistanceMatrix for all clustered elements started from
 		@throw invalid_parameter if desired clusterstep is invalid
 		@see BinaryTreeNode
 
