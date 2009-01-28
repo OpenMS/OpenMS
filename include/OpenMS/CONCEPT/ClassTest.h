@@ -136,7 +136,7 @@ namespace OpenMS
                        const char * number_1_stringified,
                        bool number_1_is_realtype, Int number_1_written_digits,
                        long double number_2, const char * number_2_stringified,
-                       bool number_2_is_realtype, Int number_2_written_digits );
+                       bool /* number_2_is_realtype */, Int number_2_written_digits );
 
       /// used by testRealSimilar()
       bool OPENMS_DLLAPI
