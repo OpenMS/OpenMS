@@ -1589,6 +1589,10 @@ namespace OpenMS
 				{
 					exp_->getInstrument().getMassAnalyzers().back().setMagneticFieldStrength( asDouble_(value) );
 				}
+				else if (accession=="PSI:1000017")
+				{
+					//ignored
+				}
 				else 
 				{
 					error = "AnalyzerList.Analyzer.UserParam";
@@ -1627,6 +1631,10 @@ namespace OpenMS
 				{
 					exp_->getDataProcessing().back().getProcessingActions().insert(DataProcessing::PEAK_PICKING);
 				}
+				else if (accession=="PSI:1000035")
+				{
+					//ignored
+				}
 				else 
 				{
 					error = "DataProcessing.DataProcessing.UserParam";
@@ -1634,12 +1642,12 @@ namespace OpenMS
 			}
 			else
 			{
-				warning(LOAD, String("Unexpected cvParam: accession=\"") + accession + ", value=\"" + value + "\" in tag " + parent_tag);
+				warning(LOAD, String("Unexpected cvParam: accession=\"") + accession + "\" value=\"" + value + "\" in tag " + parent_tag);
 			}
 
 			if (error != "")
 			{
-				warning(LOAD, String("Invalid cvParam: accession=\"") + accession + ", value=\"" + value + "\" in " + error);
+				warning(LOAD, String("Invalid cvParam: accession=\"") + accession + "\" value=\"" + value + "\" in " + error);
 			}
 			//std::cout << "End of MzDataHander::cvParam_" << std::endl;
 		}
