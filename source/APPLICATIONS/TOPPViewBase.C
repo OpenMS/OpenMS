@@ -1341,6 +1341,8 @@ namespace OpenMS
 
   void TOPPViewBase::updateSpectrumBar()
   {
+  	spectrum_selection_->clear();
+  	
   	SpectrumCanvas* cc = activeCanvas_();
   	int layer_row = layer_manager_->currentRow();
   	if (layer_row == -1 || cc == 0)
@@ -1348,7 +1350,6 @@ namespace OpenMS
   		return;
   	}
 
-  	spectrum_selection_->clear();
   	spectrum_selection_->blockSignals(true);
   	const LayerData& cl = cc->getCurrentLayer();
   	QTreeWidgetItem* item = 0;
