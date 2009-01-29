@@ -129,13 +129,13 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 	sa->findSpec(res, specc_new);
 	
 	//checking for doubled results;
-	for (Size i = 0; i < res.size();i++)
+	for (Size i = 0; i < res.size();++i)
 	{
-		for (Size j = 0;j<res.at(i).size();j++)
+		for (Size j = 0;j<res.at(i).size();++j)
 		{
-			for (Size k = j+1; k < res.at(i).size();k++)
+			for (Size k = j+1; k < res.at(i).size();++k)
 			{
-				TEST_EQUAL(res.at(i).at(j).first.first==res.at(i).at(k).first.first && res.at(i).at(j).first.second==res.at(i).at(k).first.second, 0);			
+				TEST_EQUAL(res.at(i).at(j).first.first==res.at(i).at(k).first.first && res.at(i).at(j).first.second==res.at(i).at(k).first.second, false);			
 			}
 		}
 	}
@@ -208,7 +208,7 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 				}
 			}
 			if (!has_tag) cout << seq << endl;
-			TEST_EQUAL(has_tag,1);
+			TEST_EQUAL(has_tag,true);
 			TEST_EQUAL(res.at(i).at(j).second, 0);
 			
 			res_with_tags.push_back(seq);

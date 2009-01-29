@@ -195,14 +195,14 @@ END_SECTION
 START_SECTION((bool isEmpty() const))
 	DataValue p1;
 	bool res1 =  p1.isEmpty();
-	TEST_NOT_EQUAL( res1, 0)
+	TEST_NOT_EQUAL( res1, false)
 	DataValue p2((Real)1.2);
 	bool res2 =  p2.isEmpty();
-	TEST_EQUAL( res2, 0)
+	TEST_EQUAL( res2, false)
 	TEST_REAL_SIMILAR( (Real) p2, 1.2)
 	DataValue p4("2");
 	bool res4 =  p4.isEmpty();
-	TEST_EQUAL( res4, 0)
+	TEST_EQUAL( res4, false)
 	TEST_EQUAL( (std::string) p4, "2")
 END_SECTION
 

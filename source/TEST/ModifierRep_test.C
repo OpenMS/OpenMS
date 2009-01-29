@@ -184,7 +184,7 @@ START_SECTION(std::vector<String> getModificationsForMass(double &m))
 					//std::cout<<" f:"<<res.at(k)<<",";
 					if (res.at(k)==tupel||res.at(k)==tupel_changed) found = true;
 				}
-				TEST_EQUAL (found,1);
+				TEST_EQUAL (found, true);
 			}
 		}
 	}

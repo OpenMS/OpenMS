@@ -117,10 +117,10 @@ START_SECTION(virtual bool isAtEnd())
 	ptr->begin();
 	for (int i = 0; i < 5;i++)
 	{
-		TEST_EQUAL(ptr->isAtEnd(),0);
+		TEST_EQUAL(ptr->isAtEnd(), false);
 		++(*ptr);
 	}
-	TEST_EQUAL(ptr->isAtEnd(),1);
+	TEST_EQUAL(ptr->isAtEnd(), true);
 END_SECTION
 
 START_SECTION(FastaIteratorIntern(const FastaIteratorIntern &))

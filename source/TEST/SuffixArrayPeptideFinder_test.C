@@ -115,14 +115,14 @@ END_SECTION
 
 START_SECTION(const std::vector<OpenMS::String>& getTags())
 	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticSeqan");
-	TEST_EQUAL(sa->getTags().size(),0);
-	TEST_EQUAL(sa->getUseTags(),0);
+	TEST_EQUAL(sa->getTags().size(), 0);
+	TEST_EQUAL(sa->getUseTags(), false);
 	std::vector<String> tags;
 	tags.push_back("AAA");
 	tags.push_back("ARA");
 	const std::vector<String> tags_c (tags);
 	sa->setTags(tags);
-	TEST_EQUAL(sa->getUseTags(),1);
+	TEST_EQUAL(sa->getUseTags(), true);
 	std::vector<String> res = sa->getTags();
 	TEST_EQUAL(res.at(0),tags.at(0));
 	TEST_EQUAL(res.at(1),tags.at(1));
@@ -130,32 +130,32 @@ END_SECTION
 
 START_SECTION(void setUseTags(bool use_tags))
 	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticSeqan");
-	TEST_EQUAL(sa->getUseTags(),0);
+	TEST_EQUAL(sa->getUseTags(),false);
 	sa->setUseTags(1);
-	TEST_EQUAL(sa->getUseTags(),0);
+	TEST_EQUAL(sa->getUseTags(),false);
 	std::vector<String> tags;
 	tags.push_back("AAA");
 	tags.push_back("ARA");
 	const std::vector<String> tags_c (tags);
 	sa->setTags(tags);
-	TEST_EQUAL(sa->getUseTags(),1);
+	TEST_EQUAL(sa->getUseTags(),true);
 	sa->setUseTags(0);
-	TEST_EQUAL(sa->getUseTags(),0);
+	TEST_EQUAL(sa->getUseTags(),false);
 END_SECTION
 
 START_SECTION(bool getUseTags())
 	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticSeqan");
-	TEST_EQUAL(sa->getUseTags(),0);
+	TEST_EQUAL(sa->getUseTags(),false);
 	sa->setUseTags(1);
-	TEST_EQUAL(sa->getUseTags(),0);
+	TEST_EQUAL(sa->getUseTags(),false);
 	std::vector<String> tags;
 	tags.push_back("AAA");
 	tags.push_back("ARA");
 	const std::vector<String> tags_c (tags);
 	sa->setTags(tags);
-	TEST_EQUAL(sa->getUseTags(),1);
+	TEST_EQUAL(sa->getUseTags(),true);
 	sa->setUseTags(0);
-	TEST_EQUAL(sa->getUseTags(),0);
+	TEST_EQUAL(sa->getUseTags(),false);
 END_SECTION
 
 START_SECTION(void setModificationOutputMethod(const String &s))
@@ -220,7 +220,7 @@ START_SECTION((void getCandidates(std::vector< std::vector< std::pair< FASTAEntr
 			{
 				found |= complete_seq.substr(k-l,l)==pep_seq;
 			}
-			TEST_EQUAL (found,1);
+			TEST_EQUAL (found,true);
 			//if (!found ) std::cout<<pep_seq <<":"<<complete_seq<<std::endl;
 			TEST_EQUAL (res2.at(i).at(j).second,"");
 		}
@@ -240,9 +240,9 @@ START_SECTION((void getCandidates(std::vector< std::vector< std::pair< FASTAEntr
 			{
 				found |= complete_seq.substr(k-l,l)==pep_seq;
 			}
-			TEST_EQUAL (found,1);
+			TEST_EQUAL (found,true);
 			String mod_mass = res2.at(i).at(j).second;
-			TEST_EQUAL(mod_mass==""||mod_mass=="-1.00794"||mod_mass=="59.044"||mod_mass=="80.9878"||mod_mass=="15.9994",1)
+			TEST_EQUAL(mod_mass==""||mod_mass=="-1.00794"||mod_mass=="59.044"||mod_mass=="80.9878"||mod_mass=="15.9994",true)
 		}
 	}
 	sa->setModificationOutputMethod ("stringChecked");
@@ -260,9 +260,9 @@ START_SECTION((void getCandidates(std::vector< std::vector< std::pair< FASTAEntr
 			{
 				found |= complete_seq.substr(k-l,l)==pep_seq;
 			}
-			TEST_EQUAL (found,1);
+			TEST_EQUAL (found,true);
 			String mod_mass = res2.at(i).at(j).second;
-			TEST_EQUAL(mod_mass==""||mod_mass=="[C]"||mod_mass=="[S]"||mod_mass=="[Y]",1)
+			TEST_EQUAL(mod_mass==""||mod_mass=="[C]"||mod_mass=="[S]"||mod_mass=="[Y]",true)
 		}
 	}
 END_SECTION

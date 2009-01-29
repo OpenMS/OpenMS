@@ -85,13 +85,13 @@ END_SECTION
 START_SECTION((double cutoffPos(double fraction=0.95)))
   double cop = rcp->cutoffPos();
   bool inBounds( cop >=0 && cop <= 1 );
-  TEST_EQUAL(inBounds,1)
+  TEST_EQUAL(inBounds,true)
 END_SECTION
 
 START_SECTION((double cutoffNeg(double fraction=0.95)))
   double con = rcp->cutoffNeg();
   bool inBounds( con >=0 && con <= 1 );
-  TEST_EQUAL(inBounds,1)
+  TEST_EQUAL(inBounds,true)
 END_SECTION
 
 START_SECTION((ROCCurve(const ROCCurve& source)))

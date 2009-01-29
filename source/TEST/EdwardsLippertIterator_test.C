@@ -147,7 +147,7 @@ START_SECTION(virtual FASTAEntry operator *())
 		{
 			is_in_spec |= (m>=specc.at(i)-tol&&m<=specc.at(i)+tol);
 		}
-		TEST_EQUAL(is_in_spec,1);
+		TEST_EQUAL(is_in_spec, true);
 	}
 END_SECTION
 

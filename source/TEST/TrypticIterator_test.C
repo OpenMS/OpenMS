@@ -160,12 +160,12 @@ START_SECTION(virtual bool isAtEnd())
 	ptr = new TrypticIterator();
 	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("TrypticIterator_test.fasta"));
 	ptr->begin();
-	for (int i = 0; i < 13;i++)
+	for (int i = 0; i < 13; ++i)
 	{
-		TEST_EQUAL(ptr->isAtEnd(),0);
+		TEST_EQUAL(ptr->isAtEnd(), false);
 		++(*ptr);
 	}
-	TEST_EQUAL(ptr->isAtEnd(),1);
+	TEST_EQUAL(ptr->isAtEnd(), true);
 END_SECTION
 
 

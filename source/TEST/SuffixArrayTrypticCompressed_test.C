@@ -126,13 +126,13 @@ END_SECTION
 START_SECTION(const std::vector<String>& getTags())
 	SuffixArrayTrypticCompressed * satc = new SuffixArrayTrypticCompressed(text,"");
 	TEST_EQUAL(satc->getTags().size(),0);
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 	vector<String> tags;
 	tags.push_back("AAA");
 	tags.push_back("ARA");
 	const vector<String> tags_c (tags);
 	satc->setTags(tags);
-	TEST_EQUAL(satc->getUseTags(),1);
+	TEST_EQUAL(satc->getUseTags(),true);
 	vector<String> res = satc->getTags();
 	TEST_EQUAL(res.at(0),tags.at(0));
 	TEST_EQUAL(res.at(1),tags.at(1));
@@ -140,32 +140,32 @@ END_SECTION
 
 START_SECTION(void setUseTags(bool use_tags))
 	SuffixArrayTrypticCompressed * satc = new SuffixArrayTrypticCompressed(text,"");
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 	satc->setUseTags(1);
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 	vector<String> tags;
 	tags.push_back("AAA");
 	tags.push_back("ARA");
 	const vector<String> tags_c (tags);
 	satc->setTags(tags);
-	TEST_EQUAL(satc->getUseTags(),1);
+	TEST_EQUAL(satc->getUseTags(),true);
 	satc->setUseTags(0);
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 END_SECTION
 
 START_SECTION(bool getUseTags())
 	SuffixArrayTrypticCompressed * satc = new SuffixArrayTrypticCompressed(text,"");
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 	satc->setUseTags(1);
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 	vector<String> tags;
 	tags.push_back("AAA");
 	tags.push_back("ARA");
 	const vector<String> tags_c (tags);
 	satc->setTags(tags);
-	TEST_EQUAL(satc->getUseTags(),1);
+	TEST_EQUAL(satc->getUseTags(),true);
 	satc->setUseTags(0);
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 END_SECTION
 
 START_SECTION(bool open(const String &file_name))
@@ -233,7 +233,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 	sa->findSpec(res, specc);
 	
 	TEST_EQUAL(res.size(),specc.size());
-	for (Size i = 0; i < res.size(); i++)
+	for (Size i = 0; i < res.size(); ++i)
 	{
 		TEST_EQUAL(res.at(i).size(), 1);
 	}
@@ -273,13 +273,13 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 	res.clear();
 	sa->findSpec(res, specc_new);
 	//checking for doubled results;
-	for (Size i = 0; i < res.size();i++)
+	for (Size i = 0; i < res.size();++i)
 	{
-		for (Size j = 0;j<res.at(i).size();j++)
+		for (Size j = 0;j<res.at(i).size();++j)
 		{
-			for (Size k = j+1; k < res.at(i).size();k++)
+			for (Size k = j+1; k < res.at(i).size();++k)
 			{
-				TEST_EQUAL(res.at(i).at(j).first.first==res.at(i).at(k).first.first && res.at(i).at(j).first.second==res.at(i).at(k).first.second, 0);
+				TEST_EQUAL(res.at(i).at(j).first.first==res.at(i).at(k).first.first && res.at(i).at(j).first.second==res.at(i).at(k).first.second, true);
 				
 			}
 		}
@@ -290,13 +290,13 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 		
 	// checking if the mass of the found candidates is correct
 	// checking if the next character is not a P
-	for (Size i = 0; i < res.size();i++)
+	for (Size i = 0; i < res.size();++i)
 	{
-		for (Size j = 0;j<res.at(i).size();j++)
+		for (Size j = 0;j<res.at(i).size();++j)
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
 			double m = 18;
-			for (Size k = 0; k < seq.length();k++)
+			for (Size k = 0; k < seq.length();++k)
 			{
 				m += masse[(int)seq[k]];
 			}
@@ -310,13 +310,13 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 	// getting all candidates with tags 
 	Size number_of_tags=0;
 	vector<String> res_with_tags_exp;
-	for (Size i = 0; i < res.size();i++)
+	for (Size i = 0; i < res.size();++i)
 	{
-		for (Size j = 0;j<res.at(i).size();j++)
+		for (Size j = 0;j<res.at(i).size();++j)
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
 			bool has_tag = false;
-			for (Size k = 2; k < seq.length();k++)
+			for (Size k = 2; k < seq.length();++k)
 			{
 				if (seq.substr(k-2,3)=="AAA"||seq.substr(k-2,3)=="ARA")
 				{
@@ -356,8 +356,8 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 				}
 			}
 			//if (!has_tag) std::cout <<seq<<std::endl;
-			TEST_EQUAL(has_tag,1);
-			TEST_EQUAL(res.at(i).at(j).second,0);
+			TEST_EQUAL(has_tag, true);
+			TEST_EQUAL(res.at(i).at(j).second, 0);
 			
 			res_with_tags.push_back(seq);
 		}

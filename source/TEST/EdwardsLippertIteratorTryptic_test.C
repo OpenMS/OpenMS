@@ -89,11 +89,11 @@ END_SECTION
 
 START_SECTION(virtual bool isDigestingEnd(char aa1,char aa2))
 	ptr = new EdwardsLippertIteratorTryptic();
-	TEST_EQUAL(ptr->isDigestingEnd('R','S'),1)
-	TEST_EQUAL(ptr->isDigestingEnd('K','S'),1)
-	TEST_EQUAL(ptr->isDigestingEnd('R','P'),0)
-	TEST_EQUAL(ptr->isDigestingEnd('K','P'),0)
-	TEST_EQUAL(ptr->isDigestingEnd('S','S'),0)
+	TEST_EQUAL(ptr->isDigestingEnd('R','S'),true)
+	TEST_EQUAL(ptr->isDigestingEnd('K','S'),true)
+	TEST_EQUAL(ptr->isDigestingEnd('R','P'),false)
+	TEST_EQUAL(ptr->isDigestingEnd('K','P'),false)
+	TEST_EQUAL(ptr->isDigestingEnd('S','S'),false)
 END_SECTION
 
 START_SECTION([EXTRA] FASTAEntry operator*())

@@ -168,13 +168,13 @@ START_SECTION(const std::vector<OpenMS::String>& getTags())
 {
 	SuffixArraySeqan * satc = new SuffixArraySeqan(text,"");
 	TEST_EQUAL(satc->getTags().size(),0);
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 	vector<String> tags;
 	tags.push_back("AAA");
 	tags.push_back("ARA");
 	vector<String> tags_c (tags);
 	satc->setTags(tags);
-	TEST_EQUAL(satc->getUseTags(),1);
+	TEST_EQUAL(satc->getUseTags(),true);
 	vector<String> res = satc->getTags();
 	TEST_EQUAL(res.at(0),tags.at(0));
 	TEST_EQUAL(res.at(1),tags.at(1));
@@ -184,34 +184,34 @@ END_SECTION
 START_SECTION((void setUseTags(bool use_tags)))
 {
 	SuffixArraySeqan * satc = new SuffixArraySeqan(text,"");
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 	satc->setUseTags(1);
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 	vector<String> tags;
 	tags.push_back("AAA");
 	tags.push_back("ARA");
 	vector<String> tags_c (tags);
 	satc->setTags(tags);
-	TEST_EQUAL(satc->getUseTags(),1);
+	TEST_EQUAL(satc->getUseTags(),true);
 	satc->setUseTags(0);
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 }
 END_SECTION
 
 START_SECTION(bool getUseTags())
 {
 	SuffixArraySeqan * satc = new SuffixArraySeqan(text,"");
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 	satc->setUseTags(1);
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 	vector<String> tags;
 	tags.push_back("AAA");
 	tags.push_back("ARA");
 	vector<String> tags_c (tags);
 	satc->setTags(tags);
-	TEST_EQUAL(satc->getUseTags(),1);
+	TEST_EQUAL(satc->getUseTags(),true);
 	satc->setUseTags(0);
-	TEST_EQUAL(satc->getUseTags(),0);
+	TEST_EQUAL(satc->getUseTags(),false);
 }
 END_SECTION
 
@@ -303,7 +303,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 		{
 			for (Size k = j+1; k < res.at(i).size();k++)
 			{
-				TEST_EQUAL(res.at(i).at(j).first.first==res.at(i).at(k).first.first && res.at(i).at(j).first.second==res.at(i).at(k).first.second, 0);
+				TEST_EQUAL(res.at(i).at(j).first.first==res.at(i).at(k).first.first && res.at(i).at(j).first.second==res.at(i).at(k).first.second, false);
 				
 			}
 		}
@@ -380,7 +380,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 				}
 			}
 			if (!has_tag) cout <<seq << endl;
-			TEST_EQUAL(has_tag,1);
+			TEST_EQUAL(has_tag, true);
 			TEST_EQUAL(res.at(i).at(j).second,0);
 			
 			res_with_tags.push_back(seq);
