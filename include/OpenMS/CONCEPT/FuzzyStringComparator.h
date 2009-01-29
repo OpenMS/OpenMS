@@ -34,7 +34,7 @@
 #include <cstdlib> // for strtod()
 #include <fstream>
 #include <iostream>
-#include <ctype.h> // for isspace()
+#include <cctype> // for isspace()
 #include <limits> // for NaN
 #include <sstream>
 #include <map>
