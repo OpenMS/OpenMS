@@ -442,7 +442,7 @@ svn propset svn:eol-style native MyClass.C
 									<LI> Run autoconf in <TT>source/</TT>
 									<LI> Commit the changes to the SVN repository
 								</OL>
-							<LI> Run the script <TT>source/config/tools/make_dist.sh</TT> according to the help shown when executed.
+							<LI> Run the script <TT>tools/make_dist.sh</TT> according to the help shown when executed.
 							<LI> Test installation of contrib and %OpenMS from release package
 						</OL>
 					<LI> Prepare the Windows installer file:
@@ -467,7 +467,7 @@ svn propset svn:eol-style native MyClass.C
 					<LI> Update the CHANGELOG file
 					<LI> Check the test builds of the latest gcc/cl version for compiler warnings (32 and 64 bit)
 					<LI> Check if all examples in @a OpenMS/source/EXAMPLES/ compile.
-					<LI> Correct errors found by @a source/config/tools/checker.php.
+					<LI> Correct errors found by @a tools/checker.php.
 						<UL>
 							<LI> The option @a -u @a &lt;maintainer&gt; restricts the output to one maintainer
 							<LI> More options are given with @a --help
