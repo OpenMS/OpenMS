@@ -42,7 +42,7 @@ namespace OpenMS
 	/**
 		@brief SparseVector implementation. The container will not actually store a specified type of element - the sparse element, e.g. zero (by default)
 
-		SparseVector for allround usage, will work with int, uint, double, float. This should use less space than a normal vector
+		SparseVector for allround usage, will work with Int, UInt, DoubleReal, Real. This should use less space than a normal vector
 		(if more than half of the elements are sparse elements, since the underlying structure is a map) and functions can just
 		ignore sparse elements (hop(), @see SparseVectorIterator) for faster look over the elements of the container
 

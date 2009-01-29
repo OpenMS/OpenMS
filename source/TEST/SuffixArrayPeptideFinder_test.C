@@ -214,7 +214,7 @@ START_SECTION((void getCandidates(std::vector< std::vector< std::pair< FASTAEntr
 		{
 			String pep_seq = res2.at(i).at(j).first.second;
 			String complete_seq = fasta_map[res2.at(i).at(j).first.first];
-			unsigned int l = pep_seq.length();
+			Size l = pep_seq.length();
 			bool found = false;
 			for (Size k = l;k<=complete_seq.length();++k)
 			{
@@ -234,7 +234,7 @@ START_SECTION((void getCandidates(std::vector< std::vector< std::pair< FASTAEntr
 		{
 			String pep_seq = res2.at(i).at(j).first.second;
 			String complete_seq = fasta_map[res2.at(i).at(j).first.first];
-			unsigned int l = pep_seq.length();
+			Size l = pep_seq.length();
 			bool found = false;
 			for (Size k = l;k<=complete_seq.length();++k)
 			{
@@ -254,7 +254,7 @@ START_SECTION((void getCandidates(std::vector< std::vector< std::pair< FASTAEntr
 		{
 			String pep_seq = res2.at(i).at(j).first.second;
 			String complete_seq = fasta_map[res2.at(i).at(j).first.first];
-			unsigned int l = pep_seq.length();
+			Size l = pep_seq.length();
 			bool found = false;
 			for (Size k = l;k<=complete_seq.length();++k)
 			{

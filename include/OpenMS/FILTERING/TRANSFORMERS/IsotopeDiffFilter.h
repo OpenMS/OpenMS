@@ -28,9 +28,6 @@
 #define OPENMS_FILTERING_TRANSFORMERS_ISOTOPEDIFFFILTER_H
 
 #include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
-
-#include <map>
-#include <string>
 #include <cmath>
 
 namespace OpenMS
@@ -77,9 +74,9 @@ namespace OpenMS
     	double isodiff = 0;
 			
     	//iterate over all peaks
-    	for (int i = 0; i < (int)spectrum.size(); ++i)
+    	for (SignedSize i = 0; i < spectrum.size(); ++i)
     	{
-      	for (uint j = 1; i + j < spectrum.size(); ++j)
+      	for (Size j = 1; i + j < spectrum.size(); ++j)
       	{
 					double pos_ij = spectrum[i+j].getPosition()[0];
 					double pos_i = spectrum[i].getPosition()[0];

@@ -69,7 +69,7 @@ END_SECTION
 
 START_SECTION((Size peptideCount(const AASequence &protein)))
 	EnzymaticDigestion ed;
-	UInt tmp = ed.peptideCount(String("ACDE"));
+	Size tmp = ed.peptideCount(String("ACDE"));
 	TEST_EQUAL(tmp,1)
 	tmp = ed.peptideCount(String("ACKDE"));
 	TEST_EQUAL(tmp,2)

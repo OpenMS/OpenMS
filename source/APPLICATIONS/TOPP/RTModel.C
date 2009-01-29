@@ -667,7 +667,7 @@ class TOPPRTModel
 			{
 				for (Size i = 0; i < identifications.size(); i++)
 				{
-					UInt temp_size = identifications[i].getHits().size();
+					Size temp_size = identifications[i].getHits().size();
 					if (temp_size > 0)
 					{
 						if (temp_size == 1)
@@ -861,7 +861,7 @@ class TOPPRTModel
 			{
 				for (Size i = 0; i < identifications_negative.size(); i++)
 				{
-					UInt temp_size = identifications_negative[i].getHits().size();
+					Size temp_size = identifications_negative[i].getHits().size();
 					if (temp_size > 0)
 					{
 						if (temp_size == 1)

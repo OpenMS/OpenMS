@@ -87,25 +87,25 @@ START_SECTION((virtual String getFastaFile()=0))
 }
 END_SECTION
 
-START_SECTION((virtual void setSpectrum(const std::vector< float > &s)=0))
+START_SECTION((virtual void setSpectrum(const std::vector< DoubleReal > &s)=0))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((virtual const std::vector<float>& getSpectrum()=0))
+START_SECTION((virtual const std::vector<DoubleReal>& getSpectrum()=0))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((virtual void setTolerance(float t)=0))
+START_SECTION((virtual void setTolerance(DoubleReal t)=0))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((virtual float getTolerance()=0))
+START_SECTION((virtual DoubleReal getTolerance()=0))
 {
   NOT_TESTABLE
 }

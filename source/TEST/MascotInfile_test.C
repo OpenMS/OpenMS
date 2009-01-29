@@ -235,10 +235,10 @@ START_SECTION((void store(const String &filename, const MSExperiment<> &experime
 	spec.setRT(11.1);
 	spec.setMSLevel(1);
 	peak.getPosition()[0] = 5;
-	peak.setIntensity(47.11);
+	peak.setIntensity(47.11f);
 	spec.push_back(peak);
 	peak.getPosition()[0] = 10;
-	peak.setIntensity(48.11);
+	peak.setIntensity(48.11f);
 	spec.push_back(peak);
 	peak.getPosition()[0] = 15;
 	spec.push_back(peak);

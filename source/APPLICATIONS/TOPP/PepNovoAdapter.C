@@ -155,7 +155,6 @@ class TOPPPepNovoAdapter
 		}
 
   UInt MSExperiment2DTAs(MSExperiment<Peak1D>& msexperiment, const String& common_name,	const vector< Int >& charges,	map< String, Real >& dta_filenames_and_precursor_retention_times, bool make_dtas = true)
-		throw (Exception::UnableToCreateFile)
 		{
 			DTAFile dtafile;
 			String filename;

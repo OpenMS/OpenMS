@@ -95,8 +95,8 @@ namespace OpenMS
 	/// Output operator for a FeatureHandlePrinter.
 	std::ostream & operator << ( std::ostream& os, const FeatureHandlePrinter& rhs)
 	{
-		const UInt exponent_extra_digits = 6;
-		const UInt charge_digits = 5;
+		const Size exponent_extra_digits = 6;
+		const Size charge_digits = 5;
 		const unsigned prec_save = os.precision();
 		os << std::setprecision(writtenDigits<>(FeatureHandle::CoordinateType() ))
 			 << std::setw(writtenDigits(FeatureHandle::CoordinateType())+exponent_extra_digits);
@@ -125,8 +125,8 @@ namespace OpenMS
 	/// Output operator for a ConsensusFeaturePrinter.
 	std::ostream & operator << ( std::ostream& os, const ConsensusFeaturePrinter& rhs)
 	{
-		const UInt exponent_extra_digits = 6;
-		const UInt charge_digits = 5;
+		const Size exponent_extra_digits = 6;
+		const Size charge_digits = 5;
 		const unsigned prec_save = os.precision();
 		os << std::setprecision(writtenDigits(FeatureHandle::CoordinateType()))
 			 << std::setw(writtenDigits(FeatureHandle::CoordinateType())+exponent_extra_digits);
@@ -200,7 +200,7 @@ namespace OpenMS
 	
 			String in = getStringOption_("in");
 			String out = getStringOption_("out");
-			UInt counter = 0;
+			Size counter = 0;
 			bool without_header_repetition = getFlag_("peptides_only_csv");
       bool no_ids = getFlag_("no_ids");
       bool first_dim_rt = getFlag_("first_dim_rt");
@@ -388,7 +388,7 @@ namespace OpenMS
 						throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, consensus_features);
 					}
 
-					std::map<UInt,UInt> map_id_to_map_num;
+					std::map<Size,Size> map_id_to_map_num;
 					std::vector<Size> map_num_to_map_id;
 					std::vector<FeatureHandle> feature_handles;
 					FeatureHandle feature_handle_NaN;
@@ -410,7 +410,7 @@ namespace OpenMS
 						<< "#  Consensus features extracted from " << in
 						<< " on " << date_time_now << std::endl
 						<< "# RT_cf MZ_cf Intensity_cf Charge_cf";
-					for ( UInt fhindex = 0; fhindex < map_num_to_map_id.size(); ++fhindex )
+					for ( Size fhindex = 0; fhindex < map_num_to_map_id.size(); ++fhindex )
 					{
 						Size map_id = map_num_to_map_id[fhindex];
 						consensus_features_file
@@ -433,7 +433,7 @@ namespace OpenMS
 						{
 							feature_handles[map_id_to_map_num[cfit->getMapIndex()]] = *cfit;
 						}
-						for ( UInt fhindex = 0; fhindex < feature_handles.size(); ++fhindex )
+						for ( Size fhindex = 0; fhindex < feature_handles.size(); ++fhindex )
 						{
 							consensus_features_file << "    " << FeatureHandlePrinter(feature_handles[fhindex]);
 						}

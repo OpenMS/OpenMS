@@ -69,7 +69,7 @@ END_SECTION
 
 START_SECTION((void updateBoxStates (const MSExperiment<PeakType>& map, const UInt scan_index, const UInt RT_interleave, const UInt RT_votes_cutoff)))
 	trans->updateBoxStates(map, 0, 0, 0);
-	trans->updateBoxStates(map, INT_MAX, 0, 0);
+	trans->updateBoxStates(map, numeric_limits<int>::max(), 0, 0);
 	TEST_NOT_EQUAL (trans, 0)
 END_SECTION
 

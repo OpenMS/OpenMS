@@ -124,7 +124,7 @@ START_SECTION(UInt getMaxModificationMasses())
 	ptr = new ModifierRep();
 	TEST_EQUAL(0,ptr->getMaxModificationMasses());
 	std::vector<std::vector<double> > mod_table = ptr->getModificationTable();
-	std::set<float> mod_masses_set;
+	std::set<double> mod_masses_set;
 	for (Size i = 0; i < mod_table.size();++i)
 	{
 		for (Size j = 0; j < mod_table.at(i).size();++j)

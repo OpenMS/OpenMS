@@ -91,7 +91,7 @@ namespace OpenMS
 // 			void getPValuesFromOutFiles(vector< pair < String, vector< Real > > >& filenames_and_pvalues) throw (Exception::FileNotFound, Exception::ParseError);
 
 			/// retrieve columns from a Sequest outfile line
-			bool getColumns(const String& line, std::vector<String>& substrings, UInt number_of_columns, UInt reference_column);
+			bool getColumns(const String& line, std::vector<String>& substrings, Size number_of_columns, Size reference_column);
 
 			/** retrieve sequences from a FASTA database
 					@param database_filename 
@@ -101,7 +101,7 @@ namespace OpenMS
 					@param not_found
 					@throw Exception::FileNotFound is thrown if the database filen could not be found
 			*/
-			void getSequences(const String& database_filename, const std::map<String, UInt>& ac_position_map, std::vector<String>& sequences, std::vector<std::pair<String, UInt> >& found, std::map<String, UInt>& not_found);
+			void getSequences(const String& database_filename, const std::map<String, Size>& ac_position_map, std::vector<String>& sequences, std::vector<std::pair<String, Size> >& found, std::map<String, Size>& not_found);
 
 			/// retrieve the accession type and accession number from a protein description line
 			/// (e.g. from FASTA line: >gi|5524211|gb|AAD44166.1| cytochrome b [Elephas maximus maximus], get ac:AAD44166.1 ac type: GenBank)
@@ -112,7 +112,7 @@ namespace OpenMS
 					@throw Exception::FileNotFound is thrown if the results file could not be found
 					@throw Exception::ParseError is thrown if the results file could not be parsed
 			*/
-			void readOutHeader(const String& result_filename, DateTime& datetime, Real& precursor_mz_value, Int& charge, UInt& precursor_mass_type, UInt& ion_mass_type, UInt& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, UInt& number_of_columns);
+			void readOutHeader(const String& result_filename, DateTime& datetime, Real& precursor_mz_value, Int& charge, Size& precursor_mass_type, Size& ion_mass_type, Size& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, Size& number_of_columns);
 			
 		private:
 
@@ -121,8 +121,8 @@ namespace OpenMS
 			static Real delta_cn_weights_[];
 			static Real rank_sp_weights_[];
 			static Real delta_mass_weights_[];
-			static UInt max_pep_lens_[];
-			static UInt num_frags_[];
+			static Size max_pep_lens_[];
+			static Size num_frags_[];
    };
 	
 } //namespace OpenMS

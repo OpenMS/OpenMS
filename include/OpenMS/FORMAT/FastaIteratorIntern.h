@@ -101,7 +101,7 @@ class OPENMS_DLLAPI FastaIteratorIntern : public PepIterator
 	@note note availeble for FastaIterator
 	@throw Exception::NotImplemented 
 	*/
-	virtual void setSpectrum (const std::vector<float> & /*spec*/)
+	virtual void setSpectrum (const std::vector<DoubleReal> & /*spec*/)
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	};
@@ -111,7 +111,7 @@ class OPENMS_DLLAPI FastaIteratorIntern : public PepIterator
 	@note note availeble for FastaIterator
 	@throw Exception::NotImplemented 
 	*/
-	virtual const std::vector<float> & getSpectrum ()
+	virtual const std::vector<DoubleReal> & getSpectrum ()
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	};
@@ -121,7 +121,7 @@ class OPENMS_DLLAPI FastaIteratorIntern : public PepIterator
 	@note note availeble for FastaIterator
 	@throw Exception::NotImplemented 
 	*/
-	virtual void setTolerance (float /* t */)
+	virtual void setTolerance (DoubleReal /* t */)
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	};
@@ -132,7 +132,7 @@ class OPENMS_DLLAPI FastaIteratorIntern : public PepIterator
 	@return tolerance
 	@throw Exception::NotImplemented 
 	*/
-	virtual float getTolerance()
+	virtual DoubleReal getTolerance()
 	{
 		throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 	};

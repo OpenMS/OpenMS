@@ -97,29 +97,29 @@ class OPENMS_DLLAPI PepIterator : public FactoryProduct
 	
 	/**
 	@brief setter for spectrum
-	@param s ms spectrum given as vector of floats
+	@param s ms spectrum given as vector of DoubleReals
 	@throw Exception::InvalidValue if spectrum is not sorted acendingly
 	*/
-	virtual void setSpectrum (const std::vector<float> & s) = 0;
+	virtual void setSpectrum (const std::vector<DoubleReal> & s) = 0;
  
 	/**
 	@brief getter for spectrum
 	@return the used spectrum
 	*/
-	virtual const std::vector<float> & getSpectrum ()=0;
+	virtual const std::vector<DoubleReal> & getSpectrum ()=0;
 
 	/**
 	@brief setter for tolerance
 	@param t tolerance value
 	@throw Exception::InvalidValue if tolerance is negative
 	*/
-	virtual void setTolerance (float t) = 0;
+	virtual void setTolerance (DoubleReal t) = 0;
 	
 	/**
 	@brief getter for tolerance
 	@return tolerance
 	*/
-	virtual float getTolerance()=0;
+	virtual DoubleReal getTolerance()=0;
 	
 	/**
 	@brief initializing iterator

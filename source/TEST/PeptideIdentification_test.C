@@ -47,7 +47,7 @@ using namespace OpenMS;
 using namespace std;
 
 
-float peptide_significance_threshold = 42.3;
+DoubleReal peptide_significance_threshold = 42.3;
 std::vector<PeptideHit> peptide_hits;
 PeptideHit peptide_hit;
 ProteinIdentification protein_identification;

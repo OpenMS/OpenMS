@@ -28,8 +28,7 @@
 #define OPENMS_FILTERING_TRANSFORMERS_FILTERFUNCTOR_H
 
 #include <OpenMS/CONCEPT/FactoryProduct.h>
-
-#include <vector>
+#include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS
 {

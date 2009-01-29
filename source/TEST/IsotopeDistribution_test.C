@@ -54,15 +54,15 @@ using namespace std;
 START_SECTION(IsotopeDistribution())
 	IsotopeDistribution* ptr = 0;
 	ptr = new IsotopeDistribution();
-	UInt max_isotope = ptr->getMaxIsotope();
+	Size max_isotope = ptr->getMaxIsotope();
   TEST_EQUAL(max_isotope, 0)
 	TEST_NOT_EQUAL(ptr, 0)
 	delete ptr;
 END_SECTION
 
-START_SECTION(IsotopeDistribution(UInt max_isotope))
+START_SECTION(IsotopeDistribution(Size max_isotope))
 	IsotopeDistribution* ptr = new IsotopeDistribution(117);
-	UInt max_isotope = ptr->getMaxIsotope();
+	Size max_isotope = ptr->getMaxIsotope();
   TEST_EQUAL(max_isotope, 117)
 	TEST_NOT_EQUAL(ptr, 0)
 	delete ptr;
@@ -103,7 +103,7 @@ START_SECTION(IsotopeDistribution& operator = (const IsotopeDistribution& isotop
 	TEST_EQUAL(copy.getMaxIsotope(), iso->getMaxIsotope())
 END_SECTION
 
-START_SECTION(void setMaxIsotope(UInt max_isotope))
+START_SECTION(void setMaxIsotope(Size max_isotope))
 	IsotopeDistribution iso2;
 	iso2.estimateFromPeptideWeight(1234.2);
 	TEST_EQUAL(iso->getMaxIsotope(), 0)
@@ -112,7 +112,7 @@ START_SECTION(void setMaxIsotope(UInt max_isotope))
 	TEST_EQUAL(iso->getMaxIsotope(), 117)
 END_SECTION
 
-START_SECTION(UInt getMaxIsotope() const)
+START_SECTION(Size getMaxIsotope() const)
 	NOT_TESTABLE
 END_SECTION
 
@@ -125,21 +125,21 @@ START_SECTION(IsotopeDistribution operator + (const IsotopeDistribution& isotope
 	TEST_EQUAL(container[0].second, 1)
 END_SECTION
 
-START_SECTION(IsotopeDistribution& operator *= (UInt factor))
+START_SECTION(IsotopeDistribution& operator *= (Size factor))
 	EmpiricalFormula ef("C222N190O110");
 	IsotopeDistribution id = ef.getIsotopeDistribution(11);
 	IsotopeDistribution::ContainerType container;
-	container.push_back(make_pair<UInt, double>(7084, 0.0349429));
-	container.push_back(make_pair<UInt, double>(7085, 0.109888));
-	container.push_back(make_pair<UInt, double>(7086, 0.180185));
-	container.push_back(make_pair<UInt, double>(7087, 0.204395));
-	container.push_back(make_pair<UInt, double>(7088, 0.179765));
-	container.push_back(make_pair<UInt, double>(7089, 0.130358));
-	container.push_back(make_pair<UInt, double>(7090, 0.0809864));
-	container.push_back(make_pair<UInt, double>(7091, 0.0442441));
-	container.push_back(make_pair<UInt, double>(7092, 0.0216593));
-	container.push_back(make_pair<UInt, double>(7093, 0.00963707));
-	container.push_back(make_pair<UInt, double>(7094, 0.0039406));
+	container.push_back(make_pair<Size, double>(7084, 0.0349429));
+	container.push_back(make_pair<Size, double>(7085, 0.109888));
+	container.push_back(make_pair<Size, double>(7086, 0.180185));
+	container.push_back(make_pair<Size, double>(7087, 0.204395));
+	container.push_back(make_pair<Size, double>(7088, 0.179765));
+	container.push_back(make_pair<Size, double>(7089, 0.130358));
+	container.push_back(make_pair<Size, double>(7090, 0.0809864));
+	container.push_back(make_pair<Size, double>(7091, 0.0442441));
+	container.push_back(make_pair<Size, double>(7092, 0.0216593));
+	container.push_back(make_pair<Size, double>(7093, 0.00963707));
+	container.push_back(make_pair<Size, double>(7094, 0.0039406));
 
 	for (Size i = 0; i != id.size(); ++i)
 	{
@@ -174,12 +174,12 @@ START_SECTION(const ContainerType& getContainer() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(UInt getMax() const)
+START_SECTION(Size getMax() const)
 	IsotopeDistribution iso(EmpiricalFormula("H2").getIsotopeDistribution(11));
 	TEST_EQUAL(iso.getMax(), 4)
 END_SECTION
 
-START_SECTION(UInt getMin() const)
+START_SECTION(Size getMin() const)
 	IsotopeDistribution iso(EmpiricalFormula("H2").getIsotopeDistribution(11));
 	TEST_EQUAL(iso.getMin(), 2)
 	IsotopeDistribution iso2(EmpiricalFormula("C4").getIsotopeDistribution(11));
@@ -257,7 +257,7 @@ START_SECTION(IsotopeDistribution& operator+=(const IsotopeDistribution &isotope
 
 END_SECTION
 
-START_SECTION(IsotopeDistribution operator *(UInt factor) const)
+START_SECTION(IsotopeDistribution operator *(Size factor) const)
 	IsotopeDistribution iso1(EmpiricalFormula("H1").getIsotopeDistribution(11)),
 											iso2(EmpiricalFormula("H5").getIsotopeDistribution(11));
 	TEST_EQUAL(iso1 == iso2, false)

@@ -94,26 +94,26 @@ class OPENMS_DLLAPI EdwardsLippertIterator : public PepIterator
 	@param t tolerance
 	@throw InvalidValue if tolerance is negative
 	*/
-	virtual void setTolerance (float t);
+	virtual void setTolerance (DoubleReal t);
 	
 	/**
 	@brief getter for tolerance
 	@return tolerance
 	*/
-	virtual float getTolerance ();
+	virtual DoubleReal getTolerance ();
 
 	/**
 	@brief setter for spectrum
-	@param s spectrum as a vector of floats
+	@param s spectrum as a vector of DoubleReals
 	@throw InvalidValue if spectrum is not sorted
 	*/
-	virtual void setSpectrum(const std::vector<float> & s);
+	virtual void setSpectrum(const std::vector<DoubleReal> & s);
 
 	/**
 	@brief getter for spectrum
 	@return the used spectrum
 	*/
-	virtual const std::vector<float> & getSpectrum ();
+	virtual const std::vector<DoubleReal> & getSpectrum ();
 
 	/**
 	@brief initializing iterator
@@ -177,17 +177,17 @@ class OPENMS_DLLAPI EdwardsLippertIterator : public PepIterator
 		@brief indicates if a mass is in spectrum
 		@return true if a given mass is in spectrum
 		*/
-		virtual bool isInSpectrum_ (float & mass);
+		virtual bool isInSpectrum_ (DoubleReal & mass);
 
 		String f_file_; ///< fasta file location
 
 		std::string actual_pep_; ///< actual peptide
 
-		std::vector<float> spec_; ///< given spectrum
+		std::vector<DoubleReal> spec_; ///< given spectrum
 
-		float tol_; ///< tolerance
+		DoubleReal tol_; ///< tolerance
 
-		float masse_[255]; ///< mass table
+		DoubleReal masse_[255]; ///< mass table
 
 		bool is_at_end_; ///< indicates if iterator is at end
 
@@ -197,7 +197,7 @@ class OPENMS_DLLAPI EdwardsLippertIterator : public PepIterator
 
 		unsigned int b_,e_; ///< to ints representing a position within the actual string (b = begin, e = end)
 
-		float m_, massMax_; ///< mass and maximum masse
+		DoubleReal m_, massMax_; ///< mass and maximum masse
 	
 	
 };

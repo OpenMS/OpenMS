@@ -136,21 +136,21 @@ END_SECTION
 
 
 
-START_SECTION(virtual void setSpectrum(const std::vector< float > &))
-	const std::vector<float> spec;
+START_SECTION(virtual void setSpectrum(const std::vector< DoubleReal > &))
+	const std::vector<DoubleReal> spec;
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).setSpectrum(spec));
 END_SECTION
 
-START_SECTION(virtual const std::vector<float>& getSpectrum())
+START_SECTION(virtual const std::vector<DoubleReal>& getSpectrum())
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).getSpectrum());
 END_SECTION
 
-START_SECTION(virtual void setTolerance(float))
-	float t = 0.5;
+START_SECTION(virtual void setTolerance(DoubleReal))
+	DoubleReal t = 0.5;
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).setTolerance(t));
 END_SECTION
 
-START_SECTION(virtual float getTolerance())
+START_SECTION(virtual DoubleReal getTolerance())
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).getTolerance());
 END_SECTION
 

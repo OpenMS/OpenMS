@@ -65,9 +65,9 @@ namespace OpenMS
 
 		template <typename SpectrumType> double apply(SpectrumType& spectrum)
 		{
-	    int nrpeaks = spectrum.size();
+	    Size nrpeaks = spectrum.size();
 			double size = spectrum.getPrecursorPeak().getPosition()[0];
-	    double density = nrpeaks/size;
+	    double density = (double)nrpeaks / size;
 	    return density;
 		}
 

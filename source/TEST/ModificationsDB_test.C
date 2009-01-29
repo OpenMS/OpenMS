@@ -28,6 +28,7 @@
 
 ///////////////////////////
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <limits>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -71,9 +72,9 @@ START_SECTION(const ResidueModification& getModification(const String &residue_n
 END_SECTION
 
 START_SECTION(UInt findModificationIndex(const String &mod_name) const)
-	int index = -1;
+	Size index = numeric_limits<Size>::max();
 	index = ptr->findModificationIndex("MOD:00046");
-	TEST_NOT_EQUAL(index, -1)
+	TEST_NOT_EQUAL(index, numeric_limits<Size>::max())
 END_SECTION
     
 START_SECTION(void getModificationsByDiffMonoMass(std::vector< String > &mods, double mass, double error=0.0))

@@ -478,7 +478,7 @@ class TOPPPTModel
 			for (Size i = 0; i < identifications.size(); i++)
 			{
 				const vector<PeptideHit>& temp_peptide_hits = identifications[i].getHits();
-				UInt temp_size = temp_peptide_hits.size();
+				Size temp_size = temp_peptide_hits.size();
 				if (temp_size > 0)
 				{
 					for (Size j = 0; j < temp_size; ++j)
@@ -512,7 +512,7 @@ class TOPPPTModel
 			for (Size i = 0; i < identifications_negative.size(); i++)
 			{
 				const vector<PeptideHit>& temp_peptide_hits = identifications_negative[i].getHits();
-				UInt temp_size = temp_peptide_hits.size();
+				Size temp_size = temp_peptide_hits.size();
 				if (temp_size > 0)
 				{
 					for (Size j = 0; j < temp_size; ++j)

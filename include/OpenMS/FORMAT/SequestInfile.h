@@ -120,34 +120,34 @@ namespace OpenMS
 			void setIonCutoffPercentage(Real ion_cutoff_percentage);
 
 			/// returns the peptide mass unit
-			UInt getPeptideMassUnit() const;
+			Size getPeptideMassUnit() const;
 			/// sets the peptide mass unit
-			void setPeptideMassUnit(UInt peptide_mass_unit);
+			void setPeptideMassUnit(Size peptide_mass_unit);
 
 			/// return the number of peptides to be displayed
-			UInt getOutputLines() const;
+			Size getOutputLines() const;
 			/// sets the number of peptides to be displayed
-			void setOutputLines(UInt output_lines);
+			void setOutputLines(Size output_lines);
 
 			/// returns the enzyme used for cleavage (by means of the number from a list of enzymes)
-			UInt getEnzymeNumber() const;
+			Size getEnzymeNumber() const;
 			/// returns the enzyme used for cleavage
 			String getEnzymeName() const;
 			/// sets the enzyme used for cleavage (by means of the number from a list of enzymes)
-			UInt setEnzyme(String enzyme_name);
+			Size setEnzyme(String enzyme_name);
 
 			/// returns the maximum number of amino acids containing the same modification in a peptide
-			UInt getMaxAAPerModPerPeptide() const;
+			Size getMaxAAPerModPerPeptide() const;
 			/// sets the maximum number of amino acids containing the same modification in a peptide
-			void setMaxAAPerModPerPeptide(UInt max_aa_per_mod_per_peptide);
+			void setMaxAAPerModPerPeptide(Size max_aa_per_mod_per_peptide);
 
 			/// returns the maximum number of modifications that are allowed in a peptide
-			UInt getMaxModsPerPeptide() const;
+			Size getMaxModsPerPeptide() const;
 			/// set the maximum number of modifications that are allowed in a peptide
-			void setMaxModsPerPeptide(UInt max_mods_per_peptide);
+			void setMaxModsPerPeptide(Size max_mods_per_peptide);
 
 			/// returns the nucleotide reading frame
-			UInt getNucleotideReadingFrame() const;
+			Size getNucleotideReadingFrame() const;
 			/// sets the nucleotide reading frame:
 			///		0 	The FASTA file contains amino acid codes. No translation is needed. This is the best and fastest case.
 			///		1 	The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the first DNA code.
@@ -159,22 +159,22 @@ namespace OpenMS
 			///		7 	Use each of the DNA translations of the codes 1, 2, 3.
 			///		8 	Use each of the DNA translations of the codes 4, 5, 6.
 			///		9 	Use each of the DNA translations of the codes 1, 2, 3, 4, 5, 6.
-			void setNucleotideReadingFrame(UInt nucleotide_reading_frame);
+			void setNucleotideReadingFrame(Size nucleotide_reading_frame);
 
 			/// returns the maximum number of internal cleavage sites
-			UInt getMaxInternalCleavageSites() const;
+			Size getMaxInternalCleavageSites() const;
 			/// sets the maximum number of internal cleavage sites
-			void setMaxInternalCleavageSites(UInt max_internal_cleavage_sites);
+			void setMaxInternalCleavageSites(Size max_internal_cleavage_sites);
 
 			/// returns the number of top abundant peaks to match with theoretical ones
-			UInt getMatchPeakCount() const;
+			Size getMatchPeakCount() const;
 			/// sets the number of top abundant peaks to with theoretical ones
-			void setMatchPeakCount(UInt match_peak_count);
+			void setMatchPeakCount(Size match_peak_count);
 
 			/// returns the number of top abundant peaks that are allowed not to match with a theoretical peak
-			UInt getMatchPeakAllowedError() const;
+			Size getMatchPeakAllowedError() const;
 			/// sets the number of top abundant peaks that are allowed not to match with a theoretical peak
-			void setMatchPeakAllowedError(UInt match_peak_allowed_error);
+			void setMatchPeakAllowedError(Size match_peak_allowed_error);
 
 
 			/// returns whether fragment ions shall be displayed
@@ -254,12 +254,12 @@ namespace OpenMS
 			Real match_peak_tolerance_;///< minimum distance between two experimental peaks
 			Real ion_cutoff_percentage_;///< cutoff of the ratio matching theoretical peaks/theoretical peaks
 			
-			UInt peptide_mass_unit_;///< peptide mass unit (0 = amu; 1 = mmu; 2 = ppm)
-			UInt output_lines_;///< number of peptides to be displayed
-			UInt enzyme_number_;///< number of the enzyme used for cleavage
-			UInt max_AA_per_mod_per_peptide_;///< maximum number of amino acids containing the same modification in a peptide
-			UInt max_mods_per_peptide_;///< maximum number of modifications per peptide
-			UInt nucleotide_reading_frame_;///< nucleotide reading frame:
+			Size peptide_mass_unit_;///< peptide mass unit (0 = amu; 1 = mmu; 2 = ppm)
+			Size output_lines_;///< number of peptides to be displayed
+			Size enzyme_number_;///< number of the enzyme used for cleavage
+			Size max_AA_per_mod_per_peptide_;///< maximum number of amino acids containing the same modification in a peptide
+			Size max_mods_per_peptide_;///< maximum number of modifications per peptide
+			Size nucleotide_reading_frame_;///< nucleotide reading frame:
 					/// 0 	The FASTA file contains amino acid codes. No translation is needed. This is the best and fastest case.
 					/// 1 	The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the first DNA code.
 					/// 2 	The DNA sequence is scanned left to right (forward direction). The amino acid code starts with the second DNA code.
@@ -270,9 +270,9 @@ namespace OpenMS
 					/// 7 	Use each of the DNA translations of the codes 1; 2; 3.
 					/// 8 	Use each of the DNA translations of the codes 4; 5; 6.
 					/// 9 	Use each of the DNA translations of the codes 1; 2; 3; 4; 5; 6.
-			UInt max_internal_cleavage_sites_;///< maximum number of internal cleavage sites
-			UInt match_peak_count_;///< number of the top abundant peaks to match with theoretical one
-			UInt match_peak_allowed_error_;///< number of peaks that may lack this test
+			Size max_internal_cleavage_sites_;///< maximum number of internal cleavage sites
+			Size match_peak_count_;///< number of the top abundant peaks to match with theoretical one
+			Size match_peak_allowed_error_;///< number of peaks that may lack this test
 			
 			
 			bool show_fragment_ions_;///< whether to display fragment ions

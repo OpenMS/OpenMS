@@ -169,24 +169,24 @@ START_SECTION(virtual bool isAtEnd())
 END_SECTION
 
 
-START_SECTION(virtual void setSpectrum(const std::vector< float > &))
+START_SECTION(virtual void setSpectrum(const std::vector< DoubleReal > &))
 	ptr = new TrypticIterator();
-	const std::vector<float> spec;
+	const std::vector<DoubleReal> spec;
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).setSpectrum(spec));
 END_SECTION
 
-START_SECTION(virtual const std::vector<float>& getSpectrum())
+START_SECTION(virtual const std::vector<DoubleReal>& getSpectrum())
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).getSpectrum());
 END_SECTION
 
-START_SECTION(virtual void setTolerance(float))
+START_SECTION(virtual void setTolerance(DoubleReal))
 	ptr = new TrypticIterator();
-	float t = 0.5;
+	DoubleReal t = 0.5;
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).setTolerance(t));
 END_SECTION
 
-START_SECTION(virtual float getTolerance())
+START_SECTION(virtual DoubleReal getTolerance())
 	ptr = new TrypticIterator();
 	TEST_EXCEPTION (Exception::NotImplemented, (*ptr).getTolerance());
 END_SECTION

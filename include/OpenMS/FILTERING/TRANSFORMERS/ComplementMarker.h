@@ -85,8 +85,8 @@ namespace OpenMS
 			
     	spectrum.sortByPosition();
 			
-    	int j = spectrum.size() -1;
-    	for (uint i = 0; i < spectrum.size(); ++i)
+    	SignedSize j = spectrum.size() -1;
+    	for (Size i = 0; i < spectrum.size(); ++i)
     	{
       	while (j >= 0 && spectrum[j].getPosition()[0] > (parentmass - spectrum[i].getPosition()[0]) + tolerance)
 				{

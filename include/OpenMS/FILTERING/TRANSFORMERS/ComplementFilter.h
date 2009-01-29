@@ -81,8 +81,8 @@ namespace OpenMS
 			spectrum.sortByPosition();
 	
 			/// @improvement think about an correct fast algorithm, not just an heuristic (Andreas)
-	    uint j = spectrum.size() - 1;
-	    for (uint i = 0; i < spectrum.size() && i <= j; /*++i*/)
+	    Size j = spectrum.size() - 1;
+	    for (Size i = 0; i < spectrum.size() && i <= j; /*++i*/)
 	    {
 	      double sum = spectrum[i].getPosition()[0] + spectrum[j].getPosition()[0];
 				

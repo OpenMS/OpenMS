@@ -104,7 +104,7 @@ END_SECTION
 
 START_SECTION((void inc(BinSizeType val, ValueType increment=1)))
 	TEST_EXCEPTION(Exception::OutOfRange, d.inc(3.9f, 250.3f))
-	TEST_EXCEPTION(Exception::OutOfRange, d.inc(14.1f, 250.3))
+	TEST_EXCEPTION(Exception::OutOfRange, d.inc(14.1f, 250.3f))
 	d.inc(4.0f, 1.0);
 	d.inc(5.9f, 1.0);
 	TEST_REAL_SIMILAR(d[0],2.0);
@@ -166,7 +166,7 @@ START_SECTION((ValueType binValue(BinSizeType val) const))
 	TEST_REAL_SIMILAR(d.binValue(11.9f),0.0);
 	TEST_REAL_SIMILAR(d.binValue(12.0f),6.0);
 	TEST_REAL_SIMILAR(d.binValue(14.0f),6.0);
-	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(14.1))
+	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(14.1f))
 END_SECTION
 	
 START_SECTION((void reset(BinSizeType min, BinSizeType max, BinSizeType bin_size)))

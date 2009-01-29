@@ -29,6 +29,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <limits>
 
 namespace OpenMS
 {
@@ -386,7 +387,7 @@ namespace OpenMS
       
 		Int global_peak_number=0;
 
-		DoubleReal min = DBL_MAX;
+		DoubleReal min(std::numeric_limits<double>::max());
 		Int best_charge,num_peaks;
 		Size best_num_peaks;
 		gsl_vector *best_result=gsl_vector_alloc((Int)(2+2*OptimizationFunctions::peaks_DC_.size()));;

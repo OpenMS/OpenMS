@@ -44,10 +44,10 @@ START_TEST(EdwardsLippertIterator, "$Id$")
 /////////////////////////////////////////////////////////////
 typedef std::pair <String, String> FASTAEntry;
 
-vector<float> spec;
+vector<DoubleReal> spec;
 spec.push_back(178.1864);
 spec.push_back(441.4806);
-const vector<float> specc (spec);
+const vector<DoubleReal> specc (spec);
 
 EdwardsLippertIterator* ptr = 0;
 START_SECTION(EdwardsLippertIterator())
@@ -91,7 +91,7 @@ END_SECTION
 
 
 START_SECTION(virtual FASTAEntry operator *())
-	float masse[255];
+	DoubleReal masse[255];
 	ResidueDB* rdb = ResidueDB::getInstance();
 		
 	char aa[] = "ARNDCEQGHILKMFPSTWYV";
@@ -131,13 +131,13 @@ START_SECTION(virtual FASTAEntry operator *())
 	ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("EdwardsLippertIterator_test_2.fasta"));
 	ptr->setSpectrum(specc);
 	ptr->begin();
-	float tol = 0.2;
+	DoubleReal tol = 0.2;
 	ptr->setTolerance(tol);
 	while (!ptr->isAtEnd())
 	{
 		String seq = (**ptr).second;
 		(++*ptr);
-		float m = 0;
+		DoubleReal m = 0;
 		for (Size i = 0; i < seq.length();i++)
 		{
 			m+=masse[(int)seq[i]];
@@ -201,31 +201,31 @@ START_SECTION(bool isAtEnd ())
 	TEST_EQUAL(ptr->isAtEnd(),1);
 END_SECTION
 
-START_SECTION(virtual void setTolerance(float t))
+START_SECTION(virtual void setTolerance(DoubleReal t))
 	ptr = new EdwardsLippertIterator();
 	ptr->setTolerance(0.4);
 	TEST_REAL_SIMILAR(0.4,ptr->getTolerance());
 	TEST_EXCEPTION (Exception::InvalidValue,ptr->setTolerance(-0.1));
 END_SECTION
 
-START_SECTION(virtual float getTolerance())
+START_SECTION(virtual DoubleReal getTolerance())
 	ptr = new EdwardsLippertIterator();
 	TEST_REAL_SIMILAR(0.5,ptr->getTolerance());
 	ptr->setTolerance(0.4);
 	TEST_REAL_SIMILAR(0.4,ptr->getTolerance());
 END_SECTION
 
-START_SECTION(virtual void setSpectrum(const std::vector< float > &s))
+START_SECTION(virtual void setSpectrum(const std::vector< DoubleReal > &s))
 	ptr = new EdwardsLippertIterator();
 	ptr->setSpectrum(specc);
-	vector<float> spec2;
+	vector<DoubleReal> spec2;
 	spec2.push_back(441.4806);
 	spec2.push_back(178.1864);
-	const vector<float> specc2 (spec2);
+	const vector<DoubleReal> specc2 (spec2);
 	TEST_EXCEPTION (Exception::InvalidValue,ptr->setSpectrum(specc2));
 END_SECTION
 
-START_SECTION(virtual const std::vector<float>& getSpectrum())
+START_SECTION(virtual const std::vector<DoubleReal>& getSpectrum())
 	ptr = new EdwardsLippertIterator();
 	ptr->setSpectrum(specc);
 	TEST_EQUAL(specc.size(),ptr->getSpectrum().size());

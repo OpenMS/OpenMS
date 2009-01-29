@@ -43,7 +43,7 @@ START_TEST(PeptideHit, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-float score = 4.4;
+DoubleReal score = 4.4;
 uint rank = 3;
 AASequence sequence = AASequence("ARRAY");
 std::string sequence2 = "  ARRAY  ";

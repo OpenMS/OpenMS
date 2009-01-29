@@ -57,7 +57,7 @@ END_SECTION
 START_SECTION(EdwardsLippertIteratorTryptic(const EdwardsLippertIteratorTryptic& rhs))
   ptr = new EdwardsLippertIteratorTryptic();
   ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("EdwardsLippertIterator_test_2.fasta"));
-	vector<float> specc;
+	vector<DoubleReal> specc;
 	specc.push_back(178.1864);
 	specc.push_back(441.4806);
   ptr->setSpectrum(specc);
@@ -73,7 +73,7 @@ END_SECTION
 START_SECTION(EdwardsLippertIteratorTryptic& operator=(const EdwardsLippertIteratorTryptic &rhs))
 	ptr = new EdwardsLippertIteratorTryptic();
   ptr->setFastaFile(OPENMS_GET_TEST_DATA_PATH("EdwardsLippertIterator_test_2.fasta"));
-  vector<float> specc;
+  vector<DoubleReal> specc;
   specc.push_back(178.1864);
   specc.push_back(441.4806);
   ptr->setSpectrum(specc);
@@ -97,10 +97,10 @@ START_SECTION(virtual bool isDigestingEnd(char aa1,char aa2))
 END_SECTION
 
 START_SECTION([EXTRA] FASTAEntry operator*())
-	vector<float> spec;
+	vector<DoubleReal> spec;
 	spec.push_back(178.1864);
 	spec.push_back(441.4806);
-	const vector<float> specc (spec);
+	const vector<DoubleReal> specc (spec);
 
 	ptr = new EdwardsLippertIteratorTryptic();
 	FastaIterator * fit = new FastaIterator();
@@ -110,7 +110,7 @@ START_SECTION([EXTRA] FASTAEntry operator*())
 	fit->begin();
 	ptr->begin();
 	
-	float tol = 0.2;
+	DoubleReal tol = 0.2;
 	ptr->setTolerance(tol);
 	
 	while (!ptr->isAtEnd())

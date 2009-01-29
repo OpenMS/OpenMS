@@ -76,10 +76,10 @@ namespace OpenMS
   	  double gooddiff = 0;
     	//iterate over all peaks
     	double totaldiff = 0;
-    	for (uint i = 0; i < spectrum.size(); ++i)
+    	for (Size i = 0; i < spectrum.size(); ++i)
     	{
       	//look for each peakdifference that is in range of aa residuemasses (56/187), if it could be a aa (aamass)
-      	for (uint j = i; i+j < spectrum.size(); ++j)
+      	for (Size j = i; i+j < spectrum.size(); ++j)
       	{
         	double diff =  spectrum[i+j].getPosition()[0] - spectrum[i].getPosition()[0];
         	if (diff < 56)
