@@ -68,7 +68,7 @@ START_SECTION((virtual String toString()=0))
 }
 END_SECTION
 
-START_SECTION((virtual void findSpec(std::vector< std::vector< std::pair< std::pair< int, int >, double > > > &candidates, const std::vector< double > &spec)=0))
+START_SECTION((virtual void findSpec(std::vector< std::vector< std::pair< std::pair< SignedSize, SingedSize >, double > > > &candidates, const std::vector< double > &spec)=0))
 {
   NOT_TESTABLE
 }
@@ -128,13 +128,13 @@ START_SECTION((virtual bool getUseTags()=0))
 }
 END_SECTION
 
-START_SECTION((virtual void setNumberOfModifications(unsigned int number_of_mods)=0))
+START_SECTION((virtual void setNumberOfModifications(Size number_of_mods)=0))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((virtual unsigned int getNumberOfModifications()=0))
+START_SECTION((virtual Size getNumberOfModifications()=0))
 {
   NOT_TESTABLE
 }

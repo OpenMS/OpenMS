@@ -85,7 +85,7 @@ START_SECTION(void setTolerance(const double t))
 	TEST_EXCEPTION(Exception::InvalidValue,sa->setTolerance(-0.5));
 END_SECTION
 
-START_SECTION(void setNumberOfModifications(UInt number_of_mods) const)
+START_SECTION(void setNumberOfModifications(Size number_of_mods) const)
 	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticSeqan");
 	TEST_EQUAL (sa->getNumberOfModifications(),0);
 	sa->setNumberOfModifications(1);
@@ -93,7 +93,7 @@ START_SECTION(void setNumberOfModifications(UInt number_of_mods) const)
 	sa->setNumberOfModifications(0);
 END_SECTION
 
-START_SECTION(UInt getNumberOfModifications() const)
+START_SECTION(Size getNumberOfModifications() const)
 	SuffixArrayPeptideFinder* sa = new SuffixArrayPeptideFinder(OPENMS_GET_TEST_DATA_PATH("SuffixArrayPeptideFinder_test.fasta"),"trypticSeqan");
 	TEST_EQUAL (sa->getNumberOfModifications(),0);
 	sa->setNumberOfModifications(1);
