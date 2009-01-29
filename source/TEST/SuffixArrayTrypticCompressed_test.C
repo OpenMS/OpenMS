@@ -279,8 +279,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 		{
 			for (Size k = j+1; k < res.at(i).size();++k)
 			{
-				TEST_EQUAL(res.at(i).at(j).first.first==res.at(i).at(k).first.first && res.at(i).at(j).first.second==res.at(i).at(k).first.second, true);
-				
+				TEST_EQUAL(res[i][j].first.first==res[i][k].first.first && res[i][j].first.second==res[i][k].first.second, false);
 			}
 		}
 	}
