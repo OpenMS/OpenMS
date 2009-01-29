@@ -557,7 +557,7 @@ svn propset svn:eol-style native MyClass.C
 					</OL>
 				<LI> Put both files in <i>%OpenMS/source/APPLICATIONS/TOPP/</i> (you should find some similar files for other TOPP tools already present).
 				<LI> Try to re-link your TOPP tool.
-				<LI> Voil�. You should have an iconized TOPP tool.
+				<LI> Voila. You should have an iconized TOPP tool.
 			</OL>
 
 			<LI><B>What do I have to do to add a new TOPP tool?</B>

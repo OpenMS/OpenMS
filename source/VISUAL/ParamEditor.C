@@ -208,7 +208,7 @@ namespace OpenMS
 				else
 				{
 					list = static_cast<ListEditor*>(editor)->getList();
-					for(UInt i =  1; i < list.size(); ++i)
+					for(UInt i = 1; i < list.size(); ++i)
 					{
 						list[i] = "\n" + list[i] ;
 					}
@@ -409,6 +409,10 @@ namespace OpenMS
 				if (it2->opened) //opened node
 				{
 					item = new QTreeWidgetItem(parent);
+					//item->setTextAlignment(0,Qt::AlignTop);
+					//item->setTextAlignment(1,Qt::AlignTop);
+					//item->setTextAlignment(2,Qt::AlignTop);
+					//item->setTextAlignment(3,Qt::AlignTop);
 					//name
 					item->setText(0, it2->name.toQString());
 					//description
@@ -435,6 +439,10 @@ namespace OpenMS
 			
 			//********handle item********
 			item = new QTreeWidgetItem(parent);
+			//item->setTextAlignment(0,Qt::AlignTop);
+			//item->setTextAlignment(1,Qt::AlignTop);
+			//item->setTextAlignment(2,Qt::AlignTop);
+			//item->setTextAlignment(3,Qt::AlignTop);
 			if (it->tags.count("advanced"))
 			{
 				item->setData(0,Qt::UserRole,ADVANCED_ITEM);
@@ -448,41 +456,35 @@ namespace OpenMS
 			//value
 			if(it->value.valueType() == DataValue::STRING_LIST)
 			{
-				StringList list = it->value;
-				for(UInt i = 1; i < list.size(); ++i)
-				{
-					list[i] = "\n" + list[i];
-				}
-				String ll  = "["+list.concatenate(",")+"]";
-				item->setText(1, QString::fromStdString(ll.c_str()));
+				StringList string_list = it->value;
+				String list_string = String("[")+string_list.concatenate(",\n")+"]";
+				item->setText(1, list_string.toQString());
 			}
 			else if(it->value.valueType() == DataValue::INT_LIST)
 			{
-				IntList lis = it->value;
-				StringList list;
-				list.push_back(lis[0]);
-				for(UInt i = 1; i < list.size(); ++i)
+				IntList list = it->value;
+				StringList string_list;
+				for (Size i=0; i<list.size();++i)
 				{
-					list.push_back("\n" + lis[i]);
+					string_list.push_back(list[i]);
 				}
-				String ll  = "["+list.concatenate(",")+"]";
-				item->setText(1, QString::fromStdString(ll.c_str()));
+				String list_string = String("[")+string_list.concatenate(",\n")+"]";
+				item->setText(1, list_string.toQString());
 			}
 			else if(it->value.valueType() == DataValue::DOUBLE_LIST)
 			{
-				DoubleList lis = it->value;
-				StringList list;
-				list.push_back(lis[0]);
-				for(UInt i = 1; i < list.size(); ++i)
+				DoubleList list = it->value;
+				StringList string_list;
+				for (Size i=0; i<list.size();++i)
 				{
-					list.push_back("\n" + list[i]);
+					string_list.push_back(list[i]);
 				}
-				String ll  = "["+list.concatenate(",")+"]";
-				item->setText(1, QString::fromStdString(ll.c_str()));
+				String list_string = String("[")+string_list.concatenate(",\n")+"]";
+				item->setText(1, list_string.toQString());
 			}
 			else
 			{
-				item->setText(1, QString::fromStdString(it->value.toString().c_str()));
+				item->setText(1, String(it->value).toQString());
 			}
 			//type
 			switch(it->value.valueType())
@@ -590,6 +592,10 @@ namespace OpenMS
 						if (it->valid_strings.size()!=0)
 						{
 							irest.concatenate(it->valid_strings.begin(),it->valid_strings.end(),",");
+						}
+						if (irest!="")
+						{
+							item->setText(3, irest.toQString());
 						}
 						item->setData(2,Qt::UserRole,irest.toQString());
 					}
