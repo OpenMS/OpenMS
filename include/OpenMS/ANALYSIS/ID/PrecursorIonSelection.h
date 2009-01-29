@@ -33,16 +33,40 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 
-//#include <cmath>
+
 #include <set>
-#include <fstream>
+//#include <fstream>
 namespace OpenMS
 {
-  
+	/**
+		 @brief This class implements different precursor ion selection strategies.
+
+		 
+
+		 @htmlinclude OpenMS_PrecursorIonSelection.parameters
+
+	*/
   class OPENMS_DLLAPI PrecursorIonSelection : public DefaultParamHandler
   {
   public:
 
+		/** 
+	    @brief Precursor ion selection type (iterative, static, upshift, downshift, dynamic exclusion).
+	
+			The iterative strategy changes the ranking of possible precursors based on
+			identification results from previous iterations.
+
+			The upshift strategy assigns a higher priority to precursors  whose masses are matching
+			peptide masses of potential protein identifications to enable a safe identification in the next iterations.
+
+			The downshift strategy assigns a lower priority to precursors  whose masses are matching
+			peptide masses of safe protein identifications.
+
+			The dynamic exclusion exludes precursors whose masses are matching peptide masses of safe protein identifications.
+
+			The static selection uses precomputed scores to rank the precursor, the order of precursors isn't
+			changed throughout the run.
+	  */
     enum Type
 			{
 				IPS,
@@ -107,7 +131,9 @@ namespace OpenMS
 		 *	
 		 *	@param features FeatureMap with all possible precursors
 		 *	@param new_pep_ids Peptide identifications
+		 *  @param prot_ids Protein identifications
 		 *	@param preprocessed_db Information from preprocessed database
+		 *  @param check_meta_values True if the FeatureMap should be checked for the presence of required meta values
 		 *
 		 */
     void rescore(FeatureMap<>& features,std::vector<PeptideIdentification>& new_pep_ids,

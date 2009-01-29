@@ -103,7 +103,7 @@ ptr->setParameters(param);
 preprocessing.loadPreprocessing();
 next_features.clear();
 
-START_SECTION(void rescore(FeatureMap<>& features,std::vector<PeptideIdentification>& new_pep_ids,std::vector<ProteinIdentification>& prot_ids,PrecursorIonSelectionPreprocessing& preprocessed_db, bool check_meta_values))
+START_SECTION(void rescore(FeatureMap<>& features,std::vector<PeptideIdentification>& new_pep_ids,std::vector<ProteinIdentification>& prot_ids,PrecursorIonSelectionPreprocessing& preprocessed_db, bool check_meta_values=true))
   ptr->rescore(features,pep_ids,prot_ids,preprocessing);
   ptr->getNextPrecursors(features,next_features,1);
   TEST_REAL_SIMILAR(next_features[0].getMetaValue("msms_score"),49485.75)

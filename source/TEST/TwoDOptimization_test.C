@@ -63,8 +63,8 @@ START_SECTION((TwoDOptimization& operator=(const TwoDOptimization& opt)))
   opt_2d_copy = opt_2d;
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties_copy = opt_2d_copy.getPenalties();
   unsigned int number = opt_2d_copy.getMaxIterations();
-  double abs_err = opt_2d_copy.getMaxAbsError();
-  double rel_err = opt_2d_copy.getMaxRelError();
+  DoubleReal abs_err = opt_2d_copy.getMaxAbsError();
+  DoubleReal rel_err = opt_2d_copy.getMaxRelError();
   TEST_REAL_SIMILAR(penalties.pos,penalties_copy.pos)
   TEST_REAL_SIMILAR(penalties.lWidth,penalties_copy.lWidth)
   TEST_REAL_SIMILAR(penalties.rWidth,penalties_copy.rWidth)
@@ -87,8 +87,8 @@ START_SECTION((TwoDOptimization(const TwoDOptimization& opt)))
   TwoDOptimization opt_2d_copy(opt_2d);
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties_copy = opt_2d_copy.getPenalties();
   unsigned int number = opt_2d_copy.getMaxIterations();
-  double abs_err = opt_2d_copy.getMaxAbsError();
-  double rel_err = opt_2d_copy.getMaxRelError();
+  DoubleReal abs_err = opt_2d_copy.getMaxAbsError();
+  DoubleReal rel_err = opt_2d_copy.getMaxRelError();
   TEST_REAL_SIMILAR(penalties.pos,penalties_copy.pos)
   TEST_REAL_SIMILAR(penalties.lWidth,penalties_copy.lWidth)
   TEST_REAL_SIMILAR(penalties.rWidth,penalties_copy.rWidth)
@@ -260,9 +260,9 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
 
 END_SECTION
 
-START_SECTION((void setMaxAbsError(double eps_abs)))
+START_SECTION((void setMaxAbsError(DoubleReal eps_abs)))
   TOLERANCE_ABSOLUTE(0.0001)
-  double abs_err = 0.01;
+  DoubleReal abs_err = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxAbsError(abs_err);
@@ -270,9 +270,9 @@ START_SECTION((void setMaxAbsError(double eps_abs)))
  	TEST_REAL_SIMILAR(abs_err, opt_2d.getMaxAbsError())
 END_SECTION
 
-START_SECTION((void setMaxRelError(double eps_rel)))
+START_SECTION((void setMaxRelError(DoubleReal eps_rel)))
   TOLERANCE_ABSOLUTE(0.0001)
-  double rel_err = 0.01;
+  DoubleReal rel_err = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxRelError(rel_err);
@@ -282,7 +282,7 @@ END_SECTION
 	
 START_SECTION((DoubleReal getMaxAbsError() const))
   TOLERANCE_ABSOLUTE(0.0001)
-  double abs_err = 0.01;
+  DoubleReal abs_err = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxAbsError(abs_err);
@@ -292,7 +292,7 @@ END_SECTION
 
 START_SECTION((DoubleReal getMaxRelError() const))
   TOLERANCE_ABSOLUTE(0.0001)
-  double rel_err = 0.01;
+  DoubleReal rel_err = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxRelError(rel_err);
@@ -300,9 +300,9 @@ START_SECTION((DoubleReal getMaxRelError() const))
  	TEST_REAL_SIMILAR(rel_err, opt_2d.getMaxRelError())
 END_SECTION
 	
-START_SECTION((void setMaxPeakDistance(double max_peak_distance)))
+START_SECTION((void setMaxPeakDistance(DoubleReal max_peak_distance)))
   TOLERANCE_ABSOLUTE(0.0001)
-  double max_peak_distance = 0.01;
+  DoubleReal max_peak_distance = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxPeakDistance(max_peak_distance);
@@ -312,7 +312,7 @@ END_SECTION
 
 START_SECTION((DoubleReal getMaxPeakDistance() const))
   TOLERANCE_ABSOLUTE(0.0001)
-  double max_peak_distance = 0.01;
+  DoubleReal max_peak_distance = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxPeakDistance(max_peak_distance);
@@ -322,9 +322,9 @@ END_SECTION
 
 
 
-START_SECTION((void setMZTolerance(double tolerance_mz)))
+START_SECTION((void setMZTolerance(DoubleReal tolerance_mz)))
   TOLERANCE_ABSOLUTE(0.0001)
-  double mz_tolerance = 0.01;
+  DoubleReal mz_tolerance = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMZTolerance(mz_tolerance);
@@ -334,7 +334,7 @@ END_SECTION
 
 START_SECTION((DoubleReal getMZTolerance() const))
   TOLERANCE_ABSOLUTE(0.0001)
-  double mz_tolerance = 0.01;
+  DoubleReal mz_tolerance = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMZTolerance(mz_tolerance);
@@ -342,8 +342,8 @@ START_SECTION((DoubleReal getMZTolerance() const))
  	TEST_REAL_SIMILAR(mz_tolerance, opt_2d.getMZTolerance())
 END_SECTION
 
-START_SECTION((void setMaxIterations(int max_iteration)))
-  int number = 20;
+START_SECTION((void setMaxIterations(Int max_iteration)))
+  Int number = 20;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxIterations(number);
@@ -352,7 +352,7 @@ START_SECTION((void setMaxIterations(int max_iteration)))
 END_SECTION
 
 START_SECTION((Int getMaxIterations() const))
-  int number = 20;
+  Int number = 20;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxIterations(number);

@@ -111,7 +111,7 @@ START_SECTION((template <typename InputPeakType> void calibrate(MSExperiment< In
 }
 END_SECTION
 
-START_SECTION((const MSExperiment<>& getPeaks() const))
+START_SECTION((const MSExperiment& getPeaks() const))
 {
   MSExperiment<> exp;
   MSSpectrum<> spec;

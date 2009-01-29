@@ -116,7 +116,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
-
+#include <OpenMS/ANALYSIS/ID/PrecursorIonSelection.h>
 
 using namespace std;
 using namespace OpenMS;
@@ -339,6 +339,7 @@ int main (int argc , char** argv)
 	DOCME(WindowMower);
 	DOCME(ZhangSimilarityScore);
 	DOCME(CompareFouriertransform);
+	DOCME(PrecursorIonSelection);
 
 	//////////////////////////////////
 	// More complicated cases
