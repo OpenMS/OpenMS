@@ -298,6 +298,15 @@
             </activation>
           </precursor>
         </precursorList>
+        <productList count="1">
+          <product>
+          	<isolationWindow>
+          		<cvParam cvRef="MS" accession="MS:1000794" name="isolation m/z lower limit" value="8.88"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+          		<cvParam cvRef="MS" accession="MS:1000793" name="isolation m/z upper limit" value="9.99"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+      				<userParam name="iwname" value="isolationwindow2"/>
+          	</isolationWindow>
+          </product>
+        </productList>
         <binaryDataArrayList count="2">
           <binaryDataArray encodedLength="108" >
             <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>

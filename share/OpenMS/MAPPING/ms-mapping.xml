@@ -138,28 +138,11 @@
             <CvTerm termAccession="MS:1000792" useTerm="false" termName="isolation window attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
         
-        <!-- product -->
-        <CvMappingRule id="product_activation_must" cvElementPath="/mzML/run/spectrumList/spectrum/product/activation/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/spectrumList/spectrum/product/activation" cvTermsCombinationLogic="AND">
-            <CvTerm termAccession="MS:1000044" useTerm="true" termName="dissociation method" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
-        </CvMappingRule>
-        <CvMappingRule id="product_activation_may" cvElementPath="/mzML/run/spectrumList/spectrum/product/activation/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/run/spectrumList/spectrum/product/activation" cvTermsCombinationLogic="OR">
-            <CvTerm termAccession="MS:1000510" useTerm="false" termName="precursor activation attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
-        </CvMappingRule>
-        <CvMappingRule id="product_isolationwindow_must" cvElementPath="/mzML/run/spectrumList/spectrum/product/isolationWindow/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/spectrumList/spectrum/product/isolationWindow" cvTermsCombinationLogic="AND">
+        <!-- product list-->
+        <CvMappingRule id="product_isolationwindow_must" cvElementPath="/mzML/run/spectrumList/spectrum/productList/product/isolationWindow/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/spectrumList/spectrum/productList/product/isolationWindow" cvTermsCombinationLogic="AND">
             <CvTerm termAccession="MS:1000792" useTerm="false" termName="isolation window attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
-        
-        <!-- neutralLoss -->
-        <CvMappingRule id="neutralloss_activation_must" cvElementPath="/mzML/run/spectrumList/spectrum/neutralLoss/activation/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/spectrumList/spectrum/neutralLoss/activation" cvTermsCombinationLogic="AND">
-            <CvTerm termAccession="MS:1000044" useTerm="true" termName="dissociation method" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
-        </CvMappingRule>
-        <CvMappingRule id="neutralloss_activation_may" cvElementPath="/mzML/run/spectrumList/spectrum/neutralLoss/activation/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/run/spectrumList/spectrum/neutralLoss/activation" cvTermsCombinationLogic="OR">
-            <CvTerm termAccession="MS:1000510" useTerm="false" termName="precursor activation attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
-        </CvMappingRule>
-        <CvMappingRule id="neutralloss_isolationwindow_must" cvElementPath="/mzML/run/spectrumList/spectrum/neutralLoss/isolationWindow/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/spectrumList/spectrum/neutralLoss/isolationWindow" cvTermsCombinationLogic="AND">
-            <CvTerm termAccession="MS:1000792" useTerm="false" termName="isolation window attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
-        </CvMappingRule>
-        
+                
         <!-- spectrum binary data array -->
         <CvMappingRule id="spectrum_binarydataarray_must" cvElementPath="/mzML/run/spectrumList/spectrum/binaryDataArrayList/binaryDataArray/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/spectrumList/spectrum/binaryDataArrayList/binaryDataArray" cvTermsCombinationLogic="AND">
             <CvTerm termAccession="MS:1000513" useTerm="false" termName="binary data array" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>

@@ -368,6 +368,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL(exp.getDataProcessing()[1].getMetaValue("p2").toString(),"value2")
 	//precursor
 	TEST_STRING_EQUAL(exp[1].getPrecursor().getMetaValue("iwname").toString(),"isolationwindow1")
+	TEST_STRING_EQUAL(exp[1].getPrecursor().getMetaValue("product iwname").toString(),"isolationwindow2")
 	TEST_STRING_EQUAL(exp[1].getPrecursor().getMetaValue("siname").toString(),"selectedion1")
 	TEST_STRING_EQUAL(exp[1].getPrecursor().getMetaValue("acname").toString(),"activation1")
 
@@ -380,6 +381,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL((String)exp[1].getMetaValue("mass resolution"),"4.1")
 	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("isolation m/z lower limit"),"6.66")
 	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("isolation m/z upper limit"),"7.77")
+	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("product isolation m/z lower limit"),"8.88")
+	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("product isolation m/z upper limit"),"9.99")
 
 	/////////////////////// TESTING SPECIAL CASES ///////////////////////
 
@@ -515,27 +518,6 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 //	{
 //		TEST_EQUAL(exp[i]==exp_original[i],true);
 //	}
-	TEST_EQUAL(exp==exp_original,true)
-
-END_SECTION
-
-START_SECTION([EXTRA] store with special scan types)
-	MzMLFile file;
-
-	//load map
-	MSExperiment<> exp_original;
-	file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_7_scan_types.mzML"),exp_original);
-
- 	//store map
-	std::string tmp_filename;
- 	NEW_TMP_FILE(tmp_filename);
-	file.store(tmp_filename,exp_original);
-
-	//load written map
-	MSExperiment<> exp;
-	file.load(tmp_filename,exp);
-
-	//test if everything worked
 	TEST_EQUAL(exp==exp_original,true)
 
 END_SECTION

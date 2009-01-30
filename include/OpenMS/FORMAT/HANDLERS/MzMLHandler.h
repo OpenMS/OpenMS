@@ -50,7 +50,7 @@
 // - multiple 'dissociation methods' per precursor
 // - more than one precursor per spectrum (warning if more than one)
 // - more than one selected ion per precursor (warning if more than one)
-// - more than one isolationWindow per precursor
+// - more than one isolationWindow per precursor / product
 // - scanWindowList for each acquisition separately (currently for the whole spectrum only)
 // - DataProcessing of spectrum (defaultsDataProcessingRef is used) and binaryDataArray
 // - InstrumentConfiguration of Scan
@@ -733,7 +733,7 @@ namespace OpenMS
 		}
 		
 		template <typename MapType>
-		void MzMLHandler<MapType>::handleCVParam_(const String& /*parent_parent_tag*/, const String& parent_tag, const String& accession, const String& name, const String& value)
+		void MzMLHandler<MapType>::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value)
 		{
 			//Error checks of CV values
 			if (cv_.exists(accession))
@@ -1126,17 +1126,34 @@ namespace OpenMS
 			//------------------------- isolationWindow ----------------------------
 			else if(parent_tag=="isolationWindow")
 			{
-				if (accession=="MS:1000793") //isolation m/z upper limit
+				if (parent_parent_tag=="precursor")
 				{
-					//No member => meta data
-					spec_.getPrecursor().setMetaValue("isolation m/z upper limit",value);
+					if (accession=="MS:1000793") //isolation m/z upper limit
+					{
+						//No member => meta data
+						spec_.getPrecursor().setMetaValue("isolation m/z upper limit",value);
+					}
+					else if (accession=="MS:1000794") //isolation m/z lower limit
+					{
+						//No member => meta data
+						spec_.getPrecursor().setMetaValue("isolation m/z lower limit",value);
+					}
+					else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 				}
-				else if (accession=="MS:1000794") //isolation m/z lower limit
+				else if (parent_parent_tag=="product")
 				{
-					//No member => meta data
-					spec_.getPrecursor().setMetaValue("isolation m/z lower limit",value);
+					if (accession=="MS:1000793") //isolation m/z upper limit
+					{
+						//No member => meta data
+						spec_.getPrecursor().setMetaValue("product isolation m/z upper limit",value);
+					}
+					else if (accession=="MS:1000794") //isolation m/z lower limit
+					{
+						//No member => meta data
+						spec_.getPrecursor().setMetaValue("product isolation m/z lower limit",value);
+					}
+					else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 				}
-				else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 			}
 			//------------------------- scanList ----------------------------
 			else if(parent_tag=="scanList")
@@ -2032,7 +2049,7 @@ namespace OpenMS
 		}
 
 		template <typename MapType>
-		void MzMLHandler<MapType>::handleUserParam_(const String& /*parent_parent_tag*/, const String& parent_tag, const String& name, const String& type, const String& value)
+		void MzMLHandler<MapType>::handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value)
 		{
 			//create a DataValue that contains the data in the right type
 			DataValue data_value;
@@ -2108,7 +2125,14 @@ namespace OpenMS
 			else if (parent_tag=="isolationWindow")
 			{
 				//We don't have this as a separate location => store it in the precursor
-				spec_.getPrecursor().setMetaValue(name,data_value);
+				if (parent_parent_tag=="precursor")
+				{
+					spec_.getPrecursor().setMetaValue(name,data_value);
+				}
+				else if (parent_parent_tag=="product")
+				{
+					spec_.getPrecursor().setMetaValue(String("product ")+name,data_value);
+				} 
 			}
 			else if (parent_tag=="selectedIon")
 			{
@@ -3306,168 +3330,92 @@ namespace OpenMS
 				//--------------------------------------------------------------------------------------------
 				if (spec.getPrecursor() != Precursor() || spec.getPrecursorPeak() != typename SpectrumType::PrecursorPeakType())
 				{
-					//precursor scan or constant neutral loss scan
-					if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::CNL || spec.getInstrumentSettings().getScanMode()==InstrumentSettings::PRECURSOR)
+					os	<< "				<precursorList count=\"1\">\n";
+					os	<< "					<precursor>\n";
+					//--------------------------------------------------------------------------------------------
+					//isolation window
+					//--------------------------------------------------------------------------------------------
+					//cvParam: nothing to do here for now
+					//userParam: no extra object for it => no user paramters
+					
+					//--------------------------------------------------------------------------------------------
+					//selected ion list
+					//--------------------------------------------------------------------------------------------
+					os	<< "						<selectedIonList count=\"1\">\n";
+					os	<< "							<selectedIon>\n";
+					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected m/z\" value=\"" << spec.getPrecursorPeak().getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << spec.getPrecursorPeak().getCharge() << "\" />\n";
+					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"intensity\" value=\"" << spec.getPrecursorPeak().getIntensity() << "\" />\n";
+					for (Size j=0; j<spec.getPrecursorPeak().getPossibleChargeStates().size(); ++j)
 					{
-						os	<< "					<neutralLoss>\n";
-						//--------------------------------------------------------------------------------------------
-						//isolation window
-						//--------------------------------------------------------------------------------------------
-						//cvParam: nothing to do here for now
-						//userParam: no extra object for it => no user paramters
+						os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << spec.getPrecursorPeak().getPossibleChargeStates()[j] << "\" />\n";
+					}
+					//userParam: no extra object for it => no user paramters
+					os	<< "							</selectedIon>\n";					
+					os	<< "						</selectedIonList>\n";
 
-						//--------------------------------------------------------------------------------------------
-						//activation
-						//--------------------------------------------------------------------------------------------
-						os	<< "					<activation>\n";
-						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000509\" name=\"activation energy\" value=\"" << spec.getPrecursor().getActivationEnergy() << "\" unitAccession=\"UO:0000266\" unitName=\"electronvolt\" unitCvRef=\"UO\" />\n";
-						if (spec.getPrecursor().getActivationMethod()==Precursor::CID)
-						{
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000133\" name=\"collision-induced dissociation\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::PD)
-						{
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000134\" name=\"plasma desorption\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::PSD)
-						{
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000135\" name=\"post-source decay\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::SID)
-						{
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000136\" name=\"surface-induced dissociation\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::BIRD)
-						{
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000242\" name=\"blackbody infrared radiative dissociation\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::ECD)
-						{
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000250\" name=\"electron capture dissociation\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::IMD)
-						{
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000262\" name=\"infrared multiphoton dissociation\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::SORI)
-						{
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000282\" name=\"sustained off-resonance irradiation\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::HCID)
-						{
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000422\" name=\"high-energy collision-induced dissociation\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::LCID)
-						{
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000433\" name=\"low-energy collision-induced dissociation\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::PHD)
-						{
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000435\" name=\"photodissociation\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::ETD)
-						{
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000598\" name=\"electron transfer dissociation\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::PQD)
-						{
-							os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000599\" name=\"pulsed q dissociation\" />\n";
-						}
-						//as "precursor" has no own user param it's userParam is stored here
-						writeUserParam_(os, spec.getPrecursor(), 6);
-						os	<< "					</activation>\n";
-						os	<< "				</neutralLoss>\n";					
-					}
-					//normal MSn scan with precursors
-					else
+					//--------------------------------------------------------------------------------------------
+					//activation
+					//--------------------------------------------------------------------------------------------
+					os	<< "						<activation>\n";
+					os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000509\" name=\"activation energy\" value=\"" << spec.getPrecursor().getActivationEnergy() << "\" unitAccession=\"UO:0000266\" unitName=\"electronvolt\" unitCvRef=\"UO\" />\n";
+					if (spec.getPrecursor().getActivationMethod()==Precursor::CID)
 					{
-						os	<< "				<precursorList count=\"1\">\n";
-						os	<< "					<precursor>\n";
-						//--------------------------------------------------------------------------------------------
-						//isolation window
-						//--------------------------------------------------------------------------------------------
-						//cvParam: nothing to do here for now
-						//userParam: no extra object for it => no user paramters
-						
-						//--------------------------------------------------------------------------------------------
-						//selected ion list
-						//--------------------------------------------------------------------------------------------
-						os	<< "						<selectedIonList count=\"1\">\n";
-						os	<< "							<selectedIon>\n";
-						os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected m/z\" value=\"" << spec.getPrecursorPeak().getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-						os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << spec.getPrecursorPeak().getCharge() << "\" />\n";
-						os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"intensity\" value=\"" << spec.getPrecursorPeak().getIntensity() << "\" />\n";
-						for (Size j=0; j<spec.getPrecursorPeak().getPossibleChargeStates().size(); ++j)
-						{
-							os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << spec.getPrecursorPeak().getPossibleChargeStates()[j] << "\" />\n";
-						}
-						//userParam: no extra object for it => no user paramters
-						os	<< "							</selectedIon>\n";					
-						os	<< "						</selectedIonList>\n";
-	
-						//--------------------------------------------------------------------------------------------
-						//activation
-						//--------------------------------------------------------------------------------------------
-						os	<< "						<activation>\n";
-						os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000509\" name=\"activation energy\" value=\"" << spec.getPrecursor().getActivationEnergy() << "\" unitAccession=\"UO:0000266\" unitName=\"electronvolt\" unitCvRef=\"UO\" />\n";
-						if (spec.getPrecursor().getActivationMethod()==Precursor::CID)
-						{
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000133\" name=\"collision-induced dissociation\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::PD)
-						{
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000134\" name=\"plasma desorption\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::PSD)
-						{
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000135\" name=\"post-source decay\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::SID)
-						{
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000136\" name=\"surface-induced dissociation\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::BIRD)
-						{
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000242\" name=\"blackbody infrared radiative dissociation\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::ECD)
-						{
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000250\" name=\"electron capture dissociation\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::IMD)
-						{
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000262\" name=\"infrared multiphoton dissociation\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::SORI)
-						{
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000282\" name=\"sustained off-resonance irradiation\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::HCID)
-						{
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000422\" name=\"high-energy collision-induced dissociation\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::LCID)
-						{
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000433\" name=\"low-energy collision-induced dissociation\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::PHD)
-						{
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000435\" name=\"photodissociation\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::ETD)
-						{
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000598\" name=\"electron transfer dissociation\" />\n";
-						}
-						else if (spec.getPrecursor().getActivationMethod()==Precursor::PQD)
-						{
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000599\" name=\"pulsed q dissociation\" />\n";
-						}
-						//as "precursor" has no own user param it's userParam is stored here
-						writeUserParam_(os, spec.getPrecursor(), 7);
-						os	<< "						</activation>\n";
-						os	<< "					</precursor>\n";					
-						os	<< "				</precursorList>\n";
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000133\" name=\"collision-induced dissociation\" />\n";
 					}
+					else if (spec.getPrecursor().getActivationMethod()==Precursor::PD)
+					{
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000134\" name=\"plasma desorption\" />\n";
+					}
+					else if (spec.getPrecursor().getActivationMethod()==Precursor::PSD)
+					{
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000135\" name=\"post-source decay\" />\n";
+					}
+					else if (spec.getPrecursor().getActivationMethod()==Precursor::SID)
+					{
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000136\" name=\"surface-induced dissociation\" />\n";
+					}
+					else if (spec.getPrecursor().getActivationMethod()==Precursor::BIRD)
+					{
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000242\" name=\"blackbody infrared radiative dissociation\" />\n";
+					}
+					else if (spec.getPrecursor().getActivationMethod()==Precursor::ECD)
+					{
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000250\" name=\"electron capture dissociation\" />\n";
+					}
+					else if (spec.getPrecursor().getActivationMethod()==Precursor::IMD)
+					{
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000262\" name=\"infrared multiphoton dissociation\" />\n";
+					}
+					else if (spec.getPrecursor().getActivationMethod()==Precursor::SORI)
+					{
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000282\" name=\"sustained off-resonance irradiation\" />\n";
+					}
+					else if (spec.getPrecursor().getActivationMethod()==Precursor::HCID)
+					{
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000422\" name=\"high-energy collision-induced dissociation\" />\n";
+					}
+					else if (spec.getPrecursor().getActivationMethod()==Precursor::LCID)
+					{
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000433\" name=\"low-energy collision-induced dissociation\" />\n";
+					}
+					else if (spec.getPrecursor().getActivationMethod()==Precursor::PHD)
+					{
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000435\" name=\"photodissociation\" />\n";
+					}
+					else if (spec.getPrecursor().getActivationMethod()==Precursor::ETD)
+					{
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000598\" name=\"electron transfer dissociation\" />\n";
+					}
+					else if (spec.getPrecursor().getActivationMethod()==Precursor::PQD)
+					{
+						os  << "						<cvParam cvRef=\"MS\" accession=\"MS:1000599\" name=\"pulsed q dissociation\" />\n";
+					}
+					//as "precursor" has no own user param it's userParam is stored here
+					writeUserParam_(os, spec.getPrecursor(), 6);
+					os	<< "					</activation>\n";
+					os	<< "				</precursor>\n";					
+					os	<< "			</precursorList>\n";
 				}
 				writeUserParam_(os, spec.getInstrumentSettings(), 5);
 				//--------------------------------------------------------------------------------------------

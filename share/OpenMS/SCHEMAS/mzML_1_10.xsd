@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="Windows-1252"?>
-<xs:schema xmlns:dx="http://psi.hupo.org/ms/mzml" attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://psi.hupo.org/ms/mzml" version="1.1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:schema xmlns:dx="http://psi.hupo.org/ms/mzml" 
+		   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+		   targetNamespace="http://psi.hupo.org/ms/mzml" 
+           attributeFormDefault="unqualified" 
+		   elementFormDefault="qualified" 
+		   version="1.1.0">
   <xs:complexType name="mzMLType">
     <xs:annotation>
       <xs:documentation>This is the root element for the Proteomics Standards Initiative (PSI) mzML schema, which is intended to capture the use of a mass spectrometer, the data generated, and the initial processing of that data (to the level of the peak list).</xs:documentation>
@@ -278,15 +283,9 @@
     <xs:annotation>
       <xs:documentation>List and descriptions of instrument configurations. At least one instrument configuration must be specified, even if it is only to specify that the instrument is unknown. In that case, the "instrument model" term is used to indicate the unknown instrument in the instrumentConfiguration.</xs:documentation>
     </xs:annotation>
-    <xs:sequence>
-      <xs:element maxOccurs="unbounded" name="instrumentConfiguration">
-        <xs:complexType>
-          <xs:complexContent mixed="false">
-            <xs:extension base="dx:InstrumentConfigurationType" />
-          </xs:complexContent>
-        </xs:complexType>
-      </xs:element>
-    </xs:sequence>
+	  <xs:sequence>
+		<xs:element name="instrumentConfiguration" type="dx:InstrumentConfigurationType" maxOccurs="unbounded"/>
+	  </xs:sequence>
     <xs:attribute name="count" type="xs:nonNegativeInteger" use="required">
       <xs:annotation>
         <xs:documentation>The number of instrument configurations present in this list.</xs:documentation>
@@ -304,6 +303,37 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
+  <xs:complexType name="SourceComponentType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>This element must be used to describe a Source Component Type. This is a PRIDE3-specific
+                modification of the core MzML schema that does not have any impact on the base schema validation.
+            </xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="dx:ComponentType"/>
+		</xs:complexContent>
+	</xs:complexType>
+  <xs:complexType name="DetectorComponentType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>This element must be used to describe a Detector Component Type. This is a PRIDE3-specific
+                modification of the core MzML schema that does not have any impact on the base schema validation.
+            </xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="dx:ComponentType"/>
+		</xs:complexContent>
+	</xs:complexType>
+  <xs:complexType name="AnalyzerComponentType" mixed="false">
+		<xs:annotation>
+			<xs:documentation>This element must be used to describe an Analyzer Component Type. This is a
+                PRIDE3-specific
+                modification of the core MzML schema that does not have any impact on the base schema validation.
+            </xs:documentation>
+		</xs:annotation>
+		<xs:complexContent mixed="false">
+			<xs:extension base="dx:ComponentType"/>
+		</xs:complexContent>
+	</xs:complexType>
   <xs:complexType name="ComponentListType">
     <xs:annotation>
       <xs:documentation>List with the different components used in the mass spectrometer. At least one source, one mass analyzer and one detector need to be specified.</xs:documentation>
@@ -587,11 +617,8 @@
       <xs:extension base="dx:ParamGroupType">
         <xs:sequence>
           <xs:element minOccurs="0" name="scanList" type="dx:ScanListType" />
-          <xs:choice minOccurs="0" maxOccurs="1">
-            <xs:element name="precursorList" type="dx:PrecursorListType" />
-            <xs:element name="product" type="dx:ProductType" />
-            <xs:element name="neutralLoss" type="dx:NeutralLossType" />
-          </xs:choice>
+          <xs:element minOccurs="0" maxOccurs="1" name="precursorList" type="dx:PrecursorListType" />
+          <xs:element minOccurs="0" maxOccurs="1" name="productList" type="dx:ProductListType" />
           <xs:element minOccurs="0" maxOccurs="1" name="binaryDataArrayList" type="dx:BinaryDataArrayListType" />
         </xs:sequence>
         <xs:attribute name="id" use="required">
@@ -732,7 +759,7 @@
           <xs:documentation>This element captures the isolation (or 'selection') window configured to isolate one or more ionss.</xs:documentation>
         </xs:annotation>
       </xs:element>
-      <xs:element name="selectedIonList" type="dx:SelectedIonListType">
+      <xs:element minOccurs="0" maxOccurs="1" name="selectedIonList" type="dx:SelectedIonListType">
         <xs:annotation>
           <xs:documentation>A list of ions that were selected.</xs:documentation>
         </xs:annotation>
@@ -772,6 +799,19 @@
       </xs:annotation>
     </xs:attribute>
   </xs:complexType>
+  <xs:complexType name="ProductListType">
+    <xs:annotation>
+      <xs:documentation>List and descriptions of product isolations to the spectrum currently being described, ordered.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element maxOccurs="unbounded" name="product" type="dx:ProductType" />
+    </xs:sequence>
+    <xs:attribute name="count" type="xs:nonNegativeInteger" use="required">
+      <xs:annotation>
+        <xs:documentation>The number of product isolations in this list.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
   <xs:complexType name="ProductType">
     <xs:annotation>
       <xs:documentation>The method of product ion selection and activation in a precursor ion scan</xs:documentation>
@@ -780,28 +820,6 @@
       <xs:element minOccurs="0" maxOccurs="1" name="isolationWindow" type="dx:ParamGroupType">
         <xs:annotation>
           <xs:documentation>This element captures the isolation (or 'selection') window configured to isolate one or more ions.</xs:documentation>
-        </xs:annotation>
-      </xs:element>
-      <xs:element name="activation" type="dx:ParamGroupType">
-        <xs:annotation>
-          <xs:documentation>The type and energy level used for activation.</xs:documentation>
-        </xs:annotation>
-      </xs:element>
-    </xs:sequence>
-  </xs:complexType>
-  <xs:complexType name="NeutralLossType">
-    <xs:annotation>
-      <xs:documentation>The method of neutral loss selection and activation in a neutral loss scan</xs:documentation>
-    </xs:annotation>
-    <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="1" name="isolationWindow" type="dx:ParamGroupType">
-        <xs:annotation>
-          <xs:documentation>This element captures the isolation (or 'selection') window configured to isolate one or more ions.</xs:documentation>
-        </xs:annotation>
-      </xs:element>
-      <xs:element name="activation" type="dx:ParamGroupType">
-        <xs:annotation>
-          <xs:documentation>The type and energy level used for activation.</xs:documentation>
         </xs:annotation>
       </xs:element>
     </xs:sequence>

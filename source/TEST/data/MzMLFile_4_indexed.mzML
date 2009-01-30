@@ -264,6 +264,7 @@
               </activation>
             </precursor>
           </precursorList>
+
 	        <binaryDataArrayList count="2">
 	          <binaryDataArray encodedLength="108" dataProcessingRef="XcaliburProcessing">
 	            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
