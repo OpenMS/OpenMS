@@ -320,11 +320,11 @@ namespace OpenMS
 				
 				// db-name__precursor_mass_tolerance_unit__missed_cleavages__taxonomy
 
-				UInt pos1 = db_path.rfind("/") +1;
+				Size pos1 = db_path.rfind("/") +1;
 				path += "/";
 				
 				// get db-name
-				UInt pos2 = db_path.rfind(".");
+				Size pos2 = db_path.rfind(".");
 				String db_name = db_path.substr(pos1,pos2-pos1);
 				
 				std::stringstream ss;
@@ -448,7 +448,9 @@ namespace OpenMS
 		++iter;
 		std::vector<String> header;
 		iter->split('\t',header);
-
+		// store minimal mass
+		masses_.push_back(header[1].toFloat());
+		
 		f_max_ = 0;
 		
 		++iter;

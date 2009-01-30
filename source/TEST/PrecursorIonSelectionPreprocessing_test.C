@@ -62,8 +62,8 @@ START_SECTION(PrecursorIonSelectionPreprocessing& operator=(const PrecursorIonSe
 END_SECTION
 
 Param param;
-param.setValue("precursor_mass_tolerance",10.);
-param.setValue("precursor_mass_tolerance_unit","ppm");
+param.setValue("precursor_mass_tolerance",0.9);
+param.setValue("precursor_mass_tolerance_unit","Da");
 param.setValue("missed_cleavages",1);
 param.setValue("preprocessing:preprocessed_db_path",OPENMS_GET_TEST_DATA_PATH(""));
 ptr->setParameters(param);
@@ -71,7 +71,7 @@ ptr->dbPreprocessing(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreprocessi
 	
 START_SECTION((const std::map<String,std::vector<DoubleReal> >& getProtMasses() const))
 	std::map<String,std::vector<DoubleReal> > prot_map = ptr->getProtMasses();
-	TEST_EQUAL(prot_map.size(), 2)
+	TEST_EQUAL(prot_map.size(), 3)
 END_SECTION
 
 START_SECTION((const std::vector<DoubleReal> & getMasses(String acc)))
@@ -86,22 +86,22 @@ END_SECTION
 	
 	START_SECTION(void dbPreprocessing(String db_path, bool save=true))
 	std::map<String,std::vector<DoubleReal> > prot_map = ptr->getProtMasses();
-	TEST_EQUAL(prot_map.size(), 2)
+	TEST_EQUAL(prot_map.size(), 3)
 END_SECTION
 
 START_SECTION(DoubleReal getWeight(DoubleReal mass))
   DoubleReal w = ptr->getWeight(147.113);
-  TEST_REAL_SIMILAR(w,0.5)
+  TEST_REAL_SIMILAR(w,0.3333333)
 END_SECTION
 
 START_SECTION(void loadPreprocessing())
 	PrecursorIonSelectionPreprocessing ldb;
-	param.setValue("preprocessing:preprocessed_db_path",OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreprocessing_db_10_ppm_1_"));
+	param.setValue("preprocessing:preprocessed_db_path",OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreprocessing_db_0.9_Da_1_"));
   ldb.setParameters(param);
   ldb.loadPreprocessing();
-  TEST_EQUAL(ldb.getProtMasses().size(),2)
+  TEST_EQUAL(ldb.getProtMasses().size(),3)
   DoubleReal w = ldb.getWeight(147.113);
-  TEST_REAL_SIMILAR(w,0.5)
+  TEST_REAL_SIMILAR(w,0.3333333)
 
 	std::vector<DoubleReal> pep_masses_l = ldb.getMasses("P01008");
   std::vector<DoubleReal> pep_masses = ptr->getMasses("P01008");

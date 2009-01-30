@@ -148,7 +148,7 @@
 			<userParam type="float" name="init_msms_score" value="44916"/>
 		</feature>
 		<feature id="f_8">
-			<position dim="0">990</position>
+			<position dim="0">960</position>
 			<position dim="1">1166.5974</position>
 			<intensity>11154.871</intensity>
 			<quality dim="0">0</quality>
@@ -280,7 +280,7 @@
 			<userParam type="string" name="fragmented" value="false"/>
 			<userParam type="string" name="shifted" value="false"/>
 			<userParam type="float" name="msms_score" value="32440"/>
-			<userParam type="float" name="init_score" value="32440"/>
+			<userParam type="float" name="init_msms_score" value="32440"/>
 		</feature>
 		<feature id="f_17">
 			<position dim="0">1530</position>
@@ -295,7 +295,7 @@
 			<userParam type="string" name="fragmented" value="false"/>
 			<userParam type="string" name="shifted" value="false"/>
 			<userParam type="float" name="msms_score" value="24046"/>
-			<userParam type="float" name="init_score" value="24046"/>
+			<userParam type="float" name="init_msms_score" value="24046"/>
 		</feature>
 		<feature id="f_18">
 			<position dim="0">1860</position>
@@ -310,7 +310,7 @@
 			<userParam type="string" name="fragmented" value="false"/>
 			<userParam type="string" name="shifted" value="false"/>
 			<userParam type="float" name="msms_score" value="49485.75"/>
-			<userParam type="float" name="init_score" value="49485.75"/>
+			<userParam type="float" name="init_msms_score" value="49485.75"/>
 		</feature>
 		<feature id="f_19">
 			<position dim="0">1380</position>
@@ -325,7 +325,37 @@
 			<userParam type="string" name="fragmented" value="false"/>
 			<userParam type="string" name="shifted" value="false"/>
 			<userParam type="float" name="msms_score" value="11031.5"/>
-			<userParam type="float" name="init_score" value="11031.5"/>
+			<userParam type="float" name="init_msms_score" value="11031.5"/>
+		</feature>
+		<feature id="f_20">
+			<position dim="0">1020</position>
+			<position dim="1">964.53043</position>
+			<intensity>41962.793</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+			<userParam type="string" name="fragmented" value="false"/>
+			<userParam type="string" name="shifted" value="false"/>
+			<userParam type="float" name="msms_score" value="41012.25"/>
+			<userParam type="float" name="init_msms_score" value="41012.25"/>
+		</feature>
+		<feature id="f_21">
+			<position dim="0">1110</position>
+			<position dim="1">908.4451</position>
+			<intensity>2252.929</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<model name="">
+			</model>
+			<userParam type="string" name="fragmented" value="false"/>
+			<userParam type="string" name="shifted" value="false"/>
+			<userParam type="float" name="msms_score" value="29375.5"/>
+			<userParam type="float" name="init_msms_score" value="29375.5"/>
 		</feature>
 
 	</featureList>

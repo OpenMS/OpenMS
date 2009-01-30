@@ -253,14 +253,20 @@ namespace OpenMS
 	{
 		// check for required MetaValues in FeatureMap
 		if(check_meta_values) 		checkForRequiredUserParams_(features);
-
+#ifdef PIS_DEBUG
+		std::cout << "checked for user params"<<std::endl;
+#endif
 		// filter significant peptide ids
 		std::vector<PeptideIdentification> filtered_pep_ids = filterPeptideIds_(new_pep_ids);
-
+#ifdef PIS_DEBUG
+		std::cout << "filtered peptides ids"<<std::endl;
+#endif
 		// map ids on features 
 		IDMapper mapper;
 		mapper.annotate(features,filtered_pep_ids,prot_ids);
-
+#ifdef PIS_DEBUG
+		std::cout << "mapped ids"<<std::endl;
+#endif
 		// make the rescoring
 		rescore_(features,filtered_pep_ids,preprocessed_db);
 		
@@ -521,7 +527,7 @@ namespace OpenMS
 		FeatureMap<> new_features;
 		getNextPrecursors(features,new_features,step_size);	
 
-		UInt precursors = 0;
+		Size precursors = 0;
 		UInt iteration = 0;
 		UInt pep_id_number = 0;
 		std::vector<PeptideIdentification> curr_pep_ids,all_pep_ids;
