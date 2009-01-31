@@ -65,7 +65,7 @@ START_SECTION((ClusterFunctor& operator=(const ClusterFunctor &source)))
 }
 END_SECTION
 
-START_SECTION((virtual void cluster(DistanceMatrix< Real > &original_distance, std::vector<BinaryTreeNode>& cluster_tree, const Real threshold=1) const =0))
+START_SECTION((virtual void operator()(DistanceMatrix< Real > &original_distance, std::vector<BinaryTreeNode>& cluster_tree, const Real threshold=1) const =0))
 {
   NOT_TESTABLE
 }

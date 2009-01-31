@@ -29,6 +29,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace OpenMS;
@@ -80,7 +81,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 
 	//test DocumentIdentifier addition
 	TEST_STRING_EQUAL(exp.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
-	TEST_STRING_EQUAL(exp.getLoadedFileType(),"mzML");
+	TEST_STRING_EQUAL(FileHandler::typeToName(exp.getLoadedFileType()),"mzML");
 
 	//-------------------------- general information --------------------------
 
@@ -135,7 +136,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_EQUAL(exp.getInstrument().getMassAnalyzers().size(),2)
 	TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[0].getOrder(),201)
 	TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[0].getType(),MassAnalyzer::PAULIONTRAP)
-	TEST_REAL_SIMILAR(exp.getInstrument().getMassAnalyzers()[0].getAccuracy(),10.5)	
+	TEST_REAL_SIMILAR(exp.getInstrument().getMassAnalyzers()[0].getAccuracy(),10.5)
 	TEST_REAL_SIMILAR(exp.getInstrument().getMassAnalyzers()[0].getMagneticFieldStrength(),14.56)
 	TEST_REAL_SIMILAR(exp.getInstrument().getMassAnalyzers()[0].getTOFTotalPathLength(),11.1)
 	TEST_EQUAL(exp.getInstrument().getMassAnalyzers()[1].getOrder(),202)

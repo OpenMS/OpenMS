@@ -28,6 +28,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MSPFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 using namespace OpenMS;
@@ -80,7 +81,7 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
 
 		//test DocumentIdentifier addition
 	TEST_STRING_EQUAL(exp.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"));
-	TEST_STRING_EQUAL(exp.getLoadedFileType(),"Unknown");
+	TEST_STRING_EQUAL(FileHandler::typeToName(exp.getLoadedFileType()),"Unknown");
 
 
 	TEST_STRING_EQUAL(exp[0].getNativeID(), "index=0")

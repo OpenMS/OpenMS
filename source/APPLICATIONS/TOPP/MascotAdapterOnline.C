@@ -33,6 +33,7 @@
 #include <OpenMS/FORMAT/MascotInfile2.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
@@ -59,9 +60,9 @@ using namespace std;
 
 /**
 	@page TOPP_MascotAdapterOnline MascotAdapterOnline
-	
+
 	@brief Identifies peptides in MS/MS spectra via Mascot.
-	
+
 	This wrapper application serves for getting peptide identifications
 	for MS/MS spectra.
 
@@ -81,9 +82,9 @@ class TOPPMascotAdapterOnline
 			: TOPPBase("MascotAdapterOnline","Annotates MS/MS spectra using Mascot.")
 		{
 		}
-	
+
 	protected:
-		
+
 		void registerOptionsAndFlags_()
 		{
 			registerInputFile_("in", "<file>", "", "input file in mzData format.\n"
@@ -112,7 +113,7 @@ class TOPPMascotAdapterOnline
       return Param();
     }
 
-		
+
 		ExitCodes main_(int argc, const char** argv)
 		{
 			//-------------------------------------------------------------
@@ -122,7 +123,7 @@ class TOPPMascotAdapterOnline
       //input/output files
 			String in(getStringOption_("in")), out(getStringOption_("out"));
 			FileHandler fh;
-			FileHandler::Type in_type = fh.getType(in);
+			FileTypes::Type in_type = fh.getType(in);
 
       //-------------------------------------------------------------
       // loading input
@@ -130,7 +131,7 @@ class TOPPMascotAdapterOnline
 
 			PeakMap exp;
 			fh.loadExperiment(in, exp, in_type, log_type_);
-		
+
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
@@ -138,13 +139,13 @@ class TOPPMascotAdapterOnline
 			Param mascot_param = getParam_().copy("Mascot_parameters:", true);
       MascotInfile2 mascot_infile;
 			mascot_infile.setParameters(mascot_param);
-		
+
 			// get the spectra into string stream
 			stringstream ss;
 			mascot_infile.store(ss, in, exp);
-		
-			// Usage of a QCoreApplication is overkill here (and ugly too), but we just use the 
-			// QEventLoop to process the signals and slots and grab the results afterwards from 
+
+			// Usage of a QCoreApplication is overkill here (and ugly too), but we just use the
+			// QEventLoop to process the signals and slots and grab the results afterwards from
 			// the MascotRemotQuery instance
 			char** argv2 = const_cast<char**>(argv);
 			QCoreApplication event_loop(argc, argv2);
@@ -155,11 +156,11 @@ class TOPPMascotAdapterOnline
 
 			// remove unnecessary spectra
 			ss.clear();
-			
+
 		  QObject::connect(mascot_query, SIGNAL(done()), &event_loop, SLOT(quit()));
 			QTimer::singleShot(1000, mascot_query, SLOT(run()));
 			event_loop.exec();
-		
+
 			// write Mascot response to file
 			String mascot_tmp_file_name("mascot_tmp_file");
 			QFile mascot_tmp_file(mascot_tmp_file_name.c_str());
@@ -184,7 +185,7 @@ class TOPPMascotAdapterOnline
 			prot_ids.push_back(prot_id);
 
 			writeDebug_("Read " + String(pep_ids.size()) + " peptide ids and " + String(prot_id.getHits().size()) + " protein identifications", 5);
-			
+
 
       //-------------------------------------------------------------
       // writing output

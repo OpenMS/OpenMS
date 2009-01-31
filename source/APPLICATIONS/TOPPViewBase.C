@@ -41,6 +41,7 @@
 #include <OpenMS/VISUAL/Spectrum2DWidget.h>
 #include <OpenMS/VISUAL/Spectrum3DWidget.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
@@ -707,15 +708,15 @@ namespace OpenMS
 
 		//determine file type
   	FileHandler fh;
-		FileHandler::Type file_type = fh.getType(abs_filename);
-		if (file_type==FileHandler::UNKNOWN)
+		FileTypes::Type file_type = fh.getType(abs_filename);
+		if (file_type==FileTypes::UNKNOWN)
 		{
 			showLogMessage_(LS_ERROR,"Open file error",String("Could not determine file type of '")+abs_filename+"'!");
     	setCursor(Qt::ArrowCursor);
       return;
 		}
 		//abort if file type unsupported
-		if (file_type==FileHandler::PARAM || file_type==FileHandler::IDXML)
+		if (file_type==FileTypes::PARAM || file_type==FileTypes::IDXML)
 		{
 			showLogMessage_(LS_ERROR,"Open file error",String("The type '")+fh.typeToName(file_type)+"' is not supported!");
    		setCursor(Qt::ArrowCursor);
@@ -731,13 +732,13 @@ namespace OpenMS
 		bool is_feature = false;
     try
     {
-	    if (file_type==FileHandler::FEATUREXML)
+	    if (file_type==FileTypes::FEATUREXML)
 	    {
         FeatureXMLFile().load(abs_filename,feature_map);
         is_2D = true;
         is_feature = true;
       }
-      else if (file_type==FileHandler::CONSENSUSXML)
+      else if (file_type==FileTypes::CONSENSUSXML)
 	    {
         ConsensusXMLFile().load(abs_filename,consensus_map);
         is_2D = true;
@@ -1421,7 +1422,7 @@ namespace OpenMS
 				item->setText(1, QString::number(cl.peaks[i].getRT()));
 				item->setText(2, QString::number(cl.peaks[i].getPrecursorPeak().getPosition()[0]));
 				item->setText(3, QString::number(i));
-				
+
 				if (i == cl.current_spectrum)
 				{
 					item->setSelected(true);
@@ -1490,7 +1491,7 @@ namespace OpenMS
 		{
 			return;
 		}
-		
+
 		Spectrum1DWidget* widget_1d = active1DWindow_();
 		if (widget_1d)
 		{
@@ -1501,19 +1502,19 @@ namespace OpenMS
 		{
 			SpectrumCanvas* cc = activeCanvas_();
 			const LayerData& cl = cc->getCurrentLayer();
-	
+
 			int index = current->text(3).toInt();
 
 			FeatureMapType f_dummy;
 			ConsensusMapType c_dummy;
 			ExperimentType exp = cl.peaks;
 			addData_(f_dummy, c_dummy, exp, false, true, true, false, cl.filename, cl.name);
-			
+
 			if (active1DWindow_())
 			{
 				active1DWindow_()->canvas()->activateSpectrum(index);
 			}
-			
+
 			updateSpectrumBar();
 		}
 	}
@@ -2364,31 +2365,31 @@ namespace OpenMS
 			return;
 		}
 		Spectrum1DCanvas* cc = active_1d_window->canvas();
-		
+
 		SpectrumAlignmentDialog spec_align_dialog(active_1d_window);
 		if (spec_align_dialog.exec())
-		{			
+		{
 			Int layer_index_1 = spec_align_dialog.get1stLayerIndex();
 			Int layer_index_2 = spec_align_dialog.get2ndLayerIndex();
-			
+
 			// two layers must be selected:
 			if (layer_index_1 < 0 || layer_index_2 < 0)
 			{
 				QMessageBox::information(this, "Layer selection invalid", "You must select two layers for an alignment.");
 				return;
 			}
-			
+
 			Param param;
 			DoubleReal tolerance = spec_align_dialog.tolerance_spinbox->value();
 			param.setValue("tolerance", tolerance, "Defines the absolut (in Da) or relative (in ppm) tolerance");
 			String unit_is_ppm = spec_align_dialog.ppm->isChecked() ? "true" : "false";
 			param.setValue("is_relative_tolerance", unit_is_ppm, "If true, the 'tolerance' is interpreted as ppm-value");
-			
+
 			active_1d_window->performAlignment((UInt)layer_index_1, (UInt)layer_index_2, param);
-			
+
 			DoubleReal al_score = cc->getAlignmentScore();
 			Size al_size = cc->getAlignmentSize();
-			
+
 			QMessageBox::information(this, "Alignment performed", QString("Aligned %1 pairs of peaks (Score: %2).").arg(al_size).arg(al_score));
 		}
 	}
@@ -2426,10 +2427,10 @@ namespace OpenMS
 	void TOPPViewBase::showSpectrumAs1D(int index)
 	{
 		const LayerData& layer = activeCanvas_()->getCurrentLayer();
-		
+
 		//copy spectrum
 		ExperimentType exp = layer.peaks;
-		
+
 		//open new 1D widget
 		Spectrum1DWidget* w = new Spectrum1DWidget(getSpectrumParameters_(1), ws_);
 
@@ -2438,9 +2439,9 @@ namespace OpenMS
   	{
   		return;
   	}
-		
+
 		w->canvas()->activateSpectrum(index);
-		
+
 		String caption = layer.name;
 		w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
 

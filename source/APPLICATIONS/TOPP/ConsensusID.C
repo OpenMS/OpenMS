@@ -30,6 +30,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
 
 using namespace OpenMS;
@@ -41,13 +42,13 @@ using namespace std;
 
 /**
 	@page TOPP_ConsensusID ConsensusID
-	
+
 	@brief Computes a consensus identification from peptide identification engines.
-	
-	The input file can contain several searches, e.g. from several identification engines. 
+
+	The input file can contain several searches, e.g. from several identification engines.
 	You can combine several searches with @ref TOPP_IDMerger. Identification runs can be mapped
 	to featureXML and consensusXML with the @ref TOPP_IDMapper tool.
-	
+
 	For a detailed description of the algorithms and parameters see the documentation of
 	the %OpenMS ConsensusID class.
 
@@ -74,7 +75,7 @@ class TOPPConsensusID
 			: TOPPBase("ConsensusID","Computes a consensus identification from peptide identifications of several identification engines.")
 		{
 		}
-	
+
 	protected:
 
 		Param getSubsectionDefaults_(const String& /*section*/) const
@@ -94,19 +95,19 @@ class TOPPConsensusID
 			setMinFloat_("rt_delta",0.0);
 			registerDoubleOption_("mz_delta","<value>",0.1, "Maximum allowed precursor m/z deviation between identifications.", false);
 			setMinFloat_("mz_delta",0.0);
-			
+
 			registerSubsection_("algorithm","Consensus algorithm section");
 		}
-	
+
 		ExitCodes main_(int , const char**)
 		{
 			String in = getStringOption_("in");
-			FileHandler::Type in_type = FileHandler::getType(in);
+			FileTypes::Type in_type = FileHandler::getType(in);
 			String out = getStringOption_("out");
-			
+
 			DoubleReal rt_delta = getDoubleOption_("rt_delta");
 			DoubleReal mz_delta = getDoubleOption_("mz_delta");
-			
+
 			//----------------------------------------------------------------
 			//set up ConsensusID
 			//----------------------------------------------------------------
@@ -122,12 +123,12 @@ class TOPPConsensusID
 			//----------------------------------------------------------------
 			// idXML
 			//----------------------------------------------------------------
-			if (in_type == FileHandler::IDXML)
+			if (in_type == FileTypes::IDXML)
 			{
 				vector<ProteinIdentification> prot_ids;
 				vector<PeptideIdentification> pep_ids;
 				IdXMLFile().load(in,prot_ids, pep_ids);
-			
+
 				//merge peptide ids by precursor position
 				vector<IDData> prec_data;
 				for (vector<PeptideIdentification>::iterator pep_id_it = pep_ids.begin(); pep_id_it != pep_ids.end(); ++pep_id_it)
@@ -161,7 +162,7 @@ class TOPPConsensusID
 						writeDebug_(String("    Inserting new precursor: ") + tmp.rt + " / " + tmp.mz, 4);
 					}
 				}
-				
+
 				//compute consensus
 				alg_param.setValue("number_of_runs",(UInt)prot_ids.size());
 				consensus.setParameters(alg_param);
@@ -170,7 +171,7 @@ class TOPPConsensusID
 					writeDebug_(String("Calculating consensus for : ") + it->rt + " / " + it->mz + " #peptide ids: " + it->ids.size(), 4);
 					consensus.apply(it->ids);
 				}
-				
+
 				// writing output
 				pep_ids.clear();
 				for (vector<IDData>::iterator it = prec_data.begin(); it!=prec_data.end(); ++it)
@@ -179,26 +180,26 @@ class TOPPConsensusID
 					pep_ids.back().setMetaValue("RT",it->rt);
 					pep_ids.back().setMetaValue("MZ",it->mz);
 				}
-				
+
 				//create new identification run
 				vector< ProteinIdentification > prot_id_out(1);
 				prot_id_out[0].setDateTime(DateTime::now());
 				prot_id_out[0].setSearchEngine("OpenMS/ConsensusID");
 				prot_id_out[0].setSearchEngineVersion(VersionInfo::getVersion());
-				
+
 				//store consensus
 				IdXMLFile().store(out,prot_id_out,pep_ids);
 			}
-			
+
 			//----------------------------------------------------------------
 			// featureXML
 			//----------------------------------------------------------------
-			if (in_type == FileHandler::FEATUREXML)
+			if (in_type == FileTypes::FEATUREXML)
 			{
 				//load map
 				FeatureMap<> map;
 				FeatureXMLFile().load(in,map);
-				
+
 				//compute consensus
 				alg_param.setValue("number_of_runs",(UInt)map.getProteinIdentifications().size());
 				consensus.setParameters(alg_param);
@@ -206,14 +207,14 @@ class TOPPConsensusID
 				{
 					consensus.apply(map[i].getPeptideIdentifications());
 				}
-				
+
 				//create new identification run
 				map.getProteinIdentifications().clear();
 				map.getProteinIdentifications().resize(1);
 				map.getProteinIdentifications()[0].setDateTime(DateTime::now());
 				map.getProteinIdentifications()[0].setSearchEngine("OpenMS/ConsensusID");
 				map.getProteinIdentifications()[0].setSearchEngineVersion(VersionInfo::getVersion());
-				
+
 				//store consensus
 				FeatureXMLFile().store(out,map);
 			}
@@ -221,12 +222,12 @@ class TOPPConsensusID
 			//----------------------------------------------------------------
 			// consensusXML
 			//----------------------------------------------------------------
-			if (in_type == FileHandler::CONSENSUSXML)
+			if (in_type == FileTypes::CONSENSUSXML)
 			{
 				//load map
 				ConsensusMap map;
 				ConsensusXMLFile().load(in,map);
-				
+
 				//compute consensus
 				alg_param.setValue("number_of_runs",(UInt)map.getProteinIdentifications().size());
 				consensus.setParameters(alg_param);
@@ -234,14 +235,14 @@ class TOPPConsensusID
 				{
 					consensus.apply(map[i].getPeptideIdentifications());
 				}
-				
+
 				//create new identification run
 				map.getProteinIdentifications().clear();
 				map.getProteinIdentifications().resize(1);
 				map.getProteinIdentifications()[0].setDateTime(DateTime::now());
 				map.getProteinIdentifications()[0].setSearchEngine("OpenMS/ConsensusID");
 				map.getProteinIdentifications()[0].setSearchEngineVersion(VersionInfo::getVersion());
-				
+
 				//store consensus
 				ConsensusXMLFile().store(out,map);
 			}

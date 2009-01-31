@@ -26,6 +26,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 ///////////////////////////
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -76,7 +77,7 @@ START_SECTION((void load(const String &filename, ConsensusMap &map)))
 
 //test DocumentIdentifier addition
 	TEST_STRING_EQUAL(map.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"));
-	TEST_STRING_EQUAL(map.getLoadedFileType(),"ConsensusXML");
+	TEST_STRING_EQUAL(FileHandler::typeToName(map.getLoadedFileType()),"ConsensusXML");
 
 	//meta data
   TEST_EQUAL(map.getIdentifier(),"lsid")

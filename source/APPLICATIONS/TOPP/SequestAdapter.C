@@ -37,6 +37,7 @@
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/PTMXMLFile.h>
 
 
@@ -371,7 +372,7 @@ class TOPPSequestAdapter
 				substrings2,
 				spectra;
 
-			
+
 			Size
 				msms_spectra_in_file(0),
 				msms_spectra_altogether(0);
@@ -388,7 +389,7 @@ class TOPPSequestAdapter
 			ContactPerson contact_person;
 			ExitCodes exit_code = EXECUTION_OK;
 			FileHandler fh;
-			FileHandler::Type type;
+			FileTypes::Type type;
 			MSExperiment<Peak1D> msexperiment;
 			vector<PeptideIdentification> peptide_identifications;
 			vector<ProteinIdentification> pis;
@@ -1037,7 +1038,7 @@ class TOPPSequestAdapter
 				{
 					*spectra_it = File::absolutePath(*spectra_it);
 					type = fh.getTypeByContent(*spectra_it);
-					if ( type == FileHandler::UNKNOWN )
+					if ( type == FileTypes::UNKNOWN )
 					{
 						writeLog_("Could not determine type of the file. Aborting!");
 						exit_code = PARSE_ERROR;
@@ -1084,7 +1085,7 @@ class TOPPSequestAdapter
 				for ( vector< String >::const_iterator spectra_it = spectra.begin(); spectra_it != spectra.end(); ++spectra_it )
 				{
 					type = fh.getTypeByContent(*spectra_it);
-					if ( type == FileHandler::UNKNOWN )
+					if ( type == FileTypes::UNKNOWN )
 					{
 						writeLog_("Could not determine type of the file. Aborting!");
 						exit_code = PARSE_ERROR;
@@ -1263,13 +1264,13 @@ class TOPPSequestAdapter
 					}
 				}
 			}
-			
+
 			if ( exit_code == EXTERNAL_PROGRAM_ERROR )
 			{
 				writeLog_("Sequest problem. Aborting! (Details can be seen in the logfile: \"" + logfile + "\")");
 				files[logfile] = readable;
 			}
-			
+
 			// deleting all temporary files
 			writeLog_("removing temporary files");
 			for ( map< String, Size >::const_iterator files_it = files.begin(); files_it != files.end(); ++files_it )

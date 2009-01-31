@@ -26,6 +26,7 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 
 
@@ -40,21 +41,21 @@ using namespace std;
 
 /**
 	@page TOPP_FeatureLinker FeatureLinker
-	
-	@brief Groups corresponding features in one map or across maps. 
-	
-	This tool provides several algorithms for grouping correpsonding features in isotope-labeled 
+
+	@brief Groups corresponding features in one map or across maps.
+
+	This tool provides several algorithms for grouping correpsonding features in isotope-labeled
 	and label-free experiments.
-	
+
 	It takes one or several feaure maps and stores the corresponding features in a ConsensusXML files.
-	
+
 	It is assumed that major retention time distortions are corrected before applying this tool.
 	Please use @ref TOPP_MapAligner to do that on the peak or feature level.
-	
+
 	In order to create feature data from peak data use the @ref TOPP_FeatureFinder.
-	
+
 	@todo Verify support of features annotated with identifications (protein, peptide, unassigned peptide) for labeled algorithm (Clemens)
-	
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_FeatureLinker.cli
 */
@@ -72,7 +73,7 @@ public:
 	{
 	}
 
-protected: 
+protected:
 	void registerOptionsAndFlags_()
 	{
 		registerInputFileList_("in","<files>",StringList(),"input files seperated by blanks",true);
@@ -81,15 +82,15 @@ protected:
 		setValidFormats_("out",StringList::create("consensusXML"));
 		registerStringOption_("type","<name>","","Feature grouping algorithm type",true);
 		setValidStrings_("type",Factory<FeatureGroupingAlgorithm>::registeredProducts());
-    
+
 		registerSubsection_("algorithm","Algorithm parameters section");
 	}
-	
+
 	Param getSubsectionDefaults_(const String& /*section*/) const
 	{
 		String type = getStringOption_("type");
 		return Factory<FeatureGroupingAlgorithm>::create(type)->getParameters(); // TODO memory leak?
-	}   
+	}
 
 	ExitCodes main_(int , const char**)
 	{
@@ -101,20 +102,20 @@ protected:
 		String out = getStringOption_("out");
 
 		String type = getStringOption_("type");
-		
+
 		//-------------------------------------------------------------
 		// check for valid input
 		//-------------------------------------------------------------
 		//check if all input files have the correct type
 		for (Size i=0;i<ins.size();++i)
 		{
-			if (FileHandler::getType(ins[i])!=FileHandler::FEATUREXML)
+			if (FileHandler::getType(ins[i])!=FileTypes::FEATUREXML)
 			{
 				writeLog_("Error: All input files must be of type FeatureXML!");
 				return ILLEGAL_PARAMETERS;
 			}
 		}
-		
+
     //-------------------------------------------------------------
     // set up algorithm
     //-------------------------------------------------------------
@@ -130,7 +131,7 @@ protected:
 		std::vector< FeatureMap<> > maps(ins.size());
 		FeatureXMLFile f;
 		for (Size i=0; i<ins.size(); ++i)
-		{		 		
+		{
 	    f.load(ins[i], maps[i]);
 		}
 
@@ -148,13 +149,13 @@ protected:
 			out_map.getFileDescriptions()[0].label = "light";
 			out_map.getFileDescriptions()[1].label = "heavy";
 		}
-			
+
 		//group
 		algorithm->group(maps,out_map);
 
 		//write output
 		ConsensusXMLFile().store(out,out_map);
-		
+
 		return EXECUTION_OK;
 	}
 };

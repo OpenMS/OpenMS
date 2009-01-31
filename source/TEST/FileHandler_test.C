@@ -29,6 +29,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 
 ///////////////////////////
 
@@ -42,77 +43,77 @@ using namespace std;
 
 START_SECTION((static String typeToName(Type type)))
 	FileHandler tmp;
-	TEST_EQUAL(tmp.typeToName(FileHandler::UNKNOWN),"Unknown");
-	TEST_EQUAL(tmp.typeToName(FileHandler::DTA),"DTA");
-	TEST_EQUAL(tmp.typeToName(FileHandler::DTA2D),"DTA2D");
-	TEST_EQUAL(tmp.typeToName(FileHandler::MZDATA),"mzData");
-	TEST_EQUAL(tmp.typeToName(FileHandler::MZXML),"mzXML");
-	TEST_EQUAL(tmp.typeToName(FileHandler::MZML),"mzML");
-	TEST_EQUAL(tmp.typeToName(FileHandler::FEATUREXML),"FeatureXML");
-	TEST_EQUAL(tmp.typeToName(FileHandler::ANDIMS),"cdf");
-	TEST_EQUAL(tmp.typeToName(FileHandler::IDXML),"IdXML");
-	TEST_EQUAL(tmp.typeToName(FileHandler::CONSENSUSXML),"ConsensusXML");
-	TEST_EQUAL(tmp.typeToName(FileHandler::TRANSFORMATIONXML),"TrafoXML");
-	TEST_EQUAL(tmp.typeToName(FileHandler::PARAM),"Param");
+	TEST_EQUAL(tmp.typeToName(FileTypes::UNKNOWN),"Unknown");
+	TEST_EQUAL(tmp.typeToName(FileTypes::DTA),"DTA");
+	TEST_EQUAL(tmp.typeToName(FileTypes::DTA2D),"DTA2D");
+	TEST_EQUAL(tmp.typeToName(FileTypes::MZDATA),"mzData");
+	TEST_EQUAL(tmp.typeToName(FileTypes::MZXML),"mzXML");
+	TEST_EQUAL(tmp.typeToName(FileTypes::MZML),"mzML");
+	TEST_EQUAL(tmp.typeToName(FileTypes::FEATUREXML),"FeatureXML");
+	TEST_EQUAL(tmp.typeToName(FileTypes::ANDIMS),"cdf");
+	TEST_EQUAL(tmp.typeToName(FileTypes::IDXML),"IdXML");
+	TEST_EQUAL(tmp.typeToName(FileTypes::CONSENSUSXML),"ConsensusXML");
+	TEST_EQUAL(tmp.typeToName(FileTypes::TRANSFORMATIONXML),"TrafoXML");
+	TEST_EQUAL(tmp.typeToName(FileTypes::PARAM),"Param");
 END_SECTION
 
 START_SECTION((static Type nameToType(const String &name)))
 	FileHandler tmp;
-	TEST_EQUAL(FileHandler::UNKNOWN, tmp.nameToType("Unknown"));
-	TEST_EQUAL(FileHandler::DTA, tmp.nameToType("DTA"));
-	TEST_EQUAL(FileHandler::DTA2D, tmp.nameToType("DTA2D"));
-	TEST_EQUAL(FileHandler::MZDATA, tmp.nameToType("mzData"));
-	TEST_EQUAL(FileHandler::MZML, tmp.nameToType("mzML"));
-	TEST_EQUAL(FileHandler::MZXML, tmp.nameToType("mzXML"));
-	TEST_EQUAL(FileHandler::FEATUREXML, tmp.nameToType("FeatureXML"));
-	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("cdf"));
-	TEST_EQUAL(FileHandler::ANDIMS, tmp.nameToType("CdF"));
-	TEST_EQUAL(FileHandler::IDXML, tmp.nameToType("IdXmL"));
-	TEST_EQUAL(FileHandler::CONSENSUSXML, tmp.nameToType("ConsensusXMl"));
-	TEST_EQUAL(FileHandler::PARAM, tmp.nameToType("Param"));
-	TEST_EQUAL(FileHandler::TRANSFORMATIONXML, tmp.nameToType("TrafoXML"));
+	TEST_EQUAL(FileTypes::UNKNOWN, tmp.nameToType("Unknown"));
+	TEST_EQUAL(FileTypes::DTA, tmp.nameToType("DTA"));
+	TEST_EQUAL(FileTypes::DTA2D, tmp.nameToType("DTA2D"));
+	TEST_EQUAL(FileTypes::MZDATA, tmp.nameToType("mzData"));
+	TEST_EQUAL(FileTypes::MZML, tmp.nameToType("mzML"));
+	TEST_EQUAL(FileTypes::MZXML, tmp.nameToType("mzXML"));
+	TEST_EQUAL(FileTypes::FEATUREXML, tmp.nameToType("FeatureXML"));
+	TEST_EQUAL(FileTypes::ANDIMS, tmp.nameToType("cdf"));
+	TEST_EQUAL(FileTypes::ANDIMS, tmp.nameToType("CdF"));
+	TEST_EQUAL(FileTypes::IDXML, tmp.nameToType("IdXmL"));
+	TEST_EQUAL(FileTypes::CONSENSUSXML, tmp.nameToType("ConsensusXMl"));
+	TEST_EQUAL(FileTypes::PARAM, tmp.nameToType("Param"));
+	TEST_EQUAL(FileTypes::TRANSFORMATIONXML, tmp.nameToType("TrafoXML"));
 END_SECTION
 
 START_SECTION((static Type getTypeByFileName(const String &filename)))
 	FileHandler tmp;
-	TEST_EQUAL(tmp.getTypeByFileName("test.bla"), FileHandler::UNKNOWN)
-	TEST_EQUAL(tmp.getTypeByFileName("test.dta"), FileHandler::DTA)
-	TEST_EQUAL(tmp.getTypeByFileName("test.MzData"), FileHandler::MZDATA)
-	TEST_EQUAL(tmp.getTypeByFileName("test.MzML"), FileHandler::MZML)
-	TEST_EQUAL(tmp.getTypeByFileName("test.DTA2D"), FileHandler::DTA2D)
-	TEST_EQUAL(tmp.getTypeByFileName("test.featureXML"), FileHandler::FEATUREXML)
-	TEST_EQUAL(tmp.getTypeByFileName("test.MZXML"), FileHandler::MZXML)
-	TEST_EQUAL(tmp.getTypeByFileName("test.cdf"), FileHandler::ANDIMS)
-	TEST_EQUAL(tmp.getTypeByFileName("test.NeTcdf"), FileHandler::ANDIMS)
-	TEST_EQUAL(tmp.getTypeByFileName("test.idXML"), FileHandler::IDXML)
-	TEST_EQUAL(tmp.getTypeByFileName("test.consensusXML"), FileHandler::CONSENSUSXML)
-	TEST_EQUAL(tmp.getTypeByFileName("test.TraFoXML"), FileHandler::TRANSFORMATIONXML)
-	TEST_EQUAL(tmp.getTypeByFileName("test.ini"), FileHandler::PARAM)
+	TEST_EQUAL(tmp.getTypeByFileName("test.bla"), FileTypes::UNKNOWN)
+	TEST_EQUAL(tmp.getTypeByFileName("test.dta"), FileTypes::DTA)
+	TEST_EQUAL(tmp.getTypeByFileName("test.MzData"), FileTypes::MZDATA)
+	TEST_EQUAL(tmp.getTypeByFileName("test.MzML"), FileTypes::MZML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.DTA2D"), FileTypes::DTA2D)
+	TEST_EQUAL(tmp.getTypeByFileName("test.featureXML"), FileTypes::FEATUREXML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.MZXML"), FileTypes::MZXML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.cdf"), FileTypes::ANDIMS)
+	TEST_EQUAL(tmp.getTypeByFileName("test.NeTcdf"), FileTypes::ANDIMS)
+	TEST_EQUAL(tmp.getTypeByFileName("test.idXML"), FileTypes::IDXML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.consensusXML"), FileTypes::CONSENSUSXML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.TraFoXML"), FileTypes::TRANSFORMATIONXML)
+	TEST_EQUAL(tmp.getTypeByFileName("test.ini"), FileTypes::PARAM)
 END_SECTION
 
 START_SECTION((static Type getTypeByContent(const String &filename)))
 	FileHandler tmp;
-	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData")), FileHandler::MZDATA)
-	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML")), FileHandler::FEATUREXML)
-	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML")), FileHandler::MZXML)
-	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML")), FileHandler::MZML)
-	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta")), FileHandler::DTA)
-	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d")), FileHandler::DTA2D)
-	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_2.dta2d")), FileHandler::DTA2D)
-	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("ANDIFile_test.cdf")), FileHandler::ANDIMS)
-	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("class_test_infile.txt")), FileHandler::UNKNOWN)
-	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML")), FileHandler::IDXML)
-	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_1.trafoXML")), FileHandler::TRANSFORMATIONXML)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData")), FileTypes::MZDATA)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML")), FileTypes::FEATUREXML)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML")), FileTypes::MZXML)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML")), FileTypes::MZML)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta")), FileTypes::DTA)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d")), FileTypes::DTA2D)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_2.dta2d")), FileTypes::DTA2D)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("ANDIFile_test.cdf")), FileTypes::ANDIMS)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("class_test_infile.txt")), FileTypes::UNKNOWN)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML")), FileTypes::IDXML)
+	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_1.trafoXML")), FileTypes::TRANSFORMATIONXML)
 
 	TEST_EXCEPTION(Exception::FileNotFound,tmp.getTypeByContent("/bli/bla/bluff"))
 END_SECTION
 
 START_SECTION((static Type getType(const String &filename)))
 	FileHandler tmp;
-	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("class_test_infile.txt")), FileHandler::UNKNOWN)
-	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML")), FileHandler::IDXML)
-	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile.consensusXML")), FileHandler::CONSENSUSXML)
-	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_1.trafoXML")), FileHandler::TRANSFORMATIONXML)
+	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("class_test_infile.txt")), FileTypes::UNKNOWN)
+	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML")), FileTypes::IDXML)
+	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile.consensusXML")), FileTypes::CONSENSUSXML)
+	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_1.trafoXML")), FileTypes::TRANSFORMATIONXML)
 
 	TEST_EXCEPTION(Exception::FileNotFound,tmp.getType("/bli/bla/bluff"))
 END_SECTION
@@ -168,22 +169,22 @@ START_SECTION((template <class PeakType> bool loadExperiment(const String &filen
 	TEST_REAL_SIMILAR(exp[0][0].getPosition()[0], 430.02)
 	TEST_REAL_SIMILAR(exp[0][1].getPosition()[0], 630.02)
 
-	TEST_EXCEPTION(Exception::ParseError,tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"),exp, FileHandler::DTA2D))
+	TEST_EXCEPTION(Exception::ParseError,tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"),exp, FileTypes::DTA2D))
 END_SECTION
 
 START_SECTION((static bool isSupported(Type type)))
 	FileHandler tmp;
-	TEST_EQUAL(false, tmp.isSupported(FileHandler::UNKNOWN));
-	TEST_EQUAL(true, tmp.isSupported(FileHandler::DTA));
-	TEST_EQUAL(true, tmp.isSupported(FileHandler::DTA2D));
-	TEST_EQUAL(true, tmp.isSupported(FileHandler::MZDATA));
-	TEST_EQUAL(true, tmp.isSupported(FileHandler::MZML));
-  TEST_EQUAL(true, tmp.isSupported(FileHandler::MZXML));
-	TEST_EQUAL(true, tmp.isSupported(FileHandler::FEATUREXML));
+	TEST_EQUAL(false, tmp.isSupported(FileTypes::UNKNOWN));
+	TEST_EQUAL(true, tmp.isSupported(FileTypes::DTA));
+	TEST_EQUAL(true, tmp.isSupported(FileTypes::DTA2D));
+	TEST_EQUAL(true, tmp.isSupported(FileTypes::MZDATA));
+	TEST_EQUAL(true, tmp.isSupported(FileTypes::MZML));
+  TEST_EQUAL(true, tmp.isSupported(FileTypes::MZXML));
+	TEST_EQUAL(true, tmp.isSupported(FileTypes::FEATUREXML));
 #ifdef USE_ANDIMS
-  TEST_EQUAL(true, tmp.isSupported(FileHandler::ANDIMS));
+  TEST_EQUAL(true, tmp.isSupported(FileTypes::ANDIMS));
 #else
-	TEST_EQUAL(false, tmp.isSupported(FileHandler::ANDIMS));
+	TEST_EQUAL(false, tmp.isSupported(FileTypes::ANDIMS));
 #endif
 END_SECTION
 

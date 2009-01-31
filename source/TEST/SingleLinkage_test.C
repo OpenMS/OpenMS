@@ -72,7 +72,7 @@ START_SECTION((SingleLinkage& operator=(const SingleLinkage &source)))
 }
 END_SECTION
 
-START_SECTION((void cluster(DistanceMatrix< Real > &original_distance, std::vector<BinaryTreeNode>& cluster_tree, const Real threshold=1) const))
+START_SECTION((void operator()(DistanceMatrix< Real > &original_distance, std::vector<BinaryTreeNode>& cluster_tree, const Real threshold=1) const))
 {
 
 	DistanceMatrix<Real> matrix(6,666);
@@ -100,7 +100,7 @@ START_SECTION((void cluster(DistanceMatrix< Real > &original_distance, std::vect
 	tree.push_back(BinaryTreeNode(0,1,0.6f));
 	tree.push_back(BinaryTreeNode(0,1,0.7f));
 
-	(*ptr).cluster(matrix,result);
+	(*ptr)(matrix,result);
 	TEST_EQUAL(tree.size(), result.size());
 	for (Size i = 0; i < tree.size(); ++i)
 	{
@@ -115,7 +115,7 @@ START_SECTION((void cluster(DistanceMatrix< Real > &original_distance, std::vect
 	//~ tree.pop_back();
 	//~ result.clear();
 
-	//~ (*ptr).cluster(matrix,result,th);
+	//~ (*ptr)(matrix,result,th);
 	//~ for (Size i = 0; i < tree.size(); ++i)
 	//~ {
 			//~ TOLERANCE_ABSOLUTE(0.0001);

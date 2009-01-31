@@ -66,6 +66,7 @@ UnimodXMLFile.h
 XMLFile.h
 XTandemInfile.h
 XTandemXMLFile.h
+FileTypes.h
 )
 
 ### add path to the filenames

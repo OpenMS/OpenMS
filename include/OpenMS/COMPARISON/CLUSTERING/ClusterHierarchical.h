@@ -110,7 +110,7 @@ namespace OpenMS
 
 			//~ std::cout << "done" << std::endl; //maybe progress handler?
 			// create clustering with ClusterMethod, DistanceMatrix and Data
-			clusterer.cluster(original_distance,cluster_tree,threshold_);
+			clusterer(original_distance,cluster_tree,threshold_);
 		}
 
 
@@ -157,7 +157,7 @@ namespace OpenMS
 			}
 
 			// create Clustering with ClusterMethod, DistanceMatrix and Data
-			clusterer.cluster(original_distance,cluster_tree,threshold_);
+			clusterer(original_distance,cluster_tree,threshold_);
 		}
 
 		/// get the threshold

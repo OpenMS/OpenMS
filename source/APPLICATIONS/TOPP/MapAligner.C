@@ -27,6 +27,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
 
@@ -42,12 +43,12 @@ using namespace std;
 
 /**
 	@page TOPP_MapAligner MapAligner
-	
+
 	@brief Corrects retention time distortions between maps.
-	
+
 	This tool provides several different algorithms to correct for retention time shifts
 	and distortions.
-	
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_MapAligner.cli
 */
@@ -65,7 +66,7 @@ public:
 	{
 	}
 
-protected: 
+protected:
 	void registerOptionsAndFlags_()
 	{
 		registerInputFileList_("in","<files>",StringList(),"input files separated by blanks",true);
@@ -79,13 +80,13 @@ protected:
 		// TODO  Remove this hack when StringList when become available in INIFileEditor.
 		registerInputFileList_("given_transformations","<files>",StringList(),"given transformations separated by blanks. [This is a workaround used by algorithm type apply_given_trafo until StringList is supported by INIFileEditor.]",false);
 		setValidFormats_("given_transformations",StringList::create("trafoXML"));
-    
+
     addEmptyLine_();
 		addText_("This tool takes N input files, aligns them and writes them to the output files.");
-    
+
 		registerSubsection_("algorithm","Algorithm parameters section");
 	}
-	
+
 	Param getSubsectionDefaults_(const String& /* section */ ) const
 	{
 		String type = getStringOption_("type");
@@ -100,7 +101,7 @@ protected:
 
 		delete algo;
 		return tmp;
-	}   
+	}
 
 	ExitCodes main_(int , const char**)
 	{
@@ -111,10 +112,10 @@ protected:
 
 		StringList outs = getStringList_("out");
 
-		StringList trafos = getStringList_("transformations");		
+		StringList trafos = getStringList_("transformations");
 
 		String type = getStringOption_("type");
-		
+
 		ProgressLogger progresslogger;
 		progresslogger.setLogType(log_type_);
 
@@ -133,8 +134,8 @@ protected:
 			writeLog_("Error: The number of input and transformation files has to be equal!");
 			return ILLEGAL_PARAMETERS;
 		}
-		//check whether all input files have the same type (this type is used to store the output type too)		
-		FileHandler::Type in_type = FileHandler::getType(ins[0]);
+		//check whether all input files have the same type (this type is used to store the output type too)
+		FileTypes::Type in_type = FileHandler::getType(ins[0]);
 		for (Size i=1;i<ins.size();++i)
 		{
 			if (FileHandler::getType(ins[i])!=in_type)
@@ -143,7 +144,7 @@ protected:
 				return ILLEGAL_PARAMETERS;
 			}
 		}
-		
+
     //-------------------------------------------------------------
     // set up alignment algorithm
     //-------------------------------------------------------------
@@ -165,17 +166,17 @@ protected:
     // perform peak alignment
     //-------------------------------------------------------------
 		std::vector<TransformationDescription> transformations;
-		if (in_type == FileHandler::MZDATA)
+		if (in_type == FileTypes::MZDATA)
 		{
 			// load input
 			std::vector< MSExperiment<> > peak_maps(ins.size());
 			MzDataFile f;
 			f.setLogType(log_type_);
 			for (Size i=0; i<ins.size(); ++i)
-			{		 		
+			{
 		    f.load(ins[i], peak_maps[i]);
 			}
-			
+
 			// try to align
 			try
 			{
@@ -186,17 +187,17 @@ protected:
 				writeLog_("Error: The algorithm '" + type + "' cannot be used for peak data!");
 				return INTERNAL_ERROR;
 			}
-			
+
 			// write output
 			for (Size i=0; i<outs.size(); ++i)
-			{		 		
+			{
 		    f.store(outs[i], peak_maps[i]);
 			}
 		}
     //-------------------------------------------------------------
     // perform feature alignment
     //-------------------------------------------------------------
-		else if (in_type == FileHandler::FEATUREXML)
+		else if (in_type == FileTypes::FEATUREXML)
 		{
 			// load input
 			std::vector< FeatureMap<> > feat_maps(ins.size());
@@ -221,11 +222,11 @@ protected:
 				writeLog_("Error: The algorithm '" + type + "' cannot be used for feature data!");
 				return INTERNAL_ERROR;
 			}
-			
+
 			// write output
 			progresslogger.startProgress(0,outs.size(),"writing output files (data)");
 			for (Size i=0; i<outs.size(); ++i)
-			{		 		
+			{
 				progresslogger.setProgress(i);
 		    f.store(outs[i], feat_maps[i]);
 			}
@@ -235,12 +236,12 @@ protected:
     //-------------------------------------------------------------
     // perform peptide alignment
     //-------------------------------------------------------------
-		else if (in_type == FileHandler::IDXML)
+		else if (in_type == FileTypes::IDXML)
 		{
 			// load input
 			std::vector<  std::vector<ProteinIdentification> > protein_ids_vec(ins.size());
 			std::vector<  std::vector<PeptideIdentification> > peptide_ids_vec(ins.size());
-			
+
 			IdXMLFile f;
 			// f.setLogType_(log_type_);
 
@@ -263,11 +264,11 @@ protected:
 				writeLog_("Error: The algorithm '" + type + "' cannot be used for peptide data!");
 				return INTERNAL_ERROR;
 			}
-			
+
 			// write output
 			progresslogger.startProgress(0,outs.size(),"writing output files (data)");
 			for (Size i=0; i<outs.size(); ++i)
-			{		 		
+			{
 				progresslogger.setProgress(i);
 		    f.store( outs[i], protein_ids_vec[i], peptide_ids_vec[i] );
 			}
@@ -280,9 +281,9 @@ protected:
 			// throw an appropriate exception?
 			return ILLEGAL_PARAMETERS;
 		}
-		
+
 		delete alignment;
-		
+
 		if (trafos.size()!=0)
 		{
 			progresslogger.startProgress(0,transformations.size(),"writing output files (transformations)");
@@ -294,7 +295,7 @@ protected:
 			progresslogger.setProgress(transformations.size());
 			progresslogger.endProgress();
 		}
-		
+
 		return EXECUTION_OK;
 	}
 };

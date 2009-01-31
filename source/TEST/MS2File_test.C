@@ -29,6 +29,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MS2File.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace OpenMS;
@@ -62,7 +63,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 
 	//test DocumentIdentifier addition
 	TEST_STRING_EQUAL(exp.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("MS2File_test_spectra.ms2"));
-	TEST_STRING_EQUAL(exp.getLoadedFileType(),"ms2");
+	TEST_STRING_EQUAL(FileHandler::typeToName(exp.getLoadedFileType()),"ms2");
 
 	TEST_EQUAL(exp.size(), 2)
 

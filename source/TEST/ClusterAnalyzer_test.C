@@ -149,7 +149,7 @@ START_SECTION((std::vector< Real > dunnIndices(std::vector< BinaryTreeNode > &tr
 }
 END_SECTION
 
-START_SECTION((void cut(size_t cluster_quantity, std::vector< std::vector< UInt > > &clusters, std::vector< BinaryTreeNode > &tree)))
+START_SECTION((void cut(Size cluster_quantity, std::vector< std::vector< Size > > &clusters, std::vector< BinaryTreeNode > &tree)))
 {
 	DistanceMatrix<Real> matrix(6,666);
 	matrix.setValue(1,0,0.5);
@@ -168,13 +168,13 @@ START_SECTION((void cut(size_t cluster_quantity, std::vector< std::vector< UInt 
 	matrix.setValue(5,3,0.8);
 	matrix.setValue(5,4,0.8);
 
-  UInt a[] = {0,1,2,3,4,5};
-	vector< vector<UInt> > clusters;
-	vector< vector<UInt> > result;
+  Size a[] = {0,1,2,3,4,5};
+	vector< vector<Size> > clusters;
+	vector< vector<Size> > result;
 
-	result.push_back(vector<UInt>(a,a+3));
-	result.push_back(vector<UInt>(a+3,a+5));
-	result.push_back(vector<UInt>(a+5,a+6));
+	result.push_back(vector<Size>(a,a+3));
+	result.push_back(vector<Size>(a+3,a+5));
+	result.push_back(vector<Size>(a+5,a+6));
 
   vector< BinaryTreeNode > tree;
 	tree.push_back(BinaryTreeNode(1,2,0.3));
@@ -195,7 +195,7 @@ START_SECTION((void cut(size_t cluster_quantity, std::vector< std::vector< UInt 
 }
 END_SECTION
 
-START_SECTION((std::vector< Real > cohesion(std::vector< std::vector< UInt > > &clusters, DistanceMatrix< Real > &original)))
+START_SECTION((std::vector< Real > cohesion(std::vector< std::vector< Size > > &clusters, DistanceMatrix< Real > &original)))
 {
 	DistanceMatrix<Real> matrix(6,666);
 	matrix.setValue(1,0,0.5f);
@@ -214,11 +214,11 @@ START_SECTION((std::vector< Real > cohesion(std::vector< std::vector< UInt > > &
 	matrix.setValue(5,3,0.8f);
 	matrix.setValue(5,4,0.8f);
 
-  UInt a[] = {0,1,2,3,4,5};
-	vector< vector<UInt> > clusters;
-	clusters.push_back(vector<UInt>(a,a+3));
-	clusters.push_back(vector<UInt>(a+3,a+5));
-	clusters.push_back(vector<UInt>(a+5,a+6));
+  Size a[] = {0,1,2,3,4,5};
+	vector< vector<Size> > clusters;
+	clusters.push_back(vector<Size>(a,a+3));
+	clusters.push_back(vector<Size>(a+3,a+5));
+	clusters.push_back(vector<Size>(a+5,a+6));
 
 	vector<Real> cohesions;
 	cohesions.push_back(0.533f);
@@ -234,9 +234,9 @@ START_SECTION((std::vector< Real > cohesion(std::vector< std::vector< UInt > > &
 	}
 
 	clusters.clear();
-	clusters.push_back(vector<UInt>(a,a+4));
-	clusters.push_back(vector<UInt>(a+4,a+5));
-	clusters.push_back(vector<UInt>(a+5,a+6));
+	clusters.push_back(vector<Size>(a,a+4));
+	clusters.push_back(vector<Size>(a+4,a+5));
+	clusters.push_back(vector<Size>(a+5,a+6));
 
 	cohesions.clear();
 	cohesions.push_back(0.633f);
@@ -253,7 +253,7 @@ START_SECTION((std::vector< Real > cohesion(std::vector< std::vector< UInt > > &
 }
 END_SECTION
 
-START_SECTION((Real averagePopulationAberration(UInt cluster_quantity, std::vector< BinaryTreeNode > &tree)))
+START_SECTION((Real averagePopulationAberration(Size cluster_quantity, std::vector< BinaryTreeNode > &tree)))
 {
 	vector< BinaryTreeNode > tree;
 	tree.push_back(BinaryTreeNode(1,2,0.3));

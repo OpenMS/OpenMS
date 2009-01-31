@@ -30,6 +30,7 @@
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -127,7 +128,7 @@ namespace OpenMS
           {
             switch ( FileHandler::getType(file_names[i]) )
             {
-              case FileHandler::MZML:
+              case FileTypes::MZML:
                 {
                   if ( !MzMLFile().isValid(file_names[i]) )
                   {
@@ -150,7 +151,7 @@ namespace OpenMS
                   }
                 }
                 break;
-              case FileHandler::MZDATA:
+              case FileTypes::MZDATA:
                 if ( !MzDataFile().isValid(file_names[i]) )
                 {
                   std::cout << "Error: Invalid mzData file '" << file_names[i]
@@ -158,7 +159,7 @@ namespace OpenMS
                   passed = false;
                 }
                 break;
-              case FileHandler::MZXML:
+              case FileTypes::MZXML:
                 if ( !MzXMLFile().isValid(file_names[i]) )
                 {
                   std::cout << "Error: Invalid mzXML file '" << file_names[i]
@@ -166,7 +167,7 @@ namespace OpenMS
                   passed = false;
                 }
                 break;
-              case FileHandler::FEATUREXML:
+              case FileTypes::FEATUREXML:
                 if ( !FeatureXMLFile().isValid(file_names[i]) )
                 {
                   std::cout << "Error: Invalid FeatureXML file '"
@@ -174,7 +175,7 @@ namespace OpenMS
                   passed = false;
                 }
                 break;
-              case FileHandler::IDXML:
+              case FileTypes::IDXML:
                 if ( !IdXMLFile().isValid(file_names[i]) )
                 {
                   std::cout << "Error: Invalid IdXML file '" << file_names[i]
@@ -182,7 +183,7 @@ namespace OpenMS
                   passed = false;
                 }
                 break;
-              case FileHandler::CONSENSUSXML:
+              case FileTypes::CONSENSUSXML:
                 if ( !ConsensusXMLFile().isValid(file_names[i]) )
                 {
                   std::cout << "Error: Invalid ConsensusXML file '"
@@ -190,7 +191,7 @@ namespace OpenMS
                   passed = false;
                 }
                 break;
-              case FileHandler::PARAM:
+              case FileTypes::PARAM:
                 if ( !Param().isValid(file_names[i]) )
                 {
                   std::cout << "Error: Invalid Param file '" << file_names[i]
@@ -198,7 +199,7 @@ namespace OpenMS
                   passed = false;
                 }
                 break;
-              case FileHandler::TRANSFORMATIONXML:
+              case FileTypes::TRANSFORMATIONXML:
                 if ( !TransformationXMLFile().isValid(file_names[i]) )
                 {
                   std::cout << "Error: Invalid TransformationXML file '"

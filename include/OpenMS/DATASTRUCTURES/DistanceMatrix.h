@@ -55,12 +55,11 @@ namespace OpenMS
 		///@name STL compliance type definitions
 		//@{
 		typedef Value value_type;
-		typedef size_t size_type;
 		//@}
 
 		///@name OpenMS compliance type definitions
 		//@{
-		typedef size_type SizeType;
+		typedef Size SizeType;
 		typedef value_type ValueType;
 		//@}
 

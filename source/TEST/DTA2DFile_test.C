@@ -29,6 +29,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/DTA2DFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak2D.h>
@@ -84,7 +85,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 
 	//test DocumentIdentifier addition
 	TEST_STRING_EQUAL(e.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"));
-	TEST_STRING_EQUAL(e.getLoadedFileType(),"DTA2D");
+	TEST_STRING_EQUAL(FileHandler::typeToName(e.getLoadedFileType()),"DTA2D");
 
 	TEST_EQUAL(e.size(), 9);
 	ABORT_IF(e.size() != 9)

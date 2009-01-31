@@ -26,6 +26,7 @@
 
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -44,21 +45,21 @@ using namespace std;
 
 /**
 	@page TOPP_FileFilter FileFilter
-	
+
 	@brief Extracts portions of the data from an mzData, featureXML or consensusXML file.
-	
+
 	With this tool it is possible to extract m/z, retention time and intensity ranges from an input file
 	and to write all data that lies within the given ranges to an output file.
-	
+
 	Depending on the input file type, additional specific operations are possible:
-	- mzData 
+	- mzData
 		- extract spectra of a certain MS level
 		- filter by signal-to-noise estimation
 		- filter by scan mode of the spectra
   - featureXML
     - filter by feature charge
     - filter by overall feature quality
-	
+
 	@todo MS2 and higher spectra should be filtered according to precursor m/z and RT.
 	      The MzMLFile, MzDataFile, MzXMLFile have to be changed for that (Hiwi)
 
@@ -77,7 +78,7 @@ class TOPPFileFilter
 			: TOPPBase("FileFilter","Extracts or manipulates portions of data from peak, feature or consensus feature files.")
 		{
 		}
-	
+
 	protected:
 
 		typedef MSExperiment<Peak1D> MapType;
@@ -89,11 +90,11 @@ class TOPPFileFilter
 
       registerOutputFile_("out","<file>","","output file");
 	  	setValidFormats_("out",StringList::create("mzData,featureXML,consensusXML"));
-      
+
 			registerStringOption_("mz","[min]:[max]",":","m/z range to extract", false);
 			registerStringOption_("rt","[min]:[max]",":","retention time range to extract", false);
 			registerStringOption_("int","[min]:[max]",":","intensity range to extract", false);
-      
+
 			addText_("peak data options:");
       registerDoubleOption_("sn", "<s/n ratio>", 0, "write peaks with S/N > 'sn' values only", false);
 			registerIntList_("level","i j...",IntList::create("1,2,3"),"MS levels to extract", false);
@@ -107,7 +108,7 @@ class TOPPFileFilter
 			registerFlag_("remove_zoom","Remove zoom (enhanced resolution) scans");
       registerFlag_("sort","sorts the output data according to RT and m/z."
       										 "\nNote: Spectrum meta data arrays are erased, as they would be invalid after sorting by m/z.");
-      
+
       addText_("feature data options:");
       registerStringOption_("charge","[min]:[max]",":","charge range to extract", false);
       registerStringOption_("q","[min]:[max]",":","OverallQuality range to extract [0:1]", false);
@@ -115,11 +116,11 @@ class TOPPFileFilter
 			addEmptyLine_();
 			addText_("Other options of the FileFilter only apply if S/N estimation is done.\n"
 							 "They can be given only in the 'algorithm' section  of the INI file.");
-	    
+
 			registerSubsection_("algorithm","S/N algorithm section");
 
 		}
-	
+
 		Param getSubsectionDefaults_(const String& /*section*/) const
 		{
 			SignalToNoiseEstimatorMedian<  MapType::SpectrumType > sn;
@@ -134,21 +135,21 @@ class TOPPFileFilter
 			//-------------------------------------------------------------
 			// parameter handling
 			//-------------------------------------------------------------
-	
+
 			String in = getStringOption_("in");
 			String out = getStringOption_("out");
-        
+
       //input file type
-      FileHandler::Type in_type = FileHandler::getType(in);
+      FileTypes::Type in_type = FileHandler::getType(in);
       writeDebug_(String("Input file type: ") + FileHandler::typeToName(in_type), 2);
-  
-      if (in_type==FileHandler::UNKNOWN)
+
+      if (in_type==FileTypes::UNKNOWN)
       {
         writeLog_("Error: Could not determine input file type!");
         return PARSE_ERROR;
       }
-	
-      FileHandler::Type out_type = in_type;            
+
+      FileTypes::Type out_type = in_type;
 
 			//ranges
 			String mz, rt, it, charge, q;
@@ -157,7 +158,7 @@ class TOPPFileFilter
 			//initialize ranges
 			mz_l = rt_l = it_l = charge_l = q_l = -1 * numeric_limits<double>::max();
 			mz_u = rt_u = it_u = charge_u = q_u = numeric_limits<double>::max();
-			
+
 			rt = getStringOption_("rt");
 			mz = getStringOption_("mz");
 			it = getStringOption_("int");
@@ -165,7 +166,7 @@ class TOPPFileFilter
 			sn = getDoubleOption_("sn");
 			charge = getStringOption_("charge");
       q = getStringOption_("q");
-      
+
 			//convert bounds to numbers
 			try
 			{
@@ -187,34 +188,34 @@ class TOPPFileFilter
 				{
 					tmp += *it;
 				}
-				
+
 				writeLog_(String("Invalid boundary '") + tmp + "' given. Aborting!");
 				printUsage_();
-				return ILLEGAL_PARAMETERS;			
+				return ILLEGAL_PARAMETERS;
 			}
-			
-      
-      if (in_type == FileHandler::MZDATA)
+
+
+      if (in_type == FileTypes::MZDATA)
       {
   			//-------------------------------------------------------------
   			// loading input
   			//-------------------------------------------------------------
-  			
+
   			MapType exp;
   			MzDataFile f;
   			f.setLogType(log_type_);
   			f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
   			f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
   			f.getOptions().setIntensityRange(DRange<1>(it_l,it_u));
-  			f.load(in,exp);						
-  		
+  			f.load(in,exp);
+
   			//-------------------------------------------------------------
   			// calculations
   			//-------------------------------------------------------------
-  			
+
   			//remove ms level first (might be a lot of spectra)
   			exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MapType::SpectrumType>(levels, true)), exp.end());
-  			
+
   			//remove by scan mode (might be a lot of spectra)
   			bool rem_mode = setByUser_("remove_mode");
   			writeDebug_(String("Remove by mode: ") + String(rem_mode),3);
@@ -230,17 +231,17 @@ class TOPPFileFilter
   					}
   				}
   			}
-  			
+
   			//remove zoom scans (might be a lot of spectra)
   			if (getFlag_("remove_zoom"))
   			{
   				writeDebug_("Removing zoom scans",3);
   				exp.erase(remove_if(exp.begin(), exp.end(),IsZoomSpectrum<MapType::SpectrumType>()), exp.end());
   			}
-  			
+
   			//remove empty scans
   			exp.erase(remove_if(exp.begin(), exp.end(), IsEmptySpectrum<MapType::SpectrumType>()), exp.end());
- 				
+
  				//sort by RT and m/z
    			bool sort = getFlag_("sort");
   			writeDebug_(String("Sorting output data: ") + String(sort),3);
@@ -251,7 +252,7 @@ class TOPPFileFilter
   				{
   					writeLog_("Warning: Spectrum meta data arrays cannot be sorted. They are deleted.");
   				}
-  				
+
   				//sort
   				exp.sortSpectra(true);
   			}
@@ -273,14 +274,14 @@ class TOPPFileFilter
 						it->erase(remove_if(it->begin(), it->end(), InIntensityRange<MapType::PeakType>(1,numeric_limits<MapType::PeakType::IntensityType>::max(), true)) , it->end());
 					}
 				}
- 
+
   			//-------------------------------------------------------------
   			// writing output
   			//-------------------------------------------------------------
-  			
+
   			f.store(out,exp);
       }
-      else if (out_type == FileHandler::FEATUREXML)
+      else if (out_type == FileTypes::FEATUREXML)
       {
         //-------------------------------------------------------------
         // loading input
@@ -294,21 +295,21 @@ class TOPPFileFilter
         f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
         f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
         f.getOptions().setIntensityRange(DRange<1>(it_l,it_u));
-        f.load(in,feature_map);                 
+        f.load(in,feature_map);
 
-      
+
         //-------------------------------------------------------------
         // calculations
         //-------------------------------------------------------------
         typedef FeatureMapType::FeatureType FeatureType;
-        
+
         //copy all properties
         FeatureMapType map_sm = feature_map;
-        //.. but delete feature information 
+        //.. but delete feature information
         map_sm.clear();
-        
+
         bool rt_ok, mz_ok, int_ok, charge_ok, q_ok;
-        
+
         // only keep charge ch_l:ch_u   (WARNING: featurefiles without charge information have charge=0, see Ctor of KERNEL/Feature.h)
         for (uint i = 0; i<feature_map.size(); ++i)
         {
@@ -317,23 +318,23 @@ class TOPPFileFilter
           if (f.getOptions().getIntensityRange().encloses(DPosition<1>(feature_map[i].getIntensity()))) { int_ok = true; } else {int_ok = false;}
           if ((charge_l <= feature_map[i].getCharge()) && (feature_map[i].getCharge() <= charge_u)) { charge_ok = true; } else {charge_ok = false;}
           if ((q_l <= feature_map[i].getOverallQuality()) && (feature_map[i].getOverallQuality() <= q_u)) { q_ok = true; } else {q_ok = false;}
-          
-          //std::cout << feature_map[i].getRT() << " " << feature_map[i].getMZ() << " " << feature_map[i].getIntensity() << " " << feature_map[i].getCharge() << " "<< feature_map[i].getOverallQuality() << " "; 
+
+          //std::cout << feature_map[i].getRT() << " " << feature_map[i].getMZ() << " " << feature_map[i].getIntensity() << " " << feature_map[i].getCharge() << " "<< feature_map[i].getOverallQuality() << " ";
           if (rt_ok == true && mz_ok == true && int_ok == true && charge_ok == true && q_ok == true)
           {
             //std::cout << rt_ok << mz_ok << int_ok << charge_ok << "\n";
-            map_sm.push_back (feature_map[i]);              
+            map_sm.push_back (feature_map[i]);
           }//else {std::cout << "\n";}
         }
         map_sm.updateRanges();
-        
+
         //-------------------------------------------------------------
         // writing output
         //-------------------------------------------------------------
-                
+
         f.store(out,map_sm);
       }
-      else if (out_type == FileHandler::CONSENSUSXML)
+      else if (out_type == FileTypes::CONSENSUSXML)
       {
         //-------------------------------------------------------------
         // loading input
@@ -346,27 +347,27 @@ class TOPPFileFilter
         f.getOptions().setRTRange(DRange<1>(rt_l,rt_u));
         f.getOptions().setMZRange(DRange<1>(mz_l,mz_u));
         f.getOptions().setIntensityRange(DRange<1>(it_l,it_u));
-        f.load(in,consensus_map);                 
+        f.load(in,consensus_map);
 
-      
+
         //-------------------------------------------------------------
         // calculations
         //-------------------------------------------------------------
         consensus_map.updateRanges();
-        
+
         //-------------------------------------------------------------
         // writing output
         //-------------------------------------------------------------
-                
+
         f.store(out,consensus_map);
       }
       else
       {
         writeLog_("Unknown input file type given. Aborting!");
         printUsage_();
-        return ILLEGAL_PARAMETERS;          
+        return ILLEGAL_PARAMETERS;
       }
-			
+
 			return EXECUTION_OK;
 		}
 };

@@ -26,6 +26,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -40,17 +41,17 @@ using namespace std;
 
 /**
 	@page XMLValidator XMLValidator
-	
+
 	@brief Validates XML files against an XML schema.
-	
+
 	When a schema file is given, the input file is simply validated against the schema.
-	
+
 	When no schema file is given, the tool tries to determine the file type and validates the file against
 	the latest schema version.
-	
+
 	@note XML schema files for the %OpenMS XML formats and several other XML formats can be found in the folder
 	      OpenMS/share/OpenMS/SCHEMAS/
-	
+
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_XMLValidator.cli
 */
@@ -66,60 +67,60 @@ class TOPPXMLValidator
 		: TOPPBase("XMLValidator","Validates XML files against an XML schema.",false)
 	{
 	}
-	
+
  protected:
 
 	void registerOptionsAndFlags_()
 	{
 		registerInputFile_("in","<file>","","file to validate");
 		registerInputFile_("schema","<file>","","schema to validate against.\nIf no schema is given, the file is validated against the latest schema of the file type.", false);
-	}	
-	
+	}
+
 	ExitCodes main_(int , const char**)
 	{
 		String in = getStringOption_("in");
 		String schema = getStringOption_("schema");
 		bool valid = true;
-	
+
 		if (schema!="") //schema explicitly given
 		{
 			XMLValidator xmlv;
 			valid = xmlv.isValid(in,schema);
-		}	
+		}
 		else //no schema given
 		{
 			//determine input type
-			FileHandler::Type in_type = FileHandler::getType(in);
-			if (in_type==FileHandler::UNKNOWN)
+			FileTypes::Type in_type = FileHandler::getType(in);
+			if (in_type==FileTypes::UNKNOWN)
 			{
 				writeLog_("Error: Could not determine input file type!");
 				return PARSE_ERROR;
 			}
-			
+
 			cout << endl << "Validating " << FileHandler::typeToName(in_type) << " file";
 			switch(in_type)
 			{
-				case FileHandler::MZDATA :
+				case FileTypes::MZDATA :
 					cout << " against schema version " << MzDataFile().getVersion() << endl;
 					valid = MzDataFile().isValid(in);
 					break;
-				case FileHandler::FEATUREXML :
+				case FileTypes::FEATUREXML :
 					cout << " against schema version " << FeatureXMLFile().getVersion() << endl;
 					valid = FeatureXMLFile().isValid(in);
 					break;
-				case FileHandler::IDXML :
+				case FileTypes::IDXML :
 					cout << " against schema version " << IdXMLFile().getVersion() << endl;
 					valid = IdXMLFile().isValid(in);
 					break;
-				case FileHandler::CONSENSUSXML :
+				case FileTypes::CONSENSUSXML :
 					cout << " against schema version " << ConsensusXMLFile().getVersion() << endl;
 					valid = ConsensusXMLFile().isValid(in);
 					break;
-				case FileHandler::MZXML :
+				case FileTypes::MZXML :
 					cout << " against schema version " << MzXMLFile().getVersion() << endl;
 					valid = MzXMLFile().isValid(in);
 					break;
-				case FileHandler::PARAM :
+				case FileTypes::PARAM :
 					cout << " against schema version " << Param().getVersion() << endl;
 					valid = Param().isValid(in);
 					break;
@@ -128,7 +129,7 @@ class TOPPXMLValidator
 					return EXECUTION_OK;
 			};
 		}
-		
+
 		//Result
 		if (valid)
 		{
@@ -138,7 +139,7 @@ class TOPPXMLValidator
 		{
 			cout << "Failed: errors are listed above!" << endl;
 		}
-		
+
 		return EXECUTION_OK;
 		}
 };

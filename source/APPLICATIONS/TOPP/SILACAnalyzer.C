@@ -286,7 +286,7 @@ class TOPPSILACAnalyzer
 
 				file.setLogType(log_type_);
 				file.load(in,exp);
-				
+
 				//set input map size (only once)
 				if (charge==charge_min)
 				{
@@ -294,7 +294,7 @@ class TOPPSILACAnalyzer
 					all_pairs.getFileDescriptions()[1].size = exp.getSize();
 					all_pairs.getFileDescriptions()[0].size = exp.getSize();
 				}
-				
+
 				//-------------------------------------------------------------
 				// build SILACData structure
 				//-------------------------------------------------------------
@@ -390,7 +390,7 @@ class TOPPSILACAnalyzer
 				AverageLinkage al;
 				std::vector< BinaryTreeNode > tree;
 				ClusterAnalyzer ca;
-				al.cluster(distance_matrix_copy, tree, std::numeric_limits<float>::max());
+				al(distance_matrix_copy, tree, std::numeric_limits<float>::max());
 
 				//-----------------------------------------------------------------
 				// find number of clusters which maximizes average silhouette width
@@ -400,7 +400,7 @@ class TOPPSILACAnalyzer
 				std::vector< Real >asw = ca.averageSilhouetteWidth(tree,distance_matrix);
 				std::vector< Real >::iterator max_el(max_element(asw.begin(),asw.end()));
 				//~ std::vector< Real >::iterator max_el(max_element((asw.end()-((Int)data.size()/10) ),asw.end()));//only the first size/10 steps are reviewed
-				size_t best_n = tree.size();
+				Size best_n = tree.size();
 				Real max_deviation((*max_el)*(optimal_silhouette_tolerance/100));
 				for (Size i = 0; i < asw.size(); ++i)
 				{
@@ -430,8 +430,8 @@ class TOPPSILACAnalyzer
 				//-------------------------------------------------------------
 				// choose appropriate(best) partition of data from best_n
 				//-------------------------------------------------------------
-				best_n = UInt(cluster_number_scaling * best_n); // slightly increase cluster number
-				std::vector< std::vector<UInt> > best_n_clusters;
+				best_n = Size(cluster_number_scaling * best_n); // slightly increase cluster number
+				std::vector< std::vector<Size> > best_n_clusters;
 				ca.cut(best_n,best_n_clusters,tree);
 				cluster_number[charge] = best_n;
 

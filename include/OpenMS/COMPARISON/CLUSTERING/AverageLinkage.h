@@ -73,7 +73,7 @@ namespace OpenMS
 			The clustering method is average linkage, where the updated distances after merging two clusters are each the average distances between the elements of their clusters. After @p theshold is exceeded, @p cluster_tree is filled with dummy clusteringsteps (children: (0,1), distance: -1) to the root.
 			@see ClusterFunctor , BinaryTreeNode
 		*/
-		void cluster(DistanceMatrix<Real>& original_distance, std::vector<BinaryTreeNode>& cluster_tree, const Real threshold=1) const;
+		void operator () (DistanceMatrix<Real>& original_distance, std::vector<BinaryTreeNode>& cluster_tree, const Real threshold=1) const;
 
 		/// creates a new instance of a AverageLinkage object
 		static ClusterFunctor* create()
