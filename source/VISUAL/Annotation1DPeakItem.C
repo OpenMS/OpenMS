@@ -82,7 +82,7 @@ namespace OpenMS
 		}
 	}
 	
-	void Annotation1DPeakItem::move(const PointType& delta, Spectrum1DCanvas* canvas)
+	void Annotation1DPeakItem::move(const PointType& /*delta*/)
 	{
 		// do nothing, peak annotations cannot be moved
 	}
@@ -97,7 +97,7 @@ namespace OpenMS
  		return position_;
  	}
  	
- 	void Annotation1DPeakItem::ensureWithinDataRange(Spectrum1DCanvas* const canvas)
+ 	void Annotation1DPeakItem::ensureWithinDataRange(Spectrum1DCanvas* const /*canvas*/)
 	{
 		// peak items are never outside data range (cannot be moved)
 	}

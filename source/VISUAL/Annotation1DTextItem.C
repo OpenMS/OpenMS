@@ -66,7 +66,7 @@ namespace OpenMS
 		}
 	}
 	
-	void Annotation1DTextItem::move(const PointType& delta, Spectrum1DCanvas* canvas)
+	void Annotation1DTextItem::move(const PointType& delta)
 	{
 		position_.setX(position_.getX()+delta.getX());
 		position_.setY(position_.getY()+delta.getY());

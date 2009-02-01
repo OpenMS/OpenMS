@@ -51,7 +51,7 @@ namespace OpenMS
 			// Docu in base class
 			virtual void draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped = false);
 			// Docu in base class
-			virtual void move(const PointType& delta, Spectrum1DCanvas* canvas);
+			virtual void move(const PointType& delta);
 			/// Sets the start point of the measured distance line
 			void setStartPoint(const PointType& start);
 			/// Sets the peak index of the end peak of the measurement

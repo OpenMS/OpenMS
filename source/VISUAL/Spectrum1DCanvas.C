@@ -333,7 +333,7 @@ namespace OpenMS
 				{
 					if ((*it)->isSelected())
 					{
-						(*it)->move(delta, this);
+						(*it)->move(delta);
 					}
 				}
 				update_buffer_ = true;

@@ -51,7 +51,7 @@ namespace OpenMS
 			// Docu in base class
 			virtual void draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped = false);
 			// Docu in base class
-			virtual void move(const PointType& delta, Spectrum1DCanvas* canvas);
+			virtual void move(const PointType& delta);
 			/// Sets the position of the item (in MZ / intensity coordinates)
 			void setPosition(const PointType& position);
 			/// Returns the position of the item (in MZ / intensity coordinates)
