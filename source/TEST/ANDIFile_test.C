@@ -30,6 +30,7 @@
 
 #include <OpenMS/FORMAT/ANDIFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 
@@ -61,7 +62,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
   file.load(OPENMS_GET_TEST_DATA_PATH("ANDIFile_test.cdf"),e);
 	//test DocumentIdentifier addition
 	TEST_STRING_EQUAL(e.getLoadedFilePath(), File::absolutePath(OPENMS_GET_TEST_DATA_PATH("ANDIFile_test.cdf")));
-	TEST_STRING_EQUAL(e.getLoadedFileType(),"cdf");
+	TEST_STRING_EQUAL(FileHandler::typeToName(e.getLoadedFileType()),"cdf");
 
   //---------------------------------------------------------------------------
   // 60 : (120,100)

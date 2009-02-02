@@ -798,7 +798,7 @@ namespace OpenMS
 				}
 				
 				//push_back the peaks into the container				
-				for (Size n = 0 ; n < peak_count_ ; n++)
+				for (Size n = 0 ; n < peak_count_ ; ++n)
 				{
 					DoubleReal mz = mz_precision_64 ? decoded_double_list_[0][n] : decoded_list_[0][n];
 					DoubleReal intensity = int_precision_64 ? decoded_double_list_[1][n] : decoded_list_[1][n];
