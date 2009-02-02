@@ -211,12 +211,11 @@ namespace OpenMS
 		// we have equidistant bins
 		if(param_.getValue("precursor_mass_tolerance_unit") == "Da")
 			{
-				counter_.resize((UInt)((*(masses_.end()-1)-masses_[0]) / (DoubleReal)param_.getValue("precursor_mass_tolerance")) +1,0);
-						
+				counter_.resize((UInt)(ceil((*(masses_.end()-1))-masses_[0]) / (DoubleReal)param_.getValue("precursor_mass_tolerance")) +2,0);
 				for(UInt i=0;i<masses_.size();++i)
 					{
 						// get bin index
-						DoubleReal tmp = (masses_[i] - masses_[0]) / (DoubleReal)param_.getValue("precursor_mass_tolerance");
+						DoubleReal tmp = (masses_[i] - masses_[0] ) / (DoubleReal)param_.getValue("precursor_mass_tolerance");
 						++counter_[(Size) ceil(tmp)];
 					}
 				UInt max = 0;
