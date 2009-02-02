@@ -28,6 +28,7 @@
 
 ///////////////////////////
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ANDIFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/FileHandler.h>

@@ -74,7 +74,7 @@ namespace OpenMS
     	double isodiff = 0;
 			
     	//iterate over all peaks
-    	for (SignedSize i = 0; i < spectrum.size(); ++i)
+    	for (Size i = 0; i < spectrum.size(); ++i)
     	{
       	for (Size j = 1; i + j < spectrum.size(); ++j)
       	{
