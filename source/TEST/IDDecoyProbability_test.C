@@ -88,7 +88,7 @@ START_SECTION((void apply(std::vector<PeptideIdentification>& prob_ids, const st
 				{
 					TEST_EQUAL(prob > 0.9, true)
 				}
-				if (orig_score < 25)
+				if (orig_score < 20)
 				{
 					TEST_EQUAL(prob < 0.05, true)
 				}

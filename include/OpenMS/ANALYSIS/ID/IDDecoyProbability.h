@@ -84,6 +84,37 @@ namespace OpenMS
 			*/
 			struct Transformation_
 			{
+				Transformation_()
+					: y_factor(0),
+						x_factor(0),
+						x_shift(0),
+						x_max(0),
+						y_max_bin(0)
+				{
+				}
+
+				Transformation_(const Transformation_& rhs)
+					: y_factor(rhs.y_factor),
+						x_factor(rhs.x_factor),
+						x_shift(rhs.x_shift),
+						x_max(rhs.x_max),
+						y_max_bin(rhs.y_max_bin)
+				{
+				}
+				
+				Transformation_& operator = (const Transformation_& rhs)
+				{
+					if (this != &rhs)
+					{
+						y_factor = rhs.y_factor;
+          	x_factor = rhs.x_factor;
+          	x_shift = rhs.x_shift;
+          	x_max = rhs.x_max;
+          	y_max_bin = rhs.y_max_bin;
+					}
+					return *this;
+				}
+				
 			  double y_factor;
 			  double x_factor;
 			  double x_shift;

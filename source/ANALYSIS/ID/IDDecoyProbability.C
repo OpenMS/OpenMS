@@ -39,7 +39,7 @@ namespace OpenMS
 	IDDecoyProbability::IDDecoyProbability()
 		: DefaultParamHandler("IDDecoyProbability")
   {
-		defaults_.setValue("number_of_bins", 40.0, "Number of bins used for the fitting, if sparse datasets are used, this number should be smaller", StringList::create("advanced"));
+		defaults_.setValue("number_of_bins", 40, "Number of bins used for the fitting, if sparse datasets are used, this number should be smaller", StringList::create("advanced"));
 		defaults_.setValue("lower_score_better_default_value_if_zero", 50.0, "This value is used if e.g. a E-value score is 0 and cannot be transformed in a real number (log of E-value)", StringList::create("advanced"));
 
 #ifdef IDDECOYPROBABILITY_DEBUG
@@ -62,7 +62,7 @@ namespace OpenMS
 
 	void IDDecoyProbability::apply(vector<PeptideIdentification>& prob_ids, const vector<PeptideIdentification>& orig_fwd_ids, const vector<PeptideIdentification>& rev_ids)
 	{
-		double number_of_bins((double)param_.getValue("number_of_bins"));
+		Size number_of_bins((UInt)param_.getValue("number_of_bins"));
 		double lower_score_better_default_value_if_zero((double)param_.getValue("lower_score_better_default_value_if_zero"));
 
 		vector<PeptideIdentification> fwd_ids = orig_fwd_ids;
@@ -125,7 +125,6 @@ namespace OpenMS
     	}
   	}
 		
-		
   	// normalize distribution to [0, 1]
   	Map<double, double> fwd_scores_normalized, rev_scores_normalized, diff_scores, all_scores_normalized;
   	Transformation_ rev_trafo, fwd_trafo, all_trafo;
@@ -145,16 +144,19 @@ namespace OpenMS
   	// rev scores fitting
   	vector<DPosition<2> > rev_data;
 
-  	for (Size i = 0; i != rev_scores_normalized.size(); ++i)
+  	for (Size i = 0; i < number_of_bins; ++i)
   	{
     	DPosition<2> pos;
-    	pos.setX(((double)i + 1.0) / number_of_bins);
-    	pos.setY(rev_scores_normalized[(double)i / number_of_bins]);
+    	pos.setX(((double)i + 1.0) / (double)number_of_bins);
+    	pos.setY(rev_scores_normalized[(double)i / (double)number_of_bins]);
     	rev_data.push_back(pos);
   	}
 
-
 		Math::GammaDistributionFitter gdf;
+		Math::GammaDistributionFitter::GammaDistributionFitResult result_gamma_1st;
+		result_gamma_1st.b = 1.0;
+		result_gamma_1st.p = 5.0;
+		gdf.setInitialParameters(result_gamma_1st);
   	// TODO heuristic for good start parameters
   	Math::GammaDistributionFitter::GammaDistributionFitResult result_gamma = gdf.fit(rev_data);
 
@@ -162,45 +164,31 @@ namespace OpenMS
   	cerr << gdf.getGnuplotFormula() << endl;
 		String rev_filename = param_.getValue("rev_filename");
 		generateDistributionImage(rev_scores_normalized, gdf.getGnuplotFormula(), rev_filename);
-		cerr << "blubb" << endl;
 #endif
 		
   	// generate diffs of distributions
   	// get the fwd and rev distribution, apply all_trafo and calculate the diff
-  	Map<UInt, UInt> fwd_bins, rev_bins;
-  	double min(rev_trafo.x_shift);
-  	double diff(rev_trafo.x_factor);
-  	UInt max_bin(0);
-		UInt max_reverse_bin(0);
-		UInt max_reverse_bin_value(0);
+  	//Map<Size, Size> fwd_bins, rev_bins;
+		vector<Size> fwd_bins(number_of_bins + 1, 0), rev_bins(number_of_bins + 1, 0);
+  	double min(fwd_trafo.x_shift), diff(fwd_trafo.x_factor);
+  	Size max_bin(0);
   	for (vector<double>::const_iterator it = fwd_scores.begin(); it != fwd_scores.end(); ++it)
   	{
-    	UInt bin = (UInt)((*it - min) / diff * number_of_bins);
-    	if (fwd_bins.has(bin))
-    	{
-      	++fwd_bins[bin];
-    	}
-    	else
-    	{
-      	fwd_bins[bin] = 1;
-    	}
+    	Size bin = (Size)((*it - min) / diff * (double)number_of_bins);
+      ++fwd_bins[bin];
     	if (fwd_bins[bin] > max_bin)
     	{
       	max_bin = fwd_bins[bin];
     	}
   	}
 		
+		Size max_reverse_bin(0), max_reverse_bin_value(0);
+		min = rev_trafo.x_shift;
+		diff = rev_trafo.x_factor;
   	for (vector<double>::const_iterator it = rev_scores.begin(); it != rev_scores.end(); ++it)
   	{
-    	UInt bin = (UInt)((*it - min) / diff * number_of_bins);
-    	if (rev_bins.has(bin))
-    	{
-      	++rev_bins[bin];
-    	}
-    	else
-    	{
-      	rev_bins[bin] = 1;
-    	}
+    	Size bin = (Size)((*it - min) / diff * (double)number_of_bins);
+      ++rev_bins[bin];
     	if (rev_bins[bin] > max_bin)
     	{
      		max_bin = rev_bins[bin];
@@ -217,30 +205,30 @@ namespace OpenMS
 #endif
 		
   	// get diff of fwd and rev
-  	for (UInt i = 0; i < number_of_bins; ++i)
+  	for (Size i = 0; i <= number_of_bins; ++i)
   	{
-    	UInt fwd(fwd_bins[i]), rev(rev_bins[i]);
+			Size fwd(0), rev(0);
+			fwd = fwd_bins[i];
+			rev = rev_bins[i];
     	if (fwd > rev && max_reverse_bin < i)
     	{
-      	diff_scores[(double)i / number_of_bins] = (double)(fwd - rev) / (double)max_bin * 4.0;
+      	diff_scores[(double)i / (double)number_of_bins] = (double)(fwd - rev) / (double)max_bin * 4.0;
     	}
     	else
     	{
-      	diff_scores[(double)i / number_of_bins] = 0.0;
+      	diff_scores[(double)i / (double)number_of_bins] = 0.0;
     	}
-  	}
-
+		}
 #ifdef IDDECOYPROBABILITY_DEBUG
 		cerr << "Gauss Fitting values size of diff scores=" << diff_scores.size() << endl;
 #endif
   	// diff scores fitting
   	vector<DPosition<2> > diff_data;
-		double gauss_A(0);
-		double gauss_x0(0);
-  	for (Size i = 0; i != diff_scores.size(); ++i)
+		double gauss_A(0), gauss_x0(0);
+  	for (Size i = 0; i <= number_of_bins; ++i)
   	{
     	DPosition<2> pos;
-    	pos.setX(((double)i + 1.0) / (double)number_of_bins);
+    	pos.setX((double)i / (double)number_of_bins);
     	pos.setY(diff_scores[(double)i / (double)number_of_bins]);
 
 			if (pos.getY() > gauss_A)
@@ -249,23 +237,21 @@ namespace OpenMS
 			}
 			gauss_x0 += pos.getX();
 			
-#ifdef IDDECOYPROBABILITY_DEBUG
-			cerr << pos.getX() << " " << pos.getY() << endl;
-#endif
-			
     	diff_data.push_back(pos);
   	}
 
 		double gauss_sigma(0);
-		gauss_x0 /= (double)diff_scores.size();
+		gauss_x0 /= (double)diff_data.size();
 		
-		for (Size i = 0; i != diff_scores.size(); ++i)
+		for (Size i = 0; i <= number_of_bins; ++i)
 		{
-			gauss_sigma += fabs(gauss_x0 - ((double)i + 1.0) / (double)number_of_bins);
+			gauss_sigma += fabs(gauss_x0 - (double)i / (double)number_of_bins);
 		}
 
-		gauss_sigma /= (double)diff_scores.size();
+		gauss_sigma /= (double)diff_data.size();
 
+	
+		
 #ifdef IDDECOYPROBABILITY_DEBUG
 		cerr << "setting initial parameters: " << endl;
 #endif
@@ -274,10 +260,12 @@ namespace OpenMS
   	result_1st.A = gauss_A; //0.06;
   	result_1st.x0 = gauss_x0; //0.7;
   	result_1st.sigma = gauss_sigma; //0.5;
+		gf.setInitialParameters(result_1st);
 #ifdef IDDECOYPROBABILITY_DEBUG
 		cerr << "Initial Gauss guess: A=" << gauss_A << ", x0=" << gauss_x0 << ", sigma=" << gauss_sigma << endl;
 #endif
-  	Math::GaussFitter::GaussFitResult result_gauss = gf.fit(diff_data);
+  	
+		Math::GaussFitter::GaussFitResult result_gauss = gf.fit(diff_data);
 
 		// fit failed?
 		if (gf.getGnuplotFormula() == "")
@@ -286,7 +274,7 @@ namespace OpenMS
 			result_gauss.x0 = gauss_x0;
 			result_gauss.sigma = gauss_sigma;
 		}
-		
+
 #ifdef IDDECOYPROBABILITY_DEBUG
 		cerr << gf.getGnuplotFormula() << endl;
 		String fwd_filename = param_.getValue("fwd_filename");
@@ -333,7 +321,7 @@ namespace OpenMS
 	// normalize the bins to [0, 1]
 	void IDDecoyProbability::normalizeBins_(const vector<double>& scores, Map<double, double>& binned, Transformation_& trafo)
 	{
-		double number_of_bins((double)param_.getValue("number_of_bins"));
+		Size number_of_bins((UInt)param_.getValue("number_of_bins"));
   	// get the range of the scores
   	double max(numeric_limits<double>::min()), min(numeric_limits<double>::max());
   	for (vector<double>::const_iterator it = scores.begin(); it != scores.end(); ++it)
@@ -354,11 +342,11 @@ namespace OpenMS
 		
   	// perform the binning
   	double diff = max - min;
-  	Map<UInt, UInt> bins;
-  	UInt max_bin(0), max_bin_number(0);
+  	Map<Size, Size> bins;
+  	Size max_bin(0), max_bin_number(0);
   	for (vector<double>::const_iterator it = scores.begin(); it != scores.end(); ++it)
   	{
-    	UInt bin = (UInt)((*it - min) / diff * number_of_bins);
+    	Size bin = (Size)((*it - min) / diff * (double)number_of_bins);
     	if (bins.has(bin))
     	{
       	++bins[bin];
@@ -375,11 +363,11 @@ namespace OpenMS
   	}
 
   	// normalize to \sum = 1
-  	for (Map<UInt, UInt>::ConstIterator it = bins.begin(); it != bins.end(); ++it)
+  	for (Map<Size, Size>::ConstIterator it = bins.begin(); it != bins.end(); ++it)
   	{
-    	binned[it->first/number_of_bins] = it->second / (double)max_bin * 4.0; // 4 is best value for the gamma distribution
+    	binned[it->first/(double)number_of_bins] = it->second / (double)max_bin * 4.0; // 4 is best value for the gamma distribution
 #ifdef IDDECOYPROBABILITY_DEBUG
-			cerr << it->first/number_of_bins * diff + min << " " << it->second << endl;
+			cerr << it->first/(double)number_of_bins * diff + min << " " << it->second << endl;
 #endif
   	}
 
@@ -402,11 +390,11 @@ namespace OpenMS
 																						double score)
 	{
   	double rho_rev(0), rho_fwd(0);
-		double number_of_bins((double)param_.getValue("number_of_bins"));
+		Size number_of_bins((UInt)param_.getValue("number_of_bins"));
 	
   	// first transform the score into a background distribution density value
   	double score_rev_trans = (score - gamma_trafo.x_shift) / gamma_trafo.x_factor;
-  	if (score_rev_trans < gamma_trafo.y_max_bin/number_of_bins)
+  	if (score_rev_trans < gamma_trafo.y_max_bin/(double)number_of_bins)
   	{
     	rho_rev = 1.0 / gamma_trafo.y_factor;
   	}
@@ -419,18 +407,21 @@ namespace OpenMS
   	double score_fwd_trans = (score - gauss_trafo.x_shift) / gauss_trafo.x_factor;
 
 #ifdef IDDECOYPROBABILITY_DEBUG
-		cerr << "score=" << score << ", score_rev_trans=" << score_rev_trans << ", score_fwd_trans=" << score_fwd_trans << ", rho_rev=" << rho_rev << " ";
+		cerr << "score=" << score << ", score_rev_trans=" << score_rev_trans << ", score_fwd_trans=" << score_fwd_trans << ", rho_rev=" << rho_rev << ", gauss_trafor.x_max=" << gauss_trafo.x_max;
 #endif
-		
-  	if (score_fwd_trans > gauss_trafo.x_max)
+	
+  	if (score_fwd_trans < result_gauss.x0)
   	{
 #ifdef IDDECOYPROBABILITY_DEBUG
 			cerr << "(score_fwd_trans > gauss_trafo.x_max, " << score_fwd_trans << " " << gauss_trafo.x_max << " -> 1)" << endl;
 #endif
-    	return 1;
+			rho_fwd = result_gauss.A * exp(- pow(score_fwd_trans - result_gauss.x0, 2)/2.0/pow(result_gauss.sigma, 2));
   	}
+		else
+		{
+			rho_fwd = 1;
+		}
 		
-  	rho_fwd = result_gauss.A * exp(- pow(score_fwd_trans - result_gauss.x0, 2)/2.0/pow(result_gauss.sigma, 2));
 
 #ifdef IDDECOYPROBABILITY_DEBUG
 		cerr << "rho_fwd=" << rho_fwd << endl;
@@ -442,15 +433,15 @@ namespace OpenMS
 
 	void IDDecoyProbability::generateDistributionImage(const Map<double, double>& ids, const String& formula, const String& filename)
 	{
-		double number_of_bins((double)param_.getValue("number_of_bins"));
+		Size number_of_bins((UInt)param_.getValue("number_of_bins"));
 		
   	// write distribution to file
   	ofstream o((filename + "_dist_tmp.dat").c_str());
   	for (Size i = 0; i < number_of_bins; ++i)
   	{
-			if (ids.has((double)i/number_of_bins))
+			if (ids.has((double)i/(double)number_of_bins))
 			{
-    		o << (double)i / number_of_bins << " " << ids[(double)i/number_of_bins] << endl;
+    		o << (double)i / (double)number_of_bins << " " << ids[(double)i/(double)number_of_bins] << endl;
 			}
 			else
 			{
