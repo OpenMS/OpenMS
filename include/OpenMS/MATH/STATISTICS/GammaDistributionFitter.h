@@ -65,7 +65,29 @@ namespace OpenMS
 				struct GammaDistributionFitResult
 				{
 					public:
-	
+						
+						GammaDistributionFitResult()
+							: b(1.0),
+								p(5.0)
+						{
+						}
+
+						GammaDistributionFitResult(const GammaDistributionFitResult& rhs)
+							: b(rhs.b),
+								p(rhs.p)
+						{
+						}
+
+						GammaDistributionFitResult& operator = (const GammaDistributionFitResult& rhs)
+						{
+							if (this != &rhs)
+							{
+								b = rhs.b;
+								p = rhs.p;
+							}
+							return *this;
+						}
+									
 						/// parameter b of the gamma distribution
 						double b;
 	

@@ -136,8 +136,8 @@ namespace OpenMS
 	
 		GammaDistributionFitter::GammaDistributionFitResult GammaDistributionFitter::fit(vector<DPosition<2> >& input)
 		{
-		  const gsl_multifit_fdfsolver_type* T;
-		  gsl_multifit_fdfsolver* s;
+		  const gsl_multifit_fdfsolver_type* T = NULL;
+		  gsl_multifit_fdfsolver* s = NULL;
 		
 		  int status = 0;
 		  size_t iter = 0;
@@ -147,8 +147,8 @@ namespace OpenMS
 		  gsl_multifit_function_fdf f;
 		  double x_init[2] = { init_param_.b, init_param_.p };
 		  gsl_vector_view x = gsl_vector_view_array (x_init, p);
-		  const gsl_rng_type * type;
-		  gsl_rng* r;
+		  const gsl_rng_type * type = NULL;
+		  gsl_rng* r = NULL;
 		
 		  gsl_rng_env_setup();
 		
