@@ -130,36 +130,44 @@ namespace OpenMS
 					cout << "Warning: Found only " << dists.size() << " pairs. The estimated shift and std deviation are probably not reliable!" << endl;
 				}
 				//--------------------------- estimate initial parameters of fit ---------------------------
+				cout << "WARNING - dists.size: " << dists.size() << endl;
 				GaussFitter::GaussFitResult result;
 				//first estimate of the optimal shift: median of the distances
 				sort(dists.begin(),dists.end());
 				Size median_index = dists.size()/2; 
-				result.x0 = dists[median_index]; 
+				result.x0 = dists[median_index];
+				cout << "WARNING - estimated optimal shift: " << result.x0 << endl;
 				//create histogram of distances
 				//consider only the maximum of pairs, centered around the optimal shift
 				Size max_pairs = model_ref.size()/2;
+				cout << "WARNING - max_pairs: " << max_pairs << endl;
 				Size start_index = (Size) max((SignedSize)0,(SignedSize)(median_index - max_pairs/2));
 				Size end_index = (Size) min((SignedSize)(dists.size()-1),(SignedSize)(median_index + max_pairs/2));
+				cout << "WARNING - start_index: " << start_index << endl;
+				cout << "WARNING - end_index: " << end_index << endl;
 				DoubleReal start_value = dists[start_index];
 				DoubleReal end_value = dists[end_index];
+				cout << "WARNING - start_value: " << start_value << endl;
+				cout << "WARNING - end_value: " << end_value << endl;
 				DoubleReal bin_step = fabs(end_value-start_value)/100;
 				Math::Histogram<> hist(start_value,end_value,bin_step);
 				//std::cout << "Histogram from " << start_value << " to " << end_value << " (bin size " << bin_step << ")" << endl;
 				for (Size i=start_index; i<=end_index; ++i)
 				{
-					//std::cout << "i: " << dists[i] << endl;		
 					hist.inc(dists[i]);
 				}
-				//std::cout << hist << endl;
+				std::cout << hist << endl;
 				dists.clear();
 				//determine median of bins (uniform background distribution)
 				vector<Size> bins(hist.begin(),hist.end());
 				sort(bins.begin(),bins.end());
 				Size bin_median = bins[bins.size()/2];
+				cout << "WARNING - bin median: " << bin_median << endl;
 				bins.clear();
 				//estimate scale A: maximum of the histogram
 				Size max_value = hist.maxValue();
 				result.A = max_value-bin_median;
+				cout << "WARNING - estimated scaling factor A: " << result.A << endl;
 				//overwrite estimate of x0 with the position of the highest bin
 				for (Size i=0;i<hist.size();++i)
 				{
@@ -169,6 +177,7 @@ namespace OpenMS
 						break;
 					}
 				}
+				cout << "WARNING - new estimated x0: " << result.x0 << endl;
 				//estimate sigma: first time the count is less or equal the median count in the histogram
 				DoubleReal pos = result.x0;
 				while (pos>start_value && hist.binValue(pos)>bin_median)
@@ -183,6 +192,7 @@ namespace OpenMS
 				}
 				DoubleReal sigma_high = pos - result.x0;		
 				result.sigma = (sigma_high + sigma_low)/6.0;
+				cout << "WARNING - estimated sigma: " << result.sigma << endl;
 				//cout << "estimated optimal RT distance (before fit): " << result.x0 << endl;
 				//cout << "estimated allowed deviation (before fit): " << result.sigma*3.0 << endl;
 				//--------------------------- do gauss fit ---------------------------
