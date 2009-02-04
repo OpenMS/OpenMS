@@ -738,27 +738,30 @@ MESSAGE(STATUS "----------------------------------------------------------------
 MESSAGE(STATUS "")
 
 ##### install/copy?? #####
+if(NOT MSVC)
+  # TODO:
+  #  - install (copy) directories?!
+  #  - this code breaks the windows cmake call
+  #  
+  # ...
+  set(DO_INSTALL false CACHE BOOL "Set to 'ON' if you want the CMAKE_INSTALL_PREFIX to be used and the library to be installed. On 'OFF' the library and Tools will be build but not installed!")
 
-# TODO: install (copy) directories?!
-# ...
-set(DO_INSTALL false CACHE BOOL "Set to 'ON' if you want the CMAKE_INSTALL_PREFIX to be used and the library to be installed. On 'OFF' the library and Tools will be build but not installed!")
+  ## CPack installation and packaging procedures
+  install(TARGETS OpenMS LIBRARY DESTINATION lib)
 
-## CPack installation and packaging procedures
-install(TARGETS OpenMS LIBRARY DESTINATION lib)
+  foreach(i ${UTILS_executables})
+          install(TARGETS ${i} RUNTIME DESTINATION bin)
+  endforeach()
 
-foreach(i ${UTILS_executables})
-        install(TARGETS ${i} RUNTIME DESTINATION bin)
-endforeach()
+  foreach(i ${TOPP_executables})
+    install(TARGETS ${i} RUNTIME DESTINATION bin)
+  endforeach()
 
-foreach(i ${TOPP_executables})
-	install(TARGETS ${i} RUNTIME DESTINATION bin)
-endforeach()
+  foreach(i ${OpenMS_sources})
+    install(FILES ${i} DESTINATION include)
+  endforeach()
+  #install(FILES ${CONFIGURED_CONFIG_H} DESTINATION include)
 
-foreach(i ${OpenMS_sources})
-	install(FILES ${i} DESTINATION include)
-endforeach()
-#install(FILES ${CONFIGURED_CONFIG_H} DESTINATION include)
-
-# most of the interesting CPack stuff is done below
-include(OpenMSCPack.cmake)
-
+  # most of the interesting CPack stuff is done below
+  include(OpenMSCPack.cmake)
+endif()
