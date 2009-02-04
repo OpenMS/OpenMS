@@ -343,7 +343,7 @@ START_SECTION((DoubleReal getMZTolerance() const))
 END_SECTION
 
 START_SECTION((void setMaxIterations(Int max_iteration)))
-  Int number = 20;
+	UInt number = 20;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxIterations(number);
@@ -352,7 +352,7 @@ START_SECTION((void setMaxIterations(Int max_iteration)))
 END_SECTION
 
 START_SECTION((Int getMaxIterations() const))
-  Int number = 20;
+  UInt number = 20;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxIterations(number);
