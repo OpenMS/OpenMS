@@ -362,22 +362,19 @@ namespace OpenMS
         inline static const DPosition
         min()
         {
-          return DPosition(std::numeric_limits<
-              typename DPosition::CoordinateType>::min());
+          return DPosition(std::numeric_limits<typename DPosition::CoordinateType>::min());
         }
         /// smallest negative
         inline static const DPosition
         min_negative()
         {
-          return DPosition(-std::numeric_limits<
-              typename DPosition::CoordinateType>::max());
+          return DPosition(-std::numeric_limits<typename DPosition::CoordinateType>::max());
         }
         /// largest positive
         inline static const DPosition
         max()
         {
-          return DPosition(std::numeric_limits<
-              typename DPosition::CoordinateType>::max());
+          return DPosition(std::numeric_limits<typename DPosition::CoordinateType>::max());
         }
         //@}
 

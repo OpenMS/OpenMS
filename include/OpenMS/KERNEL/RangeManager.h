@@ -52,23 +52,20 @@ namespace OpenMS
 			/// Default constructor
 			RangeManager()
 				: int_range_(),
-				pos_range_()
+					pos_range_()
 			{
-				
 			}
 
 			/// Copy constructor
 			RangeManager(const RangeManager& rhs)
 				: int_range_(rhs.int_range_),
-				pos_range_(rhs.pos_range_)
+					pos_range_(rhs.pos_range_)
 			{
-				
 			}
 			
 			/// Destructor
 			virtual ~RangeManager()
 			{
-				
 			}
 	
 			/// Assignment operator
@@ -154,12 +151,6 @@ namespace OpenMS
 			template <class PeakIteratorType>
 			void updateRanges_(const PeakIteratorType& begin, const PeakIteratorType& end)
 			{
-				PositionType min,max;
-				DoubleReal it_min, it_max;
-				DoubleReal tmp;
-				
-				min = pos_range_.min();
-				max = pos_range_.max();
 				
 				//prevent invalid range by empty container
 				if (begin==end)
@@ -167,15 +158,18 @@ namespace OpenMS
 					return;
 				}
 				
-				it_min = int_range_.min()[0];
-				it_max = int_range_.max()[0];
+				PositionType min = pos_range_.min();
+				PositionType max = pos_range_.max();
+				
+				DoubleReal it_min = int_range_.min()[0];
+				DoubleReal it_max = int_range_.max()[0];
 				
 				for (PeakIteratorType it = begin; it != end; ++it)
 				{
 					//update position
 					for (UInt i = 0; i < D; ++i)
 					{
-						tmp = it->getPosition()[i];
+						DoubleReal tmp = it->getPosition()[i];
 						if (tmp < min[i])
 						{
 							min[i] = tmp;
@@ -187,10 +181,10 @@ namespace OpenMS
 					}
 				
 					//update intensity
-					tmp = it->getIntensity();
+					DoubleReal tmp = it->getIntensity();
 					if (tmp < it_min)
 					{
-					it_min = tmp;
+						it_min = tmp;
 					}
 					if (tmp > it_max)
 					{

@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework
+//                   OpenMS Mass Spectrometry Framework 
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -40,17 +40,17 @@ namespace OpenMS
 
 			See DIntervalBase for a closed interval and DRange for a half-open interval class.
 
-			@invariant All methods maintain the invariant that min() is geometrically less or equal max()
+			@invariant All methods maintain the invariant that min() is geometrically less or equal max() 
 			           i.e. min()[x] <= max()[x].
 		*/
 		template <UInt D>
 		class DIntervalBase
 		{
 			public:
-
-				/**
-					@name Type definitions
-				*/
+			
+				/**	
+					@name Type definitions 
+				*/	
 				//@{
 				/// Dimensions
 				enum { DIMENSION = D };
@@ -59,30 +59,28 @@ namespace OpenMS
 				/// Coordinate type of the positions
 				typedef typename PositionType::CoordinateType CoordinateType;
 				//@}
-
+		
 				/**	@name Constructors and Destructor */
 				//@{
-
-				/**
-					@brief Default constructor.
-
+				
+				/** 
+					@brief Default constructor.  
+					
 					Creates an empty interval with corners at infinity.
 				*/
 				DIntervalBase()
 					: min_(PositionType::max()),
 						max_(PositionType::min_negative())
 				{
-
 				}
-
+				
 				/// Copy constructor
 				DIntervalBase(const DIntervalBase& rhs)
 					: min_(rhs.min_),
 						max_(rhs.max_)
 				{
-
 				}
-
+				
 				/// Assignment operator
 				DIntervalBase & operator=(const DIntervalBase & rhs)
 				{
@@ -90,13 +88,12 @@ namespace OpenMS
 					max_ = rhs.max_;
 					return *this;
 				}
-
+				
 				/// Destructor
-				~DIntervalBase()
+				~DIntervalBase() 
 				{
-
 				}
-
+		
 				/**
 					@brief This constructor sets min_ and max_ directly.
 				*/
@@ -106,29 +103,29 @@ namespace OpenMS
 				{
 					normalize_();
 				}
-
+		
 				//@}
 
 				/**	@name Accessors */
 				//@{
-
+				
 				/// Accessor to minimum position
 				PositionType const & min() const
 				{
 					return min_;
 				}
-
+		
 				/// Accessor to maximum position
 				PositionType const & max() const
 				{
 					return max_;
 				}
-
+				
 				/**
 					@brief Mutator for minimum position
-
+				
 					@note The minimum position given here will be returned my min() after the method.
-					      If necessary the value returned by max() will be adjusted.
+					      If necessary the value returned by max() will be adjusted.					
 				*/
 				void setMin(PositionType const & position)
 				{
@@ -138,10 +135,10 @@ namespace OpenMS
 						if (min_[i]>max_[i]) max_[i] = min_[i];
 					}
 				}
-
+	
 				/**
 					@brief Mutator for maximum position
-
+				
 					@note The maximum position given here will be returned my max() after the method.
 					      If necessary the value returned by min() will be adjusted.
 				*/
@@ -163,10 +160,10 @@ namespace OpenMS
 					max_ = max;
 					normalize_();
 				}
-
+				
 				/**
 					@brief Assignment from a DIntervalBase of different dimensions.
-
+					
 					Only the dimensions 0 upto min(D,D2)-1 are copied.
 				*/
 				template <UInt D2>
@@ -178,34 +175,34 @@ namespace OpenMS
 						max_[i] = rhs.max()[i];
 					}
 				}
-
+				
 				//}@
-
+		
 				/**	@name Predicates */
 				//@{
 				/// Equality operator
-				bool operator == (const DIntervalBase& rhs) const
+				bool operator == (const DIntervalBase& rhs) const 
 				{
 					return (min_ == rhs.min_) && (max_ == rhs.max_);
 				}
-
+				
 				/// Equality operator
-				bool operator != (const DIntervalBase& rhs) const
+				bool operator != (const DIntervalBase& rhs) const 
 				{
 					return !(operator==(rhs));
 				}
-
+		    
 				/// Make the interval empty
-				inline void clear()
-				{
-					*this = empty;
+				inline void clear() 
+				{ 
+					*this = empty; 
 				}
-
+				
 				//@}
-
+	
 				/**	@name Misc */
 				//@{
-
+	
 				///Returns the center of the interval
 				PositionType center() const
 				{
@@ -220,97 +217,97 @@ namespace OpenMS
 				{
 					return max_ - min_;
 				}
-
+	
 				/// empty instance
 				static DIntervalBase const empty;
 				/// instance with all positions zero
 				static DIntervalBase const zero;
-
+		
 				//}@
 
 				/**	@name Accessors for 2D-intervals (for convenience) */
 				//@{
-
+		
 				/// Accessor for min_ coordinate minimum
 		    CoordinateType minX() const
 		    {
-		      return min_[0];
+		      return min_[0];  
 		    }
-
+				
 				/// Accessor for max_ coordinate minimum
 		    CoordinateType minY() const
 		    {
 					return min_[1];
 		    }
-
+		
 				/// Accessor for min_ coordinate maximum
 				CoordinateType maxX() const
 		    {
 		      return max_[0];
 		    }
-
+		
 				/// Accessor for max_ coordinate maximum
 				CoordinateType maxY() const
 		    {
 					return max_[1];
-		    }
-
-				/// Mutator for min_ coordinate of the smaller point
+		    }	
+		
+				/// Mutator for min_ coordinate of the smaller point 
 				void setMinX(CoordinateType const c)
 		    {
 		      min_[0] = c;
 					if (min_[0]>max_[0]) max_[0] = min_[0];
 		    }
-
-				/// Mutator for max_ coordinate of the smaller point
+				
+				/// Mutator for max_ coordinate of the smaller point 
 				void setMinY(CoordinateType const c)
 		    {
 		      min_[1] = c;
 					if (min_[1]>max_[1]) max_[1] = min_[1];
 				}
-
+		
 				/// Mutator for min_ coordinate of the larger point.
 				void setMaxX(CoordinateType const c)
 		    {
 		      max_[0] = c;
 					if (min_[0]>max_[0]) min_[0] = max_[0];
 		    }
-
+		
 				/// Mutator for max_ coordinate of the larger point.
 				void setMaxY(CoordinateType const c)
 		    {
 		      max_[1] = c;
 					if (min_[1]>max_[1]) min_[1] = max_[1];
 		    }
-
+		
 				/// Returns the width of the area i.e. the difference of dimension zero (X).
 				CoordinateType width() const
 				{
 					return max_[0] - min_[0];
 				}
-
+				
 				/// Returns the height of the area i.e. the difference of dimension one (Y).
 				CoordinateType height() const
 				{
 					return max_[1] - min_[1];
 				}
-
+		
 				//@}
-
+	
 			protected:
-
+				
 				/// lower left point
-				PositionType min_;
-
+				PositionType min_; 
+				
 				/// upper right point
-				PositionType max_;
-
+				PositionType max_; 
+				
 				/// normalization to keep all dimensions in the right geometrical order (min_[X] < max_[X])
 				void normalize_()
 				{
 					for ( UInt i = 0; i < DIMENSION; ++i )
 					{
-						if (min_[i]>max_[i])
+						if (min_[i]>max_[i]) 
 						{
 							std::swap(min_[i],max_[i]);
 						}
@@ -322,20 +319,19 @@ namespace OpenMS
 					: min_(pair.first),
 						max_(pair.second)
 				{
-
+					
 				}
-
+		
 			};
-
+		
 			template <UInt D>
 			DIntervalBase<D> const DIntervalBase<D>::zero
-			= DIntervalBase<D>( DIntervalBase<D>::PositionType::zero(),
-			    DIntervalBase<D>::PositionType::zero() );
-
+			= DIntervalBase<D>( DIntervalBase<D>::PositionType::zero(), DIntervalBase<D>::PositionType::zero());
+			
 			template <UInt D>
-			DIntervalBase<D> const DIntervalBase<D>::empty
-				= DIntervalBase<D>(std::make_pair(DIntervalBase<D>::PositionType::max(), DIntervalBase<D>::PositionType::min_negative()));
-
+			DIntervalBase<D> const DIntervalBase<D>::empty 
+			= DIntervalBase<D>(std::make_pair(DIntervalBase<D>::PositionType::max(), DIntervalBase<D>::PositionType::min_negative()));
+			
 			///Print the contents to a stream.
 			template <UInt D>
 			std::ostream& operator << (std::ostream& os, const DIntervalBase<D>& rhs)
@@ -346,9 +342,9 @@ namespace OpenMS
 				os << "--DIntervalBase END--"<<std::endl;
 				return os;
 			}
-
+	
 	} // namespace Internal
-
+	
 } // namespace OpenMS
 
 #endif // OPENMS_KERNEL_DINTERVALBASE_H

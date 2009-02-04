@@ -88,28 +88,24 @@ namespace OpenMS
 		DRange()
 			: Base()
 		{
-			
 		}
 		
 		/// Constructor that takes two Points and constructs a range.
 		DRange(const PositionType& lower, const PositionType& upper)
 			:Base(lower, upper)
 		{
-			
 		}
 		
 		/// Copy constructor.
 		DRange(const DRange& range)
 			: Base(range)
 		{
-			
 		}
 
 		/// Copy constructor for the base class
 		DRange(const Base& range)
 			: Base(range)
 		{
-			
 		}
 
 		///Convenient constructor for DRange<2>
@@ -137,7 +133,9 @@ namespace OpenMS
 		}
 
 		/// Destuctor 
-		~DRange() {}
+		~DRange()
+		{
+		}
 		//@}
 
 		/**	@name Predicates */
@@ -278,7 +276,7 @@ namespace OpenMS
 		/// Checks if the range is empty
 		bool isEmpty() const 
 		{ 
-      for (Size i = 0; i != D; i++)
+      for (UInt i = 0; i != D; i++)
       {
         if (max_[i]<=min_[i])
         {

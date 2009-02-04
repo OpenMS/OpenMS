@@ -42,9 +42,12 @@ START_TEST(DBoundingBox, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-DBoundingBox<1>* ptr1 = 0;
+typedef DBoundingBox<1> BB1;
+typedef DBoundingBox<2> BB2;
+
+BB1* ptr1 = 0;
 START_SECTION(DBoundingBox())
-	ptr1 = new DBoundingBox<1>;
+	ptr1 = new BB1;
 	TEST_NOT_EQUAL(ptr1, 0)
 END_SECTION
 
@@ -52,9 +55,9 @@ START_SECTION(~DBoundingBox())
 	delete ptr1;
 END_SECTION
 
-DBoundingBox<2>* ptr2 = 0;
+BB2* ptr2 = 0;
 START_SECTION([EXTRA] DBoundingBox())
-	ptr2 = new DBoundingBox<2>;
+	ptr2 = new BB2;
 	TEST_NOT_EQUAL(ptr2, 0)
 END_SECTION
 
@@ -62,33 +65,68 @@ START_SECTION([EXTRA] ~DBoundingBox())
 	delete ptr2;
 END_SECTION
 
-// Misc stuff for testing
-typedef DBoundingBox<1> BB1;
-typedef DBoundingBox<2> BB2;
-BB1 bb1;
-BB2 bb2;
+START_SECTION(DBoundingBox(const PositionType& minimum, const PositionType& maximum))
+{
+	DPosition<1> min(2), max(5);
+	BB1 bb(min,max);
+	TEST_REAL_SIMILAR(bb.min()[0], 2);
+	TEST_REAL_SIMILAR(bb.max()[0], 5);
+}
+END_SECTION
+
+START_SECTION(DBoundingBox(const DBoundingBox &rhs))
+	BB2 bb(DPosition<2>(1,2),DPosition<2>(3,4));
+	BB2 bb_copy(bb);
+	TEST_REAL_SIMILAR(bb.min()[0],bb_copy.min()[0]);
+	TEST_REAL_SIMILAR(bb.min()[1],bb_copy.min()[1]);
+	TEST_REAL_SIMILAR(bb.max()[0],bb_copy.max()[0]);
+	TEST_REAL_SIMILAR(bb.max()[1],bb_copy.max()[1]);
+END_SECTION
+
+START_SECTION(DBoundingBox& operator=(const DBoundingBox &rhs))
+	BB2 bb(DPosition<2>(1,2),DPosition<2>(3,4));
+	BB2 bb_copy;
+	bb_copy = bb;
+	TEST_REAL_SIMILAR(bb.min()[0],bb_copy.min()[0]);
+	TEST_REAL_SIMILAR(bb.min()[1],bb_copy.min()[1]);
+	TEST_REAL_SIMILAR(bb.max()[0],bb_copy.max()[0]);
+	TEST_REAL_SIMILAR(bb.max()[1],bb_copy.max()[1]);
+END_SECTION
+
+START_SECTION(DBoundingBox& operator=(const Base &rhs))
+	BB2::Base bb(DPosition<2>(1,2),DPosition<2>(3,4));
+	BB2 bb_copy;
+	bb_copy = bb;
+	TEST_REAL_SIMILAR(bb.min()[0],bb_copy.min()[0]);
+	TEST_REAL_SIMILAR(bb.min()[1],bb_copy.min()[1]);
+	TEST_REAL_SIMILAR(bb.max()[0],bb_copy.max()[0]);
+	TEST_REAL_SIMILAR(bb.max()[1],bb_copy.max()[1]);
+END_SECTION
 
 START_SECTION(bool isEmpty() const)
-  // TODO what is this test doing anyway?
-  // TEST_EQUAL(bb1,BB1::empty) // TODO cannot convert rhs to lhs type
-  TEST_EQUAL(BB1::empty,bb1)
-  // TEST_EQUAL(bb2,BB2::empty) // TODO cannot convert
-  TEST_EQUAL(BB2::empty,bb2)
+	BB2 bb;
+	bb = BB2::empty;
+	TEST_EQUAL(bb.isEmpty(),true);
+	bb = BB2::zero;
+	TEST_EQUAL(bb.isEmpty(),true);
+	bb = BB2(DPosition<2>(1,2),DPosition<2>(3,4));
+	TEST_EQUAL(bb.isEmpty(),false);
 END_SECTION
 
 START_SECTION(void enlarge(const PositionType& p))
-  // TODO what is this test doing anyway?
-	bb2.enlarge(BB2::zero.min());
-  TEST_EQUAL(BB2::zero,bb2);
-	bb2.enlarge(BB2::empty.min());
-  //STATUS(bb2);
-	bb2.enlarge(BB2::empty.max());
-  //STATUS(bb2);
+  BB2 bb2h;
+  TEST_EQUAL(bb2h.encloses(11,13),false);
+  TEST_EQUAL(bb2h.encloses(10,1),false);
+  bb2h.enlarge(BB2::PositionType(11,13));
+  TEST_EQUAL(bb2h.encloses(11,13),true);
+  TEST_EQUAL(bb2h.encloses(10,1),false);
+  bb2h.enlarge(BB2::PositionType(9,0));
+  TEST_EQUAL(bb2h.encloses(11,13),true);
+  TEST_EQUAL(bb2h.encloses(10,1),true);
 END_SECTION
 
-BB2 bb2h;
-
 START_SECTION((void enlarge(CoordinateType x, CoordinateType y)))
+  BB2 bb2h;
   TEST_EQUAL(bb2h.encloses(11,13),false);
   TEST_EQUAL(bb2h.encloses(10,1),false);
   bb2h.enlarge(11,13);
@@ -99,34 +137,18 @@ START_SECTION((void enlarge(CoordinateType x, CoordinateType y)))
   TEST_EQUAL(bb2h.encloses(10,1),true);
 END_SECTION
 
-BB2 bb2f(bb2);
-
 START_SECTION(bool operator == (const DBoundingBox& rhs) const)
-	TEST_EQUAL(bb2f==bb2,true);
+	BB2 bb2;
+  bb2.enlarge(9,0);
+	BB2 bb2_copy(bb2);
+	TEST_EQUAL(bb2==bb2_copy,true);
 END_SECTION
 
 START_SECTION(bool operator == (const Base& rhs) const)
-	BB2::Base base(bb2);
-	TEST_EQUAL(bb2f==base,true);
-END_SECTION
-
-START_SECTION(DBoundingBox& operator=(const DBoundingBox &rhs))
-	bb2 = BB2::zero;
-  TEST_EQUAL(bb2.isEmpty(),false);
-  bb2 = BB2::empty;
-  TEST_EQUAL(bb2.isEmpty(),true);
-END_SECTION
-
-START_SECTION(DBoundingBox& operator=(const Base &rhs))
-	bb2 = BB2::Base::zero;
-  TEST_EQUAL(bb2.isEmpty(),false);
-  bb2 = BB2::Base::empty;
-  TEST_EQUAL(bb2.isEmpty(),true);
-END_SECTION
-
-START_SECTION(DBoundingBox(const DBoundingBox& bounding_box))
-	BB2 bb2b(bb2);
-  TEST_EQUAL(bb2b,bb2);
+	BB2 bb2;
+  bb2.enlarge(9,0);
+	BB2::Base bb2_copy_base(bb2);
+	TEST_EQUAL(bb2==bb2_copy_base,true);
 END_SECTION
 
 START_SECTION((bool encloses(CoordinateType x, CoordinateType y) const))
@@ -163,7 +185,35 @@ TEST_EQUAL(tmp.encloses(300,400),true);
 END_SECTION
 
 START_SECTION(bool encloses(const PositionType& position) const)
-  // see above :-P
+BB2 tmp;
+tmp.setMinX( 100 );
+tmp.setMinY( 200 );
+tmp.setMaxX( 300 );
+tmp.setMaxY( 400 );
+TEST_EQUAL(tmp.encloses(BB2::PositionType(10,200)),false);
+TEST_EQUAL(tmp.encloses(BB2::PositionType(100,200)),true);
+TEST_EQUAL(tmp.encloses(BB2::PositionType(200,200)),true);
+TEST_EQUAL(tmp.encloses(BB2::PositionType(300,200)),true);
+TEST_EQUAL(tmp.encloses(BB2::PositionType(310,200)),false);
+
+TEST_EQUAL(tmp.encloses(BB2::PositionType(10,400)),false);
+TEST_EQUAL(tmp.encloses(BB2::PositionType(100,400)),true);
+TEST_EQUAL(tmp.encloses(BB2::PositionType(200,400)),true);
+TEST_EQUAL(tmp.encloses(BB2::PositionType(300,400)),true);
+TEST_EQUAL(tmp.encloses(BB2::PositionType(310,400)),false);
+
+TEST_EQUAL(tmp.encloses(BB2::PositionType(200,190)),false);
+TEST_EQUAL(tmp.encloses(BB2::PositionType(200,200)),true);
+TEST_EQUAL(tmp.encloses(BB2::PositionType(200,300)),true);
+TEST_EQUAL(tmp.encloses(BB2::PositionType(200,400)),true);
+TEST_EQUAL(tmp.encloses(BB2::PositionType(200,410)),false);
+
+TEST_EQUAL(tmp.encloses(BB2::PositionType(0,0)),false);
+
+TEST_EQUAL(tmp.encloses(BB2::PositionType(100,200)),true);
+TEST_EQUAL(tmp.encloses(BB2::PositionType(300,200)),true);
+TEST_EQUAL(tmp.encloses(BB2::PositionType(100,400)),true);
+TEST_EQUAL(tmp.encloses(BB2::PositionType(300,400)),true);
 END_SECTION
 
 START_SECTION(bool intersects(const DBoundingBox& bounding_box) const)
@@ -273,25 +323,6 @@ START_SECTION(bool intersects(const DBoundingBox& bounding_box) const)
 	r3.setMaxX(5.0f);
 	r3.setMaxY(5.0f);
 	TEST_EQUAL(r2.intersects(r3),true)
-END_SECTION
-
-START_SECTION(DBoundingBox(const PositionType& minimum, const PositionType& maximum))
-{
-	DPosition<1> min(2), max(5);
-	BB1 bb(min,max);
-	TEST_REAL_SIMILAR(bb.min()[0], 2);
-	TEST_REAL_SIMILAR(bb.max()[0], 5);
-}
-END_SECTION
-
-START_SECTION(DBoundingBox(const DBoundingBox &rhs))
-{
-	DPosition<1> min(2), max(5);
-	BB1 bb(min,max);
-	BB1 bb_copy(bb);
-	TEST_REAL_SIMILAR(bb_copy.min()[0], 2);
-	TEST_REAL_SIMILAR(bb_copy.max()[0], 5);
-}
 END_SECTION
 
 START_SECTION((template <UInt D> std::ostream & operator<<(std::ostream &os, const DBoundingBox< D > &bounding_box)))
