@@ -99,7 +99,7 @@ namespace OpenMS
 					// if max_ == min_ there is only one bin
 					if (max_ != min_)
 					{
-						bins_ = std::vector<ValueType>(Size(ceil((double(max_)-double(min_))/double(bin_size_))),0);
+						bins_ = std::vector<ValueType>(Size(ceil((max_-min_)/bin_size_)),0);
 					}
 					else
 					{
@@ -191,12 +191,16 @@ namespace OpenMS
 	
 			/**
 			  @brief increases the bin corresponding to value @p val by @p increment
-
+				
+				@return The index of the increased bin.
+				
 			  @exception Exception::OutOfRange is thrown if the value is out of valid range
 			*/
-			void inc(BinSizeType val, ValueType increment=1)
+			Size inc(BinSizeType val, ValueType increment=1)
 			{
-			  bins_[valToBin_(val)]+=increment;
+				Size bin_index = valToBin_(val);
+			  bins_[bin_index]+=increment;
+			  return bin_index;
 			}
 	
 			/**
@@ -299,7 +303,7 @@ namespace OpenMS
 				}
 				else
 				{
-					return (Size) floor ( (double(val)-double(min_)) / (double(max_)-double(min_)) * bins_.size() );
+					return (Size) floor ( (val-min_) / (max_-min_) * bins_.size() );
 				}				
 			}
 		};

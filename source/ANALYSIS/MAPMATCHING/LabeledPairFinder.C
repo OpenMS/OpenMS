@@ -130,33 +130,25 @@ namespace OpenMS
 					cout << "Warning: Found only " << dists.size() << " pairs. The estimated shift and std deviation are probably not reliable!" << endl;
 				}
 				//--------------------------- estimate initial parameters of fit ---------------------------
-				cout << "WARNING - dists.size: " << dists.size() << endl;
 				GaussFitter::GaussFitResult result;
 				//first estimate of the optimal shift: median of the distances
 				sort(dists.begin(),dists.end());
 				Size median_index = dists.size()/2; 
 				result.x0 = dists[median_index];
-				cout << "WARNING - estimated optimal shift: " << result.x0 << endl;
 				//create histogram of distances
 				//consider only the maximum of pairs, centered around the optimal shift
 				Size max_pairs = model_ref.size()/2;
-				cout << "WARNING - max_pairs: " << max_pairs << endl;
 				Size start_index = (Size) max((SignedSize)0,(SignedSize)(median_index - max_pairs/2));
 				Size end_index = (Size) min((SignedSize)(dists.size()-1),(SignedSize)(median_index + max_pairs/2));
-				cout << "WARNING - start_index: " << start_index << endl;
-				cout << "WARNING - end_index: " << end_index << endl;
 				DoubleReal start_value = dists[start_index];
 				DoubleReal end_value = dists[end_index];
-				cout << "WARNING - start_value: " << start_value << endl;
-				cout << "WARNING - end_value: " << end_value << endl;
 				DoubleReal bin_step = fabs(end_value-start_value)/100;
 				Math::Histogram<> hist(start_value,end_value,bin_step);
 				//std::cout << "Histogram from " << start_value << " to " << end_value << " (bin size " << bin_step << ")" << endl;
 				for (Size i=start_index; i<=end_index; ++i)
 				{
-					hist.inc(dists[i]);
+					std::cout << "DIST  " << dists[i] << " => " << hist.inc(dists[i]) << endl;
 				}
-				std::cout << hist << endl;
 				dists.clear();
 				//determine median of bins (uniform background distribution)
 				vector<Size> bins(hist.begin(),hist.end());

@@ -102,20 +102,28 @@ START_SECTION((ValueType operator [] (Size index) const))
 	TEST_EXCEPTION(Exception::IndexOverflow, d[5])
 END_SECTION
 
-START_SECTION((void inc(BinSizeType val, ValueType increment=1)))
+START_SECTION((Size inc(BinSizeType val, ValueType increment=1)))
+	Size bin_index = 123456;
 	TEST_EXCEPTION(Exception::OutOfRange, d.inc(3.9f, 250.3f))
 	TEST_EXCEPTION(Exception::OutOfRange, d.inc(14.1f, 250.3f))
-	d.inc(4.0f, 1.0);
-	d.inc(5.9f, 1.0);
+		
+	bin_index = d.inc(4.0f, 1.0);
+	TEST_EQUAL(bin_index,0);
+	bin_index = d.inc(5.9f, 1.0);
+	TEST_EQUAL(bin_index,0);
+	
 	TEST_REAL_SIMILAR(d[0],2.0);
 	TEST_REAL_SIMILAR(d[1],0.0);
 	TEST_REAL_SIMILAR(d[2],0.0);
 	TEST_REAL_SIMILAR(d[3],0.0);
 	TEST_REAL_SIMILAR(d[4],0.0);
 	
-	d.inc(8.0f, 45.0);
-	d.inc(8.1f, 1.0);
-	d.inc(9.9f, 4.0);
+	bin_index = d.inc(8.0f, 45.0);
+	TEST_EQUAL(bin_index,2);
+	bin_index = d.inc(8.1f, 1.0);
+	TEST_EQUAL(bin_index,2);
+	bin_index = d.inc(9.9f, 4.0);
+	TEST_EQUAL(bin_index,2);
 
 	TEST_REAL_SIMILAR(d[0],2.0);
 	TEST_REAL_SIMILAR(d[1],0.0);
@@ -123,9 +131,12 @@ START_SECTION((void inc(BinSizeType val, ValueType increment=1)))
 	TEST_REAL_SIMILAR(d[3],0.0);
 	TEST_REAL_SIMILAR(d[4],0.0);
 
-	d.inc(12.0f, 1.0);
-	d.inc(13.1f, 2.0);
-	d.inc(14.0f, 3.0);	
+	bin_index = d.inc(12.0f, 1.0);
+	TEST_EQUAL(bin_index,4);
+	bin_index = d.inc(13.1f, 2.0);
+	TEST_EQUAL(bin_index,4);
+	bin_index = d.inc(14.0f, 3.0);	
+	TEST_EQUAL(bin_index,4);
 
 	TEST_REAL_SIMILAR(d[0],2.0);
 	TEST_REAL_SIMILAR(d[1],0.0);
