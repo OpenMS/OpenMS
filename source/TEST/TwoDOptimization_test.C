@@ -134,28 +134,28 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   peaks.getMetaDataArrays()[1].setName("maximumIntensity");
   peaks.getMetaDataArrays()[1].push_back(100.); //area
   peaks.getMetaDataArrays()[3].setName("leftWidth");
-	peaks.getMetaDataArrays()[3].push_back(2.5); //left width
+	peaks.getMetaDataArrays()[3].push_back(2.5f); //left width
   peaks.getMetaDataArrays()[4].setName("rightWidth");
-	peaks.getMetaDataArrays()[4].push_back(2.6); //right width
+	peaks.getMetaDataArrays()[4].push_back(2.6f); //right width
   peaks.getMetaDataArrays()[5].setName("peakShape");
 	peaks.getMetaDataArrays()[5].push_back(0); //shape
   peaks.getMetaDataArrays()[1].push_back(100.); //area
-	peaks.getMetaDataArrays()[3].push_back(2.5); //left width
-	peaks.getMetaDataArrays()[4].push_back(2.5); //right width
+	peaks.getMetaDataArrays()[3].push_back(2.5f); //left width
+	peaks.getMetaDataArrays()[4].push_back(2.5f); //right width
 	peaks.getMetaDataArrays()[5].push_back(0); //shape
   MSSpectrum<> peaks2;
   peaks2.getMetaDataArrays().resize(6);
   peaks2.getMetaDataArrays()[1].setName("maximumIntensity");
   peaks2.getMetaDataArrays()[1].push_back(100.); //area
   peaks2.getMetaDataArrays()[3].setName("leftWidth");
-	peaks2.getMetaDataArrays()[3].push_back(2.5); //left width
+	peaks2.getMetaDataArrays()[3].push_back(2.5f); //left width
   peaks2.getMetaDataArrays()[4].setName("rightWidth");
-	peaks2.getMetaDataArrays()[4].push_back(2.6); //right width
+	peaks2.getMetaDataArrays()[4].push_back(2.6f); //right width
   peaks2.getMetaDataArrays()[5].setName("peakShape");
 	peaks2.getMetaDataArrays()[5].push_back(0); //shape
   peaks2.getMetaDataArrays()[1].push_back(100.); //area
-	peaks2.getMetaDataArrays()[3].push_back(2.5); //left width
-	peaks2.getMetaDataArrays()[4].push_back(2.5); //right width
+	peaks2.getMetaDataArrays()[3].push_back(2.5f); //left width
+	peaks2.getMetaDataArrays()[4].push_back(2.5f); //right width
 	peaks2.getMetaDataArrays()[5].push_back(0); //shape
 	
 	Peak1D peak;
@@ -184,7 +184,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
 	ms_exp.begin()->setRT(100);
 			
   float origin = 499;
-  float spacing = 0.1;
+  float spacing = 0.1f;
 
 	MSSpectrum<Peak1D >	 raw_spec;
   for (Size i = 0; i < 20 ;++i)

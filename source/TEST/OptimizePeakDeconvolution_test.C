@@ -105,7 +105,7 @@ START_SECTION((bool optimize(std::vector<PeakShape>& peaks,Int failure)))
   peak_shapes[0] = peak_shape;
 //  peak_shapes[1] = peak_shape;
   float origin = 499;
-  float spacing = 0.1;
+  float spacing = 0.1f;
  
 	OptimizationFunctions::positions_DC_.resize(20);
   OptimizationFunctions::signal_DC_.resize(20);

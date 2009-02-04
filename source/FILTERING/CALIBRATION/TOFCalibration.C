@@ -63,7 +63,7 @@ namespace OpenMS
 				// the actual quadratic fitting part
 				gsl_matrix *X, *cov;
 				gsl_vector *y, *c;
-				int n = exp_masses.size();
+				Size n = exp_masses.size();
 				if(n < 3)
 					{
 						continue;
@@ -81,7 +81,7 @@ namespace OpenMS
 				// matrix containing the covariances
 				cov = gsl_matrix_alloc (3, 3);
 				
-				for (int i = 0; i < n; i++)
+				for (Size i = 0; i < n; i++)
 					{
 						// get the flight time
 						double xi = ( (calib_peaks_ft_.begin() + spec)->begin() + monoiso_peaks_scan[i])->getMZ();
@@ -123,7 +123,7 @@ namespace OpenMS
 
 				
 				std::vector<double> errors;
-				for(int p = 0; p < n; ++p)
+				for(Size p = 0; p < n; ++p)
 					{
 #ifdef DEBUG_CALIBRATION
 						std::cout << exp_masses[p]

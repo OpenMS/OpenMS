@@ -142,9 +142,9 @@ namespace OpenMS
 		}
 
 		///Non-mutable access to the maximal number of iterations
-		inline Int getMaxIterations() const {return max_iteration_;}
+		inline UInt getMaxIterations() const {return max_iteration_;}
 		///Mutable access to the  maximal number of iterations
-		inline void setMaxIterations(Int max_iteration)
+		inline void setMaxIterations(UInt max_iteration)
 		{
 			max_iteration_ = max_iteration;
 			param_.setValue("iterations",max_iteration);
@@ -225,7 +225,7 @@ namespace OpenMS
 		DoubleReal eps_rel_;
 
 		/// Convergence Parameter: Maximal number of iterations 
-		Int max_iteration_;
+		UInt max_iteration_;
 
 		/// Optimization considering all scans of a cluster or optimization of each scan separately
 		bool real_2D_;
@@ -348,7 +348,7 @@ namespace OpenMS
 		DoubleReal mz_in_hash   = 0;			// used as reference to the current isotopic peak			
 	
 		// sweep through scans
-		for (Size curr_scan =0; ms_exp_it+curr_scan != ms_exp_it_end;++curr_scan)
+		for (UInt curr_scan =0; ms_exp_it+curr_scan != ms_exp_it_end;++curr_scan)
 			{
 				Size nr_peaks_in_scan = (ms_exp_it +curr_scan)->size();
 				//last_rt = current_rt;
@@ -375,7 +375,7 @@ namespace OpenMS
 					{
 	      
 	  
-						for(Size curr_peak=0; peak_it+curr_peak < peak_it_last-1;++curr_peak)
+						for(UInt curr_peak=0; peak_it+curr_peak < peak_it_last-1;++curr_peak)
 							{
 		  
 								// store the m/z of the current peak
@@ -702,7 +702,7 @@ namespace OpenMS
 				std::cout << "Before optimization: ||f|| = " << gsl_blas_dnrm2(fit->f) << std::endl;
 #endif
 				// Iteration
-				Int iteration = 0;
+				UInt iteration = 0;
 				Int status;
 
 				do
@@ -836,7 +836,7 @@ namespace OpenMS
 // 			}
 		//		std::cout << "---------------------------------------------------------------\n\n\n\n";
 		
-    Size max_iteration;
+    UInt max_iteration;
     dv = param_.getValue("iterations");
     if (dv.isEmpty() || dv.toString() == "")
       max_iteration = 15;
@@ -909,19 +909,19 @@ namespace OpenMS
 						pair.first =  d.iso_map_iter->second.peaks.begin()->first + idx;
 
 						IsotopeCluster::IndexSet::const_iterator set_iter = lower_bound(d.iso_map_iter->second.peaks.begin(),
-																														d.iso_map_iter->second.peaks.end(),
-																														pair,IndexLess());
+																																						d.iso_map_iter->second.peaks.end(),
+																																						pair,IndexLess());
 
 
 						// find the last entry with this rt-value
 						++pair.first;
 						IsotopeCluster::IndexSet::const_iterator set_iter2 = lower_bound(d.iso_map_iter->second.peaks.begin(),
-																														 d.iso_map_iter->second.peaks.end(),
-																														 pair,IndexLess());
+																																						 d.iso_map_iter->second.peaks.end(),
+																																						 pair,IndexLess());
 
 						while(set_iter != set_iter2)
 							{
-								const UInt peak_index = set_iter->second;
+								const Size peak_index = set_iter->second;
 								const MSSpectrum<>& spec = ms_exp[set_iter->first];
 								PeakShape shape(spec[peak_index].getIntensity(),
 																spec[peak_index].getMZ(),

@@ -385,10 +385,11 @@ namespace OpenMS
 		std::vector<PeakShape> temp_shapes = peaks;
       
       
-		Int global_peak_number=0;
+		Size global_peak_number=0;
 
 		DoubleReal min(std::numeric_limits<double>::max());
-		Int best_charge,num_peaks;
+		Int best_charge;
+		Size num_peaks;
 		Size best_num_peaks;
 		gsl_vector *best_result=gsl_vector_alloc((Int)(2+2*OptimizationFunctions::peaks_DC_.size()));;
 
@@ -615,13 +616,13 @@ namespace OpenMS
     return true;
   }
 
-	Int OptimizePeakDeconvolution::getNumberOfPeaks_(Int charge, std::vector<PeakShape>& temp_shapes)
+	Size OptimizePeakDeconvolution::getNumberOfPeaks_(Int charge, std::vector<PeakShape>& temp_shapes)
 	{
 		DoubleReal dist = dist_/charge;
 
 		OptimizationFunctions::peaks_DC_.clear();
       
-		UInt shape=0;
+		Size shape=0;
 #ifdef DEBUG_DECONV
 		std::cout<<"temp_shapes[0].mz_position "<<temp_shapes[0].mz_position
 						 <<"\t dist "<<dist<<"\tp_index "<<shape<<std::endl;

@@ -171,7 +171,7 @@ namespace OpenMS
     static const DoubleReal dist_;
 
     /// A function to determine the number of peaks that lie in the current m/z interval given the distance between the peaks by the current charge state.
-    Int getNumberOfPeaks_(Int charge, std::vector<PeakShape>& temp_shapes);
+    Size getNumberOfPeaks_(Int charge, std::vector<PeakShape>& temp_shapes);
 
     // After each iteration the fwhm of all peaks is checked whether it isn't too large
     bool checkFWHM_(std::vector<PeakShape>& peaks,gsl_multifit_fdfsolver *& fit);

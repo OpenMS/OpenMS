@@ -661,7 +661,7 @@ namespace OpenMS
 		tolerance_mz_ = (DoubleReal)param_.getValue("2d:tolerance_mz");
 		eps_abs_= (DoubleReal)param_.getValue("delta_abs_error");
     eps_rel_= (DoubleReal)param_.getValue("delta_rel_error");
-		max_iteration_= (Int)param_.getValue("iterations");;
+		max_iteration_= (UInt)param_.getValue("iterations");;
 		
 	}
 
