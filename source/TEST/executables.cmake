@@ -123,8 +123,7 @@ set(format_executables_list
   MzXMLFile_test
   MzMLFile_test
   MzDataFile_test
-  Param_test_1
-  Param_test_2
+  Param_test
   FeatureXMLFile_test
   MascotXMLFile_test
   PeakFileOptions_test
