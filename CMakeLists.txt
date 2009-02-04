@@ -570,10 +570,10 @@ add_dependencies(UTILS ${UTILS_executables})
 set(OpenMS_doc_executables)
 include(doc/doxygen/parameters/executables.cmake)
 foreach(i ${OpenMS_doc_executables})
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "")
+	#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "")
 	add_executable(${i} EXCLUDE_FROM_ALL ${i}.C)
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
+	#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 endforeach(i)
 add_custom_target(doc_progs)
 add_dependencies(doc_progs ${OpenMS_doc_executables})
@@ -742,3 +742,23 @@ MESSAGE(STATUS "")
 # TODO: install (copy) directories?!
 # ...
 set(DO_INSTALL false CACHE BOOL "Set to 'ON' if you want the CMAKE_INSTALL_PREFIX to be used and the library to be installed. On 'OFF' the library and Tools will be build but not installed!")
+
+## CPack installation and packaging procedures
+install(TARGETS OpenMS LIBRARY DESTINATION lib)
+
+foreach(i ${UTILS_executables})
+        install(TARGETS ${i} RUNTIME DESTINATION bin)
+endforeach()
+
+foreach(i ${TOPP_executables})
+	install(TARGETS ${i} RUNTIME DESTINATION bin)
+endforeach()
+
+foreach(i ${OpenMS_sources})
+	install(FILES ${i} DESTINATION include)
+endforeach()
+#install(FILES ${CONFIGURED_CONFIG_H} DESTINATION include)
+
+# most of the interesting CPack stuff is done below
+include(OpenMSCPack.cmake)
+
