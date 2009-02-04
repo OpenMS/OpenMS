@@ -282,7 +282,7 @@ namespace OpenMS
 		}
 		else if (tag=="hullpoint")
 		{
-			hull_position_ = DPosition<2>::zero;
+			hull_position_ = DPosition<2>::zero();
 		}
 		else if (tag=="model")
 		{

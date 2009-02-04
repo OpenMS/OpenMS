@@ -68,8 +68,8 @@ START_SECTION((DSpectrum()))
 	ptr = new DSpectrum3;
 	TEST_NOT_EQUAL(ptr, 0)
 
-	TEST_EQUAL(ptr->getMin(), DSpectrum3::PositionType::max)
-	TEST_EQUAL(ptr->getMax(), DSpectrum3::PositionType::min_negative)
+	TEST_EQUAL(ptr->getMin(), DSpectrum3::PositionType::max())
+	TEST_EQUAL(ptr->getMax(), DSpectrum3::PositionType::min_negative())
 	TEST_REAL_SIMILAR(ptr->getMinInt(), numeric_limits<DoubleReal>::max())
 	TEST_REAL_SIMILAR(ptr->getMaxInt(), -numeric_limits<DoubleReal>::max())
 END_SECTION

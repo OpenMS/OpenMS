@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -210,47 +210,47 @@ END_SECTION
 START_SECTION((bool operator==(const DPosition &point) const))
 	DPosition<3> p1,p2;
 	TEST_EQUAL(p1==p2, true)
-	
+
 	p1[0]=1.234;
 	TEST_EQUAL(p1==p2, false)
 	p2[0]=1.234;
-	TEST_EQUAL(p1==p2, true)	
+	TEST_EQUAL(p1==p2, true)
 
 	p1[1]=1.345;
 	TEST_EQUAL(p1==p2, false)
 	p2[1]=1.345;
-	TEST_EQUAL(p1==p2, true)	
-	
+	TEST_EQUAL(p1==p2, true)
+
 	p1[2]=1.456;
 	TEST_EQUAL(p1==p2, false)
 	p2[2]=1.456;
-	TEST_EQUAL(p1==p2, true)	
+	TEST_EQUAL(p1==p2, true)
 END_SECTION
 
 START_SECTION((bool operator!=(const DPosition &point) const))
 	DPosition<3> p1,p2;
 	TEST_EQUAL(p1!=p2, false)
-	
+
 	p1[0]=1.234;
 	TEST_EQUAL(p1!=p2, true)
 	p2[0]=1.234;
-	TEST_EQUAL(p1!=p2, false)	
+	TEST_EQUAL(p1!=p2, false)
 
 	p1[1]=1.345;
 	TEST_EQUAL(p1!=p2, true)
 	p2[1]=1.345;
-	TEST_EQUAL(p1!=p2, false)	
-	
+	TEST_EQUAL(p1!=p2, false)
+
 	p1[2]=1.456;
 	TEST_EQUAL(p1!=p2, true)
 	p2[2]=1.456;
-	TEST_EQUAL(p1!=p2, false)	
+	TEST_EQUAL(p1!=p2, false)
 END_SECTION
 
 START_SECTION((bool operator<(const DPosition &point) const))
 	DPosition<3> p1,p2;
 	TEST_EQUAL(p1<p2, false)
-	
+
 	p1[0]=p2[0]-0.1;
 	TEST_EQUAL(p1<p2, true)
 	p2[0]=p1[0]-0.1;
@@ -273,7 +273,7 @@ END_SECTION
 START_SECTION((bool operator>(const DPosition &point) const))
 	DPosition<3> p1,p2;
 	TEST_EQUAL(p1>p2, false)
-	
+
 	p1[0]=p2[0]-0.1;
 	TEST_EQUAL(p1>p2, false)
 	p2[0]=p1[0]-0.1;
@@ -284,7 +284,7 @@ END_SECTION
 START_SECTION((bool operator>=(const DPosition &point) const))
 	DPosition<3> p1,p2;
 	TEST_EQUAL(p1>=p2, true)
-	
+
 	p1[0]=p2[0]-0.1;
 	TEST_EQUAL(p1>=p2, false)
 	p2[0]=p1[0]-0.1;
@@ -295,7 +295,7 @@ END_SECTION
 START_SECTION((bool operator<=(const DPosition &point) const))
 	DPosition<3> p1,p2;
 	TEST_EQUAL(p1<=p2, true)
-	
+
 	p1[0]=p2[0]-0.1;
 	TEST_EQUAL(p1<=p2, true)
 	p2[0]=p1[0]-0.1;
@@ -305,7 +305,7 @@ END_SECTION
 START_SECTION((DPosition operator-() const))
   DPosition<3> p1, p2;
   p1[0] = 5.0;
-	p2 = -p1;  
+	p2 = -p1;
   TEST_EQUAL(p1!=p2, true);
 	p2 = -p2;
 	TEST_EQUAL(p1==p2, true);
@@ -369,7 +369,7 @@ START_SECTION((void setY(CoordinateType c)))
 	DPosition<2> p1(11.0f,12.1f);
 	p1.setY(5.0f);
 	TEST_REAL_SIMILAR(p1[0],11.0f);
-	TEST_REAL_SIMILAR(p1[1],5.0f);	
+	TEST_REAL_SIMILAR(p1[1],5.0f);
 END_SECTION
 
 START_SECTION((DPosition& operator *=(CoordinateTypescalar)))
@@ -412,17 +412,17 @@ START_SECTION((bool spatiallyGreaterEqual(const DPosition &point) const))
 	TEST_EQUAL(p00.spatiallyGreaterEqual(p01), false)
 	TEST_EQUAL(p00.spatiallyGreaterEqual(p10), false)
 	TEST_EQUAL(p00.spatiallyGreaterEqual(p11), false)
-	
+
 	TEST_EQUAL(p01.spatiallyGreaterEqual(p00), true )
 	TEST_EQUAL(p01.spatiallyGreaterEqual(p01), true )
 	TEST_EQUAL(p01.spatiallyGreaterEqual(p10), false)
 	TEST_EQUAL(p01.spatiallyGreaterEqual(p11), false)
-	
+
 	TEST_EQUAL(p10.spatiallyGreaterEqual(p00), true )
 	TEST_EQUAL(p10.spatiallyGreaterEqual(p01), false)
 	TEST_EQUAL(p10.spatiallyGreaterEqual(p10), true )
 	TEST_EQUAL(p10.spatiallyGreaterEqual(p11), false)
-	
+
 	TEST_EQUAL(p11.spatiallyGreaterEqual(p00), true )
 	TEST_EQUAL(p11.spatiallyGreaterEqual(p01), true )
 	TEST_EQUAL(p11.spatiallyGreaterEqual(p10), true )
@@ -435,23 +435,42 @@ START_SECTION((bool spatiallyLessEqual(const DPosition &point) const))
 	TEST_EQUAL(p00.spatiallyLessEqual(p01), true )
 	TEST_EQUAL(p00.spatiallyLessEqual(p10), true )
 	TEST_EQUAL(p00.spatiallyLessEqual(p11), true )
-	
+
 	TEST_EQUAL(p01.spatiallyLessEqual(p00), false)
 	TEST_EQUAL(p01.spatiallyLessEqual(p01), true )
 	TEST_EQUAL(p01.spatiallyLessEqual(p10), false)
 	TEST_EQUAL(p01.spatiallyLessEqual(p11), true )
-	
+
 	TEST_EQUAL(p10.spatiallyLessEqual(p00), false)
 	TEST_EQUAL(p10.spatiallyLessEqual(p01), false)
 	TEST_EQUAL(p10.spatiallyLessEqual(p10), true )
 	TEST_EQUAL(p10.spatiallyLessEqual(p11), true )
-	
+
 	TEST_EQUAL(p11.spatiallyLessEqual(p00), false)
 	TEST_EQUAL(p11.spatiallyLessEqual(p01), false)
 	TEST_EQUAL(p11.spatiallyLessEqual(p10), false)
 	TEST_EQUAL(p11.spatiallyLessEqual(p11), true )
 END_SECTION
 
+START_SECTION((inline static const DPosition zero()))
+  typedef DPosition<1> D1;
+  TEST_EQUAL(D1::zero()[0],0);
+END_SECTION
+
+START_SECTION((inline static const DPosition min()))
+  typedef DPosition<1> D1;
+  TEST_EQUAL(D1::min()[0],std::numeric_limits<D1::CoordinateType>::min());
+END_SECTION
+
+START_SECTION((inline static const DPosition min_negative()))
+  typedef DPosition<1> D1;
+  TEST_EQUAL(D1::min_negative()[0],-std::numeric_limits<D1::CoordinateType>::max());
+END_SECTION
+
+START_SECTION((inline static const DPosition max()))
+  typedef DPosition<1> D1;
+  TEST_EQUAL(D1::max()[0],std::numeric_limits<D1::CoordinateType>::max());
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

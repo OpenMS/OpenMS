@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -40,7 +40,7 @@ START_TEST(DIntervalBase, "$Id$")
 using namespace OpenMS;
 using namespace OpenMS::Internal;
 using namespace std;
-	
+
 //1D check
 DIntervalBase<1>* ptr1 = 0;
 
@@ -77,21 +77,21 @@ p2[0]=65.0;
 p2[1]=-57.5;
 
 START_SECTION((PositionType const& max() const))
-  TEST_EQUAL(empty.max(),I2Pos::min_negative);
+  TEST_EQUAL(empty.max(),I2Pos::min_negative());
 END_SECTION
 
 START_SECTION((PositionType const& min() const))
-  TEST_EQUAL(empty.min(),I2Pos::max);
+  TEST_EQUAL(empty.min(),I2Pos::max());
 END_SECTION
 
 START_SECTION([EXTRA] empty)
-  TEST_EQUAL(empty.max(),I2Pos::min_negative);
-  TEST_EQUAL(empty.min(),I2Pos::max);
+  TEST_EQUAL(empty.max(),I2Pos::min_negative());
+  TEST_EQUAL(empty.min(),I2Pos::max());
 END_SECTION
 
 START_SECTION([EXTRA] zero)
-  TEST_EQUAL(I2::zero.max(),I2Pos::zero);
-  TEST_EQUAL(I2::zero.min(),I2Pos::zero);
+  TEST_EQUAL(I2::zero.max(),I2Pos::zero());
+  TEST_EQUAL(I2::zero.min(),I2Pos::zero());
 END_SECTION
 
 START_SECTION((void setMinMax(PositionType const & min, PositionType const & max)))
@@ -131,7 +131,7 @@ START_SECTION((bool operator==(const DIntervalBase &rhs) const ))
 	I2 tmp;
 	TEST_EQUAL(tmp==tmp,true);
 	TEST_EQUAL(tmp==empty,true);
-	
+
 	tmp.setMax(p1);
 	TEST_EQUAL(tmp==empty,false);
 END_SECTION
@@ -140,7 +140,7 @@ START_SECTION((bool operator!=(const DIntervalBase &rhs) const ))
 	I2 tmp;
 	TEST_EQUAL(tmp!=tmp,false);
 	TEST_EQUAL(tmp!=empty,false);
-	
+
 	tmp.setMax(p1);
 	TEST_EQUAL(tmp!=empty,true);
 END_SECTION

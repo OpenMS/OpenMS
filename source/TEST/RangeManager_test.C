@@ -2,7 +2,7 @@
 // vi: set ts=2:
 //
 // --------------------------------------------------------------------------
-//                   OpenMS Mass Spectrometry Framework 
+//                   OpenMS Mass Spectrometry Framework
 // --------------------------------------------------------------------------
 //  Copyright (C) 2003-2008 -- Oliver Kohlbacher, Knut Reinert
 //
@@ -43,46 +43,46 @@ class RM
 		RM()
 			: RangeManager<2>()
 		{
-			
+
 		}
-	
+
 		RM(const RM& rhs)
 			: RangeManager<2>(rhs)
 		{
-			
+
 		}
-	
+
 		RM& operator = (const RM& rhs)
 		{
 			if (this==&rhs) return *this;
-			
+
 			RangeManager<2>::operator=(rhs);
-			
+
 			return *this;
 		}
-	
+
 		bool operator == (const RM& rhs) const
 		{
 			return
 				RangeManager<2>::operator==(rhs);
-				;				
+				;
 		}
-		
+
 		bool operator != (const RM& rhs) const
 		{
 			return !(operator==(rhs));
 		}
-	
+
 		virtual void updateRanges()
 		{
 			std::vector<Peak2D > vec;
 			Peak2D tmp;
-			
+
 			tmp.getPosition()[0] = 2.0;
 			tmp.getPosition()[1] = 500.0;
 			tmp.setIntensity(1.0f);
 			vec.push_back(tmp);
-			
+
 			tmp.getPosition()[0] = 100.0;
 			tmp.getPosition()[1] = 1300.0;
 			tmp.setIntensity(47110.0);
@@ -92,7 +92,7 @@ class RM
 			tmp.getPosition()[1] = 500.0;
 			tmp.setIntensity(1.0f);
 			vec.push_back(tmp);
-			
+
 			clearRanges();
 			updateRanges_(vec.begin(), vec.end());
 		}
@@ -101,16 +101,16 @@ class RM
 		{
 			std::vector<Peak2D > vec;
 			Peak2D tmp;
-			
+
 			tmp.getPosition()[0] = 2.0;
 			tmp.getPosition()[1] = 500.0;
 			tmp.setIntensity(1.0f);
 			vec.push_back(tmp);
-			
+
 			clearRanges();
 			updateRanges_(vec.begin(), vec.end());
 		}
-		
+
 }; // class RM
 
 START_TEST(RangeManager, "RangeManager")
@@ -129,11 +129,11 @@ START_SECTION((virtual ~RangeManager()))
 END_SECTION
 
 START_SECTION((const PositionType& getMin() const))
-	TEST_EQUAL(RM().getMin(), RM::PositionType::max)
+	TEST_EQUAL(RM().getMin(), RM::PositionType::max())
 END_SECTION
 
 START_SECTION((const PositionType& getMax() const))
-	TEST_EQUAL(RM().getMax(), RM::PositionType::min_negative)
+	TEST_EQUAL(RM().getMax(), RM::PositionType::min_negative())
 END_SECTION
 
 START_SECTION((DoubleReal getMinInt() const ))
@@ -146,26 +146,26 @@ END_SECTION
 
 START_SECTION((virtual void updateRanges()=0))
 	RM rm;
-	
+
 	rm.updateRanges();
 	rm.updateRanges(); //second time to check the initialization
-	
+
 	TEST_REAL_SIMILAR(rm.getMin()[0], 2.0)
 	TEST_REAL_SIMILAR(rm.getMin()[1], 500.0)
 	TEST_REAL_SIMILAR(rm.getMax()[0], 100.0)
 	TEST_REAL_SIMILAR(rm.getMax()[1], 1300.0)
 	TEST_REAL_SIMILAR(rm.getMinInt(), 1.0)
-	TEST_REAL_SIMILAR(rm.getMaxInt(), 47110.0)	
+	TEST_REAL_SIMILAR(rm.getMaxInt(), 47110.0)
 
 	//test with only one point
 	rm.updateRanges2(); //second time to check the initialization
-	
+
 	TEST_REAL_SIMILAR(rm.getMin()[0], 2.0)
 	TEST_REAL_SIMILAR(rm.getMin()[1], 500.0)
 	TEST_REAL_SIMILAR(rm.getMax()[0], 2.0)
 	TEST_REAL_SIMILAR(rm.getMax()[1], 500.0)
 	TEST_REAL_SIMILAR(rm.getMinInt(), 1.0)
-	TEST_REAL_SIMILAR(rm.getMaxInt(), 1.0)	
+	TEST_REAL_SIMILAR(rm.getMaxInt(), 1.0)
 END_SECTION
 
 START_SECTION((void clearRanges()))
@@ -177,10 +177,10 @@ START_SECTION((void clearRanges()))
 	TEST_REAL_SIMILAR(rm.getMax()[1], 1300.0)
 	TEST_REAL_SIMILAR(rm.getMinInt(), 1.0)
 	TEST_REAL_SIMILAR(rm.getMaxInt(), 47110.0)
-	
+
 	rm.clearRanges();
-	TEST_EQUAL(RM().getMin(), RM::PositionType::max)
-	TEST_EQUAL(RM().getMax(), RM::PositionType::min_negative)
+	TEST_EQUAL(RM().getMin(), RM::PositionType::max())
+	TEST_EQUAL(RM().getMax(), RM::PositionType::min_negative())
 	TEST_REAL_SIMILAR(RM().getMinInt(), numeric_limits<DoubleReal>::max())
 	TEST_REAL_SIMILAR(RM().getMaxInt(), -numeric_limits<DoubleReal>::max())
 END_SECTION
@@ -194,7 +194,7 @@ START_SECTION((RangeManager(const RangeManager& rhs)))
 	TEST_REAL_SIMILAR(rm.getMax()[0], 100.0)
 	TEST_REAL_SIMILAR(rm.getMax()[1], 1300.0)
 	TEST_REAL_SIMILAR(rm.getMinInt(), 1.0)
-	TEST_REAL_SIMILAR(rm.getMaxInt(), 47110.0)		
+	TEST_REAL_SIMILAR(rm.getMaxInt(), 47110.0)
 END_SECTION
 
 START_SECTION((RangeManager& operator = (const RangeManager& rhs)))
@@ -207,7 +207,7 @@ START_SECTION((RangeManager& operator = (const RangeManager& rhs)))
 	TEST_REAL_SIMILAR(rm.getMax()[0], 100.0)
 	TEST_REAL_SIMILAR(rm.getMax()[1], 1300.0)
 	TEST_REAL_SIMILAR(rm.getMinInt(), 1.0)
-	TEST_REAL_SIMILAR(rm.getMaxInt(), 47110.0)	
+	TEST_REAL_SIMILAR(rm.getMaxInt(), 47110.0)
 END_SECTION
 
 START_SECTION((bool operator == (const RangeManager& rhs) const))

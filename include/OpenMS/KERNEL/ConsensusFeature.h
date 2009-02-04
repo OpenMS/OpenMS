@@ -40,14 +40,14 @@ namespace OpenMS
 {
 	/**
 		@brief A 2-dimensional consensus feature.
-	
+
 		A consensus feature represents corresponding features in multiple feature
 		maps. The corresponding features are represented a set of @ref
 		FeatureHandle instances.  Each ConsensusFeature "contains" zero or more
 		FeatureHandles.
-	
+
 		@see ConsensusMap
-	
+
 		@ingroup Kernel
 	*/
 	class OPENMS_DLLAPI ConsensusFeature
@@ -225,7 +225,7 @@ namespace OpenMS
 			quality_ = rhs.quality_;
 			charge_ = rhs.charge_;
 			peptide_identifications_ =  rhs.peptide_identifications_;
-			
+
 			return *this;
 		}
 
@@ -263,7 +263,7 @@ namespace OpenMS
 
 		/**
 			@brief Creates a FeatureHandle and adds it
-	
+
 			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
 		void insert(Size map_index, Size element_index, const Peak2D& element)
@@ -273,7 +273,7 @@ namespace OpenMS
 
 		/**
 			@brief Creates a FeatureHandle and adds it
-	
+
 			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
 		void insert(Size map_index, Size element_index, const Feature& element)
@@ -284,7 +284,7 @@ namespace OpenMS
 
 		/**
 			@brief Creates a FeatureHandle and adds it
-	
+
 			@exception Exception::InvalidValue is thrown if a handle with the same map and element index already exists.
 		*/
 		void insert(Size map_index, Size element_index, const ConsensusFeature& element)
@@ -325,8 +325,8 @@ namespace OpenMS
 		/// Returns the position range of the contained elements
 		DRange<2> getPositionRange() const
 		{
-			DPosition<2> min = DPosition<2>::max;
-			DPosition<2> max = DPosition<2>::min;
+			DPosition<2> min = DPosition<2>::max();
+			DPosition<2> max = DPosition<2>::min();
 			for (ConsensusFeature::HandleSetType::const_iterator it = begin(); it != end(); ++it)
 			{
 				if (it->getRT()<min[0]) min[0]=it->getRT();
@@ -339,8 +339,8 @@ namespace OpenMS
 		/// Returns the intensity range of the contained elements
 		DRange<1> getIntensityRange() const
 		{
-			DPosition<1> min = DPosition<1>::max;
-			DPosition<1> max = DPosition<1>::min;
+			DPosition<1> min = DPosition<1>::max();
+			DPosition<1> max = DPosition<1>::min();
 			for (ConsensusFeature::HandleSetType::const_iterator it = begin(); it != end(); ++it)
 			{
 				if (it->getIntensity()<min[0]) min[0]=it->getIntensity();

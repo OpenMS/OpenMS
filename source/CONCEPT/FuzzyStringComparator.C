@@ -561,7 +561,6 @@ namespace OpenMS
 			// read the next line in both input streams, skipping over 
 			// - empty lines
 			// - lines consisting of whitespace only
-			// - XML stylesheet lines (xml-stylesheet)
 
 			for ( line_str_1.clear(); ++line_num_1_, std::getline(input_1,line_str_1); )
 			{
