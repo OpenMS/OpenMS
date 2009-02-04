@@ -65,7 +65,9 @@ Param param;
 param.setValue("precursor_mass_tolerance",0.9);
 param.setValue("precursor_mass_tolerance_unit","Da");
 param.setValue("missed_cleavages",1);
-param.setValue("preprocessing:preprocessed_db_path",OPENMS_GET_TEST_DATA_PATH(""));
+std::string tmp_filename;
+NEW_TMP_FILE(tmp_filename);
+param.setValue("preprocessing:preprocessed_db_path",tmp_filename);
 ptr->setParameters(param);
 ptr->dbPreprocessing(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreprocessing_db.fasta"),true);
 	
@@ -96,7 +98,6 @@ END_SECTION
 
 START_SECTION(void loadPreprocessing())
 	PrecursorIonSelectionPreprocessing ldb;
-	param.setValue("preprocessing:preprocessed_db_path",OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreprocessing_db_0.9_Da_1_"));
   ldb.setParameters(param);
   ldb.loadPreprocessing();
   TEST_EQUAL(ldb.getProtMasses().size(),3)

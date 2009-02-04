@@ -101,11 +101,10 @@ protected:
 		registerStringOption_("ids","<idxml file>","","file containing results of identification (IdXML)");
 		registerIntOption_("num_precursors","<Int>",1,"number of precursors to be selected",false);
 		registerFlag_("load_preprocessing","The preprocessed db is loaded from file, not calculated.");
+		registerFlag_("store_preprocessing","The preprocessed db is stored.");
 		registerFlag_("simulation","Simulate the whole LC-MS/MS run.");
 		registerStringOption_("sim_results","<output file>","","File containing the results of the simulation run",false);
 		registerStringOption_("db_path","<db-file>","","db file",false);
-		registerStringOption_("type","<type>","","the precursor ion selection strategy");
-		setValidStrings_("type",StringList::create("IPS,DEX,Upshift,Downshift,SPS"));
     addEmptyLine_();
     registerSubsection_("algorithm","Settings for the compound list creation and rescoring.");
 
@@ -114,7 +113,7 @@ protected:
 	Param getSubsectionDefaults_(const String& /* section*/) const
   {
 		Param param = PrecursorIonSelectionPreprocessing().getDefaults();
-		param.insert("",PrecursorIonSelection().getDefaults().copy("min_pep_ids"));
+		param.insert("",PrecursorIonSelection().getDefaults().copy(""));
 		return param;
   }
 	 
@@ -133,14 +132,11 @@ protected:
 		bool simulation = getFlag_("simulation");
 		String sim_results = getStringOption_("sim_results");
 		bool load_preprocessing = getFlag_("load_preprocessing");
-		
+		bool store_preprocessing = getFlag_("store_preprocessing");
 		//-------------------------------------------------------------
     // init pis preprocessing
     //-------------------------------------------------------------
 		Param pisp_param = getParam_().copy("algorithm:",true);
-		pisp_param.remove("min_pep_ids"); // needed for selection, not for preprocessing
-		pisp_param.remove("type");
-		pisp_param.remove("max_iteration");
 		writeDebug_("Parameters passed to PrecursorIonSelectionPreprocessing", pisp_param,3);
     PrecursorIonSelectionPreprocessing pisp;
 		//    pisp.setLogType(log_type_);
@@ -153,19 +149,18 @@ protected:
 				printUsage_();
 				return ILLEGAL_PARAMETERS;
 			}
-		else pisp.dbPreprocessing(db_path,true);
+		else pisp.dbPreprocessing(db_path,store_preprocessing);
 	
 		
 		//-------------------------------------------------------------
     // init pis
     //-------------------------------------------------------------
 
-		Param pis_param = getParam_().copy("algorithm:",true);
-		pis_param.removeAll("preprocessing");
-		writeDebug_("Parameters passed to PrecursorIonSelection", pis_param,3);
+		pisp_param.removeAll("preprocessing");
+		writeDebug_("Parameters passed to PrecursorIonSelection", pisp_param,3);
     PrecursorIonSelection pis;
 		//    pis.setLogType(log_type_);
-		pis.setParameters(pis_param);
+		pis.setParameters(pisp_param);
 		
     //-------------------------------------------------------------
     // loading input

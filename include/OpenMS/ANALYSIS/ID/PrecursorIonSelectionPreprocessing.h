@@ -84,9 +84,9 @@ namespace OpenMS
 		DoubleReal getWeight(DoubleReal mass);
   protected:
 		/// saves the preprocessed db
-		void savePreprocessedDB_(String& path);
+		void savePreprocessedDB_(String db_path,String path);
 		/// loads the preprocessed db
-		void loadPreprocessedDB_(String& path);
+		void loadPreprocessedDB_(String path);
 
 		/// all tryptic masses of the distinct peptides in the database
 		std::vector<DoubleReal> masses_;

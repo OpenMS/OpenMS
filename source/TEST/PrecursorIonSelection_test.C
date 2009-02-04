@@ -118,6 +118,7 @@ START_SECTION( void simulateRun(FeatureMap<>& features,std::vector<PeptideIdenti
   NEW_TMP_FILE(tmp_filename);
   ptr->simulateRun(features,pep_ids,prot_ids,preprocessing,1,tmp_filename);
   ptr->sortByTotalScore(features);
+f_file.store("pis_features.featureXML",features);
   TEST_EQUAL(features[20].getMetaValue("shifted"),"both")
   TEST_REAL_SIMILAR(features[20].getMetaValue("msms_score"),27574.40625)
 END_SECTION

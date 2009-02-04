@@ -311,45 +311,30 @@ namespace OpenMS
 #endif
 					
 			}
-		// db-name__precursor_mass_tolerance___missed_cleavages__taxonomy
 		if(save)
 			{
-		 		// first check if preprocessed db already exists
-				String path = param_.getValue("preprocessing:preprocessed_db_path");
-				
-				// db-name__precursor_mass_tolerance_unit__missed_cleavages__taxonomy
-
-				Size pos1 = db_path.rfind("/") +1;
-				path += "/";
-				
-				// get db-name
-				Size pos2 = db_path.rfind(".");
-				String db_name = db_path.substr(pos1,pos2-pos1);
-				
-				std::stringstream ss;
-				ss << (DoubleReal)param_.getValue("precursor_mass_tolerance");
-				ss << "_";
-				ss << param_.getValue("precursor_mass_tolerance_unit");
-				ss << "_";
-				ss << (UInt)param_.getValue("missed_cleavages");
-				
-				path += db_name + "_" +ss.str() + "_" + (String)param_.getValue("preprocessing:taxonomy");
-				
-				savePreprocessedDB_(path);
-
+				savePreprocessedDB_(db_path,(String)param_.getValue("preprocessing:preprocessed_db_path"));
 			}
 
 	}
 
-	void PrecursorIonSelectionPreprocessing::savePreprocessedDB_(String& path)
+	void PrecursorIonSelectionPreprocessing::savePreprocessedDB_(String db_path,String path)
 	{
-		// first save protein_masses_map
 		std::ofstream out(path.c_str());
 		out.precision(10);
 		if (!out)
 			{
 				throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, path);
 			}
+		// header: db_name  precursor_mass_tolerance precursor_mass_tolerance_unit  taxonomy);
+		Size pos1 = db_path.rfind("/") +1;
+		// get db-name
+		Size pos2 = db_path.rfind(".");
+		String db_name = db_path.substr(pos1,pos2-pos1);
+		out << db_name <<"\t" <<param_.getValue("precursor_mass_tolerance")  << "\t"
+				<< param_.getValue("precursor_mass_tolerance_unit")
+				<< "\t"<< (String)param_.getValue("preprocessing:taxonomy");
+		// first save protein_masses_map
 		out << prot_masses_.size() <<std::endl;
 #ifdef PISP_DEBUG
 		std::cout << prot_masses_.size() << " "<<counter_.size() << " "<< bin_masses_.size()<< std::endl;
@@ -409,7 +394,7 @@ namespace OpenMS
 
 	}
 	
-	void PrecursorIonSelectionPreprocessing::loadPreprocessedDB_(String& path)
+	void PrecursorIonSelectionPreprocessing::loadPreprocessedDB_(String path)
 	{
 		// first get protein_masses_map
 		TextFile file;
