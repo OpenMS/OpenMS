@@ -142,24 +142,23 @@ namespace OpenMS
 				Size end_index = (Size) min((SignedSize)(dists.size()-1),(SignedSize)(median_index + max_pairs/2));
 				DoubleReal start_value = dists[start_index];
 				DoubleReal end_value = dists[end_index];
-				DoubleReal bin_step = fabs(end_value-start_value)/100;
+				DoubleReal bin_step = fabs(end_value-start_value)/99.999; //ensure that we have 100 bins
 				Math::Histogram<> hist(start_value,end_value,bin_step);
-				//std::cout << "Histogram from " << start_value << " to " << end_value << " (bin size " << bin_step << ")" << endl;
+				//std::cout << "HIST from " << start_value << " to " << end_value << " (bin size " << bin_step << ")" << endl;
 				for (Size i=start_index; i<=end_index; ++i)
 				{
-					std::cout << "DIST  " << dists[i] << " => " << hist.inc(dists[i]) << endl;
+					hist.inc(dists[i]);
 				}
+				//cout << hist << endl;
 				dists.clear();
 				//determine median of bins (uniform background distribution)
 				vector<Size> bins(hist.begin(),hist.end());
 				sort(bins.begin(),bins.end());
 				Size bin_median = bins[bins.size()/2];
-				cout << "WARNING - bin median: " << bin_median << endl;
 				bins.clear();
 				//estimate scale A: maximum of the histogram
 				Size max_value = hist.maxValue();
 				result.A = max_value-bin_median;
-				cout << "WARNING - estimated scaling factor A: " << result.A << endl;
 				//overwrite estimate of x0 with the position of the highest bin
 				for (Size i=0;i<hist.size();++i)
 				{
@@ -169,7 +168,6 @@ namespace OpenMS
 						break;
 					}
 				}
-				cout << "WARNING - new estimated x0: " << result.x0 << endl;
 				//estimate sigma: first time the count is less or equal the median count in the histogram
 				DoubleReal pos = result.x0;
 				while (pos>start_value && hist.binValue(pos)>bin_median)
@@ -184,7 +182,6 @@ namespace OpenMS
 				}
 				DoubleReal sigma_high = pos - result.x0;		
 				result.sigma = (sigma_high + sigma_low)/6.0;
-				cout << "WARNING - estimated sigma: " << result.sigma << endl;
 				//cout << "estimated optimal RT distance (before fit): " << result.x0 << endl;
 				//cout << "estimated allowed deviation (before fit): " << result.sigma*3.0 << endl;
 				//--------------------------- do gauss fit ---------------------------

@@ -210,18 +210,26 @@ namespace OpenMS
 			*/
 			void reset(BinSizeType min, BinSizeType max, BinSizeType bin_size)
 			{
-				if (bin_size <= 0)
+				min_ = min;
+				max_ = max;
+				bin_size_ = bin_size;
+				bins_.clear();
+					
+				if (bin_size_ <= 0)
 				{
 					throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 				}
 				else
 				{
-					min_ = min;
-					max_ = max;
-					bin_size_ = bin_size;
-					
-					bins_.clear();
-					bins_.resize(Size(ceil((max_-min_)/bin_size_)),0);
+					// if max_ == min_ there is only one bin
+					if (max_ != min_)
+					{
+						bins_.resize(Size(ceil((max_-min_)/bin_size_)),0);
+					}
+					else
+					{
+						bins_.resize(1, 0);
+					}
 				}
 			}
 	
