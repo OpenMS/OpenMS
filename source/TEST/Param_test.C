@@ -173,7 +173,7 @@ n.name="B"; pn.nodes.push_back(n);
 e.name="G"; e.value=1; pn.nodes[1].entries.push_back(e);
 
 
-START_SECTION((UInt size() const))
+START_SECTION((Size size() const ))
 	TEST_EQUAL(pn.size(),4)
 	TEST_EQUAL(pn.nodes[0].size(),2)
 	TEST_EQUAL(pn.nodes[1].size(),1)
@@ -586,7 +586,7 @@ START_SECTION((bool exists(const String& key) const))
 	TEST_EQUAL(p.exists("key:value"), false)
 END_SECTION
 
-START_SECTION((const DataValue& getValue(const String &key) const  ))
+START_SECTION((const DataValue& getValue(const String &key) const))
 	Param p;
 	TEST_EXCEPTION(Exception::ElementNotFound, p.getValue(""))
 	TEST_EXCEPTION(Exception::ElementNotFound, p.getValue("key"))
@@ -600,21 +600,21 @@ START_SECTION((const String& getSectionDescription(const String& key) const))
 	TEST_EQUAL(p.getSectionDescription("key:value"),"")
 END_SECTION
 
-START_SECTION((const String& getDescription(const String &key) const  ))
+START_SECTION((const String& getDescription(const String &key) const))
 	Param p;
 	TEST_EXCEPTION(Exception::ElementNotFound, p.getDescription(""))
 	TEST_EXCEPTION(Exception::ElementNotFound, p.getDescription("key"))
 	TEST_EXCEPTION(Exception::ElementNotFound, p.getDescription("key:value"))
 END_SECTION
 
-START_SECTION((const ParamEntry& getEntry(const String &key) const  ))
+START_SECTION((const ParamEntry& getEntry(const String &key) const))
 	Param p;
 	TEST_EXCEPTION(Exception::ElementNotFound, p.getEntry(""))
 	TEST_EXCEPTION(Exception::ElementNotFound, p.getEntry("key"))
 	TEST_EXCEPTION(Exception::ElementNotFound, p.getEntry("key:value"))
 END_SECTION
 
-START_SECTION((void setValue(const String& key, const String& value, const String& description="", bool advanced=false)))
+START_SECTION((void setValue(const String &key, const String &value, const String &description="", const StringList &tags=StringList())))
 	Param p;
 	p.setValue("key","value");
 	TEST_EQUAL(p.exists("key"), true)
@@ -639,7 +639,7 @@ START_SECTION((void setValue(const String& key, const String& value, const Strin
 	TEST_EQUAL(p.hasTag("key:key","advanced"), false)
 END_SECTION
 
-START_SECTION((void setValue(const String& key, Int value, const String& description="", bool advanced=false)))
+START_SECTION((void setValue(const String &key, Int value, const String &description="", const StringList &tags=StringList())))
 	Param p;
 	p.setValue("key",-5,"description",StringList::create("advanced"));
 	TEST_EQUAL(p.exists("key"), true)
@@ -648,7 +648,7 @@ START_SECTION((void setValue(const String& key, Int value, const String& descrip
 	TEST_EQUAL(p.hasTag("key","advanced"), true)
 END_SECTION
 
-START_SECTION((void setValue(const String& key, UInt value, const String& description="", bool advanced=false)))
+START_SECTION((void setValue(const String &key, UInt value, const String &description="", const StringList &tags=StringList())))
 	Param p;
 	p.setValue("key",5u,"description",StringList::create("advanced"));
 	TEST_EQUAL(p.exists("key"), true)
@@ -657,7 +657,7 @@ START_SECTION((void setValue(const String& key, UInt value, const String& descri
 	TEST_EQUAL(p.hasTag("key","advanced"), true)
 END_SECTION
 
-START_SECTION((void setValue(const String& key, Real value, const String& description="", bool advanced=false)))
+START_SECTION((void setValue(const String &key, Real value, const String &description="", const StringList &tags=StringList())))
 	Param p;
 	p.setValue("key",11.4f,"description",StringList::create("advanced"));
 	TEST_EQUAL(p.exists("key"), true)
@@ -666,7 +666,7 @@ START_SECTION((void setValue(const String& key, Real value, const String& descri
 	TEST_EQUAL(p.hasTag("key","advanced"), true)
 END_SECTION
 
-START_SECTION((void setValue(const String& key, DoubleReal value, const String& description="", bool advanced=false)))
+START_SECTION((void setValue(const String &key, DoubleReal value, const String &description="", const StringList &tags=StringList())))
 	Param p;
 	p.setValue("key",11.5,"description",StringList::create("advanced"));
 	TEST_EQUAL(p.exists("key"), true)
@@ -675,7 +675,7 @@ START_SECTION((void setValue(const String& key, DoubleReal value, const String& 
 	TEST_EQUAL(p.hasTag("key","advanced"), true)
 END_SECTION
 
-START_SECTION((void setValue(const String& key, StringList value, const String& description="", bool advanced=false)))
+START_SECTION((void setValue(const String &key, const StringList &value, const String &description="", const StringList &tags=StringList())))
 	Param p;
 	p.setValue("key",StringList::create("a,b,c,d"),"description",StringList::create("advanced"));
 	TEST_EQUAL(p.exists("key"), true)
@@ -684,7 +684,7 @@ START_SECTION((void setValue(const String& key, StringList value, const String& 
 	TEST_EQUAL(p.hasTag("key","advanced"), true)
 END_SECTION
 
-START_SECTION((void setValue(const String& key, IntList value, const String& description="", bool advanced=false)))
+START_SECTION((void setValue(const String &key, const IntList &value, const String &description="", const StringList &tags=StringList())))
 	Param p;
 	p.setValue("key",IntList::create("1,2,3"),"description",StringList::create("advanced"));
 	TEST_EQUAL(p.exists("key"), true)
@@ -693,7 +693,7 @@ START_SECTION((void setValue(const String& key, IntList value, const String& des
 	TEST_EQUAL(p.hasTag("key","advanced"), true)
 END_SECTION
 
-START_SECTION((void setValue(const String& key, DoubleList value, const String& description="", bool advanced=false)))
+START_SECTION((void setValue(const String &key, const DoubleList &value, const String &description="", const StringList &tags=StringList())))
 	Param p;
 	p.setValue("key",DoubleList::create("11.5,3.44"),"description",StringList::create("advanced"));
 	TEST_EQUAL(p.exists("key"), true)
@@ -702,7 +702,7 @@ START_SECTION((void setValue(const String& key, DoubleList value, const String& 
 	TEST_EQUAL(p.hasTag("key","advanced"), true)
 END_SECTION
 
-START_SECTION(StringList getTags(const String& key) const)
+START_SECTION((StringList getTags(const String& key) const))
 	Param p;
 	TEST_EXCEPTION(Exception::ElementNotFound, p.getTags("key"))
 
@@ -710,7 +710,7 @@ START_SECTION(StringList getTags(const String& key) const)
 	TEST_EQUAL(p.getTags("key").size(),0)
 END_SECTION
 
-START_SECTION(void addTag(const String& key, const String& tag))
+START_SECTION((void addTag(const String& key, const String& tag)))
 	Param p;
 	TEST_EXCEPTION(Exception::ElementNotFound, p.addTag("key","bla"))
 	StringList error_list;
@@ -727,7 +727,7 @@ START_SECTION(void addTag(const String& key, const String& tag))
 	TEST_EQUAL(p.getTags("key").size(),2)
 END_SECTION
 
-START_SECTION(bool hasTag(const String& key, const String& tag) const)
+START_SECTION((bool hasTag(const String& key, const String& tag) const))
 	Param p;
 	TEST_EXCEPTION(Exception::ElementNotFound, p.hasTag("key","bla"))
 
@@ -742,7 +742,7 @@ START_SECTION(bool hasTag(const String& key, const String& tag) const)
 	TEST_EQUAL(p.hasTag("key","advanced2"),true)
 END_SECTION
 
-START_SECTION(void addTags(const String& key, const StringList& tags))
+START_SECTION((void addTags(const String& key, const StringList& tags)))
 	Param p;
 	TEST_EXCEPTION(Exception::ElementNotFound, p.addTags("key",StringList()))
 	StringList error_list;
@@ -757,7 +757,7 @@ START_SECTION(void addTags(const String& key, const StringList& tags))
 	TEST_EQUAL(p.hasTag("key","advanced2"),true)
 END_SECTION
 
-START_SECTION(void clearTags(const String& key))
+START_SECTION((void clearTags(const String& key)))
 	Param p;
 	TEST_EXCEPTION(Exception::ElementNotFound, p.clearTags("key"))
 	p.setValue("key","value");
@@ -791,7 +791,7 @@ START_SECTION((void clear()))
 	TEST_EQUAL(p2.empty(), true)
 END_SECTION
 
-START_SECTION((UInt size() const))
+START_SECTION((Size size() const ))
 	Param p;
 	TEST_EQUAL(p.size(), 0)
 	p.setValue("key",17.4f);
@@ -808,7 +808,7 @@ START_SECTION((UInt size() const))
 	TEST_EQUAL(p.size(), 4)
 END_SECTION
 
-START_SECTION((void setSectionDescription(const String &key, const String &description) ))
+START_SECTION((void setSectionDescription(const String &key, const String &description)))
 	Param p;
 	
 	p.setValue("test:test",47.1);
@@ -1076,12 +1076,12 @@ START_SECTION((bool operator == (const Param& rhs) const))
 
 END_SECTION
 
-START_SECTION((void load(const String& filename) ))
+START_SECTION((void load(const String& filename)))
 	Param p2;
 	TEST_EXCEPTION(Exception::FileNotFound, p2.load("FileDoesNotExist.xml"))	
 END_SECTION
 
-START_SECTION((void store(const String& filename) const ))
+START_SECTION((void store(const String& filename) const))
 	Param p2(p);
 	p2.setValue("test:a:a1", 47.1,"a1desc\"<>\nnewline");
 	p2.setValue("test:b:b1", 47.1);
@@ -1369,7 +1369,7 @@ command_line4[7] = a8;
 command_line4[8] = a9;
 command_line4[9] = a10;
 
-START_SECTION((void parseCommandLine(const int argc, const char** argv, String prefix = "")))
+START_SECTION((void parseCommandLine(const int argc, const char **argv, const Map< String, String > &options_with_one_argument, const Map< String, String > &options_without_argument, const Map< String, String > &options_with_multiple_argument, const String &misc="misc", const String &unknown="unknown")))
 	Param p2,p3;
 	p2.parseCommandLine(9,command_line,"test4");
 	p3.setValue("test4:-a","av");
@@ -1495,7 +1495,7 @@ START_SECTION((void parseCommandLine(const int argc, const char** argv, const Ma
 	
 END_SECTION
 
-START_SECTION((void setValidStrings(const String &key, const std::vector< String > &strings) ))
+START_SECTION((void setValidStrings(const String &key, const std::vector< String > &strings)))
   vector<String> strings;
   strings.push_back("bla");
   Param d;
@@ -1509,7 +1509,7 @@ START_SECTION((void setValidStrings(const String &key, const std::vector< String
   TEST_EXCEPTION(Exception::InvalidParameter, d.setValidStrings("ok",strings))
 END_SECTION
 
-START_SECTION((void setMinInt(const String &key, Int min) ))
+START_SECTION((void setMinInt(const String &key, Int min)))
   Param d;
   d.setValue("ok",4);
   d.setValue("dummy",5.5);
@@ -1519,7 +1519,7 @@ START_SECTION((void setMinInt(const String &key, Int min) ))
   TEST_EXCEPTION(Exception::ElementNotFound, d.setMinInt("dummy",4))
 END_SECTION
 
-START_SECTION((void setMaxInt(const String &key, Int max) ))
+START_SECTION((void setMaxInt(const String &key, Int max)))
   Param d;
   d.setValue("ok",4);
   d.setValue("dummy",5.5);
@@ -1529,7 +1529,7 @@ START_SECTION((void setMaxInt(const String &key, Int max) ))
   TEST_EXCEPTION(Exception::ElementNotFound, d.setMaxInt("dummy",4))
 END_SECTION
 
-START_SECTION((void setMinFloat(const String &key, DoubleReal min) ))
+START_SECTION((void setMinFloat(const String &key, DoubleReal min)))
   Param d;
   d.setValue("ok",4.5);
   d.setValue("dummy",4);
@@ -1539,7 +1539,7 @@ START_SECTION((void setMinFloat(const String &key, DoubleReal min) ))
   TEST_EXCEPTION(Exception::ElementNotFound, d.setMinFloat("dummy",4.5))
 END_SECTION
 
-START_SECTION((void setMaxFloat(const String &key, DoubleReal max) ))
+START_SECTION((void setMaxFloat(const String &key, DoubleReal max)))
   Param d;
   d.setValue("ok",4.5);
   d.setValue("dummy",4);
@@ -1550,7 +1550,7 @@ START_SECTION((void setMaxFloat(const String &key, DoubleReal max) ))
 END_SECTION
 
 
-START_SECTION((void checkDefaults(const String &name, const Param &defaults, String prefix="", std::ostream &os=std::cout) const  ))
+START_SECTION((void checkDefaults(const String &name, const Param &defaults, String prefix="", std::ostream &os=std::cout) const))
 	//warnings for unknown parameters
 	ostringstream os;
 	Param p,d;
@@ -1662,11 +1662,11 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, Str
 	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
 END_SECTION
 
-START_SECTION(ParamIterator begin() const)
+START_SECTION((ParamIterator begin() const))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(ParamIterator end() const)
+START_SECTION((ParamIterator end() const))
 	Param p;
 	p.setValue("a",5);
 	p.setValue("b:a",6);

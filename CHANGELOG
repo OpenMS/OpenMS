@@ -48,6 +48,9 @@ Changes to OpenMS XML formats:
 
 Changes to the contrib package:
 - Updated SeqAn package to revision 2666 (this fixes the STL debug error)
+- Updated xerces-c to version 3.0.0
+- Updated boost to version 1.37.0
+- Downgraded GSL to 1.8 (because of Mac/Windows support)
 
 Detailed list of changes to specific OpenMS classes:
 - Renamed and moved classes

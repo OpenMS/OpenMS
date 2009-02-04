@@ -587,8 +587,6 @@
 				"SampleTreatment_test.C",
 				"Exception_Base_test.C",
 				"NumericDiff.C",
-				"Param_test_1.C",
-				"Param_test_2.C",
 			);
 			
 			if (!in_array($basename,$ignore)  && !beginsWith($f,"source/APPLICATIONS/TOPP/")  && !beginsWith($f,"source/APPLICATIONS/UTILS/"))

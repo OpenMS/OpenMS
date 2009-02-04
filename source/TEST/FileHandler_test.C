@@ -41,7 +41,7 @@ START_TEST(FileHandler, "FileHandler")
 using namespace OpenMS;
 using namespace std;
 
-START_SECTION((static String typeToName(Type type)))
+START_SECTION((static String typeToName(FileTypes::Type type)))
 	FileHandler tmp;
 	TEST_EQUAL(tmp.typeToName(FileTypes::UNKNOWN),"Unknown");
 	TEST_EQUAL(tmp.typeToName(FileTypes::DTA),"DTA");
@@ -57,7 +57,7 @@ START_SECTION((static String typeToName(Type type)))
 	TEST_EQUAL(tmp.typeToName(FileTypes::PARAM),"Param");
 END_SECTION
 
-START_SECTION((static Type nameToType(const String &name)))
+START_SECTION((static FileTypes::Type nameToType(const String &name)))
 	FileHandler tmp;
 	TEST_EQUAL(FileTypes::UNKNOWN, tmp.nameToType("Unknown"));
 	TEST_EQUAL(FileTypes::DTA, tmp.nameToType("DTA"));
@@ -74,7 +74,7 @@ START_SECTION((static Type nameToType(const String &name)))
 	TEST_EQUAL(FileTypes::TRANSFORMATIONXML, tmp.nameToType("TrafoXML"));
 END_SECTION
 
-START_SECTION((static Type getTypeByFileName(const String &filename)))
+START_SECTION((static FileTypes::Type getTypeByFileName(const String &filename)))
 	FileHandler tmp;
 	TEST_EQUAL(tmp.getTypeByFileName("test.bla"), FileTypes::UNKNOWN)
 	TEST_EQUAL(tmp.getTypeByFileName("test.dta"), FileTypes::DTA)
@@ -91,7 +91,7 @@ START_SECTION((static Type getTypeByFileName(const String &filename)))
 	TEST_EQUAL(tmp.getTypeByFileName("test.ini"), FileTypes::PARAM)
 END_SECTION
 
-START_SECTION((static Type getTypeByContent(const String &filename)))
+START_SECTION((static FileTypes::Type getTypeByContent(const String &filename)))
 	FileHandler tmp;
 	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData")), FileTypes::MZDATA)
 	TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML")), FileTypes::FEATUREXML)
@@ -108,7 +108,7 @@ START_SECTION((static Type getTypeByContent(const String &filename)))
 	TEST_EXCEPTION(Exception::FileNotFound,tmp.getTypeByContent("/bli/bla/bluff"))
 END_SECTION
 
-START_SECTION((static Type getType(const String &filename)))
+START_SECTION((static FileTypes::Type getType(const String &filename)))
 	FileHandler tmp;
 	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("class_test_infile.txt")), FileTypes::UNKNOWN)
 	TEST_EQUAL(tmp.getType(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML")), FileTypes::IDXML)
@@ -118,7 +118,7 @@ START_SECTION((static Type getType(const String &filename)))
 	TEST_EXCEPTION(Exception::FileNotFound,tmp.getType("/bli/bla/bluff"))
 END_SECTION
 
-START_SECTION((template <class PeakType> bool loadExperiment(const String &filename, MSExperiment< PeakType > &exp, Type force_type=UNKNOWN, ProgressLogger::LogType log=ProgressLogger::NONE)))
+START_SECTION((template < class PeakType > bool loadExperiment(const String &filename, MSExperiment< PeakType > &exp, FileTypes::Type force_type=FileTypes::UNKNOWN, ProgressLogger::LogType log=ProgressLogger::NONE)))
 	FileHandler tmp;
 	MSExperiment<> exp;
 	TEST_EQUAL(tmp.loadExperiment("test.bla",exp), false)
@@ -172,7 +172,7 @@ START_SECTION((template <class PeakType> bool loadExperiment(const String &filen
 	TEST_EXCEPTION(Exception::ParseError,tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"),exp, FileTypes::DTA2D))
 END_SECTION
 
-START_SECTION((static bool isSupported(Type type)))
+START_SECTION((static bool isSupported(FileTypes::Type type)))
 	FileHandler tmp;
 	TEST_EQUAL(false, tmp.isSupported(FileTypes::UNKNOWN));
 	TEST_EQUAL(true, tmp.isSupported(FileTypes::DTA));
@@ -199,7 +199,7 @@ START_SECTION((PeakFileOptions& getOptions()))
 	TEST_EQUAL(a.getOptions().hasMSLevels(),true);
 END_SECTION
 
-START_SECTION((template <class FeatureType> bool loadFeatures(const String &filename, FeatureMap< FeatureType > &map, Type force_type=UNKNOWN)))
+START_SECTION((template < class FeatureType > bool loadFeatures(const String &filename, FeatureMap< FeatureType > &map, FileTypes::Type force_type=FileTypes::UNKNOWN)))
   FileHandler tmp;
 	FeatureMap<> map;
 	TEST_EQUAL(tmp.loadFeatures("test.bla",map), false)
