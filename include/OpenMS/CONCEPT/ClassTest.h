@@ -272,7 +272,7 @@ namespace OpenMS
 
       template < typename T1, typename T2 >
         void
-        testEqual( const char * file, int line, const T1 & expression_1,
+        testEqual( const char * /*file*/, int line, const T1 & expression_1,
                    const char * expression_1_stringified,
                    const T2 & expression_2,
                    const char * expression_2_stringified )
@@ -285,24 +285,24 @@ namespace OpenMS
             initialNewline();
             if ( this_test )
             {
-              std__cout << "    (line " << line << ":  TEST_EQUAL("
+              std__cout << " +  line " << line << ":  TEST_EQUAL("
                   << expression_1_stringified << ','
                   << expression_2_stringified << "): got " << expression_1
-                  << ", expected " << expression_2 << ")    + " << std::endl;
+                  << ", expected " << expression_2 << std::endl;
             }
             else
             {
-              std__cout << file << ':' << line << ":  TEST_EQUAL("
+              std__cout << " -  line " << line << ":  TEST_EQUAL("
                   << expression_1_stringified << ','
                   << expression_2_stringified << "): got " << expression_1
-                  << ", expected " << expression_2 << ")    - " << std::endl;
+                  << ", expected " << expression_2 << std::endl;
             }
           }
         }
 
       template < typename T1, typename T2 >
         void
-        testNotEqual( const char * file, int line, const T1 & expression_1,
+        testNotEqual( const char * /*file*/, int line, const T1 & expression_1,
                       const char * expression_1_stringified,
                       const T2 & expression_2,
                       const char * expression_2_stringified )
@@ -315,19 +315,17 @@ namespace OpenMS
             initialNewline();
             if ( this_test )
             {
-              std__cout << "    (line " << line << ":  TEST_NOT_EQUAL("
+              std__cout << " +  line " << line << ":  TEST_NOT_EQUAL("
                   << expression_1_stringified << ','
                   << expression_2_stringified << "): got " << expression_1
-                  << ", forbidden is " << expression_2 << ")    + "
-                  << std::endl;
+                  << ", forbidden is " << expression_2 << std::endl;
             }
             else
             {
-              std__cout << file << ':' << line << ":  TEST_NOT_EQUAL("
+              std__cout << " -  line " << line << ":  TEST_NOT_EQUAL("
                   << expression_1_stringified << ','
                   << expression_2_stringified << "): got " << expression_1
-                  << ", forbidden is " << expression_2 << ")    - "
-                  << std::endl;
+                  << ", forbidden is " << expression_2 << std::endl;
             }
           }
         }
@@ -613,12 +611,7 @@ int main(int argc, char **argv)																									\
 		}																																											\
 		else																																									\
 		{																																											\
-			std__cout << "############################################################\n";			\
-			std__cout <<																																				\
-				__FILE__ ":" << TEST::start_section_line <<																				\
-				": failed  START_SECTION(" << TEST::test_name << ")\n"														\
-				__FILE__ ":" << __LINE__ <<																												\
-				": failed  END_SECTION" <<	std::endl <<	std::endl;															\
+			std__cout << ": failed ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << std::endl; \
 		}																																											\
 	}																																												\
 	/* issue a warning if no tests were performed (unless in destructor)*/									\
@@ -633,8 +626,7 @@ int main(int argc, char **argv)																									\
 				break;																																						\
 			}																																										\
 		}																																											\
-		if (!destructor) std::cerr << "Warning: no subtests performed in '"										\
-															 << TEST::test_name << "' (line " << __LINE__ << ")!" << std::endl;	\
+		if (!destructor) std::cerr << "Warning: no subtests performed in '" << TEST::test_name << "' (line " << __LINE__ << ")!" << std::endl;	\
 	}																																												\
 	std__cout << std::endl;
 
@@ -734,7 +726,7 @@ int main(int argc, char **argv)																									\
 			TEST::equal_files = false;																													\
 			{																																										\
 				TEST::initialNewline();																														\
-				std__cout << "    (line " << __LINE__ << ": TEST_FILE_EQUAL(" << #filename << ", " << #templatename ;	\
+				std__cout << " +  line " << __LINE__ << ": TEST_FILE_EQUAL(" << #filename << ", " << #templatename ;	\
 				std__cout << ") : " << " cannot open file: \"";																		\
 				if (!TEST::infile.good())																													\
 				{																																									\
@@ -757,15 +749,13 @@ int main(int argc, char **argv)																									\
 		TEST::test = TEST::test && TEST::this_test;																						\
 		{																																											\
 			TEST::initialNewline();																															\
-			std__cout << "    (line " << __LINE__ << ": TEST_FILE_EQUAL("<< #filename << ", " << #templatename << "): "; \
 			if (TEST::this_test)																																\
 			{																																										\
-				std__cout << "true + " << std::endl;																							\
+				std__cout << " +  line " << __LINE__ << ": TEST_FILE_EQUAL("<< #filename << ", " << #templatename << "): true"; \
 			}																																										\
  			else																																								\
 			{																																										\
-				std__cout << "false - " << std::endl;																							\
-				std__cout << "    (different files:  "<< filename << "  " << templatename << " )\n"; \
+				std__cout << " -  line " << __LINE__ << ": TEST_FILE_EQUAL("<< #filename << ", " << #templatename << "): false (different files: "<< filename << " " << templatename << " )\n"; \
 			}																																										\
 		}																																											\
 	}
@@ -828,18 +818,18 @@ int main(int argc, char **argv)																									\
 			TEST::initialNewline();																						\
 			if (TEST::this_test)																							\
 			{																																	\
-				std__cout << "    (line " << __LINE__ <<												\
+				std__cout << " +  line " << __LINE__ <<												\
 					":  TEST_FILE_SIMILAR(" #a "," #b "):  "											\
 					"absolute: " << precisionWrapper(TEST::absdiff) <<						\
 					" (" << precisionWrapper(TEST::absdiff_max_allowed) <<				\
 					"), relative: " << precisionWrapper(TEST::ratio) <<						\
-					" (" << precisionWrapper(TEST::ratio_max_allowed) << ")    +\n"; \
+					" (" << precisionWrapper(TEST::ratio_max_allowed) << ")" << std::endl;\
 				std__cout << "message: \n";																			\
 				std__cout << TEST::fuzzy_message;																\
 			}																																	\
 			else																															\
 			{																																	\
-				std__cout << __FILE__ ":" << TEST::test_line <<									\
+				std__cout << " -  line " << TEST::test_line <<									\
 					": TEST_FILE_SIMILAR(" #a "," #b ") ...    -\n";							\
 				std__cout << "message: \n";																			\
 				std__cout << TEST::fuzzy_message;																\
@@ -863,7 +853,7 @@ int main(int argc, char **argv)																									\
 	TEST::ratio_max_allowed = (a);																				\
 	{																																			\
 		TEST::initialNewline();																							\
-	std__cout << "    (line " << __LINE__ <<															\
+	std__cout << " +  line " << __LINE__ <<															\
 		":  TOLERANCE_RELATIVE(" << 	TEST::ratio_max_allowed <<						\
 		")   (\""#a"\")" << std::endl;																			\
 	}
@@ -883,7 +873,7 @@ int main(int argc, char **argv)																									\
 	TEST::absdiff_max_allowed = (a);																			\
 	{																																			\
 		TEST::initialNewline();																							\
-		std__cout << "    (line " << __LINE__ <<														\
+		std__cout << " +  line " << __LINE__ <<														\
 			":  TOLERANCE_ABSOLUTE(" << 	TEST::absdiff_max_allowed	<<				\
 			")   (\""#a"\")" << std::endl;																		\
 	}
@@ -937,25 +927,25 @@ int main(int argc, char **argv)																									\
 			switch (TEST::exception)																					\
 			{																																	\
 			case 0:																														\
-				std__cout << __FILE__ ":" << TEST::test_line <<									\
+				std__cout << " -  line " << TEST::test_line <<									\
 					":  TEST_EXCEPTION(" #exception_type "," #command							\
-					"): no exception thrown!    - " << std::endl;									\
+					"): no exception thrown!" << std::endl;									\
 				break;																													\
 			case 1:																														\
-				std__cout << "    (line " << TEST::test_line <<									\
+				std__cout << " +  line " << TEST::test_line <<									\
 					":  TEST_EXCEPTION(" #exception_type "," #command								\
-					"): OK)    +" << std::endl;																		\
+					"): OK" << std::endl;																		\
 				break;																													\
 			case 2:																														\
-				std__cout << __FILE__ ":" << TEST::test_line <<									\
+				std__cout << " -  line " << TEST::test_line <<									\
 					":  TEST_EXCEPTION(" #exception_type "," #command							\
 					"): wrong exception thrown!  \""															\
-									<< TEST::exception_name << "\"    - " << std::endl;		\
+									<< TEST::exception_name << "\"" << std::endl;		\
 				break;																													\
 			case 3:																														\
-				std__cout << __FILE__ ":" << TEST::test_line <<									\
+				std__cout << " -  line " << TEST::test_line <<									\
 					":  TEST_EXCEPTION(" #exception_type "," #command							\
-					"): wrong exception thrown!     - " << std::endl;							\
+					"): wrong exception thrown!" << std::endl;							\
 				break;																													\
 			}																																	\
 		}																																		\
@@ -1012,34 +1002,34 @@ int main(int argc, char **argv)																									\
 			switch (TEST::exception)																					\
 			{																																	\
 			case 0:																														\
-					std__cout << __FILE__ ":" << TEST::test_line <<								\
+					std__cout << " -  line " << TEST::test_line <<								\
 						":  TEST_EXCEPTION_WITH_MESSAGE(" #exception_type "," #command ", " #message \
-						"): no exception thrown!    - " << std::endl;								\
+						"): no exception thrown!" << std::endl;								\
 					break;																												\
 			case 1:																														\
-					std__cout << "    (line " << TEST::test_line <<								\
+					std__cout << " +  line " << TEST::test_line <<								\
 						":  TEST_EXCEPTION_WITH_MESSAGE(" #exception_type "," #command ", " #message \
-						"): OK)    +" << std::endl;																	\
+						"): OK" << std::endl;																	\
 					break;																												\
 			case 2:																														\
-					std__cout << __FILE__ ":" << TEST::test_line <<								\
+					std__cout << " -  line " << TEST::test_line <<								\
 						":  TEST_EXCEPTION_WITH_MESSAGE(" #exception_type "," #command ", " #message \
 						"): wrong exception thrown!  \"" <<													\
-						TEST::exception_name << "\"    - " << std::endl;						\
+						TEST::exception_name << "\"" << std::endl;						\
 					break;																												\
 			case 3:																														\
-					std__cout << __FILE__ ":" << TEST::test_line <<								\
+					std__cout << " -  line " << TEST::test_line <<								\
 						":  TEST_EXCEPTION_WITH_MESSAGE(" #exception_type "," #command ", " #message \
-						"): wrong exception thrown!     - " << std::endl;						\
+						"): wrong exception thrown!" << std::endl;						\
 					break;																												\
 			case 4:																														\
-					std__cout << __FILE__ ":" << TEST::test_line <<								\
+					std__cout << " -  line " << TEST::test_line <<								\
 						":  TEST_EXCEPTION_WITH_MESSAGE(" #exception_type "," #command ", " #message \
 						"): exception has wrong message: got '" <<									\
 						TEST::exception_message <<																	\
 						"', expected '" <<																					\
 						(message) <<																								\
-						"'    - "<< std::endl;																			\
+						"'"<< std::endl;																			\
 					break;																												\
 			}																																	\
 		}																																		\
@@ -1066,8 +1056,7 @@ int main(int argc, char **argv)																									\
 		TEST::tmp_file_list.push_back(filename);														\
 		{																																		\
 			TEST::initialNewline();																						\
-			std__cout << "  creating new temporary filename '" << filename		\
-								<< "' (line " << __LINE__ << ")" << std::endl;					\
+			std__cout << "    creating new temporary filename '" << filename << "' (line " << __LINE__ << ")" << std::endl;					\
 		}																																		\
 	}
 
@@ -1083,7 +1072,7 @@ int main(int argc, char **argv)																									\
 	{																																			\
 		{																																		\
 			TEST::initialNewline();																						\
-			std__cout << __FILE__ ":" <<  __LINE__ <<													\
+			std__cout << " -  line " <<  __LINE__ <<													\
 				":  ABORT_IF(" #condition "):  TEST ABORTED" <<									\
 				std::endl;																											\
 		}																																		\
@@ -1110,7 +1099,7 @@ int main(int argc, char **argv)																									\
 #define STATUS(message)																			\
 	{																													\
 		TEST::initialNewline();																	\
-		std__cout << __FILE__ ":" <<  __LINE__ << ": status:  "	\
+		std__cout << " -  line " <<  __LINE__ << ": status:  "	\
 							<< message << std::endl;											\
 	}
 

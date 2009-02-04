@@ -86,7 +86,7 @@ namespace OpenMS
         if ( (TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)) )
         {
           TEST::initialNewline();
-          std__cout << "    (line " << line << ":  WHITELIST(\"" << whitelist
+          std__cout << " +  line " << line << ":  WHITELIST(\"" << whitelist
               << "\"):   whitelist is: " << TEST::whitelist << std::endl;
         }
         return;
@@ -132,17 +132,14 @@ namespace OpenMS
                 {
                   if ( !MzMLFile().isValid(file_names[i]) )
                   {
-                    std::cout
-                        << "Error: mzML file does not validate against XML schema '"
-                        << file_names[i] << "' - " << std::endl;
+                    std::cout << " - Error: mzML file does not validate against XML schema '" << file_names[i] << "'" << std::endl;
                     passed = false;
                   }
                   StringList errors, warnings;
                   if ( !MzMLFile().isSemanticallyValid(file_names[i], errors,
                                                        warnings) )
                   {
-                    std::cout << "Error: mzML file semantically invalid '"
-                        << file_names[i] << "' - " << std::endl;
+                    std::cout << " - Error: mzML file semantically invalid '" << file_names[i] << "'" << std::endl;
                     for ( Size j = 0; j < errors.size(); ++j )
                     {
                       std::cout << "Error - " << errors[j] << std::endl;
@@ -154,56 +151,49 @@ namespace OpenMS
               case FileTypes::MZDATA:
                 if ( !MzDataFile().isValid(file_names[i]) )
                 {
-                  std::cout << "Error: Invalid mzData file '" << file_names[i]
-                      << "' - " << std::endl;
+                  std::cout << " - Error: Invalid mzData file '" << file_names[i] << "'" << std::endl;
                   passed = false;
                 }
                 break;
               case FileTypes::MZXML:
                 if ( !MzXMLFile().isValid(file_names[i]) )
                 {
-                  std::cout << "Error: Invalid mzXML file '" << file_names[i]
-                      << "' - " << std::endl;
+                  std::cout << " - Error: Invalid mzXML file '" << file_names[i] << "'" << std::endl;
                   passed = false;
                 }
                 break;
               case FileTypes::FEATUREXML:
                 if ( !FeatureXMLFile().isValid(file_names[i]) )
                 {
-                  std::cout << "Error: Invalid FeatureXML file '"
-                      << file_names[i] << "' - " << std::endl;
+                  std::cout << " - Error: Invalid FeatureXML file '" << file_names[i] << "'" << std::endl;
                   passed = false;
                 }
                 break;
               case FileTypes::IDXML:
                 if ( !IdXMLFile().isValid(file_names[i]) )
                 {
-                  std::cout << "Error: Invalid IdXML file '" << file_names[i]
-                      << "' - " << std::endl;
+                  std::cout << " - Error: Invalid IdXML file '" << file_names[i] << "'" << std::endl;
                   passed = false;
                 }
                 break;
               case FileTypes::CONSENSUSXML:
                 if ( !ConsensusXMLFile().isValid(file_names[i]) )
                 {
-                  std::cout << "Error: Invalid ConsensusXML file '"
-                      << file_names[i] << "' - " << std::endl;
+                  std::cout << " - Error: Invalid ConsensusXML file '" << file_names[i] << "'" << std::endl;
                   passed = false;
                 }
                 break;
               case FileTypes::PARAM:
                 if ( !Param().isValid(file_names[i]) )
                 {
-                  std::cout << "Error: Invalid Param file '" << file_names[i]
-                      << "' - " << std::endl;
+                  std::cout << " - Error: Invalid Param file '" << file_names[i] << "'" << std::endl;
                   passed = false;
                 }
                 break;
               case FileTypes::TRANSFORMATIONXML:
                 if ( !TransformationXMLFile().isValid(file_names[i]) )
                 {
-                  std::cout << "Error: Invalid TransformationXML file '"
-                      << file_names[i] << "' - " << std::endl;
+                  std::cout << " - Error: Invalid TransformationXML file '" << file_names[i] << "'" << std::endl;
                   passed = false;
                 }
                 break;
@@ -221,7 +211,7 @@ namespace OpenMS
         return String(file).prefix('.') + '_' + String(line) + ".tmp";
       }
 
-      void testRealSimilar( const char * file, int line,
+      void testRealSimilar( const char * /*file*/, int line,
                             long double number_1, const char * number_1_stringified, bool number_1_is_realtype, Int number_1_written_digits,
                             long double number_2, const char * number_2_stringified, bool /* number_2_is_realtype */, Int number_2_written_digits
                           )
@@ -233,8 +223,8 @@ namespace OpenMS
         if ( !number_1_is_realtype )
         {
           TEST::this_test = false;
-          std__cout << file << ':' << line << ":"
-            "TEST_REAL_SIMILAR(" << number_1_stringified << ','
+          std__cout << " -  line " << line << ':'
+            << "TEST_REAL_SIMILAR(" << number_1_stringified << ','
               << number_2_stringified << "):"
             " argument " << number_1_stringified
               << " does not have a floating point type!  Go fix your code!"
@@ -248,16 +238,15 @@ namespace OpenMS
           {
             if ( TEST::this_test )
             {
-              std__cout << "    (line " << line << ":  TEST_REAL_SIMILAR("
+              std__cout << " +  line " << line << ":  TEST_REAL_SIMILAR("
                   << number_1_stringified << ',' << number_2_stringified
                   << "): got " << std::setprecision(number_1_written_digits)
                   << number_1 << ", expected "
-                  << std::setprecision(number_2_written_digits) << number_2
-                  << ")    + " << std::endl;
+                  << std::setprecision(number_2_written_digits) << number_2 << std::endl;
             }
             else
             {
-              std__cout << __FILE__ ":" << TEST::test_line
+              std__cout << " -  line " << TEST::test_line
                   << ":  TEST_REAL_SIMILAR(" << number_1_stringified << ','
                   << number_2_stringified << "): got "
                   << std::setprecision(number_1_written_digits) << number_1
@@ -266,8 +255,7 @@ namespace OpenMS
                   << " (absolute: " << TEST::absdiff << " ["
                   << TEST::absdiff_max_allowed << "], relative: "
                   << TEST::ratio << " [" << TEST::ratio_max_allowed
-                  << "], message: \"" << TEST::fuzzy_message << "\" )    - "
-                  << std::endl;
+                  << "], message: \"" << TEST::fuzzy_message << "\"" << std::endl;
             }
           }
         }
@@ -396,7 +384,7 @@ namespace OpenMS
       }
 
       void
-      testStringEqual( const char * file, int line,
+      testStringEqual( const char * /*file*/, int line,
                        const std::string & string_1,
                        const char * string_1_stringified,
                        const std::string & string_2,
@@ -410,22 +398,22 @@ namespace OpenMS
           initialNewline();
           if ( this_test )
           {
-            std__cout << "    (line " << line << ":  TEST_STRING_EQUAL("
+            std__cout << " +  line " << line << ":  TEST_STRING_EQUAL("
                 << string_1_stringified << ',' << string_2_stringified
                 << "): got \"" << string_1 << "\", expected \"" << string_2
-                << "\")    + " << std::endl;
+                << "\"" << std::endl;
           }
           else
           {
-            std__cout << file << ':' << line << ":  TEST_STRING_EQUAL("
+            std__cout << " -  line " << line << ":  TEST_STRING_EQUAL("
                 << string_1_stringified << ',' << string_2_stringified
                 << "): got \"" << string_1 << "\", expected \"" << string_2
-                << "\")    - " << std::endl;
+                << "\"" << std::endl;
           }
         }
       }
 
-      void testStringSimilar( const char * file, int line,
+      void testStringSimilar( const char * /*file*/, int line,
                               const std::string & string_1,
                               const char * string_1_stringified,
                               const std::string & string_2,
@@ -458,7 +446,7 @@ namespace OpenMS
         TEST::initialNewline();
         if ( TEST::this_test )
         {
-          std__cout << "    (line " << line << ":  TEST_STRING_SIMILAR("
+          std__cout << " +  line " << line << ":  TEST_STRING_SIMILAR("
               << string_1_stringified << ',' << string_2_stringified << "):  "
             "absolute: " << TEST::absdiff << " (" << TEST::absdiff_max_allowed
               << "), relative: " << TEST::ratio << " ("
@@ -470,7 +458,7 @@ namespace OpenMS
         }
         else
         {
-          std__cout << file << ":" << TEST::test_line
+          std__cout << " -  line " << TEST::test_line
               << ": TEST_STRING_SIMILAR(" << string_1_stringified << ','
               << string_2_stringified << ") ...    -\n"
             "got:\n";
