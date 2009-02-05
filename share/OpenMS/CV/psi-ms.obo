@@ -4,10 +4,10 @@ saved-by: David Sparkman
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 1.12.0
-remark: release date: 2008-12-17
+remark: version: 1.12.1
+remark: release date: 2009-02-04
 remark: coverage: Mass spectrometer output files
-remark: creator: Fredrik Levander <fredrik.levander <@> immun.lth.se>
+remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group
 remark: When appropriate the definition and synonyms of a term are reported exactly as in the chapter 12 of IUPAC orange book. See http://www.iupac.org/projects/2003/2003-056-2-500.html.
 import: http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo?revision=1.15
@@ -75,8 +75,9 @@ relationship: part_of MS:1000458 ! source
 [Term]
 id: MS:1000009
 name: ionization mode
-def: "Whether positive or negative ions are selected for analysis by the spectrometer. Re-map to Polarity Mode." [PSI:MS]
+def: "OBSOLETE Whether positive or negative ions are selected for analysis by the spectrometer." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by scan polarity (MS\:1000465)
 
 [Term]
 id: MS:1000010
@@ -220,8 +221,9 @@ is_a: MS:1000481 ! detector attribute
 [Term]
 id: MS:1000030
 name: vendor
-def: "Name of instrument vendor, replaced by MS:1000031 Model From Vendor." [PSI:MS]
+def: "Name of instrument vendor" [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by instrument model (MS\:1000031)
 
 [Term]
 id: MS:1000031
@@ -257,8 +259,9 @@ is_a: MS:1000543 ! data processing action
 [Term]
 id: MS:1000036
 name: scan mode
-def: "TODO: Add definition." [PSI:MS]
+def: "OBSOLETE" [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because...just because.
 
 [Term]
 id: MS:1000037
@@ -269,14 +272,16 @@ relationship: part_of MS:1000459 ! spectrum instrument description
 [Term]
 id: MS:1000038
 name: minute
-def: "Acquisition time in minutes. Replace by MS:1000016 - Scan Time." [PSI:MS]
+def: "OBSOLETE Acquisition time in minutes." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by scan time (MS\:1000016)
 
 [Term]
 id: MS:1000039
 name: second
-def: "Acquisition time in seconds. Replace by MS:1000016 - Scan Time." [PSI:MS]
+def: "Acquisition time in seconds." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by scan time (MS\:1000016)
 
 [Term]
 id: MS:1000040
@@ -325,9 +330,10 @@ relationship: has_units UO:0000111 ! energy unit
 [Term]
 id: MS:1000046
 name: energy unit
-def: "Energy units are represented in either eV or Joules. Obsoleted in favor of UO:0000111" [PSI:MS]
+def: "OBSOLETE Energy units are represented in either eV or Joules." [PSI:MS]
 is_a: MS:1000460 ! unit
 is_obsolete: true
+comment: This term was made obsolete because it was redundant with the Unit Ontology energy unit (UO\:0000111)
 
 [Term]
 id: MS:1000047
@@ -486,9 +492,10 @@ is_a: MS:1000008 ! ionization type
 [Term]
 id: MS:1000072
 name: Electronic Ionization
-def: "The ionization of an atom or molecule by electrons that are typically accelerated to energies between 50 and 150 eV. Usually 70 eV electrons are used to produce positive ions. The term 'electron impact' is not recommended. OBSOLETE because redundant replaced by MS:1000389 electron ionization" [PSI:MS]
+def: "OBSOLETE The ionization of an atom or molecule by electrons that are typically accelerated to energies between 50 and 150 eV. Usually 70 eV electrons are used to produce positive ions. The term 'electron impact' is not recommended. " [PSI:MS]
 synonym: "EI" EXACT []
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by electron ionization (MS\:1000389)
 
 [Term]
 id: MS:1000073
@@ -514,14 +521,16 @@ is_a: MS:1000247 ! desorption ionization
 [Term]
 id: MS:1000076
 name: negative ion mode
-def: "TODO: Add defintion." [PSI:MS]
+def: "OBSOLETE" [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by negative scan (MS\:1000129)
 
 [Term]
 id: MS:1000077
 name: positive ion mode
-def: "TODO: Add definition." [PSI:MS]
+def: "OBSOLETE" [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by positive scan (MS\:1000130)
 
 [Term]
 id: MS:1000078
@@ -658,9 +667,10 @@ is_a: MS:1000479 ! purgatory
 [Term]
 id: MS:1000099
 name: multiple reaction monitoring
-def: "This term is not recommended. See Selected Reaction Monitoring. Replace by MS:1000206 - Selected Reaction Monitoring." [PSI:MS]
+def: "OBSOLETE This term is not recommended. See Selected Reaction Monitoring." [PSI:MS]
 synonym: "MRM" EXACT []
 is_obsolete: true
+comment: This term was made obsolete because it was merged with selected reaction monitoring (MS\:1000206)
 
 [Term]
 id: MS:1000100
@@ -677,20 +687,23 @@ is_a: MS:1000479 ! purgatory
 [Term]
 id: MS:1000102
 name: single ion monitoring
-def: "The operation of a mass spectrometer to monitor a single ion rather than scanning entire mass spectrum. Remap to MS:1000205." [PSI:MS]
+def: "OBSOLETE The operation of a mass spectrometer to monitor a single ion rather than scanning entire mass spectrum." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by single ion monitoring (MS\:100205)
 
 [Term]
 id: MS:1000103
 name: single reaction monitoring
-def: "See Selected Reaction Monitoring. remap to MS:1000102." [PSI:MS]
+def: "OBSOLETE This term is not recommended. See Selected Reaction Monitoring." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by selected reaction monitoring (MS\:1000206)
 
 [Term]
 id: MS:1000104
 name: None  ??
-def: "None." [PSI:MS]
+def: "OBSOLETE None." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because...just because.
 
 [Term]
 id: MS:1000105
@@ -906,9 +919,10 @@ is_a: MS:1000044 ! dissociation method
 [Term]
 id: MS:1000137
 name: electron volt
-def: "A non-SI unit of energy (eV) defined as the energy acquired by a particle containing one unit of charge through a potential difference of one volt. An electron-volt is equal to 1.602 176 53(14) x 10^-19 J." [PSI:MS]
+def: "OBSOLETE A non-SI unit of energy (eV) defined as the energy acquired by a particle containing one unit of charge through a potential difference of one volt. An electron-volt is equal to 1.602 176 53(14) x 10^-19 J." [PSI:MS]
 synonym: "eV" EXACT []
 is_obsolete: true
+comment: This term was made obsolete because it was redundant with the Unit Ontology electron volt (UO\:0000266)
 
 [Term]
 id: MS:1000138
@@ -1374,9 +1388,10 @@ is_a: MS:1000507 ! ion attribute
 [Term]
 id: MS:1000212
 name: dalton
-def: "A non-SI unit of mass (symbol Da) that is equal to the unified atomic mass unit: 1.660 538 86(28) x 10^-27 kg." [PSI:MS]
+def: "OBSOLETE A non-SI unit of mass (symbol Da) that is equal to the unified atomic mass unit: 1.660 538 86(28) x 10^-27 kg." [PSI:MS]
 synonym: "Da" EXACT []
 is_obsolete: true
+comment: This term was made obsolete because it was redundant with the Unit Ontology dalton (UO\:0000221)
 
 [Term]
 id: MS:1000213
@@ -1416,9 +1431,10 @@ is_a: MS:1000437 ! ion reaction
 [Term]
 id: MS:1000218
 name: ioniazation efficiency
-def: "The ratio of the number of ions formed to the number of electrons, molecules or photons used. See Ionization Efficiency." [PSI:MS]
+def: "OBSOLETE The ratio of the number of ions formed to the number of electrons, molecules or photons used." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by ionization efficiency (MS\:1000392)
 
 [Term]
 id: MS:1000219
@@ -1516,8 +1532,9 @@ relationship: part_of MS:1000479 ! purgatory
 [Term]
 id: MS:1000232
 name: peak intensity
-def: "The height or area of a peak in a mass spectrum. Replaced by MS:1000505 Base Peak Intensity." [PSI:MS]
+def: "The height or area of a peak in a mass spectrum." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by base peak intensity (MS\:1000505)
 
 [Term]
 id: MS:1000233
@@ -1530,9 +1547,11 @@ is_a: MS:1000507 ! ion attribute
 [Term]
 id: MS:1000234
 name: mass resolving power
-def: "In a mass spectrum, the observed mass divided by the difference between two masses that can be separated. The method by which delta m was obtained and the mass at which the measurement was made should be reported." [PSI:MS]
+def: "OBSOLETE In a mass spectrum, the observed mass divided by the difference between two masses that can be separated. The method by which delta m was obtained and the mass at which the measurement was made should be reported." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000444 ! m/z Separation Method
+is_obsolete: true
+comment: This term was made obsolete because it was replaced by mass resolving power (MS\:1000800)
 
 [Term]
 id: MS:1000235
@@ -1552,9 +1571,10 @@ is_a: MS:1000496 ! instrument attribute
 [Term]
 id: MS:1000237
 name: unified atomic mass unit
-def: "A non-SI unit of mass (u) defined as one twelfth of ^12 C in its ground state and equal to 1.660 538 86(28) x 10^-27 kg." [PSI:MS]
+def: "OBSOLETE A non-SI unit of mass (u) defined as one twelfth of ^12 C in its ground state and equal to 1.660 538 86(28) x 10^-27 kg." [PSI:MS]
 synonym: "u" EXACT []
 is_obsolete: true
+comment: This term was made obsolete because it was redundant with Unit Ontology dalton (UO\:0000221)
 
 [Term]
 id: MS:1000238
@@ -1580,9 +1600,10 @@ is_a: MS:1000008 ! ionization type
 [Term]
 id: MS:1000241
 name: Atmostpheric Pressure Photoionization
-def: "Atmospheric pressure chemical ionization in which the reactant ions are generated by photo-ionization. OBSOLETE because redundant replace by MS:1000382 atmospheric pressure photoionization" [PSI:MS]
+def: "OBSOLETE Atmospheric pressure chemical ionization in which the reactant ions are generated by photo-ionization." [PSI:MS]
 synonym: "APPI" EXACT []
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by atmospheric pressure photoionization (MS\:1000382)
 
 [Term]
 id: MS:1000242
@@ -1758,10 +1779,11 @@ is_a: MS:1000437 ! ion reaction
 id: MS:1000266
 name: Laser Desorption
 alt_id: MS:1000394
-def: "The formation of ions through the interaction of a laser with a material or with gas-phase ions or molecules. OBSOLETE as redudant, replace by laser desorption ionization MS:1000393" [PSI:MS]
+def: "OBSOLETE The formation of ions through the interaction of a laser with a material or with gas-phase ions or molecules." [PSI:MS]
 synonym: "Laser Ionization MERGE" EXACT []
 synonym: "LD" EXACT []
 is_obsolete: true
+comment: this term was made obsolete because it was replaced by laser desorption ionization (MS\:1000393)
 
 [Term]
 id: MS:1000267
@@ -1857,9 +1879,10 @@ is_a: MS:1000406 ! surface ionization
 [Term]
 id: MS:1000280
 name: suface ionization
-def: "The ionization of a neutral species when it interacts with a solid surface with an appropriate work function and temperature. OBSOLETE as redudant replace by  MS:1000406 surface ionization" [PSI:MS]
+def: "OBSOLETE The ionization of a neutral species when it interacts with a solid surface with an appropriate work function and temperature." [PSI:MS]
 synonym: "SI" EXACT []
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by surface ionization (MS\:1000406)
 
 [Term]
 id: MS:1000281
@@ -1878,9 +1901,10 @@ is_a: MS:1000044 ! dissociation method
 [Term]
 id: MS:1000283
 name: Spark Source Mass Spectrometry
-def: "Mass spectrometry using spark ionization. OBSOLETE because redundant, replace by spark ionization MS:1000404." [PSI:MS]
+def: "OBSOLETE Mass spectrometry using spark ionization." [PSI:MS]
 synonym: "SSMS" EXACT []
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by spark ionization (MS\:1000404)
 
 [Term]
 id: MS:1000284
@@ -2161,8 +2185,9 @@ is_a: MS:1000294 ! mass spectrum
 [Term]
 id: MS:1000327
 name: consecutive reaction monitoring
-def: "A type of MS/MS experiments with three or more stages of m/z separation and in which a particular multi-step reaction path is monitored. OBSOLETE as redundant replace by  consecutive reaction monitoring MS:1000244." [PSI:MS]
+def: "OBSOLETE A type of MS/MS experiments with three or more stages of m/z separation and in which a particular multi-step reaction path is monitored." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by consecutive reaction monitoring (MS\:1000244)
 
 [Term]
 id: MS:1000328
@@ -2236,7 +2261,8 @@ id: MS:1000339
 name: nth generation product ion spectrum
 def: "OBSOLETE The mass spectrum recorded from any mass spectrometer in which the appropriate scan function can be set to record the appropriate generation product ion or ions of m/z selected precursor ions." [PSI:MS]
 is_a: MS:1000343 ! product ion spectrum
-comment: This term was made obsolete because it was merged with MSn spectrum.
+is_obsolete: true
+comment: This term was made obsolete because it was merged with MSn spectrum (MS\:1000580)
 
 [Term]
 id: MS:1000340
@@ -2265,7 +2291,8 @@ name: product ion spectrum
 def: "OBSOLETE A mass spectrum recorded from any spectrometer in which the appropriate m/z separation scan function is set to record the product ion or ions of selected precursor ions." [PSI:MS]
 is_a: MS:1000524 ! data file content
 is_a: MS:1000294 ! mass spectrum
-comment: This term was made obsolete because it was merged with MSn spectrum.
+is_obsolete: true
+comment: This term was made obsolete because it was merged with MSn spectrum (MS\:1000580)
 
 [Term]
 id: MS:1000344
@@ -2391,8 +2418,9 @@ is_a: MS:1000508 ! ion chemical type
 [Term]
 id: MS:1000364
 name: fragment ion
-def: "A product ion that results from the dissociation of a precursor ion. Replaced by MS:1000342- product ion." [PSI:MS]
+def: "OBSOLETE A product ion that results from the dissociation of a precursor ion." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was replaced by product ion (MS\:1000342)
 
 [Term]
 id: MS:1000365
@@ -2996,8 +3024,9 @@ synonym: "instrument configuration" EXACT []
 [Term]
 id: MS:1000464
 name: mass unit
-def: "A unit of measurement for mass." [PSI:MS]
+def: "OBSOLETE A unit of measurement for mass." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was redundant with Unit Ontology mass unit (UO:0000002)
 
 [Term]
 id: MS:1000465
@@ -3008,8 +3037,9 @@ relationship: part_of MS:1000441 ! scan
 [Term]
 id: MS:1000466
 name: alternating
-def: "Alternating." [PSI:MS]
+def: "OBSOLETE Alternating." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because...just because.
 
 [Term]
 id: MS:1000467
@@ -3549,8 +3579,9 @@ relationship: part_of MS:1000441 ! scan
 [Term]
 id: MS:1000550
 name: time unit
-def: "Time Unit." [PSI:MS]
+def: "OBSOLETE Time Unit." [PSI:MS]
 is_obsolete: true
+comment: This term was made obsolete because it was redundant with the Unit Ontology time unit (UO\:0000003)
 
 [Term]
 id: MS:1000551
@@ -5063,7 +5094,8 @@ id: MS:1000791
 name: enhanced resolution scan
 def: "OBSOLETE Scan with enhanced resolution." [PSI:MS]
 is_a: MS:1000020 ! scanning method
-comment: This term was made obsolete because it was merged with zoom scan.
+is_obsolete: true
+comment: This term was made obsolete because it was merged with zoom scan (MS\:1000497)
 
 [Term]
 id: MS:1000792

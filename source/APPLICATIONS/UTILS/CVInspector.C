@@ -42,8 +42,11 @@ using namespace std;
 /**
 	@page CVInspector CVInspector
 	
-	@brief A tool for the validation of PSI mapping and CV files
+	@brief A tool for visualization and validation of PSI mapping and CV files
 	
+	This tool is used to validate the correct use of mapping files and CV files.
+	
+	TIt can also generate a HTML page
 	
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude UTILS_CVInspector.cli
@@ -57,7 +60,7 @@ class TOPPCVInspector
 {
  public:
 	TOPPCVInspector()
-		: TOPPBase("CVInspector","A tool for the validation of PSI mapping and CV files",false)
+		: TOPPBase("CVInspector","A tool for visualization and validation of PSI mapping and CV files",false)
 	{
 	}
 	
