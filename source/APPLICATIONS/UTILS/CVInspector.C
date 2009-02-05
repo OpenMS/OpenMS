@@ -92,7 +92,7 @@ class TOPPCVInspector
 			StringList tags;
 			if (child_term.obsolete)
 			{
-				tags.push_back("obsolete");
+				tags.push_back("<font color=darkred>obsolete</font>");
 			}
 			if (child_term.xref_type!=ControlledVocabulary::CVTerm::NONE)
 			{
@@ -105,7 +105,7 @@ class TOPPCVInspector
 				{
 					units.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
 				}
-				tags.push_back(String("unit=") + units.concatenate(", "));
+				tags.push_back(String("units=") + units.concatenate(","));
 			}
 			if (tags.size()!=0)
 			{
@@ -259,7 +259,7 @@ class TOPPCVInspector
 						const ControlledVocabulary::CVTerm& term = cv.getTerm(tit->getAccession());
 						if (term.obsolete)
 						{
-							tags.push_back("obsolete");
+							tags.push_back("<font color=darkred>obsolete</font>");
 						}
 						if (term.xref_type!=ControlledVocabulary::CVTerm::NONE)
 						{
@@ -272,7 +272,7 @@ class TOPPCVInspector
 							{
 								units.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
 							}
-							tags.push_back(String("unit=") + units.concatenate(", "));
+							tags.push_back(String("units=") + units.concatenate(","));
 						}
 					}
 					if (tags.size()!=0)

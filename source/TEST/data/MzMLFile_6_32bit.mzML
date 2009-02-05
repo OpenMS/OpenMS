@@ -49,9 +49,9 @@
 	<sampleList count="1">
 		<sample id="sa_0" name="Sample1">
 			<cvParam cvRef="MS" accession="MS:1000001" name="sample number" value="5"/>
-			<cvParam cvRef="MS" accession="MS:1000004" name="sample mass" value="11.7" unitAccession="UO:0000022" unitName="milligram" unitCvRef="UO"/>
+			<cvParam cvRef="MS" accession="MS:1000004" name="sample mass" value="11.7" unitAccession="UO:0000021" unitName="gram" unitCvRef="UO"/>
 			<cvParam cvRef="MS" accession="MS:1000005" name="sample volume" value="3.1" unitAccession="UO:0000098" unitName="milliliter" unitCvRef="UO"/>
-			<cvParam cvRef="MS" accession="MS:1000006" name="sample concentration" value="5.5" unitAccession="UO:0000177" unitName="unit per volume unit" unitCvRef="UO"/>
+			<cvParam cvRef="MS" accession="MS:1000006" name="sample concentration" value="5.5" unitAccession="UO:0000175" unitName="gram per liter" unitCvRef="UO"/>
 			<userParam name="name" type="xsd:string" value="sample"/>
 			<userParam name="sample batch" type="xsd:string" value="4.4"/>
 		</sample>
@@ -321,7 +321,7 @@
         <scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination"/>
 	        <scan externalSpectrumID="0">
-						<cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.4" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="0.09" unitAccession="UO:0000031" unitName="minute" unitCvRef="UO"/>
 		      </scan>
 		    </scanList>
 			</spectrum>

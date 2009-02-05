@@ -51,9 +51,9 @@ namespace OpenMS
 		addLineEdit_(sampleorganism_, "Organism" );
 	  addTextEdit_(samplecomment_, "Comment");
 		addComboBox_(samplestate_, "State");
-		addDoubleLineEdit_(samplemass_,"Mass (in mg)");
+		addDoubleLineEdit_(samplemass_,"Mass (in gram)");
 		addDoubleLineEdit_(samplevolume_, "Volume (in ml)");
-		addDoubleLineEdit_(sampleconcentration_, "Concentration (in mg/ml)");
+		addDoubleLineEdit_(sampleconcentration_, "Concentration (in g/l)");
 		
 		finishAdding_();
 	}

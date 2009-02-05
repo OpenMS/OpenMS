@@ -216,7 +216,7 @@ namespace OpenMS
 			void fillData_();			
 
 			/// Handles CV terms
-			void handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value);
+			void handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const String& unit_accession="");
 
 			/// Handles user terms
 			void handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value);
@@ -275,6 +275,7 @@ namespace OpenMS
 			static const XMLCh* s_name = xercesc::XMLString::transcode("name");
 			static const XMLCh* s_type = xercesc::XMLString::transcode("type");
 			static const XMLCh* s_value = xercesc::XMLString::transcode("value");
+			static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
 			static const XMLCh* s_id = xercesc::XMLString::transcode("id");
 			static const XMLCh* s_spot_id = xercesc::XMLString::transcode("spotID");
 			static const XMLCh* s_ref = xercesc::XMLString::transcode("ref");
@@ -350,7 +351,9 @@ namespace OpenMS
 			{
 				String value = "";
 				optionalAttributeAsString_(value, attributes, s_value);
-				handleCVParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_accession), attributeAsString_(attributes, s_name), value);
+				String unit_accession = "";
+				optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
+				handleCVParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_accession), attributeAsString_(attributes, s_name), value, unit_accession);
 			}
 			else if (tag=="userParam")
 			{
@@ -376,7 +379,7 @@ namespace OpenMS
 				String ref = attributeAsString_(attributes, s_ref);
 				for (Size i=0; i<ref_param_[ref].size(); ++i)
 				{
-					handleCVParam_(parent_parent_tag, parent_tag,ref_param_[ref][i].accession,ref_param_[ref][i].name,ref_param_[ref][i].value);
+					handleCVParam_(parent_parent_tag, parent_tag,ref_param_[ref][i].accession,ref_param_[ref][i].name,ref_param_[ref][i].value,ref_param_[ref][i].unit_accession);
 				}
 			}
 			else if (tag=="scan")
@@ -733,7 +736,7 @@ namespace OpenMS
 		}
 		
 		template <typename MapType>
-		void MzMLHandler<MapType>::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value)
+		void MzMLHandler<MapType>::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const String& unit_accession)
 		{
 			//Error checks of CV values
 			if (cv_.exists(accession))
@@ -1014,6 +1017,7 @@ namespace OpenMS
 				term.accession = accession;
 				term.name = name;
 				term.value = value;
+				term.unit_accession = unit_accession;
 				ref_param_[current_id_].push_back(term);
 			}
 			//------------------------- selectedIon ----------------------------
@@ -1178,10 +1182,17 @@ namespace OpenMS
 					//No member => meta data
 					spec_.setMetaValue("scan rate",value);
 				}
-				else if (accession=="MS:1000016")//scan time (assuming seconds)
+				else if (accession=="MS:1000016")//scan time
 				{
-					spec_.setRT(value.toDouble());
-					
+					if (unit_accession=="UO:0000031") //minutes
+					{
+						spec_.setRT(60.0*value.toDouble());
+					}
+					else //seconds
+					{
+						spec_.setRT(value.toDouble());
+					}
+						
 					if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRT())))
 					{
 						skip_spectrum_=true;
@@ -1279,7 +1290,7 @@ namespace OpenMS
 			//------------------------- sample ----------------------------
 			else if (parent_tag=="sample")
 			{
-				if (accession=="MS:1000004") //sample mass
+				if (accession=="MS:1000004") //sample mass (gram)
 				{
 					samples_[current_id_].setMass(value.toDouble());
 				}
@@ -1287,11 +1298,11 @@ namespace OpenMS
 				{
 					samples_[current_id_].setNumber(value);
 				}
-				else if (accession=="MS:1000005") //sample volume
+				else if (accession=="MS:1000005") //sample volume (milliliter)
 				{
 					samples_[current_id_].setVolume(value.toDouble());
 				}
-				else if (accession=="MS:1000006") //sample concentration
+				else if (accession=="MS:1000006") //sample concentration (gram per liter)
 				{
 					samples_[current_id_].setConcentration(value.toDouble());
 				}
@@ -1758,7 +1769,7 @@ namespace OpenMS
 				{
 					instruments_[current_id_].getMassAnalyzers().back().setAccuracy(value.toDouble());
 				}
-				else if (accession=="MS:1000022") //TOF Total Path Length (mm)
+				else if (accession=="MS:1000022") //TOF Total Path Length (meter)
 				{
 					instruments_[current_id_].getMassAnalyzers().back().setTOFTotalPathLength(value.toDouble());
 				}
@@ -2428,9 +2439,9 @@ namespace OpenMS
 			{
 				os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000001\" name=\"sample number\" value=\"" << sa.getNumber() << "\" />\n";
 			}
-			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000004\" name=\"sample mass\" value=\"" << sa.getMass() << "\"  unitAccession=\"UO:0000022\" unitName=\"milligram\" unitCvRef=\"UO\" />\n";
+			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000004\" name=\"sample mass\" value=\"" << sa.getMass() << "\"  unitAccession=\"UO:0000021\" unitName=\"gram\" unitCvRef=\"UO\" />\n";
 			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000005\" name=\"sample volume\" value=\"" << sa.getVolume() << "\" unitAccession=\"UO:0000098\" unitName=\"milliliter\" unitCvRef=\"UO\" />\n";
-			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000006\" name=\"sample concentration\" value=\"" << sa.getConcentration() << "\" unitAccession=\"UO:0000177\" unitName=\"unit per volume unit\" unitCvRef=\"UO\" />\n";
+			os  << "			<cvParam cvRef=\"MS\" accession=\"MS:1000006\" name=\"sample concentration\" value=\"" << sa.getConcentration() << "\" unitAccession=\"UO:0000175\" unitName=\"gram per liter\" unitCvRef=\"UO\" />\n";
 			if (sa.getComment()!="")
 			{
 				os  << "			<userParam name=\"comment\" type=\"xsd:string\" value=\"" << sa.getComment() << "\" />\n";
@@ -2844,7 +2855,7 @@ namespace OpenMS
 					os  << "				<analyzer order=\"" << ma.getOrder() << "\">\n";
 					
 					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000014\" name=\"accuracy\" value=\"" << ma.getAccuracy() << "\" unitAccession=\"UO:0000169\" unitName=\"parts per million\" unitCvRef=\"UO\" />\n";
-					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000022\" name=\"TOF Total Path Length\" value=\"" << ma.getTOFTotalPathLength() << "\" unitAccession=\"UO:0000016\" unitName=\"millimeter\" unitCvRef=\"UO\" />\n";
+					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000022\" name=\"TOF Total Path Length\" value=\"" << ma.getTOFTotalPathLength() << "\" unitAccession=\"UO:0000008\" unitName=\"meter\" unitCvRef=\"UO\" />\n";
 					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000024\" name=\"final MS exponent\" value=\"" << ma.getFinalMSExponent() << "\" />\n";
 					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000025\" name=\"magnetic field strength\" value=\"" << ma.getMagneticFieldStrength() << "\" unitAccession=\"UO:0000228\" unitName=\"tesla\" unitCvRef=\"UO\" />\n";
 					

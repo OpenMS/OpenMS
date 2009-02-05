@@ -195,9 +195,9 @@ namespace OpenMS
       /// sets the scan time for a single scan (in s)
       void setScanTime(DoubleReal scan_time);
 			
-			/// returns the path length for a TOF mass analyzer (in mm)
+			/// returns the path length for a TOF mass analyzer (in meter)
       DoubleReal getTOFTotalPathLength() const;
-      /// sets the path length for a TOF mass analyzer (in mm)
+      /// sets the path length for a TOF mass analyzer (in meter)
       void setTOFTotalPathLength(DoubleReal TOF_total_path_length);
 			
 			/// returns the isolation width i.e. in which m/z range the precursor ion is selected for MS to the n (in m/z)

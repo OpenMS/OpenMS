@@ -411,6 +411,10 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_EQUAL(exp5[1].size(),10)
 	TEST_EQUAL(exp5[2].size(),15)
 	TEST_EQUAL(exp5[3].size(),0)
+	TEST_REAL_SIMILAR(exp5[0].getRT(),5.1)
+	TEST_REAL_SIMILAR(exp5[1].getRT(),5.2)
+	TEST_REAL_SIMILAR(exp5[2].getRT(),5.3)
+	TEST_REAL_SIMILAR(exp5[3].getRT(),5.4)
 
 	//test if it works with different peak types
 	MSExperiment<RichPeak1D> e_rich;
@@ -513,13 +517,17 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 	file.load(tmp_filename,exp);
 
 	//test if everything worked
+	TEST_EQUAL(exp==exp_original,true)
 //	TEST_EQUAL(exp.size()==exp_original.size(),true)
 //	TEST_EQUAL(exp.ExperimentalSettings::operator==(exp_original),true)
-//	for (UInt i=0; i<exp.size(); ++i)
-//	{
-//		TEST_EQUAL(exp[i]==exp_original[i],true);
-//	}
-	TEST_EQUAL(exp==exp_original,true)
+//	TEST_EQUAL(exp[0].SpectrumSettings::operator==(exp_original[0]),true)
+//	TEST_EQUAL(exp[0]==exp_original[0],true);
+//	TEST_EQUAL(exp[1].SpectrumSettings::operator==(exp_original[1]),true)
+//	TEST_EQUAL(exp[1]==exp_original[1],true);
+//	TEST_EQUAL(exp[2].SpectrumSettings::operator==(exp_original[2]),true)
+//	TEST_EQUAL(exp[2]==exp_original[2],true);
+//	TEST_EQUAL(exp[3].SpectrumSettings::operator==(exp_original[3]),true)
+//	TEST_EQUAL(exp[3]==exp_original[3],true);
 
 END_SECTION
 

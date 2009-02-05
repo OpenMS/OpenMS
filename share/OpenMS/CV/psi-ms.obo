@@ -4,8 +4,8 @@ saved-by: David Sparkman
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 1.12.1
-remark: release date: 2009-02-04
+remark: version: 1.12.2
+remark: release date: 2009-02-05
 remark: coverage: Mass spectrometer output files
 remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group
@@ -42,7 +42,7 @@ name: sample mass
 def: "Total mass of sample used." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000548 ! sample attribute
-relationship: has_units UO:0000002 ! mass unit
+relationship: has_units UO:0000021 ! gram
 
 [Term]
 id: MS:1000005
@@ -50,7 +50,7 @@ name: sample volume
 def: "Total volume of solution used." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000548 ! sample attribute
-relationship: has_units UO:0000095 ! volume unit
+relationship: has_units UO:0000098 ! milliliter
 
 [Term]
 id: MS:1000006
@@ -58,7 +58,7 @@ name: sample concentration
 def: "Concentration of sample in picomol/ul, femtomol/ul or attomol/ul solution used." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000548 ! sample attribute
-relationship: has_units UO:0000051 ! concentration unit
+relationship: has_units UO:0000175 ! gram per liter
 
 [Term]
 id: MS:1000007
@@ -110,7 +110,8 @@ name: accuracy
 def: "Accuracy is the degree of conformity of a measured mass to its actual value." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000480 ! mass analyzer attribute
-relationship: has_units UO:0000166 ! parts per notation
+relationship: has_units UO:0000169 ! parts per million
+relationship: has_units MS:1000040 ! m/z
 
 [Term]
 id: MS:1000015
@@ -125,7 +126,8 @@ name: scan time
 def: "The time that an analyzer started a scan, relative to the start of the run." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000503 ! scan attribute
-relationship: has_units UO:0000003 ! time unit
+relationship: has_units UO:0000010 ! second
+relationship: has_units UO:0000031 ! minute
 
 [Term]
 id: MS:1000017
@@ -164,7 +166,7 @@ name: TOF Total Path Length
 def: "The length of the field free drift space in a time of flight mass spectrometer." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000480 ! mass analyzer attribute
-relationship: has_units UO:0000001 ! length unit
+relationship: has_units UO:0000008 ! meter
 
 [Term]
 id: MS:1000023
@@ -189,7 +191,7 @@ xref: value-type:xsd\:float "The allowed value-type for this CV term."
 synonym: "B" EXACT []
 synonym: "Magnetic Field" RELATED []
 is_a: MS:1000480 ! mass analyzer attribute
-relationship: has_units UO:0000227 ! magnetic flux density
+relationship: has_units UO:0000228 ! tesla
 
 [Term]
 id: MS:1000026
@@ -325,7 +327,7 @@ name: collision energy
 def: "Energy for an ion experiencing collision with a stationary gas particle resulting in dissociation of the ion." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000510 ! precursor activation attribute
-relationship: has_units UO:0000111 ! energy unit
+relationship: has_units UO:0000266 ! electronvolt
 
 [Term]
 id: MS:1000046
@@ -929,7 +931,6 @@ id: MS:1000138
 name: percent collision energy
 def: "Collision energy required to fragment an ion represented as a percent value." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
-is_a: UO:0000111 ! energy unit
 
 [Term]
 id: MS:1000139
@@ -1368,7 +1369,7 @@ def: "The minimum energy that must be imparted to an atom or molecule to produce
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 synonym: "AE" EXACT []
 is_a: MS:1000507 ! ion attribute
-relationship: has_units UO:0000111 ! energy unit
+relationship: has_units UO:0000266 ! electronvolt
 
 [Term]
 id: MS:1000210
@@ -1443,7 +1444,7 @@ def: "The minimum energy required to remove an electron from an atom or molecule
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 synonym: "IE" EXACT []
 is_a: MS:1000507 ! ion attribute
-relationship: has_units UO:0000111 ! energy unit
+relationship: has_units UO:0000266 ! electronvolt
 
 [Term]
 id: MS:1000220
@@ -2039,7 +2040,7 @@ name: accelerating voltage
 def: "The electrical potential used to impart kinetic energy to ions in a mass spectrometer." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000487 ! ion optics attribute
-relationship: has_units UO:0000217 ! electric potential difference
+relationship: has_units UO:0000218 ! volt
 
 [Term]
 id: MS:1000305
@@ -3163,7 +3164,7 @@ name: source potential
 def: "Potential difference at the MS source in volts." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000482 ! source attribute
-relationship: has_units UO:0000217 ! electric potential difference
+relationship: has_units UO:0000218 ! volt
 
 [Term]
 id: MS:1000487
@@ -3272,7 +3273,8 @@ def: "The time spent gathering data across a peak." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 synonym: "Scan Duration" RELATED []
 is_a: MS:1000549 ! selection window attribute
-relationship: has_units UO:0000003 ! time unit
+relationship: has_units UO:0000010 ! second
+relationship: has_units UO:0000031 ! minute
 
 [Term]
 id: MS:1000503
@@ -3320,7 +3322,7 @@ name: activation energy
 def: "Activation Energy." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000510 ! precursor activation attribute
-relationship: has_units UO:0000111 ! energy unit
+relationship: has_units UO:0000266 ! electronvolt
 
 [Term]
 id: MS:1000510
@@ -3432,7 +3434,7 @@ is_a: MS:1000560 ! source file type
 [Term]
 id: MS:1000527
 name: highest m/z value
-def: "Highest m/z value observed in the mass spectum." [PSI:MS]
+def: "Highest m/z value observed in the mass spectrum." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000499 ! spectrum attribute
 relationship: has_units MS:1000040 ! m/z
@@ -3882,7 +3884,8 @@ id: MS:1000595
 name: time array
 def: "A data array of relative time offset values from a reference time." [PSI:MS]
 is_a: MS:1000513 ! binary data array
-relationship: has_units UO:0000003 ! time unit
+relationship: has_units UO:0000010 ! second
+relationship: has_units UO:0000031 ! minute
 
 [Term]
 id: MS:1000596
@@ -4025,7 +4028,7 @@ is_a: MS:1000513 ! binary data array
 [Term]
 id: MS:1000618
 name: highest wavelength value
-def: "Highest wavelength value observed in the uv/vis spectum." [PSI:MS]
+def: "Highest wavelength value observed in the uv/vis spectrum." [PSI:MS]
 is_a: MS:1000499 ! spectrum attribute
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 
@@ -4102,7 +4105,8 @@ name: low intensity threshold
 def: "Threshold below which some action is taken." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000630 ! data processing parameter
-relationship: has_units MS:1000043 ! intensity unit 
+relationship: has_units MS:1000131 ! number of counts
+relationship: has_units MS:1000132 ! percent of base peak 
 
 [Term]
 id: MS:1000630
@@ -4116,7 +4120,8 @@ name: high intensity threshold
 def: "Threshold above which some action is taken." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000630 ! data processing parameter
-relationship: has_units MS:1000043 ! intensity unit 
+relationship: has_units MS:1000131 ! number of counts
+relationship: has_units MS:1000132 ! percent of base peak 
 
 [Term]
 id: MS:1000632
@@ -5065,7 +5070,8 @@ name: inclusive low intensity threshold
 def: "Threshold at or below which some action is taken." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000630 ! data processing parameter
-relationship: has_units MS:1000043 ! intensity unit
+relationship: has_units MS:1000131 ! number of counts
+relationship: has_units MS:1000132 ! percent of base peak 
 
 [Term]
 id: MS:1000788
@@ -5073,7 +5079,8 @@ name: inclusive high intensity threshold
 def: "Threshold at or above which some action is taken." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000630 ! data processing parameter
-relationship: has_units MS:1000043 ! intensity unit 
+relationship: has_units MS:1000131 ! number of counts
+relationship: has_units MS:1000132 ! percent of base peak 
 
 [Term]
 id: MS:1000789
