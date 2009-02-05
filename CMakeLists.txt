@@ -518,35 +518,45 @@ foreach(i ${TOPP_executables})
 	if (MSVC AND EXISTS ${resource_file})
 		message(STATUS "Setting resource file ${resource_file} for ${i}")
 		add_executable(${i} ${TOPP_DIR}${i}.C ${resource_file})
-        elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND EXISTS ${resource_dir})
-#		SET( MACOSX_BUNDLE_INFO_STRING "${i}" )
-#		SET( MACOSX_BUNDLE_ICON_FILE "${i}.icns" )
-#		SET( MACOSX_BUNDLE_BUNDLE_NAME "${i}" )
-#                SET( MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${i}" )
-		# set custom Info.plist file
-#		set (MACOSX_BUNDLE_INFO_PLIST "${resource_dir}Info.plist" )
+  elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND EXISTS ${resource_dir}) 
+    # transform TOPPView and INIFileEditor to real Mac OS X applications
+    add_executable(${i} MACOSX_BUNDLE ${TOPP_DIR}${i}.C)          
 
-		add_executable(${i} MACOSX_BUNDLE ${TOPP_DIR}${i}.C)          
-
-                # Need to copy the icon file
-                ADD_CUSTOM_COMMAND(
-                  TARGET ${i}
-                  POST_BUILD
-                  COMMAND ${CMAKE_COMMAND} -E echo "Post build for ${i}"
-                  COMMAND ${CMAKE_COMMAND} -E copy
-                  ${resource_dir}Info.plist
-                  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents
-                  COMMAND ${CMAKE_COMMAND} -E make_directory
-                  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents/Resources
-                  COMMAND ${CMAKE_COMMAND} -E copy
-                  ${resource_dir}${i}.icns
-                  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents/Resources
-                  )
-#                EXEC_PROGRAM( "mkdir -p ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents")
-#                EXEC_PROGRAM( "cp ${resource_dir}Info.plist ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents")
-#                EXEC_PROGRAM( "mkdir -p ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents/Resources")
-#                EXEC_PROGRAM( "cp ${resource_dir}${i}.icns ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents/Resources")
-        else()
+    # Need to copy the icon file and the custom Info.plist
+    # if version info changes, please update also the 
+    # info.plist file located in APPLICATIONS/TOPP/{i}-resources/
+    if(${CMAKE_GENERATOR} MATCHES "Xcode") 
+      # since Xcode builds several configurations (Debug;Release)
+      # we need a special handling for the postbuild actions
+      ADD_CUSTOM_COMMAND(
+        TARGET ${i}
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "Post build action for ${i}.app -- Creating OS X bundle"
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${resource_dir}Info.plist
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/\$\(CONFIGURATION\)/${i}.app/Contents
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/\$\(CONFIGURATION\)/${i}.app/Contents/Resources
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${resource_dir}${i}.icns
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/\$\(CONFIGURATION\)/${i}.app/Contents/Resources
+        )
+    else()
+      ADD_CUSTOM_COMMAND(
+        TARGET ${i}
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "Post build action for ${i}.app -- Creating OS X bundle"
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${resource_dir}Info.plist
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents/Resources
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${resource_dir}${i}.icns
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents/Resources
+        )
+    endif()
+  else()
 		add_executable(${i} ${TOPP_DIR}${i}.C)
 	endif()
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
