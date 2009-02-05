@@ -45,7 +45,11 @@ namespace OpenMS
 	  
 		@experimental This algorithm is work in progress and might change.
 		
-				
+		@todo Add restrictions to paramters (Vipul)
+		@todo Rename paramters: all lower case with underscores for separation (Vipul)
+		@todo Remove doxygen docu from C-file (Vipul)
+		@todo Fix indentation of C-file (Vipul)
+		
 		@ingroup MapAlignment
 	*/
 	class OPENMS_DLLAPI MapAlignmentAlgorithmSpectrumAlignment
@@ -291,7 +295,8 @@ namespace OpenMS
 				@param xcoordinatepattern std::vector<int> save the reference position of the anchor points from the pattern
 				@see MapAlignmentAlgorithmSpectrumAlignment()	
 			*/
-			void bucketFilter_(const std::vector<MSSpectrum<>* >& pattern,std::vector<MSSpectrum<>* >& aligned,std::vector<int> & xcoordinate, std::vector<Real> & ycoordinate, std::vector<int>&xcoordinatepattern);			
+			void bucketFilter_(const std::vector<MSSpectrum<>* >& pattern,std::vector<MSSpectrum<>* >& aligned,std::vector<Int> & xcoordinate, std::vector<Real> & ycoordinate, std::vector<Int>&xcoordinatepattern);
+			
 			/**
 				@brief Creates files for the debugging
 
@@ -312,7 +317,7 @@ namespace OpenMS
 				@see MapAlignmentAlgorithmSpectrumAlignment()	
 			*/
 			void eraseMetaDataArrayEntry_(std::vector<MSSpectrum<>* >& spectrum_pointer_container);
-			void debugscoreDistributionCalculation_(Real score);
+			
 			///Represent the gap cost for opening o closing a gap in the alignment
 			Real gap_;
 			///Extension cost after a gap ist open
@@ -330,14 +335,11 @@ namespace OpenMS
 			///Represent the cost of a mismath in the alignment
 			Real mismatchscore_;
 			///Container holding the score of the matchmatrix and also the insertmatrix
-			///Container holding the score of the matchmatrix and also the insertmatrix
 			std::vector<std::vector<Real> >debugmatrix_;
 			///Container holding the only the score of Spectrums
 			std::vector<std::vector<Real> >debugscorematrix_;
 			///Container holding the path of the traceback
 			std::vector<std::pair<Real,Real> >debugtraceback_;
-			Real threshold_;
-			std::vector<Real> scoredistribution_;//save the cell i, j , matchscore, insertscore, traceback
 			//docu in base class
 			void updateMembers_();
 	};
