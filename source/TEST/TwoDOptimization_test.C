@@ -342,7 +342,7 @@ START_SECTION((DoubleReal getMZTolerance() const))
  	TEST_REAL_SIMILAR(mz_tolerance, opt_2d.getMZTolerance())
 END_SECTION
 
-START_SECTION((void setMaxIterations(Int max_iteration)))
+START_SECTION((void setMaxIterations(UInt max_iteration)))
 	UInt number = 20;
    
   TwoDOptimization opt_2d;
@@ -351,7 +351,7 @@ START_SECTION((void setMaxIterations(Int max_iteration)))
  	TEST_EQUAL(number == opt_2d.getMaxIterations(), true)
 END_SECTION
 
-START_SECTION((Int getMaxIterations() const))
+START_SECTION((UInt getMaxIterations() const))
   UInt number = 20;
    
   TwoDOptimization opt_2d;

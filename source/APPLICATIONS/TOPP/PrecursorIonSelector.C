@@ -137,6 +137,9 @@ protected:
     // init pis preprocessing
     //-------------------------------------------------------------
 		Param pisp_param = getParam_().copy("algorithm:",true);
+		pisp_param.remove("type");
+		pisp_param.remove("min_pep_ids");
+		pisp_param.remove("max_iteration");
 		writeDebug_("Parameters passed to PrecursorIonSelectionPreprocessing", pisp_param,3);
     PrecursorIonSelectionPreprocessing pisp;
 		//    pisp.setLogType(log_type_);
@@ -155,12 +158,12 @@ protected:
 		//-------------------------------------------------------------
     // init pis
     //-------------------------------------------------------------
-
-		pisp_param.removeAll("preprocessing");
-		writeDebug_("Parameters passed to PrecursorIonSelection", pisp_param,3);
+		Param pis_param = getParam_().copy("algorithm:",true);
+		pis_param.removeAll("preprocessing");
+		writeDebug_("Parameters passed to PrecursorIonSelection", pis_param,3);
     PrecursorIonSelection pis;
 		//    pis.setLogType(log_type_);
-		pis.setParameters(pisp_param);
+		pis.setParameters(pis_param);
 		
     //-------------------------------------------------------------
     // loading input
