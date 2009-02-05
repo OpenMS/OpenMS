@@ -754,7 +754,10 @@ if(NOT MSVC)
   endforeach()
 
   foreach(i ${TOPP_executables})
-    install(TARGETS ${i} RUNTIME DESTINATION bin)
+    install(TARGETS ${i} 
+      RUNTIME DESTINATION bin
+      BUNDLE DESTINATION bin
+      )
   endforeach()
 
   foreach(i ${OpenMS_sources})
