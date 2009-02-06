@@ -44,7 +44,8 @@
 	
 		The above example image shows a 2D view of TOPPView (blue rectangle) and the corresponding
 		@ref TOPPView_modes (red rectangle). In the right dock area, you can see the @ref TOPPView_layers
-		(yellow rectangle) and the @ref TOPPView_filtering tool (green rectangle). Switching between open windows
+		(yellow rectangle), the @ref TOPPView_browser (magenta rectangle)
+    and the @ref TOPPView_filtering tool (green rectangle). Switching between open windows
 		can be done using the tab bar (black rectangle).
 
 	@section TOPPView_layers Layers
@@ -58,6 +59,14 @@
 		Layers can be copied by dragging them to the tab bar. If the layer is dropped on a tab, it is added
 		to the corresponding window. If the layer is dropped on the tab bar but not on a tab, a new window
 		with that layer is added.
+
+  @section TOPPView_browser Spectrum browser
+		
+		The spectra contained in a peak map can be browsed in the @a spectrum @a browser. It displays
+		a tree view of all spectra in the current layer, where a spectrum with MS level @a n is a child
+		of the spectrum with MS level @a n - @a 1 that contains its corresponding precursor peak.
+		For each spectrum in the list, the retention time and (for spectra with MS level > 1) the m/z value of
+		the precursor peak are also shown.
 
 	@section TOPPView_filtering Data filtering
 
@@ -125,24 +134,46 @@
       - It is activated using the SHIFT key.
       - Press the left mouse button down while a peak is selected and drag the mouse to another peak to measure the distance 
         between peaks.
-      - Currently this mode is implemented in the 2D mode only.
+      - This mode is implemented in the 1D and 2D mode only.
 	
 	@section TOPPView_views_1d 1D view
 	
 		The 1D view is used to display raw spectra or peak spectra.
 		Raw data is displayed using a continuous line. Peak data is displayed using one stick per peak.
-		The color used for drawing the lines can be set for each layer individually.
+		The color used for drawing the lines can be set for each layer individually. The 1D view offers
+		a mirror mode, where the window is vertically divided in halfs and individual layers can
+		be displayed either above or below the "mirror" axis in order to facilitate quick visual comparison
+		of spectra. When a mirror view is active, it is possible to perform a spectrum alignment of a
+		spectrum in the upper and one in the lower half, respectively. Moreover, spectra can be annotated
+		manually. Currently, distance annotations between peaks, peak annotations and simple text
+		labels are provided.
+
+		The following example image shows a 1D view in mirror mode. A theoretical spectrum (lower half) has been
+		generated using the theoretical spectrum generator (@a Tools > @a Generate @a theoretical @a spectrum ).
+		The
+		mirror mode has been activated by right-clicking the layer containing the theoretical spectrum and
+		selecting @a Flip @a downwards from the layer context menu. A spectrum alignment between the two
+		spectra has been performed (@a Tools > @a Align @a spectra ). It is visualized by the red lines connecting
+		aligned peaks and can be reset through the context menu. Moreover, in the example, several
+		distances between abundant peaks have been measured and subsequently replaced by their corresponding
+		amino acid residue code. This is done by right-clicking a distance annotation and selecting @a Edit
+    from the context menu. Additionally, peak annotations and text labels have been added by
+		right-clicking peaks and
+		selecting @a Add @a peak @a annotation or by right-clicking anywhere and
+		selecting @a Add @a label, respectively.
+		Multiple annotations can be selected by holding down the CTRL key while
+		clicking them. They can be moved around by dragging the mouse and deleted by pressing DEL.
 		
-		The following example image shows a raw data spectrum and the corresponding peak spectrum:
-		
-		@image html Spectrum1DWidget.png
-		@image latex Spectrum1DWidget.png "" width=8cm
+		@image html TOPPView_1D.png
+		@image latex TOPPView_1D.png "" width=12cm
 
 		Through the <B>context menu:</B> of the 1D view you can:
 		<UL>
 			<LI> View/edit meta data
 			<LI> Save the current layer data
 			<LI> Change display settings
+			<LI> Add peak annotations or arbitrary text labels
+			<LI> Reset a performed alignment
 		</UL>
 		
 	@section TOPPView_views_2d 2D view
@@ -332,6 +363,10 @@
 			<TR> <TD>S</TD> <TD>Intensity mode: Snap-to-maximum</TD> </TR>
 			<TR> <TD>I</TD> <TD>1D draw mode: peaks</TD> </TR>
 			<TR> <TD>R</TD> <TD>1D draw mode: raw data</TD> </TR>
+			
+			<TR> <TD colspan=2><B>Annotations in 1D view</B></TD> </TR>
+			<TR> <TD>CTRL+A</TD> <TD>Select all annotations of the current layer</TD> </TR>
+			<TR> <TD>DEL</TD> <TD>Delete all currently selected annotations</TD> </TR>
 
 			<TR> <TD colspan=2><B>Advanced</B></TD> </TR>
 			<TR> <TD>CTRL+T</TD> <TD>Apply TOPP tool to the current layer</TD> </TR>

@@ -1228,7 +1228,7 @@ namespace OpenMS
 				new_action->setEnabled(false);
 			}
 			context_menu->addSeparator();
-			new_action = context_menu->addAction("Clear alignment");
+			new_action = context_menu->addAction("Reset alignment");
 			if (!show_alignment_)
 			{
 				new_action->setEnabled(false);
@@ -1333,7 +1333,7 @@ namespace OpenMS
 						update_(__PRETTY_FUNCTION__);
 					}
 				}
-				else if (result->text()=="Clear alignment")
+				else if (result->text()=="Reset alignment")
 				{
 					resetAlignment();
 				}
