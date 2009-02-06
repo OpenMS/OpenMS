@@ -1173,7 +1173,7 @@ namespace OpenMS
 		QAction* result = 0;
 		QAction* new_action = 0;
 		
-		Annotations1DContainer annots_1d = getCurrentLayer_().getCurrentAnnotations();
+		Annotations1DContainer& annots_1d = getCurrentLayer_().getCurrentAnnotations();
 		Annotation1DItem* annot_item = annots_1d.getItemAt(e->pos());
 		if (annot_item)
 		{
