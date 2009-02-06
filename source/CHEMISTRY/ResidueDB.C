@@ -213,6 +213,7 @@ namespace OpenMS
 				{
 					// add residue
 					res_ptr = parseResidue_(values);
+					split.clear();
 					values.clear();
 					residues_.insert(res_ptr);
 					const_residues_.insert(res_ptr);
