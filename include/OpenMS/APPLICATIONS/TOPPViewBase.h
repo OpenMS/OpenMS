@@ -213,6 +213,8 @@ namespace OpenMS
 			void metadataFileDialog();
 			/// Shows the selected spectrum
 			void spectrumSelectionChange(QTreeWidgetItem* current, QTreeWidgetItem* /*previous*/);
+			/// Opens a new 1D window and shows the spectrum, if not already in 1D
+			void spectrumDoubleClicked(QTreeWidgetItem* current, int /*col*/);
 
     protected slots:
       /** @name Layer manager and filter manager slots

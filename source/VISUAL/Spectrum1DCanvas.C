@@ -482,7 +482,7 @@ namespace OpenMS
 	void Spectrum1DCanvas::keyPressEvent(QKeyEvent* e)
 	{
 		// Delete pressed => delete selected annotations from the current layer
-		if (e->key()==Qt::Key_Delete || e->key()==Qt::Key_Backspace)
+		if (e->key()==Qt::Key_Delete)
 		{
 			e->accept();
 			getCurrentLayer_().getCurrentAnnotations().removeSelectedItems();

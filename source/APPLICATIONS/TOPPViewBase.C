@@ -404,7 +404,7 @@ namespace OpenMS
   	spectrum_selection_->setHeaderLabels(header_labels);
     spectrum_bar->setWidget(spectrum_selection_);
     connect(spectrum_selection_,SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)),this,SLOT(spectrumSelectionChange(QTreeWidgetItem*, QTreeWidgetItem*)));
-
+		connect(spectrum_selection_,SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)),this,SLOT(spectrumDoubleClicked(QTreeWidgetItem*, int)));
     windows->addAction("&Show spectrum selection window",spectrum_bar,SLOT(show()));
 
     //data filters
@@ -1498,7 +1498,16 @@ namespace OpenMS
 			int index = current->text(3).toInt();
 			widget_1d->canvas()->activateSpectrum(index);
 		}
-		else
+	}
+
+	void TOPPViewBase::spectrumDoubleClicked(QTreeWidgetItem* current, int /*col*/)
+	{
+		if (current == 0)
+		{
+			return;
+		}
+
+		if (!active1DWindow_())
 		{
 			SpectrumCanvas* cc = activeCanvas_();
 			const LayerData& cl = cc->getCurrentLayer();
