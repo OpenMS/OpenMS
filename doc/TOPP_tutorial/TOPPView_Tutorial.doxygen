@@ -68,6 +68,10 @@
 		For each spectrum in the list, the retention time and (for spectra with MS level > 1) the m/z value of
 		the precursor peak are also shown.
 
+		If a 2D or 3D window is active, double-clicking a spectrum will open it in a new 1D window. If
+		the active window is a 1D view, the spectra can be browsed and the currently selected spectrum will
+    be shown.
+
 	@section TOPPView_filtering Data filtering
 
 		TOPPView allows filtering of the displayed peak data and feature data.
