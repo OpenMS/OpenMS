@@ -886,7 +886,11 @@ namespace OpenMS
 			else if(parent_tag=="spectrum")
 			{
 				//spectrum type
-				if (accession=="MS:1000579") //MS1 spectrum
+				if (accession=="MS:1000294") //mass spectrum
+				{
+					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+				}
+				else if (accession=="MS:1000579") //MS1 spectrum
 				{
 					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
 				}
@@ -2283,7 +2287,7 @@ namespace OpenMS
 			}
 			if (file_content.has(InstrumentSettings::MASSSPECTRUM))
 			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
 			}
 			else if (file_content.has(InstrumentSettings::SIM))
 			{
@@ -2323,7 +2327,7 @@ namespace OpenMS
 			}
 			else //FORCED
 			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
 			}
 			//native ID format
 			if (exp.getNativeIDType()==ExperimentalSettings::THERMO)
@@ -3217,7 +3221,7 @@ namespace OpenMS
 				//spectrum type
 				if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::MASSSPECTRUM)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
 				}
 				else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::SIM)
 				{
@@ -3257,7 +3261,7 @@ namespace OpenMS
 				}
 				else //FORCED
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000580\" name=\"MSn spectrum\" />\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
 				}
 				
 				if (spec.getInstrumentSettings().getPolarity()==IonSource::NEGATIVE)
