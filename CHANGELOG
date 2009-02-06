@@ -3,14 +3,15 @@
 ------------------------------------------------------------------------------------------
 
 New features and improvements of OpenMS:
+- The build system is now based on CMake supporting Linux, MacOS and Windows.
+- Finalized mzML implementation (version 1.10)
+  - previously unsupported parts
+  - indexed mzML
+  - semantic validation (see FileInfo)
+  - correctly handling of nativeID for all formats
 - Kernel: Replaced comparators NthPositionLess by the comparator(s) RTLess and/or MZLess.
 - Kernel: Replaced methods sortByNthPosition() by the method(s) sortByRT() and/or sortByMZ().
 - Improved the framework for meta data visualization.
-- Finalized MzML implementation (version 1.10)
-  - previously unsupported parts
-  - index MzML
-  - semantic validation
-  - correctly handling of nativeID for all formats
 - Meta data: Several extensions to the meta data handling classes for mzML compliance.
 - The macros used for unit testing in source/TEST have been revised.
 - More consistent handling of single vs. double numeric precision, esp. in file output.
@@ -21,11 +22,12 @@ New features and improvements of TOPP:
 - Added ITRAQAnalyzer: A specialized tool for quantitation of ITRAQ experiments.
 - Added IDMapper: Assigns protein/peptide identifications to features or consensus features.
 - FeatureLinker: Added automated RT parameter estimation for 'labeled' algorithm.
-- MapAligner: Added spectrum_alignment and apply_given_trafo, IdXML is supported
+- MapAligner: Added spectrum_alignment and apply_given_trafo, IdXML is supported.
 - Resampler: This tool is now used for resampling raw data instead of resampling in NoiseFilter or BaselineFilter.
-- FileInfo: The option '-v' now also does a semantic validation of MzML files.
+- FileInfo: The option '-v' now also does a semantic validation of mzML files.
 - FileMerger: Improved interface
 - ConsensusID: Now also supports consensus identification of features and consensus features.
+- INIFileEditor: Support for string/int/double lists and input/output files was added.
 
 New features and improvements of TOPPView:
 - Added functionality for editing feature data
@@ -47,6 +49,7 @@ Changes to OpenMS XML formats:
 	- Added protein and peptide information
 
 Changes to the contrib package:
+- The build system is now based on CMake supporting Linux, MacOS and Windows.
 - Updated SeqAn package to revision 2666 (this fixes the STL debug error)
 - Updated xerces-c to version 3.0.0
 - Updated boost to version 1.37.0
@@ -86,7 +89,7 @@ Detailed list of changes to specific OpenMS classes:
     - Added Software
     - Added ion optics type
   - AcquisitionInfo: Added MetaInfoInterface
-  - Acquisition: integer 'number' member was changed to a string 'identifier' (for MzML)
+  - Acquisition: integer 'number' member was changed to a string 'identifier' (for mzML)
   - ExperimentalSettings
     - Now contains multiple SourceFiles and DataProcessings
     - ExperimentType was removed

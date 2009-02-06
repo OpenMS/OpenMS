@@ -112,8 +112,7 @@ namespace OpenMS
         while ( std::getline(is, line) )
         {
           ++line_number;
-          std::cout << (line_number == marked ? " # :|:  " : "   :|:  ")
-              << line << '\n';
+          std::cout << (line_number == marked ? " # :|:  " : "   :|:  ") << line << '\n';
         }
         return;
       }
@@ -121,19 +120,23 @@ namespace OpenMS
       bool
       validate( const std::vector<std::string>& file_names )
       {
-        bool passed = true;
+      	std::cout << "checking (created temporary files)..." << std::endl;
+        bool passed_all = true;
         for ( Size i = 0; i < file_names.size(); ++i )
         {
           if ( File::exists(file_names[i]) )
           {
-            switch ( FileHandler::getType(file_names[i]) )
+          	FileTypes::Type type = FileHandler::getType(file_names[i]);
+            bool passed_single = true;
+            bool skipped = false;
+            switch ( type )
             {
               case FileTypes::MZML:
                 {
                   if ( !MzMLFile().isValid(file_names[i]) )
                   {
                     std::cout << " - Error: mzML file does not validate against XML schema '" << file_names[i] << "'" << std::endl;
-                    passed = false;
+                    passed_single = false;
                   }
                   StringList errors, warnings;
                   if ( !MzMLFile().isSemanticallyValid(file_names[i], errors,
@@ -144,7 +147,7 @@ namespace OpenMS
                     {
                       std::cout << "Error - " << errors[j] << std::endl;
                     }
-                    passed = false;
+                    passed_single = false;
                   }
                 }
                 break;
@@ -152,57 +155,81 @@ namespace OpenMS
                 if ( !MzDataFile().isValid(file_names[i]) )
                 {
                   std::cout << " - Error: Invalid mzData file '" << file_names[i] << "'" << std::endl;
-                  passed = false;
+                  passed_single = false;
                 }
                 break;
               case FileTypes::MZXML:
                 if ( !MzXMLFile().isValid(file_names[i]) )
                 {
                   std::cout << " - Error: Invalid mzXML file '" << file_names[i] << "'" << std::endl;
-                  passed = false;
+                  passed_single = false;
                 }
                 break;
               case FileTypes::FEATUREXML:
                 if ( !FeatureXMLFile().isValid(file_names[i]) )
                 {
                   std::cout << " - Error: Invalid FeatureXML file '" << file_names[i] << "'" << std::endl;
-                  passed = false;
+                  passed_single = false;
                 }
                 break;
               case FileTypes::IDXML:
                 if ( !IdXMLFile().isValid(file_names[i]) )
                 {
                   std::cout << " - Error: Invalid IdXML file '" << file_names[i] << "'" << std::endl;
-                  passed = false;
+                  passed_single = false;
                 }
                 break;
               case FileTypes::CONSENSUSXML:
                 if ( !ConsensusXMLFile().isValid(file_names[i]) )
                 {
                   std::cout << " - Error: Invalid ConsensusXML file '" << file_names[i] << "'" << std::endl;
-                  passed = false;
+                  passed_single = false;
                 }
                 break;
               case FileTypes::PARAM:
                 if ( !Param().isValid(file_names[i]) )
                 {
                   std::cout << " - Error: Invalid Param file '" << file_names[i] << "'" << std::endl;
-                  passed = false;
+                  passed_single = false;
                 }
                 break;
               case FileTypes::TRANSFORMATIONXML:
                 if ( !TransformationXMLFile().isValid(file_names[i]) )
                 {
-                  std::cout << " - Error: Invalid TransformationXML file '" << file_names[i] << "'" << std::endl;
-                  passed = false;
+                  
+                  passed_single = false;
                 }
                 break;
               default:
+              	skipped = true;
                 break;
             }
+            //output for single file
+            if (skipped)
+            {
+            	std::cout << " +  skipped file '" << file_names[i] << "' (type: " << FileHandler::typeToName(type) << ")" << std::endl;
+            }
+            else if (passed_single)
+            {
+            	std::cout << " +  valid file '" << file_names[i] << "' (type: " << FileHandler::typeToName(type) << ")" << std::endl;
+          	}
+          	else
+          	{
+          		passed_all = false;
+          		std::cout << " -  invalid file '" << file_names[i] << "' (type: " << FileHandler::typeToName(type) << ")" << std::endl;
+          	}
           }
         }
-        return passed;
+        //output for all files
+        if (passed_all)
+        {
+        	std::cout << ": passed" << std::endl << std::endl;
+        }
+        else
+        {
+        	std::cout << ": failed" << std::endl << std::endl;
+        }
+        return passed_all;
       }
 
       std::string

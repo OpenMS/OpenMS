@@ -27,6 +27,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 ///////////////////////////
@@ -531,6 +532,11 @@ START_SECTION(([EXTRA]void outputFileWritable_(const String& filename) const))
 	String filename;
 	NEW_TMP_FILE(filename);
 	TOPPBaseTest().outputFileWritable(filename);
+	//Actually writing something to the file is not necessary, but on Mac all tmp files are called 'source_<line>.tmp'.
+	//So we have to make sure the file is empty. Otherwise the test might fail...
+	TextFile dummy;
+	dummy.resize(5);
+	dummy.store(filename);
 END_SECTION
 
 START_SECTION(([EXTRA]void parseRange_(const String& text, double& low, double& high) const))
