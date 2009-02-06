@@ -60,7 +60,7 @@
 	      <cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value=""/>
 	    </referenceableParamGroup>
 	    <referenceableParamGroup id="ErrorGroup">
-	    	<cvParam cvRef="MS" accession="MS:1000127" name="centroid mass spectrum" value=""/>
+	    	<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" value=""/>
 	    </referenceableParamGroup>
 	  </referenceableParamGroupList>
 	  
@@ -223,7 +223,7 @@
 	
 	      <spectrum index="1" id="index=20" defaultArrayLength="10" sourceFileRef="sf_spectrum_2">
           <referenceableParamGroupRef ref="CommonMS2SpectrumParams"/>
-          <cvParam cvRef="MS" accession="MS:1000127" name="centroid mass spectrum" value=""/>
+          <cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" value=""/>
           <cvParam cvRef="MS" accession="MS:1000528" name="lowest m/z value" value="320.39" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
           <cvParam cvRef="MS" accession="MS:1000527" name="highest m/z value" value="1003.56" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
           <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="456.347" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
@@ -300,7 +300,7 @@
 	
 	      <spectrum index="2" id="index=21" defaultArrayLength="15">
           <referenceableParamGroupRef ref="CommonMS1SpectrumParams"/>
-          <cvParam cvRef="MS" accession="MS:1000127" name="centroid mass spectrum" value=""/>
+          <cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" value=""/>
           <cvParam cvRef="MS" accession="MS:1000528" name="lowest m/z value" value="400.39" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
           <cvParam cvRef="MS" accession="MS:1000527" name="highest m/z value" value="1795.56" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
           <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="445.347" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
@@ -341,7 +341,7 @@
 	      </spectrum>
 	
 	      <spectrum index="3" id="index=22" defaultArrayLength="0">
-          <cvParam cvRef="MS" accession="MS:1000128" name="profile mass spectrum" value=""/>
+          <cvParam cvRef="MS" accession="MS:1000128" name="profile spectrum" value=""/>
         	<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
           <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value=""/>
         	<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value=""/>

@@ -300,6 +300,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(spec.getMSLevel(),1)
 		TEST_REAL_SIMILAR(spec.getRT(),5.4)
 		TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::MASSSPECTRUM)
+		TEST_EQUAL(spec.getInstrumentSettings().getZoomScan(),true)
 		TEST_EQUAL(spec.getMetaDataArrays().size(),0)
 		TEST_EQUAL(spec.getType(),SpectrumSettings::RAWDATA)
 		TEST_EQUAL(spec.getInstrumentSettings().getScanWindows().size(),1)
@@ -592,7 +593,7 @@ START_SECTION(bool isSemanticallyValid(const String& filename, StringList& error
 
 	//invalid file
 	TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_3_invalid.mzML"), errors, warnings),false)
-	TEST_EQUAL(errors.size(),8)
+	TEST_EQUAL(errors.size(),7)
 	TEST_EQUAL(warnings.size(),1)
 //	for (Size i=0; i<errors.size(); ++i)
 //	{

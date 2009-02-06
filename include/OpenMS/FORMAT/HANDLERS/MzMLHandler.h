@@ -936,11 +936,11 @@ namespace OpenMS
 				}
 				
 				//spectrum representation
-				else if (accession=="MS:1000127") //centroid mass spectrum
+				else if (accession=="MS:1000127") //centroid spectrum
 				{
 					spec_.setType(SpectrumSettings::PEAKS);
 				}
-				else if (accession=="MS:1000128") //profile mass spectrum
+				else if (accession=="MS:1000128") //profile spectrum
 				{
 					spec_.setType(SpectrumSettings::RAWDATA);
 				}
@@ -968,7 +968,7 @@ namespace OpenMS
 				}
 				else if (accession=="MS:1000497") //zoom scan
 				{
-					//TODO
+					spec_.getInstrumentSettings().setZoomScan(true);
 				}
 				else if (accession=="MS:1000796") //spectrum title
 				{
@@ -3202,22 +3202,27 @@ namespace OpenMS
 				//spectrum representation
 				if (spec.getType()==SpectrumSettings::PEAKS)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000127\" name=\"centroid mass spectrum\" />\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000127\" name=\"centroid spectrum\" />\n";
 				}
 				else if (spec.getType()==SpectrumSettings::RAWDATA)
 				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000128\" name=\"profile mass spectrum\" />\n";
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000128\" name=\"profile spectrum\" />\n";
 				}
 				else
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000525\" name=\"spectrum representation\" />\n";
 				}
-				
+
+				//spectrum attributes		
 				if (spec.getMSLevel()!=0)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000511\" name=\"ms level\" value=\"" << spec.getMSLevel() << "\" />\n";	
 				}
-				
+				if (spec.getInstrumentSettings().getZoomScan())
+				{
+					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000497\" name=\"zoom scan\" />\n";
+				}
+
 				//spectrum type
 				if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::MASSSPECTRUM)
 				{
@@ -3264,6 +3269,7 @@ namespace OpenMS
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
 				}
 				
+				//scan polarity
 				if (spec.getInstrumentSettings().getPolarity()==IonSource::NEGATIVE)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000129\" name=\"negative scan\" />\n";
@@ -3271,10 +3277,6 @@ namespace OpenMS
 				else if (spec.getInstrumentSettings().getPolarity()==IonSource::POSITIVE)
 				{
 					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000130\" name=\"positive scan\" />\n";
-				}
-				else
-				{
-					os << "				<cvParam cvRef=\"MS\" accession=\"MS:1000465\" name=\"scan polarity\" />\n";
 				}
 				
 				writeUserParam_(os, spec, 5);

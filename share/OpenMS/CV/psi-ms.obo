@@ -850,14 +850,14 @@ is_a: MS:1000031 ! instrument model
 
 [Term]
 id: MS:1000127
-name: centroid mass spectrum
+name: centroid spectrum
 def: "Processing of profile data to produce spectra that contains discrete peaks of zero width. Often used to reduce the size of dataset." [PSI:MS]
 synonym: "Discrete Mass Spectrum" EXACT []
 is_a: MS:1000525 ! spectrum representation
 
 [Term]
 id: MS:1000128
-name: profile mass spectrum
+name: profile spectrum
 def: "A profile mass spectrum is created when data is recorded with ion current (counts per second) on one axis and mass/charge ratio on another axis." [PSI:MS]
 synonym: "continuous mass spectrum" EXACT []
 synonym: "Continuum Mass Spectrum" EXACT []

@@ -99,10 +99,10 @@
         <CvMappingRule id="spectrum_must" cvElementPath="/mzML/run/spectrumList/spectrum/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/spectrumList/spectrum" cvTermsCombinationLogic="AND">
             <CvTerm termAccession="MS:1000559" useTermName="false" useTerm="false" termName="spectrum type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
             <CvTerm termAccession="MS:1000525" useTerm="true" termName="spectrum representation" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
-            <CvTerm termAccession="MS:1000465" useTerm="true" termName="scan polarity" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
         <CvMappingRule id="spectrum_may" cvElementPath="/mzML/run/spectrumList/spectrum/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/run/spectrumList/spectrum" cvTermsCombinationLogic="OR">
             <CvTerm termAccession="MS:1000499" useTerm="false" termName="spectrum attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1000465" useTerm="false" termName="scan polarity" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
 
         <!-- acquisition list -->
