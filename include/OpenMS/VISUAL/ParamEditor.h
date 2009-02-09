@@ -126,8 +126,6 @@ namespace OpenMS
 		
 		@image html ParamEditor.png
 		
-		@todo Add input/output file dialogs (Hiwi)
-		
 		@ingroup Visual
 	*/
 	class OPENMS_DLLAPI ParamEditor  
