@@ -750,13 +750,15 @@ MESSAGE(STATUS "")
 ##### install/copy?? #####
 if(NOT MSVC)
   # TODO:
-  #  - this code breaks the windows cmake call
+  #  - this code breaks the windows cmake call (already code for win support added .. needs testing)
   #  - install compiled documentation ??
-  #  - install share
   set(DO_INSTALL false CACHE BOOL "Set to 'ON' if you want the CMAKE_INSTALL_PREFIX to be used and the library to be installed. On 'OFF' the library and Tools will be build but not installed!")
 
   ## CPack installation and packaging procedures
-  install(TARGETS OpenMS LIBRARY DESTINATION lib)
+  install(TARGETS OpenMS 
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    COMPONENT libraries)
 
   # install utils
   foreach(util ${UTILS_executables})
@@ -825,7 +827,20 @@ if(NOT MSVC)
   # install share
   INSTALL(DIRECTORY share/
     DESTINATION share
-    COMPONENT share)
+    COMPONENT share
+    REGEX "^/.*/.svn/.*$" EXCLUDE)
+
+  # install contrib lib/include
+  # TODO: revise this .. currently we just do a brute
+  #       force copy of all libs in contrib lib dir into install/lib
+  #       same holds for the includes
+  INSTALL(DIRECTORY ${CONTRIB_LIB_DIR}
+    DESTINATION lib/
+    COMPONENT contrib)
+
+  INSTALL(DIRECTORY ${CONTRIB_INCLUDE_DIR}
+    DESTINATION include/
+    COMPONENT contrib)
 
   # most of the interesting CPack stuff is done below
   include(OpenMSCPack.cmake)
