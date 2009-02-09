@@ -34,7 +34,6 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/FORMAT/MascotOutfile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
 #include <vector>
