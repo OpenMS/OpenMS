@@ -87,7 +87,7 @@ namespace OpenMS
 	    /**
 	    	@brief compare two PeakSpectrum by their Discrete Cosines Transformation.
 				
-	  		This function compares two given PeakSpectrum on their  Discrete Cosines Transformation
+	  		This function compares two given PeakSpectrum about their  Discrete Cosines Transformation.
 	  		First, a transformation has to be calculated. Please use the function transform() in this class, before calling this
 				function. The comparison works by summing the subtractions of each coefficient for all elements of both transformations. sum(_i=1)
 				^n x_i-y_i. If the sum is zero, both Spectrums are identical in the real part and one is emited, otherwise a zero.

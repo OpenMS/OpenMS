@@ -45,11 +45,7 @@ namespace OpenMS
 	  
 		@experimental This algorithm is work in progress and might change.
 		
-		@todo Add restrictions to paramters (Vipul)
-		@todo Rename paramters: all lower case with underscores for separation (Vipul)
-		@todo Remove doxygen docu from C-file (Vipul)
-		@todo Fix indentation of C-file (Vipul)
-		
+	
 		@ingroup MapAlignment
 	*/
 	class OPENMS_DLLAPI MapAlignmentAlgorithmSpectrumAlignment
@@ -309,7 +305,7 @@ namespace OpenMS
 			void debugFileCreator_(const std::vector<MSSpectrum<>* >& pattern,  std::vector<MSSpectrum<>* >& aligned);
 			
 			/**
-				@brief Delete entries of the MetaDataArray with was made from CompareFouriertransform 
+				@brief Delete entries of the MetaDataArray which was made from CompareFouriertransform 
 
 				This function erase the entries with was done by the CompareFouriertransform function.
 			 		
@@ -317,7 +313,15 @@ namespace OpenMS
 				@see MapAlignmentAlgorithmSpectrumAlignment()	
 			*/
 			void eraseMetaDataArrayEntry_(std::vector<MSSpectrum<>* >& spectrum_pointer_container);
-			
+		/**
+			@brief Rounding the score of two spectras, only necessary for debugging
+
+			This function rounded the score of two spectras.This is necessary for some function in the Debug-Mode
+			 		
+			@param Real Real score the caluclated score
+			@see MapAlignmentAlgorithmSpectrumAlignment()	
+		 */
+			void debugscoreDistributionCalculation_(Real score);
 			///Represent the gap cost for opening o closing a gap in the alignment
 			Real gap_;
 			///Extension cost after a gap ist open
@@ -334,12 +338,16 @@ namespace OpenMS
 			bool debug_;
 			///Represent the cost of a mismath in the alignment
 			Real mismatchscore_;
+			///This is the minimum score for counting as a match(1-cutoffScore_)
+			Real threshold_;
 			///Container holding the score of the matchmatrix and also the insertmatrix
 			std::vector<std::vector<Real> >debugmatrix_;
 			///Container holding the only the score of Spectrums
 			std::vector<std::vector<Real> >debugscorematrix_;
 			///Container holding the path of the traceback
 			std::vector<std::pair<Real,Real> >debugtraceback_;
+			///Container holding the score of each cell(matchmatrix,insertmatrix, traceback)
+			std::vector<Real> scoredistribution_;//save the cell i, j , matchscore, insertscore, traceback
 			//docu in base class
 			void updateMembers_();
 	};

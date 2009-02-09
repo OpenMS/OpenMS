@@ -70,7 +70,7 @@ CompareFouriertransform copy;
 	TEST_EQUAL(copy.getParameters(), ptr->getParameters());
 END_SECTION
 
-START_SECTION(double operator () (const PeakSpectrum& spec) const)
+START_SECTION(double operator () (const PeakSpectrum& ) const)
 	
 	MSSpectrum<> spectrum;
 	spectrum.setRT(1);
