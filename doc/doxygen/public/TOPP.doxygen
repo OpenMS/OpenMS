@@ -101,5 +101,4 @@
 	@todo Add the new tool IDFileConverter and remove conversion from the search engine adapters (Andreas, Nico)
 	@todo Add DataProcessing for all TOPP tools (Hiwi)
 	@todo Make mzML the default format of TOPP tools as soon as mzML 1.1 is finished and implemented completely (Hiwi)
-	@todo Fix remaining TOPP tests - pipes to command line, sed (Marc, Andreas, Chris)
 */
