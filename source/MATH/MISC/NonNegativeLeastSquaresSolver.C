@@ -60,8 +60,9 @@ namespace OpenMS
 		//std::cout << "A:\n" << A << std::endl;
 		#endif
 		
-		Int a_rows = A.rows();
-		Int a_cols = A.cols();
+		// this needs to be int (not Int, Size or anything else), because the external nnls constructor expects it this way!
+		int a_rows = (int)A.rows();
+		int a_cols = (int)A.cols();
 		
 		// translate b
 		double *b_vec = new double[a_rows];
