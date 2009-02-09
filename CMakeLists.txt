@@ -750,30 +750,70 @@ MESSAGE(STATUS "")
 ##### install/copy?? #####
 if(NOT MSVC)
   # TODO:
-  #  - install (copy) directories?!
   #  - this code breaks the windows cmake call
-  #  
+  #  - install compiled documentation ??
   # ...
   set(DO_INSTALL false CACHE BOOL "Set to 'ON' if you want the CMAKE_INSTALL_PREFIX to be used and the library to be installed. On 'OFF' the library and Tools will be build but not installed!")
 
   ## CPack installation and packaging procedures
   install(TARGETS OpenMS LIBRARY DESTINATION lib)
 
-  foreach(i ${UTILS_executables})
-          install(TARGETS ${i} RUNTIME DESTINATION bin)
+  foreach(util ${UTILS_executables})
+    install(TARGETS ${util} RUNTIME DESTINATION bin)
   endforeach()
 
-  foreach(i ${TOPP_executables})
-    install(TARGETS ${i} 
+  foreach(TOPP_exe ${TOPP_executables})
+    INSTALL(TARGETS ${TOPP_exe} 
       RUNTIME DESTINATION bin
-      BUNDLE DESTINATION bin
-      )
+      BUNDLE DESTINATION bin)
   endforeach()
 
-  foreach(i ${OpenMS_sources})
-    install(FILES ${i} DESTINATION include)
+  foreach(OpenMS_header ${OpenMS_sources_h})
+    #extract path
+    string(REGEX MATCH
+      "^include/(.*)/"
+      path_name ${OpenMS_header})
+
+    # get path below include/..
+    set(path_name ${CMAKE_MATCH_1})
+
+    INSTALL(FILES
+      ${OpenMS_header}
+      DESTINATION include/${path_name}
+      COMPONENT headers)
   endforeach()
-  #install(FILES ${CONFIGURED_CONFIG_H} DESTINATION include)
+
+  # since config h is not contained in OpenMS_sources_h we need to address it separtly 
+  install(FILES ${CONFIGURED_CONFIG_H} DESTINATION include/OpenMS)
+
+  # install mocced sources into include
+  foreach(mocced ${mocced_sources})
+    #extract path
+    string(REGEX MATCH
+      "^/.*/include/(.*)/"
+      path_name ${mocced})
+
+    # get path below include/..
+    set(path_name ${CMAKE_MATCH_1})
+
+    INSTALL(FILES
+      ${mocced} 
+      DESTINATION include/${path_name}
+      COMPONENT headers)
+  endforeach()
+
+  # install ui files
+  foreach(uiced ${uiced_sources})
+    #extract path
+    string(REGEX MATCH
+      "^/.*/include/(.*)/"
+      path_name ${uiced})
+    set(path_name ${CMAKE_MATCH_1})
+    INSTALL(FILES
+      ${uiced} 
+      DESTINATION include/${path_name}
+      COMPONENT headers)
+  endforeach()
 
   # most of the interesting CPack stuff is done below
   include(OpenMSCPack.cmake)

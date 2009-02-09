@@ -9,19 +9,13 @@ set(CPACK_PACKAGE_VERSION_PATCH "0")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS 1.3")
 
 install(TARGETS OpenMS LIBRARY DESTINATION lib COMPONENT libraries)
+
+# do we need to double this stuff
 foreach(i ${UTILS_executables})
 	install(TARGETS ${i} RUNTIME DESTINATION bin COMPONENT applications)
 endforeach()
-foreach(i ${OpenMS_sources})
-        install(FILES ${i} DESTINATION include)
-endforeach()
-#install(FILES ${CONFIGURED_CONFIG_H}
-#   DESTINATION include
-#   COMPONENT headers)
 
 set(CPACK_COMPONENTS_ALL applications libraries headers)
-
-
 
 # should be the last include
 include(CPack)
