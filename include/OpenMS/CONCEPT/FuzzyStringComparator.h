@@ -327,12 +327,12 @@ namespace OpenMS
       double absdiff_max_;
 
       double number_1_;
-      char letter_1_;
+      unsigned char letter_1_;
       bool is_number_1_;
       bool is_space_1_;
 
       double number_2_;
-      char letter_2_;
+      unsigned char letter_2_;
       bool is_number_2_;
       bool is_space_2_;
 
