@@ -378,7 +378,22 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	//general
 	TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("sample batch"),"4.4")
 	//spectrum 1
+	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("lowest m/z value"),400.39)
+	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("highest m/z value"),1795.56)
+	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("lowest wavelength value"),500.39)
+	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("highest wavelength value"),795.56)
+	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("base peak m/z"),445.347)
+	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("base peak intensity"),120054)
+	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("total ion current"),16675500)
+	TEST_STRING_EQUAL((String)exp[0].getMetaValue("spectrum title"),"title")
+	TEST_STRING_EQUAL((String)exp[0].getMetaValue("peak list scans"),"15 scans")
+	TEST_STRING_EQUAL((String)exp[0].getMetaValue("peak list raw scans"),"16 scans")
+
 	TEST_STRING_EQUAL((String)exp[0].getMetaValue("mass resolution"),"4.3")
+	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("analyzer scan offset"),-4.5)
+	TEST_STRING_EQUAL((String)exp[0].getMetaValue("filter string"),"+ c NSI Full ms [ 400.00-1800.00]")
+	TEST_STRING_EQUAL((String)exp[0].getMetaValue("preset scan configuration"),"3 abc")
+	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("scan rate"),17.17)
 	//spectrum 2
 	TEST_STRING_EQUAL((String)exp[1].getMetaValue("mass resolution"),"4.1")
 	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("isolation m/z lower limit"),"6.66")

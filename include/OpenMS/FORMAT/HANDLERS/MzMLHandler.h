@@ -946,17 +946,6 @@ namespace OpenMS
 				}
 				
 				//spectrum attribute
-				else if (accession=="MS:1000527" || accession=="MS:1000528" || accession=="MS:1000504" || accession=="MS:1000505" || accession=="MS:1000285" )
-				{
-					//currently ignored:
-				  //- MS:1000285 ! total ion current (value-type=xsd:decimal)
-				  //- MS:1000504 ! base peak m/z (value-type=xsd:decimal, unit=MS:1000040!m/z)
-				  //- MS:1000505 ! base peak intensity (value-type=xsd:decimal)
-				  //- MS:1000527 ! highest m/z value (value-type=xsd:decimal, unit=MS:1000040!m/z)
-				  //- MS:1000528 ! lowest m/z value (value-type=xsd:decimal, unit=MS:1000040!m/z)
-				  //- MS:1000618 ! highest wavelength value (value-type=xsd:decimal)
-				  //- MS:1000619 ! lowest wavelength value (value-type=xsd:decimal)
-				}
 				else if (accession=="MS:1000511") //ms level
 				{
 					spec_.setMSLevel(value.toInt());
@@ -970,20 +959,55 @@ namespace OpenMS
 				{
 					spec_.getInstrumentSettings().setZoomScan(true);
 				}
+				else if (accession=="MS:1000285") //total ion current
+				{
+					//No member => meta data
+					spec_.setMetaValue("total ion current",value.toDouble()); 
+				}
+				else if (accession=="MS:1000504") //base peak m/z
+				{
+					//No member => meta data
+					spec_.setMetaValue("base peak m/z",value.toDouble()); 
+				}
+				else if (accession=="MS:1000505") //base peak intensity
+				{
+					//No member => meta data
+					spec_.setMetaValue("base peak intensity",value.toDouble()); 
+				}
+				else if (accession=="MS:1000527") //highest m/z value
+				{
+					//No member => meta data
+					spec_.setMetaValue("highest m/z value",value.toDouble()); 
+				}
+				else if (accession=="MS:1000528") //lowest m/z value
+				{
+					//No member => meta data
+					spec_.setMetaValue("lowest m/z value",value.toDouble()); 
+				}
+				else if (accession=="MS:1000618") //highest wavelength value
+				{
+					//No member => meta data
+					spec_.setMetaValue("highest wavelength value",value.toDouble()); 
+				}
+				else if (accession=="MS:1000619") //lowest wavelength value
+				{
+					//No member => meta data
+					spec_.setMetaValue("lowest wavelength value",value.toDouble()); 
+				}
 				else if (accession=="MS:1000796") //spectrum title
 				{
 					//No member => meta data
-					spec_.getPrecursor().setMetaValue("spectrum_title",value); 
+					spec_.setMetaValue("spectrum title",value); 
 				}
 				else if (accession=="MS:1000797") //peak list scans
 				{
 					//No member => meta data
-					spec_.getPrecursor().setMetaValue("peak list scans",value); 
+					spec_.setMetaValue("peak list scans",value); 
 				}
 				else if (accession=="MS:1000798") //peak list raw scans
 				{
 					//No member => meta data
-					spec_.getPrecursor().setMetaValue("peak list raw scans",value); 
+					spec_.setMetaValue("peak list raw scans",value); 
 				}
 				
 				//scan polarity
@@ -1184,7 +1208,7 @@ namespace OpenMS
 				else if (accession=="MS:1000015")//scan rate
 				{
 					//No member => meta data
-					spec_.setMetaValue("scan rate",value);
+					spec_.setMetaValue("scan rate",value.toDouble());
 				}
 				else if (accession=="MS:1000016")//scan time
 				{
@@ -1207,15 +1231,20 @@ namespace OpenMS
 					//No member => meta data
 					spec_.setMetaValue("filter string",value);
 				}
+				else if (accession=="MS:1000803")//analyzer scan offset
+				{
+					//No member => meta data
+					spec_.setMetaValue("analyzer scan offset",value.toDouble());
+				}
 				else if (accession=="MS:1000616")//preset scan configuration
 				{
 					//No member => meta data
-					spec_.setMetaValue("preset scan configuration",String("true"));
+					spec_.setMetaValue("preset scan configuration",value);
 				}
 				else if (accession=="MS:1000800")//mass resolving power
 				{
 					//No member => meta data
-					spec_.setMetaValue("mass resolving power",String("true"));
+					spec_.setMetaValue("mass resolving power",value);
 				}
 				
 				//scan direction
