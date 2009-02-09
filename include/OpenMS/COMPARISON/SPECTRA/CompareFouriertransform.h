@@ -80,8 +80,6 @@ namespace OpenMS
 		  	@brief Dummy function
 				
 				This function only returns 0 for any given PeakSpectrum, please use the other compare operator function
-		
-				@param PeakSpectrum PeakSpectrum 
 		  */
 	    double operator () (const PeakSpectrum& )const;
 	    /**
@@ -91,26 +89,22 @@ namespace OpenMS
 	  		First, a transformation has to be calculated. Please use the function transform() in this class, before calling this
 				function. The comparison works by summing the subtractions of each coefficient for all elements of both transformations. sum(_i=1)
 				^n x_i-y_i. If the sum is zero, both Spectrums are identical in the real part and one is emited, otherwise a zero.
-	  		
-	    	@param spec1 PeakSpectrum 
- 	    	@param spec2 PeakSpectrum 
 			*/
 	    double operator () (const PeakSpectrum& spec1 , const PeakSpectrum& spec2 ) const;
-	
+			
+			///
 	    static PeakSpectrumCompareFunctor* create() { return new CompareFouriertransform(); }
 
-  		///
+  		///Returns the name used in the factory
   		static const String getProductName()
   		{
   			return "CompareFouriertransform";
   		}
-	/**
+			/**
 	    	@brief calculate the Discrete Cosines Fourier Transformation.
 	       				
 	   		This function transforms a given PeakSpectrum to a Discrete Cosines Fourier Transformation. It stores only the part of the cosines 					of the FFT in
 	   		the MetaDataArray which is a container from the PeakSpectrum. Only call this function, if you are sure there is no other 				transformation done earlier over the same PeakSpectrum, because it isn't checked if there already exists a transformation.
-	          		
-	     	@param spec  PeakSpectrum 
 	    */
       void transform(PeakSpectrum & spec);
 	protected:
@@ -118,8 +112,6 @@ namespace OpenMS
 			 	@brief Search in the PeakSpectrum, if a Discrete Fourier transformation occurs, if not an error is going to be thrown, else the index 				of the occurrence is returned.
 				
 				This function gives back the position, where the transformation was saved in a MetaDataArray. If there is no entry, an error is thrown to indicate that a transformation has to be calculated before calling this comparison operator.
-				
-			 	@param spec  PeakSpectrum 
 			*/
 			UInt searchTransformation_(const PeakSpectrum&  spec) const;
 
