@@ -71,11 +71,8 @@ namespace OpenMS
   	@brief Main window of TOPPView tool
 		
 		@improvement Support Drag&Drop of files from Explorer/Konqueror (HiWi)
-		
     @improvement Paint only highest point per pixel, paint only part of the data when moving (Hiwi)
-		
-		@improvement For "Open"/"Save as" Dialogs, use the path of the currently opened file as default (Hiwi)
-		
+  
     @ingroup TOPPView_elements
   */
   class OPENMS_DLLAPI TOPPViewBase 
@@ -142,6 +139,8 @@ namespace OpenMS
 			const LayerData* getCurrentLayer() const;
 			
     public slots:
+      /// changes the current path according to the currently active window/layer
+      void updateCurrentPath();
       /// shows the URL stored in the data of the sender QAction
       void showURL();
       /// shows the dialog for opening files
@@ -429,6 +428,10 @@ namespace OpenMS
   		
   		/// Apply TOPP tool. If @p visible is true, only the visible data is used, otherwise the whole layer is used.
       void showTOPPDialog_(bool visible);
+      
+      /// The current path (used for loading and storing).
+      /// Depending on the preferences this is static or changes with the current window/layer.
+      String current_path_;
   }
   ; //class
 

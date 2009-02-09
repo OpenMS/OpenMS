@@ -160,6 +160,7 @@ namespace OpenMS
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateSpectrumBar()));
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateFilterBar()));
     connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateMenu()));
+    connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateCurrentPath()));
 
     box_layout->addWidget(ws_);
 
@@ -446,7 +447,9 @@ namespace OpenMS
     defaults_.setValue("preferences:default_map_view", "2d", "Default visualization mode for maps.");
 		defaults_.setValidStrings("preferences:default_map_view",StringList::create("2d,3d"));
     defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
-    defaults_.setValue("preferences:tmp_file_path", QDir::tempPath(), "Path where temporary files can be created.");
+    defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
+		defaults_.setValidStrings("preferences:default_path_current",StringList::create("true,false"));
+		defaults_.setValue("preferences:tmp_file_path", QDir::tempPath(), "Path where temporary files can be created.");
     defaults_.setValue("preferences:number_of_recent_files", 15, "Number of recent files in the main menu.");
     defaults_.setMinInt("preferences:number_of_recent_files",5);
     defaults_.setMaxInt("preferences:number_of_recent_files",20);
@@ -486,7 +489,10 @@ namespace OpenMS
 
   	//load param file
     loadPreferences();
-
+		
+		//set current path
+		current_path_ = param_.getValue("preferences:default_path");
+		
   	//update the menu
   	updateMenu();
 
@@ -614,6 +620,7 @@ namespace OpenMS
 
 		//get pointers
 		QLineEdit* default_path = dlg.findChild<QLineEdit*>("default_path");
+		QCheckBox* default_path_current = dlg.findChild<QCheckBox*>("default_path_current");
 		QLineEdit* temp_path = dlg.findChild<QLineEdit*>("temp_path");
 		QSpinBox* recent_files = dlg.findChild<QSpinBox*>("recent_files");
 		QComboBox* map_default = dlg.findChild<QComboBox*>("map_default");
@@ -638,6 +645,14 @@ namespace OpenMS
 
 		//set General values
 		default_path->setText(param_.getValue("preferences:default_path").toQString());
+		if ((String)param_.getValue("preferences:default_path_current")=="true")
+		{
+			default_path_current->setChecked(true);
+		}
+		else
+		{
+			default_path_current->setChecked(false);
+		}
 		temp_path->setText(param_.getValue("preferences:tmp_file_path").toQString());
 		recent_files->setValue((Int)param_.getValue("preferences:number_of_recent_files"));
 		map_default->setCurrentIndex(map_default->findText(param_.getValue("preferences:default_map_view").toQString()));
@@ -665,6 +680,14 @@ namespace OpenMS
 		if (dlg.exec())
 		{
 			param_.setValue("preferences:default_path", default_path->text());
+			if (default_path_current->isChecked())
+			{
+				param_.setValue("preferences:default_path_current","true");
+			}
+			else
+			{
+				param_.setValue("preferences:default_path_current","false");
+			}
 			param_.setValue("preferences:tmp_file_path", temp_path->text());
 			param_.setValue("preferences:number_of_recent_files", recent_files->value());
 			param_.setValue("preferences:default_map_view", map_default->currentText());
@@ -1809,6 +1832,7 @@ namespace OpenMS
   	ws_->addWindow(sw);
     connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateToolBar()));
     connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateSpectrumBar()));
+    connect(sw->canvas(),SIGNAL(layerActivated(QWidget*)),this,SLOT(updateCurrentPath()));
     connect(sw->canvas(),SIGNAL(layerModficationChange(Size,bool)),this,SLOT(updateLayerBar()));
     connect(sw,SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)),this,SLOT(showStatusMessage(std::string,OpenMS::UInt)));
     connect(sw,SIGNAL(sendCursorStatus(double,double,double)),this,SLOT(showCursorStatus(double,double,double)));
@@ -1995,7 +2019,7 @@ namespace OpenMS
 		filter_all += " *.mzML *.mzXML *.mzData *.featureXML *.consensusXML);;" ;
 		filter_single +=";;mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;XML files (*.xml);;all files (*)";
 
-	 	return QFileDialog::getOpenFileNames(this, "Open file(s)", param_.getValue("preferences:default_path").toQString(), (filter_all+ filter_single).toQString());
+	 	return QFileDialog::getOpenFileNames(this, "Open file(s)", current_path_.toQString(), (filter_all+ filter_single).toQString());
   }
 
   void TOPPViewBase::openFileDialog()
@@ -2094,7 +2118,7 @@ namespace OpenMS
 			showLogMessage_(LS_ERROR,"Cannot create temporary file",String("Cannot write to '")+topp_.file_name+"'_ini!");
 			return;
 		}
-		ToolsDialog tools_dialog(this,topp_.file_name+"_ini",param_.getValue("preferences:default_path"),getCurrentLayer()->type);
+		ToolsDialog tools_dialog(this,topp_.file_name+"_ini",current_path_,getCurrentLayer()->type);
 
 		if(tools_dialog.exec()==QDialog::Accepted)
 		{
@@ -2257,7 +2281,7 @@ namespace OpenMS
 		}
 
 		//load id data
-		QString name = QFileDialog::getOpenFileName(this,"Select ProteinIdentification data",param_.getValue("preferences:default_path").toQString(),"identfication files (*.idXML);; all files (*.*)");
+		QString name = QFileDialog::getOpenFileName(this,"Select ProteinIdentification data",current_path_.toQString(),"identfication files (*.idXML);; all files (*.*)");
 		if(name!="")
 		{
 			vector<PeptideIdentification> identifications;
@@ -2898,6 +2922,21 @@ namespace OpenMS
 		}
 
 		e->ignore();
+	}
+	
+	void TOPPViewBase::updateCurrentPath()
+	{
+		//do not update if the user disabled this feature.
+		if (param_.getValue("preferences:default_path_current")!="true") return;
+		
+		//reset
+		current_path_ = param_.getValue("preferences:default_path");
+		
+		//update if the current layer has a path associated
+		if (activeCanvas_() && activeCanvas_()->getLayerCount()!=0 && activeCanvas_()->getCurrentLayer().filename!="")
+		{
+			current_path_ = File::path(activeCanvas_()->getCurrentLayer().filename);
+		}
 	}
 
 } //namespace OpenMS

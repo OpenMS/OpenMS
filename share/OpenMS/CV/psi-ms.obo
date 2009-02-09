@@ -4,8 +4,8 @@ saved-by: David Sparkman
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 1.12.2
-remark: release date: 2009-02-05
+remark: version: 1.13.1
+remark: release date: 2009-02-06
 remark: coverage: Mass spectrometer output files
 remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group
@@ -5184,6 +5184,14 @@ name: height peak picking
 def: "Spectral peak processing conducted on the acquired data to convert profile data to centroided data. The maximum intensity of all raw data points that belong to the peak is reported." [PSI:MS]
 synonym: "max peak picking" EXACT []
 is_a: MS:1000035 ! peak picking
+
+[Term]
+id: MS:1000803
+name: analyzer scan offset
+def: "Offset between two analyzers in a constant neutral loss or neutral gain scan. The value corresponds to the neutral loss or neutral gain value" [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000503 ! scan attribute
+relationship: has_units MS:1000040 ! m/z
 
 [Typedef]
 id: has_units

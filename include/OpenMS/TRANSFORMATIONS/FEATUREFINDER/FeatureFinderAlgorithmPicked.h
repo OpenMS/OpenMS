@@ -56,7 +56,6 @@ namespace OpenMS
 
 		@improvement RT model with tailing/fronting (Marc)
 		@improvement More general MZ model not based on averagenes - e.g. based on co-elution (Marc)
-		@todo Use profile/centroid terms everywhere (Marc)
 		
 		@ingroup FeatureFinder
 	*/
