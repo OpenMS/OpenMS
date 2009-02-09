@@ -79,6 +79,7 @@ namespace OpenMS
 
 	/**
 	@brief comperator for two doubles with a tolerance value
+	@todo Think about that this does and if it is really necessary (why double, double????) (Andreas, Clemens)
 	*/
 	struct IntsInRangeLess : public binary_function<double , double, bool>
 	{
@@ -101,7 +102,7 @@ namespace OpenMS
 		bool operator()( int f1, int f2) const
 		{
 			//cout<<"f1:"<<f1<<" f2:"<<f2<<" start:"<<start_<< " end:" << end_<<endl;
-			return ((f2==end_)?f1<=f2-start_:f1<f2);
+			return ((f2 == end_) ? f1 <= f2 - start_: f1 < f2);
 		}
 
 	 protected:
@@ -405,7 +406,9 @@ namespace OpenMS
 					// if we are reaching a separetor character
 					if ((i<1&&length_till_node<1)?false:(cc=='$')) {
 						// either we are not using tags or we have already seen one of the tags
-						if (!use_tags_ || binary_search(tag_indices.begin(),tag_indices.end(),length_till_node+i+start_index_in_text-2, IntsInRangeLess(length_till_node+i-2,length_till_node+i+start_index_in_text-2)))
+						if (!use_tags_ || 
+								binary_search(tag_indices.begin(), tag_indices.end(), length_till_node + i + start_index_in_text - 2 /*, IntsInRangeLess(length_till_node+i-2,length_till_node+i+start_index_in_text-2)*/)
+							 )
 						{
 							// if the mass is in spectrum but only if the digesting enzyme will not cut after the last character (because if it does the canditate was already added to the result the step before)
 							// for every modification mass within the modification_map we check if the mass + modification_mass is in the given spectrum. if it is we will add it to a vector of masses and adding this to result vector
@@ -462,7 +465,10 @@ namespace OpenMS
 					if (i==(edge_length-1)||isDigestingEnd(cc,ccn)){
 						double newm = (mm-masse_[(int)start_char]);
 						// if the mass is in the spectrum
-						if (!use_tags_ || binary_search(tag_indices.begin(),tag_indices.end(),length_till_node+i+start_index_in_text-2, IntsInRangeLess(length_till_node+i-2,length_till_node+i+start_index_in_text-2)))
+						if (!use_tags_ || 
+								binary_search(tag_indices.begin(),tag_indices.end(),length_till_node+i+start_index_in_text-2 /*, 
+								IntsInRangeLess(length_till_node+i-2,length_till_node+i+start_index_in_text-2)*/)
+							 )
 						{
 							// for every modification mass within the modification_map we check if the mass + modification_mass is in the given spectrum. if it is we will add it to a vector of masses and adding this to result vector
 							vector<double> found_masses;
