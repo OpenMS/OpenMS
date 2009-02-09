@@ -15,7 +15,7 @@ foreach(i ${UTILS_executables})
 	install(TARGETS ${i} RUNTIME DESTINATION bin COMPONENT applications)
 endforeach()
 
-set(CPACK_COMPONENTS_ALL applications libraries headers)
+set(CPACK_COMPONENTS_ALL applications libraries headers share)
 
 # should be the last include
 include(CPack)

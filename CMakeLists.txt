@@ -752,22 +752,29 @@ if(NOT MSVC)
   # TODO:
   #  - this code breaks the windows cmake call
   #  - install compiled documentation ??
-  # ...
+  #  - install share
   set(DO_INSTALL false CACHE BOOL "Set to 'ON' if you want the CMAKE_INSTALL_PREFIX to be used and the library to be installed. On 'OFF' the library and Tools will be build but not installed!")
 
   ## CPack installation and packaging procedures
   install(TARGETS OpenMS LIBRARY DESTINATION lib)
 
+  # install utils
   foreach(util ${UTILS_executables})
-    install(TARGETS ${util} RUNTIME DESTINATION bin)
+    install(TARGETS ${util}
+      RUNTIME DESTINATION bin
+      BUNDLE DESTINATION bin
+      COMPONENT applications)
   endforeach()
 
+  # install TOPP Tools
   foreach(TOPP_exe ${TOPP_executables})
     INSTALL(TARGETS ${TOPP_exe} 
       RUNTIME DESTINATION bin
-      BUNDLE DESTINATION bin)
+      BUNDLE DESTINATION bin
+      COMPONENT applications)
   endforeach()
 
+  # install headers
   foreach(OpenMS_header ${OpenMS_sources_h})
     #extract path
     string(REGEX MATCH
@@ -814,6 +821,11 @@ if(NOT MSVC)
       DESTINATION include/${path_name}
       COMPONENT headers)
   endforeach()
+
+  # install share
+  INSTALL(DIRECTORY share/
+    DESTINATION share
+    COMPONENT share)
 
   # most of the interesting CPack stuff is done below
   include(OpenMSCPack.cmake)
