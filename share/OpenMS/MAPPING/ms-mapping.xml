@@ -31,7 +31,7 @@
             <CvTerm termAccession="MS:1000585" useTermName="false" useTerm="false" termName="contact person attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
         </CvMappingRule>
 
-        <!-- sourde file -->
+        <!-- source file -->
         <CvMappingRule id="sourcefile_must" cvElementPath="/mzML/fileDescription/sourceFileList/sourceFile/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/fileDescription/sourceFileList/sourceFile" cvTermsCombinationLogic="AND" >
             <CvTerm termAccession="MS:1000560" useTermName="false" useTerm="false" termName="source file type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
             <CvTerm termAccession="MS:1000561" useTermName="false" useTerm="false" termName="data file checksum type" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />

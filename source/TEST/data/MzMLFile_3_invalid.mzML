@@ -180,8 +180,8 @@
         <referenceableParamGroupRef ref="ErrorGroup"/>
         <referenceableParamGroupRef ref="CommonMS1SpectrumParams"/>
         <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value="4444"/>
-        <cvParam cvRef="MS" accession="MS:1000528" name="lowest m/z value" value="abc" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-        <cvParam cvRef="MS" accession="MS:1000527" name="highest m/z value" value="" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+        <cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="abc" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+        <cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
         <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="445.347" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
         <cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="120053"/>
         <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
@@ -221,8 +221,8 @@
       <spectrum index="1" id="20" defaultArrayLength="10" sourceFileRef="sf_spectrum_2">
         <referenceableParamGroupRef ref="CommonMS2SpectrumParams"/>
         <cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" value=""/>
-        <cvParam cvRef="MS" accession="MS:1000528" name="lowest m/z value" value="320.39" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-        <cvParam cvRef="MS" accession="MS:1000527" name="highest m/z value" value="1003.56"/>
+        <cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="320.39" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+        <cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1003.56"/>
         <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="456.347" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
         <cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="23433"/>
         <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
@@ -241,7 +241,7 @@
           <precursor spectrumRef="S19">
             <selectedIonList count="1">
               <selectedIon>
-                <cvParam cvRef="MS" accession="MS:1000744" name="selected m/z" value="5.55" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+                <cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="5.55" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
                 <cvParam cvRef="MS" accession="MS:1000042" name="intensity" value="120053"/>
                 <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
                 <cvParam cvRef="MS" accession="MS:1000633" name="possible charge state" value="1"/>
@@ -294,7 +294,7 @@
       <spectrum index="2" id="19" defaultArrayLength="15">
         <referenceableParamGroupRef ref="CommonMS1SpectrumParams"/>
         <cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" value=""/>
-        <cvParam cvRef="MS" accession="MS:1000528" name="lowest m/z value" value="400.39" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+        <cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="400.39" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
         <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="445.347" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
         <cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="120053"/>
         <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>

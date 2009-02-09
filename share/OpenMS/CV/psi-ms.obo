@@ -4,8 +4,8 @@ saved-by: David Sparkman
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 1.13.1
-remark: release date: 2009-02-06
+remark: version: 1.13.2
+remark: release date: 2009-02-09
 remark: coverage: Mass spectrometer output files
 remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group
@@ -3250,8 +3250,8 @@ relationship: part_of MS:1000442 ! spectrum
 
 [Term]
 id: MS:1000500
-name: scan m/z upper limit
-def: "The limit of m/z over which a mass spectrometer can detect ions." [PSI:MS]
+name: scan window upper limit
+def: "The lower m/z bound of a mass spectrometer scan window." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 synonym: "mzRangeStop" RELATED []
 is_a: MS:1000549 ! selection window attribute
@@ -3259,8 +3259,8 @@ relationship: has_units MS:1000040 ! m/z
 
 [Term]
 id: MS:1000501
-name: scan m/z lower limit
-def: "The limit of m/z over which a mass spectrometer can detect ions." [PSI:MS]
+name: scan window lower limit
+def: "The upper m/z bound of a mass spectrometer scan window." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 synonym: "mzRangeStart" RELATED []
 is_a: MS:1000549 ! selection window attribute
@@ -3286,7 +3286,7 @@ relationship: part_of MS:1000441 ! scan
 [Term]
 id: MS:1000504
 name: base peak m/z
-def: "M/z value of the greatest peak in the mass spectrum." [PSI:MS]
+def: "M/z value of the signal of highest intensity in the mass spectrum." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000499 ! spectrum attribute
 relationship: has_units MS:1000040 ! m/z
@@ -3354,7 +3354,7 @@ relationship: part_of MS:1000625 ! chromatogram
 [Term]
 id: MS:1000514
 name: m/z array
-def: "A data array of mass divided by charge values." [PSI:MS]
+def: "A data array of m/z values." [PSI:MS]
 is_a: MS:1000513 ! binary data array
 relationship: has_units MS:1000040 ! m/z
 
@@ -3433,7 +3433,7 @@ is_a: MS:1000560 ! source file type
 
 [Term]
 id: MS:1000527
-name: highest m/z value
+name: highest observed m/z
 def: "Highest m/z value observed in the mass spectrum." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000499 ! spectrum attribute
@@ -3441,7 +3441,7 @@ relationship: has_units MS:1000040 ! m/z
 
 [Term]
 id: MS:1000528
-name: lowest m/z value
+name: lowest observed m/z
 def: "Lowest m/z value observed in the mass spectrum." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000499 ! spectrum attribute
@@ -4793,7 +4793,7 @@ is_a: MS:1000494 ! Thermo Scientific instrument model
 
 [Term]
 id: MS:1000744
-name: selected m/z
+name: selected ion m/z
 def: "Mass-to-charge ratio of the ion selected for fragmentation" [PSI:MS]
 is_a: MS:1000455 ! ion selection attribute
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
@@ -5113,7 +5113,7 @@ relationship: part_of MS:1000441 ! scan
 
 [Term]
 id: MS:1000793
-name: isolation m/z upper limit
+name: isolation window upper limit
 def: "The highest m/z being isolated in an isolation window." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000792 ! isolation window attribute
@@ -5121,7 +5121,7 @@ relationship: has_units MS:1000040 ! m/z
 
 [Term]
 id: MS:1000794
-name: isolation m/z lower limit
+name: isolation window lower limit
 def: "The lowest m/z being isolated in an isolation window." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000792 ! isolation window attribute

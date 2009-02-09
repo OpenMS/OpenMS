@@ -378,8 +378,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	//general
 	TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("sample batch"),"4.4")
 	//spectrum 1
-	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("lowest m/z value"),400.39)
-	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("highest m/z value"),1795.56)
+	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("lowest observed m/z"),400.39)
+	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("highest observed m/z"),1795.56)
 	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("lowest wavelength value"),500.39)
 	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("highest wavelength value"),795.56)
 	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("base peak m/z"),445.347)
@@ -396,10 +396,10 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("scan rate"),17.17)
 	//spectrum 2
 	TEST_STRING_EQUAL((String)exp[1].getMetaValue("mass resolution"),"4.1")
-	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("isolation m/z lower limit"),"6.66")
-	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("isolation m/z upper limit"),"7.77")
-	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("product isolation m/z lower limit"),"8.88")
-	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("product isolation m/z upper limit"),"9.99")
+	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("isolation window lower limit"),"6.66")
+	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("isolation window upper limit"),"7.77")
+	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("product isolation window lower limit"),"8.88")
+	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("product isolation window upper limit"),"9.99")
 
 	/////////////////////// TESTING SPECIAL CASES ///////////////////////
 

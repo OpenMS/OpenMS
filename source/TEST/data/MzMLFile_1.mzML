@@ -192,8 +192,8 @@
         <referenceableParamGroupRef ref="CommonMS1SpectrumParams"/>
        	<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
         <cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" value=""/>
-        <cvParam cvRef="MS" accession="MS:1000528" name="lowest m/z value" value="400.39" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-        <cvParam cvRef="MS" accession="MS:1000527" name="highest m/z value" value="1795.56" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+        <cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="400.39" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+        <cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1795.56" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
         <cvParam cvRef="MS" accession="MS:1000619" name="lowest wavelength value" value="500.39"/>
         <cvParam cvRef="MS" accession="MS:1000618" name="highest wavelength value" value="795.56"/>
         <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="445.347" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
@@ -218,8 +218,8 @@
       			<userParam name="name" value="acquisition1"/>
 		        <scanWindowList count="1">
 		          <scanWindow>
-		            <cvParam cvRef="MS" accession="MS:1000501" name="scan m/z lower limit" value="400" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-		            <cvParam cvRef="MS" accession="MS:1000500" name="scan m/z upper limit" value="1800" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+		            <cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="400" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+		            <cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="1800" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 		          </scanWindow>
 		        </scanWindowList>
           </scan>
@@ -250,8 +250,8 @@
         <referenceableParamGroupRef ref="CommonMS2SpectrumParams"/>
         <cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" value=""/>
         <cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" value=""/>
-        <cvParam cvRef="MS" accession="MS:1000528" name="lowest m/z value" value="320.39" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-        <cvParam cvRef="MS" accession="MS:1000527" name="highest m/z value" value="1003.56" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+        <cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="320.39" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+        <cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1003.56" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
         <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="456.347" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
         <cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="23433"/>
         <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
@@ -266,16 +266,16 @@
 		        <cvParam cvRef="MS" accession="MS:1000011" name="mass resolution" value="4.1"/>
 		        <scanWindowList count="3">
 		          <scanWindow>
-		            <cvParam cvRef="MS" accession="MS:1000501" name="scan m/z lower limit" value="100" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-		            <cvParam cvRef="MS" accession="MS:1000500" name="scan m/z upper limit" value="500" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+		            <cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="100" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+		            <cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="500" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 		          </scanWindow>
 		          <scanWindow>
-		            <cvParam cvRef="MS" accession="MS:1000501" name="scan m/z lower limit" value="600" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-		            <cvParam cvRef="MS" accession="MS:1000500" name="scan m/z upper limit" value="1000" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+		            <cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="600" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+		            <cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="1000" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 		          </scanWindow>
 		          <scanWindow>
-		            <cvParam cvRef="MS" accession="MS:1000501" name="scan m/z lower limit" value="1100" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-		            <cvParam cvRef="MS" accession="MS:1000500" name="scan m/z upper limit" value="1500" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+		            <cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="1100" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+		            <cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="1500" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 		          </scanWindow>
 		        </scanWindowList>
 	        </scan>
@@ -283,13 +283,13 @@
         <precursorList count="1">
           <precursor spectrumRef="index=0" sourceFileRef="sf_pr_0" >
           	<isolationWindow>
-          		<cvParam cvRef="MS" accession="MS:1000794" name="isolation m/z lower limit" value="6.66"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-          		<cvParam cvRef="MS" accession="MS:1000793" name="isolation m/z upper limit" value="7.77"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+          		<cvParam cvRef="MS" accession="MS:1000794" name="isolation window lower limit" value="6.66"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+          		<cvParam cvRef="MS" accession="MS:1000793" name="isolation window upper limit" value="7.77"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
       				<userParam name="iwname" value="isolationwindow1"/>
           	</isolationWindow>
             <selectedIonList count="1">
               <selectedIon>
-                <cvParam cvRef="MS" accession="MS:1000744" name="selected m/z" value="5.55"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+                <cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="5.55"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
                 <cvParam cvRef="MS" accession="MS:1000042" name="intensity" value="120053"/>
                 <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
                 <cvParam cvRef="MS" accession="MS:1000633" name="possible charge state" value="1"/>
@@ -309,8 +309,8 @@
         <productList count="1">
           <product>
           	<isolationWindow>
-          		<cvParam cvRef="MS" accession="MS:1000794" name="isolation m/z lower limit" value="8.88"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-          		<cvParam cvRef="MS" accession="MS:1000793" name="isolation m/z upper limit" value="9.99"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+          		<cvParam cvRef="MS" accession="MS:1000794" name="isolation window lower limit" value="8.88"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+          		<cvParam cvRef="MS" accession="MS:1000793" name="isolation window upper limit" value="9.99"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
       				<userParam name="iwname" value="isolationwindow2"/>
           	</isolationWindow>
           </product>
@@ -352,8 +352,8 @@
         <referenceableParamGroupRef ref="CommonMS1SpectrumParams"/>
         <cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
         <cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" value=""/>
-        <cvParam cvRef="MS" accession="MS:1000528" name="lowest m/z value" value="400.39" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-        <cvParam cvRef="MS" accession="MS:1000527" name="highest m/z value" value="1795.56" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+        <cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="400.39" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+        <cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1795.56" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
         <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="445.347" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
         <cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="120054"/>
         <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
@@ -369,8 +369,8 @@
 						<userParam name="name" value="acquisition1"/>
       			<scanWindowList count="1">
 		          <scanWindow>
-		            <cvParam cvRef="MS" accession="MS:1000501" name="scan m/z lower limit" value="400" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-		            <cvParam cvRef="MS" accession="MS:1000500" name="scan m/z upper limit" value="1800" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+		            <cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="400" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+		            <cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="1800" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 		          </scanWindow>
 		        </scanWindowList>
         	</scan>
@@ -407,8 +407,8 @@
 		        <cvParam cvRef="MS" accession="MS:1000016" name="scan time" value="5.4" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 		        <scanWindowList count="1">
 		          <scanWindow>
-		            <cvParam cvRef="MS" accession="MS:1000501" name="scan m/z lower limit" value="110" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-		            <cvParam cvRef="MS" accession="MS:1000500" name="scan m/z upper limit" value="905" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+		            <cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="110" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+		            <cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="905" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 		          </scanWindow>
 		        </scanWindowList>
 		      </scan>

@@ -974,15 +974,15 @@ namespace OpenMS
 					//No member => meta data
 					spec_.setMetaValue("base peak intensity",value.toDouble()); 
 				}
-				else if (accession=="MS:1000527") //highest m/z value
+				else if (accession=="MS:1000527") //highest observed m/z
 				{
 					//No member => meta data
-					spec_.setMetaValue("highest m/z value",value.toDouble()); 
+					spec_.setMetaValue("highest observed m/z",value.toDouble()); 
 				}
-				else if (accession=="MS:1000528") //lowest m/z value
+				else if (accession=="MS:1000528") //lowest observed m/z
 				{
 					//No member => meta data
-					spec_.setMetaValue("lowest m/z value",value.toDouble()); 
+					spec_.setMetaValue("lowest observed m/z",value.toDouble()); 
 				}
 				else if (accession=="MS:1000618") //highest wavelength value
 				{
@@ -1024,11 +1024,11 @@ namespace OpenMS
 			//------------------------- scanWindow ----------------------------
 			else if(parent_tag=="scanWindow")
 			{
-				if (accession=="MS:1000501") //scan m/z lower limit
+				if (accession=="MS:1000501") //scan window lower limit
 				{
 					spec_.getInstrumentSettings().getScanWindows().back().begin = value.toDouble();
 				}
-				else if (accession=="MS:1000500") //scan m/z upper limit
+				else if (accession=="MS:1000500") //scan window upper limit
 				{
 					spec_.getInstrumentSettings().getScanWindows().back().end = value.toDouble();
 				}
@@ -1051,7 +1051,7 @@ namespace OpenMS
 			//------------------------- selectedIon ----------------------------
 			else if(parent_tag=="selectedIon")
 			{
-				if (accession=="MS:1000744") //selected m/z
+				if (accession=="MS:1000744") //selected ion m/z
 				{
 					spec_.getPrecursorPeak().getPosition()[0] = value.toDouble();
 				}
@@ -1160,29 +1160,29 @@ namespace OpenMS
 			{
 				if (parent_parent_tag=="precursor")
 				{
-					if (accession=="MS:1000793") //isolation m/z upper limit
+					if (accession=="MS:1000793") //isolation window upper limit
 					{
 						//No member => meta data
-						spec_.getPrecursor().setMetaValue("isolation m/z upper limit",value);
+						spec_.getPrecursor().setMetaValue("isolation window upper limit",value);
 					}
-					else if (accession=="MS:1000794") //isolation m/z lower limit
+					else if (accession=="MS:1000794") //isolation window lower limit
 					{
 						//No member => meta data
-						spec_.getPrecursor().setMetaValue("isolation m/z lower limit",value);
+						spec_.getPrecursor().setMetaValue("isolation window lower limit",value);
 					}
 					else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 				}
 				else if (parent_parent_tag=="product")
 				{
-					if (accession=="MS:1000793") //isolation m/z upper limit
+					if (accession=="MS:1000793") //isolation window upper limit
 					{
 						//No member => meta data
-						spec_.getPrecursor().setMetaValue("product isolation m/z upper limit",value);
+						spec_.getPrecursor().setMetaValue("product isolation window upper limit",value);
 					}
-					else if (accession=="MS:1000794") //isolation m/z lower limit
+					else if (accession=="MS:1000794") //isolation window lower limit
 					{
 						//No member => meta data
-						spec_.getPrecursor().setMetaValue("product isolation m/z lower limit",value);
+						spec_.getPrecursor().setMetaValue("product isolation window lower limit",value);
 					}
 					else warning(LOAD, String("Unhandled cvParam '") + accession + " in tag '" + parent_tag + "'.");
 				}
@@ -3342,8 +3342,8 @@ namespace OpenMS
 						for (Size j=0; j<spec.getInstrumentSettings().getScanWindows().size(); ++j)
 						{
 							os	<< "						<scanWindow>\n";
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan m/z lower limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].begin << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan m/z upper limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].end << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan window lower limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].begin << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan window upper limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].end << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
 							os	<< "						</scanWindow>\n";
 						}
 						os	<< "						</scanWindowList>\n";
@@ -3362,8 +3362,8 @@ namespace OpenMS
 						for (Size j=0; j<spec.getInstrumentSettings().getScanWindows().size(); ++j)
 						{
 							os	<< "						<scanWindow>\n";
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan m/z lower limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].begin << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan m/z upper limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].end << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan window lower limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].begin << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+							os  << "							<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan window upper limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].end << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
 							os	<< "						</scanWindow>\n";
 						}
 						os	<< "						</scanWindowList>\n";
@@ -3389,7 +3389,7 @@ namespace OpenMS
 					//--------------------------------------------------------------------------------------------
 					os	<< "						<selectedIonList count=\"1\">\n";
 					os	<< "							<selectedIon>\n";
-					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected m/z\" value=\"" << spec.getPrecursorPeak().getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected ion m/z\" value=\"" << spec.getPrecursorPeak().getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
 					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << spec.getPrecursorPeak().getCharge() << "\" />\n";
 					os  << "								<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"intensity\" value=\"" << spec.getPrecursorPeak().getIntensity() << "\" />\n";
 					for (Size j=0; j<spec.getPrecursorPeak().getPossibleChargeStates().size(); ++j)

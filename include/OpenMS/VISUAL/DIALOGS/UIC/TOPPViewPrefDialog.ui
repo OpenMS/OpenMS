@@ -59,23 +59,16 @@ p, li { white-space: pre-wrap; }
          </property>
         </widget>
        </item>
-       <item row="1" column="0" >
-        <widget class="QLabel" name="label_15" >
+       <item row="1" column="2" >
+        <widget class="QCheckBox" name="default_path_current" >
          <property name="toolTip" >
-          <string>If enabled, the path of the currently tag is used instead of the 'default path'. If no tab is open - or no path associated with a tab, the default path is used.</string>
+          <string>If enabled, the path of the current tab/layer is used instead of the 'default path'. If no tab is open, or no path associated with a tab, the default path is used.</string>
          </property>
          <property name="whatsThis" >
           <string>If enabled, the path of the currently tag is used instead of the 'default path'. If no tab is open - or no path associated with a tab, the default path is used.</string>
          </property>
          <property name="text" >
-          <string>Use current path:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2" >
-        <widget class="QCheckBox" name="default_path_current" >
-         <property name="text" >
-          <string/>
+          <string>use current path</string>
          </property>
         </widget>
        </item>
