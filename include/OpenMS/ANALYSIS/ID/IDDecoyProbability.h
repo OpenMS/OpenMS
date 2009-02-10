@@ -42,7 +42,7 @@ namespace OpenMS
 
  		This class calcalates the probabilities using a target deocy approach. Like
 		in peptide prophet the forward distribution is modeled using a gaussian 
-		distribution the reverse scores are modeled using a famma distribution.
+		distribution the reverse scores are modeled using a gamma distribution.
 
 		@htmlinclude OpenMS_IDDecoyProbability.parameters
 
@@ -74,8 +74,6 @@ namespace OpenMS
 									const std::vector<PeptideIdentification>& fwd_ids, 
 									const std::vector<PeptideIdentification>& rev_ids);
 
-			void generateDistributionImage(const Map<double, double>& ids, const String& formula, const String& filename);
-
 		protected:
 
 			/** @brief struct to be used to store a transformation (used for fitting)
@@ -85,20 +83,20 @@ namespace OpenMS
 			struct Transformation_
 			{
 				Transformation_()
-					: y_factor(0),
-						x_factor(0),
-						x_shift(0),
-						x_max(0),
-						y_max_bin(0)
+					: max_intensity(0),
+						diff_score(0),
+						min_score(0),
+						max_score(0),
+						max_intensity_bin(0)
 				{
 				}
 
 				Transformation_(const Transformation_& rhs)
-					: y_factor(rhs.y_factor),
-						x_factor(rhs.x_factor),
-						x_shift(rhs.x_shift),
-						x_max(rhs.x_max),
-						y_max_bin(rhs.y_max_bin)
+					: max_intensity(rhs.max_intensity),
+						diff_score(rhs.diff_score),
+						min_score(rhs.min_score),
+						max_score(rhs.max_score),
+						max_intensity_bin(rhs.max_intensity_bin)
 				{
 				}
 				
@@ -106,24 +104,24 @@ namespace OpenMS
 				{
 					if (this != &rhs)
 					{
-						y_factor = rhs.y_factor;
-          	x_factor = rhs.x_factor;
-          	x_shift = rhs.x_shift;
-          	x_max = rhs.x_max;
-          	y_max_bin = rhs.y_max_bin;
+						max_intensity = rhs.max_intensity;
+          	diff_score = rhs.diff_score;
+          	min_score = rhs.min_score;
+          	max_score = rhs.max_score;
+          	max_intensity_bin = rhs.max_intensity_bin;
 					}
 					return *this;
 				}
 				
-			  double y_factor;
-			  double x_factor;
-			  double x_shift;
-			  double x_max;
-			  double y_max_bin;
+			  double max_intensity;
+			  double diff_score;
+			  double min_score;
+			  double max_score;
+			  Size max_intensity_bin;
 			};
 
 			// normalizes histograms
-			void normalizeBins_(const std::vector<double>& scores, Map<double, double>& binned, Transformation_& trafo);
+			void normalizeBins_(const std::vector<double>& scores, std::vector<double>& binned, Transformation_& trafo);
 
 			// returns the probability of given score with the transformations of reverse and forward searches and the results of the fits
 			double getProbability_(const Math::GammaDistributionFitter::GammaDistributionFitResult& result_gamma,
@@ -131,7 +129,13 @@ namespace OpenMS
 														const Math::GaussFitter::GaussFitResult& result_gauss,
 														const Transformation_& gauss_trafo,
 														double score);
-			
+		
+
+      void generateDistributionImage_(const std::vector<double>& ids, const String& formula, const String& filename);
+
+      void generateDistributionImage_(const std::vector<double>& all_ids, const Transformation_& all_trans, const String& fwd_formula, const String& rev_formula, const String& filename);
+
+
   };
  
 } // namespace OpenMS
