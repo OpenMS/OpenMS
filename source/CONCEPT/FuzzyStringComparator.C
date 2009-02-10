@@ -527,7 +527,7 @@ namespace OpenMS
 			{
 				if ( line_str_1.empty() ) continue; // shortcut
 				std::string::const_iterator iter = line_str_1.begin(); // loop initialization
-				for ( ; iter != line_str_1.end() && isspace(*iter); ++iter ) ; // skip over whitespace
+				for ( ; iter != line_str_1.end() && isspace((unsigned char)*iter); ++iter ) ; // skip over whitespace
 				if ( iter != line_str_1.end() ) break; // line is not empty or whitespace only
 			}
 
@@ -535,7 +535,7 @@ namespace OpenMS
 			{
 				if ( line_str_2.empty() ) continue; // shortcut
 				std::string::const_iterator iter = line_str_2.begin(); // loop initialization
-				for ( ; iter != line_str_2.end() && isspace(*iter); ++iter ) ; // skip over whitespace
+				for ( ; iter != line_str_2.end() && isspace((unsigned char)*iter); ++iter ) ; // skip over whitespace
 				if ( iter != line_str_2.end() ) break; // line is not empty or whitespace only
 			}
 
@@ -566,7 +566,7 @@ namespace OpenMS
 			{
 				if ( line_str_1.empty() ) continue; // shortcut
 				std::string::const_iterator iter = line_str_1.begin(); // loop initialization
-				for ( ; iter != line_str_1.end() && isspace(*iter); ++iter ) ; // skip over whitespace
+				for ( ; iter != line_str_1.end() && isspace((unsigned char)*iter); ++iter ) ; // skip over whitespace
 				if ( iter != line_str_1.end() ) break; // line is not empty or whitespace only
 			}
 
@@ -574,7 +574,7 @@ namespace OpenMS
 			{
 				if ( line_str_2.empty() ) continue; // shortcut
 				std::string::const_iterator iter = line_str_2.begin(); // loop initialization
-				for ( ; iter != line_str_2.end() && isspace(*iter); ++iter ) ; // skip over whitespace
+				for ( ; iter != line_str_2.end() && isspace((unsigned char)*iter); ++iter ) ; // skip over whitespace
 				if ( iter != line_str_2.end() ) break; // line is not empty or whitespace only
 			}
 
