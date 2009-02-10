@@ -159,12 +159,12 @@ namespace OpenMS
 		
   	// generate diffs of distributions
   	// get the fwd and rev distribution, apply all_trafo and calculate the diff
-		vector<Size> fwd_bins(number_of_bins + 1, 0), rev_bins(number_of_bins + 1, 0);
+		vector<Size> fwd_bins(number_of_bins, 0), rev_bins(number_of_bins, 0);
   	double min(all_trafo.min_score), diff(all_trafo.diff_score);
   	Size max_bin(0);
   	for (vector<double>::const_iterator it = fwd_scores.begin(); it != fwd_scores.end(); ++it)
   	{
-    	Size bin = (Size)((*it - min) / diff * (double)number_of_bins);
+    	Size bin = (Size)((*it - min) / diff * (double)(number_of_bins - 1));
       ++fwd_bins[bin];
     	if (fwd_bins[bin] > max_bin)
     	{
@@ -195,7 +195,7 @@ namespace OpenMS
 #endif
 		
   	// get diff of fwd and rev
-  	for (Size i = 0; i <= number_of_bins; ++i)
+  	for (Size i = 0; i < number_of_bins; ++i)
   	{
 			Size fwd(0), rev(0);
 			fwd = fwd_bins[i];
@@ -215,7 +215,7 @@ namespace OpenMS
   	// diff scores fitting
   	vector<DPosition<2> > diff_data;
 		double gauss_A(0), gauss_x0(0);
-  	for (Size i = 0; i <= number_of_bins; ++i)
+  	for (Size i = 0; i < number_of_bins; ++i)
   	{
     	DPosition<2> pos;
     	pos.setX((double)i / (double)number_of_bins);
@@ -346,7 +346,7 @@ namespace OpenMS
 		double max_bin(0);
   	for (vector<double>::const_iterator it = scores.begin(); it != scores.end(); ++it)
   	{
-    	Size bin = (Size)((*it - min) / diff * (double)number_of_bins);
+    	Size bin = (Size)((*it - min) / diff * (double)(number_of_bins - 1));
       binned[bin] += 1;
     	
 			if (binned[bin] > max_bin)
