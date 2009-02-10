@@ -298,7 +298,8 @@ namespace OpenMS
             for (Size n = 0; n < neighbors.size(); ++n)
             {
               GridPoint* neighbor = neighbors[n];
-              if (((neighbor->flag == WATERSHED) || (neighbor->flag > 0)) && (neighbor->distance < current_dist))
+							UInt distance = neighbor->distance;
+              if (((neighbor->flag == WATERSHED) || (neighbor->flag > 0)) && (distance < current_dist))
               {
                 if (neighbor->flag > 0)
                 {
@@ -316,7 +317,7 @@ namespace OpenMS
                   current_point->flag = WATERSHED; 
                 }          
               }
-              else if (neighbor->flag == MASK && neighbor->distance == 0)
+              else if (neighbor->flag == MASK && distance == 0)
               {
                 neighbor->distance = current_dist + 1;
                 fifo_.push_back(neighbor);
