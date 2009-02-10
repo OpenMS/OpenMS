@@ -199,6 +199,13 @@ START_SECTION((const std::vector<ProteinHit>& getHits() const))
 	TEST_EQUAL(*(hits.getHits().begin()) == protein_hit, true)	
 END_SECTION
 
+START_SECTION((std::vector<ProteinHit>& getHits()))
+	ProteinIdentification hits;
+	hits.insertHit(protein_hit);
+	TEST_EQUAL(hits.getHits().size() == 1, true)
+	TEST_EQUAL(*(hits.getHits().begin()) == protein_hit, true)	
+END_SECTION
+
 START_SECTION((void insertHit(const ProteinHit& input)))
 	ProteinIdentification hits;
 	hits.insertHit(protein_hit);

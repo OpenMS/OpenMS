@@ -147,7 +147,7 @@ START_SECTION((static void getLabels(svm_problem *problem, std::vector< DoubleRe
 	delete problem;
 END_SECTION
 
-START_SECTION((static void createRandomPartitions(svm_problem *problem, UInt number, std::vector< svm_problem * > &partitions)))
+START_SECTION((static void createRandomPartitions(svm_problem *problem, Size number, std::vector< svm_problem * > &partitions)))
 	 svm_problem* problem = new svm_problem();
 	UInt count = 4;
 	 svm_node** nodes = new svm_node*[count];
@@ -170,7 +170,7 @@ START_SECTION((static void createRandomPartitions(svm_problem *problem, UInt num
 	TEST_EQUAL(partitions[1]->l, 2)
 END_SECTION
 
-START_SECTION((static svm_problem* mergePartitions(const std::vector< svm_problem * > &problems, UInt except)))
+START_SECTION((static svm_problem* mergePartitions(const std::vector< svm_problem * > &problems, Size except)))
 	 svm_problem* problem = new svm_problem();
 	 svm_problem* problem2;
 	 UInt count = 10;
@@ -211,7 +211,7 @@ START_SECTION((static svm_problem* mergePartitions(const std::vector< svm_proble
 	}
 END_SECTION
 
-START_SECTION((static void calculateGaussTable(UInt border_length, DoubleReal sigma, std::vector<DoubleReal>& gauss_table)))
+START_SECTION((static void calculateGaussTable(Size border_length, DoubleReal sigma, std::vector< DoubleReal > &gauss_table)))
   UInt border_length = 5;
   DoubleReal sigma = 2;
   DoubleReal sigma_square = sigma * sigma;
@@ -227,7 +227,7 @@ START_SECTION((static void calculateGaussTable(UInt border_length, DoubleReal si
   TEST_REAL_SIMILAR(gauss_table[4], exp((-1 / (4.0 * sigma_square)) * 16))
 END_SECTION
 
-START_SECTION((DoubleReal performCrossValidation(svm_problem *problem, const std::map< SVM_parameter_type, DoubleReal > &start_values, const std::map< SVM_parameter_type, DoubleReal > &step_sizes, const std::map< SVM_parameter_type, DoubleReal > &end_values, UInt number_of_partitions, UInt number_of_runs, std::map< SVM_parameter_type, DoubleReal > &best_parameters, bool additive_step_size=true, bool output=false, String performances_file_name="performances.txt", bool mcc_as_performance_measure=false)))
+START_SECTION((DoubleReal performCrossValidation(svm_problem *problem, const std::map< SVM_parameter_type, DoubleReal > &start_values, const std::map< SVM_parameter_type, DoubleReal > &step_sizes, const std::map< SVM_parameter_type, DoubleReal > &end_values, Size number_of_partitions, Size number_of_runs, std::map< SVM_parameter_type, DoubleReal > &best_parameters, bool additive_step_size=true, bool output=false, String performances_file_name="performances.txt", bool mcc_as_performance_measure=false)))
 	map<SVM_parameter_type, DoubleReal> start_values;
 	map<SVM_parameter_type, DoubleReal> step_sizes;
 	map<SVM_parameter_type, DoubleReal> end_values;
@@ -273,7 +273,7 @@ START_SECTION((DoubleReal performCrossValidation(svm_problem *problem, const std
 	TEST_NOT_EQUAL(parameters.size(), 0)
 END_SECTION
 
-START_SECTION((void predict(struct svm_problem *predictProblem, std::vector< DoubleReal > &predicted_rts)))
+START_SECTION((void predict(struct svm_problem *problem, std::vector< DoubleReal > &predicted_labels)))
  	LibSVMEncoder encoder;
 	vector< vector< pair<Int, DoubleReal> > > vectors;
 	vector< pair<Int, DoubleReal> > temp_vector;
@@ -344,7 +344,7 @@ START_SECTION((svm_problem* computeKernelMatrix(svm_problem* problem1, svm_probl
 
 END_SECTION
 
-START_SECTION((static DoubleReal kernelOligo(const svm_node *x, const svm_node *y, const std::vector< DoubleReal > &gauss_table, DoubleReal sigma_square=0, UInt max_distance=50)))
+START_SECTION((static DoubleReal kernelOligo(const svm_node *x, const svm_node *y, const std::vector< DoubleReal > &gauss_table, DoubleReal sigma_square=0, Size max_distance=50)))
   vector<DoubleReal> labels;
 	String sequence = "ACNNGTATCA";
 	String allowed_characters = "ACNGT";
@@ -555,7 +555,7 @@ START_SECTION((void scaleData(svm_problem* data, Int max_scale_value = -1)))
 
 END_SECTION
 
-START_SECTION((void getSignificanceBorders(svm_problem *data, std::pair< DoubleReal, DoubleReal > &borders, DoubleReal confidence=0.95, UInt number_of_runs=10, UInt number_of_partitions=5, DoubleReal step_size=0.01, UInt max_iterations=1000000)))
+START_SECTION((void getSignificanceBorders(svm_problem *data, std::pair< DoubleReal, DoubleReal > &borders, DoubleReal confidence=0.95, Size number_of_runs=5, Size number_of_partitions=5, DoubleReal step_size=0.01, Size max_iterations=1000000)))
 	NOT_TESTABLE
 END_SECTION
 
@@ -597,7 +597,7 @@ START_SECTION((void setParameter(SVM_parameter_type type, Int value)))
 	TEST_EQUAL(svm.getIntParameter(PROBABILITY), 1)
 END_SECTION
 
-START_SECTION((~SVMWrapper()))
+START_SECTION((virtual ~SVMWrapper()))
 	delete ptr;
 END_SECTION
 
@@ -645,7 +645,7 @@ START_SECTION((void loadModel(std::string modelFilename)))
 	}
 END_SECTION
 
-START_SECTION((void saveModel(std::string modelFilename) const throw(Exception::UnableToCreateFile)))
+START_SECTION((void saveModel(std::string modelFilename) const ))
 	LibSVMEncoder encoder;
 	svm.setParameter(KERNEL_TYPE, POLY);
 	vector< vector< pair<Int, DoubleReal> > > vectors;
@@ -721,11 +721,11 @@ START_SECTION((void predict(const std::vector< svm_node * > &vectors, std::vecto
 
 END_SECTION
 
-START_SECTION(void setWeights(const std::vector< Int > &weight_labels, const std::vector< DoubleReal > &weights))
+START_SECTION((void setWeights(const std::vector< Int > &weight_labels, const std::vector< DoubleReal > &weights)))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void getSVCProbabilities(struct svm_problem *problem, std::vector< DoubleReal > &probabilities, std::vector< DoubleReal > &prediction_labels))
+START_SECTION((void getSVCProbabilities(struct svm_problem *problem, std::vector< DoubleReal > &probabilities, std::vector< DoubleReal > &prediction_labels)))
  	LibSVMEncoder encoder;
 	vector< vector< pair<Int, DoubleReal> > > vectors;
 	vector< pair<Int, DoubleReal> > temp_vector;

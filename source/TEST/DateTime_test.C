@@ -157,7 +157,7 @@ START_SECTION((String getTime() const))
 	TEST_STRING_EQUAL(date.getTime(), "11:59:58")		
 END_SECTION
 
-START_SECTION((void set(UInt month, UInt day, UInt year, UInt hour, UInt minute, UInt second) throw(Exception::ParseError)))
+START_SECTION((void set(UInt month, UInt day, UInt year, UInt hour, UInt minute, UInt second)))
 	DateTime date;
 	UInt month = 12;
 	UInt day = 14;
@@ -176,7 +176,7 @@ START_SECTION((void set(UInt month, UInt day, UInt year, UInt hour, UInt minute,
 	TEST_EQUAL(second, 58)		
 END_SECTION
 
-START_SECTION((void set(const String& date) throw(Exception::ParseError)))
+START_SECTION((void set(const String &date)))
 	DateTime date_time;
 	date_time.set("1999-11-24 14:24:31");
 	TEST_EQUAL(date_time.get(), "1999-11-24 14:24:31")
@@ -206,7 +206,7 @@ START_SECTION((void set(const String& date) throw(Exception::ParseError)))
 	
 END_SECTION
 
-START_SECTION((void setDate(UInt month, UInt day, UInt year) throw(Exception::ParseError)))
+START_SECTION((void setDate(UInt month, UInt day, UInt year)))
 	DateTime date;
 	UInt month = 12;
 	UInt day = 14;
@@ -221,7 +221,7 @@ START_SECTION((void setDate(UInt month, UInt day, UInt year) throw(Exception::Pa
 
 END_SECTION
 
-START_SECTION((void setDate(const String& date) throw(Exception::ParseError)))
+START_SECTION((void setDate(const String &date)))
 	DateTime date;
 	UInt month;
 	UInt day;
@@ -235,7 +235,7 @@ START_SECTION((void setDate(const String& date) throw(Exception::ParseError)))
 	TEST_EQUAL(year, 2006)	
 END_SECTION
 
-START_SECTION((void setTime(UInt hour, UInt minute, UInt second) throw(Exception::ParseError)))
+START_SECTION((void setTime(UInt hour, UInt minute, UInt second)))
 	DateTime date;
 	UInt hour; 
 	UInt minute; 
@@ -250,7 +250,7 @@ START_SECTION((void setTime(UInt hour, UInt minute, UInt second) throw(Exception
 
 END_SECTION
 
-START_SECTION((void setTime(const String& date) throw(Exception::ParseError)))
+START_SECTION((void setTime(const String &date)))
 	DateTime date;
 	UInt hour; 
 	UInt minute; 
@@ -265,7 +265,7 @@ START_SECTION((void setTime(const String& date) throw(Exception::ParseError)))
 
 END_SECTION
 
-START_SECTION(static DateTime now())
+START_SECTION((static DateTime now()))
   TEST_EQUAL(DateTime::now().isValid(), true)
 END_SECTION
 

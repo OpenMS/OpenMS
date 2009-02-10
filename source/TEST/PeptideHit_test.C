@@ -138,7 +138,7 @@ START_SECTION((bool operator != (const PeptideHit& rhs) const))
 	hit=hit2;
 END_SECTION
 
-START_SECTION((Real getScore() const))
+START_SECTION((DoubleReal getScore() const ))
 	PeptideHit hit(score, rank, charge, sequence);
 	TEST_EQUAL(hit.getScore(), score)
 END_SECTION
@@ -222,25 +222,25 @@ START_SECTION((void setCharge(Int charge)))
 	TEST_EQUAL(-43, hit.getCharge())
 END_SECTION
 
-START_SECTION(void setAABefore(char acid))
+START_SECTION((void setAABefore(char acid)))
 	PeptideHit hit;
 	
 	hit.setAABefore('R');
 	TEST_EQUAL(hit.getAABefore(), 'R')
 END_SECTION
-START_SECTION(char getAABefore() const)
+START_SECTION((char getAABefore() const))
 	PeptideHit hit;
 	
 	hit.setAABefore('R');
 	TEST_EQUAL(hit.getAABefore(), 'R')
 END_SECTION
-START_SECTION(void setAAAfter(char acid))
+START_SECTION((void setAAAfter(char acid)))
 	PeptideHit hit;
 	
 	hit.setAAAfter('R');
 	TEST_EQUAL(hit.getAAAfter(), 'R')
 END_SECTION
-START_SECTION(char getAAAfter() const)
+START_SECTION((char getAAAfter() const))
 	PeptideHit hit;
 	
 	hit.setAAAfter('R');

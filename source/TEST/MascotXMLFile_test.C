@@ -62,7 +62,7 @@ START_SECTION((MascotXMLFile()))
 	TEST_NOT_EQUAL(ptr, 0)
 END_SECTION
 
-START_SECTION((void load(const String &filename, ProteinIdentification &protein_identification, std::vector<PeptideIdentification> &id_data) const))
+START_SECTION((void load(const String &filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &id_data)))
 
 	xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_1.mascotXML"),
 							protein_identification, 
@@ -111,7 +111,7 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
 	TEST_EQUAL(peptide_identifications[1].getHits()[0].getSequence(), "HSKLSAK")
 END_SECTION
 
-START_SECTION((void load(const String &filename, ProteinIdentification &protein_identification, std::vector<PeptideIdentification> &id_data, std::map<String, std::vector<AASequence> > &peptides) const))	
+START_SECTION((void load(const String &filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &id_data, std::map< String, std::vector< AASequence > > &peptides)))
 	std::map<String, vector<AASequence> > modified_peptides;
 	AASequence aa_sequence_1;
 	AASequence aa_sequence_2;
