@@ -777,52 +777,51 @@ if(NOT MSVC)
   endforeach()
 
   # install headers
-  foreach(OpenMS_header ${OpenMS_sources_h})
-    #extract path
-    string(REGEX MATCH
-      "^include/(.*)/"
-      path_name ${OpenMS_header})
-
-    # get path below include/..
-    set(path_name ${CMAKE_MATCH_1})
-
-    INSTALL(FILES
-      ${OpenMS_header}
-      DESTINATION include/${path_name}
-      COMPONENT headers)
-  endforeach()
+  #foreach(OpenMS_header ${OpenMS_sources_h})
+  #  #extract path
+  #  string(REGEX MATCH
+  #    "^include/(.*)/"
+  #    path_name ${OpenMS_header})
+  #
+  #  # get path below include/..
+  #  set(path_name ${CMAKE_MATCH_1})
+  #  INSTALL(FILES
+  #    ${OpenMS_header}
+  #    DESTINATION include/${path_name}
+  #    COMPONENT headers)
+  #endforeach()
 
   # since config h is not contained in OpenMS_sources_h we need to address it separtly 
-  install(FILES ${CONFIGURED_CONFIG_H} DESTINATION include/OpenMS)
+  #install(FILES ${CONFIGURED_CONFIG_H} DESTINATION include/OpenMS)
 
   # install mocced sources into include
-  foreach(mocced ${mocced_sources})
-    #extract path
-    string(REGEX MATCH
-      "^/.*/include/(.*)/"
-      path_name ${mocced})
-
-    # get path below include/..
-    set(path_name ${CMAKE_MATCH_1})
-
-    INSTALL(FILES
-      ${mocced} 
-      DESTINATION include/${path_name}
-      COMPONENT headers)
-  endforeach()
+  #foreach(mocced ${mocced_sources})
+  #  #extract path
+  #  string(REGEX MATCH
+  #    "^/.*/include/(.*)/"
+  #    path_name ${mocced})
+  #
+  #  # get path below include/..
+  #  set(path_name ${CMAKE_MATCH_1})
+  #
+  #   INSTALL(FILES
+  #    ${mocced} 
+  #    DESTINATION include/${path_name}
+  #    COMPONENT headers)
+  #endforeach()
 
   # install ui files
-  foreach(uiced ${uiced_sources})
-    #extract path
-    string(REGEX MATCH
-      "^/.*/include/(.*)/"
-      path_name ${uiced})
-    set(path_name ${CMAKE_MATCH_1})
-    INSTALL(FILES
-      ${uiced} 
-      DESTINATION include/${path_name}
-      COMPONENT headers)
-  endforeach()
+  #foreach(uiced ${uiced_sources})
+  #  #extract path
+  #  string(REGEX MATCH
+  #    "^/.*/include/(.*)/"
+  #    path_name ${uiced})
+  #  set(path_name ${CMAKE_MATCH_1})
+  #  INSTALL(FILES
+  #    ${uiced} 
+  #    DESTINATION include/${path_name}
+  #    COMPONENT headers)
+  #endforeach()
 
   # install share
   INSTALL(DIRECTORY share/
@@ -835,13 +834,28 @@ if(NOT MSVC)
   #       force copy of all libs in contrib lib dir into install/lib
   #       same holds for the includes
   INSTALL(DIRECTORY ${CONTRIB_LIB_DIR}
-    DESTINATION lib/
+    DESTINATION lib
     COMPONENT contrib)
 
-  INSTALL(DIRECTORY ${CONTRIB_INCLUDE_DIR}
-    DESTINATION include/
-    COMPONENT contrib)
+  #INSTALL(DIRECTORY ${CONTRIB_INCLUDE_DIR}
+  #  DESTINATION include/
+  #  COMPONENT contrib)
 
-  # most of the interesting CPack stuff is done below
-  include(OpenMSCPack.cmake)
+	set(CPACK_GENERATOR "RPM")
+	set(CPACK_PACKAGE_NAME "OpenMS")
+	set(CPACK_PACKAGE_VENDOR "OpenMS.de")
+	set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OpenMS - A framework for mass spectrometry")
+	set(CPACK_PACKAGE_VERSION "1.3.0")
+	set(CPACK_PACKAGE_VERSION_MAJOR "1")
+	set(CPACK_PACKAGE_VERSION_MINOR "3")
+	set(CPACK_PACKAGE_VERSION_PATCH "0")
+	set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS 1.3")
+
+	set(CPACK_RPM_PACKAGE_REQUIRES "Qt4")
+
+
+	set(CPACK_COMPONENTS_ALL applications libraries headers share contrib)
+
+	# should be the last include
+	include(CPack)
 endif()
