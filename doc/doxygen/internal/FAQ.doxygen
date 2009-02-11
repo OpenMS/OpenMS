@@ -562,14 +562,25 @@ svn propset svn:eol-style native MyClass.C
 
 			<LI><B>What do I have to do to add a new TOPP tool?</B>
 			<OL>
-				<LI> Write the new tool ;)
 				<LI> Add your tool to getToolList() in <TT>include/OpenMS/APPLICATIONS/TOPPView.h</TT>
+						 @n This creates a doxygen page with the @em --help output of the tool. 
+						 @n This page must be included at the end of the doxygen documentation of your tool (see other tools for an example).
 				<LI> Add it to the TOPP docu page (in @a %doc/doxygen/public/TOPP.doxygen)
 				<LI> Add the executable to the ignore list if the directory (@a svn @a propedit @a svn:ignore @a source/APPLICATION/TOPP/)
         <LI> Add the name to <TT>source/APPLICATIONS/TOPP/executables.cmake</TT>
         <LI> Write a TOPP test (add it to /source/TEST/TOPP/CMakeLists.txt)<BR>
         		 Warning: handle any kind of input files to your TOPP tool via command line flags and use the ${DATA_DIR_TOPP} prefix. You can use ini-files
         		 to specify output-files, but not input-files. Doing otherwise will break out-of-source builds.
+			</OL>
+
+			<LI><B>What do I have to do to add a new UTILS tool?</B>
+			<OL>
+				<LI> Add your tool to the UTILS tools list in <TT>doc/doxygen/parameters/TOPPDocumenter.C</TT>
+						 @n This creates a doxygen page with the @em --help output of the tool. 
+						 @n This page must be included at the end of the doxygen documentation of your tool (see other tools for an example).
+				<LI> Add it to the UTILS docu page (in @a %doc/doxygen/public/UTILS.doxygen)
+				<LI> Add the executable to the ignore list if the directory (@a svn @a propedit @a svn:ignore @a source/APPLICATION/UTILS/)
+        <LI> Add the name to <TT>source/APPLICATIONS/UTILS/executables.cmake</TT>
 			</OL>
 
 		</UL>
