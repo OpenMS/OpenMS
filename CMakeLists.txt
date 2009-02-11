@@ -498,16 +498,20 @@ if (OPENMS_HAS_SVNVERSION)
 endif()
 
 
-set(OPENMS_DEP_LIBRARIES ${QT_LIBRARIES} ${CONTRIB_CGAL} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${CONTRIB_ANDIMS} ${CONTRIB_NETCDF})
+# all the dependency libraries are linked into libOpenMS.so, except Qt which is still dynamic
+set(OPENMS_DEP_LIBRARIES ${CONTRIB_CGAL} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SVM_LIBRARY} ${CONTRIB_XERCESC} ${CONTRIB_ANDIMS} ${CONTRIB_NETCDF})
 if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
-	target_link_libraries(OpenMS ${OPENMS_DEP_LIBRARIES})
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  target_link_libraries(OpenMS ${OPENMS_DEP_LIBRARIES})
 endif()
+target_link_libraries(OpenMS ${OPENMS_DEP_LIBRARIES})
+
+#elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+#  target_link_libraries(OpenMS ${OPENMS_DEP_LIBRARIES})
+#endif()
+
 
 ### OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
-set(OPENMS_LIBRARIES OpenMS ${OPENMS_DEP_LIBRARIES})
+set(OPENMS_LIBRARIES OpenMS  ${QT_LIBRARIES})
 
 ####### TOPP #########
 set(TOPP_executables)
@@ -752,18 +756,25 @@ MESSAGE(STATUS "")
 MESSAGE(STATUS "-----------------------------------------------------------------")
 MESSAGE(STATUS "")
 
-##### install/copy?? #####
-if(NOT MSVC)
-  # TODO:
-  #  - this code breaks the windows cmake call (already code for win support added .. needs testing)
-  #  - install compiled documentation ??
+##### install/copy (cpack mainly) #####
+# TODO:
+#  - this code breaks the windows cmake call (already code for win support added .. needs testing)
+if(NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(DO_INSTALL false CACHE BOOL "Set to 'ON' if you want the CMAKE_INSTALL_PREFIX to be used and the library to be installed. On 'OFF' the library and Tools will be build but not installed!")
+
+	# variables we need to distinguish 32Bit/64Bit versions
+	set(OPENMS_LIB_INSTALL_PATH "lib")
+	set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86")
+	if (OPENMS_64BIT_ARCHITECTURE)
+		set(OPENMS_LIB_INSTALL_PATH "lib64")
+		set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
+	endif()
 
   ## CPack installation and packaging procedures
   install(TARGETS OpenMS 
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    COMPONENT libraries)
+    LIBRARY DESTINATION ${OPENMS_LIB_INSTALL_PATH}
+    ARCHIVE DESTINATION ${OPENMS_LIB_INSTALL_PATH}
+    COMPONENT library)
 
   # install utils
   foreach(util ${UTILS_executables})
@@ -781,70 +792,17 @@ if(NOT MSVC)
       COMPONENT applications)
   endforeach()
 
-  # install headers
-  #foreach(OpenMS_header ${OpenMS_sources_h})
-  #  #extract path
-  #  string(REGEX MATCH
-  #    "^include/(.*)/"
-  #    path_name ${OpenMS_header})
-  #
-  #  # get path below include/..
-  #  set(path_name ${CMAKE_MATCH_1})
-  #  INSTALL(FILES
-  #    ${OpenMS_header}
-  #    DESTINATION include/${path_name}
-  #    COMPONENT headers)
-  #endforeach()
-
-  # since config h is not contained in OpenMS_sources_h we need to address it separtly 
-  #install(FILES ${CONFIGURED_CONFIG_H} DESTINATION include/OpenMS)
-
-  # install mocced sources into include
-  #foreach(mocced ${mocced_sources})
-  #  #extract path
-  #  string(REGEX MATCH
-  #    "^/.*/include/(.*)/"
-  #    path_name ${mocced})
-  #
-  #  # get path below include/..
-  #  set(path_name ${CMAKE_MATCH_1})
-  #
-  #   INSTALL(FILES
-  #    ${mocced} 
-  #    DESTINATION include/${path_name}
-  #    COMPONENT headers)
-  #endforeach()
-
-  # install ui files
-  #foreach(uiced ${uiced_sources})
-  #  #extract path
-  #  string(REGEX MATCH
-  #    "^/.*/include/(.*)/"
-  #    path_name ${uiced})
-  #  set(path_name ${CMAKE_MATCH_1})
-  #  INSTALL(FILES
-  #    ${uiced} 
-  #    DESTINATION include/${path_name}
-  #    COMPONENT headers)
-  #endforeach()
-
   # install share
   INSTALL(DIRECTORY share/
     DESTINATION share
     COMPONENT share
-    REGEX "^/.*/.svn/.*$" EXCLUDE)
+    REGEX ".svn" EXCLUDE)
 
-  # install contrib lib/include
-  # TODO: revise this .. currently we just do a brute
-  #       force copy of all libs in contrib lib dir into install/lib
-  #       same holds for the includes
-  INSTALL(DIRECTORY ${CONTRIB_LIB_DIR}
-    DESTINATION lib
-    COMPONENT contrib)
-
-  #INSTALL(DIRECTORY ${CONTRIB_INCLUDE_DIR}
-  #  DESTINATION include/
-  #  COMPONENT contrib)
+	# install the documentation and the tutorials
+	install(FILES     doc/index.html      DESTINATION share/OpenMS/doc COMPONENT doc)
+	install(DIRECTORY doc/html            DESTINATION share/OpenMS/doc COMPONENT doc REGEX ".svn" EXCLUDE)
+	install(DIRECTORY doc/OpenMS_tutorial DESTINATION share/OpenMS/doc COMPONENT doc REGEX ".svn" EXCLUDE)
+	install(DIRECTORY doc/TOPP_tutorial   DESTINATION share/OpenMS/doc COMPONENT doc REGEX ".svn" EXCLUDE)
 
 	set(CPACK_GENERATOR "RPM")
 	set(CPACK_PACKAGE_NAME "OpenMS")
@@ -855,11 +813,12 @@ if(NOT MSVC)
 	set(CPACK_PACKAGE_VERSION_MINOR "3")
 	set(CPACK_PACKAGE_VERSION_PATCH "0")
 	set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS 1.3")
+	set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_BINARY_DIR}/OpenMSPackageDescriptionFile.cmake)
+	set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_BINARY_DIR}/License.txt)
 
 	set(CPACK_RPM_PACKAGE_REQUIRES "Qt4")
 
-
-	set(CPACK_COMPONENTS_ALL applications libraries headers share contrib)
+	set(CPACK_COMPONENTS_ALL applications library share)
 
 	# should be the last include
 	include(CPack)
