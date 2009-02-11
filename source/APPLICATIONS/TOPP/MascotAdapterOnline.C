@@ -163,8 +163,16 @@ class TOPPMascotAdapterOnline
 			QTimer::singleShot(1000, mascot_query, SLOT(run()));
 			event_loop.exec();
 
+			if (mascot_query->hasError())
+			{
+				writeLog_("An error occurred during the query: " + mascot_query->getErrorMessage());
+				delete mascot_query;
+				return EXTERNAL_PROGRAM_ERROR;
+			}
+
 			// write Mascot response to file
-			String mascot_tmp_file_name("mascot_tmp_file");
+			String unique_name = File::getUniqueName(); // body for the tmp files
+			String mascot_tmp_file_name(unique_name + "_Mascot_response");
 			QFile mascot_tmp_file(mascot_tmp_file_name.c_str());
 			mascot_tmp_file.open(QIODevice::WriteOnly);
 			mascot_tmp_file.write(mascot_query->getMascotXMLResponse());
@@ -173,7 +181,6 @@ class TOPPMascotAdapterOnline
 			// clean up
 			delete mascot_query;
 
-
 			vector<PeptideIdentification> pep_ids;
 			ProteinIdentification prot_id;
 
@@ -181,7 +188,7 @@ class TOPPMascotAdapterOnline
 			MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids);
 
 			// delete file
-			//mascot_tmp_file.remove();
+			mascot_tmp_file.remove();
 
 			vector<ProteinIdentification> prot_ids;
 			prot_ids.push_back(prot_id);
