@@ -104,8 +104,8 @@ class TOPPIdXMLEvaluation
 			PeptideIdentification filtered_identification_both;
 			IDFilter filter;
 			bool no_protein_identifiers = true;
-			DoubleReal p_value_dim_1 = getDoubleOption_("p_value_dim_1");;
-			DoubleReal p_value_dim_2 = getDoubleOption_("p_value_dim_2");;
+			DoubleReal p_value_dim_1 = getDoubleOption_("p_value_dim_1");
+			DoubleReal p_value_dim_2 = getDoubleOption_("p_value_dim_2");
 			State state = TP;
 			State state_rt1 = TP;
 			State state_rt2 = TP;
