@@ -127,7 +127,8 @@ dotdoc:
 
 #######################################################################
 # Creates the internal documentation without class documentation.
-noclassdoc: toppdoc_try
+noclassdoc:
+	@make paramdoc
 	@echo "";
 	@echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
 	@echo "Creating the internal documentation with out class documentation";

@@ -224,7 +224,7 @@ namespace OpenMS
       {
         // search for the corresponding datapoint of help in the wavelet (take the left most adjacent point)
         double distance = fabs(x->getMZ() - help->getMZ());
-				Size index_w_r = Math::round(distance / spacing_);
+				Size index_w_r = (Size)Math::round(distance / spacing_);
 				if (index_w_r >= wavelet_.size()) 
 				{
 				  index_w_r = wavelet_.size()-1;

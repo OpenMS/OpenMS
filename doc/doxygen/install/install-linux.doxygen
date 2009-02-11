@@ -2,7 +2,7 @@
   
   @page install_linux Installation on Linux
   
-  @section install_linux_read Read this!
+  @section install_linux_read Read this section first!
   
   This document addresses %OpenMS users and explains the
   installation procedure. It especially considers the installation
@@ -12,149 +12,70 @@
   <b>Required applications</b>
   
   In order to compile %OpenMS, several applications need to be installed:
-   - Compiler: An ANSI-compatible C++ compiler is required. <BR>Currently g++ 4.1.0 or higher is supported.  <BR>Older versions might still work, but are not actively maintained. <BR>g++ is part of the GNU Compiler Collection (GCC).
+   - Compiler: An ANSI-compatible C++ compiler is required. <BR>Currently g++ 4.0 or higher is supported.  <BR>Older versions might still work, but are not actively maintained. <BR>g++ is part of the GNU Compiler Collection (GCC).
+   - CMake (version 2.6 or higher) is required to configure and build the package.
    - GNU make is required
-  
+	 - patch
+	 - autoconf
+	 - Qt4 (development package containing qmake and headers)
+	   
   If your %OpenMS version is a development version from SVN, the following 
   applications are needed in order to create the %OpenMS documentation:
     - doxygen (We recommend version 1.5.4)
     - pdflatex
 
-  Depending on your linux distribution, you might have to install the following packages (names may vary):
-    - build-essential (Ubuntu only)
-    - cmake
-    - qt4-devel
-    - x11-devel
-    - libXmu-devel
-    - qt4-mysql (for DB sopport only)
-    - mysql-devel (for DB sopport only)
-
-<HR>
-
-  @section install_linux_required Installing required dependency libraries
+  Depending on your linux distribution, you might have to install the following packages:
   
-  %OpenMS depends on several other libraries. Most of them are
-  standard and should be present in many systems anyway. Some of
-  those libraries again depend on others. Here is a little overview
-  of the dependencies:
-
-  <table cellpadding="2" cellspacing="0" border="0">
-    <tr>
-      <td align="left">&nbsp;</td>
-      <td align="left">ANDI/MS</td>
-      <td align="left">(requires NetCDF)</td>
-    </tr>
-    <tr>
-      <td align="left">&nbsp;</td>
-      <td align="left">GSL</td>
-      <td align="left">&nbsp;</td>
-    </tr>
-    <tr>
-      <td align="left">&nbsp;</td>
-      <td align="left">CGAL</td>
-      <td align="left">&nbsp;</td>
-    </tr>
-    <tr>
-      <td align="left">&nbsp;</td>
-      <td align="left">XERCES-C</td>
-      <td align="left">&nbsp;</td>
-    </tr>
-    <tr>
-      <td align="left">&nbsp;</td>
-      <td align="left">libSVM</td>
-      <td align="left">&nbsp;</td>
-    </tr>
-    <tr>
-      <td align="left">&nbsp;</td>
-      <td align="left">SeqAn</td>
-      <td align="left">&nbsp;</td>
-    </tr>
-    <tr>
-      <td align="left">&nbsp;</td>
-      <td align="left">Qt</td>
-      <td align="left">(requires other libraries for DB support e.g. MySQL)</td>
-    </tr>
+  <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;">
+  	<tr>
+  		<td><B>Fedora 10</B></td>
+  		<td><B>OpenSuse 11.1</B></td>
+  		<td><B>Ubuntu 8.11</B></td>
+  	</tr>
+  	<tr>
+  		<td valign="top">
+  			cmake
+  			@n gcc-g++
+  			@n autoconf
+  			@n qt-devel
+  		</td>
+  		<td valign="top">
+				cmake
+				@n gcc-g++
+				@n autoconf
+				@n libqt4-devel
+  		</td>
+  		<td valign="top">
+  			cmake
+  			@n g++
+  			@n autoconf
+  			@n qt4-dev-tools
+  			@n patch
+  		</td>
+  	</tr>
   </table>
 
-  In order to make the
-  installation of the required libraries easier, we composed a
-  "contrib-package" containing the libraries ANDI/MS, NetCDF, GSL, CGAL, libSVM, SeqAn and XERCES-C. 
-  This contrib package has several advantages over manual installation
-  - you get all the libraries in versions tested with %OpenMS.
-  - it contains a CMake script that builds all the libraries in one step.
-  - you don't have to spend hours reading installation instructions of all the libraries.
-  - we applied some patches to the libraries to fix some bugs. <BR><b>These bugs may be fatal if you do not use the contrib package.</b>
+<HR> 
 
-  We recommend using the contrib package! Qt and MySQL are not
-  contained in the contrib package as they are installed on most
-  systems anyway. If they are not installed on your system, you
-  have to install those two libraries first. 
-  
-  @subsection install_linux_mysql MySQL
-  
-  The MySQL database is accessed by %OpenMS through functionality
-  provided by Qt. The MySQL versions 4.0.18 and 4.1.10a have been
-  tested and used with %OpenMS.
-  <br>
-  You can get the sources at 
-  <a href="http://dev.mysql.com/downloads/mysql/4.1.html" target="_blank">http://dev.mysql.com/downloads/mysql/4.1.html</a>
-  in the 'source download' section.
-  <br>
-  Good installation instructions for MySQL can be found at 
-  <a href="http://dev.mysql.com/doc/mysql/en/installing-source.html" target="_blank">http://dev.mysql.com/doc/mysql/en/installing-source.html</a>.
-  <br>
-  Basically the installation boils down to this:
+  @section install_linux_contrib Installing the contrib package
 
-  <pre>
-  &gt; ./configure --prefix=&lt;prefix&gt;
-  &gt; make
-  &gt; make install
-  </pre>
-
-  @note If you want to use preinstalled MySQL binaries, make sure that the mysql-devel package is installed.
-
-  @subsection install_linux_qt Qt
-
-  For GUI and database access we use Qt 4.3. You can obtain the source code from 
-  <a href="http://www.trolltech.com/download/index.html" target="_blank">http://www.trolltech.com/download/index.html</a>.
-
-  Run configure with the '-verbose' option. With that option a
-  summary is shown before the you have to accept the licence. Make
-  sure that MySQL (or any other DB you want to use) and OpenGL support are enabled in the summary.</p>
-
-  <pre>
-  &gt; ./configure -verbose -fast -no-qt3support (... see below)
-  &gt; make
-  </pre>
-
-  <b>SQL support:</b>
-  <br>
-  Use the configure option '-qt-sql-&lt;driver&gt;' to enable database support. There is a
-  Qt driver for a lot of SQL database provided by Qt. Check the Qt manual for details.</p>
-  
-  @note If you want to use the preinstalled binaries, make sure that the qt-devel package is installed.
-  
-  @note Qt 4.4.1 and higher can also be used, although this version has several minor bugs.
-  
-  @subsection install_linux_contrib Installing the contrib package
+  In order to facilitate the installation of the libraries required for %OpenMS, we composed a
+  "contrib-package" containing the libraries ANDI/MS, Boost, NetCDF, GSL, CGAL, libSVM, SeqAn and XERCES-C. 
     
-  The contrib package is contained in the %OpenMS release package and is available under the path contrib in the %OpenMS directory.
+  The contrib package is contained in the %OpenMS release package and is available under the path @em contrib in the %OpenMS directory.
   
   If you are using the developer version of %OpenMS, you must check out the contrib from Sourceforge SVN repository
   <pre>
   &gt; svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib
   </pre> 
   
-  CMake is used to check the system and create the contrib libraries. We recommend using out-of-source builds, i.e. your contrib source tree remains unchanged.
+  CMake is used to check the system and create the contrib libraries.
   @n Go to the contrib directory and execute the following command:
   <pre>
-  &gt; cd ..
-  &gt; mkdir contrib_BuildTree
-  &gt; cd contrib_BuildTree
-  &gt; cmake ../contrib
+  &gt; cmake .
   </pre>
   
-  If everything worked, the following sub-directories were created:
+  If everything worked, the following sub-directories were created under @em contrib :
 
   <ul>
     <li>'lib/'
@@ -172,33 +93,30 @@
   
   @section install_linux_openms Installing OpenMS/TOPP
  
-   You need to get the %OpenMS source code from our website. The latest stable version of %OpenMS can be found in the 
+   You need to get the %OpenMS source package from our website. The latest stable version of %OpenMS can be found in the 
   <a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">files</a> section.
   For further (e.g. latest developer version from SVN) info see the <a href="http://open-ms.sourceforge.net/download.php" target="_blank">download instructions</a>.
 
   If you have not installed the libraries which %OpenMS requires, please refer to the section @ref install_linux_required above.
   
-  CMake is used to check the system and create the main 'Makefile'. We recommend using out-of-source builds, i.e. your source tree remains unchanged.
+  CMake is used to check the system and create the main 'Makefile'.
   @n Go to the %OpenMS directory and execute the following command:
   <pre>
-  &gt; cd ..
-  &gt; mkdir OpenMS_BuildTree
-  &gt; cd OpenMS_BuildTree
-  &gt; cmake ../OpenMS
+  &gt; cmake .
   </pre>
   
   You can set CMake variables using the <code>-D VARIABLE=VALUE</code> option.
   A full list of the CMake variables is shown when you execute
   <pre>
-  &gt; ccmake <OpenMS_BuildTree>
+  &gt; ccmake .
   </pre>
-  This works only after executing <code>cmake</code>.
+  This works only after having executing <code>cmake .</code>.
   
   The most important CMake variables are:
 
-  <table border="0">
+  <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;">
     <tr>
-      <td>CMAKE_INSTALL_PREFIX</td>
+      <td valign="top">CMAKE_INSTALL_PREFIX</td>
       <td>(NOT SUPPORTED YET) the path where the library is installed.
           <BR>
           <b>Note:</b> Moving the library after installing it is not possible! 
@@ -206,38 +124,41 @@
           be installed to.</td>
     </tr>
     <tr>
-      <td>CONTRIB_CUSTOM_DIR</td>
+      <td valign="top">CONTRIB_CUSTOM_DIR</td>
       <td>search for the contrib libraries in this location.
           If unset the the location is assumed to be <tt><path_to_OpenMS>/contrib</tt>.</td>
     </tr>
     <tr>
-      <td>QT_QMAKE_EXECUTABLE</td>
+      <td valign="top">QT_QMAKE_EXECUTABLE</td>
       <td>Defines the Qt 'qmake' application. The corresponding Qt installation is used.</td>
     </tr>
     <tr>
-      <td>OPENMS_BUILD_TYPE</td>
+      <td valign="top">OPENMS_BUILD_TYPE</td>
       <td>Should be either 'Release' (optimization enabled) or 'Debug' (debug info and 
           precondition/postcondiction checks enabled).
           @n The default is 'Release'.</td>
     </tr>
     <tr>
-      <td>QT_DB_PLUGIN</td>
+      <td valign="top">QT_DB_PLUGIN</td>
       <td>Defines the Qt database type. By default MySQL is used.</td>
     </tr>
     <tr>
-      <td>CMAKE_CXX_COMPILER</td>
+      <td valign="top">CMAKE_CXX_COMPILER</td>
       <td>Defines the C++ compiler to use.</td>
     </tr>
   </table>
 
-  After CMake was executed, you can list the make targets by calling <code>make targets</code>.
-
+  After CMake was executed, you can list the make targets by calling:
+  <pre>
+  &gt; make targets
+  </pre>
+  
   In order to build the %OpenMS library and TOPP tools execute the following command:
   <pre>
   &gt; make
   </pre>
 
-  Make sure to add <i>&lt;path_to_OpenMS&gt;/lib/</i> (e.g. <i>~/OpenMS/lib/</i>) to the environment variable <b>LD_LIBRARY_PATH</b>.
+  @note Make sure to add <i>&lt;path_to_OpenMS&gt;/lib/</i> (e.g. <i>~/OpenMS/lib/</i>) to the environment variable <b>LD_LIBRARY_PATH</b>.
   
   @note The ANDI/MS library does not work on 64 bit machines. On these machines ANDI/MS (cdf) support is disabled automatically.
 
@@ -249,7 +170,6 @@
   
   After you have installed %OpenMS and TOPP, you should test your installation by executing the following command:
   <pre>
-  &gt; cd &lt;path_to_OpenMS&gt;
   &gt; make TEST
   &gt; make test
   </pre>
