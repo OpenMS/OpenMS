@@ -84,7 +84,7 @@ START_SECTION((virtual ~ModificationDefinitionsSet()))
 }
 END_SECTION
 
-START_SECTION((void setMaxModifications(UInt max_mod)))
+START_SECTION((void setMaxModifications(Size max_mod)))
 {
   ModificationDefinitionsSet mod_set;
 	mod_set.setMaxModifications(1);
@@ -94,14 +94,14 @@ START_SECTION((void setMaxModifications(UInt max_mod)))
 }
 END_SECTION
 
-START_SECTION((UInt getMaxModifications() const ))
+START_SECTION((Size getMaxModifications() const ))
 {
   // tested above
 	NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((UInt getNumberOfModifications() const ))
+START_SECTION((Size getNumberOfModifications() const ))
 {
   ModificationDefinitionsSet mod_set("MOD:00046,MOD:00047,MOD:00048", "MOD:01214");
 	TEST_EQUAL(mod_set.getNumberOfModifications(), 4)
@@ -113,7 +113,7 @@ START_SECTION((UInt getNumberOfModifications() const ))
 }
 END_SECTION
 
-START_SECTION((UInt getNumberOfFixedModifications() const ))
+START_SECTION((Size getNumberOfFixedModifications() const ))
 {
   ModificationDefinitionsSet mod_set("MOD:00046,MOD:00047,MOD:00048", "MOD:01214");
   TEST_EQUAL(mod_set.getNumberOfFixedModifications(), 3)
@@ -125,7 +125,7 @@ START_SECTION((UInt getNumberOfFixedModifications() const ))
 }
 END_SECTION
 
-START_SECTION((UInt getNumberOfVariableModifications() const ))
+START_SECTION((Size getNumberOfVariableModifications() const ))
 {
   ModificationDefinitionsSet mod_set("MOD:00046,MOD:00047", "MOD:01214,MOD:00048");
   TEST_EQUAL(mod_set.getNumberOfVariableModifications(), 2)

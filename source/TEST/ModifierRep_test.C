@@ -63,14 +63,14 @@ START_SECTION(ModifierRep(const ModifierRep &source))
 	TEST_EQUAL (ptr->getModificationTable().size(),new_ptr->getModificationTable().size());
 END_SECTION
 
-START_SECTION(void setNumberOfModifications(UInt i))
+START_SECTION(void setNumberOfModifications(Size i))
 	ptr = new ModifierRep();
 	TEST_EQUAL (0,ptr->getNumberOfModifications());
 	ptr->setNumberOfModifications(1);
 	TEST_EQUAL (1,ptr->getNumberOfModifications());
 END_SECTION
 
-START_SECTION(UInt getNumberOfModifications() const )
+START_SECTION(Size getNumberOfModifications() const )
 	ptr = new ModifierRep();
 	ptr->setNumberOfModifications(1);
 	TEST_EQUAL (1,ptr->getNumberOfModifications());
@@ -120,7 +120,7 @@ START_SECTION(const std::vector<std::vector<double> >& getModificationTable())
 	}*/
 END_SECTION
 
-START_SECTION(UInt getMaxModificationMasses())
+START_SECTION(Size getMaxModificationMasses())
 	ptr = new ModifierRep();
 	TEST_EQUAL(0,ptr->getMaxModificationMasses());
 	std::vector<std::vector<double> > mod_table = ptr->getModificationTable();
@@ -136,7 +136,7 @@ START_SECTION(UInt getMaxModificationMasses())
 	TEST_EQUAL(mod_masses_set.size(),ptr->getMaxModificationMasses());
 END_SECTION
 
-START_SECTION(void refreshModificationList(std::map< double, int > &mod_map, const char &c))
+START_SECTION(void refreshModificationList(std::map< double, SignedSize > &mod_map, const char &c))
 				/*
 	ptr = new ModifierRep();
 	std::map<double,int> mods;

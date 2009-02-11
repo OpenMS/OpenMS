@@ -67,7 +67,7 @@ START_SECTION(bool hasResidue(const Residue *residue) const)
 	TEST_EQUAL(ptr->hasResidue(ptr->getResidue("K")), true)
 END_SECTION
 
-START_SECTION(UInt getNumberOfResidues() const)
+START_SECTION(Size getNumberOfResidues() const)
 	TEST_EQUAL(ptr->getNumberOfResidues(), 21);
 END_SECTION
 
@@ -112,7 +112,7 @@ END_SECTION
 
 START_SECTION(ResidueIterator beginResidue())
 	ResidueDB::ResidueIterator it = ptr->beginResidue();
-	UInt count(0);
+	Size count(0);
 	while (it != ptr->endResidue())
 	{
 		++it;
@@ -129,7 +129,7 @@ END_SECTION
 START_SECTION(ResidueConstIterator beginResidue() const)
 	const ResidueDB* const_ptr = ptr;
 	ResidueDB::ResidueConstIterator it = const_ptr->beginResidue();
-	UInt count(0);
+	Size count(0);
 	while (it != const_ptr->endResidue())
 	{
 		++it;
@@ -142,7 +142,7 @@ START_SECTION(ResidueConstIterator endResidue() const)
 	NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION(UInt getNumberOfModifiedResidues() const)
+START_SECTION(Size getNumberOfModifiedResidues() const)
 	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 1)
 	const Residue* mod_res = 0;
 	mod_res = ptr->getModifiedResidue("MOD:01214");

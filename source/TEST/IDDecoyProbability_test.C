@@ -99,11 +99,6 @@ START_SECTION((void apply(std::vector<PeptideIdentification>& prob_ids, const st
 END_SECTION
 
 
-START_SECTION(void generateDistributionImage(const Map< double, double > &ids, const String &formula, const String &filename))
-	NOT_TESTABLE
-END_SECTION
-
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

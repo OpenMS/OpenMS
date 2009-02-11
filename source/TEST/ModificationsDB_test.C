@@ -47,12 +47,12 @@ START_SECTION(ModificationsDB* getInstance())
 }
 END_SECTION
 
-START_SECTION(UInt getNumberOfModifications() const)
+START_SECTION(Size getNumberOfModifications() const)
 	// range because data may change over time
 	TEST_EQUAL(ptr->getNumberOfModifications() > 100, true);
 END_SECTION
 
-START_SECTION(const ResidueModification& getModification(UInt index) const)
+START_SECTION(const ResidueModification& getModification(Size index) const)
 	TEST_EQUAL(ptr->getModification(0).getId().size() > 0, true)
 END_SECTION
 
@@ -71,7 +71,7 @@ START_SECTION(const ResidueModification& getModification(const String &residue_n
 	TEST_EQUAL(ptr->getModification("S", "Phosphorylation").getId(), "MOD:00046")
 END_SECTION
 
-START_SECTION(UInt findModificationIndex(const String &mod_name) const)
+START_SECTION(Size findModificationIndex(const String &mod_name) const)
 	Size index = numeric_limits<Size>::max();
 	index = ptr->findModificationIndex("MOD:00046");
 	TEST_NOT_EQUAL(index, numeric_limits<Size>::max())
