@@ -98,7 +98,6 @@ namespace OpenMS
  		 
  		if (tag_ == "protein")
  		{	
- 			// since Mascot uses SwissProt IDs we set this type here
 			protein_identification_.setScoreType("Mascot");
  			protein_identification_.insertHit(actual_protein_hit_);
  			actual_protein_hit_ = ProteinHit();
@@ -398,6 +397,26 @@ namespace OpenMS
 		else if (tag_ == "TAXONOMY")
 		{
 			search_parameters_.taxonomy = (((String) sm_.convert(chars)).trim());
+		}
+		else if (tag_ == "CHARGE")
+		{
+			search_parameters_.charges = (((String) sm_.convert(chars)).trim());
+		}
+		else if (tag_ == "PFA")
+		{
+			search_parameters_.missed_cleavages = ((String) sm_.convert(chars)).trim().toInt();
+		}	
+		else if (tag_ == "MASS")
+		{
+			String temp_string = (((String) sm_.convert(chars)).trim());
+			if (temp_string == "Monoisotopic")
+			{
+				search_parameters_.mass_type = ProteinIdentification::MONOISOTOPIC;
+			}
+			else if (temp_string == "Average")
+			{
+				search_parameters_.mass_type = ProteinIdentification::AVERAGE;
+			}
 		}
 		else if (tag_ == "MODS")
 		{
