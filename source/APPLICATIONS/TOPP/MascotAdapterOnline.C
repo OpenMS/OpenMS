@@ -63,6 +63,8 @@ using namespace std;
 
 	@brief Identifies peptides in MS/MS spectra via Mascot.
 
+	@experimental This tool has not been tested thoroughly and might behave not as expected!
+
 	This wrapper application serves for getting peptide identifications
 	for MS/MS spectra.
 

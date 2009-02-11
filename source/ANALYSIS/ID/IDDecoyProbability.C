@@ -146,7 +146,7 @@ namespace OpenMS
 		Math::GammaDistributionFitter gdf;
 		Math::GammaDistributionFitter::GammaDistributionFitResult result_gamma_1st;
 		result_gamma_1st.b = 1.0;
-		result_gamma_1st.p = 5.0;
+		result_gamma_1st.p = 3.0;
 		gdf.setInitialParameters(result_gamma_1st);
   	// TODO heuristic for good start parameters
   	Math::GammaDistributionFitter::GammaDistributionFitResult result_gamma = gdf.fit(rev_data);

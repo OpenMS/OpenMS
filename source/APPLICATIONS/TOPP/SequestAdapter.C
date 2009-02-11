@@ -58,6 +58,8 @@ using namespace std;
 
 	@brief Identifies peptides in MS/MS spectra via Sequest.
 
+	@experimental This tool has not been tested thoroughly and might behave not as expected!
+
 	This wrapper application serves for getting peptide peptide_identifications
 	for MS/MS spectra. The wrapper can be executed in three different
 	modes:
