@@ -503,15 +503,18 @@ set(OPENMS_DEP_LIBRARIES ${CONTRIB_CGAL} ${CONTRIB_GSL} ${CONTRIB_GSLCBLAS} ${SV
 if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
 endif()
-target_link_libraries(OpenMS ${OPENMS_DEP_LIBRARIES})
 
-#elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-#  target_link_libraries(OpenMS ${OPENMS_DEP_LIBRARIES})
-#endif()
-
+if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	target_link_libraries(OpenMS ${OPENMS_DEP_LIBRARIES})
+else()
+	target_link_libraries(OpenMS ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
+endif()
 
 ### OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
-set(OPENMS_LIBRARIES OpenMS  ${QT_LIBRARIES})
+set(OPENMS_LIBRARIES OpenMS)
+if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	set(OPENMS_LIBRARIES OpenMS ${QT_LIBRARIES})
+endif()
 
 ####### TOPP #########
 set(TOPP_executables)
@@ -759,6 +762,11 @@ MESSAGE(STATUS "")
 ##### install/copy (cpack mainly) #####
 # TODO:
 #  - this code breaks the windows cmake call (already code for win support added .. needs testing)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+endif()
+
 if(NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(DO_INSTALL false CACHE BOOL "Set to 'ON' if you want the CMAKE_INSTALL_PREFIX to be used and the library to be installed. On 'OFF' the library and Tools will be build but not installed!")
 
