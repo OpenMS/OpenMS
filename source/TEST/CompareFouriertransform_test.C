@@ -90,6 +90,27 @@ START_SECTION(double operator () (const PeakSpectrum& ) const)
 	TEST_REAL_SIMILAR(score, 0);
 END_SECTION
 
+START_SECTION(void CompareFouriertransform::transform(PeakSpectrum & spec) )
+	
+	MSSpectrum<> spectrum;
+	spectrum.setRT(1);
+	
+	spectrum.setMSLevel(1);
+		
+	for (Real mz=500.0; mz<=900; mz+=100.0)
+	    { 
+	      Peak1D peak;
+	      peak.setMZ(mz);
+	      peak.setIntensity(mz);
+	      spectrum.push_back(peak);
+	      
+	    }
+	ptr->transform(spectrum);
+	DSpectrum<>::MetaDataArrays& temp = spectrum.getMetaDataArrays();
+	TEST_STRING_SIMILAR("Fouriertransformation", temp[temp.size()-1].getName())  
+	
+END_SECTION
+
 START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)
 	MSSpectrum<> spectrum1,spectrum2;
 	spectrum1.setRT(1);
