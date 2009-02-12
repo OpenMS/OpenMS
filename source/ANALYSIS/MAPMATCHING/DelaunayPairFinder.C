@@ -34,7 +34,7 @@
 #include <CGAL/Cartesian.h>
 #include <CGAL/Point_set_2.h>
 
-#define Debug_DelaunayPairFinder
+// #define Debug_DelaunayPairFinder
 #ifdef Debug_DelaunayPairFinder
 #define V_(bla) std::cout << __FILE__ ":" << __LINE__ << ": " << bla << std::endl;
 #else
@@ -43,7 +43,7 @@
 #define VV_(bla) V_(""#bla": " << bla)
 
 namespace OpenMS
-{  
+{
 	/**
   	@brief Nested class, which inherits from the CGAL Point_2 class and
   	additionally contains a reference to the corresponding element and a
@@ -57,10 +57,10 @@ namespace OpenMS
 
     const ConsensusFeature* element;
     Int key;
-		
+
     /// Default ctor
     inline Point() : Base(), element(0), key(0) {}
-		
+
     /// Ctor from Base class, aka CGAL:Point_2<...>
     inline Point(const Base& cgal_point) : Base(cgal_point), element(0), key(0) {}
 
@@ -90,7 +90,7 @@ namespace OpenMS
   /// To construct a Delaunay triangulation with our Point class we have to
   /// write an own geometric traits class and the operator() (that generates
   /// a Point given a CGAL circle)
-  class  DelaunayPairFinder::GeometricTraits 
+  class  DelaunayPairFinder::GeometricTraits
   	: public CGAL::Cartesian<double>
   {
    public:
@@ -136,7 +136,7 @@ namespace OpenMS
 		Point array_[2];
 	};
 
-  DelaunayPairFinder::DelaunayPairFinder() 
+  DelaunayPairFinder::DelaunayPairFinder()
   	: Base()
   {
     //set the name for DefaultParamHandler error messages
@@ -169,14 +169,14 @@ namespace OpenMS
   {
   	if (input_maps.size()!=2) throw Exception::IllegalArgument(__FILE__,__LINE__,__PRETTY_FUNCTION__,"exactly two input maps required");
 		checkIds_(input_maps);
-		
+
   	typedef CGAL::Point_set_2< DelaunayPairFinder::GeometricTraits, CGAL::Triangulation_data_structure_2< CGAL::Triangulation_vertex_base_2< DelaunayPairFinder::GeometricTraits > > > Point_set_2;
   	typedef Point_set_2::Vertex_handle Vertex_handle;
-  	
+
   	const ConsensusMap* maps_array[2];
   	maps_array[MODEL_] = &(input_maps[0]);
 		maps_array[SCENE_] = &(input_maps[1]);
-  	
+
   	startProgress(0,10,"Delaunay pair finder");
 		UInt progress = 0;
 		setProgress(++progress);
@@ -208,7 +208,7 @@ namespace OpenMS
 		ConsensusFeature const outlier_consensusfeature_2( std::numeric_limits<UInt>::max(), std::numeric_limits<UInt>::max(), outlier_feature_2 );
 		Point const outlier_point_2( really_big_doublereal, really_big_doublereal, outlier_consensusfeature_2, -1 );
 		PointArray2 const outlier_points( outlier_point_1, outlier_point_2 );
-					
+
 		// do the preprocessing for both input maps
     for ( UInt input = MODEL_; input <= SCENE_; ++ input )
     {
@@ -239,7 +239,7 @@ namespace OpenMS
 					V_("SCENE_: trans_rt:"<<trans_rt<<" trans_mz:"<<trans_mz);
 				}
 			}
-			
+
 			p_set[input].push_back(outlier_point_1);
 			p_set[input].push_back(outlier_point_2);
 			V_("p_set[" << input << "].number_of_vertices(): " << p_set[input].number_of_vertices() << "  [includes two dummy outliers]");
@@ -259,7 +259,7 @@ namespace OpenMS
 		// E.g. neighbours[MODEL_][i][j] is the j-th best match (index of an
 		// element of scene) for the i-th consensus feature in the model.
 		std::vector<PointArray2> neighbours[2];
-		
+
 		// For each input, we find nearest and second nearest neighbors in the
 		// other map.
 		std::vector<Vertex_handle> neighbors_buffer;
@@ -268,7 +268,7 @@ namespace OpenMS
 			setProgress(++progress);
 
 			UInt const other_input = 1 - input;
-			
+
 			neighbours[input].resize( maps_array[input]->size(), outlier_points );
       Size loop_count = 0;
 			for ( Point_set_2::Point_iterator iter = p_set[input].points_begin(); iter != p_set[input].points_end(); ++iter )
@@ -282,12 +282,12 @@ namespace OpenMS
 				neighbours[input][iter->key][1] = neighbors_buffer[1]->point();
 				VV_(neighbours[input][iter->key][0].key);
 				VV_(neighbours[input][iter->key][1].key);
-				V_( iter->x() << " " << iter->y() << " " << 
+				V_( iter->x() << " " << iter->y() << " " <<
 						neighbours[input][iter->key][0].x() << " " << neighbours[input][iter->key][0].y() << " " <<
 						neighbours[input][iter->key][1].x() << " " << neighbours[input][iter->key][1].y() );
 			}
 		}
-		
+
     // Initialize a hash map for the elements of model map to avoid that
     // elements of the reference map occur in several element pairs
 		//
@@ -298,7 +298,7 @@ namespace OpenMS
     std::vector<Int> matches[2];
 		matches[MODEL_].resize(input_maps[0].size(),-1);
 		matches[SCENE_].resize(input_maps[1].size(),-1);
-		
+
 		V_("max_pair_distance_[RT]: " << max_pair_distance_[RT]);
 		V_("max_pair_distance_[MZ]: " << max_pair_distance_[MZ]);
 		V_("max_squared_distance_:  " << max_squared_distance_ );
@@ -309,7 +309,7 @@ namespace OpenMS
 		setProgress(++progress);
 
     // take each point in the model map and search for its neighbours in the scene map
-		
+
     Size loop_count = 0;
 		for ( Point_set_2::Point_iterator model_iter = p_set[MODEL_].points_begin(); model_iter != p_set[MODEL_].points_end(); ++model_iter )
     {
@@ -319,7 +319,7 @@ namespace OpenMS
 			Int const model_cf_index = model_iter->key;
 			VV_(model_cf_index);
 			if ( model_cf_index == -1 ) continue;
-			
+
 			Point const & scene_point = neighbours[MODEL_][model_cf_index][0];
 			Int const scene_cf_index = scene_point.key;
 			VV_(scene_cf_index);
@@ -333,7 +333,7 @@ namespace OpenMS
 				DoubleReal pair_distance_m_s =
 					squaredDistance_( model_iter->x(), model_iter->y(),
 														 scene_point.x(), scene_point.y()  );
-				
+
 				VV_(pair_distance_m_s);
 				bool const is_close_enough = ( pair_distance_m_s <= max_squared_distance_ );
 				VV_(is_close_enough);
@@ -353,7 +353,7 @@ namespace OpenMS
 					VV_(pair_distance_m2nd_s);
 					DoubleReal min_second_pair_distance = pair_distance_m_s * second_nearest_gap_;
 					VV_(min_second_pair_distance);
-					bool const is_unambiguous = 
+					bool const is_unambiguous =
 						( pair_distance_m_s2nd >= min_second_pair_distance &&
 							pair_distance_m2nd_s >= min_second_pair_distance    );
 					VV_(is_unambiguous);
@@ -401,9 +401,9 @@ namespace OpenMS
 		}
 
 		setProgress(++progress);
-		
-		// Acquire statistics about distances // TODO: use these statistics to
-		// derive aposteriori estimates for optimal matching parameters.
+
+		// Acquire statistics about distances
+		// TODO: use these statistics to derive aposteriori estimates for optimal matching parameters.
 		if ( 1 )
 		{
 			DoubleReal squared_dist_RT = 0;
@@ -433,16 +433,16 @@ namespace OpenMS
 			VV_(avg_dist_RT);
 			VV_(avg_dist_MZ);
 		}
-		
+
 		setProgress(++progress);
 
 		// Very useful for checking the results, and the ids have no real meaning anyway
 		result_map.sortByMZ();
-		
+
 		setProgress(++progress);
 		endProgress();
 
     return;
   }
 
-} 
+}
