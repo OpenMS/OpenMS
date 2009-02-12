@@ -203,12 +203,12 @@ namespace OpenMS
 			}
 
 			/// output stream operator
-			friend std::ostream& operator<<(std::ostream&, const DataValue&);
+			friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream&, const DataValue&);
 
 			/// Equality comparator
-			friend bool operator==(const DataValue&, const DataValue&);
+			friend OPENMS_DLLAPI bool operator==(const DataValue&, const DataValue&);
 			/// Equality comparator
-			friend bool operator!=(const DataValue&, const DataValue&);
+			friend OPENMS_DLLAPI bool operator!=(const DataValue&, const DataValue&);
 
 		protected:
 			

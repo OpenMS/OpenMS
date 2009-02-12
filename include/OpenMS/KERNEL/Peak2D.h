@@ -323,6 +323,8 @@ namespace OpenMS
 		};
 		//@}
 		
+		friend OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Peak2D& point);
+
 	 protected:
 	 	
 		/// The data point position
@@ -332,7 +334,7 @@ namespace OpenMS
 	};
 
 	///Print the contents to a stream.
-	std::ostream& operator << (std::ostream& os, const Peak2D& point);
+	OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const Peak2D& point);
 
 } // namespace OpenMS
 

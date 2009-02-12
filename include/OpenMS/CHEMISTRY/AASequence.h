@@ -543,10 +543,10 @@ namespace OpenMS
 			*/
 			//@{
 			/// writes a peptide to an output stream
-			friend std::ostream& operator << (std::ostream& os, const AASequence& peptide);
+			friend OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const AASequence& peptide);
 			
 			/// reads a peptide from an input stream
-			friend std::istream& operator >> (std::istream& is, const AASequence& peptide);
+			friend OPENMS_DLLAPI std::istream& operator >> (std::istream& is, const AASequence& peptide);
 			//@}
 			
 		protected:
@@ -566,9 +566,9 @@ namespace OpenMS
 			String c_term_mod_;
 	};			
 
-	std::ostream& operator << (std::ostream& os, const AASequence& peptide);
+	OPENMS_DLLAPI std::ostream& operator << (std::ostream& os, const AASequence& peptide);
 
-	std::istream& operator >> (std::istream& os, const AASequence& peptide);
+	OPENMS_DLLAPI std::istream& operator >> (std::istream& os, const AASequence& peptide);
 	
 } // namespace OpenMS
 

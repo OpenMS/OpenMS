@@ -48,7 +48,7 @@ namespace OpenMS
 		@ingroup Datastructures
 	*/
 	template <UInt D>
-	class OPENMS_DLLAPI DRange
+	class DRange
 		:	public Internal::DIntervalBase<D>
 	{
 	 public:

@@ -53,7 +53,7 @@ namespace OpenMS
 			@ingroup Math
 		*/
 		template<typename ValueType=UInt, typename BinSizeType=DoubleReal>
-		class OPENMS_DLLAPI Histogram
+		class Histogram
 		{
 		 public:
 

@@ -58,7 +58,7 @@ namespace OpenMS
  		* have to consider the class at hand if you plan to change the basic implementation of the transform. 
  	*/ 
 	template <typename PeakType>
-	class OPENMS_DLLAPI IsotopeWaveletTransform
+	class IsotopeWaveletTransform
 	{
 		public:
 				
