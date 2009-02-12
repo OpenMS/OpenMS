@@ -50,7 +50,6 @@ namespace OpenMS
 		UInt number_of_queries = 0;
 		map<UInt, UInt> indices;
 		map<UInt, UInt>::iterator indices_iterator;
-		Int temp_int = 0;
 		PeptideIdentification temp_identification;
 		vector<Int> charges;
 		Int temp_charge = 0;
