@@ -450,7 +450,7 @@ START_SECTION((void predict(struct svm_problem *problem, std::vector< DoubleReal
 	TEST_NOT_EQUAL(predicted_labels.size(), 0)
 END_SECTION
 
-START_SECTION((void predict(SVMData& problem, std::vector< DoubleReal > &predicted_labels)))
+START_SECTION((void predict(const SVMData &problem, std::vector< DoubleReal > &results)))
 	SVMWrapper svm2;
  	LibSVMEncoder encoder;
 	vector< vector< pair<Int, DoubleReal> > > sequences;
@@ -525,7 +525,7 @@ START_SECTION((svm_problem* computeKernelMatrix(svm_problem* problem1, svm_probl
 
 END_SECTION
 
-START_SECTION((svm_problem* computeKernelMatrix(SVMData& problem1, SVMData& problem2)))
+START_SECTION((svm_problem* computeKernelMatrix(const SVMData &problem1, const SVMData &problem2)))
 	vector<AASequence> sequences;
 	String allowed_characters = "ACNGT";
 	String output;
@@ -596,7 +596,7 @@ START_SECTION((static DoubleReal kernelOligo(const svm_node *x, const svm_node *
 	delete data;
 END_SECTION
 
-START_SECTION((static DoubleReal kernelOligo(const std::vector< std::pair< Int, DoubleReal > > &x, const std::vector< std::pair< Int, DoubleReal > > &y, const std::vector< DoubleReal > &gauss_table, int max_distance=-1)))
+START_SECTION((static DoubleReal kernelOligo(const std::vector< std::pair< int, double > > &x, const std::vector< std::pair< int, double > > &y, const std::vector< double > &gauss_table, int max_distance=-1)))
   vector<DoubleReal> labels;
 	String sequence = "ACNNGTATCA";
 	String allowed_characters = "ACNGT";
@@ -904,7 +904,7 @@ START_SECTION((void loadModel(std::string modelFilename)))
 	}
 END_SECTION
 
-START_SECTION((void saveModel(std::string modelFilename) const ))
+START_SECTION((void saveModel(std::string modelFilename) const))
 	LibSVMEncoder encoder;
 	svm.setParameter(KERNEL_TYPE, POLY);
 	vector< vector< pair<Int, DoubleReal> > > vectors;
