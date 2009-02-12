@@ -124,11 +124,11 @@ namespace OpenMS
 		{
 			for (Size i = 1; i <= number_of_queries; i++)
 			{
+				//if no peptide is found for a certain query, there is just a -1 in the qi_p1 line
 	  		it = f.search(it, "q" + String(i) + "_p1=");
 	 		 	if (it!=f.end())
 	  		{				  		
-	  			temp_int = it->suffix('=').trim().toInt();
-	  			if (temp_int != -1)
+	  			if (it->suffix('=').at(0) != '-')
 	  			{
 	  				indices.insert(make_pair(i, indices.size()));
 	  			}

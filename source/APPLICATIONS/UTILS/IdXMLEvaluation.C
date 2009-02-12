@@ -51,6 +51,8 @@ using namespace std;
 	the second RT dimension as well as for the IDs filtered in both dimensions. The output is a table with
 	either csv format (can be imported by excel) or latex format (to include in tables in you latex manuscripts).
 	
+	<B>The command line parameters of this tool are:</B>
+	@verbinclude UTILS_IdXMLEvaluation.cli
 */
 
 // We do not want this class to show up in the docu:

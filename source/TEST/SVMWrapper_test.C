@@ -119,6 +119,37 @@ START_SECTION((Int train(struct svm_problem *problem)))
 	TEST_EQUAL(svm.train(problem), 1)
 END_SECTION
 
+START_SECTION((Int train(SVMData &problem)))
+
+	SVMWrapper svm2;
+	SVMData problem;
+	UInt count = 4;
+	vector<DoubleReal> labels;
+	vector< vector<pair<Int, DoubleReal> > > sequences;
+	vector<pair<Int, DoubleReal> > sequence;
+	
+	svm2.setParameter(KERNEL_TYPE, OLIGO);
+	svm2.setParameter(BORDER_LENGTH, 2);
+	svm2.setParameter(C, 1);
+	svm2.setParameter(SIGMA, 1);
+	svm2.setParameter(SVM_TYPE, NU_SVR);
+
+	for (Size i = 0; i < count; i++)
+	{
+		sequence.clear();
+		sequence.push_back(make_pair(1, rand()));
+		sequence.push_back(make_pair(2, rand()));
+		sequence.push_back(make_pair(3, rand()));
+		sequence.push_back(make_pair(4, rand()));
+		sequences.push_back(sequence);
+		labels.push_back(i * 2 / 3 + 0.03);
+	}
+	problem.sequences = sequences;
+	problem.labels = labels;
+
+	TEST_EQUAL(svm2.train(problem), 1)
+END_SECTION
+
 START_SECTION((static void getLabels(svm_problem *problem, std::vector< DoubleReal > &labels)))
 	svm_problem* problem = new svm_problem();
 	UInt count = 4;
@@ -170,6 +201,33 @@ START_SECTION((static void createRandomPartitions(svm_problem *problem, Size num
 	TEST_EQUAL(partitions[1]->l, 2)
 END_SECTION
 
+START_SECTION((static void createRandomPartitions(const SVMData &problem, Size number, std::vector< SVMData > &problems)))
+	SVMData problem;
+	UInt count = 4;
+	vector<DoubleReal> labels;
+	vector< vector<pair<Int, DoubleReal> > > sequences;
+	vector<pair<Int, DoubleReal> > sequence;
+	std::vector< SVMData > partitions;
+	
+	for (Size i = 0; i < count; i++)
+	{
+		sequence.clear();
+		sequence.push_back(make_pair(1, rand()));
+		sequence.push_back(make_pair(2, rand()));
+		sequence.push_back(make_pair(3, rand()));
+		sequence.push_back(make_pair(4, rand()));
+		sequences.push_back(sequence);
+		labels.push_back(i * 2 / 3 + 0.03);
+	}
+	problem.sequences = sequences;
+	problem.labels = labels;
+
+	SVMWrapper::createRandomPartitions(problem, 2, partitions);
+	TEST_EQUAL(partitions.size(), 2)
+	TEST_EQUAL(partitions[0].sequences.size(), 2)
+	TEST_EQUAL(partitions[1].sequences.size(), 2)
+END_SECTION
+
 START_SECTION((static svm_problem* mergePartitions(const std::vector< svm_problem * > &problems, Size except)))
 	 svm_problem* problem = new svm_problem();
 	 svm_problem* problem2;
@@ -211,6 +269,47 @@ START_SECTION((static svm_problem* mergePartitions(const std::vector< svm_proble
 	}
 END_SECTION
 
+START_SECTION((static void mergePartitions(const std::vector< SVMData > &problems, Size except, SVMData &merged_problem)))
+	SVMData problem;
+	SVMData problem2;
+	UInt count = 10;
+	UInt number_of_partitions = 5;
+	vector<DoubleReal> labels;
+	SVMData merged_problem;
+	vector<pair<Int, DoubleReal> > temp_vector;
+	vector<vector<pair<Int, DoubleReal> > > vectors;
+	std::vector< SVMData > partitions;
+		
+	for (Int i = 0; (UInt) i < count; i++)
+	{
+		temp_vector.clear();
+		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
+		for (Int j = 0; (UInt) j < count; j++)
+		{
+			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
+		}
+		vectors.push_back(temp_vector);
+	}
+	problem.sequences = vectors;
+	problem.labels = labels;
+
+	SVMWrapper::createRandomPartitions(problem, number_of_partitions, partitions);
+	SVMWrapper::mergePartitions(partitions, 4, problem2);
+	UInt problem2_size = (count / number_of_partitions) * (number_of_partitions - 1);
+	UInt partition_size = count / number_of_partitions;
+	TEST_EQUAL((UInt) problem2.sequences.size(), problem2_size)
+	for (UInt i = 0; i < problem2_size; i++)
+	{
+		UInt j = 0;
+		while(j < partitions[i / partition_size].sequences[i % partition_size].size() && j < problem2.sequences[i].size())
+		{
+			TEST_REAL_SIMILAR(partitions[i / partition_size].sequences[i % partition_size][j].second, problem2.sequences[i][j].second)
+			++j;
+		}
+		TEST_REAL_SIMILAR(partitions[i / partition_size].labels[i % partition_size], problem2.labels[i])
+	}
+END_SECTION
+
 START_SECTION((static void calculateGaussTable(Size border_length, DoubleReal sigma, std::vector< DoubleReal > &gauss_table)))
   UInt border_length = 5;
   DoubleReal sigma = 2;
@@ -220,7 +319,6 @@ START_SECTION((static void calculateGaussTable(Size border_length, DoubleReal si
 
   TEST_EQUAL(gauss_table.size(), 5)
   TEST_EQUAL(gauss_table[0], 1)
-  /* changed to REAL_EQUAL, as it fails otherwise under windows. Assigning the RHS to a DoubleReal before comparison would help as well. */
   TEST_REAL_SIMILAR(gauss_table[1], exp((-1 / (4.0 * sigma_square)) * 1))
   TEST_REAL_SIMILAR(gauss_table[2], exp((-1 / (4.0 * sigma_square)) * 4))
   TEST_REAL_SIMILAR(gauss_table[3], exp((-1 / (4.0 * sigma_square)) * 9))
@@ -300,6 +398,40 @@ START_SECTION((void predict(struct svm_problem *problem, std::vector< DoubleReal
 	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.train(problem);
 	svm.predict(problem, predicted_labels);
+	TEST_NOT_EQUAL(predicted_labels.size(), 0)
+END_SECTION
+
+START_SECTION((void predict(SVMData& problem, std::vector< DoubleReal > &predicted_labels)))
+	SVMWrapper svm2;
+ 	LibSVMEncoder encoder;
+	vector< vector< pair<Int, DoubleReal> > > sequences;
+	vector< pair<Int, DoubleReal> > sequence;
+	UInt count = 8;
+	vector<DoubleReal> labels;
+	vector<DoubleReal> predicted_labels;
+	SVMData problem;
+
+	svm2.setParameter(KERNEL_TYPE, OLIGO);
+	svm2.setParameter(BORDER_LENGTH, 2);
+	svm2.setParameter(C, 1);
+	svm2.setParameter(SIGMA, 1);
+	svm2.setParameter(SVM_TYPE, NU_SVR);
+
+	for (Size i = 0; i < count; i++)
+	{
+		sequence.clear();
+		sequence.push_back(make_pair(1, rand()));
+		sequence.push_back(make_pair(2, rand()));
+		sequence.push_back(make_pair(3, rand()));
+		sequence.push_back(make_pair(4, rand()));
+		sequences.push_back(sequence);
+		labels.push_back(i * 2 / 3 + 0.03);
+	}
+
+	problem.sequences = sequences;
+	problem.labels = labels;
+	svm2.train(problem);
+	svm2.predict(problem, predicted_labels);
 	TEST_NOT_EQUAL(predicted_labels.size(), 0)
 END_SECTION
 
@@ -570,6 +702,10 @@ START_SECTION((DoubleReal getPValue(DoubleReal sigma1, DoubleReal sigma2, std::p
 END_SECTION
 
 START_SECTION((void setTrainingSample(svm_problem* training_sample)))
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION((void setTrainingSample(SVMData &training_sample)))
 	NOT_TESTABLE
 END_SECTION
 

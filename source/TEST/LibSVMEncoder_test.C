@@ -261,6 +261,51 @@ START_SECTION((svm_problem* encodeLibSVMProblemWithCompositionAndLengthVectors(c
 	delete problem;
 END_SECTION
 
+START_SECTION((svm_problem* encodeLibSVMProblemWithCompositionLengthAndWeightVectors(const std::vector< String > &sequences, std::vector< DoubleReal > &labels, const String &allowed_characters)))
+	vector<String> sequences;
+	String allowed_characters = "ACNGT";
+	svm_node* nodes;
+	vector<svm_node*>::iterator it;
+	svm_problem* problem;
+	vector<DoubleReal> labels;
+	
+	labels.push_back(2.1);
+	labels.push_back(1.3);
+
+	sequences.push_back(String("ACCGGGTTTT"));			
+	sequences.push_back(String("ACCA"));			
+			
+	problem = encoder.encodeLibSVMProblemWithCompositionLengthAndWeightVectors(sequences, labels, allowed_characters);
+	TEST_EQUAL(problem->l, 2)
+	TEST_REAL_SIMILAR(problem->y[0], 2.1);
+	TEST_REAL_SIMILAR(problem->y[1], 1.3);
+	nodes = problem->x[0];
+	TEST_REAL_SIMILAR(nodes[0].value, 0.1)
+	TEST_EQUAL(nodes[1].index, 2)
+	TEST_REAL_SIMILAR(nodes[1].value, 0.2)
+	TEST_EQUAL(nodes[2].index, 4)
+	TEST_REAL_SIMILAR(nodes[2].value, 0.3)
+	TEST_EQUAL(nodes[3].index, 5)
+	TEST_REAL_SIMILAR(nodes[3].value, 0.4)
+	TEST_EQUAL(nodes[4].index, 6)
+	TEST_REAL_SIMILAR(nodes[4].value, 10)
+	TEST_EQUAL(nodes[5].index, 7)
+	TEST_REAL_SIMILAR(nodes[5].value, 870.948464870453)
+	TEST_EQUAL(nodes[6].index, -1)
+	nodes = problem->x[1];
+	TEST_EQUAL(nodes[0].index, 1)
+	TEST_REAL_SIMILAR(nodes[0].value, 0.5)
+	TEST_EQUAL(nodes[1].index, 2)
+	TEST_REAL_SIMILAR(nodes[1].value, 0.5)
+	TEST_EQUAL(nodes[2].index, 6)
+	TEST_REAL_SIMILAR(nodes[2].value, 4)
+	TEST_EQUAL(nodes[3].index, 7)
+	TEST_REAL_SIMILAR(nodes[3].value, 366.45688)
+	TEST_EQUAL(nodes[4].index, -1)
+	delete nodes;
+	delete problem;
+END_SECTION
+
 START_SECTION((svm_problem* encodeLibSVMProblemWithCompositionVectors(const std::vector< String > &sequences, std::vector< DoubleReal > &labels, const String &allowed_characters)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
