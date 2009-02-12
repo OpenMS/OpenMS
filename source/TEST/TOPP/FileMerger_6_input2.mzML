@@ -78,7 +78,7 @@
         <detector order="4">
           <cvParam cvRef="MS" accession="MS:1000253" name="electron multiplier" value=""/>
           <cvParam cvRef="MS" accession="MS:1000028" name="detector resolution" value="5.1"/>
-          <cvParam cvRef="MS" accession="MS:1000029" name="sampling frequency" value="1.1"/>
+          <cvParam cvRef="MS" accession="MS:1000029" name="sampling frequency" value="1.1" unitAccession="UO:0000106" unitName="hertz" unitCvRef="UO"/>
           <cvParam cvRef="MS" accession="MS:1000119" name="time-digital converter" value=""/>
           <userParam name="name" value="detector"/>
         </detector>
@@ -118,7 +118,6 @@
         <cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="320.39" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
         <cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1003.56" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
         <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="456.347" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-        <cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="23433"/>
         <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
 	      <cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
 	      <userParam name="name" value="spectrum2"/>

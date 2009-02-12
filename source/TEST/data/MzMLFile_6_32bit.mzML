@@ -101,14 +101,14 @@
 				</analyzer>
 				<detector order="301">
 					<cvParam cvRef="MS" accession="MS:1000028" name="detector resolution" value="5.1"/>
-					<cvParam cvRef="MS" accession="MS:1000029" name="sampling frequency" value="1.1"/>
+					<cvParam cvRef="MS" accession="MS:1000029" name="sampling frequency" value="1.1" unitAccession="UO:0000106" unitName="hertz" unitCvRef="UO"/>
 					<cvParam cvRef="MS" accession="MS:1000119" name="time-digital converter"/>
 					<cvParam cvRef="MS" accession="MS:1000253" name="electron multiplier"/>
 					<userParam name="name" type="xsd:string" value="detector1"/>
 				</detector>
 				<detector order="302">
 					<cvParam cvRef="MS" accession="MS:1000028" name="detector resolution" value="6.1"/>
-					<cvParam cvRef="MS" accession="MS:1000029" name="sampling frequency" value="1.1"/>
+					<cvParam cvRef="MS" accession="MS:1000029" name="sampling frequency" value="1.1" unitAccession="UO:0000106" unitName="hertz" unitCvRef="UO"/>
 					<cvParam cvRef="MS" accession="MS:1000119" name="time-digital converter"/>
 					<cvParam cvRef="MS" accession="MS:1000253" name="electron multiplier"/>
 					<userParam name="name" type="xsd:string" value="detector2"/>

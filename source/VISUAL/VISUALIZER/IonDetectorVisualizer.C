@@ -50,7 +50,7 @@ namespace OpenMS
 		addComboBox_(type_, "Type");
 		addComboBox_(ac_mode_, "Acquisition mode");
 		addDoubleLineEdit_(res_, "Resolution (in ns)" );
-		addDoubleLineEdit_(freq_, "ADC sampling frequency (in MHz)" );
+		addDoubleLineEdit_(freq_, "ADC sampling frequency (in Hz)" );
 		
 		finishAdding_();			
 	}

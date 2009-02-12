@@ -400,6 +400,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("isolation window upper limit"),"7.77")
 	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("product isolation window lower limit"),"8.88")
 	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("product isolation window upper limit"),"9.99")
+	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("collision gas"), "Argon")
+	TEST_STRING_EQUAL((String)exp[1].getPrecursor().getMetaValue("buffer gas"), "Krypton")
 
 	/////////////////////// TESTING SPECIAL CASES ///////////////////////
 

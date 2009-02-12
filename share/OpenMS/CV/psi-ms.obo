@@ -116,9 +116,10 @@ relationship: has_units MS:1000040 ! m/z
 [Term]
 id: MS:1000015
 name: scan rate
-def: "Rate in (m/z)/sec for scanning analyzers." [PSI:MS]
+def: "Rate in Th/sec for scanning analyzers." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000503 ! scan attribute
+relationship: has_units MS:1000807 ! Th/s
 
 [Term]
 id: MS:1000016
@@ -219,6 +220,7 @@ def: "The rate of signal sampling (measurement) with respect to time." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 synonym: "ADC Sampling Frequency" NARROW []
 is_a: MS:1000481 ! detector attribute
+relationship: has_units UO:0000106 ! hertz
 
 [Term]
 id: MS:1000030
@@ -2705,6 +2707,7 @@ is_a: MS:1000437 ! ion reaction
 id: MS:1000412
 name: buffer gas
 def: "An inert gas used for collisional deactivation of internally excited ions." [PSI:MS]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000510 ! precursor activation attribute
 
 [Term]
@@ -2747,6 +2750,7 @@ is_a: MS:1000437 ! ion reaction
 id: MS:1000419
 name: collision gas
 def: "An inert gas used for collisional excitation. The term target gas is not recommended." [PSI:MS]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1000510 ! precursor activation attribute
 
 [Term]
@@ -3297,6 +3301,8 @@ name: base peak intensity
 def: "The intensity of the greatest peak in the mass spectrum." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000499 ! spectrum attribute
+relationship: has_units MS:1000131 ! number of counts
+relationship: has_units MS:1000132 ! percent of base peak
 
 [Term]
 id: MS:1000506
@@ -4024,6 +4030,7 @@ id: MS:1000617
 name: wavelength array
 def: "A data array of electromagnetic radiation wavelength values." [PSI:MS]
 is_a: MS:1000513 ! binary data array
+relationship: has_units UO:0000018 ! nanometer
 
 [Term]
 id: MS:1000618
@@ -4031,6 +4038,7 @@ name: highest wavelength value
 def: "Highest wavelength value observed in the uv/vis spectrum." [PSI:MS]
 is_a: MS:1000499 ! spectrum attribute
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
+relationship: has_units UO:0000018 ! nanometer
 
 [Term]
 id: MS:1000619
@@ -4038,6 +4046,7 @@ name: lowest wavelength value
 def: "Lowest wavelength value observed in the uv/vis spectrum." [PSI:MS]
 is_a: MS:1000499 ! spectrum attribute
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
+relationship: has_units UO:0000018 ! nanometer
 
 [Term]
 id: MS:1000620
@@ -5216,6 +5225,12 @@ name: absorption spectrum
 def: "A plot of the relative intensity of electromagnetic radiation absorbed by atoms or molecules when excited." [PSI:MS]
 is_a: MS:1000524 ! data file content
 is_a: MS:1000559 ! spectrum type
+
+[Term]
+id: MS:1000807
+name: Th/s
+def: "Unit describing the scan rate of a spectrum in Thomson per second." [PSI:MS]
+is_a: MS:1000460 ! unit
 
 [Typedef]
 id: has_units

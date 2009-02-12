@@ -113,9 +113,9 @@ namespace OpenMS
       /// sets the resolution (in ns)
       void setResolution(DoubleReal resolution);
 			
-			/// retruns the analog-to-digital converter sampling frequency (in MHz)
+			/// retruns the analog-to-digital converter sampling frequency (in Hz)
       DoubleReal getADCSamplingFrequency() const;
-      /// sets the analog-to-digital converter sampling frequency (in MHz)
+      /// sets the analog-to-digital converter sampling frequency (in Hz)
       void setADCSamplingFrequency(DoubleReal ADC_sampling_frequency);
 
 			/**

@@ -1098,12 +1098,12 @@ namespace OpenMS
 				else if (accession=="MS:1000412") //buffer gas
 				{
 					//No member => meta data
-					spec_.getPrecursor().setMetaValue("buffer gas",String("true"));
+					spec_.getPrecursor().setMetaValue("buffer gas",value);
 				}
 				else if (accession=="MS:1000419") //collision gas
 				{
 					//No member => meta data
-					spec_.getPrecursor().setMetaValue("collision gas",String("true"));
+					spec_.getPrecursor().setMetaValue("collision gas",value);
 				}
 				else if (accession=="MS:1000509") //activation energy (ev)
 				{
@@ -2991,7 +2991,7 @@ namespace OpenMS
 					os  << "				<detector order=\"" << id.getOrder() << "\">\n";
 	
 					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000028\" name=\"detector resolution\" value=\"" << id.getResolution() << "\" />\n";
-					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000029\" name=\"sampling frequency\" value=\"" << id.getADCSamplingFrequency() << "\" />\n";
+					os << "					<cvParam cvRef=\"MS\" accession=\"MS:1000029\" name=\"sampling frequency\" value=\"" << id.getADCSamplingFrequency() << "\" unitAccession=\"UO:0000106\" unitName=\"hertz\" unitCvRef=\"UO\" />\n";
 	
 					if (id.getAcquisitionMode()==IonDetector::ADC)
 					{
