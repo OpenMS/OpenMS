@@ -1,22 +1,163 @@
 /**
  	
-	@page install_mac Installation on MacOS
+	@page install_mac Installation on Mac OS X
 
-	This page addresses %OpenMS users and explains the ionstallation procedure. If you only want to use the %OpenMS Proteomics Pipeline (TOPP), you are strongly encouraged to <b>donload the MacOS binary installer</b> (see <a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">here</a>).
+  @section install_mac_read Read this section first!
+  
+  This document addresses %OpenMS users and explains the
+  installation procedure. It especially considers the installation
+  of several libraries which are required by %OpenMS. Most of these 
+  libraries are made available in our "contrib-package" (see below).
+  
+  <b>Required applications</b>
+  
+  In order to compile %OpenMS, several applications need to be installed:
+   - XCode (version 3.0 or higher) is required to build %OpenMS (the current version can be obtained from <a href="http://developer.apple.com/technology/xcode.html" target="_new">http://developer.apple.com/technology/xcode.html</a>)
+   - CMake (version 2.6 or higher) is required to configure and build the package 
+	 - Qt4 (version 4.4. or higher)  containing qmake and the header files is required (either a dmg file or source packages can be obtained from <a href="http://www.qtsoftware.com/" target="_new">http://www.qtsoftware.com/</a>)
+	   
+  If your %OpenMS version is a development version from SVN, the following 
+  applications are needed in order to create the %OpenMS documentation:
+    - doxygen (We recommend version 1.5.4)
+    - pdflatex
 
-	You also need to install some dependencies:
+<HR> 
 	
-	Firstly, XCode, available from apple.com must be installed in order to be able to build %OpenMS. You also need to install Qt, version 4.4.x. Test whether the qmake program provided by Qt is available from the bash, it will be needed by cmake to find the correct Qt installation.
-	<BR><BR>
-	You can then download the source package of %OpenMS, which also contains the contrib package under the @em contrib/ path. Alternatively you can use the %OpenMS subversion repository hosted at sourceforge to get the %OpenMS source code. Then you need both, the %OpenMS source code and the contrib source code. 
-	<BR><BR>
-	Having the source code of %OpenMS available, you can proceed with building %OpenMS/TOPP. This works exactly the same way as on Linux. So you can follow this TODO  description, starting at the section "Installing the contrib package".
-<BR>
+ @section install_mac_contrib Installing the contrib package
 
-	@section install_mac_development Developing with OpenMS
+  In order to facilitate the installation of the libraries required for %OpenMS, we composed a
+  "contrib-package" containing the libraries ANDI/MS, Boost, NetCDF, GSL, CGAL, libSVM, SeqAn and XERCES-C. 
+    
+  The contrib package is contained in the %OpenMS release package and is available under the path @em contrib in the %OpenMS directory.
+  
+  If you are using the developer version of %OpenMS, you must check out the contrib from Sourceforge SVN repository
+  <pre>
+  &gt; svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib
+  </pre> 
+  
+  CMake is used to check the system and create the contrib libraries.
+  
+  @note In some cases you will need to specify the correct C and C++ compiler. If you use the compiler shipped with Xcode they will be located in '/usr/bin'.
 
-	If you want to write software with %OpenMS, you need to install %OpenMS from the source package. 
+  @n Go to the contrib directory and execute the following command:
+  <pre>
+  &gt; cmake -D CMAKE_CXX_COMPILER:FILEPATH=/usr/bin/g++ -D CMAKE_C_COMPILER:FILEPATH=/usr/bin/gcc .
+  </pre>
+  
+  If everything worked, the following sub-directories were created under @em contrib :
+
+  <ul>
+    <li>'lib/'
+    <br>
+    It contains the libraries needed by %OpenMS.
+    <br>
+    This directory should be added to your @b DYLD_LIBRARY_PATH variable.</li>
+
+    <li>'include/'
+    <br>
+    It contains the header files needed for %OpenMS.</li>
+  </ul>
+
+<HR>
 
 
+ @section install_mac_openms Installing OpenMS/TOPP
+ 
+   You need to get the %OpenMS source package from our website. The latest stable version of %OpenMS can be found in the 
+  <a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">files</a> section.
+  For further (e.g. latest developer version from SVN) info see the <a href="http://open-ms.sourceforge.net/download.php" target="_blank">download instructions</a>.
+
+  If you have not installed the libraries which %OpenMS requires, please refer to the section @ref install_mac_required above.
+  
+  CMake is used to check the system and create the main 'Makefile'.
+  @n Go to the %OpenMS directory and execute the following command:
+  <pre>
+  &gt; cmake .
+  </pre>
+  
+  You can set CMake variables using the <code>-D VARIABLE=VALUE</code> option.
+  A full list of the CMake variables is shown when you execute
+  <pre>
+  &gt; ccmake .
+  </pre>
+  This works only after having executing <code>cmake .</code>.
+  
+  The most important CMake variables are:
+
+  <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;">
+    <tr>
+      <td valign="top">CMAKE_INSTALL_PREFIX</td>
+      <td>(NOT SUPPORTED YET) the path where the library is installed.
+          <BR>
+          <b>Note:</b> Moving the library after installing it is not possible! 
+          Please use this option to point CMake to the location %OpenMS should
+          be installed to.</td>
+    </tr>
+    <tr>
+      <td valign="top">CONTRIB_CUSTOM_DIR</td>
+      <td>search for the contrib libraries in this location.
+          If unset the the location is assumed to be <tt><path_to_OpenMS>/contrib</tt>.</td>
+    </tr>
+    <tr>
+      <td valign="top">QT_QMAKE_EXECUTABLE</td>
+      <td>Defines the Qt 'qmake' application. The corresponding Qt installation is used.</td>
+    </tr>
+    <tr>
+      <td valign="top">OPENMS_BUILD_TYPE</td>
+      <td>Should be either 'Release' (optimization enabled) or 'Debug' (debug info and 
+          precondition/postcondiction checks enabled).
+          @n The default is 'Release'.</td>
+    </tr>
+    <tr>
+      <td valign="top">QT_DB_PLUGIN</td>
+      <td>Defines the Qt database type. By default MySQL is used.</td>
+    </tr>
+    <tr>
+      <td valign="top">CMAKE_CXX_COMPILER</td>
+      <td>Defines the C++ compiler to use.</td>
+    </tr>
+  </table>
+
+  After CMake was executed, you can list the make targets by calling:
+  <pre>
+  &gt; make targets
+  </pre>
+  
+  In order to build the %OpenMS library and TOPP tools execute the following command:
+  <pre>
+  &gt; make
+  </pre>
+
+  @note Make sure to add <i>&lt;path_to_OpenMS&gt;/lib/</i> (e.g. <i>~/OpenMS/lib/</i>) to the environment variable <b>DYLD_LIBRARY_PATH</b>.
+  
+  @note The ANDI/MS library does not work on 64 bit machines. On these machines ANDI/MS (cdf) support is disabled automatically.
+
+  @note The TOPP tools are ready to use in the <code>bin/</code> folder of the installation directory.
+
+<HR>
+
+
+
+ @section install_mac_testing_openms Testing your OpenMS/TOPP installation  
+  
+  After you have installed %OpenMS and TOPP, you should test your installation by executing the following command:
+  <pre>
+  &gt; make TEST
+  &gt; make test
+  </pre>
+  
+  @note To test the DB connectivity, copy the file '&lt;path_to_OpenMS&gt;/source/TEST/DB_credentials_template.txt' to 'DB_credentials.txt' and fill in your DB access details. As long as the 'DB_credentials.txt' file remains there, the DB will be tested with any subsequent call of 'make test'. In order to successfully test DB connectivity, the database must exist and the the given user must have write access to the database.
+
+  @note To test the DBImporter and DBExporter go to the '&lt;path_to_OpenMS&gt;/source/TEST/TOPP/' directory and copy the files 'DBImporter_input_template.ini' and 'DBExporter_input_template.ini' to 'DBImporter_input.ini' and 'DBExporter_input.ini', respectively. Then fill in your DB access details. As long as these file remains there, the DB will be tested with any subsequent call of 'make TOPPtest'. In order to successfully test the tools, the database must exist and the the given user must have write access to the database.
+
+
+
+<HR>
+
+ 
+
+ @section install_mac_64bit Building OpenMS/TOPP with 64bit support
+
+ Building %OpenMS with 64bit support is currently in preparation, but we depend on Qt to add 64bit support to there framework. This will hopefully be done with Qt 4.5 in March 2009. So stay tuned for %OpenMS 64bit on <a href="http://www.apple.com/macosx/" target="_new">Mac OS X</a>.
 
 */
