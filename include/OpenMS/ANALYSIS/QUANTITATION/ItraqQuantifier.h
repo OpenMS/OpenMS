@@ -40,9 +40,11 @@ namespace OpenMS
 {
 
 	/**
-		@brief
+		@brief [experimental class] does postprocessing on raw iTRAQ channel quantitation
 		
-		@todo Docu (Chris)
+		Using the raw consensus map from ItraqChannelExtractor, a non-negative isotope correction, normalization (using median) 
+		and [optionally] protein inference is computed.
+
 	*/
 	class OPENMS_DLLAPI ItraqQuantifier
 		: public DefaultParamHandler,

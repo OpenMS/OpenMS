@@ -36,9 +36,10 @@ namespace OpenMS
 {
 
 	/**
-		@brief
+		@brief Some constants used throughout iTRAQ classes.
 		
-		@todo Docu (Chris)
+		Constants for iTRAQ experiments and a ChannelInfo structure to store information about a single channel.
+
 	*/
 	class OPENMS_DLLAPI ItraqConstants
 	{

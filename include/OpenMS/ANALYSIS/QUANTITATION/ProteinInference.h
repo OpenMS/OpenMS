@@ -36,9 +36,12 @@
 namespace OpenMS
 {
 	/**
-		@brief
+		@brief [experimental class] given a peptide quantitation, infer corresponding protein quantities
 		
-		@todo Docu (Chris)
+		Infers protein ratios from peptide ratios (currently using unique peptides only).
+		Use the IDMapper class to add protein and peptide information to a 
+		quantitative ConsensusMap prior to this step.
+
 	*/
 	class OPENMS_DLLAPI ProteinInference
 	{
@@ -57,10 +60,10 @@ namespace OpenMS
 	    ProteinInference& operator = (const ProteinInference& rhs);
 	
 			/**
-				@brief given a peptide quantitation, infer protein quantities from it.
+				@brief given a peptide quantitation, infer corresponding protein quantities
 				
 				Infers protein ratios from peptide ratios (currently using unique peptides only).
-				Use IDConsensusFeatureMapper-class to add protein and peptide information to a 
+				Use the IDMapper class to add protein and peptide information to a 
 				quantitative ConsensusMap prior to this step.
 				
 				@param consensus_map Peptide quantitation with ProteinIdentifications attached, where

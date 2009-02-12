@@ -100,7 +100,7 @@ namespace OpenMS
 	 *	@param consensus_map_in Raw iTRAQ intensities from previous step
 	 *	@param consensus_map_out Postprocessed iTRAQ ratios for peptides
 	 *
-	 *	@throws Exception::FailedAPICall is least-squares fit fails
+	 *	@throws Exception::FailedAPICall if least-squares fit fails
 	 *	@throws Exception::InvalidParameter if parameter is invalid (e.g. reference_channel)
 	 */
 	void ItraqQuantifier::run(const ConsensusMap& consensus_map_in, 
@@ -277,9 +277,9 @@ namespace OpenMS
 		std::cout << "reference_channel is: " << reference_channel  << std::endl;
 		#endif
 
-		Map <Int, Int> map_to_vectorindex;
-		Int ref_mapid = 0;
-		Int index = 0;
+		Map <Size, Size> map_to_vectorindex;
+		Size ref_mapid = 0;
+		Size index = 0;
 		for (ConsensusMap::FileDescriptions::const_iterator file_it = consensus_map_out.getFileDescriptions().begin(); 
 			 file_it!=consensus_map_out.getFileDescriptions().end(); 
 			 ++file_it)
@@ -292,7 +292,7 @@ namespace OpenMS
 				#endif	
 			}
 			map_to_vectorindex[file_it->first] = index;
-			index++;
+			++index;
 		}
 
 		if (channel_map_.has(reference_channel))
@@ -361,7 +361,7 @@ namespace OpenMS
 
 			double max_deviation_from_control = 0;
 			// find MEDIAN of ratios for each channel (store as 0th element in sorted vector)
-			for (Map <Int, Int>::const_iterator it_map = map_to_vectorindex.begin(); it_map != map_to_vectorindex.end(); ++it_map)
+			for (Map <Size, Size>::const_iterator it_map = map_to_vectorindex.begin(); it_map != map_to_vectorindex.end(); ++it_map)
 			{
 				// sort vector (partial_sort might improve performance here)
 				std::sort(peptide_ratios[it_map->second].begin(), peptide_ratios[it_map->second].end());
@@ -480,7 +480,7 @@ namespace OpenMS
 			
 			// put quantitative info on Proteins
 			ProteinInference inferrer;
-			inferrer.infer(consensus_map_out, ref_mapid);
+			inferrer.infer(consensus_map_out,(UInt) ref_mapid);
 
 		}
 
