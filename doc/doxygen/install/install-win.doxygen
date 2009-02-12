@@ -10,7 +10,8 @@
 	encouraged to <b>download the windows binary installer</b>
 	(see <a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">here</a>),
 	instead of building %OpenMS from sources. The windows binary version should work on many versions of windows including WinXP, VISTA and Win2000
-	and installation should take you a few minutes only. Be aware though that %OpenMS on any windows platform is currently only 32-bit enabled. A 64-bit version is on its way right now (expected January 2009).
+	and installation should take you a few minutes only. We also support 64bit version, which can deal with larger files. If your operating system supports
+	64bit, we strongly encourage you to use the 64bit version.
 
   @warning Compilation (not installation!) of %OpenMS on Windows is experimental, but should work on any system with a Visual Studio 2005 compiler and above.
 
@@ -33,7 +34,7 @@
 
 <b>Pre-Requisites (Software)</b>
   <UL>
-    <LI>have a Visual Studio 2005/2008 installed (2003 is not supported, but might work, if you compile your own contrib)
+    <LI>have a Visual Studio 2005/2008 installed (2003 is not supported)
     <LI>Have CMake 2.6 or greater installed (www.cmake.org)
     <LI>if you work with the SVN version of %OpenMS (instead of the Release package), we recommend downloading
     the svn binaries (which contain svnversion.exe). TortoiseSVN is *not* enough!
@@ -226,8 +227,10 @@ cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib" -G "Visual Studio 9 2008 Win64
 		After you have built the TOPP tools, you can test by exeuting the "TEST" and "test" target (in that order) in the IDE.
 
 
-  @section create_doc Building the documentation (not working right now - sorry)
+  @section create_doc [deprecated] Building the documentation
 
+	This information is old. Please use the online documentation.
+	
 	In order to build the class documentation, TOPP tutorials and more, you will need to install three programs:
 
   <OL>
@@ -263,7 +266,10 @@ cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib" -G "Visual Studio 9 2008 Win64
   </OL>
 
 
-  @section enable_db Enabling database support (not working right now)
+  @section enable_db [planned] Enabling database support
+  
+  This has not been tested on Windows systems yet!
+  
 	%OpenMS accesses databases via QT. This instruction is based on QT 4.3.2. Other versions might differ.
 	We try to install a MySQL driver (installing other db-drivers should work accordingly).
 
