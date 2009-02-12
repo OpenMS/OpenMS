@@ -46,11 +46,13 @@ START_SECTION((IdXMLFile()))
 	TEST_NOT_EQUAL(ptr,0)
 END_SECTION
 
-START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) )
+START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, String& document_id) )
 	std::vector<ProteinIdentification> protein_ids;
 	std::vector<PeptideIdentification> peptide_ids;
-	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids);
+	String document_id;
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids,document_id);
 	
+	TEST_STRING_EQUAL(document_id,"LSID1234")
 	TEST_EQUAL(protein_ids.size(),2)
 	TEST_EQUAL(peptide_ids.size(),3)
 	
@@ -170,18 +172,19 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 	TEST_EQUAL(peptide_ids[2].getHits()[0].getAAAfter(),' ')
 END_SECTION
 
-START_SECTION(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) )
+START_SECTION(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& document_id="") )
 	
 	//store and load data
 	std::vector<ProteinIdentification> protein_ids, protein_ids2;
 	std::vector<PeptideIdentification> peptide_ids, peptide_ids2;
-	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids2, peptide_ids2);	
+	String document_id, document_id2;
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids2, peptide_ids2, document_id2);	
 	String filename;
 	NEW_TMP_FILE(filename)
-	IdXMLFile().store(filename, protein_ids2, peptide_ids2);	
-	IdXMLFile().load(filename, protein_ids, peptide_ids);
+	IdXMLFile().store(filename, protein_ids2, peptide_ids2, document_id2);	
+	IdXMLFile().load(filename, protein_ids, peptide_ids, document_id);
 	
-	
+	TEST_STRING_EQUAL(document_id,"LSID1234")
 	TEST_EQUAL(protein_ids.size(),2)
 	TEST_EQUAL(peptide_ids.size(),3)
 
@@ -316,7 +319,8 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
 	
 	//test if full file is valid
 	NEW_TMP_FILE(filename);
-	f.load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids2, peptide_ids2);
+	String document_id;
+	f.load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids2, peptide_ids2, document_id);
 	protein_ids2[0].setMetaValue("stringvalue",String("bla"));
 	protein_ids2[0].setMetaValue("intvalue",4711);
 	protein_ids2[0].setMetaValue("floatvalue",5.3);
@@ -324,7 +328,7 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
   TEST_EQUAL(f.isValid(filename),true);
   
   //check if meta information can be loaded
-  f.load(filename, protein_ids2, peptide_ids2);
+  f.load(filename, protein_ids2, peptide_ids2, document_id);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

@@ -128,10 +128,10 @@ class TOPPIDRTCalibration
 		// calculations
 		//-------------------------------------------------------------
 		IdXMLFile file;
-		vector<ProteinIdentification> 	protein_identifications;
+		vector<ProteinIdentification> protein_identifications;
 		vector<PeptideIdentification> identifications;
-		
-		file.load(in_file, protein_identifications, identifications);
+		String document_id;
+		file.load(in_file, protein_identifications, identifications, document_id);
 
 		for (Size i = 0; i < identifications.size(); ++i)
 		{

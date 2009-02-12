@@ -94,8 +94,9 @@ class TOPPIDDecoyProbability
 
 			vector<PeptideIdentification> fwd_pep, rev_pep, out_pep;
 			vector<ProteinIdentification> fwd_prot, rev_prot;
-			IdXMLFile().load(fwd_in, fwd_prot, fwd_pep);
-			IdXMLFile().load(rev_in, rev_prot, rev_pep);
+			String document_id;
+			IdXMLFile().load(fwd_in, fwd_prot, fwd_pep, document_id);
+			IdXMLFile().load(rev_in, rev_prot, rev_pep, document_id);
 			
       //-------------------------------------------------------------
       // calculations

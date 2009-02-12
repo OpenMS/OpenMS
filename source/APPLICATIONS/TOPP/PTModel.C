@@ -468,9 +468,9 @@ class TOPPPTModel
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
-			
-			IdXMLFile().load(inputfile_positives, protein_identifications, identifications);
-			IdXMLFile().load(inputfile_negatives, protein_identifications_negative, identifications_negative);				
+			String document_id;
+			IdXMLFile().load(inputfile_positives, protein_identifications, identifications, document_id);
+			IdXMLFile().load(inputfile_negatives, protein_identifications_negative, identifications_negative, document_id);				
 		  													
 			//-------------------------------------------------------------
 			// calculations

@@ -449,7 +449,8 @@ namespace OpenMS
 			{
 				vector<ProteinIdentification> prot_ids;
 				vector<PeptideIdentification> pep_ids;
-				IdXMLFile().load(in, prot_ids, pep_ids);
+				String document_id;
+				IdXMLFile().load(in, prot_ids, pep_ids, document_id);
 
 				counter = 0;
 				ofstream txt_out(out.c_str());

@@ -126,7 +126,8 @@ class TOPPSequenceCoverageCalculator
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
-			idXML_file.load(inputfile_name, protein_identifications, identifications);
+			String document_id;
+			idXML_file.load(inputfile_name, protein_identifications, identifications, document_id);
 			FASTAFile().load(database_name, proteins);				
 
 			statistics.resize(proteins.size(), 0.);

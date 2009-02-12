@@ -90,8 +90,10 @@ class TOPPIdXMLInfo
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
-			idXML_file.load(inputfile_name, protein_identifications, identifications);
-			
+			String document_id;
+			idXML_file.load(inputfile_name, protein_identifications, identifications, document_id);
+			cout << "Document identifier: '" << document_id << "'" << endl;
+						
 			//-------------------------------------------------------------
 			// calculations
 			//-------------------------------------------------------------
@@ -124,8 +126,8 @@ class TOPPIdXMLInfo
 						proteins.push_back(temp_hits[j].getAccession());
 					}
 				}
-			} 
-
+			}
+			
 			cout << "Number of spectra: " << spectrum_count << endl;
 			cout << "Number of peptide hits: " << peptide_hit_count << endl;
 			cout << "Number of unique peptide hits: " << peptides.size() << endl;

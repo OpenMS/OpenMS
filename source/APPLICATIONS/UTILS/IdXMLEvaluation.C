@@ -142,7 +142,8 @@ class TOPPIdXMLEvaluation
 			//-------------------------------------------------------------
 			// reading input
 			//-------------------------------------------------------------
-			idXML_file.load(inputfile_name, protein_identifications, identifications);
+			String document_id;
+			idXML_file.load(inputfile_name, protein_identifications, identifications, document_id);
 			if (sequences_file_name != "")
 			{
 				FASTAFile().load(sequences_file_name, sequences);				

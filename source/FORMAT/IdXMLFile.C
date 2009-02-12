@@ -38,13 +38,13 @@ namespace OpenMS
 
 	IdXMLFile::IdXMLFile()
 		: XMLHandler("","1.1"),
-			XMLFile("/SCHEMAS/IdXML_1_1.xsd","1.1"),
-			last_meta_(0)
+			XMLFile("/SCHEMAS/IdXML_1_2.xsd","1.2"),
+			last_meta_(0),
+			document_id_()
 	{
-	  	
 	}
 
-  void IdXMLFile::load(const String& filename,  vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids)
+  void IdXMLFile::load(const String& filename,  vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids, String& document_id)
   {
   	//Filename for error messages in XMLHandler
   	file_ = filename;
@@ -54,7 +54,8 @@ namespace OpenMS
   	
   	prot_ids_ = &protein_ids;
   	pep_ids_ = &peptide_ids;
-
+		document_id_ = &document_id;
+		
 		parse_(filename,this);
     
     //reset members
@@ -71,7 +72,7 @@ namespace OpenMS
 		proteinid_to_accession_.clear();
   }
   					 
-  void IdXMLFile::store(String filename, const vector<ProteinIdentification>& protein_ids, const vector<PeptideIdentification>& peptide_ids)
+  void IdXMLFile::store(String filename, const vector<ProteinIdentification>& protein_ids, const vector<PeptideIdentification>& peptide_ids, const String& document_id)
   {
   	//open stream
 		std::ofstream os(filename.c_str());	
@@ -92,7 +93,12 @@ namespace OpenMS
 		catch(Exception::FileNotFound&)
 		{
 		}
-		os << "<IdXML version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/IdXML_1_1.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+		os << "<IdXML version=\"" << getVersion() << "\"";
+		if (document_id!="")
+		{
+			os << " id=\"" << document_id << "\"";
+		}
+		os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/IdXML_1_2.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 		
 		
 		//look up different search parameters
@@ -356,6 +362,11 @@ namespace OpenMS
 			{
 				warning(LOAD, "The XML file (" + file_version +") is newer than the parser (" + version_ + "). This might lead to undefinded program behaviour.");
 			}
+			
+			//document id
+			String document_id="";
+			optionalAttributeAsString_(document_id,attributes,"id");
+			(*document_id_) = document_id;
 		}
 		
 		//SEARCH PARAMETERS

@@ -2286,7 +2286,8 @@ namespace OpenMS
 		{
 			vector<PeptideIdentification> identifications;
 			vector<ProteinIdentification> protein_identifications;
-			IdXMLFile().load(name, protein_identifications, identifications);
+			String document_id;
+			IdXMLFile().load(name, protein_identifications, identifications, document_id);
 			if (layer.type==LayerData::DT_PEAK)
 			{
 				IDMapper().annotate(const_cast<LayerData&>(layer).peaks, identifications, protein_identifications);

@@ -96,7 +96,8 @@ class TOPPIDMapper
 			//----------------------------------------------------------------
 			vector<ProteinIdentification> protein_ids;
 			vector<PeptideIdentification> peptide_ids;
-			IdXMLFile().load(getStringOption_("id"),protein_ids,peptide_ids);
+			String document_id;
+			IdXMLFile().load(getStringOption_("id"),protein_ids,peptide_ids, document_id);
 
 			//----------------------------------------------------------------
 			//create mapper

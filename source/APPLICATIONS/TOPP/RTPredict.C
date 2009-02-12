@@ -304,7 +304,8 @@ class TOPPRTPredict
 			}
 			else
 			{
-				IdXML_file.load(inputfile_name, protein_identifications, identifications);
+				String document_id;
+				IdXML_file.load(inputfile_name, protein_identifications, identifications, document_id);
 			}
 	  													
 			//-------------------------------------------------------------

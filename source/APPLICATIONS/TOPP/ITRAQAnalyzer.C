@@ -137,7 +137,8 @@ class TOPPITRAQAnalyzer
 			IdXMLFile f;
 			std::vector< ProteinIdentification > protein_ids;
 			std::vector< PeptideIdentification > peptide_ids;
-			f.load (idxml, protein_ids, peptide_ids);
+			String document_id;
+			f.load (idxml, protein_ids, peptide_ids, document_id);
 			itraq_quant.run(consensus_map_raw, peptide_ids, protein_ids, consensus_map_quant);
 		}
 		else

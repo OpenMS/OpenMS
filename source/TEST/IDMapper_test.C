@@ -83,7 +83,8 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment< PeakType
 	//load id
 	vector<PeptideIdentification> identifications; 
 	vector<ProteinIdentification> protein_identifications;
-	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_1.idXML"), protein_identifications, identifications);
+	String document_id;
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_1.idXML"), protein_identifications, identifications, document_id);
 	
 	TEST_EQUAL(identifications.size(),3)
 	TEST_EQUAL(identifications[0].getHits().size(), 2)
@@ -136,8 +137,9 @@ END_SECTION
 START_SECTION((template <typename FeatureType> void annotate(FeatureMap<FeatureType> &map, const std::vector< PeptideIdentification > &ids, const std::vector< ProteinIdentification >& protein_ids, bool use_delta=false)))
 	//load id data
 	vector<PeptideIdentification> identifications; 
-	vector<ProteinIdentification> protein_identifications; 
-	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_2.idXML"), protein_identifications, identifications);
+	vector<ProteinIdentification> protein_identifications;
+	String document_id;
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_2.idXML"), protein_identifications, identifications, document_id);
 	
 	//--------------------------------------------------------------------------------------
 	//TEST MAPPING TO CONVEX HULLS
@@ -214,7 +216,8 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
 		
 	std::vector<ProteinIdentification> protein_ids;
 	std::vector<PeptideIdentification> peptide_ids;
-	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.idXML"), protein_ids, peptide_ids);
+	String document_id;
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.idXML"), protein_ids, peptide_ids, document_id);
 	
   ConsensusXMLFile cons_file;
   

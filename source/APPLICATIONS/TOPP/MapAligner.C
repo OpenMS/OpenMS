@@ -249,7 +249,8 @@ protected:
 			for (Size i=0; i<ins.size(); ++i)
 			{
 				progresslogger.setProgress(i);
-		    f.load( ins[i], protein_ids_vec[i], peptide_ids_vec[i] );
+				String document_id;
+		    f.load( ins[i], protein_ids_vec[i], peptide_ids_vec[i], document_id);
 			}
 			progresslogger.setProgress(ins.size());
 			progresslogger.endProgress();

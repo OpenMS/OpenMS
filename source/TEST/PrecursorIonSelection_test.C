@@ -70,8 +70,9 @@ END_SECTION
 
 std::vector<ProteinIdentification> prot_ids;
 std::vector<PeptideIdentification> pep_ids;
+String document_id;
 IdXMLFile file;
-file.load(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelection_ids.IdXML"),prot_ids,pep_ids);
+file.load(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelection_ids.IdXML"),prot_ids,pep_ids, document_id);
 
 FeatureMap<> features,next_features;
 FeatureXMLFile f_file;

@@ -47,6 +47,8 @@ Changes to OpenMS XML formats:
 - consensusXML:
 	- Added document Id
 	- Added protein and peptide information
+- idXML:
+	- Added document Id
 
 Changes to the contrib package:
 - The build system is now based on CMake supporting Linux, MacOS and Windows.
@@ -125,6 +127,7 @@ Detailed list of changes to specific OpenMS classes:
   - XMLValidator: The output stream for error messages can now be set in the isValid(...) method
   - XMLFile: The output stream for validation error messages can now be set in the isValid(...) method
   - MzMLFile: The output stream for validation error messages can now be set in the isValid(...) method
+  - IdXMLFile: Adden document identifier to the load(...) and store(...) method
 	
 ------------------------------------------------------------------------------------------
 ----                                   OpenMS 1.2                                     ----
