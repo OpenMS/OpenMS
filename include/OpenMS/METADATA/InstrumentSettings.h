@@ -52,9 +52,11 @@ namespace OpenMS
       	CNG,							///< Constant neutral gain scan @n Synonyms: 'CNG scan'
       	CNL,							///< Constant neutral loss scan @n Synonyms: 'CNG scan'
       	PRECURSOR,				///< Precursor ion scan
-      	PDA,							///< Photodiode array detector scan @n Synonyms: 'PDA scan'
       	EMC,							///< Enhanced multiply charged scan
       	TDF,							///< Time-delayed fragmentation scan
+      	EMR,							///< Electromagnetic radiation scan @n Synonyms: 'EMR spectrum'
+      	EMISSION,					///< Emission scan
+      	ABSORBTION,				///< Absorbtion scan
       	SIZE_OF_SCANMODE
       };
 			

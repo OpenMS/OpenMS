@@ -1151,7 +1151,7 @@ namespace OpenMS
 						case InstrumentSettings::PRECURSOR:
 							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"PrecursorIonScan\"/>\n";
 							break;
-						case InstrumentSettings::PDA:
+						case InstrumentSettings::ABSORBTION:
 							os << "						<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"PhotodiodeArrayDetector\"/>\n";
 							break;
 						case InstrumentSettings::EMC:

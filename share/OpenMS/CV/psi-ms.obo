@@ -4,8 +4,8 @@ saved-by: David Sparkman
 auto-generated-by: OBO-Edit 1.101
 default-namespace: MS
 remark: namespace: MS
-remark: version: 1.13.2
-remark: release date: 2009-02-09
+remark: version: 1.14.0
+remark: release date: 2009-02-10
 remark: coverage: Mass spectrometer output files
 remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group
@@ -223,7 +223,7 @@ is_a: MS:1000481 ! detector attribute
 [Term]
 id: MS:1000030
 name: vendor
-def: "Name of instrument vendor" [PSI:MS]
+def: "OBSOLETE Name of instrument vendor" [PSI:MS]
 is_obsolete: true
 comment: This term was made obsolete because it was replaced by instrument model (MS\:1000031)
 
@@ -281,7 +281,7 @@ comment: This term was made obsolete because it was replaced by scan time (MS\:1
 [Term]
 id: MS:1000039
 name: second
-def: "Acquisition time in seconds." [PSI:MS]
+def: "OBSOLETE Acquisition time in seconds." [PSI:MS]
 is_obsolete: true
 comment: This term was made obsolete because it was replaced by scan time (MS\:1000016)
 
@@ -1533,7 +1533,7 @@ relationship: part_of MS:1000479 ! purgatory
 [Term]
 id: MS:1000232
 name: peak intensity
-def: "The height or area of a peak in a mass spectrum." [PSI:MS]
+def: "OBSOLETE The height or area of a peak in a mass spectrum." [PSI:MS]
 is_obsolete: true
 comment: This term was made obsolete because it was replaced by base peak intensity (MS\:1000505)
 
@@ -1784,7 +1784,7 @@ def: "OBSOLETE The formation of ions through the interaction of a laser with a m
 synonym: "Laser Ionization MERGE" EXACT []
 synonym: "LD" EXACT []
 is_obsolete: true
-comment: this term was made obsolete because it was replaced by laser desorption ionization (MS\:1000393)
+comment: This term was made obsolete because it was replaced by laser desorption ionization (MS\:1000393)
 
 [Term]
 id: MS:1000267
@@ -4042,9 +4042,11 @@ xref: value-type:xsd\:float "The allowed value-type for this CV term."
 [Term]
 id: MS:1000620
 name: PDA spectrum
-def: "Spectrum generated from a photodiode array detector (ultraviolet/visible spectrum)." [PSI:MS]
+def: "OBSOLETE Spectrum generated from a photodiode array detector (ultraviolet/visible spectrum)." [PSI:MS]
 is_a: MS:1000524 ! data file content
 is_a: MS:1000559 ! spectrum type
+is_obsolete: true
+comment: This term was made obsolete because it was replaced by absorption spectrum (MS\:1000806)
 
 [Term]
 id: MS:1000621
@@ -5192,6 +5194,28 @@ def: "Offset between two analyzers in a constant neutral loss or neutral gain sc
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000503 ! scan attribute
 relationship: has_units MS:1000040 ! m/z
+
+[Term]
+id: MS:1000804
+name: electromagnetic radiation spectrum
+def: "A plot of the relative intensity of electromagnetic radiation as a function of the wavelength." [PSI:MS]
+synonym: "EMR spectrum" EXACT []
+is_a: MS:1000524 ! data file content
+is_a: MS:1000559 ! spectrum type
+
+[Term]
+id: MS:1000805
+name: emission spectrum
+def: "A plot of the relative intensity of electromagnetic radiation emitted by atoms or molecules when excited." [PSI:MS]
+is_a: MS:1000524 ! data file content
+is_a: MS:1000559 ! spectrum type
+
+[Term]
+id: MS:1000806
+name: absorption spectrum
+def: "A plot of the relative intensity of electromagnetic radiation absorbed by atoms or molecules when excited." [PSI:MS]
+is_a: MS:1000524 ! data file content
+is_a: MS:1000559 ! spectrum type
 
 [Typedef]
 id: has_units

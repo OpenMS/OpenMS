@@ -910,9 +910,17 @@ namespace OpenMS
 				{
 					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
 				}
-				else if (accession=="MS:1000620") //PDA spectrum
+				else if (accession=="MS:1000804") //electromagnetic radiation spectrum
 				{
-					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::PDA);
+					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::EMR);
+				}
+				else if (accession=="MS:1000805") //emission spectrum
+				{
+					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::EMISSION);
+				}
+				else if (accession=="MS:1000806") //absorption spectrum
+				{
+					spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ABSORBTION);
 				}
 				else if (accession=="MS:1000325") //constant neutral gain spectrum
 				{
@@ -2342,9 +2350,17 @@ namespace OpenMS
 			{
 				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000326\" name=\"constant neutral loss spectrum\" />\n";
 			}
-			else if (file_content.has(InstrumentSettings::PDA))
+			else if (file_content.has(InstrumentSettings::EMR))
 			{
-				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000620\" name=\"PDA spectrum\" />\n";
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000804\" name=\"electromagnetic radiation spectrum\" />\n";
+			}
+			else if (file_content.has(InstrumentSettings::EMISSION))
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000805\" name=\"emission spectrum\" />\n";
+			}
+			else if (file_content.has(InstrumentSettings::ABSORBTION))
+			{
+				os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000806\" name=\"absorption spectrum\" />\n";
 			}
 			else if (file_content.has(InstrumentSettings::EMC))
 			{
@@ -3281,9 +3297,17 @@ namespace OpenMS
 				{
 					os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000326\" name=\"constant neutral loss spectrum\" />\n";
 				}
-				else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::PDA)
+				else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::EMR)
 				{
-					os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000620\" name=\"PDA spectrum\" />\n";
+					os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000804\" name=\"electromagnetic radiation spectrum\" />\n";
+				}
+				else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::EMISSION)
+				{
+					os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000805\" name=\"emission spectrum\" />\n";
+				}
+				else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::ABSORBTION)
+				{
+					os	<< "			<cvParam cvRef=\"MS\" accession=\"MS:1000806\" name=\"absorption spectrum\" />\n";
 				}
 				else if (spec.getInstrumentSettings().getScanMode()==InstrumentSettings::EMC)
 				{
