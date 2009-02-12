@@ -34,6 +34,7 @@
 #include <CGAL/Cartesian.h>
 #include <CGAL/Point_set_2.h>
 
+#define Debug_DelaunayPairFinder
 #ifdef Debug_DelaunayPairFinder
 #define V_(bla) std::cout << __FILE__ ":" << __LINE__ << ": " << bla << std::endl;
 #else
@@ -244,6 +245,12 @@ namespace OpenMS
 			V_("p_set[" << input << "].number_of_vertices(): " << p_set[input].number_of_vertices() << "  [includes two dummy outliers]");
     }
 
+    Size p_set_number_of_vertices[2];
+    for ( UInt input = MODEL_; input <= SCENE_; ++ input )
+    {
+        p_set_number_of_vertices[input] = p_set[input].number_of_vertices();
+    }
+
     // Empty output destination
     result_map.clear();
 
@@ -263,12 +270,13 @@ namespace OpenMS
 			UInt const other_input = 1 - input;
 			
 			neighbours[input].resize( maps_array[input]->size(), outlier_points );
-
+      Size loop_count = 0;
 			for ( Point_set_2::Point_iterator iter = p_set[input].points_begin(); iter != p_set[input].points_end(); ++iter )
 			{
-				if ( iter-> key == -1 ) continue;
+        VV_(iter->key);
+        if ( loop_count++ == p_set_number_of_vertices[input] ) break; // FIXME this is a hack introduced for Mac using gcc 4.0.1 (Clemens)
+        if ( iter->key == -1 ) continue;
 				neighbors_buffer.clear();
-				VV_(iter->key);
 				p_set[other_input].nearest_neighbors( *iter, 2, std::back_inserter(neighbors_buffer) );
 				neighbours[input][iter->key][0] = neighbors_buffer[0]->point();
 				neighbours[input][iter->key][1] = neighbors_buffer[1]->point();
@@ -302,9 +310,12 @@ namespace OpenMS
 
     // take each point in the model map and search for its neighbours in the scene map
 		
-		// for ( Int model_cf_index = 0; model_cf_index < (Int)input_maps[0].size(); ++model_cf_index )
+    Size loop_count = 0;
 		for ( Point_set_2::Point_iterator model_iter = p_set[MODEL_].points_begin(); model_iter != p_set[MODEL_].points_end(); ++model_iter )
     {
+     
+      if ( loop_count++ == p_set_number_of_vertices[MODEL_] ) break; // FIXME this is a hack introduced for Mac using gcc 4.0.1 (Clemens)
+
 			Int const model_cf_index = model_iter->key;
 			VV_(model_cf_index);
 			if ( model_cf_index == -1 ) continue;
