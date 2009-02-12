@@ -371,6 +371,55 @@ START_SECTION((DoubleReal performCrossValidation(svm_problem *problem, const std
 	TEST_NOT_EQUAL(parameters.size(), 0)
 END_SECTION
 
+START_SECTION((DoubleReal performCrossValidation(const SVMData &problem, const std::map< SVM_parameter_type, DoubleReal > &start_values_map, const std::map< SVM_parameter_type, DoubleReal > &step_sizes_map, const std::map< SVM_parameter_type, DoubleReal > &end_values_map, Size number_of_partitions, Size number_of_runs, std::map< SVM_parameter_type, DoubleReal > &best_parameters, bool additive_step_sizes=true, bool output=false, String performances_file_name="perfromances.txt", bool mcc_as_performance_measure=false)))
+	map<SVM_parameter_type, DoubleReal> start_values;
+	map<SVM_parameter_type, DoubleReal> step_sizes;
+	map<SVM_parameter_type, DoubleReal> end_values;
+	LibSVMEncoder encoder;
+	UInt count = 8;
+	map<SVM_parameter_type, DoubleReal> parameters;
+	DoubleReal cv_quality;
+	SVMWrapper svm2;
+	SVMData problem;
+	vector<DoubleReal> labels;
+	vector< vector<pair<Int, DoubleReal> > > sequences;
+	vector<pair<Int, DoubleReal> > sequence;
+	
+	svm2.setParameter(KERNEL_TYPE, OLIGO);
+	svm2.setParameter(BORDER_LENGTH, 2);
+	svm2.setParameter(C, 1);
+	svm2.setParameter(SIGMA, 1);
+	svm2.setParameter(SVM_TYPE, NU_SVR);
+
+	for (Size i = 0; i < count; i++)
+	{
+		sequence.clear();
+		sequence.push_back(make_pair(1, rand()));
+		sequence.push_back(make_pair(2, rand()));
+		sequence.push_back(make_pair(3, rand()));
+		sequence.push_back(make_pair(4, rand()));
+		sequences.push_back(sequence);
+		labels.push_back(i * 2 / 3 + 0.03);
+	}
+	problem.sequences = sequences;
+	problem.labels = labels;
+
+	start_values.insert(make_pair(C, 1));
+	step_sizes.insert(make_pair(C, 100));
+	end_values.insert(make_pair(C, 1000));
+
+	start_values.insert(make_pair(NU, 0.4));
+	step_sizes.insert(make_pair(NU, 0.1));
+	end_values.insert(make_pair(NU, 0.6));
+
+	start_values.insert(make_pair(DEGREE, 1));
+	step_sizes.insert(make_pair(DEGREE, 1));
+	end_values.insert(make_pair(DEGREE, 3));
+
+	cv_quality = svm2.performCrossValidation(problem, start_values, step_sizes, end_values, 2, 1, parameters, true, false);
+	TEST_NOT_EQUAL(parameters.size(), 0)
+END_SECTION
+
 START_SECTION((void predict(struct svm_problem *problem, std::vector< DoubleReal > &predicted_labels)))
  	LibSVMEncoder encoder;
 	vector< vector< pair<Int, DoubleReal> > > vectors;
@@ -476,6 +525,49 @@ START_SECTION((svm_problem* computeKernelMatrix(svm_problem* problem1, svm_probl
 
 END_SECTION
 
+START_SECTION((svm_problem* computeKernelMatrix(SVMData& problem1, SVMData& problem2)))
+	vector<AASequence> sequences;
+	String allowed_characters = "ACNGT";
+	String output;
+	Int border_length = 5;
+	DoubleReal sigma = 2;
+  vector<DoubleReal> labels;
+  struct svm_problem* kernel_matrix;
+  LibSVMEncoder encoder;
+	vector< vector< std::pair< Int, DoubleReal > > > data;
+	SVMData svm_data;
+
+	svm.setParameter(BORDER_LENGTH, border_length);
+	svm.setParameter(SIGMA, sigma);
+	svm.setParameter(KERNEL_TYPE, OLIGO);
+  labels.push_back(1);
+  labels.push_back(2);
+  sequences.push_back(AASequence("ACNNGTATCA"));
+  sequences.push_back(AASequence("AACNNGTACCA"));
+	encoder.encodeProblemWithOligoBorderVectors(sequences, 1, allowed_characters, border_length, data);
+	svm_data.sequences = data;
+	svm_data.labels = labels;
+	
+	kernel_matrix = svm.computeKernelMatrix(svm_data, svm_data);
+			
+	TOLERANCE_ABSOLUTE(0.0001)
+	TEST_REAL_SIMILAR(kernel_matrix->x[0][0].value, 1)
+	TEST_REAL_SIMILAR(kernel_matrix->x[0][1].value, 19.7156)
+	TEST_REAL_SIMILAR(kernel_matrix->x[0][2].value, 21.1308)
+	TEST_REAL_SIMILAR(kernel_matrix->x[1][0].value, 2)
+	TEST_REAL_SIMILAR(kernel_matrix->x[1][1].value, 21.1308)
+	TEST_REAL_SIMILAR(kernel_matrix->x[1][2].value, 27.2309)
+	TEST_EQUAL(kernel_matrix->x[0][0].index, 0)
+	TEST_EQUAL(kernel_matrix->x[0][1].index, 1)
+	TEST_EQUAL(kernel_matrix->x[0][2].index, 2)
+	TEST_EQUAL(kernel_matrix->x[1][0].index, 0)
+	TEST_EQUAL(kernel_matrix->x[1][1].index, 1)
+	TEST_EQUAL(kernel_matrix->x[1][2].index, 2)
+	TEST_EQUAL(kernel_matrix->y[0], 1)
+	TEST_EQUAL(kernel_matrix->y[1], 2)
+
+END_SECTION
+
 START_SECTION((static DoubleReal kernelOligo(const svm_node *x, const svm_node *y, const std::vector< DoubleReal > &gauss_table, DoubleReal sigma_square=0, Size max_distance=50)))
   vector<DoubleReal> labels;
 	String sequence = "ACNNGTATCA";
@@ -502,6 +594,33 @@ START_SECTION((static DoubleReal kernelOligo(const svm_node *x, const svm_node *
 	TOLERANCE_ABSOLUTE(0.0001)
 	TEST_REAL_SIMILAR(result, 21.1308)
 	delete data;
+END_SECTION
+
+START_SECTION((static DoubleReal kernelOligo(const std::vector< std::pair< Int, DoubleReal > > &x, const std::vector< std::pair< Int, DoubleReal > > &y, const std::vector< DoubleReal > &gauss_table, int max_distance=-1)))
+  vector<DoubleReal> labels;
+	String sequence = "ACNNGTATCA";
+	String allowed_characters = "ACNGT";
+	String output;
+	Int border_length = 5;
+	vector< vector< std::pair< Int, DoubleReal > > > data;
+	DoubleReal result = 0;
+  DoubleReal sigma = 2;
+  vector<DoubleReal> gauss_table;
+	vector<AASequence> sequences;
+  svm.calculateGaussTable(border_length, sigma, gauss_table);
+	LibSVMEncoder encoder;
+	svm.setParameter(BORDER_LENGTH, border_length);
+	svm.setParameter(SIGMA, sigma);
+	svm.setParameter(KERNEL_TYPE, OLIGO);
+
+  labels.push_back(1);
+  labels.push_back(2);
+  sequences.push_back(AASequence("ACNNGTATCA"));
+  sequences.push_back(AASequence("AACNNGTACCA"));
+	encoder.encodeProblemWithOligoBorderVectors(sequences, 1, allowed_characters, border_length, data);
+	result = SVMWrapper::kernelOligo(data[0], data[1], gauss_table);
+	TOLERANCE_ABSOLUTE(0.0001)
+	TEST_REAL_SIMILAR(result, 21.1308)
 END_SECTION
 
 START_SECTION((void getDecisionValues(svm_problem* data, std::vector<DoubleReal>& decision_values)))
@@ -688,6 +807,10 @@ START_SECTION((void scaleData(svm_problem* data, Int max_scale_value = -1)))
 END_SECTION
 
 START_SECTION((void getSignificanceBorders(svm_problem *data, std::pair< DoubleReal, DoubleReal > &borders, DoubleReal confidence=0.95, Size number_of_runs=5, Size number_of_partitions=5, DoubleReal step_size=0.01, Size max_iterations=1000000)))
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION((void getSignificanceBorders(const SVMData &data, std::pair< DoubleReal, DoubleReal > &sigmas, DoubleReal confidence=0.95, Size number_of_runs=5, Size number_of_partitions=5, DoubleReal step_size=0.01, Size max_iterations=1000000)))
 	NOT_TESTABLE
 END_SECTION
 
