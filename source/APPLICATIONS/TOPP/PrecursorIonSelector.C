@@ -60,7 +60,7 @@ using namespace OpenMS;
 		</tr>
 		<tr>
 			<td><b>Upshift</b></td>
-			<td>Features with m/z matching predicted tryptic peptide masses of unidentified proteins.</td>
+			<td>Features with m/z matching predicted tryptic peptide masses of unidentified proteins are ranked up.</td>
 		</tr>
 		<tr>
 			<td><b>IPS</b></td>
@@ -69,7 +69,8 @@ using namespace OpenMS;
 	</table>
 
 	Given the feature map of the LC-MS run and the identification results
-	the tool determines the next precursors that 
+	the tool determines the next precursors. The precursors are ranked
+	depending on the chosen strategy.
 	
 	It is also possible run a simulation of selection strategies
 	on a complete LC-MS/MS run, e.g. to determine what would have been

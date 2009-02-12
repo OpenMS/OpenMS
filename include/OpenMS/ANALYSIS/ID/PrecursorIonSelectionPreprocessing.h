@@ -41,7 +41,15 @@
 #include <fstream>
 namespace OpenMS
 {
-  
+	
+  /**
+		 @brief This class implements the database preprocessing needing for precursor ion selection.
+
+		 
+
+		 @htmlinclude OpenMS_PrecursorIonSelectionPreprocessing.parameters
+
+	*/
   class OPENMS_DLLAPI PrecursorIonSelectionPreprocessing : public DefaultParamHandler
   {
   public:

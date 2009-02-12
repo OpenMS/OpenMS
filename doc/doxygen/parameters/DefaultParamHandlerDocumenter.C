@@ -117,6 +117,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorIonSelection.h>
+#include <OpenMS/ANALYSIS/ID/PrecursorIonSelectionPreprocessing.h>
 
 using namespace std;
 using namespace OpenMS;
@@ -340,6 +341,7 @@ int main (int argc , char** argv)
 	DOCME(ZhangSimilarityScore);
 	DOCME(CompareFouriertransform);
 	DOCME(PrecursorIonSelection);
+	DOCME(PrecursorIonSelectionPreprocessing);
 
 	//////////////////////////////////
 	// More complicated cases

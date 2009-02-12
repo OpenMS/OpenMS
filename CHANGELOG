@@ -28,6 +28,7 @@ New features and improvements of TOPP:
 - FileMerger: Improved interface
 - ConsensusID: Now also supports consensus identification of features and consensus features.
 - INIFileEditor: Support for string/int/double lists and input/output files was added.
+- Added PrecursorIonSelector: A tool for result-driven precursor ion selection.
 
 New features and improvements of TOPPView:
 - Added functionality for editing feature data
