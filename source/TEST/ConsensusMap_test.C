@@ -250,6 +250,71 @@ START_SECTION((ConsensusMap(Base::size_type n)))
   TEST_EQUAL(cons_map.size(),5)
 END_SECTION
 
+
+START_SECTION((template < typename FeatureT > static void convert(Size const input_map_index, FeatureMap< FeatureT > const &input_map, ConsensusMap &output_map)))
+
+  FeatureMap<> fm;
+  Feature f;
+  for ( UInt i = 0; i < 3; ++i )
+  {
+    f.setRT(i*77.7);
+    f.setMZ(i+100.35);
+    fm.push_back(f);
+  }
+  ConsensusMap cm;
+  ConsensusMap::convert(33,fm,cm);
+
+  TEST_EQUAL(cm.size(),3);
+  TEST_EQUAL(cm.getFileDescriptions()[33].size,3);
+  for ( UInt i = 0; i < 3; ++i )
+  {
+    TEST_EQUAL(cm[i].size(),1);
+    TEST_EQUAL(cm[i].begin()->getMapIndex(),33);
+    TEST_EQUAL(cm[i].begin()->getElementIndex(),i);
+    TEST_REAL_SIMILAR(cm[i].begin()->getRT(),i*77.7);
+    TEST_REAL_SIMILAR(cm[i].begin()->getMZ(),i+100.35);
+  }
+
+END_SECTION
+
+START_SECTION((static void convert(Size const input_map_index, MSExperiment<> &input_map, ConsensusMap &output_map, Size n)))
+{
+  MSExperiment<Peak1D> mse;
+  MSSpectrum<Peak1D> mss;
+  Peak1D p;
+  for ( UInt m = 0; m < 3; ++m )
+  {
+    mss.clear();
+    for ( UInt i = 0; i < 4; ++i )
+    {
+      p.setMZ( 10* m + i + 100.35);
+      p.setIntensity( 900 + 7*m + 5*i );
+      mss.push_back(p);
+    }
+    mse.push_back(mss);
+    mse.back().setRT(m*5);
+  }
+
+  ConsensusMap cm;
+  ConsensusMap::convert(33,mse,cm,8);
+
+  TEST_EQUAL(cm.size(),8);
+
+  for ( UInt i = 0; i < cm.size(); ++i)
+  {
+    STATUS("\n" << i << ": " << cm[i] );
+  }
+
+  TEST_EQUAL(cm.back().getIntensity(),912);
+
+}
+END_SECTION
+
+
+
+
+
+
 START_SECTION((const FileDescriptions& getFileDescriptions() const))
   ConsensusMap cons_map;
 

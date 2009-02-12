@@ -87,8 +87,6 @@ class TestModel : public Fitter1D
 };
 
 
-
-
 START_TEST(Fitter1D, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -128,9 +126,11 @@ START_SECTION((virtual Fitter1D& operator=(const  Fitter1D &source)))
 	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 END_SECTION
 
-START_SECTION((virtual QualityType fit1d(const  RawDataArrayType &range, InterpolationModel *&model)))
-	// dummy subtest TODO
-	TEST_EQUAL(1,1)
+START_SECTION((virtual QualityType fit1d(const  RawDataArrayType &, InterpolationModel *&)))
+	Fitter1D f1d;
+  Fitter1D::RawDataArrayType rft;
+  InterpolationModel *ipm = 0;
+	TEST_EXCEPTION(Exception::NotImplemented,f1d.fit1d(rft,ipm));
 END_SECTION
 
 START_SECTION((void registerChildren()))

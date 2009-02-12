@@ -33,29 +33,30 @@
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenMS
 {
 	/**
 		@brief A container for consensus elements.
-	    
+
 		A %ConsensusMap is a container holding 2-dimensional consensus elements (ConsensusFeature)
 		which in turn represent combined elements of 2-dimensional experiments.
 		The map is implemented as a vector of elements.
-	    
+
 		The map indices used in the consensus features should be registered in this class.
-		
+
 		@ingroup Kernel
   */
-	class OPENMS_DLLAPI ConsensusMap 
+	class OPENMS_DLLAPI ConsensusMap
 		: public std::vector<ConsensusFeature>,
 			public MetaInfoInterface,
 			public RangeManager<2>,
 			public DocumentIdentifier
 	{
-		
+
 		public:
-		
+
 			/// Source file desciption for input files
 			struct FileDescription
 				: public MetaInfoInterface
@@ -83,7 +84,7 @@ namespace OpenMS
 			typedef std::vector<ConsensusFeature > Base;
 			typedef RangeManager<2> RangeManagerType;
 			typedef Map<Size,FileDescription> FileDescriptions;
-			/// Mutable iterator		
+			/// Mutable iterator
 			typedef std::vector<ConsensusFeature>::iterator Iterator;
 			/// Non-mutable iterator
 			typedef std::vector<ConsensusFeature>::const_iterator ConstIterator;
@@ -92,7 +93,7 @@ namespace OpenMS
 			/// Non-mutable reverse iterator
 			typedef std::vector<ConsensusFeature>::const_reverse_iterator ConstReverseIterator;
 			//@}
-				
+
 			/// Default onstructor
 			inline ConsensusMap()
 				: Base(),
@@ -106,7 +107,7 @@ namespace OpenMS
 					data_processing_()
 			{
 			}
-		
+
 			/// Copy constructor
 			inline ConsensusMap(const ConsensusMap& source)
 				: Base(source),
@@ -120,14 +121,14 @@ namespace OpenMS
 					data_processing_(source.data_processing_)
 			{
 			}
-		
+
 			/// Destructor
 			inline ~ConsensusMap()
 			{
 			}
-		
+
 			/// Creates a ConsensusMap with n elements
-			inline ConsensusMap(Base::size_type n) 
+			inline ConsensusMap(Base::size_type n)
 				: Base(n),
 					MetaInfoInterface(),
 					RangeManagerType(),
@@ -139,12 +140,12 @@ namespace OpenMS
 					data_processing_()
 			{
 			}
-		
+
 			/// Assignment operator
 			ConsensusMap& operator=(const ConsensusMap& source)
 			{
 				if (this==&source) return *this;
-		
+
 				Base::operator=(source);
 				MetaInfoInterface::operator=(source);
 				RangeManagerType::operator=(source);
@@ -154,10 +155,10 @@ namespace OpenMS
 				protein_identifications_ = source.protein_identifications_;
 				unassigned_peptide_identifications_ = source.unassigned_peptide_identifications_;
 				data_processing_ = source.data_processing_;
-					
+
 				return *this;
 			}
-		
+
 			/// Non-mutable access to the file descriptions
 			inline const FileDescriptions& getFileDescriptions() const
 			{
@@ -180,69 +181,69 @@ namespace OpenMS
 			inline void setExperimentType(const String& experiment_type)
 			{
 				experiment_type_ = experiment_type;
-			}			
-				
+			}
+
 			/**
 				@brief Checks if all map identifiers in FeatureHandles have a filename associated
-						
-				@param error_message If the map is not valid, this variable contains the error message				
+
+				@param error_message If the map is not valid, this variable contains the error message
 				@return if the map is valid
 			*/
 			bool isValid(String& error_message) const;
 
-			/**	
+			/**
 				@name Sorting.
-			
+
 				These simplified sorting methods are supported in addition to the standard sorting methods of std::vector.
 			*/
 			//@{
 			/// Sorts the peaks according to ascending intensity.
-			void sortByIntensity(bool reverse=false) 
-			{ 
+			void sortByIntensity(bool reverse=false)
+			{
 				if (reverse)
 				{
-					std::sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::IntensityLess())); 
+					std::sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::IntensityLess()));
 				}
 				else
 				{
-					std::sort(Base::begin(), Base::end(), ConsensusFeature::IntensityLess()); 
+					std::sort(Base::begin(), Base::end(), ConsensusFeature::IntensityLess());
 				}
 			}
 
 			/// Sorts the peaks to RT position.
-			void sortByRT() 
-			{ 
-				std::sort(Base::begin(), Base::end(), ConsensusFeature::RTLess()); 
+			void sortByRT()
+			{
+				std::sort(Base::begin(), Base::end(), ConsensusFeature::RTLess());
 			}
 
 			/// Sorts the peaks to m/z position.
-			void sortByMZ() 
-			{ 
-				std::sort(Base::begin(), Base::end(), ConsensusFeature::MZLess()); 
+			void sortByMZ()
+			{
+				std::sort(Base::begin(), Base::end(), ConsensusFeature::MZLess());
 			}
-				
+
 			/// Lexicographically sorts the peaks by their position (First RT then m/z).
-			void sortByPosition() 
-			{ 
+			void sortByPosition()
+			{
 				std::sort(Base::begin(), Base::end(), ConsensusFeature::PositionLess());
 			}
-				
+
 			/// Sorts the peaks according to ascending quality.
-			void sortByQuality(bool reverse=false) 
-			{ 
+			void sortByQuality(bool reverse=false)
+			{
 				if (reverse)
 				{
-					std::sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::QualityLess())); 
+					std::sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::QualityLess()));
 				}
 				else
 				{
-					std::sort(Base::begin(), Base::end(), ConsensusFeature::QualityLess()); 
+					std::sort(Base::begin(), Base::end(), ConsensusFeature::QualityLess());
 				}
 			}
 
 			/// Does a stable sort with respect to the size (number of elements)
-			void sortBySize() 
-			{ 
+			void sortBySize()
+			{
 				std::stable_sort(Base::begin(), Base::end(), reverseComparator(ConsensusFeature::SizeLess()));
 			}
 
@@ -255,17 +256,17 @@ namespace OpenMS
 			//@}
 
 			/**
-				@brief Convert any (random access) container of features to a ConsensusMap.  Each
+				@brief Convert a FeatureMap (of any feature type) to a ConsensusMap.  Each
 				ConsensusFeature contains a map index, so this has to be given as well.
 				The previous content of output_map is cleared.
-				
+
 				@param input_map_index The index of the input map.
 				@param input_map The container to be converted.  (Must support size() and operator[].)
 				@param output_map The resulting ConsensusMap.
 			*/
-			template <typename ContainerT>
-			static void convert(Size const input_map_index, ContainerT const & input_map, ConsensusMap& output_map )
-			{
+			template <typename FeatureT>
+			static void convert(Size const input_map_index, FeatureMap<FeatureT> const & input_map, ConsensusMap& output_map )
+      {
 				output_map.clear();
 				output_map.reserve(input_map.size());
 				for (Size element_index = 0; element_index < input_map.size(); ++element_index )
@@ -278,10 +279,10 @@ namespace OpenMS
 				output_map.updateRanges();
 				return;
 			}
-				
+
 			/**
 				@brief Similar to convert, but copies only the @p n most intense elements from an MSExperiment.
-				
+
 				@param input_map_index The index of the input map.
 				@param input_map The input map to be converted.
 				@param output_map The resulting ConsensusMap.
@@ -308,7 +309,7 @@ namespace OpenMS
 				output_map.updateRanges();
 				return;
 			}
-				
+
 			// Docu in base class
 			void updateRanges();
 
@@ -316,18 +317,18 @@ namespace OpenMS
 			void swap(ConsensusMap& from)
 			{
 				ConsensusMap tmp;
-					
+
 				//swap range information
 				tmp.RangeManagerType::operator=(*this);
 				this->RangeManagerType::operator=(from);
 				from.RangeManagerType::operator=(tmp);
-					
+
 				//swap consensus features
 				Base::swap(from);
 
 				// swap DocumentIdentifier
 				DocumentIdentifier::swap(from);
-					
+
 				// swap the remaining members
 				std::swap(file_description_, from.file_description_);
 				experiment_type_.swap(from.experiment_type_);
@@ -335,19 +336,19 @@ namespace OpenMS
 				unassigned_peptide_identifications_.swap(from.unassigned_peptide_identifications_);
 				data_processing_.swap(from.data_processing_);
 			}
-		
+
 			/// non-mutable access to the protein identifications
 			const std::vector<ProteinIdentification>& getProteinIdentifications() const
 			{
-				return protein_identifications_;	   		
-			}	
-			
+				return protein_identifications_;
+			}
+
 			/// mutable access to the protein identifications
 			std::vector<ProteinIdentification>& getProteinIdentifications()
 			{
-				return protein_identifications_;	
+				return protein_identifications_;
 			}
-			
+
 			/// sets the protein identifications
 			void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)
 			{
@@ -357,37 +358,37 @@ namespace OpenMS
 			/// non-mutable access to the unassigned peptide identifications
 			const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const
 			{
-				return unassigned_peptide_identifications_;	   		
-			}	
-			
+				return unassigned_peptide_identifications_;
+			}
+
 			/// mutable access to the unassigned peptide identifications
 			std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications()
 			{
-				return unassigned_peptide_identifications_;	
+				return unassigned_peptide_identifications_;
 			}
-			
+
 			/// sets the unassigned peptide identifications
 			void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications)
 			{
 				unassigned_peptide_identifications_ = unassigned_peptide_identifications;
 			}
-			
-			/// returns a const reference to the description of the applied data processing 
+
+			/// returns a const reference to the description of the applied data processing
 			const std::vector<DataProcessing>& getDataProcessing() const
 			{
-				return data_processing_; 
+				return data_processing_;
 			}
 
-			/// returns a mutable reference to the description of the applied data processing 
+			/// returns a mutable reference to the description of the applied data processing
 			std::vector<DataProcessing>& getDataProcessing()
 			{
-				return data_processing_; 
+				return data_processing_;
 			}
-			
-			/// sets the description of the applied data processing 
+
+			/// sets the description of the applied data processing
 			void setDataProcessing(const std::vector<DataProcessing>& processing_method)
 			{
-				data_processing_ = processing_method; 
+				data_processing_ = processing_method;
 			}
 
 			/// Equality operator
@@ -405,27 +406,27 @@ namespace OpenMS
 					data_processing_ == rhs.data_processing_
 					;
 			}
-				
+
 			/// Equality operator
 			bool operator != (const ConsensusMap& rhs) const
 			{
 				return !(operator==(rhs));
 			}
-		
+
 		protected:
-		
+
 			/// Map from index to file description
 			FileDescriptions file_description_;
-				
+
 			/// type of experiment (label-free, itraq, ...); see xsd schema
 			String experiment_type_;
-					
+
 			/// protein identifications
 			std::vector<ProteinIdentification> protein_identifications_;
 
 			/// protein identifications
 			std::vector<PeptideIdentification> unassigned_peptide_identifications_;
-			
+
 			/// applied data processing
 			std::vector<DataProcessing> data_processing_;
 

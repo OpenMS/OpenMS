@@ -75,7 +75,7 @@ START_SECTION((void setOverallQuality(QualityType q)))
 	TEST_REAL_SIMILAR(p.getOverallQuality(), 0.0)
 END_SECTION
 
-START_SECTION((QualityType getQuality(UInt index) const))
+START_SECTION((QualityType getQuality(Size index) const ))
 	Feature p;
 	TEST_REAL_SIMILAR(p.getQuality(0), 0.0)
 	p.setQuality(0, 123.456);
@@ -88,7 +88,7 @@ START_SECTION((QualityType getQuality(UInt index) const))
   TEST_EXCEPTION(Exception::Precondition, p.getQuality(10))
 END_SECTION
 
-START_SECTION((void setQuality(UInt index, QualityType q)))
+START_SECTION((void setQuality(Size index, QualityType q)))
 	Feature p;
 	p.setQuality(1, 123.456);
 	TEST_REAL_SIMILAR(p.getQuality(1), 123.456)
@@ -201,7 +201,7 @@ START_SECTION((void setConvexHulls(const vector<ConvexHull2D>& hulls)))
 	TEST_REAL_SIMILAR(tmp.getConvexHulls()[1].getPoints()[1][1],1.0)
 END_SECTION
 
-START_SECTION(ConvexHull2D& getConvexHull() const)
+START_SECTION((ConvexHull2D& getConvexHull() const))
 	Feature tmp;
 	tmp.setConvexHulls(hulls);
 	
@@ -226,7 +226,7 @@ END_SECTION
 hulls[0].addPoint(DPosition<2>(3.0,2.0));
 hulls[1].addPoint(DPosition<2>(2.0,1.0));
 
-START_SECTION( bool encloses(DoubleReal rt, DoubleReal mz) const)
+START_SECTION((bool encloses(DoubleReal rt, DoubleReal mz) const))
 	Feature tmp;
 	tmp.setConvexHulls(hulls);
 

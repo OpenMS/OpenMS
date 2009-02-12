@@ -38,7 +38,7 @@ START_TEST(SuffixArray, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION(SuffixArray())
+START_SECTION((SuffixArray()))
 {
 	NOT_TESTABLE
 }
@@ -68,7 +68,7 @@ START_SECTION((virtual String toString()=0))
 }
 END_SECTION
 
-START_SECTION((virtual void findSpec(std::vector< std::vector< std::pair< std::pair< SignedSize, SingedSize >, double > > > &candidates, const std::vector< double > &spec)=0))
+START_SECTION((virtual void findSpec(std::vector< std::vector< std::pair< std::pair< SignedSize, SignedSize >, double > > > &candidates, const std::vector< double > &spec)=0))
 {
   NOT_TESTABLE
 }

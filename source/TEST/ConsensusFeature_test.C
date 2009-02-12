@@ -66,10 +66,10 @@ tmp_feature3.setIntensity(400.0f);
 START_SECTION((ConsensusFeature& operator=(const ConsensusFeature &rhs)))
   ConsensusFeature cons(tmp_feature);
   cons.insert(1,3,tmp_feature);
-  
+
   ConsensusFeature cons_copy;
   cons_copy = cons;
-  
+
   TEST_REAL_SIMILAR(cons_copy.getRT(),1.0)
   TEST_REAL_SIMILAR(cons_copy.getMZ(),2.0)
   TEST_REAL_SIMILAR(cons_copy.getIntensity(),200.0)
@@ -79,11 +79,11 @@ START_SECTION((ConsensusFeature& operator=(const ConsensusFeature &rhs)))
 END_SECTION
 
 START_SECTION((ConsensusFeature(const ConsensusFeature &rhs)))
-  
+
   ConsensusFeature cons(tmp_feature);
   cons.insert(1,3,tmp_feature);
   ConsensusFeature cons_copy(cons);
-  
+
   TEST_REAL_SIMILAR(cons_copy.getRT(),1.0)
   TEST_REAL_SIMILAR(cons_copy.getMZ(),2.0)
   TEST_REAL_SIMILAR(cons_copy.getIntensity(),200.0)
@@ -92,8 +92,60 @@ START_SECTION((ConsensusFeature(const ConsensusFeature &rhs)))
   TEST_EQUAL((cons_copy.begin())->getIntensity(),200)
 END_SECTION
 
+START_SECTION((void insert(const HandleSetType &handle_set)))
+  ConsensusFeature::HandleSetType hs;
+  FeatureHandle fh;
+  for ( UInt i = 0; i < 3; ++i )
+  {
+    fh.setRT(i*77.7);
+    fh.setMapIndex(i+10);
+    fh.setElementIndex(i+1000);
+    hs.insert(fh);
+  }
+  ConsensusFeature cf;
+  cf.insert(hs);
+
+  TEST_EQUAL(cf.size(),3);
+  TEST_EQUAL(cf.begin()->getMapIndex(),10);
+  TEST_EQUAL(cf.rbegin()->getMapIndex(),12);
+
+END_SECTION
+
+START_SECTION((void insert(Size map_index, Size element_index, const Peak2D &element)))
+  ConsensusFeature cf;
+  Peak2D el;
+  for ( UInt i = 0; i < 3; ++i )
+  {
+    el.setRT(i*77.7);
+    cf.insert(10-i,i+1000,el);
+    TEST_EQUAL(cf.size(),i+1);
+    TEST_REAL_SIMILAR(cf.begin()->getRT(),i*77.7);
+    TEST_EQUAL(cf.begin()->getMapIndex(),10-i);
+    TEST_EQUAL(cf.begin()->getElementIndex(),i+1000);
+  }
+
+END_SECTION
+
+START_SECTION((void insert(Size map_index, Size element_index, const ConsensusFeature &element)))
+  ConsensusFeature cf;
+  ConsensusFeature el;
+  for ( UInt i = 0; i < 3; ++i )
+  {
+    el.setRT(i*77.7);
+    el.setCharge(2*i);
+    cf.insert(10-i,i+1000,el);
+    TEST_EQUAL(cf.size(),i+1);
+    TEST_REAL_SIMILAR(cf.begin()->getRT(),i*77.7);
+    TEST_EQUAL(cf.begin()->getCharge(),2*i);
+    TEST_EQUAL(cf.begin()->getMapIndex(),10-i);
+    TEST_EQUAL(cf.begin()->getElementIndex(),i+1000);
+  }
+
+END_SECTION
+
+
 START_SECTION((ConsensusFeature(const Peak2D &point)))
-  
+
   ConsensusFeature cons(tmp_feature);
   TEST_REAL_SIMILAR(cons.getRT(),1.0)
   TEST_REAL_SIMILAR(cons.getMZ(),2.0)
@@ -102,7 +154,7 @@ START_SECTION((ConsensusFeature(const Peak2D &point)))
 END_SECTION
 
 START_SECTION((ConsensusFeature(const RichPeak2D &point)))
-  
+
   ConsensusFeature cons(tmp_feature);
   TEST_REAL_SIMILAR(cons.getRT(),1.0)
   TEST_REAL_SIMILAR(cons.getMZ(),2.0)
@@ -110,11 +162,22 @@ START_SECTION((ConsensusFeature(const RichPeak2D &point)))
   TEST_EQUAL(cons.empty(), true)
 END_SECTION
 
+START_SECTION((ConsensusFeature(const Feature &feature)))
+  Feature f;
+  f.setCharge(-17);
+  f.setRT(44324.6);
+  f.setMZ(867.4);
+  const Feature& f_cref = f;
+  ConsensusFeature cf(99,23,f_cref);
+
+  TEST_EQUAL(cf.getRT(),44324.6);
+  TEST_EQUAL(cf.getMZ(),867.4);
+  TEST_EQUAL(cf.getCharge(),-17);
+END_SECTION
+
 START_SECTION((ConsensusFeature(Size map_index, Size element_index, const Feature &element)))
  	ConsensusFeature cons(1,3,tmp_feature);
-  DRange<2> pos_range(1,2,1,2);
-  DRange<1> int_range(200,200);
-    
+
   TEST_REAL_SIMILAR(cons.getRT(),1.0)
   TEST_REAL_SIMILAR(cons.getMZ(),2.0)
   TEST_REAL_SIMILAR(cons.getIntensity(),200.0)
@@ -124,6 +187,30 @@ START_SECTION((ConsensusFeature(Size map_index, Size element_index, const Featur
   TEST_EQUAL(it->getIntensity(),200)
 END_SECTION
 
+START_SECTION((ConsensusFeature(Size map_index, Size element_index, const Peak2D &element)))
+  Peak2D f;
+  f.setIntensity(-17);
+  const Peak2D& f_cref = f;
+  ConsensusFeature cf(99,23,f_cref);
+
+  ConsensusFeature::HandleSetType::const_iterator it = cf.begin();
+  TEST_EQUAL(it->getMapIndex(),99);
+  TEST_EQUAL(it->getElementIndex(),23);
+  TEST_EQUAL(it->getIntensity(),-17);
+END_SECTION
+
+START_SECTION((ConsensusFeature(Size map_index, Size element_index, const ConsensusFeature &element)))
+  ConsensusFeature f;
+  f.setIntensity(-17);
+  const ConsensusFeature& f_cref = f;
+  ConsensusFeature cf(99,23,f_cref);
+
+  ConsensusFeature::HandleSetType::const_iterator it = cf.begin();
+  TEST_EQUAL(it->getMapIndex(),99);
+  TEST_EQUAL(it->getElementIndex(),23);
+  TEST_EQUAL(it->getIntensity(),-17);
+END_SECTION
+
 START_SECTION((DRange<1> getIntensityRange() const))
   ConsensusFeature cons;
   Feature f;
@@ -131,7 +218,7 @@ START_SECTION((DRange<1> getIntensityRange() const))
   cons.insert(0,0,f);
   f.setIntensity(200.0f);
   cons.insert(0,1,f);
-  
+
   TEST_REAL_SIMILAR(cons.getIntensityRange().minX(),0.0)
   TEST_REAL_SIMILAR(cons.getIntensityRange().maxX(),200.0)
 END_SECTION
@@ -140,12 +227,12 @@ START_SECTION((DRange<2> getPositionRange() const))
   ConsensusFeature cons;
   Feature f;
   f.setRT(1.0);
-  f.setMZ(500.0);  
+  f.setMZ(500.0);
   cons.insert(0,0,f);
   f.setRT(1000.0);
-  f.setMZ(1500.0);  
+  f.setMZ(1500.0);
   cons.insert(0,1,f);
-  
+
   TEST_REAL_SIMILAR(cons.getPositionRange().minX(),1.0)
   TEST_REAL_SIMILAR(cons.getPositionRange().maxX(),1000.0)
   TEST_REAL_SIMILAR(cons.getPositionRange().minY(),500.0)
@@ -156,9 +243,9 @@ START_SECTION((const HandleSetType& getFeatures() const))
   ConsensusFeature cons;
   cons.insert(2,3,tmp_feature);
   const ConsensusFeature cons_copy(cons);
-  
+
   ConsensusFeature::HandleSetType group = cons_copy.getFeatures();
-    
+
   ConsensusFeature::HandleSetType::const_iterator it = group.begin();
   TEST_EQUAL(it->getMapIndex(),2)
   TEST_EQUAL(it->getElementIndex(),3)
@@ -172,7 +259,7 @@ START_SECTION((void insert(const FeatureHandle &handle)))
   FeatureHandle h2(4,5,tmp_feature);
   cons.insert(h1);
   cons.insert(h2);
-      
+
   ConsensusFeature::HandleSetType::const_iterator it = cons.begin();
   TEST_EQUAL(it->getMapIndex(),2)
   TEST_EQUAL(it->getElementIndex(),3)
@@ -188,7 +275,7 @@ END_SECTION
 START_SECTION((void insert(Size map_index, Size element_index, const Feature &element)))
   ConsensusFeature cons;
   cons.insert(2,3,tmp_feature);
-      
+
   ConsensusFeature::HandleSetType::const_iterator it = cons.begin();
   TEST_EQUAL(it->getMapIndex(),2)
   TEST_EQUAL(it->getElementIndex(),3)
@@ -205,8 +292,38 @@ END_SECTION
 START_SECTION((void setQuality(QualityType quality)))
 	ConsensusFeature cons;
 	cons.setQuality(4.5);
-	TEST_REAL_SIMILAR(cons.getQuality(),4.5)
+	TEST_REAL_SIMILAR(cons.getQuality(),4.5);
 END_SECTION
+
+START_SECTION((Int getCharge() const ))
+  ConsensusFeature const cons;
+  TEST_EQUAL(cons.getCharge(),0);
+END_SECTION
+
+START_SECTION((void setCharge(Int charge)))
+  ConsensusFeature cons;
+  cons.setCharge(-567);
+  TEST_EQUAL(cons.getCharge(),-567);
+END_SECTION
+
+START_SECTION((const std::vector<PeptideIdentification>& getPeptideIdentifications() const ))
+  ConsensusFeature const cons;
+  TEST_EQUAL(cons.getPeptideIdentifications().size(),0);
+END_SECTION
+
+START_SECTION((std::vector<PeptideIdentification>& getPeptideIdentifications()))
+  ConsensusFeature cons;
+  cons.getPeptideIdentifications().resize(9);
+  TEST_EQUAL(cons.getPeptideIdentifications().size(),9);
+END_SECTION
+
+START_SECTION((void setPeptideIdentifications(const std::vector< PeptideIdentification > &peptide_identifications)))
+  ConsensusFeature cons;
+  std::vector<PeptideIdentification> pi(99);
+  cons.setPeptideIdentifications(pi);
+  TEST_EQUAL(cons.getPeptideIdentifications().size(),99);
+END_SECTION
+
 
 START_SECTION((void computeConsensus()))
   ConsensusFeature cons;
@@ -221,13 +338,13 @@ START_SECTION((void computeConsensus()))
 	cons.computeConsensus();
 	TEST_REAL_SIMILAR(cons.getIntensity(),250.0)
 	TEST_REAL_SIMILAR(cons.getRT(),1.5)
-	TEST_REAL_SIMILAR(cons.getMZ(),2.5)	
+	TEST_REAL_SIMILAR(cons.getMZ(),2.5)
 	//three points
   cons.insert(6,7,tmp_feature3);
 	cons.computeConsensus();
 	TEST_REAL_SIMILAR(cons.getIntensity(),300.0)
 	TEST_REAL_SIMILAR(cons.getRT(),2.0)
-	TEST_REAL_SIMILAR(cons.getMZ(),3.0)	
+	TEST_REAL_SIMILAR(cons.getMZ(),3.0)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

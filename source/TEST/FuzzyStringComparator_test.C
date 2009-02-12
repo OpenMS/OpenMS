@@ -151,9 +151,6 @@ END_SECTION
 START_SECTION((void setLogDestination(std::ostream & rhs)))
 {
 	FuzzyStringComparator fsc;
-	// TODO: The default should be to send log output to std::cout, but
-	// strangely this doesn't work with Windows, thus I commented out the first
-	// subtest. Maybe a problem with static initializers? (Clemens, 2008-03-28)
 	TEST_EQUAL(&fsc.getLogDestination(),&std::cout);
 	fsc.setLogDestination(std::cerr);
 	TEST_EQUAL(&fsc.getLogDestination(),&std::cerr);
