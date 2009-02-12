@@ -5,8 +5,13 @@
 	This page addresses %OpenMS users and explains the ionstallation procedure. If you only want to use the %OpenMS Proteomics Pipeline (TOPP), you are strongly encouraged to <b>donload the MacOS binary installer</b> (see <a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">here</a>).
 
 	You also need to install some dependencies:
-
-
+	
+	Firstly, XCode, available from apple.com must be installed in order to be able to build %OpenMS. You also need to install Qt, version 4.4.x. Test whether the qmake program provided by Qt is available from the bash, it will be needed by cmake to find the correct Qt installation.
+	<BR><BR>
+	You can then download the source package of %OpenMS, which also contains the contrib package under the @em contrib/ path. Alternatively you can use the %OpenMS subversion repository hosted at sourceforge to get the %OpenMS source code. Then you need both, the %OpenMS source code and the contrib source code. 
+	<BR><BR>
+	Having the source code of %OpenMS available, you can proceed with building %OpenMS/TOPP. This works exactly the same way as on Linux. So you can follow this TODO  description, starting at the section "Installing the contrib package".
+<BR>
 
 	@section install_mac_development Developing with OpenMS
 
