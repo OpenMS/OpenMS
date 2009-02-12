@@ -425,6 +425,7 @@
     <chromatogramList count="2" defaultDataProcessingRef="default_dp">
       <chromatogram index="0" id="tic native" defaultArrayLength="15" >
         <cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" value=""/>
+        <cvParam cvRef="MS" accession="MS:1000809" name="chromatogram title" value="chromatograms rule!"/>
         <binaryDataArrayList count="2">
           <binaryDataArray encodedLength="160" >
             <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>

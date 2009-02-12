@@ -150,6 +150,14 @@
             <CvTerm termAccession="MS:1000572" useTerm="false" termName="binary data compression type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
 
+				<!-- chromatogram -->
+				<CvMappingRule id="chromatogram_must" cvElementPath="/mzML/run/chromatogramList/chromatogram/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/chromatogramList/chromatogram" cvTermsCombinationLogic="AND">
+						<CvTerm termAccession="MS:1000626" useTermName="false" useTerm="false" termName="chromatogram type" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+				</CvMappingRule>
+				<CvMappingRule id="chromatogram_may" cvElementPath="/mzML/run/chromatogramList/chromatogram/cvParam/@accession" requirementLevel="MAY" scopePath="/mzML/run/chromatogramList/chromatogram" cvTermsCombinationLogic="OR">
+						<CvTerm termAccession="MS:1000808" useTerm="false" termName="chromatogram attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
+				</CvMappingRule>
+       
         <!-- chromatogram binary data array -->
         <CvMappingRule id="chromatogram_binarydataarray_must" cvElementPath="/mzML/run/chromatogramList/chromatogram/binaryDataArrayList/binaryDataArray/cvParam/@accession" requirementLevel="MUST" scopePath="/mzML/run/chromatogramList/chromatogram/binaryDataArrayList/binaryDataArray" cvTermsCombinationLogic="AND">
             <CvTerm termAccession="MS:1000513" useTerm="false" termName="binary data array" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS"></CvTerm>

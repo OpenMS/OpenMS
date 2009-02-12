@@ -593,7 +593,7 @@ START_SECTION(bool isSemanticallyValid(const String& filename, StringList& error
 	//valid file
 	TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), errors, warnings),true)
 	TEST_EQUAL(errors.size(),0)
-	TEST_EQUAL(warnings.size(),2)
+	TEST_EQUAL(warnings.size(),0)
 //	for (Size i=0; i<errors.size(); ++i)
 //	{
 //		cout << "ERROR: " << errors[i] << endl;
