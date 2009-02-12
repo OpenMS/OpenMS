@@ -763,7 +763,50 @@ MESSAGE(STATUS "")
 # TODO:
 #  - this code breaks the windows cmake call (already code for win support added .. needs testing)
 
+
+# general definitions
+set(CPACK_PACKAGE_NAME "OpenMS")
+set(CPACK_PACKAGE_VENDOR "OpenMS.de")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OpenMS - A framework for mass spectrometry")
+set(CPACK_PACKAGE_VERSION "1.3.0")
+set(CPACK_PACKAGE_VERSION_MAJOR "1")
+set(CPACK_PACKAGE_VERSION_MINOR "3")
+set(CPACK_PACKAGE_VERSION_PATCH "0")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS 1.3")
+set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_SOURCE_DIR}/OpenMSPackageDescriptionFile.cmake)
+set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
+
+# install routines for MacOSX
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	
+	# the OpenMS library
+	install (TARGETS OpenMS
+		LIBRARY DESTINATION lib
+		ARCHIVE DESTINATION lib
+		COMPONENT library)
+
+	# the TOPP tools
+	foreach(TOPP_exe ${TOPP_executables})
+		install(TARGETS ${TOPP_exe}
+			RUNTIME DESTINATION bin
+			BUNDLE DESTINATION bin
+			COMPONENT applications)
+	endforeach()
+	
+	# share dir
+	install(DIRECTORY share/
+		DESTINATION share
+		COMPONENT share
+		REGEX ".svn" EXCLUDE)
+
+	# install the documentation and the tutorials
+	install(FILES     doc/index.html      DESTINATION share/OpenMS/doc COMPONENT doc)
+  install(DIRECTORY doc/html            DESTINATION share/OpenMS/doc COMPONENT doc REGEX ".svn" EXCLUDE)
+  install(DIRECTORY doc/OpenMS_tutorial DESTINATION share/OpenMS/doc COMPONENT doc REGEX ".svn" EXCLUDE)
+  install(DIRECTORY doc/TOPP_tutorial   DESTINATION share/OpenMS/doc COMPONENT doc REGEX ".svn" EXCLUDE)
+
+
+	include(CPack)
 
 endif()
 
@@ -813,19 +856,7 @@ if(NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	install(DIRECTORY doc/TOPP_tutorial   DESTINATION share/OpenMS/doc COMPONENT doc REGEX ".svn" EXCLUDE)
 
 	set(CPACK_GENERATOR "RPM")
-	set(CPACK_PACKAGE_NAME "OpenMS")
-	set(CPACK_PACKAGE_VENDOR "OpenMS.de")
-	set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OpenMS - A framework for mass spectrometry")
-	set(CPACK_PACKAGE_VERSION "1.3.0")
-	set(CPACK_PACKAGE_VERSION_MAJOR "1")
-	set(CPACK_PACKAGE_VERSION_MINOR "3")
-	set(CPACK_PACKAGE_VERSION_PATCH "0")
-	set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS 1.3")
-	set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_BINARY_DIR}/OpenMSPackageDescriptionFile.cmake)
-	set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_BINARY_DIR}/License.txt)
-
 	set(CPACK_RPM_PACKAGE_REQUIRES "Qt4")
-
 	set(CPACK_COMPONENTS_ALL applications library share)
 
 	# should be the last include
