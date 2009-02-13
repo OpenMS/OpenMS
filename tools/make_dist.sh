@@ -26,14 +26,16 @@
 
 #Make sure a SVN path is given as first argument
 #Make sure the path to the documentation is given as second argument
-if test ! $1 || test ! $2; then 
-	echo "Use: make_dist.sh <branch> <documentation>";
+if test ! $1 || test ! $2 || test ! $3; then 
+	echo "Use: make_dist.sh <branch> <documentation> <version>";
  	echo "";
  	echo "Pass the SVN path inside the OpenMS repository as first argument.";
  	echo "For the 1.2 release branch that would be 'branches/Release1.2'.";
  	echo "";
  	echo "Pass the path to an OpemMS/doc directory containing the current";
  	echo "documentation as the second argument.";
+ 	echo "";
+ 	echo "Pass the release version as third argument.";
  	echo "";
  	exit;
 fi
@@ -53,31 +55,20 @@ echo ""
 # copy documentation
 echo "####################################################"
 echo "copying documentation to release"
-cp $2/OpenMS_tutorial.pdf OpenMS/doc/
-cp $2/TOPP_tutorial.pdf OpenMS/doc/
-cp -R $2/html OpenMS/doc/
+mv $2/OpenMS_tutorial.pdf OpenMS/doc/
+mv $2/TOPP_tutorial.pdf OpenMS/doc/
+mv $2/html OpenMS/doc/
 
 # extract the current SVN version of contrib
 echo "####################################################"
 echo "extracting contrib"
+cd OpenMS
 svn export https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib || ( echo "cannot extract contrib" >&0 && exit )
-
-# copy contrib
-echo "####################################################"
-echo "copying contrib to release"
-cp -R contrib OpenMS
-
-# extracting version number
-echo "####################################################"
-echo "extracting version number"
-VERSION="`grep AC_INIT /tmp/OpenMS-dist/OpenMS/source/configure.ac | awk -F, '{print 'bla'$2'bla'}' | sed -e 's/\s//g'`"
-echo "Version: ${VERSION}"
-echo ""
 
 # create archive
 echo "####################################################"
 echo "creating archive"
-DIR="OpenMS-${VERSION}"
+DIR="OpenMS-$3"
 FILE="${DIR}.tar.gz"
 cd /tmp/OpenMS-dist/
 mv OpenMS ${DIR}
