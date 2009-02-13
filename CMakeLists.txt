@@ -481,7 +481,7 @@ if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
 endif()
 
-if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if (NOT APPLE)
 	target_link_libraries(OpenMS ${OPENMS_DEP_LIBRARIES})
 else()
 	target_link_libraries(OpenMS ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
@@ -489,7 +489,7 @@ endif()
 
 ## OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
 set(OPENMS_LIBRARIES OpenMS)
-if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if (NOT APPLE)
 	set(OPENMS_LIBRARIES OpenMS ${QT_LIBRARIES})
 endif()
 
@@ -750,9 +750,15 @@ set(CPACK_PACKAGE_VERSION_PATCH "0")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS 1.3")
 set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_SOURCE_DIR}/OpenMSPackageDescriptionFile.cmake)
 set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
+set(CPACK_RESOURCE_FILE_WELCOME ${PROJECT_SOURCE_DIR}/OpenMSPackageResourceWelomeFile.txt)
+set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/OpenMSPackageResourceReadme.txt)
+
+set(DO_INSTALL false CACHE BOOL "Set to 'ON' if you want the CMAKE_INSTALL_PREFIX to be used and the library to be installed. On 'OFF' the library and Tools will be build but not installed!")
 
 # install routines for MacOSX
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(APPLE)
+
+	set(CPACK_GENERATOR "PackageMaker")
 	
 	# the OpenMS library
 	install (TARGETS OpenMS
@@ -764,7 +770,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	foreach(TOPP_exe ${TOPP_executables})
 		install(TARGETS ${TOPP_exe}
 			RUNTIME DESTINATION bin
-			BUNDLE DESTINATION bin
+			BUNDLE DESTINATION /Applications/
 			COMPONENT applications)
 	endforeach()
 	
@@ -785,9 +791,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 endif()
 
-if(NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-				#set(DO_INSTALL false CACHE BOOL "Set to 'ON' if you want the CMAKE_INSTALL_PREFIX to be used and the library to be installed. On 'OFF' the library and Tools will be build but not installed!")
-
+if(NOT MSVC AND NOT APPLE)
 	## variables we need to distinguish 32Bit/64Bit versions
 	set(OPENMS_LIB_INSTALL_PATH "lib")
 	set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86")
