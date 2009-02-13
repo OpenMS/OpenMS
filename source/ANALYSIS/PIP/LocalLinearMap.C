@@ -26,6 +26,7 @@
 //
 
 #include <OpenMS/ANALYSIS/PIP/LocalLinearMap.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
 
@@ -50,8 +51,8 @@ using namespace std;
     wout_ = vector< DoubleReal >(param_.xdim*param_.ydim);
 
 		// path to codefile + a_file 
-    codefile = OPENMS_DATA_PATH + codefile;
-    a_file = OPENMS_DATA_PATH + a_file;
+    codefile = File::find(codefile);
+    a_file = File::find(a_file);
 
     // read in file containing codebook vectors
     ifstream inputstream_c(codefile.c_str());

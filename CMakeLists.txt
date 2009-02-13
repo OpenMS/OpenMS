@@ -505,8 +505,15 @@ foreach(i ${TOPP_executables})
 	if (MSVC AND EXISTS ${resource_file})
 		Message(STATUS "Setting resource file ${resource_file} for ${i}")
 		add_executable(${i} ${TOPP_DIR}${i}.C ${resource_file})
-  elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND EXISTS ${resource_dir}) 
+  elseif(APPLE AND EXISTS ${resource_dir}) 
     ## transform TOPPView and INIFileEditor to real Mac OS X applications
+		set(MACOSX_BUNDLE_INFO_STRING "${i} - Version 1.3")
+	  set(MACOSX_BUNDLE_SHORT_VERSION_STRING "1.3")
+	  set(MACOSX_BUNDLE_VERSION "1.3")
+	  set(MACOSX_BUNDLE_LONG_VERSION_STRING "1.3")
+	  set(MACOSX_BUNDLE_ICON_FILE "${i}.icns")
+	  set(MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${i}")
+	  set(MACOSX_BUNDLE_BUNDLE_NAME "${i}")
     add_executable(${i} MACOSX_BUNDLE ${TOPP_DIR}${i}.C)          
 
     ## Need to copy the icon file and the custom Info.plist
@@ -519,9 +526,9 @@ foreach(i ${TOPP_executables})
         TARGET ${i}
         POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E echo "Post build action for ${i}.app -- Creating OS X bundle"
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${resource_dir}Info.plist
-        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/\$\(CONFIGURATION\)/${i}.app/Contents
+        #COMMAND ${CMAKE_COMMAND} -E copy
+        #${resource_dir}Info.plist
+        #${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/\$\(CONFIGURATION\)/${i}.app/Contents
         COMMAND ${CMAKE_COMMAND} -E make_directory
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/\$\(CONFIGURATION\)/${i}.app/Contents/Resources
         COMMAND ${CMAKE_COMMAND} -E copy
@@ -533,9 +540,9 @@ foreach(i ${TOPP_executables})
         TARGET ${i}
         POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E echo "Post build action for ${i}.app -- Creating OS X bundle"
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${resource_dir}Info.plist
-        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents
+        #COMMAND ${CMAKE_COMMAND} -E copy
+        #${resource_dir}Info.plist
+        #${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents
         COMMAND ${CMAKE_COMMAND} -E make_directory
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i}.app/Contents/Resources
         COMMAND ${CMAKE_COMMAND} -E copy
