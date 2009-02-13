@@ -11,7 +11,7 @@
 	(see <a href="http://sourceforge.net/project/showfiles.php?group_id=90558" target="_blank">here</a>),
 	instead of building %OpenMS from sources. For more information read the install instructions for the TOPP binaries.
 
-  @warning Compilation (not installation!) of %OpenMS on Windows is experimental, but should work on any system with a Visual Studio 2005 compiler and above.
+  @warning Compilation of %OpenMS on Windows is experimental, but should work on any system with a Visual Studio 2005 compiler and above.
 
 	This document especially considers the installation
   of several libraries which are required by %OpenMS. Most of these libraries are made available in our "contrib-package" (see below).
@@ -23,7 +23,7 @@
  <UL>
     <LI>whenever there is a $ this implies entering everything that follows the $ into a command line (usually the Visual Studio Command line)
     <LI>A string in <> is something the user needs to choose e.g. <path_to_contrib> means that this string should be replaced by the path where the user put the %OpenMS contrib package. Usually all commands where this is necessary come with examples, so don't worry.
-    <LI>Whenever you added a path to your Windows PATH Environment variable, <tt>Command Line</tt> which are already open are not refreshed. You will need a to open a new one.
+    <LI>Whenever you added a path to your Windows PATH Environment variable, the <tt>Command Lines</tt> which are already open are not refreshed. You will need a to open a new one.
   </UL>
 
 
@@ -32,7 +32,7 @@
 <b>Pre-Requisites (Software)</b>
   <UL>
     <LI>have a Visual Studio 2005/2008 installed (2003 is not supported)
-    <LI>Have CMake 2.6 or greater installed (www.cmake.org)
+    <LI>Have CMake 2.6 or greater installed (see http://www.cmake.org)
     <LI>if you work with the SVN version of %OpenMS (instead of the Release package), we recommend downloading
     the svn binaries (which contain svnversion.exe). TortoiseSVN is *not* enough!
     You can find the binaries here: http://subversion.tigris.org
@@ -88,8 +88,8 @@
 			</tr>
 		</table>
 
-    <b> Install Qt</b>
-    QT (choose commercial or non-commercial - whatever is applicable to you: read more on the Trolltech website)
+  @subsection install_qt QT installation
+    QT comes in two flavors: commercial or non-commercial - choose whatever is applicable to you: read more on the Trolltech website
     <OL>
       <LI>non-commercial:
         <OL>
@@ -107,8 +107,9 @@
         </OL>
       <LI>set the Environment Variable QTDIR to your Qt-Directory
       <LI>add the <Qt>/bin (!) directory to your PATH Environment Variable
+		</OL>
 
-
+	@subsection install_win_contrib Contrib installation
 		In order to make the
 		installation of the remaining required libraries easier, we composed a
 		"contrib-package" containing the libraries GSL, CGAL, libSVM, SeqAn and XERCES-C.
@@ -121,7 +122,7 @@
 			<li>We applied some patches to the libraries to fix some bugs. <BR><b>These bugs may be fatal if you do not use the contrib package.</b></li>
 		</ul>
 
-		@subsection install_win_contrib Contrib installation
+=======		@subsection install_win_contrib Contrib installation
 
   @b Download:
 
@@ -139,13 +140,12 @@
       <LI>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
       <LI>create a build directory for the %OpenMS contrib <br>
           -e.g. $ mkdir contrib_win64_build
-      <LI>call CMake to build the contrib
-				You will need to set two important parameters which determine the type of contrib that is build.
+      <LI>call CMake to build the contrib<br>
 				Be aware that you can build 64bit apps even if your operating system is only 32bit (cross-compiling), but you will not be
 				able to run 64bit apps in this case.
 				
 @code
-cd <path_to_contrib_build_directory>
+cd <path_to_contrib_build>
 cmake -G "<generator>" "<path_to_contrib>"
 @endcode
 
@@ -158,7 +158,7 @@ cd c:\svn\contrib_win64_build
 cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
 @endcode
 
-				<LI>add the <contrib>/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
+				<LI>add the <path_to_contrib_build>/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
       </OL>
     
 
@@ -166,8 +166,7 @@ cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
   @section install_win_openms Installing OpenMS
 
 		If you have not installed the libraries which %OpenMS requires,
-		please refer to the section @ref install_win_required above. Otherwise you might only get parts of the
-		full %OpenMS functionality.
+		please refer to the section @ref install_win_required above.
 		<br>
 		Assuming you have successfully installed the dependent libraries, you need to
 		get the %OpenMS source code. The latest stable version of %OpenMS
@@ -183,21 +182,21 @@ cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
           -e.g. $ mkdir OpenMS_Win64
       <LI>call CMake to create the BuildSystem there
 @code
-cd <path_to_OpenMS_build_directory>
-cmake -D CONTRIB_CUSTOM_DIR:PATH="<path_to_contrib>" -G "<generator>" "<path_to_OpenMS>"
+cd <path_to_OpenMS_build>
+cmake -D CONTRIB_CUSTOM_DIR:PATH="<path_to_contrib_build>" -G "<generator>" "<path_to_OpenMS>"
 @endcode
           The choice of <generator> is dependent on your system. Type <tt>$ cmake</tt> to see a list of available generators.
           If you use a Visual Studio Generator, it should be identical to the one used for building the contrib.
           Example:
 @code
 cd c:\svn\OpenMS_Win64
-cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib" -G "Visual Studio 9 2008 Win64" "../OpenMS"
+cmake -D CONTRIB_CUSTOM_DIR:PATH="C:\svn\contrib_win64_build" -G "Visual Studio 9 2008 Win64" "../OpenMS"
 @endcode
 
       </OL>
 
 		Now there should be a <tt>OpenMS.sln</tt> file in your build directory, which you can open using Visual Studio.
-		If you chose another generator (e.g. Eclipse) you will find something equivalent.
+		If you choose another generator (e.g. Eclipse) you will find something equivalent.
 
 		In Visual Studio execute the 'targets' project, which will show you the most prominent targets.
 		
