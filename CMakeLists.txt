@@ -611,30 +611,55 @@ export_library_dependencies(${OpenMS_BINARY_DIR}/OpenMSLibraryDepends.cmake)
 ## TODO install these files to a specific location to have a standard way to be used with external code
 
 ##### targets list #####
-add_custom_target(targets
-	                COMMAND ${CMAKE_COMMAND} -E echo ""
-	                COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
-	                COMMAND ${CMAKE_COMMAND} -E echo ""
-                  COMMAND ${CMAKE_COMMAND} -E echo "The following make targets are available:"
-                  COMMAND ${CMAKE_COMMAND} -E echo "    [no target]    builds the OpenMS library, TOPP tools and UTILS tools"
-                  COMMAND ${CMAKE_COMMAND} -E echo "    OpenMS         builds the OpenMS library"
-                  COMMAND ${CMAKE_COMMAND} -E echo "    TOPP           builds the TOPP tools"
-                  COMMAND ${CMAKE_COMMAND} -E echo "    UTILS          builds the UTILS tools"
-                  COMMAND ${CMAKE_COMMAND} -E echo "    TEST           builds the OpenMS tests"
-                  COMMAND ${CMAKE_COMMAND} -E echo "    test           executes OpenMS and TOPP tests"
-                  COMMAND ${CMAKE_COMMAND} -E echo "                   make sure they are built using the TEST target"
-                  COMMAND ${CMAKE_COMMAND} -E echo "    EXAMPLES       builds the example executables in source/EXAMPLES"
-                  COMMAND ${CMAKE_COMMAND} -E echo "    help           list all available targets (very long)"
-                  COMMAND ${CMAKE_COMMAND} -E echo ""
-                  COMMAND ${CMAKE_COMMAND} -E echo "Single TOPP tools have their own target, e.g. TOPPView"
-                  COMMAND ${CMAKE_COMMAND} -E echo "The same applies for class tests and UTILS tools."
-	                COMMAND ${CMAKE_COMMAND} -E echo ""
-	                COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
-	                COMMAND ${CMAKE_COMMAND} -E echo ""
-                  COMMENT "The most important targets for OpenMS"
-                  VERBATIM
-  )
-
+if (MSVC)
+	add_custom_target(targets
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMAND ${CMAKE_COMMAND} -E echo "The following make targets are available:"
+										COMMAND ${CMAKE_COMMAND} -E echo "    ALL_BUILD      builds the OpenMS library, TOPP tools and UTILS tools"
+										COMMAND ${CMAKE_COMMAND} -E echo "    OpenMS         builds the OpenMS library"
+										COMMAND ${CMAKE_COMMAND} -E echo "    TOPP           builds the TOPP tools"
+										COMMAND ${CMAKE_COMMAND} -E echo "    UTILS          builds the UTILS tools"
+										COMMAND ${CMAKE_COMMAND} -E echo "    TEST           builds the OpenMS tests"
+										COMMAND ${CMAKE_COMMAND} -E echo "    RUN_TESTS      executes OpenMS and TOPP tests"
+										COMMAND ${CMAKE_COMMAND} -E echo "                   make sure they are built using the TEST target"
+										COMMAND ${CMAKE_COMMAND} -E echo "    EXAMPLES       builds the example executables in source/EXAMPLES"
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMAND ${CMAKE_COMMAND} -E echo "Single TOPP tools have their own target, e.g. TOPPView"
+										COMMAND ${CMAKE_COMMAND} -E echo "The same applies for class tests and UTILS tools."
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMENT "The most important targets for OpenMS"
+										VERBATIM
+		)
+else()
+	add_custom_target(targets
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMAND ${CMAKE_COMMAND} -E echo "The following make targets are available:"
+										COMMAND ${CMAKE_COMMAND} -E echo "    [no target]    builds the OpenMS library, TOPP tools and UTILS tools"
+										COMMAND ${CMAKE_COMMAND} -E echo "    OpenMS         builds the OpenMS library"
+										COMMAND ${CMAKE_COMMAND} -E echo "    TOPP           builds the TOPP tools"
+										COMMAND ${CMAKE_COMMAND} -E echo "    UTILS          builds the UTILS tools"
+										COMMAND ${CMAKE_COMMAND} -E echo "    TEST           builds the OpenMS tests"
+										COMMAND ${CMAKE_COMMAND} -E echo "    test           executes OpenMS and TOPP tests"
+										COMMAND ${CMAKE_COMMAND} -E echo "                   make sure they are built using the TEST target"
+										COMMAND ${CMAKE_COMMAND} -E echo "    EXAMPLES       builds the example executables in source/EXAMPLES"
+										COMMAND ${CMAKE_COMMAND} -E echo "    help           list all available targets (very long)"
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMAND ${CMAKE_COMMAND} -E echo "Single TOPP tools have their own target, e.g. TOPPView"
+										COMMAND ${CMAKE_COMMAND} -E echo "The same applies for class tests and UTILS tools."
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
+										COMMAND ${CMAKE_COMMAND} -E echo ""
+										COMMENT "The most important targets for OpenMS"
+										VERBATIM
+		)
+endif()
+	
 ##### Message after OpenMS has been built #####
 if (MSVC)
   add_custom_command(TARGET OpenMS
