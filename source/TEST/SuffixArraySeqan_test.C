@@ -223,12 +223,12 @@ START_SECTION((bool open(const String &filename)))
 END_SECTION
 
 
-START_SECTION((bool save(const String &filename)))
-{
-	TEST_EXCEPTION (Exception::UnableToCreateFile,sa->save("/usr/WhereIHaveNoRigths"));
-	//needs no further testing because the functionality comes from seqan
-}
-END_SECTION
+//START_SECTION((bool save(const String &filename)))
+//{
+//	TEST_EXCEPTION (Exception::UnableToCreateFile,sa->save("/usr/WhereIHaveNoRigths"));
+//	//needs no further testing because the functionality comes from seqan
+//}
+//END_SECTION
 
 #if 1
 
