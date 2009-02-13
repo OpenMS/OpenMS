@@ -338,7 +338,7 @@ function grep_sources()
         echo "=>  See also: find_sources, info xargs, info grep"
         _OpenMS_where_defined
     else
-        find_sources -print0 | xargs -0 grep --color -n $@
+        find_sources -print0 | xargs -0 grep --color -n "$@"
     fi
 }
 
