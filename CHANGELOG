@@ -15,6 +15,8 @@ New features and improvements of OpenMS:
 - The macros used for unit testing in source/TEST have been revised.
 - More consistent handling of single vs. double numeric precision, esp. in file output.
 - Added ANALYSIS/PIP/PeakIntensityPredictor class for peak intensity prediction (contributed by Alexandra Scherbart).
+- Added support for Intel Compiler versions 10 and 11
+- Added support for Qt up to 4.5 rc1
 
 New features and improvements of TOPP:
 - Added SILACAnalyzer: A specialized tool for quantitation of SILAC experiments (contributed by Lars Nilse).
@@ -28,6 +30,8 @@ New features and improvements of TOPP:
 - ConsensusID: Now also supports consensus identification of features and consensus features.
 - INIFileEditor: Support for string/int/double lists and input/output files was added.
 - Added PrecursorIonSelector: A tool for result-driven precursor ion selection.
+- FalseDiscoveryRate: corrected FDR calculations and added optional support for q-values
+- Added MascotAdapterOnline: which allows queries to Mascot via network (together with Daniel Jameson)
 
 New features and improvements of TOPPView:
 - Added functionality for editing feature data
@@ -167,7 +171,7 @@ New features and improvements of TOPP:
   and protein levels
 
 New features and improvements of TOPPView:
-- Mayor update to the user interface and functionality
+- Major update to the user interface and functionality
 - Speed improvements of the 2D view
 - Many bug fixes
 - Updated tutorial
