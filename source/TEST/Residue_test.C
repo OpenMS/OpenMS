@@ -171,7 +171,7 @@ START_SECTION(Residue(const Residue &residue))
 	TEST_EQUAL(copy, *e_ptr)
 END_SECTION
 
-START_SECTION(Residue(const String &name, const String &three_letter_code, const String &one_letter_code, const EmpiricalFormula &formula, const EmpiricalFormula &neutral_loss))
+START_SECTION(Residue(const String &name, const String &three_letter_code, const String &one_letter_code, const EmpiricalFormula &formula))
 	Residue copy(e_ptr->getName(), e_ptr->getThreeLetterCode(), e_ptr->getOneLetterCode(), e_ptr->getFormula());
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 	TEST_EQUAL(copy.getThreeLetterCode(), e_ptr->getThreeLetterCode())
@@ -275,17 +275,69 @@ START_SECTION(void setLossNames(const std::vector<String> &name))
 	TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
 
-START_SECTION(const std::vector<String>& getLossName() const)
+START_SECTION(const std::vector<String>& getLossNames() const)
 	vector<String> names;
 	names.push_back("Waesserchen");
 	TEST_EQUAL(e_ptr->getLossNames() == names, true)
 END_SECTION
 
-START_SECTION(void addLossName(const String&))
+START_SECTION(void addLossName(const String& name))
 	Residue copy(*e_ptr);
 	TEST_EQUAL(*e_ptr, copy)
 	copy.addLossName("Waesserchen2");
 	TEST_NOT_EQUAL(*e_ptr, copy)
+END_SECTION
+
+START_SECTION(void setNTermLossFormulas(const std::vector< EmpiricalFormula > &))
+	Residue copy(*e_ptr);
+	TEST_EQUAL(*e_ptr, copy)
+	vector<EmpiricalFormula> losses;
+	losses.push_back(EmpiricalFormula("H3O"));
+	e_ptr->setNTermLossFormulas(losses);
+	TEST_NOT_EQUAL(*e_ptr == copy, true)
+END_SECTION
+
+START_SECTION(const std::vector<EmpiricalFormula>& getNTermLossFormulas() const)
+	vector<EmpiricalFormula> losses;
+	losses.push_back(EmpiricalFormula("H3O"));
+	TEST_EQUAL(e_ptr->getNTermLossFormulas() == losses, true)
+END_SECTION
+
+START_SECTION(void addNTermLossFormula(const EmpiricalFormula&))
+  Residue copy(*e_ptr);
+  TEST_EQUAL(*e_ptr, copy)
+  e_ptr->addNTermLossFormula(EmpiricalFormula("H4O"));
+  TEST_NOT_EQUAL(*e_ptr == copy, true)
+END_SECTION
+
+START_SECTION(void setNTermLossNames(const std::vector< String > &name))
+	Residue copy(*e_ptr);
+	TEST_EQUAL(*e_ptr, copy);
+	vector<String> names;
+	names.push_back("Nwaesserchen");
+	e_ptr->setNTermLossNames(names);
+	TEST_NOT_EQUAL(*e_ptr, copy)
+END_SECTION
+
+START_SECTION(const std::vector<String>& getNTermLossNames() const)
+	vector<String> names;
+	names.push_back("Nwaesserchen");
+	TEST_EQUAL(e_ptr->getNTermLossNames() == names, true)
+END_SECTION
+
+START_SECTION(void addNTermLossName(const String &name))
+	Residue copy(*e_ptr);
+	TEST_EQUAL(*e_ptr, copy);
+	e_ptr->addNTermLossName("Nwaesserchen2");
+	TEST_NOT_EQUAL(*e_ptr == copy, true);
+END_SECTION
+
+START_SECTION(bool hasNTermNeutralLosses() const)
+	Residue copy(*e_ptr);
+	TEST_EQUAL(copy.hasNTermNeutralLosses(), true)
+	copy.setNTermLossFormulas(vector<EmpiricalFormula>());
+	copy.setNTermLossNames(vector<String>());
+	TEST_EQUAL(copy.hasNTermNeutralLosses(), false)
 END_SECTION
 
 START_SECTION(void setFormula(const EmpiricalFormula &formula, ResidueType res_type=Full))
