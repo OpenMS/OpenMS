@@ -310,7 +310,7 @@ namespace OpenMS
 		channel_names_[1].setMatrix<8,1>(CHANNELS_EIGHTPLEX);
 
 		channel_map_.clear();
-		for (Int i=0; i < channel_names_[itraq_type_].rows(); ++i)
+		for (Size i=0; i < channel_names_[itraq_type_].rows(); ++i)
 		{
 			ChannelInfo info;
 			info.description = "";
