@@ -238,22 +238,18 @@ add_test("TOPP_RTModel_2" ${TOPP_BIN_PATH}/RTModel -in_positive ${DATA_DIR_TOPP}
 add_test("TOPP_RTModel_2_out1" ${DIFF} -in1 RTModel_2_output.tmp -in2 ${DATA_DIR_TOPP}/RTModel_2_output.model)
 add_test("TOPP_RTModel_2_out2" ${DIFF} -in1 RTModel_2_output.tmp_samples -in2 ${DATA_DIR_TOPP}/RTModel_2_output.samples)
 add_test("TOPP_RTModel_2_out3" ${DIFF} -in1 RTModel_2_output.tmp_additional_parameters -in2 ${DATA_DIR_TOPP}/RTModel_2_output.additional_parameters)
-#REMOVE(-rf RTModel_2_output.tmp_additional_parameters RTModel_2_output.tmp_samples
 add_test("TOPP_RTModel_3" ${TOPP_BIN_PATH}/RTModel -in ${DATA_DIR_TOPP}/RTModel_3_input.idXML -out RTModel_3_output.tmp -ini ${DATA_DIR_TOPP}/RTModel_3_parameters.ini)
 add_test("TOPP_RTModel_3_out1" ${DIFF} -in1 RTModel_3_output.tmp -in2 ${DATA_DIR_TOPP}/RTModel_3_output.model)
 add_test("TOPP_RTModel_3_out2" ${DIFF} -in1 RTModel_3_output.tmp_samples -in2 ${DATA_DIR_TOPP}/RTModel_3_output.samples)
-#REMOVE(-rf RTModel_3_output.tmp_additional_parameters RTModel_3_output.tmp_samples points.txt
 add_test("TOPP_RTModel_4" ${TOPP_BIN_PATH}/RTModel -in ${DATA_DIR_TOPP}/RTModel_4_input.txt -out RTModel_4_output.tmp -ini ${DATA_DIR_TOPP}/RTModel_4_parameters.ini -textfile_input)
 add_test("TOPP_RTModel_4_out1" ${DIFF} -in1 RTModel_4_output.tmp -in2 ${DATA_DIR_TOPP}/RTModel_4_output.model)
 add_test("TOPP_RTModel_4_out2" ${DIFF} -in1 RTModel_4_output.tmp_samples -in2 ${DATA_DIR_TOPP}/RTModel_4_output.samples)
-#REMOVE(-rf RTModel_4_output.tmp_additional_parameters RTModel_4_output.tmp_samples points.txt
 
 ### PTModel tests
 add_test("TOPP_PTModel_1" ${TOPP_BIN_PATH}/PTModel -in_positive ${DATA_DIR_TOPP}/PTModel_1_input_positive.idXML -in_negative ${DATA_DIR_TOPP}/PTModel_1_input_negative.idXML -out PTModel_1_output.tmp -ini ${DATA_DIR_TOPP}/PTModel_1_parameters.ini)
 add_test("TOPP_PTModel_1_out1" ${DIFF} -whitelist "probA" "probB" -in1 PTModel_1_output.tmp -in2 ${DATA_DIR_TOPP}/PTModel_1_output.model)
 add_test("TOPP_PTModel_1_out2" ${DIFF} -in1 PTModel_1_output.tmp_samples -in2 ${DATA_DIR_TOPP}/PTModel_1_output.samples)
 add_test("TOPP_PTModel_1_out3" ${DIFF} -in1 PTModel_1_output.tmp_additional_parameters -in2 ${DATA_DIR_TOPP}/PTModel_1_output.additional_parameters)
-#REMOVE(-rf PTModel_1_output.tmp_additional_parameters PTModel_1_output.tmp_samples
 
 ### PTPredict tests
 add_test("TOPP_PTPredict_1" ${TOPP_BIN_PATH}/PTPredict -in ${DATA_DIR_TOPP}/PTPredict_1_input.idXML -out PTPredict_1_output.tmp -svm_model ${DATA_DIR_TOPP}/PTPredict_1_input.model)
@@ -329,20 +325,24 @@ add_test("TOPP_TOFCalibration_2_out1" ${DIFF} -in1 TOFCalibration_2_output.tmp -
 ### TextExporter tests
 add_test("TOPP_TextExporter_1" ${TOPP_BIN_PATH}/TextExporter -in ${DATA_DIR_TOPP}/TextExporter_1_input.featureXML -no_progress -out TextExporter.tmp)
 add_test("TOPP_TextExporter_1_out1" ${DIFF} -in1 TextExporter.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_1_output.txt)
+
 add_test("TOPP_TextExporter_2" ${TOPP_BIN_PATH}/TextExporter -in ${DATA_DIR_TOPP}/TextExporter_2_input.consensusXML -ini ${DATA_DIR_TOPP}/TextExporter_2_parameters.ini)
 add_test("TOPP_TextExporter_2_out1" ${DIFF} -whitelist "extracted from" -in1 TextExporter_2_consensus_centroids.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_2_consensus_centroids.wsv)
 add_test("TOPP_TextExporter_2_out2" ${DIFF} -whitelist "extracted from" -in1 TextExporter_2_consensus_elements.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_2_consensus_elements.wsv)
 add_test("TOPP_TextExporter_2_out3" ${DIFF} -whitelist "extracted from" -in1 TextExporter_2_consensus_features.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_2_consensus_features.wsv)
-add_test("TOPP_TextExporter_3" ${TOPP_BIN_PATH}/TextExporter -in ${DATA_DIR_TOPP}/TextExporter_3_input.idXML -no_progress -out TextExporter3.tmp)
-add_test("TOPP_TextExporter_3_out1" ${DIFF} -in1 TextExporter3.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_3_output.txt)
-add_test("TOPP_TextExporter_4" ${TOPP_BIN_PATH}/TextExporter -in ${DATA_DIR_TOPP}/TextExporter_3_input.idXML -no_progress -out TextExporter3.tmp -proteins_only)
-add_test("TOPP_TextExporter_4_out1" ${DIFF} -in1 TextExporter3.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_3_output_proteins.txt)
-add_test("TOPP_TextExporter_5" ${TOPP_BIN_PATH}/TextExporter -in ${DATA_DIR_TOPP}/TextExporter_3_input.idXML -no_progress -out TextExporter3.tmp -peptides_only)
-add_test("TOPP_TextExporter_5_out1" ${DIFF} -in1 TextExporter3.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_3_output_peptides.txt)
-add_test("TOPP_TextExporter_6" ${TOPP_BIN_PATH}/TextExporter -in ${DATA_DIR_TOPP}/TextExporter_4_input.idXML -no_progress -out TextExporter4.tmp -peptides_only_csv)
-add_test("TOPP_TextExporter_6_out1" ${DIFF} -in1 TextExporter4.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_4_output.txt)
-add_test("TOPP_TextExporter_7" ${TOPP_BIN_PATH}/TextExporter -in ${DATA_DIR_TOPP}/TextExporter_5_input.idXML -no_progress -out TextExporter5.tmp -peptides_only_csv -first_dim_rt)
-add_test("TOPP_TextExporter_7_out1" ${DIFF} -in1 TextExporter5.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_5_output.txt)
+
+add_test("TOPP_TextExporter_3" ${TOPP_BIN_PATH}/TextExporter -in ${DATA_DIR_TOPP}/TextExporter_3_input.idXML -no_progress -out TextExporter.tmp)
+add_test("TOPP_TextExporter_3_out1" ${DIFF} -in1 TextExporter.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_3_output.txt)
+
+add_test("TOPP_TextExporter_4" ${TOPP_BIN_PATH}/TextExporter -in ${DATA_DIR_TOPP}/TextExporter_3_input.idXML -no_progress -out TextExporter.tmp -proteins_only)
+add_test("TOPP_TextExporter_4_out1" ${DIFF} -in1 TextExporter.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_4_output_proteins.txt)
+
+add_test("TOPP_TextExporter_5" ${TOPP_BIN_PATH}/TextExporter -in ${DATA_DIR_TOPP}/TextExporter_3_input.idXML -no_progress -out TextExporter.tmp -peptides_only -first_dim_rt)
+add_test("TOPP_TextExporter_5_out1" ${DIFF} -in1 TextExporter.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_5_output_peptides.txt)
+
+add_test("TOPP_TextExporter_6" ${TOPP_BIN_PATH}/TextExporter -in ${DATA_DIR_TOPP}/TextExporter_6_input.featureXML -no_progress -out TextExporter.tmp -no_ids)
+add_test("TOPP_TextExporter_6_out1" ${DIFF} -in1 TextExporter.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_6_output.txt)
+
 
 ### SILACAnalyzer tests
 add_test("TOPP_SILACAnalyzer_1" ${TOPP_BIN_PATH}/SILACAnalyzer -ini ${DATA_DIR_TOPP}/SILACAnalyzer_1_parameters.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_1_input.mzData -out SILACAnalyzer_1_output.tmp)
@@ -354,7 +354,6 @@ add_test("TOPP_FeatureFinderMRM_1_out1" ${DIFF} -in1 FeatureFinderMRM.tmp -in2 $
 add_test("TOPP_FeatureFinderMRM_2" ${TOPP_BIN_PATH}/FeatureFinderMRM -in ${DATA_DIR_TOPP}/FeatureFinderMRM_1_input.mzData -ini ${DATA_DIR_TOPP}/FeatureFinderMRM_1.ini -d -out FeatureFinderMRM.tmp)
 add_test("TOPP_FeatureFinderMRM_2_out1" ${DIFF} -in1 FeatureFinderMRM.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMRM_1_output.featureXML)
 add_test("TOPP_FeatureFinderMRM_2_out2" ${DIFF} -in1 precursor_461.743 -in2 ${DATA_DIR_TOPP}/FeatureFinderMRM_2_output.txt)
-#REMOVE(-rf precursor_461.743
 
 ### FeatureLinker tests
 add_test("TOPP_FeatureLinker_1" ${TOPP_BIN_PATH}/FeatureLinker -ini ${DATA_DIR_TOPP}/FeatureLinker_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinker_1_input.featureXML)

@@ -51,10 +51,11 @@ using namespace std;
 
 	@brief This application converts several %OpenMS XML formats
 	(namely featureXML, consensusXML and idXML) to text files.
-	These text files can be easily read using other applications
-	such as R, Matlab, Excel, etc.
+	
+	The primary goal of this tool is to create a readable format
+	for Excel and OpenOffice.
 
-	@todo Add identifications output (protein, peptide, unassigned peptide) to featureXML and consensusXML and consider no_ids flag (Andreas, Clemens, Chris, Nico)
+	@todo Support consensusXML the same way as all other inputs - seperator, first column indicator, no_ids flag (Andreas, Marc)
 
 	<B>The command line parameters of this tool are:</B>
 	@verbinclude TOPP_TextExporter.cli
@@ -162,13 +163,16 @@ namespace OpenMS
       registerInputFile_("in","<file>","","Input file ");
     	setValidFormats_("in",StringList::create("featureXML,consensusXML,idXML"));
       registerOutputFile_("out","<file>","","Output file. Only used for FeatureXML and IdXML.",false);
+      registerStringOption_("seperator","<sep>","","The used seperator characters. If unset the 'tab' character is used.",false);
       registerFlag_("no_ids","Suppresses output of identification data for consensusXML and featureXML");
 			addEmptyLine_();
+
 			addText_("Options for IdXML files:");
-			registerFlag_("proteins_only", "Set this flag if you want only protein information from an idXML file");
-			registerFlag_("peptides_only", "Set this flag if you want only peptide information from an idXML file");
-			registerFlag_("peptides_only_csv","Set this flag if you want only peptide information from an idXML file in csv format",false);
+			registerFlag_("proteins_only","Set this flag if you want only protein information from an idXML file");
+			registerFlag_("peptides_only","Set this flag if you want only peptide information from an idXML file");
+			registerFlag_("first_dim_rt","If this flag is set the first_dim RT of the peptide hits will also be printed (if present).");
 			addEmptyLine_();
+
 			addText_("Options for ConsensusXML files:");
 			registerOutputFile_("consensus_centroids","<file>","","Centroids of consensus features",false);
 			registerOutputFile_("consensus_elements","<file>","","Elements of consensus features",false);
@@ -179,18 +183,7 @@ namespace OpenMS
 			registerFlag_("sort_by_maps","Apply a stable sort by the covered maps, lexicographically",false);
 			registerFlag_("sort_by_size","Apply a stable sort by decreasing size (i.e., the number of elements)",false);
 			addText_("Sorting options can be combined.  The precedence is: sort_by_size, sort_by_maps, sorting_method");
-			registerFlag_("first_dim_rt","If this flag is set the first_dim RT of the peptide hits will also be printed (if present).");
-			return;
 		}
-
-		/*
-
-		An example for ConsensusXML:
-
-		splot 'consensus_features.wsv' using 1:1:1 w l lw 2, 'consensus_features.wsv' using 1:1:1:($5-$1):(0):(0) with vectors nohead, 'consensus_features.wsv' using 1:1:1:(0):($9-$1):(0) with vectors nohead, 'consensus_features.wsv' using 1:1:1:(0):(0):($13-$1) with vectors nohead, 'consensus_features.wsv' using 5:1:1 w l, 'consensus_features.wsv' using 1:9:1 w l,'consensus_features.wsv' using 1:1:13 w l
-
-		*/
-
 
 		ExitCodes main_(int , const char**)
 		{
@@ -198,14 +191,16 @@ namespace OpenMS
 			//-------------------------------------------------------------
 			// parameter handling
 			//-------------------------------------------------------------
-
 			String in = getStringOption_("in");
 			String out = getStringOption_("out");
 			Size counter = 0;
-			bool without_header_repetition = getFlag_("peptides_only_csv");
       bool no_ids = getFlag_("no_ids");
       bool first_dim_rt = getFlag_("first_dim_rt");
-
+			
+			//seperator
+			String sep = getStringOption_("seperator");
+			if (sep=="") sep = "\t";
+			
       //input file type
       FileTypes::Type in_type = FileHandler::getType(in);
       writeDebug_(String("Input file type: ") + FileHandler::typeToName(in_type), 2);
@@ -230,30 +225,75 @@ namespace OpenMS
         ofstream outstr( out.c_str() );
 
 				// stores one feature per line
-				outstr << "# rt, mz, intensity, charge, overall_quality, rt_quality, mz_quality, rt_start, rt_end" << endl;
+				if (no_ids)
+				{
+					outstr << "#rt" << sep << "mz" << sep << "intensity" << sep << "charge" << sep << "overall_quality" << sep << "rt_quality" << sep << "mz_quality" << sep << "rt_start" << sep << "rt_end" << endl;
+        }
+        else
+      	{
+					outstr << "#FEATURE" << sep << "rt" << sep << "mz" << sep << "intensity" << sep << "charge" << sep << "overall_quality" << sep << "rt_quality" << sep << "mz_quality" << sep << "rt_start" << sep << "rt_end" << endl;
+        	outstr << "#PEPTIDE" << sep << "rt" << sep << "mz" << sep << "score" << sep << "rank" << sep << "sequence" << sep << "charge" << sep << "AA_before" << sep << "AA_after" << sep << "score_type" << sep << "search_identifier" << endl;
+      	}
         for (FeatureMap< >::const_iterator citer = feature_map.begin();
 						 citer != feature_map.end();
              ++citer)
         {
-          outstr << citer->getPosition()[0] << " " << citer->getPosition()[1] << " " << citer->getIntensity();
-          outstr << " " << citer->getCharge();
-          outstr << " " << citer->getOverallQuality();
-          outstr << " " << citer->getQuality(0) << " " << citer->getQuality(1);
+        	if (!no_ids) outstr << "FEATURE" << sep ;
+          outstr << citer->getPosition()[0] << sep << citer->getPosition()[1] << sep << citer->getIntensity();
+          outstr << sep << citer->getCharge();
+          outstr << sep << citer->getOverallQuality();
+          outstr << sep << citer->getQuality(0) << sep << citer->getQuality(1);
 
 					if (citer->getConvexHulls().size() > 0)
 					{
-          	outstr << " " << citer->getConvexHulls().begin()->getBoundingBox().minX();
-          	outstr << " " << citer->getConvexHulls().begin()->getBoundingBox().maxX();
+          	outstr << sep << citer->getConvexHulls().begin()->getBoundingBox().minX();
+          	outstr << sep << citer->getConvexHulls().begin()->getBoundingBox().maxX();
 					}
 					else
 					{
-						outstr << " -1";
-						outstr << " -1";
+						outstr << sep << "-1";
+						outstr << sep << "-1";
 					}
           outstr << endl;
+          
+          //peptide ids
+          if (!no_ids)
+          {
+          	for (vector<PeptideIdentification>::const_iterator pit = citer->getPeptideIdentifications().begin(); pit != citer->getPeptideIdentifications().end(); ++pit)
+          	{
+          		for (vector<PeptideHit>::const_iterator ppit = pit->getHits().begin(); ppit!=pit->getHits().end(); ++ppit)
+          		{
+		          	outstr  << "PEPTIDE" << sep;
+	        			if (pit->metaValueExists("RT"))
+								{
+									outstr << (DoubleReal)pit->getMetaValue("RT") << sep;
+								}
+								else
+								{
+									outstr << "-1" << sep;
+								}
+	
+								if (pit->metaValueExists("MZ"))
+								{
+									outstr << (DoubleReal)pit->getMetaValue("MZ") << sep;
+								}
+								else
+								{
+									outstr << "-1" << sep;
+								}
+		    				outstr  << ppit->getScore() << sep
+												<< ppit->getRank() << sep
+												<< ppit->getSequence() << sep
+												<< ppit->getCharge() << sep
+												<< ppit->getAABefore() << sep
+												<< ppit->getAAAfter() << sep
+	              				<< pit->getScoreType() << sep
+	              				<< pit->getIdentifier() << endl;
+					    }
+						}
+          }
         }
         outstr.close();
-
       }
       else if (in_type == FileTypes::CONSENSUSXML)
       {
@@ -303,12 +343,6 @@ namespace OpenMS
 				else if ( sorting_method == "quality_increasing")
 				{
 					consensus_map.sortByQuality(false);
-				}
-				else
-				{
-					// wrong sorting methods should already be trapped by setValidStrings_, but who knows...
-					writeLog_(String("Error: unknown sorting method: ")+sorting_method);
-					return PARSE_ERROR;
 				}
 
 				if ( sort_by_maps )
@@ -455,31 +489,42 @@ namespace OpenMS
 				counter = 0;
 				ofstream txt_out(out.c_str());
 
+				txt_out << "#RUN" << sep << "RunID" << sep << "ScoreType" << sep << "ScoreDirection" << sep << "Date/Time" << sep << "SearchEngineVersion" << sep << "Parameters" << endl;
+				txt_out << "#PROTEIN" << sep << "Score" << sep << "Rank" << sep << "Accession" << sep << "Sequence" << endl;
+				
+				if (first_dim_rt)
+				{
+  				txt_out << "#PEPTIDE" << sep << "RT" << sep << "MZ" << sep << "Score" << sep << "Rank" << sep << "Sequence" << sep << "Charge" << sep << "AABefore" << sep << "AAAfter" << sep << "Accessions" << sep << "predicted_RT" << sep << "RT_first_dim" << sep << "predicted_RT_first_dim" << endl;
+				}
+				else
+				{
+  				txt_out << "#PEPTIDE" << sep << "RT" << sep << "MZ" << sep << "Score" << sep << "Rank" << sep << "Sequence" << sep << "Charge" << sep << "AABefore" << sep << "AAAfter" << sep << "Accessions" << sep << "predicted_RT" << endl;
+  			}
+
 				for (vector<ProteinIdentification>::const_iterator it = prot_ids.begin(); it != prot_ids.end(); ++it)
 				{
 					String actual_id = it->getIdentifier();
-					if (!getFlag_("peptides_only") && !getFlag_("peptides_only_csv"))
+					if (!getFlag_("peptides_only"))
 					{
 						// protein id header
-						txt_out << "# Run ID, Score Type, Score Direction, Date/Time, Search Engine Version " << endl;
-						txt_out << actual_id << " "
-										<< it->getScoreType() << " ";
+						txt_out << "RUN" << sep 
+										<< actual_id << sep
+										<< it->getScoreType() << sep;
 						if (it->isHigherScoreBetter())
 						{
-							txt_out << "higher-score-better ";
+							txt_out << "higher-score-better" << sep;
 						}
 						else
 						{
-							txt_out << "lower-score-better ";
+							txt_out << "lower-score-better" << sep;
 						}
 						// using ISODate ensures that TOPP tests will run through regardless of locale setting
-						txt_out << it->getDateTime().toString(Qt::ISODate).toStdString() << " "
-										<< it->getSearchEngineVersion() << endl;
+						txt_out << it->getDateTime().toString(Qt::ISODate).toStdString() << sep
+										<< it->getSearchEngineVersion() << sep;
 
 						// search parameters
 						ProteinIdentification::SearchParameters sp = it->getSearchParameters();
-						txt_out << "# Search parameters of ID=" << actual_id
-										<< ": db=" << sp.db
+						txt_out << "db=" << sp.db
 										<< ", db_version=" << sp.db_version
 										<< ", taxonomy=" << sp.taxonomy
 										<< ", charges=" << sp.charges
@@ -532,15 +577,12 @@ namespace OpenMS
 										<< ", peak_mass_tolerance=" << sp.peak_mass_tolerance
 										<< ", precursor_mass_tolerance=" << sp.precursor_tolerance << endl;
 
-
-						// header of protein hits
-						txt_out << "# Protein Hits: Score, Rank, Accession, Sequence" << endl;
-
 						for (vector<ProteinHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
 						{
-							txt_out << pit->getScore() << " "
-											<< pit->getRank() << " "
-											<< pit->getAccession() << " "
+							txt_out << "PROTEIN" << sep
+											<< pit->getScore() << sep
+											<< pit->getRank() << sep
+											<< pit->getAccession() << sep
 											<< pit->getSequence() << endl;
 						}
 					}
@@ -555,88 +597,32 @@ namespace OpenMS
 						{
 							if (pit->getIdentifier() == actual_id)
 							{
-								if (!without_header_repetition)
-								{
-									// header of peptide idenfication
-									txt_out << "# RunID, RT, m/z, ScoreType, Score Direction" << endl;
-									txt_out << actual_id << " ";
-
+            		for (vector<PeptideHit>::const_iterator ppit = pit->getHits().begin(); ppit != pit->getHits().end(); ++ppit)
+            		{
+            			txt_out << "PEPTIDE" << sep;
 									if (pit->metaValueExists("RT"))
 									{
-										txt_out << (double)pit->getMetaValue("RT") << " ";
+										txt_out << (DoubleReal)pit->getMetaValue("RT") << sep;
 									}
 									else
 									{
-										txt_out << "-1 ";
+										txt_out << "-1" << sep;
 									}
 
 									if (pit->metaValueExists("MZ"))
 									{
-										txt_out << (double)pit->getMetaValue("MZ") << " ";
+										txt_out << (DoubleReal)pit->getMetaValue("MZ") << sep;
 									}
 									else
 									{
-										txt_out << "-1 ";
+										txt_out << "-1" << sep;
 									}
-
-									txt_out	<< pit->getScoreType() << " ";
-									if (pit->isHigherScoreBetter())
-	            		{
-	              		txt_out << "higher-score-better ";
-	            		}
-	            		else
-	            		{
-	              		txt_out << "lower-score-better ";
-	           			}
-									txt_out << endl;
-								}
-
-								// header of peptide hits
-								if (without_header_repetition && counter == 0)
-								{
-									if (first_dim_rt)
-									{
-            				txt_out << "RT MZ Score Rank Sequence Charge AABefore AAAfter Accessions predicted_RT RT_first_dim predicted_RT_first_dim" << endl;
-									}
-									else
-									{
-            				txt_out << "RT MZ Score Rank Sequence Charge AABefore AAAfter Accessions predicted_RT" << endl;
-            			}
-            			++counter;
-            		}
-            		else if (counter == 0)
-            		{
-            			txt_out << "# Peptide Hits: Score, Rank, Sequence, Charge, AABefore, AAAfter, Accessions, predicted_RT" << endl;
-            		}
-
-            		for (vector<PeptideHit>::const_iterator ppit = pit->getHits().begin(); ppit != pit->getHits().end(); ++ppit)
-            		{
-            			if (without_header_repetition)
-            			{
-										if (pit->metaValueExists("RT"))
-										{
-											txt_out << (double)pit->getMetaValue("RT") << " ";
-										}
-										else
-										{
-											txt_out << "-1 ";
-										}
-
-										if (pit->metaValueExists("MZ"))
-										{
-											txt_out << (double)pit->getMetaValue("MZ") << " ";
-										}
-										else
-										{
-											txt_out << "-1 ";
-										}
-            			}
-              		txt_out << ppit->getScore() << " "
-                		      << ppit->getRank() << " "
-                  		    << ppit->getSequence() << " "
-													<< ppit->getCharge() << " "
-													<< ppit->getAABefore() << " "
-													<< ppit->getAAAfter() << " ";
+              		txt_out << ppit->getScore() << sep
+                		      << ppit->getRank() << sep
+                  		    << ppit->getSequence() << sep
+													<< ppit->getCharge() << sep
+													<< ppit->getAABefore() << sep
+													<< ppit->getAAAfter() << sep;
 
 									for (vector<String>::const_iterator ait = ppit->getProteinAccessions().begin(); ait != ppit->getProteinAccessions().end(); ++ait)
 									{
@@ -648,29 +634,29 @@ namespace OpenMS
 									}
 									if (ppit->metaValueExists("predicted_RT"))
 									{
-										txt_out << " " << ppit->getMetaValue("predicted_RT");
+										txt_out << sep << ppit->getMetaValue("predicted_RT");
 									}
 									else
 									{
-										txt_out << " -1";
+										txt_out << sep << "-1";
 									}
 									if (first_dim_rt)
 									{
 										if (pit->metaValueExists("first_dim_rt"))
 										{
-											txt_out << " " << pit->getMetaValue("first_dim_rt");
+											txt_out << sep << pit->getMetaValue("first_dim_rt");
 										}
 										else
 										{
-											txt_out << " -1";
+											txt_out << sep << "-1";
 										}
 										if (ppit->metaValueExists("predicted_RT_first_dim"))
 										{
-											txt_out << " " << ppit->getMetaValue("predicted_RT_first_dim");
+											txt_out << sep << ppit->getMetaValue("predicted_RT_first_dim");
 										}
 										else
 										{
-											txt_out << " -1";
+											txt_out << sep << "-1";
 										}
 									}
 									txt_out << endl;
@@ -682,12 +668,6 @@ namespace OpenMS
 
 				txt_out.close();
 			}
-      else
-      {
-        writeLog_("Unknown input file type given. Aborting!");
-        printUsage_();
-        return ILLEGAL_PARAMETERS;
-      }
 
 			return EXECUTION_OK;
 		}
