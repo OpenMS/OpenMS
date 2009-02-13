@@ -421,7 +421,7 @@ svn propset svn:eol-style native MyClass.C
 					<LI> Prepare the platform-independent sources release file:
 						<OL>
 							<LI> Update version number of TOPPView splash screen <TT>source/APPLICATIONS/TOPP/</TT>
-							<LI> Update version number in <TT>CMakeLists.txt</TT>
+							<LI> Update version number in <TT>CMakeLists.txt</TT> (CF_PACKAGE_VERSION variable)
 							<LI> Update version number in <TT>doc/OpenMS_tutorial/refman_overwrite.tex</TT>
 							<LI> Update version number in <TT>doc/TOPP_tutorial/refman_overwrite.tex</TT>
 							<LI> Run cmake
@@ -438,8 +438,7 @@ svn propset svn:eol-style native MyClass.C
 								</OL>
 							<LI>(Linux) Prepare the contrib release file:
 								<OL>
-									<LI> Update Version number in <TT>configure.ac</TT> (AC_INIT macro)
-									<LI> Run autoconf in <TT>source/</TT>
+									<LI> Update Version number in <TT>CMakeLists.txt</TT> (CF_PACKAGE_VERSION variable)
 									<LI> Commit the changes to the SVN repository
 								</OL>
 							<LI> Run the script <TT>tools/make_dist.sh</TT> according to the help shown when executed.

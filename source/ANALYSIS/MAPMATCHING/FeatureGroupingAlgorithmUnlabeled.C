@@ -63,7 +63,7 @@ namespace OpenMS
 
     // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
 		ConsensusMap::convert( reference_map_index, maps[reference_map_index], input[0] );
-  
+  	
 		// loop over all other maps, extend the groups
 		ConsensusMap result;
 		for (Size i = 0; i < maps.size(); ++i)
@@ -78,7 +78,11 @@ namespace OpenMS
 				input[0].swap(result);
 			}
 		}
-		out.ConsensusMap::Base::swap(input[0]);		
+		
+		//replace result with temporary map
+		out.swap(input[0]);
+		//overwrite input maps (they habe been deleted while swapping)
+		out.getFileDescriptions() = input[0].getFileDescriptions();
 	}
 
 } // namespace OpenMS

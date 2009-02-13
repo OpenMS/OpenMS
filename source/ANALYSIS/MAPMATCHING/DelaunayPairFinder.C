@@ -370,7 +370,10 @@ namespace OpenMS
 						// create a consensus feature
 						result_map.push_back(ConsensusFeature());
 						result_map.back().insert( input_maps[1][scene_cf_index] );
+						result_map.back().getPeptideIdentifications().insert(result_map.back().getPeptideIdentifications().end(),input_maps[1][scene_cf_index].getPeptideIdentifications().begin(),input_maps[1][scene_cf_index].getPeptideIdentifications().end());
 						result_map.back().insert( input_maps[0][model_cf_index] );
+						result_map.back().getPeptideIdentifications().insert(result_map.back().getPeptideIdentifications().end(),input_maps[0][model_cf_index].getPeptideIdentifications().begin(),input_maps[0][model_cf_index].getPeptideIdentifications().end());
+						
 						result_map.back().computeConsensus();
 						V_("Result " << current_result_cf_index << " : " << result_map.back());
 						++current_result_cf_index;
@@ -391,7 +394,7 @@ namespace OpenMS
 				{
 					result_map.push_back(ConsensusFeature());
 					result_map.back().insert( (*maps_array[input])[index] );
-
+					result_map.back().getPeptideIdentifications().insert(result_map.back().getPeptideIdentifications().end(),(*maps_array[input])[index].getPeptideIdentifications().begin(),(*maps_array[input])[index].getPeptideIdentifications().end());
 					result_map.back().computeConsensus();
 					V_("Result " << current_result_cf_index << " : " << result_map.back());
 					V_("matches["<<input<<"]["<<index<< "]: " << matches[input][index] );
@@ -439,10 +442,13 @@ namespace OpenMS
 		// Very useful for checking the results, and the ids have no real meaning anyway
 		result_map.sortByMZ();
 
-		setProgress(++progress);
-		endProgress();
+		//Add protein identifications to result map
+		result_map.getProteinIdentifications().insert(result_map.getProteinIdentifications().end(),input_maps[1].getProteinIdentifications().begin(), input_maps[1].getProteinIdentifications().end());
 
-    return;
+		//Add unassigned peptide identifications to result map
+		result_map.getUnassignedPeptideIdentifications().insert(result_map.getUnassignedPeptideIdentifications().end(),input_maps[1].getUnassignedPeptideIdentifications().begin(), input_maps[1].getUnassignedPeptideIdentifications().end());
+
+		endProgress();
   }
 
 }
