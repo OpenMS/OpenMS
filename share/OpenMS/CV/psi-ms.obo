@@ -5272,7 +5272,7 @@ name: absorption chromatogram
 def: "The measurement of light absorbed by the sample as a function of
 the retention time." [PSI:MS]
 is_a: MS:1000524 ! data file content
-is_a: MS:1000812 ! electromagnetic radiation chromatogram 
+is_a: MS:1000811 ! electromagnetic radiation chromatogram 
 
 [Term]
 id: MS:1000813
@@ -5280,7 +5280,7 @@ name: emission chromatogram
 def: "The measurement of light emitted by the sample as a function of
 the retention time." [PSI:MS]
 is_a: MS:1000524 ! data file content
-is_a: MS:1000812 ! electromagnetic radiation chromatogram 
+is_a: MS:1000811 ! electromagnetic radiation chromatogram 
 
 [Typedef]
 id: has_units
