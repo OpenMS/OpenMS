@@ -37,11 +37,8 @@
 		<UL>
 
 			<LI><B>(Linux) When executing 'make test', all tests fail.</B>
-			<BR> If a error message similar to
-			@code error while loading shared libraries: libOpenMS.so: cannot open shared object file @endcode
-			is shown, you have probably not correctly added your &lt;%OpenMS&gt;/lib/ folder to the environment variable <i>LD_LIBRARY_PATH</i>.
 			
-			Please check the settings:
+			Please check the LD_LIBRARY_PATH environment variable:
 			- You can print the LD_LIBRARY_PATH with '<i>echo $LD_LIBRARY_PATH</i>'.
 			- If your <i>&lt;%OpenMS&gt;/lib/</i> folder is included, check that <i>libOpenMS.so</i> 
 			  is present in the folder. If it is not, you have properly forgotten to execute '<i>make install</i>'.

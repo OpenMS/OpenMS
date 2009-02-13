@@ -3,16 +3,15 @@
 ------------------------------------------------------------------------------------------
 
 New features and improvements of OpenMS:
-- The build system is now based on CMake supporting Linux, MacOS and Windows.
+- The build system is now based on CMake - supporting Linux, MacOS and Windows.
 - Finalized mzML implementation (version 1.10)
   - previously unsupported parts
   - indexed mzML
   - semantic validation (see FileInfo)
-  - correctly handling of nativeID for all formats
 - Kernel: Replaced comparators NthPositionLess by the comparator(s) RTLess and/or MZLess.
 - Kernel: Replaced methods sortByNthPosition() by the method(s) sortByRT() and/or sortByMZ().
 - Improved the framework for meta data visualization.
-- Meta data: Several extensions to the meta data handling classes for mzML compliance.
+- Several extensions to the meta data classes were made for mzML compliance.
 - The macros used for unit testing in source/TEST have been revised.
 - More consistent handling of single vs. double numeric precision, esp. in file output.
 - Added ANALYSIS/PIP/PeakIntensityPredictor class for peak intensity prediction (contributed by Alexandra Scherbart).
@@ -32,7 +31,9 @@ New features and improvements of TOPP:
 
 New features and improvements of TOPPView:
 - Added functionality for editing feature data
+- Added support for consensus features (consensusXML)
 - Added measuring and generic annotations to 1D view
+- Several minor interface improvements and bugfixes
 
 Changes to OpenMS XML formats:
 - ParamXML:
@@ -43,16 +44,16 @@ Changes to OpenMS XML formats:
 - featureXML:
   - Added tag <subordinate> to store competing features that did not qualify for the final map
   - Removed <description> section
-  - Added document Id
+  - Added document identifier
   - Added protein and peptide information
 - consensusXML:
-	- Added document Id
+	- Added document identifier
 	- Added protein and peptide information
 - idXML:
-	- Added document Id
+	- Added document identifier
 
 Changes to the contrib package:
-- The build system is now based on CMake supporting Linux, MacOS and Windows.
+- The build system is now based on CMake - supporting Linux, MacOS and Windows.
 - Updated SeqAn package to revision 2666 (this fixes the STL debug error)
 - Updated xerces-c to version 3.0.0
 - Updated boost to version 1.37.0

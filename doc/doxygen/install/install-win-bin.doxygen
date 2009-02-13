@@ -2,8 +2,7 @@
 
 	@page install_win_bin Installation on Windows
   
-	In order to install the binary package of TOPP, simply download and execute the OpenMS-1.3_setup.exe and follow the instructions.
-	Voilá.
+	In order to install the binary package of TOPP, simply download and execute the installer from http://www.OpenMS.de and follow the instructions.
 	
 	Hint [Windows Vista only]: You might need to disable User Account Control, depending on which TOPP tool you use.
 	

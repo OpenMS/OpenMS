@@ -82,8 +82,8 @@
 				Documentation:
 				<UL>
 				  <LI> @subpage OpenMSTutorial
-					<LI> @subpage development
 				  <LI> @subpage coding_conventions
+					<LI> @subpage external_code
 				</UL>
 				
 				@if INTERNAL_INFO
