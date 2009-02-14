@@ -122,8 +122,6 @@
 			<li>We applied some patches to the libraries to fix some bugs. <BR><b>These bugs may be fatal if you do not use the contrib package.</b></li>
 		</ul>
 
-=======		@subsection install_win_contrib Contrib installation
-
   @b Download:
 
   The contrib package is contained in the %OpenMS release package.
